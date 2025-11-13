@@ -1,0 +1,132 @@
+/* ============================
+   Modal Overlay (Background)
+   ============================ */
+.modal-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+
+  background: transparent; /* no color at all */
+
+  backdrop-filter: blur(2px);
+  -webkit-backdrop-filter: blur(6px);
+
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  z-index: 1000;
+}
+
+
+/* ============================
+   Modal Box
+   ============================ */
+.modal-content {
+  background: #ffffff;
+  width: 420px;
+  border-radius: 16px;
+  padding: 28px 24px;
+  box-shadow: 0 8px 28px rgba(0, 0, 0, 0.12);
+  position: relative;
+  animation: modalPop 0.2s ease-out;
+  font-family: "Inter", sans-serif;
+}
+
+/* Smooth pop animation */
+@keyframes modalPop {
+  from {
+    transform: scale(0.95);
+    opacity: 0.3;
+  }
+  to {
+    transform: scale(1);
+    opacity: 1;
+  }
+}
+
+/* ============================
+   Close Button
+   ============================ */
+.close-btn {
+  position: absolute;
+  top: 12px;
+  right: 14px;
+  background: #f2f2f2;
+  border: none;
+  width: 26px;
+  height: 26px;
+  border-radius: 50%;
+  font-size: 14px;
+  cursor: pointer;
+  color: #444;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  transition: 0.2s ease;
+}
+
+.close-btn:hover {
+  background: #e0e0e0;
+}
+
+/* ============================
+   Form Styles
+   ============================ */
+.card-form {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  margin-top: 20px;
+}
+
+.card-form label {
+  display: flex;
+  flex-direction: column;
+  color: #333;
+  font-weight: 600;
+  font-size: 14px;
+}
+
+.card-form input,
+.card-form textarea {
+  margin-top: 6px;
+  padding: 10px 12px;
+  border: 1px solid #cfcfcf;
+  border-radius: 8px;
+  font-size: 14px;
+  background: #fafafa;
+  outline: none;
+  transition: border-color 0.2s ease;
+}
+
+.card-form input:focus,
+.card-form textarea:focus {
+  border-color: #2a00ff;
+  background: #fff;
+}
+
+.card-form textarea {
+  resize: vertical;
+  min-height: 80px;
+}
+
+/* ============================
+   Save Button
+   ============================ */
+.save-btn {
+  background-color: #2a00ff;
+  color: #ffffff;
+  border: none;
+  padding: 12px 16px;
+  border-radius: 8px;
+  cursor: pointer;
+  font-weight: 600;
+  font-size: 14px;
+  transition: background 0.2s ease;
+}
+
+.save-btn:hover {
+  background-color: #2100cc;
+}

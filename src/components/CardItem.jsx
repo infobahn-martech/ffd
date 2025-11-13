@@ -4,10 +4,12 @@ import { InprogressIcon } from "../assets/svgs";
 import PolygonIcon from "../assets/images/PolygonIcon.svg";
 import MessageIcon from "../assets/images/MessageIcon.svg";
 import ClockIcon from "../assets/images/ClockIcon.png";
+import CardForm from "./CardForm";
 
 
-export default function CardItem({ card, index }) {
+export default function CardItem({ card, index,isCardFormOpen,setIsCardFormOpen }) {
   return (
+        <>
     <Draggable draggableId={card.id} index={index}>
       {(provided, snapshot) => (
         <div
@@ -32,12 +34,12 @@ export default function CardItem({ card, index }) {
 
           {/* Title */}
           <div className="card-title-row" style={{ position: "relative" }}>
-  <h3 className="card-title">{card.title}</h3>
-  <div
+        <h3 className="card-title" onClick={()=>setIsCardFormOpen(true)}>{card.title}</h3>
+   <div
     className="card-avatar"
     data-initial={card.user?.[0]?.toUpperCase()}
     style={{ "--card-color": card.color }}
-  ></div>
+ />
 </div>
 
 
@@ -101,5 +103,7 @@ export default function CardItem({ card, index }) {
         </div>
       )}
     </Draggable>
+    {!!isCardFormOpen && <CardForm show={isCardFormOpen} close={()=>setIsCardFormOpen(false)}/>}
+    </>
   );
 }

@@ -3,7 +3,8 @@ import CardItem from "./CardItem";
 import "../assets/styles/Column.css";
 import PriorityIcon from "../assets/images/Priority.svg";
 
-export default function Column({ column, cards }) {
+export default function Column({ column, cards,isCardFormOpen,setIsCardFormOpen }) {
+
   return (
     <div className="column">
       <div
@@ -32,7 +33,7 @@ export default function Column({ column, cards }) {
             {...provided.droppableProps}
           >
             {cards.map((card, index) => (
-              <CardItem key={card.id} card={card} index={index} />
+              <CardItem key={card.id} card={card} index={index} isCardFormOpen={isCardFormOpen} setIsCardFormOpen={setIsCardFormOpen}/>
             ))}
             {provided.placeholder}
           </div>

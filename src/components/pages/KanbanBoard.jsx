@@ -6,6 +6,7 @@ import Column from "../Column";
 
 export default function KanbanBoard() {
   const [data, setData] = useState(initialData);
+  const [isCardFormOpen, setIsCardFormOpen] = useState(false);
 
   const onDragEnd = (result) => {
     const { destination, source, draggableId } = result;
@@ -60,7 +61,7 @@ export default function KanbanBoard() {
           {data.columnOrder.map((colId) => {
             const column = data.columns[colId];
             const cards = column.cardIds.map((id) => data.cards[id]);
-            return <Column key={column.id} column={column} cards={cards} />;
+            return <Column key={column.id} column={column} cards={cards} isCardFormOpen={isCardFormOpen} setIsCardFormOpen={setIsCardFormOpen} />;
           })}
         </div>
       </DragDropContext>
