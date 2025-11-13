@@ -122,3 +122,31 @@ header {
 [data-rbd-drag-handle-draggable-id]:active {
   cursor: grabbing;
 }
+
+/* Zoom */
+.zoom-controls {
+  position: fixed;
+  top: 90px;
+  right: 40px;
+  z-index: 50;
+  display: flex;
+  gap: 8px;
+}
+
+.zoom-controls button {
+  background: #fff;
+  border: 1px solid #d1d5db;
+  padding: 6px 12px;
+  border-radius: 6px;
+  font-size: 16px;
+  cursor: pointer;
+  box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+}
+
+.zoom-controls button:hover {
+  background: #f3f4f6;
+}
+
+.kanban-zoom-wrapper {
+  width: max-content; /* Prevent shrink */
+}
