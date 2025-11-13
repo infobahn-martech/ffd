@@ -1,13 +1,14 @@
+/* eslint-disable no-unused-vars */
 import { Draggable } from "@hello-pangea/dnd";
 import "../assets/styles/CardItem.css";
 import { InprogressIcon } from "../assets/svgs";
 import PolygonIcon from "../assets/images/PolygonIcon.svg";
 import MessageIcon from "../assets/images/MessageIcon.svg";
 import ClockIcon from "../assets/images/ClockIcon.png";
-import CardForm from "./CardForm";
 
 
-export default function CardItem({ card, index,isCardFormOpen,setIsCardFormOpen }) {
+
+export default function CardItem({ card, index ,setSelectedCard}) {
   return (
         <>
     <Draggable draggableId={card.id} index={index}>
@@ -34,7 +35,11 @@ export default function CardItem({ card, index,isCardFormOpen,setIsCardFormOpen 
 
           {/* Title */}
           <div className="card-title-row" style={{ position: "relative" }}>
-        <h3 className="card-title" onClick={()=>setIsCardFormOpen(true)}>{card.title}</h3>
+    {/* <h3 className="card-title" onClick={() => setSelectedCard(card)}> */}
+    <h3 className="card-title">
+    {card.title}
+</h3>
+
    <div
     className="card-avatar"
     data-initial={card.user?.[0]?.toUpperCase()}
@@ -103,7 +108,6 @@ export default function CardItem({ card, index,isCardFormOpen,setIsCardFormOpen 
         </div>
       )}
     </Draggable>
-    {!!isCardFormOpen && <CardForm show={isCardFormOpen} close={()=>setIsCardFormOpen(false)}/>}
     </>
   );
 }

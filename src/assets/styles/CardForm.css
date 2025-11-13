@@ -1,132 +1,353 @@
-/* ============================
-   Modal Overlay (Background)
-   ============================ */
-.modal-overlay {
+.cardform-overlay {
   position: fixed;
-  top: 0;
-  left: 0;
-  right: 0;
-  bottom: 0;
-
-  background: transparent; /* no color at all */
-
-  backdrop-filter: blur(2px);
-  -webkit-backdrop-filter: blur(6px);
-
+  inset: 0;
   display: flex;
-  justify-content: center;
-  align-items: center;
-  z-index: 1000;
-}
-
-
-/* ============================
-   Modal Box
-   ============================ */
-.modal-content {
-  background: #ffffff;
-  width: 420px;
-  border-radius: 16px;
-  padding: 28px 24px;
-  box-shadow: 0 8px 28px rgba(0, 0, 0, 0.12);
-  position: relative;
-  animation: modalPop 0.2s ease-out;
+  justify-content: center;   /* center horizontally */
+  align-items: center;        /* center vertically */
+  background: rgba(61, 59, 59, 0.05); /* light transparent BG */
+  z-index: 200;
   font-family: "Inter", sans-serif;
 }
 
-/* Smooth pop animation */
-@keyframes modalPop {
-  from {
-    transform: scale(0.95);
-    opacity: 0.3;
-  }
-  to {
-    transform: scale(1);
-    opacity: 1;
-  }
+
+/* Panel */
+.cardform-panel {
+  width: 1240px;
+  max-height: 90vh; /* prevent touching top/bottom edges */
+  border-radius: 14px;
+  background: #f5f5f8;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+  box-shadow: 0 6px 24px rgba(0, 0, 0, 0.18);
 }
 
-/* ============================
-   Close Button
-   ============================ */
-.close-btn {
-  position: absolute;
-  top: 12px;
-  right: 14px;
-  background: #f2f2f2;
+
+/* Top bar */
+.cardform-topbar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 10px 18px;
+  color: #fff;
+}
+
+.cardform-topbar-left {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.cardform-topbar-icon {
+  width: 28px;
+  height: 28px;
+  border-radius: 8px;
+  border: 2px solid rgba(255, 255, 255, 0.7);
+}
+
+.cardform-topbar-text {
+  display: flex;
+  flex-direction: column;
+}
+
+.cardform-id {
+  font-size: 12px;
+  opacity: 0.9;
+}
+
+.cardform-title {
+  font-size: 14px;
+  font-weight: 600;
+}
+
+.cardform-close-btn {
   border: none;
+  background: rgba(0, 0, 0, 0.12);
+  color: #fff;
+  border-radius: 999px;
+  width: 28px;
+  height: 28px;
+  cursor: pointer;
+}
+
+/* Tabs row */
+.cardform-tabs {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  padding: 10px 24px;
+  background: #f0f1f6;
+}
+
+.cardform-tabs .tab {
+  border: none;
+  background: transparent;
+  font-size: 12px;
+  color: #6b6b6b;
+  padding: 4px 10px;
+  border-radius: 999px;
+  cursor: pointer;
+}
+
+.cardform-tabs .tab.active {
+  background: #ffffff;
+  color: #222;
+}
+
+/* Body */
+.cardform-body {
+  display: flex;
+  padding: 18px 22px 10px;
+  gap: 18px;
+  overflow-y: auto;
+}
+
+
+/* Left column */
+.cardform-left {
+  width: 360px;
+  min-width: 340px;
+}
+
+/* Right grey content */
+.cardform-right {
+  flex: 1;
+  border-radius: 10px;
+  background: #e1e2e8;
+}
+
+/* Footer */
+.cardform-footer {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 12px 30px 16px;
+  border-top: 1px solid #e1e2e8;
+  background: #f5f5f8;
+}
+
+.cardform-footer-steps {
+  display: flex;
+  align-items: center;
+  gap: 40px;
+}
+
+.step-dot {
+  width: 16px;
+  height: 16px;
+  border-radius: 999px;
+  border: 2px solid #bcbcbc;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.step-dot img {
+  width: 12px;
+  height: 12px;
+}
+
+.step-dot.active {
+  background: #0047ff;
+  border-color: #0047ff;
+}
+
+.cardform-update-btn {
+  border: none;
+  color: #fff;
+  font-size: 13px;
+  font-weight: 500;
+  border-radius: 999px;
+  padding: 8px 24px;
+  cursor: pointer;
+}
+
+/* Accordion */
+.cf-accordion {
+  background: #ffffff;
+  border-radius: 10px;
+  margin-bottom: 10px;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.04);
+}
+
+.cf-accordion-header {
+  width: 100%;
+  padding: 10px 14px;
+  border: none;
+  background: transparent;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  cursor: pointer;
+}
+
+.cf-accordion-left {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.cf-accordion-icon {
+  width: 20px;
+  height: 20px;
+  border-radius: 999px;
+  background: #0047ff;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.cf-accordion-icon img {
+  width: 12px;
+  height: 12px;
+}
+
+.cf-accordion-title {
+  font-size: 13px;
+  font-weight: 500;
+}
+
+.cf-accordion-arrow img {
+  width: 10px;
+  height: 10px;
+  transition: transform 0.2s ease;
+}
+
+.cf-accordion-arrow.open img {
+  transform: rotate(180deg);
+}
+
+.cf-accordion-body {
+  padding: 10px 14px 14px;
+  border-top: 1px solid #f0f0f0;
+}
+
+/* Fields */
+.cf-field {
+  margin-bottom: 10px;
+}
+
+.cf-field label {
+  display: block;
+  font-size: 11px;
+  color: #757575;
+  margin-bottom: 4px;
+}
+
+.cf-input {
+  background: #f4f4f7;
+  border-radius: 999px;
+  padding: 6px 12px;
+  border: 1px solid #e2e2ea;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.cf-input input,
+.cf-input select {
+  border: none;
+  background: transparent;
+  font-size: 12px;
+  outline: none;
+  width: 100%;
+  color: #222;
+}
+
+.cf-input.with-icon img {
+  width: 14px;
+  height: 14px;
+}
+
+.cf-grid.two {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 10px;
+}
+
+/* Owner row */
+.cf-owner-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.cf-owner-avatar {
   width: 26px;
   height: 26px;
   border-radius: 50%;
-  font-size: 14px;
-  cursor: pointer;
-  color: #444;
+  background: #d3d5ff;
   display: flex;
-  justify-content: center;
   align-items: center;
-  transition: 0.2s ease;
-}
-
-.close-btn:hover {
-  background: #e0e0e0;
-}
-
-/* ============================
-   Form Styles
-   ============================ */
-.card-form {
-  display: flex;
-  flex-direction: column;
-  gap: 16px;
-  margin-top: 20px;
-}
-
-.card-form label {
-  display: flex;
-  flex-direction: column;
-  color: #333;
+  justify-content: center;
+  font-size: 12px;
   font-weight: 600;
-  font-size: 14px;
+  color: #1f1f4f;
 }
 
-.card-form input,
-.card-form textarea {
-  margin-top: 6px;
-  padding: 10px 12px;
-  border: 1px solid #cfcfcf;
-  border-radius: 8px;
-  font-size: 14px;
-  background: #fafafa;
-  outline: none;
-  transition: border-color 0.2s ease;
+.cf-owner-select {
+  flex: 1;
+  border-radius: 999px;
+  border: 1px solid #e2e2ea;
+  background: #f4f4f7;
+  padding: 4px 10px;
+  font-size: 12px;
 }
 
-.card-form input:focus,
-.card-form textarea:focus {
-  border-color: #2a00ff;
-  background: #fff;
+/* ETA row date + time */
+.eta-row {
+  gap: 6px;
+  position: relative;
 }
 
-.card-form textarea {
-  resize: vertical;
-  min-height: 80px;
+.eta-row input[type="date"],
+.eta-row input[type="time"] {
+  width: 50%;
 }
 
-/* ============================
-   Save Button
-   ============================ */
-.save-btn {
-  background-color: #2a00ff;
-  color: #ffffff;
+.eta-icon {
+  position: absolute;
+  right: 10px;
+  width: 14px;
+  height: 14px;
+}
+
+/* Last moved */
+.lastmoved-row {
+  gap: 6px;
+}
+
+.lastmoved-row input {
+  width: 50%;
+}
+
+/* Empty rows for attachments/links */
+.cf-empty-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  font-size: 12px;
+  color: #666;
+}
+
+.cf-link-btn {
   border: none;
-  padding: 12px 16px;
-  border-radius: 8px;
+  background: transparent;
+  color: #0047ff;
+  font-size: 12px;
   cursor: pointer;
-  font-weight: 600;
-  font-size: 14px;
-  transition: background 0.2s ease;
 }
 
-.save-btn:hover {
-  background-color: #2100cc;
+/* Responsive */
+@media (max-width: 960px) {
+  .cardform-panel {
+    width: 100%;
+  }
+  .cardform-body {
+    flex-direction: column;
+  }
+  .cardform-left {
+    width: 100%;
+    min-width: 0;
+  }
 }

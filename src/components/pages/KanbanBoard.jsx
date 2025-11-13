@@ -3,10 +3,12 @@ import { DragDropContext } from "@hello-pangea/dnd";
 
 import { initialData } from "../../utils/data";
 import Column from "../Column";
+import CardForm from "../CardForm";
 
 export default function KanbanBoard() {
   const [data, setData] = useState(initialData);
-  const [isCardFormOpen, setIsCardFormOpen] = useState(false);
+  const [selectedCard, setSelectedCard] = useState(null);
+
 
   const onDragEnd = (result) => {
     const { destination, source, draggableId } = result;
@@ -53,19 +55,27 @@ export default function KanbanBoard() {
     });
   };
 
-  return (
-    <div className="kanban-container">
+  return (<>
+   <div className="kanban-container">
       <div style={{ overflow: 'visible', position: 'relative', height: '100%' }}>
       <DragDropContext onDragEnd={onDragEnd}>
         <div className="kanban-board">
           {data.columnOrder.map((colId) => {
             const column = data.columns[colId];
             const cards = column.cardIds.map((id) => data.cards[id]);
-            return <Column key={column.id} column={column} cards={cards} isCardFormOpen={isCardFormOpen} setIsCardFormOpen={setIsCardFormOpen} />;
+            return <Column key={column.id} column={column} cards={cards} setSelectedCard={setSelectedCard}/>;
           })}
         </div>
       </DragDropContext>
       </div>
     </div>
+    {selectedCard && (
+  <CardForm
+    show={!!selectedCard}
+    close={() => setSelectedCard(null)}
+    card={selectedCard}
+  />
+)}
+  </>
   );
 }
