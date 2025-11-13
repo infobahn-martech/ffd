@@ -1,0 +1,168 @@
+/* ===== Base Reset ===== */
+body {
+  margin: 0;
+  font-family: "Inter", sans-serif;
+  background: #f7f8fa;
+  color: #111;
+  overflow-x: hidden;
+}
+
+/* ===== App Header ===== */
+.app-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  background: #fff;
+  padding: 12px 28px;
+  border-bottom: 1px solid #e5e7eb;
+  position: sticky;
+  top: 0;
+  z-index: 10;
+}
+
+.app-header h1 {
+  font-size: 22px;
+  font-weight: 700;
+  margin: 0;
+}
+
+.app-header input {
+  border: 1px solid #ddd;
+  border-radius: 6px;
+  padding: 8px 14px;
+  font-size: 14px;
+}
+
+/* ===== Kanban Layout ===== */
+.kanban-board {
+  display: flex;
+  flex-wrap: nowrap;      /* keep columns in a row */
+  gap: 20px;
+  align-items: flex-start;
+  width: max-content;     /* expand horizontally */
+}
+
+
+
+
+
+.kanban-board {
+  display: flex;
+  flex-wrap: nowrap; /* ✅ keeps columns side by side horizontally */
+  gap: 20px;
+  align-items: flex-start;
+  width: max-content; /* ✅ allows board to extend horizontally */
+}
+
+
+
+/* ===== Column Styles ===== */
+.column {
+  background: #f3f4f8;
+  border-radius: 10px;
+  width: 270px;
+  flex-shrink: 0;
+  padding: 0 8px 10px 8px;
+  margin-top: 0;
+  box-sizing: border-box;
+}
+
+/* ===== Column Header ===== */
+.column-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  border-radius: 8px;
+  padding: 8px 12px;
+  margin-bottom: 6px; /* tighter */
+  font-weight: 600;
+  font-size: 15px;
+}
+
+/* remove background from number spans */
+.column-header span {
+  background: none !important;
+  padding: 0 !important;
+  border-radius: 0 !important;
+  font-weight: 600;
+}
+
+/* ===== Column Title ===== */
+.column-title {
+  font-size: 15px;
+  font-weight: 600;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin: 0;
+}
+
+/* ===== Card List ===== */
+.card-list {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  min-height: 40px;
+  margin: 0;
+  padding: 0;
+}
+
+.card-list.drag-over {
+  background: #e2e6ff;
+  border-radius: 10px;
+  transition: 0.2s;
+}
+
+/* ===== Main Layout ===== */
+.app-container {
+  display: flex;
+  height: 100vh;
+  overflow: hidden;
+}
+
+.main-content {
+  flex: 1;
+  margin-left: 50px; /* space for sidebar */
+  overflow-y: auto;
+  background: #f8f9fb;
+  padding: 0 20px 20px;
+  box-sizing: border-box;
+}
+
+/* ===== Scrollbar Styling ===== */
+.kanban-container::-webkit-scrollbar,
+.main-content::-webkit-scrollbar {
+  height: 6px;
+  width: 6px;
+}
+
+.kanban-container::-webkit-scrollbar-thumb,
+.main-content::-webkit-scrollbar-thumb {
+  background: #d1d5db;
+  border-radius: 6px;
+}
+
+.kanban-container::-webkit-scrollbar-thumb:hover,
+.main-content::-webkit-scrollbar-thumb:hover {
+  background: #9ca3af;
+}
+
+
+/* ===== Smooth Scrollbar Styling ===== */
+.main::-webkit-scrollbar,
+.kanban-container::-webkit-scrollbar {
+  height: 8px; /* horizontal scrollbar height */
+  width: 8px;  /* vertical scrollbar width */
+}
+
+.main::-webkit-scrollbar-thumb,
+.kanban-container::-webkit-scrollbar-thumb {
+  background: #cbd5e1; /* light gray-blue thumb */
+  border-radius: 4px;
+}
+
+.main::-webkit-scrollbar-thumb:hover,
+.kanban-container::-webkit-scrollbar-thumb:hover {
+  background: #94a3b8; /* darker on hover */
+}
+
