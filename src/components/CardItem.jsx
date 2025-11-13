@@ -1,11 +1,11 @@
 /* eslint-disable no-unused-vars */
 import { Draggable } from "@hello-pangea/dnd";
 import "../assets/styles/CardItem.css";
-import { InprogressIcon } from "../assets/svgs";
 import PolygonIcon from "../assets/images/PolygonIcon.svg";
 import MessageIcon from "../assets/images/MessageIcon.svg";
-import ClockIcon from "../assets/images/ClockIcon.png";
-
+import ClockIcon from "../assets/images/ClockIcon.svg";
+import AttachmentIcon from "../assets/images/Attachment.svg";
+import { InprogressIcon } from "../assets/svgs";
 
 
 export default function CardItem({ card, index ,setSelectedCard}) {
@@ -55,6 +55,7 @@ export default function CardItem({ card, index ,setSelectedCard}) {
     <img src={PolygonIcon} alt="Priority" className="icon" />
     <img src={MessageIcon} alt="Message" className="icon" />
     <img src={ClockIcon} alt="Clock" className="icon" />
+    <img src={AttachmentIcon} alt="Clock" className="icon" />
   </div>
   <span className="days-text">{card.days}d</span>
 </div>
