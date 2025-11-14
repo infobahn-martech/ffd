@@ -230,22 +230,26 @@
 /* ===== Circular Progress Bar ===== */
 .circular-progress {
   position: relative;
-  width: 45px;
-  height: 45px;
-  margin: 8px auto;
+  width: 32px;
+  height: 32px;
 }
 
 .progress-svg {
-  width: 45px;
-  height: 45px;
+  width: 32px;
+  height: 32px;
   transform: rotate(-90deg);
 }
 
 .progress-svg circle {
   fill: none;
-  stroke-width: 4px;
-  stroke-linecap: round;
+  stroke-width: 3px;
 }
+
+.progress-text {
+  font-size: 10px;
+  font-weight: 600;
+}
+
 
 .progress-svg .bg {
   stroke: #e6e6e6;
@@ -262,7 +266,7 @@
   top: 50%;
   left: 50%;
   transform: translate(-50%, -50%);
-  font-size: 12px;
+  font-size: 8px;
   font-weight: 600;
   color: #333;
 }
@@ -302,4 +306,15 @@
   padding-top: 6px;
   font-size: 13px;
   color: #777;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
 }
+
+
+.footer-progress {
+  display: flex;
+  justify-content: flex-end;
+  margin-top: 4px;
+}
+

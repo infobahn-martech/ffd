@@ -60,31 +60,7 @@ export default function CardItem({ card, index ,setSelectedCard}) {
 </div>
 
 
-          {/* Progress */}
-         <div className="progress-wrapper">
-  <div className="progress-top">
-    <span>{card.timeLeft}</span>
-    <span>{card.points} Points</span>
-  </div>
-
-  <div className="circular-progress">
-    <svg className="progress-svg">
-      <circle className="bg" cx="20" cy="20" r="18" />
-      <circle
-        className="progress"
-        cx="20"
-        cy="20"
-        r="18"
-        style={{
-          stroke: card.color || "#2A00FF",
-          strokeDashoffset: `calc(113 - (113 * ${card.progress}) / 100)`
-        }}
-      />
-    </svg>
-
-    <div className="progress-text">{card.progress}%</div>
-  </div>
-</div>
+    
 
 
           {/* Status */}
@@ -114,7 +90,33 @@ export default function CardItem({ card, index ,setSelectedCard}) {
             </div>
           )}
 
-          <div className="card-footer">New subtask</div>
+       {/* Footer */}
+<div className="card-footer">
+  New subtask
+
+  {/* Circular Progress moved here */}
+  <div className="footer-progress">
+    <div className="circular-progress">
+      <svg className="progress-svg">
+      <circle className="bg" cx="16" cy="16" r="14" />
+<circle
+  className="progress"
+  cx="16"
+  cy="16"
+  r="14"
+  style={{
+    stroke: card.color || "#2A00FF",
+    strokeDashoffset: `calc(88 - (88 * ${card.progress}) / 100)` // updated for r=14
+  }}
+/>
+
+      </svg>
+
+      <div className="progress-text">{card.progress}%</div>
+    </div>
+  </div>
+</div>
+
         </div>
       )}
     </Draggable>
