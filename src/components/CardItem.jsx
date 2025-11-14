@@ -35,8 +35,7 @@ export default function CardItem({ card, index ,setSelectedCard}) {
 
           {/* Title */}
           <div className="card-title-row" style={{ position: "relative" }}>
-    {/* <h3 className="card-title" onClick={() => setSelectedCard(card)}> */}
-    <h3 className="card-title">
+    <h3 className="card-title" onClick={() => setSelectedCard(card)}>
     {card.title}
 </h3>
 
