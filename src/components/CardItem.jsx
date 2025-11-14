@@ -61,40 +61,8 @@ export default function CardItem({ card, index ,setSelectedCard}) {
   <span className="days-text">{card.days}d</span>
 </div>
 
-
-    
-
-
-          {/* Status */}
-          <div className="card-status">
-            <div
-              className="dot"
-              style={{ backgroundColor: card.color || "#2A00FF" }}
-            ></div>
-            <span>Please confirm to move card</span>
-          </div>
-
-          {/* Optional Extra */}
-          {card.status && (
-            <div className="card-extra" style={{ color: card.color || "#2A00FF" }}>
-              <span>↑</span> {card.status}
-            </div>
-          )}
-
-          {card.customer && (
-            <div className="card-meta blue">
-              <span>●</span> Customer Name: {card.customer}
-            </div>
-          )}
-          {card.vessel && (
-            <div className="card-meta purple">
-              <span>●</span> Vessel Name: {card.vessel}
-            </div>
-          )}
-
-       {/* Footer */}
 <div className="card-footer">
-  New subtask
+  {card?.timeLeft}
 
   {/* Circular Progress moved here */}
   <div className="footer-progress">
@@ -117,6 +85,39 @@ export default function CardItem({ card, index ,setSelectedCard}) {
       <div className="progress-text">{card.progress}%</div>
     </div>
   </div>
+</div>
+
+          {/* Status */}
+          <div className="card-status">
+            <div
+              className="dot"
+              style={{ backgroundColor: card.color || "#2A00FF" }}
+            ></div>
+            <span>Please confirm to move card</span>
+          </div>
+          
+
+          {/* Optional Extra */}
+          {card.status && (
+            <div className="card-extra" style={{ color: card.color || "#2A00FF" }}>
+              <span>↑</span> {card.status}
+            </div>
+          )}
+
+          {card.customer && (
+            <div className="card-meta blue">
+              <span>●</span> Customer Name: {card.customer}
+            </div>
+          )}
+          {card.vessel && (
+            <div className="card-meta purple">
+              <span>●</span> Vessel Name: {card.vessel}
+            </div>
+          )}
+
+       {/* Footer */}
+<div className="card-tasks">
+  New subtask
 </div>
 
         </div>

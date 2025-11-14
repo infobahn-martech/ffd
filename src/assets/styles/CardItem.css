@@ -303,7 +303,6 @@
 .card-footer {
   margin-top: 8px;
   border-top: 1px solid #eee;
-  padding-top: 6px;
   font-size: 13px;
   color: #777;
   display: flex;
@@ -316,5 +315,16 @@
   display: flex;
   justify-content: flex-end;
   margin-top: 4px;
+}
+
+.card-tasks {
+  margin-top: 8px;
+  border-top: 1px solid #eee;
+  padding-top: 6px;
+  font-size: 13px;
+  color: #777;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
 }
 
