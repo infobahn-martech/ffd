@@ -1,19 +1,19 @@
+/* Overlay */
 .cardform-overlay {
   position: fixed;
   inset: 0;
   display: flex;
-  justify-content: center;   /* center horizontally */
-  align-items: center;        /* center vertically */
-  background: rgba(61, 59, 59, 0.05); /* light transparent BG */
+  justify-content: center;
+  align-items: center;
+  background: rgba(61, 59, 59, 0.05);
   z-index: 200;
   font-family: "Inter", sans-serif;
 }
 
-
 /* Panel */
 .cardform-panel {
   width: 1240px;
-  max-height: 90vh; /* prevent touching top/bottom edges */
+  max-height: 90vh;
   border-radius: 14px;
   background: #f5f5f8;
   overflow: hidden;
@@ -21,7 +21,6 @@
   flex-direction: column;
   box-shadow: 0 6px 24px rgba(0, 0, 0, 0.18);
 }
-
 
 /* Top bar */
 .cardform-topbar {
@@ -38,39 +37,59 @@
   gap: 10px;
 }
 
-.cardform-topbar-icon {
-  width: 28px;
-  height: 28px;
-  border-radius: 8px;
-  border: 2px solid rgba(255, 255, 255, 0.7);
-}
-
-.cardform-topbar-text {
-  display: flex;
-  flex-direction: column;
-}
-
-.cardform-id {
-  font-size: 12px;
-  opacity: 0.9;
-}
-
 .cardform-title {
   font-size: 14px;
   font-weight: 600;
 }
 
-.cardform-close-btn {
-  border: none;
-  background: rgba(0, 0, 0, 0.12);
-  color: #fff;
-  border-radius: 999px;
-  width: 28px;
-  height: 28px;
-  cursor: pointer;
+/* Topbar right icons container */
+.cardform-topbar-right {
+  display: flex;
+  align-items: center;
+  gap: 12px;
 }
 
-/* Tabs row */
+/* Icon Buttons */
+.topbar-icon-btn {
+  width: 32px;
+  height: 32px;
+  /* background: rgba(255,255,255,0.2); */
+  border: none;
+  border-radius: 8px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  padding: 5px;
+  transition: 0.15s ease-in-out;
+  backdrop-filter: blur(4px);
+}
+
+.topbar-icon-btn img {
+  width: 16px;
+  height: 16px;
+}
+
+/* Hover effect */
+.topbar-icon-btn:hover {
+  background: rgba(255,255,255,0.32);
+}
+
+/* Close button (unchanged but aligned) */
+.cardform-close-btn {
+  width: 32px;
+  height: 32px;
+  border-radius: 8px;
+  /* background: rgba(0,0,0,0.15); */
+  color: #000;
+  border: none;
+  cursor: pointer;
+  font-weight: bold;
+  font-size: 14px;
+}
+
+
+/* Tabs */
 .cardform-tabs {
   display: flex;
   align-items: center;
@@ -94,135 +113,75 @@
   color: #222;
 }
 
-/* Body */
+/* Body layout */
 .cardform-body {
   display: flex;
-  padding: 18px 22px 10px;
-  gap: 18px;
+  gap: 20px;
+  padding: 18px 22px;
   overflow-y: auto;
 }
 
-
-/* Left column */
+/* LEFT PANEL (scroll enabled) */
 .cardform-left {
-  width: 360px;
+  width: 400px;
   min-width: 340px;
+  padding-right: 6px;
+  max-height: calc(90vh - 200px);
+  overflow-y: auto;
 }
 
-/* Right grey content */
+/* RIGHT PANEL */
 .cardform-right {
   flex: 1;
   border-radius: 10px;
   background: #e1e2e8;
 }
 
-/* Footer */
-.cardform-footer {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  padding: 12px 30px 16px;
-  border-top: 1px solid #e1e2e8;
-  background: #f5f5f8;
-}
-
-.cardform-footer-steps {
-  display: flex;
-  align-items: center;
-  gap: 40px;
-}
-
-.step-dot {
-  width: 16px;
-  height: 16px;
-  border-radius: 999px;
-  border: 2px solid #bcbcbc;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-}
-
-.step-dot img {
-  width: 12px;
-  height: 12px;
-}
-
-.step-dot.active {
-  background: #0047ff;
-  border-color: #0047ff;
-}
-
-.cardform-update-btn {
-  border: none;
-  color: #fff;
-  font-size: 13px;
-  font-weight: 500;
-  border-radius: 999px;
-  padding: 8px 24px;
-  cursor: pointer;
-}
-
-/* Accordion */
-.cf-accordion {
+/* ==========================================================
+    SECTION STYLE (ACCORDION LOOK BUT ALWAYS OPEN)
+   ========================================================== */
+.cf-section {
   background: #ffffff;
   border-radius: 10px;
-  margin-bottom: 10px;
-  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.04);
+  margin-bottom: 14px;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
 }
 
-.cf-accordion-header {
-  width: 100%;
+.cf-section-header {
   padding: 10px 14px;
-  border: none;
-  background: transparent;
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  cursor: pointer;
-}
-
-.cf-accordion-left {
   display: flex;
   align-items: center;
   gap: 8px;
 }
 
-.cf-accordion-icon {
+/* FIX 1 — remove blue BG from icons */
+.cf-section-icon {
   width: 20px;
   height: 20px;
-  border-radius: 999px;
-  background: #0047ff;
   display: flex;
   align-items: center;
   justify-content: center;
+  background: transparent !important;
 }
 
-.cf-accordion-icon img {
-  width: 12px;
-  height: 12px;
+.cf-section-icon img {
+  width: 16px;
+  height: 16px;
+  filter: brightness(0) saturate(0%) opacity(0.7);
 }
 
-.cf-accordion-title {
+.cf-section-title {
   font-size: 13px;
-  font-weight: 500;
+  font-weight: 600;
 }
 
-.cf-accordion-arrow img {
-  width: 10px;
-  height: 10px;
-  transition: transform 0.2s ease;
+.cf-section-body {
+  padding: 0 14px 14px 14px;
 }
 
-.cf-accordion-arrow.open img {
-  transform: rotate(180deg);
-}
-
-.cf-accordion-body {
-  padding: 10px 14px 14px;
-  border-top: 1px solid #f0f0f0;
-}
-
-/* Fields */
+/* ==========================================================
+    INPUT FIELDS
+   ========================================================== */
 .cf-field {
   margin-bottom: 10px;
 }
@@ -251,7 +210,6 @@
   font-size: 12px;
   outline: none;
   width: 100%;
-  color: #222;
 }
 
 .cf-input.with-icon img {
@@ -259,10 +217,23 @@
   height: 14px;
 }
 
+/* GRID 2 COLUMNS */
 .cf-grid.two {
   display: grid;
   grid-template-columns: 1fr 1fr;
   gap: 10px;
+}
+
+/* FIX 2 — date input alignment */
+.cf-grid.two .cf-field .cf-input {
+  height: 38px;
+  display: flex;
+  align-items: center;
+}
+
+.cf-grid.two input[type="date"] {
+  height: 100%;
+  padding: 0;
 }
 
 /* Owner row */
@@ -278,11 +249,11 @@
   border-radius: 50%;
   background: #d3d5ff;
   display: flex;
-  align-items: center;
   justify-content: center;
+  align-items: center;
   font-size: 12px;
   font-weight: 600;
-  color: #1f1f4f;
+  color: #16205e;
 }
 
 .cf-owner-select {
@@ -291,63 +262,53 @@
   border: 1px solid #e2e2ea;
   background: #f4f4f7;
   padding: 4px 10px;
-  font-size: 12px;
 }
 
-/* ETA row date + time */
-.eta-row {
-  gap: 6px;
-  position: relative;
-}
+/* ==========================================================
+    ATTACHMENTS / LINKS — NEW IMPROVED STYLE
+   ========================================================== */
 
-.eta-row input[type="date"],
-.eta-row input[type="time"] {
-  width: 50%;
-}
-
-.eta-icon {
-  position: absolute;
-  right: 10px;
-  width: 14px;
-  height: 14px;
-}
-
-/* Last moved */
-.lastmoved-row {
-  gap: 6px;
-}
-
-.lastmoved-row input {
-  width: 50%;
-}
-
-/* Empty rows for attachments/links */
 .cf-empty-row {
+  padding: 12px 4px 4px;
+  color: #555;
+  font-size: 12px;
+  border-top: 1px solid #eeeeee;
+  margin-top: 6px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+/* Button styling */
+.cf-link-btn {
+  background: #eef2ff;
+  border: 1px solid #cdd6ff;
+  padding: 4px 10px;
+  border-radius: 8px;
+  font-size: 12px;
+  color: #0047ff;
+  cursor: pointer;
+  transition: 0.2s;
+}
+
+.cf-link-btn:hover {
+  background: #d6dfff;
+}
+
+/* Footer */
+.cardform-footer {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  font-size: 12px;
-  color: #666;
+  padding: 12px 30px;
+  border-top: 1px solid #e1e2e8;
 }
 
-.cf-link-btn {
+.cardform-update-btn {
   border: none;
-  background: transparent;
-  color: #0047ff;
-  font-size: 12px;
+  color: #fff;
+  padding: 8px 24px;
+  border-radius: 999px;
+  font-size: 13px;
   cursor: pointer;
-}
-
-/* Responsive */
-@media (max-width: 960px) {
-  .cardform-panel {
-    width: 100%;
-  }
-  .cardform-body {
-    flex-direction: column;
-  }
-  .cardform-left {
-    width: 100%;
-    min-width: 0;
-  }
 }
