@@ -5,7 +5,7 @@ import PolygonIcon from "../assets/images/PolygonIcon.svg";
 import MessageIcon from "../assets/images/MessageIcon.svg";
 import ClockIcon from "../assets/images/ClockIcon.svg";
 import AttachmentIcon from "../assets/images/Attachment.svg";
-import { InprogressIcon } from "../assets/svgs";
+import { DownloadIcon, InprogressIcon } from "../assets/svgs";
 
 
 export default function CardItem({ card, index ,setSelectedCard}) {
@@ -27,7 +27,9 @@ export default function CardItem({ card, index ,setSelectedCard}) {
               className="card-header-icon"
               style={{ backgroundColor: card.color || "#2A00FF" }}
             >
-            <InprogressIcon />
+            {/* <InprogressIcon /> */}
+            <DownloadIcon />
+            
             </div>
             <span className="card-code">{card.code}</span>
             <span className="card-user">{card.user}</span>
