@@ -307,3 +307,58 @@
   font-size: 13px;
   cursor: pointer;
 }
+
+/* RIGHT SIDE CONTENT STYLE */
+.cardform-right {
+  flex: 1;
+  border-radius: 10px;
+  background: #ffffff;
+  padding: 20px 24px;
+  font-size: 13px;
+  color: #2a2a2a;
+  line-height: 1.55;
+  overflow-y: auto;
+  max-height: calc(90vh - 200px);
+  border: 1px solid #e0e0e0;
+}
+
+/* Headings */
+.cf-right-title {
+  font-size: 18px;
+  font-weight: 700;
+  margin-bottom: 12px;
+}
+
+.cf-right-subtitle {
+  font-size: 15px;
+  font-weight: 600;
+  margin-top: 18px;
+  margin-bottom: 8px;
+}
+
+/* Unordered List */
+.cf-right-list {
+  margin-left: 18px;
+  margin-bottom: 15px;
+}
+
+.cf-right-list li {
+  margin-bottom: 6px;
+  list-style: disc;
+}
+
+/* Numbered List */
+.cf-right-list-numbered {
+  margin-left: 20px;
+  margin-bottom: 15px;
+}
+
+.cf-right-list-numbered li {
+  margin-bottom: 6px;
+}
+
+/* Paragraphs */
+.cardform-right p {
+  margin-bottom: 14px;
+}
+

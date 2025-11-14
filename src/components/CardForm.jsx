@@ -212,7 +212,46 @@ export default function CardForm({ show, close, card }) {
           </div>
 
           {/* RIGHT SIDE */}
-          <div className="cardform-right"></div>
+        <div className="cardform-right">
+
+  <h3 className="cf-right-title">Pre-Arrival Notes</h3>
+
+  <p>
+    This section contains additional operational details for the vessel's 
+    pre-arrival process. Below is example placeholder content that can be replaced 
+    with real work instructions, communication logs, or status notes.
+  </p>
+
+  <h4 className="cf-right-subtitle">General Instructions</h4>
+  <ul className="cf-right-list">
+    <li>Verify all appointment documentation before ETA confirmation.</li>
+    <li>Cross-check last port clearance reports.</li>
+    <li>Notify customs inspection team 24 hours prior to arrival.</li>
+    <li>Update internal system with any change in vessel schedule.</li>
+  </ul>
+
+  <h4 className="cf-right-subtitle">Required Documents</h4>
+  <ol className="cf-right-list-numbered">
+    <li>Vessel last port clearance certificate.</li>
+    <li>Ship's stores declaration.</li>
+    <li>Crew list & health declaration.</li>
+    <li>Inbound cargo manifest.</li>
+    <li>Updated ETA confirmation.</li>
+  </ol>
+
+  <h4 className="cf-right-subtitle">Additional Notes</h4>
+  <p>
+    Lorem ipsum dolor sit amet, consectetur adipiscing elit. Donec aliquet, 
+    ipsum nec commodo dignissim, massa leo commodo libero, vitae suscipit erat 
+    magna et lacus. 
+  </p>
+
+  <p>
+    Sed cursus felis eu sem vulputate, id bibendum urna convallis. Vestibulum 
+    finibus massa non erat bibendum, vel fringilla elit consectetur.
+  </p>
+</div>
+
 
         </div>
 

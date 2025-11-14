@@ -48,7 +48,7 @@ for (let i = 0; i < 50; i++) {
   cards[id] = {
     id,
     code: (100140 + cardId).toString(),
-    user: ["sarim asaf", "zimba ray", "alex ford", "alif allen", "daniel joe"][
+    user: ["Sarim Asaf", "Zimba Ray", "Alex Ford", "Alif Allen", "Daniel Joe"][
       Math.floor(Math.random() * 5)
     ],
     title: `SEDRES – ${["JAN", "FEB", "MAR", "APR", "MAY", "JUN", "JUL", "AUG"][
