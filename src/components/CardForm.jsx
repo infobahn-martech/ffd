@@ -256,14 +256,33 @@ export default function CardForm({ show, close, card }) {
         </div>
 
         {/* Footer */}
-        <div className="cardform-footer">
-          <div className="cardform-footer-steps">
-            <div className="step-dot"><img src={CircleTickIcon} alt="" /></div>
-            <div className="step-dot active" />
-            <div className="step-dot" />
-            <div className="step-dot" />
-          </div>
+      <div className="cardform-footer">
 
+  {/* STEPS PROGRESS BAR */}
+  <div className="cardform-steps-wrapper">
+    <div className="step-item completed">
+      <div className="step-circle">1</div>
+      <span className="step-line"></span>
+    </div>
+
+    <div className="step-item active">
+      <div className="step-circle">2</div>
+      <span className="step-line"></span>
+    </div>
+
+    <div className="step-item">
+      <div className="step-circle">3</div>
+      <span className="step-line"></span>
+    </div>
+
+    <div className="step-item">
+      <div className="step-circle">4</div>
+         <span className="step-line"></span>
+    </div>
+    <div className="step-item">
+      <div className="step-circle">5</div>
+    </div>
+  </div>
           <button
             className="cardform-update-btn"
             style={{ backgroundColor: AccentColor }}
