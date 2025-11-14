@@ -61,21 +61,31 @@ export default function CardItem({ card, index ,setSelectedCard}) {
 
 
           {/* Progress */}
-          <div className="progress-wrapper">
-            <div className="progress-top">
-              <span>{card.timeLeft}</span>
-              <span>{card.points} Points</span>
-            </div>
-            <div className="progress-bar">
-              <div
-                className="progress-fill"
-                style={{
-                  width: `${card.progress}%`,
-                  backgroundColor: card.color || "#2A00FF",
-                }}
-              ></div>
-            </div>
-          </div>
+         <div className="progress-wrapper">
+  <div className="progress-top">
+    <span>{card.timeLeft}</span>
+    <span>{card.points} Points</span>
+  </div>
+
+  <div className="circular-progress">
+    <svg className="progress-svg">
+      <circle className="bg" cx="20" cy="20" r="18" />
+      <circle
+        className="progress"
+        cx="20"
+        cy="20"
+        r="18"
+        style={{
+          stroke: card.color || "#2A00FF",
+          strokeDashoffset: `calc(113 - (113 * ${card.progress}) / 100)`
+        }}
+      />
+    </svg>
+
+    <div className="progress-text">{card.progress}%</div>
+  </div>
+</div>
+
 
           {/* Status */}
           <div className="card-status">

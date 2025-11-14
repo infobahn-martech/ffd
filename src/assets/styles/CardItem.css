@@ -227,6 +227,47 @@
   border-radius: 50%;
 }
 
+/* ===== Circular Progress Bar ===== */
+.circular-progress {
+  position: relative;
+  width: 45px;
+  height: 45px;
+  margin: 8px auto;
+}
+
+.progress-svg {
+  width: 45px;
+  height: 45px;
+  transform: rotate(-90deg);
+}
+
+.progress-svg circle {
+  fill: none;
+  stroke-width: 4px;
+  stroke-linecap: round;
+}
+
+.progress-svg .bg {
+  stroke: #e6e6e6;
+}
+
+.progress-svg .progress {
+  stroke-dasharray: 113;     /* 2 * π * r = 2 * 3.14 * 18 ≈ 113 */
+  stroke-dashoffset: 113;
+  transition: stroke-dashoffset 0.4s ease;
+}
+
+.progress-text {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  font-size: 12px;
+  font-weight: 600;
+  color: #333;
+}
+
+
 /* Extra Fields */
 .card-extra {
   margin-top: 4px;
