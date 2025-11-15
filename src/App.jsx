@@ -1,18 +1,25 @@
-import Header from "./components/Header";
-import Sidebar from "./components/Sidebar";
-import KanbanBoard from "./components/pages/KanbanBoard";
-import "../src/assets/styles/App.css";
+import 'react-toastify/dist/ReactToastify.css';
+import './design/scss/common.scss';
 
-export default function App() {
+import { Outlet } from 'react-router-dom';
+
+import { ToastContainer, Zoom } from 'react-toastify';
+
+import Toaster from './components/Toaster';
+
+function App() {
   return (
-    <div className="app">
-      <Header />
-      <div className="content">
-        <Sidebar />
-        <main className="main">
-          <KanbanBoard />
-        </main>
-      </div>
-    </div>
+    <>
+      <ToastContainer
+        closeButton
+        transition={Zoom}
+        icon={false}
+        theme="light"
+      />
+      <Toaster />
+      <Outlet />
+    </>
   );
 }
+
+export default App;
