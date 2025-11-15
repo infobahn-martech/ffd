@@ -19,7 +19,10 @@ export default function CardItem({ card, index ,setSelectedCard}) {
           {...provided.draggableProps}
           {...provided.dragHandleProps}
           // ✅ Pass card color as CSS variable
-          style={{ "--card-color": card.color || "#2A00FF" }}
+  style={{
+        ...provided.draggableProps.style,
+        "--card-color": card.color || "#2A00FF",
+      }}
         >
           {/* Header */}
           <div className="card-header">
