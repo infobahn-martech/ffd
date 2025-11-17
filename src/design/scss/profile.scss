@@ -22,7 +22,7 @@
         font-size: 20px;
         line-height: 30px;
         letter-spacing: 0.1px;
-        color: #226166;
+        color: #00368c;
         padding-top: 26px;
         padding-bottom: 41px;
     
@@ -57,7 +57,7 @@
         .profile-img{
             width: 173px;
             height: 173px;
-            border: 8px solid #25666C4A;
+            border: 8px solid #00368C4A;
             border-radius: 100px;
             @media($sm-1281){
                 width: 100px;
@@ -82,7 +82,7 @@
             font-weight: 300;
             margin-left: 5px;
             letter-spacing: 0px;
-            color: #25666C;
+            color: #00368C;
         }
         .text-sec {
             font-size: 13px;
@@ -95,7 +95,7 @@
             background-color: #DEF0F2;
             border-radius: 8px;
             border: 1px solid #DEF0F2;
-            color: #25666C;
+            color: #00368C;
             @media($sm-1281){
                 padding: 10px;
                 display: inline-block;
@@ -165,7 +165,7 @@
     }
 }
 .green-btn{
-    background: #25666C;
+    background: #00368C;
     color: #fff;
 }
 

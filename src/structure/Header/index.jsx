@@ -28,20 +28,20 @@ function Header() {
 </NavLink>
 
 
-    <NavLink to="/workflows" className="top-link">Edit Workflows</NavLink>
-    <NavLink to="/analytics" className="top-link">Show Analytics</NavLink>
+    {/* <NavLink to="/workflows" className="top-link">Edit Workflows</NavLink>
+    <NavLink to="/analytics" className="top-link">Show Analytics</NavLink> */}
   </div>
 
 </div>
 
 
       {/* CENTER — SEARCH */}
-      <div className="center-section">
+      {/* <div className="center-section">
         <div className="search-box">
           <input type="text" placeholder="Search" />
           <img src={SearchIcon} className="fa fa-search search-icon"></img>
         </div>
-      </div>
+      </div> */}
 
       {/* RIGHT — Icons + USER */}
          {/* RIGHT — User pill + icons */}
