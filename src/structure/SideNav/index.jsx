@@ -4,8 +4,7 @@ import { useLocation } from 'react-router-dom';
 import DefaultMenu from './components/DefaultMenu';
 import '../../design/scss/common.scss';
 import '../../design/scss/sidebar.scss';
-import logo from '../../assets/images/CreatedLogo.svg';
-import mobIcon from '../../assets/images/logo-icon.svg';
+
 import dashboardIcon from '../../assets/images/icon-dashboard.svg';
 import portIcon from '../../assets/images/icon-prospect.svg';
 import workerIcon from '../../assets/images/icon-workers.svg';
@@ -158,17 +157,6 @@ function SideNav() {
           <span />
         </button>
       </div>
-      <div className="logoWrp">
-        {/* <div>
-          Sedres <br /> Logo
-        </div> */}
-        <a href="# " className="logo">
-          <img src={logo} alt="dashboard" className="dt-logo" />
-
-          <img src={mobIcon} alt="dashboard" className="mb-logo" />
-        </a>
-      </div>
-
       <div className="menuWrp">
         <ul className="menu">
           {menuState

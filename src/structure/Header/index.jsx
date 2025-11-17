@@ -1,169 +1,69 @@
-import { useState } from 'react';
-import { Link, NavLink } from 'react-router-dom';
-import '../../design/scss/header.scss';
-import message from '../../assets/images/message.svg';
-import noti from '../../assets/images/notification.svg';
-import dummyImg from '../../assets/images/user.png';
-import profile from '../../assets/images/Profile_view.svg';
-import backIcon from '../../assets/images/BackIcon.png';
-import changePass from '../../assets/images/change-password.svg';
-import signOut from '../../assets/images/Sign_out.svg';
-import modalsignout from '../../assets/images/signout.svg';
-import useAuthReducer from '../../store/AuthReducer';
-import CommonSkeleton from '../../components/CommonSkeleton';
+import { Link, NavLink } from "react-router-dom";
+import "../../design/scss/header.scss";
+
+import logo from '../../assets/images/SedresLogo.png';
+// import mobIcon from '../../assets/images/logo-icon.svg';
+import SearchIcon from "../../assets/images/Search.svg";
+import SettingsIcon from "../../assets/images/SettingIcon.svg";
+import DocsIcon from "../../assets/images/DocumentIcon.svg";
+import QuestionIcon from "../../assets/images/QuestionIcon.svg";
+import NotificationIcon from "../../assets/images/Notification.svg";
 
 function Header() {
-  const doLogout = useAuthReducer((state) => state.doLogout);
-  const profileData = useAuthReducer((state) => state.profileData);
-
-  const { firstName = '', lastName = '' } = profileData ?? {};
-
-  // State to track image loading
-  const [isLoadingImage, setIsLoadingImage] = useState(true);
-
-  const handleImageLoad = () => {
-    setIsLoadingImage(false);
-  };
+ 
 
   return (
-    <div className="container-fluid">
-      <div className="row align-items-center">
-      <div className="col-md-2 back-kanban">
-  <img src={backIcon} alt="Back" className="back-icon" />
-  <span className="back-text">Back to Kanban</span>
-    </div>
-        <div className="col-md-10 actn-col">
-          <ul className="navbar-nav">
-            <li className="nav-item">
-              <a className="nav-link user-drop" href="# " role="button">
-                <img src={noti} alt="notification" />
-              </a>
-            </li>
-            <li className="nav-item">
-              <a className="nav-link user-drop" href="# " role="button">
-                <img src={message} alt="msg" />
-              </a>
-            </li>
-            <li className="nav-item dropdown user-drop-dwn">
-              <div className="usr-img">
-                {isLoadingImage && <CommonSkeleton borderRadius={100} />}
+    <div className="sedres-header">
+      {/* LEFT — LOGO */}
+   <div className="left-section">
 
-                <img
-                  src={profileData?.image || dummyImg}
-                  alt="user"
-                  onLoad={handleImageLoad} // Handle image load event
-                  style={{ display: isLoadingImage ? 'none' : 'block' }}
-                />
-              </div>
-              <a
-                className="nav-link dropdown-toggle"
-                href="# "
-                role="button"
-                data-bs-toggle="dropdown"
-                aria-expanded="false"
-              >
-                <div className="user-detai">
-                  <span className="user-name">
-                    {firstName} {lastName}
-                  </span>
-                  <span className="user-position">Oceanwoods</span>
-                </div>
-              </a>
-              <ul className="dropdown-menu">
-                <li>
-                  <NavLink
-                    to="/userprofile"
-                    style={{ all: 'unset', cursor: 'pointer' }}
-                  >
-                    <a className="dropdown-item" href="# ">
-                      <span className="img">
-                        <img src={profile} alt="profile" />
-                      </span>
-                      <span className="name">My Profile</span>
-                    </a>
-                  </NavLink>
-                </li>
-                <li className="mob-only-items">
-                  <hr className="dropdown-divider" />
-                </li>
-                <li className="mob-only-items">
-                  <Link to="/change-password" className="dropdown-item">
-                    <span className="ico">
-                      <img src={changePass} alt="Channels" />
-                    </span>
-                    <span className="txt">Change Password</span>
-                  </Link>
-                </li>
-                <li className="mob-only-items">
-                  <hr className="dropdown-divider" />
-                </li>
-                <li className="mob-only-items">
-                  <a
-                    className="dropdown-toggle1 dropdown-item"
-                    href="# "
-                    id="logoutDropdown"
-                    role="button"
-                    data-bs-toggle="modal"
-                    data-bs-target="#logoutModal"
-                    aria-expanded="false"
-                  >
-                    <span className="ico">
-                      <img src={signOut} alt="Privacy" />
-                    </span>
-                    <span className="txt">Logout</span>
-                  </a>
-                </li>
-              </ul>
-            </li>
-          </ul>
-        </div>
+  {/* Logo Before Menu */}
+  <img src={logo} alt="Sedres Logo" className="sedres-logo" />
 
-        <div
-          className="modal change-pass fade employee-modal logout-modal1"
-          id="logoutModal"
-          tabIndex="-1"
-          aria-labelledby="logoutModalLabel"
-          aria-hidden="true"
-        >
-          <div className="modal-dialog modal-dialog-centered">
-            <div className="modal-content">
-              <div className="modal-header">
-                <button
-                  type="button"
-                  className="btn-close"
-                  data-bs-dismiss="modal"
-                  aria-label="Close"
-                />
-              </div>
-              <div className="modal-body">
-                <div className="profile-img">
-                  <img src={modalsignout} alt="sign" />
-                </div>
-                <div className="popup-title">
-                  Are you sure you want to logout?
-                </div>
-                <div className="two-btn logout-btn">
-                  <button
-                    type="submit"
-                    className="btn-common close"
-                    data-bs-dismiss="modal"
-                  >
-                    Cancel
-                  </button>
-                  <button
-                    type="submit"
-                    className="save btn-common green-btn"
-                    data-bs-dismiss="modal"
-                    onClick={() => doLogout()}
-                  >
-                    Confirm
-                  </button>
-                </div>
-              </div>
-            </div>
-          </div>
+  <div className="top-links">
+    <NavLink to="/handling" className="top-link active">
+      Handling Operation
+    </NavLink>
+    <NavLink to="/workflows" className="top-link">Edit Workflows</NavLink>
+    <NavLink to="/analytics" className="top-link">Show Analytics</NavLink>
+  </div>
+
+</div>
+
+
+      {/* CENTER — SEARCH */}
+      <div className="center-section">
+        <div className="search-box">
+          <input type="text" placeholder="Search" />
+          <img src={SearchIcon} className="fa fa-search search-icon"></img>
         </div>
       </div>
+
+      {/* RIGHT — Icons + USER */}
+         {/* RIGHT — User pill + icons */}
+      <div className="right-section">
+        {/* White user circle on the left */}
+        <div className="user-circle">
+          <span className="user-letter">
+            {("S").charAt(0).toUpperCase()}
+          </span>
+        </div>
+
+        {/* Icons on blue bar */}
+        <button className="icon-btn">
+          <img src={SettingsIcon} alt="Settings" />
+        </button>
+        <button className="icon-btn">
+          <img src={DocsIcon} alt="Calendar" />
+        </button>
+        <button className="icon-btn">
+          <img src={QuestionIcon} alt="Help" />
+        </button>
+        <button className="icon-btn">
+          <img src={NotificationIcon} alt="Notifications" />
+        </button>
+      </div>
+
     </div>
   );
 }

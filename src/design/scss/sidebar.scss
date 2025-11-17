@@ -18,6 +18,7 @@
     }
     flex: 1;
     min-height: 100vh;
+    padding-top:48px;
     .logoWrp{
         display: flex;
         align-items: center;
@@ -25,7 +26,7 @@
        .logo{
         img{
             max-width: 100%;
-            margin-top: -114px;
+            margin-top: -138px;
         }
         @media ($sm-1281){
             max-width: 120px;
