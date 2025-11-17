@@ -14,6 +14,51 @@ import { DateFormat, RenderAction, RenderName } from "./RenderCells";
 import CommonHeader from "../../components/CommonHeader";
 import CustomTable from "../../components/customTable";
 
+
+const dummyPorts = [
+  {
+    _id: "1",
+    firstName: "Dubai Port",
+    phoneNumber: "+971500000001",
+    email: "dubai.port@example.com",
+    createdAt: "2024-10-12T10:15:00Z",
+    updatedAt: "2024-11-03T08:45:00Z",
+  },
+  {
+    _id: "2",
+    firstName: "Abu Dhabi Port",
+    phoneNumber: "+971500000002",
+    email: "abudhabi.port@example.com",
+    createdAt: "2024-09-20T12:30:00Z",
+    updatedAt: "2024-10-15T14:20:00Z",
+  },
+  {
+    _id: "3",
+    firstName: "Sharjah Port",
+    phoneNumber: "+971500000003",
+    email: "sharjah.port@example.com",
+    createdAt: "2024-08-05T09:00:00Z",
+    updatedAt: "2024-10-02T11:40:00Z",
+  },
+  {
+    _id: "4",
+    firstName: "Fujairah Port",
+    phoneNumber: "+971500000004",
+    email: "fujairah.port@example.com",
+    createdAt: "2024-07-18T16:00:00Z",
+    updatedAt: "2024-09-28T10:10:00Z",
+  },
+  {
+    _id: "5",
+    firstName: "Ras Al Khaimah Port",
+    phoneNumber: "+971500000005",
+    email: "rak.port@example.com",
+    createdAt: "2024-06-12T14:00:00Z",
+    updatedAt: "2024-08-21T09:00:00Z",
+  },
+];
+
+
 const Port = () => {
   const [params, setParams] = useState({
     page: 1,
@@ -200,7 +245,7 @@ const Port = () => {
             // count={totalEmployeeCount ?? 10}
             columns={cols}
             // isLoading={isLoading}
-            // data={employees ?? []}
+            data={dummyPorts ?? []}
             onPageChange={(currentPage) =>
               setParams({ ...params, page: currentPage })
             }
