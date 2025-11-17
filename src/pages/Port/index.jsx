@@ -56,6 +56,30 @@ const dummyPorts = [
     createdAt: "2024-06-12T14:00:00Z",
     updatedAt: "2024-08-21T09:00:00Z",
   },
+    {
+    _id: "6",
+    firstName: "Ras Al Khaimah Port",
+    phoneNumber: "+971500000005",
+    email: "rak.port@example.com",
+    createdAt: "2024-06-12T14:00:00Z",
+    updatedAt: "2024-08-21T09:00:00Z",
+  },
+    {
+    _id: "7",
+    firstName: "Ras Al Khaimah Port",
+    phoneNumber: "+971500000005",
+    email: "rak.port@example.com",
+    createdAt: "2024-06-12T14:00:00Z",
+    updatedAt: "2024-08-21T09:00:00Z",
+  },
+    {
+    _id: "8",
+    firstName: "Ras Al Khaimah Port",
+    phoneNumber: "+971500000005",
+    email: "rak.port@example.com",
+    createdAt: "2024-06-12T14:00:00Z",
+    updatedAt: "2024-08-21T09:00:00Z",
+  },
 ];
 
 
@@ -104,7 +128,6 @@ const Port = () => {
       contentClass: 'table-content',
       sort: true,
       thclass: 'tb-head',
-      cell: RenderName,
       width: '400',
     },
     {

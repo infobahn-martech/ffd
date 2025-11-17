@@ -269,7 +269,7 @@ line-height: 22px;
         // line-height: 18px;   
     }
     letter-spacing: 0.06px;
-    color: #225fbd;
+    color: #202225;
     text-align: center;
     .sort{
         padding-left: 10px;
@@ -317,7 +317,7 @@ line-height: 22px;
         // background-color:$table-bg-even !important;
     }
     th {
-        background-color:#f8f9fc !important;
+        background-color:#00368c !important;
         border-bottom:none;
         font-weight: 600;
        
@@ -325,7 +325,7 @@ line-height: 22px;
             line-height: 20px;   
         
         letter-spacing: 0.07px;
-        color: #225fbd;
+        color: #ffffff;
         .tb-head{
             // display: flex;
             // align-items: center;
@@ -339,7 +339,7 @@ line-height: 22px;
 
 .table tbody tr:nth-of-type(odd) {
  
-    background-color: $table-bg-odd;
+    background-color: #e7e7e7
 }
 
 .table tbody tr:nth-of-type(even) {
