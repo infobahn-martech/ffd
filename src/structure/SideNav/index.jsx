@@ -87,7 +87,7 @@ function SideNav() {
             e?.subMenus && e.subMenus.some((eS) => eS?.to === pathname)
               ? true
               : e?.isOpen,
-        })),
+        }))
       );
     else {
       setMenuState(menuState.map((e) => ({ ...e, isOpen: false })));
@@ -105,7 +105,7 @@ function SideNav() {
               ? true
               : !e.isOpen
             : e.isOpen,
-      })),
+      }))
     );
     setExpand(!expand);
   };
@@ -125,7 +125,7 @@ function SideNav() {
       </div>
       <div className="logoWrp">
         <a href="# " className="logo">
-          <img src={logo} alt="dashboard" className="dt-logo" />
+          {/* <img src={logo} alt="dashboard" className="dt-logo" /> */}
           <img src={mobIcon} alt="dashboard" className="mb-logo" />
         </a>
       </div>
