@@ -5,7 +5,7 @@ const Dashboard = () => {
       <div className="row top-sec">
         <div className="col-md-2">
           <div className="heading left-sec">
-            <h2 className="heading">Dashboard</h2>
+            {/* <h2 className="heading">Dashboard</h2> */}
           </div>
         </div>
       </div>

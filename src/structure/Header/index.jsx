@@ -2,7 +2,7 @@ import { Link, NavLink } from "react-router-dom";
 import "../../design/scss/header.scss";
 
 import logo from '../../assets/images/SedresLogo.png';
-// import mobIcon from '../../assets/images/logo-icon.svg';
+import BackIcon from '../../assets/images/BackIcon.png';
 import SearchIcon from "../../assets/images/Search.svg";
 import SettingsIcon from "../../assets/images/SettingIcon.svg";
 import DocsIcon from "../../assets/images/DocumentIcon.svg";
@@ -21,9 +21,12 @@ function Header() {
   <img src={logo} alt="Sedres Logo" className="sedres-logo" />
 
   <div className="top-links">
-    <NavLink to="/handling" className="top-link active">
-      Handling Operation
-    </NavLink>
+<NavLink to="/handling" className="top-link active back-link">
+  <img src={BackIcon} alt="back" className="back-icon" />
+  Back to Kanban Board
+</NavLink>
+
+
     <NavLink to="/workflows" className="top-link">Edit Workflows</NavLink>
     <NavLink to="/analytics" className="top-link">Show Analytics</NavLink>
   </div>

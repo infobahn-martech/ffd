@@ -4,7 +4,6 @@ import { useLocation } from 'react-router-dom';
 import DefaultMenu from './components/DefaultMenu';
 import '../../design/scss/common.scss';
 import '../../design/scss/sidebar.scss';
-
 import dashboardIcon from '../../assets/images/icon-dashboard.svg';
 import portIcon from '../../assets/images/icon-prospect.svg';
 import workerIcon from '../../assets/images/icon-workers.svg';
@@ -102,7 +101,7 @@ function SideNav() {
       isOpen: false,
       subMenus: [
         {
-          menu: 'Worker Type',
+          menu: 'My Accounts',
           to: '/workers-type',
           hasPermission: true,
         },

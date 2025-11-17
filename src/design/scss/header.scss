@@ -31,6 +31,30 @@
         text-decoration: none;
         transition: 0.2s ease;
 
+        .back-link {
+  display: flex;
+  align-items: center;
+  gap: 10px; /* spacing between icon and text */
+  text-decoration: underline; /* underline text */
+}
+
+/* Increase icon size */
+.back-icon {
+  width: 20px;   /* bigger */
+  height: 20px;
+  object-fit: contain;
+  padding-right:2px;
+}
+
+/* Make underline only for text, not icon */
+.back-link img {
+  text-decoration: none !important;
+}
+.back-link.active {
+  text-decoration: underline;
+}
+
+
         &.active {
           color: #0a53c6;
           font-weight: 600;
