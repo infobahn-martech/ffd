@@ -54,9 +54,14 @@
   text-decoration: underline;
 }
 
+.back-link:hover .back-icon {
+  filter: brightness(0) saturate(100%) invert(23%) sepia(100%) 
+          saturate(1200%) hue-rotate(200deg) brightness(95%) contrast(90%);
+}
+
 
         &.active {
-          color: #0a53c6;
+          color:#95c1ea ;
           font-weight: 600;
         }
 

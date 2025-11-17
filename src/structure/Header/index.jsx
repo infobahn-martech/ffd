@@ -2,7 +2,7 @@ import { Link, NavLink } from "react-router-dom";
 import "../../design/scss/header.scss";
 
 import logo from '../../assets/images/SedresLogo.png';
-import BackIcon from '../../assets/images/BackIcon.png';
+import BackIcon from '../../assets/images/Back.png';
 import SearchIcon from "../../assets/images/Search.svg";
 import SettingsIcon from "../../assets/images/SettingIcon.svg";
 import DocsIcon from "../../assets/images/DocumentIcon.svg";
@@ -23,7 +23,7 @@ function Header() {
   <div className="top-links">
 <NavLink to="/handling" className="top-link active back-link">
   <img src={BackIcon} alt="back" className="back-icon" />
-  Back to Kanban Board
+  Back to Board
 </NavLink>
 
 
