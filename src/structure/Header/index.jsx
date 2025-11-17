@@ -21,7 +21,8 @@ function Header() {
   <img src={logo} alt="Sedres Logo" className="sedres-logo" />
 
   <div className="top-links">
-<NavLink to="/kanban-board" className="top-link active back-link">
+{/* <NavLink to="/kanban-board" className="top-link active back-link"> */}
+<NavLink to="/dashboard" className="top-link active back-link">
   <img src={BackIcon} alt="back" className="back-icon" />
   Back to Board
 </NavLink>
