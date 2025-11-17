@@ -1,15 +1,18 @@
-import { useEffect, useState } from 'react';
-import '../../design/scss/employee.scss';
-import CustomTable from '../../components/customTable';
-import CommonHeader from '../../components/CommonHeader';
-import useEmployeeReducer from '../../store/EmployeeReducer';
-import AddEditModal from '../../components/CommomForm';
-import { formConfig } from './formConfig';
-import { DateFormat, RenderAction, RenderName } from './RenderCells';
-import DeleteConfirmationModal from '../../components/DeleteConfirmationModal';
-import usePermissionReducer from '../../store/PermissionReducer';
+// import { useEffect, useState } from 'react';
+// import '../../design/scss/employee.scss';
+// import CustomTable from '../../components/customTable';
+// import CommonHeader from '../../components/CommonHeader';
+// import useEmployeeReducer from '../../store/EmployeeReducer';
+// import AddEditModal from '../../components/CommomForm';
+// import { formConfig } from './formConfig';
+// import { DateFormat, RenderAction, RenderName } from './RenderCells';
+// import DeleteConfirmationModal from '../../components/DeleteConfirmationModal';
+// import usePermissionReducer from '../../store/PermissionReducer';
 
-const Employee = () => {
+import {  useState } from "react";
+import { DateFormat, RenderAction, RenderName } from "./RenderCells";
+
+const Port = () => {
   const [params, setParams] = useState({
     page: 1,
     total: 0,
@@ -25,26 +28,26 @@ const Employee = () => {
     selectedIdForDelete: null,
   });
 
-  const {
-    fetchEmployee,
-    employees,
-    addEmployee,
-    updateEmployee,
-    deleteEmployee,
-    isBeingUpdated,
-    totalEmployeeCount,
-    isLoading,
-  } = useEmployeeReducer((state) => state);
-  const { fetchPermission, designations } = usePermissionReducer(
-    (state) => state,
-  );
+  // const {
+  //   fetchEmployee,
+  //   employees,
+  //   addEmployee,
+  //   updateEmployee,
+  //   deleteEmployee,
+  //   isBeingUpdated,
+  //   totalEmployeeCount,
+  //   isLoading,
+  // } = useEmployeeReducer((state) => state);
+  // const { fetchPermission, designations } = usePermissionReducer(
+  //   (state) => state,
+  // );
 
-  const { showAddModal, editData, selectedIdForDelete } = state;
+  // const { showAddModal, editData, selectedIdForDelete } = state;
 
-  useEffect(() => {
-    fetchEmployee({ params });
-    fetchPermission({ params });
-  }, [params]);
+  // useEffect(() => {
+  //   fetchEmployee({ params });
+  //   fetchPermission({ params });
+  // }, [params]);
 
   const cols = [
     {
@@ -109,56 +112,56 @@ const Employee = () => {
     },
   ];
 
-  const handlePatch = ({ id, value }) => {
-    updateEmployee({
-      id,
-      formData: value,
-      cb: () => {
-        setState({ ...state, editData: null, showAddModal: false });
-        fetchEmployee({ params });
-      },
-    });
-  };
+  // const handlePatch = ({ id, value }) => {
+  //   updateEmployee({
+  //     id,
+  //     formData: value,
+  //     cb: () => {
+  //       setState({ ...state, editData: null, showAddModal: false });
+  //       fetchEmployee({ params });
+  //     },
+  //   });
+  // };
 
-  const handlePost = ({ value }) => {
-    addEmployee({
-      formData: value,
-      cb: () => {
-        setState({ ...state, showAddModal: false });
-        fetchEmployee({ params });
-      },
-    });
-  };
+  // const handlePost = ({ value }) => {
+  //   addEmployee({
+  //     formData: value,
+  //     cb: () => {
+  //       setState({ ...state, showAddModal: false });
+  //       fetchEmployee({ params });
+  //     },
+  //   });
+  // };
 
-  const closeDeleteModal = () =>
-    setState({ ...state, selectedIdForDelete: null });
+  // const closeDeleteModal = () =>
+  //   setState({ ...state, selectedIdForDelete: null });
 
-  const confirmDelete = () => {
-    deleteEmployee({
-      id: selectedIdForDelete._id,
-      cb: () => {
-        closeDeleteModal();
-        fetchEmployee({ params });
-      },
-    });
-  };
+  // const confirmDelete = () => {
+  //   deleteEmployee({
+  //     id: selectedIdForDelete._id,
+  //     cb: () => {
+  //       closeDeleteModal();
+  //       fetchEmployee({ params });
+  //     },
+  //   });
+  // };
 
   return (
     <>
-      <DeleteConfirmationModal
+      {/* <DeleteConfirmationModal
         show={selectedIdForDelete}
         onCancel={closeDeleteModal}
         onConfirm={confirmDelete}
         deleteText={`Are you sure you want to delete the employee ${selectedIdForDelete?.firstName} ${selectedIdForDelete?.lastName}?`}
         isLoading={isBeingUpdated}
-      />
+      /> */}
       <div className="page-body">
         <div className="prospect employee">
           <div className="container-fluid">
             <CommonHeader
-              tableTitle="Employee List"
+              tableTitle="Port List"
               isAddEnabled
-              addModalLabel="Add Employee"
+              addModalLabel="Add Port"
               setSearch={(e) =>
                 setParams({ ...params, searchTerm: e, page: 1, limit: 10 })
               }
@@ -166,7 +169,7 @@ const Employee = () => {
               exportTitle="Export"
               exportLoader={false}
             />
-            <AddEditModal
+            {/* <AddEditModal
               show={showAddModal}
               // formConfig={formConfig}
               formConfig={formConfig?.map((e) => {
@@ -184,18 +187,18 @@ const Employee = () => {
                 setState({ ...state, showAddModal: false, editData: null })
               }
               isLoading={isBeingUpdated}
-              ModalHeading={`${editData ? 'Update' : 'Create'} Employee`}
-            />
+              ModalHeading={`${editData ? 'Update' : 'Create'} Port`}
+            /> */}
           </div>
 
           <CustomTable
             Sl
             pagination={{ currentPage: params?.page, limit: params?.limit }}
             tableClasses="px-start"
-            count={totalEmployeeCount ?? 10}
+            // count={totalEmployeeCount ?? 10}
             columns={cols}
-            isLoading={isLoading}
-            data={employees ?? []}
+            // isLoading={isLoading}
+            // data={employees ?? []}
             onPageChange={(currentPage) =>
               setParams({ ...params, page: currentPage })
             }
@@ -215,4 +218,4 @@ const Employee = () => {
   );
 };
 
-export default Employee;
+export default Port;

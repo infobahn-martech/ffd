@@ -6,6 +6,7 @@ import Layout from '../structure/Layout';
 import Dashboard from '../pages/Dashboard';
 import Login from '../pages/Authentication';
 import KanbanBoard from '../pages/KanbanBoard';
+import Port from '../pages/Port';
 
 // 🔥 Toggle this
 const TEST_MODE = true; // true = all routes public (testing), false = real auth
@@ -33,6 +34,11 @@ const router = createBrowserRouter([
                   path: '/kanban-board',
                   id: 'kanban-board',
                   element: <KanbanBoard />,
+                },
+                    {
+                  path: '/port',
+                  id: 'port',
+                  element: <Port />,
                 },
                 {
                   path: '/settings',
