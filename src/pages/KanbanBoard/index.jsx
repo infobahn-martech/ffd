@@ -1,6 +1,8 @@
 import React, { useState } from "react";
 import { DragDropContext } from "@hello-pangea/dnd";
 import { initialData } from "../../helpers/data";
+import Column from "./Column";
+import CardForm from "./CardForm";
 
 export default function KanbanBoard() {
   const [data, setData] = useState(initialData);

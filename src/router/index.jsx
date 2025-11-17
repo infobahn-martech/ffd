@@ -5,6 +5,7 @@ import PrivateRoutes from './PrivateRoute';
 import Layout from '../structure/Layout';
 import Dashboard from '../pages/Dashboard';
 import Login from '../pages/Authentication';
+import KanbanBoard from '../pages/KanbanBoard';
 
 // 🔥 Toggle this
 const TEST_MODE = true; // true = all routes public (testing), false = real auth
@@ -27,6 +28,11 @@ const router = createBrowserRouter([
                   path: '/dashboard',
                   id: 'dashboard',
                   element: <Dashboard />,
+                },
+                   {
+                  path: '/kanban-board',
+                  id: 'kanban-board',
+                  element: <KanbanBoard />,
                 },
                 {
                   path: '/settings',
@@ -53,6 +59,11 @@ const router = createBrowserRouter([
                       id: 'dashboard',
                       element: <Dashboard />,
                     },
+                      {
+                  path: '/kanban-board',
+                  id: 'kanban-board',
+                  element: <KanbanBoard />,
+                },
                     {
                       path: '/settings',
                       id: 'settings',

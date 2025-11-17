@@ -1,11 +1,11 @@
 /* eslint-disable react-hooks/rules-of-hooks */
 import React, { useState } from "react";
-import "../assets/styles/CardForm.css";
+import "../../assets/styles/CardForm.css";
 
-import GroupSettingsIcon from "../assets/images/cv.png";
-import CircleTickIcon from "../assets/images/CircleTick.svg";
-import ColorPickerIcon from "../assets/images/ColorPicker.png";
-import PriorityIcon from "../assets/images/Priority.png";
+import GroupSettingsIcon from "../../assets/images/cv.png";
+import CircleTickIcon from "../../assets/images/CircleTick.svg";
+import ColorPickerIcon from "../../assets/images/ColorPicker.png";
+import PriorityIcon from "../../assets/images/Priority.png";
 
 
 export default function CardForm({ show, close, card }) {

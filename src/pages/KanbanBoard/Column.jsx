@@ -1,7 +1,7 @@
 import { Droppable } from "@hello-pangea/dnd";
 import CardItem from "./CardItem";
-import "../assets/styles/Column.css";
-import PriorityIcon from "../assets/images/Priority.svg";
+import "../../assets/styles/Column.css";
+import PriorityIcon from "../../assets/images/Priority.svg";
 
 export default function Column({ column, cards,setSelectedCard}) {
 

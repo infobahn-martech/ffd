@@ -1,11 +1,11 @@
 /* eslint-disable no-unused-vars */
 import { Draggable } from "@hello-pangea/dnd";
-import "../assets/styles/CardItem.css";
-import PolygonIcon from "../assets/images/PolygonIcon.svg";
-import MessageIcon from "../assets/images/MessageIcon.svg";
-import ClockIcon from "../assets/images/ClockIcon.svg";
-import AttachmentIcon from "../assets/images/Attachment.svg";
-import DocumentIcon, { DownloadIcon, InprogressIcon } from "../../assets/svgs";
+import "../../assets/styles/CardItem.css";
+import PolygonIcon from "../../assets/images/PolygonIcon.svg";
+import MessageIcon from "../../assets/images/MessageIcon.svg";
+import ClockIcon from "../../assets/images/ClockIcon.svg";
+import AttachmentIcon from "../../assets/images/Attachment.svg";
+import  { DownloadIcon, InprogressIcon } from "../../assets/svgs";
 
 
 export default function CardItem({ card, index ,setSelectedCard}) {
