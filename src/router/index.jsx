@@ -36,7 +36,7 @@ const router = createBrowserRouter([
                   element: <KanbanBoard />,
                 },
                     {
-                  path: '/port',
+                  path: '/port-management',
                   id: 'port',
                   element: <Port />,
                 },
