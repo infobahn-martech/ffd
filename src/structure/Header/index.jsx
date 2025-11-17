@@ -3,7 +3,7 @@ import { Link, NavLink } from 'react-router-dom';
 import '../../design/scss/header.scss';
 import message from '../../assets/images/message.svg';
 import noti from '../../assets/images/notification.svg';
-import dummyImg from '../../assets/images/dummy.png';
+import dummyImg from '../../assets/images/user.png';
 import profile from '../../assets/images/Profile_view.svg';
 import changePass from '../../assets/images/change-password.svg';
 import signOut from '../../assets/images/Sign_out.svg';

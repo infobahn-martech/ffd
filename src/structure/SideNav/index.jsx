@@ -4,7 +4,7 @@ import { useLocation } from 'react-router-dom';
 import DefaultMenu from './components/DefaultMenu';
 import '../../design/scss/common.scss';
 import '../../design/scss/sidebar.scss';
-import logo from '../../assets/images/logo-dark-green.svg';
+import logo from '../../assets/images/CreatedLogo.svg';
 import mobIcon from '../../assets/images/logo-icon.svg';
 import darkModeIcon from '../../assets/images/icon-darktoggle.svg';
 import dashboardIcon from '../../assets/images/icon-dashboard.svg';
@@ -124,8 +124,12 @@ function SideNav() {
         </button>
       </div>
       <div className="logoWrp">
+        {/* <div>
+          Sedres <br /> Logo
+        </div> */}
         <a href="# " className="logo">
-          {/* <img src={logo} alt="dashboard" className="dt-logo" /> */}
+          <img src={logo} alt="dashboard" className="dt-logo" />
+
           <img src={mobIcon} alt="dashboard" className="mb-logo" />
         </a>
       </div>
