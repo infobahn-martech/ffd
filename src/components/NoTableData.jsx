@@ -1,6 +1,3 @@
-/* eslint-disable react/prop-types */
-// import noImgpic  from '../../assets/img/no-data.svg';
-
 function NoTableData({ columns }) {
   return (
     <tbody>

@@ -1,4 +1,3 @@
-/* eslint-disable react/prop-types */
 import React, { useEffect, useState } from 'react';
 import CustomLoader from './CustomLoader';
 import NoTableData from './NoTableData';

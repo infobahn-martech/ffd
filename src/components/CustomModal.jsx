@@ -1,4 +1,4 @@
-/* eslint-disable react/prop-types */
+
 import { Modal } from 'react-bootstrap';
 
 export default function CustomModal({
