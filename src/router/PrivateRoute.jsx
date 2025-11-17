@@ -7,7 +7,7 @@ function PrivateRoutes() {
   const isLoggedIn = useAuthReducer((state) => state.isLoggedIn);
   const getUserProfile = useAuthReducer((state) => state.getUserProfile);
   const isProfileFetchLoading = useAuthReducer(
-    (state) => state.isProfileFetchLoading,
+    (state) => state.isProfileFetchLoading
   );
 
   useEffect(() => {

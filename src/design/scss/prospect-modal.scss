@@ -1,0 +1,246 @@
+@import "partials/partials";
+
+$primary-font:"Poppins", sans-serif;
+ .modal-header{
+    border-bottom: none;
+    font-size: 24px;
+    font-weight: 600;
+    line-height: 34px;
+    @media($sm-1679){
+      font-size: 22px;
+      line-height: 32px;
+  }
+  @media($sm-1481){
+      font-size: 20px;
+      line-height: 30px;   
+  }
+    position: relative;
+    .btn-close{
+        position: absolute;
+        top: -30px;
+        right: -28px;
+
+        @media($sm-991){
+          top: 0;
+          right: 0;
+        }
+    }
+ }
+ .modal-dialog {
+    max-width: 1231px;
+    width: 100%;
+    margin: auto; 
+  }
+  
+  .modal-content {
+   padding: 60px;
+   border-radius: 23px;
+
+   @media($sm-991){
+    padding: 20px;
+   }
+  }
+  .custom-label {
+    color: #174043;
+    font-size: 16px;
+    position: absolute;
+    top: -9px;
+    background: #fff;
+    left: 20px;
+    padding: 0 5px;
+    font-weight: 600;
+
+    @media($sm-1679){
+      font-size: 14px;
+
+  }
+  @media($sm-1481){
+      font-size: 12px;
+ 
+  }
+}
+
+  
+  .form-group {
+    position: relative;
+    margin-bottom: 1rem;
+  }
+  .form-control {
+    border-color: #BCDEE2;
+    font-size: 16px;
+    padding:10px;
+    border-radius: 10px;
+    @media($sm-1679){
+      font-size: 14px;
+
+  }
+  @media($sm-1481){
+      font-size: 12px;
+ 
+  }
+
+    &::placeholder {
+        color: #87ADB1;
+        font-size: 12px;
+        font-weight: 400;
+        font-family: $primary-font;
+        padding-left: 16px;
+
+        @media($sm-1679){
+          font-size: 14px;
+    
+      }
+      @media($sm-1481){
+          font-size: 12px;
+     
+      }
+      
+      }
+      &::-webkit-input-placeholder {
+        color: #87ADB1;
+        font-size: 16px;
+        font-weight: 400;
+        padding-left: 14px;
+        @media($sm-1679){
+          font-size: 14px;
+    
+      }
+      @media($sm-1481){
+          font-size: 12px;
+     
+      }
+      }
+  }
+  .btn-close{
+    background-image: url(../../assets/images/close.svg);
+  }
+
+  .two-btn {
+    display: flex;
+    justify-content: end;
+    @media($sm-991){
+      padding-top: 20px;
+    }
+    button{
+        padding: 11px 42px;
+        margin-right: 10px;
+
+        &:last-child{
+            margin-right: 0;
+        }
+        &.close{
+            background-color: #DEF0F2;
+            color: #24666C;
+        }
+    }
+}
+
+
+.employee-modal{
+  .modal-dialog {
+    max-width: 629px;
+    width: 100%;
+    margin: auto; 
+  }
+  .profile-img{
+    width: 120px;
+    height: 120px;
+    border-radius: 100px;
+    margin: 0 auto;
+    margin-bottom: 20px;
+}
+.popup-title{
+  font: normal normal 600 20px/30px Poppins;
+  color: #25666C;
+}
+.popup-sub-title{
+font: normal normal normal 14px/21px Poppins;
+}
+  .modal-body{
+    text-align: center;
+
+    .ok-btn{
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      margin-top: 20px;
+    }
+  }
+}
+
+input#selectedFile{
+  background-color: transparent;
+border-radius: 9px;
+padding: 1rem 0.75rem;
+
+}
+.file-up {
+  label{
+    color: #24666C;
+    background-color: #DEF0F2;
+    border: 1px solid #DEF0F2;
+    border-radius: 7px !important;
+    top: 8px;
+    left: 20px;
+    padding: 4px 35px;
+    @media($sm-991){
+      top: 10px;
+      left: 20px;
+      padding: 7px 15px;
+      font-size: 12px;
+    }
+  }
+}
+.form-floating1{
+  .form-select {
+    padding: 1rem 0.75rem;
+
+    @media($sm-991){
+      font-size: 12px;
+      padding: 0px 10px;
+      padding-left: 21px;
+    }
+}
+}
+
+
+
+span.error.text-danger{
+  position: absolute;
+  font-size: 11px;
+  bottom: -19px;
+  // padding-top: 5px;
+}
+
+.modal-body{
+  @media($sm-991){
+    padding: 0px;
+  }
+}
+.modal-title{
+
+  letter-spacing: 0.1px;
+  color: #226166;
+  font-size: 20px;
+  font-weight: 600;
+  }
+
+  .logout-modal{
+    &.change-pass{
+      .modal-header .btn-close{
+        top: 6px;
+      }
+  
+        .modal-content{
+          padding: 10px 50px 35px 50px;
+            .profile-img{
+              width: 82px;
+              height: 82px;
+            }
+        }
+    } 
+  }
+
+  .logout-modal1{
+    padding: 50px;
+  }

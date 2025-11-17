@@ -1,0 +1,32 @@
+.employee{
+    .table {
+    
+        th,
+        td {
+          text-align: left;
+        }
+        .status{
+            display: flex;
+            align-items: center;
+            &.bg-green{
+                color: #4CAF50;
+            }
+            &.bg-red{
+                color: #FF2323;
+            }
+            span.active {
+                width: 12px;
+                height: 12px;
+                background: #4CAF50;
+                margin-right: 10px;
+                display: block;
+                border-radius: 10px;
+
+                &.inactive{
+                    background-color: red;
+                }
+            }
+        }
+
+        }
+}

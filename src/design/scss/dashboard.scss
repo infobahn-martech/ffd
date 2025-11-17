@@ -1,0 +1,28 @@
+@import "partials/partials";
+
+.dashboard-wrp{
+    display: flex;
+    width: 100%;
+    .page-cont-wrp{
+        max-width: calc(100% - 300px);
+        @media($sm-1481){
+            max-width: calc(100% - 266px);   
+        }
+        @media($sm-1281){
+            max-width: calc(100% - 220px);  
+        }
+        @media($sm-991){
+            max-width: 100%;
+            padding-left: 72px;
+        }
+        flex: 1;
+    }
+    .top-sec{
+        padding: 25px 10px;
+        .heading{
+            font: normal normal 600 24px/1.4 'Poppins';
+            letter-spacing: .1px;
+            color: #226166;
+        }
+    }
+}

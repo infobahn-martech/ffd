@@ -1,0 +1,89 @@
+.toast {
+    position: fixed;
+    top: 40px;
+    right: 30px;
+    opacity: 1 !important;
+    color: #fff;
+    z-index: 99999999;
+    border: 0;
+
+    strong {
+        font: 500 16px/23px Poppins;
+    }
+    p {
+        font: normal 13px/21px Poppins;
+        margin-bottom: 0;
+    }
+    &.success_msg {
+        background: #44b85e !important;
+    }
+    &.error_msg {
+        background-color: #f44336 !important;
+    }
+    .btn-close {
+        border: 0;
+        box-shadow: none;
+        filter: brightness(0) invert(1);
+        opacity: 1;
+    }
+}
+
+// toastify
+.Toastify{
+    .Toastify__toast{
+        border: 1px solid;
+        border-radius: 10px;
+        .Toastify__toast-icon{
+            width: 30px;
+            img{
+                width: 100%;
+                object-fit: contain;
+            }
+        }
+        &.error{
+            background-color: #ffe3e1;
+            border-color: #f44336;
+            *{
+                color: #f44336;
+                font-size: 12px;
+            }
+            .Toastify__progress-bar{
+                background: unset;
+                background-color: #f44336 !important;
+            }
+        }
+        &.success{
+            background-color: #e9f7ee;
+            border-color: #3ebe64;
+            *{
+                color: #3ebe64;
+                font-size: 12px;
+            }
+            .Toastify__progress-bar{
+                background: unset;
+                background-color: #3ebe64 !important;
+            }
+        }
+
+        &.success{
+            background-color: #e9f7ee;
+            border-color: #3ebe64;
+            *{
+                color: #3ebe64;
+                font-size: 12px;
+            }
+            .Toastify__progress-bar{
+                background: unset;
+                background-color: #3ebe64 !important;
+            }
+        }
+
+        .Toastify__progress-bar{
+            background: unset;
+            height: 1px;
+        }
+        .Toastify__close-button{
+            align-self: center;
+        }
+    }
+}

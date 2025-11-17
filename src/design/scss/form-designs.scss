@@ -1,0 +1,214 @@
+@import "partials/partials";
+
+.form-inp-wrp{
+    margin-bottom: 30px;
+}
+.form-floating.form-floating{
+    border: 1px solid $borderLight;
+    border-radius: 12px;
+    margin-bottom: 30px;
+    @media($sm-1199 ){
+        margin-bottom: 25px;
+    }
+    .input-group-text{
+        position: absolute;
+        top: 0;
+        right: 0;
+        bottom: 0;
+    }
+    .form-control,
+    .form-select{
+        border: none !important;
+        box-shadow: none !important;
+        padding-top: 10px !important;
+        padding-bottom: 10px !important;
+        border-radius: 12px;
+        height: 50px;
+        min-height: 50px;
+        font-size: 13px; 
+    }
+    textarea.form-control{
+        min-height: 100px;
+    }
+    & > label{
+        padding: 5px 10px;
+        background-color: #ffffff;
+        display: flex;
+        align-items: center;
+        margin-left: 10px;
+        color: $txtColor !important;
+        font-size: 13px;
+        z-index: 0;
+        .req{
+            color: #ff0000;
+            font-size: 0.875em;
+        }
+    }
+    & >.form-control-plaintext~label,
+    & >.form-control:focus~label,
+    & >.form-control:not(:placeholder-shown)~label,
+    & >.form-select~label{
+        top: -10px !important;
+        transform: scale(.85) translateY(-0.4rem) translateX(0.15rem) !important;
+        height: unset !important;
+    }
+}
+
+.form-check{
+    .form-check-input{
+        box-shadow: none !important;
+        border: 1px solid #98CBD0;
+        width: 15px;
+        height: 15px; 
+    }
+    .form-check-input:checked{
+        background-color: #25666C;
+        border-color: #25666C;
+    }
+}
+.lead-form{
+    .mb-lg-3{
+        margin-bottom: 0 !important;
+    }
+}
+
+// .input-group {
+//     position: relative;
+// }
+
+// .input-group-text img {
+//     position: absolute;
+//     right: 10px;
+//     top: 50%;
+//     transform: translateY(-50%);
+// }
+.form-control:disabled{
+    background-color: transparent !important;
+}
+.form-floating>.form-control:disabled~label::after, .form-floating>:disabled~label::after {
+    background-color: transparent;
+}
+
+.form-floating>.form-select {
+    padding-top: 10px;
+    padding-bottom: 10px;
+    font-size: 13px;
+    border: none;
+}
+
+.form-select {
+.css-13cymwt-control{
+    border: none;
+}}
+
+.form-control.form-select {
+    padding: 6px;
+
+    .css-13cymwt-control{
+        border: none;
+        box-shadow: none;
+    }
+    .css-1u9des2-indicatorSeparator{
+    width:0 !important;
+    }
+    .css-t3ipsp-control:hover {
+        border: none;
+        box-shadow: none;
+    }
+    .css-1nmdiq5-menu{
+        left:-4px !important
+        }
+}
+
+
+
+.lead-form{
+    label{
+    
+            .star{
+                color: red;
+            }
+           
+      
+    }
+}
+
+
+.filters-inputs-wrp{
+    .form-floating.form-floating{
+        margin-bottom: 0;
+        @media($sm-1199 ){
+            margin-bottom: 25px;
+        }
+    }  
+}
+
+
+
+label.select-label {
+    position: absolute;
+    z-index: 1;
+    font-size: 12px;
+    top: -8px;
+    background: #fff;
+    left: 15px;
+    color: #35475e !important;
+}
+
+.form-control.form-select {
+position: relative;
+    .css-1jqq78o-placeholder {
+        font-size: 13px;
+        color: #35475e !important;
+    }
+}
+
+
+.field-disabled{
+    input{
+     color:#79A1A5 !important;}
+    }
+.form-select {
+    @media($sm-991) {
+        margin-bottom: 25px;
+    }
+}
+
+.react-select-container {
+    .react-select {
+        &__control {
+            &--is-focused {
+                border: none !important;
+                box-shadow: none !important;
+            }
+        }
+    }
+}
+
+.react-select__option css-10wo9uf-option {
+    background-color: #25666C;
+    color: #fff;
+    font-size: 13px;
+
+}
+input::-webkit-outer-spin-button,
+input::-webkit-inner-spin-button {
+  -webkit-appearance: none;
+  margin: 0;
+}
+
+input[type=number] {
+  -moz-appearance: textfield;
+}
+
+.react-select__option.css-d7l1ni-option{
+    background-color: #25666C;
+    color:#fff;
+    font-size: 13px;
+}
+
+
+.workerTypeModal .modal-content {
+    max-width: 600px;
+    margin: 0 auto;
+}
