@@ -192,3 +192,30 @@
         margin: 100px auto;
      }
 }
+
+.back-kanban {
+  display: flex;
+  align-items: center;
+  gap: 8px;              // space between icon and text
+  font-size: 16px;
+  font-weight: 500;
+  color: #2a2a2a;
+  cursor: pointer;
+  padding-left: 10px;
+}
+
+.back-kanban:hover .back-text {
+  text-decoration: underline;
+}
+
+.back-icon {
+  width: 18px;
+  height: 18px;
+  object-fit: contain;
+  filter: brightness(0.2);    // light grey like your screenshot
+  cursor: pointer;
+}
+
+.back-text {
+  font-family: 'Poppins', sans-serif;
+}

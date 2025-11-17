@@ -6,9 +6,8 @@ import '../../design/scss/common.scss';
 import '../../design/scss/sidebar.scss';
 import logo from '../../assets/images/CreatedLogo.svg';
 import mobIcon from '../../assets/images/logo-icon.svg';
-import darkModeIcon from '../../assets/images/icon-darktoggle.svg';
 import dashboardIcon from '../../assets/images/icon-dashboard.svg';
-import prospectIcon from '../../assets/images/icon-prospect.svg';
+import portIcon from '../../assets/images/icon-prospect.svg';
 import workerIcon from '../../assets/images/icon-workers.svg';
 import settingsIcon from '../../assets/images/icon-settings.svg';
 import useWindowSize from '../../hooks/useWindowSize';
@@ -26,34 +25,70 @@ function SideNav() {
       icon: dashboardIcon,
       hasPermission: true,
     },
-    {
-      menu: 'Prospect',
-      isDefaultMenu: true,
-      to: '/prospect',
-      icon: prospectIcon,
-      hasPermission: true,
-    },
-    {
-      menu: 'Workers',
-      isDefaultMenu: true,
-      to: '/workers',
-      icon: workerIcon,
-      hasPermission: true,
-    },
-    {
+      {
       menu: 'User Management',
       isDefaultMenu: true,
       hasPermission: true,
       isOpen: false,
       subMenus: [
         {
-          menu: 'Employees',
-          to: '/employee',
+          menu: 'Role',
+          to: '/role',
           hasPermission: true,
         },
         {
-          menu: 'Designation',
+          menu: 'Permission ',
           to: '/permission',
+          hasPermission: true,
+        },
+          {
+          menu: 'Registration ',
+          to: '/registration',
+          hasPermission: true,
+        },
+      ],
+      icon: workerIcon,
+    },
+    {
+      menu: 'Port Management',
+      isDefaultMenu: true,
+      to: '/port-management',
+      icon: portIcon,
+      hasPermission: true,
+    },
+    {
+      menu: 'Vessel Management',
+      isDefaultMenu: true,
+      hasPermission: true,
+      isOpen: false,
+      subMenus: [
+        {
+          menu: 'Billing Entity',
+          to: '/billing-entity',
+          hasPermission: true,
+        },
+        {
+          menu: 'Registration',
+          to: '/registration',
+          hasPermission: true,
+        },
+      ],
+      icon: workerIcon,
+    },
+        {
+      menu: 'Pre-arrival mangament',
+      isDefaultMenu: true,
+      hasPermission: true,
+      isOpen: false,
+      subMenus: [
+        {
+          menu: 'Document',
+          to: '/document',
+          hasPermission: true,
+        },
+        {
+          menu: 'CheckList',
+          to: '/checkList',
           hasPermission: true,
         },
       ],
@@ -153,21 +188,6 @@ function SideNav() {
                 );
               return null;
             })}
-
-          <li className="menu-link">
-            <a href="# " className="link darkmode-toggle">
-              <span className="ico">
-                <img src={darkModeIcon} alt="darkmode" />
-              </span>
-              <span className="txt">Dark Mode</span>
-              <span className="toggleSwitch">
-                <span className="togglerCheckbox">
-                  <input type="checkbox" name="toggleD" id="toggleD" />
-                  <label htmlFor="toggleD" className="checkLabel" />
-                </span>
-              </span>
-            </a>
-          </li>
         </ul>
       </div>
       <div className="toggleDark" />

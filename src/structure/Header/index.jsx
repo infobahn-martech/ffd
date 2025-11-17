@@ -5,6 +5,7 @@ import message from '../../assets/images/message.svg';
 import noti from '../../assets/images/notification.svg';
 import dummyImg from '../../assets/images/user.png';
 import profile from '../../assets/images/Profile_view.svg';
+import backIcon from '../../assets/images/BackIcon.png';
 import changePass from '../../assets/images/change-password.svg';
 import signOut from '../../assets/images/Sign_out.svg';
 import modalsignout from '../../assets/images/signout.svg';
@@ -27,7 +28,10 @@ function Header() {
   return (
     <div className="container-fluid">
       <div className="row align-items-center">
-        <div className="col-md-2" />
+      <div className="col-md-2 back-kanban">
+  <img src={backIcon} alt="Back" className="back-icon" />
+  <span className="back-text">Back to Kanban</span>
+    </div>
         <div className="col-md-10 actn-col">
           <ul className="navbar-nav">
             <li className="nav-item">
