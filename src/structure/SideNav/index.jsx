@@ -4,16 +4,45 @@ import { useLocation } from 'react-router-dom';
 import DefaultMenu from './components/DefaultMenu';
 import '../../design/scss/common.scss';
 import '../../design/scss/sidebar.scss';
+
+// Existing icons
 import dashboardIcon from '../../assets/images/icon-dashboard.svg';
 import portIcon from '../../assets/images/icon-prospect.svg';
 import workerIcon from '../../assets/images/icon-workers.svg';
 import settingsIcon from '../../assets/images/icon-settings.svg';
+
 import useWindowSize from '../../hooks/useWindowSize';
+
+// 🆕 Kanban sidebar icons + tooltip
+import { Tooltip } from 'react-tooltip';
+import 'react-tooltip/dist/react-tooltip.css';
+import InboxIcon from '../../assets/images/Inbox.svg';
+import GroupIcon from '../../assets/images/Group.svg';
+import CalendarIcon from '../../assets/images/Calendar.svg';
+import AnalyticsIcon from '../../assets/images/analytics 1.svg';
+import ReportsIcon from '../../assets/images/Reports.svg';
+import SettingsIcon from '../../assets/images/Settings.svg';
 
 function SideNav() {
   const { pathname } = useLocation();
-  const [expand, setExpand] = useState(false);
   const { width } = useWindowSize();
+
+  const isKanbanBoard = pathname === '/kanban-board';
+
+  // 🆕 Kanban icon config
+  const kanbanIcons = [
+    { id: 1, icon: GroupIcon, label: 'Add' },
+    { id: 2, icon: AnalyticsIcon, label: 'Analytics' },
+    { id: 3, icon: InboxIcon, label: 'Inbox' },
+    { id: 4, icon: CalendarIcon, label: 'Calendar' },
+    { id: 5, icon: ReportsIcon, label: 'Reports' },
+    { id: 6, icon: SettingsIcon, label: 'Settings' },
+  ];
+
+  // 🆕 Active state only for Kanban sidebar
+  const [activeKanbanIcon, setActiveKanbanIcon] = useState(2); // default Analytics
+
+  const [expand, setExpand] = useState(false);
 
   const menus = [
     {
@@ -23,7 +52,7 @@ function SideNav() {
       icon: dashboardIcon,
       hasPermission: true,
     },
-      {
+    {
       menu: 'User Management',
       isDefaultMenu: true,
       hasPermission: true,
@@ -39,7 +68,7 @@ function SideNav() {
           to: '/permission',
           hasPermission: true,
         },
-          {
+        {
           menu: 'Registration ',
           to: '/registration',
           hasPermission: true,
@@ -73,7 +102,7 @@ function SideNav() {
       ],
       icon: workerIcon,
     },
-        {
+    {
       menu: 'Pre-arrival mangament',
       isDefaultMenu: true,
       hasPermission: true,
@@ -112,9 +141,12 @@ function SideNav() {
   const [menuState, setMenuState] = useState(menus);
 
   useEffect(() => {
+    // 🔒 Don’t touch normal menu behaviour when on Kanban sidebar
+    if (isKanbanBoard) return;
+
     if (width > 991)
-      setMenuState(
-        menuState.map((e) => ({
+      setMenuState((prev) =>
+        prev.map((e) => ({
           ...e,
           isOpen:
             e?.subMenus && e.subMenus.some((eS) => eS?.to === pathname)
@@ -123,14 +155,14 @@ function SideNav() {
         }))
       );
     else {
-      setMenuState(menuState.map((e) => ({ ...e, isOpen: false })));
+      setMenuState((prev) => prev.map((e) => ({ ...e, isOpen: false })));
       setExpand(false);
     }
-  }, [pathname, width]);
+  }, [pathname, width, isKanbanBoard]);
 
   const toggleCollapse = (menu) => {
-    setMenuState(
-      menuState.map((e) => ({
+    setMenuState((prev) =>
+      prev.map((e) => ({
         ...e,
         isOpen:
           e.menu === menu
@@ -143,6 +175,39 @@ function SideNav() {
     setExpand(!expand);
   };
 
+  // 🆕 Special layout for /kanban-board
+  if (isKanbanBoard) {
+    return (
+      <aside className="kanban-sidebar">
+        {kanbanIcons.map((item) => (
+          <div
+            key={item.id}
+            className={`kanban-sidebar-icon ${
+              activeKanbanIcon === item.id ? 'active' : ''
+            }`}
+            onClick={() => setActiveKanbanIcon(item.id)}
+            data-tooltip-id="sidebar-tooltip"
+            data-tooltip-content={item.label}
+          >
+            <img src={item.icon} alt={item.label} />
+          </div>
+        ))}
+        <Tooltip
+          id="sidebar-tooltip"
+          place="right"
+          style={{
+            backgroundColor: '#333',
+            color: '#fff',
+            fontSize: '0.85rem',
+            borderRadius: '6px',
+            padding: '6px 10px',
+          }}
+        />
+      </aside>
+    );
+  }
+
+  // 🔵 Default sidebar (all other routes)
   return (
     <div className={expand ? 'sidebar show' : 'sidebar'}>
       <div className="st-wrp">
