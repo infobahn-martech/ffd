@@ -1,7 +1,7 @@
 import { useState } from "react";
 import CommonHeader from "../../components/CommonHeader";
 import CustomTable from "../../components/customTable";
-import { RoleModal } from "./Modals/AddEditPort";
+import { RoleModal } from "./Modals/AddEditRole";
 import { RenderAction } from "./RenderCells";
 
 const dummyRoles = [

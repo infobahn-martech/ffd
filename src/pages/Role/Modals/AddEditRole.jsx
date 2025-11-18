@@ -167,9 +167,7 @@ const renderBody = () => (
   );
   return (
     <CustomModal
-      // className="modal fade show"
       dialgName="modal-dialog modal-dialog-centered"
-      // createModal
       show={!!showModal}
       closeModal={() => closeModal(null)}
       body={renderBody()}
