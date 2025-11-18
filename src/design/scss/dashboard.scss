@@ -23,8 +23,8 @@
     padding: 25px 35px;
     background: #ffffff;
 
-    /* RESPONSIVE WIDTH HANDLING BASED ON SIDEBAR BREAKPOINTS */
-    max-width: calc(100% - 300px);
+    // /* RESPONSIVE WIDTH HANDLING BASED ON SIDEBAR BREAKPOINTS */
+    // max-width: calc(100% - 300px);
 
     @media ($sm-1481) {
       max-width: calc(100% - 266px);

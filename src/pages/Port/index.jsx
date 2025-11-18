@@ -80,6 +80,22 @@ const dummyPorts = [
     createdAt: "2024-06-12T14:00:00Z",
     updatedAt: "2024-08-21T09:00:00Z",
   },
+      {
+    _id: "9",
+    firstName: "Ras Al Khaimah Port",
+    phoneNumber: "+971500000005",
+    email: "rak.port@example.com",
+    createdAt: "2024-06-12T14:00:00Z",
+    updatedAt: "2024-08-21T09:00:00Z",
+  },
+      {
+    _id: "10",
+    firstName: "Ras Al Khaimah Port",
+    phoneNumber: "+971500000005",
+    email: "rak.port@example.com",
+    createdAt: "2024-06-12T14:00:00Z",
+    updatedAt: "2024-08-21T09:00:00Z",
+  },
 ];
 
 

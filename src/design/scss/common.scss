@@ -142,3 +142,91 @@ img{
     margin-right: 5px;
 }
 }
+
+/* ================================
+   KANBAN — GLOBAL LAYOUT FIX
+================================ */
+
+.kanban-container {
+    width: 100%;
+    overflow-x: auto;
+    overflow-y: hidden;
+    padding: 10px 0;
+}
+
+.kanban-zoom-wrapper {
+    width: max-content;
+}
+
+.kanban-board {
+    display: flex;
+    flex-wrap: nowrap;
+    gap: 20px;
+    align-items: flex-start;
+    width: max-content;
+}
+
+/* Column Box */
+.column {
+    background: #f3f4f8;
+    border-radius: 10px;
+    width: 270px;
+    flex-shrink: 0;
+    padding: 0 8px 10px 8px;
+}
+
+/* Column Header */
+.column-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    border-radius: 8px;
+    padding: 8px 12px;
+    margin-bottom: 6px;
+    font-weight: 600;
+    font-size: 15px;
+}
+
+/* Card List */
+.card-list {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+}
+
+/* Drag over glow */
+.card-list.drag-over {
+    background: #e2e6ff;
+    border-radius: 10px;
+}
+
+/* Scrollbars */
+.kanban-container::-webkit-scrollbar,
+.page-cont-wrp::-webkit-scrollbar {
+    height: 6px;
+}
+
+.kanban-container::-webkit-scrollbar-thumb,
+.page-cont-wrp::-webkit-scrollbar-thumb {
+    background: #cbd5e1;
+    border-radius: 10px;
+}
+
+/* Zoom controls */
+.zoom-controls {
+    position: fixed;
+    top: 110px; 
+    right: 40px;
+    z-index: 1000;
+    display: flex;
+    gap: 8px;
+}
+
+.zoom-controls button {
+    background: #fff;
+    border: 1px solid #d1d5db;
+    padding: 6px 12px;
+    border-radius: 6px;
+    cursor: pointer;
+    font-size: 16px;
+}
