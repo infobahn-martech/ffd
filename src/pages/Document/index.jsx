@@ -10,7 +10,7 @@ const dummyRoles = [
   { _id: "5", name: "Supervisor", description: "Review and approve tasks" },
 ];
 
-const BillingEntity = () => {
+const Document = () => {
   const [params, setParams] = useState({
     page: 1,
     searchTerm: "",
@@ -47,7 +47,7 @@ const BillingEntity = () => {
           <div className="container-fluid">
             <CommonHeader
               showFilter
-              tableTitle="BillingEntity List"
+              tableTitle="Document List"
               setSearch={(e) =>
                 setParams({ ...params, searchTerm: e, page: 1 })
               }
@@ -83,4 +83,4 @@ const BillingEntity = () => {
   );
 };
 
-export default BillingEntity;
+export default Document;
