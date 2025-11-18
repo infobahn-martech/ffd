@@ -2,7 +2,6 @@ import CustomModal from '../../../components/CustomModal';
 import icon from '../../../assets/images/icon-chevToggle.svg';
 import '../../../design/scss/add-permissions.scss';
 
-/* eslint-disable react/prop-types */
 export function PermissionModal({ showModal, closeModal }) {
   const renderHeader = () => (
     <>

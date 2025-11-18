@@ -1,13 +1,3 @@
-// import { useEffect, useState } from 'react';
-// import '../../design/scss/employee.scss';
-// import CustomTable from '../../components/customTable';
-// import CommonHeader from '../../components/CommonHeader';
-// import useEmployeeReducer from '../../store/EmployeeReducer';
-// import AddEditModal from '../../components/CommomForm';
-// import { formConfig } from './formConfig';
-// import { DateFormat, RenderAction, RenderName } from './RenderCells';
-// import DeleteConfirmationModal from '../../components/DeleteConfirmationModal';
-// import usePermissionReducer from '../../store/PermissionReducer';
 
 import {  useState } from "react";
 import { DateFormat, RenderAction, RenderName } from "./RenderCells";
@@ -131,7 +121,7 @@ const Port = () => {
   //   (state) => state,
   // );
 
-  const { showAddModal, } = state;
+  const { showAddModal } = state;
 
   // useEffect(() => {
   //   fetchEmployee({ params });
