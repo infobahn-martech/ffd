@@ -9,6 +9,7 @@ const Gateway = axios.create({
   },
   timeout: 30000,
 });
+
 Gateway.interceptors.response.use(
   (response) => {
     return response;

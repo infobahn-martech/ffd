@@ -167,6 +167,7 @@ const Port = () => {
         <div className="prospect employee">
           <div className="container-fluid">
             <CommonHeader
+             showFilter
               tableTitle="Port List"
               isAddEnabled
               addModalLabel="Add Port"
@@ -182,10 +183,9 @@ const Port = () => {
           </div>
 
           <CustomTable
-            Sl
             pagination={{ currentPage: params?.page, limit: params?.limit }}
             tableClasses="px-start"
-            // count={totalEmployeeCount ?? 10}
+            count={10}
             columns={cols}
             // isLoading={isLoading}
             data={dummyPorts ?? []}
