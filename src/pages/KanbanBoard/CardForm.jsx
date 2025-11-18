@@ -32,7 +32,6 @@ export default function CardForm({ show, close, card }) {
   };
 
   const handleUpdate = () => {
-    console.log("Updated values:", formValues);
     close();
   };
 
