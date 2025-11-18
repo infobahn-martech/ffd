@@ -24,25 +24,25 @@ body{
 .btn{
     font-size: 16px;
     &.btn-primary{
-        background-color: #24666C;
-        border: 1px solid #24666C;
+        background-color: #00368c;
+        border: 1px solid #00368c;
         &:hover,
         &:focus,
         &:active{
-            background-color: #35767C;
+            background-color: #00368c;
         }
     }
     &.btn-outline {
         border: 1px solid #D3E3F8 !important;
         color: #35475E;
         &.btn-login{
-            color: #24666C; 
-            border: 1px solid #24666C !important;
+            color: #00368c; 
+            border: 1px solid #00368c !important;
         }
     }
     &.btn-secondary{
         border: 1px solid #D3E3F8 !important;
-        color: #24666C;
+        color: #00368c;
         background-color: #DEF0F2;
     }
 }
@@ -52,7 +52,7 @@ body{
 
 .table{
     .row_title{
-        color: #24666C;
+        color: #00368c;
         font-weight: 500;
     }
     td{
@@ -106,7 +106,7 @@ body{
                 height: 16px;
                 border-radius: 16px;
                 display: block;
-                background-color: #24666C;
+                background-color: #00368c;
                 transition: all ease-in-out 0.1s;
             }
         }

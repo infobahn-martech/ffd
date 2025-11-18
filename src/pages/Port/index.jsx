@@ -3,9 +3,7 @@ import {  useState } from "react";
 import { DateFormat, RenderAction, RenderName } from "./RenderCells";
 import CommonHeader from "../../components/CommonHeader";
 import CustomTable from "../../components/customTable";
-import AddEditModal from "../../components/CommomForm";
-import { formConfig } from "./formConfig";
-
+import { PortModal } from "./Modals/AddEditPort";
 
 const dummyPorts = [
   {
@@ -101,32 +99,7 @@ const Port = () => {
     sortBy: 'createdAt',
   });
 
-  const [state, setState] = useState({
-    showAddModal: false,
-    editData: null,
-    selectedIdForDelete: null,
-  });
-
-  // const {
-  //   fetchEmployee,
-  //   employees,
-  //   addEmployee,
-  //   updateEmployee,
-  //   deleteEmployee,
-  //   isBeingUpdated,
-  //   totalEmployeeCount,
-  //   isLoading,
-  // } = useEmployeeReducer((state) => state);
-  // const { fetchPermission, designations } = usePermissionReducer(
-  //   (state) => state,
-  // );
-
-  const { showAddModal } = state;
-
-  // useEffect(() => {
-  //   fetchEmployee({ params });
-  //   fetchPermission({ params });
-  // }, [params]);
+  const [showPortModal, setShowPortModal] = useState(false);
 
   const cols = [
     {
@@ -181,58 +154,15 @@ const Port = () => {
       tableClasses: 'table-striped',
       contentClass: 'table-content',
       thclass: 'tb-head',
-      onEditClick: (row) => {
-        setState({ ...state, editData: row, showAddModal: true });
-      },
-      onDeleteClick: (row) => setState({ ...state, selectedIdForDelete: row }),
+      onEditClick:()=>{},
+      onDeleteClick:()=>{},
       cell: RenderAction,
       width: '200',
     },
   ];
 
-  // const handlePatch = ({ id, value }) => {
-  //   updateEmployee({
-  //     id,
-  //     formData: value,
-  //     cb: () => {
-  //       setState({ ...state, editData: null, showAddModal: false });
-  //       fetchEmployee({ params });
-  //     },
-  //   });
-  // };
-
-  // const handlePost = ({ value }) => {
-  //   addEmployee({
-  //     formData: value,
-  //     cb: () => {
-  //       setState({ ...state, showAddModal: false });
-  //       fetchEmployee({ params });
-  //     },
-  //   });
-  // };
-
-  // const closeDeleteModal = () =>
-  //   setState({ ...state, selectedIdForDelete: null });
-
-  // const confirmDelete = () => {
-  //   deleteEmployee({
-  //     id: selectedIdForDelete._id,
-  //     cb: () => {
-  //       closeDeleteModal();
-  //       fetchEmployee({ params });
-  //     },
-  //   });
-  // };
-
   return (
     <>
-      {/* <DeleteConfirmationModal
-        show={selectedIdForDelete}
-        onCancel={closeDeleteModal}
-        onConfirm={confirmDelete}
-        deleteText={`Are you sure you want to delete the employee ${selectedIdForDelete?.firstName} ${selectedIdForDelete?.lastName}?`}
-        isLoading={isBeingUpdated}
-      /> */}
       <div className="page-body">
         <div className="prospect employee">
           <div className="container-fluid">
@@ -243,21 +173,11 @@ const Port = () => {
               setSearch={(e) =>
                 setParams({ ...params, searchTerm: e, page: 1, limit: 10 })
               }
-              onAddModalClick={() => setState({ ...state, showAddModal: true })}
+            onAddModalClick={() => {
+              setShowPortModal(true);
+            }}
               exportTitle="Export"
               exportLoader={false}
-            />
-            <AddEditModal
-              show={showAddModal}
-              formConfig={formConfig}
-              // handlePost={handlePost}
-              // handlePatch={handlePatch}
-              // editData={editData}
-              closeModal={() =>
-                setState({ ...state, showAddModal: false, editData: null })
-              }
-              // isLoading={isBeingUpdated}
-              // ModalHeading={`${editData ? 'Update' : 'Create'} Port`}
             />
           </div>
 
@@ -282,6 +202,12 @@ const Port = () => {
               });
             }}
           />
+           {!!showPortModal && (
+                    <PortModal
+                      showModal={showPortModal}
+                      closeModal={() => setShowPortModal(false)}
+                    />
+                  )}
         </div>
       </div>
     </>
