@@ -13,6 +13,8 @@ import {  useState } from "react";
 import { DateFormat, RenderAction, RenderName } from "./RenderCells";
 import CommonHeader from "../../components/CommonHeader";
 import CustomTable from "../../components/customTable";
+import AddEditModal from "../../components/CommomForm";
+import { formConfig } from "./formConfig";
 
 
 const dummyPorts = [
@@ -129,7 +131,7 @@ const Port = () => {
   //   (state) => state,
   // );
 
-  // const { showAddModal, editData, selectedIdForDelete } = state;
+  const { showAddModal, } = state;
 
   // useEffect(() => {
   //   fetchEmployee({ params });
@@ -255,26 +257,18 @@ const Port = () => {
               exportTitle="Export"
               exportLoader={false}
             />
-            {/* <AddEditModal
+            <AddEditModal
               show={showAddModal}
-              // formConfig={formConfig}
-              formConfig={formConfig?.map((e) => {
-                if (e.label === 'Designation')
-                  e.options = designations?.map((f) => ({
-                    label: f.name,
-                    value: f._id,
-                  }));
-                return e;
-              })}
-              handlePost={handlePost}
-              handlePatch={handlePatch}
-              editData={editData}
+              formConfig={formConfig}
+              // handlePost={handlePost}
+              // handlePatch={handlePatch}
+              // editData={editData}
               closeModal={() =>
                 setState({ ...state, showAddModal: false, editData: null })
               }
-              isLoading={isBeingUpdated}
-              ModalHeading={`${editData ? 'Update' : 'Create'} Port`}
-            /> */}
+              // isLoading={isBeingUpdated}
+              // ModalHeading={`${editData ? 'Update' : 'Create'} Port`}
+            />
           </div>
 
           <CustomTable
