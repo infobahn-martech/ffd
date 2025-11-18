@@ -5,7 +5,6 @@ import '../../../design/scss/form-designs.scss';
 
 
 export function RoleModal({ showModal, closeModal }) {
-  console.log("showModal",showModal)
   const renderHeader = () => (
     <>
       <h1 className="modal-title">
