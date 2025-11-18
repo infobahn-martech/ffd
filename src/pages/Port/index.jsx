@@ -154,7 +154,7 @@ const Port = () => {
       tableClasses: 'table-striped',
       contentClass: 'table-content',
       thclass: 'tb-head',
-      onEditClick:()=>{},
+      onEditClick:(row)=>{setShowPortModal(row)},
       onDeleteClick:()=>{},
       cell: RenderAction,
       width: '200',

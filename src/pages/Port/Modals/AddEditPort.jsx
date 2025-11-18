@@ -5,10 +5,11 @@ import '../../../design/scss/form-designs.scss';
 
 
 export function PortModal({ showModal, closeModal }) {
+  console.log("showModal",showModal)
   const renderHeader = () => (
     <>
       <h1 className="modal-title">
-        Add Port
+        {showModal?._id ? "Edit Port" :"Add Port"}
       </h1>
     </>
   );
