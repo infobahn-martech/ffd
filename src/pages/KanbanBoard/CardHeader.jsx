@@ -1,6 +1,6 @@
 
 import Vector from "../assets/images/Priority.svg";
-import "../assets/styles/tags.css";
+import "../../design/css/tags.css";
 
 export const Tag = () => {
   return (

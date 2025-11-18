@@ -1,6 +1,6 @@
 /* eslint-disable react-hooks/rules-of-hooks */
 import React, { useState } from "react";
-import "../../assets/styles/CardForm.css";
+import "../../design/css/CardForm.css";
 
 import GroupSettingsIcon from "../../assets/images/cv.png";
 import CircleTickIcon from "../../assets/images/CircleTick.svg";
