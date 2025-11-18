@@ -60,7 +60,7 @@ function SideNav() {
       subMenus: [
         {
           menu: 'Role',
-          to: '/role',
+          to: '/role-management',
           hasPermission: true,
         },
         {
