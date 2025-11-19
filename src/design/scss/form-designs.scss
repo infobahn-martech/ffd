@@ -54,6 +54,8 @@
     }
 }
 
+
+
 .form-check{
     .form-check-input{
         box-shadow: none !important;
@@ -211,4 +213,51 @@ input[type=number] {
 .workerTypeModal .modal-content {
     max-width: 600px;
     margin: 0 auto;
+}
+
+.phone-wrapper {
+  position: relative;
+  margin-bottom: 1.2rem;
+}
+
+.phone-label {
+  position: absolute;
+  top: -10px;
+  left: 14px;
+  font-size: 11px;
+  color: #226166;
+  background: #fff;
+  padding: 0 6px;
+  z-index: 10;
+}
+
+/* Phone input box alignment */
+.phone-input {
+  width: 100% !important;
+  height: 56px !important;
+  padding-left: 62px !important; /* ensure space for flag */
+  border: 1px solid #d3e3f8 !important;
+  border-radius: 8px !important;
+  font-size: 14px !important;
+  line-height: 56px !important; /* ensures perfect vertical alignment */
+  display: flex !important;
+  align-items: center !important;
+}
+
+/* Country flag button */
+.phone-flag {
+  position: absolute !important;
+  top: 50% !important;               /* center vertically */
+  transform: translateY(-50%) !important;
+  left: 14px !important;
+  background: transparent !important;
+  border: none !important;
+  padding: 0 !important;
+  height: auto !important;
+}
+
+/* Remove default react-phone-input-2 padding */
+.react-tel-input .flag-dropdown {
+  border: none !important;
+  background: transparent !important;
 }
