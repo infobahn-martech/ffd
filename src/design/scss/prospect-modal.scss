@@ -15,10 +15,12 @@ $primary-font:"Poppins", sans-serif;
       line-height: 30px;   
   }
     position: relative;
+    background-color: #e7e7e7;
+    border-radius: 8px;
     .btn-close{
         position: absolute;
-        top: -30px;
-        right: -28px;
+        top: 16px;
+        right: 15px;
 
         @media($sm-991){
           top: 0;
@@ -33,7 +35,7 @@ $primary-font:"Poppins", sans-serif;
   }
   
   .modal-content {
-   padding: 60px;
+   padding: 46px;
    border-radius: 23px;
 
    @media($sm-991){

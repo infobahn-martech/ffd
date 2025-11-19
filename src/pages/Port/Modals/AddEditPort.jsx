@@ -10,6 +10,13 @@ export function PortModal({ showModal, closeModal }) {
       <h1 className="modal-title">
         {showModal?._id ? "Edit Port" :"Add Port"}
       </h1>
+           <button
+        type="button"
+        className="btn-close"
+        data-bs-dismiss="modal"
+        aria-label="Close"
+        onClick={closeModal}
+      ></button>
     </>
   );
 
@@ -157,7 +164,7 @@ const renderBody = () => (
 
   const renderFooter = () => (
     <div className="modal-footer">
-      <button type="button" className="btn btn-outline" data-bs-dismiss="modal">
+      <button type="button" className="btn btn-outline" data-bs-dismiss="modal" onClick={closeModal}>
         Close
       </button>
       <button type="button" className="btn btn-primary">
