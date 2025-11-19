@@ -83,6 +83,13 @@ function SideNav() {
       icon: portIcon,
       hasPermission: true,
     },
+     {
+      menu: 'Billing Entity',
+      isDefaultMenu: true,
+      to: '/billing-entity',
+      icon: portIcon,
+      hasPermission: true,
+    },
     {
       menu: 'Vessel Management',
       isDefaultMenu: true,
@@ -90,13 +97,13 @@ function SideNav() {
       isOpen: false,
       subMenus: [
         {
-          menu: 'Billing Entity',
-          to: '/billing-entity',
+          menu: 'Vessel Type',
+          to: '/vessel-type',
           hasPermission: true,
         },
         {
-          menu: 'Registration',
-          to: '/registration',
+          menu: 'Vessel Onboarding',
+          to: '/vessel-onboarding',
           hasPermission: true,
         },
       ],
@@ -116,6 +123,45 @@ function SideNav() {
         {
           menu: 'CheckList',
           to: '/checkList',
+          hasPermission: true,
+        },
+      ],
+      icon: workerIcon,
+    },
+      {
+      menu: 'Structure Manager',
+      isDefaultMenu: true,
+      hasPermission: true,
+      isOpen: false,
+      subMenus: [
+        {
+          menu: 'Appointment Acceptance',
+          to: '/appointment-acceptance',
+          hasPermission: true,
+        },
+        {
+          menu: 'Pre-arrival Information',
+          to: '/pre-arrival-information',
+          hasPermission: true,
+        },
+           {
+          menu: 'Checklist',
+          to: '/checklist',
+          hasPermission: true,
+        },
+           {
+          menu: 'Standard Tariff',
+          to: '/standard-tariff',
+          hasPermission: true,
+        },
+           {
+          menu: 'Tariff Agreements',
+          to: '/tariff-agreements',
+          hasPermission: true,
+        },
+          {
+          menu: 'Custom Fields',
+          to: '/custom-fields',
           hasPermission: true,
         },
       ],
