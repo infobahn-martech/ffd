@@ -1,4 +1,3 @@
-/* eslint-disable react/prop-types */
 import { Tooltip } from 'react-tooltip';
 import moment from 'moment';
 

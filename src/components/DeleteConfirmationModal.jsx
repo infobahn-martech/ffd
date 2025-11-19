@@ -1,6 +1,5 @@
-/* eslint-disable react/prop-types */
 import PropTypes from 'prop-types';
-import DeleteConfirmIcon from '../assets/images/dlete.svg';
+import DeleteConfirmIcon from '../assets/images/delete.svg';
 import '../design/scss/modal-designs.scss';
 import '../design/scss/prospect-modal.scss';
 import CustomModal from './CustomModal';
@@ -14,6 +13,7 @@ const DeleteConfirmationModal = ({
 }) => {
   return (
     <CustomModal
+    createModal
       className="modal change-pass fade employee-modal 
       logout-modal"
       show={show}
@@ -34,7 +34,7 @@ const DeleteConfirmationModal = ({
             </button>
             <button
               type="submit"
-              className="save btn-common green-btn"
+              className="save btn-common red-btn"
               onClick={onConfirm}
             >
               {isLoading ? (

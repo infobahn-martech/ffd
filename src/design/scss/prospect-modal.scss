@@ -15,8 +15,9 @@ $primary-font:"Poppins", sans-serif;
       line-height: 30px;   
   }
     position: relative;
-    background-color: #e7e7e7;
+    // background-color: #e7e7e7;
     border-radius: 8px;
+    margin-right:21px;
     .btn-close{
         position: absolute;
         top: 16px;
@@ -119,7 +120,8 @@ $primary-font:"Poppins", sans-serif;
 
   .two-btn {
     display: flex;
-    justify-content: end;
+ padding-left: 94px;
+ padding-top: 28px;
     @media($sm-991){
       padding-top: 20px;
     }

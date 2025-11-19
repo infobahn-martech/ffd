@@ -4,7 +4,7 @@ import { DateFormat, RenderAction, RenderName } from "./RenderCells";
 import CommonHeader from "../../components/CommonHeader";
 import CustomTable from "../../components/customTable";
 import { PortModal } from "./Modals/AddEditPort";
-import CustomDeleteModal from "../../components/CustomDeleteModal";
+import DeleteConfirmationModal from "../../components/DeleteConfirmationModal";
 
 const dummyPorts = [
   {
@@ -216,10 +216,13 @@ const Port = () => {
                   )}
 
                        {!!showDeleteModal && (
-                    <CustomDeleteModal
-                      showModal={showDeleteModal}
-                      closeModal={() => setShowDeleteModal(false)}
-                    />
+                   <DeleteConfirmationModal
+                          show={showDeleteModal}
+                          onCancel={()=>setShowDeleteModal(false)}
+                          onConfirm={()=>{}}
+                          deleteText="Are you sure you want to delete this port?"
+                          // isLoading={isBeingUpdated}
+                        />
                   )}
 
                   

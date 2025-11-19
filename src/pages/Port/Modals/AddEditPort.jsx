@@ -44,12 +44,6 @@ export function PortModal({ showModal, closeModal }) {
       <h1 className="modal-title">
         {showModal?._id ? "Edit Port" : "Add Port"}
       </h1>
-      <button
-        type="button"
-        className="btn-close"
-        aria-label="Close"
-        onClick={closeModal}
-      ></button>
     </>
   );
 
@@ -223,7 +217,7 @@ export function PortModal({ showModal, closeModal }) {
         Close
       </button>
       <button type="submit" form="portForm" className="btn btn-primary">
-        Save Changes
+        Save
       </button>
     </div>
   );

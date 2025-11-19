@@ -220,7 +220,7 @@ export function VesselTypeModal({ showModal, closeModal }) {
         Close
       </button>
       <button type="submit" form="portForm" className="btn btn-primary">
-        Save Changes
+        Save
       </button>
     </div>
   );

@@ -213,7 +213,7 @@ export function UserModal({ showModal, closeModal }) {
         Close
       </button>
       <button type="button" className="btn btn-primary">
-        Save changes
+        Save
       </button>
     </div>
   );
