@@ -12,6 +12,7 @@ import Permission from '../pages/Permission';
 import User from '../pages/User';
 import VesselType from '../pages/VesselType';
 import BillingEntity from '../pages/BillingEntity';
+import Vessel from '../pages/Vessel';
 
 // 🔥 Toggle this
 const TEST_MODE = true; // true = all routes public (testing), false = real auth
@@ -61,10 +62,15 @@ const router = createBrowserRouter([
                   id: 'port',
                   element: <Port />,
                 },
-                       {
+                {
                   path: '/vessel-type',
                   id: 'vessel-type',
                   element: <VesselType />,
+                },
+                {
+                  path: '/vessel-onboarding',
+                  id: 'vessel-onboarding',
+                  element: <Vessel />,
                 },
                 {
                   path: '/billing-entity',
