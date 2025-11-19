@@ -1,7 +1,7 @@
 import { useState } from "react";
 import CommonHeader from "../../components/CommonHeader";
 import CustomTable from "../../components/customTable";
-import { RoleModal } from "./Modals/AddEditPort";
+import { UserModal } from "./Modals/AddEditUser";
 import { RenderAction } from "./RenderCells";
 
 const dummyRoles = [
@@ -21,7 +21,7 @@ const User = () => {
     sortOrder: 1,
   });
 
-  const [showRoleModal, setShowRoleModal] = useState(false);
+  const [showUserModal, setShowUserModal] = useState(false);
 
   // 👉 ONLY TWO COLUMNS (Name + Description)
   const cols = [
@@ -47,7 +47,7 @@ const User = () => {
       tableClasses: 'table-striped',
       contentClass: 'table-content',
       thclass: 'tb-head',
-      onEditClick:(row)=>{setShowRoleModal(row)},
+      onEditClick:(row)=>{setShowUserModal(row)},
       onDeleteClick:()=>{},
       cell: RenderAction,
       width: '200',
@@ -67,7 +67,7 @@ const User = () => {
               setSearch={(e) =>
                 setParams({ ...params, searchTerm: e, page: 1 })
               }
-              onAddModalClick={() => setShowRoleModal(true)}
+              onAddModalClick={() => setShowUserModal(true)}
               exportTitle="Export"
               exportLoader={false}
             />
@@ -95,10 +95,10 @@ const User = () => {
             }
           />
 
-          {!!showRoleModal && (
-            <RoleModal
-              showModal={showRoleModal}
-              closeModal={() => setShowRoleModal(false)}
+          {!!showUserModal && (
+            <UserModal
+              showModal={showUserModal}
+              closeModal={() => setShowUserModal(false)}
             />
           )}
         </div>

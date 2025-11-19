@@ -2,90 +2,93 @@ import CustomModal from '../../../components/CustomModal';
 import '../../../design/scss/prospect-modal.scss';
 import '../../../design/scss/modal-designs.scss';
 import '../../../design/scss/form-designs.scss';
+import userIcon from "../../../assets/images/user.png";
+import edit from '../../../assets/images/edit.svg';
 
 
-export function RoleModal({ showModal, closeModal }) {
+export function UserModal({ showModal, closeModal }) {
   const renderHeader = () => (
     <>
-      <h1 className="modal-title">
-        {showModal?._id ? "Edit Port" :"Add Port"}
-      </h1>
+     <h1 className="modal-title">
+      {showModal?._id ? "Edit User" : "Add User"}
+    </h1>
+     <button
+        type="button"
+        className="btn-close"
+        aria-label="Close"
+        onClick={closeModal}
+      ></button>
     </>
+   
   );
 
-const renderBody = () => (
+ const renderBody = () => (
   <div className="modal-body">
     <div className="lead-form">
       <form>
 
-        {/* Port Name */}
-        <div className="mb-lg-3 mb-sm-0">
-          <div className="permInputs row">
-            <div className="col-lg-6 col-sm-12">
-              <div className="form-floating desig-inp">
-                <input
-                  className="form-control"
-                  id="portName"
-                  placeholder="Port Name"
-                  type="text"
-                />
-                <label htmlFor="portName">
-                  Port Name <span className="text-danger">*</span>
-                </label>
-              </div>
-            </div>
+        {/* ===== Avatar Upload (Circular with Pen Icon) ===== */}
+        <div className="d-flex justify-content-center mb-4">
+          <div className="avatar-wrapper" style={{ position: "relative" }}>
+            <img
+              src={showModal?.avatar || userIcon}
+              alt="User Avatar"
+              className="avatar-image"
+              style={{
+                width: "120px",
+                height: "120px",
+                borderRadius: "50%",
+                objectFit: "cover",
+                border: "3px solid #e6e6e6",
+              }}
+            />
+
+            <label
+              htmlFor="avatarUpload"
+              className="avatar-edit-icon"
+              style={{
+                position: "absolute",
+                bottom: "0",
+                right: "10px",
+                background: "#e7e7e7",
+                width: "30px",
+                height: "30px",
+                borderRadius: "50%",
+                display: "flex",
+                justifyContent: "center",
+                alignItems: "center",
+                cursor: "pointer",
+              }}
+            >
+              <img
+                src={edit}
+                alt="Edit"
+                style={{ width: "14px", height: "18px", filter: "invert(1)" }}
+              />
+            </label>
+
+            <input type="file" id="avatarUpload" className="d-none" />
           </div>
         </div>
 
-        {/* Address */}
-        <div className="mb-lg-3 mb-sm-0">
-          <div className="permInputs row">
-            <div className="col-lg-12 col-sm-12">
-              <div className="form-floating desig-inp">
-                <textarea
-                  className="form-control"
-                  id="address"
-                  placeholder="Address"
-                  style={{ height: "100px" }}
-                ></textarea>
-                <label htmlFor="address">
-                  Address <span className="text-danger">*</span>
-                </label>
-              </div>
-            </div>
-          </div>
-        </div>
-
-        {/* Location + Contact Person */}
+            {/* ===== Row 2: Name + Email ===== */}
         <div className="mb-lg-3 mb-sm-0">
           <div className="permInputs row">
 
-            {/* Location */}
             <div className="col-lg-6 col-sm-12">
               <div className="form-floating desig-inp">
-                <input
-                  className="form-control"
-                  id="location"
-                  placeholder="Location"
-                  type="text"
-                />
-                <label htmlFor="location">
-                  Location <span className="text-danger">*</span>
+                <input type="text" id="name" className="form-control" placeholder="Name" />
+                <label htmlFor="name">
+                  Name <span className="text-danger">*</span>
                 </label>
               </div>
             </div>
 
-            {/* Contact Person */}
             <div className="col-lg-6 col-sm-12">
               <div className="form-floating desig-inp">
-                <input
-                  className="form-control"
-                  id="contactPerson"
-                  placeholder="Contact Person"
-                  type="text"
-                />
-                <label htmlFor="contactPerson">
-                  Contact Person <span className="text-danger">*</span>
+                <input type="email" id="email" className="form-control" placeholder="Email" />
+                <label htmlFor="email">
+                  Email <span className="text-danger">*</span>
                 </label>
               </div>
             </div>
@@ -93,59 +96,61 @@ const renderBody = () => (
           </div>
         </div>
 
-        {/* Phone + Primary Email */}
+        {/* ===== Row 1: Port + User Role ===== */}
         <div className="mb-lg-3 mb-sm-0">
           <div className="permInputs row">
 
-            {/* Phone */}
             <div className="col-lg-6 col-sm-12">
               <div className="form-floating desig-inp">
-                <input
-                  className="form-control"
-                  id="phone"
-                  placeholder="Phone"
-                  type="number"
-                />
+                <select className="form-control" id="port">
+                  <option value="">Select Port</option>
+                </select>
+                <label htmlFor="port">
+                  Port <span className="text-danger">*</span>
+                </label>
+              </div>
+            </div>
+
+            <div className="col-lg-6 col-sm-12">
+              <div className="form-floating desig-inp">
+                <select className="form-control" id="role">
+                  <option value="">Select User Role</option>
+                </select>
+                <label htmlFor="role">
+                  User Role <span className="text-danger">*</span>
+                </label>
+              </div>
+            </div>
+
+          </div>
+        </div>
+
+
+        {/* ===== Row 3: Phone + (Optional future field) ===== */}
+        <div className="mb-lg-3 mb-sm-0">
+          <div className="permInputs row">
+
+            <div className="col-lg-6 col-sm-12">
+              <div className="form-floating desig-inp">
+                <input type="number" id="phone" className="form-control" placeholder="Phone" />
                 <label htmlFor="phone">
                   Phone <span className="text-danger">*</span>
                 </label>
               </div>
             </div>
 
-            {/* Primary Email */}
             <div className="col-lg-6 col-sm-12">
-              <div className="form-floating desig-inp">
-                <input
+           <div className="form-floating desig-inp">
+                <textarea
+                  id="address"
                   className="form-control"
-                  id="primaryEmail"
-                  placeholder="Primary Email"
-                  type="email"
-                />
-                <label htmlFor="primaryEmail">
-                  Primary Email <span className="text-danger">*</span>
-                </label>
+                  placeholder="Address"
+                  style={{ height: "100px" }}
+                ></textarea>
+                <label htmlFor="address">Address</label>
               </div>
             </div>
 
-          </div>
-        </div>
-
-        {/* Secondary Email */}
-        <div className="mb-lg-3 mb-sm-0">
-          <div className="permInputs row">
-            <div className="col-lg-6 col-sm-12">
-              <div className="form-floating desig-inp">
-                <input
-                  className="form-control"
-                  id="secondaryEmail"
-                  placeholder="Secondary Email"
-                  type="email"
-                />
-                <label htmlFor="secondaryEmail">
-                  Secondary Email
-                </label>
-              </div>
-            </div>
           </div>
         </div>
 
@@ -153,7 +158,6 @@ const renderBody = () => (
     </div>
   </div>
 );
-
 
   const renderFooter = () => (
     <div className="modal-footer">
@@ -165,11 +169,10 @@ const renderBody = () => (
       </button>
     </div>
   );
+
   return (
     <CustomModal
-      // className="modal fade show"
       dialgName="modal-dialog modal-dialog-centered"
-      // createModal
       show={!!showModal}
       closeModal={() => closeModal(null)}
       body={renderBody()}

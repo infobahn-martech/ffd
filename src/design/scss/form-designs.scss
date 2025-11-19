@@ -261,3 +261,12 @@ input[type=number] {
   border: none !important;
   background: transparent !important;
 }
+
+.avatar-wrapper:hover .avatar-edit-icon {
+  background: #154e50;
+}
+
+.avatar-image:hover {
+  opacity: 0.9;
+}
+

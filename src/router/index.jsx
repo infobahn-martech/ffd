@@ -9,6 +9,7 @@ import KanbanBoard from '../pages/KanbanBoard';
 import Port from '../pages/Port';
 import Role from '../pages/Role';
 import Permission from '../pages/Permission';
+import User from '../pages/User';
 
 // 🔥 Toggle this
 const TEST_MODE = true; // true = all routes public (testing), false = real auth
@@ -42,6 +43,11 @@ const router = createBrowserRouter([
                   path: '/permission-management',
                   id: '/permission-management',
                   element: <Permission/>
+                },
+                    {
+                  path: '/user-onboarding',
+                  id: '/user-onboarding',
+                  element: <User/>
                 },
                    {
                   path: '/kanban-board',

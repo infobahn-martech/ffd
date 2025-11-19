@@ -43,7 +43,7 @@ const Permission = () => {
 
   const cols = [
     {
-      name: 'Designation',
+      name: 'Permission',
       selector: 'name',
       tableClasses: 'table-striped',
       contentClass: 'table-content',
@@ -106,16 +106,16 @@ const Permission = () => {
       <div className="prospect employee">
         <div className="container-fluid">
           <CommonHeader
-            tableTitle="Designation Management"
+            tableTitle="Permission List"
             isAddEnabled
-            addModalLabel="Add Designation"
+            addModalLabel="Add Permission"
             setSearch={(e) =>
               setParams({ ...params, searchTerm: e, page: 1, limit: 10 })
             }
-            onAddModalClick={() => {
-              setState({ ...state, showAddModal: true });
-              setShowPermissionModal(true);
-            }}
+            // onAddModalClick={() => {
+            //   setState({ ...state, showAddModal: true });
+            //   setShowPermissionModal(true);
+            // }}
             exportTitle="Export"
             exportLoader={false}
           />
