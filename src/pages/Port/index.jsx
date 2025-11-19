@@ -175,7 +175,7 @@ const Port = () => {
             <CommonHeader
              showFilter
               tableTitle="Port List"
-              isAddEnabled
+              isAddEnabled={false}
               addModalLabel="Add Port"
               setSearch={(e) =>
                 setParams({ ...params, searchTerm: e, page: 1, limit: 10 })
