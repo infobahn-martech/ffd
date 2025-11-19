@@ -94,11 +94,12 @@
                    
                 }
                 &:hover{
-                    background-color: transparent !important;
-                    color: #489BA2 !important;
+                   color: #00368c;
+                    background-color: #fff;
                 }
                 &.submenu_active{
                     color: #00368c;
+                    background-color: #fff;
                     font-weight: 500;
                     &:before{
                         background-color: #00368c;
