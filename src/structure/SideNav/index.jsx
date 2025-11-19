@@ -65,12 +65,12 @@ function SideNav() {
         },
         {
           menu: 'Permission ',
-          to: '/permission',
+          to: '/permission-management',
           hasPermission: true,
         },
         {
-          menu: 'Registration ',
-          to: '/registration',
+          menu: 'User Onboarding',
+          to: '/user-onboarding',
           hasPermission: true,
         },
       ],
