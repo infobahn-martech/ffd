@@ -194,7 +194,7 @@ const dummyPermissions = [
         {!!showPermissionModal && (
           <PermissionModal
             showModal={showPermissionModal}
-            closeModal={() => setShowPermissionModal(false)}
+            closeModal={() =>   setShowPermissionModal(false)}
           />
         )}
       </div>
