@@ -3,6 +3,7 @@ import CommonHeader from "../../components/CommonHeader";
 import CustomTable from "../../components/customTable";
 import { RoleModal } from "./Modals/AddEditRole";
 import { RenderAction } from "./RenderCells";
+import DeleteConfirmationModal from "../../components/DeleteConfirmationModal";
 
 const dummyRoles = [
   { _id: "1", name: "Admin", description: "Full system access" },
@@ -28,6 +29,8 @@ const Role = () => {
   });
 
   const [showRoleModal, setShowRoleModal] = useState(false);
+  const [showDeleteModal, setShowDeleteModal] = useState(false);
+
 
   // 👉 ONLY TWO COLUMNS (Name + Description)
   const cols = [
@@ -54,7 +57,7 @@ const Role = () => {
       contentClass: 'table-content',
       thclass: 'tb-head',
       onEditClick:(row)=>{setShowRoleModal(row)},
-      onDeleteClick:()=>{},
+       onDeleteClick:()=>{setShowDeleteModal(true)},
       cell: RenderAction,
       width: '200',
     },
@@ -108,6 +111,15 @@ const Role = () => {
               closeModal={() => setShowRoleModal(false)}
             />
           )}
+            {!!showDeleteModal && (
+                             <DeleteConfirmationModal
+                                    show={showDeleteModal}
+                                    onCancel={()=>setShowDeleteModal(false)}
+                                    onConfirm={()=>{}}
+                                    deleteText="Are you sure you want to delete this user?"
+                                    // isLoading={isBeingUpdated}
+                                  />
+                            )}
         </div>
       </div>
     </>
