@@ -30,9 +30,9 @@ function Header() {
             </NavLink>
           ) : (
             <>
-               <NavLink to="/dashboard" className="top-link active back-link">
+               <NavLink to="/user-onboarding" className="top-link active back-link">
               <img src={BackIcon} alt="back" className="back-icon" />
-              Back to Dashboard
+              Back to Users
             </NavLink>
               <NavLink to="/workflows" className="top-link">Edit Workflows</NavLink>
               <NavLink to="/analytics" className="top-link">Show Analytics</NavLink>
