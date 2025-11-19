@@ -10,7 +10,13 @@ const dummyRoles = [
   { _id: "3", name: "Viewer", description: "Read-only access" },
   { _id: "4", name: "Operator", description: "Handle daily operations" },
   { _id: "5", name: "Supervisor", description: "Review and approve tasks" },
+  { _id: "6", name: "Auditor", description: "Monitor logs and verify system activity" },
+  { _id: "7", name: "Coordinator", description: "Coordinate between teams and schedules" },
+  { _id: "8", name: "Support Staff", description: "Assist users with day-to-day issues" },
+  { _id: "9", name: "Quality Checker", description: "Ensure data and process quality" },
+  { _id: "10", name: "Analyst", description: "Analyze reports and generate insights" },
 ];
+
 
 const Role = () => {
   const [params, setParams] = useState({
@@ -74,6 +80,7 @@ const Role = () => {
           </div>
 
           <CustomTable
+              Sl
             pagination={{ currentPage: params.page, limit: params.limit }}
             tableClasses="px-start"
             count={dummyRoles.length}
