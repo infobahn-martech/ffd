@@ -79,7 +79,6 @@ const useProspectReducer = create((set) => ({
     try {
       set({ isExportLoading: true });
       const { data } = await prospectservice.getProspectValidate({ params });
-      debugger;
       set({
         isExportLoading: false,
       });
