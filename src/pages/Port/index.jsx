@@ -4,6 +4,7 @@ import { DateFormat, RenderAction, RenderName } from "./RenderCells";
 import CommonHeader from "../../components/CommonHeader";
 import CustomTable from "../../components/customTable";
 import { PortModal } from "./Modals/AddEditPort";
+import CustomDeleteModal from "../../components/CustomDeleteModal";
 
 const dummyPorts = [
   {
@@ -86,6 +87,7 @@ const dummyPorts = [
     createdAt: "2024-06-12T14:00:00Z",
     updatedAt: "2024-08-21T09:00:00Z",
   },
+  
 ];
 
 
@@ -100,6 +102,10 @@ const Port = () => {
   });
 
   const [showPortModal, setShowPortModal] = useState(false);
+  const [showDeleteModal, setShowDeleteModal] = useState(false);
+
+  console.log("showDeleteModal",showDeleteModal)
+
 
   const cols = [
     {
@@ -155,7 +161,7 @@ const Port = () => {
       contentClass: 'table-content',
       thclass: 'tb-head',
       onEditClick:(row)=>{setShowPortModal(row)},
-      onDeleteClick:()=>{},
+      onDeleteClick:()=>{setShowDeleteModal(true)},
       cell: RenderAction,
       width: '200',
     },
@@ -208,6 +214,15 @@ const Port = () => {
                       closeModal={() => setShowPortModal(false)}
                     />
                   )}
+
+                       {!!showDeleteModal && (
+                    <CustomDeleteModal
+                      showModal={showDeleteModal}
+                      closeModal={() => setShowDeleteModal(false)}
+                    />
+                  )}
+
+                  
         </div>
       </div>
     </>

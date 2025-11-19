@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react';
 
 import CustomModal from './CustomModal';
-import clearIcon from '../../assets/img/Delete_red.svg';
+import clearIcon from '../assets/images/delete.svg';
 import { Spinner } from 'react-bootstrap';
 
 function CustomDeleteModal({
