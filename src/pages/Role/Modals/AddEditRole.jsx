@@ -1,170 +1,101 @@
-import CustomModal from '../../../components/CustomModal';
-import '../../../design/scss/prospect-modal.scss';
-import '../../../design/scss/modal-designs.scss';
-import '../../../design/scss/form-designs.scss';
-
+import { useForm } from "react-hook-form";
+import CustomModal from "../../../components/CustomModal";
+import "../../../design/scss/prospect-modal.scss";
+import "../../../design/scss/modal-designs.scss";
+import "../../../design/scss/form-designs.scss";
 
 export function RoleModal({ showModal, closeModal }) {
+  const {
+    register,
+    handleSubmit,
+    formState: { errors }
+  } = useForm({
+    defaultValues: showModal?._id
+      ? {
+          roleName: showModal?.roleName,
+          description: showModal?.description
+        }
+      : {}
+  });
+
+  const onSubmit = (data) => {
+    console.log("ROLE FORM SUBMITTED:", data);
+    closeModal();
+  };
+
   const renderHeader = () => (
     <>
       <h1 className="modal-title">
-        {showModal?._id ? "Edit Port" :"Add Port"}
+        {showModal?._id ? "Edit Role" : "Add Role"}
       </h1>
+      <button
+        type="button"
+        className="btn-close"
+        aria-label="Close"
+        onClick={closeModal}
+      ></button>
     </>
   );
 
-const renderBody = () => (
-  <div className="modal-body">
-    <div className="lead-form">
-      <form>
+  const renderBody = () => (
+    <div className="modal-body">
+      <div className="lead-form">
+        <form id="roleForm" onSubmit={handleSubmit(onSubmit)}>
 
-        {/* Port Name */}
-        <div className="mb-lg-3 mb-sm-0">
-          <div className="permInputs row">
-            <div className="col-lg-6 col-sm-12">
+          {/* ROW 1 — ROLE NAME */}
+          <div className="permInputs row mb-lg-3">
+            <div className="col-12">
               <div className="form-floating desig-inp">
                 <input
-                  className="form-control"
-                  id="portName"
-                  placeholder="Port Name"
-                  type="text"
+                  className={`form-control ${errors.roleName ? "is-invalid" : ""}`}
+                  placeholder="Role Name"
+                  {...register("roleName", {
+                    required: "Role name is required"
+                  })}
                 />
-                <label htmlFor="portName">
-                  Port Name <span className="text-danger">*</span>
+                <label>
+                  Role <span className="text-danger">*</span>
                 </label>
+                {errors.roleName && (
+                  <span className="error text-danger">
+                    {errors.roleName.message}
+                  </span>
+                )}
               </div>
             </div>
           </div>
-        </div>
 
-        {/* Address */}
-        <div className="mb-lg-3 mb-sm-0">
-          <div className="permInputs row">
-            <div className="col-lg-12 col-sm-12">
+          {/* ROW 2 — DESCRIPTION */}
+          <div className="permInputs row mb-lg-3">
+            <div className="col-12">
               <div className="form-floating desig-inp">
                 <textarea
                   className="form-control"
-                  id="address"
-                  placeholder="Address"
-                  style={{ height: "100px" }}
+                  placeholder="Description"
+                  style={{ height: "120px" }}
+                  {...register("description")}
                 ></textarea>
-                <label htmlFor="address">
-                  Address <span className="text-danger">*</span>
-                </label>
+                <label>Description</label>
               </div>
             </div>
           </div>
-        </div>
 
-        {/* Location + Contact Person */}
-        <div className="mb-lg-3 mb-sm-0">
-          <div className="permInputs row">
-
-            {/* Location */}
-            <div className="col-lg-6 col-sm-12">
-              <div className="form-floating desig-inp">
-                <input
-                  className="form-control"
-                  id="location"
-                  placeholder="Location"
-                  type="text"
-                />
-                <label htmlFor="location">
-                  Location <span className="text-danger">*</span>
-                </label>
-              </div>
-            </div>
-
-            {/* Contact Person */}
-            <div className="col-lg-6 col-sm-12">
-              <div className="form-floating desig-inp">
-                <input
-                  className="form-control"
-                  id="contactPerson"
-                  placeholder="Contact Person"
-                  type="text"
-                />
-                <label htmlFor="contactPerson">
-                  Contact Person <span className="text-danger">*</span>
-                </label>
-              </div>
-            </div>
-
-          </div>
-        </div>
-
-        {/* Phone + Primary Email */}
-        <div className="mb-lg-3 mb-sm-0">
-          <div className="permInputs row">
-
-            {/* Phone */}
-            <div className="col-lg-6 col-sm-12">
-              <div className="form-floating desig-inp">
-                <input
-                  className="form-control"
-                  id="phone"
-                  placeholder="Phone"
-                  type="number"
-                />
-                <label htmlFor="phone">
-                  Phone <span className="text-danger">*</span>
-                </label>
-              </div>
-            </div>
-
-            {/* Primary Email */}
-            <div className="col-lg-6 col-sm-12">
-              <div className="form-floating desig-inp">
-                <input
-                  className="form-control"
-                  id="primaryEmail"
-                  placeholder="Primary Email"
-                  type="email"
-                />
-                <label htmlFor="primaryEmail">
-                  Primary Email <span className="text-danger">*</span>
-                </label>
-              </div>
-            </div>
-
-          </div>
-        </div>
-
-        {/* Secondary Email */}
-        <div className="mb-lg-3 mb-sm-0">
-          <div className="permInputs row">
-            <div className="col-lg-6 col-sm-12">
-              <div className="form-floating desig-inp">
-                <input
-                  className="form-control"
-                  id="secondaryEmail"
-                  placeholder="Secondary Email"
-                  type="email"
-                />
-                <label htmlFor="secondaryEmail">
-                  Secondary Email
-                </label>
-              </div>
-            </div>
-          </div>
-        </div>
-
-      </form>
+        </form>
+      </div>
     </div>
-  </div>
-);
-
+  );
 
   const renderFooter = () => (
     <div className="modal-footer">
-      <button type="button" className="btn btn-outline" data-bs-dismiss="modal">
+      <button type="button" className="btn btn-outline" onClick={closeModal}>
         Close
       </button>
-      <button type="button" className="btn btn-primary">
-        Save changes
+      <button type="submit" form="roleForm" className="btn btn-primary">
+        Save Changes
       </button>
     </div>
   );
+
   return (
     <CustomModal
       dialgName="modal-dialog modal-dialog-centered"
