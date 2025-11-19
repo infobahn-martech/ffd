@@ -1,3 +1,6 @@
+import { useForm, Controller } from "react-hook-form";
+import PhoneInput from "react-phone-input-2";
+import "react-phone-input-2/lib/bootstrap.css";
 import CustomModal from '../../../components/CustomModal';
 import '../../../design/scss/prospect-modal.scss';
 import '../../../design/scss/modal-designs.scss';
@@ -7,6 +10,26 @@ import edit from '../../../assets/images/edit.svg';
 
 
 export function UserModal({ showModal, closeModal }) {
+    const {
+      // register,
+      // handleSubmit,
+      formState: { errors },
+      control,          // ⬅️ add this
+    } = useForm({
+      defaultValues: showModal?._id
+        ? {
+            portName: showModal?.portName,
+            address: showModal?.address,
+            location: showModal?.location,
+            contactPerson: showModal?.contactPerson,
+            phone: showModal?.phone || "",
+            primaryEmail: showModal?.primaryEmail,
+            secondaryEmail: showModal?.secondaryEmail,
+          }
+        : {
+            phone: "",
+          },
+    });
   const renderHeader = () => (
     <>
      <h1 className="modal-title">
@@ -131,12 +154,37 @@ export function UserModal({ showModal, closeModal }) {
           <div className="permInputs row">
 
             <div className="col-lg-6 col-sm-12">
-              <div className="form-floating desig-inp">
-                <input type="number" id="phone" className="form-control" placeholder="Phone" />
-                <label htmlFor="phone">
-                  Phone <span className="text-danger">*</span>
-                </label>
-              </div>
+               <div className="phone-wrapper">
+                 <label className="phone-label">
+                   Phone <span className="text-danger">*</span>
+                 </label>
+             
+                 <Controller
+                   name="phone"
+                   control={control}
+                   rules={{
+                     required: "Phone is required",
+                     validate: (value) => {
+                       const digits = (value || "").replace(/\D/g, "");
+                       return digits.length >= 7 || "Enter a valid phone number";
+                     },
+                   }}
+                   render={({ field }) => (
+                     <PhoneInput
+                       {...field}
+                       country="ae"
+                       enableSearch
+                       inputClass="phone-input"
+                       buttonClass="phone-flag"
+                       placeholder=""
+                     />
+                   )}
+                 />
+             
+                 {errors.phone && (
+                   <span className="error text-danger">{errors.phone.message}</span>
+                 )}
+               </div>
             </div>
 
             <div className="col-lg-6 col-sm-12">
