@@ -99,17 +99,17 @@ function Index() {
               {/* REMEMBER ME */}
               <div className="checkbox-wrap">
                 <label className="remember-label">
-                  <input style={{marginLeft:"4px"}} type="checkbox" {...register("rememberMe")} />
-       <span
-  style={{
-    marginLeft: "4px",
-    fontSize: "16px",
-    color: "#0c234c",
-    fontFamily: `"Raleway", sans-serif`,
-  }}
->
-  Remember Me
-</span>
+                  <input style={{ marginLeft: "4px" }} type="checkbox" {...register("rememberMe")} />
+                  <span
+                    style={{
+                      marginLeft: "4px",
+                      fontSize: "16px",
+                      color: "#0c234c",
+                      fontFamily: `"Raleway", sans-serif`,
+                    }}
+                  >
+                    Remember Me
+                  </span>
 
                 </label>
               </div>
@@ -125,7 +125,7 @@ function Index() {
 
           {/* FORGOT PASSWORD */}
           <div className="forgot-wrap">
-            <a href="/forget-passwords" className="link">
+            <a href="/forget-password" className="link">
               Forgot password?
             </a>
           </div>
