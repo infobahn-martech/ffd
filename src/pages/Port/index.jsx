@@ -174,7 +174,7 @@ const Port = () => {
           <div className="container-fluid">
             <CommonHeader
              showFilter
-              tableTitle="Port List"
+              tableTitle="Ports"
               isAddEnabled={false}
               addModalLabel="Add Port"
               setSearch={(e) =>

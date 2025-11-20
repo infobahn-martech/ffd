@@ -174,7 +174,7 @@ const Vessel = () => {
           <div className="container-fluid">
             <CommonHeader
              showFilter
-              tableTitle="Vessel List"
+              tableTitle="Vessels"
               isAddEnabled
               addModalLabel="Add Vessel"
               setSearch={(e) =>

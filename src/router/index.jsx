@@ -67,7 +67,7 @@ const router = createBrowserRouter([
                   element: <Port />,
                 },
                 {
-                  path: '/vessel-type',
+                  path: '/vessel-types',
                   id: 'vessel-type',
                   element: <VesselType />,
                 },

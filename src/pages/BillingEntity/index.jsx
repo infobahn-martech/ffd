@@ -174,7 +174,7 @@ const BillingEntity = () => {
           <div className="container-fluid">
             <CommonHeader
              showFilter
-              tableTitle="Billing Entity List"
+              tableTitle="Billing Accounts"
               isAddEnabled
               addModalLabel="Add BillingEntity"
               setSearch={(e) =>

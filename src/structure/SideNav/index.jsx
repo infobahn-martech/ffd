@@ -84,7 +84,7 @@ function SideNav() {
       hasPermission: true,
     },
      {
-      menu: 'Billing Entity',
+      menu: 'Billing Accounts',
       isDefaultMenu: true,
       to: '/billing-entity',
       icon: portIcon,
@@ -97,12 +97,12 @@ function SideNav() {
       isOpen: false,
       subMenus: [
         {
-          menu: 'Vessel Type',
-          to: '/vessel-type',
+          menu: 'Vessel Types',
+          to: '/vessel-types',
           hasPermission: true,
         },
         {
-          menu: 'Vessel Onboarding',
+          menu: 'Vessels',
           to: '/vessel-onboarding',
           hasPermission: true,
         },
@@ -110,14 +110,14 @@ function SideNav() {
       icon: workerIcon,
     },
     {
-      menu: 'Pre-arrival',
+      menu: 'Pre-Arrival',
       isDefaultMenu: true,
       hasPermission: true,
       isOpen: false,
       subMenus: [
         {
-          menu: 'Document',
-          to: '/document',
+          menu: 'Documents',
+          to: '/documents',
           hasPermission: true,
         },
         {
@@ -129,7 +129,7 @@ function SideNav() {
       icon: workerIcon,
     },
       {
-      menu: 'Structure Manager',
+      menu: 'Operations Configuration',
       isDefaultMenu: true,
       hasPermission: true,
       isOpen: false,
@@ -140,7 +140,7 @@ function SideNav() {
           hasPermission: true,
         },
         {
-          menu: 'Pre-arrival Information',
+          menu: 'Pre-Arrival Information',
           to: '/pre-arrival-information',
           hasPermission: true,
         },
