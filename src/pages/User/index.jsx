@@ -2,21 +2,122 @@ import { useState } from "react";
 import CommonHeader from "../../components/CommonHeader";
 import CustomTable from "../../components/customTable";
 import { UserModal } from "./Modals/AddEditUser";
-import { RenderAction } from "./RenderCells";
+import { RenderAction, RenderName } from "./RenderCells";
 import DeleteConfirmationModal from "../../components/DeleteConfirmationModal";
 
-const dummyRoles = [
-  { _id: "1", name: "Admin", description: "Full system access" },
-  { _id: "2", name: "Manager", description: "Manage users and workflows" },
-  { _id: "3", name: "Viewer", description: "Read-only access" },
-  { _id: "4", name: "Operator", description: "Handle daily operations" },
-  { _id: "5", name: "Supervisor", description: "Review and approve tasks" },
-  { _id: "6", name: "Coordinator", description: "Coordinate tasks between teams" },
-  { _id: "7", name: "Auditor", description: "Review logs and compliance checks" },
-  { _id: "8", name: "Support Staff", description: "Assist users with issues and queries" },
-  { _id: "9", name: "Quality Analyst", description: "Monitor and ensure process quality" },
-  { _id: "10", name: "Data Entry", description: "Enter and update system records" },
+const dummyUsers = [
+  {
+    _id: "1",
+    port: "Dubai Port",
+    role: "Admin",
+    firstName: "Ajay",
+    lastName: "Ullas",
+    email: "ajay.ullas@example.com",
+    phone: "+971500000001",
+    address: "Dubai, UAE",
+    avatar: "https://ui-avatars.com/api/?name=Ajay+Ullas&background=00368c&color=fff",
+  },
+  {
+    _id: "2",
+    port: "Abu Dhabi Port",
+    role: "Manager",
+    firstName: "Nikhil",
+    lastName: "Varma",
+    email: "nikhil.varma@example.com",
+    phone: "+971500000002",
+    address: "Abu Dhabi, UAE",
+    avatar: "https://ui-avatars.com/api/?name=Nikhil+Varma&background=00368c&color=fff",
+  },
+  {
+    _id: "3",
+    port: "Sharjah Port",
+    role: "Supervisor",
+    firstName: "Sangeeth",
+    lastName: "Babu",
+    email: "sangeeth.babu@example.com",
+    phone: "+971500000003",
+    address: "Sharjah, UAE",
+    avatar: "https://ui-avatars.com/api/?name=Sangeeth+Babu&background=00368c&color=fff",
+  },
+  {
+    _id: "4",
+    port: "RAK Port",
+    role: "Operator",
+    firstName: "Vishnu",
+    lastName: "Menon",
+    email: "vishnu.menon@example.com",
+    phone: "+971500000004",
+    address: "Ras Al Khaimah, UAE",
+    avatar: "https://ui-avatars.com/api/?name=Vishnu+Menon&background=00368c&color=fff",
+  },
+  {
+    _id: "5",
+    port: "Dubai Port",
+    role: "Viewer",
+    firstName: "Riya",
+    lastName: "Thomas",
+    email: "riya.thomas@example.com",
+    phone: "+971500000005",
+    address: "Dubai, UAE",
+    avatar: "https://ui-avatars.com/api/?name=Riya+Thomas&background=00368c&color=fff",
+  },
+  {
+    _id: "6",
+    port: "Sharjah Port",
+    role: "Data Entry",
+    firstName: "Deepak",
+    lastName: "Kumar",
+    email: "deepak.kumar@example.com",
+    phone: "+971500000006",
+    address: "Sharjah, UAE",
+    avatar: "https://ui-avatars.com/api/?name=Deepak+Kumar&background=00368c&color=fff",
+  },
+  {
+    _id: "7",
+    port: "Abu Dhabi Port",
+    role: "Coordinator",
+    firstName: "Meera",
+    lastName: "Suresh",
+    email: "meera.suresh@example.com",
+    phone: "+971500000007",
+    address: "Abu Dhabi, UAE",
+    avatar: "https://ui-avatars.com/api/?name=Meera+Suresh&background=00368c&color=fff",
+  },
+  {
+    _id: "8",
+    port: "Dubai Port",
+    role: "Auditor",
+    firstName: "Arun",
+    lastName: "Joseph",
+    email: "arun.joseph@example.com",
+    phone: "+971500000008",
+    address: "Dubai, UAE",
+    avatar: "https://ui-avatars.com/api/?name=Arun+Joseph&background=00368c&color=fff",
+  },
+  {
+    _id: "9",
+    port: "RAK Port",
+    role: "Support Staff",
+    firstName: "Joel",
+    lastName: "Sunny",
+    email: "joel.sunny@example.com",
+    phone: "+971500000009",
+    address: "Ras Al Khaimah, UAE",
+    avatar: "https://ui-avatars.com/api/?name=Joel+Sunny&background=00368c&color=fff",
+  },
+  {
+    _id: "10",
+    port: "Dubai Port",
+    role: "Quality Analyst",
+    firstName: "Sandra",
+    lastName: "Mathew",
+    email: "sandra.mathew@example.com",
+    phone: "+971500000010",
+    address: "Dubai, UAE",
+    avatar: "https://ui-avatars.com/api/?name=Sandra+Mathew&background=00368c&color=fff",
+  },
 ];
+
 
 
 const User = () => {
@@ -33,35 +134,61 @@ const User = () => {
 
 
   // 👉 ONLY TWO COLUMNS (Name + Description)
-  const cols = [
-    {
-      name: "Name",
-      selector: "name",
-      sort: true,
-      width: "300",
-      thclass: "tb-head",
-      contentClass: "table-content",
-    },
-    {
-      name: "Description",
-      selector: "description",
-      sort: true,
-      width: "500",
-      thclass: "tb-head",
-      contentClass: "table-content",
-    },
-     {
-      name: 'Actions',
-      selector: 'linksInfo',
-      tableClasses: 'table-striped',
-      contentClass: 'table-content',
-      thclass: 'tb-head',
-      onEditClick:(row)=>{setShowUserModal(row)},
-      onDeleteClick:()=>{setShowDeleteModal(true)},
-      cell: RenderAction,
-      width: '200',
-    },
-  ];
+const cols = [
+   {
+    name: "Name",
+    selector: "firstName",
+    width: "250",
+    thclass: "tb-head",
+    contentClass: "table-content",
+    cell: RenderName,
+  },
+  {
+    name: "Port",
+    selector: "port",
+    width: "150",
+    thclass: "tb-head",
+    contentClass: "table-content",
+  },
+  {
+    name: "User Role",
+    selector: "role",
+    width: "150",
+    thclass: "tb-head",
+    contentClass: "table-content",
+  },
+  {
+    name: "Email",
+    selector: "email",
+    width: "250",
+    thclass: "tb-head",
+    contentClass: "table-content",
+  },
+  {
+    name: "Phone",
+    selector: "phone",
+    width: "180",
+    thclass: "tb-head",
+    contentClass: "table-content",
+  },
+  {
+    name: "Address",
+    selector: "address",
+    width: "300",
+    thclass: "tb-head",
+    contentClass: "table-content",
+  },
+  {
+    name: "Actions",
+    selector: "linksInfo",
+    width: "200",
+    thclass: "tb-head",
+    contentClass: "table-content",
+    cell: RenderAction,
+    onEditClick: (row) => setShowUserModal(row),
+    onDeleteClick: () => setShowDeleteModal(true),
+  },
+];
 
   return (
     <>
@@ -86,9 +213,9 @@ const User = () => {
             Sl
             pagination={{ currentPage: params.page, limit: params.limit }}
             tableClasses="px-start"
-            count={dummyRoles.length}
             columns={cols}
-            data={dummyRoles}
+            data={dummyUsers}
+            count={dummyUsers.length}
             onPageChange={(currentPage) =>
               setParams({ ...params, page: currentPage })
             }

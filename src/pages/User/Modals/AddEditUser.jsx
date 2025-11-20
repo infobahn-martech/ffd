@@ -17,7 +17,7 @@ export function UserModal({ showModal, closeModal }) {
   } = useForm({
     defaultValues: showModal?._id
       ? {
-          name: showModal?.name,
+          name: showModal?.firstName + " " + showModal?.lastName,
           email: showModal?.email,
           port: showModal?.port,
           role: showModal?.role,
