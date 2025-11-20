@@ -116,7 +116,7 @@ const Role = () => {
                                     show={showDeleteModal}
                                     onCancel={()=>setShowDeleteModal(false)}
                                     onConfirm={()=>{}}
-                                    deleteText="Are you sure you want to delete this user?"
+                                    deleteText="Are you sure you want to delete this role?"
                                     // isLoading={isBeingUpdated}
                                   />
                             )}

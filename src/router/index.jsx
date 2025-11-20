@@ -5,6 +5,7 @@ import PrivateRoutes from './PrivateRoute';
 import Layout from '../structure/Layout';
 import Dashboard from '../pages/Dashboard';
 import Login from '../pages/Authentication';
+import ForgetPassword from '../pages/ForgetPassword';
 import KanbanBoard from '../pages/KanbanBoard';
 import Port from '../pages/Port';
 import Role from '../pages/Role';
@@ -24,6 +25,9 @@ const router = createBrowserRouter([
     children: [
       // Always allow login page
       { path: '/', element: <Login /> },
+      {path:"/forget-password", element: <ForgetPassword /> 
+              },
+      
 
       // 🟢 TEST MODE → No Auth Guards
       ...(TEST_MODE
@@ -89,7 +93,9 @@ const router = createBrowserRouter([
             // 🔒 PRODUCTION MODE → With Public & Private Guards
             {
               element: <PublicRoutes />,
-              children: [{ path: '/', element: <Login /> }],
+              children: [{ path: '/', element: <Login /> 
+              },{path:"/forget-password", element: <ForgetPassword /> 
+              }],
             },
             {
               element: <PrivateRoutes />,

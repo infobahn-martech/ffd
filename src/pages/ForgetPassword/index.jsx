@@ -2,7 +2,7 @@ import React from "react";
 import { useForm } from "react-hook-form";
 import "../../design/scss/login.scss";
 
-function Index() {
+function ForgetPassword() {
   const {
     register,
     handleSubmit,
@@ -10,7 +10,7 @@ function Index() {
   } = useForm();
 
   const onSubmit = (data) => {
-    console.log("FORM DATA:", data);
+    console.log("FORGOT PASSWORD DATA:", data);
   };
 
   return (
@@ -23,12 +23,12 @@ function Index() {
 
         <div className="content-wrap">
           <h1 className="title">
-            Smarter Ports,
-            <span>Stronger Operations.</span>
+            Reset Your Access,
+            <span>Restore Productivity.</span>
           </h1>
           <p className="des">
-            Delivering smarter coordination, faster workflows, and seamless
-            port-management solutions for global marine services.
+            Secure and seamless recovery to help you get back to efficient
+            port operations.
           </p>
         </div>
       </div>
@@ -41,10 +41,10 @@ function Index() {
           </div>
 
           <div className="head-wrap">
-            <h2 className="title">
-              Welcome <span>Admin</span>
-            </h2>
-            <p className="des">Welcome back! Please enter your details.</p>
+            <h2 className="title">Forgot Password?</h2>
+            <p className="des">
+              Enter your registered email address to reset your password.
+            </p>
           </div>
 
           <div className="form-content-wrap">
@@ -73,60 +73,19 @@ function Index() {
                 </div>
               </div>
 
-              {/* PASSWORD */}
-              <div className="input-outer-wrap">
-                <label className="label">Password</label>
-                <div className="input-wrap">
-                  <input
-                    type="password"
-                    placeholder="************************"
-                    className="txt"
-                    {...register("password", {
-                      required: "Password is required",
-                      minLength: {
-                        value: 6,
-                        message: "Password must be at least 6 characters",
-                      },
-                    })}
-                  />
-
-                  {errors.password && (
-                    <div className="error">{errors.password.message}</div>
-                  )}
-                </div>
-              </div>
-
-              {/* REMEMBER ME */}
-              <div className="checkbox-wrap">
-                <label className="remember-label">
-                  <input style={{marginLeft:"4px"}} type="checkbox" {...register("rememberMe")} />
-       <span
-  style={{
-    marginLeft: "4px",
-    fontSize: "16px",
-    color: "#0c234c",
-    fontFamily: `"Raleway", sans-serif`,
-  }}
->
-  Remember Me
-</span>
-
-                </label>
-              </div>
-
               {/* BUTTON */}
               <div className="btn-wrap">
                 <button className="btn-red" type="submit">
-                  Login
+                  Send Reset Link
                 </button>
               </div>
             </form>
           </div>
 
-          {/* FORGOT PASSWORD */}
+          {/* BACK TO LOGIN */}
           <div className="forgot-wrap">
-            <a href="/forget-passwords" className="link">
-              Forgot password?
+            <a href="/" className="link">
+              ← Back to Login
             </a>
           </div>
 
@@ -137,4 +96,4 @@ function Index() {
   );
 }
 
-export default Index;
+export default ForgetPassword;
