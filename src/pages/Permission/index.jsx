@@ -14,12 +14,6 @@ const Permission = () => {
     searchTerm: '',
   });
 
-  const [state, setState] = useState({
-    showAddModal: false,
-    editData: null,
-    selectedIdForDelete: null,
-  });
-
   const [showDeleteModal, setShowDeleteModal] = useState(false);
   const [showPermissionModal, setShowPermissionModal] = useState(false);
 
@@ -150,7 +144,7 @@ const dummyPermissions = [
       name: 'Actions',
       selector: 'linksInfo',
       onEditClick: (row) => {
-        setState({ ...state, editData: row, showAddModal: true });
+     setShowPermissionModal(row)
       },
      onDeleteClick:()=>{setShowDeleteModal(true)},
       cell: RenderAction,
@@ -164,6 +158,9 @@ const dummyPermissions = [
           <CommonHeader
             tableTitle="Permissions"
             isAddEnabled
+                    onAddModalClick={() => {
+              setShowPermissionModal(true);
+            }}
             addModalLabel="Add Permission"
             setSearch={(e) =>
               setParams({ ...params, searchTerm: e, page: 1, limit: 10 })

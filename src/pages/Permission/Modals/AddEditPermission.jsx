@@ -8,12 +8,6 @@ export function PermissionModal({ showModal, closeModal }) {
       <h1 className="modal-title fs-5" id="addpermissonModalLabel">
         Add Designation and Permission
       </h1>
-      {/* <button
-        type="button"
-        className="btn-close"
-        data-bs-dismiss="modal"
-        aria-label="Close"
-      ></button> */}
     </>
   );
 
@@ -347,7 +341,6 @@ export function PermissionModal({ showModal, closeModal }) {
     <CustomModal
       className="modal fade addPermissionMod show"
       dialgName="custom-mod custom-mod-xl modal-dialog modal-dialog-centered modal-dialog-scrollable"
-      // createModal
       show={!!showModal}
       closeModal={() => closeModal(null)}
       body={renderBody()}
