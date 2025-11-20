@@ -41,19 +41,19 @@ const router = createBrowserRouter([
                   element: <Dashboard />,
                 },
                  {
-                  path: '/role-management',
-                  id: '/role-management',
+                  path: '/roles',
+                  id: '/roles',
                   element: <Role />,
                   
                 },
                    {
-                  path: '/permission-management',
-                  id: '/permission-management',
+                  path: '/permissions',
+                  id: '/permissions',
                   element: <Permission/>
                 },
                     {
-                  path: '/user-onboarding',
-                  id: '/user-onboarding',
+                  path: '/users',
+                  id: '/users',
                   element: <User/>
                 },
                    {

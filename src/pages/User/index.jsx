@@ -70,7 +70,7 @@ const User = () => {
           <div className="container-fluid">
             <CommonHeader
               showFilter
-              tableTitle="User List"
+              tableTitle="Users"
               isAddEnabled
               addModalLabel="Add User"
               setSearch={(e) =>

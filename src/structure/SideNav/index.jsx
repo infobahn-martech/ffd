@@ -59,18 +59,18 @@ function SideNav() {
       isOpen: false,
       subMenus: [
         {
-          menu: 'Role',
-          to: '/role-management',
+          menu: 'Roles',
+          to: '/roles',
           hasPermission: true,
         },
         {
-          menu: 'Permission ',
-          to: '/permission-management',
+          menu: 'Permissions',
+          to: '/permissions',
           hasPermission: true,
         },
         {
-          menu: 'User Onboarding',
-          to: '/user-onboarding',
+          menu: 'Users',
+          to: '/users',
           hasPermission: true,
         },
       ],
@@ -110,7 +110,7 @@ function SideNav() {
       icon: workerIcon,
     },
     {
-      menu: 'Pre-arrival mangament',
+      menu: 'Pre-arrival',
       isDefaultMenu: true,
       hasPermission: true,
       isOpen: false,

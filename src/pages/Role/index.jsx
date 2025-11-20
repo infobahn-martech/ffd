@@ -70,7 +70,7 @@ const Role = () => {
           <div className="container-fluid">
             <CommonHeader
               showFilter
-              tableTitle="Role List"
+              tableTitle="Roles"
               isAddEnabled
               addModalLabel="Add Role"
               setSearch={(e) =>

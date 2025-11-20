@@ -49,11 +49,31 @@
             }
         }
     }
-    .menuWrp{
-        // padding-top: 40px; 
-        @media($sm-1199){
-            padding-top: 30px;
-        }
+.menuWrp {
+  overflow-y: auto;
+  overflow-x: hidden;
+  max-height: calc(100vh - 100px);
+
+  /* ⭐ Scrollbar Color (#00368c) */
+  scrollbar-width: thin;
+  scrollbar-color: #00368c transparent;
+
+  &::-webkit-scrollbar {
+    width: 6px;
+  }
+  &::-webkit-scrollbar-thumb {
+    background-color: #00368c;   // ⭐ main scrollbar color
+    border-radius: 10px;
+  }
+  &::-webkit-scrollbar-track {
+    background: transparent;     // optional cleaner look
+  }
+
+  @media($sm-1199){
+    padding-top: 30px;
+  }
+
+
         .submenu{
             font-size: 14px;
             padding-top: 10px;
