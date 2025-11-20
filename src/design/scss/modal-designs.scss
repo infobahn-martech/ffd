@@ -232,3 +232,12 @@
       .logout-modal1{
         padding: 50px;
       }
+
+      .role-modal-sm .modal-dialog {
+  max-width: 600px !important;   // reduce width
+}
+
+.role-modal-sm .modal-content {
+  border-radius: 16px;
+  padding: 20px;
+}

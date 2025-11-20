@@ -36,49 +36,45 @@ const renderBody = () => (
     <div className="lead-form">
       <form id="roleForm" onSubmit={handleSubmit(onSubmit)}>
 
-        {/* ROW 1 — ROLE + DESCRIPTION (Side-by-side) */}
-        <div className="permInputs row mb-lg-3">
-
-          {/* ROLE NAME */}
-          <div className="col-lg-6 col-sm-12">
-            <div className="form-floating desig-inp">
-              <input
-                className={`form-control ${errors.roleName ? "is-invalid" : ""}`}
-                placeholder="Role Name"
-                {...register("roleName", {
-                  required: "Role name is required"
-                })}
-              />
-              <label>
-                Role <span className="text-danger">*</span>
-              </label>
-              {errors.roleName && (
-                <span className="error text-danger">
-                  {errors.roleName.message}
-                </span>
-              )}
-            </div>
+        {/* ROLE NAME — FULL ROW */}
+        <div className="mb-lg-3 mb-sm-0">
+          <div className="form-floating desig-inp">
+            <input
+              className={`form-control ${errors.roleName ? "is-invalid" : ""}`}
+              placeholder="Role Name"
+              {...register("roleName", {
+                required: "Role name is required"
+              })}
+            />
+            <label>
+              Role <span className="text-danger">*</span>
+            </label>
+            {errors.roleName && (
+              <span className="error text-danger">
+                {errors.roleName.message}
+              </span>
+            )}
           </div>
+        </div>
 
-          {/* DESCRIPTION */}
-          <div className="col-lg-6 col-sm-12">
-            <div className="form-floating desig-inp">
-              <textarea
-                className="form-control"
-                placeholder="Description"
-                style={{ height: "120px" }}
-                {...register("description")}
-              ></textarea>
-              <label>Description</label>
-            </div>
+        {/* DESCRIPTION — FULL ROW TEXTAREA */}
+        <div className="mb-lg-3 mb-sm-0">
+          <div className="form-floating desig-inp">
+            <textarea
+              className="form-control"
+              placeholder="Description"
+              style={{ height: "120px" }}
+              {...register("description")}
+            ></textarea>
+            <label>Description</label>
           </div>
-
         </div>
 
       </form>
     </div>
   </div>
 );
+
 
 
   const renderFooter = () => (
@@ -94,6 +90,7 @@ const renderBody = () => (
 
   return (
     <CustomModal
+     className="role-modal-sm"  
       dialgName="modal-dialog modal-dialog-centered"
       show={!!showModal}
       closeModal={() => closeModal(null)}
