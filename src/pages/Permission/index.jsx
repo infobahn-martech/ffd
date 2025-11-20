@@ -1,5 +1,5 @@
 import '../../design/scss/employee.scss';
-import CustomTable from '../../components/customTable';
+import CustomTable from '../../components/CustomTable';
 import CommonHeader from '../../components/CommonHeader';
 import { DateFormat, RenderAction } from './RenderCells';
 import { PermissionModal } from './Modals/AddEditPermission';
@@ -18,92 +18,92 @@ const Permission = () => {
   const [showPermissionModal, setShowPermissionModal] = useState(false);
 
   // 👉 Dummy Permission Data
-const dummyPermissions = [
-  {
-    _id: "1",
-    name: "Admin Access",
-    noOfUsers: 12,
-    description: "Full access to all modules",
-    createdAt: "2024-10-12T10:15:00Z",
-    updatedAt: "2024-11-05T09:30:00Z",
-  },
-  {
-    _id: "2",
-    name: "Editor Access",
-    noOfUsers: 8,
-    description: "Can edit content but limited access",
-    createdAt: "2024-09-28T14:20:00Z",
-    updatedAt: "2024-10-15T18:00:00Z",
-  },
-  {
-    _id: "3",
-    name: "Viewer Access",
-    noOfUsers: 19,
-    description: "Only view permissions",
-    createdAt: "2024-08-10T11:45:00Z",
-    updatedAt: "2024-09:02T10:10:00Z",
-  },
+  const dummyPermissions = [
+    {
+      _id: "1",
+      name: "Admin Access",
+      noOfUsers: 12,
+      description: "Full access to all modules",
+      createdAt: "2024-10-12T10:15:00Z",
+      updatedAt: "2024-11-05T09:30:00Z",
+    },
+    {
+      _id: "2",
+      name: "Editor Access",
+      noOfUsers: 8,
+      description: "Can edit content but limited access",
+      createdAt: "2024-09-28T14:20:00Z",
+      updatedAt: "2024-10-15T18:00:00Z",
+    },
+    {
+      _id: "3",
+      name: "Viewer Access",
+      noOfUsers: 19,
+      description: "Only view permissions",
+      createdAt: "2024-08-10T11:45:00Z",
+      updatedAt: "2024-09:02T10:10:00Z",
+    },
 
-  // ➕ New 7 items
-  {
-    _id: "4",
-    name: "User Management Access",
-    noOfUsers: 6,
-    description: "Manage users, roles, and permissions",
-    createdAt: "2024-10-01T09:10:00Z",
-    updatedAt: "2024-11-02T11:30:00Z",
-  },
-  {
-    _id: "5",
-    name: "Finance Access",
-    noOfUsers: 4,
-    description: "Access billing and financial reports",
-    createdAt: "2024-09-15T13:50:00Z",
-    updatedAt: "2024-10-12T15:25:00Z",
-  },
-  {
-    _id: "6",
-    name: "Operations Access",
-    noOfUsers: 9,
-    description: "Manage operational workflows",
-    createdAt: "2024-08-22T16:00:00Z",
-    updatedAt: "2024-08-30T12:45:00Z",
-  },
-  {
-    _id: "7",
-    name: "Approval Access",
-    noOfUsers: 11,
-    description: "Approve tasks and workflow actions",
-    createdAt: "2024-07-10T08:20:00Z",
-    updatedAt: "2024-08-18T17:00:00Z",
-  },
-  {
-    _id: "8",
-    name: "Report Access",
-    noOfUsers: 14,
-    description: "View and download system reports",
-    createdAt: "2024-09-01T11:00:00Z",
-    updatedAt: "2024-10-01T09:30:00Z",
-  },
-  {
-    _id: "9",
-    name: "Support Access",
-    noOfUsers: 7,
-    description: "Access support tickets and communications",
-    createdAt: "2024-09-19T10:05:00Z",
-    updatedAt: "2024-10-25T14:40:00Z",
-  },
-  {
-    _id: "10",
-    name: "Audit Access",
-    noOfUsers: 5,
-    description: "View logs and system audit data",
-    createdAt: "2024-10-05T09:55:00Z",
-    updatedAt: "2024-11-01T08:45:00Z",
-  },
-];
+    // ➕ New 7 items
+    {
+      _id: "4",
+      name: "User Management Access",
+      noOfUsers: 6,
+      description: "Manage users, roles, and permissions",
+      createdAt: "2024-10-01T09:10:00Z",
+      updatedAt: "2024-11-02T11:30:00Z",
+    },
+    {
+      _id: "5",
+      name: "Finance Access",
+      noOfUsers: 4,
+      description: "Access billing and financial reports",
+      createdAt: "2024-09-15T13:50:00Z",
+      updatedAt: "2024-10-12T15:25:00Z",
+    },
+    {
+      _id: "6",
+      name: "Operations Access",
+      noOfUsers: 9,
+      description: "Manage operational workflows",
+      createdAt: "2024-08-22T16:00:00Z",
+      updatedAt: "2024-08-30T12:45:00Z",
+    },
+    {
+      _id: "7",
+      name: "Approval Access",
+      noOfUsers: 11,
+      description: "Approve tasks and workflow actions",
+      createdAt: "2024-07-10T08:20:00Z",
+      updatedAt: "2024-08-18T17:00:00Z",
+    },
+    {
+      _id: "8",
+      name: "Report Access",
+      noOfUsers: 14,
+      description: "View and download system reports",
+      createdAt: "2024-09-01T11:00:00Z",
+      updatedAt: "2024-10-01T09:30:00Z",
+    },
+    {
+      _id: "9",
+      name: "Support Access",
+      noOfUsers: 7,
+      description: "Access support tickets and communications",
+      createdAt: "2024-09-19T10:05:00Z",
+      updatedAt: "2024-10-25T14:40:00Z",
+    },
+    {
+      _id: "10",
+      name: "Audit Access",
+      noOfUsers: 5,
+      description: "View logs and system audit data",
+      createdAt: "2024-10-05T09:55:00Z",
+      updatedAt: "2024-11-01T08:45:00Z",
+    },
+  ];
 
-// const dummyPermissions =[]
+  // const dummyPermissions =[]
 
 
   const totalPermissionCount = dummyPermissions.length;
@@ -116,7 +116,7 @@ const dummyPermissions = [
       contentClass: 'table-content',
       sort: true,
       thclass: 'tb-head',
-           width: '200',
+      width: '200',
     },
     {
       name: 'Users',
@@ -125,14 +125,14 @@ const dummyPermissions = [
       sort: true,
       contentClass: 'table-content',
       thclass: 'tb-head',
-           width: '200',
+      width: '200',
     },
     {
       name: 'Short Description',
       selector: 'description',
       tableClasses: 'table-striped',
       sort: true,
-           width: '400',
+      width: '400',
     },
     {
       name: 'Created At',
@@ -144,9 +144,9 @@ const dummyPermissions = [
       name: 'Actions',
       selector: 'linksInfo',
       onEditClick: (row) => {
-     setShowPermissionModal(row)
+        setShowPermissionModal(row)
       },
-     onDeleteClick:()=>{setShowDeleteModal(true)},
+      onDeleteClick: () => { setShowDeleteModal(true) },
       cell: RenderAction,
     },
   ];
@@ -158,7 +158,7 @@ const dummyPermissions = [
           <CommonHeader
             tableTitle="Permissions"
             isAddEnabled
-                    onAddModalClick={() => {
+            onAddModalClick={() => {
               setShowPermissionModal(true);
             }}
             addModalLabel="Add Permission"
@@ -188,19 +188,19 @@ const dummyPermissions = [
         {!!showPermissionModal && (
           <PermissionModal
             showModal={showPermissionModal}
-            closeModal={() =>   setShowPermissionModal(false)}
+            closeModal={() => setShowPermissionModal(false)}
           />
         )}
 
-         {!!showDeleteModal && (
-                                     <DeleteConfirmationModal
-                                            show={showDeleteModal}
-                                            onCancel={()=>setShowDeleteModal(false)}
-                                            onConfirm={()=>{}}
-                                            deleteText="Are you sure you want to delete this permission?"
-                                            // isLoading={isBeingUpdated}
-                                          />
-                                    )}
+        {!!showDeleteModal && (
+          <DeleteConfirmationModal
+            show={showDeleteModal}
+            onCancel={() => setShowDeleteModal(false)}
+            onConfirm={() => { }}
+            deleteText="Are you sure you want to delete this permission?"
+          // isLoading={isBeingUpdated}
+          />
+        )}
       </div>
     </div>
   );

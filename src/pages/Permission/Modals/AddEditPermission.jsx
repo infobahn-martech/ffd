@@ -329,7 +329,11 @@ export function PermissionModal({ showModal, closeModal }) {
   );
   const renderFooter = () => (
     <div className="modal-footer">
-      <button type="button" className="btn btn-outline" data-bs-dismiss="modal">
+      <button
+        type="button"
+        className="btn btn-outline"
+        onClick={() => closeModal?.(null)}
+      >
         Close
       </button>
       <button type="button" className="btn btn-primary">
