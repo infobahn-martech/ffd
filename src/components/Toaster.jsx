@@ -1,3 +1,4 @@
+/* eslint-disable react-refresh/only-export-components */
 import { toast } from 'react-toastify';
 import _ from 'lodash';
 import { useEffect } from 'react';
