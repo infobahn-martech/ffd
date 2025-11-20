@@ -1,29 +1,16 @@
 import { Tooltip } from 'react-tooltip';
 import moment from 'moment';
 
-import eye from '../../assets/images/eye.svg';
-import edit from '../../assets/images/edit.svg';
+// import eye from '../../assets/images/eye.svg';
+// import edit from '../../assets/images/edit.svg';
 import trash from '../../assets/images/delete.svg';
 import { getInitials } from '../../utils/utils';
 
-export const RenderAction = ({ onEditClick, row, onDeleteClick }) => {
+export const RenderAction = ({  row, onDeleteClick }) => {
   return (
     <>
-      <Tooltip id="view" place="bottom" content="View" />
-      <Tooltip id="edit" place="bottom" content="Edit" />
       <Tooltip id="delete" place="bottom" content="Delete" />
       <div className="actions">
-        <span data-tooltip-id="view" type="button" className="view">
-          <img src={eye} alt="eye" />
-        </span>
-        <span
-          data-tooltip-id="edit"
-          type="button"
-          onClick={() => onEditClick(row)}
-          className="edit"
-        >
-          <img src={edit} alt="edit" />
-        </span>
         <span
           data-tooltip-id="delete"
           type="button"

@@ -6,34 +6,43 @@ function CommonFilter() {
       <div className="filters-inputs-wrp">
         <div className="row w-100">
 
-          {/* Name */}
+          {/* Port */}
           <div className="col-xl col-lg-6 col-sm-12 my-1">
             <div className="form-floating">
-              <input type="text" className="form-control" id="floatingName1" placeholder="Name" />
-              <label htmlFor="floatingName1">Name</label>
+              <select className="form-select" id="floatingPort">
+                <option value="">Select Port</option>
+                <option value="dubai">Dubai Port</option>
+                <option value="sharjah">Sharjah Port</option>
+                <option value="ajman">Ajman Port</option>
+                <option value="fujairah">Fujairah Port</option>
+              </select>
+              <label htmlFor="floatingPort">Port</label>
             </div>
           </div>
 
-          {/* Designation */}
+          {/* Role */}
           <div className="col-xl col-lg-6 col-sm-12 my-1">
             <div className="form-floating">
-              <input type="text" className="form-control" id="floatingDesignation" placeholder="Designation" />
-              <label htmlFor="floatingDesignation">Designation</label>
-            </div>
-          </div>
-
-          {/* Joining Date */}
-          <div className="col-xl col-lg-6 col-sm-12 my-1">
-            <div className="form-floating">
-              <input type="text" className="form-control" id="floatingJoining" placeholder="Joining" />
-              <label htmlFor="floatingJoining">Joining Date</label>
+              <select className="form-select" id="floatingRole">
+                <option value="">Select Role</option>
+                <option value="admin">Admin</option>
+                <option value="manager">Manager</option>
+                <option value="staff">Staff</option>
+                <option value="operator">Operator</option>
+              </select>
+              <label htmlFor="floatingRole">Role</label>
             </div>
           </div>
 
           {/* Status */}
           <div className="col-xl col-lg-6 col-sm-12 my-1">
             <div className="form-floating">
-              <input type="text" className="form-control" id="floatingStatus" placeholder="Status" />
+              <select className="form-select" id="floatingStatus">
+                <option value="">Select Status</option>
+                <option value="active">Active</option>
+                <option value="inactive">Inactive</option>
+                <option value="pending">Pending</option>
+              </select>
               <label htmlFor="floatingStatus">Status</label>
             </div>
           </div>

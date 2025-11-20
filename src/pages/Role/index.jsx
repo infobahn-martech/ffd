@@ -69,7 +69,6 @@ const Role = () => {
         <div className="prospect employee">
           <div className="container-fluid">
             <CommonHeader
-              showFilter
               tableTitle="Roles"
               isAddEnabled
               addModalLabel="Add Role"
