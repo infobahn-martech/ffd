@@ -4,6 +4,7 @@ import CommonHeader from '../../components/CommonHeader';
 import { DateFormat, RenderAction } from './RenderCells';
 import { PermissionModal } from './Modals/AddEditPermission';
 import { useState } from 'react';
+import DeleteConfirmationModal from '../../components/DeleteConfirmationModal';
 
 const Permission = () => {
   const [params, setParams] = useState({
@@ -19,6 +20,7 @@ const Permission = () => {
     selectedIdForDelete: null,
   });
 
+  const [showDeleteModal, setShowDeleteModal] = useState(false);
   const [showPermissionModal, setShowPermissionModal] = useState(false);
 
   // 👉 Dummy Permission Data
@@ -150,8 +152,7 @@ const dummyPermissions = [
       onEditClick: (row) => {
         setState({ ...state, editData: row, showAddModal: true });
       },
-      onDeleteClick: (row) =>
-        setState({ ...state, selectedIdForDelete: row._id }),
+     onDeleteClick:()=>{setShowDeleteModal(true)},
       cell: RenderAction,
     },
   ];
@@ -193,6 +194,16 @@ const dummyPermissions = [
             closeModal={() =>   setShowPermissionModal(false)}
           />
         )}
+
+         {!!showDeleteModal && (
+                                     <DeleteConfirmationModal
+                                            show={showDeleteModal}
+                                            onCancel={()=>setShowDeleteModal(false)}
+                                            onConfirm={()=>{}}
+                                            deleteText="Are you sure you want to delete this permission?"
+                                            // isLoading={isBeingUpdated}
+                                          />
+                                    )}
       </div>
     </div>
   );
