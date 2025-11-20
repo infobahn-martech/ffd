@@ -1,13 +1,13 @@
+/* eslint-disable no-unused-vars */
 import PropTypes from 'prop-types';
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Spinner } from 'react-bootstrap';
-// import CustomDateRange from './CustomDateRange';
-// import CustomSelect from './CustomSelect';
 import drop from '../assets/images/drop-dwn.svg';
 import search from '../assets/images/search-normal.svg';
 import filter from '../assets/images/filter.svg';
 import create from '../assets/images/create.svg';
+import CommonFilter from './CommonFilter';
+import "../design/scss/filters.scss"
 
 function CommonHeader({
   onFilterChange,
@@ -43,6 +43,7 @@ function CommonHeader({
 
   const [timer, setTimer] = useState(null);
   const [searchValue, setSearchValue] = useState('');
+  const [filterCollapse, setFilterCollapse] = useState(false);
 
   const renderBreadCrumpTitile = (title) => (
     <>
@@ -63,7 +64,8 @@ function CommonHeader({
   }, []);
 
   return (
-    <div className="row">
+    <>
+        <div className="row">
       <div className="top-sec d-flex">
         <div className="col-lg-2">
           {bredcrumpTitle ? (
@@ -100,7 +102,7 @@ function CommonHeader({
 
             {showFilter && (
               <div className="filter mx-2">
-                <button className="btn-common" type="button">
+                <button className="btn-common" type="button" onClick={()=>{setFilterCollapse(!filterCollapse)}}>
                   <span>
                     <img src={filter} alt="filter" />
                   </span>
@@ -186,6 +188,11 @@ function CommonHeader({
         </div>
       </div>
     </div>
+            {filterCollapse && (
+             <CommonFilter/>
+            )}
+    </>
+
   );
 }
 
@@ -223,86 +230,3 @@ CommonHeader.propTypes = {
 };
 
 export default CommonHeader;
-//  {
-//    showFilter && (
-//      <div className="collapse filter-cover" id="filter">
-//        <form action="">
-//          <div className="select-otr">
-//            {showDateRange && !showOnlySort && (
-//              <div className="lft-filter-frm">
-//                <div className="input-holder sm-form-col col">
-//                  <div className="select-custom remove-drop">
-//                    hello
-//                    {/* <CustomDateRange
-//                         start={dates.start}
-//                         end={dates.end}
-//                         change={handleDateCallback}
-//                       /> */}
-//                  </div>
-//                </div>
-//              </div>
-//            )}
-//            {!showDateRange && !showOnlySort && (
-//              <div className="lft-filter-frm">
-//                <div className="input-holder  sm-form-col col">
-//                  <div className="select-custom select-custom-react">
-//                    <CustomSelect
-//                      value={filterValue}
-//                      onChange={onFilterChange}
-//                      className="form_controler"
-//                      options={filterOptions}
-//                      placeholder="Select Designation"
-//                      isSearchable={false}
-//                    />
-//                  </div>
-//                </div>
-//                <div className="filter-btns">
-//                  <button
-//                    className="btn-fltr"
-//                    type="button"
-//                    onClick={() => {
-//                      onFilterChange({ value: '' });
-//                    }}
-//                  >
-//                    <img src={closeFilterIcon} alt="" />
-//                  </button>
-//                </div>
-//              </div>
-//            )}
-//            <div className="fltr-right">
-//              {showOnlySort && (
-//                <div className="input-holder sm-form-col mb-p">
-//                  <div className="select-custom select-custom-react sort-select-box sort-select">
-//                    <span className="sort">Sort By </span>
-//                    <CustomSelect
-//                      className="form_controler"
-//                      options={sortByOptions}
-//                      placeholder={sortBy}
-//                      value={sortBy}
-//                      onChange={({ value }) => setSortBy(value)}
-//                      isSearchable={false}
-//                    />
-//                  </div>
-//                </div>
-//              )}
-//              {sortOrderOptions && (
-//                <div className="input-holder sm-form-col mb-p">
-//                  <div className="select-custom select-custom-react sort-select-box sort-select">
-//                    <span className="sort">Sort Order </span>
-//                    <CustomSelect
-//                      className="form_controler"
-//                      options={sortOrderOptions}
-//                      placeholder={sortOrder}
-//                      value={sortOrder}
-//                      onChange={({ value }) => setSortOrder(value)}
-//                      isSearchable={false}
-//                    />
-//                  </div>
-//                </div>
-//              )}
-//            </div>
-//          </div>
-//        </form>
-//      </div>
-//    );
-//  }
