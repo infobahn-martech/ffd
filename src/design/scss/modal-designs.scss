@@ -241,3 +241,19 @@
   border-radius: 16px;
   padding: 20px;
 }
+
+/* Make USER Modal Smaller */
+.user-modal-sm .modal-dialog {
+  max-width: 750px !important;  /* reduce from full screen */
+  margin-top: 38px !important;  /* push modal down */
+}
+
+.user-modal-sm .modal-content {
+  border-radius: 20px;
+  padding: 25px 30px;
+}
+
+/* Keep avatar centered */
+.user-modal-sm .avatar-wrapper {
+  margin-top: 10px;
+}

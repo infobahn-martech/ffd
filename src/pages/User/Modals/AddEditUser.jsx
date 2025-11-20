@@ -209,7 +209,7 @@ export function UserModal({ showModal, closeModal }) {
                   render={({ field }) => (
                     <PhoneInput
                       {...field}
-                      country="ae"
+                      country="sa"
                       enableSearch
                       inputClass="phone-input"
                       buttonClass="phone-flag"
@@ -257,6 +257,7 @@ export function UserModal({ showModal, closeModal }) {
 
   return (
     <CustomModal
+      className="user-modal-sm"
       dialgName="modal-dialog modal-dialog-centered"
       show={!!showModal}
       closeModal={() => closeModal(null)}
