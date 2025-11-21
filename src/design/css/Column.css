@@ -12,13 +12,13 @@
 .column-header {
   display: flex;
   align-items: center;
-  background: #eef1ff; /* keep this */
+  background: #eef1ff;
   border-radius: 8px;
-  padding: 0px 0px;
+  padding: 0;
   position: relative;
   height: 40px;
   margin-bottom: 10px;
-  overflow: hidden; /* hides any white glow overflow */
+  overflow: hidden;
 }
 
 
@@ -58,18 +58,10 @@
 
 /* Number */
 .count-number {
-  font-size: 12px;
-  font-weight: 600;
-  line-height: 1;
-
-}
-
-
-/* Number */
-.count-number {
   color: #fff;
   font-weight: 600;
   font-size: 12px;
+  line-height: 1;
   background: transparent;
 }
 
@@ -89,7 +81,7 @@
   color: #1a1a1a;
   margin: 0;
 }
-  /* box-shadow: 0 1px 4px rgba(153, 62, 62, 0.05);
+
 /* Card List */
 .card-list {
   display: grid;
@@ -107,13 +99,5 @@
   background: #eaf0ff;
 }
 
-/* Each card same width + height control */
-.kanban-card {
-  width: 100%;
-  min-height: 210px; /* ensures equal height */
-  display: flex;
-  flex-direction: column;
-  justify-content: space-between;
-}
 
 

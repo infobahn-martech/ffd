@@ -1,29 +1,37 @@
-import React, { useState } from "react";
+import { useState, useCallback, useMemo } from "react";
 import { DragDropContext } from "@hello-pangea/dnd";
 import { initialData } from "../../helpers/data";
 import Column from "./Column";
 import CardForm from "./CardForm";
+import ZoomControls from "./ZoomControls";
+import "../../design/scss/common.scss";
+
+const MAX_ZOOM = 2;
+const MIN_ZOOM = 0.5;
+const ZOOM_STEP = 0.1;
 
 export default function KanbanBoard() {
   const [data, setData] = useState(initialData);
   const [selectedCard, setSelectedCard] = useState(null);
-
-  // 🔥 Zoom state
   const [zoom, setZoom] = useState(1);
 
-  const zoomIn = () => setZoom((z) => Math.min(z + 0.1, 2)); // max 200%
-  const zoomOut = () => setZoom((z) => Math.max(z - 0.1, 0.5)); // min 50%
-  const resetZoom = () => setZoom(1);
+  const zoomIn = useCallback(() => setZoom(z => Math.min(z + ZOOM_STEP, MAX_ZOOM)), []);
+  const zoomOut = useCallback(() => setZoom(z => Math.max(z - ZOOM_STEP, MIN_ZOOM)), []);
+  const resetZoom = useCallback(() => setZoom(1), []);
 
-  const onDragEnd = (result) => {
+  const handleSelectCard = useCallback(card => setSelectedCard(card), []);
+  const handleCloseCard = useCallback(() => setSelectedCard(null), []);
+
+  const onDragEnd = useCallback((result) => {
     const { destination, source, draggableId } = result;
     if (!destination) return;
 
     if (
       destination.droppableId === source.droppableId &&
       destination.index === source.index
-    )
+    ) {
       return;
+    }
 
     const start = data.columns[source.droppableId];
     const finish = data.columns[destination.droppableId];
@@ -35,10 +43,10 @@ export default function KanbanBoard() {
 
       const newColumn = { ...start, cardIds: newCardIds };
 
-      setData({
-        ...data,
-        columns: { ...data.columns, [newColumn.id]: newColumn },
-      });
+      setData(prevData => ({
+        ...prevData,
+        columns: { ...prevData.columns, [newColumn.id]: newColumn },
+      }));
       return;
     }
 
@@ -50,24 +58,34 @@ export default function KanbanBoard() {
     finishCardIds.splice(destination.index, 0, draggableId);
     const newFinish = { ...finish, cardIds: finishCardIds };
 
-    setData({
-      ...data,
+    setData(prevData => ({
+      ...prevData,
       columns: {
-        ...data.columns,
+        ...prevData.columns,
         [newStart.id]: newStart,
         [newFinish.id]: newFinish,
       },
-    });
-  };
+    }));
+  }, [data]);
+
+  const columns = useMemo(() =>
+    data.columnOrder.map(colId => {
+      const column = data.columns[colId];
+      const cards = column.cardIds.map(id => data.cards[id]);
+      return (
+        <Column
+          key={column.id}
+          column={column}
+          cards={cards}
+          setSelectedCard={handleSelectCard}
+        />
+      );
+    }), [data, handleSelectCard]
+  );
 
   return (
     <>
-      {/* 🔥 Zoom Buttons */}
-      <div className="zoom-controls">
-        <button onClick={zoomOut}>−</button>
-        <button onClick={zoomIn}>+</button>
-        <button onClick={resetZoom}>Reset</button>
-      </div>
+      <ZoomControls zoomIn={zoomIn} zoomOut={zoomOut} resetZoom={resetZoom} />
 
       <div className="kanban-container">
         <div
@@ -80,18 +98,7 @@ export default function KanbanBoard() {
         >
           <DragDropContext onDragEnd={onDragEnd}>
             <div className="kanban-board">
-              {data.columnOrder.map((colId) => {
-                const column = data.columns[colId];
-                const cards = column.cardIds.map((id) => data.cards[id]);
-                return (
-                  <Column
-                    key={column.id}
-                    column={column}
-                    cards={cards}
-                    setSelectedCard={setSelectedCard}
-                  />
-                );
-              })}
+              {columns}
             </div>
           </DragDropContext>
         </div>
@@ -99,8 +106,8 @@ export default function KanbanBoard() {
 
       {selectedCard && (
         <CardForm
-          show={!!selectedCard}
-          close={() => setSelectedCard(null)}
+          show={true}
+          close={handleCloseCard}
           card={selectedCard}
         />
       )}

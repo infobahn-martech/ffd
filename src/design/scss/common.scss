@@ -216,11 +216,15 @@ img{
 /* Zoom controls */
 .zoom-controls {
     position: fixed;
-    top: 110px; 
+    top: 110px;
     right: 40px;
     z-index: 1000;
     display: flex;
     gap: 8px;
+    background: #fff;
+    padding: 8px;
+    border-radius: 8px;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
 }
 
 .zoom-controls button {
@@ -230,4 +234,14 @@ img{
     border-radius: 6px;
     cursor: pointer;
     font-size: 16px;
+    transition: all 0.2s ease;
+}
+
+.zoom-controls button:hover {
+    background: #f3f4f6;
+    border-color: #9ca3af;
+}
+
+.zoom-controls button:active {
+    transform: scale(0.95);
 }

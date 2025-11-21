@@ -1,14 +1,12 @@
-/* eslint-disable react-hooks/rules-of-hooks */
-import React, { useState } from "react";
+import { useState } from "react";
+import PropTypes from "prop-types";
 import "../../design/css/CardForm.css";
-
 import GroupSettingsIcon from "../../assets/images/cv.png";
 import CircleTickIcon from "../../assets/images/CircleTick.svg";
 import ColorPickerIcon from "../../assets/images/ColorPicker.png";
 import PriorityIcon from "../../assets/images/Priority.png";
 
-
-export default function CardForm({ show, close, card }) {
+function CardForm({ show, close, card }) {
   if (!show) return null;
 
   const [formValues, setFormValues] = useState({
@@ -36,52 +34,52 @@ export default function CardForm({ show, close, card }) {
   };
 
   const ownerInitial = formValues.owner?.[0]?.toUpperCase() || "N";
-  const AccentColor = card?.color || "#2A00FF";
+  const accentColor = card?.color || "#2A00FF";
 
   return (
     <div className="cardform-overlay" onClick={close}>
       <div className="cardform-panel" onClick={(e) => e.stopPropagation()}>
-        
+
         {/* Top bar */}
-        <div className="cardform-topbar" style={{ backgroundColor: AccentColor }}>
+        <div className="cardform-topbar" style={{ backgroundColor: accentColor }}>
           <div className="cardform-topbar-left">
             <div className="cardform-topbar-text">
               <span className="cardform-id">ID : {card?.code || card?.id}</span>
               <span className="cardform-title">{card?.title}</span>
             </div>
           </div>
-        <div className="cardform-topbar-right">
+          <div className="cardform-topbar-right">
 
-  {/* Color Picker */}
-  <button className="topbar-icon-btn">
-    <img src={ColorPickerIcon} alt="color" />
-  </button>
+            {/* Color Picker */}
+            <button className="topbar-icon-btn" type="button" aria-label="Color picker">
+              <img src={ColorPickerIcon} alt="color" />
+            </button>
 
-  {/* Priority */}
-  <button className="topbar-icon-btn">
-    <img src={PriorityIcon} alt="priority" />
-  </button>
+            {/* Priority */}
+            <button className="topbar-icon-btn" type="button" aria-label="Priority">
+              <img src={PriorityIcon} alt="priority" />
+            </button>
 
-  {/* Close */}
-  <button className="cardform-close-btn" onClick={close}>✕</button>
+            {/* Close */}
+            <button className="cardform-close-btn" onClick={close} type="button" aria-label="Close">✕</button>
 
-</div>
+          </div>
 
         </div>
 
         {/* Tabs */}
         <div className="cardform-tabs">
-          <button className="tab">General</button>
-          <button className="tab active">Pre Arrival</button>
-          <button className="tab">Checklist</button>
-          <button className="tab">Arrival</button>
-          <button className="tab">Crew</button>
-          <button className="tab">Husbandry</button>
-          <button className="tab">Subtasks</button>
-          <button className="tab">Attachments</button>
-          <button className="tab">Comments</button>
-          <button className="tab">Departure</button>
-          <button className="tab">Sales Order</button>
+          <button className="tab" type="button">General</button>
+          <button className="tab active" type="button">Pre Arrival</button>
+          <button className="tab" type="button">Checklist</button>
+          <button className="tab" type="button">Arrival</button>
+          <button className="tab" type="button">Crew</button>
+          <button className="tab" type="button">Husbandry</button>
+          <button className="tab" type="button">Subtasks</button>
+          <button className="tab" type="button">Attachments</button>
+          <button className="tab" type="button">Comments</button>
+          <button className="tab" type="button">Departure</button>
+          <button className="tab" type="button">Sales Order</button>
         </div>
 
         {/* Body */}
@@ -188,7 +186,7 @@ export default function CardForm({ show, close, card }) {
               <div className="cf-section-body">
                 <div className="cf-empty-row">
                   <p>No attachments added.</p>
-                  <button className="cf-link-btn">+ Add attachment</button>
+                  <button className="cf-link-btn" type="button">+ Add attachment</button>
                 </div>
               </div>
             </div>
@@ -203,7 +201,7 @@ export default function CardForm({ show, close, card }) {
               <div className="cf-section-body">
                 <div className="cf-empty-row">
                   <p>No links added.</p>
-                  <button className="cf-link-btn">+ Add link</button>
+                  <button className="cf-link-btn" type="button">+ Add link</button>
                 </div>
               </div>
             </div>
@@ -211,81 +209,82 @@ export default function CardForm({ show, close, card }) {
           </div>
 
           {/* RIGHT SIDE */}
-        <div className="cardform-right">
+          <div className="cardform-right">
 
-  <h3 className="cf-right-title">Pre-Arrival Notes</h3>
+            <h3 className="cf-right-title">Pre-Arrival Notes</h3>
 
-  <p>
-    This section contains additional operational details for the vessel's 
-    pre-arrival process. Below is example placeholder content that can be replaced 
-    with real work instructions, communication logs, or status notes.
-  </p>
+            <p>
+              This section contains additional operational details for the vessel's
+              pre-arrival process. Below is example placeholder content that can be replaced
+              with real work instructions, communication logs, or status notes.
+            </p>
 
-  <h4 className="cf-right-subtitle">General Instructions</h4>
-  <ul className="cf-right-list">
-    <li>Verify all appointment documentation before ETA confirmation.</li>
-    <li>Cross-check last port clearance reports.</li>
-    <li>Notify customs inspection team 24 hours prior to arrival.</li>
-    <li>Update internal system with any change in vessel schedule.</li>
-  </ul>
+            <h4 className="cf-right-subtitle">General Instructions</h4>
+            <ul className="cf-right-list">
+              <li>Verify all appointment documentation before ETA confirmation.</li>
+              <li>Cross-check last port clearance reports.</li>
+              <li>Notify customs inspection team 24 hours prior to arrival.</li>
+              <li>Update internal system with any change in vessel schedule.</li>
+            </ul>
 
-  <h4 className="cf-right-subtitle">Required Documents</h4>
-  <ol className="cf-right-list-numbered">
-    <li>Vessel last port clearance certificate.</li>
-    <li>Ship's stores declaration.</li>
-    <li>Crew list & health declaration.</li>
-    <li>Inbound cargo manifest.</li>
-    <li>Updated ETA confirmation.</li>
-  </ol>
+            <h4 className="cf-right-subtitle">Required Documents</h4>
+            <ol className="cf-right-list-numbered">
+              <li>Vessel last port clearance certificate.</li>
+              <li>Ship's stores declaration.</li>
+              <li>Crew list & health declaration.</li>
+              <li>Inbound cargo manifest.</li>
+              <li>Updated ETA confirmation.</li>
+            </ol>
 
-  <h4 className="cf-right-subtitle">Additional Notes</h4>
-  <p>
-    Lorem ipsum dolor sit amet, consectetur adipiscing elit. Donec aliquet, 
-    ipsum nec commodo dignissim, massa leo commodo libero, vitae suscipit erat 
-    magna et lacus. 
-  </p>
+            <h4 className="cf-right-subtitle">Additional Notes</h4>
+            <p>
+              Lorem ipsum dolor sit amet, consectetur adipiscing elit. Donec aliquet,
+              ipsum nec commodo dignissim, massa leo commodo libero, vitae suscipit erat
+              magna et lacus.
+            </p>
 
-  <p>
-    Sed cursus felis eu sem vulputate, id bibendum urna convallis. Vestibulum 
-    finibus massa non erat bibendum, vel fringilla elit consectetur.
-  </p>
-</div>
+            <p>
+              Sed cursus felis eu sem vulputate, id bibendum urna convallis. Vestibulum
+              finibus massa non erat bibendum, vel fringilla elit consectetur.
+            </p>
+          </div>
 
 
         </div>
 
         {/* Footer */}
-      <div className="cardform-footer">
+        <div className="cardform-footer">
 
-  {/* STEPS PROGRESS BAR */}
-  <div className="cardform-steps-wrapper">
-    <div className="step-item completed">
-      <div className="step-circle">1</div>
-      <span className="step-line"></span>
-    </div>
+          {/* STEPS PROGRESS BAR */}
+          <div className="cardform-steps-wrapper">
+            <div className="step-item completed">
+              <div className="step-circle">1</div>
+              <span className="step-line"></span>
+            </div>
 
-    <div className="step-item active">
-      <div className="step-circle">2</div>
-      <span className="step-line"></span>
-    </div>
+            <div className="step-item active">
+              <div className="step-circle">2</div>
+              <span className="step-line"></span>
+            </div>
 
-    <div className="step-item">
-      <div className="step-circle">3</div>
-      <span className="step-line"></span>
-    </div>
+            <div className="step-item">
+              <div className="step-circle">3</div>
+              <span className="step-line"></span>
+            </div>
 
-    <div className="step-item">
-      <div className="step-circle">4</div>
-         <span className="step-line"></span>
-    </div>
-    <div className="step-item">
-      <div className="step-circle">5</div>
-    </div>
-  </div>
+            <div className="step-item">
+              <div className="step-circle">4</div>
+              <span className="step-line"></span>
+            </div>
+            <div className="step-item">
+              <div className="step-circle">5</div>
+            </div>
+          </div>
           <button
             className="cardform-update-btn"
-            style={{ backgroundColor: AccentColor }}
+            style={{ backgroundColor: accentColor }}
             onClick={handleUpdate}
+            type="button"
           >
             Update Card
           </button>
@@ -295,3 +294,30 @@ export default function CardForm({ show, close, card }) {
     </div>
   );
 }
+
+CardForm.propTypes = {
+  show: PropTypes.bool.isRequired,
+  close: PropTypes.func.isRequired,
+  card: PropTypes.shape({
+    id: PropTypes.string,
+    code: PropTypes.string,
+    title: PropTypes.string,
+    color: PropTypes.string,
+    user: PropTypes.string,
+    appointmentReceivedDate: PropTypes.string,
+    appointmentAcceptanceDate: PropTypes.string,
+    lastPort: PropTypes.string,
+    etaDate: PropTypes.string,
+    etaTime: PropTypes.string,
+    customsStart: PropTypes.string,
+    clearanceCompletion: PropTypes.string,
+    lastMovedDate: PropTypes.string,
+    lastMovedTime: PropTypes.string,
+  }),
+};
+
+CardForm.defaultProps = {
+  card: null,
+};
+
+export default CardForm;

@@ -1,24 +1,23 @@
 import { Droppable } from "@hello-pangea/dnd";
+import PropTypes from "prop-types";
 import CardItem from "./CardItem";
 import "../../design/css/Column.css";
 import PriorityIcon from "../../assets/images/Priority.svg";
 
-export default function Column({ column, cards,setSelectedCard}) {
+function Column({ column, cards, setSelectedCard }) {
+  const columnColor = column.color || "#2A00FF";
 
   return (
     <div className="column">
       <div
         className="column-header"
-        style={{ "--column-color": column.color || "#2A00FF" }}
+        style={{ "--column-color": columnColor }}
       >
         <div className="column-left">
-          {/* Number + Icon stacked vertically */}
-          <div className="column-count-box" style={{ background: column.color }}>
+          <div className="column-count-box" style={{ background: columnColor }}>
             <span className="count-number">{cards.length}</span>
             <img src={PriorityIcon} alt="Priority" className="priority-icon" />
           </div>
-
-          {/* Title */}
           <h2 className="column-title">{column.title}</h2>
         </div>
       </div>
@@ -26,14 +25,17 @@ export default function Column({ column, cards,setSelectedCard}) {
       <Droppable droppableId={column.id}>
         {(provided, snapshot) => (
           <div
-            className={`card-list ${
-              snapshot.isDraggingOver ? "drag-over" : ""
-            }`}
+            className={`card-list ${snapshot.isDraggingOver ? "drag-over" : ""}`}
             ref={provided.innerRef}
             {...provided.droppableProps}
           >
             {cards.map((card, index) => (
-              <CardItem key={card.id} card={card} index={index}  setSelectedCard={setSelectedCard}/>
+              <CardItem
+                key={card.id}
+                card={card}
+                index={index}
+                setSelectedCard={setSelectedCard}
+              />
             ))}
             {provided.placeholder}
           </div>
@@ -42,3 +44,15 @@ export default function Column({ column, cards,setSelectedCard}) {
     </div>
   );
 }
+
+Column.propTypes = {
+  column: PropTypes.shape({
+    id: PropTypes.string.isRequired,
+    title: PropTypes.string.isRequired,
+    color: PropTypes.string,
+  }).isRequired,
+  cards: PropTypes.arrayOf(PropTypes.object).isRequired,
+  setSelectedCard: PropTypes.func.isRequired,
+};
+
+export default Column;

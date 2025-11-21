@@ -11,7 +11,7 @@
   overflow: hidden;
 }
 
-/* 🔵 Top & Left colored borders (refined to match reference design) */
+/* Top & Left colored borders */
 .kanban-card::before,
 .kanban-card::after {
   content: "";
@@ -20,21 +20,20 @@
   border-radius: 4px;
 }
 
-/* 🔹 Top border — starts after the icon */
+/* Top border — starts after the icon */
 .kanban-card::before {
   left: 46px;
-  right: 16px; /* same width as icon + gap */
+  right: 16px;
   height: 4px;
-  /* width: calc(100% - 46px); */
   border-top-right-radius: 12px;
 }
 
-/* 🔹 Left border — shorter (doesn't reach header bottom or footer) */
+/* Left border — shorter (doesn't reach header bottom or footer) */
 .kanban-card::after {
-  top: 42px; /* starts below header */
+  top: 42px;
   left: 0;
   width: 4px;
-  height: calc(100% - 90px); /* shorter look */
+  height: calc(100% - 90px);
   border-bottom-left-radius: 12px;
 }
 
@@ -65,16 +64,14 @@
 .card-code {
   font-size: 13px;
   font-weight: 600;
-  color:#828282;
+  color: #828282;
   flex-grow: 1;
-  padding: 0px 0px 0px 40px
+  padding: 0 0 0 40px;
 }
 
 .card-user {
-  /* font-family: "DM Sans"; */
   font-size: 13px;
   font-weight: 400;
-  font-style: normal;
   color: #666;
   margin-right: 8px;
 }
@@ -82,8 +79,11 @@
 /* Title */
 .card-title-row {
   display: flex;
-  justify-content: space-between;
   align-items: center;
+  justify-content: space-between;
+  width: 100%;
+  margin: 6px 0;
+  position: relative;
 }
 
 .card-title {
@@ -91,16 +91,6 @@
   font-weight: 700;
   color: #111;
   margin: 6px 0;
-}
-
-
-.card-title-row {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  width: 100%;
-  margin: 6px 0;
-  position: relative;
 }
 
 /* Avatar: stick to the right edge */
@@ -122,7 +112,7 @@
 
 /* White circle with user initial */
 .card-avatar::before {
-  margin:1px;
+  margin: 1px;
   content: attr(data-initial);
   position: absolute;
   left: 0;
@@ -138,9 +128,6 @@
   align-items: center;
   justify-content: center;
 }
-
-
-
 
 /* Days */
 .card-days {
@@ -162,51 +149,13 @@
   width: 14px;
   height: 14px;
   object-fit: contain;
-  filter: brightness(0) saturate(100%) invert(22%) sepia(97%) saturate(5500%) hue-rotate(250deg)
-    brightness(90%) contrast(90%);
-}
-
-/* You can recolor dynamically */
-.card-icons .icon {
   filter: none; /* keep original colors */
 }
 
-/* Days text color dynamic */
+/* Days text */
 .days-text {
   color: #333;
   font-weight: 500;
-}
-
-
-.warn-icon {
-  font-size: 16px;
-}
-
-/* Progress */
-.progress-wrapper {
-  border-top: 1px solid #eee;
-  padding-top: 6px;
-  margin-top: 4px;
-}
-
-.progress-top {
-  display: flex;
-  justify-content: space-between;
-  font-size: 12px;
-  color: #555;
-  margin-bottom: 4px;
-}
-
-.progress-bar {
-  height: 6px;
-  background: #e9ebf8;
-  border-radius: 6px;
-  overflow: hidden;
-}
-
-.progress-fill {
-  height: 100%;
-  border-radius: 6px;
 }
 
 /* Status */
@@ -245,19 +194,13 @@
   stroke-width: 3px;
 }
 
-.progress-text {
-  font-size: 10px;
-  font-weight: 600;
-}
-
-
 .progress-svg .bg {
   stroke: #e6e6e6;
 }
 
 .progress-svg .progress {
-  stroke-dasharray: 113;     /* 2 * π * r = 2 * 3.14 * 18 ≈ 113 */
-  stroke-dashoffset: 113;
+  stroke-dasharray: 88; /* 2 * π * r = 2 * 3.14 * 14 ≈ 88 */
+  stroke-dashoffset: 88;
   transition: stroke-dashoffset 0.4s ease;
 }
 
@@ -309,7 +252,6 @@
   justify-content: space-between;
   align-items: center;
 }
-
 
 .footer-progress {
   display: flex;
