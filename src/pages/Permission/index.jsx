@@ -138,7 +138,7 @@ const Permission = () => {
       name: 'Created At',
       selector: 'createdAt',
       cell: DateFormat,
-      width: '300',
+      width: '400',
     },
     {
       name: 'Actions',
@@ -148,6 +148,7 @@ const Permission = () => {
       // },
       onDeleteClick: () => { setShowDeleteModal(true) },
       cell: RenderAction,
+      width: '200',
     },
   ];
 

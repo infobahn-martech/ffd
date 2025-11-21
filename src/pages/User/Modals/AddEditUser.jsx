@@ -9,6 +9,25 @@ import userIcon from "../../../assets/images/user.png";
 import edit from "../../../assets/images/edit.svg";
 
 export function UserModal({ showModal, closeModal }) {
+  const portOptions = [
+    "Dubai Port",
+    "Abu Dhabi Port",
+    "Sharjah Port",
+    "RAK Port",
+  ];
+
+  const roleOptions = [
+    "Admin",
+    "Manager",
+    "Supervisor",
+    "Operator",
+    "Viewer",
+    "Data Entry",
+    "Coordinator",
+    "Auditor",
+    "Support Staff",
+    "Quality Analyst",
+  ];
   const {
     register,
     handleSubmit,
@@ -151,8 +170,11 @@ export function UserModal({ showModal, closeModal }) {
                     {...register("port", { required: "Port is required" })}
                   >
                     <option value="">Select Port</option>
-                    <option value="Dubai">Dubai</option>
-                    <option value="Abu Dhabi">Abu Dhabi</option>
+                    {portOptions.map((port) => (
+                      <option key={port} value={port}>
+                        {port}
+                      </option>
+                    ))}
                   </select>
                   <label>
                     Port <span className="text-danger">*</span>
@@ -171,8 +193,11 @@ export function UserModal({ showModal, closeModal }) {
                     {...register("role", { required: "User role is required" })}
                   >
                     <option value="">Select User Role</option>
-                    <option value="Admin">Admin</option>
-                    <option value="Manager">Manager</option>
+                    {roleOptions.map((role) => (
+                      <option key={role} value={role}>
+                        {role}
+                      </option>
+                    ))}
                   </select>
                   <label>
                     User Role <span className="text-danger">*</span>

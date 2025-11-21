@@ -1,5 +1,5 @@
 
-import {  useState } from "react";
+import { useState } from "react";
 import { DateFormat, RenderAction, RenderName } from "./RenderCells";
 import CommonHeader from "../../components/CommonHeader";
 import CustomTable from "../../components/customTable";
@@ -47,7 +47,7 @@ const dummyPorts = [
     createdAt: "2024-06-12T14:00:00Z",
     updatedAt: "2024-08-21T09:00:00Z",
   },
-    {
+  {
     _id: "6",
     firstName: "Ras Al Khaimah Port",
     phoneNumber: "+971500000005",
@@ -55,7 +55,7 @@ const dummyPorts = [
     createdAt: "2024-06-12T14:00:00Z",
     updatedAt: "2024-08-21T09:00:00Z",
   },
-    {
+  {
     _id: "7",
     firstName: "Ras Al Khaimah Port",
     phoneNumber: "+971500000005",
@@ -63,7 +63,7 @@ const dummyPorts = [
     createdAt: "2024-06-12T14:00:00Z",
     updatedAt: "2024-08-21T09:00:00Z",
   },
-    {
+  {
     _id: "8",
     firstName: "Ras Al Khaimah Port",
     phoneNumber: "+971500000005",
@@ -71,7 +71,7 @@ const dummyPorts = [
     createdAt: "2024-06-12T14:00:00Z",
     updatedAt: "2024-08-21T09:00:00Z",
   },
-      {
+  {
     _id: "9",
     firstName: "Ras Al Khaimah Port",
     phoneNumber: "+971500000005",
@@ -79,7 +79,7 @@ const dummyPorts = [
     createdAt: "2024-06-12T14:00:00Z",
     updatedAt: "2024-08-21T09:00:00Z",
   },
-      {
+  {
     _id: "10",
     firstName: "Ras Al Khaimah Port",
     phoneNumber: "+971500000005",
@@ -87,7 +87,7 @@ const dummyPorts = [
     createdAt: "2024-06-12T14:00:00Z",
     updatedAt: "2024-08-21T09:00:00Z",
   },
-  
+
 ];
 
 
@@ -104,7 +104,7 @@ const Port = () => {
   const [showPortModal, setShowPortModal] = useState(false);
   const [showDeleteModal, setShowDeleteModal] = useState(false);
 
-  console.log("showDeleteModal",showDeleteModal)
+  console.log("showDeleteModal", showDeleteModal)
 
 
   const cols = [
@@ -160,8 +160,8 @@ const Port = () => {
       tableClasses: 'table-striped',
       contentClass: 'table-content',
       thclass: 'tb-head',
-      onEditClick:(row)=>{setShowPortModal(row)},
-      onDeleteClick:()=>{setShowDeleteModal(true)},
+      onEditClick: (row) => { setShowPortModal(row) },
+      onDeleteClick: () => { setShowDeleteModal(true) },
       cell: RenderAction,
       width: '200',
     },
@@ -173,16 +173,16 @@ const Port = () => {
         <div className="prospect employee">
           <div className="container-fluid">
             <CommonHeader
-             showFilter
+              //  showFilter
               tableTitle="Ports"
               isAddEnabled={false}
               addModalLabel="Add Port"
               setSearch={(e) =>
                 setParams({ ...params, searchTerm: e, page: 1, limit: 10 })
               }
-            onAddModalClick={() => {
-              setShowPortModal(true);
-            }}
+              onAddModalClick={() => {
+                setShowPortModal(true);
+              }}
               exportTitle="Export"
               exportLoader={false}
             />
@@ -208,24 +208,24 @@ const Port = () => {
               });
             }}
           />
-           {!!showPortModal && (
-                    <PortModal
-                      showModal={showPortModal}
-                      closeModal={() => setShowPortModal(false)}
-                    />
-                  )}
+          {!!showPortModal && (
+            <PortModal
+              showModal={showPortModal}
+              closeModal={() => setShowPortModal(false)}
+            />
+          )}
 
-                       {!!showDeleteModal && (
-                   <DeleteConfirmationModal
-                          show={showDeleteModal}
-                          onCancel={()=>setShowDeleteModal(false)}
-                          onConfirm={()=>{}}
-                          deleteText="Are you sure you want to delete this port?"
-                          // isLoading={isBeingUpdated}
-                        />
-                  )}
+          {!!showDeleteModal && (
+            <DeleteConfirmationModal
+              show={showDeleteModal}
+              onCancel={() => setShowDeleteModal(false)}
+              onConfirm={() => { }}
+              deleteText="Are you sure you want to delete this port?"
+            // isLoading={isBeingUpdated}
+            />
+          )}
 
-                  
+
         </div>
       </div>
     </>
