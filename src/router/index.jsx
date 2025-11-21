@@ -25,104 +25,107 @@ const router = createBrowserRouter([
     children: [
       // Always allow login page
       { path: '/', element: <Login /> },
-      {path:"/forget-password", element: <ForgetPassword /> 
-              },
-      
+      {
+        path: "/forget-password", element: <ForgetPassword />
+      },
+
 
       // 🟢 TEST MODE → No Auth Guards
       ...(TEST_MODE
         ? [
-            {
-              element: <Layout />,
-              children: [
-                {
-                  path: '/dashboard',
-                  id: 'dashboard',
-                  element: <Dashboard />,
-                },
-                 {
-                  path: '/roles',
-                  id: '/roles',
-                  element: <Role />,
-                  
-                },
-                   {
-                  path: '/permissions',
-                  id: '/permissions',
-                  element: <Permission/>
-                },
-                    {
-                  path: '/users',
-                  id: '/users',
-                  element: <User/>
-                },
-                   {
-                  path: '/kanban-board',
-                  id: 'kanban-board',
-                  element: <KanbanBoard />,
-                },
-                    {
-                  path: '/port-management',
-                  id: 'port',
-                  element: <Port />,
-                },
-                {
-                  path: '/vessel-types',
-                  id: 'vessel-type',
-                  element: <VesselType />,
-                },
-                {
-                  path: '/vessel-onboarding',
-                  id: 'vessel-onboarding',
-                  element: <Vessel />,
-                },
-                {
-                  path: '/billing-entity',
-                  id: 'billing-entity',
-                  element: <BillingEntity />,
-                },
-                {
-                  path: '/settings',
-                  id: 'settings',
-                  element: <h1>Settings</h1>,
-                },
-              ],
-            },
-          ]
+          {
+            element: <Layout />,
+            children: [
+              {
+                path: '/dashboard',
+                id: 'dashboard',
+                element: <Dashboard />,
+              },
+              {
+                path: '/roles',
+                id: '/roles',
+                element: <Role />,
+
+              },
+              {
+                path: '/permissions',
+                id: '/permissions',
+                element: <Permission />
+              },
+              {
+                path: '/users',
+                id: '/users',
+                element: <User />
+              },
+              {
+                path: '/kanban-board',
+                id: 'kanban-board',
+                element: <KanbanBoard />,
+              },
+              {
+                path: '/port-management',
+                id: 'port',
+                element: <Port />,
+              },
+              {
+                path: '/vessel-typess',
+                id: 'vessel-type',
+                element: <VesselType />,
+              },
+              {
+                path: '/vessel-onboardings',
+                id: 'vessel-onboarding',
+                element: <Vessel />,
+              },
+              {
+                path: '/billing-entitys',
+                id: 'billing-entity',
+                element: <BillingEntity />,
+              },
+              {
+                path: '/settings',
+                id: 'settings',
+                element: <h1>Settings</h1>,
+              },
+            ],
+          },
+        ]
         : [
-            // 🔒 PRODUCTION MODE → With Public & Private Guards
-            {
-              element: <PublicRoutes />,
-              children: [{ path: '/', element: <Login /> 
-              },{path:"/forget-password", element: <ForgetPassword /> 
-              }],
-            },
-            {
-              element: <PrivateRoutes />,
-              children: [
-                {
-                  element: <Layout />,
-                  children: [
-                    {
-                      path: '/dashboard',
-                      id: 'dashboard',
-                      element: <Dashboard />,
-                    },
-                      {
-                  path: '/kanban-board',
-                  id: 'kanban-board',
-                  element: <KanbanBoard />,
-                },
-                    {
-                      path: '/settings',
-                      id: 'settings',
-                      element: <h1>Settings</h1>,
-                    },
-                  ],
-                },
-              ],
-            },
-          ]),
+          // 🔒 PRODUCTION MODE → With Public & Private Guards
+          {
+            element: <PublicRoutes />,
+            children: [{
+              path: '/', element: <Login />
+            }, {
+              path: "/forget-password", element: <ForgetPassword />
+            }],
+          },
+          {
+            element: <PrivateRoutes />,
+            children: [
+              {
+                element: <Layout />,
+                children: [
+                  {
+                    path: '/dashboard',
+                    id: 'dashboard',
+                    element: <Dashboard />,
+                  },
+                  {
+                    path: '/kanban-board',
+                    id: 'kanban-board',
+                    element: <KanbanBoard />,
+                  },
+                  {
+                    path: '/settings',
+                    id: 'settings',
+                    element: <h1>Settings</h1>,
+                  },
+                ],
+              },
+            ],
+          },
+        ]),
     ],
   },
 ]);

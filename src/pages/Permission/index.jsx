@@ -143,9 +143,9 @@ const Permission = () => {
     {
       name: 'Actions',
       selector: 'linksInfo',
-      onEditClick: (row) => {
-        setShowPermissionModal(row)
-      },
+      // onEditClick: (row) => {
+      //   setShowPermissionModal(row)
+      // },
       onDeleteClick: () => { setShowDeleteModal(true) },
       cell: RenderAction,
     },
@@ -158,9 +158,9 @@ const Permission = () => {
           <CommonHeader
             tableTitle="Permissions"
             isAddEnabled
-            onAddModalClick={() => {
-              setShowPermissionModal(true);
-            }}
+            // onAddModalClick={() => {
+            //   setShowPermissionModal(true);
+            // }}
             addModalLabel="Add Permission"
             setSearch={(e) =>
               setParams({ ...params, searchTerm: e, page: 1, limit: 10 })
