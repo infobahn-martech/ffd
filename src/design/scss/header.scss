@@ -1,28 +1,94 @@
 .sedres-header {
   width: 100%;
-  height: 74px;                     /* FIX HEIGHT */
+  min-height: 74px;
+  height: auto;
   background: #f8f9fc;
   padding: 12px 20px;
   display: flex;
   align-items: center;
   justify-content: space-between;
-  flex-shrink: 0;                   /* PREVENT SQUEEZE */
+  flex-shrink: 0;
   box-shadow: 0 1px 4px rgba(0, 0, 0, 0.06);
+  position: relative;
+  z-index: 100;
 
   /* LEFT SECTION */
   .left-section {
-  display: flex;
-  align-items: center;
-  gap: 100px;
+    display: flex;
+    align-items: center;
+    gap: 20px;
+    flex: 1;
+    min-width: 0; // Allow flex items to shrink
 
-  .sedres-logo {
-    height: 55px;         /* Adjusted to match screenshot */
-    object-fit: contain;
-  }
+    // Mobile Menu Toggle Button
+    .mobile-menu-toggle {
+      display: none;
+      flex-direction: column;
+      justify-content: space-around;
+      width: 30px;
+      height: 30px;
+      background: transparent;
+      border: none;
+      cursor: pointer;
+      padding: 0;
+      z-index: 101;
+
+      span {
+        width: 100%;
+        height: 3px;
+        background-color: #00368c;
+        border-radius: 3px;
+        transition: all 0.3s ease;
+        transform-origin: center;
+      }
+
+      @media (max-width: 991px) {
+        display: flex;
+      }
+
+      // Active state (when menu is open)
+      &.active {
+        span {
+          &:nth-child(1) {
+            transform: rotate(45deg) translate(5px, 5px);
+          }
+          &:nth-child(2) {
+            opacity: 0;
+          }
+          &:nth-child(3) {
+            transform: rotate(-45deg) translate(7px, -6px);
+          }
+        }
+      }
+    }
+
+    .sedres-logo {
+      height: 55px;
+      object-fit: contain;
+      flex-shrink: 0;
+
+      @media (max-width: 767px) {
+        height: 40px;
+      }
+
+      @media (max-width: 479px) {
+        height: 35px;
+      }
+    }
+
     .top-links {
       display: flex;
       align-items: center;
-      gap: 56px;
+      gap: 20px;
+      flex-wrap: wrap;
+
+      @media (max-width: 1281px) {
+        gap: 16px;
+      }
+
+      @media (max-width: 991px) {
+        display: none; // Hide on mobile, can be shown in mobile menu if needed
+      }
 
       .top-link {
         font-family: "Poppins", sans-serif;
@@ -30,38 +96,46 @@
         color: #848484;
         text-decoration: none;
         transition: 0.2s ease;
+        white-space: nowrap;
+
+        @media (max-width: 1281px) {
+          font-size: 14px;
+        }
+
+        .link-text {
+          display: inline;
+        }
 
         .back-link {
-  display: flex;
-  align-items: center;
-  gap: 10px; /* spacing between icon and text */
-  text-decoration: underline; /* underline text */
-}
+          display: flex;
+          align-items: center;
+          gap: 10px;
+          text-decoration: underline;
+        }
 
-/* Increase icon size */
-.back-icon {
-  width: 20px;   /* bigger */
-  height: 20px;
-  object-fit: contain;
-  padding-right:2px;
-}
+        .back-icon {
+          width: 20px;
+          height: 20px;
+          object-fit: contain;
+          padding-right: 2px;
+          flex-shrink: 0;
+        }
 
-/* Make underline only for text, not icon */
-.back-link img {
-  text-decoration: none !important;
-}
-.back-link.active {
-  text-decoration: underline;
-}
+        .back-link img {
+          text-decoration: none !important;
+        }
 
-.back-link:hover .back-icon {
-  filter: brightness(0) saturate(100%) invert(23%) sepia(100%) 
-          saturate(1200%) hue-rotate(200deg) brightness(95%) contrast(90%);
-}
+        .back-link.active {
+          text-decoration: underline;
+        }
 
+        .back-link:hover .back-icon {
+          filter: brightness(0) saturate(100%) invert(23%) sepia(100%) 
+                  saturate(1200%) hue-rotate(200deg) brightness(95%) contrast(90%);
+        }
 
         &.active {
-          color:#95c1ea ;
+          color: #95c1ea;
           font-weight: 600;
         }
 
@@ -110,10 +184,21 @@
   .right-section {
     display: flex;
     align-items: center;
-    gap: 18px;
+    gap: 12px;
     background: #00368c;
-    padding: 8px 24px;
+    padding: 8px 16px;
     border-radius: 999px;
+    flex-shrink: 0;
+
+    @media (max-width: 767px) {
+      gap: 8px;
+      padding: 6px 12px;
+    }
+
+    @media (max-width: 479px) {
+      gap: 6px;
+      padding: 6px 8px;
+    }
   }
 
   .user-circle {
@@ -125,6 +210,17 @@
     display: flex;
     align-items: center;
     justify-content: center;
+    flex-shrink: 0;
+
+    @media (max-width: 767px) {
+      width: 30px;
+      height: 30px;
+    }
+
+    @media (max-width: 479px) {
+      width: 28px;
+      height: 28px;
+    }
   }
 
   .user-letter {
@@ -132,20 +228,67 @@
     font-size: 16px;
     font-weight: 600;
     color: #225fbd;
+
+    @media (max-width: 767px) {
+      font-size: 14px;
+    }
+
+    @media (max-width: 479px) {
+      font-size: 12px;
+    }
   }
 
   .icon-btn {
     border: none;
     background: transparent;
-    padding: 0;
+    padding: 4px;
     cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: opacity 0.2s ease;
+
+    &:hover {
+      opacity: 0.8;
+    }
 
     img {
       width: 18px;
       height: 18px;
-
-      /* Convert icons to WHITE */
       filter: brightness(0) invert(1);
+
+      @media (max-width: 767px) {
+        width: 16px;
+        height: 16px;
+      }
+
+      @media (max-width: 479px) {
+        width: 14px;
+        height: 14px;
+      }
     }
+
+    // Hide certain icons on mobile
+    &.icon-btn-hide-mobile {
+      @media (max-width: 767px) {
+        display: none;
+      }
+    }
+  }
+
+  // Responsive adjustments
+  @media (max-width: 991px) {
+    padding: 10px 15px;
+    min-height: 64px;
+  }
+
+  @media (max-width: 767px) {
+    padding: 8px 12px;
+    min-height: 60px;
+  }
+
+  @media (max-width: 479px) {
+    padding: 8px 10px;
+    min-height: 56px;
   }
 }

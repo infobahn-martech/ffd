@@ -1,3 +1,4 @@
+import { useState } from "react";
 import { Link, NavLink, useLocation } from "react-router-dom";
 import "../../design/scss/header.scss";
 
@@ -8,16 +9,47 @@ import SettingsIcon from "../../assets/images/SettingIcon.svg";
 import DocsIcon from "../../assets/images/DocumentIcon.svg";
 import QuestionIcon from "../../assets/images/QuestionIcon.svg";
 import NotificationIcon from "../../assets/images/Notification.svg";
+import useWindowSize from '../../hooks/useWindowSize';
 
-function Header() {
+function Header({ onMenuToggle, mobileMenuOpen: externalMobileMenuOpen }) {
+  const { pathname } = useLocation();
+  const { width } = useWindowSize();
+  const [internalMobileMenuOpen, setInternalMobileMenuOpen] = useState(false);
+  const isMobile = width <= 991;
+  
+  // Use external state if provided, otherwise use internal state
+  const mobileMenuOpen = externalMobileMenuOpen !== undefined 
+    ? externalMobileMenuOpen 
+    : internalMobileMenuOpen;
 
-  const { pathname } = useLocation();  // ← GET CURRENT ROUTE
+  const handleMenuToggle = () => {
+    const newState = !mobileMenuOpen;
+    if (externalMobileMenuOpen === undefined) {
+      setInternalMobileMenuOpen(newState);
+    }
+    if (onMenuToggle) {
+      onMenuToggle(newState);
+    }
+  };
 
   return (
     <div className="sedres-header">
 
       {/* LEFT — LOGO + NAV LINKS */}
       <div className="left-section">
+        {/* Mobile Menu Toggle Button */}
+        {isMobile && (
+          <button 
+            className={`mobile-menu-toggle ${mobileMenuOpen ? 'active' : ''}`}
+            onClick={handleMenuToggle}
+            aria-label="Toggle menu"
+          >
+            <span></span>
+            <span></span>
+            <span></span>
+          </button>
+        )}
+
         <img src={logo} alt="Sedres Logo" className="sedres-logo" />
 
         <div className="top-links">
@@ -26,16 +58,20 @@ function Header() {
           {pathname !== "/kanban-board" ? (
             <NavLink to="/kanban-board" className="top-link active back-link">
               <img src={BackIcon} alt="back" className="back-icon" />
-              Back to Board
+              <span className="link-text">Back to Board</span>
             </NavLink>
           ) : (
             <>
                <NavLink to="/users" className="top-link active back-link">
               <img src={BackIcon} alt="back" className="back-icon" />
-              Back to Users
+              <span className="link-text">Back to Users</span>
             </NavLink>
-              <NavLink to="/workflows" className="top-link">Edit Workflows</NavLink>
-              <NavLink to="/analytics" className="top-link">Show Analytics</NavLink>
+              <NavLink to="/workflows" className="top-link">
+                <span className="link-text">Edit Workflows</span>
+              </NavLink>
+              <NavLink to="/analytics" className="top-link">
+                <span className="link-text">Show Analytics</span>
+              </NavLink>
             </>
           )}
 
@@ -48,10 +84,18 @@ function Header() {
           <span className="user-letter">S</span>
         </div>
 
-        <button className="icon-btn"><img src={SettingsIcon} alt="Settings" /></button>
-        <button className="icon-btn"><img src={DocsIcon} alt="Calendar" /></button>
-        <button className="icon-btn"><img src={QuestionIcon} alt="Help" /></button>
-        <button className="icon-btn"><img src={NotificationIcon} alt="Notifications" /></button>
+        <button className="icon-btn" aria-label="Settings">
+          <img src={SettingsIcon} alt="Settings" />
+        </button>
+        <button className="icon-btn icon-btn-hide-mobile" aria-label="Documents">
+          <img src={DocsIcon} alt="Calendar" />
+        </button>
+        <button className="icon-btn icon-btn-hide-mobile" aria-label="Help">
+          <img src={QuestionIcon} alt="Help" />
+        </button>
+        <button className="icon-btn" aria-label="Notifications">
+          <img src={NotificationIcon} alt="Notifications" />
+        </button>
       </div>
 
     </div>

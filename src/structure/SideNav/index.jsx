@@ -23,11 +23,12 @@ import AnalyticsIcon from '../../assets/images/analytics 1.svg';
 import ReportsIcon from '../../assets/images/Reports.svg';
 import SettingsIcon from '../../assets/images/Settings.svg';
 
-function SideNav() {
+function SideNav({ isMobileMenuOpen, onCloseMobileMenu }) {
   const { pathname } = useLocation();
   const { width } = useWindowSize();
 
   const isKanbanBoard = pathname === '/kanban-board';
+  const isMobile = width <= 991;
 
   // 🆕 Kanban icon config
   const kanbanIcons = [
@@ -43,6 +44,38 @@ function SideNav() {
   const [activeKanbanIcon, setActiveKanbanIcon] = useState(2); // default Analytics
 
   const [expand, setExpand] = useState(false);
+
+  // Sync with Header's mobile menu state
+  useEffect(() => {
+    if (isMobileMenuOpen !== undefined) {
+      setExpand(isMobileMenuOpen);
+    }
+  }, [isMobileMenuOpen]);
+
+  // Close mobile menu on route change
+  useEffect(() => {
+    if (isMobile && expand && onCloseMobileMenu) {
+      setExpand(false);
+      onCloseMobileMenu();
+    }
+  }, [pathname]); // eslint-disable-line react-hooks/exhaustive-deps
+
+  // Close mobile menu when clicking outside or on route change
+  useEffect(() => {
+    if (isMobile && expand && onCloseMobileMenu) {
+      const handleClickOutside = (e) => {
+        const sidebar = document.querySelector('.sidebar');
+        const headerToggle = document.querySelector('.mobile-menu-toggle');
+        if (sidebar && !sidebar.contains(e.target) && !headerToggle?.contains(e.target)) {
+          setExpand(false);
+          onCloseMobileMenu();
+        }
+      };
+
+      document.addEventListener('mousedown', handleClickOutside);
+      return () => document.removeEventListener('mousedown', handleClickOutside);
+    }
+  }, [isMobile, expand, onCloseMobileMenu]);
 
   const menus = [
     {
@@ -218,7 +251,24 @@ function SideNav() {
             : e.isOpen,
       }))
     );
-    setExpand(!expand);
+    if (width < 991) {
+      setExpand(!expand);
+      if (onCloseMobileMenu && expand) {
+        onCloseMobileMenu();
+      }
+    }
+  };
+
+  const handleToggle = () => {
+    const newExpand = !expand;
+    setExpand(newExpand);
+    if (onCloseMobileMenu) {
+      if (newExpand) {
+        // Menu is opening, Header will handle state
+      } else {
+        onCloseMobileMenu();
+      }
+    }
   };
 
   // 🆕 Special layout for /kanban-board
@@ -255,18 +305,31 @@ function SideNav() {
 
   // 🔵 Default sidebar (all other routes)
   return (
-    <div className={expand ? 'sidebar show' : 'sidebar'}>
-      <div className="st-wrp">
-        <button
-          type="button"
-          onClick={() => setExpand(!expand)}
-          className="sidebar-toggle"
-        >
-          <span />
-          <span />
-          <span />
-        </button>
-      </div>
+    <>
+      {/* Mobile Overlay */}
+      {isMobile && expand && (
+        <div 
+          className="sidebar-overlay" 
+          onClick={() => {
+            setExpand(false);
+            if (onCloseMobileMenu) onCloseMobileMenu();
+          }}
+        />
+      )}
+      
+      <div className={`sidebar ${expand ? 'show' : ''} ${isMobile ? 'mobile' : ''}`}>
+        <div className="st-wrp">
+          <button
+            type="button"
+            onClick={handleToggle}
+            className="sidebar-toggle"
+            aria-label="Toggle sidebar"
+          >
+            <span />
+            <span />
+            <span />
+          </button>
+        </div>
       <div className="menuWrp">
         <ul className="menu">
           {menuState
@@ -290,6 +353,7 @@ function SideNav() {
       </div>
       <div className="toggleDark" />
     </div>
+    </>
   );
 }
 
