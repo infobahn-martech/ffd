@@ -1,4 +1,6 @@
 import closeIcon from '../assets/images/icon-close.svg';
+import { ROLE_OPTIONS } from '../constants/roles';
+import { PORT_OPTIONS } from '../constants/ports';
 
 function CommonFilter() {
   return (
@@ -11,10 +13,11 @@ function CommonFilter() {
             <div className="form-floating">
               <select className="form-select" id="floatingPort">
                 <option value="">Select Port</option>
-                <option value="dubai">Dubai Port</option>
-                <option value="sharjah">Sharjah Port</option>
-                <option value="ajman">Ajman Port</option>
-                <option value="fujairah">Fujairah Port</option>
+                {PORT_OPTIONS.map((port) => (
+                  <option key={port} value={port}>
+                    {port}
+                  </option>
+                ))}
               </select>
               <label htmlFor="floatingPort">Port</label>
             </div>
@@ -25,10 +28,11 @@ function CommonFilter() {
             <div className="form-floating">
               <select className="form-select" id="floatingRole">
                 <option value="">Select Role</option>
-                <option value="admin">Admin</option>
-                <option value="manager">Manager</option>
-                <option value="staff">Staff</option>
-                <option value="operator">Operator</option>
+                {ROLE_OPTIONS.map((role) => (
+                  <option key={role} value={role}>
+                    {role}
+                  </option>
+                ))}
               </select>
               <label htmlFor="floatingRole">Role</label>
             </div>
