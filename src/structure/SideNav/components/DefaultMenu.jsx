@@ -36,8 +36,8 @@ const DefaultMenu = ({ menu, subMenus, to, icon, isOpen, toggleCollapse }) => {
         ?.filter((e) => e.hasPermission === true)
         ?.map(({ menu: subMenu, to }) => (
           <div
+            key={to ?? subMenu}
             className={`submenu_items ${!isOpen ? 'collapse' : 'show'}`}
-            onClick={() => toggleCollapse(menu)}
           >
             <Link
               to={to}
