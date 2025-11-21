@@ -6,7 +6,7 @@
   justify-content: center;
   align-items: center;
   background: rgba(61, 59, 59, 0.05);
-  z-index: 200;
+  z-index: 1200;
   font-family: "Inter", sans-serif;
 }
 
