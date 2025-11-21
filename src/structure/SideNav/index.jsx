@@ -116,7 +116,7 @@ function SideNav({ isMobileMenuOpen, onCloseMobileMenu }) {
       icon: portIcon,
       hasPermission: true,
     },
-     {
+    {
       menu: 'Billing Accounts',
       isDefaultMenu: true,
       to: '/billing-entity',
@@ -153,15 +153,10 @@ function SideNav({ isMobileMenuOpen, onCloseMobileMenu }) {
           to: '/documents',
           hasPermission: true,
         },
-        {
-          menu: 'CheckList',
-          to: '/checkList',
-          hasPermission: true,
-        },
       ],
       icon: workerIcon,
     },
-      {
+    {
       menu: 'Operations Configuration',
       isDefaultMenu: true,
       hasPermission: true,
@@ -177,22 +172,22 @@ function SideNav({ isMobileMenuOpen, onCloseMobileMenu }) {
           to: '/pre-arrival-information',
           hasPermission: true,
         },
-           {
+        {
           menu: 'Checklist',
           to: '/checklist',
           hasPermission: true,
         },
-           {
+        {
           menu: 'Standard Tariff',
           to: '/standard-tariff',
           hasPermission: true,
         },
-           {
+        {
           menu: 'Tariff Agreements',
           to: '/tariff-agreements',
           hasPermission: true,
         },
-          {
+        {
           menu: 'Custom Fields',
           to: '/custom-fields',
           hasPermission: true,
@@ -278,9 +273,8 @@ function SideNav({ isMobileMenuOpen, onCloseMobileMenu }) {
         {kanbanIcons.map((item) => (
           <div
             key={item.id}
-            className={`kanban-sidebar-icon ${
-              activeKanbanIcon === item.id ? 'active' : ''
-            }`}
+            className={`kanban-sidebar-icon ${activeKanbanIcon === item.id ? 'active' : ''
+              }`}
             onClick={() => setActiveKanbanIcon(item.id)}
             data-tooltip-id="sidebar-tooltip"
             data-tooltip-content={item.label}
@@ -308,15 +302,15 @@ function SideNav({ isMobileMenuOpen, onCloseMobileMenu }) {
     <>
       {/* Mobile Overlay */}
       {isMobile && expand && (
-        <div 
-          className="sidebar-overlay" 
+        <div
+          className="sidebar-overlay"
           onClick={() => {
             setExpand(false);
             if (onCloseMobileMenu) onCloseMobileMenu();
           }}
         />
       )}
-      
+
       <div className={`sidebar ${expand ? 'show' : ''} ${isMobile ? 'mobile' : ''}`}>
         <div className="st-wrp">
           <button
@@ -330,29 +324,29 @@ function SideNav({ isMobileMenuOpen, onCloseMobileMenu }) {
             <span />
           </button>
         </div>
-      <div className="menuWrp">
-        <ul className="menu">
-          {menuState
-            .filter((e) => e.hasPermission === true)
-            .map(({ menu, subMenus, to, isDefaultMenu, icon, isOpen }) => {
-              if (isDefaultMenu)
-                return (
-                  <DefaultMenu
-                    menu={menu}
-                    subMenus={subMenus}
-                    to={to}
-                    key={menu}
-                    icon={icon}
-                    isOpen={isOpen}
-                    toggleCollapse={toggleCollapse}
-                  />
-                );
-              return null;
-            })}
-        </ul>
+        <div className="menuWrp">
+          <ul className="menu">
+            {menuState
+              .filter((e) => e.hasPermission === true)
+              .map(({ menu, subMenus, to, isDefaultMenu, icon, isOpen }) => {
+                if (isDefaultMenu)
+                  return (
+                    <DefaultMenu
+                      menu={menu}
+                      subMenus={subMenus}
+                      to={to}
+                      key={menu}
+                      icon={icon}
+                      isOpen={isOpen}
+                      toggleCollapse={toggleCollapse}
+                    />
+                  );
+                return null;
+              })}
+          </ul>
+        </div>
+        <div className="toggleDark" />
       </div>
-      <div className="toggleDark" />
-    </div>
     </>
   );
 }

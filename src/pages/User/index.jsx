@@ -134,61 +134,67 @@ const User = () => {
 
 
   // 👉 ONLY TWO COLUMNS (Name + Description)
-const cols = [
-   {
-    name: "Name",
-    selector: "firstName",
-    width: "250",
-    thclass: "tb-head",
-    contentClass: "table-content",
-    cell: RenderName,
-  },
-  {
-    name: "Port",
-    selector: "port",
-    width: "150",
-    thclass: "tb-head",
-    contentClass: "table-content",
-  },
-  {
-    name: "User Role",
-    selector: "role",
-    width: "150",
-    thclass: "tb-head",
-    contentClass: "table-content",
-  },
-  {
-    name: "Email",
-    selector: "email",
-    width: "250",
-    thclass: "tb-head",
-    contentClass: "table-content",
-  },
-  {
-    name: "Phone",
-    selector: "phone",
-    width: "180",
-    thclass: "tb-head",
-    contentClass: "table-content",
-  },
-  {
-    name: "Address",
-    selector: "address",
-    width: "300",
-    thclass: "tb-head",
-    contentClass: "table-content",
-  },
-  {
-    name: "Actions",
-    selector: "linksInfo",
-    width: "200",
-    thclass: "tb-head",
-    contentClass: "table-content",
-    cell: RenderAction,
-    onEditClick: (row) => setShowUserModal(row),
-    onDeleteClick: () => setShowDeleteModal(true),
-  },
-];
+  const cols = [
+    {
+      name: "Name",
+      selector: "firstName",
+      width: "250",
+      thclass: "tb-head",
+      contentClass: "table-content",
+      cell: RenderName,
+      sort: true,
+    },
+    {
+      name: "Port",
+      selector: "port",
+      width: "150",
+      thclass: "tb-head",
+      contentClass: "table-content",
+      sort: true,
+    },
+    {
+      name: "User Role",
+      selector: "role",
+      width: "150",
+      thclass: "tb-head",
+      contentClass: "table-content",
+      sort: true,
+    },
+    {
+      name: "Email",
+      selector: "email",
+      width: "250",
+      thclass: "tb-head",
+      contentClass: "table-content",
+      sort: true,
+    },
+    {
+      name: "Phone",
+      selector: "phone",
+      width: "180",
+      thclass: "tb-head",
+      contentClass: "table-content",
+      sort: true,
+    },
+    {
+      name: "Address",
+      selector: "address",
+      width: "300",
+      thclass: "tb-head",
+      contentClass: "table-content",
+      sort: true,
+    },
+    {
+      name: "Actions",
+      selector: "linksInfo",
+      width: "200",
+      thclass: "tb-head",
+      contentClass: "table-content",
+      cell: RenderAction,
+      onEditClick: (row) => setShowUserModal(row),
+      onDeleteClick: () => setShowDeleteModal(true),
+    },
+  ];
 
   return (
     <>
@@ -238,16 +244,16 @@ const cols = [
               closeModal={() => setShowUserModal(false)}
             />
           )}
-           {!!showDeleteModal && (
-                             <DeleteConfirmationModal
-                                    show={showDeleteModal}
-                                    onCancel={()=>setShowDeleteModal(false)}
-                                    onConfirm={()=>{}}
-                                    deleteText="Are you sure you want to delete this user?"
-                                    // isLoading={isBeingUpdated}
-                                  />
-                            )}
-          
+          {!!showDeleteModal && (
+            <DeleteConfirmationModal
+              show={showDeleteModal}
+              onCancel={() => setShowDeleteModal(false)}
+              onConfirm={() => { }}
+              deleteText="Are you sure you want to delete this user?"
+            // isLoading={isBeingUpdated}
+            />
+          )}
+
         </div>
       </div>
     </>

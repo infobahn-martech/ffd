@@ -17,16 +17,16 @@ export function UserModal({ showModal, closeModal }) {
   } = useForm({
     defaultValues: showModal?._id
       ? {
-          name: showModal?.firstName + " " + showModal?.lastName,
-          email: showModal?.email,
-          port: showModal?.port,
-          role: showModal?.role,
-          phone: showModal?.phone || "",
-          address: showModal?.address,
-        }
+        name: showModal?.firstName + " " + showModal?.lastName,
+        email: showModal?.email,
+        port: showModal?.port,
+        role: showModal?.role,
+        phone: showModal?.phone || "",
+        address: showModal?.address,
+      }
       : {
-          phone: "",
-        },
+        phone: "",
+      },
   });
 
   const onSubmit = (data) => {
@@ -118,9 +118,8 @@ export function UserModal({ showModal, closeModal }) {
                 <div className="form-floating desig-inp">
                   <input
                     type="email"
-                    className={`form-control ${
-                      errors.email ? "is-invalid" : ""
-                    }`}
+                    className={`form-control ${errors.email ? "is-invalid" : ""
+                      }`}
                     placeholder="Email"
                     {...register("email", {
                       required: "Email is required",
@@ -192,37 +191,37 @@ export function UserModal({ showModal, closeModal }) {
               {/* PHONE */}
               <div className="col-lg-6 col-sm-12">
                 <div className="phone-wrapper">
-                <label className="phone-label">
-                  Phone <span className="text-danger">*</span>
-                </label>
+                  <label className="phone-label">
+                    Phone <span className="text-danger">*</span>
+                  </label>
 
-                <Controller
-                  name="phone"
-                  control={control}
-                  rules={{
-                    required: "Phone is required",
-                    validate: (value) => {
-                      const digits = (value || "").replace(/\D/g, "");
-                      return digits.length >= 7 || "Enter a valid phone number";
-                    },
-                  }}
-                  render={({ field }) => (
-                    <PhoneInput
-                      {...field}
-                      country="sa"
-                      enableSearch
-                      inputClass="phone-input"
-                      buttonClass="phone-flag"
-                    />
+                  <Controller
+                    name="phone"
+                    control={control}
+                    rules={{
+                      required: "Phone is required",
+                      validate: (value) => {
+                        const digits = (value || "").replace(/\D/g, "");
+                        return digits.length >= 7 || "Enter a valid phone number";
+                      },
+                    }}
+                    render={({ field }) => (
+                      <PhoneInput
+                        {...field}
+                        country="sa"
+                        enableSearch
+                        inputClass="phone-input"
+                        buttonClass="phone-flag"
+                      />
+                    )}
+                  />
+
+                  {errors.phone && (
+                    <span className="error text-danger">
+                      {errors.phone.message}
+                    </span>
                   )}
-                />
-
-                {errors.phone && (
-                  <span className="error text-danger">
-                    {errors.phone.message}
-                  </span>
-                )}
-              </div>
+                </div>
               </div>
 
               {/* ADDRESS (optional) */}

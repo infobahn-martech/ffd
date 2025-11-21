@@ -12,9 +12,9 @@ export function RoleModal({ showModal, closeModal }) {
   } = useForm({
     defaultValues: showModal?._id
       ? {
-          roleName: showModal?.roleName,
-          description: showModal?.description
-        }
+        roleName: showModal?.name,
+        description: showModal?.description
+      }
       : {}
   });
 
@@ -31,49 +31,49 @@ export function RoleModal({ showModal, closeModal }) {
     </>
   );
 
-const renderBody = () => (
-  <div className="modal-body">
-    <div className="lead-form">
-      <form id="roleForm" onSubmit={handleSubmit(onSubmit)}>
+  const renderBody = () => (
+    <div className="modal-body">
+      <div className="lead-form">
+        <form id="roleForm" onSubmit={handleSubmit(onSubmit)}>
 
-        {/* ROLE NAME — FULL ROW */}
-        <div className="mb-lg-3 mb-sm-0">
-          <div className="form-floating desig-inp">
-            <input
-              className={`form-control ${errors.roleName ? "is-invalid" : ""}`}
-              placeholder="Role Name"
-              {...register("roleName", {
-                required: "Role name is required"
-              })}
-            />
-            <label>
-              Role <span className="text-danger">*</span>
-            </label>
-            {errors.roleName && (
-              <span className="error text-danger">
-                {errors.roleName.message}
-              </span>
-            )}
+          {/* ROLE NAME — FULL ROW */}
+          <div className="mb-lg-3 mb-sm-0">
+            <div className="form-floating desig-inp">
+              <input
+                className={`form-control ${errors.roleName ? "is-invalid" : ""}`}
+                placeholder="Role Name"
+                {...register("roleName", {
+                  required: "Role name is required"
+                })}
+              />
+              <label>
+                Role <span className="text-danger">*</span>
+              </label>
+              {errors.roleName && (
+                <span className="error text-danger">
+                  {errors.roleName.message}
+                </span>
+              )}
+            </div>
           </div>
-        </div>
 
-        {/* DESCRIPTION — FULL ROW TEXTAREA */}
-        <div className="mb-lg-3 mb-sm-0">
-          <div className="form-floating desig-inp">
-            <textarea
-              className="form-control"
-              placeholder="Description"
-              style={{ height: "120px" }}
-              {...register("description")}
-            ></textarea>
-            <label>Description</label>
+          {/* DESCRIPTION — FULL ROW TEXTAREA */}
+          <div className="mb-lg-3 mb-sm-0">
+            <div className="form-floating desig-inp">
+              <textarea
+                className="form-control"
+                placeholder="Description"
+                style={{ height: "120px" }}
+                {...register("description")}
+              ></textarea>
+              <label>Description</label>
+            </div>
           </div>
-        </div>
 
-      </form>
+        </form>
+      </div>
     </div>
-  </div>
-);
+  );
 
 
 
@@ -90,7 +90,7 @@ const renderBody = () => (
 
   return (
     <CustomModal
-     className="role-modal-sm"  
+      className="role-modal-sm"
       dialgName="modal-dialog modal-dialog-centered"
       show={!!showModal}
       closeModal={() => closeModal(null)}
