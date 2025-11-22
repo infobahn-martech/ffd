@@ -263,13 +263,22 @@ export function PermissionModal({ showModal, closeModal }) {
         <form>
           <div className="permInputs">
             <div className="form-floating desig-inp">
-              <input className="form-control" id="floatingName" />
-              <label htmlFor="floatingName">Designation name *</label>
+              <input
+                type="text"
+                className="form-control"
+                id="floatingName"
+                placeholder="Name"
+              />
+              <label htmlFor="floatingInput">Designation name *</label>
             </div>
-
             <div className="form-floating desc-input">
-              <input className="form-control" id="floatingDesc" />
-              <label htmlFor="floatingDesc">Description</label>
+              <input
+                type="text"
+                className="form-control"
+                id="floatingDesc"
+                placeholder="Description"
+              />
+              <label htmlFor="floatingPassword">Description</label>
             </div>
           </div>
 
