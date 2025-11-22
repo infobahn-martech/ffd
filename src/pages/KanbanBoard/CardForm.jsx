@@ -9,6 +9,8 @@ import PriorityIcon from "../../assets/images/Priority.png";
 function CardForm({ show, close, card }) {
   if (!show) return null;
 
+  const [activeOperationTab, setActiveOperationTab] = useState("preArrival");
+
   const [formValues, setFormValues] = useState({
     owner: card?.user || "None",
     appointmentReceivedDate: card?.appointmentReceivedDate || "",
@@ -22,19 +24,13 @@ function CardForm({ show, close, card }) {
     lastMovedTime: card?.lastMovedTime || "",
   });
 
-  const handleChange = (field) => (e) => {
-    setFormValues((prev) => ({
-      ...prev,
-      [field]: e.target.value,
-    }));
-  };
+  const handleChange = (field) => (e) =>
+    setFormValues({ ...formValues, [field]: e.target.value });
 
-  const handleUpdate = () => {
-    close();
-  };
+  const handleUpdate = () => close();
 
-  const ownerInitial = formValues.owner?.[0]?.toUpperCase() || "N";
   const accentColor = card?.color || "#2A00FF";
+  const ownerInitial = formValues.owner?.[0]?.toUpperCase() || "N";
 
   return (
     <div className="cardform-overlay" onClick={close}>
@@ -42,175 +38,248 @@ function CardForm({ show, close, card }) {
 
         {/* Top bar */}
         <div className="cardform-topbar" style={{ backgroundColor: accentColor }}>
-          <div className="cardform-topbar-left">
-            <div className="cardform-topbar-text">
-              <span className="cardform-id">ID : {card?.code || card?.id}</span>
-              <span className="cardform-title">{card?.title}</span>
-            </div>
+          <div>
+            <span className="cardform-id">ID : {card?.code || card?.id}</span>
+            <span className="cardform-title">{card?.title}</span>
           </div>
 
           <div className="cardform-topbar-right">
-            <button className="topbar-icon-btn" type="button">
-              <img src={ColorPickerIcon} alt="color" />
-            </button>
-            <button className="topbar-icon-btn" type="button">
-              <img src={PriorityIcon} alt="priority" />
-            </button>
-            <button className="cardform-close-btn" onClick={close} type="button">✕</button>
+            <button className="topbar-icon-btn"><img src={ColorPickerIcon} /></button>
+            <button className="topbar-icon-btn"><img src={PriorityIcon} /></button>
+            <button className="cardform-close-btn" onClick={close}>✕</button>
           </div>
         </div>
 
-        {/* Tabs */}
+        {/* ===== TOP TABS (RESTORED) ===== */}
         <div className="cardform-tabs">
-          <button className="tab" type="button">General</button>
-          <button className="tab active" type="button">Pre Arrival</button>
-          <button className="tab" type="button">Checklist</button>
-          <button className="tab" type="button">Arrival</button>
-          <button className="tab" type="button">Crew</button>
-          <button className="tab" type="button">Husbandry</button>
-          <button className="tab" type="button">Subtasks</button>
-          <button className="tab" type="button">Attachments</button>
-          <button className="tab" type="button">Comments</button>
-          <button className="tab" type="button">Departure</button>
-          <button className="tab" type="button">Sales Order</button>
+          <button className="tab">General</button>
+          <button className="tab active">Operation</button>
+          <button className="tab">Checklist</button>
+          <button className="tab">Crew</button>
+          <button className="tab">Husbandry</button>
+          <button className="tab">Subtasks</button>
+          <button className="tab">Attachments</button>
+          <button className="tab">Comments</button>
+          <button className="tab">Sales Order</button>
         </div>
 
-        {/* Body – Now only LEFT SIDE (full width) */}
-        <div className="cardform-body cardform-body-full">
 
-          <div className="cardform-left cardform-left-full">
+        {/* ===== NEW OPERATION SIDE TABS ===== */}
+        <div className="operation-wrapper">
+          <div className="operation-left">
+            <button
+              className={`op-tab ${activeOperationTab === "preArrival" ? "active" : ""}`}
+              onClick={() => setActiveOperationTab("preArrival")}
+            >
+              Pre Arrival
+            </button>
 
-            {/* Card Fields */}
-            <div className="cf-section">
-              <div className="cf-section-header">
-                <span className="cf-section-icon"><img src={GroupSettingsIcon} alt="" /></span>
-                <span className="cf-section-title">Card fields</span>
-              </div>
+            <button
+              className={`op-tab ${activeOperationTab === "arrival" ? "active" : ""}`}
+              onClick={() => setActiveOperationTab("arrival")}
+            >
+              Arrival
+            </button>
 
-              <div className="cf-section-body">
+            <button
+              className={`op-tab ${activeOperationTab === "departure" ? "active" : ""}`}
+              onClick={() => setActiveOperationTab("departure")}
+            >
+              Departure
+            </button>
+          </div>
 
-                {/* Owner */}
-                <div className="cf-field">
-                  <label>Owner</label>
-                  <div className="cf-owner-row">
-                    <div className="cf-owner-avatar">{ownerInitial}</div>
-                    <select value={formValues.owner} onChange={handleChange("owner")} className="cf-owner-select">
-                      <option value="None">None</option>
-                      <option value={card?.user}>{card?.user}</option>
-                    </select>
+          {/* RIGHT SIDE CONTENT */}
+          <div className="operation-right">
+
+            {/* ===== PRE ARRIVAL CONTENT ===== */}
+            {activeOperationTab === "preArrival" && (
+              <div className="cardform-left-full">
+
+                <div className="cf-section">
+                  <div className="cf-section-header">
+                    <span className="cf-section-icon">
+                      <img src={GroupSettingsIcon} />
+                    </span>
+                    <span className="cf-section-title">Card fields</span>
+                  </div>
+
+                  <div className="cf-section-body">
+
+                    {/* Owner */}
+                    <div className="cf-field">
+                      <label>Owner</label>
+                      <div className="cf-owner-row">
+                        <div className="cf-owner-avatar">{ownerInitial}</div>
+                        <select
+                          value={formValues.owner}
+                          onChange={handleChange("owner")}
+                          className="cf-owner-select"
+                        >
+                          <option value="None">None</option>
+                          <option value={card?.user}>{card?.user}</option>
+                        </select>
+                      </div>
+                    </div>
+
+                    {/* Dates */}
+                    <div className="cf-grid two">
+                      <div className="cf-field">
+                        <label>Appointment Received Date</label>
+                        <div className="cf-input">
+                          <input
+                            type="date"
+                            value={formValues.appointmentReceivedDate}
+                            onChange={handleChange("appointmentReceivedDate")}
+                          />
+                        </div>
+                      </div>
+
+                      <div className="cf-field">
+                        <label>Appointment Acceptance Date</label>
+                        <div className="cf-input">
+                          <input
+                            type="date"
+                            value={formValues.appointmentAcceptanceDate}
+                            onChange={handleChange("appointmentAcceptanceDate")}
+                          />
+                        </div>
+                      </div>
+                    </div>
+
+                    {/* Last Port / ETA */}
+                    <div className="cf-grid two">
+                      <div className="cf-field">
+                        <label>Last Port</label>
+                        <div className="cf-input">
+                          <input
+                            type="text"
+                            value={formValues.lastPort}
+                            onChange={handleChange("lastPort")}
+                          />
+                        </div>
+                      </div>
+
+                      <div className="cf-field">
+                        <label>ETA</label>
+                        <div className="cf-input eta-row">
+                          <input type="date" value={formValues.etaDate} onChange={handleChange("etaDate")} />
+                          <input type="time" value={formValues.etaTime} onChange={handleChange("etaTime")} />
+                        </div>
+                      </div>
+                    </div>
+
+                    {/* Customs */}
+                    <div className="cf-field">
+                      <label>Expected commencement of customs inspection</label>
+                      <div className="cf-input">
+                        <input
+                          type="text"
+                          placeholder="Enter..."
+                          value={formValues.customsStart}
+                          onChange={handleChange("customsStart")}
+                        />
+                      </div>
+                    </div>
+
+                    <div className="cf-field">
+                      <label>Expected completion of inward clearance</label>
+                      <div className="cf-input">
+                        <input
+                          type="text"
+                          placeholder="Enter..."
+                          value={formValues.clearanceCompletion}
+                          onChange={handleChange("clearanceCompletion")}
+                        />
+                      </div>
+                    </div>
+
                   </div>
                 </div>
 
-                {/* Appointment Dates */}
-                <div className="cf-grid two">
-                  <div className="cf-field">
-                    <label>Appointment Received Date</label>
-                    <div className="cf-input with-icon">
-                      <input type="date" value={formValues.appointmentReceivedDate} onChange={handleChange("appointmentReceivedDate")} />
+                {/* Attachments */}
+                <div className="cf-section">
+                  <div className="cf-section-header">
+                    <span className="cf-section-icon"><img src={CircleTickIcon} /></span>
+                    <span className="cf-section-title">Attachments</span>
+                  </div>
+                  <div className="cf-section-body">
+                    <div className="cf-empty-row">
+                      <p>No attachments added.</p>
+                      <button className="cf-link-btn">+ Add attachment</button>
                     </div>
                   </div>
-
-                  <div className="cf-field">
-                    <label>Appointment Acceptance Date</label>
-                    <div className="cf-input with-icon">
-                      <input type="date" value={formValues.appointmentAcceptanceDate} onChange={handleChange("appointmentAcceptanceDate")} />
-                    </div>
-                  </div>
                 </div>
 
-                {/* Last Port + ETA */}
-                <div className="cf-grid two">
-                  <div className="cf-field">
-                    <label>Last Port</label>
-                    <div className="cf-input">
-                      <input type="text" value={formValues.lastPort} onChange={handleChange("lastPort")} placeholder="Bahrain" />
-                    </div>
+                {/* links */}
+                <div className="cf-section">
+                  <div className="cf-section-header">
+                    <span className="cf-section-icon"><img src={CircleTickIcon} /></span>
+                    <span className="cf-section-title">Links</span>
                   </div>
-
-                  <div className="cf-field">
-                    <label>ETA</label>
-                    <div className="cf-input eta-row">
-                      <input type="date" value={formValues.etaDate} onChange={handleChange("etaDate")} />
-                      <input type="time" value={formValues.etaTime} onChange={handleChange("etaTime")} />
-                    </div>
-                  </div>
-                </div>
-
-                {/* Customs */}
-                <div className="cf-field">
-                  <label>Expected commencement of customs inspection</label>
-                  <div className="cf-input">
-                    <input type="text" value={formValues.customsStart} onChange={handleChange("customsStart")} placeholder="Enter..." />
-                  </div>
-                </div>
-
-                <div className="cf-field">
-                  <label>Expected completion of inward clearance</label>
-                  <div className="cf-input">
-                    <input type="text" value={formValues.clearanceCompletion} onChange={handleChange("clearanceCompletion")} placeholder="Enter..." />
-                  </div>
-                </div>
-
-                {/* Last Moved */}
-                <div className="cf-grid two">
-                  <div className="cf-field">
-                    <label>Last Moved</label>
-                    <div className="cf-input lastmoved-row">
-                      <input type="date" value={formValues.lastMovedDate} onChange={handleChange("lastMovedDate")} />
-                      <input type="time" value={formValues.lastMovedTime} onChange={handleChange("lastMovedTime")} />
+                  <div className="cf-section-body">
+                    <div className="cf-empty-row">
+                      <p>No links added.</p>
+                      <button className="cf-link-btn">+ Add Link</button>
                     </div>
                   </div>
                 </div>
 
               </div>
-            </div>
+            )}
 
-            {/* Attachments */}
-            <div className="cf-section">
-              <div className="cf-section-header">
-                <span className="cf-section-icon"><img src={CircleTickIcon} alt="" /></span>
-                <span className="cf-section-title">Attachments</span>
+            {/* ===== ARRIVAL DETAILS ===== */}
+            {activeOperationTab === "arrival" && (
+              <div className="operation-content-box">
+                <h2>Arrival Details</h2>
+                <p>Show arrival details here…</p>
               </div>
-              <div className="cf-section-body">
-                <div className="cf-empty-row">
-                  <p>No attachments added.</p>
-                  <button className="cf-link-btn" type="button">+ Add attachment</button>
-                </div>
-              </div>
-            </div>
+            )}
 
-            {/* Links */}
-            <div className="cf-section">
-              <div className="cf-section-header">
-                <span className="cf-section-icon"><img src={CircleTickIcon} alt="" /></span>
-                <span className="cf-section-title">Links Overview</span>
+            {/* ===== DEPARTURE DETAILS ===== */}
+            {activeOperationTab === "departure" && (
+              <div className="operation-content-box">
+                <h2>Departure Details</h2>
+                <p>Show departure details here…</p>
               </div>
-              <div className="cf-section-body">
-                <div className="cf-empty-row">
-                  <p>No links added.</p>
-                  <button className="cf-link-btn" type="button">+ Add link</button>
-                </div>
-              </div>
-            </div>
+            )}
 
           </div>
         </div>
 
         {/* Footer */}
         <div className="cardform-footer">
+          {/* ===== STEPS PROGRESS BAR (RESTORED) ===== */}
           <div className="cardform-steps-wrapper">
-            <div className="step-item completed"><div className="step-circle">1</div><span className="step-line"></span></div>
-            <div className="step-item active"><div className="step-circle">2</div><span className="step-line"></span></div>
-            <div className="step-item"><div className="step-circle">3</div><span className="step-line"></span></div>
-            <div className="step-item"><div className="step-circle">4</div><span className="step-line"></span></div>
-            <div className="step-item"><div className="step-circle">5</div></div>
+            <div className="step-item completed">
+              <div className="step-circle">1</div>
+              <span className="step-line"></span>
+            </div>
+
+            <div className="step-item active">
+              <div className="step-circle">2</div>
+              <span className="step-line"></span>
+            </div>
+
+            <div className="step-item">
+              <div className="step-circle">3</div>
+              <span className="step-line"></span>
+            </div>
+
+            <div className="step-item">
+              <div className="step-circle">4</div>
+              <span className="step-line"></span>
+            </div>
+
+            <div className="step-item">
+              <div className="step-circle">5</div>
+            </div>
           </div>
 
           <button
             className="cardform-update-btn"
             style={{ backgroundColor: accentColor }}
             onClick={handleUpdate}
-            type="button"
           >
             Update Card
           </button>
@@ -220,11 +289,5 @@ function CardForm({ show, close, card }) {
     </div>
   );
 }
-
-CardForm.propTypes = {
-  show: PropTypes.bool.isRequired,
-  close: PropTypes.func.isRequired,
-  card: PropTypes.object,
-};
 
 export default CardForm;
