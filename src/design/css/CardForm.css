@@ -110,27 +110,23 @@
 
 /* Body layout */
 .cardform-body {
-  display: flex;
-  gap: 20px;
   padding: 18px 22px;
-  overflow-y: auto;
 }
 
+.cardform-body-full {
+  display: block !important;
+}
+
+
 /* LEFT PANEL (scroll enabled) */
-.cardform-left {
-  width: 400px;
-  min-width: 340px;
-  padding-right: 6px;
+.cardform-left-full {
+  width: 100% !important;
+  max-width: 100% !important;
+  padding-right: 0;
   max-height: calc(90vh - 200px);
   overflow-y: auto;
 }
 
-/* RIGHT PANEL */
-.cardform-right {
-  flex: 1;
-  border-radius: 10px;
-  background: #e1e2e8;
-}
 
 /* ==========================================================
     SECTION STYLE (ACCORDION LOOK BUT ALWAYS OPEN)
@@ -308,60 +304,6 @@
   cursor: pointer;
 }
 
-/* RIGHT SIDE CONTENT STYLE */
-.cardform-right {
-  flex: 1;
-  border-radius: 10px;
-  background: #ffffff;
-  padding: 20px 24px;
-  font-size: 13px;
-  color: #2a2a2a;
-  line-height: 1.55;
-  overflow-y: auto;
-  max-height: calc(90vh - 200px);
-  border: 1px solid #e0e0e0;
-}
-
-/* Headings */
-.cf-right-title {
-  font-size: 18px;
-  font-weight: 700;
-  margin-bottom: 12px;
-}
-
-.cf-right-subtitle {
-  font-size: 15px;
-  font-weight: 600;
-  margin-top: 18px;
-  margin-bottom: 8px;
-}
-
-/* Unordered List */
-.cf-right-list {
-  margin-left: 18px;
-  margin-bottom: 15px;
-}
-
-.cf-right-list li {
-  margin-bottom: 6px;
-  list-style: disc;
-}
-
-/* Numbered List */
-.cf-right-list-numbered {
-  margin-left: 20px;
-  margin-bottom: 15px;
-}
-
-.cf-right-list-numbered li {
-  margin-bottom: 6px;
-}
-
-/* Paragraphs */
-.cardform-right p {
-  margin-bottom: 14px;
-}
-
 /* =======================================
    FOOTER STEPS PROGRESS BAR
    ======================================= */
@@ -380,7 +322,8 @@
   width: 30px;
   height: 30px;
   border-radius: 50%;
-  border: 2px solid #8bc48a;   /* light green */
+  border: 2px solid #8bc48a;
+  /* light green */
   display: flex;
   align-items: center;
   justify-content: center;
@@ -391,13 +334,15 @@
 }
 
 .step-item.completed .step-circle {
-  background: #4CAF50;       /* green */
+  background: #4CAF50;
+  /* green */
   color: white;
   border-color: #4CAF50;
 }
 
 .step-item.active .step-circle {
-  background: #2e7d32;       /* dark green */
+  background: #2e7d32;
+  /* dark green */
   color: white;
   border-color: #2e7d32;
 }

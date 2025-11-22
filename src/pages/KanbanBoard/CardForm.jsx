@@ -48,23 +48,16 @@ function CardForm({ show, close, card }) {
               <span className="cardform-title">{card?.title}</span>
             </div>
           </div>
-          <div className="cardform-topbar-right">
 
-            {/* Color Picker */}
-            <button className="topbar-icon-btn" type="button" aria-label="Color picker">
+          <div className="cardform-topbar-right">
+            <button className="topbar-icon-btn" type="button">
               <img src={ColorPickerIcon} alt="color" />
             </button>
-
-            {/* Priority */}
-            <button className="topbar-icon-btn" type="button" aria-label="Priority">
+            <button className="topbar-icon-btn" type="button">
               <img src={PriorityIcon} alt="priority" />
             </button>
-
-            {/* Close */}
-            <button className="cardform-close-btn" onClick={close} type="button" aria-label="Close">✕</button>
-
+            <button className="cardform-close-btn" onClick={close} type="button">✕</button>
           </div>
-
         </div>
 
         {/* Tabs */}
@@ -82,13 +75,12 @@ function CardForm({ show, close, card }) {
           <button className="tab" type="button">Sales Order</button>
         </div>
 
-        {/* Body */}
-        <div className="cardform-body">
+        {/* Body – Now only LEFT SIDE (full width) */}
+        <div className="cardform-body cardform-body-full">
 
-          {/* LEFT SIDE (Scroll Enabled) */}
-          <div className="cardform-left">
+          <div className="cardform-left cardform-left-full">
 
-            {/* ✔ Card Fields Section */}
+            {/* Card Fields */}
             <div className="cf-section">
               <div className="cf-section-header">
                 <span className="cf-section-icon"><img src={GroupSettingsIcon} alt="" /></span>
@@ -115,7 +107,6 @@ function CardForm({ show, close, card }) {
                     <label>Appointment Received Date</label>
                     <div className="cf-input with-icon">
                       <input type="date" value={formValues.appointmentReceivedDate} onChange={handleChange("appointmentReceivedDate")} />
-                      {/* <img src={CalendarIcon} alt="" /> */}
                     </div>
                   </div>
 
@@ -123,7 +114,6 @@ function CardForm({ show, close, card }) {
                     <label>Appointment Acceptance Date</label>
                     <div className="cf-input with-icon">
                       <input type="date" value={formValues.appointmentAcceptanceDate} onChange={handleChange("appointmentAcceptanceDate")} />
-                      {/* <img src={CalendarIcon} alt="" /> */}
                     </div>
                   </div>
                 </div>
@@ -142,7 +132,6 @@ function CardForm({ show, close, card }) {
                     <div className="cf-input eta-row">
                       <input type="date" value={formValues.etaDate} onChange={handleChange("etaDate")} />
                       <input type="time" value={formValues.etaTime} onChange={handleChange("etaTime")} />
-                      {/* <img src={CalendarIcon} alt="" className="eta-icon" /> */}
                     </div>
                   </div>
                 </div>
@@ -176,13 +165,12 @@ function CardForm({ show, close, card }) {
               </div>
             </div>
 
-            {/* ✔ Attachments */}
+            {/* Attachments */}
             <div className="cf-section">
               <div className="cf-section-header">
                 <span className="cf-section-icon"><img src={CircleTickIcon} alt="" /></span>
                 <span className="cf-section-title">Attachments</span>
               </div>
-
               <div className="cf-section-body">
                 <div className="cf-empty-row">
                   <p>No attachments added.</p>
@@ -191,13 +179,12 @@ function CardForm({ show, close, card }) {
               </div>
             </div>
 
-            {/* ✔ Links Overview */}
+            {/* Links */}
             <div className="cf-section">
               <div className="cf-section-header">
                 <span className="cf-section-icon"><img src={CircleTickIcon} alt="" /></span>
                 <span className="cf-section-title">Links Overview</span>
               </div>
-
               <div className="cf-section-body">
                 <div className="cf-empty-row">
                   <p>No links added.</p>
@@ -207,79 +194,18 @@ function CardForm({ show, close, card }) {
             </div>
 
           </div>
-
-          {/* RIGHT SIDE */}
-          <div className="cardform-right">
-
-            <h3 className="cf-right-title">Pre-Arrival Notes</h3>
-
-            <p>
-              This section contains additional operational details for the vessel's
-              pre-arrival process. Below is example placeholder content that can be replaced
-              with real work instructions, communication logs, or status notes.
-            </p>
-
-            <h4 className="cf-right-subtitle">General Instructions</h4>
-            <ul className="cf-right-list">
-              <li>Verify all appointment documentation before ETA confirmation.</li>
-              <li>Cross-check last port clearance reports.</li>
-              <li>Notify customs inspection team 24 hours prior to arrival.</li>
-              <li>Update internal system with any change in vessel schedule.</li>
-            </ul>
-
-            <h4 className="cf-right-subtitle">Required Documents</h4>
-            <ol className="cf-right-list-numbered">
-              <li>Vessel last port clearance certificate.</li>
-              <li>Ship's stores declaration.</li>
-              <li>Crew list & health declaration.</li>
-              <li>Inbound cargo manifest.</li>
-              <li>Updated ETA confirmation.</li>
-            </ol>
-
-            <h4 className="cf-right-subtitle">Additional Notes</h4>
-            <p>
-              Lorem ipsum dolor sit amet, consectetur adipiscing elit. Donec aliquet,
-              ipsum nec commodo dignissim, massa leo commodo libero, vitae suscipit erat
-              magna et lacus.
-            </p>
-
-            <p>
-              Sed cursus felis eu sem vulputate, id bibendum urna convallis. Vestibulum
-              finibus massa non erat bibendum, vel fringilla elit consectetur.
-            </p>
-          </div>
-
-
         </div>
 
         {/* Footer */}
         <div className="cardform-footer">
-
-          {/* STEPS PROGRESS BAR */}
           <div className="cardform-steps-wrapper">
-            <div className="step-item completed">
-              <div className="step-circle">1</div>
-              <span className="step-line"></span>
-            </div>
-
-            <div className="step-item active">
-              <div className="step-circle">2</div>
-              <span className="step-line"></span>
-            </div>
-
-            <div className="step-item">
-              <div className="step-circle">3</div>
-              <span className="step-line"></span>
-            </div>
-
-            <div className="step-item">
-              <div className="step-circle">4</div>
-              <span className="step-line"></span>
-            </div>
-            <div className="step-item">
-              <div className="step-circle">5</div>
-            </div>
+            <div className="step-item completed"><div className="step-circle">1</div><span className="step-line"></span></div>
+            <div className="step-item active"><div className="step-circle">2</div><span className="step-line"></span></div>
+            <div className="step-item"><div className="step-circle">3</div><span className="step-line"></span></div>
+            <div className="step-item"><div className="step-circle">4</div><span className="step-line"></span></div>
+            <div className="step-item"><div className="step-circle">5</div></div>
           </div>
+
           <button
             className="cardform-update-btn"
             style={{ backgroundColor: accentColor }}
@@ -298,26 +224,7 @@ function CardForm({ show, close, card }) {
 CardForm.propTypes = {
   show: PropTypes.bool.isRequired,
   close: PropTypes.func.isRequired,
-  card: PropTypes.shape({
-    id: PropTypes.string,
-    code: PropTypes.string,
-    title: PropTypes.string,
-    color: PropTypes.string,
-    user: PropTypes.string,
-    appointmentReceivedDate: PropTypes.string,
-    appointmentAcceptanceDate: PropTypes.string,
-    lastPort: PropTypes.string,
-    etaDate: PropTypes.string,
-    etaTime: PropTypes.string,
-    customsStart: PropTypes.string,
-    clearanceCompletion: PropTypes.string,
-    lastMovedDate: PropTypes.string,
-    lastMovedTime: PropTypes.string,
-  }),
-};
-
-CardForm.defaultProps = {
-  card: null,
+  card: PropTypes.object,
 };
 
 export default CardForm;
