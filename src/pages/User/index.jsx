@@ -19,6 +19,7 @@ const dummyUsers = [
     phone: "+971500000001",
     address: PORT_DETAILS[0].city,
     avatar: "https://ui-avatars.com/api/?name=Ajay+Ullas&background=00368c&color=fff",
+    status: "Active",
   },
   {
     _id: "2",
@@ -30,6 +31,7 @@ const dummyUsers = [
     phone: "+971500000002",
     address: PORT_DETAILS[1].city,
     avatar: "https://ui-avatars.com/api/?name=Nikhil+Varma&background=00368c&color=fff",
+    status: "Inactive",
   },
   {
     _id: "3",
@@ -41,6 +43,7 @@ const dummyUsers = [
     phone: "+971500000003",
     address: PORT_DETAILS[2].city,
     avatar: "https://ui-avatars.com/api/?name=Sangeeth+Babu&background=00368c&color=fff",
+    status: "Pending",
   },
   {
     _id: "4",
@@ -52,6 +55,7 @@ const dummyUsers = [
     phone: "+971500000004",
     address: PORT_DETAILS[3].city,
     avatar: "https://ui-avatars.com/api/?name=Vishnu+Menon&background=00368c&color=fff",
+    status: "Active",
   },
   {
     _id: "5",
@@ -63,6 +67,7 @@ const dummyUsers = [
     phone: "+971500000005",
     address: PORT_DETAILS[4].city,
     avatar: "https://ui-avatars.com/api/?name=Riya+Thomas&background=00368c&color=fff",
+    status: "Inactive",
   },
   {
     _id: "6",
@@ -74,6 +79,7 @@ const dummyUsers = [
     phone: "+971500000006",
     address: PORT_DETAILS[0].city,
     avatar: "https://ui-avatars.com/api/?name=Deepak+Kumar&background=00368c&color=fff",
+    status: "Pending",
   },
   {
     _id: "7",
@@ -85,6 +91,7 @@ const dummyUsers = [
     phone: "+971500000007",
     address: PORT_DETAILS[1].city,
     avatar: "https://ui-avatars.com/api/?name=Meera+Suresh&background=00368c&color=fff",
+    status: "Active",
   },
   {
     _id: "8",
@@ -96,6 +103,7 @@ const dummyUsers = [
     phone: "+971500000008",
     address: PORT_DETAILS[2].city,
     avatar: "https://ui-avatars.com/api/?name=Arun+Joseph&background=00368c&color=fff",
+    status: "Inactive",
   },
   {
     _id: "9",
@@ -107,6 +115,7 @@ const dummyUsers = [
     phone: "+971500000009",
     address: PORT_DETAILS[3].city,
     avatar: "https://ui-avatars.com/api/?name=Joel+Sunny&background=00368c&color=fff",
+    status: "Pending",
   },
   {
     _id: "10",
@@ -118,8 +127,10 @@ const dummyUsers = [
     phone: "+971500000010",
     address: PORT_DETAILS[4].city,
     avatar: "https://ui-avatars.com/api/?name=Sandra+Mathew&background=00368c&color=fff",
+    status: "Active",
   },
 ];
+
 
 
 
@@ -142,7 +153,7 @@ const User = () => {
     {
       name: "Name",
       selector: "firstName",
-      width: "250",
+      width: "200",
       thclass: "tb-head",
       contentClass: "table-content",
       cell: RenderName,
@@ -151,7 +162,7 @@ const User = () => {
     {
       name: "Port",
       selector: "port",
-      width: "150",
+      width: "200",
       thclass: "tb-head",
       contentClass: "table-content",
       sort: true,
@@ -159,7 +170,7 @@ const User = () => {
     {
       name: "User Role",
       selector: "role",
-      width: "150",
+      width: "200",
       thclass: "tb-head",
       contentClass: "table-content",
       sort: true,
@@ -167,7 +178,7 @@ const User = () => {
     {
       name: "Email",
       selector: "email",
-      width: "250",
+      width: "200",
       thclass: "tb-head",
       contentClass: "table-content",
       sort: true,
@@ -175,7 +186,7 @@ const User = () => {
     {
       name: "Phone",
       selector: "phone",
-      width: "180",
+      width: "200",
       thclass: "tb-head",
       contentClass: "table-content",
       sort: true,
@@ -183,10 +194,31 @@ const User = () => {
     {
       name: "Address",
       selector: "address",
-      width: "300",
+      width: "200",
       thclass: "tb-head",
       contentClass: "table-content",
       sort: true,
+    },
+    {
+      name: "Status",
+      selector: "status",
+      width: "150",
+      thclass: "tb-head",
+      contentClass: "table-content",
+      sort: true,
+      cell: ({ row }) => (
+        <span
+          className={
+            row.status === "Active"
+              ? "status-active"
+              : row.status === "Inactive"
+                ? "status-inactive"
+                : "status-pending"
+          }
+        >
+          {row.status}
+        </span>
+      ),
     },
     {
       name: "Actions",
