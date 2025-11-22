@@ -49,7 +49,7 @@ const Port = () => {
       contentClass: 'table-content',
       sort: true,
       thclass: 'tb-head',
-      width: '400',
+      width: '200',
     },
     {
       name: 'Phone No.',
@@ -67,6 +67,7 @@ const Port = () => {
       sort: true,
       contentClass: 'table-content',
       thclass: 'tb-head',
+      width: '200',
     },
     {
       name: 'Created At',
@@ -76,7 +77,7 @@ const Port = () => {
       thclass: 'tb-head',
       sort: true,
       cell: DateFormat,
-      width: '400',
+      width: '200',
     },
     {
       name: 'Modified At',
@@ -86,17 +87,6 @@ const Port = () => {
       thclass: 'tb-head',
       sort: true,
       cell: DateFormat,
-      width: '400',
-    },
-    {
-      name: 'Actions',
-      selector: 'linksInfo',
-      tableClasses: 'table-striped',
-      contentClass: 'table-content',
-      thclass: 'tb-head',
-      onEditClick: (row) => { setShowPortModal(row) },
-      onDeleteClick: () => { setShowDeleteModal(true) },
-      cell: RenderAction,
       width: '200',
     },
   ];
