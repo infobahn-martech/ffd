@@ -56,13 +56,11 @@ function CardForm({ show, close, card }) {
           <button className="tab active">Operation</button>
           <button className="tab">Checklist</button>
           <button className="tab">Husbandry</button>
-          <button className="tab">Subtasks</button>
           <button className="tab">Attachments</button>
-          <button className="tab">Comments</button>
           <button className="tab">Sales Order</button>
+          <button className="tab">Tasks</button>
           <button className="tab">Reports</button>
           <button className="tab">KPI</button>
-          <button className="tab">Tasks</button>
         </div>
 
 
