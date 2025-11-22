@@ -6,6 +6,7 @@ import { RenderAction, RenderName } from "./RenderCells";
 import DeleteConfirmationModal from "../../components/DeleteConfirmationModal";
 import { ROLE_OPTIONS } from "../../constants/roles";
 import { PORT_OPTIONS, PORT_DETAILS } from "../../constants/ports";
+import StatusConfirmationModal from "../../components/StatusConfirmationModal";
 
 const dummyUsers = [
   {
@@ -133,6 +134,7 @@ const User = () => {
 
   const [showUserModal, setShowUserModal] = useState(false);
   const [showDeleteModal, setShowDeleteModal] = useState(false);
+  const [showStatusModal, setShowStatusModal] = useState(false);
 
 
   // 👉 ONLY TWO COLUMNS (Name + Description)
@@ -194,6 +196,7 @@ const User = () => {
       contentClass: "table-content",
       cell: RenderAction,
       onEditClick: (row) => setShowUserModal(row),
+      onStatusClick: (row) => setShowStatusModal(true),
       onDeleteClick: () => setShowDeleteModal(true),
     },
   ];
@@ -252,6 +255,16 @@ const User = () => {
               onCancel={() => setShowDeleteModal(false)}
               onConfirm={() => { }}
               deleteText="Are you sure you want to delete this user?"
+            // isLoading={isBeingUpdated}
+            />
+          )}
+
+          {!!showStatusModal && (
+            <StatusConfirmationModal
+              show={showStatusModal}
+              onCancel={() => setShowStatusModal(false)}
+              onConfirm={() => { }}
+              statusText="Are you sure you want to deactivate this user?"
             // isLoading={isBeingUpdated}
             />
           )}
