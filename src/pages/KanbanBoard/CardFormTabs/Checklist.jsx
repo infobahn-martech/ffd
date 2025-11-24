@@ -1,5 +1,5 @@
 import PropTypes from "prop-types";
-import { useState, useMemo } from "react";
+import { useState, useMemo, useEffect, useRef } from "react";
 import { checkListData } from "../../../utils/utils";
 import "../../../design/scss/checklist.scss";
 
@@ -41,15 +41,21 @@ FormInput.propTypes = {
 
 const ChecklistItem = ({ id, label, checked, onChange }) => {
   return (
-    <div className="checklist-item">
+    <div className={`checklist-item ${checked ? "checked" : ""}`}>
       <label className="checklist-item-label">
-        <input
-          type="checkbox"
-          checked={checked || false}
-          onChange={(e) => onChange(id, e.target.checked)}
-          className="checklist-checkbox"
-        />
+        <div className="checklist-checkbox-wrapper">
+          <input
+            type="checkbox"
+            checked={checked || false}
+            onChange={(e) => onChange(id, e.target.checked)}
+            className="checklist-checkbox"
+          />
+          <span className="checklist-checkbox-custom">
+            {checked && <span className="checkmark">✓</span>}
+          </span>
+        </div>
         <span className="checklist-item-text">{label}</span>
+        {checked && <span className="checklist-item-status">Completed</span>}
       </label>
     </div>
   );
@@ -62,18 +68,72 @@ ChecklistItem.propTypes = {
   onChange: PropTypes.func.isRequired,
 };
 
-const ChecklistSection = ({ id, title, items, checkedItems, onItemChange, isOpen, onToggle }) => {
+const ChecklistSection = ({ id, title, items, checkedItems, onItemChange, isOpen, onToggle, onSelectAll }) => {
+  // Check if all items in this section are selected
+  const allSelected = items.length > 0 && items.every((item) => checkedItems[item.id] || false);
+  // Check if some (but not all) items are selected
+  const someSelected = items.some((item) => checkedItems[item.id] || false) && !allSelected;
+  const checkboxRef = useRef(null);
+
+  // Calculate progress
+  const checkedCount = items.filter((item) => checkedItems[item.id] || false).length;
+  const progressPercentage = items.length > 0 ? Math.round((checkedCount / items.length) * 100) : 0;
+
+  // Set indeterminate state when some items are selected
+  useEffect(() => {
+    if (checkboxRef.current) {
+      checkboxRef.current.indeterminate = someSelected;
+    }
+  }, [someSelected]);
+
+  const handleSelectAllClick = (e) => {
+    e.stopPropagation(); // Prevent accordion toggle when clicking select all
+    onSelectAll(id, !allSelected);
+  };
+
   return (
     <div className="checklist-section">
-      <button
-        type="button"
-        className="checklist-section-header"
-        onClick={onToggle}
-        aria-expanded={isOpen}
-      >
-        <h3 className="checklist-section-title">{title}</h3>
-        <span className="checklist-accordion-icon">{isOpen ? "▼" : "▶"}</span>
-      </button>
+      <div className="checklist-section-header-wrapper">
+        <button
+          type="button"
+          className="checklist-section-header"
+          onClick={onToggle}
+          aria-expanded={isOpen}
+        >
+          <div className="checklist-section-title-wrapper">
+            <h3 className="checklist-section-title">{title}</h3>
+            <div className="checklist-section-progress">
+              <span className="checklist-progress-text">
+                {checkedCount} / {items.length}
+              </span>
+              <div className="checklist-progress-bar">
+                <div
+                  className="checklist-progress-fill"
+                  style={{ width: `${progressPercentage}%` }}
+                ></div>
+              </div>
+            </div>
+          </div>
+          <span className="checklist-accordion-icon">{isOpen ? "▼" : "▶"}</span>
+        </button>
+        <button
+          type="button"
+          className="checklist-select-all-btn"
+          onClick={handleSelectAllClick}
+          title={allSelected ? "Deselect All" : "Select All"}
+        >
+          <input
+            type="checkbox"
+            ref={checkboxRef}
+            checked={allSelected}
+            onChange={() => { }} // Controlled by button click
+            className="checklist-select-all-checkbox"
+          />
+          <span className="checklist-select-all-label">
+            {allSelected ? "Deselect All" : "Select All"}
+          </span>
+        </button>
+      </div>
       {isOpen && (
         <div className="checklist-items">
           {items.map((item) => (
@@ -104,6 +164,7 @@ ChecklistSection.propTypes = {
   onItemChange: PropTypes.func.isRequired,
   isOpen: PropTypes.bool.isRequired,
   onToggle: PropTypes.func.isRequired,
+  onSelectAll: PropTypes.func.isRequired,
 };
 
 function Checklist({ card, formValues, handleChange }) {
@@ -142,6 +203,19 @@ function Checklist({ card, formValues, handleChange }) {
       ...prev,
       [sectionId]: !prev[sectionId],
     }));
+  };
+
+  const handleSelectAll = (sectionId, selectAll) => {
+    const section = checkListData.find((s) => s.id === sectionId);
+    if (!section) return;
+
+    setCheckedItems((prev) => {
+      const updated = { ...prev };
+      section.items.forEach((item) => {
+        updated[item.id] = selectAll;
+      });
+      return updated;
+    });
   };
 
   return (
@@ -239,6 +313,7 @@ function Checklist({ card, formValues, handleChange }) {
               onItemChange={handleChecklistChange}
               isOpen={openSections[section.id] || false}
               onToggle={() => handleSectionToggle(section.id)}
+              onSelectAll={handleSelectAll}
             />
           ))}
         </div>
