@@ -97,7 +97,7 @@ const StepsProgress = ({ totalSteps = TOTAL_STEPS, activeStep = 2, completedStep
         // Treat active step as completed for styling
         const isStepCompletedOrActive = isCompleted || isActive;
         const stepClass = isStepCompletedOrActive ? "completed" : "";
-        
+
         // Check if next step is also completed or active (for line styling)
         const nextStepNumber = stepNumber + 1;
         const isNextStepCompleted = nextStepNumber <= completedSteps;
@@ -126,11 +126,11 @@ StepsProgress.propTypes = {
 
 const CardFormFooter = ({ accentColor, onUpdate, activeStep = 2, completedSteps = 1, activeTab }) => {
   const showProgressBar = activeTab !== "General";
-  
+
   return (
     <div className="cardform-footer">
       {showProgressBar && (
-        <StepsProgress 
+        <StepsProgress
           totalSteps={TOTAL_STEPS}
           activeStep={activeStep}
           completedSteps={completedSteps}
@@ -245,8 +245,8 @@ function CardForm({ show, close, card }) {
           onTabChange={handleTopTabChange}
         />
         {renderTabContent(activeTopTab, card, formValues, handleChange, ownerInitial)}
-        <CardFormFooter 
-          accentColor={accentColor} 
+        <CardFormFooter
+          accentColor={accentColor}
           onUpdate={handleUpdate}
           activeStep={2}
           completedSteps={1}

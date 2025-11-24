@@ -66,3 +66,37 @@ export function downloadSampleXLSX(headings, fileName) {
   document.body.removeChild(link);
   URL.revokeObjectURL(url);
 }
+
+// Checklist Data Structure
+export const checkListData = [
+  {
+    id: "clearance_documents",
+    title: "A) DOCUMENTS REQUIRED FOR CLEARANCE",
+    items: [
+      { id: "registry_certificate", label: "Registry Certificate REQUIRE COPY ONLY" },
+      { id: "tonnage_certificate", label: "Tonnage Certificate REQUIRE COPY ONLY" },
+      { id: "safety_equipment_certificate", label: "Safety Equipment Certificate REQUIRE COPY ONLY" },
+      { id: "radio_safety_certificate", label: "Radio Safety Certificate REQUIRE COPY ONLY" },
+      { id: "load_line_certificate", label: "Load Line Certificate REQUIRE COPY ONLY" },
+      { id: "deratting_certificate", label: "Deratting Certificate REQUIRE COPY ONLY" },
+      { id: "crew_list", label: "Crew List REQUIRE COPY ONLY" },
+      { id: "passenger_list", label: "Passenger List REQUIRE COPY ONLY" },
+      { id: "cargo_manifest", label: "Cargo Manifest REQUIRE COPY ONLY" },
+      { id: "stores_list", label: "Stores List REQUIRE COPY ONLY" },
+    ],
+  },
+  {
+    id: "after_loading",
+    title: "B) After loading complete",
+    items: [
+      { id: "letter_of_authorization", label: "Letter Of Authorization (To collect the BL) REQUIRE COPY ONLY" },
+      { id: "bill_of_lading", label: "Bill Of Lading REQUIRE COPY ONLY" },
+      { id: "commercial_invoice", label: "Commercial Invoice REQUIRE COPY ONLY" },
+      { id: "packing_list", label: "Packing List REQUIRE COPY ONLY" },
+      { id: "certificate_of_origin", label: "Certificate Of Origin REQUIRE COPY ONLY" },
+      { id: "insurance_certificate", label: "Insurance Certificate REQUIRE COPY ONLY" },
+      { id: "export_license", label: "Export License REQUIRE COPY ONLY" },
+      { id: "phytosanitary_certificate", label: "Phytosanitary Certificate REQUIRE COPY ONLY" },
+    ],
+  },
+];

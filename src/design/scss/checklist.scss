@@ -1,0 +1,150 @@
+@import "partials/partials";
+
+/* ==========================================================
+   CHECKLIST TAB STYLES
+   ========================================================== */
+
+.checklist-body {
+  padding: 18px 22px;
+}
+
+.checklist-form {
+  padding-top: 4px;
+}
+
+/* ==========================================================
+   CHECKLIST SECTIONS
+   ========================================================== */
+
+.checklist-section {
+  margin-bottom: 32px;
+  padding-bottom: 24px;
+  border-bottom: 1px solid #f0f0f0;
+}
+
+.checklist-section:last-child {
+  border-bottom: none;
+  margin-bottom: 0;
+  padding-bottom: 0;
+}
+
+.checklist-section-header {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  background: transparent;
+  border: none;
+  padding: 0;
+  margin: 0 0 20px 0;
+  cursor: pointer;
+  text-align: left;
+  transition: all 0.2s ease;
+}
+
+.checklist-section-header:hover {
+  opacity: 0.8;
+}
+
+.checklist-section-title {
+  font-size: 14px;
+  font-weight: 700;
+  color: #1a1a1a;
+  margin: 0;
+  padding-bottom: 12px;
+  border-bottom: 2px solid #e0e0e0;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  flex: 1;
+}
+
+.checklist-accordion-icon {
+  font-size: 12px;
+  color: #666;
+  margin-left: 12px;
+  padding-bottom: 12px;
+  transition: transform 0.2s ease;
+  flex-shrink: 0;
+}
+
+.checklist-section-header[aria-expanded="true"] .checklist-accordion-icon {
+  transform: rotate(0deg);
+}
+
+.checklist-section-header[aria-expanded="false"] .checklist-accordion-icon {
+  transform: rotate(-90deg);
+}
+
+/* ==========================================================
+   CHECKLIST ITEMS
+   ========================================================== */
+
+.checklist-items {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.checklist-item {
+  padding: 0;
+  margin: 0;
+}
+
+.checklist-item-label {
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+  cursor: pointer;
+  padding: 12px 16px;
+  border-radius: 8px;
+  background: #f8f9fa;
+  border: 1px solid #e9ecef;
+  transition: all 0.2s ease;
+  user-select: none;
+}
+
+.checklist-item-label:hover {
+  background: #f0f4ff;
+  border-color: #d0d7ff;
+}
+
+.checklist-checkbox {
+  width: 20px;
+  height: 20px;
+  margin-top: 2px;
+  cursor: pointer;
+  flex-shrink: 0;
+  accent-color: #2A00FF;
+  border-radius: 4px;
+}
+
+.checklist-item-text {
+  font-size: 13px;
+  font-weight: 500;
+  color: #1a1a1a;
+  line-height: 1.5;
+  flex: 1;
+}
+
+.checklist-item-label:has(.checklist-checkbox:checked) {
+  background: #e8f5e9;
+  border-color: #4caf50;
+}
+
+.checklist-item-label:has(.checklist-checkbox:checked) .checklist-item-text {
+  color: #2e7d32;
+  font-weight: 600;
+}
+
+/* Grid adjustments for checklist form */
+.checklist-form .cf-grid.two {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 16px;
+}
+
+@media (max-width: 768px) {
+  .checklist-form .cf-grid.two {
+    grid-template-columns: 1fr;
+  }
+}
