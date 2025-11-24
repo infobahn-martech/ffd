@@ -4,11 +4,15 @@ import "../../../design/scss/general.scss";
 
 // Job statuses in order
 const JOB_STATUSES = [
-  { id: 1, title: "Pre Arrival", key: "preArrival" },
-  { id: 2, title: "Arrival", key: "arrival" },
-  { id: 3, title: "Departure", key: "departure" },
-  { id: 4, title: "Customs", key: "customs" },
-  { id: 5, title: "Clearance", key: "clearance" },
+  { id: 1, title: "Appointment Acceptance", key: "appointmentAcceptance" },
+  { id: 2, title: "Pre Arrival", key: "preArrival" },
+  { id: 3, title: "Arrival", key: "arrival" },
+  { id: 4, title: "Husbandry ", key: "husbandry " },
+  { id: 5, title: "Customs", key: "customs" },
+  { id: 6, title: "Departure", key: "departure" },
+  { id: 7, title: "Sales Order", key: "salesOrder" },
+  { id: 8, title: "Reports", key: "reports" },
+  { id: 9, title: "KPI", key: "kpi" },
 ];
 
 function LineProgress({ jobStatuses, currentStatus, accentColor }) {

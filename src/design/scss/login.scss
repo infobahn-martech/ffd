@@ -1,4 +1,5 @@
 @import url("https://fonts.googleapis.com/css2?family=Inter:ital,opsz,wght@0,14..32,100..900;1,14..32,100..900&family=Raleway:ital,wght@0,100..900;1,100..900&display=swap");
+
 /*** all Mobile Screen (iphone 6,7,8) ***/
 /*** all Mobile Screen (iphone 6,7,8) ***/
 /*** mobile Landscape Size ***/
@@ -17,11 +18,13 @@
   justify-content: space-between;
   padding: 40px 55px 40px 100px;
 }
+
 @media (max-width: 1679px) {
   .login-wrap {
     padding: 20px 30px 20px 50px;
   }
 }
+
 @media (max-width: 767px) {
   .login-wrap {
     height: auto;
@@ -29,6 +32,7 @@
     flex-direction: column;
   }
 }
+
 .login-wrap .left-wrap {
   display: flex;
   align-items: start;
@@ -37,21 +41,25 @@
   position: relative;
   height: 100%;
 }
+
 .login-wrap .left-wrap .logo-wrap {
   max-width: 210px;
   position: absolute;
   top: 0;
 }
+
 @media (max-width: 1679px) {
   .login-wrap .left-wrap .logo-wrap {
     max-width: 190px;
   }
 }
+
 @media (max-width: 1199px) {
   .login-wrap .left-wrap .logo-wrap {
     max-width: 160px;
   }
 }
+
 @media (max-width: 767px) {
   .login-wrap .left-wrap .logo-wrap {
     position: inherit;
@@ -59,28 +67,34 @@
     margin: 0 auto 30px auto;
   }
 }
+
 .login-wrap .left-wrap .logo-wrap img {
   max-width: 100%;
 }
+
 .login-wrap .left-wrap .content-wrap {
   max-width: 410px;
 }
+
 @media (max-width: 1199px) {
   .login-wrap .left-wrap .content-wrap {
     max-width: 340px;
   }
 }
+
 @media (max-width: 991px) {
   .login-wrap .left-wrap .content-wrap {
     max-width: 270px;
   }
 }
+
 @media (max-width: 767px) {
   .login-wrap .left-wrap .content-wrap {
     text-align: center;
     padding-bottom: 20px;
   }
 }
+
 .login-wrap .left-wrap .content-wrap .title {
   font-family: "Raleway", sans-serif;
   font-size: 43px;
@@ -90,33 +104,39 @@
   margin: 0;
   padding: 0 0 20px 0;
 }
+
 @media (max-width: 1679px) {
   .login-wrap .left-wrap .content-wrap .title {
     font-size: 38px;
     padding-bottom: 15px;
   }
 }
+
 @media (max-width: 1199px) {
   .login-wrap .left-wrap .content-wrap .title {
     font-size: 32px;
   }
 }
+
 @media (max-width: 991px) {
   .login-wrap .left-wrap .content-wrap .title {
     font-size: 28px;
     padding-bottom: 10px;
   }
 }
+
 @media (max-width: 767px) {
   .login-wrap .left-wrap .content-wrap .title {
     font-size: 24px;
     padding-bottom: 5px;
   }
 }
+
 .login-wrap .left-wrap .content-wrap .title span {
   font-weight: 400;
   display: block;
 }
+
 .login-wrap .left-wrap .content-wrap .des {
   font-size: 18px;
   color: #ffffff;
@@ -126,22 +146,26 @@
   margin: 0;
   padding: 0 60px 0 0;
 }
+
 @media (max-width: 1679px) {
   .login-wrap .left-wrap .content-wrap .des {
     font-size: 16px;
   }
 }
+
 @media (max-width: 1199px) {
   .login-wrap .left-wrap .content-wrap .des {
     font-size: 14px;
     padding: 0;
   }
 }
+
 @media (max-width: 991px) {
   .login-wrap .left-wrap .content-wrap .des {
     font-size: 12px;
   }
 }
+
 .login-wrap .form-wrap {
   width: 740px;
   border-radius: 30px;
@@ -150,23 +174,27 @@
   justify-content: center;
   padding: 60px 20px;
 }
+
 @media (max-width: 1679px) {
   .login-wrap .form-wrap {
     width: 550px;
     padding: 30px 20px;
   }
 }
+
 @media (max-width: 1199px) {
   .login-wrap .form-wrap {
     padding: 25px 40px;
     width: 440px;
   }
 }
+
 @media (max-width: 991px) {
   .login-wrap .form-wrap {
     width: 380px;
   }
 }
+
 @media (max-width: 767px) {
   .login-wrap .form-wrap {
     width: 100%;
@@ -175,65 +203,78 @@
     border-radius: 20px;
   }
 }
+
 .login-wrap .form-wrap .content-wrap {
   width: 470px;
   display: flex;
   align-items: center;
   flex-direction: column;
 }
+
 @media (max-width: 1679px) {
   .login-wrap .form-wrap .content-wrap {
     width: 410px;
   }
 }
+
 @media (max-width: 1199px) {
   .login-wrap .form-wrap .content-wrap {
     width: 100%;
   }
 }
+
 .login-wrap .form-wrap .content-wrap .logo-wrap {
   max-width: 200px;
   padding-bottom: 80px;
 }
+
 @media (max-width: 1679px) {
   .login-wrap .form-wrap .content-wrap .logo-wrap {
     max-width: 180px;
     padding-bottom: 40px;
   }
 }
+
 @media (max-width: 1199px) {
   .login-wrap .form-wrap .content-wrap .logo-wrap {
     max-width: 150px;
   }
 }
+
 @media (max-width: 991px) {
   .login-wrap .form-wrap .content-wrap .logo-wrap {
     max-width: 130px;
     padding-bottom: 20px;
   }
 }
+
 @media (max-width: 767px) {
   .login-wrap .form-wrap .content-wrap .logo-wrap {
     max-width: 110px;
   }
 }
+
 .login-wrap .form-wrap .content-wrap .logo-wrap img {
   max-width: 100%;
 }
+
 .login-wrap .form-wrap .content-wrap .head-wrap {
   padding-bottom: 40px;
   text-align: center;
 }
+
 @media (max-width: 1679px) {
   .login-wrap .form-wrap .content-wrap .head-wrap {
     padding-bottom: 30px;
   }
 }
+
 @media (max-width: 991px) {
   .login-wrap .form-wrap .content-wrap .head-wrap {
     padding-bottom: 20px;
   }
 }
+
 .login-wrap .form-wrap .content-wrap .head-wrap .title {
   font-family: "Raleway", sans-serif;
   font-size: 35px;
@@ -243,31 +284,37 @@
   margin: 0;
   padding: 0 0 15px 0;
 }
+
 @media (max-width: 1679px) {
   .login-wrap .form-wrap .content-wrap .head-wrap .title {
     font-size: 30px;
     padding: 0 0 10px 0;
   }
 }
+
 @media (max-width: 1199px) {
   .login-wrap .form-wrap .content-wrap .head-wrap .title {
     font-size: 28px;
   }
 }
+
 @media (max-width: 991px) {
   .login-wrap .form-wrap .content-wrap .head-wrap .title {
     font-size: 26px;
     padding: 0 0 5px 0;
   }
 }
+
 @media (max-width: 767px) {
   .login-wrap .form-wrap .content-wrap .head-wrap .title {
     font-size: 22px;
   }
 }
+
 .login-wrap .form-wrap .content-wrap .head-wrap .title span {
   font-weight: 400;
 }
+
 .login-wrap .form-wrap .content-wrap .head-wrap .des {
   font-size: 18px;
   color: #0c234c;
@@ -278,27 +325,33 @@
   padding: 0 0 0 0;
   text-align: center;
 }
+
 @media (max-width: 1679px) {
   .login-wrap .form-wrap .content-wrap .head-wrap .des {
     font-size: 16px;
   }
 }
+
 @media (max-width: 1199px) {
   .login-wrap .form-wrap .content-wrap .head-wrap .des {
     font-size: 14px;
   }
 }
+
 @media (max-width: 991px) {
   .login-wrap .form-wrap .content-wrap .head-wrap .des {
     font-size: 12px;
   }
 }
+
 .login-wrap .form-wrap .content-wrap .form-content-wrap {
   width: 100%;
 }
+
 .login-wrap .form-wrap .content-wrap .form-content-wrap .input-outer-wrap {
   padding: 0 0 30px 0;
 }
+
 .login-wrap .form-wrap .content-wrap .form-content-wrap .input-outer-wrap .label {
   font-size: 18px;
   color: #0c234c;
@@ -306,24 +359,29 @@
   font-family: "Raleway", sans-serif;
   margin: 0 0 5px 0;
 }
+
 @media (max-width: 1679px) {
   .login-wrap .form-wrap .content-wrap .form-content-wrap .input-outer-wrap .label {
     font-size: 16px;
   }
 }
+
 @media (max-width: 1199px) {
   .login-wrap .form-wrap .content-wrap .form-content-wrap .input-outer-wrap .label {
     font-size: 14px;
   }
 }
+
 @media (max-width: 767px) {
   .login-wrap .form-wrap .content-wrap .form-content-wrap .input-outer-wrap .label {
     font-size: 13px;
   }
 }
+
 .login-wrap .form-wrap .content-wrap .form-content-wrap .input-outer-wrap .input-wrap {
   position: relative;
 }
+
 .login-wrap .form-wrap .content-wrap .form-content-wrap .input-outer-wrap .input-wrap .txt {
   height: 60px;
   border: 1px solid #a8b8d4;
@@ -336,6 +394,7 @@
   outline: 0;
   padding: 10px 30px;
 }
+
 @media (max-width: 1679px) {
   .login-wrap .form-wrap .content-wrap .form-content-wrap .input-outer-wrap .input-wrap .txt {
     height: 50px;
@@ -343,45 +402,54 @@
     padding: 10px 20px;
   }
 }
+
 @media (max-width: 991px) {
   .login-wrap .form-wrap .content-wrap .form-content-wrap .input-outer-wrap .input-wrap .txt {
     height: 40px;
   }
 }
+
 @media (max-width: 767px) {
   .login-wrap .form-wrap .content-wrap .form-content-wrap .input-outer-wrap .input-wrap .txt {
     height: 38x;
     font-family: 12px;
   }
 }
+
 .login-wrap .form-wrap .content-wrap .form-content-wrap .input-outer-wrap .input-wrap .txt::-moz-placeholder {
   opacity: 1;
   color: #a8b8d4;
 }
+
 .login-wrap .form-wrap .content-wrap .form-content-wrap .input-outer-wrap .input-wrap .txt::placeholder {
   opacity: 1;
   color: #a8b8d4;
 }
+
 .login-wrap .form-wrap .content-wrap .form-content-wrap .input-outer-wrap .input-wrap .error {
   position: absolute;
   bottom: -18px;
   font-size: 10px;
   color: #ff0000;
 }
+
 .login-wrap .form-wrap .content-wrap .btn-wrap {
   width: 100%;
   padding-bottom: 50px;
 }
+
 @media (max-width: 1679px) {
   .login-wrap .form-wrap .content-wrap .btn-wrap {
     padding-bottom: 30px;
   }
 }
+
 @media (max-width: 991px) {
   .login-wrap .form-wrap .content-wrap .btn-wrap {
     padding-bottom: 20px;
   }
 }
+
 .login-wrap .form-wrap .content-wrap .btn-wrap .btn-red {
   background: #bc2036;
   font-size: 20px;
@@ -396,36 +464,43 @@
   box-shadow: none;
   border: 0;
 }
+
 @media (max-width: 1679px) {
   .login-wrap .form-wrap .content-wrap .btn-wrap .btn-red {
     height: 50px;
     font-size: 16px;
   }
 }
+
 @media (max-width: 991px) {
   .login-wrap .form-wrap .content-wrap .btn-wrap .btn-red {
     height: 50px;
   }
 }
+
 @media (max-width: 767px) {
   .login-wrap .form-wrap .content-wrap .btn-wrap .btn-red {
     font-size: 14px;
     height: 40px;
   }
 }
+
 .login-wrap .form-wrap .content-wrap .forgot-wrap {
   padding-bottom: 70px;
 }
+
 @media (max-width: 1679px) {
   .login-wrap .form-wrap .content-wrap .forgot-wrap {
     padding-bottom: 30px;
   }
 }
+
 @media (max-width: 991px) {
   .login-wrap .form-wrap .content-wrap .forgot-wrap {
     padding-bottom: 20px;
   }
 }
+
 .login-wrap .form-wrap .content-wrap .forgot-wrap .link {
   font-size: 18px;
   color: #0c234c;
@@ -433,21 +508,25 @@
   font-family: "Raleway", sans-serif;
   font-weight: 400;
 }
+
 @media (max-width: 1679px) {
   .login-wrap .form-wrap .content-wrap .forgot-wrap .link {
     font-size: 16px;
   }
 }
+
 @media (max-width: 1199px) {
   .login-wrap .form-wrap .content-wrap .forgot-wrap .link {
     font-size: 14px;
   }
 }
+
 @media (max-width: 767px) {
   .login-wrap .form-wrap .content-wrap .forgot-wrap .link {
     font-size: 12px;
   }
 }
+
 .login-wrap .form-wrap .content-wrap .copy {
   font-size: 18px;
   color: #0c234c;
@@ -458,16 +537,19 @@
   padding: 0 0 0 0;
   text-align: center;
 }
+
 @media (max-width: 1679px) {
   .login-wrap .form-wrap .content-wrap .copy {
     font-size: 16px;
   }
 }
+
 @media (max-width: 1199px) {
   .login-wrap .form-wrap .content-wrap .copy {
     font-size: 14px;
   }
 }
+
 @media (max-width: 767px) {
   .login-wrap .form-wrap .content-wrap .copy {
     font-size: 12px;
