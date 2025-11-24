@@ -9,6 +9,11 @@
   font-family: "Inter", sans-serif;
   position: relative;
   overflow: hidden;
+  cursor: default;
+  -webkit-user-select: none;
+  -moz-user-select: none;
+  -ms-user-select: none;
+  user-select: none;
 }
 
 /* Top & Left colored borders */
@@ -91,6 +96,11 @@
   font-weight: 700;
   color: #111;
   margin: 6px 0;
+  cursor: pointer;
+  -webkit-user-select: none;
+  -moz-user-select: none;
+  -ms-user-select: none;
+  user-select: none;
 }
 
 /* Avatar: stick to the right edge */

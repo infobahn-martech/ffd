@@ -307,6 +307,11 @@ body {
         border-bottom: none;
         font-size: 12px;
         line-height: 18px;
+        cursor: default;
+        -webkit-user-select: none;
+        -moz-user-select: none;
+        -ms-user-select: none;
+        user-select: none;
 
         @media($sm-1679) {
             // font-size: 14px;

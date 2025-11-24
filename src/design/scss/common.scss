@@ -4,6 +4,66 @@ body {
     font-family: 'Poppins', sans-serif;
 }
 
+/* ==========================================================
+   FIX TEXT CURSOR APPEARING EVERYWHERE
+   ========================================================== */
+
+/* Prevent text selection and text cursor on all elements by default */
+* {
+    -webkit-user-select: none;
+    -moz-user-select: none;
+    -ms-user-select: none;
+    user-select: none;
+    cursor: default;
+}
+
+/* Allow text selection and text cursor only for input fields */
+input[type="text"],
+input[type="email"],
+input[type="password"],
+input[type="number"],
+input[type="search"],
+input[type="tel"],
+input[type="url"],
+input[type="date"],
+input[type="time"],
+input[type="datetime-local"],
+input[type="month"],
+input[type="week"],
+textarea,
+[contenteditable="true"],
+[contenteditable=""] {
+    -webkit-user-select: text;
+    -moz-user-select: text;
+    -ms-user-select: text;
+    user-select: text;
+    cursor: text;
+}
+
+/* Pointer cursor for clickable elements */
+button,
+a,
+[role="button"],
+select,
+.cursor-pointer,
+[onclick],
+label[for] {
+    cursor: pointer;
+    -webkit-user-select: none;
+    -moz-user-select: none;
+    -ms-user-select: none;
+    user-select: none;
+}
+
+/* Not-allowed cursor for disabled elements */
+button:disabled,
+input:disabled,
+select:disabled,
+textarea:disabled,
+.disabled {
+    cursor: not-allowed;
+}
+
 ::-webkit-scrollbar {
     width: 5px;
     height: 5px;
