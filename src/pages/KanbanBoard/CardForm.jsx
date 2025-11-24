@@ -94,12 +94,23 @@ const StepsProgress = ({ totalSteps = TOTAL_STEPS, activeStep = 2, completedStep
         const stepNumber = index + 1;
         const isCompleted = stepNumber <= completedSteps;
         const isActive = stepNumber === activeStep;
-        const stepClass = isCompleted ? "completed" : isActive ? "active" : "";
+        // Treat active step as completed for styling
+        const isStepCompletedOrActive = isCompleted || isActive;
+        const stepClass = isStepCompletedOrActive ? "completed" : "";
+        
+        // Check if next step is also completed or active (for line styling)
+        const nextStepNumber = stepNumber + 1;
+        const isNextStepCompleted = nextStepNumber <= completedSteps;
+        const isNextStepActive = nextStepNumber === activeStep;
+        const isNextStepCompletedOrActive = isNextStepCompleted || isNextStepActive;
+        const lineClass = isStepCompletedOrActive && isNextStepCompletedOrActive ? "completed-line" : "";
 
         return (
           <div key={stepNumber} className={`step-item ${stepClass}`}>
             <div className="step-circle">{stepNumber}</div>
-            {index < totalSteps - 1 && <span className="step-line"></span>}
+            {index < totalSteps - 1 && (
+              <span className={`step-line ${lineClass}`}></span>
+            )}
           </div>
         );
       })}
@@ -113,10 +124,14 @@ StepsProgress.propTypes = {
   completedSteps: PropTypes.number,
 };
 
-const CardFormFooter = ({ accentColor, onUpdate }) => {
+const CardFormFooter = ({ accentColor, onUpdate, activeStep = 2, completedSteps = 1 }) => {
   return (
     <div className="cardform-footer">
-      <StepsProgress />
+      <StepsProgress 
+        totalSteps={TOTAL_STEPS}
+        activeStep={activeStep}
+        completedSteps={completedSteps}
+      />
       <button
         className="cardform-update-btn"
         style={{ backgroundColor: accentColor }}
@@ -132,6 +147,8 @@ const CardFormFooter = ({ accentColor, onUpdate }) => {
 CardFormFooter.propTypes = {
   accentColor: PropTypes.string.isRequired,
   onUpdate: PropTypes.func.isRequired,
+  activeStep: PropTypes.number,
+  completedSteps: PropTypes.number,
 };
 
 // Tab Content Renderer
@@ -222,7 +239,12 @@ function CardForm({ show, close, card }) {
           onTabChange={handleTopTabChange}
         />
         {renderTabContent(activeTopTab, card, formValues, handleChange, ownerInitial)}
-        <CardFormFooter accentColor={accentColor} onUpdate={handleUpdate} />
+        <CardFormFooter 
+          accentColor={accentColor} 
+          onUpdate={handleUpdate}
+          activeStep={2}
+          completedSteps={1}
+        />
       </div>
     </div>
   );
