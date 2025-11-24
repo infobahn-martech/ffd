@@ -124,14 +124,19 @@ StepsProgress.propTypes = {
   completedSteps: PropTypes.number,
 };
 
-const CardFormFooter = ({ accentColor, onUpdate, activeStep = 2, completedSteps = 1 }) => {
+const CardFormFooter = ({ accentColor, onUpdate, activeStep = 2, completedSteps = 1, activeTab }) => {
+  const showProgressBar = activeTab !== "General";
+  
   return (
     <div className="cardform-footer">
-      <StepsProgress 
-        totalSteps={TOTAL_STEPS}
-        activeStep={activeStep}
-        completedSteps={completedSteps}
-      />
+      {showProgressBar && (
+        <StepsProgress 
+          totalSteps={TOTAL_STEPS}
+          activeStep={activeStep}
+          completedSteps={completedSteps}
+        />
+      )}
+      {!showProgressBar && <div />}
       <button
         className="cardform-update-btn"
         style={{ backgroundColor: accentColor }}
@@ -149,6 +154,7 @@ CardFormFooter.propTypes = {
   onUpdate: PropTypes.func.isRequired,
   activeStep: PropTypes.number,
   completedSteps: PropTypes.number,
+  activeTab: PropTypes.string,
 };
 
 // Tab Content Renderer
@@ -244,6 +250,7 @@ function CardForm({ show, close, card }) {
           onUpdate={handleUpdate}
           activeStep={2}
           completedSteps={1}
+          activeTab={activeTopTab}
         />
       </div>
     </div>
