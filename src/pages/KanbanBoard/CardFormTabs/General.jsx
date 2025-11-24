@@ -4,15 +4,20 @@ import "../../../design/scss/general.scss";
 
 // Job statuses in order
 const JOB_STATUSES = [
-  { id: 1, title: "Appointment Acceptance", key: "appointmentAcceptance" },
-  { id: 2, title: "Pre Arrival", key: "preArrival" },
-  { id: 3, title: "Arrival", key: "arrival" },
-  { id: 4, title: "Husbandry ", key: "husbandry " },
-  { id: 5, title: "Customs", key: "customs" },
-  { id: 6, title: "Departure", key: "departure" },
-  { id: 7, title: "Sales Order", key: "salesOrder" },
-  { id: 8, title: "Reports", key: "reports" },
-  { id: 9, title: "KPI", key: "kpi" },
+  { id: 1, title: "Pre-Arrival", key: "preArrival" },
+  { id: 2, title: "Customs Inspection", key: "customsInspection" },
+  { id: 3, title: "Crew Immigration", key: "crewImmigration" },
+  { id: 4, title: "Vessel Inward Formalities", key: "vesselInwardFormalities" },
+  { id: 5, title: "Marine Work Permit", key: "marineWorkPermit" },
+  { id: 6, title: "SABER UT", key: "saberUt" },
+  { id: 7, title: "Outward Clearance", key: "outwardClearance" },
+  { id: 8, title: "Vessel Sailed", key: "vesselSailed" },
+  { id: 9, title: "Operations Completed", key: "operationsCompleted" },
+  { id: 10, title: "SO Approval", key: "soApproval" },
+  { id: 11, title: "Invoice Issued", key: "invoiceIssued" },
+  { id: 12, title: "Submitted", key: "submitted" },
+  { id: 13, title: "Confirmation Received", key: "confirmationReceived" },
+  { id: 14, title: "Closed", key: "closed" },
 ];
 
 function LineProgress({ jobStatuses, currentStatus, accentColor }) {
@@ -77,10 +82,20 @@ function General({ card, formValues, handleChange }) {
 
   // Determine current job status from card data
   const currentStatus = useMemo(() => {
-    if (card?.clearanceCompletion) return "clearance";
-    if (card?.customsStart) return "customs";
-    if (card?.etaDate) return "departure";
-    if (card?.appointmentAcceptanceDate) return "arrival";
+    // Map card properties to status keys
+    if (card?.closed) return "closed";
+    if (card?.confirmationReceived) return "confirmationReceived";
+    if (card?.submitted) return "submitted";
+    if (card?.invoiceIssued) return "invoiceIssued";
+    if (card?.soApproval) return "soApproval";
+    if (card?.operationsCompleted) return "operationsCompleted";
+    if (card?.vesselSailed) return "vesselSailed";
+    if (card?.outwardClearance) return "outwardClearance";
+    if (card?.saberUt) return "saberUt";
+    if (card?.marineWorkPermit) return "marineWorkPermit";
+    if (card?.vesselInwardFormalities) return "vesselInwardFormalities";
+    if (card?.crewImmigration) return "crewImmigration";
+    if (card?.customsInspection) return "customsInspection";
     return "preArrival";
   }, [card]);
 
@@ -89,7 +104,7 @@ function General({ card, formValues, handleChange }) {
     { label: "Card ID", value: card?.code || card?.id || "N/A" },
     { label: "Title", value: card?.title || "N/A" },
     { label: "Owner", value: card?.user || formValues?.owner || "None" },
-    { label: "Current Status", value: JOB_STATUSES.find(s => s.key === currentStatus)?.title || "Pre Arrival" },
+    { label: "Current Status", value: JOB_STATUSES.find(s => s.key === currentStatus)?.title || "Pre-Arrival" },
     { label: "ETA Date", value: card?.etaDate || formValues?.etaDate || "N/A" },
     { label: "ETA Time", value: card?.etaTime || formValues?.etaTime || "N/A" },
   ], [card, formValues, currentStatus]);

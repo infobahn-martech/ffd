@@ -19,6 +19,7 @@
   padding: 30px 20px;
   background: #fafafa;
   border-radius: 12px;
+  overflow-x: auto;
 }
 
 .line-progress-bar {
@@ -44,6 +45,8 @@
   align-items: flex-start;
   position: relative;
   width: 100%;
+  min-width: max-content;
+  gap: 8px;
 }
 
 .line-progress-step-wrapper {
@@ -135,12 +138,14 @@
 }
 
 .line-progress-step .step-title {
-  font-size: 13px;
+  font-size: 12px;
   font-weight: 600;
   color: #1a1a1a;
   text-align: center;
-  max-width: 100px;
-  line-height: 1.3;
+  max-width: 120px;
+  line-height: 1.4;
+  word-wrap: break-word;
+  hyphens: auto;
 }
 
 .line-progress-step.pending .step-title {
