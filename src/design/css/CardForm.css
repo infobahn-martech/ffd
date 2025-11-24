@@ -13,6 +13,7 @@
 /* Panel */
 .cardform-panel {
   width: 1240px;
+  height: 90vh;
   max-height: 90vh;
   border-radius: 14px;
   background: #f5f5f8;
@@ -29,6 +30,7 @@
   justify-content: space-between;
   padding: 10px 18px;
   color: #fff;
+  flex-shrink: 0;
 }
 
 .cardform-topbar-left {
@@ -91,6 +93,7 @@
   gap: 16px;
   padding: 10px 24px;
   background: #f0f1f6;
+  flex-shrink: 0;
 }
 
 .cardform-tabs .tab {
@@ -111,6 +114,9 @@
 /* Body layout */
 .cardform-body {
   padding: 18px 22px;
+  overflow-y: auto;
+  flex: 1;
+  min-height: 0;
 }
 
 .cardform-body-full {
@@ -414,6 +420,7 @@
   justify-content: space-between;
   padding: 12px 30px;
   border-top: 1px solid #e1e2e8;
+  flex-shrink: 0;
 }
 
 .cardform-update-btn {
@@ -434,12 +441,12 @@
   gap: 0;
 }
 
-.step-item {
+.cardform-steps-wrapper .step-item {
   display: flex;
   align-items: center;
 }
 
-.step-circle {
+.cardform-steps-wrapper .step-circle {
   width: 30px;
   height: 30px;
   border-radius: 50%;
@@ -456,21 +463,21 @@
   z-index: 1;
 }
 
-.step-item.completed .step-circle {
+.cardform-steps-wrapper .step-item.completed .step-circle {
   background: #2e7d32;
   /* dark green */
   color: white;
   border-color: #2e7d32;
 }
 
-.step-item.active .step-circle {
+.cardform-steps-wrapper .step-item.active .step-circle {
   background: #2e7d32;
   /* dark green */
   color: white;
   border-color: #2e7d32;
 }
 
-.step-line {
+.cardform-steps-wrapper .step-line {
   width: 190px;
   height: 3px;
   background: #8bc48a;
@@ -481,19 +488,21 @@
 }
 
 /* Dark green line for completed segments (when both current and next step are completed) */
-.step-line.completed-line {
+.cardform-steps-wrapper .step-line.completed-line {
   background: #2e7d32;
   /* dark green */
 }
 
-.step-item:last-child .step-line {
+.cardform-steps-wrapper .step-item:last-child .step-line {
   display: none;
 }
 
 .operation-wrapper {
   display: flex;
   width: 100%;
-  min-height: 500px;
+  flex: 1;
+  min-height: 0;
+  overflow: hidden;
 }
 
 /* LEFT small menu */
@@ -526,12 +535,8 @@
 .operation-right {
   flex: 1;
   padding: 18px 20px;
-
-  /* FIXED HEIGHT always same as Pre-Arrival */
-  min-height: calc(90vh - 210px);
-  max-height: calc(90vh - 210px);
-
   overflow-y: auto;
+  min-height: 0;
 }
 
 
