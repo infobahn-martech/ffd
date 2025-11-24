@@ -80,7 +80,7 @@ function General({ card, formValues, handleChange }) {
     return "preArrival";
   }, [card]);
 
-  // Summary data
+  // Summary datas
   const summaryData = useMemo(() => [
     { label: "Card ID", value: card?.code || card?.id || "N/A" },
     { label: "Title", value: card?.title || "N/A" },
