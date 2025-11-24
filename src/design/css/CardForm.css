@@ -123,8 +123,6 @@
   width: 100% !important;
   max-width: 100% !important;
   padding-right: 0;
-  max-height: calc(90vh - 200px);
-  overflow-y: auto;
 }
 
 
@@ -133,16 +131,20 @@
    ========================================================== */
 .cf-section {
   background: #ffffff;
-  border-radius: 10px;
-  margin-bottom: 14px;
-  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
+  border-radius: 12px;
+  margin-bottom: 16px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
+  border: 1px solid #f0f0f0;
+  overflow: hidden;
 }
 
 .cf-section-header {
-  padding: 10px 14px;
+  padding: 14px 18px;
   display: flex;
   align-items: center;
-  gap: 8px;
+  gap: 10px;
+  background: linear-gradient(to right, #f8f9ff 0%, #ffffff 100%);
+  border-bottom: 1px solid #f0f0f0;
 }
 
 /* FIX 1 — remove blue BG from icons */
@@ -162,45 +164,112 @@
 }
 
 .cf-section-title {
-  font-size: 13px;
+  font-size: 14px;
   font-weight: 600;
+  color: #1a1a1a;
+  letter-spacing: 0.01em;
 }
 
 .cf-section-body {
-  padding: 0 14px 14px 14px;
+  padding: 0 18px 18px 18px;
+}
+
+/* Pre Arrival Form Improvements */
+.pre-arrival-form {
+  padding-top: 4px;
+}
+
+.form-group {
+  margin-bottom: 24px;
+  padding-bottom: 20px;
+  border-bottom: 1px solid #f0f0f0;
+}
+
+.form-group:last-of-type {
+  border-bottom: none;
+  margin-bottom: 0;
+  padding-bottom: 0;
+}
+
+.form-group-title {
+  font-size: 13px;
+  font-weight: 600;
+  color: #2A00FF;
+  margin: 0 0 16px 0;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.form-group-title::before {
+  content: "";
+  width: 3px;
+  height: 16px;
+  background: #2A00FF;
+  border-radius: 2px;
 }
 
 /* ==========================================================
     INPUT FIELDS
    ========================================================== */
 .cf-field {
-  margin-bottom: 10px;
+  margin-bottom: 16px;
 }
 
 .cf-field label {
   display: block;
-  font-size: 11px;
-  color: #757575;
-  margin-bottom: 4px;
+  font-size: 12px;
+  font-weight: 500;
+  color: #333;
+  margin-bottom: 6px;
+  letter-spacing: 0.01em;
 }
 
 .cf-input {
-  background: #f4f4f7;
-  border-radius: 999px;
-  padding: 6px 12px;
-  border: 1px solid #e2e2ea;
+  background: #ffffff;
+  border-radius: 8px;
+  padding: 10px 14px;
+  border: 1.5px solid #e2e2ea;
   display: flex;
   align-items: center;
   gap: 8px;
+  transition: all 0.2s ease;
+}
+
+.cf-input:hover {
+  border-color: #c5c5d1;
+}
+
+.cf-input:focus-within {
+  border-color: #2A00FF;
+  box-shadow: 0 0 0 3px rgba(42, 0, 255, 0.1);
+  background: #fafaff;
 }
 
 .cf-input input,
 .cf-input select {
   border: none;
   background: transparent;
-  font-size: 12px;
+  font-size: 13px;
   outline: none;
   width: 100%;
+  color: #1a1a1a;
+}
+
+.cf-input input::placeholder {
+  color: #999;
+  font-size: 12px;
+}
+
+.cf-input select {
+  cursor: pointer;
+  appearance: none;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 12 12'%3E%3Cpath fill='%23666' d='M6 9L1 4h10z'/%3E%3C/svg%3E");
+  background-repeat: no-repeat;
+  background-position: right 12px center;
+  padding-right: 32px;
 }
 
 .cf-input.with-icon img {
@@ -208,51 +277,90 @@
   height: 14px;
 }
 
+/* ETA Row - Date and Time Inputs */
+.cf-input.eta-row {
+  display: flex;
+  gap: 10px;
+  align-items: center;
+  padding: 10px 14px;
+}
+
+.cf-input.eta-row input {
+  flex: 1;
+  min-width: 0;
+}
+
+.cf-input.eta-row input[type="date"] {
+  flex: 1.2;
+}
+
+.cf-input.eta-row input[type="time"] {
+  flex: 0.8;
+}
+
 /* GRID 2 COLUMNS */
 .cf-grid.two {
   display: grid;
   grid-template-columns: 1fr 1fr;
-  gap: 10px;
+  gap: 16px;
 }
 
 /* FIX 2 — date input alignment */
 .cf-grid.two .cf-field .cf-input {
-  height: 38px;
+  height: auto;
+  min-height: 42px;
   display: flex;
   align-items: center;
 }
 
-.cf-grid.two input[type="date"] {
+.cf-grid.two input[type="date"],
+.cf-grid.two input[type="time"] {
   height: 100%;
   padding: 0;
+  min-height: 22px;
 }
 
 /* Owner row */
 .cf-owner-row {
   display: flex;
   align-items: center;
-  gap: 8px;
+  gap: 12px;
 }
 
 .cf-owner-avatar {
-  width: 26px;
-  height: 26px;
+  width: 36px;
+  height: 36px;
   border-radius: 50%;
-  background: #d3d5ff;
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
   display: flex;
   justify-content: center;
   align-items: center;
-  font-size: 12px;
+  font-size: 14px;
   font-weight: 600;
-  color: #16205e;
+  color: #ffffff;
+  flex-shrink: 0;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
 }
 
 .cf-owner-select {
   flex: 1;
-  border-radius: 999px;
-  border: 1px solid #e2e2ea;
-  background: #f4f4f7;
-  padding: 4px 10px;
+  border-radius: 8px;
+  border: 1.5px solid #e2e2ea;
+  background: #ffffff;
+  padding: 10px 14px;
+  font-size: 13px;
+  transition: all 0.2s ease;
+  cursor: pointer;
+}
+
+.cf-owner-select:hover {
+  border-color: #c5c5d1;
+}
+
+.cf-owner-select:focus {
+  outline: none;
+  border-color: #2A00FF;
+  box-shadow: 0 0 0 3px rgba(42, 0, 255, 0.1);
 }
 
 /* ==========================================================
@@ -260,30 +368,43 @@
    ========================================================== */
 
 .cf-empty-row {
-  padding: 12px 4px 4px;
-  color: #555;
-  font-size: 12px;
-  border-top: 1px solid #eeeeee;
-  margin-top: 6px;
+  padding: 20px 4px 4px;
+  color: #666;
+  font-size: 13px;
+  border-top: 1px solid #f0f0f0;
+  margin-top: 8px;
   display: flex;
   justify-content: space-between;
   align-items: center;
 }
 
+.cf-empty-row p {
+  margin: 0;
+  color: #888;
+  font-style: italic;
+}
+
 /* Button styling */
 .cf-link-btn {
-  background: #eef2ff;
-  border: 1px solid #cdd6ff;
-  padding: 4px 10px;
-  border-radius: 8px;
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  border: none;
+  padding: 8px 16px;
+  border-radius: 6px;
   font-size: 12px;
-  color: #0047ff;
+  font-weight: 500;
+  color: #ffffff;
   cursor: pointer;
-  transition: 0.2s;
+  transition: all 0.2s ease;
+  box-shadow: 0 2px 4px rgba(102, 126, 234, 0.2);
 }
 
 .cf-link-btn:hover {
-  background: #d6dfff;
+  transform: translateY(-1px);
+  box-shadow: 0 4px 8px rgba(102, 126, 234, 0.3);
+}
+
+.cf-link-btn:active {
+  transform: translateY(0);
 }
 
 /* Footer */
@@ -407,10 +528,4 @@
   background: #fff;
   padding: 20px;
   border-radius: 10px;
-
-  /* match the operation-right height */
-  min-height: calc(90vh - 250px);
-  max-height: calc(90vh - 250px);
-
-  overflow-y: auto;
 }

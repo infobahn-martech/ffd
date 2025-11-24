@@ -1,293 +1,252 @@
-import { useState } from "react";
+import { useState, useMemo, useCallback } from "react";
 import PropTypes from "prop-types";
 import "../../design/css/CardForm.css";
-import GroupSettingsIcon from "../../assets/images/cv.png";
-import CircleTickIcon from "../../assets/images/CircleTick.svg";
 import ColorPickerIcon from "../../assets/images/ColorPicker.png";
 import PriorityIcon from "../../assets/images/Priority.png";
 
+// Import Tab Components
+import General from "./CardFormTabs/General";
+import Operation from "./CardFormTabs/Operation";
+import Checklist from "./CardFormTabs/Checklist";
+import Husbandry from "./CardFormTabs/Husbandry";
+import Attachments from "./CardFormTabs/Attachments";
+import SalesOrder from "./CardFormTabs/SalesOrder";
+import Tasks from "./CardFormTabs/Tasks";
+import Reports from "./CardFormTabs/Reports";
+import KPI from "./CardFormTabs/KPI";
+
+// Constants
+const TOP_TABS = [
+  "General",
+  "Operation",
+  "Checklist",
+  "Husbandry",
+  "Attachments",
+  "Sales Order",
+  "Tasks",
+  "Reports",
+  "KPI",
+];
+
+const DEFAULT_ACCENT_COLOR = "#2A00FF";
+const TOTAL_STEPS = 5;
+
+// Sub-components
+const TopBar = ({ card, accentColor, onClose }) => {
+  const cardId = card?.code || card?.id;
+  const cardTitle = card?.title || "";
+
+  return (
+    <div className="cardform-topbar" style={{ backgroundColor: accentColor }}>
+      <div>
+        <span className="cardform-id">ID : {cardId}</span>
+        <span className="cardform-title">{cardTitle}</span>
+      </div>
+      <div className="cardform-topbar-right">
+        <button className="topbar-icon-btn" type="button" aria-label="Color Picker">
+          <img src={ColorPickerIcon} alt="Color Picker" />
+        </button>
+        <button className="topbar-icon-btn" type="button" aria-label="Priority">
+          <img src={PriorityIcon} alt="Priority" />
+        </button>
+        <button className="cardform-close-btn" onClick={onClose} type="button" aria-label="Close">
+          ✕
+        </button>
+      </div>
+    </div>
+  );
+};
+
+TopBar.propTypes = {
+  card: PropTypes.object,
+  accentColor: PropTypes.string.isRequired,
+  onClose: PropTypes.func.isRequired,
+};
+
+const TopTabs = ({ tabs, activeTab, onTabChange }) => {
+  return (
+    <div className="cardform-tabs">
+      {tabs.map((tab) => (
+        <button
+          key={tab}
+          className={`tab ${tab === activeTab ? "active" : ""}`}
+          onClick={() => onTabChange(tab)}
+          type="button"
+        >
+          {tab}
+        </button>
+      ))}
+    </div>
+  );
+};
+
+TopTabs.propTypes = {
+  tabs: PropTypes.arrayOf(PropTypes.string).isRequired,
+  activeTab: PropTypes.string.isRequired,
+  onTabChange: PropTypes.func.isRequired,
+};
+
+
+const StepsProgress = ({ totalSteps = TOTAL_STEPS, activeStep = 2, completedSteps = 1 }) => {
+  return (
+    <div className="cardform-steps-wrapper">
+      {Array.from({ length: totalSteps }, (_, index) => {
+        const stepNumber = index + 1;
+        const isCompleted = stepNumber <= completedSteps;
+        const isActive = stepNumber === activeStep;
+        const stepClass = isCompleted ? "completed" : isActive ? "active" : "";
+
+        return (
+          <div key={stepNumber} className={`step-item ${stepClass}`}>
+            <div className="step-circle">{stepNumber}</div>
+            {index < totalSteps - 1 && <span className="step-line"></span>}
+          </div>
+        );
+      })}
+    </div>
+  );
+};
+
+StepsProgress.propTypes = {
+  totalSteps: PropTypes.number,
+  activeStep: PropTypes.number,
+  completedSteps: PropTypes.number,
+};
+
+const CardFormFooter = ({ accentColor, onUpdate }) => {
+  return (
+    <div className="cardform-footer">
+      <StepsProgress />
+      <button
+        className="cardform-update-btn"
+        style={{ backgroundColor: accentColor }}
+        onClick={onUpdate}
+        type="button"
+      >
+        Update Card
+      </button>
+    </div>
+  );
+};
+
+CardFormFooter.propTypes = {
+  accentColor: PropTypes.string.isRequired,
+  onUpdate: PropTypes.func.isRequired,
+};
+
+// Tab Content Renderer
+const renderTabContent = (activeTab, card, formValues, handleChange, ownerInitial) => {
+  const commonProps = {
+    card,
+    formValues,
+    handleChange,
+  };
+
+  switch (activeTab) {
+    case "General":
+      return <General {...commonProps} />;
+    case "Operation":
+      return <Operation {...commonProps} ownerInitial={ownerInitial} />;
+    case "Checklist":
+      return <Checklist {...commonProps} />;
+    case "Husbandry":
+      return <Husbandry {...commonProps} />;
+    case "Attachments":
+      return <Attachments {...commonProps} />;
+    case "Sales Order":
+      return <SalesOrder {...commonProps} />;
+    case "Tasks":
+      return <Tasks {...commonProps} />;
+    case "Reports":
+      return <Reports {...commonProps} />;
+    case "KPI":
+      return <KPI {...commonProps} />;
+    default:
+      return <General {...commonProps} />;
+  }
+};
+
+// Main Component
 function CardForm({ show, close, card }) {
+  const [activeTopTab, setActiveTopTab] = useState("Operation");
+
+  const initialFormValues = useMemo(
+    () => ({
+      owner: card?.user || "None",
+      appointmentReceivedDate: card?.appointmentReceivedDate || "",
+      appointmentAcceptanceDate: card?.appointmentAcceptanceDate || "",
+      lastPort: card?.lastPort || "",
+      etaDate: card?.etaDate || "",
+      etaTime: card?.etaTime || "",
+      customsStart: card?.customsStart || "",
+      clearanceCompletion: card?.clearanceCompletion || "",
+      lastMovedDate: card?.lastMovedDate || "",
+      lastMovedTime: card?.lastMovedTime || "",
+    }),
+    [card]
+  );
+
+  const [formValues, setFormValues] = useState(initialFormValues);
+
+  const handleChange = useCallback(
+    (field) => (e) => {
+      setFormValues((prev) => ({ ...prev, [field]: e.target.value }));
+    },
+    []
+  );
+
+  const handleUpdate = useCallback(() => {
+    // TODO: Add API call to update card
+    close();
+  }, [close]);
+
+  const handleTopTabChange = useCallback((tab) => {
+    setActiveTopTab(tab);
+  }, []);
+
+  const accentColor = useMemo(() => card?.color || DEFAULT_ACCENT_COLOR, [card?.color]);
+  const ownerInitial = useMemo(
+    () => formValues.owner?.[0]?.toUpperCase() || "N",
+    [formValues.owner]
+  );
+
   if (!show) return null;
-
-  const [activeOperationTab, setActiveOperationTab] = useState("preArrival");
-
-  const [formValues, setFormValues] = useState({
-    owner: card?.user || "None",
-    appointmentReceivedDate: card?.appointmentReceivedDate || "",
-    appointmentAcceptanceDate: card?.appointmentAcceptanceDate || "",
-    lastPort: card?.lastPort || "",
-    etaDate: card?.etaDate || "",
-    etaTime: card?.etaTime || "",
-    customsStart: card?.customsStart || "",
-    clearanceCompletion: card?.clearanceCompletion || "",
-    lastMovedDate: card?.lastMovedDate || "",
-    lastMovedTime: card?.lastMovedTime || "",
-  });
-
-  const handleChange = (field) => (e) =>
-    setFormValues({ ...formValues, [field]: e.target.value });
-
-  const handleUpdate = () => close();
-
-  const accentColor = card?.color || "#2A00FF";
-  const ownerInitial = formValues.owner?.[0]?.toUpperCase() || "N";
 
   return (
     <div className="cardform-overlay" onClick={close}>
       <div className="cardform-panel" onClick={(e) => e.stopPropagation()}>
-
-        {/* Top bar */}
-        <div className="cardform-topbar" style={{ backgroundColor: accentColor }}>
-          <div>
-            <span className="cardform-id">ID : {card?.code || card?.id}</span>
-            <span className="cardform-title">{card?.title}</span>
-          </div>
-
-          <div className="cardform-topbar-right">
-            <button className="topbar-icon-btn"><img src={ColorPickerIcon} /></button>
-            <button className="topbar-icon-btn"><img src={PriorityIcon} /></button>
-            <button className="cardform-close-btn" onClick={close}>✕</button>
-          </div>
-        </div>
-
-        {/* ===== TOP TABS (RESTORED) ===== */}
-        <div className="cardform-tabs">
-          <button className="tab">General</button>
-          <button className="tab active">Operation</button>
-          <button className="tab">Checklist</button>
-          <button className="tab">Husbandry</button>
-          <button className="tab">Attachments</button>
-          <button className="tab">Sales Order</button>
-          <button className="tab">Tasks</button>
-          <button className="tab">Reports</button>
-          <button className="tab">KPI</button>
-        </div>
-
-
-        {/* ===== NEW OPERATION SIDE TABS ===== */}
-        <div className="operation-wrapper">
-          <div className="operation-left">
-            <button
-              className={`op-tab ${activeOperationTab === "preArrival" ? "active" : ""}`}
-              onClick={() => setActiveOperationTab("preArrival")}
-            >
-              Pre Arrival
-            </button>
-
-            <button
-              className={`op-tab ${activeOperationTab === "arrival" ? "active" : ""}`}
-              onClick={() => setActiveOperationTab("arrival")}
-            >
-              Arrival
-            </button>
-
-            <button
-              className={`op-tab ${activeOperationTab === "departure" ? "active" : ""}`}
-              onClick={() => setActiveOperationTab("departure")}
-            >
-              Departure
-            </button>
-          </div>
-
-          {/* RIGHT SIDE CONTENT */}
-          <div className="operation-right">
-
-            {/* ===== PRE ARRIVAL CONTENT ===== */}
-            {activeOperationTab === "preArrival" && (
-              <div className="cardform-left-full">
-
-                <div className="cf-section">
-                  <div className="cf-section-header">
-                    <span className="cf-section-icon">
-                      <img src={GroupSettingsIcon} />
-                    </span>
-                    <span className="cf-section-title">Card fields</span>
-                  </div>
-
-                  <div className="cf-section-body">
-
-                    {/* Owner */}
-                    <div className="cf-field">
-                      <label>Owner</label>
-                      <div className="cf-owner-row">
-                        <div className="cf-owner-avatar">{ownerInitial}</div>
-                        <select
-                          value={formValues.owner}
-                          onChange={handleChange("owner")}
-                          className="cf-owner-select"
-                        >
-                          <option value="None">None</option>
-                          <option value={card?.user}>{card?.user}</option>
-                        </select>
-                      </div>
-                    </div>
-
-                    {/* Dates */}
-                    <div className="cf-grid two">
-                      <div className="cf-field">
-                        <label>Appointment Received Date</label>
-                        <div className="cf-input">
-                          <input
-                            type="date"
-                            value={formValues.appointmentReceivedDate}
-                            onChange={handleChange("appointmentReceivedDate")}
-                          />
-                        </div>
-                      </div>
-
-                      <div className="cf-field">
-                        <label>Appointment Acceptance Date</label>
-                        <div className="cf-input">
-                          <input
-                            type="date"
-                            value={formValues.appointmentAcceptanceDate}
-                            onChange={handleChange("appointmentAcceptanceDate")}
-                          />
-                        </div>
-                      </div>
-                    </div>
-
-                    {/* Last Port / ETA */}
-                    <div className="cf-grid two">
-                      <div className="cf-field">
-                        <label>Last Port</label>
-                        <div className="cf-input">
-                          <input
-                            type="text"
-                            value={formValues.lastPort}
-                            onChange={handleChange("lastPort")}
-                          />
-                        </div>
-                      </div>
-
-                      <div className="cf-field">
-                        <label>ETA</label>
-                        <div className="cf-input eta-row">
-                          <input type="date" value={formValues.etaDate} onChange={handleChange("etaDate")} />
-                          <input type="time" value={formValues.etaTime} onChange={handleChange("etaTime")} />
-                        </div>
-                      </div>
-                    </div>
-
-                    {/* Customs */}
-                    <div className="cf-field">
-                      <label>Expected commencement of customs inspection</label>
-                      <div className="cf-input">
-                        <input
-                          type="text"
-                          placeholder="Enter..."
-                          value={formValues.customsStart}
-                          onChange={handleChange("customsStart")}
-                        />
-                      </div>
-                    </div>
-
-                    <div className="cf-field">
-                      <label>Expected completion of inward clearance</label>
-                      <div className="cf-input">
-                        <input
-                          type="text"
-                          placeholder="Enter..."
-                          value={formValues.clearanceCompletion}
-                          onChange={handleChange("clearanceCompletion")}
-                        />
-                      </div>
-                    </div>
-
-                  </div>
-                </div>
-
-                {/* Attachments */}
-                <div className="cf-section">
-                  <div className="cf-section-header">
-                    <span className="cf-section-icon"><img src={CircleTickIcon} /></span>
-                    <span className="cf-section-title">Attachments</span>
-                  </div>
-                  <div className="cf-section-body">
-                    <div className="cf-empty-row">
-                      <p>No attachments added.</p>
-                      <button className="cf-link-btn">+ Add attachment</button>
-                    </div>
-                  </div>
-                </div>
-
-                {/* links */}
-                <div className="cf-section">
-                  <div className="cf-section-header">
-                    <span className="cf-section-icon"><img src={CircleTickIcon} /></span>
-                    <span className="cf-section-title">Links</span>
-                  </div>
-                  <div className="cf-section-body">
-                    <div className="cf-empty-row">
-                      <p>No links added.</p>
-                      <button className="cf-link-btn">+ Add Link</button>
-                    </div>
-                  </div>
-                </div>
-
-              </div>
-            )}
-
-            {/* ===== ARRIVAL DETAILS ===== */}
-            {activeOperationTab === "arrival" && (
-              <div className="operation-content-box">
-                <h2>Arrival Details</h2>
-                <p>Show arrival details here…</p>
-              </div>
-            )}
-
-            {/* ===== DEPARTURE DETAILS ===== */}
-            {activeOperationTab === "departure" && (
-              <div className="operation-content-box">
-                <h2>Departure Details</h2>
-                <p>Show departure details here…</p>
-              </div>
-            )}
-
-          </div>
-        </div>
-
-        {/* Footer */}
-        <div className="cardform-footer">
-          {/* ===== STEPS PROGRESS BAR (RESTORED) ===== */}
-          <div className="cardform-steps-wrapper">
-            <div className="step-item completed">
-              <div className="step-circle">1</div>
-              <span className="step-line"></span>
-            </div>
-
-            <div className="step-item active">
-              <div className="step-circle">2</div>
-              <span className="step-line"></span>
-            </div>
-
-            <div className="step-item">
-              <div className="step-circle">3</div>
-              <span className="step-line"></span>
-            </div>
-
-            <div className="step-item">
-              <div className="step-circle">4</div>
-              <span className="step-line"></span>
-            </div>
-
-            <div className="step-item">
-              <div className="step-circle">5</div>
-            </div>
-          </div>
-
-          <button
-            className="cardform-update-btn"
-            style={{ backgroundColor: accentColor }}
-            onClick={handleUpdate}
-          >
-            Update Card
-          </button>
-        </div>
-
+        <TopBar card={card} accentColor={accentColor} onClose={close} />
+        <TopTabs
+          tabs={TOP_TABS}
+          activeTab={activeTopTab}
+          onTabChange={handleTopTabChange}
+        />
+        {renderTabContent(activeTopTab, card, formValues, handleChange, ownerInitial)}
+        <CardFormFooter accentColor={accentColor} onUpdate={handleUpdate} />
       </div>
     </div>
   );
 }
+
+CardForm.propTypes = {
+  show: PropTypes.bool.isRequired,
+  close: PropTypes.func.isRequired,
+  card: PropTypes.shape({
+    id: PropTypes.oneOfType([PropTypes.string, PropTypes.number]),
+    code: PropTypes.oneOfType([PropTypes.string, PropTypes.number]),
+    title: PropTypes.string,
+    user: PropTypes.string,
+    color: PropTypes.string,
+    appointmentReceivedDate: PropTypes.string,
+    appointmentAcceptanceDate: PropTypes.string,
+    lastPort: PropTypes.string,
+    etaDate: PropTypes.string,
+    etaTime: PropTypes.string,
+    customsStart: PropTypes.string,
+    clearanceCompletion: PropTypes.string,
+    lastMovedDate: PropTypes.string,
+    lastMovedTime: PropTypes.string,
+  }),
+};
 
 export default CardForm;
