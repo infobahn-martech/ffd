@@ -1,0 +1,130 @@
+@import "partials/partials";
+
+/* ==========================================================
+   ATTACHMENTS TAB STYLES
+   ========================================================== */
+
+.attachments-list {
+  padding-top: 4px;
+}
+
+.attachments-header {
+  margin-bottom: 16px;
+  padding-bottom: 12px;
+  border-bottom: 1px solid #f0f0f0;
+}
+
+.attachments-count {
+  font-size: 13px;
+  font-weight: 600;
+  color: #666;
+}
+
+.attachments-items {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.attachment-item {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  padding: 14px 16px;
+  background: #f8f9fa;
+  border-radius: 8px;
+  border: 1px solid #e9ecef;
+  transition: all 0.2s ease;
+}
+
+.attachment-item:hover {
+  background: #f0f4ff;
+  border-color: #d0d7ff;
+  transform: translateX(4px);
+}
+
+.attachment-icon {
+  font-size: 32px;
+  width: 48px;
+  height: 48px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: #ffffff;
+  border-radius: 8px;
+  flex-shrink: 0;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+}
+
+.attachment-details {
+  flex: 1;
+  min-width: 0;
+}
+
+.attachment-name {
+  font-size: 14px;
+  font-weight: 600;
+  color: #1a1a1a;
+  margin-bottom: 6px;
+  word-break: break-word;
+}
+
+.attachment-meta {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 12px;
+  color: #666;
+  flex-wrap: wrap;
+}
+
+.attachment-separator {
+  color: #ccc;
+}
+
+.attachment-size {
+  font-weight: 500;
+}
+
+.attachment-date {
+  color: #888;
+}
+
+.attachment-uploader {
+  color: #666;
+  font-style: italic;
+}
+
+.attachment-actions {
+  display: flex;
+  gap: 8px;
+  flex-shrink: 0;
+}
+
+.attachment-action-btn {
+  width: 36px;
+  height: 36px;
+  border: none;
+  border-radius: 6px;
+  background: #ffffff;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 16px;
+  transition: all 0.2s ease;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+}
+
+.attachment-action-btn:hover {
+  transform: scale(1.1);
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.15);
+}
+
+.attachment-action-btn.download:hover {
+  background: #e3f2fd;
+}
+
+.attachment-action-btn.delete:hover {
+  background: #ffebee;
+}
