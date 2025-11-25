@@ -24,7 +24,7 @@ const TEST_MODE = true;
 const router = createHashRouter([
   {
     element: <App />,
-    errorElement: <h1>404</h1>,
+    errorElement: <h1>In-Progress</h1>,
 
     children: [
       // Always available public pages

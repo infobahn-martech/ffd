@@ -16,7 +16,10 @@ const DefaultMenu = ({ menu, subMenus, to, icon, isOpen, toggleCollapse }) => {
   ) : (
     <li className="menu-link">
       <a
-        onClick={() => toggleCollapse(menu)}
+        onClick={(e) => {
+          e.preventDefault();
+          toggleCollapse(menu);
+        }}
         className={isOpen ? 'link submenu' : 'link submenu collapsed'}
         href="# "
         role="button"
