@@ -1,9 +1,11 @@
 import React from "react";
 import { useForm } from "react-hook-form";
+import { useNavigate } from "react-router-dom";
 import "../../design/scss/login.scss";
 import SedresLogo from "../../assets/images/SedresLogo.png";
 
 function Index() {
+  const navigate = useNavigate();
   const {
     register,
     handleSubmit,
@@ -12,6 +14,7 @@ function Index() {
 
   const onSubmit = (data) => {
     console.log("FORM DATA:", data);
+    navigate("/kanban-board");
   };
 
   return (
@@ -41,7 +44,7 @@ function Index() {
 
           <div className="head-wrap">
             <h2 className="title">
-              Welcome <span>Admin</span>
+              Login to your account
             </h2>
             <p className="des">Welcome back! Please enter your details.</p>
           </div>
@@ -57,13 +60,13 @@ function Index() {
                     type="text"
                     placeholder="Enter your email"
                     className="txt"
-                    {...register("email", {
-                      required: "Email is required",
-                      pattern: {
-                        value: /^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/i,
-                        message: "Enter a valid email",
-                      },
-                    })}
+                  // {...register("email", {
+                  //   required: "Email is required",
+                  //   pattern: {
+                  //     value: /^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/i,
+                  //     message: "Enter a valid email",
+                  //   },
+                  // })}
                   />
 
                   {errors.email && (
@@ -80,13 +83,13 @@ function Index() {
                     type="password"
                     placeholder="************************"
                     className="txt"
-                    {...register("password", {
-                      required: "Password is required",
-                      minLength: {
-                        value: 6,
-                        message: "Password must be at least 6 characters",
-                      },
-                    })}
+                  // {...register("password", {
+                  //   required: "Password is required",
+                  //   minLength: {
+                  //     value: 6,
+                  //     message: "Password must be at least 6 characters",
+                  //   },
+                  // })}
                   />
 
                   {errors.password && (
@@ -96,7 +99,7 @@ function Index() {
               </div>
 
               {/* REMEMBER ME */}
-              <div className="checkbox-wrap">
+              <div className="checkbox-wrap" style={{ paddingBottom: "9px" }}>
                 <label className="remember-label">
                   <input style={{ marginLeft: "4px" }} type="checkbox" {...register("rememberMe")} />
                   <span
@@ -128,8 +131,6 @@ function Index() {
               Forgot password?
             </a>
           </div>
-
-          <p className="copy">© Sedres 2025</p>
         </div>
       </div>
     </div>
