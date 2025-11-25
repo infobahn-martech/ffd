@@ -269,7 +269,7 @@
   width: 36px;
   height: 36px;
   border-radius: 50%;
-  background: linear-gradient(135deg, var(--card-color, #2A00FF) 0%, rgba(42, 0, 255, 0.7) 100%);
+  background: var(--card-color, #2A00FF);
   display: flex;
   justify-content: center;
   align-items: center;
@@ -323,7 +323,7 @@
 }
 
 .cf-link-btn {
-  background: linear-gradient(135deg, var(--card-color, #2A00FF) 0%, rgba(42, 0, 255, 0.8) 100%);
+  background: var(--card-color, #2A00FF);
   border: none;
   padding: 8px 16px;
   border-radius: 6px;
@@ -332,12 +332,13 @@
   color: #ffffff;
   cursor: pointer;
   transition: all 0.2s ease;
-  box-shadow: 0 2px 4px rgba(42, 0, 255, 0.2);
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.15);
 }
 
 .cf-link-btn:hover {
   transform: translateY(-1px);
-  box-shadow: 0 4px 8px rgba(42, 0, 255, 0.3);
+  opacity: 0.9;
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
 }
 
 .cf-link-btn:active {
@@ -350,7 +351,7 @@
 }
 
 .cf-add-btn {
-  background: linear-gradient(135deg, var(--card-color, #2A00FF) 0%, rgba(42, 0, 255, 0.8) 100%);
+  background: var(--card-color, #2A00FF);
   border: none;
   padding: 8px 16px;
   border-radius: 6px;
@@ -359,13 +360,14 @@
   color: #ffffff;
   cursor: pointer;
   transition: all 0.2s ease;
-  box-shadow: 0 2px 4px rgba(42, 0, 255, 0.2);
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.15);
   margin-bottom: 12px;
 }
 
 .cf-add-btn:hover {
   transform: translateY(-1px);
-  box-shadow: 0 4px 8px rgba(42, 0, 255, 0.3);
+  opacity: 0.9;
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
 }
 
 .cf-add-btn:active {

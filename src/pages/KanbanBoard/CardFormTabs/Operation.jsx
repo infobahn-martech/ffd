@@ -43,12 +43,14 @@ OperationTabs.propTypes = {
 const FormSection = ({ icon, title, children }) => {
   return (
     <div className="cf-section">
-      <div className="cf-section-header">
-        <span className="cf-section-icon">
-          <img src={icon} alt={title} />
-        </span>
-        <span className="cf-section-title">{title}</span>
-      </div>
+      {title && (
+        <div className="cf-section-header">
+          <span className="cf-section-icon">
+            <img src={icon} alt={title} />
+          </span>
+          <span className="cf-section-title">{title}</span>
+        </div>
+      )}
       <div className="cf-section-body">{children}</div>
     </div>
   );
@@ -56,7 +58,7 @@ const FormSection = ({ icon, title, children }) => {
 
 FormSection.propTypes = {
   icon: PropTypes.string.isRequired,
-  title: PropTypes.string.isRequired,
+  title: PropTypes.string,
   children: PropTypes.node.isRequired,
 };
 
@@ -257,7 +259,7 @@ const PreArrivalContent = ({ formValues, handleChange, ownerInitial, cardUser, c
 
   return (
     <div className="cardform-left-full" style={{ "--card-color": cardColor }}>
-      <FormSection icon={GroupSettingsIcon} title="Card Information">
+      <FormSection icon={GroupSettingsIcon} title="">
         <div className="pre-arrival-form">
           <OwnerField
             value={formValues.owner}
