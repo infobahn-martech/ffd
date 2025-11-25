@@ -28,6 +28,8 @@ const TOP_TABS = [
   "KPI",
 ];
 
+const ENABLED_TABS = ["General", "Operation"];
+
 const DEFAULT_ACCENT_COLOR = "#2A00FF";
 const TOTAL_STEPS = 5;
 
@@ -63,19 +65,23 @@ TopBar.propTypes = {
   onClose: PropTypes.func.isRequired,
 };
 
-const TopTabs = ({ tabs, activeTab, onTabChange }) => {
+const TopTabs = ({ tabs, activeTab, onTabChange, enabledTabs }) => {
   return (
     <div className="cardform-tabs">
-      {tabs.map((tab) => (
-        <button
-          key={tab}
-          className={`tab ${tab === activeTab ? "active" : ""}`}
-          onClick={() => onTabChange(tab)}
-          type="button"
-        >
-          {tab}
-        </button>
-      ))}
+      {tabs.map((tab) => {
+        const isEnabled = enabledTabs.includes(tab);
+        return (
+          <button
+            key={tab}
+            className={`tab ${tab === activeTab ? "active" : ""} ${!isEnabled ? "disabled" : ""}`}
+            onClick={() => isEnabled && onTabChange(tab)}
+            type="button"
+            disabled={!isEnabled}
+          >
+            {tab}
+          </button>
+        );
+      })}
     </div>
   );
 };
@@ -84,6 +90,7 @@ TopTabs.propTypes = {
   tabs: PropTypes.arrayOf(PropTypes.string).isRequired,
   activeTab: PropTypes.string.isRequired,
   onTabChange: PropTypes.func.isRequired,
+  enabledTabs: PropTypes.arrayOf(PropTypes.string).isRequired,
 };
 
 
@@ -274,6 +281,7 @@ function CardForm({ show, close, card }) {
           tabs={TOP_TABS}
           activeTab={activeTopTab}
           onTabChange={handleTopTabChange}
+          enabledTabs={ENABLED_TABS}
         />
         {renderTabContent(activeTopTab, card, formValues, handleChange, ownerInitial)}
         <CardFormFooter

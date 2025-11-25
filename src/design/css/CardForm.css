@@ -111,6 +111,12 @@
   color: #222;
 }
 
+.cardform-tabs .tab.disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+  pointer-events: none;
+}
+
 /* Body layout */
 .cardform-body {
   padding: 18px 22px;
