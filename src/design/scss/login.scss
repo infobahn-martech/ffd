@@ -70,6 +70,9 @@
 
 .login-wrap .left-wrap .logo-wrap img {
   max-width: 100%;
+  height: auto;
+  display: block;
+  object-fit: contain;
 }
 
 .login-wrap .left-wrap .content-wrap {
@@ -256,6 +259,9 @@
 
 .login-wrap .form-wrap .content-wrap .logo-wrap img {
   max-width: 100%;
+  height: auto;
+  display: block;
+  object-fit: contain;
 }
 
 .login-wrap .form-wrap .content-wrap .head-wrap {

@@ -1,6 +1,7 @@
 import React from "react";
 import { useForm } from "react-hook-form";
 import "../../design/scss/login.scss";
+import SedresLogo from "../../assets/images/SedresLogo.png";
 
 function Index() {
   const {
@@ -17,9 +18,7 @@ function Index() {
     <div className="login-wrap">
       {/* LEFT SIDE */}
       <div className="left-wrap">
-        <div className="logo-wrap">
-          <img src="img/logo-white.svg" alt="" />
-        </div>
+
 
         <div className="content-wrap">
           <h1 className="title">
@@ -37,7 +36,7 @@ function Index() {
       <div className="form-wrap">
         <div className="content-wrap">
           <div className="logo-wrap">
-            <img src="img/logo-blue.svg" alt="" />
+            <img src={SedresLogo} alt="Sedres Logo" />
           </div>
 
           <div className="head-wrap">
