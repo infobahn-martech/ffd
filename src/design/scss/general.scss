@@ -87,30 +87,20 @@
   }
 
   &.step-left {
-    flex-direction: row;
-
     .vertical-timeline-content {
-      order: 1;
       text-align: right;
       padding-right: 20px;
-    }
-
-    .vertical-timeline-icon {
-      order: 2;
+      margin-right: calc(50% + 25px);
+      max-width: calc(50% - 45px);
     }
   }
 
   &.step-right {
-    flex-direction: row-reverse;
-
     .vertical-timeline-content {
-      order: 2;
       text-align: left;
       padding-left: 20px;
-    }
-
-    .vertical-timeline-icon {
-      order: 1;
+      margin-left: calc(50% + 25px);
+      max-width: calc(50% - 45px);
     }
   }
 }
@@ -180,7 +170,9 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  position: relative;
+  position: absolute;
+  left: 50%;
+  transform: translateX(-50%);
   z-index: 4;
 }
 

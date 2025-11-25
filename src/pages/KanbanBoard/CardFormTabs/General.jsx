@@ -56,6 +56,16 @@ function VerticalTimeline({ jobStatuses, currentStatus, accentColor }) {
 
           return (
             <div key={status.id} className={`vertical-timeline-step-wrapper ${isLeft ? 'step-left' : 'step-right'}`}>
+              {!isLeft && (
+                <div className={`vertical-timeline-icon ${state}`}>
+                  <div className="timeline-icon-circle">
+                    {state === "completed" && <span className="icon-check">✓</span>}
+                    {state === "active" && <span className="icon-dot"></span>}
+                    {state === "pending" && <span className="icon-emoji">{status.icon}</span>}
+                  </div>
+                </div>
+              )}
+
               <div className={`vertical-timeline-content ${isLeft ? 'content-left' : 'content-right'}`}>
                 {!isLeft && (
                   <div className="timeline-time">
@@ -71,13 +81,15 @@ function VerticalTimeline({ jobStatuses, currentStatus, accentColor }) {
                 )}
               </div>
 
-              <div className={`vertical-timeline-icon ${state}`}>
-                <div className="timeline-icon-circle">
-                  {state === "completed" && <span className="icon-check">✓</span>}
-                  {state === "active" && <span className="icon-dot"></span>}
-                  {state === "pending" && <span className="icon-emoji">{status.icon}</span>}
+              {isLeft && (
+                <div className={`vertical-timeline-icon ${state}`}>
+                  <div className="timeline-icon-circle">
+                    {state === "completed" && <span className="icon-check">✓</span>}
+                    {state === "active" && <span className="icon-dot"></span>}
+                    {state === "pending" && <span className="icon-emoji">{status.icon}</span>}
+                  </div>
                 </div>
-              </div>
+              )}
 
               {!isLast && (
                 <div
