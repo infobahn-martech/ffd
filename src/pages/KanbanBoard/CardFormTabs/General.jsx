@@ -146,6 +146,30 @@ function General({ card, formValues, handleChange }) {
       highlight: true
     },
     {
+      label: "Vessel Name",
+      value: card?.vessel || formValues?.vessel || "N/A",
+      icon: "🚢",
+      type: "text"
+    },
+    {
+      label: "Customer",
+      value: card?.customer || formValues?.customer || "N/A",
+      icon: "🏢",
+      type: "text"
+    },
+    {
+      label: "Port",
+      value: card?.port || formValues?.port || "N/A",
+      icon: "⚓",
+      type: "text"
+    },
+    {
+      label: "Progress",
+      value: card?.progress !== undefined ? `${card.progress}%` : "N/A",
+      icon: "📊",
+      type: "progress"
+    },
+    {
       label: "ETA Date",
       value: card?.etaDate || formValues?.etaDate || "N/A",
       icon: "📅",
@@ -156,6 +180,86 @@ function General({ card, formValues, handleChange }) {
       value: card?.etaTime || formValues?.etaTime || "N/A",
       icon: "🕐",
       type: "time"
+    },
+    {
+      label: "Days",
+      value: card?.days ? `${card.days} days` : "N/A",
+      icon: "📆",
+      type: "text"
+    },
+    {
+      label: "Time Left",
+      value: card?.timeLeft || "N/A",
+      icon: "⏱️",
+      type: "text"
+    },
+    {
+      label: "Priority",
+      value: card?.priority || formValues?.priority || "Normal",
+      icon: "⭐",
+      type: "text"
+    },
+    {
+      label: "IMO Number",
+      value: card?.imoNumber || formValues?.imoNumber || "N/A",
+      icon: "🆔",
+      type: "text",
+      copyable: true
+    },
+    {
+      label: "Flag",
+      value: card?.flag || formValues?.flag || "N/A",
+      icon: "🚩",
+      type: "text"
+    },
+    {
+      label: "Agent",
+      value: card?.agent || formValues?.agent || "N/A",
+      icon: "🤝",
+      type: "text"
+    },
+    {
+      label: "Service Type",
+      value: card?.serviceType || formValues?.serviceType || "N/A",
+      icon: "🔧",
+      type: "text"
+    },
+    {
+      label: "Cargo Type",
+      value: card?.cargoType || formValues?.cargoType || "N/A",
+      icon: "📦",
+      type: "text"
+    },
+    {
+      label: "Created Date",
+      value: card?.createdDate || formValues?.createdDate || card?.createdAt || "N/A",
+      icon: "📆",
+      type: "date"
+    },
+    {
+      label: "Last Updated",
+      value: card?.updatedDate || formValues?.updatedDate || card?.updatedAt || "N/A",
+      icon: "🔄",
+      type: "date"
+    },
+    {
+      label: "Vessel Type",
+      value: card?.vesselType || formValues?.vesselType || "N/A",
+      icon: "⛴️",
+      type: "text"
+    },
+    {
+      label: "Gross Tonnage",
+      value: card?.grossTonnage ? `${card.grossTonnage} GT` : formValues?.grossTonnage ? `${formValues.grossTonnage} GT` : "N/A",
+      icon: "⚖️",
+      type: "text"
+    },
+    {
+      label: "Call Sign",
+      value: card?.callSign || formValues?.callSign || "N/A",
+      icon: "📡",
+      type: "text",
+      copyable: true
     },
   ], [card, formValues, currentStatus]);
 
@@ -222,7 +326,7 @@ function General({ card, formValues, handleChange }) {
                         </button>
                       )}
                     </div>
-                    <div className={`summary-value ${item.type === 'status' ? 'summary-value-status' : ''}`}>
+                    <div className={`summary-value ${item.type === 'status' ? 'summary-value-status' : ''} ${item.type === 'progress' ? 'summary-value-progress' : ''}`}>
                       {isEmpty ? (
                         <span className="summary-empty-text">Not set</span>
                       ) : (
@@ -231,6 +335,17 @@ function General({ card, formValues, handleChange }) {
                     </div>
                     {item.type === 'status' && !isEmpty && (
                       <div className="summary-status-indicator" style={{ backgroundColor: accentColor }}></div>
+                    )}
+                    {item.type === 'progress' && !isEmpty && card?.progress !== undefined && (
+                      <div className="summary-progress-bar">
+                        <div
+                          className="summary-progress-fill"
+                          style={{
+                            width: `${card.progress}%`,
+                            backgroundColor: accentColor
+                          }}
+                        />
+                      </div>
                     )}
                   </div>
                 );
