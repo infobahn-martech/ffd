@@ -1,0 +1,474 @@
+@import "partials/partials";
+
+/* ==========================================================
+   OPERATION TAB STYLES
+   ========================================================== */
+
+.operation-wrapper {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  overflow: hidden;
+  --card-color: var(--card-color, #2A00FF);
+}
+
+.operation-left {
+  display: flex;
+  gap: 8px;
+  padding: 18px 22px;
+  background: #f0f1f6;
+  border-bottom: 1px solid #e0e0e0;
+  flex-shrink: 0;
+}
+
+.op-tab {
+  padding: 8px 16px;
+  border: none;
+  background: transparent;
+  font-size: 13px;
+  font-weight: 500;
+  color: #666;
+  border-radius: 6px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  position: relative;
+}
+
+.op-tab:hover {
+  background: rgba(42, 0, 255, 0.08);
+  color: #333;
+}
+
+.op-tab.active {
+  background: #ffffff;
+  color: var(--card-color, #2A00FF);
+  font-weight: 600;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+}
+
+.op-tab.active::after {
+  content: "";
+  position: absolute;
+  bottom: -1px;
+  left: 0;
+  right: 0;
+  height: 2px;
+  background: var(--card-color, #2A00FF);
+  border-radius: 2px 2px 0 0;
+}
+
+.operation-right {
+  flex: 1;
+  overflow-y: auto;
+  min-height: 0;
+}
+
+.operation-content-box {
+  padding: 40px 22px;
+  text-align: center;
+  color: #666;
+}
+
+.operation-content-box h2 {
+  font-size: 18px;
+  font-weight: 600;
+  color: #333;
+  margin-bottom: 12px;
+}
+
+.operation-content-box p {
+  font-size: 14px;
+  color: #888;
+}
+
+/* ==========================================================
+   PRE-ARRIVAL FORM STYLES
+   ========================================================== */
+
+.pre-arrival-form {
+  padding-top: 4px;
+}
+
+.form-group {
+  margin-bottom: 24px;
+  padding-bottom: 20px;
+  border-bottom: 1px solid #f0f0f0;
+}
+
+.form-group:last-of-type {
+  border-bottom: none;
+  margin-bottom: 0;
+  padding-bottom: 0;
+}
+
+.form-group-title {
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--card-color, #2A00FF);
+  margin: 0 0 16px 0;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.form-group-title::before {
+  content: "";
+  width: 3px;
+  height: 16px;
+  background: var(--card-color, #2A00FF);
+  border-radius: 2px;
+}
+
+/* ==========================================================
+   FORM FIELDS
+   ========================================================== */
+
+.cf-field {
+  margin-bottom: 16px;
+}
+
+.cf-field label {
+  display: block;
+  font-size: 12px;
+  font-weight: 500;
+  color: #333;
+  margin-bottom: 6px;
+  letter-spacing: 0.01em;
+}
+
+.cf-input {
+  background: #ffffff;
+  border-radius: 8px;
+  padding: 10px 14px;
+  border: 1.5px solid #e2e2ea;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  transition: all 0.2s ease;
+}
+
+.cf-input:hover {
+  border-color: #c5c5d1;
+}
+
+.cf-input:focus-within {
+  border-color: var(--card-color, #2A00FF);
+  box-shadow: 0 0 0 3px rgba(42, 0, 255, 0.1);
+  background: #fafaff;
+}
+
+.cf-input input,
+.cf-input select {
+  border: none;
+  background: transparent;
+  font-size: 13px;
+  outline: none;
+  width: 100%;
+  color: #1a1a1a;
+}
+
+.cf-input input::placeholder {
+  color: #999;
+  font-size: 12px;
+}
+
+.cf-input input[readonly] {
+  background: #f5f5f5;
+  cursor: not-allowed;
+  color: #999;
+}
+
+.cf-select {
+  background: #ffffff;
+  border-radius: 8px;
+  padding: 10px 14px;
+  border: 1.5px solid #e2e2ea;
+  display: flex;
+  align-items: center;
+  transition: all 0.2s ease;
+}
+
+.cf-select:hover {
+  border-color: #c5c5d1;
+}
+
+.cf-select:focus-within {
+  border-color: var(--card-color, #2A00FF);
+  box-shadow: 0 0 0 3px rgba(42, 0, 255, 0.1);
+  background: #fafaff;
+}
+
+.cf-select select {
+  border: none;
+  background: transparent;
+  font-size: 13px;
+  outline: none;
+  width: 100%;
+  color: #1a1a1a;
+  cursor: pointer;
+  appearance: none;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 12 12'%3E%3Cpath fill='%23666' d='M6 9L1 4h10z'/%3E%3C/svg%3E");
+  background-repeat: no-repeat;
+  background-position: right 12px center;
+  padding-right: 32px;
+}
+
+/* Date and Time Row */
+.cf-input.date-time-row {
+  display: flex;
+  gap: 10px;
+  align-items: center;
+  padding: 10px 14px;
+}
+
+.cf-input.date-time-row input {
+  flex: 1;
+  min-width: 0;
+}
+
+.cf-input.date-time-row input[type="date"] {
+  flex: 1.2;
+}
+
+.cf-input.date-time-row input[type="time"] {
+  flex: 0.8;
+}
+
+/* Grid Layout */
+.cf-grid.two {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 16px;
+}
+
+.cf-grid.two .cf-field .cf-input,
+.cf-grid.two .cf-field .cf-select {
+  height: auto;
+  min-height: 42px;
+  display: flex;
+  align-items: center;
+}
+
+.cf-grid.two input[type="date"],
+.cf-grid.two input[type="time"] {
+  height: 100%;
+  padding: 0;
+  min-height: 22px;
+}
+
+/* Owner Field */
+.cf-owner-row {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.cf-owner-avatar {
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  background: linear-gradient(135deg, var(--card-color, #2A00FF) 0%, rgba(42, 0, 255, 0.7) 100%);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  font-size: 14px;
+  font-weight: 600;
+  color: #ffffff;
+  flex-shrink: 0;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+.cf-owner-select {
+  flex: 1;
+  border-radius: 8px;
+  border: 1.5px solid #e2e2ea;
+  background: #ffffff;
+  padding: 10px 14px;
+  font-size: 13px;
+  transition: all 0.2s ease;
+  cursor: pointer;
+}
+
+.cf-owner-select:hover {
+  border-color: #c5c5d1;
+}
+
+.cf-owner-select:focus {
+  outline: none;
+  border-color: var(--card-color, #2A00FF);
+  box-shadow: 0 0 0 3px rgba(42, 0, 255, 0.1);
+}
+
+/* ==========================================================
+   ATTACHMENTS & LINKS
+   ========================================================== */
+
+.cf-empty-row {
+  padding: 20px 4px 4px;
+  color: #666;
+  font-size: 13px;
+  border-top: 1px solid #f0f0f0;
+  margin-top: 8px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.cf-empty-row p {
+  margin: 0;
+  color: #888;
+  font-style: italic;
+}
+
+.cf-link-btn {
+  background: linear-gradient(135deg, var(--card-color, #2A00FF) 0%, rgba(42, 0, 255, 0.8) 100%);
+  border: none;
+  padding: 8px 16px;
+  border-radius: 6px;
+  font-size: 12px;
+  font-weight: 500;
+  color: #ffffff;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  box-shadow: 0 2px 4px rgba(42, 0, 255, 0.2);
+}
+
+.cf-link-btn:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 4px 8px rgba(42, 0, 255, 0.3);
+}
+
+.cf-link-btn:active {
+  transform: translateY(0);
+}
+
+/* List Container */
+.cf-list-container {
+  padding-top: 8px;
+}
+
+.cf-add-btn {
+  background: linear-gradient(135deg, var(--card-color, #2A00FF) 0%, rgba(42, 0, 255, 0.8) 100%);
+  border: none;
+  padding: 8px 16px;
+  border-radius: 6px;
+  font-size: 12px;
+  font-weight: 500;
+  color: #ffffff;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  box-shadow: 0 2px 4px rgba(42, 0, 255, 0.2);
+  margin-bottom: 12px;
+}
+
+.cf-add-btn:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 4px 8px rgba(42, 0, 255, 0.3);
+}
+
+.cf-add-btn:active {
+  transform: translateY(0);
+}
+
+.cf-list-items {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.cf-list-item {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 12px 14px;
+  background: #f8f9fa;
+  border-radius: 8px;
+  border: 1px solid #e9ecef;
+  transition: all 0.2s ease;
+}
+
+.cf-list-item:hover {
+  background: #f0f4ff;
+  border-color: rgba(42, 0, 255, 0.2);
+  transform: translateX(2px);
+}
+
+.cf-list-item span,
+.cf-list-item a {
+  font-size: 13px;
+  color: #333;
+  flex: 1;
+  word-break: break-word;
+}
+
+.cf-list-item a {
+  color: var(--card-color, #2A00FF);
+  text-decoration: none;
+}
+
+.cf-list-item a:hover {
+  text-decoration: underline;
+}
+
+.cf-remove-btn {
+  width: 24px;
+  height: 24px;
+  border: none;
+  background: transparent;
+  color: #999;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 4px;
+  transition: all 0.2s ease;
+  font-size: 18px;
+  line-height: 1;
+  flex-shrink: 0;
+  margin-left: 8px;
+}
+
+.cf-remove-btn:hover {
+  background: rgba(255, 0, 0, 0.1);
+  color: #ff0000;
+  transform: scale(1.1);
+}
+
+.cf-remove-btn:active {
+  transform: scale(0.95);
+}
+
+/* ==========================================================
+   RESPONSIVE
+   ========================================================== */
+
+@media (max-width: 768px) {
+  .cf-grid.two {
+    grid-template-columns: 1fr;
+    gap: 12px;
+  }
+
+  .operation-left {
+    flex-wrap: wrap;
+    gap: 6px;
+  }
+
+  .op-tab {
+    padding: 6px 12px;
+    font-size: 12px;
+  }
+
+  .cf-input.date-time-row {
+    flex-direction: column;
+    gap: 8px;
+  }
+
+  .cf-input.date-time-row input[type="date"],
+  .cf-input.date-time-row input[type="time"] {
+    flex: 1;
+    width: 100%;
+  }
+}
+

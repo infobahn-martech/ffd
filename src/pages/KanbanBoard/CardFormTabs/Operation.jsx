@@ -2,6 +2,7 @@ import { useState, useCallback } from "react";
 import PropTypes from "prop-types";
 import GroupSettingsIcon from "../../../assets/images/cv.png";
 import CircleTickIcon from "../../../assets/images/CircleTick.svg";
+import "../../../design/scss/operations.scss";
 
 // Constants
 const OPERATION_TABS = {
@@ -87,6 +88,34 @@ const FormInput = ({ type = "text", value, onChange, placeholder, className = ""
   );
 };
 
+const FormSelect = ({ value, onChange, options = [], placeholder, className = "" }) => {
+  return (
+    <div className={`cf-select ${className}`}>
+      <select value={value} onChange={onChange}>
+        {placeholder && <option value="">{placeholder}</option>}
+        {options.map((option) => (
+          <option key={option.value} value={option.value}>
+            {option.label}
+          </option>
+        ))}
+      </select>
+    </div>
+  );
+};
+
+FormSelect.propTypes = {
+  value: PropTypes.string,
+  onChange: PropTypes.func.isRequired,
+  options: PropTypes.arrayOf(
+    PropTypes.shape({
+      value: PropTypes.string.isRequired,
+      label: PropTypes.string.isRequired,
+    })
+  ),
+  placeholder: PropTypes.string,
+  className: PropTypes.string,
+};
+
 FormInput.propTypes = {
   type: PropTypes.string,
   value: PropTypes.string,
@@ -137,9 +166,97 @@ EmptySection.propTypes = {
   onButtonClick: PropTypes.func,
 };
 
-const PreArrivalContent = ({ formValues, handleChange, ownerInitial, cardUser }) => {
+const AttachmentsList = ({ attachments = [], onAdd, onRemove }) => {
+  if (attachments.length === 0) {
+    return (
+      <EmptySection
+        message="No attachments added."
+        buttonText="+ Add attachment"
+        onButtonClick={onAdd}
+      />
+    );
+  }
+
   return (
-    <div className="cardform-left-full">
+    <div className="cf-list-container">
+      <button className="cf-add-btn" onClick={onAdd} type="button">
+        + Add attachment
+      </button>
+      <div className="cf-list-items">
+        {attachments.map((item, index) => (
+          <div key={index} className="cf-list-item">
+            <span>{item.name || item}</span>
+            <button
+              className="cf-remove-btn"
+              onClick={() => onRemove(index)}
+              type="button"
+            >
+              ×
+            </button>
+          </div>
+        ))}
+      </div>
+    </div>
+  );
+};
+
+AttachmentsList.propTypes = {
+  attachments: PropTypes.array,
+  onAdd: PropTypes.func,
+  onRemove: PropTypes.func,
+};
+
+const LinksList = ({ links = [], onAdd, onRemove }) => {
+  if (links.length === 0) {
+    return (
+      <EmptySection
+        message="No links added."
+        buttonText="+ Add Link"
+        onButtonClick={onAdd}
+      />
+    );
+  }
+
+  return (
+    <div className="cf-list-container">
+      <button className="cf-add-btn" onClick={onAdd} type="button">
+        + Add Link
+      </button>
+      <div className="cf-list-items">
+        {links.map((item, index) => (
+          <div key={index} className="cf-list-item">
+            <a href={item.url || item} target="_blank" rel="noopener noreferrer">
+              {item.name || item.url || item}
+            </a>
+            <button
+              className="cf-remove-btn"
+              onClick={() => onRemove(index)}
+              type="button"
+            >
+              ×
+            </button>
+          </div>
+        ))}
+      </div>
+    </div>
+  );
+};
+
+LinksList.propTypes = {
+  links: PropTypes.array,
+  onAdd: PropTypes.func,
+  onRemove: PropTypes.func,
+};
+
+const PreArrivalContent = ({ formValues, handleChange, ownerInitial, cardUser, cardColor, onAddAttachment, onRemoveAttachment, onAddLink, onRemoveLink }) => {
+  const typeOfCallOptions = [
+    { value: "Import", label: "Import" },
+    { value: "Export", label: "Export" },
+    { value: "Domestic", label: "Domestic" },
+  ];
+
+  return (
+    <div className="cardform-left-full" style={{ "--card-color": cardColor }}>
       <FormSection icon={GroupSettingsIcon} title="Card Information">
         <div className="pre-arrival-form">
           <OwnerField
@@ -148,6 +265,29 @@ const PreArrivalContent = ({ formValues, handleChange, ownerInitial, cardUser })
             ownerInitial={ownerInitial}
             cardUser={cardUser}
           />
+
+          <div className="form-group">
+            <h3 className="form-group-title">Service Information</h3>
+            <div className="cf-grid two">
+              <FormField label="Type of call / Service">
+                <FormSelect
+                  value={formValues.typeOfCall}
+                  onChange={handleChange("typeOfCall")}
+                  options={typeOfCallOptions}
+                  placeholder="Select type of call..."
+                />
+              </FormField>
+
+              <FormField label="Main Billing entity">
+                <FormSelect
+                  value={formValues.mainBillingEntity}
+                  onChange={handleChange("mainBillingEntity")}
+                  options={[]}
+                  placeholder="Select billing entity..."
+                />
+              </FormField>
+            </div>
+          </div>
 
           <div className="form-group">
             <h3 className="form-group-title">Appointment Details</h3>
@@ -173,68 +313,214 @@ const PreArrivalContent = ({ formValues, handleChange, ownerInitial, cardUser })
           <div className="form-group">
             <h3 className="form-group-title">Vessel Information</h3>
             <div className="cf-grid two">
-              <FormField label="Last Port">
-                <FormInput
-                  type="text"
-                  placeholder="Enter last port..."
-                  value={formValues.lastPort}
-                  onChange={handleChange("lastPort")}
+              <FormField label="Port">
+                <FormSelect
+                  value={formValues.port}
+                  onChange={handleChange("port")}
+                  options={[]}
+                  placeholder="Select port..."
                 />
               </FormField>
 
-              <FormField label="Estimated Time of Arrival (ETA)">
-                <div className="cf-input eta-row">
+              <FormField label="Vessel type">
+                <FormSelect
+                  value={formValues.vesselType}
+                  onChange={handleChange("vesselType")}
+                  options={[]}
+                  placeholder="Select vessel type..."
+                />
+              </FormField>
+
+              <FormField label="Barge type">
+                <FormSelect
+                  value={formValues.bargeType}
+                  onChange={handleChange("bargeType")}
+                  options={[]}
+                  placeholder="Select barge type..."
+                />
+              </FormField>
+
+              <FormField label="Vessel Name">
+                <FormInput
+                  type="text"
+                  placeholder="Enter vessel name..."
+                  value={formValues.vesselName}
+                  onChange={handleChange("vesselName")}
+                />
+              </FormField>
+
+              <FormField label="Vessel Owner">
+                <FormInput
+                  type="text"
+                  placeholder="Enter vessel owner..."
+                  value={formValues.vesselOwner}
+                  onChange={handleChange("vesselOwner")}
+                />
+              </FormField>
+
+              <FormField label="Vessel Principal">
+                <FormInput
+                  type="text"
+                  placeholder="Enter vessel principal..."
+                  value={formValues.vesselPrincipal}
+                  onChange={handleChange("vesselPrincipal")}
+                />
+              </FormField>
+
+              <FormField label="Vessel Manager">
+                <FormInput
+                  type="text"
+                  placeholder="Enter vessel manager..."
+                  value={formValues.vesselManager}
+                  onChange={handleChange("vesselManager")}
+                />
+              </FormField>
+
+              <FormField label="Other billing entity">
+                <FormSelect
+                  value={formValues.otherBillingEntity}
+                  onChange={handleChange("otherBillingEntity")}
+                  options={[]}
+                  placeholder="Select billing entity..."
+                />
+              </FormField>
+
+              <FormField label="Assigned Operator">
+                <FormSelect
+                  value={formValues.assignedOperator}
+                  onChange={handleChange("assignedOperator")}
+                  options={[]}
+                  placeholder="Select operator..."
+                />
+              </FormField>
+
+              <FormField label="Service Requestor Name">
+                <FormInput
+                  type="text"
+                  placeholder="Enter service requestor name..."
+                  value={formValues.serviceRequestorName}
+                  onChange={handleChange("serviceRequestorName")}
+                />
+              </FormField>
+
+              <FormField label="Service Requestor Email">
+                <FormInput
+                  type="email"
+                  placeholder="Enter service requestor email..."
+                  value={formValues.serviceRequestorEmail}
+                  onChange={handleChange("serviceRequestorEmail")}
+                />
+              </FormField>
+
+              <FormField label="Daily Report Email Id">
+                <FormInput
+                  type="email"
+                  placeholder="Enter daily report email..."
+                  value={formValues.dailyReportEmail}
+                  onChange={handleChange("dailyReportEmail")}
+                />
+              </FormField>
+
+              <FormField label="Billing instructions">
+                <FormInput
+                  type="text"
+                  placeholder="Auto pop up"
+                  value={formValues.billingInstructions}
+                  onChange={handleChange("billingInstructions")}
+                  readOnly
+                />
+              </FormField>
+            </div>
+          </div>
+
+          <div className="form-group">
+            <h3 className="form-group-title">Pre-Arrival Information</h3>
+            <div className="cf-grid two">
+              <FormField label="Expected time of arrival">
+                <div className="cf-input date-time-row">
                   <input
                     type="date"
-                    value={formValues.etaDate}
-                    onChange={handleChange("etaDate")}
+                    value={formValues.expectedArrivalDate}
+                    onChange={handleChange("expectedArrivalDate")}
                     placeholder="Select date"
                   />
                   <input
                     type="time"
-                    value={formValues.etaTime}
-                    onChange={handleChange("etaTime")}
+                    value={formValues.expectedArrivalTime}
+                    onChange={handleChange("expectedArrivalTime")}
+                    placeholder="Select time"
+                  />
+                </div>
+              </FormField>
+
+              <FormField label="Expected commencement of custom inspection">
+                <div className="cf-input date-time-row">
+                  <input
+                    type="date"
+                    value={formValues.customsInspectionDate}
+                    onChange={handleChange("customsInspectionDate")}
+                    placeholder="Select date"
+                  />
+                  <input
+                    type="time"
+                    value={formValues.customsInspectionTime}
+                    onChange={handleChange("customsInspectionTime")}
+                    placeholder="Select time"
+                  />
+                </div>
+              </FormField>
+
+              <FormField label="Expected commencement of Immigration clearance for crew">
+                <div className="cf-input date-time-row">
+                  <input
+                    type="date"
+                    value={formValues.immigrationClearanceDate}
+                    onChange={handleChange("immigrationClearanceDate")}
+                    placeholder="Select date"
+                  />
+                  <input
+                    type="time"
+                    value={formValues.immigrationClearanceTime}
+                    onChange={handleChange("immigrationClearanceTime")}
+                    placeholder="Select time"
+                  />
+                </div>
+              </FormField>
+
+              <FormField label="Expected completion of inward clearance">
+                <div className="cf-input date-time-row">
+                  <input
+                    type="date"
+                    value={formValues.inwardClearanceDate}
+                    onChange={handleChange("inwardClearanceDate")}
+                    placeholder="Select date"
+                  />
+                  <input
+                    type="time"
+                    value={formValues.inwardClearanceTime}
+                    onChange={handleChange("inwardClearanceTime")}
                     placeholder="Select time"
                   />
                 </div>
               </FormField>
             </div>
           </div>
-
-          <div className="form-group">
-            <h3 className="form-group-title">Customs & Clearance</h3>
-            <FormField label="Expected commencement of customs inspection">
-              <FormInput
-                type="text"
-                placeholder="Enter expected customs inspection time..."
-                value={formValues.customsStart}
-                onChange={handleChange("customsStart")}
-              />
-            </FormField>
-
-            <FormField label="Expected completion of inward clearance">
-              <FormInput
-                type="text"
-                placeholder="Enter expected clearance completion time..."
-                value={formValues.clearanceCompletion}
-                onChange={handleChange("clearanceCompletion")}
-              />
-            </FormField>
-          </div>
         </div>
       </FormSection>
 
       <FormSection icon={CircleTickIcon} title="Attachments">
-        <EmptySection
-          message="No attachments added."
-          buttonText="+ Add attachment"
+        <AttachmentsList
+          attachments={formValues.attachments || []}
+          onAdd={onAddAttachment}
+          onRemove={onRemoveAttachment}
         />
       </FormSection>
 
       <FormSection icon={CircleTickIcon} title="Links">
-        <EmptySection
-          message="No links added."
-          buttonText="+ Add Link"
+        <LinksList
+          links={formValues.links || []}
+          onAdd={onAddLink}
+          onRemove={onRemoveLink}
         />
       </FormSection>
     </div>
@@ -246,6 +532,11 @@ PreArrivalContent.propTypes = {
   handleChange: PropTypes.func.isRequired,
   ownerInitial: PropTypes.string.isRequired,
   cardUser: PropTypes.string,
+  cardColor: PropTypes.string,
+  onAddAttachment: PropTypes.func,
+  onRemoveAttachment: PropTypes.func,
+  onAddLink: PropTypes.func,
+  onRemoveLink: PropTypes.func,
 };
 
 const OperationContent = ({ activeTab }) => {
@@ -279,13 +570,34 @@ OperationContent.propTypes = {
 // Main Operation Component
 function Operation({ card, formValues, handleChange, ownerInitial }) {
   const [activeOperationTab, setActiveOperationTab] = useState(OPERATION_TABS.PRE_ARRIVAL);
+  const cardColor = card?.color || "#2A00FF";
 
   const handleTabChange = useCallback((tab) => {
     setActiveOperationTab(tab);
   }, []);
 
+  const handleAddAttachment = useCallback(() => {
+    // TODO: Implement attachment add logic
+    console.log("Add attachment");
+  }, []);
+
+  const handleRemoveAttachment = useCallback((index) => {
+    // TODO: Implement attachment remove logic
+    console.log("Remove attachment", index);
+  }, []);
+
+  const handleAddLink = useCallback(() => {
+    // TODO: Implement link add logic
+    console.log("Add link");
+  }, []);
+
+  const handleRemoveLink = useCallback((index) => {
+    // TODO: Implement link remove logic
+    console.log("Remove link", index);
+  }, []);
+
   return (
-    <div className="operation-wrapper">
+    <div className="operation-wrapper" style={{ "--card-color": cardColor }}>
       <OperationTabs
         activeTab={activeOperationTab}
         onTabChange={handleTabChange}
@@ -297,12 +609,17 @@ function Operation({ card, formValues, handleChange, ownerInitial }) {
             handleChange={handleChange}
             ownerInitial={ownerInitial}
             cardUser={card?.user}
+            cardColor={cardColor}
+            onAddAttachment={handleAddAttachment}
+            onRemoveAttachment={handleRemoveAttachment}
+            onAddLink={handleAddLink}
+            onRemoveLink={handleRemoveLink}
           />
         )}
         {(activeOperationTab === OPERATION_TABS.ARRIVAL ||
           activeOperationTab === OPERATION_TABS.DEPARTURE) && (
-          <OperationContent activeTab={activeOperationTab} />
-        )}
+            <OperationContent activeTab={activeOperationTab} />
+          )}
       </div>
     </div>
   );

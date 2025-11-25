@@ -170,11 +170,11 @@ const renderTabContent = (activeTab, card, formValues, handleChange, ownerInitia
       return <General {...commonProps} />;
     case "Operation":
       return <Operation {...commonProps} ownerInitial={ownerInitial} />;
-    case "Checklist":
+    case "Checklists":
       return <Checklist {...commonProps} />;
     case "Husbandry":
       return <Husbandry {...commonProps} />;
-    case "Attachments":
+    case "Attachmentss":
       return <Attachments {...commonProps} />;
     case "Sales Order":
       return <SalesOrder {...commonProps} />;
@@ -196,8 +196,36 @@ function CardForm({ show, close, card }) {
   const initialFormValues = useMemo(
     () => ({
       owner: card?.user || "None",
+      // Service Information
+      typeOfCall: card?.typeOfCall || "",
+      mainBillingEntity: card?.mainBillingEntity || "",
+      // Appointment Details
       appointmentReceivedDate: card?.appointmentReceivedDate || "",
       appointmentAcceptanceDate: card?.appointmentAcceptanceDate || "",
+      // Vessel Information
+      port: card?.port || "",
+      vesselType: card?.vesselType || "",
+      bargeType: card?.bargeType || "",
+      vesselName: card?.vesselName || "",
+      vesselOwner: card?.vesselOwner || "",
+      vesselPrincipal: card?.vesselPrincipal || "",
+      vesselManager: card?.vesselManager || "",
+      otherBillingEntity: card?.otherBillingEntity || "",
+      assignedOperator: card?.assignedOperator || "",
+      serviceRequestorName: card?.serviceRequestorName || "",
+      serviceRequestorEmail: card?.serviceRequestorEmail || "",
+      dailyReportEmail: card?.dailyReportEmail || "",
+      billingInstructions: card?.billingInstructions || "",
+      // Pre-Arrival Information
+      expectedArrivalDate: card?.expectedArrivalDate || "",
+      expectedArrivalTime: card?.expectedArrivalTime || "",
+      customsInspectionDate: card?.customsInspectionDate || "",
+      customsInspectionTime: card?.customsInspectionTime || "",
+      immigrationClearanceDate: card?.immigrationClearanceDate || "",
+      immigrationClearanceTime: card?.immigrationClearanceTime || "",
+      inwardClearanceDate: card?.inwardClearanceDate || "",
+      inwardClearanceTime: card?.inwardClearanceTime || "",
+      // Legacy fields (keeping for backward compatibility)
       lastPort: card?.lastPort || "",
       etaDate: card?.etaDate || "",
       etaTime: card?.etaTime || "",
@@ -205,6 +233,9 @@ function CardForm({ show, close, card }) {
       clearanceCompletion: card?.clearanceCompletion || "",
       lastMovedDate: card?.lastMovedDate || "",
       lastMovedTime: card?.lastMovedTime || "",
+      // Attachments and Links
+      attachments: card?.attachments || [],
+      links: card?.links || [],
     }),
     [card]
   );
