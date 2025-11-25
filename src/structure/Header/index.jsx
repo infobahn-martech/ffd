@@ -16,10 +16,10 @@ function Header({ onMenuToggle, mobileMenuOpen: externalMobileMenuOpen }) {
   const { width } = useWindowSize();
   const [internalMobileMenuOpen, setInternalMobileMenuOpen] = useState(false);
   const isMobile = width <= 991;
-  
+
   // Use external state if provided, otherwise use internal state
-  const mobileMenuOpen = externalMobileMenuOpen !== undefined 
-    ? externalMobileMenuOpen 
+  const mobileMenuOpen = externalMobileMenuOpen !== undefined
+    ? externalMobileMenuOpen
     : internalMobileMenuOpen;
 
   const handleMenuToggle = () => {
@@ -39,7 +39,7 @@ function Header({ onMenuToggle, mobileMenuOpen: externalMobileMenuOpen }) {
       <div className="left-section">
         {/* Mobile Menu Toggle Button */}
         {isMobile && (
-          <button 
+          <button
             className={`mobile-menu-toggle ${mobileMenuOpen ? 'active' : ''}`}
             onClick={handleMenuToggle}
             aria-label="Toggle menu"
@@ -58,14 +58,14 @@ function Header({ onMenuToggle, mobileMenuOpen: externalMobileMenuOpen }) {
           {pathname !== "/kanban-board" ? (
             <NavLink to="/kanban-board" className="top-link active back-link">
               <img src={BackIcon} alt="back" className="back-icon" />
-              <span className="link-text">Back to Board</span>
+              <span className="link-text" style={{ cursor: 'pointer' }} >Back to Board</span>
             </NavLink>
           ) : (
             <>
-               <NavLink to="/users" className="top-link active back-link">
-              <img src={BackIcon} alt="back" className="back-icon" />
-              <span className="link-text">Back to Users</span>
-            </NavLink>
+              <NavLink to="/users" className="top-link active back-link">
+                <img src={BackIcon} alt="back" className="back-icon" />
+                <span style={{ cursor: 'pointer' }} className="link-text">Back to Users</span>
+              </NavLink>
               <NavLink to="/workflows" className="top-link">
                 <span className="link-text">Edit Workflows</span>
               </NavLink>
