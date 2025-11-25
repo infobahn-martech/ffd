@@ -170,7 +170,7 @@ const renderTabContent = (activeTab, card, formValues, handleChange, ownerInitia
       return <General {...commonProps} />;
     case "Operation":
       return <Operation {...commonProps} ownerInitial={ownerInitial} />;
-    case "Checklists":
+    case "Checklist":
       return <Checklist {...commonProps} />;
     case "Husbandry":
       return <Husbandry {...commonProps} />;

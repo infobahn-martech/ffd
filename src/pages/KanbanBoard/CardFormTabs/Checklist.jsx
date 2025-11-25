@@ -220,7 +220,7 @@ function Checklist({ card, formValues, handleChange }) {
 
   return (
     <div className="cardform-body checklist-body">
-      <div className="cf-section">
+      {/* <div className="cf-section">
         <div className="cf-section-header">
           <div className="cf-section-icon">
             <span>📋</span>
@@ -293,7 +293,7 @@ function Checklist({ card, formValues, handleChange }) {
             </div>
           </div>
         </div>
-      </div>
+      </div> */}
 
       <div className="cf-section">
         <div className="cf-section-header">
