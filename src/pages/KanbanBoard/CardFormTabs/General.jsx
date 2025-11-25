@@ -2,28 +2,25 @@ import PropTypes from "prop-types";
 import { useMemo, useState, useEffect } from "react";
 import "../../../design/scss/general.scss";
 
-// Job statuses in order
+// Job statuses in order with icons and descriptions
 const JOB_STATUSES = [
-  { id: 1, title: "Pre-Arrival", key: "preArrival" },
-  { id: 2, title: "Customs Inspection", key: "customsInspection" },
-  { id: 3, title: "Crew Immigration", key: "crewImmigration" },
-  { id: 4, title: "Vessel Inward Formalities", key: "vesselInwardFormalities" },
-  { id: 5, title: "Marine Work Permit", key: "marineWorkPermit" },
-  { id: 6, title: "SABER UT", key: "saberUt" },
-  { id: 7, title: "Outward Clearance", key: "outwardClearance" },
-  { id: 8, title: "Vessel Sailed", key: "vesselSailed" },
-  { id: 9, title: "Operations Completed", key: "operationsCompleted" },
-  { id: 10, title: "SO Approval", key: "soApproval" },
-  { id: 11, title: "Invoice Issued", key: "invoiceIssued" },
-  { id: 12, title: "Submitted", key: "submitted" },
-  { id: 13, title: "Confirmation Received", key: "confirmationReceived" },
-  { id: 14, title: "Closed", key: "closed" },
+  { id: 1, title: "Pre-Arrival", key: "preArrival", icon: "🚢", description: "Vessel approaching port" },
+  { id: 2, title: "Customs Inspection", key: "customsInspection", icon: "🔍", description: "Customs clearance process" },
+  { id: 3, title: "Crew Immigration", key: "crewImmigration", icon: "👥", description: "Crew documentation check" },
+  { id: 4, title: "Vessel Inward Formalities", key: "vesselInwardFormalities", icon: "📋", description: "Inward documentation" },
+  { id: 5, title: "Marine Work Permit", key: "marineWorkPermit", icon: "⚓", description: "Work permit approval" },
+  { id: 6, title: "SABER UT", key: "saberUt", icon: "✅", description: "SABER system update" },
+  { id: 7, title: "Outward Clearance", key: "outwardClearance", icon: "📤", description: "Outward documentation" },
+  { id: 8, title: "Vessel Sailed", key: "vesselSailed", icon: "⛵", description: "Vessel departed port" },
+  { id: 9, title: "Operations Completed", key: "operationsCompleted", icon: "✔️", description: "All operations finished" },
+  { id: 10, title: "SO Approval", key: "soApproval", icon: "📝", description: "Service order approved" },
+  { id: 11, title: "Invoice Issued", key: "invoiceIssued", icon: "🧾", description: "Invoice generated" },
+  { id: 12, title: "Submitted", key: "submitted", icon: "📨", description: "Documents submitted" },
+  { id: 13, title: "Confirmation Received", key: "confirmationReceived", icon: "✉️", description: "Confirmation obtained" },
+  { id: 14, title: "Closed", key: "closed", icon: "🔒", description: "Job completed and closed" },
 ];
 
-function LineProgress({ jobStatuses, currentStatus, accentColor }) {
-  const STEPS_PER_VIEW = 5;
-  const [currentPage, setCurrentPage] = useState(0);
-
+function VerticalTimeline({ jobStatuses, currentStatus, accentColor }) {
   const getStatusState = (statusId) => {
     const currentIndex = jobStatuses.findIndex((s) => s.key === currentStatus);
     const statusIndex = jobStatuses.findIndex((s) => s.id === statusId);
@@ -33,134 +30,67 @@ function LineProgress({ jobStatuses, currentStatus, accentColor }) {
     return "pending";
   };
 
-  const completedCount = jobStatuses.findIndex((s) => s.key === currentStatus) + 1;
-  const progressPercentage = (completedCount / jobStatuses.length) * 100;
-
-  // Calculate total pages
-  const totalPages = Math.ceil(jobStatuses.length / STEPS_PER_VIEW);
-
-  // Auto-center on current status when it changes
-  useEffect(() => {
-    const currentIndex = jobStatuses.findIndex((s) => s.key === currentStatus);
-    if (currentIndex !== -1) {
-      const pageForCurrentStatus = Math.floor(currentIndex / STEPS_PER_VIEW);
-      setCurrentPage(pageForCurrentStatus);
-    }
-  }, [currentStatus, jobStatuses]);
-
-  const handlePrevious = () => {
-    setCurrentPage((prev) => Math.max(0, prev - 1));
-  };
-
-  const handleNext = () => {
-    setCurrentPage((prev) => Math.min(totalPages - 1, prev + 1));
-  };
-
-  const handlePageClick = (pageIndex) => {
-    setCurrentPage(pageIndex);
-  };
+  const currentIndex = jobStatuses.findIndex((s) => s.key === currentStatus);
+  const progressPercentage = currentIndex !== -1 ? ((currentIndex + 1) / jobStatuses.length) * 100 : 0;
 
   return (
-    <div className="line-progress-container">
-      <div className="line-progress-bar">
+    <div className="vertical-timeline-container" style={{ '--accent-color': accentColor }}>
+      <div className="vertical-timeline-line">
         <div
-          className="line-progress-fill"
+          className="vertical-timeline-fill"
           style={{
-            width: `${progressPercentage}%`,
-            backgroundColor: accentColor
+            height: `${progressPercentage}%`,
+            '--accent-color': accentColor
           }}
         />
       </div>
 
-      <div className="line-progress-navigation">
-        <button
-          className="nav-arrow nav-arrow-left"
-          onClick={handlePrevious}
-          disabled={currentPage === 0}
-          aria-label="Previous steps"
-          style={{ '--accent-color': accentColor }}
-        >
-          <svg width="20" height="20" viewBox="0 0 20 20" fill="none" xmlns="http://www.w3.org/2000/svg">
-            <path d="M12.5 15L7.5 10L12.5 5" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
-          </svg>
-        </button>
+      <div className="vertical-timeline-steps">
+        {jobStatuses.map((status, index) => {
+          const state = getStatusState(status.id);
+          const isLast = index === jobStatuses.length - 1;
+          const isLeft = index % 2 === 0;
+          const nextStatus = !isLast ? jobStatuses[index + 1] : null;
+          const nextState = nextStatus ? getStatusState(nextStatus.id) : null;
+          const isConnectorCompleted = !isLast && (state === "completed" || state === "active" || nextState === "completed" || nextState === "active");
 
-        <div className="line-progress-steps-wrapper">
-          <div
-            className="line-progress-steps"
-            style={{
-              transform: `translateX(-${currentPage * 100}%)`,
-              '--accent-color': accentColor
-            }}
-          >
-            {Array.from({ length: totalPages }).map((_, pageIndex) => {
-              const pageStart = pageIndex * STEPS_PER_VIEW;
-              const pageEnd = Math.min(pageStart + STEPS_PER_VIEW, jobStatuses.length);
-              const pageSteps = jobStatuses.slice(pageStart, pageEnd);
+          return (
+            <div key={status.id} className={`vertical-timeline-step-wrapper ${isLeft ? 'step-left' : 'step-right'}`}>
+              <div className={`vertical-timeline-content ${isLeft ? 'content-left' : 'content-right'}`}>
+                {!isLeft && (
+                  <div className="timeline-time">
+                    <span className="time-label">Step {status.id}</span>
+                  </div>
+                )}
+                <div className={`timeline-title ${state}`}>{status.title}</div>
+                <div className={`timeline-description ${state}`}>{status.description}</div>
+                {isLeft && (
+                  <div className="timeline-time">
+                    <span className="time-label">Step {status.id}</span>
+                  </div>
+                )}
+              </div>
 
-              return (
-                <div key={pageIndex} className="line-progress-page">
-                  {pageSteps.map((status, index) => {
-                    const globalIndex = pageStart + index;
-                    const state = getStatusState(status.id);
-                    const isLast = globalIndex === jobStatuses.length - 1;
-                    const nextStatus = !isLast ? jobStatuses[globalIndex + 1] : null;
-                    const nextState = nextStatus ? getStatusState(nextStatus.id) : null;
-                    const isConnectorCompleted = !isLast && (state === "completed" || state === "active" || nextState === "completed" || nextState === "active");
-
-                    return (
-                      <div key={status.id} className="line-progress-step-wrapper">
-                        <div className={`line-progress-step ${state}`} style={{ '--accent-color': accentColor }}>
-                          <div className="step-circle">
-                            {state === "completed" && <span className="step-check">✓</span>}
-                            {state === "active" && <span className="step-dot"></span>}
-                            {state === "pending" && <span className="step-number">{status.id}</span>}
-                          </div>
-                          <div className="step-title">{status.title}</div>
-                        </div>
-                        {!isLast && (
-                          <div
-                            className={`step-connector ${isConnectorCompleted ? "completed" : ""}`}
-                            style={{
-                              backgroundColor: isConnectorCompleted ? accentColor : "#e0e0e0"
-                            }}
-                          />
-                        )}
-                      </div>
-                    );
-                  })}
+              <div className={`vertical-timeline-icon ${state}`}>
+                <div className="timeline-icon-circle">
+                  {state === "completed" && <span className="icon-check">✓</span>}
+                  {state === "active" && <span className="icon-dot"></span>}
+                  {state === "pending" && <span className="icon-emoji">{status.icon}</span>}
                 </div>
-              );
-            })}
-          </div>
-        </div>
+              </div>
 
-        <button
-          className="nav-arrow nav-arrow-right"
-          onClick={handleNext}
-          disabled={currentPage === totalPages - 1}
-          aria-label="Next steps"
-          style={{ '--accent-color': accentColor }}
-        >
-          <svg width="20" height="20" viewBox="0 0 20 20" fill="none" xmlns="http://www.w3.org/2000/svg">
-            <path d="M7.5 5L12.5 10L7.5 15" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
-          </svg>
-        </button>
+              {!isLast && (
+                <div
+                  className={`vertical-timeline-connector ${isConnectorCompleted ? "completed" : ""}`}
+                  style={{
+                    backgroundColor: isConnectorCompleted ? accentColor : "#e0e0e0"
+                  }}
+                />
+              )}
+            </div>
+          );
+        })}
       </div>
-
-      {totalPages > 1 && (
-        <div className="line-progress-pagination">
-          {Array.from({ length: totalPages }).map((_, index) => (
-            <button
-              key={index}
-              className={`pagination-dot ${index === currentPage ? 'active' : ''}`}
-              onClick={() => handlePageClick(index)}
-              aria-label={`Go to page ${index + 1}`}
-              style={{ '--accent-color': accentColor }}
-            />
-          ))}
-        </div>
-      )}
     </div>
   );
 }
@@ -242,68 +172,70 @@ function General({ card, formValues, handleChange }) {
 
   return (
     <div className="cardform-body general-tab-body">
-      <div className="cf-section">
-        <div className="cf-section-header">
-          <div className="cf-section-icon">
-            <span>📊</span>
+      <div className="general-sections-wrapper">
+        <div className="cf-section">
+          <div className="cf-section-header">
+            <div className="cf-section-icon">
+              <span>📊</span>
+            </div>
+            <div className="cf-section-title">Job Status</div>
           </div>
-          <div className="cf-section-title">Job Status</div>
+          <div className="cf-section-body">
+            <VerticalTimeline
+              jobStatuses={JOB_STATUSES}
+              currentStatus={currentStatus}
+              accentColor={accentColor}
+            />
+          </div>
         </div>
-        <div className="cf-section-body">
-          <LineProgress
-            jobStatuses={JOB_STATUSES}
-            currentStatus={currentStatus}
-            accentColor={accentColor}
-          />
-        </div>
-      </div>
 
-      <div className="cf-section">
-        <div className="cf-section-header">
-          <div className="cf-section-icon">
-            <span>📋</span>
+        <div className="cf-section">
+          <div className="cf-section-header">
+            <div className="cf-section-icon">
+              <span>📋</span>
+            </div>
+            <div className="cf-section-title">Summary</div>
           </div>
-          <div className="cf-section-title">Summary</div>
-        </div>
-        <div className="cf-section-body">
-          <div className="summary-grid">
-            {summaryData.map((item, index) => {
-              const isEmpty = !item.value || item.value === "N/A" || item.value === "None";
-              return (
-                <div
-                  key={index}
-                  className={`summary-item ${item.highlight ? 'summary-item-highlight' : ''} ${isEmpty ? 'summary-item-empty' : ''}`}
-                  style={{ '--accent-color': accentColor }}
-                >
-                  <div className="summary-item-header">
-                    <div className="summary-icon">{item.icon}</div>
-                    <div className="summary-label">{item.label}</div>
-                    {item.copyable && !isEmpty && (
-                      <button
-                        className="summary-copy-btn"
-                        onClick={() => handleCopy(item.value, item.label)}
-                        aria-label={`Copy ${item.label}`}
-                        title={`Copy ${item.label}`}
-                      >
-                        <svg width="14" height="14" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
-                          <path d="M5.5 4.5V2.5C5.5 1.94772 5.94772 1.5 6.5 1.5H13.5C14.0523 1.5 14.5 1.94772 14.5 2.5V9.5C14.5 10.0523 14.0523 10.5 13.5 10.5H11.5M5.5 4.5H2.5C1.94772 4.5 1.5 4.94772 1.5 5.5V12.5C1.5 13.0523 1.94772 13.5 2.5 13.5H9.5C10.0523 13.5 10.5 13.0523 10.5 12.5V9.5M5.5 4.5C5.5 4.94772 5.94772 5.5 6.5 5.5H9.5M10.5 9.5V6.5C10.5 5.94772 10.0523 5.5 9.5 5.5H6.5" stroke="currentColor" strokeWidth="1.2" strokeLinecap="round" />
-                        </svg>
-                      </button>
+          <div className="cf-section-body">
+            <div className="summary-grid">
+              {summaryData.map((item, index) => {
+                const isEmpty = !item.value || item.value === "N/A" || item.value === "None";
+                return (
+                  <div
+                    key={index}
+                    className={`summary-item ${item.highlight ? 'summary-item-highlight' : ''} ${isEmpty ? 'summary-item-empty' : ''}`}
+                    style={{ '--accent-color': accentColor }}
+                  >
+                    <div className="summary-item-header">
+                      <div className="summary-icon">{item.icon}</div>
+                      <div className="summary-label">{item.label}</div>
+                      {item.copyable && !isEmpty && (
+                        <button
+                          className="summary-copy-btn"
+                          onClick={() => handleCopy(item.value, item.label)}
+                          aria-label={`Copy ${item.label}`}
+                          title={`Copy ${item.label}`}
+                        >
+                          <svg width="14" height="14" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
+                            <path d="M5.5 4.5V2.5C5.5 1.94772 5.94772 1.5 6.5 1.5H13.5C14.0523 1.5 14.5 1.94772 14.5 2.5V9.5C14.5 10.0523 14.0523 10.5 13.5 10.5H11.5M5.5 4.5H2.5C1.94772 4.5 1.5 4.94772 1.5 5.5V12.5C1.5 13.0523 1.94772 13.5 2.5 13.5H9.5C10.0523 13.5 10.5 13.0523 10.5 12.5V9.5M5.5 4.5C5.5 4.94772 5.94772 5.5 6.5 5.5H9.5M10.5 9.5V6.5C10.5 5.94772 10.0523 5.5 9.5 5.5H6.5" stroke="currentColor" strokeWidth="1.2" strokeLinecap="round" />
+                          </svg>
+                        </button>
+                      )}
+                    </div>
+                    <div className={`summary-value ${item.type === 'status' ? 'summary-value-status' : ''}`}>
+                      {isEmpty ? (
+                        <span className="summary-empty-text">Not set</span>
+                      ) : (
+                        item.value
+                      )}
+                    </div>
+                    {item.type === 'status' && !isEmpty && (
+                      <div className="summary-status-indicator" style={{ backgroundColor: accentColor }}></div>
                     )}
                   </div>
-                  <div className={`summary-value ${item.type === 'status' ? 'summary-value-status' : ''}`}>
-                    {isEmpty ? (
-                      <span className="summary-empty-text">Not set</span>
-                    ) : (
-                      item.value
-                    )}
-                  </div>
-                  {item.type === 'status' && !isEmpty && (
-                    <div className="summary-status-indicator" style={{ backgroundColor: accentColor }}></div>
-                  )}
-                </div>
-              );
-            })}
+                );
+              })}
+            </div>
           </div>
         </div>
       </div>
