@@ -600,28 +600,30 @@ function Operation({ card, formValues, handleChange, ownerInitial }) {
 
   return (
     <div className="operation-wrapper" style={{ "--card-color": cardColor }}>
-      <OperationTabs
-        activeTab={activeOperationTab}
-        onTabChange={handleTabChange}
-      />
-      <div className="operation-right">
-        {activeOperationTab === OPERATION_TABS.PRE_ARRIVAL && (
-          <PreArrivalContent
-            formValues={formValues}
-            handleChange={handleChange}
-            ownerInitial={ownerInitial}
-            cardUser={card?.user}
-            cardColor={cardColor}
-            onAddAttachment={handleAddAttachment}
-            onRemoveAttachment={handleRemoveAttachment}
-            onAddLink={handleAddLink}
-            onRemoveLink={handleRemoveLink}
-          />
-        )}
-        {(activeOperationTab === OPERATION_TABS.ARRIVAL ||
-          activeOperationTab === OPERATION_TABS.DEPARTURE) && (
-            <OperationContent activeTab={activeOperationTab} />
+      <div className="operation-content-container">
+        <OperationTabs
+          activeTab={activeOperationTab}
+          onTabChange={handleTabChange}
+        />
+        <div className="operation-right">
+          {activeOperationTab === OPERATION_TABS.PRE_ARRIVAL && (
+            <PreArrivalContent
+              formValues={formValues}
+              handleChange={handleChange}
+              ownerInitial={ownerInitial}
+              cardUser={card?.user}
+              cardColor={cardColor}
+              onAddAttachment={handleAddAttachment}
+              onRemoveAttachment={handleRemoveAttachment}
+              onAddLink={handleAddLink}
+              onRemoveLink={handleRemoveLink}
+            />
           )}
+          {(activeOperationTab === OPERATION_TABS.ARRIVAL ||
+            activeOperationTab === OPERATION_TABS.DEPARTURE) && (
+              <OperationContent activeTab={activeOperationTab} />
+            )}
+        </div>
       </div>
     </div>
   );
