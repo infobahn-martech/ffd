@@ -201,16 +201,18 @@ const MultiSelect = ({ value = [], onChange, options = [], placeholder, classNam
       </div>
       {isOpen && (
         <div className="cf-multiselect-dropdown" style={{ "--card-color": cardColor }}>
-          {options.map((option) => (
-            <label key={option.value} className="cf-multiselect-option">
-              <input
-                type="checkbox"
-                checked={value.includes(option.value)}
-                onChange={() => handleToggle(option.value)}
-              />
-              <span>{option.label}</span>
-            </label>
-          ))}
+          {options.map((option) => {
+            const isSelected = value.includes(option.value);
+            return (
+              <div
+                key={option.value}
+                className={`cf-multiselect-option ${isSelected ? "selected" : ""}`}
+                onClick={() => handleToggle(option.value)}
+              >
+                <span>{option.label}</span>
+              </div>
+            );
+          })}
         </div>
       )}
     </div>
@@ -497,6 +499,68 @@ ChecklistSection.propTypes = {
   cardColor: PropTypes.string,
 };
 
+// Checklist Type Group Component (Accordion for type titles)
+const ChecklistTypeGroup = ({
+  typeTitle,
+  sections,
+  itemsData,
+  onItemChange,
+  onItemClick,
+  openSections,
+  onSectionToggle,
+  onSelectAll,
+  isOpen,
+  onToggle,
+  cardColor = "#2A00FF",
+}) => {
+  return (
+    <div className="checklist-type-group" style={{ "--card-color": cardColor }}>
+      <button
+        type="button"
+        className="checklist-type-title-accordion"
+        onClick={onToggle}
+        aria-expanded={isOpen}
+      >
+        <span className="checklist-type-title-text">{typeTitle}</span>
+        <span className="checklist-type-accordion-icon">{isOpen ? "▼" : "▶"}</span>
+      </button>
+      {isOpen && (
+        <div className="checklist-type-sections">
+          {sections.map((section) => (
+            <ChecklistSection
+              key={section.id}
+              id={section.id}
+              title={section.title}
+              items={section.items}
+              itemsData={itemsData}
+              onItemChange={onItemChange}
+              onItemClick={onItemClick}
+              isOpen={openSections[section.id] || false}
+              onToggle={() => onSectionToggle(section.id)}
+              onSelectAll={onSelectAll}
+              cardColor={cardColor}
+            />
+          ))}
+        </div>
+      )}
+    </div>
+  );
+};
+
+ChecklistTypeGroup.propTypes = {
+  typeTitle: PropTypes.string.isRequired,
+  sections: PropTypes.array.isRequired,
+  itemsData: PropTypes.object.isRequired,
+  onItemChange: PropTypes.func.isRequired,
+  onItemClick: PropTypes.func.isRequired,
+  openSections: PropTypes.object.isRequired,
+  onSectionToggle: PropTypes.func.isRequired,
+  onSelectAll: PropTypes.func.isRequired,
+  isOpen: PropTypes.bool.isRequired,
+  onToggle: PropTypes.func.isRequired,
+  cardColor: PropTypes.string,
+};
+
 // Main Checklist Component
 function Checklist({ card, formValues, handleChange }) {
   const cardColor = card?.color || "#2A00FF";
@@ -587,6 +651,23 @@ function Checklist({ card, formValues, handleChange }) {
     return initial;
   });
 
+  // State for checklist type group accordions (which type groups are open)
+  const [openTypeGroups, setOpenTypeGroups] = useState(() => {
+    const initial = {};
+    const groupedByType = {};
+    currentChecklistData.forEach((section) => {
+      const type = section.checklistTypeTitle || section.checklistType;
+      if (!groupedByType[type]) {
+        groupedByType[type] = [];
+      }
+      groupedByType[type].push(section);
+    });
+    Object.keys(groupedByType).forEach((typeTitle) => {
+      initial[typeTitle] = true; // Start with all type groups open
+    });
+    return initial;
+  });
+
   // State for item detail modal
   const [selectedItem, setSelectedItem] = useState(null);
   const [isModalOpen, setIsModalOpen] = useState(false);
@@ -608,6 +689,25 @@ function Checklist({ card, formValues, handleChange }) {
       });
     });
     setItemsData(newItemsData);
+
+    // Update openTypeGroups when checklist data changes
+    const groupedByType = {};
+    currentChecklistData.forEach((section) => {
+      const type = section.checklistTypeTitle || section.checklistType;
+      if (!groupedByType[type]) {
+        groupedByType[type] = [];
+      }
+      groupedByType[type].push(section);
+    });
+    setOpenTypeGroups((prev) => {
+      const updated = { ...prev };
+      Object.keys(groupedByType).forEach((typeTitle) => {
+        if (updated[typeTitle] === undefined) {
+          updated[typeTitle] = true; // Default to open for new types
+        }
+      });
+      return updated;
+    });
   }, [currentChecklistData]);
 
   const handleChecklistTypeChange = (e) => {
@@ -668,6 +768,13 @@ function Checklist({ card, formValues, handleChange }) {
       });
       return updated;
     });
+  };
+
+  const handleTypeGroupToggle = (typeTitle) => {
+    setOpenTypeGroups((prev) => ({
+      ...prev,
+      [typeTitle]: !prev[typeTitle],
+    }));
   };
 
   const checklistTypeOptions = [
@@ -808,26 +915,20 @@ function Checklist({ card, formValues, handleChange }) {
               });
 
               return Object.entries(groupedByType).map(([typeTitle, sections]) => (
-                <div key={typeTitle} className="checklist-type-group">
-                  <h2 className="checklist-type-title" style={{ "--card-color": cardColor }}>
-                    {typeTitle}
-                  </h2>
-                  {sections.map((section) => (
-                    <ChecklistSection
-                      key={section.id}
-                      id={section.id}
-                      title={section.title}
-                      items={section.items}
-                      itemsData={itemsData}
-                      onItemChange={handleItemChange}
-                      onItemClick={handleItemClick}
-                      isOpen={openSections[section.id] || false}
-                      onToggle={() => handleSectionToggle(section.id)}
-                      onSelectAll={handleSelectAll}
-                      cardColor={cardColor}
-                    />
-                  ))}
-                </div>
+                <ChecklistTypeGroup
+                  key={typeTitle}
+                  typeTitle={typeTitle}
+                  sections={sections}
+                  itemsData={itemsData}
+                  onItemChange={handleItemChange}
+                  onItemClick={handleItemClick}
+                  openSections={openSections}
+                  onSectionToggle={handleSectionToggle}
+                  onSelectAll={handleSelectAll}
+                  isOpen={openTypeGroups[typeTitle] || false}
+                  onToggle={() => handleTypeGroupToggle(typeTitle)}
+                  cardColor={cardColor}
+                />
               ));
             })()}
           </div>
