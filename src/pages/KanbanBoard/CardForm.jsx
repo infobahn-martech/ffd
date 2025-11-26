@@ -26,7 +26,7 @@ const TOP_TABS = [
   "KPI",
 ];
 
-const ENABLED_TABS = ["General", "Operation"];
+const ENABLED_TABS = ["General", "Operation", "Husbandry"];
 
 const DEFAULT_ACCENT_COLOR = "#2A00FF";
 const TOTAL_STEPS = 5;
