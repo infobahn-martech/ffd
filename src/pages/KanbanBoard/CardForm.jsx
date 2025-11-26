@@ -7,7 +7,6 @@ import PriorityIcon from "../../assets/images/Priority.png";
 // Import Tab Components
 import General from "./CardFormTabs/General";
 import Operation from "./CardFormTabs/Operation";
-import Checklist from "./CardFormTabs/Checklist";
 import Husbandry from "./CardFormTabs/Husbandry";
 import Attachments from "./CardFormTabs/Attachments";
 import SalesOrder from "./CardFormTabs/SalesOrder";
@@ -19,7 +18,6 @@ import KPI from "./CardFormTabs/KPI";
 const TOP_TABS = [
   "General",
   "Operation",
-  "Checklist",
   "Husbandry",
   "Attachments",
   "Sales Order",
@@ -28,7 +26,7 @@ const TOP_TABS = [
   "KPI",
 ];
 
-const ENABLED_TABS = ["General", "Operation", "Checklist"];
+const ENABLED_TABS = ["General", "Operation"];
 
 const DEFAULT_ACCENT_COLOR = "#2A00FF";
 const TOTAL_STEPS = 5;
@@ -213,8 +211,6 @@ const renderTabContent = (activeTab, card, formValues, handleChange, ownerInitia
       return <General {...commonProps} />;
     case "Operation":
       return <Operation {...commonProps} ownerInitial={ownerInitial} />;
-    case "Checklist":
-      return <Checklist {...commonProps} />;
     case "Husbandry":
       return <Husbandry {...commonProps} />;
     case "Attachmentss":

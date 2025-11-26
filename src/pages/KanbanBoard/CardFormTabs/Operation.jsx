@@ -2,11 +2,13 @@ import { useState, useCallback } from "react";
 import PropTypes from "prop-types";
 import GroupSettingsIcon from "../../../assets/images/cv.png";
 import CircleTickIcon from "../../../assets/images/CircleTick.svg";
+import Checklist from "./Checklist";
 import "../../../design/scss/operations.scss";
 
 // Constants
 const OPERATION_TABS = {
   PRE_ARRIVAL: "preArrival",
+  CHECK_LIST: "checkList",
   ARRIVAL: "arrival",
   DEPARTURE: "departure",
 };
@@ -15,6 +17,7 @@ const OPERATION_TABS = {
 const OperationTabs = ({ activeTab, onTabChange }) => {
   const tabs = [
     { id: OPERATION_TABS.PRE_ARRIVAL, label: "Pre Arrival" },
+    { id: OPERATION_TABS.CHECK_LIST, label: "Check List" },
     { id: OPERATION_TABS.ARRIVAL, label: "Arrival" },
     { id: OPERATION_TABS.DEPARTURE, label: "Departure" },
   ];
@@ -920,6 +923,16 @@ DepartureContent.propTypes = {
   onRemoveLink: PropTypes.func,
 };
 
+const CheckListContent = ({ card, formValues, handleChange }) => {
+  return <Checklist card={card} formValues={formValues} handleChange={handleChange} />;
+};
+
+CheckListContent.propTypes = {
+  card: PropTypes.object,
+  formValues: PropTypes.object.isRequired,
+  handleChange: PropTypes.func.isRequired,
+};
+
 // Main Operation Component
 function Operation({ card, formValues, handleChange, ownerInitial }) {
   const [activeOperationTab, setActiveOperationTab] = useState(OPERATION_TABS.PRE_ARRIVAL);
@@ -968,6 +981,13 @@ function Operation({ card, formValues, handleChange, ownerInitial }) {
               onRemoveAttachment={handleRemoveAttachment}
               onAddLink={handleAddLink}
               onRemoveLink={handleRemoveLink}
+            />
+          )}
+          {activeOperationTab === OPERATION_TABS.CHECK_LIST && (
+            <CheckListContent
+              card={card}
+              formValues={formValues}
+              handleChange={handleChange}
             />
           )}
           {activeOperationTab === OPERATION_TABS.ARRIVAL && (
