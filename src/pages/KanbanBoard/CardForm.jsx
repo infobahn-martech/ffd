@@ -28,7 +28,7 @@ const TOP_TABS = [
   "KPI",
 ];
 
-const ENABLED_TABS = ["General", "Operation"];
+const ENABLED_TABS = ["General", "Operation", "Checklist"];
 
 const DEFAULT_ACCENT_COLOR = "#2A00FF";
 const TOTAL_STEPS = 5;
@@ -213,7 +213,7 @@ const renderTabContent = (activeTab, card, formValues, handleChange, ownerInitia
       return <General {...commonProps} />;
     case "Operation":
       return <Operation {...commonProps} ownerInitial={ownerInitial} />;
-    case "Checklists":
+    case "Checklist":
       return <Checklist {...commonProps} />;
     case "Husbandry":
       return <Husbandry {...commonProps} />;
