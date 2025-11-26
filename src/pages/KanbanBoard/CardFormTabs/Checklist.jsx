@@ -132,10 +132,11 @@ FormTextarea.propTypes = {
   rows: PropTypes.number,
 };
 
-// Multi-select component for Checklist Type
-const MultiSelect = ({ value = [], onChange, options = [], placeholder, className = "" }) => {
+// Multi-select component for Checklist Type with tags/chips
+const MultiSelect = ({ value = [], onChange, options = [], placeholder, className = "", cardColor = "#2A00FF" }) => {
   const [isOpen, setIsOpen] = useState(false);
   const dropdownRef = useRef(null);
+  const inputRef = useRef(null);
 
   useEffect(() => {
     const handleClickOutside = (event) => {
@@ -160,21 +161,46 @@ const MultiSelect = ({ value = [], onChange, options = [], placeholder, classNam
     onChange({ target: { value: newValue } });
   };
 
+  const handleRemoveTag = (e, optionValue) => {
+    e.stopPropagation();
+    const newValue = value.filter((v) => v !== optionValue);
+    onChange({ target: { value: newValue } });
+  };
+
+  const getOptionLabel = (optionValue) => {
+    const option = options.find((opt) => opt.value === optionValue);
+    return option ? option.label : optionValue;
+  };
+
   return (
-    <div className={`cf-multiselect ${className}`} ref={dropdownRef}>
+    <div className={`cf-multiselect ${className}`} ref={dropdownRef} style={{ "--card-color": cardColor }}>
       <div
         className="cf-multiselect-input"
         onClick={() => setIsOpen(!isOpen)}
       >
-        <span className="cf-multiselect-value">
-          {value.length === 0
-            ? placeholder || "Select options..."
-            : value.join(", ")}
-        </span>
+        <div className="cf-multiselect-tags">
+          {value.length === 0 ? (
+            <span className="cf-multiselect-placeholder">{placeholder || "Select options..."}</span>
+          ) : (
+            value.map((val) => (
+              <span key={val} className="cf-multiselect-tag" style={{ "--card-color": cardColor }}>
+                <span className="cf-multiselect-tag-text">{getOptionLabel(val)}</span>
+                <button
+                  type="button"
+                  className="cf-multiselect-tag-remove"
+                  onClick={(e) => handleRemoveTag(e, val)}
+                  aria-label={`Remove ${getOptionLabel(val)}`}
+                >
+                  ×
+                </button>
+              </span>
+            ))
+          )}
+        </div>
         <span className="cf-multiselect-arrow">{isOpen ? "▲" : "▼"}</span>
       </div>
       {isOpen && (
-        <div className="cf-multiselect-dropdown">
+        <div className="cf-multiselect-dropdown" style={{ "--card-color": cardColor }}>
           {options.map((option) => (
             <label key={option.value} className="cf-multiselect-option">
               <input
@@ -202,10 +228,11 @@ MultiSelect.propTypes = {
   ),
   placeholder: PropTypes.string,
   className: PropTypes.string,
+  cardColor: PropTypes.string,
 };
 
 // Item Detail Modal Component
-const ItemDetailModal = ({ item, isOpen, onClose, itemData, onUpdate }) => {
+const ItemDetailModal = ({ item, isOpen, onClose, itemData, onUpdate, cardColor = "#2A00FF" }) => {
   const [remarks, setRemarks] = useState(itemData?.remarks || "");
   const [checked, setChecked] = useState(itemData?.checked || false);
   const [uploadedFile, setUploadedFile] = useState(itemData?.uploadedFile || null);
@@ -230,7 +257,7 @@ const ItemDetailModal = ({ item, isOpen, onClose, itemData, onUpdate }) => {
 
   return (
     <div className="checklist-item-modal-overlay" onClick={onClose}>
-      <div className="checklist-item-modal" onClick={(e) => e.stopPropagation()}>
+      <div className="checklist-item-modal" onClick={(e) => e.stopPropagation()} style={{ "--card-color": cardColor }}>
         <div className="checklist-item-modal-header">
           <h3>{item.label}</h3>
           <button type="button" className="checklist-item-modal-close" onClick={onClose}>
@@ -255,7 +282,7 @@ const ItemDetailModal = ({ item, isOpen, onClose, itemData, onUpdate }) => {
                 onChange={handleFileChange}
                 className="checklist-file-input"
               />
-              <label htmlFor={`file-upload-${item.id}`} className="checklist-file-label">
+              <label htmlFor={`file-upload-${item.id}`} className="checklist-file-label" style={{ "--card-color": cardColor }}>
                 {uploadedFile ? uploadedFile.name : "Choose File"}
               </label>
             </div>
@@ -276,7 +303,7 @@ const ItemDetailModal = ({ item, isOpen, onClose, itemData, onUpdate }) => {
           <button type="button" className="checklist-btn-secondary" onClick={onClose}>
             Cancel
           </button>
-          <button type="button" className="checklist-btn-primary" onClick={handleSave}>
+          <button type="button" className="checklist-btn-primary" onClick={handleSave} style={{ "--card-color": cardColor }}>
             Update
           </button>
         </div>
@@ -294,16 +321,17 @@ ItemDetailModal.propTypes = {
   onClose: PropTypes.func.isRequired,
   itemData: PropTypes.object,
   onUpdate: PropTypes.func.isRequired,
+  cardColor: PropTypes.string,
 };
 
 // Checklist Item Component
-const ChecklistItem = ({ id, label, itemData, onChange, onItemClick }) => {
+const ChecklistItem = ({ id, label, itemData, onChange, onItemClick, cardColor = "#2A00FF" }) => {
   const checked = itemData?.checked || false;
   const hasFile = itemData?.uploadedFile !== null;
   const hasRemarks = itemData?.remarks && itemData.remarks.trim() !== "";
 
   return (
-    <div className={`checklist-item ${checked ? "checked" : ""}`}>
+    <div className={`checklist-item ${checked ? "checked" : ""}`} style={{ "--card-color": cardColor }}>
       <div className="checklist-item-content">
         <label className="checklist-item-label">
           <div className="checklist-checkbox-wrapper">
@@ -318,14 +346,25 @@ const ChecklistItem = ({ id, label, itemData, onChange, onItemClick }) => {
               {checked && <span className="checkmark">✓</span>}
             </span>
           </div>
-          <span className="checklist-item-text" onClick={() => onItemClick(id)}>
+          <span className="checklist-item-text">
             {label}
           </span>
           {checked && <span className="checklist-item-status">Completed</span>}
         </label>
-        <div className="checklist-item-indicators">
-          {hasFile && <span className="checklist-item-file-icon">📎</span>}
-          {hasRemarks && <span className="checklist-item-remarks-icon">💬</span>}
+        <div className="checklist-item-actions">
+          <div className="checklist-item-indicators">
+            {hasFile && <span className="checklist-item-file-icon">📎</span>}
+            {hasRemarks && <span className="checklist-item-remarks-icon">💬</span>}
+          </div>
+          <button
+            type="button"
+            className="checklist-item-detail-btn"
+            onClick={() => onItemClick(id)}
+            title="View/Edit Details"
+            style={{ "--card-color": cardColor }}
+          >
+            View Details
+          </button>
         </div>
       </div>
     </div>
@@ -338,6 +377,7 @@ ChecklistItem.propTypes = {
   itemData: PropTypes.object,
   onChange: PropTypes.func.isRequired,
   onItemClick: PropTypes.func.isRequired,
+  cardColor: PropTypes.string,
 };
 
 // Checklist Section Component
@@ -351,8 +391,7 @@ const ChecklistSection = ({
   isOpen,
   onToggle,
   onSelectAll,
-  sectionStatus,
-  onStatusChange,
+  cardColor = "#2A00FF",
 }) => {
   const allSelected = items.length > 0 && items.every((item) => itemsData[item.id]?.checked || false);
   const someSelected = items.some((item) => itemsData[item.id]?.checked || false) && !allSelected;
@@ -373,7 +412,7 @@ const ChecklistSection = ({
   };
 
   return (
-    <div className="checklist-section">
+    <div className="checklist-section" style={{ "--card-color": cardColor }}>
       <div className="checklist-section-header-wrapper">
         <button
           type="button"
@@ -390,7 +429,7 @@ const ChecklistSection = ({
               <div className="checklist-progress-bar">
                 <div
                   className="checklist-progress-fill"
-                  style={{ width: `${progressPercentage}%` }}
+                  style={{ width: `${progressPercentage}%`, backgroundColor: cardColor }}
                 ></div>
               </div>
             </div>
@@ -403,6 +442,7 @@ const ChecklistSection = ({
             className="checklist-select-all-btn"
             onClick={handleSelectAllClick}
             title={allSelected ? "Deselect All" : "Select All"}
+            style={{ "--card-color": cardColor }}
           >
             <input
               type="checkbox"
@@ -415,18 +455,9 @@ const ChecklistSection = ({
               {allSelected ? "Deselect All" : "Select All"}
             </span>
           </button>
-          <div className="checklist-section-status">
-            <label>Status:</label>
-            <select
-              value={sectionStatus || ""}
-              onChange={(e) => onStatusChange(id, e.target.value)}
-              className="checklist-status-select"
-            >
-              <option value="">Select Status</option>
-              <option value="completed">Completed</option>
-              <option value="hold">Hold</option>
-            </select>
-          </div>
+          {allSelected && (
+            <span className="checklist-section-status-text">Completed</span>
+          )}
         </div>
       </div>
       {isOpen && (
@@ -439,6 +470,7 @@ const ChecklistSection = ({
               itemData={itemsData[item.id] || {}}
               onChange={onItemChange}
               onItemClick={onItemClick}
+              cardColor={cardColor}
             />
           ))}
         </div>
@@ -462,12 +494,13 @@ ChecklistSection.propTypes = {
   isOpen: PropTypes.bool.isRequired,
   onToggle: PropTypes.func.isRequired,
   onSelectAll: PropTypes.func.isRequired,
-  sectionStatus: PropTypes.string,
-  onStatusChange: PropTypes.func.isRequired,
+  cardColor: PropTypes.string,
 };
 
 // Main Checklist Component
 function Checklist({ card, formValues, handleChange }) {
+  const cardColor = card?.color || "#2A00FF";
+
   // Form state
   const [checklistType, setChecklistType] = useState(
     formValues?.checklistType || []
@@ -490,16 +523,43 @@ function Checklist({ card, formValues, handleChange }) {
     formValues?.nextPort || card?.nextPort || ""
   );
 
-  // Get checklist data based on selected type
+  // Get checklist data based on selected type - group by checklist type
   const currentChecklistData = useMemo(() => {
-    if (
-      checklistType.includes(CHECKLIST_TYPES.ACCOMMODATION_CONSTRUCTION_BARGE)
-    ) {
-      return accommodationBargeChecklist;
-    } else if (checklistType.includes(CHECKLIST_TYPES.BOAT_ARRIVING_ONBOARD)) {
-      return boatArrivingOnboardChecklist;
+    const groupedData = [];
+
+    if (checklistType.includes(CHECKLIST_TYPES.ACCOMMODATION_CONSTRUCTION_BARGE)) {
+      // Add prefix to section titles and item IDs for ACCOMMODATION/CONSTRUCITON BARGE
+      const bargeData = accommodationBargeChecklist.map((section) => ({
+        ...section,
+        id: `accommodation_${section.id}`,
+        checklistType: CHECKLIST_TYPES.ACCOMMODATION_CONSTRUCTION_BARGE,
+        checklistTypeTitle: "ACCOMODATION/CONSTRUCITON BARGE IMPORT CHECKLIST",
+        title: section.title,
+        items: section.items.map((item) => ({
+          ...item,
+          id: `accommodation_${item.id}`,
+        })),
+      }));
+      groupedData.push(...bargeData);
     }
-    return [];
+
+    if (checklistType.includes(CHECKLIST_TYPES.BOAT_ARRIVING_ONBOARD)) {
+      // Add prefix to section titles and item IDs for BOAT ARRIVING ONBOARD
+      const boatData = boatArrivingOnboardChecklist.map((section) => ({
+        ...section,
+        id: `boat_${section.id}`,
+        checklistType: CHECKLIST_TYPES.BOAT_ARRIVING_ONBOARD,
+        checklistTypeTitle: "BOAT ARRIVING ONBOARD IMPORT CHECKLIST",
+        title: section.title,
+        items: section.items.map((item) => ({
+          ...item,
+          id: `boat_${item.id}`,
+        })),
+      }));
+      groupedData.push(...boatData);
+    }
+
+    return groupedData;
   }, [checklistType]);
 
   // State for checklist items data (remarks, files, checked status)
@@ -517,14 +577,6 @@ function Checklist({ card, formValues, handleChange }) {
     return initial;
   });
 
-  // State for section status
-  const [sectionsStatus, setSectionsStatus] = useState(() => {
-    const initial = {};
-    currentChecklistData.forEach((section) => {
-      initial[section.id] = card?.checklistSectionsStatus?.[section.id] || "";
-    });
-    return initial;
-  });
 
   // State for accordion (which sections are open)
   const [openSections, setOpenSections] = useState(() => {
@@ -616,13 +668,6 @@ function Checklist({ card, formValues, handleChange }) {
       });
       return updated;
     });
-  };
-
-  const handleStatusChange = (sectionId, status) => {
-    setSectionsStatus((prev) => ({
-      ...prev,
-      [sectionId]: status,
-    }));
   };
 
   const checklistTypeOptions = [
@@ -751,22 +796,40 @@ function Checklist({ card, formValues, handleChange }) {
             <div className="cf-section-title">Checklist Items</div>
           </div>
           <div className="cf-section-body">
-            {currentChecklistData.map((section) => (
-              <ChecklistSection
-                key={section.id}
-                id={section.id}
-                title={section.title}
-                items={section.items}
-                itemsData={itemsData}
-                onItemChange={handleItemChange}
-                onItemClick={handleItemClick}
-                isOpen={openSections[section.id] || false}
-                onToggle={() => handleSectionToggle(section.id)}
-                onSelectAll={handleSelectAll}
-                sectionStatus={sectionsStatus[section.id]}
-                onStatusChange={handleStatusChange}
-              />
-            ))}
+            {/* Group sections by checklist type */}
+            {(() => {
+              const groupedByType = {};
+              currentChecklistData.forEach((section) => {
+                const type = section.checklistTypeTitle || section.checklistType;
+                if (!groupedByType[type]) {
+                  groupedByType[type] = [];
+                }
+                groupedByType[type].push(section);
+              });
+
+              return Object.entries(groupedByType).map(([typeTitle, sections]) => (
+                <div key={typeTitle} className="checklist-type-group">
+                  <h2 className="checklist-type-title" style={{ "--card-color": cardColor }}>
+                    {typeTitle}
+                  </h2>
+                  {sections.map((section) => (
+                    <ChecklistSection
+                      key={section.id}
+                      id={section.id}
+                      title={section.title}
+                      items={section.items}
+                      itemsData={itemsData}
+                      onItemChange={handleItemChange}
+                      onItemClick={handleItemClick}
+                      isOpen={openSections[section.id] || false}
+                      onToggle={() => handleSectionToggle(section.id)}
+                      onSelectAll={handleSelectAll}
+                      cardColor={cardColor}
+                    />
+                  ))}
+                </div>
+              ));
+            })()}
           </div>
         </div>
       )}
@@ -782,6 +845,7 @@ function Checklist({ card, formValues, handleChange }) {
           }}
           itemData={selectedItem.data}
           onUpdate={handleItemUpdate}
+          cardColor={cardColor}
         />
       )}
     </div>
