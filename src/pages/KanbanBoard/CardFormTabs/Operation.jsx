@@ -315,20 +315,38 @@ const PreArrivalContent = ({ formValues, handleChange, ownerInitial, cardUser, c
           <div className="form-group">
             <h3 className="form-group-title">Appointment Details</h3>
             <div className="cf-grid two">
-              <FormField label="Appointment Received Date">
-                <FormInput
-                  type="date"
-                  value={formValues.appointmentReceivedDate}
-                  onChange={handleChange("appointmentReceivedDate")}
-                />
+              <FormField label="Appointment Received">
+                <div className="cf-input date-time-row">
+                  <input
+                    type="date"
+                    value={formValues.appointmentReceivedDate || ""}
+                    onChange={handleChange("appointmentReceivedDate")}
+                    placeholder="Select date"
+                  />
+                  <input
+                    type="time"
+                    value={formValues.appointmentReceivedTime || ""}
+                    onChange={handleChange("appointmentReceivedTime")}
+                    placeholder="Select time"
+                  />
+                </div>
               </FormField>
 
-              <FormField label="Appointment Acceptance Date">
-                <FormInput
-                  type="date"
-                  value={formValues.appointmentAcceptanceDate}
-                  onChange={handleChange("appointmentAcceptanceDate")}
-                />
+              <FormField label="Appointment Acceptance">
+                <div className="cf-input date-time-row">
+                  <input
+                    type="date"
+                    value={formValues.appointmentAcceptanceDate || ""}
+                    onChange={handleChange("appointmentAcceptanceDate")}
+                    placeholder="Select date"
+                  />
+                  <input
+                    type="time"
+                    value={formValues.appointmentAcceptanceTime || ""}
+                    onChange={handleChange("appointmentAcceptanceTime")}
+                    placeholder="Select time"
+                  />
+                </div>
               </FormField>
             </div>
           </div>
