@@ -86,7 +86,8 @@
    PRE-ARRIVAL FORM STYLES
    ========================================================== */
 
-.pre-arrival-form {
+.pre-arrival-form,
+.arrival-form {
   padding-top: 4px;
 }
 
@@ -214,6 +215,45 @@
   background-repeat: no-repeat;
   background-position: right 12px center;
   padding-right: 32px;
+}
+
+.cf-textarea {
+  background: #ffffff;
+  border-radius: 8px;
+  padding: 10px 14px;
+  border: 1.5px solid #e2e2ea;
+  transition: all 0.2s ease;
+}
+
+.cf-textarea:hover {
+  border-color: #c5c5d1;
+}
+
+.cf-textarea:focus-within {
+  border-color: var(--card-color, #2A00FF);
+  box-shadow: 0 0 0 3px rgba(42, 0, 255, 0.1);
+  background: #fafaff;
+}
+
+.cf-textarea textarea {
+  border: none;
+  background: transparent;
+  font-size: 13px;
+  outline: none;
+  width: 100%;
+  color: #1a1a1a;
+  resize: vertical;
+  font-family: inherit;
+  line-height: 1.5;
+}
+
+.cf-textarea textarea::placeholder {
+  color: #999;
+  font-size: 12px;
+}
+
+.cf-field-full {
+  grid-column: 1 / -1;
 }
 
 /* Date and Time Row */

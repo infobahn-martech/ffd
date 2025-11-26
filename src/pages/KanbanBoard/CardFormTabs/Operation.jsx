@@ -126,6 +126,27 @@ FormInput.propTypes = {
   className: PropTypes.string,
 };
 
+const FormTextarea = ({ value, onChange, placeholder, className = "", rows = 3 }) => {
+  return (
+    <div className={`cf-textarea ${className}`}>
+      <textarea
+        value={value}
+        onChange={onChange}
+        placeholder={placeholder}
+        rows={rows}
+      />
+    </div>
+  );
+};
+
+FormTextarea.propTypes = {
+  value: PropTypes.string,
+  onChange: PropTypes.func.isRequired,
+  placeholder: PropTypes.string,
+  className: PropTypes.string,
+  rows: PropTypes.number,
+};
+
 const OwnerField = ({ value, onChange, ownerInitial, cardUser }) => {
   return (
     <FormField label="Owner">
@@ -541,26 +562,243 @@ PreArrivalContent.propTypes = {
   onRemoveLink: PropTypes.func,
 };
 
+const ArrivalContent = ({ formValues, handleChange, cardColor, onAddAttachment, onRemoveAttachment, onAddLink, onRemoveLink }) => {
+  const customInspectionStatusOptions = [
+    { value: "Passed", label: "Passed" },
+    { value: "Failed", label: "Failed" },
+  ];
+
+  const crewImmigrationStatusOptions = [
+    { value: "Completed", label: "Completed" },
+    { value: "On Hold", label: "On Hold" },
+  ];
+
+  return (
+    <div className="cardform-left-full" style={{ "--card-color": cardColor }}>
+      <FormSection icon={GroupSettingsIcon} title="">
+        <div className="arrival-form">
+          <div className="form-group">
+            <h3 className="form-group-title">Arrival Information</h3>
+            <div className="cf-grid two">
+              <FormField label="Actual time of arrival">
+                <div className="cf-input date-time-row">
+                  <input
+                    type="date"
+                    value={formValues.actualArrivalDate || ""}
+                    onChange={handleChange("actualArrivalDate")}
+                    placeholder="Select date"
+                  />
+                  <input
+                    type="time"
+                    value={formValues.actualArrivalTime || ""}
+                    onChange={handleChange("actualArrivalTime")}
+                    placeholder="Select time"
+                  />
+                </div>
+              </FormField>
+
+              <FormField label="Custom Inspection commenced">
+                <div className="cf-input date-time-row">
+                  <input
+                    type="date"
+                    value={formValues.customInspectionCommencedDate || ""}
+                    onChange={handleChange("customInspectionCommencedDate")}
+                    placeholder="Select date"
+                  />
+                  <input
+                    type="time"
+                    value={formValues.customInspectionCommencedTime || ""}
+                    onChange={handleChange("customInspectionCommencedTime")}
+                    placeholder="Select time"
+                  />
+                </div>
+              </FormField>
+
+              <FormField label="Custom Inspection completed">
+                <div className="cf-input date-time-row">
+                  <input
+                    type="date"
+                    value={formValues.customInspectionCompletedDate || ""}
+                    onChange={handleChange("customInspectionCompletedDate")}
+                    placeholder="Select date"
+                  />
+                  <input
+                    type="time"
+                    value={formValues.customInspectionCompletedTime || ""}
+                    onChange={handleChange("customInspectionCompletedTime")}
+                    placeholder="Select time"
+                  />
+                </div>
+              </FormField>
+
+              <FormField label="Custom Inspection passed or Failed">
+                <FormSelect
+                  value={formValues.customInspectionStatus || ""}
+                  onChange={handleChange("customInspectionStatus")}
+                  options={customInspectionStatusOptions}
+                  placeholder="Select status..."
+                />
+              </FormField>
+
+              {formValues.customInspectionStatus === "Failed" && (
+                <FormField label="Reason for fail" className="cf-field-full">
+                  <FormTextarea
+                    value={formValues.customInspectionFailReason || ""}
+                    onChange={handleChange("customInspectionFailReason")}
+                    placeholder="Specify reason for fail..."
+                    rows={3}
+                  />
+                </FormField>
+              )}
+
+              <FormField label="Crew immigration commenced">
+                <div className="cf-input date-time-row">
+                  <input
+                    type="date"
+                    value={formValues.crewImmigrationCommencedDate || ""}
+                    onChange={handleChange("crewImmigrationCommencedDate")}
+                    placeholder="Select date"
+                  />
+                  <input
+                    type="time"
+                    value={formValues.crewImmigrationCommencedTime || ""}
+                    onChange={handleChange("crewImmigrationCommencedTime")}
+                    placeholder="Select time"
+                  />
+                </div>
+              </FormField>
+
+              <FormField label="Crew immigration completed / on hold">
+                <FormSelect
+                  value={formValues.crewImmigrationStatus || ""}
+                  onChange={handleChange("crewImmigrationStatus")}
+                  options={crewImmigrationStatusOptions}
+                  placeholder="Select status..."
+                />
+              </FormField>
+
+              {formValues.crewImmigrationStatus === "Completed" && (
+                <FormField label="Crew immigration completed">
+                  <div className="cf-input date-time-row">
+                    <input
+                      type="date"
+                      value={formValues.crewImmigrationCompletedDate || ""}
+                      onChange={handleChange("crewImmigrationCompletedDate")}
+                      placeholder="Select date"
+                    />
+                    <input
+                      type="time"
+                      value={formValues.crewImmigrationCompletedTime || ""}
+                      onChange={handleChange("crewImmigrationCompletedTime")}
+                      placeholder="Select time"
+                    />
+                  </div>
+                </FormField>
+              )}
+
+              {formValues.crewImmigrationStatus === "On Hold" && (
+                <FormField label="Reason for hold (Remarks)" className="cf-field-full">
+                  <FormTextarea
+                    value={formValues.crewImmigrationHoldRemarks || ""}
+                    onChange={handleChange("crewImmigrationHoldRemarks")}
+                    placeholder="Specify reason for hold..."
+                    rows={3}
+                  />
+                </FormField>
+              )}
+
+              <FormField label="Vessel Inward formalities completed">
+                <div className="cf-input date-time-row">
+                  <input
+                    type="date"
+                    value={formValues.vesselInwardFormalitiesCompletedDate || ""}
+                    onChange={handleChange("vesselInwardFormalitiesCompletedDate")}
+                    placeholder="Select date"
+                  />
+                  <input
+                    type="time"
+                    value={formValues.vesselInwardFormalitiesCompletedTime || ""}
+                    onChange={handleChange("vesselInwardFormalitiesCompletedTime")}
+                    placeholder="Select time"
+                  />
+                </div>
+              </FormField>
+
+              <FormField label="Marine work permit applied">
+                <div className="cf-input date-time-row">
+                  <input
+                    type="date"
+                    value={formValues.marineWorkPermitAppliedDate || ""}
+                    onChange={handleChange("marineWorkPermitAppliedDate")}
+                    placeholder="Select date"
+                  />
+                  <input
+                    type="time"
+                    value={formValues.marineWorkPermitAppliedTime || ""}
+                    onChange={handleChange("marineWorkPermitAppliedTime")}
+                    placeholder="Select time"
+                  />
+                </div>
+              </FormField>
+
+              <FormField label="Marine work permit issued">
+                <div className="cf-input date-time-row">
+                  <input
+                    type="date"
+                    value={formValues.marineWorkPermitIssuedDate || ""}
+                    onChange={handleChange("marineWorkPermitIssuedDate")}
+                    placeholder="Select date"
+                  />
+                  <input
+                    type="time"
+                    value={formValues.marineWorkPermitIssuedTime || ""}
+                    onChange={handleChange("marineWorkPermitIssuedTime")}
+                    placeholder="Select time"
+                  />
+                </div>
+              </FormField>
+
+              <FormField label="SABER UT closed">
+                <div className="cf-input date-time-row">
+                  <input
+                    type="date"
+                    value={formValues.saberUtClosedDate || ""}
+                    onChange={handleChange("saberUtClosedDate")}
+                    placeholder="Select date"
+                  />
+                  <input
+                    type="time"
+                    value={formValues.saberUtClosedTime || ""}
+                    onChange={handleChange("saberUtClosedTime")}
+                    placeholder="Select time"
+                  />
+                </div>
+              </FormField>
+            </div>
+          </div>
+        </div>
+      </FormSection>
+    </div>
+  );
+};
+
+ArrivalContent.propTypes = {
+  formValues: PropTypes.object.isRequired,
+  handleChange: PropTypes.func.isRequired,
+  cardColor: PropTypes.string,
+  onAddAttachment: PropTypes.func,
+  onRemoveAttachment: PropTypes.func,
+  onAddLink: PropTypes.func,
+  onRemoveLink: PropTypes.func,
+};
+
 const OperationContent = ({ activeTab }) => {
-  const contentMap = {
-    [OPERATION_TABS.ARRIVAL]: {
-      title: "Arrival Details",
-      message: "Show arrival details here…",
-    },
-    [OPERATION_TABS.DEPARTURE]: {
-      title: "Departure Details",
-      message: "Show departure details here…",
-    },
-  };
-
-  const content = contentMap[activeTab];
-
-  if (!content) return null;
+  if (activeTab !== OPERATION_TABS.DEPARTURE) return null;
 
   return (
     <div className="operation-content-box">
-      <h2>{content.title}</h2>
-      <p>{content.message}</p>
+      <h2>Departure Details</h2>
+      <p>Show departure details here…</p>
     </div>
   );
 };
@@ -619,10 +857,20 @@ function Operation({ card, formValues, handleChange, ownerInitial }) {
               onRemoveLink={handleRemoveLink}
             />
           )}
-          {(activeOperationTab === OPERATION_TABS.ARRIVAL ||
-            activeOperationTab === OPERATION_TABS.DEPARTURE) && (
-              <OperationContent activeTab={activeOperationTab} />
-            )}
+          {activeOperationTab === OPERATION_TABS.ARRIVAL && (
+            <ArrivalContent
+              formValues={formValues}
+              handleChange={handleChange}
+              cardColor={cardColor}
+              onAddAttachment={handleAddAttachment}
+              onRemoveAttachment={handleRemoveAttachment}
+              onAddLink={handleAddLink}
+              onRemoveLink={handleRemoveLink}
+            />
+          )}
+          {activeOperationTab === OPERATION_TABS.DEPARTURE && (
+            <OperationContent activeTab={activeOperationTab} />
+          )}
         </div>
       </div>
     </div>
