@@ -94,7 +94,24 @@ TopTabs.propTypes = {
 };
 
 
-const StepsProgress = ({ totalSteps = TOTAL_STEPS, activeStep = 2, completedSteps = 1 }) => {
+const StepsProgress = ({ totalSteps = TOTAL_STEPS, activeStep = 2, completedSteps = 1, accentColor = DEFAULT_ACCENT_COLOR }) => {
+  // Create a lighter version of the accent color for inactive steps
+  const hexToRgb = (hex) => {
+    const result = /^#?([a-f\d]{2})([a-f\d]{2})([a-f\d]{2})$/i.exec(hex);
+    return result
+      ? {
+        r: parseInt(result[1], 16),
+        g: parseInt(result[2], 16),
+        b: parseInt(result[3], 16),
+      }
+      : null;
+  };
+
+  const rgb = hexToRgb(accentColor);
+  const lightColor = rgb
+    ? `rgba(${rgb.r}, ${rgb.g}, ${rgb.b}, 0.4)`
+    : accentColor;
+
   return (
     <div className="cardform-steps-wrapper">
       {Array.from({ length: totalSteps }, (_, index) => {
@@ -112,11 +129,28 @@ const StepsProgress = ({ totalSteps = TOTAL_STEPS, activeStep = 2, completedStep
         const isNextStepCompletedOrActive = isNextStepCompleted || isNextStepActive;
         const lineClass = isStepCompletedOrActive && isNextStepCompletedOrActive ? "completed-line" : "";
 
+        const circleStyle = isStepCompletedOrActive
+          ? {
+            background: accentColor,
+            color: "#ffffff",
+            borderColor: accentColor,
+          }
+          : {
+            borderColor: lightColor,
+            color: lightColor,
+          };
+
+        const lineStyle = isStepCompletedOrActive && isNextStepCompletedOrActive
+          ? { background: accentColor }
+          : { background: lightColor };
+
         return (
           <div key={stepNumber} className={`step-item ${stepClass}`}>
-            <div className="step-circle">{stepNumber}</div>
+            <div className="step-circle" style={circleStyle}>
+              {stepNumber}
+            </div>
             {index < totalSteps - 1 && (
-              <span className={`step-line ${lineClass}`}></span>
+              <span className={`step-line ${lineClass}`} style={lineStyle}></span>
             )}
           </div>
         );
@@ -129,6 +163,7 @@ StepsProgress.propTypes = {
   totalSteps: PropTypes.number,
   activeStep: PropTypes.number,
   completedSteps: PropTypes.number,
+  accentColor: PropTypes.string,
 };
 
 const CardFormFooter = ({ accentColor, onUpdate, activeStep = 2, completedSteps = 1, activeTab }) => {
@@ -141,6 +176,7 @@ const CardFormFooter = ({ accentColor, onUpdate, activeStep = 2, completedSteps 
           totalSteps={TOTAL_STEPS}
           activeStep={activeStep}
           completedSteps={completedSteps}
+          accentColor={accentColor}
         />
       )}
       {!showProgressBar && <div />}
