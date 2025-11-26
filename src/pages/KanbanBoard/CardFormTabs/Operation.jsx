@@ -792,19 +792,114 @@ ArrivalContent.propTypes = {
   onRemoveLink: PropTypes.func,
 };
 
-const OperationContent = ({ activeTab }) => {
-  if (activeTab !== OPERATION_TABS.DEPARTURE) return null;
-
+const DepartureContent = ({ formValues, handleChange, cardColor, onAddAttachment, onRemoveAttachment, onAddLink, onRemoveLink }) => {
   return (
-    <div className="operation-content-box">
-      <h2>Departure Details</h2>
-      <p>Show departure details here…</p>
+    <div className="cardform-left-full" style={{ "--card-color": cardColor }}>
+      <FormSection icon={GroupSettingsIcon} title="">
+        <div className="departure-form">
+          <div className="form-group">
+            <h3 className="form-group-title">Departure Information</h3>
+            <div className="cf-grid two">
+              <FormField label="Request for outward clearance received">
+                <div className="cf-input date-time-row">
+                  <input
+                    type="date"
+                    value={formValues.outwardClearanceRequestReceivedDate || ""}
+                    onChange={handleChange("outwardClearanceRequestReceivedDate")}
+                    placeholder="Select date"
+                  />
+                  <input
+                    type="time"
+                    value={formValues.outwardClearanceRequestReceivedTime || ""}
+                    onChange={handleChange("outwardClearanceRequestReceivedTime")}
+                    placeholder="Select time"
+                  />
+                </div>
+              </FormField>
+
+              <FormField label="Outward clearance issued">
+                <div className="cf-input date-time-row">
+                  <input
+                    type="date"
+                    value={formValues.outwardClearanceIssuedDate || ""}
+                    onChange={handleChange("outwardClearanceIssuedDate")}
+                    placeholder="Select date"
+                  />
+                  <input
+                    type="time"
+                    value={formValues.outwardClearanceIssuedTime || ""}
+                    onChange={handleChange("outwardClearanceIssuedTime")}
+                    placeholder="Select time"
+                  />
+                </div>
+              </FormField>
+
+              <FormField label="Outward clearance delivered">
+                <div className="cf-input date-time-row">
+                  <input
+                    type="date"
+                    value={formValues.outwardClearanceDeliveredDate || ""}
+                    onChange={handleChange("outwardClearanceDeliveredDate")}
+                    placeholder="Select date"
+                  />
+                  <input
+                    type="time"
+                    value={formValues.outwardClearanceDeliveredTime || ""}
+                    onChange={handleChange("outwardClearanceDeliveredTime")}
+                    placeholder="Select time"
+                  />
+                </div>
+              </FormField>
+
+              <FormField label="Vessel Sailed (optional)">
+                <div className="cf-input date-time-row">
+                  <input
+                    type="date"
+                    value={formValues.vesselSailedDate || ""}
+                    onChange={handleChange("vesselSailedDate")}
+                    placeholder="Select date"
+                  />
+                  <input
+                    type="time"
+                    value={formValues.vesselSailedTime || ""}
+                    onChange={handleChange("vesselSailedTime")}
+                    placeholder="Select time"
+                  />
+                </div>
+              </FormField>
+
+              <FormField label="Cast off">
+                <div className="cf-input date-time-row">
+                  <input
+                    type="date"
+                    value={formValues.castOffDate || ""}
+                    onChange={handleChange("castOffDate")}
+                    placeholder="Select date"
+                  />
+                  <input
+                    type="time"
+                    value={formValues.castOffTime || ""}
+                    onChange={handleChange("castOffTime")}
+                    placeholder="Select time"
+                  />
+                </div>
+              </FormField>
+            </div>
+          </div>
+        </div>
+      </FormSection>
     </div>
   );
 };
 
-OperationContent.propTypes = {
-  activeTab: PropTypes.string.isRequired,
+DepartureContent.propTypes = {
+  formValues: PropTypes.object.isRequired,
+  handleChange: PropTypes.func.isRequired,
+  cardColor: PropTypes.string,
+  onAddAttachment: PropTypes.func,
+  onRemoveAttachment: PropTypes.func,
+  onAddLink: PropTypes.func,
+  onRemoveLink: PropTypes.func,
 };
 
 // Main Operation Component
@@ -869,7 +964,15 @@ function Operation({ card, formValues, handleChange, ownerInitial }) {
             />
           )}
           {activeOperationTab === OPERATION_TABS.DEPARTURE && (
-            <OperationContent activeTab={activeOperationTab} />
+            <DepartureContent
+              formValues={formValues}
+              handleChange={handleChange}
+              cardColor={cardColor}
+              onAddAttachment={handleAddAttachment}
+              onRemoveAttachment={handleRemoveAttachment}
+              onAddLink={handleAddLink}
+              onRemoveLink={handleRemoveLink}
+            />
           )}
         </div>
       </div>
