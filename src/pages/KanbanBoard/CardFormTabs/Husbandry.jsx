@@ -50,32 +50,36 @@ const HusbandryTabs = ({ activeMainTab, activeSubTab, onMainTabChange, onSubTabC
 
   return (
     <div className="operation-left">
-      {mainTabs.map((tab) => (
-        <button
-          key={tab.id}
-          className={`op-tab ${activeMainTab === tab.id ? "active" : ""}`}
-          onClick={() => onMainTabChange(tab.id)}
-          type="button"
-        >
-          {tab.label}
-        </button>
-      ))}
-      {subTabs.length > 0 && (
-        <>
-          <div style={{ height: "8px" }} /> {/* Spacer */}
-          {subTabs.map((tab) => (
+      {mainTabs.map((tab) => {
+        const isActive = activeMainTab === tab.id;
+        const currentSubTabs = isActive ? subTabs : [];
+
+        return (
+          <div key={tab.id} className="op-tab-group">
             <button
-              key={tab.id}
-              className={`op-tab ${activeSubTab === tab.id ? "active" : ""}`}
-              onClick={() => onSubTabChange(tab.id)}
+              className={`op-tab op-tab-main ${isActive ? "active" : ""}`}
+              onClick={() => onMainTabChange(tab.id)}
               type="button"
-              style={{ paddingLeft: "24px", fontSize: "12px" }}
             >
               {tab.label}
             </button>
-          ))}
-        </>
-      )}
+            {isActive && currentSubTabs.length > 0 && (
+              <div className="op-submenu">
+                {currentSubTabs.map((subTab) => (
+                  <button
+                    key={subTab.id}
+                    className={`op-tab op-tab-sub ${activeSubTab === subTab.id ? "active" : ""}`}
+                    onClick={() => onSubTabChange(subTab.id)}
+                    type="button"
+                  >
+                    {subTab.label}
+                  </button>
+                ))}
+              </div>
+            )}
+          </div>
+        );
+      })}
     </div>
   );
 };
