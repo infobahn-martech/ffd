@@ -209,7 +209,7 @@ const YesIcon = () => (
 
 const NoIcon = () => (
   <svg width="20" height="20" viewBox="0 0 20 20" fill="none" xmlns="http://www.w3.org/2000/svg">
-    <circle cx="10" cy="10" r="9" fill="#E17055" stroke="#E17055" strokeWidth="2" />
+    <circle cx="10" cy="10" r="9" fill="#FF0000" stroke="#FF0000" strokeWidth="2" />
     <path d="M7 7L13 13M13 7L7 13" stroke="white" strokeWidth="2" strokeLinecap="round" />
   </svg>
 );
@@ -269,7 +269,7 @@ const CrewContent = ({ formValues, handleChange, cardColor }) => {
         </h3>
       </div>
       <div className="table-wrapper table-responsive crew-table-container">
-        <table className="table table-striped crew-table">
+        <table className="table table-striped crew-table" style={{ "--card-color": cardColor }}>
           <thead>
             <tr>
               <th>Crew Name</th>

@@ -668,17 +668,18 @@
 .crew-table th:nth-child(11),
 .crew-table td:nth-child(11) { width: 90px; min-width: 90px; } /* Actions */
 
-.crew-table thead {
-  background: var(--card-color, #2A00FF);
+.crew-table-container .table.crew-table thead {
+  background: var(--card-color, #2A00FF) !important;
   position: sticky;
   top: 0;
   z-index: 10;
 }
 
-.crew-table thead th {
+.crew-table-container .table.crew-table thead th {
+  background-color: var(--card-color, #2A00FF) !important;
   font-size: 12px;
   font-weight: 600;
-  color: #ffffff;
+  color: #ffffff !important;
   text-transform: uppercase;
   letter-spacing: 0.5px;
   padding: 12px 16px;
