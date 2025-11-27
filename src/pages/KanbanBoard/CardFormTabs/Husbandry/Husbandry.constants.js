@@ -1,0 +1,20 @@
+// Constants
+export const MAIN_TABS = {
+  CREW_MANAGEMENT: "crewManagement",
+  MATERIAL_MANAGEMENT: "materialManagement",
+};
+
+export const CREW_MANAGEMENT_SUBTABS = {
+  CREW: "crew",
+  TRANSPORT: "transport",
+  CG_PASS: "cgPass",
+  ZAWIL_PASS: "zawilPass",
+  HOTEL: "hotel",
+  LAUNCH_HIRE: "launchHire",
+  MEDICAL_SERVICE: "medicalService",
+};
+
+export const MATERIAL_MANAGEMENT_SUBTABS = {
+  WASTE_DISPOSAL: "wasteDisposal",
+};
+
