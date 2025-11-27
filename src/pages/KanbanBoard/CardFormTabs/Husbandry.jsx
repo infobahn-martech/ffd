@@ -32,17 +32,22 @@ function Husbandry({ card, formValues, handleChange }) {
   const cardColor = card?.color || "#2A00FF";
 
   const handleMainTabChange = useCallback((tab) => {
+    // Disable Material Management tab for now
+    if (tab === MAIN_TABS.MATERIAL_MANAGEMENT) {
+      return; // Prevent switching to Material Management
+    }
     setActiveMainTab(tab);
-    // Reset to first sub-tab when main tab changes
+    // Reset to Crew sub-tab when main tab changes
     if (tab === MAIN_TABS.CREW_MANAGEMENT) {
       setActiveSubTab(CREW_MANAGEMENT_SUBTABS.CREW);
-    } else if (tab === MAIN_TABS.MATERIAL_MANAGEMENT) {
-      setActiveSubTab(MATERIAL_MANAGEMENT_SUBTABS.WASTE_DISPOSAL);
     }
   }, []);
 
   const handleSubTabChange = useCallback((tab) => {
-    setActiveSubTab(tab);
+    // Only allow navigation to Crew tab, disable all others
+    if (tab === CREW_MANAGEMENT_SUBTABS.CREW) {
+      setActiveSubTab(tab);
+    }
   }, []);
 
   const renderCrewManagementContent = () => {

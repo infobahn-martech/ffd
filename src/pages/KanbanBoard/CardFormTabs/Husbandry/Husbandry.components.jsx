@@ -32,28 +32,37 @@ export const HusbandryTabs = ({ activeMainTab, activeSubTab, onMainTabChange, on
       {mainTabs.map((tab) => {
         const isActive = activeMainTab === tab.id;
         const currentSubTabs = isActive ? subTabs : [];
+        // Disable Material Management tab
+        const isMainTabDisabled = tab.id === MAIN_TABS.MATERIAL_MANAGEMENT;
 
         return (
           <div key={tab.id} className="op-tab-group">
             <button
-              className={`op-tab op-tab-main ${isActive ? "active" : ""}`}
-              onClick={() => onMainTabChange(tab.id)}
+              className={`op-tab op-tab-main ${isActive ? "active" : ""} ${isMainTabDisabled ? "disabled" : ""}`}
+              onClick={() => !isMainTabDisabled && onMainTabChange(tab.id)}
               type="button"
+              disabled={isMainTabDisabled}
+              style={isMainTabDisabled ? { opacity: 0.5, cursor: "not-allowed" } : {}}
             >
               {tab.label}
             </button>
             {isActive && currentSubTabs.length > 0 && (
               <div className="op-submenu">
-                {currentSubTabs.map((subTab) => (
-                  <button
-                    key={subTab.id}
-                    className={`op-tab op-tab-sub ${activeSubTab === subTab.id ? "active" : ""}`}
-                    onClick={() => onSubTabChange(subTab.id)}
-                    type="button"
-                  >
-                    {subTab.label}
-                  </button>
-                ))}
+                {currentSubTabs.map((subTab) => {
+                  const isDisabled = subTab.id !== CREW_MANAGEMENT_SUBTABS.CREW;
+                  return (
+                    <button
+                      key={subTab.id}
+                      className={`op-tab op-tab-sub ${activeSubTab === subTab.id ? "active" : ""} ${isDisabled ? "disabled" : ""}`}
+                      onClick={() => !isDisabled && onSubTabChange(subTab.id)}
+                      type="button"
+                      disabled={isDisabled}
+                      style={isDisabled ? { opacity: 0.5, cursor: "not-allowed" } : {}}
+                    >
+                      {subTab.label}
+                    </button>
+                  );
+                })}
               </div>
             )}
           </div>
