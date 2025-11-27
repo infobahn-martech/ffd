@@ -289,17 +289,6 @@ const ItemDetailModal = ({ item, isOpen, onClose, itemData, onUpdate, cardColor 
               </label>
             </div>
           </FormField>
-
-          <FormField label="Status">
-            <label className="checklist-checkbox-label">
-              <input
-                type="checkbox"
-                checked={checked}
-                onChange={(e) => setChecked(e.target.checked)}
-              />
-              <span>Completed</span>
-            </label>
-          </FormField>
         </div>
         <div className="checklist-item-modal-footer">
           <button type="button" className="checklist-btn-secondary" onClick={onClose}>
