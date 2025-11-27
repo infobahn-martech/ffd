@@ -280,3 +280,19 @@
   align-items: center;
 }
 
+/* Priority blinking effect */
+@keyframes blink-red {
+  0%, 100% {
+    box-shadow: 0 2px 6px rgba(0, 0, 0, 0.08);
+    border-color: #eee;
+  }
+  50% {
+    box-shadow: 0 2px 12px rgba(255, 0, 0, 0.6), 0 0 0 2px rgba(255, 0, 0, 0.3);
+    border-color: #ff0000;
+  }
+}
+
+.kanban-card.priority-blink {
+  animation: blink-red 1.5s ease-in-out infinite;
+}
+

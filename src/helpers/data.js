@@ -61,6 +61,7 @@ for (let i = 0; i < 50; i++) {
     progress: Math.floor(Math.random() * 100),
     color: randomColor,
     iconType: randomIconType,   // ⭐ Added here
+    priority: Math.random() > 0.7, // Randomly assign priority (30% chance)
   };
 
   columns[colId].cardIds.push(id);

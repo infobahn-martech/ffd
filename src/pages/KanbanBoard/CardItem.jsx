@@ -15,7 +15,7 @@ function CardItem({ card, index, setSelectedCard }) {
     <Draggable draggableId={card.id} index={index}>
       {(provided, snapshot) => (
         <div
-          className={`kanban-card ${snapshot.isDragging ? "dragging" : ""}`}
+          className={`kanban-card ${snapshot.isDragging ? "dragging" : ""} ${card.priority ? "priority-blink" : ""}`}
           ref={provided.innerRef}
           {...provided.draggableProps}
           {...provided.dragHandleProps}
@@ -140,6 +140,7 @@ CardItem.propTypes = {
     status: PropTypes.string,
     customer: PropTypes.string,
     vessel: PropTypes.string,
+    priority: PropTypes.bool,
   }).isRequired,
   index: PropTypes.number.isRequired,
   setSelectedCard: PropTypes.func.isRequired,
