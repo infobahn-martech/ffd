@@ -44,8 +44,8 @@ function Husbandry({ card, formValues, handleChange }) {
   }, []);
 
   const handleSubTabChange = useCallback((tab) => {
-    // Only allow navigation to Crew tab, disable all others
-    if (tab === CREW_MANAGEMENT_SUBTABS.CREW) {
+    // Allow navigation to Crew and Transport tabs
+    if (tab === CREW_MANAGEMENT_SUBTABS.CREW || tab === CREW_MANAGEMENT_SUBTABS.TRANSPORT) {
       setActiveSubTab(tab);
     }
   }, []);
