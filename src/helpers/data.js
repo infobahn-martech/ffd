@@ -25,7 +25,7 @@ const colorPool = Object.values(columnColors);
 // Icon pool
 const iconTypes = ["inprogress", "download", "document"];
 
-for (let i = 0; i < 50; i++) {
+for (let i = 0; i < 150; i++) {
   const colIndex = i % columnTitles.length;
   const colId = `col-${colIndex + 1}`;
 
@@ -46,8 +46,71 @@ for (let i = 0; i < 50; i++) {
 
   const id = `card-${cardId}`;
 
-  // Randomly decide if this card should have extra details (40% chance)
-  const hasExtraDetails = Math.random() > 0.6;
+  const customerNames = [
+    "ABC Shipping Co.", 
+    "Global Logistics Ltd.", 
+    "Maritime Transport Inc.", 
+    "Ocean Freight Solutions", 
+    "International Cargo Group",
+    "ABCD",
+    "BNMJ",
+    "XYZ Logistics",
+    "Pacific Shipping",
+    "Atlantic Maritime",
+    "Continental Freight",
+    "Worldwide Cargo",
+    "Express Shipping Co.",
+    "Premium Logistics",
+    "United Transport"
+  ];
+  const vesselNames = [
+    "MV Atlantic Star", 
+    "SS Pacific Wave", 
+    "MV Indian Ocean", 
+    "SS Mediterranean", 
+    "MV Caribbean Breeze",
+    "MV Ocean Express",
+    "SS Blue Horizon",
+    "MV Sea Voyager",
+    "SS Trade Wind",
+    "MV Golden Gate",
+    "SS Northern Star",
+    "MV Southern Cross",
+    "SS Eastern Dawn",
+    "MV Western Tide",
+    "SS Central Bay"
+  ];
+  const drivers = [
+    "John Smith", 
+    "Michael Johnson", 
+    "David Williams", 
+    "Robert Brown", 
+    "James Davis",
+    "William Miller",
+    "Richard Wilson",
+    "Joseph Moore",
+    "Thomas Taylor",
+    "Christopher Anderson",
+    "Daniel Martinez",
+    "Matthew Jackson",
+    "Anthony White",
+    "Mark Harris",
+    "Donald Clark"
+  ];
+  const times = [
+    "09:00 AM", 
+    "02:30 PM", 
+    "11:15 AM", 
+    "04:45 PM", 
+    "08:00 AM", 
+    "01:20 PM",
+    "10:30 AM",
+    "03:15 PM",
+    "06:00 AM",
+    "12:45 PM",
+    "05:30 PM",
+    "07:20 AM"
+  ];
 
   const cardData = {
     id,
@@ -66,21 +129,13 @@ for (let i = 0; i < 50; i++) {
     color: randomColor,
     iconType: randomIconType,   // ⭐ Added here
     priority: Math.random() > 0.7, // Randomly assign priority (30% chance)
+    // Add extra details to all cards
+    customerName: customerNames[Math.floor(Math.random() * customerNames.length)],
+    vesselName: vesselNames[Math.floor(Math.random() * vesselNames.length)],
+    timeOfDelivery: times[Math.floor(Math.random() * times.length)],
+    driver: drivers[Math.floor(Math.random() * drivers.length)],
+    pickUpTime: times[Math.floor(Math.random() * times.length)],
   };
-
-  // Add extra details to random cards
-  if (hasExtraDetails) {
-    const customerNames = ["ABC Shipping Co.", "Global Logistics Ltd.", "Maritime Transport Inc.", "Ocean Freight Solutions", "International Cargo Group"];
-    const vesselNames = ["MV Atlantic Star", "SS Pacific Wave", "MV Indian Ocean", "SS Mediterranean", "MV Caribbean Breeze"];
-    const drivers = ["John Smith", "Michael Johnson", "David Williams", "Robert Brown", "James Davis"];
-    const times = ["09:00 AM", "02:30 PM", "11:15 AM", "04:45 PM", "08:00 AM", "01:20 PM"];
-
-    cardData.customerName = customerNames[Math.floor(Math.random() * customerNames.length)];
-    cardData.vesselName = vesselNames[Math.floor(Math.random() * vesselNames.length)];
-    cardData.timeOfDelivery = times[Math.floor(Math.random() * times.length)];
-    cardData.driver = drivers[Math.floor(Math.random() * drivers.length)];
-    cardData.pickUpTime = times[Math.floor(Math.random() * times.length)];
-  }
 
   cards[id] = cardData;
 

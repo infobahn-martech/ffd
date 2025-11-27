@@ -113,19 +113,34 @@ function CardItem({ card, index, setSelectedCard }) {
           {(card.customerName || card.vesselName || card.timeOfDelivery || card.driver || card.pickUpTime) && (
             <div className="card-extra-details">
               {card.customerName && (
-                <div className="card-detail-item">Customer Name</div>
+                <div className="card-detail-item">
+                  <span className="detail-dot detail-dot-red"></span>
+                  Customer Name: {card.customerName}
+                </div>
               )}
               {card.vesselName && (
-                <div className="card-detail-item">Vessel Name</div>
+                <div className="card-detail-item">
+                  <span className="detail-dot detail-dot-red"></span>
+                  Vessel Name: {card.vesselName}
+                </div>
               )}
               {card.timeOfDelivery && (
-                <div className="card-detail-item">Time of delivery</div>
+                <div className="card-detail-item">
+                  <span className="detail-dot detail-dot-grey"></span>
+                  Time of delivery: {card.timeOfDelivery}
+                </div>
               )}
               {card.driver && (
-                <div className="card-detail-item">Driver</div>
+                <div className="card-detail-item">
+                  <span className="detail-dot detail-dot-green"></span>
+                  Driver: {card.driver}
+                </div>
               )}
               {card.pickUpTime && (
-                <div className="card-detail-item">PickUp Time</div>
+                <div className="card-detail-item">
+                  <span className="detail-dot detail-dot-red"></span>
+                  PickUp Time: {card.pickUpTime}
+                </div>
               )}
             </div>
           )}
