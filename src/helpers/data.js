@@ -1,10 +1,11 @@
 const columnColors = {
-  "col-1": "#2A00FF",
-  "col-2": "#6C5CE7",
-  "col-3": "#E17055",
-  "col-4": "#00B894",
-  "col-5": "#0984E3",
+  "col-1": "#FF5252", // Vibrant Red
+  "col-2": "#FFB400", // Vivid Amber/Yellow
+  "col-3": "#3D5AFE", // Bright Indigo Blue
+  "col-4": "#00E676", // Neon Green
+  "col-5": "#E040FB", // Vivid Purple / Magenta
 };
+
 
 const columnTitles = [
   "Appointment Received",
@@ -47,10 +48,10 @@ for (let i = 0; i < 150; i++) {
   const id = `card-${cardId}`;
 
   const customerNames = [
-    "ABC Shipping Co.", 
-    "Global Logistics Ltd.", 
-    "Maritime Transport Inc.", 
-    "Ocean Freight Solutions", 
+    "ABC Shipping Co.",
+    "Global Logistics Ltd.",
+    "Maritime Transport Inc.",
+    "Ocean Freight Solutions",
     "International Cargo Group",
     "ABCD",
     "BNMJ",
@@ -64,10 +65,10 @@ for (let i = 0; i < 150; i++) {
     "United Transport"
   ];
   const vesselNames = [
-    "MV Atlantic Star", 
-    "SS Pacific Wave", 
-    "MV Indian Ocean", 
-    "SS Mediterranean", 
+    "MV Atlantic Star",
+    "SS Pacific Wave",
+    "MV Indian Ocean",
+    "SS Mediterranean",
     "MV Caribbean Breeze",
     "MV Ocean Express",
     "SS Blue Horizon",
@@ -81,10 +82,10 @@ for (let i = 0; i < 150; i++) {
     "SS Central Bay"
   ];
   const drivers = [
-    "John Smith", 
-    "Michael Johnson", 
-    "David Williams", 
-    "Robert Brown", 
+    "John Smith",
+    "Michael Johnson",
+    "David Williams",
+    "Robert Brown",
     "James Davis",
     "William Miller",
     "Richard Wilson",
@@ -98,11 +99,11 @@ for (let i = 0; i < 150; i++) {
     "Donald Clark"
   ];
   const times = [
-    "09:00 AM", 
-    "02:30 PM", 
-    "11:15 AM", 
-    "04:45 PM", 
-    "08:00 AM", 
+    "09:00 AM",
+    "02:30 PM",
+    "11:15 AM",
+    "04:45 PM",
+    "08:00 AM",
     "01:20 PM",
     "10:30 AM",
     "03:15 PM",
