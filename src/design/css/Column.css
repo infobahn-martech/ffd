@@ -97,7 +97,7 @@
   border-radius: 8px;
   min-height: 60px;
   transition: background 0.2s ease;
-  align-items: start;
+  /* align-items: start; */
   /* Cards align to top, don't stretch to match row height */
 }
 
