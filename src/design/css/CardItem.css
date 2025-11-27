@@ -282,6 +282,20 @@
   align-items: center;
 }
 
+/* Extra Details Section */
+.card-extra-details {
+  margin-top: 8px;
+  padding-top: 8px;
+  border-top: 1px solid #eee;
+}
+
+.card-detail-item {
+  font-size: 13px;
+  color: #555;
+  margin-bottom: 6px;
+  font-weight: 500;
+}
+
 /* Priority blinking effect */
 @keyframes blink-red {
 

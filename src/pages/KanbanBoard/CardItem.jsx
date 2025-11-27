@@ -104,22 +104,31 @@ function CardItem({ card, index, setSelectedCard }) {
             </div>
           )}
 
-          {card.customer && (
-            <div className="card-meta blue">
-              <span>●</span> Customer Name: {card.customer}
-            </div>
-          )}
-
-          {card.vessel && (
-            <div className="card-meta purple">
-              <span>●</span> Vessel Name: {card.vessel}
-            </div>
-          )}
-
           {/* Footer */}
           <div className="card-tasks">
             New subtask
           </div>
+
+          {/* Extra Details Section */}
+          {(card.customerName || card.vesselName || card.timeOfDelivery || card.driver || card.pickUpTime) && (
+            <div className="card-extra-details">
+              {card.customerName && (
+                <div className="card-detail-item">Customer Name</div>
+              )}
+              {card.vesselName && (
+                <div className="card-detail-item">Vessel Name</div>
+              )}
+              {card.timeOfDelivery && (
+                <div className="card-detail-item">Time of delivery</div>
+              )}
+              {card.driver && (
+                <div className="card-detail-item">Driver</div>
+              )}
+              {card.pickUpTime && (
+                <div className="card-detail-item">PickUp Time</div>
+              )}
+            </div>
+          )}
         </div>
       )}
     </Draggable>
@@ -141,6 +150,11 @@ CardItem.propTypes = {
     customer: PropTypes.string,
     vessel: PropTypes.string,
     priority: PropTypes.bool,
+    customerName: PropTypes.string,
+    vesselName: PropTypes.string,
+    timeOfDelivery: PropTypes.string,
+    driver: PropTypes.string,
+    pickUpTime: PropTypes.string,
   }).isRequired,
   index: PropTypes.number.isRequired,
   setSelectedCard: PropTypes.func.isRequired,
