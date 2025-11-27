@@ -105,7 +105,7 @@ function CardItem({ card, index, setSelectedCard }) {
           )}
 
           {/* Footer */}
-          <div className="card-tasks">
+          <div className={`card-tasks ${(card.customerName || card.vesselName || card.timeOfDelivery || card.driver || card.pickUpTime) ? 'has-details' : ''}`}>
             New subtask
           </div>
 

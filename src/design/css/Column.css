@@ -1,7 +1,8 @@
 .column {
   background: #f8f9ff;
   border-radius: 12px;
-  width: 540px; /* fits two 260px cards + gap */
+  width: 540px;
+  /* fits two 260px cards + gap */
   display: flex;
   flex-direction: column;
   font-family: "Inter", sans-serif;
@@ -53,7 +54,8 @@
   width: 28px;
   height: 36px;
   color: #fff;
-  padding: 0; /* ensure no background bleed */
+  padding: 0;
+  /* ensure no background bleed */
 }
 
 /* Number */
@@ -71,7 +73,8 @@
   width: 12px;
   height: 12px;
   margin-top: 3px;
-  filter: brightness(0) invert(1); /* make icon white */
+  filter: brightness(0) invert(1);
+  /* make icon white */
 }
 
 /* Title */
@@ -85,19 +88,20 @@
 /* Card List */
 .card-list {
   display: grid;
-  grid-template-columns: repeat(2, 1fr); /* Two cards per row */
-  gap: 12px; /* space between cards */
+  grid-template-columns: repeat(2, 1fr);
+  /* Two cards per row */
+  gap: 12px;
+  /* space between cards */
   padding: 10px;
   background: #f3f4f8;
   border-radius: 8px;
   min-height: 60px;
   transition: background 0.2s ease;
+  align-items: start;
+  /* Cards align to top, don't stretch to match row height */
 }
 
 /* When a card is dragged over */
 .card-list.drag-over {
   background: #eaf0ff;
 }
-
-
-
