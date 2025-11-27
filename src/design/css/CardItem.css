@@ -159,7 +159,8 @@
   width: 14px;
   height: 14px;
   object-fit: contain;
-  filter: none; /* keep original colors */
+  filter: none;
+  /* keep original colors */
 }
 
 /* Days text */
@@ -209,7 +210,8 @@
 }
 
 .progress-svg .progress {
-  stroke-dasharray: 88; /* 2 * π * r = 2 * 3.14 * 14 ≈ 88 */
+  stroke-dasharray: 88;
+  /* 2 * π * r = 2 * 3.14 * 14 ≈ 88 */
   stroke-dashoffset: 88;
   transition: stroke-dashoffset 0.4s ease;
 }
@@ -282,17 +284,21 @@
 
 /* Priority blinking effect */
 @keyframes blink-red {
-  0%, 100% {
+
+  0%,
+  100% {
     box-shadow: 0 2px 6px rgba(0, 0, 0, 0.08);
     border-color: #eee;
+    border-width: 1px;
   }
+
   50% {
-    box-shadow: 0 2px 12px rgba(255, 0, 0, 0.6), 0 0 0 2px rgba(255, 0, 0, 0.3);
+    box-shadow: 0 2px 20px rgba(255, 0, 0, 0.8), 0 0 0 6px rgba(255, 0, 0, 0.4);
     border-color: #ff0000;
+    /* border-width: 4px; */
   }
 }
 
 .kanban-card.priority-blink {
   animation: blink-red 1.5s ease-in-out infinite;
 }
-
