@@ -233,6 +233,94 @@ MultiSelect.propTypes = {
   cardColor: PropTypes.string,
 };
 
+// File Preview Component
+const FilePreview = ({ file, onRemove }) => {
+  if (!file) return null;
+
+  const getFileType = (fileName) => {
+    if (!fileName) return '';
+    const ext = fileName.split('.').pop()?.toLowerCase();
+    return ext || '';
+  };
+
+  // Handle both File objects and stored file data objects
+  const fileName = file?.name || file?.fileName || 'Untitled';
+  const fileType = getFileType(fileName);
+  const isPDF = fileType === 'pdf';
+  const isWord = ['doc', 'docx'].includes(fileType);
+
+  const handleRemoveClick = (e) => {
+    e.stopPropagation();
+    if (onRemove) {
+      onRemove();
+    }
+  };
+
+  return (
+    <div className="checklist-file-preview">
+      <button
+        type="button"
+        className="checklist-file-preview-close"
+        onClick={handleRemoveClick}
+        title="Remove file"
+      >
+        ×
+      </button>
+      <div className="checklist-file-preview-icon">
+        {isPDF && (
+          <div className="checklist-file-icon-pdf">
+            <div className="checklist-file-icon-pdf-inner">
+              <div className="checklist-file-icon-pdf-graphic">
+                <svg width="32" height="32" viewBox="0 0 32 32" fill="none" xmlns="http://www.w3.org/2000/svg">
+                  <path d="M6 4 L22 4 L26 8 L26 28 L6 28 Z" fill="white" stroke="#DC143C" strokeWidth="1.5" />
+                  <path d="M22 4 L22 8 L26 8" stroke="#DC143C" strokeWidth="1.5" fill="none" />
+                  <path d="M10 12 L20 12 L20 13.5 L10 13.5 Z" fill="#DC143C" />
+                  <path d="M10 16 L18 16 L18 17.5 L10 17.5 Z" fill="#DC143C" />
+                </svg>
+              </div>
+              <div className="checklist-file-icon-pdf-text">PDF</div>
+            </div>
+          </div>
+        )}
+        {isWord && (
+          <div className="checklist-file-icon-word">
+            <div className="checklist-file-icon-word-inner">
+              <div className="checklist-file-icon-word-logo">
+                <svg width="40" height="40" viewBox="0 0 40 40" fill="none" xmlns="http://www.w3.org/2000/svg">
+                  <rect x="8" y="8" width="24" height="24" rx="2" fill="#2B579A" />
+                  <text x="20" y="27" textAnchor="middle" fill="white" fontSize="20" fontWeight="bold" fontFamily="Arial, sans-serif">W</text>
+                </svg>
+              </div>
+              <div className="checklist-file-icon-word-lines">
+                <div className="checklist-file-icon-word-line"></div>
+                <div className="checklist-file-icon-word-line"></div>
+                <div className="checklist-file-icon-word-line short"></div>
+              </div>
+            </div>
+          </div>
+        )}
+        {!isPDF && !isWord && (
+          <div className="checklist-file-icon-generic">
+            <svg width="60" height="60" viewBox="0 0 60 60" fill="none" xmlns="http://www.w3.org/2000/svg">
+              <path d="M10 5 L45 5 L50 10 L50 55 L10 55 Z" fill="white" stroke="#D0D0D0" strokeWidth="2" />
+              <path d="M45 5 L45 10 L50 10" stroke="#D0D0D0" strokeWidth="2" fill="none" />
+              <path d="M15 20 L40 20" stroke="#D0D0D0" strokeWidth="2" />
+              <path d="M15 27 L35 27" stroke="#D0D0D0" strokeWidth="2" />
+              <path d="M15 34 L38 34" stroke="#D0D0D0" strokeWidth="2" />
+            </svg>
+          </div>
+        )}
+      </div>
+      <div className="checklist-file-preview-name">{fileName}</div>
+    </div>
+  );
+};
+
+FilePreview.propTypes = {
+  file: PropTypes.object,
+  onRemove: PropTypes.func,
+};
+
 // Item Detail Modal Component
 const ItemDetailModal = ({ item, isOpen, onClose, itemData, onUpdate, cardColor = "#2A00FF" }) => {
   const [remarks, setRemarks] = useState(itemData?.remarks || "");
@@ -244,6 +332,10 @@ const ItemDetailModal = ({ item, isOpen, onClose, itemData, onUpdate, cardColor 
     if (file) {
       setUploadedFile(file);
     }
+  };
+
+  const handleRemoveFile = () => {
+    setUploadedFile(null);
   };
 
   const handleSave = () => {
@@ -277,16 +369,53 @@ const ItemDetailModal = ({ item, isOpen, onClose, itemData, onUpdate, cardColor 
           </FormField>
 
           <FormField label="Document Upload">
-            <div className="checklist-file-upload">
-              <input
-                type="file"
-                id={`file-upload-${item.id}`}
-                onChange={handleFileChange}
-                className="checklist-file-input"
-              />
-              <label htmlFor={`file-upload-${item.id}`} className="checklist-file-label" style={{ "--card-color": cardColor }}>
-                {uploadedFile ? uploadedFile.name : "Choose File"}
-              </label>
+            <div className="checklist-file-upload-wrapper">
+              {uploadedFile ? (
+                <div className="checklist-file-preview-container">
+                  <input
+                    type="file"
+                    id={`file-upload-replace-${item.id}`}
+                    onChange={handleFileChange}
+                    className="checklist-file-input"
+                  />
+                  <label htmlFor={`file-upload-replace-${item.id}`} className="checklist-file-preview-clickable">
+                    <FilePreview file={uploadedFile} onRemove={handleRemoveFile} />
+                  </label>
+                </div>
+              ) : (
+                <div className="checklist-file-upload-empty">
+                  <div className="checklist-file-upload-placeholder">
+                    <input
+                      type="file"
+                      id={`file-upload-${item.id}`}
+                      onChange={handleFileChange}
+                      className="checklist-file-input"
+                    />
+                    <label htmlFor={`file-upload-${item.id}`} className="checklist-file-upload-label" style={{ "--card-color": cardColor }}>
+                      <div className="checklist-file-upload-icon-placeholder">
+                        <svg width="80" height="80" viewBox="0 0 80 80" fill="none" xmlns="http://www.w3.org/2000/svg">
+                          <path d="M20 10 L55 10 L65 20 L65 70 L20 70 Z" fill="white" stroke="#D0D0D0" strokeWidth="2" strokeLinejoin="round" />
+                          <path d="M55 10 L55 20 L65 20" stroke="#D0D0D0" strokeWidth="2" fill="none" strokeLinejoin="round" />
+                          <path d="M25 30 L50 30" stroke="#D0D0D0" strokeWidth="2" strokeLinecap="round" />
+                          <path d="M25 40 L45 40" stroke="#D0D0D0" strokeWidth="2" strokeLinecap="round" />
+                          <path d="M25 50 L52 50" stroke="#D0D0D0" strokeWidth="2" strokeLinecap="round" />
+                        </svg>
+                      </div>
+                      <div className="checklist-file-upload-text">
+                        <span className="checklist-file-upload-title">Drop your file here, or</span>
+                        <span className="checklist-file-upload-button">
+                          <svg width="16" height="16" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg" style={{ marginRight: '6px' }}>
+                            <path d="M8 3V13M8 13L4 9M8 13L12 9" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
+                            <path d="M2 12V14C2 14.5523 2.44772 15 3 15H13C13.5523 15 14 14.5523 14 14V12" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" />
+                          </svg>
+                          Choose File
+                        </span>
+                      </div>
+                      <span className="checklist-file-upload-hint">Supports: PDF, DOC, DOCX and more</span>
+                    </label>
+                  </div>
+                </div>
+              )}
             </div>
           </FormField>
         </div>
