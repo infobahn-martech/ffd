@@ -69,7 +69,7 @@ const CrewContent = ({ formValues, handleChange, cardColor }) => {
               <th>Hotel</th>
               <th>Launch Hire</th>
               <th>Medical Service</th>
-              <th>Actions</th>
+              {/* <th>Actions</th> */}
             </tr>
           </thead>
           <tbody>
@@ -117,7 +117,7 @@ const CrewContent = ({ formValues, handleChange, cardColor }) => {
                     {crew.medicalService ? <YesIcon /> : <NoIcon />}
                   </div>
                 </td>
-                <td>
+                {/* <td>
                   <button
                     type="button"
                     className="crew-view-btn"
@@ -126,7 +126,7 @@ const CrewContent = ({ formValues, handleChange, cardColor }) => {
                   >
                     View
                   </button>
-                </td>
+                </td> */}
               </tr>
             ))}
           </tbody>
