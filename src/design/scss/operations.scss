@@ -236,6 +236,89 @@
   color: #999;
 }
 
+/* Disabled Field Styles */
+.cf-input input:disabled,
+.cf-input input[disabled] {
+  background: #f5f5f7 !important;
+  color: #9ca3af !important;
+  cursor: not-allowed !important;
+  opacity: 0.7;
+}
+
+/* Style parent container when input is disabled */
+.cf-input:has(input:disabled),
+.cf-input:has(input[disabled]) {
+  background: #f5f5f7;
+  border-color: #d1d5db;
+  cursor: not-allowed;
+  opacity: 0.85;
+  position: relative;
+}
+
+.cf-input:has(input:disabled):hover,
+.cf-input:has(input[disabled]):hover {
+  border-color: #d1d5db;
+  background: #f5f5f7;
+  box-shadow: none;
+}
+
+.cf-input:has(input:disabled):focus-within,
+.cf-input:has(input[disabled]):focus-within {
+  border-color: #d1d5db;
+  box-shadow: none;
+  background: #f5f5f7;
+}
+
+/* Disabled date-time-row specific styles */
+.cf-input.date-time-row:has(input:disabled),
+.cf-input.date-time-row:has(input[disabled]) {
+  background: #f5f5f7;
+  border-color: #d1d5db;
+  position: relative;
+}
+
+/* Visual indicator for disabled fields */
+.cf-input:has(input:disabled)::before,
+.cf-input:has(input[disabled])::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: linear-gradient(
+    135deg,
+    rgba(0, 0, 0, 0.02) 0%,
+    rgba(0, 0, 0, 0.01) 100%
+  );
+  pointer-events: none;
+  border-radius: 8px;
+  z-index: 1;
+}
+
+/* Fallback for browsers that don't support :has() */
+.cf-input.disabled,
+.cf-field.disabled .cf-input {
+  background: #f5f5f7;
+  border-color: #d1d5db;
+  cursor: not-allowed;
+  opacity: 0.85;
+}
+
+.cf-input.disabled:hover,
+.cf-field.disabled .cf-input:hover {
+  border-color: #d1d5db;
+  background: #f5f5f7;
+  box-shadow: none;
+}
+
+.cf-input.disabled:focus-within,
+.cf-field.disabled .cf-input:focus-within {
+  border-color: #d1d5db;
+  box-shadow: none;
+  background: #f5f5f7;
+}
+
 .cf-select {
   background: #ffffff;
   border-radius: 8px;

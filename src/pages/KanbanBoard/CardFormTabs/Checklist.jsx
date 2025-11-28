@@ -338,6 +338,55 @@ const ItemDetailModal = ({ item, isOpen, onClose, itemData, onUpdate, cardColor 
     setUploadedFile(null);
   };
 
+  const handleSampleDocumentClick = () => {
+    // Create a minimal valid PDF document
+    const pdfContent = `%PDF-1.4
+1 0 obj<</Type/Catalog/Pages 2 0 R>>endobj
+2 0 obj<</Type/Pages/Kids[3 0 R]/Count 1>>endobj
+3 0 obj<</Type/Page/Parent 2 0 R/MediaBox[0 0 612 792]/Contents 4 0 R/Resources<</Font<</F1 5 0 R>>>>>>endobj
+4 0 obj<</Length 65>>stream
+BT
+/F1 24 Tf
+100 700 Td
+(Sample Document) Tj
+0 -30 Td
+(${item.label}) Tj
+ET
+endstream
+endobj
+5 0 obj<</Type/Font/Subtype/Type1/BaseFont/Helvetica>>endobj
+xref
+0 6
+0000000000 65535 f 
+0000000010 00000 n 
+0000000053 00000 n 
+0000000125 00000 n 
+0000000254 00000 n 
+0000000330 00000 n 
+trailer<</Size 6/Root 1 0 R>>
+startxref
+420
+%%EOF`;
+
+    // Create a blob from the PDF content
+    const blob = new Blob([pdfContent], { type: 'application/pdf' });
+    const url = URL.createObjectURL(blob);
+
+    // Create a temporary anchor element to trigger download
+    const link = document.createElement('a');
+    link.href = url;
+    link.download = `${item.label.replace(/[^a-z0-9]/gi, '_').toLowerCase()}_sample.pdf`;
+    link.style.display = 'none';
+    document.body.appendChild(link);
+    link.click();
+
+    // Clean up after a delay
+    setTimeout(() => {
+      document.body.removeChild(link);
+      URL.revokeObjectURL(url);
+    }, 100);
+  };
+
   const handleSave = () => {
     onUpdate({
       remarks,
@@ -368,7 +417,27 @@ const ItemDetailModal = ({ item, isOpen, onClose, itemData, onUpdate, cardColor 
             />
           </FormField>
 
-          <FormField label="Document Upload">
+          <div className="cf-field">
+            <div className="checklist-document-upload-header">
+              <label>Document Upload</label>
+              <div
+                className="checklist-file-icon-pdf checklist-sample-pdf"
+                onClick={handleSampleDocumentClick}
+                title="Click to view sample document"
+              >
+                <div className="checklist-file-icon-pdf-inner">
+                  <div className="checklist-file-icon-pdf-graphic">
+                    <svg width="24" height="24" viewBox="0 0 32 32" fill="none" xmlns="http://www.w3.org/2000/svg">
+                      <path d="M6 4 L22 4 L26 8 L26 28 L6 28 Z" fill="white" stroke="#DC143C" strokeWidth="1.5" />
+                      <path d="M22 4 L22 8 L26 8" stroke="#DC143C" strokeWidth="1.5" fill="none" />
+                      <path d="M10 12 L20 12 L20 13.5 L10 13.5 Z" fill="#DC143C" />
+                      <path d="M10 16 L18 16 L18 17.5 L10 17.5 Z" fill="#DC143C" />
+                    </svg>
+                  </div>
+                  <div className="checklist-file-icon-pdf-text">PDF</div>
+                </div>
+              </div>
+            </div>
             <div className="checklist-file-upload-wrapper">
               {uploadedFile ? (
                 <div className="checklist-file-preview-container">
@@ -417,7 +486,7 @@ const ItemDetailModal = ({ item, isOpen, onClose, itemData, onUpdate, cardColor 
                 </div>
               )}
             </div>
-          </FormField>
+          </div>
         </div>
         <div className="checklist-item-modal-footer">
           <button type="button" className="checklist-btn-secondary" onClick={onClose}>

@@ -828,12 +828,14 @@ const DepartureContent = ({ formValues, handleChange, cardColor, onAddAttachment
                     value={formValues.outwardClearanceRequestReceivedDate || ""}
                     onChange={handleChange("outwardClearanceRequestReceivedDate")}
                     placeholder="Select date"
+                    disabled
                   />
                   <input
                     type="time"
                     value={formValues.outwardClearanceRequestReceivedTime || ""}
                     onChange={handleChange("outwardClearanceRequestReceivedTime")}
                     placeholder="Select time"
+                    disabled
                   />
                 </div>
               </FormField>
@@ -845,12 +847,14 @@ const DepartureContent = ({ formValues, handleChange, cardColor, onAddAttachment
                     value={formValues.outwardClearanceIssuedDate || ""}
                     onChange={handleChange("outwardClearanceIssuedDate")}
                     placeholder="Select date"
+                    disabled
                   />
                   <input
                     type="time"
                     value={formValues.outwardClearanceIssuedTime || ""}
                     onChange={handleChange("outwardClearanceIssuedTime")}
                     placeholder="Select time"
+                    disabled
                   />
                 </div>
               </FormField>
@@ -862,12 +866,14 @@ const DepartureContent = ({ formValues, handleChange, cardColor, onAddAttachment
                     value={formValues.outwardClearanceDeliveredDate || ""}
                     onChange={handleChange("outwardClearanceDeliveredDate")}
                     placeholder="Select date"
+                    disabled
                   />
                   <input
                     type="time"
                     value={formValues.outwardClearanceDeliveredTime || ""}
                     onChange={handleChange("outwardClearanceDeliveredTime")}
                     placeholder="Select time"
+                    disabled
                   />
                 </div>
               </FormField>
@@ -879,12 +885,14 @@ const DepartureContent = ({ formValues, handleChange, cardColor, onAddAttachment
                     value={formValues.vesselSailedDate || ""}
                     onChange={handleChange("vesselSailedDate")}
                     placeholder="Select date"
+                    disabled
                   />
                   <input
                     type="time"
                     value={formValues.vesselSailedTime || ""}
                     onChange={handleChange("vesselSailedTime")}
                     placeholder="Select time"
+                    disabled
                   />
                 </div>
               </FormField>
@@ -896,12 +904,14 @@ const DepartureContent = ({ formValues, handleChange, cardColor, onAddAttachment
                     value={formValues.castOffDate || ""}
                     onChange={handleChange("castOffDate")}
                     placeholder="Select date"
+                    disabled
                   />
                   <input
                     type="time"
                     value={formValues.castOffTime || ""}
                     onChange={handleChange("castOffTime")}
                     placeholder="Select time"
+                    disabled
                   />
                 </div>
               </FormField>
