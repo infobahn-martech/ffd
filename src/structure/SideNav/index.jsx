@@ -119,9 +119,21 @@ function SideNav({ isMobileMenuOpen, onCloseMobileMenu }) {
     {
       menu: 'Billing Accounts',
       isDefaultMenu: true,
-      to: '/billing-entity',
-      icon: portIcon,
       hasPermission: true,
+      isOpen: false,
+      subMenus: [
+        {
+          menu: 'Billing Entity',
+          to: '/billing-entity',
+          hasPermission: true,
+        },
+        {
+          menu: 'Customer Pricing',
+          to: '/customer-pricing',
+          hasPermission: true,
+        },
+      ],
+      icon: workerIcon,
     },
     {
       menu: 'Vessel Management',

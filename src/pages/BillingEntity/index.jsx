@@ -39,7 +39,7 @@ const BillingEntity = () => {
   const [showBillingEntityModal, setShowBillingEntityModal] = useState(false);
   const [showDeleteModal, setShowDeleteModal] = useState(false);
 
-  console.log("showDeleteModal",showDeleteModal)
+  console.log("showDeleteModal", showDeleteModal)
 
 
   const cols = [
@@ -95,8 +95,8 @@ const BillingEntity = () => {
       tableClasses: 'table-striped',
       contentClass: 'table-content',
       thclass: 'tb-head',
-      onEditClick:(row)=>{setShowBillingEntityModal(row)},
-      onDeleteClick:()=>{setShowDeleteModal(true)},
+      onEditClick: (row) => { setShowBillingEntityModal(row) },
+      onDeleteClick: () => { setShowDeleteModal(true) },
       cell: RenderAction,
       width: '200',
     },
@@ -108,16 +108,16 @@ const BillingEntity = () => {
         <div className="prospect employee">
           <div className="container-fluid">
             <CommonHeader
-             showFilter
+              showFilter
               tableTitle="Billing Accounts"
               isAddEnabled
               addModalLabel="Add BillingEntity"
               setSearch={(e) =>
                 setParams({ ...params, searchTerm: e, page: 1, limit: 10 })
               }
-            onAddModalClick={() => {
-              setShowBillingEntityModal(true);
-            }}
+              // onAddModalClick={() => {
+              //   setShowBillingEntityModal(true);
+              // }}
               exportTitle="Export"
               exportLoader={false}
             />
@@ -129,7 +129,8 @@ const BillingEntity = () => {
             count={dummyBillingEntities.length}
             columns={cols}
             // isLoading={isLoading}
-            data={dummyBillingEntities ?? []}
+            // data={dummyBillingEntities ?? []}
+            data={[]}
             onPageChange={(currentPage) =>
               setParams({ ...params, page: currentPage })
             }
@@ -143,24 +144,24 @@ const BillingEntity = () => {
               });
             }}
           />
-           {!!showBillingEntityModal && (
-                    <BillingEntityModal
-                      showModal={showBillingEntityModal}
-                      closeModal={() => setShowBillingEntityModal(false)}
-                    />
-                  )}
+          {!!showBillingEntityModal && (
+            <BillingEntityModal
+              showModal={showBillingEntityModal}
+              closeModal={() => setShowBillingEntityModal(false)}
+            />
+          )}
 
-                       {!!showDeleteModal && (
-                   <DeleteConfirmationModal
-                          show={showDeleteModal}
-                          onCancel={()=>setShowDeleteModal(false)}
-                          onConfirm={()=>{}}
-                          deleteText="Are you sure you want to delete this port?"
-                          // isLoading={isBeingUpdated}
-                        />
-                  )}
+          {!!showDeleteModal && (
+            <DeleteConfirmationModal
+              show={showDeleteModal}
+              onCancel={() => setShowDeleteModal(false)}
+              onConfirm={() => { }}
+              deleteText="Are you sure you want to delete this port?"
+            // isLoading={isBeingUpdated}
+            />
+          )}
 
-                  
+
         </div>
       </div>
     </>
