@@ -1,11 +1,152 @@
 import { useState, useRef } from "react";
 import PropTypes from "prop-types";
+import Select from "react-select";
 import GroupSettingsIcon from "../../../../assets/images/cv.png";
 import { FormSection, FormField, FormInput, FormSelect } from "./Husbandry.components";
 
 const CGPassContent = ({ formValues, handleChange, cardColor }) => {
   const [isDragging, setIsDragging] = useState(false);
   const fileInputRef = useRef(null);
+
+  // Generate crew options from crewList
+  const crewOptions = formValues.crewList?.map((crew) => ({
+    value: crew.id?.toString() || crew.crewName,
+    label: crew.crewName || `Crew Member ${crew.id}`,
+  })) || [];
+
+  // Handle multi-select crew change
+  const handleCrewChange = (selectedOptions) => {
+    const values = selectedOptions?.map((option) => option.value) || [];
+    const syntheticEvent = { target: { value: values } };
+    handleChange("cgPassSelectedCrew")(syntheticEvent);
+  };
+
+  // Get selected crew values for react-select
+  const selectedCrewValues = formValues.cgPassSelectedCrew?.map((crewId) =>
+    crewOptions.find((opt) => opt.value === crewId?.toString() || opt.value === crewId)
+  ).filter(Boolean) || [];
+
+  // Custom styles for react-select multi-select
+  const customSelectStyles = {
+    control: (base, state) => ({
+      ...base,
+      minHeight: '42px',
+      border: 'none',
+      boxShadow: 'none',
+      backgroundColor: '#ffffff',
+      borderRadius: '8px',
+      padding: '2px 4px',
+      '&:hover': {
+        border: 'none',
+        boxShadow: 'none',
+      },
+    }),
+    valueContainer: (base) => ({
+      ...base,
+      padding: '0 8px',
+      minHeight: '38px',
+      display: 'flex',
+      flexWrap: 'wrap',
+      gap: '6px',
+    }),
+    multiValue: (base, state) => ({
+      ...base,
+      backgroundColor: cardColor || '#2A00FF',
+      borderRadius: '6px',
+      padding: '2px 4px',
+      margin: '0',
+      display: 'flex',
+      alignItems: 'center',
+      minHeight: '28px',
+      boxShadow: '0 1px 3px rgba(0, 0, 0, 0.1)',
+    }),
+    multiValueLabel: (base) => ({
+      ...base,
+      color: '#ffffff',
+      fontSize: '12px',
+      fontWeight: '500',
+      padding: '4px 6px',
+      paddingRight: '4px',
+    }),
+    multiValueRemove: (base) => ({
+      ...base,
+      color: '#ffffff',
+      borderRadius: '4px',
+      padding: '2px 4px',
+      cursor: 'pointer',
+      '&:hover': {
+        backgroundColor: 'rgba(255, 255, 255, 0.2)',
+        color: '#ffffff',
+      },
+    }),
+    placeholder: (base) => ({
+      ...base,
+      color: '#999',
+      fontSize: '13px',
+      marginLeft: '4px',
+    }),
+    input: (base) => ({
+      ...base,
+      color: '#1a1a1a',
+      fontSize: '13px',
+      margin: '0',
+      padding: '0',
+    }),
+    indicatorsContainer: (base) => ({
+      ...base,
+      paddingRight: '8px',
+    }),
+    indicatorSeparator: () => ({
+      display: 'none',
+    }),
+    dropdownIndicator: (base) => ({
+      ...base,
+      color: '#666',
+      padding: '4px',
+      '&:hover': {
+        color: cardColor || '#2A00FF',
+      },
+    }),
+    clearIndicator: (base) => ({
+      ...base,
+      color: '#999',
+      padding: '4px',
+      '&:hover': {
+        color: '#ff0000',
+      },
+    }),
+    menu: (base) => ({
+      ...base,
+      borderRadius: '8px',
+      boxShadow: '0 4px 12px rgba(0, 0, 0, 0.15)',
+      border: '1px solid #e2e2ea',
+      marginTop: '4px',
+      zIndex: 9999,
+    }),
+    menuList: (base) => ({
+      ...base,
+      padding: '4px',
+      maxHeight: '200px',
+    }),
+    option: (base, state) => ({
+      ...base,
+      backgroundColor: state.isSelected
+        ? cardColor || '#2A00FF'
+        : state.isFocused
+          ? 'rgba(42, 0, 255, 0.1)'
+          : '#ffffff',
+      color: state.isSelected ? '#ffffff' : '#1a1a1a',
+      fontSize: '13px',
+      padding: '10px 12px',
+      borderRadius: '6px',
+      margin: '2px 0',
+      cursor: 'pointer',
+      '&:active': {
+        backgroundColor: cardColor || '#2A00FF',
+        color: '#ffffff',
+      },
+    }),
+  };
 
   // Status Sign on/off options
   const statusSignOnOffOptions = [
@@ -72,6 +213,7 @@ const CGPassContent = ({ formValues, handleChange, cardColor }) => {
       cgPassETA: formValues.cgPassETA,
       cgPassETATime: formValues.cgPassETATime,
       statusSignOnOff: formValues.statusSignOnOff,
+      cgPassSelectedCrew: formValues.cgPassSelectedCrew,
       cgPassDocuments: formValues.cgPassDocuments,
     });
     // Add your save logic here
@@ -84,6 +226,24 @@ const CGPassContent = ({ formValues, handleChange, cardColor }) => {
           <div className="form-group">
             <h3 className="form-group-title">CG Pass Information</h3>
             <div className="cf-grid two">
+              <FormField label="Select Crew">
+                <div className="cf-select react-select-container crew-multi-select">
+                  <Select
+                    isMulti
+                    value={selectedCrewValues}
+                    onChange={handleCrewChange}
+                    options={crewOptions}
+                    placeholder={selectedCrewValues.length > 0 ? `${selectedCrewValues.length} crew selected` : "Select crew members..."}
+                    classNamePrefix="react-select"
+                    styles={customSelectStyles}
+                    isClearable
+                    isSearchable
+                    closeMenuOnSelect={false}
+                    hideSelectedOptions={false}
+                  />
+                </div>
+              </FormField>
+
               <FormField label="CG Pass Number">
                 <FormInput
                   type="text"

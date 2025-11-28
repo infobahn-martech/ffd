@@ -44,12 +44,15 @@ function Husbandry({ card, formValues, handleChange }) {
   }, []);
 
   const handleSubTabChange = useCallback((tab) => {
-    // Allow navigation to Crew, Transport, CG Pass, and Zawil Pass tabs
+    // Allow navigation to all enabled tabs
     if (
       tab === CREW_MANAGEMENT_SUBTABS.CREW ||
       tab === CREW_MANAGEMENT_SUBTABS.TRANSPORT ||
       tab === CREW_MANAGEMENT_SUBTABS.CG_PASS ||
-      tab === CREW_MANAGEMENT_SUBTABS.ZAWIL_PASS
+      tab === CREW_MANAGEMENT_SUBTABS.ZAWIL_PASS ||
+      tab === CREW_MANAGEMENT_SUBTABS.HOTEL ||
+      tab === CREW_MANAGEMENT_SUBTABS.LAUNCH_HIRE ||
+      tab === CREW_MANAGEMENT_SUBTABS.MEDICAL_SERVICE
     ) {
       setActiveSubTab(tab);
     }
