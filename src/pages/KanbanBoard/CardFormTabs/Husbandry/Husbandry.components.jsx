@@ -49,7 +49,11 @@ export const HusbandryTabs = ({ activeMainTab, activeSubTab, onMainTabChange, on
             {isActive && currentSubTabs.length > 0 && (
               <div className="op-submenu">
                 {currentSubTabs.map((subTab) => {
-                  const isDisabled = subTab.id !== CREW_MANAGEMENT_SUBTABS.CREW && subTab.id !== CREW_MANAGEMENT_SUBTABS.TRANSPORT;
+                  const isDisabled = 
+                    subTab.id !== CREW_MANAGEMENT_SUBTABS.CREW && 
+                    subTab.id !== CREW_MANAGEMENT_SUBTABS.TRANSPORT &&
+                    subTab.id !== CREW_MANAGEMENT_SUBTABS.CG_PASS &&
+                    subTab.id !== CREW_MANAGEMENT_SUBTABS.ZAWIL_PASS;
                   return (
                     <button
                       key={subTab.id}

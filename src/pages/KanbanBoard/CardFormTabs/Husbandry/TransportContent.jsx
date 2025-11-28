@@ -159,8 +159,8 @@ const TransportContent = ({ formValues, handleChange, cardColor }) => {
       backgroundColor: state.isSelected
         ? cardColor || '#2A00FF'
         : state.isFocused
-        ? 'rgba(42, 0, 255, 0.1)'
-        : '#ffffff',
+          ? 'rgba(42, 0, 255, 0.1)'
+          : '#ffffff',
       color: state.isSelected ? '#ffffff' : '#1a1a1a',
       fontSize: '13px',
       padding: '10px 12px',
