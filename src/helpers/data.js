@@ -129,7 +129,7 @@ for (let i = 0; i < 150; i++) {
     progress: Math.floor(Math.random() * 100),
     color: randomColor,
     iconType: randomIconType,   // ⭐ Added here
-    priority: Math.random() > 0.7, // Randomly assign priority (30% chance)
+    priority: cardId === 1, // Only first item has priority true
     // Add extra details to all cards
     customerName: customerNames[Math.floor(Math.random() * customerNames.length)],
     vesselName: vesselNames[Math.floor(Math.random() * vesselNames.length)],
