@@ -256,6 +256,129 @@
   background: #fafaff;
 }
 
+/* Enhanced Multi-Select Styles */
+.crew-multi-select {
+  min-height: 42px;
+  padding: 6px 10px !important;
+}
+
+.crew-multi-select .react-select__control {
+  border: none !important;
+  box-shadow: none !important;
+  min-height: 38px;
+  background: transparent;
+}
+
+.crew-multi-select .react-select__control--is-focused {
+  border: none !important;
+  box-shadow: none !important;
+}
+
+.crew-multi-select:hover {
+  border-color: #c5c5d1;
+}
+
+.crew-multi-select:focus-within {
+  border-color: var(--card-color, #2A00FF);
+  box-shadow: 0 0 0 3px rgba(42, 0, 255, 0.1);
+  background: #fafaff;
+}
+
+.crew-multi-select .react-select__value-container {
+  padding: 0 !important;
+}
+
+.crew-multi-select .react-select__multi-value {
+  margin: 2px 4px 2px 0 !important;
+  background-color: var(--card-color, #2A00FF) !important;
+  border-radius: 6px !important;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.12) !important;
+}
+
+.crew-multi-select .react-select__multi-value__label {
+  color: #ffffff !important;
+  font-size: 12px !important;
+  font-weight: 500 !important;
+  padding: 4px 6px !important;
+}
+
+.crew-multi-select .react-select__multi-value__remove {
+  color: #ffffff !important;
+  border-radius: 4px !important;
+  padding: 2px 4px !important;
+}
+
+.crew-multi-select .react-select__multi-value__remove:hover {
+  background-color: rgba(255, 255, 255, 0.25) !important;
+  color: #ffffff !important;
+}
+
+.crew-multi-select .react-select__placeholder {
+  color: #999 !important;
+  font-size: 13px !important;
+  margin-left: 0 !important;
+}
+
+.crew-multi-select .react-select__input-container {
+  margin: 0 !important;
+  padding: 0 !important;
+}
+
+.crew-multi-select .react-select__input {
+  color: #1a1a1a !important;
+  font-size: 13px !important;
+}
+
+.crew-multi-select .react-select__indicator {
+  padding: 4px !important;
+  color: #666 !important;
+}
+
+.crew-multi-select .react-select__indicator:hover {
+  color: var(--card-color, #2A00FF) !important;
+}
+
+.crew-multi-select .react-select__clear-indicator:hover {
+  color: #ff0000 !important;
+}
+
+.crew-multi-select .react-select__menu {
+  border-radius: 8px !important;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15) !important;
+  border: 1px solid #e2e2ea !important;
+  margin-top: 4px !important;
+  z-index: 9999 !important;
+}
+
+.crew-multi-select .react-select__menu-list {
+  padding: 4px !important;
+  max-height: 200px !important;
+}
+
+.crew-multi-select .react-select__option {
+  font-size: 13px !important;
+  padding: 10px 12px !important;
+  border-radius: 6px !important;
+  margin: 2px 0 !important;
+  cursor: pointer !important;
+}
+
+.crew-multi-select .react-select__option--is-selected {
+  background-color: var(--card-color, #2A00FF) !important;
+  color: #ffffff !important;
+  font-weight: 500 !important;
+}
+
+.crew-multi-select .react-select__option--is-focused {
+  background-color: rgba(42, 0, 255, 0.1) !important;
+  color: #1a1a1a !important;
+}
+
+.crew-multi-select .react-select__option:active {
+  background-color: var(--card-color, #2A00FF) !important;
+  color: #ffffff !important;
+}
+
 .cf-select select {
   border: none;
   background: transparent;
