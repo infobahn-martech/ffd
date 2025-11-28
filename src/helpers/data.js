@@ -119,7 +119,7 @@ for (let i = 0; i < 150; i++) {
     user: ["Sarim Asaf", "Zimba Ray", "Alex Ford", "Alif Allen", "Daniel Joe"][
       Math.floor(Math.random() * 5)
     ],
-    title: `SEDRES – ${["JAN", "FEB", "MAR", "APR", "MAY", "JUN", "JUL", "AUG"][
+    title: `CARD – ${["JAN", "FEB", "MAR", "APR", "MAY", "JUN", "JUL", "AUG"][
       Math.floor(Math.random() * 8)
     ]} ${2025 + Math.floor(Math.random() * 2)}`,
     days: Math.floor(Math.random() * 300) + 20,
