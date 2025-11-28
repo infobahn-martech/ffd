@@ -133,8 +133,8 @@ const HotelContent = ({ formValues, handleChange, cardColor }) => {
       backgroundColor: state.isSelected
         ? cardColor || '#2A00FF'
         : state.isFocused
-        ? 'rgba(42, 0, 255, 0.1)'
-        : '#ffffff',
+          ? 'rgba(42, 0, 255, 0.1)'
+          : '#ffffff',
       color: state.isSelected ? '#ffffff' : '#1a1a1a',
       fontSize: '13px',
       padding: '10px 12px',
@@ -246,6 +246,23 @@ const HotelContent = ({ formValues, handleChange, cardColor }) => {
                     type="date"
                     value={formValues.hotelCheckInDate || ""}
                     onChange={handleChange("hotelCheckInDate")}
+                    placeholder="Select date"
+                  />
+                  <input
+                    type="time"
+                    value={formValues.hotelCheckInTime || ""}
+                    onChange={handleChange("hotelCheckInTime")}
+                    placeholder="Select time"
+                  />
+                </div>
+              </FormField>
+
+              <FormField label="Check-out Date">
+                <div className="cf-input date-time-row">
+                  <input
+                    type="date"
+                    value={formValues.hotelCheckOutDate || ""}
+                    onChange={handleChange("hotelCheckOutDate")}
                     placeholder="Select date"
                   />
                   <input

@@ -1,4 +1,4 @@
-import { useState, useCallback } from "react";
+import { useState, useCallback, useEffect } from "react";
 import PropTypes from "prop-types";
 import "../../../design/scss/operations.scss";
 import "../../../design/scss/table-common.scss";
@@ -31,6 +31,16 @@ function Husbandry({ card, formValues, handleChange }) {
   );
   const cardColor = card?.color || "#2A00FF";
 
+  // Reset to CREW if activeSubTab is set to a disabled tab
+  useEffect(() => {
+    if (
+      activeSubTab === CREW_MANAGEMENT_SUBTABS.LAUNCH_HIRE ||
+      activeSubTab === CREW_MANAGEMENT_SUBTABS.MEDICAL_SERVICE
+    ) {
+      setActiveSubTab(CREW_MANAGEMENT_SUBTABS.CREW);
+    }
+  }, [activeSubTab]);
+
   const handleMainTabChange = useCallback((tab) => {
     // Disable Material Management tab for now
     if (tab === MAIN_TABS.MATERIAL_MANAGEMENT) {
@@ -44,15 +54,20 @@ function Husbandry({ card, formValues, handleChange }) {
   }, []);
 
   const handleSubTabChange = useCallback((tab) => {
-    // Allow navigation to all enabled tabs
+    // Disable Launch Hire and Medical Service tabs
+    if (
+      tab === CREW_MANAGEMENT_SUBTABS.LAUNCH_HIRE ||
+      tab === CREW_MANAGEMENT_SUBTABS.MEDICAL_SERVICE
+    ) {
+      return; // Prevent switching to disabled tabs
+    }
+    // Allow navigation to enabled tabs
     if (
       tab === CREW_MANAGEMENT_SUBTABS.CREW ||
       tab === CREW_MANAGEMENT_SUBTABS.TRANSPORT ||
       tab === CREW_MANAGEMENT_SUBTABS.CG_PASS ||
       tab === CREW_MANAGEMENT_SUBTABS.ZAWIL_PASS ||
-      tab === CREW_MANAGEMENT_SUBTABS.HOTEL ||
-      tab === CREW_MANAGEMENT_SUBTABS.LAUNCH_HIRE ||
-      tab === CREW_MANAGEMENT_SUBTABS.MEDICAL_SERVICE
+      tab === CREW_MANAGEMENT_SUBTABS.HOTEL
     ) {
       setActiveSubTab(tab);
     }

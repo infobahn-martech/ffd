@@ -49,7 +49,10 @@ export const HusbandryTabs = ({ activeMainTab, activeSubTab, onMainTabChange, on
             {isActive && currentSubTabs.length > 0 && (
               <div className="op-submenu">
                 {currentSubTabs.map((subTab) => {
-                  const isDisabled = false; // All tabs are now enabled
+                  // Disable Launch Hire and Medical Service tabs
+                  const isDisabled = 
+                    subTab.id === CREW_MANAGEMENT_SUBTABS.LAUNCH_HIRE ||
+                    subTab.id === CREW_MANAGEMENT_SUBTABS.MEDICAL_SERVICE;
                   return (
                     <button
                       key={subTab.id}
