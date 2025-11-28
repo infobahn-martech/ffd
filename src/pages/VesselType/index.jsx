@@ -41,14 +41,14 @@ const VesselType = () => {
       thclass: "tb-head",
       contentClass: "table-content",
     },
-     {
+    {
       name: 'Actions',
       selector: 'linksInfo',
       tableClasses: 'table-striped',
       contentClass: 'table-content',
       thclass: 'tb-head',
-      onEditClick:(row)=>{setShowVesselTypeModal(row)},
-      onDeleteClick:()=>{},
+      onEditClick: (row) => { setShowVesselTypeModal(row) },
+      onDeleteClick: () => { },
       cell: RenderAction,
       width: '200',
     },
@@ -67,7 +67,7 @@ const VesselType = () => {
               setSearch={(e) =>
                 setParams({ ...params, searchTerm: e, page: 1 })
               }
-              onAddModalClick={() => setShowVesselTypeModal(true)}
+              // onAddModalClick={() => setShowVesselTypeModal(true)}
               exportTitle="Export"
               exportLoader={false}
             />
@@ -78,7 +78,8 @@ const VesselType = () => {
             tableClasses="px-start"
             count={dummyRoles.length}
             columns={cols}
-            data={dummyRoles}
+            // data={dummyRoles}
+            data={[]}
             onPageChange={(currentPage) =>
               setParams({ ...params, page: currentPage })
             }

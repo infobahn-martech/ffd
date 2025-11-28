@@ -39,7 +39,7 @@ const Vessel = () => {
   const [showVesselModal, setShowVesselModal] = useState(false);
   const [showDeleteModal, setShowDeleteModal] = useState(false);
 
-  console.log("showDeleteModal",showDeleteModal)
+  console.log("showDeleteModal", showDeleteModal)
 
 
   const cols = [
@@ -95,8 +95,8 @@ const Vessel = () => {
       tableClasses: 'table-striped',
       contentClass: 'table-content',
       thclass: 'tb-head',
-      onEditClick:(row)=>{setShowVesselModal(row)},
-      onDeleteClick:()=>{setShowDeleteModal(true)},
+      onEditClick: (row) => { setShowVesselModal(row) },
+      onDeleteClick: () => { setShowDeleteModal(true) },
       cell: RenderAction,
       width: '200',
     },
@@ -108,16 +108,16 @@ const Vessel = () => {
         <div className="prospect employee">
           <div className="container-fluid">
             <CommonHeader
-             showFilter
+              showFilter
               tableTitle="Vessels"
               isAddEnabled
               addModalLabel="Add Vessel"
               setSearch={(e) =>
                 setParams({ ...params, searchTerm: e, page: 1, limit: 10 })
               }
-            onAddModalClick={() => {
-              setShowVesselModal(true);
-            }}
+              // onAddModalClick={() => {
+              //   setShowVesselModal(true);
+              // }}
               exportTitle="Export"
               exportLoader={false}
             />
@@ -129,7 +129,8 @@ const Vessel = () => {
             count={dummyVessels.length}
             columns={cols}
             // isLoading={isLoading}
-            data={dummyVessels ?? []}
+            // data={dummyVessels ?? []}
+            data={[]}
             onPageChange={(currentPage) =>
               setParams({ ...params, page: currentPage })
             }
@@ -143,24 +144,24 @@ const Vessel = () => {
               });
             }}
           />
-           {!!showVesselModal && (
-                    <VesselModal
-                      showModal={showVesselModal}
-                      closeModal={() => setShowVesselModal(false)}
-                    />
-                  )}
+          {!!showVesselModal && (
+            <VesselModal
+              showModal={showVesselModal}
+              closeModal={() => setShowVesselModal(false)}
+            />
+          )}
 
-                       {!!showDeleteModal && (
-                   <DeleteConfirmationModal
-                          show={showDeleteModal}
-                          onCancel={()=>setShowDeleteModal(false)}
-                          onConfirm={()=>{}}
-                          deleteText="Are you sure you want to delete this port?"
-                          // isLoading={isBeingUpdated}
-                        />
-                  )}
+          {!!showDeleteModal && (
+            <DeleteConfirmationModal
+              show={showDeleteModal}
+              onCancel={() => setShowDeleteModal(false)}
+              onConfirm={() => { }}
+              deleteText="Are you sure you want to delete this port?"
+            // isLoading={isBeingUpdated}
+            />
+          )}
 
-                  
+
         </div>
       </div>
     </>
