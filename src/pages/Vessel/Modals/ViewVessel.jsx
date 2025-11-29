@@ -23,7 +23,7 @@ export function ViewVesselModal({ showModal, closeModal }) {
   const renderBody = () => (
     <div className="modal-body">
       <div className="view-vessel-container">
-        {/* ROW 1 — Billing Entity + Vessel Type + Vessel Name */}
+        {/* ROW 1 — Billing Entity + Vessel Type + Barge Type */}
         <div className="view-row">
           <div className="view-item">
             <div className="view-label">Billing Entity</div>
@@ -34,13 +34,17 @@ export function ViewVesselModal({ showModal, closeModal }) {
             <div className="view-value">{showModal.vesselType || "-"}</div>
           </div>
           <div className="view-item">
-            <div className="view-label">Vessel Name</div>
-            <div className="view-value">{showModal.vesselName || "-"}</div>
+            <div className="view-label">Barge Type</div>
+            <div className="view-value">{showModal.bargeType || "-"}</div>
           </div>
         </div>
 
-        {/* ROW 2 — Flag State + Gross Tonnage + Call Sign */}
+        {/* ROW 2 — Vessel Name + Flag State + Gross Tonnage */}
         <div className="view-row">
+          <div className="view-item">
+            <div className="view-label">Vessel Name</div>
+            <div className="view-value">{showModal.vesselName || "-"}</div>
+          </div>
           <div className="view-item">
             <div className="view-label">Flag State</div>
             <div className="view-value">{showModal.flagState || "-"}</div>
@@ -49,14 +53,14 @@ export function ViewVesselModal({ showModal, closeModal }) {
             <div className="view-label">Gross Tonnage</div>
             <div className="view-value">{showModal.grossTonnage || "-"}</div>
           </div>
+        </div>
+
+        {/* ROW 3 — Call Sign + Year Built + Class Society */}
+        <div className="view-row">
           <div className="view-item">
             <div className="view-label">Call Sign</div>
             <div className="view-value">{showModal.callSign || "-"}</div>
           </div>
-        </div>
-
-        {/* ROW 3 — Year Built + Class Society + P&I Club */}
-        <div className="view-row">
           <div className="view-item">
             <div className="view-label">Year Built</div>
             <div className="view-value">{showModal.yearBuilt || "-"}</div>
@@ -65,14 +69,14 @@ export function ViewVesselModal({ showModal, closeModal }) {
             <div className="view-label">Class Society</div>
             <div className="view-value">{showModal.classSociety || "-"}</div>
           </div>
+        </div>
+
+        {/* ROW 4 — P&I Club + Length Overall + Beam */}
+        <div className="view-row">
           <div className="view-item">
             <div className="view-label">P&I Club</div>
             <div className="view-value">{showModal.pnIClub || "-"}</div>
           </div>
-        </div>
-
-        {/* ROW 4 — Length Overall + Beam + Draft */}
-        <div className="view-row">
           <div className="view-item">
             <div className="view-label">Length Overall</div>
             <div className="view-value">{showModal.lengthOverall || "-"}</div>
@@ -81,32 +85,24 @@ export function ViewVesselModal({ showModal, closeModal }) {
             <div className="view-label">Beam</div>
             <div className="view-value">{showModal.beam || "-"}</div>
           </div>
+        </div>
+
+        {/* ROW 5 — Draft + Created At */}
+        <div className="view-row">
           <div className="view-item">
             <div className="view-label">Draft</div>
             <div className="view-value">{showModal.draft || "-"}</div>
           </div>
-        </div>
-
-        {/* ROW 5 — Created At */}
-        {showModal.createdAt && (
-          <div className="view-row">
+          {showModal.createdAt && (
             <div className="view-item">
               <div className="view-label">Created At</div>
               <div className="view-value">
                 {moment(showModal.createdAt).format('DD MMMM YYYY hh:mm a')}
               </div>
             </div>
-          </div>
-        )}
+          )}
+        </div>
       </div>
-    </div>
-  );
-
-  const renderFooter = () => (
-    <div className="modal-footer">
-      <button type="button" className="btn btn-outline" onClick={closeModal}>
-        Close
-      </button>
     </div>
   );
 
@@ -116,7 +112,6 @@ export function ViewVesselModal({ showModal, closeModal }) {
       show={!!showModal}
       closeModal={() => closeModal(null)}
       body={renderBody()}
-      footer={renderFooter()}
       header={renderHeader()}
     />
   );

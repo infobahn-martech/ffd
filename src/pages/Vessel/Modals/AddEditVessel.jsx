@@ -19,6 +19,13 @@ const BILLING_ENTITY_OPTIONS = [
   "Billing Entity 3",
 ];
 
+// Barge Type Options
+const BARGE_TYPE_OPTIONS = [
+  "Barge Import",
+  "Flat Barge Import",
+  "Jack Up Barge",
+];
+
 export function VesselModal({ showModal, closeModal }) {
   const {
     register,
@@ -27,19 +34,20 @@ export function VesselModal({ showModal, closeModal }) {
   } = useForm({
     defaultValues: showModal?._id
       ? {
-          billingEntity: showModal?.billingEntity || "",
-          vesselType: showModal?.vesselType || "",
-          vesselName: showModal?.vesselName || "",
-          flagState: showModal?.flagState || "",
-          grossTonnage: showModal?.grossTonnage || "",
-          callSign: showModal?.callSign || "",
-          yearBuilt: showModal?.yearBuilt || "",
-          classSociety: showModal?.classSociety || "",
-          pnIClub: showModal?.pnIClub || "",
-          lengthOverall: showModal?.lengthOverall || "",
-          beam: showModal?.beam || "",
-          draft: showModal?.draft || "",
-        }
+        billingEntity: showModal?.billingEntity || "",
+        vesselType: showModal?.vesselType || "",
+        bargeType: showModal?.bargeType || "",
+        vesselName: showModal?.vesselName || "",
+        flagState: showModal?.flagState || "",
+        grossTonnage: showModal?.grossTonnage || "",
+        callSign: showModal?.callSign || "",
+        yearBuilt: showModal?.yearBuilt || "",
+        classSociety: showModal?.classSociety || "",
+        pnIClub: showModal?.pnIClub || "",
+        lengthOverall: showModal?.lengthOverall || "",
+        beam: showModal?.beam || "",
+        draft: showModal?.draft || "",
+      }
       : {},
   });
 
@@ -66,10 +74,10 @@ export function VesselModal({ showModal, closeModal }) {
     <div className="modal-body">
       <div className="lead-form">
         <form id="vesselForm" onSubmit={handleSubmit(onSubmit)}>
-          {/* ROW 1 — Billing Entity + Vessel Type */}
+          {/* ROW 1 — Billing Entity + Vessel Type + Barge Type */}
           <div className="permInputs row mb-lg-3">
             {/* Billing Entity */}
-            <div className="col-lg-6 col-sm-12 mb-3">
+            <div className="col-lg-4 col-sm-12 mb-3">
               <div className="form-floating desig-inp">
                 <select
                   className={`form-control ${errors.billingEntity ? "is-invalid" : ""}`}
@@ -92,7 +100,7 @@ export function VesselModal({ showModal, closeModal }) {
             </div>
 
             {/* Vessel Type */}
-            <div className="col-lg-6 col-sm-12 mb-3">
+            <div className="col-lg-4 col-sm-12 mb-3">
               <div className="form-floating desig-inp">
                 <select
                   className={`form-control ${errors.vesselType ? "is-invalid" : ""}`}
@@ -110,6 +118,29 @@ export function VesselModal({ showModal, closeModal }) {
                 </label>
                 {errors.vesselType && (
                   <span className="error text-danger">{errors.vesselType.message}</span>
+                )}
+              </div>
+            </div>
+
+            {/* Barge Type */}
+            <div className="col-lg-4 col-sm-12 mb-3">
+              <div className="form-floating desig-inp">
+                <select
+                  className={`form-control ${errors.bargeType ? "is-invalid" : ""}`}
+                  {...register("bargeType", { required: "Barge Type is required" })}
+                >
+                  <option value="">Select Barge Type</option>
+                  {BARGE_TYPE_OPTIONS.map((type) => (
+                    <option key={type} value={type}>
+                      {type}
+                    </option>
+                  ))}
+                </select>
+                <label>
+                  Barge Type <span className="text-danger">*</span>
+                </label>
+                {errors.bargeType && (
+                  <span className="error text-danger">{errors.bargeType.message}</span>
                 )}
               </div>
             </div>
