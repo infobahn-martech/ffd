@@ -1,5 +1,6 @@
 import { useState, useCallback } from "react";
 import PropTypes from "prop-types";
+import Select from "react-select";
 import GroupSettingsIcon from "../../../assets/images/cv.png";
 import CircleTickIcon from "../../../assets/images/CircleTick.svg";
 import Checklist from "./Checklist";
@@ -11,6 +12,7 @@ const OPERATION_TABS = {
   CHECK_LIST: "checkList",
   ARRIVAL: "arrival",
   DEPARTURE: "departure",
+  LAUNCH_HIRE: "launchHire",
 };
 
 // Sub-components
@@ -19,6 +21,7 @@ const OperationTabs = ({ activeTab, onTabChange }) => {
     { id: OPERATION_TABS.PRE_ARRIVAL, label: "Pre Arrival" },
     { id: OPERATION_TABS.CHECK_LIST, label: "Check List" },
     { id: OPERATION_TABS.ARRIVAL, label: "Arrival" },
+    { id: OPERATION_TABS.LAUNCH_HIRE, label: "Launch Hire" },
     { id: OPERATION_TABS.DEPARTURE, label: "Departure" },
   ];
 
@@ -148,6 +151,188 @@ FormTextarea.propTypes = {
   placeholder: PropTypes.string,
   className: PropTypes.string,
   rows: PropTypes.number,
+};
+
+const FormMultiSelect = ({ value = [], onChange, options = [], placeholder, className = "" }) => {
+  const handleSelectChange = (e) => {
+    const selectedOptions = Array.from(e.target.selectedOptions, (option) => option.value);
+    onChange({ target: { value: selectedOptions } });
+  };
+
+  return (
+    <div className={`cf-multiselect ${className}`}>
+      <select multiple value={value} onChange={handleSelectChange} size={4}>
+        {placeholder && value.length === 0 && (
+          <option value="" disabled>
+            {placeholder}
+          </option>
+        )}
+        {options.map((option) => (
+          <option key={option.value} value={option.value}>
+            {option.label}
+          </option>
+        ))}
+      </select>
+      {value.length > 0 && (
+        <div className="cf-multiselect-selected">
+          {value.length} item(s) selected
+        </div>
+      )}
+    </div>
+  );
+};
+
+FormMultiSelect.propTypes = {
+  value: PropTypes.arrayOf(PropTypes.string),
+  onChange: PropTypes.func.isRequired,
+  options: PropTypes.arrayOf(
+    PropTypes.shape({
+      value: PropTypes.string.isRequired,
+      label: PropTypes.string.isRequired,
+    })
+  ),
+  placeholder: PropTypes.string,
+  className: PropTypes.string,
+};
+
+const TimeSlotPicker = ({ value = "", onChange, placeholder, className = "", cardColor }) => {
+  // Generate time slots (every 30 minutes from 00:00 to 23:30)
+  const generateTimeSlots = () => {
+    const slots = [];
+    for (let hour = 0; hour < 24; hour++) {
+      for (let minute = 0; minute < 60; minute += 30) {
+        const timeString = `${String(hour).padStart(2, "0")}:${String(minute).padStart(2, "0")}`;
+        slots.push({ value: timeString, label: timeString });
+      }
+    }
+    return slots;
+  };
+
+  const timeSlots = generateTimeSlots();
+
+  // Find the selected option object
+  const selectedOption = timeSlots.find((slot) => slot.value === value) || null;
+
+  // Handle select change
+  const handleSelectChange = (selectedOption) => {
+    const syntheticEvent = { target: { value: selectedOption?.value || "" } };
+    onChange(syntheticEvent);
+  };
+
+  // Custom styles for react-select - ensures dropdown opens downwards
+  const customSelectStyles = {
+    control: (base, state) => ({
+      ...base,
+      minHeight: '42px',
+      border: 'none',
+      boxShadow: 'none',
+      backgroundColor: '#ffffff',
+      borderRadius: '8px',
+      padding: '2px 4px',
+      '&:hover': {
+        border: 'none',
+        boxShadow: 'none',
+      },
+    }),
+    valueContainer: (base) => ({
+      ...base,
+      padding: '0 8px',
+      minHeight: '38px',
+    }),
+    placeholder: (base) => ({
+      ...base,
+      color: '#999',
+      fontSize: '13px',
+      marginLeft: '4px',
+    }),
+    input: (base) => ({
+      ...base,
+      color: '#1a1a1a',
+      fontSize: '13px',
+      margin: '0',
+      padding: '0',
+    }),
+    indicatorsContainer: (base) => ({
+      ...base,
+      paddingRight: '8px',
+    }),
+    indicatorSeparator: () => ({
+      display: 'none',
+    }),
+    dropdownIndicator: (base) => ({
+      ...base,
+      color: '#666',
+      padding: '4px',
+      '&:hover': {
+        color: cardColor || '#2A00FF',
+      },
+    }),
+    clearIndicator: (base) => ({
+      ...base,
+      color: '#999',
+      padding: '4px',
+      '&:hover': {
+        color: '#ff0000',
+      },
+    }),
+    menu: (base) => ({
+      ...base,
+      borderRadius: '8px',
+      boxShadow: '0 4px 12px rgba(0, 0, 0, 0.15)',
+      border: '1px solid #e2e2ea',
+      marginTop: '4px',
+      zIndex: 9999,
+    }),
+    menuList: (base) => ({
+      ...base,
+      padding: '4px',
+      maxHeight: '200px',
+    }),
+    option: (base, state) => ({
+      ...base,
+      backgroundColor: state.isSelected
+        ? cardColor || '#2A00FF'
+        : state.isFocused
+          ? 'rgba(42, 0, 255, 0.1)'
+          : '#ffffff',
+      color: state.isSelected ? '#ffffff' : '#1a1a1a',
+      fontSize: '13px',
+      padding: '10px 12px',
+      borderRadius: '6px',
+      margin: '2px 0',
+      cursor: 'pointer',
+      '&:active': {
+        backgroundColor: cardColor || '#2A00FF',
+        color: '#ffffff',
+      },
+    }),
+  };
+
+  return (
+    <div className={`cf-timeslot ${className}`}>
+      <div className="cf-select react-select-container">
+        <Select
+          value={selectedOption}
+          onChange={handleSelectChange}
+          options={timeSlots}
+          placeholder={placeholder || "Select time slot..."}
+          classNamePrefix="react-select"
+          styles={customSelectStyles}
+          isClearable
+          isSearchable
+          menuPlacement="bottom"
+        />
+      </div>
+    </div>
+  );
+};
+
+TimeSlotPicker.propTypes = {
+  value: PropTypes.string,
+  onChange: PropTypes.func.isRequired,
+  placeholder: PropTypes.string,
+  className: PropTypes.string,
+  cardColor: PropTypes.string,
 };
 
 const OwnerField = ({ value, onChange, ownerInitial, cardUser }) => {
@@ -933,6 +1118,241 @@ DepartureContent.propTypes = {
   onRemoveLink: PropTypes.func,
 };
 
+const LaunchHireContent = ({ formValues, handleChange, cardColor }) => {
+  // Generate crew options from crewList or use mock data
+  const crewOptions = formValues.crewList?.map((crew) => ({
+    value: crew.id?.toString() || crew.crewName,
+    label: crew.crewName || `Crew Member ${crew.id}`,
+  })) || [
+      { value: "crew1", label: "Crew Member 1" },
+      { value: "crew2", label: "Crew Member 2" },
+      { value: "crew3", label: "Crew Member 3" },
+      { value: "crew4", label: "Crew Member 4" },
+    ];
+
+  // Mock tax boat type options - should be replaced with actual data
+  const taxBoatTypeOptions = [
+    { value: "type1", label: "Tax Boat Type 1" },
+    { value: "type2", label: "Tax Boat Type 2" },
+    { value: "type3", label: "Tax Boat Type 3" },
+  ];
+
+  // Handle multi-select crew change
+  const handleCrewChange = (selectedOptions) => {
+    const values = selectedOptions?.map((option) => option.value) || [];
+    const syntheticEvent = { target: { value: values } };
+    handleChange("selectedCrew")(syntheticEvent);
+  };
+
+  // Get selected crew values for react-select
+  const selectedCrewValues = formValues.selectedCrew?.map((crewId) =>
+    crewOptions.find((opt) => opt.value === crewId?.toString() || opt.value === crewId)
+  ).filter(Boolean) || [];
+
+  // Custom styles for react-select multi-select
+  const customSelectStyles = {
+    control: (base, state) => ({
+      ...base,
+      minHeight: '42px',
+      border: 'none',
+      boxShadow: 'none',
+      backgroundColor: '#ffffff',
+      borderRadius: '8px',
+      padding: '2px 4px',
+      '&:hover': {
+        border: 'none',
+        boxShadow: 'none',
+      },
+    }),
+    valueContainer: (base) => ({
+      ...base,
+      padding: '0 8px',
+      minHeight: '38px',
+      display: 'flex',
+      flexWrap: 'wrap',
+      gap: '6px',
+    }),
+    multiValue: (base, state) => ({
+      ...base,
+      backgroundColor: cardColor || '#2A00FF',
+      borderRadius: '6px',
+      padding: '2px 4px',
+      margin: '0',
+      display: 'flex',
+      alignItems: 'center',
+      minHeight: '28px',
+      boxShadow: '0 1px 3px rgba(0, 0, 0, 0.1)',
+    }),
+    multiValueLabel: (base) => ({
+      ...base,
+      color: '#ffffff',
+      fontSize: '12px',
+      fontWeight: '500',
+      padding: '4px 6px',
+      paddingRight: '4px',
+    }),
+    multiValueRemove: (base) => ({
+      ...base,
+      color: '#ffffff',
+      borderRadius: '4px',
+      padding: '2px 4px',
+      cursor: 'pointer',
+      '&:hover': {
+        backgroundColor: 'rgba(255, 255, 255, 0.2)',
+        color: '#ffffff',
+      },
+    }),
+    placeholder: (base) => ({
+      ...base,
+      color: '#999',
+      fontSize: '13px',
+      marginLeft: '4px',
+    }),
+    input: (base) => ({
+      ...base,
+      color: '#1a1a1a',
+      fontSize: '13px',
+      margin: '0',
+      padding: '0',
+    }),
+    indicatorsContainer: (base) => ({
+      ...base,
+      paddingRight: '8px',
+    }),
+    indicatorSeparator: () => ({
+      display: 'none',
+    }),
+    dropdownIndicator: (base) => ({
+      ...base,
+      color: '#666',
+      padding: '4px',
+      '&:hover': {
+        color: cardColor || '#2A00FF',
+      },
+    }),
+    clearIndicator: (base) => ({
+      ...base,
+      color: '#999',
+      padding: '4px',
+      '&:hover': {
+        color: '#ff0000',
+      },
+    }),
+    menu: (base) => ({
+      ...base,
+      borderRadius: '8px',
+      boxShadow: '0 4px 12px rgba(0, 0, 0, 0.15)',
+      border: '1px solid #e2e2ea',
+      marginTop: '4px',
+      zIndex: 9999,
+    }),
+    menuList: (base) => ({
+      ...base,
+      padding: '4px',
+      maxHeight: '200px',
+    }),
+    option: (base, state) => ({
+      ...base,
+      backgroundColor: state.isSelected
+        ? cardColor || '#2A00FF'
+        : state.isFocused
+          ? 'rgba(42, 0, 255, 0.1)'
+          : '#ffffff',
+      color: state.isSelected ? '#ffffff' : '#1a1a1a',
+      fontSize: '13px',
+      padding: '10px 12px',
+      borderRadius: '6px',
+      margin: '2px 0',
+      cursor: 'pointer',
+      '&:active': {
+        backgroundColor: cardColor || '#2A00FF',
+        color: '#ffffff',
+      },
+    }),
+  };
+
+  return (
+    <div className="cardform-left-full" style={{ "--card-color": cardColor }}>
+      <FormSection icon={GroupSettingsIcon} title="">
+        <div className="launch-hire-form">
+          <div className="form-group">
+            <h3 className="form-group-title">Launch Hire Information</h3>
+            <div className="cf-grid two">
+              <FormField label="Select Crew">
+                <div className="cf-select react-select-container crew-multi-select">
+                  <Select
+                    isMulti
+                    value={selectedCrewValues}
+                    onChange={handleCrewChange}
+                    options={crewOptions}
+                    placeholder={selectedCrewValues.length > 0 ? `${selectedCrewValues.length} crew selected` : "Select crew members..."}
+                    classNamePrefix="react-select"
+                    styles={customSelectStyles}
+                    isClearable
+                    isSearchable
+                    closeMenuOnSelect={false}
+                    hideSelectedOptions={false}
+                  />
+                </div>
+              </FormField>
+
+              <FormField label="Captain">
+                <FormInput
+                  type="text"
+                  placeholder="Enter captain name..."
+                  value={formValues.captain || ""}
+                  onChange={handleChange("captain")}
+                />
+              </FormField>
+
+              <FormField label="Select Tax boat type">
+                <FormSelect
+                  value={formValues.taxBoatType || ""}
+                  onChange={handleChange("taxBoatType")}
+                  options={taxBoatTypeOptions}
+                  placeholder="Select tax boat type..."
+                />
+              </FormField>
+
+              <FormField label="Pick up Time slots">
+                <TimeSlotPicker
+                  value={formValues.pickupTimeSlot || ""}
+                  onChange={handleChange("pickupTimeSlot")}
+                  placeholder="Select pickup time slot..."
+                  cardColor={cardColor}
+                />
+              </FormField>
+
+              <FormField label="Dropoff Date time">
+                <div className="cf-input date-time-row">
+                  <input
+                    type="date"
+                    value={formValues.dropoffDate || ""}
+                    onChange={handleChange("dropoffDate")}
+                    placeholder="Select date"
+                  />
+                  <input
+                    type="time"
+                    value={formValues.dropoffTime || ""}
+                    onChange={handleChange("dropoffTime")}
+                    placeholder="Select time"
+                  />
+                </div>
+              </FormField>
+            </div>
+          </div>
+        </div>
+      </FormSection>
+    </div>
+  );
+};
+
+LaunchHireContent.propTypes = {
+  formValues: PropTypes.object.isRequired,
+  handleChange: PropTypes.func.isRequired,
+  cardColor: PropTypes.string,
+};
+
 const CheckListContent = ({ card, formValues, handleChange }) => {
   return <Checklist card={card} formValues={formValues} handleChange={handleChange} />;
 };
@@ -1009,6 +1429,13 @@ function Operation({ card, formValues, handleChange, ownerInitial }) {
               onRemoveAttachment={handleRemoveAttachment}
               onAddLink={handleAddLink}
               onRemoveLink={handleRemoveLink}
+            />
+          )}
+          {activeOperationTab === OPERATION_TABS.LAUNCH_HIRE && (
+            <LaunchHireContent
+              formValues={formValues}
+              handleChange={handleChange}
+              cardColor={cardColor}
             />
           )}
           {activeOperationTab === OPERATION_TABS.DEPARTURE && (

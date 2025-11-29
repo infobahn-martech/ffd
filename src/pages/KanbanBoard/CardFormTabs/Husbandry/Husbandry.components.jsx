@@ -18,7 +18,6 @@ export const HusbandryTabs = ({ activeMainTab, activeSubTab, onMainTabChange, on
       { id: CREW_MANAGEMENT_SUBTABS.CG_PASS, label: "CG Pass" },
       { id: CREW_MANAGEMENT_SUBTABS.ZAWIL_PASS, label: "Zawil Pass" },
       { id: CREW_MANAGEMENT_SUBTABS.HOTEL, label: "Hotel" },
-      { id: CREW_MANAGEMENT_SUBTABS.LAUNCH_HIRE, label: "Launch Hire" },
       { id: CREW_MANAGEMENT_SUBTABS.MEDICAL_SERVICE, label: "Medical service" },
     ];
   } else if (activeMainTab === MAIN_TABS.MATERIAL_MANAGEMENT) {
@@ -49,18 +48,12 @@ export const HusbandryTabs = ({ activeMainTab, activeSubTab, onMainTabChange, on
             {isActive && currentSubTabs.length > 0 && (
               <div className="op-submenu">
                 {currentSubTabs.map((subTab) => {
-                  // Disable Launch Hire and Medical Service tabs
-                  const isDisabled = 
-                    subTab.id === CREW_MANAGEMENT_SUBTABS.LAUNCH_HIRE ||
-                    subTab.id === CREW_MANAGEMENT_SUBTABS.MEDICAL_SERVICE;
                   return (
                     <button
                       key={subTab.id}
-                      className={`op-tab op-tab-sub ${activeSubTab === subTab.id ? "active" : ""} ${isDisabled ? "disabled" : ""}`}
-                      onClick={() => !isDisabled && onSubTabChange(subTab.id)}
+                      className={`op-tab op-tab-sub ${activeSubTab === subTab.id ? "active" : ""}`}
+                      onClick={() => onSubTabChange(subTab.id)}
                       type="button"
-                      disabled={isDisabled}
-                      style={isDisabled ? { opacity: 0.5, cursor: "not-allowed" } : {}}
                     >
                       {subTab.label}
                     </button>

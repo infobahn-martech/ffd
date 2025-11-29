@@ -1,4 +1,4 @@
-import { useState, useCallback, useEffect } from "react";
+import { useState, useCallback } from "react";
 import PropTypes from "prop-types";
 import "../../../design/scss/operations.scss";
 import "../../../design/scss/table-common.scss";
@@ -19,7 +19,6 @@ import TransportContent from "./Husbandry/TransportContent";
 import CGPassContent from "./Husbandry/CGPassContent";
 import ZawilPassContent from "./Husbandry/ZawilPassContent";
 import HotelContent from "./Husbandry/HotelContent";
-import LaunchHireContent from "./Husbandry/LaunchHireContent";
 import MedicalServiceContent from "./Husbandry/MedicalServiceContent";
 import WasteDisposalContent from "./Husbandry/WasteDisposalContent";
 
@@ -31,15 +30,6 @@ function Husbandry({ card, formValues, handleChange }) {
   );
   const cardColor = card?.color || "#2A00FF";
 
-  // Reset to CREW if activeSubTab is set to a disabled tab
-  useEffect(() => {
-    if (
-      activeSubTab === CREW_MANAGEMENT_SUBTABS.LAUNCH_HIRE ||
-      activeSubTab === CREW_MANAGEMENT_SUBTABS.MEDICAL_SERVICE
-    ) {
-      setActiveSubTab(CREW_MANAGEMENT_SUBTABS.CREW);
-    }
-  }, [activeSubTab]);
 
   const handleMainTabChange = useCallback((tab) => {
     // Disable Material Management tab for now
@@ -54,23 +44,7 @@ function Husbandry({ card, formValues, handleChange }) {
   }, []);
 
   const handleSubTabChange = useCallback((tab) => {
-    // Disable Launch Hire and Medical Service tabs
-    if (
-      tab === CREW_MANAGEMENT_SUBTABS.LAUNCH_HIRE ||
-      tab === CREW_MANAGEMENT_SUBTABS.MEDICAL_SERVICE
-    ) {
-      return; // Prevent switching to disabled tabs
-    }
-    // Allow navigation to enabled tabs
-    if (
-      tab === CREW_MANAGEMENT_SUBTABS.CREW ||
-      tab === CREW_MANAGEMENT_SUBTABS.TRANSPORT ||
-      tab === CREW_MANAGEMENT_SUBTABS.CG_PASS ||
-      tab === CREW_MANAGEMENT_SUBTABS.ZAWIL_PASS ||
-      tab === CREW_MANAGEMENT_SUBTABS.HOTEL
-    ) {
-      setActiveSubTab(tab);
-    }
+    setActiveSubTab(tab);
   }, []);
 
   const renderCrewManagementContent = () => {
@@ -110,14 +84,6 @@ function Husbandry({ card, formValues, handleChange }) {
       case CREW_MANAGEMENT_SUBTABS.HOTEL:
         return (
           <HotelContent
-            formValues={formValues}
-            handleChange={handleChange}
-            cardColor={cardColor}
-          />
-        );
-      case CREW_MANAGEMENT_SUBTABS.LAUNCH_HIRE:
-        return (
-          <LaunchHireContent
             formValues={formValues}
             handleChange={handleChange}
             cardColor={cardColor}

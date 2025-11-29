@@ -2,7 +2,7 @@ import { useState, useRef } from "react";
 import PropTypes from "prop-types";
 import Select from "react-select";
 import GroupSettingsIcon from "../../../../assets/images/cv.png";
-import { FormSection, FormField, FormInput, FormSelect } from "./Husbandry.components";
+import { FormSection, FormField } from "./Husbandry.components";
 
 const MedicalServiceContent = ({ formValues, handleChange, cardColor }) => {
   const [isDragging, setIsDragging] = useState(false);
@@ -148,13 +148,6 @@ const MedicalServiceContent = ({ formValues, handleChange, cardColor }) => {
     }),
   };
 
-  // Status Sign on/off options
-  const statusSignOnOffOptions = [
-    { value: "Sign On", label: "Sign On" },
-    { value: "Sign Off", label: "Sign Off" },
-    { value: "Pending", label: "Pending" },
-  ];
-
   // Handle file upload for documents
   const handleFileChange = (e) => {
     const files = Array.from(e.target.files || []);
@@ -206,8 +199,6 @@ const MedicalServiceContent = ({ formValues, handleChange, cardColor }) => {
   const handleSave = () => {
     console.log("Saving Medical Service data:", {
       medicalServiceSelectedCrew: formValues.medicalServiceSelectedCrew,
-      statusSignOnOff: formValues.statusSignOnOff,
-      medicalServiceLocation: formValues.medicalServiceLocation,
       medicalServiceDocuments: formValues.medicalServiceDocuments,
     });
   };
@@ -235,24 +226,6 @@ const MedicalServiceContent = ({ formValues, handleChange, cardColor }) => {
                     hideSelectedOptions={false}
                   />
                 </div>
-              </FormField>
-
-              <FormField label="Status Sign on/off">
-                <FormSelect
-                  value={formValues.statusSignOnOff || ""}
-                  onChange={handleChange("statusSignOnOff")}
-                  options={statusSignOnOffOptions}
-                  placeholder="Select status..."
-                />
-              </FormField>
-
-              <FormField label="Location">
-                <FormInput
-                  type="text"
-                  placeholder="Enter location..."
-                  value={formValues.medicalServiceLocation || ""}
-                  onChange={handleChange("medicalServiceLocation")}
-                />
               </FormField>
 
               <FormField label="Documents" className="cf-field-full">

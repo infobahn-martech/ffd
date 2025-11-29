@@ -10,7 +10,6 @@ export const CREW_MANAGEMENT_SUBTABS = {
   CG_PASS: "cgPass",
   ZAWIL_PASS: "zawilPass",
   HOTEL: "hotel",
-  LAUNCH_HIRE: "launchHire",
   MEDICAL_SERVICE: "medicalService",
 };
 
