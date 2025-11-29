@@ -3,7 +3,7 @@ import CommonHeader from "../../components/CommonHeader";
 import { RenderAction, DateFormat } from "./RenderCells";
 import { VesselTypeModal } from "./Modals/AddEditVesselType";
 import DeleteConfirmationModal from "../../components/DeleteConfirmationModal";
-import CustomTable from "../../components/CustomTable";
+import CustomTable from "../../components/customTable";
 
 const dummyVesselTypes = [
   {

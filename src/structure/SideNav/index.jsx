@@ -147,6 +147,11 @@ function SideNav({ isMobileMenuOpen, onCloseMobileMenu }) {
           hasPermission: true,
         },
         {
+          menu: 'Barge Types',
+          to: '/barge-types',
+          hasPermission: true,
+        },
+        {
           menu: 'Vessels',
           to: '/vessel-onboarding',
           hasPermission: true,
