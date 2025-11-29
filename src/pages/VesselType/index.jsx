@@ -1,15 +1,31 @@
 import { useState } from "react";
 import CommonHeader from "../../components/CommonHeader";
-import CustomTable from "../../components/customTable";
-import { RenderAction } from "./RenderCells";
+import { RenderAction, DateFormat } from "./RenderCells";
 import { VesselTypeModal } from "./Modals/AddEditVesselType";
+import DeleteConfirmationModal from "../../components/DeleteConfirmationModal";
+import CustomTable from "../../components/CustomTable";
 
-const dummyRoles = [
-  { _id: "1", name: "Admin", description: "Full system access" },
-  { _id: "2", name: "Manager", description: "Manage users and workflows" },
-  { _id: "3", name: "Viewer", description: "Read-only access" },
-  { _id: "4", name: "Operator", description: "Handle daily operations" },
-  { _id: "5", name: "Supervisor", description: "Review and approve tasks" },
+const dummyVesselTypes = [
+  {
+    _id: "1",
+    name: "Foreign Flag Vessel",
+    createdAt: "2024-01-15T10:30:00Z"
+  },
+  {
+    _id: "2",
+    name: "Saudi Flag Vessel",
+    createdAt: "2024-01-16T11:20:00Z"
+  },
+  {
+    _id: "3",
+    name: "Small Boat",
+    createdAt: "2024-01-17T09:15:00Z"
+  },
+  {
+    _id: "4",
+    name: "Taxi Tug Temp Import",
+    createdAt: "2024-01-18T14:45:00Z"
+  },
 ];
 
 const VesselType = () => {
@@ -22,24 +38,25 @@ const VesselType = () => {
   });
 
   const [showVesselTypeModal, setShowVesselTypeModal] = useState(false);
+  const [showDeleteModal, setShowDeleteModal] = useState(false);
 
-  // 👉 ONLY TWO COLUMNS (Name + Description)
   const cols = [
     {
-      name: "Name",
+      name: "Vessel Type",
       selector: "name",
       sort: true,
-      width: "300",
+      width: "400",
       thclass: "tb-head",
       contentClass: "table-content",
     },
     {
-      name: "Description",
-      selector: "description",
+      name: "Created At",
+      selector: "createdAt",
       sort: true,
-      width: "500",
+      width: "400",
       thclass: "tb-head",
       contentClass: "table-content",
+      cell: DateFormat,
     },
     {
       name: 'Actions',
@@ -48,7 +65,7 @@ const VesselType = () => {
       contentClass: 'table-content',
       thclass: 'tb-head',
       onEditClick: (row) => { setShowVesselTypeModal(row) },
-      onDeleteClick: () => { },
+      onDeleteClick: () => { setShowDeleteModal(true) },
       cell: RenderAction,
       width: '200',
     },
@@ -60,14 +77,13 @@ const VesselType = () => {
         <div className="prospect employee">
           <div className="container-fluid">
             <CommonHeader
-              showFilter
               tableTitle="Vessel Types"
               isAddEnabled
               addModalLabel="Add VesselType"
               setSearch={(e) =>
                 setParams({ ...params, searchTerm: e, page: 1 })
               }
-              // onAddModalClick={() => setShowVesselTypeModal(true)}
+              onAddModalClick={() => setShowVesselTypeModal(true)}
               exportTitle="Export"
               exportLoader={false}
             />
@@ -76,10 +92,10 @@ const VesselType = () => {
           <CustomTable
             pagination={{ currentPage: params.page, limit: params.limit }}
             tableClasses="px-start"
-            count={dummyRoles.length}
+            count={dummyVesselTypes.length}
             columns={cols}
-            // data={dummyRoles}
-            data={[]}
+            data={dummyVesselTypes}
+            Sl={true}
             onPageChange={(currentPage) =>
               setParams({ ...params, page: currentPage })
             }
@@ -96,10 +112,19 @@ const VesselType = () => {
             }
           />
 
-          {!!showVesselTypeModal && (
+          {showVesselTypeModal && (
             <VesselTypeModal
               showModal={showVesselTypeModal}
               closeModal={() => setShowVesselTypeModal(false)}
+            />
+          )}
+          {!!showDeleteModal && (
+            <DeleteConfirmationModal
+              show={showDeleteModal}
+              onCancel={() => setShowDeleteModal(false)}
+              onConfirm={() => { }}
+              deleteText="Are you sure you want to delete this permission?"
+            // isLoading={isBeingUpdated}
             />
           )}
         </div>
