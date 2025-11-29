@@ -466,6 +466,12 @@ const PreArrivalContent = ({ formValues, handleChange, ownerInitial, cardUser, c
     { value: "Domestic", label: "Domestic" },
   ];
 
+  // Handle save
+  const handleSave = () => {
+    console.log("Saving Pre Arrival data:", formValues);
+    // Add your save logic here
+  };
+
   return (
     <div className="cardform-left-full" style={{ "--card-color": cardColor }}>
       <FormSection icon={GroupSettingsIcon} title="">
@@ -752,6 +758,17 @@ const PreArrivalContent = ({ formValues, handleChange, ownerInitial, cardUser, c
           onRemove={onRemoveLink}
         />
       </FormSection>
+
+      <div className="form-group" style={{ marginTop: "20px", display: "flex", justifyContent: "flex-end" }}>
+        <button
+          type="button"
+          className="checklist-btn-primary"
+          onClick={handleSave}
+          style={{ "--card-color": cardColor }}
+        >
+          Save
+        </button>
+      </div>
     </div>
   );
 };
@@ -778,6 +795,12 @@ const ArrivalContent = ({ formValues, handleChange, cardColor, onAddAttachment, 
     { value: "Completed", label: "Completed" },
     { value: "On Hold", label: "On Hold" },
   ];
+
+  // Handle save
+  const handleSave = () => {
+    console.log("Saving Arrival data:", formValues);
+    // Add your save logic here
+  };
 
   return (
     <div className="cardform-left-full" style={{ "--card-color": cardColor }}>
@@ -982,6 +1005,16 @@ const ArrivalContent = ({ formValues, handleChange, cardColor, onAddAttachment, 
               </FormField>
             </div>
           </div>
+          <div className="form-group" style={{ marginTop: "20px", display: "flex", justifyContent: "flex-end" }}>
+            <button
+              type="button"
+              className="checklist-btn-primary"
+              onClick={handleSave}
+              style={{ "--card-color": cardColor }}
+            >
+              Save
+            </button>
+          </div>
         </div>
       </FormSection>
     </div>
@@ -999,6 +1032,12 @@ ArrivalContent.propTypes = {
 };
 
 const DepartureContent = ({ formValues, handleChange, cardColor, onAddAttachment, onRemoveAttachment, onAddLink, onRemoveLink }) => {
+  // Handle save
+  const handleSave = () => {
+    console.log("Saving Departure data:", formValues);
+    // Add your save logic here
+  };
+
   return (
     <div className="cardform-left-full" style={{ "--card-color": cardColor }}>
       <FormSection icon={GroupSettingsIcon} title="">
@@ -1102,6 +1141,16 @@ const DepartureContent = ({ formValues, handleChange, cardColor, onAddAttachment
               </FormField>
             </div>
           </div>
+          <div className="form-group" style={{ marginTop: "20px", display: "flex", justifyContent: "flex-end" }}>
+            <button
+              type="button"
+              className="checklist-btn-primary"
+              onClick={handleSave}
+              style={{ "--card-color": cardColor }}
+            >
+              Save
+            </button>
+          </div>
         </div>
       </FormSection>
     </div>
@@ -1148,6 +1197,12 @@ const LaunchHireContent = ({ formValues, handleChange, cardColor }) => {
   const selectedCrewValues = formValues.selectedCrew?.map((crewId) =>
     crewOptions.find((opt) => opt.value === crewId?.toString() || opt.value === crewId)
   ).filter(Boolean) || [];
+
+  // Handle save
+  const handleSave = () => {
+    console.log("Saving Launch Hire data:", formValues);
+    // Add your save logic here
+  };
 
   // Custom styles for react-select multi-select
   const customSelectStyles = {
@@ -1340,6 +1395,16 @@ const LaunchHireContent = ({ formValues, handleChange, cardColor }) => {
                 </div>
               </FormField>
             </div>
+          </div>
+          <div className="form-group" style={{ marginTop: "20px", display: "flex", justifyContent: "flex-end" }}>
+            <button
+              type="button"
+              className="checklist-btn-primary"
+              onClick={handleSave}
+              style={{ "--card-color": cardColor }}
+            >
+              Save
+            </button>
           </div>
         </div>
       </FormSection>

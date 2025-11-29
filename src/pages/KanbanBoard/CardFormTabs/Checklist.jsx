@@ -973,108 +973,105 @@ function Checklist({ card, formValues, handleChange }) {
   ];
 
   return (
-    <div className="cardform-body checklist-body">
+    <>
       {/* Form Section */}
       <div className="cf-section">
-        <div className="cf-section-header">
-          <div className="cf-section-icon">
-            <span>📋</span>
-          </div>
-          <div className="cf-section-title">Checklist Information</div>
-        </div>
         <div className="cf-section-body">
           <div className="checklist-form">
-            <div className="cf-grid two">
-              <FormField label="Checklist Type">
-                <MultiSelect
-                  value={checklistType}
-                  onChange={handleChecklistTypeChange}
-                  options={checklistTypeOptions}
-                  placeholder="Select checklist type..."
-                />
-              </FormField>
+            <div className="form-group">
+              <h3 className="form-group-title">Checklist Information</h3>
+              <div className="cf-grid two">
+                <FormField label="Checklist Type">
+                  <MultiSelect
+                    value={checklistType}
+                    onChange={handleChecklistTypeChange}
+                    options={checklistTypeOptions}
+                    placeholder="Select checklist type..."
+                  />
+                </FormField>
 
-              <FormField label="Vessel Name">
-                <FormInput
-                  type="text"
-                  value={vesselName}
-                  onChange={(e) => {
-                    setVesselName(e.target.value);
-                    if (handleChange) handleChange("vesselName")(e);
-                  }}
-                  placeholder="Enter vessel name"
-                />
-              </FormField>
+                <FormField label="Vessel Name">
+                  <FormInput
+                    type="text"
+                    value={vesselName}
+                    onChange={(e) => {
+                      setVesselName(e.target.value);
+                      if (handleChange) handleChange("vesselName")(e);
+                    }}
+                    placeholder="Enter vessel name"
+                  />
+                </FormField>
 
-              <FormField label="Call No./PO">
-                <FormInput
-                  type="text"
-                  value={callNo}
-                  onChange={(e) => {
-                    setCallNo(e.target.value);
-                    if (handleChange) handleChange("callNo")(e);
-                  }}
-                  placeholder="Enter call no./PO"
-                />
-              </FormField>
+                <FormField label="Call No./PO">
+                  <FormInput
+                    type="text"
+                    value={callNo}
+                    onChange={(e) => {
+                      setCallNo(e.target.value);
+                      if (handleChange) handleChange("callNo")(e);
+                    }}
+                    placeholder="Enter call no./PO"
+                  />
+                </FormField>
 
-              <FormField label="ETA">
-                <FormInput
-                  type="datetime-local"
-                  value={eta}
-                  onChange={(e) => {
-                    setEta(e.target.value);
-                    if (handleChange) handleChange("eta")(e);
-                  }}
-                />
-              </FormField>
+                <FormField label="ETA">
+                  <FormInput
+                    type="datetime-local"
+                    value={eta}
+                    onChange={(e) => {
+                      setEta(e.target.value);
+                      if (handleChange) handleChange("eta")(e);
+                    }}
+                  />
+                </FormField>
 
-              <FormField label="Arrived / Sailed on">
-                <FormInput
-                  type="datetime-local"
-                  value={arrivedSailedOn}
-                  onChange={(e) => {
-                    setArrivedSailedOn(e.target.value);
-                    if (handleChange) handleChange("arrivedSailedOn")(e);
-                  }}
-                />
-              </FormField>
+                <FormField label="Arrived / Sailed on">
+                  <FormInput
+                    type="datetime-local"
+                    value={arrivedSailedOn}
+                    onChange={(e) => {
+                      setArrivedSailedOn(e.target.value);
+                      if (handleChange) handleChange("arrivedSailedOn")(e);
+                    }}
+                  />
+                </FormField>
 
-              <FormField label="Principal">
-                <FormInput
-                  type="text"
-                  value={principal}
-                  onChange={(e) => {
-                    setPrincipal(e.target.value);
-                    if (handleChange) handleChange("principal")(e);
-                  }}
-                  placeholder="Enter principal"
-                />
-              </FormField>
+                <FormField label="Principal">
+                  <FormInput
+                    type="text"
+                    value={principal}
+                    onChange={(e) => {
+                      setPrincipal(e.target.value);
+                      if (handleChange) handleChange("principal")(e);
+                    }}
+                    placeholder="Enter principal"
+                  />
+                </FormField>
 
-              <FormField label="Last Port">
-                <FormInput
-                  type="text"
-                  value={lastPort}
-                  onChange={(e) => {
-                    setLastPort(e.target.value);
-                    if (handleChange) handleChange("lastPort")(e);
-                  }}
-                  placeholder="Enter last port"
-                />
-              </FormField>
+                <FormField label="Last Port">
+                  <FormInput
+                    type="text"
+                    value={lastPort}
+                    onChange={(e) => {
+                      setLastPort(e.target.value);
+                      if (handleChange) handleChange("lastPort")(e);
+                    }}
+                    placeholder="Enter last port"
+                  />
+                </FormField>
 
-              <FormField label="Next Port">
-                <FormInput
-                  type="text"
-                  value={nextPort}
-                  onChange={(e) => {
-                    setNextPort(e.target.value);
-                    if (handleChange) handleChange("nextPort")(e);
-                  }}
-                  placeholder="Enter next port"
-                />
-              </FormField>
+                <FormField label="Next Port">
+                  <FormInput
+                    type="text"
+                    value={nextPort}
+                    onChange={(e) => {
+                      setNextPort(e.target.value);
+                      if (handleChange) handleChange("nextPort")(e);
+                    }}
+                    placeholder="Enter next port"
+                  />
+                </FormField>
+              </div>
             </div>
           </div>
         </div>
@@ -1122,6 +1119,31 @@ function Checklist({ card, formValues, handleChange }) {
         </div>
       )}
 
+      {/* Save Button */}
+      <div className="form-group" style={{ marginTop: "20px", display: "flex", justifyContent: "flex-end" }}>
+        <button
+          type="button"
+          className="checklist-btn-primary"
+          onClick={() => {
+            console.log("Saving Checklist data:", {
+              checklistType,
+              vesselName,
+              callNo,
+              eta,
+              arrivedSailedOn,
+              principal,
+              lastPort,
+              nextPort,
+              itemsData,
+            });
+            // Add your save logic here
+          }}
+          style={{ "--card-color": cardColor }}
+        >
+          Save
+        </button>
+      </div>
+
       {/* Item Detail Modal */}
       {selectedItem && (
         <ItemDetailModal
@@ -1136,7 +1158,7 @@ function Checklist({ card, formValues, handleChange }) {
           cardColor={cardColor}
         />
       )}
-    </div>
+    </ >
   );
 }
 
