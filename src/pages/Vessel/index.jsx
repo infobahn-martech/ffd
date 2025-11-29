@@ -1,10 +1,11 @@
 
 import { useState } from "react";
-import { DateFormat, RenderAction } from "./RenderCells";
+import { RenderAction } from "./RenderCells";
 import CommonHeader from "../../components/CommonHeader";
 import CustomTable from "../../components/customTable";
 import DeleteConfirmationModal from "../../components/DeleteConfirmationModal";
 import { VesselModal } from "./Modals/AddEditVessel";
+import { ViewVesselModal } from "./Modals/ViewVessel";
 
 const dummyVessels = [
   {
@@ -86,8 +87,27 @@ const Vessel = () => {
   const [showVesselModal, setShowVesselModal] = useState(false);
   const [showDeleteModal, setShowDeleteModal] = useState(false);
   const [selectedVesselForDelete, setSelectedVesselForDelete] = useState(null);
+  const [showViewVesselModal, setShowViewVesselModal] = useState(false);
 
   const cols = [
+    {
+      name: 'Vessel',
+      selector: 'vesselName',
+      tableClasses: 'table-striped',
+      contentClass: 'table-content',
+      sort: true,
+      thclass: 'tb-head',
+      width: '250',
+    },
+    {
+      name: 'Type',
+      selector: 'vesselType',
+      tableClasses: 'table-striped',
+      contentClass: 'table-content',
+      sort: true,
+      thclass: 'tb-head',
+      width: '200',
+    },
     {
       name: 'Billing Entity',
       selector: 'billingEntity',
@@ -98,25 +118,7 @@ const Vessel = () => {
       width: '200',
     },
     {
-      name: 'Vessel Type',
-      selector: 'vesselType',
-      tableClasses: 'table-striped',
-      contentClass: 'table-content',
-      sort: true,
-      thclass: 'tb-head',
-      width: '200',
-    },
-    {
-      name: 'Vessel Name',
-      selector: 'vesselName',
-      tableClasses: 'table-striped',
-      contentClass: 'table-content',
-      sort: true,
-      thclass: 'tb-head',
-      width: '200',
-    },
-    {
-      name: 'Flag State',
+      name: 'Flag',
       selector: 'flagState',
       tableClasses: 'table-striped',
       contentClass: 'table-content',
@@ -131,65 +133,11 @@ const Vessel = () => {
       contentClass: 'table-content',
       sort: true,
       thclass: 'tb-head',
-      width: '150',
+      width: '200',
     },
     {
-      name: 'Call Sign',
-      selector: 'callSign',
-      tableClasses: 'table-striped',
-      contentClass: 'table-content',
-      sort: true,
-      thclass: 'tb-head',
-      width: '120',
-    },
-    {
-      name: 'Year Built',
+      name: 'Year',
       selector: 'yearBuilt',
-      tableClasses: 'table-striped',
-      contentClass: 'table-content',
-      sort: true,
-      thclass: 'tb-head',
-      width: '120',
-    },
-    {
-      name: 'Class Society',
-      selector: 'classSociety',
-      tableClasses: 'table-striped',
-      contentClass: 'table-content',
-      sort: true,
-      thclass: 'tb-head',
-      width: '180',
-    },
-    {
-      name: 'P&I Club',
-      selector: 'pnIClub',
-      tableClasses: 'table-striped',
-      contentClass: 'table-content',
-      sort: true,
-      thclass: 'tb-head',
-      width: '180',
-    },
-    {
-      name: 'Length Overall',
-      selector: 'lengthOverall',
-      tableClasses: 'table-striped',
-      contentClass: 'table-content',
-      sort: true,
-      thclass: 'tb-head',
-      width: '150',
-    },
-    {
-      name: 'Beam',
-      selector: 'beam',
-      tableClasses: 'table-striped',
-      contentClass: 'table-content',
-      sort: true,
-      thclass: 'tb-head',
-      width: '120',
-    },
-    {
-      name: 'Draft',
-      selector: 'draft',
       tableClasses: 'table-striped',
       contentClass: 'table-content',
       sort: true,
@@ -202,8 +150,9 @@ const Vessel = () => {
       tableClasses: 'table-striped',
       contentClass: 'table-content',
       thclass: 'tb-head',
+      onViewClick: (row) => { setShowViewVesselModal(row) },
       onEditClick: (row) => { setShowVesselModal(row) },
-      onDeleteClick: (row) => { 
+      onDeleteClick: (row) => {
         setSelectedVesselForDelete(row);
         setShowDeleteModal(true);
       },
@@ -255,6 +204,13 @@ const Vessel = () => {
             <VesselModal
               showModal={showVesselModal}
               closeModal={() => setShowVesselModal(false)}
+            />
+          )}
+
+          {showViewVesselModal && (
+            <ViewVesselModal
+              showModal={showViewVesselModal}
+              closeModal={() => setShowViewVesselModal(false)}
             />
           )}
 
