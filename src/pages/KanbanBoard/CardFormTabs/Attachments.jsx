@@ -312,7 +312,7 @@ function Attachments({ card, formValues, handleChange }) {
         <div className="attachments-list-header">
           <h3 className="attachments-list-title">
             <span className="attachments-list-title-bar"></span>
-            ATTACHMENTS LIST
+            ATTACHMENT LIST
           </h3>
         </div>
         <AttachmentList
