@@ -190,6 +190,16 @@ const MaterialManagementContent = ({ formValues, handleChange, cardColor }) => {
     });
   };
 
+  const getStatusClass = (status) => {
+    const statusMap = {
+      Pending: "status-pending",
+      "In Transit": "status-in-progress",
+      Delivered: "status-completed",
+      Cancelled: "status-cancelled",
+    };
+    return statusMap[status] || "";
+  };
+
   const materialTypeOptions = [
     { value: "Equipment", label: "Equipment" },
     { value: "Supplies", label: "Supplies" },
@@ -490,7 +500,9 @@ const MaterialManagementContent = ({ formValues, handleChange, cardColor }) => {
                     </div>
                   </td>
                   <td>
-                    <div className="material-table-cell">{material.status || ""}</div>
+                    <div className={`material-table-cell ${getStatusClass(material.status)}`}>
+                      {material.status || ""}
+                    </div>
                   </td>
                 </tr>
               ))
