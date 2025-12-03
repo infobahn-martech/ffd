@@ -1,6 +1,5 @@
-
 import { useState } from "react";
-import { DateFormat, RenderAction } from "./RenderCells";
+import { RenderAction } from "./RenderCells";
 import CommonHeader from "../../components/CommonHeader";
 import CustomTable from "../../components/customTable";
 import DeleteConfirmationModal from "../../components/DeleteConfirmationModal";
@@ -15,13 +14,13 @@ const billingTimeline = [
     { createdAt: "2024-06-12T14:00:00Z", updatedAt: "2024-08-21T09:00:00Z" },
 ];
 
-const slugify = (text) => text.toLowerCase().replace(/[^a-z0-9]+/g, "-");
-
-const dummyBillingEntities = PORT_DETAILS.map((port, index) => ({
+// 🔹 Dummy Customer Pricing data (per port) – only fields we care about in table
+const dummyCustomerPricing = PORT_DETAILS.map((port, index) => ({
     _id: `${index + 1}`,
-    firstName: `${port.name} Billing Entity`,
-    phoneNumber: `+9665800000${index + 1}`,
-    email: `${slugify(port.name)}.billing@sedres.com`,
+    customerName: `${port.name} Main Customer`,
+    billingEntity: `${port.name} Billing Entity`,
+    portName: port.name,
+    currency: "AED",
     createdAt: billingTimeline[index]?.createdAt ?? "2024-06-01T10:00:00Z",
     updatedAt: billingTimeline[index]?.updatedAt ?? "2024-08-01T10:00:00Z",
 }));
@@ -31,74 +30,65 @@ const CustomerPricing = () => {
         page: 1,
         total: 0,
         limit: 10,
-        searchTerm: '',
+        searchTerm: "",
         sortOrder: -1,
-        sortBy: 'createdAt',
+        sortBy: "customerName", // 👈 default sort based on visible field
     });
 
-    const [showBillingEntityModal, setShowBillingEntityModal] = useState(false);
+    const [showCustomerPricingModal, setShowCustomerPricingModal] = useState(false);
     const [showDeleteModal, setShowDeleteModal] = useState(false);
-
-    console.log("showDeleteModal", showDeleteModal)
-
 
     const cols = [
         {
-            name: 'Name',
-            selector: 'firstName',
-            tableClasses: 'table-striped',
-            contentClass: 'table-content',
+            name: "Customer",
+            selector: "customerName",
+            tableClasses: "table-striped",
+            contentClass: "table-content",
             sort: true,
-            thclass: 'tb-head',
-            width: '400',
+            thclass: "tb-head",
+            width: "260",
         },
         {
-            name: 'Phone No.',
-            selector: 'phoneNumber',
-            tableClasses: 'table-striped',
+            name: "Port",
+            selector: "portName",
+            tableClasses: "table-striped",
+            contentClass: "table-content",
             sort: true,
-            contentClass: 'table-content',
-            thclass: 'tb-head',
-            width: '200',
+            thclass: "tb-head",
+            width: "200",
         },
         {
-            name: 'Email',
-            selector: 'email',
-            tableClasses: 'table-striped',
+            name: "Billing Entity",
+            selector: "billingEntity",
+            tableClasses: "table-striped",
+            contentClass: "table-content",
             sort: true,
-            contentClass: 'table-content',
-            thclass: 'tb-head',
+            thclass: "tb-head",
+            width: "260",
         },
         {
-            name: 'Created At',
-            selector: 'createdAt',
-            tableClasses: 'table-striped',
-            contentClass: 'table-content',
-            thclass: 'tb-head',
+            name: "Currency",
+            selector: "currency",
+            tableClasses: "table-striped",
+            contentClass: "table-content",
             sort: true,
-            cell: DateFormat,
-            width: '400',
+            thclass: "tb-head",
+            width: "140",
         },
         {
-            name: 'Modified At',
-            selector: 'updatedAt',
-            tableClasses: 'table-striped',
-            contentClass: 'table-content',
-            thclass: 'tb-head',
-            sort: true,
-            cell: DateFormat,
-            width: '400',
-        },
-        {
-            name: 'Actions',
-            selector: 'linksInfo',
-            tableClasses: 'table-striped',
-            contentClass: 'table-content',
-            thclass: 'tb-head',
-            onEditClick: (row) => { setShowBillingEntityModal(row) },
-            onDeleteClick: () => { setShowDeleteModal(true) },
+            name: "Actions",
+            selector: "linksInfo",
+            tableClasses: "table-striped",
+            contentClass: "table-content",
+            thclass: "tb-head",
+            onEditClick: (row) => {
+                setShowCustomerPricingModal(row);
+            },
+            onDeleteClick: () => {
+                setShowDeleteModal(true);
+            },
             cell: RenderAction,
-            width: '200',
+            width: "200",
         },
     ];
 
@@ -111,13 +101,13 @@ const CustomerPricing = () => {
                             showFilter
                             tableTitle="Customer Pricing"
                             isAddEnabled
-                            addModalLabel="Add CustomerPricing"
+                            addModalLabel="Add Customer Pricing"
                             setSearch={(e) =>
                                 setParams({ ...params, searchTerm: e, page: 1, limit: 10 })
                             }
-                            // onAddModalClick={() => {
-                            //   setShowBillingEntityModal(true);
-                            // }}
+                            onAddModalClick={() => {
+                                setShowCustomerPricingModal(true);
+                            }}
                             exportTitle="Export"
                             exportLoader={false}
                         />
@@ -126,11 +116,9 @@ const CustomerPricing = () => {
                     <CustomTable
                         pagination={{ currentPage: params?.page, limit: params?.limit }}
                         tableClasses="px-start"
-                        count={dummyBillingEntities.length}
+                        count={dummyCustomerPricing.length}
                         columns={cols}
-                        // isLoading={isLoading}
-                        // data={dummyBillingEntities ?? []}
-                        data={[]}
+                        data={dummyCustomerPricing ?? []}
                         onPageChange={(currentPage) =>
                             setParams({ ...params, page: currentPage })
                         }
@@ -144,10 +132,11 @@ const CustomerPricing = () => {
                             });
                         }}
                     />
-                    {!!showBillingEntityModal && (
+
+                    {!!showCustomerPricingModal && (
                         <AddEditCustomerPricing
-                            showModal={showBillingEntityModal}
-                            closeModal={() => setShowBillingEntityModal(false)}
+                            showModal={showCustomerPricingModal}
+                            closeModal={() => setShowCustomerPricingModal(false)}
                         />
                     )}
 
@@ -156,12 +145,9 @@ const CustomerPricing = () => {
                             show={showDeleteModal}
                             onCancel={() => setShowDeleteModal(false)}
                             onConfirm={() => { }}
-                            deleteText="Are you sure you want to delete this port?"
-                        // isLoading={isBeingUpdated}
+                            deleteText="Are you sure you want to delete this customer pricing?"
                         />
                     )}
-
-
                 </div>
             </div>
         </>
