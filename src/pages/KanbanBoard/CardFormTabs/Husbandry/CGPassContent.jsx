@@ -383,7 +383,7 @@ const CGPassContent = ({ formValues, handleChange, cardColor }) => {
                             handleBrowseClick();
                           }}
                         >
-                          + Add More
+                          + Add
                         </button>
                       </div>
                       <div className="files-list">

@@ -740,35 +740,36 @@ const PreArrivalContent = ({ formValues, handleChange, ownerInitial, cardUser, c
               </FormField>
             </div>
           </div>
+
+          <FormSection icon={CircleTickIcon} title="Attachments">
+            <AttachmentsList
+              attachments={formValues.attachments || []}
+              onAdd={onAddAttachment}
+              onRemove={onRemoveAttachment}
+            />
+          </FormSection>
+
+          {/* <FormSection icon={CircleTickIcon} title="Links">
+            <LinksList
+              links={formValues.links || []}
+              onAdd={onAddLink}
+              onRemove={onRemoveLink}
+            />
+          </FormSection> */}
+
+          <div className="form-group" style={{ marginTop: "20px", display: "flex", justifyContent: "flex-end" }}>
+            <button
+              type="button"
+              className="checklist-btn-primary"
+              onClick={handleSave}
+              style={{ "--card-color": cardColor }}
+            >
+              Save
+            </button>
+          </div>
         </div>
       </FormSection>
 
-      <FormSection icon={CircleTickIcon} title="Attachments">
-        <AttachmentsList
-          attachments={formValues.attachments || []}
-          onAdd={onAddAttachment}
-          onRemove={onRemoveAttachment}
-        />
-      </FormSection>
-
-      <FormSection icon={CircleTickIcon} title="Links">
-        <LinksList
-          links={formValues.links || []}
-          onAdd={onAddLink}
-          onRemove={onRemoveLink}
-        />
-      </FormSection>
-
-      <div className="form-group" style={{ marginTop: "20px", display: "flex", justifyContent: "flex-end" }}>
-        <button
-          type="button"
-          className="checklist-btn-primary"
-          onClick={handleSave}
-          style={{ "--card-color": cardColor }}
-        >
-          Save
-        </button>
-      </div>
     </div>
   );
 };

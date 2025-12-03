@@ -1073,76 +1073,75 @@ function Checklist({ card, formValues, handleChange }) {
                 </FormField>
               </div>
             </div>
-          </div>
-        </div>
-      </div>
+            {/* Checklist Items Section */}
+            {currentChecklistData.length > 0 && (
+              <div className="cf-section">
+                <div className="cf-section-header">
+                  <div className="cf-section-icon">
+                    <span>✅</span>
+                  </div>
+                  <div className="cf-section-title">Checklist Items</div>
+                </div>
+                <div className="cf-section-body">
+                  {/* Group sections by checklist type */}
+                  {(() => {
+                    const groupedByType = {};
+                    currentChecklistData.forEach((section) => {
+                      const type = section.checklistTypeTitle || section.checklistType;
+                      if (!groupedByType[type]) {
+                        groupedByType[type] = [];
+                      }
+                      groupedByType[type].push(section);
+                    });
 
-      {/* Checklist Items Section */}
-      {currentChecklistData.length > 0 && (
-        <div className="cf-section">
-          <div className="cf-section-header">
-            <div className="cf-section-icon">
-              <span>✅</span>
+                    return Object.entries(groupedByType).map(([typeTitle, sections]) => (
+                      <ChecklistTypeGroup
+                        key={typeTitle}
+                        typeTitle={typeTitle}
+                        sections={sections}
+                        itemsData={itemsData}
+                        onItemChange={handleItemChange}
+                        onItemClick={handleItemClick}
+                        openSections={openSections}
+                        onSectionToggle={handleSectionToggle}
+                        onSelectAll={handleSelectAll}
+                        isOpen={openTypeGroups[typeTitle] || false}
+                        onToggle={() => handleTypeGroupToggle(typeTitle)}
+                        cardColor={cardColor}
+                      />
+                    ));
+                  })()}
+                </div>
+              </div>
+            )}
+            <div className="form-group" style={{ marginTop: "20px", display: "flex", justifyContent: "flex-end" }}>
+              <button
+                type="button"
+                className="checklist-btn-primary"
+                onClick={() => {
+                  console.log("Saving Checklist data:", {
+                    checklistType,
+                    vesselName,
+                    callNo,
+                    eta,
+                    arrivedSailedOn,
+                    principal,
+                    lastPort,
+                    nextPort,
+                    itemsData,
+                  });
+                  // Add your save logic here
+                }}
+                style={{ "--card-color": cardColor }}
+              >
+                Save
+              </button>
             </div>
-            <div className="cf-section-title">Checklist Items</div>
-          </div>
-          <div className="cf-section-body">
-            {/* Group sections by checklist type */}
-            {(() => {
-              const groupedByType = {};
-              currentChecklistData.forEach((section) => {
-                const type = section.checklistTypeTitle || section.checklistType;
-                if (!groupedByType[type]) {
-                  groupedByType[type] = [];
-                }
-                groupedByType[type].push(section);
-              });
-
-              return Object.entries(groupedByType).map(([typeTitle, sections]) => (
-                <ChecklistTypeGroup
-                  key={typeTitle}
-                  typeTitle={typeTitle}
-                  sections={sections}
-                  itemsData={itemsData}
-                  onItemChange={handleItemChange}
-                  onItemClick={handleItemClick}
-                  openSections={openSections}
-                  onSectionToggle={handleSectionToggle}
-                  onSelectAll={handleSelectAll}
-                  isOpen={openTypeGroups[typeTitle] || false}
-                  onToggle={() => handleTypeGroupToggle(typeTitle)}
-                  cardColor={cardColor}
-                />
-              ));
-            })()}
           </div>
         </div>
-      )}
-
-      {/* Save Button */}
-      <div className="form-group" style={{ marginTop: "20px", display: "flex", justifyContent: "flex-end" }}>
-        <button
-          type="button"
-          className="checklist-btn-primary"
-          onClick={() => {
-            console.log("Saving Checklist data:", {
-              checklistType,
-              vesselName,
-              callNo,
-              eta,
-              arrivedSailedOn,
-              principal,
-              lastPort,
-              nextPort,
-              itemsData,
-            });
-            // Add your save logic here
-          }}
-          style={{ "--card-color": cardColor }}
-        >
-          Save
-        </button>
       </div>
+
+
 
       {/* Item Detail Modal */}
       {selectedItem && (
