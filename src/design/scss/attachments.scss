@@ -4,12 +4,50 @@
    ATTACHMENTS TAB STYLES
    ========================================================== */
 
-.attachments-list {
-  padding-top: 4px;
+.attachments-content-wrapper {
+  padding: 0;
+  background: #ffffff;
+  border-radius: 12px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
+  overflow: hidden;
 }
 
-.attachments-header {
+.attachments-list-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 18px 22px;
+  background: #ffffff;
+  border-bottom: 1px solid #f0f0f0;
+}
+
+.attachments-list-title {
+  font-size: 14px;
+  font-weight: 600;
+  color: #1a1a1a;
+  margin: 0;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.attachments-list-title-bar {
+  width: 4px;
+  height: 18px;
+  background: var(--card-color, #2A00FF);
+  border-radius: 2px;
+  display: inline-block;
+}
+
+.attachments-list {
+  padding-top: 0;
+}
+
+.attachments-count-header {
   margin-bottom: 20px;
+  padding: 0 22px;
   padding-bottom: 14px;
   border-bottom: 1px solid #e2e2ea;
 }

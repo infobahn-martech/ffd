@@ -44,66 +44,66 @@ EmptySection.propTypes = {
 const AttachmentItem = ({ attachment, onDownload, onDelete, cardColor }) => {
   const getFileIcon = (fileName) => {
     const extension = fileName?.split('.').pop()?.toLowerCase() || '';
-    
+
     // PDF Icon
     if (extension === 'pdf') {
       return (
         <div className="file-icon-pdf">
           <svg width="32" height="32" viewBox="0 0 32 32" fill="none" xmlns="http://www.w3.org/2000/svg">
-            <rect width="32" height="32" rx="6" fill="#DC2626"/>
+            <rect width="32" height="32" rx="6" fill="#DC2626" />
             <text x="16" y="22" textAnchor="middle" fill="white" fontSize="10" fontWeight="600">PDF</text>
           </svg>
         </div>
       );
     }
-    
+
     // Word/DOCX Icon
     if (['doc', 'docx'].includes(extension)) {
       return (
         <div className="file-icon-doc">
           <svg width="32" height="32" viewBox="0 0 32 32" fill="none" xmlns="http://www.w3.org/2000/svg">
-            <rect width="32" height="32" rx="6" fill="#2B579A"/>
-            <path d="M10 8H18L22 12V24C22 24.5523 21.5523 25 21 25H11C10.4477 25 10 24.5523 10 24V9C10 8.44772 10.4477 8 11 8Z" fill="white" opacity="0.9"/>
-            <path d="M18 8V12H22" stroke="white" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
-            <path d="M12 16H20M12 19H20M12 22H16" stroke="#2B579A" strokeWidth="1.2" strokeLinecap="round"/>
+            <rect width="32" height="32" rx="6" fill="#2B579A" />
+            <path d="M10 8H18L22 12V24C22 24.5523 21.5523 25 21 25H11C10.4477 25 10 24.5523 10 24V9C10 8.44772 10.4477 8 11 8Z" fill="white" opacity="0.9" />
+            <path d="M18 8V12H22" stroke="white" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
+            <path d="M12 16H20M12 19H20M12 22H16" stroke="#2B579A" strokeWidth="1.2" strokeLinecap="round" />
           </svg>
         </div>
       );
     }
-    
+
     // Image Icon
     if (['jpg', 'jpeg', 'png', 'gif', 'webp'].includes(extension)) {
       return (
         <div className="file-icon-image">
           <svg width="32" height="32" viewBox="0 0 32 32" fill="none" xmlns="http://www.w3.org/2000/svg">
-            <rect width="32" height="32" rx="6" fill="#10B981"/>
-            <rect x="6" y="8" width="20" height="14" rx="2" fill="white" opacity="0.9"/>
-            <circle cx="12" cy="13" r="2" fill="#10B981"/>
-            <path d="M6 20L10 16L14 20L20 14L26 20V22C26 22.5523 25.5523 23 25 23H7C6.44772 23 6 22.5523 6 22V20Z" fill="#10B981"/>
+            <rect width="32" height="32" rx="6" fill="#10B981" />
+            <rect x="6" y="8" width="20" height="14" rx="2" fill="white" opacity="0.9" />
+            <circle cx="12" cy="13" r="2" fill="#10B981" />
+            <path d="M6 20L10 16L14 20L20 14L26 20V22C26 22.5523 25.5523 23 25 23H7C6.44772 23 6 22.5523 6 22V20Z" fill="#10B981" />
           </svg>
         </div>
       );
     }
-    
+
     // Excel Icon
     if (['xls', 'xlsx'].includes(extension)) {
       return (
         <div className="file-icon-excel">
           <svg width="32" height="32" viewBox="0 0 32 32" fill="none" xmlns="http://www.w3.org/2000/svg">
-            <rect width="32" height="32" rx="6" fill="#107C41"/>
+            <rect width="32" height="32" rx="6" fill="#107C41" />
             <text x="16" y="22" textAnchor="middle" fill="white" fontSize="8" fontWeight="600">XLS</text>
           </svg>
         </div>
       );
     }
-    
+
     // Default Document Icon
     return (
       <div className="file-icon-default">
         <svg width="32" height="32" viewBox="0 0 32 32" fill="none" xmlns="http://www.w3.org/2000/svg">
-          <rect width="32" height="32" rx="6" fill="#6B7280"/>
-          <path d="M9 6H16L21 11V26C21 26.5523 20.5523 27 20 27H10C9.44772 27 9 26.5523 9 26V7C9 6.44772 9.44772 6 10 6Z" fill="white" opacity="0.9"/>
-          <path d="M16 6V11H21" stroke="white" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
+          <rect width="32" height="32" rx="6" fill="#6B7280" />
+          <path d="M9 6H16L21 11V26C21 26.5523 20.5523 27 20 27H10C9.44772 27 9 26.5523 9 26V7C9 6.44772 9.44772 6 10 6Z" fill="white" opacity="0.9" />
+          <path d="M16 6V11H21" stroke="white" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
         </svg>
       </div>
     );
@@ -219,9 +219,9 @@ const AttachmentList = ({ attachments, onDownload, onDelete, cardColor }) => {
 
   return (
     <div className="attachments-list">
-      <div className="attachments-header">
+      {/* <div className="attachments-count-header">
         <span className="attachments-count">{attachments.length} attachment{attachments.length !== 1 ? 's' : ''}</span>
-      </div>
+      </div> */}
       <div className="attachments-items">
         {attachments.map((attachment) => (
           <AttachmentItem
@@ -255,7 +255,7 @@ AttachmentList.propTypes = {
 
 function Attachments({ card, formValues, handleChange }) {
   const cardColor = card?.color || "#2A00FF";
-  
+
   // Get attachments from card data or use dummy data for demo
   const attachments = useMemo(() => {
     if (card?.attachments && card.attachments.length > 0) {
@@ -308,14 +308,20 @@ function Attachments({ card, formValues, handleChange }) {
 
   return (
     <div className="cardform-body">
-      <FormSection icon={CircleTickIcon} title="Attachments">
+      <div className="cardform-left-full attachments-content-wrapper" style={{ "--card-color": cardColor }}>
+        <div className="attachments-list-header">
+          <h3 className="attachments-list-title">
+            <span className="attachments-list-title-bar"></span>
+            ATTACHMENTS
+          </h3>
+        </div>
         <AttachmentList
           attachments={attachments}
           onDownload={handleDownload}
           onDelete={handleDelete}
           cardColor={cardColor}
         />
-      </FormSection>
+      </div>
     </div>
   );
 }
