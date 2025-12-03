@@ -9,15 +9,16 @@
 }
 
 .attachments-header {
-  margin-bottom: 16px;
-  padding-bottom: 12px;
-  border-bottom: 1px solid #f0f0f0;
+  margin-bottom: 20px;
+  padding-bottom: 14px;
+  border-bottom: 1px solid #e2e2ea;
 }
 
 .attachments-count {
   font-size: 13px;
   font-weight: 600;
-  color: #666;
+  color: #555;
+  letter-spacing: 0.3px;
 }
 
 .attachments-items {
@@ -30,17 +31,41 @@
   display: flex;
   align-items: center;
   gap: 16px;
-  padding: 14px 16px;
-  background: #f8f9fa;
-  border-radius: 8px;
-  border: 1px solid #e9ecef;
+  padding: 16px 20px;
+  background: #ffffff;
+  border-radius: 12px;
+  border: 1px solid #e2e2ea;
   transition: all 0.2s ease;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
 }
 
 .attachment-item:hover {
-  background: #f0f4ff;
+  background: #ffffff;
   border-color: #d0d7ff;
-  transform: translateX(4px);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+  transform: translateY(-2px);
+}
+
+.attachment-icon-wrapper {
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.file-icon-pdf,
+.file-icon-doc,
+.file-icon-image,
+.file-icon-excel,
+.file-icon-default {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 48px;
+  height: 48px;
+  border-radius: 10px;
+  overflow: hidden;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.1);
 }
 
 .attachment-icon {
@@ -65,29 +90,33 @@
   font-size: 14px;
   font-weight: 600;
   color: #1a1a1a;
-  margin-bottom: 6px;
+  margin-bottom: 8px;
   word-break: break-word;
+  line-height: 1.4;
 }
 
 .attachment-meta {
   display: flex;
   align-items: center;
-  gap: 8px;
+  gap: 10px;
   font-size: 12px;
   color: #666;
   flex-wrap: wrap;
+  line-height: 1.5;
 }
 
 .attachment-separator {
   color: #ccc;
+  font-size: 10px;
 }
 
 .attachment-size {
   font-weight: 500;
+  color: #555;
 }
 
 .attachment-date {
-  color: #888;
+  color: #777;
 }
 
 .attachment-uploader {
@@ -97,34 +126,53 @@
 
 .attachment-actions {
   display: flex;
-  gap: 8px;
+  gap: 10px;
   flex-shrink: 0;
+  align-items: center;
 }
 
 .attachment-action-btn {
-  width: 36px;
-  height: 36px;
+  width: 40px;
+  height: 40px;
   border: none;
-  border-radius: 6px;
+  border-radius: 8px;
   background: #ffffff;
   cursor: pointer;
   display: flex;
   align-items: center;
   justify-content: center;
-  font-size: 16px;
   transition: all 0.2s ease;
-  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.08);
+  color: #666;
+  padding: 0;
 }
 
 .attachment-action-btn:hover {
-  transform: scale(1.1);
-  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.15);
+  transform: translateY(-2px);
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.12);
+}
+
+.attachment-action-btn.download {
+  color: var(--card-color, #2A00FF);
+  background: rgba(42, 0, 255, 0.08);
 }
 
 .attachment-action-btn.download:hover {
-  background: #e3f2fd;
+  background: var(--card-color, #2A00FF);
+  color: #ffffff;
+}
+
+.attachment-action-btn.delete {
+  color: #999;
+  background: #f5f5f5;
 }
 
 .attachment-action-btn.delete:hover {
-  background: #ffebee;
+  background: #ff3e3e;
+  color: #ffffff;
+}
+
+.attachment-action-btn svg {
+  width: 18px;
+  height: 18px;
 }
