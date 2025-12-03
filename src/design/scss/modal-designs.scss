@@ -233,8 +233,20 @@
         padding: 50px;
       }
 
-      .role-modal-sm .modal-dialog {
+/* Role Modal - Higher z-index to appear above CardForm (z-index: 1200) */
+/* Bootstrap modals are rendered in a portal at body level */
+body .role-modal-sm {
+  z-index: 1300 !important;
+}
+
+body .role-modal-sm.show {
+  z-index: 1300 !important;
+}
+
+body .role-modal-sm .modal-dialog {
   max-width: 600px !important;   // reduce width
+  z-index: 1301 !important;
+  position: relative;
 }
 
 .role-modal-sm .modal-content {
@@ -243,9 +255,20 @@
 }
 
 /* Make USER Modal Smaller */
-.user-modal-sm .modal-dialog {
+/* Bootstrap modals are rendered in a portal at body level */
+body .user-modal-sm {
+  z-index: 1300 !important;
+}
+
+body .user-modal-sm.show {
+  z-index: 1300 !important;
+}
+
+body .user-modal-sm .modal-dialog {
   max-width: 750px !important;  /* reduce from full screen */
   margin-top: 38px !important;  /* push modal down */
+  z-index: 1301 !important;
+  position: relative;
 }
 
 .user-modal-sm .modal-content {
@@ -256,6 +279,32 @@
 /* Keep avatar centered */
 .user-modal-sm .avatar-wrapper {
   margin-top: 10px;
+}
+
+/* Permission Modal - Higher z-index to appear above CardForm (z-index: 1200) */
+/* Bootstrap modals are rendered in a portal at body level */
+body .addPermissionMod {
+  z-index: 1300 !important;
+}
+
+body .addPermissionMod.show {
+  z-index: 1300 !important;
+}
+
+body .addPermissionMod .modal-dialog {
+  z-index: 1301 !important;
+  position: relative;
+}
+
+/* Default Modal (for Vessel and other modals without specific class) - Higher z-index */
+/* Bootstrap modals are rendered in a portal at body level */
+body .modal.show {
+  z-index: 1300 !important;
+}
+
+body .modal.show .modal-dialog {
+  z-index: 1301 !important;
+  position: relative;
 }
 
 
