@@ -12,35 +12,33 @@ export function BillingEntityModal({ showModal, closeModal }) {
     register,
     handleSubmit,
     formState: { errors },
-    control,          // ⬅️ add this
+    control,
   } = useForm({
     defaultValues: showModal?._id
       ? {
-          portName: showModal?.portName,
-          address: showModal?.address,
-          location: showModal?.location,
-          contactPerson: showModal?.contactPerson,
-          phone: showModal?.phone || "",
-          primaryEmail: showModal?.primaryEmail,
-          secondaryEmail: showModal?.secondaryEmail,
-        }
+        billingEntityName: showModal?.billingEntityName,
+        vatNumber: showModal?.vatNumber || "",
+        email: showModal?.email,
+        phone: showModal?.phone || "",
+        addressLine1: showModal?.addressLine1,
+      }
       : {
-          phone: "",
-        },
+        phone: "",
+      },
   });
 
 
-  console.log("errors",errors)
+  console.log("errors", errors)
 
   const onSubmit = (data) => {
-    console.log("PORT FORM SUBMITTED:", data);
+    console.log("BILLING ENTITY FORM SUBMITTED:", data);
     closeModal();
   };
 
   const renderHeader = () => (
     <>
       <h1 className="modal-title">
-        {showModal?._id ? "Edit Port" : "Add Port"}
+        {showModal?._id ? "Edit Billing Entity" : "Add Billing Entity"}
       </h1>
     </>
   );
@@ -48,162 +46,123 @@ export function BillingEntityModal({ showModal, closeModal }) {
   const renderBody = () => (
     <div className="modal-body">
       <div className="lead-form">
-    <form id="portForm" onSubmit={handleSubmit(onSubmit)}>
+        <form id="billingEntityForm" onSubmit={handleSubmit(onSubmit)}>
 
-  {/* ROW 1 — Port Name + Location */}
-  <div className="permInputs row mb-lg-3">
+          {/* ROW 1 — Billing Entity Name + VAT Number */}
+          <div className="permInputs row mb-lg-3">
 
-    {/* Port Name */}
-    <div className="col-lg-6 col-sm-12 mb-3">
-      <div className="form-floating desig-inp">
-        <input
-          className={`form-control ${errors.portName ? "is-invalid" : ""}`}
-          placeholder="Port Name"
-          {...register("portName", { required: "Port Name is required" })}
-        />
-        <label>Port Name <span className="text-danger">*</span></label>
-        {errors.portName && (
-          <span className="error text-danger">{errors.portName.message}</span>
-        )}
-      </div>
-    </div>
+            {/* Billing Entity Name */}
+            <div className="col-lg-6 col-sm-12 mb-3">
+              <div className="form-floating desig-inp">
+                <input
+                  className={`form-control ${errors.billingEntityName ? "is-invalid" : ""}`}
+                  placeholder="Billing Entity Name"
+                  {...register("billingEntityName", { required: "Billing Entity Name is required" })}
+                />
+                <label>Billing Entity Name <span className="text-danger">*</span></label>
+                {errors.billingEntityName && (
+                  <span className="error text-danger">{errors.billingEntityName.message}</span>
+                )}
+              </div>
+            </div>
 
-    {/* Location */}
-    <div className="col-lg-6 col-sm-12 mb-3">
-      <div className="form-floating desig-inp">
-        <input
-          className={`form-control ${errors.location ? "is-invalid" : ""}`}
-          placeholder="Location"
-          {...register("location", { required: "Location is required" })}
-        />
-        <label>Location <span className="text-danger">*</span></label>
-        {errors.location && (
-          <span className="error text-danger">{errors.location.message}</span>
-        )}
-      </div>
-    </div>
+            {/* VAT Number */}
+            <div className="col-lg-6 col-sm-12 mb-3">
+              <div className="form-floating desig-inp">
+                <input
+                  className={`form-control ${errors.vatNumber ? "is-invalid" : ""}`}
+                  placeholder="VAT Number"
+                  {...register("vatNumber")}
+                />
+                <label>VAT Number</label>
+                {errors.vatNumber && (
+                  <span className="error text-danger">{errors.vatNumber.message}</span>
+                )}
+              </div>
+            </div>
 
-  </div>
+          </div>
 
-  {/* ROW 2 — Contact Person + Phone */}
-  <div className="permInputs row mb-lg-3">
+          {/* ROW 2 — Email + Phone */}
+          <div className="permInputs row mb-lg-3">
 
-    {/* Contact Person */}
-    <div className="col-lg-6 col-sm-12 mb-3">
-      <div className="form-floating desig-inp">
-        <input
-          className={`form-control ${errors.contactPerson ? "is-invalid" : ""}`}
-          placeholder="Contact Person"
-          {...register("contactPerson", { required: "Contact Person is required" })}
-        />
-        <label>Contact Person <span className="text-danger">*</span></label>
-        {errors.contactPerson && (
-          <span className="error text-danger">{errors.contactPerson.message}</span>
-        )}
-      </div>
-    </div>
+            {/* Email */}
+            <div className="col-lg-6 col-sm-12 mb-3">
+              <div className="form-floating desig-inp">
+                <input
+                  className={`form-control ${errors.email ? "is-invalid" : ""}`}
+                  placeholder="Email"
+                  {...register("email", {
+                    required: "Email is required",
+                    pattern: {
+                      value: /^[^\s@]+@[^\s@]+\.[^\s@]+$/,
+                      message: "Invalid email format",
+                    },
+                  })}
+                />
+                <label>Email <span className="text-danger">*</span></label>
+                {errors.email && (
+                  <span className="error text-danger">{errors.email.message}</span>
+                )}
+              </div>
+            </div>
 
-    {/* Phone */}
-{/* Phone */}
-<div className="col-lg-6 col-sm-12 mb-3">
-  <div className="phone-wrapper">
-    <label className="phone-label">
-      Phone <span className="text-danger">*</span>
-    </label>
+            {/* Phone */}
+            <div className="col-lg-6 col-sm-12 mb-3">
+              <div className="phone-wrapper">
+                <label className="phone-label">
+                  Phone Number <span className="text-danger">*</span>
+                </label>
 
-    <Controller
-      name="phone"
-      control={control}
-      rules={{
-        required: "Phone is required",
-        validate: (value) => {
-          const digits = (value || "").replace(/\D/g, "");
-          return digits.length >= 7 || "Enter a valid phone number";
-        },
-      }}
-      render={({ field }) => (
-        <PhoneInput
-          {...field}
-          country="ae"
-          enableSearch
-          inputClass="phone-input"
-          buttonClass="phone-flag"
-          placeholder=""
-        />
-      )}
-    />
+                <Controller
+                  name="phone"
+                  control={control}
+                  rules={{
+                    required: "Phone Number is required",
+                    validate: (value) => {
+                      const digits = (value || "").replace(/\D/g, "");
+                      return digits.length >= 7 || "Enter a valid phone number";
+                    },
+                  }}
+                  render={({ field }) => (
+                    <PhoneInput
+                      {...field}
+                      country="ae"
+                      enableSearch
+                      inputClass="phone-input"
+                      buttonClass="phone-flag"
+                      placeholder=""
+                    />
+                  )}
+                />
 
-    {errors.phone && (
-      <span className="error text-danger">{errors.phone.message}</span>
-    )}
-  </div>
-</div>
+                {errors.phone && (
+                  <span className="error text-danger">{errors.phone.message}</span>
+                )}
+              </div>
+            </div>
 
+          </div>
 
-  </div>
+          {/* ROW 3 — Address Line 1 FULL WIDTH */}
+          <div className="permInputs row mb-lg-3">
+            <div className="col-12">
+              <div className="form-floating desig-inp">
+                <textarea
+                  className={`form-control ${errors.addressLine1 ? "is-invalid" : ""}`}
+                  placeholder="Address Line 1"
+                  style={{ height: "100px" }}
+                  {...register("addressLine1", { required: "Address Line 1 is required" })}
+                ></textarea>
+                <label>Address Line 1 <span className="text-danger">*</span></label>
+                {errors.addressLine1 && (
+                  <span className="error text-danger">{errors.addressLine1.message}</span>
+                )}
+              </div>
+            </div>
+          </div>
 
-  {/* ROW 3 — Primary Email + Secondary Email */}
-  <div className="permInputs row mb-lg-3">
-
-    {/* Primary Email */}
-    <div className="col-lg-6 col-sm-12 mb-3">
-      <div className="form-floating desig-inp">
-        <input
-          className={`form-control ${errors.primaryEmail ? "is-invalid" : ""}`}
-          placeholder="Primary Email"
-          {...register("primaryEmail", {
-            required: "Primary Email is required",
-            pattern: {
-              value: /^[^\s@]+@[^\s@]+\.[^\s@]+$/,
-              message: "Invalid email format",
-            },
-          })}
-        />
-        <label>Primary Email <span className="text-danger">*</span></label>
-        {errors.primaryEmail && (
-          <span className="error text-danger">{errors.primaryEmail.message}</span>
-        )}
-      </div>
-    </div>
-
-    {/* Secondary Email */}
-    <div className="col-lg-6 col-sm-12 mb-3">
-      <div className="form-floating desig-inp">
-        <input
-          className="form-control"
-          placeholder="Secondary Email"
-          {...register("secondaryEmail", {
-            pattern: {
-              value: /^[^\s@]+@[^\s@]+\.[^\s@]+$/,
-              message: "Invalid email format",
-            },
-          })}
-        />
-        <label>Secondary Email</label>
-        {errors.secondaryEmail && (
-          <span className="error text-danger">{errors.secondaryEmail.message}</span>
-        )}
-      </div>
-    </div>
-
-  </div>
-
-  {/* ROW 4 — Address FULL WIDTH */}
-  <div className="permInputs row mb-lg-3">
-    <div className="col-12">
-      <div className="form-floating desig-inp">
-        <textarea
-          className="form-control"
-          placeholder="Address"
-          style={{ height: "100px" }}
-          {...register("address")}
-        ></textarea>
-        <label>Address</label>
-      </div>
-    </div>
-  </div>
-
-</form>
+        </form>
 
       </div>
     </div>
@@ -214,7 +173,7 @@ export function BillingEntityModal({ showModal, closeModal }) {
       <button type="button" className="btn btn-outline" onClick={closeModal}>
         Close
       </button>
-      <button type="submit" form="portForm" className="btn btn-primary">
+      <button type="submit" form="billingEntityForm" className="btn btn-primary">
         Save
       </button>
     </div>

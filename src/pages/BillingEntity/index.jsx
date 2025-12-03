@@ -17,14 +17,109 @@ const billingTimeline = [
 
 const slugify = (text) => text.toLowerCase().replace(/[^a-z0-9]+/g, "-");
 
-const dummyBillingEntities = PORT_DETAILS.map((port, index) => ({
-  _id: `${index + 1}`,
-  firstName: `${port.name} Billing Entity`,
-  phoneNumber: `+9665800000${index + 1}`,
-  email: `${slugify(port.name)}.billing@sedres.com`,
-  createdAt: billingTimeline[index]?.createdAt ?? "2024-06-01T10:00:00Z",
-  updatedAt: billingTimeline[index]?.updatedAt ?? "2024-08-01T10:00:00Z",
-}));
+const dummyBillingEntities = [
+  {
+    _id: "1",
+    name: "Sedres Maritime Co.",
+    vatNo: "VAT-SD-12345",
+    phoneNumber: "+966540112233",
+    email: "accounts@sedresmaritime.com",
+    contactPerson: "Mohammed Ali",
+    createdAt: "2024-09-12T10:15:00Z",
+    updatedAt: "2024-10-03T08:45:00Z",
+  },
+  {
+    _id: "2",
+    name: "Al Fajr Shipping LLC",
+    vatNo: "VAT-AF-67890",
+    phoneNumber: "+966550221144",
+    email: "billing@alfajrshipping.com",
+    contactPerson: "Rashid Khan",
+    createdAt: "2024-08-20T12:30:00Z",
+    updatedAt: "2024-09-15T14:20:00Z",
+  },
+  {
+    _id: "3",
+    name: "Global Port Services",
+    vatNo: "VAT-GP-99887",
+    phoneNumber: "+966531223344",
+    email: "accounts@globalport.com",
+    contactPerson: "John Mathew",
+    createdAt: "2024-07-05T09:00:00Z",
+    updatedAt: "2024-09-02T11:40:00Z",
+  },
+  {
+    _id: "4",
+    name: "Ocean Waves Logistics",
+    vatNo: "VAT-OW-55667",
+    phoneNumber: "+966588991122",
+    email: "finance@oceanwaves.com",
+    contactPerson: "Dawood Ibrahim",
+    createdAt: "2024-06-18T16:00:00Z",
+    updatedAt: "2024-08-28T10:10:00Z",
+  },
+  {
+    _id: "5",
+    name: "Blue Horizon Freight",
+    vatNo: "VAT-BH-11224",
+    phoneNumber: "+966512007755",
+    email: "billing@bluehorizon.com",
+    contactPerson: "Samuel Thomas",
+    createdAt: "2024-05-12T14:00:00Z",
+    updatedAt: "2024-07-21T09:00:00Z",
+  },
+  {
+    _id: "6",
+    name: "Desert Star Logistics",
+    vatNo: "VAT-DS-77882",
+    phoneNumber: "+966599881177",
+    email: "accounts@desertstar.com",
+    contactPerson: "Noura Abdullah",
+    createdAt: "2024-04-09T11:20:00Z",
+    updatedAt: "2024-06-12T09:30:00Z",
+  },
+  {
+    _id: "7",
+    name: "PortLink Arabia",
+    vatNo: "VAT-PL-66789",
+    phoneNumber: "+966522334455",
+    email: "finance@portlinkarabia.com",
+    contactPerson: "Hassan Ahmed",
+    createdAt: "2024-03-22T08:45:00Z",
+    updatedAt: "2024-05-18T12:10:00Z",
+  },
+  {
+    _id: "8",
+    name: "CargoMax Trading",
+    vatNo: "VAT-CM-33445",
+    phoneNumber: "+966544556677",
+    email: "billing@cargomax.com",
+    contactPerson: "Peter Joseph",
+    createdAt: "2024-02-11T10:00:00Z",
+    updatedAt: "2024-04-02T09:15:00Z",
+  },
+  {
+    _id: "9",
+    name: "Arabian Gulf Movers",
+    vatNo: "VAT-AG-22119",
+    phoneNumber: "+966566778899",
+    email: "accounts@agmovers.com",
+    contactPerson: "Kareem Faris",
+    createdAt: "2024-01-29T09:10:00Z",
+    updatedAt: "2024-03-20T08:50:00Z",
+  },
+  {
+    _id: "10",
+    name: "Falcon Marine Services",
+    vatNo: "VAT-FM-88001",
+    phoneNumber: "+966533224466",
+    email: "billing@falconmarine.com",
+    contactPerson: "Isaac Daniel",
+    createdAt: "2023-12-15T15:30:00Z",
+    updatedAt: "2024-02-10T12:00:00Z",
+  },
+];
+
 
 const BillingEntity = () => {
   const [params, setParams] = useState({
@@ -44,63 +139,74 @@ const BillingEntity = () => {
 
   const cols = [
     {
-      name: 'Name',
-      selector: 'firstName',
-      tableClasses: 'table-striped',
-      contentClass: 'table-content',
+      name: 'Billing Entity',
+      selector: 'name',
       sort: true,
+      width: '300',
       thclass: 'tb-head',
-      width: '400',
+      contentClass: 'table-content',
+    },
+    {
+      name: 'VAT Number',
+      selector: 'vatNo',
+      sort: true,
+      width: '200',
+      thclass: 'tb-head',
+      contentClass: 'table-content',
+    },
+    {
+      name: 'Contact Person',
+      selector: 'contactPerson',
+      sort: true,
+      width: '220',
+      thclass: 'tb-head',
+      contentClass: 'table-content',
     },
     {
       name: 'Phone No.',
       selector: 'phoneNumber',
-      tableClasses: 'table-striped',
       sort: true,
-      contentClass: 'table-content',
+      width: '180',
       thclass: 'tb-head',
-      width: '200',
+      contentClass: 'table-content',
     },
     {
       name: 'Email',
       selector: 'email',
-      tableClasses: 'table-striped',
       sort: true,
-      contentClass: 'table-content',
+      width: '250',
       thclass: 'tb-head',
+      contentClass: 'table-content',
     },
     {
       name: 'Created At',
       selector: 'createdAt',
-      tableClasses: 'table-striped',
-      contentClass: 'table-content',
-      thclass: 'tb-head',
       sort: true,
+      width: '200',
       cell: DateFormat,
-      width: '400',
+      thclass: 'tb-head',
+      contentClass: 'table-content',
     },
     {
-      name: 'Modified At',
+      name: 'Updated At',
       selector: 'updatedAt',
-      tableClasses: 'table-striped',
-      contentClass: 'table-content',
-      thclass: 'tb-head',
       sort: true,
+      width: '200',
       cell: DateFormat,
-      width: '400',
+      thclass: 'tb-head',
+      contentClass: 'table-content',
     },
     {
       name: 'Actions',
-      selector: 'linksInfo',
-      tableClasses: 'table-striped',
-      contentClass: 'table-content',
-      thclass: 'tb-head',
-      onEditClick: (row) => { setShowBillingEntityModal(row) },
-      onDeleteClick: () => { setShowDeleteModal(true) },
+      selector: 'actions',
+      width: '150',
       cell: RenderAction,
-      width: '200',
+      thclass: 'tb-head',
+      onEditClick: (row) => setShowBillingEntityModal(row),
+      onDeleteClick: () => setShowDeleteModal(true),
     },
   ];
+
 
   return (
     <>
@@ -115,9 +221,9 @@ const BillingEntity = () => {
               setSearch={(e) =>
                 setParams({ ...params, searchTerm: e, page: 1, limit: 10 })
               }
-              // onAddModalClick={() => {
-              //   setShowBillingEntityModal(true);
-              // }}
+              onAddModalClick={() => {
+                setShowBillingEntityModal(true);
+              }}
               exportTitle="Export"
               exportLoader={false}
             />
@@ -129,8 +235,7 @@ const BillingEntity = () => {
             count={dummyBillingEntities.length}
             columns={cols}
             // isLoading={isLoading}
-            // data={dummyBillingEntities ?? []}
-            data={[]}
+            data={dummyBillingEntities ?? []}
             onPageChange={(currentPage) =>
               setParams({ ...params, page: currentPage })
             }

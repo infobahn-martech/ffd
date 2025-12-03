@@ -77,7 +77,7 @@ const BargeType = () => {
                 <div className="prospect employee">
                     <div className="container-fluid">
                         <CommonHeader
-                            tableTitle="Vessel Types"
+                            tableTitle="Barge Types"
                             isAddEnabled
                             addModalLabel="Add BargeType"
                             setSearch={(e) =>
