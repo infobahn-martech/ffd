@@ -1215,6 +1215,231 @@
 }
 
 /* ==========================================================
+   MATERIAL MANAGEMENT STYLES
+   ========================================================== */
+
+.material-management-content-wrapper {
+  padding: 0;
+  background: #ffffff;
+  border-radius: 12px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
+  overflow: hidden;
+}
+
+.material-list-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 18px 22px;
+  background: #ffffff;
+  border-bottom: 1px solid #f0f0f0;
+}
+
+.material-list-title {
+  font-size: 14px;
+  font-weight: 600;
+  color: #1a1a1a;
+  margin: 0;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.material-list-title-bar {
+  width: 4px;
+  height: 18px;
+  background: var(--card-color, #2A00FF);
+  border-radius: 2px;
+  display: inline-block;
+}
+
+.material-add-btn {
+  background: var(--card-color, #2A00FF);
+  border: none;
+  padding: 10px 20px;
+  border-radius: 8px;
+  font-size: 13px;
+  font-weight: 600;
+  color: #ffffff;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+  margin: 0;
+}
+
+.material-add-btn:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.15);
+  opacity: 0.9;
+}
+
+.material-add-btn:active {
+  transform: translateY(0);
+}
+
+.material-table-container {
+  overflow-x: auto;
+  width: 100%;
+  margin: 0;
+  background: #ffffff;
+  -webkit-overflow-scrolling: touch;
+}
+
+.material-table-container::-webkit-scrollbar {
+  height: 6px;
+}
+
+.material-table-container::-webkit-scrollbar-track {
+  background: #f1f1f1;
+}
+
+.material-table-container::-webkit-scrollbar-thumb {
+  background: #888;
+  border-radius: 3px;
+}
+
+.material-table-container::-webkit-scrollbar-thumb:hover {
+  background: #555;
+}
+
+.material-table {
+  margin: 0;
+  width: 100%;
+  background: #ffffff;
+  border-collapse: separate;
+  border-spacing: 0;
+  table-layout: fixed;
+}
+
+.material-table th,
+.material-table td {
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  padding: 14px 16px;
+  text-align: left;
+  vertical-align: middle;
+  border-bottom: 1px solid #f0f0f0;
+  background: #ffffff;
+}
+
+.material-table th:nth-child(1),
+.material-table td:nth-child(1) { width: 150px; min-width: 150px; } /* Material Type */
+.material-table th:nth-child(2),
+.material-table td:nth-child(2) { width: 140px; min-width: 140px; } /* Driver */
+.material-table th:nth-child(3),
+.material-table td:nth-child(3) { width: 180px; min-width: 180px; } /* PickUp */
+.material-table th:nth-child(4),
+.material-table td:nth-child(4) { width: 180px; min-width: 180px; } /* DropOff */
+.material-table th:nth-child(5),
+.material-table td:nth-child(5) { width: 120px; min-width: 120px; } /* Status */
+
+.material-table-container .table.material-table thead {
+  background: var(--card-color, #2A00FF);
+  position: sticky;
+  top: 0;
+  z-index: 10;
+}
+
+.material-table-container .table.material-table thead th {
+  background: var(--card-color, #2A00FF) !important;
+  color: #ffffff;
+  font-weight: 600;
+  font-size: 12px;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  padding: 16px;
+  border: none;
+}
+
+.material-table tbody td {
+  font-size: 12px;
+  color: #333;
+  padding: 14px 16px;
+}
+
+.material-table-cell {
+  color: #333;
+  font-size: 12px;
+  line-height: 1.5;
+}
+
+.material-table tbody tr:nth-child(even) {
+  background: #f8f9fc;
+}
+
+.material-table tbody tr:nth-child(even) td {
+  background: #f8f9fc;
+}
+
+.material-table tbody tr:hover {
+  background: rgba(42, 0, 255, 0.03);
+}
+
+.material-table tbody tr:hover td {
+  background: rgba(42, 0, 255, 0.03);
+}
+
+.material-table tbody tr:last-child td {
+  border-bottom: none;
+}
+
+.operation-right .material-management-content-wrapper {
+  width: 100%;
+  max-width: 100%;
+}
+
+/* Material Management Modal - Higher z-index to appear above CardForm (z-index: 1200) */
+/* Bootstrap modals are rendered in a portal at body level */
+body .material-management-modal {
+  z-index: 1300 !important;
+}
+
+body .material-management-modal.show {
+  z-index: 1300 !important;
+}
+
+body .material-management-modal .modal-dialog {
+  z-index: 1301 !important;
+  position: relative;
+  max-width: 700px !important;
+  width: 90%;
+  margin: 30px auto;
+}
+
+body .material-management-modal .modal-content {
+  border-radius: 16px;
+  padding: 0;
+}
+
+body .material-management-modal .modal-header {
+  padding: 20px 24px;
+  border-bottom: 1px solid #f0f0f0;
+}
+
+body .material-management-modal .modal-body {
+  padding: 24px;
+  max-height: 70vh;
+  overflow-y: auto;
+}
+
+body .material-management-modal .modal-footer {
+  padding: 16px 24px;
+  border-top: 1px solid #f0f0f0;
+  display: flex;
+  justify-content: flex-end;
+  gap: 12px;
+}
+
+/* Ensure backdrop appears above CardForm (1200) but below modal (1300) */
+/* This targets the backdrop that Bootstrap creates when modal is shown */
+body .modal-backdrop.show {
+  z-index: 1299 !important;
+}
+
+/* ==========================================================
    RESPONSIVE
    ========================================================== */
 

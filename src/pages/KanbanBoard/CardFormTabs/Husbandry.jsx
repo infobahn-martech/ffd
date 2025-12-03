@@ -21,6 +21,7 @@ import ZawilPassContent from "./Husbandry/ZawilPassContent";
 import HotelContent from "./Husbandry/HotelContent";
 import MedicalServiceContent from "./Husbandry/MedicalServiceContent";
 import WasteDisposalContent from "./Husbandry/WasteDisposalContent";
+import MaterialManagementContent from "./Husbandry/MaterialManagementContent";
 
 // Main Husbandry Component
 function Husbandry({ card, formValues, handleChange }) {
@@ -32,14 +33,12 @@ function Husbandry({ card, formValues, handleChange }) {
 
 
   const handleMainTabChange = useCallback((tab) => {
-    // Disable Material Management tab for now
-    if (tab === MAIN_TABS.MATERIAL_MANAGEMENT) {
-      return; // Prevent switching to Material Management
-    }
     setActiveMainTab(tab);
-    // Reset to Crew sub-tab when main tab changes
+    // Reset to default sub-tab when main tab changes
     if (tab === MAIN_TABS.CREW_MANAGEMENT) {
       setActiveSubTab(CREW_MANAGEMENT_SUBTABS.CREW);
+    } else if (tab === MAIN_TABS.MATERIAL_MANAGEMENT) {
+      setActiveSubTab(MATERIAL_MANAGEMENT_SUBTABS.MATERIAL_LIST);
     }
   }, []);
 
@@ -110,6 +109,14 @@ function Husbandry({ card, formValues, handleChange }) {
 
   const renderMaterialManagementContent = () => {
     switch (activeSubTab) {
+      case MATERIAL_MANAGEMENT_SUBTABS.MATERIAL_LIST:
+        return (
+          <MaterialManagementContent
+            formValues={formValues}
+            handleChange={handleChange}
+            cardColor={cardColor}
+          />
+        );
       case MATERIAL_MANAGEMENT_SUBTABS.WASTE_DISPOSAL:
         return (
           <WasteDisposalContent
@@ -120,7 +127,7 @@ function Husbandry({ card, formValues, handleChange }) {
         );
       default:
         return (
-          <WasteDisposalContent
+          <MaterialManagementContent
             formValues={formValues}
             handleChange={handleChange}
             cardColor={cardColor}

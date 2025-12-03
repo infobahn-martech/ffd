@@ -14,6 +14,7 @@ export const CREW_MANAGEMENT_SUBTABS = {
 };
 
 export const MATERIAL_MANAGEMENT_SUBTABS = {
+  MATERIAL_LIST: "materialList",
   WASTE_DISPOSAL: "wasteDisposal",
 };
 

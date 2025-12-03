@@ -22,6 +22,7 @@ export const HusbandryTabs = ({ activeMainTab, activeSubTab, onMainTabChange, on
     ];
   } else if (activeMainTab === MAIN_TABS.MATERIAL_MANAGEMENT) {
     subTabs = [
+      { id: MATERIAL_MANAGEMENT_SUBTABS.MATERIAL_LIST, label: "Material Management" },
       { id: MATERIAL_MANAGEMENT_SUBTABS.WASTE_DISPOSAL, label: "Waste Disposal" },
     ];
   }
