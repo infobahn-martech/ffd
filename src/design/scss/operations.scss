@@ -652,6 +652,12 @@
   color: var(--card-color, #2A00FF);
 }
 
+.files-header-actions {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
 .add-more-files-btn {
   background: transparent;
   border: 1.5px solid var(--card-color, #2A00FF);
@@ -748,6 +754,60 @@
 
 .file-remove-btn:hover svg path {
   stroke: #ff0000;
+}
+
+/* Remove All Button Styles */
+.btn-remove-files {
+  background: transparent;
+  border: 1.5px solid #ff3e3e;
+  color: #ff3e3e;
+  padding: 6px 14px;
+  border-radius: 6px;
+  font-size: 12px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  white-space: nowrap;
+}
+
+.btn-remove-files:hover {
+  background: #ff3e3e;
+  color: #ffffff;
+  transform: translateY(-1px);
+  box-shadow: 0 2px 6px rgba(255, 62, 62, 0.3);
+}
+
+.btn-remove-files:active {
+  transform: translateY(0);
+}
+
+/* Individual File Remove Button Styles */
+.btn-remove-file {
+  flex-shrink: 0;
+  width: 28px;
+  height: 28px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: transparent;
+  border: 1px solid #e2e2ea;
+  border-radius: 6px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  padding: 0;
+}
+
+.btn-remove-file:hover {
+  background: rgba(255, 62, 62, 0.1);
+  border-color: #ff3e3e;
+}
+
+.btn-remove-file:hover svg path {
+  stroke: #ff3e3e;
+}
+
+.btn-remove-file:active {
+  transform: scale(0.95);
 }
 
 /* Scrollbar for files list */

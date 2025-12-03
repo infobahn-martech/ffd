@@ -107,13 +107,13 @@ const MaterialManagementContent = ({ formValues, handleChange, cardColor }) => {
 
   const handleSubmit = (e) => {
     e.preventDefault();
-    
+
     // Combine date and time for pickUp and dropOff
-    const pickUp = formData.pickUpDate && formData.pickUpTime 
-      ? `${formData.pickUpDate}T${formData.pickUpTime}` 
+    const pickUp = formData.pickUpDate && formData.pickUpTime
+      ? `${formData.pickUpDate}T${formData.pickUpTime}`
       : "";
-    const dropOff = formData.dropOffDate && formData.dropOffTime 
-      ? `${formData.dropOffDate}T${formData.dropOffTime}` 
+    const dropOff = formData.dropOffDate && formData.dropOffTime
+      ? `${formData.dropOffDate}T${formData.dropOffTime}`
       : "";
 
     const newMaterial = {
@@ -128,11 +128,11 @@ const MaterialManagementContent = ({ formValues, handleChange, cardColor }) => {
 
     const updatedList = [...materialsList, newMaterial];
     setMaterialsList(updatedList);
-    
+
     // Update formValues
     const syntheticEvent = { target: { value: updatedList } };
     handleChange("materialManagementList")(syntheticEvent);
-    
+
     handleCloseModal();
   };
 
@@ -349,16 +349,30 @@ const MaterialManagementContent = ({ formValues, handleChange, cardColor }) => {
                     <div className="uploaded-files-list">
                       <div className="files-header">
                         <span className="files-count">{selectedFiles.length} file(s) uploaded</span>
-                        <button
-                          type="button"
-                          className="btn-remove-files"
-                          onClick={(e) => {
-                            e.stopPropagation();
-                            setSelectedFiles([]);
-                          }}
-                        >
-                          Remove All
-                        </button>
+                        <div className="files-header-actions">
+                          <button
+                            type="button"
+                            className="add-more-files-btn"
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              handleBrowseClick();
+                            }}
+                            style={{ "--card-color": cardColor }}
+                          >
+                            + Add More
+                          </button>
+                          <button
+                            type="button"
+                            className="btn-remove-files"
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              setSelectedFiles([]);
+                            }}
+                            style={{ "--card-color": cardColor }}
+                          >
+                            Remove All
+                          </button>
+                        </div>
                       </div>
                       <div className="files-list">
                         {selectedFiles.map((file, index) => (
@@ -376,8 +390,23 @@ const MaterialManagementContent = ({ formValues, handleChange, cardColor }) => {
                                 e.stopPropagation();
                                 handleRemoveFile(index);
                               }}
+                              style={{ "--card-color": cardColor }}
                             >
-                              ×
+                              <svg
+                                width="16"
+                                height="16"
+                                viewBox="0 0 16 16"
+                                fill="none"
+                                xmlns="http://www.w3.org/2000/svg"
+                              >
+                                <path
+                                  d="M12 4L4 12M4 4L12 12"
+                                  stroke="#999"
+                                  strokeWidth="1.5"
+                                  strokeLinecap="round"
+                                  strokeLinejoin="round"
+                                />
+                              </svg>
                             </button>
                           </div>
                         ))}
