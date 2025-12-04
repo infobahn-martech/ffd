@@ -9,10 +9,11 @@ const columnColors = {
 
 const columnTitles = [
   "Appointment Received",
-  "Execute",
+  "Enroute",
   "Vessel Arrived",
   "Vessel Cleared",
   "Vessel Sailed",
+  "Ready to Fianalize",
 ];
 
 const columns = {};
