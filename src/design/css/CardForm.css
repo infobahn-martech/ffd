@@ -520,6 +520,25 @@
   overflow: visible;
 }
 
+.cardform-steps-wrapper .step-item.clickable {
+  transition: transform 0.2s ease;
+}
+
+.cardform-steps-wrapper .step-item.clickable:hover {
+  transform: translateY(-2px);
+}
+
+.cardform-steps-wrapper .step-item.clickable:hover .step-circle {
+  transform: scale(1.1);
+  transition: transform 0.2s ease;
+}
+
+.cardform-steps-wrapper .step-item.disabled {
+  opacity: 0.5;
+  cursor: not-allowed !important;
+  pointer-events: none;
+}
+
 /* Dark green line for completed segments (when both current and next step are completed) */
 .cardform-steps-wrapper .step-line.completed-line {
   background: #2e7d32;

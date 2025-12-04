@@ -22,6 +22,51 @@ export default function KanbanBoard() {
   const handleSelectCard = useCallback(card => setSelectedCard(card), []);
   const handleCloseCard = useCallback(() => setSelectedCard(null), []);
 
+  // Find which column contains a specific card
+  const findCardColumn = useCallback((cardId) => {
+    for (const colId of data.columnOrder) {
+      const column = data.columns[colId];
+      if (column.cardIds.includes(cardId)) {
+        return column;
+      }
+    }
+    return null;
+  }, [data]);
+
+  // Move card to a specific column by column ID
+  const moveCardToColumn = useCallback((cardId, targetColumnId) => {
+    const sourceColumn = findCardColumn(cardId);
+    if (!sourceColumn) return;
+
+    const targetColumn = data.columns[targetColumnId];
+    if (!targetColumn) return;
+
+    // If card is already in target column, do nothing
+    if (sourceColumn.id === targetColumnId) return;
+
+    const startCardIds = Array.from(sourceColumn.cardIds);
+    const cardIndex = startCardIds.indexOf(cardId);
+    if (cardIndex === -1) return;
+
+    // Remove card from source column
+    startCardIds.splice(cardIndex, 1);
+    const newStart = { ...sourceColumn, cardIds: startCardIds };
+
+    // Add card to end of target column
+    const finishCardIds = Array.from(targetColumn.cardIds);
+    finishCardIds.push(cardId);
+    const newFinish = { ...targetColumn, cardIds: finishCardIds };
+
+    setData(prevData => ({
+      ...prevData,
+      columns: {
+        ...prevData.columns,
+        [newStart.id]: newStart,
+        [newFinish.id]: newFinish,
+      },
+    }));
+  }, [data, findCardColumn]);
+
   const onDragEnd = useCallback((result) => {
     const { destination, source, draggableId } = result;
     if (!destination) return;
@@ -109,6 +154,9 @@ export default function KanbanBoard() {
           show={true}
           close={handleCloseCard}
           card={selectedCard}
+          moveCardToColumn={moveCardToColumn}
+          columns={data.columns}
+          currentColumn={findCardColumn(selectedCard.id)}
         />
       )}
     </>

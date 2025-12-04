@@ -40,6 +40,57 @@ const STEP_LABELS = [
   "Ready to Finalize",
 ];
 
+// Mapping between column titles and step labels (used for both directions)
+const COLUMN_TO_STEP_MAP = {
+  "Appointment Received": { stepNumber: 1, stepLabel: "Appointment Received" },
+  "Enroute": { stepNumber: 2, stepLabel: "Enroute" },
+  "Vessel Arrived": { stepNumber: 3, stepLabel: "Vessel Arrived" },
+  "Vessel Cleared": { stepNumber: 4, stepLabel: "Vessel Cleared" },
+  "Vessel Sailed": { stepNumber: 5, stepLabel: "Vessel Sailed / Awaiting Documents" },
+  "Ready to Fianalize": { stepNumber: 6, stepLabel: "Ready to Finalize" }, // Note: typo in data.js
+};
+
+// Helper function to map step label to column ID based on column titles
+const getColumnIdFromStepLabel = (stepLabel, columns) => {
+  if (!columns) return null;
+
+  // Normalize step labels to match column titles
+  const stepToColumnMap = {
+    "Appointment Received": "Appointment Received",
+    "Enroute": "Enroute",
+    "Vessel Arrived": "Vessel Arrived",
+    "Vessel Cleared": "Vessel Cleared",
+    "Vessel Sailed / Awaiting Documents": "Vessel Sailed",
+    "Ready to Finalize": "Ready to Fianalize", // Note: typo in data.js
+  };
+
+  const columnTitle = stepToColumnMap[stepLabel];
+  if (!columnTitle) return null;
+
+  // Find column with matching title
+  for (const colId in columns) {
+    if (columns[colId].title === columnTitle) {
+      return colId;
+    }
+  }
+
+  return null;
+};
+
+// Helper function to get step number from column title
+const getStepNumberFromColumnTitle = (columnTitle) => {
+  const mapping = COLUMN_TO_STEP_MAP[columnTitle];
+  return mapping ? mapping.stepNumber : null;
+};
+
+// Helper function to get step number from column ID
+const getStepNumberFromColumnId = (columnId, columns) => {
+  if (!columns || !columnId) return null;
+  const column = columns[columnId];
+  if (!column) return null;
+  return getStepNumberFromColumnTitle(column.title);
+};
+
 // Sub-components
 const TopBar = ({ card, accentColor, onClose }) => {
   const cardId = card?.code || card?.id;
@@ -101,7 +152,7 @@ TopTabs.propTypes = {
 };
 
 
-const StepsProgress = ({ totalSteps = TOTAL_STEPS, activeStep = 2, completedSteps = 1, accentColor = DEFAULT_ACCENT_COLOR, stepLabels = STEP_LABELS }) => {
+const StepsProgress = ({ totalSteps = TOTAL_STEPS, activeStep = 2, completedSteps = 1, accentColor = DEFAULT_ACCENT_COLOR, stepLabels = STEP_LABELS, onStepClick, currentStep }) => {
   // Create a lighter version of the accent color for inactive steps
   const hexToRgb = (hex) => {
     const result = /^#?([a-f\d]{2})([a-f\d]{2})([a-f\d]{2})$/i.exec(hex);
@@ -119,24 +170,32 @@ const StepsProgress = ({ totalSteps = TOTAL_STEPS, activeStep = 2, completedStep
     ? `rgba(${rgb.r}, ${rgb.g}, ${rgb.b}, 0.4)`
     : accentColor;
 
+  // Use currentStep as the actual current step (from card's column), fallback to activeStep
+  const actualCurrentStep = currentStep !== null && currentStep !== undefined ? currentStep : activeStep;
+
   return (
     <div className="cardform-steps-wrapper">
       {Array.from({ length: totalSteps }, (_, index) => {
         const stepNumber = index + 1;
         const isCompleted = stepNumber <= completedSteps;
-        const isActive = stepNumber === activeStep;
-        // Treat active step as completed for styling
-        const isStepCompletedOrActive = isCompleted || isActive;
-        const stepClass = isStepCompletedOrActive ? "completed" : "";
+        const isCurrentStep = stepNumber === actualCurrentStep;
+        // Treat current step as completed for styling
+        const isStepCompletedOrCurrent = isCompleted || isCurrentStep;
+        const stepClass = isStepCompletedOrCurrent ? "completed" : "";
 
-        // Check if next step is also completed or active (for line styling)
+        // Check if next step is also completed or current (for line styling)
         const nextStepNumber = stepNumber + 1;
         const isNextStepCompleted = nextStepNumber <= completedSteps;
-        const isNextStepActive = nextStepNumber === activeStep;
-        const isNextStepCompletedOrActive = isNextStepCompleted || isNextStepActive;
-        const lineClass = isStepCompletedOrActive && isNextStepCompletedOrActive ? "completed-line" : "";
+        const isNextStepCurrent = nextStepNumber === actualCurrentStep;
+        const isNextStepCompletedOrCurrent = isNextStepCompleted || isNextStepCurrent;
+        const lineClass = isStepCompletedOrCurrent && isNextStepCompletedOrCurrent ? "completed-line" : "";
 
-        const circleStyle = isStepCompletedOrActive
+        // Determine if this step is clickable (only adjacent steps, not the current step itself)
+        const isAdjacent = currentStep !== null && Math.abs(stepNumber - currentStep) === 1;
+        const isClickable = onStepClick && currentStep !== null && isAdjacent && stepNumber !== currentStep;
+        const isDisabled = onStepClick && currentStep !== null && !isAdjacent && stepNumber !== currentStep;
+
+        const circleStyle = isStepCompletedOrCurrent
           ? {
             background: accentColor,
             color: "#ffffff",
@@ -147,16 +206,28 @@ const StepsProgress = ({ totalSteps = TOTAL_STEPS, activeStep = 2, completedStep
             color: lightColor,
           };
 
-        const lineStyle = isStepCompletedOrActive && isNextStepCompletedOrActive
+        const lineStyle = isStepCompletedOrCurrent && isNextStepCompletedOrCurrent
           ? { background: accentColor }
           : { background: lightColor };
 
-        const labelStyle = isStepCompletedOrActive
+        const labelStyle = isStepCompletedOrCurrent
           ? { color: accentColor }
           : { color: lightColor };
 
+        const stepLabel = stepLabels[index] || `Step ${stepNumber}`;
+        const handleStepClick = () => {
+          if (onStepClick && isClickable) {
+            onStepClick(stepLabel, stepNumber);
+          }
+        };
+
         return (
-          <div key={stepNumber} className={`step-item ${stepClass}`}>
+          <div
+            key={stepNumber}
+            className={`step-item ${stepClass} ${isClickable ? 'clickable' : ''} ${isDisabled ? 'disabled' : ''}`}
+            onClick={handleStepClick}
+            style={isClickable ? { cursor: 'pointer' } : isDisabled ? { cursor: 'not-allowed', opacity: 0.5 } : {}}
+          >
             <div className="step-content">
               <div className="step-circle" style={circleStyle}>
                 {stepNumber}
@@ -166,7 +237,7 @@ const StepsProgress = ({ totalSteps = TOTAL_STEPS, activeStep = 2, completedStep
               )}
             </div>
             <div className="step-label" style={labelStyle}>
-              {stepLabels[index] || `Step ${stepNumber}`}
+              {stepLabel}
             </div>
           </div>
         );
@@ -181,9 +252,11 @@ StepsProgress.propTypes = {
   completedSteps: PropTypes.number,
   accentColor: PropTypes.string,
   stepLabels: PropTypes.arrayOf(PropTypes.string),
+  onStepClick: PropTypes.func,
+  currentStep: PropTypes.number,
 };
 
-const CardFormFooter = ({ accentColor, onUpdate, activeStep = 2, completedSteps = 1, activeTab }) => {
+const CardFormFooter = ({ accentColor, onUpdate, activeStep = 2, completedSteps = 1, activeTab, onStepClick, currentStep }) => {
   const showProgressBar = activeTab !== "General";
 
   return (
@@ -195,6 +268,8 @@ const CardFormFooter = ({ accentColor, onUpdate, activeStep = 2, completedSteps 
           completedSteps={completedSteps}
           accentColor={accentColor}
           stepLabels={STEP_LABELS}
+          onStepClick={onStepClick}
+          currentStep={currentStep}
         />
       )}
       {!showProgressBar && <div />}
@@ -216,6 +291,8 @@ CardFormFooter.propTypes = {
   activeStep: PropTypes.number,
   completedSteps: PropTypes.number,
   activeTab: PropTypes.string,
+  onStepClick: PropTypes.func,
+  currentStep: PropTypes.number,
 };
 
 // Tab Content Renderer
@@ -249,7 +326,7 @@ const renderTabContent = (activeTab, card, formValues, handleChange, ownerInitia
 };
 
 // Main Component
-function CardForm({ show, close, card }) {
+function CardForm({ show, close, card, moveCardToColumn, columns, currentColumn }) {
   const [activeTopTab, setActiveTopTab] = useState("Operation");
 
   const initialFormValues = useMemo(
@@ -317,6 +394,30 @@ function CardForm({ show, close, card }) {
     setActiveTopTab(tab);
   }, []);
 
+  // Calculate current step from current column
+  const currentStep = useMemo(() => {
+    if (!currentColumn) return null;
+    return getStepNumberFromColumnTitle(currentColumn.title);
+  }, [currentColumn]);
+
+  const handleStepClick = useCallback((stepLabel, stepNumber) => {
+    if (!moveCardToColumn || !card?.id) return;
+
+    // Step-by-step validation: only allow moving to adjacent steps (forward or backward by 1)
+    if (currentStep !== null) {
+      const stepDifference = Math.abs(stepNumber - currentStep);
+      if (stepDifference !== 1 || stepNumber === currentStep) {
+        // Not an adjacent step or trying to click current step, don't allow the move
+        return;
+      }
+    }
+
+    const targetColumnId = getColumnIdFromStepLabel(stepLabel, columns);
+    if (targetColumnId) {
+      moveCardToColumn(card.id, targetColumnId);
+    }
+  }, [moveCardToColumn, card?.id, columns, currentStep]);
+
   const accentColor = useMemo(() => card?.color || DEFAULT_ACCENT_COLOR, [card?.color]);
   const ownerInitial = useMemo(
     () => formValues.owner?.[0]?.toUpperCase() || "N",
@@ -339,9 +440,11 @@ function CardForm({ show, close, card }) {
         <CardFormFooter
           accentColor={accentColor}
           onUpdate={handleUpdate}
-          activeStep={2}
-          completedSteps={1}
+          activeStep={currentStep || 1}
+          completedSteps={currentStep && currentStep > 1 ? currentStep - 1 : 0}
           activeTab={activeTopTab}
+          onStepClick={handleStepClick}
+          currentStep={currentStep}
         />
       </div>
     </div>
@@ -366,6 +469,14 @@ CardForm.propTypes = {
     clearanceCompletion: PropTypes.string,
     lastMovedDate: PropTypes.string,
     lastMovedTime: PropTypes.string,
+  }),
+  moveCardToColumn: PropTypes.func,
+  columns: PropTypes.object,
+  currentColumn: PropTypes.shape({
+    id: PropTypes.string,
+    title: PropTypes.string,
+    color: PropTypes.string,
+    cardIds: PropTypes.array,
   }),
 };
 
