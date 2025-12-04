@@ -46,6 +46,28 @@ function Husbandry({ card, formValues, handleChange }) {
     setActiveSubTab(tab);
   }, []);
 
+  // Handle navigation from CrewContent when crew is selected and action is chosen
+  const handleNavigateToTab = useCallback((tabName) => {
+    // Ensure we're on the Crew Management main tab
+    if (activeMainTab !== MAIN_TABS.CREW_MANAGEMENT) {
+      setActiveMainTab(MAIN_TABS.CREW_MANAGEMENT);
+    }
+
+    // Map tab names to subtab constants - tabName matches the constant values
+    const tabMap = {
+      transport: CREW_MANAGEMENT_SUBTABS.TRANSPORT,
+      cgPass: CREW_MANAGEMENT_SUBTABS.CG_PASS,
+      zawilPass: CREW_MANAGEMENT_SUBTABS.ZAWIL_PASS,
+      hotel: CREW_MANAGEMENT_SUBTABS.HOTEL,
+      medicalService: CREW_MANAGEMENT_SUBTABS.MEDICAL_SERVICE,
+    };
+
+    const targetTab = tabMap[tabName];
+    if (targetTab) {
+      setActiveSubTab(targetTab);
+    }
+  }, [activeMainTab]);
+
   const renderCrewManagementContent = () => {
     switch (activeSubTab) {
       case CREW_MANAGEMENT_SUBTABS.CREW:
@@ -54,6 +76,7 @@ function Husbandry({ card, formValues, handleChange }) {
             formValues={formValues}
             handleChange={handleChange}
             cardColor={cardColor}
+            onNavigateToTab={handleNavigateToTab}
           />
         );
       case CREW_MANAGEMENT_SUBTABS.TRANSPORT:
@@ -102,6 +125,7 @@ function Husbandry({ card, formValues, handleChange }) {
             formValues={formValues}
             handleChange={handleChange}
             cardColor={cardColor}
+            onNavigateToTab={handleNavigateToTab}
           />
         );
     }
