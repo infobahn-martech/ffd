@@ -3,27 +3,36 @@ import PropTypes from "prop-types";
 
 // Generate dummy sales order data
 const generateDummySalesOrders = () => {
-  const customers = ["ABC Shipping Co.", "Global Logistics Ltd.", "Maritime Transport Inc.", "Ocean Freight Solutions", "International Cargo Group"];
-  const statuses = ["Pending", "Confirmed", "In Progress", "Completed", "Cancelled"];
-  const paymentStatuses = ["Paid", "Pending", "Partial", "Overdue"];
+  const itemNames = ["Container Service", "Shipping Documentation", "Cargo Handling", "Storage Service", "Customs Clearance", "Freight Forwarding", "Warehouse Service", "Distribution Service"];
+  const itemCodes = ["ITEM-001", "ITEM-002", "ITEM-003", "ITEM-004", "ITEM-005", "ITEM-006", "ITEM-007", "ITEM-008"];
 
   const dummyOrders = [];
   for (let i = 1; i <= 20; i++) {
-    const orderDate = new Date();
-    orderDate.setDate(orderDate.getDate() - Math.floor(Math.random() * 60));
-    const deliveryDate = new Date(orderDate);
-    deliveryDate.setDate(deliveryDate.getDate() + Math.floor(Math.random() * 30) + 7);
+    const itemIndex = Math.floor(Math.random() * itemNames.length);
+    const startDate = new Date();
+    startDate.setDate(startDate.getDate() - Math.floor(Math.random() * 60));
+    const completedDate = new Date(startDate);
+    completedDate.setDate(completedDate.getDate() + Math.floor(Math.random() * 30) + 7);
+
+    const vatPercentage = [5, 15, 20][Math.floor(Math.random() * 3)];
+    const qty = Math.floor(Math.random() * 100) + 1;
+    const unitPrice = Math.random() * 5000 + 100;
+    const totalUnitAmount = qty * unitPrice;
+    const vatAmount = (totalUnitAmount * vatPercentage) / 100;
+    const totalWithVAT = totalUnitAmount + vatAmount;
 
     dummyOrders.push({
       id: i,
-      orderNumber: `SO-${String(10000 + i).padStart(6, '0')}`,
-      customerName: customers[Math.floor(Math.random() * customers.length)],
-      orderDate: orderDate.toISOString().split('T')[0],
-      deliveryDate: deliveryDate.toISOString().split('T')[0],
-      status: statuses[Math.floor(Math.random() * statuses.length)],
-      paymentStatus: paymentStatuses[Math.floor(Math.random() * paymentStatuses.length)],
-      amount: (Math.random() * 100000 + 10000).toFixed(2),
-      items: Math.floor(Math.random() * 10) + 1,
+      lineItemCode: itemCodes[itemIndex],
+      lineItemName: itemNames[itemIndex],
+      startedDate: startDate.toISOString(),
+      completedDate: completedDate.toISOString(),
+      vatPercentage: vatPercentage,
+      qty: qty,
+      unitPrice: unitPrice,
+      totalUnitAmount: totalUnitAmount,
+      vatAmount: vatAmount,
+      totalInSARWithVAT: totalWithVAT,
     });
   }
   return dummyOrders;
@@ -31,6 +40,10 @@ const generateDummySalesOrders = () => {
 
 const SalesOrderList = ({ formValues, handleChange, cardColor }) => {
   const salesOrderList = formValues.salesOrderList || [];
+  const billingEntity = formValues.billingEntity || "ABC Shipping Co.";
+  const email = formValues.email || "billing@abccompany.com";
+  const lineItem = formValues.lineItem || "Container Service";
+  const lineItemTotal = formValues.lineItemTotal || 0;
 
   // Initialize with dummy data on mount if empty
   useEffect(() => {
@@ -44,6 +57,11 @@ const SalesOrderList = ({ formValues, handleChange, cardColor }) => {
 
   const displayOrderList = salesOrderList.length > 0 ? salesOrderList : generateDummySalesOrders();
 
+  // Calculate total line item total from list if not provided
+  const calculatedLineItemTotal = lineItemTotal || displayOrderList.reduce((sum, item) => {
+    return sum + (parseFloat(item.totalInSARWithVAT) || 0);
+  }, 0);
+
   const formatDate = (dateString) => {
     if (!dateString) return "";
     const date = new Date(dateString);
@@ -54,33 +72,21 @@ const SalesOrderList = ({ formValues, handleChange, cardColor }) => {
     });
   };
 
-  const formatCurrency = (amount) => {
+  const formatTime = (dateString) => {
+    if (!dateString) return "";
+    const date = new Date(dateString);
+    return date.toLocaleTimeString("en-US", {
+      hour: "2-digit",
+      minute: "2-digit",
+    });
+  };
+
+  const formatCurrencySAR = (amount) => {
     return new Intl.NumberFormat("en-US", {
       style: "currency",
-      currency: "USD",
+      currency: "SAR",
       minimumFractionDigits: 2,
     }).format(amount);
-  };
-
-  const getStatusClass = (status) => {
-    const statusMap = {
-      Pending: "status-pending",
-      Confirmed: "status-confirmed",
-      "In Progress": "status-in-progress",
-      Completed: "status-completed",
-      Cancelled: "status-cancelled",
-    };
-    return statusMap[status] || "";
-  };
-
-  const getPaymentStatusClass = (status) => {
-    const statusMap = {
-      Paid: "payment-paid",
-      Pending: "payment-pending",
-      Partial: "payment-partial",
-      Overdue: "payment-overdue",
-    };
-    return statusMap[status] || "";
   };
 
   return (
@@ -91,50 +97,99 @@ const SalesOrderList = ({ formValues, handleChange, cardColor }) => {
           SALES ORDER LIST
         </h3>
       </div>
+
+      {/* Summary Section */}
+      <div className="sales-order-summary-section">
+        <div className="sales-order-summary-grid">
+          <div className="sales-order-summary-item">
+            <label className="sales-order-summary-label">Billing Entity</label>
+            <div className="sales-order-summary-value">{billingEntity}</div>
+          </div>
+          <div className="sales-order-summary-item">
+            <label className="sales-order-summary-label">Email</label>
+            <div className="sales-order-summary-value">{email}</div>
+          </div>
+          <div className="sales-order-summary-item">
+            <label className="sales-order-summary-label">Line Item</label>
+            <div className="sales-order-summary-value">{lineItem}</div>
+          </div>
+          <div className="sales-order-summary-item sales-order-summary-item-highlight">
+            <label className="sales-order-summary-label">Line Item Total</label>
+            <div className="sales-order-summary-value sales-order-summary-total">
+              {formatCurrencySAR(calculatedLineItemTotal)}
+            </div>
+          </div>
+        </div>
+      </div>
+
       <div className="table-wrapper table-responsive sales-order-table-container">
         <table className="table table-striped sales-order-table" style={{ "--card-color": cardColor }}>
           <thead>
             <tr>
-              <th>Order Number</th>
-              <th>Customer Name</th>
-              <th>Order Date</th>
-              <th>Delivery Date</th>
-              <th>Status</th>
-              <th>Payment Status</th>
-              <th>Amount</th>
-              <th>Items</th>
+              <th>LinedItem Code</th>
+              <th>LinedItem Name</th>
+              <th>Started</th>
+              <th>Completed</th>
+              <th>VAT (%)</th>
+              <th>Qty</th>
+              <th>Unit Price</th>
+              <th>Total Unit Amount</th>
+              <th>VAT Amount</th>
+              <th>Total in SAR with VAT</th>
             </tr>
           </thead>
           <tbody>
             {displayOrderList.map((order) => (
               <tr key={order.id}>
                 <td>
-                  <div className="sales-order-table-cell">{order.orderNumber || ""}</div>
-                </td>
-                <td>
-                  <div className="sales-order-table-cell">{order.customerName || ""}</div>
-                </td>
-                <td>
-                  <div className="sales-order-table-cell">{formatDate(order.orderDate)}</div>
-                </td>
-                <td>
-                  <div className="sales-order-table-cell">{formatDate(order.deliveryDate)}</div>
-                </td>
-                <td>
-                  <div className={`sales-order-table-cell ${getStatusClass(order.status)}`}>
-                    {order.status || ""}
+                  <div className="sales-order-table-cell">
+                    {order.lineItemCode || ""}
                   </div>
                 </td>
                 <td>
-                  <div className={`sales-order-table-cell ${getPaymentStatusClass(order.paymentStatus)}`}>
-                    {order.paymentStatus || ""}
+                  <div className="sales-order-table-cell">
+                    {order.lineItemName || ""}
                   </div>
                 </td>
                 <td>
-                  <div className="sales-order-table-cell">{formatCurrency(order.amount)}</div>
+                  <div className="sales-order-table-cell">
+                    <div className="sales-order-date">{formatDate(order.startedDate)}</div>
+                    <div className="sales-order-time">{formatTime(order.startedDate)}</div>
+                  </div>
                 </td>
                 <td>
-                  <div className="sales-order-table-cell">{order.items || 0}</div>
+                  <div className="sales-order-table-cell">
+                    <div className="sales-order-date">{formatDate(order.completedDate)}</div>
+                    <div className="sales-order-time">{formatTime(order.completedDate)}</div>
+                  </div>
+                </td>
+                <td>
+                  <div className="sales-order-table-cell">
+                    {order.vatPercentage ? `${order.vatPercentage}%` : ""}
+                  </div>
+                </td>
+                <td>
+                  <div className="sales-order-table-cell">{order.qty || 0}</div>
+                </td>
+                <td>
+                  <div className="sales-order-table-cell">
+                    {formatCurrencySAR(order.unitPrice || 0)}
+                  </div>
+                </td>
+                <td>
+                  <div className="sales-order-table-cell">
+                    {formatCurrencySAR(order.totalUnitAmount || 0)}
+                  </div>
+                </td>
+                <td>
+                  <div className="sales-order-table-cell">
+                    {formatCurrencySAR(order.vatAmount || 0)}
+                  </div>
+                </td>
+                <td>
+                  <div className="sales-order-table-cell sales-order-table-cell-total">
+                    {formatCurrencySAR(order.totalInSARWithVAT || 0)}
+                  </div>
                 </td>
               </tr>
             ))}
