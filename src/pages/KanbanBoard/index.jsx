@@ -52,9 +52,9 @@ export default function KanbanBoard() {
     startCardIds.splice(cardIndex, 1);
     const newStart = { ...sourceColumn, cardIds: startCardIds };
 
-    // Add card to end of target column
+    // Add card to beginning of target column (first position)
     const finishCardIds = Array.from(targetColumn.cardIds);
-    finishCardIds.push(cardId);
+    finishCardIds.unshift(cardId);
     const newFinish = { ...targetColumn, cardIds: finishCardIds };
 
     setData(prevData => ({
