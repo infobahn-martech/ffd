@@ -202,13 +202,76 @@ AttachmentItem.propTypes = {
     uploadedAt: PropTypes.string,
     uploadedBy: PropTypes.string,
     fileUrl: PropTypes.string,
+    category: PropTypes.string,
   }).isRequired,
   onDownload: PropTypes.func,
   onDelete: PropTypes.func,
   cardColor: PropTypes.string,
 };
 
+const AttachmentCategory = ({ label, attachments, onDownload, onDelete, cardColor }) => {
+  if (!attachments || attachments.length === 0) {
+    return null;
+  }
+
+  return (
+    <div className="attachment-category">
+      <div className="attachment-category-header">
+        <h4 className="attachment-category-label">{label}</h4>
+        <span className="attachment-category-count">({attachments.length})</span>
+      </div>
+      <div className="attachments-items">
+        {attachments.map((attachment) => (
+          <AttachmentItem
+            key={attachment.id}
+            attachment={attachment}
+            onDownload={onDownload}
+            onDelete={onDelete}
+            cardColor={cardColor}
+          />
+        ))}
+      </div>
+    </div>
+  );
+};
+
+AttachmentCategory.propTypes = {
+  label: PropTypes.string.isRequired,
+  attachments: PropTypes.arrayOf(
+    PropTypes.shape({
+      id: PropTypes.oneOfType([PropTypes.string, PropTypes.number]),
+      fileName: PropTypes.string,
+      fileSize: PropTypes.number,
+      uploadedAt: PropTypes.string,
+      uploadedBy: PropTypes.string,
+      fileUrl: PropTypes.string,
+      category: PropTypes.string,
+    })
+  ),
+  onDownload: PropTypes.func,
+  onDelete: PropTypes.func,
+  cardColor: PropTypes.string,
+};
+
 const AttachmentList = ({ attachments, onDownload, onDelete, cardColor }) => {
+  // Group attachments by category/label
+  const groupedAttachments = useMemo(() => {
+    if (!attachments || attachments.length === 0) {
+      return {};
+    }
+
+    const grouped = {};
+    attachments.forEach((attachment) => {
+      const category = attachment.category || "Other Documents";
+      if (!grouped[category]) {
+        grouped[category] = [];
+      }
+      grouped[category].push(attachment);
+    });
+
+    return grouped;
+  }, [attachments]);
+
   if (!attachments || attachments.length === 0) {
     return (
       <div className="cf-empty-row">
@@ -217,16 +280,16 @@ const AttachmentList = ({ attachments, onDownload, onDelete, cardColor }) => {
     );
   }
 
+  const categories = Object.keys(groupedAttachments);
+
   return (
     <div className="attachments-list">
-      {/* <div className="attachments-count-header">
-        <span className="attachments-count">{attachments.length} attachment{attachments.length !== 1 ? 's' : ''}</span>
-      </div> */}
-      <div className="attachments-items">
-        {attachments.map((attachment) => (
-          <AttachmentItem
-            key={attachment.id}
-            attachment={attachment}
+      <div className="attachments-categories">
+        {categories.map((category) => (
+          <AttachmentCategory
+            key={category}
+            label={category}
+            attachments={groupedAttachments[category]}
             onDownload={onDownload}
             onDelete={onDelete}
             cardColor={cardColor}
@@ -246,6 +309,7 @@ AttachmentList.propTypes = {
       uploadedAt: PropTypes.string,
       uploadedBy: PropTypes.string,
       fileUrl: PropTypes.string,
+      category: PropTypes.string,
     })
   ),
   onDownload: PropTypes.func,
@@ -261,31 +325,88 @@ function Attachments({ card, formValues, handleChange }) {
     if (card?.attachments && card.attachments.length > 0) {
       return card.attachments;
     }
-    // Dummy data for demonstration
+    // Dummy data for demonstration with categories
     return [
       {
         id: 1,
-        fileName: 'Vessel_Documentation.pdf',
+        fileName: 'Arrival_Notice.pdf',
         fileSize: 2456789,
         uploadedAt: '2024-01-15T14:30:00Z',
         uploadedBy: 'John Doe',
         fileUrl: '#',
+        category: 'Pre Arrival',
       },
       {
         id: 2,
+        fileName: 'Crew_Declaration.pdf',
+        fileSize: 1234567,
+        uploadedAt: '2024-01-15T10:20:00Z',
+        uploadedBy: 'John Doe',
+        fileUrl: '#',
+        category: 'Pre Arrival',
+      },
+      {
+        id: 3,
+        fileName: 'Cargo_Declaration.pdf',
+        fileSize: 1876543,
+        uploadedAt: '2024-01-15T09:15:00Z',
+        uploadedBy: 'John Doe',
+        fileUrl: '#',
+        category: 'Pre Arrival',
+      },
+      {
+        id: 4,
         fileName: 'Customs_Clearance_Form.docx',
         fileSize: 123456,
         uploadedAt: '2024-01-14T18:20:00Z',
         uploadedBy: 'Jane Smith',
         fileUrl: '#',
+        category: 'Clearance Documents',
       },
       {
-        id: 3,
+        id: 5,
+        fileName: 'Port_Entry_Permit.pdf',
+        fileSize: 987654,
+        uploadedAt: '2024-01-14T16:30:00Z',
+        uploadedBy: 'Jane Smith',
+        fileUrl: '#',
+        category: 'Clearance Documents',
+      },
+      {
+        id: 6,
+        fileName: 'Health_Certificate.pdf',
+        fileSize: 543210,
+        uploadedAt: '2024-01-14T15:00:00Z',
+        uploadedBy: 'Jane Smith',
+        fileUrl: '#',
+        category: 'Clearance Documents',
+      },
+      {
+        id: 7,
+        fileName: 'Safety_Equipment_List.pdf',
+        fileSize: 345678,
+        uploadedAt: '2024-01-13T13:15:00Z',
+        uploadedBy: 'Mike Johnson',
+        fileUrl: '#',
+        category: 'Safety Documents',
+      },
+      {
+        id: 8,
+        fileName: 'Emergency_Contact_List.pdf',
+        fileSize: 234567,
+        uploadedAt: '2024-01-13T12:00:00Z',
+        uploadedBy: 'Mike Johnson',
+        fileUrl: '#',
+        category: 'Safety Documents',
+      },
+      {
+        id: 9,
         fileName: 'Port_Arrival_Photo.jpg',
         fileSize: 3456789,
         uploadedAt: '2024-01-13T13:15:00Z',
         uploadedBy: 'Mike Johnson',
         fileUrl: '#',
+        category: 'Other Documents',
       },
     ];
   }, [card?.attachments]);

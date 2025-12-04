@@ -45,6 +45,43 @@
   padding-top: 0;
 }
 
+.attachments-categories {
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
+  padding: 20px 22px;
+}
+
+.attachment-category {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.attachment-category-header {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding-bottom: 8px;
+  border-bottom: 2px solid var(--card-color, #2A00FF);
+  margin-bottom: 4px;
+}
+
+.attachment-category-label {
+  font-size: 15px;
+  font-weight: 700;
+  color: #1a1a1a;
+  margin: 0;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.attachment-category-count {
+  font-size: 13px;
+  font-weight: 500;
+  color: #666;
+}
+
 .attachments-count-header {
   margin-bottom: 20px;
   padding: 0 22px;
