@@ -5,7 +5,17 @@ import "../../../design/scss/operations.scss";
 
 // Generate dummy KPI data
 const generateDummyKPIs = () => {
-  const categories = ["Operations", "Financial", "Customer Service", "Quality", "Efficiency", "Safety"];
+  const categories = [
+    "Appointment Acceptance",
+    "Call file open",
+    "Pre arrival report",
+    "Arrival report",
+    "Vessel inward formalities",
+    "Daily report",
+    "Outward clearance issue",
+    "Outward clearance deliver",
+    "Sailing Report"
+  ];
   const performances = ["On Target", "Above Target", "Below Target", "Critical"];
 
   const dummyKPIs = [];
