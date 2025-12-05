@@ -62,6 +62,17 @@ const ReportsAnalytics = ({ reportsList, cardColor }) => {
 
   return (
     <div className="reports-analytics-section">
+      <style>{`
+        .reports-analytics-chart-container *:focus,
+        .reports-analytics-chart-wrapper *:focus,
+        .reports-analytics-chart-container svg:focus,
+        .reports-analytics-chart-wrapper svg:focus,
+        .reports-analytics-chart-container svg *:focus,
+        .reports-analytics-chart-wrapper svg *:focus {
+          outline: none !important;
+          border: none !important;
+        }
+      `}</style>
       <div className="reports-analytics-header">
         <h3 className="reports-analytics-title">
           <span className="reports-analytics-title-bar"></span>
