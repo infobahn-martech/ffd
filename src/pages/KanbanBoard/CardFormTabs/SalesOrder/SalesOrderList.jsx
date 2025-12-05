@@ -109,9 +109,11 @@ const SalesOrderList = ({ formValues, handleChange, cardColor }) => {
             <label className="sales-order-summary-label">Email</label>
             <div className="sales-order-summary-value">{email}</div>
           </div>
-          <div className="sales-order-summary-item">
-            <label className="sales-order-summary-label">Line Item</label>
-            <div className="sales-order-summary-value">{lineItem}</div>
+          <div className="sales-order-summary-item sales-order-summary-item-highlight">
+            <label className="sales-order-summary-label">Line Item Count</label>
+            <div className="sales-order-summary-value sales-order-summary-total">
+              {formValues?.salesOrderList?.length || 0}
+            </div>
           </div>
           <div className="sales-order-summary-item sales-order-summary-item-highlight">
             <label className="sales-order-summary-label">Line Item Total</label>

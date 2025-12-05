@@ -1640,7 +1640,7 @@
 
 .sales-order-summary-item-highlight {
   background: linear-gradient(135deg, rgba(42, 0, 255, 0.05) 0%, rgba(42, 0, 255, 0.02) 100%);
-  padding: 12px 16px;
+  padding: 18px 16px;
   border-radius: 8px;
   border-right: none;
   margin: -12px -16px -12px 0;
@@ -2431,7 +2431,7 @@
 }
 
 /* Ensure modal backdrop appears above CardForm */
-body .reports-preview-modal + .modal-backdrop {
+body .reports-preview-modal+.modal-backdrop {
   z-index: 1299 !important;
 }
 
