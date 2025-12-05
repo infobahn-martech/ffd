@@ -1180,6 +1180,14 @@ const LaunchHireContent = ({ formValues, handleChange, cardColor }) => {
       { value: "crew4", label: "Crew Member 4" },
     ];
 
+  // Generate captain options from crewList or use mock data
+  const captainOptions = [
+    { value: "captain1", label: "Captain 1" },
+    { value: "captain2", label: "Captain 2" },
+    { value: "captain3", label: "Captain 3" },
+    { value: "captain4", label: "Captain 4" },
+  ];
+
   // Mock tax boat type options - should be replaced with actual data
   const taxBoatTypeOptions = [
     { value: "type1", label: "Tax Boat Type 1" },
@@ -1353,11 +1361,11 @@ const LaunchHireContent = ({ formValues, handleChange, cardColor }) => {
               </FormField>
 
               <FormField label="Captain">
-                <FormInput
-                  type="text"
-                  placeholder="Enter captain name..."
+                <FormSelect
                   value={formValues.captain || ""}
                   onChange={handleChange("captain")}
+                  options={captainOptions}
+                  placeholder="Select captain..."
                 />
               </FormField>
 
