@@ -1,6 +1,5 @@
 import { useEffect } from "react";
 import PropTypes from "prop-types";
-import ReportsAnalytics from "./ReportsAnalytics";
 import ReportsCardView from "./ReportsCardView";
 
 // Generate dummy reports data
@@ -54,10 +53,7 @@ const ReportsList = ({ formValues, handleChange, cardColor }) => {
 
   return (
     <div className="cardform-left-full reports-content-wrapper" style={{ "--card-color": cardColor }}>
-      {/* Analytics Section - First Section */}
-      <ReportsAnalytics reportsList={displayReportsList} cardColor={cardColor} />
-
-      {/* Reports Card View - Second Section */}
+      {/* Reports Card View */}
       <ReportsCardView
         reportsList={displayReportsList}
         cardColor={cardColor}

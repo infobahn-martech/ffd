@@ -2185,75 +2185,6 @@
 }
 
 /* ==========================================================
-   REPORTS ANALYTICS SECTION
-   ========================================================== */
-
-.reports-analytics-section {
-  background: #ffffff;
-  border-radius: 12px;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
-  margin-bottom: 20px;
-  overflow: hidden;
-}
-
-.reports-analytics-header {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  padding: 18px 22px;
-  background: #ffffff;
-  border-bottom: 1px solid #f0f0f0;
-}
-
-.reports-analytics-title {
-  font-size: 14px;
-  font-weight: 600;
-  color: #1a1a1a;
-  margin: 0;
-  display: flex;
-  align-items: center;
-  gap: 10px;
-  text-transform: uppercase;
-  letter-spacing: 0.5px;
-}
-
-.reports-analytics-title-bar {
-  width: 4px;
-  height: 18px;
-  background: var(--card-color, #2A00FF);
-  border-radius: 2px;
-  display: inline-block;
-}
-
-.reports-analytics-content {
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 20px;
-  padding: 20px 22px;
-  background: #ffffff;
-}
-
-.reports-analytics-chart-container {
-  background: #f8f9fc;
-  border-radius: 8px;
-  padding: 16px;
-  border: 1px solid #f0f0f0;
-}
-
-.reports-analytics-chart-wrapper {
-  width: 100%;
-  height: 100%;
-}
-
-.reports-analytics-chart-title {
-  font-size: 13px;
-  font-weight: 600;
-  color: #333;
-  margin: 0 0 16px 0;
-  text-align: center;
-}
-
-/* ==========================================================
    REPORTS CARD VIEW SECTION
    ========================================================== */
 
@@ -2636,10 +2567,6 @@ body .modal-backdrop.show {
    ========================================================== */
 
 @media (max-width: 1024px) {
-  .reports-analytics-content {
-    grid-template-columns: 1fr;
-  }
-
   .reports-card-grid {
     grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
     gap: 16px;
