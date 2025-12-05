@@ -2666,6 +2666,91 @@ body .modal-backdrop.show {
   }
 }
 
+/* ==========================================================
+   KPI ANALYTICS SECTION
+   ========================================================== */
+
+.kpi-analytics-section {
+  background: #ffffff;
+  border-radius: 12px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
+  margin-bottom: 20px;
+  overflow: hidden;
+}
+
+.kpi-analytics-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 18px 22px;
+  background: #ffffff;
+  border-bottom: 1px solid #f0f0f0;
+}
+
+.kpi-analytics-title {
+  font-size: 14px;
+  font-weight: 600;
+  color: #1a1a1a;
+  margin: 0;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.kpi-analytics-title-bar {
+  width: 4px;
+  height: 18px;
+  background: var(--card-color, #2A00FF);
+  border-radius: 2px;
+  display: inline-block;
+}
+
+.kpi-analytics-content {
+  display: grid;
+  grid-template-columns: 1fr 1fr 1fr;
+  gap: 20px;
+  padding: 20px 22px;
+  background: #ffffff;
+}
+
+.kpi-analytics-chart-container {
+  background: #f8f9fc;
+  border-radius: 8px;
+  padding: 16px;
+  border: 1px solid #f0f0f0;
+}
+
+.kpi-analytics-chart-wrapper {
+  width: 100%;
+  height: 100%;
+}
+
+.kpi-analytics-chart-title {
+  font-size: 13px;
+  font-weight: 600;
+  color: #333;
+  margin: 0 0 16px 0;
+  text-align: center;
+}
+
+/* ==========================================================
+   RESPONSIVE STYLES FOR KPI
+   ========================================================== */
+
+@media (max-width: 1024px) {
+  .kpi-analytics-content {
+    grid-template-columns: 1fr 1fr;
+  }
+}
+
+@media (max-width: 768px) {
+  .kpi-analytics-content {
+    grid-template-columns: 1fr;
+  }
+}
+
 /* Material Management Modal - Higher z-index to appear above CardForm (z-index: 1200) */
 /* Bootstrap modals are rendered in a portal at body level */
 body .material-management-modal {
