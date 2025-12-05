@@ -1,5 +1,6 @@
 import PropTypes from "prop-types";
 import ReportsList from "./Reports/ReportsList";
+import "../../../design/scss/operations.scss";
 
 function Reports({ card, formValues, handleChange }) {
   const cardColor = card?.color || "#2A00FF";
