@@ -2226,7 +2226,7 @@
 
 .reports-card-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+  grid-template-columns: repeat(3, 1fr);
   gap: 20px;
   padding: 20px 22px;
   background: #ffffff;
@@ -2568,7 +2568,7 @@ body .modal-backdrop.show {
 
 @media (max-width: 1024px) {
   .reports-card-grid {
-    grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+    grid-template-columns: repeat(2, 1fr);
     gap: 16px;
     padding: 16px;
   }
