@@ -4,25 +4,33 @@ import ReportsCardView from "./ReportsCardView";
 
 // Generate dummy reports data
 const generateDummyReports = () => {
-  const reportTypes = ["Financial Report", "Performance Report", "Analytics Report", "Summary Report", "Detailed Report"];
   const statuses = ["Generated", "Pending", "Failed", "In Progress"];
   const generatedBy = ["John Doe", "Jane Smith", "Mike Johnson", "Sarah Williams", "David Brown"];
 
-  const dummyReports = [];
-  for (let i = 1; i <= 20; i++) {
+  const reportNames = [
+    "Reporting Format Report",
+    "Appointment Acceptance Report",
+    "Arrival Report",
+    "Daily Report",
+    "Departure Report",
+    "Pre-arrival Report"
+  ];
+
+  const dummyReports = reportNames.map((reportName, index) => {
     const generatedDate = new Date();
     generatedDate.setDate(generatedDate.getDate() - Math.floor(Math.random() * 90));
 
-    dummyReports.push({
-      id: i,
-      reportName: `Report_${String(1000 + i).padStart(4, '0')}`,
-      reportType: reportTypes[Math.floor(Math.random() * reportTypes.length)],
+    return {
+      id: index + 1,
+      reportName: reportName,
+      reportType: reportName,
       generatedDate: generatedDate.toISOString().split('T')[0],
       generatedBy: generatedBy[Math.floor(Math.random() * generatedBy.length)],
       status: statuses[Math.floor(Math.random() * statuses.length)],
       fileSize: Math.floor(Math.random() * 5000 + 100), // KB
-    });
-  }
+    };
+  });
+
   return dummyReports;
 };
 
