@@ -1,6 +1,6 @@
 import { useMemo } from "react";
 import PropTypes from "prop-types";
-import { PieChart, Pie, Cell, ResponsiveContainer, BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend, LineChart, Line } from "recharts";
+import { PieChart, Pie, Cell, ResponsiveContainer, BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend } from "recharts";
 
 const KPIAnalytics = ({ kpiData, cardColor }) => {
   // Calculate data for pie chart (KPI performance distribution)
@@ -43,14 +43,6 @@ const KPIAnalytics = ({ kpiData, cardColor }) => {
       .slice(0, 6); // Top 6 categories
   }, [kpiData]);
 
-  // Calculate data for line chart (KPI trends over time)
-  const trendData = useMemo(() => {
-    const months = ["Jan", "Feb", "Mar", "Apr", "May", "Jun"];
-    return months.map((month) => ({
-      month,
-      value: Math.floor(Math.random() * 100) + 50, // Dummy trend data
-    }));
-  }, []);
 
   // Color palette based on card color
   const COLORS = [
@@ -141,23 +133,6 @@ const KPIAnalytics = ({ kpiData, cardColor }) => {
                 <Legend />
                 <Bar dataKey="value" fill={cardColor || "#2A00FF"} radius={[8, 8, 0, 0]} />
               </BarChart>
-            </ResponsiveContainer>
-          </div>
-        </div>
-
-        {/* Line Chart - KPI Trends */}
-        <div className="kpi-analytics-chart-container">
-          <div className="kpi-analytics-chart-wrapper">
-            <h4 className="kpi-analytics-chart-title">KPI Trends (Last 6 Months)</h4>
-            <ResponsiveContainer width="100%" height={300}>
-              <LineChart data={trendData}>
-                <CartesianGrid strokeDasharray="3 3" stroke="#f0f0f0" />
-                <XAxis dataKey="month" tick={{ fontSize: 11 }} />
-                <YAxis tick={{ fontSize: 11 }} />
-                <Tooltip />
-                <Legend />
-                <Line type="monotone" dataKey="value" stroke={cardColor || "#2A00FF"} strokeWidth={2} />
-              </LineChart>
             </ResponsiveContainer>
           </div>
         </div>
