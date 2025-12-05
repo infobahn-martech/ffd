@@ -53,9 +53,8 @@ const KPIAnalytics = ({ kpiData, cardColor }) => {
       }
     });
 
-    // Ensure minimum count of 1 for specific categories
-    const categoriesWithMinCount = ["Outward clearance issue", "Outward clearance deliver"];
-    categoriesWithMinCount.forEach((cat) => {
+    // Ensure minimum count of 1 for all categories
+    categoryOrder.forEach((cat) => {
       if (categoryCounts[cat] === 0) {
         categoryCounts[cat] = 1;
       }
