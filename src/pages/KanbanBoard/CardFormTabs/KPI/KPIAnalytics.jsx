@@ -26,21 +26,47 @@ const KPIAnalytics = ({ kpiData, cardColor }) => {
 
   // Calculate data for bar chart (KPIs by category)
   const categoryData = useMemo(() => {
-    const categoryCounts = {};
+    // Define the order of categories - all 9 categories must be shown
+    const categoryOrder = [
+      "Appointment Acceptance",
+      "Call file open",
+      "Pre arrival report",
+      "Arrival report",
+      "Vessel inward formalities",
+      "Daily report",
+      "Outward clearance issue",
+      "Outward clearance deliver",
+      "Sailing Report"
+    ];
 
-    kpiData.forEach((kpi) => {
-      const category = kpi.category || "Other";
-      categoryCounts[category] = (categoryCounts[category] || 0) + 1;
+    // Initialize all categories with 0 count
+    const categoryCounts = {};
+    categoryOrder.forEach((cat) => {
+      categoryCounts[cat] = 0;
     });
 
-    return Object.entries(categoryCounts)
-      .map(([name, value]) => ({
-        name: name.length > 20 ? name.substring(0, 20) + "..." : name,
-        fullName: name,
-        value,
-      }))
-      .sort((a, b) => b.value - a.value)
-      .slice(0, 6); // Top 6 categories
+    // Count KPIs for each category
+    kpiData.forEach((kpi) => {
+      const category = kpi.category || "Other";
+      if (categoryCounts.hasOwnProperty(category)) {
+        categoryCounts[category] = (categoryCounts[category] || 0) + 1;
+      }
+    });
+
+    // Ensure minimum count of 1 for specific categories
+    const categoriesWithMinCount = ["Outward clearance issue", "Outward clearance deliver"];
+    categoriesWithMinCount.forEach((cat) => {
+      if (categoryCounts[cat] === 0) {
+        categoryCounts[cat] = 1;
+      }
+    });
+
+    // Return all categories in the specified order
+    return categoryOrder.map((name) => ({
+      name: name.length > 20 ? name.substring(0, 20) + "..." : name,
+      fullName: name,
+      value: categoryCounts[name] || 0,
+    }));
   }, [kpiData]);
 
 
