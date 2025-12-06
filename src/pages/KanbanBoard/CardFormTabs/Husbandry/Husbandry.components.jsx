@@ -3,12 +3,17 @@ import GroupSettingsIcon from "../../../../assets/images/cv.png";
 import { MAIN_TABS, CREW_MANAGEMENT_SUBTABS, MATERIAL_MANAGEMENT_SUBTABS } from "./Husbandry.constants";
 
 // Sub-components
-export const HusbandryTabs = ({ activeMainTab, activeSubTab, onMainTabChange, onSubTabChange, selectedActionTab = null }) => {
+export const HusbandryTabs = ({ activeMainTab, activeSubTab, onMainTabChange, onSubTabChange, selectedActionTab = null, selectedServices = [], onBackToServiceSelection, cardColor = "#2A00FF" }) => {
 
-  const mainTabs = [
+  // Filter main tabs based on selected services
+  const allMainTabs = [
     { id: MAIN_TABS.CREW_MANAGEMENT, label: "Crew Management" },
     { id: MAIN_TABS.MATERIAL_MANAGEMENT, label: "Material Management" },
   ];
+  
+  const mainTabs = selectedServices.length > 0 
+    ? allMainTabs.filter(tab => selectedServices.includes(tab.id))
+    : allMainTabs;
 
   let subTabs = [];
   if (activeMainTab === MAIN_TABS.CREW_MANAGEMENT) {
@@ -43,6 +48,19 @@ export const HusbandryTabs = ({ activeMainTab, activeSubTab, onMainTabChange, on
 
   return (
     <div className="operation-left">
+      {onBackToServiceSelection && (
+        <button
+          type="button"
+          className="husbandry-back-link-small"
+          onClick={onBackToServiceSelection}
+          style={{ "--card-color": cardColor }}
+        >
+          <svg width="12" height="12" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <path d="M10 12L6 8L10 4" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+          </svg>
+          <span>What services do you need?</span>
+        </button>
+      )}
       {mainTabs.map((tab) => {
         const isActive = activeMainTab === tab.id;
         const currentSubTabs = isActive ? subTabs : [];
@@ -85,6 +103,9 @@ HusbandryTabs.propTypes = {
   onMainTabChange: PropTypes.func.isRequired,
   onSubTabChange: PropTypes.func.isRequired,
   selectedActionTab: PropTypes.string,
+  selectedServices: PropTypes.array,
+  onBackToServiceSelection: PropTypes.func,
+  cardColor: PropTypes.string,
 };
 
 export const FormSection = ({ icon, title, children }) => {

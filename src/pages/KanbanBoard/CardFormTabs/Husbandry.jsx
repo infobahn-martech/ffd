@@ -59,6 +59,21 @@ const ServiceSelection = ({ onSelectService, cardColor }) => {
             </div>
             <span className="husbandry-service-option-label">Material Management</span>
           </button>
+          <button
+            type="button"
+            className="husbandry-service-option"
+            onClick={() => onSelectService("BOTH")}
+            style={{ "--card-color": cardColor }}
+          >
+            <div className="husbandry-service-option-icon">
+              <svg width="48" height="48" viewBox="0 0 48 48" fill="none" xmlns="http://www.w3.org/2000/svg">
+                <circle cx="16" cy="24" r="8" stroke="currentColor" strokeWidth="2" fill="none" />
+                <circle cx="32" cy="24" r="8" stroke="currentColor" strokeWidth="2" fill="none" />
+                <path d="M24 16V32" stroke="currentColor" strokeWidth="2" strokeLinecap="round" />
+              </svg>
+            </div>
+            <span className="husbandry-service-option-label">Both</span>
+          </button>
         </div>
       </div>
     </div>
@@ -73,6 +88,7 @@ ServiceSelection.propTypes = {
 // Main Husbandry Component
 function Husbandry({ card, formValues, handleChange }) {
   const [serviceSelected, setServiceSelected] = useState(false);
+  const [selectedServices, setSelectedServices] = useState([]); // Array to track selected services
   const [activeMainTab, setActiveMainTab] = useState(null);
   const [activeSubTab, setActiveSubTab] = useState(
     CREW_MANAGEMENT_SUBTABS.CREW
@@ -83,13 +99,23 @@ function Husbandry({ card, formValues, handleChange }) {
 
   const handleServiceSelect = useCallback((tab) => {
     setServiceSelected(true);
-    setActiveMainTab(tab);
     setSelectedActionTab(null); // Reset selected action
-    // Reset to default sub-tab when service is selected
-    if (tab === MAIN_TABS.CREW_MANAGEMENT) {
+    
+    // Handle "BOTH" selection
+    if (tab === "BOTH") {
+      setSelectedServices([MAIN_TABS.CREW_MANAGEMENT, MAIN_TABS.MATERIAL_MANAGEMENT]);
+      setActiveMainTab(MAIN_TABS.CREW_MANAGEMENT); // Default to Crew Management
       setActiveSubTab(CREW_MANAGEMENT_SUBTABS.CREW);
-    } else if (tab === MAIN_TABS.MATERIAL_MANAGEMENT) {
-      setActiveSubTab(MATERIAL_MANAGEMENT_SUBTABS.MATERIAL_LIST);
+    } else {
+      // Single service selection
+      setSelectedServices([tab]);
+      setActiveMainTab(tab);
+      // Reset to default sub-tab when service is selected
+      if (tab === MAIN_TABS.CREW_MANAGEMENT) {
+        setActiveSubTab(CREW_MANAGEMENT_SUBTABS.CREW);
+      } else if (tab === MAIN_TABS.MATERIAL_MANAGEMENT) {
+        setActiveSubTab(MATERIAL_MANAGEMENT_SUBTABS.MATERIAL_LIST);
+      }
     }
   }, []);
 
@@ -140,6 +166,14 @@ function Husbandry({ card, formValues, handleChange }) {
       setSelectedActionTab(targetTab);
     }
   }, [activeMainTab]);
+
+  const handleBackToServiceSelection = useCallback(() => {
+    setServiceSelected(false);
+    setSelectedServices([]);
+    setActiveMainTab(null);
+    setActiveSubTab(CREW_MANAGEMENT_SUBTABS.CREW);
+    setSelectedActionTab(null);
+  }, []);
 
   const renderCrewManagementContent = () => {
     switch (activeSubTab) {
@@ -259,6 +293,9 @@ function Husbandry({ card, formValues, handleChange }) {
           onMainTabChange={handleMainTabChange}
           onSubTabChange={handleSubTabChange}
           selectedActionTab={selectedActionTab}
+          selectedServices={selectedServices}
+          onBackToServiceSelection={handleBackToServiceSelection}
+          cardColor={cardColor}
         />
         <div className="operation-right">
           {activeMainTab === MAIN_TABS.CREW_MANAGEMENT &&
