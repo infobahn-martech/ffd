@@ -18,6 +18,7 @@ import CrewContent from "./Husbandry/CrewContent";
 import TransportContent from "./Husbandry/TransportContent";
 import CGPassContent from "./Husbandry/CGPassContent";
 import ZawilPassContent from "./Husbandry/ZawilPassContent";
+import LaunchHireContent from "./Husbandry/LaunchHireContent";
 import HotelContent from "./Husbandry/HotelContent";
 import MedicalServiceContent from "./Husbandry/MedicalServiceContent";
 import WasteDisposalContent from "./Husbandry/WasteDisposalContent";
@@ -58,6 +59,7 @@ function Husbandry({ card, formValues, handleChange }) {
       transport: CREW_MANAGEMENT_SUBTABS.TRANSPORT,
       cgPass: CREW_MANAGEMENT_SUBTABS.CG_PASS,
       zawilPass: CREW_MANAGEMENT_SUBTABS.ZAWIL_PASS,
+      launchHire: CREW_MANAGEMENT_SUBTABS.LAUNCH_HIRE,
       hotel: CREW_MANAGEMENT_SUBTABS.HOTEL,
       medicalService: CREW_MANAGEMENT_SUBTABS.MEDICAL_SERVICE,
     };
@@ -98,6 +100,14 @@ function Husbandry({ card, formValues, handleChange }) {
       case CREW_MANAGEMENT_SUBTABS.ZAWIL_PASS:
         return (
           <ZawilPassContent
+            formValues={formValues}
+            handleChange={handleChange}
+            cardColor={cardColor}
+          />
+        );
+      case CREW_MANAGEMENT_SUBTABS.LAUNCH_HIRE:
+        return (
+          <LaunchHireContent
             formValues={formValues}
             handleChange={handleChange}
             cardColor={cardColor}

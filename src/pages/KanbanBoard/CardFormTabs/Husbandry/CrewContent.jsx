@@ -68,6 +68,7 @@ const CrewContent = ({ formValues, handleChange, cardColor, onNavigateToTab }) =
     { value: "transport", label: "Transport", tab: "transport", field: "selectedCrew" },
     { value: "cgPass", label: "CG Pass", tab: "cgPass", field: "cgPassSelectedCrew" },
     { value: "zawilPass", label: "Zawil Pass", tab: "zawilPass", field: "zawilPassSelectedCrew" },
+    { value: "launchHire", label: "Launch Hire", tab: "launchHire", field: "launchHireSelectedCrew" },
     { value: "hotel", label: "Hotel", tab: "hotel", field: "hotelSelectedCrew" },
     { value: "medicalService", label: "Medical Service", tab: "medicalService", field: "medicalServiceSelectedCrew" },
   ];
@@ -213,11 +214,11 @@ const CrewContent = ({ formValues, handleChange, cardColor, onNavigateToTab }) =
           </thead>
           <tbody>
             {displayCrewList.map((crew) => (
-              <tr 
+              <tr
                 key={crew.id}
                 style={{
-                  backgroundColor: selectedCrewIds.includes(crew.id) 
-                    ? hexToRgba(cardColor || "#2A00FF", 0.1) 
+                  backgroundColor: selectedCrewIds.includes(crew.id)
+                    ? hexToRgba(cardColor || "#2A00FF", 0.1)
                     : "transparent",
                 }}
               >

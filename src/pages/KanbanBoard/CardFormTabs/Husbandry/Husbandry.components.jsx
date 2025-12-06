@@ -17,6 +17,7 @@ export const HusbandryTabs = ({ activeMainTab, activeSubTab, onMainTabChange, on
       { id: CREW_MANAGEMENT_SUBTABS.TRANSPORT, label: "Transport" },
       { id: CREW_MANAGEMENT_SUBTABS.CG_PASS, label: "CG Pass" },
       { id: CREW_MANAGEMENT_SUBTABS.ZAWIL_PASS, label: "Zawil Pass" },
+      { id: CREW_MANAGEMENT_SUBTABS.LAUNCH_HIRE, label: "Launch Hire" },
       { id: CREW_MANAGEMENT_SUBTABS.HOTEL, label: "Hotel" },
       { id: CREW_MANAGEMENT_SUBTABS.MEDICAL_SERVICE, label: "Medical service" },
     ];
