@@ -24,17 +24,78 @@ import MedicalServiceContent from "./Husbandry/MedicalServiceContent";
 import WasteDisposalContent from "./Husbandry/WasteDisposalContent";
 import MaterialManagementContent from "./Husbandry/MaterialManagementContent";
 
+// Service Selection Component
+const ServiceSelection = ({ onSelectService, cardColor }) => {
+  return (
+    <div className="husbandry-service-selection" style={{ "--card-color": cardColor }}>
+      <div className="husbandry-service-selection-content">
+        <h2 className="husbandry-service-selection-title">What services do you need?</h2>
+        <div className="husbandry-service-options">
+          <button
+            type="button"
+            className="husbandry-service-option"
+            onClick={() => onSelectService(MAIN_TABS.CREW_MANAGEMENT)}
+            style={{ "--card-color": cardColor }}
+          >
+            <div className="husbandry-service-option-icon">
+              <svg width="48" height="48" viewBox="0 0 48 48" fill="none" xmlns="http://www.w3.org/2000/svg">
+                <circle cx="24" cy="24" r="20" stroke="currentColor" strokeWidth="2" fill="none" />
+                <path d="M24 12V24L30 30" stroke="currentColor" strokeWidth="2" strokeLinecap="round" />
+              </svg>
+            </div>
+            <span className="husbandry-service-option-label">Crew Management</span>
+          </button>
+          <button
+            type="button"
+            className="husbandry-service-option"
+            onClick={() => onSelectService(MAIN_TABS.MATERIAL_MANAGEMENT)}
+            style={{ "--card-color": cardColor }}
+          >
+            <div className="husbandry-service-option-icon">
+              <svg width="48" height="48" viewBox="0 0 48 48" fill="none" xmlns="http://www.w3.org/2000/svg">
+                <rect x="8" y="8" width="32" height="32" rx="4" stroke="currentColor" strokeWidth="2" fill="none" />
+                <path d="M16 20H32M16 24H32M16 28H24" stroke="currentColor" strokeWidth="2" strokeLinecap="round" />
+              </svg>
+            </div>
+            <span className="husbandry-service-option-label">Material Management</span>
+          </button>
+        </div>
+      </div>
+    </div>
+  );
+};
+
+ServiceSelection.propTypes = {
+  onSelectService: PropTypes.func.isRequired,
+  cardColor: PropTypes.string,
+};
+
 // Main Husbandry Component
 function Husbandry({ card, formValues, handleChange }) {
-  const [activeMainTab, setActiveMainTab] = useState(MAIN_TABS.CREW_MANAGEMENT);
+  const [serviceSelected, setServiceSelected] = useState(false);
+  const [activeMainTab, setActiveMainTab] = useState(null);
   const [activeSubTab, setActiveSubTab] = useState(
     CREW_MANAGEMENT_SUBTABS.CREW
   );
+  const [selectedActionTab, setSelectedActionTab] = useState(null);
   const cardColor = card?.color || "#2A00FF";
 
 
+  const handleServiceSelect = useCallback((tab) => {
+    setServiceSelected(true);
+    setActiveMainTab(tab);
+    setSelectedActionTab(null); // Reset selected action
+    // Reset to default sub-tab when service is selected
+    if (tab === MAIN_TABS.CREW_MANAGEMENT) {
+      setActiveSubTab(CREW_MANAGEMENT_SUBTABS.CREW);
+    } else if (tab === MAIN_TABS.MATERIAL_MANAGEMENT) {
+      setActiveSubTab(MATERIAL_MANAGEMENT_SUBTABS.MATERIAL_LIST);
+    }
+  }, []);
+
   const handleMainTabChange = useCallback((tab) => {
     setActiveMainTab(tab);
+    setSelectedActionTab(null); // Reset selected action when switching main tabs
     // Reset to default sub-tab when main tab changes
     if (tab === MAIN_TABS.CREW_MANAGEMENT) {
       setActiveSubTab(CREW_MANAGEMENT_SUBTABS.CREW);
@@ -45,6 +106,14 @@ function Husbandry({ card, formValues, handleChange }) {
 
   const handleSubTabChange = useCallback((tab) => {
     setActiveSubTab(tab);
+    // Track selected action tab when user manually clicks on a submenu item
+    if (tab === CREW_MANAGEMENT_SUBTABS.CREW) {
+      // Reset to show only Crew when Crew is clicked
+      setSelectedActionTab(null);
+    } else {
+      // Show only the selected action tab
+      setSelectedActionTab(tab);
+    }
   }, []);
 
   // Handle navigation from CrewContent when crew is selected and action is chosen
@@ -67,6 +136,8 @@ function Husbandry({ card, formValues, handleChange }) {
     const targetTab = tabMap[tabName];
     if (targetTab) {
       setActiveSubTab(targetTab);
+      // Set the selected action tab to show only this submenu item
+      setSelectedActionTab(targetTab);
     }
   }, [activeMainTab]);
 
@@ -170,6 +241,15 @@ function Husbandry({ card, formValues, handleChange }) {
     }
   };
 
+  // Show service selection if no service has been selected
+  if (!serviceSelected) {
+    return (
+      <div className="operation-wrapper" style={{ "--card-color": cardColor }}>
+        <ServiceSelection onSelectService={handleServiceSelect} cardColor={cardColor} />
+      </div>
+    );
+  }
+
   return (
     <div className="operation-wrapper" style={{ "--card-color": cardColor }}>
       <div className="operation-content-container">
@@ -178,6 +258,7 @@ function Husbandry({ card, formValues, handleChange }) {
           activeSubTab={activeSubTab}
           onMainTabChange={handleMainTabChange}
           onSubTabChange={handleSubTabChange}
+          selectedActionTab={selectedActionTab}
         />
         <div className="operation-right">
           {activeMainTab === MAIN_TABS.CREW_MANAGEMENT &&

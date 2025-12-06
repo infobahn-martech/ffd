@@ -3,7 +3,7 @@ import GroupSettingsIcon from "../../../../assets/images/cv.png";
 import { MAIN_TABS, CREW_MANAGEMENT_SUBTABS, MATERIAL_MANAGEMENT_SUBTABS } from "./Husbandry.constants";
 
 // Sub-components
-export const HusbandryTabs = ({ activeMainTab, activeSubTab, onMainTabChange, onSubTabChange }) => {
+export const HusbandryTabs = ({ activeMainTab, activeSubTab, onMainTabChange, onSubTabChange, selectedActionTab = null }) => {
 
   const mainTabs = [
     { id: MAIN_TABS.CREW_MANAGEMENT, label: "Crew Management" },
@@ -12,15 +12,28 @@ export const HusbandryTabs = ({ activeMainTab, activeSubTab, onMainTabChange, on
 
   let subTabs = [];
   if (activeMainTab === MAIN_TABS.CREW_MANAGEMENT) {
+    // Always show Crew
     subTabs = [
       { id: CREW_MANAGEMENT_SUBTABS.CREW, label: "Crew" },
-      { id: CREW_MANAGEMENT_SUBTABS.TRANSPORT, label: "Transport" },
-      { id: CREW_MANAGEMENT_SUBTABS.CG_PASS, label: "CG Pass" },
-      { id: CREW_MANAGEMENT_SUBTABS.ZAWIL_PASS, label: "Zawil Pass" },
-      { id: CREW_MANAGEMENT_SUBTABS.LAUNCH_HIRE, label: "Launch Hire" },
-      { id: CREW_MANAGEMENT_SUBTABS.HOTEL, label: "Hotel" },
-      { id: CREW_MANAGEMENT_SUBTABS.MEDICAL_SERVICE, label: "Medical service" },
     ];
+    
+    // Only show the selected action tab (e.g., Transport) if one is selected
+    if (selectedActionTab) {
+      const allSubTabs = [
+        { id: CREW_MANAGEMENT_SUBTABS.TRANSPORT, label: "Transport" },
+        { id: CREW_MANAGEMENT_SUBTABS.CG_PASS, label: "CG Pass" },
+        { id: CREW_MANAGEMENT_SUBTABS.ZAWIL_PASS, label: "Zawil Pass" },
+        { id: CREW_MANAGEMENT_SUBTABS.LAUNCH_HIRE, label: "Launch Hire" },
+        { id: CREW_MANAGEMENT_SUBTABS.HOTEL, label: "Hotel" },
+        { id: CREW_MANAGEMENT_SUBTABS.MEDICAL_SERVICE, label: "Medical service" }
+      ];
+      
+      // Find and add only the selected action tab
+      const selectedTab = allSubTabs.find(tab => tab.id === selectedActionTab);
+      if (selectedTab) {
+        subTabs.push(selectedTab);
+      }
+    }
   } else if (activeMainTab === MAIN_TABS.MATERIAL_MANAGEMENT) {
     subTabs = [
       { id: MATERIAL_MANAGEMENT_SUBTABS.MATERIAL_LIST, label: "Material" },
@@ -71,6 +84,7 @@ HusbandryTabs.propTypes = {
   activeSubTab: PropTypes.string.isRequired,
   onMainTabChange: PropTypes.func.isRequired,
   onSubTabChange: PropTypes.func.isRequired,
+  selectedActionTab: PropTypes.string,
 };
 
 export const FormSection = ({ icon, title, children }) => {
