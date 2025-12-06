@@ -1070,9 +1070,6 @@ function Checklist({ card, formValues, handleChange }) {
             {currentChecklistData.length > 0 && (
               <div className="cf-section">
                 <div className="cf-section-header">
-                  <div className="cf-section-icon">
-                    <span>✅</span>
-                  </div>
                   <div className="cf-section-title">Checklist Items</div>
                 </div>
                 <div className="cf-section-body">
