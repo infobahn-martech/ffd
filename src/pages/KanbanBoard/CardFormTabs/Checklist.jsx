@@ -752,9 +752,12 @@ ChecklistTypeGroup.propTypes = {
 function Checklist({ card, formValues, handleChange }) {
   const cardColor = card?.color || "#2A00FF";
 
-  // Form state
+  // Form state - Initialize with both checklist types selected by default
   const [checklistType, setChecklistType] = useState(
-    formValues?.checklistType || []
+    formValues?.checklistType || [
+      CHECKLIST_TYPES.BOAT_ARRIVING_ONBOARD,
+      CHECKLIST_TYPES.ACCOMMODATION_CONSTRUCTION_BARGE,
+    ]
   );
 
   // Get checklist data based on selected type - group by checklist type
@@ -841,6 +844,23 @@ function Checklist({ card, formValues, handleChange }) {
   // State for item detail modal
   const [selectedItem, setSelectedItem] = useState(null);
   const [isModalOpen, setIsModalOpen] = useState(false);
+
+  // Initialize checklistType in formValues if not present
+  useEffect(() => {
+    if (!formValues?.checklistType || formValues.checklistType.length === 0) {
+      const defaultChecklistTypes = [
+        CHECKLIST_TYPES.BOAT_ARRIVING_ONBOARD,
+        CHECKLIST_TYPES.ACCOMMODATION_CONSTRUCTION_BARGE,
+      ];
+      if (handleChange) {
+        const syntheticEvent = {
+          target: { value: defaultChecklistTypes, name: "checklistType" },
+        };
+        handleChange("checklistType")(syntheticEvent);
+      }
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []); // Only run once on mount
 
   // Update itemsData when checklist data changes
   useEffect(() => {
