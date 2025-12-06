@@ -10,7 +10,6 @@ import Operation from "./CardFormTabs/Operation";
 import Husbandry from "./CardFormTabs/Husbandry";
 import Attachments from "./CardFormTabs/Attachments";
 import SalesOrder from "./CardFormTabs/SalesOrder";
-import Tasks from "./CardFormTabs/Tasks";
 import Reports from "./CardFormTabs/Reports";
 import KPI from "./CardFormTabs/KPI";
 
@@ -21,7 +20,6 @@ const TOP_TABS = [
   "Husbandry",
   "Attachments",
   "Sales Order",
-  "Tasks",
   "Reports",
   "KPI",
 ];
@@ -274,14 +272,6 @@ const CardFormFooter = ({ accentColor, onUpdate, activeStep = 2, completedSteps 
         />
       )}
       {!showProgressBar && <div />}
-      <button
-        className="cardform-update-btn"
-        style={{ backgroundColor: accentColor }}
-        onClick={onUpdate}
-        type="button"
-      >
-        Update Card
-      </button>
     </div>
   );
 };
@@ -315,8 +305,6 @@ const renderTabContent = (activeTab, card, formValues, handleChange, ownerInitia
       return <Attachments {...commonProps} />;
     case "Sales Order":
       return <SalesOrder {...commonProps} />;
-    case "Tasks":
-      return <Tasks {...commonProps} />;
     case "Reports":
       return <Reports {...commonProps} />;
     case "KPI":
