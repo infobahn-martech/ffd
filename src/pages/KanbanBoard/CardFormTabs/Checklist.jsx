@@ -513,50 +513,130 @@ ItemDetailModal.propTypes = {
   cardColor: PropTypes.string,
 };
 
-// Checklist Item Component
-const ChecklistItem = ({ id, label, itemData, onChange, onItemClick, cardColor = "#2A00FF" }) => {
-  const checked = itemData?.checked || false;
-  const hasFile = itemData?.uploadedFile !== null;
-  const hasRemarks = itemData?.remarks && itemData.remarks.trim() !== "";
+// Checklist Item Component - Table Row Format
+const ChecklistItem = ({ id, label, itemData, onChange, cardColor = "#2A00FF" }) => {
+  const [remarks, setRemarks] = useState(itemData?.remarks || "");
+  const [uploadedFile, setUploadedFile] = useState(itemData?.uploadedFile || null);
+  const [isDragging, setIsDragging] = useState(false);
+  const fileInputRef = useRef(null);
+
+  // Sync state with itemData when it changes
+  useEffect(() => {
+    setRemarks(itemData?.remarks || "");
+    setUploadedFile(itemData?.uploadedFile || null);
+  }, [itemData]);
+
+  // Checkbox is checked only if document is uploaded
+  const checked = uploadedFile !== null && uploadedFile !== undefined;
+
+  const handleFileChange = (e) => {
+    const file = e.target.files[0];
+    if (file) {
+      setUploadedFile(file);
+      onChange(id, { ...itemData, uploadedFile: file, remarks, checked: true });
+    }
+  };
+
+  const handleRemoveFile = () => {
+    setUploadedFile(null);
+    onChange(id, { ...itemData, uploadedFile: null, remarks, checked: false });
+  };
+
+  const handleDragOver = (e) => {
+    e.preventDefault();
+    e.stopPropagation();
+    setIsDragging(true);
+  };
+
+  const handleDragLeave = (e) => {
+    e.preventDefault();
+    e.stopPropagation();
+    setIsDragging(false);
+  };
+
+  const handleDrop = (e) => {
+    e.preventDefault();
+    e.stopPropagation();
+    setIsDragging(false);
+
+    const files = Array.from(e.dataTransfer.files || []);
+    if (files.length > 0) {
+      setUploadedFile(files[0]);
+      onChange(id, { ...itemData, uploadedFile: files[0], remarks, checked: true });
+    }
+  };
+
+  const handleBrowseClick = () => {
+    fileInputRef.current?.click();
+  };
+
+  const handleRemarksChange = (e) => {
+    const newRemarks = e.target.value;
+    setRemarks(newRemarks);
+    // Auto-save remarks when changed
+    onChange(id, { ...itemData, uploadedFile, remarks: newRemarks, checked });
+  };
 
   return (
-    <div className={`checklist-item ${checked ? "checked" : ""}`} style={{ "--card-color": cardColor }}>
-      <div className="checklist-item-content">
-        <label className="checklist-item-label">
-          <div className="checklist-checkbox-wrapper">
-            <input
-              type="checkbox"
-              checked={checked}
-              onChange={(e) => onChange(id, { ...itemData, checked: e.target.checked })}
-              className="checklist-checkbox"
-              onClick={(e) => e.stopPropagation()}
-            />
-            <span className="checklist-checkbox-custom">
-              {checked && <span className="checkmark">✓</span>}
-            </span>
-          </div>
-          <span className="checklist-item-text">
-            {label}
+    <tr className={`checklist-table-row ${checked ? "checked" : ""}`} style={{ "--card-color": cardColor }}>
+      <td className="checklist-table-checkbox">
+        <div className="checklist-checkbox-wrapper">
+          <input
+            type="checkbox"
+            checked={checked}
+            disabled
+            className="checklist-checkbox"
+            readOnly
+          />
+          <span className="checklist-checkbox-custom">
+            {checked && <span className="checkmark">✓</span>}
           </span>
-          {checked && <span className="checklist-item-status">Completed</span>}
-        </label>
-        <div className="checklist-item-actions">
-          <div className="checklist-item-indicators">
-            {hasFile && <span className="checklist-item-file-icon">📎</span>}
-            {hasRemarks && <span className="checklist-item-remarks-icon">💬</span>}
-          </div>
-          <button
-            type="button"
-            className="checklist-item-detail-btn"
-            onClick={() => onItemClick(id)}
-            title="View/Edit Details"
-            style={{ "--card-color": cardColor }}
-          >
-            View Details
-          </button>
         </div>
-      </div>
-    </div>
+      </td>
+      <td className="checklist-table-label">
+        <span className="checklist-item-text">{label}</span>
+      </td>
+      <td className="checklist-table-upload">
+        <div
+          className={`checklist-table-upload-zone ${isDragging ? "dragging" : ""} ${uploadedFile ? "has-file" : ""}`}
+          onDragOver={handleDragOver}
+          onDragLeave={handleDragLeave}
+          onDrop={handleDrop}
+          onClick={!uploadedFile ? handleBrowseClick : undefined}
+        >
+          <input
+            ref={fileInputRef}
+            type="file"
+            id={`file-upload-${id}`}
+            onChange={handleFileChange}
+            className="checklist-file-input"
+            accept=".pdf,.doc,.docx,.jpg,.jpeg,.png"
+          />
+          {uploadedFile ? (
+            <div className="checklist-table-file-preview">
+              <FilePreview file={uploadedFile} onRemove={handleRemoveFile} />
+            </div>
+          ) : (
+            <div className="checklist-table-upload-placeholder">
+              <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                <path d="M12 5V19M12 5L7 10M12 5L17 10" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+                <path d="M3 15V19C3 20.1046 3.89543 21 5 21H19C20.1046 21 21 20.1046 21 19V15" stroke="currentColor" strokeWidth="2" strokeLinecap="round" />
+              </svg>
+              <span>Drop file or click to browse</span>
+            </div>
+          )}
+        </div>
+      </td>
+      <td className="checklist-table-remarks">
+        <FormTextarea
+          value={remarks}
+          onChange={handleRemarksChange}
+          placeholder="Enter remarks..."
+          rows={2}
+          className="checklist-table-textarea"
+        />
+      </td>
+    </tr>
   );
 };
 
@@ -565,7 +645,6 @@ ChecklistItem.propTypes = {
   label: PropTypes.string.isRequired,
   itemData: PropTypes.object,
   onChange: PropTypes.func.isRequired,
-  onItemClick: PropTypes.func.isRequired,
   cardColor: PropTypes.string,
 };
 
@@ -576,17 +655,26 @@ const ChecklistSection = ({
   items,
   itemsData,
   onItemChange,
-  onItemClick,
   isOpen,
   onToggle,
   onSelectAll,
   cardColor = "#2A00FF",
 }) => {
-  const allSelected = items.length > 0 && items.every((item) => itemsData[item.id]?.checked || false);
-  const someSelected = items.some((item) => itemsData[item.id]?.checked || false) && !allSelected;
+  // All selected means all items have files uploaded (checked is based on file upload)
+  const allSelected = items.length > 0 && items.every((item) => {
+    const itemData = itemsData[item.id] || {};
+    return itemData.uploadedFile !== null && itemData.uploadedFile !== undefined;
+  });
+  const someSelected = items.some((item) => {
+    const itemData = itemsData[item.id] || {};
+    return itemData.uploadedFile !== null && itemData.uploadedFile !== undefined;
+  }) && !allSelected;
   const checkboxRef = useRef(null);
 
-  const checkedCount = items.filter((item) => itemsData[item.id]?.checked || false).length;
+  const checkedCount = items.filter((item) => {
+    const itemData = itemsData[item.id] || {};
+    return itemData.uploadedFile !== null && itemData.uploadedFile !== undefined;
+  }).length;
   const progressPercentage = items.length > 0 ? Math.round((checkedCount / items.length) * 100) : 0;
 
   useEffect(() => {
@@ -650,18 +738,37 @@ const ChecklistSection = ({
         </div>
       </div>
       {isOpen && (
-        <div className="checklist-items">
-          {items.map((item) => (
-            <ChecklistItem
-              key={item.id}
-              id={item.id}
-              label={item.label}
-              itemData={itemsData[item.id] || {}}
-              onChange={onItemChange}
-              onItemClick={onItemClick}
-              cardColor={cardColor}
-            />
-          ))}
+        <div className="checklist-items-table-wrapper">
+          <table className="checklist-items-table">
+            <thead>
+              <tr>
+                <th className="checklist-table-checkbox-header">
+                  <input
+                    type="checkbox"
+                    ref={checkboxRef}
+                    checked={allSelected}
+                    onChange={handleSelectAllClick}
+                    className="checklist-select-all-checkbox"
+                  />
+                </th>
+                <th className="checklist-table-label-header">Label</th>
+                <th className="checklist-table-upload-header">Document Upload</th>
+                <th className="checklist-table-remarks-header">Remarks</th>
+              </tr>
+            </thead>
+            <tbody>
+              {items.map((item) => (
+                <ChecklistItem
+                  key={item.id}
+                  id={item.id}
+                  label={item.label}
+                  itemData={itemsData[item.id] || {}}
+                  onChange={onItemChange}
+                  cardColor={cardColor}
+                />
+              ))}
+            </tbody>
+          </table>
         </div>
       )}
     </div>
@@ -679,7 +786,6 @@ ChecklistSection.propTypes = {
   ).isRequired,
   itemsData: PropTypes.object.isRequired,
   onItemChange: PropTypes.func.isRequired,
-  onItemClick: PropTypes.func.isRequired,
   isOpen: PropTypes.bool.isRequired,
   onToggle: PropTypes.func.isRequired,
   onSelectAll: PropTypes.func.isRequired,
@@ -692,7 +798,6 @@ const ChecklistTypeGroup = ({
   sections,
   itemsData,
   onItemChange,
-  onItemClick,
   openSections,
   onSectionToggle,
   onSelectAll,
@@ -721,7 +826,6 @@ const ChecklistTypeGroup = ({
               items={section.items}
               itemsData={itemsData}
               onItemChange={onItemChange}
-              onItemClick={onItemClick}
               isOpen={openSections[section.id] || false}
               onToggle={() => onSectionToggle(section.id)}
               onSelectAll={onSelectAll}
@@ -739,7 +843,6 @@ ChecklistTypeGroup.propTypes = {
   sections: PropTypes.array.isRequired,
   itemsData: PropTypes.object.isRequired,
   onItemChange: PropTypes.func.isRequired,
-  onItemClick: PropTypes.func.isRequired,
   openSections: PropTypes.object.isRequired,
   onSectionToggle: PropTypes.func.isRequired,
   onSelectAll: PropTypes.func.isRequired,
@@ -841,9 +944,6 @@ function Checklist({ card, formValues, handleChange }) {
     return initial;
   });
 
-  // State for item detail modal
-  const [selectedItem, setSelectedItem] = useState(null);
-  const [isModalOpen, setIsModalOpen] = useState(false);
 
   // Initialize checklistType in formValues if not present
   useEffect(() => {
@@ -919,24 +1019,6 @@ function Checklist({ card, formValues, handleChange }) {
     }));
   };
 
-  const handleItemClick = (itemId) => {
-    const item = currentChecklistData
-      .flatMap((section) => section.items)
-      .find((i) => i.id === itemId);
-    if (item) {
-      setSelectedItem({ ...item, data: itemsData[itemId] });
-      setIsModalOpen(true);
-    }
-  };
-
-  const handleItemUpdate = (updatedData) => {
-    if (selectedItem) {
-      handleItemChange(selectedItem.id, updatedData);
-    }
-    setIsModalOpen(false);
-    setSelectedItem(null);
-  };
-
   const handleSectionToggle = (sectionId) => {
     setOpenSections((prev) => ({
       ...prev,
@@ -945,19 +1027,9 @@ function Checklist({ card, formValues, handleChange }) {
   };
 
   const handleSelectAll = (sectionId, selectAll) => {
-    const section = currentChecklistData.find((s) => s.id === sectionId);
-    if (!section) return;
-
-    setItemsData((prev) => {
-      const updated = { ...prev };
-      section.items.forEach((item) => {
-        updated[item.id] = {
-          ...updated[item.id],
-          checked: selectAll,
-        };
-      });
-      return updated;
-    });
+    // Note: Select All functionality is disabled since checkbox is now controlled by file upload
+    // This function is kept for compatibility but doesn't modify checked state
+    // The checked state is automatically set when a file is uploaded
   };
 
   const handleTypeGroupToggle = (typeTitle) => {
@@ -1022,7 +1094,6 @@ function Checklist({ card, formValues, handleChange }) {
                         sections={sections}
                         itemsData={itemsData}
                         onItemChange={handleItemChange}
-                        onItemClick={handleItemClick}
                         openSections={openSections}
                         onSectionToggle={handleSectionToggle}
                         onSelectAll={handleSelectAll}
@@ -1054,23 +1125,6 @@ function Checklist({ card, formValues, handleChange }) {
           </div>
         </div>
       </div>
-
-
-
-      {/* Item Detail Modal */}
-      {selectedItem && (
-        <ItemDetailModal
-          item={selectedItem}
-          isOpen={isModalOpen}
-          onClose={() => {
-            setIsModalOpen(false);
-            setSelectedItem(null);
-          }}
-          itemData={selectedItem.data}
-          onUpdate={handleItemUpdate}
-          cardColor={cardColor}
-        />
-      )}
     </ >
   );
 }
