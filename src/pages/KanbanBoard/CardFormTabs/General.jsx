@@ -24,69 +24,6 @@ const JOB_STATUSES = [
   { id: 10, title: "Closed", key: "closed", icon: "🔒", description: "Job completed and closed" },
 ];
 
-function HorizontalTimeline({ jobStatuses, currentStatus, accentColor }) {
-  const getStatusState = (statusId) => {
-    const currentIndex = jobStatuses.findIndex((s) => s.key === currentStatus);
-    const statusIndex = jobStatuses.findIndex((s) => s.id === statusId);
-
-    if (statusIndex < currentIndex) return "completed";
-    if (statusIndex === currentIndex) return "active";
-    return "pending";
-  };
-
-  const currentIndex = jobStatuses.findIndex((s) => s.key === currentStatus);
-  const progressPercentage = currentIndex !== -1 ? ((currentIndex + 1) / jobStatuses.length) * 100 : 0;
-
-  return (
-    <div className="horizontal-timeline-container" style={{ '--accent-color': accentColor }}>
-      <div className="horizontal-timeline-line">
-        <div
-          className="horizontal-timeline-fill"
-          style={{
-            width: `${progressPercentage}%`,
-            '--accent-color': accentColor
-          }}
-        />
-      </div>
-
-      <div className="horizontal-timeline-steps">
-        {jobStatuses.map((status, index) => {
-          const state = getStatusState(status.id);
-          const isLast = index === jobStatuses.length - 1;
-          const nextStatus = !isLast ? jobStatuses[index + 1] : null;
-          const nextState = nextStatus ? getStatusState(nextStatus.id) : null;
-          const isConnectorCompleted = !isLast && (state === "completed" || state === "active" || nextState === "completed" || nextState === "active");
-
-          return (
-            <div key={status.id} className="horizontal-timeline-step-wrapper" title={`${status.title}: ${status.description}`}>
-              <div className={`horizontal-timeline-icon ${state}`} title={`${status.title}: ${status.description}`}>
-                <div className="timeline-icon-circle">
-                  {state === "completed" && <span className="icon-check">✓</span>}
-                  {state === "active" && <span className="icon-dot"></span>}
-                  {state === "pending" && <span className="icon-dot-pending"></span>}
-                </div>
-              </div>
-
-              <div className={`horizontal-timeline-content ${state}`} title={`${status.title}: ${status.description}`}>
-                <div className={`timeline-title ${state}`}>{status.title}</div>
-                <div className={`timeline-description ${state}`}>{status.description}</div>
-              </div>
-
-              {!isLast && (
-                <div
-                  className={`horizontal-timeline-connector ${isConnectorCompleted ? "completed" : ""}`}
-                  style={{
-                    backgroundColor: isConnectorCompleted ? accentColor : "#e0e0e0"
-                  }}
-                />
-              )}
-            </div>
-          );
-        })}
-      </div>
-    </div>
-  );
-}
 
 // Form Components
 const FormField = ({ label, children, className = "" }) => {
@@ -396,11 +333,6 @@ function General({ card, formValues, handleChange, ownerInitial, cardUser }) {
             <div className="cf-section-title">Job Status</div>
           </div>
           <div className="cf-section-body">
-            <HorizontalTimeline
-              jobStatuses={JOB_STATUSES}
-              currentStatus={currentStatus}
-              accentColor={accentColor}
-            />
           </div>
         </div>
 
