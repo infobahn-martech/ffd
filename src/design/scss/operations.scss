@@ -2085,6 +2085,198 @@
 }
 
 /* ==========================================================
+   SALES ORDER ADD ACCORDION
+   ========================================================== */
+
+.sales-order-add-accordion {
+  margin: 20px 22px;
+  background: #ffffff;
+  border-radius: 12px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
+  border: 1px solid #f0f0f0;
+  overflow: hidden;
+  animation: slideDown 0.3s ease-out;
+}
+
+@keyframes slideDown {
+  from {
+    opacity: 0;
+    transform: translateY(-10px);
+    max-height: 0;
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+    max-height: 1000px;
+  }
+}
+
+.sales-order-add-accordion-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 16px 20px;
+  background: linear-gradient(135deg, rgba(42, 0, 255, 0.05) 0%, rgba(42, 0, 255, 0.02) 100%);
+  border-bottom: 2px solid var(--card-color, #2A00FF);
+}
+
+.sales-order-add-accordion-title {
+  font-size: 14px;
+  font-weight: 600;
+  color: #1a1a1a;
+  margin: 0;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.sales-order-add-accordion-close {
+  width: 28px;
+  height: 28px;
+  border-radius: 6px;
+  background: transparent;
+  border: 1px solid #e0e0e0;
+  cursor: pointer;
+  font-size: 20px;
+  font-weight: bold;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.2s ease;
+  line-height: 1;
+  padding: 0;
+}
+
+.sales-order-add-accordion-close:hover {
+  background: #f0f0f0;
+  border-color: var(--card-color, #2A00FF);
+  transform: rotate(90deg);
+}
+
+.sales-order-add-accordion-body {
+  padding: 24px;
+}
+
+.sales-order-add-form-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 20px;
+  margin-bottom: 24px;
+}
+
+.sales-order-add-form-field {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.sales-order-add-form-field label {
+  font-size: 12px;
+  font-weight: 600;
+  color: #666;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.sales-order-add-form-input {
+  width: 100%;
+  padding: 10px 12px;
+  border: 1px solid #e0e0e0;
+  border-radius: 6px;
+  font-size: 14px;
+  color: #1a1a1a;
+  transition: all 0.2s ease;
+  background: #ffffff;
+}
+
+.sales-order-add-form-input:focus {
+  outline: none;
+  border-color: var(--card-color, #2A00FF);
+  box-shadow: 0 0 0 3px rgba(42, 0, 255, 0.1);
+}
+
+.sales-order-add-form-input::placeholder {
+  color: #999;
+}
+
+.sales-order-add-form-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 12px;
+  padding-top: 20px;
+  border-top: 1px solid #f0f0f0;
+}
+
+.sales-order-add-form-cancel,
+.sales-order-add-form-save {
+  padding: 10px 24px;
+  border: none;
+  border-radius: 6px;
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.sales-order-add-form-cancel {
+  background: #f5f5f5;
+  color: #666;
+  border: 1px solid #e0e0e0;
+}
+
+.sales-order-add-form-cancel:hover {
+  background: #e8e8e8;
+  border-color: #d0d0d0;
+  color: #333;
+  transform: translateY(-1px);
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+.sales-order-add-form-save {
+  color: #ffffff;
+  box-shadow: 0 2px 8px rgba(42, 0, 255, 0.3);
+}
+
+.sales-order-add-form-save:hover {
+  opacity: 0.95;
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(42, 0, 255, 0.4);
+}
+
+.sales-order-add-form-save:active {
+  transform: translateY(0);
+  box-shadow: 0 2px 4px rgba(42, 0, 255, 0.3);
+}
+
+@media (max-width: 1024px) {
+  .sales-order-add-form-grid {
+    grid-template-columns: repeat(2, 1fr);
+    gap: 16px;
+  }
+}
+
+@media (max-width: 768px) {
+  .sales-order-add-accordion {
+    margin: 16px;
+  }
+
+  .sales-order-add-form-grid {
+    grid-template-columns: 1fr;
+    gap: 16px;
+  }
+
+  .sales-order-add-form-actions {
+    flex-direction: column;
+  }
+
+  .sales-order-add-form-cancel,
+  .sales-order-add-form-save {
+    width: 100%;
+  }
+}
+
+/* ==========================================================
    REPORTS STYLES
    ========================================================== */
 
