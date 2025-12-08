@@ -507,6 +507,7 @@
   box-shadow: none !important;
   min-height: 38px;
   background: transparent;
+  font-family: "Poppins", sans-serif !important;
 }
 
 .crew-multi-select .react-select__control--is-focused {
@@ -540,6 +541,7 @@
   font-size: 12px !important;
   font-weight: 500 !important;
   padding: 4px 6px !important;
+  font-family: "Poppins", sans-serif !important;
 }
 
 .crew-multi-select .react-select__multi-value__remove {
@@ -557,6 +559,7 @@
   color: #999 !important;
   font-size: 13px !important;
   margin-left: 0 !important;
+  font-family: "Poppins", sans-serif !important;
 }
 
 .crew-multi-select .react-select__input-container {
@@ -567,6 +570,7 @@
 .crew-multi-select .react-select__input {
   color: #1a1a1a !important;
   font-size: 13px !important;
+  font-family: "Poppins", sans-serif !important;
 }
 
 .crew-multi-select .react-select__indicator {
@@ -601,6 +605,7 @@
   border-radius: 6px !important;
   margin: 2px 0 !important;
   cursor: pointer !important;
+  font-family: "Poppins", sans-serif !important;
 }
 
 .crew-multi-select .react-select__option--is-selected {
@@ -632,6 +637,7 @@
   background-repeat: no-repeat;
   background-position: right 12px center;
   padding-right: 32px;
+  font-family: "Poppins", sans-serif;
 }
 
 .cf-textarea {
@@ -660,7 +666,7 @@
   width: 100%;
   color: #1a1a1a;
   resize: vertical;
-  font-family: inherit;
+  font-family: "Poppins", sans-serif;
   line-height: 1.5;
 }
 
@@ -1450,7 +1456,7 @@
   min-width: 100px;
   transition: all 0.2s ease;
   background: #ffffff;
-  font-family: inherit;
+  font-family: "Poppins", sans-serif;
 }
 
 .crew-table-input:hover {

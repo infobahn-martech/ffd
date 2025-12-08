@@ -7,7 +7,7 @@
   align-items: center;
   background: rgba(61, 59, 59, 0.05);
   z-index: 1200;
-  font-family: "Inter", sans-serif;
+  font-family: "Poppins", sans-serif;
 }
 
 /* Panel */
@@ -22,6 +22,32 @@
   display: flex;
   flex-direction: column;
   box-shadow: 0 6px 24px rgba(0, 0, 0, 0.18);
+  font-family: "Poppins", sans-serif;
+}
+
+/* Ensure all text elements within cardform use Poppins */
+.cardform-panel,
+.cardform-panel *,
+.cardform-panel input,
+.cardform-panel select,
+.cardform-panel textarea,
+.cardform-panel button,
+.cardform-panel label,
+.cardform-panel span,
+.cardform-panel p,
+.cardform-panel div,
+.cardform-panel h1,
+.cardform-panel h2,
+.cardform-panel h3,
+.cardform-panel h4,
+.cardform-panel h5,
+.cardform-panel h6,
+.cardform-panel ul,
+.cardform-panel ol,
+.cardform-panel li,
+.cardform-panel a,
+.cardform-panel option {
+  font-family: "Poppins", sans-serif !important;
 }
 
 /* Top bar */
@@ -269,6 +295,7 @@
   outline: none;
   width: 100%;
   color: #1a1a1a;
+  font-family: "Poppins", sans-serif;
 }
 
 .cf-input input::placeholder {
