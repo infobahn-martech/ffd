@@ -1,6 +1,6 @@
 import { useEffect } from "react";
 import PropTypes from "prop-types";
-import ReportsCardView from "./ReportsCardView";
+import ReportsListView from "./ReportsListView";
 
 // Generate dummy reports data
 const generateDummyReports = () => {
@@ -51,22 +51,23 @@ const ReportsList = ({ formValues, handleChange, cardColor }) => {
 
   const handleViewReport = (report) => {
     console.log("View report:", report);
-    // TODO: Implement view functionality
+    // Modal is handled by ReportsListView component
   };
 
-  const handleDownloadReport = (report) => {
-    console.log("Download report:", report);
-    // TODO: Implement download functionality
+  const handleSaveReport = (report) => {
+    console.log("Save report:", report);
+    // TODO: Implement save functionality
+    alert(`Saving report: ${report.reportName}`);
   };
 
   return (
     <div className="cardform-left-full reports-content-wrapper" style={{ "--card-color": cardColor }}>
-      {/* Reports Card View */}
-      <ReportsCardView
+      {/* Reports List View */}
+      <ReportsListView
         reportsList={displayReportsList}
         cardColor={cardColor}
         onViewReport={handleViewReport}
-        onDownloadReport={handleDownloadReport}
+        onSendReport={handleSaveReport}
       />
     </div>
   );
