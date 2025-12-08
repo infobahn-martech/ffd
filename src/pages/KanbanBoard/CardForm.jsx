@@ -316,7 +316,7 @@ const renderTabContent = (activeTab, card, formValues, handleChange, ownerInitia
 
 // Main Component
 function CardForm({ show, close, card, moveCardToColumn, columns, currentColumn }) {
-  const [activeTopTab, setActiveTopTab] = useState("Operation");
+  const [activeTopTab, setActiveTopTab] = useState("General");
 
   const initialFormValues = useMemo(
     () => ({
