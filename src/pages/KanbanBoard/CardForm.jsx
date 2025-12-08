@@ -296,7 +296,7 @@ const renderTabContent = (activeTab, card, formValues, handleChange, ownerInitia
 
   switch (activeTab) {
     case "General":
-      return <General {...commonProps} />;
+      return <General {...commonProps} ownerInitial={ownerInitial} cardUser={card?.user} />;
     case "Operation":
       return <Operation {...commonProps} ownerInitial={ownerInitial} />;
     case "Husbandry":

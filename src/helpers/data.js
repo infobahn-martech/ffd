@@ -1,9 +1,10 @@
 const columnColors = {
-  "col-1": "#FF5252", // Vibrant Red
-  "col-2": "#FFB400", // Vivid Amber/Yellow
-  "col-3": "#3D5AFE", // Bright Indigo Blue
-  "col-4": "#00E676", // Neon Green
-  "col-5": "#E040FB", // Vivid Purple / Magenta
+  "col-1": "rgb(226 16 108)",
+  "col-2": "rgb(121 21 188)",
+  "col-3": "rgb(62 94 189)",
+  "col-4": "rgb(65 178 74)",
+  "col-5": "rgb(119 86 73)",
+  "col-6": "rgb(237 142 55)",
 };
 
 
