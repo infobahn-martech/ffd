@@ -68,10 +68,11 @@
 
 .card-code {
   font-size: 13px;
-  font-weight: 600;
+  font-weight: 400;
   color: #828282;
   flex-grow: 1;
   padding: 0 0 0 40px;
+  font-family: "Inter", sans-serif;
 }
 
 .card-user {
@@ -79,6 +80,7 @@
   font-weight: 400;
   color: #666;
   margin-right: 8px;
+  font-family: "Inter", sans-serif;
 }
 
 /* Title */
@@ -97,6 +99,7 @@
   color: #111;
   margin: 6px 0;
   cursor: pointer;
+  font-family: "Inter", sans-serif;
   -webkit-user-select: none;
   -moz-user-select: none;
   -ms-user-select: none;
@@ -166,7 +169,8 @@
 /* Days text */
 .days-text {
   color: #333;
-  font-weight: 500;
+  font-weight: 400;
+  font-family: "Inter", sans-serif;
 }
 
 /* Status */
@@ -179,6 +183,13 @@
   margin-top: 6px;
   font-size: 13px;
   color: #555;
+  font-weight: 400;
+  font-family: "Inter", sans-serif;
+}
+
+.card-status span {
+  font-weight: 400;
+  font-family: "Inter", sans-serif;
 }
 
 .card-status .dot {
@@ -263,6 +274,14 @@
   display: flex;
   justify-content: space-between;
   align-items: center;
+  font-family: "Inter", sans-serif;
+}
+
+.card-time-left {
+  font-weight: 400;
+  font-family: "Inter", sans-serif;
+  font-size: 13px;
+  color: #777;
 }
 
 .footer-progress {
@@ -323,6 +342,38 @@
 
 .detail-dot-green {
   background-color: #27AE60;
+}
+
+.detail-dot-yellow {
+  background-color: #F39C12;
+}
+
+.detail-dot-blue {
+  background-color: #3498DB;
+}
+
+/* Last Moved Section */
+.card-last-moved {
+  font-size: 13px;
+  color: #555;
+  margin-top: 8px;
+  padding-top: 8px;
+  border-top: 1px solid #eee;
+  font-weight: 400;
+}
+
+/* Detail Label */
+.detail-label {
+  font-weight: 500;
+  margin-right: 4px;
+}
+
+/* Detail Item Value */
+.card-detail-item > span:not(.detail-dot):not(.detail-label) {
+  flex: 1;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 
 /* Priority blinking effect */

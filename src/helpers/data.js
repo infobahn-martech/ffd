@@ -114,6 +114,51 @@ for (let i = 0; i < 150; i++) {
     "07:20 AM"
   ];
 
+  // Generate random date for lastMoved (within last 6 months)
+  const now = new Date();
+  const sixMonthsAgo = new Date(now.getTime() - 180 * 24 * 60 * 60 * 1000);
+  const randomDate = new Date(sixMonthsAgo.getTime() + Math.random() * (now.getTime() - sixMonthsAgo.getTime()));
+  const formatDate = (date) => {
+    const year = date.getFullYear();
+    const month = String(date.getMonth() + 1).padStart(2, '0');
+    const day = String(date.getDate()).padStart(2, '0');
+    const hours = String(date.getHours()).padStart(2, '0');
+    const minutes = String(date.getMinutes()).padStart(2, '0');
+    const seconds = String(date.getSeconds()).padStart(2, '0');
+    return `${year}-${month}-${day} ${hours}:${minutes}:${seconds}`;
+  };
+
+  const sapSalesOrders = [
+    "3023192",
+    "3025500",
+    "3023193",
+    "3025501",
+    "3023194",
+    "3025502",
+    "3023195",
+    "3025503"
+  ];
+  const srtPoWbsOptions = [
+    "SRT-001|PO-12345|WBS-ABC",
+    "SRT-002|PO-67890|WBS-XYZ",
+    "SRT-003|PO-11111|WBS-DEF",
+    "SRT-004|PO-22222|WBS-GHI"
+  ];
+  const appointmentEmails = [
+    "appointment@shipping.com",
+    "booking@logistics.com",
+    "schedule@maritime.com",
+    "appt@cargo.com",
+    "booking@express.com"
+  ];
+  const serviceRequesters = [
+    "John Smith",
+    "Michael Johnson",
+    "David Williams",
+    "Robert Brown",
+    "James Davis"
+  ];
+
   const cardData = {
     id,
     code: (100140 + cardId).toString(),
@@ -131,12 +176,13 @@ for (let i = 0; i < 150; i++) {
     color: randomColor,
     iconType: randomIconType,   // ⭐ Added here
     priority: cardId === 1, // Only first item has priority true
-    // Add extra details to all cards
-    customerName: customerNames[Math.floor(Math.random() * customerNames.length)],
+    // New fields matching second image
+    lastMoved: formatDate(randomDate),
+    sapSalesOrder: sapSalesOrders[Math.floor(Math.random() * sapSalesOrders.length)],
+    srtPoWbs: srtPoWbsOptions[Math.floor(Math.random() * srtPoWbsOptions.length)],
+    appointmentEmail: appointmentEmails[Math.floor(Math.random() * appointmentEmails.length)],
     vesselName: vesselNames[Math.floor(Math.random() * vesselNames.length)],
-    timeOfDelivery: times[Math.floor(Math.random() * times.length)],
-    driver: drivers[Math.floor(Math.random() * drivers.length)],
-    pickUpTime: times[Math.floor(Math.random() * times.length)],
+    serviceRequester: serviceRequesters[Math.floor(Math.random() * serviceRequesters.length)],
   };
 
   cards[id] = cardData;
