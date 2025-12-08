@@ -2079,6 +2079,21 @@
   border-bottom: none;
 }
 
+/* Sales Order Accordion for Grouped Items */
+.sales-order-accordion-header-row {
+  background: #ffffff;
+  border-bottom: 2px solid var(--card-color, #2A00FF);
+  transition: background-color 0.2s ease;
+}
+
+.sales-order-accordion-header-row:hover {
+  background: rgba(42, 0, 255, 0.08) !important;
+}
+
+.sales-order-accordion-header-row td {
+  border-bottom: 2px solid var(--card-color, #2A00FF) !important;
+}
+
 .operation-right .sales-order-content-wrapper {
   width: 100%;
   max-width: 100%;

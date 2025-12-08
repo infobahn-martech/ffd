@@ -1,10 +1,11 @@
-import { useEffect, useState } from "react";
+import React, { useEffect, useState } from "react";
 import PropTypes from "prop-types";
 
 // Generate dummy sales order data
 const generateDummySalesOrders = () => {
   const itemNames = ["Container Service", "Shipping Documentation", "Cargo Handling", "Storage Service", "Customs Clearance", "Freight Forwarding", "Warehouse Service", "Distribution Service"];
   const itemCodes = ["ITEM-001", "ITEM-002", "ITEM-003", "ITEM-004", "ITEM-005", "ITEM-006", "ITEM-007", "ITEM-008"];
+  const callFiles = ["CALL-001", "CALL-002", "CALL-003", "CALL-004", null]; // Some items may not have callFile
 
   const dummyOrders = [];
   for (let i = 1; i <= 20; i++) {
@@ -21,8 +22,13 @@ const generateDummySalesOrders = () => {
     const vatAmount = (totalUnitAmount * vatPercentage) / 100;
     const totalWithVAT = totalUnitAmount + vatAmount;
 
+    // Assign callFile - some items share the same callFile to create groups
+    const callFileIndex = Math.floor(Math.random() * callFiles.length);
+    const callFile = callFiles[callFileIndex];
+
     dummyOrders.push({
       id: i,
+      callFile: callFile,
       lineItemCode: itemCodes[itemIndex],
       lineItemName: itemNames[itemIndex],
       startedDate: startDate.toISOString(),
@@ -47,7 +53,9 @@ const SalesOrderList = ({ formValues, handleChange, cardColor }) => {
 
   // State for accordion and form
   const [isAccordionOpen, setIsAccordionOpen] = useState(false);
+  const [expandedCallFiles, setExpandedCallFiles] = useState(new Set());
   const [newItemForm, setNewItemForm] = useState({
+    callFile: "",
     lineItemCode: "",
     lineItemName: "",
     startedDate: "",
@@ -70,6 +78,41 @@ const SalesOrderList = ({ formValues, handleChange, cardColor }) => {
   }, []); // Only run once on mount
 
   const displayOrderList = salesOrderList.length > 0 ? salesOrderList : generateDummySalesOrders();
+
+  // Group items by callFile
+  const groupByCallFile = (orders) => {
+    const grouped = {};
+    const ungrouped = [];
+
+    orders.forEach((order) => {
+      const callFile = order.callFile;
+      if (callFile) {
+        if (!grouped[callFile]) {
+          grouped[callFile] = [];
+        }
+        grouped[callFile].push(order);
+      } else {
+        ungrouped.push(order);
+      }
+    });
+
+    return { grouped, ungrouped };
+  };
+
+  const { grouped, ungrouped } = groupByCallFile(displayOrderList);
+
+  // Toggle accordion for callFile
+  const toggleCallFileAccordion = (callFile) => {
+    setExpandedCallFiles((prev) => {
+      const newSet = new Set(prev);
+      if (newSet.has(callFile)) {
+        newSet.delete(callFile);
+      } else {
+        newSet.add(callFile);
+      }
+      return newSet;
+    });
+  };
 
   // Calculate total line item total from list if not provided
   const calculatedLineItemTotal = lineItemTotal || displayOrderList.reduce((sum, item) => {
@@ -144,6 +187,7 @@ const SalesOrderList = ({ formValues, handleChange, cardColor }) => {
     };
 
     setNewItemForm({
+      callFile: "",
       lineItemCode: "",
       lineItemName: "",
       startedDate: formatDateForInput(currentDate),
@@ -199,6 +243,7 @@ const SalesOrderList = ({ formValues, handleChange, cardColor }) => {
 
     const newItem = {
       id: newId,
+      callFile: newItemForm.callFile || null,
       lineItemCode: newItemForm.lineItemCode,
       lineItemName: newItemForm.lineItemName,
       startedDate: startedDateTime,
@@ -233,6 +278,7 @@ const SalesOrderList = ({ formValues, handleChange, cardColor }) => {
   const handleCancel = () => {
     setIsAccordionOpen(false);
     setNewItemForm({
+      callFile: "",
       lineItemCode: "",
       lineItemName: "",
       startedDate: "",
@@ -244,6 +290,79 @@ const SalesOrderList = ({ formValues, handleChange, cardColor }) => {
       unitPrice: 100,
     });
   };
+
+  // Render a single order row
+  const renderOrderRow = (order) => (
+    <tr key={order.id}>
+      <td>
+        <div className="sales-order-table-cell">
+          {order.lineItemCode || ""}
+        </div>
+      </td>
+      <td>
+        <div className="sales-order-table-cell">
+          {order.lineItemName || ""}
+        </div>
+      </td>
+      <td>
+        <div className="sales-order-table-cell">
+          <div className="sales-order-date">{formatDate(order.startedDate)}</div>
+          <div className="sales-order-time">{formatTime(order.startedDate)}</div>
+        </div>
+      </td>
+      <td>
+        <div className="sales-order-table-cell">
+          <div className="sales-order-date">{formatDate(order.completedDate)}</div>
+          <div className="sales-order-time">{formatTime(order.completedDate)}</div>
+        </div>
+      </td>
+      <td>
+        <div className="sales-order-table-cell">
+          {order.vatPercentage ? `${order.vatPercentage}%` : ""}
+        </div>
+      </td>
+      <td>
+        <div className="sales-order-table-cell">
+          <input
+            type="number"
+            min="0"
+            step="1"
+            value={order.qty || 0}
+            onChange={(e) => handleQtyChange(order.id, e.target.value)}
+            className="sales-order-qty-input"
+            style={{
+              width: "100%",
+              border: "1px solid #ddd",
+              borderRadius: "4px",
+              padding: "4px 8px",
+              textAlign: "center",
+              fontSize: "14px",
+            }}
+          />
+        </div>
+      </td>
+      <td>
+        <div className="sales-order-table-cell">
+          {formatCurrencySAR(order.unitPrice || 0)}
+        </div>
+      </td>
+      <td>
+        <div className="sales-order-table-cell">
+          {formatCurrencySAR(order.totalUnitAmount || 0)}
+        </div>
+      </td>
+      <td>
+        <div className="sales-order-table-cell">
+          {formatCurrencySAR(order.vatAmount || 0)}
+        </div>
+      </td>
+      <td>
+        <div className="sales-order-table-cell sales-order-table-cell-total">
+          {formatCurrencySAR(order.totalInSARWithVAT || 0)}
+        </div>
+      </td>
+    </tr>
+  );
 
   return (
     <div className="cardform-left-full sales-order-content-wrapper" style={{ "--card-color": cardColor }}>
@@ -320,6 +439,16 @@ const SalesOrderList = ({ formValues, handleChange, cardColor }) => {
           </div>
           <div className="sales-order-add-accordion-body">
             <div className="sales-order-add-form-grid">
+              <div className="sales-order-add-form-field">
+                <label>Call File</label>
+                <input
+                  type="text"
+                  value={newItemForm.callFile}
+                  onChange={(e) => handleFormChange("callFile", e.target.value)}
+                  placeholder="e.g., CALL-001"
+                  className="sales-order-add-form-input"
+                />
+              </div>
               <div className="sales-order-add-form-field">
                 <label>Line Item Code *</label>
                 <input
@@ -449,77 +578,65 @@ const SalesOrderList = ({ formValues, handleChange, cardColor }) => {
             </tr>
           </thead>
           <tbody>
-            {displayOrderList.map((order) => (
-              <tr key={order.id}>
-                <td>
-                  <div className="sales-order-table-cell">
-                    {order.lineItemCode || ""}
-                  </div>
-                </td>
-                <td>
-                  <div className="sales-order-table-cell">
-                    {order.lineItemName || ""}
-                  </div>
-                </td>
-                <td>
-                  <div className="sales-order-table-cell">
-                    <div className="sales-order-date">{formatDate(order.startedDate)}</div>
-                    <div className="sales-order-time">{formatTime(order.startedDate)}</div>
-                  </div>
-                </td>
-                <td>
-                  <div className="sales-order-table-cell">
-                    <div className="sales-order-date">{formatDate(order.completedDate)}</div>
-                    <div className="sales-order-time">{formatTime(order.completedDate)}</div>
-                  </div>
-                </td>
-                <td>
-                  <div className="sales-order-table-cell">
-                    {order.vatPercentage ? `${order.vatPercentage}%` : ""}
-                  </div>
-                </td>
-                <td>
-                  <div className="sales-order-table-cell">
-                    <input
-                      type="number"
-                      min="0"
-                      step="1"
-                      value={order.qty || 0}
-                      onChange={(e) => handleQtyChange(order.id, e.target.value)}
-                      className="sales-order-qty-input"
-                      style={{
-                        width: "100%",
-                        border: "1px solid #ddd",
-                        borderRadius: "4px",
-                        padding: "4px 8px",
-                        textAlign: "center",
-                        fontSize: "14px",
-                      }}
-                    />
-                  </div>
-                </td>
-                <td>
-                  <div className="sales-order-table-cell">
-                    {formatCurrencySAR(order.unitPrice || 0)}
-                  </div>
-                </td>
-                <td>
-                  <div className="sales-order-table-cell">
-                    {formatCurrencySAR(order.totalUnitAmount || 0)}
-                  </div>
-                </td>
-                <td>
-                  <div className="sales-order-table-cell">
-                    {formatCurrencySAR(order.vatAmount || 0)}
-                  </div>
-                </td>
-                <td>
-                  <div className="sales-order-table-cell sales-order-table-cell-total">
-                    {formatCurrencySAR(order.totalInSARWithVAT || 0)}
-                  </div>
-                </td>
-              </tr>
-            ))}
+            {/* Render grouped items with accordion (2+ items per callFile) */}
+            {Object.entries(grouped).map(([callFile, orders]) => {
+              if (orders.length < 2) {
+                // If only 1 item, render as regular row
+                return renderOrderRow(orders[0]);
+              }
+
+              const isExpanded = expandedCallFiles.has(callFile);
+              const groupTotal = orders.reduce((sum, item) => sum + (parseFloat(item.totalInSARWithVAT) || 0), 0);
+
+              return (
+                <React.Fragment key={callFile}>
+                  {/* Accordion header row */}
+                  <tr 
+                    className="sales-order-accordion-header-row"
+                    onClick={() => toggleCallFileAccordion(callFile)}
+                    style={{ cursor: "pointer", backgroundColor: isExpanded ? "rgba(42, 0, 255, 0.05)" : "#ffffff" }}
+                  >
+                    <td colSpan="10" style={{ padding: "12px 16px" }}>
+                      <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between" }}>
+                        <div style={{ display: "flex", alignItems: "center", gap: "12px" }}>
+                          <span 
+                            style={{ 
+                              transform: isExpanded ? "rotate(90deg)" : "rotate(0deg)",
+                              transition: "transform 0.2s",
+                              display: "inline-block",
+                              color: cardColor,
+                              fontWeight: "bold",
+                              fontSize: "16px"
+                            }}
+                          >
+                            ▶
+                          </span>
+                          <span style={{ fontWeight: "600", color: "#1a1a1a" }}>
+                            Call File: {callFile}
+                          </span>
+                          <span style={{ 
+                            fontSize: "12px", 
+                            color: "#666",
+                            backgroundColor: "rgba(42, 0, 255, 0.1)",
+                            padding: "2px 8px",
+                            borderRadius: "12px"
+                          }}>
+                            {orders.length} item{orders.length > 1 ? "s" : ""}
+                          </span>
+                        </div>
+                        <div style={{ fontWeight: "600", color: cardColor }}>
+                          Total: {formatCurrencySAR(groupTotal)}
+                        </div>
+                      </div>
+                    </td>
+                  </tr>
+                  {/* Accordion content rows */}
+                  {isExpanded && orders.map((order) => renderOrderRow(order))}
+                </React.Fragment>
+              );
+            })}
+            {/* Render ungrouped items (no callFile) */}
+            {ungrouped.map((order) => renderOrderRow(order))}
           </tbody>
         </table>
       </div>
