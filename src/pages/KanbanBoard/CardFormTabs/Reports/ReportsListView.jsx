@@ -91,20 +91,40 @@ const ReportsListView = ({ reportsList, cardColor, onViewReport, onSendReport, o
                 </div>
                 <div className="report-actions">
                   <button
-                    className="report-action-btn view"
+                    className="report-action-btn generate"
                     onClick={(e) => handleViewClick(e, report)}
                     type="button"
-                    title="View"
+                    title="Generate"
                     style={{ "--card-color": cardColor }}
                   >
                     <svg width="18" height="18" viewBox="0 0 18 18" fill="none" xmlns="http://www.w3.org/2000/svg">
                       <path
-                        d="M9 3C5 3 2.73 5.11 1 8.5C2.73 11.89 5 14 9 14C13 14 15.27 11.89 17 8.5C15.27 5.11 13 3 9 3ZM9 12.5C7.07 12.5 5.5 10.93 5.5 9C5.5 7.07 7.07 5.5 9 5.5C10.93 5.5 12.5 7.07 12.5 9C12.5 10.93 10.93 12.5 9 12.5ZM9 7C8.17 7 7.5 7.67 7.5 8.5C7.5 9.33 8.17 10 9 10C9.83 10 10.5 9.33 10.5 8.5C10.5 7.67 9.83 7 9 7Z"
+                        d="M12 4.5L14.25 2.25L12 0"
                         stroke="currentColor"
                         strokeWidth="1.5"
                         strokeLinecap="round"
                         strokeLinejoin="round"
-                        fill="none"
+                      />
+                      <path
+                        d="M0 9C0 12.7279 3.27208 16 7 16H14.25"
+                        stroke="currentColor"
+                        strokeWidth="1.5"
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                      />
+                      <path
+                        d="M6 13.5L3.75 15.75L6 18"
+                        stroke="currentColor"
+                        strokeWidth="1.5"
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                      />
+                      <path
+                        d="M14.25 2H7C3.27208 2 0 5.27208 0 9"
+                        stroke="currentColor"
+                        strokeWidth="1.5"
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
                       />
                     </svg>
                   </button>
