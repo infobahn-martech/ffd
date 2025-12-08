@@ -91,12 +91,12 @@ const getStepNumberFromColumnId = (columnId, columns) => {
 };
 
 // Sub-components
-const TopBar = ({ card, accentColor, onClose }) => {
+const TopBar = ({ card, topbarColor, onClose }) => {
   const cardId = card?.code || card?.id;
   const cardTitle = card?.title || "";
 
   return (
-    <div className="cardform-topbar" style={{ backgroundColor: accentColor }}>
+    <div className="cardform-topbar" style={{ backgroundColor: topbarColor }}>
       <div>
         <span className="cardform-id">ID : {cardId}</span>
         <span className="cardform-title">{cardTitle}</span>
@@ -118,7 +118,7 @@ const TopBar = ({ card, accentColor, onClose }) => {
 
 TopBar.propTypes = {
   card: PropTypes.object,
-  accentColor: PropTypes.string.isRequired,
+  topbarColor: PropTypes.string.isRequired,
   onClose: PropTypes.func.isRequired,
 };
 
@@ -152,22 +152,9 @@ TopTabs.propTypes = {
 
 
 const StepsProgress = ({ totalSteps = TOTAL_STEPS, activeStep = 2, completedSteps = 1, accentColor = DEFAULT_ACCENT_COLOR, stepLabels = STEP_LABELS, onStepClick, currentStep }) => {
-  // Create a lighter version of the accent color for inactive steps
-  const hexToRgb = (hex) => {
-    const result = /^#?([a-f\d]{2})([a-f\d]{2})([a-f\d]{2})$/i.exec(hex);
-    return result
-      ? {
-        r: parseInt(result[1], 16),
-        g: parseInt(result[2], 16),
-        b: parseInt(result[3], 16),
-      }
-      : null;
-  };
-
-  const rgb = hexToRgb(accentColor);
-  const lightColor = rgb
-    ? `rgba(${rgb.r}, ${rgb.g}, ${rgb.b}, 0.4)`
-    : accentColor;
+  // Use green colors for all progress bars (ignoring accentColor)
+  const GREEN_COMPLETED = "#2e7d32"; // Dark green for completed/active steps
+  const GREEN_INACTIVE = "#8bc48a"; // Light green for inactive steps
 
   // Use currentStep as the actual current step (from card's column), fallback to activeStep
   const actualCurrentStep = currentStep !== null && currentStep !== undefined ? currentStep : activeStep;
@@ -194,24 +181,25 @@ const StepsProgress = ({ totalSteps = TOTAL_STEPS, activeStep = 2, completedStep
         const isClickable = onStepClick && currentStep !== null && isAdjacent && stepNumber !== currentStep;
         const isDisabled = onStepClick && currentStep !== null && !isAdjacent && stepNumber !== currentStep;
 
+        // Always use green colors
         const circleStyle = isStepCompletedOrCurrent
           ? {
-            background: accentColor,
+            background: GREEN_COMPLETED,
             color: "#ffffff",
-            borderColor: accentColor,
+            borderColor: GREEN_COMPLETED,
           }
           : {
-            borderColor: lightColor,
-            color: lightColor,
+            borderColor: GREEN_INACTIVE,
+            color: GREEN_INACTIVE,
           };
 
         const lineStyle = isStepCompletedOrCurrent && isNextStepCompletedOrCurrent
-          ? { background: accentColor }
-          : { background: lightColor };
+          ? { background: GREEN_COMPLETED }
+          : { background: GREEN_INACTIVE };
 
         const labelStyle = isStepCompletedOrCurrent
-          ? { color: accentColor }
-          : { color: lightColor };
+          ? { color: GREEN_COMPLETED }
+          : { color: GREEN_INACTIVE };
 
         const stepLabel = stepLabels[index] || `Step ${stepNumber}`;
         const handleStepClick = () => {
@@ -407,6 +395,8 @@ function CardForm({ show, close, card, moveCardToColumn, columns, currentColumn 
     }
   }, [moveCardToColumn, card?.id, columns, currentStep]);
 
+  // Topbar uses column color (from data.js), everything else uses card's unique color
+  const topbarColor = useMemo(() => currentColumn?.color || DEFAULT_ACCENT_COLOR, [currentColumn?.color]);
   const accentColor = useMemo(() => card?.color || DEFAULT_ACCENT_COLOR, [card?.color]);
   const ownerInitial = useMemo(
     () => formValues.owner?.[0]?.toUpperCase() || "N",
@@ -418,7 +408,7 @@ function CardForm({ show, close, card, moveCardToColumn, columns, currentColumn 
   return (
     <div className="cardform-overlay" onClick={close}>
       <div className="cardform-panel" onClick={(e) => e.stopPropagation()}>
-        <TopBar card={card} accentColor={accentColor} onClose={close} />
+        <TopBar card={card} topbarColor={topbarColor} onClose={close} />
         <TopTabs
           tabs={TOP_TABS}
           activeTab={activeTopTab}
