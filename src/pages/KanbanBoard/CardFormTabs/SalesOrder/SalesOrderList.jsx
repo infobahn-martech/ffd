@@ -89,6 +89,32 @@ const SalesOrderList = ({ formValues, handleChange, cardColor }) => {
     }).format(amount);
   };
 
+  const handleQtyChange = (orderId, newQty) => {
+    const updatedList = salesOrderList.map((order) => {
+      if (order.id === orderId) {
+        const qty = parseFloat(newQty) || 0;
+        const unitPrice = parseFloat(order.unitPrice) || 0;
+        const vatPercentage = parseFloat(order.vatPercentage) || 0;
+        
+        const totalUnitAmount = qty * unitPrice;
+        const vatAmount = (totalUnitAmount * vatPercentage) / 100;
+        const totalInSARWithVAT = totalUnitAmount + vatAmount;
+
+        return {
+          ...order,
+          qty: qty,
+          totalUnitAmount: totalUnitAmount,
+          vatAmount: vatAmount,
+          totalInSARWithVAT: totalInSARWithVAT,
+        };
+      }
+      return order;
+    });
+
+    const syntheticEvent = { target: { value: updatedList } };
+    handleChange("salesOrderList")(syntheticEvent);
+  };
+
   return (
     <div className="cardform-left-full sales-order-content-wrapper" style={{ "--card-color": cardColor }}>
       <div className="sales-order-list-header">
@@ -171,7 +197,24 @@ const SalesOrderList = ({ formValues, handleChange, cardColor }) => {
                   </div>
                 </td>
                 <td>
-                  <div className="sales-order-table-cell">{order.qty || 0}</div>
+                  <div className="sales-order-table-cell">
+                    <input
+                      type="number"
+                      min="0"
+                      step="1"
+                      value={order.qty || 0}
+                      onChange={(e) => handleQtyChange(order.id, e.target.value)}
+                      className="sales-order-qty-input"
+                      style={{
+                        width: "100%",
+                        border: "1px solid #ddd",
+                        borderRadius: "4px",
+                        padding: "4px 8px",
+                        textAlign: "center",
+                        fontSize: "14px",
+                      }}
+                    />
+                  </div>
                 </td>
                 <td>
                   <div className="sales-order-table-cell">
