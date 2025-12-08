@@ -262,7 +262,7 @@ const TimeSlotPicker = ({ value = "", onChange, placeholder, className = "", car
       color: '#666',
       padding: '4px',
       '&:hover': {
-        color: cardColor || '#2A00FF',
+        color: 'rgb(62 94 189)',
       },
     }),
     clearIndicator: (base) => ({
@@ -289,9 +289,9 @@ const TimeSlotPicker = ({ value = "", onChange, placeholder, className = "", car
     option: (base, state) => ({
       ...base,
       backgroundColor: state.isSelected
-        ? cardColor || '#2A00FF'
+        ? 'rgb(62 94 189)'
         : state.isFocused
-          ? 'rgba(42, 0, 255, 0.1)'
+          ? 'rgba(62, 94, 189, 0.1)'
           : '#ffffff',
       color: state.isSelected ? '#ffffff' : '#1a1a1a',
       fontSize: '13px',
@@ -300,7 +300,7 @@ const TimeSlotPicker = ({ value = "", onChange, placeholder, className = "", car
       margin: '2px 0',
       cursor: 'pointer',
       '&:active': {
-        backgroundColor: cardColor || '#2A00FF',
+        backgroundColor: 'rgb(62 94 189)',
         color: '#ffffff',
       },
     }),
@@ -362,7 +362,12 @@ const EmptySection = ({ message, buttonText, onButtonClick }) => {
   return (
     <div className="cf-empty-row">
       <p>{message}</p>
-      <button className="cf-link-btn" onClick={onButtonClick} type="button">
+      <button 
+        className="cf-link-btn" 
+        onClick={onButtonClick} 
+        type="button"
+        style={{ backgroundColor: "rgb(62 94 189)", borderColor: "rgb(62 94 189)", color: "#ffffff" }}
+      >
         {buttonText}
       </button>
     </div>
@@ -388,7 +393,12 @@ const AttachmentsList = ({ attachments = [], onAdd, onRemove }) => {
 
   return (
     <div className="cf-list-container">
-      <button className="cf-add-btn" onClick={onAdd} type="button">
+      <button 
+        className="cf-add-btn" 
+        onClick={onAdd} 
+        type="button"
+        style={{ backgroundColor: "rgb(62 94 189)", borderColor: "rgb(62 94 189)" }}
+      >
         + Add attachment
       </button>
       <div className="cf-list-items">
@@ -568,7 +578,7 @@ const PreArrivalContent = ({ formValues, handleChange, ownerInitial, cardUser, c
               type="button"
               className="checklist-btn-primary"
               onClick={handleSave}
-              style={{ "--card-color": cardColor }}
+              style={{ backgroundColor: "rgb(62 94 189)", borderColor: "rgb(62 94 189)" }}
             >
               Save
             </button>
@@ -817,7 +827,7 @@ const ArrivalContent = ({ formValues, handleChange, cardColor, onAddAttachment, 
               type="button"
               className="checklist-btn-primary"
               onClick={handleSave}
-              style={{ "--card-color": cardColor }}
+              style={{ backgroundColor: "rgb(62 94 189)", borderColor: "rgb(62 94 189)" }}
             >
               Save
             </button>
@@ -953,7 +963,7 @@ const DepartureContent = ({ formValues, handleChange, cardColor, onAddAttachment
               type="button"
               className="checklist-btn-primary"
               onClick={handleSave}
-              style={{ "--card-color": cardColor }}
+              style={{ backgroundColor: "rgb(62 94 189)", borderColor: "rgb(62 94 189)" }}
             >
               Save
             </button>

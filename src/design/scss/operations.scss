@@ -37,6 +37,27 @@
   }
 }
 
+/* Operation tab specific: Use rgb(62 94 189) for all buttons */
+.operation-wrapper:not(.husbandry-wrapper) {
+  .checklist-btn-primary {
+    background: rgb(62 94 189) !important;
+    border-color: rgb(62 94 189) !important;
+    color: #ffffff !important;
+    box-shadow: 0 2px 6px rgba(62, 94, 189, 0.3) !important;
+    
+    &:hover {
+      background: rgb(49 75 151) !important;
+      border-color: rgb(49 75 151) !important;
+      box-shadow: 0 6px 16px rgba(62, 94, 189, 0.4) !important;
+    }
+    
+    &:active {
+      background: rgb(43 65 134) !important;
+      border-color: rgb(43 65 134) !important;
+    }
+  }
+}
+
 /* ==========================================================
    HUSBANDRY SERVICE SELECTION
    ========================================================== */
@@ -1159,11 +1180,23 @@
   box-shadow: 0 2px 4px rgba(0, 54, 140, 0.3);
 }
 
+/* Operation tab specific: Use rgb(62 94 189) for all buttons */
+.operation-wrapper:not(.husbandry-wrapper) .cf-link-btn {
+  background: rgb(62 94 189);
+  box-shadow: 0 2px 4px rgba(62, 94, 189, 0.3);
+}
+
 .cf-link-btn:hover {
   transform: translateY(-1px);
   opacity: 0.9;
   box-shadow: 0 4px 8px rgba(0, 54, 140, 0.4);
   background: #002d75;
+}
+
+/* Operation tab specific: Use rgb(62 94 189) for hover state */
+.operation-wrapper:not(.husbandry-wrapper) .cf-link-btn:hover {
+  background: rgb(49 75 151);
+  box-shadow: 0 4px 8px rgba(62, 94, 189, 0.4);
 }
 
 .cf-link-btn:active {
@@ -1189,11 +1222,23 @@
   margin-bottom: 12px;
 }
 
+/* Operation tab specific: Use rgb(62 94 189) for all buttons */
+.operation-wrapper:not(.husbandry-wrapper) .cf-add-btn {
+  background: rgb(62 94 189);
+  box-shadow: 0 2px 4px rgba(62, 94, 189, 0.3);
+}
+
 .cf-add-btn:hover {
   transform: translateY(-1px);
   opacity: 0.9;
   box-shadow: 0 4px 8px rgba(0, 54, 140, 0.4);
   background: #002d75;
+}
+
+/* Operation tab specific: Use rgb(62 94 189) for hover state */
+.operation-wrapper:not(.husbandry-wrapper) .cf-add-btn:hover {
+  background: rgb(49 75 151);
+  box-shadow: 0 4px 8px rgba(62, 94, 189, 0.4);
 }
 
 .cf-add-btn:active {
