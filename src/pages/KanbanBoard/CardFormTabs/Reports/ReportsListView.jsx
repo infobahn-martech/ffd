@@ -3,7 +3,7 @@ import PropTypes from "prop-types";
 import CustomModal from "../../../../components/CustomModal";
 import { Modal } from "react-bootstrap";
 
-const ReportsListView = ({ reportsList, cardColor, onViewReport, onSendReport }) => {
+const ReportsListView = ({ reportsList, cardColor, onViewReport, onSendReport, onDownloadReport }) => {
   const [previewReport, setPreviewReport] = useState(null);
 
   const handleViewClick = (e, report) => {
@@ -18,6 +18,13 @@ const ReportsListView = ({ reportsList, cardColor, onViewReport, onSendReport })
     e.stopPropagation();
     if (onSendReport) {
       onSendReport(report);
+    }
+  };
+
+  const handleDownloadClick = (e, report) => {
+    e.stopPropagation();
+    if (onDownloadReport) {
+      onDownloadReport(report);
     }
   };
 
@@ -39,23 +46,6 @@ const ReportsListView = ({ reportsList, cardColor, onViewReport, onSendReport })
     const day = date.getDate();
     const year = date.getFullYear();
     return `${month} ${day}, ${year}`;
-  };
-
-  const formatFileSize = (sizeInKB) => {
-    if (!sizeInKB) return '0 KB';
-    if (sizeInKB < 1024) {
-      return `${sizeInKB} KB`;
-    }
-    return `${(sizeInKB / 1024).toFixed(2)} MB`;
-  };
-
-  const getStatusClass = (status) => {
-    const statusLower = status?.toLowerCase() || '';
-    if (statusLower.includes('generated')) return 'status-generated';
-    if (statusLower.includes('pending')) return 'status-pending';
-    if (statusLower.includes('failed')) return 'status-failed';
-    if (statusLower.includes('progress')) return 'status-in-progress';
-    return 'status-pending';
   };
 
   return (
@@ -90,21 +80,11 @@ const ReportsListView = ({ reportsList, cardColor, onViewReport, onSendReport })
                 <div className="report-details">
                   <div className="report-name">{report.reportName || "N/A"}</div>
                   <div className="report-meta">
-                    <span className="report-size">{formatFileSize(report.fileSize)}</span>
-                    <span className="report-separator">•</span>
                     <span className="report-date">{formatDate(report.generatedDate)}</span>
                     {report.generatedBy && (
                       <>
                         <span className="report-separator">•</span>
                         <span className="report-generator">by {report.generatedBy}</span>
-                      </>
-                    )}
-                    {report.status && (
-                      <>
-                        <span className="report-separator">•</span>
-                        <span className={`report-status ${getStatusClass(report.status)}`}>
-                          {report.status}
-                        </span>
                       </>
                     )}
                   </div>
@@ -125,6 +105,23 @@ const ReportsListView = ({ reportsList, cardColor, onViewReport, onSendReport })
                         strokeLinecap="round"
                         strokeLinejoin="round"
                         fill="none"
+                      />
+                    </svg>
+                  </button>
+                  <button
+                    className="report-action-btn download"
+                    onClick={(e) => handleDownloadClick(e, report)}
+                    type="button"
+                    title="Download"
+                    style={{ "--card-color": cardColor }}
+                  >
+                    <svg width="18" height="18" viewBox="0 0 18 18" fill="none" xmlns="http://www.w3.org/2000/svg">
+                      <path
+                        d="M9 12V3M9 12L6 9M9 12L12 9M3 15H15"
+                        stroke="currentColor"
+                        strokeWidth="1.5"
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
                       />
                     </svg>
                   </button>
@@ -155,7 +152,7 @@ const ReportsListView = ({ reportsList, cardColor, onViewReport, onSendReport })
       {/* Preview Modal */}
       <CustomModal
         className="reports-preview-modal"
-        dialgName="modal-dialog modal-dialog-centered modal-lg"
+        dialgName="modal-dialog modal-dialog-centered reports-preview-modal-dialog"
         show={!!previewReport}
         closeModal={handleClosePreview}
         header={
@@ -169,53 +166,18 @@ const ReportsListView = ({ reportsList, cardColor, onViewReport, onSendReport })
         body={
           <div className="reports-preview-content">
             {previewReport && (
-              <>
-                <div className="reports-preview-info-section">
-                  <div className="reports-preview-info-row">
-                    <span className="reports-preview-label">Report Name:</span>
-                    <span className="reports-preview-value">{previewReport.reportName || "N/A"}</span>
-                  </div>
-                  <div className="reports-preview-info-row">
-                    <span className="reports-preview-label">Generated Date:</span>
-                    <span className="reports-preview-value">{formatDate(previewReport.generatedDate)}</span>
-                  </div>
-                  {previewReport.generatedBy && (
-                    <div className="reports-preview-info-row">
-                      <span className="reports-preview-label">Generated By:</span>
-                      <span className="reports-preview-value">{previewReport.generatedBy}</span>
-                    </div>
-                  )}
-                  {previewReport.status && (
-                    <div className="reports-preview-info-row">
-                      <span className="reports-preview-label">Status:</span>
-                      <span className={`reports-preview-value reports-preview-status ${getStatusClass(previewReport.status)}`}>
-                        {previewReport.status}
-                      </span>
-                    </div>
-                  )}
-                  {previewReport.fileSize && (
-                    <div className="reports-preview-info-row">
-                      <span className="reports-preview-label">File Size:</span>
-                      <span className="reports-preview-value">{formatFileSize(previewReport.fileSize)}</span>
-                    </div>
-                  )}
-                </div>
-                <div className="reports-preview-pdf-container">
-                  <div className="pdf-document">
-                    <div className="pdf-tab">
-                      <span className="pdf-tab-text">PDF</span>
-                    </div>
-                    <div className="pdf-content">
-                      <div className="pdf-line pdf-line-1"></div>
-                      <div className="pdf-line pdf-line-2"></div>
-                      <div className="pdf-line pdf-line-3"></div>
-                      <div className="pdf-line pdf-line-4"></div>
-                      <div className="pdf-line pdf-line-5"></div>
-                      <div className="pdf-line pdf-line-6"></div>
-                    </div>
+              <div className="reports-preview-pdf-container">
+                <div className="pdf-document-template">
+                  <div className="pdf-badge">PDF</div>
+                  <div className="pdf-folded-corner"></div>
+                  <div className="pdf-content-template">
+                    <div className="pdf-line pdf-line-1"></div>
+                    <div className="pdf-line pdf-line-2"></div>
+                    <div className="pdf-line pdf-line-3"></div>
+                    <div className="pdf-line pdf-line-4"></div>
                   </div>
                 </div>
-              </>
+              </div>
             )}
           </div>
         }
@@ -250,6 +212,7 @@ ReportsListView.propTypes = {
   cardColor: PropTypes.string,
   onViewReport: PropTypes.func,
   onSendReport: PropTypes.func,
+  onDownloadReport: PropTypes.func,
 };
 
 export default ReportsListView;

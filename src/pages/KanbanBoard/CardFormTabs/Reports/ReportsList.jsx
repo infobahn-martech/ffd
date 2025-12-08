@@ -60,6 +60,12 @@ const ReportsList = ({ formValues, handleChange, cardColor }) => {
     alert(`Saving report: ${report.reportName}`);
   };
 
+  const handleDownloadReport = (report) => {
+    console.log("Download report:", report);
+    // TODO: Implement download functionality
+    alert(`Downloading report: ${report.reportName}`);
+  };
+
   return (
     <div className="cardform-left-full reports-content-wrapper" style={{ "--card-color": cardColor }}>
       {/* Reports List View */}
@@ -68,6 +74,7 @@ const ReportsList = ({ formValues, handleChange, cardColor }) => {
         cardColor={cardColor}
         onViewReport={handleViewReport}
         onSendReport={handleSaveReport}
+        onDownloadReport={handleDownloadReport}
       />
     </div>
   );

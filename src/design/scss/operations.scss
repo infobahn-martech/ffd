@@ -2119,6 +2119,7 @@
     transform: translateY(-10px);
     max-height: 0;
   }
+
   to {
     opacity: 1;
     transform: translateY(0);
@@ -2911,6 +2912,25 @@
   transform: scale(1.1);
 }
 
+.report-action-btn.download {
+  color: var(--card-color, #2A00FF);
+  background: rgba(42, 0, 255, 0.1);
+  border: 1px solid rgba(42, 0, 255, 0.2);
+}
+
+.report-action-btn.download:hover {
+  border-color: var(--card-color, #2A00FF);
+}
+
+.report-action-btn.download:hover::before {
+  opacity: 1;
+}
+
+.report-action-btn.download:hover svg {
+  color: #ffffff;
+  transform: scale(1.1) translateY(2px);
+}
+
 .report-action-btn.send {
   color: var(--card-color, #2A00FF);
   background: rgba(42, 0, 255, 0.1);
@@ -3106,6 +3126,11 @@
 
 .reports-preview-modal {
   z-index: 1300 !important;
+
+  .reports-preview-modal-dialog {
+    max-width: 600px;
+    width: 100%;
+  }
 }
 
 /* Ensure modal backdrop appears above CardForm */
@@ -3196,14 +3221,15 @@ body .modal-backdrop.show {
 }
 
 .reports-preview-content {
-  background: transparent;
+  background: #ffffff;
   border-radius: 0;
   padding: 0;
   border: none;
   overflow: visible;
   display: flex;
-  flex-direction: column;
-  gap: 24px;
+  justify-content: center;
+  align-items: center;
+  min-height: 500px;
 }
 
 .reports-preview-info-section {
@@ -3340,126 +3366,100 @@ body .modal-backdrop.show {
   background: #ffffff;
 }
 
-// PDF Document Preview Styles
+// PDF Document Preview Styles - Template Style
 .reports-preview-pdf-container {
   width: 100%;
   display: flex;
   justify-content: center;
   align-items: center;
-  padding: 32px;
-  background: #f5f7fa;
-  border-radius: 12px;
-  min-height: 550px;
-  border: 1px solid #e8e9ed;
-  box-shadow: inset 0 2px 4px rgba(0, 0, 0, 0.04);
+  padding: 40px;
+  background: #ffffff;
+  min-height: 500px;
 }
 
-.pdf-document {
+.pdf-document-template {
   position: relative;
   width: 100%;
-  max-width: 700px;
+  max-width: 400px;
+  aspect-ratio: 1 / 1.414; // A4 ratio
   background: #ffffff;
-  border: 2px solid #dc3545;
-  border-radius: 10px;
-  box-shadow: 0 8px 24px rgba(220, 38, 38, 0.15), 0 2px 8px rgba(0, 0, 0, 0.1);
+  border: 1px solid #d1d5db;
+  border-radius: 4px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
   overflow: hidden;
-  transition: all 0.3s ease;
+  padding: 24px 28px;
 }
 
-.pdf-document:hover {
-  box-shadow: 0 12px 32px rgba(220, 38, 38, 0.2), 0 4px 12px rgba(0, 0, 0, 0.12);
-  transform: translateY(-2px);
-}
-
-.pdf-tab {
+// Folded corner effect
+.pdf-folded-corner {
   position: absolute;
-  bottom: 0;
-  left: 0;
-  width: 70px;
-  height: 24px;
-  background: linear-gradient(135deg, #dc3545 0%, #c82333 100%);
-  border-radius: 6px 6px 0 0;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  z-index: 1;
-  box-shadow: 0 -2px 8px rgba(0, 0, 0, 0.1);
+  top: 0;
+  right: 0;
+  width: 0;
+  height: 0;
+  border-style: solid;
+  border-width: 0 30px 30px 0;
+  border-color: transparent #e5e7eb transparent transparent;
+  box-shadow: -2px 2px 4px rgba(0, 0, 0, 0.1);
 }
 
-.pdf-tab-text {
-  color: #ffffff;
-  font-size: 11px;
-  font-weight: 700;
-  letter-spacing: 0.8px;
-  text-transform: uppercase;
-  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.2);
-}
-
-.pdf-content {
-  padding: 36px 48px 60px 48px;
-  min-height: 450px;
-  background: linear-gradient(to bottom, #ffffff 0%, #fafafa 100%);
-}
-
-.pdf-line {
-  height: 14px;
-  background: linear-gradient(90deg, #e8e8e8 0%, #e0e0e0 100%);
-  border-radius: 3px;
-  margin-bottom: 18px;
-  animation: fadeIn 0.4s ease-in;
-  position: relative;
-  overflow: hidden;
-}
-
-.pdf-line::after {
+.pdf-folded-corner::before {
   content: '';
   position: absolute;
   top: 0;
-  left: -100%;
-  width: 100%;
-  height: 100%;
-  background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.4), transparent);
-  animation: shimmer 2s infinite;
+  right: 0;
+  width: 0;
+  height: 0;
+  border-style: solid;
+  border-width: 0 28px 28px 0;
+  border-color: transparent #f3f4f6 transparent transparent;
+}
+
+// PDF Badge in top-left
+.pdf-badge {
+  position: absolute;
+  top: 16px;
+  left: 16px;
+  background: #dc2626;
+  color: #ffffff;
+  padding: 6px 12px;
+  border-radius: 4px;
+  font-size: 12px;
+  font-weight: 700;
+  letter-spacing: 0.5px;
+  text-transform: uppercase;
+  z-index: 2;
+  box-shadow: 0 2px 4px rgba(220, 38, 38, 0.3);
+}
+
+.pdf-content-template {
+  padding-top: 50px;
+  min-height: 100%;
+}
+
+.pdf-line {
+  height: 12px;
+  background: #4b5563;
+  border-radius: 2px;
+  margin-bottom: 14px;
+  animation: fadeIn 0.4s ease-in;
 }
 
 .pdf-line-1 {
   width: 100%;
-  height: 16px;
-  margin-bottom: 20px;
+  margin-top: 8px;
 }
 
 .pdf-line-2 {
-  width: 88%;
-  height: 14px;
+  width: 85%;
 }
 
 .pdf-line-3 {
-  width: 95%;
-  height: 14px;
+  width: 92%;
 }
 
 .pdf-line-4 {
-  width: 82%;
-  height: 14px;
-}
-
-.pdf-line-5 {
-  width: 90%;
-  height: 14px;
-}
-
-.pdf-line-6 {
-  width: 75%;
-  height: 14px;
-}
-
-@keyframes shimmer {
-  0% {
-    left: -100%;
-  }
-  100% {
-    left: 100%;
-  }
+  width: 78%;
 }
 
 @keyframes fadeIn {
@@ -3467,6 +3467,7 @@ body .modal-backdrop.show {
     opacity: 0;
     transform: translateY(-5px);
   }
+
   to {
     opacity: 1;
     transform: translateY(0);
@@ -3477,7 +3478,7 @@ body .modal-backdrop.show {
   display: flex;
   justify-content: flex-end;
   gap: 12px;
-  padding: 16px 24px;
+  padding: 16px 128px;
   background: #ffffff;
   border-top: 1px solid #f0f0f0;
   border-radius: 0 0 16px 16px;
@@ -3485,7 +3486,7 @@ body .modal-backdrop.show {
 
 .reports-preview-modal-footer {
   display: flex;
-  justify-content: flex-end;
+  justify-content: center;
   gap: 14px;
   width: 100%;
   padding: 22px 28px;
