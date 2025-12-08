@@ -77,7 +77,7 @@ const TransportContent = ({ formValues, handleChange, cardColor }) => {
     }),
     multiValue: (base, state) => ({
       ...base,
-      backgroundColor: cardColor || '#2A00FF',
+      backgroundColor: "#00368c",
       borderRadius: '6px',
       padding: '2px 4px',
       margin: '0',
@@ -130,7 +130,7 @@ const TransportContent = ({ formValues, handleChange, cardColor }) => {
       color: '#666',
       padding: '4px',
       '&:hover': {
-        color: cardColor || '#2A00FF',
+        color: "#00368c",
       },
     }),
     clearIndicator: (base) => ({
@@ -157,9 +157,9 @@ const TransportContent = ({ formValues, handleChange, cardColor }) => {
     option: (base, state) => ({
       ...base,
       backgroundColor: state.isSelected
-        ? cardColor || '#2A00FF'
+        ? "#00368c"
         : state.isFocused
-          ? 'rgba(42, 0, 255, 0.1)'
+          ? 'rgba(0, 54, 140, 0.1)'
           : '#ffffff',
       color: state.isSelected ? '#ffffff' : '#1a1a1a',
       fontSize: '13px',
@@ -168,7 +168,7 @@ const TransportContent = ({ formValues, handleChange, cardColor }) => {
       margin: '2px 0',
       cursor: 'pointer',
       '&:active': {
-        backgroundColor: cardColor || '#2A00FF',
+        backgroundColor: "#00368c",
         color: '#ffffff',
       },
     }),

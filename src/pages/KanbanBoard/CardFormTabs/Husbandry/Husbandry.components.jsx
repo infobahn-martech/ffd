@@ -3,15 +3,15 @@ import GroupSettingsIcon from "../../../../assets/images/cv.png";
 import { MAIN_TABS, CREW_MANAGEMENT_SUBTABS, MATERIAL_MANAGEMENT_SUBTABS } from "./Husbandry.constants";
 
 // Sub-components
-export const HusbandryTabs = ({ activeMainTab, activeSubTab, onMainTabChange, onSubTabChange, selectedActionTab = null, selectedServices = [], onBackToServiceSelection, cardColor = "#2A00FF" }) => {
+export const HusbandryTabs = ({ activeMainTab, activeSubTab, onMainTabChange, onSubTabChange, selectedActionTab = null, selectedServices = [], onBackToServiceSelection, cardColor = "#00368c" }) => {
 
   // Filter main tabs based on selected services
   const allMainTabs = [
     { id: MAIN_TABS.CREW_MANAGEMENT, label: "Crew Management" },
     { id: MAIN_TABS.MATERIAL_MANAGEMENT, label: "Material Management" },
   ];
-  
-  const mainTabs = selectedServices.length > 0 
+
+  const mainTabs = selectedServices.length > 0
     ? allMainTabs.filter(tab => selectedServices.includes(tab.id))
     : allMainTabs;
 
@@ -21,7 +21,7 @@ export const HusbandryTabs = ({ activeMainTab, activeSubTab, onMainTabChange, on
     subTabs = [
       { id: CREW_MANAGEMENT_SUBTABS.CREW, label: "Crew" },
     ];
-    
+
     // Only show the selected action tab (e.g., Transport) if one is selected
     if (selectedActionTab) {
       const allSubTabs = [
@@ -32,7 +32,7 @@ export const HusbandryTabs = ({ activeMainTab, activeSubTab, onMainTabChange, on
         { id: CREW_MANAGEMENT_SUBTABS.HOTEL, label: "Hotel" },
         { id: CREW_MANAGEMENT_SUBTABS.MEDICAL_SERVICE, label: "Medical service" }
       ];
-      
+
       // Find and add only the selected action tab
       const selectedTab = allSubTabs.find(tab => tab.id === selectedActionTab);
       if (selectedTab) {

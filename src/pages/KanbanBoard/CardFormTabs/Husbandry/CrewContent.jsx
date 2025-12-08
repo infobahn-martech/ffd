@@ -231,7 +231,7 @@ const CrewContent = ({ formValues, handleChange, cardColor, onNavigateToTab }) =
                   viewBox="0 0 24 24"
                   fill="none"
                   xmlns="http://www.w3.org/2000/svg"
-                  style={{ color: cardColor || "#2A00FF" }}
+                  style={{ color: "#00368c" }}
                 >
                   <path
                     d="M12 15V3M12 3L8 7M12 3L16 7"
@@ -295,21 +295,21 @@ const CrewContent = ({ formValues, handleChange, cardColor, onNavigateToTab }) =
                 style={{
                   padding: "4px 12px",
                   borderRadius: "6px",
-                  border: `1px solid ${cardColor || "#2A00FF"}`,
+                  border: `1px solid {"#00368c"}`,
                   backgroundColor: "transparent",
-                  color: cardColor || "#2A00FF",
+                  color: "#00368c",
                   fontSize: "12px",
                   fontWeight: "500",
                   cursor: "pointer",
                   transition: "all 0.2s ease",
                 }}
                 onMouseEnter={(e) => {
-                  e.target.style.backgroundColor = cardColor || "#2A00FF";
+                  e.target.style.backgroundColor = "#00368c";
                   e.target.style.color = "#ffffff";
                 }}
                 onMouseLeave={(e) => {
                   e.target.style.backgroundColor = "transparent";
-                  e.target.style.color = cardColor || "#2A00FF";
+                  e.target.style.color = "#00368c";
                 }}
               >
                 Upload New File
@@ -329,7 +329,7 @@ const CrewContent = ({ formValues, handleChange, cardColor, onNavigateToTab }) =
                     style={{
                       padding: "8px 12px",
                       borderRadius: "6px",
-                      border: `2px solid ${cardColor || "#2A00FF"}`,
+                      border: `2px solid {"#00368c"}`,
                       backgroundColor: "#ffffff",
                       color: "#1a1a1a",
                       fontSize: "13px",
@@ -356,9 +356,9 @@ const CrewContent = ({ formValues, handleChange, cardColor, onNavigateToTab }) =
                 style={{
                   padding: "8px 16px",
                   borderRadius: "6px",
-                  border: `2px solid ${cardColor || "#2A00FF"}`,
-                  backgroundColor: selectedCrewIds.length === displayCrewList.length ? cardColor || "#2A00FF" : "#ffffff",
-                  color: selectedCrewIds.length === displayCrewList.length ? "#ffffff" : cardColor || "#2A00FF",
+                  border: `2px solid {"#00368c"}`,
+                  backgroundColor: selectedCrewIds.length === displayCrewList.length ? "#00368c" : "#ffffff",
+                  color: selectedCrewIds.length === displayCrewList.length ? "#ffffff" : "#00368c",
                   fontSize: "13px",
                   fontWeight: "500",
                   cursor: "pointer",
@@ -366,14 +366,14 @@ const CrewContent = ({ formValues, handleChange, cardColor, onNavigateToTab }) =
                 }}
                 onMouseEnter={(e) => {
                   if (selectedCrewIds.length !== displayCrewList.length) {
-                    e.target.style.backgroundColor = cardColor || "#2A00FF";
+                    e.target.style.backgroundColor = "#00368c";
                     e.target.style.color = "#ffffff";
                   }
                 }}
                 onMouseLeave={(e) => {
                   if (selectedCrewIds.length !== displayCrewList.length) {
                     e.target.style.backgroundColor = "#ffffff";
-                    e.target.style.color = cardColor || "#2A00FF";
+                    e.target.style.color = "#00368c";
                   }
                 }}
               >
@@ -394,7 +394,7 @@ const CrewContent = ({ formValues, handleChange, cardColor, onNavigateToTab }) =
                         width: "18px",
                         height: "18px",
                         cursor: "pointer",
-                        accentColor: cardColor || "#2A00FF",
+                        accentColor: "#00368c",
                       }}
                     />
                   </th>
@@ -424,7 +424,7 @@ const CrewContent = ({ formValues, handleChange, cardColor, onNavigateToTab }) =
                       key={crew.id}
                       style={{
                         backgroundColor: selectedCrewIds.includes(crew.id)
-                          ? hexToRgba(cardColor || "#2A00FF", 0.1)
+                          ? hexToRgba('#00368c', 0.1)
                           : "transparent",
                       }}
                     >
@@ -437,7 +437,7 @@ const CrewContent = ({ formValues, handleChange, cardColor, onNavigateToTab }) =
                             width: "18px",
                             height: "18px",
                             cursor: "pointer",
-                            accentColor: cardColor || "#2A00FF",
+                            accentColor: "#00368c",
                           }}
                         />
                       </td>

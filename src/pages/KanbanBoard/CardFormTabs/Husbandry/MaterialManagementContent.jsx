@@ -332,14 +332,14 @@ const MaterialManagementContent = ({ formValues, handleChange, cardColor }) => {
                             width="40"
                             height="40"
                             rx="8"
-                            stroke={cardColor || "#2A00FF"}
+                            stroke="#00368c"
                             strokeWidth="2"
                             strokeDasharray="4 4"
                             fill="none"
                           />
                           <path
                             d="M24 16V32M24 16L18 22M24 16L30 22M12 36H36"
-                            stroke={cardColor || "#2A00FF"}
+                            stroke="#00368c"
                             strokeWidth="2"
                             strokeLinecap="round"
                             strokeLinejoin="round"
@@ -445,7 +445,7 @@ const MaterialManagementContent = ({ formValues, handleChange, cardColor }) => {
         type="submit"
         form="materialForm"
         className="btn btn-primary"
-        style={{ backgroundColor: cardColor || "#2A00FF" }}
+        style={{ backgroundColor: "#00368c" }}
       >
         Add Material
       </button>
@@ -463,7 +463,7 @@ const MaterialManagementContent = ({ formValues, handleChange, cardColor }) => {
           type="button"
           className="material-add-btn"
           onClick={handleOpenModal}
-          style={{ backgroundColor: cardColor || "#2A00FF" }}
+          style={{ backgroundColor: "#00368c" }}
         >
           + Add
         </button>

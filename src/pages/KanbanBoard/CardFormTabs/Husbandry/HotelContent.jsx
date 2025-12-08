@@ -51,7 +51,7 @@ const HotelContent = ({ formValues, handleChange, cardColor }) => {
     }),
     multiValue: (base, state) => ({
       ...base,
-      backgroundColor: cardColor || '#2A00FF',
+      backgroundColor: "#00368c",
       borderRadius: '6px',
       padding: '2px 4px',
       margin: '0',
@@ -104,7 +104,7 @@ const HotelContent = ({ formValues, handleChange, cardColor }) => {
       color: '#666',
       padding: '4px',
       '&:hover': {
-        color: cardColor || '#2A00FF',
+        color: "#00368c",
       },
     }),
     clearIndicator: (base) => ({
@@ -131,9 +131,9 @@ const HotelContent = ({ formValues, handleChange, cardColor }) => {
     option: (base, state) => ({
       ...base,
       backgroundColor: state.isSelected
-        ? cardColor || '#2A00FF'
+        ? "#00368c"
         : state.isFocused
-          ? 'rgba(42, 0, 255, 0.1)'
+          ? 'rgba(0, 54, 140, 0.1)'
           : '#ffffff',
       color: state.isSelected ? '#ffffff' : '#1a1a1a',
       fontSize: '13px',
@@ -142,7 +142,7 @@ const HotelContent = ({ formValues, handleChange, cardColor }) => {
       margin: '2px 0',
       cursor: 'pointer',
       '&:active': {
-        backgroundColor: cardColor || '#2A00FF',
+        backgroundColor: "#00368c",
         color: '#ffffff',
       },
     }),
@@ -308,14 +308,14 @@ const HotelContent = ({ formValues, handleChange, cardColor }) => {
                             width="40"
                             height="40"
                             rx="8"
-                            stroke={cardColor || "#2A00FF"}
+                            stroke={"#00368c"}
                             strokeWidth="2"
                             strokeDasharray="4 4"
                             fill="none"
                           />
                           <path
                             d="M24 16V32M24 16L18 22M24 16L30 22M12 36H36"
-                            stroke={cardColor || "#2A00FF"}
+                            stroke={"#00368c"}
                             strokeWidth="2"
                             strokeLinecap="round"
                             strokeLinejoin="round"
@@ -359,14 +359,14 @@ const HotelContent = ({ formValues, handleChange, cardColor }) => {
                               >
                                 <path
                                   d="M5 2H11L15 6V16C15 17.1 14.1 18 13 18H5C3.9 18 3 17.1 3 16V4C3 2.9 3.9 2 5 2Z"
-                                  stroke={cardColor || "#2A00FF"}
+                                  stroke={"#00368c"}
                                   strokeWidth="1.5"
                                   strokeLinecap="round"
                                   strokeLinejoin="round"
                                 />
                                 <path
                                   d="M11 2V6H15"
-                                  stroke={cardColor || "#2A00FF"}
+                                  stroke={"#00368c"}
                                   strokeWidth="1.5"
                                   strokeLinecap="round"
                                   strokeLinejoin="round"

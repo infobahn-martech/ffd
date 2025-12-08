@@ -94,7 +94,7 @@ function Husbandry({ card, formValues, handleChange }) {
     CREW_MANAGEMENT_SUBTABS.CREW
   );
   const [selectedActionTab, setSelectedActionTab] = useState(null);
-  const cardColor = card?.color || "#2A00FF";
+  const cardColor = "#00368c"; // Fixed color for all buttons, effects, and backgrounds
 
 
   const handleServiceSelect = useCallback((tab) => {
@@ -278,14 +278,14 @@ function Husbandry({ card, formValues, handleChange }) {
   // Show service selection if no service has been selected
   if (!serviceSelected) {
     return (
-      <div className="operation-wrapper" style={{ "--card-color": cardColor }}>
+      <div className="operation-wrapper husbandry-wrapper" style={{ "--card-color": cardColor }}>
         <ServiceSelection onSelectService={handleServiceSelect} cardColor={cardColor} />
       </div>
     );
   }
 
   return (
-    <div className="operation-wrapper" style={{ "--card-color": cardColor }}>
+    <div className="operation-wrapper husbandry-wrapper" style={{ "--card-color": cardColor }}>
       <div className="operation-content-container">
         <HusbandryTabs
           activeMainTab={activeMainTab}

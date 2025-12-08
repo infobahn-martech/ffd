@@ -12,6 +12,31 @@
   --card-color: var(--card-color, #2A00FF);
 }
 
+/* Husbandry specific: Use #00368c as default */
+.operation-wrapper.husbandry-wrapper {
+  --card-color: #00368c;
+  
+  /* Override all buttons to use #00368c */
+  .checklist-btn-primary,
+  .btn-primary,
+  button[class*="btn"] {
+    background: #00368c !important;
+    border-color: #00368c !important;
+    color: #ffffff !important;
+    
+    &:hover {
+      background: #002d73 !important;
+      border-color: #002d73 !important;
+      box-shadow: 0 4px 8px rgba(0, 54, 140, 0.3) !important;
+    }
+    
+    &:active {
+      background: #00255c !important;
+      border-color: #00255c !important;
+    }
+  }
+}
+
 /* ==========================================================
    HUSBANDRY SERVICE SELECTION
    ========================================================== */
@@ -63,10 +88,10 @@
 }
 
 .husbandry-service-option:hover {
-  border-color: var(--card-color, #2A00FF);
-  background: linear-gradient(135deg, rgba(42, 0, 255, 0.03) 0%, rgba(42, 0, 255, 0.01) 100%);
+  border-color: var(--card-color, #00368c);
+  background: linear-gradient(135deg, rgba(0, 54, 140, 0.03) 0%, rgba(0, 54, 140, 0.01) 100%);
   transform: translateY(-4px);
-  box-shadow: 0 8px 24px rgba(42, 0, 255, 0.15);
+  box-shadow: 0 8px 24px rgba(0, 54, 140, 0.15);
 }
 
 .husbandry-service-option:active {
@@ -74,7 +99,7 @@
 }
 
 .husbandry-service-option-icon {
-  color: var(--card-color, #2A00FF);
+  color: var(--card-color, #00368c);
   display: flex;
   align-items: center;
   justify-content: center;
@@ -93,7 +118,7 @@
 }
 
 .husbandry-service-option:hover .husbandry-service-option-label {
-  color: var(--card-color, #2A00FF);
+  color: var(--card-color, #00368c);
 }
 
 @media (max-width: 992px) {
@@ -130,7 +155,7 @@
   gap: 6px;
   background: transparent;
   border: none;
-  color: var(--card-color, #2A00FF);
+  color: var(--card-color, #00368c);
   font-size: 11px;
   font-weight: 500;
   cursor: pointer;
@@ -146,8 +171,8 @@
 }
 
 .husbandry-back-link-small:hover {
-  background: rgba(42, 0, 255, 0.08);
-  color: var(--card-color, #2A00FF);
+  background: rgba(0, 54, 140, 0.08);
+  color: var(--card-color, #00368c);
 }
 
 .husbandry-back-link-small:active {
@@ -201,11 +226,11 @@
 .op-tab {
   padding: 12px 16px;
   border: none;
-  background: transparent;
+  background: #f0f0f0;
   font-size: 13px;
   font-weight: 500;
-  color: #666;
-  border-radius: 6px;
+  color: #333333;
+  border-radius: 20px;
   cursor: pointer;
   transition: all 0.2s ease;
   position: relative;
@@ -219,15 +244,15 @@
 }
 
 .op-tab:hover {
-  background: rgba(42, 0, 255, 0.08);
-  color: #333;
+  background: #e0e7ff;
+  color: #333333;
 }
 
 .op-tab.active {
-  background: var(--card-color, #2A00FF);
-  color: #ffffff;
-  font-weight: 600;
-  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+  background: #e0e7ff;
+  color: #333333;
+  font-weight: 500;
+  box-shadow: none;
 }
 
 .op-submenu {
@@ -247,18 +272,21 @@
   font-size: 12px;
   font-weight: 500;
   margin-left: 0;
+  background: #f0f0f0;
+  color: #333333;
+  border-radius: 20px;
 }
 
 .op-tab-sub:hover {
-  background: rgba(42, 0, 255, 0.1);
-  color: #333;
+  background: #e0e7ff;
+  color: #333333;
 }
 
 .op-tab-sub.active {
-  background: var(--card-color, #2A00FF);
-  color: #ffffff;
-  font-weight: 600;
-  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+  background: #e0e7ff;
+  color: #333333;
+  font-weight: 500;
+  box-shadow: none;
 }
 
 .operation-right {
@@ -268,6 +296,26 @@
   min-height: 0;
   background: #ffffff;
   padding: 0;
+
+  .cf-section-title {
+    color: #000000;
+    transition: color 0.2s ease;
+    cursor: default;
+  }
+
+  .cf-section-title:hover {
+    color: #666666;
+  }
+
+  h1, h2, h3, h4, h5, h6 {
+    color: #000000;
+    transition: color 0.2s ease;
+    cursor: default;
+  }
+
+  h1:hover, h2:hover, h3:hover, h4:hover, h5:hover, h6:hover {
+    color: #666666;
+  }
 }
 
 .operation-right .crew-content-wrapper {
@@ -285,8 +333,14 @@
 .operation-content-box h2 {
   font-size: 18px;
   font-weight: 600;
-  color: #333;
+  color: #000000;
   margin-bottom: 12px;
+  transition: color 0.2s ease;
+  cursor: default;
+}
+
+.operation-content-box h2:hover {
+  color: #666666;
 }
 
 .operation-content-box p {
@@ -319,21 +373,32 @@
 .form-group-title {
   font-size: 13px;
   font-weight: 600;
-  color: var(--card-color, #2A00FF);
+  color: #000000;
   margin: 0 0 16px 0;
   text-transform: uppercase;
   letter-spacing: 0.5px;
   display: flex;
   align-items: center;
   gap: 8px;
+  transition: color 0.2s ease;
+  cursor: default;
+}
+
+.form-group-title:hover {
+  color: #666666;
 }
 
 .form-group-title::before {
   content: "";
   width: 3px;
   height: 16px;
-  background: var(--card-color, #2A00FF);
+  background: #000000;
   border-radius: 2px;
+  transition: background 0.2s ease;
+}
+
+.form-group-title:hover::before {
+  background: #666666;
 }
 
 /* ==========================================================
@@ -348,9 +413,14 @@
   display: block;
   font-size: 12px;
   font-weight: 500;
-  color: #333;
+  color: #000000;
   margin-bottom: 6px;
   letter-spacing: 0.01em;
+  transition: color 0.2s ease;
+}
+
+.cf-field:hover label {
+  color: #666666;
 }
 
 .cf-input {
@@ -1077,7 +1147,7 @@
 }
 
 .cf-link-btn {
-  background: var(--card-color, #2A00FF);
+  background: #00368c;
   border: none;
   padding: 8px 16px;
   border-radius: 6px;
@@ -1086,13 +1156,14 @@
   color: #ffffff;
   cursor: pointer;
   transition: all 0.2s ease;
-  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.15);
+  box-shadow: 0 2px 4px rgba(0, 54, 140, 0.3);
 }
 
 .cf-link-btn:hover {
   transform: translateY(-1px);
   opacity: 0.9;
-  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+  box-shadow: 0 4px 8px rgba(0, 54, 140, 0.4);
+  background: #002d75;
 }
 
 .cf-link-btn:active {
@@ -1105,7 +1176,7 @@
 }
 
 .cf-add-btn {
-  background: var(--card-color, #2A00FF);
+  background: #00368c;
   border: none;
   padding: 8px 16px;
   border-radius: 6px;
@@ -1114,14 +1185,15 @@
   color: #ffffff;
   cursor: pointer;
   transition: all 0.2s ease;
-  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.15);
+  box-shadow: 0 2px 4px rgba(0, 54, 140, 0.3);
   margin-bottom: 12px;
 }
 
 .cf-add-btn:hover {
   transform: translateY(-1px);
   opacity: 0.9;
-  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+  box-shadow: 0 4px 8px rgba(0, 54, 140, 0.4);
+  background: #002d75;
 }
 
 .cf-add-btn:active {
