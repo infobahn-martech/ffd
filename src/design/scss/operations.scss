@@ -717,15 +717,26 @@
 }
 
 /* Modern Document Upload Zone Styles */
+.crew-upload-section {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: calc(100vh - 300px);
+  padding: 40px 20px;
+  width: 100%;
+}
+
 .document-upload-zone {
   position: relative;
-  min-height: 180px;
+  min-height: 200px;
+  max-width: 600px;
+  width: 100%;
   border: 2px dashed #e2e2ea;
   border-radius: 12px;
   background: #fafbff;
   cursor: pointer;
   transition: all 0.3s ease;
-  padding: 24px;
+  padding: 40px 24px;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -734,6 +745,8 @@
 .document-upload-zone:hover {
   border-color: var(--card-color, #2A00FF);
   background: #f8f9ff;
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
 }
 
 .document-upload-zone.dragging {
@@ -741,6 +754,7 @@
   background: rgba(42, 0, 255, 0.05);
   border-style: solid;
   box-shadow: 0 0 0 4px rgba(42, 0, 255, 0.1);
+  transform: scale(1.02);
 }
 
 .file-input-hidden {
@@ -758,9 +772,14 @@
 }
 
 .upload-icon-wrapper {
-  margin-bottom: 16px;
+  margin-bottom: 20px;
   display: flex;
   justify-content: center;
+}
+
+.upload-icon-wrapper svg {
+  width: 64px;
+  height: 64px;
 }
 
 .upload-text-content {
@@ -770,10 +789,11 @@
 }
 
 .upload-main-text {
-  font-size: 14px;
+  font-size: 16px;
   font-weight: 500;
   color: #333;
   margin: 0;
+  line-height: 1.5;
 }
 
 .upload-link {
@@ -784,9 +804,9 @@
 }
 
 .upload-sub-text {
-  font-size: 12px;
+  font-size: 13px;
   color: #999;
-  margin: 0;
+  margin: 8px 0 0 0;
 }
 
 /* Uploaded Files List Styles */
