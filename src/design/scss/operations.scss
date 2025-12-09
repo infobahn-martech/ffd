@@ -839,6 +839,37 @@
   width: 100%;
 }
 
+.attachment-upload-section {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 200px;
+  padding: 20px;
+  width: 100%;
+}
+
+.attachment-list-wrapper {
+  width: 100%;
+}
+
+.attachment-list-wrapper .document-upload-zone {
+  --card-color: #00368c;
+}
+
+.attachment-list-wrapper .upload-link {
+  color: #00368c;
+}
+
+.attachment-list-wrapper .document-upload-zone:hover {
+  border-color: #00368c;
+}
+
+.attachment-list-wrapper .document-upload-zone.dragging {
+  border-color: #00368c;
+  background: rgba(0, 54, 140, 0.05);
+  box-shadow: 0 0 0 4px rgba(0, 54, 140, 0.1);
+}
+
 .document-upload-zone {
   position: relative;
   min-height: 200px;

@@ -1,4 +1,4 @@
-import { useState, useCallback } from "react";
+import { useState, useCallback, useRef } from "react";
 import PropTypes from "prop-types";
 import Select from "react-select";
 import GroupSettingsIcon from "../../../assets/images/cv.png";
@@ -379,40 +379,91 @@ EmptySection.propTypes = {
   onButtonClick: PropTypes.func,
 };
 
-const AttachmentsList = ({ attachments = [], onAdd, onRemove }) => {
-  if (attachments.length === 0) {
-    return (
-      <EmptySection
-        message="No attachments added."
-        buttonText="+ Add attachment"
-        onButtonClick={onAdd}
-      />
-    );
-  }
-
+const AttachmentsList = ({ attachments = [], onAdd, onRemove, cardColor, isDragging, onDragEnter, onDragLeave, onDragOver, onDrop, fileInputRef, onFileInputChange }) => {
   return (
-    <div className="cf-list-container">
-      <button 
-        className="cf-add-btn" 
-        onClick={onAdd} 
-        type="button"
-      >
-        + Add attachment
-      </button>
-      <div className="cf-list-items">
-        {attachments.map((item, index) => (
-          <div key={index} className="cf-list-item">
-            <span>{item.name || item}</span>
-            <button
-              className="cf-remove-btn"
-              onClick={() => onRemove(index)}
-              type="button"
-            >
-              ×
-            </button>
+    <div className="attachment-list-wrapper">
+      {/* Always show drag and drop zone */}
+      <div className="attachment-upload-section">
+        <div
+          className={`document-upload-zone ${isDragging ? "dragging" : ""}`}
+          onDragEnter={onDragEnter}
+          onDragOver={onDragOver}
+          onDragLeave={onDragLeave}
+          onDrop={onDrop}
+          onClick={() => fileInputRef.current?.click()}
+          style={{ "--card-color": "#00368c" }}
+        >
+          <input
+            ref={fileInputRef}
+            type="file"
+            className="file-input-hidden"
+            accept="*/*"
+            multiple
+            onChange={onFileInputChange}
+          />
+          <div className="upload-zone-content">
+            <div className="upload-icon-wrapper">
+              <svg
+                width="64"
+                height="64"
+                viewBox="0 0 24 24"
+                fill="none"
+                xmlns="http://www.w3.org/2000/svg"
+                style={{ color: "#00368c" }}
+              >
+                <path
+                  d="M12 15V3M12 3L8 7M12 3L16 7"
+                  stroke="currentColor"
+                  strokeWidth="2"
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                />
+                <path
+                  d="M2 17L2 18C2 19.1046 2.89543 20 4 20L20 20C21.1046 20 22 19.1046 22 18L22 17"
+                  stroke="currentColor"
+                  strokeWidth="2"
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                />
+                <path
+                  d="M7 11L12 6L17 11"
+                  stroke="currentColor"
+                  strokeWidth="2"
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                />
+              </svg>
+            </div>
+            <div className="upload-text-content">
+              <p className="upload-main-text">
+                Drag and drop your files here, or{" "}
+                <span className="upload-link">click to browse</span>
+              </p>
+              <p className="upload-sub-text">Supports all file formats</p>
+            </div>
           </div>
-        ))}
+        </div>
       </div>
+
+      {/* Show attachments list if there are any */}
+      {attachments.length > 0 && (
+        <div className="cf-list-container" style={{ marginTop: "20px" }}>
+          <div className="cf-list-items">
+            {attachments.map((item, index) => (
+              <div key={index} className="cf-list-item">
+                <span>{item.name || item}</span>
+                <button
+                  className="cf-remove-btn"
+                  onClick={() => onRemove(index)}
+                  type="button"
+                >
+                  ×
+                </button>
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
     </div>
   );
 };
@@ -421,6 +472,14 @@ AttachmentsList.propTypes = {
   attachments: PropTypes.array,
   onAdd: PropTypes.func,
   onRemove: PropTypes.func,
+  cardColor: PropTypes.string,
+  isDragging: PropTypes.bool,
+  onDragEnter: PropTypes.func,
+  onDragLeave: PropTypes.func,
+  onDragOver: PropTypes.func,
+  onDrop: PropTypes.func,
+  fileInputRef: PropTypes.object,
+  onFileInputChange: PropTypes.func,
 };
 
 const LinksList = ({ links = [], onAdd, onRemove }) => {
@@ -466,11 +525,71 @@ LinksList.propTypes = {
 };
 
 const PreArrivalContent = ({ formValues, handleChange, ownerInitial, cardUser, cardColor, onAddAttachment, onRemoveAttachment, onAddLink, onRemoveLink }) => {
+  const [isDragging, setIsDragging] = useState(false);
+  const fileInputRef = useRef(null);
+
   const typeOfCallOptions = [
     { value: "Import", label: "Import" },
     { value: "Export", label: "Export" },
     { value: "Domestic", label: "Domestic" },
   ];
+
+  // Handle drag and drop
+  const handleDragEnter = (e) => {
+    e.preventDefault();
+    e.stopPropagation();
+    setIsDragging(true);
+  };
+
+  const handleDragLeave = (e) => {
+    e.preventDefault();
+    e.stopPropagation();
+    setIsDragging(false);
+  };
+
+  const handleDragOver = (e) => {
+    e.preventDefault();
+    e.stopPropagation();
+  };
+
+  const handleDrop = (e) => {
+    e.preventDefault();
+    e.stopPropagation();
+    setIsDragging(false);
+
+    const files = Array.from(e.dataTransfer.files || []);
+    if (files.length > 0 && onAddAttachment) {
+      files.forEach((file) => {
+        const attachment = {
+          name: file.name,
+          file: file,
+          size: file.size,
+          type: file.type,
+        };
+        onAddAttachment(attachment);
+      });
+    }
+  };
+
+  // Handle file input change
+  const handleFileInputChange = (e) => {
+    const files = Array.from(e.target.files || []);
+    if (files.length > 0 && onAddAttachment) {
+      files.forEach((file) => {
+        const attachment = {
+          name: file.name,
+          file: file,
+          size: file.size,
+          type: file.type,
+        };
+        onAddAttachment(attachment);
+      });
+    }
+    // Reset input value to allow selecting the same file again
+    if (fileInputRef.current) {
+      fileInputRef.current.value = "";
+    }
+  };
 
   // Handle save
   const handleSave = () => {
@@ -560,6 +679,14 @@ const PreArrivalContent = ({ formValues, handleChange, ownerInitial, cardUser, c
               attachments={formValues.attachments || []}
               onAdd={onAddAttachment}
               onRemove={onRemoveAttachment}
+              cardColor={cardColor}
+              isDragging={isDragging}
+              onDragEnter={handleDragEnter}
+              onDragLeave={handleDragLeave}
+              onDragOver={handleDragOver}
+              onDrop={handleDrop}
+              fileInputRef={fileInputRef}
+              onFileInputChange={handleFileInputChange}
             />
           </FormSection>
 
@@ -998,15 +1125,19 @@ function Operation({ card, formValues, handleChange, ownerInitial }) {
     setActiveOperationTab(tab);
   }, []);
 
-  const handleAddAttachment = useCallback(() => {
-    // TODO: Implement attachment add logic
-    console.log("Add attachment");
-  }, []);
+  const handleAddAttachment = useCallback((attachment) => {
+    const currentAttachments = formValues.attachments || [];
+    const updatedAttachments = [...currentAttachments, attachment];
+    const syntheticEvent = { target: { value: updatedAttachments } };
+    handleChange("attachments")(syntheticEvent);
+  }, [formValues.attachments, handleChange]);
 
   const handleRemoveAttachment = useCallback((index) => {
-    // TODO: Implement attachment remove logic
-    console.log("Remove attachment", index);
-  }, []);
+    const currentAttachments = formValues.attachments || [];
+    const updatedAttachments = currentAttachments.filter((_, i) => i !== index);
+    const syntheticEvent = { target: { value: updatedAttachments } };
+    handleChange("attachments")(syntheticEvent);
+  }, [formValues.attachments, handleChange]);
 
   const handleAddLink = useCallback(() => {
     // TODO: Implement link add logic
