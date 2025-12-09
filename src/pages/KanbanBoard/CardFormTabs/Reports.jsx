@@ -3,7 +3,7 @@ import ReportsList from "./Reports/ReportsList";
 import "../../../design/scss/operations.scss";
 
 function Reports({ card, formValues, handleChange }) {
-  const cardColor = card?.color || "#2A00FF";
+  const cardColor = "#000000";
 
   return (
     <div className="operation-wrapper" style={{ "--card-color": cardColor }}>
