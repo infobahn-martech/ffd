@@ -1114,7 +1114,6 @@ function Checklist({ card, formValues, handleChange }) {
                   });
                   // Add your save logic here
                 }}
-                style={{ "--card-color": cardColor }}
               >
                 Save
               </button>

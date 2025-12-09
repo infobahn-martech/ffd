@@ -366,7 +366,6 @@ const EmptySection = ({ message, buttonText, onButtonClick }) => {
         className="cf-link-btn" 
         onClick={onButtonClick} 
         type="button"
-        style={{ backgroundColor: "rgb(62 94 189)", borderColor: "rgb(62 94 189)", color: "#ffffff" }}
       >
         {buttonText}
       </button>
@@ -397,7 +396,6 @@ const AttachmentsList = ({ attachments = [], onAdd, onRemove }) => {
         className="cf-add-btn" 
         onClick={onAdd} 
         type="button"
-        style={{ backgroundColor: "rgb(62 94 189)", borderColor: "rgb(62 94 189)" }}
       >
         + Add attachment
       </button>
@@ -578,7 +576,6 @@ const PreArrivalContent = ({ formValues, handleChange, ownerInitial, cardUser, c
               type="button"
               className="checklist-btn-primary"
               onClick={handleSave}
-              style={{ backgroundColor: "rgb(62 94 189)", borderColor: "rgb(62 94 189)" }}
             >
               Save
             </button>
@@ -827,7 +824,6 @@ const ArrivalContent = ({ formValues, handleChange, cardColor, onAddAttachment, 
               type="button"
               className="checklist-btn-primary"
               onClick={handleSave}
-              style={{ backgroundColor: "rgb(62 94 189)", borderColor: "rgb(62 94 189)" }}
             >
               Save
             </button>
@@ -963,7 +959,6 @@ const DepartureContent = ({ formValues, handleChange, cardColor, onAddAttachment
               type="button"
               className="checklist-btn-primary"
               onClick={handleSave}
-              style={{ backgroundColor: "rgb(62 94 189)", borderColor: "rgb(62 94 189)" }}
             >
               Save
             </button>

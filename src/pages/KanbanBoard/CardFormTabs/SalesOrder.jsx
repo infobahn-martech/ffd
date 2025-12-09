@@ -2,7 +2,7 @@ import PropTypes from "prop-types";
 import SalesOrderList from "./SalesOrder/SalesOrderList";
 
 function SalesOrder({ card, formValues, handleChange }) {
-  const cardColor = card?.color || "#2A00FF";
+  const cardColor = "#e2e6ff";
 
   return (
     <div className="operation-wrapper" style={{ "--card-color": cardColor }}>

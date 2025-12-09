@@ -152,7 +152,7 @@ const SalesOrderList = ({ formValues, handleChange, cardColor }) => {
         const qty = parseFloat(newQty) || 0;
         const unitPrice = parseFloat(order.unitPrice) || 0;
         const vatPercentage = parseFloat(order.vatPercentage) || 0;
-        
+
         const totalUnitAmount = qty * unitPrice;
         const vatAmount = (totalUnitAmount * vatPercentage) / 100;
         const totalInSARWithVAT = totalUnitAmount + vatAmount;
@@ -216,9 +216,9 @@ const SalesOrderList = ({ formValues, handleChange, cardColor }) => {
     }
 
     const currentList = salesOrderList.length > 0 ? salesOrderList : [];
-    
+
     // Generate a unique ID for the new item
-    const maxId = currentList.length > 0 
+    const maxId = currentList.length > 0
       ? Math.max(...currentList.map(item => item.id || 0))
       : 0;
     const newId = maxId + 1;
@@ -236,7 +236,7 @@ const SalesOrderList = ({ formValues, handleChange, cardColor }) => {
     const qty = parseFloat(newItemForm.qty) || 0;
     const unitPrice = parseFloat(newItemForm.unitPrice) || 0;
     const vatPercentage = parseFloat(newItemForm.vatPercentage) || 0;
-    
+
     const totalUnitAmount = qty * unitPrice;
     const vatAmount = (totalUnitAmount * vatPercentage) / 100;
     const totalInSARWithVAT = totalUnitAmount + vatAmount;
@@ -373,27 +373,10 @@ const SalesOrderList = ({ formValues, handleChange, cardColor }) => {
         </h3>
         <button
           type="button"
-          onClick={handleAddNewItem}
           className="sales-order-add-button"
-          style={{
-            backgroundColor: cardColor,
-            color: "#fff",
-            border: "none",
-            borderRadius: "4px",
-            padding: "8px 16px",
-            fontSize: "14px",
-            fontWeight: "500",
-            cursor: "pointer",
-            display: "flex",
-            alignItems: "center",
-            gap: "8px",
-            transition: "opacity 0.2s",
-          }}
-          onMouseEnter={(e) => (e.target.style.opacity = "0.9")}
-          onMouseLeave={(e) => (e.target.style.opacity = "1")}
+          onClick={handleAddNewItem}
         >
-          <span>+</span>
-          <span>Add Item</span>
+          + Add Item
         </button>
       </div>
 
@@ -551,8 +534,8 @@ const SalesOrderList = ({ formValues, handleChange, cardColor }) => {
               <button
                 type="button"
                 onClick={handleSaveNewItem}
-                className="sales-order-add-form-save"
-                style={{ backgroundColor: cardColor }}
+                className="btn btn-primary sales-order-add-form-save"
+                style={{ backgroundColor: "#00368c" }}
               >
                 Save
               </button>
@@ -562,7 +545,7 @@ const SalesOrderList = ({ formValues, handleChange, cardColor }) => {
       )}
 
       <div className="table-wrapper table-responsive sales-order-table-container">
-        <table className="table table-striped sales-order-table" style={{ "--card-color": cardColor }}>
+        <table className="table table-striped sales-order-table" style={{ "--card-color": "#e2e6ff" }}>
           <thead>
             <tr>
               <th>LinedItem Code</th>
@@ -591,7 +574,7 @@ const SalesOrderList = ({ formValues, handleChange, cardColor }) => {
               return (
                 <React.Fragment key={callFile}>
                   {/* Accordion header row */}
-                  <tr 
+                  <tr
                     className="sales-order-accordion-header-row"
                     onClick={() => toggleCallFileAccordion(callFile)}
                     style={{ cursor: "pointer", backgroundColor: isExpanded ? "rgba(42, 0, 255, 0.05)" : "#ffffff" }}
@@ -599,8 +582,8 @@ const SalesOrderList = ({ formValues, handleChange, cardColor }) => {
                     <td colSpan="10" style={{ padding: "12px 16px" }}>
                       <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between" }}>
                         <div style={{ display: "flex", alignItems: "center", gap: "12px" }}>
-                          <span 
-                            style={{ 
+                          <span
+                            style={{
                               transform: isExpanded ? "rotate(90deg)" : "rotate(0deg)",
                               transition: "transform 0.2s",
                               display: "inline-block",
@@ -614,8 +597,8 @@ const SalesOrderList = ({ formValues, handleChange, cardColor }) => {
                           <span style={{ fontWeight: "600", color: "#1a1a1a" }}>
                             Call File: {callFile}
                           </span>
-                          <span style={{ 
-                            fontSize: "12px", 
+                          <span style={{
+                            fontSize: "12px",
                             color: "#666",
                             backgroundColor: "rgba(42, 0, 255, 0.1)",
                             padding: "2px 8px",
@@ -624,7 +607,7 @@ const SalesOrderList = ({ formValues, handleChange, cardColor }) => {
                             {orders.length} item{orders.length > 1 ? "s" : ""}
                           </span>
                         </div>
-                        <div style={{ fontWeight: "600", color: cardColor }}>
+                        <div style={{ fontWeight: "600", color: "rgb(120, 120, 120)" }}>
                           Total: {formatCurrencySAR(groupTotal)}
                         </div>
                       </div>

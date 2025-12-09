@@ -63,7 +63,7 @@
   align-items: center;
   gap: 10px;
   padding-bottom: 8px;
-  border-bottom: 2px solid var(--card-color, #2A00FF);
+  // border-bottom: 2px solid #1a1a1a;
   margin-bottom: 4px;
 }
 
@@ -233,8 +233,8 @@
 }
 
 .attachment-action-btn.download:hover {
-  background: var(--card-color, #2A00FF);
-  color: #ffffff;
+  // background: var(--card-color, #2A00FF);
+  color: #b0b0b0;
 }
 
 .attachment-action-btn.delete {

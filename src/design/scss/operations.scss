@@ -39,20 +39,27 @@
 /* Operation tab specific: Use rgb(62 94 189) for all buttons */
 .operation-wrapper:not(.husbandry-wrapper) {
   .checklist-btn-primary {
-    background: rgb(62 94 189) !important;
-    border-color: rgb(62 94 189) !important;
-    color: #ffffff !important;
-    box-shadow: 0 2px 6px rgba(62, 94, 189, 0.3) !important;
+    background: #e2e6ff !important;
+    border: none !important;
+    padding: 10px 20px !important;
+    border-radius: 8px !important;
+    font-size: 13px !important;
+    font-weight: 600 !important;
+    color: #000000 !important;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+    margin: 0;
 
-    &:hover {
-      background: rgb(49 75 151) !important;
-      border-color: rgb(49 75 151) !important;
-      box-shadow: 0 6px 16px rgba(62, 94, 189, 0.4) !important;
+    &:hover,
+    &:focus,
+    &:active {
+      transform: translateY(-1px);
+      opacity: 0.9;
     }
 
     &:active {
-      background: rgb(43 65 134) !important;
-      border-color: rgb(43 65 134) !important;
+      transform: translateY(0);
     }
   }
 }
@@ -842,7 +849,7 @@
   background: #fafbff;
   cursor: pointer;
   transition: all 0.3s ease;
-  padding: 40px 24px;
+  padding: 40px 19px;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -978,8 +985,8 @@
 }
 
 .file-item:hover {
-  border-color: var(--card-color, #2A00FF);
-  box-shadow: 0 2px 8px rgba(42, 0, 255, 0.1);
+  border-color: #e2e6ff;
+  box-shadow: 0 2px 8px #e2e6ff;
   transform: translateY(-1px);
 }
 
@@ -1057,7 +1064,6 @@
   background: #ff3e3e;
   color: #ffffff;
   transform: translateY(-1px);
-  box-shadow: 0 2px 6px rgba(255, 62, 62, 0.3);
 }
 
 .btn-remove-files:active {
@@ -1177,35 +1183,22 @@
 }
 
 .cf-link-btn {
-  background: #00368c;
+  background: #e2e6ff !important;
   border: none;
-  padding: 8px 16px;
-  border-radius: 6px;
-  font-size: 12px;
-  font-weight: 500;
-  color: #ffffff;
+  padding: 10px 20px;
+  border-radius: 8px;
+  font-size: 13px;
+  font-weight: 600;
+  color: #000000;
   cursor: pointer;
   transition: all 0.2s ease;
-  box-shadow: 0 2px 4px rgba(0, 54, 140, 0.3);
-}
-
-/* Operation tab specific: Use rgb(62 94 189) for all buttons */
-.operation-wrapper:not(.husbandry-wrapper) .cf-link-btn {
-  background: rgb(62 94 189);
-  box-shadow: 0 2px 4px rgba(62, 94, 189, 0.3);
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+  margin: 0;
 }
 
 .cf-link-btn:hover {
   transform: translateY(-1px);
   opacity: 0.9;
-  box-shadow: 0 4px 8px rgba(0, 54, 140, 0.4);
-  background: #002d75;
-}
-
-/* Operation tab specific: Use rgb(62 94 189) for hover state */
-.operation-wrapper:not(.husbandry-wrapper) .cf-link-btn:hover {
-  background: rgb(49 75 151);
-  box-shadow: 0 4px 8px rgba(62, 94, 189, 0.4);
 }
 
 .cf-link-btn:active {
@@ -1218,36 +1211,23 @@
 }
 
 .cf-add-btn {
-  background: #00368c;
+  background: #e2e6ff !important;
   border: none;
-  padding: 8px 16px;
-  border-radius: 6px;
-  font-size: 12px;
-  font-weight: 500;
-  color: #ffffff;
+  padding: 10px 20px;
+  border-radius: 8px;
+  font-size: 13px;
+  font-weight: 600;
+  color: #000000;
   cursor: pointer;
   transition: all 0.2s ease;
-  box-shadow: 0 2px 4px rgba(0, 54, 140, 0.3);
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+  margin: 0;
   margin-bottom: 12px;
-}
-
-/* Operation tab specific: Use rgb(62 94 189) for all buttons */
-.operation-wrapper:not(.husbandry-wrapper) .cf-add-btn {
-  background: rgb(62 94 189);
-  box-shadow: 0 2px 4px rgba(62, 94, 189, 0.3);
 }
 
 .cf-add-btn:hover {
   transform: translateY(-1px);
   opacity: 0.9;
-  box-shadow: 0 4px 8px rgba(0, 54, 140, 0.4);
-  background: #002d75;
-}
-
-/* Operation tab specific: Use rgb(62 94 189) for hover state */
-.operation-wrapper:not(.husbandry-wrapper) .cf-add-btn:hover {
-  background: rgb(49 75 151);
-  box-shadow: 0 4px 8px rgba(62, 94, 189, 0.4);
 }
 
 .cf-add-btn:active {
@@ -1695,7 +1675,6 @@
 
 .material-add-btn:hover {
   transform: translateY(-1px);
-  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.15);
   opacity: 0.9;
 }
 
@@ -1881,6 +1860,32 @@
   display: inline-block;
 }
 
+.sales-order-add-button {
+  background: #e2e6ff !important;
+  border: none;
+  padding: 10px 20px;
+  border-radius: 8px;
+  font-size: 13px;
+  font-weight: 600;
+  color: #000000;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin: 0;
+}
+
+.sales-order-add-button:hover {
+  transform: translateY(-1px);
+  opacity: 0.9;
+}
+
+.sales-order-add-button:active {
+  transform: translateY(0);
+}
+
 /* Summary Section Styles */
 .sales-order-summary-section {
   margin: 20px 22px;
@@ -1978,7 +1983,7 @@
 .sales-order-summary-total {
   font-size: 16px;
   font-weight: 700;
-  color: var(--card-color, #2A00FF);
+  color: #2c3649;
 }
 
 .sales-order-table-container {
@@ -2109,10 +2114,13 @@
 
 .sales-order-table-container .table.sales-order-table thead th {
   background: var(--card-color, #2A00FF) !important;
-  color: #ffffff;
+  color: #3e3633;
   font-weight: 600;
   font-size: 12px;
   text-transform: uppercase;
+  letter-spacing: 0.5px;
+  padding: 16px;
+  border: none;
   letter-spacing: 0.5px;
   padding: 16px;
   border: none;
@@ -2141,12 +2149,12 @@
 }
 
 .sales-order-table-cell:hover {
-  color: var(--card-color, #2A00FF);
+  color: rgb(120, 120, 120);
 }
 
 .sales-order-table-cell-total {
   font-weight: 600;
-  color: var(--card-color, #2A00FF);
+  color: rgb(120, 120, 120);
 }
 
 .sales-order-date {
@@ -2224,7 +2232,7 @@
 }
 
 .sales-order-table tbody tr:hover td {
-  background: rgba(42, 0, 255, 0.03);
+  background: rgb(249 249 255);
 }
 
 .sales-order-table tbody tr:last-child td {
@@ -2383,8 +2391,6 @@
   font-weight: 600;
   cursor: pointer;
   transition: all 0.2s ease;
-  text-transform: uppercase;
-  letter-spacing: 0.5px;
 }
 
 .sales-order-add-form-cancel {
@@ -2403,18 +2409,12 @@
 
 .sales-order-add-form-save {
   color: #ffffff;
-  box-shadow: 0 2px 8px rgba(42, 0, 255, 0.3);
 }
 
-.sales-order-add-form-save:hover {
-  opacity: 0.95;
-  transform: translateY(-2px);
-  box-shadow: 0 4px 12px rgba(42, 0, 255, 0.4);
-}
-
+.sales-order-add-form-save:hover,
+.sales-order-add-form-save:focus,
 .sales-order-add-form-save:active {
-  transform: translateY(0);
-  box-shadow: 0 2px 4px rgba(42, 0, 255, 0.3);
+  opacity: 0.9;
 }
 
 @media (max-width: 1024px) {
@@ -3976,8 +3976,11 @@ body .material-management-modal {
 
   /* File upload buttons */
   .add-more-files-btn {
+    background-color: #e2e6ff !important;
     border-color: #e2e6ff !important;
-    color: #e2e6ff !important;
+    border-width: 1.5px !important;
+    color: #1a1a1a !important;
+    font-weight: 500 !important;
 
     &:hover {
       background-color: #e2e6ff !important;
@@ -3988,8 +3991,11 @@ body .material-management-modal {
   }
 
   .btn-remove-files {
+    background-color: #e2e6ff !important;
     border-color: #e2e6ff !important;
-    color: #e2e6ff !important;
+    border-width: 1.5px !important;
+    color: #1a1a1a !important;
+    font-weight: 500 !important;
 
     &:hover {
       background-color: #e2e6ff !important;
