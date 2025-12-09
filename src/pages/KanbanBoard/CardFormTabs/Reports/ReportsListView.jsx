@@ -214,7 +214,6 @@ const ReportsListView = ({ reportsList, cardColor, onViewReport, onSendReport, o
               type="button"
               className="reports-preview-modal-btn primary"
               onClick={handleSendFromModal}
-              style={{ backgroundColor: cardColor }}
             >
               Send
             </button>

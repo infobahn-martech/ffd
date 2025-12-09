@@ -423,16 +423,6 @@ const SalesOrderList = ({ formValues, handleChange, cardColor }) => {
           <div className="sales-order-add-accordion-body">
             <div className="sales-order-add-form-grid">
               <div className="sales-order-add-form-field">
-                <label>Call File</label>
-                <input
-                  type="text"
-                  value={newItemForm.callFile}
-                  onChange={(e) => handleFormChange("callFile", e.target.value)}
-                  placeholder="e.g., CALL-001"
-                  className="sales-order-add-form-input"
-                />
-              </div>
-              <div className="sales-order-add-form-field">
                 <label>Line Item Code *</label>
                 <input
                   type="text"

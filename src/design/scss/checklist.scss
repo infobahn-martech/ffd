@@ -236,9 +236,6 @@
   border-bottom: 1px solid #e9ecef;
 }
 
-.checklist-table-row:hover {
-  background: rgba(0, 54, 140, 0.05);
-}
 
 .checklist-table-row.checked {
   background: linear-gradient(135deg, rgba(76, 175, 80, 0.05) 0%, rgba(76, 175, 80, 0.02) 100%);
@@ -661,16 +658,16 @@
 }
 
 .cf-multiselect-option:hover {
-  background: rgba(0, 54, 140, 0.1);
+  background: rgb(244 242 255);
 }
 
 .cf-multiselect-option.selected {
-  background: rgba(0, 54, 140, 0.15);
+  background: rgb(244 242 255);
   font-weight: 500;
 }
 
 .cf-multiselect-option.selected:hover {
-  background: rgba(0, 54, 140, 0.2);
+  background: rgb(244 242 255);
 }
 
 /* ==========================================================
@@ -1455,12 +1452,6 @@
   transition: all 0.2s ease;
   text-align: left;
   margin-bottom: 16px;
-}
-
-.checklist-type-title-accordion:hover {
-  background: rgba(0, 54, 140, 0.1);
-  border-color: #00368c;
-  box-shadow: 0 2px 8px rgba(0, 54, 140, 0.15);
 }
 
 .checklist-type-title-text {

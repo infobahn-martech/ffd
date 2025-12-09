@@ -152,6 +152,28 @@
   min-height: 0;
 }
 
+/* Transparent scrollbar for cardform-body */
+.cardform-body {
+  scrollbar-width: thin;
+  scrollbar-color: transparent transparent;
+}
+
+.cardform-body::-webkit-scrollbar {
+  width: 8px;
+}
+
+.cardform-body::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.cardform-body::-webkit-scrollbar-thumb {
+  background: transparent;
+}
+
+.cardform-body::-webkit-scrollbar-thumb:hover {
+  background: transparent;
+}
+
 .cardform-body-full {
   display: block !important;
 }
@@ -634,9 +656,54 @@
   min-height: 0;
 }
 
+/* Transparent scrollbar for operation-right */
+.operation-right {
+  scrollbar-width: thin;
+  scrollbar-color: transparent transparent;
+}
+
+.operation-right::-webkit-scrollbar {
+  width: 8px;
+}
+
+.operation-right::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.operation-right::-webkit-scrollbar-thumb {
+  background: transparent;
+}
+
+.operation-right::-webkit-scrollbar-thumb:hover {
+  background: transparent;
+}
+
 
 .operation-content-box {
   background: #fff;
   padding: 20px;
   border-radius: 10px;
+}
+
+/* Transparent scrollbars for all scrollable elements in CardForm */
+.cardform-panel * {
+  scrollbar-width: thin;
+  scrollbar-color: transparent transparent;
+}
+
+.cardform-panel *::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+
+.cardform-panel *::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.cardform-panel *::-webkit-scrollbar-thumb {
+  background: transparent;
+}
+
+.cardform-panel *::-webkit-scrollbar-thumb:hover {
+  background: transparent;
 }
