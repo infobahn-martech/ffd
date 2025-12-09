@@ -28,8 +28,8 @@
 }
 
 .checklist-section:hover {
-  border-color: rgb(77 85 188);
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04);
+  border-color: #00368c;
+  box-shadow: 0 2px 8px rgba(0, 54, 140, 0.15);
 }
 
 .checklist-section:last-child {
@@ -154,9 +154,9 @@
 }
 
 .checklist-select-all-btn:hover {
-  background: #f8f9ff;
-  border-color: var(--card-color, #2A00FF);
-  box-shadow: 0 2px 6px rgba(42, 0, 255, 0.15);
+  background: rgba(0, 54, 140, 0.1);
+  border-color: #00368c;
+  box-shadow: 0 2px 6px rgba(0, 54, 140, 0.15);
   transform: translateY(-1px);
 }
 
@@ -237,7 +237,7 @@
 }
 
 .checklist-table-row:hover {
-  background: #f8f9ff;
+  background: rgba(0, 54, 140, 0.05);
 }
 
 .checklist-table-row.checked {
@@ -290,8 +290,8 @@
 }
 
 .checklist-table-upload-zone:hover {
-  border-color: rgb(77 85 188);
-  background: #f8f9ff;
+  border-color: #00368c;
+  background: rgba(0, 54, 140, 0.05);
 }
 
 .checklist-table-upload-zone.dragging {
@@ -405,14 +405,14 @@
 }
 
 .checklist-item-label:hover {
-  background: #f8f9ff;
-  border-color: var(--card-color, #2A00FF);
-  box-shadow: 0 4px 12px rgba(42, 0, 255, 0.1);
+  background: rgba(0, 54, 140, 0.05);
+  border-color: #00368c;
+  box-shadow: 0 4px 12px rgba(0, 54, 140, 0.15);
   transform: translateY(-1px);
 }
 
 .checklist-item-label:hover::before {
-  background: var(--card-color, #2A00FF);
+  background: #00368c;
 }
 
 .checklist-item.checked .checklist-item-label {
@@ -473,7 +473,7 @@
 }
 
 .checklist-item-label:hover .checklist-checkbox-custom {
-  border-color: var(--card-color, #2A00FF);
+  border-color: #00368c;
 }
 
 .checklist-item.checked .checklist-checkbox-custom {
@@ -563,8 +563,8 @@
 }
 
 .cf-multiselect-input:hover {
-  border-color: #e0e7ff;
-  box-shadow: 0 2px 6px rgba(42, 0, 255, 0.1);
+  border-color: #00368c;
+  box-shadow: 0 2px 6px rgba(0, 54, 140, 0.15);
 }
 
 .cf-multiselect-tags {
@@ -595,8 +595,8 @@
 }
 
 .cf-multiselect-tag:hover {
-  background: #e0e0e0;
-  border-color: var(--card-color, #2A00FF);
+  background: rgba(0, 54, 140, 0.1);
+  border-color: #00368c;
 }
 
 .cf-multiselect-tag-text {
@@ -661,16 +661,16 @@
 }
 
 .cf-multiselect-option:hover {
-  background: #f8f9ff;
+  background: rgba(0, 54, 140, 0.1);
 }
 
 .cf-multiselect-option.selected {
-  background: rgba(42, 0, 255, 0.1);
+  background: rgba(0, 54, 140, 0.15);
   font-weight: 500;
 }
 
 .cf-multiselect-option.selected:hover {
-  background: rgba(42, 0, 255, 0.15);
+  background: rgba(0, 54, 140, 0.2);
 }
 
 /* ==========================================================
@@ -897,10 +897,10 @@
 }
 
 .checklist-file-upload-label:hover {
-  border-color: var(--card-color, #2A00FF);
-  background: #f8f9ff;
+  border-color: #00368c;
+  background: rgba(0, 54, 140, 0.05);
   transform: translateY(-2px);
-  box-shadow: 0 4px 12px rgba(42, 0, 255, 0.1);
+  box-shadow: 0 4px 12px rgba(0, 54, 140, 0.15);
 }
 
 .checklist-file-upload-label:hover::before {
@@ -913,11 +913,11 @@
 }
 
 .checklist-file-upload-label:hover .checklist-file-upload-button {
-  background: var(--card-color, #2A00FF);
+  background: #00368c;
   color: #ffffff;
-  border-color: var(--card-color, #2A00FF);
+  border-color: #00368c;
   transform: translateY(-1px);
-  box-shadow: 0 4px 12px rgba(42, 0, 255, 0.25);
+  box-shadow: 0 4px 12px rgba(0, 54, 140, 0.25);
 }
 
 .checklist-file-upload-icon-placeholder {
@@ -967,8 +967,8 @@
 }
 
 .checklist-file-label:hover {
-  background: #e8eaff;
-  border-color: var(--card-color, #2A00FF);
+  background: rgba(0, 54, 140, 0.1);
+  border-color: #00368c;
   opacity: 0.8;
 }
 
@@ -1034,8 +1034,8 @@
 }
 
 .checklist-file-preview-container:hover {
-  border-color: var(--card-color, #2A00FF);
-  box-shadow: 0 4px 12px rgba(42, 0, 255, 0.1);
+  border-color: #00368c;
+  box-shadow: 0 4px 12px rgba(0, 54, 140, 0.15);
 }
 
 .checklist-file-preview-clickable {
@@ -1054,7 +1054,7 @@
 }
 
 .checklist-file-preview-clickable:hover {
-  background: linear-gradient(135deg, rgba(42, 0, 255, 0.05) 0%, rgba(42, 0, 255, 0.02) 100%);
+  background: linear-gradient(135deg, rgba(0, 54, 140, 0.1) 0%, rgba(0, 54, 140, 0.05) 100%);
 }
 
 .checklist-file-preview-clickable:hover .checklist-file-preview-icon {
@@ -1396,10 +1396,10 @@
 }
 
 .checklist-item-detail-btn:hover {
-  background: var(--card-color, #2A00FF);
+  background: #00368c;
   opacity: 0.85;
   transform: translateY(-1px);
-  box-shadow: 0 2px 8px rgba(42, 0, 255, 0.3);
+  box-shadow: 0 2px 8px rgba(0, 54, 140, 0.3);
 }
 
 .checklist-item-detail-btn:active {
@@ -1458,9 +1458,9 @@
 }
 
 .checklist-type-title-accordion:hover {
-  background: rgba(42, 0, 255, 0.1);
-  border-color: rgb(77 85 188);
-  box-shadow: 0 2px 8px rgba(42, 0, 255, 0.15);
+  background: rgba(0, 54, 140, 0.1);
+  border-color: #00368c;
+  box-shadow: 0 2px 8px rgba(0, 54, 140, 0.15);
 }
 
 .checklist-type-title-text {

@@ -2879,14 +2879,14 @@
   top: 0;
   bottom: 0;
   width: 4px;
-  background: var(--card-color, #2A00FF);
+  background: #033688;
   transform: scaleY(0);
   transition: transform 0.3s ease;
 }
 
 .report-item:hover {
   background: #ffffff;
-  border-color: var(--card-color, #2A00FF);
+  border-color: #e9e5ff;
   box-shadow: 0 6px 20px rgba(42, 0, 255, 0.12);
   transform: translateY(-3px);
 }
