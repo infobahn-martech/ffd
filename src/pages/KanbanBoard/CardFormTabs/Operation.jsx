@@ -524,7 +524,7 @@ LinksList.propTypes = {
   onRemove: PropTypes.func,
 };
 
-const PreArrivalContent = ({ formValues, handleChange, ownerInitial, cardUser, cardColor, onAddAttachment, onRemoveAttachment, onAddLink, onRemoveLink }) => {
+const PreArrivalContent = ({ formValues, handleChange, ownerInitial, cardUser, cardColor, onAddAttachment, onRemoveAttachment, onAddLink, onRemoveLink, onSendReport }) => {
   const [isDragging, setIsDragging] = useState(false);
   const fileInputRef = useRef(null);
 
@@ -599,10 +599,13 @@ const PreArrivalContent = ({ formValues, handleChange, ownerInitial, cardUser, c
 
   return (
     <div className="cardform-left-full" style={{ "--card-color": cardColor }}>
+      <div className="operation-content-header">
+        <h3 className="operation-content-title">Pre-Arrival Information</h3>
+        {onSendReport && <SendReportButton onClick={onSendReport} cardColor={cardColor} />}
+      </div>
       <FormSection icon={GroupSettingsIcon} title="">
         <div className="pre-arrival-form">
           <div className="form-group">
-            <h3 className="form-group-title">Pre-Arrival Information</h3>
             <div className="cf-grid two">
               <FormField label="Expected time of arrival">
                 <div className="cf-input date-time-row">
@@ -724,9 +727,10 @@ PreArrivalContent.propTypes = {
   onRemoveAttachment: PropTypes.func,
   onAddLink: PropTypes.func,
   onRemoveLink: PropTypes.func,
+  onSendReport: PropTypes.func,
 };
 
-const ArrivalContent = ({ formValues, handleChange, cardColor, onAddAttachment, onRemoveAttachment, onAddLink, onRemoveLink }) => {
+const ArrivalContent = ({ formValues, handleChange, cardColor, onAddAttachment, onRemoveAttachment, onAddLink, onRemoveLink, onSendReport }) => {
   const customInspectionStatusOptions = [
     { value: "Passed", label: "Passed" },
     { value: "Failed", label: "Failed" },
@@ -745,10 +749,13 @@ const ArrivalContent = ({ formValues, handleChange, cardColor, onAddAttachment, 
 
   return (
     <div className="cardform-left-full" style={{ "--card-color": cardColor }}>
+      <div className="operation-content-header">
+        <h3 className="operation-content-title">Arrival Information</h3>
+        {onSendReport && <SendReportButton onClick={onSendReport} cardColor={cardColor} />}
+      </div>
       <FormSection icon={GroupSettingsIcon} title="">
         <div className="arrival-form">
           <div className="form-group">
-            <h3 className="form-group-title">Arrival Information</h3>
             <div className="cf-grid two">
               <FormField label="Actual time of arrival">
                 <div className="cf-input date-time-row">
@@ -969,9 +976,10 @@ ArrivalContent.propTypes = {
   onRemoveAttachment: PropTypes.func,
   onAddLink: PropTypes.func,
   onRemoveLink: PropTypes.func,
+  onSendReport: PropTypes.func,
 };
 
-const DepartureContent = ({ formValues, handleChange, cardColor, onAddAttachment, onRemoveAttachment, onAddLink, onRemoveLink }) => {
+const DepartureContent = ({ formValues, handleChange, cardColor, onAddAttachment, onRemoveAttachment, onAddLink, onRemoveLink, onSendReport }) => {
   // Handle save
   const handleSave = () => {
     console.log("Saving Departure data:", formValues);
@@ -980,10 +988,13 @@ const DepartureContent = ({ formValues, handleChange, cardColor, onAddAttachment
 
   return (
     <div className="cardform-left-full" style={{ "--card-color": cardColor }}>
+      <div className="operation-content-header">
+        <h3 className="operation-content-title">Departure Information</h3>
+        {onSendReport && <SendReportButton onClick={onSendReport} cardColor={cardColor} />}
+      </div>
       <FormSection icon={GroupSettingsIcon} title="">
         <div className="departure-form">
           <div className="form-group">
-            <h3 className="form-group-title">Departure Information</h3>
             <div className="cf-grid two">
               <FormField label="Request for outward clearance received">
                 <div className="cf-input date-time-row">
@@ -1104,16 +1115,69 @@ DepartureContent.propTypes = {
   onRemoveAttachment: PropTypes.func,
   onAddLink: PropTypes.func,
   onRemoveLink: PropTypes.func,
+  onSendReport: PropTypes.func,
 };
 
-const CheckListContent = ({ card, formValues, handleChange }) => {
-  return <Checklist card={card} formValues={formValues} handleChange={handleChange} />;
+const CheckListContent = ({ card, formValues, handleChange, onSendReport, cardColor }) => {
+  return <Checklist card={card} formValues={formValues} handleChange={handleChange} onSendReport={onSendReport} cardColor={cardColor} />;
 };
 
 CheckListContent.propTypes = {
   card: PropTypes.object,
   formValues: PropTypes.object.isRequired,
   handleChange: PropTypes.func.isRequired,
+  onSendReport: PropTypes.func,
+  cardColor: PropTypes.string,
+};
+
+// Send Report Button Component
+const SendReportButton = ({ onClick, cardColor }) => {
+  const handleSendReport = () => {
+    if (onClick) {
+      onClick();
+    } else {
+      console.log("Send report clicked");
+      // TODO: Implement send report logic
+    }
+  };
+
+  return (
+    <button
+      type="button"
+      className="operation-send-report-btn"
+      onClick={handleSendReport}
+      title="Send Report"
+    >
+      <svg
+        width="20"
+        height="20"
+        viewBox="0 0 24 24"
+        fill="none"
+        xmlns="http://www.w3.org/2000/svg"
+      >
+        <path
+          d="M22 2L11 13"
+          stroke="currentColor"
+          strokeWidth="2"
+          strokeLinecap="round"
+          strokeLinejoin="round"
+        />
+        <path
+          d="M22 2L15 22L11 13L2 9L22 2Z"
+          stroke="currentColor"
+          strokeWidth="2"
+          strokeLinecap="round"
+          strokeLinejoin="round"
+        />
+      </svg>
+      <span className="send-report-text">Send Report</span>
+    </button>
+  );
+};
+
+SendReportButton.propTypes = {
+  onClick: PropTypes.func,
+  cardColor: PropTypes.string,
 };
 
 // Main Operation Component
@@ -1124,6 +1188,11 @@ function Operation({ card, formValues, handleChange, ownerInitial }) {
   const handleTabChange = useCallback((tab) => {
     setActiveOperationTab(tab);
   }, []);
+
+  const handleSendReport = useCallback(() => {
+    console.log("Sending report for tab:", activeOperationTab);
+    // TODO: Implement send report logic
+  }, [activeOperationTab]);
 
   const handleAddAttachment = useCallback((attachment) => {
     const currentAttachments = formValues.attachments || [];
@@ -1168,6 +1237,7 @@ function Operation({ card, formValues, handleChange, ownerInitial }) {
               onRemoveAttachment={handleRemoveAttachment}
               onAddLink={handleAddLink}
               onRemoveLink={handleRemoveLink}
+              onSendReport={handleSendReport}
             />
           )}
           {activeOperationTab === OPERATION_TABS.CHECK_LIST && (
@@ -1175,6 +1245,8 @@ function Operation({ card, formValues, handleChange, ownerInitial }) {
               card={card}
               formValues={formValues}
               handleChange={handleChange}
+              onSendReport={handleSendReport}
+              cardColor={cardColor}
             />
           )}
           {activeOperationTab === OPERATION_TABS.ARRIVAL && (
@@ -1186,6 +1258,7 @@ function Operation({ card, formValues, handleChange, ownerInitial }) {
               onRemoveAttachment={handleRemoveAttachment}
               onAddLink={handleAddLink}
               onRemoveLink={handleRemoveLink}
+              onSendReport={handleSendReport}
             />
           )}
           {activeOperationTab === OPERATION_TABS.DEPARTURE && (
@@ -1197,6 +1270,7 @@ function Operation({ card, formValues, handleChange, ownerInitial }) {
               onRemoveAttachment={handleRemoveAttachment}
               onAddLink={handleAddLink}
               onRemoveLink={handleRemoveLink}
+              onSendReport={handleSendReport}
             />
           )}
         </div>

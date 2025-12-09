@@ -922,8 +922,8 @@ ChecklistTypeGroup.propTypes = {
 };
 
 // Main Checklist Component
-function Checklist({ card, formValues, handleChange }) {
-  const cardColor = card?.color || "#2A00FF";
+function Checklist({ card, formValues, handleChange, onSendReport, cardColor: propCardColor }) {
+  const cardColor = propCardColor || card?.color || "#2A00FF";
 
   // Form state - Initialize with both checklist types selected by default
   const [checklistType, setChecklistType] = useState(
@@ -1117,14 +1117,61 @@ function Checklist({ card, formValues, handleChange }) {
     },
   ];
 
+  // Import SendReportButton from Operation component
+  const SendReportButton = ({ onClick, cardColor }) => {
+    const handleSendReport = () => {
+      if (onClick) {
+        onClick();
+      } else {
+        console.log("Send report clicked");
+      }
+    };
+
+    return (
+      <button
+        type="button"
+        className="operation-send-report-btn"
+        onClick={handleSendReport}
+        title="Send Report"
+      >
+        <svg
+          width="20"
+          height="20"
+          viewBox="0 0 24 24"
+          fill="none"
+          xmlns="http://www.w3.org/2000/svg"
+        >
+          <path
+            d="M22 2L11 13"
+            stroke="currentColor"
+            strokeWidth="2"
+            strokeLinecap="round"
+            strokeLinejoin="round"
+          />
+          <path
+            d="M22 2L15 22L11 13L2 9L22 2Z"
+            stroke="currentColor"
+            strokeWidth="2"
+            strokeLinecap="round"
+            strokeLinejoin="round"
+          />
+        </svg>
+        <span className="send-report-text">Send Report</span>
+      </button>
+    );
+  };
+
   return (
     <>
+      <div className="operation-content-header">
+        <h3 className="operation-content-title">Checklist Information</h3>
+        {onSendReport && <SendReportButton onClick={onSendReport} cardColor={cardColor} />}
+      </div>
       {/* Form Section */}
       <div className="cf-section">
         <div className="cf-section-body">
           <div className="checklist-form">
             <div className="form-group">
-              <h3 className="form-group-title">Checklist Information</h3>
               <div className="cf-grid two">
                 <FormField label="Checklist Type">
                   <MultiSelect
@@ -1199,6 +1246,8 @@ Checklist.propTypes = {
   card: PropTypes.object,
   formValues: PropTypes.object,
   handleChange: PropTypes.func,
+  onSendReport: PropTypes.func,
+  cardColor: PropTypes.string,
 };
 
 export default Checklist;

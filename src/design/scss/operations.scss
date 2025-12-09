@@ -323,6 +323,7 @@
   min-height: 0;
   background: #ffffff;
   padding: 0;
+  position: relative;
 
   .cf-section-title {
     color: #000000;
@@ -352,6 +353,112 @@
   h5:hover,
   h6:hover {
     color: #666666;
+  }
+}
+
+.operation-content-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 20px 22px 16px 22px;
+  border-bottom: 1px solid #f0f0f0;
+  margin-bottom: 0;
+  position: relative;
+  z-index: 5;
+  min-height: 60px;
+  gap: 20px;
+}
+
+.operation-content-title {
+  font-size: 16px;
+  font-weight: 700;
+  color: #1a1a1a;
+  margin: 0;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+
+  &::before {
+    content: "";
+    width: 4px;
+    height: 20px;
+    background: #00368c;
+    border-radius: 2px;
+    display: inline-block;
+    flex-shrink: 0;
+  }
+}
+
+.operation-send-report-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  padding: 10px 20px;
+  background: #00368c;
+  color: #ffffff;
+  border: none;
+  border-radius: 8px;
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  box-shadow: 0 2px 8px rgba(0, 54, 140, 0.2);
+  font-family: 'Poppins', sans-serif;
+  white-space: nowrap;
+  flex-shrink: 0;
+  height: 40px;
+
+  svg {
+    width: 18px;
+    height: 18px;
+    stroke: currentColor;
+    stroke-width: 2;
+    flex-shrink: 0;
+    transition: transform 0.3s ease;
+  }
+
+  .send-report-text {
+    white-space: nowrap;
+    letter-spacing: 0.3px;
+  }
+
+  &:hover {
+    background: #002d6f;
+    transform: translateY(-2px);
+    box-shadow: 0 4px 16px rgba(0, 54, 140, 0.35);
+
+    svg {
+      transform: translateX(2px) translateY(-2px);
+    }
+  }
+
+  &:active {
+    transform: translateY(0);
+    box-shadow: 0 2px 8px rgba(0, 54, 140, 0.25);
+  }
+
+  &:focus {
+    outline: none;
+    box-shadow: 0 0 0 3px rgba(0, 54, 140, 0.2);
+  }
+
+  @media (max-width: 768px) {
+    padding: 8px 16px;
+    font-size: 13px;
+    gap: 6px;
+    height: 36px;
+
+    svg {
+      width: 16px;
+      height: 16px;
+    }
+
+    .send-report-text {
+      display: none;
+    }
   }
 }
 
@@ -388,6 +495,15 @@
 /* ==========================================================
    PRE-ARRIVAL FORM STYLES
    ========================================================== */
+
+.operation-right .cardform-left-full {
+  position: relative;
+}
+
+/* Add padding to Checklist and other content components */
+.operation-right > .cf-section:first-of-type {
+  position: relative;
+}
 
 .pre-arrival-form,
 .arrival-form,
