@@ -835,7 +835,7 @@
 .document-upload-zone {
   position: relative;
   min-height: 200px;
-  max-width: 600px;
+  max-width: 628px;
   width: 100%;
   border: 2px dashed #e2e2ea;
   border-radius: 12px;
@@ -3877,11 +3877,155 @@ body .material-management-modal .modal-body {
 }
 
 body .material-management-modal .modal-footer {
-  padding: 16px 24px;
+  padding: 16px 47px;
   border-top: 1px solid #f0f0f0;
   display: flex;
   justify-content: flex-end;
   gap: 12px;
+}
+
+/* Material Management Modal - Apply #e2e6ff color to labels, buttons, hover states */
+body .material-management-modal {
+
+  /* Labels */
+  .cf-field label {
+    color: #000000 !important;
+  }
+
+  /* Buttons */
+  .btn-primary,
+  .btn.btn-primary,
+  button.btn-primary,
+  button[type="submit"] {
+    background-color: #e2e6ff !important;
+    border-color: #e2e6ff !important;
+    color: #1a1a1a !important;
+
+    &:hover,
+    &:focus,
+    &:active {
+      background-color: #e2e6ff !important;
+      border-color: #e2e6ff !important;
+      opacity: 0.9;
+    }
+  }
+
+  .btn-secondary,
+  .btn.btn-secondary,
+  button.btn-secondary {
+    background-color: #e2e6ff !important;
+    border-color: #e2e6ff !important;
+    color: #1a1a1a !important;
+
+    &:hover,
+    &:focus,
+    &:active {
+      background-color: #e2e6ff !important;
+      border-color: #e2e6ff !important;
+      opacity: 0.9;
+    }
+  }
+
+  /* Input hover states */
+  .cf-input:hover {
+    border-color: #e2e6ff !important;
+  }
+
+  .cf-input:focus-within {
+    border-color: #e2e6ff !important;
+    box-shadow: 0 0 0 3px rgba(226, 230, 255, 0.3) !important;
+  }
+
+  /* Select dropdown hover */
+  .cf-select:hover {
+    border-color: #e2e6ff !important;
+  }
+
+  .cf-select:focus-within {
+    border-color: #e2e6ff !important;
+    box-shadow: 0 0 0 3px rgba(226, 230, 255, 0.3) !important;
+  }
+
+  /* Date and time inputs */
+  .cf-input.date-time-row {
+    &:hover {
+      border-color: #e2e6ff !important;
+    }
+
+    &:focus-within {
+      border-color: #e2e6ff !important;
+      box-shadow: 0 0 0 3px rgba(226, 230, 255, 0.3) !important;
+    }
+  }
+
+  /* File upload zone */
+  .document-upload-zone {
+    border-color: #e2e6ff !important;
+
+    &:hover {
+      border-color: #e2e6ff !important;
+      background: rgba(226, 230, 255, 0.1) !important;
+    }
+
+    &.dragging {
+      border-color: #e2e6ff !important;
+      background: rgba(226, 230, 255, 0.15) !important;
+      box-shadow: 0 0 0 4px rgba(226, 230, 255, 0.3) !important;
+    }
+  }
+
+  /* File upload buttons */
+  .add-more-files-btn {
+    border-color: #e2e6ff !important;
+    color: #e2e6ff !important;
+
+    &:hover {
+      background-color: #e2e6ff !important;
+      border-color: #e2e6ff !important;
+      color: #1a1a1a !important;
+      opacity: 0.9;
+    }
+  }
+
+  .btn-remove-files {
+    border-color: #e2e6ff !important;
+    color: #e2e6ff !important;
+
+    &:hover {
+      background-color: #e2e6ff !important;
+      border-color: #e2e6ff !important;
+      color: #1a1a1a !important;
+      opacity: 0.9;
+    }
+  }
+
+  .btn-remove-file {
+    border-color: #e2e6ff !important;
+
+    &:hover {
+      background-color: rgba(226, 230, 255, 0.2) !important;
+      border-color: #e2e6ff !important;
+    }
+
+    &:hover svg path {
+      stroke: #e2e6ff !important;
+    }
+  }
+
+  /* Upload icon and text */
+  .upload-icon-wrapper svg rect,
+  .upload-icon-wrapper svg path {
+    stroke: #e2e6ff !important;
+  }
+
+  .upload-link {
+    color: #e2e6ff !important;
+  }
+
+  /* Modal title */
+  .modal-title {
+    color: #000000 !important;
+  }
 }
 
 /* Ensure backdrop appears above CardForm (1200) but below modal (1300) */
