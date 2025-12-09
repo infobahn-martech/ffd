@@ -14,25 +14,24 @@
 
 /* Husbandry specific: Use #00368c as default */
 .operation-wrapper.husbandry-wrapper {
-  --card-color: #00368c;
+  --card-color: #e2e6ff;
 
   /* Override all buttons to use #00368c */
   .checklist-btn-primary,
   .btn-primary,
   button[class*="btn"] {
-    background: #00368c !important;
-    border-color: #00368c !important;
-    color: #ffffff !important;
+    background: #e2e6ff !important;
+    border-color: #e2e6ff !important;
+    color: #1a1a1a !important;
 
     &:hover {
-      background: #002d73 !important;
-      border-color: #002d73 !important;
-      box-shadow: 0 4px 8px rgba(0, 54, 140, 0.3) !important;
+      background: #e2e6ff !important;
+      border-color: #e2e6ff !important;
     }
 
     &:active {
-      background: #00255c !important;
-      border-color: #00255c !important;
+      background: #e2e6ff !important;
+      border-color: #e2e6ff !important;
     }
   }
 }
@@ -1510,17 +1509,17 @@
 /* Actions */
 
 .crew-table-container .table.crew-table thead {
-  background: var(--card-color, #2A00FF) !important;
+  background: var(--card-color, #e2e6ff) !important;
   position: sticky;
   top: 0;
   z-index: 10;
 }
 
 .crew-table-container .table.crew-table thead th {
-  background-color: var(--card-color, #2A00FF) !important;
+  background-color: var(--card-color, #e2e6ff) !important;
   font-size: 12px;
   font-weight: 600;
-  color: #ffffff !important;
+  color: #3e3633 !important;
   text-transform: uppercase;
   letter-spacing: 0.5px;
   padding: 12px 16px;
@@ -1563,11 +1562,11 @@
 }
 
 .crew-table tbody tr:hover {
-  background: rgba(42, 0, 255, 0.03);
+  background: rgba(226, 230, 255, 0.5);
 }
 
 .crew-table tbody tr:hover td {
-  background: rgba(42, 0, 255, 0.03);
+  background: rgba(226, 230, 255, 0.5);
 }
 
 .crew-table tbody tr:last-child td {
@@ -1592,8 +1591,8 @@
 
 .crew-table-input:focus {
   outline: none;
-  border-color: var(--card-color, #2A00FF);
-  box-shadow: 0 0 0 3px rgba(42, 0, 255, 0.1);
+  border-color: var(--card-color, #e2e6ff);
+  box-shadow: 0 0 0 3px rgba(226, 230, 255, 0.3);
   background: #fafaff;
 }
 
@@ -1611,13 +1610,13 @@
 }
 
 .crew-view-btn {
-  background: var(--card-color, #2A00FF);
+  background: var(--card-color, #e2e6ff);
   border: none;
   padding: 6px 14px;
   border-radius: 6px;
   font-size: 12px;
   font-weight: 500;
-  color: #ffffff;
+  color: #000000;
   cursor: pointer;
   transition: all 0.2s ease;
   box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
