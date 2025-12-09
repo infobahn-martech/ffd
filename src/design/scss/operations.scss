@@ -3934,6 +3934,181 @@ body .modal-backdrop.show {
   text-align: center;
 }
 
+/* KPI Table Styles */
+.kpi-analytics-table-container {
+  grid-column: 1 / -1;
+  margin-top: 20px;
+}
+
+.kpi-table-container {
+  overflow-x: auto;
+  width: 100%;
+  margin: 0;
+  background: #ffffff;
+  -webkit-overflow-scrolling: touch;
+}
+
+.kpi-table-container::-webkit-scrollbar {
+  height: 6px;
+}
+
+.kpi-table-container::-webkit-scrollbar-track {
+  background: #f1f1f1;
+}
+
+.kpi-table-container::-webkit-scrollbar-thumb {
+  background: #888;
+  border-radius: 3px;
+}
+
+.kpi-table-container::-webkit-scrollbar-thumb:hover {
+  background: #555;
+}
+
+.kpi-table {
+  margin: 0;
+  width: 100%;
+  background: #ffffff;
+  border-collapse: separate;
+  border-spacing: 0;
+  table-layout: fixed;
+}
+
+.kpi-table th,
+.kpi-table td {
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  padding: 14px 16px;
+  text-align: left;
+  vertical-align: middle;
+  border-bottom: 1px solid #f0f0f0;
+  background: #ffffff;
+}
+
+.kpi-table th:nth-child(1),
+.kpi-table td:nth-child(1) {
+  width: 35%;
+  min-width: 200px;
+}
+
+.kpi-table th:nth-child(2),
+.kpi-table td:nth-child(2) {
+  width: 20%;
+  min-width: 150px;
+}
+
+.kpi-table th:nth-child(3),
+.kpi-table td:nth-child(3) {
+  width: 20%;
+  min-width: 150px;
+}
+
+.kpi-table th:nth-child(4),
+.kpi-table td:nth-child(4) {
+  width: 25%;
+  min-width: 120px;
+}
+
+.kpi-table-container .table.kpi-table thead {
+  background: var(--card-color, #e2e6ff);
+  position: sticky;
+  top: 0;
+  z-index: 10;
+}
+
+.kpi-table-container .table.kpi-table thead th {
+  background: var(--card-color, #e2e6ff) !important;
+  color: #3e3633;
+  font-weight: 600;
+  font-size: 12px;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  padding: 16px;
+  border: none;
+}
+
+.kpi-table tbody td {
+  font-size: 12px;
+  color: #333;
+  padding: 14px 16px;
+}
+
+.kpi-table-cell {
+  color: #333;
+  font-size: 12px;
+  line-height: 1.5;
+}
+
+.kpi-table tbody tr:nth-child(even) {
+  background: #f8f9fc;
+}
+
+.kpi-table tbody tr:nth-child(even) td {
+  background: #f8f9fc;
+}
+
+.kpi-table tbody tr:hover {
+  background: rgba(226, 230, 255, 0.3);
+}
+
+.kpi-table tbody tr:hover td {
+  background: rgba(226, 230, 255, 0.3);
+}
+
+.kpi-table tbody tr:last-child td {
+  border-bottom: none;
+}
+
+/* KPI Table Status Badge Styles */
+.kpi-table-cell.status-pending {
+  display: inline-block;
+  padding: 6px 12px;
+  border-radius: 12px;
+  background-color: #fef3c7;
+  color: #d97706;
+  font-weight: 600;
+  font-size: 11px;
+  text-transform: uppercase;
+  letter-spacing: 0.3px;
+}
+
+.kpi-table-cell.status-in-progress {
+  display: inline-block;
+  padding: 6px 12px;
+  border-radius: 12px;
+  background-color: #ede9fe;
+  color: #7c3aed;
+  font-weight: 600;
+  font-size: 11px;
+  text-transform: uppercase;
+  letter-spacing: 0.3px;
+}
+
+.kpi-table-cell.status-completed {
+  display: inline-block;
+  padding: 6px 12px;
+  border-radius: 12px;
+  background-color: #d1fae5;
+  color: #059669;
+  font-weight: 600;
+  font-size: 11px;
+  text-transform: uppercase;
+  letter-spacing: 0.3px;
+}
+
+.kpi-table-cell.status-cancelled {
+  display: inline-block;
+  padding: 6px 12px;
+  border-radius: 12px;
+  background-color: #fee2e2;
+  color: #dc2626;
+  font-weight: 600;
+  font-size: 11px;
+  text-transform: uppercase;
+  letter-spacing: 0.3px;
+}
+
 /* ==========================================================
    RESPONSIVE STYLES FOR KPI
    ========================================================== */
@@ -3942,11 +4117,25 @@ body .modal-backdrop.show {
   .kpi-analytics-content {
     grid-template-columns: 1fr 1fr;
   }
+  
+  .kpi-analytics-table-container {
+    grid-column: 1 / -1;
+  }
 }
 
 @media (max-width: 768px) {
   .kpi-analytics-content {
     grid-template-columns: 1fr;
+  }
+  
+  .kpi-analytics-table-container {
+    grid-column: 1 / -1;
+  }
+  
+  .kpi-table th,
+  .kpi-table td {
+    font-size: 11px;
+    padding: 12px 10px;
   }
 }
 

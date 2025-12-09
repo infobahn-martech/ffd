@@ -2,6 +2,43 @@ import { useMemo } from "react";
 import PropTypes from "prop-types";
 import { PieChart, Pie, Cell, ResponsiveContainer, BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend } from "recharts";
 
+// Generate dummy task data for the table
+const generateDummyTasks = () => {
+  const taskNames = [
+    "Appointment Acceptance",
+    "Call file open",
+    "Pre arrival report",
+    "Arrival report",
+    "Vessel inward formalities",
+    "Daily report",
+    "Outward clearance issue",
+    "Outward clearance deliver",
+    "Sailing Report",
+    "Documentation review",
+    "Custom clearance",
+    "Port operations",
+    "Cargo handling",
+    "Vessel inspection",
+    "Final reporting"
+  ];
+  const statuses = ["Pending", "In Progress", "Completed", "Cancelled"];
+
+  const dummyTasks = [];
+  for (let i = 1; i <= 12; i++) {
+    const estimatedHours = Math.floor(Math.random() * 48) + 4; // 4-52 hours
+    const elapsedHours = Math.floor(Math.random() * estimatedHours);
+    
+    dummyTasks.push({
+      id: i,
+      task: taskNames[Math.floor(Math.random() * taskNames.length)],
+      estimatedDuration: `${estimatedHours}h ${Math.floor(Math.random() * 60)}m`,
+      elapsedTime: `${elapsedHours}h ${Math.floor(Math.random() * 60)}m`,
+      status: statuses[Math.floor(Math.random() * statuses.length)],
+    });
+  }
+  return dummyTasks;
+};
+
 const KPIAnalytics = ({ kpiData, cardColor }) => {
   // Calculate data for pie chart (KPI performance distribution)
   const performanceData = useMemo(() => {
@@ -156,14 +193,61 @@ const KPIAnalytics = ({ kpiData, cardColor }) => {
                   }}
                 />
                 <Legend />
-                <Bar dataKey="value" fill={cardColor || "#2A00FF"} radius={[8, 8, 0, 0]} />
+                <Bar dataKey="value" fill="#e2e6ff" radius={[8, 8, 0, 0]} />
               </BarChart>
             </ResponsiveContainer>
+          </div>
+        </div>
+
+        {/* Task Performance Table */}
+        <div className="kpi-analytics-table-container">
+          <div className="table-wrapper table-responsive kpi-table-container">
+            <table className="table table-striped kpi-table" style={{ "--card-color": "#e2e6ff" }}>
+              <thead>
+                <tr>
+                  <th>Task</th>
+                  <th>Estimated Duration</th>
+                  <th>Elapsed Time</th>
+                  <th>Status</th>
+                </tr>
+              </thead>
+              <tbody>
+                {generateDummyTasks().map((task) => (
+                  <tr key={task.id}>
+                    <td>
+                      <div className="kpi-table-cell">{task.task || ""}</div>
+                    </td>
+                    <td>
+                      <div className="kpi-table-cell">{task.estimatedDuration || ""}</div>
+                    </td>
+                    <td>
+                      <div className="kpi-table-cell">{task.elapsedTime || ""}</div>
+                    </td>
+                    <td>
+                      <div className={`kpi-table-cell ${getStatusClass(task.status)}`}>
+                        {task.status || ""}
+                      </div>
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
           </div>
         </div>
       </div>
     </div>
   );
+};
+
+// Helper function to get status class
+const getStatusClass = (status) => {
+  const statusMap = {
+    "Pending": "status-pending",
+    "In Progress": "status-in-progress",
+    "Completed": "status-completed",
+    "Cancelled": "status-cancelled",
+  };
+  return statusMap[status] || "";
 };
 
 KPIAnalytics.propTypes = {
