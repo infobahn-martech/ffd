@@ -469,7 +469,7 @@ const MaterialManagementContent = ({ formValues, handleChange, cardColor }) => {
         </button>
       </div>
       <div className="table-wrapper table-responsive material-table-container">
-        <table className="table table-striped material-table" style={{ "--card-color": cardColor }}>
+        <table className="table table-striped material-table" style={{ "--card-color": "#e2e6ff" }}>
           <thead>
             <tr>
               <th>Material Type</th>

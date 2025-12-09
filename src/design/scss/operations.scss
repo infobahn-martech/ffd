@@ -15,7 +15,7 @@
 /* Husbandry specific: Use #00368c as default */
 .operation-wrapper.husbandry-wrapper {
   --card-color: #00368c;
-  
+
   /* Override all buttons to use #00368c */
   .checklist-btn-primary,
   .btn-primary,
@@ -23,13 +23,13 @@
     background: #00368c !important;
     border-color: #00368c !important;
     color: #ffffff !important;
-    
+
     &:hover {
       background: #002d73 !important;
       border-color: #002d73 !important;
       box-shadow: 0 4px 8px rgba(0, 54, 140, 0.3) !important;
     }
-    
+
     &:active {
       background: #00255c !important;
       border-color: #00255c !important;
@@ -44,13 +44,13 @@
     border-color: rgb(62 94 189) !important;
     color: #ffffff !important;
     box-shadow: 0 2px 6px rgba(62, 94, 189, 0.3) !important;
-    
+
     &:hover {
       background: rgb(49 75 151) !important;
       border-color: rgb(49 75 151) !important;
       box-shadow: 0 6px 16px rgba(62, 94, 189, 0.4) !important;
     }
-    
+
     &:active {
       background: rgb(43 65 134) !important;
       border-color: rgb(43 65 134) !important;
@@ -328,13 +328,23 @@
     color: #666666;
   }
 
-  h1, h2, h3, h4, h5, h6 {
+  h1,
+  h2,
+  h3,
+  h4,
+  h5,
+  h6 {
     color: #000000;
     transition: color 0.2s ease;
     cursor: default;
   }
 
-  h1:hover, h2:hover, h3:hover, h4:hover, h5:hover, h6:hover {
+  h1:hover,
+  h2:hover,
+  h3:hover,
+  h4:hover,
+  h5:hover,
+  h6:hover {
     color: #666666;
   }
 }
@@ -1671,7 +1681,7 @@
 }
 
 .material-add-btn {
-  background: var(--card-color, #2A00FF);
+  background: #e2e6ff !important;
   border: none;
   padding: 10px 20px;
   border-radius: 8px;
@@ -1785,7 +1795,7 @@
 
 .material-table-container .table.material-table thead th {
   background: var(--card-color, #2A00FF) !important;
-  color: #ffffff;
+  color: #3e3633;
   font-weight: 600;
   font-size: 12px;
   text-transform: uppercase;
@@ -1819,7 +1829,7 @@
 }
 
 .material-table tbody tr:hover td {
-  background: rgba(42, 0, 255, 0.03);
+  background: rgb(249 249 255);
 }
 
 .material-table tbody tr:last-child td {
