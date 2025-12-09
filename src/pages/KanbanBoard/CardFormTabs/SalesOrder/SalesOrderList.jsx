@@ -263,6 +263,7 @@ const SalesOrderList = ({ formValues, handleChange, cardColor }) => {
     // Reset form and close accordion
     setIsAccordionOpen(false);
     setNewItemForm({
+      callFile: "",
       lineItemCode: "",
       lineItemName: "",
       startedDate: "",
@@ -392,12 +393,6 @@ const SalesOrderList = ({ formValues, handleChange, cardColor }) => {
             <div className="sales-order-summary-value">{email}</div>
           </div>
           <div className="sales-order-summary-item sales-order-summary-item-highlight">
-            <label className="sales-order-summary-label">Line Item Count</label>
-            <div className="sales-order-summary-value sales-order-summary-total">
-              {formValues?.salesOrderList?.length || 0}
-            </div>
-          </div>
-          <div className="sales-order-summary-item sales-order-summary-item-highlight">
             <label className="sales-order-summary-label">Line Item Total</label>
             <div className="sales-order-summary-value sales-order-summary-total">
               {formatCurrencySAR(calculatedLineItemTotal)}
@@ -422,6 +417,21 @@ const SalesOrderList = ({ formValues, handleChange, cardColor }) => {
           </div>
           <div className="sales-order-add-accordion-body">
             <div className="sales-order-add-form-grid">
+              <div className="sales-order-add-form-field">
+                <label>Call File</label>
+                <select
+                  value={newItemForm.callFile}
+                  onChange={(e) => handleFormChange("callFile", e.target.value)}
+                  className="sales-order-add-form-input"
+                >
+                  <option value="">Select Call File...</option>
+                  <option value="CALL-001">CALL-001</option>
+                  <option value="CALL-002">CALL-002</option>
+                  <option value="CALL-003">CALL-003</option>
+                  <option value="CALL-004">CALL-004</option>
+                  <option value="CALL-005">CALL-005</option>
+                </select>
+              </div>
               <div className="sales-order-add-form-field">
                 <label>Line Item Code *</label>
                 <input

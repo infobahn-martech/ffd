@@ -14,32 +14,64 @@ const accommodationBargeChecklist = [
     id: "documents_vessel_owners",
     title: "A) DOCUMENTS REQUIRED FROM VESSEL OWNERS / PRINCIPAL VESSEL",
     items: [
-      { id: "commercial_invoice_vessel", label: "Commercial invoice for vessel ORIGINAL REQUIRED" },
-      { id: "bill_of_lading_vessel", label: "Bill of lading REQUIRE COPY ONLY" },
-      { id: "charter_party_agreement", label: "Charter Party Agreement REQUIRE COPY ONLY" },
+      {
+        id: "commercial_invoice_vessel",
+        label: "Commercial invoice for vessel ORIGINAL REQUIRED",
+        requirement: "COPY OF INVENTORY LIST TO BE SIGNED AND STAMPED BY MASTER (Require minimum 3 days prior arrival to arrange if Arabic translation done from our end)"
+      },
+      {
+        id: "bill_of_lading_vessel",
+        label: "Bill of lading REQUIRE COPY ONLY",
+        requirement: "COPY OF INVENTORY LIST TO BE SIGNED AND STAMPED BY MASTER (Require minimum 3 days prior arrival to arrange if Arabic translation done from our end)"
+      },
+      {
+        id: "charter_party_agreement",
+        label: "Charter Party Agreement REQUIRE COPY ONLY",
+        requirement: "COPY OF INVENTORY LIST TO BE SIGNED AND STAMPED BY MASTER (Require minimum 3 days prior arrival to arrange if Arabic translation done from our end)"
+      },
     ],
   },
   {
     id: "documents_towing_tug",
     title: "B) DOCUMENTS REQUIRED FROM VESSEL TOWING TUG MASTER",
     items: [
-      { id: "equipment_material_declaration", label: "Equipment/Material Deck declaration letter REQUIRE COPY ONLY FORMAT ATTACHED" },
-      { id: "bill_of_lading_tug", label: "Bill of lading REQUIRE COPY ONLY" },
+      {
+        id: "equipment_material_declaration",
+        label: "Equipment/Material Deck declaration letter REQUIRE COPY ONLY FORMAT ATTACHED",
+        requirement: "COPY OF INVENTORY LIST TO BE SIGNED AND STAMPED BY MASTER (Require minimum 3 days prior arrival to arrange if Arabic translation done from our end)"
+      },
+      {
+        id: "bill_of_lading_tug",
+        label: "Bill of lading REQUIRE COPY ONLY",
+        requirement: "COPY OF INVENTORY LIST TO BE SIGNED AND STAMPED BY MASTER (Require minimum 3 days prior arrival to arrange if Arabic translation done from our end)"
+      },
     ],
   },
   {
     id: "marine_work_permit",
     title: "1. MARINE WORK PERMIT",
     items: [
-      { id: "vessel_registry_certificate", label: "Vessel Registry certificate REQUIRE COPY ONLY" },
-      { id: "international_tonnage_certificate", label: "International Tonnage certificate REQUIRE COPY ONLY" },
+      {
+        id: "vessel_registry_certificate",
+        label: "Vessel Registry certificate REQUIRE COPY ONLY",
+        requirement: "COPY OF INVENTORY LIST TO BE SIGNED AND STAMPED BY MASTER (Require minimum 3 days prior arrival to arrange if Arabic translation done from our end)"
+      },
+      {
+        id: "international_tonnage_certificate",
+        label: "International Tonnage certificate REQUIRE COPY ONLY",
+        requirement: "COPY OF INVENTORY LIST TO BE SIGNED AND STAMPED BY MASTER (Require minimum 3 days prior arrival to arrange if Arabic translation done from our end)"
+      },
     ],
   },
   {
     id: "authorisation_letter",
     title: "C) AUTHORISATION LETTER FOR AGENCY & UNDERTAKING LETTER (DOCUMENT REQUIRED FROM CONSIGNEE)",
     items: [
-      { id: "commercial_registration", label: "Commercial Registration REQUIRE COPY ONLY" },
+      {
+        id: "commercial_registration",
+        label: "Commercial Registration REQUIRE COPY ONLY",
+        requirement: "COPY OF INVENTORY LIST TO BE SIGNED AND STAMPED BY MASTER (Require minimum 3 days prior arrival to arrange if Arabic translation done from our end)"
+      },
     ],
   },
 ];
@@ -50,26 +82,58 @@ const boatArrivingOnboardChecklist = [
     id: "pre_arrival_documents",
     title: "A) PRE-ARRIVAL DOCUMENTS",
     items: [
-      { id: "arrival_notice", label: "Arrival Notice REQUIRE COPY ONLY" },
-      { id: "crew_declaration", label: "Crew Declaration REQUIRE COPY ONLY" },
-      { id: "cargo_declaration", label: "Cargo Declaration REQUIRE COPY ONLY" },
+      {
+        id: "arrival_notice",
+        label: "Arrival Notice REQUIRE COPY ONLY",
+        requirement: "COPY OF INVENTORY LIST TO BE SIGNED AND STAMPED BY MASTER (Require minimum 3 days prior arrival to arrange if Arabic translation done from our end)"
+      },
+      {
+        id: "crew_declaration",
+        label: "Crew Declaration REQUIRE COPY ONLY",
+        requirement: "COPY OF INVENTORY LIST TO BE SIGNED AND STAMPED BY MASTER (Require minimum 3 days prior arrival to arrange if Arabic translation done from our end)"
+      },
+      {
+        id: "cargo_declaration",
+        label: "Cargo Declaration REQUIRE COPY ONLY",
+        requirement: "COPY OF INVENTORY LIST TO BE SIGNED AND STAMPED BY MASTER (Require minimum 3 days prior arrival to arrange if Arabic translation done from our end)"
+      },
     ],
   },
   {
     id: "clearance_documents",
     title: "B) CLEARANCE DOCUMENTS",
     items: [
-      { id: "port_entry_permit", label: "Port Entry Permit REQUIRE COPY ONLY" },
-      { id: "health_certificate", label: "Health Certificate REQUIRE COPY ONLY" },
-      { id: "customs_declaration", label: "Customs Declaration REQUIRE COPY ONLY" },
+      {
+        id: "port_entry_permit",
+        label: "Port Entry Permit REQUIRE COPY ONLY",
+        requirement: "COPY OF INVENTORY LIST TO BE SIGNED AND STAMPED BY MASTER (Require minimum 3 days prior arrival to arrange if Arabic translation done from our end)"
+      },
+      {
+        id: "health_certificate",
+        label: "Health Certificate REQUIRE COPY ONLY",
+        requirement: "COPY OF INVENTORY LIST TO BE SIGNED AND STAMPED BY MASTER (Require minimum 3 days prior arrival to arrange if Arabic translation done from our end)"
+      },
+      {
+        id: "customs_declaration",
+        label: "Customs Declaration REQUIRE COPY ONLY",
+        requirement: "COPY OF INVENTORY LIST TO BE SIGNED AND STAMPED BY MASTER (Require minimum 3 days prior arrival to arrange if Arabic translation done from our end)"
+      },
     ],
   },
   {
     id: "safety_documents",
     title: "C) SAFETY DOCUMENTS",
     items: [
-      { id: "safety_equipment_list", label: "Safety Equipment List REQUIRE COPY ONLY" },
-      { id: "emergency_contact_list", label: "Emergency Contact List REQUIRE COPY ONLY" },
+      {
+        id: "safety_equipment_list",
+        label: "Safety Equipment List REQUIRE COPY ONLY",
+        requirement: "COPY OF INVENTORY LIST TO BE SIGNED AND STAMPED BY MASTER (Require minimum 3 days prior arrival to arrange if Arabic translation done from our end)"
+      },
+      {
+        id: "emergency_contact_list",
+        label: "Emergency Contact List REQUIRE COPY ONLY",
+        requirement: "COPY OF INVENTORY LIST TO BE SIGNED AND STAMPED BY MASTER (Require minimum 3 days prior arrival to arrange if Arabic translation done from our end)"
+      },
     ],
   },
 ];
@@ -514,7 +578,7 @@ ItemDetailModal.propTypes = {
 };
 
 // Checklist Item Component - Table Row Format
-const ChecklistItem = ({ id, label, itemData, onChange, cardColor = "#2A00FF" }) => {
+const ChecklistItem = ({ id, label, requirement, itemData, onChange, cardColor = "#2A00FF" }) => {
   const [remarks, setRemarks] = useState(itemData?.remarks || "");
   const [uploadedFile, setUploadedFile] = useState(itemData?.uploadedFile || null);
   const [isDragging, setIsDragging] = useState(false);
@@ -596,6 +660,9 @@ const ChecklistItem = ({ id, label, itemData, onChange, cardColor = "#2A00FF" })
       <td className="checklist-table-label">
         <span className="checklist-item-text">{label}</span>
       </td>
+      <td className="checklist-table-requirement">
+        <span className="checklist-item-requirement">{requirement || ""}</span>
+      </td>
       <td className="checklist-table-upload">
         <div
           className={`checklist-table-upload-zone ${isDragging ? "dragging" : ""} ${uploadedFile ? "has-file" : ""}`}
@@ -643,6 +710,7 @@ const ChecklistItem = ({ id, label, itemData, onChange, cardColor = "#2A00FF" })
 ChecklistItem.propTypes = {
   id: PropTypes.string.isRequired,
   label: PropTypes.string.isRequired,
+  requirement: PropTypes.string,
   itemData: PropTypes.object,
   onChange: PropTypes.func.isRequired,
   cardColor: PropTypes.string,
@@ -751,7 +819,8 @@ const ChecklistSection = ({
                     className="checklist-select-all-checkbox"
                   />
                 </th>
-                <th className="checklist-table-label-header">Label</th>
+                <th className="checklist-table-label-header">CheckList</th>
+                <th className="checklist-table-requirement-header">Requirement</th>
                 <th className="checklist-table-upload-header">Document Upload</th>
                 <th className="checklist-table-remarks-header">Remarks</th>
               </tr>
@@ -762,6 +831,7 @@ const ChecklistSection = ({
                   key={item.id}
                   id={item.id}
                   label={item.label}
+                  requirement={item.requirement}
                   itemData={itemsData[item.id] || {}}
                   onChange={onItemChange}
                   cardColor={cardColor}

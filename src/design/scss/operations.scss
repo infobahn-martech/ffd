@@ -1920,13 +1920,13 @@ body .material-management-modal .files-list::-webkit-scrollbar-thumb:hover {
 
 .sales-order-summary-grid {
   display: grid;
-  grid-template-columns: repeat(4, 1fr);
+  grid-template-columns: repeat(3, 1fr);
   gap: 24px;
 }
 
 @media (max-width: 1200px) {
   .sales-order-summary-grid {
-    grid-template-columns: repeat(2, 1fr);
+    grid-template-columns: repeat(3, 1fr);
     gap: 20px;
   }
 
@@ -1936,8 +1936,7 @@ body .material-management-modal .files-list::-webkit-scrollbar-thumb:hover {
     padding-bottom: 16px;
   }
 
-  .sales-order-summary-item:nth-child(2),
-  .sales-order-summary-item:nth-child(4) {
+  .sales-order-summary-item:nth-child(2) {
     border-bottom: none;
   }
 
@@ -2011,7 +2010,9 @@ body .material-management-modal .files-list::-webkit-scrollbar-thumb:hover {
 .sales-order-table-container {
   overflow-x: auto;
   width: 100%;
-  margin: 0;
+  margin: 0 22px 20px 22px;
+  padding-right: 34px;
+  box-sizing: border-box;
   background: #ffffff;
   -webkit-overflow-scrolling: touch;
 }
