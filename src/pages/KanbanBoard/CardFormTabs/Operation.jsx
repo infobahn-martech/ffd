@@ -154,7 +154,7 @@ FormTextarea.propTypes = {
 };
 
 // React Quill Editor Component
-const ReactQuillEditor = ({ value, onChange, placeholder }) => {
+const ReactQuillEditor = ({ value, onChange, placeholder, name = "preArrivalDescription", className = "" }) => {
   const quillRef = useRef(null);
 
   const modules = {
@@ -183,12 +183,12 @@ const ReactQuillEditor = ({ value, onChange, placeholder }) => {
   ];
 
   const handleChange = (content) => {
-    const syntheticEvent = { target: { value: content, name: "preArrivalDescription" } };
+    const syntheticEvent = { target: { value: content, name: name } };
     onChange(syntheticEvent);
   };
 
   return (
-    <div className="react-quill-wrapper">
+    <div className={`react-quill-wrapper ${className}`}>
       <ReactQuill
         ref={quillRef}
         theme="snow"
@@ -206,6 +206,8 @@ ReactQuillEditor.propTypes = {
   value: PropTypes.string,
   onChange: PropTypes.func.isRequired,
   placeholder: PropTypes.string,
+  name: PropTypes.string,
+  className: PropTypes.string,
 };
 
 const FormMultiSelect = ({ value = [], onChange, options = [], placeholder, className = "" }) => {
@@ -672,6 +674,7 @@ const PreArrivalContent = ({ formValues, handleChange, ownerInitial, cardUser, c
                     value={formValues?.preArrivalDescription || ""}
                     onChange={handleChange("preArrivalDescription")}
                     placeholder="Enter pre-arrival description..."
+                    name="preArrivalDescription"
                   />
                 </FormField>
               </div>
@@ -817,8 +820,22 @@ const ArrivalContent = ({ formValues, handleChange, cardColor, onAddAttachment, 
       </div>
       <FormSection icon={GroupSettingsIcon} title="">
         <div className="arrival-form">
-          <div className="form-group">
-            <div className="cf-grid two">
+          <div className="general-info-two-column">
+            <div className="general-info-left">
+              <div className="card-description-wrapper">
+                <FormField label="Description">
+                  <ReactQuillEditor
+                    value={formValues?.arrivalDescription || ""}
+                    onChange={handleChange("arrivalDescription")}
+                    placeholder="Enter arrival description..."
+                    name="arrivalDescription"
+                    className="arrival-quill-editor"
+                  />
+                </FormField>
+              </div>
+            </div>
+
+            <div className="general-info-right">
               <FormField label="Actual time of arrival">
                 <div className="cf-input date-time-row">
                   <input
@@ -1013,16 +1030,17 @@ const ArrivalContent = ({ formValues, handleChange, cardColor, onAddAttachment, 
                   />
                 </div>
               </FormField>
+
+              <div className="form-save-button-wrapper">
+                <button
+                  type="button"
+                  className="form-save-button"
+                  onClick={handleSave}
+                >
+                  Save
+                </button>
+              </div>
             </div>
-          </div>
-          <div className="form-group" style={{ marginTop: "20px", display: "flex", justifyContent: "flex-end" }}>
-            <button
-              type="button"
-              className="checklist-btn-primary"
-              onClick={handleSave}
-            >
-              Save
-            </button>
           </div>
         </div>
       </FormSection>
@@ -1056,8 +1074,22 @@ const DepartureContent = ({ formValues, handleChange, cardColor, onAddAttachment
       </div>
       <FormSection icon={GroupSettingsIcon} title="">
         <div className="departure-form">
-          <div className="form-group">
-            <div className="cf-grid two">
+          <div className="general-info-two-column">
+            <div className="general-info-left">
+              <div className="card-description-wrapper">
+                <FormField label="Description">
+                  <ReactQuillEditor
+                    value={formValues?.departureDescription || ""}
+                    onChange={handleChange("departureDescription")}
+                    placeholder="Enter departure description..."
+                    name="departureDescription"
+                    className="departure-quill-editor"
+                  />
+                </FormField>
+              </div>
+            </div>
+
+            <div className="general-info-right">
               <FormField label="Request for outward clearance received">
                 <div className="cf-input date-time-row">
                   <input
@@ -1152,16 +1184,17 @@ const DepartureContent = ({ formValues, handleChange, cardColor, onAddAttachment
                   />
                 </div>
               </FormField>
+
+              <div className="form-save-button-wrapper">
+                <button
+                  type="button"
+                  className="form-save-button"
+                  onClick={handleSave}
+                >
+                  Save
+                </button>
+              </div>
             </div>
-          </div>
-          <div className="form-group" style={{ marginTop: "20px", display: "flex", justifyContent: "flex-end" }}>
-            <button
-              type="button"
-              className="checklist-btn-primary"
-              onClick={handleSave}
-            >
-              Save
-            </button>
           </div>
         </div>
       </FormSection>

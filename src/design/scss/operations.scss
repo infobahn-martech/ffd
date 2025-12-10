@@ -72,7 +72,7 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  min-height: 500px;
+  min-height: 606px;
   padding: 40px 20px;
   background: #ffffff;
 }
@@ -529,6 +529,54 @@
 
     .ql-editor {
       min-height: 503px !important;
+      height: 100% !important;
+      overflow-y: auto;
+    }
+  }
+}
+
+/* Override ReactQuill min-height for Arrival tab */
+.arrival-form {
+  .general-info-two-column {
+    align-items: stretch;
+  }
+
+  .react-quill-wrapper.arrival-quill-editor {
+    flex: 1;
+    min-height: 0;
+
+    .ql-container {
+      flex: 1;
+      min-height: 0;
+      height: 100%;
+    }
+
+    .ql-editor {
+      min-height: 710px !important;
+      height: 100% !important;
+      overflow-y: auto;
+    }
+  }
+}
+
+/* Override ReactQuill min-height for Departure tab */
+.departure-form {
+  .general-info-two-column {
+    align-items: stretch;
+  }
+
+  .react-quill-wrapper.departure-quill-editor {
+    flex: 1;
+    min-height: 0;
+
+    .ql-container {
+      flex: 1;
+      min-height: 0;
+      height: 100%;
+    }
+
+    .ql-editor {
+      min-height: 305px !important;
       height: 100% !important;
       overflow-y: auto;
     }
