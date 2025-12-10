@@ -109,6 +109,235 @@
   }
 }
 
+// Tiptap Editor Styles
+.tiptap-wrapper {
+  width: 100%;
+  min-height: 300px;
+  display: flex;
+  flex-direction: column;
+  border: 1.5px solid #e2e2ea;
+  border-radius: 8px;
+  background: #ffffff;
+
+  .tiptap-toolbar {
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    padding: 8px;
+    border-bottom: 1px solid #e2e2ea;
+    background: #ffffff;
+    border-radius: 8px 8px 0 0;
+    flex-wrap: wrap;
+
+    button {
+      background: transparent;
+      border: 1px solid transparent;
+      border-radius: 4px;
+      padding: 6px 10px;
+      cursor: pointer;
+      font-size: 14px;
+      color: #333;
+      transition: all 0.2s;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      min-width: 32px;
+      height: 32px;
+
+      &:hover {
+        background: #f5f5f5;
+        border-color: #e2e2ea;
+      }
+
+      &.is-active {
+        background: #e8f4f8;
+        border-color: #2A00FF;
+        color: #2A00FF;
+      }
+
+      &:disabled {
+        opacity: 0.5;
+        cursor: not-allowed;
+      }
+    }
+
+    .toolbar-divider {
+      width: 1px;
+      height: 24px;
+      background: #e2e2ea;
+      margin: 0 4px;
+    }
+
+    .color-picker {
+      width: 32px;
+      height: 32px;
+      border: 1px solid #e2e2ea;
+      border-radius: 4px;
+      cursor: pointer;
+      padding: 2px;
+      background: transparent;
+
+      &::-webkit-color-swatch-wrapper {
+        padding: 0;
+      }
+
+      &::-webkit-color-swatch {
+        border: none;
+        border-radius: 2px;
+      }
+    }
+  }
+
+  .ProseMirror {
+    flex: 1;
+    min-height: 250px;
+    padding: 12px 14px;
+    font-size: 13px;
+    color: #1a1a1a;
+    line-height: 1.6;
+    outline: none;
+    overflow-y: auto;
+    font-family: "Poppins", sans-serif;
+
+    p {
+      margin: 0.5em 0;
+
+      &:first-child {
+        margin-top: 0;
+      }
+
+      &:last-child {
+        margin-bottom: 0;
+      }
+
+      &.is-editor-empty:first-child::before {
+        content: attr(data-placeholder);
+        float: left;
+        color: #999;
+        pointer-events: none;
+        height: 0;
+        font-style: normal;
+      }
+    }
+
+    h1,
+    h2,
+    h3 {
+      margin: 0.8em 0 0.4em 0;
+      font-weight: 600;
+      line-height: 1.4;
+
+      &:first-child {
+        margin-top: 0;
+      }
+    }
+
+    h1 {
+      font-size: 1.5em;
+    }
+
+    h2 {
+      font-size: 1.3em;
+    }
+
+    h3 {
+      font-size: 1.1em;
+    }
+
+    ul,
+    ol {
+      padding-left: 1.5em;
+      margin: 0.5em 0;
+    }
+
+    li {
+      margin: 0.25em 0;
+    }
+
+    a {
+      color: #2A00FF;
+      text-decoration: underline;
+      cursor: pointer;
+
+      &:hover {
+        color: #1a00cc;
+      }
+    }
+
+    img {
+      max-width: 100%;
+      height: auto;
+      border-radius: 4px;
+      margin: 0.5em 0;
+    }
+
+    strong {
+      font-weight: 600;
+    }
+
+    em {
+      font-style: italic;
+    }
+
+    u {
+      text-decoration: underline;
+    }
+
+    s {
+      text-decoration: line-through;
+    }
+  }
+}
+
+// Save Button Styles
+.form-save-button-wrapper {
+  margin-top: 24px;
+  padding-top: 20px;
+  border-top: 1px solid #f0f0f0;
+  display: flex;
+  justify-content: flex-end;
+}
+
+.form-save-button {
+  background: linear-gradient(135deg, #2A00FF 0%, #1a00cc 100%);
+  border: none;
+  color: #ffffff;
+  padding: 12px 32px;
+  border-radius: 8px;
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  font-family: "Poppins", sans-serif;
+  box-shadow: 0 2px 8px rgba(42, 0, 255, 0.2);
+
+  &:hover {
+    background: linear-gradient(135deg, #1a00cc 0%, #1400a3 100%);
+    transform: translateY(-1px);
+    box-shadow: 0 4px 12px rgba(42, 0, 255, 0.3);
+  }
+
+  &:active {
+    transform: translateY(0);
+    box-shadow: 0 2px 6px rgba(42, 0, 255, 0.2);
+  }
+}
+
+// Single column layout for left side fields
+.general-info-left {
+  .form-group {
+    .cf-field {
+      margin-bottom: 16px;
+    }
+  }
+}
+
+// Adjust two-column layout - left side should be wider for single column fields
+.general-info-two-column {
+  grid-template-columns: 1.2fr 1fr;
+  gap: 24px;
+}
+
 
 /* ==========================================================
    VERTICAL TIMELINE
