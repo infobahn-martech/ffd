@@ -4435,8 +4435,8 @@ body .material-management-modal.show {
 body .material-management-modal .modal-dialog {
   z-index: 1301 !important;
   position: relative;
-  max-width: 700px !important;
-  width: 90%;
+  max-width: 550px !important;
+  width: 85%;
   margin: 30px auto;
 }
 
@@ -4446,13 +4446,13 @@ body .material-management-modal .modal-content {
 }
 
 body .material-management-modal .modal-header {
-  padding: 20px 24px;
+  padding: 16px 20px;
   border-bottom: 1px solid #f0f0f0;
 }
 
 body .material-management-modal .modal-body {
-  padding: 24px 10px 10px 34px;
-  max-height: 70vh;
+  padding: 20px 10px 10px 24px;
+  max-height: 60vh;
   overflow-y: auto;
   scrollbar-width: thin;
   scrollbar-color: transparent transparent;
@@ -4475,7 +4475,7 @@ body .material-management-modal .modal-body::-webkit-scrollbar-thumb:hover {
 }
 
 body .material-management-modal .modal-footer {
-  padding: 16px 37px;
+  padding: 12px 24px;
   border-top: 1px solid #f0f0f0;
   display: flex;
   justify-content: flex-end;
