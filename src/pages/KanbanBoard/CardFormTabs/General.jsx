@@ -1,27 +1,20 @@
 import PropTypes from "prop-types";
-import { useMemo, useEffect } from "react";
-import { useEditor, EditorContent } from "@tiptap/react";
-import StarterKit from "@tiptap/starter-kit";
-import { TextStyle } from "@tiptap/extension-text-style";
-import { Color } from "@tiptap/extension-color";
-import Underline from "@tiptap/extension-underline";
-import Link from "@tiptap/extension-link";
-import Image from "@tiptap/extension-image";
+import { useMemo } from "react";
 import "../../../design/scss/general.scss";
 import "../../../design/css/CardForm.css";
 
 // Job statuses in order with icons and descriptions (10 statuses)
 const JOB_STATUSES = [
-  { id: 1, title: "Pre Arrival", key: "preArrival", icon: "🚢", description: "Vessel approaching port" },
-  { id: 2, title: "Custom Inspection", key: "customInspection", icon: "🔍", description: "Custom inspection process" },
-  { id: 3, title: "Crew Immigration", key: "crewImmigration", icon: "👥", description: "Crew documentation check" },
-  { id: 4, title: "Vessel Inward Formalities", key: "vesselInwardFormalities", icon: "📋", description: "Inward documentation" },
-  { id: 5, title: "Marine Work Permit", key: "marineWorkPermit", icon: "⚓", description: "Work permit approval" },
-  { id: 6, title: "SABER UT Closed", key: "saberUtClosed", icon: "✅", description: "SABER UT system closed" },
-  { id: 7, title: "Outward Clearance", key: "outwardClearance", icon: "📤", description: "Outward documentation" },
-  { id: 8, title: "Vessel Sailed", key: "vesselSailed", icon: "⛵", description: "Vessel departed port" },
-  { id: 9, title: "Ops Completed", key: "opsCompleted", icon: "✔️", description: "Operations completed" },
-  { id: 10, title: "Closed", key: "closed", icon: "🔒", description: "Job completed and closed" },
+  { id: 1, title: "Pre Arrival", key: "preArrival", icon: "🚢", description: "Lorem Ipsum is simply dummy text of the printing and typesetting industry.Lorem Ipsum is simply dummy text of the printing and typesetting industry" },
+  { id: 2, title: "Custom Inspection", key: "customInspection", icon: "🔍", description: "Lorem Ipsum is simply dummy text of the printing and typesetting industry.Lorem Ipsum is simply dummy text of the printing and typesetting industry" },
+  { id: 3, title: "Crew Immigration", key: "crewImmigration", icon: "👥", description: "Lorem Ipsum is simply dummy text of the printing and typesetting industry.Lorem Ipsum is simply dummy text of the printing and typesetting industry" },
+  { id: 4, title: "Vessel Inward Formalities", key: "vesselInwardFormalities", icon: "📋", description: "Lorem Ipsum is simply dummy text of the printing and typesetting industry.Lorem Ipsum is simply dummy text of the printing and typesetting industry" },
+  { id: 5, title: "Marine Work Permit", key: "marineWorkPermit", icon: "⚓", description: "Lorem Ipsum is simply dummy text of the printing and typesetting industry.Lorem Ipsum is simply dummy text of the printing and typesetting industry" },
+  { id: 6, title: "SABER UT Closed", key: "saberUtClosed", icon: "✅", description: "Lorem Ipsum is simply dummy text of the printing and typesetting industry.Lorem Ipsum is simply dummy text of the printing and typesetting industry" },
+  { id: 7, title: "Outward Clearance", key: "outwardClearance", icon: "📤", description: "Lorem Ipsum is simply dummy text of the printing and typesetting industry.Lorem Ipsum is simply dummy text of the printing and typesetting industry" },
+  { id: 8, title: "Vessel Sailed", key: "vesselSailed", icon: "⛵", description: "Lorem Ipsum is simply dummy text of the printing and typesetting industry.Lorem Ipsum is simply dummy text of the printing and typesetting industry" },
+  { id: 9, title: "Ops Completed", key: "opsCompleted", icon: "✔️", description: "Lorem Ipsum is simply dummy text of the printing and typesetting industry.Lorem Ipsum is simply dummy text of the printing and typesetting industry" },
+  { id: 10, title: "Closed", key: "closed", icon: "🔒", description: "Lorem Ipsum is simply dummy text of the printing and typesetting industry.Lorem Ipsum is simply dummy text of the printing and typesetting industry" },
 ];
 
 
@@ -117,186 +110,6 @@ OwnerField.propTypes = {
   cardUser: PropTypes.string,
 };
 
-// Tiptap Editor Component
-const TiptapEditor = ({ value, onChange, placeholder }) => {
-  const editor = useEditor({
-    extensions: [
-      StarterKit.configure({
-        heading: {
-          levels: [1, 2, 3],
-        },
-      }),
-      TextStyle,
-      Color,
-      Underline,
-      Link.configure({
-        openOnClick: false,
-        HTMLAttributes: {
-          class: "editor-link",
-        },
-      }),
-      Image.configure({
-        inline: true,
-        allowBase64: true,
-      }),
-    ],
-    content: value || "",
-    onUpdate: ({ editor }) => {
-      const html = editor.getHTML();
-      const syntheticEvent = { target: { value: html, name: "cardDescription" } };
-      onChange(syntheticEvent);
-    },
-    editorProps: {
-      attributes: {
-        class: "tiptap-editor",
-        "data-placeholder": placeholder || "Enter card description...",
-      },
-    },
-  });
-
-  // Update editor content when value prop changes externally
-  useEffect(() => {
-    if (editor && value !== undefined) {
-      const currentContent = editor.getHTML();
-      if (currentContent !== value) {
-        editor.commands.setContent(value || "", false);
-      }
-    }
-  }, [value, editor]);
-
-  if (!editor) {
-    return null;
-  }
-
-  return (
-    <div className="tiptap-wrapper">
-      <div className="tiptap-toolbar">
-        <button
-          type="button"
-          onClick={() => editor.chain().focus().toggleHeading({ level: 1 }).run()}
-          className={editor.isActive("heading", { level: 1 }) ? "is-active" : ""}
-          title="Heading 1"
-        >
-          H1
-        </button>
-        <button
-          type="button"
-          onClick={() => editor.chain().focus().toggleHeading({ level: 2 }).run()}
-          className={editor.isActive("heading", { level: 2 }) ? "is-active" : ""}
-          title="Heading 2"
-        >
-          H2
-        </button>
-        <button
-          type="button"
-          onClick={() => editor.chain().focus().toggleHeading({ level: 3 }).run()}
-          className={editor.isActive("heading", { level: 3 }) ? "is-active" : ""}
-          title="Heading 3"
-        >
-          H3
-        </button>
-        <div className="toolbar-divider"></div>
-        <button
-          type="button"
-          onClick={() => editor.chain().focus().toggleBold().run()}
-          className={editor.isActive("bold") ? "is-active" : ""}
-          title="Bold"
-        >
-          <strong>B</strong>
-        </button>
-        <button
-          type="button"
-          onClick={() => editor.chain().focus().toggleItalic().run()}
-          className={editor.isActive("italic") ? "is-active" : ""}
-          title="Italic"
-        >
-          <em>I</em>
-        </button>
-        <button
-          type="button"
-          onClick={() => editor.chain().focus().toggleUnderline().run()}
-          className={editor.isActive("underline") ? "is-active" : ""}
-          title="Underline"
-        >
-          <u>U</u>
-        </button>
-        <button
-          type="button"
-          onClick={() => editor.chain().focus().toggleStrike().run()}
-          className={editor.isActive("strike") ? "is-active" : ""}
-          title="Strikethrough"
-        >
-          <s>S</s>
-        </button>
-        <div className="toolbar-divider"></div>
-        <button
-          type="button"
-          onClick={() => editor.chain().focus().toggleBulletList().run()}
-          className={editor.isActive("bulletList") ? "is-active" : ""}
-          title="Bullet List"
-        >
-          •
-        </button>
-        <button
-          type="button"
-          onClick={() => editor.chain().focus().toggleOrderedList().run()}
-          className={editor.isActive("orderedList") ? "is-active" : ""}
-          title="Numbered List"
-        >
-          1.
-        </button>
-        <div className="toolbar-divider"></div>
-        <input
-          type="color"
-          onInput={(e) => editor.chain().focus().setColor(e.target.value).run()}
-          value={editor.getAttributes("textStyle").color || "#000000"}
-          title="Text Color"
-          className="color-picker"
-        />
-        <button
-          type="button"
-          onClick={() => {
-            const url = window.prompt("Enter URL:");
-            if (url) {
-              editor.chain().focus().setLink({ href: url }).run();
-            }
-          }}
-          className={editor.isActive("link") ? "is-active" : ""}
-          title="Add Link"
-        >
-          🔗
-        </button>
-        <button
-          type="button"
-          onClick={() => {
-            const url = window.prompt("Enter image URL:");
-            if (url) {
-              editor.chain().focus().setImage({ src: url }).run();
-            }
-          }}
-          title="Add Image"
-        >
-          🖼️
-        </button>
-        <div className="toolbar-divider"></div>
-        <button
-          type="button"
-          onClick={() => editor.chain().focus().clearNodes().unsetAllMarks().run()}
-          title="Clear Formatting"
-        >
-          🧹
-        </button>
-      </div>
-      <EditorContent editor={editor} />
-    </div>
-  );
-};
-
-TiptapEditor.propTypes = {
-  value: PropTypes.string,
-  onChange: PropTypes.func.isRequired,
-  placeholder: PropTypes.string,
-};
 
 // Helper function to format date and time
 const formatDateTime = (date, time) => {
@@ -669,11 +482,24 @@ function General({ card, formValues, handleChange, ownerInitial, cardUser }) {
               <div className="general-info-right">
                 <div className="card-description-wrapper">
                   <FormField label="Card Description">
-                    <TiptapEditor
-                      value={formValues?.cardDescription || ""}
-                      onChange={handleChange("cardDescription")}
-                      placeholder="Enter card description..."
-                    />
+                    <div className="cf-input">
+                      <textarea
+                        value={formValues?.cardDescription || ""}
+                        onChange={handleChange("cardDescription")}
+                        placeholder="Enter card description..."
+                        rows={10}
+                        style={{
+                          width: "100%",
+                          border: "none",
+                          background: "transparent",
+                          fontSize: "13px",
+                          outline: "none",
+                          resize: "vertical",
+                          fontFamily: "Poppins, sans-serif",
+                          color: "#1a1a1a",
+                        }}
+                      />
+                    </div>
                   </FormField>
                 </div>
               </div>
