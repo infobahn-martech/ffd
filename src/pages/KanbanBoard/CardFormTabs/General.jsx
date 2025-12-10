@@ -10,18 +10,22 @@ import Image from "@tiptap/extension-image";
 import "../../../design/scss/general.scss";
 import "../../../design/css/CardForm.css";
 
-// Job statuses in order with icons and descriptions (10 statuses required)
+// Job statuses in order with icons and descriptions (14 statuses)
 const JOB_STATUSES = [
-  { id: 1, title: "Pre-Arrival", key: "preArrival", icon: "🚢", description: "Vessel approaching port" },
-  { id: 2, title: "Customs Inspection", key: "customsInspection", icon: "🔍", description: "Customs clearance process" },
+  { id: 1, title: "Pre Arrival", key: "preArrival", icon: "🚢", description: "Vessel approaching port" },
+  { id: 2, title: "Custom Inspection", key: "customInspection", icon: "🔍", description: "Custom inspection process" },
   { id: 3, title: "Crew Immigration", key: "crewImmigration", icon: "👥", description: "Crew documentation check" },
   { id: 4, title: "Vessel Inward Formalities", key: "vesselInwardFormalities", icon: "📋", description: "Inward documentation" },
   { id: 5, title: "Marine Work Permit", key: "marineWorkPermit", icon: "⚓", description: "Work permit approval" },
-  { id: 6, title: "SABER UT", key: "saberUt", icon: "✅", description: "SABER system update" },
+  { id: 6, title: "SABER UT Closed", key: "saberUtClosed", icon: "✅", description: "SABER UT system closed" },
   { id: 7, title: "Outward Clearance", key: "outwardClearance", icon: "📤", description: "Outward documentation" },
   { id: 8, title: "Vessel Sailed", key: "vesselSailed", icon: "⛵", description: "Vessel departed port" },
-  { id: 9, title: "Operations Completed", key: "operationsCompleted", icon: "✔️", description: "All operations finished" },
-  { id: 10, title: "Closed", key: "closed", icon: "🔒", description: "Job completed and closed" },
+  { id: 9, title: "Ops Completed", key: "opsCompleted", icon: "✔️", description: "Operations completed" },
+  { id: 10, title: "SO Approval", key: "soApproval", icon: "✍️", description: "SO approval received" },
+  { id: 11, title: "Invoice Issued", key: "invoiceIssued", icon: "📄", description: "Invoice has been issued" },
+  { id: 12, title: "Submitted", key: "submitted", icon: "📨", description: "Submitted for processing" },
+  { id: 13, title: "Confirmattion Received", key: "confirmationReceived", icon: "✓", description: "Confirmation received" },
+  { id: 14, title: "Closed", key: "closed", icon: "🔒", description: "Job completed and closed" },
 ];
 
 
@@ -298,21 +302,88 @@ TiptapEditor.propTypes = {
   placeholder: PropTypes.string,
 };
 
+// Horizontal Progress Bar Component
+const HorizontalProgressBar = ({ stages, currentStatus, accentColor }) => {
+  const currentIndex = stages.findIndex(stage => stage.key === currentStatus);
+  const activeIndex = currentIndex >= 0 ? currentIndex : 0;
+  
+  // Calculate progress width - reach the center of the active stage dot
+  // Each stage is evenly spaced, so progress grows linearly
+  // If at first stage (index 0), show 0%, if at last stage, show 100%
+  const progressWidth = stages.length > 1 
+    ? (activeIndex / (stages.length - 1)) * 100 
+    : 0;
+
+  return (
+    <div className="job-status-progress-container" style={{ "--accent-color": accentColor }}>
+      <div className="job-status-progress-line">
+        <div 
+          className="job-status-progress-fill" 
+          style={{ 
+            width: `${progressWidth}%`,
+            transition: "width 0.5s ease"
+          }}
+        />
+      </div>
+      <div className="job-status-progress-stages">
+        {stages.map((stage, index) => {
+          const isCompleted = index < activeIndex;
+          const isActive = index === activeIndex;
+          const isPending = index > activeIndex;
+
+          return (
+            <div 
+              key={stage.id} 
+              className={`job-status-progress-stage ${isCompleted ? 'completed' : ''} ${isActive ? 'active' : ''} ${isPending ? 'pending' : ''}`}
+              title={stage.description}
+            >
+              <div className={`job-status-progress-dot ${isCompleted ? 'completed' : ''} ${isActive ? 'active' : ''} ${isPending ? 'pending' : ''}`}>
+                {isCompleted && <span className="check-icon">✓</span>}
+                {isActive && <span className="active-dot"></span>}
+                {isPending && <span className="pending-dot"></span>}
+              </div>
+              <div className="job-status-progress-label">
+                {stage.title}
+              </div>
+            </div>
+          );
+        })}
+      </div>
+    </div>
+  );
+};
+
+HorizontalProgressBar.propTypes = {
+  stages: PropTypes.arrayOf(PropTypes.shape({
+    id: PropTypes.number.isRequired,
+    title: PropTypes.string.isRequired,
+    key: PropTypes.string.isRequired,
+    icon: PropTypes.string,
+    description: PropTypes.string,
+  })).isRequired,
+  currentStatus: PropTypes.string,
+  accentColor: PropTypes.string,
+};
+
 function General({ card, formValues, handleChange, ownerInitial, cardUser }) {
   const accentColor = useMemo(() => card?.color || "#2A00FF", [card?.color]);
 
-  // Determine current job status from card data (updated for 10 statuses)
+  // Determine current job status from card data (updated for 14 statuses)
   const currentStatus = useMemo(() => {
     // Map card properties to status keys
     if (card?.closed) return "closed";
-    if (card?.operationsCompleted) return "operationsCompleted";
+    if (card?.confirmationReceived) return "confirmationReceived";
+    if (card?.submitted) return "submitted";
+    if (card?.invoiceIssued) return "invoiceIssued";
+    if (card?.soApproval) return "soApproval";
+    if (card?.opsCompleted) return "opsCompleted";
     if (card?.vesselSailed) return "vesselSailed";
     if (card?.outwardClearance) return "outwardClearance";
-    if (card?.saberUt) return "saberUt";
+    if (card?.saberUtClosed) return "saberUtClosed";
     if (card?.marineWorkPermit) return "marineWorkPermit";
     if (card?.vesselInwardFormalities) return "vesselInwardFormalities";
     if (card?.crewImmigration) return "crewImmigration";
-    if (card?.customsInspection) return "customsInspection";
+    if (card?.customInspection || card?.customsInspection) return "customInspection";
     return "preArrival";
   }, [card]);
 
@@ -333,6 +404,11 @@ function General({ card, formValues, handleChange, ownerInitial, cardUser }) {
             <div className="cf-section-title">Job Status</div>
           </div>
           <div className="cf-section-body">
+            <HorizontalProgressBar 
+              stages={JOB_STATUSES}
+              currentStatus={currentStatus}
+              accentColor={accentColor}
+            />
           </div>
         </div>
 

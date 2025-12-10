@@ -761,6 +761,193 @@
 }
 
 /* ==========================================================
+   JOB STATUS HORIZONTAL PROGRESS BAR
+   ========================================================== */
+
+.job-status-progress-container {
+  padding: 30px 0 20px 0;
+  position: relative;
+  width: 100%;
+  overflow: visible;
+}
+
+.job-status-progress-line {
+  position: absolute;
+  top: 40px;
+  left: 12px;
+  right: 12px;
+  height: 3px;
+  background: #e0e0e0;
+  border-radius: 2px;
+  z-index: 1;
+}
+
+.job-status-progress-fill {
+  position: absolute;
+  top: 0;
+  left: 0;
+  height: 100%;
+  background: var(--accent-color, #2A00FF);
+  border-radius: 2px;
+  z-index: 2;
+  transition: width 0.5s ease;
+}
+
+.job-status-progress-stages {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  position: relative;
+  z-index: 3;
+  width: 100%;
+  padding: 0;
+}
+
+.job-status-progress-stage {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  flex: 1;
+  min-width: 0;
+  position: relative;
+  cursor: pointer;
+  transition: transform 0.2s ease;
+
+  &:hover {
+    transform: translateY(-2px);
+
+    .job-status-progress-label {
+      color: var(--accent-color, #2A00FF);
+      font-weight: 600;
+    }
+  }
+}
+
+.job-status-progress-dot {
+  width: 24px;
+  height: 24px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  position: relative;
+  z-index: 4;
+  background: #ffffff;
+  border: 3px solid #e0e0e0;
+  margin-bottom: 12px;
+  transition: all 0.3s ease;
+  flex-shrink: 0;
+
+  &.completed {
+    background: var(--accent-color, #2A00FF);
+    border-color: var(--accent-color, #2A00FF);
+    color: #ffffff;
+
+    .check-icon {
+      font-size: 14px;
+      font-weight: bold;
+      color: #ffffff;
+      display: block;
+    }
+  }
+
+  &.active {
+    background: var(--accent-color, #2A00FF);
+    border-color: var(--accent-color, #2A00FF);
+    box-shadow: 0 0 0 4px rgba(42, 0, 255, 0.2);
+    animation: pulse-progress-dot 2s infinite;
+
+    .active-dot {
+      width: 8px;
+      height: 8px;
+      border-radius: 50%;
+      background: #ffffff;
+      display: block;
+    }
+  }
+
+  &.pending {
+    background: #f5f5f5;
+    border-color: #e0e0e0;
+
+    .pending-dot {
+      width: 8px;
+      height: 8px;
+      border-radius: 50%;
+      background: #e0e0e0;
+      display: block;
+    }
+  }
+
+  .check-icon,
+  .active-dot,
+  .pending-dot {
+    display: none;
+  }
+}
+
+.job-status-progress-label {
+  font-size: 10px;
+  font-weight: 500;
+  text-align: center;
+  color: #666;
+  line-height: 1.3;
+  padding: 0 2px;
+  word-wrap: break-word;
+  max-width: 100%;
+  transition: all 0.2s ease;
+
+  .job-status-progress-stage.completed & {
+    color: #333;
+    font-weight: 600;
+  }
+
+  .job-status-progress-stage.active & {
+    color: var(--accent-color, #2A00FF);
+    font-weight: 700;
+  }
+
+  .job-status-progress-stage.pending & {
+    color: #999;
+  }
+}
+
+@keyframes pulse-progress-dot {
+  0%,
+  100% {
+    box-shadow: 0 0 0 4px rgba(42, 0, 255, 0.2);
+  }
+
+  50% {
+    box-shadow: 0 0 0 8px rgba(42, 0, 255, 0.1);
+  }
+}
+
+/* Responsive adjustments for job status progress */
+@media (max-width: 1400px) {
+  .job-status-progress-label {
+    font-size: 9px;
+  }
+
+  .job-status-progress-dot {
+    width: 20px;
+    height: 20px;
+  }
+}
+
+@media (max-width: 1200px) {
+  .job-status-progress-label {
+    font-size: 8px;
+  }
+
+  .job-status-progress-dot {
+    width: 18px;
+    height: 18px;
+    margin-bottom: 10px;
+  }
+}
+
+/* ==========================================================
    SUMMARY GRID
    ========================================================== */
 
