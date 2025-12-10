@@ -10,7 +10,7 @@ import Image from "@tiptap/extension-image";
 import "../../../design/scss/general.scss";
 import "../../../design/css/CardForm.css";
 
-// Job statuses in order with icons and descriptions (14 statuses)
+// Job statuses in order with icons and descriptions (10 statuses)
 const JOB_STATUSES = [
   { id: 1, title: "Pre Arrival", key: "preArrival", icon: "🚢", description: "Vessel approaching port" },
   { id: 2, title: "Custom Inspection", key: "customInspection", icon: "🔍", description: "Custom inspection process" },
@@ -21,11 +21,7 @@ const JOB_STATUSES = [
   { id: 7, title: "Outward Clearance", key: "outwardClearance", icon: "📤", description: "Outward documentation" },
   { id: 8, title: "Vessel Sailed", key: "vesselSailed", icon: "⛵", description: "Vessel departed port" },
   { id: 9, title: "Ops Completed", key: "opsCompleted", icon: "✔️", description: "Operations completed" },
-  { id: 10, title: "SO Approval", key: "soApproval", icon: "✍️", description: "SO approval received" },
-  { id: 11, title: "Invoice Issued", key: "invoiceIssued", icon: "📄", description: "Invoice has been issued" },
-  { id: 12, title: "Submitted", key: "submitted", icon: "📨", description: "Submitted for processing" },
-  { id: 13, title: "Confirmattion Received", key: "confirmationReceived", icon: "✓", description: "Confirmation received" },
-  { id: 14, title: "Closed", key: "closed", icon: "🔒", description: "Job completed and closed" },
+  { id: 10, title: "Closed", key: "closed", icon: "🔒", description: "Job completed and closed" },
 ];
 
 
@@ -302,24 +298,75 @@ TiptapEditor.propTypes = {
   placeholder: PropTypes.string,
 };
 
+// Helper function to format date and time
+const formatDateTime = (date, time) => {
+  if (!date && !time) return "Not set";
+  const dateStr = date ? new Date(date).toLocaleDateString('en-US', { year: 'numeric', month: 'short', day: 'numeric' }) : '';
+  const timeStr = time || '';
+  return dateStr && timeStr ? `${dateStr} at ${timeStr}` : dateStr || timeStr || "Not set";
+};
+
+// Helper function to get status date/time from card/formValues
+const getStatusDateTime = (card, formValues, statusKey) => {
+  // Map status keys to potential date/time fields in card or formValues
+  const dateTimeMap = {
+    preArrival: { date: formValues?.preArrivalDate || card?.preArrivalDate, time: formValues?.preArrivalTime || card?.preArrivalTime },
+    customInspection: { date: formValues?.customInspectionDate || card?.customInspectionDate, time: formValues?.customInspectionTime || card?.customInspectionTime },
+    crewImmigration: { date: formValues?.crewImmigrationDate || card?.crewImmigrationDate, time: formValues?.crewImmigrationTime || card?.crewImmigrationTime },
+    vesselInwardFormalities: { date: formValues?.vesselInwardFormalitiesDate || card?.vesselInwardFormalitiesDate, time: formValues?.vesselInwardFormalitiesTime || card?.vesselInwardFormalitiesTime },
+    marineWorkPermit: { date: formValues?.marineWorkPermitDate || card?.marineWorkPermitDate, time: formValues?.marineWorkPermitTime || card?.marineWorkPermitTime },
+    saberUtClosed: { date: formValues?.saberUtClosedDate || card?.saberUtClosedDate, time: formValues?.saberUtClosedTime || card?.saberUtClosedTime },
+    outwardClearance: { date: formValues?.outwardClearanceDate || card?.outwardClearanceDate, time: formValues?.outwardClearanceTime || card?.outwardClearanceTime },
+    vesselSailed: { date: formValues?.vesselSailedDate || card?.vesselSailedDate, time: formValues?.vesselSailedTime || card?.vesselSailedTime },
+    opsCompleted: { date: formValues?.opsCompletedDate || card?.opsCompletedDate, time: formValues?.opsCompletedTime || card?.opsCompletedTime },
+    closed: { date: formValues?.closedDate || card?.closedDate, time: formValues?.closedTime || card?.closedTime },
+  };
+
+  return dateTimeMap[statusKey] || { date: null, time: null };
+};
+
 // Horizontal Progress Bar Component
-const HorizontalProgressBar = ({ stages, currentStatus, accentColor }) => {
+const HorizontalProgressBar = ({ stages, currentStatus, accentColor, card, formValues }) => {
   const currentIndex = stages.findIndex(stage => stage.key === currentStatus);
   const activeIndex = currentIndex >= 0 ? currentIndex : 0;
-  
+
   // Calculate progress width - reach the center of the active stage dot
-  // Each stage is evenly spaced, so progress grows linearly
-  // If at first stage (index 0), show 0%, if at last stage, show 100%
-  const progressWidth = stages.length > 1 
-    ? (activeIndex / (stages.length - 1)) * 100 
-    : 0;
+  // Since dots are evenly distributed using flexbox with space-between,
+  // the line spans from first dot center (0%) to last dot center (100%)
+  // Each dot center is positioned at: (index / (totalStages - 1)) * 100
+  const calculateProgressWidth = () => {
+    if (stages.length <= 1) return 0;
+    if (activeIndex === 0) {
+      return 0;
+    }
+    if (activeIndex === stages.length - 1) {
+      return 100;
+    }
+
+    // Calculate the exact percentage to reach the center of the active dot
+    // Since dots are evenly spaced using flexbox with space-between,
+    // the center of each dot is at: (index / (stages.length - 1)) * 100
+    // For Custom Inspection (index 1) with 10 stages: 1/9 * 100 = 11.11%
+    const dotCenterPosition = (activeIndex / (stages.length - 1)) * 100;
+
+    // Add a visual offset to ensure the green line reaches the center of the dot
+    // This accounts for:
+    // 1. Dot width (28px) - line needs to extend to dot center
+    // 2. Flexbox spacing calculations
+    // 3. Subpixel rendering differences
+    // For index 1 (Custom Inspection), we add ~2.5% to ensure it reaches the center
+    const offsetPercentage = activeIndex <= 2 ? 2.5 : 2.0;
+    return Math.min(dotCenterPosition + offsetPercentage, 100);
+  };
+
+  const progressWidth = calculateProgressWidth();
 
   return (
-    <div className="job-status-progress-container" style={{ "--accent-color": accentColor }}>
+    <div className="job-status-progress-container" style={{ "--progress-color": "#2e7d32" }}>
       <div className="job-status-progress-line">
-        <div 
-          className="job-status-progress-fill" 
-          style={{ 
+        <div
+          className="job-status-progress-fill"
+          style={{
             width: `${progressWidth}%`,
             transition: "width 0.5s ease"
           }}
@@ -330,13 +377,17 @@ const HorizontalProgressBar = ({ stages, currentStatus, accentColor }) => {
           const isCompleted = index < activeIndex;
           const isActive = index === activeIndex;
           const isPending = index > activeIndex;
+          const statusDateTime = getStatusDateTime(card, formValues, stage.key);
+          const formattedDateTime = formatDateTime(statusDateTime.date, statusDateTime.time);
 
           return (
-            <div 
-              key={stage.id} 
+            <div
+              key={stage.id}
               className={`job-status-progress-stage ${isCompleted ? 'completed' : ''} ${isActive ? 'active' : ''} ${isPending ? 'pending' : ''}`}
-              title={stage.description}
             >
+              <div className="job-status-tooltip-content">
+                <div className="tooltip-description">{stage.description}</div>
+              </div>
               <div className={`job-status-progress-dot ${isCompleted ? 'completed' : ''} ${isActive ? 'active' : ''} ${isPending ? 'pending' : ''}`}>
                 {isCompleted && <span className="check-icon">✓</span>}
                 {isActive && <span className="active-dot"></span>}
@@ -363,19 +414,17 @@ HorizontalProgressBar.propTypes = {
   })).isRequired,
   currentStatus: PropTypes.string,
   accentColor: PropTypes.string,
+  card: PropTypes.object,
+  formValues: PropTypes.object,
 };
 
 function General({ card, formValues, handleChange, ownerInitial, cardUser }) {
   const accentColor = useMemo(() => card?.color || "#2A00FF", [card?.color]);
 
-  // Determine current job status from card data (updated for 14 statuses)
+  // Determine current job status from card data (updated for 10 statuses)
   const currentStatus = useMemo(() => {
     // Map card properties to status keys
     if (card?.closed) return "closed";
-    if (card?.confirmationReceived) return "confirmationReceived";
-    if (card?.submitted) return "submitted";
-    if (card?.invoiceIssued) return "invoiceIssued";
-    if (card?.soApproval) return "soApproval";
     if (card?.opsCompleted) return "opsCompleted";
     if (card?.vesselSailed) return "vesselSailed";
     if (card?.outwardClearance) return "outwardClearance";
@@ -384,7 +433,8 @@ function General({ card, formValues, handleChange, ownerInitial, cardUser }) {
     if (card?.vesselInwardFormalities) return "vesselInwardFormalities";
     if (card?.crewImmigration) return "crewImmigration";
     if (card?.customInspection || card?.customsInspection) return "customInspection";
-    return "preArrival";
+    // Default to Custom Inspection instead of Pre Arrival
+    return "customInspection";
   }, [card]);
 
   const typeOfCallOptions = [
@@ -399,15 +449,17 @@ function General({ card, formValues, handleChange, ownerInitial, cardUser }) {
   return (
     <div className="cardform-body general-tab-body">
       <div className="general-sections-wrapper">
-        <div className="cf-section">
+        <div className="cf-section job-status-section">
           <div className="cf-section-header">
             <div className="cf-section-title">Job Status</div>
           </div>
-          <div className="cf-section-body">
-            <HorizontalProgressBar 
+          <div className="cf-section-body job-status-section-body">
+            <HorizontalProgressBar
               stages={JOB_STATUSES}
               currentStatus={currentStatus}
               accentColor={accentColor}
+              card={card}
+              formValues={formValues}
             />
           </div>
         </div>
