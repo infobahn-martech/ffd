@@ -341,6 +341,18 @@ function General({ card, formValues, handleChange, ownerInitial, cardUser, onSav
           <div className="cf-section-body">
             <div className="general-info-two-column">
               <div className="general-info-left">
+                <div className="card-description-wrapper">
+                  <FormField label="Card Description">
+                    <ReactQuillEditor
+                      value={formValues?.cardDescription || ""}
+                      onChange={handleChange("cardDescription")}
+                      placeholder="Enter card description..."
+                    />
+                  </FormField>
+                </div>
+              </div>
+
+              <div className="general-info-right">
                 <div className="pre-arrival-form">
                   <OwnerField
                     value={formValues?.owner || "None"}
@@ -528,29 +540,15 @@ function General({ card, formValues, handleChange, ownerInitial, cardUser, onSav
                     </FormField>
                   </div>
 
-                  {onSave && (
-                    <div className="form-save-button-wrapper">
-                      <button
-                        type="button"
-                        onClick={onSave}
-                        className="form-save-button"
-                      >
-                        Save
-                      </button>
-                    </div>
-                  )}
-                </div>
-              </div>
-
-              <div className="general-info-right">
-                <div className="card-description-wrapper">
-                  <FormField label="Card Description">
-                    <ReactQuillEditor
-                      value={formValues?.cardDescription || ""}
-                      onChange={handleChange("cardDescription")}
-                      placeholder="Enter card description..."
-                    />
-                  </FormField>
+                  <div className="form-save-button-wrapper">
+                    <button
+                      type="button"
+                      onClick={onSave || (() => { })}
+                      className="form-save-button"
+                    >
+                      Save
+                    </button>
+                  </div>
                 </div>
               </div>
             </div>

@@ -238,6 +238,11 @@
 /* Pre Arrival Form Improvements */
 .pre-arrival-form {
   padding-top: 4px;
+  display: flex;
+  flex-direction: column;
+  flex: 1;
+  min-height: 0;
+  height: 100%;
 }
 
 .form-group {
@@ -393,13 +398,13 @@
   width: 36px;
   height: 36px;
   border-radius: 50%;
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  background: #fafbff;
   display: flex;
   justify-content: center;
   align-items: center;
   font-size: 14px;
   font-weight: 600;
-  color: #ffffff;
+  color: #1a1a1a;
   flex-shrink: 0;
   box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
 }
