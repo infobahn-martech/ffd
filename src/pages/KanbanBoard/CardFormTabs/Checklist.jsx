@@ -1168,7 +1168,7 @@ function Checklist({ card, formValues, handleChange, onSendReport, cardColor: pr
         {onSendReport && <SendReportButton onClick={onSendReport} cardColor={cardColor} />}
       </div>
       {/* Form Section */}
-      <div className="cf-section">
+      <>
         <div className="cf-section-body">
           <div className="checklist-form">
             <div className="form-group">
@@ -1237,7 +1237,7 @@ function Checklist({ card, formValues, handleChange, onSendReport, cardColor: pr
             </div>
           </div>
         </div>
-      </div>
+      </>
     </ >
   );
 }

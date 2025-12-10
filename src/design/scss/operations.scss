@@ -528,7 +528,7 @@
     }
 
     .ql-editor {
-      min-height: 557px !important;
+      min-height: 503px !important;
       height: 100% !important;
       overflow-y: auto;
     }
@@ -1008,7 +1008,7 @@
 
 .document-upload-zone {
   position: relative;
-  min-height: 200px;
+  height: 200px;
   max-width: 628px;
   width: 100%;
   border: 2px dashed #e2e2ea;
@@ -1016,10 +1016,11 @@
   background: #fafbff;
   cursor: pointer;
   transition: all 0.3s ease;
-  padding: 40px 19px;
+  padding: 20px 19px;
   display: flex;
   align-items: center;
   justify-content: center;
+  overflow: hidden;
 }
 
 .document-upload-zone:hover {
@@ -1049,31 +1050,38 @@
 .upload-zone-content {
   text-align: center;
   width: 100%;
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  overflow: hidden;
 }
 
 .upload-icon-wrapper {
-  margin-bottom: 20px;
+  margin-bottom: 12px;
   display: flex;
   justify-content: center;
+  flex-shrink: 0;
 }
 
 .upload-icon-wrapper svg {
-  width: 64px;
-  height: 64px;
+  width: 48px;
+  height: 48px;
 }
 
 .upload-text-content {
   display: flex;
   flex-direction: column;
-  gap: 8px;
+  gap: 4px;
+  flex-shrink: 0;
 }
 
 .upload-main-text {
-  font-size: 16px;
+  font-size: 14px;
   font-weight: 500;
   color: #333;
   margin: 0;
-  line-height: 1.5;
+  line-height: 1.4;
 }
 
 .upload-link {
@@ -1084,10 +1092,75 @@
 }
 
 .upload-sub-text {
-  font-size: 13px;
+  font-size: 11px;
   color: #999;
-  margin: 8px 0 0 0;
+  margin: 0;
 }
+
+/* File names list inside upload zone */
+.upload-zone-files-list {
+  margin-top: 12px;
+  width: 100%;
+  flex: 1;
+  min-height: 0;
+  overflow-y: auto;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  padding-top: 8px;
+  border-top: 1px solid #e2e2ea;
+}
+
+.upload-zone-file-item {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 4px 8px;
+  background: #ffffff;
+  border-radius: 4px;
+  border: 1px solid #e2e2ea;
+  transition: all 0.2s ease;
+  flex-shrink: 0;
+}
+
+.upload-zone-file-item:hover {
+  background: #f8f9ff;
+  border-color: var(--card-color, #2A00FF);
+}
+
+.upload-zone-file-name {
+  font-size: 11px;
+  color: #666;
+  flex: 1;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  margin-right: 8px;
+}
+
+.upload-zone-remove-btn {
+  background: transparent;
+  border: none;
+  color: #999;
+  font-size: 18px;
+  line-height: 1;
+  cursor: pointer;
+  padding: 0;
+  width: 20px;
+  height: 20px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 4px;
+  transition: all 0.2s ease;
+  flex-shrink: 0;
+}
+
+.upload-zone-remove-btn:hover {
+  background: #ffebee;
+  color: #f44336;
+}
+
 
 /* Uploaded Files List Styles */
 .uploaded-files-list {

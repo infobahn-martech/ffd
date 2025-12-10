@@ -48,7 +48,7 @@ OperationTabs.propTypes = {
 
 const FormSection = ({ icon, title, children }) => {
   return (
-    <div className="cf-section">
+    <>
       {title && (
         <div className="cf-section-header">
           <span className="cf-section-icon">
@@ -58,7 +58,7 @@ const FormSection = ({ icon, title, children }) => {
         </div>
       )}
       <div className="cf-section-body">{children}</div>
-    </div>
+    </>
   );
 };
 
@@ -498,29 +498,31 @@ const AttachmentsList = ({ attachments = [], onAdd, onRemove, cardColor, isDragg
               </p>
               <p className="upload-sub-text">Supports all file formats</p>
             </div>
+
+            {/* Show file names inside upload zone */}
+            {attachments.length > 0 && (
+              <div className="upload-zone-files-list">
+                {attachments.map((item, index) => (
+                  <div key={index} className="upload-zone-file-item">
+                    <span className="upload-zone-file-name">{item.name || item}</span>
+                    <button
+                      className="upload-zone-remove-btn"
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        onRemove(index);
+                      }}
+                      type="button"
+                      title="Remove file"
+                    >
+                      ×
+                    </button>
+                  </div>
+                ))}
+              </div>
+            )}
           </div>
         </div>
       </div>
-
-      {/* Show attachments list if there are any */}
-      {attachments.length > 0 && (
-        <div className="cf-list-container" style={{ marginTop: "20px" }}>
-          <div className="cf-list-items">
-            {attachments.map((item, index) => (
-              <div key={index} className="cf-list-item">
-                <span>{item.name || item}</span>
-                <button
-                  className="cf-remove-btn"
-                  onClick={() => onRemove(index)}
-                  type="button"
-                >
-                  ×
-                </button>
-              </div>
-            ))}
-          </div>
-        </div>
-      )}
     </div>
   );
 };
