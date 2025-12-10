@@ -1,6 +1,8 @@
 import { useState, useCallback, useRef } from "react";
 import PropTypes from "prop-types";
 import Select from "react-select";
+import ReactQuill from "react-quill";
+import "react-quill/dist/quill.snow.css";
 import GroupSettingsIcon from "../../../assets/images/cv.png";
 import CircleTickIcon from "../../../assets/images/CircleTick.svg";
 import Checklist from "./Checklist";
@@ -149,6 +151,61 @@ FormTextarea.propTypes = {
   placeholder: PropTypes.string,
   className: PropTypes.string,
   rows: PropTypes.number,
+};
+
+// React Quill Editor Component
+const ReactQuillEditor = ({ value, onChange, placeholder }) => {
+  const quillRef = useRef(null);
+
+  const modules = {
+    toolbar: [
+      [{ header: [1, 2, 3, false] }],
+      ["bold", "italic", "underline", "strike"],
+      [{ list: "ordered" }, { list: "bullet" }],
+      [{ color: [] }, { background: [] }],
+      ["link", "image"],
+      ["clean"],
+    ],
+  };
+
+  const formats = [
+    "header",
+    "bold",
+    "italic",
+    "underline",
+    "strike",
+    "list",
+    "bullet",
+    "color",
+    "background",
+    "link",
+    "image",
+  ];
+
+  const handleChange = (content) => {
+    const syntheticEvent = { target: { value: content, name: "preArrivalDescription" } };
+    onChange(syntheticEvent);
+  };
+
+  return (
+    <div className="react-quill-wrapper">
+      <ReactQuill
+        ref={quillRef}
+        theme="snow"
+        value={value || ""}
+        onChange={handleChange}
+        modules={modules}
+        formats={formats}
+        placeholder={placeholder || "Enter pre-arrival description..."}
+      />
+    </div>
+  );
+};
+
+ReactQuillEditor.propTypes = {
+  value: PropTypes.string,
+  onChange: PropTypes.func.isRequired,
+  placeholder: PropTypes.string,
 };
 
 const FormMultiSelect = ({ value = [], onChange, options = [], placeholder, className = "" }) => {
@@ -362,9 +419,9 @@ const EmptySection = ({ message, buttonText, onButtonClick }) => {
   return (
     <div className="cf-empty-row">
       <p>{message}</p>
-      <button 
-        className="cf-link-btn" 
-        onClick={onButtonClick} 
+      <button
+        className="cf-link-btn"
+        onClick={onButtonClick}
         type="button"
       >
         {buttonText}
@@ -605,19 +662,31 @@ const PreArrivalContent = ({ formValues, handleChange, ownerInitial, cardUser, c
       </div>
       <FormSection icon={GroupSettingsIcon} title="">
         <div className="pre-arrival-form">
-          <div className="form-group">
-            <div className="cf-grid two">
+          <div className="general-info-two-column">
+            <div className="general-info-left">
+              <div className="card-description-wrapper">
+                <FormField label="Description">
+                  <ReactQuillEditor
+                    value={formValues?.preArrivalDescription || ""}
+                    onChange={handleChange("preArrivalDescription")}
+                    placeholder="Enter pre-arrival description..."
+                  />
+                </FormField>
+              </div>
+            </div>
+
+            <div className="general-info-right">
               <FormField label="Expected time of arrival">
                 <div className="cf-input date-time-row">
                   <input
                     type="date"
-                    value={formValues.expectedArrivalDate}
+                    value={formValues.expectedArrivalDate || ""}
                     onChange={handleChange("expectedArrivalDate")}
                     placeholder="Select date"
                   />
                   <input
                     type="time"
-                    value={formValues.expectedArrivalTime}
+                    value={formValues.expectedArrivalTime || ""}
                     onChange={handleChange("expectedArrivalTime")}
                     placeholder="Select time"
                   />
@@ -628,13 +697,13 @@ const PreArrivalContent = ({ formValues, handleChange, ownerInitial, cardUser, c
                 <div className="cf-input date-time-row">
                   <input
                     type="date"
-                    value={formValues.customsInspectionDate}
+                    value={formValues.customsInspectionDate || ""}
                     onChange={handleChange("customsInspectionDate")}
                     placeholder="Select date"
                   />
                   <input
                     type="time"
-                    value={formValues.customsInspectionTime}
+                    value={formValues.customsInspectionTime || ""}
                     onChange={handleChange("customsInspectionTime")}
                     placeholder="Select time"
                   />
@@ -645,13 +714,13 @@ const PreArrivalContent = ({ formValues, handleChange, ownerInitial, cardUser, c
                 <div className="cf-input date-time-row">
                   <input
                     type="date"
-                    value={formValues.immigrationClearanceDate}
+                    value={formValues.immigrationClearanceDate || ""}
                     onChange={handleChange("immigrationClearanceDate")}
                     placeholder="Select date"
                   />
                   <input
                     type="time"
-                    value={formValues.immigrationClearanceTime}
+                    value={formValues.immigrationClearanceTime || ""}
                     onChange={handleChange("immigrationClearanceTime")}
                     placeholder="Select time"
                   />
@@ -662,57 +731,48 @@ const PreArrivalContent = ({ formValues, handleChange, ownerInitial, cardUser, c
                 <div className="cf-input date-time-row">
                   <input
                     type="date"
-                    value={formValues.inwardClearanceDate}
+                    value={formValues.inwardClearanceDate || ""}
                     onChange={handleChange("inwardClearanceDate")}
                     placeholder="Select date"
                   />
                   <input
                     type="time"
-                    value={formValues.inwardClearanceTime}
+                    value={formValues.inwardClearanceTime || ""}
                     onChange={handleChange("inwardClearanceTime")}
                     placeholder="Select time"
                   />
                 </div>
               </FormField>
+
+              <FormField label="Attachments">
+                <AttachmentsList
+                  attachments={formValues.attachments || []}
+                  onAdd={onAddAttachment}
+                  onRemove={onRemoveAttachment}
+                  cardColor={cardColor}
+                  isDragging={isDragging}
+                  onDragEnter={handleDragEnter}
+                  onDragLeave={handleDragLeave}
+                  onDragOver={handleDragOver}
+                  onDrop={handleDrop}
+                  fileInputRef={fileInputRef}
+                  onFileInputChange={handleFileInputChange}
+                />
+              </FormField>
+
+              <div className="form-save-button-wrapper">
+                <button
+                  type="button"
+                  className="form-save-button"
+                  onClick={handleSave}
+                >
+                  Save
+                </button>
+              </div>
             </div>
-          </div>
-
-          <FormSection icon={CircleTickIcon} title="Attachments">
-            <AttachmentsList
-              attachments={formValues.attachments || []}
-              onAdd={onAddAttachment}
-              onRemove={onRemoveAttachment}
-              cardColor={cardColor}
-              isDragging={isDragging}
-              onDragEnter={handleDragEnter}
-              onDragLeave={handleDragLeave}
-              onDragOver={handleDragOver}
-              onDrop={handleDrop}
-              fileInputRef={fileInputRef}
-              onFileInputChange={handleFileInputChange}
-            />
-          </FormSection>
-
-          {/* <FormSection icon={CircleTickIcon} title="Links">
-            <LinksList
-              links={formValues.links || []}
-              onAdd={onAddLink}
-              onRemove={onRemoveLink}
-            />
-          </FormSection> */}
-
-          <div className="form-group" style={{ marginTop: "20px", display: "flex", justifyContent: "flex-end" }}>
-            <button
-              type="button"
-              className="checklist-btn-primary"
-              onClick={handleSave}
-            >
-              Save
-            </button>
           </div>
         </div>
       </FormSection>
-
     </div>
   );
 };

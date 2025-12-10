@@ -501,7 +501,7 @@
 }
 
 /* Add padding to Checklist and other content components */
-.operation-right > .cf-section:first-of-type {
+.operation-right>.cf-section:first-of-type {
   position: relative;
 }
 
@@ -509,6 +509,30 @@
 .arrival-form,
 .departure-form {
   padding-top: 4px;
+}
+
+/* Override ReactQuill min-height for Pre-Arrival tab to match right section */
+.pre-arrival-form {
+  .general-info-two-column {
+    align-items: stretch;
+  }
+
+  .react-quill-wrapper {
+    flex: 1;
+    min-height: 0;
+
+    .ql-container {
+      flex: 1;
+      min-height: 0;
+      height: 100%;
+    }
+
+    .ql-editor {
+      min-height: 557px !important;
+      height: 100% !important;
+      overflow-y: auto;
+    }
+  }
 }
 
 .form-group {
@@ -570,10 +594,6 @@
   margin-bottom: 6px;
   letter-spacing: 0.01em;
   transition: color 0.2s ease;
-}
-
-.cf-field:hover label {
-  color: #666666;
 }
 
 .cf-input {
@@ -1298,7 +1318,7 @@ body .material-management-modal .files-list::-webkit-scrollbar-thumb:hover {
   width: 36px;
   height: 36px;
   border-radius: 50%;
-  background: var(--card-color, #2A00FF);
+  background: #3e5cb6;
   display: flex;
   justify-content: center;
   align-items: center;
@@ -1322,12 +1342,6 @@ body .material-management-modal .files-list::-webkit-scrollbar-thumb:hover {
 
 .cf-owner-select:hover {
   border-color: #c5c5d1;
-}
-
-.cf-owner-select:focus {
-  outline: none;
-  border-color: var(--card-color, #2A00FF);
-  box-shadow: 0 0 0 3px rgba(42, 0, 255, 0.1);
 }
 
 /* ==========================================================

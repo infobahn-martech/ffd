@@ -96,6 +96,7 @@
     padding: 12px 14px;
     color: #1a1a1a;
     line-height: 1.6;
+    min-height: 1589px;
 
     &::before {
       color: #999;
@@ -135,23 +136,16 @@
 }
 
 .form-save-button {
-  background: linear-gradient(135deg, #2A00FF 0%, #1a00cc 100%);
+  background: #e2e6ff !important;
   border: none;
-  color: #ffffff;
-  padding: 12px 32px;
+  color: #000000 !important;
+  padding: 10px 27px;
   border-radius: 8px;
   font-size: 14px;
   font-weight: 600;
   cursor: pointer;
   transition: all 0.2s ease;
   font-family: "Poppins", sans-serif;
-  box-shadow: 0 2px 8px rgba(42, 0, 255, 0.2);
-
-  &:hover {
-    background: linear-gradient(135deg, #1a00cc 0%, #1400a3 100%);
-    transform: translateY(-1px);
-    box-shadow: 0 4px 12px rgba(42, 0, 255, 0.3);
-  }
 
   &:active {
     transform: translateY(0);

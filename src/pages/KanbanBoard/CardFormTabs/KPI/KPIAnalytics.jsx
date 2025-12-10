@@ -27,7 +27,7 @@ const generateDummyTasks = () => {
   for (let i = 1; i <= 12; i++) {
     const estimatedHours = Math.floor(Math.random() * 48) + 4; // 4-52 hours
     const elapsedHours = Math.floor(Math.random() * estimatedHours);
-    
+
     dummyTasks.push({
       id: i,
       task: taskNames[Math.floor(Math.random() * taskNames.length)],

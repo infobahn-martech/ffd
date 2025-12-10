@@ -532,10 +532,9 @@ function General({ card, formValues, handleChange, ownerInitial, cardUser, onSav
                     <FormField label="Billing instructions">
                       <FormInput
                         type="text"
-                        placeholder="Auto pop up"
+                        placeholder="Enter billing instructions..."
                         value={formValues?.billingInstructions || ""}
                         onChange={handleChange("billingInstructions")}
-                        readOnly
                       />
                     </FormField>
                   </div>

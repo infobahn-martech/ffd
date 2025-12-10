@@ -426,7 +426,7 @@
 
 .cf-owner-select:focus {
   outline: none;
-  border-color: #2A00FF;
+  border-color: #3e5ebd;
   box-shadow: 0 0 0 3px rgba(42, 0, 255, 0.1);
 }
 
