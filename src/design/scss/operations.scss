@@ -3662,7 +3662,7 @@ body .material-management-modal .files-list::-webkit-scrollbar-thumb:hover {
   z-index: 1300 !important;
 
   .reports-preview-modal-dialog {
-    max-width: 600px;
+    max-width: 538px;
     width: 100%;
   }
 }
@@ -3681,7 +3681,7 @@ body .modal-backdrop.show {
   border-radius: 16px;
   border: none;
   box-shadow: 0 8px 32px rgba(0, 0, 0, 0.2);
-  max-height: 90vh;
+  max-height: 76vh;
   display: flex;
   flex-direction: column;
 }
@@ -4029,9 +4029,7 @@ body .modal-backdrop.show {
 
 .reports-preview-modal .modal-footer {
   display: flex;
-  justify-content: flex-end;
   gap: 12px;
-  padding: 16px 128px;
   background: #ffffff;
   border-top: 1px solid #f0f0f0;
   border-radius: 0 0 16px 16px;
@@ -4042,7 +4040,6 @@ body .modal-backdrop.show {
   justify-content: center;
   gap: 14px;
   width: 100%;
-  padding: 22px 28px;
   background: #ffffff;
   border-top: 1px solid #f0f0f0;
   border-radius: 0 0 16px 16px;

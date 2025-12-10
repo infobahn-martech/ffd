@@ -47,7 +47,7 @@ const generateCrewFromExcel = (excelData) => {
   return crewData;
 };
 
-const CrewContent = ({ formValues, handleChange, cardColor, onNavigateToTab }) => {
+const CrewContent = ({ formValues, handleChange, cardColor, onNavigateToTab, launchHireOnly = false }) => {
   const crewList = formValues.crewList || [];
   const [selectedCrewIds, setSelectedCrewIds] = useState([]);
   const [showActionDropdown, setShowActionDropdown] = useState(false);
@@ -79,7 +79,7 @@ const CrewContent = ({ formValues, handleChange, cardColor, onNavigateToTab }) =
   };
 
   // Action dropdown options
-  const actionOptions = [
+  const allActionOptions = [
     { value: "transport", label: "Transport", tab: "transport", field: "selectedCrew" },
     { value: "cgPass", label: "CG Pass", tab: "cgPass", field: "cgPassSelectedCrew" },
     { value: "zawilPass", label: "Zawil Pass", tab: "zawilPass", field: "zawilPassSelectedCrew" },
@@ -87,6 +87,11 @@ const CrewContent = ({ formValues, handleChange, cardColor, onNavigateToTab }) =
     { value: "hotel", label: "Hotel", tab: "hotel", field: "hotelSelectedCrew" },
     { value: "medicalService", label: "Medical Service", tab: "medicalService", field: "medicalServiceSelectedCrew" },
   ];
+
+  // Filter action options based on launchHireOnly prop
+  const actionOptions = launchHireOnly
+    ? allActionOptions.filter((option) => option.value === "launchHire")
+    : allActionOptions.filter((option) => option.value !== "launchHire");
 
   // Handle action dropdown selection
   const handleActionSelect = (option) => {
@@ -510,6 +515,7 @@ CrewContent.propTypes = {
   handleChange: PropTypes.func.isRequired,
   cardColor: PropTypes.string,
   onNavigateToTab: PropTypes.func,
+  launchHireOnly: PropTypes.bool,
 };
 
 export default CrewContent;

@@ -62,17 +62,16 @@ const ServiceSelection = ({ onSelectService, cardColor }) => {
           <button
             type="button"
             className="husbandry-service-option"
-            onClick={() => onSelectService("BOTH")}
+            onClick={() => onSelectService("LAUNCH_HIRE")}
             style={{ "--card-color": cardColor }}
           >
             <div className="husbandry-service-option-icon">
               <svg width="48" height="48" viewBox="0 0 48 48" fill="none" xmlns="http://www.w3.org/2000/svg">
-                <circle cx="16" cy="24" r="8" stroke="currentColor" strokeWidth="2" fill="none" />
-                <circle cx="32" cy="24" r="8" stroke="currentColor" strokeWidth="2" fill="none" />
-                <path d="M24 16V32" stroke="currentColor" strokeWidth="2" strokeLinecap="round" />
+                <rect x="8" y="8" width="32" height="32" rx="4" stroke="currentColor" strokeWidth="2" fill="none" />
+                <path d="M16 20H32M16 24H32M16 28H24" stroke="currentColor" strokeWidth="2" strokeLinecap="round" />
               </svg>
             </div>
-            <span className="husbandry-service-option-label">Both</span>
+            <span className="husbandry-service-option-label">Launch Hire</span>
           </button>
         </div>
       </div>
@@ -94,20 +93,23 @@ function Husbandry({ card, formValues, handleChange }) {
     CREW_MANAGEMENT_SUBTABS.CREW
   );
   const [selectedActionTab, setSelectedActionTab] = useState(null);
+  const [isLaunchHireMode, setIsLaunchHireMode] = useState(false);
   const cardColor = "#00368c"; // Fixed color for all buttons, effects, and backgrounds
 
 
   const handleServiceSelect = useCallback((tab) => {
     setServiceSelected(true);
     setSelectedActionTab(null); // Reset selected action
-    
-    // Handle "BOTH" selection
-    if (tab === "BOTH") {
-      setSelectedServices([MAIN_TABS.CREW_MANAGEMENT, MAIN_TABS.MATERIAL_MANAGEMENT]);
-      setActiveMainTab(MAIN_TABS.CREW_MANAGEMENT); // Default to Crew Management
+
+    // Handle "LAUNCH_HIRE" selection - behaves like Crew Management but with Launch Hire only
+    if (tab === "LAUNCH_HIRE") {
+      setSelectedServices([MAIN_TABS.CREW_MANAGEMENT]);
+      setActiveMainTab(MAIN_TABS.CREW_MANAGEMENT);
       setActiveSubTab(CREW_MANAGEMENT_SUBTABS.CREW);
+      setIsLaunchHireMode(true);
     } else {
       // Single service selection
+      setIsLaunchHireMode(false);
       setSelectedServices([tab]);
       setActiveMainTab(tab);
       // Reset to default sub-tab when service is selected
@@ -173,6 +175,7 @@ function Husbandry({ card, formValues, handleChange }) {
     setActiveMainTab(null);
     setActiveSubTab(CREW_MANAGEMENT_SUBTABS.CREW);
     setSelectedActionTab(null);
+    setIsLaunchHireMode(false);
   }, []);
 
   const renderCrewManagementContent = () => {
@@ -184,6 +187,7 @@ function Husbandry({ card, formValues, handleChange }) {
             handleChange={handleChange}
             cardColor={cardColor}
             onNavigateToTab={handleNavigateToTab}
+            launchHireOnly={isLaunchHireMode}
           />
         );
       case CREW_MANAGEMENT_SUBTABS.TRANSPORT:
@@ -241,6 +245,7 @@ function Husbandry({ card, formValues, handleChange }) {
             handleChange={handleChange}
             cardColor={cardColor}
             onNavigateToTab={handleNavigateToTab}
+            launchHireOnly={isLaunchHireMode}
           />
         );
     }
