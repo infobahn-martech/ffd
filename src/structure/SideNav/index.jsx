@@ -285,6 +285,14 @@ function SideNav({ isMobileMenuOpen, onCloseMobileMenu }) {
 
   // 🆕 Special layout for /kanban-board
   if (isKanbanBoard) {
+    const handleIconClick = (item) => {
+      setActiveKanbanIcon(item.id);
+      // If Add icon is clicked, dispatch event to open CardForm in add mode
+      if (item.label === 'Add') {
+        window.dispatchEvent(new CustomEvent('kanban:add-card'));
+      }
+    };
+
     return (
       <aside className="kanban-sidebar">
         {kanbanIcons.map((item) => (
@@ -292,7 +300,7 @@ function SideNav({ isMobileMenuOpen, onCloseMobileMenu }) {
             key={item.id}
             className={`kanban-sidebar-icon ${activeKanbanIcon === item.id ? 'active' : ''
               }`}
-            onClick={() => setActiveKanbanIcon(item.id)}
+            onClick={() => handleIconClick(item)}
             data-tooltip-id="sidebar-tooltip"
             data-tooltip-content={item.label}
           >

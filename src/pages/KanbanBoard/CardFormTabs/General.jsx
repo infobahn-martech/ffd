@@ -381,7 +381,7 @@ HorizontalProgressBar.propTypes = {
   formValues: PropTypes.object,
 };
 
-function General({ card, formValues, handleChange, ownerInitial, cardUser, onSave }) {
+function General({ card, formValues, handleChange, ownerInitial, cardUser, onSave, isAddMode = false }) {
   const accentColor = useMemo(() => card?.color || "#2A00FF", [card?.color]);
   const [vesselNameOptions, setVesselNameOptions] = useState([
     // Add vessel names here or fetch from API
@@ -441,20 +441,22 @@ function General({ card, formValues, handleChange, ownerInitial, cardUser, onSav
   return (
     <div className="cardform-body general-tab-body">
       <div className="general-sections-wrapper">
-        <div className="cf-section job-status-section">
-          <div className="cf-section-header">
-            <div className="cf-section-title">Job Status</div>
+        {!isAddMode && (
+          <div className="cf-section job-status-section">
+            <div className="cf-section-header">
+              <div className="cf-section-title">Job Status</div>
+            </div>
+            <div className="cf-section-body job-status-section-body">
+              <HorizontalProgressBar
+                stages={JOB_STATUSES}
+                currentStatus={currentStatus}
+                accentColor={accentColor}
+                card={card}
+                formValues={formValues}
+              />
+            </div>
           </div>
-          <div className="cf-section-body job-status-section-body">
-            <HorizontalProgressBar
-              stages={JOB_STATUSES}
-              currentStatus={currentStatus}
-              accentColor={accentColor}
-              card={card}
-              formValues={formValues}
-            />
-          </div>
-        </div>
+        )}
 
         <div className="cf-section general-info-section">
           <div className="cf-section-header">
@@ -713,6 +715,7 @@ General.propTypes = {
   ownerInitial: PropTypes.string,
   cardUser: PropTypes.string,
   onSave: PropTypes.func,
+  isAddMode: PropTypes.bool,
 };
 
 export default General;

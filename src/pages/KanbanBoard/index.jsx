@@ -1,4 +1,4 @@
-import { useState, useCallback, useMemo } from "react";
+import { useState, useCallback, useMemo, useEffect } from "react";
 import { DragDropContext } from "@hello-pangea/dnd";
 import { initialData } from "../../helpers/data";
 import Column from "./Column";
@@ -13,14 +13,41 @@ const ZOOM_STEP = 0.1;
 export default function KanbanBoard() {
   const [data, setData] = useState(initialData);
   const [selectedCard, setSelectedCard] = useState(null);
+  const [isAddMode, setIsAddMode] = useState(false);
   const [zoom, setZoom] = useState(1);
 
   const zoomIn = useCallback(() => setZoom(z => Math.min(z + ZOOM_STEP, MAX_ZOOM)), []);
   const zoomOut = useCallback(() => setZoom(z => Math.max(z - ZOOM_STEP, MIN_ZOOM)), []);
   const resetZoom = useCallback(() => setZoom(1), []);
 
-  const handleSelectCard = useCallback(card => setSelectedCard(card), []);
-  const handleCloseCard = useCallback(() => setSelectedCard(null), []);
+  const handleSelectCard = useCallback(card => {
+    setSelectedCard(card);
+    setIsAddMode(false);
+  }, []);
+  const handleCloseCard = useCallback(() => {
+    setSelectedCard(null);
+    setIsAddMode(false);
+  }, []);
+
+  // Listen for add card event from SideNav
+  useEffect(() => {
+    const handleAddCard = () => {
+      // Create a new empty card object for add mode
+      const newCard = {
+        id: `new-${Date.now()}`,
+        code: '',
+        title: '',
+        color: '#2A00FF',
+      };
+      setSelectedCard(newCard);
+      setIsAddMode(true);
+    };
+
+    window.addEventListener('kanban:add-card', handleAddCard);
+    return () => {
+      window.removeEventListener('kanban:add-card', handleAddCard);
+    };
+  }, []);
 
   // Find which column contains a specific card
   const findCardColumn = useCallback((cardId) => {
@@ -156,7 +183,8 @@ export default function KanbanBoard() {
           card={selectedCard}
           moveCardToColumn={moveCardToColumn}
           columns={data.columns}
-          currentColumn={findCardColumn(selectedCard.id)}
+          currentColumn={isAddMode ? null : findCardColumn(selectedCard.id)}
+          isAddMode={isAddMode}
         />
       )}
     </>

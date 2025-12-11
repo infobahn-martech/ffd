@@ -1,4 +1,4 @@
-import { useState, useMemo, useCallback } from "react";
+import { useState, useMemo, useCallback, useEffect } from "react";
 import PropTypes from "prop-types";
 import "../../design/css/CardForm.css";
 import ColorPickerIcon from "../../assets/images/ColorPicker.png";
@@ -91,23 +91,62 @@ const getStepNumberFromColumnId = (columnId, columns) => {
 };
 
 // Sub-components
-const TopBar = ({ card, topbarColor, onClose }) => {
-  const cardId = card?.code || card?.id;
-  const cardTitle = card?.title || "";
+const TopBar = ({ card, topbarColor, onClose, isAddMode = false, onColorChange }) => {
+  const cardId = card?.code || card?.id || '';
+  const cardTitle = card?.title || (isAddMode ? 'New Card' : '');
+
+  // Convert RGB to hex for color input
+  const rgbToHex = (rgb) => {
+    if (!rgb) return '#775649';
+    if (rgb.startsWith('#')) return rgb;
+    const match = rgb.match(/\d+/g);
+    if (!match || match.length < 3) return '#775649';
+    return '#' + match.map(x => {
+      const hex = parseInt(x).toString(16);
+      return hex.length === 1 ? '0' + hex : hex;
+    }).join('');
+  };
+
+  const hexToRgb = (hex) => {
+    if (!hex) return 'rgb(119, 86, 73)';
+    if (hex.startsWith('rgb')) return hex;
+    const result = /^#?([a-f\d]{2})([a-f\d]{2})([a-f\d]{2})$/i.exec(hex);
+    if (!result) return 'rgb(119, 86, 73)';
+    return `rgb(${parseInt(result[1], 16)}, ${parseInt(result[2], 16)}, ${parseInt(result[3], 16)})`;
+  };
+
+  const handleColorChange = (e) => {
+    const hexColor = e.target.value;
+    const rgbColor = hexToRgb(hexColor);
+    if (onColorChange) {
+      onColorChange(rgbColor);
+    }
+  };
 
   return (
     <div className="cardform-topbar" style={{ backgroundColor: topbarColor }}>
       <div>
-        <span className="cardform-id">ID : {cardId}</span>
+        {!isAddMode && <span className="cardform-id">ID : {cardId}</span>}
         <span className="cardform-title">{cardTitle}</span>
       </div>
       <div className="cardform-topbar-right">
-        <button className="topbar-icon-btn" type="button" aria-label="Color Picker">
-          <img src={ColorPickerIcon} alt="Color Picker" />
-        </button>
-        <button className="topbar-icon-btn" type="button" aria-label="Priority">
-          <img src={PriorityIcon} alt="Priority" />
-        </button>
+        <div className="topbar-color-picker-wrapper">
+          <label className="topbar-color-picker-label" title="Change header color">
+            <img src={ColorPickerIcon} alt="Color Picker" className="topbar-color-picker-icon" />
+            <input
+              type="color"
+              value={rgbToHex(topbarColor)}
+              onChange={handleColorChange}
+              className="topbar-color-picker"
+              aria-label="Color Picker"
+            />
+          </label>
+        </div>
+        {!isAddMode && (
+          <button className="topbar-icon-btn" type="button" aria-label="Priority">
+            <img src={PriorityIcon} alt="Priority" />
+          </button>
+        )}
         <button className="cardform-close-btn" onClick={onClose} type="button" aria-label="Close">
           ✕
         </button>
@@ -120,6 +159,8 @@ TopBar.propTypes = {
   card: PropTypes.object,
   topbarColor: PropTypes.string.isRequired,
   onClose: PropTypes.func.isRequired,
+  isAddMode: PropTypes.bool,
+  onColorChange: PropTypes.func,
 };
 
 const TopTabs = ({ tabs, activeTab, onTabChange, enabledTabs }) => {
@@ -272,11 +313,12 @@ CardFormFooter.propTypes = {
 };
 
 // Tab Content Renderer
-const renderTabContent = (activeTab, card, formValues, handleChange, ownerInitial) => {
+const renderTabContent = (activeTab, card, formValues, handleChange, ownerInitial, isAddMode = false) => {
   const commonProps = {
     card,
     formValues,
     handleChange,
+    isAddMode,
   };
 
   switch (activeTab) {
@@ -295,13 +337,21 @@ const renderTabContent = (activeTab, card, formValues, handleChange, ownerInitia
     case "KPI":
       return <KPI {...commonProps} />;
     default:
-      return <General {...commonProps} />;
+      return <General {...commonProps} ownerInitial={ownerInitial} cardUser={card?.user} />;
   }
 };
 
 // Main Component
-function CardForm({ show, close, card, moveCardToColumn, columns, currentColumn }) {
+function CardForm({ show, close, card, moveCardToColumn, columns, currentColumn, isAddMode = false }) {
   const [activeTopTab, setActiveTopTab] = useState("General");
+  
+  // State for topbar color - initialize with rgb(119, 86, 73) for add mode, or use card/column color
+  const [topbarColor, setTopbarColor] = useState(() => {
+    if (isAddMode) {
+      return 'rgb(119, 86, 73)';
+    }
+    return currentColumn?.color || card?.color || DEFAULT_ACCENT_COLOR;
+  });
 
   const initialFormValues = useMemo(
     () => ({
@@ -392,9 +442,19 @@ function CardForm({ show, close, card, moveCardToColumn, columns, currentColumn 
     }
   }, [moveCardToColumn, card?.id, columns, currentStep]);
 
-  // Topbar uses column color (from data.js), everything else uses card's unique color
-  const topbarColor = useMemo(() => currentColumn?.color || DEFAULT_ACCENT_COLOR, [currentColumn?.color]);
+  // Update topbar color when card or column changes (but not in add mode)
+  useEffect(() => {
+    if (!isAddMode) {
+      setTopbarColor(currentColumn?.color || card?.color || DEFAULT_ACCENT_COLOR);
+    }
+  }, [currentColumn?.color, card?.color, isAddMode]);
+
+  // Everything else uses card's unique color
   const accentColor = useMemo(() => card?.color || DEFAULT_ACCENT_COLOR, [card?.color]);
+  
+  const handleTopbarColorChange = useCallback((newColor) => {
+    setTopbarColor(newColor);
+  }, []);
   const ownerInitial = useMemo(
     () => formValues.owner?.[0]?.toUpperCase() || "N",
     [formValues.owner]
@@ -404,24 +464,34 @@ function CardForm({ show, close, card, moveCardToColumn, columns, currentColumn 
 
   return (
     <div className="cardform-overlay" onClick={close}>
-      <div className="cardform-panel" onClick={(e) => e.stopPropagation()}>
-        <TopBar card={card} topbarColor={topbarColor} onClose={close} />
-        <TopTabs
-          tabs={TOP_TABS}
-          activeTab={activeTopTab}
-          onTabChange={handleTopTabChange}
-          enabledTabs={ENABLED_TABS}
+      <div className={`cardform-panel ${isAddMode ? 'add-mode' : ''}`} onClick={(e) => e.stopPropagation()}>
+        <TopBar 
+          card={card} 
+          topbarColor={topbarColor} 
+          onClose={close} 
+          isAddMode={isAddMode}
+          onColorChange={handleTopbarColorChange}
         />
-        {renderTabContent(activeTopTab, card, formValues, handleChange, ownerInitial)}
-        <CardFormFooter
-          accentColor={accentColor}
-          onUpdate={handleUpdate}
-          activeStep={currentStep || 1}
-          completedSteps={currentStep && currentStep > 1 ? currentStep - 1 : 0}
-          activeTab={activeTopTab}
-          onStepClick={handleStepClick}
-          currentStep={currentStep}
-        />
+        {!isAddMode && (
+          <TopTabs
+            tabs={TOP_TABS}
+            activeTab={activeTopTab}
+            onTabChange={handleTopTabChange}
+            enabledTabs={ENABLED_TABS}
+          />
+        )}
+        {renderTabContent(activeTopTab, card, formValues, handleChange, ownerInitial, isAddMode)}
+        {!isAddMode && (
+          <CardFormFooter
+            accentColor={accentColor}
+            onUpdate={handleUpdate}
+            activeStep={currentStep || 1}
+            completedSteps={currentStep && currentStep > 1 ? currentStep - 1 : 0}
+            activeTab={activeTopTab}
+            onStepClick={handleStepClick}
+            currentStep={currentStep}
+          />
+        )}
       </div>
     </div>
   );
@@ -454,6 +524,7 @@ CardForm.propTypes = {
     color: PropTypes.string,
     cardIds: PropTypes.array,
   }),
+  isAddMode: PropTypes.bool,
 };
 
 export default CardForm;
