@@ -2,7 +2,7 @@ import { useState, useRef } from "react";
 import PropTypes from "prop-types";
 import Select from "react-select";
 import GroupSettingsIcon from "../../../../assets/images/cv.png";
-import { FormSection, FormField, FormInput } from "./Husbandry.components";
+import { FormSection, FormField, FormInput, ReactQuillEditor } from "./Husbandry.components";
 
 const HotelContent = ({ formValues, handleChange, cardColor }) => {
   const [isDragging, setIsDragging] = useState(false);
@@ -209,10 +209,22 @@ const HotelContent = ({ formValues, handleChange, cardColor }) => {
   return (
     <div className="cardform-left-full" style={{ "--card-color": cardColor }}>
       <FormSection icon={GroupSettingsIcon} title="">
-        <div className="pre-arrival-form">
-          <div className="form-group">
-            <h3 className="form-group-title">Hotel Information</h3>
-            <div className="cf-grid two">
+        <div className="pre-arrival-form hotel-form">
+          <div className="general-info-two-column">
+            <div className="general-info-left">
+              <div className="card-description-wrapper">
+                <FormField label="Description">
+                  <ReactQuillEditor
+                    value={formValues?.hotelDescription || ""}
+                    onChange={handleChange("hotelDescription")}
+                    placeholder="Enter hotel description..."
+                    name="hotelDescription"
+                  />
+                </FormField>
+              </div>
+            </div>
+
+            <div className="general-info-right">
               <FormField label="Select Crew">
                 <div className="cf-select react-select-container crew-multi-select">
                   <Select
@@ -267,8 +279,8 @@ const HotelContent = ({ formValues, handleChange, cardColor }) => {
                   />
                   <input
                     type="time"
-                    value={formValues.hotelCheckInTime || ""}
-                    onChange={handleChange("hotelCheckInTime")}
+                    value={formValues.hotelCheckOutTime || ""}
+                    onChange={handleChange("hotelCheckOutTime")}
                     placeholder="Select time"
                   />
                 </div>
@@ -412,17 +424,17 @@ const HotelContent = ({ formValues, handleChange, cardColor }) => {
                   )}
                 </div>
               </FormField>
+
+              <div className="form-save-button-wrapper">
+                <button
+                  type="button"
+                  className="form-save-button"
+                  onClick={handleSave}
+                >
+                  Save
+                </button>
+              </div>
             </div>
-          </div>
-          <div className="form-group" style={{ marginTop: "20px", display: "flex", justifyContent: "flex-end" }}>
-            <button
-              type="button"
-              className="checklist-btn-primary"
-              onClick={handleSave}
-              style={{ "--card-color": cardColor }}
-            >
-              Save
-            </button>
           </div>
         </div>
       </FormSection>

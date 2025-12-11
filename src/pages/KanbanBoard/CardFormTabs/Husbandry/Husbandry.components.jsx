@@ -1,4 +1,7 @@
+import { useRef } from "react";
 import PropTypes from "prop-types";
+import ReactQuill from "react-quill";
+import "react-quill/dist/quill.snow.css";
 import GroupSettingsIcon from "../../../../assets/images/cv.png";
 import { MAIN_TABS, CREW_MANAGEMENT_SUBTABS, MATERIAL_MANAGEMENT_SUBTABS } from "./Husbandry.constants";
 
@@ -110,7 +113,7 @@ HusbandryTabs.propTypes = {
 
 export const FormSection = ({ icon, title, children }) => {
   return (
-    <div className="cf-section">
+    <>
       {title && (
         <div className="cf-section-header">
           <span className="cf-section-icon">
@@ -120,7 +123,7 @@ export const FormSection = ({ icon, title, children }) => {
         </div>
       )}
       <div className="cf-section-body">{children}</div>
-    </div>
+    </>
   );
 };
 
@@ -229,4 +232,61 @@ export const NoIcon = () => (
     <path d="M7 7L13 13M13 7L7 13" stroke="white" strokeWidth="2" strokeLinecap="round" />
   </svg>
 );
+
+// React Quill Editor Component
+export const ReactQuillEditor = ({ value, onChange, placeholder, name = "description", className = "" }) => {
+  const quillRef = useRef(null);
+
+  const modules = {
+    toolbar: [
+      [{ header: [1, 2, 3, false] }],
+      ["bold", "italic", "underline", "strike"],
+      [{ list: "ordered" }, { list: "bullet" }],
+      [{ color: [] }, { background: [] }],
+      ["link", "image"],
+      ["clean"],
+    ],
+  };
+
+  const formats = [
+    "header",
+    "bold",
+    "italic",
+    "underline",
+    "strike",
+    "list",
+    "bullet",
+    "color",
+    "background",
+    "link",
+    "image",
+  ];
+
+  const handleChange = (content) => {
+    const syntheticEvent = { target: { value: content, name: name } };
+    onChange(syntheticEvent);
+  };
+
+  return (
+    <div className={`react-quill-wrapper ${className}`}>
+      <ReactQuill
+        ref={quillRef}
+        theme="snow"
+        value={value || ""}
+        onChange={handleChange}
+        modules={modules}
+        formats={formats}
+        placeholder={placeholder || "Enter description..."}
+      />
+    </div>
+  );
+};
+
+ReactQuillEditor.propTypes = {
+  value: PropTypes.string,
+  onChange: PropTypes.func.isRequired,
+  placeholder: PropTypes.string,
+  name: PropTypes.string,
+  className: PropTypes.string,
+};
 

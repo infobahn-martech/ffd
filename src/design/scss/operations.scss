@@ -583,6 +583,150 @@
   }
 }
 
+/* Override ReactQuill min-height for Husbandry Transport tab */
+.transport-form {
+  .general-info-two-column {
+    align-items: stretch;
+  }
+
+  .react-quill-wrapper {
+    flex: 1;
+    min-height: 0;
+
+    .ql-container {
+      flex: 1;
+      min-height: 0;
+      height: 100%;
+    }
+
+    .ql-editor {
+      min-height: 550px !important;
+      height: 100% !important;
+      overflow-y: auto;
+    }
+  }
+}
+
+/* Override ReactQuill min-height for Husbandry CG Pass tab */
+.cgpass-form {
+  .general-info-two-column {
+    align-items: stretch;
+  }
+
+  .react-quill-wrapper {
+    flex: 1;
+    min-height: 0;
+
+    .ql-container {
+      flex: 1;
+      min-height: 0;
+      height: 100%;
+    }
+
+    .ql-editor {
+      min-height: 759px !important;
+      height: 100% !important;
+      overflow-y: auto;
+    }
+  }
+}
+
+/* Override ReactQuill min-height for Husbandry Zawil Pass tab */
+.zawilpass-form {
+  .general-info-two-column {
+    align-items: stretch;
+  }
+
+  .react-quill-wrapper {
+    flex: 1;
+    min-height: 0;
+
+    .ql-container {
+      flex: 1;
+      min-height: 0;
+      height: 100%;
+    }
+
+    .ql-editor {
+      min-height: 759px !important;
+      height: 100% !important;
+      overflow-y: auto;
+    }
+  }
+}
+
+/* Override ReactQuill min-height for Husbandry Hotel tab */
+.hotel-form {
+  .general-info-two-column {
+    align-items: stretch;
+  }
+
+  .react-quill-wrapper {
+    flex: 1;
+    min-height: 0;
+
+    .ql-container {
+      flex: 1;
+      min-height: 0;
+      height: 100%;
+    }
+
+    .ql-editor {
+      min-height: 510px !important;
+      height: 100% !important;
+      overflow-y: auto;
+    }
+  }
+}
+
+/* Override ReactQuill min-height for Husbandry Medical Service tab */
+.medicalservice-form {
+  .general-info-two-column {
+    align-items: stretch;
+  }
+
+  .react-quill-wrapper {
+    flex: 1;
+    min-height: 0;
+
+    .ql-container {
+      flex: 1;
+      min-height: 0;
+      height: 100%;
+    }
+
+    .ql-editor {
+      min-height: 270px !important;
+      height: 100% !important;
+      overflow-y: auto;
+    }
+  }
+}
+
+/* Override ReactQuill min-height for Husbandry Launch Hire tab */
+.launchhire-form {
+  .general-info-two-column {
+    align-items: stretch;
+  }
+
+  .react-quill-wrapper {
+    flex: 1;
+    min-height: 0;
+
+    .ql-container {
+      flex: 1;
+      min-height: 0;
+      height: 100%;
+    }
+
+    .ql-editor {
+      min-height: 400px !important;
+      height: 100% !important;
+      overflow-y: auto;
+    }
+  }
+}
+
 .form-group {
   margin-bottom: 24px;
   padding-bottom: 20px;

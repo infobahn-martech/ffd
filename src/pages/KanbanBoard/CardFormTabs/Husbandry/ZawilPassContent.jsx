@@ -2,7 +2,7 @@ import { useState, useRef } from "react";
 import PropTypes from "prop-types";
 import Select from "react-select";
 import GroupSettingsIcon from "../../../../assets/images/cv.png";
-import { FormSection, FormField, FormInput, FormSelect } from "./Husbandry.components";
+import { FormSection, FormField, FormInput, FormSelect, ReactQuillEditor } from "./Husbandry.components";
 
 const ZawilPassContent = ({ formValues, handleChange, cardColor }) => {
   const [isDragging, setIsDragging] = useState(false);
@@ -222,10 +222,22 @@ const ZawilPassContent = ({ formValues, handleChange, cardColor }) => {
   return (
     <div className="cardform-left-full" style={{ "--card-color": cardColor }}>
       <FormSection icon={GroupSettingsIcon} title="">
-        <div className="pre-arrival-form">
-          <div className="form-group">
-            <h3 className="form-group-title">Zawil Pass Information</h3>
-            <div className="cf-grid two">
+        <div className="pre-arrival-form zawilpass-form">
+          <div className="general-info-two-column">
+            <div className="general-info-left">
+              <div className="card-description-wrapper">
+                <FormField label="Description">
+                  <ReactQuillEditor
+                    value={formValues?.zawilPassDescription || ""}
+                    onChange={handleChange("zawilPassDescription")}
+                    placeholder="Enter Zawil pass description..."
+                    name="zawilPassDescription"
+                  />
+                </FormField>
+              </div>
+            </div>
+
+            <div className="general-info-right">
               <FormField label="Select Crew">
                 <div className="cf-select react-select-container crew-multi-select">
                   <Select
@@ -452,17 +464,17 @@ const ZawilPassContent = ({ formValues, handleChange, cardColor }) => {
                   )}
                 </div>
               </FormField>
+
+              <div className="form-save-button-wrapper">
+                <button
+                  type="button"
+                  className="form-save-button"
+                  onClick={handleSave}
+                >
+                  Save
+                </button>
+              </div>
             </div>
-          </div>
-          <div className="form-group" style={{ marginTop: "20px", display: "flex", justifyContent: "flex-end" }}>
-            <button
-              type="button"
-              className="checklist-btn-primary"
-              onClick={handleSave}
-              style={{ "--card-color": cardColor }}
-            >
-              Save
-            </button>
           </div>
         </div>
       </FormSection>
