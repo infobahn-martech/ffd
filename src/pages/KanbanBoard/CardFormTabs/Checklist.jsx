@@ -1129,6 +1129,7 @@ function Checklist({ card, formValues, handleChange, onSendReport, cardColor: pr
 
     return (
       <button
+        style={{ backgroundColor: "rgb(244 242 255)" }}
         type="button"
         className="operation-send-report-btn"
         onClick={handleSendReport}
