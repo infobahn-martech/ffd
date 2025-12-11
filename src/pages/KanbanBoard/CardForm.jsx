@@ -1,4 +1,4 @@
-import { useState, useMemo, useCallback, useEffect } from "react";
+import { useState, useMemo, useCallback, useEffect, useRef } from "react";
 import PropTypes from "prop-types";
 import "../../design/css/CardForm.css";
 import ColorPickerIcon from "../../assets/images/ColorPicker.png";
@@ -90,37 +90,149 @@ const getStepNumberFromColumnId = (columnId, columns) => {
   return getStepNumberFromColumnTitle(column.title);
 };
 
+// Predefined color palette (matching the image: 2 rows x 6 columns)
+const COLOR_PALETTE = [
+  // Row 1
+  { hex: '#FF00FF', rgb: 'rgb(255, 0, 255)', name: 'Fuchsia' },
+  { hex: '#800080', rgb: 'rgb(128, 0, 128)', name: 'Purple' },
+  { hex: '#4169E1', rgb: 'rgb(65, 105, 225)', name: 'Royal Blue' },
+  { hex: '#008000', rgb: 'rgb(0, 128, 0)', name: 'Green' },
+  { hex: '#FFFF00', rgb: 'rgb(255, 255, 0)', name: 'Yellow' },
+  { hex: '#FFA500', rgb: 'rgb(255, 165, 0)', name: 'Orange' },
+  // Row 2
+  { hex: '#8B0000', rgb: 'rgb(139, 0, 0)', name: 'Dark Red' },
+  { hex: '#775649', rgb: 'rgb(119, 86, 73)', name: 'Brown' },
+  { hex: '#D3D3D3', rgb: 'rgb(211, 211, 211)', name: 'Light Gray' },
+  { hex: '#708090', rgb: 'rgb(112, 128, 144)', name: 'Slate Blue' },
+  { hex: '#000000', rgb: 'rgb(0, 0, 0)', name: 'Black' },
+  { hex: '#FFFFFF', rgb: 'rgb(255, 255, 255)', name: 'White' },
+];
+
+// Helper functions
+const rgbToHex = (rgb) => {
+  if (!rgb) return '#775649';
+  if (rgb.startsWith('#')) return rgb.toUpperCase();
+  // Handle both "rgb(119, 86, 73)" and "rgb(119 86 73)" formats
+  const match = rgb.match(/\d+/g);
+  if (!match || match.length < 3) return '#775649';
+  return '#' + match.map(x => {
+    const hex = parseInt(x).toString(16);
+    return hex.length === 1 ? '0' + hex : hex;
+  }).join('').toUpperCase();
+};
+
+const normalizeRgb = (rgb) => {
+  if (!rgb) return '';
+  if (rgb.startsWith('#')) return rgb;
+  // Normalize RGB format: remove spaces, ensure consistent format
+  const match = rgb.match(/\d+/g);
+  if (!match || match.length < 3) return '';
+  return `rgb(${match[0]}, ${match[1]}, ${match[2]})`;
+};
+
+const hexToRgb = (hex) => {
+  if (!hex) return 'rgb(119, 86, 73)';
+  if (hex.startsWith('rgb')) return hex;
+  const result = /^#?([a-f\d]{2})([a-f\d]{2})([a-f\d]{2})$/i.exec(hex);
+  if (!result) return 'rgb(119, 86, 73)';
+  return `rgb(${parseInt(result[1], 16)}, ${parseInt(result[2], 16)}, ${parseInt(result[3], 16)})`;
+};
+
+// Custom Color Picker Component
+const ColorPickerDropdown = ({ isOpen, onClose, selectedColor, onColorSelect }) => {
+  const dropdownRef = useRef(null);
+
+  useEffect(() => {
+    const handleClickOutside = (event) => {
+      if (dropdownRef.current && !dropdownRef.current.contains(event.target)) {
+        onClose();
+      }
+    };
+
+    if (isOpen) {
+      document.addEventListener('mousedown', handleClickOutside);
+      return () => {
+        document.removeEventListener('mousedown', handleClickOutside);
+      };
+    }
+  }, [isOpen, onClose]);
+
+  const handleColorClick = (color) => {
+    onColorSelect(color.rgb);
+    onClose();
+  };
+
+  if (!isOpen) return null;
+
+  return (
+    <div className="color-picker-dropdown" ref={dropdownRef}>
+      <div className="color-picker-grid">
+        {COLOR_PALETTE.map((color, index) => {
+          const selectedHex = rgbToHex(selectedColor);
+          const isSelected = selectedHex === color.hex || normalizeRgb(selectedColor) === normalizeRgb(color.rgb);
+          return (
+            <button
+              key={index}
+              type="button"
+              className={`color-swatch ${isSelected ? 'selected' : ''} ${color.hex === '#FFFFFF' ? 'white-swatch' : ''}`}
+              style={{ backgroundColor: color.hex }}
+              onClick={() => handleColorClick(color)}
+              title={color.name}
+              aria-label={`Select ${color.name} color`}
+            >
+              {isSelected && (
+                <svg
+                  width="16"
+                  height="16"
+                  viewBox="0 0 16 16"
+                  fill="none"
+                  xmlns="http://www.w3.org/2000/svg"
+                  className="color-checkmark"
+                >
+                  <path
+                    d="M13.3333 4L6 11.3333L2.66667 8"
+                    stroke={color.hex === '#000000' ? '#ffffff' : color.hex === '#FFFFFF' ? '#000000' : '#ffffff'}
+                    strokeWidth="2"
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                  />
+                </svg>
+              )}
+              {color.hex === '#FFFFFF' && !isSelected && (
+                <div className="color-swatch-outline"></div>
+              )}
+            </button>
+          );
+        })}
+      </div>
+    </div>
+  );
+};
+
+ColorPickerDropdown.propTypes = {
+  isOpen: PropTypes.bool.isRequired,
+  onClose: PropTypes.func.isRequired,
+  selectedColor: PropTypes.string.isRequired,
+  onColorSelect: PropTypes.func.isRequired,
+};
+
 // Sub-components
 const TopBar = ({ card, topbarColor, onClose, isAddMode = false, onColorChange }) => {
+  const [isColorPickerOpen, setIsColorPickerOpen] = useState(false);
   const cardId = card?.code || card?.id || '';
   const cardTitle = card?.title || (isAddMode ? 'New Card' : '');
 
-  // Convert RGB to hex for color input
-  const rgbToHex = (rgb) => {
-    if (!rgb) return '#775649';
-    if (rgb.startsWith('#')) return rgb;
-    const match = rgb.match(/\d+/g);
-    if (!match || match.length < 3) return '#775649';
-    return '#' + match.map(x => {
-      const hex = parseInt(x).toString(16);
-      return hex.length === 1 ? '0' + hex : hex;
-    }).join('');
-  };
-
-  const hexToRgb = (hex) => {
-    if (!hex) return 'rgb(119, 86, 73)';
-    if (hex.startsWith('rgb')) return hex;
-    const result = /^#?([a-f\d]{2})([a-f\d]{2})([a-f\d]{2})$/i.exec(hex);
-    if (!result) return 'rgb(119, 86, 73)';
-    return `rgb(${parseInt(result[1], 16)}, ${parseInt(result[2], 16)}, ${parseInt(result[3], 16)})`;
-  };
-
-  const handleColorChange = (e) => {
-    const hexColor = e.target.value;
-    const rgbColor = hexToRgb(hexColor);
+  const handleColorSelect = (rgbColor) => {
     if (onColorChange) {
       onColorChange(rgbColor);
     }
+    setIsColorPickerOpen(false);
+  };
+
+  const handleToggleColorPicker = (e) => {
+    e.preventDefault();
+    e.stopPropagation();
+    setIsColorPickerOpen(!isColorPickerOpen);
   };
 
   return (
@@ -131,22 +243,22 @@ const TopBar = ({ card, topbarColor, onClose, isAddMode = false, onColorChange }
       </div>
       <div className="cardform-topbar-right">
         <div className="topbar-color-picker-wrapper">
-          <label className="topbar-color-picker-label" title="Change header color">
+          <button
+            type="button"
+            className="topbar-color-picker-label"
+            onClick={handleToggleColorPicker}
+            title="Change header color"
+            aria-label="Color Picker"
+          >
             <img src={ColorPickerIcon} alt="Color Picker" className="topbar-color-picker-icon" />
-            <input
-              type="color"
-              value={rgbToHex(topbarColor)}
-              onChange={handleColorChange}
-              className="topbar-color-picker"
-              aria-label="Color Picker"
-            />
-          </label>
-        </div>
-        {!isAddMode && (
-          <button className="topbar-icon-btn" type="button" aria-label="Priority">
-            <img src={PriorityIcon} alt="Priority" />
           </button>
-        )}
+          <ColorPickerDropdown
+            isOpen={isColorPickerOpen}
+            onClose={() => setIsColorPickerOpen(false)}
+            selectedColor={topbarColor}
+            onColorSelect={handleColorSelect}
+          />
+        </div>
         <button className="cardform-close-btn" onClick={onClose} type="button" aria-label="Close">
           ✕
         </button>
@@ -344,7 +456,7 @@ const renderTabContent = (activeTab, card, formValues, handleChange, ownerInitia
 // Main Component
 function CardForm({ show, close, card, moveCardToColumn, columns, currentColumn, isAddMode = false }) {
   const [activeTopTab, setActiveTopTab] = useState("General");
-  
+
   // State for topbar color - initialize with rgb(119, 86, 73) for add mode, or use card/column color
   const [topbarColor, setTopbarColor] = useState(() => {
     if (isAddMode) {
@@ -451,7 +563,7 @@ function CardForm({ show, close, card, moveCardToColumn, columns, currentColumn,
 
   // Everything else uses card's unique color
   const accentColor = useMemo(() => card?.color || DEFAULT_ACCENT_COLOR, [card?.color]);
-  
+
   const handleTopbarColorChange = useCallback((newColor) => {
     setTopbarColor(newColor);
   }, []);
@@ -465,10 +577,10 @@ function CardForm({ show, close, card, moveCardToColumn, columns, currentColumn,
   return (
     <div className="cardform-overlay" onClick={close}>
       <div className={`cardform-panel ${isAddMode ? 'add-mode' : ''}`} onClick={(e) => e.stopPropagation()}>
-        <TopBar 
-          card={card} 
-          topbarColor={topbarColor} 
-          onClose={close} 
+        <TopBar
+          card={card}
+          topbarColor={topbarColor}
+          onClose={close}
           isAddMode={isAddMode}
           onColorChange={handleTopbarColorChange}
         />
