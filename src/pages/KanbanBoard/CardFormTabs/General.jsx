@@ -1,5 +1,5 @@
 import PropTypes from "prop-types";
-import { useMemo, useRef } from "react";
+import { useMemo, useRef, useState } from "react";
 import ReactQuill from "react-quill";
 import "react-quill/dist/quill.snow.css";
 import "../../../design/scss/general.scss";
@@ -100,6 +100,109 @@ const OwnerField = ({ value, onChange, ownerInitial, cardUser }) => {
   );
 };
 
+const VesselNameField = ({ value, onChange, options = [], placeholder, onSave }) => {
+  const [showAddInput, setShowAddInput] = useState(false);
+  const [newVesselName, setNewVesselName] = useState("");
+
+  const handleAddClick = () => {
+    setShowAddInput(true);
+    setNewVesselName("");
+  };
+
+  const handleSave = () => {
+    if (newVesselName.trim()) {
+      onSave(newVesselName.trim());
+      setNewVesselName("");
+      setShowAddInput(false);
+    }
+  };
+
+  const handleCancel = () => {
+    setNewVesselName("");
+    setShowAddInput(false);
+  };
+
+  const handleKeyPress = (e) => {
+    if (e.key === "Enter") {
+      handleSave();
+    } else if (e.key === "Escape") {
+      handleCancel();
+    }
+  };
+
+  return (
+    <div className="cf-field">
+      <label>Vessel Name</label>
+      <div className="cf-vessel-name-row">
+        <div className="cf-select" style={{ flex: 1 }}>
+          <select value={value || ""} onChange={onChange}>
+            {placeholder && <option value="">{placeholder}</option>}
+            {options.map((option) => (
+              <option key={option.value} value={option.value}>
+                {option.label}
+              </option>
+            ))}
+          </select>
+        </div>
+        {!showAddInput && (
+          <button
+            type="button"
+            className="cf-add-vessel-btn"
+            onClick={handleAddClick}
+            aria-label="Add Vessel"
+          >
+            +
+          </button>
+        )}
+      </div>
+      {showAddInput && (
+        <div className="cf-add-vessel-input-row">
+          <div className="cf-input" style={{ flex: 1 }}>
+            <input
+              type="text"
+              placeholder="Enter vessel name..."
+              value={newVesselName}
+              onChange={(e) => setNewVesselName(e.target.value)}
+              onKeyDown={handleKeyPress}
+              autoFocus
+            />
+          </div>
+          <button
+            type="button"
+            className="cf-save-vessel-btn"
+            onClick={handleSave}
+            aria-label="Save Vessel"
+            disabled={!newVesselName.trim()}
+          >
+            ✓
+          </button>
+          <button
+            type="button"
+            className="cf-cancel-vessel-btn"
+            onClick={handleCancel}
+            aria-label="Cancel"
+          >
+            ✕
+          </button>
+        </div>
+      )}
+    </div>
+  );
+};
+
+VesselNameField.propTypes = {
+  value: PropTypes.string,
+  onChange: PropTypes.func.isRequired,
+  options: PropTypes.arrayOf(
+    PropTypes.shape({
+      value: PropTypes.string.isRequired,
+      label: PropTypes.string.isRequired,
+    })
+  ),
+  placeholder: PropTypes.string,
+  onSave: PropTypes.func.isRequired,
+};
+
 OwnerField.propTypes = {
   value: PropTypes.string.isRequired,
   onChange: PropTypes.func.isRequired,
@@ -175,6 +278,7 @@ const formatDateTime = (date, time) => {
 const getStatusDateTime = (card, formValues, statusKey) => {
   // Map status keys to potential date/time fields in card or formValues
   const dateTimeMap = {
+    received: { date: formValues?.receivedDate || card?.receivedDate, time: formValues?.receivedTime || card?.receivedTime },
     expected: { date: formValues?.expectedDate || card?.expectedDate, time: formValues?.expectedTime || card?.expectedTime },
     arrived: { date: formValues?.arrivedDate || card?.arrivedDate, time: formValues?.arrivedTime || card?.arrivedTime },
     cleared: { date: formValues?.clearedDate || card?.clearedDate, time: formValues?.clearedTime || card?.clearedTime },
@@ -205,7 +309,6 @@ const HorizontalProgressBar = ({ stages, currentStatus, accentColor, card, formV
     // Calculate the exact percentage to reach the center of the active dot
     // Since dots are evenly spaced using flexbox with space-between,
     // the center of each dot is at: (index / (stages.length - 1)) * 100
-    // For Custom Inspection (index 1) with 10 stages: 1/9 * 100 = 11.11%
     const dotCenterPosition = (activeIndex / (stages.length - 1)) * 100;
 
     // Add a visual offset to ensure the green line reaches the center of the dot
@@ -213,8 +316,9 @@ const HorizontalProgressBar = ({ stages, currentStatus, accentColor, card, formV
     // 1. Dot width (28px) - line needs to extend to dot center
     // 2. Flexbox spacing calculations
     // 3. Subpixel rendering differences
-    // For index 1 (Custom Inspection), we add ~2.5% to ensure it reaches the center
-    const offsetPercentage = activeIndex <= 2 ? 2.5 : 2.0;
+    // For fewer stages (5), we need a larger offset to ensure proper connection
+    const baseOffset = stages.length <= 5 ? 3.5 : 2.5;
+    const offsetPercentage = activeIndex <= 2 ? baseOffset : baseOffset - 0.5;
     return Math.min(dotCenterPosition + offsetPercentage, 100);
   };
 
@@ -279,14 +383,19 @@ HorizontalProgressBar.propTypes = {
 
 function General({ card, formValues, handleChange, ownerInitial, cardUser, onSave }) {
   const accentColor = useMemo(() => card?.color || "#2A00FF", [card?.color]);
+  const [vesselNameOptions, setVesselNameOptions] = useState([
+    // Add vessel names here or fetch from API
+  ]);
 
-  // Determine current job status from card data (updated for 4 statuses)
+  // Determine current job status from card data (updated for 5 statuses)
   const currentStatus = useMemo(() => {
     // Map card properties to status keys
     if (card?.sailed) return "sailed";
     if (card?.cleared) return "cleared";
     if (card?.arrived) return "arrived";
-    // Default to Expected
+    if (card?.expected) return "expected";
+    if (card?.received) return "received";
+    // Default to Received
     return "expected";
   }, [card]);
 
@@ -295,6 +404,36 @@ function General({ card, formValues, handleChange, ownerInitial, cardUser, onSav
     { value: "Export", label: "Export" },
     { value: "Domestic", label: "Domestic" },
   ];
+
+  const billingEntityOptions = [
+    { value: "SS7", label: "SS7" },
+    { value: "Larsen & Tubro", label: "Larsen & Tubro" },
+    { value: "Saipem", label: "Saipem" },
+    { value: "Al Gihaz", label: "Al Gihaz" },
+    { value: "Zamil", label: "Zamil" },
+    { value: "Rawabi", label: "Rawabi" },
+    { value: "Mcdermott", label: "Mcdermott" },
+    { value: "Horizon", label: "Horizon" },
+  ];
+
+  // Handle vessel save - add new vessel to options and update form value
+  const handleVesselSave = (vesselName) => {
+    const newVesselOption = {
+      value: vesselName,
+      label: vesselName,
+    };
+
+    // Add to options if not already exists
+    if (!vesselNameOptions.some(opt => opt.value === newVesselOption.value)) {
+      setVesselNameOptions([...vesselNameOptions, newVesselOption]);
+    }
+
+    // Update form value to the newly added vessel
+    const syntheticEvent = {
+      target: { value: vesselName, name: "vesselName" }
+    };
+    handleChange("vesselName")(syntheticEvent);
+  };
 
   // Get owner initial from card user or formValues
   const ownerInitialValue = ownerInitial || (cardUser ? cardUser.charAt(0).toUpperCase() : "U");
@@ -394,10 +533,37 @@ function General({ card, formValues, handleChange, ownerInitial, cardUser, onSav
 
                     <FormField label="Main Billing entity">
                       <FormSelect
-                        value={formValues?.mainBillingEntity || ""}
+                        value={formValues?.mainBillingEntity || "SS7"}
                         onChange={handleChange("mainBillingEntity")}
-                        options={[]}
+                        options={billingEntityOptions}
                         placeholder="Select billing entity..."
+                      />
+                    </FormField>
+
+                    <FormField label="PO number">
+                      <FormInput
+                        type="text"
+                        placeholder="Enter PO number..."
+                        value={formValues?.poNumber || ""}
+                        onChange={handleChange("poNumber")}
+                      />
+                    </FormField>
+
+                    <FormField label="SRT No.">
+                      <FormInput
+                        type="text"
+                        placeholder="Enter shipper..."
+                        value={formValues?.shipper || ""}
+                        onChange={handleChange("shipper")}
+                      />
+                    </FormField>
+
+                    <FormField label="Project">
+                      <FormInput
+                        type="text"
+                        placeholder="Enter project..."
+                        value={formValues?.project || ""}
+                        onChange={handleChange("project")}
                       />
                     </FormField>
                   </div>
@@ -431,14 +597,13 @@ function General({ card, formValues, handleChange, ownerInitial, cardUser, onSav
                       />
                     </FormField>
 
-                    <FormField label="Vessel Name">
-                      <FormInput
-                        type="text"
-                        placeholder="Enter vessel name..."
-                        value={formValues?.vesselName || ""}
-                        onChange={handleChange("vesselName")}
-                      />
-                    </FormField>
+                    <VesselNameField
+                      value={formValues?.vesselName || ""}
+                      onChange={handleChange("vesselName")}
+                      options={vesselNameOptions}
+                      placeholder="Select vessel name..."
+                      onSave={handleVesselSave}
+                    />
 
                     <FormField label="Vessel Owner">
                       <FormInput

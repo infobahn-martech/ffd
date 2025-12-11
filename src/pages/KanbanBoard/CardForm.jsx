@@ -308,7 +308,7 @@ function CardForm({ show, close, card, moveCardToColumn, columns, currentColumn 
       owner: card?.user || "None",
       // Service Information
       typeOfCall: card?.typeOfCall || "",
-      mainBillingEntity: card?.mainBillingEntity || "",
+      mainBillingEntity: card?.mainBillingEntity || "SS7",
       // Appointment Details
       appointmentReceivedDate: card?.appointmentReceivedDate || "",
       appointmentAcceptanceDate: card?.appointmentAcceptanceDate || "",

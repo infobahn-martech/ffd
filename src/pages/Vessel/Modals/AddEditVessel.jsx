@@ -76,31 +76,8 @@ export function VesselModal({ showModal, closeModal }) {
         <form id="vesselForm" onSubmit={handleSubmit(onSubmit)}>
           {/* ROW 1 — Billing Entity + Vessel Type + Barge Type */}
           <div className="permInputs row mb-lg-3">
-            {/* Billing Entity */}
-            <div className="col-lg-4 col-sm-12 mb-3">
-              <div className="form-floating desig-inp">
-                <select
-                  className={`form-control ${errors.billingEntity ? "is-invalid" : ""}`}
-                  {...register("billingEntity", { required: "Billing Entity is required" })}
-                >
-                  <option value="">Select Billing Entity</option>
-                  {BILLING_ENTITY_OPTIONS.map((entity) => (
-                    <option key={entity} value={entity}>
-                      {entity}
-                    </option>
-                  ))}
-                </select>
-                <label>
-                  Billing Entity <span className="text-danger">*</span>
-                </label>
-                {errors.billingEntity && (
-                  <span className="error text-danger">{errors.billingEntity.message}</span>
-                )}
-              </div>
-            </div>
-
             {/* Vessel Type */}
-            <div className="col-lg-4 col-sm-12 mb-3">
+            <div className="col-lg-6 col-sm-12 mb-3">
               <div className="form-floating desig-inp">
                 <select
                   className={`form-control ${errors.vesselType ? "is-invalid" : ""}`}
@@ -123,7 +100,7 @@ export function VesselModal({ showModal, closeModal }) {
             </div>
 
             {/* Barge Type */}
-            <div className="col-lg-4 col-sm-12 mb-3">
+            <div className="col-lg-6 col-sm-12 mb-3">
               <div className="form-floating desig-inp">
                 <select
                   className={`form-control ${errors.bargeType ? "is-invalid" : ""}`}

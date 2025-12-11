@@ -1185,6 +1185,26 @@ const DepartureContent = ({ formValues, handleChange, cardColor, onAddAttachment
                 </div>
               </FormField>
 
+              <FormField label="Next port">
+                <FormInput
+                  type="text"
+                  value={formValues.nextPort || ""}
+                  onChange={handleChange("nextPort")}
+                  placeholder="Enter next port..."
+                  disabled
+                />
+              </FormField>
+
+              <FormField label="Email requested Accept">
+                <FormInput
+                  type="text"
+                  value={formValues.emailRequestedAccept || ""}
+                  onChange={handleChange("emailRequestedAccept")}
+                  placeholder="Enter email requested accept..."
+                  disabled
+                />
+              </FormField>
+
               <div className="form-save-button-wrapper">
                 <button
                   type="button"

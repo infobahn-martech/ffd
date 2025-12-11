@@ -576,7 +576,7 @@
     }
 
     .ql-editor {
-      min-height: 305px !important;
+      min-height: 473px !important;
       height: 100% !important;
       overflow-y: auto;
     }
@@ -660,7 +660,7 @@
 }
 
 .cf-input:focus-within {
-  border-color: var(--card-color, #2A00FF);
+  border-color: #3e5cb6;
   box-shadow: 0 0 0 3px rgba(42, 0, 255, 0.1);
   background: #fafaff;
 }
@@ -782,7 +782,7 @@
 }
 
 .cf-select:focus-within {
-  border-color: var(--card-color, #2A00FF);
+  border-color: #3e5cb6;
   box-shadow: 0 0 0 3px rgba(42, 0, 255, 0.1);
   background: #fafaff;
 }
@@ -811,7 +811,7 @@
 }
 
 .crew-multi-select:focus-within {
-  border-color: var(--card-color, #2A00FF);
+  border-color: #3e5cb6;
   box-shadow: 0 0 0 3px rgba(42, 0, 255, 0.1);
   background: #fafaff;
 }
@@ -822,7 +822,7 @@
 
 .crew-multi-select .react-select__multi-value {
   margin: 2px 4px 2px 0 !important;
-  background-color: var(--card-color, #2A00FF) !important;
+  background-color: #3e5cb6 !important;
   border-radius: 6px !important;
   box-shadow: 0 1px 3px rgba(0, 0, 0, 0.12) !important;
 }
@@ -870,7 +870,7 @@
 }
 
 .crew-multi-select .react-select__indicator:hover {
-  color: var(--card-color, #2A00FF) !important;
+  color: #3e5cb6 !important;
 }
 
 .crew-multi-select .react-select__clear-indicator:hover {
@@ -900,7 +900,7 @@
 }
 
 .crew-multi-select .react-select__option--is-selected {
-  background-color: var(--card-color, #2A00FF) !important;
+  background-color: #3e5cb6 !important;
   color: #ffffff !important;
   font-weight: 500 !important;
 }
@@ -911,7 +911,7 @@
 }
 
 .crew-multi-select .react-select__option:active {
-  background-color: var(--card-color, #2A00FF) !important;
+  background-color: #3e5cb6 !important;
   color: #ffffff !important;
 }
 
@@ -944,7 +944,7 @@
 }
 
 .cf-textarea:focus-within {
-  border-color: var(--card-color, #2A00FF);
+  border-color: #3e5cb6;
   box-shadow: 0 0 0 3px rgba(42, 0, 255, 0.1);
   background: #fafaff;
 }

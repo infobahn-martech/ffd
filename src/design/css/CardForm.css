@@ -308,11 +308,10 @@
   border-color: #c5c5d1;
 }
 
-.cf-input:focus-within {
-  border-color: #2A00FF;
-  box-shadow: 0 0 0 3px rgba(42, 0, 255, 0.1);
+/* .cf-input:focus-within {
+  border-color: #3e5cb6;
   background: #fafaff;
-}
+} */
 
 .cf-input input,
 .cf-input select {
@@ -428,6 +427,123 @@
   outline: none;
   border-color: #3e5ebd;
   box-shadow: 0 0 0 3px rgba(42, 0, 255, 0.1);
+}
+
+/* Vessel Name row */
+.cf-vessel-name-row {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.cf-add-vessel-btn {
+  width: 36px;
+  height: 36px;
+  border-radius: 8px;
+  border: 1.5px solid #e2e2ea;
+  background: #ffffff;
+  color: #3e5cb6;
+  font-size: 20px;
+  font-weight: 600;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  flex-shrink: 0;
+  padding: 0;
+  line-height: 1;
+}
+
+.cf-add-vessel-btn:hover {
+  border-color: #3e5cb6;
+  background: #fafaff;
+  transform: scale(1.05);
+}
+
+.cf-add-vessel-btn:active {
+  transform: scale(0.95);
+}
+
+.cf-vessel-name-row .cf-select {
+  flex: 1;
+  min-width: 0;
+}
+
+/* Add Vessel Input Row */
+.cf-add-vessel-input-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-top: 8px;
+}
+
+.cf-add-vessel-input-row .cf-input {
+  flex: 1;
+  min-width: 0;
+}
+
+.cf-save-vessel-btn {
+  width: 32px;
+  height: 32px;
+  border-radius: 6px;
+  border: 1.5px solid #2e7d32;
+  background: #2e7d32;
+  color: #ffffff;
+  font-size: 16px;
+  font-weight: 600;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  flex-shrink: 0;
+  padding: 0;
+  line-height: 1;
+}
+
+.cf-save-vessel-btn:hover:not(:disabled) {
+  background: #1b5e20;
+  border-color: #1b5e20;
+  transform: scale(1.05);
+}
+
+.cf-save-vessel-btn:active:not(:disabled) {
+  transform: scale(0.95);
+}
+
+.cf-save-vessel-btn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.cf-cancel-vessel-btn {
+  width: 32px;
+  height: 32px;
+  border-radius: 6px;
+  border: 1.5px solid #e2e2ea;
+  background: #ffffff;
+  color: #666;
+  font-size: 14px;
+  font-weight: 600;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  flex-shrink: 0;
+  padding: 0;
+  line-height: 1;
+}
+
+.cf-cancel-vessel-btn:hover {
+  border-color: #c5c5d1;
+  background: #f5f5f5;
+  transform: scale(1.05);
+}
+
+.cf-cancel-vessel-btn:active {
+  transform: scale(0.95);
 }
 
 /* ==========================================================
