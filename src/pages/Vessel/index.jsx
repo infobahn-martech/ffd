@@ -1,30 +1,82 @@
 
 import { useState } from "react";
-import { DateFormat, RenderAction } from "./RenderCells";
+import { RenderAction } from "./RenderCells";
 import CommonHeader from "../../components/CommonHeader";
 import CustomTable from "../../components/customTable";
 import DeleteConfirmationModal from "../../components/DeleteConfirmationModal";
 import { VesselModal } from "./Modals/AddEditVessel";
-import { PORT_DETAILS } from "../../constants/ports";
+import { ViewVesselModal } from "./Modals/ViewVessel";
 
-const entityTimeline = [
-  { createdAt: "2024-10-12T10:15:00Z", updatedAt: "2024-11-03T08:45:00Z" },
-  { createdAt: "2024-09-20T12:30:00Z", updatedAt: "2024-10-15T14:20:00Z" },
-  { createdAt: "2024-08-05T09:00:00Z", updatedAt: "2024-10-02T11:40:00Z" },
-  { createdAt: "2024-07-18T16:00:00Z", updatedAt: "2024-09-28T10:10:00Z" },
-  { createdAt: "2024-06-12T14:00:00Z", updatedAt: "2024-08-21T09:00:00Z" },
+const dummyVessels = [
+  {
+    _id: "1",
+    billingEntity: "Billing Entity 1",
+    vesselType: "Foreign Flag Vessel",
+    bargeType: "Barge Import",
+    vesselName: "MV Ocean Star",
+    flagState: "Liberia",
+    grossTonnage: "15,000",
+    callSign: "A3XY4",
+    yearBuilt: "2010",
+    classSociety: "Lloyd's Register",
+    pnIClub: "North P&I Club",
+    lengthOverall: "150.5",
+    beam: "25.3",
+    draft: "8.5",
+    createdAt: "2024-01-15T10:30:00Z",
+  },
+  {
+    _id: "2",
+    billingEntity: "Billing Entity 2",
+    vesselType: "Saudi Flag Vessel",
+    bargeType: "Flat Barge Import",
+    vesselName: "MV Red Sea",
+    flagState: "Saudi Arabia",
+    grossTonnage: "12,500",
+    callSign: "B4ZW5",
+    yearBuilt: "2015",
+    classSociety: "DNV",
+    pnIClub: "Gard",
+    lengthOverall: "135.2",
+    beam: "22.8",
+    draft: "7.8",
+    createdAt: "2024-01-16T11:20:00Z",
+  },
+  {
+    _id: "3",
+    billingEntity: "Billing Entity 1",
+    vesselType: "Small Boat",
+    bargeType: "Jack Up Barge",
+    vesselName: "SV Wind Runner",
+    flagState: "UAE",
+    grossTonnage: "500",
+    callSign: "C5AB6",
+    yearBuilt: "2020",
+    classSociety: "ABS",
+    pnIClub: "Standard Club",
+    lengthOverall: "45.0",
+    beam: "12.0",
+    draft: "3.5",
+    createdAt: "2024-01-17T09:15:00Z",
+  },
+  {
+    _id: "4",
+    billingEntity: "Billing Entity 3",
+    vesselType: "Taxi Tug Temp Import",
+    bargeType: "Barge Import",
+    vesselName: "TT Harbor Master",
+    flagState: "Bahrain",
+    grossTonnage: "800",
+    callSign: "D6CD7",
+    yearBuilt: "2018",
+    classSociety: "Bureau Veritas",
+    pnIClub: "West of England",
+    lengthOverall: "35.5",
+    beam: "10.5",
+    draft: "4.2",
+    createdAt: "2024-01-18T14:45:00Z",
+  },
 ];
-
-const slugify = (text) => text.toLowerCase().replace(/[^a-z0-9]+/g, "-");
-
-const dummyVessels = PORT_DETAILS.map((port, index) => ({
-  _id: `${index + 1}`,
-  firstName: `${port.name} Vessel`,
-  phoneNumber: `+9665900000${index + 1}`,
-  email: `${slugify(port.name)}.vessel@sedres.com`,
-  createdAt: entityTimeline[index]?.createdAt ?? "2024-06-01T10:00:00Z",
-  updatedAt: entityTimeline[index]?.updatedAt ?? "2024-08-01T10:00:00Z",
-}));
 
 const Vessel = () => {
   const [params, setParams] = useState({
@@ -38,56 +90,72 @@ const Vessel = () => {
 
   const [showVesselModal, setShowVesselModal] = useState(false);
   const [showDeleteModal, setShowDeleteModal] = useState(false);
-
-  console.log("showDeleteModal",showDeleteModal)
-
+  const [selectedVesselForDelete, setSelectedVesselForDelete] = useState(null);
+  const [showViewVesselModal, setShowViewVesselModal] = useState(false);
 
   const cols = [
     {
-      name: 'Name',
-      selector: 'firstName',
+      name: 'Vessel',
+      selector: 'vesselName',
       tableClasses: 'table-striped',
       contentClass: 'table-content',
       sort: true,
       thclass: 'tb-head',
-      width: '400',
+      width: '250',
     },
     {
-      name: 'Phone No.',
-      selector: 'phoneNumber',
+      name: 'Type',
+      selector: 'vesselType',
       tableClasses: 'table-striped',
-      sort: true,
       contentClass: 'table-content',
+      sort: true,
       thclass: 'tb-head',
       width: '200',
     },
     {
-      name: 'Email',
-      selector: 'email',
+      name: 'Barge Type',
+      selector: 'bargeType',
       tableClasses: 'table-striped',
-      sort: true,
       contentClass: 'table-content',
+      sort: true,
       thclass: 'tb-head',
+      width: '180',
     },
     {
-      name: 'Created At',
-      selector: 'createdAt',
+      name: 'Billing Entity',
+      selector: 'billingEntity',
       tableClasses: 'table-striped',
       contentClass: 'table-content',
-      thclass: 'tb-head',
       sort: true,
-      cell: DateFormat,
-      width: '400',
+      thclass: 'tb-head',
+      width: '200',
     },
     {
-      name: 'Modified At',
-      selector: 'updatedAt',
+      name: 'Flag',
+      selector: 'flagState',
       tableClasses: 'table-striped',
       contentClass: 'table-content',
-      thclass: 'tb-head',
       sort: true,
-      cell: DateFormat,
-      width: '400',
+      thclass: 'tb-head',
+      width: '150',
+    },
+    {
+      name: 'Gross Tonnage',
+      selector: 'grossTonnage',
+      tableClasses: 'table-striped',
+      contentClass: 'table-content',
+      sort: true,
+      thclass: 'tb-head',
+      width: '200',
+    },
+    {
+      name: 'Year',
+      selector: 'yearBuilt',
+      tableClasses: 'table-striped',
+      contentClass: 'table-content',
+      sort: true,
+      thclass: 'tb-head',
+      width: '120',
     },
     {
       name: 'Actions',
@@ -95,8 +163,12 @@ const Vessel = () => {
       tableClasses: 'table-striped',
       contentClass: 'table-content',
       thclass: 'tb-head',
-      onEditClick:(row)=>{setShowVesselModal(row)},
-      onDeleteClick:()=>{setShowDeleteModal(true)},
+      onViewClick: (row) => { setShowViewVesselModal(row) },
+      onEditClick: (row) => { setShowVesselModal(row) },
+      onDeleteClick: (row) => {
+        setSelectedVesselForDelete(row);
+        setShowDeleteModal(true);
+      },
       cell: RenderAction,
       width: '200',
     },
@@ -108,16 +180,14 @@ const Vessel = () => {
         <div className="prospect employee">
           <div className="container-fluid">
             <CommonHeader
-             showFilter
+              showFilter
               tableTitle="Vessels"
               isAddEnabled
               addModalLabel="Add Vessel"
               setSearch={(e) =>
                 setParams({ ...params, searchTerm: e, page: 1, limit: 10 })
               }
-            onAddModalClick={() => {
-              setShowVesselModal(true);
-            }}
+              onAddModalClick={() => setShowVesselModal(true)}
               exportTitle="Export"
               exportLoader={false}
             />
@@ -128,8 +198,8 @@ const Vessel = () => {
             tableClasses="px-start"
             count={dummyVessels.length}
             columns={cols}
-            // isLoading={isLoading}
-            data={dummyVessels ?? []}
+            data={dummyVessels}
+            Sl={true}
             onPageChange={(currentPage) =>
               setParams({ ...params, page: currentPage })
             }
@@ -143,24 +213,37 @@ const Vessel = () => {
               });
             }}
           />
-           {!!showVesselModal && (
-                    <VesselModal
-                      showModal={showVesselModal}
-                      closeModal={() => setShowVesselModal(false)}
-                    />
-                  )}
+          {!!showVesselModal && (
+            <VesselModal
+              showModal={showVesselModal}
+              closeModal={() => setShowVesselModal(false)}
+            />
+          )}
 
-                       {!!showDeleteModal && (
-                   <DeleteConfirmationModal
-                          show={showDeleteModal}
-                          onCancel={()=>setShowDeleteModal(false)}
-                          onConfirm={()=>{}}
-                          deleteText="Are you sure you want to delete this port?"
-                          // isLoading={isBeingUpdated}
-                        />
-                  )}
+          {showViewVesselModal && (
+            <ViewVesselModal
+              showModal={showViewVesselModal}
+              closeModal={() => setShowViewVesselModal(false)}
+            />
+          )}
 
-                  
+          {!!showDeleteModal && (
+            <DeleteConfirmationModal
+              show={showDeleteModal}
+              onCancel={() => {
+                setShowDeleteModal(false);
+                setSelectedVesselForDelete(null);
+              }}
+              onConfirm={() => {
+                console.log("Delete vessel:", selectedVesselForDelete);
+                setShowDeleteModal(false);
+                setSelectedVesselForDelete(null);
+              }}
+              deleteText={`Are you sure you want to delete this vessel ${selectedVesselForDelete?.vesselName || ''}?`}
+            />
+          )}
+
+
         </div>
       </div>
     </>

@@ -1,173 +1,331 @@
-import CustomModal from '../../../components/CustomModal';
-import '../../../design/scss/prospect-modal.scss';
-import '../../../design/scss/modal-designs.scss';
-import '../../../design/scss/form-designs.scss';
+import { useForm } from "react-hook-form";
+import CustomModal from "../../../components/CustomModal";
+import "../../../design/scss/prospect-modal.scss";
+import "../../../design/scss/modal-designs.scss";
+import "../../../design/scss/form-designs.scss";
 
+// Vessel Type Options
+const VESSEL_TYPE_OPTIONS = [
+  "Foreign Flag Vessel",
+  "Saudi Flag Vessel",
+  "Small Boat",
+  "Taxi Tug Temp Import",
+];
+
+// Billing Entity Options (will be populated from API or constants)
+const BILLING_ENTITY_OPTIONS = [
+  "Billing Entity 1",
+  "Billing Entity 2",
+  "Billing Entity 3",
+];
+
+// Barge Type Options
+const BARGE_TYPE_OPTIONS = [
+  "Barge Import",
+  "Flat Barge Import",
+  "Jack Up Barge",
+];
 
 export function VesselModal({ showModal, closeModal }) {
+  const {
+    register,
+    handleSubmit,
+    formState: { errors },
+  } = useForm({
+    defaultValues: showModal?._id
+      ? {
+        billingEntity: showModal?.billingEntity || "",
+        vesselType: showModal?.vesselType || "",
+        bargeType: showModal?.bargeType || "",
+        vesselName: showModal?.vesselName || "",
+        flagState: showModal?.flagState || "",
+        grossTonnage: showModal?.grossTonnage || "",
+        callSign: showModal?.callSign || "",
+        yearBuilt: showModal?.yearBuilt || "",
+        classSociety: showModal?.classSociety || "",
+        pnIClub: showModal?.pnIClub || "",
+        lengthOverall: showModal?.lengthOverall || "",
+        beam: showModal?.beam || "",
+        draft: showModal?.draft || "",
+      }
+      : {},
+  });
+
+  const onSubmit = (data) => {
+    console.log("VESSEL FORM SUBMITTED:", data);
+    closeModal();
+  };
+
   const renderHeader = () => (
     <>
       <h1 className="modal-title">
-        {showModal?._id ? "Edit Port" :"Add Port"}
+        {showModal?._id ? "Edit Vessel" : "Add Vessel"}
       </h1>
+      <button
+        type="button"
+        className="btn-close"
+        aria-label="Close"
+        onClick={closeModal}
+      ></button>
     </>
   );
 
-const renderBody = () => (
-  <div className="modal-body">
-    <div className="lead-form">
-      <form>
-
-        {/* Port Name */}
-        <div className="mb-lg-3 mb-sm-0">
-          <div className="permInputs row">
-            <div className="col-lg-6 col-sm-12">
+  const renderBody = () => (
+    <div className="modal-body">
+      <div className="lead-form">
+        <form id="vesselForm" onSubmit={handleSubmit(onSubmit)}>
+          {/* ROW 1 — Billing Entity + Vessel Type + Barge Type */}
+          <div className="permInputs row mb-lg-3">
+            {/* Vessel Type */}
+            <div className="col-lg-6 col-sm-12 mb-3">
               <div className="form-floating desig-inp">
-                <input
-                  className="form-control"
-                  id="portName"
-                  placeholder="Port Name"
-                  type="text"
-                />
-                <label htmlFor="portName">
-                  Port Name <span className="text-danger">*</span>
+                <select
+                  className={`form-control ${errors.vesselType ? "is-invalid" : ""}`}
+                  {...register("vesselType", { required: "Vessel Type is required" })}
+                >
+                  <option value="">Select Vessel Type</option>
+                  {VESSEL_TYPE_OPTIONS.map((type) => (
+                    <option key={type} value={type}>
+                      {type}
+                    </option>
+                  ))}
+                </select>
+                <label>
+                  Vessel Type <span className="text-danger">*</span>
                 </label>
+                {errors.vesselType && (
+                  <span className="error text-danger">{errors.vesselType.message}</span>
+                )}
+              </div>
+            </div>
+
+            {/* Barge Type */}
+            <div className="col-lg-6 col-sm-12 mb-3">
+              <div className="form-floating desig-inp">
+                <select
+                  className={`form-control ${errors.bargeType ? "is-invalid" : ""}`}
+                  {...register("bargeType", { required: "Barge Type is required" })}
+                >
+                  <option value="">Select Barge Type</option>
+                  {BARGE_TYPE_OPTIONS.map((type) => (
+                    <option key={type} value={type}>
+                      {type}
+                    </option>
+                  ))}
+                </select>
+                <label>
+                  Barge Type <span className="text-danger">*</span>
+                </label>
+                {errors.bargeType && (
+                  <span className="error text-danger">{errors.bargeType.message}</span>
+                )}
               </div>
             </div>
           </div>
-        </div>
 
-        {/* Address */}
-        <div className="mb-lg-3 mb-sm-0">
-          <div className="permInputs row">
-            <div className="col-lg-12 col-sm-12">
+          {/* ROW 2 — Vessel Name + Flag State */}
+          <div className="permInputs row mb-lg-3">
+            {/* Vessel Name */}
+            <div className="col-lg-6 col-sm-12 mb-3">
               <div className="form-floating desig-inp">
-                <textarea
-                  className="form-control"
-                  id="address"
-                  placeholder="Address"
-                  style={{ height: "100px" }}
-                ></textarea>
-                <label htmlFor="address">
-                  Address <span className="text-danger">*</span>
+                <input
+                  className={`form-control ${errors.vesselName ? "is-invalid" : ""}`}
+                  placeholder="Vessel Name"
+                  {...register("vesselName", { required: "Vessel Name is required" })}
+                />
+                <label>
+                  Vessel Name <span className="text-danger">*</span>
                 </label>
+                {errors.vesselName && (
+                  <span className="error text-danger">{errors.vesselName.message}</span>
+                )}
+              </div>
+            </div>
+
+            {/* Flag State */}
+            <div className="col-lg-6 col-sm-12 mb-3">
+              <div className="form-floating desig-inp">
+                <input
+                  className={`form-control ${errors.flagState ? "is-invalid" : ""}`}
+                  placeholder="Flag State"
+                  {...register("flagState", { required: "Flag State is required" })}
+                />
+                <label>
+                  Flag State <span className="text-danger">*</span>
+                </label>
+                {errors.flagState && (
+                  <span className="error text-danger">{errors.flagState.message}</span>
+                )}
               </div>
             </div>
           </div>
-        </div>
 
-        {/* Location + Contact Person */}
-        <div className="mb-lg-3 mb-sm-0">
-          <div className="permInputs row">
-
-            {/* Location */}
-            <div className="col-lg-6 col-sm-12">
+          {/* ROW 3 — Gross Tonnage + Call Sign */}
+          <div className="permInputs row mb-lg-3">
+            {/* Gross Tonnage */}
+            <div className="col-lg-6 col-sm-12 mb-3">
               <div className="form-floating desig-inp">
                 <input
-                  className="form-control"
-                  id="location"
-                  placeholder="Location"
-                  type="text"
+                  className={`form-control ${errors.grossTonnage ? "is-invalid" : ""}`}
+                  placeholder="Gross Tonnage"
+                  {...register("grossTonnage", { required: "Gross Tonnage is required" })}
                 />
-                <label htmlFor="location">
-                  Location <span className="text-danger">*</span>
+                <label>
+                  Gross Tonnage <span className="text-danger">*</span>
                 </label>
+                {errors.grossTonnage && (
+                  <span className="error text-danger">{errors.grossTonnage.message}</span>
+                )}
               </div>
             </div>
 
-            {/* Contact Person */}
-            <div className="col-lg-6 col-sm-12">
+            {/* Call Sign */}
+            <div className="col-lg-6 col-sm-12 mb-3">
               <div className="form-floating desig-inp">
                 <input
-                  className="form-control"
-                  id="contactPerson"
-                  placeholder="Contact Person"
-                  type="text"
+                  className={`form-control ${errors.callSign ? "is-invalid" : ""}`}
+                  placeholder="Call Sign"
+                  {...register("callSign", { required: "Call Sign is required" })}
                 />
-                <label htmlFor="contactPerson">
-                  Contact Person <span className="text-danger">*</span>
+                <label>
+                  Call Sign <span className="text-danger">*</span>
                 </label>
-              </div>
-            </div>
-
-          </div>
-        </div>
-
-        {/* Phone + Primary Email */}
-        <div className="mb-lg-3 mb-sm-0">
-          <div className="permInputs row">
-
-            {/* Phone */}
-            <div className="col-lg-6 col-sm-12">
-              <div className="form-floating desig-inp">
-                <input
-                  className="form-control"
-                  id="phone"
-                  placeholder="Phone"
-                  type="number"
-                />
-                <label htmlFor="phone">
-                  Phone <span className="text-danger">*</span>
-                </label>
-              </div>
-            </div>
-
-            {/* Primary Email */}
-            <div className="col-lg-6 col-sm-12">
-              <div className="form-floating desig-inp">
-                <input
-                  className="form-control"
-                  id="primaryEmail"
-                  placeholder="Primary Email"
-                  type="email"
-                />
-                <label htmlFor="primaryEmail">
-                  Primary Email <span className="text-danger">*</span>
-                </label>
-              </div>
-            </div>
-
-          </div>
-        </div>
-
-        {/* Secondary Email */}
-        <div className="mb-lg-3 mb-sm-0">
-          <div className="permInputs row">
-            <div className="col-lg-6 col-sm-12">
-              <div className="form-floating desig-inp">
-                <input
-                  className="form-control"
-                  id="secondaryEmail"
-                  placeholder="Secondary Email"
-                  type="email"
-                />
-                <label htmlFor="secondaryEmail">
-                  Secondary Email
-                </label>
+                {errors.callSign && (
+                  <span className="error text-danger">{errors.callSign.message}</span>
+                )}
               </div>
             </div>
           </div>
-        </div>
 
-      </form>
+          {/* ROW 4 — Year Built + Class Society */}
+          <div className="permInputs row mb-lg-3">
+            {/* Year Built */}
+            <div className="col-lg-6 col-sm-12 mb-3">
+              <div className="form-floating desig-inp">
+                <input
+                  className={`form-control ${errors.yearBuilt ? "is-invalid" : ""}`}
+                  placeholder="Year Built"
+                  {...register("yearBuilt", { required: "Year Built is required" })}
+                />
+                <label>
+                  Year Built <span className="text-danger">*</span>
+                </label>
+                {errors.yearBuilt && (
+                  <span className="error text-danger">{errors.yearBuilt.message}</span>
+                )}
+              </div>
+            </div>
+
+            {/* Class Society */}
+            <div className="col-lg-6 col-sm-12 mb-3">
+              <div className="form-floating desig-inp">
+                <input
+                  className={`form-control ${errors.classSociety ? "is-invalid" : ""}`}
+                  placeholder="Class Society"
+                  {...register("classSociety", { required: "Class Society is required" })}
+                />
+                <label>
+                  Class Society <span className="text-danger">*</span>
+                </label>
+                {errors.classSociety && (
+                  <span className="error text-danger">{errors.classSociety.message}</span>
+                )}
+              </div>
+            </div>
+          </div>
+
+          {/* ROW 5 — P&I Club + Length Overall */}
+          <div className="permInputs row mb-lg-3">
+            {/* P&I Club */}
+            <div className="col-lg-6 col-sm-12 mb-3">
+              <div className="form-floating desig-inp">
+                <input
+                  className={`form-control ${errors.pnIClub ? "is-invalid" : ""}`}
+                  placeholder="P&I Club"
+                  {...register("pnIClub", { required: "P&I Club is required" })}
+                />
+                <label>
+                  P&I Club <span className="text-danger">*</span>
+                </label>
+                {errors.pnIClub && (
+                  <span className="error text-danger">{errors.pnIClub.message}</span>
+                )}
+              </div>
+            </div>
+
+            {/* Length Overall */}
+            <div className="col-lg-6 col-sm-12 mb-3">
+              <div className="form-floating desig-inp">
+                <input
+                  className={`form-control ${errors.lengthOverall ? "is-invalid" : ""}`}
+                  placeholder="Length Overall"
+                  {...register("lengthOverall", { required: "Length Overall is required" })}
+                />
+                <label>
+                  Length Overall <span className="text-danger">*</span>
+                </label>
+                {errors.lengthOverall && (
+                  <span className="error text-danger">{errors.lengthOverall.message}</span>
+                )}
+              </div>
+            </div>
+          </div>
+
+          {/* ROW 6 — Beam + Draft */}
+          <div className="permInputs row mb-lg-3">
+            {/* Beam */}
+            <div className="col-lg-6 col-sm-12 mb-3">
+              <div className="form-floating desig-inp">
+                <input
+                  className={`form-control ${errors.beam ? "is-invalid" : ""}`}
+                  placeholder="Beam"
+                  {...register("beam", { required: "Beam is required" })}
+                />
+                <label>
+                  Beam <span className="text-danger">*</span>
+                </label>
+                {errors.beam && (
+                  <span className="error text-danger">{errors.beam.message}</span>
+                )}
+              </div>
+            </div>
+
+            {/* Draft */}
+            <div className="col-lg-6 col-sm-12 mb-3">
+              <div className="form-floating desig-inp">
+                <input
+                  className={`form-control ${errors.draft ? "is-invalid" : ""}`}
+                  placeholder="Draft"
+                  {...register("draft", { required: "Draft is required" })}
+                />
+                <label>
+                  Draft <span className="text-danger">*</span>
+                </label>
+                {errors.draft && (
+                  <span className="error text-danger">{errors.draft.message}</span>
+                )}
+              </div>
+            </div>
+          </div>
+        </form>
+      </div>
     </div>
-  </div>
-);
-
+  );
 
   const renderFooter = () => (
     <div className="modal-footer">
-      <button type="button" className="btn btn-outline" data-bs-dismiss="modal">
+      <button type="button" className="btn btn-outline" onClick={closeModal}>
         Close
       </button>
-      <button type="button" className="btn btn-primary">
+      <button type="submit" form="vesselForm" className="btn btn-primary">
         Save
       </button>
     </div>
   );
+
   return (
     <CustomModal
-      dialgName="modal-dialog modal-dialog-centered"
+      dialgName="modal-dialog modal-dialog-centered modal-lg"
       show={!!showModal}
       closeModal={() => closeModal(null)}
       body={renderBody()}

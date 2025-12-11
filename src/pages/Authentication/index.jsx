@@ -127,7 +127,7 @@ function Index() {
 
           {/* FORGOT PASSWORD */}
           <div className="forgot-wrap">
-            <a href="/forget-password" className="link">
+            <a href="#/forget-password" className="link">
               Forgot password?
             </a>
           </div>

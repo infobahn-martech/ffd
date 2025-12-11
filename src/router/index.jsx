@@ -17,6 +17,8 @@ import User from "../pages/User";
 import VesselType from "../pages/VesselType";
 import BillingEntity from "../pages/BillingEntity";
 import Vessel from "../pages/Vessel";
+import CustomerPricing from "../pages/CustomerPricing";
+import BargeType from "../pages/BargeType";
 
 // 🔥 Set true to bypass auth temporarily
 const TEST_MODE = true;
@@ -41,11 +43,13 @@ const router = createHashRouter([
               { path: "/roles", element: <Role /> },
               { path: "/permissions", element: <Permission /> },
               { path: "/users", element: <User /> },
+              { path: "/customer-pricing", element: <CustomerPricing /> },
               { path: "/kanban-board", element: <KanbanBoard /> },
               { path: "/port-management", element: <Port /> },
-              { path: "/vessel-typess", element: <VesselType /> },
-              { path: "/vessel-onboardings", element: <Vessel /> },
-              { path: "/billing-entitys", element: <BillingEntity /> },
+              { path: "/vessel-types", element: <VesselType /> },
+              { path: "/barge-types", element: <BargeType /> },
+              { path: "/vessel-onboarding", element: <Vessel /> },
+              { path: "/billing-entity", element: <BillingEntity /> },
               { path: "/settings", element: <h1>Settings</h1> },
             ],
           },

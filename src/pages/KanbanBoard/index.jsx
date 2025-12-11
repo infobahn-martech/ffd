@@ -1,4 +1,4 @@
-import { useState, useCallback, useMemo } from "react";
+import { useState, useCallback, useMemo, useEffect } from "react";
 import { DragDropContext } from "@hello-pangea/dnd";
 import { initialData } from "../../helpers/data";
 import Column from "./Column";
@@ -13,14 +13,86 @@ const ZOOM_STEP = 0.1;
 export default function KanbanBoard() {
   const [data, setData] = useState(initialData);
   const [selectedCard, setSelectedCard] = useState(null);
+  const [isAddMode, setIsAddMode] = useState(false);
   const [zoom, setZoom] = useState(1);
 
   const zoomIn = useCallback(() => setZoom(z => Math.min(z + ZOOM_STEP, MAX_ZOOM)), []);
   const zoomOut = useCallback(() => setZoom(z => Math.max(z - ZOOM_STEP, MIN_ZOOM)), []);
   const resetZoom = useCallback(() => setZoom(1), []);
 
-  const handleSelectCard = useCallback(card => setSelectedCard(card), []);
-  const handleCloseCard = useCallback(() => setSelectedCard(null), []);
+  const handleSelectCard = useCallback(card => {
+    setSelectedCard(card);
+    setIsAddMode(false);
+  }, []);
+  const handleCloseCard = useCallback(() => {
+    setSelectedCard(null);
+    setIsAddMode(false);
+  }, []);
+
+  // Listen for add card event from SideNav
+  useEffect(() => {
+    const handleAddCard = () => {
+      // Create a new empty card object for add mode
+      const newCard = {
+        id: `new-${Date.now()}`,
+        code: '',
+        title: '',
+        color: '#2A00FF',
+      };
+      setSelectedCard(newCard);
+      setIsAddMode(true);
+    };
+
+    window.addEventListener('kanban:add-card', handleAddCard);
+    return () => {
+      window.removeEventListener('kanban:add-card', handleAddCard);
+    };
+  }, []);
+
+  // Find which column contains a specific card
+  const findCardColumn = useCallback((cardId) => {
+    for (const colId of data.columnOrder) {
+      const column = data.columns[colId];
+      if (column.cardIds.includes(cardId)) {
+        return column;
+      }
+    }
+    return null;
+  }, [data]);
+
+  // Move card to a specific column by column ID
+  const moveCardToColumn = useCallback((cardId, targetColumnId) => {
+    const sourceColumn = findCardColumn(cardId);
+    if (!sourceColumn) return;
+
+    const targetColumn = data.columns[targetColumnId];
+    if (!targetColumn) return;
+
+    // If card is already in target column, do nothing
+    if (sourceColumn.id === targetColumnId) return;
+
+    const startCardIds = Array.from(sourceColumn.cardIds);
+    const cardIndex = startCardIds.indexOf(cardId);
+    if (cardIndex === -1) return;
+
+    // Remove card from source column
+    startCardIds.splice(cardIndex, 1);
+    const newStart = { ...sourceColumn, cardIds: startCardIds };
+
+    // Add card to beginning of target column (first position)
+    const finishCardIds = Array.from(targetColumn.cardIds);
+    finishCardIds.unshift(cardId);
+    const newFinish = { ...targetColumn, cardIds: finishCardIds };
+
+    setData(prevData => ({
+      ...prevData,
+      columns: {
+        ...prevData.columns,
+        [newStart.id]: newStart,
+        [newFinish.id]: newFinish,
+      },
+    }));
+  }, [data, findCardColumn]);
 
   const onDragEnd = useCallback((result) => {
     const { destination, source, draggableId } = result;
@@ -109,6 +181,10 @@ export default function KanbanBoard() {
           show={true}
           close={handleCloseCard}
           card={selectedCard}
+          moveCardToColumn={moveCardToColumn}
+          columns={data.columns}
+          currentColumn={isAddMode ? null : findCardColumn(selectedCard.id)}
+          isAddMode={isAddMode}
         />
       )}
     </>

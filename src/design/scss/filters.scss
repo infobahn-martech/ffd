@@ -1,52 +1,61 @@
 @import "partials/partials";
 
-.filters-inputs-wrp{
+.filters-inputs-wrp {
     display: flex;
     padding: 30px 40px;
     border: 1px solid #DBE7E8;
     border-radius: 10px;
     margin-top: 10px;
     margin-bottom: 10px;
-    @media($sm-991){
-        padding:30px 10px;
+
+    @media($sm-991) {
+        padding: 30px 10px;
         justify-content: center;
     }
-    .filter-inner{
-       
-        .my-1{
-            @media($sm-991){
+
+    .filter-inner {
+
+        .my-1 {
+            @media($sm-991) {
                 // padding: 0;
-    
-            }  
+
+            }
         }
     }
-    .inp-wrp{
+
+    .inp-wrp {
         display: flex;
         align-items: center;
-        .btn{
+
+        .btn {
             margin: 0px 5px;
         }
     }
-    .form-floating.form-floating input{
+
+    .form-floating.form-floating input {
         height: 40px;
         min-height: 40px;
         font-size: 14px;
     }
-    .btn{
+
+    .btn {
         height: 40px;
         padding-left: 10px;
         padding-right: 10px;
     }
-    .btn-primary{
+
+    .btn-primary {
         font-size: 13px;
         width: 100%;
         max-width: 130px;
     }
-    .btn-outline-danger{
+
+    .btn-outline-danger {
         background-color: #FFEDED;
         border: none !important;
+
         &:hover,
-        &:focus{
+        &:focus {
             background-color: #ffededc9;
         }
     }

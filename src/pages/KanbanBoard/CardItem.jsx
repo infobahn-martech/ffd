@@ -1,5 +1,7 @@
 import { Draggable } from "@hello-pangea/dnd";
 import PropTypes from "prop-types";
+import { Tooltip } from "react-tooltip";
+import "react-tooltip/dist/react-tooltip.css";
 import "../../design/css/CardItem.css";
 import PolygonIcon from "../../assets/images/PolygonIcon.svg";
 import MessageIcon from "../../assets/images/MessageIcon.svg";
@@ -11,11 +13,30 @@ function CardItem({ card, index, setSelectedCard }) {
   const cardColor = card.color || "#2A00FF";
   const userInitial = card.user?.[0]?.toUpperCase() || "";
 
+  // Helper function to truncate text and add tooltip
+  const TruncatedText = ({ text, maxLength = 20, tooltipId }) => {
+    if (!text) return null;
+    const isTruncated = text.length > maxLength;
+    const displayText = isTruncated ? text.substring(0, maxLength) + "..." : text;
+    
+    if (isTruncated) {
+      return (
+        <>
+          <span data-tooltip-id={tooltipId} data-tooltip-content={text}>
+            {displayText}
+          </span>
+          <Tooltip id={tooltipId} place="top" />
+        </>
+      );
+    }
+    return <span>{displayText}</span>;
+  };
+
   return (
     <Draggable draggableId={card.id} index={index}>
       {(provided, snapshot) => (
         <div
-          className={`kanban-card ${snapshot.isDragging ? "dragging" : ""}`}
+          className={`kanban-card ${snapshot.isDragging ? "dragging" : ""} ${card.priority ? "priority-blink" : ""}`}
           ref={provided.innerRef}
           {...provided.draggableProps}
           {...provided.dragHandleProps}
@@ -67,7 +88,7 @@ function CardItem({ card, index, setSelectedCard }) {
 
           {/* Footer */}
           <div className="card-footer">
-            {card?.timeLeft}
+            <span className="card-time-left">{card?.timeLeft}</span>
             <div className="footer-progress">
               <div className="circular-progress">
                 <svg className="progress-svg">
@@ -104,22 +125,53 @@ function CardItem({ card, index, setSelectedCard }) {
             </div>
           )}
 
-          {card.customer && (
-            <div className="card-meta blue">
-              <span>●</span> Customer Name: {card.customer}
+          {/* Last Moved Section */}
+          {card.lastMoved && (
+            <div className="card-last-moved">
+              Last moved: {card.lastMoved}
             </div>
           )}
 
-          {card.vessel && (
-            <div className="card-meta purple">
-              <span>●</span> Vessel Name: {card.vessel}
+          {/* Extra Details Section */}
+          {(card.sapSalesOrder || card.srtPoWbs || card.appointmentEmail || card.vesselName || card.serviceRequester) && (
+            <div className="card-extra-details">
+              {card.sapSalesOrder && (
+                <div className="card-detail-item">
+                  <span className="detail-dot detail-dot-grey"></span>
+                  <span className="detail-label">SAP Sales Order No:</span>
+                  <TruncatedText text={card.sapSalesOrder} maxLength={15} tooltipId={`sap-${card.id}`} />
+                </div>
+              )}
+              {card.srtPoWbs && (
+                <div className="card-detail-item">
+                  <span className="detail-dot detail-dot-yellow"></span>
+                  <span className="detail-label">SRT|PO|WBS:</span>
+                  <TruncatedText text={card.srtPoWbs} maxLength={15} tooltipId={`srt-${card.id}`} />
+                </div>
+              )}
+              {card.appointmentEmail && (
+                <div className="card-detail-item">
+                  <span className="detail-dot detail-dot-grey"></span>
+                  <span className="detail-label">Appointment Email:</span>
+                  <TruncatedText text={card.appointmentEmail} maxLength={20} tooltipId={`email-${card.id}`} />
+                </div>
+              )}
+              {card.vesselName && (
+                <div className="card-detail-item">
+                  <span className="detail-dot detail-dot-blue"></span>
+                  <span className="detail-label">VESSEL NAME:</span>
+                  <TruncatedText text={card.vesselName} maxLength={20} tooltipId={`vessel-${card.id}`} />
+                </div>
+              )}
+              {card.serviceRequester && (
+                <div className="card-detail-item">
+                  <span className="detail-dot detail-dot-green"></span>
+                  <span className="detail-label">Service requester</span>
+                  <TruncatedText text={card.serviceRequester} maxLength={20} tooltipId={`service-${card.id}`} />
+                </div>
+              )}
             </div>
           )}
-
-          {/* Footer */}
-          <div className="card-tasks">
-            New subtask
-          </div>
         </div>
       )}
     </Draggable>
@@ -138,8 +190,13 @@ CardItem.propTypes = {
     timeLeft: PropTypes.string,
     progress: PropTypes.number,
     status: PropTypes.string,
-    customer: PropTypes.string,
-    vessel: PropTypes.string,
+    priority: PropTypes.bool,
+    lastMoved: PropTypes.string,
+    sapSalesOrder: PropTypes.string,
+    srtPoWbs: PropTypes.string,
+    appointmentEmail: PropTypes.string,
+    vesselName: PropTypes.string,
+    serviceRequester: PropTypes.string,
   }).isRequired,
   index: PropTypes.number.isRequired,
   setSelectedCard: PropTypes.func.isRequired,

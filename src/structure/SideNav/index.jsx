@@ -119,9 +119,21 @@ function SideNav({ isMobileMenuOpen, onCloseMobileMenu }) {
     {
       menu: 'Billing Accounts',
       isDefaultMenu: true,
-      to: '/billing-entity',
-      icon: portIcon,
       hasPermission: true,
+      isOpen: false,
+      subMenus: [
+        {
+          menu: 'Billing Entity',
+          to: '/billing-entity',
+          hasPermission: true,
+        },
+        {
+          menu: 'Customer Pricing',
+          to: '/customer-pricing',
+          hasPermission: true,
+        },
+      ],
+      icon: workerIcon,
     },
     {
       menu: 'Vessel Management',
@@ -132,6 +144,11 @@ function SideNav({ isMobileMenuOpen, onCloseMobileMenu }) {
         {
           menu: 'Vessel Types',
           to: '/vessel-types',
+          hasPermission: true,
+        },
+        {
+          menu: 'Barge Types',
+          to: '/barge-types',
           hasPermission: true,
         },
         {
@@ -268,6 +285,14 @@ function SideNav({ isMobileMenuOpen, onCloseMobileMenu }) {
 
   // 🆕 Special layout for /kanban-board
   if (isKanbanBoard) {
+    const handleIconClick = (item) => {
+      setActiveKanbanIcon(item.id);
+      // If Add icon is clicked, dispatch event to open CardForm in add mode
+      if (item.label === 'Add') {
+        window.dispatchEvent(new CustomEvent('kanban:add-card'));
+      }
+    };
+
     return (
       <aside className="kanban-sidebar">
         {kanbanIcons.map((item) => (
@@ -275,7 +300,7 @@ function SideNav({ isMobileMenuOpen, onCloseMobileMenu }) {
             key={item.id}
             className={`kanban-sidebar-icon ${activeKanbanIcon === item.id ? 'active' : ''
               }`}
-            onClick={() => setActiveKanbanIcon(item.id)}
+            onClick={() => handleIconClick(item)}
             data-tooltip-id="sidebar-tooltip"
             data-tooltip-content={item.label}
           >
