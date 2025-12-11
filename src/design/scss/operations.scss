@@ -397,15 +397,13 @@
   justify-content: center;
   gap: 8px;
   padding: 10px 20px;
-  background: #00368c;
-  color: #ffffff;
+  background: #fafbff;
+  color: #003693;
   border: none;
   border-radius: 8px;
   font-size: 14px;
   font-weight: 600;
   cursor: pointer;
-  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-  box-shadow: 0 2px 8px rgba(0, 54, 140, 0.2);
   font-family: 'Poppins', sans-serif;
   white-space: nowrap;
   flex-shrink: 0;
@@ -423,16 +421,6 @@
   .send-report-text {
     white-space: nowrap;
     letter-spacing: 0.3px;
-  }
-
-  &:hover {
-    background: #002d6f;
-    transform: translateY(-2px);
-    box-shadow: 0 4px 16px rgba(0, 54, 140, 0.35);
-
-    svg {
-      transform: translateX(2px) translateY(-2px);
-    }
   }
 
   &:active {
