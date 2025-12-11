@@ -160,6 +160,23 @@ for (let i = 0; i < 150; i++) {
     "James Davis"
   ];
 
+  const statuses = [
+    "Pre Arrival",
+    "Custom Inspection",
+    "Crew Immigration",
+    "Vessel Inward Formalities",
+    "Marine Work Permit",
+    "SABER UT Closed",
+    "Outward Clearance",
+    "Vessel Sailed",
+    "Ops Completed",
+    "SO Approval",
+    "Invoice Issued",
+    "Submitted",
+    "Confirmattion Received",
+    "Closed"
+  ];
+
   const cardData = {
     id,
     code: (100140 + cardId).toString(),
@@ -184,6 +201,7 @@ for (let i = 0; i < 150; i++) {
     appointmentEmail: appointmentEmails[Math.floor(Math.random() * appointmentEmails.length)],
     vesselName: vesselNames[Math.floor(Math.random() * vesselNames.length)],
     serviceRequester: serviceRequesters[Math.floor(Math.random() * serviceRequesters.length)],
+    status: statuses[Math.floor(Math.random() * statuses.length)],
   };
 
   cards[id] = cardData;

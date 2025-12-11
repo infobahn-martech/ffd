@@ -18,7 +18,7 @@ function CardItem({ card, index, setSelectedCard }) {
     if (!text) return null;
     const isTruncated = text.length > maxLength;
     const displayText = isTruncated ? text.substring(0, maxLength) + "..." : text;
-    
+
     if (isTruncated) {
       return (
         <>
@@ -197,6 +197,7 @@ CardItem.propTypes = {
     appointmentEmail: PropTypes.string,
     vesselName: PropTypes.string,
     serviceRequester: PropTypes.string,
+    status: PropTypes.string,
   }).isRequired,
   index: PropTypes.number.isRequired,
   setSelectedCard: PropTypes.func.isRequired,
