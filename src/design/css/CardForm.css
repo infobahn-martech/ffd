@@ -5,7 +5,7 @@
   display: flex;
   justify-content: center;
   align-items: center;
-  background: rgba(61, 59, 59, 0.05);
+  background: rgb(37 36 36 / 58%);
   z-index: 1200;
   font-family: "Poppins", sans-serif;
 }
