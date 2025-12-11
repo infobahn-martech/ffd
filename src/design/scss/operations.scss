@@ -1265,7 +1265,7 @@
 }
 
 .upload-link {
-  color: var(--card-color, #2A00FF);
+  color: #3e5cb6;
   font-weight: 600;
   text-decoration: underline;
   cursor: pointer;
@@ -1305,7 +1305,7 @@
 
 .upload-zone-file-item:hover {
   background: #f8f9ff;
-  border-color: var(--card-color, #2A00FF);
+  border-color: #3e5cb6;
 }
 
 .upload-zone-file-name {
@@ -1370,8 +1370,8 @@
 
 .add-more-files-btn {
   background: transparent;
-  border: 1.5px solid var(--card-color, #2A00FF);
-  color: var(--card-color, #2A00FF);
+  border: 1.5px solid #3e5cb6;
+  color: #3e5cb6;
   padding: 6px 14px;
   border-radius: 6px;
   font-size: 12px;
@@ -1381,7 +1381,7 @@
 }
 
 .add-more-files-btn:hover {
-  background: var(--card-color, #2A00FF);
+  background: #3e5cb6;
   color: #ffffff;
 }
 

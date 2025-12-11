@@ -58,6 +58,16 @@
   padding: 10px 18px;
   color: #fff;
   flex-shrink: 0;
+  width: 100%;
+  min-width: 100%;
+}
+
+.cardform-topbar>div:first-child {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  min-width: 0;
+  margin-right: 20px;
 }
 
 .cardform-topbar-left {
@@ -69,6 +79,31 @@
 .cardform-title {
   font-size: 14px;
   font-weight: 600;
+}
+
+.cardform-title-input {
+  background: #fff;
+  border: none;
+  border-radius: 8px;
+  padding: 8px 16px;
+  font-size: 14px;
+  font-weight: 600;
+  font-family: "Poppins", sans-serif;
+  color: #1a1a1a;
+  width: 100%;
+  min-width: 0;
+  outline: none;
+  transition: box-shadow 0.2s;
+  flex: 1;
+}
+
+.cardform-title-input::placeholder {
+  color: #999;
+  font-weight: 400;
+}
+
+.cardform-title-input:focus {
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
 }
 
 /* Topbar right icons container */

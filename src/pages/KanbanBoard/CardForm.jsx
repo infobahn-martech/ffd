@@ -217,10 +217,10 @@ ColorPickerDropdown.propTypes = {
 };
 
 // Sub-components
-const TopBar = ({ card, topbarColor, onClose, isAddMode = false, onColorChange }) => {
+const TopBar = ({ card, topbarColor, onClose, isAddMode = false, onColorChange, formValues, handleChange }) => {
   const [isColorPickerOpen, setIsColorPickerOpen] = useState(false);
   const cardId = card?.code || card?.id || '';
-  const cardTitle = card?.title || (isAddMode ? 'New Card' : '');
+  const cardTitle = card?.title || '';
 
   const handleColorSelect = (rgbColor) => {
     if (onColorChange) {
@@ -235,11 +235,28 @@ const TopBar = ({ card, topbarColor, onClose, isAddMode = false, onColorChange }
     setIsColorPickerOpen(!isColorPickerOpen);
   };
 
+  const handleTitleChange = (e) => {
+    if (handleChange) {
+      handleChange("cardTitle")(e);
+    }
+  };
+
   return (
     <div className="cardform-topbar" style={{ backgroundColor: topbarColor }}>
       <div>
         {!isAddMode && <span className="cardform-id">ID : {cardId}</span>}
-        <span className="cardform-title">{cardTitle}</span>
+        {isAddMode ? (
+          <input
+            type="text"
+            className="cardform-title-input"
+            placeholder="Enter card title"
+            value={formValues?.cardTitle || ""}
+            onChange={handleTitleChange}
+            autoFocus
+          />
+        ) : (
+          <span className="cardform-title">{cardTitle}</span>
+        )}
       </div>
       <div className="cardform-topbar-right">
         <div className="topbar-color-picker-wrapper">
@@ -273,6 +290,8 @@ TopBar.propTypes = {
   onClose: PropTypes.func.isRequired,
   isAddMode: PropTypes.bool,
   onColorChange: PropTypes.func,
+  formValues: PropTypes.object,
+  handleChange: PropTypes.func,
 };
 
 const TopTabs = ({ tabs, activeTab, onTabChange, enabledTabs }) => {
@@ -467,6 +486,7 @@ function CardForm({ show, close, card, moveCardToColumn, columns, currentColumn,
 
   const initialFormValues = useMemo(
     () => ({
+      cardTitle: card?.title || "",
       owner: card?.user || "None",
       // Service Information
       typeOfCall: card?.typeOfCall || "",
@@ -583,6 +603,8 @@ function CardForm({ show, close, card, moveCardToColumn, columns, currentColumn,
           onClose={close}
           isAddMode={isAddMode}
           onColorChange={handleTopbarColorChange}
+          formValues={formValues}
+          handleChange={handleChange}
         />
         {!isAddMode && (
           <TopTabs

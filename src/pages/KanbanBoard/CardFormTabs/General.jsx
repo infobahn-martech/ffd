@@ -1,9 +1,10 @@
 import PropTypes from "prop-types";
-import { useMemo, useRef, useState } from "react";
+import { useMemo, useRef, useState, useEffect } from "react";
 import ReactQuill from "react-quill";
 import "react-quill/dist/quill.snow.css";
 import "../../../design/scss/general.scss";
 import "../../../design/css/CardForm.css";
+import AttachmentIcon from "../../../assets/images/Attachment.svg";
 
 // Job statuses in order with icons and descriptions (4 statuses)
 const JOB_STATUSES = [
@@ -210,6 +211,288 @@ OwnerField.propTypes = {
   cardUser: PropTypes.string,
 };
 
+// Document Upload Component
+const DocumentUpload = ({ attachments = [], onAdd, onRemove, cardColor }) => {
+  const fileInputRef = useRef(null);
+  const [isDragging, setIsDragging] = useState(false);
+
+  const handleDragEnter = (e) => {
+    e.preventDefault();
+    e.stopPropagation();
+    setIsDragging(true);
+  };
+
+  const handleDragLeave = (e) => {
+    e.preventDefault();
+    e.stopPropagation();
+    setIsDragging(false);
+  };
+
+  const handleDragOver = (e) => {
+    e.preventDefault();
+    e.stopPropagation();
+  };
+
+  const handleDrop = (e) => {
+    e.preventDefault();
+    e.stopPropagation();
+    setIsDragging(false);
+
+    const files = Array.from(e.dataTransfer.files);
+    if (files.length > 0 && onAdd) {
+      files.forEach(file => onAdd(file));
+    }
+  };
+
+  const handleFileInputChange = (e) => {
+    const files = Array.from(e.target.files);
+    if (files.length > 0 && onAdd) {
+      files.forEach(file => onAdd(file));
+    }
+    // Reset input so same file can be selected again
+    if (fileInputRef.current) {
+      fileInputRef.current.value = '';
+    }
+  };
+
+  const handleRemove = (index) => {
+    if (onRemove) {
+      onRemove(index);
+    }
+  };
+
+  return (
+    <div className="document-upload-wrapper">
+      <div
+        className={`document-upload-zone ${isDragging ? "dragging" : ""}`}
+        onDragEnter={handleDragEnter}
+        onDragOver={handleDragOver}
+        onDragLeave={handleDragLeave}
+        onDrop={handleDrop}
+        onClick={() => fileInputRef.current?.click()}
+        style={{ "--card-color": cardColor || "#2A00FF" }}
+      >
+        <input
+          ref={fileInputRef}
+          type="file"
+          className="file-input-hidden"
+          accept="*/*"
+          multiple
+          onChange={handleFileInputChange}
+        />
+        <div className="upload-zone-content">
+          <div className="upload-icon-wrapper">
+            <img src={AttachmentIcon} alt="Upload" style={{ width: "32px", height: "32px" }} />
+          </div>
+          <div className="upload-text-content">
+            <p className="upload-main-text">
+              Drag and drop your files here, or{" "}
+              <span className="upload-link">click to browse</span>
+            </p>
+            <p className="upload-sub-text">Supports all file formats</p>
+          </div>
+
+          {attachments.length > 0 && (
+            <div className="upload-zone-files-list">
+              {attachments.map((file, index) => (
+                <div key={index} className="upload-zone-file-item">
+                  <span className="upload-zone-file-name">{file.name || file}</span>
+                  <button
+                    className="upload-zone-remove-btn"
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      handleRemove(index);
+                    }}
+                    type="button"
+                    title="Remove file"
+                  >
+                    ×
+                  </button>
+                </div>
+              ))}
+            </div>
+          )}
+        </div>
+      </div>
+    </div>
+  );
+};
+
+DocumentUpload.propTypes = {
+  attachments: PropTypes.array,
+  onAdd: PropTypes.func,
+  onRemove: PropTypes.func,
+  cardColor: PropTypes.string,
+};
+
+// Multi-Select Email Component
+const MultiSelectEmail = ({ value = [], onChange, options = [], placeholder, onAddNew }) => {
+  const [isOpen, setIsOpen] = useState(false);
+  const [newEmail, setNewEmail] = useState("");
+  const [showAddInput, setShowAddInput] = useState(false);
+  const dropdownRef = useRef(null);
+
+  // Close dropdown when clicking outside
+  useEffect(() => {
+    const handleClickOutside = (event) => {
+      if (dropdownRef.current && !dropdownRef.current.contains(event.target)) {
+        setIsOpen(false);
+        setShowAddInput(false);
+      }
+    };
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => document.removeEventListener("mousedown", handleClickOutside);
+  }, []);
+
+  const selectedValues = Array.isArray(value) ? value : (value ? [value] : []);
+
+  const handleToggle = (email) => {
+    const newValue = selectedValues.includes(email)
+      ? selectedValues.filter(e => e !== email)
+      : [...selectedValues, email];
+    
+    const syntheticEvent = {
+      target: { value: newValue, name: "dailyReportEmail" }
+    };
+    onChange(syntheticEvent);
+  };
+
+  const handleAddNewEmail = () => {
+    if (newEmail.trim() && /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(newEmail.trim())) {
+      const email = newEmail.trim();
+      if (!selectedValues.includes(email) && !options.some(opt => opt.value === email)) {
+        if (onAddNew) {
+          onAddNew(email);
+        }
+        handleToggle(email);
+      }
+      setNewEmail("");
+      setShowAddInput(false);
+    }
+  };
+
+  const handleRemoveEmail = (email, e) => {
+    e.stopPropagation();
+    const newValue = selectedValues.filter(e => e !== email);
+    const syntheticEvent = {
+      target: { value: newValue, name: "dailyReportEmail" }
+    };
+    onChange(syntheticEvent);
+  };
+
+  const handleKeyPress = (e) => {
+    if (e.key === "Enter") {
+      e.preventDefault();
+      handleAddNewEmail();
+    } else if (e.key === "Escape") {
+      setNewEmail("");
+      setShowAddInput(false);
+    }
+  };
+
+  return (
+    <div className="cf-multi-select-email" ref={dropdownRef}>
+      <div
+        className="cf-multi-select-email-input"
+        onClick={() => setIsOpen(!isOpen)}
+      >
+        <div className="cf-multi-select-email-tags">
+          {selectedValues.length > 0 ? (
+            selectedValues.map((email) => (
+              <span key={email} className="cf-email-tag">
+                {email}
+                <button
+                  type="button"
+                  className="cf-email-tag-remove"
+                  onClick={(e) => handleRemoveEmail(email, e)}
+                >
+                  ×
+                </button>
+              </span>
+            ))
+          ) : (
+            <span className="cf-multi-select-placeholder">{placeholder || "Select emails..."}</span>
+          )}
+        </div>
+        <span className="cf-multi-select-arrow">▼</span>
+      </div>
+      {isOpen && (
+        <div className="cf-multi-select-dropdown">
+          {options.map((option) => {
+            const isSelected = selectedValues.includes(option.value);
+            return (
+              <div
+                key={option.value}
+                className={`cf-multi-select-option ${isSelected ? "selected" : ""}`}
+                onClick={() => handleToggle(option.value)}
+              >
+                <span className="cf-multi-select-checkbox">
+                  {isSelected && "✓"}
+                </span>
+                <span>{option.label}</span>
+              </div>
+            );
+          })}
+          {!showAddInput ? (
+            <div
+              className="cf-multi-select-option add-new"
+              onClick={() => {
+                setShowAddInput(true);
+                setNewEmail("");
+              }}
+            >
+              <span>+ Add New Email</span>
+            </div>
+          ) : (
+            <div className="cf-multi-select-add-input">
+              <input
+                type="email"
+                placeholder="Enter email address..."
+                value={newEmail}
+                onChange={(e) => setNewEmail(e.target.value)}
+                onKeyDown={handleKeyPress}
+                autoFocus
+                onClick={(e) => e.stopPropagation()}
+              />
+              <button
+                type="button"
+                className="cf-add-email-btn"
+                onClick={handleAddNewEmail}
+                disabled={!newEmail.trim() || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(newEmail.trim())}
+              >
+                ✓
+              </button>
+              <button
+                type="button"
+                className="cf-cancel-email-btn"
+                onClick={() => {
+                  setNewEmail("");
+                  setShowAddInput(false);
+                }}
+              >
+                ✕
+              </button>
+            </div>
+          )}
+        </div>
+      )}
+    </div>
+  );
+};
+
+MultiSelectEmail.propTypes = {
+  value: PropTypes.oneOfType([PropTypes.array, PropTypes.string]),
+  onChange: PropTypes.func.isRequired,
+  options: PropTypes.arrayOf(
+    PropTypes.shape({
+      value: PropTypes.string.isRequired,
+      label: PropTypes.string.isRequired,
+    })
+  ),
+  placeholder: PropTypes.string,
+  onAddNew: PropTypes.func,
+};
+
 // React Quill Editor Component
 const ReactQuillEditor = ({ value, onChange, placeholder }) => {
   const quillRef = useRef(null);
@@ -386,6 +669,14 @@ function General({ card, formValues, handleChange, ownerInitial, cardUser, onSav
   const [vesselNameOptions, setVesselNameOptions] = useState([
     // Add vessel names here or fetch from API
   ]);
+  const [appointmentDocuments, setAppointmentDocuments] = useState([]);
+  const [dailyReportEmailOptions, setDailyReportEmailOptions] = useState([
+    { value: "admin@example.com", label: "admin@example.com" },
+    { value: "operations@example.com", label: "operations@example.com" },
+    { value: "reports@example.com", label: "reports@example.com" },
+    { value: "manager@example.com", label: "manager@example.com" },
+    { value: "supervisor@example.com", label: "supervisor@example.com" },
+  ]);
 
   // Determine current job status from card data (updated for 5 statuses)
   const currentStatus = useMemo(() => {
@@ -415,6 +706,45 @@ function General({ card, formValues, handleChange, ownerInitial, cardUser, onSav
     { value: "Mcdermott", label: "Mcdermott" },
     { value: "Horizon", label: "Horizon" },
   ];
+
+  const portOptions = [
+    { value: "Dammam Port", label: "Dammam Port" },
+    { value: "Al Jubail Commercial Sea Port", label: "Al Jubail Commercial Sea Port" },
+    { value: "Ras Tanura Refinery", label: "Ras Tanura Refinery" },
+    { value: "Al Khafji Port", label: "Al Khafji Port" },
+    { value: "As Safaniya Port", label: "As Safaniya Port" },
+  ];
+
+  const vesselTypeOptions = [
+    { value: "Foreign Flag", label: "Foreign Flag" },
+    { value: "Saudi Flag", label: "Saudi Flag" },
+    { value: "Small Boat", label: "Small Boat" },
+    { value: "Taxi Tug Temp Import", label: "Taxi Tug Temp Import" },
+  ];
+
+  const bargeTypeOptions = [
+    { value: "N/A", label: "N/A" },
+    { value: "Barge Import", label: "Barge Import" },
+    { value: "Flat Barge Import", label: "Flat Barge Import" },
+    { value: "Jack Up Barge", label: "Jack Up Barge" },
+  ];
+
+  // Handle document upload
+  const handleDocumentAdd = (file) => {
+    setAppointmentDocuments([...appointmentDocuments, file]);
+  };
+
+  const handleDocumentRemove = (index) => {
+    setAppointmentDocuments(appointmentDocuments.filter((_, i) => i !== index));
+  };
+
+  // Handle new email addition
+  const handleAddNewEmail = (email) => {
+    const newOption = { value: email, label: email };
+    if (!dailyReportEmailOptions.some(opt => opt.value === email)) {
+      setDailyReportEmailOptions([...dailyReportEmailOptions, newOption]);
+    }
+  };
 
   // Handle vessel save - add new vessel to options and update form value
   const handleVesselSave = (vesselName) => {
@@ -459,9 +789,11 @@ function General({ card, formValues, handleChange, ownerInitial, cardUser, onSav
         )}
 
         <div className="cf-section general-info-section">
-          <div className="cf-section-header">
-            <div className="cf-section-title">General Information</div>
-          </div>
+          {!isAddMode && (
+            <div className="cf-section-header">
+              <div className="cf-section-title">General Information</div>
+            </div>
+          )}
           <div className="cf-section-body">
             <div className="general-info-two-column">
               <div className="general-info-left">
@@ -487,6 +819,14 @@ function General({ card, formValues, handleChange, ownerInitial, cardUser, onSav
 
                   <div className="form-group">
                     <h3 className="form-group-title">Appointment Details</h3>
+                    <FormField label="Documents">
+                      <DocumentUpload
+                        attachments={appointmentDocuments}
+                        onAdd={handleDocumentAdd}
+                        onRemove={handleDocumentRemove}
+                        cardColor={accentColor}
+                      />
+                    </FormField>
                     <FormField label="Appointment Received">
                       <div className="cf-input date-time-row">
                         <input
@@ -576,7 +916,7 @@ function General({ card, formValues, handleChange, ownerInitial, cardUser, onSav
                       <FormSelect
                         value={formValues?.port || ""}
                         onChange={handleChange("port")}
-                        options={[]}
+                        options={portOptions}
                         placeholder="Select port..."
                       />
                     </FormField>
@@ -585,7 +925,7 @@ function General({ card, formValues, handleChange, ownerInitial, cardUser, onSav
                       <FormSelect
                         value={formValues?.vesselType || ""}
                         onChange={handleChange("vesselType")}
-                        options={[]}
+                        options={vesselTypeOptions}
                         placeholder="Select vessel type..."
                       />
                     </FormField>
@@ -594,7 +934,7 @@ function General({ card, formValues, handleChange, ownerInitial, cardUser, onSav
                       <FormSelect
                         value={formValues?.bargeType || ""}
                         onChange={handleChange("bargeType")}
-                        options={[]}
+                        options={bargeTypeOptions}
                         placeholder="Select barge type..."
                       />
                     </FormField>
@@ -671,11 +1011,12 @@ function General({ card, formValues, handleChange, ownerInitial, cardUser, onSav
                     </FormField>
 
                     <FormField label="Daily Report Email Id">
-                      <FormInput
-                        type="email"
-                        placeholder="Enter daily report email..."
-                        value={formValues?.dailyReportEmail || ""}
+                      <MultiSelectEmail
+                        value={formValues?.dailyReportEmail || []}
                         onChange={handleChange("dailyReportEmail")}
+                        options={dailyReportEmailOptions}
+                        placeholder="Select email addresses..."
+                        onAddNew={handleAddNewEmail}
                       />
                     </FormField>
 
@@ -695,7 +1036,7 @@ function General({ card, formValues, handleChange, ownerInitial, cardUser, onSav
                       onClick={onSave || (() => { })}
                       className="form-save-button"
                     >
-                      Save
+                      {isAddMode ? "Add Card" : "Save"}
                     </button>
                   </div>
                 </div>
