@@ -244,18 +244,19 @@ StepsProgress.propTypes = {
 };
 
 const CardFormFooter = ({ accentColor, onUpdate, activeStep = 2, completedSteps = 1, activeTab, onStepClick, currentStep }) => {
-
   return (
     <div className="cardform-footer">
-      <StepsProgress
-        totalSteps={TOTAL_STEPS}
-        activeStep={activeStep}
-        completedSteps={completedSteps}
-        accentColor={accentColor}
-        stepLabels={STEP_LABELS}
-        onStepClick={onStepClick}
-        currentStep={currentStep}
-      />
+      {activeTab !== "General" && (
+        <StepsProgress
+          totalSteps={TOTAL_STEPS}
+          activeStep={activeStep}
+          completedSteps={completedSteps}
+          accentColor={accentColor}
+          stepLabels={STEP_LABELS}
+          onStepClick={onStepClick}
+          currentStep={currentStep}
+        />
+      )}
     </div>
   );
 };

@@ -5,18 +5,13 @@ import "react-quill/dist/quill.snow.css";
 import "../../../design/scss/general.scss";
 import "../../../design/css/CardForm.css";
 
-// Job statuses in order with icons and descriptions (10 statuses)
+// Job statuses in order with icons and descriptions (4 statuses)
 const JOB_STATUSES = [
-  { id: 1, title: "Pre Arrival", key: "preArrival", icon: "🚢", description: "Lorem Ipsum is simply dummy text of the printing and typesetting industry.Lorem Ipsum is simply dummy text of the printing and typesetting industry" },
-  { id: 2, title: "Custom Inspection", key: "customInspection", icon: "🔍", description: "Lorem Ipsum is simply dummy text of the printing and typesetting industry.Lorem Ipsum is simply dummy text of the printing and typesetting industry" },
-  { id: 3, title: "Crew Immigration", key: "crewImmigration", icon: "👥", description: "Lorem Ipsum is simply dummy text of the printing and typesetting industry.Lorem Ipsum is simply dummy text of the printing and typesetting industry" },
-  { id: 4, title: "Vessel Inward Formalities", key: "vesselInwardFormalities", icon: "📋", description: "Lorem Ipsum is simply dummy text of the printing and typesetting industry.Lorem Ipsum is simply dummy text of the printing and typesetting industry" },
-  { id: 5, title: "Marine Work Permit", key: "marineWorkPermit", icon: "⚓", description: "Lorem Ipsum is simply dummy text of the printing and typesetting industry.Lorem Ipsum is simply dummy text of the printing and typesetting industry" },
-  { id: 6, title: "SABER UT Closed", key: "saberUtClosed", icon: "✅", description: "Lorem Ipsum is simply dummy text of the printing and typesetting industry.Lorem Ipsum is simply dummy text of the printing and typesetting industry" },
-  { id: 7, title: "Outward Clearance", key: "outwardClearance", icon: "📤", description: "Lorem Ipsum is simply dummy text of the printing and typesetting industry.Lorem Ipsum is simply dummy text of the printing and typesetting industry" },
-  { id: 8, title: "Vessel Sailed", key: "vesselSailed", icon: "⛵", description: "Lorem Ipsum is simply dummy text of the printing and typesetting industry.Lorem Ipsum is simply dummy text of the printing and typesetting industry" },
-  { id: 9, title: "Ops Completed", key: "opsCompleted", icon: "✔️", description: "Lorem Ipsum is simply dummy text of the printing and typesetting industry.Lorem Ipsum is simply dummy text of the printing and typesetting industry" },
-  { id: 10, title: "Closed", key: "closed", icon: "🔒", description: "Lorem Ipsum is simply dummy text of the printing and typesetting industry.Lorem Ipsum is simply dummy text of the printing and typesetting industry" },
+  { id: 1, title: "Received", key: "received", icon: "🚢", description: "Lorem Ipsum is simply dummy text of the printing and typesetting industry.Lorem Ipsum is simply dummy text of the printing and typesetting industry" },
+  { id: 2, title: "Expected", key: "expected", icon: "🚢", description: "Lorem Ipsum is simply dummy text of the printing and typesetting industry.Lorem Ipsum is simply dummy text of the printing and typesetting industry" },
+  { id: 3, title: "Arrived", key: "arrived", icon: "🔍", description: "Lorem Ipsum is simply dummy text of the printing and typesetting industry.Lorem Ipsum is simply dummy text of the printing and typesetting industry" },
+  { id: 4, title: "Cleared", key: "cleared", icon: "✅", description: "Lorem Ipsum is simply dummy text of the printing and typesetting industry.Lorem Ipsum is simply dummy text of the printing and typesetting industry" },
+  { id: 5, title: "Sailed", key: "sailed", icon: "⛵", description: "Lorem Ipsum is simply dummy text of the printing and typesetting industry.Lorem Ipsum is simply dummy text of the printing and typesetting industry" },
 ];
 
 
@@ -180,16 +175,10 @@ const formatDateTime = (date, time) => {
 const getStatusDateTime = (card, formValues, statusKey) => {
   // Map status keys to potential date/time fields in card or formValues
   const dateTimeMap = {
-    preArrival: { date: formValues?.preArrivalDate || card?.preArrivalDate, time: formValues?.preArrivalTime || card?.preArrivalTime },
-    customInspection: { date: formValues?.customInspectionDate || card?.customInspectionDate, time: formValues?.customInspectionTime || card?.customInspectionTime },
-    crewImmigration: { date: formValues?.crewImmigrationDate || card?.crewImmigrationDate, time: formValues?.crewImmigrationTime || card?.crewImmigrationTime },
-    vesselInwardFormalities: { date: formValues?.vesselInwardFormalitiesDate || card?.vesselInwardFormalitiesDate, time: formValues?.vesselInwardFormalitiesTime || card?.vesselInwardFormalitiesTime },
-    marineWorkPermit: { date: formValues?.marineWorkPermitDate || card?.marineWorkPermitDate, time: formValues?.marineWorkPermitTime || card?.marineWorkPermitTime },
-    saberUtClosed: { date: formValues?.saberUtClosedDate || card?.saberUtClosedDate, time: formValues?.saberUtClosedTime || card?.saberUtClosedTime },
-    outwardClearance: { date: formValues?.outwardClearanceDate || card?.outwardClearanceDate, time: formValues?.outwardClearanceTime || card?.outwardClearanceTime },
-    vesselSailed: { date: formValues?.vesselSailedDate || card?.vesselSailedDate, time: formValues?.vesselSailedTime || card?.vesselSailedTime },
-    opsCompleted: { date: formValues?.opsCompletedDate || card?.opsCompletedDate, time: formValues?.opsCompletedTime || card?.opsCompletedTime },
-    closed: { date: formValues?.closedDate || card?.closedDate, time: formValues?.closedTime || card?.closedTime },
+    expected: { date: formValues?.expectedDate || card?.expectedDate, time: formValues?.expectedTime || card?.expectedTime },
+    arrived: { date: formValues?.arrivedDate || card?.arrivedDate, time: formValues?.arrivedTime || card?.arrivedTime },
+    cleared: { date: formValues?.clearedDate || card?.clearedDate, time: formValues?.clearedTime || card?.clearedTime },
+    sailed: { date: formValues?.sailedDate || card?.sailedDate, time: formValues?.sailedTime || card?.sailedTime },
   };
 
   return dateTimeMap[statusKey] || { date: null, time: null };
@@ -291,20 +280,14 @@ HorizontalProgressBar.propTypes = {
 function General({ card, formValues, handleChange, ownerInitial, cardUser, onSave }) {
   const accentColor = useMemo(() => card?.color || "#2A00FF", [card?.color]);
 
-  // Determine current job status from card data (updated for 10 statuses)
+  // Determine current job status from card data (updated for 4 statuses)
   const currentStatus = useMemo(() => {
     // Map card properties to status keys
-    if (card?.closed) return "closed";
-    if (card?.opsCompleted) return "opsCompleted";
-    if (card?.vesselSailed) return "vesselSailed";
-    if (card?.outwardClearance) return "outwardClearance";
-    if (card?.saberUtClosed) return "saberUtClosed";
-    if (card?.marineWorkPermit) return "marineWorkPermit";
-    if (card?.vesselInwardFormalities) return "vesselInwardFormalities";
-    if (card?.crewImmigration) return "crewImmigration";
-    if (card?.customInspection || card?.customsInspection) return "customInspection";
-    // Default to Custom Inspection instead of Pre Arrival
-    return "customInspection";
+    if (card?.sailed) return "sailed";
+    if (card?.cleared) return "cleared";
+    if (card?.arrived) return "arrived";
+    // Default to Expected
+    return "expected";
   }, [card]);
 
   const typeOfCallOptions = [
