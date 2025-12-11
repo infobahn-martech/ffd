@@ -350,7 +350,7 @@ const MultiSelectEmail = ({ value = [], onChange, options = [], placeholder, onA
     const newValue = selectedValues.includes(email)
       ? selectedValues.filter(e => e !== email)
       : [...selectedValues, email];
-    
+
     const syntheticEvent = {
       target: { value: newValue, name: "dailyReportEmail" }
     };
@@ -819,7 +819,7 @@ function General({ card, formValues, handleChange, ownerInitial, cardUser, onSav
 
                   <div className="form-group">
                     <h3 className="form-group-title">Appointment Details</h3>
-                    <FormField label="Documents">
+                    <FormField label="Appointment Email">
                       <DocumentUpload
                         attachments={appointmentDocuments}
                         onAdd={handleDocumentAdd}
@@ -839,23 +839,6 @@ function General({ card, formValues, handleChange, ownerInitial, cardUser, onSav
                           type="time"
                           value={formValues?.appointmentReceivedTime || ""}
                           onChange={handleChange("appointmentReceivedTime")}
-                          placeholder="Select time"
-                        />
-                      </div>
-                    </FormField>
-
-                    <FormField label="Appointment Acceptance">
-                      <div className="cf-input date-time-row">
-                        <input
-                          type="date"
-                          value={formValues?.appointmentAcceptanceDate || ""}
-                          onChange={handleChange("appointmentAcceptanceDate")}
-                          placeholder="Select date"
-                        />
-                        <input
-                          type="time"
-                          value={formValues?.appointmentAcceptanceTime || ""}
-                          onChange={handleChange("appointmentAcceptanceTime")}
                           placeholder="Select time"
                         />
                       </div>
@@ -912,14 +895,6 @@ function General({ card, formValues, handleChange, ownerInitial, cardUser, onSav
 
                   <div className="form-group">
                     <h3 className="form-group-title">Vessel Information</h3>
-                    <FormField label="Port">
-                      <FormSelect
-                        value={formValues?.port || ""}
-                        onChange={handleChange("port")}
-                        options={portOptions}
-                        placeholder="Select port..."
-                      />
-                    </FormField>
 
                     <FormField label="Vessel type">
                       <FormSelect
