@@ -476,12 +476,14 @@ const renderTabContent = (activeTab, card, formValues, handleChange, ownerInitia
 function CardForm({ show, close, card, moveCardToColumn, columns, currentColumn, isAddMode = false }) {
   const [activeTopTab, setActiveTopTab] = useState("General");
 
-  // State for topbar color - initialize with rgb(119, 86, 73) for add mode, or use card/column color
+  // State for topbar color - visual only, never affects card.color
+  // Always initialize from card.color (the fixed card color)
   const [topbarColor, setTopbarColor] = useState(() => {
     if (isAddMode) {
       return 'rgb(119, 86, 73)';
     }
-    return currentColumn?.color || card?.color || DEFAULT_ACCENT_COLOR;
+    // Always use card's fixed color, never column color
+    return card?.color || DEFAULT_ACCENT_COLOR;
   });
 
   const initialFormValues = useMemo(
@@ -543,6 +545,8 @@ function CardForm({ show, close, card, moveCardToColumn, columns, currentColumn,
 
   const handleUpdate = useCallback(() => {
     // TODO: Add API call to update card
+    // NOTE: topbarColor is visual only - never save it to card.color
+    // card.color must remain fixed and unchanged
     close();
   }, [close]);
 
@@ -574,17 +578,21 @@ function CardForm({ show, close, card, moveCardToColumn, columns, currentColumn,
     }
   }, [moveCardToColumn, card?.id, columns, currentStep]);
 
-  // Update topbar color when card or column changes (but not in add mode)
+  // Reset topbar color to card's fixed color when card changes
+  // This ensures topbar always reflects the card's actual color when form opens
   useEffect(() => {
-    if (!isAddMode) {
-      setTopbarColor(currentColumn?.color || card?.color || DEFAULT_ACCENT_COLOR);
+    if (!isAddMode && card?.color) {
+      // Reset to card's fixed color (visual only, doesn't change card.color)
+      setTopbarColor(card.color);
     }
-  }, [currentColumn?.color, card?.color, isAddMode]);
+  }, [card?.id, card?.color, isAddMode]); // Use card.id to detect card changes
 
   // Everything else uses card's unique color
   const accentColor = useMemo(() => card?.color || DEFAULT_ACCENT_COLOR, [card?.color]);
 
+  // Handle topbar color change - visual only, never modifies card.color
   const handleTopbarColorChange = useCallback((newColor) => {
+    // Only update the visual topbar color, card.color remains fixed
     setTopbarColor(newColor);
   }, []);
   const ownerInitial = useMemo(
