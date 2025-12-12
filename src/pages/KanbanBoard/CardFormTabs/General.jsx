@@ -32,7 +32,7 @@ FormField.propTypes = {
   className: PropTypes.string,
 };
 
-const FormInput = ({ type = "text", value, onChange, placeholder, className = "", readOnly = false }) => {
+const FormInput = ({ type = "text", value, onChange, placeholder, className = "", readOnly = false, disabled = false }) => {
   return (
     <div className={`cf-input ${className}`}>
       <input
@@ -41,6 +41,7 @@ const FormInput = ({ type = "text", value, onChange, placeholder, className = ""
         onChange={onChange}
         placeholder={placeholder}
         readOnly={readOnly}
+        disabled={disabled}
       />
     </div>
   );
@@ -53,12 +54,13 @@ FormInput.propTypes = {
   placeholder: PropTypes.string,
   className: PropTypes.string,
   readOnly: PropTypes.bool,
+  disabled: PropTypes.bool,
 };
 
-const FormSelect = ({ value, onChange, options = [], placeholder, className = "" }) => {
+const FormSelect = ({ value, onChange, options = [], placeholder, className = "", disabled = false }) => {
   return (
     <div className={`cf-select ${className}`}>
-      <select value={value || ""} onChange={onChange}>
+      <select value={value || ""} onChange={onChange} disabled={disabled}>
         {placeholder && <option value="">{placeholder}</option>}
         {options.map((option) => (
           <option key={option.value} value={option.value}>
@@ -81,9 +83,10 @@ FormSelect.propTypes = {
   ),
   placeholder: PropTypes.string,
   className: PropTypes.string,
+  disabled: PropTypes.bool,
 };
 
-const OwnerField = ({ value, onChange, ownerInitial, cardUser }) => {
+const OwnerField = ({ value, onChange, ownerInitial, cardUser, disabled = false }) => {
   return (
     <FormField label="Owner">
       <div className="cf-owner-row">
@@ -92,6 +95,7 @@ const OwnerField = ({ value, onChange, ownerInitial, cardUser }) => {
           value={value || "None"}
           onChange={onChange}
           className="cf-owner-select"
+          disabled={disabled}
         >
           <option value="None">None</option>
           {cardUser && <option value={cardUser}>{cardUser}</option>}
@@ -101,7 +105,7 @@ const OwnerField = ({ value, onChange, ownerInitial, cardUser }) => {
   );
 };
 
-const VesselNameField = ({ value, onChange, options = [], placeholder, onSave }) => {
+const VesselNameField = ({ value, onChange, options = [], placeholder, onSave, disabled = false }) => {
   const [showAddInput, setShowAddInput] = useState(false);
   const [newVesselName, setNewVesselName] = useState("");
 
@@ -136,7 +140,7 @@ const VesselNameField = ({ value, onChange, options = [], placeholder, onSave })
       <label>Vessel Name</label>
       <div className="cf-vessel-name-row">
         <div className="cf-select" style={{ flex: 1 }}>
-          <select value={value || ""} onChange={onChange}>
+          <select value={value || ""} onChange={onChange} disabled={disabled}>
             {placeholder && <option value="">{placeholder}</option>}
             {options.map((option) => (
               <option key={option.value} value={option.value}>
@@ -145,7 +149,7 @@ const VesselNameField = ({ value, onChange, options = [], placeholder, onSave })
             ))}
           </select>
         </div>
-        {!showAddInput && (
+        {!showAddInput && !disabled && (
           <button
             type="button"
             className="cf-add-vessel-btn"
@@ -202,6 +206,7 @@ VesselNameField.propTypes = {
   ),
   placeholder: PropTypes.string,
   onSave: PropTypes.func.isRequired,
+  disabled: PropTypes.bool,
 };
 
 OwnerField.propTypes = {
@@ -209,10 +214,11 @@ OwnerField.propTypes = {
   onChange: PropTypes.func.isRequired,
   ownerInitial: PropTypes.string.isRequired,
   cardUser: PropTypes.string,
+  disabled: PropTypes.bool,
 };
 
 // Document Upload Component
-const DocumentUpload = ({ attachments = [], onAdd, onRemove, cardColor }) => {
+const DocumentUpload = ({ attachments = [], onAdd, onRemove, cardColor, disabled = false }) => {
   const fileInputRef = useRef(null);
   const [isDragging, setIsDragging] = useState(false);
 
@@ -238,6 +244,7 @@ const DocumentUpload = ({ attachments = [], onAdd, onRemove, cardColor }) => {
     e.stopPropagation();
     setIsDragging(false);
 
+    if (disabled) return;
     const files = Array.from(e.dataTransfer.files);
     if (files.length > 0 && onAdd) {
       files.forEach(file => onAdd(file));
@@ -265,12 +272,12 @@ const DocumentUpload = ({ attachments = [], onAdd, onRemove, cardColor }) => {
     <div className="document-upload-wrapper">
       <div
         className={`document-upload-zone ${isDragging ? "dragging" : ""}`}
-        onDragEnter={handleDragEnter}
-        onDragOver={handleDragOver}
-        onDragLeave={handleDragLeave}
-        onDrop={handleDrop}
-        onClick={() => fileInputRef.current?.click()}
-        style={{ "--card-color": cardColor || "#2A00FF" }}
+        onDragEnter={disabled ? undefined : handleDragEnter}
+        onDragOver={disabled ? undefined : handleDragOver}
+        onDragLeave={disabled ? undefined : handleDragLeave}
+        onDrop={disabled ? undefined : handleDrop}
+        onClick={disabled ? undefined : () => fileInputRef.current?.click()}
+        style={{ "--card-color": cardColor || "#2A00FF", pointerEvents: disabled ? "none" : "auto", opacity: disabled ? 0.6 : 1 }}
       >
         <input
           ref={fileInputRef}
@@ -279,6 +286,7 @@ const DocumentUpload = ({ attachments = [], onAdd, onRemove, cardColor }) => {
           accept="*/*"
           multiple
           onChange={handleFileInputChange}
+          disabled={disabled}
         />
         <div className="upload-zone-content">
           <div className="upload-icon-wrapper">
@@ -297,17 +305,19 @@ const DocumentUpload = ({ attachments = [], onAdd, onRemove, cardColor }) => {
               {attachments.map((file, index) => (
                 <div key={index} className="upload-zone-file-item">
                   <span className="upload-zone-file-name">{file.name || file}</span>
-                  <button
-                    className="upload-zone-remove-btn"
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      handleRemove(index);
-                    }}
-                    type="button"
-                    title="Remove file"
-                  >
-                    ×
-                  </button>
+                  {!disabled && (
+                    <button
+                      className="upload-zone-remove-btn"
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        handleRemove(index);
+                      }}
+                      type="button"
+                      title="Remove file"
+                    >
+                      ×
+                    </button>
+                  )}
                 </div>
               ))}
             </div>
@@ -323,10 +333,11 @@ DocumentUpload.propTypes = {
   onAdd: PropTypes.func,
   onRemove: PropTypes.func,
   cardColor: PropTypes.string,
+  disabled: PropTypes.bool,
 };
 
 // Multi-Select Email Component
-const MultiSelectEmail = ({ value = [], onChange, options = [], placeholder, onAddNew }) => {
+const MultiSelectEmail = ({ value = [], onChange, options = [], placeholder, onAddNew, disabled = false }) => {
   const [isOpen, setIsOpen] = useState(false);
   const [newEmail, setNewEmail] = useState("");
   const [showAddInput, setShowAddInput] = useState(false);
@@ -391,23 +402,26 @@ const MultiSelectEmail = ({ value = [], onChange, options = [], placeholder, onA
   };
 
   return (
-    <div className="cf-multi-select-email" ref={dropdownRef}>
+    <div className={`cf-multi-select-email ${disabled ? "disabled" : ""}`} ref={dropdownRef}>
       <div
-        className="cf-multi-select-email-input"
-        onClick={() => setIsOpen(!isOpen)}
+        className={`cf-multi-select-email-input ${disabled ? "disabled" : ""}`}
+        onClick={disabled ? undefined : () => setIsOpen(!isOpen)}
+        style={{ pointerEvents: disabled ? "none" : "auto", opacity: disabled ? 0.6 : 1 }}
       >
         <div className="cf-multi-select-email-tags">
           {selectedValues.length > 0 ? (
             selectedValues.map((email) => (
               <span key={email} className="cf-email-tag">
                 {email}
-                <button
-                  type="button"
-                  className="cf-email-tag-remove"
-                  onClick={(e) => handleRemoveEmail(email, e)}
-                >
-                  ×
-                </button>
+                {!disabled && (
+                  <button
+                    type="button"
+                    className="cf-email-tag-remove"
+                    onClick={(e) => handleRemoveEmail(email, e)}
+                  >
+                    ×
+                  </button>
+                )}
               </span>
             ))
           ) : (
@@ -491,6 +505,7 @@ MultiSelectEmail.propTypes = {
   ),
   placeholder: PropTypes.string,
   onAddNew: PropTypes.func,
+  disabled: PropTypes.bool,
 };
 
 // React Quill Editor Component
@@ -677,7 +692,19 @@ function General({ card, formValues, handleChange, ownerInitial, cardUser, onSav
     { value: "manager@example.com", label: "manager@example.com" },
     { value: "supervisor@example.com", label: "supervisor@example.com" },
   ]);
-  const initializedRef = useRef(false);
+
+  // Initialize dummy document when not in add mode
+  useEffect(() => {
+    if (!isAddMode && appointmentDocuments.length === 0) {
+      const dummyDocument = {
+        name: "appointment_document.pdf",
+        size: 1024000, // 1MB
+        type: "application/pdf"
+      };
+      setAppointmentDocuments([dummyDocument]);
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [isAddMode]);
 
   // Determine current job status from card data (updated for 5 statuses)
   const currentStatus = useMemo(() => {
@@ -769,82 +796,47 @@ function General({ card, formValues, handleChange, ownerInitial, cardUser, onSav
   // Get owner initial from card user or formValues
   const ownerInitialValue = ownerInitial || (cardUser ? cardUser.charAt(0).toUpperCase() : "U");
 
-  // Initialize all fields with default values when in edit mode (isAddMode is false)
-  useEffect(() => {
-    if (!isAddMode && handleChange && !initializedRef.current) {
-      const today = new Date();
-      const dateStr = today.toISOString().split('T')[0]; // Format: YYYY-MM-DD
-      const timeStr = today.toTimeString().split(' ')[0].substring(0, 5); // Format: HH:MM
+  // Determine if fields should be disabled (when isAddMode is false)
+  const isDisabled = !isAddMode;
 
-      // Initialize fields only if they don't have values
-      const initializeField = (fieldName, defaultValue) => {
-        if (!formValues?.[fieldName] || formValues[fieldName] === "") {
-          const syntheticEvent = {
-            target: { value: defaultValue, name: fieldName }
-          };
-          handleChange(fieldName)(syntheticEvent);
-        }
-      };
+  // Dummy values for all fields when isAddMode is false
+  const dummyValues = {
+    owner: "John Doe",
+    appointmentReceivedDate: "2024-01-15",
+    appointmentReceivedTime: "10:30",
+    typeOfCall: "Import",
+    mainBillingEntity: "SS7",
+    poNumber: "PO-12345",
+    shipper: "SRT-67890",
+    project: "Project Alpha",
+    vesselType: "Foreign Flag",
+    bargeType: "Barge Import",
+    vesselName: "MV Ocean Star",
+    vesselOwner: "Ocean Shipping Co.",
+    vesselPrincipal: "Principal Marine Ltd.",
+    vesselManager: "Marine Management Inc.",
+    otherBillingEntity: "Other Entity",
+    assignedOperator: "Operator Name",
+    serviceRequestorName: "Requestor Name",
+    serviceRequestorEmail: "requestor@example.com",
+    dailyReportEmail: ["admin@example.com", "reports@example.com"],
+    billingInstructions: "Standard billing instructions apply",
+  };
 
-      // Initialize text fields
-      initializeField("cardDescription", "<p>Sample card description</p>");
-      initializeField("poNumber", "PO-12345");
-      initializeField("shipper", "SRT-001");
-      initializeField("project", "Project Alpha");
-      initializeField("vesselOwner", "Vessel Owner Inc.");
-      initializeField("vesselPrincipal", "Principal Company");
-      initializeField("vesselManager", "Manager Corp.");
-      initializeField("serviceRequestorName", "John Doe");
-      initializeField("serviceRequestorEmail", "john.doe@example.com");
-      initializeField("billingInstructions", "Standard billing instructions");
-
-      // Initialize select fields
-      initializeField("typeOfCall", "Import");
-      initializeField("mainBillingEntity", "SS7");
-      initializeField("vesselType", "Foreign Flag");
-      initializeField("bargeType", "N/A");
-      initializeField("vesselName", "Sample Vessel");
-      initializeField("otherBillingEntity", "");
-      initializeField("assignedOperator", "");
-
-      // Initialize date and time fields
-      initializeField("appointmentReceivedDate", dateStr);
-      initializeField("appointmentReceivedTime", timeStr);
-
-      // Initialize owner
-      if (!formValues?.owner || formValues.owner === "None") {
-        if (cardUser) {
-          initializeField("owner", cardUser);
-        } else {
-          initializeField("owner", "None");
-        }
-      }
-
-      // Initialize daily report email
-      if (!formValues?.dailyReportEmail || (Array.isArray(formValues?.dailyReportEmail) && formValues.dailyReportEmail.length === 0)) {
-        const defaultEmail = ["admin@example.com"];
-        const syntheticEvent = {
-          target: { value: defaultEmail, name: "dailyReportEmail" }
-        };
-        handleChange("dailyReportEmail")(syntheticEvent);
-      }
-
-      // Initialize appointment documents with a sample document
-      if (appointmentDocuments.length === 0) {
-        // Create a sample file object using Blob
-        const blob = new Blob(["Sample document content"], { type: "application/pdf" });
-        const sampleFile = new File([blob], "sample-document.pdf", { type: "application/pdf" });
-        setAppointmentDocuments([sampleFile]);
-      }
-
-      initializedRef.current = true;
+  // Helper function to get field value - prioritize formValues, then card, then dummy value if not in add mode
+  const getFieldValue = (fieldName) => {
+    if (formValues?.[fieldName] !== undefined && formValues[fieldName] !== null && formValues[fieldName] !== "") {
+      return formValues[fieldName];
     }
-
-    // Reset initialization flag when switching to add mode
-    if (isAddMode) {
-      initializedRef.current = false;
+    if (!isAddMode && card?.[fieldName] !== undefined && card[fieldName] !== null && card[fieldName] !== "") {
+      return card[fieldName];
     }
-  }, [isAddMode, handleChange, formValues, cardUser, appointmentDocuments.length]);
+    // Return dummy value when not in add mode
+    if (!isAddMode && dummyValues[fieldName] !== undefined) {
+      return dummyValues[fieldName];
+    }
+    return "";
+  };
 
   return (
     <div className="cardform-body general-tab-body">
@@ -889,10 +881,11 @@ function General({ card, formValues, handleChange, ownerInitial, cardUser, onSav
               <div className="general-info-right">
                 <div className="pre-arrival-form">
                   <OwnerField
-                    value={formValues?.owner || "None"}
+                    value={getFieldValue("owner") || "None"}
                     onChange={handleChange("owner")}
                     ownerInitial={ownerInitialValue}
                     cardUser={cardUser || card?.user}
+                    disabled={isDisabled}
                   />
 
                   <div className="form-group">
@@ -903,21 +896,24 @@ function General({ card, formValues, handleChange, ownerInitial, cardUser, onSav
                         onAdd={handleDocumentAdd}
                         onRemove={handleDocumentRemove}
                         cardColor={accentColor}
+                        disabled={isDisabled}
                       />
                     </FormField>
                     <FormField label="Appointment Received">
                       <div className="cf-input date-time-row">
                         <input
                           type="date"
-                          value={formValues?.appointmentReceivedDate || ""}
+                          value={getFieldValue("appointmentReceivedDate")}
                           onChange={handleChange("appointmentReceivedDate")}
                           placeholder="Select date"
+                          disabled={isDisabled}
                         />
                         <input
                           type="time"
-                          value={formValues?.appointmentReceivedTime || ""}
+                          value={getFieldValue("appointmentReceivedTime")}
                           onChange={handleChange("appointmentReceivedTime")}
                           placeholder="Select time"
+                          disabled={isDisabled}
                         />
                       </div>
                     </FormField>
@@ -927,19 +923,21 @@ function General({ card, formValues, handleChange, ownerInitial, cardUser, onSav
                     <h3 className="form-group-title">Service Information</h3>
                     <FormField label="Type of call / Service">
                       <FormSelect
-                        value={formValues?.typeOfCall || ""}
+                        value={getFieldValue("typeOfCall")}
                         onChange={handleChange("typeOfCall")}
                         options={typeOfCallOptions}
                         placeholder="Select type of call..."
+                        disabled={isDisabled}
                       />
                     </FormField>
 
                     <FormField label="Main Billing entity">
                       <FormSelect
-                        value={formValues?.mainBillingEntity || "SS7"}
+                        value={getFieldValue("mainBillingEntity") || "SS7"}
                         onChange={handleChange("mainBillingEntity")}
                         options={billingEntityOptions}
                         placeholder="Select billing entity..."
+                        disabled={isDisabled}
                       />
                     </FormField>
 
@@ -947,17 +945,19 @@ function General({ card, formValues, handleChange, ownerInitial, cardUser, onSav
                       <FormInput
                         type="text"
                         placeholder="Enter PO number..."
-                        value={formValues?.poNumber || ""}
+                        value={getFieldValue("poNumber")}
                         onChange={handleChange("poNumber")}
+                        disabled={isDisabled}
                       />
                     </FormField>
 
-                    <FormField label="SRT No.">
+                    <FormField label="SRT number">
                       <FormInput
                         type="text"
-                        placeholder="Enter shipper..."
-                        value={formValues?.shipper || ""}
+                        placeholder="Enter SRT number..."
+                        value={getFieldValue("shipper")}
                         onChange={handleChange("shipper")}
+                        disabled={isDisabled}
                       />
                     </FormField>
 
@@ -965,8 +965,9 @@ function General({ card, formValues, handleChange, ownerInitial, cardUser, onSav
                       <FormInput
                         type="text"
                         placeholder="Enter project..."
-                        value={formValues?.project || ""}
+                        value={getFieldValue("project")}
                         onChange={handleChange("project")}
+                        disabled={isDisabled}
                       />
                     </FormField>
                   </div>
@@ -976,36 +977,40 @@ function General({ card, formValues, handleChange, ownerInitial, cardUser, onSav
 
                     <FormField label="Vessel type">
                       <FormSelect
-                        value={formValues?.vesselType || ""}
+                        value={getFieldValue("vesselType")}
                         onChange={handleChange("vesselType")}
                         options={vesselTypeOptions}
                         placeholder="Select vessel type..."
+                        disabled={isDisabled}
                       />
                     </FormField>
 
                     <FormField label="Barge type">
                       <FormSelect
-                        value={formValues?.bargeType || ""}
+                        value={getFieldValue("bargeType")}
                         onChange={handleChange("bargeType")}
                         options={bargeTypeOptions}
                         placeholder="Select barge type..."
+                        disabled={isDisabled}
                       />
                     </FormField>
 
                     <VesselNameField
-                      value={formValues?.vesselName || ""}
+                      value={getFieldValue("vesselName")}
                       onChange={handleChange("vesselName")}
                       options={vesselNameOptions}
                       placeholder="Select vessel name..."
                       onSave={handleVesselSave}
+                      disabled={isDisabled}
                     />
 
                     <FormField label="Vessel Owner">
                       <FormInput
                         type="text"
                         placeholder="Enter vessel owner..."
-                        value={formValues?.vesselOwner || ""}
+                        value={getFieldValue("vesselOwner")}
                         onChange={handleChange("vesselOwner")}
+                        disabled={isDisabled}
                       />
                     </FormField>
 
@@ -1013,8 +1018,9 @@ function General({ card, formValues, handleChange, ownerInitial, cardUser, onSav
                       <FormInput
                         type="text"
                         placeholder="Enter vessel principal..."
-                        value={formValues?.vesselPrincipal || ""}
+                        value={getFieldValue("vesselPrincipal")}
                         onChange={handleChange("vesselPrincipal")}
+                        disabled={isDisabled}
                       />
                     </FormField>
 
@@ -1022,26 +1028,29 @@ function General({ card, formValues, handleChange, ownerInitial, cardUser, onSav
                       <FormInput
                         type="text"
                         placeholder="Enter vessel manager..."
-                        value={formValues?.vesselManager || ""}
+                        value={getFieldValue("vesselManager")}
                         onChange={handleChange("vesselManager")}
+                        disabled={isDisabled}
                       />
                     </FormField>
 
                     <FormField label="Other billing entity">
                       <FormSelect
-                        value={formValues?.otherBillingEntity || ""}
+                        value={getFieldValue("otherBillingEntity")}
                         onChange={handleChange("otherBillingEntity")}
                         options={[]}
                         placeholder="Select billing entity..."
+                        disabled={isDisabled}
                       />
                     </FormField>
 
                     <FormField label="Assigned Operator">
                       <FormSelect
-                        value={formValues?.assignedOperator || ""}
+                        value={getFieldValue("assignedOperator")}
                         onChange={handleChange("assignedOperator")}
                         options={[]}
                         placeholder="Select operator..."
+                        disabled={isDisabled}
                       />
                     </FormField>
 
@@ -1049,8 +1058,9 @@ function General({ card, formValues, handleChange, ownerInitial, cardUser, onSav
                       <FormInput
                         type="text"
                         placeholder="Enter service requestor name..."
-                        value={formValues?.serviceRequestorName || ""}
+                        value={getFieldValue("serviceRequestorName")}
                         onChange={handleChange("serviceRequestorName")}
+                        disabled={isDisabled}
                       />
                     </FormField>
 
@@ -1058,18 +1068,28 @@ function General({ card, formValues, handleChange, ownerInitial, cardUser, onSav
                       <FormInput
                         type="email"
                         placeholder="Enter service requestor email..."
-                        value={formValues?.serviceRequestorEmail || ""}
+                        value={getFieldValue("serviceRequestorEmail")}
                         onChange={handleChange("serviceRequestorEmail")}
+                        disabled={isDisabled}
                       />
                     </FormField>
 
                     <FormField label="Daily Report Email Id">
                       <MultiSelectEmail
-                        value={formValues?.dailyReportEmail || []}
+                        value={
+                          formValues?.dailyReportEmail !== undefined && formValues.dailyReportEmail !== null && formValues.dailyReportEmail.length > 0
+                            ? formValues.dailyReportEmail
+                            : !isAddMode && card?.dailyReportEmail && card.dailyReportEmail.length > 0
+                              ? card.dailyReportEmail
+                              : !isAddMode
+                                ? dummyValues.dailyReportEmail
+                                : []
+                        }
                         onChange={handleChange("dailyReportEmail")}
                         options={dailyReportEmailOptions}
                         placeholder="Select email addresses..."
                         onAddNew={handleAddNewEmail}
+                        disabled={isDisabled}
                       />
                     </FormField>
 
@@ -1077,8 +1097,9 @@ function General({ card, formValues, handleChange, ownerInitial, cardUser, onSav
                       <FormInput
                         type="text"
                         placeholder="Enter billing instructions..."
-                        value={formValues?.billingInstructions || ""}
+                        value={getFieldValue("billingInstructions")}
                         onChange={handleChange("billingInstructions")}
+                        disabled={isDisabled}
                       />
                     </FormField>
                   </div>

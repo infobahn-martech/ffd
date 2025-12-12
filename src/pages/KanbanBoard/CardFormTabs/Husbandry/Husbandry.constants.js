@@ -2,6 +2,8 @@
 export const MAIN_TABS = {
   CREW_MANAGEMENT: "crewManagement",
   MATERIAL_MANAGEMENT: "materialManagement",
+  MWP_RENEWAL: "mwpRenewal",
+  THIRD_PARTY_SERVICES: "thirdPartyServices",
 };
 
 export const CREW_MANAGEMENT_SUBTABS = {

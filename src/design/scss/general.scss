@@ -1489,3 +1489,58 @@
 .file-input-hidden {
   display: none;
 }
+
+/* Disabled Field Styles - Visual indication for disabled fields */
+.cf-input input:disabled,
+.cf-input select:disabled,
+.cf-select select:disabled,
+.cf-owner-select:disabled,
+.cf-vessel-name-row select:disabled,
+.date-time-row input:disabled {
+  background-color: #f5f5f5 !important;
+  color: #000000 !important;
+  cursor: not-allowed !important;
+  opacity: 0.7;
+}
+
+.cf-input:has(input:disabled),
+.cf-input:has(select:disabled),
+.cf-select:has(select:disabled) {
+  background-color: #f5f5f5 !important;
+  border-color: #d0d0d0 !important;
+  opacity: 0.7;
+  cursor: not-allowed;
+}
+
+.cf-owner-select:disabled {
+  background-color: #f5f5f5 !important;
+  color: #000000 !important;
+  cursor: not-allowed !important;
+  opacity: 0.7;
+  border-color: #d0d0d0 !important;
+}
+
+.date-time-row input:disabled {
+  background-color: #f5f5f5 !important;
+  color: #000000 !important;
+  cursor: not-allowed !important;
+}
+
+/* Multi-Select Email Disabled Styles */
+.cf-multi-select-email.disabled .cf-multi-select-email-input,
+.cf-multi-select-email-input.disabled {
+  background-color: #f5f5f5 !important;
+  border-color: #d0d0d0 !important;
+  cursor: not-allowed !important;
+}
+
+.cf-multi-select-email.disabled .cf-email-tag,
+.cf-multi-select-email-input.disabled .cf-email-tag {
+  background-color: #e0e0e0 !important;
+  color: #000000 !important;
+}
+
+.cf-multi-select-email.disabled .cf-multi-select-placeholder,
+.cf-multi-select-email-input.disabled .cf-multi-select-placeholder {
+  color: #000000 !important;
+}

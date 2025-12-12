@@ -148,12 +148,6 @@ const ZawilPassContent = ({ formValues, handleChange, cardColor }) => {
     }),
   };
 
-  // Status Sign on/off options
-  const statusSignOnOffOptions = [
-    { value: "Sign On", label: "Sign On" },
-    { value: "Sign Off", label: "Sign Off" },
-    { value: "Pending", label: "Pending" },
-  ];
 
   // Handle file upload for documents
   const handleFileChange = (e) => {
@@ -282,22 +276,13 @@ const ZawilPassContent = ({ formValues, handleChange, cardColor }) => {
                 </div>
               </FormField>
 
-              <FormField label="Status Sign on/off">
-                <FormSelect
-                  value={formValues.statusSignOnOff || ""}
-                  onChange={handleChange("statusSignOnOff")}
-                  options={statusSignOnOffOptions}
-                  placeholder="Select status..."
-                />
-              </FormField>
-
               <FormField label="Status">
                 <FormSelect
                   value={formValues.zawilPassStatus || ""}
                   onChange={handleChange("zawilPassStatus")}
                   options={[
-                    { value: "Active", label: "Active" },
-                    { value: "Expired", label: "Expired" },
+                    { value: "Sign On", label: "Sign On" },
+                    { value: "Sign Off", label: "Sign Off" },
                     { value: "Pending", label: "Pending" },
                   ]}
                   placeholder="Select status..."
@@ -310,17 +295,6 @@ const ZawilPassContent = ({ formValues, handleChange, cardColor }) => {
                     type="date"
                     value={formValues.zawilPassIssuedDate || ""}
                     onChange={handleChange("zawilPassIssuedDate")}
-                    placeholder="Select date"
-                  />
-                </div>
-              </FormField>
-
-              <FormField label="Expiry Date">
-                <div className="cf-input date-time-row">
-                  <input
-                    type="date"
-                    value={formValues.zawilPassExpiryDate || ""}
-                    onChange={handleChange("zawilPassExpiryDate")}
                     placeholder="Select date"
                   />
                 </div>

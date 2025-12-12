@@ -1014,6 +1014,22 @@ const ArrivalContent = ({ formValues, handleChange, cardColor, onAddAttachment, 
                   />
                 </div>
               </FormField>
+              <FormField label="Marine work permit expires">
+                <div className="cf-input date-time-row">
+                  <input
+                    type="date"
+                    value={formValues.marineWorkPermitExpiresDate || ""}
+                    onChange={handleChange("marineWorkPermitExpiresDate")}
+                    placeholder="Select date"
+                  />
+                  <input
+                    type="time"
+                    value={formValues.marineWorkPermitExpiresTime || ""}
+                    onChange={handleChange("marineWorkPermitExpiresTime")}
+                    placeholder="Select time"
+                  />
+                </div>
+              </FormField>
 
               <FormField label="SABER UT closed">
                 <div className="cf-input date-time-row">
@@ -1061,6 +1077,66 @@ ArrivalContent.propTypes = {
 };
 
 const DepartureContent = ({ formValues, handleChange, cardColor, onAddAttachment, onRemoveAttachment, onAddLink, onRemoveLink, onSendReport }) => {
+  const [isDragging, setIsDragging] = useState(false);
+  const fileInputRef = useRef(null);
+
+  // Handle drag and drop
+  const handleDragEnter = (e) => {
+    e.preventDefault();
+    e.stopPropagation();
+    setIsDragging(true);
+  };
+
+  const handleDragLeave = (e) => {
+    e.preventDefault();
+    e.stopPropagation();
+    setIsDragging(false);
+  };
+
+  const handleDragOver = (e) => {
+    e.preventDefault();
+    e.stopPropagation();
+  };
+
+  const handleDrop = (e) => {
+    e.preventDefault();
+    e.stopPropagation();
+    setIsDragging(false);
+
+    const files = Array.from(e.dataTransfer.files || []);
+    if (files.length > 0 && onAddAttachment) {
+      files.forEach((file) => {
+        const attachment = {
+          name: file.name,
+          file: file,
+          size: file.size,
+          type: file.type,
+        };
+        onAddAttachment(attachment);
+      });
+    }
+  };
+
+  // Handle file input change
+  const handleFileInputChange = (e) => {
+    const files = Array.from(e.target.files || []);
+    if (files.length > 0 && onAddAttachment) {
+      files.forEach((file) => {
+        const attachment = {
+          name: file.name,
+          file: file,
+          size: file.size,
+          type: file.type,
+        };
+        onAddAttachment(attachment);
+      });
+    }
+    // Reset input value to allow selecting the same file again
+    if (fileInputRef.current) {
+      fileInputRef.current.value = "";
+    }
+  };
+
   // Handle save
   const handleSave = () => {
     console.log("Saving Departure data:", formValues);
@@ -1091,6 +1167,22 @@ const DepartureContent = ({ formValues, handleChange, cardColor, onAddAttachment
             </div>
 
             <div className="general-info-right">
+              <FormField label="Email Requested Accept">
+                <AttachmentsList
+                  attachments={formValues.attachments || []}
+                  onAdd={onAddAttachment}
+                  onRemove={onRemoveAttachment}
+                  cardColor={cardColor}
+                  isDragging={isDragging}
+                  onDragEnter={handleDragEnter}
+                  onDragLeave={handleDragLeave}
+                  onDragOver={handleDragOver}
+                  onDrop={handleDrop}
+                  fileInputRef={fileInputRef}
+                  onFileInputChange={handleFileInputChange}
+                />
+              </FormField>
+
               <FormField label="Request for outward clearance received">
                 <div className="cf-input date-time-row">
                   <input
@@ -1148,7 +1240,7 @@ const DepartureContent = ({ formValues, handleChange, cardColor, onAddAttachment
                 </div>
               </FormField>
 
-              <FormField label="Vessel Sailed (optional)">
+              <FormField label="Vessel Sailed">
                 <div className="cf-input date-time-row">
                   <input
                     type="date"
@@ -1167,24 +1259,7 @@ const DepartureContent = ({ formValues, handleChange, cardColor, onAddAttachment
                 </div>
               </FormField>
 
-              <FormField label="Cast off">
-                <div className="cf-input date-time-row">
-                  <input
-                    type="date"
-                    value={formValues.castOffDate || ""}
-                    onChange={handleChange("castOffDate")}
-                    placeholder="Select date"
-                    disabled
-                  />
-                  <input
-                    type="time"
-                    value={formValues.castOffTime || ""}
-                    onChange={handleChange("castOffTime")}
-                    placeholder="Select time"
-                    disabled
-                  />
-                </div>
-              </FormField>
+
 
               <FormField label="Next port">
                 <FormInput
@@ -1196,15 +1271,6 @@ const DepartureContent = ({ formValues, handleChange, cardColor, onAddAttachment
                 />
               </FormField>
 
-              <FormField label="Email requested Accept">
-                <FormInput
-                  type="text"
-                  value={formValues.emailRequestedAccept || ""}
-                  onChange={handleChange("emailRequestedAccept")}
-                  placeholder="Enter email requested accept..."
-                  disabled
-                />
-              </FormField>
 
               <div className="form-save-button-wrapper">
                 <button

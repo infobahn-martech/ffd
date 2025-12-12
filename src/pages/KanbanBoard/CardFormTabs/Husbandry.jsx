@@ -73,6 +73,36 @@ const ServiceSelection = ({ onSelectService, cardColor }) => {
             </div>
             <span className="husbandry-service-option-label">Launch Hire</span>
           </button>
+          <button
+            type="button"
+            className="husbandry-service-option"
+            onClick={() => onSelectService(MAIN_TABS.MWP_RENEWAL)}
+            style={{ "--card-color": cardColor }}
+          >
+            <div className="husbandry-service-option-icon">
+              <svg width="48" height="48" viewBox="0 0 48 48" fill="none" xmlns="http://www.w3.org/2000/svg">
+                <circle cx="24" cy="24" r="20" stroke="currentColor" strokeWidth="2" fill="none" />
+                <path d="M28 16L32 12L28 8" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+                <path d="M20 32L16 36L20 40" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+                <path d="M32 12C30 16 28 20 28 24C28 28 30 32 32 36M16 12C18 16 20 20 20 24C20 28 18 32 16 36" stroke="currentColor" strokeWidth="2" strokeLinecap="round" />
+              </svg>
+            </div>
+            <span className="husbandry-service-option-label">MWP Renewal</span>
+          </button>
+          <button
+            type="button"
+            className="husbandry-service-option"
+            onClick={() => onSelectService(MAIN_TABS.THIRD_PARTY_SERVICES)}
+            style={{ "--card-color": cardColor }}
+          >
+            <div className="husbandry-service-option-icon">
+              <svg width="48" height="48" viewBox="0 0 48 48" fill="none" xmlns="http://www.w3.org/2000/svg">
+                <rect x="8" y="8" width="32" height="32" rx="4" stroke="currentColor" strokeWidth="2" fill="none" />
+                <path d="M16 20H32M16 24H32M16 28H24" stroke="currentColor" strokeWidth="2" strokeLinecap="round" />
+              </svg>
+            </div>
+            <span className="husbandry-service-option-label">Third-Party Services</span>
+          </button>
         </div>
       </div>
     </div>
@@ -117,6 +147,12 @@ function Husbandry({ card, formValues, handleChange }) {
         setActiveSubTab(CREW_MANAGEMENT_SUBTABS.CREW);
       } else if (tab === MAIN_TABS.MATERIAL_MANAGEMENT) {
         setActiveSubTab(MATERIAL_MANAGEMENT_SUBTABS.MATERIAL_LIST);
+      } else if (tab === MAIN_TABS.MWP_RENEWAL) {
+        // MWP Renewal - placeholder for future implementation
+        setActiveSubTab(null);
+      } else if (tab === MAIN_TABS.THIRD_PARTY_SERVICES) {
+        // Third-Party Services - placeholder for future implementation
+        setActiveSubTab(null);
       }
     }
   }, []);
@@ -307,6 +343,16 @@ function Husbandry({ card, formValues, handleChange }) {
             renderCrewManagementContent()}
           {activeMainTab === MAIN_TABS.MATERIAL_MANAGEMENT &&
             renderMaterialManagementContent()}
+          {activeMainTab === MAIN_TABS.MWP_RENEWAL && (
+            <div className="husbandry-placeholder-content">
+              <p>MWP Renewal content will be implemented here.</p>
+            </div>
+          )}
+          {activeMainTab === MAIN_TABS.THIRD_PARTY_SERVICES && (
+            <div className="husbandry-placeholder-content">
+              <p>Third-Party Services content will be implemented here.</p>
+            </div>
+          )}
         </div>
       </div>
     </div>
