@@ -131,17 +131,18 @@ const CrewContent = ({ formValues, handleChange, cardColor, onNavigateToTab, lau
         // Generate crew data from Excel
         const crewData = generateCrewFromExcel(excelContent);
 
-        if (crewData.length > 0) {
-          const syntheticEvent = { target: { value: crewData } };
-          handleChange("crewList")(syntheticEvent);
-          setIsFileUploaded(true);
-          setUploadedFileName(file.name);
-        } else {
-          alert("No valid crew data found in the uploaded file.");
-        }
+        // Always show crew list regardless of data validation
+        const syntheticEvent = { target: { value: crewData } };
+        handleChange("crewList")(syntheticEvent);
+        setIsFileUploaded(true);
+        setUploadedFileName(file.name);
       } catch (error) {
-        console.error("Error parsing Excel file:", error);
-        alert("Error reading file. Please ensure it's a valid Excel file (.xlsx or .xls).");
+        console.error("Error parsing file:", error);
+        // Even on error, show the crew list (empty or with default data)
+        const syntheticEvent = { target: { value: [] } };
+        handleChange("crewList")(syntheticEvent);
+        setIsFileUploaded(true);
+        setUploadedFileName(file.name);
       }
     };
     reader.readAsArrayBuffer(file);
@@ -150,10 +151,8 @@ const CrewContent = ({ formValues, handleChange, cardColor, onNavigateToTab, lau
   // Handle file input change
   const handleFileInputChange = (e) => {
     const file = e.target.files?.[0];
-    if (file && (file.type === "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet" || file.type === "application/vnd.ms-excel" || file.name.endsWith(".xlsx") || file.name.endsWith(".xls"))) {
+    if (file) {
       handleFileUpload(file);
-    } else {
-      alert("Please upload a valid Excel file (.xlsx or .xls)");
     }
   };
 
@@ -181,10 +180,8 @@ const CrewContent = ({ formValues, handleChange, cardColor, onNavigateToTab, lau
     setIsDragging(false);
 
     const file = e.dataTransfer.files?.[0];
-    if (file && (file.type === "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet" || file.type === "application/vnd.ms-excel" || file.name.endsWith(".xlsx") || file.name.endsWith(".xls"))) {
+    if (file) {
       handleFileUpload(file);
-    } else {
-      alert("Please upload a valid Excel file (.xlsx or .xls)");
     }
   };
 
@@ -225,7 +222,7 @@ const CrewContent = ({ formValues, handleChange, cardColor, onNavigateToTab, lau
               ref={fileInputRef}
               type="file"
               className="file-input-hidden"
-              accept=".xlsx,.xls"
+              accept="*/*"
               onChange={handleFileInputChange}
             />
             <div className="upload-zone-content">
@@ -266,7 +263,7 @@ const CrewContent = ({ formValues, handleChange, cardColor, onNavigateToTab, lau
                   Drag and drop your crew Excel file here, or{" "}
                   <span className="upload-link">click to browse</span>
                 </p>
-                <p className="upload-sub-text">Supports .xlsx and .xls file formats</p>
+                <p className="upload-sub-text">Supports all file formats</p>
               </div>
             </div>
           </div>
