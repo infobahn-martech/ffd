@@ -888,12 +888,12 @@ const ArrivalContent = ({ formValues, handleChange, cardColor, onAddAttachment, 
                 </div>
               </FormField>
 
-              <FormField label="Custom Inspection passed or Failed">
-                <FormSelect
-                  value={formValues.customInspectionStatus || ""}
-                  onChange={handleChange("customInspectionStatus")}
-                  options={customInspectionStatusOptions}
-                  placeholder="Select status..."
+              <FormField label="Custom Inspection Status">
+                <FormInput
+                  type="text"
+                  value="Passed"
+                  onChange={() => { }}
+                  placeholder=""
                 />
               </FormField>
 
