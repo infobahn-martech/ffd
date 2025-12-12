@@ -91,6 +91,7 @@ const FormInput = ({ type = "text", value, onChange, placeholder, className = ""
         value={value}
         onChange={onChange}
         placeholder={placeholder}
+        disabled={true}
       />
     </div>
   );

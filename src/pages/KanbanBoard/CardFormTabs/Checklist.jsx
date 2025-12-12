@@ -22,7 +22,7 @@ const accommodationBargeChecklist = [
       {
         id: "bill_of_lading_vessel",
         label: "Bill of lading REQUIRE COPY ONLY",
-        requirement: "COPY OF INVENTORY LIST TO BE SIGNED AND STAMPED BY MASTER (Require minimum 3 days prior arrival to arrange if Arabic translation done from our end)"
+        requirement: "Noncompliance with the enclosed flyer could lead to failure to pass pre-berthing, which leads to berthing delays, and in some cases — aborted operations"
       },
       {
         id: "charter_party_agreement",
@@ -1233,7 +1233,7 @@ function Checklist({ card, formValues, handleChange, onSendReport, cardColor: pr
                   // Add your save logic here
                 }}
               >
-                Save
+                Save and Confirm
               </button>
             </div>
           </div>
