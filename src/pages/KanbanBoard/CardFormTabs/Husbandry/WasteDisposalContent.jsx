@@ -5,7 +5,8 @@ import { FormSection, FormField, FormInput, FormSelect, FormTextarea } from "./H
 const WasteDisposalContent = ({ formValues, handleChange, cardColor }) => {
   return (
     <div className="cardform-left-full" style={{ "--card-color": cardColor }}>
-      <FormSection icon={GroupSettingsIcon} title="">
+      In-Progress
+      {/* <FormSection icon={GroupSettingsIcon} title="">
         <div className="pre-arrival-form">
           <div className="form-group">
             <h3 className="form-group-title">Waste Disposal Information</h3>
@@ -87,7 +88,7 @@ const WasteDisposalContent = ({ formValues, handleChange, cardColor }) => {
             </div>
           </div>
         </div>
-      </FormSection>
+      </FormSection> */}
     </div>
   );
 };
