@@ -345,12 +345,12 @@ function Husbandry({ card, formValues, handleChange }) {
             renderMaterialManagementContent()}
           {activeMainTab === MAIN_TABS.MWP_RENEWAL && (
             <div className="husbandry-placeholder-content">
-              <p>MWP Renewal content will be implemented here.</p>
+              <p>In-Progress</p>
             </div>
           )}
           {activeMainTab === MAIN_TABS.THIRD_PARTY_SERVICES && (
             <div className="husbandry-placeholder-content">
-              <p>Third-Party Services content will be implemented here.</p>
+              <p>In-Progress</p>
             </div>
           )}
         </div>
