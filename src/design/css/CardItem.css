@@ -383,7 +383,7 @@
 }
 
 /* Detail Item Value */
-.card-detail-item > span:not(.detail-dot):not(.detail-label) {
+.card-detail-item>span:not(.detail-dot):not(.detail-label) {
   flex: 1;
   overflow: hidden;
   text-overflow: ellipsis;

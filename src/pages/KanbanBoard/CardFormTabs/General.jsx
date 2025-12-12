@@ -677,6 +677,7 @@ function General({ card, formValues, handleChange, ownerInitial, cardUser, onSav
     { value: "manager@example.com", label: "manager@example.com" },
     { value: "supervisor@example.com", label: "supervisor@example.com" },
   ]);
+  const initializedRef = useRef(false);
 
   // Determine current job status from card data (updated for 5 statuses)
   const currentStatus = useMemo(() => {
@@ -767,6 +768,83 @@ function General({ card, formValues, handleChange, ownerInitial, cardUser, onSav
 
   // Get owner initial from card user or formValues
   const ownerInitialValue = ownerInitial || (cardUser ? cardUser.charAt(0).toUpperCase() : "U");
+
+  // Initialize all fields with default values when in edit mode (isAddMode is false)
+  useEffect(() => {
+    if (!isAddMode && handleChange && !initializedRef.current) {
+      const today = new Date();
+      const dateStr = today.toISOString().split('T')[0]; // Format: YYYY-MM-DD
+      const timeStr = today.toTimeString().split(' ')[0].substring(0, 5); // Format: HH:MM
+
+      // Initialize fields only if they don't have values
+      const initializeField = (fieldName, defaultValue) => {
+        if (!formValues?.[fieldName] || formValues[fieldName] === "") {
+          const syntheticEvent = {
+            target: { value: defaultValue, name: fieldName }
+          };
+          handleChange(fieldName)(syntheticEvent);
+        }
+      };
+
+      // Initialize text fields
+      initializeField("cardDescription", "<p>Sample card description</p>");
+      initializeField("poNumber", "PO-12345");
+      initializeField("shipper", "SRT-001");
+      initializeField("project", "Project Alpha");
+      initializeField("vesselOwner", "Vessel Owner Inc.");
+      initializeField("vesselPrincipal", "Principal Company");
+      initializeField("vesselManager", "Manager Corp.");
+      initializeField("serviceRequestorName", "John Doe");
+      initializeField("serviceRequestorEmail", "john.doe@example.com");
+      initializeField("billingInstructions", "Standard billing instructions");
+
+      // Initialize select fields
+      initializeField("typeOfCall", "Import");
+      initializeField("mainBillingEntity", "SS7");
+      initializeField("vesselType", "Foreign Flag");
+      initializeField("bargeType", "N/A");
+      initializeField("vesselName", "Sample Vessel");
+      initializeField("otherBillingEntity", "");
+      initializeField("assignedOperator", "");
+
+      // Initialize date and time fields
+      initializeField("appointmentReceivedDate", dateStr);
+      initializeField("appointmentReceivedTime", timeStr);
+
+      // Initialize owner
+      if (!formValues?.owner || formValues.owner === "None") {
+        if (cardUser) {
+          initializeField("owner", cardUser);
+        } else {
+          initializeField("owner", "None");
+        }
+      }
+
+      // Initialize daily report email
+      if (!formValues?.dailyReportEmail || (Array.isArray(formValues?.dailyReportEmail) && formValues.dailyReportEmail.length === 0)) {
+        const defaultEmail = ["admin@example.com"];
+        const syntheticEvent = {
+          target: { value: defaultEmail, name: "dailyReportEmail" }
+        };
+        handleChange("dailyReportEmail")(syntheticEvent);
+      }
+
+      // Initialize appointment documents with a sample document
+      if (appointmentDocuments.length === 0) {
+        // Create a sample file object using Blob
+        const blob = new Blob(["Sample document content"], { type: "application/pdf" });
+        const sampleFile = new File([blob], "sample-document.pdf", { type: "application/pdf" });
+        setAppointmentDocuments([sampleFile]);
+      }
+
+      initializedRef.current = true;
+    }
+
+    // Reset initialization flag when switching to add mode
+    if (isAddMode) {
+      initializedRef.current = false;
+    }
+  }, [isAddMode, handleChange, formValues, cardUser, appointmentDocuments.length]);
 
   return (
     <div className="cardform-body general-tab-body">
