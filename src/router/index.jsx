@@ -19,6 +19,7 @@ import BillingEntity from "../pages/BillingEntity";
 import Vessel from "../pages/Vessel";
 import CustomerPricing from "../pages/CustomerPricing";
 import BargeType from "../pages/BargeType";
+import CustomInspection from "../pages/CustomInspection";
 
 // 🔥 Set true to bypass auth temporarily
 const TEST_MODE = true;
@@ -50,6 +51,7 @@ const router = createHashRouter([
               { path: "/barge-types", element: <BargeType /> },
               { path: "/vessel-onboarding", element: <Vessel /> },
               { path: "/billing-entity", element: <BillingEntity /> },
+              { path: "/custom-inspection", element: <CustomInspection /> },
               { path: "/settings", element: <h1>Settings</h1> },
             ],
           },
@@ -73,6 +75,7 @@ const router = createHashRouter([
                 children: [
                   { path: "/dashboard", element: <Dashboard /> },
                   { path: "/kanban-board", element: <KanbanBoard /> },
+                  { path: "/custom-inspection", element: <CustomInspection /> },
                   { path: "/settings", element: <h1>Settings</h1> },
                 ],
               },

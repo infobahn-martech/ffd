@@ -117,6 +117,13 @@ function SideNav({ isMobileMenuOpen, onCloseMobileMenu }) {
       hasPermission: true,
     },
     {
+      menu: 'Custom Inspection',
+      isDefaultMenu: true,
+      to: '/custom-inspection',
+      icon: portIcon,
+      hasPermission: true,
+    },
+    {
       menu: 'Billing Accounts',
       isDefaultMenu: true,
       hasPermission: true,

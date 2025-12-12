@@ -1,0 +1,66 @@
+.status-select {
+  border: 1px solid #ddd;
+  border-radius: 4px;
+  padding: 4px 8px;
+  font-size: 13px;
+  font-weight: 500;
+  cursor: pointer;
+  background-color: #fff;
+  min-width: 120px;
+  appearance: none;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 12 12'%3E%3Cpath fill='%23333' d='M6 9L1 4h10z'/%3E%3C/svg%3E");
+  background-repeat: no-repeat;
+  background-position: right 8px center;
+  padding-right: 30px;
+
+  &:focus {
+    outline: none;
+    border-color: #2A00FF;
+    box-shadow: 0 0 0 2px rgba(42, 0, 255, 0.1);
+  }
+
+  &.status-commenced {
+    color: #b58b00;
+    border-color: #b58b00;
+  }
+
+  &.status-passed {
+    color: #0a8f34;
+    border-color: #0a8f34;
+  }
+
+  &.status-failed {
+    color: #c91010;
+    border-color: #c91010;
+  }
+}
+
+.status-badge {
+  display: inline-block;
+  padding: 4px 12px;
+  border-radius: 4px;
+  font-size: 13px;
+  font-weight: 500;
+  text-transform: capitalize;
+
+  &.status-commenced {
+    background-color: #fff3cd;
+    color: #b58b00;
+  }
+
+  &.status-passed {
+    background-color: #d4edda;
+    color: #0a8f34;
+  }
+
+  &.status-failed {
+    background-color: #f8d7da;
+    color: #c91010;
+  }
+
+  &.status-default {
+    background-color: #e9ecef;
+    color: #6c757d;
+  }
+}
+
