@@ -879,7 +879,6 @@ function General({ card, formValues, handleChange, ownerInitial, cardUser, onSav
     otherBillingEntity: "Other Entity",
     assignedOperator: "Operator Name",
     serviceRequestorName: "Requestor Name",
-    serviceRequestorEmail: "requestor@example.com",
     dailyReportEmail: ["admin@example.com", "reports@example.com"],
     billingInstructions: "Standard billing instructions apply",
   };
@@ -1125,16 +1124,6 @@ function General({ card, formValues, handleChange, ownerInitial, cardUser, onSav
                       />
                     </FormField>
 
-                    <FormField label="Service Requestor Email">
-                      <FormInput
-                        type="email"
-                        placeholder="Enter service requestor email..."
-                        value={getFieldValue("serviceRequestorEmail")}
-                        onChange={handleChange("serviceRequestorEmail")}
-                        disabled={isDisabled}
-                      />
-                    </FormField>
-
                     <FormField label="Daily Report Email Id">
                       <MultiSelectEmail
                         value={
@@ -1163,6 +1152,22 @@ function General({ card, formValues, handleChange, ownerInitial, cardUser, onSav
                         disabled={isDisabled}
                       />
                     </FormField>
+
+                    {isAddMode && (
+                      <div className="form-save-button-wrapper">
+                        <button
+                          type="button"
+                          className="form-save-button"
+                          onClick={() => {
+                            if (onSave) {
+                              onSave(formValues);
+                            }
+                          }}
+                        >
+                          Save
+                        </button>
+                      </div>
+                    )}
                   </div>
                 </div>
               </div>
