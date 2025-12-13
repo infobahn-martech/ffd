@@ -587,71 +587,11 @@ LinksList.propTypes = {
 };
 
 const PreArrivalContent = ({ formValues, handleChange, ownerInitial, cardUser, cardColor, onAddAttachment, onRemoveAttachment, onAddLink, onRemoveLink, onSendReport }) => {
-  const [isDragging, setIsDragging] = useState(false);
-  const fileInputRef = useRef(null);
-
   const typeOfCallOptions = [
     { value: "Import", label: "Import" },
     { value: "Export", label: "Export" },
     { value: "Domestic", label: "Domestic" },
   ];
-
-  // Handle drag and drop
-  const handleDragEnter = (e) => {
-    e.preventDefault();
-    e.stopPropagation();
-    setIsDragging(true);
-  };
-
-  const handleDragLeave = (e) => {
-    e.preventDefault();
-    e.stopPropagation();
-    setIsDragging(false);
-  };
-
-  const handleDragOver = (e) => {
-    e.preventDefault();
-    e.stopPropagation();
-  };
-
-  const handleDrop = (e) => {
-    e.preventDefault();
-    e.stopPropagation();
-    setIsDragging(false);
-
-    const files = Array.from(e.dataTransfer.files || []);
-    if (files.length > 0 && onAddAttachment) {
-      files.forEach((file) => {
-        const attachment = {
-          name: file.name,
-          file: file,
-          size: file.size,
-          type: file.type,
-        };
-        onAddAttachment(attachment);
-      });
-    }
-  };
-
-  // Handle file input change
-  const handleFileInputChange = (e) => {
-    const files = Array.from(e.target.files || []);
-    if (files.length > 0 && onAddAttachment) {
-      files.forEach((file) => {
-        const attachment = {
-          name: file.name,
-          file: file,
-          size: file.size,
-          type: file.type,
-        };
-        onAddAttachment(attachment);
-      });
-    }
-    // Reset input value to allow selecting the same file again
-    if (fileInputRef.current) {
-      fileInputRef.current.value = "";
-    }
-  };
 
   // Handle save
   const handleSave = () => {
@@ -748,22 +688,6 @@ const PreArrivalContent = ({ formValues, handleChange, ownerInitial, cardUser, c
                     placeholder="Select time"
                   />
                 </div>
-              </FormField>
-
-              <FormField label="Attachments">
-                <AttachmentsList
-                  attachments={formValues.attachments || []}
-                  onAdd={onAddAttachment}
-                  onRemove={onRemoveAttachment}
-                  cardColor={cardColor}
-                  isDragging={isDragging}
-                  onDragEnter={handleDragEnter}
-                  onDragLeave={handleDragLeave}
-                  onDragOver={handleDragOver}
-                  onDrop={handleDrop}
-                  fileInputRef={fileInputRef}
-                  onFileInputChange={handleFileInputChange}
-                />
               </FormField>
 
               <div className="form-save-button-wrapper">
