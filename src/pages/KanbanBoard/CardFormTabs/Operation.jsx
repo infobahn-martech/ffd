@@ -721,6 +721,11 @@ PreArrivalContent.propTypes = {
 };
 
 const ArrivalContent = ({ formValues, handleChange, cardColor, onAddAttachment, onRemoveAttachment, onAddLink, onRemoveLink, onSendReport }) => {
+  const [isDraggingVesselInward, setIsDraggingVesselInward] = useState(false);
+  const [isDraggingMarinePermit, setIsDraggingMarinePermit] = useState(false);
+  const vesselInwardFileInputRef = useRef(null);
+  const marinePermitFileInputRef = useRef(null);
+
   const customInspectionStatusOptions = [
     { value: "Passed", label: "Passed" },
     { value: "Failed", label: "Failed" },
@@ -730,6 +735,134 @@ const ArrivalContent = ({ formValues, handleChange, cardColor, onAddAttachment, 
     { value: "Completed", label: "Completed" },
     { value: "On Hold", label: "On Hold" },
   ];
+
+  // Handle vessel inward formalities file upload
+  const handleVesselInwardDragEnter = (e) => {
+    e.preventDefault();
+    e.stopPropagation();
+    setIsDraggingVesselInward(true);
+  };
+
+  const handleVesselInwardDragLeave = (e) => {
+    e.preventDefault();
+    e.stopPropagation();
+    setIsDraggingVesselInward(false);
+  };
+
+  const handleVesselInwardDragOver = (e) => {
+    e.preventDefault();
+    e.stopPropagation();
+  };
+
+  const handleVesselInwardDrop = (e) => {
+    e.preventDefault();
+    e.stopPropagation();
+    setIsDraggingVesselInward(false);
+
+    const files = Array.from(e.dataTransfer.files || []);
+    if (files.length > 0) {
+      const currentAttachments = formValues.vesselInwardFormalitiesAttachments || [];
+      const newAttachments = files.map((file) => ({
+        name: file.name,
+        file: file,
+        size: file.size,
+        type: file.type,
+      }));
+      const updatedAttachments = [...currentAttachments, ...newAttachments];
+      const syntheticEvent = { target: { value: updatedAttachments } };
+      handleChange("vesselInwardFormalitiesAttachments")(syntheticEvent);
+    }
+  };
+
+  const handleVesselInwardFileInputChange = (e) => {
+    const files = Array.from(e.target.files || []);
+    if (files.length > 0) {
+      const currentAttachments = formValues.vesselInwardFormalitiesAttachments || [];
+      const newAttachments = files.map((file) => ({
+        name: file.name,
+        file: file,
+        size: file.size,
+        type: file.type,
+      }));
+      const updatedAttachments = [...currentAttachments, ...newAttachments];
+      const syntheticEvent = { target: { value: updatedAttachments } };
+      handleChange("vesselInwardFormalitiesAttachments")(syntheticEvent);
+    }
+    if (vesselInwardFileInputRef.current) {
+      vesselInwardFileInputRef.current.value = "";
+    }
+  };
+
+  const handleVesselInwardRemoveAttachment = (index) => {
+    const currentAttachments = formValues.vesselInwardFormalitiesAttachments || [];
+    const updatedAttachments = currentAttachments.filter((_, i) => i !== index);
+    const syntheticEvent = { target: { value: updatedAttachments } };
+    handleChange("vesselInwardFormalitiesAttachments")(syntheticEvent);
+  };
+
+  // Handle marine work permit issued file upload
+  const handleMarinePermitDragEnter = (e) => {
+    e.preventDefault();
+    e.stopPropagation();
+    setIsDraggingMarinePermit(true);
+  };
+
+  const handleMarinePermitDragLeave = (e) => {
+    e.preventDefault();
+    e.stopPropagation();
+    setIsDraggingMarinePermit(false);
+  };
+
+  const handleMarinePermitDragOver = (e) => {
+    e.preventDefault();
+    e.stopPropagation();
+  };
+
+  const handleMarinePermitDrop = (e) => {
+    e.preventDefault();
+    e.stopPropagation();
+    setIsDraggingMarinePermit(false);
+
+    const files = Array.from(e.dataTransfer.files || []);
+    if (files.length > 0) {
+      const currentAttachments = formValues.marineWorkPermitIssuedAttachments || [];
+      const newAttachments = files.map((file) => ({
+        name: file.name,
+        file: file,
+        size: file.size,
+        type: file.type,
+      }));
+      const updatedAttachments = [...currentAttachments, ...newAttachments];
+      const syntheticEvent = { target: { value: updatedAttachments } };
+      handleChange("marineWorkPermitIssuedAttachments")(syntheticEvent);
+    }
+  };
+
+  const handleMarinePermitFileInputChange = (e) => {
+    const files = Array.from(e.target.files || []);
+    if (files.length > 0) {
+      const currentAttachments = formValues.marineWorkPermitIssuedAttachments || [];
+      const newAttachments = files.map((file) => ({
+        name: file.name,
+        file: file,
+        size: file.size,
+        type: file.type,
+      }));
+      const updatedAttachments = [...currentAttachments, ...newAttachments];
+      const syntheticEvent = { target: { value: updatedAttachments } };
+      handleChange("marineWorkPermitIssuedAttachments")(syntheticEvent);
+    }
+    if (marinePermitFileInputRef.current) {
+      marinePermitFileInputRef.current.value = "";
+    }
+  };
+
+  const handleMarinePermitRemoveAttachment = (index) => {
+    const currentAttachments = formValues.marineWorkPermitIssuedAttachments || [];
+    const updatedAttachments = currentAttachments.filter((_, i) => i !== index);
+    const syntheticEvent = { target: { value: updatedAttachments } };
+    handleChange("marineWorkPermitIssuedAttachments")(syntheticEvent);
+  };
 
   // Handle save
   const handleSave = () => {
@@ -889,6 +1022,19 @@ const ArrivalContent = ({ formValues, handleChange, cardColor, onAddAttachment, 
                     placeholder="Select time"
                   />
                 </div>
+                <AttachmentsList
+                  attachments={formValues.vesselInwardFormalitiesAttachments || []}
+                  onAdd={() => {}}
+                  onRemove={handleVesselInwardRemoveAttachment}
+                  cardColor={cardColor}
+                  isDragging={isDraggingVesselInward}
+                  onDragEnter={handleVesselInwardDragEnter}
+                  onDragLeave={handleVesselInwardDragLeave}
+                  onDragOver={handleVesselInwardDragOver}
+                  onDrop={handleVesselInwardDrop}
+                  fileInputRef={vesselInwardFileInputRef}
+                  onFileInputChange={handleVesselInwardFileInputChange}
+                />
               </FormField>
 
               <FormField label="Marine work permit applied">
@@ -923,6 +1069,19 @@ const ArrivalContent = ({ formValues, handleChange, cardColor, onAddAttachment, 
                     placeholder="Select time"
                   />
                 </div>
+                <AttachmentsList
+                  attachments={formValues.marineWorkPermitIssuedAttachments || []}
+                  onAdd={() => {}}
+                  onRemove={handleMarinePermitRemoveAttachment}
+                  cardColor={cardColor}
+                  isDragging={isDraggingMarinePermit}
+                  onDragEnter={handleMarinePermitDragEnter}
+                  onDragLeave={handleMarinePermitDragLeave}
+                  onDragOver={handleMarinePermitDragOver}
+                  onDrop={handleMarinePermitDrop}
+                  fileInputRef={marinePermitFileInputRef}
+                  onFileInputChange={handleMarinePermitFileInputChange}
+                />
               </FormField>
               <FormField label="Marine work permit expires">
                 <div className="cf-input date-time-row">
