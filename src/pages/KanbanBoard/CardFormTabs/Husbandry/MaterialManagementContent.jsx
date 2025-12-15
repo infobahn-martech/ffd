@@ -18,10 +18,12 @@ const generateDummyMaterials = () => {
 
     dummyMaterials.push({
       id: i,
+      materialToCollectOrDeliver: Math.random() > 0.5 ? "Collect" : "Deliver",
       materialType: materialTypes[Math.floor(Math.random() * materialTypes.length)],
       driver: drivers[Math.floor(Math.random() * drivers.length)],
       pickUp: pickupDate.toISOString().slice(0, 16),
       dropOff: dropOffDate.toISOString().slice(0, 16),
+      dropOffLocation: `Location ${i}`,
       status: statuses[Math.floor(Math.random() * statuses.length)],
       documents: [],
     });
@@ -39,11 +41,13 @@ const MaterialManagementContent = ({ formValues, handleChange, cardColor }) => {
   // Form state
   const [formData, setFormData] = useState({
     materialType: "",
+    materialToCollectOrDeliver: "",
     driver: "",
     pickUpDate: "",
     pickUpTime: "",
     dropOffDate: "",
     dropOffTime: "",
+    dropOffLocation: "",
     status: "",
     documents: [],
   });
@@ -71,11 +75,13 @@ const MaterialManagementContent = ({ formValues, handleChange, cardColor }) => {
   const handleOpenModal = () => {
     setFormData({
       materialType: "",
+      materialToCollectOrDeliver: "",
       driver: "",
       pickUpDate: "",
       pickUpTime: "",
       dropOffDate: "",
       dropOffTime: "",
+      dropOffLocation: "",
       status: "",
       documents: [],
     });
@@ -87,11 +93,13 @@ const MaterialManagementContent = ({ formValues, handleChange, cardColor }) => {
     setShowModal(false);
     setFormData({
       materialType: "",
+      materialToCollectOrDeliver: "",
       driver: "",
       pickUpDate: "",
       pickUpTime: "",
       dropOffDate: "",
       dropOffTime: "",
+      dropOffLocation: "",
       status: "",
       documents: [],
     });
@@ -118,10 +126,12 @@ const MaterialManagementContent = ({ formValues, handleChange, cardColor }) => {
 
     const newMaterial = {
       id: materialsList.length > 0 ? Math.max(...materialsList.map(m => m.id)) + 1 : 1,
+      materialToCollectOrDeliver: formData.materialToCollectOrDeliver,
       materialType: formData.materialType,
       driver: formData.driver,
       pickUp: pickUp,
       dropOff: dropOff,
+      dropOffLocation: formData.dropOffLocation,
       status: formData.status,
       documents: selectedFiles,
     };
@@ -215,6 +225,11 @@ const MaterialManagementContent = ({ formValues, handleChange, cardColor }) => {
     { value: "Cancelled", label: "Cancelled" },
   ];
 
+  const collectOrDeliverOptions = [
+    { value: "Collect", label: "Collect" },
+    { value: "Deliver", label: "Deliver" },
+  ];
+
   const renderHeader = () => (
     <>
       <h1 className="modal-title">Add Material</h1>
@@ -226,6 +241,17 @@ const MaterialManagementContent = ({ formValues, handleChange, cardColor }) => {
       <div className="lead-form">
         <form id="materialForm" onSubmit={handleSubmit}>
           <div className="permInputs row mb-lg-3">
+            <div className="col-12 mb-3">
+              <FormField label="Material to collect or deliver">
+                <FormSelect
+                  value={formData.materialToCollectOrDeliver}
+                  onChange={(e) => handleFormChange("materialToCollectOrDeliver", e.target.value)}
+                  options={collectOrDeliverOptions}
+                  placeholder="Select..."
+                />
+              </FormField>
+            </div>
+
             <div className="col-12 mb-3">
               <FormField label="Type of Material">
                 <FormSelect
@@ -283,6 +309,17 @@ const MaterialManagementContent = ({ formValues, handleChange, cardColor }) => {
                     placeholder="Select time"
                   />
                 </div>
+              </FormField>
+            </div>
+
+            <div className="col-12 mb-3">
+              <FormField label="Drop off location">
+                <FormInput
+                  type="text"
+                  value={formData.dropOffLocation}
+                  onChange={(e) => handleFormChange("dropOffLocation", e.target.value)}
+                  placeholder="Enter drop off location..."
+                />
               </FormField>
             </div>
 
