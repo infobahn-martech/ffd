@@ -34,7 +34,8 @@ const generateDummyReports = () => {
   return dummyReports;
 };
 
-const ReportsList = ({ formValues, handleChange, cardColor }) => {
+const ReportsList = ({ formValues, handleChange }) => {
+  const cardColor = "#00368c";
   const reportsList = formValues.reportsList || [];
 
   // Initialize with dummy data on mount if empty
@@ -55,9 +56,38 @@ const ReportsList = ({ formValues, handleChange, cardColor }) => {
   };
 
   const handleSaveReport = (report) => {
-    console.log("Save report:", report);
-    // TODO: Implement save functionality
-    alert(`Saving report: ${report.reportName}`);
+    console.log("Sending report:", report);
+    
+    // Create sent report object
+    const sentReport = {
+      ...report,
+      status: "Sent",
+      sentDate: new Date().toISOString(),
+      sentTo: report.sentTo || "Default Recipient", // You can customize this
+    };
+
+    // Get current sent reports
+    const currentSentReports = formValues.sentReports || [];
+    
+    // Check if report already exists in sent reports (by id)
+    const existingIndex = currentSentReports.findIndex((r) => r.id === report.id);
+    
+    let updatedSentReports;
+    if (existingIndex >= 0) {
+      // Update existing sent report
+      updatedSentReports = [...currentSentReports];
+      updatedSentReports[existingIndex] = sentReport;
+    } else {
+      // Add new sent report
+      updatedSentReports = [...currentSentReports, sentReport];
+    }
+
+    // Update form values
+    const syntheticEvent = { target: { value: updatedSentReports } };
+    handleChange("sentReports")(syntheticEvent);
+
+    // Show success message
+    alert(`Report "${report.reportName}" has been sent successfully!`);
   };
 
   const handleDownloadReport = (report) => {
@@ -83,7 +113,6 @@ const ReportsList = ({ formValues, handleChange, cardColor }) => {
 ReportsList.propTypes = {
   formValues: PropTypes.object.isRequired,
   handleChange: PropTypes.func.isRequired,
-  cardColor: PropTypes.string,
 };
 
 export default ReportsList;
