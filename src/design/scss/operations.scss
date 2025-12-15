@@ -517,7 +517,6 @@
     }
 
     .ql-editor {
-      min-height: 222px !important;
       height: 100% !important;
       overflow-y: auto;
     }
@@ -541,7 +540,6 @@
     }
 
     .ql-editor {
-      min-height: 500px !important;
       height: 100% !important;
       overflow-y: auto;
     }
@@ -565,7 +563,6 @@
     }
 
     .ql-editor {
-      min-height: 470px !important;
       height: 100% !important;
       overflow-y: auto;
     }
@@ -589,7 +586,6 @@
     }
 
     .ql-editor {
-      min-height: 500px !important;
       height: 100% !important;
       overflow-y: auto;
     }
@@ -613,7 +609,6 @@
     }
 
     .ql-editor {
-      min-height: 500px !important;
       height: 100% !important;
       overflow-y: auto;
     }
@@ -637,7 +632,6 @@
     }
 
     .ql-editor {
-      min-height: 500px !important;
       height: 100% !important;
       overflow-y: auto;
     }
@@ -661,7 +655,6 @@
     }
 
     .ql-editor {
-      min-height: 500px !important;
       height: 100% !important;
       overflow-y: auto;
     }
@@ -685,7 +678,6 @@
     }
 
     .ql-editor {
-      min-height: 464px !important;
       height: 100% !important;
       overflow-y: auto;
     }
@@ -709,7 +701,6 @@
     }
 
     .ql-editor {
-      min-height: 500px !important;
       height: 100% !important;
       overflow-y: auto;
     }
@@ -2292,7 +2283,7 @@ body .material-management-modal .files-list::-webkit-scrollbar-thumb:hover {
 .sales-order-list-title-bar {
   width: 4px;
   height: 18px;
-  background: var(--card-color, #2A00FF);
+  background: #1a1a1a !important;
   border-radius: 2px;
   display: inline-block;
 }

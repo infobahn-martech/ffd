@@ -246,37 +246,6 @@ const CGPassContent = ({ formValues, handleChange, cardColor }) => {
                 />
               </FormField>
 
-              <FormField label="ETA">
-                <div className="cf-input date-time-row">
-                  <input
-                    type="date"
-                    value={formValues.cgPassETA || ""}
-                    onChange={handleChange("cgPassETA")}
-                    placeholder="Select date"
-                  />
-                  <input
-                    type="time"
-                    value={formValues.cgPassETATime || ""}
-                    onChange={handleChange("cgPassETATime")}
-                    placeholder="Select time"
-                  />
-                </div>
-              </FormField>
-
-
-              <FormField label="Status">
-                <FormSelect
-                  value={formValues.cgPassStatus || ""}
-                  onChange={handleChange("cgPassStatus")}
-                  options={[
-                    { value: "Sign On", label: "Sign On" },
-                    { value: "Sign Off", label: "Sign Off" },
-                    { value: "Pending", label: "Pending" },
-                  ]}
-                  placeholder="Select status..."
-                />
-              </FormField>
-
               <FormField label="Issued Date">
                 <div className="cf-input date-time-row">
                   <input

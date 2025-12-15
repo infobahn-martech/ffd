@@ -246,36 +246,6 @@ const ZawilPassContent = ({ formValues, handleChange, cardColor }) => {
                 />
               </FormField>
 
-              <FormField label="ETA">
-                <div className="cf-input date-time-row">
-                  <input
-                    type="date"
-                    value={formValues.zawilPassETA || ""}
-                    onChange={handleChange("zawilPassETA")}
-                    placeholder="Select date"
-                  />
-                  <input
-                    type="time"
-                    value={formValues.zawilPassETATime || ""}
-                    onChange={handleChange("zawilPassETATime")}
-                    placeholder="Select time"
-                  />
-                </div>
-              </FormField>
-
-              <FormField label="Status">
-                <FormSelect
-                  value={formValues.zawilPassStatus || ""}
-                  onChange={handleChange("zawilPassStatus")}
-                  options={[
-                    { value: "Sign On", label: "Sign On" },
-                    { value: "Sign Off", label: "Sign Off" },
-                    { value: "Pending", label: "Pending" },
-                  ]}
-                  placeholder="Select status..."
-                />
-              </FormField>
-
               <FormField label="Issued Date">
                 <div className="cf-input date-time-row">
                   <input
