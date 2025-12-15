@@ -219,19 +219,6 @@ const CGPassContent = ({ formValues, handleChange, cardColor }) => {
         <div className="pre-arrival-form cgpass-form">
           <div className="general-info-two-column">
             <div className="general-info-left">
-              <div className="card-description-wrapper">
-                <FormField label="Description">
-                  <ReactQuillEditor
-                    value={formValues?.cgPassDescription || ""}
-                    onChange={handleChange("cgPassDescription")}
-                    placeholder="Enter CG pass description..."
-                    name="cgPassDescription"
-                  />
-                </FormField>
-              </div>
-            </div>
-
-            <div className="general-info-right">
               <FormField label="Select Crew">
                 <div className="cf-select react-select-container crew-multi-select">
                   <Select
@@ -448,6 +435,19 @@ const CGPassContent = ({ formValues, handleChange, cardColor }) => {
                 >
                   Save
                 </button>
+              </div>
+            </div>
+
+            <div className="general-info-right">
+              <div className="card-description-wrapper">
+                <FormField label="Description">
+                  <ReactQuillEditor
+                    value={formValues?.cgPassDescription || ""}
+                    onChange={handleChange("cgPassDescription")}
+                    placeholder="Enter CG pass description..."
+                    name="cgPassDescription"
+                  />
+                </FormField>
               </div>
             </div>
           </div>

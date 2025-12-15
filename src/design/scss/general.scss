@@ -33,7 +33,7 @@
 /* General Information Two Column Layout */
 .general-info-two-column {
   display: grid;
-  grid-template-columns: 0.65fr 0.35fr;
+  grid-template-columns: 1fr 1fr;
   gap: 20px;
   align-items: start;
   min-height: 0;
@@ -162,9 +162,9 @@
   }
 }
 
-// Adjust two-column layout - left side (Card Description) takes 65% of width
+// Adjust two-column layout - 50-50 split
 .general-info-two-column {
-  grid-template-columns: 0.65fr 0.35fr;
+  grid-template-columns: 1fr 1fr;
   gap: 24px;
 }
 

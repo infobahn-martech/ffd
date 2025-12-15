@@ -196,19 +196,6 @@ const TransportContent = ({ formValues, handleChange, cardColor }) => {
         <div className="pre-arrival-form transport-form">
           <div className="general-info-two-column">
             <div className="general-info-left">
-              <div className="card-description-wrapper">
-                <FormField label="Description">
-                  <ReactQuillEditor
-                    value={formValues?.transportDescription || ""}
-                    onChange={handleChange("transportDescription")}
-                    placeholder="Enter transport description..."
-                    name="transportDescription"
-                  />
-                </FormField>
-              </div>
-            </div>
-
-            <div className="general-info-right">
               <FormField label="Select Crew">
                 <div className="cf-select react-select-container crew-multi-select">
                   <Select
@@ -297,6 +284,19 @@ const TransportContent = ({ formValues, handleChange, cardColor }) => {
                 >
                   Save
                 </button>
+              </div>
+            </div>
+
+            <div className="general-info-right">
+              <div className="card-description-wrapper">
+                <FormField label="Description">
+                  <ReactQuillEditor
+                    value={formValues?.transportDescription || ""}
+                    onChange={handleChange("transportDescription")}
+                    placeholder="Enter transport description..."
+                    name="transportDescription"
+                  />
+                </FormField>
               </div>
             </div>
           </div>

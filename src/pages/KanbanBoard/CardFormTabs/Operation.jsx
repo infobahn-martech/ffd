@@ -20,9 +20,9 @@ const OPERATION_TABS = {
 const OperationTabs = ({ activeTab, onTabChange }) => {
   const tabs = [
     { id: OPERATION_TABS.PRE_ARRIVAL, label: "Pre Arrival" },
-    { id: OPERATION_TABS.CHECK_LIST, label: "Check List" },
     { id: OPERATION_TABS.ARRIVAL, label: "Arrival" },
     { id: OPERATION_TABS.DEPARTURE, label: "Departure" },
+    { id: OPERATION_TABS.CHECK_LIST, label: "Check List" },
   ];
 
   return (
@@ -609,19 +609,6 @@ const PreArrivalContent = ({ formValues, handleChange, ownerInitial, cardUser, c
         <div className="pre-arrival-form">
           <div className="general-info-two-column">
             <div className="general-info-left">
-              <div className="card-description-wrapper">
-                <FormField label="Description">
-                  <ReactQuillEditor
-                    value={formValues?.preArrivalDescription || ""}
-                    onChange={handleChange("preArrivalDescription")}
-                    placeholder="Enter pre-arrival description..."
-                    name="preArrivalDescription"
-                  />
-                </FormField>
-              </div>
-            </div>
-
-            <div className="general-info-right">
               <FormField label="Expected time of arrival">
                 <div className="cf-input date-time-row">
                   <input
@@ -700,6 +687,19 @@ const PreArrivalContent = ({ formValues, handleChange, ownerInitial, cardUser, c
                 </button>
               </div>
             </div>
+
+            <div className="general-info-right">
+              <div className="card-description-wrapper">
+                <FormField label="Description">
+                  <ReactQuillEditor
+                    value={formValues?.preArrivalDescription || ""}
+                    onChange={handleChange("preArrivalDescription")}
+                    placeholder="Enter pre-arrival description..."
+                    name="preArrivalDescription"
+                  />
+                </FormField>
+              </div>
+            </div>
           </div>
         </div>
       </FormSection>
@@ -747,20 +747,6 @@ const ArrivalContent = ({ formValues, handleChange, cardColor, onAddAttachment, 
         <div className="arrival-form">
           <div className="general-info-two-column">
             <div className="general-info-left">
-              <div className="card-description-wrapper">
-                <FormField label="Description">
-                  <ReactQuillEditor
-                    value={formValues?.arrivalDescription || ""}
-                    onChange={handleChange("arrivalDescription")}
-                    placeholder="Enter arrival description..."
-                    name="arrivalDescription"
-                    className="arrival-quill-editor"
-                  />
-                </FormField>
-              </div>
-            </div>
-
-            <div className="general-info-right">
               <FormField label="Actual time of arrival">
                 <div className="cf-input date-time-row">
                   <input
@@ -982,6 +968,20 @@ const ArrivalContent = ({ formValues, handleChange, cardColor, onAddAttachment, 
                 </button>
               </div>
             </div>
+
+            <div className="general-info-right">
+              <div className="card-description-wrapper">
+                <FormField label="Description">
+                  <ReactQuillEditor
+                    value={formValues?.arrivalDescription || ""}
+                    onChange={handleChange("arrivalDescription")}
+                    placeholder="Enter arrival description..."
+                    name="arrivalDescription"
+                    className="arrival-quill-editor"
+                  />
+                </FormField>
+              </div>
+            </div>
           </div>
         </div>
       </FormSection>
@@ -1077,20 +1077,6 @@ const DepartureContent = ({ formValues, handleChange, cardColor, onAddAttachment
         <div className="departure-form">
           <div className="general-info-two-column">
             <div className="general-info-left">
-              <div className="card-description-wrapper">
-                <FormField label="Description">
-                  <ReactQuillEditor
-                    value={formValues?.departureDescription || ""}
-                    onChange={handleChange("departureDescription")}
-                    placeholder="Enter departure description..."
-                    name="departureDescription"
-                    className="departure-quill-editor"
-                  />
-                </FormField>
-              </div>
-            </div>
-
-            <div className="general-info-right">
               <FormField label="Email Requested Accept">
                 <AttachmentsList
                   attachments={formValues.attachments || []}
@@ -1204,6 +1190,20 @@ const DepartureContent = ({ formValues, handleChange, cardColor, onAddAttachment
                 >
                   Save
                 </button>
+              </div>
+            </div>
+
+            <div className="general-info-right">
+              <div className="card-description-wrapper">
+                <FormField label="Description">
+                  <ReactQuillEditor
+                    value={formValues?.departureDescription || ""}
+                    onChange={handleChange("departureDescription")}
+                    placeholder="Enter departure description..."
+                    name="departureDescription"
+                    className="departure-quill-editor"
+                  />
+                </FormField>
               </div>
             </div>
           </div>

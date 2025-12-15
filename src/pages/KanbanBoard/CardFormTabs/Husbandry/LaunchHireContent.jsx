@@ -218,19 +218,6 @@ const LaunchHireContent = ({ formValues, handleChange, cardColor }) => {
         <div className="pre-arrival-form launchhire-form">
           <div className="general-info-two-column">
             <div className="general-info-left">
-              <div className="card-description-wrapper">
-                <FormField label="Description">
-                  <ReactQuillEditor
-                    value={formValues?.launchHireDescription || ""}
-                    onChange={handleChange("launchHireDescription")}
-                    placeholder="Enter launch hire description..."
-                    name="launchHireDescription"
-                  />
-                </FormField>
-              </div>
-            </div>
-
-            <div className="general-info-right">
               <FormField label="Select Crew">
                 <div className="cf-select react-select-container crew-multi-select">
                   <Select
@@ -414,6 +401,19 @@ const LaunchHireContent = ({ formValues, handleChange, cardColor }) => {
                 >
                   Save
                 </button>
+              </div>
+            </div>
+
+            <div className="general-info-right">
+              <div className="card-description-wrapper">
+                <FormField label="Description">
+                  <ReactQuillEditor
+                    value={formValues?.launchHireDescription || ""}
+                    onChange={handleChange("launchHireDescription")}
+                    placeholder="Enter launch hire description..."
+                    name="launchHireDescription"
+                  />
+                </FormField>
               </div>
             </div>
           </div>

@@ -212,19 +212,6 @@ const HotelContent = ({ formValues, handleChange, cardColor }) => {
         <div className="pre-arrival-form hotel-form">
           <div className="general-info-two-column">
             <div className="general-info-left">
-              <div className="card-description-wrapper">
-                <FormField label="Description">
-                  <ReactQuillEditor
-                    value={formValues?.hotelDescription || ""}
-                    onChange={handleChange("hotelDescription")}
-                    placeholder="Enter hotel description..."
-                    name="hotelDescription"
-                  />
-                </FormField>
-              </div>
-            </div>
-
-            <div className="general-info-right">
               <FormField label="Select Crew">
                 <div className="cf-select react-select-container crew-multi-select">
                   <Select
@@ -433,6 +420,19 @@ const HotelContent = ({ formValues, handleChange, cardColor }) => {
                 >
                   Save
                 </button>
+              </div>
+            </div>
+
+            <div className="general-info-right">
+              <div className="card-description-wrapper">
+                <FormField label="Description">
+                  <ReactQuillEditor
+                    value={formValues?.hotelDescription || ""}
+                    onChange={handleChange("hotelDescription")}
+                    placeholder="Enter hotel description..."
+                    name="hotelDescription"
+                  />
+                </FormField>
               </div>
             </div>
           </div>

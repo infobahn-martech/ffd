@@ -219,19 +219,6 @@ const ZawilPassContent = ({ formValues, handleChange, cardColor }) => {
         <div className="pre-arrival-form zawilpass-form">
           <div className="general-info-two-column">
             <div className="general-info-left">
-              <div className="card-description-wrapper">
-                <FormField label="Description">
-                  <ReactQuillEditor
-                    value={formValues?.zawilPassDescription || ""}
-                    onChange={handleChange("zawilPassDescription")}
-                    placeholder="Enter Zawil pass description..."
-                    name="zawilPassDescription"
-                  />
-                </FormField>
-              </div>
-            </div>
-
-            <div className="general-info-right">
               <FormField label="Select Crew">
                 <div className="cf-select react-select-container crew-multi-select">
                   <Select
@@ -447,6 +434,19 @@ const ZawilPassContent = ({ formValues, handleChange, cardColor }) => {
                 >
                   Save
                 </button>
+              </div>
+            </div>
+
+            <div className="general-info-right">
+              <div className="card-description-wrapper">
+                <FormField label="Description">
+                  <ReactQuillEditor
+                    value={formValues?.zawilPassDescription || ""}
+                    onChange={handleChange("zawilPassDescription")}
+                    placeholder="Enter Zawil pass description..."
+                    name="zawilPassDescription"
+                  />
+                </FormField>
               </div>
             </div>
           </div>
