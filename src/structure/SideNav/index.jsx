@@ -16,12 +16,14 @@ import useWindowSize from '../../hooks/useWindowSize';
 // 🆕 Kanban sidebar icons + tooltip
 import { Tooltip } from 'react-tooltip';
 import 'react-tooltip/dist/react-tooltip.css';
-import InboxIcon from '../../assets/images/Inbox.svg';
-import GroupIcon from '../../assets/images/Group.svg';
-import CalendarIcon from '../../assets/images/Calendar.svg';
-import AnalyticsIcon from '../../assets/images/analytics 1.svg';
-import ReportsIcon from '../../assets/images/Reports.svg';
-import SettingsIcon from '../../assets/images/Settings.svg';
+import {
+  FiPlus,
+  FiInbox,
+  FiCalendar,
+  FiBarChart2,
+  FiFileText,
+  FiSettings
+} from 'react-icons/fi';
 
 function SideNav({ isMobileMenuOpen, onCloseMobileMenu }) {
   const { pathname } = useLocation();
@@ -33,11 +35,11 @@ function SideNav({ isMobileMenuOpen, onCloseMobileMenu }) {
 
   // 🆕 Kanban icon config
   const kanbanIcons = [
-    { id: 1, icon: GroupIcon, label: 'Add' },
-    { id: 3, icon: InboxIcon, label: 'Workspaces' },
-    { id: 4, icon: CalendarIcon, label: 'Calendar' },
-    { id: 5, icon: ReportsIcon, label: 'Reports' },
-    { id: 6, icon: SettingsIcon, label: 'Settings' },
+    { id: 1, icon: FiPlus, label: 'Add' },
+    { id: 3, icon: FiInbox, label: 'Workspaces' },
+    { id: 4, icon: FiCalendar, label: 'Calendar' },
+    { id: 5, icon: FiFileText, label: 'Reports' },
+    { id: 6, icon: FiSettings, label: 'Settings' },
   ];
 
   // 🆕 Active state only for Kanban sidebar
@@ -322,18 +324,20 @@ function SideNav({ isMobileMenuOpen, onCloseMobileMenu }) {
 
     return (
       <aside className="kanban-sidebar">
-        {kanbanIcons.map((item) => (
-          <div
-            key={item.id}
-            className={`kanban-sidebar-icon ${activeKanbanIcon === item.id ? 'active' : ''
-              }`}
-            onClick={() => handleIconClick(item)}
-            data-tooltip-id="sidebar-tooltip"
-            data-tooltip-content={item.label}
-          >
-            <img src={item.icon} alt={item.label} />
-          </div>
-        ))}
+        {kanbanIcons.map((item) => {
+          const Icon = item.icon;
+          return (
+            <div
+              key={item.id}
+              className={`kanban-sidebar-icon ${activeKanbanIcon === item.id ? 'active' : ''}`}
+              onClick={() => handleIconClick(item)}
+              data-tooltip-id="sidebar-tooltip"
+              data-tooltip-content={item.label}
+            >
+              <Icon size={22} />
+            </div>
+          );
+        })}
         <Tooltip
           id="sidebar-tooltip"
           place="right"
@@ -343,6 +347,7 @@ function SideNav({ isMobileMenuOpen, onCloseMobileMenu }) {
             fontSize: '0.85rem',
             borderRadius: '6px',
             padding: '6px 10px',
+            fontWeight: '500',
           }}
         />
       </aside>

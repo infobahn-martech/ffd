@@ -1,18 +1,20 @@
 import { useState } from "react";
-import { Link, NavLink, useLocation } from "react-router-dom";
+import { NavLink, useLocation, useNavigate } from "react-router-dom";
 import "../../design/scss/header.scss";
+import {
+  FiSettings,
+  FiFolder,
+  FiHelpCircle,
+  FiBell
+} from 'react-icons/fi';
 
 import logo from '../../assets/images/SedresLogo.png';
 import BackIcon from '../../assets/images/Back.png';
-import SearchIcon from "../../assets/images/Search.svg";
-import SettingsIcon from "../../assets/images/SettingIcon.svg";
-import DocsIcon from "../../assets/images/DocumentIcon.svg";
-import QuestionIcon from "../../assets/images/QuestionIcon.svg";
-import NotificationIcon from "../../assets/images/Notification.svg";
 import useWindowSize from '../../hooks/useWindowSize';
 
 function Header({ onMenuToggle, mobileMenuOpen: externalMobileMenuOpen }) {
   const { pathname } = useLocation();
+  const navigate = useNavigate();
   const { width } = useWindowSize();
   const [internalMobileMenuOpen, setInternalMobileMenuOpen] = useState(false);
   const isMobile = width <= 991;
@@ -50,7 +52,13 @@ function Header({ onMenuToggle, mobileMenuOpen: externalMobileMenuOpen }) {
           </button>
         )}
 
-        <img src={logo} alt="Sedres Logo" className="sedres-logo" />
+        <img
+          src={logo}
+          alt="Sedres Logo"
+          className="sedres-logo"
+          onClick={() => navigate('/kanban-board')}
+          style={{ cursor: 'pointer' }}
+        />
 
         <div className="top-links">
 
@@ -89,17 +97,17 @@ function Header({ onMenuToggle, mobileMenuOpen: externalMobileMenuOpen }) {
           <span className="user-letter">S</span>
         </div>
 
-        <button className="icon-btn" aria-label="Settings">
-          <img src={SettingsIcon} alt="Settings" />
+        <button className="icon-btn" aria-label="Settings" title="Settings">
+          <FiSettings />
         </button>
-        <button className="icon-btn icon-btn-hide-mobile" aria-label="Documents">
-          <img src={DocsIcon} alt="Calendar" />
+        <button className="icon-btn icon-btn-hide-mobile" aria-label="Documents" title="Documents">
+          <FiFolder />
         </button>
-        <button className="icon-btn icon-btn-hide-mobile" aria-label="Help">
-          <img src={QuestionIcon} alt="Help" />
+        <button className="icon-btn icon-btn-hide-mobile" aria-label="Help" title="Help">
+          <FiHelpCircle />
         </button>
-        <button className="icon-btn" aria-label="Notifications">
-          <img src={NotificationIcon} alt="Notifications" />
+        <button className="icon-btn" aria-label="Notifications" title="Notifications">
+          <FiBell />
         </button>
       </div>
 

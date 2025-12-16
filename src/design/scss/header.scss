@@ -66,6 +66,16 @@
       height: 55px;
       object-fit: contain;
       flex-shrink: 0;
+      transition: opacity 0.2s ease, transform 0.2s ease;
+
+      &:hover {
+        opacity: 0.8;
+        transform: scale(1.02);
+      }
+
+      &:active {
+        transform: scale(0.98);
+      }
 
       @media (max-width: 767px) {
         height: 40px;
@@ -184,37 +194,45 @@
   .right-section {
     display: flex;
     align-items: center;
-    gap: 12px;
+    gap: 8px;
     background: #00368c;
-    padding: 8px 16px;
+    padding: 6px 14px;
     border-radius: 999px;
     flex-shrink: 0;
+    box-shadow: 0 2px 8px rgba(0, 54, 140, 0.2);
 
     @media (max-width: 767px) {
-      gap: 8px;
-      padding: 6px 12px;
+      gap: 6px;
+      padding: 5px 10px;
     }
 
     @media (max-width: 479px) {
-      gap: 6px;
-      padding: 6px 8px;
+      gap: 4px;
+      padding: 5px 8px;
     }
   }
 
   .user-circle {
-    width: 34px;
-    height: 34px;
+    width: 36px;
+    height: 36px;
     border-radius: 50%;
     background: #ffffff;
-    border: 2px solid #225fbd;
+    border: 2px solid rgba(255, 255, 255, 0.3);
     display: flex;
     align-items: center;
     justify-content: center;
     flex-shrink: 0;
+    transition: all 0.2s ease;
+    cursor: pointer;
+
+    &:hover {
+      border-color: rgba(255, 255, 255, 0.5);
+      transform: scale(1.05);
+    }
 
     @media (max-width: 767px) {
-      width: 30px;
-      height: 30px;
+      width: 32px;
+      height: 32px;
     }
 
     @media (max-width: 479px) {
@@ -226,8 +244,9 @@
   .user-letter {
     font-family: "Poppins", sans-serif;
     font-size: 16px;
-    font-weight: 600;
-    color: #225fbd;
+    font-weight: 700;
+    color: #00368c;
+    user-select: none;
 
     @media (max-width: 767px) {
       font-size: 14px;
@@ -241,31 +260,46 @@
   .icon-btn {
     border: none;
     background: transparent;
-    padding: 4px;
+    padding: 6px;
     cursor: pointer;
     display: flex;
     align-items: center;
     justify-content: center;
-    transition: opacity 0.2s ease;
+    transition: all 0.2s ease;
+    border-radius: 6px;
+    color: #ffffff;
+    position: relative;
 
     &:hover {
-      opacity: 0.8;
+      background: rgba(255, 255, 255, 0.1);
+      transform: translateY(-1px);
     }
 
-    img {
-      width: 18px;
-      height: 18px;
-      filter: brightness(0) invert(1);
+    &:active {
+      transform: translateY(0);
+    }
+
+    svg {
+      width: 20px;
+      height: 20px;
+      stroke-width: 2;
+      transition: all 0.2s ease;
 
       @media (max-width: 767px) {
-        width: 16px;
-        height: 16px;
+        width: 18px;
+        height: 18px;
       }
 
       @media (max-width: 479px) {
-        width: 14px;
-        height: 14px;
+        width: 16px;
+        height: 16px;
       }
+    }
+
+    // Active state for settings icon (when selected)
+    &.active {
+      background: rgba(255, 255, 255, 0.15);
+      box-shadow: 0 0 0 2px rgba(255, 255, 255, 0.2);
     }
 
     // Hide certain icons on mobile
