@@ -5,6 +5,7 @@ import AnalyticsIcon from '../../assets/images/analytics 1.svg';
 import ClockIcon from '../../assets/images/ClockIcon.svg';
 import filterIcon from '../../assets/images/filter.svg';
 import NewWorkspaceModal from './NewWorkspaceModal';
+import AddBoardModal from './AddBoardModal';
 
 // Workspace Icon Component - Bar Chart Icon (like in first image)
 const WorkspaceBarChartIcon = ({ className }) => (
@@ -27,6 +28,8 @@ function Workspaces() {
   const [filterValue, setFilterValue] = useState('');
   const [selectedWorkspace, setSelectedWorkspace] = useState(null);
   const [showNewWorkspaceModal, setShowNewWorkspaceModal] = useState(false);
+  const [showAddBoardModal, setShowAddBoardModal] = useState(false);
+  const [selectedWorkspaceForBoard, setSelectedWorkspaceForBoard] = useState(null);
 
   // Mock data - replace with actual API data
   const workspaces = [
@@ -80,8 +83,14 @@ function Workspaces() {
   };
 
   const handleAddBoard = (workspaceId) => {
-    // TODO: Implement add board functionality
-    console.log('Add board to workspace:', workspaceId);
+    setSelectedWorkspaceForBoard(workspaceId);
+    setShowAddBoardModal(true);
+  };
+
+  const handleSaveBoard = (boardData) => {
+    // TODO: Implement save board functionality
+    console.log('Save board:', boardData);
+    // Here you would typically make an API call to save the board
   };
 
   const handleWorkspaceMenu = (workspaceId, e) => {
@@ -297,6 +306,14 @@ function Workspaces() {
         show={showNewWorkspaceModal}
         onClose={() => setShowNewWorkspaceModal(false)}
         onSave={handleSaveWorkspace}
+      />
+
+      {/* Add Board Modal */}
+      <AddBoardModal
+        show={showAddBoardModal}
+        onClose={() => setShowAddBoardModal(false)}
+        onSave={handleSaveBoard}
+        workspaceId={selectedWorkspaceForBoard}
       />
     </div>
   );
