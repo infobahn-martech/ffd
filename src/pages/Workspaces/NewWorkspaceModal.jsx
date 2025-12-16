@@ -1,10 +1,13 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import CustomModal from '../../components/CustomModal';
+import BoardsListModal from './BoardsListModal';
 import '../../design/scss/Workspaces.scss';
 
 const NewWorkspaceModal = ({ show, onClose, onSave }) => {
   const [step, setStep] = useState('select'); // 'select' or 'form'
   const [workspaceType, setWorkspaceType] = useState(null); // 'team' or 'management'
+  const [showBoardsListModal, setShowBoardsListModal] = useState(false);
+  const [showNewWorkspaceModal, setShowNewWorkspaceModal] = useState(true);
   const [formData, setFormData] = useState({
     workspaceName: '',
     boardName: '',
@@ -27,8 +30,25 @@ const NewWorkspaceModal = ({ show, onClose, onSave }) => {
   };
 
   const handleAddLinkedBoard = () => {
-    // TODO: Implement add linked board functionality
-    console.log('Add linked board');
+    // Close New Workspace modal and open Boards List modal
+    setShowNewWorkspaceModal(false);
+    setShowBoardsListModal(true);
+  };
+
+  const handleBoardsListClose = () => {
+    // Close Boards List modal and reopen New Workspace modal
+    setShowBoardsListModal(false);
+    setShowNewWorkspaceModal(true);
+  };
+
+  const handleBoardsSelect = (selectedBoards) => {
+    setFormData((prev) => ({
+      ...prev,
+      linkedBoards: selectedBoards,
+    }));
+    // Close Boards List modal and reopen New Workspace modal
+    setShowBoardsListModal(false);
+    setShowNewWorkspaceModal(true);
   };
 
   const handleSave = () => {
@@ -44,6 +64,8 @@ const NewWorkspaceModal = ({ show, onClose, onSave }) => {
   const handleClose = () => {
     setStep('select');
     setWorkspaceType(null);
+    setShowBoardsListModal(false);
+    setShowNewWorkspaceModal(true);
     setFormData({
       workspaceName: '',
       boardName: '',
@@ -52,6 +74,14 @@ const NewWorkspaceModal = ({ show, onClose, onSave }) => {
     });
     onClose();
   };
+
+  // Reset state when modal opens
+  useEffect(() => {
+    if (show) {
+      setShowNewWorkspaceModal(true);
+      setShowBoardsListModal(false);
+    }
+  }, [show]);
 
   const renderTypeSelection = () => (
     <div className="new-workspace-modal-content">
@@ -496,20 +526,65 @@ const NewWorkspaceModal = ({ show, onClose, onSave }) => {
                 </svg>
               </span>
             </label>
-            <button
-              type="button"
-              className="workspace-form-add-linked-board"
-              onClick={handleAddLinkedBoard}
-            >
-              <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-                <path
-                  d="M12 5V19M5 12H19"
-                  stroke="currentColor"
-                  strokeWidth="2"
-                  strokeLinecap="round"
-                />
-              </svg>
-            </button>
+            {formData.linkedBoards.length > 0 ? (
+              <div className="workspace-form-linked-boards-list">
+                {formData.linkedBoards.map((board) => (
+                  <div key={board.id} className="workspace-form-linked-board-item">
+                    <span className="workspace-form-linked-board-name">{board.name}</span>
+                    <button
+                      type="button"
+                      className="workspace-form-linked-board-remove"
+                      onClick={() => {
+                        setFormData((prev) => ({
+                          ...prev,
+                          linkedBoards: prev.linkedBoards.filter((b) => b.id !== board.id),
+                        }));
+                      }}
+                      aria-label="Remove board"
+                    >
+                      <svg width="16" height="16" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
+                        <path
+                          d="M12 4L4 12M4 4L12 12"
+                          stroke="currentColor"
+                          strokeWidth="1.5"
+                          strokeLinecap="round"
+                        />
+                      </svg>
+                    </button>
+                  </div>
+                ))}
+                <button
+                  type="button"
+                  className="workspace-form-add-linked-board-small"
+                  onClick={handleAddLinkedBoard}
+                  title="Add more boards"
+                >
+                  <svg width="20" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                    <path
+                      d="M12 5V19M5 12H19"
+                      stroke="currentColor"
+                      strokeWidth="2"
+                      strokeLinecap="round"
+                    />
+                  </svg>
+                </button>
+              </div>
+            ) : (
+              <button
+                type="button"
+                className="workspace-form-add-linked-board"
+                onClick={handleAddLinkedBoard}
+              >
+                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                  <path
+                    d="M12 5V19M5 12H19"
+                    stroke="currentColor"
+                    strokeWidth="2"
+                    strokeLinecap="round"
+                  />
+                </svg>
+              </button>
+            )}
           </div>
         </div>
 
@@ -535,20 +610,27 @@ const NewWorkspaceModal = ({ show, onClose, onSave }) => {
   );
 
   return (
-    <CustomModal
-      show={show}
-      closeModal={handleClose}
-      className="new-workspace-modal"
-      dialgName="new-workspace-modal-dialog"
-      createModal={false}
-      body={
-        <>
-          {step === 'select' && renderTypeSelection()}
-          {step === 'form' && workspaceType === 'team' && renderTeamWorkspaceForm()}
-          {step === 'form' && workspaceType === 'management' && renderManagementWorkspaceForm()}
-        </>
-      }
-    />
+    <>
+      <CustomModal
+        show={show && showNewWorkspaceModal}
+        closeModal={handleClose}
+        className="new-workspace-modal"
+        dialgName="new-workspace-modal-dialog"
+        createModal={false}
+        body={
+          <>
+            {step === 'select' && renderTypeSelection()}
+            {step === 'form' && workspaceType === 'team' && renderTeamWorkspaceForm()}
+            {step === 'form' && workspaceType === 'management' && renderManagementWorkspaceForm()}
+          </>
+        }
+      />
+      <BoardsListModal
+        show={showBoardsListModal}
+        onClose={handleBoardsListClose}
+        onSelect={handleBoardsSelect}
+      />
+    </>
   );
 };
 
