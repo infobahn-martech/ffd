@@ -298,6 +298,13 @@ function SideNav({ isMobileMenuOpen, onCloseMobileMenu }) {
       if (item.label === 'Add') {
         window.dispatchEvent(new CustomEvent('kanban:add-card'));
       }
+      // If Workspaces icon is clicked, dispatch event to show Workspaces view
+      if (item.label === 'Workspaces') {
+        window.dispatchEvent(new CustomEvent('kanban:show-workspaces', { detail: { activeIcon: item.id } }));
+      } else {
+        // Dispatch event to hide Workspaces view for other icons
+        window.dispatchEvent(new CustomEvent('kanban:hide-workspaces', { detail: { activeIcon: item.id } }));
+      }
     };
 
     return (

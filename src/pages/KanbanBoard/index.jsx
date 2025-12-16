@@ -4,6 +4,7 @@ import { initialData } from "../../helpers/data";
 import Column from "./Column";
 import CardForm from "./CardForm";
 import ZoomControls from "./ZoomControls";
+import Workspaces from "../Workspaces";
 import "../../design/scss/common.scss";
 
 const MAX_ZOOM = 2;
@@ -15,6 +16,7 @@ export default function KanbanBoard() {
   const [selectedCard, setSelectedCard] = useState(null);
   const [isAddMode, setIsAddMode] = useState(false);
   const [zoom, setZoom] = useState(1);
+  const [showWorkspaces, setShowWorkspaces] = useState(false);
 
   const zoomIn = useCallback(() => setZoom(z => Math.min(z + ZOOM_STEP, MAX_ZOOM)), []);
   const zoomOut = useCallback(() => setZoom(z => Math.max(z - ZOOM_STEP, MIN_ZOOM)), []);
@@ -43,9 +45,21 @@ export default function KanbanBoard() {
       setIsAddMode(true);
     };
 
+    const handleShowWorkspaces = () => {
+      setShowWorkspaces(true);
+    };
+
+    const handleHideWorkspaces = () => {
+      setShowWorkspaces(false);
+    };
+
     window.addEventListener('kanban:add-card', handleAddCard);
+    window.addEventListener('kanban:show-workspaces', handleShowWorkspaces);
+    window.addEventListener('kanban:hide-workspaces', handleHideWorkspaces);
     return () => {
       window.removeEventListener('kanban:add-card', handleAddCard);
+      window.removeEventListener('kanban:show-workspaces', handleShowWorkspaces);
+      window.removeEventListener('kanban:hide-workspaces', handleHideWorkspaces);
     };
   }, []);
 
@@ -154,6 +168,11 @@ export default function KanbanBoard() {
       );
     }), [data, handleSelectCard]
   );
+
+  // Show Workspaces view when Workspaces icon is clicked
+  if (showWorkspaces) {
+    return <Workspaces />;
+  }
 
   return (
     <>
