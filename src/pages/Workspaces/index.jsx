@@ -26,13 +26,6 @@ const WorkspaceBarChartIcon = ({ className }) => (
 );
 
 function Workspaces() {
-  const [filterValue, setFilterValue] = useState('');
-  const [selectedWorkspace, setSelectedWorkspace] = useState(null);
-  const [showNewWorkspaceModal, setShowNewWorkspaceModal] = useState(false);
-  const [showAddBoardModal, setShowAddBoardModal] = useState(false);
-  const [selectedWorkspaceForBoard, setSelectedWorkspaceForBoard] = useState(null);
-  const [showArchivedWorkspacesModal, setShowArchivedWorkspacesModal] = useState(false);
-
   // Mock data - replace with actual API data
   const workspaces = [
     {
@@ -58,6 +51,17 @@ function Workspaces() {
       boards: [],
     },
   ];
+
+  // Find the first workspace with boards to set as initially expanded
+  const firstWorkspaceWithBoards = workspaces.find((workspace) => workspace.boards.length > 0);
+  const initialSelectedWorkspace = firstWorkspaceWithBoards ? firstWorkspaceWithBoards.id : null;
+
+  const [filterValue, setFilterValue] = useState('');
+  const [selectedWorkspace, setSelectedWorkspace] = useState(initialSelectedWorkspace);
+  const [showNewWorkspaceModal, setShowNewWorkspaceModal] = useState(false);
+  const [showAddBoardModal, setShowAddBoardModal] = useState(false);
+  const [selectedWorkspaceForBoard, setSelectedWorkspaceForBoard] = useState(null);
+  const [showArchivedWorkspacesModal, setShowArchivedWorkspacesModal] = useState(false);
 
   const filteredWorkspaces = workspaces.filter((workspace) =>
     workspace.name.toLowerCase().includes(filterValue.toLowerCase())

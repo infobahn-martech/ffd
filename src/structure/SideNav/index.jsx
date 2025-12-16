@@ -34,7 +34,6 @@ function SideNav({ isMobileMenuOpen, onCloseMobileMenu }) {
   // 🆕 Kanban icon config
   const kanbanIcons = [
     { id: 1, icon: GroupIcon, label: 'Add' },
-    { id: 2, icon: AnalyticsIcon, label: 'Analytics' },
     { id: 3, icon: InboxIcon, label: 'Workspaces' },
     { id: 4, icon: CalendarIcon, label: 'Calendar' },
     { id: 5, icon: ReportsIcon, label: 'Reports' },

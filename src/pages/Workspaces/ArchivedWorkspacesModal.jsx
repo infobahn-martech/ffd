@@ -138,7 +138,7 @@ const ArchivedWorkspacesModal = ({ show, onClose }) => {
                   <th className="archived-workspaces-th-board">Board</th>
                   <th className="archived-workspaces-th-archived-by">Archived by</th>
                   <th className="archived-workspaces-th-archived-at">Archived at</th>
-                  <th className="archived-workspaces-th-actions"></th>
+                  <th className="archived-workspaces-th-actions">Action</th>
                 </tr>
               </thead>
               <tbody>
