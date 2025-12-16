@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import { useLocation } from 'react-router-dom';
+import { useLocation, useNavigate } from 'react-router-dom';
 
 import DefaultMenu from './components/DefaultMenu';
 import '../../design/scss/common.scss';
@@ -25,9 +25,10 @@ import SettingsIcon from '../../assets/images/Settings.svg';
 
 function SideNav({ isMobileMenuOpen, onCloseMobileMenu }) {
   const { pathname } = useLocation();
+  const navigate = useNavigate();
   const { width } = useWindowSize();
 
-  const isKanbanBoard = pathname === '/kanban-board';
+  const isKanbanBoard = pathname === '/kanban-board' || pathname === '/workspaces';
   const isMobile = width <= 991;
 
   // 🆕 Kanban icon config
@@ -290,7 +291,7 @@ function SideNav({ isMobileMenuOpen, onCloseMobileMenu }) {
     }
   };
 
-  // 🆕 Special layout for /kanban-board
+  // 🆕 Special layout for /kanban-board and /workspaces
   if (isKanbanBoard) {
     const handleIconClick = (item) => {
       setActiveKanbanIcon(item.id);
@@ -298,14 +299,27 @@ function SideNav({ isMobileMenuOpen, onCloseMobileMenu }) {
       if (item.label === 'Add') {
         window.dispatchEvent(new CustomEvent('kanban:add-card'));
       }
-      // If Workspaces icon is clicked, dispatch event to show Workspaces view
+      // If Workspaces icon is clicked, navigate to workspaces route
       if (item.label === 'Workspaces') {
-        window.dispatchEvent(new CustomEvent('kanban:show-workspaces', { detail: { activeIcon: item.id } }));
+        navigate('/workspaces');
+      } else if (pathname === '/workspaces' && item.label !== 'Workspaces') {
+        // If on workspaces page and clicking other icons, navigate to kanban-board
+        navigate('/kanban-board');
+        window.dispatchEvent(new CustomEvent('kanban:hide-workspaces', { detail: { activeIcon: item.id } }));
       } else {
         // Dispatch event to hide Workspaces view for other icons
         window.dispatchEvent(new CustomEvent('kanban:hide-workspaces', { detail: { activeIcon: item.id } }));
       }
     };
+
+    // Set active icon based on current route
+    useEffect(() => {
+      if (pathname === '/workspaces') {
+        setActiveKanbanIcon(3); // Workspaces icon
+      } else if (pathname === '/kanban-board') {
+        setActiveKanbanIcon(2); // Analytics icon (default)
+      }
+    }, [pathname]);
 
     return (
       <aside className="kanban-sidebar">

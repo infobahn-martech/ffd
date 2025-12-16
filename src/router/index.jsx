@@ -10,6 +10,7 @@ import Dashboard from "../pages/Dashboard";
 import Login from "../pages/Authentication";
 import ForgetPassword from "../pages/ForgetPassword";
 import KanbanBoard from "../pages/KanbanBoard";
+import Workspaces from "../pages/Workspaces";
 import Port from "../pages/Port";
 import Role from "../pages/Role";
 import Permission from "../pages/Permission";
@@ -46,6 +47,7 @@ const router = createHashRouter([
               { path: "/users", element: <User /> },
               { path: "/customer-pricing", element: <CustomerPricing /> },
               { path: "/kanban-board", element: <KanbanBoard /> },
+              { path: "/workspaces", element: <Workspaces /> },
               { path: "/port-management", element: <Port /> },
               { path: "/vessel-types", element: <VesselType /> },
               { path: "/barge-types", element: <BargeType /> },
@@ -75,6 +77,7 @@ const router = createHashRouter([
                 children: [
                   { path: "/dashboard", element: <Dashboard /> },
                   { path: "/kanban-board", element: <KanbanBoard /> },
+                  { path: "/workspaces", element: <Workspaces /> },
                   { path: "/custom-inspection", element: <CustomInspection /> },
                   { path: "/settings", element: <h1>Settings</h1> },
                 ],
