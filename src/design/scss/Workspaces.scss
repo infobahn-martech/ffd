@@ -831,6 +831,7 @@
     box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
     overflow: hidden;
     background: #ffffff;
+    padding: 0 !important; // Override global modal-content padding
   }
 
   .modal-backdrop {
@@ -1463,6 +1464,7 @@
     box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
     overflow: hidden;
     background: #ffffff;
+    padding: 0 !important; // Override global modal-content padding
   }
 
   .modal-backdrop {
@@ -1811,6 +1813,7 @@
     box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
     overflow: hidden;
     background: #ffffff;
+    padding: 0 !important; // Override global modal-content padding
   }
 
   .modal-backdrop {
