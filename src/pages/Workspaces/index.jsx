@@ -1,9 +1,27 @@
 import { useState } from 'react';
 import '../../design/scss/Workspaces.scss';
 import GroupIcon from '../../assets/images/Group.svg';
+import AnalyticsIcon from '../../assets/images/analytics 1.svg';
 import ClockIcon from '../../assets/images/ClockIcon.svg';
 import filterIcon from '../../assets/images/filter.svg';
 import NewWorkspaceModal from './NewWorkspaceModal';
+
+// Workspace Icon Component - Bar Chart Icon (like in first image)
+const WorkspaceBarChartIcon = ({ className }) => (
+  <svg
+    className={className}
+    width="24"
+    height="24"
+    viewBox="0 0 24 24"
+    fill="none"
+    xmlns="http://www.w3.org/2000/svg"
+  >
+    <rect x="3" y="17" width="4" height="4" rx="1" fill="currentColor" />
+    <rect x="8" y="12" width="4" height="9" rx="1" fill="currentColor" />
+    <rect x="13" y="8" width="4" height="13" rx="1" fill="currentColor" />
+    <rect x="18" y="4" width="4" height="17" rx="1" fill="currentColor" />
+  </svg>
+);
 
 function Workspaces() {
   const [filterValue, setFilterValue] = useState('');
@@ -191,7 +209,7 @@ function Workspaces() {
               <div className="workspace-card-header">
                 <div className="workspace-card-title">
                   <div className="workspace-icon-wrapper">
-                    <img src={GroupIcon} alt="Workspace" className="workspace-icon" />
+                    <WorkspaceBarChartIcon className="workspace-icon" />
                   </div>
                   <h2 className="workspace-name">{workspace.name}</h2>
                   {workspace.boards.length > 0 && (

@@ -465,7 +465,7 @@
     background: #00368c;
 
     .workspace-icon {
-      filter: brightness(0) invert(1);
+      color: #ffffff;
     }
   }
 
@@ -484,6 +484,7 @@
   height: 22px;
   flex-shrink: 0;
   transition: all 0.2s ease;
+  color: #10b981; // Green color like in the first image
 
   @media ($sm-767) {
     width: 20px;
