@@ -292,6 +292,17 @@ function SideNav({ isMobileMenuOpen, onCloseMobileMenu }) {
     }
   };
 
+  // Set active icon based on current route (must be outside conditional to follow Rules of Hooks)
+  useEffect(() => {
+    if (isKanbanBoard) {
+      if (pathname === '/workspaces') {
+        setActiveKanbanIcon(3); // Workspaces icon
+      } else if (pathname === '/kanban-board') {
+        setActiveKanbanIcon(2); // Analytics icon (default)
+      }
+    }
+  }, [pathname, isKanbanBoard]);
+
   // 🆕 Special layout for /kanban-board and /workspaces
   if (isKanbanBoard) {
     const handleIconClick = (item) => {
@@ -312,15 +323,6 @@ function SideNav({ isMobileMenuOpen, onCloseMobileMenu }) {
         window.dispatchEvent(new CustomEvent('kanban:hide-workspaces', { detail: { activeIcon: item.id } }));
       }
     };
-
-    // Set active icon based on current route
-    useEffect(() => {
-      if (pathname === '/workspaces') {
-        setActiveKanbanIcon(3); // Workspaces icon
-      } else if (pathname === '/kanban-board') {
-        setActiveKanbanIcon(2); // Analytics icon (default)
-      }
-    }, [pathname]);
 
     return (
       <aside className="kanban-sidebar">
