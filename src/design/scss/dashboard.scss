@@ -58,6 +58,28 @@
       padding: 12px 10px;
       padding-left: 60px;
     }
+
+    &.full-width {
+      padding: 0;
+      width: 100%;
+
+      @media ($sm-991) {
+        padding: 0;
+        padding-left: 0;
+      }
+    }
+  }
+
+  &.no-sidebar {
+    .page-cont-wrp {
+      padding: 0;
+      width: 100%;
+
+      @media ($sm-991) {
+        padding: 0;
+        padding-left: 0;
+      }
+    }
   }
 
   .top-sec {

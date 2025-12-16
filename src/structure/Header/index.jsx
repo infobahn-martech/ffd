@@ -55,10 +55,15 @@ function Header({ onMenuToggle, mobileMenuOpen: externalMobileMenuOpen }) {
         <div className="top-links">
 
           {/* SHOW THIS ONLY IF NOT ON KANBAN BOARD */}
-          {pathname !== "/kanban-board" ? (
+          {pathname !== "/kanban-board" && pathname !== "/workflows" ? (
             <NavLink to="/kanban-board" className="top-link active back-link">
               <img src={BackIcon} alt="back" className="back-icon" />
               <span className="link-text" style={{ cursor: 'pointer' }} >Back to Board</span>
+            </NavLink>
+          ) : pathname === "/workflows" ? (
+            <NavLink to="/kanban-board" className="top-link active back-link">
+              <img src={BackIcon} alt="back" className="back-icon" />
+              <span style={{ cursor: 'pointer' }} className="link-text">Back to Board</span>
             </NavLink>
           ) : (
             <>

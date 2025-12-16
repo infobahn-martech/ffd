@@ -1,11 +1,14 @@
 import { useState } from 'react';
+import { useLocation } from 'react-router-dom';
 import '../../design/scss/dashboard.scss';
 import { Outlet } from 'react-router';
 import SideNav from '../SideNav/index';
 import Header from '../Header';
 
 function Layout() {
+  const { pathname } = useLocation();
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+  const hideSidebar = pathname === '/workflows';
 
   const handleMenuToggle = (isOpen) => {
     setMobileMenuOpen(isOpen);
@@ -17,21 +20,23 @@ function Layout() {
 
   return (
     <div className="main-layout">
-      
+
       {/* FULL-WIDTH HEADER */}
-      <Header 
+      <Header
         onMenuToggle={handleMenuToggle}
         mobileMenuOpen={mobileMenuOpen}
       />
 
       {/* SIDEBAR + PAGE CONTENT */}
-      <div className="dashboard-wrp">
-        <SideNav 
-          isMobileMenuOpen={mobileMenuOpen} 
-          onCloseMobileMenu={handleCloseMobileMenu}
-        />
+      <div className={`dashboard-wrp ${hideSidebar ? 'no-sidebar' : ''}`}>
+        {!hideSidebar && (
+          <SideNav
+            isMobileMenuOpen={mobileMenuOpen}
+            onCloseMobileMenu={handleCloseMobileMenu}
+          />
+        )}
 
-        <div className="page-cont-wrp">
+        <div className={`page-cont-wrp ${hideSidebar ? 'full-width' : ''}`}>
           <Outlet />
         </div>
       </div>
