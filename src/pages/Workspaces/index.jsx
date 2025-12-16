@@ -6,6 +6,7 @@ import ClockIcon from '../../assets/images/ClockIcon.svg';
 import filterIcon from '../../assets/images/filter.svg';
 import NewWorkspaceModal from './NewWorkspaceModal';
 import AddBoardModal from './AddBoardModal';
+import ArchivedWorkspacesModal from './ArchivedWorkspacesModal';
 
 // Workspace Icon Component - Bar Chart Icon (like in first image)
 const WorkspaceBarChartIcon = ({ className }) => (
@@ -30,6 +31,7 @@ function Workspaces() {
   const [showNewWorkspaceModal, setShowNewWorkspaceModal] = useState(false);
   const [showAddBoardModal, setShowAddBoardModal] = useState(false);
   const [selectedWorkspaceForBoard, setSelectedWorkspaceForBoard] = useState(null);
+  const [showArchivedWorkspacesModal, setShowArchivedWorkspacesModal] = useState(false);
 
   // Mock data - replace with actual API data
   const workspaces = [
@@ -78,8 +80,7 @@ function Workspaces() {
   };
 
   const handleDeleteWorkspace = () => {
-    // TODO: Implement delete workspace functionality
-    console.log('Delete workspace');
+    setShowArchivedWorkspacesModal(true);
   };
 
   const handleAddBoard = (workspaceId) => {
@@ -314,6 +315,12 @@ function Workspaces() {
         onClose={() => setShowAddBoardModal(false)}
         onSave={handleSaveBoard}
         workspaceId={selectedWorkspaceForBoard}
+      />
+
+      {/* Archived Workspaces Modal */}
+      <ArchivedWorkspacesModal
+        show={showArchivedWorkspacesModal}
+        onClose={() => setShowArchivedWorkspacesModal(false)}
       />
     </div>
   );
