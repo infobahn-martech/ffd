@@ -9,6 +9,7 @@ import NewWorkspaceModal from './NewWorkspaceModal';
 import AddBoardModal from './AddBoardModal';
 import ArchivedWorkspacesModal from './ArchivedWorkspacesModal';
 import RenameBoardModal from './RenameBoardModal';
+import RenameWorkspaceModal from './RenameWorkspaceModal';
 
 // Workspace Icon Component - Bar Chart Icon (like in first image)
 const WorkspaceBarChartIcon = ({ className }) => (
@@ -67,9 +68,13 @@ function Workspaces() {
   const [selectedWorkspaceForBoard, setSelectedWorkspaceForBoard] = useState(null);
   const [showArchivedWorkspacesModal, setShowArchivedWorkspacesModal] = useState(false);
   const [openMenuId, setOpenMenuId] = useState(null);
+  const [openWorkspaceMenuId, setOpenWorkspaceMenuId] = useState(null);
   const [showRenameModal, setShowRenameModal] = useState(false);
+  const [showRenameWorkspaceModal, setShowRenameWorkspaceModal] = useState(false);
   const [selectedBoardForRename, setSelectedBoardForRename] = useState(null);
+  const [selectedWorkspaceForRename, setSelectedWorkspaceForRename] = useState(null);
   const menuRef = useRef(null);
+  const workspaceMenuRef = useRef(null);
 
   const filteredWorkspaces = workspacesData.filter((workspace) =>
     workspace.name.toLowerCase().includes(filterValue.toLowerCase())
@@ -81,15 +86,18 @@ function Workspaces() {
       if (menuRef.current && !menuRef.current.contains(event.target)) {
         setOpenMenuId(null);
       }
+      if (workspaceMenuRef.current && !workspaceMenuRef.current.contains(event.target)) {
+        setOpenWorkspaceMenuId(null);
+      }
     };
 
-    if (openMenuId) {
+    if (openMenuId || openWorkspaceMenuId) {
       document.addEventListener('mousedown', handleClickOutside);
       return () => {
         document.removeEventListener('mousedown', handleClickOutside);
       };
     }
-  }, [openMenuId]);
+  }, [openMenuId, openWorkspaceMenuId]);
 
   const handleWorkspaceClick = (workspace) => {
     if (workspace.boards.length > 0) {
@@ -124,8 +132,38 @@ function Workspaces() {
 
   const handleWorkspaceMenu = (workspaceId, e) => {
     e.stopPropagation();
-    // TODO: Implement workspace menu functionality
-    console.log('Workspace menu:', workspaceId);
+    setOpenWorkspaceMenuId(openWorkspaceMenuId === workspaceId ? null : workspaceId);
+  };
+
+  const handleRenameWorkspace = (workspaceId) => {
+    const workspace = workspacesData.find((w) => w.id === workspaceId);
+    if (workspace) {
+      setSelectedWorkspaceForRename(workspace);
+      setShowRenameWorkspaceModal(true);
+      setOpenWorkspaceMenuId(null);
+    }
+  };
+
+  const handleSaveRenameWorkspace = (workspaceId, newName) => {
+    setWorkspacesData((prev) =>
+      prev.map((workspace) => (workspace.id === workspaceId ? { ...workspace, name: newName } : workspace))
+    );
+    setShowRenameWorkspaceModal(false);
+    setSelectedWorkspaceForRename(null);
+    // TODO: Make API call to update workspace name
+    console.log('Renamed workspace:', workspaceId, 'to:', newName);
+  };
+
+  const handleAddToDashboard = (workspaceId) => {
+    setOpenWorkspaceMenuId(null);
+    // TODO: Implement add to dashboard functionality
+    console.log('Add to dashboard:', workspaceId);
+  };
+
+  const handleArchiveWorkspace = (workspaceId) => {
+    setOpenWorkspaceMenuId(null);
+    // TODO: Implement archive workspace functionality
+    console.log('Archive workspace:', workspaceId);
   };
 
   const handleBoardMenu = (boardId, e) => {
@@ -284,8 +322,7 @@ function Workspaces() {
           filteredWorkspaces.map((workspace) => (
             <div
               key={workspace.id}
-              className={`workspace-card ${selectedWorkspace === workspace.id ? 'expanded' : ''} ${workspace.boards.length === 0 ? 'no-boards' : ''
-                }`}
+              className={`workspace-card ${selectedWorkspace === workspace.id ? 'expanded' : ''} ${workspace.boards.length === 0 ? 'no-boards' : ''} ${openWorkspaceMenuId === workspace.id ? 'menu-open' : ''}`}
               onClick={() => handleWorkspaceClick(workspace)}
             >
               <div className="workspace-card-header">
@@ -321,19 +358,110 @@ function Workspaces() {
                         />
                       </svg>
                     </button>
-                    <button
-                      type="button"
-                      className="workspace-action-btn"
-                      onClick={(e) => handleWorkspaceMenu(workspace.id, e)}
-                      aria-label="More options"
-                      title="More options"
-                    >
-                      <svg width="16" height="16" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
-                        <circle cx="8" cy="4" r="1.5" fill="currentColor" />
-                        <circle cx="8" cy="8" r="1.5" fill="currentColor" />
-                        <circle cx="8" cy="12" r="1.5" fill="currentColor" />
-                      </svg>
-                    </button>
+                    <div className="workspace-menu-wrapper" ref={openWorkspaceMenuId === workspace.id ? workspaceMenuRef : null}>
+                      <button
+                        type="button"
+                        className="workspace-action-btn"
+                        onClick={(e) => handleWorkspaceMenu(workspace.id, e)}
+                        aria-label="More options"
+                        title="More options"
+                      >
+                        <svg width="16" height="16" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
+                          <circle cx="8" cy="4" r="1.5" fill="currentColor" />
+                          <circle cx="8" cy="8" r="1.5" fill="currentColor" />
+                          <circle cx="8" cy="12" r="1.5" fill="currentColor" />
+                        </svg>
+                      </button>
+                      {openWorkspaceMenuId === workspace.id && (
+                        <div className="workspace-context-menu">
+                          <button
+                            type="button"
+                            className="workspace-context-menu-item"
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              handleRenameWorkspace(workspace.id);
+                            }}
+                          >
+                            <svg width="16" height="16" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
+                              <path
+                                d="M11.3333 2.00001C11.5084 1.82497 11.7163 1.68606 11.9455 1.59127C12.1748 1.49648 12.4209 1.44775 12.6667 1.44775C12.9124 1.44775 13.1585 1.49648 13.3878 1.59127C13.617 1.68606 13.8249 1.82497 14 2.00001C14.175 2.17505 14.3139 2.38297 14.4087 2.61224C14.5035 2.8415 14.5522 3.08755 14.5522 3.33334C14.5522 3.57913 14.5035 3.82518 14.4087 4.05445C14.3139 4.28371 14.175 4.49164 14 4.66667L5.00001 13.6667L1.33334 14.6667L2.33334 11L11.3333 2.00001Z"
+                                stroke="currentColor"
+                                strokeWidth="1.5"
+                                strokeLinecap="round"
+                                strokeLinejoin="round"
+                              />
+                            </svg>
+                            <span>Rename</span>
+                          </button>
+                          <button
+                            type="button"
+                            className="workspace-context-menu-item"
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              handleAddToDashboard(workspace.id);
+                            }}
+                          >
+                            <svg width="16" height="16" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
+                              <path
+                                d="M2 2H6V6H2V2Z"
+                                stroke="currentColor"
+                                strokeWidth="1.5"
+                                strokeLinecap="round"
+                                strokeLinejoin="round"
+                              />
+                              <path
+                                d="M10 2H14V6H10V2Z"
+                                stroke="currentColor"
+                                strokeWidth="1.5"
+                                strokeLinecap="round"
+                                strokeLinejoin="round"
+                              />
+                              <path
+                                d="M2 10H6V14H2V10Z"
+                                stroke="currentColor"
+                                strokeWidth="1.5"
+                                strokeLinecap="round"
+                                strokeLinejoin="round"
+                              />
+                              <path
+                                d="M10 10H14V14H10V10Z"
+                                stroke="currentColor"
+                                strokeWidth="1.5"
+                                strokeLinecap="round"
+                                strokeLinejoin="round"
+                              />
+                            </svg>
+                            <span>Add to Dashboard</span>
+                          </button>
+                          <button
+                            type="button"
+                            className="workspace-context-menu-item"
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              handleArchiveWorkspace(workspace.id);
+                            }}
+                          >
+                            <svg width="16" height="16" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
+                              <path
+                                d="M2 4H14M6 4V3C6 2.44772 6.44772 2 7 2H9C9.55228 2 10 2.44772 10 3V4M13 4V13C13 13.5523 12.5523 14 12 14H4C3.44772 14 3 13.5523 3 13V4H13Z"
+                                stroke="currentColor"
+                                strokeWidth="1.5"
+                                strokeLinecap="round"
+                                strokeLinejoin="round"
+                              />
+                              <path
+                                d="M8 8V12M8 8L6 10M8 8L10 10"
+                                stroke="currentColor"
+                                strokeWidth="1.5"
+                                strokeLinecap="round"
+                                strokeLinejoin="round"
+                              />
+                            </svg>
+                            <span>Archive</span>
+                          </button>
+                        </div>
+                      )}
+                    </div>
                   </div>
                 )}
               </div>
@@ -489,6 +617,19 @@ function Workspaces() {
           }}
           onSave={(newName) => handleSaveRename(selectedBoardForRename.id, newName)}
           currentName={selectedBoardForRename.name}
+        />
+      )}
+
+      {/* Rename Workspace Modal */}
+      {selectedWorkspaceForRename && (
+        <RenameWorkspaceModal
+          show={showRenameWorkspaceModal}
+          onClose={() => {
+            setShowRenameWorkspaceModal(false);
+            setSelectedWorkspaceForRename(null);
+          }}
+          onSave={(newName) => handleSaveRenameWorkspace(selectedWorkspaceForRename.id, newName)}
+          currentName={selectedWorkspaceForRename.name}
         />
       )}
     </div>

@@ -386,6 +386,12 @@
   box-shadow: 0 2px 6px rgba(0, 0, 0, 0.06);
   border: 1px solid #e8eaed;
   max-width: 100%;
+  position: relative;
+  z-index: 1;
+
+  &.menu-open {
+    z-index: 100;
+  }
 
   &:hover {
     box-shadow: 0 6px 20px rgba(226, 230, 255, 0.4);
@@ -537,11 +543,17 @@
   align-items: center;
   gap: 8px;
   flex-shrink: 0;
+  position: relative;
 
   @media ($sm-767) {
     width: 100%;
     justify-content: flex-end;
   }
+}
+
+.workspace-menu-wrapper {
+  position: relative;
+  z-index: 2;
 }
 
 .workspace-action-btn {
@@ -584,6 +596,79 @@
     svg {
       width: 16px;
       height: 16px;
+    }
+  }
+}
+
+.workspace-context-menu {
+  position: absolute;
+  top: 100%;
+  right: 0;
+  margin-top: 8px;
+  background: #ffffff;
+  border-radius: 8px;
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.2), 0 2px 4px rgba(0, 0, 0, 0.1);
+  border: 1px solid #e5e7eb;
+  min-width: 200px;
+  z-index: 1001;
+  padding: 6px;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+
+  @media ($sm-767) {
+    min-width: 180px;
+    right: -10px;
+  }
+}
+
+.workspace-context-menu-item {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 10px 12px;
+  border: none;
+  background: transparent;
+  color: #374151;
+  font: normal normal 400 14px/1.4 $font-primary;
+  cursor: pointer;
+  border-radius: 6px;
+  transition: all 0.2s ease;
+  text-align: left;
+  width: 100%;
+
+  &:hover {
+    background: #f3f4f6;
+    color: #00368c;
+  }
+
+  &:active {
+    background: #e5e7eb;
+  }
+
+  svg {
+    width: 16px;
+    height: 16px;
+    flex-shrink: 0;
+    color: #6b7280;
+  }
+
+  &:hover svg {
+    color: #00368c;
+  }
+
+  span {
+    flex: 1;
+  }
+
+  @media ($sm-767) {
+    padding: 8px 10px;
+    font-size: 13px;
+    gap: 8px;
+
+    svg {
+      width: 14px;
+      height: 14px;
     }
   }
 }
