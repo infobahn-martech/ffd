@@ -25,20 +25,6 @@ const CreateWorkflowModal = ({ show, onClose, onSave }) => {
         </svg>
       ),
     },
-    {
-      id: 'initiatives',
-      name: 'Initiatives Workflow',
-      description: 'The Initiatives Workflow is the place where you can create Initiatives and track their automated progress. An initiative is a bigger task, epic, or a project, which you have to break down into smaller work items (cards).',
-      icon: (
-        <svg width="48" height="48" viewBox="0 0 48 48" fill="none" xmlns="http://www.w3.org/2000/svg">
-          <rect x="8" y="16" width="24" height="4" rx="2" fill="#3b82f6" />
-          <rect x="8" y="24" width="20" height="4" rx="2" fill="#3b82f6" />
-          <rect x="8" y="32" width="16" height="4" rx="2" fill="#3b82f6" />
-          <rect x="8" y="12" width="4" height="4" rx="2" fill="#6b7280" />
-          <rect x="8" y="40" width="4" height="4" rx="2" fill="#6b7280" />
-        </svg>
-      ),
-    },
   ];
 
   const handleSave = () => {
