@@ -15,40 +15,40 @@ function EditWorkflows() {
     const [nextStageId, setNextStageId] = useState(100); // Starting ID for new stages
 
     const [workflows, setWorkflows] = useState([
-        {
-            id: 1,
-            name: 'Initiatives Workflow',
-            swimlanes: [
-                {
-                    id: 1,
-                    name: 'Portfolio Lane',
-                    stages: [
-                        { id: 1, name: 'Backlog', area: 'BACKLOG AREA', limit: 0, cardsPerRow: 1, row: 0 },
-                        { id: 2, name: 'Requested', area: 'REQUESTED AREA', limit: 0, cardsPerRow: 1, row: 0 },
-                        { id: 3, name: 'In Progress', area: 'IN PROGRESS AREA', limit: 0, cardsPerRow: 1, row: 0 },
-                        { id: 4, name: 'Done', area: 'DONE AREA', limit: 0, cardsPerRow: 1, row: 0 },
-                        { id: 5, name: 'Ready to Archive', area: 'READY TO ARCHIVE AREA', limit: 0, cardsPerRow: 1, row: 0 },
-                    ],
-                },
-            ],
-        },
-        {
-            id: 2,
-            name: 'Cards workflow',
-            swimlanes: [
-                {
-                    id: 1,
-                    name: 'Default Swimlane',
-                    stages: [
-                        { id: 1, name: 'Backlog', area: 'BACKLOG AREA', limit: 0, cardsPerRow: 1, row: 0 },
-                        { id: 2, name: 'Requested', area: 'REQUESTED AREA', limit: 0, cardsPerRow: 1, row: 0 },
-                        { id: 3, name: 'In Progress', area: 'IN PROGRESS AREA', limit: 0, cardsPerRow: 1, row: 0 },
-                        { id: 4, name: 'Done', area: 'DONE AREA', limit: 0, cardsPerRow: 1, row: 0 },
-                        { id: 5, name: 'Ready to Archive', area: 'READY TO ARCHIVE AREA', limit: 0, cardsPerRow: 1, row: 0 },
-                    ],
-                },
-            ],
-        },
+        // {
+        //     id: 1,
+        //     name: 'Initiatives Workflow',
+        //     swimlanes: [
+        //         {
+        //             id: 1,
+        //             name: 'Portfolio Lane',
+        //             stages: [
+        //                 { id: 1, name: 'Backlog', area: 'BACKLOG AREA', limit: 0, cardsPerRow: 1, row: 0 },
+        //                 { id: 2, name: 'Requested', area: 'REQUESTED AREA', limit: 0, cardsPerRow: 1, row: 0 },
+        //                 { id: 3, name: 'In Progress', area: 'IN PROGRESS AREA', limit: 0, cardsPerRow: 1, row: 0 },
+        //                 { id: 4, name: 'Done', area: 'DONE AREA', limit: 0, cardsPerRow: 1, row: 0 },
+        //                 { id: 5, name: 'Ready to Archive', area: 'READY TO ARCHIVE AREA', limit: 0, cardsPerRow: 1, row: 0 },
+        //             ],
+        //         },
+        //     ],
+        // },
+        // {
+        //     id: 2,
+        //     name: 'Cards workflow',
+        //     swimlanes: [
+        //         {
+        //             id: 1,
+        //             name: 'Default Swimlane',
+        //             stages: [
+        //                 { id: 1, name: 'Backlog', area: 'BACKLOG AREA', limit: 0, cardsPerRow: 1, row: 0 },
+        //                 { id: 2, name: 'Requested', area: 'REQUESTED AREA', limit: 0, cardsPerRow: 1, row: 0 },
+        //                 { id: 3, name: 'In Progress', area: 'IN PROGRESS AREA', limit: 0, cardsPerRow: 1, row: 0 },
+        //                 { id: 4, name: 'Done', area: 'DONE AREA', limit: 0, cardsPerRow: 1, row: 0 },
+        //                 { id: 5, name: 'Ready to Archive', area: 'READY TO ARCHIVE AREA', limit: 0, cardsPerRow: 1, row: 0 },
+        //             ],
+        //         },
+        //     ],
+        // },
     ]);
 
     const areaColors = {
