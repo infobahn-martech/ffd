@@ -4,8 +4,8 @@ import BoardsListModal from './BoardsListModal';
 import '../../design/scss/Workspaces.scss';
 
 const NewWorkspaceModal = ({ show, onClose, onSave }) => {
-  const [step, setStep] = useState('select'); // 'select' or 'form'
-  const [workspaceType, setWorkspaceType] = useState(null); // 'team' or 'management'
+  const [step, setStep] = useState('form'); // Always 'form' now - directly show Team Workspace
+  const [workspaceType, setWorkspaceType] = useState('team'); // Always 'team' - skip selection
   const [showBoardsListModal, setShowBoardsListModal] = useState(false);
   const [showNewWorkspaceModal, setShowNewWorkspaceModal] = useState(true);
   const [formData, setFormData] = useState({
@@ -15,14 +15,9 @@ const NewWorkspaceModal = ({ show, onClose, onSave }) => {
     linkedBoards: [], // For management workspace
   });
 
-  const handleTypeSelect = (type) => {
-    setWorkspaceType(type);
-    setStep('form');
-  };
-
   const handleBack = () => {
-    setStep('select');
-    setWorkspaceType(null);
+    // Back button now just closes the modal instead of going to selection
+    handleClose();
   };
 
   const handleInputChange = (field, value) => {
@@ -62,8 +57,8 @@ const NewWorkspaceModal = ({ show, onClose, onSave }) => {
   };
 
   const handleClose = () => {
-    setStep('select');
-    setWorkspaceType(null);
+    setStep('form');
+    setWorkspaceType('team');
     setShowBoardsListModal(false);
     setShowNewWorkspaceModal(true);
     setFormData({
@@ -75,11 +70,19 @@ const NewWorkspaceModal = ({ show, onClose, onSave }) => {
     onClose();
   };
 
-  // Reset state when modal opens
+  // Reset state when modal opens - directly show Team Workspace form
   useEffect(() => {
     if (show) {
+      setStep('form');
+      setWorkspaceType('team');
       setShowNewWorkspaceModal(true);
       setShowBoardsListModal(false);
+      setFormData({
+        workspaceName: '',
+        boardName: '',
+        boardType: 'board',
+        linkedBoards: [],
+      });
     }
   }, [show]);
 
@@ -619,9 +622,8 @@ const NewWorkspaceModal = ({ show, onClose, onSave }) => {
         createModal={false}
         body={
           <>
-            {step === 'select' && renderTypeSelection()}
-            {step === 'form' && workspaceType === 'team' && renderTeamWorkspaceForm()}
-            {step === 'form' && workspaceType === 'management' && renderManagementWorkspaceForm()}
+            {workspaceType === 'team' && renderTeamWorkspaceForm()}
+            {workspaceType === 'management' && renderManagementWorkspaceForm()}
           </>
         }
       />
