@@ -399,10 +399,16 @@
   display: flex;
   gap: 12px;
   overflow-x: auto;
+  overflow-y: visible;
   padding-bottom: 8px;
+  padding-left: 16px;
+  padding-right: 16px;
+  position: relative;
 
   @media ($sm-767) {
     gap: 8px;
+    padding-left: 8px;
+    padding-right: 8px;
   }
 }
 
@@ -411,6 +417,9 @@
   flex: 1;
   display: flex;
   flex-direction: column;
+  position: relative;
+  padding-bottom: 16px;
+  border-radius: 8px;
 }
 
 .workflow-column-header {
@@ -430,15 +439,24 @@
   border-radius: 0 0 8px 8px;
   padding: 16px;
   min-height: 120px;
+  position: relative;
+  overflow: visible;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
 }
 
 .stage-box-header {
   margin-bottom: 12px;
+  width: 100%;
+  text-align: center;
 }
 
 .stage-name {
   font: normal normal 600 14px/1.4 $font-primary;
   color: $txtColor;
+  text-align: center;
 }
 
 .stage-box-details {
@@ -448,6 +466,9 @@
   margin-bottom: 12px;
   font: normal normal 400 12px/1.4 $font-primary;
   color: #6b7280;
+  align-items: center;
+  text-align: center;
+  width: 100%;
 }
 
 .stage-box-actions {
@@ -455,6 +476,8 @@
   gap: 8px;
   padding-top: 12px;
   border-top: 1px solid #f3f4f6;
+  justify-content: center;
+  width: 100%;
 }
 
 .stage-action-btn {
@@ -495,6 +518,77 @@
   display: flex;
   align-items: center;
   justify-content: center;
+}
+
+// Add Column Buttons (Hover + Icons)
+.workflow-column-add-btn {
+  position: absolute;
+  width: 32px;
+  height: 32px;
+  background: #10b981;
+  border: 2px solid #ffffff;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  z-index: 10;
+  transition: opacity 0.2s ease, transform 0.2s ease;
+  padding: 0;
+  box-shadow: 0 2px 8px rgba(16, 185, 129, 0.3);
+  pointer-events: auto;
+  will-change: transform;
+
+  &:hover {
+    background: #059669;
+    transform: scale(1.1);
+    box-shadow: 0 4px 12px rgba(16, 185, 129, 0.4);
+  }
+
+  svg {
+    width: 16px;
+    height: 16px;
+    stroke: #ffffff;
+    stroke-width: 2;
+  }
+}
+
+.workflow-column-add-left {
+  left: -16px;
+  top: 50%;
+  transform: translateY(-50%);
+  transform-origin: center center;
+  
+  &:hover {
+    transform: translateY(-50%) scale(1.1);
+  }
+}
+
+.workflow-column-add-right {
+  right: -16px;
+  top: 50%;
+  transform: translateY(-50%);
+  transform-origin: center center;
+  
+  &:hover {
+    transform: translateY(-50%) scale(1.1);
+  }
+}
+
+.workflow-column-add-bottom {
+  left: 50%;
+  bottom: -16px;
+  transform: translateX(-50%);
+  transform-origin: center center;
+  
+  &:hover {
+    transform: translateX(-50%) scale(1.1);
+  }
+}
+
+// Ensure workflow-stage-box is the positioning context
+.workflow-stage-box {
+  position: relative;
 }
 
 // Full width layout when sidebar is hidden
@@ -711,4 +805,3 @@
     }
   }
 }
-
