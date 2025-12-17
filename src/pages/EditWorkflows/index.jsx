@@ -237,19 +237,8 @@ function EditWorkflows() {
                                     </button>
                                 </div>
                                 <div className="workflow-header-right">
-                                    {workflow.id === 1 ? (
-                                        <>
-                                            <button className="workflow-action-link">Configure Built-in Rules</button>
-                                            <button className="workflow-action-link">Configure cycle time</button>
-                                            <button className="workflow-action-link workflow-action-link-delete">Delete</button>
-                                        </>
-                                    ) : (
-                                        <>
-                                            <button className="workflow-action-link">Configure cycle time</button>
-                                            <button className="workflow-action-link workflow-action-link-delete">Delete</button>
-                                            <button className="workflow-action-link">Disable</button>
-                                        </>
-                                    )}
+                                    <button className="workflow-action-link workflow-action-link-delete">Delete</button>
+                                    <button className="workflow-action-link">Disable</button>
                                 </div>
                             </div>
 
