@@ -359,7 +359,7 @@ function EditWorkflows() {
                                                                                         )}
 
                                                                                         <div className="stage-box-header">
-                                                                                            <span className="stage-name">{stage.name}</span>
+                                                                                            <span className="stage-name" title={stage.name}>{stage.name}</span>
                                                                                         </div>
                                                                                         <div className="stage-box-details">
                                                                                             <span className="stage-limit">Limit: {stage.limit}</span>

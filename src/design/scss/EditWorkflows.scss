@@ -517,6 +517,11 @@
   font: normal normal 600 14px/1.4 $font-primary;
   color: $txtColor;
   text-align: center;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  display: block;
+  width: 100%;
 }
 
 .stage-box-details {
