@@ -56,7 +56,7 @@ function Header({ onMenuToggle, mobileMenuOpen: externalMobileMenuOpen }) {
           src={logo}
           alt="Sedres Logo"
           className="sedres-logo"
-          onClick={() => navigate('/kanban-board')}
+          onClick={() => navigate('/workspaces')}
           style={{ cursor: 'pointer' }}
         />
 

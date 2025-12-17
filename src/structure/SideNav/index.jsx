@@ -22,7 +22,11 @@ import {
   FiCalendar,
   FiBarChart2,
   FiFileText,
-  FiSettings
+  FiSettings,
+  FiFilter,
+  FiZap,
+  FiMove,
+  FiMoreHorizontal
 } from 'react-icons/fi';
 
 function SideNav({ isMobileMenuOpen, onCloseMobileMenu }) {
@@ -33,14 +37,24 @@ function SideNav({ isMobileMenuOpen, onCloseMobileMenu }) {
   const isKanbanBoard = pathname === '/kanban-board' || pathname === '/workspaces';
   const isMobile = width <= 991;
 
-  // 🆕 Kanban icon config
-  const kanbanIcons = [
+  // 🆕 Kanban icon config - different icons for /kanban-board vs /workspaces
+  const kanbanBoardIcons = [
     { id: 1, icon: FiPlus, label: 'Add' },
+    { id: 2, icon: FiFilter, label: 'Filter' },
+    { id: 3, icon: FiZap, label: 'Magic' },
+    { id: 4, icon: FiMove, label: 'Move' },
+    { id: 5, icon: FiMoreHorizontal, label: 'More' },
+  ];
+
+  const workspacesIcons = [
     { id: 3, icon: FiInbox, label: 'Workspaces' },
     { id: 4, icon: FiCalendar, label: 'Calendar' },
     { id: 5, icon: FiFileText, label: 'Reports' },
     { id: 6, icon: FiSettings, label: 'Settings' },
   ];
+
+  // Select icons based on route
+  const kanbanIcons = pathname === '/kanban-board' ? kanbanBoardIcons : workspacesIcons;
 
   // 🆕 Active state only for Kanban sidebar
   const [activeKanbanIcon, setActiveKanbanIcon] = useState(2); // default Analytics
@@ -298,7 +312,7 @@ function SideNav({ isMobileMenuOpen, onCloseMobileMenu }) {
       if (pathname === '/workspaces') {
         setActiveKanbanIcon(3); // Workspaces icon
       } else if (pathname === '/kanban-board') {
-        setActiveKanbanIcon(2); // Analytics icon (default)
+        setActiveKanbanIcon(1); // Default to Add icon (or can be set to any icon id from kanbanBoardIcons)
       }
     }
   }, [pathname, isKanbanBoard]);
