@@ -285,6 +285,7 @@ function EditWorkflows() {
                                                         <div
                                                             className="workflow-column-header"
                                                             style={{ backgroundColor: areaColors[area] }}
+                                                            title={area}
                                                         >
                                                             {area}
                                                         </div>
