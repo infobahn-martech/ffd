@@ -307,50 +307,6 @@ const NewWorkspaceModal = ({ show, onClose, onSave }) => {
               onChange={(e) => handleInputChange('boardName', e.target.value)}
             />
           </div>
-
-          <div className="workspace-form-field">
-            <label className="workspace-form-label">
-              Team board
-            </label>
-            <div className="workspace-form-radio-group">
-              <label className="workspace-form-radio">
-                <input
-                  type="radio"
-                  name="teamBoardType"
-                  value="aiCanvas"
-                  checked={formData.boardType === 'aiCanvas'}
-                  onChange={() => handleInputChange('boardType', 'aiCanvas')}
-                />
-                <span className="workspace-form-radio-label">
-                  AI Canvas
-                  <span className="workspace-form-info-icon" title="AI Canvas board type">
-                    <svg width="16" height="16" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
-                      <circle cx="8" cy="8" r="7" stroke="currentColor" strokeWidth="1.5" fill="none" />
-                      <path d="M8 5V8M8 11H8.01" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" />
-                    </svg>
-                  </span>
-                </span>
-              </label>
-              <label className="workspace-form-radio">
-                <input
-                  type="radio"
-                  name="teamBoardType"
-                  value="board"
-                  checked={formData.boardType === 'board'}
-                  onChange={() => handleInputChange('boardType', 'board')}
-                />
-                <span className="workspace-form-radio-label">
-                  Board
-                  <span className="workspace-form-info-icon" title="Standard board type">
-                    <svg width="16" height="16" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
-                      <circle cx="8" cy="8" r="7" stroke="currentColor" strokeWidth="1.5" fill="none" />
-                      <path d="M8 5V8M8 11H8.01" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" />
-                    </svg>
-                  </span>
-                </span>
-              </label>
-            </div>
-          </div>
         </div>
 
         <div className="workspace-form-actions">
