@@ -1,0 +1,250 @@
+@import './partials/partials';
+
+.board-filter-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-color: rgba(0, 0, 0, 0.3);
+  z-index: 998;
+  animation: fadeIn 0.2s ease;
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+  }
+
+  to {
+    opacity: 1;
+  }
+}
+
+.board-filter-panel {
+  position: fixed;
+  top: 0;
+  right: 0;
+  width: 400px;
+  height: 100vh;
+  background: #ffffff;
+  box-shadow: -2px 0 12px rgba(0, 0, 0, 0.1);
+  z-index: 999;
+  display: flex;
+  flex-direction: column;
+  animation: slideInRight 0.3s ease;
+  overflow-y: auto;
+
+  @media ($sm-767) {
+    width: 100%;
+    max-width: 360px;
+  }
+
+  @media ($sm-479) {
+    width: 100%;
+    max-width: 100%;
+  }
+}
+
+@keyframes slideInRight {
+  from {
+    transform: translateX(100%);
+  }
+
+  to {
+    transform: translateX(0);
+  }
+}
+
+.board-filter-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 24px;
+  border-bottom: 1px solid #e5e7eb;
+  flex-shrink: 0;
+}
+
+.board-filter-title {
+  font: normal normal 600 20px/1.4 $font-primary;
+  color: $txtColor;
+  margin: 0;
+}
+
+.board-filter-close {
+  width: 32px;
+  height: 32px;
+  border: none;
+  background: #f3f4f6;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  color: #6b7280;
+  transition: all 0.2s ease;
+  padding: 0;
+
+  &:hover {
+    background: #e5e7eb;
+    color: #374151;
+  }
+}
+
+.board-filter-input-wrapper {
+  position: relative;
+  padding: 20px 24px;
+  border-bottom: 1px solid #e5e7eb;
+}
+
+.board-filter-input {
+  width: 100%;
+  padding: 10px 40px 10px 14px;
+  border: 1px solid #e5e7eb;
+  border-radius: 8px;
+  font: normal normal 400 14px/1.5 $font-primary;
+  color: $txtColor;
+  background: #ffffff;
+  transition: all 0.2s ease;
+
+  &:focus {
+    outline: none;
+    border-color: #3b82f6;
+    box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
+  }
+
+  &::placeholder {
+    color: #9ca3af;
+  }
+}
+
+.board-filter-input-icon {
+  position: absolute;
+  right: 36px;
+  top: 50%;
+  transform: translateY(-50%);
+  width: 32px;
+  height: 32px;
+  border: none;
+  background: transparent;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  color: #6b7280;
+  transition: color 0.2s ease;
+  padding: 0;
+
+  &:hover {
+    color: #00368c;
+  }
+}
+
+.board-filter-section {
+  border-bottom: 1px solid #e5e7eb;
+}
+
+.board-filter-section-header {
+  width: 100%;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 16px 24px;
+  background: transparent;
+  border: none;
+  cursor: pointer;
+  transition: background-color 0.2s ease;
+
+  &:hover {
+    background: #f9fafb;
+  }
+}
+
+.board-filter-section-title-wrapper {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.board-filter-chevron {
+  color: #6b7280;
+  transition: transform 0.2s ease;
+}
+
+.board-filter-section-title {
+  font: normal normal 600 14px/1.4 $font-primary;
+  color: $txtColor;
+  margin: 0;
+}
+
+.board-filter-section-icon {
+  width: 28px;
+  height: 28px;
+  border: none;
+  background: transparent;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  color: #6b7280;
+  transition: color 0.2s ease;
+  padding: 0;
+  border-radius: 4px;
+
+  &:hover {
+    color: #00368c;
+    background: #f3f4f6;
+  }
+}
+
+.board-filter-section-content {
+  padding: 0 24px 20px 24px;
+}
+
+.board-filter-new-button {
+  width: 100%;
+  padding: 12px 16px;
+  border: 1px solid #e5e7eb;
+  border-radius: 8px;
+  background: #ffffff;
+  color: #00368c;
+  font: normal normal 500 14px/1.4 $font-primary;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+
+  &:hover {
+    background: #f0f7ff;
+    border-color: #00368c;
+  }
+
+  svg {
+    stroke-width: 2.5;
+  }
+}
+
+// Scrollbar styling
+.board-filter-panel {
+  scrollbar-width: thin;
+  scrollbar-color: rgba(0, 0, 0, 0.2) transparent;
+
+  &::-webkit-scrollbar {
+    width: 8px;
+  }
+
+  &::-webkit-scrollbar-track {
+    background: transparent;
+  }
+
+  &::-webkit-scrollbar-thumb {
+    background: rgba(0, 0, 0, 0.2);
+    border-radius: 4px;
+  }
+
+  &::-webkit-scrollbar-thumb:hover {
+    background: rgba(0, 0, 0, 0.3);
+  }
+}

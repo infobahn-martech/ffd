@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
 
 import DefaultMenu from './components/DefaultMenu';
+import BoardFilterPanel from './components/BoardFilterPanel';
 import '../../design/scss/common.scss';
 import '../../design/scss/sidebar.scss';
 
@@ -24,9 +25,8 @@ import {
   FiFileText,
   FiSettings,
   FiFilter,
-  FiZap,
-  FiMove,
-  FiMoreHorizontal
+  FiLayers,
+  FiImage
 } from 'react-icons/fi';
 
 function SideNav({ isMobileMenuOpen, onCloseMobileMenu }) {
@@ -41,9 +41,8 @@ function SideNav({ isMobileMenuOpen, onCloseMobileMenu }) {
   const kanbanBoardIcons = [
     { id: 1, icon: FiPlus, label: 'Add' },
     { id: 2, icon: FiFilter, label: 'Filter' },
-    { id: 3, icon: FiZap, label: 'Magic' },
-    { id: 4, icon: FiMove, label: 'Move' },
-    { id: 5, icon: FiMoreHorizontal, label: 'More' },
+    { id: 3, icon: FiLayers, label: 'Card tokens' },
+    { id: 4, icon: FiImage, label: 'Board background' },
   ];
 
   const workspacesIcons = [
@@ -58,6 +57,7 @@ function SideNav({ isMobileMenuOpen, onCloseMobileMenu }) {
 
   // 🆕 Active state only for Kanban sidebar
   const [activeKanbanIcon, setActiveKanbanIcon] = useState(2); // default Analytics
+  const [showFilterPanel, setShowFilterPanel] = useState(false);
 
   const [expand, setExpand] = useState(false);
 
@@ -320,6 +320,21 @@ function SideNav({ isMobileMenuOpen, onCloseMobileMenu }) {
   // 🆕 Special layout for /kanban-board and /workspaces
   if (isKanbanBoard) {
     const handleIconClick = (item) => {
+      // If Filter icon is clicked, toggle filter panel
+      if (item.label === 'Filter') {
+        const newShowState = !showFilterPanel;
+        setShowFilterPanel(newShowState);
+        if (newShowState) {
+          setActiveKanbanIcon(item.id);
+        }
+        return;
+      }
+      
+      // Close filter panel when other icons are clicked
+      if (showFilterPanel) {
+        setShowFilterPanel(false);
+      }
+      
       setActiveKanbanIcon(item.id);
       // If Add icon is clicked, dispatch event to open CardForm in add mode
       if (item.label === 'Add') {
@@ -339,34 +354,37 @@ function SideNav({ isMobileMenuOpen, onCloseMobileMenu }) {
     };
 
     return (
-      <aside className="kanban-sidebar">
-        {kanbanIcons.map((item) => {
-          const Icon = item.icon;
-          return (
-            <div
-              key={item.id}
-              className={`kanban-sidebar-icon ${activeKanbanIcon === item.id ? 'active' : ''}`}
-              onClick={() => handleIconClick(item)}
-              data-tooltip-id="sidebar-tooltip"
-              data-tooltip-content={item.label}
-            >
-              <Icon size={22} />
-            </div>
-          );
-        })}
-        <Tooltip
-          id="sidebar-tooltip"
-          place="right"
-          style={{
-            backgroundColor: '#333',
-            color: '#fff',
-            fontSize: '0.85rem',
-            borderRadius: '6px',
-            padding: '6px 10px',
-            fontWeight: '500',
-          }}
-        />
-      </aside>
+      <>
+        <aside className="kanban-sidebar">
+          {kanbanIcons.map((item) => {
+            const Icon = item.icon;
+            return (
+              <div
+                key={item.id}
+                className={`kanban-sidebar-icon ${activeKanbanIcon === item.id || (item.label === 'Filter' && showFilterPanel) ? 'active' : ''}`}
+                onClick={() => handleIconClick(item)}
+                data-tooltip-id="sidebar-tooltip"
+                data-tooltip-content={item.label}
+              >
+                <Icon size={22} />
+              </div>
+            );
+          })}
+          <Tooltip
+            id="sidebar-tooltip"
+            place="right"
+            style={{
+              backgroundColor: '#333',
+              color: '#fff',
+              fontSize: '0.85rem',
+              borderRadius: '6px',
+              padding: '6px 10px',
+              fontWeight: '500',
+            }}
+          />
+        </aside>
+        <BoardFilterPanel show={showFilterPanel} onClose={() => setShowFilterPanel(false)} />
+      </>
     );
   }
 
