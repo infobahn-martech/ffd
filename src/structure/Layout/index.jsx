@@ -8,7 +8,7 @@ import Header from '../Header';
 function Layout() {
   const { pathname } = useLocation();
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
-  const hideSidebar = pathname === '/workflows';
+  const hideSidebar = pathname === '/edit-workflow';
 
   const handleMenuToggle = (isOpen) => {
     setMobileMenuOpen(isOpen);

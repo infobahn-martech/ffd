@@ -69,7 +69,7 @@ function Header({ onMenuToggle, mobileMenuOpen: externalMobileMenuOpen }) {
                 <img src={BackIcon} alt="back" className="back-icon" />
                 <span style={{ cursor: 'pointer' }} className="link-text">Back to Users</span>
               </NavLink>
-              <NavLink to="/workflows" className="top-link">
+              <NavLink to="/edit-workflow" className="top-link">
                 <span className="link-text">Edit Workflows</span>
               </NavLink>
               <NavLink to="/analytics" className="top-link">

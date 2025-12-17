@@ -206,7 +206,7 @@ function Workspaces() {
 
   const handleEditWorkflows = (boardId) => {
     setOpenMenuId(null);
-    navigate(`/edit-workflows?boardId=${boardId}`);
+    navigate(`/edit-workflow?boardId=${boardId}`);
   };
 
   const handleArchiveBoard = (boardId) => {
