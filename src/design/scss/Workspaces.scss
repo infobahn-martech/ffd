@@ -2745,12 +2745,19 @@
   text-align: center;
 }
 
+.archived-workspaces-actions-group {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+}
+
 .archived-workspaces-action-btn {
   width: 28px;
   height: 28px;
   border: none;
   background: transparent;
-  color: #9ca3af;
+  color: #6b7280;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -2758,16 +2765,26 @@
   border-radius: 4px;
   transition: all 0.2s ease;
   padding: 0;
-  margin: 0 auto;
 
   &:hover {
-    background: #f3f4f6;
-    color: #6b7280;
+    background: #e2e6ff;
+    color: #00368c;
+  }
+
+  &.archived-workspaces-action-btn-delete {
+    &:hover {
+      background: #fee2e2;
+      color: #ef4444;
+    }
   }
 
   &:focus {
     outline: 2px solid rgba(0, 54, 140, 0.3);
     outline-offset: 2px;
+  }
+
+  &:active {
+    transform: scale(0.95);
   }
 
   svg {

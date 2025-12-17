@@ -55,6 +55,19 @@ const ArchivedWorkspacesModal = ({ show, onClose }) => {
       item.board.toLowerCase().includes(filterValue.toLowerCase())
   );
 
+  const handleUnarchive = (id) => {
+    // TODO: Implement unarchive functionality
+    console.log('Unarchive item:', id);
+    // Here you would typically make an API call to unarchive the item
+  };
+
+  const handleDelete = (id) => {
+    // TODO: Implement delete functionality
+    console.log('Delete item:', id);
+    // Here you would typically make an API call to delete the item
+    // You might want to add a confirmation modal here
+  };
+
   return (
     <CustomModal
       show={show}
@@ -165,18 +178,48 @@ const ArchivedWorkspacesModal = ({ show, onClose }) => {
                       </td>
                       <td className="archived-workspaces-td-archived-at">{item.archivedAt}</td>
                       <td className="archived-workspaces-td-actions">
-                        <button
-                          type="button"
-                          className="archived-workspaces-action-btn"
-                          aria-label="More options"
-                          title="More options"
-                        >
-                          <svg width="16" height="16" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
-                            <circle cx="8" cy="4" r="1.5" fill="currentColor" />
-                            <circle cx="8" cy="8" r="1.5" fill="currentColor" />
-                            <circle cx="8" cy="12" r="1.5" fill="currentColor" />
-                          </svg>
-                        </button>
+                        <div className="archived-workspaces-actions-group">
+                          <button
+                            type="button"
+                            className="archived-workspaces-action-btn"
+                            aria-label="Unarchive"
+                            title="Unarchive"
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              handleUnarchive(item.id);
+                            }}
+                          >
+                            <svg width="16" height="16" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
+                              <path
+                                d="M8 2V8M8 8L5 5M8 8L11 5M2 10V13C2 13.5523 2.44772 14 3 14H13C13.5523 14 14 13.5523 14 13V10"
+                                stroke="currentColor"
+                                strokeWidth="1.5"
+                                strokeLinecap="round"
+                                strokeLinejoin="round"
+                              />
+                            </svg>
+                          </button>
+                          <button
+                            type="button"
+                            className="archived-workspaces-action-btn archived-workspaces-action-btn-delete"
+                            aria-label="Delete"
+                            title="Delete"
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              handleDelete(item.id);
+                            }}
+                          >
+                            <svg width="16" height="16" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
+                              <path
+                                d="M2 4H14M6 4V3C6 2.44772 6.44772 2 7 2H9C9.55228 2 10 2.44772 10 3V4M13 4V13C13 13.5523 12.5523 14 12 14H4C3.44772 14 3 13.5523 3 13V4H13Z"
+                                stroke="currentColor"
+                                strokeWidth="1.5"
+                                strokeLinecap="round"
+                                strokeLinejoin="round"
+                              />
+                            </svg>
+                          </button>
+                        </div>
                       </td>
                     </tr>
                   ))
