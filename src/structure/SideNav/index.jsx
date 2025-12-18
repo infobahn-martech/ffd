@@ -147,6 +147,13 @@ function SideNav({ isMobileMenuOpen, onCloseMobileMenu }) {
       hasPermission: true,
     },
     {
+      menu: 'Activity Log',
+      isDefaultMenu: true,
+      to: '/activity-log',
+      icon: portIcon,
+      hasPermission: true,
+    },
+    {
       menu: 'Billing Accounts',
       isDefaultMenu: true,
       hasPermission: true,
