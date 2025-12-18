@@ -58,13 +58,6 @@ const SalesOrderList = ({ formValues, handleChange, cardColor }) => {
     callFile: "",
     lineItemCode: "",
     lineItemName: "",
-    startedDate: "",
-    startedTime: "",
-    completedDate: "",
-    completedTime: "",
-    vatPercentage: 15,
-    qty: 1,
-    unitPrice: 100,
   });
 
   // Initialize with dummy data on mount if empty
@@ -174,29 +167,10 @@ const SalesOrderList = ({ formValues, handleChange, cardColor }) => {
 
   const handleAddNewItem = () => {
     // Set default values and open accordion
-    const currentDate = new Date();
-    const completedDate = new Date(currentDate);
-    completedDate.setDate(completedDate.getDate() + 7);
-
-    const formatDateForInput = (date) => {
-      return date.toISOString().split('T')[0];
-    };
-
-    const formatTimeForInput = (date) => {
-      return date.toTimeString().split(' ')[0].substring(0, 5);
-    };
-
     setNewItemForm({
       callFile: "",
       lineItemCode: "",
       lineItemName: "",
-      startedDate: formatDateForInput(currentDate),
-      startedTime: formatTimeForInput(currentDate),
-      completedDate: formatDateForInput(completedDate),
-      completedTime: formatTimeForInput(completedDate),
-      vatPercentage: 15,
-      qty: 1,
-      unitPrice: 100,
     });
     setIsAccordionOpen(true);
   };
@@ -223,19 +197,17 @@ const SalesOrderList = ({ formValues, handleChange, cardColor }) => {
       : 0;
     const newId = maxId + 1;
 
-    // Combine date and time for startedDate
-    const startedDateTime = newItemForm.startedDate && newItemForm.startedTime
-      ? new Date(`${newItemForm.startedDate}T${newItemForm.startedTime}`).toISOString()
-      : new Date().toISOString();
+    // Set default values for removed fields
+    const currentDate = new Date();
+    const completedDate = new Date(currentDate);
+    completedDate.setDate(completedDate.getDate() + 7);
 
-    // Combine date and time for completedDate
-    const completedDateTime = newItemForm.completedDate && newItemForm.completedTime
-      ? new Date(`${newItemForm.completedDate}T${newItemForm.completedTime}`).toISOString()
-      : new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toISOString();
+    const startedDateTime = currentDate.toISOString();
+    const completedDateTime = completedDate.toISOString();
 
-    const qty = parseFloat(newItemForm.qty) || 0;
-    const unitPrice = parseFloat(newItemForm.unitPrice) || 0;
-    const vatPercentage = parseFloat(newItemForm.vatPercentage) || 0;
+    const qty = 1;
+    const unitPrice = 100;
+    const vatPercentage = 15;
 
     const totalUnitAmount = qty * unitPrice;
     const vatAmount = (totalUnitAmount * vatPercentage) / 100;
@@ -266,13 +238,6 @@ const SalesOrderList = ({ formValues, handleChange, cardColor }) => {
       callFile: "",
       lineItemCode: "",
       lineItemName: "",
-      startedDate: "",
-      startedTime: "",
-      completedDate: "",
-      completedTime: "",
-      vatPercentage: 15,
-      qty: 1,
-      unitPrice: 100,
     });
   };
 
@@ -282,13 +247,6 @@ const SalesOrderList = ({ formValues, handleChange, cardColor }) => {
       callFile: "",
       lineItemCode: "",
       lineItemName: "",
-      startedDate: "",
-      startedTime: "",
-      completedDate: "",
-      completedTime: "",
-      vatPercentage: 15,
-      qty: 1,
-      unitPrice: 100,
     });
   };
 
@@ -416,7 +374,7 @@ const SalesOrderList = ({ formValues, handleChange, cardColor }) => {
             </button>
           </div>
           <div className="sales-order-add-accordion-body">
-            <div className="sales-order-add-form-grid">
+            <div className="sales-order-add-form-grid" style={{ gridTemplateColumns: "repeat(3, 1fr)" }}>
               <div className="sales-order-add-form-field">
                 <label>Call File</label>
                 <select
@@ -440,6 +398,7 @@ const SalesOrderList = ({ formValues, handleChange, cardColor }) => {
                   onChange={(e) => handleFormChange("lineItemCode", e.target.value)}
                   placeholder="e.g., ITEM-001"
                   className="sales-order-add-form-input"
+                  required
                 />
               </div>
               <div className="sales-order-add-form-field">
@@ -450,76 +409,7 @@ const SalesOrderList = ({ formValues, handleChange, cardColor }) => {
                   onChange={(e) => handleFormChange("lineItemName", e.target.value)}
                   placeholder="e.g., Container Service"
                   className="sales-order-add-form-input"
-                />
-              </div>
-              <div className="sales-order-add-form-field">
-                <label>Started Date</label>
-                <input
-                  type="date"
-                  value={newItemForm.startedDate}
-                  onChange={(e) => handleFormChange("startedDate", e.target.value)}
-                  className="sales-order-add-form-input"
-                />
-              </div>
-              <div className="sales-order-add-form-field">
-                <label>Started Time</label>
-                <input
-                  type="time"
-                  value={newItemForm.startedTime}
-                  onChange={(e) => handleFormChange("startedTime", e.target.value)}
-                  className="sales-order-add-form-input"
-                />
-              </div>
-              <div className="sales-order-add-form-field">
-                <label>Completed Date</label>
-                <input
-                  type="date"
-                  value={newItemForm.completedDate}
-                  onChange={(e) => handleFormChange("completedDate", e.target.value)}
-                  className="sales-order-add-form-input"
-                />
-              </div>
-              <div className="sales-order-add-form-field">
-                <label>Completed Time</label>
-                <input
-                  type="time"
-                  value={newItemForm.completedTime}
-                  onChange={(e) => handleFormChange("completedTime", e.target.value)}
-                  className="sales-order-add-form-input"
-                />
-              </div>
-              <div className="sales-order-add-form-field">
-                <label>VAT Percentage (%)</label>
-                <input
-                  type="number"
-                  min="0"
-                  max="100"
-                  step="0.01"
-                  value={newItemForm.vatPercentage}
-                  onChange={(e) => handleFormChange("vatPercentage", e.target.value)}
-                  className="sales-order-add-form-input"
-                />
-              </div>
-              <div className="sales-order-add-form-field">
-                <label>Quantity</label>
-                <input
-                  type="number"
-                  min="0"
-                  step="1"
-                  value={newItemForm.qty}
-                  onChange={(e) => handleFormChange("qty", e.target.value)}
-                  className="sales-order-add-form-input"
-                />
-              </div>
-              <div className="sales-order-add-form-field">
-                <label>Unit Price (SAR)</label>
-                <input
-                  type="number"
-                  min="0"
-                  step="0.01"
-                  value={newItemForm.unitPrice}
-                  onChange={(e) => handleFormChange("unitPrice", e.target.value)}
-                  className="sales-order-add-form-input"
+                  required
                 />
               </div>
             </div>
