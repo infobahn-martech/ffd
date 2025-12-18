@@ -140,6 +140,13 @@ function SideNav({ isMobileMenuOpen, onCloseMobileMenu }) {
       hasPermission: true,
     },
     {
+      menu: 'Crew Management',
+      isDefaultMenu: true,
+      to: '/crew-management',
+      icon: portIcon,
+      hasPermission: true,
+    },
+    {
       menu: 'Billing Accounts',
       isDefaultMenu: true,
       hasPermission: true,
