@@ -585,6 +585,42 @@
   justify-content: center;
 }
 
+.workflow-add-placeholder-container {
+  display: flex;
+  justify-content: flex-start;
+  align-items: center;
+  padding-left: 16px;
+  padding-right: 16px;
+}
+
+.workflow-add-placeholder-btn {
+  width: 40px;
+  height: 40px;
+  border: 2px solid #10b981;
+  border-radius: 50%;
+  background: #ffffff;
+  color: #10b981;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  padding: 0;
+  box-shadow: 0 2px 8px rgba(16, 185, 129, 0.2);
+
+  &:hover {
+    background: #10b981;
+    color: #ffffff;
+    transform: scale(1.1);
+    box-shadow: 0 4px 12px rgba(16, 185, 129, 0.4);
+  }
+
+  svg {
+    width: 20px;
+    height: 20px;
+  }
+}
+
 // Add Column Buttons (Hover + Icons)
 .workflow-column-add-btn {
   position: absolute;

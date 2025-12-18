@@ -6,49 +6,47 @@ function EditWorkflows() {
     const [boardName, setBoardName] = useState('Team workspace');
     const [description, setDescription] = useState('There is no description');
     const [defaultTemplates, setDefaultTemplates] = useState('Default template configurations: 0');
-    const [cardSizeType, setCardSizeType] = useState('No pattern');
-    const [allowExceeding, setAllowExceeding] = useState('Always allow');
-    const [limitType, setLimitType] = useState('Card count');
     const [customCardId, setCustomCardId] = useState('Repeating value');
     const [showCreateWorkflowModal, setShowCreateWorkflowModal] = useState(false);
     const [hoveredColumn, setHoveredColumn] = useState(null); // Format: 'workflowId-swimlaneId-stageId'
     const [nextStageId, setNextStageId] = useState(100); // Starting ID for new stages
+    const [placeholderCounts, setPlaceholderCounts] = useState({}); // Format: { 'workflowId-swimlaneId': count }
 
     const [workflows, setWorkflows] = useState([
-        // {
-        //     id: 1,
-        //     name: 'Initiatives Workflow',
-        //     swimlanes: [
-        //         {
-        //             id: 1,
-        //             name: 'Portfolio Lane',
-        //             stages: [
-        //                 { id: 1, name: 'Backlog', area: 'BACKLOG AREA', limit: 0, cardsPerRow: 1, row: 0 },
-        //                 { id: 2, name: 'Requested', area: 'REQUESTED AREA', limit: 0, cardsPerRow: 1, row: 0 },
-        //                 { id: 3, name: 'In Progress', area: 'IN PROGRESS AREA', limit: 0, cardsPerRow: 1, row: 0 },
-        //                 { id: 4, name: 'Done', area: 'DONE AREA', limit: 0, cardsPerRow: 1, row: 0 },
-        //                 { id: 5, name: 'Ready to Archive', area: 'READY TO ARCHIVE AREA', limit: 0, cardsPerRow: 1, row: 0 },
-        //             ],
-        //         },
-        //     ],
-        // },
-        // {
-        //     id: 2,
-        //     name: 'Cards workflow',
-        //     swimlanes: [
-        //         {
-        //             id: 1,
-        //             name: 'Default Swimlane',
-        //             stages: [
-        //                 { id: 1, name: 'Backlog', area: 'BACKLOG AREA', limit: 0, cardsPerRow: 1, row: 0 },
-        //                 { id: 2, name: 'Requested', area: 'REQUESTED AREA', limit: 0, cardsPerRow: 1, row: 0 },
-        //                 { id: 3, name: 'In Progress', area: 'IN PROGRESS AREA', limit: 0, cardsPerRow: 1, row: 0 },
-        //                 { id: 4, name: 'Done', area: 'DONE AREA', limit: 0, cardsPerRow: 1, row: 0 },
-        //                 { id: 5, name: 'Ready to Archive', area: 'READY TO ARCHIVE AREA', limit: 0, cardsPerRow: 1, row: 0 },
-        //             ],
-        //         },
-        //     ],
-        // },
+        {
+            id: 1,
+            name: 'Initiatives Workflow',
+            swimlanes: [
+                {
+                    id: 1,
+                    name: 'Portfolio Lane',
+                    stages: [
+                        { id: 1, name: 'Backlog', area: 'BACKLOG AREA', limit: 0, cardsPerRow: 1, row: 0 },
+                        { id: 2, name: 'Requested', area: 'REQUESTED AREA', limit: 0, cardsPerRow: 1, row: 0 },
+                        { id: 3, name: 'In Progress', area: 'IN PROGRESS AREA', limit: 0, cardsPerRow: 1, row: 0 },
+                        { id: 4, name: 'Done', area: 'DONE AREA', limit: 0, cardsPerRow: 1, row: 0 },
+                        { id: 5, name: 'Ready to Archive', area: 'READY TO ARCHIVE AREA', limit: 0, cardsPerRow: 1, row: 0 },
+                    ],
+                },
+            ],
+        },
+        {
+            id: 2,
+            name: 'Cards workflow',
+            swimlanes: [
+                {
+                    id: 1,
+                    name: 'Default Swimlane',
+                    stages: [
+                        { id: 1, name: 'Backlog', area: 'BACKLOG AREA', limit: 0, cardsPerRow: 1, row: 0 },
+                        { id: 2, name: 'Requested', area: 'REQUESTED AREA', limit: 0, cardsPerRow: 1, row: 0 },
+                        { id: 3, name: 'In Progress', area: 'IN PROGRESS AREA', limit: 0, cardsPerRow: 1, row: 0 },
+                        { id: 4, name: 'Done', area: 'DONE AREA', limit: 0, cardsPerRow: 1, row: 0 },
+                        { id: 5, name: 'Ready to Archive', area: 'READY TO ARCHIVE AREA', limit: 0, cardsPerRow: 1, row: 0 },
+                    ],
+                },
+            ],
+        },
     ]);
 
     const areaColors = {
@@ -201,6 +199,15 @@ function EditWorkflows() {
                 return workflow;
             });
         });
+    };
+
+    // Handle adding a placeholder to all columns in a swimlane
+    const handleAddPlaceholder = (workflowId, swimlaneId) => {
+        const key = `${workflowId}-${swimlaneId}`;
+        setPlaceholderCounts(prev => ({
+            ...prev,
+            [key]: (prev[key] || 0) + 1
+        }));
     };
 
     return (
@@ -404,12 +411,26 @@ function EditWorkflows() {
                                                                     );
                                                                 })}
                                                         </div>
-                                                        <div className="workflow-stage-placeholder">
-                                                            <span>Limit: 0</span>
-                                                        </div>
+                                                        {Array.from({ length: (placeholderCounts[`${workflow.id}-${swimlane.id}`] || 0) + 1 }).map((_, index) => (
+                                                            <div key={index} className="workflow-stage-placeholder">
+                                                                <span>Limit: 0</span>
+                                                            </div>
+                                                        ))}
                                                     </div>
                                                 );
                                             })}
+                                        </div>
+                                        <div className="workflow-add-placeholder-container">
+                                            <button
+                                                className="workflow-add-placeholder-btn"
+                                                type="button"
+                                                onClick={() => handleAddPlaceholder(workflow.id, swimlane.id)}
+                                                title="Add placeholder to all columns"
+                                            >
+                                                <svg width="20" height="20" viewBox="0 0 20 20" fill="none" xmlns="http://www.w3.org/2000/svg">
+                                                    <path d="M10 4V16M4 10H16" stroke="currentColor" strokeWidth="2" strokeLinecap="round" />
+                                                </svg>
+                                            </button>
                                         </div>
                                     </div>
                                 );
@@ -483,39 +504,6 @@ function EditWorkflows() {
                                 value={defaultTemplates}
                                 onChange={(e) => setDefaultTemplates(e.target.value)}
                             />
-                        </div>
-
-                        <div className="workflows-config-field">
-                            <label className="workflows-config-label">Card size type</label>
-                            <select
-                                className="workflows-config-select"
-                                value={cardSizeType}
-                                onChange={(e) => setCardSizeType(e.target.value)}
-                            >
-                                <option>No pattern</option>
-                            </select>
-                        </div>
-
-                        <div className="workflows-config-field">
-                            <label className="workflows-config-label">Allow exceeding the limits</label>
-                            <select
-                                className="workflows-config-select"
-                                value={allowExceeding}
-                                onChange={(e) => setAllowExceeding(e.target.value)}
-                            >
-                                <option>Always allow</option>
-                            </select>
-                        </div>
-
-                        <div className="workflows-config-field">
-                            <label className="workflows-config-label">Limit type</label>
-                            <select
-                                className="workflows-config-select"
-                                value={limitType}
-                                onChange={(e) => setLimitType(e.target.value)}
-                            >
-                                <option>Card count</option>
-                            </select>
                         </div>
 
                         <div className="workflows-config-field">
