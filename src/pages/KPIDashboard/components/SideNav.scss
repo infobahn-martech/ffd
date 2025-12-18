@@ -1,0 +1,58 @@
+.kpi-sidenav {
+  width: 280px;
+  min-width: 280px;
+  height: 100vh;
+  position: fixed;
+  left: 0;
+  top: 0;
+  background-size: cover;
+  background-position: center;
+  background-repeat: no-repeat;
+  z-index: 10;
+  overflow-y: auto;
+  overflow-x: hidden;
+
+  &__content {
+    padding: 24px 20px;
+    height: 100%;
+    display: flex;
+    flex-direction: column;
+  }
+
+  &__logo {
+    margin-bottom: 32px;
+
+    &-image {
+      width: 213px;
+      height: 52px;
+      aspect-ratio: 213/52;
+      background: #050b27 50% / cover no-repeat;
+      margin-bottom: 16px;
+    }
+  }
+
+  &__separator {
+    width: 100%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+
+    svg {
+      width: 100%;
+      height: 1px;
+      max-width: 234px;
+    }
+  }
+
+  &__menu {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+  }
+
+  &__help {
+    margin-top: auto;
+    padding-top: 20px;
+  }
+}
