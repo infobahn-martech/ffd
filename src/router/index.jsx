@@ -26,6 +26,7 @@ import Crew from "../pages/Crew";
 import ActivityLog from "../pages/ActivityLog";
 import ReportManagement from "../pages/ReportManagement";
 import Notification from "../pages/Notification";
+import KPIDashboard from "../pages/KPIDashboard";
 
 // 🔥 Set true to bypass auth temporarily
 const TEST_MODE = true;
@@ -39,6 +40,9 @@ const router = createHashRouter([
       // Always available public pages
       { path: "/", element: <Login /> },
       { path: "/forget-password", element: <ForgetPassword /> },
+
+      // Standalone KPI Dashboard (no layout, header, or sidebar)
+      { path: "/kpi-dashboard", element: <KPIDashboard /> },
 
       // If TEST MODE, bypass all auth guards
       ...(TEST_MODE
