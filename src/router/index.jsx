@@ -25,6 +25,7 @@ import CustomInspection from "../pages/CustomInspection";
 import Crew from "../pages/Crew";
 import ActivityLog from "../pages/ActivityLog";
 import ReportManagement from "../pages/ReportManagement";
+import Notification from "../pages/Notification";
 
 // 🔥 Set true to bypass auth temporarily
 const TEST_MODE = true;
@@ -62,6 +63,7 @@ const router = createHashRouter([
               { path: "/crew-management", element: <Crew /> },
               { path: "/report-management", element: <ReportManagement /> },
               { path: "/activity-log", element: <ActivityLog /> },
+              { path: "/notification", element: <Notification /> },
               { path: "/settings", element: <h1>Settings</h1> },
             ],
           },
@@ -91,6 +93,7 @@ const router = createHashRouter([
                   { path: "/crew-management", element: <Crew /> },
                   { path: "/report-management", element: <ReportManagement /> },
                   { path: "/activity-log", element: <ActivityLog /> },
+                  { path: "/notification", element: <Notification /> },
                   { path: "/settings", element: <h1>Settings</h1> },
                 ],
               },

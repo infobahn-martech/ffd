@@ -161,6 +161,13 @@ function SideNav({ isMobileMenuOpen, onCloseMobileMenu }) {
       hasPermission: true,
     },
     {
+      menu: 'Notification',
+      isDefaultMenu: true,
+      to: '/notification',
+      icon: portIcon,
+      hasPermission: true,
+    },
+    {
       menu: 'Billing Accounts',
       isDefaultMenu: true,
       hasPermission: true,
