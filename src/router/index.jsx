@@ -24,6 +24,7 @@ import BargeType from "../pages/BargeType";
 import CustomInspection from "../pages/CustomInspection";
 import Crew from "../pages/Crew";
 import ActivityLog from "../pages/ActivityLog";
+import ReportManagement from "../pages/ReportManagement";
 
 // 🔥 Set true to bypass auth temporarily
 const TEST_MODE = true;
@@ -59,6 +60,7 @@ const router = createHashRouter([
               { path: "/billing-entity", element: <BillingEntity /> },
               { path: "/custom-inspection", element: <CustomInspection /> },
               { path: "/crew-management", element: <Crew /> },
+              { path: "/report-management", element: <ReportManagement /> },
               { path: "/activity-log", element: <ActivityLog /> },
               { path: "/settings", element: <h1>Settings</h1> },
             ],
@@ -87,6 +89,7 @@ const router = createHashRouter([
                   { path: "/edit-workflow", element: <EditWorkflows /> },
                   { path: "/custom-inspection", element: <CustomInspection /> },
                   { path: "/crew-management", element: <Crew /> },
+                  { path: "/report-management", element: <ReportManagement /> },
                   { path: "/activity-log", element: <ActivityLog /> },
                   { path: "/settings", element: <h1>Settings</h1> },
                 ],

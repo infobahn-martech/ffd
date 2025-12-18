@@ -147,6 +147,13 @@ function SideNav({ isMobileMenuOpen, onCloseMobileMenu }) {
       hasPermission: true,
     },
     {
+      menu: 'Report Management',
+      isDefaultMenu: true,
+      to: '/report-management',
+      icon: portIcon,
+      hasPermission: true,
+    },
+    {
       menu: 'Activity Log',
       isDefaultMenu: true,
       to: '/activity-log',
