@@ -329,12 +329,12 @@ function SideNav({ isMobileMenuOpen, onCloseMobileMenu }) {
         }
         return;
       }
-      
+
       // Close filter panel when other icons are clicked
       if (showFilterPanel) {
         setShowFilterPanel(false);
       }
-      
+
       setActiveKanbanIcon(item.id);
       // If Add icon is clicked, dispatch event to open CardForm in add mode
       if (item.label === 'Add') {
