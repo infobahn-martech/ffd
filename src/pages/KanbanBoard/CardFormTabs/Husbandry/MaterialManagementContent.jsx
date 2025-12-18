@@ -335,7 +335,7 @@ const MaterialManagementContent = ({ formValues, handleChange, cardColor }) => {
             </div>
 
             <div className="col-12 mb-3">
-              <FormField label="Document Upload (Multiple)">
+              <FormField label="Delivery Receipt">
                 <div
                   className={`document-upload-zone ${isDragging ? "dragging" : ""}`}
                   onDragOver={handleDragOver}

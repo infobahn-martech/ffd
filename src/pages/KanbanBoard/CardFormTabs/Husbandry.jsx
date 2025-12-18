@@ -25,85 +25,112 @@ import WasteDisposalContent from "./Husbandry/WasteDisposalContent";
 import MaterialManagementContent from "./Husbandry/MaterialManagementContent";
 
 // Service Selection Component
-const ServiceSelection = ({ onSelectService, cardColor }) => {
+const ServiceSelection = ({ onSelectService, cardColor, bookedServices = [] }) => {
+  const services = [
+    { id: MAIN_TABS.CREW_MANAGEMENT, label: "Crew Management", icon: "clock" },
+    { id: MAIN_TABS.MATERIAL_MANAGEMENT, label: "Material Management", icon: "document" },
+    { id: "LAUNCH_HIRE", label: "Launch Hire", icon: "document" },
+    { id: MAIN_TABS.MWP_RENEWAL, label: "MWP Renewal", icon: "renewal" },
+    { id: MAIN_TABS.THIRD_PARTY_SERVICES, label: "Third-Party Services", icon: "document" },
+  ];
+
+  const getServiceIcon = (iconType) => {
+    switch (iconType) {
+      case "clock":
+        return (
+          <svg width="48" height="48" viewBox="0 0 48 48" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <circle cx="24" cy="24" r="20" stroke="currentColor" strokeWidth="2" fill="none" />
+            <path d="M24 12V24L30 30" stroke="currentColor" strokeWidth="2" strokeLinecap="round" />
+          </svg>
+        );
+      case "renewal":
+        return (
+          <svg width="48" height="48" viewBox="0 0 48 48" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <circle cx="24" cy="24" r="20" stroke="currentColor" strokeWidth="2" fill="none" />
+            <path d="M28 16L32 12L28 8" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+            <path d="M20 32L16 36L20 40" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+            <path d="M32 12C30 16 28 20 28 24C28 28 30 32 32 36M16 12C18 16 20 20 20 24C20 28 18 32 16 36" stroke="currentColor" strokeWidth="2" strokeLinecap="round" />
+          </svg>
+        );
+      default:
+        return (
+          <svg width="48" height="48" viewBox="0 0 48 48" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <rect x="8" y="8" width="32" height="32" rx="4" stroke="currentColor" strokeWidth="2" fill="none" />
+            <path d="M16 20H32M16 24H32M16 28H24" stroke="currentColor" strokeWidth="2" strokeLinecap="round" />
+          </svg>
+        );
+    }
+  };
+
+  const getStatusBadgeClass = (status) => {
+    const statusMap = {
+      "Pending": "booked-status-pending",
+      "In Progress": "booked-status-in-progress",
+      "Completed": "booked-status-completed",
+      "Cancelled": "booked-status-cancelled",
+    };
+    return statusMap[status] || "booked-status-pending";
+  };
+
   return (
     <div className="husbandry-service-selection" style={{ "--card-color": cardColor }}>
       <div className="husbandry-service-selection-content">
         <h2 className="husbandry-service-selection-title">What services do you need?</h2>
-        <div className="husbandry-service-options">
-          <button
-            type="button"
-            className="husbandry-service-option"
-            onClick={() => onSelectService(MAIN_TABS.CREW_MANAGEMENT)}
-            style={{ "--card-color": cardColor }}
-          >
-            <div className="husbandry-service-option-icon">
-              <svg width="48" height="48" viewBox="0 0 48 48" fill="none" xmlns="http://www.w3.org/2000/svg">
-                <circle cx="24" cy="24" r="20" stroke="currentColor" strokeWidth="2" fill="none" />
-                <path d="M24 12V24L30 30" stroke="currentColor" strokeWidth="2" strokeLinecap="round" />
-              </svg>
-            </div>
-            <span className="husbandry-service-option-label">Crew Management</span>
-          </button>
-          <button
-            type="button"
-            className="husbandry-service-option"
-            onClick={() => onSelectService(MAIN_TABS.MATERIAL_MANAGEMENT)}
-            style={{ "--card-color": cardColor }}
-          >
-            <div className="husbandry-service-option-icon">
-              <svg width="48" height="48" viewBox="0 0 48 48" fill="none" xmlns="http://www.w3.org/2000/svg">
-                <rect x="8" y="8" width="32" height="32" rx="4" stroke="currentColor" strokeWidth="2" fill="none" />
-                <path d="M16 20H32M16 24H32M16 28H24" stroke="currentColor" strokeWidth="2" strokeLinecap="round" />
-              </svg>
-            </div>
-            <span className="husbandry-service-option-label">Material Management</span>
-          </button>
-          <button
-            type="button"
-            className="husbandry-service-option"
-            onClick={() => onSelectService("LAUNCH_HIRE")}
-            style={{ "--card-color": cardColor }}
-          >
-            <div className="husbandry-service-option-icon">
-              <svg width="48" height="48" viewBox="0 0 48 48" fill="none" xmlns="http://www.w3.org/2000/svg">
-                <rect x="8" y="8" width="32" height="32" rx="4" stroke="currentColor" strokeWidth="2" fill="none" />
-                <path d="M16 20H32M16 24H32M16 28H24" stroke="currentColor" strokeWidth="2" strokeLinecap="round" />
-              </svg>
-            </div>
-            <span className="husbandry-service-option-label">Launch Hire</span>
-          </button>
-          <button
-            type="button"
-            className="husbandry-service-option"
-            onClick={() => onSelectService(MAIN_TABS.MWP_RENEWAL)}
-            style={{ "--card-color": cardColor }}
-          >
-            <div className="husbandry-service-option-icon">
-              <svg width="48" height="48" viewBox="0 0 48 48" fill="none" xmlns="http://www.w3.org/2000/svg">
-                <circle cx="24" cy="24" r="20" stroke="currentColor" strokeWidth="2" fill="none" />
-                <path d="M28 16L32 12L28 8" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
-                <path d="M20 32L16 36L20 40" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
-                <path d="M32 12C30 16 28 20 28 24C28 28 30 32 32 36M16 12C18 16 20 20 20 24C20 28 18 32 16 36" stroke="currentColor" strokeWidth="2" strokeLinecap="round" />
-              </svg>
-            </div>
-            <span className="husbandry-service-option-label">MWP Renewal</span>
-          </button>
-          <button
-            type="button"
-            className="husbandry-service-option"
-            onClick={() => onSelectService(MAIN_TABS.THIRD_PARTY_SERVICES)}
-            style={{ "--card-color": cardColor }}
-          >
-            <div className="husbandry-service-option-icon">
-              <svg width="48" height="48" viewBox="0 0 48 48" fill="none" xmlns="http://www.w3.org/2000/svg">
-                <rect x="8" y="8" width="32" height="32" rx="4" stroke="currentColor" strokeWidth="2" fill="none" />
-                <path d="M16 20H32M16 24H32M16 28H24" stroke="currentColor" strokeWidth="2" strokeLinecap="round" />
-              </svg>
-            </div>
-            <span className="husbandry-service-option-label">Third-Party Services</span>
-          </button>
+        <div className="husbandry-service-options-row">
+          {services.map((service) => {
+            const isBooked = bookedServices.some(bs => bs.id === service.id);
+            return (
+              <button
+                key={service.id}
+                type="button"
+                className={`husbandry-service-option ${isBooked ? "booked" : ""}`}
+                onClick={() => onSelectService(service.id)}
+                style={{ "--card-color": cardColor }}
+              >
+                <div className="husbandry-service-option-icon">
+                  {getServiceIcon(service.icon)}
+                </div>
+                <span className="husbandry-service-option-label">{service.label}</span>
+                {isBooked && (
+                  <div className="husbandry-service-booked-badge">
+                    <svg width="16" height="16" viewBox="0 0 20 20" fill="none" xmlns="http://www.w3.org/2000/svg">
+                      <circle cx="10" cy="10" r="9" fill="#00B894" stroke="#00B894" strokeWidth="2" />
+                      <path d="M6 10L9 13L14 7" stroke="white" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+                    </svg>
+                  </div>
+                )}
+              </button>
+            );
+          })}
         </div>
+
+        {bookedServices.length > 0 && (
+          <div className="husbandry-booked-services-section">
+            <h3 className="husbandry-booked-services-title">Booked Services</h3>
+            <div className="husbandry-booked-services-list">
+              {bookedServices.map((service) => (
+                <div key={service.id} className="husbandry-booked-service-item">
+                  <div className="husbandry-booked-service-info">
+                    <div className="husbandry-booked-service-icon">
+                      {getServiceIcon(services.find(s => s.id === service.id)?.icon || "document")}
+                    </div>
+                    <div className="husbandry-booked-service-details">
+                      <span className="husbandry-booked-service-name">
+                        {services.find(s => s.id === service.id)?.label || service.id}
+                      </span>
+                      {service.subService && (
+                        <span className="husbandry-booked-service-sub">{service.subService}</span>
+                      )}
+                    </div>
+                  </div>
+                  <div className={`husbandry-booked-service-status ${getStatusBadgeClass(service.status)}`}>
+                    {service.status || "Pending"}
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
       </div>
     </div>
   );
@@ -112,6 +139,7 @@ const ServiceSelection = ({ onSelectService, cardColor }) => {
 ServiceSelection.propTypes = {
   onSelectService: PropTypes.func.isRequired,
   cardColor: PropTypes.string,
+  bookedServices: PropTypes.array,
 };
 
 // Main Husbandry Component
@@ -124,12 +152,30 @@ function Husbandry({ card, formValues, handleChange }) {
   );
   const [selectedActionTab, setSelectedActionTab] = useState(null);
   const [isLaunchHireMode, setIsLaunchHireMode] = useState(false);
+  const [bookedServices, setBookedServices] = useState([]); // Track booked services with status
   const cardColor = "#00368c"; // Fixed color for all buttons, effects, and backgrounds
 
 
   const handleServiceSelect = useCallback((tab) => {
     setServiceSelected(true);
     setSelectedActionTab(null); // Reset selected action
+
+    // Add or update booked service
+    setBookedServices(prev => {
+      const existing = prev.find(bs => bs.id === tab);
+      if (existing) {
+        // Service already booked, update it
+        return prev.map(bs => bs.id === tab ? { ...bs, status: bs.status || "Pending" } : bs);
+      } else {
+        // New service booking
+        const newService = {
+          id: tab,
+          status: "Pending",
+          subService: null,
+        };
+        return [...prev, newService];
+      }
+    });
 
     // Handle "LAUNCH_HIRE" selection - behaves like Crew Management but with Launch Hire only
     if (tab === "LAUNCH_HIRE") {
@@ -177,8 +223,34 @@ function Husbandry({ card, formValues, handleChange }) {
     } else {
       // Show only the selected action tab
       setSelectedActionTab(tab);
+
+      // Update booked service with sub-service info
+      if (activeMainTab) {
+        setBookedServices(prev => {
+          const service = prev.find(bs => bs.id === activeMainTab);
+          if (service) {
+            const subServiceLabels = {
+              [CREW_MANAGEMENT_SUBTABS.TRANSPORT]: "Transport",
+              [CREW_MANAGEMENT_SUBTABS.CG_PASS]: "CG Pass",
+              [CREW_MANAGEMENT_SUBTABS.ZAWIL_PASS]: "Zawil Pass",
+              [CREW_MANAGEMENT_SUBTABS.LAUNCH_HIRE]: "Launch Hire",
+              [CREW_MANAGEMENT_SUBTABS.HOTEL]: "Hotel",
+              [CREW_MANAGEMENT_SUBTABS.MEDICAL_SERVICE]: "Medical Service",
+              [MATERIAL_MANAGEMENT_SUBTABS.MATERIAL_LIST]: "Material List",
+              [MATERIAL_MANAGEMENT_SUBTABS.WASTE_DISPOSAL]: "Waste Disposal",
+            };
+
+            return prev.map(bs =>
+              bs.id === activeMainTab
+                ? { ...bs, subService: subServiceLabels[tab] || null }
+                : bs
+            );
+          }
+          return prev;
+        });
+      }
     }
-  }, []);
+  }, [activeMainTab]);
 
   // Handle navigation from CrewContent when crew is selected and action is chosen
   const handleNavigateToTab = useCallback((tabName) => {
@@ -202,6 +274,28 @@ function Husbandry({ card, formValues, handleChange }) {
       setActiveSubTab(targetTab);
       // Set the selected action tab to show only this submenu item
       setSelectedActionTab(targetTab);
+
+      // Update booked service with sub-service info
+      setBookedServices(prev => {
+        const service = prev.find(bs => bs.id === MAIN_TABS.CREW_MANAGEMENT);
+        if (service) {
+          const subServiceLabels = {
+            [CREW_MANAGEMENT_SUBTABS.TRANSPORT]: "Transport",
+            [CREW_MANAGEMENT_SUBTABS.CG_PASS]: "CG Pass",
+            [CREW_MANAGEMENT_SUBTABS.ZAWIL_PASS]: "Zawil Pass",
+            [CREW_MANAGEMENT_SUBTABS.LAUNCH_HIRE]: "Launch Hire",
+            [CREW_MANAGEMENT_SUBTABS.HOTEL]: "Hotel",
+            [CREW_MANAGEMENT_SUBTABS.MEDICAL_SERVICE]: "Medical Service",
+          };
+
+          return prev.map(bs =>
+            bs.id === MAIN_TABS.CREW_MANAGEMENT
+              ? { ...bs, subService: subServiceLabels[targetTab] || null }
+              : bs
+          );
+        }
+        return prev;
+      });
     }
   }, [activeMainTab]);
 
@@ -212,6 +306,7 @@ function Husbandry({ card, formValues, handleChange }) {
     setActiveSubTab(CREW_MANAGEMENT_SUBTABS.CREW);
     setSelectedActionTab(null);
     setIsLaunchHireMode(false);
+    // Keep booked services when going back
   }, []);
 
   const renderCrewManagementContent = () => {
@@ -320,7 +415,11 @@ function Husbandry({ card, formValues, handleChange }) {
   if (!serviceSelected) {
     return (
       <div className="operation-wrapper husbandry-wrapper" style={{ "--card-color": cardColor }}>
-        <ServiceSelection onSelectService={handleServiceSelect} cardColor={cardColor} />
+        <ServiceSelection
+          onSelectService={handleServiceSelect}
+          cardColor={cardColor}
+          bookedServices={bookedServices}
+        />
       </div>
     );
   }
