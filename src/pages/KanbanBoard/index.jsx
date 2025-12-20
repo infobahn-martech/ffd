@@ -7,11 +7,18 @@ import Workspaces from "../Workspaces";
 import "../../design/scss/common.scss";
 
 export default function KanbanBoard() {
-  const [data, setData] = useState(initialData);
+  const [workflows, setWorkflows] = useState(initialData);
   const [selectedCard, setSelectedCard] = useState(null);
   const [isAddMode, setIsAddMode] = useState(false);
   const [showWorkspaces, setShowWorkspaces] = useState(false);
-  const [isBoardExpanded, setIsBoardExpanded] = useState(true);
+  // Track expanded state for each workflow
+  const [expandedWorkflows, setExpandedWorkflows] = useState(() => {
+    const state = {};
+    initialData.forEach(workflow => {
+      state[workflow.id] = true; // All workflows expanded by default
+    });
+    return state;
+  });
 
   const handleSelectCard = useCallback(card => {
     setSelectedCard(card);
@@ -56,22 +63,52 @@ export default function KanbanBoard() {
 
   // Find which column contains a specific card
   const findCardColumn = useCallback((cardId) => {
-    for (const colId of data.columnOrder) {
-      const column = data.columns[colId];
-      if (column.cardIds.includes(cardId)) {
-        return column;
+    for (const workflow of workflows) {
+      for (const colId of workflow.columnOrder) {
+        const column = workflow.columns[colId];
+        if (column.cardIds.includes(cardId)) {
+          return column;
+        }
       }
     }
     return null;
-  }, [data]);
+  }, [workflows]);
 
   // Move card to a specific column by column ID
   const moveCardToColumn = useCallback((cardId, targetColumnId) => {
     const sourceColumn = findCardColumn(cardId);
     if (!sourceColumn) return;
 
-    const targetColumn = data.columns[targetColumnId];
-    if (!targetColumn) return;
+    // Find the workflow that contains the source column
+    let sourceWorkflowIndex = -1;
+    let sourceColumnKey = null;
+    for (let i = 0; i < workflows.length; i++) {
+      const workflow = workflows[i];
+      const foundKey = Object.keys(workflow.columns).find(key => workflow.columns[key].id === sourceColumn.id);
+      if (foundKey) {
+        sourceWorkflowIndex = i;
+        sourceColumnKey = foundKey;
+        break;
+      }
+    }
+
+    // Find the workflow and target column by id property
+    let targetColumn = null;
+    let targetWorkflowIndex = -1;
+    let targetColumnKey = null;
+    
+    for (let i = 0; i < workflows.length; i++) {
+      const workflow = workflows[i];
+      const foundColumn = Object.values(workflow.columns).find(col => col.id === targetColumnId);
+      if (foundColumn) {
+        targetColumn = foundColumn;
+        targetWorkflowIndex = i;
+        targetColumnKey = Object.keys(workflow.columns).find(key => workflow.columns[key].id === targetColumnId);
+        break;
+      }
+    }
+
+    if (!targetColumn || targetWorkflowIndex === -1 || !targetColumnKey || sourceWorkflowIndex === -1 || !sourceColumnKey) return;
 
     // If card is already in target column, do nothing
     if (sourceColumn.id === targetColumnId) return;
@@ -89,66 +126,118 @@ export default function KanbanBoard() {
     finishCardIds.unshift(cardId);
     const newFinish = { ...targetColumn, cardIds: finishCardIds };
 
-    setData(prevData => ({
-      ...prevData,
-      columns: {
-        ...prevData.columns,
-        [newStart.id]: newStart,
-        [newFinish.id]: newFinish,
-      },
+    setWorkflows(prevWorkflows => {
+      const updated = [...prevWorkflows];
+      
+      // Update source workflow
+      if (sourceWorkflowIndex === targetWorkflowIndex) {
+        // Same workflow - update both columns
+        updated[sourceWorkflowIndex] = {
+          ...updated[sourceWorkflowIndex],
+          columns: {
+            ...updated[sourceWorkflowIndex].columns,
+            [sourceColumnKey]: newStart,
+            [targetColumnKey]: newFinish,
+          },
+        };
+      } else {
+        // Different workflows - update both
+        updated[sourceWorkflowIndex] = {
+          ...updated[sourceWorkflowIndex],
+          columns: {
+            ...updated[sourceWorkflowIndex].columns,
+            [sourceColumnKey]: newStart,
+          },
+        };
+        updated[targetWorkflowIndex] = {
+          ...updated[targetWorkflowIndex],
+          columns: {
+            ...updated[targetWorkflowIndex].columns,
+            [targetColumnKey]: newFinish,
+          },
+        };
+      }
+      return updated;
+    });
+  }, [workflows, findCardColumn]);
+
+  // Create drag end handler for a specific workflow
+  const createDragEndHandler = useCallback((workflowId) => {
+    return (result) => {
+      const { destination, source, draggableId } = result;
+      if (!destination) return;
+
+      if (
+        destination.droppableId === source.droppableId &&
+        destination.index === source.index
+      ) {
+        return;
+      }
+
+      const workflow = workflows.find(w => w.id === workflowId);
+      if (!workflow) return;
+
+      // Find columns by their id property (not by object key)
+      const start = Object.values(workflow.columns).find(col => col.id === source.droppableId);
+      const finish = Object.values(workflow.columns).find(col => col.id === destination.droppableId);
+
+      if (!start || !finish) return;
+
+      if (start === finish) {
+        const newCardIds = Array.from(start.cardIds);
+        newCardIds.splice(source.index, 1);
+        newCardIds.splice(destination.index, 0, draggableId);
+
+        const newColumn = { ...start, cardIds: newCardIds };
+
+        // Find the column key to update
+        const columnKey = Object.keys(workflow.columns).find(key => workflow.columns[key].id === newColumn.id);
+        
+        setWorkflows(prevWorkflows =>
+          prevWorkflows.map(w =>
+            w.id === workflowId
+              ? { ...w, columns: { ...w.columns, [columnKey]: newColumn } }
+              : w
+          )
+        );
+        return;
+      }
+
+      const startCardIds = Array.from(start.cardIds);
+      startCardIds.splice(source.index, 1);
+      const newStart = { ...start, cardIds: startCardIds };
+
+      const finishCardIds = Array.from(finish.cardIds);
+      finishCardIds.splice(destination.index, 0, draggableId);
+      const newFinish = { ...finish, cardIds: finishCardIds };
+
+      // Find the column keys to update
+      const startColumnKey = Object.keys(workflow.columns).find(key => workflow.columns[key].id === newStart.id);
+      const finishColumnKey = Object.keys(workflow.columns).find(key => workflow.columns[key].id === newFinish.id);
+
+      setWorkflows(prevWorkflows =>
+        prevWorkflows.map(w =>
+          w.id === workflowId
+            ? { ...w, columns: { ...w.columns, [startColumnKey]: newStart, [finishColumnKey]: newFinish } }
+            : w
+        )
+      );
+    };
+  }, [workflows]);
+
+  // Toggle workflow expansion
+  const toggleWorkflow = useCallback((workflowId) => {
+    setExpandedWorkflows(prev => ({
+      ...prev,
+      [workflowId]: !prev[workflowId]
     }));
-  }, [data, findCardColumn]);
+  }, []);
 
-  const onDragEnd = useCallback((result) => {
-    const { destination, source, draggableId } = result;
-    if (!destination) return;
-
-    if (
-      destination.droppableId === source.droppableId &&
-      destination.index === source.index
-    ) {
-      return;
-    }
-
-    const start = data.columns[source.droppableId];
-    const finish = data.columns[destination.droppableId];
-
-    if (start === finish) {
-      const newCardIds = Array.from(start.cardIds);
-      newCardIds.splice(source.index, 1);
-      newCardIds.splice(destination.index, 0, draggableId);
-
-      const newColumn = { ...start, cardIds: newCardIds };
-
-      setData(prevData => ({
-        ...prevData,
-        columns: { ...prevData.columns, [newColumn.id]: newColumn },
-      }));
-      return;
-    }
-
-    const startCardIds = Array.from(start.cardIds);
-    startCardIds.splice(source.index, 1);
-    const newStart = { ...start, cardIds: startCardIds };
-
-    const finishCardIds = Array.from(finish.cardIds);
-    finishCardIds.splice(destination.index, 0, draggableId);
-    const newFinish = { ...finish, cardIds: finishCardIds };
-
-    setData(prevData => ({
-      ...prevData,
-      columns: {
-        ...prevData.columns,
-        [newStart.id]: newStart,
-        [newFinish.id]: newFinish,
-      },
-    }));
-  }, [data]);
-
-  const columns = useMemo(() =>
-    data.columnOrder.map(colId => {
-      const column = data.columns[colId];
-      const cards = column.cardIds.map(id => data.cards[id]);
+  // Render columns for a workflow
+  const renderWorkflowColumns = useCallback((workflow) => {
+    return workflow.columnOrder.map(colId => {
+      const column = workflow.columns[colId];
+      const cards = column.cardIds.map(id => workflow.cards[id]);
       return (
         <Column
           key={column.id}
@@ -157,49 +246,57 @@ export default function KanbanBoard() {
           setSelectedCard={handleSelectCard}
         />
       );
-    }), [data, handleSelectCard]
-  );
-
-  const toggleBoard = useCallback(() => {
-    setIsBoardExpanded(prev => !prev);
-  }, []);
+    });
+  }, [handleSelectCard]);
 
   // Show Workspaces view when Workspaces icon is clicked
   if (showWorkspaces) {
     return <Workspaces />;
   }
 
+  // Find the workflow that contains the selected card
+  const getSelectedCardWorkflow = useCallback(() => {
+    if (!selectedCard) return null;
+    return workflows.find(workflow =>
+      Object.values(workflow.cards).some(card => card.id === selectedCard.id)
+    );
+  }, [selectedCard, workflows]);
+
+  const selectedCardWorkflow = getSelectedCardWorkflow();
+
   return (
     <>
-      <div className="kanban-accordion">
-        <div
-          className="kanban-accordion-header"
-          onClick={toggleBoard}
-        >
-          <h2 className="kanban-accordion-title">Cards workflow</h2>
-          <span className={`kanban-accordion-icon ${isBoardExpanded ? 'expanded' : ''}`}>
-            ▼
-          </span>
-        </div>
-
-        {isBoardExpanded && (
-          <div className="kanban-container">
-            <DragDropContext onDragEnd={onDragEnd}>
-              <div className="kanban-board">
-                {columns}
-              </div>
-            </DragDropContext>
+      {workflows.map((workflow) => (
+        <div key={workflow.id} className="kanban-accordion">
+          <div
+            className="kanban-accordion-header"
+            onClick={() => toggleWorkflow(workflow.id)}
+          >
+            <h2 className="kanban-accordion-title">{workflow.title}</h2>
+            <span className={`kanban-accordion-icon ${expandedWorkflows[workflow.id] ? 'expanded' : ''}`}>
+              ▼
+            </span>
           </div>
-        )}
-      </div>
 
-      {selectedCard && (
+          {expandedWorkflows[workflow.id] && (
+            <div className="kanban-container">
+              <DragDropContext onDragEnd={createDragEndHandler(workflow.id)}>
+                <div className="kanban-board">
+                  {renderWorkflowColumns(workflow)}
+                </div>
+              </DragDropContext>
+            </div>
+          )}
+        </div>
+      ))}
+
+      {selectedCard && selectedCardWorkflow && (
         <CardForm
           show={true}
           close={handleCloseCard}
           card={selectedCard}
           moveCardToColumn={moveCardToColumn}
-          columns={data.columns}
+          columns={selectedCardWorkflow.columns}
           currentColumn={isAddMode ? null : findCardColumn(selectedCard.id)}
           isAddMode={isAddMode}
         />

@@ -126,11 +126,28 @@ function CardItem({ card, index, setSelectedCard }) {
           )}
 
           {/* Last Moved Section */}
-          {card.lastMoved && (
-            <div className="card-last-moved">
-              Last moved: {card.lastMoved}
-            </div>
-          )}
+          {card.lastMoved && (() => {
+            const fullText = `Last moved: ${card.lastMoved}`;
+            const maxLength = 25;
+            const isTruncated = fullText.length > maxLength;
+            const displayText = isTruncated ? fullText.substring(0, maxLength) + "..." : fullText;
+            const tooltipId = `last-moved-${card.id}`;
+
+            return (
+              <div className="card-last-moved">
+                {isTruncated ? (
+                  <>
+                    <span data-tooltip-id={tooltipId} data-tooltip-content={fullText}>
+                      {displayText}
+                    </span>
+                    <Tooltip id={tooltipId} place="top" />
+                  </>
+                ) : (
+                  <span>{displayText}</span>
+                )}
+              </div>
+            );
+          })()}
 
           {/* Extra Details Section */}
           {(card.sapSalesOrder || card.srtPoWbs || card.appointmentEmail || card.vesselName || card.serviceRequester) && (

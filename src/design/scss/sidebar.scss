@@ -2,261 +2,297 @@
 
 // Mobile Overlay
 .sidebar-overlay {
-  display: none;
-  
-  @media ($sm-991) {
-    display: block;
-    position: fixed;
-    top: 0;
-    left: 0;
-    right: 0;
-    bottom: 0;
-    background-color: rgba(0, 0, 0, 0.5);
-    z-index: 998;
-    animation: fadeIn 0.3s ease;
-  }
+    display: none;
+
+    @media ($sm-991) {
+        display: block;
+        position: fixed;
+        top: 0;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        background-color: rgba(0, 0, 0, 0.5);
+        z-index: 998;
+        animation: fadeIn 0.3s ease;
+    }
 }
 
 @keyframes fadeIn {
-  from {
-    opacity: 0;
-  }
-  to {
-    opacity: 1;
-  }
+    from {
+        opacity: 0;
+    }
+
+    to {
+        opacity: 1;
+    }
 }
 
-.sidebar{
+.sidebar {
     background-color: #00368c;
     max-width: 300px;
     transition: all ease-in-out 0.3s;
     border-top-right-radius: 24px;
     border-bottom-right-radius: 24px;
     overflow: hidden;
-    
-    @media($sm-1481){
+
+    @media($sm-1481) {
         max-width: 266px;
-    } 
-    @media($sm-1281){
+    }
+
+    @media($sm-1281) {
         max-width: 220px;
-    } 
-    @media ($sm-991){
+    }
+
+    @media ($sm-991) {
         max-width: 72px;
         position: fixed;
         z-index: 999;
-        box-shadow: 0px 0px 20px rgba(0,0,0,0.1);
+        box-shadow: 0px 0px 20px rgba(0, 0, 0, 0.1);
         left: -72px; // Hidden by default on mobile
         top: 0;
         height: 100vh;
     }
-    
+
     min-height: 100vh;
     padding-top:48px;
-    
+
     // Mobile state
     &.mobile {
-      @media ($sm-991) {
-        transition: left 0.3s ease-in-out;
-      }
+        @media ($sm-991) {
+            transition: left 0.3s ease-in-out;
+        }
     }
-    
+
     // Show state on mobile
     &.show {
-      @media ($sm-991) {
-        left: 0;
-      }
+        @media ($sm-991) {
+            left: 0;
+        }
     }
-    .logoWrp{
+
+    .logoWrp {
         display: flex;
         align-items: center;
-       padding: 20px;
-       .logo{
-        img{
-            max-width: 100%;
-            margin-top: -138px;
+        padding: 20px;
+
+        .logo {
+            img {
+                max-width: 100%;
+                margin-top: -138px;
+            }
+
+            @media ($sm-1281) {
+                max-width: 120px;
+            }
         }
-        @media ($sm-1281){
-            max-width: 120px;
+
+        @media ($sm-991) {
+            justify-content: center;
+            padding: 10px;
         }
-       }
-       @media ($sm-991){
-         justify-content: center;
-         padding: 10px;
-        }
-        .dt-logo{
-            @media ($sm-991){
+
+        .dt-logo {
+            @media ($sm-991) {
                 display: none;
             }
         }
-        .mb-logo{
-            @media ($lg-992){
+
+        .mb-logo {
+            @media ($lg-992) {
                 display: none;
             }
         }
     }
-.menuWrp {
-  overflow-y: auto;
-  overflow-x: hidden;
-  max-height: calc(100vh - 100px);
 
-  /* ⭐ Scrollbar Color (#00368c) */
-  scrollbar-width: thin;
-  scrollbar-color: #00368c transparent;
+    .menuWrp {
+        overflow-y: auto;
+        overflow-x: hidden;
+        max-height: calc(100vh - 100px);
 
-  &::-webkit-scrollbar {
-    width: 6px;
-  }
-  &::-webkit-scrollbar-thumb {
-    background-color: #00368c;   // ⭐ main scrollbar color
-    border-radius: 10px;
-  }
-  &::-webkit-scrollbar-track {
-    background: transparent;     // optional cleaner look
-  }
+        /* ⭐ Scrollbar Color (#00368c) */
+        scrollbar-width: thin;
+        scrollbar-color: #00368c transparent;
 
-  @media($sm-1199){
-    padding-top: 30px;
-  }
+        &::-webkit-scrollbar {
+            width: 6px;
+        }
+
+        &::-webkit-scrollbar-thumb {
+            background-color: #00368c; // ⭐ main scrollbar color
+            border-radius: 10px;
+        }
+
+        &::-webkit-scrollbar-track {
+            background: transparent; // optional cleaner look
+        }
+
+        @media($sm-1199) {
+            padding-top: 30px;
+        }
 
 
-        .submenu{
+        .submenu {
             font-size: 14px;
             padding-top: 10px;
             padding-bottom: 10px;
-            .drp-ico{
-                svg{
+
+            .drp-ico {
+                svg {
                     width: 1em;
                     height: 1em;
                 }
+
                 transform: rotate(270deg);
             }
-            &:not(.collapsed){
-                .drp-ico{
+
+            &:not(.collapsed) {
+                .drp-ico {
                     transform: rotate(0);
-                }  
+                }
             }
-            ul{
+
+            ul {
                 list-style: none;
             }
         }
-        .submenu_items{
-            ul{
+
+        .submenu_items {
+            ul {
                 list-style: none;
             }
-            .link{
+
+            .link {
                 position: relative;
                 padding-top: 6px !important;
                 padding-bottom: 6px !important;
                 margin-top: 5px;
                 margin-bottom: 5px;
-                &:before{
+
+                &:before {
                     content: '';
                     position: absolute;
                     left: -18px;
                     top: 0;
                     bottom: 0;
                     width: 2px;
-                   
+
                 }
-                &:hover{
-                   color: #00368c;
+
+                &:hover {
+                    color: #00368c;
                     background-color: #fff;
                 }
-                &.submenu_active{
+
+                &.submenu_active {
                     color: #00368c;
                     background-color: #fff;
                     font-weight: 500;
-                    &:before{
+
+                    &:before {
                         background-color: #00368c;
                     }
-               }
+                }
             }
-            
+
         }
-        .menu{
+
+        .menu {
             padding: 0;
             margin: 0;
-            .menu-link{
+
+            .menu-link {
                 padding-right: 20px;
-                @media ($sm-991){
+
+                @media ($sm-991) {
                     padding-left: 15px;
                     padding-right: 15px;
                 }
+
                 position: relative;
-                & + .menu-link{
+
+                &+.menu-link {
                     margin-top: 10px;
                 }
             }
-            .link{
+
+            .link {
                 text-decoration: none;
                 color: #fff;
                 font-size: 16px;
                 padding: 12px 16px;
                 display: flex;
                 border-radius: 7px;
-                 
-                @media ($sm-1679){
+
+                @media ($sm-1679) {
                     font-size: 14px;
                 }
-                @media ($sm-1441){
+
+                @media ($sm-1441) {
                     font-size: 13px;
                 }
-                @media ($sm-1281){
+
+                @media ($sm-1281) {
                     font-size: 12px;
                 }
-                @media ($sm-991){
-                     padding: 4px;
-                     display: flex;
-                     align-items: center;
-                     justify-content: center;
-                     width: 40px;
-                     height: 40px;
+
+                @media ($sm-991) {
+                    padding: 4px;
+                    display: flex;
+                    align-items: center;
+                    justify-content: center;
+                    width: 40px;
+                    height: 40px;
                 }
-                .txt{
-                    @media ($sm-991){
+
+                .txt {
+                    @media ($sm-991) {
                         display: none;
                     }
                 }
 
-                .ico{
-                    flex : 0 0 18px;
+                .ico {
+                    flex: 0 0 18px;
                     height: 18px;
                     margin-right: 15px;
-                   
-                    @media ($sm-1679){
-                        flex : 0 0 16px;
+
+                    @media ($sm-1679) {
+                        flex: 0 0 16px;
                         height: 16px;
                     }
-                    @media ($sm-1441){
-                        flex : 0 0 14px;
+
+                    @media ($sm-1441) {
+                        flex: 0 0 14px;
                         height: 14px;
                     }
 
-                    @media ($sm-991){
+                    @media ($sm-991) {
                         display: flex;
                         align-items: center;
                         margin: 0;
                     }
-                    img{
+
+                    img {
                         width: 100%;
                         height: 100%;
                         object-fit: contain;
                         filter: brightness(0) invert(1);
                     }
                 }
-                &:not(.darkmode-toggle){
+
+                &:not(.darkmode-toggle) {
                     &.active,
-                    
-                    &:hover{
+
+                    &:hover {
                         background-color: #fff;
                         color: #00368c;
-                     
-      img{
-        filter: brightness(1) invert(0); // show original colored icon on active hover
-      }
+
+                        img {
+                            filter: brightness(1) invert(0); // show original colored icon on active hover
+                        }
                     }
-                    &.active{
-                        &:before{
+
+                    &.active {
+                        &:before {
                             content: '';
                             position: absolute;
                             width: 2px;
@@ -264,94 +300,114 @@
                             background-color: #00368C;
                             top: 0;
                             left: 1px;
-                            @media ($sm-991){
+
+                            @media ($sm-991) {
                                 height: 40px;
                             }
                         }
                     }
                 }
 
-                &.darkmode-toggle{
-                   .ico{
-                    display: none;
-                   } 
+                &.darkmode-toggle {
+                    .ico {
+                        display: none;
+                    }
                 }
-                
-               .toggleSwitch{
-                margin-left: auto;
-                padding-left: 10px;
-                @media ($sm-991){
-                    padding-left: 0;
+
+                .toggleSwitch {
+                    margin-left: auto;
+                    padding-left: 10px;
+
+                    @media ($sm-991) {
+                        padding-left: 0;
+                    }
                 }
-               } 
             }
         }
     }
 
-    &.show{
-        .st-wrp{
+    &.show {
+        .st-wrp {
             .sidebar-toggle {
-                span{
-                    &:nth-child(1){
-                        transform: rotate(45deg) translate(5px, 5px); 
+                span {
+                    &:nth-child(1) {
+                        transform: rotate(45deg) translate(5px, 5px);
                     }
-                    &:nth-child(2){
-                        opacity: 0;  
+
+                    &:nth-child(2) {
+                        opacity: 0;
                     }
-                    &:nth-child(3){
-                        transform: rotate(-45deg) translate(7px, -6px); 
+
+                    &:nth-child(3) {
+                        transform: rotate(-45deg) translate(7px, -6px);
                     }
                 }
             }
         }
-        @media ($sm-991){
+
+        @media ($sm-991) {
             max-width: 280px;
             width: 280px;
-            box-shadow: 2px 0 10px rgba(0,0,0,0.2);
-            
-            .logoWrp{
+            box-shadow: 2px 0 10px rgba(0, 0, 0, 0.2);
+
+            .logoWrp {
                 justify-content: flex-start;
-                .dt-logo{
+
+                .dt-logo {
                     display: block;
                     max-width: 140px;
-                    @media ($lg-992){
+
+                    @media ($lg-992) {
                         display: none;
                     }
                 }
-                .mb-logo{
+
+                .mb-logo {
                     display: block;
-                    @media ($sm-991){
+
+                    @media ($sm-991) {
                         display: none;
                     }
                 }
             }
-            .menuWrp{
-                .menu{
-                    .link{
+
+            .menuWrp {
+                .menu {
+                    .link {
                         width: unset;
                         justify-content: flex-start;
                         padding: 12px 16px;
-                        .txt{
+
+                        .txt {
                             display: block;
                             padding-left: 10px;
                         }
-                    } // link
-                } 
-            } // menu wrp
-             
-        }// upto 991
-    } // show 
+                    }
+
+                    // link
+                }
+            }
+
+            // menu wrp
+
+        }
+
+        // upto 991
+    }
+
+    // show 
 }
 
-.st-wrp{
-    @media ($lg-992){
+.st-wrp {
+    @media ($lg-992) {
         display: none;
     }
+
     position: absolute;
     left: calc(100% + 15px);
     top: 5px;
     z-index: 1000;
-    
+
     @media ($sm-991) {
         position: fixed;
         left: auto;
@@ -359,8 +415,8 @@
         top: 80px;
         z-index: 1001;
     }
-    
-    .sidebar-toggle{
+
+    .sidebar-toggle {
         padding: 5px;
         width: 30px;
         height: 30px;
@@ -370,20 +426,20 @@
         display: flex;
         flex-direction: column;
         justify-content: space-around;
-        
-        span{
+
+        span {
             width: 100%;
             height: 3px;
             background-color: #00368c;
             border-radius: 3px;
             display: block;
             transition: all 0.3s ease;
-            
+
             @media ($sm-991) {
                 background-color: #fff;
             }
         }
-        
+
         &:hover span {
             background-color: #225fbd;
         }
@@ -397,117 +453,117 @@
    =========================== */
 
 .kanban-sidebar {
-  width: 80px;
-  height: 100vh;
-  background: #ffffff;
-  border-right: 1px solid #e5e7eb;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: flex-start;
-  gap: 20px;
-  padding: 24px 0;
-  position: fixed;
-  top: 0;
-  left: 0;
-  border-top-right-radius: 40px;
-  border-bottom-right-radius: 40px;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
-  z-index: 10; // keep above content
-  margin-top: 106px;
+    width: 80px;
+    height: 100vh;
+    background: #ffffff;
+    border-right: 1px solid #e5e7eb;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: flex-start;
+    gap: 20px;
+    padding: 24px 0;
+    position: fixed;
+    top: 0;
+    left: 0;
+    border-top-right-radius: 18px;
+    border-bottom-right-radius: 40px;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+    z-index: 10; // keep above content
+    margin-top: 87px;
 }
 
 .kanban-sidebar-icon {
-  width: 48px;
-  height: 48px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  border-radius: 12px;
-  cursor: pointer;
-  transition: all 0.2s ease-in-out;
-  color: #6b7280;
-  position: relative;
-
-  &:hover {
-    background: #f3f4f6;
-    color: #00368c;
-    transform: translateY(-2px);
-  }
-
-  svg {
-    width: 22px;
-    height: 22px;
-    stroke-width: 2;
+    width: 48px;
+    height: 48px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 12px;
+    cursor: pointer;
     transition: all 0.2s ease-in-out;
-  }
+    color: #6b7280;
+    position: relative;
 
-  &.active {
-    background: #eef2ff;
-    color: #00368c;
-    box-shadow: inset 3px 0 0 0 #00368c;
-    font-weight: 600;
+    &:hover {
+        background: #f3f4f6;
+        color: #00368c;
+        transform: translateY(-2px);
+    }
 
     svg {
-      stroke-width: 2.5;
+        width: 22px;
+        height: 22px;
+        stroke-width: 2;
+        transition: all 0.2s ease-in-out;
     }
-  }
+
+    &.active {
+        background: #eef2ff;
+        color: #00368c;
+        box-shadow: inset 3px 0 0 0 #00368c;
+        font-weight: 600;
+
+        svg {
+            stroke-width: 2.5;
+        }
+    }
 }
 
 /* Responsive Kanban Sidebar */
 @media (max-width: 991px) {
-  .kanban-sidebar {
-    width: 60px;
-    padding: 16px 0;
-    margin-top: 64px; // Adjust for mobile header height
-    height: calc(100vh - 64px);
-  }
-
-  .kanban-sidebar-icon {
-    width: 40px;
-    height: 40px;
-
-    svg {
-      width: 20px;
-      height: 20px;
+    .kanban-sidebar {
+        width: 60px;
+        padding: 16px 0;
+        margin-top: 64px; // Adjust for mobile header height
+        height: calc(100vh - 64px);
     }
-  }
+
+    .kanban-sidebar-icon {
+        width: 40px;
+        height: 40px;
+
+        svg {
+            width: 20px;
+            height: 20px;
+        }
+    }
 }
 
 @media (max-width: 767px) {
-  .kanban-sidebar {
-    width: 56px;
-    padding: 12px 0;
-    margin-top: 60px;
-    height: calc(100vh - 60px);
-  }
-
-  .kanban-sidebar-icon {
-    width: 38px;
-    height: 38px;
-
-    svg {
-      width: 18px;
-      height: 18px;
+    .kanban-sidebar {
+        width: 56px;
+        padding: 12px 0;
+        margin-top: 60px;
+        height: calc(100vh - 60px);
     }
-  }
+
+    .kanban-sidebar-icon {
+        width: 38px;
+        height: 38px;
+
+        svg {
+            width: 18px;
+            height: 18px;
+        }
+    }
 }
 
 @media (max-width: 479px) {
-  .kanban-sidebar {
-    width: 50px;
-    padding: 10px 0;
-    margin-top: 56px;
-    height: calc(100vh - 56px);
-  }
-
-  .kanban-sidebar-icon {
-    width: 34px;
-    height: 34px;
-
-    svg {
-      width: 16px;
-      height: 16px;
+    .kanban-sidebar {
+        width: 50px;
+        padding: 10px 0;
+        margin-top: 56px;
+        height: calc(100vh - 56px);
     }
-  }
+
+    .kanban-sidebar-icon {
+        width: 34px;
+        height: 34px;
+
+        svg {
+            width: 16px;
+            height: 16px;
+        }
+    }
 }
