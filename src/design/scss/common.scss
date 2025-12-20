@@ -224,6 +224,45 @@ textarea:disabled,
    KANBAN — GLOBAL LAYOUT FIX
 ================================ */
 
+.kanban-accordion {
+    width: 100%;
+}
+
+.kanban-accordion-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 16px 20px;
+    background: #fff;
+    border-bottom: 1px solid #e5e7eb;
+    cursor: pointer;
+    user-select: none;
+    transition: background-color 0.2s ease;
+
+    &:hover {
+        background-color: #f9fafb;
+    }
+}
+
+.kanban-accordion-title {
+    font-size: 18px;
+    font-weight: 600;
+    color: #1f2937;
+    margin: 0;
+    font-family: 'Poppins', sans-serif;
+}
+
+.kanban-accordion-icon {
+    font-size: 12px;
+    color: #6b7280;
+    transition: transform 0.3s ease;
+    display: inline-block;
+
+    &.expanded {
+        transform: rotate(180deg);
+    }
+}
+
 .kanban-container {
     width: 100%;
     overflow-x: auto;

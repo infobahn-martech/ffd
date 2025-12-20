@@ -11,6 +11,7 @@ export default function KanbanBoard() {
   const [selectedCard, setSelectedCard] = useState(null);
   const [isAddMode, setIsAddMode] = useState(false);
   const [showWorkspaces, setShowWorkspaces] = useState(false);
+  const [isBoardExpanded, setIsBoardExpanded] = useState(true);
 
   const handleSelectCard = useCallback(card => {
     setSelectedCard(card);
@@ -159,6 +160,10 @@ export default function KanbanBoard() {
     }), [data, handleSelectCard]
   );
 
+  const toggleBoard = useCallback(() => {
+    setIsBoardExpanded(prev => !prev);
+  }, []);
+
   // Show Workspaces view when Workspaces icon is clicked
   if (showWorkspaces) {
     return <Workspaces />;
@@ -166,12 +171,26 @@ export default function KanbanBoard() {
 
   return (
     <>
-      <div className="kanban-container">
-        <DragDropContext onDragEnd={onDragEnd}>
-          <div className="kanban-board">
-            {columns}
+      <div className="kanban-accordion">
+        <div
+          className="kanban-accordion-header"
+          onClick={toggleBoard}
+        >
+          <h2 className="kanban-accordion-title">Cards workflow</h2>
+          <span className={`kanban-accordion-icon ${isBoardExpanded ? 'expanded' : ''}`}>
+            ▼
+          </span>
+        </div>
+
+        {isBoardExpanded && (
+          <div className="kanban-container">
+            <DragDropContext onDragEnd={onDragEnd}>
+              <div className="kanban-board">
+                {columns}
+              </div>
+            </DragDropContext>
           </div>
-        </DragDropContext>
+        )}
       </div>
 
       {selectedCard && (
