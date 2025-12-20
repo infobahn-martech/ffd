@@ -135,7 +135,7 @@ const Notification = () => {
       sort: true,
       contentClass: 'table-content',
       thclass: 'tb-head',
-      width: '150',
+      width: '160',
     },
     {
       name: 'Title',
