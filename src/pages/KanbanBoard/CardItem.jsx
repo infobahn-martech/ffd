@@ -2,6 +2,7 @@ import { Draggable } from "@hello-pangea/dnd";
 import PropTypes from "prop-types";
 import { Tooltip } from "react-tooltip";
 import "react-tooltip/dist/react-tooltip.css";
+import { FiLayers } from "react-icons/fi";
 import "../../design/css/CardItem.css";
 import PolygonIcon from "../../assets/images/PolygonIcon.svg";
 import MessageIcon from "../../assets/images/MessageIcon.svg";
@@ -12,6 +13,11 @@ import { DownloadIcon, InprogressIcon } from "../../assets/svgs";
 function CardItem({ card, index, setSelectedCard, isShrunk = false }) {
   const cardColor = card.color || "#2A00FF";
   const userInitial = card.user?.[0]?.toUpperCase() || "";
+
+  // Extract board ID count from card.id (e.g., "workflow-1-card-123" -> "123")
+  const boardIdCount = card.id.includes('-card-')
+    ? card.id.split('-card-')[1]
+    : card.id.split('-').pop() || card.id;
 
   // Helper function to truncate text and add tooltip
   const TruncatedText = ({ text, maxLength = 20, tooltipId }) => {
@@ -46,54 +52,101 @@ function CardItem({ card, index, setSelectedCard, isShrunk = false }) {
           }}
         >
           {isShrunk ? (
-            // Compact view for shrunk columns
+            // Compact view for shrunk columns - Improved UI
             <>
-              {/* Compact Header */}
+              {/* Compact Header with Icon and Code */}
               <div className="card-header-compact">
                 <div
                   className="card-header-icon-compact"
                   style={{ backgroundColor: cardColor }}
+                  data-tooltip-id={`icon-${card.id}`}
+                  data-tooltip-content={`Card Type: ${card.iconType || 'default'}`}
                 >
                   {card.iconType === "inprogress" && <InprogressIcon />}
                   {card.iconType === "download" && <DownloadIcon />}
                   {card.iconType === "document" && <DownloadIcon />}
                 </div>
-                <div className="card-info-compact">
-                  <div className="card-code-compact">{card.code}</div>
-                  <div className="card-days-compact">{card.days}d</div>
-                </div>
+                <Tooltip id={`icon-${card.id}`} place="top" />
+
                 <div
-                  className="card-avatar-compact"
-                  data-initial={userInitial}
-                  style={{ "--card-color": cardColor }}
-                />
+                  className="card-code-compact"
+                  data-tooltip-id={`code-${card.id}`}
+                  data-tooltip-content={`Card Code: ${card.code}`}
+                >
+                  {card.code}
+                </div>
+                <Tooltip id={`code-${card.id}`} place="top" />
               </div>
 
               {/* Compact Title */}
-              <div className="card-title-compact" onClick={() => setSelectedCard(card)}>
-                {card.title.length > 12 ? card.title.substring(0, 12) + "..." : card.title}
+              <div
+                className="card-title-compact"
+                onClick={() => setSelectedCard(card)}
+                data-tooltip-id={`title-${card.id}`}
+                data-tooltip-content={card.title}
+              >
+                {card.title.length > 10 ? card.title.substring(0, 10) + "..." : card.title}
               </div>
+              <Tooltip id={`title-${card.id}`} place="top" />
 
-              {/* Compact Progress */}
-              <div className="card-progress-compact">
-                <div className="progress-bar-compact">
-                  <div
-                    className="progress-fill-compact"
-                    style={{
-                      width: `${card.progress || 0}%`,
-                      backgroundColor: cardColor
-                    }}
-                  />
+              {/* Compact Info Row - Days, Progress, Board ID */}
+              <div className="card-info-row-compact">
+                {/* Days with Clock Icon */}
+                <div
+                  className="card-days-wrapper-compact"
+                  data-tooltip-id={`days-${card.id}`}
+                  data-tooltip-content={`Days: ${card.days} days`}
+                >
+                  <img src={ClockIcon} alt="Days" className="card-clock-icon-compact" />
+                  <span className="card-days-compact">{card.days}d</span>
                 </div>
-                <span className="progress-text-compact">{card.progress || 0}%</span>
+                <Tooltip id={`days-${card.id}`} place="top" />
+
+                {/* Progress Bar */}
+                <div className="card-progress-wrapper-compact">
+                  <div className="progress-bar-compact">
+                    <div
+                      className="progress-fill-compact"
+                      style={{
+                        width: `${card.progress || 0}%`,
+                        backgroundColor: cardColor
+                      }}
+                    />
+                  </div>
+                  <span
+                    className="progress-text-compact"
+                    data-tooltip-id={`progress-${card.id}`}
+                    data-tooltip-content={`Progress: ${card.progress || 0}%`}
+                  >
+                    {card.progress || 0}%
+                  </span>
+                  <Tooltip id={`progress-${card.id}`} place="top" />
+                </div>
+
+                {/* Board ID Icon with Count */}
+                <div
+                  className="card-board-id-compact"
+                  data-tooltip-id={`board-${card.id}`}
+                  data-tooltip-content={`Board ID: ${card.id}`}
+                >
+                  <FiLayers className="board-icon-compact" />
+                  <span className="board-id-text-compact">{boardIdCount}</span>
+                </div>
+                <Tooltip id={`board-${card.id}`} place="top" />
               </div>
 
               {/* Compact Status */}
               {card.status && (
-                <div className="card-status-compact" style={{ color: cardColor }}>
-                  ↑ {card.status.length > 8 ? card.status.substring(0, 8) + "..." : card.status}
+                <div
+                  className="card-status-compact"
+                  style={{ color: cardColor }}
+                  data-tooltip-id={`status-${card.id}`}
+                  data-tooltip-content={`Status: ${card.status}`}
+                >
+                  ↑ {card.status.length > 10 ? card.status.substring(0, 10) + "..." : card.status}
                 </div>
               )}
+              {card.status && <Tooltip id={`status-${card.id}`} place="top" />}
             </>
           ) : (
             // Full view for normal/expanded columns
