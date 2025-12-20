@@ -77,11 +77,11 @@ function CardItem({ card, index, setSelectedCard, isShrunk = false }) {
               {/* Compact Progress */}
               <div className="card-progress-compact">
                 <div className="progress-bar-compact">
-                  <div 
+                  <div
                     className="progress-fill-compact"
-                    style={{ 
+                    style={{
                       width: `${card.progress || 0}%`,
-                      backgroundColor: cardColor 
+                      backgroundColor: cardColor
                     }}
                   />
                 </div>

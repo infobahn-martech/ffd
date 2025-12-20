@@ -1,5 +1,8 @@
 import { useState, useEffect, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { Tooltip } from 'react-tooltip';
+import 'react-tooltip/dist/react-tooltip.css';
+import { FiLayers } from 'react-icons/fi';
 import '../../design/scss/Workspaces.scss';
 import GroupIcon from '../../assets/images/Group.svg';
 import AnalyticsIcon from '../../assets/images/analytics 1.svg';
@@ -571,10 +574,36 @@ function Workspaces() {
                         </div>
                       </div>
                       <div className="board-card-content">
-                        <h3 className="board-name">{board.name}</h3>
-                        <div className="board-count">
-                          <img src={ClockIcon} alt="Clock" className="board-clock-icon" />
-                          <span className="board-count-number">{board.count.toLocaleString()}</span>
+                        <h3 
+                          className="board-name"
+                          data-tooltip-id={`board-name-${board.id}`}
+                          data-tooltip-content={board.name}
+                        >
+                          {board.name}
+                        </h3>
+                        <Tooltip id={`board-name-${board.id}`} place="top" />
+                        
+                        <div className="board-counts-row">
+                          <div 
+                            className="board-count"
+                            data-tooltip-id={`board-count-${board.id}`}
+                            data-tooltip-content={`Card Count: ${board.count.toLocaleString()} cards`}
+                          >
+                            <img src={ClockIcon} alt="Clock" className="board-clock-icon" />
+                            <span className="board-count-number">{board.count.toLocaleString()}</span>
+                          </div>
+                          <Tooltip id={`board-count-${board.id}`} place="top" />
+                          
+                          {/* Board ID Icon with Count */}
+                          <div 
+                            className="board-id-count"
+                            data-tooltip-id={`board-id-${board.id}`}
+                            data-tooltip-content={`Board ID: ${board.id}`}
+                          >
+                            <FiLayers className="board-id-icon" />
+                            <span className="board-id-number">{board.id}</span>
+                          </div>
+                          <Tooltip id={`board-id-${board.id}`} place="top" />
                         </div>
                       </div>
                     </div>

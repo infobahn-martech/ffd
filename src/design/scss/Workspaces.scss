@@ -919,11 +919,19 @@
   }
 }
 
+.board-counts-row {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-top: auto;
+  flex-wrap: wrap;
+}
+
 .board-count {
   display: flex;
   align-items: center;
   gap: 8px;
-  margin-top: auto;
+  cursor: pointer;
 }
 
 .board-clock-icon {
@@ -940,6 +948,39 @@
 
   @media ($sm-767) {
     font-size: 15px;
+  }
+}
+
+/* Board ID Icon with Count */
+.board-id-count {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 4px 8px;
+  background-color: #f3f4f6;
+  border-radius: 6px;
+  cursor: pointer;
+  transition: background-color 0.2s ease;
+}
+
+.board-id-count:hover {
+  background-color: #e5e7eb;
+}
+
+.board-id-icon {
+  width: 16px;
+  height: 16px;
+  color: #666;
+  stroke-width: 2;
+  flex-shrink: 0;
+}
+
+.board-id-number {
+  font: normal normal 600 14px/1.4 $font-primary;
+  color: #333;
+
+  @media ($sm-767) {
+    font-size: 13px;
   }
 }
 
