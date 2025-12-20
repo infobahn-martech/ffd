@@ -234,10 +234,6 @@ textarea:disabled,
     max-height: 100%;
 }
 
-.kanban-zoom-wrapper {
-    width: max-content;
-}
-
 .kanban-board {
     display: flex;
     flex-wrap: nowrap;
@@ -290,37 +286,4 @@ textarea:disabled,
 .page-cont-wrp::-webkit-scrollbar-thumb {
     background: #cbd5e1;
     border-radius: 10px;
-}
-
-/* Zoom controls */
-.zoom-controls {
-    position: fixed;
-    top: 110px;
-    right: 40px;
-    z-index: 500;
-    display: flex;
-    gap: 8px;
-    background: #fff;
-    padding: 8px;
-    border-radius: 8px;
-    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
-}
-
-.zoom-controls button {
-    background: #fff;
-    border: 1px solid #d1d5db;
-    padding: 6px 12px;
-    border-radius: 6px;
-    cursor: pointer;
-    font-size: 16px;
-    transition: all 0.2s ease;
-}
-
-.zoom-controls button:hover {
-    background: #f3f4f6;
-    border-color: #9ca3af;
-}
-
-.zoom-controls button:active {
-    transform: scale(0.95);
 }

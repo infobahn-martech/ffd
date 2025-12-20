@@ -3,24 +3,14 @@ import { DragDropContext } from "@hello-pangea/dnd";
 import { initialData } from "../../helpers/data";
 import Column from "./Column";
 import CardForm from "./CardForm";
-import ZoomControls from "./ZoomControls";
 import Workspaces from "../Workspaces";
 import "../../design/scss/common.scss";
-
-const MAX_ZOOM = 2;
-const MIN_ZOOM = 0.5;
-const ZOOM_STEP = 0.1;
 
 export default function KanbanBoard() {
   const [data, setData] = useState(initialData);
   const [selectedCard, setSelectedCard] = useState(null);
   const [isAddMode, setIsAddMode] = useState(false);
-  const [zoom, setZoom] = useState(1);
   const [showWorkspaces, setShowWorkspaces] = useState(false);
-
-  const zoomIn = useCallback(() => setZoom(z => Math.min(z + ZOOM_STEP, MAX_ZOOM)), []);
-  const zoomOut = useCallback(() => setZoom(z => Math.max(z - ZOOM_STEP, MIN_ZOOM)), []);
-  const resetZoom = useCallback(() => setZoom(1), []);
 
   const handleSelectCard = useCallback(card => {
     setSelectedCard(card);
@@ -176,23 +166,12 @@ export default function KanbanBoard() {
 
   return (
     <>
-      <ZoomControls zoomIn={zoomIn} zoomOut={zoomOut} resetZoom={resetZoom} />
-
       <div className="kanban-container">
-        <div
-          className="kanban-zoom-wrapper"
-          style={{
-            transform: `scale(${zoom})`,
-            transformOrigin: "top left",
-            transition: "transform 0.2s ease",
-          }}
-        >
-          <DragDropContext onDragEnd={onDragEnd}>
-            <div className="kanban-board">
-              {columns}
-            </div>
-          </DragDropContext>
-        </div>
+        <DragDropContext onDragEnd={onDragEnd}>
+          <div className="kanban-board">
+            {columns}
+          </div>
+        </DragDropContext>
       </div>
 
       {selectedCard && (
