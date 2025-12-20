@@ -20,6 +20,15 @@ export default function KanbanBoard() {
     return state;
   });
 
+  // Track expanded column for each workflow (columnId or null)
+  const [expandedColumns, setExpandedColumns] = useState(() => {
+    const state = {};
+    initialData.forEach(workflow => {
+      state[workflow.id] = null; // No column expanded by default
+    });
+    return state;
+  });
+
   const handleSelectCard = useCallback(card => {
     setSelectedCard(card);
     setIsAddMode(false);
@@ -233,21 +242,39 @@ export default function KanbanBoard() {
     }));
   }, []);
 
+  // Handle column header click to expand/shrink
+  const handleColumnHeaderClick = useCallback((workflowId, columnId) => {
+    setExpandedColumns(prev => {
+      const currentExpanded = prev[workflowId];
+      // If clicking the same column, collapse it. Otherwise, expand the clicked column.
+      return {
+        ...prev,
+        [workflowId]: currentExpanded === columnId ? null : columnId
+      };
+    });
+  }, []);
+
   // Render columns for a workflow
   const renderWorkflowColumns = useCallback((workflow) => {
+    const expandedColumnId = expandedColumns[workflow.id];
     return workflow.columnOrder.map(colId => {
       const column = workflow.columns[colId];
       const cards = column.cardIds.map(id => workflow.cards[id]);
+      const isExpanded = expandedColumnId === column.id;
+      const isShrunk = expandedColumnId !== null && expandedColumnId !== column.id;
       return (
         <Column
           key={column.id}
           column={column}
           cards={cards}
           setSelectedCard={handleSelectCard}
+          isExpanded={isExpanded}
+          isShrunk={isShrunk}
+          onHeaderClick={() => handleColumnHeaderClick(workflow.id, column.id)}
         />
       );
     });
-  }, [handleSelectCard]);
+  }, [handleSelectCard, expandedColumns, handleColumnHeaderClick]);
 
   // Show Workspaces view when Workspaces icon is clicked
   if (showWorkspaces) {

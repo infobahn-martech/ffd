@@ -4,14 +4,15 @@ import CardItem from "./CardItem";
 import "../../design/css/Column.css";
 import PriorityIcon from "../../assets/images/Priority.svg";
 
-function Column({ column, cards, setSelectedCard }) {
+function Column({ column, cards, setSelectedCard, isExpanded = false, isShrunk = false, onHeaderClick }) {
   const columnColor = column.color || "#2A00FF";
 
   return (
-    <div className="column">
+    <div className={`column ${isExpanded ? 'column-expanded' : ''} ${isShrunk ? 'column-shrunk' : ''}`}>
       <div
         className="column-header"
         style={{ "--column-color": columnColor }}
+        onClick={onHeaderClick}
       >
         <div className="column-left">
           <div className="column-count-box" style={{ background: columnColor }}>
@@ -53,6 +54,9 @@ Column.propTypes = {
   }).isRequired,
   cards: PropTypes.arrayOf(PropTypes.object).isRequired,
   setSelectedCard: PropTypes.func.isRequired,
+  isExpanded: PropTypes.bool,
+  isShrunk: PropTypes.bool,
+  onHeaderClick: PropTypes.func,
 };
 
 export default Column;

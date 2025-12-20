@@ -305,7 +305,7 @@ textarea:disabled,
     flex-wrap: nowrap;
     gap: 6px;
     align-items: flex-start;
-    width: max-content;
+    width: 100%;
 }
 
 /* Column Box */
@@ -315,6 +315,17 @@ textarea:disabled,
     width: 270px;
     flex-shrink: 0;
     padding: 0 8px 10px 8px;
+    transition: width 0.3s ease, flex-grow 0.3s ease;
+}
+
+.column-expanded {
+    width: 1100px !important;
+    flex-grow: 1;
+}
+
+.column-shrunk {
+    width: 100px !important;
+    flex-shrink: 1;
 }
 
 /* Column Header */
