@@ -118,6 +118,13 @@
   /* Cards align to top, don't stretch to match row height */
 }
 
+/* Single column layout for shrunk columns */
+.column-shrunk .card-list {
+  grid-template-columns: 1fr;
+  gap: 6px;
+  padding: 8px;
+}
+
 /* When a card is dragged over */
 .card-list.drag-over {
   background: #eaf0ff;

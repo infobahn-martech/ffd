@@ -36,6 +36,7 @@ function Column({ column, cards, setSelectedCard, isExpanded = false, isShrunk =
                 card={card}
                 index={index}
                 setSelectedCard={setSelectedCard}
+                isShrunk={isShrunk}
               />
             ))}
             {provided.placeholder}

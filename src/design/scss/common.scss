@@ -347,6 +347,11 @@ textarea:disabled,
     gap: 10px;
 }
 
+/* Single column layout for shrunk columns */
+.column-shrunk .card-list {
+    gap: 6px;
+}
+
 /* Drag over glow */
 .card-list.drag-over {
     background: #e2e6ff;
