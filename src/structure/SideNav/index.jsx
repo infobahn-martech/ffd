@@ -5,6 +5,7 @@ import DefaultMenu from './components/DefaultMenu';
 import BoardFilterPanel from './components/BoardFilterPanel';
 import ManagersModal from './components/ManagersModal';
 import DashboardsModal from './components/DashboardsModal';
+import BusinessRulesModal from './components/BusinessRulesModal';
 import '../../design/scss/common.scss';
 import '../../design/scss/sidebar.scss';
 
@@ -29,7 +30,8 @@ import {
   FiFilter,
   FiLayers,
   FiImage,
-  FiUsers
+  FiUsers,
+  FiShield
 } from 'react-icons/fi';
 
 function SideNav({ isMobileMenuOpen, onCloseMobileMenu }) {
@@ -51,6 +53,7 @@ function SideNav({ isMobileMenuOpen, onCloseMobileMenu }) {
   const workspacesIcons = [
     { id: 3, icon: FiInbox, label: 'Workspaces' },
     { id: 4, icon: FiUsers, label: 'Board teams' },
+    { id: 8, icon: FiShield, label: 'Business rules' },
     { id: 5, icon: FiCalendar, label: 'Calendar' },
     { id: 6, icon: FiFileText, label: 'Reports' },
     { id: 7, icon: FiSettings, label: 'Settings' },
@@ -71,6 +74,7 @@ function SideNav({ isMobileMenuOpen, onCloseMobileMenu }) {
   const [showBoardTeamsSubmenu, setShowBoardTeamsSubmenu] = useState(false);
   const [showManagersModal, setShowManagersModal] = useState(false);
   const [showDashboardsModal, setShowDashboardsModal] = useState(false);
+  const [showBusinessRulesModal, setShowBusinessRulesModal] = useState(false);
 
   const [expand, setExpand] = useState(false);
 
@@ -405,18 +409,31 @@ function SideNav({ isMobileMenuOpen, onCloseMobileMenu }) {
         const newShowState = !showBoardTeamsSubmenu;
         setShowBoardTeamsSubmenu(newShowState);
         setShowFilterPanel(false); // Close filter panel
+        setShowBusinessRulesModal(false); // Close business rules modal
         if (newShowState) {
           setActiveKanbanIcon(item.id);
         }
         return;
       }
 
-      // Close filter panel and board teams submenu when other icons are clicked
+      // If Business rules icon is clicked, open modal
+      if (item.label === 'Business rules') {
+        setShowBusinessRulesModal(true);
+        setShowFilterPanel(false); // Close filter panel
+        setShowBoardTeamsSubmenu(false); // Close board teams submenu
+        setActiveKanbanIcon(item.id);
+        return;
+      }
+
+      // Close filter panel, board teams submenu, and business rules modal when other icons are clicked
       if (showFilterPanel) {
         setShowFilterPanel(false);
       }
       if (showBoardTeamsSubmenu) {
         setShowBoardTeamsSubmenu(false);
+      }
+      if (showBusinessRulesModal) {
+        setShowBusinessRulesModal(false);
       }
 
       setActiveKanbanIcon(item.id);
@@ -453,7 +470,8 @@ function SideNav({ isMobileMenuOpen, onCloseMobileMenu }) {
             const Icon = item.icon;
             const isActive = activeKanbanIcon === item.id ||
               (item.label === 'Filter' && showFilterPanel) ||
-              (item.label === 'Board teams' && showBoardTeamsSubmenu);
+              (item.label === 'Board teams' && showBoardTeamsSubmenu) ||
+              (item.label === 'Business rules' && showBusinessRulesModal);
             return (
               <div key={item.id} style={{ position: 'relative' }}>
                 <div
@@ -496,6 +514,7 @@ function SideNav({ isMobileMenuOpen, onCloseMobileMenu }) {
         <BoardFilterPanel show={showFilterPanel} onClose={() => setShowFilterPanel(false)} />
         <ManagersModal show={showManagersModal} onClose={() => setShowManagersModal(false)} />
         <DashboardsModal show={showDashboardsModal} onClose={() => setShowDashboardsModal(false)} />
+        <BusinessRulesModal show={showBusinessRulesModal} onClose={() => setShowBusinessRulesModal(false)} />
       </>
     );
   }
