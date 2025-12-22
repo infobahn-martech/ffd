@@ -290,6 +290,14 @@ export default function KanbanBoard() {
   }, [selectedCard, workflows]);
 
   const selectedCardWorkflow = getSelectedCardWorkflow();
+  
+  // For add mode, use the first workflow's columns if no workflow is found
+  const columnsForCardForm = useMemo(() => {
+    if (isAddMode && !selectedCardWorkflow && workflows.length > 0) {
+      return workflows[0].columns;
+    }
+    return selectedCardWorkflow?.columns;
+  }, [isAddMode, selectedCardWorkflow, workflows]);
 
   return (
     <>
@@ -317,13 +325,13 @@ export default function KanbanBoard() {
         </div>
       ))}
 
-      {selectedCard && selectedCardWorkflow && (
+      {selectedCard && columnsForCardForm && (
         <CardForm
           show={true}
           close={handleCloseCard}
           card={selectedCard}
           moveCardToColumn={moveCardToColumn}
-          columns={selectedCardWorkflow.columns}
+          columns={columnsForCardForm}
           currentColumn={isAddMode ? null : findCardColumn(selectedCard.id)}
           isAddMode={isAddMode}
         />
