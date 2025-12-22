@@ -38,7 +38,7 @@ function Workspaces() {
   const [workspacesData, setWorkspacesData] = useState([
     {
       id: 1,
-      name: 'SEDRES - CHANDLING - WORK SPACE',
+      name: 'Sedres Chandling WorkSpace',
       boards: [
         { id: 1, name: 'CHANDLING OPERATIONS', count: 6 },
         { id: 2, name: 'FROZEN', count: 1285 },
@@ -574,7 +574,7 @@ function Workspaces() {
                         </div>
                       </div>
                       <div className="board-card-content">
-                        <h3 
+                        <h3
                           className="board-name"
                           data-tooltip-id={`board-name-${board.id}`}
                           data-tooltip-content={board.name}
@@ -582,9 +582,9 @@ function Workspaces() {
                           {board.name}
                         </h3>
                         <Tooltip id={`board-name-${board.id}`} place="top" />
-                        
+
                         <div className="board-counts-row">
-                          <div 
+                          <div
                             className="board-count"
                             data-tooltip-id={`board-count-${board.id}`}
                             data-tooltip-content={`Card Count: ${board.count.toLocaleString()} cards`}
@@ -593,9 +593,9 @@ function Workspaces() {
                             <span className="board-count-number">{board.count.toLocaleString()}</span>
                           </div>
                           <Tooltip id={`board-count-${board.id}`} place="top" />
-                          
+
                           {/* Board ID Icon with Count */}
-                          <div 
+                          <div
                             className="board-id-count"
                             data-tooltip-id={`board-id-${board.id}`}
                             data-tooltip-content={`Board ID: ${board.id}`}
