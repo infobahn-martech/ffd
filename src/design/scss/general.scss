@@ -65,6 +65,283 @@
   min-height: 0;
 }
 
+/* Daily Task/Todo Styles */
+.daily-task-todo-wrapper {
+  width: 100%;
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  flex: 1;
+  min-height: 0;
+}
+
+.daily-task-container {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  gap: 16px;
+}
+
+.daily-task-input-row {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+
+  .cf-input {
+    input {
+      border: 1.5px solid #e2e2ea;
+      border-radius: 8px;
+      padding: 10px 14px;
+      font-size: 13px;
+      font-family: "Poppins", sans-serif;
+      transition: border-color 0.2s ease;
+      width: 100%;
+
+      &:focus {
+        outline: none;
+        border-color: #2e7d32;
+      }
+
+      &::placeholder {
+        color: #999;
+      }
+    }
+  }
+}
+
+.daily-task-add-btn {
+  background: #2e7d32;
+  border: none;
+  color: #ffffff;
+  width: 40px;
+  height: 40px;
+  border-radius: 8px;
+  font-size: 20px;
+  font-weight: 600;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.2s ease;
+  flex-shrink: 0;
+
+  &:hover:not(:disabled) {
+    background: rgba(46, 125, 50, 0.9);
+    transform: translateY(-1px);
+    box-shadow: 0 2px 8px rgba(46, 125, 50, 0.3);
+  }
+
+  &:active:not(:disabled) {
+    background: rgba(46, 125, 50, 0.85);
+    transform: translateY(0);
+    box-shadow: 0 1px 4px rgba(46, 125, 50, 0.2);
+  }
+
+  &:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+  }
+}
+
+.daily-task-list {
+  flex: 1;
+  overflow-y: auto;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  min-height: 0;
+  padding-right: 4px;
+
+  &::-webkit-scrollbar {
+    width: 6px;
+  }
+
+  &::-webkit-scrollbar-track {
+    background: #f5f5f5;
+    border-radius: 3px;
+  }
+
+  &::-webkit-scrollbar-thumb {
+    background: #ddd;
+    border-radius: 3px;
+
+    &:hover {
+      background: #bbb;
+    }
+  }
+}
+
+.daily-task-item {
+  display: flex;
+  align-items: flex-start;
+  gap: 14px;
+  padding: 14px 16px;
+  background: #ffffff;
+  border: 1.5px solid #e2e2ea;
+  border-radius: 10px;
+  transition: all 0.2s ease;
+  position: relative;
+
+  &:hover {
+    border-color: rgba(46, 125, 50, 0.3);
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
+    transform: translateY(-1px);
+  }
+
+  &.completed {
+    background: #f8f9fa;
+
+    .daily-task-text {
+      text-decoration: line-through;
+      color: #6c757d;
+    }
+
+    .daily-task-checkbox-icon {
+      background: #2e7d32;
+      border-color: #2e7d32;
+    }
+  }
+}
+
+.daily-task-checkbox-display {
+  display: flex;
+  align-items: center;
+  flex-shrink: 0;
+  margin-top: 2px;
+  cursor: pointer;
+  position: relative;
+
+  .daily-task-checkbox-input {
+    position: absolute;
+    opacity: 0;
+    cursor: pointer;
+    height: 0;
+    width: 0;
+
+    &:checked ~ .daily-task-checkbox-icon {
+      background: #2e7d32;
+      border-color: #2e7d32;
+    }
+
+    &:focus ~ .daily-task-checkbox-icon {
+      box-shadow: 0 0 0 3px rgba(46, 125, 50, 0.1);
+    }
+
+    &:hover ~ .daily-task-checkbox-icon {
+      border-color: #2e7d32;
+    }
+  }
+}
+
+.daily-task-checkbox-icon {
+  width: 20px;
+  height: 20px;
+  border: 2px solid #e2e2ea;
+  border-radius: 5px;
+  background: #ffffff;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.2s ease;
+  flex-shrink: 0;
+
+  &.checked {
+    background: #2e7d32;
+    border-color: #2e7d32;
+  }
+
+  &:hover {
+    border-color: #2e7d32;
+  }
+
+  svg {
+    width: 12px;
+    height: 12px;
+  }
+}
+
+.daily-task-text {
+  flex: 1;
+  font-size: 14px;
+  color: #1a1a1a;
+  font-family: "Poppins", sans-serif;
+  word-break: break-word;
+  line-height: 1.6;
+  font-weight: 400;
+  padding-top: 1px;
+}
+
+.daily-task-remove-btn {
+  background: transparent;
+  border: none;
+  color: #999;
+  font-size: 20px;
+  font-weight: 300;
+  cursor: pointer;
+  padding: 4px 8px;
+  line-height: 1;
+  transition: all 0.2s ease;
+  flex-shrink: 0;
+  border-radius: 4px;
+  opacity: 0;
+  margin-top: 2px;
+
+  .daily-task-item:hover & {
+    opacity: 1;
+  }
+
+  &:hover {
+    color: #ff4444;
+    background: rgba(255, 68, 68, 0.1);
+  }
+
+  &:active {
+    transform: scale(0.95);
+  }
+}
+
+.daily-task-empty {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 40px 20px;
+  text-align: center;
+  color: #999;
+  font-size: 13px;
+  font-family: "Poppins", sans-serif;
+}
+
+.daily-task-summary {
+  padding-top: 16px;
+  border-top: 1.5px solid #f0f0f0;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.daily-task-summary-text {
+  font-size: 13px;
+  color: #666;
+  font-family: "Poppins", sans-serif;
+  font-weight: 500;
+}
+
+.daily-task-progress-bar {
+  width: 100%;
+  height: 6px;
+  background: #e9ecef;
+  border-radius: 10px;
+  overflow: hidden;
+  position: relative;
+}
+
+.daily-task-progress-fill {
+  height: 100%;
+  border-radius: 10px;
+  transition: width 0.3s ease;
+  background: #2e7d32;
+}
+
 .react-quill-wrapper {
   width: 100%;
   flex: 1;

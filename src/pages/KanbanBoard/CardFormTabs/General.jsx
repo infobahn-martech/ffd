@@ -624,6 +624,186 @@ ReactQuillEditor.propTypes = {
   placeholder: PropTypes.string,
 };
 
+// Daily Task/Todo Component
+const DailyTaskTodo = ({ tasks = [], onChange, accentColor }) => {
+  const [newTask, setNewTask] = useState("");
+  const [localTasks, setLocalTasks] = useState(() => {
+    // Initialize with dummy tasks if no tasks provided
+    if (tasks && tasks.length > 0) {
+      return tasks;
+    }
+    return [
+      { id: 1, text: "Review vessel arrival documents", completed: true },
+      { id: 2, text: "Coordinate with port authorities", completed: true },
+      { id: 3, text: "Prepare crew change schedule", completed: false },
+      { id: 4, text: "Update vessel status in system", completed: false },
+      { id: 5, text: "Schedule maintenance activities", completed: false },
+      { id: 6, text: "Send daily report to operations team", completed: true },
+      { id: 7, text: "Verify cargo documentation", completed: false },
+    ];
+  });
+
+  // Sync local tasks with prop changes
+  useEffect(() => {
+    if (tasks && tasks.length > 0) {
+      setLocalTasks(tasks);
+    }
+  }, [tasks]);
+
+  const handleAddTask = () => {
+    if (newTask.trim()) {
+      const task = {
+        id: Date.now(),
+        text: newTask.trim(),
+        completed: false,
+        createdAt: new Date().toISOString(),
+      };
+      const updatedTasks = [...localTasks, task];
+      setLocalTasks(updatedTasks);
+      if (onChange) {
+        const syntheticEvent = { target: { value: updatedTasks } };
+        onChange(syntheticEvent);
+      }
+      setNewTask("");
+    }
+  };
+
+  const handleToggleTask = (taskId) => {
+    const updatedTasks = localTasks.map((task) =>
+      task.id === taskId ? { ...task, completed: !task.completed } : task
+    );
+    setLocalTasks(updatedTasks);
+    if (onChange) {
+      const syntheticEvent = { target: { value: updatedTasks } };
+      onChange(syntheticEvent);
+    }
+  };
+
+  const handleRemoveTask = (taskId) => {
+    const updatedTasks = localTasks.filter((task) => task.id !== taskId);
+    setLocalTasks(updatedTasks);
+    if (onChange) {
+      const syntheticEvent = { target: { value: updatedTasks } };
+      onChange(syntheticEvent);
+    }
+  };
+
+  const handleKeyPress = (e) => {
+    if (e.key === "Enter") {
+      e.preventDefault();
+      handleAddTask();
+    }
+  };
+
+  const completedCount = localTasks.filter((t) => t.completed).length;
+  const totalCount = localTasks.length;
+
+  return (
+    <div className="daily-task-todo-wrapper">
+      <FormField label="Daily Tasks / Todo">
+        <div className="daily-task-container">
+          <div className="daily-task-input-row">
+            <div className="cf-input" style={{ flex: 1 }}>
+              <input
+                type="text"
+                placeholder="Add a new task..."
+                value={newTask}
+                onChange={(e) => setNewTask(e.target.value)}
+                onKeyDown={handleKeyPress}
+              />
+            </div>
+            <button
+              type="button"
+              className="daily-task-add-btn"
+              onClick={handleAddTask}
+              disabled={!newTask.trim()}
+            >
+              +
+            </button>
+          </div>
+
+          <div className="daily-task-list">
+            {localTasks.length === 0 ? (
+              <div className="daily-task-empty">
+                <p>No tasks yet. Add a task to get started!</p>
+              </div>
+            ) : (
+              localTasks.map((task) => (
+                <div
+                  key={task.id}
+                  className={`daily-task-item ${task.completed ? "completed" : ""}`}
+                >
+                  <label className="daily-task-checkbox-display">
+                    <input
+                      type="checkbox"
+                      checked={task.completed || false}
+                      onChange={() => handleToggleTask(task.id)}
+                      className="daily-task-checkbox-input"
+                    />
+                    <div
+                      className={`daily-task-checkbox-icon ${task.completed ? "checked" : ""}`}
+                    >
+                      {task.completed && (
+                        <svg width="12" height="12" viewBox="0 0 12 12" fill="none" xmlns="http://www.w3.org/2000/svg">
+                          <path
+                            d="M10 3L4.5 8.5L2 6"
+                            stroke="white"
+                            strokeWidth="2"
+                            strokeLinecap="round"
+                            strokeLinejoin="round"
+                          />
+                        </svg>
+                      )}
+                    </div>
+                  </label>
+                  <span className="daily-task-text">{task.text}</span>
+                  <button
+                    type="button"
+                    className="daily-task-remove-btn"
+                    onClick={() => handleRemoveTask(task.id)}
+                    title="Remove task"
+                  >
+                    ×
+                  </button>
+                </div>
+              ))
+            )}
+          </div>
+
+          {localTasks.length > 0 && (
+            <div className="daily-task-summary">
+              <span className="daily-task-summary-text">
+                {completedCount} of {totalCount} completed
+              </span>
+              <div className="daily-task-progress-bar">
+                <div
+                  className="daily-task-progress-fill"
+                  style={{
+                    width: `${(completedCount / totalCount) * 100}%`,
+                  }}
+                />
+              </div>
+            </div>
+          )}
+        </div>
+      </FormField>
+    </div>
+  );
+};
+
+DailyTaskTodo.propTypes = {
+  tasks: PropTypes.arrayOf(
+    PropTypes.shape({
+      id: PropTypes.oneOfType([PropTypes.string, PropTypes.number]).isRequired,
+      text: PropTypes.string.isRequired,
+      completed: PropTypes.bool,
+      createdAt: PropTypes.string,
+    })
+  ),
+  onChange: PropTypes.func,
+  accentColor: PropTypes.string,
+};
+
 
 // Helper function to format date and time
 const formatDateTime = (date, time) => {
@@ -1161,15 +1341,23 @@ function General({ card, formValues, handleChange, ownerInitial, cardUser, onSav
               </div>
 
               <div className="general-info-right">
-                <div className="card-description-wrapper">
-                  <FormField label="Card Description">
-                    <ReactQuillEditor
-                      value={formValues?.cardDescription || ""}
-                      onChange={handleChange("cardDescription")}
-                      placeholder="Enter card description..."
-                    />
-                  </FormField>
-                </div>
+                {isAddMode ? (
+                  <div className="card-description-wrapper">
+                    <FormField label="Card Description">
+                      <ReactQuillEditor
+                        value={formValues?.cardDescription || ""}
+                        onChange={handleChange("cardDescription")}
+                        placeholder="Enter card description..."
+                      />
+                    </FormField>
+                  </div>
+                ) : (
+                  <DailyTaskTodo
+                    tasks={formValues?.dailyTasks || card?.dailyTasks}
+                    onChange={handleChange("dailyTasks")}
+                    accentColor={accentColor}
+                  />
+                )}
               </div>
             </div>
           </div>
