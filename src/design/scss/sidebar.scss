@@ -510,6 +510,52 @@
     }
 }
 
+
+.kanban-sidebar-submenu {
+    position: absolute;
+    left: calc(100% + 12px);
+    top: 0;
+    background: #ffffff;
+    border: 1px solid #e5e7eb;
+    border-radius: 8px;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+    min-width: 180px;
+    z-index: 1000;
+    padding: 4px;
+    animation: slideIn 0.2s ease-out;
+}
+
+@keyframes slideIn {
+    from {
+        opacity: 0;
+        transform: translateX(-8px);
+    }
+    to {
+        opacity: 1;
+        transform: translateX(0);
+    }
+}
+
+.kanban-sidebar-submenu-item {
+    padding: 10px 14px;
+    cursor: pointer;
+    font-size: 14px;
+    color: #374151;
+    font-weight: 500;
+    border-radius: 6px;
+    transition: all 0.2s ease;
+    font-family: 'Inter', sans-serif;
+
+    &:hover {
+        background: #f3f4f6;
+        color: #00368c;
+    }
+
+    &:active {
+        background: #e5e7eb;
+    }
+}
+
 /* Responsive Kanban Sidebar */
 @media (max-width: 991px) {
     .kanban-sidebar {

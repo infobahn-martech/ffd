@@ -6,6 +6,7 @@
   background: #f8f9fc;
   padding-left: 76px;
   position: relative;
+  transition: filter 0.3s ease;
 
   @media ($sm-1481) {
     padding: 28px 32px;
@@ -28,6 +29,13 @@
   @media ($sm-479) {
     padding: 12px 12px;
     min-height: calc(100vh - 56px);
+  }
+
+  // Blur effect when Board teams submenu is open
+  body.board-teams-submenu-open & {
+    filter: blur(4px);
+    pointer-events: none;
+    user-select: none;
   }
 }
 

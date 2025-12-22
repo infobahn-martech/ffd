@@ -26,7 +26,8 @@ import {
   FiSettings,
   FiFilter,
   FiLayers,
-  FiImage
+  FiImage,
+  FiUsers
 } from 'react-icons/fi';
 
 function SideNav({ isMobileMenuOpen, onCloseMobileMenu }) {
@@ -47,9 +48,16 @@ function SideNav({ isMobileMenuOpen, onCloseMobileMenu }) {
 
   const workspacesIcons = [
     { id: 3, icon: FiInbox, label: 'Workspaces' },
-    { id: 4, icon: FiCalendar, label: 'Calendar' },
-    { id: 5, icon: FiFileText, label: 'Reports' },
-    { id: 6, icon: FiSettings, label: 'Settings' },
+    { id: 4, icon: FiUsers, label: 'Board teams' },
+    { id: 5, icon: FiCalendar, label: 'Calendar' },
+    { id: 6, icon: FiFileText, label: 'Reports' },
+    { id: 7, icon: FiSettings, label: 'Settings' },
+  ];
+
+  // Board teams submenu items
+  const boardTeamsSubmenu = [
+    { label: 'Managers', route: '/workspace-managers' },
+    { label: 'Dashboards', route: '/dashboards' },
   ];
 
   // Select icons based on route
@@ -58,6 +66,7 @@ function SideNav({ isMobileMenuOpen, onCloseMobileMenu }) {
   // 🆕 Active state only for Kanban sidebar
   const [activeKanbanIcon, setActiveKanbanIcon] = useState(2); // default Analytics
   const [showFilterPanel, setShowFilterPanel] = useState(false);
+  const [showBoardTeamsSubmenu, setShowBoardTeamsSubmenu] = useState(false);
 
   const [expand, setExpand] = useState(false);
 
@@ -345,6 +354,34 @@ function SideNav({ isMobileMenuOpen, onCloseMobileMenu }) {
     }
   }, [pathname, isKanbanBoard]);
 
+  // Add/remove class to body when submenu is open to blur workspaces container
+  useEffect(() => {
+    if (showBoardTeamsSubmenu) {
+      document.body.classList.add('board-teams-submenu-open');
+    } else {
+      document.body.classList.remove('board-teams-submenu-open');
+    }
+    return () => {
+      document.body.classList.remove('board-teams-submenu-open');
+    };
+  }, [showBoardTeamsSubmenu]);
+
+  // Close submenu when clicking outside
+  useEffect(() => {
+    if (showBoardTeamsSubmenu) {
+      const handleClickOutside = (event) => {
+        const sidebar = document.querySelector('.kanban-sidebar');
+        const submenu = document.querySelector('.kanban-sidebar-submenu');
+        if (sidebar && !sidebar.contains(event.target) && submenu && !submenu.contains(event.target)) {
+          setShowBoardTeamsSubmenu(false);
+        }
+      };
+
+      document.addEventListener('mousedown', handleClickOutside);
+      return () => document.removeEventListener('mousedown', handleClickOutside);
+    }
+  }, [showBoardTeamsSubmenu]);
+
   // 🆕 Special layout for /kanban-board and /workspaces
   if (isKanbanBoard) {
     const handleIconClick = (item) => {
@@ -352,15 +389,30 @@ function SideNav({ isMobileMenuOpen, onCloseMobileMenu }) {
       if (item.label === 'Filter') {
         const newShowState = !showFilterPanel;
         setShowFilterPanel(newShowState);
+        setShowBoardTeamsSubmenu(false); // Close board teams submenu
         if (newShowState) {
           setActiveKanbanIcon(item.id);
         }
         return;
       }
 
-      // Close filter panel when other icons are clicked
+      // If Board teams icon is clicked, toggle submenu
+      if (item.label === 'Board teams') {
+        const newShowState = !showBoardTeamsSubmenu;
+        setShowBoardTeamsSubmenu(newShowState);
+        setShowFilterPanel(false); // Close filter panel
+        if (newShowState) {
+          setActiveKanbanIcon(item.id);
+        }
+        return;
+      }
+
+      // Close filter panel and board teams submenu when other icons are clicked
       if (showFilterPanel) {
         setShowFilterPanel(false);
+      }
+      if (showBoardTeamsSubmenu) {
+        setShowBoardTeamsSubmenu(false);
       }
 
       setActiveKanbanIcon(item.id);
@@ -381,20 +433,42 @@ function SideNav({ isMobileMenuOpen, onCloseMobileMenu }) {
       }
     };
 
+    const handleSubmenuClick = (route) => {
+      navigate(route);
+      setShowBoardTeamsSubmenu(false);
+    };
+
     return (
       <>
         <aside className="kanban-sidebar">
           {kanbanIcons.map((item) => {
             const Icon = item.icon;
+            const isActive = activeKanbanIcon === item.id ||
+              (item.label === 'Filter' && showFilterPanel) ||
+              (item.label === 'Board teams' && showBoardTeamsSubmenu);
             return (
-              <div
-                key={item.id}
-                className={`kanban-sidebar-icon ${activeKanbanIcon === item.id || (item.label === 'Filter' && showFilterPanel) ? 'active' : ''}`}
-                onClick={() => handleIconClick(item)}
-                data-tooltip-id="sidebar-tooltip"
-                data-tooltip-content={item.label}
-              >
-                <Icon size={22} />
+              <div key={item.id} style={{ position: 'relative' }}>
+                <div
+                  className={`kanban-sidebar-icon ${isActive ? 'active' : ''}`}
+                  onClick={() => handleIconClick(item)}
+                  data-tooltip-id="sidebar-tooltip"
+                  data-tooltip-content={item.label}
+                >
+                  <Icon size={22} />
+                </div>
+                {item.label === 'Board teams' && showBoardTeamsSubmenu && (
+                  <div className="kanban-sidebar-submenu">
+                    {boardTeamsSubmenu.map((subItem, index) => (
+                      <div
+                        key={index}
+                        className="kanban-sidebar-submenu-item"
+                        onClick={() => handleSubmenuClick(subItem.route)}
+                      >
+                        {subItem.label}
+                      </div>
+                    ))}
+                  </div>
+                )}
               </div>
             );
           })}
