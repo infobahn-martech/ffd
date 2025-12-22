@@ -3,6 +3,8 @@ import { useLocation, useNavigate } from 'react-router-dom';
 
 import DefaultMenu from './components/DefaultMenu';
 import BoardFilterPanel from './components/BoardFilterPanel';
+import ManagersModal from './components/ManagersModal';
+import DashboardsModal from './components/DashboardsModal';
 import '../../design/scss/common.scss';
 import '../../design/scss/sidebar.scss';
 
@@ -56,8 +58,8 @@ function SideNav({ isMobileMenuOpen, onCloseMobileMenu }) {
 
   // Board teams submenu items
   const boardTeamsSubmenu = [
-    { label: 'Managers', route: '/workspace-managers' },
-    { label: 'Dashboards', route: '/dashboards' },
+    { label: 'Managers', modal: 'managers' },
+    { label: 'Dashboards', modal: 'dashboards' },
   ];
 
   // Select icons based on route
@@ -67,6 +69,8 @@ function SideNav({ isMobileMenuOpen, onCloseMobileMenu }) {
   const [activeKanbanIcon, setActiveKanbanIcon] = useState(2); // default Analytics
   const [showFilterPanel, setShowFilterPanel] = useState(false);
   const [showBoardTeamsSubmenu, setShowBoardTeamsSubmenu] = useState(false);
+  const [showManagersModal, setShowManagersModal] = useState(false);
+  const [showDashboardsModal, setShowDashboardsModal] = useState(false);
 
   const [expand, setExpand] = useState(false);
 
@@ -433,9 +437,13 @@ function SideNav({ isMobileMenuOpen, onCloseMobileMenu }) {
       }
     };
 
-    const handleSubmenuClick = (route) => {
-      navigate(route);
+    const handleSubmenuClick = (item) => {
       setShowBoardTeamsSubmenu(false);
+      if (item.modal === 'managers') {
+        setShowManagersModal(true);
+      } else if (item.modal === 'dashboards') {
+        setShowDashboardsModal(true);
+      }
     };
 
     return (
@@ -462,7 +470,7 @@ function SideNav({ isMobileMenuOpen, onCloseMobileMenu }) {
                       <div
                         key={index}
                         className="kanban-sidebar-submenu-item"
-                        onClick={() => handleSubmenuClick(subItem.route)}
+                        onClick={() => handleSubmenuClick(subItem)}
                       >
                         {subItem.label}
                       </div>
@@ -486,6 +494,8 @@ function SideNav({ isMobileMenuOpen, onCloseMobileMenu }) {
           />
         </aside>
         <BoardFilterPanel show={showFilterPanel} onClose={() => setShowFilterPanel(false)} />
+        <ManagersModal show={showManagersModal} onClose={() => setShowManagersModal(false)} />
+        <DashboardsModal show={showDashboardsModal} onClose={() => setShowDashboardsModal(false)} />
       </>
     );
   }
