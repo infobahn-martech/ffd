@@ -5,22 +5,102 @@ import '../../../design/scss/business-rules-modal.scss';
 
 // Business rules data based on the image description
 const businessRules = [
-  { id: 1, name: 'Card is created', icon: 'create' },
-  { id: 2, name: 'Recurring create cards', icon: 'recurring-create' },
-  { id: 3, name: 'Card is updated', icon: 'update' },
-  { id: 4, name: 'Recurring update cards', icon: 'recurring-update' },
-  { id: 5, name: 'Card updated by email', icon: 'email-update' },
-  { id: 6, name: 'Child card is blocked', icon: 'child-blocked' },
-  { id: 7, name: 'All children are unblocked', icon: 'children-unblocked' },
-  { id: 8, name: 'Card is moved', icon: 'moved' },
-  { id: 9, name: 'Child card is moved', icon: 'child-moved' },
-  { id: 10, name: 'Child card is updated', icon: 'child-updated' },
-  { id: 11, name: 'All children are moved', icon: 'all-children-moved' },
-  { id: 12, name: 'Relative card is moved', icon: 'relative-moved' },
-  { id: 13, name: 'Relative card is updated', icon: 'relative-updated' },
-  { id: 14, name: 'Time-based rule', icon: 'time-based' },
-  { id: 15, name: 'WIP limit is reached', icon: 'wip-reached' },
-  { id: 16, name: 'WIP limit is exceeded', icon: 'wip-exceeded' },
+  { 
+    id: 1, 
+    name: 'Card is created', 
+    icon: 'create',
+    description: 'This rule triggers when a new card is created in the system. It allows you to set up automated actions that occur immediately after card creation, such as sending notifications, assigning default values, or triggering workflows.'
+  },
+  { 
+    id: 2, 
+    name: 'Recurring create cards', 
+    icon: 'recurring-create',
+    description: 'Automatically creates cards on a recurring schedule based on your specified frequency (daily, weekly, monthly, etc.). This is useful for recurring tasks, meetings, or periodic reviews that need to be tracked consistently.'
+  },
+  { 
+    id: 3, 
+    name: 'Card is updated', 
+    icon: 'update',
+    description: 'Triggers when any field or property of a card is modified. Use this rule to track changes, update related cards, send change notifications, or maintain audit logs of card modifications.'
+  },
+  { 
+    id: 4, 
+    name: 'Recurring update cards', 
+    icon: 'recurring-update',
+    description: 'Automatically updates cards on a recurring basis. This rule can refresh card data, update status fields, or perform scheduled maintenance tasks on cards at regular intervals.'
+  },
+  { 
+    id: 5, 
+    name: 'Card updated by email', 
+    icon: 'email-update',
+    description: 'Allows cards to be updated via email. When an email is received matching specific criteria, the corresponding card is automatically updated with the email content, attachments, or metadata.'
+  },
+  { 
+    id: 6, 
+    name: 'Child card is blocked', 
+    icon: 'child-blocked',
+    description: 'Triggers when a child card (sub-card) is marked as blocked. This rule can notify stakeholders, prevent parent card progression, or trigger escalation procedures when child tasks are blocked.'
+  },
+  { 
+    id: 7, 
+    name: 'All children are unblocked', 
+    icon: 'children-unblocked',
+    description: 'Activates when all child cards of a parent card are unblocked. This rule can automatically resume parent card workflows, send completion notifications, or update parent card status when all dependencies are resolved.'
+  },
+  { 
+    id: 8, 
+    name: 'Card is moved', 
+    icon: 'moved',
+    description: 'Triggers when a card is moved between columns, lanes, or boards. Use this rule to track card progression, update status fields, send movement notifications, or trigger workflows based on card location changes.'
+  },
+  { 
+    id: 9, 
+    name: 'Child card is moved', 
+    icon: 'child-moved',
+    description: 'Activates when a child card is moved to a different location. This rule can update parent card status, synchronize child card movements with parent workflows, or trigger notifications about child card progression.'
+  },
+  { 
+    id: 10, 
+    name: 'Child card is updated', 
+    icon: 'child-updated',
+    description: 'Triggers when any child card is modified. This rule can automatically update parent card summaries, recalculate parent card metrics, or notify stakeholders about changes in child card status.'
+  },
+  { 
+    id: 11, 
+    name: 'All children are moved', 
+    icon: 'all-children-moved',
+    description: 'Activates when all child cards have been moved to a specific location or status. This rule can automatically complete parent cards, trigger final reviews, or initiate next-phase workflows when all child tasks reach their target state.'
+  },
+  { 
+    id: 12, 
+    name: 'Relative card is moved', 
+    icon: 'relative-moved',
+    description: 'Triggers when a related or linked card is moved. This rule maintains relationships between cards, synchronizes movements of related items, or updates cross-references when relative cards change position.'
+  },
+  { 
+    id: 13, 
+    name: 'Relative card is updated', 
+    icon: 'relative-updated',
+    description: 'Activates when a related or linked card is modified. This rule can propagate updates to related cards, maintain data consistency across linked items, or trigger cascading updates in connected workflows.'
+  },
+  { 
+    id: 14, 
+    name: 'Time-based rule', 
+    icon: 'time-based',
+    description: 'Executes actions based on time conditions such as specific dates, time intervals, or scheduled events. This rule enables time-triggered automation, deadline management, and scheduled task execution.'
+  },
+  { 
+    id: 15, 
+    name: 'WIP limit is reached', 
+    icon: 'wip-reached',
+    description: 'Triggers when the Work In Progress (WIP) limit for a column or lane is reached. This rule can prevent new card assignments, notify team members about capacity limits, or trigger workflow adjustments to manage workload.'
+  },
+  { 
+    id: 16, 
+    name: 'WIP limit is exceeded', 
+    icon: 'wip-exceeded',
+    description: 'Activates when the WIP limit is exceeded, indicating over-capacity. This rule can send alerts, block new card assignments, trigger escalation procedures, or automatically redistribute work to maintain optimal workflow balance.'
+  },
 ];
 
 // Icon component for business rules
@@ -176,66 +256,122 @@ const BusinessRuleIcon = ({ iconType }) => {
   return <div style={iconStyle}>{renderIcon()}</div>;
 };
 
-const BusinessRulesModal = ({ show, onClose }) => {
-  const [searchValue, setSearchValue] = useState('');
-
-  const filteredRules = businessRules.filter(rule =>
-    rule.name.toLowerCase().includes(searchValue.toLowerCase())
-  );
+// Detail Modal Component
+const BusinessRuleDetailModal = ({ show, onClose, rule }) => {
+  if (!rule) return null;
 
   return (
     <Modal
       show={show}
       onHide={onClose}
-      className="business-rules-modal"
+      className="business-rule-detail-modal"
       centered
-      size="xl"
+      size="md"
     >
-      <Modal.Header className="business-rules-modal-header">
-        <Modal.Title className="business-rules-modal-title">Business Rules</Modal.Title>
+      <Modal.Header className="business-rule-detail-modal-header">
+        <Modal.Title className="business-rule-detail-modal-title">{rule.name}</Modal.Title>
         <button
           type="button"
-          className="business-rules-modal-close"
+          className="business-rule-detail-modal-close"
           onClick={onClose}
           aria-label="Close"
         >
           <FiX size={20} />
         </button>
       </Modal.Header>
-      <Modal.Body className="business-rules-modal-body">
-        {/* Search Section */}
-        <div className="business-rules-search-section">
-          <div className="business-rules-search-wrapper">
-            <FiSearch className="business-rules-search-icon" />
-            <input
-              type="text"
-              className="business-rules-search-input"
-              placeholder="Filter by business rule name"
-              value={searchValue}
-              onChange={(e) => setSearchValue(e.target.value)}
-            />
-          </div>
-        </div>
-
-        {/* Cards Grid Section */}
-        <div className="business-rules-grid-wrapper">
-          {filteredRules.length > 0 ? (
-            <div className="business-rules-grid">
-              {filteredRules.map(rule => (
-                <div key={rule.id} className="business-rules-card">
-                  <BusinessRuleIcon iconType={rule.icon} />
-                  <h3 className="business-rules-card-title">{rule.name}</h3>
-                </div>
-              ))}
-            </div>
-          ) : (
-            <div className="business-rules-empty-state">
-              No business rules found
-            </div>
-          )}
+      <Modal.Body className="business-rule-detail-modal-body">
+        <div className="business-rule-detail-description">
+          {rule.description}
         </div>
       </Modal.Body>
     </Modal>
+  );
+};
+
+const BusinessRulesModal = ({ show, onClose }) => {
+  const [searchValue, setSearchValue] = useState('');
+  const [selectedRule, setSelectedRule] = useState(null);
+  const [showDetailModal, setShowDetailModal] = useState(false);
+
+  const filteredRules = businessRules.filter(rule =>
+    rule.name.toLowerCase().includes(searchValue.toLowerCase())
+  );
+
+  const handleCardClick = (rule) => {
+    setSelectedRule(rule);
+    setShowDetailModal(true);
+  };
+
+  const handleCloseDetailModal = () => {
+    setShowDetailModal(false);
+    setSelectedRule(null);
+  };
+
+  return (
+    <>
+      <Modal
+        show={show}
+        onHide={onClose}
+        className="business-rules-modal"
+        centered
+        size="xl"
+      >
+        <Modal.Header className="business-rules-modal-header">
+          <Modal.Title className="business-rules-modal-title">Business Rules</Modal.Title>
+          <button
+            type="button"
+            className="business-rules-modal-close"
+            onClick={onClose}
+            aria-label="Close"
+          >
+            <FiX size={20} />
+          </button>
+        </Modal.Header>
+        <Modal.Body className="business-rules-modal-body">
+          {/* Search Section */}
+          <div className="business-rules-search-section">
+            <div className="business-rules-search-wrapper">
+              <FiSearch className="business-rules-search-icon" />
+              <input
+                type="text"
+                className="business-rules-search-input"
+                placeholder="Filter by business rule name"
+                value={searchValue}
+                onChange={(e) => setSearchValue(e.target.value)}
+              />
+            </div>
+          </div>
+
+          {/* Cards Grid Section */}
+          <div className="business-rules-grid-wrapper">
+            {filteredRules.length > 0 ? (
+              <div className="business-rules-grid">
+                {filteredRules.map(rule => (
+                  <div 
+                    key={rule.id} 
+                    className="business-rules-card"
+                    onClick={() => handleCardClick(rule)}
+                  >
+                    <BusinessRuleIcon iconType={rule.icon} />
+                    <h3 className="business-rules-card-title">{rule.name}</h3>
+                  </div>
+                ))}
+              </div>
+            ) : (
+              <div className="business-rules-empty-state">
+                No business rules found
+              </div>
+            )}
+          </div>
+        </Modal.Body>
+      </Modal>
+
+      <BusinessRuleDetailModal
+        show={showDetailModal}
+        onClose={handleCloseDetailModal}
+        rule={selectedRule}
+      />
+    </>
   );
 };
 

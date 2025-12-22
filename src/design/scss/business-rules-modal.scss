@@ -160,28 +160,22 @@
     padding: 16px 20px;
   }
 
-  // Custom scrollbar styling
+  // Transparent scrollbar styling
   &::-webkit-scrollbar {
     width: 8px;
   }
 
   &::-webkit-scrollbar-track {
-    background: #f1f1f1;
-    border-radius: 4px;
+    background: transparent;
   }
 
   &::-webkit-scrollbar-thumb {
-    background: #00368c;
-    border-radius: 4px;
-
-    &:hover {
-      background: #002d73;
-    }
+    background: transparent;
   }
 
-  // Firefox scrollbar styling
+  // Firefox scrollbar styling - transparent
   scrollbar-width: thin;
-  scrollbar-color: #00368c #f1f1f1;
+  scrollbar-color: transparent transparent;
 }
 
 .business-rules-grid {
@@ -250,5 +244,104 @@
 
   @media ($sm-767) {
     padding: 40px 20px;
+  }
+}
+
+// Business Rule Detail Modal
+.business-rule-detail-modal {
+  .modal-dialog {
+    max-width: 600px;
+    width: 90%;
+    margin: 1.5rem auto;
+
+    @media ($sm-991) {
+      max-width: 95%;
+      width: 95%;
+      margin: 1rem auto;
+    }
+  }
+
+  .modal-content {
+    border: none;
+    border-radius: 16px;
+    box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+    overflow: hidden;
+    background: #ffffff;
+  }
+
+  .modal-backdrop {
+    background-color: rgba(0, 0, 0, 0.5);
+    backdrop-filter: blur(4px);
+  }
+}
+
+.business-rule-detail-modal-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 24px 28px 20px;
+  border-bottom: 1px solid #e5e7eb;
+  background: #ffffff;
+
+  @media ($sm-767) {
+    padding: 20px 24px 16px;
+  }
+}
+
+.business-rule-detail-modal-title {
+  font: normal normal 600 24px/1.3 $font-primary;
+  color: $colorPrimary;
+  margin: 0;
+  letter-spacing: -0.02em;
+
+  @media ($sm-767) {
+    font-size: 22px;
+  }
+}
+
+.business-rule-detail-modal-close {
+  width: 32px;
+  height: 32px;
+  border: none;
+  background: #f3f4f6;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  color: #6b7280;
+  transition: all 0.2s ease;
+  flex-shrink: 0;
+  padding: 0;
+
+  &:hover {
+    background: #e5e7eb;
+    color: #374151;
+    transform: rotate(90deg);
+  }
+
+  &:focus {
+    outline: 2px solid rgba(0, 54, 140, 0.3);
+    outline-offset: 2px;
+  }
+}
+
+.business-rule-detail-modal-body {
+  padding: 32px 28px;
+  background: #ffffff;
+
+  @media ($sm-767) {
+    padding: 24px 20px;
+  }
+}
+
+.business-rule-detail-description {
+  font: normal normal 400 16px/1.6 $font-primary;
+  color: $txtColor;
+  text-align: center;
+
+  @media ($sm-767) {
+    font-size: 14px;
+    line-height: 1.5;
   }
 }
