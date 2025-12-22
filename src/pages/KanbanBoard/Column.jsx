@@ -1,11 +1,19 @@
 import { Droppable } from "@hello-pangea/dnd";
 import PropTypes from "prop-types";
+import { Tooltip } from "react-tooltip";
+import "react-tooltip/dist/react-tooltip.css";
 import CardItem from "./CardItem";
 import "../../design/css/Column.css";
 import PriorityIcon from "../../assets/images/Priority.svg";
 
 function Column({ column, cards, setSelectedCard, isExpanded = false, isShrunk = false, onHeaderClick }) {
   const columnColor = column.color || "#2A00FF";
+
+  // Truncate title to 8 characters when shrunk
+  const displayTitle = isShrunk && column.title.length > 8
+    ? column.title.substring(0, 5) + "..."
+    : column.title;
+  const tooltipId = `column-title-${column.id}`;
 
   return (
     <div className={`column ${isExpanded ? 'column-expanded' : ''} ${isShrunk ? 'column-shrunk' : ''}`}>
@@ -19,7 +27,20 @@ function Column({ column, cards, setSelectedCard, isExpanded = false, isShrunk =
             <span className="count-number">{cards.length}</span>
             <img src={PriorityIcon} alt="Priority" className="priority-icon" />
           </div>
-          <h2 className="column-title">{column.title}</h2>
+          {isShrunk && column.title.length > 8 ? (
+            <>
+              <h2
+                className="column-title"
+                data-tooltip-id={tooltipId}
+                data-tooltip-content={column.title}
+              >
+                {displayTitle}
+              </h2>
+              <Tooltip id={tooltipId} place="top" />
+            </>
+          ) : (
+            <h2 className="column-title">{displayTitle}</h2>
+          )}
         </div>
       </div>
 
