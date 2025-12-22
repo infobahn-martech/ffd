@@ -87,9 +87,12 @@
   padding: 20px 28px;
   border-bottom: 1px solid #e5e7eb;
   background: #f8f9fc;
+  display: flex;
+  justify-content: flex-end;
 
   @media ($sm-767) {
     padding: 16px 20px;
+    justify-content: flex-start;
   }
 }
 
@@ -97,7 +100,8 @@
   position: relative;
   display: flex;
   align-items: center;
-  max-width: 400px;
+  max-width: 523px;
+  width: 100%;
 
   @media ($sm-767) {
     max-width: 100%;
@@ -121,12 +125,25 @@
   font: normal normal 400 14px/1.5 $font-primary;
   color: $txtColor;
   background: #ffffff;
-  transition: all 0.2s ease;
+  outline: none;
+  box-shadow: none;
+
+  &:hover {
+    border-color: #e5e7eb;
+    outline: none;
+    box-shadow: none;
+  }
 
   &:focus {
+    border-color: #e5e7eb;
     outline: none;
-    border-color: #00368c;
-    box-shadow: 0 0 0 3px rgba(0, 54, 140, 0.1);
+    box-shadow: none;
+  }
+
+  &:active {
+    border-color: #e5e7eb;
+    outline: none;
+    box-shadow: none;
   }
 
   &::placeholder {
@@ -142,6 +159,29 @@
   @media ($sm-767) {
     padding: 16px 20px;
   }
+
+  // Custom scrollbar styling
+  &::-webkit-scrollbar {
+    width: 8px;
+  }
+
+  &::-webkit-scrollbar-track {
+    background: #f1f1f1;
+    border-radius: 4px;
+  }
+
+  &::-webkit-scrollbar-thumb {
+    background: #00368c;
+    border-radius: 4px;
+
+    &:hover {
+      background: #002d73;
+    }
+  }
+
+  // Firefox scrollbar styling
+  scrollbar-width: thin;
+  scrollbar-color: #00368c #f1f1f1;
 }
 
 .business-rules-grid {
@@ -212,4 +252,3 @@
     padding: 40px 20px;
   }
 }
-

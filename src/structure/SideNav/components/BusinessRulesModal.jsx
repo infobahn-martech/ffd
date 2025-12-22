@@ -184,9 +184,9 @@ const BusinessRulesModal = ({ show, onClose }) => {
   );
 
   return (
-    <Modal 
-      show={show} 
-      onHide={onClose} 
+    <Modal
+      show={show}
+      onHide={onClose}
       className="business-rules-modal"
       centered
       size="xl"
