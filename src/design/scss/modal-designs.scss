@@ -2,236 +2,256 @@
 
 
 
-.modal-dialog{
-    &.custom-mod{
-        &.custom-mod-xl{
-            width: calc(100vw - 60px);
-            max-width: 1440px;
-        }
-        .modal-content{
-            border-radius: 24px;
-            @media($sm-1281){
-                padding: 40px 30px;
-            }
-            @media($sm-991){
-                padding:30px 20px;
-            }
-        }
-        .modal-header{
-            border-bottom: none !important;
-            position: relative;
-            padding-top: 50px;
-            .btn-close{
-                position: absolute;
-                top: 20px;
-                right: 20px;
-                margin: 0 !important;
-                background-color: #D8E7E9;
-                width: 26px;
-                height: 26px;
-                border-radius: 26px;
-                padding: 0;
-                background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16' fill='%2325666C'%3e%3cpath d='M.293.293a1 1 0 0 1 1.414 0L8 6.586 14.293.293a1 1 0 1 1 1.414 1.414L9.414 8l6.293 6.293a1 1 0 0 1-1.414 1.414L8 9.414l-6.293 6.293a1 1 0 0 1-1.414-1.414L6.586 8 .293 1.707a1 1 0 0 1 0-1.414z'/%3e%3c/svg%3e");
-                opacity: 1;
-                background-size: 40%;
-                
-            }
-        }
-       
-
-        .modal-title{
-            color: $colorPrimary;
-        }
-
-        .modal-header,
-        .modal-body,
-        .modal-footer{
-            padding-left: 80px;
-            padding-right: 80px;
-
-            @media($sm-991){
-                padding-left: 20px;
-                padding-right: 20px;
-            }
-            @media($sm-1281){
-                padding-left: 20px;
-                padding-right: 20px;
-            }
-        }
-         
-        .modal-footer{
-            padding-bottom: 50px;
-            border-top: none !important;
-            @media($sm-1281){
-                padding-bottom: 20px;
-            }
-             
-            .btn{
-                font-size: 14px;
-                width: 100%;
-                max-width: 165px;
-                padding: 12px;
-                border-radius: 10px;
-
-                &.btn-outline-green{
-                    background: #FFFFFF;
-                    // border-radius: 23px;
-                    font-weight: 600;
-                    color: #00368c;
-                    border: 1px solid #00368c;
-                    .timeimg{
-                        margin-right: 10px;
-                        
-
-                    }
-                }
-            }
-        }
+.modal-dialog {
+  &.custom-mod {
+    &.custom-mod-xl {
+      width: calc(100vw - 60px);
+      max-width: 1440px;
     }
+
+    .modal-content {
+      border-radius: 24px;
+
+      @media($sm-1281) {
+        padding: 40px 30px;
+      }
+
+      @media($sm-991) {
+        padding: 30px 20px;
+      }
+    }
+
+    .modal-header {
+      border-bottom: none !important;
+      position: relative;
+      padding-top: 50px;
+
+      .btn-close {
+        position: absolute;
+        top: 20px;
+        right: 20px;
+        margin: 0 !important;
+        background-color: #D8E7E9;
+        width: 26px;
+        height: 26px;
+        border-radius: 26px;
+        padding: 0;
+        background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16' fill='%2325666C'%3e%3cpath d='M.293.293a1 1 0 0 1 1.414 0L8 6.586 14.293.293a1 1 0 1 1 1.414 1.414L9.414 8l6.293 6.293a1 1 0 0 1-1.414 1.414L8 9.414l-6.293 6.293a1 1 0 0 1-1.414-1.414L6.586 8 .293 1.707a1 1 0 0 1 0-1.414z'/%3e%3c/svg%3e");
+        opacity: 1;
+        background-size: 40%;
+
+      }
+    }
+
+    .modal-title {
+      color: $colorPrimary;
+    }
+
+    .modal-header,
+    .modal-body,
+    .modal-footer {
+      padding-left: 80px;
+      padding-right: 80px;
+
+      @media($sm-991) {
+        padding-left: 20px;
+        padding-right: 20px;
+      }
+
+      @media($sm-1281) {
+        padding-left: 20px;
+        padding-right: 20px;
+      }
+    }
+
+    .modal-footer {
+      padding-bottom: 50px;
+      border-top: none !important;
+
+      @media($sm-1281) {
+        padding-bottom: 20px;
+      }
+
+      .btn {
+        font-size: 14px;
+        width: 100%;
+        max-width: 165px;
+        padding: 12px;
+        border-radius: 10px;
+
+        &.btn-outline-green {
+          background: #FFFFFF;
+          // border-radius: 23px;
+          font-weight: 600;
+          color: #00368c;
+          border: 1px solid #00368c;
+
+          .timeimg {
+            margin-right: 10px;
+
+
+          }
+        }
+      }
+    }
+  }
 }
 
 
 
-.employee-modal{
-    .modal-dialog {
-      max-width: 629px;
-      width: 100%;
-      margin: auto; 
-    }
-    .profile-img{
-      width: 120px;
-      height: 120px;
-      border-radius: 100px;
-      margin: 0 auto;
-      margin-bottom: 20px;
+.employee-modal {
+  .modal-dialog {
+    max-width: 629px;
+    width: 100%;
+    margin: auto;
   }
-  .popup-title{
+
+  .profile-img {
+    width: 120px;
+    height: 120px;
+    border-radius: 100px;
+    margin: 0 auto;
+    margin-bottom: 20px;
+  }
+
+  .popup-title {
     font: normal normal 600 20px/30px Poppins;
     color: #00368C;
   }
-  .popup-sub-title{
-  font: normal normal normal 14px/21px Poppins;
-  }
-    .modal-body{
-      text-align: center;
-  
-      .ok-btn{
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        margin-top: 20px;
-      }
-    }
+
+  .popup-sub-title {
+    font: normal normal normal 14px/21px Poppins;
   }
 
+  .modal-body {
+    text-align: center;
 
-  input#selectedFile{
-        background-color: transparent;
-    border-radius: 9px;
-    padding: 1rem 0.75rem;
+    .ok-btn {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      margin-top: 20px;
+    }
+  }
+}
+
+
+input#selectedFile {
+  background-color: transparent;
+  border-radius: 9px;
+  padding: 1rem 0.75rem;
+}
+
+
+.btn.meeting-btn {
+  background: #D6F0F0;
+  border: 1px solid #9CC7CB;
+  color: #00368c;
+
+  &:hover {
+    color: #fff;
+  }
+}
+
+.social {
+  .modal-content {
+    width: 600px;
+    margin: 0 auto;
+
+    .modal-header,
+    .modal-body,
+    .modal-footer {
+      padding-left: 10px;
+      padding-right: 10px;
     }
 
+  }
+}
 
-    .btn.meeting-btn{
-        background: #D6F0F0;
-        border: 1px solid #9CC7CB;
-        color: #00368c; 
-        &:hover{
-            color: #fff;
-        }
-    }
+.modal-footer-sec {
+  display: flex;
+  justify-content: space-between;
 
-    .social{
-        .modal-content{
-            width: 600px;
-            margin: 0 auto;
-            .modal-header,
-            .modal-body,
-            .modal-footer{
-                padding-left: 10px;
-                padding-right: 10px;
-            }
+  .footer-sec {
+    width: 30%;
+  }
 
-        }
-    }
+  .footer-sec1 {
+    display: flex;
+    flex: 1;
+    justify-content: end;
 
-    .modal-footer-sec{
-        display: flex;
-        justify-content: space-between;
-        .footer-sec{
-            width: 30%;
-        }
-        .footer-sec1{
-            display: flex;
-            flex: 1;
-            justify-content: end;
-            .btn{
-                margin-right: 10px;
-                &:last-child{
-                    margin-right: 0;
-                }
-            }
+    .btn {
+      margin-right: 10px;
 
-        }
-    }
-
-    .add-link{
-        right:0;
-        top: 7px;
-        position: absolute;
-
-        letter-spacing: 0.24px;
-        color: #22919B;
-        font-size: 12px;
-        a{
-            text-decoration: none;
-            letter-spacing: 0.24px;
-            color: #22919B;
-            font-size: 12px;
-        }
-    }
-
-    .modal-header .btn-close{
-        @media($sm-991){
-            top: 0 !important;
-            right: 0 !important;
-        }
-    }
-
-    .modal-body{
-        @media($sm-991){
-            padding: 0px;
-            overflow-y: auto;
-            overflow-x: hidden;
-        }
-    }
-    .modal-title{
-
-    letter-spacing: 0.1px;
-    color: #00368c;
-    font-size: 20px;
-    font-weight: 600;
-    }
-
-    .logout-modal{
-        &.change-pass{
-          .modal-header .btn-close{
-            top: 6px;
-          }
-      
-            .modal-content{
-              padding: 10px 50px 35px 50px;
-                .profile-img{
-                  width: 82px;
-                  height: 82px;
-                }
-            }
-        } 
+      &:last-child {
+        margin-right: 0;
       }
+    }
 
-      .logout-modal1{
-        padding: 50px;
+  }
+}
+
+.add-link {
+  right: 0;
+  top: 7px;
+  position: absolute;
+
+  letter-spacing: 0.24px;
+  color: #22919B;
+  font-size: 12px;
+
+  a {
+    text-decoration: none;
+    letter-spacing: 0.24px;
+    color: #22919B;
+    font-size: 12px;
+  }
+}
+
+.modal-header .btn-close {
+  @media($sm-991) {
+    top: 0 !important;
+    right: 0 !important;
+  }
+}
+
+.modal-body {
+  @media($sm-991) {
+    padding: 0px;
+    overflow-y: auto;
+    overflow-x: hidden;
+  }
+}
+
+.modal-title {
+
+  letter-spacing: 0.1px;
+  color: #00368c;
+  font-size: 20px;
+  font-weight: 600;
+}
+
+.logout-modal {
+  &.change-pass {
+    .modal-header .btn-close {
+      top: 6px;
+    }
+
+    .modal-content {
+      padding: 10px 50px 35px 50px;
+
+      .profile-img {
+        width: 82px;
+        height: 82px;
       }
+    }
+  }
+}
+
+.logout-modal1 {
+  padding: 50px;
+}
 
 /* Role Modal - Higher z-index to appear above CardForm (z-index: 1200) */
 /* Bootstrap modals are rendered in a portal at body level */
@@ -244,7 +264,7 @@ body .role-modal-sm.show {
 }
 
 body .role-modal-sm .modal-dialog {
-  max-width: 600px !important;   // reduce width
+  max-width: 600px !important; // reduce width
   z-index: 1301 !important;
   position: relative;
 }
@@ -265,8 +285,10 @@ body .user-modal-sm.show {
 }
 
 body .user-modal-sm .modal-dialog {
-  max-width: 750px !important;  /* reduce from full screen */
-  margin-top: 38px !important;  /* push modal down */
+  max-width: 750px !important;
+  /* reduce from full screen */
+  margin-top: 38px !important;
+  /* push modal down */
   z-index: 1301 !important;
   position: relative;
 }
@@ -306,5 +328,3 @@ body .modal.show .modal-dialog {
   z-index: 1301 !important;
   position: relative;
 }
-
-
