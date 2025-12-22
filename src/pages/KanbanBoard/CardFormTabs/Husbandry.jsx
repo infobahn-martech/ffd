@@ -23,6 +23,7 @@ import HotelContent from "./Husbandry/HotelContent";
 import MedicalServiceContent from "./Husbandry/MedicalServiceContent";
 import WasteDisposalContent from "./Husbandry/WasteDisposalContent";
 import MaterialManagementContent from "./Husbandry/MaterialManagementContent";
+import MWPRenewalContent from "./Husbandry/MWPRenewalContent";
 
 // Service Selection Component
 const ServiceSelection = ({ onSelectService, cardColor, bookedServices = [] }) => {
@@ -443,9 +444,11 @@ function Husbandry({ card, formValues, handleChange }) {
           {activeMainTab === MAIN_TABS.MATERIAL_MANAGEMENT &&
             renderMaterialManagementContent()}
           {activeMainTab === MAIN_TABS.MWP_RENEWAL && (
-            <div className="husbandry-placeholder-content">
-              <p>In-Progress</p>
-            </div>
+            <MWPRenewalContent
+              formValues={formValues}
+              handleChange={handleChange}
+              cardColor={cardColor}
+            />
           )}
           {activeMainTab === MAIN_TABS.THIRD_PARTY_SERVICES && (
             <div className="husbandry-placeholder-content">
