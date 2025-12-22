@@ -483,7 +483,7 @@ function EditWorkflows() {
                             />
                         </div>
 
-                        <div className="workflows-config-field">
+                        {/* <div className="workflows-config-field">
                             <label className="workflows-config-label">
                                 Default templates
                                 <button className="workflows-edit-icon" type="button">
@@ -515,7 +515,7 @@ function EditWorkflows() {
                             >
                                 <option>Repeating value</option>
                             </select>
-                        </div>
+                        </div> */}
 
                         <div className="workflows-undo-redo">
                             <button className="workflows-btn workflows-btn-undo" disabled>
