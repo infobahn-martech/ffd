@@ -72,9 +72,6 @@ function Header({ onMenuToggle, mobileMenuOpen: externalMobileMenuOpen }) {
               <NavLink to="/edit-workflow" className="top-link">
                 <span className="link-text">Edit Workflows</span>
               </NavLink>
-              <NavLink to="/analytics" className="top-link">
-                <span className="link-text">Show Analytics</span>
-              </NavLink>
             </>
           ) : (
             /* Show "Back to Board" for all other routes */
