@@ -22,6 +22,15 @@ export default function KanbanBoard() {
     return state;
   });
 
+  // Track pinned workflows (true means pinned)
+  const [pinnedWorkflows, setPinnedWorkflows] = useState(() => {
+    const state = {};
+    initialData.forEach(workflow => {
+      state[workflow.id] = false;
+    });
+    return state;
+  });
+
   // Track expanded column for each workflow (columnId or null)
   const [expandedColumns, setExpandedColumns] = useState(() => {
     const state = {};
@@ -302,6 +311,13 @@ export default function KanbanBoard() {
     setAccordionMenuWorkflowId(null);
   }, []);
 
+  // Keep pinned workflows at the top while preserving order within groups
+  const reorderWorkflows = useCallback((pinState, currentWorkflows) => {
+    const pinned = currentWorkflows.filter(w => pinState[w.id]);
+    const unpinned = currentWorkflows.filter(w => !pinState[w.id]);
+    return [...pinned, ...unpinned];
+  }, []);
+
   // Handle expand from accordion menu
   const handleAccordionExpand = useCallback(() => {
     if (accordionMenuWorkflowId) {
@@ -315,6 +331,22 @@ export default function KanbanBoard() {
       collapseWorkflow(accordionMenuWorkflowId);
     }
   }, [accordionMenuWorkflowId, collapseWorkflow]);
+
+  // Handle pin/unpin from accordion menu
+  const handleTogglePin = useCallback(() => {
+    if (!accordionMenuWorkflowId) return;
+
+    setPinnedWorkflows(prev => {
+      const updated = {
+        ...prev,
+        [accordionMenuWorkflowId]: !prev[accordionMenuWorkflowId]
+      };
+      setWorkflows(prevWorkflows => reorderWorkflows(updated, prevWorkflows));
+      return updated;
+    });
+
+    handleCloseAccordionMenu();
+  }, [accordionMenuWorkflowId, reorderWorkflows, handleCloseAccordionMenu]);
 
   // Close accordion menu when clicking outside
   useEffect(() => {
@@ -392,10 +424,10 @@ export default function KanbanBoard() {
   // Handle column height change with batching for better performance
   const handleColumnHeightChange = useCallback((columnId, height) => {
     // Find which workflow contains this column
-    const workflow = workflows.find(w => 
+    const workflow = workflows.find(w =>
       Object.values(w.columns).some(col => col.id === columnId)
     );
-    
+
     if (!workflow) return;
 
     // Use functional update to batch state changes
@@ -431,7 +463,7 @@ export default function KanbanBoard() {
   const renderWorkflowColumns = useCallback((workflow) => {
     const expandedColumnId = expandedColumns[workflow.id];
     const maxHeight = maxColumnHeights[workflow.id] || 0;
-    
+
     return workflow.columnOrder.map(colId => {
       const column = workflow.columns[colId];
       const cards = column.cardIds.map(id => workflow.cards[id]);
@@ -493,9 +525,9 @@ export default function KanbanBoard() {
                 aria-label="Menu"
               >
                 <svg width="18" height="18" viewBox="0 0 18 18" fill="none" xmlns="http://www.w3.org/2000/svg">
-                  <circle cx="9" cy="4.5" r="1.5" fill="currentColor"/>
-                  <circle cx="9" cy="9" r="1.5" fill="currentColor"/>
-                  <circle cx="9" cy="13.5" r="1.5" fill="currentColor"/>
+                  <circle cx="9" cy="4.5" r="1.5" fill="currentColor" />
+                  <circle cx="9" cy="9" r="1.5" fill="currentColor" />
+                  <circle cx="9" cy="13.5" r="1.5" fill="currentColor" />
                 </svg>
               </button>
               <span className={`kanban-accordion-icon ${expandedWorkflows[workflow.id] ? 'expanded' : ''}`}>
@@ -540,6 +572,8 @@ export default function KanbanBoard() {
         onExpand={handleAccordionExpand}
         onCollapse={handleAccordionCollapse}
         isExpanded={accordionMenuWorkflowId ? expandedWorkflows[accordionMenuWorkflowId] : false}
+        isPinned={accordionMenuWorkflowId ? pinnedWorkflows[accordionMenuWorkflowId] : false}
+        onTogglePin={handleTogglePin}
       />
     </>
   );

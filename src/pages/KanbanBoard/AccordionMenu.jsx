@@ -2,7 +2,15 @@ import { useEffect } from 'react';
 import PropTypes from 'prop-types';
 import './AccordionMenu.css';
 
-function AccordionMenu({ position, onClose, onExpand, onCollapse, isExpanded }) {
+function AccordionMenu({
+  position,
+  onClose,
+  onExpand,
+  onCollapse,
+  onTogglePin,
+  isExpanded,
+  isPinned,
+}) {
   if (!position) return null;
 
   const handleClick = (e) => {
@@ -23,12 +31,19 @@ function AccordionMenu({ position, onClose, onExpand, onCollapse, isExpanded }) 
     onClose();
   };
 
+  const handleTogglePin = () => {
+    if (onTogglePin) {
+      onTogglePin();
+    }
+    onClose();
+  };
+
   // Calculate position to keep menu within viewport
   const getMenuPosition = () => {
     if (!position) return { x: 0, y: 0 };
 
     const menuWidth = 180;
-    const menuHeight = 100; // Approximate height
+    const menuHeight = 140; // Approximate height with three options
     const padding = 10;
 
     let x = position.x;
@@ -120,6 +135,14 @@ function AccordionMenu({ position, onClose, onExpand, onCollapse, isExpanded }) 
             <span className="accordion-menu-text">Expand</span>
           </div>
         )}
+        <div className="accordion-menu-item" onClick={handleTogglePin}>
+          <span className="accordion-menu-icon">
+            <svg width="16" height="16" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
+              <path d="M8 2.5L9.25 5H12C12.55 5 13 5.45 13 6V7C13 7.55 12.55 8 12 8H11L9 14L7 9L3.5 12V10.5L6 8H4C3.45 8 3 7.55 3 7V6C3 5.45 3.45 5 4 5H6.75L8 2.5Z" stroke="currentColor" strokeWidth="1.2" strokeLinecap="round" strokeLinejoin="round"/>
+            </svg>
+          </span>
+          <span className="accordion-menu-text">{isPinned ? 'Unpin' : 'Pin'}</span>
+        </div>
       </div>
     </>
   );
@@ -133,7 +156,9 @@ AccordionMenu.propTypes = {
   onClose: PropTypes.func.isRequired,
   onExpand: PropTypes.func,
   onCollapse: PropTypes.func,
+  onTogglePin: PropTypes.func,
   isExpanded: PropTypes.bool,
+  isPinned: PropTypes.bool,
 };
 
 export default AccordionMenu;
