@@ -288,31 +288,6 @@ export default function KanbanBoard() {
     // If we have a column, we could potentially set the initial column for the card
   }, [contextMenuColumn]);
 
-  const handleSelectCell = useCallback(() => {
-    // TODO: Implement cell selection logic
-    console.log('Select cell clicked for column:', contextMenuColumn?.id);
-  }, [contextMenuColumn]);
-
-  const handleSelectColumn = useCallback(() => {
-    // TODO: Implement column selection logic
-    console.log('Select column clicked for column:', contextMenuColumn?.id);
-  }, [contextMenuColumn]);
-
-  const handleSelectLane = useCallback(() => {
-    // TODO: Implement lane selection logic
-    console.log('Select lane clicked for column:', contextMenuColumn?.id);
-  }, [contextMenuColumn]);
-
-  const handleOrderCards = useCallback(() => {
-    // TODO: Implement card ordering logic
-    console.log('Order cards clicked for column:', contextMenuColumn?.id);
-  }, [contextMenuColumn]);
-
-  const handleAICoach = useCallback(() => {
-    // TODO: Implement AI coach logic
-    console.log('AI coach clicked for column:', contextMenuColumn?.id);
-  }, [contextMenuColumn]);
-
   // Close context menu when clicking outside
   useEffect(() => {
     const handleClickOutside = () => {
@@ -417,11 +392,6 @@ export default function KanbanBoard() {
         position={contextMenu}
         onClose={handleCloseContextMenu}
         onCreateCard={handleCreateCard}
-        onSelectCell={handleSelectCell}
-        onSelectColumn={handleSelectColumn}
-        onSelectLane={handleSelectLane}
-        onOrderCards={handleOrderCards}
-        onAICoach={handleAICoach}
       />
     </>
   );
