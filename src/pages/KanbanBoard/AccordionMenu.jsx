@@ -87,8 +87,16 @@ function AccordionMenu({ position, onClose, onExpand, onCollapse, isExpanded }) 
           <div className="accordion-menu-item" onClick={handleCollapse}>
             <span className="accordion-menu-icon">
               <svg width="16" height="16" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
-                <rect x="4" y="4" width="8" height="8" stroke="currentColor" strokeWidth="1.5" fill="none" rx="1"/>
-                <path d="M2 2L4 4M12 2L10 4M2 14L4 12M12 14L10 12" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round"/>
+                {/* Collapse icon - arrows pointing inward to center */}
+                <rect x="5" y="5" width="6" height="6" stroke="currentColor" strokeWidth="1.5" fill="none" rx="0.5"/>
+                {/* Top arrow pointing down */}
+                <path d="M8 2L8 5M6 4L8 5L10 4" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
+                {/* Bottom arrow pointing up */}
+                <path d="M8 11L8 14M6 12L8 11L10 12" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
+                {/* Left arrow pointing right */}
+                <path d="M2 8L5 8M4 6L5 8L4 10" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
+                {/* Right arrow pointing left */}
+                <path d="M11 8L14 8M12 6L11 8L12 10" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
               </svg>
             </span>
             <span className="accordion-menu-text">Collapse</span>
@@ -97,8 +105,16 @@ function AccordionMenu({ position, onClose, onExpand, onCollapse, isExpanded }) 
           <div className="accordion-menu-item" onClick={handleExpand}>
             <span className="accordion-menu-icon">
               <svg width="16" height="16" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
-                <rect x="4" y="4" width="8" height="8" stroke="currentColor" strokeWidth="1.5" fill="none" rx="1"/>
-                <path d="M4 2L4 4M12 2L12 4M4 14L4 12M12 14L12 12M2 4L4 4M14 4L12 4M2 12L4 12M14 12L12 12" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round"/>
+                {/* Expand icon - arrows pointing outward from center */}
+                <rect x="5" y="5" width="6" height="6" stroke="currentColor" strokeWidth="1.5" fill="none" rx="0.5"/>
+                {/* Top arrow pointing up */}
+                <path d="M8 5L8 2M6 4L8 5L10 4" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
+                {/* Bottom arrow pointing down */}
+                <path d="M8 11L8 14M6 12L8 11L10 12" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
+                {/* Left arrow pointing left */}
+                <path d="M5 8L2 8M4 6L5 8L4 10" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
+                {/* Right arrow pointing right */}
+                <path d="M11 8L14 8M12 6L11 8L12 10" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
               </svg>
             </span>
             <span className="accordion-menu-text">Expand</span>
