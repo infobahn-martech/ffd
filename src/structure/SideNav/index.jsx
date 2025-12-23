@@ -196,8 +196,23 @@ function SideNav({ isMobileMenuOpen, onCloseMobileMenu }) {
           hasPermission: true,
         },
         {
+          menu: 'Group Email',
+          to: '/group-email',
+          hasPermission: true,
+        },
+        {
+          menu: 'Job Status',
+          to: '/job-status',
+          hasPermission: true,
+        },
+        {
           menu: 'Customer Pricing',
           to: '/customer-pricing',
+          hasPermission: true,
+        },
+        {
+          menu: 'Billing Instruction',
+          to: '/billing-instruction',
           hasPermission: true,
         },
       ],

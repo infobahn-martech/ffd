@@ -157,10 +157,10 @@ const BillingEntity = () => {
       contentClass: 'table-content',
     },
     {
-      name: 'Customer ID',
+      name: 'Customer Code',
       selector: 'customerId',
       sort: true,
-      width: '150',
+      width: '200',
       thclass: 'tb-head',
       contentClass: 'table-content',
     },
