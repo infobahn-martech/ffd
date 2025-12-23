@@ -13,6 +13,7 @@ import BackIcon from '../../assets/images/Back.png';
 import useWindowSize from '../../hooks/useWindowSize';
 import useAuthReducer from '../../store/AuthReducer';
 import MyAccountsModal from './MyAccountsModal';
+import ChangePasswordModal from './ChangePasswordModal';
 import LogoutConfirmationModal from '../../components/LogoutConfirmationModal';
 
 function Header({ onMenuToggle, mobileMenuOpen: externalMobileMenuOpen }) {
@@ -22,6 +23,7 @@ function Header({ onMenuToggle, mobileMenuOpen: externalMobileMenuOpen }) {
   const [internalMobileMenuOpen, setInternalMobileMenuOpen] = useState(false);
   const [showUserDropdown, setShowUserDropdown] = useState(false);
   const [showMyAccountsModal, setShowMyAccountsModal] = useState(false);
+  const [showChangePasswordModal, setShowChangePasswordModal] = useState(false);
   const [showLogoutModal, setShowLogoutModal] = useState(false);
   const [imageError, setImageError] = useState(false);
   const dropdownRef = useRef(null);
@@ -88,6 +90,11 @@ function Header({ onMenuToggle, mobileMenuOpen: externalMobileMenuOpen }) {
   const handleMyAccountsClick = () => {
     setShowUserDropdown(false);
     setShowMyAccountsModal(true);
+  };
+
+  const handleChangePasswordClick = () => {
+    setShowUserDropdown(false);
+    setShowChangePasswordModal(true);
   };
 
   const handleLogoutClick = () => {
@@ -185,6 +192,12 @@ function Header({ onMenuToggle, mobileMenuOpen: externalMobileMenuOpen }) {
               </button>
               <button
                 className="dropdown-item"
+                onClick={handleChangePasswordClick}
+              >
+                Change Password
+              </button>
+              <button
+                className="dropdown-item"
                 onClick={handleLogoutClick}
               >
                 Logout
@@ -211,6 +224,12 @@ function Header({ onMenuToggle, mobileMenuOpen: externalMobileMenuOpen }) {
       <MyAccountsModal
         show={showMyAccountsModal}
         onClose={() => setShowMyAccountsModal(false)}
+      />
+
+      {/* Change Password Modal */}
+      <ChangePasswordModal
+        show={showChangePasswordModal}
+        onClose={() => setShowChangePasswordModal(false)}
       />
 
       {/* Logout Confirmation Modal */}
