@@ -21,6 +21,7 @@ const dummyBillingEntities = [
   {
     _id: "1",
     name: "Sedres Maritime Co.",
+    customerId: "CUST-001",
     vatNo: "VAT-SD-12345",
     phoneNumber: "+966540112233",
     email: "accounts@sedresmaritime.com",
@@ -31,6 +32,7 @@ const dummyBillingEntities = [
   {
     _id: "2",
     name: "Al Fajr Shipping LLC",
+    customerId: "CUST-002",
     vatNo: "VAT-AF-67890",
     phoneNumber: "+966550221144",
     email: "billing@alfajrshipping.com",
@@ -41,6 +43,7 @@ const dummyBillingEntities = [
   {
     _id: "3",
     name: "Global Port Services",
+    customerId: "CUST-003",
     vatNo: "VAT-GP-99887",
     phoneNumber: "+966531223344",
     email: "accounts@globalport.com",
@@ -51,6 +54,7 @@ const dummyBillingEntities = [
   {
     _id: "4",
     name: "Ocean Waves Logistics",
+    customerId: "CUST-004",
     vatNo: "VAT-OW-55667",
     phoneNumber: "+966588991122",
     email: "finance@oceanwaves.com",
@@ -61,6 +65,7 @@ const dummyBillingEntities = [
   {
     _id: "5",
     name: "Blue Horizon Freight",
+    customerId: "CUST-005",
     vatNo: "VAT-BH-11224",
     phoneNumber: "+966512007755",
     email: "billing@bluehorizon.com",
@@ -71,6 +76,7 @@ const dummyBillingEntities = [
   {
     _id: "6",
     name: "Desert Star Logistics",
+    customerId: "CUST-006",
     vatNo: "VAT-DS-77882",
     phoneNumber: "+966599881177",
     email: "accounts@desertstar.com",
@@ -81,6 +87,7 @@ const dummyBillingEntities = [
   {
     _id: "7",
     name: "PortLink Arabia",
+    customerId: "CUST-007",
     vatNo: "VAT-PL-66789",
     phoneNumber: "+966522334455",
     email: "finance@portlinkarabia.com",
@@ -91,6 +98,7 @@ const dummyBillingEntities = [
   {
     _id: "8",
     name: "CargoMax Trading",
+    customerId: "CUST-008",
     vatNo: "VAT-CM-33445",
     phoneNumber: "+966544556677",
     email: "billing@cargomax.com",
@@ -101,6 +109,7 @@ const dummyBillingEntities = [
   {
     _id: "9",
     name: "Arabian Gulf Movers",
+    customerId: "CUST-009",
     vatNo: "VAT-AG-22119",
     phoneNumber: "+966566778899",
     email: "accounts@agmovers.com",
@@ -111,6 +120,7 @@ const dummyBillingEntities = [
   {
     _id: "10",
     name: "Falcon Marine Services",
+    customerId: "CUST-010",
     vatNo: "VAT-FM-88001",
     phoneNumber: "+966533224466",
     email: "billing@falconmarine.com",
@@ -142,7 +152,15 @@ const BillingEntity = () => {
       name: 'Billing Entity',
       selector: 'name',
       sort: true,
-      width: '300',
+      width: '200',
+      thclass: 'tb-head',
+      contentClass: 'table-content',
+    },
+    {
+      name: 'Customer ID',
+      selector: 'customerId',
+      sort: true,
+      width: '150',
       thclass: 'tb-head',
       contentClass: 'table-content',
     },

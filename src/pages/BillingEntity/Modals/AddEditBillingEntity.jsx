@@ -16,6 +16,7 @@ export function BillingEntityModal({ showModal, closeModal }) {
   } = useForm({
     defaultValues: showModal?._id
       ? {
+        customerId: showModal?.customerId || "",
         billingEntityName: showModal?.billingEntityName,
         vatNumber: showModal?.vatNumber || "",
         email: showModal?.email,
@@ -48,8 +49,23 @@ export function BillingEntityModal({ showModal, closeModal }) {
       <div className="lead-form">
         <form id="billingEntityForm" onSubmit={handleSubmit(onSubmit)}>
 
-          {/* ROW 1 — Billing Entity Name + VAT Number */}
+          {/* ROW 1 — Customer ID + Billing Entity Name */}
           <div className="permInputs row mb-lg-3">
+
+            {/* Customer ID */}
+            <div className="col-lg-6 col-sm-12 mb-3">
+              <div className="form-floating desig-inp">
+                <input
+                  className={`form-control ${errors.customerId ? "is-invalid" : ""}`}
+                  placeholder="Customer ID"
+                  {...register("customerId")}
+                />
+                <label>Customer ID</label>
+                {errors.customerId && (
+                  <span className="error text-danger">{errors.customerId.message}</span>
+                )}
+              </div>
+            </div>
 
             {/* Billing Entity Name */}
             <div className="col-lg-6 col-sm-12 mb-3">
@@ -66,6 +82,11 @@ export function BillingEntityModal({ showModal, closeModal }) {
               </div>
             </div>
 
+          </div>
+
+          {/* ROW 2 — VAT Number + Email */}
+          <div className="permInputs row mb-lg-3">
+
             {/* VAT Number */}
             <div className="col-lg-6 col-sm-12 mb-3">
               <div className="form-floating desig-inp">
@@ -80,11 +101,6 @@ export function BillingEntityModal({ showModal, closeModal }) {
                 )}
               </div>
             </div>
-
-          </div>
-
-          {/* ROW 2 — Email + Phone */}
-          <div className="permInputs row mb-lg-3">
 
             {/* Email */}
             <div className="col-lg-6 col-sm-12 mb-3">
@@ -106,6 +122,11 @@ export function BillingEntityModal({ showModal, closeModal }) {
                 )}
               </div>
             </div>
+
+          </div>
+
+          {/* ROW 3 — Phone + Address Line 1 */}
+          <div className="permInputs row mb-lg-3">
 
             {/* Phone */}
             <div className="col-lg-6 col-sm-12 mb-3">
@@ -142,11 +163,8 @@ export function BillingEntityModal({ showModal, closeModal }) {
               </div>
             </div>
 
-          </div>
-
-          {/* ROW 3 — Address Line 1 FULL WIDTH */}
-          <div className="permInputs row mb-lg-3">
-            <div className="col-12">
+            {/* Address Line 1 */}
+            <div className="col-lg-6 col-sm-12 mb-3">
               <div className="form-floating desig-inp">
                 <textarea
                   className={`form-control ${errors.addressLine1 ? "is-invalid" : ""}`}
@@ -160,6 +178,7 @@ export function BillingEntityModal({ showModal, closeModal }) {
                 )}
               </div>
             </div>
+
           </div>
 
         </form>
