@@ -258,6 +258,12 @@ textarea:disabled,
     }
 }
 
+.kanban-accordion-actions {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
 .kanban-accordion-title {
     font-size: 18px;
     font-weight: 600;

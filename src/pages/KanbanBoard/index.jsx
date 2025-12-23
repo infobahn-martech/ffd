@@ -4,6 +4,7 @@ import { initialData } from "../../helpers/data";
 import Column from "./Column";
 import CardForm from "./CardForm";
 import ContextMenu from "./ContextMenu";
+import AccordionMenu from "./AccordionMenu";
 import Workspaces from "../Workspaces";
 import "../../design/scss/common.scss";
 
@@ -33,6 +34,10 @@ export default function KanbanBoard() {
   // Context menu state
   const [contextMenu, setContextMenu] = useState(null);
   const [contextMenuColumn, setContextMenuColumn] = useState(null);
+
+  // Accordion menu state
+  const [accordionMenu, setAccordionMenu] = useState(null);
+  const [accordionMenuWorkflowId, setAccordionMenuWorkflowId] = useState(null);
 
   const handleSelectCard = useCallback(card => {
     setSelectedCard(card);
@@ -247,6 +252,68 @@ export default function KanbanBoard() {
     }));
   }, []);
 
+  // Expand workflow
+  const expandWorkflow = useCallback((workflowId) => {
+    setExpandedWorkflows(prev => ({
+      ...prev,
+      [workflowId]: true
+    }));
+  }, []);
+
+  // Collapse workflow
+  const collapseWorkflow = useCallback((workflowId) => {
+    setExpandedWorkflows(prev => ({
+      ...prev,
+      [workflowId]: false
+    }));
+  }, []);
+
+  // Handle accordion menu button click
+  const handleAccordionMenuClick = useCallback((e, workflowId) => {
+    e.stopPropagation(); // Prevent accordion toggle
+    setAccordionMenu({
+      x: e.clientX,
+      y: e.clientY,
+    });
+    setAccordionMenuWorkflowId(workflowId);
+  }, []);
+
+  // Close accordion menu
+  const handleCloseAccordionMenu = useCallback(() => {
+    setAccordionMenu(null);
+    setAccordionMenuWorkflowId(null);
+  }, []);
+
+  // Handle expand from accordion menu
+  const handleAccordionExpand = useCallback(() => {
+    if (accordionMenuWorkflowId) {
+      expandWorkflow(accordionMenuWorkflowId);
+    }
+  }, [accordionMenuWorkflowId, expandWorkflow]);
+
+  // Handle collapse from accordion menu
+  const handleAccordionCollapse = useCallback(() => {
+    if (accordionMenuWorkflowId) {
+      collapseWorkflow(accordionMenuWorkflowId);
+    }
+  }, [accordionMenuWorkflowId, collapseWorkflow]);
+
+  // Close accordion menu when clicking outside
+  useEffect(() => {
+    const handleClickOutside = () => {
+      if (accordionMenu) {
+        handleCloseAccordionMenu();
+      }
+    };
+
+    if (accordionMenu) {
+      document.addEventListener('click', handleClickOutside);
+      return () => {
+        document.removeEventListener('click', handleClickOutside);
+      };
+    }
+  }, [accordionMenu, handleCloseAccordionMenu]);
+
   // Handle column header click to expand/shrink
   const handleColumnHeaderClick = useCallback((workflowId, columnId) => {
     setExpandedColumns(prev => {
@@ -359,9 +426,22 @@ export default function KanbanBoard() {
             onClick={() => toggleWorkflow(workflow.id)}
           >
             <h2 className="kanban-accordion-title">{workflow.title}</h2>
-            <span className={`kanban-accordion-icon ${expandedWorkflows[workflow.id] ? 'expanded' : ''}`}>
-              ▼
-            </span>
+            <div className="kanban-accordion-actions">
+              <button
+                className="accordion-menu-button"
+                onClick={(e) => handleAccordionMenuClick(e, workflow.id)}
+                aria-label="Menu"
+              >
+                <svg width="18" height="18" viewBox="0 0 18 18" fill="none" xmlns="http://www.w3.org/2000/svg">
+                  <circle cx="9" cy="4.5" r="1.5" fill="currentColor"/>
+                  <circle cx="9" cy="9" r="1.5" fill="currentColor"/>
+                  <circle cx="9" cy="13.5" r="1.5" fill="currentColor"/>
+                </svg>
+              </button>
+              <span className={`kanban-accordion-icon ${expandedWorkflows[workflow.id] ? 'expanded' : ''}`}>
+                ▼
+              </span>
+            </div>
           </div>
 
           {expandedWorkflows[workflow.id] && (
@@ -392,6 +472,14 @@ export default function KanbanBoard() {
         position={contextMenu}
         onClose={handleCloseContextMenu}
         onCreateCard={handleCreateCard}
+      />
+
+      <AccordionMenu
+        position={accordionMenu}
+        onClose={handleCloseAccordionMenu}
+        onExpand={handleAccordionExpand}
+        onCollapse={handleAccordionCollapse}
+        isExpanded={accordionMenuWorkflowId ? expandedWorkflows[accordionMenuWorkflowId] : false}
       />
     </>
   );
