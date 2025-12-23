@@ -1,4 +1,4 @@
-import { useRef, useEffect } from "react";
+import { useRef, useEffect, useLayoutEffect } from "react";
 import { Droppable } from "@hello-pangea/dnd";
 import PropTypes from "prop-types";
 import { Tooltip } from "react-tooltip";
@@ -25,7 +25,8 @@ function Column({ column, cards, setSelectedCard, isExpanded = false, isShrunk =
   };
 
   // Measure column height and notify parent
-  useEffect(() => {
+  // Use useLayoutEffect for synchronous measurement before paint
+  useLayoutEffect(() => {
     if (!columnRef.current || !onHeightChange) return;
 
     const measureHeight = () => {
@@ -35,11 +36,29 @@ function Column({ column, cards, setSelectedCard, isExpanded = false, isShrunk =
       }
     };
 
-    // Measure immediately
+    // Measure synchronously before paint
     measureHeight();
 
-    // Also measure after a short delay to catch any layout changes
-    const timeoutId = setTimeout(measureHeight, 100);
+    // Use requestAnimationFrame to ensure DOM is fully laid out
+    const rafId = requestAnimationFrame(() => {
+      measureHeight();
+    });
+
+    return () => {
+      cancelAnimationFrame(rafId);
+    };
+  }, [cards.length, column.id, onHeightChange, isExpanded, isShrunk]);
+
+  // Use ResizeObserver for dynamic content changes after initial render
+  useEffect(() => {
+    if (!columnRef.current || !onHeightChange) return;
+
+    const measureHeight = () => {
+      if (columnRef.current) {
+        const height = columnRef.current.offsetHeight;
+        onHeightChange(column.id, height);
+      }
+    };
 
     // Use ResizeObserver for dynamic content changes
     const resizeObserver = new ResizeObserver(() => {
@@ -51,7 +70,6 @@ function Column({ column, cards, setSelectedCard, isExpanded = false, isShrunk =
     }
 
     return () => {
-      clearTimeout(timeoutId);
       resizeObserver.disconnect();
     };
   }, [cards.length, column.id, onHeightChange, isExpanded, isShrunk]);

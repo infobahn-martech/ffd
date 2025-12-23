@@ -389,7 +389,7 @@ export default function KanbanBoard() {
     }
   }, [contextMenu, handleCloseContextMenu]);
 
-  // Handle column height change
+  // Handle column height change with batching for better performance
   const handleColumnHeightChange = useCallback((columnId, height) => {
     // Find which workflow contains this column
     const workflow = workflows.find(w => 
@@ -398,6 +398,7 @@ export default function KanbanBoard() {
     
     if (!workflow) return;
 
+    // Use functional update to batch state changes
     setColumnHeights(prev => {
       const newHeights = {
         ...prev,
@@ -411,10 +412,16 @@ export default function KanbanBoard() {
       const heights = Object.values(newHeights[workflow.id]);
       const maxHeight = heights.length > 0 ? Math.max(...heights) : 0;
 
-      setMaxColumnHeights(prevMax => ({
-        ...prevMax,
-        [workflow.id]: maxHeight
-      }));
+      // Only update if max height actually changed to avoid unnecessary re-renders
+      setMaxColumnHeights(prevMax => {
+        if (prevMax[workflow.id] === maxHeight) {
+          return prevMax; // No change, return same object
+        }
+        return {
+          ...prevMax,
+          [workflow.id]: maxHeight
+        };
+      });
 
       return newHeights;
     });
