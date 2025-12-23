@@ -13,6 +13,7 @@ import BackIcon from '../../assets/images/Back.png';
 import useWindowSize from '../../hooks/useWindowSize';
 import useAuthReducer from '../../store/AuthReducer';
 import MyAccountsModal from './MyAccountsModal';
+import LogoutConfirmationModal from '../../components/LogoutConfirmationModal';
 
 function Header({ onMenuToggle, mobileMenuOpen: externalMobileMenuOpen }) {
   const { pathname } = useLocation();
@@ -21,6 +22,7 @@ function Header({ onMenuToggle, mobileMenuOpen: externalMobileMenuOpen }) {
   const [internalMobileMenuOpen, setInternalMobileMenuOpen] = useState(false);
   const [showUserDropdown, setShowUserDropdown] = useState(false);
   const [showMyAccountsModal, setShowMyAccountsModal] = useState(false);
+  const [showLogoutModal, setShowLogoutModal] = useState(false);
   const [imageError, setImageError] = useState(false);
   const dropdownRef = useRef(null);
   const isMobile = width <= 991;
@@ -90,6 +92,11 @@ function Header({ onMenuToggle, mobileMenuOpen: externalMobileMenuOpen }) {
 
   const handleLogoutClick = () => {
     setShowUserDropdown(false);
+    setShowLogoutModal(true);
+  };
+
+  const handleLogoutConfirm = () => {
+    setShowLogoutModal(false);
     doLogout();
     navigate('/');
   };
@@ -204,6 +211,14 @@ function Header({ onMenuToggle, mobileMenuOpen: externalMobileMenuOpen }) {
       <MyAccountsModal
         show={showMyAccountsModal}
         onClose={() => setShowMyAccountsModal(false)}
+      />
+
+      {/* Logout Confirmation Modal */}
+      <LogoutConfirmationModal
+        show={showLogoutModal}
+        onCancel={() => setShowLogoutModal(false)}
+        onConfirm={handleLogoutConfirm}
+        logoutText="Are you sure you want to logout?"
       />
 
     </div>
