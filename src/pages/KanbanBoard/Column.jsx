@@ -1,3 +1,4 @@
+import { useRef, useEffect } from "react";
 import { Droppable } from "@hello-pangea/dnd";
 import PropTypes from "prop-types";
 import { Tooltip } from "react-tooltip";
@@ -6,7 +7,8 @@ import CardItem from "./CardItem";
 import "../../design/css/Column.css";
 import PriorityIcon from "../../assets/images/Priority.svg";
 
-function Column({ column, cards, setSelectedCard, isExpanded = false, isShrunk = false, onHeaderClick, onContextMenu }) {
+function Column({ column, cards, setSelectedCard, isExpanded = false, isShrunk = false, onHeaderClick, onContextMenu, columnHeight, onHeightChange }) {
+  const columnRef = useRef(null);
   const columnColor = column.color || "#2A00FF";
 
   // Truncate title to 8 characters when shrunk
@@ -22,10 +24,44 @@ function Column({ column, cards, setSelectedCard, isExpanded = false, isShrunk =
     }
   };
 
+  // Measure column height and notify parent
+  useEffect(() => {
+    if (!columnRef.current || !onHeightChange) return;
+
+    const measureHeight = () => {
+      if (columnRef.current) {
+        const height = columnRef.current.offsetHeight;
+        onHeightChange(column.id, height);
+      }
+    };
+
+    // Measure immediately
+    measureHeight();
+
+    // Also measure after a short delay to catch any layout changes
+    const timeoutId = setTimeout(measureHeight, 100);
+
+    // Use ResizeObserver for dynamic content changes
+    const resizeObserver = new ResizeObserver(() => {
+      measureHeight();
+    });
+
+    if (columnRef.current) {
+      resizeObserver.observe(columnRef.current);
+    }
+
+    return () => {
+      clearTimeout(timeoutId);
+      resizeObserver.disconnect();
+    };
+  }, [cards.length, column.id, onHeightChange, isExpanded, isShrunk]);
+
   return (
     <div 
+      ref={columnRef}
       className={`column ${isExpanded ? 'column-expanded' : ''} ${isShrunk ? 'column-shrunk' : ''}`}
       onContextMenu={handleContextMenu}
+      style={columnHeight ? { minHeight: `${columnHeight}px` } : {}}
     >
       <div
         className="column-header"
@@ -90,6 +126,8 @@ Column.propTypes = {
   isShrunk: PropTypes.bool,
   onHeaderClick: PropTypes.func,
   onContextMenu: PropTypes.func,
+  columnHeight: PropTypes.number,
+  onHeightChange: PropTypes.func,
 };
 
 export default Column;

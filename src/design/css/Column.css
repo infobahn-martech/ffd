@@ -7,7 +7,9 @@
   flex-direction: column;
   font-family: "Inter", sans-serif;
   padding: 0;
-  transition: width 0.3s ease, flex-grow 0.3s ease;
+  transition: width 0.3s ease, flex-grow 0.3s ease, min-height 0.3s ease;
+  /* Ensure card-list doesn't stretch unnecessarily */
+  align-items: stretch;
 }
 
 .column-expanded {
@@ -107,21 +109,31 @@
   display: grid;
   grid-template-columns: repeat(2, 1fr);
   /* Two cards per row */
-  gap: 8px;
-  /* space between cards */
+  gap: 10px;
+  /* Consistent space between cards */
   padding: 10px;
   background: #f3f4f8;
   border-radius: 8px;
   min-height: 60px;
+  flex: 1;
   transition: background 0.2s ease;
-  /* align-items: start; */
+  align-items: start;
+  align-content: start;
   /* Cards align to top, don't stretch to match row height */
+  row-gap: 10px;
+  column-gap: 10px;
+  /* Ensure grid rows are auto-sized, not stretched */
+  grid-auto-rows: min-content;
+  /* flex: 1 allows card-list to fill column height for equal heights,
+     but align-content: start keeps cards at top with normal spacing */
 }
 
 /* Single column layout for shrunk columns */
 .column-shrunk .card-list {
   grid-template-columns: 1fr;
-  gap: 6px;
+  gap: 8px;
+  row-gap: 8px;
+  column-gap: 8px;
   padding: 8px;
 }
 

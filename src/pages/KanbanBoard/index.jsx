@@ -39,6 +39,24 @@ export default function KanbanBoard() {
   const [accordionMenu, setAccordionMenu] = useState(null);
   const [accordionMenuWorkflowId, setAccordionMenuWorkflowId] = useState(null);
 
+  // Track column heights per workflow
+  const [columnHeights, setColumnHeights] = useState(() => {
+    const state = {};
+    initialData.forEach(workflow => {
+      state[workflow.id] = {};
+    });
+    return state;
+  });
+
+  // Track max height per workflow
+  const [maxColumnHeights, setMaxColumnHeights] = useState(() => {
+    const state = {};
+    initialData.forEach(workflow => {
+      state[workflow.id] = 0;
+    });
+    return state;
+  });
+
   const handleSelectCard = useCallback(card => {
     setSelectedCard(card);
     setIsAddMode(false);
@@ -371,9 +389,42 @@ export default function KanbanBoard() {
     }
   }, [contextMenu, handleCloseContextMenu]);
 
+  // Handle column height change
+  const handleColumnHeightChange = useCallback((columnId, height) => {
+    // Find which workflow contains this column
+    const workflow = workflows.find(w => 
+      Object.values(w.columns).some(col => col.id === columnId)
+    );
+    
+    if (!workflow) return;
+
+    setColumnHeights(prev => {
+      const newHeights = {
+        ...prev,
+        [workflow.id]: {
+          ...prev[workflow.id],
+          [columnId]: height
+        }
+      };
+
+      // Calculate max height for this workflow
+      const heights = Object.values(newHeights[workflow.id]);
+      const maxHeight = heights.length > 0 ? Math.max(...heights) : 0;
+
+      setMaxColumnHeights(prevMax => ({
+        ...prevMax,
+        [workflow.id]: maxHeight
+      }));
+
+      return newHeights;
+    });
+  }, [workflows]);
+
   // Render columns for a workflow
   const renderWorkflowColumns = useCallback((workflow) => {
     const expandedColumnId = expandedColumns[workflow.id];
+    const maxHeight = maxColumnHeights[workflow.id] || 0;
+    
     return workflow.columnOrder.map(colId => {
       const column = workflow.columns[colId];
       const cards = column.cardIds.map(id => workflow.cards[id]);
@@ -389,10 +440,12 @@ export default function KanbanBoard() {
           isShrunk={isShrunk}
           onHeaderClick={() => handleColumnHeaderClick(workflow.id, column.id)}
           onContextMenu={handleColumnContextMenu}
+          columnHeight={maxHeight > 0 ? maxHeight : undefined}
+          onHeightChange={handleColumnHeightChange}
         />
       );
     });
-  }, [handleSelectCard, expandedColumns, handleColumnHeaderClick, handleColumnContextMenu]);
+  }, [handleSelectCard, expandedColumns, handleColumnHeaderClick, handleColumnContextMenu, maxColumnHeights, handleColumnHeightChange]);
 
   // Show Workspaces view when Workspaces icon is clicked
   if (showWorkspaces) {
