@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect, useRef } from "react";
 import { NavLink, useLocation, useNavigate } from "react-router-dom";
 import "../../design/scss/header.scss";
 import {
@@ -11,13 +11,27 @@ import {
 import logo from '../../assets/images/SedresLogo.png';
 import BackIcon from '../../assets/images/Back.png';
 import useWindowSize from '../../hooks/useWindowSize';
+import useAuthReducer from '../../store/AuthReducer';
+import MyAccountsModal from './MyAccountsModal';
 
 function Header({ onMenuToggle, mobileMenuOpen: externalMobileMenuOpen }) {
   const { pathname } = useLocation();
   const navigate = useNavigate();
   const { width } = useWindowSize();
   const [internalMobileMenuOpen, setInternalMobileMenuOpen] = useState(false);
+  const [showUserDropdown, setShowUserDropdown] = useState(false);
+  const [showMyAccountsModal, setShowMyAccountsModal] = useState(false);
+  const dropdownRef = useRef(null);
   const isMobile = width <= 991;
+  const doLogout = useAuthReducer((state) => state.doLogout);
+  const profileData = useAuthReducer((state) => state.profileData);
+  const authData = useAuthReducer((state) => state.authData);
+
+  // Get user initial from profile or auth data
+  const getUserInitial = () => {
+    const name = profileData?.name || profileData?.firstName || authData?.name || authData?.firstName || 'U';
+    return name.charAt(0).toUpperCase();
+  };
 
   // Use external state if provided, otherwise use internal state
   const mobileMenuOpen = externalMobileMenuOpen !== undefined
@@ -32,6 +46,38 @@ function Header({ onMenuToggle, mobileMenuOpen: externalMobileMenuOpen }) {
     if (onMenuToggle) {
       onMenuToggle(newState);
     }
+  };
+
+  // Close dropdown when clicking outside
+  useEffect(() => {
+    const handleClickOutside = (event) => {
+      if (dropdownRef.current && !dropdownRef.current.contains(event.target)) {
+        setShowUserDropdown(false);
+      }
+    };
+
+    if (showUserDropdown) {
+      document.addEventListener('mousedown', handleClickOutside);
+    }
+
+    return () => {
+      document.removeEventListener('mousedown', handleClickOutside);
+    };
+  }, [showUserDropdown]);
+
+  const handleUserCircleClick = () => {
+    setShowUserDropdown(!showUserDropdown);
+  };
+
+  const handleMyAccountsClick = () => {
+    setShowUserDropdown(false);
+    setShowMyAccountsModal(true);
+  };
+
+  const handleLogoutClick = () => {
+    setShowUserDropdown(false);
+    doLogout();
+    navigate('/');
   };
 
   return (
@@ -86,8 +132,43 @@ function Header({ onMenuToggle, mobileMenuOpen: externalMobileMenuOpen }) {
 
       {/* RIGHT — User + Icons */}
       <div className="right-section">
-        <div className="user-circle">
-          <span className="user-letter">S</span>
+        <div className="user-circle-wrapper" ref={dropdownRef}>
+          <div
+            className="user-circle"
+            onClick={handleUserCircleClick}
+          >
+            {profileData?.avatar || authData?.avatar ? (
+              <img
+                src={profileData.avatar || authData.avatar}
+                alt="User"
+                style={{
+                  width: '100%',
+                  height: '100%',
+                  borderRadius: '50%',
+                  objectFit: 'cover'
+                }}
+              />
+            ) : (
+              <span className="user-letter">{getUserInitial()}</span>
+            )}
+          </div>
+
+          {showUserDropdown && (
+            <div className="user-dropdown">
+              <button
+                className="dropdown-item"
+                onClick={handleMyAccountsClick}
+              >
+                My Accounts
+              </button>
+              <button
+                className="dropdown-item"
+                onClick={handleLogoutClick}
+              >
+                Logout
+              </button>
+            </div>
+          )}
         </div>
 
         <button className="icon-btn" aria-label="Settings" title="Settings">
@@ -103,6 +184,12 @@ function Header({ onMenuToggle, mobileMenuOpen: externalMobileMenuOpen }) {
           <FiBell />
         </button>
       </div>
+
+      {/* My Accounts Modal */}
+      <MyAccountsModal
+        show={showMyAccountsModal}
+        onClose={() => setShowMyAccountsModal(false)}
+      />
 
     </div>
   );
