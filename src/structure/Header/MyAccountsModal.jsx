@@ -13,7 +13,8 @@ function MyAccountsModal({ show, onClose }) {
 
   // Dummy data for demonstration
   const DUMMY_DATA = {
-    name: 'John Smith',
+    firstName: 'John',
+    lastName: 'Smith',
     phone: '+971 50 123 4567',
     email: 'john.smith@example.com',
     image: 'https://ui-avatars.com/api/?name=John+Smith&background=00368c&color=fff&size=200',
@@ -21,7 +22,8 @@ function MyAccountsModal({ show, onClose }) {
 
   const [isEditing, setIsEditing] = useState(false);
   const [formData, setFormData] = useState({
-    name: '',
+    firstName: '',
+    lastName: '',
     phone: '',
     email: '',
     image: null,
@@ -32,7 +34,8 @@ function MyAccountsModal({ show, onClose }) {
       // Use profile data if available, otherwise use dummy data
       const data = profileData || DUMMY_DATA;
       setFormData({
-        name: data.name || data.firstName || DUMMY_DATA.name,
+        firstName: data.firstName || DUMMY_DATA.firstName,
+        lastName: data.lastName || DUMMY_DATA.lastName,
         phone: data.phone || DUMMY_DATA.phone,
         email: data.email || DUMMY_DATA.email,
         image: data.avatar || data.image || DUMMY_DATA.image,
@@ -77,7 +80,8 @@ function MyAccountsModal({ show, onClose }) {
     try {
       await patchUserProfile({
         value: {
-          name: formData.name,
+          firstName: formData.firstName,
+          lastName: formData.lastName,
           phone: formData.phone,
           ...(formData.image && { avatar: formData.image }),
         },
@@ -94,7 +98,8 @@ function MyAccountsModal({ show, onClose }) {
   const handleCancel = () => {
     const data = profileData || DUMMY_DATA;
     setFormData({
-      name: data.name || data.firstName || DUMMY_DATA.name,
+      firstName: data.firstName || DUMMY_DATA.firstName,
+      lastName: data.lastName || DUMMY_DATA.lastName,
       phone: data.phone || DUMMY_DATA.phone,
       email: data.email || DUMMY_DATA.email,
       image: data.avatar || data.image || DUMMY_DATA.image,
@@ -103,8 +108,8 @@ function MyAccountsModal({ show, onClose }) {
   };
 
   const getUserInitial = () => {
-    const name = formData.name || profileData?.name || profileData?.firstName || DUMMY_DATA.name;
-    return name.charAt(0).toUpperCase();
+    const firstName = formData.firstName || profileData?.firstName || DUMMY_DATA.firstName;
+    return firstName.charAt(0).toUpperCase();
   };
 
   const renderBody = () => (
@@ -114,8 +119,8 @@ function MyAccountsModal({ show, onClose }) {
           {/* User Image */}
           <div className="profile-img" style={{ position: 'relative' }}>
             {formData.image ? (
-              <img 
-                src={formData.image} 
+              <img
+                src={formData.image}
                 alt="User"
               />
             ) : (
@@ -186,18 +191,38 @@ function MyAccountsModal({ show, onClose }) {
                   <input
                     type="text"
                     className="form-control"
-                    id="name"
-                    name="name"
-                    value={formData.name}
+                    id="firstName"
+                    name="firstName"
+                    value={formData.firstName}
                     onChange={handleInputChange}
                     disabled={!isEditing}
-                    placeholder="Name"
+                    placeholder="First Name"
                     style={{
                       backgroundColor: !isEditing ? '#f8f9fc' : '#fff',
                       cursor: !isEditing ? 'not-allowed' : 'text',
                     }}
                   />
-                  <label htmlFor="name">Name</label>
+                  <label htmlFor="firstName">First Name</label>
+                </div>
+              </div>
+
+              <div className="col-md-6 mb-4">
+                <div className="form-floating">
+                  <input
+                    type="text"
+                    className="form-control"
+                    id="lastName"
+                    name="lastName"
+                    value={formData.lastName}
+                    onChange={handleInputChange}
+                    disabled={!isEditing}
+                    placeholder="Last Name"
+                    style={{
+                      backgroundColor: !isEditing ? '#f8f9fc' : '#fff',
+                      cursor: !isEditing ? 'not-allowed' : 'text',
+                    }}
+                  />
+                  <label htmlFor="lastName">Last Name</label>
                 </div>
               </div>
 
@@ -248,28 +273,55 @@ function MyAccountsModal({ show, onClose }) {
         {/* Action Buttons */}
         <div className="profile-btn two-btn" style={{ marginTop: '40px' }}>
           {!isEditing ? (
-            <button
-              type="button"
-              className="btn-common edit-btn"
-              onClick={handleEdit}
-              style={{
-                padding: '12px 48px',
-                fontSize: '16px',
-                fontWeight: '600',
-                borderRadius: '10px',
-                transition: 'all 0.2s ease',
-              }}
-              onMouseEnter={(e) => {
-                e.currentTarget.style.backgroundColor = '#c5e0e2';
-                e.currentTarget.style.transform = 'translateY(-2px)';
-              }}
-              onMouseLeave={(e) => {
-                e.currentTarget.style.backgroundColor = '#DEF0F2';
-                e.currentTarget.style.transform = 'translateY(0)';
-              }}
-            >
-              Edit
-            </button>
+            <>
+              <button
+                type="button"
+                className="btn-common close"
+                onClick={() => {
+                  setIsEditing(false);
+                  onClose();
+                }}
+                style={{
+                  padding: '12px 48px',
+                  fontSize: '16px',
+                  fontWeight: '600',
+                  borderRadius: '10px',
+                  transition: 'all 0.2s ease',
+                }}
+                onMouseEnter={(e) => {
+                  e.currentTarget.style.backgroundColor = '#c5e0e2';
+                  e.currentTarget.style.transform = 'translateY(-2px)';
+                }}
+                onMouseLeave={(e) => {
+                  e.currentTarget.style.backgroundColor = '#DEF0F2';
+                  e.currentTarget.style.transform = 'translateY(0)';
+                }}
+              >
+                Close
+              </button>
+              <button
+                type="button"
+                className="btn-common edit-btn"
+                onClick={handleEdit}
+                style={{
+                  padding: '12px 48px',
+                  fontSize: '16px',
+                  fontWeight: '600',
+                  borderRadius: '10px',
+                  transition: 'all 0.2s ease',
+                }}
+                onMouseEnter={(e) => {
+                  e.currentTarget.style.backgroundColor = '#c5e0e2';
+                  e.currentTarget.style.transform = 'translateY(-2px)';
+                }}
+                onMouseLeave={(e) => {
+                  e.currentTarget.style.backgroundColor = '#DEF0F2';
+                  e.currentTarget.style.transform = 'translateY(0)';
+                }}
+              >
+                Edit
+              </button>
+            </>
           ) : (
             <>
               <button
@@ -347,23 +399,14 @@ function MyAccountsModal({ show, onClose }) {
       }}
       header={
         <div className="modal-header">
-          <h5 className="modal-title" style={{ 
-            color: '#00368c', 
-            fontSize: '24px', 
+          <h5 className="modal-title" style={{
+            color: '#00368c',
+            fontSize: '24px',
             fontWeight: '600',
             fontFamily: '"Poppins", sans-serif',
           }}>
             My Accounts
           </h5>
-          <button
-            type="button"
-            className="btn-close"
-            onClick={() => {
-              setIsEditing(false);
-              onClose();
-            }}
-            aria-label="Close"
-          />
         </div>
       }
       body={renderBody()}
