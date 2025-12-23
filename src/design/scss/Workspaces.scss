@@ -33,7 +33,7 @@
 
   // Blur effect when Board teams submenu is open
   body.board-teams-submenu-open & {
-    filter: blur(4px);
+    filter: blur(1px);
     pointer-events: none;
     user-select: none;
   }
