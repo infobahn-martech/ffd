@@ -1,13 +1,23 @@
 import { useState, useEffect } from 'react';
+import { FiCamera } from 'react-icons/fi';
 import CustomModal from '../../components/CustomModal';
 import useAuthReducer from '../../store/AuthReducer';
 import '../../design/scss/profile.scss';
+import '../../design/scss/prospect-modal.scss';
 
 function MyAccountsModal({ show, onClose }) {
   const profileData = useAuthReducer((state) => state.profileData);
   const patchUserProfile = useAuthReducer((state) => state.patchUserProfile);
   const profileEditLoader = useAuthReducer((state) => state.profileEditLoader);
   const getUserProfile = useAuthReducer((state) => state.getUserProfile);
+
+  // Dummy data for demonstration
+  const DUMMY_DATA = {
+    name: 'John Smith',
+    phone: '+971 50 123 4567',
+    email: 'john.smith@example.com',
+    image: 'https://ui-avatars.com/api/?name=John+Smith&background=00368c&color=fff&size=200',
+  };
 
   const [isEditing, setIsEditing] = useState(false);
   const [formData, setFormData] = useState({
@@ -18,12 +28,14 @@ function MyAccountsModal({ show, onClose }) {
   });
 
   useEffect(() => {
-    if (show && profileData) {
+    if (show) {
+      // Use profile data if available, otherwise use dummy data
+      const data = profileData || DUMMY_DATA;
       setFormData({
-        name: profileData.name || profileData.firstName || '',
-        phone: profileData.phone || '',
-        email: profileData.email || '',
-        image: profileData.avatar || profileData.image || null,
+        name: data.name || data.firstName || DUMMY_DATA.name,
+        phone: data.phone || DUMMY_DATA.phone,
+        email: data.email || DUMMY_DATA.email,
+        image: data.avatar || data.image || DUMMY_DATA.image,
       });
       setIsEditing(false);
     }
@@ -80,19 +92,18 @@ function MyAccountsModal({ show, onClose }) {
   };
 
   const handleCancel = () => {
-    if (profileData) {
-      setFormData({
-        name: profileData.name || profileData.firstName || '',
-        phone: profileData.phone || '',
-        email: profileData.email || '',
-        image: profileData.avatar || profileData.image || null,
-      });
-    }
+    const data = profileData || DUMMY_DATA;
+    setFormData({
+      name: data.name || data.firstName || DUMMY_DATA.name,
+      phone: data.phone || DUMMY_DATA.phone,
+      email: data.email || DUMMY_DATA.email,
+      image: data.avatar || data.image || DUMMY_DATA.image,
+    });
     setIsEditing(false);
   };
 
   const getUserInitial = () => {
-    const name = formData.name || profileData?.name || profileData?.firstName || 'U';
+    const name = formData.name || profileData?.name || profileData?.firstName || DUMMY_DATA.name;
     return name.charAt(0).toUpperCase();
   };
 
@@ -101,9 +112,12 @@ function MyAccountsModal({ show, onClose }) {
       <div className="profile-sec">
         <div className="profile-inner">
           {/* User Image */}
-          <div className="profile-img">
+          <div className="profile-img" style={{ position: 'relative' }}>
             {formData.image ? (
-              <img src={formData.image} alt="User" />
+              <img 
+                src={formData.image} 
+                alt="User"
+              />
             ) : (
               <div
                 style={{
@@ -114,9 +128,9 @@ function MyAccountsModal({ show, onClose }) {
                   justifyContent: 'center',
                   backgroundColor: '#00368c',
                   color: '#fff',
-                  fontSize: '48px',
+                  fontSize: '64px',
                   fontWeight: 'bold',
-                  borderRadius: '50%',
+                  borderRadius: '100px',
                 }}
               >
                 {getUserInitial()}
@@ -125,23 +139,34 @@ function MyAccountsModal({ show, onClose }) {
             {isEditing && (
               <label
                 htmlFor="image-upload"
+                className="camera-upload-btn"
                 style={{
                   position: 'absolute',
-                  bottom: '0',
-                  right: '0',
+                  bottom: '8px',
+                  right: '8px',
                   backgroundColor: '#00368c',
                   color: '#fff',
                   borderRadius: '50%',
-                  width: '36px',
-                  height: '36px',
+                  width: '40px',
+                  height: '40px',
                   display: 'flex',
                   alignItems: 'center',
                   justifyContent: 'center',
                   cursor: 'pointer',
-                  border: '2px solid #fff',
+                  border: '3px solid #fff',
+                  boxShadow: '0 2px 8px rgba(0, 0, 0, 0.2)',
+                  transition: 'all 0.2s ease',
+                }}
+                onMouseEnter={(e) => {
+                  e.currentTarget.style.backgroundColor = '#002a6b';
+                  e.currentTarget.style.transform = 'scale(1.1)';
+                }}
+                onMouseLeave={(e) => {
+                  e.currentTarget.style.backgroundColor = '#00368c';
+                  e.currentTarget.style.transform = 'scale(1)';
                 }}
               >
-                <span style={{ fontSize: '18px' }}>📷</span>
+                <FiCamera size={18} />
                 <input
                   id="image-upload"
                   type="file"
@@ -156,7 +181,7 @@ function MyAccountsModal({ show, onClose }) {
           {/* User Details */}
           <div className="profile-details">
             <div className="row permInputs">
-              <div className="col-md-6 mb-3">
+              <div className="col-md-6 mb-4">
                 <div className="form-floating">
                   <input
                     type="text"
@@ -167,12 +192,16 @@ function MyAccountsModal({ show, onClose }) {
                     onChange={handleInputChange}
                     disabled={!isEditing}
                     placeholder="Name"
+                    style={{
+                      backgroundColor: !isEditing ? '#f8f9fc' : '#fff',
+                      cursor: !isEditing ? 'not-allowed' : 'text',
+                    }}
                   />
                   <label htmlFor="name">Name</label>
                 </div>
               </div>
 
-              <div className="col-md-6 mb-3">
+              <div className="col-md-6 mb-4">
                 <div className="form-floating">
                   <input
                     type="tel"
@@ -183,12 +212,16 @@ function MyAccountsModal({ show, onClose }) {
                     onChange={handleInputChange}
                     disabled={!isEditing}
                     placeholder="Phone"
+                    style={{
+                      backgroundColor: !isEditing ? '#f8f9fc' : '#fff',
+                      cursor: !isEditing ? 'not-allowed' : 'text',
+                    }}
                   />
                   <label htmlFor="phone">Phone</label>
                 </div>
               </div>
 
-              <div className="col-md-6 mb-3">
+              <div className="col-md-6 mb-4">
                 <div className="form-floating">
                   <input
                     type="email"
@@ -199,6 +232,11 @@ function MyAccountsModal({ show, onClose }) {
                     onChange={handleInputChange}
                     disabled={true}
                     placeholder="Email"
+                    style={{
+                      backgroundColor: '#f8f9fc',
+                      cursor: 'not-allowed',
+                      opacity: 0.7,
+                    }}
                   />
                   <label htmlFor="email">Email</label>
                 </div>
@@ -208,12 +246,27 @@ function MyAccountsModal({ show, onClose }) {
         </div>
 
         {/* Action Buttons */}
-        <div className="profile-btn two-btn">
+        <div className="profile-btn two-btn" style={{ marginTop: '40px' }}>
           {!isEditing ? (
             <button
               type="button"
               className="btn-common edit-btn"
               onClick={handleEdit}
+              style={{
+                padding: '12px 48px',
+                fontSize: '16px',
+                fontWeight: '600',
+                borderRadius: '10px',
+                transition: 'all 0.2s ease',
+              }}
+              onMouseEnter={(e) => {
+                e.currentTarget.style.backgroundColor = '#c5e0e2';
+                e.currentTarget.style.transform = 'translateY(-2px)';
+              }}
+              onMouseLeave={(e) => {
+                e.currentTarget.style.backgroundColor = '#DEF0F2';
+                e.currentTarget.style.transform = 'translateY(0)';
+              }}
             >
               Edit
             </button>
@@ -224,6 +277,23 @@ function MyAccountsModal({ show, onClose }) {
                 className="btn-common close"
                 onClick={handleCancel}
                 disabled={profileEditLoader}
+                style={{
+                  padding: '12px 48px',
+                  fontSize: '16px',
+                  fontWeight: '600',
+                  borderRadius: '10px',
+                  transition: 'all 0.2s ease',
+                }}
+                onMouseEnter={(e) => {
+                  if (!profileEditLoader) {
+                    e.currentTarget.style.backgroundColor = '#c5e0e2';
+                    e.currentTarget.style.transform = 'translateY(-2px)';
+                  }
+                }}
+                onMouseLeave={(e) => {
+                  e.currentTarget.style.backgroundColor = '#DEF0F2';
+                  e.currentTarget.style.transform = 'translateY(0)';
+                }}
               >
                 Cancel
               </button>
@@ -232,6 +302,23 @@ function MyAccountsModal({ show, onClose }) {
                 className="btn-common green-btn"
                 onClick={handleSave}
                 disabled={profileEditLoader}
+                style={{
+                  padding: '12px 48px',
+                  fontSize: '16px',
+                  fontWeight: '600',
+                  borderRadius: '10px',
+                  transition: 'all 0.2s ease',
+                }}
+                onMouseEnter={(e) => {
+                  if (!profileEditLoader) {
+                    e.currentTarget.style.backgroundColor = '#002a6b';
+                    e.currentTarget.style.transform = 'translateY(-2px)';
+                  }
+                }}
+                onMouseLeave={(e) => {
+                  e.currentTarget.style.backgroundColor = '#00368c';
+                  e.currentTarget.style.transform = 'translateY(0)';
+                }}
               >
                 {profileEditLoader ? (
                   <div className="spinner-border spinner-border-sm" role="status">
@@ -250,7 +337,7 @@ function MyAccountsModal({ show, onClose }) {
 
   return (
     <CustomModal
-      className="modal fade show modal_backdrop"
+      className="modal fade show modal_backdrop custom-mod"
       dialgName="modal-dialog modal-dialog-centered"
       createModal
       show={show}
@@ -260,11 +347,21 @@ function MyAccountsModal({ show, onClose }) {
       }}
       header={
         <div className="modal-header">
-          <h5 className="modal-title">My Accounts</h5>
+          <h5 className="modal-title" style={{ 
+            color: '#00368c', 
+            fontSize: '24px', 
+            fontWeight: '600',
+            fontFamily: '"Poppins", sans-serif',
+          }}>
+            My Accounts
+          </h5>
           <button
             type="button"
             className="btn-close"
-            onClick={onClose}
+            onClick={() => {
+              setIsEditing(false);
+              onClose();
+            }}
             aria-label="Close"
           />
         </div>

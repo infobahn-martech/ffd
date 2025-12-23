@@ -21,16 +21,30 @@ function Header({ onMenuToggle, mobileMenuOpen: externalMobileMenuOpen }) {
   const [internalMobileMenuOpen, setInternalMobileMenuOpen] = useState(false);
   const [showUserDropdown, setShowUserDropdown] = useState(false);
   const [showMyAccountsModal, setShowMyAccountsModal] = useState(false);
+  const [imageError, setImageError] = useState(false);
   const dropdownRef = useRef(null);
   const isMobile = width <= 991;
   const doLogout = useAuthReducer((state) => state.doLogout);
   const profileData = useAuthReducer((state) => state.profileData);
   const authData = useAuthReducer((state) => state.authData);
 
-  // Get user initial from profile or auth data
+  // Dummy data for demonstration
+  const DUMMY_USER = {
+    name: 'John Smith',
+    avatar: 'https://ui-avatars.com/api/?name=John+Smith&background=00368c&color=fff&size=128',
+  };
+
+  // Get user initial from profile or auth data, fallback to dummy
   const getUserInitial = () => {
-    const name = profileData?.name || profileData?.firstName || authData?.name || authData?.firstName || 'U';
+    const name = profileData?.name || profileData?.firstName || 
+                 authData?.name || authData?.firstName || 
+                 DUMMY_USER.name;
     return name.charAt(0).toUpperCase();
+  };
+
+  // Get user avatar, fallback to dummy
+  const getUserAvatar = () => {
+    return profileData?.avatar || authData?.avatar || DUMMY_USER.avatar;
   };
 
   // Use external state if provided, otherwise use internal state
@@ -133,20 +147,21 @@ function Header({ onMenuToggle, mobileMenuOpen: externalMobileMenuOpen }) {
       {/* RIGHT — User + Icons */}
       <div className="right-section">
         <div className="user-circle-wrapper" ref={dropdownRef}>
-          <div
-            className="user-circle"
+          <div 
+            className="user-circle" 
             onClick={handleUserCircleClick}
           >
-            {profileData?.avatar || authData?.avatar ? (
-              <img
-                src={profileData.avatar || authData.avatar}
-                alt="User"
+            {!imageError ? (
+              <img 
+                src={getUserAvatar()} 
+                alt="User" 
                 style={{
                   width: '100%',
                   height: '100%',
                   borderRadius: '50%',
                   objectFit: 'cover'
                 }}
+                onError={() => setImageError(true)}
               />
             ) : (
               <span className="user-letter">{getUserInitial()}</span>
