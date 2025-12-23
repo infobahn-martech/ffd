@@ -6,7 +6,7 @@ import CardItem from "./CardItem";
 import "../../design/css/Column.css";
 import PriorityIcon from "../../assets/images/Priority.svg";
 
-function Column({ column, cards, setSelectedCard, isExpanded = false, isShrunk = false, onHeaderClick }) {
+function Column({ column, cards, setSelectedCard, isExpanded = false, isShrunk = false, onHeaderClick, onContextMenu }) {
   const columnColor = column.color || "#2A00FF";
 
   // Truncate title to 8 characters when shrunk
@@ -15,8 +15,18 @@ function Column({ column, cards, setSelectedCard, isExpanded = false, isShrunk =
     : column.title;
   const tooltipId = `column-title-${column.id}`;
 
+  const handleContextMenu = (e) => {
+    e.preventDefault();
+    if (onContextMenu) {
+      onContextMenu(e, column);
+    }
+  };
+
   return (
-    <div className={`column ${isExpanded ? 'column-expanded' : ''} ${isShrunk ? 'column-shrunk' : ''}`}>
+    <div 
+      className={`column ${isExpanded ? 'column-expanded' : ''} ${isShrunk ? 'column-shrunk' : ''}`}
+      onContextMenu={handleContextMenu}
+    >
       <div
         className="column-header"
         style={{ "--column-color": columnColor }}
@@ -79,6 +89,7 @@ Column.propTypes = {
   isExpanded: PropTypes.bool,
   isShrunk: PropTypes.bool,
   onHeaderClick: PropTypes.func,
+  onContextMenu: PropTypes.func,
 };
 
 export default Column;

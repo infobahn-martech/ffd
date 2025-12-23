@@ -3,6 +3,7 @@ import { DragDropContext } from "@hello-pangea/dnd";
 import { initialData } from "../../helpers/data";
 import Column from "./Column";
 import CardForm from "./CardForm";
+import ContextMenu from "./ContextMenu";
 import Workspaces from "../Workspaces";
 import "../../design/scss/common.scss";
 
@@ -28,6 +29,10 @@ export default function KanbanBoard() {
     });
     return state;
   });
+
+  // Context menu state
+  const [contextMenu, setContextMenu] = useState(null);
+  const [contextMenuColumn, setContextMenuColumn] = useState(null);
 
   const handleSelectCard = useCallback(card => {
     setSelectedCard(card);
@@ -105,7 +110,7 @@ export default function KanbanBoard() {
     let targetColumn = null;
     let targetWorkflowIndex = -1;
     let targetColumnKey = null;
-    
+
     for (let i = 0; i < workflows.length; i++) {
       const workflow = workflows[i];
       const foundColumn = Object.values(workflow.columns).find(col => col.id === targetColumnId);
@@ -137,7 +142,7 @@ export default function KanbanBoard() {
 
     setWorkflows(prevWorkflows => {
       const updated = [...prevWorkflows];
-      
+
       // Update source workflow
       if (sourceWorkflowIndex === targetWorkflowIndex) {
         // Same workflow - update both columns
@@ -201,7 +206,7 @@ export default function KanbanBoard() {
 
         // Find the column key to update
         const columnKey = Object.keys(workflow.columns).find(key => workflow.columns[key].id === newColumn.id);
-        
+
         setWorkflows(prevWorkflows =>
           prevWorkflows.map(w =>
             w.id === workflowId
@@ -254,6 +259,76 @@ export default function KanbanBoard() {
     });
   }, []);
 
+  // Handle column context menu (right-click)
+  const handleColumnContextMenu = useCallback((e, column) => {
+    e.preventDefault();
+    setContextMenu({
+      x: e.clientX,
+      y: e.clientY,
+    });
+    setContextMenuColumn(column);
+  }, []);
+
+  // Close context menu
+  const handleCloseContextMenu = useCallback(() => {
+    setContextMenu(null);
+    setContextMenuColumn(null);
+  }, []);
+
+  // Context menu actions
+  const handleCreateCard = useCallback(() => {
+    const newCard = {
+      id: `new-${Date.now()}`,
+      code: '',
+      title: '',
+      color: contextMenuColumn?.color || '#2A00FF',
+    };
+    setSelectedCard(newCard);
+    setIsAddMode(true);
+    // If we have a column, we could potentially set the initial column for the card
+  }, [contextMenuColumn]);
+
+  const handleSelectCell = useCallback(() => {
+    // TODO: Implement cell selection logic
+    console.log('Select cell clicked for column:', contextMenuColumn?.id);
+  }, [contextMenuColumn]);
+
+  const handleSelectColumn = useCallback(() => {
+    // TODO: Implement column selection logic
+    console.log('Select column clicked for column:', contextMenuColumn?.id);
+  }, [contextMenuColumn]);
+
+  const handleSelectLane = useCallback(() => {
+    // TODO: Implement lane selection logic
+    console.log('Select lane clicked for column:', contextMenuColumn?.id);
+  }, [contextMenuColumn]);
+
+  const handleOrderCards = useCallback(() => {
+    // TODO: Implement card ordering logic
+    console.log('Order cards clicked for column:', contextMenuColumn?.id);
+  }, [contextMenuColumn]);
+
+  const handleAICoach = useCallback(() => {
+    // TODO: Implement AI coach logic
+    console.log('AI coach clicked for column:', contextMenuColumn?.id);
+  }, [contextMenuColumn]);
+
+  // Close context menu when clicking outside
+  useEffect(() => {
+    const handleClickOutside = () => {
+      if (contextMenu) {
+        handleCloseContextMenu();
+      }
+    };
+
+    if (contextMenu) {
+      document.addEventListener('click', handleClickOutside);
+      return () => {
+        document.removeEventListener('click', handleClickOutside);
+      };
+    }
+  }, [contextMenu, handleCloseContextMenu]);
+
   // Render columns for a workflow
   const renderWorkflowColumns = useCallback((workflow) => {
     const expandedColumnId = expandedColumns[workflow.id];
@@ -271,10 +346,11 @@ export default function KanbanBoard() {
           isExpanded={isExpanded}
           isShrunk={isShrunk}
           onHeaderClick={() => handleColumnHeaderClick(workflow.id, column.id)}
+          onContextMenu={handleColumnContextMenu}
         />
       );
     });
-  }, [handleSelectCard, expandedColumns, handleColumnHeaderClick]);
+  }, [handleSelectCard, expandedColumns, handleColumnHeaderClick, handleColumnContextMenu]);
 
   // Show Workspaces view when Workspaces icon is clicked
   if (showWorkspaces) {
@@ -290,7 +366,7 @@ export default function KanbanBoard() {
   }, [selectedCard, workflows]);
 
   const selectedCardWorkflow = getSelectedCardWorkflow();
-  
+
   // For add mode, use the first workflow's columns if no workflow is found
   const columnsForCardForm = useMemo(() => {
     if (isAddMode && !selectedCardWorkflow && workflows.length > 0) {
@@ -336,6 +412,17 @@ export default function KanbanBoard() {
           isAddMode={isAddMode}
         />
       )}
+
+      <ContextMenu
+        position={contextMenu}
+        onClose={handleCloseContextMenu}
+        onCreateCard={handleCreateCard}
+        onSelectCell={handleSelectCell}
+        onSelectColumn={handleSelectColumn}
+        onSelectLane={handleSelectLane}
+        onOrderCards={handleOrderCards}
+        onAICoach={handleAICoach}
+      />
     </>
   );
 }
