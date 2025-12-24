@@ -741,10 +741,8 @@ PreArrivalContent.propTypes = {
 };
 
 const ArrivalContent = ({ formValues, handleChange, cardColor, onAddAttachment, onRemoveAttachment, onAddLink, onRemoveLink, onSendReport }) => {
-  const [isDraggingVesselInward, setIsDraggingVesselInward] = useState(false);
-  const [isDraggingMarinePermit, setIsDraggingMarinePermit] = useState(false);
-  const vesselInwardFileInputRef = useRef(null);
-  const marinePermitFileInputRef = useRef(null);
+  const [isDraggingDocuments, setIsDraggingDocuments] = useState(false);
+  const documentsFileInputRef = useRef(null);
 
   const customInspectionStatusOptions = [
     { value: "Passed", label: "Passed" },
@@ -756,32 +754,32 @@ const ArrivalContent = ({ formValues, handleChange, cardColor, onAddAttachment, 
     { value: "On Hold", label: "On Hold" },
   ];
 
-  // Handle vessel inward formalities file upload
-  const handleVesselInwardDragEnter = (e) => {
+  // Handle documents file upload (single upload below Marine work permit expires)
+  const handleDocumentsDragEnter = (e) => {
     e.preventDefault();
     e.stopPropagation();
-    setIsDraggingVesselInward(true);
+    setIsDraggingDocuments(true);
   };
 
-  const handleVesselInwardDragLeave = (e) => {
+  const handleDocumentsDragLeave = (e) => {
     e.preventDefault();
     e.stopPropagation();
-    setIsDraggingVesselInward(false);
+    setIsDraggingDocuments(false);
   };
 
-  const handleVesselInwardDragOver = (e) => {
+  const handleDocumentsDragOver = (e) => {
     e.preventDefault();
     e.stopPropagation();
   };
 
-  const handleVesselInwardDrop = (e) => {
+  const handleDocumentsDrop = (e) => {
     e.preventDefault();
     e.stopPropagation();
-    setIsDraggingVesselInward(false);
+    setIsDraggingDocuments(false);
 
     const files = Array.from(e.dataTransfer.files || []);
     if (files.length > 0) {
-      const currentAttachments = formValues.vesselInwardFormalitiesAttachments || [];
+      const currentAttachments = formValues.arrivalDocumentsAttachments || [];
       const newAttachments = files.map((file) => ({
         name: file.name,
         file: file,
@@ -790,14 +788,14 @@ const ArrivalContent = ({ formValues, handleChange, cardColor, onAddAttachment, 
       }));
       const updatedAttachments = [...currentAttachments, ...newAttachments];
       const syntheticEvent = { target: { value: updatedAttachments } };
-      handleChange("vesselInwardFormalitiesAttachments")(syntheticEvent);
+      handleChange("arrivalDocumentsAttachments")(syntheticEvent);
     }
   };
 
-  const handleVesselInwardFileInputChange = (e) => {
+  const handleDocumentsFileInputChange = (e) => {
     const files = Array.from(e.target.files || []);
     if (files.length > 0) {
-      const currentAttachments = formValues.vesselInwardFormalitiesAttachments || [];
+      const currentAttachments = formValues.arrivalDocumentsAttachments || [];
       const newAttachments = files.map((file) => ({
         name: file.name,
         file: file,
@@ -806,82 +804,23 @@ const ArrivalContent = ({ formValues, handleChange, cardColor, onAddAttachment, 
       }));
       const updatedAttachments = [...currentAttachments, ...newAttachments];
       const syntheticEvent = { target: { value: updatedAttachments } };
-      handleChange("vesselInwardFormalitiesAttachments")(syntheticEvent);
+      handleChange("arrivalDocumentsAttachments")(syntheticEvent);
     }
-    if (vesselInwardFileInputRef.current) {
-      vesselInwardFileInputRef.current.value = "";
+    if (documentsFileInputRef.current) {
+      documentsFileInputRef.current.value = "";
     }
   };
 
-  const handleVesselInwardRemoveAttachment = (index) => {
-    const currentAttachments = formValues.vesselInwardFormalitiesAttachments || [];
+  const handleDocumentsRemoveAttachment = (index) => {
+    const currentAttachments = formValues.arrivalDocumentsAttachments || [];
     const updatedAttachments = currentAttachments.filter((_, i) => i !== index);
     const syntheticEvent = { target: { value: updatedAttachments } };
-    handleChange("vesselInwardFormalitiesAttachments")(syntheticEvent);
+    handleChange("arrivalDocumentsAttachments")(syntheticEvent);
   };
 
-  // Handle marine work permit issued file upload
-  const handleMarinePermitDragEnter = (e) => {
-    e.preventDefault();
-    e.stopPropagation();
-    setIsDraggingMarinePermit(true);
-  };
-
-  const handleMarinePermitDragLeave = (e) => {
-    e.preventDefault();
-    e.stopPropagation();
-    setIsDraggingMarinePermit(false);
-  };
-
-  const handleMarinePermitDragOver = (e) => {
-    e.preventDefault();
-    e.stopPropagation();
-  };
-
-  const handleMarinePermitDrop = (e) => {
-    e.preventDefault();
-    e.stopPropagation();
-    setIsDraggingMarinePermit(false);
-
-    const files = Array.from(e.dataTransfer.files || []);
-    if (files.length > 0) {
-      const currentAttachments = formValues.marineWorkPermitIssuedAttachments || [];
-      const newAttachments = files.map((file) => ({
-        name: file.name,
-        file: file,
-        size: file.size,
-        type: file.type,
-      }));
-      const updatedAttachments = [...currentAttachments, ...newAttachments];
-      const syntheticEvent = { target: { value: updatedAttachments } };
-      handleChange("marineWorkPermitIssuedAttachments")(syntheticEvent);
-    }
-  };
-
-  const handleMarinePermitFileInputChange = (e) => {
-    const files = Array.from(e.target.files || []);
-    if (files.length > 0) {
-      const currentAttachments = formValues.marineWorkPermitIssuedAttachments || [];
-      const newAttachments = files.map((file) => ({
-        name: file.name,
-        file: file,
-        size: file.size,
-        type: file.type,
-      }));
-      const updatedAttachments = [...currentAttachments, ...newAttachments];
-      const syntheticEvent = { target: { value: updatedAttachments } };
-      handleChange("marineWorkPermitIssuedAttachments")(syntheticEvent);
-    }
-    if (marinePermitFileInputRef.current) {
-      marinePermitFileInputRef.current.value = "";
-    }
-  };
-
-  const handleMarinePermitRemoveAttachment = (index) => {
-    const currentAttachments = formValues.marineWorkPermitIssuedAttachments || [];
-    const updatedAttachments = currentAttachments.filter((_, i) => i !== index);
-    const syntheticEvent = { target: { value: updatedAttachments } };
-    handleChange("marineWorkPermitIssuedAttachments")(syntheticEvent);
+  const handleSendDocuments = () => {
+    console.log("Sending documents:", formValues.arrivalDocumentsAttachments);
+    // TODO: Implement send documents logic
   };
 
   // Handle save
@@ -1042,19 +981,6 @@ const ArrivalContent = ({ formValues, handleChange, cardColor, onAddAttachment, 
                     placeholder="Select time"
                   />
                 </div>
-                <AttachmentsList
-                  attachments={formValues.vesselInwardFormalitiesAttachments || []}
-                  onAdd={() => {}}
-                  onRemove={handleVesselInwardRemoveAttachment}
-                  cardColor={cardColor}
-                  isDragging={isDraggingVesselInward}
-                  onDragEnter={handleVesselInwardDragEnter}
-                  onDragLeave={handleVesselInwardDragLeave}
-                  onDragOver={handleVesselInwardDragOver}
-                  onDrop={handleVesselInwardDrop}
-                  fileInputRef={vesselInwardFileInputRef}
-                  onFileInputChange={handleVesselInwardFileInputChange}
-                />
               </FormField>
 
               <FormField label="Marine work permit applied">
@@ -1089,19 +1015,6 @@ const ArrivalContent = ({ formValues, handleChange, cardColor, onAddAttachment, 
                     placeholder="Select time"
                   />
                 </div>
-                <AttachmentsList
-                  attachments={formValues.marineWorkPermitIssuedAttachments || []}
-                  onAdd={() => {}}
-                  onRemove={handleMarinePermitRemoveAttachment}
-                  cardColor={cardColor}
-                  isDragging={isDraggingMarinePermit}
-                  onDragEnter={handleMarinePermitDragEnter}
-                  onDragLeave={handleMarinePermitDragLeave}
-                  onDragOver={handleMarinePermitDragOver}
-                  onDrop={handleMarinePermitDrop}
-                  fileInputRef={marinePermitFileInputRef}
-                  onFileInputChange={handleMarinePermitFileInputChange}
-                />
               </FormField>
               <FormField label="Marine work permit expires">
                 <div className="cf-input date-time-row">
@@ -1117,6 +1030,91 @@ const ArrivalContent = ({ formValues, handleChange, cardColor, onAddAttachment, 
                     onChange={handleChange("marineWorkPermitExpiresTime")}
                     placeholder="Select time"
                   />
+                </div>
+              </FormField>
+
+              <FormField label="Attach Vessel Inward and Marine Work Permit Copies">
+                <div style={{ position: "relative", marginTop: "8px" }}>
+                  <AttachmentsList
+                    attachments={formValues.arrivalDocumentsAttachments || []}
+                    onAdd={() => { }}
+                    onRemove={handleDocumentsRemoveAttachment}
+                    cardColor={cardColor}
+                    isDragging={isDraggingDocuments}
+                    onDragEnter={handleDocumentsDragEnter}
+                    onDragLeave={handleDocumentsDragLeave}
+                    onDragOver={handleDocumentsDragOver}
+                    onDrop={handleDocumentsDrop}
+                    fileInputRef={documentsFileInputRef}
+                    onFileInputChange={handleDocumentsFileInputChange}
+                  />
+                  <button
+                    type="button"
+                    onClick={handleSendDocuments}
+                    className="document-send-btn"
+                    title="Send documents"
+                    disabled={(formValues.arrivalDocumentsAttachments || []).length === 0}
+                    style={{
+                      position: "absolute",
+                      top: "12px",
+                      right: "12px",
+                      background: (formValues.arrivalDocumentsAttachments || []).length > 0 ? "#3e5cb6" : "#c5c5d1",
+                      border: "none",
+                      borderRadius: "6px",
+                      width: "36px",
+                      height: "36px",
+                      display: "flex",
+                      alignItems: "center",
+                      justifyContent: "center",
+                      cursor: (formValues.arrivalDocumentsAttachments || []).length > 0 ? "pointer" : "not-allowed",
+                      color: "#ffffff",
+                      transition: "all 0.2s ease",
+                      zIndex: 10,
+                      boxShadow: (formValues.arrivalDocumentsAttachments || []).length > 0 ? "0 2px 6px rgba(62, 94, 189, 0.3)" : "none",
+                      opacity: (formValues.arrivalDocumentsAttachments || []).length > 0 ? 1 : 0.6,
+                    }}
+                    onMouseEnter={(e) => {
+                      if ((formValues.arrivalDocumentsAttachments || []).length > 0) {
+                        e.currentTarget.style.background = "#2e4a8f";
+                        e.currentTarget.style.transform = "scale(1.1)";
+                        e.currentTarget.style.boxShadow = "0 4px 8px rgba(62, 94, 189, 0.4)";
+                      }
+                    }}
+                    onMouseLeave={(e) => {
+                      if ((formValues.arrivalDocumentsAttachments || []).length > 0) {
+                        e.currentTarget.style.background = "#3e5cb6";
+                        e.currentTarget.style.transform = "scale(1)";
+                        e.currentTarget.style.boxShadow = "0 2px 6px rgba(62, 94, 189, 0.3)";
+                      } else {
+                        e.currentTarget.style.background = "#c5c5d1";
+                        e.currentTarget.style.transform = "scale(1)";
+                        e.currentTarget.style.boxShadow = "none";
+                      }
+                    }}
+                  >
+                    <svg
+                      width="18"
+                      height="18"
+                      viewBox="0 0 24 24"
+                      fill="none"
+                      xmlns="http://www.w3.org/2000/svg"
+                    >
+                      <path
+                        d="M22 2L11 13"
+                        stroke="currentColor"
+                        strokeWidth="2"
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                      />
+                      <path
+                        d="M22 2L15 22L11 13L2 9L22 2Z"
+                        stroke="currentColor"
+                        strokeWidth="2"
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                      />
+                    </svg>
+                  </button>
                 </div>
               </FormField>
 
