@@ -711,11 +711,11 @@ const PreArrivalContent = ({ formValues, handleChange, ownerInitial, cardUser, c
               </div>
               <div className="card-description-wrapper">
                 <FormField label="Weather Forecast">
-                  <ReactQuillEditor
+                  <FormTextarea
                     value={formValues?.weatherForecast || ""}
                     onChange={handleChange("weatherForecast")}
                     placeholder="Enter weather forecast..."
-                    name="weatherForecast"
+                    rows={5}
                   />
                 </FormField>
               </div>

@@ -1231,36 +1231,48 @@
 .cf-textarea {
   background: #ffffff;
   border-radius: 8px;
-  padding: 10px 14px;
+  padding: 12px 14px;
   border: 1.5px solid #e2e2ea;
   transition: all 0.2s ease;
-}
+  min-height: 120px;
+  display: flex;
+  flex-direction: column;
 
-.cf-textarea:hover {
-  border-color: #c5c5d1;
-}
+  &:hover {
+    border-color: #c5c5d1;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.04);
+  }
 
-.cf-textarea:focus-within {
-  border-color: #3e5cb6;
-  box-shadow: 0 0 0 3px rgba(42, 0, 255, 0.1);
-  background: #fafaff;
-}
+  &:focus-within {
+    border-color: #3e5cb6;
+    box-shadow: 0 0 0 3px rgba(62, 94, 189, 0.1);
+    background: #fafaff;
+  }
 
-.cf-textarea textarea {
-  border: none;
-  background: transparent;
-  font-size: 13px;
-  outline: none;
-  width: 100%;
-  color: #1a1a1a;
-  resize: vertical;
-  font-family: "Poppins", sans-serif;
-  line-height: 1.5;
-}
+  textarea {
+    border: none;
+    background: transparent;
+    font-size: 13px;
+    outline: none;
+    width: 100%;
+    color: #1a1a1a;
+    resize: vertical;
+    font-family: "Poppins", sans-serif;
+    line-height: 1.6;
+    padding: 0;
+    min-height: 100px;
+    flex: 1;
 
-.cf-textarea textarea::placeholder {
-  color: #999;
-  font-size: 12px;
+    &::placeholder {
+      color: #999;
+      font-size: 13px;
+      font-style: normal;
+    }
+
+    &:focus {
+      outline: none;
+    }
+  }
 }
 
 .cf-field-full {
