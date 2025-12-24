@@ -83,7 +83,7 @@ FormField.propTypes = {
   className: PropTypes.string,
 };
 
-const FormInput = ({ type = "text", value, onChange, placeholder, className = "" }) => {
+const FormInput = ({ type = "text", value, onChange, placeholder, className = "", disabled = false }) => {
   return (
     <div className={`cf-input ${className}`}>
       <input
@@ -91,7 +91,7 @@ const FormInput = ({ type = "text", value, onChange, placeholder, className = ""
         value={value}
         onChange={onChange}
         placeholder={placeholder}
-        disabled={true}
+        disabled={disabled}
       />
     </div>
   );
@@ -131,6 +131,7 @@ FormInput.propTypes = {
   onChange: PropTypes.func.isRequired,
   placeholder: PropTypes.string,
   className: PropTypes.string,
+  disabled: PropTypes.bool,
 };
 
 const FormTextarea = ({ value, onChange, placeholder, className = "", rows = 3 }) => {
@@ -677,6 +678,15 @@ const PreArrivalContent = ({ formValues, handleChange, ownerInitial, cardUser, c
                 </div>
               </FormField>
 
+              <FormField label="SABER UT Status">
+                <FormInput
+                  type="text"
+                  value={formValues.saberUtStatus || ""}
+                  onChange={handleChange("saberUtStatus")}
+                  placeholder="Enter SABER UT Status..."
+                />
+              </FormField>
+
               <div className="form-save-button-wrapper">
                 <button
                   type="button"
@@ -690,12 +700,22 @@ const PreArrivalContent = ({ formValues, handleChange, ownerInitial, cardUser, c
 
             <div className="general-info-right">
               <div className="card-description-wrapper">
-                <FormField label="Description">
+                <FormField label="Remarks">
                   <ReactQuillEditor
                     value={formValues?.preArrivalDescription || ""}
                     onChange={handleChange("preArrivalDescription")}
-                    placeholder="Enter pre-arrival description..."
+                    placeholder="Enter pre-arrival remarks..."
                     name="preArrivalDescription"
+                  />
+                </FormField>
+              </div>
+              <div className="card-description-wrapper">
+                <FormField label="Weather Forecast">
+                  <ReactQuillEditor
+                    value={formValues?.weatherForecast || ""}
+                    onChange={handleChange("weatherForecast")}
+                    placeholder="Enter weather forecast..."
+                    name="weatherForecast"
                   />
                 </FormField>
               </div>
@@ -1100,23 +1120,6 @@ const ArrivalContent = ({ formValues, handleChange, cardColor, onAddAttachment, 
                 </div>
               </FormField>
 
-              <FormField label="SABER UT closed">
-                <div className="cf-input date-time-row">
-                  <input
-                    type="date"
-                    value={formValues.saberUtClosedDate || ""}
-                    onChange={handleChange("saberUtClosedDate")}
-                    placeholder="Select date"
-                  />
-                  <input
-                    type="time"
-                    value={formValues.saberUtClosedTime || ""}
-                    onChange={handleChange("saberUtClosedTime")}
-                    placeholder="Select time"
-                  />
-                </div>
-              </FormField>
-
               <div className="form-save-button-wrapper">
                 <button
                   type="button"
@@ -1130,11 +1133,11 @@ const ArrivalContent = ({ formValues, handleChange, cardColor, onAddAttachment, 
 
             <div className="general-info-right">
               <div className="card-description-wrapper">
-                <FormField label="Description">
+                <FormField label="Remarks">
                   <ReactQuillEditor
                     value={formValues?.arrivalDescription || ""}
                     onChange={handleChange("arrivalDescription")}
-                    placeholder="Enter arrival description..."
+                    placeholder="Enter arrival remarks..."
                     name="arrivalDescription"
                     className="arrival-quill-editor"
                   />
@@ -1354,11 +1357,11 @@ const DepartureContent = ({ formValues, handleChange, cardColor, onAddAttachment
 
             <div className="general-info-right">
               <div className="card-description-wrapper">
-                <FormField label="Description">
+                <FormField label="Remarks">
                   <ReactQuillEditor
                     value={formValues?.departureDescription || ""}
                     onChange={handleChange("departureDescription")}
-                    placeholder="Enter departure description..."
+                    placeholder="Enter departure remarks..."
                     name="departureDescription"
                     className="departure-quill-editor"
                   />

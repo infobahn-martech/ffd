@@ -15,7 +15,7 @@ import KPI from "./CardFormTabs/KPI";
 
 // Constants
 const TOP_TABS = [
-  "General",
+  "Appointment Details",
   "Operation",
   "Husbandry",
   "Sales Order",
@@ -24,7 +24,7 @@ const TOP_TABS = [
   "Attachments",
 ];
 
-const ENABLED_TABS = ["General", "Operation", "Husbandry", "Sales Order", "Reports", "KPI", "Attachments"];
+const ENABLED_TABS = ["Appointment Details", "Operation", "Husbandry", "Sales Order", "Reports", "KPI", "Attachments"];
 // const ENABLED_TABS = ["General", "Operation", "Husbandry", "Attachments", "Sales Order"];
 
 const DEFAULT_ACCENT_COLOR = "#2A00FF";
@@ -418,7 +418,7 @@ StepsProgress.propTypes = {
 const CardFormFooter = ({ accentColor, onUpdate, activeStep = 2, completedSteps = 1, activeTab, onStepClick, currentStep }) => {
   return (
     <div className="cardform-footer">
-      {activeTab !== "General" && (
+      {activeTab !== "Appointment Details" && (
         <StepsProgress
           totalSteps={TOTAL_STEPS}
           activeStep={activeStep}
@@ -453,7 +453,7 @@ const renderTabContent = (activeTab, card, formValues, handleChange, ownerInitia
   };
 
   switch (activeTab) {
-    case "General":
+    case "Appointment Details":
       return <General {...commonProps} ownerInitial={ownerInitial} cardUser={card?.user} />;
     case "Operation":
       return <Operation {...commonProps} ownerInitial={ownerInitial} />;
@@ -474,7 +474,7 @@ const renderTabContent = (activeTab, card, formValues, handleChange, ownerInitia
 
 // Main Component
 function CardForm({ show, close, card, moveCardToColumn, columns, currentColumn, isAddMode = false }) {
-  const [activeTopTab, setActiveTopTab] = useState("General");
+  const [activeTopTab, setActiveTopTab] = useState("Appointment Details");
 
   // State for topbar color - visual only, never affects card.color
   // Always initialize from card.color (the fixed card color)
