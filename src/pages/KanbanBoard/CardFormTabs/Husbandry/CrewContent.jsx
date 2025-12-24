@@ -52,15 +52,21 @@ const CrewContent = ({ formValues, handleChange, cardColor, onNavigateToTab, lau
   const crewList = formValues.crewList || [];
   const [selectedCrewIds, setSelectedCrewIds] = useState([]);
   const [showActionDropdown, setShowActionDropdown] = useState(false);
-  const [isFileUploaded, setIsFileUploaded] = useState(!!(formValues.crewList && formValues.crewList.length > 0));
-  const [isPassportBulkUploaded, setIsPassportBulkUploaded] = useState(false);
-  const [isVisaBulkUploaded, setIsVisaBulkUploaded] = useState(false);
+  
+  // Check if documents are already uploaded from formValues
+  const hasCrewList = formValues.crewList && formValues.crewList.length > 0;
+  const hasPassportFiles = formValues.crewPassportFiles && formValues.crewPassportFiles.length > 0;
+  const hasVisaFiles = formValues.crewVisaFiles && formValues.crewVisaFiles.length > 0;
+  
+  const [isFileUploaded, setIsFileUploaded] = useState(hasCrewList);
+  const [isPassportBulkUploaded, setIsPassportBulkUploaded] = useState(hasPassportFiles);
+  const [isVisaBulkUploaded, setIsVisaBulkUploaded] = useState(hasVisaFiles);
   const [isDragging, setIsDragging] = useState(false);
   const [isDraggingPassport, setIsDraggingPassport] = useState(false);
   const [isDraggingVisa, setIsDraggingVisa] = useState(false);
-  const [uploadedFileName, setUploadedFileName] = useState("");
-  const [passportBulkFiles, setPassportBulkFiles] = useState([]);
-  const [visaBulkFiles, setVisaBulkFiles] = useState([]);
+  const [uploadedFileName, setUploadedFileName] = useState(formValues.crewUploadedFileName || "");
+  const [passportBulkFiles, setPassportBulkFiles] = useState(formValues.crewPassportFiles || []);
+  const [visaBulkFiles, setVisaBulkFiles] = useState(formValues.crewVisaFiles || []);
   const fileInputRef = useRef(null);
   const passportBulkFileInputRef = useRef(null);
   const visaBulkFileInputRef = useRef(null);
@@ -149,6 +155,9 @@ const CrewContent = ({ formValues, handleChange, cardColor, onNavigateToTab, lau
         handleChange("crewList")(syntheticEvent);
         setIsFileUploaded(true);
         setUploadedFileName(file.name);
+        // Save uploaded file name to formValues
+        const fileNameEvent = { target: { value: file.name } };
+        handleChange("crewUploadedFileName")(fileNameEvent);
       } catch (error) {
         console.error("Error parsing file:", error);
         // Even on error, show the crew list (empty or with default data)
@@ -156,6 +165,9 @@ const CrewContent = ({ formValues, handleChange, cardColor, onNavigateToTab, lau
         handleChange("crewList")(syntheticEvent);
         setIsFileUploaded(true);
         setUploadedFileName(file.name);
+        // Save uploaded file name to formValues
+        const fileNameEvent = { target: { value: file.name } };
+        handleChange("crewUploadedFileName")(fileNameEvent);
       }
     };
     reader.readAsArrayBuffer(file);
@@ -167,6 +179,9 @@ const CrewContent = ({ formValues, handleChange, cardColor, onNavigateToTab, lau
     const fileArray = Array.from(files);
     setPassportBulkFiles(fileArray);
     setIsPassportBulkUploaded(true);
+    // Save passport files to formValues
+    const syntheticEvent = { target: { value: fileArray.map(f => ({ name: f.name, file: f, size: f.size, type: f.type })) } };
+    handleChange("crewPassportFiles")(syntheticEvent);
 
     // Map files to crew members (assuming file names match passport numbers or crew names)
     // For now, we'll just store the files
@@ -198,6 +213,9 @@ const CrewContent = ({ formValues, handleChange, cardColor, onNavigateToTab, lau
     const fileArray = Array.from(files);
     setVisaBulkFiles(fileArray);
     setIsVisaBulkUploaded(true);
+    // Save visa files to formValues
+    const syntheticEvent = { target: { value: fileArray.map(f => ({ name: f.name, file: f, size: f.size, type: f.type })) } };
+    handleChange("crewVisaFiles")(syntheticEvent);
 
     // Map files to crew members
     const visaFilesMap = {};
@@ -673,6 +691,9 @@ const CrewContent = ({ formValues, handleChange, cardColor, onNavigateToTab, lau
                   setVisaBulkFiles([]);
                   const syntheticEvent = { target: { value: [] } };
                   handleChange("crewList")(syntheticEvent);
+                  handleChange("crewUploadedFileName")({ target: { value: "" } });
+                  handleChange("crewPassportFiles")({ target: { value: [] } });
+                  handleChange("crewVisaFiles")({ target: { value: [] } });
                   setSelectedCrewIds([]);
                   setPassportDocuments({});
                   setVisaDocuments({});
