@@ -141,6 +141,8 @@ const generateCard = (workflowId, colId, cardId) => {
     title: `CARD – ${["JAN", "FEB", "MAR", "APR", "MAY", "JUN", "JUL", "AUG"][
       Math.floor(Math.random() * 8)
     ]} ${2025 + Math.floor(Math.random() * 2)}`,
+    name: customerNames[Math.floor(Math.random() * customerNames.length)],
+    user: drivers[Math.floor(Math.random() * drivers.length)],
     timeLeft: `${Math.floor(Math.random() * 90)}d ${Math.floor(Math.random() * 24)}h ${Math.floor(
       Math.random() * 60
     )}m`,

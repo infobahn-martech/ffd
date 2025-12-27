@@ -67,6 +67,15 @@
   justify-content: center;
 }
 
+.card-name {
+  font-size: 13px;
+  font-weight: 400;
+  color: #666;
+  margin-left: auto;
+  padding: 0 10px;
+  font-family: "Inter", sans-serif;
+}
+
 /* Title */
 .card-title-row {
   display: flex;

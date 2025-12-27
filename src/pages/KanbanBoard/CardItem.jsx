@@ -123,6 +123,25 @@ function CardItem({ card, index, setSelectedCard, isShrunk = false }) {
                   {card.iconType === "download" && <DownloadIcon />}
                   {card.iconType === "document" && <DownloadIcon />}
                 </div>
+                {card.name && (() => {
+                  const maxLength = 10;
+                  const isTruncated = card.name.length > maxLength;
+                  const displayText = isTruncated ? card.name.substring(0, maxLength) + "..." : card.name;
+                  const tooltipId = `name-${card.id}`;
+
+                  return (
+                    <>
+                      <span
+                        className="card-name"
+                        data-tooltip-id={tooltipId}
+                        data-tooltip-content={isTruncated ? card.name : undefined}
+                      >
+                        {displayText}
+                      </span>
+                      {isTruncated && <Tooltip id={tooltipId} place="top" />}
+                    </>
+                  );
+                })()}
               </div>
 
               {/* Title */}
@@ -134,6 +153,13 @@ function CardItem({ card, index, setSelectedCard, isShrunk = false }) {
                 >
                   {card.title}
                 </h3>
+                {card.user && (
+                  <div
+                    className="card-avatar"
+                    data-initial={card.user[0]?.toUpperCase() || ""}
+                    style={{ "--card-color": cardColor }}
+                  />
+                )}
               </div>
 
               {/* Footer */}
@@ -181,6 +207,8 @@ CardItem.propTypes = {
   card: PropTypes.shape({
     id: PropTypes.string.isRequired,
     title: PropTypes.string.isRequired,
+    name: PropTypes.string,
+    user: PropTypes.string,
     color: PropTypes.string,
     iconType: PropTypes.string,
     timeLeft: PropTypes.string,
