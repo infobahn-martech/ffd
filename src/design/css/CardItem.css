@@ -74,6 +74,28 @@
   margin-left: auto;
   padding: 0 10px;
   font-family: "Inter", sans-serif;
+  position: relative;
+  z-index: 1;
+}
+
+/* Tooltip styles for card-name to ensure visibility and proper positioning */
+.card-name-tooltip {
+  z-index: 9999 !important;
+  background-color: #333 !important;
+  color: #fff !important;
+  padding: 6px 10px !important;
+  border-radius: 4px !important;
+  font-size: 12px !important;
+  font-family: "Inter", sans-serif !important;
+  max-width: 250px !important;
+  word-wrap: break-word !important;
+  white-space: normal !important;
+  opacity: 1 !important;
+  pointer-events: none !important;
+}
+
+.card-name-tooltip::after {
+  border-top-color: #333 !important;
 }
 
 /* Title */

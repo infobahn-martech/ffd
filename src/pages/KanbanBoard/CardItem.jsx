@@ -134,11 +134,18 @@ function CardItem({ card, index, setSelectedCard, isShrunk = false }) {
                       <span
                         className="card-name"
                         data-tooltip-id={tooltipId}
-                        data-tooltip-content={isTruncated ? card.name : undefined}
+                        data-tooltip-content={card.name}
                       >
                         {displayText}
                       </span>
-                      {isTruncated && <Tooltip id={tooltipId} place="top" />}
+                      {isTruncated && (
+                        <Tooltip
+                          id={tooltipId}
+                          place="top"
+                          className="card-name-tooltip"
+                          style={{ zIndex: 9999 }}
+                        />
+                      )}
                     </>
                   );
                 })()}
