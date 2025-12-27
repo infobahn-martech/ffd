@@ -135,93 +135,12 @@ const generateCard = (workflowId, colId, cardId) => {
     "Mark Harris",
     "Donald Clark"
   ];
-  const times = [
-    "09:00 AM",
-    "02:30 PM",
-    "11:15 AM",
-    "04:45 PM",
-    "08:00 AM",
-    "01:20 PM",
-    "10:30 AM",
-    "03:15 PM",
-    "06:00 AM",
-    "12:45 PM",
-    "05:30 PM",
-    "07:20 AM"
-  ];
-
-  // Generate random date for lastMoved (within last 6 months)
-  const now = new Date();
-  const sixMonthsAgo = new Date(now.getTime() - 180 * 24 * 60 * 60 * 1000);
-  const randomDate = new Date(sixMonthsAgo.getTime() + Math.random() * (now.getTime() - sixMonthsAgo.getTime()));
-  const formatDate = (date) => {
-    const year = date.getFullYear();
-    const month = String(date.getMonth() + 1).padStart(2, '0');
-    const day = String(date.getDate()).padStart(2, '0');
-    const hours = String(date.getHours()).padStart(2, '0');
-    const minutes = String(date.getMinutes()).padStart(2, '0');
-    const seconds = String(date.getSeconds()).padStart(2, '0');
-    return `${year}-${month}-${day} ${hours}:${minutes}:${seconds}`;
-  };
-
-  const sapSalesOrders = [
-    "3023192",
-    "3025500",
-    "3023193",
-    "3025501",
-    "3023194",
-    "3025502",
-    "3023195",
-    "3025503"
-  ];
-  const srtPoWbsOptions = [
-    "SRT-001|PO-12345|WBS-ABC",
-    "SRT-002|PO-67890|WBS-XYZ",
-    "SRT-003|PO-11111|WBS-DEF",
-    "SRT-004|PO-22222|WBS-GHI"
-  ];
-  const appointmentEmails = [
-    "appointment@shipping.com",
-    "booking@logistics.com",
-    "schedule@maritime.com",
-    "appt@cargo.com",
-    "booking@express.com"
-  ];
-  const serviceRequesters = [
-    "John Smith",
-    "Michael Johnson",
-    "David Williams",
-    "Robert Brown",
-    "James Davis"
-  ];
-
-  const statuses = [
-    "Pre Arrival",
-    "Custom Inspection",
-    "Crew Immigration",
-    "Vessel Inward Formalities",
-    "Marine Work Permit",
-    "SABER UT Closed",
-    "Outward Clearance",
-    "Vessel Sailed",
-    "Ops Completed",
-    "SO Approval",
-    "Invoice Issued",
-    "Submitted",
-    "Confirmattion Received",
-    "Closed"
-  ];
 
   const cardData = {
     id,
-    code: (100140 + cardId).toString(),
-    user: ["Sarim Asaf", "Zimba Ray", "Alex Ford", "Alif Allen", "Daniel Joe"][
-      Math.floor(Math.random() * 5)
-    ],
     title: `CARD – ${["JAN", "FEB", "MAR", "APR", "MAY", "JUN", "JUL", "AUG"][
       Math.floor(Math.random() * 8)
     ]} ${2025 + Math.floor(Math.random() * 2)}`,
-    days: Math.floor(Math.random() * 300) + 20,
     timeLeft: `${Math.floor(Math.random() * 90)}d ${Math.floor(Math.random() * 24)}h ${Math.floor(
       Math.random() * 60
     )}m`,
@@ -229,14 +148,7 @@ const generateCard = (workflowId, colId, cardId) => {
     color: randomColor,
     iconType: randomIconType,   // ⭐ Added here
     priority: cardId === 1, // Only first item has priority true
-    // New fields matching second image
-    lastMoved: formatDate(randomDate),
-    sapSalesOrder: sapSalesOrders[Math.floor(Math.random() * sapSalesOrders.length)],
-    srtPoWbs: srtPoWbsOptions[Math.floor(Math.random() * srtPoWbsOptions.length)],
-    appointmentEmail: appointmentEmails[Math.floor(Math.random() * appointmentEmails.length)],
     vesselName: vesselNames[Math.floor(Math.random() * vesselNames.length)],
-    serviceRequester: serviceRequesters[Math.floor(Math.random() * serviceRequesters.length)],
-    status: statuses[Math.floor(Math.random() * statuses.length)],
   };
 
   return { id, cardData };

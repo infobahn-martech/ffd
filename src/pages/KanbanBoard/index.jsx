@@ -81,7 +81,6 @@ export default function KanbanBoard() {
       // Create a new empty card object for add mode
       const newCard = {
         id: `new-${Date.now()}`,
-        code: '',
         title: '',
         color: '#2A00FF',
       };
@@ -396,7 +395,6 @@ export default function KanbanBoard() {
   const handleCreateCard = useCallback(() => {
     const newCard = {
       id: `new-${Date.now()}`,
-      code: '',
       title: '',
       color: contextMenuColumn?.color || '#2A00FF',
     };

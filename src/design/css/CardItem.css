@@ -67,23 +67,6 @@
   justify-content: center;
 }
 
-.card-code {
-  font-size: 13px;
-  font-weight: 400;
-  color: #828282;
-  flex-grow: 1;
-  padding: 0 0 0 40px;
-  font-family: "Inter", sans-serif;
-}
-
-.card-user {
-  font-size: 13px;
-  font-weight: 400;
-  color: #666;
-  margin-right: 8px;
-  font-family: "Inter", sans-serif;
-}
-
 /* Title */
 .card-title-row {
   display: flex;
@@ -157,61 +140,6 @@
   font-family: "Inter", sans-serif;
 }
 
-/* Days */
-.card-days {
-  display: flex;
-  align-items: center;
-  gap: 6px;
-  font-size: 14px;
-  margin-bottom: 6px;
-}
-
-/* Grouped icons */
-.card-icons {
-  display: flex;
-  align-items: center;
-  gap: 4px;
-}
-
-.card-icons .icon {
-  width: 14px;
-  height: 14px;
-  object-fit: contain;
-  filter: none;
-  /* keep original colors */
-}
-
-/* Days text */
-.days-text {
-  color: #333;
-  font-weight: 400;
-  font-family: "Inter", sans-serif;
-}
-
-/* Status */
-.card-status {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  border-top: 1px solid #eee;
-  padding-top: 8px;
-  margin-top: 6px;
-  font-size: 13px;
-  color: #555;
-  font-weight: 400;
-  font-family: "Inter", sans-serif;
-}
-
-.card-status span {
-  font-weight: 400;
-  font-family: "Inter", sans-serif;
-}
-
-.card-status .dot {
-  width: 10px;
-  height: 10px;
-  border-radius: 50%;
-}
 
 /* ===== Circular Progress Bar ===== */
 .circular-progress {
@@ -367,15 +295,6 @@
   background-color: #3498DB;
 }
 
-/* Last Moved Section */
-.card-last-moved {
-  font-size: 13px;
-  color: #555;
-  margin-top: 8px;
-  padding-top: 8px;
-  border-top: 1px solid #eee;
-  font-weight: 400;
-}
 
 /* Detail Label */
 .detail-label {
@@ -463,19 +382,6 @@
   height: 12px;
 }
 
-.card-code-compact {
-  font-size: 12px;
-  font-weight: 700;
-  color: #1a1a1a;
-  line-height: 1.2;
-  flex: 1;
-  min-width: 0;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
-  cursor: pointer;
-}
-
 /* Compact Title */
 .card-title-compact {
   font-size: 11px;
@@ -494,39 +400,13 @@
   color: var(--card-color, #2A00FF);
 }
 
-/* Compact Info Row - Days, Progress, Board ID */
+/* Compact Info Row - Progress, Board ID */
 .card-info-row-compact {
   display: flex;
   align-items: center;
   gap: 8px;
   margin: 8px 0 6px 0;
   flex-wrap: wrap;
-}
-
-/* Days Wrapper with Clock Icon */
-.card-days-wrapper-compact {
-  display: flex;
-  align-items: center;
-  gap: 4px;
-  padding: 2px 6px;
-  background-color: #f8f9fa;
-  border-radius: 4px;
-  cursor: pointer;
-  flex-shrink: 0;
-}
-
-.card-clock-icon-compact {
-  width: 12px;
-  height: 12px;
-  opacity: 0.7;
-  filter: brightness(0) saturate(100%) invert(40%) sepia(0%) saturate(0%) hue-rotate(0deg) brightness(95%);
-}
-
-.card-days-compact {
-  font-size: 10px;
-  font-weight: 600;
-  color: #555;
-  line-height: 1;
 }
 
 /* Progress Wrapper */
@@ -593,18 +473,4 @@
   font-weight: 600;
   color: #333;
   line-height: 1;
-}
-
-/* Compact Status */
-.card-status-compact {
-  font-size: 9px;
-  font-weight: 500;
-  margin-top: 6px;
-  padding-top: 6px;
-  border-top: 1px solid #f0f0f0;
-  line-height: 1.3;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
-  cursor: pointer;
 }
