@@ -1,7 +1,8 @@
 import PropTypes from "prop-types";
 import Select from "react-select";
 import GroupSettingsIcon from "../../../../assets/images/cv.png";
-import { FormSection, FormField, FormInput, FormSelect, ReactQuillEditor } from "./Husbandry.components";
+import { FormSection, FormField, FormInput, FormSelect, FormTextarea, ReactQuillEditor } from "./Husbandry.components";
+import LocationAutocomplete from "./LocationAutocomplete";
 
 const TransportContent = ({ formValues, handleChange, cardColor }) => {
   // Generate crew options from crewList
@@ -183,7 +184,9 @@ const TransportContent = ({ formValues, handleChange, cardColor }) => {
       dateTime: formValues.transportDateTime,
       time: formValues.transportTime,
       from: formValues.transportFrom,
+      fromNotes: formValues.transportFromNotes,
       to: formValues.transportTo,
+      toNotes: formValues.transportToNotes,
       carType: formValues.carType,
       invoiceBranch: formValues.invoiceBranch,
     });
@@ -241,20 +244,40 @@ const TransportContent = ({ formValues, handleChange, cardColor }) => {
               </FormField>
 
               <FormField label="From">
-                <FormInput
-                  type="text"
-                  placeholder="Enter from location..."
+                <LocationAutocomplete
                   value={formValues.transportFrom || ""}
                   onChange={handleChange("transportFrom")}
+                  placeholder="Search for a location..."
+                  onLocationSelect={(locationData) => {
+                    // Optional: Store additional location data if needed
+                    console.log("From location selected:", locationData);
+                  }}
+                />
+                <FormTextarea
+                  value={formValues.transportFromNotes || ""}
+                  onChange={handleChange("transportFromNotes")}
+                  placeholder="Additional notes (optional)..."
+                  rows={2}
+                  className="location-notes-textarea"
                 />
               </FormField>
 
               <FormField label="To">
-                <FormInput
-                  type="text"
-                  placeholder="Enter to location..."
+                <LocationAutocomplete
                   value={formValues.transportTo || ""}
                   onChange={handleChange("transportTo")}
+                  placeholder="Search for a location..."
+                  onLocationSelect={(locationData) => {
+                    // Optional: Store additional location data if needed
+                    console.log("To location selected:", locationData);
+                  }}
+                />
+                <FormTextarea
+                  value={formValues.transportToNotes || ""}
+                  onChange={handleChange("transportToNotes")}
+                  placeholder="Additional notes (optional)..."
+                  rows={2}
+                  className="location-notes-textarea"
                 />
               </FormField>
 

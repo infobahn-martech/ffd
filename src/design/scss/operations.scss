@@ -1287,6 +1287,61 @@
   padding: 10px 14px;
 }
 
+/* Location Autocomplete Styles */
+.location-autocomplete {
+  position: relative;
+  
+  input {
+    width: 100%;
+  }
+  
+  .location-autocomplete-error {
+    margin-top: 8px;
+    font-size: 12px;
+    color: #ff0000;
+    padding: 4px 8px;
+    background: #ffe5e5;
+    border-radius: 4px;
+  }
+  
+  .location-autocomplete-loading {
+    margin-top: 8px;
+    font-size: 12px;
+    color: #666;
+    padding: 4px 8px;
+  }
+}
+
+/* Google Places Autocomplete dropdown styling */
+.pac-container {
+  border-radius: 8px !important;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15) !important;
+  border: 1px solid #e2e2ea !important;
+  margin-top: 4px !important;
+  z-index: 9999 !important;
+  
+  .pac-item {
+    padding: 10px 12px !important;
+    font-size: 13px !important;
+    cursor: pointer !important;
+    border: none !important;
+    
+    &:hover {
+      background-color: rgba(0, 54, 140, 0.1) !important;
+    }
+    
+    &.pac-item-selected {
+      background-color: #00368c !important;
+      color: #ffffff !important;
+    }
+  }
+}
+
+/* Location notes textarea spacing */
+.location-notes-textarea {
+  margin-top: 10px;
+}
+
 .cf-input.date-time-row input {
   flex: 1;
   min-width: 0;
