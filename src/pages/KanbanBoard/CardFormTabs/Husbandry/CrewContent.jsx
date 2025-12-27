@@ -915,11 +915,11 @@ const CrewContent = ({ formValues, handleChange, cardColor, onNavigateToTab, lau
                               padding: "4px",
                               display: "flex",
                               alignItems: "center",
-                              color: passportDocuments[crew.id] ? "#28a745" : "#00368c",
+                              color: passportDocuments[crew.id] ? "#28a745" : "#dc3545",
                             }}
                             title={passportDocuments[crew.id] ? `Uploaded: ${passportDocuments[crew.id].fileName}` : "Upload Passport Document"}
                           >
-                            <UploadIcon size={18} color={passportDocuments[crew.id] ? "#28a745" : "#00368c"} />
+                            <UploadIcon size={18} color={passportDocuments[crew.id] ? "#28a745" : "#dc3545"} />
                           </button>
                         </div>
                       </td>
@@ -949,11 +949,11 @@ const CrewContent = ({ formValues, handleChange, cardColor, onNavigateToTab, lau
                               padding: "4px",
                               display: "flex",
                               alignItems: "center",
-                              color: visaDocuments[crew.id] ? "#28a745" : "#00368c",
+                              color: visaDocuments[crew.id] ? "#28a745" : "#dc3545",
                             }}
                             title={visaDocuments[crew.id] ? `Uploaded: ${visaDocuments[crew.id].fileName}` : "Upload Visa Document"}
                           >
-                            <UploadIcon size={18} color={visaDocuments[crew.id] ? "#28a745" : "#00368c"} />
+                            <UploadIcon size={18} color={visaDocuments[crew.id] ? "#28a745" : "#dc3545"} />
                           </button>
                         </div>
                       </td>
