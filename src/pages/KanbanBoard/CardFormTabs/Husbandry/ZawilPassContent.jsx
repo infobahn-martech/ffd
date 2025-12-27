@@ -409,7 +409,7 @@ const ZawilPassContent = ({ formValues, handleChange, cardColor }) => {
 
             <div className="general-info-right">
               <div className="card-description-wrapper">
-                <FormField label="Description">
+                <FormField label="Remarks">
                   <ReactQuillEditor
                     value={formValues?.zawilPassDescription || ""}
                     onChange={handleChange("zawilPassDescription")}

@@ -326,7 +326,7 @@ const MWPRenewalContent = ({ formValues, handleChange, cardColor }) => {
 
             <div className="general-info-right">
               <div className="card-description-wrapper">
-                <FormField label="Description">
+                <FormField label="Remarks">
                   <ReactQuillEditor
                     value={formValues?.mwpRenewalDescription || ""}
                     onChange={handleChange("mwpRenewalDescription")}
