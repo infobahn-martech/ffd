@@ -6,6 +6,7 @@ import "react-quill/dist/quill.snow.css";
 import GroupSettingsIcon from "../../../assets/images/cv.png";
 import CircleTickIcon from "../../../assets/images/CircleTick.svg";
 import Checklist from "./Checklist";
+import CustomModal from "../../../components/CustomModal";
 import "../../../design/scss/operations.scss";
 
 // Constants
@@ -604,7 +605,7 @@ const PreArrivalContent = ({ formValues, handleChange, ownerInitial, cardUser, c
     <div className="cardform-left-full" style={{ "--card-color": cardColor }}>
       <div className="operation-content-header">
         <h3 className="operation-content-title">Pre-Arrival Information</h3>
-        {onSendReport && <SendReportButton onClick={onSendReport} cardColor={cardColor} />}
+        {onSendReport && <SendReportButton onClick={onSendReport} cardColor={cardColor} tabName="Pre Arrival" />}
       </div>
       <FormSection icon={GroupSettingsIcon} title="">
         <div className="pre-arrival-form">
@@ -833,7 +834,7 @@ const ArrivalContent = ({ formValues, handleChange, cardColor, onAddAttachment, 
     <div className="cardform-left-full" style={{ "--card-color": cardColor }}>
       <div className="operation-content-header">
         <h3 className="operation-content-title">Arrival Information</h3>
-        {onSendReport && <SendReportButton onClick={onSendReport} cardColor={cardColor} />}
+        {onSendReport && <SendReportButton onClick={onSendReport} cardColor={cardColor} tabName="Arrival" />}
       </div>
       <FormSection icon={GroupSettingsIcon} title="">
         <div className="arrival-form">
@@ -1231,7 +1232,7 @@ const DepartureContent = ({ formValues, handleChange, cardColor, onAddAttachment
     <div className="cardform-left-full" style={{ "--card-color": cardColor }}>
       <div className="operation-content-header">
         <h3 className="operation-content-title">Departure Information</h3>
-        {onSendReport && <SendReportButton onClick={onSendReport} cardColor={cardColor} />}
+        {onSendReport && <SendReportButton onClick={onSendReport} cardColor={cardColor} tabName="Departure" />}
       </div>
       <FormSection icon={GroupSettingsIcon} title="">
         <div className="departure-form">
@@ -1396,54 +1397,199 @@ CheckListContent.propTypes = {
   cardColor: PropTypes.string,
 };
 
+// Send Report Preview Modal Component
+const SendReportPreviewModal = ({ show, onClose, cardColor, tabName }) => {
+  const [formData, setFormData] = useState({
+    from: "operations@shipping.com",
+    to: "recipient@example.com",
+    cc: "cc@example.com",
+    bcc: "",
+    subject: `Report - ${tabName}`,
+    body: `This is a preview of the ${tabName} report.\n\nPlease review the details before sending.`,
+  });
+
+  const handleInputChange = (field, value) => {
+    setFormData(prev => ({
+      ...prev,
+      [field]: value
+    }));
+  };
+
+  const handleSend = () => {
+    console.log("Sending report:", formData);
+    // TODO: Implement actual send logic
+    onClose();
+  };
+
+  const renderBody = () => (
+    <div className="send-report-preview-modal">
+      <div className="send-report-form">
+        <div className="send-report-field">
+          <label>From</label>
+          <input
+            type="email"
+            value={formData.from}
+            onChange={(e) => handleInputChange("from", e.target.value)}
+            className="send-report-input"
+          />
+        </div>
+
+        <div className="send-report-field">
+          <label>To</label>
+          <input
+            type="email"
+            value={formData.to}
+            onChange={(e) => handleInputChange("to", e.target.value)}
+            className="send-report-input"
+          />
+        </div>
+
+        <div className="send-report-field">
+          <label>CC</label>
+          <input
+            type="email"
+            value={formData.cc}
+            onChange={(e) => handleInputChange("cc", e.target.value)}
+            className="send-report-input"
+          />
+        </div>
+
+        <div className="send-report-field">
+          <label>BCC</label>
+          <input
+            type="email"
+            value={formData.bcc}
+            onChange={(e) => handleInputChange("bcc", e.target.value)}
+            className="send-report-input"
+          />
+        </div>
+
+        <div className="send-report-field">
+          <label>Subject</label>
+          <input
+            type="text"
+            value={formData.subject}
+            onChange={(e) => handleInputChange("subject", e.target.value)}
+            className="send-report-input"
+          />
+        </div>
+
+        <div className="send-report-field">
+          <label>Body</label>
+          <textarea
+            value={formData.body}
+            onChange={(e) => handleInputChange("body", e.target.value)}
+            className="send-report-textarea"
+            rows={5}
+          />
+        </div>
+      </div>
+
+      <div className="send-report-actions">
+        <button
+          type="button"
+          className="send-report-cancel-btn"
+          onClick={onClose}
+        >
+          Cancel
+        </button>
+        <button
+          type="button"
+          className="send-report-send-btn"
+          onClick={handleSend}
+        >
+          Send Report
+        </button>
+      </div>
+    </div>
+  );
+
+  const renderHeader = () => (
+    <div className="modal-header">
+      <h5 className="modal-title">Send Report Preview - {tabName}</h5>
+    </div>
+  );
+
+  return (
+    <CustomModal
+      show={show}
+      closeModal={onClose}
+      body={renderBody()}
+      header={renderHeader()}
+      createModal={true}
+      dialgName="modal-dialog modal-dialog-centered send-report-modal-dialog"
+      className="modal fade send-report-modal"
+    />
+  );
+};
+
+SendReportPreviewModal.propTypes = {
+  show: PropTypes.bool.isRequired,
+  onClose: PropTypes.func.isRequired,
+  cardColor: PropTypes.string,
+  tabName: PropTypes.string.isRequired,
+};
+
+// Export for use in other components
+export { SendReportPreviewModal };
+
 // Send Report Button Component
-const SendReportButton = ({ onClick, cardColor }) => {
+const SendReportButton = ({ onClick, cardColor, tabName }) => {
+  const [showPreview, setShowPreview] = useState(false);
+
   const handleSendReport = () => {
+    setShowPreview(true);
     if (onClick) {
       onClick();
-    } else {
-      console.log("Send report clicked");
-      // TODO: Implement send report logic
     }
   };
 
   return (
-    <button
-      type="button"
-      className="operation-send-report-btn"
-      onClick={handleSendReport}
-      title="Send Report"
-    >
-      <svg
-        width="20"
-        height="20"
-        viewBox="0 0 24 24"
-        fill="none"
-        xmlns="http://www.w3.org/2000/svg"
+    <>
+      <button
+        type="button"
+        className="operation-send-report-btn"
+        onClick={handleSendReport}
+        title="Send Report"
       >
-        <path
-          d="M22 2L11 13"
-          stroke="currentColor"
-          strokeWidth="2"
-          strokeLinecap="round"
-          strokeLinejoin="round"
-        />
-        <path
-          d="M22 2L15 22L11 13L2 9L22 2Z"
-          stroke="currentColor"
-          strokeWidth="2"
-          strokeLinecap="round"
-          strokeLinejoin="round"
-        />
-      </svg>
-      <span className="send-report-text">Send Report</span>
-    </button>
+        <svg
+          width="20"
+          height="20"
+          viewBox="0 0 24 24"
+          fill="none"
+          xmlns="http://www.w3.org/2000/svg"
+        >
+          <path
+            d="M22 2L11 13"
+            stroke="currentColor"
+            strokeWidth="2"
+            strokeLinecap="round"
+            strokeLinejoin="round"
+          />
+          <path
+            d="M22 2L15 22L11 13L2 9L22 2Z"
+            stroke="currentColor"
+            strokeWidth="2"
+            strokeLinecap="round"
+            strokeLinejoin="round"
+          />
+        </svg>
+        <span className="send-report-text">Send Report</span>
+      </button>
+      <SendReportPreviewModal
+        show={showPreview}
+        onClose={() => setShowPreview(false)}
+        cardColor={cardColor}
+        tabName={tabName}
+      />
+    </>
   );
 };
 
 SendReportButton.propTypes = {
   onClick: PropTypes.func,
   cardColor: PropTypes.string,
+  tabName: PropTypes.string.isRequired,
 };
 
 // Main Operation Component

@@ -1,5 +1,7 @@
 import PropTypes from "prop-types";
 import { useState, useMemo, useEffect, useRef } from "react";
+import { SendReportPreviewModal } from "./Operation";
+import CustomModal from "../../../components/CustomModal";
 import "../../../design/scss/checklist.scss";
 
 // Checklist Type Options
@@ -1117,48 +1119,57 @@ function Checklist({ card, formValues, handleChange, onSendReport, cardColor: pr
     },
   ];
 
-  // Import SendReportButton from Operation component
+  // Send Report Button Component
   const SendReportButton = ({ onClick, cardColor }) => {
+    const [showPreview, setShowPreview] = useState(false);
+
     const handleSendReport = () => {
+      setShowPreview(true);
       if (onClick) {
         onClick();
-      } else {
-        console.log("Send report clicked");
       }
     };
 
     return (
-      <button
-        style={{ backgroundColor: "rgb(244 242 255)" }}
-        type="button"
-        className="operation-send-report-btn"
-        onClick={handleSendReport}
-        title="Send Report"
-      >
-        <svg
-          width="20"
-          height="20"
-          viewBox="0 0 24 24"
-          fill="none"
-          xmlns="http://www.w3.org/2000/svg"
+      <>
+        <button
+          style={{ backgroundColor: "rgb(244 242 255)" }}
+          type="button"
+          className="operation-send-report-btn"
+          onClick={handleSendReport}
+          title="Send Report"
         >
-          <path
-            d="M22 2L11 13"
-            stroke="currentColor"
-            strokeWidth="2"
-            strokeLinecap="round"
-            strokeLinejoin="round"
-          />
-          <path
-            d="M22 2L15 22L11 13L2 9L22 2Z"
-            stroke="currentColor"
-            strokeWidth="2"
-            strokeLinecap="round"
-            strokeLinejoin="round"
-          />
-        </svg>
-        <span className="send-report-text">Send Report</span>
-      </button>
+          <svg
+            width="20"
+            height="20"
+            viewBox="0 0 24 24"
+            fill="none"
+            xmlns="http://www.w3.org/2000/svg"
+          >
+            <path
+              d="M22 2L11 13"
+              stroke="currentColor"
+              strokeWidth="2"
+              strokeLinecap="round"
+              strokeLinejoin="round"
+            />
+            <path
+              d="M22 2L15 22L11 13L2 9L22 2Z"
+              stroke="currentColor"
+              strokeWidth="2"
+              strokeLinecap="round"
+              strokeLinejoin="round"
+            />
+          </svg>
+          <span className="send-report-text">Send Report</span>
+        </button>
+        <SendReportPreviewModal
+          show={showPreview}
+          onClose={() => setShowPreview(false)}
+          cardColor={cardColor}
+          tabName="Check List"
+        />
+      </>
     );
   };
 
