@@ -52,12 +52,12 @@ const CrewContent = ({ formValues, handleChange, cardColor, onNavigateToTab, lau
   const crewList = formValues.crewList || [];
   const [selectedCrewIds, setSelectedCrewIds] = useState([]);
   const [showActionDropdown, setShowActionDropdown] = useState(false);
-  
+
   // Check if documents are already uploaded from formValues
   const hasCrewList = formValues.crewList && formValues.crewList.length > 0;
   const hasPassportFiles = formValues.crewPassportFiles && formValues.crewPassportFiles.length > 0;
   const hasVisaFiles = formValues.crewVisaFiles && formValues.crewVisaFiles.length > 0;
-  
+
   const [isFileUploaded, setIsFileUploaded] = useState(hasCrewList);
   const [isPassportBulkUploaded, setIsPassportBulkUploaded] = useState(hasPassportFiles);
   const [isVisaBulkUploaded, setIsVisaBulkUploaded] = useState(hasVisaFiles);
@@ -797,7 +797,7 @@ const CrewContent = ({ formValues, handleChange, cardColor, onNavigateToTab, lau
             </div>
           </div>
           <div className="table-wrapper table-responsive crew-table-container">
-            <table className="table table-striped crew-table" style={{ "--card-color": "#e2e6ff" }}>
+            <table className="table table-striped crew-table" style={{ "--card-color": "#e2e6ff", tableLayout: "fixed", width: "100%" }}>
               <thead>
                 <tr>
                   <th style={{ width: "40px" }}>
@@ -813,24 +813,40 @@ const CrewContent = ({ formValues, handleChange, cardColor, onNavigateToTab, lau
                       }}
                     />
                   </th>
-                  <th>Crew Name</th>
-                  <th>Nationality</th>
-                  <th>Rank</th>
-                  <th>
-                    <div style={{ display: "flex", alignItems: "center", gap: "8px", justifyContent: "center" }}>
-                      Passport
+                  <th style={{ width: "calc((100% - 40px) / 10)", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }} title="Crew Name">
+                    Crew Name
+                  </th>
+                  <th style={{ width: "calc((100% - 40px) / 10)", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }} title="Nationality">
+                    Nationality
+                  </th>
+                  <th style={{ width: "calc((100% - 40px) / 10)", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }} title="Rank">
+                    Rank
+                  </th>
+                  <th style={{ width: "calc((100% - 40px) / 10)", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }} title="PASSPORT/IQAMA">
+                    <div style={{ display: "flex", alignItems: "center", gap: "8px", justifyContent: "center", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap", minWidth: 0 }}>
+                      PASSPORT/IQAMA
                     </div>
                   </th>
-                  <th>
-                    <div style={{ display: "flex", alignItems: "center", gap: "8px", justifyContent: "center" }}>
+                  <th style={{ width: "calc((100% - 40px) / 10)", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }} title="Visa">
+                    <div style={{ display: "flex", alignItems: "center", gap: "8px", justifyContent: "center", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap", minWidth: 0 }}>
                       Visa
                     </div>
                   </th>
-                  <th>Transport</th>
-                  <th>CG Pass</th>
-                  <th>Zawil Pass</th>
-                  <th>Hotel</th>
-                  <th>Medical Service</th>
+                  <th style={{ width: "calc((100% - 40px) / 10)", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }} title="Transport">
+                    Transport
+                  </th>
+                  <th style={{ width: "calc((100% - 40px) / 10)", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }} title="CG Pass">
+                    CG Pass
+                  </th>
+                  <th style={{ width: "calc((100% - 40px) / 10)", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }} title="Zawil Pass">
+                    Zawil Pass
+                  </th>
+                  <th style={{ width: "calc((100% - 40px) / 10)", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }} title="Hotel">
+                    Hotel
+                  </th>
+                  <th style={{ width: "calc((100% - 40px) / 10)", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }} title="Medical Service">
+                    Medical Service
+                  </th>
                   {/* <th>Actions</th> */}
                 </tr>
               </thead>
@@ -864,14 +880,14 @@ const CrewContent = ({ formValues, handleChange, cardColor, onNavigateToTab, lau
                           }}
                         />
                       </td>
-                      <td>
-                        <div className="crew-table-cell">{crew.crewName || ""}</div>
+                      <td style={{ overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
+                        <div className="crew-table-cell" title={crew.crewName || ""}>{crew.crewName || ""}</div>
                       </td>
-                      <td>
-                        <div className="crew-table-cell">{crew.nationality || ""}</div>
+                      <td style={{ overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
+                        <div className="crew-table-cell" title={crew.nationality || ""}>{crew.nationality || ""}</div>
                       </td>
-                      <td>
-                        <div className="crew-table-cell">{crew.rank || ""}</div>
+                      <td style={{ overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
+                        <div className="crew-table-cell" title={crew.rank || ""}>{crew.rank || ""}</div>
                       </td>
                       <td>
                         <div className="crew-table-cell" style={{ display: "flex", alignItems: "center", gap: "8px", justifyContent: "center" }}>
@@ -941,27 +957,27 @@ const CrewContent = ({ formValues, handleChange, cardColor, onNavigateToTab, lau
                           </button>
                         </div>
                       </td>
-                      <td>
+                      <td style={{ overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
                         <div className="crew-table-cell crew-status-icon">
                           {crew.transport ? <YesIcon /> : <NoIcon />}
                         </div>
                       </td>
-                      <td>
+                      <td style={{ overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
                         <div className="crew-table-cell crew-status-icon">
                           {crew.cgPass ? <YesIcon /> : <NoIcon />}
                         </div>
                       </td>
-                      <td>
+                      <td style={{ overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
                         <div className="crew-table-cell crew-status-icon">
                           {crew.zawilPass ? <YesIcon /> : <NoIcon />}
                         </div>
                       </td>
-                      <td>
+                      <td style={{ overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
                         <div className="crew-table-cell crew-status-icon">
                           {crew.hotel ? <YesIcon /> : <NoIcon />}
                         </div>
                       </td>
-                      <td>
+                      <td style={{ overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
                         <div className="crew-table-cell crew-status-icon">
                           {crew.medicalService ? <YesIcon /> : <NoIcon />}
                         </div>
