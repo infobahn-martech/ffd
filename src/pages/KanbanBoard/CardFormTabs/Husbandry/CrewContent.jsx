@@ -72,6 +72,12 @@ const CrewContent = ({ formValues, handleChange, cardColor, onNavigateToTab, lau
   const passportFileInputRef = useRef(null);
   const visaFileInputRef = useRef(null);
 
+  // Individual passport and visa documents per crew member
+  const [passportDocuments, setPassportDocuments] = useState(formValues.crewPassportDocuments || {});
+  const [visaDocuments, setVisaDocuments] = useState(formValues.crewVisaDocuments || {});
+  const passportFileInputRefs = useRef({});
+  const visaFileInputRefs = useRef({});
+
   const displayCrewList = crewList.length > 0 ? crewList : [];
 
   // Handle individual crew selection
@@ -331,6 +337,40 @@ const CrewContent = ({ formValues, handleChange, cardColor, onNavigateToTab, lau
     if (visaFileInputRef.current) {
       visaFileInputRef.current.value = "";
     }
+  };
+
+  // Handle individual passport document upload
+  const handlePassportUpload = (crewId, file) => {
+    if (!file) return;
+    const updatedDocuments = {
+      ...passportDocuments,
+      [crewId]: {
+        file,
+        fileName: file.name,
+        uploadDate: new Date().toISOString(),
+      },
+    };
+    setPassportDocuments(updatedDocuments);
+    // Save to formValues
+    const syntheticEvent = { target: { value: updatedDocuments } };
+    handleChange("crewPassportDocuments")(syntheticEvent);
+  };
+
+  // Handle individual visa document upload
+  const handleVisaUpload = (crewId, file) => {
+    if (!file) return;
+    const updatedDocuments = {
+      ...visaDocuments,
+      [crewId]: {
+        file,
+        fileName: file.name,
+        uploadDate: new Date().toISOString(),
+      },
+    };
+    setVisaDocuments(updatedDocuments);
+    // Save to formValues
+    const syntheticEvent = { target: { value: updatedDocuments } };
+    handleChange("crewVisaDocuments")(syntheticEvent);
   };
 
   // Shared upload icon component
@@ -608,76 +648,6 @@ const CrewContent = ({ formValues, handleChange, cardColor, onNavigateToTab, lau
               </button>
             </div>
             <div style={{ display: "flex", gap: "10px", alignItems: "center" }}>
-              {showActionDropdown && (
-                <div style={{ position: "relative", marginRight: "10px" }}>
-                  <select
-                    onChange={(e) => {
-                      const selectedOption = actionOptions.find((opt) => opt.value === e.target.value);
-                      if (selectedOption) {
-                        handleActionSelect(selectedOption);
-                      }
-                      e.target.value = ""; // Reset dropdown
-                    }}
-                    style={{
-                      padding: "8px 12px",
-                      borderRadius: "6px",
-                      border: `2px solid #e2e6ff`,
-                      backgroundColor: "#ffffff",
-                      color: "#1a1a1a",
-                      fontSize: "13px",
-                      fontWeight: "500",
-                      cursor: "pointer",
-                      outline: "none",
-                    }}
-                    defaultValue=""
-                  >
-                    <option value="" disabled>
-                      Select Action...
-                    </option>
-                    {actionOptions.map((option) => (
-                      <option key={option.value} value={option.value}>
-                        {option.label}
-                      </option>
-                    ))}
-                  </select>
-                </div>
-              )}
-              <button
-                type="button"
-                onClick={handleSelectAll}
-                style={{
-                  padding: "8px 16px",
-                  borderRadius: "8px",
-                  border: "1px solid #e2e6ff",
-                  backgroundColor: selectedCrewIds.length === displayCrewList.length ? "var(--card-color, #2A00FF)" : "#ffffff",
-                  color: selectedCrewIds.length === displayCrewList.length ? "#ffffff" : "#1a1a1a",
-                  fontSize: "13px",
-                  fontWeight: "600",
-                  cursor: "pointer",
-                  transition: "all 0.2s ease",
-                  fontFamily: "Inter, sans-serif"
-                }}
-                onMouseEnter={(e) => {
-                  if (selectedCrewIds.length !== displayCrewList.length) {
-                    e.currentTarget.style.backgroundColor = "#f8f9ff";
-                    e.currentTarget.style.borderColor = "var(--card-color, #2A00FF)";
-                  } else {
-                    e.currentTarget.style.opacity = "0.9";
-                  }
-                  e.currentTarget.style.transform = "translateY(-1px)";
-                  e.currentTarget.style.boxShadow = "0 2px 8px rgba(0, 0, 0, 0.1)";
-                }}
-                onMouseLeave={(e) => {
-                  e.currentTarget.style.backgroundColor = selectedCrewIds.length === displayCrewList.length ? "var(--card-color, #2A00FF)" : "#ffffff";
-                  e.currentTarget.style.borderColor = "#e2e6ff";
-                  e.currentTarget.style.color = selectedCrewIds.length === displayCrewList.length ? "#ffffff" : "#1a1a1a";
-                  e.currentTarget.style.opacity = "1";
-                  e.currentTarget.style.transform = "translateY(0)";
-                  e.currentTarget.style.boxShadow = "none";
-                }}
-              >
-                {selectedCrewIds.length === displayCrewList.length ? "Deselect All" : "Select All"}
-              </button>
               <button
                 type="button"
                 onClick={() => setShowPassportModal(true)}
@@ -752,6 +722,76 @@ const CrewContent = ({ formValues, handleChange, cardColor, onNavigateToTab, lau
                 </svg>
                 Bulk Visa
               </button>
+              {showActionDropdown && (
+                <div style={{ position: "relative", marginRight: "10px" }}>
+                  <select
+                    onChange={(e) => {
+                      const selectedOption = actionOptions.find((opt) => opt.value === e.target.value);
+                      if (selectedOption) {
+                        handleActionSelect(selectedOption);
+                      }
+                      e.target.value = ""; // Reset dropdown
+                    }}
+                    style={{
+                      padding: "8px 12px",
+                      borderRadius: "6px",
+                      border: `2px solid #e2e6ff`,
+                      backgroundColor: "#ffffff",
+                      color: "#1a1a1a",
+                      fontSize: "13px",
+                      fontWeight: "500",
+                      cursor: "pointer",
+                      outline: "none",
+                    }}
+                    defaultValue=""
+                  >
+                    <option value="" disabled>
+                      Select Action...
+                    </option>
+                    {actionOptions.map((option) => (
+                      <option key={option.value} value={option.value}>
+                        {option.label}
+                      </option>
+                    ))}
+                  </select>
+                </div>
+              )}
+              <button
+                type="button"
+                onClick={handleSelectAll}
+                style={{
+                  padding: "8px 16px",
+                  borderRadius: "8px",
+                  border: "1px solid #e2e6ff",
+                  backgroundColor: selectedCrewIds.length === displayCrewList.length ? "var(--card-color, #2A00FF)" : "#ffffff",
+                  color: selectedCrewIds.length === displayCrewList.length ? "#ffffff" : "#1a1a1a",
+                  fontSize: "13px",
+                  fontWeight: "600",
+                  cursor: "pointer",
+                  transition: "all 0.2s ease",
+                  fontFamily: "Inter, sans-serif"
+                }}
+                onMouseEnter={(e) => {
+                  if (selectedCrewIds.length !== displayCrewList.length) {
+                    e.currentTarget.style.backgroundColor = "#f8f9ff";
+                    e.currentTarget.style.borderColor = "var(--card-color, #2A00FF)";
+                  } else {
+                    e.currentTarget.style.opacity = "0.9";
+                  }
+                  e.currentTarget.style.transform = "translateY(-1px)";
+                  e.currentTarget.style.boxShadow = "0 2px 8px rgba(0, 0, 0, 0.1)";
+                }}
+                onMouseLeave={(e) => {
+                  e.currentTarget.style.backgroundColor = selectedCrewIds.length === displayCrewList.length ? "var(--card-color, #2A00FF)" : "#ffffff";
+                  e.currentTarget.style.borderColor = "#e2e6ff";
+                  e.currentTarget.style.color = selectedCrewIds.length === displayCrewList.length ? "#ffffff" : "#1a1a1a";
+                  e.currentTarget.style.opacity = "1";
+                  e.currentTarget.style.transform = "translateY(0)";
+                  e.currentTarget.style.boxShadow = "none";
+                }}
+              >
+                {selectedCrewIds.length === displayCrewList.length ? "Deselect All" : "Select All"}
+              </button>
             </div>
           </div>
           <div className="table-wrapper table-responsive crew-table-container">
@@ -771,28 +811,34 @@ const CrewContent = ({ formValues, handleChange, cardColor, onNavigateToTab, lau
                       }}
                     />
                   </th>
-                  <th style={{ width: "calc((100% - 40px) / 8)", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }} title="Crew Name">
+                  <th style={{ width: "calc((100% - 40px) / 10)", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }} title="Crew Name">
                     Crew Name
                   </th>
-                  <th style={{ width: "calc((100% - 40px) / 8)", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }} title="Nationality">
+                  <th style={{ width: "calc((100% - 40px) / 10)", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }} title="Nationality">
                     Nationality
                   </th>
-                  <th style={{ width: "calc((100% - 40px) / 8)", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }} title="Rank">
+                  <th style={{ width: "calc((100% - 40px) / 10)", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }} title="Rank">
                     Rank
                   </th>
-                  <th style={{ width: "calc((100% - 40px) / 8)", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }} title="Transport">
+                  <th style={{ width: "calc((100% - 40px) / 10)", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }} title="Passport">
+                    Passport
+                  </th>
+                  <th style={{ width: "calc((100% - 40px) / 10)", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }} title="Visa">
+                    Visa
+                  </th>
+                  <th style={{ width: "calc((100% - 40px) / 10)", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }} title="Transport">
                     Transport
                   </th>
-                  <th style={{ width: "calc((100% - 40px) / 8)", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }} title="CG Pass">
+                  <th style={{ width: "calc((100% - 40px) / 10)", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }} title="CG Pass">
                     CG Pass
                   </th>
-                  <th style={{ width: "calc((100% - 40px) / 8)", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }} title="Zawil Pass">
+                  <th style={{ width: "calc((100% - 40px) / 10)", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }} title="Zawil Pass">
                     Zawil Pass
                   </th>
-                  <th style={{ width: "calc((100% - 40px) / 8)", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }} title="Hotel">
+                  <th style={{ width: "calc((100% - 40px) / 10)", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }} title="Hotel">
                     Hotel
                   </th>
-                  <th style={{ width: "calc((100% - 40px) / 8)", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }} title="Medical Service">
+                  <th style={{ width: "calc((100% - 40px) / 10)", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }} title="Medical Service">
                     Medical Service
                   </th>
                   {/* <th>Actions</th> */}
@@ -801,7 +847,7 @@ const CrewContent = ({ formValues, handleChange, cardColor, onNavigateToTab, lau
               <tbody>
                 {displayCrewList.length === 0 ? (
                   <tr>
-                    <td colSpan="9" style={{ textAlign: "center", padding: "40px", color: "#999" }}>
+                    <td colSpan="11" style={{ textAlign: "center", padding: "40px", color: "#999" }}>
                       No crew data found. Please upload a valid Excel file.
                     </td>
                   </tr>
@@ -836,6 +882,94 @@ const CrewContent = ({ formValues, handleChange, cardColor, onNavigateToTab, lau
                       </td>
                       <td style={{ overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
                         <div className="crew-table-cell" title={crew.rank || ""}>{crew.rank || ""}</div>
+                      </td>
+                      <td>
+                        <div className="crew-table-cell" style={{ display: "flex", alignItems: "center", gap: "8px", justifyContent: "center" }}>
+                          <input
+                            type="file"
+                            ref={(el) => {
+                              if (el) passportFileInputRefs.current[crew.id] = el;
+                            }}
+                            style={{ display: "none" }}
+                            accept="*/*"
+                            onChange={(e) => {
+                              const file = e.target.files?.[0];
+                              if (file) {
+                                handlePassportUpload(crew.id, file);
+                              }
+                            }}
+                          />
+                          <button
+                            type="button"
+                            onClick={() => passportFileInputRefs.current[crew.id]?.click()}
+                            style={{
+                              background: "transparent",
+                              border: "none",
+                              cursor: "pointer",
+                              padding: "4px",
+                              display: "flex",
+                              alignItems: "center",
+                              color: passportDocuments[crew.id] ? "#28a745" : "#dc3545",
+                              transition: "all 0.2s ease"
+                            }}
+                            title={passportDocuments[crew.id] ? `Uploaded: ${passportDocuments[crew.id].fileName}` : "Upload Passport Document"}
+                            onMouseEnter={(e) => {
+                              e.currentTarget.style.transform = "scale(1.1)";
+                            }}
+                            onMouseLeave={(e) => {
+                              e.currentTarget.style.transform = "scale(1)";
+                            }}
+                          >
+                            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                              <path d="M12 15V3M12 3L8 7M12 3L16 7" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+                              <path d="M2 17L2 18C2 19.1046 2.89543 20 4 20L20 20C21.1046 20 22 19.1046 22 18L22 17" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+                            </svg>
+                          </button>
+                        </div>
+                      </td>
+                      <td>
+                        <div className="crew-table-cell" style={{ display: "flex", alignItems: "center", gap: "8px", justifyContent: "center" }}>
+                          <input
+                            type="file"
+                            ref={(el) => {
+                              if (el) visaFileInputRefs.current[crew.id] = el;
+                            }}
+                            style={{ display: "none" }}
+                            accept="*/*"
+                            onChange={(e) => {
+                              const file = e.target.files?.[0];
+                              if (file) {
+                                handleVisaUpload(crew.id, file);
+                              }
+                            }}
+                          />
+                          <button
+                            type="button"
+                            onClick={() => visaFileInputRefs.current[crew.id]?.click()}
+                            style={{
+                              background: "transparent",
+                              border: "none",
+                              cursor: "pointer",
+                              padding: "4px",
+                              display: "flex",
+                              alignItems: "center",
+                              color: visaDocuments[crew.id] ? "#28a745" : "#dc3545",
+                              transition: "all 0.2s ease"
+                            }}
+                            title={visaDocuments[crew.id] ? `Uploaded: ${visaDocuments[crew.id].fileName}` : "Upload Visa Document"}
+                            onMouseEnter={(e) => {
+                              e.currentTarget.style.transform = "scale(1.1)";
+                            }}
+                            onMouseLeave={(e) => {
+                              e.currentTarget.style.transform = "scale(1)";
+                            }}
+                          >
+                            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                              <path d="M12 15V3M12 3L8 7M12 3L16 7" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+                              <path d="M2 17L2 18C2 19.1046 2.89543 20 4 20L20 20C21.1046 20 22 19.1046 22 18L22 17" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+                            </svg>
+                          </button>
+                        </div>
                       </td>
                       <td style={{ overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
                         <div className="crew-table-cell crew-status-icon">
