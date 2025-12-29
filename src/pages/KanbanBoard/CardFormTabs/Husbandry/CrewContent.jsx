@@ -2,6 +2,7 @@ import { useEffect, useState, useRef } from "react";
 import PropTypes from "prop-types";
 import * as XLSX from "xlsx";
 import { YesIcon, NoIcon } from "./Husbandry.components";
+import CustomModal from "../../../../components/CustomModal";
 import "../../../../design/scss/operations.scss";
 
 // Generate crew data from Excel file
@@ -60,6 +61,16 @@ const CrewContent = ({ formValues, handleChange, cardColor, onNavigateToTab, lau
   const [isDragging, setIsDragging] = useState(false);
   const [uploadedFileName, setUploadedFileName] = useState(formValues.crewUploadedFileName || "");
   const fileInputRef = useRef(null);
+
+  // Bulk Passport and Visa modal states
+  const [showPassportModal, setShowPassportModal] = useState(false);
+  const [showVisaModal, setShowVisaModal] = useState(false);
+  const [isDraggingPassport, setIsDraggingPassport] = useState(false);
+  const [isDraggingVisa, setIsDraggingVisa] = useState(false);
+  const [passportFiles, setPassportFiles] = useState(formValues.crewPassportFiles || []);
+  const [visaFiles, setVisaFiles] = useState(formValues.crewVisaFiles || []);
+  const passportFileInputRef = useRef(null);
+  const visaFileInputRef = useRef(null);
 
   const displayCrewList = crewList.length > 0 ? crewList : [];
 
@@ -223,6 +234,104 @@ const CrewContent = ({ formValues, handleChange, cardColor, onNavigateToTab, lau
 
   // Determine what to show based on upload progress
   const showCrewList = isFileUploaded;
+
+  // Handle passport bulk upload
+  const handlePassportBulkUpload = (files) => {
+    if (!files || files.length === 0) return;
+    const fileArray = Array.from(files);
+    setPassportFiles(fileArray);
+    // Save passport files to formValues
+    const syntheticEvent = { target: { value: fileArray.map(f => ({ name: f.name, file: f, size: f.size, type: f.type })) } };
+    handleChange("crewPassportFiles")(syntheticEvent);
+  };
+
+  // Handle visa bulk upload
+  const handleVisaBulkUpload = (files) => {
+    if (!files || files.length === 0) return;
+    const fileArray = Array.from(files);
+    setVisaFiles(fileArray);
+    // Save visa files to formValues
+    const syntheticEvent = { target: { value: fileArray.map(f => ({ name: f.name, file: f, size: f.size, type: f.type })) } };
+    handleChange("crewVisaFiles")(syntheticEvent);
+  };
+
+  // Handle passport drag and drop
+  const handlePassportDragEnter = (e) => {
+    e.preventDefault();
+    e.stopPropagation();
+    setIsDraggingPassport(true);
+  };
+
+  const handlePassportDragLeave = (e) => {
+    e.preventDefault();
+    e.stopPropagation();
+    setIsDraggingPassport(false);
+  };
+
+  const handlePassportDragOver = (e) => {
+    e.preventDefault();
+    e.stopPropagation();
+  };
+
+  const handlePassportDrop = (e) => {
+    e.preventDefault();
+    e.stopPropagation();
+    setIsDraggingPassport(false);
+    const files = e.dataTransfer.files;
+    if (files && files.length > 0) {
+      handlePassportBulkUpload(files);
+    }
+  };
+
+  // Handle visa drag and drop
+  const handleVisaDragEnter = (e) => {
+    e.preventDefault();
+    e.stopPropagation();
+    setIsDraggingVisa(true);
+  };
+
+  const handleVisaDragLeave = (e) => {
+    e.preventDefault();
+    e.stopPropagation();
+    setIsDraggingVisa(false);
+  };
+
+  const handleVisaDragOver = (e) => {
+    e.preventDefault();
+    e.stopPropagation();
+  };
+
+  const handleVisaDrop = (e) => {
+    e.preventDefault();
+    e.stopPropagation();
+    setIsDraggingVisa(false);
+    const files = e.dataTransfer.files;
+    if (files && files.length > 0) {
+      handleVisaBulkUpload(files);
+    }
+  };
+
+  // Handle passport file input change
+  const handlePassportFileInputChange = (e) => {
+    const files = e.target.files;
+    if (files && files.length > 0) {
+      handlePassportBulkUpload(files);
+    }
+    if (passportFileInputRef.current) {
+      passportFileInputRef.current.value = "";
+    }
+  };
+
+  // Handle visa file input change
+  const handleVisaFileInputChange = (e) => {
+    const files = e.target.files;
+    if (files && files.length > 0) {
+      handleVisaBulkUpload(files);
+    }
+    if (visaFileInputRef.current) {
+      visaFileInputRef.current.value = "";
+    }
+  };
 
   // Shared upload icon component
   const UploadIconSVG = () => (
@@ -569,6 +678,80 @@ const CrewContent = ({ formValues, handleChange, cardColor, onNavigateToTab, lau
               >
                 {selectedCrewIds.length === displayCrewList.length ? "Deselect All" : "Select All"}
               </button>
+              <button
+                type="button"
+                onClick={() => setShowPassportModal(true)}
+                style={{
+                  padding: "8px 16px",
+                  borderRadius: "8px",
+                  border: "1px solid #e2e6ff",
+                  backgroundColor: "#ffffff",
+                  color: "#1a1a1a",
+                  fontSize: "13px",
+                  fontWeight: "600",
+                  cursor: "pointer",
+                  transition: "all 0.2s ease",
+                  fontFamily: "Inter, sans-serif",
+                  display: "flex",
+                  alignItems: "center",
+                  gap: "8px"
+                }}
+                onMouseEnter={(e) => {
+                  e.currentTarget.style.backgroundColor = "#f8f9ff";
+                  e.currentTarget.style.borderColor = "var(--card-color, #2A00FF)";
+                  e.currentTarget.style.transform = "translateY(-1px)";
+                  e.currentTarget.style.boxShadow = "0 2px 8px rgba(0, 0, 0, 0.1)";
+                }}
+                onMouseLeave={(e) => {
+                  e.currentTarget.style.backgroundColor = "#ffffff";
+                  e.currentTarget.style.borderColor = "#e2e6ff";
+                  e.currentTarget.style.transform = "translateY(0)";
+                  e.currentTarget.style.boxShadow = "none";
+                }}
+              >
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                  <path d="M14 2H6C5.46957 2 4.96086 2.21071 4.58579 2.58579C4.21071 2.96086 4 3.46957 4 4V20C4 20.5304 4.21071 21.0391 4.58579 21.4142C4.96086 21.7893 5.46957 22 6 22H18C18.5304 22 19.0391 21.7893 19.4142 21.4142C19.7893 21.0391 20 20.5304 20 20V8L14 2Z" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+                  <path d="M14 2V8H20" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+                </svg>
+                Bulk Passport
+              </button>
+              <button
+                type="button"
+                onClick={() => setShowVisaModal(true)}
+                style={{
+                  padding: "8px 16px",
+                  borderRadius: "8px",
+                  border: "1px solid #e2e6ff",
+                  backgroundColor: "#ffffff",
+                  color: "#1a1a1a",
+                  fontSize: "13px",
+                  fontWeight: "600",
+                  cursor: "pointer",
+                  transition: "all 0.2s ease",
+                  fontFamily: "Inter, sans-serif",
+                  display: "flex",
+                  alignItems: "center",
+                  gap: "8px"
+                }}
+                onMouseEnter={(e) => {
+                  e.currentTarget.style.backgroundColor = "#f8f9ff";
+                  e.currentTarget.style.borderColor = "var(--card-color, #2A00FF)";
+                  e.currentTarget.style.transform = "translateY(-1px)";
+                  e.currentTarget.style.boxShadow = "0 2px 8px rgba(0, 0, 0, 0.1)";
+                }}
+                onMouseLeave={(e) => {
+                  e.currentTarget.style.backgroundColor = "#ffffff";
+                  e.currentTarget.style.borderColor = "#e2e6ff";
+                  e.currentTarget.style.transform = "translateY(0)";
+                  e.currentTarget.style.boxShadow = "none";
+                }}
+              >
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                  <path d="M14 2H6C5.46957 2 4.96086 2.21071 4.58579 2.58579C4.21071 2.96086 4 3.46957 4 4V20C4 20.5304 4.21071 21.0391 4.58579 21.4142C4.96086 21.7893 5.46957 22 6 22H18C18.5304 22 19.0391 21.7893 19.4142 21.4142C19.7893 21.0391 20 20.5304 20 20V8L14 2Z" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+                  <path d="M14 2V8H20" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+                </svg>
+                Bulk Visa
+              </button>
             </div>
           </div>
           <div className="table-wrapper table-responsive crew-table-container">
@@ -697,7 +880,319 @@ const CrewContent = ({ formValues, handleChange, cardColor, onNavigateToTab, lau
           </div>
         </>
       )}
-    </ >
+
+      {/* Bulk Passport Upload Modal */}
+      <CustomModal
+        show={showPassportModal}
+        closeModal={() => setShowPassportModal(false)}
+        createModal
+        className="modal fade"
+        dialgName="modal-dialog modal-dialog-centered"
+        header={
+          <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", width: "100%", padding: "16px 24px", borderBottom: "1px solid #e2e2ea" }}>
+            <h5 style={{ margin: 0, fontSize: "18px", fontWeight: "600", color: "#1a1a1a", fontFamily: "Inter, sans-serif" }}>
+              Bulk Passport Upload
+            </h5>
+            <button
+              onClick={() => setShowPassportModal(false)}
+              style={{
+                background: "none",
+                border: "none",
+                fontSize: "24px",
+                color: "#999",
+                cursor: "pointer",
+                padding: "0",
+                width: "32px",
+                height: "32px",
+                display: "flex",
+                alignItems: "center",
+                justifyContent: "center",
+                borderRadius: "4px",
+                transition: "all 0.2s ease"
+              }}
+              onMouseEnter={(e) => {
+                e.currentTarget.style.backgroundColor = "#f5f5f5";
+                e.currentTarget.style.color = "#333";
+              }}
+              onMouseLeave={(e) => {
+                e.currentTarget.style.backgroundColor = "transparent";
+                e.currentTarget.style.color = "#999";
+              }}
+            >
+              ×
+            </button>
+          </div>
+        }
+        body={
+          <div style={{ padding: "32px", "--card-color": cardColor }}>
+            <div
+              className={`document-upload-zone crew-excel-upload-zone ${isDraggingPassport ? "dragging" : ""} ${passportFiles.length > 0 ? "uploaded" : ""}`}
+              onDragEnter={handlePassportDragEnter}
+              onDragOver={handlePassportDragOver}
+              onDragLeave={handlePassportDragLeave}
+              onDrop={handlePassportDrop}
+              onClick={() => passportFileInputRef.current?.click()}
+              style={{
+                "--card-color": cardColor,
+                maxWidth: "600px",
+                width: "100%",
+                height: "240px",
+                margin: "0 auto"
+              }}
+            >
+              <input
+                ref={passportFileInputRef}
+                type="file"
+                className="file-input-hidden"
+                accept="*/*"
+                multiple
+                onChange={handlePassportFileInputChange}
+              />
+              <div className="upload-zone-content">
+                {passportFiles.length > 0 ? (
+                  <div style={{
+                    display: "flex",
+                    flexDirection: "column",
+                    alignItems: "center",
+                    gap: "16px"
+                  }}>
+                    <div style={{
+                      width: "64px",
+                      height: "64px",
+                      borderRadius: "50%",
+                      background: "linear-gradient(135deg, #28a745 0%, #20c997 100%)",
+                      display: "flex",
+                      alignItems: "center",
+                      justifyContent: "center",
+                      boxShadow: "0 4px 12px rgba(40, 167, 69, 0.3)"
+                    }}>
+                      <svg width="32" height="32" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                        <path d="M20 6L9 17L4 12" stroke="white" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" />
+                      </svg>
+                    </div>
+                    <div style={{ textAlign: "center" }}>
+                      <p style={{
+                        fontSize: "16px",
+                        fontWeight: "600",
+                        color: "#28a745",
+                        margin: "0 0 8px 0",
+                        fontFamily: "Inter, sans-serif"
+                      }}>
+                        ✓ {passportFiles.length} file(s) uploaded successfully
+                      </p>
+                      <p style={{
+                        fontSize: "12px",
+                        color: "#999",
+                        margin: "0",
+                        fontFamily: "Inter, sans-serif"
+                      }}>
+                        Click to upload different files
+                      </p>
+                    </div>
+                  </div>
+                ) : (
+                  <>
+                    <div className="upload-icon-wrapper">
+                      <UploadIconSVG />
+                    </div>
+                    <div className="upload-text-content">
+                      <p className="upload-main-text">
+                        Drag and drop your passport files here, or{" "}
+                        <span className="upload-link">click to browse</span>
+                      </p>
+                      <p className="upload-sub-text">Supports all file formats</p>
+                    </div>
+                  </>
+                )}
+              </div>
+            </div>
+          </div>
+        }
+        footer={
+          <div style={{ padding: "16px 24px", borderTop: "1px solid #e2e2ea", display: "flex", justifyContent: "flex-end", gap: "12px" }}>
+            <button
+              onClick={() => setShowPassportModal(false)}
+              style={{
+                padding: "10px 24px",
+                borderRadius: "8px",
+                border: "1px solid #e2e2ea",
+                backgroundColor: "#ffffff",
+                color: "#1a1a1a",
+                fontSize: "14px",
+                fontWeight: "600",
+                cursor: "pointer",
+                transition: "all 0.2s ease",
+                fontFamily: "Inter, sans-serif"
+              }}
+              onMouseEnter={(e) => {
+                e.currentTarget.style.backgroundColor = "#f5f5f5";
+              }}
+              onMouseLeave={(e) => {
+                e.currentTarget.style.backgroundColor = "#ffffff";
+              }}
+            >
+              Close
+            </button>
+          </div>
+        }
+      />
+
+      {/* Bulk Visa Upload Modal */}
+      <CustomModal
+        show={showVisaModal}
+        closeModal={() => setShowVisaModal(false)}
+        createModal
+        className="modal fade"
+        dialgName="modal-dialog modal-dialog-centered"
+        header={
+          <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", width: "100%", padding: "16px 24px", borderBottom: "1px solid #e2e2ea" }}>
+            <h5 style={{ margin: 0, fontSize: "18px", fontWeight: "600", color: "#1a1a1a", fontFamily: "Inter, sans-serif" }}>
+              Bulk Visa Upload
+            </h5>
+            <button
+              onClick={() => setShowVisaModal(false)}
+              style={{
+                background: "none",
+                border: "none",
+                fontSize: "24px",
+                color: "#999",
+                cursor: "pointer",
+                padding: "0",
+                width: "32px",
+                height: "32px",
+                display: "flex",
+                alignItems: "center",
+                justifyContent: "center",
+                borderRadius: "4px",
+                transition: "all 0.2s ease"
+              }}
+              onMouseEnter={(e) => {
+                e.currentTarget.style.backgroundColor = "#f5f5f5";
+                e.currentTarget.style.color = "#333";
+              }}
+              onMouseLeave={(e) => {
+                e.currentTarget.style.backgroundColor = "transparent";
+                e.currentTarget.style.color = "#999";
+              }}
+            >
+              ×
+            </button>
+          </div>
+        }
+        body={
+          <div style={{ padding: "32px", "--card-color": cardColor }}>
+            <div
+              className={`document-upload-zone crew-excel-upload-zone ${isDraggingVisa ? "dragging" : ""} ${visaFiles.length > 0 ? "uploaded" : ""}`}
+              onDragEnter={handleVisaDragEnter}
+              onDragOver={handleVisaDragOver}
+              onDragLeave={handleVisaDragLeave}
+              onDrop={handleVisaDrop}
+              onClick={() => visaFileInputRef.current?.click()}
+              style={{
+                "--card-color": cardColor,
+                maxWidth: "600px",
+                width: "100%",
+                height: "240px",
+                margin: "0 auto"
+              }}
+            >
+              <input
+                ref={visaFileInputRef}
+                type="file"
+                className="file-input-hidden"
+                accept="*/*"
+                multiple
+                onChange={handleVisaFileInputChange}
+              />
+              <div className="upload-zone-content">
+                {visaFiles.length > 0 ? (
+                  <div style={{
+                    display: "flex",
+                    flexDirection: "column",
+                    alignItems: "center",
+                    gap: "16px"
+                  }}>
+                    <div style={{
+                      width: "64px",
+                      height: "64px",
+                      borderRadius: "50%",
+                      background: "linear-gradient(135deg, #28a745 0%, #20c997 100%)",
+                      display: "flex",
+                      alignItems: "center",
+                      justifyContent: "center",
+                      boxShadow: "0 4px 12px rgba(40, 167, 69, 0.3)"
+                    }}>
+                      <svg width="32" height="32" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                        <path d="M20 6L9 17L4 12" stroke="white" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" />
+                      </svg>
+                    </div>
+                    <div style={{ textAlign: "center" }}>
+                      <p style={{
+                        fontSize: "16px",
+                        fontWeight: "600",
+                        color: "#28a745",
+                        margin: "0 0 8px 0",
+                        fontFamily: "Inter, sans-serif"
+                      }}>
+                        ✓ {visaFiles.length} file(s) uploaded successfully
+                      </p>
+                      <p style={{
+                        fontSize: "12px",
+                        color: "#999",
+                        margin: "0",
+                        fontFamily: "Inter, sans-serif"
+                      }}>
+                        Click to upload different files
+                      </p>
+                    </div>
+                  </div>
+                ) : (
+                  <>
+                    <div className="upload-icon-wrapper">
+                      <UploadIconSVG />
+                    </div>
+                    <div className="upload-text-content">
+                      <p className="upload-main-text">
+                        Drag and drop your visa files here, or{" "}
+                        <span className="upload-link">click to browse</span>
+                      </p>
+                      <p className="upload-sub-text">Supports all file formats</p>
+                    </div>
+                  </>
+                )}
+              </div>
+            </div>
+          </div>
+        }
+        footer={
+          <div style={{ padding: "16px 24px", borderTop: "1px solid #e2e2ea", display: "flex", justifyContent: "flex-end", gap: "12px" }}>
+            <button
+              onClick={() => setShowVisaModal(false)}
+              style={{
+                padding: "10px 24px",
+                borderRadius: "8px",
+                border: "1px solid #e2e2ea",
+                backgroundColor: "#ffffff",
+                color: "#1a1a1a",
+                fontSize: "14px",
+                fontWeight: "600",
+                cursor: "pointer",
+                transition: "all 0.2s ease",
+                fontFamily: "Inter, sans-serif"
+              }}
+              onMouseEnter={(e) => {
+                e.currentTarget.style.backgroundColor = "#f5f5f5";
+              }}
+              onMouseLeave={(e) => {
+                e.currentTarget.style.backgroundColor = "#ffffff";
+              }}
+            >
+              Close
+            </button>
+          </div>
+        }
+      />
+    </>
   );
 };
 
