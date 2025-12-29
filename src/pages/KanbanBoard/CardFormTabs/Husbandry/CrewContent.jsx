@@ -7,10 +7,18 @@ import "../../../../design/scss/operations.scss";
 
 // Status colors
 const STATUS_COLORS = {
-  done: "#28a745", // Green
-  inProgress: "#ffc107", // Yellow
-  rejected: "#dc3545", // Red
+  done: "#28a745", // Green - Completed
+  inProgress: "#ffc107", // Yellow - In Progress
+  rejected: "#dc3545", // Red - Rejected
   pending: "#6c757d" // Gray (default)
+};
+
+// Status labels
+const STATUS_LABELS = {
+  done: "DONE",
+  inProgress: "IN PROGRESS",
+  rejected: "REJECTED",
+  pending: "PENDING"
 };
 
 // Icon components for column headers
@@ -127,14 +135,14 @@ const generateCrewFromExcel = (excelData) => {
         nationality: nationalityIndex !== -1 ? row[nationalityIndex] || "N/A" : "N/A",
         rank: rankIndex !== -1 ? row[rankIndex] || "N/A" : "N/A",
         passportNo: passportIndex !== -1 ? row[passportIndex] || `P${String(1000000 + index).padStart(7, '0')}` : `P${String(1000000 + index).padStart(7, '0')}`,
-        transport: "pending", // "done", "inProgress", "rejected", "pending"
-        cgPass: "pending",
-        zawilPass: "pending",
-        hotel: "pending",
-        launchHire: "pending",
-        medicalService: "pending",
-        visa: "pending",
-        passport: "pending",
+        transport: ["done", "inProgress", "rejected"][Math.floor(Math.random() * 3)],
+        cgPass: ["done", "inProgress", "rejected"][Math.floor(Math.random() * 3)],
+        zawilPass: ["done", "inProgress", "rejected"][Math.floor(Math.random() * 3)],
+        hotel: ["done", "inProgress", "rejected"][Math.floor(Math.random() * 3)],
+        launchHire: ["done", "inProgress", "rejected"][Math.floor(Math.random() * 3)],
+        medicalService: ["done", "inProgress", "rejected"][Math.floor(Math.random() * 3)],
+        visa: ["done", "inProgress", "rejected"][Math.floor(Math.random() * 3)],
+        passport: ["done", "inProgress", "rejected"][Math.floor(Math.random() * 3)],
       };
     });
 
@@ -690,18 +698,100 @@ const CrewContent = ({ formValues, handleChange, cardColor, onNavigateToTab, lau
                 fontFamily: "Inter, sans-serif",
                 display: "flex",
                 alignItems: "center",
-                gap: "12px"
-              }}>
+                gap: "12px",
+                whiteSpace: "nowrap",
+                overflow: "hidden",
+                textOverflow: "ellipsis"
+              }} title="CREW LIST">
                 <span className="crew-list-title-bar" style={{
                   width: "4px",
                   height: "24px",
                   backgroundColor: "var(--card-color, #2A00FF)",
                   borderRadius: "2px",
-                  display: "inline-block"
+                  display: "inline-block",
+                  flexShrink: 0
                 }}></span>
                 CREW LIST
               </h3>
-              {uploadedFileName && (
+              {/* Status Legend */}
+              <div style={{
+                display: "flex",
+                alignItems: "center",
+                gap: "20px",
+                marginLeft: "20px",
+                padding: "8px 16px",
+                backgroundColor: "#f8f9ff",
+                borderRadius: "8px",
+                border: "1px solid #e2e6ff"
+              }}>
+                <div style={{ display: "flex", alignItems: "center", gap: "6px" }}>
+                  <div style={{
+                    width: "12px",
+                    height: "12px",
+                    borderRadius: "50%",
+                    backgroundColor: STATUS_COLORS.done,
+                    flexShrink: 0
+                  }}></div>
+                  <span
+                    style={{
+                      fontSize: "12px",
+                      fontWeight: "600",
+                      color: "#1a1a1a",
+                      whiteSpace: "nowrap",
+                      overflow: "hidden",
+                      textOverflow: "ellipsis"
+                    }}
+                    title={STATUS_LABELS.done}
+                  >
+                    {STATUS_LABELS.done}
+                  </span>
+                </div>
+                <div style={{ display: "flex", alignItems: "center", gap: "6px" }}>
+                  <div style={{
+                    width: "12px",
+                    height: "12px",
+                    borderRadius: "50%",
+                    backgroundColor: STATUS_COLORS.inProgress,
+                    flexShrink: 0
+                  }}></div>
+                  <span
+                    style={{
+                      fontSize: "12px",
+                      fontWeight: "600",
+                      color: "#1a1a1a",
+                      whiteSpace: "nowrap",
+                      overflow: "hidden",
+                      textOverflow: "ellipsis"
+                    }}
+                    title={STATUS_LABELS.inProgress}
+                  >
+                    {STATUS_LABELS.inProgress}
+                  </span>
+                </div>
+                <div style={{ display: "flex", alignItems: "center", gap: "6px" }}>
+                  <div style={{
+                    width: "12px",
+                    height: "12px",
+                    borderRadius: "50%",
+                    backgroundColor: STATUS_COLORS.rejected,
+                    flexShrink: 0
+                  }}></div>
+                  <span
+                    style={{
+                      fontSize: "12px",
+                      fontWeight: "600",
+                      color: "#1a1a1a",
+                      whiteSpace: "nowrap",
+                      overflow: "hidden",
+                      textOverflow: "ellipsis"
+                    }}
+                    title={STATUS_LABELS.rejected}
+                  >
+                    {STATUS_LABELS.rejected}
+                  </span>
+                </div>
+              </div>
+              {/* {uploadedFileName && (
                 <div style={{
                   display: "flex",
                   alignItems: "center",
@@ -711,24 +801,24 @@ const CrewContent = ({ formValues, handleChange, cardColor, onNavigateToTab, lau
                   borderRadius: "8px",
                   border: "1px solid #e2e6ff"
                 }}>
-                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" style={{ flexShrink: 0 }}>
                     <path d="M14 2H6C5.46957 2 4.96086 2.21071 4.58579 2.58579C4.21071 2.96086 4 3.46957 4 4V20C4 20.5304 4.21071 21.0391 4.58579 21.4142C4.96086 21.7893 5.46957 22 6 22H18C18.5304 22 19.0391 21.7893 19.4142 21.4142C19.7893 21.0391 20 20.5304 20 20V8L14 2Z" stroke="#666" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
                     <path d="M14 2V8H20" stroke="#666" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
                   </svg>
-                  <span style={{
-                    fontSize: "13px",
-                    color: "#666",
-                    fontWeight: "500",
-                    fontFamily: "Inter, sans-serif",
-                    maxWidth: "300px",
-                    overflow: "hidden",
-                    textOverflow: "ellipsis",
-                    whiteSpace: "nowrap"
-                  }}>
-                    {uploadedFileName}
+                  <span
+                    style={{
+                      fontSize: "13px",
+                      color: "#666",
+                      fontWeight: "500",
+                      fontFamily: "Inter, sans-serif",
+                      whiteSpace: "nowrap"
+                    }}
+                    title={uploadedFileName}
+                  >
+                    {uploadedFileName.length > 6 ? `${uploadedFileName.substring(0, 6)}..` : uploadedFileName}
                   </span>
                 </div>
-              )}
+              )} */}
               <button
                 type="button"
                 onClick={() => {
@@ -755,8 +845,10 @@ const CrewContent = ({ formValues, handleChange, cardColor, onNavigateToTab, lau
                   fontFamily: "Inter, sans-serif",
                   display: "flex",
                   alignItems: "center",
-                  gap: "8px"
+                  gap: "8px",
+                  minWidth: 0
                 }}
+                title="Upload New File"
                 onMouseEnter={(e) => {
                   e.currentTarget.style.backgroundColor = "#f8f9ff";
                   e.currentTarget.style.borderColor = "var(--card-color, #2A00FF)";
@@ -770,11 +862,19 @@ const CrewContent = ({ formValues, handleChange, cardColor, onNavigateToTab, lau
                   e.currentTarget.style.boxShadow = "none";
                 }}
               >
-                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" style={{ flexShrink: 0 }}>
                   <path d="M12 15V3M12 3L8 7M12 3L16 7" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
                   <path d="M2 17L2 18C2 19.1046 2.89543 20 4 20L20 20C21.1046 20 22 19.1046 22 18L22 17" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
                 </svg>
-                Upload New File
+                <span
+                  style={{
+                    whiteSpace: "nowrap",
+                    overflow: "hidden",
+                    textOverflow: "ellipsis"
+                  }}
+                >
+                  Upload New File
+                </span>
               </button>
             </div>
             <div style={{ display: "flex", gap: "10px", alignItems: "center" }}>
@@ -794,8 +894,10 @@ const CrewContent = ({ formValues, handleChange, cardColor, onNavigateToTab, lau
                   fontFamily: "Inter, sans-serif",
                   display: "flex",
                   alignItems: "center",
-                  gap: "8px"
+                  gap: "8px",
+                  minWidth: 0
                 }}
+                title="Bulk Passport"
                 onMouseEnter={(e) => {
                   e.currentTarget.style.backgroundColor = "#f8f9ff";
                   e.currentTarget.style.borderColor = "var(--card-color, #2A00FF)";
@@ -809,11 +911,19 @@ const CrewContent = ({ formValues, handleChange, cardColor, onNavigateToTab, lau
                   e.currentTarget.style.boxShadow = "none";
                 }}
               >
-                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" style={{ flexShrink: 0 }}>
                   <path d="M14 2H6C5.46957 2 4.96086 2.21071 4.58579 2.58579C4.21071 2.96086 4 3.46957 4 4V20C4 20.5304 4.21071 21.0391 4.58579 21.4142C4.96086 21.7893 5.46957 22 6 22H18C18.5304 22 19.0391 21.7893 19.4142 21.4142C19.7893 21.0391 20 20.5304 20 20V8L14 2Z" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
                   <path d="M14 2V8H20" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
                 </svg>
-                Bulk Passport
+                <span
+                  style={{
+                    whiteSpace: "nowrap",
+                    overflow: "hidden",
+                    textOverflow: "ellipsis"
+                  }}
+                >
+                  Bulk Passport
+                </span>
               </button>
               <button
                 type="button"
@@ -831,8 +941,10 @@ const CrewContent = ({ formValues, handleChange, cardColor, onNavigateToTab, lau
                   fontFamily: "Inter, sans-serif",
                   display: "flex",
                   alignItems: "center",
-                  gap: "8px"
+                  gap: "8px",
+                  minWidth: 0
                 }}
+                title="Bulk Visa"
                 onMouseEnter={(e) => {
                   e.currentTarget.style.backgroundColor = "#f8f9ff";
                   e.currentTarget.style.borderColor = "var(--card-color, #2A00FF)";
@@ -846,11 +958,19 @@ const CrewContent = ({ formValues, handleChange, cardColor, onNavigateToTab, lau
                   e.currentTarget.style.boxShadow = "none";
                 }}
               >
-                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" style={{ flexShrink: 0 }}>
                   <path d="M14 2H6C5.46957 2 4.96086 2.21071 4.58579 2.58579C4.21071 2.96086 4 3.46957 4 4V20C4 20.5304 4.21071 21.0391 4.58579 21.4142C4.96086 21.7893 5.46957 22 6 22H18C18.5304 22 19.0391 21.7893 19.4142 21.4142C19.7893 21.0391 20 20.5304 20 20V8L14 2Z" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
                   <path d="M14 2V8H20" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
                 </svg>
-                Bulk Visa
+                <span
+                  style={{
+                    whiteSpace: "nowrap",
+                    overflow: "hidden",
+                    textOverflow: "ellipsis"
+                  }}
+                >
+                  Bulk Visa
+                </span>
               </button>
               {showActionDropdown && (
                 <div style={{ position: "relative", marginRight: "10px" }}>
@@ -899,8 +1019,10 @@ const CrewContent = ({ formValues, handleChange, cardColor, onNavigateToTab, lau
                   fontWeight: "600",
                   cursor: "pointer",
                   transition: "all 0.2s ease",
-                  fontFamily: "Inter, sans-serif"
+                  fontFamily: "Inter, sans-serif",
+                  minWidth: 0
                 }}
+                title={selectedCrewIds.length === displayCrewList.length ? "Deselect All" : "Select All"}
                 onMouseEnter={(e) => {
                   if (selectedCrewIds.length !== displayCrewList.length) {
                     e.currentTarget.style.backgroundColor = "#f8f9ff";
@@ -920,7 +1042,15 @@ const CrewContent = ({ formValues, handleChange, cardColor, onNavigateToTab, lau
                   e.currentTarget.style.boxShadow = "none";
                 }}
               >
-                {selectedCrewIds.length === displayCrewList.length ? "Deselect All" : "Select All"}
+                <span
+                  style={{
+                    whiteSpace: "nowrap",
+                    overflow: "hidden",
+                    textOverflow: "ellipsis"
+                  }}
+                >
+                  {selectedCrewIds.length === displayCrewList.length ? "Deselect All" : "Select All"}
+                </span>
               </button>
             </div>
           </div>
@@ -1076,9 +1206,6 @@ const CrewContent = ({ formValues, handleChange, cardColor, onNavigateToTab, lau
                                 <path d="M2 17L2 18C2 19.1046 2.89543 20 4 20L20 20C21.1046 20 22 19.1046 22 18L22 17" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
                               </svg>
                             </button>
-                            {crew.passport && (
-                              <StatusIcon status={crew.passport} IconComponent={PassportIcon} size={14} />
-                            )}
                           </div>
                         </div>
                       </td>
@@ -1125,9 +1252,6 @@ const CrewContent = ({ formValues, handleChange, cardColor, onNavigateToTab, lau
                                 <path d="M2 17L2 18C2 19.1046 2.89543 20 4 20L20 20C21.1046 20 22 19.1046 22 18L22 17" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
                               </svg>
                             </button>
-                            {crew.visa && (
-                              <StatusIcon status={crew.visa} IconComponent={VisaIcon} size={14} />
-                            )}
                           </div>
                         </div>
                       </td>
@@ -1174,9 +1298,6 @@ const CrewContent = ({ formValues, handleChange, cardColor, onNavigateToTab, lau
                                 <path d="M2 17L2 18C2 19.1046 2.89543 20 4 20L20 20C21.1046 20 22 19.1046 22 18L22 17" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
                               </svg>
                             </button>
-                            {crew.cgPass && (
-                              <StatusIcon status={crew.cgPass} IconComponent={CGPassIcon} size={14} />
-                            )}
                           </div>
                         </div>
                       </td>
@@ -1223,9 +1344,6 @@ const CrewContent = ({ formValues, handleChange, cardColor, onNavigateToTab, lau
                                 <path d="M2 17L2 18C2 19.1046 2.89543 20 4 20L20 20C21.1046 20 22 19.1046 22 18L22 17" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
                               </svg>
                             </button>
-                            {crew.zawilPass && (
-                              <StatusIcon status={crew.zawilPass} IconComponent={ZawilPassIcon} size={14} />
-                            )}
                           </div>
                         </div>
                       </td>
