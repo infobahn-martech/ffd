@@ -51,6 +51,15 @@ const PassportIcon = ({ size = 20, color = "#666" }) => (
   </svg>
 );
 
+const IqamaIcon = ({ size = 20, color = "#666" }) => (
+  <svg width={size} height={size} viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" style={{ color }}>
+    <rect x="4" y="3" width="16" height="18" rx="2" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" fill="none" />
+    <path d="M8 8H16M8 12H16M8 16H12" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+    <circle cx="6" cy="6" r="1" fill="currentColor" />
+    <circle cx="18" cy="6" r="1" fill="currentColor" />
+  </svg>
+);
+
 const VisaIcon = ({ size = 20, color = "#666" }) => (
   <svg width={size} height={size} viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" style={{ color }}>
     <rect x="3" y="4" width="18" height="16" rx="2" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" fill="none" />
@@ -143,6 +152,7 @@ const generateCrewFromExcel = (excelData) => {
         medicalService: ["done", "inProgress", "rejected"][Math.floor(Math.random() * 3)],
         visa: ["done", "inProgress", "rejected"][Math.floor(Math.random() * 3)],
         passport: ["done", "inProgress", "rejected"][Math.floor(Math.random() * 3)],
+        iqama: ["done", "inProgress", "rejected"][Math.floor(Math.random() * 3)],
       };
     });
 
@@ -174,10 +184,12 @@ const CrewContent = ({ formValues, handleChange, cardColor, onNavigateToTab, lau
 
   // Individual passport and visa documents per crew member
   const [passportDocuments, setPassportDocuments] = useState(formValues.crewPassportDocuments || {});
+  const [iqamaDocuments, setIqamaDocuments] = useState(formValues.crewIqamaDocuments || {});
   const [visaDocuments, setVisaDocuments] = useState(formValues.crewVisaDocuments || {});
   const [cgPassDocuments, setCgPassDocuments] = useState(formValues.crewCgPassDocuments || {});
   const [zawilPassDocuments, setZawilPassDocuments] = useState(formValues.crewZawilPassDocuments || {});
   const passportFileInputRefs = useRef({});
+  const iqamaFileInputRefs = useRef({});
   const visaFileInputRefs = useRef({});
   const cgPassFileInputRefs = useRef({});
   const zawilPassFileInputRefs = useRef({});
@@ -1071,52 +1083,57 @@ const CrewContent = ({ formValues, handleChange, cardColor, onNavigateToTab, lau
                       }}
                     />
                   </th>
-                  <th style={{ width: "calc((100% - 40px) / 10)", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }} title="Crew Name">
+                  <th style={{ width: "calc((100% - 40px) / 11)", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }} title="Crew Name">
                     <div style={{ display: "flex", justifyContent: "center", alignItems: "center" }}>
                       <CrewNameIcon size={20} />
                     </div>
                   </th>
-                  <th style={{ width: "calc((100% - 40px) / 10)", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }} title="Nationality">
+                  <th style={{ width: "calc((100% - 40px) / 11)", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }} title="Nationality">
                     <div style={{ display: "flex", justifyContent: "center", alignItems: "center" }}>
                       <NationalityIcon size={20} />
                     </div>
                   </th>
-                  <th style={{ width: "calc((100% - 40px) / 10)", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }} title="Rank">
+                  <th style={{ width: "calc((100% - 40px) / 11)", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }} title="Rank">
                     <div style={{ display: "flex", justifyContent: "center", alignItems: "center" }}>
                       <RankIcon size={20} />
                     </div>
                   </th>
-                  <th style={{ width: "calc((100% - 40px) / 10)", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }} title="Passport">
+                  <th style={{ width: "calc((100% - 40px) / 11)", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }} title="Passport">
                     <div style={{ display: "flex", justifyContent: "center", alignItems: "center" }}>
                       <PassportIcon size={20} />
                     </div>
                   </th>
-                  <th style={{ width: "calc((100% - 40px) / 10)", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }} title="Visa">
+                  <th style={{ width: "calc((100% - 40px) / 11)", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }} title="Iqama">
+                    <div style={{ display: "flex", justifyContent: "center", alignItems: "center" }}>
+                      <IqamaIcon size={20} />
+                    </div>
+                  </th>
+                  <th style={{ width: "calc((100% - 40px) / 11)", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }} title="Visa">
                     <div style={{ display: "flex", justifyContent: "center", alignItems: "center" }}>
                       <VisaIcon size={20} />
                     </div>
                   </th>
-                  <th style={{ width: "calc((100% - 40px) / 10)", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }} title="CG Pass">
+                  <th style={{ width: "calc((100% - 40px) / 11)", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }} title="CG Pass">
                     <div style={{ display: "flex", justifyContent: "center", alignItems: "center" }}>
                       <CGPassIcon size={20} />
                     </div>
                   </th>
-                  <th style={{ width: "calc((100% - 40px) / 10)", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }} title="Zawil Pass">
+                  <th style={{ width: "calc((100% - 40px) / 11)", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }} title="Zawil Pass">
                     <div style={{ display: "flex", justifyContent: "center", alignItems: "center" }}>
                       <ZawilPassIcon size={20} />
                     </div>
                   </th>
-                  <th style={{ width: "calc((100% - 40px) / 10)", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }} title="Transport">
+                  <th style={{ width: "calc((100% - 40px) / 11)", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }} title="Transport">
                     <div style={{ display: "flex", justifyContent: "center", alignItems: "center" }}>
                       <CarIcon size={20} />
                     </div>
                   </th>
-                  <th style={{ width: "calc((100% - 40px) / 10)", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }} title="Hotel">
+                  <th style={{ width: "calc((100% - 40px) / 11)", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }} title="Hotel">
                     <div style={{ display: "flex", justifyContent: "center", alignItems: "center" }}>
                       <HotelIcon size={20} />
                     </div>
                   </th>
-                  <th style={{ width: "calc((100% - 40px) / 10)", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }} title="Medical Service">
+                  <th style={{ width: "calc((100% - 40px) / 11)", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }} title="Medical Service">
                     <div style={{ display: "flex", justifyContent: "center", alignItems: "center" }}>
                       <MedicalIcon size={20} />
                     </div>
@@ -1127,7 +1144,7 @@ const CrewContent = ({ formValues, handleChange, cardColor, onNavigateToTab, lau
               <tbody>
                 {displayCrewList.length === 0 ? (
                   <tr>
-                    <td colSpan="11" style={{ textAlign: "center", padding: "40px", color: "#999" }}>
+                    <td colSpan="12" style={{ textAlign: "center", padding: "40px", color: "#999" }}>
                       No crew data found. Please upload a valid Excel file.
                     </td>
                   </tr>
@@ -1194,6 +1211,52 @@ const CrewContent = ({ formValues, handleChange, cardColor, onNavigateToTab, lau
                                 transition: "all 0.2s ease"
                               }}
                               title={passportDocuments[crew.id] ? `Uploaded: ${passportDocuments[crew.id].fileName}` : "Upload Passport Document"}
+                              onMouseEnter={(e) => {
+                                e.currentTarget.style.transform = "scale(1.1)";
+                              }}
+                              onMouseLeave={(e) => {
+                                e.currentTarget.style.transform = "scale(1)";
+                              }}
+                            >
+                              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                                <path d="M12 15V3M12 3L8 7M12 3L16 7" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+                                <path d="M2 17L2 18C2 19.1046 2.89543 20 4 20L20 20C21.1046 20 22 19.1046 22 18L22 17" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+                              </svg>
+                            </button>
+                          </div>
+                        </div>
+                      </td>
+                      <td>
+                        <div className="crew-table-cell" style={{ display: "flex", alignItems: "center", gap: "8px", justifyContent: "center" }}>
+                          <input
+                            type="file"
+                            ref={(el) => {
+                              if (el) iqamaFileInputRefs.current[crew.id] = el;
+                            }}
+                            style={{ display: "none" }}
+                            accept="*/*"
+                            onChange={(e) => {
+                              const file = e.target.files?.[0];
+                              if (file) {
+                                handleIqamaUpload(crew.id, file);
+                              }
+                            }}
+                          />
+                          <div style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: "4px" }}>
+                            <button
+                              type="button"
+                              onClick={() => iqamaFileInputRefs.current[crew.id]?.click()}
+                              style={{
+                                background: "transparent",
+                                border: "none",
+                                cursor: "pointer",
+                                padding: "4px",
+                                display: "flex",
+                                alignItems: "center",
+                                color: iqamaDocuments[crew.id] ? STATUS_COLORS.done : STATUS_COLORS.rejected,
+                                transition: "all 0.2s ease"
+                              }}
+                              title={iqamaDocuments[crew.id] ? `Uploaded: ${iqamaDocuments[crew.id].fileName}` : "Upload Iqama Document"}
                               onMouseEnter={(e) => {
                                 e.currentTarget.style.transform = "scale(1.1)";
                               }}
