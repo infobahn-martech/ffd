@@ -75,7 +75,7 @@ function Column({ column, cards, setSelectedCard, isExpanded = false, isShrunk =
   }, [cards.length, column.id, onHeightChange, isExpanded, isShrunk]);
 
   return (
-    <div 
+    <div
       ref={columnRef}
       className={`column ${isExpanded ? 'column-expanded' : ''} ${isShrunk ? 'column-shrunk' : ''}`}
       onContextMenu={handleContextMenu}

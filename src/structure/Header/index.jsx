@@ -15,6 +15,7 @@ import useAuthReducer from '../../store/AuthReducer';
 import MyAccountsModal from './MyAccountsModal';
 import ChangePasswordModal from './ChangePasswordModal';
 import LogoutConfirmationModal from '../../components/LogoutConfirmationModal';
+import NotificationsModal from './NotificationsModal';
 
 function Header({ onMenuToggle, mobileMenuOpen: externalMobileMenuOpen }) {
   const { pathname } = useLocation();
@@ -25,6 +26,7 @@ function Header({ onMenuToggle, mobileMenuOpen: externalMobileMenuOpen }) {
   const [showMyAccountsModal, setShowMyAccountsModal] = useState(false);
   const [showChangePasswordModal, setShowChangePasswordModal] = useState(false);
   const [showLogoutModal, setShowLogoutModal] = useState(false);
+  const [showNotificationsModal, setShowNotificationsModal] = useState(false);
   const [imageError, setImageError] = useState(false);
   const dropdownRef = useRef(null);
   const isMobile = width <= 991;
@@ -40,9 +42,9 @@ function Header({ onMenuToggle, mobileMenuOpen: externalMobileMenuOpen }) {
 
   // Get user initial from profile or auth data, fallback to dummy
   const getUserInitial = () => {
-    const name = profileData?.name || profileData?.firstName || 
-                 authData?.name || authData?.firstName || 
-                 DUMMY_USER.name;
+    const name = profileData?.name || profileData?.firstName ||
+      authData?.name || authData?.firstName ||
+      DUMMY_USER.name;
     return name.charAt(0).toUpperCase();
   };
 
@@ -161,14 +163,14 @@ function Header({ onMenuToggle, mobileMenuOpen: externalMobileMenuOpen }) {
       {/* RIGHT — User + Icons */}
       <div className="right-section">
         <div className="user-circle-wrapper" ref={dropdownRef}>
-          <div 
-            className="user-circle" 
+          <div
+            className="user-circle"
             onClick={handleUserCircleClick}
           >
             {!imageError ? (
-              <img 
-                src={getUserAvatar()} 
-                alt="User" 
+              <img
+                src={getUserAvatar()}
+                alt="User"
                 style={{
                   width: '100%',
                   height: '100%',
@@ -215,7 +217,12 @@ function Header({ onMenuToggle, mobileMenuOpen: externalMobileMenuOpen }) {
         <button className="icon-btn icon-btn-hide-mobile" aria-label="Help" title="Help">
           <FiHelpCircle />
         </button>
-        <button className="icon-btn" aria-label="Notifications" title="Notifications">
+        <button
+          className="icon-btn"
+          aria-label="Notifications"
+          title="Notifications"
+          onClick={() => setShowNotificationsModal(true)}
+        >
           <FiBell />
         </button>
       </div>
@@ -238,6 +245,12 @@ function Header({ onMenuToggle, mobileMenuOpen: externalMobileMenuOpen }) {
         onCancel={() => setShowLogoutModal(false)}
         onConfirm={handleLogoutConfirm}
         logoutText="Are you sure you want to logout?"
+      />
+
+      {/* Notifications Modal */}
+      <NotificationsModal
+        show={showNotificationsModal}
+        onClose={() => setShowNotificationsModal(false)}
       />
 
     </div>
