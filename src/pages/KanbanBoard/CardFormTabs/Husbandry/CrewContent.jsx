@@ -75,8 +75,12 @@ const CrewContent = ({ formValues, handleChange, cardColor, onNavigateToTab, lau
   // Individual passport and visa documents per crew member
   const [passportDocuments, setPassportDocuments] = useState(formValues.crewPassportDocuments || {});
   const [visaDocuments, setVisaDocuments] = useState(formValues.crewVisaDocuments || {});
+  const [cgPassDocuments, setCgPassDocuments] = useState(formValues.crewCgPassDocuments || {});
+  const [zawilPassDocuments, setZawilPassDocuments] = useState(formValues.crewZawilPassDocuments || {});
   const passportFileInputRefs = useRef({});
   const visaFileInputRefs = useRef({});
+  const cgPassFileInputRefs = useRef({});
+  const zawilPassFileInputRefs = useRef({});
 
   const displayCrewList = crewList.length > 0 ? crewList : [];
 
@@ -371,6 +375,40 @@ const CrewContent = ({ formValues, handleChange, cardColor, onNavigateToTab, lau
     // Save to formValues
     const syntheticEvent = { target: { value: updatedDocuments } };
     handleChange("crewVisaDocuments")(syntheticEvent);
+  };
+
+  // Handle individual CG Pass document upload
+  const handleCgPassUpload = (crewId, file) => {
+    if (!file) return;
+    const updatedDocuments = {
+      ...cgPassDocuments,
+      [crewId]: {
+        file,
+        fileName: file.name,
+        uploadDate: new Date().toISOString(),
+      },
+    };
+    setCgPassDocuments(updatedDocuments);
+    // Save to formValues
+    const syntheticEvent = { target: { value: updatedDocuments } };
+    handleChange("crewCgPassDocuments")(syntheticEvent);
+  };
+
+  // Handle individual Zawil Pass document upload
+  const handleZawilPassUpload = (crewId, file) => {
+    if (!file) return;
+    const updatedDocuments = {
+      ...zawilPassDocuments,
+      [crewId]: {
+        file,
+        fileName: file.name,
+        uploadDate: new Date().toISOString(),
+      },
+    };
+    setZawilPassDocuments(updatedDocuments);
+    // Save to formValues
+    const syntheticEvent = { target: { value: updatedDocuments } };
+    handleChange("crewZawilPassDocuments")(syntheticEvent);
   };
 
   // Shared upload icon component
@@ -826,14 +864,14 @@ const CrewContent = ({ formValues, handleChange, cardColor, onNavigateToTab, lau
                   <th style={{ width: "calc((100% - 40px) / 10)", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }} title="Visa">
                     Visa
                   </th>
-                  <th style={{ width: "calc((100% - 40px) / 10)", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }} title="Transport">
-                    Transport
-                  </th>
                   <th style={{ width: "calc((100% - 40px) / 10)", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }} title="CG Pass">
                     CG Pass
                   </th>
                   <th style={{ width: "calc((100% - 40px) / 10)", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }} title="Zawil Pass">
                     Zawil Pass
+                  </th>
+                  <th style={{ width: "calc((100% - 40px) / 10)", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }} title="Transport">
+                    Transport
                   </th>
                   <th style={{ width: "calc((100% - 40px) / 10)", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }} title="Hotel">
                     Hotel
@@ -971,19 +1009,97 @@ const CrewContent = ({ formValues, handleChange, cardColor, onNavigateToTab, lau
                           </button>
                         </div>
                       </td>
+                      <td>
+                        <div className="crew-table-cell" style={{ display: "flex", alignItems: "center", gap: "8px", justifyContent: "center" }}>
+                          <input
+                            type="file"
+                            ref={(el) => {
+                              if (el) cgPassFileInputRefs.current[crew.id] = el;
+                            }}
+                            style={{ display: "none" }}
+                            accept="*/*"
+                            onChange={(e) => {
+                              const file = e.target.files?.[0];
+                              if (file) {
+                                handleCgPassUpload(crew.id, file);
+                              }
+                            }}
+                          />
+                          <button
+                            type="button"
+                            onClick={() => cgPassFileInputRefs.current[crew.id]?.click()}
+                            style={{
+                              background: "transparent",
+                              border: "none",
+                              cursor: "pointer",
+                              padding: "4px",
+                              display: "flex",
+                              alignItems: "center",
+                              color: cgPassDocuments[crew.id] ? "#28a745" : "#dc3545",
+                              transition: "all 0.2s ease"
+                            }}
+                            title={cgPassDocuments[crew.id] ? `Uploaded: ${cgPassDocuments[crew.id].fileName}` : "Upload CG Pass Document"}
+                            onMouseEnter={(e) => {
+                              e.currentTarget.style.transform = "scale(1.1)";
+                            }}
+                            onMouseLeave={(e) => {
+                              e.currentTarget.style.transform = "scale(1)";
+                            }}
+                          >
+                            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                              <path d="M12 15V3M12 3L8 7M12 3L16 7" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+                              <path d="M2 17L2 18C2 19.1046 2.89543 20 4 20L20 20C21.1046 20 22 19.1046 22 18L22 17" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+                            </svg>
+                          </button>
+                        </div>
+                      </td>
+                      <td>
+                        <div className="crew-table-cell" style={{ display: "flex", alignItems: "center", gap: "8px", justifyContent: "center" }}>
+                          <input
+                            type="file"
+                            ref={(el) => {
+                              if (el) zawilPassFileInputRefs.current[crew.id] = el;
+                            }}
+                            style={{ display: "none" }}
+                            accept="*/*"
+                            onChange={(e) => {
+                              const file = e.target.files?.[0];
+                              if (file) {
+                                handleZawilPassUpload(crew.id, file);
+                              }
+                            }}
+                          />
+                          <button
+                            type="button"
+                            onClick={() => zawilPassFileInputRefs.current[crew.id]?.click()}
+                            style={{
+                              background: "transparent",
+                              border: "none",
+                              cursor: "pointer",
+                              padding: "4px",
+                              display: "flex",
+                              alignItems: "center",
+                              color: zawilPassDocuments[crew.id] ? "#28a745" : "#dc3545",
+                              transition: "all 0.2s ease"
+                            }}
+                            title={zawilPassDocuments[crew.id] ? `Uploaded: ${zawilPassDocuments[crew.id].fileName}` : "Upload Zawil Pass Document"}
+                            onMouseEnter={(e) => {
+                              e.currentTarget.style.transform = "scale(1.1)";
+                            }}
+                            onMouseLeave={(e) => {
+                              e.currentTarget.style.transform = "scale(1)";
+                            }}
+                          >
+                            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                              <path d="M12 15V3M12 3L8 7M12 3L16 7" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+                              <path d="M2 17L2 18C2 19.1046 2.89543 20 4 20L20 20C21.1046 20 22 19.1046 22 18L22 17" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+                            </svg>
+                          </button>
+                        </div>
+                      </td>
                       <td style={{ overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
                         <div className="crew-table-cell crew-status-icon">
                           {crew.transport ? <YesIcon /> : <NoIcon />}
-                        </div>
-                      </td>
-                      <td style={{ overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
-                        <div className="crew-table-cell crew-status-icon">
-                          {crew.cgPass ? <YesIcon /> : <NoIcon />}
-                        </div>
-                      </td>
-                      <td style={{ overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
-                        <div className="crew-table-cell crew-status-icon">
-                          {crew.zawilPass ? <YesIcon /> : <NoIcon />}
                         </div>
                       </td>
                       <td style={{ overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
