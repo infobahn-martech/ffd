@@ -175,15 +175,15 @@ function CardItem({ card, index, setSelectedCard, isShrunk = false }) {
                 <div className="footer-progress">
                   <div className="circular-progress">
                     <svg className="progress-svg">
-                      <circle className="bg" cx="16" cy="16" r="14" />
+                      <circle className="bg" cx="13" cy="13" r="11.5" />
                       <circle
                         className="progress"
-                        cx="16"
-                        cy="16"
-                        r="14"
+                        cx="13"
+                        cy="13"
+                        r="11.5"
                         style={{
                           stroke: cardColor,
-                          strokeDashoffset: `calc(88 - (88 * ${card.progress || 0}) / 100)`,
+                          strokeDashoffset: `calc(72 - (72 * ${card.progress || 0}) / 100)`,
                         }}
                       />
                     </svg>
