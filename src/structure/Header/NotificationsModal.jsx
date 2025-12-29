@@ -397,31 +397,23 @@ function NotificationsModal({ show, onClose }) {
           <span className="results-info">
             Showing {((params.page - 1) * params.limit) + 1} to {Math.min(params.page * params.limit, notifications.length)} of {notifications.length} entries
           </span>
-          <select
-            className="form-control results-per-page"
-            value={params.limit}
-            onChange={(e) => setParams({ ...params, limit: parseInt(e.target.value), page: 1 })}
-          >
-            <option value={10}>10</option>
-            <option value={25}>25</option>
-            <option value={50}>50</option>
-            <option value={100}>100</option>
-          </select>
         </div>
-        <div className="footer-center">
-          {/* Custom Pagination */}
-          <div className="custom-pagination">
+        <div className="footer-right">
+          {/* Simple Pagination */}
+          <div className="simple-pagination">
             <button
-              className="pagination-btn"
+              className="pagination-btn prev-btn"
               onClick={() => setParams({ ...params, page: Math.max(1, params.page - 1) })}
               disabled={params.page === 1}
               aria-label="Previous page"
             >
               <FiChevronLeft />
             </button>
-            <span className="pagination-page-number">{params.page}</span>
+            <button className="pagination-btn page-number-btn active">
+              {params.page}
+            </button>
             <button
-              className="pagination-btn"
+              className="pagination-btn next-btn"
               onClick={() => setParams({ ...params, page: Math.min(totalPages, params.page + 1) })}
               disabled={params.page >= totalPages}
               aria-label="Next page"
@@ -429,8 +421,6 @@ function NotificationsModal({ show, onClose }) {
               <FiChevronRight />
             </button>
           </div>
-        </div>
-        <div className="footer-right">
           <select className="form-control export-format" defaultValue=".xlsx">
             <option value=".xlsx">.xlsx</option>
             <option value=".csv">.csv</option>

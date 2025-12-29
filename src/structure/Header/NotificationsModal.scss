@@ -13,9 +13,6 @@
   }
 
   .modal-header {
-    border-bottom: 1px solid #e5e7eb;
-    padding: 24px 30px;
-    background: linear-gradient(to bottom, #ffffff 0%, #fafbfc 100%);
     display: flex;
     justify-content: space-between;
     align-items: center;
@@ -61,6 +58,8 @@
   max-height: calc(100vh - 250px);
   overflow-y: auto;
   background-color: #ffffff;
+  width: 100%;
+  box-sizing: border-box;
 
   // Custom scrollbar
   &::-webkit-scrollbar {
@@ -235,11 +234,11 @@
 
 // Table Section
 .notifications-table-wrapper {
-  margin-bottom: 20px;
-  border: 1px solid #e5e7eb;
   border-radius: 8px;
   overflow: hidden;
   position: relative;
+  width: 100%;
+  max-width: 100%;
 
   // Green vertical line on the left
   &::before {
@@ -258,10 +257,23 @@
   }
 
   .notifications-table {
+    width: 100%;
+    max-width: 100%;
+    overflow-x: auto;
+    overflow-y: visible;
+
+    .table-wrapper {
+      width: 100%;
+      overflow-x: auto;
+    }
+
     .table {
       margin: 0;
-      border-collapse: separate;
+      border-collapse: collapse;
       border-spacing: 0;
+      width: 100%;
+      table-layout: auto;
+      min-width: 100%;
     }
 
     .table-content {
@@ -273,6 +285,8 @@
       overflow: hidden;
       text-overflow: ellipsis;
       max-width: 100%;
+      display: block;
+      width: 100%;
 
       &.clickable {
         cursor: pointer;
@@ -285,10 +299,10 @@
     }
 
     .tb-head {
-      background-color: #f9fafb;
+      background-color: #00368c;
+      color: #ffffff;
       font-weight: 600;
       font-size: 13px;
-      color: #374151;
       border-bottom: 2px solid #e5e7eb;
       padding: 14px 16px;
       text-transform: uppercase;
@@ -299,6 +313,7 @@
       white-space: nowrap;
       overflow: hidden;
       text-overflow: ellipsis;
+      text-align: left;
     }
 
     // Truncated cell text
@@ -351,6 +366,7 @@
 
     tbody tr {
       transition: background-color 0.15s ease;
+      border-bottom: 1px solid #e5e7eb;
 
       &:hover {
         background-color: #f9fafb;
@@ -364,11 +380,17 @@
         background-color: #f3f4f6;
       }
 
+      &:last-child {
+        border-bottom: none;
+      }
+
       td {
         white-space: nowrap;
         overflow: hidden;
         text-overflow: ellipsis;
-        max-width: 0;
+        padding: 12px 16px;
+        border: none;
+        text-align: left;
       }
     }
 
@@ -376,6 +398,7 @@
       white-space: nowrap;
       overflow: hidden;
       text-overflow: ellipsis;
+      border: none;
     }
   }
 }
@@ -393,108 +416,77 @@
   .footer-left {
     display: flex;
     align-items: center;
-    gap: 12px;
-    flex-wrap: wrap;
 
     .results-info {
       font-size: 14px;
-      color: #374151;
+      color: #00368c;
       font-weight: 500;
       white-space: nowrap;
-    }
-
-    .results-per-page-label {
-      font-size: 14px;
-      color: #6b7280;
-      white-space: nowrap;
-    }
-
-    .results-per-page {
-      width: 80px;
-      border: 1px solid #d1d5db;
-      border-radius: 6px;
-      padding: 6px 10px;
-      font-size: 14px;
-      background-color: #fff;
-      cursor: pointer;
-      transition: border-color 0.2s ease;
-
-      &:hover {
-        border-color: #9ca3af;
-      }
-
-      &:focus {
-        border-color: #00368c;
-        outline: none;
-        box-shadow: 0 0 0 3px rgba(0, 54, 140, 0.1);
-      }
-    }
-  }
-
-  .footer-center {
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    flex: 1;
-
-    .custom-pagination {
-      display: flex;
-      align-items: center;
-      gap: 8px;
-      background-color: #f9fafb;
-      padding: 4px;
-      border-radius: 8px;
-      border: 1px solid #e5e7eb;
-
-      .pagination-btn {
-        background: #ffffff;
-        border: 1px solid #d1d5db;
-        border-radius: 6px;
-        width: 32px;
-        height: 32px;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        cursor: pointer;
-        color: #374151;
-        transition: all 0.2s ease;
-        padding: 0;
-
-        &:hover:not(:disabled) {
-          background-color: #00368c;
-          color: #ffffff;
-          border-color: #00368c;
-          transform: translateY(-1px);
-          box-shadow: 0 2px 4px rgba(0, 54, 140, 0.2);
-        }
-
-        &:disabled {
-          opacity: 0.4;
-          cursor: not-allowed;
-          background-color: #f3f4f6;
-        }
-
-        svg {
-          width: 18px;
-          height: 18px;
-        }
-      }
-
-      .pagination-page-number {
-        min-width: 40px;
-        text-align: center;
-        font-weight: 600;
-        font-size: 14px;
-        color: #00368c;
-        padding: 0 8px;
-      }
     }
   }
 
   .footer-right {
     display: flex;
     align-items: center;
-    gap: 10px;
+    gap: 12px;
+
+    // Simple Pagination
+    .simple-pagination {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+
+      .pagination-btn {
+        width: 36px;
+        height: 36px;
+        border-radius: 8px;
+        border: 1px solid #d1d5db;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        cursor: pointer;
+        transition: all 0.2s ease;
+        padding: 0;
+        font-size: 14px;
+        font-weight: 500;
+
+        &.prev-btn,
+        &.next-btn {
+          background-color: #f3f4f6;
+          color: #00368c;
+          border-color: #d1d5db;
+
+          &:hover:not(:disabled) {
+            background-color: #e5e7eb;
+            border-color: #9ca3af;
+          }
+
+          &:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+            background-color: #f9fafb;
+          }
+
+          svg {
+            width: 18px;
+            height: 18px;
+          }
+        }
+
+        &.page-number-btn {
+          background-color: #00368c;
+          color: #ffffff;
+          border-color: #00368c;
+          font-weight: 600;
+          min-width: 36px;
+
+          &.active {
+            background-color: #00368c;
+            color: #ffffff;
+          }
+        }
+      }
+    }
 
     .export-format {
       width: 100px;
@@ -566,21 +558,14 @@
     gap: 15px;
 
     .footer-left {
-      flex-direction: column;
-      align-items: flex-start;
-      gap: 10px;
       width: 100%;
-    }
-
-    .footer-center {
-      width: 100%;
-      justify-content: center;
     }
 
     .footer-right {
       width: 100%;
-      justify-content: flex-end;
+      justify-content: space-between;
       flex-wrap: wrap;
+      gap: 10px;
     }
   }
 }
@@ -607,22 +592,20 @@
 
   .notifications-footer {
     .footer-left {
-
-      .results-info,
-      .results-per-page-label {
+      .results-info {
         font-size: 12px;
       }
     }
 
-    .footer-center {
-      .custom-pagination {
-        .pagination-page-number {
+    .footer-right {
+      .simple-pagination {
+        .pagination-btn {
+          width: 32px;
+          height: 32px;
           font-size: 13px;
         }
       }
-    }
 
-    .footer-right {
       .export-btn {
         padding: 8px 16px;
         font-size: 13px;
