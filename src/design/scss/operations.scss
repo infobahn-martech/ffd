@@ -1590,8 +1590,15 @@
 }
 
 .upload-icon-wrapper svg {
-  width: 48px;
-  height: 48px;
+  width: 64px;
+  height: 64px;
+  color: var(--card-color, #2A00FF);
+  opacity: 0.8;
+}
+
+.crew-excel-upload-zone .upload-icon-wrapper svg {
+  width: 72px;
+  height: 72px;
 }
 
 .upload-text-content {
@@ -1602,18 +1609,92 @@
 }
 
 .upload-main-text {
-  font-size: 14px;
-  font-weight: 500;
-  color: #333;
+  font-size: 15px;
+  font-weight: 600;
+  color: #1a1a1a;
   margin: 0;
-  line-height: 1.4;
+  line-height: 1.5;
+  font-family: "Inter", sans-serif;
 }
 
 .upload-link {
-  color: #3e5cb6;
+  color: var(--card-color, #2A00FF);
   font-weight: 600;
   text-decoration: underline;
-  cursor: pointer;
+  text-decoration-thickness: 2px;
+  text-underline-offset: 3px;
+  transition: opacity 0.2s ease;
+}
+
+.upload-link:hover {
+  opacity: 0.8;
+}
+
+.upload-sub-text {
+  font-size: 13px;
+  color: #666;
+  margin: 8px 0 0 0;
+  font-family: "Inter", sans-serif;
+}
+
+/* Enhanced Crew Excel Upload Zone */
+.crew-excel-upload-zone {
+  border: 2px dashed #d1d5db;
+  background: linear-gradient(to bottom, #ffffff 0%, #fafbff 100%);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04);
+}
+
+.crew-excel-upload-zone:hover {
+  border-color: var(--card-color, #2A00FF);
+  background: linear-gradient(to bottom, #f8f9ff 0%, #ffffff 100%);
+  transform: translateY(-3px);
+  box-shadow: 0 6px 20px rgba(0, 0, 0, 0.1);
+}
+
+.crew-excel-upload-zone.dragging {
+  border-color: var(--card-color, #2A00FF);
+  background: linear-gradient(to bottom, rgba(42, 0, 255, 0.08) 0%, rgba(42, 0, 255, 0.03) 100%);
+  border-style: solid;
+  box-shadow: 0 0 0 4px rgba(42, 0, 255, 0.15), 0 8px 24px rgba(0, 0, 0, 0.12);
+  transform: scale(1.01);
+}
+
+.crew-excel-upload-zone.uploaded {
+  border-color: #28a745;
+  background: linear-gradient(to bottom, #f0fdf4 0%, #ffffff 100%);
+  border-style: solid;
+}
+
+.crew-excel-upload-zone.uploaded:hover {
+  border-color: #20c997;
+  background: linear-gradient(to bottom, #f0fdf4 0%, #ffffff 100%);
+}
+
+.crew-upload-sections-container {
+  animation: fadeIn 0.3s ease-in;
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.upload-icon-wrapper svg {
+  transition: transform 0.3s ease;
+}
+
+.crew-excel-upload-zone:hover .upload-icon-wrapper svg {
+  transform: translateY(-4px);
+}
+
+.crew-excel-upload-zone.dragging .upload-icon-wrapper svg {
+  transform: scale(1.1);
 }
 
 .upload-sub-text {

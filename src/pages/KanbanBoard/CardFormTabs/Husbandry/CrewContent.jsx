@@ -55,25 +55,11 @@ const CrewContent = ({ formValues, handleChange, cardColor, onNavigateToTab, lau
 
   // Check if documents are already uploaded from formValues
   const hasCrewList = formValues.crewList && formValues.crewList.length > 0;
-  const hasPassportFiles = formValues.crewPassportFiles && formValues.crewPassportFiles.length > 0;
-  const hasVisaFiles = formValues.crewVisaFiles && formValues.crewVisaFiles.length > 0;
 
   const [isFileUploaded, setIsFileUploaded] = useState(hasCrewList);
-  const [isPassportBulkUploaded, setIsPassportBulkUploaded] = useState(hasPassportFiles);
-  const [isVisaBulkUploaded, setIsVisaBulkUploaded] = useState(hasVisaFiles);
   const [isDragging, setIsDragging] = useState(false);
-  const [isDraggingPassport, setIsDraggingPassport] = useState(false);
-  const [isDraggingVisa, setIsDraggingVisa] = useState(false);
   const [uploadedFileName, setUploadedFileName] = useState(formValues.crewUploadedFileName || "");
-  const [passportBulkFiles, setPassportBulkFiles] = useState(formValues.crewPassportFiles || []);
-  const [visaBulkFiles, setVisaBulkFiles] = useState(formValues.crewVisaFiles || []);
   const fileInputRef = useRef(null);
-  const passportBulkFileInputRef = useRef(null);
-  const visaBulkFileInputRef = useRef(null);
-  const [passportDocuments, setPassportDocuments] = useState({});
-  const [visaDocuments, setVisaDocuments] = useState({});
-  const passportFileInputRefs = useRef({});
-  const visaFileInputRefs = useRef({});
 
   const displayCrewList = crewList.length > 0 ? crewList : [];
 
@@ -173,71 +159,6 @@ const CrewContent = ({ formValues, handleChange, cardColor, onNavigateToTab, lau
     reader.readAsArrayBuffer(file);
   };
 
-  // Handle passport bulk upload
-  const handlePassportBulkUpload = (files) => {
-    if (!files || files.length === 0) return;
-    const fileArray = Array.from(files);
-    setPassportBulkFiles(fileArray);
-    setIsPassportBulkUploaded(true);
-    // Save passport files to formValues
-    const syntheticEvent = { target: { value: fileArray.map(f => ({ name: f.name, file: f, size: f.size, type: f.type })) } };
-    handleChange("crewPassportFiles")(syntheticEvent);
-
-    // Map files to crew members (assuming file names match passport numbers or crew names)
-    // For now, we'll just store the files
-    const passportFilesMap = {};
-    fileArray.forEach((file) => {
-      // Try to match file to crew member by name or passport number
-      const fileName = file.name.toLowerCase();
-      const matchedCrew = crewList.find((crew) => {
-        const crewName = (crew.crewName || "").toLowerCase();
-        const passportNo = (crew.passportNo || "").toLowerCase();
-        return fileName.includes(crewName) || fileName.includes(passportNo);
-      });
-
-      if (matchedCrew) {
-        passportFilesMap[matchedCrew.id] = {
-          file,
-          fileName: file.name,
-          uploadDate: new Date().toISOString(),
-        };
-      }
-    });
-
-    setPassportDocuments((prev) => ({ ...prev, ...passportFilesMap }));
-  };
-
-  // Handle visa bulk upload
-  const handleVisaBulkUpload = (files) => {
-    if (!files || files.length === 0) return;
-    const fileArray = Array.from(files);
-    setVisaBulkFiles(fileArray);
-    setIsVisaBulkUploaded(true);
-    // Save visa files to formValues
-    const syntheticEvent = { target: { value: fileArray.map(f => ({ name: f.name, file: f, size: f.size, type: f.type })) } };
-    handleChange("crewVisaFiles")(syntheticEvent);
-
-    // Map files to crew members
-    const visaFilesMap = {};
-    fileArray.forEach((file) => {
-      const fileName = file.name.toLowerCase();
-      const matchedCrew = crewList.find((crew) => {
-        const crewName = (crew.crewName || "").toLowerCase();
-        const passportNo = (crew.passportNo || "").toLowerCase();
-        return fileName.includes(crewName) || fileName.includes(passportNo);
-      });
-
-      if (matchedCrew) {
-        visaFilesMap[matchedCrew.id] = {
-          file,
-          fileName: file.name,
-          uploadDate: new Date().toISOString(),
-        };
-      }
-    });
-
-    setVisaDocuments((prev) => ({ ...prev, ...visaFilesMap }));
-  };
 
   // Handle Excel file input change
   const handleFileInputChange = (e) => {
@@ -247,27 +168,6 @@ const CrewContent = ({ formValues, handleChange, cardColor, onNavigateToTab, lau
     }
   };
 
-  // Handle passport bulk file input change
-  const handlePassportBulkFileInputChange = (e) => {
-    const files = e.target.files;
-    if (files && files.length > 0) {
-      handlePassportBulkUpload(files);
-    }
-    if (passportBulkFileInputRef.current) {
-      passportBulkFileInputRef.current.value = "";
-    }
-  };
-
-  // Handle visa bulk file input change
-  const handleVisaBulkFileInputChange = (e) => {
-    const files = e.target.files;
-    if (files && files.length > 0) {
-      handleVisaBulkUpload(files);
-    }
-    if (visaBulkFileInputRef.current) {
-      visaBulkFileInputRef.current.value = "";
-    }
-  };
 
   // Handle drag and drop for Excel
   const handleDragEnter = (e) => {
@@ -298,76 +198,12 @@ const CrewContent = ({ formValues, handleChange, cardColor, onNavigateToTab, lau
     }
   };
 
-  // Handle drag and drop for Passport bulk upload
-  const handlePassportDragEnter = (e) => {
-    e.preventDefault();
-    e.stopPropagation();
-    setIsDraggingPassport(true);
-  };
-
-  const handlePassportDragLeave = (e) => {
-    e.preventDefault();
-    e.stopPropagation();
-    setIsDraggingPassport(false);
-  };
-
-  const handlePassportDragOver = (e) => {
-    e.preventDefault();
-    e.stopPropagation();
-  };
-
-  const handlePassportDrop = (e) => {
-    e.preventDefault();
-    e.stopPropagation();
-    setIsDraggingPassport(false);
-
-    const files = e.dataTransfer.files;
-    if (files && files.length > 0) {
-      handlePassportBulkUpload(files);
-    }
-  };
-
-  // Handle drag and drop for Visa bulk upload
-  const handleVisaDragEnter = (e) => {
-    e.preventDefault();
-    e.stopPropagation();
-    setIsDraggingVisa(true);
-  };
-
-  const handleVisaDragLeave = (e) => {
-    e.preventDefault();
-    e.stopPropagation();
-    setIsDraggingVisa(false);
-  };
-
-  const handleVisaDragOver = (e) => {
-    e.preventDefault();
-    e.stopPropagation();
-  };
-
-  const handleVisaDrop = (e) => {
-    e.preventDefault();
-    e.stopPropagation();
-    setIsDraggingVisa(false);
-
-    const files = e.dataTransfer.files;
-    if (files && files.length > 0) {
-      handleVisaBulkUpload(files);
-    }
-  };
 
   // Handle upload zone click
   const handleUploadZoneClick = () => {
     fileInputRef.current?.click();
   };
 
-  const handlePassportBulkUploadZoneClick = () => {
-    passportBulkFileInputRef.current?.click();
-  };
-
-  const handleVisaBulkUploadZoneClick = () => {
-    visaBulkFileInputRef.current?.click();
-  };
 
   // Helper function to convert hex to rgba
   const hexToRgba = (hex, alpha = 0.1) => {
@@ -383,90 +219,39 @@ const CrewContent = ({ formValues, handleChange, cardColor, onNavigateToTab, lau
     // You can add a modal or navigation here
   };
 
-  // Handle passport document upload
-  const handlePassportUpload = (crewId, file) => {
-    if (!file) return;
-    setPassportDocuments((prev) => ({
-      ...prev,
-      [crewId]: {
-        file,
-        fileName: file.name,
-        uploadDate: new Date().toISOString(),
-      },
-    }));
-  };
 
-  // Handle visa document upload
-  const handleVisaUpload = (crewId, file) => {
-    if (!file) return;
-    setVisaDocuments((prev) => ({
-      ...prev,
-      [crewId]: {
-        file,
-        fileName: file.name,
-        uploadDate: new Date().toISOString(),
-      },
-    }));
-  };
-
-  // Upload icon component
-  const UploadIcon = ({ size = 20, color = "#00368c" }) => (
-    <svg
-      width={size}
-      height={size}
-      viewBox="0 0 24 24"
-      fill="none"
-      xmlns="http://www.w3.org/2000/svg"
-      style={{ color }}
-    >
-      <path
-        d="M12 15V3M12 3L8 7M12 3L16 7"
-        stroke="currentColor"
-        strokeWidth="2"
-        strokeLinecap="round"
-        strokeLinejoin="round"
-      />
-      <path
-        d="M2 17L2 18C2 19.1046 2.89543 20 4 20L20 20C21.1046 20 22 19.1046 22 18L22 17"
-        stroke="currentColor"
-        strokeWidth="2"
-        strokeLinecap="round"
-        strokeLinejoin="round"
-      />
-    </svg>
-  );
 
   // Determine what to show based on upload progress
-  const showCrewList = isFileUploaded && isPassportBulkUploaded && isVisaBulkUploaded;
+  const showCrewList = isFileUploaded;
 
   // Shared upload icon component
   const UploadIconSVG = () => (
     <svg
-      width="64"
-      height="64"
+      width="72"
+      height="72"
       viewBox="0 0 24 24"
       fill="none"
       xmlns="http://www.w3.org/2000/svg"
-      style={{ color: "#00368c" }}
+      style={{ color: "var(--card-color, #2A00FF)" }}
     >
       <path
         d="M12 15V3M12 3L8 7M12 3L16 7"
         stroke="currentColor"
-        strokeWidth="2"
+        strokeWidth="2.5"
         strokeLinecap="round"
         strokeLinejoin="round"
       />
       <path
         d="M2 17L2 18C2 19.1046 2.89543 20 4 20L20 20C21.1046 20 22 19.1046 22 18L22 17"
         stroke="currentColor"
-        strokeWidth="2"
+        strokeWidth="2.5"
         strokeLinecap="round"
         strokeLinejoin="round"
       />
       <path
         d="M7 11L12 6L17 11"
         stroke="currentColor"
-        strokeWidth="2"
+        strokeWidth="2.5"
         strokeLinecap="round"
         strokeLinejoin="round"
       />
@@ -474,21 +259,49 @@ const CrewContent = ({ formValues, handleChange, cardColor, onNavigateToTab, lau
   );
 
   return (
-    <div className="cardform-left-full crew-content-wrapper" style={{ "--card-color": cardColor }}>
+    <>
       {!showCrewList ? (
-        // All three upload sections in triangular layout
+        // Crew Excel Upload Section
         <div className="crew-upload-sections-container" style={{
           display: "flex",
           flexDirection: "column",
-          gap: "16px",
-          padding: "24px",
-          maxWidth: "1200px",
-          margin: "0 auto"
+          alignItems: "center",
+          justifyContent: "center",
+          minHeight: "400px",
+          padding: "40px 24px",
+          maxWidth: "800px",
+          margin: "0 auto",
+          width: "100%"
         }}>
-          {/* Crew Excel Upload - Top (Full Width) */}
-          <div className="crew-upload-section" style={{ width: "100%", display: "flex", flexDirection: "column" }}>
+          {/* Crew Excel Upload */}
+          <div className="crew-upload-section" style={{ width: "100%", display: "flex", flexDirection: "column", alignItems: "center" }}>
+            {/* Header above upload zone */}
+            <div style={{
+              textAlign: "center",
+              marginBottom: "24px",
+              width: "100%"
+            }}>
+              <h3 style={{
+                fontSize: "18px",
+                fontWeight: "600",
+                color: "#1a1a1a",
+                margin: "0 0 8px 0",
+                fontFamily: "Inter, sans-serif"
+              }}>
+                Upload Crew Excel File
+              </h3>
+              <p style={{
+                fontSize: "14px",
+                color: "#666",
+                margin: "0",
+                fontFamily: "Inter, sans-serif"
+              }}>
+                Please upload your crew data in Excel format
+              </p>
+            </div>
+
             <div
-              className={`document-upload-zone ${isDragging ? "dragging" : ""} ${isFileUploaded ? "uploaded" : ""}`}
+              className={`document-upload-zone crew-excel-upload-zone ${isDragging ? "dragging" : ""} ${isFileUploaded ? "uploaded" : ""}`}
               onDragEnter={handleDragEnter}
               onDragOver={handleDragOver}
               onDragLeave={handleDragLeave}
@@ -496,172 +309,84 @@ const CrewContent = ({ formValues, handleChange, cardColor, onNavigateToTab, lau
               onClick={handleUploadZoneClick}
               style={{
                 "--card-color": cardColor,
-                opacity: isFileUploaded ? 0.7 : 1,
-                border: isFileUploaded ? "2px solid #28a745" : undefined
+                maxWidth: "600px",
+                width: "100%",
+                height: "240px",
+                margin: "0 auto"
               }}
             >
               <input
                 ref={fileInputRef}
                 type="file"
                 className="file-input-hidden"
-                accept="*/*"
+                accept=".xlsx,.xls,.csv"
                 onChange={handleFileInputChange}
               />
               <div className="upload-zone-content">
-                <div className="upload-icon-wrapper">
-                  <UploadIconSVG />
-                </div>
-                <div className="upload-text-content">
-                  <p className="upload-main-text">
-                    {isFileUploaded ? (
-                      <>
-                        <span style={{ color: "#28a745" }}>✓ {uploadedFileName}</span>
-                        <br />
-                        <span style={{ fontSize: "12px", color: "#666" }}>Click to upload a different file</span>
-                      </>
-                    ) : (
-                      <>
+                {isFileUploaded ? (
+                  <div style={{
+                    display: "flex",
+                    flexDirection: "column",
+                    alignItems: "center",
+                    gap: "16px"
+                  }}>
+                    <div style={{
+                      width: "64px",
+                      height: "64px",
+                      borderRadius: "50%",
+                      background: "linear-gradient(135deg, #28a745 0%, #20c997 100%)",
+                      display: "flex",
+                      alignItems: "center",
+                      justifyContent: "center",
+                      boxShadow: "0 4px 12px rgba(40, 167, 69, 0.3)"
+                    }}>
+                      <svg width="32" height="32" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                        <path d="M20 6L9 17L4 12" stroke="white" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" />
+                      </svg>
+                    </div>
+                    <div style={{ textAlign: "center" }}>
+                      <p style={{
+                        fontSize: "16px",
+                        fontWeight: "600",
+                        color: "#28a745",
+                        margin: "0 0 8px 0",
+                        fontFamily: "Inter, sans-serif"
+                      }}>
+                        ✓ File Uploaded Successfully
+                      </p>
+                      <p style={{
+                        fontSize: "14px",
+                        color: "#666",
+                        margin: "0 0 4px 0",
+                        fontFamily: "Inter, sans-serif",
+                        wordBreak: "break-word"
+                      }}>
+                        {uploadedFileName}
+                      </p>
+                      <p style={{
+                        fontSize: "12px",
+                        color: "#999",
+                        margin: "0",
+                        fontFamily: "Inter, sans-serif"
+                      }}>
+                        Click to upload a different file
+                      </p>
+                    </div>
+                  </div>
+                ) : (
+                  <>
+                    <div className="upload-icon-wrapper">
+                      <UploadIconSVG />
+                    </div>
+                    <div className="upload-text-content">
+                      <p className="upload-main-text">
                         Drag and drop your crew Excel file here, or{" "}
                         <span className="upload-link">click to browse</span>
-                      </>
-                    )}
-                  </p>
-                  {!isFileUploaded && <p className="upload-sub-text">Supports all file formats</p>}
-                </div>
-              </div>
-            </div>
-            {/* Header outside upload zone, centered */}
-            <div style={{
-              textAlign: "center",
-              marginTop: "12px",
-              fontSize: "14px",
-              fontWeight: "600",
-              color: "#1a1a1a"
-            }}>
-              Crew Excel File {isFileUploaded && <span style={{ color: "#28a745", marginLeft: "8px" }}>✓</span>}
-            </div>
-          </div>
-
-          {/* Bottom Row - Passport and Visa Side by Side */}
-          <div style={{
-            display: "grid",
-            gridTemplateColumns: "1fr 1fr",
-            gap: "16px",
-            width: "100%"
-          }}>
-            {/* Passport Bulk Upload */}
-            <div className="crew-upload-section" style={{ width: "100%", display: "flex", flexDirection: "column" }}>
-              <div
-                className={`document-upload-zone ${isDraggingPassport ? "dragging" : ""} ${isPassportBulkUploaded ? "uploaded" : ""}`}
-                onDragEnter={handlePassportDragEnter}
-                onDragOver={handlePassportDragOver}
-                onDragLeave={handlePassportDragLeave}
-                onDrop={handlePassportDrop}
-                onClick={handlePassportBulkUploadZoneClick}
-                style={{
-                  "--card-color": cardColor,
-                  opacity: isPassportBulkUploaded ? 0.7 : 1,
-                  border: isPassportBulkUploaded ? "2px solid #28a745" : undefined
-                }}
-              >
-                <input
-                  ref={passportBulkFileInputRef}
-                  type="file"
-                  className="file-input-hidden"
-                  accept="*/*"
-                  multiple
-                  onChange={handlePassportBulkFileInputChange}
-                />
-                <div className="upload-zone-content">
-                  <div className="upload-icon-wrapper">
-                    <UploadIconSVG />
-                  </div>
-                  <div className="upload-text-content">
-                    <p className="upload-main-text">
-                      {isPassportBulkUploaded ? (
-                        <>
-                          <span style={{ color: "#28a745" }}>✓ {passportBulkFiles.length} file(s) uploaded</span>
-                          <br />
-                          <span style={{ fontSize: "12px", color: "#666" }}>Click to upload different files</span>
-                        </>
-                      ) : (
-                        <>
-                          Drag and drop your Passport files here, or{" "}
-                          <span className="upload-link">click to browse</span>
-                        </>
-                      )}
-                    </p>
-                    {!isPassportBulkUploaded && <p className="upload-sub-text">Supports all file formats</p>}
-                  </div>
-                </div>
-              </div>
-              {/* Header outside upload zone, centered */}
-              <div style={{
-                textAlign: "center",
-                marginTop: "12px",
-                fontSize: "14px",
-                fontWeight: "600",
-                color: "#1a1a1a"
-              }}>
-                Passport Files {isPassportBulkUploaded && <span style={{ color: "#28a745", marginLeft: "8px" }}>✓</span>}
-              </div>
-            </div>
-
-            {/* Visa Bulk Upload */}
-            <div className="crew-upload-section" style={{ width: "100%", display: "flex", flexDirection: "column" }}>
-              <div
-                className={`document-upload-zone ${isDraggingVisa ? "dragging" : ""} ${isVisaBulkUploaded ? "uploaded" : ""}`}
-                onDragEnter={handleVisaDragEnter}
-                onDragOver={handleVisaDragOver}
-                onDragLeave={handleVisaDragLeave}
-                onDrop={handleVisaDrop}
-                onClick={handleVisaBulkUploadZoneClick}
-                style={{
-                  "--card-color": cardColor,
-                  opacity: isVisaBulkUploaded ? 0.7 : 1,
-                  border: isVisaBulkUploaded ? "2px solid #28a745" : undefined
-                }}
-              >
-                <input
-                  ref={visaBulkFileInputRef}
-                  type="file"
-                  className="file-input-hidden"
-                  accept="*/*"
-                  multiple
-                  onChange={handleVisaBulkFileInputChange}
-                />
-                <div className="upload-zone-content">
-                  <div className="upload-icon-wrapper">
-                    <UploadIconSVG />
-                  </div>
-                  <div className="upload-text-content">
-                    <p className="upload-main-text">
-                      {isVisaBulkUploaded ? (
-                        <>
-                          <span style={{ color: "#28a745" }}>✓ {visaBulkFiles.length} file(s) uploaded</span>
-                          <br />
-                          <span style={{ fontSize: "12px", color: "#666" }}>Click to upload different files</span>
-                        </>
-                      ) : (
-                        <>
-                          Drag and drop your Visa files here, or{" "}
-                          <span className="upload-link">click to browse</span>
-                        </>
-                      )}
-                    </p>
-                    {!isVisaBulkUploaded && <p className="upload-sub-text">Supports all file formats</p>}
-                  </div>
-                </div>
-              </div>
-              {/* Header outside upload zone, centered */}
-              <div style={{
-                textAlign: "center",
-                marginTop: "12px",
-                fontSize: "14px",
-                fontWeight: "600",
-                color: "#1a1a1a"
-              }}>
-                Visa Files {isVisaBulkUploaded && <span style={{ color: "#28a745", marginLeft: "8px" }}>✓</span>}
+                      </p>
+                      <p className="upload-sub-text">Supports .xlsx, .xls, and .csv file formats</p>
+                    </div>
+                  </>
+                )}
               </div>
             </div>
           </div>
@@ -669,64 +394,107 @@ const CrewContent = ({ formValues, handleChange, cardColor, onNavigateToTab, lau
       ) : (
         // Crew List
         <>
-          <div className="crew-list-header" style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "15px" }}>
-            <div style={{ display: "flex", alignItems: "center", gap: "15px" }}>
-              <h3 className="crew-list-title">
-                <span className="crew-list-title-bar"></span>
+          <div className="crew-list-header" style={{
+            display: "flex",
+            justifyContent: "space-between",
+            alignItems: "center",
+            marginBottom: "20px",
+            paddingBottom: "16px",
+            borderBottom: "2px solid #f0f0f0"
+          }}>
+            <div style={{ display: "flex", alignItems: "center", gap: "16px", flex: 1 }}>
+              <h3 className="crew-list-title" style={{
+                fontSize: "20px",
+                fontWeight: "700",
+                color: "#1a1a1a",
+                margin: "0",
+                fontFamily: "Inter, sans-serif",
+                display: "flex",
+                alignItems: "center",
+                gap: "12px"
+              }}>
+                <span className="crew-list-title-bar" style={{
+                  width: "4px",
+                  height: "24px",
+                  backgroundColor: "var(--card-color, #2A00FF)",
+                  borderRadius: "2px",
+                  display: "inline-block"
+                }}></span>
                 CREW LIST
               </h3>
               {uploadedFileName && (
-                <span style={{ fontSize: "12px", color: "#666", fontStyle: "italic" }}>
-                  ({uploadedFileName})
-                </span>
+                <div style={{
+                  display: "flex",
+                  alignItems: "center",
+                  gap: "8px",
+                  padding: "6px 12px",
+                  backgroundColor: "#f8f9ff",
+                  borderRadius: "8px",
+                  border: "1px solid #e2e6ff"
+                }}>
+                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                    <path d="M14 2H6C5.46957 2 4.96086 2.21071 4.58579 2.58579C4.21071 2.96086 4 3.46957 4 4V20C4 20.5304 4.21071 21.0391 4.58579 21.4142C4.96086 21.7893 5.46957 22 6 22H18C18.5304 22 19.0391 21.7893 19.4142 21.4142C19.7893 21.0391 20 20.5304 20 20V8L14 2Z" stroke="#666" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+                    <path d="M14 2V8H20" stroke="#666" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+                  </svg>
+                  <span style={{
+                    fontSize: "13px",
+                    color: "#666",
+                    fontWeight: "500",
+                    fontFamily: "Inter, sans-serif",
+                    maxWidth: "300px",
+                    overflow: "hidden",
+                    textOverflow: "ellipsis",
+                    whiteSpace: "nowrap"
+                  }}>
+                    {uploadedFileName}
+                  </span>
+                </div>
               )}
               <button
                 type="button"
                 onClick={() => {
                   setIsFileUploaded(false);
-                  setIsPassportBulkUploaded(false);
-                  setIsVisaBulkUploaded(false);
                   setUploadedFileName("");
-                  setPassportBulkFiles([]);
-                  setVisaBulkFiles([]);
                   const syntheticEvent = { target: { value: [] } };
                   handleChange("crewList")(syntheticEvent);
                   handleChange("crewUploadedFileName")({ target: { value: "" } });
-                  handleChange("crewPassportFiles")({ target: { value: [] } });
-                  handleChange("crewVisaFiles")({ target: { value: [] } });
                   setSelectedCrewIds([]);
-                  setPassportDocuments({});
-                  setVisaDocuments({});
                   if (fileInputRef.current) {
                     fileInputRef.current.value = "";
                   }
-                  if (passportBulkFileInputRef.current) {
-                    passportBulkFileInputRef.current.value = "";
-                  }
-                  if (visaBulkFileInputRef.current) {
-                    visaBulkFileInputRef.current.value = "";
-                  }
                 }}
                 style={{
-                  padding: "4px 12px",
-                  borderRadius: "6px",
-                  border: `1px solid #e2e6ff`,
-                  backgroundColor: "transparent",
-                  color: "#000000",
-                  fontSize: "12px",
-                  fontWeight: "500",
+                  padding: "8px 16px",
+                  borderRadius: "8px",
+                  border: "1px solid #e2e6ff",
+                  backgroundColor: "#ffffff",
+                  color: "#1a1a1a",
+                  fontSize: "13px",
+                  fontWeight: "600",
                   cursor: "pointer",
                   transition: "all 0.2s ease",
+                  fontFamily: "Inter, sans-serif",
+                  display: "flex",
+                  alignItems: "center",
+                  gap: "8px"
                 }}
                 onMouseEnter={(e) => {
-                  e.target.style.backgroundColor = "#e2e6ff";
-                  e.target.style.color = "#000000";
+                  e.currentTarget.style.backgroundColor = "#f8f9ff";
+                  e.currentTarget.style.borderColor = "var(--card-color, #2A00FF)";
+                  e.currentTarget.style.transform = "translateY(-1px)";
+                  e.currentTarget.style.boxShadow = "0 2px 8px rgba(0, 0, 0, 0.1)";
                 }}
                 onMouseLeave={(e) => {
-                  e.target.style.backgroundColor = "transparent";
-                  e.target.style.color = "#000000";
+                  e.currentTarget.style.backgroundColor = "#ffffff";
+                  e.currentTarget.style.borderColor = "#e2e6ff";
+                  e.currentTarget.style.transform = "translateY(0)";
+                  e.currentTarget.style.boxShadow = "none";
                 }}
               >
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                  <path d="M12 15V3M12 3L8 7M12 3L16 7" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+                  <path d="M2 17L2 18C2 19.1046 2.89543 20 4 20L20 20C21.1046 20 22 19.1046 22 18L22 17" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+                </svg>
                 Upload New File
               </button>
             </div>
@@ -770,26 +538,33 @@ const CrewContent = ({ formValues, handleChange, cardColor, onNavigateToTab, lau
                 onClick={handleSelectAll}
                 style={{
                   padding: "8px 16px",
-                  borderRadius: "6px",
-                  border: `2px solid #e2e6ff`,
-                  backgroundColor: selectedCrewIds.length === displayCrewList.length ? "#e2e6ff" : "#ffffff",
-                  color: selectedCrewIds.length === displayCrewList.length ? "#000000" : "#000000",
+                  borderRadius: "8px",
+                  border: "1px solid #e2e6ff",
+                  backgroundColor: selectedCrewIds.length === displayCrewList.length ? "var(--card-color, #2A00FF)" : "#ffffff",
+                  color: selectedCrewIds.length === displayCrewList.length ? "#ffffff" : "#1a1a1a",
                   fontSize: "13px",
-                  fontWeight: "500",
+                  fontWeight: "600",
                   cursor: "pointer",
                   transition: "all 0.2s ease",
+                  fontFamily: "Inter, sans-serif"
                 }}
                 onMouseEnter={(e) => {
                   if (selectedCrewIds.length !== displayCrewList.length) {
-                    e.target.style.backgroundColor = "#e2e6ff";
-                    e.target.style.color = "#000000";
+                    e.currentTarget.style.backgroundColor = "#f8f9ff";
+                    e.currentTarget.style.borderColor = "var(--card-color, #2A00FF)";
+                  } else {
+                    e.currentTarget.style.opacity = "0.9";
                   }
+                  e.currentTarget.style.transform = "translateY(-1px)";
+                  e.currentTarget.style.boxShadow = "0 2px 8px rgba(0, 0, 0, 0.1)";
                 }}
                 onMouseLeave={(e) => {
-                  if (selectedCrewIds.length !== displayCrewList.length) {
-                    e.target.style.backgroundColor = "#ffffff";
-                    e.target.style.color = "#000000";
-                  }
+                  e.currentTarget.style.backgroundColor = selectedCrewIds.length === displayCrewList.length ? "var(--card-color, #2A00FF)" : "#ffffff";
+                  e.currentTarget.style.borderColor = "#e2e6ff";
+                  e.currentTarget.style.color = selectedCrewIds.length === displayCrewList.length ? "#ffffff" : "#1a1a1a";
+                  e.currentTarget.style.opacity = "1";
+                  e.currentTarget.style.transform = "translateY(0)";
+                  e.currentTarget.style.boxShadow = "none";
                 }}
               >
                 {selectedCrewIds.length === displayCrewList.length ? "Deselect All" : "Select All"}
@@ -813,38 +588,28 @@ const CrewContent = ({ formValues, handleChange, cardColor, onNavigateToTab, lau
                       }}
                     />
                   </th>
-                  <th style={{ width: "calc((100% - 40px) / 10)", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }} title="Crew Name">
+                  <th style={{ width: "calc((100% - 40px) / 8)", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }} title="Crew Name">
                     Crew Name
                   </th>
-                  <th style={{ width: "calc((100% - 40px) / 10)", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }} title="Nationality">
+                  <th style={{ width: "calc((100% - 40px) / 8)", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }} title="Nationality">
                     Nationality
                   </th>
-                  <th style={{ width: "calc((100% - 40px) / 10)", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }} title="Rank">
+                  <th style={{ width: "calc((100% - 40px) / 8)", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }} title="Rank">
                     Rank
                   </th>
-                  <th style={{ width: "calc((100% - 40px) / 10)", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }} title="PASSPORT/IQAMA">
-                    <div style={{ display: "flex", alignItems: "center", gap: "8px", justifyContent: "center", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap", minWidth: 0 }}>
-                      PASSPORT/IQAMA
-                    </div>
-                  </th>
-                  <th style={{ width: "calc((100% - 40px) / 10)", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }} title="Visa">
-                    <div style={{ display: "flex", alignItems: "center", gap: "8px", justifyContent: "center", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap", minWidth: 0 }}>
-                      Visa
-                    </div>
-                  </th>
-                  <th style={{ width: "calc((100% - 40px) / 10)", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }} title="Transport">
+                  <th style={{ width: "calc((100% - 40px) / 8)", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }} title="Transport">
                     Transport
                   </th>
-                  <th style={{ width: "calc((100% - 40px) / 10)", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }} title="CG Pass">
+                  <th style={{ width: "calc((100% - 40px) / 8)", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }} title="CG Pass">
                     CG Pass
                   </th>
-                  <th style={{ width: "calc((100% - 40px) / 10)", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }} title="Zawil Pass">
+                  <th style={{ width: "calc((100% - 40px) / 8)", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }} title="Zawil Pass">
                     Zawil Pass
                   </th>
-                  <th style={{ width: "calc((100% - 40px) / 10)", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }} title="Hotel">
+                  <th style={{ width: "calc((100% - 40px) / 8)", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }} title="Hotel">
                     Hotel
                   </th>
-                  <th style={{ width: "calc((100% - 40px) / 10)", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }} title="Medical Service">
+                  <th style={{ width: "calc((100% - 40px) / 8)", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }} title="Medical Service">
                     Medical Service
                   </th>
                   {/* <th>Actions</th> */}
@@ -853,7 +618,7 @@ const CrewContent = ({ formValues, handleChange, cardColor, onNavigateToTab, lau
               <tbody>
                 {displayCrewList.length === 0 ? (
                   <tr>
-                    <td colSpan="11" style={{ textAlign: "center", padding: "40px", color: "#999" }}>
+                    <td colSpan="9" style={{ textAlign: "center", padding: "40px", color: "#999" }}>
                       No crew data found. Please upload a valid Excel file.
                     </td>
                   </tr>
@@ -888,74 +653,6 @@ const CrewContent = ({ formValues, handleChange, cardColor, onNavigateToTab, lau
                       </td>
                       <td style={{ overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
                         <div className="crew-table-cell" title={crew.rank || ""}>{crew.rank || ""}</div>
-                      </td>
-                      <td>
-                        <div className="crew-table-cell" style={{ display: "flex", alignItems: "center", gap: "8px", justifyContent: "center" }}>
-                          <input
-                            type="file"
-                            ref={(el) => {
-                              if (el) passportFileInputRefs.current[crew.id] = el;
-                            }}
-                            style={{ display: "none" }}
-                            accept="*/*"
-                            onChange={(e) => {
-                              const file = e.target.files?.[0];
-                              if (file) {
-                                handlePassportUpload(crew.id, file);
-                              }
-                            }}
-                          />
-                          <button
-                            type="button"
-                            onClick={() => passportFileInputRefs.current[crew.id]?.click()}
-                            style={{
-                              background: "transparent",
-                              border: "none",
-                              cursor: "pointer",
-                              padding: "4px",
-                              display: "flex",
-                              alignItems: "center",
-                              color: passportDocuments[crew.id] ? "#28a745" : "#dc3545",
-                            }}
-                            title={passportDocuments[crew.id] ? `Uploaded: ${passportDocuments[crew.id].fileName}` : "Upload Passport Document"}
-                          >
-                            <UploadIcon size={18} color={passportDocuments[crew.id] ? "#28a745" : "#dc3545"} />
-                          </button>
-                        </div>
-                      </td>
-                      <td>
-                        <div className="crew-table-cell" style={{ display: "flex", alignItems: "center", gap: "8px", justifyContent: "center" }}>
-                          <input
-                            type="file"
-                            ref={(el) => {
-                              if (el) visaFileInputRefs.current[crew.id] = el;
-                            }}
-                            style={{ display: "none" }}
-                            accept="*/*"
-                            onChange={(e) => {
-                              const file = e.target.files?.[0];
-                              if (file) {
-                                handleVisaUpload(crew.id, file);
-                              }
-                            }}
-                          />
-                          <button
-                            type="button"
-                            onClick={() => visaFileInputRefs.current[crew.id]?.click()}
-                            style={{
-                              background: "transparent",
-                              border: "none",
-                              cursor: "pointer",
-                              padding: "4px",
-                              display: "flex",
-                              alignItems: "center",
-                              color: visaDocuments[crew.id] ? "#28a745" : "#dc3545",
-                            }}
-                            title={visaDocuments[crew.id] ? `Uploaded: ${visaDocuments[crew.id].fileName}` : "Upload Visa Document"}
-                          >
-                            <UploadIcon size={18} color={visaDocuments[crew.id] ? "#28a745" : "#dc3545"} />
-                          </button>
-                        </div>
                       </td>
                       <td style={{ overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
                         <div className="crew-table-cell crew-status-icon">
@@ -1000,7 +697,7 @@ const CrewContent = ({ formValues, handleChange, cardColor, onNavigateToTab, lau
           </div>
         </>
       )}
-    </div>
+    </ >
   );
 };
 
