@@ -16,6 +16,7 @@ import MyAccountsModal from './MyAccountsModal';
 import ChangePasswordModal from './ChangePasswordModal';
 import LogoutConfirmationModal from '../../components/LogoutConfirmationModal';
 import NotificationsModal from './NotificationsModal';
+import DocumentsModal from './DocumentsModal';
 
 function Header({ onMenuToggle, mobileMenuOpen: externalMobileMenuOpen }) {
   const { pathname } = useLocation();
@@ -27,6 +28,7 @@ function Header({ onMenuToggle, mobileMenuOpen: externalMobileMenuOpen }) {
   const [showChangePasswordModal, setShowChangePasswordModal] = useState(false);
   const [showLogoutModal, setShowLogoutModal] = useState(false);
   const [showNotificationsModal, setShowNotificationsModal] = useState(false);
+  const [showDocumentsModal, setShowDocumentsModal] = useState(false);
   const [imageError, setImageError] = useState(false);
   const dropdownRef = useRef(null);
   const isMobile = width <= 991;
@@ -211,7 +213,12 @@ function Header({ onMenuToggle, mobileMenuOpen: externalMobileMenuOpen }) {
         <button className="icon-btn" aria-label="Settings" title="Settings">
           <FiSettings />
         </button>
-        <button className="icon-btn icon-btn-hide-mobile" aria-label="Documents" title="Documents">
+        <button 
+          className="icon-btn icon-btn-hide-mobile" 
+          aria-label="Documents" 
+          title="Documents"
+          onClick={() => setShowDocumentsModal(true)}
+        >
           <FiFolder />
         </button>
         <button className="icon-btn icon-btn-hide-mobile" aria-label="Help" title="Help">
@@ -251,6 +258,12 @@ function Header({ onMenuToggle, mobileMenuOpen: externalMobileMenuOpen }) {
       <NotificationsModal
         show={showNotificationsModal}
         onClose={() => setShowNotificationsModal(false)}
+      />
+
+      {/* Documents Modal */}
+      <DocumentsModal
+        show={showDocumentsModal}
+        onClose={() => setShowDocumentsModal(false)}
       />
 
     </div>

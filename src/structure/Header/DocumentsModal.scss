@@ -1,0 +1,329 @@
+.documents-modal {
+  .modal-dialog {
+    max-width: 1400px;
+    width: calc(100vw - 60px);
+    margin: 30px auto;
+  }
+
+  .modal-content {
+    border-radius: 12px;
+    padding: 0;
+    box-shadow: 0 20px 60px rgba(0, 0, 0, 0.15);
+    border: none;
+  }
+
+  .modal-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    position: relative;
+    padding: 24px 30px;
+    width: 100%;
+
+    .modal-title {
+      color: #00368c;
+      font-size: 24px;
+      font-weight: 700;
+      margin: 0;
+      letter-spacing: -0.5px;
+      flex: 1;
+    }
+
+    .modal-close-btn {
+      background: transparent;
+      border: none;
+      color: #6b7280;
+      cursor: pointer;
+      padding: 8px;
+      border-radius: 6px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      transition: all 0.2s ease;
+      width: 36px;
+      height: 36px;
+      margin-left: auto;
+      flex-shrink: 0;
+
+      &:hover {
+        background-color: #f3f4f6;
+        color: #374151;
+        transform: rotate(90deg);
+      }
+
+      &:active {
+        transform: rotate(90deg) scale(0.95);
+      }
+    }
+  }
+}
+
+.documents-modal-body {
+  padding: 30px;
+  max-height: calc(100vh - 250px);
+  overflow-y: auto;
+  background-color: #ffffff;
+  width: 100%;
+  box-sizing: border-box;
+
+  // Custom scrollbar
+  &::-webkit-scrollbar {
+    width: 8px;
+  }
+
+  &::-webkit-scrollbar-track {
+    background: #f1f1f1;
+    border-radius: 4px;
+  }
+
+  &::-webkit-scrollbar-thumb {
+    background: #cbd5e1;
+    border-radius: 4px;
+
+    &:hover {
+      background: #94a3b8;
+    }
+  }
+}
+
+// Search Section
+.documents-search {
+  margin-bottom: 30px;
+  padding-bottom: 20px;
+  border-bottom: 1px solid #e5e7eb;
+
+  .search-group {
+    display: flex;
+    align-items: center;
+    gap: 15px;
+    width: 100%;
+
+    .search-input-wrapper {
+      position: relative;
+      flex: 1;
+      max-width: 600px;
+
+      .search-icon {
+        position: absolute;
+        left: 12px;
+        top: 50%;
+        transform: translateY(-50%);
+        color: #9ca3af;
+        font-size: 18px;
+        pointer-events: none;
+      }
+
+      .search-input {
+        width: 100%;
+        padding: 10px 15px 10px 40px;
+        border: 1px solid #d1d5db;
+        border-radius: 8px;
+        font-size: 14px;
+        transition: all 0.2s ease;
+
+        &:focus {
+          outline: none;
+          border-color: #00368c;
+          box-shadow: 0 0 0 3px rgba(0, 54, 140, 0.1);
+        }
+
+        &::placeholder {
+          color: #9ca3af;
+        }
+      }
+    }
+  }
+}
+
+// Table Section
+.documents-table-wrapper {
+  border-radius: 8px;
+  overflow: hidden;
+  margin-bottom: 20px;
+
+  .documents-table {
+    width: 100%;
+    max-width: 100%;
+    overflow-x: auto;
+    overflow-y: visible;
+
+    .table-wrapper {
+      width: 100%;
+      overflow-x: auto;
+    }
+
+    .table {
+      margin: 0;
+      border-collapse: collapse;
+      border-spacing: 0;
+      width: 100%;
+      table-layout: auto;
+      min-width: 100%;
+
+      th,
+      td {
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        padding: 12px 16px;
+        text-align: left;
+        border-bottom: 1px solid #e5e7eb;
+      }
+
+      thead {
+        th {
+          background-color: #f3f4f6;
+          color: #374151;
+          font-weight: 600;
+          font-size: 13px;
+          text-transform: uppercase;
+          letter-spacing: 0.5px;
+          position: sticky;
+          top: 0;
+          z-index: 10;
+        }
+      }
+
+      tbody {
+        tr {
+          transition: background-color 0.15s ease;
+
+          &:hover {
+            background-color: #f9fafb;
+          }
+
+          &:last-child {
+            td {
+              border-bottom: none;
+            }
+          }
+        }
+
+        td {
+          font-size: 14px;
+          color: #1f2937;
+        }
+      }
+    }
+  }
+}
+
+// Footer Section
+.documents-footer {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding-top: 20px;
+  border-top: 1px solid #e5e7eb;
+  flex-wrap: wrap;
+  gap: 15px;
+
+  .footer-left {
+    .results-info {
+      font-size: 14px;
+      color: #6b7280;
+    }
+  }
+
+  .footer-right {
+    display: flex;
+    align-items: center;
+    gap: 15px;
+
+    .simple-pagination {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+
+      .pagination-btn {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        width: 36px;
+        height: 36px;
+        border: 1px solid #d1d5db;
+        background-color: #ffffff;
+        color: #374151;
+        border-radius: 6px;
+        cursor: pointer;
+        transition: all 0.2s ease;
+        font-size: 14px;
+        font-weight: 500;
+
+        &:hover:not(:disabled) {
+          background-color: #f3f4f6;
+          border-color: #9ca3af;
+        }
+
+        &:disabled {
+          opacity: 0.5;
+          cursor: not-allowed;
+        }
+
+        &.page-number-btn {
+          background-color: #00368c;
+          color: #ffffff;
+          border-color: #00368c;
+          font-weight: 600;
+
+          &:hover {
+            background-color: #002d73;
+            border-color: #002d73;
+          }
+        }
+      }
+    }
+  }
+}
+
+// Responsive adjustments
+@media (max-width: 991px) {
+  .documents-modal {
+    .modal-dialog {
+      width: calc(100vw - 20px);
+      margin: 10px auto;
+    }
+
+    .modal-header {
+      padding: 20px;
+    }
+  }
+
+  .documents-modal-body {
+    padding: 20px;
+  }
+
+  .documents-search {
+    .search-group {
+      .search-input-wrapper {
+        max-width: 100%;
+      }
+    }
+  }
+
+  .documents-footer {
+    flex-direction: column;
+    align-items: flex-start;
+
+    .footer-right {
+      width: 100%;
+      justify-content: space-between;
+    }
+  }
+}
+
+@media (max-width: 576px) {
+  .documents-table-wrapper {
+    .documents-table {
+      .table {
+        font-size: 12px;
+
+        th,
+        td {
+          padding: 8px 12px;
+        }
+      }
+    }
+  }
+}
+
