@@ -912,25 +912,39 @@ const CrewContent = ({ formValues, handleChange, cardColor, onNavigateToTab, lau
                     Rank
                   </th>
                   <th style={{ width: "calc((100% - 40px) / 10)", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }} title="Passport">
-                    Passport
+                    <div style={{ display: "flex", justifyContent: "center", alignItems: "center" }}>
+                      <PassportIcon size={20} />
+                    </div>
                   </th>
                   <th style={{ width: "calc((100% - 40px) / 10)", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }} title="Visa">
-                    Visa
+                    <div style={{ display: "flex", justifyContent: "center", alignItems: "center" }}>
+                      <VisaIcon size={20} />
+                    </div>
                   </th>
                   <th style={{ width: "calc((100% - 40px) / 10)", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }} title="CG Pass">
-                    CG Pass
+                    <div style={{ display: "flex", justifyContent: "center", alignItems: "center" }}>
+                      <CGPassIcon size={20} />
+                    </div>
                   </th>
                   <th style={{ width: "calc((100% - 40px) / 10)", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }} title="Zawil Pass">
-                    Zawil Pass
+                    <div style={{ display: "flex", justifyContent: "center", alignItems: "center" }}>
+                      <CGPassIcon size={20} />
+                    </div>
                   </th>
                   <th style={{ width: "calc((100% - 40px) / 10)", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }} title="Transport">
-                    Transport
+                    <div style={{ display: "flex", justifyContent: "center", alignItems: "center" }}>
+                      <CarIcon size={20} />
+                    </div>
                   </th>
                   <th style={{ width: "calc((100% - 40px) / 10)", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }} title="Hotel">
-                    Hotel
+                    <div style={{ display: "flex", justifyContent: "center", alignItems: "center" }}>
+                      <HotelIcon size={20} />
+                    </div>
                   </th>
                   <th style={{ width: "calc((100% - 40px) / 10)", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }} title="Medical Service">
-                    Medical Service
+                    <div style={{ display: "flex", justifyContent: "center", alignItems: "center" }}>
+                      <MedicalIcon size={20} />
+                    </div>
                   </th>
                   {/* <th>Actions</th> */}
                 </tr>
