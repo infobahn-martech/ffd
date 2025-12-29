@@ -17,6 +17,8 @@
     justify-content: space-between;
     align-items: center;
     position: relative;
+    padding: 24px 30px;
+    width: 100%;
 
     .modal-title {
       color: #00368c;
@@ -24,6 +26,7 @@
       font-weight: 700;
       margin: 0;
       letter-spacing: -0.5px;
+      flex: 1;
     }
 
     .modal-close-btn {
@@ -39,6 +42,8 @@
       transition: all 0.2s ease;
       width: 36px;
       height: 36px;
+      margin-left: auto;
+      flex-shrink: 0;
 
       &:hover {
         background-color: #f3f4f6;
