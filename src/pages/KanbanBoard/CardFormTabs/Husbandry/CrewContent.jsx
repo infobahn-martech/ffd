@@ -5,6 +5,58 @@ import { YesIcon, NoIcon } from "./Husbandry.components";
 import CustomModal from "../../../../components/CustomModal";
 import "../../../../design/scss/operations.scss";
 
+// Status colors
+const STATUS_COLORS = {
+  done: "#28a745", // Green
+  inProgress: "#ffc107", // Yellow
+  rejected: "#dc3545", // Red
+  pending: "#6c757d" // Gray (default)
+};
+
+// Icon components for column headers
+const PassportIcon = ({ size = 20, color = "#666" }) => (
+  <svg width={size} height={size} viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" style={{ color }}>
+    <path d="M14 2H6C5.46957 2 4.96086 2.21071 4.58579 2.58579C4.21071 2.96086 4 3.46957 4 4V20C4 20.5304 4.21071 21.0391 4.58579 21.4142C4.96086 21.7893 5.46957 22 6 22H18C18.5304 22 19.0391 21.7893 19.4142 21.4142C19.7893 21.0391 20 20.5304 20 20V8L14 2Z" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" fill="none" />
+    <path d="M14 2V8H20" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+  </svg>
+);
+
+const VisaIcon = ({ size = 20, color = "#666" }) => (
+  <svg width={size} height={size} viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" style={{ color }}>
+    <path d="M9 12L11 14L15 10M21 12C21 16.9706 16.9706 21 12 21C7.02944 21 3 16.9706 3 12C3 7.02944 7.02944 3 12 3C16.9706 3 21 7.02944 21 12Z" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" fill="none" />
+  </svg>
+);
+
+const CGPassIcon = ({ size = 20, color = "#666" }) => (
+  <svg width={size} height={size} viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" style={{ color }}>
+    <path d="M9 12L11 14L15 10M21 12C21 16.9706 16.9706 21 12 21C7.02944 21 3 16.9706 3 12C3 7.02944 7.02944 3 12 3C16.9706 3 21 7.02944 21 12Z" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" fill="none" />
+  </svg>
+);
+
+const CarIcon = ({ size = 20, color = "#666" }) => (
+  <svg width={size} height={size} viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" style={{ color }}>
+    <path d="M5 17H4C3.46957 17 2.96086 16.7893 2.58579 16.4142C2.21071 16.0391 2 15.5304 2 15V11C2 10.4696 2.21071 9.96086 2.58579 9.58579C2.96086 9.21071 3.46957 9 4 9H5M5 17H19M5 17V19C5 19.5304 4.78929 20.0391 4.41421 20.4142C4.03914 20.7893 3.53043 21 3 21C2.46957 21 1.96086 20.7893 1.58579 20.4142C1.21071 20.0391 1 19.5304 1 19V17M19 17H20C20.5304 17 21.0391 16.7893 21.4142 16.4142C21.7893 16.0391 22 15.5304 22 15V11C22 10.4696 21.7893 9.96086 21.4142 9.58579C21.0391 9.21071 20.5304 9 20 9H19M19 17V19C19 19.5304 19.2107 20.0391 19.5858 20.4142C19.9609 20.7893 20.4696 21 21 21C21.5304 21 22.0391 20.7893 22.4142 20.4142C22.7893 20.0391 23 19.5304 23 19V17M5 9L7 5H17L19 9M5 9H19" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" fill="none" />
+  </svg>
+);
+
+const HotelIcon = ({ size = 20, color = "#666" }) => (
+  <svg width={size} height={size} viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" style={{ color }}>
+    <path d="M3 21H21M5 21V7L12 3L19 7V21M5 21H9M19 21H15M9 21V13H15V21M9 21H15" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" fill="none" />
+  </svg>
+);
+
+const MedicalIcon = ({ size = 20, color = "#666" }) => (
+  <svg width={size} height={size} viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" style={{ color }}>
+    <path d="M12 8V16M8 12H16M21 12C21 16.9706 16.9706 21 12 21C7.02944 21 3 16.9706 3 12C3 7.02944 7.02944 3 12 3C16.9706 3 21 7.02944 21 12Z" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" fill="none" />
+  </svg>
+);
+
+// Status icon component
+const StatusIcon = ({ status = "pending", IconComponent, size = 20 }) => {
+  const color = STATUS_COLORS[status] || STATUS_COLORS.pending;
+  return <IconComponent size={size} color={color} />;
+};
+
 // Generate crew data from Excel file
 const generateCrewFromExcel = (excelData) => {
   if (!excelData || excelData.length === 0) return [];
@@ -36,13 +88,14 @@ const generateCrewFromExcel = (excelData) => {
         nationality: nationalityIndex !== -1 ? row[nationalityIndex] || "N/A" : "N/A",
         rank: rankIndex !== -1 ? row[rankIndex] || "N/A" : "N/A",
         passportNo: passportIndex !== -1 ? row[passportIndex] || `P${String(1000000 + index).padStart(7, '0')}` : `P${String(1000000 + index).padStart(7, '0')}`,
-        transport: false,
-        cgPass: false,
-        zawilPass: false,
-        hotel: false,
-        launchHire: false,
-        medicalService: false,
-        visa: false,
+        transport: "pending", // "done", "inProgress", "rejected", "pending"
+        cgPass: "pending",
+        zawilPass: "pending",
+        hotel: "pending",
+        launchHire: "pending",
+        medicalService: "pending",
+        visa: "pending",
+        passport: "pending",
       };
     });
 
@@ -937,32 +990,37 @@ const CrewContent = ({ formValues, handleChange, cardColor, onNavigateToTab, lau
                               }
                             }}
                           />
-                          <button
-                            type="button"
-                            onClick={() => passportFileInputRefs.current[crew.id]?.click()}
-                            style={{
-                              background: "transparent",
-                              border: "none",
-                              cursor: "pointer",
-                              padding: "4px",
-                              display: "flex",
-                              alignItems: "center",
-                              color: passportDocuments[crew.id] ? "#28a745" : "#dc3545",
-                              transition: "all 0.2s ease"
-                            }}
-                            title={passportDocuments[crew.id] ? `Uploaded: ${passportDocuments[crew.id].fileName}` : "Upload Passport Document"}
-                            onMouseEnter={(e) => {
-                              e.currentTarget.style.transform = "scale(1.1)";
-                            }}
-                            onMouseLeave={(e) => {
-                              e.currentTarget.style.transform = "scale(1)";
-                            }}
-                          >
-                            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-                              <path d="M12 15V3M12 3L8 7M12 3L16 7" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
-                              <path d="M2 17L2 18C2 19.1046 2.89543 20 4 20L20 20C21.1046 20 22 19.1046 22 18L22 17" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
-                            </svg>
-                          </button>
+                          <div style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: "4px" }}>
+                            <button
+                              type="button"
+                              onClick={() => passportFileInputRefs.current[crew.id]?.click()}
+                              style={{
+                                background: "transparent",
+                                border: "none",
+                                cursor: "pointer",
+                                padding: "4px",
+                                display: "flex",
+                                alignItems: "center",
+                                color: passportDocuments[crew.id] ? STATUS_COLORS.done : STATUS_COLORS.rejected,
+                                transition: "all 0.2s ease"
+                              }}
+                              title={passportDocuments[crew.id] ? `Uploaded: ${passportDocuments[crew.id].fileName}` : "Upload Passport Document"}
+                              onMouseEnter={(e) => {
+                                e.currentTarget.style.transform = "scale(1.1)";
+                              }}
+                              onMouseLeave={(e) => {
+                                e.currentTarget.style.transform = "scale(1)";
+                              }}
+                            >
+                              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                                <path d="M12 15V3M12 3L8 7M12 3L16 7" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+                                <path d="M2 17L2 18C2 19.1046 2.89543 20 4 20L20 20C21.1046 20 22 19.1046 22 18L22 17" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+                              </svg>
+                            </button>
+                            {crew.passport && (
+                              <StatusIcon status={crew.passport} IconComponent={PassportIcon} size={14} />
+                            )}
+                          </div>
                         </div>
                       </td>
                       <td>
@@ -981,32 +1039,37 @@ const CrewContent = ({ formValues, handleChange, cardColor, onNavigateToTab, lau
                               }
                             }}
                           />
-                          <button
-                            type="button"
-                            onClick={() => visaFileInputRefs.current[crew.id]?.click()}
-                            style={{
-                              background: "transparent",
-                              border: "none",
-                              cursor: "pointer",
-                              padding: "4px",
-                              display: "flex",
-                              alignItems: "center",
-                              color: visaDocuments[crew.id] ? "#28a745" : "#dc3545",
-                              transition: "all 0.2s ease"
-                            }}
-                            title={visaDocuments[crew.id] ? `Uploaded: ${visaDocuments[crew.id].fileName}` : "Upload Visa Document"}
-                            onMouseEnter={(e) => {
-                              e.currentTarget.style.transform = "scale(1.1)";
-                            }}
-                            onMouseLeave={(e) => {
-                              e.currentTarget.style.transform = "scale(1)";
-                            }}
-                          >
-                            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-                              <path d="M12 15V3M12 3L8 7M12 3L16 7" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
-                              <path d="M2 17L2 18C2 19.1046 2.89543 20 4 20L20 20C21.1046 20 22 19.1046 22 18L22 17" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
-                            </svg>
-                          </button>
+                          <div style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: "4px" }}>
+                            <button
+                              type="button"
+                              onClick={() => visaFileInputRefs.current[crew.id]?.click()}
+                              style={{
+                                background: "transparent",
+                                border: "none",
+                                cursor: "pointer",
+                                padding: "4px",
+                                display: "flex",
+                                alignItems: "center",
+                                color: visaDocuments[crew.id] ? STATUS_COLORS.done : STATUS_COLORS.rejected,
+                                transition: "all 0.2s ease"
+                              }}
+                              title={visaDocuments[crew.id] ? `Uploaded: ${visaDocuments[crew.id].fileName}` : "Upload Visa Document"}
+                              onMouseEnter={(e) => {
+                                e.currentTarget.style.transform = "scale(1.1)";
+                              }}
+                              onMouseLeave={(e) => {
+                                e.currentTarget.style.transform = "scale(1)";
+                              }}
+                            >
+                              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                                <path d="M12 15V3M12 3L8 7M12 3L16 7" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+                                <path d="M2 17L2 18C2 19.1046 2.89543 20 4 20L20 20C21.1046 20 22 19.1046 22 18L22 17" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+                              </svg>
+                            </button>
+                            {crew.visa && (
+                              <StatusIcon status={crew.visa} IconComponent={VisaIcon} size={14} />
+                            )}
+                          </div>
                         </div>
                       </td>
                       <td>
@@ -1025,32 +1088,37 @@ const CrewContent = ({ formValues, handleChange, cardColor, onNavigateToTab, lau
                               }
                             }}
                           />
-                          <button
-                            type="button"
-                            onClick={() => cgPassFileInputRefs.current[crew.id]?.click()}
-                            style={{
-                              background: "transparent",
-                              border: "none",
-                              cursor: "pointer",
-                              padding: "4px",
-                              display: "flex",
-                              alignItems: "center",
-                              color: cgPassDocuments[crew.id] ? "#28a745" : "#dc3545",
-                              transition: "all 0.2s ease"
-                            }}
-                            title={cgPassDocuments[crew.id] ? `Uploaded: ${cgPassDocuments[crew.id].fileName}` : "Upload CG Pass Document"}
-                            onMouseEnter={(e) => {
-                              e.currentTarget.style.transform = "scale(1.1)";
-                            }}
-                            onMouseLeave={(e) => {
-                              e.currentTarget.style.transform = "scale(1)";
-                            }}
-                          >
-                            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-                              <path d="M12 15V3M12 3L8 7M12 3L16 7" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
-                              <path d="M2 17L2 18C2 19.1046 2.89543 20 4 20L20 20C21.1046 20 22 19.1046 22 18L22 17" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
-                            </svg>
-                          </button>
+                          <div style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: "4px" }}>
+                            <button
+                              type="button"
+                              onClick={() => cgPassFileInputRefs.current[crew.id]?.click()}
+                              style={{
+                                background: "transparent",
+                                border: "none",
+                                cursor: "pointer",
+                                padding: "4px",
+                                display: "flex",
+                                alignItems: "center",
+                                color: cgPassDocuments[crew.id] ? STATUS_COLORS.done : STATUS_COLORS.rejected,
+                                transition: "all 0.2s ease"
+                              }}
+                              title={cgPassDocuments[crew.id] ? `Uploaded: ${cgPassDocuments[crew.id].fileName}` : "Upload CG Pass Document"}
+                              onMouseEnter={(e) => {
+                                e.currentTarget.style.transform = "scale(1.1)";
+                              }}
+                              onMouseLeave={(e) => {
+                                e.currentTarget.style.transform = "scale(1)";
+                              }}
+                            >
+                              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                                <path d="M12 15V3M12 3L8 7M12 3L16 7" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+                                <path d="M2 17L2 18C2 19.1046 2.89543 20 4 20L20 20C21.1046 20 22 19.1046 22 18L22 17" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+                              </svg>
+                            </button>
+                            {crew.cgPass && (
+                              <StatusIcon status={crew.cgPass} IconComponent={CGPassIcon} size={14} />
+                            )}
+                          </div>
                         </div>
                       </td>
                       <td>
@@ -1069,47 +1137,52 @@ const CrewContent = ({ formValues, handleChange, cardColor, onNavigateToTab, lau
                               }
                             }}
                           />
-                          <button
-                            type="button"
-                            onClick={() => zawilPassFileInputRefs.current[crew.id]?.click()}
-                            style={{
-                              background: "transparent",
-                              border: "none",
-                              cursor: "pointer",
-                              padding: "4px",
-                              display: "flex",
-                              alignItems: "center",
-                              color: zawilPassDocuments[crew.id] ? "#28a745" : "#dc3545",
-                              transition: "all 0.2s ease"
-                            }}
-                            title={zawilPassDocuments[crew.id] ? `Uploaded: ${zawilPassDocuments[crew.id].fileName}` : "Upload Zawil Pass Document"}
-                            onMouseEnter={(e) => {
-                              e.currentTarget.style.transform = "scale(1.1)";
-                            }}
-                            onMouseLeave={(e) => {
-                              e.currentTarget.style.transform = "scale(1)";
-                            }}
-                          >
-                            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-                              <path d="M12 15V3M12 3L8 7M12 3L16 7" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
-                              <path d="M2 17L2 18C2 19.1046 2.89543 20 4 20L20 20C21.1046 20 22 19.1046 22 18L22 17" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
-                            </svg>
-                          </button>
+                          <div style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: "4px" }}>
+                            <button
+                              type="button"
+                              onClick={() => zawilPassFileInputRefs.current[crew.id]?.click()}
+                              style={{
+                                background: "transparent",
+                                border: "none",
+                                cursor: "pointer",
+                                padding: "4px",
+                                display: "flex",
+                                alignItems: "center",
+                                color: zawilPassDocuments[crew.id] ? STATUS_COLORS.done : STATUS_COLORS.rejected,
+                                transition: "all 0.2s ease"
+                              }}
+                              title={zawilPassDocuments[crew.id] ? `Uploaded: ${zawilPassDocuments[crew.id].fileName}` : "Upload Zawil Pass Document"}
+                              onMouseEnter={(e) => {
+                                e.currentTarget.style.transform = "scale(1.1)";
+                              }}
+                              onMouseLeave={(e) => {
+                                e.currentTarget.style.transform = "scale(1)";
+                              }}
+                            >
+                              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                                <path d="M12 15V3M12 3L8 7M12 3L16 7" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+                                <path d="M2 17L2 18C2 19.1046 2.89543 20 4 20L20 20C21.1046 20 22 19.1046 22 18L22 17" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+                              </svg>
+                            </button>
+                            {crew.zawilPass && (
+                              <StatusIcon status={crew.zawilPass} IconComponent={CGPassIcon} size={14} />
+                            )}
+                          </div>
                         </div>
                       </td>
                       <td style={{ overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
-                        <div className="crew-table-cell crew-status-icon">
-                          {crew.transport ? <YesIcon /> : <NoIcon />}
+                        <div className="crew-table-cell crew-status-icon" style={{ display: "flex", justifyContent: "center", alignItems: "center" }}>
+                          <StatusIcon status={crew.transport} IconComponent={CarIcon} size={20} />
                         </div>
                       </td>
                       <td style={{ overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
-                        <div className="crew-table-cell crew-status-icon">
-                          {crew.hotel ? <YesIcon /> : <NoIcon />}
+                        <div className="crew-table-cell crew-status-icon" style={{ display: "flex", justifyContent: "center", alignItems: "center" }}>
+                          <StatusIcon status={crew.hotel} IconComponent={HotelIcon} size={20} />
                         </div>
                       </td>
                       <td style={{ overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
-                        <div className="crew-table-cell crew-status-icon">
-                          {crew.medicalService ? <YesIcon /> : <NoIcon />}
+                        <div className="crew-table-cell crew-status-icon" style={{ display: "flex", justifyContent: "center", alignItems: "center" }}>
+                          <StatusIcon status={crew.medicalService} IconComponent={MedicalIcon} size={20} />
                         </div>
                       </td>
                       {/* <td>
