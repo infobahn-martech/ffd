@@ -41,33 +41,41 @@ function CardItem({ card, index, setSelectedCard, isShrunk = false }) {
           }}
         >
           {isShrunk ? (
-            // Compact view for shrunk columns - Simple like expand view
+            // Compact view for shrunk columns - Enhanced UI
             <>
-              {/* Compact Header with Icon */}
-              <div className="card-header-compact">
-                <div
-                  className="card-header-icon-compact"
-                  style={{ backgroundColor: cardColor }}
-                  data-tooltip-id={`icon-${card.id}`}
-                  data-tooltip-content={`Card Type: ${card.iconType || 'default'}`}
-                >
-                  {card.iconType === "inprogress" && <InprogressIcon />}
-                  {card.iconType === "download" && <DownloadIcon />}
-                  {card.iconType === "document" && <DownloadIcon />}
+              {/* Compact Content Container */}
+              <div className="card-content-compact">
+                {/* Icon with colored accent */}
+                <div className="card-icon-wrapper-compact">
+                  <div
+                    className="card-header-icon-compact"
+                    style={{ backgroundColor: cardColor }}
+                    data-tooltip-id={`icon-${card.id}`}
+                    data-tooltip-content={`Card Type: ${card.iconType || 'default'}`}
+                  >
+                    {card.iconType === "inprogress" && <InprogressIcon />}
+                    {card.iconType === "download" && <DownloadIcon />}
+                    {card.iconType === "document" && <DownloadIcon />}
+                  </div>
+                  {/* Colored accent line */}
+                  <div 
+                    className="card-accent-line-compact"
+                    style={{ backgroundColor: cardColor }}
+                  />
                 </div>
                 <Tooltip id={`icon-${card.id}`} place="top" />
-              </div>
 
-              {/* Compact Title */}
-              <div
-                className="card-title-compact"
-                onClick={() => setSelectedCard(card)}
-                data-tooltip-id={`title-${card.id}`}
-                data-tooltip-content={card.title}
-              >
-                {card.title.length > 10 ? card.title.substring(0, 10) + "..." : card.title}
+                {/* Title with better styling */}
+                <div
+                  className="card-title-compact"
+                  onClick={() => setSelectedCard(card)}
+                  data-tooltip-id={`title-${card.id}`}
+                  data-tooltip-content={card.title}
+                >
+                  {card.title.length > 12 ? card.title.substring(0, 12) + "..." : card.title}
+                </div>
+                <Tooltip id={`title-${card.id}`} place="top" />
               </div>
-              <Tooltip id={`title-${card.id}`} place="top" />
             </>
           ) : (
             // Full view for normal/expanded columns
