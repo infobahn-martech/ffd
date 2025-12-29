@@ -1,7 +1,8 @@
-import { useState } from 'react';
+import { useState, useMemo } from 'react';
 import CustomModal from '../../components/CustomModal';
 import CustomTable from '../../components/customTable';
-import { FiTrash2 } from 'react-icons/fi';
+import { Tooltip } from 'react-tooltip';
+import { FiTrash2, FiCalendar, FiX, FiChevronLeft, FiChevronRight } from 'react-icons/fi';
 import '../../design/scss/common.scss';
 import './NotificationsModal.scss';
 
@@ -93,6 +94,35 @@ function NotificationsModal({ show, onClose }) {
     return name ? name.charAt(0).toUpperCase() : 'I';
   };
 
+  // Helper component for truncated text with tooltip
+  const TruncatedCell = ({ text, maxLength = 30, tooltipId }) => {
+    if (!text) return <span>-</span>;
+    const isTruncated = text.length > maxLength;
+    const displayText = isTruncated ? text.substring(0, maxLength) + '...' : text;
+
+    return (
+      <>
+        <span
+          data-tooltip-id={isTruncated ? tooltipId : undefined}
+          data-tooltip-content={isTruncated ? text : undefined}
+          className="truncated-cell-text"
+        >
+          {displayText}
+        </span>
+        {isTruncated && <Tooltip id={tooltipId} place="top" />}
+      </>
+    );
+  };
+
+  // Calculate paginated data
+  const paginatedData = useMemo(() => {
+    const startIndex = (params.page - 1) * params.limit;
+    const endIndex = startIndex + params.limit;
+    return notifications.slice(startIndex, endIndex);
+  }, [notifications, params.page, params.limit]);
+
+  const totalPages = Math.ceil(notifications.length / params.limit);
+
   const cols = [
     {
       name: 'CARD ID',
@@ -111,14 +141,22 @@ function NotificationsModal({ show, onClose }) {
       contentClass: 'table-content clickable',
       thclass: 'tb-head',
       width: '150',
-      cell: (props) => (
-        <span
-          style={{ color: '#00368c', cursor: 'pointer', textDecoration: 'underline' }}
-          onClick={() => console.log('Navigate to workspace:', props.row.workspace)}
-        >
-          {props.row.workspace}
-        </span>
-      ),
+      cell: (props) => {
+        const tooltipId = `workspace-${props.row._id}`;
+        return (
+          <>
+            <span
+              className="truncated-cell-text clickable-link"
+              data-tooltip-id={tooltipId}
+              data-tooltip-content={props.row.workspace}
+              onClick={() => console.log('Navigate to workspace:', props.row.workspace)}
+            >
+              {props.row.workspace}
+            </span>
+            <Tooltip id={tooltipId} place="top" />
+          </>
+        );
+      },
     },
     {
       name: 'BOARD',
@@ -128,14 +166,22 @@ function NotificationsModal({ show, onClose }) {
       contentClass: 'table-content clickable',
       thclass: 'tb-head',
       width: '150',
-      cell: (props) => (
-        <span
-          style={{ color: '#00368c', cursor: 'pointer', textDecoration: 'underline' }}
-          onClick={() => console.log('Navigate to board:', props.row.board)}
-        >
-          {props.row.board}
-        </span>
-      ),
+      cell: (props) => {
+        const tooltipId = `board-${props.row._id}`;
+        return (
+          <>
+            <span
+              className="truncated-cell-text clickable-link"
+              data-tooltip-id={tooltipId}
+              data-tooltip-content={props.row.board}
+              onClick={() => console.log('Navigate to board:', props.row.board)}
+            >
+              {props.row.board}
+            </span>
+            <Tooltip id={tooltipId} place="top" />
+          </>
+        );
+      },
     },
     {
       name: 'TITLE',
@@ -145,6 +191,9 @@ function NotificationsModal({ show, onClose }) {
       contentClass: 'table-content',
       thclass: 'tb-head',
       width: '150',
+      cell: (props) => (
+        <TruncatedCell text={props.row.title} maxLength={20} tooltipId={`title-${props.row._id}`} />
+      ),
     },
     {
       name: 'NOTIFICATION',
@@ -154,6 +203,9 @@ function NotificationsModal({ show, onClose }) {
       contentClass: 'table-content',
       thclass: 'tb-head',
       width: '150',
+      cell: (props) => (
+        <TruncatedCell text={props.row.notification} maxLength={20} tooltipId={`notification-${props.row._id}`} />
+      ),
     },
     {
       name: 'DETAILS',
@@ -163,6 +215,9 @@ function NotificationsModal({ show, onClose }) {
       contentClass: 'table-content',
       thclass: 'tb-head',
       width: '250',
+      cell: (props) => (
+        <TruncatedCell text={props.row.details} maxLength={35} tooltipId={`details-${props.row._id}`} />
+      ),
     },
     {
       name: 'AUTHOR',
@@ -172,27 +227,20 @@ function NotificationsModal({ show, onClose }) {
       contentClass: 'table-content',
       thclass: 'tb-head',
       width: '150',
-      cell: (props) => (
-        <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
-          <span
-            style={{
-              width: '20px',
-              height: '20px',
-              borderRadius: '50%',
-              backgroundColor: '#00368c',
-              color: '#fff',
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'center',
-              fontSize: '11px',
-              fontWeight: '600',
-            }}
-          >
-            {getUserInitial(props.row.author)}
-          </span>
-          <span>{props.row.author}</span>
-        </div>
-      ),
+      cell: (props) => {
+        const tooltipId = `author-${props.row._id}`;
+        return (
+          <>
+            <div className="author-cell" data-tooltip-id={tooltipId} data-tooltip-content={props.row.author}>
+              <span className="author-icon">
+                {getUserInitial(props.row.author)}
+              </span>
+              <span className="truncated-cell-text">{props.row.author}</span>
+            </div>
+            <Tooltip id={tooltipId} place="top" />
+          </>
+        );
+      },
     },
     {
       name: 'DATE',
@@ -202,6 +250,9 @@ function NotificationsModal({ show, onClose }) {
       contentClass: 'table-content',
       thclass: 'tb-head',
       width: '180',
+      cell: (props) => (
+        <span>{props.row.date || '-'}</span>
+      ),
     },
     {
       name: 'EVENT',
@@ -211,6 +262,9 @@ function NotificationsModal({ show, onClose }) {
       contentClass: 'table-content',
       thclass: 'tb-head',
       width: '200',
+      cell: (props) => (
+        <TruncatedCell text={props.row.event} maxLength={25} tooltipId={`event-${props.row._id}`} />
+      ),
     },
     {
       name: 'OWNER',
@@ -220,15 +274,9 @@ function NotificationsModal({ show, onClose }) {
       contentClass: 'table-content',
       thclass: 'tb-head',
       width: '120',
-    },
-    {
-      name: 'ACTION',
-      selector: 'action',
-      tableClasses: 'table-striped',
-      contentClass: 'table-content',
-      thclass: 'tb-head',
-      width: '100',
-      notView: true,
+      cell: (props) => (
+        <TruncatedCell text={props.row.owner} maxLength={15} tooltipId={`owner-${props.row._id}`} />
+      ),
     },
   ];
 
@@ -237,23 +285,30 @@ function NotificationsModal({ show, onClose }) {
       {/* Filter Section */}
       <div className="notifications-filters">
         <div className="filter-row">
-          <div className="filter-group">
+          <div className="filter-group date-input-group">
             <label>Date from</label>
-            <input
-              type="date"
-              className="form-control"
-              value={filters.dateFrom}
-              onChange={(e) => handleFilterChange('dateFrom', e.target.value)}
-            />
+            <div className="date-input-wrapper">
+              <input
+                type="date"
+                className="form-control date-input"
+                value={filters.dateFrom}
+                onChange={(e) => handleFilterChange('dateFrom', e.target.value)}
+              />
+              <FiCalendar className="calendar-icon" />
+            </div>
           </div>
-          <div className="filter-group">
+          <div className="filter-group date-input-group">
             <label>Date to</label>
-            <input
-              type="date"
-              className="form-control"
-              value={filters.dateTo}
-              onChange={(e) => handleFilterChange('dateTo', e.target.value)}
-            />
+            <div className="date-input-wrapper">
+              <input
+                type="date"
+                className="form-control date-input"
+                value={filters.dateTo}
+                onChange={(e) => handleFilterChange('dateTo', e.target.value)}
+                placeholder="dd/mm/yyyy"
+              />
+              <FiCalendar className="calendar-icon" />
+            </div>
           </div>
           <div className="filter-group">
             <label>Author</label>
@@ -320,13 +375,11 @@ function NotificationsModal({ show, onClose }) {
       {/* Table Section */}
       <div className="notifications-table-wrapper">
         <CustomTable
-          pagination={{ currentPage: params?.page, limit: params?.limit }}
           tableClasses="notifications-table"
           count={notifications.length}
           columns={cols}
-          data={notifications ?? []}
-          onPageChange={(currentPage) => setParams({ ...params, page: currentPage })}
-          setLimit={(newlimit) => setParams({ ...params, limit: newlimit })}
+          data={paginatedData ?? []}
+          pagination={{ currentPage: 1, limit: paginatedData.length }}
           onSorting={(sortBy) => {
             setParams({
               ...params,
@@ -338,22 +391,44 @@ function NotificationsModal({ show, onClose }) {
         />
       </div>
 
-      {/* Footer with Export */}
+      {/* Footer with Pagination and Export */}
       <div className="notifications-footer">
         <div className="footer-left">
-          <span>
-            {notifications.length} Results found. Results per page
+          <span className="results-info">
+            Showing {((params.page - 1) * params.limit) + 1} to {Math.min(params.page * params.limit, notifications.length)} of {notifications.length} entries
           </span>
           <select
             className="form-control results-per-page"
             value={params.limit}
-            onChange={(e) => setParams({ ...params, limit: parseInt(e.target.value) })}
+            onChange={(e) => setParams({ ...params, limit: parseInt(e.target.value), page: 1 })}
           >
             <option value={10}>10</option>
             <option value={25}>25</option>
             <option value={50}>50</option>
             <option value={100}>100</option>
           </select>
+        </div>
+        <div className="footer-center">
+          {/* Custom Pagination */}
+          <div className="custom-pagination">
+            <button
+              className="pagination-btn"
+              onClick={() => setParams({ ...params, page: Math.max(1, params.page - 1) })}
+              disabled={params.page === 1}
+              aria-label="Previous page"
+            >
+              <FiChevronLeft />
+            </button>
+            <span className="pagination-page-number">{params.page}</span>
+            <button
+              className="pagination-btn"
+              onClick={() => setParams({ ...params, page: Math.min(totalPages, params.page + 1) })}
+              disabled={params.page >= totalPages}
+              aria-label="Next page"
+            >
+              <FiChevronRight />
+            </button>
+          </div>
         </div>
         <div className="footer-right">
           <select className="form-control export-format" defaultValue=".xlsx">
@@ -378,6 +453,14 @@ function NotificationsModal({ show, onClose }) {
       header={
         <div className="modal-header">
           <h5 className="modal-title">All Activities</h5>
+          <button
+            type="button"
+            className="modal-close-btn"
+            onClick={onClose}
+            aria-label="Close modal"
+          >
+            <FiX size={20} />
+          </button>
         </div>
       }
       body={renderBody()}
