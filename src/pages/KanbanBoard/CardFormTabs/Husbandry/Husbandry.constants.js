@@ -1,6 +1,9 @@
 // Constants
 export const MAIN_TABS = {
   CREW_MANAGEMENT: "crewManagement",
+  WAREHOUSE: "warehouse",
+  ON_OFF_HIRE_SURVEY: "onOffHireSurvey",
+  ON_STATION: "onStation",
   MATERIAL_MANAGEMENT: "materialManagement",
   MWP_RENEWAL: "mwpRenewal",
   THIRD_PARTY_SERVICES: "thirdPartyServices",

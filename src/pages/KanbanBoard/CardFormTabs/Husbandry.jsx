@@ -29,6 +29,9 @@ import MWPRenewalContent from "./Husbandry/MWPRenewalContent";
 const ServiceSelection = ({ onSelectService, cardColor, bookedServices = [] }) => {
   const services = [
     { id: MAIN_TABS.CREW_MANAGEMENT, label: "Crew Management", icon: "clock" },
+    { id: MAIN_TABS.WAREHOUSE, label: "Warehouse", icon: "document" },
+    { id: MAIN_TABS.ON_OFF_HIRE_SURVEY, label: "On/Off-Hire Survey", icon: "document" },
+    { id: MAIN_TABS.ON_STATION, label: "On station", icon: "document" },
     { id: MAIN_TABS.MATERIAL_MANAGEMENT, label: "Material Management", icon: "document" },
     { id: "LAUNCH_HIRE", label: "Launch Hire", icon: "document" },
     { id: MAIN_TABS.MWP_RENEWAL, label: "MWP Renewal", icon: "renewal" },
@@ -194,6 +197,15 @@ function Husbandry({ card, formValues, handleChange }) {
         setActiveSubTab(CREW_MANAGEMENT_SUBTABS.CREW);
       } else if (tab === MAIN_TABS.MATERIAL_MANAGEMENT) {
         setActiveSubTab(MATERIAL_MANAGEMENT_SUBTABS.MATERIAL_LIST);
+      } else if (tab === MAIN_TABS.WAREHOUSE) {
+        // Warehouse - placeholder for future implementation
+        setActiveSubTab(null);
+      } else if (tab === MAIN_TABS.ON_OFF_HIRE_SURVEY) {
+        // On/Off-Hire Survey - placeholder for future implementation
+        setActiveSubTab(null);
+      } else if (tab === MAIN_TABS.ON_STATION) {
+        // On station - placeholder for future implementation
+        setActiveSubTab(null);
       } else if (tab === MAIN_TABS.MWP_RENEWAL) {
         // MWP Renewal - placeholder for future implementation
         setActiveSubTab(null);
@@ -443,6 +455,21 @@ function Husbandry({ card, formValues, handleChange }) {
             renderCrewManagementContent()}
           {activeMainTab === MAIN_TABS.MATERIAL_MANAGEMENT &&
             renderMaterialManagementContent()}
+          {activeMainTab === MAIN_TABS.WAREHOUSE && (
+            <div className="husbandry-placeholder-content">
+              <p>In-Progress</p>
+            </div>
+          )}
+          {activeMainTab === MAIN_TABS.ON_OFF_HIRE_SURVEY && (
+            <div className="husbandry-placeholder-content">
+              <p>In-Progress</p>
+            </div>
+          )}
+          {activeMainTab === MAIN_TABS.ON_STATION && (
+            <div className="husbandry-placeholder-content">
+              <p>In-Progress</p>
+            </div>
+          )}
           {activeMainTab === MAIN_TABS.MWP_RENEWAL && (
             <MWPRenewalContent
               formValues={formValues}

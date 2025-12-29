@@ -1,10 +1,10 @@
 // Brand colors
 //––––––––––––––––––––––––––––––––––––––––––––––––––
 $white: #fff;
-$header-bg:#1A273C;
+$header-bg: #1A273C;
 $slider-color-active: #F5F9FF;
-$slider-color:#6D7B9B;
-$mixed-dark:#6276A2;
+$slider-color: #6D7B9B;
+$mixed-dark: #6276A2;
 $light-blue: #2D6EEE;
 
 $colorPrimary: #00368C;
@@ -19,26 +19,30 @@ $font-primary: 'Poppins', sans-serif;
 // Breakpoints
 //––––––––––––––––––––––––––––––––––––––––––––––––––
 
-$lg-320    	: "min-width: 320px";
-$lg-480   	: "min-width: 480px";
-$lg-768    	: "min-width: 768px";
-$lg-992   	: "min-width: 992px";
-$lg-1024   	: "min-width: 1024px";
-$lg-1200 	: "min-width: 1200px";
+$lg-320 : "min-width: 320px";
+$lg-480 : "min-width: 480px";
+$lg-768 : "min-width: 768px";
+$lg-992 : "min-width: 992px";
+$lg-1024 : "min-width: 1024px";
+$lg-1200 : "min-width: 1200px";
 
-$sm-479   	: "max-width: 479px";  /*** all Mobile Screen (iphone 6,7,8) ***/
-$sm-579     : "max-width: 579px";
-$sm-767     : "max-width: 767px";  /*** mobile Landscape Size ***/
-$sm-991     : "max-width: 991px";  /*** medium devices (tablets, less than 992px) ***/
-$sm-1023   	: "max-width: 1023px"; /*** iPad in landscape ***/
-$sm-1199 	: "max-width: 1199px"; /**** smaller than desktop 1200 (devices and browsers) ***/
-$sm-1281 	: "max-width: 1281px"; /*** laptop with MDPI (medium density per inch) resolution ***/
-$sm-1367 	: "max-width: 1367px"; /*** SP developers resolution ***/
-$sm-1441 	: "max-width: 1441px"; /*** laptop with HiDPI (High Dots Per Inch) resolution ***/
-$sm-1481 	: "max-width: 1481px";
-$sm-1679 	: "max-width: 1679px"; /*** WSXGA (Wide Super Extended Graphics Array) resolution ***/
-
-
-
-
-
+$sm-479 : "max-width: 479px";
+/*** all Mobile Screen (iphone 6,7,8) ***/
+$sm-579 : "max-width: 579px";
+$sm-767 : "max-width: 767px";
+/*** mobile Landscape Size ***/
+$sm-991 : "max-width: 991px";
+/*** medium devices (tablets, less than 992px) ***/
+$sm-1023 : "max-width: 1023px";
+/*** iPad in landscape ***/
+$sm-1199 : "max-width: 1199px";
+/**** smaller than desktop 1200 (devices and browsers) ***/
+$sm-1281 : "max-width: 1281px";
+/*** laptop with MDPI (medium density per inch) resolution ***/
+$sm-1367 : "max-width: 1367px";
+/*** SP developers resolution ***/
+$sm-1441 : "max-width: 1441px";
+/*** laptop with HiDPI (High Dots Per Inch) resolution ***/
+$sm-1481 : "max-width: 1481px";
+$sm-1679 : "max-width: 1679px";
+/*** WSXGA (Wide Super Extended Graphics Array) resolution ***/
