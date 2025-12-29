@@ -268,7 +268,7 @@ function DocumentsModal({ show, onClose }) {
       closeModal={onClose}
       header={
         <div className="modal-header">
-          <h5 className="modal-title">Documents</h5>
+          <h5 className="modal-title">Reports</h5>
           <button
             type="button"
             className="modal-close-btn"
