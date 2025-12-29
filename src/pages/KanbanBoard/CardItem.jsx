@@ -2,17 +2,11 @@ import { Draggable } from "@hello-pangea/dnd";
 import PropTypes from "prop-types";
 import { Tooltip } from "react-tooltip";
 import "react-tooltip/dist/react-tooltip.css";
-import { FiLayers } from "react-icons/fi";
 import "../../design/css/CardItem.css";
 import { DownloadIcon, InprogressIcon } from "../../assets/svgs";
 
 function CardItem({ card, index, setSelectedCard, isShrunk = false }) {
   const cardColor = card.color || "#2A00FF";
-
-  // Extract board ID count from card.id (e.g., "workflow-1-card-123" -> "123")
-  const boardIdCount = card.id.includes('-card-')
-    ? card.id.split('-card-')[1]
-    : card.id.split('-').pop() || card.id;
 
   // Helper function to truncate text and add tooltip
   const TruncatedText = ({ text, maxLength = 20, tooltipId }) => {
@@ -47,7 +41,7 @@ function CardItem({ card, index, setSelectedCard, isShrunk = false }) {
           }}
         >
           {isShrunk ? (
-            // Compact view for shrunk columns - Improved UI
+            // Compact view for shrunk columns - Simple like expand view
             <>
               {/* Compact Header with Icon */}
               <div className="card-header-compact">
@@ -74,41 +68,6 @@ function CardItem({ card, index, setSelectedCard, isShrunk = false }) {
                 {card.title.length > 10 ? card.title.substring(0, 10) + "..." : card.title}
               </div>
               <Tooltip id={`title-${card.id}`} place="top" />
-
-              {/* Compact Info Row - Progress, Board ID */}
-              <div className="card-info-row-compact">
-                {/* Progress Bar */}
-                <div className="card-progress-wrapper-compact">
-                  <div className="progress-bar-compact">
-                    <div
-                      className="progress-fill-compact"
-                      style={{
-                        width: `${card.progress || 0}%`,
-                        backgroundColor: cardColor
-                      }}
-                    />
-                  </div>
-                  <span
-                    className="progress-text-compact"
-                    data-tooltip-id={`progress-${card.id}`}
-                    data-tooltip-content={`Progress: ${card.progress || 0}%`}
-                  >
-                    {card.progress || 0}%
-                  </span>
-                  <Tooltip id={`progress-${card.id}`} place="top" />
-                </div>
-
-                {/* Board ID Icon with Count */}
-                <div
-                  className="card-board-id-compact"
-                  data-tooltip-id={`board-${card.id}`}
-                  data-tooltip-content={`Board ID: ${card.id}`}
-                >
-                  <FiLayers className="board-icon-compact" />
-                  <span className="board-id-text-compact">{boardIdCount}</span>
-                </div>
-                <Tooltip id={`board-${card.id}`} place="top" />
-              </div>
             </>
           ) : (
             // Full view for normal/expanded columns
