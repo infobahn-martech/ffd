@@ -318,7 +318,7 @@ const OnStationContent = ({ formValues, handleChange, cardColor }) => {
                   <ReactQuillEditor
                     value={formValues?.onStationDescription || ""}
                     onChange={handleChange("onStationDescription")}
-                    placeholder="Enter on station description..."
+                    placeholder="Enter remarks..."
                     name="onStationDescription"
                   />
                 </FormField>

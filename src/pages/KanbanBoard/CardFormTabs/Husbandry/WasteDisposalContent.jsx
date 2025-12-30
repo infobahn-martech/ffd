@@ -348,7 +348,7 @@ const WasteDisposalContent = ({ formValues, handleChange, cardColor }) => {
                   <ReactQuillEditor
                     value={formValues?.wasteDisposalDescription || ""}
                     onChange={handleChange("wasteDisposalDescription")}
-                    placeholder="Enter waste disposal description..."
+                    placeholder="Enter remarks..."
                     name="wasteDisposalDescription"
                   />
                 </FormField>

@@ -328,7 +328,7 @@ const ThirdPartyServicesContent = ({ formValues, handleChange, cardColor }) => {
                   <ReactQuillEditor
                     value={formValues?.thirdPartyServicesDescription || ""}
                     onChange={handleChange("thirdPartyServicesDescription")}
-                    placeholder="Enter third-party services description..."
+                    placeholder="Enter remarks..."
                     name="thirdPartyServicesDescription"
                   />
                 </FormField>

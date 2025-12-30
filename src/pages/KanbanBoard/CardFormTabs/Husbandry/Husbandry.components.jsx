@@ -284,7 +284,7 @@ export const ReactQuillEditor = ({ value, onChange, placeholder, name = "descrip
         onChange={handleChange}
         modules={modules}
         formats={formats}
-        placeholder={placeholder || "Enter description..."}
+        placeholder={placeholder || "Enter remarks..."}
       />
     </div>
   );

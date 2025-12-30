@@ -318,7 +318,7 @@ const WarehouseContent = ({ formValues, handleChange, cardColor }) => {
                   <ReactQuillEditor
                     value={formValues?.warehouseDescription || ""}
                     onChange={handleChange("warehouseDescription")}
-                    placeholder="Enter warehouse description..."
+                    placeholder="Enter remarks..."
                     name="warehouseDescription"
                   />
                 </FormField>

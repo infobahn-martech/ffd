@@ -413,7 +413,7 @@ const CGPassContent = ({ formValues, handleChange, cardColor }) => {
                   <ReactQuillEditor
                     value={formValues?.cgPassDescription || ""}
                     onChange={handleChange("cgPassDescription")}
-                    placeholder="Enter CG pass description..."
+                    placeholder="Enter remarks..."
                     name="cgPassDescription"
                   />
                 </FormField>

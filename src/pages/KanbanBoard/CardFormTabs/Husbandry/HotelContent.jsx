@@ -429,7 +429,7 @@ const HotelContent = ({ formValues, handleChange, cardColor }) => {
                   <ReactQuillEditor
                     value={formValues?.hotelDescription || ""}
                     onChange={handleChange("hotelDescription")}
-                    placeholder="Enter hotel description..."
+                    placeholder="Enter remarks..."
                     name="hotelDescription"
                   />
                 </FormField>

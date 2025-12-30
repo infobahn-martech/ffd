@@ -410,7 +410,7 @@ const LaunchHireContent = ({ formValues, handleChange, cardColor }) => {
                   <ReactQuillEditor
                     value={formValues?.launchHireDescription || ""}
                     onChange={handleChange("launchHireDescription")}
-                    placeholder="Enter launch hire description..."
+                    placeholder="Enter remarks..."
                     name="launchHireDescription"
                   />
                 </FormField>

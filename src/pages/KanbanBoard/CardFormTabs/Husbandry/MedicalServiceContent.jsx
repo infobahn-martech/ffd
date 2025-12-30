@@ -383,7 +383,7 @@ const MedicalServiceContent = ({ formValues, handleChange, cardColor }) => {
                   <ReactQuillEditor
                     value={formValues?.medicalServiceDescription || ""}
                     onChange={handleChange("medicalServiceDescription")}
-                    placeholder="Enter medical service description..."
+                    placeholder="Enter remarks..."
                     name="medicalServiceDescription"
                   />
                 </FormField>

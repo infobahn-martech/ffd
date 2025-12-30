@@ -318,7 +318,7 @@ const OnOffHireSurveyContent = ({ formValues, handleChange, cardColor }) => {
                                     <ReactQuillEditor
                                         value={formValues?.onOffHireSurveyDescription || ""}
                                         onChange={handleChange("onOffHireSurveyDescription")}
-                                        placeholder="Enter on/off-hire survey description..."
+                                        placeholder="Enter remarks..."
                                         name="onOffHireSurveyDescription"
                                     />
                                 </FormField>

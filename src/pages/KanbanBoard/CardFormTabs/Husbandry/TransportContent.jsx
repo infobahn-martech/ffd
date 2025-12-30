@@ -316,7 +316,7 @@ const TransportContent = ({ formValues, handleChange, cardColor }) => {
                   <ReactQuillEditor
                     value={formValues?.transportDescription || ""}
                     onChange={handleChange("transportDescription")}
-                    placeholder="Enter transport description..."
+                    placeholder="Enter remarks..."
                     name="transportDescription"
                   />
                 </FormField>

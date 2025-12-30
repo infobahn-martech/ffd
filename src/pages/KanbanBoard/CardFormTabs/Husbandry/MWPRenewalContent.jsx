@@ -330,7 +330,7 @@ const MWPRenewalContent = ({ formValues, handleChange, cardColor }) => {
                   <ReactQuillEditor
                     value={formValues?.mwpRenewalDescription || ""}
                     onChange={handleChange("mwpRenewalDescription")}
-                    placeholder="Enter MWP renewal description..."
+                    placeholder="Enter remarks..."
                     name="mwpRenewalDescription"
                   />
                 </FormField>
