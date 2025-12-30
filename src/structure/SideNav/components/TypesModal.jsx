@@ -1,6 +1,7 @@
 import { useState, useRef, useEffect } from 'react';
 import { FiX, FiFilter, FiPlus, FiMoreVertical, FiInfo } from 'react-icons/fi';
 import { Modal } from 'react-bootstrap';
+import NewTypeModal from './NewTypeModal';
 import '../../../design/scss/blockers-modal.scss';
 
 // Types data
@@ -79,6 +80,7 @@ const TypesModal = ({ show, onClose }) => {
   const [showLabelFilter, setShowLabelFilter] = useState(false);
   const [showAvailabilityFilter, setShowAvailabilityFilter] = useState(false);
   const [showBoardsFilter, setShowBoardsFilter] = useState(false);
+  const [showNewTypeModal, setShowNewTypeModal] = useState(false);
   const [openActionMenuId, setOpenActionMenuId] = useState(null);
   const selectAllCheckboxRef = useRef(null);
   const actionMenuRefs = useRef({});
@@ -148,8 +150,7 @@ const TypesModal = ({ show, onClose }) => {
   };
 
   const handleAddType = () => {
-    // Handle add type action
-    console.log('Add type');
+    setShowNewTypeModal(true);
   };
 
   return (
@@ -362,6 +363,16 @@ const TypesModal = ({ show, onClose }) => {
           </table>
         </div>
       </Modal.Body>
+      <NewTypeModal
+        show={showNewTypeModal}
+        onClose={() => setShowNewTypeModal(false)}
+        onSave={(typeData) => {
+          // Handle saving the new type
+          console.log('New type data:', typeData);
+          // You can add logic here to update the types list
+          setShowNewTypeModal(false);
+        }}
+      />
     </Modal>
   );
 };

@@ -1,6 +1,7 @@
 import { useState, useRef, useEffect } from 'react';
 import { FiX, FiFilter, FiPlus, FiMoreVertical, FiInfo } from 'react-icons/fi';
 import { Modal } from 'react-bootstrap';
+import NewStickerModal from './NewStickerModal';
 import '../../../design/scss/blockers-modal.scss';
 
 // Stickers data
@@ -79,6 +80,7 @@ const StickersModal = ({ show, onClose }) => {
   const [showLabelFilter, setShowLabelFilter] = useState(false);
   const [showAvailabilityFilter, setShowAvailabilityFilter] = useState(false);
   const [showBoardsFilter, setShowBoardsFilter] = useState(false);
+  const [showNewStickerModal, setShowNewStickerModal] = useState(false);
   const [openActionMenuId, setOpenActionMenuId] = useState(null);
   const selectAllCheckboxRef = useRef(null);
   const actionMenuRefs = useRef({});
@@ -148,8 +150,7 @@ const StickersModal = ({ show, onClose }) => {
   };
 
   const handleAddSticker = () => {
-    // Handle add sticker action
-    console.log('Add sticker');
+    setShowNewStickerModal(true);
   };
 
   return (
@@ -362,6 +363,16 @@ const StickersModal = ({ show, onClose }) => {
           </table>
         </div>
       </Modal.Body>
+      <NewStickerModal
+        show={showNewStickerModal}
+        onClose={() => setShowNewStickerModal(false)}
+        onSave={(stickerData) => {
+          // Handle saving the new sticker
+          console.log('New sticker data:', stickerData);
+          // You can add logic here to update the stickers list
+          setShowNewStickerModal(false);
+        }}
+      />
     </Modal>
   );
 };

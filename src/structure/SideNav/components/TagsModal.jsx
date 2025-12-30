@@ -1,6 +1,7 @@
 import { useState, useRef, useEffect } from 'react';
 import { FiX, FiFilter, FiPlus, FiMoreVertical, FiInfo } from 'react-icons/fi';
 import { Modal } from 'react-bootstrap';
+import NewTagModal from './NewTagModal';
 import '../../../design/scss/blockers-modal.scss';
 
 // Tags data
@@ -79,6 +80,7 @@ const TagsModal = ({ show, onClose }) => {
   const [showLabelFilter, setShowLabelFilter] = useState(false);
   const [showAvailabilityFilter, setShowAvailabilityFilter] = useState(false);
   const [showBoardsFilter, setShowBoardsFilter] = useState(false);
+  const [showNewTagModal, setShowNewTagModal] = useState(false);
   const [openActionMenuId, setOpenActionMenuId] = useState(null);
   const selectAllCheckboxRef = useRef(null);
   const actionMenuRefs = useRef({});
@@ -148,8 +150,7 @@ const TagsModal = ({ show, onClose }) => {
   };
 
   const handleAddTag = () => {
-    // Handle add tag action
-    console.log('Add tag');
+    setShowNewTagModal(true);
   };
 
   return (
@@ -362,6 +363,16 @@ const TagsModal = ({ show, onClose }) => {
           </table>
         </div>
       </Modal.Body>
+      <NewTagModal
+        show={showNewTagModal}
+        onClose={() => setShowNewTagModal(false)}
+        onSave={(tagData) => {
+          // Handle saving the new tag
+          console.log('New tag data:', tagData);
+          // You can add logic here to update the tags list
+          setShowNewTagModal(false);
+        }}
+      />
     </Modal>
   );
 };
