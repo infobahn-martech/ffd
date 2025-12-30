@@ -57,79 +57,7 @@ FormInput.propTypes = {
   disabled: PropTypes.bool,
 };
 
-const FormSelect = ({ value, onChange, options = [], placeholder, className = "", disabled = false, isCustomDropdown = false }) => {
-  const [isOpen, setIsOpen] = useState(false);
-  const dropdownRef = useRef(null);
-  const selectedOption = options.find(opt => opt.value === value);
-
-  useEffect(() => {
-    const handleClickOutside = (event) => {
-      if (dropdownRef.current && !dropdownRef.current.contains(event.target)) {
-        setIsOpen(false);
-      }
-    };
-
-    if (isOpen) {
-      document.addEventListener('mousedown', handleClickOutside);
-      return () => {
-        document.removeEventListener('mousedown', handleClickOutside);
-      };
-    }
-  }, [isOpen]);
-
-  if (isCustomDropdown) {
-    return (
-      <div className={`cf-custom-dropdown ${className}`} ref={dropdownRef}>
-        <button
-          type="button"
-          className={`cf-custom-dropdown-button ${isOpen ? 'open' : ''} ${disabled ? 'disabled' : ''}`}
-          onClick={() => !disabled && setIsOpen(!isOpen)}
-          disabled={disabled}
-        >
-          <span className="cf-custom-dropdown-value">
-            {selectedOption ? selectedOption.label : placeholder || 'Select...'}
-          </span>
-          <svg
-            className="cf-custom-dropdown-arrow"
-            width="12"
-            height="12"
-            viewBox="0 0 12 12"
-            fill="none"
-            xmlns="http://www.w3.org/2000/svg"
-          >
-            <path
-              d="M3 4.5L6 7.5L9 4.5"
-              stroke="#3e5cb6"
-              strokeWidth="1.5"
-              strokeLinecap="round"
-              strokeLinejoin="round"
-            />
-          </svg>
-        </button>
-        {isOpen && !disabled && (
-          <div className="cf-custom-dropdown-menu">
-            {options.map((option) => {
-              const isSelected = option.value === value;
-              return (
-                <button
-                  key={option.value}
-                  type="button"
-                  className={`cf-custom-dropdown-option ${isSelected ? 'selected' : ''}`}
-                  onClick={() => {
-                    onChange({ target: { value: option.value } });
-                    setIsOpen(false);
-                  }}
-                >
-                  {option.label}
-                </button>
-              );
-            })}
-          </div>
-        )}
-      </div>
-    );
-  }
-
+const FormSelect = ({ value, onChange, options = [], placeholder, className = "", disabled = false }) => {
   return (
     <div className={`cf-select ${className}`}>
       <select value={value || ""} onChange={onChange} disabled={disabled}>
@@ -156,7 +84,6 @@ FormSelect.propTypes = {
   placeholder: PropTypes.string,
   className: PropTypes.string,
   disabled: PropTypes.bool,
-  isCustomDropdown: PropTypes.bool,
 };
 
 const OwnerField = ({ value, onChange, ownerInitial, cardUser, disabled = false }) => {
@@ -1239,7 +1166,6 @@ function General({ card, formValues, handleChange, ownerInitial, cardUser, onSav
                         options={billingEntityOptions}
                         placeholder="Select billing entity..."
                         disabled={isDisabled}
-                        isCustomDropdown={true}
                       />
                     </FormField>
 
