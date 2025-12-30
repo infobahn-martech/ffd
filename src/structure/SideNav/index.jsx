@@ -31,7 +31,8 @@ import {
   FiLayers,
   FiImage,
   FiUsers,
-  FiShield
+  FiShield,
+  FiGrid
 } from 'react-icons/fi';
 
 function SideNav({ isMobileMenuOpen, onCloseMobileMenu }) {
@@ -54,6 +55,7 @@ function SideNav({ isMobileMenuOpen, onCloseMobileMenu }) {
     { id: 3, icon: FiInbox, label: 'Workspaces' },
     { id: 4, icon: FiUsers, label: 'Board teams' },
     { id: 8, icon: FiShield, label: 'Business rules' },
+    { id: 9, icon: FiGrid, label: 'Card management' },
     { id: 5, icon: FiCalendar, label: 'Calendar' },
     { id: 6, icon: FiFileText, label: 'Reports' },
     { id: 7, icon: FiSettings, label: 'Settings' },
@@ -65,6 +67,14 @@ function SideNav({ isMobileMenuOpen, onCloseMobileMenu }) {
     { label: 'Dashboards', modal: 'dashboards' },
   ];
 
+  // Card management submenu items
+  const cardManagementSubmenu = [
+    { label: 'Blockers', route: '/card-management/blockers' },
+    { label: 'Stickers', route: '/card-management/stickers' },
+    { label: 'Tags', route: '/card-management/tags' },
+    { label: 'Types', route: '/card-management/types' },
+  ];
+
   // Select icons based on route
   const kanbanIcons = pathname === '/kanban-board' ? kanbanBoardIcons : workspacesIcons;
 
@@ -72,6 +82,7 @@ function SideNav({ isMobileMenuOpen, onCloseMobileMenu }) {
   const [activeKanbanIcon, setActiveKanbanIcon] = useState(2); // default Analytics
   const [showFilterPanel, setShowFilterPanel] = useState(false);
   const [showBoardTeamsSubmenu, setShowBoardTeamsSubmenu] = useState(false);
+  const [showCardManagementSubmenu, setShowCardManagementSubmenu] = useState(false);
   const [showManagersModal, setShowManagersModal] = useState(false);
   const [showDashboardsModal, setShowDashboardsModal] = useState(false);
   const [showBusinessRulesModal, setShowBusinessRulesModal] = useState(false);
@@ -379,7 +390,7 @@ function SideNav({ isMobileMenuOpen, onCloseMobileMenu }) {
 
   // Add/remove class to body when submenu is open to blur workspaces container
   useEffect(() => {
-    if (showBoardTeamsSubmenu) {
+    if (showBoardTeamsSubmenu || showCardManagementSubmenu) {
       document.body.classList.add('board-teams-submenu-open');
     } else {
       document.body.classList.remove('board-teams-submenu-open');
@@ -387,7 +398,7 @@ function SideNav({ isMobileMenuOpen, onCloseMobileMenu }) {
     return () => {
       document.body.classList.remove('board-teams-submenu-open');
     };
-  }, [showBoardTeamsSubmenu]);
+  }, [showBoardTeamsSubmenu, showCardManagementSubmenu]);
 
   // Close submenu when clicking outside
   useEffect(() => {
@@ -405,6 +416,22 @@ function SideNav({ isMobileMenuOpen, onCloseMobileMenu }) {
     }
   }, [showBoardTeamsSubmenu]);
 
+  // Close card management submenu when clicking outside
+  useEffect(() => {
+    if (showCardManagementSubmenu) {
+      const handleClickOutside = (event) => {
+        const sidebar = document.querySelector('.kanban-sidebar');
+        const submenu = document.querySelector('.card-management-submenu');
+        if (sidebar && !sidebar.contains(event.target) && submenu && !submenu.contains(event.target)) {
+          setShowCardManagementSubmenu(false);
+        }
+      };
+
+      document.addEventListener('mousedown', handleClickOutside);
+      return () => document.removeEventListener('mousedown', handleClickOutside);
+    }
+  }, [showCardManagementSubmenu]);
+
   // 🆕 Special layout for /kanban-board and /workspaces
   if (isKanbanBoard) {
     const handleIconClick = (item) => {
@@ -413,6 +440,7 @@ function SideNav({ isMobileMenuOpen, onCloseMobileMenu }) {
         const newShowState = !showFilterPanel;
         setShowFilterPanel(newShowState);
         setShowBoardTeamsSubmenu(false); // Close board teams submenu
+        setShowCardManagementSubmenu(false); // Close card management submenu
         if (newShowState) {
           setActiveKanbanIcon(item.id);
         }
@@ -425,6 +453,7 @@ function SideNav({ isMobileMenuOpen, onCloseMobileMenu }) {
         setShowBoardTeamsSubmenu(newShowState);
         setShowFilterPanel(false); // Close filter panel
         setShowBusinessRulesModal(false); // Close business rules modal
+        setShowCardManagementSubmenu(false); // Close card management submenu
         if (newShowState) {
           setActiveKanbanIcon(item.id);
         }
@@ -436,16 +465,33 @@ function SideNav({ isMobileMenuOpen, onCloseMobileMenu }) {
         setShowBusinessRulesModal(true);
         setShowFilterPanel(false); // Close filter panel
         setShowBoardTeamsSubmenu(false); // Close board teams submenu
+        setShowCardManagementSubmenu(false); // Close card management submenu
         setActiveKanbanIcon(item.id);
         return;
       }
 
-      // Close filter panel, board teams submenu, and business rules modal when other icons are clicked
+      // If Card management icon is clicked, toggle submenu
+      if (item.label === 'Card management') {
+        const newShowState = !showCardManagementSubmenu;
+        setShowCardManagementSubmenu(newShowState);
+        setShowFilterPanel(false); // Close filter panel
+        setShowBoardTeamsSubmenu(false); // Close board teams submenu
+        setShowBusinessRulesModal(false); // Close business rules modal
+        if (newShowState) {
+          setActiveKanbanIcon(item.id);
+        }
+        return;
+      }
+
+      // Close filter panel, board teams submenu, card management submenu, and business rules modal when other icons are clicked
       if (showFilterPanel) {
         setShowFilterPanel(false);
       }
       if (showBoardTeamsSubmenu) {
         setShowBoardTeamsSubmenu(false);
+      }
+      if (showCardManagementSubmenu) {
+        setShowCardManagementSubmenu(false);
       }
       if (showBusinessRulesModal) {
         setShowBusinessRulesModal(false);
@@ -478,6 +524,13 @@ function SideNav({ isMobileMenuOpen, onCloseMobileMenu }) {
       }
     };
 
+    const handleCardManagementSubmenuClick = (item) => {
+      setShowCardManagementSubmenu(false);
+      if (item.route) {
+        navigate(item.route);
+      }
+    };
+
     return (
       <>
         <aside className="kanban-sidebar">
@@ -486,7 +539,8 @@ function SideNav({ isMobileMenuOpen, onCloseMobileMenu }) {
             const isActive = activeKanbanIcon === item.id ||
               (item.label === 'Filter' && showFilterPanel) ||
               (item.label === 'Board teams' && showBoardTeamsSubmenu) ||
-              (item.label === 'Business rules' && showBusinessRulesModal);
+              (item.label === 'Business rules' && showBusinessRulesModal) ||
+              (item.label === 'Card management' && showCardManagementSubmenu);
             return (
               <div key={item.id} style={{ position: 'relative' }}>
                 <div
@@ -504,6 +558,19 @@ function SideNav({ isMobileMenuOpen, onCloseMobileMenu }) {
                         key={index}
                         className="kanban-sidebar-submenu-item"
                         onClick={() => handleSubmenuClick(subItem)}
+                      >
+                        {subItem.label}
+                      </div>
+                    ))}
+                  </div>
+                )}
+                {item.label === 'Card management' && showCardManagementSubmenu && (
+                  <div className="kanban-sidebar-submenu card-management-submenu">
+                    {cardManagementSubmenu.map((subItem, index) => (
+                      <div
+                        key={index}
+                        className="kanban-sidebar-submenu-item"
+                        onClick={() => handleCardManagementSubmenuClick(subItem)}
                       >
                         {subItem.label}
                       </div>
@@ -589,3 +656,4 @@ function SideNav({ isMobileMenuOpen, onCloseMobileMenu }) {
 }
 
 export default SideNav;
+
