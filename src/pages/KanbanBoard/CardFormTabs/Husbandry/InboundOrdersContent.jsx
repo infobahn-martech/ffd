@@ -1,32 +1,35 @@
-import { useState, useRef, useEffect } from "react";
+import { useState, useEffect } from "react";
 import PropTypes from "prop-types";
 import CustomModal from "../../../../components/CustomModal";
 import { FormField, FormInput, FormSelect } from "./Husbandry.components";
-import LocationAutocomplete from "./LocationAutocomplete";
 
 // Generate dummy inbound orders data
 const generateDummyInboundOrders = () => {
-  const materialTypes = ["Equipment", "Supplies", "Spare Parts", "Tools", "Consumables"];
-  const drivers = ["John Doe", "Jane Smith", "Mike Johnson", "Sarah Williams", "David Brown"];
-  const statuses = ["Pending", "In Transit", "Delivered", "Cancelled"];
+  const packageTypes = ["Box", "Pallet", "Crate", "Bag", "Container"];
+  const descriptions = [
+    "Spare parts for vessel maintenance",
+    "Safety equipment and supplies",
+    "Food and beverage items",
+    "Technical equipment",
+    "Cleaning supplies",
+    "Medical supplies",
+    "Office supplies",
+    "Tools and hardware"
+  ];
 
   const dummyOrders = [];
   for (let i = 1; i <= 10; i++) {
-    const pickupDate = new Date();
-    pickupDate.setDate(pickupDate.getDate() - Math.floor(Math.random() * 30));
-    const dropOffDate = new Date(pickupDate);
-    dropOffDate.setDate(dropOffDate.getDate() + Math.floor(Math.random() * 7));
+    const orderDate = new Date();
+    orderDate.setDate(orderDate.getDate() - Math.floor(Math.random() * 30));
 
     dummyOrders.push({
       id: i,
-      materialToCollectOrDeliver: Math.random() > 0.5 ? "Collect" : "Deliver",
-      materialType: materialTypes[Math.floor(Math.random() * materialTypes.length)],
-      driver: drivers[Math.floor(Math.random() * drivers.length)],
-      pickUp: pickupDate.toISOString().slice(0, 16),
-      dropOff: dropOffDate.toISOString().slice(0, 16),
-      dropOffLocation: `Location ${i}`,
-      status: statuses[Math.floor(Math.random() * statuses.length)],
-      documents: [],
+      orderNo: `ORD-${String(i).padStart(5, '0')}`,
+      date: orderDate.toISOString().split('T')[0],
+      poDo: `PO-${String(i).padStart(4, '0')}`,
+      quantity: Math.floor(Math.random() * 100) + 1,
+      packageType: packageTypes[Math.floor(Math.random() * packageTypes.length)],
+      description: descriptions[Math.floor(Math.random() * descriptions.length)],
     });
   }
   return dummyOrders;
@@ -35,22 +38,15 @@ const generateDummyInboundOrders = () => {
 const InboundOrdersContent = ({ formValues, handleChange, cardColor }) => {
   const [showModal, setShowModal] = useState(false);
   const [ordersList, setOrdersList] = useState([]);
-  const [isDragging, setIsDragging] = useState(false);
-  const [selectedFiles, setSelectedFiles] = useState([]);
-  const fileInputRef = useRef(null);
 
   // Form state
   const [formData, setFormData] = useState({
-    materialType: "",
-    materialToCollectOrDeliver: "",
-    driver: "",
-    pickUpDate: "",
-    pickUpTime: "",
-    dropOffDate: "",
-    dropOffTime: "",
-    dropOffLocation: "",
-    status: "",
-    documents: [],
+    orderNo: "",
+    date: "",
+    poDo: "",
+    quantity: "",
+    packageType: "",
+    description: "",
   });
 
   // Initialize with dummy data on mount if empty
@@ -75,36 +71,26 @@ const InboundOrdersContent = ({ formValues, handleChange, cardColor }) => {
 
   const handleOpenModal = () => {
     setFormData({
-      materialType: "",
-      materialToCollectOrDeliver: "",
-      driver: "",
-      pickUpDate: "",
-      pickUpTime: "",
-      dropOffDate: "",
-      dropOffTime: "",
-      dropOffLocation: "",
-      status: "",
-      documents: [],
+      orderNo: "",
+      date: "",
+      poDo: "",
+      quantity: "",
+      packageType: "",
+      description: "",
     });
-    setSelectedFiles([]);
     setShowModal(true);
   };
 
   const handleCloseModal = () => {
     setShowModal(false);
     setFormData({
-      materialType: "",
-      materialToCollectOrDeliver: "",
-      driver: "",
-      pickUpDate: "",
-      pickUpTime: "",
-      dropOffDate: "",
-      dropOffTime: "",
-      dropOffLocation: "",
-      status: "",
-      documents: [],
+      orderNo: "",
+      date: "",
+      poDo: "",
+      quantity: "",
+      packageType: "",
+      description: "",
     });
-    setSelectedFiles([]);
   };
 
   const handleFormChange = (field, value) => {
@@ -117,24 +103,14 @@ const InboundOrdersContent = ({ formValues, handleChange, cardColor }) => {
   const handleSubmit = (e) => {
     e.preventDefault();
 
-    // Combine date and time for pickUp and dropOff
-    const pickUp = formData.pickUpDate && formData.pickUpTime
-      ? `${formData.pickUpDate}T${formData.pickUpTime}`
-      : "";
-    const dropOff = formData.dropOffDate && formData.dropOffTime
-      ? `${formData.dropOffDate}T${formData.dropOffTime}`
-      : "";
-
     const newOrder = {
       id: ordersList.length > 0 ? Math.max(...ordersList.map(m => m.id)) + 1 : 1,
-      materialToCollectOrDeliver: formData.materialToCollectOrDeliver,
-      materialType: formData.materialType,
-      driver: formData.driver,
-      pickUp: pickUp,
-      dropOff: dropOff,
-      dropOffLocation: formData.dropOffLocation,
-      status: formData.status,
-      documents: selectedFiles,
+      orderNo: formData.orderNo || `ORD-${String(ordersList.length + 1).padStart(5, '0')}`,
+      date: formData.date,
+      poDo: formData.poDo,
+      quantity: formData.quantity,
+      packageType: formData.packageType,
+      description: formData.description,
     };
 
     const updatedList = [...ordersList, newOrder];
@@ -147,88 +123,23 @@ const InboundOrdersContent = ({ formValues, handleChange, cardColor }) => {
     handleCloseModal();
   };
 
-  // File upload handlers
-  const handleDragOver = (e) => {
-    e.preventDefault();
-    setIsDragging(true);
-  };
 
-  const handleDragLeave = (e) => {
-    e.preventDefault();
-    setIsDragging(false);
-  };
-
-  const handleDrop = (e) => {
-    e.preventDefault();
-    setIsDragging(false);
-    const files = Array.from(e.dataTransfer.files);
-    handleFiles(files);
-  };
-
-  const handleBrowseClick = () => {
-    fileInputRef.current?.click();
-  };
-
-  const handleFileChange = (e) => {
-    const files = Array.from(e.target.files);
-    handleFiles(files);
-  };
-
-  const handleFiles = (files) => {
-    const validFiles = files.filter((file) => {
-      const maxSize = 10 * 1024 * 1024; // 10MB
-      const validTypes = [".pdf", ".doc", ".docx", ".jpg", ".jpeg", ".png"];
-      const fileExtension = "." + file.name.split(".").pop().toLowerCase();
-      return file.size <= maxSize && validTypes.includes(fileExtension);
-    });
-
-    setSelectedFiles((prev) => [...prev, ...validFiles]);
-  };
-
-  const handleRemoveFile = (index) => {
-    setSelectedFiles((prev) => prev.filter((_, i) => i !== index));
-  };
-
-  const formatDateTime = (dateTimeString) => {
-    if (!dateTimeString) return "";
-    const date = new Date(dateTimeString);
-    return date.toLocaleString("en-US", {
+  const formatDate = (dateString) => {
+    if (!dateString) return "";
+    const date = new Date(dateString);
+    return date.toLocaleDateString("en-US", {
       year: "numeric",
       month: "short",
       day: "numeric",
-      hour: "2-digit",
-      minute: "2-digit",
     });
   };
 
-  const getStatusClass = (status) => {
-    const statusMap = {
-      Pending: "status-pending",
-      "In Transit": "status-in-progress",
-      Delivered: "status-completed",
-      Cancelled: "status-cancelled",
-    };
-    return statusMap[status] || "";
-  };
-
-  const materialTypeOptions = [
-    { value: "Equipment", label: "Equipment" },
-    { value: "Supplies", label: "Supplies" },
-    { value: "Spare Parts", label: "Spare Parts" },
-    { value: "Tools", label: "Tools" },
-    { value: "Consumables", label: "Consumables" },
-  ];
-
-  const statusOptions = [
-    { value: "Pending", label: "Pending" },
-    { value: "In Transit", label: "In Transit" },
-    { value: "Delivered", label: "Delivered" },
-    { value: "Cancelled", label: "Cancelled" },
-  ];
-
-  const collectOrDeliverOptions = [
-    { value: "Collect", label: "Collect" },
-    { value: "Deliver", label: "Deliver" },
+  const packageTypeOptions = [
+    { value: "Box", label: "Box" },
+    { value: "Pallet", label: "Pallet" },
+    { value: "Crate", label: "Crate" },
+    { value: "Bag", label: "Bag" },
+    { value: "Container", label: "Container" },
   ];
 
   const renderHeader = () => (
@@ -243,227 +154,70 @@ const InboundOrdersContent = ({ formValues, handleChange, cardColor }) => {
         <form id="inboundOrderForm" onSubmit={handleSubmit}>
           <div className="permInputs row mb-lg-3">
             <div className="col-12 mb-3">
-              <FormField label="Material to collect or deliver">
-                <FormSelect
-                  value={formData.materialToCollectOrDeliver}
-                  onChange={(e) => handleFormChange("materialToCollectOrDeliver", e.target.value)}
-                  options={collectOrDeliverOptions}
-                  placeholder="Select..."
-                />
-              </FormField>
-            </div>
-
-            <div className="col-12 mb-3">
-              <FormField label="Type of Material">
-                <FormSelect
-                  value={formData.materialType}
-                  onChange={(e) => handleFormChange("materialType", e.target.value)}
-                  options={materialTypeOptions}
-                  placeholder="Select material type..."
-                />
-              </FormField>
-            </div>
-
-            <div className="col-12 mb-3">
-              <FormField label="Driver">
+              <FormField label="Order No">
                 <FormInput
                   type="text"
-                  value={formData.driver}
-                  onChange={(e) => handleFormChange("driver", e.target.value)}
-                  placeholder="Enter driver name..."
+                  value={formData.orderNo}
+                  onChange={(e) => handleFormChange("orderNo", e.target.value)}
+                  placeholder="Enter order number..."
                 />
               </FormField>
             </div>
 
             <div className="col-12 mb-3">
-              <FormField label="PickUp">
-                <div className="cf-input date-time-row">
+              <FormField label="Date">
+                <div className="cf-input">
                   <input
                     type="date"
-                    value={formData.pickUpDate}
-                    onChange={(e) => handleFormChange("pickUpDate", e.target.value)}
+                    value={formData.date}
+                    onChange={(e) => handleFormChange("date", e.target.value)}
                     placeholder="Select date"
-                  />
-                  <input
-                    type="time"
-                    value={formData.pickUpTime}
-                    onChange={(e) => handleFormChange("pickUpTime", e.target.value)}
-                    placeholder="Select time"
                   />
                 </div>
               </FormField>
             </div>
 
             <div className="col-12 mb-3">
-              <FormField label="DropOff">
-                <div className="cf-input date-time-row">
-                  <input
-                    type="date"
-                    value={formData.dropOffDate}
-                    onChange={(e) => handleFormChange("dropOffDate", e.target.value)}
-                    placeholder="Select date"
-                  />
-                  <input
-                    type="time"
-                    value={formData.dropOffTime}
-                    onChange={(e) => handleFormChange("dropOffTime", e.target.value)}
-                    placeholder="Select time"
-                  />
-                </div>
-              </FormField>
-            </div>
-
-            <div className="col-12 mb-3">
-              <FormField label="Drop off location">
-                <LocationAutocomplete
-                  value={formData.dropOffLocation || ""}
-                  onChange={(e) => handleFormChange("dropOffLocation", e.target.value)}
-                  placeholder="Search for a location..."
-                  onLocationSelect={(locationData) => {
-                    console.log("Drop off location selected:", locationData);
-                  }}
+              <FormField label="PO/DO">
+                <FormInput
+                  type="text"
+                  value={formData.poDo}
+                  onChange={(e) => handleFormChange("poDo", e.target.value)}
+                  placeholder="Enter PO/DO number..."
                 />
               </FormField>
             </div>
 
             <div className="col-12 mb-3">
-              <FormField label="Status">
+              <FormField label="Quantity">
+                <FormInput
+                  type="number"
+                  value={formData.quantity}
+                  onChange={(e) => handleFormChange("quantity", e.target.value)}
+                  placeholder="Enter quantity..."
+                />
+              </FormField>
+            </div>
+
+            <div className="col-12 mb-3">
+              <FormField label="Package Type">
                 <FormSelect
-                  value={formData.status}
-                  onChange={(e) => handleFormChange("status", e.target.value)}
-                  options={statusOptions}
-                  placeholder="Select status..."
+                  value={formData.packageType}
+                  onChange={(e) => handleFormChange("packageType", e.target.value)}
+                  options={packageTypeOptions}
+                  placeholder="Select package type..."
                 />
               </FormField>
             </div>
 
             <div className="col-12 mb-3">
-              <FormField label="Delivery Receipt">
-                <div
-                  className={`document-upload-zone ${isDragging ? "dragging" : ""}`}
-                  onDragOver={handleDragOver}
-                  onDragLeave={handleDragLeave}
-                  onDrop={handleDrop}
-                  onClick={handleBrowseClick}
-                >
-                  <input
-                    ref={fileInputRef}
-                    type="file"
-                    id="inboundOrderDocuments"
-                    multiple
-                    onChange={handleFileChange}
-                    className="file-input-hidden"
-                    accept=".pdf,.doc,.docx,.jpg,.jpeg,.png"
-                  />
-
-                  {selectedFiles.length === 0 ? (
-                    <div className="upload-zone-content">
-                      <div className="upload-icon-wrapper">
-                        <svg
-                          width="48"
-                          height="48"
-                          viewBox="0 0 48 48"
-                          fill="none"
-                          xmlns="http://www.w3.org/2000/svg"
-                        >
-                          <rect
-                            x="4"
-                            y="4"
-                            width="40"
-                            height="40"
-                            rx="8"
-                            stroke="#00368c"
-                            strokeWidth="2"
-                            strokeDasharray="4 4"
-                            fill="none"
-                          />
-                          <path
-                            d="M24 16V32M24 16L18 22M24 16L30 22M12 36H36"
-                            stroke="#00368c"
-                            strokeWidth="2"
-                            strokeLinecap="round"
-                            strokeLinejoin="round"
-                          />
-                        </svg>
-                      </div>
-                      <div className="upload-text-content">
-                        <p className="upload-main-text">
-                          Drag & drop files here, or <span className="upload-link">browse</span>
-                        </p>
-                        <p className="upload-sub-text">
-                          Supports: PDF, DOC, DOCX, JPG, PNG (Max 10MB per file)
-                        </p>
-                      </div>
-                    </div>
-                  ) : (
-                    <div className="uploaded-files-list">
-                      <div className="files-header">
-                        <span className="files-count">{selectedFiles.length} file(s) uploaded</span>
-                        <div className="files-header-actions">
-                          <button
-                            type="button"
-                            className="add-more-files-btn"
-                            onClick={(e) => {
-                              e.stopPropagation();
-                              handleBrowseClick();
-                            }}
-                            style={{ "--card-color": cardColor }}
-                          >
-                            + Add More
-                          </button>
-                          <button
-                            type="button"
-                            className="btn-remove-files"
-                            onClick={(e) => {
-                              e.stopPropagation();
-                              setSelectedFiles([]);
-                            }}
-                            style={{ "--card-color": cardColor }}
-                          >
-                            Remove All
-                          </button>
-                        </div>
-                      </div>
-                      <div className="files-list">
-                        {selectedFiles.map((file, index) => (
-                          <div key={index} className="file-item">
-                            <div className="file-info">
-                              <span className="file-name">{file.name}</span>
-                              <span className="file-size">
-                                {(file.size / 1024 / 1024).toFixed(2)} MB
-                              </span>
-                            </div>
-                            <button
-                              type="button"
-                              className="btn-remove-file"
-                              onClick={(e) => {
-                                e.stopPropagation();
-                                handleRemoveFile(index);
-                              }}
-                              style={{ "--card-color": cardColor }}
-                            >
-                              <svg
-                                width="16"
-                                height="16"
-                                viewBox="0 0 16 16"
-                                fill="none"
-                                xmlns="http://www.w3.org/2000/svg"
-                              >
-                                <path
-                                  d="M12 4L4 12M4 4L12 12"
-                                  stroke="#999"
-                                  strokeWidth="1.5"
-                                  strokeLinecap="round"
-                                  strokeLinejoin="round"
-                                />
-                              </svg>
-                            </button>
-                          </div>
-                        ))}
-                      </div>
-                    </div>
-                  )}
-                </div>
+              <FormField label="Description">
+                <FormInput
+                  type="text"
+                  value={formData.description}
+                  onChange={(e) => handleFormChange("description", e.target.value)}
+                  placeholder="Enter description..."
+                />
               </FormField>
             </div>
           </div>
@@ -512,11 +266,12 @@ const InboundOrdersContent = ({ formValues, handleChange, cardColor }) => {
         <table className="table table-striped material-table" style={{ "--card-color": "#e2e6ff" }}>
           <thead>
             <tr>
-              <th>Material Type</th>
-              <th>Driver</th>
-              <th>PickUp</th>
-              <th>DropOff</th>
-              <th>Status</th>
+              <th>Order No</th>
+              <th>Date</th>
+              <th>PO/DO</th>
+              <th>Quantity</th>
+              <th>Package Type</th>
+              <th>Description</th>
             </tr>
           </thead>
           <tbody>
@@ -524,31 +279,30 @@ const InboundOrdersContent = ({ formValues, handleChange, cardColor }) => {
               ordersList.map((order) => (
                 <tr key={order.id}>
                   <td>
-                    <div className="material-table-cell">{order.materialType || ""}</div>
-                  </td>
-                  <td>
-                    <div className="material-table-cell">{order.driver || ""}</div>
+                    <div className="material-table-cell">{order.orderNo || ""}</div>
                   </td>
                   <td>
                     <div className="material-table-cell">
-                      {formatDateTime(order.pickUp)}
+                      {formatDate(order.date)}
                     </div>
                   </td>
                   <td>
-                    <div className="material-table-cell">
-                      {formatDateTime(order.dropOff)}
-                    </div>
+                    <div className="material-table-cell">{order.poDo || ""}</div>
                   </td>
                   <td>
-                    <div className={`material-table-cell ${getStatusClass(order.status)}`}>
-                      {order.status || ""}
-                    </div>
+                    <div className="material-table-cell">{order.quantity || ""}</div>
+                  </td>
+                  <td>
+                    <div className="material-table-cell">{order.packageType || ""}</div>
+                  </td>
+                  <td>
+                    <div className="material-table-cell">{order.description || ""}</div>
                   </td>
                 </tr>
               ))
             ) : (
               <tr>
-                <td colSpan="5" style={{ textAlign: "center", padding: "20px" }}>
+                <td colSpan="6" style={{ textAlign: "center", padding: "20px" }}>
                   No inbound orders added yet. Click "Add" to add a new order.
                 </td>
               </tr>
