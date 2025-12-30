@@ -316,8 +316,11 @@ function Husbandry({ card, formValues, handleChange }) {
       setActiveSubTab(CREW_MANAGEMENT_SUBTABS.CREW);
     } else if (tab === MAIN_TABS.MATERIAL_MANAGEMENT) {
       setActiveSubTab(MATERIAL_MANAGEMENT_SUBTABS.MATERIAL_LIST);
-    } else if (tab === MAIN_TABS.WASTE_DISPOSAL) {
-      // Waste Disposal - no subtabs
+    } else if (tab === MAIN_TABS.WAREHOUSE || 
+               tab === MAIN_TABS.ON_OFF_HIRE_SURVEY || 
+               tab === MAIN_TABS.ON_STATION || 
+               tab === MAIN_TABS.WASTE_DISPOSAL) {
+      // These services have no subtabs
       setActiveSubTab(null);
     }
   }, []);

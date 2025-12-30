@@ -11,6 +11,9 @@ export const HusbandryTabs = ({ activeMainTab, activeSubTab, onMainTabChange, on
   // Filter main tabs based on selected services
   const allMainTabs = [
     { id: MAIN_TABS.CREW_MANAGEMENT, label: "Crew Management" },
+    { id: MAIN_TABS.WAREHOUSE, label: "Warehouse" },
+    { id: MAIN_TABS.ON_OFF_HIRE_SURVEY, label: "On/Off-Hire Survey" },
+    { id: MAIN_TABS.ON_STATION, label: "On Station" },
     { id: MAIN_TABS.MATERIAL_MANAGEMENT, label: "Material Management" },
     { id: MAIN_TABS.WASTE_DISPOSAL, label: "Waste Disposal" },
     { id: MAIN_TABS.MWP_RENEWAL, label: "MWP Renewal" },
@@ -49,6 +52,15 @@ export const HusbandryTabs = ({ activeMainTab, activeSubTab, onMainTabChange, on
     subTabs = [
       { id: MATERIAL_MANAGEMENT_SUBTABS.MATERIAL_LIST, label: "Material" },
     ];
+  } else if (activeMainTab === MAIN_TABS.WAREHOUSE) {
+    // Warehouse - no sub-tabs for now
+    subTabs = [];
+  } else if (activeMainTab === MAIN_TABS.ON_OFF_HIRE_SURVEY) {
+    // On/Off-Hire Survey - no sub-tabs for now
+    subTabs = [];
+  } else if (activeMainTab === MAIN_TABS.ON_STATION) {
+    // On Station - no sub-tabs for now
+    subTabs = [];
   } else if (activeMainTab === MAIN_TABS.WASTE_DISPOSAL) {
     // Waste Disposal - no sub-tabs for now
     subTabs = [];
