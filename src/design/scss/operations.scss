@@ -219,7 +219,8 @@
   display: flex;
   align-items: center;
   gap: 12px;
-  padding: 0 8px;
+  padding: 6px 8px; /* Add top/bottom padding to accommodate hover transform and prevent border clipping */
+  overflow: visible; /* Ensure hover effects are not clipped */
 }
 
 .husbandry-service-options-row {
@@ -235,6 +236,7 @@
   -webkit-overflow-scrolling: touch;
   scrollbar-width: none; /* Firefox */
   -ms-overflow-style: none; /* IE and Edge */
+  padding: 6px 0; /* Add padding to accommodate hover transform and prevent border clipping */
   
   &::-webkit-scrollbar {
     display: none; /* Chrome, Safari, Opera */
@@ -278,10 +280,11 @@
 }
 
 .husbandry-service-option:hover {
-  border-color: var(--card-color, #00368c);
+  border: 2px solid var(--card-color, #00368c);
   background: linear-gradient(135deg, rgba(0, 54, 140, 0.03) 0%, rgba(0, 54, 140, 0.01) 100%);
   transform: translateY(-4px);
   box-shadow: 0 8px 24px rgba(0, 54, 140, 0.15);
+  z-index: 1;
 }
 
 .husbandry-service-option:active {
