@@ -1,4 +1,4 @@
-import { useState, useCallback } from "react";
+import { useState, useCallback, useRef, useEffect } from "react";
 import PropTypes from "prop-types";
 import "../../../design/scss/operations.scss";
 import "../../../design/scss/table-common.scss";
@@ -27,6 +27,43 @@ import MWPRenewalContent from "./Husbandry/MWPRenewalContent";
 
 // Service Selection Component
 const ServiceSelection = ({ onSelectService, cardColor, bookedServices = [] }) => {
+  const [showLeftArrow, setShowLeftArrow] = useState(false);
+  const [showRightArrow, setShowRightArrow] = useState(true);
+  const scrollContainerRef = useRef(null);
+
+  const checkScrollButtons = useCallback(() => {
+    if (scrollContainerRef.current) {
+      const { scrollLeft, scrollWidth, clientWidth } = scrollContainerRef.current;
+      setShowLeftArrow(scrollLeft > 0);
+      setShowRightArrow(scrollLeft < scrollWidth - clientWidth - 10);
+    }
+  }, []);
+
+  useEffect(() => {
+    checkScrollButtons();
+    const container = scrollContainerRef.current;
+    if (container) {
+      container.addEventListener('scroll', checkScrollButtons);
+      window.addEventListener('resize', checkScrollButtons);
+      return () => {
+        container.removeEventListener('scroll', checkScrollButtons);
+        window.removeEventListener('resize', checkScrollButtons);
+      };
+    }
+  }, [checkScrollButtons]);
+
+  const scrollLeft = () => {
+    if (scrollContainerRef.current) {
+      scrollContainerRef.current.scrollBy({ left: -300, behavior: 'smooth' });
+    }
+  };
+
+  const scrollRight = () => {
+    if (scrollContainerRef.current) {
+      scrollContainerRef.current.scrollBy({ left: 300, behavior: 'smooth' });
+    }
+  };
+
   const services = [
     { id: MAIN_TABS.CREW_MANAGEMENT, label: "Crew Management", icon: "clock" },
     { id: MAIN_TABS.WAREHOUSE, label: "Warehouse", icon: "document" },
@@ -80,32 +117,58 @@ const ServiceSelection = ({ onSelectService, cardColor, bookedServices = [] }) =
     <div className="husbandry-service-selection" style={{ "--card-color": cardColor }}>
       <div className="husbandry-service-selection-content">
         <h2 className="husbandry-service-selection-title">What services do you need?</h2>
-        <div className="husbandry-service-options-row">
-          {services.map((service) => {
-            const isBooked = bookedServices.some(bs => bs.id === service.id);
-            return (
-              <button
-                key={service.id}
-                type="button"
-                className={`husbandry-service-option ${isBooked ? "booked" : ""}`}
-                onClick={() => onSelectService(service.id)}
-                style={{ "--card-color": cardColor }}
-              >
-                <div className="husbandry-service-option-icon">
-                  {getServiceIcon(service.icon)}
-                </div>
-                <span className="husbandry-service-option-label">{service.label}</span>
-                {isBooked && (
-                  <div className="husbandry-service-booked-badge">
-                    <svg width="16" height="16" viewBox="0 0 20 20" fill="none" xmlns="http://www.w3.org/2000/svg">
-                      <circle cx="10" cy="10" r="9" fill="#00B894" stroke="#00B894" strokeWidth="2" />
-                      <path d="M6 10L9 13L14 7" stroke="white" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
-                    </svg>
+        <div className="husbandry-service-scroll-wrapper">
+          {showLeftArrow && (
+            <button
+              type="button"
+              className="husbandry-scroll-button husbandry-scroll-button-left"
+              onClick={scrollLeft}
+              aria-label="Scroll left"
+            >
+              <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                <path d="M15 18L9 12L15 6" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+              </svg>
+            </button>
+          )}
+          <div className="husbandry-service-options-row" ref={scrollContainerRef}>
+            {services.map((service) => {
+              const isBooked = bookedServices.some(bs => bs.id === service.id);
+              return (
+                <button
+                  key={service.id}
+                  type="button"
+                  className={`husbandry-service-option ${isBooked ? "booked" : ""}`}
+                  onClick={() => onSelectService(service.id)}
+                  style={{ "--card-color": cardColor }}
+                >
+                  <div className="husbandry-service-option-icon">
+                    {getServiceIcon(service.icon)}
                   </div>
-                )}
-              </button>
-            );
-          })}
+                  <span className="husbandry-service-option-label">{service.label}</span>
+                  {isBooked && (
+                    <div className="husbandry-service-booked-badge">
+                      <svg width="16" height="16" viewBox="0 0 20 20" fill="none" xmlns="http://www.w3.org/2000/svg">
+                        <circle cx="10" cy="10" r="9" fill="#00B894" stroke="#00B894" strokeWidth="2" />
+                        <path d="M6 10L9 13L14 7" stroke="white" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+                      </svg>
+                    </div>
+                  )}
+                </button>
+              );
+            })}
+          </div>
+          {showRightArrow && (
+            <button
+              type="button"
+              className="husbandry-scroll-button husbandry-scroll-button-right"
+              onClick={scrollRight}
+              aria-label="Scroll right"
+            >
+              <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                <path d="M9 18L15 12L9 6" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+              </svg>
+            </button>
+          )}
         </div>
 
         {bookedServices.length > 0 && (
