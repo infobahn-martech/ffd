@@ -1,4 +1,8 @@
 .new-blocker-modal {
+  .modal-dialog {
+    max-width: 520px;
+  }
+
   .modal-content {
     border-radius: 12px;
     border: none;
@@ -49,10 +53,23 @@
     gap: 24px;
   }
 
+  .new-blocker-row-fields {
+    display: flex;
+    align-items: flex-start;
+    gap: 20px;
+    flex-wrap: nowrap;
+  }
+
   .new-blocker-field {
     display: flex;
     flex-direction: column;
     gap: 12px;
+    flex-shrink: 0;
+
+    &.new-blocker-field-full {
+      flex: 1;
+      min-width: 0;
+    }
   }
 
   .new-blocker-label {
@@ -68,8 +85,8 @@
   }
 
   .new-blocker-color-swatch {
-    width: 64px;
-    height: 64px;
+    width: 56px;
+    height: 56px;
     border-radius: 50%;
     border: 2px solid #e2e2ea;
     cursor: pointer;
@@ -94,8 +111,8 @@
   }
 
   .new-blocker-icon-preview {
-    width: 64px;
-    height: 64px;
+    width: 56px;
+    height: 56px;
     border-radius: 50%;
     border: 2px solid #e2e2ea;
     cursor: pointer;
@@ -187,6 +204,7 @@
     background: #ffffff;
     transition: all 0.2s ease;
     font-family: 'Inter', sans-serif;
+    width: 100%;
 
     &:focus {
       outline: none;
@@ -202,7 +220,7 @@
   .new-blocker-boards-text {
     font-size: 14px;
     color: #666;
-    margin: 0;
+    margin: 0 0 12px 0;
     font-family: 'Inter', sans-serif;
   }
 

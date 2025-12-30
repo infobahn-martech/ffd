@@ -256,6 +256,7 @@ const NewBlockerModal = ({ show, onClose, onSave }) => {
             className="new-blocker-modal"
             centered
             size="md"
+            dialogClassName="new-blocker-modal-dialog"
         >
             <Modal.Header className="new-blocker-modal-header">
                 <Modal.Title className="new-blocker-modal-title">New Card Blocker</Modal.Title>
@@ -270,67 +271,70 @@ const NewBlockerModal = ({ show, onClose, onSave }) => {
             </Modal.Header>
             <Modal.Body className="new-blocker-modal-body">
                 <div className="new-blocker-form">
-                    {/* Color Field */}
-                    <div className="new-blocker-field">
-                        <label className="new-blocker-label">Color</label>
-                        <div className="new-blocker-color-wrapper">
-                            <button
-                                type="button"
-                                className="new-blocker-color-swatch"
-                                style={{ backgroundColor: selectedColor }}
-                                onClick={() => setIsColorPickerOpen(!isColorPickerOpen)}
-                            />
-                            <ColorPickerDropdown
-                                isOpen={isColorPickerOpen}
-                                onClose={() => setIsColorPickerOpen(false)}
-                                selectedColor={selectedColor}
-                                onColorSelect={handleColorSelect}
-                            />
-                        </div>
-                    </div>
-
-                    {/* Icon Field */}
-                    <div className="new-blocker-field">
-                        <label className="new-blocker-label">Icon</label>
-                        <div className="new-blocker-icon-wrapper">
-                            <div className="new-blocker-icon-wrapper-inner" ref={iconPickerRef}>
+                    {/* Color, Icon, and Label in a row */}
+                    <div className="new-blocker-row-fields">
+                        {/* Color Field */}
+                        <div className="new-blocker-field">
+                            <label className="new-blocker-label">Color</label>
+                            <div className="new-blocker-color-wrapper">
                                 <button
                                     type="button"
-                                    className="new-blocker-icon-preview"
-                                    onClick={() => setIsIconPickerOpen(!isIconPickerOpen)}
+                                    className="new-blocker-color-swatch"
                                     style={{ backgroundColor: selectedColor }}
-                                >
-                                    <IconRenderer symbol={selectedIcon} size={20} color={rgbToHex(selectedColor) === '#000000' || rgbToHex(selectedColor) === '#8B0000' ? '#ffffff' : '#000000'} />
-                                </button>
-                                {isIconPickerOpen && (
-                                    <div className="new-blocker-icon-grid">
-                                        {ICON_SYMBOLS.map((symbol) => (
-                                            <button
-                                                key={symbol}
-                                                type="button"
-                                                className={`new-blocker-icon-item ${selectedIcon === symbol ? 'selected' : ''}`}
-                                                onClick={() => handleIconSelect(symbol)}
-                                                title={symbol}
-                                            >
-                                                <IconRenderer symbol={symbol} size={20} color="#000" />
-                                            </button>
-                                        ))}
-                                    </div>
-                                )}
+                                    onClick={() => setIsColorPickerOpen(!isColorPickerOpen)}
+                                />
+                                <ColorPickerDropdown
+                                    isOpen={isColorPickerOpen}
+                                    onClose={() => setIsColorPickerOpen(false)}
+                                    selectedColor={selectedColor}
+                                    onColorSelect={handleColorSelect}
+                                />
                             </div>
                         </div>
-                    </div>
 
-                    {/* Label Field */}
-                    <div className="new-blocker-field">
-                        <label className="new-blocker-label">Label</label>
-                        <input
-                            type="text"
-                            className="new-blocker-input"
-                            placeholder="Enter blocker label"
-                            value={label}
-                            onChange={(e) => setLabel(e.target.value)}
-                        />
+                        {/* Icon Field */}
+                        <div className="new-blocker-field">
+                            <label className="new-blocker-label">Icon</label>
+                            <div className="new-blocker-icon-wrapper">
+                                <div className="new-blocker-icon-wrapper-inner" ref={iconPickerRef}>
+                                    <button
+                                        type="button"
+                                        className="new-blocker-icon-preview"
+                                        onClick={() => setIsIconPickerOpen(!isIconPickerOpen)}
+                                        style={{ backgroundColor: selectedColor }}
+                                    >
+                                        <IconRenderer symbol={selectedIcon} size={20} color={rgbToHex(selectedColor) === '#000000' || rgbToHex(selectedColor) === '#8B0000' ? '#ffffff' : '#000000'} />
+                                    </button>
+                                    {isIconPickerOpen && (
+                                        <div className="new-blocker-icon-grid">
+                                            {ICON_SYMBOLS.map((symbol) => (
+                                                <button
+                                                    key={symbol}
+                                                    type="button"
+                                                    className={`new-blocker-icon-item ${selectedIcon === symbol ? 'selected' : ''}`}
+                                                    onClick={() => handleIconSelect(symbol)}
+                                                    title={symbol}
+                                                >
+                                                    <IconRenderer symbol={symbol} size={20} color="#000" />
+                                                </button>
+                                            ))}
+                                        </div>
+                                    )}
+                                </div>
+                            </div>
+                        </div>
+
+                        {/* Label Field */}
+                        <div className="new-blocker-field new-blocker-field-full">
+                            <label className="new-blocker-label">Label</label>
+                            <input
+                                type="text"
+                                className="new-blocker-input"
+                                placeholder="Enter blocker label"
+                                value={label}
+                                onChange={(e) => setLabel(e.target.value)}
+                            />
+                        </div>
                     </div>
 
                     {/* Boards Section */}
