@@ -50,20 +50,17 @@ export const HusbandryTabs = ({ activeMainTab, activeSubTab, onMainTabChange, on
     }
   } else if (activeMainTab === MAIN_TABS.MATERIAL_MANAGEMENT) {
     subTabs = [
-      {
-        id: MATERIAL_MANAGEMENT_SUBTABS.INBOUND_ORDERS,
-        label: "Inbound Orders",
-        icon: "truck"
+      { 
+        id: MATERIAL_MANAGEMENT_SUBTABS.INBOUND_ORDERS, 
+        label: "Inbound Orders"
       },
-      {
-        id: MATERIAL_MANAGEMENT_SUBTABS.LANDING_NOTE,
-        label: "Landing Note",
-        icon: "ship"
+      { 
+        id: MATERIAL_MANAGEMENT_SUBTABS.LANDING_NOTE, 
+        label: "Landing Note"
       },
-      {
-        id: MATERIAL_MANAGEMENT_SUBTABS.DISPATCH_NOTE,
-        label: "Dispatch Note",
-        icon: "delivery"
+      { 
+        id: MATERIAL_MANAGEMENT_SUBTABS.DISPATCH_NOTE, 
+        label: "Dispatch Note"
       },
     ];
   } else if (activeMainTab === MAIN_TABS.WAREHOUSE) {
@@ -117,40 +114,6 @@ export const HusbandryTabs = ({ activeMainTab, activeSubTab, onMainTabChange, on
             {isActive && currentSubTabs.length > 0 && (
               <div className="op-submenu">
                 {currentSubTabs.map((subTab) => {
-                  const getIcon = (iconType) => {
-                    switch (iconType) {
-                      case "truck":
-                        return (
-                          <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-                            <path d="M1 3H15V13H1V3Z" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
-                            <path d="M15 7H20L23 10V13H15V7Z" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
-                            <circle cx="5" cy="17" r="2" stroke="currentColor" strokeWidth="2" />
-                            <circle cx="19" cy="17" r="2" stroke="currentColor" strokeWidth="2" />
-                          </svg>
-                        );
-                      case "ship":
-                        return (
-                          <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-                            <path d="M2 18L4 16L6 18L8 16L10 18L12 16L14 18L16 16L18 18L20 16L22 18" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
-                            <path d="M2 10L12 4L22 10" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
-                            <path d="M12 4V18" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
-                          </svg>
-                        );
-                      case "delivery":
-                        return (
-                          <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-                            <path d="M1 4H10V12H1V4Z" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
-                            <path d="M10 6H16L19 9V12H10V6Z" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
-                            <circle cx="4" cy="17" r="2" stroke="currentColor" strokeWidth="2" />
-                            <circle cx="17" cy="17" r="2" stroke="currentColor" strokeWidth="2" />
-                            <path d="M19 9H16" stroke="currentColor" strokeWidth="2" strokeLinecap="round" />
-                          </svg>
-                        );
-                      default:
-                        return null;
-                    }
-                  };
-
                   return (
                     <button
                       key={subTab.id}
@@ -158,12 +121,7 @@ export const HusbandryTabs = ({ activeMainTab, activeSubTab, onMainTabChange, on
                       onClick={() => onSubTabChange(subTab.id)}
                       type="button"
                     >
-                      {subTab.icon && (
-                        <span className="op-tab-sub-icon">
-                          {getIcon(subTab.icon)}
-                        </span>
-                      )}
-                      <span className="op-tab-sub-label">{subTab.label}</span>
+                      {subTab.label}
                     </button>
                   );
                 })}
