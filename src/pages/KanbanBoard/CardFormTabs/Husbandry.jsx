@@ -95,6 +95,7 @@ const ServiceSelection = ({ onSelectService, cardColor, bookedServices = [] }) =
     { id: MAIN_TABS.ON_OFF_HIRE_SURVEY, label: "On/Off-Hire Survey", icon: "document" },
     { id: MAIN_TABS.ON_STATION, label: "On station", icon: "document" },
     { id: MAIN_TABS.MATERIAL_MANAGEMENT, label: "Material Management", icon: "document" },
+    { id: MAIN_TABS.WASTE_DISPOSAL, label: "Waste Disposal", icon: "document" },
     { id: "LAUNCH_HIRE", label: "Launch Hire", icon: "document" },
     { id: MAIN_TABS.MWP_RENEWAL, label: "MWP Renewal", icon: "renewal" },
     { id: MAIN_TABS.THIRD_PARTY_SERVICES, label: "Third-Party Services", icon: "document" },
@@ -285,6 +286,9 @@ function Husbandry({ card, formValues, handleChange }) {
         setActiveSubTab(CREW_MANAGEMENT_SUBTABS.CREW);
       } else if (tab === MAIN_TABS.MATERIAL_MANAGEMENT) {
         setActiveSubTab(MATERIAL_MANAGEMENT_SUBTABS.MATERIAL_LIST);
+      } else if (tab === MAIN_TABS.WASTE_DISPOSAL) {
+        // Waste Disposal - no subtabs, direct to content
+        setActiveSubTab(null);
       } else if (tab === MAIN_TABS.WAREHOUSE) {
         // Warehouse - placeholder for future implementation
         setActiveSubTab(null);
@@ -312,6 +316,9 @@ function Husbandry({ card, formValues, handleChange }) {
       setActiveSubTab(CREW_MANAGEMENT_SUBTABS.CREW);
     } else if (tab === MAIN_TABS.MATERIAL_MANAGEMENT) {
       setActiveSubTab(MATERIAL_MANAGEMENT_SUBTABS.MATERIAL_LIST);
+    } else if (tab === MAIN_TABS.WASTE_DISPOSAL) {
+      // Waste Disposal - no subtabs
+      setActiveSubTab(null);
     }
   }, []);
 
@@ -338,7 +345,6 @@ function Husbandry({ card, formValues, handleChange }) {
               [CREW_MANAGEMENT_SUBTABS.HOTEL]: "Hotel",
               [CREW_MANAGEMENT_SUBTABS.MEDICAL_SERVICE]: "Medical Service",
               [MATERIAL_MANAGEMENT_SUBTABS.MATERIAL_LIST]: "Material List",
-              [MATERIAL_MANAGEMENT_SUBTABS.WASTE_DISPOSAL]: "Waste Disposal",
             };
 
             return prev.map(bs =>
@@ -493,14 +499,6 @@ function Husbandry({ card, formValues, handleChange }) {
             cardColor={cardColor}
           />
         );
-      case MATERIAL_MANAGEMENT_SUBTABS.WASTE_DISPOSAL:
-        return (
-          <WasteDisposalContent
-            formValues={formValues}
-            handleChange={handleChange}
-            cardColor={cardColor}
-          />
-        );
       default:
         return (
           <MaterialManagementContent
@@ -543,6 +541,13 @@ function Husbandry({ card, formValues, handleChange }) {
             renderCrewManagementContent()}
           {activeMainTab === MAIN_TABS.MATERIAL_MANAGEMENT &&
             renderMaterialManagementContent()}
+          {activeMainTab === MAIN_TABS.WASTE_DISPOSAL && (
+            <WasteDisposalContent
+              formValues={formValues}
+              handleChange={handleChange}
+              cardColor={cardColor}
+            />
+          )}
           {activeMainTab === MAIN_TABS.WAREHOUSE && (
             <WarehouseContent
               formValues={formValues}

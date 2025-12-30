@@ -5,6 +5,7 @@ export const MAIN_TABS = {
   ON_OFF_HIRE_SURVEY: "onOffHireSurvey",
   ON_STATION: "onStation",
   MATERIAL_MANAGEMENT: "materialManagement",
+  WASTE_DISPOSAL: "wasteDisposal",
   MWP_RENEWAL: "mwpRenewal",
   THIRD_PARTY_SERVICES: "thirdPartyServices",
 };
@@ -21,6 +22,5 @@ export const CREW_MANAGEMENT_SUBTABS = {
 
 export const MATERIAL_MANAGEMENT_SUBTABS = {
   MATERIAL_LIST: "materialList",
-  WASTE_DISPOSAL: "wasteDisposal",
 };
 

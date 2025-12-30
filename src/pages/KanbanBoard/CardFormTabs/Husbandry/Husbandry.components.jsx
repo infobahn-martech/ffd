@@ -12,6 +12,7 @@ export const HusbandryTabs = ({ activeMainTab, activeSubTab, onMainTabChange, on
   const allMainTabs = [
     { id: MAIN_TABS.CREW_MANAGEMENT, label: "Crew Management" },
     { id: MAIN_TABS.MATERIAL_MANAGEMENT, label: "Material Management" },
+    { id: MAIN_TABS.WASTE_DISPOSAL, label: "Waste Disposal" },
     { id: MAIN_TABS.MWP_RENEWAL, label: "MWP Renewal" },
     { id: MAIN_TABS.THIRD_PARTY_SERVICES, label: "Third-Party Services" },
   ];
@@ -47,8 +48,10 @@ export const HusbandryTabs = ({ activeMainTab, activeSubTab, onMainTabChange, on
   } else if (activeMainTab === MAIN_TABS.MATERIAL_MANAGEMENT) {
     subTabs = [
       { id: MATERIAL_MANAGEMENT_SUBTABS.MATERIAL_LIST, label: "Material" },
-      { id: MATERIAL_MANAGEMENT_SUBTABS.WASTE_DISPOSAL, label: "Waste Disposal" },
     ];
+  } else if (activeMainTab === MAIN_TABS.WASTE_DISPOSAL) {
+    // Waste Disposal - no sub-tabs for now
+    subTabs = [];
   } else if (activeMainTab === MAIN_TABS.MWP_RENEWAL) {
     // MWP Renewal - no sub-tabs for now
     subTabs = [];
