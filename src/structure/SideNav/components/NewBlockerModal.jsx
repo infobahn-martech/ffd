@@ -301,9 +301,9 @@ const NewBlockerModal = ({ show, onClose, onSave }) => {
                                         type="button"
                                         className="new-blocker-icon-preview"
                                         onClick={() => setIsIconPickerOpen(!isIconPickerOpen)}
-                                        style={{ backgroundColor: '#FFFFFF' }}
+                                        style={{ backgroundColor: selectedColor }}
                                     >
-                                        <IconRenderer symbol={selectedIcon} size={20} color="#000000" />
+                                        <IconRenderer symbol={selectedIcon} size={20} color={rgbToHex(selectedColor) === '#000000' || rgbToHex(selectedColor) === '#8B0000' ? '#ffffff' : '#000000'} />
                                     </button>
                                     {isIconPickerOpen && (
                                         <div className="new-blocker-icon-grid">
