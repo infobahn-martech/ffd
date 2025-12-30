@@ -984,7 +984,56 @@ const CrewContent = ({ formValues, handleChange, cardColor, onNavigateToTab, lau
                   Bulk Visa
                 </span>
               </button>
-              {showActionDropdown && (
+              {showActionDropdown && launchHireOnly && (
+                <button
+                  type="button"
+                  onClick={() => {
+                    const launchHireOption = allActionOptions.find((opt) => opt.value === "launchHire");
+                    if (launchHireOption) {
+                      handleActionSelect(launchHireOption);
+                    }
+                  }}
+                  style={{
+                    padding: "8px 16px",
+                    borderRadius: "8px",
+                    border: "1px solid var(--card-color, #2A00FF)",
+                    backgroundColor: "var(--card-color, #2A00FF)",
+                    color: "#ffffff",
+                    fontSize: "13px",
+                    fontWeight: "600",
+                    cursor: "pointer",
+                    transition: "all 0.2s ease",
+                    fontFamily: "Inter, sans-serif",
+                    display: "flex",
+                    alignItems: "center",
+                    gap: "8px",
+                    minWidth: 0,
+                    marginRight: "10px"
+                  }}
+                  title="Launch Hire"
+                  onMouseEnter={(e) => {
+                    e.currentTarget.style.opacity = "0.9";
+                    e.currentTarget.style.transform = "translateY(-1px)";
+                    e.currentTarget.style.boxShadow = "0 2px 8px rgba(0, 0, 0, 0.15)";
+                  }}
+                  onMouseLeave={(e) => {
+                    e.currentTarget.style.opacity = "1";
+                    e.currentTarget.style.transform = "translateY(0)";
+                    e.currentTarget.style.boxShadow = "none";
+                  }}
+                >
+                  <span
+                    style={{
+                      whiteSpace: "nowrap",
+                      overflow: "hidden",
+                      textOverflow: "ellipsis"
+                    }}
+                  >
+                    Launch Hire
+                  </span>
+                </button>
+              )}
+              {showActionDropdown && !launchHireOnly && (
                 <div style={{ position: "relative", marginRight: "10px" }}>
                   <select
                     onChange={(e) => {
