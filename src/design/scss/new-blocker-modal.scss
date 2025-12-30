@@ -296,7 +296,7 @@
 }
 
 // Color Picker Styles (from CardForm.css)
-.color-picker-dropdown {
+.new-blocker-modal .color-picker-dropdown {
   position: absolute;
   top: calc(100% + 8px);
   left: 0;
@@ -305,17 +305,17 @@
   box-shadow: 0 4px 16px rgba(0, 0, 0, 0.15);
   padding: 12px;
   z-index: 10000;
-  min-width: 200px;
+  min-width: 229px;
 }
 
-.color-picker-grid {
+.new-blocker-modal .color-picker-grid {
   display: grid;
   grid-template-columns: repeat(6, 1fr);
   gap: 8px;
   width: 100%;
 }
 
-.color-swatch {
+.new-blocker-modal .color-swatch {
   width: 28px;
   height: 28px;
   border-radius: 50%;
@@ -331,30 +331,30 @@
   flex-shrink: 0;
 }
 
-.color-swatch:hover {
+.new-blocker-modal .color-swatch:hover {
   transform: scale(1.1);
   border-color: rgba(0, 0, 0, 0.2);
 }
 
-.color-swatch.selected {
+.new-blocker-modal .color-swatch.selected {
   border-color: #333;
   box-shadow: 0 0 0 2px rgba(0, 0, 0, 0.1);
 }
 
-.color-swatch.white-swatch {
+.new-blocker-modal .color-swatch.white-swatch {
   border: 1px solid #d3d3d3;
 }
 
-.color-swatch.white-swatch.selected {
+.new-blocker-modal .color-swatch.white-swatch.selected {
   border-color: #333;
 }
 
-.color-checkmark {
+.new-blocker-modal .color-checkmark {
   position: absolute;
   z-index: 1;
 }
 
-.color-swatch-outline {
+.new-blocker-modal .color-swatch-outline {
   position: absolute;
   top: 0;
   left: 0;
