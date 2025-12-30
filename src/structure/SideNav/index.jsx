@@ -6,6 +6,7 @@ import BoardFilterPanel from './components/BoardFilterPanel';
 import ManagersModal from './components/ManagersModal';
 import DashboardsModal from './components/DashboardsModal';
 import BusinessRulesModal from './components/BusinessRulesModal';
+import BlockersModal from './components/BlockersModal';
 import '../../design/scss/common.scss';
 import '../../design/scss/sidebar.scss';
 
@@ -69,7 +70,7 @@ function SideNav({ isMobileMenuOpen, onCloseMobileMenu }) {
 
   // Card management submenu items
   const cardManagementSubmenu = [
-    { label: 'Blockers', route: '/card-management/blockers' },
+    { label: 'Blockers', modal: 'blockers' },
     { label: 'Stickers', route: '/card-management/stickers' },
     { label: 'Tags', route: '/card-management/tags' },
     { label: 'Types', route: '/card-management/types' },
@@ -86,6 +87,7 @@ function SideNav({ isMobileMenuOpen, onCloseMobileMenu }) {
   const [showManagersModal, setShowManagersModal] = useState(false);
   const [showDashboardsModal, setShowDashboardsModal] = useState(false);
   const [showBusinessRulesModal, setShowBusinessRulesModal] = useState(false);
+  const [showBlockersModal, setShowBlockersModal] = useState(false);
 
   const [expand, setExpand] = useState(false);
 
@@ -477,6 +479,7 @@ function SideNav({ isMobileMenuOpen, onCloseMobileMenu }) {
         setShowFilterPanel(false); // Close filter panel
         setShowBoardTeamsSubmenu(false); // Close board teams submenu
         setShowBusinessRulesModal(false); // Close business rules modal
+        setShowBlockersModal(false); // Close blockers modal
         if (newShowState) {
           setActiveKanbanIcon(item.id);
         }
@@ -495,6 +498,9 @@ function SideNav({ isMobileMenuOpen, onCloseMobileMenu }) {
       }
       if (showBusinessRulesModal) {
         setShowBusinessRulesModal(false);
+      }
+      if (showBlockersModal) {
+        setShowBlockersModal(false);
       }
 
       setActiveKanbanIcon(item.id);
@@ -526,7 +532,12 @@ function SideNav({ isMobileMenuOpen, onCloseMobileMenu }) {
 
     const handleCardManagementSubmenuClick = (item) => {
       setShowCardManagementSubmenu(false);
-      if (item.route) {
+      if (item.modal === 'blockers') {
+        setShowBlockersModal(true);
+        setShowFilterPanel(false);
+        setShowBoardTeamsSubmenu(false);
+        setShowBusinessRulesModal(false);
+      } else if (item.route) {
         navigate(item.route);
       }
     };
@@ -597,6 +608,7 @@ function SideNav({ isMobileMenuOpen, onCloseMobileMenu }) {
         <ManagersModal show={showManagersModal} onClose={() => setShowManagersModal(false)} />
         <DashboardsModal show={showDashboardsModal} onClose={() => setShowDashboardsModal(false)} />
         <BusinessRulesModal show={showBusinessRulesModal} onClose={() => setShowBusinessRulesModal(false)} />
+        <BlockersModal show={showBlockersModal} onClose={() => setShowBlockersModal(false)} />
       </>
     );
   }
