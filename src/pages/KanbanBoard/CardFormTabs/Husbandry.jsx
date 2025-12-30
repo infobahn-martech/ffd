@@ -23,6 +23,9 @@ import HotelContent from "./Husbandry/HotelContent";
 import MedicalServiceContent from "./Husbandry/MedicalServiceContent";
 import WasteDisposalContent from "./Husbandry/WasteDisposalContent";
 import MaterialManagementContent from "./Husbandry/MaterialManagementContent";
+import InboundOrdersContent from "./Husbandry/InboundOrdersContent";
+import LandingNoteContent from "./Husbandry/LandingNoteContent";
+import DispatchNoteContent from "./Husbandry/DispatchNoteContent";
 import MWPRenewalContent from "./Husbandry/MWPRenewalContent";
 import WarehouseContent from "./Husbandry/WarehouseContent";
 import OnOffHireSurveyContent from "./Husbandry/OnOffHireSurveyContent";
@@ -285,7 +288,7 @@ function Husbandry({ card, formValues, handleChange }) {
       if (tab === MAIN_TABS.CREW_MANAGEMENT) {
         setActiveSubTab(CREW_MANAGEMENT_SUBTABS.CREW);
       } else if (tab === MAIN_TABS.MATERIAL_MANAGEMENT) {
-        setActiveSubTab(MATERIAL_MANAGEMENT_SUBTABS.MATERIAL_LIST);
+        setActiveSubTab(MATERIAL_MANAGEMENT_SUBTABS.INBOUND_ORDERS);
       } else if (tab === MAIN_TABS.WASTE_DISPOSAL) {
         // Waste Disposal - no subtabs, direct to content
         setActiveSubTab(null);
@@ -315,11 +318,11 @@ function Husbandry({ card, formValues, handleChange }) {
     if (tab === MAIN_TABS.CREW_MANAGEMENT) {
       setActiveSubTab(CREW_MANAGEMENT_SUBTABS.CREW);
     } else if (tab === MAIN_TABS.MATERIAL_MANAGEMENT) {
-      setActiveSubTab(MATERIAL_MANAGEMENT_SUBTABS.MATERIAL_LIST);
-    } else if (tab === MAIN_TABS.WAREHOUSE || 
-               tab === MAIN_TABS.ON_OFF_HIRE_SURVEY || 
-               tab === MAIN_TABS.ON_STATION || 
-               tab === MAIN_TABS.WASTE_DISPOSAL) {
+      setActiveSubTab(MATERIAL_MANAGEMENT_SUBTABS.INBOUND_ORDERS);
+    } else if (tab === MAIN_TABS.WAREHOUSE ||
+      tab === MAIN_TABS.ON_OFF_HIRE_SURVEY ||
+      tab === MAIN_TABS.ON_STATION ||
+      tab === MAIN_TABS.WASTE_DISPOSAL) {
       // These services have no subtabs
       setActiveSubTab(null);
     }
@@ -347,7 +350,9 @@ function Husbandry({ card, formValues, handleChange }) {
               [CREW_MANAGEMENT_SUBTABS.LAUNCH_HIRE]: "Launch Hire",
               [CREW_MANAGEMENT_SUBTABS.HOTEL]: "Hotel",
               [CREW_MANAGEMENT_SUBTABS.MEDICAL_SERVICE]: "Medical Service",
-              [MATERIAL_MANAGEMENT_SUBTABS.MATERIAL_LIST]: "Material List",
+              [MATERIAL_MANAGEMENT_SUBTABS.INBOUND_ORDERS]: "Inbound Orders",
+              [MATERIAL_MANAGEMENT_SUBTABS.LANDING_NOTE]: "Landing Note",
+              [MATERIAL_MANAGEMENT_SUBTABS.DISPATCH_NOTE]: "Dispatch Note",
             };
 
             return prev.map(bs =>
@@ -494,9 +499,25 @@ function Husbandry({ card, formValues, handleChange }) {
 
   const renderMaterialManagementContent = () => {
     switch (activeSubTab) {
-      case MATERIAL_MANAGEMENT_SUBTABS.MATERIAL_LIST:
+      case MATERIAL_MANAGEMENT_SUBTABS.INBOUND_ORDERS:
         return (
-          <MaterialManagementContent
+          <InboundOrdersContent
+            formValues={formValues}
+            handleChange={handleChange}
+            cardColor={cardColor}
+          />
+        );
+      case MATERIAL_MANAGEMENT_SUBTABS.LANDING_NOTE:
+        return (
+          <LandingNoteContent
+            formValues={formValues}
+            handleChange={handleChange}
+            cardColor={cardColor}
+          />
+        );
+      case MATERIAL_MANAGEMENT_SUBTABS.DISPATCH_NOTE:
+        return (
+          <DispatchNoteContent
             formValues={formValues}
             handleChange={handleChange}
             cardColor={cardColor}
@@ -504,7 +525,7 @@ function Husbandry({ card, formValues, handleChange }) {
         );
       default:
         return (
-          <MaterialManagementContent
+          <InboundOrdersContent
             formValues={formValues}
             handleChange={handleChange}
             cardColor={cardColor}
