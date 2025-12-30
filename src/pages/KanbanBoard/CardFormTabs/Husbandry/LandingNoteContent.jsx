@@ -138,15 +138,15 @@ const LandingNoteContent = ({ formValues, handleChange, cardColor }) => {
       const updatedList = notesList.map(note =>
         note.id === editingNote.id
           ? {
-              ...note,
-              landingNoteNo: formData.landingNoteNo || note.landingNoteNo,
-              date: formData.date,
-              poDo: formData.poDo,
-              landingProof: selectedFiles,
-              quantity: formData.quantity,
-              packageType: formData.packageType,
-              description: formData.description,
-            }
+            ...note,
+            landingNoteNo: formData.landingNoteNo || note.landingNoteNo,
+            date: formData.date,
+            poDo: formData.poDo,
+            landingProof: selectedFiles,
+            quantity: formData.quantity,
+            packageType: formData.packageType,
+            description: formData.description,
+          }
           : note
       );
       setNotesList(updatedList);
@@ -569,7 +569,7 @@ const LandingNoteContent = ({ formValues, handleChange, cardColor }) => {
                           type="button"
                           className="btn-action btn-convert"
                           onClick={() => handleConvertToDispatch(note)}
-                          style={{ 
+                          style={{
                             padding: "6px",
                             backgroundColor: "transparent",
                             border: "none",
@@ -581,11 +581,11 @@ const LandingNoteContent = ({ formValues, handleChange, cardColor }) => {
                           }}
                         >
                           <svg width="18" height="18" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-                            <path d="M1 4H10V12H1V4Z" stroke="#00368c" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
-                            <path d="M10 6H16L19 9V12H10V6Z" stroke="#00368c" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
-                            <circle cx="4" cy="17" r="2" stroke="#00368c" strokeWidth="2"/>
-                            <circle cx="17" cy="17" r="2" stroke="#00368c" strokeWidth="2"/>
-                            <path d="M19 9H16" stroke="#00368c" strokeWidth="2" strokeLinecap="round"/>
+                            <path d="M1 4H10V12H1V4Z" stroke="#00368c" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+                            <path d="M10 6H16L19 9V12H10V6Z" stroke="#00368c" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+                            <circle cx="4" cy="17" r="2" stroke="#00368c" strokeWidth="2" />
+                            <circle cx="17" cy="17" r="2" stroke="#00368c" strokeWidth="2" />
+                            <path d="M19 9H16" stroke="#00368c" strokeWidth="2" strokeLinecap="round" />
                           </svg>
                         </span>
                         <span
@@ -594,7 +594,7 @@ const LandingNoteContent = ({ formValues, handleChange, cardColor }) => {
                           type="button"
                           className="btn-action btn-edit"
                           onClick={() => handleOpenModal(note)}
-                          style={{ 
+                          style={{
                             padding: "6px",
                             backgroundColor: "transparent",
                             border: "none",
@@ -613,7 +613,7 @@ const LandingNoteContent = ({ formValues, handleChange, cardColor }) => {
                           type="button"
                           className="btn-action btn-delete"
                           onClick={() => handleDelete(note.id)}
-                          style={{ 
+                          style={{
                             padding: "6px",
                             backgroundColor: "transparent",
                             border: "none",
