@@ -81,7 +81,9 @@ const BlockersModal = ({ show, onClose }) => {
   const [showAvailabilityFilter, setShowAvailabilityFilter] = useState(false);
   const [showBoardsFilter, setShowBoardsFilter] = useState(false);
   const [showNewBlockerModal, setShowNewBlockerModal] = useState(false);
+  const [openActionMenuId, setOpenActionMenuId] = useState(null);
   const selectAllCheckboxRef = useRef(null);
+  const actionMenuRefs = useRef({});
 
   const filteredBlockers = blockersData.filter(blocker =>
     blocker.label.toLowerCase().includes(filterValue.toLowerCase())
@@ -112,6 +114,44 @@ const BlockersModal = ({ show, onClose }) => {
       selectAllCheckboxRef.current.indeterminate = isIndeterminate;
     }
   }, [isIndeterminate]);
+
+  // Close action menu when clicking outside
+  useEffect(() => {
+    const handleClickOutside = (event) => {
+      if (openActionMenuId !== null) {
+        const menuRef = actionMenuRefs.current[openActionMenuId];
+        if (menuRef && !menuRef.contains(event.target)) {
+          setOpenActionMenuId(null);
+        }
+      }
+    };
+
+    if (openActionMenuId !== null) {
+      document.addEventListener('mousedown', handleClickOutside);
+      return () => {
+        document.removeEventListener('mousedown', handleClickOutside);
+      };
+    }
+  }, [openActionMenuId]);
+
+  const handleActionMenuToggle = (blockerId, event) => {
+    event.stopPropagation();
+    setOpenActionMenuId(openActionMenuId === blockerId ? null : blockerId);
+  };
+
+  const handleEdit = (blockerId) => {
+    // Handle edit action - you can open the NewBlockerModal in edit mode
+    console.log('Edit blocker:', blockerId);
+    setOpenActionMenuId(null);
+    // TODO: Open edit modal with blocker data
+  };
+
+  const handleDelete = (blockerId) => {
+    // Handle delete action
+    console.log('Delete blocker:', blockerId);
+    setOpenActionMenuId(null);
+    // TODO: Implement delete functionality
+  };
 
   return (
     <Modal
@@ -243,7 +283,9 @@ const BlockersModal = ({ show, onClose }) => {
                     </button>
                   </div>
                 </th>
-                <th style={{ width: '40px' }}></th>
+                <th style={{ width: '40px' }}>
+                  <span>Action</span>
+                </th>
               </tr>
             </thead>
             <tbody>
@@ -283,13 +325,37 @@ const BlockersModal = ({ show, onClose }) => {
                       </span>
                     </td>
                     <td>
-                      <button
-                        type="button"
-                        className="blockers-kebab-btn"
-                        aria-label="More options"
+                      <div
+                        ref={(el) => (actionMenuRefs.current[blocker.id] = el)}
+                        style={{ position: 'relative' }}
                       >
-                        <FiMoreVertical size={18} />
-                      </button>
+                        <button
+                          type="button"
+                          className="blockers-kebab-btn"
+                          aria-label="Action"
+                          onClick={(e) => handleActionMenuToggle(blocker.id, e)}
+                        >
+                          <FiMoreVertical size={18} />
+                        </button>
+                        {openActionMenuId === blocker.id && (
+                          <div className="blockers-action-menu">
+                            <button
+                              type="button"
+                              className="blockers-action-menu-item"
+                              onClick={() => handleEdit(blocker.id)}
+                            >
+                              Edit
+                            </button>
+                            <button
+                              type="button"
+                              className="blockers-action-menu-item blockers-action-menu-item-danger"
+                              onClick={() => handleDelete(blocker.id)}
+                            >
+                              Delete
+                            </button>
+                          </div>
+                        )}
+                      </div>
                     </td>
                   </tr>
                 ))
