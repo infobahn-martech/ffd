@@ -24,6 +24,9 @@ import MedicalServiceContent from "./Husbandry/MedicalServiceContent";
 import WasteDisposalContent from "./Husbandry/WasteDisposalContent";
 import MaterialManagementContent from "./Husbandry/MaterialManagementContent";
 import MWPRenewalContent from "./Husbandry/MWPRenewalContent";
+import WarehouseContent from "./Husbandry/WarehouseContent";
+import OnOffHireSurveyContent from "./Husbandry/OnOffHireSurveyContent";
+import OnStationContent from "./Husbandry/OnStationContent";
 
 // Service Selection Component
 const ServiceSelection = ({ onSelectService, cardColor, bookedServices = [] }) => {
@@ -540,19 +543,25 @@ function Husbandry({ card, formValues, handleChange }) {
           {activeMainTab === MAIN_TABS.MATERIAL_MANAGEMENT &&
             renderMaterialManagementContent()}
           {activeMainTab === MAIN_TABS.WAREHOUSE && (
-            <div className="husbandry-placeholder-content">
-              <p>In-Progress</p>
-            </div>
+            <WarehouseContent
+              formValues={formValues}
+              handleChange={handleChange}
+              cardColor={cardColor}
+            />
           )}
           {activeMainTab === MAIN_TABS.ON_OFF_HIRE_SURVEY && (
-            <div className="husbandry-placeholder-content">
-              <p>In-Progress</p>
-            </div>
+            <OnOffHireSurveyContent
+              formValues={formValues}
+              handleChange={handleChange}
+              cardColor={cardColor}
+            />
           )}
           {activeMainTab === MAIN_TABS.ON_STATION && (
-            <div className="husbandry-placeholder-content">
-              <p>In-Progress</p>
-            </div>
+            <OnStationContent
+              formValues={formValues}
+              handleChange={handleChange}
+              cardColor={cardColor}
+            />
           )}
           {activeMainTab === MAIN_TABS.MWP_RENEWAL && (
             <MWPRenewalContent
