@@ -27,6 +27,7 @@ import MWPRenewalContent from "./Husbandry/MWPRenewalContent";
 import WarehouseContent from "./Husbandry/WarehouseContent";
 import OnOffHireSurveyContent from "./Husbandry/OnOffHireSurveyContent";
 import OnStationContent from "./Husbandry/OnStationContent";
+import ThirdPartyServicesContent from "./Husbandry/ThirdPartyServicesContent";
 
 // Service Selection Component
 const ServiceSelection = ({ onSelectService, cardColor, bookedServices = [] }) => {
@@ -571,9 +572,11 @@ function Husbandry({ card, formValues, handleChange }) {
             />
           )}
           {activeMainTab === MAIN_TABS.THIRD_PARTY_SERVICES && (
-            <div className="husbandry-placeholder-content">
-              <p>In-Progress</p>
-            </div>
+            <ThirdPartyServicesContent
+              formValues={formValues}
+              handleChange={handleChange}
+              cardColor={cardColor}
+            />
           )}
         </div>
       </div>
