@@ -2,6 +2,7 @@ import { useState, useRef, useEffect } from "react";
 import PropTypes from "prop-types";
 import CustomModal from "../../../../components/CustomModal";
 import { FormField, FormInput, FormSelect } from "./Husbandry.components";
+import LocationAutocomplete from "./LocationAutocomplete";
 
 // Generate dummy material data
 const generateDummyMaterials = () => {
@@ -314,11 +315,14 @@ const MaterialManagementContent = ({ formValues, handleChange, cardColor }) => {
 
             <div className="col-12 mb-3">
               <FormField label="Drop off location">
-                <FormInput
-                  type="text"
-                  value={formData.dropOffLocation}
+                <LocationAutocomplete
+                  value={formData.dropOffLocation || ""}
                   onChange={(e) => handleFormChange("dropOffLocation", e.target.value)}
-                  placeholder="Enter drop off location..."
+                  placeholder="Search for a location..."
+                  onLocationSelect={(locationData) => {
+                    // Optional: Store additional location data if needed
+                    console.log("Drop off location selected:", locationData);
+                  }}
                 />
               </FormField>
             </div>
