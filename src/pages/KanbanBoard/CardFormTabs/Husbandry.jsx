@@ -30,6 +30,7 @@ const ServiceSelection = ({ onSelectService, cardColor, bookedServices = [] }) =
   const [showLeftArrow, setShowLeftArrow] = useState(false);
   const [showRightArrow, setShowRightArrow] = useState(true);
   const scrollContainerRef = useRef(null);
+  const bookedServicesScrollRef = useRef(null);
 
   const checkScrollButtons = useCallback(() => {
     if (scrollContainerRef.current) {
@@ -51,6 +52,26 @@ const ServiceSelection = ({ onSelectService, cardColor, bookedServices = [] }) =
       };
     }
   }, [checkScrollButtons]);
+
+  // Ensure booked services list can scroll to bottom
+  useEffect(() => {
+    if (bookedServicesScrollRef.current && bookedServices.length > 0) {
+      // Small delay to ensure DOM is updated
+      setTimeout(() => {
+        const container = bookedServicesScrollRef.current;
+        if (container) {
+          // Ensure scroll height includes all content
+          const scrollHeight = container.scrollHeight;
+          const clientHeight = container.clientHeight;
+          // If content is scrollable, ensure we can scroll to bottom
+          if (scrollHeight > clientHeight) {
+            // This ensures the scroll container is properly sized
+            container.style.maxHeight = `${clientHeight}px`;
+          }
+        }
+      }, 100);
+    }
+  }, [bookedServices]);
 
   const scrollLeft = () => {
     if (scrollContainerRef.current) {
@@ -174,7 +195,7 @@ const ServiceSelection = ({ onSelectService, cardColor, bookedServices = [] }) =
         {bookedServices.length > 0 && (
           <div className="husbandry-booked-services-section">
             <h3 className="husbandry-booked-services-title">Booked Services</h3>
-            <div className="husbandry-booked-services-list">
+            <div className="husbandry-booked-services-list" ref={bookedServicesScrollRef}>
               {bookedServices.map((service) => (
                 <div key={service.id} className="husbandry-booked-service-item">
                   <div className="husbandry-booked-service-info">

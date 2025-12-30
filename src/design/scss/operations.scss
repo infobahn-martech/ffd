@@ -184,9 +184,11 @@
 
 .husbandry-service-selection {
   display: flex;
-  align-items: center;
+  align-items: flex-start;
   justify-content: center;
   flex: 1;
+  overflow-y: auto;
+  overflow-x: hidden;
 
   padding: 40px 20px;
   background: #ffffff;
@@ -341,6 +343,52 @@
   flex-direction: column;
   gap: 12px;
   width: 100%;
+  max-height: 200px; /* Limit to show approximately 2 items */
+  overflow-y: auto;
+  overflow-x: hidden;
+  scroll-behavior: smooth;
+  padding-right: 4px; /* Add padding for scrollbar */
+  padding-top: 2px;
+  padding-bottom: 24px; /* Increased bottom padding to ensure last item is fully visible when scrolled */
+  margin-bottom: 0; /* Remove any margin that might interfere */
+  
+  /* Ensure content can scroll fully */
+  box-sizing: border-box;
+  
+  /* Custom scrollbar styling */
+  scrollbar-width: thin;
+  scrollbar-color: rgba(0, 54, 140, 0.3) transparent;
+  
+  &::-webkit-scrollbar {
+    width: 6px;
+  }
+  
+  &::-webkit-scrollbar-track {
+    background: transparent;
+    border-radius: 10px;
+  }
+  
+  &::-webkit-scrollbar-thumb {
+    background: rgba(0, 54, 140, 0.3);
+    border-radius: 10px;
+    
+    &:hover {
+      background: rgba(0, 54, 140, 0.5);
+    }
+  }
+  
+  /* Ensure last child has proper spacing */
+  > *:last-child {
+    margin-bottom: 0;
+  }
+  
+  /* Add pseudo-element at the end to ensure scroll reaches bottom */
+  &::after {
+    content: '';
+    display: block;
+    height: 1px;
+    flex-shrink: 0;
+  }
 }
 
 .husbandry-booked-service-item {
@@ -524,6 +572,11 @@
   .husbandry-booked-services-section {
     margin-top: 32px;
     padding-top: 24px;
+  }
+
+  .husbandry-booked-services-list {
+    max-height: 180px; /* Slightly smaller for mobile */
+    padding-bottom: 8px; /* Ensure last item is visible on mobile */
   }
 
   .husbandry-booked-service-item {
