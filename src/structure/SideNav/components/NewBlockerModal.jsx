@@ -192,7 +192,7 @@ ColorPickerDropdown.propTypes = {
 };
 
 const NewBlockerModal = ({ show, onClose, onSave }) => {
-    const [selectedColor, setSelectedColor] = useState('rgb(239, 68, 68)'); // Red default
+    const [selectedColor, setSelectedColor] = useState('rgb(255, 255, 255)'); // White default
     const [selectedIcon, setSelectedIcon] = useState('no-entry');
     const [label, setLabel] = useState('');
     const [selectedBoards, setSelectedBoards] = useState([]);
@@ -210,7 +210,7 @@ const NewBlockerModal = ({ show, onClose, onSave }) => {
             });
         }
         // Reset form
-        setSelectedColor('rgb(239, 68, 68)');
+        setSelectedColor('rgb(255, 255, 255)');
         setSelectedIcon('no-entry');
         setLabel('');
         setSelectedBoards([]);
