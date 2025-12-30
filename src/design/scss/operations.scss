@@ -221,8 +221,10 @@
   display: flex;
   align-items: center;
   gap: 12px;
-  padding: 6px 8px; /* Add top/bottom padding to accommodate hover transform and prevent border clipping */
-  overflow: visible; /* Ensure hover effects are not clipped */
+  padding: 6px 8px;
+  /* Add top/bottom padding to accommodate hover transform and prevent border clipping */
+  overflow: visible;
+  /* Ensure hover effects are not clipped */
 }
 
 .husbandry-service-options-row {
@@ -236,12 +238,16 @@
   overflow-y: hidden;
   scroll-behavior: smooth;
   -webkit-overflow-scrolling: touch;
-  scrollbar-width: none; /* Firefox */
-  -ms-overflow-style: none; /* IE and Edge */
-  padding: 6px 0; /* Add padding to accommodate hover transform and prevent border clipping */
-  
+  scrollbar-width: none;
+  /* Firefox */
+  -ms-overflow-style: none;
+  /* IE and Edge */
+  padding: 6px 0;
+  /* Add padding to accommodate hover transform and prevent border clipping */
+
   &::-webkit-scrollbar {
-    display: none; /* Chrome, Safari, Opera */
+    display: none;
+    /* Chrome, Safari, Opera */
   }
 }
 
@@ -343,45 +349,49 @@
   flex-direction: column;
   gap: 12px;
   width: 100%;
-  max-height: 200px; /* Limit to show approximately 2 items */
+  max-height: 200px;
+  /* Limit to show approximately 2 items */
   overflow-y: auto;
   overflow-x: hidden;
   scroll-behavior: smooth;
-  padding-right: 4px; /* Add padding for scrollbar */
+  padding-right: 4px;
+  /* Add padding for scrollbar */
   padding-top: 2px;
-  padding-bottom: 24px; /* Increased bottom padding to ensure last item is fully visible when scrolled */
-  margin-bottom: 0; /* Remove any margin that might interfere */
-  
+  padding-bottom: 24px;
+  /* Increased bottom padding to ensure last item is fully visible when scrolled */
+  margin-bottom: 0;
+  /* Remove any margin that might interfere */
+
   /* Ensure content can scroll fully */
   box-sizing: border-box;
-  
+
   /* Custom scrollbar styling */
   scrollbar-width: thin;
   scrollbar-color: rgba(0, 54, 140, 0.3) transparent;
-  
+
   &::-webkit-scrollbar {
     width: 6px;
   }
-  
+
   &::-webkit-scrollbar-track {
     background: transparent;
     border-radius: 10px;
   }
-  
+
   &::-webkit-scrollbar-thumb {
     background: rgba(0, 54, 140, 0.3);
     border-radius: 10px;
-    
+
     &:hover {
       background: rgba(0, 54, 140, 0.5);
     }
   }
-  
+
   /* Ensure last child has proper spacing */
-  > *:last-child {
+  >*:last-child {
     margin-bottom: 0;
   }
-  
+
   /* Add pseudo-element at the end to ensure scroll reaches bottom */
   &::after {
     content: '';
@@ -575,8 +585,10 @@
   }
 
   .husbandry-booked-services-list {
-    max-height: 180px; /* Slightly smaller for mobile */
-    padding-bottom: 8px; /* Ensure last item is visible on mobile */
+    max-height: 180px;
+    /* Slightly smaller for mobile */
+    padding-bottom: 8px;
+    /* Ensure last item is visible on mobile */
   }
 
   .husbandry-booked-service-item {
@@ -2745,7 +2757,7 @@ body .material-management-modal .files-list::-webkit-scrollbar-thumb:hover {
 /* DropOff */
 .material-table th:nth-child(5),
 .material-table td:nth-child(5) {
-  width: 120px;
+  width: 150px;
   min-width: 120px;
 }
 

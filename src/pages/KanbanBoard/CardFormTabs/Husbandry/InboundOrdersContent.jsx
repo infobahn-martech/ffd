@@ -1,7 +1,11 @@
 import { useState, useEffect } from "react";
 import PropTypes from "prop-types";
+import { Tooltip } from "react-tooltip";
+import "react-tooltip/dist/react-tooltip.css";
 import CustomModal from "../../../../components/CustomModal";
 import { FormField, FormInput, FormSelect } from "./Husbandry.components";
+import editIcon from "../../../../assets/images/edit.svg";
+import deleteIcon from "../../../../assets/images/delete.svg";
 
 // Generate dummy inbound orders data
 const generateDummyInboundOrders = () => {
@@ -38,6 +42,7 @@ const generateDummyInboundOrders = () => {
 const InboundOrdersContent = ({ formValues, handleChange, cardColor }) => {
   const [showModal, setShowModal] = useState(false);
   const [ordersList, setOrdersList] = useState([]);
+  const [editingOrder, setEditingOrder] = useState(null);
 
   // Form state
   const [formData, setFormData] = useState({
@@ -69,20 +74,34 @@ const InboundOrdersContent = ({ formValues, handleChange, cardColor }) => {
     }
   }, [formValues.inboundOrdersList]);
 
-  const handleOpenModal = () => {
-    setFormData({
-      orderNo: "",
-      date: "",
-      poDo: "",
-      quantity: "",
-      packageType: "",
-      description: "",
-    });
+  const handleOpenModal = (order = null) => {
+    if (order) {
+      setEditingOrder(order);
+      setFormData({
+        orderNo: order.orderNo || "",
+        date: order.date || "",
+        poDo: order.poDo || "",
+        quantity: order.quantity || "",
+        packageType: order.packageType || "",
+        description: order.description || "",
+      });
+    } else {
+      setEditingOrder(null);
+      setFormData({
+        orderNo: "",
+        date: "",
+        poDo: "",
+        quantity: "",
+        packageType: "",
+        description: "",
+      });
+    }
     setShowModal(true);
   };
 
   const handleCloseModal = () => {
     setShowModal(false);
+    setEditingOrder(null);
     setFormData({
       orderNo: "",
       date: "",
@@ -103,24 +122,68 @@ const InboundOrdersContent = ({ formValues, handleChange, cardColor }) => {
   const handleSubmit = (e) => {
     e.preventDefault();
 
-    const newOrder = {
-      id: ordersList.length > 0 ? Math.max(...ordersList.map(m => m.id)) + 1 : 1,
-      orderNo: formData.orderNo || `ORD-${String(ordersList.length + 1).padStart(5, '0')}`,
-      date: formData.date,
-      poDo: formData.poDo,
-      quantity: formData.quantity,
-      packageType: formData.packageType,
-      description: formData.description,
-    };
+    if (editingOrder) {
+      // Update existing order
+      const updatedList = ordersList.map(order =>
+        order.id === editingOrder.id
+          ? {
+              ...order,
+              orderNo: formData.orderNo || order.orderNo,
+              date: formData.date,
+              poDo: formData.poDo,
+              quantity: formData.quantity,
+              packageType: formData.packageType,
+              description: formData.description,
+            }
+          : order
+      );
+      setOrdersList(updatedList);
 
-    const updatedList = [...ordersList, newOrder];
-    setOrdersList(updatedList);
+      // Update formValues
+      const syntheticEvent = { target: { value: updatedList } };
+      handleChange("inboundOrdersList")(syntheticEvent);
+    } else {
+      // Create new order
+      const newOrder = {
+        id: ordersList.length > 0 ? Math.max(...ordersList.map(m => m.id)) + 1 : 1,
+        orderNo: formData.orderNo || `ORD-${String(ordersList.length + 1).padStart(5, '0')}`,
+        date: formData.date,
+        poDo: formData.poDo,
+        quantity: formData.quantity,
+        packageType: formData.packageType,
+        description: formData.description,
+      };
 
-    // Update formValues
-    const syntheticEvent = { target: { value: updatedList } };
-    handleChange("inboundOrdersList")(syntheticEvent);
+      const updatedList = [...ordersList, newOrder];
+      setOrdersList(updatedList);
+
+      // Update formValues
+      const syntheticEvent = { target: { value: updatedList } };
+      handleChange("inboundOrdersList")(syntheticEvent);
+    }
 
     handleCloseModal();
+  };
+
+  const handleDelete = (orderId) => {
+    if (window.confirm("Are you sure you want to delete this order?")) {
+      const updatedList = ordersList.filter(order => order.id !== orderId);
+      setOrdersList(updatedList);
+
+      // Update formValues
+      const syntheticEvent = { target: { value: updatedList } };
+      handleChange("inboundOrdersList")(syntheticEvent);
+    }
+  };
+
+  const handleConvertToLanding = (order) => {
+    // Convert order to landing note
+    // This could navigate to Landing Note tab or add to landing notes list
+    if (window.confirm("Convert this order to Landing Note?")) {
+      // You can implement the conversion logic here
+      // For now, just show a confirmation
+      console.log("Converting order to landing:", order);
+    }
   };
 
 
@@ -144,7 +207,7 @@ const InboundOrdersContent = ({ formValues, handleChange, cardColor }) => {
 
   const renderHeader = () => (
     <>
-      <h1 className="modal-title">Add Inbound Order</h1>
+      <h1 className="modal-title">{editingOrder ? "Edit Inbound Order" : "Add Inbound Order"}</h1>
     </>
   );
 
@@ -241,7 +304,7 @@ const InboundOrdersContent = ({ formValues, handleChange, cardColor }) => {
         className="btn btn-primary"
         style={{ backgroundColor: "#00368c" }}
       >
-        Add Order
+        {editingOrder ? "Update Order" : "Add Order"}
       </button>
     </div>
   );
@@ -272,6 +335,7 @@ const InboundOrdersContent = ({ formValues, handleChange, cardColor }) => {
               <th>Quantity</th>
               <th>Package Type</th>
               <th>Description</th>
+              <th>Actions</th>
             </tr>
           </thead>
           <tbody>
@@ -298,11 +362,78 @@ const InboundOrdersContent = ({ formValues, handleChange, cardColor }) => {
                   <td>
                     <div className="material-table-cell">{order.description || ""}</div>
                   </td>
+                  <td>
+                    <div className="material-table-cell">
+                      <div className="table-actions" style={{ display: "flex", gap: "8px", alignItems: "center" }}>
+                        <Tooltip id={`convert-${order.id}`} place="top" content="Convert to Landing" />
+                        <Tooltip id={`edit-${order.id}`} place="top" content="Edit" />
+                        <Tooltip id={`delete-${order.id}`} place="top" content="Delete" />
+                        <span
+                          data-tooltip-id={`convert-${order.id}`}
+                          type="button"
+                          className="btn-action btn-convert"
+                          onClick={() => handleConvertToLanding(order)}
+                          style={{ 
+                            padding: "6px",
+                            backgroundColor: "transparent",
+                            border: "none",
+                            borderRadius: "4px",
+                            cursor: "pointer",
+                            display: "flex",
+                            alignItems: "center",
+                            justifyContent: "center"
+                          }}
+                        >
+                          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                            <path d="M2 18L4 16L6 18L8 16L10 18L12 16L14 18L16 16L18 18L20 16L22 18" stroke="#00368c" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+                            <path d="M2 10L12 4L22 10" stroke="#00368c" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+                            <path d="M12 4V18" stroke="#00368c" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+                          </svg>
+                        </span>
+                        <span
+                          data-tooltip-id={`edit-${order.id}`}
+                          type="button"
+                          className="btn-action btn-edit"
+                          onClick={() => handleOpenModal(order)}
+                          style={{ 
+                            padding: "6px",
+                            backgroundColor: "transparent",
+                            border: "none",
+                            borderRadius: "4px",
+                            cursor: "pointer",
+                            display: "flex",
+                            alignItems: "center",
+                            justifyContent: "center"
+                          }}
+                        >
+                          <img src={editIcon} alt="edit" style={{ width: "18px", height: "18px" }} />
+                        </span>
+                        <span
+                          data-tooltip-id={`delete-${order.id}`}
+                          type="button"
+                          className="btn-action btn-delete"
+                          onClick={() => handleDelete(order.id)}
+                          style={{ 
+                            padding: "6px",
+                            backgroundColor: "transparent",
+                            border: "none",
+                            borderRadius: "4px",
+                            cursor: "pointer",
+                            display: "flex",
+                            alignItems: "center",
+                            justifyContent: "center"
+                          }}
+                        >
+                          <img src={deleteIcon} alt="delete" style={{ width: "18px", height: "18px" }} />
+                        </span>
+                      </div>
+                    </div>
+                  </td>
                 </tr>
               ))
             ) : (
               <tr>
-                <td colSpan="6" style={{ textAlign: "center", padding: "20px" }}>
+                <td colSpan="7" style={{ textAlign: "center", padding: "20px" }}>
                   No inbound orders added yet. Click "Add" to add a new order.
                 </td>
               </tr>
