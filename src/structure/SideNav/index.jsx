@@ -7,6 +7,9 @@ import ManagersModal from './components/ManagersModal';
 import DashboardsModal from './components/DashboardsModal';
 import BusinessRulesModal from './components/BusinessRulesModal';
 import BlockersModal from './components/BlockersModal';
+import StickersModal from './components/StickersModal';
+import TagsModal from './components/TagsModal';
+import TypesModal from './components/TypesModal';
 import '../../design/scss/common.scss';
 import '../../design/scss/sidebar.scss';
 
@@ -71,9 +74,9 @@ function SideNav({ isMobileMenuOpen, onCloseMobileMenu }) {
   // Card management submenu items
   const cardManagementSubmenu = [
     { label: 'Blockers', modal: 'blockers' },
-    { label: 'Stickers', route: '/card-management/stickers' },
-    { label: 'Tags', route: '/card-management/tags' },
-    { label: 'Types', route: '/card-management/types' },
+    { label: 'Stickers', modal: 'stickers' },
+    { label: 'Tags', modal: 'tags' },
+    { label: 'Types', modal: 'types' },
   ];
 
   // Select icons based on route
@@ -88,6 +91,9 @@ function SideNav({ isMobileMenuOpen, onCloseMobileMenu }) {
   const [showDashboardsModal, setShowDashboardsModal] = useState(false);
   const [showBusinessRulesModal, setShowBusinessRulesModal] = useState(false);
   const [showBlockersModal, setShowBlockersModal] = useState(false);
+  const [showStickersModal, setShowStickersModal] = useState(false);
+  const [showTagsModal, setShowTagsModal] = useState(false);
+  const [showTypesModal, setShowTypesModal] = useState(false);
 
   const [expand, setExpand] = useState(false);
 
@@ -480,6 +486,9 @@ function SideNav({ isMobileMenuOpen, onCloseMobileMenu }) {
         setShowBoardTeamsSubmenu(false); // Close board teams submenu
         setShowBusinessRulesModal(false); // Close business rules modal
         setShowBlockersModal(false); // Close blockers modal
+        setShowStickersModal(false); // Close stickers modal
+        setShowTagsModal(false); // Close tags modal
+        setShowTypesModal(false); // Close types modal
         if (newShowState) {
           setActiveKanbanIcon(item.id);
         }
@@ -501,6 +510,15 @@ function SideNav({ isMobileMenuOpen, onCloseMobileMenu }) {
       }
       if (showBlockersModal) {
         setShowBlockersModal(false);
+      }
+      if (showStickersModal) {
+        setShowStickersModal(false);
+      }
+      if (showTagsModal) {
+        setShowTagsModal(false);
+      }
+      if (showTypesModal) {
+        setShowTypesModal(false);
       }
 
       setActiveKanbanIcon(item.id);
@@ -537,6 +555,33 @@ function SideNav({ isMobileMenuOpen, onCloseMobileMenu }) {
         setShowFilterPanel(false);
         setShowBoardTeamsSubmenu(false);
         setShowBusinessRulesModal(false);
+        setShowStickersModal(false);
+        setShowTagsModal(false);
+        setShowTypesModal(false);
+      } else if (item.modal === 'stickers') {
+        setShowStickersModal(true);
+        setShowFilterPanel(false);
+        setShowBoardTeamsSubmenu(false);
+        setShowBusinessRulesModal(false);
+        setShowBlockersModal(false);
+        setShowTagsModal(false);
+        setShowTypesModal(false);
+      } else if (item.modal === 'tags') {
+        setShowTagsModal(true);
+        setShowFilterPanel(false);
+        setShowBoardTeamsSubmenu(false);
+        setShowBusinessRulesModal(false);
+        setShowBlockersModal(false);
+        setShowStickersModal(false);
+        setShowTypesModal(false);
+      } else if (item.modal === 'types') {
+        setShowTypesModal(true);
+        setShowFilterPanel(false);
+        setShowBoardTeamsSubmenu(false);
+        setShowBusinessRulesModal(false);
+        setShowBlockersModal(false);
+        setShowStickersModal(false);
+        setShowTagsModal(false);
       } else if (item.route) {
         navigate(item.route);
       }
@@ -609,6 +654,9 @@ function SideNav({ isMobileMenuOpen, onCloseMobileMenu }) {
         <DashboardsModal show={showDashboardsModal} onClose={() => setShowDashboardsModal(false)} />
         <BusinessRulesModal show={showBusinessRulesModal} onClose={() => setShowBusinessRulesModal(false)} />
         <BlockersModal show={showBlockersModal} onClose={() => setShowBlockersModal(false)} />
+        <StickersModal show={showStickersModal} onClose={() => setShowStickersModal(false)} />
+        <TagsModal show={showTagsModal} onClose={() => setShowTagsModal(false)} />
+        <TypesModal show={showTypesModal} onClose={() => setShowTypesModal(false)} />
       </>
     );
   }
