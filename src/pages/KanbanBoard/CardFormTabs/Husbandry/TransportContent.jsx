@@ -1,3 +1,4 @@
+import { useState, useEffect } from "react";
 import PropTypes from "prop-types";
 import Select from "react-select";
 import GroupSettingsIcon from "../../../../assets/images/cv.png";
@@ -5,6 +6,15 @@ import { FormSection, FormField, FormInput, FormSelect, FormTextarea, ReactQuill
 import LocationAutocomplete from "./LocationAutocomplete";
 
 const TransportContent = ({ formValues, handleChange, cardColor }) => {
+  // Radio button state - default to "inhouse" if not set
+  const [transportType, setTransportType] = useState(formValues.transportType || "inhouse");
+
+  // Sync state with formValues when it changes
+  useEffect(() => {
+    if (formValues.transportType) {
+      setTransportType(formValues.transportType);
+    }
+  }, [formValues.transportType]);
   // Generate crew options from crewList
   const crewOptions = formValues.crewList?.map((crew) => ({
     value: crew.id?.toString() || crew.crewName,
@@ -40,6 +50,14 @@ const TransportContent = ({ formValues, handleChange, cardColor }) => {
     { value: "Branch 3", label: "Branch 3" },
     { value: "Main Office", label: "Main Office" },
   ];
+
+  // Handle transport type radio button change
+  const handleTransportTypeChange = (e) => {
+    const value = e.target.value;
+    setTransportType(value);
+    const syntheticEvent = { target: { value: value } };
+    handleChange("transportType")(syntheticEvent);
+  };
 
   // Handle multi-select crew change
   const handleCrewChange = (selectedOptions) => {
@@ -217,13 +235,49 @@ const TransportContent = ({ formValues, handleChange, cardColor }) => {
                 </div>
               </FormField>
 
+              <FormField label="">
+                <div style={{ display: "flex", gap: "20px", marginTop: "8px" }}>
+                  <label style={{ display: "flex", alignItems: "center", gap: "8px", cursor: "pointer" }}>
+                    <input
+                      type="radio"
+                      name="transportType"
+                      value="inhouse"
+                      checked={transportType === "inhouse"}
+                      onChange={handleTransportTypeChange}
+                      style={{ cursor: "pointer" }}
+                    />
+                    <span>In house</span>
+                  </label>
+                  <label style={{ display: "flex", alignItems: "center", gap: "8px", cursor: "pointer" }}>
+                    <input
+                      type="radio"
+                      name="transportType"
+                      value="thirdparty"
+                      checked={transportType === "thirdparty"}
+                      onChange={handleTransportTypeChange}
+                      style={{ cursor: "pointer" }}
+                    />
+                    <span>Third party</span>
+                  </label>
+                </div>
+              </FormField>
+
               <FormField label="Driver Name">
-                <FormSelect
-                  value={formValues.driverName || ""}
-                  onChange={handleChange("driverName")}
-                  options={driverOptions}
-                  placeholder="Select driver name..."
-                />
+                {transportType === "inhouse" ? (
+                  <FormSelect
+                    value={formValues.driverName || ""}
+                    onChange={handleChange("driverName")}
+                    options={driverOptions}
+                    placeholder="Select driver name..."
+                  />
+                ) : (
+                  <FormInput
+                    type="text"
+                    value={formValues.driverName || ""}
+                    onChange={handleChange("driverName")}
+                    placeholder="Enter driver name..."
+                  />
+                )}
               </FormField>
 
               <FormField label="Pickup Date Time">
@@ -281,23 +335,27 @@ const TransportContent = ({ formValues, handleChange, cardColor }) => {
                 />
               </FormField>
 
-              <FormField label="Type of Car">
-                <FormSelect
-                  value={formValues.carType || ""}
-                  onChange={handleChange("carType")}
-                  options={carTypeOptions}
-                  placeholder="Select type of car..."
-                />
-              </FormField>
+              {transportType === "inhouse" && (
+                <>
+                  <FormField label="Type of Car">
+                    <FormSelect
+                      value={formValues.carType || ""}
+                      onChange={handleChange("carType")}
+                      options={carTypeOptions}
+                      placeholder="Select type of car..."
+                    />
+                  </FormField>
 
-              <FormField label="Invoice Branch">
-                <FormSelect
-                  value={formValues.invoiceBranch || ""}
-                  onChange={handleChange("invoiceBranch")}
-                  options={invoiceBranchOptions}
-                  placeholder="Select invoice branch..."
-                />
-              </FormField>
+                  <FormField label="Invoice Branch">
+                    <FormSelect
+                      value={formValues.invoiceBranch || ""}
+                      onChange={handleChange("invoiceBranch")}
+                      options={invoiceBranchOptions}
+                      placeholder="Select invoice branch..."
+                    />
+                  </FormField>
+                </>
+              )}
 
               <div className="form-save-button-wrapper">
                 <button
