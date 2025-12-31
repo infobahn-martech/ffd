@@ -43,16 +43,38 @@ const InboundOrdersContent = ({ formValues, handleChange, cardColor }) => {
   const [showModal, setShowModal] = useState(false);
   const [ordersList, setOrdersList] = useState([]);
   const [editingOrder, setEditingOrder] = useState(null);
+  const [expandedOrders, setExpandedOrders] = useState({ 1: true }); // First order expanded by default
 
-  // Form state
+  // Form state - Basic Details
   const [formData, setFormData] = useState({
-    orderNo: "",
     date: "",
-    poDo: "",
-    quantity: "",
-    packageType: "",
-    description: "",
+    vesselName: "",
+    clientName: "",
+    warehouse: "",
+    orders: [{ id: 1, poDo: "", quantity: "", packageType: "", description: "" }], // Order Details array
   });
+
+  // Dummy options for dropdowns
+  const vesselOptions = [
+    { value: "vessel1", label: "MV Ocean Star" },
+    { value: "vessel2", label: "MV Red Sea" },
+    { value: "vessel3", label: "MV Blue Wave" },
+    { value: "vessel4", label: "MV Golden Sun" },
+  ];
+
+  const clientOptions = [
+    { value: "client1", label: "Client A" },
+    { value: "client2", label: "Client B" },
+    { value: "client3", label: "Client C" },
+    { value: "client4", label: "Client D" },
+  ];
+
+  const warehouseOptions = [
+    { value: "warehouse1", label: "Warehouse 1" },
+    { value: "warehouse2", label: "Warehouse 2" },
+    { value: "warehouse3", label: "Warehouse 3" },
+    { value: "warehouse4", label: "Warehouse 4" },
+  ];
 
   // Initialize with dummy data on mount if empty
   useEffect(() => {
@@ -77,24 +99,30 @@ const InboundOrdersContent = ({ formValues, handleChange, cardColor }) => {
   const handleOpenModal = (order = null) => {
     if (order) {
       setEditingOrder(order);
+      const orderItems = order.orders || [{ id: 1, poDo: "", quantity: "", packageType: "", description: "" }];
       setFormData({
-        orderNo: order.orderNo || "",
         date: order.date || "",
-        poDo: order.poDo || "",
-        quantity: order.quantity || "",
-        packageType: order.packageType || "",
-        description: order.description || "",
+        vesselName: order.vesselName || "",
+        clientName: order.clientName || "",
+        warehouse: order.warehouse || "",
+        orders: orderItems,
       });
+      // Set expanded state for all orders
+      const expandedState = {};
+      orderItems.forEach((item) => {
+        expandedState[item.id] = true;
+      });
+      setExpandedOrders(expandedState);
     } else {
       setEditingOrder(null);
       setFormData({
-        orderNo: "",
         date: "",
-        poDo: "",
-        quantity: "",
-        packageType: "",
-        description: "",
+        vesselName: "",
+        clientName: "",
+        warehouse: "",
+        orders: [{ id: 1, poDo: "", quantity: "", packageType: "", description: "" }],
       });
+      setExpandedOrders({ 1: true });
     }
     setShowModal(true);
   };
@@ -103,12 +131,11 @@ const InboundOrdersContent = ({ formValues, handleChange, cardColor }) => {
     setShowModal(false);
     setEditingOrder(null);
     setFormData({
-      orderNo: "",
       date: "",
-      poDo: "",
-      quantity: "",
-      packageType: "",
-      description: "",
+      vesselName: "",
+      clientName: "",
+      warehouse: "",
+      orders: [{ id: 1, poDo: "", quantity: "", packageType: "", description: "" }],
     });
   };
 
@@ -119,42 +146,92 @@ const InboundOrdersContent = ({ formValues, handleChange, cardColor }) => {
     }));
   };
 
+  const handleOrderChange = (orderId, field, value) => {
+    setFormData((prev) => ({
+      ...prev,
+      orders: prev.orders.map((order) =>
+        order.id === orderId ? { ...order, [field]: value } : order
+      ),
+    }));
+  };
+
+  const handleAddNewOrder = () => {
+    const newOrderId = formData.orders.length > 0 ? Math.max(...formData.orders.map((o) => o.id)) + 1 : 1;
+    setFormData((prev) => ({
+      ...prev,
+      orders: [
+        ...prev.orders,
+        {
+          id: newOrderId,
+          poDo: "",
+          quantity: "",
+          packageType: "",
+          description: "",
+        },
+      ],
+    }));
+    // Expand the new order by default
+    setExpandedOrders((prev) => ({
+      ...prev,
+      [newOrderId]: true,
+    }));
+  };
+
+  const handleRemoveOrder = (orderId) => {
+    if (formData.orders.length > 1) {
+      setFormData((prev) => ({
+        ...prev,
+        orders: prev.orders.filter((order) => order.id !== orderId),
+      }));
+      // Remove from expandedOrders if it exists
+      setExpandedOrders((prev) => {
+        const newExpanded = { ...prev };
+        delete newExpanded[orderId];
+        return newExpanded;
+      });
+    }
+  };
+
+  const toggleOrderExpand = (orderId) => {
+    setExpandedOrders((prev) => ({
+      ...prev,
+      [orderId]: !prev[orderId],
+    }));
+  };
+
   const handleSubmit = (e) => {
     e.preventDefault();
 
+    // Create orders from formData.orders array
+    const newOrders = formData.orders.map((order, index) => ({
+      id: editingOrder
+        ? editingOrder.id + index
+        : ordersList.length > 0
+        ? Math.max(...ordersList.map((m) => m.id)) + index + 1
+        : index + 1,
+      orderNo: `ORD-${String(ordersList.length + index + 1).padStart(5, "0")}`,
+      date: formData.date,
+      vesselName: formData.vesselName,
+      clientName: formData.clientName,
+      warehouse: formData.warehouse,
+      poDo: order.poDo,
+      quantity: order.quantity,
+      packageType: order.packageType,
+      description: order.description,
+    }));
+
     if (editingOrder) {
-      // Update existing order
-      const updatedList = ordersList.map(order =>
-        order.id === editingOrder.id
-          ? {
-              ...order,
-              orderNo: formData.orderNo || order.orderNo,
-              date: formData.date,
-              poDo: formData.poDo,
-              quantity: formData.quantity,
-              packageType: formData.packageType,
-              description: formData.description,
-            }
-          : order
-      );
-      setOrdersList(updatedList);
+      // Update existing orders - replace all orders with same basic details
+      const updatedList = ordersList.filter((order) => order.id !== editingOrder.id);
+      const finalList = [...updatedList, ...newOrders];
+      setOrdersList(finalList);
 
       // Update formValues
-      const syntheticEvent = { target: { value: updatedList } };
+      const syntheticEvent = { target: { value: finalList } };
       handleChange("inboundOrdersList")(syntheticEvent);
     } else {
-      // Create new order
-      const newOrder = {
-        id: ordersList.length > 0 ? Math.max(...ordersList.map(m => m.id)) + 1 : 1,
-        orderNo: formData.orderNo || `ORD-${String(ordersList.length + 1).padStart(5, '0')}`,
-        date: formData.date,
-        poDo: formData.poDo,
-        quantity: formData.quantity,
-        packageType: formData.packageType,
-        description: formData.description,
-      };
-
-      const updatedList = [...ordersList, newOrder];
+      // Create new orders
+      const updatedList = [...ordersList, ...newOrders];
       setOrdersList(updatedList);
 
       // Update formValues
@@ -163,6 +240,17 @@ const InboundOrdersContent = ({ formValues, handleChange, cardColor }) => {
     }
 
     handleCloseModal();
+  };
+
+  const handleReset = () => {
+    setFormData({
+      date: "",
+      vesselName: "",
+      clientName: "",
+      warehouse: "",
+      orders: [{ id: 1, poDo: "", quantity: "", packageType: "", description: "" }],
+    });
+    setExpandedOrders({ 1: true });
   };
 
   const handleDelete = (orderId) => {
@@ -207,7 +295,7 @@ const InboundOrdersContent = ({ formValues, handleChange, cardColor }) => {
 
   const renderHeader = () => (
     <>
-      <h1 className="modal-title">{editingOrder ? "Edit Inbound Order" : "Add Inbound Order"}</h1>
+      <h1 className="modal-title">{editingOrder ? "Edit Inbound Order" : "Create Inbound Order"}</h1>
     </>
   );
 
@@ -215,74 +303,225 @@ const InboundOrdersContent = ({ formValues, handleChange, cardColor }) => {
     <div className="modal-body">
       <div className="lead-form">
         <form id="inboundOrderForm" onSubmit={handleSubmit}>
-          <div className="permInputs row mb-lg-3">
-            <div className="col-12 mb-3">
-              <FormField label="Order No">
-                <FormInput
-                  type="text"
-                  value={formData.orderNo}
-                  onChange={(e) => handleFormChange("orderNo", e.target.value)}
-                  placeholder="Enter order number..."
-                />
-              </FormField>
-            </div>
+          {/* Basic Details Section */}
+          <div style={{ marginBottom: "24px" }}>
+            <h3 style={{ fontSize: "16px", fontWeight: "600", marginBottom: "16px", color: "#1a1a1a" }}>
+              Basic Details
+            </h3>
+            <div className="row mb-lg-3">
+              <div className="col-md-3 mb-3">
+                <FormField label="Date">
+                  <div className="cf-input" style={{ position: "relative" }}>
+                    <input
+                      type="date"
+                      value={formData.date}
+                      onChange={(e) => handleFormChange("date", e.target.value)}
+                      placeholder="Select date"
+                      style={{ width: "100%", paddingRight: "40px" }}
+                    />
+                    <svg
+                      width="20"
+                      height="20"
+                      viewBox="0 0 24 24"
+                      fill="none"
+                      xmlns="http://www.w3.org/2000/svg"
+                      style={{
+                        position: "absolute",
+                        right: "12px",
+                        top: "50%",
+                        transform: "translateY(-50%)",
+                        pointerEvents: "none",
+                        color: "#666",
+                      }}
+                    >
+                      <rect x="3" y="4" width="18" height="18" rx="2" stroke="currentColor" strokeWidth="2" />
+                      <line x1="16" y1="2" x2="16" y2="6" stroke="currentColor" strokeWidth="2" />
+                      <line x1="8" y1="2" x2="8" y2="6" stroke="currentColor" strokeWidth="2" />
+                      <line x1="3" y1="10" x2="21" y2="10" stroke="currentColor" strokeWidth="2" />
+                    </svg>
+                  </div>
+                </FormField>
+              </div>
 
-            <div className="col-12 mb-3">
-              <FormField label="Date">
-                <div className="cf-input">
-                  <input
-                    type="date"
-                    value={formData.date}
-                    onChange={(e) => handleFormChange("date", e.target.value)}
-                    placeholder="Select date"
+              <div className="col-md-3 mb-3">
+                <FormField label="Vessel Name">
+                  <FormSelect
+                    value={formData.vesselName}
+                    onChange={(e) => handleFormChange("vesselName", e.target.value)}
+                    options={vesselOptions}
+                    placeholder="Select vessel"
                   />
+                </FormField>
+              </div>
+
+              <div className="col-md-3 mb-3">
+                <FormField label="Client Name">
+                  <FormSelect
+                    value={formData.clientName}
+                    onChange={(e) => handleFormChange("clientName", e.target.value)}
+                    options={clientOptions}
+                    placeholder="Select client"
+                  />
+                </FormField>
+              </div>
+
+              <div className="col-md-3 mb-3">
+                <FormField label="Warehouse">
+                  <FormSelect
+                    value={formData.warehouse}
+                    onChange={(e) => handleFormChange("warehouse", e.target.value)}
+                    options={warehouseOptions}
+                    placeholder="Select warehouse"
+                  />
+                </FormField>
+              </div>
+            </div>
+          </div>
+
+          {/* Order Details Section */}
+          <div>
+            <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "16px" }}>
+              <h3 style={{ fontSize: "16px", fontWeight: "600", margin: 0, color: "#1a1a1a" }}>
+                Order Details
+              </h3>
+              <button
+                type="button"
+                onClick={handleAddNewOrder}
+                style={{
+                  display: "flex",
+                  alignItems: "center",
+                  gap: "6px",
+                  padding: "8px 16px",
+                  backgroundColor: "#00368c",
+                  color: "white",
+                  border: "none",
+                  borderRadius: "6px",
+                  cursor: "pointer",
+                  fontSize: "14px",
+                  fontWeight: "500",
+                }}
+              >
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                  <line x1="12" y1="5" x2="12" y2="19" stroke="currentColor" strokeWidth="2" strokeLinecap="round" />
+                  <line x1="5" y1="12" x2="19" y2="12" stroke="currentColor" strokeWidth="2" strokeLinecap="round" />
+                </svg>
+                Add New Order
+              </button>
+            </div>
+
+            {formData.orders.map((order, index) => (
+              <div
+                key={order.id}
+                style={{
+                  marginBottom: "12px",
+                  border: "1px solid #e2e2ea",
+                  borderRadius: "8px",
+                  overflow: "hidden",
+                  backgroundColor: "#f8f9fa",
+                }}
+              >
+                <div
+                  onClick={() => toggleOrderExpand(order.id)}
+                  style={{
+                    padding: "12px 16px",
+                    backgroundColor: "#f8f9fa",
+                    cursor: "pointer",
+                    display: "flex",
+                    justifyContent: "space-between",
+                    alignItems: "center",
+                  }}
+                >
+                  <span style={{ fontSize: "14px", fontWeight: "500", color: "#1a1a1a" }}>
+                    Order {index + 1}
+                  </span>
+                  <div style={{ display: "flex", gap: "8px", alignItems: "center" }}>
+                    {formData.orders.length > 1 && (
+                      <button
+                        type="button"
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          handleRemoveOrder(order.id);
+                        }}
+                        style={{
+                          padding: "4px 8px",
+                          backgroundColor: "#dc3545",
+                          color: "white",
+                          border: "none",
+                          borderRadius: "4px",
+                          cursor: "pointer",
+                          fontSize: "12px",
+                        }}
+                      >
+                        Remove
+                      </button>
+                    )}
+                    <svg
+                      width="20"
+                      height="20"
+                      viewBox="0 0 24 24"
+                      fill="none"
+                      xmlns="http://www.w3.org/2000/svg"
+                      style={{
+                        transform: expandedOrders[order.id] ? "rotate(180deg)" : "rotate(0deg)",
+                        transition: "transform 0.2s",
+                      }}
+                    >
+                      <path d="M6 9L12 15L18 9" stroke="#666" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+                    </svg>
+                  </div>
                 </div>
-              </FormField>
-            </div>
 
-            <div className="col-12 mb-3">
-              <FormField label="PO/DO">
-                <FormInput
-                  type="text"
-                  value={formData.poDo}
-                  onChange={(e) => handleFormChange("poDo", e.target.value)}
-                  placeholder="Enter PO/DO number..."
-                />
-              </FormField>
-            </div>
+                {expandedOrders[order.id] && (
+                  <div style={{ padding: "16px", backgroundColor: "white" }}>
+                    <div className="row mb-lg-3">
+                      <div className="col-md-6 mb-3">
+                        <FormField label="PO/DO">
+                          <FormInput
+                            type="text"
+                            value={order.poDo}
+                            onChange={(e) => handleOrderChange(order.id, "poDo", e.target.value)}
+                            placeholder="Enter PO/DO number..."
+                          />
+                        </FormField>
+                      </div>
 
-            <div className="col-12 mb-3">
-              <FormField label="Quantity">
-                <FormInput
-                  type="number"
-                  value={formData.quantity}
-                  onChange={(e) => handleFormChange("quantity", e.target.value)}
-                  placeholder="Enter quantity..."
-                />
-              </FormField>
-            </div>
+                      <div className="col-md-6 mb-3">
+                        <FormField label="Quantity">
+                          <FormInput
+                            type="number"
+                            value={order.quantity}
+                            onChange={(e) => handleOrderChange(order.id, "quantity", e.target.value)}
+                            placeholder="Enter quantity..."
+                          />
+                        </FormField>
+                      </div>
 
-            <div className="col-12 mb-3">
-              <FormField label="Package Type">
-                <FormSelect
-                  value={formData.packageType}
-                  onChange={(e) => handleFormChange("packageType", e.target.value)}
-                  options={packageTypeOptions}
-                  placeholder="Select package type..."
-                />
-              </FormField>
-            </div>
+                      <div className="col-md-6 mb-3">
+                        <FormField label="Package Type">
+                          <FormSelect
+                            value={order.packageType}
+                            onChange={(e) => handleOrderChange(order.id, "packageType", e.target.value)}
+                            options={packageTypeOptions}
+                            placeholder="Select package type..."
+                          />
+                        </FormField>
+                      </div>
 
-            <div className="col-12 mb-3">
-              <FormField label="Description">
-                <FormInput
-                  type="text"
-                  value={formData.description}
-                  onChange={(e) => handleFormChange("description", e.target.value)}
-                  placeholder="Enter description..."
-                />
-              </FormField>
-            </div>
+                      <div className="col-md-6 mb-3">
+                        <FormField label="Description">
+                          <FormInput
+                            type="text"
+                            value={order.description}
+                            onChange={(e) => handleOrderChange(order.id, "description", e.target.value)}
+                            placeholder="Enter description..."
+                          />
+                        </FormField>
+                      </div>
+                    </div>
+                  </div>
+                )}
+              </div>
+            ))}
           </div>
         </form>
       </div>
@@ -290,22 +529,57 @@ const InboundOrdersContent = ({ formValues, handleChange, cardColor }) => {
   );
 
   const renderFooter = () => (
-    <div className="modal-footer">
+    <div className="modal-footer" style={{ display: "flex", justifyContent: "space-between", padding: "16px 24px" }}>
       <button
         type="button"
-        className="btn btn-secondary"
-        onClick={handleCloseModal}
+        onClick={handleReset}
+        style={{
+          padding: "10px 20px",
+          backgroundColor: "#f5f5f5",
+          color: "#333",
+          border: "1px solid #e2e2ea",
+          borderRadius: "6px",
+          cursor: "pointer",
+          fontSize: "14px",
+          fontWeight: "500",
+        }}
       >
-        Cancel
+        Reset
       </button>
-      <button
-        type="submit"
-        form="inboundOrderForm"
-        className="btn btn-primary"
-        style={{ backgroundColor: "#00368c" }}
-      >
-        {editingOrder ? "Update Order" : "Add Order"}
-      </button>
+      <div style={{ display: "flex", gap: "12px" }}>
+        <button
+          type="button"
+          onClick={handleCloseModal}
+          style={{
+            padding: "10px 20px",
+            backgroundColor: "#f5f5f5",
+            color: "#333",
+            border: "1px solid #e2e2ea",
+            borderRadius: "6px",
+            cursor: "pointer",
+            fontSize: "14px",
+            fontWeight: "500",
+          }}
+        >
+          Cancel
+        </button>
+        <button
+          type="submit"
+          form="inboundOrderForm"
+          style={{
+            padding: "10px 20px",
+            backgroundColor: "#00368c",
+            color: "white",
+            border: "none",
+            borderRadius: "6px",
+            cursor: "pointer",
+            fontSize: "14px",
+            fontWeight: "500",
+          }}
+        >
+          Save
+        </button>
+      </div>
     </div>
   );
 
@@ -367,19 +641,19 @@ const InboundOrdersContent = ({ formValues, handleChange, cardColor }) => {
                       <div className="table-actions" style={{ display: "flex", gap: "8px", alignItems: "center", position: "relative", zIndex: 1 }}>
                         <Tooltip 
                           id={`convert-${order.id}`} 
-                          place="top" 
+                          place="right" 
                           content="Convert to Landing"
                           className="material-table-tooltip"
                         />
                         <Tooltip 
                           id={`edit-${order.id}`} 
-                          place="top" 
+                          place="right" 
                           content="Edit"
                           className="material-table-tooltip"
                         />
                         <Tooltip 
                           id={`delete-${order.id}`} 
-                          place="top" 
+                          place="right" 
                           content="Delete"
                           className="material-table-tooltip"
                         />
