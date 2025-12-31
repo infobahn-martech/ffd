@@ -589,11 +589,83 @@ LinksList.propTypes = {
 };
 
 const PreArrivalContent = ({ formValues, handleChange, ownerInitial, cardUser, cardColor, onAddAttachment, onRemoveAttachment, onAddLink, onRemoveLink, onSendReport }) => {
+  const [isDraggingSaberUtDocuments, setIsDraggingSaberUtDocuments] = useState(false);
+  const saberUtFileInputRef = useRef(null);
+
   const typeOfCallOptions = [
     { value: "Import", label: "Import" },
     { value: "Export", label: "Export" },
     { value: "Domestic", label: "Domestic" },
   ];
+
+  // Handle SABER UT documents file upload
+  const handleSaberUtDragEnter = (e) => {
+    e.preventDefault();
+    e.stopPropagation();
+    setIsDraggingSaberUtDocuments(true);
+  };
+
+  const handleSaberUtDragLeave = (e) => {
+    e.preventDefault();
+    e.stopPropagation();
+    setIsDraggingSaberUtDocuments(false);
+  };
+
+  const handleSaberUtDragOver = (e) => {
+    e.preventDefault();
+    e.stopPropagation();
+  };
+
+  const handleSaberUtDrop = (e) => {
+    e.preventDefault();
+    e.stopPropagation();
+    setIsDraggingSaberUtDocuments(false);
+
+    const files = Array.from(e.dataTransfer.files || []);
+    if (files.length > 0) {
+      const currentAttachments = formValues.saberUtDocumentsAttachments || [];
+      const newAttachments = files.map((file) => ({
+        name: file.name,
+        file: file,
+        size: file.size,
+        type: file.type,
+      }));
+      const updatedAttachments = [...currentAttachments, ...newAttachments];
+      const syntheticEvent = { target: { value: updatedAttachments } };
+      handleChange("saberUtDocumentsAttachments")(syntheticEvent);
+    }
+  };
+
+  const handleSaberUtFileInputChange = (e) => {
+    const files = Array.from(e.target.files || []);
+    if (files.length > 0) {
+      const currentAttachments = formValues.saberUtDocumentsAttachments || [];
+      const newAttachments = files.map((file) => ({
+        name: file.name,
+        file: file,
+        size: file.size,
+        type: file.type,
+      }));
+      const updatedAttachments = [...currentAttachments, ...newAttachments];
+      const syntheticEvent = { target: { value: updatedAttachments } };
+      handleChange("saberUtDocumentsAttachments")(syntheticEvent);
+    }
+    if (saberUtFileInputRef.current) {
+      saberUtFileInputRef.current.value = "";
+    }
+  };
+
+  const handleSaberUtRemoveAttachment = (index) => {
+    const currentAttachments = formValues.saberUtDocumentsAttachments || [];
+    const updatedAttachments = currentAttachments.filter((_, i) => i !== index);
+    const syntheticEvent = { target: { value: updatedAttachments } };
+    handleChange("saberUtDocumentsAttachments")(syntheticEvent);
+  };
+
+  const handleSendSaberUtDocuments = () => {
+    console.log("Sending SABER UT documents:", formValues.saberUtDocumentsAttachments);
+    // TODO: Implement send documents logic
+  };
 
   // Handle save
   const handleSave = () => {
@@ -686,6 +758,91 @@ const PreArrivalContent = ({ formValues, handleChange, ownerInitial, cardUser, c
                   onChange={handleChange("saberUtStatus")}
                   placeholder="Enter SABER UT Status..."
                 />
+              </FormField>
+
+              <FormField label="SABER UT Document Upload">
+                <div style={{ position: "relative", marginTop: "8px" }}>
+                  <AttachmentsList
+                    attachments={formValues.saberUtDocumentsAttachments || []}
+                    onAdd={() => { }}
+                    onRemove={handleSaberUtRemoveAttachment}
+                    cardColor={cardColor}
+                    isDragging={isDraggingSaberUtDocuments}
+                    onDragEnter={handleSaberUtDragEnter}
+                    onDragLeave={handleSaberUtDragLeave}
+                    onDragOver={handleSaberUtDragOver}
+                    onDrop={handleSaberUtDrop}
+                    fileInputRef={saberUtFileInputRef}
+                    onFileInputChange={handleSaberUtFileInputChange}
+                  />
+                  <button
+                    type="button"
+                    onClick={handleSendSaberUtDocuments}
+                    className="document-send-btn"
+                    title="Send documents"
+                    disabled={(formValues.saberUtDocumentsAttachments || []).length === 0}
+                    style={{
+                      position: "absolute",
+                      top: "12px",
+                      right: "12px",
+                      background: (formValues.saberUtDocumentsAttachments || []).length > 0 ? "#3e5cb6" : "#c5c5d1",
+                      border: "none",
+                      borderRadius: "6px",
+                      width: "36px",
+                      height: "36px",
+                      display: "flex",
+                      alignItems: "center",
+                      justifyContent: "center",
+                      cursor: (formValues.saberUtDocumentsAttachments || []).length > 0 ? "pointer" : "not-allowed",
+                      color: "#ffffff",
+                      transition: "all 0.2s ease",
+                      zIndex: 10,
+                      boxShadow: (formValues.saberUtDocumentsAttachments || []).length > 0 ? "0 2px 6px rgba(62, 94, 189, 0.3)" : "none",
+                      opacity: (formValues.saberUtDocumentsAttachments || []).length > 0 ? 1 : 0.6,
+                    }}
+                    onMouseEnter={(e) => {
+                      if ((formValues.saberUtDocumentsAttachments || []).length > 0) {
+                        e.currentTarget.style.background = "#2e4a8f";
+                        e.currentTarget.style.transform = "scale(1.1)";
+                        e.currentTarget.style.boxShadow = "0 4px 8px rgba(62, 94, 189, 0.4)";
+                      }
+                    }}
+                    onMouseLeave={(e) => {
+                      if ((formValues.saberUtDocumentsAttachments || []).length > 0) {
+                        e.currentTarget.style.background = "#3e5cb6";
+                        e.currentTarget.style.transform = "scale(1)";
+                        e.currentTarget.style.boxShadow = "0 2px 6px rgba(62, 94, 189, 0.3)";
+                      } else {
+                        e.currentTarget.style.background = "#c5c5d1";
+                        e.currentTarget.style.transform = "scale(1)";
+                        e.currentTarget.style.boxShadow = "none";
+                      }
+                    }}
+                  >
+                    <svg
+                      width="18"
+                      height="18"
+                      viewBox="0 0 24 24"
+                      fill="none"
+                      xmlns="http://www.w3.org/2000/svg"
+                    >
+                      <path
+                        d="M22 2L11 13"
+                        stroke="currentColor"
+                        strokeWidth="2"
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                      />
+                      <path
+                        d="M22 2L15 22L11 13L2 9L22 2Z"
+                        stroke="currentColor"
+                        strokeWidth="2"
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                      />
+                    </svg>
+                  </button>
+                </div>
               </FormField>
 
               <div className="form-save-button-wrapper">
