@@ -562,19 +562,19 @@ const LandingNoteContent = ({ formValues, handleChange, cardColor }) => {
                       <div className="table-actions" style={{ display: "flex", gap: "8px", alignItems: "center", position: "relative", zIndex: 1 }}>
                         <Tooltip 
                           id={`convert-dispatch-${note.id}`} 
-                          place="top" 
+                          place="right" 
                           content="Convert to Dispatch"
                           className="material-table-tooltip"
                         />
                         <Tooltip 
                           id={`edit-landing-${note.id}`} 
-                          place="top" 
+                          place="right" 
                           content="Edit"
                           className="material-table-tooltip"
                         />
                         <Tooltip 
                           id={`delete-landing-${note.id}`} 
-                          place="top" 
+                          place="right" 
                           content="Delete"
                           className="material-table-tooltip"
                         />
