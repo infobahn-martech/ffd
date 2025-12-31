@@ -185,8 +185,8 @@ const InboundOrdersContent = ({ formValues, handleChange, cardColor }) => {
       id: editingOrder
         ? editingOrder.id + index
         : ordersList.length > 0
-        ? Math.max(...ordersList.map((m) => m.id)) + index + 1
-        : index + 1,
+          ? Math.max(...ordersList.map((m) => m.id)) + index + 1
+          : index + 1,
       orderNo: `ORD-${String(ordersList.length + index + 1).padStart(5, "0")}`,
       date: formData.date,
       warehouse: formData.warehouse,
@@ -285,43 +285,44 @@ const InboundOrdersContent = ({ formValues, handleChange, cardColor }) => {
             <div className="row mb-lg-3">
               <div className="col-md-6 mb-3">
                 <FormField label="Date">
-                  <div className="cf-input" style={{ position: "relative" }}>
+                  <div className="cf-select cf-date-input">
                     <input
                       type="date"
                       value={formData.date}
                       onChange={(e) => handleFormChange("date", e.target.value)}
-                      placeholder="Select date"
-                      style={{ 
-                        width: "100%", 
-                        paddingRight: "40px",
-                        padding: "12px 40px 12px 16px",
-                        border: "1px solid #e2e2ea",
-                        borderRadius: "6px",
+                      onClick={(e) => e.stopPropagation()}
+                      style={{
+                        width: "100%",
+                        border: "none",
+                        outline: "none",
+                        background: "transparent",
                         fontSize: "14px",
-                        transition: "all 0.2s ease"
+                        color: "#1a1a1a",
+                        fontFamily: "inherit",
+                        padding: 0,
+                        flex: 1,
+                        cursor: "pointer",
                       }}
-                      onFocus={(e) => e.target.style.borderColor = "#00368c"}
-                      onBlur={(e) => e.target.style.borderColor = "#e2e2ea"}
                     />
                     <svg
-                      width="20"
-                      height="20"
+                      width="18"
+                      height="18"
                       viewBox="0 0 24 24"
                       fill="none"
                       xmlns="http://www.w3.org/2000/svg"
                       style={{
-                        position: "absolute",
-                        right: "12px",
-                        top: "50%",
-                        transform: "translateY(-50%)",
-                        pointerEvents: "none",
+                        flexShrink: 0,
+                        marginLeft: "8px",
                         color: "#666",
+                        pointerEvents: "none",
+                        position: "relative",
+                        zIndex: 1,
                       }}
                     >
-                      <rect x="3" y="4" width="18" height="18" rx="2" stroke="currentColor" strokeWidth="2" />
-                      <line x1="16" y1="2" x2="16" y2="6" stroke="currentColor" strokeWidth="2" />
-                      <line x1="8" y1="2" x2="8" y2="6" stroke="currentColor" strokeWidth="2" />
-                      <line x1="3" y1="10" x2="21" y2="10" stroke="currentColor" strokeWidth="2" />
+                      <rect x="3" y="4" width="18" height="18" rx="2" stroke="currentColor" strokeWidth="2" fill="none" />
+                      <line x1="16" y1="2" x2="16" y2="6" stroke="currentColor" strokeWidth="2" strokeLinecap="round" />
+                      <line x1="8" y1="2" x2="8" y2="6" stroke="currentColor" strokeWidth="2" strokeLinecap="round" />
+                      <line x1="3" y1="10" x2="21" y2="10" stroke="currentColor" strokeWidth="2" strokeLinecap="round" />
                     </svg>
                   </div>
                 </FormField>
@@ -641,21 +642,21 @@ const InboundOrdersContent = ({ formValues, handleChange, cardColor }) => {
                   <td>
                     <div className="material-table-cell">
                       <div className="table-actions" style={{ display: "flex", gap: "8px", alignItems: "center", position: "relative", zIndex: 1 }}>
-                        <Tooltip 
-                          id={`convert-${order.id}`} 
-                          place="right" 
+                        <Tooltip
+                          id={`convert-${order.id}`}
+                          place="right"
                           content="Convert to Landing"
                           className="material-table-tooltip"
                         />
-                        <Tooltip 
-                          id={`edit-${order.id}`} 
-                          place="right" 
+                        <Tooltip
+                          id={`edit-${order.id}`}
+                          place="right"
                           content="Edit"
                           className="material-table-tooltip"
                         />
-                        <Tooltip 
-                          id={`delete-${order.id}`} 
-                          place="right" 
+                        <Tooltip
+                          id={`delete-${order.id}`}
+                          place="right"
                           content="Delete"
                           className="material-table-tooltip"
                         />
@@ -664,7 +665,7 @@ const InboundOrdersContent = ({ formValues, handleChange, cardColor }) => {
                           type="button"
                           className="btn-action btn-convert"
                           onClick={() => handleConvertToLanding(order)}
-                          style={{ 
+                          style={{
                             padding: "6px",
                             backgroundColor: "transparent",
                             border: "none",
@@ -676,9 +677,9 @@ const InboundOrdersContent = ({ formValues, handleChange, cardColor }) => {
                           }}
                         >
                           <svg width="18" height="18" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-                            <path d="M2 18L4 16L6 18L8 16L10 18L12 16L14 18L16 16L18 18L20 16L22 18" stroke="#00368c" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
-                            <path d="M2 10L12 4L22 10" stroke="#00368c" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
-                            <path d="M12 4V18" stroke="#00368c" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+                            <path d="M2 18L4 16L6 18L8 16L10 18L12 16L14 18L16 16L18 18L20 16L22 18" stroke="#00368c" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+                            <path d="M2 10L12 4L22 10" stroke="#00368c" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+                            <path d="M12 4V18" stroke="#00368c" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
                           </svg>
                         </span>
                         <span
@@ -686,7 +687,7 @@ const InboundOrdersContent = ({ formValues, handleChange, cardColor }) => {
                           type="button"
                           className="btn-action btn-edit"
                           onClick={() => handleOpenModal(order)}
-                          style={{ 
+                          style={{
                             padding: "6px",
                             backgroundColor: "transparent",
                             border: "none",
@@ -704,7 +705,7 @@ const InboundOrdersContent = ({ formValues, handleChange, cardColor }) => {
                           type="button"
                           className="btn-action btn-delete"
                           onClick={() => handleDelete(order.id)}
-                          style={{ 
+                          style={{
                             padding: "6px",
                             backgroundColor: "transparent",
                             border: "none",

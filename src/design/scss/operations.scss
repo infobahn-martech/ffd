@@ -1462,6 +1462,36 @@
   color: #ffffff !important;
 }
 
+.cf-date-input {
+  cursor: default;
+  position: relative;
+}
+
+.cf-date-input input[type="date"] {
+  cursor: pointer;
+  position: relative;
+  z-index: 2;
+  padding-right: 0;
+}
+
+.cf-date-input input[type="date"]::-webkit-calendar-picker-indicator {
+  position: absolute;
+  right: 0;
+  width: calc(100% - 26px);
+  height: 100%;
+  opacity: 0;
+  cursor: pointer;
+  z-index: 3;
+  padding: 0;
+  margin: 0;
+}
+
+.cf-date-input input[type="date"]::-webkit-inner-spin-button,
+.cf-date-input input[type="date"]::-webkit-clear-button {
+  display: none;
+  -webkit-appearance: none;
+}
+
 .cf-select select {
   border: none;
   background: transparent;
