@@ -79,6 +79,7 @@ body {
             font: normal normal 600 22px/34px Poppins;
             letter-spacing: 0.1px;
             color: #00368c;
+            min-width: 300px !important;
 
             @media($sm-1679) {
                 font-size: 20px;
