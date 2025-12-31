@@ -353,20 +353,33 @@ const CrewContent = ({ formValues, handleChange, cardColor, onNavigateToTab, lau
     // Create worksheet data with headers
     const headers = ["No", "Name", "Company", "Rank", "Nationality", "Passport Number", "Passport Expiry", "KSA Visa Number", "IQAMA"];
     
-    // Create data rows from crew list or empty template
-    const dataRows = displayCrewList.length > 0 
-      ? displayCrewList.map((crew, index) => [
-          index + 1, // No
-          crew.crewName || "", // Name
-          crew.company || "", // Company (if exists in data)
-          crew.rank || "", // Rank
-          crew.nationality || "", // Nationality
-          crew.passportNo || "", // Passport Number
-          crew.passportExpiry || "", // Passport Expiry (if exists in data)
-          crew.ksaVisaNumber || "", // KSA Visa Number (if exists in data)
-          crew.iqamaNumber || "", // IQAMA (if exists in data)
-        ])
-      : []; // Empty template if no crew data
+    // Create data rows from crew list or dummy data template
+    let dataRows = [];
+    
+    if (displayCrewList.length > 0) {
+      // Use actual crew data
+      dataRows = displayCrewList.map((crew, index) => [
+        index + 1, // No
+        crew.crewName || "", // Name
+        crew.company || "", // Company (if exists in data)
+        crew.rank || "", // Rank
+        crew.nationality || "", // Nationality
+        crew.passportNo || "", // Passport Number
+        crew.passportExpiry || "", // Passport Expiry (if exists in data)
+        crew.ksaVisaNumber || "", // KSA Visa Number (if exists in data)
+        crew.iqamaNumber || "", // IQAMA (if exists in data)
+      ]);
+    } else {
+      // Add dummy data for preview
+      const dummyData = [
+        [1, "John Smith", "ABC Shipping Co.", "Captain", "British", "P1234567", "2025-12-31", "V123456789", "IQ123456"],
+        [2, "Ahmed Al-Mansouri", "XYZ Maritime", "Chief Engineer", "Saudi", "P2345678", "2026-06-30", "V234567890", "IQ234567"],
+        [3, "Maria Garcia", "Global Vessels Ltd", "First Officer", "Spanish", "P3456789", "2025-09-15", "V345678901", "IQ345678"],
+        [4, "David Chen", "Pacific Shipping", "Second Engineer", "Chinese", "P4567890", "2026-03-20", "V456789012", "IQ456789"],
+        [5, "Fatima Hassan", "Middle East Marine", "Deck Officer", "Egyptian", "P5678901", "2025-11-10", "V567890123", "IQ567890"],
+      ];
+      dataRows = dummyData;
+    }
 
     // Combine headers and data
     const worksheetData = [headers, ...dataRows];
@@ -641,61 +654,61 @@ const CrewContent = ({ formValues, handleChange, cardColor, onNavigateToTab, lau
           padding: "40px 24px",
           maxWidth: "800px",
           margin: "0 auto",
-          width: "100%",
-          position: "relative"
+          width: "100%"
         }}>
-          {/* Download Preview Button - Top Right */}
-          <button
-            type="button"
-            onClick={handleDownloadPreview}
-            style={{
-              position: "absolute",
-              top: "0",
-              right: "0",
-              padding: "8px 16px",
-              borderRadius: "8px",
-              border: "1px solid #e2e6ff",
-              backgroundColor: "#ffffff",
-              color: "#1a1a1a",
-              fontSize: "13px",
-              fontWeight: "600",
-              cursor: "pointer",
-              transition: "all 0.2s ease",
-              fontFamily: "Inter, sans-serif",
-              display: "flex",
-              alignItems: "center",
-              gap: "8px",
-              boxShadow: "0 2px 4px rgba(0, 0, 0, 0.1)"
-            }}
-            onMouseEnter={(e) => {
-              e.currentTarget.style.backgroundColor = "#f8f9ff";
-              e.currentTarget.style.borderColor = "var(--card-color, #2A00FF)";
-              e.currentTarget.style.transform = "translateY(-1px)";
-              e.currentTarget.style.boxShadow = "0 4px 8px rgba(0, 0, 0, 0.15)";
-            }}
-            onMouseLeave={(e) => {
-              e.currentTarget.style.backgroundColor = "#ffffff";
-              e.currentTarget.style.borderColor = "#e2e6ff";
-              e.currentTarget.style.transform = "translateY(0)";
-              e.currentTarget.style.boxShadow = "0 2px 4px rgba(0, 0, 0, 0.1)";
-            }}
-          >
-            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" style={{ flexShrink: 0 }}>
-              <path d="M21 15V19C21 19.5304 20.7893 20.0391 20.4142 20.4142C20.0391 20.7893 19.5304 21 19 21H5C4.46957 21 3.96086 20.7893 3.58579 20.4142C3.21071 20.0391 3 19.5304 3 19V15" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
-              <path d="M7 10L12 15L17 10" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
-              <path d="M12 15V3" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
-            </svg>
-            <span>Download Preview</span>
-          </button>
-
           {/* Crew Excel Upload */}
           <div className="crew-upload-section" style={{ width: "100%", display: "flex", flexDirection: "column", alignItems: "center" }}>
-            {/* Header above upload zone */}
+            {/* Header above upload zone with Download Preview button */}
             <div style={{
               textAlign: "center",
               marginBottom: "24px",
-              width: "100%"
+              width: "100%",
+              position: "relative"
             }}>
+              {/* Download Preview Button - Positioned at top right of header */}
+              <button
+                type="button"
+                onClick={handleDownloadPreview}
+                style={{
+                  position: "absolute",
+                  top: "0",
+                  right: "0",
+                  padding: "8px 16px",
+                  borderRadius: "8px",
+                  border: "1px solid #e2e6ff",
+                  backgroundColor: "#ffffff",
+                  color: "#1a1a1a",
+                  fontSize: "13px",
+                  fontWeight: "600",
+                  cursor: "pointer",
+                  transition: "all 0.2s ease",
+                  fontFamily: "Inter, sans-serif",
+                  display: "flex",
+                  alignItems: "center",
+                  gap: "8px",
+                  boxShadow: "0 2px 4px rgba(0, 0, 0, 0.1)"
+                }}
+                onMouseEnter={(e) => {
+                  e.currentTarget.style.backgroundColor = "#f8f9ff";
+                  e.currentTarget.style.borderColor = "var(--card-color, #2A00FF)";
+                  e.currentTarget.style.transform = "translateY(-1px)";
+                  e.currentTarget.style.boxShadow = "0 4px 8px rgba(0, 0, 0, 0.15)";
+                }}
+                onMouseLeave={(e) => {
+                  e.currentTarget.style.backgroundColor = "#ffffff";
+                  e.currentTarget.style.borderColor = "#e2e6ff";
+                  e.currentTarget.style.transform = "translateY(0)";
+                  e.currentTarget.style.boxShadow = "0 2px 4px rgba(0, 0, 0, 0.1)";
+                }}
+              >
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" style={{ flexShrink: 0 }}>
+                  <path d="M21 15V19C21 19.5304 20.7893 20.0391 20.4142 20.4142C20.0391 20.7893 19.5304 21 19 21H5C4.46957 21 3.96086 20.7893 3.58579 20.4142C3.21071 20.0391 3 19.5304 3 19V15" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+                  <path d="M7 10L12 15L17 10" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+                  <path d="M12 15V3" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+                </svg>
+                <span>Download Preview</span>
+              </button>
+              
               <h3 style={{
                 fontSize: "18px",
                 fontWeight: "600",
