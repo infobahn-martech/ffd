@@ -805,6 +805,16 @@ const PreArrivalContent = ({ formValues, handleChange, ownerInitial, cardUser, c
                   />
                 </FormField>
               </div>
+              <div className="card-description-wrapper">
+                <FormField label="Coordinates">
+                  <FormTextarea
+                    value={formValues?.coordinates || ""}
+                    onChange={handleChange("coordinates")}
+                    placeholder="Enter coordinates..."
+                    rows={5}
+                  />
+                </FormField>
+              </div>
             </div>
           </div>
         </div>
