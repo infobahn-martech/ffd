@@ -1,6 +1,8 @@
 import { useEffect, useState, useRef } from "react";
 import PropTypes from "prop-types";
 import * as XLSX from "xlsx";
+import { Tooltip } from "react-tooltip";
+import "react-tooltip/dist/react-tooltip.css";
 import { YesIcon, NoIcon } from "./Husbandry.components";
 import CustomModal from "../../../../components/CustomModal";
 import "../../../../design/scss/operations.scss";
@@ -472,6 +474,23 @@ const CrewContent = ({ formValues, handleChange, cardColor, onNavigateToTab, lau
     handleChange("crewPassportDocuments")(syntheticEvent);
   };
 
+  // Handle individual iqama document upload
+  const handleIqamaUpload = (crewId, file) => {
+    if (!file) return;
+    const updatedDocuments = {
+      ...iqamaDocuments,
+      [crewId]: {
+        file,
+        fileName: file.name,
+        uploadDate: new Date().toISOString(),
+      },
+    };
+    setIqamaDocuments(updatedDocuments);
+    // Save to formValues
+    const syntheticEvent = { target: { value: updatedDocuments } };
+    handleChange("crewIqamaDocuments")(syntheticEvent);
+  };
+
   // Handle individual visa document upload
   const handleVisaUpload = (crewId, file) => {
     if (!file) return;
@@ -831,6 +850,7 @@ const CrewContent = ({ formValues, handleChange, cardColor, onNavigateToTab, lau
                   </span>
                 </div>
               )} */}
+              <Tooltip id="upload-new-file-btn" place="top" content="Upload New File" />
               <button
                 type="button"
                 onClick={() => {
@@ -844,6 +864,7 @@ const CrewContent = ({ formValues, handleChange, cardColor, onNavigateToTab, lau
                     fileInputRef.current.value = "";
                   }
                 }}
+                data-tooltip-id="upload-new-file-btn"
                 style={{
                   padding: "8px 16px",
                   borderRadius: "8px",
@@ -860,7 +881,6 @@ const CrewContent = ({ formValues, handleChange, cardColor, onNavigateToTab, lau
                   gap: "8px",
                   minWidth: 0
                 }}
-                title="Upload New File"
                 onMouseEnter={(e) => {
                   e.currentTarget.style.backgroundColor = "#f8f9ff";
                   e.currentTarget.style.borderColor = "var(--card-color, #2A00FF)";
@@ -890,9 +910,11 @@ const CrewContent = ({ formValues, handleChange, cardColor, onNavigateToTab, lau
               </button>
             </div>
             <div style={{ display: "flex", gap: "10px", alignItems: "center" }}>
+              <Tooltip id="bulk-passport-btn" place="top" content="Bulk Passport" />
               <button
                 type="button"
                 onClick={() => setShowPassportModal(true)}
+                data-tooltip-id="bulk-passport-btn"
                 style={{
                   padding: "8px 16px",
                   borderRadius: "8px",
@@ -909,7 +931,6 @@ const CrewContent = ({ formValues, handleChange, cardColor, onNavigateToTab, lau
                   gap: "8px",
                   minWidth: 0
                 }}
-                title="Bulk Passport"
                 onMouseEnter={(e) => {
                   e.currentTarget.style.backgroundColor = "#f8f9ff";
                   e.currentTarget.style.borderColor = "var(--card-color, #2A00FF)";
@@ -937,9 +958,11 @@ const CrewContent = ({ formValues, handleChange, cardColor, onNavigateToTab, lau
                   Bulk Passport
                 </span>
               </button>
+              <Tooltip id="bulk-visa-btn" place="top" content="Bulk Visa" />
               <button
                 type="button"
                 onClick={() => setShowVisaModal(true)}
+                data-tooltip-id="bulk-visa-btn"
                 style={{
                   padding: "8px 16px",
                   borderRadius: "8px",
@@ -956,7 +979,6 @@ const CrewContent = ({ formValues, handleChange, cardColor, onNavigateToTab, lau
                   gap: "8px",
                   minWidth: 0
                 }}
-                title="Bulk Visa"
                 onMouseEnter={(e) => {
                   e.currentTarget.style.backgroundColor = "#f8f9ff";
                   e.currentTarget.style.borderColor = "var(--card-color, #2A00FF)";
@@ -985,32 +1007,34 @@ const CrewContent = ({ formValues, handleChange, cardColor, onNavigateToTab, lau
                 </span>
               </button>
               {showActionDropdown && launchHireOnly && (
-                <button
-                  type="button"
-                  onClick={() => {
-                    const launchHireOption = allActionOptions.find((opt) => opt.value === "launchHire");
-                    if (launchHireOption) {
-                      handleActionSelect(launchHireOption);
-                    }
-                  }}
-                  style={{
-                    padding: "8px 16px",
-                    borderRadius: "8px",
-                    border: "1px solid var(--card-color, #2A00FF)",
-                    backgroundColor: "var(--card-color, #2A00FF)",
-                    color: "#ffffff",
-                    fontSize: "13px",
-                    fontWeight: "600",
-                    cursor: "pointer",
-                    transition: "all 0.2s ease",
-                    fontFamily: "Inter, sans-serif",
-                    display: "flex",
-                    alignItems: "center",
-                    gap: "8px",
-                    minWidth: 0,
-                    marginRight: "10px"
-                  }}
-                  title="Launch Hire"
+                <>
+                  <Tooltip id="launch-hire-btn" place="top" content="Launch Hire" />
+                  <button
+                    type="button"
+                    onClick={() => {
+                      const launchHireOption = allActionOptions.find((opt) => opt.value === "launchHire");
+                      if (launchHireOption) {
+                        handleActionSelect(launchHireOption);
+                      }
+                    }}
+                    data-tooltip-id="launch-hire-btn"
+                    style={{
+                      padding: "8px 16px",
+                      borderRadius: "8px",
+                      border: "1px solid var(--card-color, #2A00FF)",
+                      backgroundColor: "var(--card-color, #2A00FF)",
+                      color: "#ffffff",
+                      fontSize: "13px",
+                      fontWeight: "600",
+                      cursor: "pointer",
+                      transition: "all 0.2s ease",
+                      fontFamily: "Inter, sans-serif",
+                      display: "flex",
+                      alignItems: "center",
+                      gap: "8px",
+                      minWidth: 0,
+                      marginRight: "10px"
+                    }}
                   onMouseEnter={(e) => {
                     e.currentTarget.style.opacity = "0.9";
                     e.currentTarget.style.transform = "translateY(-1px)";
@@ -1031,7 +1055,8 @@ const CrewContent = ({ formValues, handleChange, cardColor, onNavigateToTab, lau
                   >
                     Launch Hire
                   </span>
-                </button>
+                  </button>
+                </>
               )}
               {showActionDropdown && !launchHireOnly && (
                 <div style={{ position: "relative", marginRight: "10px" }}>
@@ -1067,9 +1092,11 @@ const CrewContent = ({ formValues, handleChange, cardColor, onNavigateToTab, lau
                   </select>
                 </div>
               )}
+              <Tooltip id="select-all-btn" place="top" content={selectedCrewIds.length === displayCrewList.length ? "Deselect All" : "Select All"} />
               <button
                 type="button"
                 onClick={handleSelectAll}
+                data-tooltip-id="select-all-btn"
                 style={{
                   padding: "8px 16px",
                   borderRadius: "8px",
@@ -1083,7 +1110,6 @@ const CrewContent = ({ formValues, handleChange, cardColor, onNavigateToTab, lau
                   fontFamily: "Inter, sans-serif",
                   minWidth: 0
                 }}
-                title={selectedCrewIds.length === displayCrewList.length ? "Deselect All" : "Select All"}
                 onMouseEnter={(e) => {
                   if (selectedCrewIds.length !== displayCrewList.length) {
                     e.currentTarget.style.backgroundColor = "#f8f9ff";
@@ -1132,60 +1158,71 @@ const CrewContent = ({ formValues, handleChange, cardColor, onNavigateToTab, lau
                       }}
                     />
                   </th>
-                  <th style={{ width: "calc((100% - 40px) / 11)", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }} title="Crew Name">
-                    <div style={{ display: "flex", justifyContent: "center", alignItems: "center" }}>
+                  <th style={{ width: "calc((100% - 40px) / 11)", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
+                    <div style={{ display: "flex", justifyContent: "center", alignItems: "center" }} data-tooltip-id="crew-name-header" data-tooltip-content="Crew Name">
                       <CrewNameIcon size={20} />
                     </div>
+                    <Tooltip id="crew-name-header" place="top" />
                   </th>
-                  <th style={{ width: "calc((100% - 40px) / 11)", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }} title="Nationality">
-                    <div style={{ display: "flex", justifyContent: "center", alignItems: "center" }}>
+                  <th style={{ width: "calc((100% - 40px) / 11)", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
+                    <div style={{ display: "flex", justifyContent: "center", alignItems: "center" }} data-tooltip-id="nationality-header" data-tooltip-content="Nationality">
                       <NationalityIcon size={20} />
                     </div>
+                    <Tooltip id="nationality-header" place="top" />
                   </th>
-                  <th style={{ width: "calc((100% - 40px) / 11)", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }} title="Rank">
-                    <div style={{ display: "flex", justifyContent: "center", alignItems: "center" }}>
+                  <th style={{ width: "calc((100% - 40px) / 11)", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
+                    <div style={{ display: "flex", justifyContent: "center", alignItems: "center" }} data-tooltip-id="rank-header" data-tooltip-content="Rank">
                       <RankIcon size={20} />
                     </div>
+                    <Tooltip id="rank-header" place="top" />
                   </th>
-                  <th style={{ width: "calc((100% - 40px) / 11)", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }} title="Passport">
-                    <div style={{ display: "flex", justifyContent: "center", alignItems: "center" }}>
+                  <th style={{ width: "calc((100% - 40px) / 11)", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
+                    <div style={{ display: "flex", justifyContent: "center", alignItems: "center" }} data-tooltip-id="passport-header" data-tooltip-content="Passport">
                       <PassportIcon size={20} />
                     </div>
+                    <Tooltip id="passport-header" place="top" />
                   </th>
-                  <th style={{ width: "calc((100% - 40px) / 11)", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }} title="Iqama">
-                    <div style={{ display: "flex", justifyContent: "center", alignItems: "center" }}>
+                  <th style={{ width: "calc((100% - 40px) / 11)", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
+                    <div style={{ display: "flex", justifyContent: "center", alignItems: "center" }} data-tooltip-id="iqama-header" data-tooltip-content="Iqama">
                       <IqamaIcon size={20} />
                     </div>
+                    <Tooltip id="iqama-header" place="top" />
                   </th>
-                  <th style={{ width: "calc((100% - 40px) / 11)", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }} title="Visa">
-                    <div style={{ display: "flex", justifyContent: "center", alignItems: "center" }}>
+                  <th style={{ width: "calc((100% - 40px) / 11)", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
+                    <div style={{ display: "flex", justifyContent: "center", alignItems: "center" }} data-tooltip-id="visa-header" data-tooltip-content="Visa">
                       <VisaIcon size={20} />
                     </div>
+                    <Tooltip id="visa-header" place="top" />
                   </th>
-                  <th style={{ width: "calc((100% - 40px) / 11)", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }} title="CG Pass">
-                    <div style={{ display: "flex", justifyContent: "center", alignItems: "center" }}>
+                  <th style={{ width: "calc((100% - 40px) / 11)", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
+                    <div style={{ display: "flex", justifyContent: "center", alignItems: "center" }} data-tooltip-id="cg-pass-header" data-tooltip-content="CG Pass">
                       <CGPassIcon size={20} />
                     </div>
+                    <Tooltip id="cg-pass-header" place="top" />
                   </th>
-                  <th style={{ width: "calc((100% - 40px) / 11)", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }} title="Zawil Pass">
-                    <div style={{ display: "flex", justifyContent: "center", alignItems: "center" }}>
+                  <th style={{ width: "calc((100% - 40px) / 11)", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
+                    <div style={{ display: "flex", justifyContent: "center", alignItems: "center" }} data-tooltip-id="zawil-pass-header" data-tooltip-content="Zawil Pass">
                       <ZawilPassIcon size={20} />
                     </div>
+                    <Tooltip id="zawil-pass-header" place="top" />
                   </th>
-                  <th style={{ width: "calc((100% - 40px) / 11)", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }} title="Transport">
-                    <div style={{ display: "flex", justifyContent: "center", alignItems: "center" }}>
+                  <th style={{ width: "calc((100% - 40px) / 11)", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
+                    <div style={{ display: "flex", justifyContent: "center", alignItems: "center" }} data-tooltip-id="transport-header" data-tooltip-content="Transport">
                       <CarIcon size={20} />
                     </div>
+                    <Tooltip id="transport-header" place="top" />
                   </th>
-                  <th style={{ width: "calc((100% - 40px) / 11)", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }} title="Hotel">
-                    <div style={{ display: "flex", justifyContent: "center", alignItems: "center" }}>
+                  <th style={{ width: "calc((100% - 40px) / 11)", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
+                    <div style={{ display: "flex", justifyContent: "center", alignItems: "center" }} data-tooltip-id="hotel-header" data-tooltip-content="Hotel">
                       <HotelIcon size={20} />
                     </div>
+                    <Tooltip id="hotel-header" place="top" />
                   </th>
-                  <th style={{ width: "calc((100% - 40px) / 11)", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }} title="Medical Service">
-                    <div style={{ display: "flex", justifyContent: "center", alignItems: "center" }}>
+                  <th style={{ width: "calc((100% - 40px) / 11)", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
+                    <div style={{ display: "flex", justifyContent: "center", alignItems: "center" }} data-tooltip-id="medical-service-header" data-tooltip-content="Medical Service">
                       <MedicalIcon size={20} />
                     </div>
+                    <Tooltip id="medical-service-header" place="top" />
                   </th>
                   {/* <th>Actions</th> */}
                 </tr>
@@ -1246,9 +1283,11 @@ const CrewContent = ({ formValues, handleChange, cardColor, onNavigateToTab, lau
                             }}
                           />
                           <div style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: "4px" }}>
+                            <Tooltip id={`passport-upload-${crew.id}`} place="top" content={passportDocuments[crew.id] ? `Uploaded: ${passportDocuments[crew.id].fileName}` : "Upload Passport Document"} />
                             <button
                               type="button"
                               onClick={() => passportFileInputRefs.current[crew.id]?.click()}
+                              data-tooltip-id={`passport-upload-${crew.id}`}
                               style={{
                                 background: "transparent",
                                 border: "none",
@@ -1259,7 +1298,6 @@ const CrewContent = ({ formValues, handleChange, cardColor, onNavigateToTab, lau
                                 color: passportDocuments[crew.id] ? STATUS_COLORS.done : STATUS_COLORS.rejected,
                                 transition: "all 0.2s ease"
                               }}
-                              title={passportDocuments[crew.id] ? `Uploaded: ${passportDocuments[crew.id].fileName}` : "Upload Passport Document"}
                               onMouseEnter={(e) => {
                                 e.currentTarget.style.transform = "scale(1.1)";
                               }}
@@ -1292,9 +1330,11 @@ const CrewContent = ({ formValues, handleChange, cardColor, onNavigateToTab, lau
                             }}
                           />
                           <div style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: "4px" }}>
+                            <Tooltip id={`iqama-upload-${crew.id}`} place="top" content={iqamaDocuments[crew.id] ? `Uploaded: ${iqamaDocuments[crew.id].fileName}` : "Upload Iqama Document"} />
                             <button
                               type="button"
                               onClick={() => iqamaFileInputRefs.current[crew.id]?.click()}
+                              data-tooltip-id={`iqama-upload-${crew.id}`}
                               style={{
                                 background: "transparent",
                                 border: "none",
@@ -1305,7 +1345,6 @@ const CrewContent = ({ formValues, handleChange, cardColor, onNavigateToTab, lau
                                 color: iqamaDocuments[crew.id] ? STATUS_COLORS.done : STATUS_COLORS.rejected,
                                 transition: "all 0.2s ease"
                               }}
-                              title={iqamaDocuments[crew.id] ? `Uploaded: ${iqamaDocuments[crew.id].fileName}` : "Upload Iqama Document"}
                               onMouseEnter={(e) => {
                                 e.currentTarget.style.transform = "scale(1.1)";
                               }}
@@ -1338,9 +1377,11 @@ const CrewContent = ({ formValues, handleChange, cardColor, onNavigateToTab, lau
                             }}
                           />
                           <div style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: "4px" }}>
+                            <Tooltip id={`visa-upload-${crew.id}`} place="top" content={visaDocuments[crew.id] ? `Uploaded: ${visaDocuments[crew.id].fileName}` : "Upload Visa Document"} />
                             <button
                               type="button"
                               onClick={() => visaFileInputRefs.current[crew.id]?.click()}
+                              data-tooltip-id={`visa-upload-${crew.id}`}
                               style={{
                                 background: "transparent",
                                 border: "none",
@@ -1351,7 +1392,6 @@ const CrewContent = ({ formValues, handleChange, cardColor, onNavigateToTab, lau
                                 color: visaDocuments[crew.id] ? STATUS_COLORS.done : STATUS_COLORS.rejected,
                                 transition: "all 0.2s ease"
                               }}
-                              title={visaDocuments[crew.id] ? `Uploaded: ${visaDocuments[crew.id].fileName}` : "Upload Visa Document"}
                               onMouseEnter={(e) => {
                                 e.currentTarget.style.transform = "scale(1.1)";
                               }}
@@ -1384,9 +1424,11 @@ const CrewContent = ({ formValues, handleChange, cardColor, onNavigateToTab, lau
                             }}
                           />
                           <div style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: "4px" }}>
+                            <Tooltip id={`cg-pass-upload-${crew.id}`} place="top" content={cgPassDocuments[crew.id] ? `Uploaded: ${cgPassDocuments[crew.id].fileName}` : "Upload CG Pass Document"} />
                             <button
                               type="button"
                               onClick={() => cgPassFileInputRefs.current[crew.id]?.click()}
+                              data-tooltip-id={`cg-pass-upload-${crew.id}`}
                               style={{
                                 background: "transparent",
                                 border: "none",
@@ -1397,7 +1439,6 @@ const CrewContent = ({ formValues, handleChange, cardColor, onNavigateToTab, lau
                                 color: cgPassDocuments[crew.id] ? STATUS_COLORS.done : STATUS_COLORS.rejected,
                                 transition: "all 0.2s ease"
                               }}
-                              title={cgPassDocuments[crew.id] ? `Uploaded: ${cgPassDocuments[crew.id].fileName}` : "Upload CG Pass Document"}
                               onMouseEnter={(e) => {
                                 e.currentTarget.style.transform = "scale(1.1)";
                               }}
@@ -1430,9 +1471,11 @@ const CrewContent = ({ formValues, handleChange, cardColor, onNavigateToTab, lau
                             }}
                           />
                           <div style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: "4px" }}>
+                            <Tooltip id={`zawil-pass-upload-${crew.id}`} place="top" content={zawilPassDocuments[crew.id] ? `Uploaded: ${zawilPassDocuments[crew.id].fileName}` : "Upload Zawil Pass Document"} />
                             <button
                               type="button"
                               onClick={() => zawilPassFileInputRefs.current[crew.id]?.click()}
+                              data-tooltip-id={`zawil-pass-upload-${crew.id}`}
                               style={{
                                 background: "transparent",
                                 border: "none",
@@ -1443,7 +1486,6 @@ const CrewContent = ({ formValues, handleChange, cardColor, onNavigateToTab, lau
                                 color: zawilPassDocuments[crew.id] ? STATUS_COLORS.done : STATUS_COLORS.rejected,
                                 transition: "all 0.2s ease"
                               }}
-                              title={zawilPassDocuments[crew.id] ? `Uploaded: ${zawilPassDocuments[crew.id].fileName}` : "Upload Zawil Pass Document"}
                               onMouseEnter={(e) => {
                                 e.currentTarget.style.transform = "scale(1.1)";
                               }}
@@ -1460,19 +1502,37 @@ const CrewContent = ({ formValues, handleChange, cardColor, onNavigateToTab, lau
                         </div>
                       </td>
                       <td style={{ overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
-                        <div className="crew-table-cell crew-status-icon" style={{ display: "flex", justifyContent: "center", alignItems: "center" }}>
+                        <div 
+                          className="crew-table-cell crew-status-icon" 
+                          style={{ display: "flex", justifyContent: "center", alignItems: "center" }}
+                          data-tooltip-id={`transport-status-${crew.id}`}
+                          data-tooltip-content={`Transport: ${STATUS_LABELS[crew.transport] || STATUS_LABELS.pending}`}
+                        >
                           <StatusIcon status={crew.transport} IconComponent={CarIcon} size={20} />
                         </div>
+                        <Tooltip id={`transport-status-${crew.id}`} place="top" />
                       </td>
                       <td style={{ overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
-                        <div className="crew-table-cell crew-status-icon" style={{ display: "flex", justifyContent: "center", alignItems: "center" }}>
+                        <div 
+                          className="crew-table-cell crew-status-icon" 
+                          style={{ display: "flex", justifyContent: "center", alignItems: "center" }}
+                          data-tooltip-id={`hotel-status-${crew.id}`}
+                          data-tooltip-content={`Hotel: ${STATUS_LABELS[crew.hotel] || STATUS_LABELS.pending}`}
+                        >
                           <StatusIcon status={crew.hotel} IconComponent={HotelIcon} size={20} />
                         </div>
+                        <Tooltip id={`hotel-status-${crew.id}`} place="top" />
                       </td>
                       <td style={{ overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
-                        <div className="crew-table-cell crew-status-icon" style={{ display: "flex", justifyContent: "center", alignItems: "center" }}>
+                        <div 
+                          className="crew-table-cell crew-status-icon" 
+                          style={{ display: "flex", justifyContent: "center", alignItems: "center" }}
+                          data-tooltip-id={`medical-status-${crew.id}`}
+                          data-tooltip-content={`Medical Service: ${STATUS_LABELS[crew.medicalService] || STATUS_LABELS.pending}`}
+                        >
                           <StatusIcon status={crew.medicalService} IconComponent={MedicalIcon} size={20} />
                         </div>
+                        <Tooltip id={`medical-status-${crew.id}`} place="top" />
                       </td>
                       {/* <td>
                   <button
