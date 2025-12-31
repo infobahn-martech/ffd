@@ -6,10 +6,11 @@ import "../../../design/scss/form-designs.scss";
 
 // Vessel Type Options
 const VESSEL_TYPE_OPTIONS = [
-  "Foreign Flag Vessel",
-  "Saudi Flag Vessel",
-  "Small Boat",
-  "Taxi Tug Temp Import",
+  "Vessel one",
+  "Vessel two",
+  "Vessel three",
+  "Vessel four",
+  "Vessel five",
 ];
 
 // Billing Entity Options (will be populated from API or constants)
@@ -17,13 +18,6 @@ const BILLING_ENTITY_OPTIONS = [
   "Billing Entity 1",
   "Billing Entity 2",
   "Billing Entity 3",
-];
-
-// Barge Type Options
-const BARGE_TYPE_OPTIONS = [
-  "Barge Import",
-  "Flat Barge Import",
-  "Jack Up Barge",
 ];
 
 export function VesselModal({ showModal, closeModal }) {
@@ -36,7 +30,6 @@ export function VesselModal({ showModal, closeModal }) {
       ? {
         billingEntity: showModal?.billingEntity || "",
         vesselType: showModal?.vesselType || "",
-        bargeType: showModal?.bargeType || "",
         vesselName: showModal?.vesselName || "",
         flagState: showModal?.flagState || "",
         grossTonnage: showModal?.grossTonnage || "",
@@ -74,7 +67,7 @@ export function VesselModal({ showModal, closeModal }) {
     <div className="modal-body">
       <div className="lead-form">
         <form id="vesselForm" onSubmit={handleSubmit(onSubmit)}>
-          {/* ROW 1 — Billing Entity + Vessel Type + Barge Type */}
+          {/* ROW 1 — Vessel Type */}
           <div className="permInputs row mb-lg-3">
             {/* Vessel Type */}
             <div className="col-lg-6 col-sm-12 mb-3">
@@ -95,29 +88,6 @@ export function VesselModal({ showModal, closeModal }) {
                 </label>
                 {errors.vesselType && (
                   <span className="error text-danger">{errors.vesselType.message}</span>
-                )}
-              </div>
-            </div>
-
-            {/* Barge Type */}
-            <div className="col-lg-6 col-sm-12 mb-3">
-              <div className="form-floating desig-inp">
-                <select
-                  className={`form-control ${errors.bargeType ? "is-invalid" : ""}`}
-                  {...register("bargeType", { required: "Barge Type is required" })}
-                >
-                  <option value="">Select Barge Type</option>
-                  {BARGE_TYPE_OPTIONS.map((type) => (
-                    <option key={type} value={type}>
-                      {type}
-                    </option>
-                  ))}
-                </select>
-                <label>
-                  Barge Type <span className="text-danger">*</span>
-                </label>
-                {errors.bargeType && (
-                  <span className="error text-danger">{errors.bargeType.message}</span>
                 )}
               </div>
             </div>

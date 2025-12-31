@@ -5,16 +5,25 @@ import "../../../../design/scss/modal-designs.scss";
 import "../../../../design/scss/form-designs.scss";
 
 export function AddVesselModal({ showModal, closeModal, onSave }) {
-    const [vesselName, setVesselName] = useState("");
+    const [vesselType, setVesselType] = useState("");
     const [errors, setErrors] = useState({});
+
+    // Vessel Type options
+    const vesselTypeOptions = [
+        { value: "Vessel one", label: "Vessel one" },
+        { value: "Vessel two", label: "Vessel two" },
+        { value: "Vessel three", label: "Vessel three" },
+        { value: "Vessel four", label: "Vessel four" },
+        { value: "Vessel five", label: "Vessel five" },
+    ];
 
     const handleSubmit = (e) => {
         e.preventDefault();
 
         // Validation
         const newErrors = {};
-        if (!vesselName.trim()) {
-            newErrors.vesselName = "Vessel Name is required";
+        if (!vesselType) {
+            newErrors.vesselType = "Vessel Type is required";
         }
 
         if (Object.keys(newErrors).length > 0) {
@@ -24,17 +33,17 @@ export function AddVesselModal({ showModal, closeModal, onSave }) {
 
         // Call onSave callback with vessel data
         if (onSave) {
-            onSave({ vesselName: vesselName.trim() });
+            onSave({ vesselType });
         }
 
         // Reset form and close modal
-        setVesselName("");
+        setVesselType("");
         setErrors({});
         closeModal();
     };
 
     const handleClose = () => {
-        setVesselName("");
+        setVesselType("");
         setErrors({});
         closeModal();
     };
@@ -58,23 +67,28 @@ export function AddVesselModal({ showModal, closeModal, onSave }) {
                     <div className="permInputs row mb-lg-3">
                         <div className="col-12 mb-3">
                             <div className="form-floating desig-inp">
-                                <input
-                                    type="text"
-                                    className={`form-control ${errors.vesselName ? "is-invalid" : ""}`}
-                                    placeholder="Vessel Name"
-                                    value={vesselName}
+                                <select
+                                    className={`form-control ${errors.vesselType ? "is-invalid" : ""}`}
+                                    value={vesselType}
                                     onChange={(e) => {
-                                        setVesselName(e.target.value);
-                                        if (errors.vesselName) {
-                                            setErrors({ ...errors, vesselName: "" });
+                                        setVesselType(e.target.value);
+                                        if (errors.vesselType) {
+                                            setErrors({ ...errors, vesselType: "" });
                                         }
                                     }}
-                                />
+                                >
+                                    <option value="">Select Vessel Type</option>
+                                    {vesselTypeOptions.map((option) => (
+                                        <option key={option.value} value={option.value}>
+                                            {option.label}
+                                        </option>
+                                    ))}
+                                </select>
                                 <label>
-                                    Vessel Name <span className="text-danger">*</span>
+                                    Vessel Type <span className="text-danger">*</span>
                                 </label>
-                                {errors.vesselName && (
-                                    <span className="error text-danger">{errors.vesselName}</span>
+                                {errors.vesselType && (
+                                    <span className="error text-danger">{errors.vesselType}</span>
                                 )}
                             </div>
                         </div>
