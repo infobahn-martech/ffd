@@ -20,7 +20,7 @@ const MWPRenewalContent = ({ formValues, handleChange, cardColor }) => {
   const handleRequestEmailDragOver = (e) => {
     e.preventDefault();
     e.stopPropagation();
-    setIsDraggingRequestEmail(true);
+    setIsDraggingRequestEmail(true); ñ
   };
 
   const handleRequestEmailDragLeave = (e) => {
@@ -30,6 +30,7 @@ const MWPRenewalContent = ({ formValues, handleChange, cardColor }) => {
   };
 
   const handleRequestEmailDrop = (e) => {
+    ñ
     e.preventDefault();
     e.stopPropagation();
     setIsDraggingRequestEmail(false);
