@@ -49,7 +49,23 @@ const InboundOrdersContent = ({ formValues, handleChange, cardColor }) => {
   const [formData, setFormData] = useState({
     date: "",
     warehouse: "",
-    orders: [{ id: 1, poDo: "", quantity: "", packageType: "", description: "" }], // Order Details array
+    orders: [{ 
+      id: 1, 
+      orderNo: "",
+      poDo: "", 
+      quantity: "", 
+      packageType: "", 
+      description: "",
+      transportation: false,
+      typeOfVehicle: "",
+      fromLocation: "",
+      pickUpFrom: "",
+      toLocation: "",
+      driverName: "",
+      slotNo: "",
+      reason: "",
+      dispatchDate: ""
+    }], // Order Details array
   });
 
   // Dummy options for dropdowns
@@ -83,7 +99,23 @@ const InboundOrdersContent = ({ formValues, handleChange, cardColor }) => {
   const handleOpenModal = (order = null) => {
     if (order) {
       setEditingOrder(order);
-      const orderItems = order.orders || [{ id: 1, poDo: "", quantity: "", packageType: "", description: "" }];
+      const orderItems = order.orders || [{ 
+        id: 1, 
+        orderNo: "",
+        poDo: "", 
+        quantity: "", 
+        packageType: "", 
+        description: "",
+        transportation: false,
+        typeOfVehicle: "",
+        fromLocation: "",
+        pickUpFrom: "",
+        toLocation: "",
+        driverName: "",
+        slotNo: "",
+        reason: "",
+        dispatchDate: ""
+      }];
       setFormData({
         date: order.date || "",
         warehouse: order.warehouse || "",
@@ -100,7 +132,23 @@ const InboundOrdersContent = ({ formValues, handleChange, cardColor }) => {
       setFormData({
         date: "",
         warehouse: "",
-        orders: [{ id: 1, poDo: "", quantity: "", packageType: "", description: "" }],
+        orders: [{ 
+          id: 1, 
+          orderNo: "",
+          poDo: "", 
+          quantity: "", 
+          packageType: "", 
+          description: "",
+          transportation: false,
+          typeOfVehicle: "",
+          fromLocation: "",
+          pickUpFrom: "",
+          toLocation: "",
+          driverName: "",
+          slotNo: "",
+          reason: "",
+          dispatchDate: ""
+        }],
       });
       setExpandedOrders({ 1: true });
     }
@@ -141,10 +189,20 @@ const InboundOrdersContent = ({ formValues, handleChange, cardColor }) => {
         ...prev.orders,
         {
           id: newOrderId,
+          orderNo: "",
           poDo: "",
           quantity: "",
           packageType: "",
           description: "",
+          transportation: false,
+          typeOfVehicle: "",
+          fromLocation: "",
+          pickUpFrom: "",
+          toLocation: "",
+          driverName: "",
+          slotNo: "",
+          reason: "",
+          dispatchDate: ""
         },
       ],
     }));
@@ -187,13 +245,22 @@ const InboundOrdersContent = ({ formValues, handleChange, cardColor }) => {
         : ordersList.length > 0
           ? Math.max(...ordersList.map((m) => m.id)) + index + 1
           : index + 1,
-      orderNo: `ORD-${String(ordersList.length + index + 1).padStart(5, "0")}`,
+      orderNo: order.orderNo || `ORD-${String(ordersList.length + index + 1).padStart(5, "0")}`,
       date: formData.date,
       warehouse: formData.warehouse,
       poDo: order.poDo,
       quantity: order.quantity,
       packageType: order.packageType,
       description: order.description,
+      transportation: order.transportation || false,
+      typeOfVehicle: order.typeOfVehicle || "",
+      fromLocation: order.fromLocation || "",
+      pickUpFrom: order.pickUpFrom || "",
+      toLocation: order.toLocation || "",
+      driverName: order.driverName || "",
+      slotNo: order.slotNo || "",
+      reason: order.reason || "",
+      dispatchDate: order.dispatchDate || "",
     }));
 
     if (editingOrder) {
@@ -222,7 +289,23 @@ const InboundOrdersContent = ({ formValues, handleChange, cardColor }) => {
     setFormData({
       date: "",
       warehouse: "",
-      orders: [{ id: 1, poDo: "", quantity: "", packageType: "", description: "" }],
+      orders: [{ 
+        id: 1, 
+        orderNo: "",
+        poDo: "", 
+        quantity: "", 
+        packageType: "", 
+        description: "",
+        transportation: false,
+        typeOfVehicle: "",
+        fromLocation: "",
+        pickUpFrom: "",
+        toLocation: "",
+        driverName: "",
+        slotNo: "",
+        reason: "",
+        dispatchDate: ""
+      }],
     });
     setExpandedOrders({ 1: true });
   };
@@ -265,6 +348,46 @@ const InboundOrdersContent = ({ formValues, handleChange, cardColor }) => {
     { value: "Crate", label: "Crate" },
     { value: "Bag", label: "Bag" },
     { value: "Container", label: "Container" },
+    { value: "Loose", label: "Loose" },
+  ];
+
+  const vehicleTypeOptions = [
+    { value: "Car", label: "Car" },
+    { value: "Truck", label: "Truck" },
+    { value: "Van", label: "Van" },
+    { value: "Bus", label: "Bus" },
+    { value: "Motorcycle", label: "Motorcycle" },
+  ];
+
+  const locationOptions = [
+    { value: "Rastanura", label: "Rastanura" },
+    { value: "Dammam", label: "Dammam" },
+    { value: "Al Jubail", label: "Al Jubail" },
+    { value: "Al Khafji", label: "Al Khafji" },
+    { value: "As Safaniya", label: "As Safaniya" },
+  ];
+
+  const driverNameOptions = [
+    { value: "ABDUL", label: "ABDUL" },
+    { value: "AHMED", label: "AHMED" },
+    { value: "MOHAMMED", label: "MOHAMMED" },
+    { value: "ALI", label: "ALI" },
+    { value: "HASSAN", label: "HASSAN" },
+  ];
+
+  const slotNoOptions = [
+    { value: "Slot 1", label: "Slot 1" },
+    { value: "Slot 2", label: "Slot 2" },
+    { value: "Slot 3", label: "Slot 3" },
+    { value: "Slot 4", label: "Slot 4" },
+    { value: "Slot 5", label: "Slot 5" },
+  ];
+
+  const reasonOptions = [
+    { value: "Urgent", label: "Urgent" },
+    { value: "Standard", label: "Standard" },
+    { value: "Scheduled", label: "Scheduled" },
+    { value: "Emergency", label: "Emergency" },
   ];
 
   const renderHeader = () => (
@@ -478,6 +601,17 @@ const InboundOrdersContent = ({ formValues, handleChange, cardColor }) => {
                   <div style={{ padding: "24px", backgroundColor: "white" }}>
                     <div className="row mb-lg-3">
                       <div className="col-md-6 mb-3">
+                        <FormField label="Order No">
+                          <FormInput
+                            type="text"
+                            value={order.orderNo}
+                            onChange={(e) => handleOrderChange(order.id, "orderNo", e.target.value)}
+                            placeholder="Enter order number..."
+                          />
+                        </FormField>
+                      </div>
+
+                      <div className="col-md-6 mb-3">
                         <FormField label="PO/DO">
                           <FormInput
                             type="text"
@@ -489,12 +623,12 @@ const InboundOrdersContent = ({ formValues, handleChange, cardColor }) => {
                       </div>
 
                       <div className="col-md-6 mb-3">
-                        <FormField label="Quantity">
+                        <FormField label="Description">
                           <FormInput
-                            type="number"
-                            value={order.quantity}
-                            onChange={(e) => handleOrderChange(order.id, "quantity", e.target.value)}
-                            placeholder="Enter quantity..."
+                            type="text"
+                            value={order.description}
+                            onChange={(e) => handleOrderChange(order.id, "description", e.target.value)}
+                            placeholder="Enter description..."
                           />
                         </FormField>
                       </div>
@@ -511,14 +645,160 @@ const InboundOrdersContent = ({ formValues, handleChange, cardColor }) => {
                       </div>
 
                       <div className="col-md-6 mb-3">
-                        <FormField label="Description">
+                        <FormField label="Quantity">
                           <FormInput
-                            type="text"
-                            value={order.description}
-                            onChange={(e) => handleOrderChange(order.id, "description", e.target.value)}
-                            placeholder="Enter description..."
+                            type="number"
+                            value={order.quantity}
+                            onChange={(e) => handleOrderChange(order.id, "quantity", e.target.value)}
+                            placeholder="Enter quantity..."
                           />
                         </FormField>
+                      </div>
+                    </div>
+
+                    {/* Transportation Section */}
+                    <div style={{ marginTop: "24px", paddingTop: "24px", borderTop: "1px solid #e2e2ea" }}>
+                      <div style={{ marginBottom: "16px" }}>
+                        <label style={{ display: "flex", alignItems: "center", gap: "8px", cursor: "pointer" }}>
+                          <input
+                            type="checkbox"
+                            checked={order.transportation || false}
+                            onChange={(e) => handleOrderChange(order.id, "transportation", e.target.checked)}
+                            style={{ cursor: "pointer", width: "18px", height: "18px" }}
+                          />
+                          <span style={{ fontSize: "15px", fontWeight: "600", color: "#1a1a1a" }}>Transportation</span>
+                        </label>
+                      </div>
+
+                      {order.transportation && (
+                        <div className="row mb-lg-3">
+                          <div className="col-md-6 mb-3">
+                            <FormField label="Type of Vehicle">
+                              <FormSelect
+                                value={order.typeOfVehicle}
+                                onChange={(e) => handleOrderChange(order.id, "typeOfVehicle", e.target.value)}
+                                options={vehicleTypeOptions}
+                                placeholder="Select type of vehicle..."
+                              />
+                            </FormField>
+                          </div>
+
+                          <div className="col-md-6 mb-3">
+                            <FormField label="From Location">
+                              <FormSelect
+                                value={order.fromLocation}
+                                onChange={(e) => handleOrderChange(order.id, "fromLocation", e.target.value)}
+                                options={locationOptions}
+                                placeholder="Select from location..."
+                              />
+                            </FormField>
+                          </div>
+
+                          <div className="col-md-6 mb-3">
+                            <FormField label="Pick-Up From">
+                              <FormInput
+                                type="text"
+                                value={order.pickUpFrom}
+                                onChange={(e) => handleOrderChange(order.id, "pickUpFrom", e.target.value)}
+                                placeholder="Enter pick-up location..."
+                              />
+                            </FormField>
+                          </div>
+
+                          <div className="col-md-6 mb-3">
+                            <FormField label="To Location">
+                              <FormSelect
+                                value={order.toLocation}
+                                onChange={(e) => handleOrderChange(order.id, "toLocation", e.target.value)}
+                                options={locationOptions}
+                                placeholder="Select to location..."
+                              />
+                            </FormField>
+                          </div>
+
+                          <div className="col-md-6 mb-3">
+                            <FormField label="Driver Name">
+                              <FormSelect
+                                value={order.driverName}
+                                onChange={(e) => handleOrderChange(order.id, "driverName", e.target.value)}
+                                options={driverNameOptions}
+                                placeholder="Select driver name..."
+                              />
+                            </FormField>
+                          </div>
+                        </div>
+                      )}
+                    </div>
+
+                    {/* Additional Fields */}
+                    <div style={{ marginTop: "24px", paddingTop: "24px", borderTop: "1px solid #e2e2ea" }}>
+                      <div className="row mb-lg-3">
+                        <div className="col-md-6 mb-3">
+                          <FormField label="Slot No">
+                            <FormSelect
+                              value={order.slotNo}
+                              onChange={(e) => handleOrderChange(order.id, "slotNo", e.target.value)}
+                              options={slotNoOptions}
+                              placeholder="Select slot..."
+                            />
+                          </FormField>
+                        </div>
+
+                        <div className="col-md-6 mb-3">
+                          <FormField label="Reason">
+                            <FormSelect
+                              value={order.reason}
+                              onChange={(e) => handleOrderChange(order.id, "reason", e.target.value)}
+                              options={reasonOptions}
+                              placeholder="Select reason..."
+                            />
+                          </FormField>
+                        </div>
+
+                        <div className="col-md-6 mb-3">
+                          <FormField label="Dispatch Date">
+                            <div className="cf-select cf-date-input">
+                              <input
+                                type="date"
+                                value={order.dispatchDate}
+                                onChange={(e) => handleOrderChange(order.id, "dispatchDate", e.target.value)}
+                                onClick={(e) => e.stopPropagation()}
+                                style={{
+                                  width: "100%",
+                                  border: "none",
+                                  outline: "none",
+                                  background: "transparent",
+                                  fontSize: "14px",
+                                  color: "#1a1a1a",
+                                  fontFamily: "inherit",
+                                  padding: 0,
+                                  flex: 1,
+                                  cursor: "pointer",
+                                }}
+                              />
+                              <svg
+                                width="18"
+                                height="18"
+                                viewBox="0 0 24 24"
+                                fill="none"
+                                xmlns="http://www.w3.org/2000/svg"
+                                style={{
+                                  flexShrink: 0,
+                                  marginLeft: "8px",
+                                  color: "#666",
+                                  pointerEvents: "none",
+                                  position: "relative",
+                                  zIndex: 1,
+                                }}
+                              >
+                                <rect x="3" y="4" width="18" height="18" rx="2" stroke="currentColor" strokeWidth="2" fill="none" />
+                                <line x1="16" y1="2" x2="16" y2="6" stroke="currentColor" strokeWidth="2" strokeLinecap="round" />
+                                <line x1="8" y1="2" x2="8" y2="6" stroke="currentColor" strokeWidth="2" strokeLinecap="round" />
+                                <line x1="3" y1="10" x2="21" y2="10" stroke="currentColor" strokeWidth="2" strokeLinecap="round" />
+                              </svg>
+                            </div>
+                          </FormField>
+                        </div>
                       </div>
                     </div>
                   </div>
