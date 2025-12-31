@@ -637,7 +637,26 @@ const InboundOrdersContent = ({ formValues, handleChange, cardColor }) => {
                     <div className="material-table-cell">{order.packageType || ""}</div>
                   </td>
                   <td>
-                    <div className="material-table-cell">{order.description || ""}</div>
+                    <div className="material-table-cell">
+                      {order.description && order.description.length > 13 ? (
+                        <>
+                          <Tooltip
+                            id={`description-tooltip-${order.id}`}
+                            place="right"
+                            content={order.description}
+                            className="material-table-tooltip"
+                          />
+                          <span
+                            data-tooltip-id={`description-tooltip-${order.id}`}
+                            style={{ cursor: "help" }}
+                          >
+                            {order.description.substring(0, 13)}...
+                          </span>
+                        </>
+                      ) : (
+                        <span>{order.description || ""}</span>
+                      )}
+                    </div>
                   </td>
                   <td>
                     <div className="material-table-cell">

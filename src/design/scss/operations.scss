@@ -2665,7 +2665,6 @@ body .material-management-modal .files-list::-webkit-scrollbar-thumb:hover {
   align-items: center;
   padding: 18px 22px;
   background: #ffffff;
-  border-bottom: 1px solid #f0f0f0;
 }
 
 .material-list-title {
@@ -2718,6 +2717,7 @@ body .material-management-modal .files-list::-webkit-scrollbar-thumb:hover {
   margin: 0;
   background: #ffffff;
   -webkit-overflow-scrolling: touch;
+  padding: 0 22px 22px 22px;
 }
 
 .material-table-container::-webkit-scrollbar {
@@ -2794,6 +2794,12 @@ body .material-management-modal .files-list::-webkit-scrollbar-thumb:hover {
 
 /* Status */
 
+.material-table-container .table.material-table {
+  margin: 0;
+  border-collapse: separate;
+  border-spacing: 0;
+}
+
 .material-table-container .table.material-table thead {
   background: var(--card-color, #2A00FF);
   position: sticky;
@@ -2852,10 +2858,25 @@ body .material-management-modal .files-list::-webkit-scrollbar-thumb:hover {
 /* Tooltip z-index fix for material table - ensure tooltips appear above action buttons */
 .material-table-tooltip {
   z-index: 10000 !important;
+  white-space: nowrap !important;
+  max-width: none !important;
 }
 
 .material-table-container [id^="react-tooltip-"] {
   z-index: 10000 !important;
+  white-space: nowrap !important;
+  max-width: none !important;
+  word-break: keep-all !important;
+  overflow: visible !important;
+}
+
+/* Prevent tooltip text wrapping in action columns */
+.material-table-container .table-actions [id^="react-tooltip-"],
+.material-table-container .table-actions+[id^="react-tooltip-"] {
+  white-space: nowrap !important;
+  max-width: none !important;
+  word-break: keep-all !important;
+  overflow: visible !important;
 }
 
 /* ==========================================================

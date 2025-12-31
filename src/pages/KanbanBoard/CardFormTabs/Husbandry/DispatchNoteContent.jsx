@@ -490,14 +490,6 @@ const DispatchNoteContent = ({ formValues, handleChange, cardColor }) => {
           <span className="material-list-title-bar"></span>
           DISPATCH NOTE
         </h3>
-        <button
-          type="button"
-          className="material-add-btn"
-          onClick={() => handleOpenModal()}
-          style={{ backgroundColor: "#00368c" }}
-        >
-          + Add
-        </button>
       </div>
       <div className="table-wrapper table-responsive material-table-container">
         <table className="table table-striped material-table" style={{ "--card-color": "#e2e6ff" }}>
@@ -546,7 +538,26 @@ const DispatchNoteContent = ({ formValues, handleChange, cardColor }) => {
                     <div className="material-table-cell">{note.packageType || ""}</div>
                   </td>
                   <td>
-                    <div className="material-table-cell">{note.description || ""}</div>
+                    <div className="material-table-cell">
+                      {note.description && note.description.length > 13 ? (
+                        <>
+                          <Tooltip 
+                            id={`description-tooltip-${note.id}`} 
+                            place="right" 
+                            content={note.description}
+                            className="material-table-tooltip"
+                          />
+                          <span
+                            data-tooltip-id={`description-tooltip-${note.id}`}
+                            style={{ cursor: "help" }}
+                          >
+                            {note.description.substring(0, 13)}...
+                          </span>
+                        </>
+                      ) : (
+                        <span>{note.description || ""}</span>
+                      )}
+                    </div>
                   </td>
                   <td>
                     <div className="material-table-cell">
@@ -609,7 +620,7 @@ const DispatchNoteContent = ({ formValues, handleChange, cardColor }) => {
             ) : (
               <tr>
                 <td colSpan="8" style={{ textAlign: "center", padding: "20px" }}>
-                  No dispatch notes added yet. Click "Add" to add a new note.
+                  No dispatch notes added yet.
                 </td>
               </tr>
             )}
