@@ -559,10 +559,25 @@ const LandingNoteContent = ({ formValues, handleChange, cardColor }) => {
                   </td>
                   <td>
                     <div className="material-table-cell">
-                      <div className="table-actions" style={{ display: "flex", gap: "8px", alignItems: "center" }}>
-                        <Tooltip id={`convert-dispatch-${note.id}`} place="top" content="Convert to Dispatch" />
-                        <Tooltip id={`edit-landing-${note.id}`} place="top" content="Edit" />
-                        <Tooltip id={`delete-landing-${note.id}`} place="top" content="Delete" />
+                      <div className="table-actions" style={{ display: "flex", gap: "8px", alignItems: "center", position: "relative", zIndex: 1 }}>
+                        <Tooltip 
+                          id={`convert-dispatch-${note.id}`} 
+                          place="top" 
+                          content="Convert to Dispatch"
+                          className="material-table-tooltip"
+                        />
+                        <Tooltip 
+                          id={`edit-landing-${note.id}`} 
+                          place="top" 
+                          content="Edit"
+                          className="material-table-tooltip"
+                        />
+                        <Tooltip 
+                          id={`delete-landing-${note.id}`} 
+                          place="top" 
+                          content="Delete"
+                          className="material-table-tooltip"
+                        />
                         <span
                           data-tooltip-id={`convert-dispatch-${note.id}`}
                           data-tooltip-content="Convert to Dispatch"

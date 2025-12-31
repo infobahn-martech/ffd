@@ -550,9 +550,19 @@ const DispatchNoteContent = ({ formValues, handleChange, cardColor }) => {
                   </td>
                   <td>
                     <div className="material-table-cell">
-                      <div className="table-actions" style={{ display: "flex", gap: "8px", alignItems: "center" }}>
-                        <Tooltip id={`edit-dispatch-${note.id}`} place="top" content="Edit" />
-                        <Tooltip id={`delete-dispatch-${note.id}`} place="top" content="Delete" />
+                      <div className="table-actions" style={{ display: "flex", gap: "8px", alignItems: "center", position: "relative", zIndex: 1 }}>
+                        <Tooltip 
+                          id={`edit-dispatch-${note.id}`} 
+                          place="top" 
+                          content="Edit"
+                          className="material-table-tooltip"
+                        />
+                        <Tooltip 
+                          id={`delete-dispatch-${note.id}`} 
+                          place="top" 
+                          content="Delete"
+                          className="material-table-tooltip"
+                        />
                         <span
                           data-tooltip-id={`edit-dispatch-${note.id}`}
                           data-tooltip-content="Edit"
