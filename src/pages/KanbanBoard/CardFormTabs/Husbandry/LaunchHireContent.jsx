@@ -412,6 +412,18 @@ const LaunchHireContent = ({ formValues, handleChange, cardColor }) => {
   const handleSave = () => {
     console.log("Saving Launch Hire data:", {
       launchHireSelectedCrew: formValues.launchHireSelectedCrew,
+      launchHireBoardingAgentName: formValues.launchHireBoardingAgentName,
+      launchHireWeather: formValues.launchHireWeather,
+      launchHireBoatLeftBaseDate: formValues.launchHireBoatLeftBaseDate,
+      launchHireBoatLeftBaseTime: formValues.launchHireBoatLeftBaseTime,
+      launchHireBoatAlongsideShipDate: formValues.launchHireBoatAlongsideShipDate,
+      launchHireBoatAlongsideShipTime: formValues.launchHireBoatAlongsideShipTime,
+      launchHireBoatCastOffShipDate: formValues.launchHireBoatCastOffShipDate,
+      launchHireBoatCastOffShipTime: formValues.launchHireBoatCastOffShipTime,
+      launchHireBoatBackToBaseDate: formValues.launchHireBoatBackToBaseDate,
+      launchHireBoatBackToBaseTime: formValues.launchHireBoatBackToBaseTime,
+      launchHireServiceOptions: formValues.launchHireServiceOptions,
+      launchHireServiceOptionsOthersText: formValues.launchHireServiceOptionsOthersText,
       launchHireServiceName: formValues.launchHireServiceName,
       launchHireTBReservationDate: formValues.launchHireTBReservationDate,
       launchHireTBReservationTime: formValues.launchHireTBReservationTime,
@@ -443,6 +455,149 @@ const LaunchHireContent = ({ formValues, handleChange, cardColor }) => {
                     closeMenuOnSelect={false}
                     hideSelectedOptions={false}
                   />
+                </div>
+              </FormField>
+
+              <FormField label="Boarding agent name">
+                <FormInput
+                  type="text"
+                  value={formValues.launchHireBoardingAgentName || ""}
+                  onChange={handleChange("launchHireBoardingAgentName")}
+                  placeholder="Enter boarding agent name..."
+                />
+              </FormField>
+
+              <FormField label="Weather">
+                <FormTextarea
+                  value={formValues.launchHireWeather || ""}
+                  onChange={handleChange("launchHireWeather")}
+                  placeholder="Enter weather information..."
+                  rows={3}
+                />
+              </FormField>
+
+              <FormField label="BOAT LEFT THE BASE">
+                <div className="cf-input date-time-row">
+                  <input
+                    type="date"
+                    value={formValues.launchHireBoatLeftBaseDate || ""}
+                    onChange={handleChange("launchHireBoatLeftBaseDate")}
+                    placeholder="Select date"
+                  />
+                  <input
+                    type="time"
+                    value={formValues.launchHireBoatLeftBaseTime || ""}
+                    onChange={handleChange("launchHireBoatLeftBaseTime")}
+                    placeholder="Select time"
+                  />
+                </div>
+              </FormField>
+
+              <FormField label="BOAT ALONG SIDE SHIP">
+                <div className="cf-input date-time-row">
+                  <input
+                    type="date"
+                    value={formValues.launchHireBoatAlongsideShipDate || ""}
+                    onChange={handleChange("launchHireBoatAlongsideShipDate")}
+                    placeholder="Select date"
+                  />
+                  <input
+                    type="time"
+                    value={formValues.launchHireBoatAlongsideShipTime || ""}
+                    onChange={handleChange("launchHireBoatAlongsideShipTime")}
+                    placeholder="Select time"
+                  />
+                </div>
+              </FormField>
+
+              <FormField label="BOAT CAST - OFF SHIP">
+                <div className="cf-input date-time-row">
+                  <input
+                    type="date"
+                    value={formValues.launchHireBoatCastOffShipDate || ""}
+                    onChange={handleChange("launchHireBoatCastOffShipDate")}
+                    placeholder="Select date"
+                  />
+                  <input
+                    type="time"
+                    value={formValues.launchHireBoatCastOffShipTime || ""}
+                    onChange={handleChange("launchHireBoatCastOffShipTime")}
+                    placeholder="Select time"
+                  />
+                </div>
+              </FormField>
+
+              <FormField label="BOAT BACK TO BASE">
+                <div className="cf-input date-time-row">
+                  <input
+                    type="date"
+                    value={formValues.launchHireBoatBackToBaseDate || ""}
+                    onChange={handleChange("launchHireBoatBackToBaseDate")}
+                    placeholder="Select date"
+                  />
+                  <input
+                    type="time"
+                    value={formValues.launchHireBoatBackToBaseTime || ""}
+                    onChange={handleChange("launchHireBoatBackToBaseTime")}
+                    placeholder="Select time"
+                  />
+                </div>
+              </FormField>
+
+              <FormField label="Service Options" className="cf-field-full">
+                <div className="checkbox-group">
+                  {[
+                    "FREIGHTER ANCHORAGE",
+                    "SING ON/SIGN OFF/MEDIC/PCR TECH/IMMIGRATION CREW",
+                    "INNER ANCHORAGE",
+                    "GARBAGE COLLECTION/JUMBO BAGS",
+                    "MATERIAL/PALLETS",
+                    "SEA ISLAND",
+                    "PROVISSON/PALLETS",
+                    "JUAYMAH",
+                    "OTHERS"
+                  ].map((option) => (
+                    <div key={option} className="checkbox-item">
+                      <label className="checkbox-label">
+                        <input
+                          type="checkbox"
+                          checked={formValues.launchHireServiceOptions?.includes(option) || false}
+                          onChange={(e) => {
+                            const currentOptions = formValues.launchHireServiceOptions || [];
+                            const newOptions = e.target.checked
+                              ? [...currentOptions, option]
+                              : currentOptions.filter(opt => opt !== option);
+                            const syntheticEvent = { target: { value: newOptions } };
+                            handleChange("launchHireServiceOptions")(syntheticEvent);
+
+                            // Clear others text if OTHERS is unchecked
+                            if (option === "OTHERS" && !e.target.checked) {
+                              const clearEvent = { target: { value: "" } };
+                              handleChange("launchHireServiceOptionsOthersText")(clearEvent);
+                            }
+                          }}
+                          style={{
+                            width: "18px",
+                            height: "18px",
+                            cursor: "pointer",
+                            accentColor: cardColor || "#00368c",
+                            marginRight: "8px",
+                          }}
+                        />
+                        <span>{option === "OTHERS" ? "OTHERS:" : option}</span>
+                      </label>
+                      {option === "OTHERS" && formValues.launchHireServiceOptions?.includes("OTHERS") && (
+                        <div style={{ marginLeft: "26px", marginTop: "8px" }}>
+                          <FormInput
+                            type="text"
+                            value={formValues.launchHireServiceOptionsOthersText || ""}
+                            onChange={handleChange("launchHireServiceOptionsOthersText")}
+                            placeholder="Enter other service option..."
+                          />
+                        </div>
+                      )}
+                    </div>
+                  ))}
                 </div>
               </FormField>
 

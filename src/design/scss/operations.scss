@@ -5547,6 +5547,47 @@ body .modal-backdrop.show {
   .cf-input.date-time-row input[type="date"],
   .cf-input.date-time-row input[type="time"] {
     flex: 1;
-    width: 100%;
   }
+
+  /* Checkbox group styles for Launch Hire */
+  .checkbox-group {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+    padding: 12px;
+    background: #f8f9fc;
+    border-radius: 8px;
+    border: 1px solid #e2e6ff;
+  }
+
+  .checkbox-item {
+    display: flex;
+    flex-direction: column;
+  }
+
+  .checkbox-label {
+    display: flex;
+    align-items: center;
+    cursor: pointer;
+    font-size: 13px;
+    color: #333;
+    user-select: none;
+    padding: 4px 0;
+  }
+
+  .checkbox-label span {
+    flex: 1;
+  }
+
+  .checkbox-label input[type="checkbox"] {
+    margin-right: 8px;
+    cursor: pointer;
+  }
+
+  .checkbox-item .cf-input {
+    margin-top: 8px;
+  }
+
+  /* width: 100%; */
+  // Removed stray width, syntax fix
 }
