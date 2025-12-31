@@ -27,6 +27,7 @@ import ActivityLog from "../pages/ActivityLog";
 import ReportManagement from "../pages/ReportManagement";
 import Notification from "../pages/Notification";
 import KPIDashboard from "../pages/KPIDashboard";
+import AppointmentAcceptance from "../pages/AppointmentAcceptance";
 
 // 🔥 Set true to bypass auth temporarily
 const TEST_MODE = true;
@@ -68,6 +69,7 @@ const router = createHashRouter([
               { path: "/report-management", element: <ReportManagement /> },
               { path: "/activity-log", element: <ActivityLog /> },
               { path: "/notification", element: <Notification /> },
+              { path: "/appointment-acceptance", element: <AppointmentAcceptance /> },
               { path: "/settings", element: <h1>Settings</h1> },
             ],
           },

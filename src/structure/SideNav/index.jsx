@@ -204,6 +204,13 @@ function SideNav({ isMobileMenuOpen, onCloseMobileMenu }) {
       hasPermission: true,
     },
     {
+      menu: 'Appointment Acceptance',
+      isDefaultMenu: true,
+      to: '/appointment-acceptance',
+      icon: portIcon,
+      hasPermission: true,
+    },
+    {
       menu: 'Billing Accounts',
       isDefaultMenu: true,
       hasPermission: true,
