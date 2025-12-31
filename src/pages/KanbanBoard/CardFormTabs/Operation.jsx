@@ -662,11 +662,6 @@ const PreArrivalContent = ({ formValues, handleChange, ownerInitial, cardUser, c
     handleChange("saberUtDocumentsAttachments")(syntheticEvent);
   };
 
-  const handleSendSaberUtDocuments = () => {
-    console.log("Sending SABER UT documents:", formValues.saberUtDocumentsAttachments);
-    // TODO: Implement send documents logic
-  };
-
   // Handle save
   const handleSave = () => {
     console.log("Saving Pre Arrival data:", formValues);
@@ -761,7 +756,7 @@ const PreArrivalContent = ({ formValues, handleChange, ownerInitial, cardUser, c
               </FormField>
 
               <FormField label="SABER UT Document Upload">
-                <div style={{ position: "relative", marginTop: "8px" }}>
+                <div style={{ marginTop: "8px" }}>
                   <AttachmentsList
                     attachments={formValues.saberUtDocumentsAttachments || []}
                     onAdd={() => { }}
@@ -775,73 +770,6 @@ const PreArrivalContent = ({ formValues, handleChange, ownerInitial, cardUser, c
                     fileInputRef={saberUtFileInputRef}
                     onFileInputChange={handleSaberUtFileInputChange}
                   />
-                  <button
-                    type="button"
-                    onClick={handleSendSaberUtDocuments}
-                    className="document-send-btn"
-                    title="Send documents"
-                    disabled={(formValues.saberUtDocumentsAttachments || []).length === 0}
-                    style={{
-                      position: "absolute",
-                      top: "12px",
-                      right: "12px",
-                      background: (formValues.saberUtDocumentsAttachments || []).length > 0 ? "#3e5cb6" : "#c5c5d1",
-                      border: "none",
-                      borderRadius: "6px",
-                      width: "36px",
-                      height: "36px",
-                      display: "flex",
-                      alignItems: "center",
-                      justifyContent: "center",
-                      cursor: (formValues.saberUtDocumentsAttachments || []).length > 0 ? "pointer" : "not-allowed",
-                      color: "#ffffff",
-                      transition: "all 0.2s ease",
-                      zIndex: 10,
-                      boxShadow: (formValues.saberUtDocumentsAttachments || []).length > 0 ? "0 2px 6px rgba(62, 94, 189, 0.3)" : "none",
-                      opacity: (formValues.saberUtDocumentsAttachments || []).length > 0 ? 1 : 0.6,
-                    }}
-                    onMouseEnter={(e) => {
-                      if ((formValues.saberUtDocumentsAttachments || []).length > 0) {
-                        e.currentTarget.style.background = "#2e4a8f";
-                        e.currentTarget.style.transform = "scale(1.1)";
-                        e.currentTarget.style.boxShadow = "0 4px 8px rgba(62, 94, 189, 0.4)";
-                      }
-                    }}
-                    onMouseLeave={(e) => {
-                      if ((formValues.saberUtDocumentsAttachments || []).length > 0) {
-                        e.currentTarget.style.background = "#3e5cb6";
-                        e.currentTarget.style.transform = "scale(1)";
-                        e.currentTarget.style.boxShadow = "0 2px 6px rgba(62, 94, 189, 0.3)";
-                      } else {
-                        e.currentTarget.style.background = "#c5c5d1";
-                        e.currentTarget.style.transform = "scale(1)";
-                        e.currentTarget.style.boxShadow = "none";
-                      }
-                    }}
-                  >
-                    <svg
-                      width="18"
-                      height="18"
-                      viewBox="0 0 24 24"
-                      fill="none"
-                      xmlns="http://www.w3.org/2000/svg"
-                    >
-                      <path
-                        d="M22 2L11 13"
-                        stroke="currentColor"
-                        strokeWidth="2"
-                        strokeLinecap="round"
-                        strokeLinejoin="round"
-                      />
-                      <path
-                        d="M22 2L15 22L11 13L2 9L22 2Z"
-                        stroke="currentColor"
-                        strokeWidth="2"
-                        strokeLinecap="round"
-                        strokeLinejoin="round"
-                      />
-                    </svg>
-                  </button>
                 </div>
               </FormField>
 
