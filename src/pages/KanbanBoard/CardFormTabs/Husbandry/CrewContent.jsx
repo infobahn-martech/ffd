@@ -1283,7 +1283,7 @@ const CrewContent = ({ formValues, handleChange, cardColor, onNavigateToTab, lau
                             }}
                           />
                           <div style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: "4px" }}>
-                            <Tooltip id={`passport-upload-${crew.id}`} place="top" content={passportDocuments[crew.id] ? `Uploaded: ${passportDocuments[crew.id].fileName}` : "Upload Passport Document"} />
+                            <Tooltip id={`passport-upload-${crew.id}`} place="right" content={passportDocuments[crew.id] ? `Uploaded: ${passportDocuments[crew.id].fileName}` : "Upload Passport Document"} />
                             <button
                               type="button"
                               onClick={() => passportFileInputRefs.current[crew.id]?.click()}
@@ -1330,7 +1330,7 @@ const CrewContent = ({ formValues, handleChange, cardColor, onNavigateToTab, lau
                             }}
                           />
                           <div style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: "4px" }}>
-                            <Tooltip id={`iqama-upload-${crew.id}`} place="top" content={iqamaDocuments[crew.id] ? `Uploaded: ${iqamaDocuments[crew.id].fileName}` : "Upload Iqama Document"} />
+                            <Tooltip id={`iqama-upload-${crew.id}`} place="right" content={iqamaDocuments[crew.id] ? `Uploaded: ${iqamaDocuments[crew.id].fileName}` : "Upload Iqama Document"} />
                             <button
                               type="button"
                               onClick={() => iqamaFileInputRefs.current[crew.id]?.click()}
@@ -1377,7 +1377,7 @@ const CrewContent = ({ formValues, handleChange, cardColor, onNavigateToTab, lau
                             }}
                           />
                           <div style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: "4px" }}>
-                            <Tooltip id={`visa-upload-${crew.id}`} place="top" content={visaDocuments[crew.id] ? `Uploaded: ${visaDocuments[crew.id].fileName}` : "Upload Visa Document"} />
+                            <Tooltip id={`visa-upload-${crew.id}`} place="right" content={visaDocuments[crew.id] ? `Uploaded: ${visaDocuments[crew.id].fileName}` : "Upload Visa Document"} />
                             <button
                               type="button"
                               onClick={() => visaFileInputRefs.current[crew.id]?.click()}
@@ -1424,7 +1424,7 @@ const CrewContent = ({ formValues, handleChange, cardColor, onNavigateToTab, lau
                             }}
                           />
                           <div style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: "4px" }}>
-                            <Tooltip id={`cg-pass-upload-${crew.id}`} place="top" content={cgPassDocuments[crew.id] ? `Uploaded: ${cgPassDocuments[crew.id].fileName}` : "Upload CG Pass Document"} />
+                            <Tooltip id={`cg-pass-upload-${crew.id}`} place="right" content={cgPassDocuments[crew.id] ? `Uploaded: ${cgPassDocuments[crew.id].fileName}` : "Upload CG Pass Document"} />
                             <button
                               type="button"
                               onClick={() => cgPassFileInputRefs.current[crew.id]?.click()}
@@ -1471,7 +1471,7 @@ const CrewContent = ({ formValues, handleChange, cardColor, onNavigateToTab, lau
                             }}
                           />
                           <div style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: "4px" }}>
-                            <Tooltip id={`zawil-pass-upload-${crew.id}`} place="top" content={zawilPassDocuments[crew.id] ? `Uploaded: ${zawilPassDocuments[crew.id].fileName}` : "Upload Zawil Pass Document"} />
+                            <Tooltip id={`zawil-pass-upload-${crew.id}`} place="right" content={zawilPassDocuments[crew.id] ? `Uploaded: ${zawilPassDocuments[crew.id].fileName}` : "Upload Zawil Pass Document"} />
                             <button
                               type="button"
                               onClick={() => zawilPassFileInputRefs.current[crew.id]?.click()}
@@ -1510,7 +1510,7 @@ const CrewContent = ({ formValues, handleChange, cardColor, onNavigateToTab, lau
                         >
                           <StatusIcon status={crew.transport} IconComponent={CarIcon} size={20} />
                         </div>
-                        <Tooltip id={`transport-status-${crew.id}`} place="top" />
+                        <Tooltip id={`transport-status-${crew.id}`} place="right" />
                       </td>
                       <td style={{ overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
                         <div 
@@ -1521,7 +1521,7 @@ const CrewContent = ({ formValues, handleChange, cardColor, onNavigateToTab, lau
                         >
                           <StatusIcon status={crew.hotel} IconComponent={HotelIcon} size={20} />
                         </div>
-                        <Tooltip id={`hotel-status-${crew.id}`} place="top" />
+                        <Tooltip id={`hotel-status-${crew.id}`} place="right" />
                       </td>
                       <td style={{ overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
                         <div 
@@ -1532,7 +1532,7 @@ const CrewContent = ({ formValues, handleChange, cardColor, onNavigateToTab, lau
                         >
                           <StatusIcon status={crew.medicalService} IconComponent={MedicalIcon} size={20} />
                         </div>
-                        <Tooltip id={`medical-status-${crew.id}`} place="top" />
+                        <Tooltip id={`medical-status-${crew.id}`} place="right" />
                       </td>
                       {/* <td>
                   <button
