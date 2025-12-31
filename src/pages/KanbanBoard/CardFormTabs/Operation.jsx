@@ -746,16 +746,16 @@ const PreArrivalContent = ({ formValues, handleChange, ownerInitial, cardUser, c
                 </div>
               </FormField>
 
-              <FormField label="SABER UT Status">
+              <FormField label="SABER Status">
                 <FormInput
                   type="text"
                   value={formValues.saberUtStatus || ""}
                   onChange={handleChange("saberUtStatus")}
-                  placeholder="Enter SABER UT Status..."
+                  placeholder="Enter SABER Status..."
                 />
               </FormField>
 
-              <FormField label="SABER UT Document Upload">
+              <FormField label="SABER Certificate Upload">
                 <div style={{ marginTop: "8px" }}>
                   <AttachmentsList
                     attachments={formValues.saberUtDocumentsAttachments || []}
