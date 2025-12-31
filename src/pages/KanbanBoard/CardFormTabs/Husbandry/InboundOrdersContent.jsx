@@ -364,10 +364,25 @@ const InboundOrdersContent = ({ formValues, handleChange, cardColor }) => {
                   </td>
                   <td>
                     <div className="material-table-cell">
-                      <div className="table-actions" style={{ display: "flex", gap: "8px", alignItems: "center" }}>
-                        <Tooltip id={`convert-${order.id}`} place="top" content="Convert to Landing" />
-                        <Tooltip id={`edit-${order.id}`} place="top" content="Edit" />
-                        <Tooltip id={`delete-${order.id}`} place="top" content="Delete" />
+                      <div className="table-actions" style={{ display: "flex", gap: "8px", alignItems: "center", position: "relative", zIndex: 1 }}>
+                        <Tooltip 
+                          id={`convert-${order.id}`} 
+                          place="top" 
+                          content="Convert to Landing"
+                          className="material-table-tooltip"
+                        />
+                        <Tooltip 
+                          id={`edit-${order.id}`} 
+                          place="top" 
+                          content="Edit"
+                          className="material-table-tooltip"
+                        />
+                        <Tooltip 
+                          id={`delete-${order.id}`} 
+                          place="top" 
+                          content="Delete"
+                          className="material-table-tooltip"
+                        />
                         <span
                           data-tooltip-id={`convert-${order.id}`}
                           type="button"

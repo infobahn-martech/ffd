@@ -2683,6 +2683,7 @@ body .material-management-modal .files-list::-webkit-scrollbar-thumb:hover {
 
 .material-table-container {
   overflow-x: auto;
+  overflow-y: visible;
   width: 100%;
   margin: 0;
   background: #ffffff;
@@ -2816,6 +2817,15 @@ body .material-management-modal .files-list::-webkit-scrollbar-thumb:hover {
 .operation-right .material-management-content-wrapper {
   width: 100%;
   max-width: 100%;
+}
+
+/* Tooltip z-index fix for material table - ensure tooltips appear above action buttons */
+.material-table-tooltip {
+  z-index: 10000 !important;
+}
+
+.material-table-container [id^="react-tooltip-"] {
+  z-index: 10000 !important;
 }
 
 /* ==========================================================
