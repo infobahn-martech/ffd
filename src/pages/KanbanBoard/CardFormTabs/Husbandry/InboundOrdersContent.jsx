@@ -48,27 +48,11 @@ const InboundOrdersContent = ({ formValues, handleChange, cardColor }) => {
   // Form state - Basic Details
   const [formData, setFormData] = useState({
     date: "",
-    vesselName: "",
-    clientName: "",
     warehouse: "",
     orders: [{ id: 1, poDo: "", quantity: "", packageType: "", description: "" }], // Order Details array
   });
 
   // Dummy options for dropdowns
-  const vesselOptions = [
-    { value: "vessel1", label: "MV Ocean Star" },
-    { value: "vessel2", label: "MV Red Sea" },
-    { value: "vessel3", label: "MV Blue Wave" },
-    { value: "vessel4", label: "MV Golden Sun" },
-  ];
-
-  const clientOptions = [
-    { value: "client1", label: "Client A" },
-    { value: "client2", label: "Client B" },
-    { value: "client3", label: "Client C" },
-    { value: "client4", label: "Client D" },
-  ];
-
   const warehouseOptions = [
     { value: "warehouse1", label: "Warehouse 1" },
     { value: "warehouse2", label: "Warehouse 2" },
@@ -102,8 +86,6 @@ const InboundOrdersContent = ({ formValues, handleChange, cardColor }) => {
       const orderItems = order.orders || [{ id: 1, poDo: "", quantity: "", packageType: "", description: "" }];
       setFormData({
         date: order.date || "",
-        vesselName: order.vesselName || "",
-        clientName: order.clientName || "",
         warehouse: order.warehouse || "",
         orders: orderItems,
       });
@@ -117,8 +99,6 @@ const InboundOrdersContent = ({ formValues, handleChange, cardColor }) => {
       setEditingOrder(null);
       setFormData({
         date: "",
-        vesselName: "",
-        clientName: "",
         warehouse: "",
         orders: [{ id: 1, poDo: "", quantity: "", packageType: "", description: "" }],
       });
@@ -132,8 +112,6 @@ const InboundOrdersContent = ({ formValues, handleChange, cardColor }) => {
     setEditingOrder(null);
     setFormData({
       date: "",
-      vesselName: "",
-      clientName: "",
       warehouse: "",
       orders: [{ id: 1, poDo: "", quantity: "", packageType: "", description: "" }],
     });
@@ -211,8 +189,6 @@ const InboundOrdersContent = ({ formValues, handleChange, cardColor }) => {
         : index + 1,
       orderNo: `ORD-${String(ordersList.length + index + 1).padStart(5, "0")}`,
       date: formData.date,
-      vesselName: formData.vesselName,
-      clientName: formData.clientName,
       warehouse: formData.warehouse,
       poDo: order.poDo,
       quantity: order.quantity,
@@ -245,8 +221,6 @@ const InboundOrdersContent = ({ formValues, handleChange, cardColor }) => {
   const handleReset = () => {
     setFormData({
       date: "",
-      vesselName: "",
-      clientName: "",
       warehouse: "",
       orders: [{ id: 1, poDo: "", quantity: "", packageType: "", description: "" }],
     });
@@ -304,12 +278,12 @@ const InboundOrdersContent = ({ formValues, handleChange, cardColor }) => {
       <div className="lead-form">
         <form id="inboundOrderForm" onSubmit={handleSubmit}>
           {/* Basic Details Section */}
-          <div style={{ marginBottom: "24px" }}>
-            <h3 style={{ fontSize: "16px", fontWeight: "600", marginBottom: "16px", color: "#1a1a1a" }}>
+          <div style={{ marginBottom: "32px", paddingBottom: "24px", borderBottom: "1px solid #e2e2ea" }}>
+            <h3 style={{ fontSize: "18px", fontWeight: "600", marginBottom: "20px", color: "#1a1a1a" }}>
               Basic Details
             </h3>
             <div className="row mb-lg-3">
-              <div className="col-md-3 mb-3">
+              <div className="col-md-6 mb-3">
                 <FormField label="Date">
                   <div className="cf-input" style={{ position: "relative" }}>
                     <input
@@ -317,7 +291,17 @@ const InboundOrdersContent = ({ formValues, handleChange, cardColor }) => {
                       value={formData.date}
                       onChange={(e) => handleFormChange("date", e.target.value)}
                       placeholder="Select date"
-                      style={{ width: "100%", paddingRight: "40px" }}
+                      style={{ 
+                        width: "100%", 
+                        paddingRight: "40px",
+                        padding: "12px 40px 12px 16px",
+                        border: "1px solid #e2e2ea",
+                        borderRadius: "6px",
+                        fontSize: "14px",
+                        transition: "all 0.2s ease"
+                      }}
+                      onFocus={(e) => e.target.style.borderColor = "#00368c"}
+                      onBlur={(e) => e.target.style.borderColor = "#e2e2ea"}
                     />
                     <svg
                       width="20"
@@ -343,29 +327,7 @@ const InboundOrdersContent = ({ formValues, handleChange, cardColor }) => {
                 </FormField>
               </div>
 
-              <div className="col-md-3 mb-3">
-                <FormField label="Vessel Name">
-                  <FormSelect
-                    value={formData.vesselName}
-                    onChange={(e) => handleFormChange("vesselName", e.target.value)}
-                    options={vesselOptions}
-                    placeholder="Select vessel"
-                  />
-                </FormField>
-              </div>
-
-              <div className="col-md-3 mb-3">
-                <FormField label="Client Name">
-                  <FormSelect
-                    value={formData.clientName}
-                    onChange={(e) => handleFormChange("clientName", e.target.value)}
-                    options={clientOptions}
-                    placeholder="Select client"
-                  />
-                </FormField>
-              </div>
-
-              <div className="col-md-3 mb-3">
+              <div className="col-md-6 mb-3">
                 <FormField label="Warehouse">
                   <FormSelect
                     value={formData.warehouse}
@@ -380,8 +342,8 @@ const InboundOrdersContent = ({ formValues, handleChange, cardColor }) => {
 
           {/* Order Details Section */}
           <div>
-            <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "16px" }}>
-              <h3 style={{ fontSize: "16px", fontWeight: "600", margin: 0, color: "#1a1a1a" }}>
+            <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "20px" }}>
+              <h3 style={{ fontSize: "18px", fontWeight: "600", margin: 0, color: "#1a1a1a" }}>
                 Order Details
               </h3>
               <button
@@ -390,8 +352,8 @@ const InboundOrdersContent = ({ formValues, handleChange, cardColor }) => {
                 style={{
                   display: "flex",
                   alignItems: "center",
-                  gap: "6px",
-                  padding: "8px 16px",
+                  gap: "8px",
+                  padding: "10px 20px",
                   backgroundColor: "#00368c",
                   color: "white",
                   border: "none",
@@ -399,6 +361,18 @@ const InboundOrdersContent = ({ formValues, handleChange, cardColor }) => {
                   cursor: "pointer",
                   fontSize: "14px",
                   fontWeight: "500",
+                  transition: "all 0.2s ease",
+                  boxShadow: "0 2px 4px rgba(0, 54, 140, 0.2)",
+                }}
+                onMouseEnter={(e) => {
+                  e.currentTarget.style.backgroundColor = "#002d6b";
+                  e.currentTarget.style.transform = "translateY(-1px)";
+                  e.currentTarget.style.boxShadow = "0 4px 8px rgba(0, 54, 140, 0.3)";
+                }}
+                onMouseLeave={(e) => {
+                  e.currentTarget.style.backgroundColor = "#00368c";
+                  e.currentTarget.style.transform = "translateY(0)";
+                  e.currentTarget.style.boxShadow = "0 2px 4px rgba(0, 54, 140, 0.2)";
                 }}
               >
                 <svg width="16" height="16" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
@@ -413,28 +387,45 @@ const InboundOrdersContent = ({ formValues, handleChange, cardColor }) => {
               <div
                 key={order.id}
                 style={{
-                  marginBottom: "12px",
+                  marginBottom: "16px",
                   border: "1px solid #e2e2ea",
                   borderRadius: "8px",
                   overflow: "hidden",
                   backgroundColor: "#f8f9fa",
+                  boxShadow: "0 1px 3px rgba(0, 0, 0, 0.05)",
+                  transition: "all 0.2s ease",
+                }}
+                onMouseEnter={(e) => {
+                  e.currentTarget.style.borderColor = "#00368c";
+                  e.currentTarget.style.boxShadow = "0 2px 6px rgba(0, 54, 140, 0.1)";
+                }}
+                onMouseLeave={(e) => {
+                  e.currentTarget.style.borderColor = "#e2e2ea";
+                  e.currentTarget.style.boxShadow = "0 1px 3px rgba(0, 0, 0, 0.05)";
                 }}
               >
                 <div
                   onClick={() => toggleOrderExpand(order.id)}
                   style={{
-                    padding: "12px 16px",
+                    padding: "16px 20px",
                     backgroundColor: "#f8f9fa",
                     cursor: "pointer",
                     display: "flex",
                     justifyContent: "space-between",
                     alignItems: "center",
+                    transition: "background-color 0.2s ease",
+                  }}
+                  onMouseEnter={(e) => {
+                    e.currentTarget.style.backgroundColor = "#f0f1f5";
+                  }}
+                  onMouseLeave={(e) => {
+                    e.currentTarget.style.backgroundColor = "#f8f9fa";
                   }}
                 >
-                  <span style={{ fontSize: "14px", fontWeight: "500", color: "#1a1a1a" }}>
+                  <span style={{ fontSize: "15px", fontWeight: "600", color: "#1a1a1a" }}>
                     Order {index + 1}
                   </span>
-                  <div style={{ display: "flex", gap: "8px", alignItems: "center" }}>
+                  <div style={{ display: "flex", gap: "12px", alignItems: "center" }}>
                     {formData.orders.length > 1 && (
                       <button
                         type="button"
@@ -443,13 +434,23 @@ const InboundOrdersContent = ({ formValues, handleChange, cardColor }) => {
                           handleRemoveOrder(order.id);
                         }}
                         style={{
-                          padding: "4px 8px",
+                          padding: "6px 12px",
                           backgroundColor: "#dc3545",
                           color: "white",
                           border: "none",
-                          borderRadius: "4px",
+                          borderRadius: "6px",
                           cursor: "pointer",
                           fontSize: "12px",
+                          fontWeight: "500",
+                          transition: "all 0.2s ease",
+                        }}
+                        onMouseEnter={(e) => {
+                          e.currentTarget.style.backgroundColor = "#c82333";
+                          e.currentTarget.style.transform = "translateY(-1px)";
+                        }}
+                        onMouseLeave={(e) => {
+                          e.currentTarget.style.backgroundColor = "#dc3545";
+                          e.currentTarget.style.transform = "translateY(0)";
                         }}
                       >
                         Remove
@@ -463,16 +464,17 @@ const InboundOrdersContent = ({ formValues, handleChange, cardColor }) => {
                       xmlns="http://www.w3.org/2000/svg"
                       style={{
                         transform: expandedOrders[order.id] ? "rotate(180deg)" : "rotate(0deg)",
-                        transition: "transform 0.2s",
+                        transition: "transform 0.3s ease",
+                        color: "#666",
                       }}
                     >
-                      <path d="M6 9L12 15L18 9" stroke="#666" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+                      <path d="M6 9L12 15L18 9" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
                     </svg>
                   </div>
                 </div>
 
                 {expandedOrders[order.id] && (
-                  <div style={{ padding: "16px", backgroundColor: "white" }}>
+                  <div style={{ padding: "24px", backgroundColor: "white" }}>
                     <div className="row mb-lg-3">
                       <div className="col-md-6 mb-3">
                         <FormField label="PO/DO">
@@ -738,6 +740,7 @@ const InboundOrdersContent = ({ formValues, handleChange, cardColor }) => {
         header={renderHeader()}
         body={renderBody()}
         footer={renderFooter()}
+        dialgName="modal-dialog modal-dialog-centered"
       />
     </div>
   );

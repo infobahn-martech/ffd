@@ -5316,8 +5316,8 @@ body .material-management-modal.show {
 body .material-management-modal .modal-dialog {
   z-index: 1301 !important;
   position: relative;
-  max-width: 550px !important;
-  width: 85%;
+  max-width: 900px !important;
+  width: 90% !important;
   margin: 30px auto;
 }
 
@@ -5332,8 +5332,8 @@ body .material-management-modal .modal-header {
 }
 
 body .material-management-modal .modal-body {
-  padding: 20px 10px 10px 24px;
-  max-height: 60vh;
+  padding: 24px 32px;
+  max-height: 70vh;
   overflow-y: auto;
   scrollbar-width: thin;
   scrollbar-color: transparent transparent;
