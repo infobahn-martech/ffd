@@ -92,7 +92,7 @@ const Vehicle = () => {
         {
             name: "Seater",
             selector: "seater",
-            width: "120",
+            width: "220",
             thclass: "tb-head",
             contentClass: "table-content",
             sort: true,
@@ -100,7 +100,7 @@ const Vehicle = () => {
         {
             name: "Status",
             selector: "status",
-            width: "150",
+            width: "220",
             thclass: "tb-head",
             contentClass: "table-content",
             sort: true,
@@ -121,7 +121,7 @@ const Vehicle = () => {
         {
             name: "Actions",
             selector: "linksInfo",
-            width: "200",
+            width: "100",
             thclass: "tb-head",
             contentClass: "table-content",
             cell: RenderAction,
