@@ -6,6 +6,7 @@ import CustomModal from "../../../../components/CustomModal";
 import { FormField, FormInput, FormSelect } from "./Husbandry.components";
 import editIcon from "../../../../assets/images/edit.svg";
 import deleteIcon from "../../../../assets/images/delete.svg";
+import eyeIcon from "../../../../assets/images/eye.svg";
 
 // Generate dummy dispatch note data
 const generateDummyDispatchNotes = () => {
@@ -42,8 +43,10 @@ const generateDummyDispatchNotes = () => {
 
 const DispatchNoteContent = ({ formValues, handleChange, cardColor }) => {
   const [showModal, setShowModal] = useState(false);
+  const [showViewModal, setShowViewModal] = useState(false);
   const [notesList, setNotesList] = useState([]);
   const [editingNote, setEditingNote] = useState(null);
+  const [viewingNote, setViewingNote] = useState(null);
   const [isDragging, setIsDragging] = useState(false);
   const [selectedFiles, setSelectedFiles] = useState([]);
   const fileInputRef = useRef(null);
@@ -187,6 +190,131 @@ const DispatchNoteContent = ({ formValues, handleChange, cardColor }) => {
       const syntheticEvent = { target: { value: updatedList } };
       handleChange("dispatchNoteList")(syntheticEvent);
     }
+  };
+
+  const handleViewNote = (note) => {
+    setViewingNote(note);
+    setShowViewModal(true);
+  };
+
+  const handleCloseViewModal = () => {
+    setShowViewModal(false);
+    setViewingNote(null);
+  };
+
+  const handlePrintNote = (note) => {
+    const printWindow = window.open('', '_blank');
+    const printContent = `
+      <!DOCTYPE html>
+      <html>
+        <head>
+          <title>Print - Dispatch Note ${note.orderNo || ''}</title>
+          <style>
+            body {
+              font-family: Arial, sans-serif;
+              padding: 20px;
+              color: #333;
+            }
+            .print-header {
+              text-align: center;
+              margin-bottom: 30px;
+              border-bottom: 2px solid #00368c;
+              padding-bottom: 15px;
+            }
+            .print-header h1 {
+              color: #00368c;
+              margin: 0;
+              font-size: 24px;
+            }
+            .print-section {
+              margin-bottom: 25px;
+            }
+            .print-section-title {
+              font-size: 18px;
+              font-weight: bold;
+              color: #00368c;
+              margin-bottom: 15px;
+              border-bottom: 1px solid #e2e2ea;
+              padding-bottom: 8px;
+            }
+            .print-row {
+              display: flex;
+              margin-bottom: 12px;
+            }
+            .print-label {
+              font-weight: 600;
+              width: 200px;
+              color: #666;
+            }
+            .print-value {
+              flex: 1;
+              color: #1a1a1a;
+            }
+            .print-footer {
+              margin-top: 40px;
+              padding-top: 20px;
+              border-top: 1px solid #e2e2ea;
+              text-align: center;
+              color: #666;
+              font-size: 12px;
+            }
+            @media print {
+              body { margin: 0; padding: 15px; }
+              .print-footer { page-break-inside: avoid; }
+            }
+          </style>
+        </head>
+        <body>
+          <div class="print-header">
+            <h1>Dispatch Note Details</h1>
+          </div>
+          
+          <div class="print-section">
+            <div class="print-section-title">Note Information</div>
+            <div class="print-row">
+              <div class="print-label">Order No:</div>
+              <div class="print-value">${note.orderNo || "-"}</div>
+            </div>
+            <div class="print-row">
+              <div class="print-label">Date:</div>
+              <div class="print-value">${formatDate(note.date) || "-"}</div>
+            </div>
+            <div class="print-row">
+              <div class="print-label">PO/DO:</div>
+              <div class="print-value">${note.poDo || "-"}</div>
+            </div>
+            <div class="print-row">
+              <div class="print-label">Quantity:</div>
+              <div class="print-value">${note.quantity || "-"}</div>
+            </div>
+            <div class="print-row">
+              <div class="print-label">Package Type:</div>
+              <div class="print-value">${note.packageType || "-"}</div>
+            </div>
+            <div class="print-row">
+              <div class="print-label">Description:</div>
+              <div class="print-value">${note.description || "-"}</div>
+            </div>
+            <div class="print-row">
+              <div class="print-label">Delivery Proof:</div>
+              <div class="print-value">${note.deliveryProof && note.deliveryProof.length > 0 ? `${note.deliveryProof.length} file(s)` : "No files"}</div>
+            </div>
+          </div>
+
+          <div class="print-footer">
+            <p>Printed on ${new Date().toLocaleString()}</p>
+          </div>
+        </body>
+      </html>
+    `;
+    
+    printWindow.document.write(printContent);
+    printWindow.document.close();
+    printWindow.focus();
+    setTimeout(() => {
+      printWindow.print();
+      printWindow.close();
+    }, 250);
   };
 
   // File upload handlers
@@ -483,6 +611,102 @@ const DispatchNoteContent = ({ formValues, handleChange, cardColor }) => {
     </div>
   );
 
+  // View Note Modal Render Functions
+  const renderViewHeader = () => (
+    <>
+      <h1 className="modal-title">View Dispatch Note Details</h1>
+    </>
+  );
+
+  const renderViewBody = () => {
+    if (!viewingNote) return null;
+
+    return (
+      <div className="modal-body">
+        <div className="view-vessel-container" style={{ padding: "20px" }}>
+          {/* Note Information */}
+          <div className="view-row" style={{ display: "flex", flexWrap: "wrap", gap: "20px", marginBottom: "20px" }}>
+            <div className="view-item" style={{ flex: "1", minWidth: "200px" }}>
+              <div className="view-label" style={{ fontWeight: "600", color: "#666", marginBottom: "8px", fontSize: "14px" }}>Order No</div>
+              <div className="view-value" style={{ color: "#1a1a1a", fontSize: "15px" }}>{viewingNote.orderNo || "-"}</div>
+            </div>
+            <div className="view-item" style={{ flex: "1", minWidth: "200px" }}>
+              <div className="view-label" style={{ fontWeight: "600", color: "#666", marginBottom: "8px", fontSize: "14px" }}>Date</div>
+              <div className="view-value" style={{ color: "#1a1a1a", fontSize: "15px" }}>{formatDate(viewingNote.date) || "-"}</div>
+            </div>
+            <div className="view-item" style={{ flex: "1", minWidth: "200px" }}>
+              <div className="view-label" style={{ fontWeight: "600", color: "#666", marginBottom: "8px", fontSize: "14px" }}>PO/DO</div>
+              <div className="view-value" style={{ color: "#1a1a1a", fontSize: "15px" }}>{viewingNote.poDo || "-"}</div>
+            </div>
+          </div>
+
+          <div className="view-row" style={{ display: "flex", flexWrap: "wrap", gap: "20px", marginBottom: "20px" }}>
+            <div className="view-item" style={{ flex: "1", minWidth: "200px" }}>
+              <div className="view-label" style={{ fontWeight: "600", color: "#666", marginBottom: "8px", fontSize: "14px" }}>Quantity</div>
+              <div className="view-value" style={{ color: "#1a1a1a", fontSize: "15px" }}>{viewingNote.quantity || "-"}</div>
+            </div>
+            <div className="view-item" style={{ flex: "1", minWidth: "200px" }}>
+              <div className="view-label" style={{ fontWeight: "600", color: "#666", marginBottom: "8px", fontSize: "14px" }}>Package Type</div>
+              <div className="view-value" style={{ color: "#1a1a1a", fontSize: "15px" }}>{viewingNote.packageType || "-"}</div>
+            </div>
+            <div className="view-item" style={{ flex: "1", minWidth: "200px" }}>
+              <div className="view-label" style={{ fontWeight: "600", color: "#666", marginBottom: "8px", fontSize: "14px" }}>Delivery Proof</div>
+              <div className="view-value" style={{ color: "#1a1a1a", fontSize: "15px" }}>
+                {viewingNote.deliveryProof && viewingNote.deliveryProof.length > 0 ? `${viewingNote.deliveryProof.length} file(s)` : "No files"}
+              </div>
+            </div>
+          </div>
+
+          <div className="view-row" style={{ marginBottom: "20px" }}>
+            <div className="view-item" style={{ width: "100%" }}>
+              <div className="view-label" style={{ fontWeight: "600", color: "#666", marginBottom: "8px", fontSize: "14px" }}>Description</div>
+              <div className="view-value" style={{ color: "#1a1a1a", fontSize: "15px" }}>{viewingNote.description || "-"}</div>
+            </div>
+          </div>
+        </div>
+      </div>
+    );
+  };
+
+  const renderViewFooter = () => (
+    <div className="modal-footer" style={{ display: "flex", justifyContent: "flex-end", gap: "12px", padding: "16px 24px" }}>
+      <button
+        type="button"
+        onClick={handleCloseViewModal}
+        style={{
+          padding: "10px 20px",
+          backgroundColor: "#f5f5f5",
+          color: "#333",
+          border: "1px solid #e2e2ea",
+          borderRadius: "6px",
+          cursor: "pointer",
+          fontSize: "14px",
+          fontWeight: "500",
+        }}
+      >
+        Close
+      </button>
+      {viewingNote && (
+        <button
+          type="button"
+          onClick={() => handlePrintNote(viewingNote)}
+          style={{
+            padding: "10px 20px",
+            backgroundColor: "#00368c",
+            color: "white",
+            border: "none",
+            borderRadius: "6px",
+            cursor: "pointer",
+            fontSize: "14px",
+            fontWeight: "500",
+          }}
+        >
+          Print
+        </button>
+      )}
+    </div>
+  );
+
   return (
     <div className="cardform-left-full material-management-content-wrapper" style={{ "--card-color": cardColor }}>
       <div className="material-list-header">
@@ -563,17 +787,70 @@ const DispatchNoteContent = ({ formValues, handleChange, cardColor }) => {
                     <div className="material-table-cell">
                       <div className="table-actions" style={{ display: "flex", gap: "8px", alignItems: "center", position: "relative", zIndex: 1 }}>
                         <Tooltip 
+                          id={`view-dispatch-${note.id}`} 
+                          place="right" 
+                          content="View"
+                          className="material-table-tooltip"
+                        />
+                        <Tooltip 
+                          id={`print-dispatch-${note.id}`} 
+                          place="right" 
+                          content="Print"
+                          className="material-table-tooltip"
+                        />
+                        <Tooltip 
                           id={`edit-dispatch-${note.id}`} 
-                          place="top" 
+                          place="right" 
                           content="Edit"
                           className="material-table-tooltip"
                         />
                         <Tooltip 
                           id={`delete-dispatch-${note.id}`} 
-                          place="top" 
+                          place="right" 
                           content="Delete"
                           className="material-table-tooltip"
                         />
+                        <span
+                          data-tooltip-id={`view-dispatch-${note.id}`}
+                          type="button"
+                          className="btn-action btn-view"
+                          onClick={() => handleViewNote(note)}
+                          style={{
+                            padding: "6px",
+                            backgroundColor: "transparent",
+                            border: "none",
+                            borderRadius: "4px",
+                            cursor: "pointer",
+                            display: "flex",
+                            alignItems: "center",
+                            justifyContent: "center"
+                          }}
+                        >
+                          <img src={eyeIcon} alt="view" style={{ width: "18px", height: "18px" }} />
+                        </span>
+                        <span
+                          data-tooltip-id={`print-dispatch-${note.id}`}
+                          type="button"
+                          className="btn-action btn-print"
+                          onClick={() => handlePrintNote(note)}
+                          style={{
+                            padding: "6px",
+                            backgroundColor: "transparent",
+                            border: "none",
+                            borderRadius: "4px",
+                            cursor: "pointer",
+                            display: "flex",
+                            alignItems: "center",
+                            justifyContent: "center"
+                          }}
+                        >
+                          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                            <path d="M6 9V2H18V9" stroke="#00368c" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+                            <path d="M6 18H4C2.89543 18 2 17.1046 2 16V11C2 9.89543 2.89543 9 4 9H20C21.1046 9 22 9.89543 22 11V16C22 17.1046 21.1046 18 20 18H18" stroke="#00368c" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+                            <path d="M18 14H6V22H18V14Z" stroke="#00368c" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+                            <path d="M18 9H6V14H18V9Z" stroke="#00368c" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+                          </svg>
+                        </span>
                         <span
                           data-tooltip-id={`edit-dispatch-${note.id}`}
                           data-tooltip-content="Edit"
@@ -635,6 +912,16 @@ const DispatchNoteContent = ({ formValues, handleChange, cardColor }) => {
         header={renderHeader()}
         body={renderBody()}
         footer={renderFooter()}
+      />
+
+      <CustomModal
+        className="material-management-modal"
+        show={showViewModal}
+        closeModal={handleCloseViewModal}
+        header={renderViewHeader()}
+        body={renderViewBody()}
+        footer={renderViewFooter()}
+        dialgName="modal-dialog modal-dialog-centered"
       />
     </div>
   );
