@@ -1746,6 +1746,11 @@
   font-size: 14px;
 }
 
+.cf-multi-select-selected-value {
+  color: #1a1a1a;
+  font-size: 14px;
+}
+
 .cf-multi-select-arrow {
   color: #666;
   font-size: 12px;
@@ -1765,6 +1770,8 @@
   max-height: 300px;
   overflow-y: auto;
   margin-top: 4px;
+  min-width: 100%;
+  width: 100%;
 }
 
 .cf-multi-select-option {
