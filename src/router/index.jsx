@@ -29,6 +29,7 @@ import Notification from "../pages/Notification";
 import KPIDashboard from "../pages/KPIDashboard";
 import AppointmentAcceptance from "../pages/AppointmentAcceptance";
 import PreArrivalInformation from "../pages/PreArrivalInformation";
+import Driver from "../pages/Driver";
 
 // 🔥 Set true to bypass auth temporarily
 const TEST_MODE = true;
@@ -72,6 +73,7 @@ const router = createHashRouter([
               { path: "/notification", element: <Notification /> },
               { path: "/appointment-acceptance", element: <AppointmentAcceptance /> },
               { path: "/pre-arrival-information", element: <PreArrivalInformation /> },
+              { path: "/driver-management", element: <Driver /> },
               { path: "/settings", element: <h1>Settings</h1> },
             ],
           },

@@ -190,6 +190,13 @@ function SideNav({ isMobileMenuOpen, onCloseMobileMenu }) {
       hasPermission: true,
     },
     {
+      menu: 'Driver Management',
+      isDefaultMenu: true,
+      to: '/driver-management',
+      icon: workerIcon,
+      hasPermission: true,
+    },
+    {
       menu: 'Activity Log',
       isDefaultMenu: true,
       to: '/activity-log',
