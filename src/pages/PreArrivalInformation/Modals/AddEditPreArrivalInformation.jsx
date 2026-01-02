@@ -8,7 +8,7 @@ import { CALL_TYPE_OPTIONS } from "../../../constants/callTypes";
 import ReactQuill from "react-quill";
 import "react-quill/dist/quill.snow.css";
 
-export function AppointmentAcceptanceModal({ showModal, closeModal }) {
+export function PreArrivalInformationModal({ showModal, closeModal }) {
   const {
     register,
     handleSubmit,
@@ -31,7 +31,7 @@ export function AppointmentAcceptanceModal({ showModal, closeModal }) {
   });
 
   const onSubmit = (data) => {
-    console.log("APPOINTMENT ACCEPTANCE FORM SUBMITTED:", data);
+    console.log("PRE-ARRIVAL INFORMATION FORM SUBMITTED:", data);
     closeModal();
   };
 
@@ -63,7 +63,7 @@ export function AppointmentAcceptanceModal({ showModal, closeModal }) {
   const renderHeader = () => (
     <>
       <h1 className="modal-title">
-        {showModal?._id ? "Edit Appointment Acceptance" : "Add Appointment Acceptance"}
+        {showModal?._id ? "Edit Pre-Arrival Information" : "Add Pre-Arrival Information"}
       </h1>
     </>
   );
@@ -71,7 +71,7 @@ export function AppointmentAcceptanceModal({ showModal, closeModal }) {
   const renderBody = () => (
     <div className="modal-body">
       <div className="lead-form">
-        <form id="appointmentAcceptanceForm" onSubmit={handleSubmit(onSubmit)}>
+        <form id="preArrivalInformationForm" onSubmit={handleSubmit(onSubmit)}>
 
           {/* ROW 1 — Port + Call Type */}
           <div className="mb-lg-3 mb-sm-0">
@@ -194,7 +194,7 @@ export function AppointmentAcceptanceModal({ showModal, closeModal }) {
       <button type="button" className="btn btn-outline" onClick={closeModal}>
         Close
       </button>
-      <button type="submit" form="appointmentAcceptanceForm" className="btn btn-primary">
+      <button type="submit" form="preArrivalInformationForm" className="btn btn-primary">
         Save
       </button>
     </div>
@@ -202,7 +202,7 @@ export function AppointmentAcceptanceModal({ showModal, closeModal }) {
 
   return (
     <CustomModal
-      className="appointment-acceptance-modal-lg"
+      className="pre-arrival-information-modal-lg"
       dialgName="modal-dialog modal-dialog-centered"
       show={!!showModal}
       closeModal={() => closeModal(null)}
