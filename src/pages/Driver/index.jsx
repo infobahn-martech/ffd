@@ -10,7 +10,7 @@ const dummyDrivers = [
     {
         _id: "1",
         driver_name: "Ajay Ullas",
-        employee_no: "EMP-001",
+        driver_no: "EMP-001",
         contact_no: "+971500000001",
         iqama_no: "IQM-784512",
         joining_date: "2022-03-15",
@@ -21,7 +21,7 @@ const dummyDrivers = [
     {
         _id: "2",
         driver_name: "Nikhil Varma",
-        employee_no: "EMP-002",
+        driver_no: "EMP-002",
         contact_no: "+971500000002",
         iqama_no: "IQM-784513",
         joining_date: "2021-11-20",
@@ -32,7 +32,7 @@ const dummyDrivers = [
     {
         _id: "3",
         driver_name: "Sangeeth Babu",
-        employee_no: "EMP-003",
+        driver_no: "EMP-003",
         contact_no: "+971500000003",
         iqama_no: "IQM-784514",
         joining_date: "2023-01-10",
@@ -43,7 +43,7 @@ const dummyDrivers = [
     {
         _id: "4",
         driver_name: "Vishnu Menon",
-        employee_no: "EMP-004",
+        driver_no: "EMP-004",
         contact_no: "+971500000004",
         iqama_no: "IQM-784515",
         joining_date: "2020-08-05",
@@ -54,7 +54,7 @@ const dummyDrivers = [
     {
         _id: "5",
         driver_name: "Riya Thomas",
-        employee_no: "EMP-005",
+        driver_no: "EMP-005",
         contact_no: "+971500000005",
         iqama_no: "IQM-784516",
         joining_date: "2024-02-01",
@@ -65,7 +65,7 @@ const dummyDrivers = [
     {
         _id: "6",
         driver_name: "Deepak Kumar",
-        employee_no: "EMP-006",
+        driver_no: "EMP-006",
         contact_no: "+971500000006",
         iqama_no: "IQM-784517",
         joining_date: "2023-06-12",
@@ -76,7 +76,7 @@ const dummyDrivers = [
     {
         _id: "7",
         driver_name: "Meera Suresh",
-        employee_no: "EMP-007",
+        driver_no: "EMP-007",
         contact_no: "+971500000007",
         iqama_no: "IQM-784518",
         joining_date: "2022-09-30",
@@ -87,7 +87,7 @@ const dummyDrivers = [
     {
         _id: "8",
         driver_name: "Arun Joseph",
-        employee_no: "EMP-008",
+        driver_no: "EMP-008",
         contact_no: "+971500000008",
         iqama_no: "IQM-784519",
         joining_date: "2021-04-18",
@@ -98,7 +98,7 @@ const dummyDrivers = [
     {
         _id: "9",
         driver_name: "Joel Sunny",
-        employee_no: "EMP-009",
+        driver_no: "EMP-009",
         contact_no: "+971500000009",
         iqama_no: "IQM-784520",
         joining_date: "2024-01-05",
@@ -109,7 +109,7 @@ const dummyDrivers = [
     {
         _id: "10",
         driver_name: "Sandra Mathew",
-        employee_no: "EMP-010",
+        driver_no: "EMP-010",
         contact_no: "+971500000010",
         iqama_no: "IQM-784521",
         joining_date: "2020-12-22",
@@ -147,8 +147,8 @@ const Driver = () => {
             sort: true,
         },
         {
-            name: "Employee No",
-            selector: "employee_no",
+            name: "Driver No",
+            selector: "driver_no",
             width: "180",
             thclass: "tb-head",
             contentClass: "table-content",
