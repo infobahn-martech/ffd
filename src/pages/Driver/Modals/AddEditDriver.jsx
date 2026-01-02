@@ -97,7 +97,7 @@ export function DriverModal({ showModal, closeModal }) {
                         </div>
                     </div>
 
-                    {/* ===== Driver Name + Employee No ===== */}
+                    {/* ===== Driver Name + Driver No ===== */}
                     <div className="mb-lg-3 mb-sm-0">
                         <div className="permInputs row">
                             {/* DRIVER NAME */}
@@ -130,13 +130,13 @@ export function DriverModal({ showModal, closeModal }) {
                                         type="text"
                                         className={`form-control ${errors.employee_no ? "is-invalid" : ""
                                             }`}
-                                        placeholder="Employee No"
+                                        placeholder="Driver No"
                                         {...register("employee_no", {
                                             required: "Employee number is required",
                                         })}
                                     />
                                     <label>
-                                        Employee No <span className="text-danger">*</span>
+                                        Driver No <span className="text-danger">*</span>
                                     </label>
                                     {errors.employee_no && (
                                         <span className="error text-danger">
