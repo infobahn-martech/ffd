@@ -1,4 +1,5 @@
 import { useState, useRef, useEffect } from "react";
+import { createPortal } from "react-dom";
 import PropTypes from "prop-types";
 import { Tooltip } from "react-tooltip";
 import "react-tooltip/dist/react-tooltip.css";
@@ -195,6 +196,9 @@ const LandingNoteContent = ({ formValues, handleChange, cardColor }) => {
   const [isDraggingDocuments, setIsDraggingDocuments] = useState(false);
   const documentsFileInputRef = useRef(null);
   const [expandedConvertOrders, setExpandedConvertOrders] = useState({ 1: true });
+  const [openDropdownId, setOpenDropdownId] = useState(null);
+  const [dropdownPosition, setDropdownPosition] = useState({ top: 0, right: 0 });
+  const dropdownButtonRefs = useRef({});
 
   // Form state
   const [formData, setFormData] = useState({
@@ -458,6 +462,7 @@ const LandingNoteContent = ({ formValues, handleChange, cardColor }) => {
   ];
 
   const handleConvertToDispatch = (note) => {
+    handleCloseDropdown();
     setConvertingNote(note);
     // Pre-fill form with note data
     setConvertFormData({
@@ -668,7 +673,41 @@ const LandingNoteContent = ({ formValues, handleChange, cardColor }) => {
     handleCloseConvertModal();
   };
 
+  const handleToggleDropdown = (noteId, e) => {
+    e.stopPropagation();
+    if (openDropdownId === noteId) {
+      setOpenDropdownId(null);
+    } else {
+      const button = e.currentTarget;
+      const rect = button.getBoundingClientRect();
+      setDropdownPosition({
+        top: rect.bottom + 4,
+        right: window.innerWidth - rect.right
+      });
+      dropdownButtonRefs.current[noteId] = button;
+      setOpenDropdownId(noteId);
+    }
+  };
+
+  const handleCloseDropdown = () => {
+    setOpenDropdownId(null);
+  };
+
+  // Close dropdown when clicking outside
+  useEffect(() => {
+    const handleClickOutside = (event) => {
+      if (!event.target.closest('.action-dropdown-wrapper')) {
+        setOpenDropdownId(null);
+      }
+    };
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => {
+      document.removeEventListener('mousedown', handleClickOutside);
+    };
+  }, []);
+
   const handleViewNote = (note) => {
+    handleCloseDropdown();
     setViewingNote(note);
     setShowViewModal(true);
   };
@@ -679,6 +718,7 @@ const LandingNoteContent = ({ formValues, handleChange, cardColor }) => {
   };
 
   const handlePrintNote = (note) => {
+    handleCloseDropdown();
     const printWindow = window.open('', '_blank');
     const printContent = `
       <!DOCTYPE html>
@@ -1653,8 +1693,8 @@ const LandingNoteContent = ({ formValues, handleChange, cardColor }) => {
           LANDING NOTE
         </h3>
       </div>
-      <div className="table-wrapper table-responsive material-table-container">
-        <table className="table table-striped material-table" style={{ "--card-color": "#e2e6ff" }}>
+      <div className="table-wrapper table-responsive material-table-container" style={{ overflow: "visible" }}>
+        <table className="table table-striped material-table" style={{ "--card-color": "#e2e6ff", overflow: "visible" }}>
           <thead>
             <tr>
               <th>Landing Note No</th>
@@ -1721,143 +1761,207 @@ const LandingNoteContent = ({ formValues, handleChange, cardColor }) => {
                       )}
                     </div>
                   </td>
-                  <td>
-                    <div className="material-table-cell">
-                      <div className="table-actions" style={{ display: "flex", gap: "8px", alignItems: "center", position: "relative", zIndex: 1 }}>
-                        <Tooltip 
-                          id={`view-landing-${note.id}`} 
-                          place="right" 
-                          content="View"
-                          className="material-table-tooltip"
-                        />
-                        <Tooltip 
-                          id={`print-landing-${note.id}`} 
-                          place="right" 
-                          content="Print"
-                          className="material-table-tooltip"
-                        />
-                        <Tooltip 
-                          id={`convert-dispatch-${note.id}`} 
-                          place="right" 
-                          content="Convert to Dispatch"
-                          className="material-table-tooltip"
-                        />
-                        <Tooltip 
-                          id={`edit-landing-${note.id}`} 
-                          place="right" 
-                          content="Edit"
-                          className="material-table-tooltip"
-                        />
-                        <Tooltip 
-                          id={`delete-landing-${note.id}`} 
-                          place="right" 
-                          content="Delete"
-                          className="material-table-tooltip"
-                        />
-                        <span
-                          data-tooltip-id={`view-landing-${note.id}`}
+                  <td style={{ position: "relative" }}>
+                    <div className="material-table-cell" style={{ position: "relative", overflow: "visible" }}>
+                      <div className="action-dropdown-wrapper" style={{ position: "relative", display: "inline-block", zIndex: openDropdownId === note.id ? 9999 : "auto" }}>
+                        <button
                           type="button"
-                          className="btn-action btn-view"
-                          onClick={() => handleViewNote(note)}
+                          onClick={(e) => handleToggleDropdown(note.id, e)}
                           style={{
-                            padding: "6px",
+                            padding: "6px 8px",
                             backgroundColor: "transparent",
                             border: "none",
                             borderRadius: "4px",
                             cursor: "pointer",
                             display: "flex",
                             alignItems: "center",
-                            justifyContent: "center"
+                            justifyContent: "center",
+                            color: "#00368c"
+                          }}
+                          onMouseEnter={(e) => {
+                            e.currentTarget.style.backgroundColor = "#f0f0f0";
+                          }}
+                          onMouseLeave={(e) => {
+                            e.currentTarget.style.backgroundColor = "transparent";
                           }}
                         >
-                          <img src={eyeIcon} alt="view" style={{ width: "18px", height: "18px" }} />
-                        </span>
-                        <span
-                          data-tooltip-id={`print-landing-${note.id}`}
-                          type="button"
-                          className="btn-action btn-print"
-                          onClick={() => handlePrintNote(note)}
-                          style={{
-                            padding: "6px",
-                            backgroundColor: "transparent",
-                            border: "none",
-                            borderRadius: "4px",
-                            cursor: "pointer",
-                            display: "flex",
-                            alignItems: "center",
-                            justifyContent: "center"
-                          }}
-                        >
-                          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-                            <path d="M6 9V2H18V9" stroke="#00368c" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
-                            <path d="M6 18H4C2.89543 18 2 17.1046 2 16V11C2 9.89543 2.89543 9 4 9H20C21.1046 9 22 9.89543 22 11V16C22 17.1046 21.1046 18 20 18H18" stroke="#00368c" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
-                            <path d="M18 14H6V22H18V14Z" stroke="#00368c" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
-                            <path d="M18 9H6V14H18V9Z" stroke="#00368c" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+                          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                            <circle cx="12" cy="6" r="1.5" fill="currentColor" />
+                            <circle cx="12" cy="12" r="1.5" fill="currentColor" />
+                            <circle cx="12" cy="18" r="1.5" fill="currentColor" />
                           </svg>
-                        </span>
-                        <span
-                          data-tooltip-id={`convert-dispatch-${note.id}`}
-                          data-tooltip-content="Convert to Dispatch"
-                          type="button"
-                          className="btn-action btn-convert"
-                          onClick={() => handleConvertToDispatch(note)}
-                          style={{
-                            padding: "6px",
-                            backgroundColor: "transparent",
-                            border: "none",
-                            borderRadius: "4px",
-                            cursor: "pointer",
-                            display: "flex",
-                            alignItems: "center",
-                            justifyContent: "center"
-                          }}
-                        >
-                          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-                            <path d="M1 4H10V12H1V4Z" stroke="#00368c" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
-                            <path d="M10 6H16L19 9V12H10V6Z" stroke="#00368c" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
-                            <circle cx="4" cy="17" r="2" stroke="#00368c" strokeWidth="2" />
-                            <circle cx="17" cy="17" r="2" stroke="#00368c" strokeWidth="2" />
-                            <path d="M19 9H16" stroke="#00368c" strokeWidth="2" strokeLinecap="round" />
-                          </svg>
-                        </span>
-                        <span
-                          data-tooltip-id={`edit-landing-${note.id}`}
-                          data-tooltip-content="Edit"
-                          type="button"
-                          className="btn-action btn-edit"
-                          onClick={() => handleOpenModal(note)}
-                          style={{
-                            padding: "6px",
-                            backgroundColor: "transparent",
-                            border: "none",
-                            borderRadius: "4px",
-                            cursor: "pointer",
-                            display: "flex",
-                            alignItems: "center",
-                            justifyContent: "center"
-                          }}
-                        >
-                          <img src={editIcon} alt="edit" style={{ width: "18px", height: "18px" }} />
-                        </span>
-                        <span
-                          data-tooltip-id={`delete-landing-${note.id}`}
-                          data-tooltip-content="Delete"
-                          type="button"
-                          className="btn-action btn-delete"
-                          onClick={() => handleDelete(note.id)}
-                          style={{
-                            padding: "6px",
-                            backgroundColor: "transparent",
-                            border: "none",
-                            borderRadius: "4px",
-                            cursor: "pointer",
-                            display: "flex",
-                            alignItems: "center",
-                            justifyContent: "center"
-                          }}
-                        >
-                          <img src={deleteIcon} alt="delete" style={{ width: "18px", height: "18px" }} />
-                        </span>
+                        </button>
+                        {openDropdownId === note.id && createPortal(
+                          <div
+                            style={{
+                              position: "fixed",
+                              top: `${dropdownPosition.top}px`,
+                              right: `${dropdownPosition.right}px`,
+                              backgroundColor: "white",
+                              border: "1px solid #e2e2ea",
+                              borderRadius: "6px",
+                              boxShadow: "0 4px 12px rgba(0, 0, 0, 0.15)",
+                              zIndex: 99999,
+                              minWidth: "180px",
+                              padding: "4px 0"
+                            }}
+                          >
+                            <button
+                              type="button"
+                              onClick={() => handleViewNote(note)}
+                              style={{
+                                width: "100%",
+                                padding: "10px 16px",
+                                backgroundColor: "transparent",
+                                border: "none",
+                                textAlign: "left",
+                                cursor: "pointer",
+                                display: "flex",
+                                alignItems: "center",
+                                gap: "10px",
+                                fontSize: "14px",
+                                color: "#1a1a1a",
+                                transition: "background-color 0.2s"
+                              }}
+                              onMouseEnter={(e) => {
+                                e.currentTarget.style.backgroundColor = "#f5f5f5";
+                              }}
+                              onMouseLeave={(e) => {
+                                e.currentTarget.style.backgroundColor = "transparent";
+                              }}
+                            >
+                              <img src={eyeIcon} alt="view" style={{ width: "16px", height: "16px" }} />
+                              <span>View</span>
+                            </button>
+                            <button
+                              type="button"
+                              onClick={() => handlePrintNote(note)}
+                              style={{
+                                width: "100%",
+                                padding: "10px 16px",
+                                backgroundColor: "transparent",
+                                border: "none",
+                                textAlign: "left",
+                                cursor: "pointer",
+                                display: "flex",
+                                alignItems: "center",
+                                gap: "10px",
+                                fontSize: "14px",
+                                color: "#1a1a1a",
+                                transition: "background-color 0.2s"
+                              }}
+                              onMouseEnter={(e) => {
+                                e.currentTarget.style.backgroundColor = "#f5f5f5";
+                              }}
+                              onMouseLeave={(e) => {
+                                e.currentTarget.style.backgroundColor = "transparent";
+                              }}
+                            >
+                              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                                <path d="M6 9V2H18V9" stroke="#00368c" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+                                <path d="M6 18H4C2.89543 18 2 17.1046 2 16V11C2 9.89543 2.89543 9 4 9H20C21.1046 9 22 9.89543 22 11V16C22 17.1046 21.1046 18 20 18H18" stroke="#00368c" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+                                <path d="M18 14H6V22H18V14Z" stroke="#00368c" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+                                <path d="M18 9H6V14H18V9Z" stroke="#00368c" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+                              </svg>
+                              <span>Print</span>
+                            </button>
+                            <button
+                              type="button"
+                              onClick={() => handleConvertToDispatch(note)}
+                              style={{
+                                width: "100%",
+                                padding: "10px 16px",
+                                backgroundColor: "transparent",
+                                border: "none",
+                                textAlign: "left",
+                                cursor: "pointer",
+                                display: "flex",
+                                alignItems: "center",
+                                gap: "10px",
+                                fontSize: "14px",
+                                color: "#1a1a1a",
+                                transition: "background-color 0.2s"
+                              }}
+                              onMouseEnter={(e) => {
+                                e.currentTarget.style.backgroundColor = "#f5f5f5";
+                              }}
+                              onMouseLeave={(e) => {
+                                e.currentTarget.style.backgroundColor = "transparent";
+                              }}
+                            >
+                              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                                <path d="M1 4H10V12H1V4Z" stroke="#00368c" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+                                <path d="M10 6H16L19 9V12H10V6Z" stroke="#00368c" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+                                <circle cx="4" cy="17" r="2" stroke="#00368c" strokeWidth="2" />
+                                <circle cx="17" cy="17" r="2" stroke="#00368c" strokeWidth="2" />
+                                <path d="M19 9H16" stroke="#00368c" strokeWidth="2" strokeLinecap="round" />
+                              </svg>
+                              <span>Convert to Dispatch</span>
+                            </button>
+                            <div style={{ height: "1px", backgroundColor: "#e2e2ea", margin: "4px 0" }} />
+                            <button
+                              type="button"
+                              onClick={() => {
+                                handleCloseDropdown();
+                                handleOpenModal(note);
+                              }}
+                              style={{
+                                width: "100%",
+                                padding: "10px 16px",
+                                backgroundColor: "transparent",
+                                border: "none",
+                                textAlign: "left",
+                                cursor: "pointer",
+                                display: "flex",
+                                alignItems: "center",
+                                gap: "10px",
+                                fontSize: "14px",
+                                color: "#1a1a1a",
+                                transition: "background-color 0.2s"
+                              }}
+                              onMouseEnter={(e) => {
+                                e.currentTarget.style.backgroundColor = "#f5f5f5";
+                              }}
+                              onMouseLeave={(e) => {
+                                e.currentTarget.style.backgroundColor = "transparent";
+                              }}
+                            >
+                              <img src={editIcon} alt="edit" style={{ width: "16px", height: "16px" }} />
+                              <span>Edit</span>
+                            </button>
+                            <button
+                              type="button"
+                              onClick={() => {
+                                handleCloseDropdown();
+                                handleDelete(note.id);
+                              }}
+                              style={{
+                                width: "100%",
+                                padding: "10px 16px",
+                                backgroundColor: "transparent",
+                                border: "none",
+                                textAlign: "left",
+                                cursor: "pointer",
+                                display: "flex",
+                                alignItems: "center",
+                                gap: "10px",
+                                fontSize: "14px",
+                                color: "#dc3545",
+                                transition: "background-color 0.2s"
+                              }}
+                              onMouseEnter={(e) => {
+                                e.currentTarget.style.backgroundColor = "#f5f5f5";
+                              }}
+                              onMouseLeave={(e) => {
+                                e.currentTarget.style.backgroundColor = "transparent";
+                              }}
+                            >
+                              <img src={deleteIcon} alt="delete" style={{ width: "16px", height: "16px" }} />
+                              <span>Delete</span>
+                            </button>
+                          </div>,
+                          document.body
+                        )}
                       </div>
                     </div>
                   </td>
