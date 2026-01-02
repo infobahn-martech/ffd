@@ -216,7 +216,7 @@ const DispatchNoteContent = ({ formValues, handleChange, cardColor }) => {
     setOpenDropdownId(null);
   };
 
-  // Close dropdown when clicking outside
+  // Close dropdown when clicking outside or scrolling
   useEffect(() => {
     const handleClickOutside = (event) => {
       // Check if click is on the dropdown button or inside the portal dropdown menu
@@ -228,10 +228,16 @@ const DispatchNoteContent = ({ formValues, handleChange, cardColor }) => {
       }
     };
     
+    const handleScroll = () => {
+      setOpenDropdownId(null);
+    };
+    
     if (openDropdownId) {
       document.addEventListener('mousedown', handleClickOutside);
+      window.addEventListener('scroll', handleScroll, true);
       return () => {
         document.removeEventListener('mousedown', handleClickOutside);
+        window.removeEventListener('scroll', handleScroll, true);
       };
     }
   }, [openDropdownId]);

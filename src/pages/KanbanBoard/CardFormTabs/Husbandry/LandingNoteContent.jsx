@@ -543,8 +543,8 @@ const LandingNoteContent = ({ formValues, handleChange, cardColor }) => {
   };
 
   const handleAddNewConvertOrder = () => {
-    const newOrderId = convertFormData.orders.length > 0 
-      ? Math.max(...convertFormData.orders.map((o) => o.id)) + 1 
+    const newOrderId = convertFormData.orders.length > 0
+      ? Math.max(...convertFormData.orders.map((o) => o.id)) + 1
       : 1;
     setConvertFormData((prev) => ({
       ...prev,
@@ -693,22 +693,28 @@ const LandingNoteContent = ({ formValues, handleChange, cardColor }) => {
     setOpenDropdownId(null);
   };
 
-  // Close dropdown when clicking outside
+  // Close dropdown when clicking outside or scrolling
   useEffect(() => {
     const handleClickOutside = (event) => {
       // Check if click is on the dropdown button or inside the portal dropdown menu
       const isDropdownButton = event.target.closest('.action-dropdown-wrapper');
       const isDropdownMenu = event.target.closest('[data-dropdown-menu]');
-      
+
       if (!isDropdownButton && !isDropdownMenu) {
         setOpenDropdownId(null);
       }
     };
-    
+
+    const handleScroll = () => {
+      setOpenDropdownId(null);
+    };
+
     if (openDropdownId) {
       document.addEventListener('mousedown', handleClickOutside);
+      window.addEventListener('scroll', handleScroll, true);
       return () => {
         document.removeEventListener('mousedown', handleClickOutside);
+        window.removeEventListener('scroll', handleScroll, true);
       };
     }
   }, [openDropdownId]);
@@ -830,7 +836,7 @@ const LandingNoteContent = ({ formValues, handleChange, cardColor }) => {
         </body>
       </html>
     `;
-    
+
     printWindow.document.write(printContent);
     printWindow.document.close();
     printWindow.focus();
@@ -1750,9 +1756,9 @@ const LandingNoteContent = ({ formValues, handleChange, cardColor }) => {
                     <div className="material-table-cell">
                       {note.description && note.description.length > 13 ? (
                         <>
-                          <Tooltip 
-                            id={`description-tooltip-${note.id}`} 
-                            place="right" 
+                          <Tooltip
+                            id={`description-tooltip-${note.id}`}
+                            place="right"
                             content={note.description}
                             className="material-table-tooltip"
                           />
