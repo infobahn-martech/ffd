@@ -1,4 +1,4 @@
-import { useRef } from "react";
+import { useRef, useState, useEffect } from "react";
 import PropTypes from "prop-types";
 import ReactQuill from "react-quill";
 import "react-quill/dist/quill.snow.css";
@@ -203,18 +203,93 @@ FormInput.propTypes = {
   className: PropTypes.string,
 };
 
-export const FormSelect = ({ value, onChange, options = [], placeholder, className = "" }) => {
+// Custom Select Component (similar to MultiSelectEmail UI)
+const CustomSelect = ({ value, onChange, options = [], placeholder, className = "", disabled = false }) => {
+  const [isOpen, setIsOpen] = useState(false);
+  const dropdownRef = useRef(null);
+
+  // Close dropdown when clicking outside
+  useEffect(() => {
+    const handleClickOutside = (event) => {
+      if (dropdownRef.current && !dropdownRef.current.contains(event.target)) {
+        setIsOpen(false);
+      }
+    };
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => document.removeEventListener("mousedown", handleClickOutside);
+  }, []);
+
+  const selectedOption = options.find(opt => opt.value === value);
+  const displayValue = selectedOption ? selectedOption.label : "";
+
+  const handleSelect = (optionValue) => {
+    const syntheticEvent = {
+      target: { value: optionValue }
+    };
+    onChange(syntheticEvent);
+    setIsOpen(false);
+  };
+
   return (
-    <div className={`cf-select ${className}`}>
-      <select value={value} onChange={onChange}>
-        {placeholder && <option value="">{placeholder}</option>}
-        {options.map((option) => (
-          <option key={option.value} value={option.value}>
-            {option.label}
-          </option>
-        ))}
-      </select>
+    <div className={`cf-multi-select-email ${disabled ? "disabled" : ""} ${className}`} ref={dropdownRef}>
+      <div
+        className={`cf-multi-select-email-input ${disabled ? "disabled" : ""}`}
+        onClick={disabled ? undefined : () => setIsOpen(!isOpen)}
+        style={{ pointerEvents: disabled ? "none" : "auto", opacity: disabled ? 0.6 : 1 }}
+      >
+        <div className="cf-multi-select-email-tags">
+          {displayValue ? (
+            <span className="cf-multi-select-selected-value">{displayValue}</span>
+          ) : (
+            <span className="cf-multi-select-placeholder">{placeholder || "Select..."}</span>
+          )}
+        </div>
+        <span className="cf-multi-select-arrow">▼</span>
+      </div>
+      {isOpen && (
+        <div className="cf-multi-select-dropdown">
+          {options.map((option) => {
+            const isSelected = value === option.value;
+            return (
+              <div
+                key={option.value}
+                className={`cf-multi-select-option ${isSelected ? "selected" : ""}`}
+                onClick={() => handleSelect(option.value)}
+              >
+                <span>{option.label}</span>
+              </div>
+            );
+          })}
+        </div>
+      )}
     </div>
+  );
+};
+
+CustomSelect.propTypes = {
+  value: PropTypes.string,
+  onChange: PropTypes.func.isRequired,
+  options: PropTypes.arrayOf(
+    PropTypes.shape({
+      value: PropTypes.string.isRequired,
+      label: PropTypes.string.isRequired,
+    })
+  ),
+  placeholder: PropTypes.string,
+  className: PropTypes.string,
+  disabled: PropTypes.bool,
+};
+
+export const FormSelect = ({ value, onChange, options = [], placeholder, className = "", disabled = false }) => {
+  return (
+    <CustomSelect
+      value={value}
+      onChange={onChange}
+      options={options}
+      placeholder={placeholder}
+      className={className}
+      disabled={disabled}
+    />
   );
 };
 
@@ -229,6 +304,7 @@ FormSelect.propTypes = {
   ),
   placeholder: PropTypes.string,
   className: PropTypes.string,
+  disabled: PropTypes.bool,
 };
 
 export const FormTextarea = ({ value, onChange, placeholder, className = "", rows = 3 }) => {
