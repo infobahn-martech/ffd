@@ -77,6 +77,8 @@ const InboundOrdersContent = ({ formValues, handleChange, cardColor }) => {
     warehouse: "",
     receivedFrom: "",
     location: "",
+    documents: [],
+    remarks: "",
     orders: [{
       id: 1,
       orderNo: "",
@@ -92,9 +94,7 @@ const InboundOrdersContent = ({ formValues, handleChange, cardColor }) => {
       driverName: "",
       slotNo: "",
       reason: "",
-      dispatchDate: "",
-      documents: [],
-      remarks: ""
+      dispatchDate: ""
     }],
   });
 
@@ -359,6 +359,8 @@ const InboundOrdersContent = ({ formValues, handleChange, cardColor }) => {
       warehouse: order.warehouse || "",
       receivedFrom: "",
       location: "",
+      documents: [],
+      remarks: "",
       orders: [{
         id: 1,
         orderNo: order.orderNo || "",
@@ -374,9 +376,7 @@ const InboundOrdersContent = ({ formValues, handleChange, cardColor }) => {
         driverName: order.driverName || "",
         slotNo: order.slotNo || "",
         reason: order.reason || "",
-        dispatchDate: order.dispatchDate || "",
-        documents: [],
-        remarks: ""
+        dispatchDate: order.dispatchDate || ""
       }],
     });
     setExpandedConvertOrders({ 1: true });
@@ -391,6 +391,8 @@ const InboundOrdersContent = ({ formValues, handleChange, cardColor }) => {
       warehouse: "",
       receivedFrom: "",
       location: "",
+      documents: [],
+      remarks: "",
       orders: [{
         id: 1,
         orderNo: "",
@@ -406,9 +408,7 @@ const InboundOrdersContent = ({ formValues, handleChange, cardColor }) => {
         driverName: "",
         slotNo: "",
         reason: "",
-        dispatchDate: "",
-        documents: [],
-        remarks: ""
+        dispatchDate: ""
       }],
     });
   };
@@ -452,9 +452,7 @@ const InboundOrdersContent = ({ formValues, handleChange, cardColor }) => {
           driverName: "",
           slotNo: "",
           reason: "",
-          dispatchDate: "",
-          documents: [],
-          remarks: ""
+          dispatchDate: ""
         },
       ],
     }));
@@ -485,14 +483,10 @@ const InboundOrdersContent = ({ formValues, handleChange, cardColor }) => {
     }));
   };
 
-  const handleDocumentUpload = (orderId, files) => {
+  const handleDocumentUpload = (files) => {
     setConvertFormData((prev) => ({
       ...prev,
-      orders: prev.orders.map((order) =>
-        order.id === orderId
-          ? { ...order, documents: Array.from(files) }
-          : order
-      ),
+      documents: Array.from(files),
     }));
   };
 
@@ -1407,53 +1401,54 @@ const InboundOrdersContent = ({ formValues, handleChange, cardColor }) => {
                       </div>
                     </div>
 
-                    {/* Document Upload and Remarks Section */}
-                    <div style={{ marginTop: "24px", paddingTop: "24px", borderTop: "1px solid #e2e2ea" }}>
-                      <h4 style={{ fontSize: "16px", fontWeight: "600", marginBottom: "16px", color: "#1a1a1a" }}>
-                        Documents & Remarks
-                      </h4>
-
-                      <div className="row mb-lg-3">
-                        <div className="col-md-6 mb-3">
-                          <FormField label="Document Upload">
-                            <div className="input-group file-up position-relative desig-inp">
-                              <input
-                                type="file"
-                                className="form-control"
-                                multiple
-                                onChange={(e) => handleDocumentUpload(order.id, e.target.files)}
-                                style={{
-                                  padding: "10px",
-                                  border: "1px solid #e2e2ea",
-                                  borderRadius: "6px",
-                                  fontSize: "14px",
-                                }}
-                              />
-                            </div>
-                            {order.documents && order.documents.length > 0 && (
-                              <div style={{ marginTop: "8px", fontSize: "12px", color: "#666" }}>
-                                {order.documents.length} file(s) selected
-                              </div>
-                            )}
-                          </FormField>
-                        </div>
-
-                        <div className="col-md-6 mb-3">
-                          <FormField label="Remarks">
-                            <FormInput
-                              type="text"
-                              value={order.remarks}
-                              onChange={(e) => handleConvertOrderChange(order.id, "remarks", e.target.value)}
-                              placeholder="Enter remarks..."
-                            />
-                          </FormField>
-                        </div>
-                      </div>
-                    </div>
                   </div>
                 )}
               </div>
             ))}
+          </div>
+
+          {/* Documents & Remarks Section - Outside Order Details */}
+          <div style={{ marginTop: "32px", paddingTop: "24px", borderTop: "2px solid #e2e2ea" }}>
+            <h3 style={{ fontSize: "18px", fontWeight: "600", marginBottom: "20px", color: "#1a1a1a" }}>
+              Documents & Remarks
+            </h3>
+
+            <div className="row mb-lg-3">
+              <div className="col-md-6 mb-3">
+                <FormField label="Document Upload">
+                  <div className="input-group file-up position-relative desig-inp">
+                    <input
+                      type="file"
+                      className="form-control"
+                      multiple
+                      onChange={(e) => handleDocumentUpload(e.target.files)}
+                      style={{
+                        padding: "10px",
+                        border: "1px solid #e2e2ea",
+                        borderRadius: "6px",
+                        fontSize: "14px",
+                      }}
+                    />
+                  </div>
+                  {convertFormData.documents && convertFormData.documents.length > 0 && (
+                    <div style={{ marginTop: "8px", fontSize: "12px", color: "#666" }}>
+                      {convertFormData.documents.length} file(s) selected
+                    </div>
+                  )}
+                </FormField>
+              </div>
+
+              <div className="col-md-6 mb-3">
+                <FormField label="Remarks">
+                  <FormInput
+                    type="text"
+                    value={convertFormData.remarks}
+                    onChange={(e) => handleConvertFormChange("remarks", e.target.value)}
+                    placeholder="Enter remarks..."
+                  />
+                </FormField>
+              </div>
+            </div>
           </div>
         </form>
       </div>
