@@ -27,8 +27,6 @@ import InboundOrdersContent from "./Husbandry/InboundOrdersContent";
 import LandingNoteContent from "./Husbandry/LandingNoteContent";
 import DispatchNoteContent from "./Husbandry/DispatchNoteContent";
 import MWPRenewalContent from "./Husbandry/MWPRenewalContent";
-import WarehouseContent from "./Husbandry/WarehouseContent";
-import OnOffHireSurveyContent from "./Husbandry/OnOffHireSurveyContent";
 import OnStationContent from "./Husbandry/OnStationContent";
 import ThirdPartyServicesContent from "./Husbandry/ThirdPartyServicesContent";
 
@@ -94,8 +92,6 @@ const ServiceSelection = ({ onSelectService, cardColor, bookedServices = [] }) =
 
   const services = [
     { id: MAIN_TABS.CREW_MANAGEMENT, label: "Crew Management", icon: "clock" },
-    { id: MAIN_TABS.WAREHOUSE, label: "Warehouse", icon: "document" },
-    { id: MAIN_TABS.ON_OFF_HIRE_SURVEY, label: "On/Off-Hire Survey", icon: "document" },
     { id: MAIN_TABS.ON_STATION, label: "On station", icon: "document" },
     { id: MAIN_TABS.MATERIAL_MANAGEMENT, label: "Material Management", icon: "document" },
     { id: MAIN_TABS.WASTE_DISPOSAL, label: "Waste Disposal", icon: "document" },
@@ -292,12 +288,6 @@ function Husbandry({ card, formValues, handleChange }) {
       } else if (tab === MAIN_TABS.WASTE_DISPOSAL) {
         // Waste Disposal - no subtabs, direct to content
         setActiveSubTab(null);
-      } else if (tab === MAIN_TABS.WAREHOUSE) {
-        // Warehouse - placeholder for future implementation
-        setActiveSubTab(null);
-      } else if (tab === MAIN_TABS.ON_OFF_HIRE_SURVEY) {
-        // On/Off-Hire Survey - placeholder for future implementation
-        setActiveSubTab(null);
       } else if (tab === MAIN_TABS.ON_STATION) {
         // On station - placeholder for future implementation
         setActiveSubTab(null);
@@ -319,9 +309,7 @@ function Husbandry({ card, formValues, handleChange }) {
       setActiveSubTab(CREW_MANAGEMENT_SUBTABS.CREW);
     } else if (tab === MAIN_TABS.MATERIAL_MANAGEMENT) {
       setActiveSubTab(MATERIAL_MANAGEMENT_SUBTABS.INBOUND_ORDERS);
-    } else if (tab === MAIN_TABS.WAREHOUSE ||
-      tab === MAIN_TABS.ON_OFF_HIRE_SURVEY ||
-      tab === MAIN_TABS.ON_STATION ||
+    } else if (tab === MAIN_TABS.ON_STATION ||
       tab === MAIN_TABS.WASTE_DISPOSAL) {
       // These services have no subtabs
       setActiveSubTab(null);
@@ -567,20 +555,6 @@ function Husbandry({ card, formValues, handleChange }) {
             renderMaterialManagementContent()}
           {activeMainTab === MAIN_TABS.WASTE_DISPOSAL && (
             <WasteDisposalContent
-              formValues={formValues}
-              handleChange={handleChange}
-              cardColor={cardColor}
-            />
-          )}
-          {activeMainTab === MAIN_TABS.WAREHOUSE && (
-            <WarehouseContent
-              formValues={formValues}
-              handleChange={handleChange}
-              cardColor={cardColor}
-            />
-          )}
-          {activeMainTab === MAIN_TABS.ON_OFF_HIRE_SURVEY && (
-            <OnOffHireSurveyContent
               formValues={formValues}
               handleChange={handleChange}
               cardColor={cardColor}
