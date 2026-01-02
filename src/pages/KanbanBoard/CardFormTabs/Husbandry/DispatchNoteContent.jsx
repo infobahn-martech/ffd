@@ -219,15 +219,22 @@ const DispatchNoteContent = ({ formValues, handleChange, cardColor }) => {
   // Close dropdown when clicking outside
   useEffect(() => {
     const handleClickOutside = (event) => {
-      if (!event.target.closest('.action-dropdown-wrapper')) {
+      // Check if click is on the dropdown button or inside the portal dropdown menu
+      const isDropdownButton = event.target.closest('.action-dropdown-wrapper');
+      const isDropdownMenu = event.target.closest('[data-dropdown-menu]');
+      
+      if (!isDropdownButton && !isDropdownMenu) {
         setOpenDropdownId(null);
       }
     };
-    document.addEventListener('mousedown', handleClickOutside);
-    return () => {
-      document.removeEventListener('mousedown', handleClickOutside);
-    };
-  }, []);
+    
+    if (openDropdownId) {
+      document.addEventListener('mousedown', handleClickOutside);
+      return () => {
+        document.removeEventListener('mousedown', handleClickOutside);
+      };
+    }
+  }, [openDropdownId]);
 
   const handleViewNote = (note) => {
     handleCloseDropdown();
@@ -854,6 +861,7 @@ const DispatchNoteContent = ({ formValues, handleChange, cardColor }) => {
                         </button>
                         {openDropdownId === note.id && createPortal(
                           <div
+                            data-dropdown-menu
                             style={{
                               position: "fixed",
                               top: `${dropdownPosition.top}px`,
@@ -869,7 +877,10 @@ const DispatchNoteContent = ({ formValues, handleChange, cardColor }) => {
                           >
                             <button
                               type="button"
-                              onClick={() => handleViewNote(note)}
+                              onClick={() => {
+                                handleCloseDropdown();
+                                handleViewNote(note);
+                              }}
                               style={{
                                 width: "100%",
                                 padding: "10px 16px",
@@ -896,7 +907,10 @@ const DispatchNoteContent = ({ formValues, handleChange, cardColor }) => {
                             </button>
                             <button
                               type="button"
-                              onClick={() => handlePrintNote(note)}
+                              onClick={() => {
+                                handleCloseDropdown();
+                                handlePrintNote(note);
+                              }}
                               style={{
                                 width: "100%",
                                 padding: "10px 16px",
