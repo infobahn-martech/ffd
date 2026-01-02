@@ -44,14 +44,14 @@ const Role = () => {
       thclass: "tb-head",
       contentClass: "table-content",
     },
-     {
+    {
       name: 'Actions',
       selector: 'linksInfo',
       tableClasses: 'table-striped',
       contentClass: 'table-content',
       thclass: 'tb-head',
-      onEditClick:(row)=>{setShowRoleModal(row)},
-       onDeleteClick:()=>{setShowDeleteModal(true)},
+      onEditClick: (row) => { setShowRoleModal(row) },
+      onDeleteClick: () => { setShowDeleteModal(true) },
       cell: RenderAction,
       width: '200',
     },
@@ -76,7 +76,7 @@ const Role = () => {
           </div>
 
           <CustomTable
-              Sl
+            Sl
             pagination={{ currentPage: params.page, limit: params.limit }}
             tableClasses="px-start"
             count={dummyRoles.length}
@@ -104,15 +104,15 @@ const Role = () => {
               closeModal={() => setShowRoleModal(false)}
             />
           )}
-            {!!showDeleteModal && (
-                             <DeleteConfirmationModal
-                                    show={showDeleteModal}
-                                    onCancel={()=>setShowDeleteModal(false)}
-                                    onConfirm={()=>{}}
-                                    deleteText="Are you sure you want to delete this role?"
-                                    // isLoading={isBeingUpdated}
-                                  />
-                            )}
+          {!!showDeleteModal && (
+            <DeleteConfirmationModal
+              show={showDeleteModal}
+              onCancel={() => setShowDeleteModal(false)}
+              onConfirm={() => { }}
+              deleteText="Are you sure you want to delete this role?"
+            // isLoading={isBeingUpdated}
+            />
+          )}
         </div>
       </div>
     </>
