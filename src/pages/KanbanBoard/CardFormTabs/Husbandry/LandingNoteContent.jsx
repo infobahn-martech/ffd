@@ -2,10 +2,13 @@ import { useState, useRef, useEffect } from "react";
 import PropTypes from "prop-types";
 import { Tooltip } from "react-tooltip";
 import "react-tooltip/dist/react-tooltip.css";
+import ReactQuill from "react-quill";
+import "react-quill/dist/quill.snow.css";
 import CustomModal from "../../../../components/CustomModal";
 import { FormField, FormInput, FormSelect } from "./Husbandry.components";
 import editIcon from "../../../../assets/images/edit.svg";
 import deleteIcon from "../../../../assets/images/delete.svg";
+import eyeIcon from "../../../../assets/images/eye.svg";
 
 // Generate dummy landing note data
 const generateDummyLandingNotes = () => {
@@ -40,13 +43,158 @@ const generateDummyLandingNotes = () => {
   return dummyNotes;
 };
 
+// AttachmentsList Component (from Operation.jsx)
+const AttachmentsList = ({ attachments = [], onAdd, onRemove, cardColor, isDragging, onDragEnter, onDragLeave, onDragOver, onDrop, fileInputRef, onFileInputChange }) => {
+  return (
+    <div className="attachment-list-wrapper">
+      <div className="attachment-upload-section">
+        <div
+          className={`document-upload-zone ${isDragging ? "dragging" : ""}`}
+          onDragEnter={onDragEnter}
+          onDragOver={onDragOver}
+          onDragLeave={onDragLeave}
+          onDrop={onDrop}
+          onClick={() => fileInputRef.current?.click()}
+          style={{ "--card-color": cardColor || "#00368c" }}
+        >
+          <input
+            ref={fileInputRef}
+            type="file"
+            className="file-input-hidden"
+            accept="*/*"
+            multiple
+            onChange={onFileInputChange}
+          />
+          <div className="upload-zone-content">
+            <div className="upload-icon-wrapper">
+              <svg
+                width="64"
+                height="64"
+                viewBox="0 0 24 24"
+                fill="none"
+                xmlns="http://www.w3.org/2000/svg"
+                style={{ color: cardColor || "#00368c" }}
+              >
+                <path
+                  d="M12 15V3M12 3L8 7M12 3L16 7"
+                  stroke="currentColor"
+                  strokeWidth="2"
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                />
+                <path
+                  d="M2 17L2 18C2 19.1046 2.89543 20 4 20L20 20C21.1046 20 22 19.1046 22 18L22 17"
+                  stroke="currentColor"
+                  strokeWidth="2"
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                />
+                <path
+                  d="M7 11L12 6L17 11"
+                  stroke="currentColor"
+                  strokeWidth="2"
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                />
+              </svg>
+            </div>
+            <div className="upload-text-content">
+              <p className="upload-main-text">
+                Drag and drop your files here, or{" "}
+                <span className="upload-link">click to browse</span>
+              </p>
+              <p className="upload-sub-text">Supports all file formats</p>
+            </div>
+            {attachments.length > 0 && (
+              <div className="upload-zone-files-list">
+                {attachments.map((item, index) => (
+                  <div key={index} className="upload-zone-file-item">
+                    <span className="upload-zone-file-name">{item.name || item}</span>
+                    <button
+                      className="upload-zone-remove-btn"
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        onRemove(index);
+                      }}
+                      type="button"
+                      title="Remove file"
+                    >
+                      ×
+                    </button>
+                  </div>
+                ))}
+              </div>
+            )}
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+};
+
+// ReactQuillEditor Component (from Operation.jsx)
+const ReactQuillEditor = ({ value, onChange, placeholder, name = "remarks", className = "" }) => {
+  const quillRef = useRef(null);
+
+  const modules = {
+    toolbar: [
+      [{ header: [1, 2, 3, false] }],
+      ["bold", "italic", "underline", "strike"],
+      [{ list: "ordered" }, { list: "bullet" }],
+      [{ color: [] }, { background: [] }],
+      ["link", "image"],
+      ["clean"],
+    ],
+  };
+
+  const formats = [
+    "header",
+    "bold",
+    "italic",
+    "underline",
+    "strike",
+    "list",
+    "bullet",
+    "color",
+    "background",
+    "link",
+    "image",
+  ];
+
+  const handleChange = (content) => {
+    const syntheticEvent = { target: { value: content, name: name } };
+    onChange(syntheticEvent);
+  };
+
+  return (
+    <div className={`react-quill-wrapper ${className}`}>
+      <ReactQuill
+        ref={quillRef}
+        theme="snow"
+        value={value || ""}
+        onChange={handleChange}
+        modules={modules}
+        formats={formats}
+        placeholder={placeholder || "Enter remarks..."}
+      />
+    </div>
+  );
+};
+
 const LandingNoteContent = ({ formValues, handleChange, cardColor }) => {
   const [showModal, setShowModal] = useState(false);
+  const [showConvertModal, setShowConvertModal] = useState(false);
+  const [showViewModal, setShowViewModal] = useState(false);
   const [notesList, setNotesList] = useState([]);
   const [editingNote, setEditingNote] = useState(null);
+  const [convertingNote, setConvertingNote] = useState(null);
+  const [viewingNote, setViewingNote] = useState(null);
   const [isDragging, setIsDragging] = useState(false);
   const [selectedFiles, setSelectedFiles] = useState([]);
   const fileInputRef = useRef(null);
+  const [isDraggingDocuments, setIsDraggingDocuments] = useState(false);
+  const documentsFileInputRef = useRef(null);
+  const [expandedConvertOrders, setExpandedConvertOrders] = useState({ 1: true });
 
   // Form state
   const [formData, setFormData] = useState({
@@ -249,13 +397,400 @@ const LandingNoteContent = ({ formValues, handleChange, cardColor }) => {
     }
   };
 
+  // Form state for Convert to Dispatch modal
+  const [convertFormData, setConvertFormData] = useState({
+    date: "",
+    warehouse: "",
+    signature: "",
+    deliveryLocation: "",
+    deliverTo: "",
+    documents: [],
+    remarks: "",
+    orders: [{
+      id: 1,
+      orderNo: "",
+      poDo: "",
+      quantity: "",
+      packageType: "",
+      description: "",
+      transportation: false,
+      typeOfVehicle: "",
+      fromLocation: "",
+      pickUpFrom: "",
+      toLocation: "",
+      driverName: "",
+      isPackingRequired: false,
+      repackingPallets: "",
+      repackingRolls: ""
+    }],
+  });
+
+  // Dummy options for dropdowns
+  const warehouseOptions = [
+    { value: "warehouse1", label: "Warehouse 1" },
+    { value: "warehouse2", label: "Warehouse 2" },
+    { value: "warehouse3", label: "Warehouse 3" },
+    { value: "warehouse4", label: "Warehouse 4" },
+  ];
+
+  const locationOptions = [
+    { value: "Rastanura", label: "Rastanura" },
+    { value: "Dammam", label: "Dammam" },
+    { value: "Al Jubail", label: "Al Jubail" },
+    { value: "Al Khafji", label: "Al Khafji" },
+    { value: "As Safaniya", label: "As Safaniya" },
+  ];
+
+  const vehicleTypeOptions = [
+    { value: "Car", label: "Car" },
+    { value: "Truck", label: "Truck" },
+    { value: "Van", label: "Van" },
+    { value: "Bus", label: "Bus" },
+    { value: "Motorcycle", label: "Motorcycle" },
+  ];
+
+  const driverNameOptions = [
+    { value: "ABDUL", label: "ABDUL" },
+    { value: "AHMED", label: "AHMED" },
+    { value: "MOHAMMED", label: "MOHAMMED" },
+    { value: "ALI", label: "ALI" },
+    { value: "HASSAN", label: "HASSAN" },
+  ];
+
   const handleConvertToDispatch = (note) => {
-    // Convert landing note to dispatch note
-    if (window.confirm("Convert this landing note to Dispatch Note?")) {
-      // You can implement the conversion logic here
-      // For now, just show a confirmation
-      console.log("Converting landing note to dispatch:", note);
+    setConvertingNote(note);
+    // Pre-fill form with note data
+    setConvertFormData({
+      date: note.date || "",
+      warehouse: "",
+      signature: "",
+      deliveryLocation: "",
+      deliverTo: "",
+      documents: [],
+      remarks: "",
+      orders: [{
+        id: 1,
+        orderNo: note.landingNoteNo || "",
+        poDo: note.poDo || "",
+        quantity: note.quantity || "",
+        packageType: note.packageType || "",
+        description: note.description || "",
+        transportation: false,
+        typeOfVehicle: "",
+        fromLocation: "",
+        pickUpFrom: "",
+        toLocation: "",
+        driverName: "",
+        isPackingRequired: false,
+        repackingPallets: "",
+        repackingRolls: ""
+      }],
+    });
+    setExpandedConvertOrders({ 1: true });
+    setShowConvertModal(true);
+  };
+
+  const handleCloseConvertModal = () => {
+    setShowConvertModal(false);
+    setConvertingNote(null);
+    setConvertFormData({
+      date: "",
+      warehouse: "",
+      signature: "",
+      deliveryLocation: "",
+      deliverTo: "",
+      documents: [],
+      remarks: "",
+      orders: [{
+        id: 1,
+        orderNo: "",
+        poDo: "",
+        quantity: "",
+        packageType: "",
+        description: "",
+        transportation: false,
+        typeOfVehicle: "",
+        fromLocation: "",
+        pickUpFrom: "",
+        toLocation: "",
+        driverName: "",
+        isPackingRequired: false,
+        repackingPallets: "",
+        repackingRolls: ""
+      }],
+    });
+  };
+
+  const handleConvertFormChange = (field, value) => {
+    setConvertFormData((prev) => ({
+      ...prev,
+      [field]: value,
+    }));
+  };
+
+  const handleConvertOrderChange = (orderId, field, value) => {
+    setConvertFormData((prev) => ({
+      ...prev,
+      orders: prev.orders.map((order) =>
+        order.id === orderId ? { ...order, [field]: value } : order
+      ),
+    }));
+  };
+
+  const handleAddNewConvertOrder = () => {
+    const newOrderId = convertFormData.orders.length > 0 
+      ? Math.max(...convertFormData.orders.map((o) => o.id)) + 1 
+      : 1;
+    setConvertFormData((prev) => ({
+      ...prev,
+      orders: [
+        ...prev.orders,
+        {
+          id: newOrderId,
+          orderNo: "",
+          poDo: "",
+          quantity: "",
+          packageType: "",
+          description: "",
+          transportation: false,
+          typeOfVehicle: "",
+          fromLocation: "",
+          pickUpFrom: "",
+          toLocation: "",
+          driverName: "",
+          isPackingRequired: false,
+          repackingPallets: "",
+          repackingRolls: ""
+        },
+      ],
+    }));
+    setExpandedConvertOrders((prev) => ({
+      ...prev,
+      [newOrderId]: true,
+    }));
+  };
+
+  const handleRemoveConvertOrder = (orderId) => {
+    if (convertFormData.orders.length > 1) {
+      setConvertFormData((prev) => ({
+        ...prev,
+        orders: prev.orders.filter((order) => order.id !== orderId),
+      }));
+      setExpandedConvertOrders((prev) => {
+        const newExpanded = { ...prev };
+        delete newExpanded[orderId];
+        return newExpanded;
+      });
     }
+  };
+
+  const toggleConvertOrderExpand = (orderId) => {
+    setExpandedConvertOrders((prev) => ({
+      ...prev,
+      [orderId]: !prev[orderId],
+    }));
+  };
+
+  // Handle documents drag and drop
+  const handleDocumentsDragEnter = (e) => {
+    e.preventDefault();
+    e.stopPropagation();
+    setIsDraggingDocuments(true);
+  };
+
+  const handleDocumentsDragLeave = (e) => {
+    e.preventDefault();
+    e.stopPropagation();
+    setIsDraggingDocuments(false);
+  };
+
+  const handleDocumentsDragOver = (e) => {
+    e.preventDefault();
+    e.stopPropagation();
+  };
+
+  const handleDocumentsDrop = (e) => {
+    e.preventDefault();
+    e.stopPropagation();
+    setIsDraggingDocuments(false);
+
+    const files = Array.from(e.dataTransfer.files || []);
+    if (files.length > 0) {
+      const currentAttachments = convertFormData.documents || [];
+      const newAttachments = files.map((file) => ({
+        name: file.name,
+        file: file,
+        size: file.size,
+        type: file.type,
+      }));
+      const updatedAttachments = [...currentAttachments, ...newAttachments];
+      setConvertFormData((prev) => ({
+        ...prev,
+        documents: updatedAttachments,
+      }));
+    }
+  };
+
+  const handleDocumentsFileInputChange = (e) => {
+    const files = Array.from(e.target.files || []);
+    if (files.length > 0) {
+      const currentAttachments = convertFormData.documents || [];
+      const newAttachments = files.map((file) => ({
+        name: file.name,
+        file: file,
+        size: file.size,
+        type: file.type,
+      }));
+      const updatedAttachments = [...currentAttachments, ...newAttachments];
+      setConvertFormData((prev) => ({
+        ...prev,
+        documents: updatedAttachments,
+      }));
+    }
+    if (documentsFileInputRef.current) {
+      documentsFileInputRef.current.value = "";
+    }
+  };
+
+  const handleDocumentsRemove = (index) => {
+    const currentAttachments = convertFormData.documents || [];
+    const updatedAttachments = currentAttachments.filter((_, i) => i !== index);
+    setConvertFormData((prev) => ({
+      ...prev,
+      documents: updatedAttachments,
+    }));
+  };
+
+  const handleConvertSubmit = (e) => {
+    e.preventDefault();
+    console.log("Convert to Dispatch form submitted:", convertFormData);
+    // Here you can implement the logic to save/convert the note to dispatch note
+    handleCloseConvertModal();
+  };
+
+  const handleViewNote = (note) => {
+    setViewingNote(note);
+    setShowViewModal(true);
+  };
+
+  const handleCloseViewModal = () => {
+    setShowViewModal(false);
+    setViewingNote(null);
+  };
+
+  const handlePrintNote = (note) => {
+    const printWindow = window.open('', '_blank');
+    const printContent = `
+      <!DOCTYPE html>
+      <html>
+        <head>
+          <title>Print - Landing Note ${note.landingNoteNo || ''}</title>
+          <style>
+            body {
+              font-family: Arial, sans-serif;
+              padding: 20px;
+              color: #333;
+            }
+            .print-header {
+              text-align: center;
+              margin-bottom: 30px;
+              border-bottom: 2px solid #00368c;
+              padding-bottom: 15px;
+            }
+            .print-header h1 {
+              color: #00368c;
+              margin: 0;
+              font-size: 24px;
+            }
+            .print-section {
+              margin-bottom: 25px;
+            }
+            .print-section-title {
+              font-size: 18px;
+              font-weight: bold;
+              color: #00368c;
+              margin-bottom: 15px;
+              border-bottom: 1px solid #e2e2ea;
+              padding-bottom: 8px;
+            }
+            .print-row {
+              display: flex;
+              margin-bottom: 12px;
+            }
+            .print-label {
+              font-weight: 600;
+              width: 200px;
+              color: #666;
+            }
+            .print-value {
+              flex: 1;
+              color: #1a1a1a;
+            }
+            .print-footer {
+              margin-top: 40px;
+              padding-top: 20px;
+              border-top: 1px solid #e2e2ea;
+              text-align: center;
+              color: #666;
+              font-size: 12px;
+            }
+            @media print {
+              body { margin: 0; padding: 15px; }
+              .print-footer { page-break-inside: avoid; }
+            }
+          </style>
+        </head>
+        <body>
+          <div class="print-header">
+            <h1>Landing Note Details</h1>
+          </div>
+          
+          <div class="print-section">
+            <div class="print-section-title">Note Information</div>
+            <div class="print-row">
+              <div class="print-label">Landing Note No:</div>
+              <div class="print-value">${note.landingNoteNo || "-"}</div>
+            </div>
+            <div class="print-row">
+              <div class="print-label">Date:</div>
+              <div class="print-value">${formatDate(note.date) || "-"}</div>
+            </div>
+            <div class="print-row">
+              <div class="print-label">PO/DO:</div>
+              <div class="print-value">${note.poDo || "-"}</div>
+            </div>
+            <div class="print-row">
+              <div class="print-label">Quantity:</div>
+              <div class="print-value">${note.quantity || "-"}</div>
+            </div>
+            <div class="print-row">
+              <div class="print-label">Package Type:</div>
+              <div class="print-value">${note.packageType || "-"}</div>
+            </div>
+            <div class="print-row">
+              <div class="print-label">Description:</div>
+              <div class="print-value">${note.description || "-"}</div>
+            </div>
+            <div class="print-row">
+              <div class="print-label">Landing Proof:</div>
+              <div class="print-value">${note.landingProof && note.landingProof.length > 0 ? `${note.landingProof.length} file(s)` : "No files"}</div>
+            </div>
+          </div>
+
+          <div class="print-footer">
+            <p>Printed on ${new Date().toLocaleString()}</p>
+          </div>
+        </body>
+      </html>
+    `;
+    
+    printWindow.document.write(printContent);
+    printWindow.document.close();
+    printWindow.focus();
+    setTimeout(() => {
+      printWindow.print();
+      printWindow.close();
+    }, 250);
   };
 
   const renderHeader = () => (
@@ -492,6 +1027,624 @@ const LandingNoteContent = ({ formValues, handleChange, cardColor }) => {
     </div>
   );
 
+  // Convert to Dispatch Modal Render Functions
+  const renderConvertHeader = () => (
+    <>
+      <h1 className="modal-title">Convert to Dispatch Note</h1>
+    </>
+  );
+
+  const renderConvertBody = () => {
+    const packageTypeOptions = [
+      { value: "Box", label: "Box" },
+      { value: "Pallet", label: "Pallet" },
+      { value: "Crate", label: "Crate" },
+      { value: "Bag", label: "Bag" },
+      { value: "Container", label: "Container" },
+      { value: "Loose", label: "Loose" },
+    ];
+
+    return (
+      <div className="modal-body">
+        <div className="lead-form">
+          <form id="convertToDispatchForm" onSubmit={handleConvertSubmit}>
+            {/* Basic Details Section */}
+            <div style={{ marginBottom: "32px", paddingBottom: "24px", borderBottom: "1px solid #e2e2ea" }}>
+              <h3 style={{ fontSize: "18px", fontWeight: "600", marginBottom: "20px", color: "#1a1a1a" }}>
+                Basic Details
+              </h3>
+              <div className="row mb-lg-3">
+                <div className="col-md-6 mb-3">
+                  <FormField label="Date">
+                    <div className="cf-select cf-date-input">
+                      <input
+                        type="date"
+                        value={convertFormData.date}
+                        onChange={(e) => handleConvertFormChange("date", e.target.value)}
+                        onClick={(e) => e.stopPropagation()}
+                        style={{
+                          width: "100%",
+                          border: "none",
+                          outline: "none",
+                          background: "transparent",
+                          fontSize: "14px",
+                          color: "#1a1a1a",
+                          fontFamily: "inherit",
+                          padding: 0,
+                          flex: 1,
+                          cursor: "pointer",
+                        }}
+                      />
+                      <svg
+                        width="18"
+                        height="18"
+                        viewBox="0 0 24 24"
+                        fill="none"
+                        xmlns="http://www.w3.org/2000/svg"
+                        style={{
+                          flexShrink: 0,
+                          marginLeft: "8px",
+                          color: "#666",
+                          pointerEvents: "none",
+                          position: "relative",
+                          zIndex: 1,
+                        }}
+                      >
+                        <rect x="3" y="4" width="18" height="18" rx="2" stroke="currentColor" strokeWidth="2" fill="none" />
+                        <line x1="16" y1="2" x2="16" y2="6" stroke="currentColor" strokeWidth="2" strokeLinecap="round" />
+                        <line x1="8" y1="2" x2="8" y2="6" stroke="currentColor" strokeWidth="2" strokeLinecap="round" />
+                        <line x1="3" y1="10" x2="21" y2="10" stroke="currentColor" strokeWidth="2" strokeLinecap="round" />
+                      </svg>
+                    </div>
+                  </FormField>
+                </div>
+
+                <div className="col-md-6 mb-3">
+                  <FormField label="Warehouse">
+                    <FormSelect
+                      value={convertFormData.warehouse}
+                      onChange={(e) => handleConvertFormChange("warehouse", e.target.value)}
+                      options={warehouseOptions}
+                      placeholder="Select warehouse"
+                    />
+                  </FormField>
+                </div>
+              </div>
+
+              {/* Dispatch Details Section */}
+              <div style={{ marginTop: "24px", paddingTop: "24px", borderTop: "1px solid #e2e2ea" }}>
+                <h3 style={{ fontSize: "18px", fontWeight: "600", marginBottom: "20px", color: "#1a1a1a" }}>
+                  Dispatch Details
+                </h3>
+                <div className="row mb-lg-3">
+                  <div className="col-md-4 mb-3">
+                    <FormField label="Signature">
+                      <FormInput
+                        type="text"
+                        value={convertFormData.signature}
+                        onChange={(e) => handleConvertFormChange("signature", e.target.value)}
+                        placeholder="Enter signature..."
+                      />
+                    </FormField>
+                  </div>
+
+                  <div className="col-md-4 mb-3">
+                    <FormField label="Delivery Location">
+                      <FormInput
+                        type="text"
+                        value={convertFormData.deliveryLocation}
+                        onChange={(e) => handleConvertFormChange("deliveryLocation", e.target.value)}
+                        placeholder="Enter delivery location..."
+                      />
+                    </FormField>
+                  </div>
+
+                  <div className="col-md-4 mb-3">
+                    <FormField label="Deliver to (Person Name)">
+                      <FormInput
+                        type="text"
+                        value={convertFormData.deliverTo}
+                        onChange={(e) => handleConvertFormChange("deliverTo", e.target.value)}
+                        placeholder="Enter person name..."
+                      />
+                    </FormField>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            {/* Order Details Section */}
+            <div>
+              <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "20px" }}>
+                <h3 style={{ fontSize: "18px", fontWeight: "600", margin: 0, color: "#1a1a1a" }}>
+                  Order Details
+                </h3>
+                <button
+                  type="button"
+                  onClick={handleAddNewConvertOrder}
+                  style={{
+                    display: "flex",
+                    alignItems: "center",
+                    gap: "8px",
+                    padding: "10px 20px",
+                    backgroundColor: "#00368c",
+                    color: "white",
+                    border: "none",
+                    borderRadius: "6px",
+                    cursor: "pointer",
+                    fontSize: "14px",
+                    fontWeight: "500",
+                    transition: "all 0.2s ease",
+                    boxShadow: "0 2px 4px rgba(0, 54, 140, 0.2)",
+                  }}
+                  onMouseEnter={(e) => {
+                    e.currentTarget.style.backgroundColor = "#002d6b";
+                    e.currentTarget.style.transform = "translateY(-1px)";
+                    e.currentTarget.style.boxShadow = "0 4px 8px rgba(0, 54, 140, 0.3)";
+                  }}
+                  onMouseLeave={(e) => {
+                    e.currentTarget.style.backgroundColor = "#00368c";
+                    e.currentTarget.style.transform = "translateY(0)";
+                    e.currentTarget.style.boxShadow = "0 2px 4px rgba(0, 54, 140, 0.2)";
+                  }}
+                >
+                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                    <line x1="12" y1="5" x2="12" y2="19" stroke="currentColor" strokeWidth="2" strokeLinecap="round" />
+                    <line x1="5" y1="12" x2="19" y2="12" stroke="currentColor" strokeWidth="2" strokeLinecap="round" />
+                  </svg>
+                  Add New Order
+                </button>
+              </div>
+
+              {convertFormData.orders.map((order, index) => (
+                <div
+                  key={order.id}
+                  style={{
+                    marginBottom: "16px",
+                    border: "1px solid #e2e2ea",
+                    borderRadius: "8px",
+                    overflow: "hidden",
+                    backgroundColor: "#f8f9fa",
+                    boxShadow: "0 1px 3px rgba(0, 0, 0, 0.05)",
+                    transition: "all 0.2s ease",
+                  }}
+                  onMouseEnter={(e) => {
+                    e.currentTarget.style.borderColor = "#00368c";
+                    e.currentTarget.style.boxShadow = "0 2px 6px rgba(0, 54, 140, 0.1)";
+                  }}
+                  onMouseLeave={(e) => {
+                    e.currentTarget.style.borderColor = "#e2e2ea";
+                    e.currentTarget.style.boxShadow = "0 1px 3px rgba(0, 0, 0, 0.05)";
+                  }}
+                >
+                  <div
+                    onClick={() => toggleConvertOrderExpand(order.id)}
+                    style={{
+                      padding: "16px 20px",
+                      backgroundColor: "#f8f9fa",
+                      cursor: "pointer",
+                      display: "flex",
+                      justifyContent: "space-between",
+                      alignItems: "center",
+                      transition: "background-color 0.2s ease",
+                    }}
+                    onMouseEnter={(e) => {
+                      e.currentTarget.style.backgroundColor = "#f0f1f5";
+                    }}
+                    onMouseLeave={(e) => {
+                      e.currentTarget.style.backgroundColor = "#f8f9fa";
+                    }}
+                  >
+                    <span style={{ fontSize: "15px", fontWeight: "600", color: "#1a1a1a" }}>
+                      Order {index + 1}
+                    </span>
+                    <div style={{ display: "flex", gap: "12px", alignItems: "center" }}>
+                      {convertFormData.orders.length > 1 && (
+                        <button
+                          type="button"
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            handleRemoveConvertOrder(order.id);
+                          }}
+                          style={{
+                            padding: "6px 12px",
+                            backgroundColor: "#dc3545",
+                            color: "white",
+                            border: "none",
+                            borderRadius: "6px",
+                            cursor: "pointer",
+                            fontSize: "12px",
+                            fontWeight: "500",
+                            transition: "all 0.2s ease",
+                          }}
+                          onMouseEnter={(e) => {
+                            e.currentTarget.style.backgroundColor = "#c82333";
+                            e.currentTarget.style.transform = "translateY(-1px)";
+                          }}
+                          onMouseLeave={(e) => {
+                            e.currentTarget.style.backgroundColor = "#dc3545";
+                            e.currentTarget.style.transform = "translateY(0)";
+                          }}
+                        >
+                          Remove
+                        </button>
+                      )}
+                      <svg
+                        width="20"
+                        height="20"
+                        viewBox="0 0 24 24"
+                        fill="none"
+                        xmlns="http://www.w3.org/2000/svg"
+                        style={{
+                          transform: expandedConvertOrders[order.id] ? "rotate(180deg)" : "rotate(0deg)",
+                          transition: "transform 0.3s ease",
+                          color: "#666",
+                        }}
+                      >
+                        <path d="M6 9L12 15L18 9" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+                      </svg>
+                    </div>
+                  </div>
+
+                  {expandedConvertOrders[order.id] && (
+                    <div style={{ padding: "24px", backgroundColor: "white" }}>
+                      <div className="row mb-lg-3">
+                        <div className="col-md-6 mb-3">
+                          <FormField label="Order No">
+                            <FormInput
+                              type="text"
+                              value={order.orderNo}
+                              onChange={(e) => handleConvertOrderChange(order.id, "orderNo", e.target.value)}
+                              placeholder="Enter order number..."
+                            />
+                          </FormField>
+                        </div>
+
+                        <div className="col-md-6 mb-3">
+                          <FormField label="PO/DO">
+                            <FormInput
+                              type="text"
+                              value={order.poDo}
+                              onChange={(e) => handleConvertOrderChange(order.id, "poDo", e.target.value)}
+                              placeholder="Enter PO/DO number..."
+                            />
+                          </FormField>
+                        </div>
+
+                        <div className="col-md-6 mb-3">
+                          <FormField label="Description">
+                            <FormInput
+                              type="text"
+                              value={order.description}
+                              onChange={(e) => handleConvertOrderChange(order.id, "description", e.target.value)}
+                              placeholder="Enter description..."
+                            />
+                          </FormField>
+                        </div>
+
+                        <div className="col-md-6 mb-3">
+                          <FormField label="Package Type">
+                            <FormSelect
+                              value={order.packageType}
+                              onChange={(e) => handleConvertOrderChange(order.id, "packageType", e.target.value)}
+                              options={packageTypeOptions}
+                              placeholder="Select package type..."
+                            />
+                          </FormField>
+                        </div>
+
+                        <div className="col-md-6 mb-3">
+                          <FormField label="Quantity">
+                            <FormInput
+                              type="number"
+                              value={order.quantity}
+                              onChange={(e) => handleConvertOrderChange(order.id, "quantity", e.target.value)}
+                              placeholder="Enter quantity..."
+                            />
+                          </FormField>
+                        </div>
+                      </div>
+
+                      {/* Transportation Section */}
+                      <div style={{ marginTop: "24px", paddingTop: "24px", borderTop: "1px solid #e2e2ea" }}>
+                        <div style={{ marginBottom: "16px" }}>
+                          <label style={{ display: "flex", alignItems: "center", gap: "8px", cursor: "pointer" }}>
+                            <input
+                              type="checkbox"
+                              checked={order.transportation || false}
+                              onChange={(e) => handleConvertOrderChange(order.id, "transportation", e.target.checked)}
+                              style={{ cursor: "pointer", width: "18px", height: "18px" }}
+                            />
+                            <span style={{ fontSize: "15px", fontWeight: "600", color: "#1a1a1a" }}>Transportation</span>
+                          </label>
+                        </div>
+
+                        {order.transportation && (
+                          <div className="row mb-lg-3">
+                            <div className="col-md-6 mb-3">
+                              <FormField label="Type of Vehicle">
+                                <FormSelect
+                                  value={order.typeOfVehicle}
+                                  onChange={(e) => handleConvertOrderChange(order.id, "typeOfVehicle", e.target.value)}
+                                  options={vehicleTypeOptions}
+                                  placeholder="Select type of vehicle..."
+                                />
+                              </FormField>
+                            </div>
+
+                            <div className="col-md-6 mb-3">
+                              <FormField label="From Location">
+                                <FormSelect
+                                  value={order.fromLocation}
+                                  onChange={(e) => handleConvertOrderChange(order.id, "fromLocation", e.target.value)}
+                                  options={locationOptions}
+                                  placeholder="Select from location..."
+                                />
+                              </FormField>
+                            </div>
+
+                            <div className="col-md-6 mb-3">
+                              <FormField label="Pick-Up From">
+                                <FormInput
+                                  type="text"
+                                  value={order.pickUpFrom}
+                                  onChange={(e) => handleConvertOrderChange(order.id, "pickUpFrom", e.target.value)}
+                                  placeholder="Enter pick-up location..."
+                                />
+                              </FormField>
+                            </div>
+
+                            <div className="col-md-6 mb-3">
+                              <FormField label="To Location">
+                                <FormSelect
+                                  value={order.toLocation}
+                                  onChange={(e) => handleConvertOrderChange(order.id, "toLocation", e.target.value)}
+                                  options={locationOptions}
+                                  placeholder="Select to location..."
+                                />
+                              </FormField>
+                            </div>
+
+                            <div className="col-md-6 mb-3">
+                              <FormField label="Driver Name">
+                                <FormSelect
+                                  value={order.driverName}
+                                  onChange={(e) => handleConvertOrderChange(order.id, "driverName", e.target.value)}
+                                  options={driverNameOptions}
+                                  placeholder="Select driver name..."
+                                />
+                              </FormField>
+                            </div>
+                          </div>
+                        )}
+
+                        {/* Is Packing Required, Repacking Pallets, Repacking Rolls - After Transportation */}
+                        <div style={{ marginTop: "16px", paddingTop: "16px", borderTop: "1px solid #e2e2ea" }}>
+                          <div style={{ marginBottom: "16px" }}>
+                            <label style={{ display: "flex", alignItems: "center", gap: "8px", cursor: "pointer" }}>
+                              <input
+                                type="checkbox"
+                                checked={order.isPackingRequired || false}
+                                onChange={(e) => handleConvertOrderChange(order.id, "isPackingRequired", e.target.checked)}
+                                style={{ cursor: "pointer", width: "18px", height: "18px" }}
+                              />
+                              <span style={{ fontSize: "15px", fontWeight: "600", color: "#1a1a1a" }}>Is Packing Required?</span>
+                            </label>
+                          </div>
+
+                          {order.isPackingRequired && (
+                            <div className="row mb-lg-3">
+                              <div className="col-md-6 mb-3">
+                                <FormField label="Repacking Pallets">
+                                  <FormInput
+                                    type="text"
+                                    value={order.repackingPallets}
+                                    onChange={(e) => handleConvertOrderChange(order.id, "repackingPallets", e.target.value)}
+                                    placeholder="Enter repacking pallets..."
+                                  />
+                                </FormField>
+                              </div>
+
+                              <div className="col-md-6 mb-3">
+                                <FormField label="Repacking Rolls">
+                                  <FormInput
+                                    type="text"
+                                    value={order.repackingRolls}
+                                    onChange={(e) => handleConvertOrderChange(order.id, "repackingRolls", e.target.value)}
+                                    placeholder="Enter repacking rolls..."
+                                  />
+                                </FormField>
+                              </div>
+                            </div>
+                          )}
+                        </div>
+                      </div>
+                    </div>
+                  )}
+                </div>
+              ))}
+            </div>
+
+            {/* Documents & Remarks Section - Outside Order Details */}
+            <div style={{ marginTop: "32px", paddingTop: "24px", borderTop: "2px solid #e2e2ea" }}>
+              <h3 style={{ fontSize: "18px", fontWeight: "600", marginBottom: "20px", color: "#1a1a1a" }}>
+                Documents & Remarks
+              </h3>
+
+              {/* Document Upload - Full Width */}
+              <div className="mb-lg-3 mb-sm-0" style={{ marginBottom: "24px" }}>
+                <FormField label="Document Upload">
+                  <div style={{ marginTop: "8px" }}>
+                    <AttachmentsList
+                      attachments={convertFormData.documents || []}
+                      onAdd={() => { }}
+                      onRemove={handleDocumentsRemove}
+                      cardColor={cardColor}
+                      isDragging={isDraggingDocuments}
+                      onDragEnter={handleDocumentsDragEnter}
+                      onDragLeave={handleDocumentsDragLeave}
+                      onDragOver={handleDocumentsDragOver}
+                      onDrop={handleDocumentsDrop}
+                      fileInputRef={documentsFileInputRef}
+                      onFileInputChange={handleDocumentsFileInputChange}
+                    />
+                  </div>
+                </FormField>
+              </div>
+
+              {/* Remarks - Full Width, Below Document Upload */}
+              <div className="mb-lg-3 mb-sm-0">
+                <div className="card-description-wrapper">
+                  <FormField label="Remarks">
+                    <ReactQuillEditor
+                      value={convertFormData.remarks || ""}
+                      onChange={(e) => handleConvertFormChange("remarks", e.target.value)}
+                      placeholder="Enter remarks..."
+                      name="remarks"
+                    />
+                  </FormField>
+                </div>
+              </div>
+            </div>
+          </form>
+        </div>
+      </div>
+    );
+  };
+
+  const renderConvertFooter = () => (
+    <div className="modal-footer" style={{ display: "flex", justifyContent: "flex-end", gap: "12px", padding: "16px 24px" }}>
+      <button
+        type="button"
+        onClick={handleCloseConvertModal}
+        style={{
+          padding: "10px 20px",
+          backgroundColor: "#f5f5f5",
+          color: "#333",
+          border: "1px solid #e2e2ea",
+          borderRadius: "6px",
+          cursor: "pointer",
+          fontSize: "14px",
+          fontWeight: "500",
+        }}
+      >
+        Cancel
+      </button>
+      <button
+        type="submit"
+        form="convertToDispatchForm"
+        style={{
+          padding: "10px 20px",
+          backgroundColor: "#00368c",
+          color: "white",
+          border: "none",
+          borderRadius: "6px",
+          cursor: "pointer",
+          fontSize: "14px",
+          fontWeight: "500",
+        }}
+      >
+        Convert
+      </button>
+    </div>
+  );
+
+  // View Note Modal Render Functions
+  const renderViewHeader = () => (
+    <>
+      <h1 className="modal-title">View Landing Note Details</h1>
+    </>
+  );
+
+  const renderViewBody = () => {
+    if (!viewingNote) return null;
+
+    return (
+      <div className="modal-body">
+        <div className="view-vessel-container" style={{ padding: "20px" }}>
+          {/* Note Information */}
+          <div className="view-row" style={{ display: "flex", flexWrap: "wrap", gap: "20px", marginBottom: "20px" }}>
+            <div className="view-item" style={{ flex: "1", minWidth: "200px" }}>
+              <div className="view-label" style={{ fontWeight: "600", color: "#666", marginBottom: "8px", fontSize: "14px" }}>Landing Note No</div>
+              <div className="view-value" style={{ color: "#1a1a1a", fontSize: "15px" }}>{viewingNote.landingNoteNo || "-"}</div>
+            </div>
+            <div className="view-item" style={{ flex: "1", minWidth: "200px" }}>
+              <div className="view-label" style={{ fontWeight: "600", color: "#666", marginBottom: "8px", fontSize: "14px" }}>Date</div>
+              <div className="view-value" style={{ color: "#1a1a1a", fontSize: "15px" }}>{formatDate(viewingNote.date) || "-"}</div>
+            </div>
+            <div className="view-item" style={{ flex: "1", minWidth: "200px" }}>
+              <div className="view-label" style={{ fontWeight: "600", color: "#666", marginBottom: "8px", fontSize: "14px" }}>PO/DO</div>
+              <div className="view-value" style={{ color: "#1a1a1a", fontSize: "15px" }}>{viewingNote.poDo || "-"}</div>
+            </div>
+          </div>
+
+          <div className="view-row" style={{ display: "flex", flexWrap: "wrap", gap: "20px", marginBottom: "20px" }}>
+            <div className="view-item" style={{ flex: "1", minWidth: "200px" }}>
+              <div className="view-label" style={{ fontWeight: "600", color: "#666", marginBottom: "8px", fontSize: "14px" }}>Quantity</div>
+              <div className="view-value" style={{ color: "#1a1a1a", fontSize: "15px" }}>{viewingNote.quantity || "-"}</div>
+            </div>
+            <div className="view-item" style={{ flex: "1", minWidth: "200px" }}>
+              <div className="view-label" style={{ fontWeight: "600", color: "#666", marginBottom: "8px", fontSize: "14px" }}>Package Type</div>
+              <div className="view-value" style={{ color: "#1a1a1a", fontSize: "15px" }}>{viewingNote.packageType || "-"}</div>
+            </div>
+            <div className="view-item" style={{ flex: "1", minWidth: "200px" }}>
+              <div className="view-label" style={{ fontWeight: "600", color: "#666", marginBottom: "8px", fontSize: "14px" }}>Landing Proof</div>
+              <div className="view-value" style={{ color: "#1a1a1a", fontSize: "15px" }}>
+                {viewingNote.landingProof && viewingNote.landingProof.length > 0 ? `${viewingNote.landingProof.length} file(s)` : "No files"}
+              </div>
+            </div>
+          </div>
+
+          <div className="view-row" style={{ marginBottom: "20px" }}>
+            <div className="view-item" style={{ width: "100%" }}>
+              <div className="view-label" style={{ fontWeight: "600", color: "#666", marginBottom: "8px", fontSize: "14px" }}>Description</div>
+              <div className="view-value" style={{ color: "#1a1a1a", fontSize: "15px" }}>{viewingNote.description || "-"}</div>
+            </div>
+          </div>
+        </div>
+      </div>
+    );
+  };
+
+  const renderViewFooter = () => (
+    <div className="modal-footer" style={{ display: "flex", justifyContent: "flex-end", gap: "12px", padding: "16px 24px" }}>
+      <button
+        type="button"
+        onClick={handleCloseViewModal}
+        style={{
+          padding: "10px 20px",
+          backgroundColor: "#f5f5f5",
+          color: "#333",
+          border: "1px solid #e2e2ea",
+          borderRadius: "6px",
+          cursor: "pointer",
+          fontSize: "14px",
+          fontWeight: "500",
+        }}
+      >
+        Close
+      </button>
+      {viewingNote && (
+        <button
+          type="button"
+          onClick={() => handlePrintNote(viewingNote)}
+          style={{
+            padding: "10px 20px",
+            backgroundColor: "#00368c",
+            color: "white",
+            border: "none",
+            borderRadius: "6px",
+            cursor: "pointer",
+            fontSize: "14px",
+            fontWeight: "500",
+          }}
+        >
+          Print
+        </button>
+      )}
+    </div>
+  );
+
   return (
     <div className="cardform-left-full material-management-content-wrapper" style={{ "--card-color": cardColor }}>
       <div className="material-list-header">
@@ -572,6 +1725,18 @@ const LandingNoteContent = ({ formValues, handleChange, cardColor }) => {
                     <div className="material-table-cell">
                       <div className="table-actions" style={{ display: "flex", gap: "8px", alignItems: "center", position: "relative", zIndex: 1 }}>
                         <Tooltip 
+                          id={`view-landing-${note.id}`} 
+                          place="right" 
+                          content="View"
+                          className="material-table-tooltip"
+                        />
+                        <Tooltip 
+                          id={`print-landing-${note.id}`} 
+                          place="right" 
+                          content="Print"
+                          className="material-table-tooltip"
+                        />
+                        <Tooltip 
                           id={`convert-dispatch-${note.id}`} 
                           place="right" 
                           content="Convert to Dispatch"
@@ -589,6 +1754,47 @@ const LandingNoteContent = ({ formValues, handleChange, cardColor }) => {
                           content="Delete"
                           className="material-table-tooltip"
                         />
+                        <span
+                          data-tooltip-id={`view-landing-${note.id}`}
+                          type="button"
+                          className="btn-action btn-view"
+                          onClick={() => handleViewNote(note)}
+                          style={{
+                            padding: "6px",
+                            backgroundColor: "transparent",
+                            border: "none",
+                            borderRadius: "4px",
+                            cursor: "pointer",
+                            display: "flex",
+                            alignItems: "center",
+                            justifyContent: "center"
+                          }}
+                        >
+                          <img src={eyeIcon} alt="view" style={{ width: "18px", height: "18px" }} />
+                        </span>
+                        <span
+                          data-tooltip-id={`print-landing-${note.id}`}
+                          type="button"
+                          className="btn-action btn-print"
+                          onClick={() => handlePrintNote(note)}
+                          style={{
+                            padding: "6px",
+                            backgroundColor: "transparent",
+                            border: "none",
+                            borderRadius: "4px",
+                            cursor: "pointer",
+                            display: "flex",
+                            alignItems: "center",
+                            justifyContent: "center"
+                          }}
+                        >
+                          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                            <path d="M6 9V2H18V9" stroke="#00368c" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+                            <path d="M6 18H4C2.89543 18 2 17.1046 2 16V11C2 9.89543 2.89543 9 4 9H20C21.1046 9 22 9.89543 22 11V16C22 17.1046 21.1046 18 20 18H18" stroke="#00368c" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+                            <path d="M18 14H6V22H18V14Z" stroke="#00368c" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+                            <path d="M18 9H6V14H18V9Z" stroke="#00368c" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+                          </svg>
+                        </span>
                         <span
                           data-tooltip-id={`convert-dispatch-${note.id}`}
                           data-tooltip-content="Convert to Dispatch"
@@ -675,6 +1881,26 @@ const LandingNoteContent = ({ formValues, handleChange, cardColor }) => {
         header={renderHeader()}
         body={renderBody()}
         footer={renderFooter()}
+      />
+
+      <CustomModal
+        className="material-management-modal"
+        show={showConvertModal}
+        closeModal={handleCloseConvertModal}
+        header={renderConvertHeader()}
+        body={renderConvertBody()}
+        footer={renderConvertFooter()}
+        dialgName="modal-dialog modal-dialog-centered"
+      />
+
+      <CustomModal
+        className="material-management-modal"
+        show={showViewModal}
+        closeModal={handleCloseViewModal}
+        header={renderViewHeader()}
+        body={renderViewBody()}
+        footer={renderViewFooter()}
+        dialgName="modal-dialog modal-dialog-centered"
       />
     </div>
   );
