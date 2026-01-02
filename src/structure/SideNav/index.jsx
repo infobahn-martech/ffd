@@ -197,6 +197,13 @@ function SideNav({ isMobileMenuOpen, onCloseMobileMenu }) {
       hasPermission: true,
     },
     {
+      menu: 'Vehicle Management',
+      isDefaultMenu: true,
+      to: '/vehicle-management',
+      icon: portIcon,
+      hasPermission: true,
+    },
+    {
       menu: 'Activity Log',
       isDefaultMenu: true,
       to: '/activity-log',
