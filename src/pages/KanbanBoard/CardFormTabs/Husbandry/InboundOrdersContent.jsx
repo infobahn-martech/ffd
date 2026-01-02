@@ -1,7 +1,9 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import PropTypes from "prop-types";
 import { Tooltip } from "react-tooltip";
 import "react-tooltip/dist/react-tooltip.css";
+import ReactQuill from "react-quill";
+import "react-quill/dist/quill.snow.css";
 import CustomModal from "../../../../components/CustomModal";
 import { FormField, FormInput, FormSelect } from "./Husbandry.components";
 import editIcon from "../../../../assets/images/edit.svg";
@@ -39,6 +41,144 @@ const generateDummyInboundOrders = () => {
   return dummyOrders;
 };
 
+// AttachmentsList Component (from Operation.jsx)
+const AttachmentsList = ({ attachments = [], onAdd, onRemove, cardColor, isDragging, onDragEnter, onDragLeave, onDragOver, onDrop, fileInputRef, onFileInputChange }) => {
+  return (
+    <div className="attachment-list-wrapper">
+      <div className="attachment-upload-section">
+        <div
+          className={`document-upload-zone ${isDragging ? "dragging" : ""}`}
+          onDragEnter={onDragEnter}
+          onDragOver={onDragOver}
+          onDragLeave={onDragLeave}
+          onDrop={onDrop}
+          onClick={() => fileInputRef.current?.click()}
+          style={{ "--card-color": cardColor || "#00368c" }}
+        >
+          <input
+            ref={fileInputRef}
+            type="file"
+            className="file-input-hidden"
+            accept="*/*"
+            multiple
+            onChange={onFileInputChange}
+          />
+          <div className="upload-zone-content">
+            <div className="upload-icon-wrapper">
+              <svg
+                width="64"
+                height="64"
+                viewBox="0 0 24 24"
+                fill="none"
+                xmlns="http://www.w3.org/2000/svg"
+                style={{ color: cardColor || "#00368c" }}
+              >
+                <path
+                  d="M12 15V3M12 3L8 7M12 3L16 7"
+                  stroke="currentColor"
+                  strokeWidth="2"
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                />
+                <path
+                  d="M2 17L2 18C2 19.1046 2.89543 20 4 20L20 20C21.1046 20 22 19.1046 22 18L22 17"
+                  stroke="currentColor"
+                  strokeWidth="2"
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                />
+                <path
+                  d="M7 11L12 6L17 11"
+                  stroke="currentColor"
+                  strokeWidth="2"
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                />
+              </svg>
+            </div>
+            <div className="upload-text-content">
+              <p className="upload-main-text">
+                Drag and drop your files here, or{" "}
+                <span className="upload-link">click to browse</span>
+              </p>
+              <p className="upload-sub-text">Supports all file formats</p>
+            </div>
+            {attachments.length > 0 && (
+              <div className="upload-zone-files-list">
+                {attachments.map((item, index) => (
+                  <div key={index} className="upload-zone-file-item">
+                    <span className="upload-zone-file-name">{item.name || item}</span>
+                    <button
+                      className="upload-zone-remove-btn"
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        onRemove(index);
+                      }}
+                      type="button"
+                      title="Remove file"
+                    >
+                      ×
+                    </button>
+                  </div>
+                ))}
+              </div>
+            )}
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+};
+
+// ReactQuillEditor Component (from Operation.jsx)
+const ReactQuillEditor = ({ value, onChange, placeholder, name = "remarks", className = "" }) => {
+  const quillRef = useRef(null);
+
+  const modules = {
+    toolbar: [
+      [{ header: [1, 2, 3, false] }],
+      ["bold", "italic", "underline", "strike"],
+      [{ list: "ordered" }, { list: "bullet" }],
+      [{ color: [] }, { background: [] }],
+      ["link", "image"],
+      ["clean"],
+    ],
+  };
+
+  const formats = [
+    "header",
+    "bold",
+    "italic",
+    "underline",
+    "strike",
+    "list",
+    "bullet",
+    "color",
+    "background",
+    "link",
+    "image",
+  ];
+
+  const handleChange = (content) => {
+    const syntheticEvent = { target: { value: content, name: name } };
+    onChange(syntheticEvent);
+  };
+
+  return (
+    <div className={`react-quill-wrapper ${className}`}>
+      <ReactQuill
+        ref={quillRef}
+        theme="snow"
+        value={value || ""}
+        onChange={handleChange}
+        modules={modules}
+        formats={formats}
+        placeholder={placeholder || "Enter remarks..."}
+      />
+    </div>
+  );
+};
+
 const InboundOrdersContent = ({ formValues, handleChange, cardColor }) => {
   const [showModal, setShowModal] = useState(false);
   const [showConvertModal, setShowConvertModal] = useState(false);
@@ -47,6 +187,8 @@ const InboundOrdersContent = ({ formValues, handleChange, cardColor }) => {
   const [convertingOrder, setConvertingOrder] = useState(null);
   const [expandedOrders, setExpandedOrders] = useState({ 1: true }); // First order expanded by default
   const [expandedConvertOrders, setExpandedConvertOrders] = useState({ 1: true });
+  const [isDraggingDocuments, setIsDraggingDocuments] = useState(false);
+  const documentsFileInputRef = useRef(null);
 
   // Form state - Basic Details
   const [formData, setFormData] = useState({
@@ -483,10 +625,73 @@ const InboundOrdersContent = ({ formValues, handleChange, cardColor }) => {
     }));
   };
 
-  const handleDocumentUpload = (files) => {
+  // Handle documents drag and drop
+  const handleDocumentsDragEnter = (e) => {
+    e.preventDefault();
+    e.stopPropagation();
+    setIsDraggingDocuments(true);
+  };
+
+  const handleDocumentsDragLeave = (e) => {
+    e.preventDefault();
+    e.stopPropagation();
+    setIsDraggingDocuments(false);
+  };
+
+  const handleDocumentsDragOver = (e) => {
+    e.preventDefault();
+    e.stopPropagation();
+  };
+
+  const handleDocumentsDrop = (e) => {
+    e.preventDefault();
+    e.stopPropagation();
+    setIsDraggingDocuments(false);
+
+    const files = Array.from(e.dataTransfer.files || []);
+    if (files.length > 0) {
+      const currentAttachments = convertFormData.documents || [];
+      const newAttachments = files.map((file) => ({
+        name: file.name,
+        file: file,
+        size: file.size,
+        type: file.type,
+      }));
+      const updatedAttachments = [...currentAttachments, ...newAttachments];
+      setConvertFormData((prev) => ({
+        ...prev,
+        documents: updatedAttachments,
+      }));
+    }
+  };
+
+  const handleDocumentsFileInputChange = (e) => {
+    const files = Array.from(e.target.files || []);
+    if (files.length > 0) {
+      const currentAttachments = convertFormData.documents || [];
+      const newAttachments = files.map((file) => ({
+        name: file.name,
+        file: file,
+        size: file.size,
+        type: file.type,
+      }));
+      const updatedAttachments = [...currentAttachments, ...newAttachments];
+      setConvertFormData((prev) => ({
+        ...prev,
+        documents: updatedAttachments,
+      }));
+    }
+    if (documentsFileInputRef.current) {
+      documentsFileInputRef.current.value = "";
+    }
+  };
+
+  const handleDocumentsRemove = (index) => {
+    const currentAttachments = convertFormData.documents || [];
+    const updatedAttachments = currentAttachments.filter((_, i) => i !== index);
     setConvertFormData((prev) => ({
       ...prev,
-      documents: Array.from(files),
+      documents: updatedAttachments,
     }));
   };
 
@@ -1413,38 +1618,36 @@ const InboundOrdersContent = ({ formValues, handleChange, cardColor }) => {
               Documents & Remarks
             </h3>
 
-            <div className="row mb-lg-3">
-              <div className="col-md-6 mb-3">
-                <FormField label="Document Upload">
-                  <div className="input-group file-up position-relative desig-inp">
-                    <input
-                      type="file"
-                      className="form-control"
-                      multiple
-                      onChange={(e) => handleDocumentUpload(e.target.files)}
-                      style={{
-                        padding: "10px",
-                        border: "1px solid #e2e2ea",
-                        borderRadius: "6px",
-                        fontSize: "14px",
-                      }}
-                    />
-                  </div>
-                  {convertFormData.documents && convertFormData.documents.length > 0 && (
-                    <div style={{ marginTop: "8px", fontSize: "12px", color: "#666" }}>
-                      {convertFormData.documents.length} file(s) selected
-                    </div>
-                  )}
-                </FormField>
-              </div>
+            {/* Document Upload - Full Width */}
+            <div className="mb-lg-3 mb-sm-0" style={{ marginBottom: "24px" }}>
+              <FormField label="Document Upload">
+                <div style={{ marginTop: "8px" }}>
+                  <AttachmentsList
+                    attachments={convertFormData.documents || []}
+                    onAdd={() => { }}
+                    onRemove={handleDocumentsRemove}
+                    cardColor={cardColor}
+                    isDragging={isDraggingDocuments}
+                    onDragEnter={handleDocumentsDragEnter}
+                    onDragLeave={handleDocumentsDragLeave}
+                    onDragOver={handleDocumentsDragOver}
+                    onDrop={handleDocumentsDrop}
+                    fileInputRef={documentsFileInputRef}
+                    onFileInputChange={handleDocumentsFileInputChange}
+                  />
+                </div>
+              </FormField>
+            </div>
 
-              <div className="col-md-6 mb-3">
+            {/* Remarks - Full Width, Below Document Upload */}
+            <div className="mb-lg-3 mb-sm-0">
+              <div className="card-description-wrapper">
                 <FormField label="Remarks">
-                  <FormInput
-                    type="text"
-                    value={convertFormData.remarks}
+                  <ReactQuillEditor
+                    value={convertFormData.remarks || ""}
                     onChange={(e) => handleConvertFormChange("remarks", e.target.value)}
                     placeholder="Enter remarks..."
+                    name="remarks"
                   />
                 </FormField>
               </div>
