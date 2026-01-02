@@ -112,9 +112,10 @@ const WasteDisposalContent = ({ formValues, handleChange, cardColor }) => {
   // Handle save
   const handleSave = () => {
     console.log("Saving Waste Disposal data:", {
+      wasteDisposalRequestEmailDocuments: formValues.wasteDisposalRequestEmailDocuments,
+      wasteDisposalPONumber: formValues.wasteDisposalPONumber,
       wasteType: formValues.wasteType,
       wasteDisposalDate: formValues.wasteDisposalDate,
-      wasteDisposalRequestEmailDocuments: formValues.wasteDisposalRequestEmailDocuments,
       wasteDisposalDocuments: formValues.wasteDisposalDocuments,
       wasteDisposalDescription: formValues.wasteDisposalDescription,
     });
@@ -281,6 +282,32 @@ const WasteDisposalContent = ({ formValues, handleChange, cardColor }) => {
         <div className="pre-arrival-form waste-disposal-form">
           <div className="general-info-two-column">
             <div className="general-info-left">
+              <FormField label="Request Mail" className="cf-field-full">
+                {renderFileUpload(
+                  requestEmailFiles,
+                  requestEmailFilesCount,
+                  isDraggingRequestEmail,
+                  requestEmailFileInputRef,
+                  handleRequestEmailDragOver,
+                  handleRequestEmailDragLeave,
+                  handleRequestEmailDrop,
+                  handleRequestEmailBrowseClick,
+                  handleRemoveRequestEmailFile,
+                  "wasteDisposalRequestEmailDocuments"
+                )}
+              </FormField>
+
+              <FormField label="PO Number">
+                <div className="cf-input">
+                  <input
+                    type="text"
+                    value={formValues.wasteDisposalPONumber || ""}
+                    onChange={handleChange("wasteDisposalPONumber")}
+                    placeholder="Enter PO number..."
+                  />
+                </div>
+              </FormField>
+
               <FormField label="Waste Type">
                 <FormSelect
                   value={formValues.wasteType || ""}
@@ -301,22 +328,7 @@ const WasteDisposalContent = ({ formValues, handleChange, cardColor }) => {
                 </div>
               </FormField>
 
-              <FormField label="Request Email" className="cf-field-full">
-                {renderFileUpload(
-                  requestEmailFiles,
-                  requestEmailFilesCount,
-                  isDraggingRequestEmail,
-                  requestEmailFileInputRef,
-                  handleRequestEmailDragOver,
-                  handleRequestEmailDragLeave,
-                  handleRequestEmailDrop,
-                  handleRequestEmailBrowseClick,
-                  handleRemoveRequestEmailFile,
-                  "wasteDisposalRequestEmailDocuments"
-                )}
-              </FormField>
-
-              <FormField label="Waste Disposal Documents" className="cf-field-full">
+              <FormField label="Documents" className="cf-field-full">
                 {renderFileUpload(
                   wasteDisposalDocumentsFiles,
                   wasteDisposalDocumentsFilesCount,
