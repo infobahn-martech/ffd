@@ -1,7 +1,7 @@
 import { useState, useRef } from "react";
 import PropTypes from "prop-types";
 import GroupSettingsIcon from "../../../../assets/images/cv.png";
-import { FormSection, FormField, FormInput, ReactQuillEditor } from "./Husbandry.components";
+import { FormSection, FormField, FormSelect, ReactQuillEditor } from "./Husbandry.components";
 
 const ThirdPartyServicesContent = ({ formValues, handleChange, cardColor }) => {
   const [isDraggingRequestEmail, setIsDraggingRequestEmail] = useState(false);
@@ -101,10 +101,30 @@ const ThirdPartyServicesContent = ({ formValues, handleChange, cardColor }) => {
   const thirdPartyDocumentsFiles = formValues.thirdPartyServicesDocuments || [];
   const thirdPartyDocumentsFilesCount = thirdPartyDocumentsFiles.length;
 
+  // Service Type options
+  const serviceTypeOptions = [
+    { value: "Blue Sticker Inspection", label: "Blue Sticker Inspection" },
+    { value: "White Sticker Inspection", label: "White Sticker Inspection" },
+    { value: "LLG certification", label: "LLG certification" },
+    { value: "General Condition Survey", label: "General Condition Survey" },
+    { value: "Towing certificate", label: "Towing certificate" },
+    { value: "Crane Assessment Operator", label: "Crane Assessment Operator" },
+    { value: "Bollard Pull Test", label: "Bollard Pull Test" },
+    { value: "ROB survey", label: "ROB survey" },
+    { value: "On Hire Survey", label: "On Hire Survey" },
+    { value: "Off Hire Survey", label: "Off Hire Survey" },
+    { value: "Others", label: "Others" },
+  ];
+
+  // Check if "Others" is selected
+  const isOthersSelected = formValues.thirdPartyServiceType === "Others";
+
   // Handle save
   const handleSave = () => {
     console.log("Saving Third-Party Services data:", {
-      serviceName: formValues.thirdPartyServiceName,
+      serviceType: formValues.thirdPartyServiceType,
+      thirdPartyServiceTypeOther: formValues.thirdPartyServiceTypeOther,
+      thirdPartyPONumber: formValues.thirdPartyPONumber,
       thirdPartyServicesRequestEmailDocuments: formValues.thirdPartyServicesRequestEmailDocuments,
       thirdPartyServicesDocuments: formValues.thirdPartyServicesDocuments,
       thirdPartyServicesDescription: formValues.thirdPartyServicesDescription,
@@ -272,13 +292,37 @@ const ThirdPartyServicesContent = ({ formValues, handleChange, cardColor }) => {
         <div className="pre-arrival-form third-party-services-form">
           <div className="general-info-two-column">
             <div className="general-info-left">
-              <FormField label="Service Name">
-                <FormInput
-                  type="text"
-                  value={formValues.thirdPartyServiceName || ""}
-                  onChange={handleChange("thirdPartyServiceName")}
-                  placeholder="Enter service name..."
+              <FormField label="Service Type">
+                <FormSelect
+                  value={formValues.thirdPartyServiceType || ""}
+                  onChange={handleChange("thirdPartyServiceType")}
+                  options={serviceTypeOptions}
+                  placeholder="Select service type..."
                 />
+              </FormField>
+
+              {isOthersSelected && (
+                <FormField label="Specify Other Service Type">
+                  <div className="cf-input">
+                    <input
+                      type="text"
+                      value={formValues.thirdPartyServiceTypeOther || ""}
+                      onChange={handleChange("thirdPartyServiceTypeOther")}
+                      placeholder="Enter other service type..."
+                    />
+                  </div>
+                </FormField>
+              )}
+
+              <FormField label="PO Number">
+                <div className="cf-input">
+                  <input
+                    type="text"
+                    value={formValues.thirdPartyPONumber || ""}
+                    onChange={handleChange("thirdPartyPONumber")}
+                    placeholder="Enter PO number..."
+                  />
+                </div>
               </FormField>
 
               <FormField label="Request Email" className="cf-field-full">
@@ -296,7 +340,7 @@ const ThirdPartyServicesContent = ({ formValues, handleChange, cardColor }) => {
                 )}
               </FormField>
 
-              <FormField label="Third-Party Services Documents" className="cf-field-full">
+              <FormField label="Documents" className="cf-field-full">
                 {renderFileUpload(
                   thirdPartyDocumentsFiles,
                   thirdPartyDocumentsFilesCount,
