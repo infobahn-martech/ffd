@@ -19,7 +19,7 @@ const STATUS_COLORS = {
 const STATUS_LABELS = {
   done: "DONE",
   inProgress: "IN PROGRESS",
-  rejected: "REJECTED",
+  rejected: "PENDING/TODO",
   pending: "PENDING"
 };
 
