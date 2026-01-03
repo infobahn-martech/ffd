@@ -204,6 +204,13 @@ function SideNav({ isMobileMenuOpen, onCloseMobileMenu }) {
       hasPermission: true,
     },
     {
+      menu: 'Driver Vehicle Mapping',
+      isDefaultMenu: true,
+      to: '/driver-vehicle-mapping',
+      icon: portIcon,
+      hasPermission: true,
+    },
+    {
       menu: 'Activity Log',
       isDefaultMenu: true,
       to: '/activity-log',
