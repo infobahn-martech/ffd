@@ -352,10 +352,10 @@ const CrewContent = ({ formValues, handleChange, cardColor, onNavigateToTab, lau
   const handleDownloadPreview = () => {
     // Create worksheet data with headers
     const headers = ["No", "Name", "Company", "Rank", "Nationality", "Passport Number", "Passport Expiry", "KSA Visa Number", "IQAMA"];
-    
+
     // Create data rows from crew list or dummy data template
     let dataRows = [];
-    
+
     if (displayCrewList.length > 0) {
       // Use actual crew data
       dataRows = displayCrewList.map((crew, index) => [
@@ -383,10 +383,10 @@ const CrewContent = ({ formValues, handleChange, cardColor, onNavigateToTab, lau
 
     // Combine headers and data
     const worksheetData = [headers, ...dataRows];
-    
+
     // Create workbook and worksheet
     const ws = XLSX.utils.aoa_to_sheet(worksheetData);
-    
+
     // Set column widths
     const colWidths = [
       { wch: 5 },  // No
@@ -400,15 +400,15 @@ const CrewContent = ({ formValues, handleChange, cardColor, onNavigateToTab, lau
       { wch: 15 }, // IQAMA
     ];
     ws['!cols'] = colWidths;
-    
+
     // Create workbook
     const wb = XLSX.utils.book_new();
     XLSX.utils.book_append_sheet(wb, ws, "Crew Preview");
-    
+
     // Generate filename with timestamp
     const timestamp = new Date().toISOString().split('T')[0].replace(/-/g, '');
     const filename = `Crew_Preview_${timestamp}.xlsx`;
-    
+
     // Download the file
     XLSX.writeFile(wb, filename);
   };
@@ -708,7 +708,7 @@ const CrewContent = ({ formValues, handleChange, cardColor, onNavigateToTab, lau
                 </svg>
                 <span>Download Preview</span>
               </button>
-              
+
               <h3 style={{
                 fontSize: "18px",
                 fontWeight: "600",
@@ -1145,26 +1145,26 @@ const CrewContent = ({ formValues, handleChange, cardColor, onNavigateToTab, lau
                       minWidth: 0,
                       marginRight: "10px"
                     }}
-                  onMouseEnter={(e) => {
-                    e.currentTarget.style.opacity = "0.9";
-                    e.currentTarget.style.transform = "translateY(-1px)";
-                    e.currentTarget.style.boxShadow = "0 2px 8px rgba(0, 0, 0, 0.15)";
-                  }}
-                  onMouseLeave={(e) => {
-                    e.currentTarget.style.opacity = "1";
-                    e.currentTarget.style.transform = "translateY(0)";
-                    e.currentTarget.style.boxShadow = "none";
-                  }}
-                >
-                  <span
-                    style={{
-                      whiteSpace: "nowrap",
-                      overflow: "hidden",
-                      textOverflow: "ellipsis"
+                    onMouseEnter={(e) => {
+                      e.currentTarget.style.opacity = "0.9";
+                      e.currentTarget.style.transform = "translateY(-1px)";
+                      e.currentTarget.style.boxShadow = "0 2px 8px rgba(0, 0, 0, 0.15)";
+                    }}
+                    onMouseLeave={(e) => {
+                      e.currentTarget.style.opacity = "1";
+                      e.currentTarget.style.transform = "translateY(0)";
+                      e.currentTarget.style.boxShadow = "none";
                     }}
                   >
-                    Launch Hire
-                  </span>
+                    <span
+                      style={{
+                        whiteSpace: "nowrap",
+                        overflow: "hidden",
+                        textOverflow: "ellipsis"
+                      }}
+                    >
+                      Launch Hire
+                    </span>
                   </button>
                 </>
               )}
@@ -1268,71 +1268,38 @@ const CrewContent = ({ formValues, handleChange, cardColor, onNavigateToTab, lau
                       }}
                     />
                   </th>
-                  <th style={{ width: "calc((100% - 40px) / 11)", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
-                    <div style={{ display: "flex", justifyContent: "center", alignItems: "center" }} data-tooltip-id="crew-name-header" data-tooltip-content="Crew Name">
-                      <CrewNameIcon size={20} />
-                    </div>
-                    <Tooltip id="crew-name-header" place="top" />
+                  <th style={{ width: "calc((100% - 40px) / 11)", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap", textAlign: "center" }}>
+                    Crew Name
                   </th>
-                  <th style={{ width: "calc((100% - 40px) / 11)", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
-                    <div style={{ display: "flex", justifyContent: "center", alignItems: "center" }} data-tooltip-id="nationality-header" data-tooltip-content="Nationality">
-                      <NationalityIcon size={20} />
-                    </div>
-                    <Tooltip id="nationality-header" place="top" />
+                  <th style={{ width: "calc((100% - 40px) / 11)", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap", textAlign: "center" }}>
+                    Nationality
                   </th>
-                  <th style={{ width: "calc((100% - 40px) / 11)", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
-                    <div style={{ display: "flex", justifyContent: "center", alignItems: "center" }} data-tooltip-id="rank-header" data-tooltip-content="Rank">
-                      <RankIcon size={20} />
-                    </div>
-                    <Tooltip id="rank-header" place="top" />
+                  <th style={{ width: "calc((100% - 40px) / 11)", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap", textAlign: "center" }}>
+                    Rank
                   </th>
-                  <th style={{ width: "calc((100% - 40px) / 11)", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
-                    <div style={{ display: "flex", justifyContent: "center", alignItems: "center" }} data-tooltip-id="passport-header" data-tooltip-content="Passport">
-                      <PassportIcon size={20} />
-                    </div>
-                    <Tooltip id="passport-header" place="top" />
+                  <th style={{ width: "calc((100% - 40px) / 11)", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap", textAlign: "center" }}>
+                    Passport
                   </th>
-                  <th style={{ width: "calc((100% - 40px) / 11)", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
-                    <div style={{ display: "flex", justifyContent: "center", alignItems: "center" }} data-tooltip-id="iqama-header" data-tooltip-content="Iqama">
-                      <IqamaIcon size={20} />
-                    </div>
-                    <Tooltip id="iqama-header" place="top" />
+                  <th style={{ width: "calc((100% - 40px) / 11)", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap", textAlign: "center" }}>
+                    Iqama
                   </th>
-                  <th style={{ width: "calc((100% - 40px) / 11)", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
-                    <div style={{ display: "flex", justifyContent: "center", alignItems: "center" }} data-tooltip-id="visa-header" data-tooltip-content="Visa">
-                      <VisaIcon size={20} />
-                    </div>
-                    <Tooltip id="visa-header" place="top" />
+                  <th style={{ width: "calc((100% - 40px) / 11)", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap", textAlign: "center" }}>
+                    Visa
                   </th>
-                  <th style={{ width: "calc((100% - 40px) / 11)", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
-                    <div style={{ display: "flex", justifyContent: "center", alignItems: "center" }} data-tooltip-id="cg-pass-header" data-tooltip-content="CG Pass">
-                      <CGPassIcon size={20} />
-                    </div>
-                    <Tooltip id="cg-pass-header" place="top" />
+                  <th style={{ width: "calc((100% - 40px) / 11)", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap", textAlign: "center" }}>
+                    CG Pass
                   </th>
-                  <th style={{ width: "calc((100% - 40px) / 11)", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
-                    <div style={{ display: "flex", justifyContent: "center", alignItems: "center" }} data-tooltip-id="zawil-pass-header" data-tooltip-content="Zawil Pass">
-                      <ZawilPassIcon size={20} />
-                    </div>
-                    <Tooltip id="zawil-pass-header" place="top" />
+                  <th style={{ width: "calc((100% - 40px) / 11)", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap", textAlign: "center" }}>
+                    Zawil Pass
                   </th>
-                  <th style={{ width: "calc((100% - 40px) / 11)", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
-                    <div style={{ display: "flex", justifyContent: "center", alignItems: "center" }} data-tooltip-id="transport-header" data-tooltip-content="Transport">
-                      <CarIcon size={20} />
-                    </div>
-                    <Tooltip id="transport-header" place="top" />
+                  <th style={{ width: "calc((100% - 40px) / 11)", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap", textAlign: "center" }}>
+                    Transport
                   </th>
-                  <th style={{ width: "calc((100% - 40px) / 11)", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
-                    <div style={{ display: "flex", justifyContent: "center", alignItems: "center" }} data-tooltip-id="hotel-header" data-tooltip-content="Hotel">
-                      <HotelIcon size={20} />
-                    </div>
-                    <Tooltip id="hotel-header" place="top" />
+                  <th style={{ width: "calc((100% - 40px) / 11)", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap", textAlign: "center" }}>
+                    Hotel
                   </th>
-                  <th style={{ width: "calc((100% - 40px) / 11)", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
-                    <div style={{ display: "flex", justifyContent: "center", alignItems: "center" }} data-tooltip-id="medical-service-header" data-tooltip-content="Medical Service">
-                      <MedicalIcon size={20} />
-                    </div>
-                    <Tooltip id="medical-service-header" place="top" />
+                  <th style={{ width: "calc((100% - 40px) / 11)", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap", textAlign: "center" }}>
+                    Medical Service
                   </th>
                   {/* <th>Actions</th> */}
                 </tr>
@@ -1612,8 +1579,8 @@ const CrewContent = ({ formValues, handleChange, cardColor, onNavigateToTab, lau
                         </div>
                       </td>
                       <td style={{ overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
-                        <div 
-                          className="crew-table-cell crew-status-icon" 
+                        <div
+                          className="crew-table-cell crew-status-icon"
                           style={{ display: "flex", justifyContent: "center", alignItems: "center" }}
                           data-tooltip-id={`transport-status-${crew.id}`}
                           data-tooltip-content={`Transport: ${STATUS_LABELS[crew.transport] || STATUS_LABELS.pending}`}
@@ -1623,8 +1590,8 @@ const CrewContent = ({ formValues, handleChange, cardColor, onNavigateToTab, lau
                         <Tooltip id={`transport-status-${crew.id}`} place="right" />
                       </td>
                       <td style={{ overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
-                        <div 
-                          className="crew-table-cell crew-status-icon" 
+                        <div
+                          className="crew-table-cell crew-status-icon"
                           style={{ display: "flex", justifyContent: "center", alignItems: "center" }}
                           data-tooltip-id={`hotel-status-${crew.id}`}
                           data-tooltip-content={`Hotel: ${STATUS_LABELS[crew.hotel] || STATUS_LABELS.pending}`}
@@ -1634,8 +1601,8 @@ const CrewContent = ({ formValues, handleChange, cardColor, onNavigateToTab, lau
                         <Tooltip id={`hotel-status-${crew.id}`} place="right" />
                       </td>
                       <td style={{ overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
-                        <div 
-                          className="crew-table-cell crew-status-icon" 
+                        <div
+                          className="crew-table-cell crew-status-icon"
                           style={{ display: "flex", justifyContent: "center", alignItems: "center" }}
                           data-tooltip-id={`medical-status-${crew.id}`}
                           data-tooltip-content={`Medical Service: ${STATUS_LABELS[crew.medicalService] || STATUS_LABELS.pending}`}
