@@ -1020,102 +1020,43 @@ const CrewContent = ({ formValues, handleChange, cardColor, onNavigateToTab, lau
               </button>
             </div>
             <div style={{ display: "flex", gap: "10px", alignItems: "center" }}>
-              <Tooltip id="bulk-passport-btn" place="top" content="Bulk Passport" />
-              <button
-                type="button"
-                onClick={() => setShowPassportModal(true)}
-                data-tooltip-id="bulk-passport-btn"
-                style={{
-                  padding: "8px 16px",
-                  borderRadius: "8px",
-                  border: "1px solid #e2e6ff",
-                  backgroundColor: "#ffffff",
-                  color: "#1a1a1a",
-                  fontSize: "13px",
-                  fontWeight: "600",
-                  cursor: "pointer",
-                  transition: "all 0.2s ease",
-                  fontFamily: "Inter, sans-serif",
-                  display: "flex",
-                  alignItems: "center",
-                  gap: "8px",
-                  minWidth: 0
-                }}
-                onMouseEnter={(e) => {
-                  e.currentTarget.style.backgroundColor = "#f8f9ff";
-                  e.currentTarget.style.borderColor = "var(--card-color, #2A00FF)";
-                  e.currentTarget.style.transform = "translateY(-1px)";
-                  e.currentTarget.style.boxShadow = "0 2px 8px rgba(0, 0, 0, 0.1)";
-                }}
-                onMouseLeave={(e) => {
-                  e.currentTarget.style.backgroundColor = "#ffffff";
-                  e.currentTarget.style.borderColor = "#e2e6ff";
-                  e.currentTarget.style.transform = "translateY(0)";
-                  e.currentTarget.style.boxShadow = "none";
-                }}
-              >
-                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" style={{ flexShrink: 0 }}>
-                  <path d="M14 2H6C5.46957 2 4.96086 2.21071 4.58579 2.58579C4.21071 2.96086 4 3.46957 4 4V20C4 20.5304 4.21071 21.0391 4.58579 21.4142C4.96086 21.7893 5.46957 22 6 22H18C18.5304 22 19.0391 21.7893 19.4142 21.4142C19.7893 21.0391 20 20.5304 20 20V8L14 2Z" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
-                  <path d="M14 2V8H20" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
-                </svg>
-                <span
-                  style={{
-                    whiteSpace: "nowrap",
-                    overflow: "hidden",
-                    textOverflow: "ellipsis"
+              <div style={{ position: "relative" }}>
+                <select
+                  onChange={(e) => {
+                    if (e.target.value === "passport") {
+                      setShowPassportModal(true);
+                    } else if (e.target.value === "visa") {
+                      setShowVisaModal(true);
+                    }
+                    e.target.value = ""; // Reset dropdown
                   }}
-                >
-                  Bulk Passport
-                </span>
-              </button>
-              <Tooltip id="bulk-visa-btn" place="top" content="Bulk Visa" />
-              <button
-                type="button"
-                onClick={() => setShowVisaModal(true)}
-                data-tooltip-id="bulk-visa-btn"
-                style={{
-                  padding: "8px 16px",
-                  borderRadius: "8px",
-                  border: "1px solid #e2e6ff",
-                  backgroundColor: "#ffffff",
-                  color: "#1a1a1a",
-                  fontSize: "13px",
-                  fontWeight: "600",
-                  cursor: "pointer",
-                  transition: "all 0.2s ease",
-                  fontFamily: "Inter, sans-serif",
-                  display: "flex",
-                  alignItems: "center",
-                  gap: "8px",
-                  minWidth: 0
-                }}
-                onMouseEnter={(e) => {
-                  e.currentTarget.style.backgroundColor = "#f8f9ff";
-                  e.currentTarget.style.borderColor = "var(--card-color, #2A00FF)";
-                  e.currentTarget.style.transform = "translateY(-1px)";
-                  e.currentTarget.style.boxShadow = "0 2px 8px rgba(0, 0, 0, 0.1)";
-                }}
-                onMouseLeave={(e) => {
-                  e.currentTarget.style.backgroundColor = "#ffffff";
-                  e.currentTarget.style.borderColor = "#e2e6ff";
-                  e.currentTarget.style.transform = "translateY(0)";
-                  e.currentTarget.style.boxShadow = "none";
-                }}
-              >
-                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" style={{ flexShrink: 0 }}>
-                  <path d="M14 2H6C5.46957 2 4.96086 2.21071 4.58579 2.58579C4.21071 2.96086 4 3.46957 4 4V20C4 20.5304 4.21071 21.0391 4.58579 21.4142C4.96086 21.7893 5.46957 22 6 22H18C18.5304 22 19.0391 21.7893 19.4142 21.4142C19.7893 21.0391 20 20.5304 20 20V8L14 2Z" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
-                  <path d="M14 2V8H20" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
-                </svg>
-                <span
                   style={{
-                    whiteSpace: "nowrap",
-                    overflow: "hidden",
-                    textOverflow: "ellipsis"
+                    padding: "8px 32px 8px 12px",
+                    borderRadius: "8px",
+                    border: "1px solid #e2e6ff",
+                    backgroundColor: "#ffffff",
+                    color: "#1a1a1a",
+                    fontSize: "13px",
+                    fontWeight: "600",
+                    cursor: "pointer",
+                    outline: "none",
+                    fontFamily: "Inter, sans-serif",
+                    appearance: "none",
+                    backgroundImage: `url("data:image/svg+xml,%3Csvg width='12' height='8' viewBox='0 0 12 8' fill='none' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M1 1L6 6L11 1' stroke='%23666' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E")`,
+                    backgroundRepeat: "no-repeat",
+                    backgroundPosition: "right 12px center",
+                    paddingRight: "32px",
+                    minWidth: "140px"
                   }}
+                  defaultValue=""
                 >
-                  Bulk Visa
-                </span>
-              </button>
+                  <option value="" disabled>
+                    Bulk Upload
+                  </option>
+                  <option value="passport">Bulk Passport</option>
+                  <option value="visa">Bulk Visa</option>
+                </select>
+              </div>
               {showActionDropdown && launchHireOnly && (
                 <>
                   <Tooltip id="launch-hire-btn" place="top" content="Launch Hire" />
