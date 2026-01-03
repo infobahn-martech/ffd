@@ -211,6 +211,13 @@ function SideNav({ isMobileMenuOpen, onCloseMobileMenu }) {
       hasPermission: true,
     },
     {
+      menu: 'Hotel Management',
+      isDefaultMenu: true,
+      to: '/hotel-management',
+      icon: portIcon,
+      hasPermission: true,
+    },
+    {
       menu: 'Activity Log',
       isDefaultMenu: true,
       to: '/activity-log',

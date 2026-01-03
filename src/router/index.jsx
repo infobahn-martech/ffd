@@ -33,6 +33,7 @@ import Driver from "../pages/Driver";
 import Vehicle from "../pages/Vehicle";
 import CheckList from "../pages/CheckList";
 import DriverVehicleMapping from "../pages/DriverVehicleMapping";
+import Hotel from "../pages/Hotel";
 // 🔥 Set true to bypass auth temporarily
 const TEST_MODE = true;
 
@@ -79,6 +80,7 @@ const router = createHashRouter([
               { path: "/vehicle-management", element: <Vehicle /> },
               { path: "/driver-vehicle-mapping", element: <DriverVehicleMapping /> },
               { path: "/check-list", element: <CheckList /> },
+              { path: "/hotel-management", element: <Hotel /> },
               { path: "/settings", element: <h1>Settings</h1> },
             ],
           },
