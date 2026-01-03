@@ -2077,7 +2077,7 @@ const InboundOrdersContent = ({ formValues, handleChange, cardColor }) => {
               <th>Order No</th>
               <th>Date</th>
               <th>PO/DO</th>
-              <th>Quantity</th>
+              <th style={{ marginRight: "40px" }}>Quantity</th>
               <th>Package Type</th>
               <th>Description</th>
               <th>Actions</th>
@@ -2106,7 +2106,7 @@ const InboundOrdersContent = ({ formValues, handleChange, cardColor }) => {
                   </td>
                   <td>
                     <div className="material-table-cell">
-                      {order.description && order.description.length > 13 ? (
+                      {order.description && order.description.length > 25 ? (
                         <>
                           <Tooltip
                             id={`description-tooltip-${order.id}`}
@@ -2118,7 +2118,7 @@ const InboundOrdersContent = ({ formValues, handleChange, cardColor }) => {
                             data-tooltip-id={`description-tooltip-${order.id}`}
                             style={{ cursor: "help" }}
                           >
-                            {order.description.substring(0, 13)}...
+                            {order.description.substring(0, 25)}...
                           </span>
                         </>
                       ) : (
@@ -2127,7 +2127,7 @@ const InboundOrdersContent = ({ formValues, handleChange, cardColor }) => {
                     </div>
                   </td>
                   <td style={{ position: "relative" }}>
-                    <div className="material-table-cell" style={{ position: "relative", overflow: "visible", display: "flex", alignItems: "center", gap: "8px", justifyContent: "flex-end" }}>
+                    <div className="material-table-cell" style={{ position: "relative", overflow: "visible", display: "flex", alignItems: "center", gap: "8px" }}>
                       <Tooltip id={`view-order-${order.id}`} place="top" content="View" />
                       <button
                         type="button"
