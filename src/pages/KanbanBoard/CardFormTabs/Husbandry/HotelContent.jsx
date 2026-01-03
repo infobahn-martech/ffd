@@ -2,7 +2,7 @@ import { useState, useRef } from "react";
 import PropTypes from "prop-types";
 import Select from "react-select";
 import GroupSettingsIcon from "../../../../assets/images/cv.png";
-import { FormSection, FormField, FormInput, ReactQuillEditor } from "./Husbandry.components";
+import { FormSection, FormField, FormInput, FormSelect, ReactQuillEditor } from "./Husbandry.components";
 
 const HotelContent = ({ formValues, handleChange, cardColor }) => {
   const [isDragging, setIsDragging] = useState(false);
@@ -13,6 +13,18 @@ const HotelContent = ({ formValues, handleChange, cardColor }) => {
     value: crew.id?.toString() || crew.crewName,
     label: crew.crewName || `Crew Member ${crew.id}`,
   })) || [];
+
+  // Hotel options
+  const hotelOptions = [
+    { value: "hotel1", label: "Hotel Al Khobar" },
+    { value: "hotel2", label: "Marriott Dammam" },
+    { value: "hotel3", label: "Holiday Inn Express" },
+    { value: "hotel4", label: "Radisson Blu" },
+    { value: "hotel5", label: "Sheraton Hotel" },
+    { value: "hotel6", label: "Crowne Plaza" },
+    { value: "hotel7", label: "InterContinental" },
+    { value: "hotel8", label: "Hilton Hotel" },
+  ];
 
   // Handle multi-select crew change
   const handleCrewChange = (selectedOptions) => {
@@ -231,11 +243,11 @@ const HotelContent = ({ formValues, handleChange, cardColor }) => {
               </FormField>
 
               <FormField label="Hotel Name">
-                <FormInput
-                  type="text"
-                  placeholder="Enter hotel name..."
+                <FormSelect
                   value={formValues.hotelName || ""}
                   onChange={handleChange("hotelName")}
+                  options={hotelOptions}
+                  placeholder="Select hotel name..."
                 />
               </FormField>
 
