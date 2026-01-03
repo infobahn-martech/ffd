@@ -85,6 +85,29 @@ export function VehicleModal({ showModal, closeModal }) {
                         </div>
                     </div>
 
+                    {/* VEHICLE PURPOSE */}
+                    <div className="mb-lg-3 mb-sm-0">
+                        <div className="form-floating desig-inp">
+                            <textarea
+                                className={`form-control ${errors.vehicle_purpose ? "is-invalid" : ""
+                                    }`}
+                                placeholder="Vehicle Purpose"
+                                {...register("vehicle_purpose", {
+                                    required: "Vehicle purpose is required",
+                                })}
+                            ></textarea>
+                            <label style={{ marginBottom: "0px" }} className="mb-0">
+                                Vehicle Purpose <span className="text-danger">*</span>
+                            </label>
+                            {errors.vehicle_purpose && (
+                                <span className="error text-danger">
+                                    {errors.vehicle_purpose.message}
+                                </span>
+                            )}
+                        </div>
+                    </div>
+
+
                 </form>
             </div>
         </div>
