@@ -177,12 +177,16 @@ const CrewContent = ({ formValues, handleChange, cardColor, onNavigateToTab, lau
   // Bulk Passport and Visa modal states
   const [showPassportModal, setShowPassportModal] = useState(false);
   const [showVisaModal, setShowVisaModal] = useState(false);
+  const [showIqamaModal, setShowIqamaModal] = useState(false);
   const [isDraggingPassport, setIsDraggingPassport] = useState(false);
   const [isDraggingVisa, setIsDraggingVisa] = useState(false);
+  const [isDraggingIqama, setIsDraggingIqama] = useState(false);
   const [passportFiles, setPassportFiles] = useState(formValues.crewPassportFiles || []);
   const [visaFiles, setVisaFiles] = useState(formValues.crewVisaFiles || []);
+  const [iqamaFiles, setIqamaFiles] = useState(formValues.crewIqamaFiles || []);
   const passportFileInputRef = useRef(null);
   const visaFileInputRef = useRef(null);
+  const iqamaFileInputRef = useRef(null);
 
   // Individual passport and visa documents per crew member
   const [passportDocuments, setPassportDocuments] = useState(formValues.crewPassportDocuments || {});
@@ -444,6 +448,16 @@ const CrewContent = ({ formValues, handleChange, cardColor, onNavigateToTab, lau
     handleChange("crewVisaFiles")(syntheticEvent);
   };
 
+  // Handle iqama bulk upload
+  const handleIqamaBulkUpload = (files) => {
+    if (!files || files.length === 0) return;
+    const fileArray = Array.from(files);
+    setIqamaFiles(fileArray);
+    // Save iqama files to formValues
+    const syntheticEvent = { target: { value: fileArray.map(f => ({ name: f.name, file: f, size: f.size, type: f.type })) } };
+    handleChange("crewIqamaFiles")(syntheticEvent);
+  };
+
   // Handle passport drag and drop
   const handlePassportDragEnter = (e) => {
     e.preventDefault();
@@ -500,6 +514,35 @@ const CrewContent = ({ formValues, handleChange, cardColor, onNavigateToTab, lau
     }
   };
 
+  // Handle iqama drag and drop
+
+  const handleIqamaDragEnter = (e) => {
+    e.preventDefault();
+    e.stopPropagation();
+    setIsDraggingIqama(true);
+  };
+
+  const handleIqamaDragLeave = (e) => {
+    e.preventDefault();
+    e.stopPropagation();
+    setIsDraggingIqama(false);
+  };
+
+  const handleIqamaDragOver = (e) => {
+    e.preventDefault();
+    e.stopPropagation();
+  };
+
+  const handleIqamaDrop = (e) => {
+    e.preventDefault();
+    e.stopPropagation();
+    setIsDraggingIqama(false);
+    const files = e.dataTransfer.files;
+    if (files && files.length > 0) {
+      handleIqamaBulkUpload(files);
+    }
+  };
+
   // Handle passport file input change
   const handlePassportFileInputChange = (e) => {
     const files = e.target.files;
@@ -519,6 +562,17 @@ const CrewContent = ({ formValues, handleChange, cardColor, onNavigateToTab, lau
     }
     if (visaFileInputRef.current) {
       visaFileInputRef.current.value = "";
+    }
+  };
+
+  // Handle iqama file input change
+  const handleIqamaFileInputChange = (e) => {
+    const files = e.target.files;
+    if (files && files.length > 0) {
+      handleIqamaBulkUpload(files);
+    }
+    if (iqamaFileInputRef.current) {
+      iqamaFileInputRef.current.value = "";
     }
   };
 
@@ -1027,6 +1081,8 @@ const CrewContent = ({ formValues, handleChange, cardColor, onNavigateToTab, lau
                       setShowPassportModal(true);
                     } else if (e.target.value === "visa") {
                       setShowVisaModal(true);
+                    } else if (e.target.value === "iqama") {
+                      setShowIqamaModal(true);
                     }
                     e.target.value = ""; // Reset dropdown
                   }}
@@ -1053,8 +1109,9 @@ const CrewContent = ({ formValues, handleChange, cardColor, onNavigateToTab, lau
                   <option value="" disabled>
                     Bulk Upload
                   </option>
-                  <option value="passport">Bulk Passport</option>
-                  <option value="visa">Bulk Visa</option>
+                  <option value="passport">Passport</option>
+                  <option value="visa">Visa</option>
+                  <option value="iqama">Iqama</option>
                 </select>
               </div>
               {showActionDropdown && launchHireOnly && (
@@ -1858,6 +1915,162 @@ const CrewContent = ({ formValues, handleChange, cardColor, onNavigateToTab, lau
           <div style={{ padding: "16px 24px", borderTop: "1px solid #e2e2ea", display: "flex", justifyContent: "flex-end", gap: "12px" }}>
             <button
               onClick={() => setShowVisaModal(false)}
+              style={{
+                padding: "10px 24px",
+                borderRadius: "8px",
+                border: "1px solid #e2e2ea",
+                backgroundColor: "#ffffff",
+                color: "#1a1a1a",
+                fontSize: "14px",
+                fontWeight: "600",
+                cursor: "pointer",
+                transition: "all 0.2s ease",
+                fontFamily: "Inter, sans-serif"
+              }}
+              onMouseEnter={(e) => {
+                e.currentTarget.style.backgroundColor = "#f5f5f5";
+              }}
+              onMouseLeave={(e) => {
+                e.currentTarget.style.backgroundColor = "#ffffff";
+              }}
+            >
+              Close
+            </button>
+          </div>
+        }
+      />
+
+      {/* Bulk Iqama Upload Modal */}
+      <CustomModal
+        show={showIqamaModal}
+        closeModal={() => setShowIqamaModal(false)}
+        createModal
+        className="modal fade"
+        dialgName="modal-dialog modal-dialog-centered"
+        header={
+          <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", width: "100%", padding: "16px 24px", borderBottom: "1px solid #e2e2ea" }}>
+            <h5 style={{ margin: 0, fontSize: "18px", fontWeight: "600", color: "#1a1a1a", fontFamily: "Inter, sans-serif" }}>
+              Bulk Iqama Upload
+            </h5>
+            <button
+              onClick={() => setShowIqamaModal(false)}
+              style={{
+                background: "none",
+                border: "none",
+                fontSize: "24px",
+                color: "#999",
+                cursor: "pointer",
+                padding: "0",
+                width: "32px",
+                height: "32px",
+                display: "flex",
+                alignItems: "center",
+                justifyContent: "center",
+                borderRadius: "4px",
+                transition: "all 0.2s ease"
+              }}
+              onMouseEnter={(e) => {
+                e.currentTarget.style.backgroundColor = "#f5f5f5";
+                e.currentTarget.style.color = "#333";
+              }}
+              onMouseLeave={(e) => {
+                e.currentTarget.style.backgroundColor = "transparent";
+                e.currentTarget.style.color = "#999";
+              }}
+            >
+              ×
+            </button>
+          </div>
+        }
+        body={
+          <div style={{ padding: "32px", "--card-color": cardColor }}>
+            <div
+              className={`document-upload-zone crew-excel-upload-zone ${isDraggingIqama ? "dragging" : ""} ${iqamaFiles.length > 0 ? "uploaded" : ""}`}
+              onDragEnter={handleIqamaDragEnter}
+              onDragOver={handleIqamaDragOver}
+              onDragLeave={handleIqamaDragLeave}
+              onDrop={handleIqamaDrop}
+              onClick={() => iqamaFileInputRef.current?.click()}
+              style={{
+                "--card-color": cardColor,
+                maxWidth: "600px",
+                width: "100%",
+                height: "240px",
+                margin: "0 auto"
+              }}
+            >
+              <input
+                ref={iqamaFileInputRef}
+                type="file"
+                className="file-input-hidden"
+                accept="*/*"
+                multiple
+                onChange={handleIqamaFileInputChange}
+              />
+              <div className="upload-zone-content">
+                {iqamaFiles.length > 0 ? (
+                  <div style={{
+                    display: "flex",
+                    flexDirection: "column",
+                    alignItems: "center",
+                    gap: "16px"
+                  }}>
+                    <div style={{
+                      width: "64px",
+                      height: "64px",
+                      borderRadius: "50%",
+                      background: "linear-gradient(135deg, #28a745 0%, #20c997 100%)",
+                      display: "flex",
+                      alignItems: "center",
+                      justifyContent: "center",
+                      boxShadow: "0 4px 12px rgba(40, 167, 69, 0.3)"
+                    }}>
+                      <svg width="32" height="32" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                        <path d="M20 6L9 17L4 12" stroke="white" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" />
+                      </svg>
+                    </div>
+                    <div style={{ textAlign: "center" }}>
+                      <p style={{
+                        fontSize: "16px",
+                        fontWeight: "600",
+                        color: "#28a745",
+                        margin: "0 0 8px 0",
+                        fontFamily: "Inter, sans-serif"
+                      }}>
+                        ✓ {iqamaFiles.length} file(s) uploaded successfully
+                      </p>
+                      <p style={{
+                        fontSize: "12px",
+                        color: "#999",
+                        margin: "0",
+                        fontFamily: "Inter, sans-serif"
+                      }}>
+                        Click to upload different files
+                      </p>
+                    </div>
+                  </div>
+                ) : (
+                  <>
+                    <div className="upload-icon-wrapper">
+                      <UploadIconSVG />
+                    </div>
+                    <div className="upload-text-content">
+                      <p className="upload-main-text">
+                        Drag and drop your iqama files here, or{" "}
+                        <span className="upload-link">click to browse</span>
+                      </p>
+                      <p className="upload-sub-text">Supports all file formats</p>
+                    </div>
+                  </>
+                )}
+              </div>
+            </div>
+          </div>
+        }
+        footer={
+          <div style={{ padding: "16px 24px", borderTop: "1px solid #e2e2ea", display: "flex", justifyContent: "flex-end", gap: "12px" }}>
+            <button
+              onClick={() => setShowIqamaModal(false)}
               style={{
                 padding: "10px 24px",
                 borderRadius: "8px",
