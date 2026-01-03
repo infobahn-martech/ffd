@@ -19,6 +19,8 @@ const CheckList = () => {
     sortOrder: 1,
   });
 
+  const [showAddModal, setShowAddModal] = useState(false);
+
 
   // 👉 ONLY TWO COLUMNS (Name + Description)
   const cols = [
@@ -46,6 +48,10 @@ const CheckList = () => {
         <div className="prospect employee">
           <div className="container-fluid">
             <CommonHeader
+              addModalLabel={"Add CheckList"}
+              onAddModalClick={() => {
+                setShowAddModal(true);
+              }}
               showFilter
               tableTitle="CheckList"
               setSearch={(e) =>
