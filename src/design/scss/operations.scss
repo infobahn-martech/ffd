@@ -2815,13 +2815,14 @@ body .material-management-modal .files-list::-webkit-scrollbar-thumb:hover {
   text-transform: uppercase;
   letter-spacing: 0.5px;
   padding: 16px;
+  padding-left: 6px;
   border: none;
 }
 
 .material-table tbody td {
   font-size: 12px;
   color: #333;
-  padding: 14px 16px;
+  padding: 14px 6px;
 }
 
 .material-table-cell {

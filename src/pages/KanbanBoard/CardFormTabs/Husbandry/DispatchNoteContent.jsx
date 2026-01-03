@@ -145,15 +145,15 @@ const DispatchNoteContent = ({ formValues, handleChange, cardColor }) => {
       const updatedList = notesList.map(note =>
         note.id === editingNote.id
           ? {
-              ...note,
-              orderNo: formData.orderNo || note.orderNo,
-              date: formData.date,
-              poDo: formData.poDo,
-              deliveryProof: selectedFiles,
-              quantity: formData.quantity,
-              packageType: formData.packageType,
-              description: formData.description,
-            }
+            ...note,
+            orderNo: formData.orderNo || note.orderNo,
+            date: formData.date,
+            poDo: formData.poDo,
+            deliveryProof: selectedFiles,
+            quantity: formData.quantity,
+            packageType: formData.packageType,
+            description: formData.description,
+          }
           : note
       );
       setNotesList(updatedList);
@@ -222,16 +222,16 @@ const DispatchNoteContent = ({ formValues, handleChange, cardColor }) => {
       // Check if click is on the dropdown button or inside the portal dropdown menu
       const isDropdownButton = event.target.closest('.action-dropdown-wrapper');
       const isDropdownMenu = event.target.closest('[data-dropdown-menu]');
-      
+
       if (!isDropdownButton && !isDropdownMenu) {
         setOpenDropdownId(null);
       }
     };
-    
+
     const handleScroll = () => {
       setOpenDropdownId(null);
     };
-    
+
     if (openDropdownId) {
       document.addEventListener('mousedown', handleClickOutside);
       window.addEventListener('scroll', handleScroll, true);
@@ -359,7 +359,7 @@ const DispatchNoteContent = ({ formValues, handleChange, cardColor }) => {
         </body>
       </html>
     `;
-    
+
     printWindow.document.write(printContent);
     printWindow.document.close();
     printWindow.focus();
@@ -817,9 +817,9 @@ const DispatchNoteContent = ({ formValues, handleChange, cardColor }) => {
                     <div className="material-table-cell">
                       {note.description && note.description.length > 13 ? (
                         <>
-                          <Tooltip 
-                            id={`description-tooltip-${note.id}`} 
-                            place="right" 
+                          <Tooltip
+                            id={`description-tooltip-${note.id}`}
+                            place="right"
                             content={note.description}
                             className="material-table-tooltip"
                           />
@@ -836,7 +836,7 @@ const DispatchNoteContent = ({ formValues, handleChange, cardColor }) => {
                     </div>
                   </td>
                   <td style={{ position: "relative" }}>
-                    <div className="material-table-cell" style={{ position: "relative", overflow: "visible", display: "flex", alignItems: "center", gap: "8px", justifyContent: "flex-end" }}>
+                    <div className="material-table-cell" style={{ position: "relative", overflow: "visible", display: "flex", alignItems: "center", gap: "8px" }}>
                       <Tooltip id={`view-note-${note.id}`} place="top" content="View" />
                       <button
                         type="button"
