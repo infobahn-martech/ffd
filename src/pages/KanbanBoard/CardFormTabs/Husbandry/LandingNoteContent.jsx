@@ -1717,7 +1717,7 @@ const LandingNoteContent = ({ formValues, handleChange, cardColor }) => {
               <th>Quantity</th>
               <th>Package Type</th>
               <th>Description</th>
-              <th>Actions</th>
+              <th style={{ minWidth: "180px", whiteSpace: "nowrap" }}>Actions</th>
             </tr>
           </thead>
           <tbody>
@@ -1774,8 +1774,8 @@ const LandingNoteContent = ({ formValues, handleChange, cardColor }) => {
                       )}
                     </div>
                   </td>
-                  <td style={{ position: "relative" }}>
-                    <div className="material-table-cell" style={{ position: "relative", overflow: "visible", display: "flex", alignItems: "center", gap: "8px", justifyContent: "flex-end" }}>
+                  <td style={{ position: "relative", whiteSpace: "nowrap" }}>
+                    <div className="material-table-cell" style={{ position: "relative", overflow: "visible", display: "flex", alignItems: "center", gap: "8px", justifyContent: "flex-end", flexWrap: "nowrap" }}>
                       <Tooltip id={`view-note-${note.id}`} place="top" content="View" />
                       <button
                         type="button"
@@ -1791,7 +1791,8 @@ const LandingNoteContent = ({ formValues, handleChange, cardColor }) => {
                           alignItems: "center",
                           justifyContent: "center",
                           color: "#00368c",
-                          transition: "background-color 0.2s"
+                          transition: "background-color 0.2s",
+                          flexShrink: 0
                         }}
                         onMouseEnter={(e) => {
                           e.currentTarget.style.backgroundColor = "#f0f0f0";
@@ -1817,7 +1818,8 @@ const LandingNoteContent = ({ formValues, handleChange, cardColor }) => {
                           alignItems: "center",
                           justifyContent: "center",
                           color: "#00368c",
-                          transition: "background-color 0.2s"
+                          transition: "background-color 0.2s",
+                          flexShrink: 0
                         }}
                         onMouseEnter={(e) => {
                           e.currentTarget.style.backgroundColor = "#f0f0f0";
@@ -1848,7 +1850,8 @@ const LandingNoteContent = ({ formValues, handleChange, cardColor }) => {
                           alignItems: "center",
                           justifyContent: "center",
                           color: "#00368c",
-                          transition: "background-color 0.2s"
+                          transition: "background-color 0.2s",
+                          flexShrink: 0
                         }}
                         onMouseEnter={(e) => {
                           e.currentTarget.style.backgroundColor = "#f0f0f0";
@@ -1865,7 +1868,7 @@ const LandingNoteContent = ({ formValues, handleChange, cardColor }) => {
                           <path d="M19 9H16" stroke="currentColor" strokeWidth="2" strokeLinecap="round" />
                         </svg>
                       </button>
-                      <div className="action-dropdown-wrapper" style={{ position: "relative", display: "inline-block", zIndex: openDropdownId === note.id ? 9999 : "auto" }}>
+                      <div className="action-dropdown-wrapper" style={{ position: "relative", display: "inline-block", zIndex: openDropdownId === note.id ? 9999 : "auto", flexShrink: 0 }}>
                         <Tooltip id={`more-actions-${note.id}`} place="top" content="More actions" />
                         <button
                           type="button"
