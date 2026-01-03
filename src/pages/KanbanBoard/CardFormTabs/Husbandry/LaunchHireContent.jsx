@@ -278,7 +278,12 @@ const LaunchHireContent = ({ formValues, handleChange, cardColor }) => {
               </FormField>
 
               <FormField label="Service Options" className="cf-field-full">
-                <div className="checkbox-group">
+                <div style={{
+                  display: "grid",
+                  gridTemplateColumns: "repeat(auto-fill, minmax(200px, 1fr))",
+                  gap: "12px",
+                  marginBottom: "16px"
+                }}>
                   {[
                     "FREIGHTER ANCHORAGE",
                     "SING ON/SIGN OFF/MEDIC/PCR TECH/IMMIGRATION CREW",
@@ -289,49 +294,107 @@ const LaunchHireContent = ({ formValues, handleChange, cardColor }) => {
                     "PROVISSON/PALLETS",
                     "JUAYMAH",
                     "OTHERS"
-                  ].map((option) => (
-                    <div key={option} className="checkbox-item">
-                      <label className="checkbox-label">
-                        <input
-                          type="checkbox"
-                          checked={formValues.launchHireServiceOptions?.includes(option) || false}
-                          onChange={(e) => {
-                            const currentOptions = formValues.launchHireServiceOptions || [];
-                            const newOptions = e.target.checked
-                              ? [...currentOptions, option]
-                              : currentOptions.filter(opt => opt !== option);
-                            const syntheticEvent = { target: { value: newOptions } };
-                            handleChange("launchHireServiceOptions")(syntheticEvent);
+                  ].map((option) => {
+                    const isSelected = formValues.launchHireServiceOptions?.includes(option) || false;
+                    return (
+                      <div
+                        key={option}
+                        onClick={() => {
+                          const currentOptions = formValues.launchHireServiceOptions || [];
+                          const newOptions = isSelected
+                            ? currentOptions.filter(opt => opt !== option)
+                            : [...currentOptions, option];
+                          const syntheticEvent = { target: { value: newOptions } };
+                          handleChange("launchHireServiceOptions")(syntheticEvent);
 
-                            // Clear others text if OTHERS is unchecked
-                            if (option === "OTHERS" && !e.target.checked) {
-                              const clearEvent = { target: { value: "" } };
-                              handleChange("launchHireServiceOptionsOthersText")(clearEvent);
-                            }
-                          }}
-                          style={{
-                            width: "18px",
-                            height: "18px",
-                            cursor: "pointer",
-                            accentColor: cardColor || "#00368c",
-                            marginRight: "8px",
-                          }}
-                        />
-                        <span>{option === "OTHERS" ? "OTHERS:" : option}</span>
-                      </label>
-                      {option === "OTHERS" && formValues.launchHireServiceOptions?.includes("OTHERS") && (
-                        <div style={{ marginLeft: "26px", marginTop: "8px" }}>
-                          <FormInput
-                            type="text"
-                            value={formValues.launchHireServiceOptionsOthersText || ""}
-                            onChange={handleChange("launchHireServiceOptionsOthersText")}
-                            placeholder="Enter other service option..."
-                          />
-                        </div>
-                      )}
-                    </div>
-                  ))}
+                          // Clear others text if OTHERS is unchecked
+                          if (option === "OTHERS" && isSelected) {
+                            const clearEvent = { target: { value: "" } };
+                            handleChange("launchHireServiceOptionsOthersText")(clearEvent);
+                          }
+                        }}
+                        style={{
+                          padding: "16px",
+                          borderRadius: "8px",
+                          border: isSelected
+                            ? `2px solid ${cardColor || "#00368c"}`
+                            : "2px solid #e2e2ea",
+                          backgroundColor: isSelected
+                            ? `${cardColor || "#00368c"}15`
+                            : "#ffffff",
+                          cursor: "pointer",
+                          transition: "all 0.2s ease",
+                          display: "flex",
+                          alignItems: "center",
+                          justifyContent: "center",
+                          textAlign: "center",
+                          minHeight: "60px",
+                          position: "relative",
+                          boxShadow: isSelected
+                            ? `0 2px 8px ${cardColor || "#00368c"}40`
+                            : "0 1px 3px rgba(0, 0, 0, 0.1)",
+                        }}
+                        onMouseEnter={(e) => {
+                          if (!isSelected) {
+                            e.currentTarget.style.borderColor = cardColor || "#00368c";
+                            e.currentTarget.style.backgroundColor = "#f8f9ff";
+                            e.currentTarget.style.transform = "translateY(-2px)";
+                            e.currentTarget.style.boxShadow = "0 4px 12px rgba(0, 0, 0, 0.1)";
+                          }
+                        }}
+                        onMouseLeave={(e) => {
+                          if (!isSelected) {
+                            e.currentTarget.style.borderColor = "#e2e2ea";
+                            e.currentTarget.style.backgroundColor = "#ffffff";
+                            e.currentTarget.style.transform = "translateY(0)";
+                            e.currentTarget.style.boxShadow = "0 1px 3px rgba(0, 0, 0, 0.1)";
+                          }
+                        }}
+                      >
+                        <span style={{
+                          fontSize: "13px",
+                          fontWeight: isSelected ? "600" : "500",
+                          color: isSelected
+                            ? (cardColor || "#00368c")
+                            : "#1a1a1a",
+                          lineHeight: "1.4",
+                          wordBreak: "break-word",
+                        }}>
+                          {option === "OTHERS" ? "OTHERS" : option}
+                        </span>
+                        {isSelected && (
+                          <div style={{
+                            position: "absolute",
+                            top: "8px",
+                            right: "8px",
+                            width: "20px",
+                            height: "20px",
+                            borderRadius: "50%",
+                            backgroundColor: cardColor || "#00368c",
+                            display: "flex",
+                            alignItems: "center",
+                            justifyContent: "center",
+                            flexShrink: 0,
+                          }}>
+                            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                              <path d="M20 6L9 17L4 12" stroke="white" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" />
+                            </svg>
+                          </div>
+                        )}
+                      </div>
+                    );
+                  })}
                 </div>
+                {formValues.launchHireServiceOptions?.includes("OTHERS") && (
+                  <div style={{ marginTop: "8px" }}>
+                    <FormInput
+                      type="text"
+                      value={formValues.launchHireServiceOptionsOthersText || ""}
+                      onChange={handleChange("launchHireServiceOptionsOthersText")}
+                      placeholder="Enter other service option..."
+                    />
+                  </div>
+                )}
               </FormField>
 
               <div className="form-save-button-wrapper">
