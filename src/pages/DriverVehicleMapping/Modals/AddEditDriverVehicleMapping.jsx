@@ -1,39 +1,29 @@
-import { useForm, Controller } from "react-hook-form";
-import PhoneInput from "react-phone-input-2";
-import "react-phone-input-2/lib/bootstrap.css";
+import { useForm } from "react-hook-form";
 import CustomModal from "../../../components/CustomModal";
 import "../../../design/scss/prospect-modal.scss";
 import "../../../design/scss/modal-designs.scss";
 import "../../../design/scss/form-designs.scss";
-import userIcon from "../../../assets/images/user.png";
-import edit from "../../../assets/images/edit.svg";
-// import { ROLE_OPTIONS } from "../../../constants/roles"; // ❌ no longer needed
-import { PORT_OPTIONS } from "../../../constants/ports";
 
 export function DriverVehicleMappingModal({ showModal, closeModal }) {
-    const {
-        register,
-        handleSubmit,
-        formState: { errors },
-        control,
-    } = useForm({
+
+    // You can pass drivers & vehicles via props later if needed
+    const drivers = [
+        { id: 1, name: "Driver 1" },
+        { id: 2, name: "Driver 2" },
+    ];
+
+    const vehicles = [
+        { id: 1, name: "Bus 14 Seater" },
+        { id: 2, name: "Van 7 Seater" },
+    ];
+
+    const { register, handleSubmit, formState: { errors } } = useForm({
         defaultValues: showModal?._id
             ? {
-                driver_name: showModal?.driver_name || "",
-                employee_no: showModal?.employee_no || "",
-                contact_no: showModal?.contact_no || "",
-                iqama_no: showModal?.iqama_no || "",
-                location: showModal?.location || "",
-                nationality: showModal?.nationality || "",
+                driver_id: showModal?.driver_id || "",
+                vehicle_id: showModal?.vehicle_id || "",
             }
-            : {
-                driver_name: "",
-                employee_no: "",
-                contact_no: "",
-                iqama_no: "",
-                location: "",
-                nationality: "",
-            },
+            : {},
     });
 
     const onSubmit = (data) => {
@@ -53,223 +43,49 @@ export function DriverVehicleMappingModal({ showModal, closeModal }) {
         <div className="modal-body">
             <div className="lead-form">
                 <form id="driverVehicleMappingForm" onSubmit={handleSubmit(onSubmit)}>
-                    {/* ===== Avatar Upload ===== */}
-                    <div className="d-flex justify-content-center mb-4">
-                        <div className="avatar-wrapper" style={{ position: "relative" }}>
-                            <img
-                                src={showModal?.avatar || userIcon}
-                                alt="Driver Avatar"
-                                className="avatar-image"
-                                style={{
-                                    width: "120px",
-                                    height: "120px",
-                                    borderRadius: "50%",
-                                    objectFit: "cover",
-                                    border: "3px solid #e6e6e6",
-                                }}
-                            />
 
-                            <label
-                                htmlFor="avatarUpload"
-                                className="avatar-edit-icon"
-                                style={{
-                                    position: "absolute",
-                                    bottom: "0",
-                                    right: "10px",
-                                    background: "#e7e7e7",
-                                    width: "30px",
-                                    height: "30px",
-                                    borderRadius: "50%",
-                                    display: "flex",
-                                    justifyContent: "center",
-                                    alignItems: "center",
-                                    cursor: "pointer",
-                                }}
+                    {/* DRIVER SELECT */}
+                    <div className="mb-lg-3 mb-sm-0">
+                        <div className="form-floating desig-inp">
+                            <select
+                                className={`form-control ${errors.driver_id ? "is-invalid" : ""}`}
+                                {...register("driver_id", { required: "Driver is required" })}
                             >
-                                <img
-                                    src={edit}
-                                    alt="Edit"
-                                    style={{ width: "14px", height: "18px", filter: "invert(1)" }}
-                                />
+                                <option value="">Select Driver</option>
+                                {drivers.map((d) => (
+                                    <option key={d.id} value={d.id}>{d.name}</option>
+                                ))}
+                            </select>
+                            <label>
+                                Driver <span className="text-danger">*</span>
                             </label>
-
-                            <input type="file" id="avatarUpload" className="d-none" />
+                            {errors.driver_id && (
+                                <span className="error text-danger">{errors.driver_id.message}</span>
+                            )}
                         </div>
                     </div>
 
-                    {/* ===== Driver Name + Driver No ===== */}
+                    {/* VEHICLE SELECT */}
                     <div className="mb-lg-3 mb-sm-0">
-                        <div className="permInputs row">
-                            {/* DRIVER NAME */}
-                            <div className="col-lg-6 col-sm-12">
-                                <div className="form-floating desig-inp">
-                                    <input
-                                        type="text"
-                                        className={`form-control ${errors.driver_name ? "is-invalid" : ""
-                                            }`}
-                                        placeholder="Driver Name"
-                                        {...register("driver_name", {
-                                            required: "Driver name is required",
-                                        })}
-                                    />
-                                    <label>
-                                        Driver Name <span className="text-danger">*</span>
-                                    </label>
-                                    {errors.driver_name && (
-                                        <span className="error text-danger">
-                                            {errors.driver_name.message}
-                                        </span>
-                                    )}
-                                </div>
-                            </div>
-
-                            {/* EMPLOYEE NO */}
-                            <div className="col-lg-6 col-sm-12">
-                                <div className="form-floating desig-inp">
-                                    <input
-                                        type="text"
-                                        className={`form-control ${errors.employee_no ? "is-invalid" : ""
-                                            }`}
-                                        placeholder="Driver No"
-                                        {...register("employee_no", {
-                                            required: "Employee number is required",
-                                        })}
-                                    />
-                                    <label>
-                                        Driver No <span className="text-danger">*</span>
-                                    </label>
-                                    {errors.employee_no && (
-                                        <span className="error text-danger">
-                                            {errors.employee_no.message}
-                                        </span>
-                                    )}
-                                </div>
-                            </div>
+                        <div className="form-floating desig-inp">
+                            <select
+                                className={`form-control ${errors.vehicle_id ? "is-invalid" : ""}`}
+                                {...register("vehicle_id", { required: "Vehicle is required" })}
+                            >
+                                <option value="">Select Vehicle</option>
+                                {vehicles.map((v) => (
+                                    <option key={v.id} value={v.id}>{v.name}</option>
+                                ))}
+                            </select>
+                            <label>
+                                Vehicle <span className="text-danger">*</span>
+                            </label>
+                            {errors.vehicle_id && (
+                                <span className="error text-danger">{errors.vehicle_id.message}</span>
+                            )}
                         </div>
                     </div>
 
-                    {/* ===== Contact No + Iqama No ===== */}
-                    <div className="mb-lg-3 mb-sm-0">
-                        <div className="permInputs row">
-                            {/* CONTACT NO (PhoneInput) */}
-                            <div className="col-lg-6 col-sm-12">
-                                <div className="phone-wrapper">
-                                    <label className="phone-label">
-                                        Contact No <span className="text-danger">*</span>
-                                    </label>
-
-                                    <Controller
-                                        name="contact_no"
-                                        control={control}
-                                        rules={{
-                                            required: "Contact no is required",
-                                            validate: (value) => {
-                                                const digits = (value || "").replace(/\D/g, "");
-                                                return (
-                                                    digits.length >= 7 ||
-                                                    "Enter a valid phone number"
-                                                );
-                                            },
-                                        }}
-                                        render={({ field }) => (
-                                            <PhoneInput
-                                                {...field}
-                                                country="sa"
-                                                enableSearch
-                                                inputClass="phone-input"
-                                                buttonClass="phone-flag"
-                                            />
-                                        )}
-                                    />
-
-                                    {errors.contact_no && (
-                                        <span className="error text-danger">
-                                            {errors.contact_no.message}
-                                        </span>
-                                    )}
-                                </div>
-                            </div>
-
-                            {/* IQAMA NO */}
-                            <div className="col-lg-6 col-sm-12">
-                                <div className="form-floating desig-inp">
-                                    <input
-                                        type="text"
-                                        className={`form-control ${errors.iqama_no ? "is-invalid" : ""
-                                            }`}
-                                        placeholder="Iqama No"
-                                        {...register("iqama_no", {
-                                            required: "Iqama number is required",
-                                        })}
-                                    />
-                                    <label>
-                                        Iqama No <span className="text-danger">*</span>
-                                    </label>
-                                    {errors.iqama_no && (
-                                        <span className="error text-danger">
-                                            {errors.iqama_no.message}
-                                        </span>
-                                    )}
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-
-                    {/* ===== Location + Nationality ===== */}
-                    <div className="mb-lg-3 mb-sm-0">
-                        <div className="permInputs row">
-                            {/* LOCATION */}
-                            <div className="col-lg-6 col-sm-12">
-                                <div className="form-floating desig-inp">
-                                    <select
-                                        className={`form-control ${errors.location ? "is-invalid" : ""
-                                            }`}
-                                        {...register("location", {
-                                            required: "Location is required",
-                                        })}
-                                    >
-                                        <option value="">Select Location</option>
-                                        {PORT_OPTIONS.map((port) => (
-                                            <option key={port} value={port}>
-                                                {port}
-                                            </option>
-                                        ))}
-                                    </select>
-                                    <label>
-                                        Location <span className="text-danger">*</span>
-                                    </label>
-                                    {errors.location && (
-                                        <span className="error text-danger">
-                                            {errors.location.message}
-                                        </span>
-                                    )}
-                                </div>
-                            </div>
-
-                            {/* NATIONALITY */}
-                            <div className="col-lg-6 col-sm-12">
-                                <div className="form-floating desig-inp">
-                                    <input
-                                        type="text"
-                                        className={`form-control ${errors.nationality ? "is-invalid" : ""
-                                            }`}
-                                        placeholder="Nationality"
-                                        {...register("nationality", {
-                                            required: "Nationality is required",
-                                        })}
-                                    />
-                                    <label>
-                                        Nationality <span className="text-danger">*</span>
-                                    </label>
-                                    {errors.nationality && (
-                                        <span className="error text-danger">
-                                            {errors.nationality.message}
-                                        </span>
-                                    )}
-                                </div>
-                            </div>
-                        </div>
-                    </div>
                 </form>
             </div>
         </div>
@@ -288,7 +104,7 @@ export function DriverVehicleMappingModal({ showModal, closeModal }) {
 
     return (
         <CustomModal
-            className="user-modal-sm"
+            className="fade role-modal-sm modal show"
             dialgName="modal-dialog modal-dialog-centered"
             show={!!showModal}
             closeModal={() => closeModal(null)}
