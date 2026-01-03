@@ -307,7 +307,7 @@ function SideNav({ isMobileMenuOpen, onCloseMobileMenu }) {
         },
         {
           menu: 'Checklist',
-          to: '/checklist',
+          to: '/check-list',
           hasPermission: true,
         },
         {

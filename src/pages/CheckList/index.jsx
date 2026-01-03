@@ -47,7 +47,7 @@ const CheckList = () => {
           <div className="container-fluid">
             <CommonHeader
               showFilter
-              tableTitle="CheckList List"
+              tableTitle="CheckList"
               setSearch={(e) =>
                 setParams({ ...params, searchTerm: e, page: 1 })
               }
