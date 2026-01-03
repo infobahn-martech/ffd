@@ -836,11 +836,70 @@ const DispatchNoteContent = ({ formValues, handleChange, cardColor }) => {
                     </div>
                   </td>
                   <td style={{ position: "relative" }}>
-                    <div className="material-table-cell" style={{ position: "relative", overflow: "visible" }}>
+                    <div className="material-table-cell" style={{ position: "relative", overflow: "visible", display: "flex", alignItems: "center", gap: "8px", justifyContent: "flex-end" }}>
+                      <Tooltip id={`view-note-${note.id}`} place="top" content="View" />
+                      <button
+                        type="button"
+                        onClick={() => handleViewNote(note)}
+                        data-tooltip-id={`view-note-${note.id}`}
+                        style={{
+                          padding: "6px 8px",
+                          backgroundColor: "transparent",
+                          border: "none",
+                          borderRadius: "4px",
+                          cursor: "pointer",
+                          display: "flex",
+                          alignItems: "center",
+                          justifyContent: "center",
+                          color: "#00368c",
+                          transition: "background-color 0.2s"
+                        }}
+                        onMouseEnter={(e) => {
+                          e.currentTarget.style.backgroundColor = "#f0f0f0";
+                        }}
+                        onMouseLeave={(e) => {
+                          e.currentTarget.style.backgroundColor = "transparent";
+                        }}
+                      >
+                        <img src={eyeIcon} alt="view" style={{ width: "18px", height: "18px" }} />
+                      </button>
+                      <Tooltip id={`print-note-${note.id}`} place="top" content="Print" />
+                      <button
+                        type="button"
+                        onClick={() => handlePrintNote(note)}
+                        data-tooltip-id={`print-note-${note.id}`}
+                        style={{
+                          padding: "6px 8px",
+                          backgroundColor: "transparent",
+                          border: "none",
+                          borderRadius: "4px",
+                          cursor: "pointer",
+                          display: "flex",
+                          alignItems: "center",
+                          justifyContent: "center",
+                          color: "#00368c",
+                          transition: "background-color 0.2s"
+                        }}
+                        onMouseEnter={(e) => {
+                          e.currentTarget.style.backgroundColor = "#f0f0f0";
+                        }}
+                        onMouseLeave={(e) => {
+                          e.currentTarget.style.backgroundColor = "transparent";
+                        }}
+                      >
+                        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                          <path d="M6 9V2H18V9" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+                          <path d="M6 18H4C2.89543 18 2 17.1046 2 16V11C2 9.89543 2.89543 9 4 9H20C21.1046 9 22 9.89543 22 11V16C22 17.1046 21.1046 18 20 18H18" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+                          <path d="M18 14H6V22H18V14Z" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+                          <path d="M18 9H6V14H18V9Z" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+                        </svg>
+                      </button>
                       <div className="action-dropdown-wrapper" style={{ position: "relative", display: "inline-block", zIndex: openDropdownId === note.id ? 9999 : "auto" }}>
+                        <Tooltip id={`more-actions-${note.id}`} place="top" content="More actions" />
                         <button
                           type="button"
                           onClick={(e) => handleToggleDropdown(note.id, e)}
+                          data-tooltip-id={`more-actions-${note.id}`}
                           style={{
                             padding: "6px 8px",
                             backgroundColor: "transparent",
@@ -881,72 +940,6 @@ const DispatchNoteContent = ({ formValues, handleChange, cardColor }) => {
                               padding: "4px 0"
                             }}
                           >
-                            <button
-                              type="button"
-                              onClick={() => {
-                                handleCloseDropdown();
-                                handleViewNote(note);
-                              }}
-                              style={{
-                                width: "100%",
-                                padding: "10px 16px",
-                                backgroundColor: "transparent",
-                                border: "none",
-                                textAlign: "left",
-                                cursor: "pointer",
-                                display: "flex",
-                                alignItems: "center",
-                                gap: "10px",
-                                fontSize: "14px",
-                                color: "#1a1a1a",
-                                transition: "background-color 0.2s"
-                              }}
-                              onMouseEnter={(e) => {
-                                e.currentTarget.style.backgroundColor = "#f5f5f5";
-                              }}
-                              onMouseLeave={(e) => {
-                                e.currentTarget.style.backgroundColor = "transparent";
-                              }}
-                            >
-                              <img src={eyeIcon} alt="view" style={{ width: "16px", height: "16px" }} />
-                              <span>View</span>
-                            </button>
-                            <button
-                              type="button"
-                              onClick={() => {
-                                handleCloseDropdown();
-                                handlePrintNote(note);
-                              }}
-                              style={{
-                                width: "100%",
-                                padding: "10px 16px",
-                                backgroundColor: "transparent",
-                                border: "none",
-                                textAlign: "left",
-                                cursor: "pointer",
-                                display: "flex",
-                                alignItems: "center",
-                                gap: "10px",
-                                fontSize: "14px",
-                                color: "#1a1a1a",
-                                transition: "background-color 0.2s"
-                              }}
-                              onMouseEnter={(e) => {
-                                e.currentTarget.style.backgroundColor = "#f5f5f5";
-                              }}
-                              onMouseLeave={(e) => {
-                                e.currentTarget.style.backgroundColor = "transparent";
-                              }}
-                            >
-                              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-                                <path d="M6 9V2H18V9" stroke="#00368c" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
-                                <path d="M6 18H4C2.89543 18 2 17.1046 2 16V11C2 9.89543 2.89543 9 4 9H20C21.1046 9 22 9.89543 22 11V16C22 17.1046 21.1046 18 20 18H18" stroke="#00368c" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
-                                <path d="M18 14H6V22H18V14Z" stroke="#00368c" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
-                                <path d="M18 9H6V14H18V9Z" stroke="#00368c" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
-                              </svg>
-                              <span>Print</span>
-                            </button>
-                            <div style={{ height: "1px", backgroundColor: "#e2e2ea", margin: "4px 0" }} />
                             <button
                               type="button"
                               onClick={() => {
