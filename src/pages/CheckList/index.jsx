@@ -5,43 +5,200 @@ import { CheckListModal } from "./Modals/AddEditCheckList";
 import { RenderAction } from "./RenderCells";
 import DeleteConfirmationModal from "../../components/DeleteConfirmationModal";
 
+
+
 const dummyCheckLists = [
-  { _id: "1", name: "Pre-Arrival Checklist", description: "Checklist for vessel pre-arrival procedures" },
-  { _id: "2", name: "Cargo Operations", description: "Checklist for cargo handling operations" },
-  { _id: "3", name: "Safety Inspection", description: "Safety and security inspection checklist" },
-  { _id: "4", name: "Departure Checklist", description: "Checklist for vessel departure procedures" },
-  { _id: "5", name: "Emergency Procedures", description: "Emergency response and procedures checklist" },
+  {
+    _id: "1",
+    checklistName: "Pre-Arrival Checklist",
+    callType: "inbound",            // Inbound call
+    vesselType: "cargo",            // Cargo vessel
+    bargeType: "flat",              // Flat barge
+    sections: [
+      { title: "Documentation", sort_order: 1, items: [], sub_sections: [] },
+      { title: "Safety Equipment", sort_order: 2, items: [], sub_sections: [] },
+      { title: "Crew Verification", sort_order: 3, items: [], sub_sections: [] }
+    ]
+  },
+  {
+    _id: "2",
+    checklistName: "Cargo Operations",
+    callType: "both",               // Inbound & Outbound
+    vesselType: "container",        // Container vessel
+    bargeType: "deck",              // Deck barge
+    sections: [
+      { title: "Cargo Inspection", sort_order: 1, items: [], sub_sections: [] },
+      { title: "Loading Procedures", sort_order: 2, items: [], sub_sections: [] }
+    ]
+  },
+  {
+    _id: "3",
+    checklistName: "Safety Inspection",
+    callType: "inbound",
+    vesselType: "tanker",           // Tanker vessel
+    bargeType: "tank",              // Tank barge
+    sections: [
+      { title: "Fire Safety", sort_order: 1, items: [], sub_sections: [] },
+      { title: "Emergency Procedures", sort_order: 2, items: [], sub_sections: [] },
+      { title: "Equipment Check", sort_order: 3, items: [], sub_sections: [] }
+    ]
+  },
+  {
+    _id: "4",
+    checklistName: "Departure Checklist",
+    callType: "outbound",
+    vesselType: "bulk",             // Bulk carrier
+    bargeType: "hopper",            // Hopper barge
+    sections: [
+      { title: "Final Checks", sort_order: 1, items: [], sub_sections: [] },
+      { title: "Documentation Review", sort_order: 2, items: [], sub_sections: [] }
+    ]
+  },
+  {
+    _id: "5",
+    checklistName: "Emergency Procedures",
+    callType: "both",
+    vesselType: "cargo",
+    bargeType: "flat",
+    sections: [
+      { title: "Emergency Contacts", sort_order: 1, items: [], sub_sections: [] },
+      { title: "Evacuation Plan", sort_order: 2, items: [], sub_sections: [] }
+    ]
+  },
+  {
+    _id: "6",
+    checklistName: "Tanker Loading Checklist",
+    callType: "inbound",
+    vesselType: "tanker",
+    bargeType: "tank",
+    sections: [
+      { title: "Pre-Loading Inspection", sort_order: 1, items: [], sub_sections: [] },
+      { title: "Loading Operations", sort_order: 2, items: [], sub_sections: [] }
+    ]
+  },
+  {
+    _id: "7",
+    checklistName: "Container Vessel Checklist",
+    callType: "outbound",
+    vesselType: "container",
+    bargeType: "deck",
+    sections: [
+      { title: "Container Verification", sort_order: 1, items: [], sub_sections: [] }
+    ]
+  },
+  {
+    _id: "8",
+    checklistName: "Bulk Carrier Operations",
+    callType: "both",
+    vesselType: "bulk",
+    bargeType: "hopper",
+    sections: [
+      { title: "Cargo Handling", sort_order: 1, items: [], sub_sections: [] },
+      { title: "Safety Protocols", sort_order: 2, items: [], sub_sections: [] }
+    ]
+  }
 ];
+
 
 const CheckList = () => {
   const [params, setParams] = useState({
     page: 1,
     searchTerm: "",
     limit: 10,
-    sortBy: "name",
+    sortBy: "checklistName",
     sortOrder: 1,
   });
 
   const [showCheckListModal, setShowCheckListModal] = useState(false);
   const [showDeleteModal, setShowDeleteModal] = useState(false);
 
-  // 👉 COLUMNS (Name + Description + Actions)
+  // 👉 COLUMNS (Checklist Name + Call Type + Vessel Type + Barge Type + Sections + Actions)
   const cols = [
     {
-      name: "Name",
-      selector: "name",
+      name: "Checklist Name",
+      selector: "checklistName",
       sort: true,
-      width: "300",
+      width: "250",
       thclass: "tb-head",
       contentClass: "table-content",
     },
     {
-      name: "Description",
-      selector: "description",
+      name: "Call Type",
+      selector: "callType",
       sort: true,
-      width: "500",
+      width: "150",
       thclass: "tb-head",
       contentClass: "table-content",
+      cell: (row) => {
+        const callTypeMap = {
+          inbound: "Inbound",
+          outbound: "Outbound",
+          both: "Both"
+        };
+        return callTypeMap[row.callType] || row.callType;
+      }
+    },
+    {
+      name: "Vessel Type",
+      selector: "vesselType",
+      sort: true,
+      width: "150",
+      thclass: "tb-head",
+      contentClass: "table-content",
+      cell: (row) => {
+        const vesselTypeMap = {
+          cargo: "Cargo",
+          tanker: "Tanker",
+          container: "Container",
+          bulk: "Bulk Carrier"
+        };
+        return vesselTypeMap[row.vesselType] || row.vesselType;
+      }
+    },
+    {
+      name: "Barge Type",
+      selector: "bargeType",
+      sort: true,
+      width: "150",
+      thclass: "tb-head",
+      contentClass: "table-content",
+      cell: (row) => {
+        const bargeTypeMap = {
+          flat: "Flat Barge",
+          hopper: "Hopper Barge",
+          deck: "Deck Barge",
+          tank: "Tank Barge"
+        };
+        return bargeTypeMap[row.bargeType] || row.bargeType;
+      }
+    },
+    {
+      name: "Sections",
+      selector: "sections",
+      sort: true,
+      width: "120",
+      thclass: "tb-head",
+      contentClass: "table-content",
+      cell: (row) => {
+        const sectionCount = row.sections?.length || 0;
+        return (
+          <span style={{
+            display: "inline-flex",
+            alignItems: "center",
+            justifyContent: "center",
+            minWidth: "32px",
+            height: "24px",
+            padding: "0 8px",
+            backgroundColor: "#f8f9ff",
+            color: "#00368c",
+            borderRadius: "12px",
+            fontSize: "12px",
+            fontWeight: "600"
+          }}>
+            {sectionCount}
+          </span>
+        );
+      }
     },
     {
       name: 'Actions',

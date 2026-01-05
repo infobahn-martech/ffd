@@ -147,11 +147,14 @@ const generateCrewFromExcel = (excelData) => {
         rank: rankIndex !== -1 ? row[rankIndex] || "N/A" : "N/A",
         passportNo: passportIndex !== -1 ? row[passportIndex] || `P${String(1000000 + index).padStart(7, '0')}` : `P${String(1000000 + index).padStart(7, '0')}`,
         transport: ["done", "inProgress", "rejected"][Math.floor(Math.random() * 3)],
+        transportCount: Math.floor(Math.random() * 5) + 1, // Random count between 1-5
         cgPass: ["done", "inProgress", "rejected"][Math.floor(Math.random() * 3)],
         zawilPass: ["done", "inProgress", "rejected"][Math.floor(Math.random() * 3)],
         hotel: ["done", "inProgress", "rejected"][Math.floor(Math.random() * 3)],
+        hotelCount: Math.floor(Math.random() * 5) + 1, // Random count between 1-5
         launchHire: ["done", "inProgress", "rejected"][Math.floor(Math.random() * 3)],
         medicalService: ["done", "inProgress", "rejected"][Math.floor(Math.random() * 3)],
+        medicalServiceCount: Math.floor(Math.random() * 5) + 1, // Random count between 1-5
         visa: ["done", "inProgress", "rejected"][Math.floor(Math.random() * 3)],
         passport: ["done", "inProgress", "rejected"][Math.floor(Math.random() * 3)],
         iqama: ["done", "inProgress", "rejected"][Math.floor(Math.random() * 3)],
@@ -496,11 +499,14 @@ const CrewContent = ({ formValues, handleChange, cardColor, onNavigateToTab, lau
       ksaVisaNumber: row.ksaVisaNumber.trim() || "",
       iqamaNumber: row.iqama.trim() || "",
       transport: ["done", "inProgress", "rejected"][Math.floor(Math.random() * 3)],
+      transportCount: Math.floor(Math.random() * 5) + 1, // Random count between 1-5
       cgPass: ["done", "inProgress", "rejected"][Math.floor(Math.random() * 3)],
       zawilPass: ["done", "inProgress", "rejected"][Math.floor(Math.random() * 3)],
       hotel: ["done", "inProgress", "rejected"][Math.floor(Math.random() * 3)],
+      hotelCount: Math.floor(Math.random() * 5) + 1, // Random count between 1-5
       launchHire: ["done", "inProgress", "rejected"][Math.floor(Math.random() * 3)],
       medicalService: ["done", "inProgress", "rejected"][Math.floor(Math.random() * 3)],
+      medicalServiceCount: Math.floor(Math.random() * 5) + 1, // Random count between 1-5
       visa: ["done", "inProgress", "rejected"][Math.floor(Math.random() * 3)],
       passport: ["done", "inProgress", "rejected"][Math.floor(Math.random() * 3)],
       iqama: ["done", "inProgress", "rejected"][Math.floor(Math.random() * 3)],
@@ -2036,33 +2042,96 @@ const CrewContent = ({ formValues, handleChange, cardColor, onNavigateToTab, lau
                       <td style={{ overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
                         <div
                           className="crew-table-cell crew-status-icon"
-                          style={{ display: "flex", justifyContent: "center", alignItems: "center" }}
+                          style={{ display: "flex", justifyContent: "center", alignItems: "center", position: "relative" }}
                           data-tooltip-id={`transport-status-${crew.id}`}
                           data-tooltip-content={`Transport: ${STATUS_LABELS[crew.transport] || STATUS_LABELS.pending}`}
                         >
                           <StatusIcon status={crew.transport} IconComponent={CarIcon} size={20} />
+                          <span style={{
+                            position: "absolute",
+                            top: "-4px",
+                            right: "18px",
+                            backgroundColor: STATUS_COLORS.done,
+                            color: "#ffffff",
+                            borderRadius: "10px",
+                            minWidth: "18px",
+                            height: "18px",
+                            display: "flex",
+                            alignItems: "center",
+                            justifyContent: "center",
+                            fontSize: "10px",
+                            fontWeight: "700",
+                            padding: "0 5px",
+                            boxShadow: "0 2px 4px rgba(0, 0, 0, 0.2)",
+                            zIndex: 1,
+                            border: "2px solid #ffffff"
+                          }}>
+                            {crew.transportCount || 0}
+                          </span>
                         </div>
                         <Tooltip id={`transport-status-${crew.id}`} place="right" />
                       </td>
                       <td style={{ overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
                         <div
                           className="crew-table-cell crew-status-icon"
-                          style={{ display: "flex", justifyContent: "center", alignItems: "center" }}
+                          style={{ display: "flex", justifyContent: "center", alignItems: "center", position: "relative" }}
                           data-tooltip-id={`hotel-status-${crew.id}`}
                           data-tooltip-content={`Hotel: ${STATUS_LABELS[crew.hotel] || STATUS_LABELS.pending}`}
                         >
                           <StatusIcon status={crew.hotel} IconComponent={HotelIcon} size={20} />
+                          <span style={{
+                            position: "absolute",
+                            top: "-4px",
+                            right: "18px",
+                            backgroundColor: STATUS_COLORS.done,
+                            color: "#ffffff",
+                            borderRadius: "10px",
+                            minWidth: "18px",
+                            height: "18px",
+                            display: "flex",
+                            alignItems: "center",
+                            justifyContent: "center",
+                            fontSize: "10px",
+                            fontWeight: "700",
+                            padding: "0 5px",
+                            boxShadow: "0 2px 4px rgba(0, 0, 0, 0.2)",
+                            zIndex: 1,
+                            border: "2px solid #ffffff"
+                          }}>
+                            {crew.hotelCount || 0}
+                          </span>
                         </div>
                         <Tooltip id={`hotel-status-${crew.id}`} place="right" />
                       </td>
                       <td style={{ overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
                         <div
                           className="crew-table-cell crew-status-icon"
-                          style={{ display: "flex", justifyContent: "center", alignItems: "center" }}
+                          style={{ display: "flex", justifyContent: "center", alignItems: "center", position: "relative" }}
                           data-tooltip-id={`medical-status-${crew.id}`}
                           data-tooltip-content={`Medical Service: ${STATUS_LABELS[crew.medicalService] || STATUS_LABELS.pending}`}
                         >
                           <StatusIcon status={crew.medicalService} IconComponent={MedicalIcon} size={20} />
+                          <span style={{
+                            position: "absolute",
+                            top: "-4px",
+                            right: "18px",
+                            backgroundColor: STATUS_COLORS.done,
+                            color: "#ffffff",
+                            borderRadius: "10px",
+                            minWidth: "18px",
+                            height: "18px",
+                            display: "flex",
+                            alignItems: "center",
+                            justifyContent: "center",
+                            fontSize: "10px",
+                            fontWeight: "700",
+                            padding: "0 5px",
+                            boxShadow: "0 2px 4px rgba(0, 0, 0, 0.2)",
+                            zIndex: 1,
+                            border: "2px solid #ffffff"
+                          }}>
+                            {crew.medicalServiceCount || 0}
+                          </span>
                         </div>
                         <Tooltip id={`medical-status-${crew.id}`} place="right" />
                       </td>
