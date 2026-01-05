@@ -1,13 +1,16 @@
 import { useState } from "react";
 import CommonHeader from "../../components/CommonHeader";
 import CustomTable from "../../components/customTable";
+import { CheckListModal } from "./Modals/AddEditCheckList";
+import { RenderAction } from "./RenderCells";
+import DeleteConfirmationModal from "../../components/DeleteConfirmationModal";
 
-const dummyRoles = [
-  { _id: "1", name: "Admin", description: "Full system access" },
-  { _id: "2", name: "Manager", description: "Manage users and workflows" },
-  { _id: "3", name: "Viewer", description: "Read-only access" },
-  { _id: "4", name: "Operator", description: "Handle daily operations" },
-  { _id: "5", name: "Supervisor", description: "Review and approve tasks" },
+const dummyCheckLists = [
+  { _id: "1", name: "Pre-Arrival Checklist", description: "Checklist for vessel pre-arrival procedures" },
+  { _id: "2", name: "Cargo Operations", description: "Checklist for cargo handling operations" },
+  { _id: "3", name: "Safety Inspection", description: "Safety and security inspection checklist" },
+  { _id: "4", name: "Departure Checklist", description: "Checklist for vessel departure procedures" },
+  { _id: "5", name: "Emergency Procedures", description: "Emergency response and procedures checklist" },
 ];
 
 const CheckList = () => {
@@ -19,10 +22,10 @@ const CheckList = () => {
     sortOrder: 1,
   });
 
-  const [showAddModal, setShowAddModal] = useState(false);
+  const [showCheckListModal, setShowCheckListModal] = useState(false);
+  const [showDeleteModal, setShowDeleteModal] = useState(false);
 
-
-  // 👉 ONLY TWO COLUMNS (Name + Description)
+  // 👉 COLUMNS (Name + Description + Actions)
   const cols = [
     {
       name: "Name",
@@ -40,6 +43,17 @@ const CheckList = () => {
       thclass: "tb-head",
       contentClass: "table-content",
     },
+    {
+      name: 'Actions',
+      selector: 'linksInfo',
+      tableClasses: 'table-striped',
+      contentClass: 'table-content',
+      thclass: 'tb-head',
+      onEditClick: (row) => { setShowCheckListModal(row) },
+      onDeleteClick: () => { setShowDeleteModal(true) },
+      cell: RenderAction,
+      width: '200',
+    },
   ];
 
   return (
@@ -48,26 +62,25 @@ const CheckList = () => {
         <div className="prospect employee">
           <div className="container-fluid">
             <CommonHeader
-              addModalLabel={"Add CheckList"}
-              onAddModalClick={() => {
-                setShowAddModal(true);
-              }}
-              showFilter
               tableTitle="CheckList"
+              isAddEnabled
+              addModalLabel="Add Checklist"
               setSearch={(e) =>
                 setParams({ ...params, searchTerm: e, page: 1 })
               }
+              onAddModalClick={() => setShowCheckListModal(true)}
               exportTitle="Export"
               exportLoader={false}
             />
           </div>
 
           <CustomTable
+            Sl
             pagination={{ currentPage: params.page, limit: params.limit }}
             tableClasses="px-start"
-            count={dummyRoles.length}
+            count={dummyCheckLists.length}
             columns={cols}
-            data={dummyRoles}
+            data={dummyCheckLists}
             onPageChange={(currentPage) =>
               setParams({ ...params, page: currentPage })
             }
@@ -83,6 +96,21 @@ const CheckList = () => {
               })
             }
           />
+
+          {!!showCheckListModal && (
+            <CheckListModal
+              showModal={showCheckListModal}
+              closeModal={() => setShowCheckListModal(false)}
+            />
+          )}
+          {!!showDeleteModal && (
+            <DeleteConfirmationModal
+              show={showDeleteModal}
+              onCancel={() => setShowDeleteModal(false)}
+              onConfirm={() => { }}
+              deleteText="Are you sure you want to delete this checklist?"
+            />
+          )}
         </div>
       </div>
     </>
