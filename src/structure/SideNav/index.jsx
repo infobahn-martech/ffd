@@ -183,13 +183,6 @@ function SideNav({ isMobileMenuOpen, onCloseMobileMenu }) {
       hasPermission: true,
     },
     {
-      menu: 'Report Management',
-      isDefaultMenu: true,
-      to: '/report-management',
-      icon: portIcon,
-      hasPermission: true,
-    },
-    {
       menu: 'Driver Management',
       isDefaultMenu: true,
       to: '/driver-management',
@@ -214,20 +207,6 @@ function SideNav({ isMobileMenuOpen, onCloseMobileMenu }) {
       menu: 'Hotel Management',
       isDefaultMenu: true,
       to: '/hotel-management',
-      icon: portIcon,
-      hasPermission: true,
-    },
-    {
-      menu: 'Activity Log',
-      isDefaultMenu: true,
-      to: '/activity-log',
-      icon: portIcon,
-      hasPermission: true,
-    },
-    {
-      menu: 'Notification',
-      isDefaultMenu: true,
-      to: '/notification',
       icon: portIcon,
       hasPermission: true,
     },
@@ -342,6 +321,20 @@ function SideNav({ isMobileMenuOpen, onCloseMobileMenu }) {
       ],
       icon: workerIcon,
     },
+    {
+      menu: 'Material Management',
+      isDefaultMenu: true,
+      icon: settingsIcon,
+      hasPermission: true,
+      isOpen: false,
+      subMenus: [
+        {
+          menu: 'Material Types',
+          to: '/material-type',
+          hasPermission: true,
+        },
+      ],
+    },
 
     {
       menu: 'Settings',
@@ -353,6 +346,21 @@ function SideNav({ isMobileMenuOpen, onCloseMobileMenu }) {
         {
           menu: 'My Accounts',
           to: '/workers-type',
+          hasPermission: true,
+        },
+        {
+          menu: 'Activity Log',
+          to: '/activity-log',
+          hasPermission: true,
+        },
+        {
+          menu: 'Notification',
+          to: '/notification',
+          hasPermission: true,
+        },
+        {
+          menu: 'Report Management',
+          to: '/report-management',
           hasPermission: true,
         },
       ],
