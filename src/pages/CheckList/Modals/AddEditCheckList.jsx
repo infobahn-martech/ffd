@@ -82,9 +82,33 @@ export function CheckListModal({ showModal, closeModal }) {
     });
 
     return (
-      <div style={{ marginLeft: "20px", marginTop: "15px" }}>
-        <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "10px" }}>
-          <h6 style={{ margin: 0 }}>Items</h6>
+      <div style={{ marginTop: "20px" }}>
+        <div style={{ 
+          display: "flex", 
+          justifyContent: "space-between", 
+          alignItems: "center", 
+          marginBottom: "16px",
+          paddingBottom: "12px",
+          borderBottom: "2px solid #e2e6ff"
+        }}>
+          <h6 style={{ 
+            margin: 0, 
+            fontWeight: "700",
+            fontSize: "14px",
+            color: "#1a1a1a",
+            display: "flex",
+            alignItems: "center",
+            gap: "8px"
+          }}>
+            <span style={{ 
+              width: "4px", 
+              height: "18px", 
+              backgroundColor: "#2A00FF", 
+              borderRadius: "2px",
+              display: "inline-block"
+            }}></span>
+            Items
+          </h6>
           <button
             type="button"
             onClick={() => append({
@@ -97,8 +121,25 @@ export function CheckListModal({ showModal, closeModal }) {
                 description: ""
               }
             })}
-            className="btn btn-sm btn-outline-primary"
-            style={{ fontSize: "11px", padding: "4px 8px" }}
+            className="btn btn-sm"
+            style={{ 
+              fontSize: "12px", 
+              padding: "6px 14px",
+              backgroundColor: "#2A00FF",
+              color: "#fff",
+              border: "none",
+              borderRadius: "6px",
+              fontWeight: "600",
+              transition: "all 0.2s ease"
+            }}
+            onMouseEnter={(e) => {
+              e.currentTarget.style.backgroundColor = "#1a00cc";
+              e.currentTarget.style.transform = "translateY(-1px)";
+            }}
+            onMouseLeave={(e) => {
+              e.currentTarget.style.backgroundColor = "#2A00FF";
+              e.currentTarget.style.transform = "translateY(0)";
+            }}
           >
             + Add Item
           </button>
@@ -106,94 +147,171 @@ export function CheckListModal({ showModal, closeModal }) {
 
         {fields.map((item, itemIndex) => (
           <div key={item.id} style={{ 
-            border: "1px solid #ddd", 
-            borderRadius: "6px", 
-            padding: "12px", 
-            marginBottom: "10px",
-            backgroundColor: "#fff"
-          }}>
-            <div style={{ display: "flex", justifyContent: "space-between", marginBottom: "8px" }}>
-              <strong>Item {itemIndex + 1}</strong>
+            border: "1px solid #e2e6ff", 
+            borderRadius: "10px", 
+            padding: "18px", 
+            marginBottom: "15px",
+            backgroundColor: "#fafbfc",
+            boxShadow: "0 1px 4px rgba(0, 0, 0, 0.04)",
+            transition: "all 0.2s ease"
+          }}
+          onMouseEnter={(e) => {
+            e.currentTarget.style.boxShadow = "0 2px 8px rgba(0, 0, 0, 0.08)";
+            e.currentTarget.style.borderColor = "#2A00FF";
+          }}
+          onMouseLeave={(e) => {
+            e.currentTarget.style.boxShadow = "0 1px 4px rgba(0, 0, 0, 0.04)";
+            e.currentTarget.style.borderColor = "#e2e6ff";
+          }}
+          >
+            <div style={{ 
+              display: "flex", 
+              justifyContent: "space-between", 
+              alignItems: "center",
+              marginBottom: "15px",
+              paddingBottom: "12px",
+              borderBottom: "1px solid #e2e6ff"
+            }}>
+              <div style={{ display: "flex", alignItems: "center", gap: "10px" }}>
+                <div style={{
+                  width: "28px",
+                  height: "28px",
+                  borderRadius: "50%",
+                  backgroundColor: "#2A00FF",
+                  color: "#fff",
+                  display: "flex",
+                  alignItems: "center",
+                  justifyContent: "center",
+                  fontSize: "12px",
+                  fontWeight: "700"
+                }}>
+                  {itemIndex + 1}
+                </div>
+                <strong style={{ fontSize: "14px", color: "#1a1a1a" }}>Item {itemIndex + 1}</strong>
+              </div>
               <button
                 type="button"
                 onClick={() => remove(itemIndex)}
-                className="btn btn-sm btn-outline-danger"
-                style={{ fontSize: "11px", padding: "2px 6px" }}
+                className="btn btn-sm"
+                style={{ 
+                  fontSize: "11px", 
+                  padding: "5px 12px",
+                  backgroundColor: "#fff",
+                  border: "1px solid #dc3545",
+                  color: "#dc3545",
+                  borderRadius: "6px",
+                  fontWeight: "600",
+                  transition: "all 0.2s ease"
+                }}
+                onMouseEnter={(e) => {
+                  e.currentTarget.style.backgroundColor = "#dc3545";
+                  e.currentTarget.style.color = "#fff";
+                }}
+                onMouseLeave={(e) => {
+                  e.currentTarget.style.backgroundColor = "#fff";
+                  e.currentTarget.style.color = "#dc3545";
+                }}
               >
                 Remove
               </button>
             </div>
 
-            <div className="mb-2">
-              <div className="form-floating">
-                <input
-                  className="form-control form-control-sm"
-                  placeholder="Item Name"
-                  {...register(`sections.${sectionIndex}.items.${itemIndex}.item_name`, {
-                    required: "Item name is required"
-                  })}
-                />
-                <label style={{ fontSize: "13px" }}>Item Name <span className="text-danger">*</span></label>
+            <div style={{ display: "grid", gridTemplateColumns: "1fr 120px", gap: "12px", marginBottom: "12px" }}>
+              <div>
+                <div className="form-floating">
+                  <input
+                    className="form-control"
+                    placeholder="Item Name"
+                    style={{ borderColor: "#e2e6ff", fontSize: "14px" }}
+                    {...register(`sections.${sectionIndex}.items.${itemIndex}.item_name`, {
+                      required: "Item name is required"
+                    })}
+                  />
+                  <label style={{ fontSize: "13px", color: "#666" }}>Item Name <span className="text-danger">*</span></label>
+                </div>
+              </div>
+              <div>
+                <div className="form-floating">
+                  <input
+                    type="number"
+                    className="form-control"
+                    placeholder="Item Order"
+                    style={{ borderColor: "#e2e6ff", fontSize: "14px" }}
+                    {...register(`sections.${sectionIndex}.items.${itemIndex}.item_order`, {
+                      valueAsNumber: true
+                    })}
+                  />
+                  <label style={{ fontSize: "13px", color: "#666" }}>Item Order</label>
+                </div>
               </div>
             </div>
 
-            <div className="mb-2">
+            <div className="mb-3">
               <div className="form-floating">
                 <textarea
-                  className="form-control form-control-sm"
+                  className="form-control"
                   placeholder="Description"
-                  style={{ height: "80px" }}
+                  style={{ height: "90px", borderColor: "#e2e6ff", fontSize: "14px" }}
                   {...register(`sections.${sectionIndex}.items.${itemIndex}.description`)}
                 />
-                <label style={{ fontSize: "13px" }}>Description</label>
-              </div>
-            </div>
-
-            <div className="mb-2">
-              <div className="form-floating">
-                <input
-                  type="number"
-                  className="form-control form-control-sm"
-                  placeholder="Item Order"
-                  {...register(`sections.${sectionIndex}.items.${itemIndex}.item_order`, {
-                    valueAsNumber: true
-                  })}
-                />
-                <label style={{ fontSize: "13px" }}>Item Order</label>
+                <label style={{ fontSize: "13px", color: "#666" }}>Description</label>
               </div>
             </div>
 
             {/* Document Details */}
-            <div style={{ marginLeft: "15px", marginTop: "10px", padding: "10px", backgroundColor: "#f5f5f5", borderRadius: "4px" }}>
-              <strong style={{ fontSize: "13px" }}>Document Details</strong>
-              <div className="mb-2 mt-2">
+            <div style={{ 
+              marginTop: "15px", 
+              padding: "16px", 
+              backgroundColor: "#f8f9ff", 
+              borderRadius: "8px",
+              border: "1px solid #e2e6ff"
+            }}>
+              <div style={{ 
+                display: "flex", 
+                alignItems: "center", 
+                gap: "8px",
+                marginBottom: "12px",
+                paddingBottom: "10px",
+                borderBottom: "1px solid #e2e6ff"
+              }}>
+                <div style={{
+                  width: "3px",
+                  height: "16px",
+                  backgroundColor: "#2A00FF",
+                  borderRadius: "2px"
+                }}></div>
+                <strong style={{ fontSize: "13px", color: "#1a1a1a" }}>Document Details</strong>
+              </div>
+              <div className="mb-3">
                 <div className="form-floating">
                   <input
                     type="url"
-                    className="form-control form-control-sm"
+                    className="form-control"
                     placeholder="Sample URL"
+                    style={{ borderColor: "#e2e6ff", fontSize: "14px" }}
                     {...register(`sections.${sectionIndex}.items.${itemIndex}.document_details.sample_url`)}
                   />
-                  <label style={{ fontSize: "13px" }}>Sample URL</label>
+                  <label style={{ fontSize: "13px", color: "#666" }}>Sample URL</label>
                 </div>
               </div>
-              <div className="mb-2">
-                <label className="form-label" style={{ fontSize: "13px" }}>Required Copy Only</label>
+              <div className="mb-3">
+                <label className="form-label" style={{ fontSize: "13px", color: "#666", fontWeight: "500", marginBottom: "6px" }}>Required Copy Only</label>
                 <input
                   type="file"
-                  className="form-control form-control-sm"
+                  className="form-control"
+                  style={{ borderColor: "#e2e6ff", fontSize: "14px", padding: "10px" }}
                   {...register(`sections.${sectionIndex}.items.${itemIndex}.document_details.required_copy_only`)}
                 />
               </div>
-              <div className="mb-2">
+              <div className="mb-0">
                 <div className="form-floating">
                   <textarea
-                    className="form-control form-control-sm"
+                    className="form-control"
                     placeholder="Description"
-                    style={{ height: "60px" }}
+                    style={{ height: "70px", borderColor: "#e2e6ff", fontSize: "14px" }}
                     {...register(`sections.${sectionIndex}.items.${itemIndex}.document_details.description`)}
                   />
-                  <label style={{ fontSize: "13px" }}>Description</label>
+                  <label style={{ fontSize: "13px", color: "#666" }}>Description</label>
                 </div>
               </div>
             </div>
@@ -211,9 +329,32 @@ export function CheckListModal({ showModal, closeModal }) {
     });
 
     return (
-      <div style={{ marginLeft: "15px", marginTop: "10px" }}>
-        <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "8px" }}>
-          <strong style={{ fontSize: "13px" }}>Items</strong>
+      <div style={{ marginTop: "20px" }}>
+        <div style={{ 
+          display: "flex", 
+          justifyContent: "space-between", 
+          alignItems: "center", 
+          marginBottom: "16px",
+          paddingBottom: "12px",
+          borderBottom: "2px solid #e2e6ff"
+        }}>
+          <strong style={{ 
+            fontSize: "13px", 
+            fontWeight: "700",
+            color: "#1a1a1a",
+            display: "flex",
+            alignItems: "center",
+            gap: "8px"
+          }}>
+            <span style={{ 
+              width: "3px", 
+              height: "16px", 
+              backgroundColor: "#2A00FF", 
+              borderRadius: "2px",
+              display: "inline-block"
+            }}></span>
+            Items
+          </strong>
           <button
             type="button"
             onClick={() => append({
@@ -226,8 +367,25 @@ export function CheckListModal({ showModal, closeModal }) {
                 description: ""
               }
             })}
-            className="btn btn-sm btn-outline-primary"
-            style={{ fontSize: "11px", padding: "2px 6px" }}
+            className="btn btn-sm"
+            style={{ 
+              fontSize: "12px", 
+              padding: "6px 14px",
+              backgroundColor: "#2A00FF",
+              color: "#fff",
+              border: "none",
+              borderRadius: "6px",
+              fontWeight: "600",
+              transition: "all 0.2s ease"
+            }}
+            onMouseEnter={(e) => {
+              e.currentTarget.style.backgroundColor = "#1a00cc";
+              e.currentTarget.style.transform = "translateY(-1px)";
+            }}
+            onMouseLeave={(e) => {
+              e.currentTarget.style.backgroundColor = "#2A00FF";
+              e.currentTarget.style.transform = "translateY(0)";
+            }}
           >
             + Add Item
           </button>
@@ -235,94 +393,171 @@ export function CheckListModal({ showModal, closeModal }) {
 
         {fields.map((item, itemIndex) => (
           <div key={item.id} style={{ 
-            border: "1px solid #eee", 
-            borderRadius: "4px", 
-            padding: "10px", 
-            marginBottom: "8px",
-            backgroundColor: "#fafafa"
-          }}>
-            <div style={{ display: "flex", justifyContent: "space-between", marginBottom: "6px" }}>
-              <strong style={{ fontSize: "12px" }}>Item {itemIndex + 1}</strong>
+            border: "1px solid #e2e6ff", 
+            borderRadius: "10px", 
+            padding: "18px", 
+            marginBottom: "15px",
+            backgroundColor: "#fafbfc",
+            boxShadow: "0 1px 4px rgba(0, 0, 0, 0.04)",
+            transition: "all 0.2s ease"
+          }}
+          onMouseEnter={(e) => {
+            e.currentTarget.style.boxShadow = "0 2px 8px rgba(0, 0, 0, 0.08)";
+            e.currentTarget.style.borderColor = "#2A00FF";
+          }}
+          onMouseLeave={(e) => {
+            e.currentTarget.style.boxShadow = "0 1px 4px rgba(0, 0, 0, 0.04)";
+            e.currentTarget.style.borderColor = "#e2e6ff";
+          }}
+          >
+            <div style={{ 
+              display: "flex", 
+              justifyContent: "space-between", 
+              alignItems: "center",
+              marginBottom: "15px",
+              paddingBottom: "12px",
+              borderBottom: "1px solid #e2e6ff"
+            }}>
+              <div style={{ display: "flex", alignItems: "center", gap: "10px" }}>
+                <div style={{
+                  width: "26px",
+                  height: "26px",
+                  borderRadius: "50%",
+                  backgroundColor: "#2A00FF",
+                  color: "#fff",
+                  display: "flex",
+                  alignItems: "center",
+                  justifyContent: "center",
+                  fontSize: "11px",
+                  fontWeight: "700"
+                }}>
+                  {itemIndex + 1}
+                </div>
+                <strong style={{ fontSize: "13px", color: "#1a1a1a" }}>Item {itemIndex + 1}</strong>
+              </div>
               <button
                 type="button"
                 onClick={() => remove(itemIndex)}
-                className="btn btn-sm btn-outline-danger"
-                style={{ fontSize: "10px", padding: "2px 4px" }}
+                className="btn btn-sm"
+                style={{ 
+                  fontSize: "11px", 
+                  padding: "5px 12px",
+                  backgroundColor: "#fff",
+                  border: "1px solid #dc3545",
+                  color: "#dc3545",
+                  borderRadius: "6px",
+                  fontWeight: "600",
+                  transition: "all 0.2s ease"
+                }}
+                onMouseEnter={(e) => {
+                  e.currentTarget.style.backgroundColor = "#dc3545";
+                  e.currentTarget.style.color = "#fff";
+                }}
+                onMouseLeave={(e) => {
+                  e.currentTarget.style.backgroundColor = "#fff";
+                  e.currentTarget.style.color = "#dc3545";
+                }}
               >
                 Remove
               </button>
             </div>
 
-            <div className="mb-2">
-              <div className="form-floating">
-                <input
-                  className="form-control form-control-sm"
-                  placeholder="Item Name"
-                  {...register(`sections.${sectionIndex}.sub_sections.${subSectionIndex}.items.${itemIndex}.item_name`, {
-                    required: "Item name is required"
-                  })}
-                />
-                <label style={{ fontSize: "12px" }}>Item Name <span className="text-danger">*</span></label>
+            <div style={{ display: "grid", gridTemplateColumns: "1fr 120px", gap: "12px", marginBottom: "12px" }}>
+              <div>
+                <div className="form-floating">
+                  <input
+                    className="form-control"
+                    placeholder="Item Name"
+                    style={{ borderColor: "#e2e6ff", fontSize: "14px" }}
+                    {...register(`sections.${sectionIndex}.sub_sections.${subSectionIndex}.items.${itemIndex}.item_name`, {
+                      required: "Item name is required"
+                    })}
+                  />
+                  <label style={{ fontSize: "13px", color: "#666" }}>Item Name <span className="text-danger">*</span></label>
+                </div>
+              </div>
+              <div>
+                <div className="form-floating">
+                  <input
+                    type="number"
+                    className="form-control"
+                    placeholder="Item Order"
+                    style={{ borderColor: "#e2e6ff", fontSize: "14px" }}
+                    {...register(`sections.${sectionIndex}.sub_sections.${subSectionIndex}.items.${itemIndex}.item_order`, {
+                      valueAsNumber: true
+                    })}
+                  />
+                  <label style={{ fontSize: "13px", color: "#666" }}>Item Order</label>
+                </div>
               </div>
             </div>
 
-            <div className="mb-2">
+            <div className="mb-3">
               <div className="form-floating">
                 <textarea
-                  className="form-control form-control-sm"
+                  className="form-control"
                   placeholder="Description"
-                  style={{ height: "60px" }}
+                  style={{ height: "80px", borderColor: "#e2e6ff", fontSize: "14px" }}
                   {...register(`sections.${sectionIndex}.sub_sections.${subSectionIndex}.items.${itemIndex}.description`)}
                 />
-                <label style={{ fontSize: "12px" }}>Description</label>
-              </div>
-            </div>
-
-            <div className="mb-2">
-              <div className="form-floating">
-                <input
-                  type="number"
-                  className="form-control form-control-sm"
-                  placeholder="Item Order"
-                  {...register(`sections.${sectionIndex}.sub_sections.${subSectionIndex}.items.${itemIndex}.item_order`, {
-                    valueAsNumber: true
-                  })}
-                />
-                <label style={{ fontSize: "12px" }}>Item Order</label>
+                <label style={{ fontSize: "13px", color: "#666" }}>Description</label>
               </div>
             </div>
 
             {/* Document Details */}
-            <div style={{ marginLeft: "10px", marginTop: "8px", padding: "8px", backgroundColor: "#f0f0f0", borderRadius: "4px" }}>
-              <strong style={{ fontSize: "12px" }}>Document Details</strong>
-              <div className="mb-2 mt-2">
+            <div style={{ 
+              marginTop: "15px", 
+              padding: "16px", 
+              backgroundColor: "#f8f9ff", 
+              borderRadius: "8px",
+              border: "1px solid #e2e6ff"
+            }}>
+              <div style={{ 
+                display: "flex", 
+                alignItems: "center", 
+                gap: "8px",
+                marginBottom: "12px",
+                paddingBottom: "10px",
+                borderBottom: "1px solid #e2e6ff"
+              }}>
+                <div style={{
+                  width: "3px",
+                  height: "16px",
+                  backgroundColor: "#2A00FF",
+                  borderRadius: "2px"
+                }}></div>
+                <strong style={{ fontSize: "13px", color: "#1a1a1a" }}>Document Details</strong>
+              </div>
+              <div className="mb-3">
                 <div className="form-floating">
                   <input
                     type="url"
-                    className="form-control form-control-sm"
+                    className="form-control"
                     placeholder="Sample URL"
+                    style={{ borderColor: "#e2e6ff", fontSize: "14px" }}
                     {...register(`sections.${sectionIndex}.sub_sections.${subSectionIndex}.items.${itemIndex}.document_details.sample_url`)}
                   />
-                  <label style={{ fontSize: "12px" }}>Sample URL</label>
+                  <label style={{ fontSize: "13px", color: "#666" }}>Sample URL</label>
                 </div>
               </div>
-              <div className="mb-2">
-                <label className="form-label" style={{ fontSize: "12px" }}>Required Copy Only</label>
+              <div className="mb-3">
+                <label className="form-label" style={{ fontSize: "13px", color: "#666", fontWeight: "500", marginBottom: "6px" }}>Required Copy Only</label>
                 <input
                   type="file"
-                  className="form-control form-control-sm"
+                  className="form-control"
+                  style={{ borderColor: "#e2e6ff", fontSize: "14px", padding: "10px" }}
                   {...register(`sections.${sectionIndex}.sub_sections.${subSectionIndex}.items.${itemIndex}.document_details.required_copy_only`)}
                 />
               </div>
-              <div className="mb-2">
+              <div className="mb-0">
                 <div className="form-floating">
                   <textarea
-                    className="form-control form-control-sm"
+                    className="form-control"
                     placeholder="Description"
-                    style={{ height: "50px" }}
+                    style={{ height: "70px", borderColor: "#e2e6ff", fontSize: "14px" }}
                     {...register(`sections.${sectionIndex}.sub_sections.${subSectionIndex}.items.${itemIndex}.document_details.description`)}
                   />
-                  <label style={{ fontSize: "12px" }}>Description</label>
+                  <label style={{ fontSize: "13px", color: "#666" }}>Description</label>
                 </div>
               </div>
             </div>
@@ -340,9 +575,33 @@ export function CheckListModal({ showModal, closeModal }) {
     });
 
     return (
-      <div style={{ marginLeft: "20px", marginTop: "15px" }}>
-        <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "10px" }}>
-          <h6 style={{ margin: 0 }}>Sub Sections</h6>
+      <div style={{ marginTop: "25px" }}>
+        <div style={{ 
+          display: "flex", 
+          justifyContent: "space-between", 
+          alignItems: "center", 
+          marginBottom: "16px",
+          paddingBottom: "12px",
+          borderBottom: "2px solid #e2e6ff"
+        }}>
+          <h6 style={{ 
+            margin: 0, 
+            fontWeight: "700",
+            fontSize: "14px",
+            color: "#1a1a1a",
+            display: "flex",
+            alignItems: "center",
+            gap: "8px"
+          }}>
+            <span style={{ 
+              width: "4px", 
+              height: "18px", 
+              backgroundColor: "#2A00FF", 
+              borderRadius: "2px",
+              display: "inline-block"
+            }}></span>
+            Sub Sections
+          </h6>
           <button
             type="button"
             onClick={() => append({
@@ -350,8 +609,25 @@ export function CheckListModal({ showModal, closeModal }) {
               sort_order: fields.length + 1,
               items: []
             })}
-            className="btn btn-sm btn-outline-primary"
-            style={{ fontSize: "11px", padding: "4px 8px" }}
+            className="btn btn-sm"
+            style={{ 
+              fontSize: "12px", 
+              padding: "6px 14px",
+              backgroundColor: "#2A00FF",
+              color: "#fff",
+              border: "none",
+              borderRadius: "6px",
+              fontWeight: "600",
+              transition: "all 0.2s ease"
+            }}
+            onMouseEnter={(e) => {
+              e.currentTarget.style.backgroundColor = "#1a00cc";
+              e.currentTarget.style.transform = "translateY(-1px)";
+            }}
+            onMouseLeave={(e) => {
+              e.currentTarget.style.backgroundColor = "#2A00FF";
+              e.currentTarget.style.transform = "translateY(0)";
+            }}
           >
             + Add Sub Section
           </button>
@@ -359,64 +635,113 @@ export function CheckListModal({ showModal, closeModal }) {
 
         {fields.map((subSection, subSectionIndex) => (
           <div key={subSection.id} style={{ 
-            border: "1px solid #ddd", 
-            borderRadius: "6px", 
-            padding: "12px", 
-            marginBottom: "10px",
-            backgroundColor: "#fff"
+            border: "1px solid #e2e6ff", 
+            borderRadius: "10px", 
+            padding: "0",
+            marginBottom: "15px",
+            backgroundColor: "#ffffff",
+            boxShadow: "0 1px 4px rgba(0, 0, 0, 0.04)",
+            overflow: "hidden"
           }}>
-            <div style={{ display: "flex", justifyContent: "space-between", marginBottom: "8px" }}>
+            <div style={{ 
+              display: "flex", 
+              justifyContent: "space-between", 
+              alignItems: "center",
+              padding: "14px 18px",
+              backgroundColor: "#fafbfc",
+              borderBottom: expandedSubSections[`${sectionIndex}-${subSectionIndex}`] ? "1px solid #e2e6ff" : "none"
+            }}>
               <button
                 type="button"
                 onClick={() => toggleSubSection(sectionIndex, subSectionIndex)}
                 style={{ 
                   background: "none", 
                   border: "none", 
-                  fontWeight: "600",
+                  fontWeight: "700",
+                  fontSize: "14px",
+                  color: "#1a1a1a",
                   cursor: "pointer",
                   flex: 1,
-                  textAlign: "left"
+                  textAlign: "left",
+                  display: "flex",
+                  alignItems: "center",
+                  gap: "10px",
+                  padding: 0
                 }}
               >
-                {expandedSubSections[`${sectionIndex}-${subSectionIndex}`] ? "▼" : "▶"} Sub Section {subSectionIndex + 1}
+                <span style={{ 
+                  fontSize: "16px", 
+                  color: "#2A00FF",
+                  display: "inline-block",
+                  transition: "transform 0.2s ease",
+                  transform: expandedSubSections[`${sectionIndex}-${subSectionIndex}`] ? "rotate(90deg)" : "rotate(0deg)"
+                }}>
+                  ▶
+                </span>
+                <span>Sub Section {subSectionIndex + 1}</span>
               </button>
               <button
                 type="button"
                 onClick={() => remove(subSectionIndex)}
-                className="btn btn-sm btn-outline-danger"
-                style={{ fontSize: "11px", padding: "2px 6px" }}
+                className="btn btn-sm"
+                style={{ 
+                  fontSize: "11px", 
+                  padding: "5px 12px",
+                  backgroundColor: "#fff",
+                  border: "1px solid #dc3545",
+                  color: "#dc3545",
+                  borderRadius: "6px",
+                  fontWeight: "600",
+                  transition: "all 0.2s ease"
+                }}
+                onMouseEnter={(e) => {
+                  e.currentTarget.style.backgroundColor = "#dc3545";
+                  e.currentTarget.style.color = "#fff";
+                }}
+                onMouseLeave={(e) => {
+                  e.currentTarget.style.backgroundColor = "#fff";
+                  e.currentTarget.style.color = "#dc3545";
+                }}
               >
                 Remove
               </button>
             </div>
 
             {expandedSubSections[`${sectionIndex}-${subSectionIndex}`] && (
-              <>
-                <div className="mb-2">
-                  <div className="form-floating">
-                    <input
-                      className="form-control form-control-sm"
-                      placeholder="Sub Section Title"
-                      {...register(`sections.${sectionIndex}.sub_sections.${subSectionIndex}.title`, {
-                        required: "Sub section title is required"
-                      })}
-                    />
-                    <label style={{ fontSize: "13px" }}>Sub Section Title <span className="text-danger">*</span></label>
+              <div style={{ padding: "18px" }}>
+                <div style={{ 
+                  display: "grid", 
+                  gridTemplateColumns: "1fr 150px", 
+                  gap: "15px",
+                  marginBottom: "20px"
+                }}>
+                  <div>
+                    <div className="form-floating">
+                      <input
+                        className="form-control"
+                        placeholder="Sub Section Title"
+                        style={{ borderColor: "#e2e6ff", fontSize: "14px" }}
+                        {...register(`sections.${sectionIndex}.sub_sections.${subSectionIndex}.title`, {
+                          required: "Sub section title is required"
+                        })}
+                      />
+                      <label style={{ fontSize: "13px", color: "#666" }}>Sub Section Title <span className="text-danger">*</span></label>
+                    </div>
                   </div>
-                </div>
-
-                <div className="mb-2">
-                  <div className="form-floating">
-                    <input
-                      type="number"
-                      className="form-control form-control-sm"
-                      placeholder="Sort Order"
-                      {...register(`sections.${sectionIndex}.sub_sections.${subSectionIndex}.sort_order`, {
-                        required: "Sort order is required",
-                        valueAsNumber: true
-                      })}
-                    />
-                    <label style={{ fontSize: "13px" }}>Sort Order <span className="text-danger">*</span></label>
+                  <div>
+                    <div className="form-floating">
+                      <input
+                        type="number"
+                        className="form-control"
+                        placeholder="Sort Order"
+                        style={{ borderColor: "#e2e6ff", fontSize: "14px" }}
+                        {...register(`sections.${sectionIndex}.sub_sections.${subSectionIndex}.sort_order`, {
+                          required: "Sort order is required",
+                          valueAsNumber: true
+                        })}
+                      />
+                      <label style={{ fontSize: "13px", color: "#666" }}>Sort Order <span className="text-danger">*</span></label>
+                    </div>
                   </div>
                 </div>
 
@@ -425,7 +750,7 @@ export function CheckListModal({ showModal, closeModal }) {
                   subSectionIndex={subSectionIndex}
                   items={subSection.items}
                 />
-              </>
+              </div>
             )}
           </div>
         ))}
@@ -538,13 +863,56 @@ export function CheckListModal({ showModal, closeModal }) {
 
           {/* Sections */}
           <div className="mb-lg-3 mb-sm-0">
-            <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "15px" }}>
-              <h5 style={{ margin: 0, fontWeight: "600" }}>Sections</h5>
+            <div style={{ 
+              display: "flex", 
+              justifyContent: "space-between", 
+              alignItems: "center", 
+              marginBottom: "20px",
+              paddingBottom: "15px",
+              borderBottom: "2px solid #e2e6ff"
+            }}>
+              <h5 style={{ 
+                margin: 0, 
+                fontWeight: "700",
+                fontSize: "18px",
+                color: "#1a1a1a",
+                display: "flex",
+                alignItems: "center",
+                gap: "12px"
+              }}>
+                <div style={{
+                  width: "4px",
+                  height: "24px",
+                  backgroundColor: "#2A00FF",
+                  borderRadius: "2px"
+                }}></div>
+                Sections
+              </h5>
               <button
                 type="button"
                 onClick={addSection}
-                className="btn btn-sm btn-primary"
-                style={{ fontSize: "12px", padding: "6px 12px" }}
+                className="btn"
+                style={{ 
+                  fontSize: "13px", 
+                  padding: "10px 20px",
+                  backgroundColor: "#2A00FF",
+                  color: "#fff",
+                  border: "none",
+                  borderRadius: "8px",
+                  fontWeight: "600",
+                  transition: "all 0.2s ease",
+                  boxShadow: "0 2px 8px rgba(42, 0, 255, 0.3)"
+                }}
+                onMouseEnter={(e) => {
+                  e.currentTarget.style.backgroundColor = "#1a00cc";
+                  e.currentTarget.style.transform = "translateY(-1px)";
+                  e.currentTarget.style.boxShadow = "0 4px 12px rgba(42, 0, 255, 0.4)";
+                }}
+                onMouseLeave={(e) => {
+                  e.currentTarget.style.backgroundColor = "#2A00FF";
+                  e.currentTarget.style.transform = "translateY(0)";
+                  e.currentTarget.style.boxShadow = "0 2px 8px rgba(42, 0, 255, 0.3)";
+                }}
               >
                 + Add Section
               </button>
@@ -552,72 +920,132 @@ export function CheckListModal({ showModal, closeModal }) {
 
             {sections.map((section, sectionIndex) => (
               <div key={section.id} style={{ 
-                border: "1px solid #e0e0e0", 
-                borderRadius: "8px", 
-                padding: "15px", 
-                marginBottom: "15px",
-                backgroundColor: "#f9f9f9"
+                border: "1px solid #e2e6ff", 
+                borderRadius: "12px", 
+                padding: "0",
+                marginBottom: "20px",
+                backgroundColor: "#ffffff",
+                boxShadow: "0 2px 8px rgba(0, 0, 0, 0.06)",
+                overflow: "hidden"
               }}>
-                <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "10px" }}>
+                {/* Section Header */}
+                <div style={{ 
+                  display: "flex", 
+                  justifyContent: "space-between", 
+                  alignItems: "center", 
+                  padding: "16px 20px",
+                  backgroundColor: "#f8f9ff",
+                  borderBottom: expandedSections[sectionIndex] ? "1px solid #e2e6ff" : "none"
+                }}>
                   <button
                     type="button"
                     onClick={() => toggleSection(sectionIndex)}
                     style={{ 
                       background: "none", 
                       border: "none", 
-                      fontWeight: "600",
+                      fontWeight: "700",
+                      fontSize: "15px",
+                      color: "#1a1a1a",
                       cursor: "pointer",
                       flex: 1,
-                      textAlign: "left"
+                      textAlign: "left",
+                      display: "flex",
+                      alignItems: "center",
+                      gap: "10px",
+                      padding: 0
                     }}
                   >
-                    {expandedSections[sectionIndex] ? "▼" : "▶"} Section {sectionIndex + 1}
+                    <span style={{ 
+                      fontSize: "18px", 
+                      color: "#2A00FF",
+                      display: "inline-block",
+                      transition: "transform 0.2s ease",
+                      transform: expandedSections[sectionIndex] ? "rotate(90deg)" : "rotate(0deg)"
+                    }}>
+                      ▶
+                    </span>
+                    <span>Section {sectionIndex + 1}</span>
                   </button>
                   <button
                     type="button"
                     onClick={() => removeSection(sectionIndex)}
-                    className="btn btn-sm btn-danger"
-                    style={{ fontSize: "12px", padding: "4px 8px" }}
+                    className="btn btn-sm"
+                    style={{ 
+                      fontSize: "12px", 
+                      padding: "6px 14px",
+                      backgroundColor: "#fff",
+                      border: "1px solid #dc3545",
+                      color: "#dc3545",
+                      borderRadius: "6px",
+                      fontWeight: "600",
+                      transition: "all 0.2s ease"
+                    }}
+                    onMouseEnter={(e) => {
+                      e.currentTarget.style.backgroundColor = "#dc3545";
+                      e.currentTarget.style.color = "#fff";
+                    }}
+                    onMouseLeave={(e) => {
+                      e.currentTarget.style.backgroundColor = "#fff";
+                      e.currentTarget.style.color = "#dc3545";
+                    }}
                   >
                     Remove
                   </button>
                 </div>
 
                 {expandedSections[sectionIndex] && (
-                  <>
-                    {/* Section Title */}
-                    <div className="mb-3">
-                      <div className="form-floating">
-                        <input
-                          className="form-control"
-                          placeholder="Section Title"
-                          {...register(`sections.${sectionIndex}.title`, {
-                            required: "Section title is required"
-                          })}
-                        />
-                        <label>Section Title <span className="text-danger">*</span></label>
+                  <div style={{ padding: "20px" }}>
+                    {/* Section Title and Sort Order in Grid */}
+                    <div style={{ 
+                      display: "grid", 
+                      gridTemplateColumns: "1fr 150px", 
+                      gap: "15px",
+                      marginBottom: "20px"
+                    }}>
+                      {/* Section Title */}
+                      <div>
+                        <div className="form-floating">
+                          <input
+                            className="form-control"
+                            placeholder="Section Title"
+                            style={{ borderColor: "#e2e6ff" }}
+                            {...register(`sections.${sectionIndex}.title`, {
+                              required: "Section title is required"
+                            })}
+                          />
+                          <label style={{ color: "#666" }}>Section Title <span className="text-danger">*</span></label>
+                        </div>
+                      </div>
+
+                      {/* Section Sort Order */}
+                      <div>
+                        <div className="form-floating">
+                          <input
+                            type="number"
+                            className="form-control"
+                            placeholder="Sort Order"
+                            style={{ borderColor: "#e2e6ff" }}
+                            {...register(`sections.${sectionIndex}.sort_order`, {
+                              required: "Sort order is required",
+                              valueAsNumber: true
+                            })}
+                          />
+                          <label style={{ color: "#666" }}>Sort Order <span className="text-danger">*</span></label>
+                        </div>
                       </div>
                     </div>
 
-                    {/* Section Sort Order */}
-                    <div className="mb-3">
-                      <div className="form-floating">
-                        <input
-                          type="number"
-                          className="form-control"
-                          placeholder="Sort Order"
-                          {...register(`sections.${sectionIndex}.sort_order`, {
-                            required: "Sort order is required",
-                            valueAsNumber: true
-                          })}
-                        />
-                        <label>Sort Order <span className="text-danger">*</span></label>
-                      </div>
-                    </div>
+                    {/* Divider */}
+                    <div style={{ 
+                      height: "1px", 
+                      backgroundColor: "#e2e6ff", 
+                      margin: "20px 0",
+                      width: "100%"
+                    }}></div>
 
                     <SectionItems sectionIndex={sectionIndex} items={section.items} />
                     <SubSections sectionIndex={sectionIndex} subSections={section.sub_sections} />
-                  </>
+                  </div>
                 )}
               </div>
             ))}
