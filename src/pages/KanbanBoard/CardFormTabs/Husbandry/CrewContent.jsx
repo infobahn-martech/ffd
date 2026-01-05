@@ -811,77 +811,94 @@ const CrewContent = ({ formValues, handleChange, cardColor, onNavigateToTab, lau
             flex: "0 0 480px",
             display: "flex",
             flexDirection: "column",
-            alignItems: "center",
-            minWidth: "400px"
+            alignItems: "stretch",
+            minWidth: "400px",
+            paddingRight: "16px"
           }}>
             {/* Header above upload zone with Download Preview button */}
             <div style={{
-              textAlign: "center",
-              marginBottom: "24px",
               width: "100%",
-              position: "relative"
+              marginBottom: "24px"
             }}>
-              {/* Download Preview Button - Positioned at top right of header */}
-              <button
-                type="button"
-                onClick={handleDownloadPreview}
-                style={{
-                  position: "absolute",
-                  top: "0",
-                  right: "0",
-                  padding: "8px 16px",
-                  borderRadius: "8px",
-                  border: "1px solid #e2e6ff",
-                  backgroundColor: "#ffffff",
-                  color: "#1a1a1a",
-                  fontSize: "13px",
-                  fontWeight: "600",
-                  cursor: "pointer",
-                  transition: "all 0.2s ease",
-                  fontFamily: "Inter, sans-serif",
-                  display: "flex",
-                  alignItems: "center",
-                  gap: "8px",
-                  boxShadow: "0 2px 4px rgba(0, 0, 0, 0.1)"
-                }}
-                onMouseEnter={(e) => {
-                  e.currentTarget.style.backgroundColor = "#f8f9ff";
-                  e.currentTarget.style.borderColor = "var(--card-color, #2A00FF)";
-                  e.currentTarget.style.transform = "translateY(-1px)";
-                  e.currentTarget.style.boxShadow = "0 4px 8px rgba(0, 0, 0, 0.15)";
-                }}
-                onMouseLeave={(e) => {
-                  e.currentTarget.style.backgroundColor = "#ffffff";
-                  e.currentTarget.style.borderColor = "#e2e6ff";
-                  e.currentTarget.style.transform = "translateY(0)";
-                  e.currentTarget.style.boxShadow = "0 2px 4px rgba(0, 0, 0, 0.1)";
-                }}
-              >
-                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" style={{ flexShrink: 0 }}>
-                  <path d="M21 15V19C21 19.5304 20.7893 20.0391 20.4142 20.4142C20.0391 20.7893 19.5304 21 19 21H5C4.46957 21 3.96086 20.7893 3.58579 20.4142C3.21071 20.0391 3 19.5304 3 19V15" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
-                  <path d="M7 10L12 15L17 10" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
-                  <path d="M12 15V3" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
-                </svg>
-                <span>Download Preview</span>
-              </button>
-
-              <h3 style={{
-                fontSize: "18px",
-                fontWeight: "600",
-                color: "#1a1a1a",
-                margin: "0 0 8px 0",
-                fontFamily: "Inter, sans-serif"
+              <div style={{
+                display: "flex",
+                justifyContent: "space-between",
+                alignItems: "flex-start",
+                marginBottom: "16px",
+                gap: "16px"
               }}>
-                Upload Crew Excel File
-              </h3>
-              <p style={{
-                fontSize: "14px",
-                color: "#666",
-                margin: "0",
-                fontFamily: "Inter, sans-serif"
-              }}>
-                Please upload your crew data in Excel format
-              </p>
+                <div style={{ flex: 1 }}>
+                  <h3 style={{
+                    fontSize: "20px",
+                    fontWeight: "700",
+                    color: "#1a1a1a",
+                    margin: "0 0 8px 0",
+                    fontFamily: "Inter, sans-serif",
+                    display: "flex",
+                    alignItems: "center",
+                    gap: "12px"
+                  }}>
+                    <div style={{
+                      width: "4px",
+                      height: "24px",
+                      backgroundColor: "var(--card-color, #2A00FF)",
+                      borderRadius: "2px"
+                    }}></div>
+                    Upload Crew Excel File
+                  </h3>
+                  <p style={{
+                    fontSize: "14px",
+                    color: "#666",
+                    margin: "0",
+                    fontFamily: "Inter, sans-serif",
+                    paddingLeft: "16px"
+                  }}>
+                    Please upload your crew data in Excel format
+                  </p>
+                </div>
+                {/* Download Preview Button */}
+                <button
+                  type="button"
+                  onClick={handleDownloadPreview}
+                  style={{
+                    padding: "10px 18px",
+                    borderRadius: "8px",
+                    border: "1px solid #e2e6ff",
+                    backgroundColor: "#ffffff",
+                    color: "#1a1a1a",
+                    fontSize: "13px",
+                    fontWeight: "600",
+                    cursor: "pointer",
+                    transition: "all 0.2s ease",
+                    fontFamily: "Inter, sans-serif",
+                    display: "flex",
+                    alignItems: "center",
+                    gap: "8px",
+                    boxShadow: "0 2px 4px rgba(0, 0, 0, 0.1)",
+                    whiteSpace: "nowrap",
+                    flexShrink: 0
+                  }}
+                  onMouseEnter={(e) => {
+                    e.currentTarget.style.backgroundColor = "#f8f9ff";
+                    e.currentTarget.style.borderColor = "var(--card-color, #2A00FF)";
+                    e.currentTarget.style.transform = "translateY(-1px)";
+                    e.currentTarget.style.boxShadow = "0 4px 8px rgba(0, 0, 0, 0.15)";
+                  }}
+                  onMouseLeave={(e) => {
+                    e.currentTarget.style.backgroundColor = "#ffffff";
+                    e.currentTarget.style.borderColor = "#e2e6ff";
+                    e.currentTarget.style.transform = "translateY(0)";
+                    e.currentTarget.style.boxShadow = "0 2px 4px rgba(0, 0, 0, 0.1)";
+                  }}
+                >
+                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" style={{ flexShrink: 0 }}>
+                    <path d="M21 15V19C21 19.5304 20.7893 20.0391 20.4142 20.4142C20.0391 20.7893 19.5304 21 19 21H5C4.46957 21 3.96086 20.7893 3.58579 20.4142C3.21071 20.0391 3 19.5304 3 19V15" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+                    <path d="M7 10L12 15L17 10" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+                    <path d="M12 15V3" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+                  </svg>
+                  <span>Download Preview</span>
+                </button>
+              </div>
             </div>
 
             <div
@@ -894,8 +911,10 @@ const CrewContent = ({ formValues, handleChange, cardColor, onNavigateToTab, lau
               style={{
                 "--card-color": cardColor,
                 width: "100%",
-                height: "240px",
-                margin: "0 auto"
+                minHeight: "280px",
+                height: "auto",
+                margin: "0",
+                padding: "32px 24px"
               }}
             >
               <input
