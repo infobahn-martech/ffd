@@ -17,19 +17,19 @@ export function CheckListModal({ showModal, closeModal }) {
   } = useForm({
     defaultValues: showModal?._id
       ? {
-          callType: showModal?.callType || "",
-          vesselType: showModal?.vesselType || "",
-          bargeType: showModal?.bargeType || "",
-          checklistName: showModal?.checklistName || "",
-          sections: showModal?.sections || []
-        }
+        callType: showModal?.callType || "",
+        vesselType: showModal?.vesselType || "",
+        bargeType: showModal?.bargeType || "",
+        checklistName: showModal?.checklistName || "",
+        sections: showModal?.sections || []
+      }
       : {
-          callType: "",
-          vesselType: "",
-          bargeType: "",
-          checklistName: "",
-          sections: []
-        }
+        callType: "",
+        vesselType: "",
+        bargeType: "",
+        checklistName: "",
+        sections: []
+      }
   });
 
   const { fields: sections, append: appendSection, remove: removeSection } = useFieldArray({
@@ -83,16 +83,16 @@ export function CheckListModal({ showModal, closeModal }) {
 
     return (
       <div style={{ marginTop: "20px" }}>
-        <div style={{ 
-          display: "flex", 
-          justifyContent: "space-between", 
-          alignItems: "center", 
+        <div style={{
+          display: "flex",
+          justifyContent: "space-between",
+          alignItems: "center",
           marginBottom: "16px",
           paddingBottom: "12px",
           borderBottom: "2px solid #e2e6ff"
         }}>
-          <h6 style={{ 
-            margin: 0, 
+          <h6 style={{
+            margin: 0,
             fontWeight: "700",
             fontSize: "14px",
             color: "#1a1a1a",
@@ -100,10 +100,10 @@ export function CheckListModal({ showModal, closeModal }) {
             alignItems: "center",
             gap: "8px"
           }}>
-            <span style={{ 
-              width: "4px", 
-              height: "18px", 
-              backgroundColor: "#2A00FF", 
+            <span style={{
+              width: "4px",
+              height: "18px",
+              backgroundColor: "#00368c",
               borderRadius: "2px",
               display: "inline-block"
             }}></span>
@@ -122,10 +122,10 @@ export function CheckListModal({ showModal, closeModal }) {
               }
             })}
             className="btn btn-sm"
-            style={{ 
-              fontSize: "12px", 
+            style={{
+              fontSize: "12px",
               padding: "6px 14px",
-              backgroundColor: "#2A00FF",
+              backgroundColor: "#00368c",
               color: "#fff",
               border: "none",
               borderRadius: "6px",
@@ -133,11 +133,11 @@ export function CheckListModal({ showModal, closeModal }) {
               transition: "all 0.2s ease"
             }}
             onMouseEnter={(e) => {
-              e.currentTarget.style.backgroundColor = "#1a00cc";
+              e.currentTarget.style.backgroundColor = "#002d6f";
               e.currentTarget.style.transform = "translateY(-1px)";
             }}
             onMouseLeave={(e) => {
-              e.currentTarget.style.backgroundColor = "#2A00FF";
+              e.currentTarget.style.backgroundColor = "#00368c";
               e.currentTarget.style.transform = "translateY(0)";
             }}
           >
@@ -146,27 +146,27 @@ export function CheckListModal({ showModal, closeModal }) {
         </div>
 
         {fields.map((item, itemIndex) => (
-          <div key={item.id} style={{ 
-            border: "1px solid #e2e6ff", 
-            borderRadius: "10px", 
-            padding: "18px", 
+          <div key={item.id} style={{
+            border: "1px solid #e2e6ff",
+            borderRadius: "10px",
+            padding: "18px",
             marginBottom: "15px",
             backgroundColor: "#fafbfc",
             boxShadow: "0 1px 4px rgba(0, 0, 0, 0.04)",
             transition: "all 0.2s ease"
           }}
-          onMouseEnter={(e) => {
-            e.currentTarget.style.boxShadow = "0 2px 8px rgba(0, 0, 0, 0.08)";
-            e.currentTarget.style.borderColor = "#2A00FF";
-          }}
-          onMouseLeave={(e) => {
-            e.currentTarget.style.boxShadow = "0 1px 4px rgba(0, 0, 0, 0.04)";
-            e.currentTarget.style.borderColor = "#e2e6ff";
-          }}
+            onMouseEnter={(e) => {
+              e.currentTarget.style.boxShadow = "0 2px 8px rgba(0, 0, 0, 0.08)";
+              e.currentTarget.style.borderColor = "#00368c";
+            }}
+            onMouseLeave={(e) => {
+              e.currentTarget.style.boxShadow = "0 1px 4px rgba(0, 0, 0, 0.04)";
+              e.currentTarget.style.borderColor = "#e2e6ff";
+            }}
           >
-            <div style={{ 
-              display: "flex", 
-              justifyContent: "space-between", 
+            <div style={{
+              display: "flex",
+              justifyContent: "space-between",
               alignItems: "center",
               marginBottom: "15px",
               paddingBottom: "12px",
@@ -177,7 +177,7 @@ export function CheckListModal({ showModal, closeModal }) {
                   width: "28px",
                   height: "28px",
                   borderRadius: "50%",
-                  backgroundColor: "#2A00FF",
+                  backgroundColor: "#00368c",
                   color: "#fff",
                   display: "flex",
                   alignItems: "center",
@@ -193,8 +193,8 @@ export function CheckListModal({ showModal, closeModal }) {
                 type="button"
                 onClick={() => remove(itemIndex)}
                 className="btn btn-sm"
-                style={{ 
-                  fontSize: "11px", 
+                style={{
+                  fontSize: "11px",
                   padding: "5px 12px",
                   backgroundColor: "#fff",
                   border: "1px solid #dc3545",
@@ -259,16 +259,16 @@ export function CheckListModal({ showModal, closeModal }) {
             </div>
 
             {/* Document Details */}
-            <div style={{ 
-              marginTop: "15px", 
-              padding: "16px", 
-              backgroundColor: "#f8f9ff", 
+            <div style={{
+              marginTop: "15px",
+              padding: "16px",
+              backgroundColor: "#f8f9ff",
               borderRadius: "8px",
               border: "1px solid #e2e6ff"
             }}>
-              <div style={{ 
-                display: "flex", 
-                alignItems: "center", 
+              <div style={{
+                display: "flex",
+                alignItems: "center",
                 gap: "8px",
                 marginBottom: "12px",
                 paddingBottom: "10px",
@@ -277,7 +277,7 @@ export function CheckListModal({ showModal, closeModal }) {
                 <div style={{
                   width: "3px",
                   height: "16px",
-                  backgroundColor: "#2A00FF",
+                  backgroundColor: "#00368c",
                   borderRadius: "2px"
                 }}></div>
                 <strong style={{ fontSize: "13px", color: "#1a1a1a" }}>Document Details</strong>
@@ -330,26 +330,26 @@ export function CheckListModal({ showModal, closeModal }) {
 
     return (
       <div style={{ marginTop: "20px" }}>
-        <div style={{ 
-          display: "flex", 
-          justifyContent: "space-between", 
-          alignItems: "center", 
+        <div style={{
+          display: "flex",
+          justifyContent: "space-between",
+          alignItems: "center",
           marginBottom: "16px",
           paddingBottom: "12px",
           borderBottom: "2px solid #e2e6ff"
         }}>
-          <strong style={{ 
-            fontSize: "13px", 
+          <strong style={{
+            fontSize: "13px",
             fontWeight: "700",
             color: "#1a1a1a",
             display: "flex",
             alignItems: "center",
             gap: "8px"
           }}>
-            <span style={{ 
-              width: "3px", 
-              height: "16px", 
-              backgroundColor: "#2A00FF", 
+            <span style={{
+              width: "3px",
+              height: "16px",
+              backgroundColor: "#00368c",
               borderRadius: "2px",
               display: "inline-block"
             }}></span>
@@ -368,10 +368,10 @@ export function CheckListModal({ showModal, closeModal }) {
               }
             })}
             className="btn btn-sm"
-            style={{ 
-              fontSize: "12px", 
+            style={{
+              fontSize: "12px",
               padding: "6px 14px",
-              backgroundColor: "#2A00FF",
+              backgroundColor: "#00368c",
               color: "#fff",
               border: "none",
               borderRadius: "6px",
@@ -379,11 +379,11 @@ export function CheckListModal({ showModal, closeModal }) {
               transition: "all 0.2s ease"
             }}
             onMouseEnter={(e) => {
-              e.currentTarget.style.backgroundColor = "#1a00cc";
+              e.currentTarget.style.backgroundColor = "#002d6f";
               e.currentTarget.style.transform = "translateY(-1px)";
             }}
             onMouseLeave={(e) => {
-              e.currentTarget.style.backgroundColor = "#2A00FF";
+              e.currentTarget.style.backgroundColor = "#00368c";
               e.currentTarget.style.transform = "translateY(0)";
             }}
           >
@@ -392,27 +392,27 @@ export function CheckListModal({ showModal, closeModal }) {
         </div>
 
         {fields.map((item, itemIndex) => (
-          <div key={item.id} style={{ 
-            border: "1px solid #e2e6ff", 
-            borderRadius: "10px", 
-            padding: "18px", 
+          <div key={item.id} style={{
+            border: "1px solid #e2e6ff",
+            borderRadius: "10px",
+            padding: "18px",
             marginBottom: "15px",
             backgroundColor: "#fafbfc",
             boxShadow: "0 1px 4px rgba(0, 0, 0, 0.04)",
             transition: "all 0.2s ease"
           }}
-          onMouseEnter={(e) => {
-            e.currentTarget.style.boxShadow = "0 2px 8px rgba(0, 0, 0, 0.08)";
-            e.currentTarget.style.borderColor = "#2A00FF";
-          }}
-          onMouseLeave={(e) => {
-            e.currentTarget.style.boxShadow = "0 1px 4px rgba(0, 0, 0, 0.04)";
-            e.currentTarget.style.borderColor = "#e2e6ff";
-          }}
+            onMouseEnter={(e) => {
+              e.currentTarget.style.boxShadow = "0 2px 8px rgba(0, 0, 0, 0.08)";
+              e.currentTarget.style.borderColor = "#00368c";
+            }}
+            onMouseLeave={(e) => {
+              e.currentTarget.style.boxShadow = "0 1px 4px rgba(0, 0, 0, 0.04)";
+              e.currentTarget.style.borderColor = "#e2e6ff";
+            }}
           >
-            <div style={{ 
-              display: "flex", 
-              justifyContent: "space-between", 
+            <div style={{
+              display: "flex",
+              justifyContent: "space-between",
               alignItems: "center",
               marginBottom: "15px",
               paddingBottom: "12px",
@@ -423,7 +423,7 @@ export function CheckListModal({ showModal, closeModal }) {
                   width: "26px",
                   height: "26px",
                   borderRadius: "50%",
-                  backgroundColor: "#2A00FF",
+                  backgroundColor: "#00368c",
                   color: "#fff",
                   display: "flex",
                   alignItems: "center",
@@ -439,8 +439,8 @@ export function CheckListModal({ showModal, closeModal }) {
                 type="button"
                 onClick={() => remove(itemIndex)}
                 className="btn btn-sm"
-                style={{ 
-                  fontSize: "11px", 
+                style={{
+                  fontSize: "11px",
                   padding: "5px 12px",
                   backgroundColor: "#fff",
                   border: "1px solid #dc3545",
@@ -505,16 +505,16 @@ export function CheckListModal({ showModal, closeModal }) {
             </div>
 
             {/* Document Details */}
-            <div style={{ 
-              marginTop: "15px", 
-              padding: "16px", 
-              backgroundColor: "#f8f9ff", 
+            <div style={{
+              marginTop: "15px",
+              padding: "16px",
+              backgroundColor: "#f8f9ff",
               borderRadius: "8px",
               border: "1px solid #e2e6ff"
             }}>
-              <div style={{ 
-                display: "flex", 
-                alignItems: "center", 
+              <div style={{
+                display: "flex",
+                alignItems: "center",
                 gap: "8px",
                 marginBottom: "12px",
                 paddingBottom: "10px",
@@ -523,7 +523,7 @@ export function CheckListModal({ showModal, closeModal }) {
                 <div style={{
                   width: "3px",
                   height: "16px",
-                  backgroundColor: "#2A00FF",
+                  backgroundColor: "#00368c",
                   borderRadius: "2px"
                 }}></div>
                 <strong style={{ fontSize: "13px", color: "#1a1a1a" }}>Document Details</strong>
@@ -576,16 +576,16 @@ export function CheckListModal({ showModal, closeModal }) {
 
     return (
       <div style={{ marginTop: "25px" }}>
-        <div style={{ 
-          display: "flex", 
-          justifyContent: "space-between", 
-          alignItems: "center", 
+        <div style={{
+          display: "flex",
+          justifyContent: "space-between",
+          alignItems: "center",
           marginBottom: "16px",
           paddingBottom: "12px",
           borderBottom: "2px solid #e2e6ff"
         }}>
-          <h6 style={{ 
-            margin: 0, 
+          <h6 style={{
+            margin: 0,
             fontWeight: "700",
             fontSize: "14px",
             color: "#1a1a1a",
@@ -593,10 +593,10 @@ export function CheckListModal({ showModal, closeModal }) {
             alignItems: "center",
             gap: "8px"
           }}>
-            <span style={{ 
-              width: "4px", 
-              height: "18px", 
-              backgroundColor: "#2A00FF", 
+            <span style={{
+              width: "4px",
+              height: "18px",
+              backgroundColor: "#00368c",
               borderRadius: "2px",
               display: "inline-block"
             }}></span>
@@ -610,10 +610,10 @@ export function CheckListModal({ showModal, closeModal }) {
               items: []
             })}
             className="btn btn-sm"
-            style={{ 
-              fontSize: "12px", 
+            style={{
+              fontSize: "12px",
               padding: "6px 14px",
-              backgroundColor: "#2A00FF",
+              backgroundColor: "#00368c",
               color: "#fff",
               border: "none",
               borderRadius: "6px",
@@ -621,11 +621,11 @@ export function CheckListModal({ showModal, closeModal }) {
               transition: "all 0.2s ease"
             }}
             onMouseEnter={(e) => {
-              e.currentTarget.style.backgroundColor = "#1a00cc";
+              e.currentTarget.style.backgroundColor = "#002d6f";
               e.currentTarget.style.transform = "translateY(-1px)";
             }}
             onMouseLeave={(e) => {
-              e.currentTarget.style.backgroundColor = "#2A00FF";
+              e.currentTarget.style.backgroundColor = "#00368c";
               e.currentTarget.style.transform = "translateY(0)";
             }}
           >
@@ -634,18 +634,18 @@ export function CheckListModal({ showModal, closeModal }) {
         </div>
 
         {fields.map((subSection, subSectionIndex) => (
-          <div key={subSection.id} style={{ 
-            border: "1px solid #e2e6ff", 
-            borderRadius: "10px", 
+          <div key={subSection.id} style={{
+            border: "1px solid #e2e6ff",
+            borderRadius: "10px",
             padding: "0",
             marginBottom: "15px",
             backgroundColor: "#ffffff",
             boxShadow: "0 1px 4px rgba(0, 0, 0, 0.04)",
             overflow: "hidden"
           }}>
-            <div style={{ 
-              display: "flex", 
-              justifyContent: "space-between", 
+            <div style={{
+              display: "flex",
+              justifyContent: "space-between",
               alignItems: "center",
               padding: "14px 18px",
               backgroundColor: "#fafbfc",
@@ -654,9 +654,9 @@ export function CheckListModal({ showModal, closeModal }) {
               <button
                 type="button"
                 onClick={() => toggleSubSection(sectionIndex, subSectionIndex)}
-                style={{ 
-                  background: "none", 
-                  border: "none", 
+                style={{
+                  background: "none",
+                  border: "none",
                   fontWeight: "700",
                   fontSize: "14px",
                   color: "#1a1a1a",
@@ -669,9 +669,9 @@ export function CheckListModal({ showModal, closeModal }) {
                   padding: 0
                 }}
               >
-                <span style={{ 
-                  fontSize: "16px", 
-                  color: "#2A00FF",
+                <span style={{
+                  fontSize: "16px",
+                  color: "#00368c",
                   display: "inline-block",
                   transition: "transform 0.2s ease",
                   transform: expandedSubSections[`${sectionIndex}-${subSectionIndex}`] ? "rotate(90deg)" : "rotate(0deg)"
@@ -684,8 +684,8 @@ export function CheckListModal({ showModal, closeModal }) {
                 type="button"
                 onClick={() => remove(subSectionIndex)}
                 className="btn btn-sm"
-                style={{ 
-                  fontSize: "11px", 
+                style={{
+                  fontSize: "11px",
                   padding: "5px 12px",
                   backgroundColor: "#fff",
                   border: "1px solid #dc3545",
@@ -709,9 +709,9 @@ export function CheckListModal({ showModal, closeModal }) {
 
             {expandedSubSections[`${sectionIndex}-${subSectionIndex}`] && (
               <div style={{ padding: "18px" }}>
-                <div style={{ 
-                  display: "grid", 
-                  gridTemplateColumns: "1fr 150px", 
+                <div style={{
+                  display: "grid",
+                  gridTemplateColumns: "1fr 150px",
                   gap: "15px",
                   marginBottom: "20px"
                 }}>
@@ -745,8 +745,8 @@ export function CheckListModal({ showModal, closeModal }) {
                   </div>
                 </div>
 
-                <SubSectionItems 
-                  sectionIndex={sectionIndex} 
+                <SubSectionItems
+                  sectionIndex={sectionIndex}
                   subSectionIndex={subSectionIndex}
                   items={subSection.items}
                 />
@@ -762,7 +762,7 @@ export function CheckListModal({ showModal, closeModal }) {
     <div className="modal-body" style={{ maxHeight: "70vh", overflowY: "auto" }}>
       <div className="lead-form">
         <form id="checklistForm" onSubmit={handleSubmit(onSubmit)}>
-          
+
           {/* Call Type - Select */}
           <div className="mb-lg-3 mb-sm-0">
             <div className="form-floating desig-inp">
@@ -863,16 +863,16 @@ export function CheckListModal({ showModal, closeModal }) {
 
           {/* Sections */}
           <div className="mb-lg-3 mb-sm-0">
-            <div style={{ 
-              display: "flex", 
-              justifyContent: "space-between", 
-              alignItems: "center", 
+            <div style={{
+              display: "flex",
+              justifyContent: "space-between",
+              alignItems: "center",
               marginBottom: "20px",
               paddingBottom: "15px",
               borderBottom: "2px solid #e2e6ff"
             }}>
-              <h5 style={{ 
-                margin: 0, 
+              <h5 style={{
+                margin: 0,
                 fontWeight: "700",
                 fontSize: "18px",
                 color: "#1a1a1a",
@@ -883,7 +883,7 @@ export function CheckListModal({ showModal, closeModal }) {
                 <div style={{
                   width: "4px",
                   height: "24px",
-                  backgroundColor: "#2A00FF",
+                  backgroundColor: "#00368c",
                   borderRadius: "2px"
                 }}></div>
                 Sections
@@ -892,26 +892,26 @@ export function CheckListModal({ showModal, closeModal }) {
                 type="button"
                 onClick={addSection}
                 className="btn"
-                style={{ 
-                  fontSize: "13px", 
+                style={{
+                  fontSize: "13px",
                   padding: "10px 20px",
-                  backgroundColor: "#2A00FF",
+                  backgroundColor: "var(--card-color, #00368c)",
                   color: "#fff",
                   border: "none",
                   borderRadius: "8px",
                   fontWeight: "600",
                   transition: "all 0.2s ease",
-                  boxShadow: "0 2px 8px rgba(42, 0, 255, 0.3)"
+                  boxShadow: "0 2px 8px rgba(0, 54, 140, 0.3)"
                 }}
                 onMouseEnter={(e) => {
-                  e.currentTarget.style.backgroundColor = "#1a00cc";
+                  e.currentTarget.style.backgroundColor = "#002d6f";
                   e.currentTarget.style.transform = "translateY(-1px)";
-                  e.currentTarget.style.boxShadow = "0 4px 12px rgba(42, 0, 255, 0.4)";
+                  e.currentTarget.style.boxShadow = "0 4px 12px rgba(0, 54, 140, 0.4)";
                 }}
                 onMouseLeave={(e) => {
-                  e.currentTarget.style.backgroundColor = "#2A00FF";
+                  e.currentTarget.style.backgroundColor = "#00368c";
                   e.currentTarget.style.transform = "translateY(0)";
-                  e.currentTarget.style.boxShadow = "0 2px 8px rgba(42, 0, 255, 0.3)";
+                  e.currentTarget.style.boxShadow = "0 2px 8px rgba(0, 54, 140, 0.3)";
                 }}
               >
                 + Add Section
@@ -919,9 +919,9 @@ export function CheckListModal({ showModal, closeModal }) {
             </div>
 
             {sections.map((section, sectionIndex) => (
-              <div key={section.id} style={{ 
-                border: "1px solid #e2e6ff", 
-                borderRadius: "12px", 
+              <div key={section.id} style={{
+                border: "1px solid #e2e6ff",
+                borderRadius: "12px",
                 padding: "0",
                 marginBottom: "20px",
                 backgroundColor: "#ffffff",
@@ -929,10 +929,10 @@ export function CheckListModal({ showModal, closeModal }) {
                 overflow: "hidden"
               }}>
                 {/* Section Header */}
-                <div style={{ 
-                  display: "flex", 
-                  justifyContent: "space-between", 
-                  alignItems: "center", 
+                <div style={{
+                  display: "flex",
+                  justifyContent: "space-between",
+                  alignItems: "center",
                   padding: "16px 20px",
                   backgroundColor: "#f8f9ff",
                   borderBottom: expandedSections[sectionIndex] ? "1px solid #e2e6ff" : "none"
@@ -940,9 +940,9 @@ export function CheckListModal({ showModal, closeModal }) {
                   <button
                     type="button"
                     onClick={() => toggleSection(sectionIndex)}
-                    style={{ 
-                      background: "none", 
-                      border: "none", 
+                    style={{
+                      background: "none",
+                      border: "none",
                       fontWeight: "700",
                       fontSize: "15px",
                       color: "#1a1a1a",
@@ -955,9 +955,9 @@ export function CheckListModal({ showModal, closeModal }) {
                       padding: 0
                     }}
                   >
-                    <span style={{ 
-                      fontSize: "18px", 
-                      color: "#2A00FF",
+                    <span style={{
+                      fontSize: "18px",
+                      color: "#00368c",
                       display: "inline-block",
                       transition: "transform 0.2s ease",
                       transform: expandedSections[sectionIndex] ? "rotate(90deg)" : "rotate(0deg)"
@@ -970,8 +970,8 @@ export function CheckListModal({ showModal, closeModal }) {
                     type="button"
                     onClick={() => removeSection(sectionIndex)}
                     className="btn btn-sm"
-                    style={{ 
-                      fontSize: "12px", 
+                    style={{
+                      fontSize: "12px",
                       padding: "6px 14px",
                       backgroundColor: "#fff",
                       border: "1px solid #dc3545",
@@ -996,9 +996,9 @@ export function CheckListModal({ showModal, closeModal }) {
                 {expandedSections[sectionIndex] && (
                   <div style={{ padding: "20px" }}>
                     {/* Section Title and Sort Order in Grid */}
-                    <div style={{ 
-                      display: "grid", 
-                      gridTemplateColumns: "1fr 150px", 
+                    <div style={{
+                      display: "grid",
+                      gridTemplateColumns: "1fr 150px",
                       gap: "15px",
                       marginBottom: "20px"
                     }}>
@@ -1036,9 +1036,9 @@ export function CheckListModal({ showModal, closeModal }) {
                     </div>
 
                     {/* Divider */}
-                    <div style={{ 
-                      height: "1px", 
-                      backgroundColor: "#e2e6ff", 
+                    <div style={{
+                      height: "1px",
+                      backgroundColor: "#e2e6ff",
                       margin: "20px 0",
                       width: "100%"
                     }}></div>
