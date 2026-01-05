@@ -808,7 +808,7 @@ const CrewContent = ({ formValues, handleChange, cardColor, onNavigateToTab, lau
         }}>
           {/* Crew Excel Upload - Left Side */}
           <div className="crew-upload-section" style={{
-            flex: "0 0 480px",
+            flex: "0 0 850px",
             display: "flex",
             flexDirection: "column",
             alignItems: "stretch",
