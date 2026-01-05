@@ -795,17 +795,25 @@ const CrewContent = ({ formValues, handleChange, cardColor, onNavigateToTab, lau
         // Crew Excel Upload Section
         <div className="crew-upload-sections-container" style={{
           display: "flex",
-          flexDirection: "column",
-          alignItems: "center",
+          flexDirection: "row",
+          alignItems: "flex-start",
           justifyContent: "center",
+          gap: "32px",
           minHeight: "400px",
           padding: "40px 24px",
-          maxWidth: "800px",
+          maxWidth: "1600px",
           margin: "0 auto",
-          width: "100%"
+          width: "100%",
+          flexWrap: "wrap"
         }}>
-          {/* Crew Excel Upload */}
-          <div className="crew-upload-section" style={{ width: "100%", display: "flex", flexDirection: "column", alignItems: "center" }}>
+          {/* Crew Excel Upload - Left Side */}
+          <div className="crew-upload-section" style={{
+            flex: "0 0 480px",
+            display: "flex",
+            flexDirection: "column",
+            alignItems: "center",
+            minWidth: "400px"
+          }}>
             {/* Header above upload zone with Download Preview button */}
             <div style={{
               textAlign: "center",
@@ -885,7 +893,6 @@ const CrewContent = ({ formValues, handleChange, cardColor, onNavigateToTab, lau
               onClick={handleUploadZoneClick}
               style={{
                 "--card-color": cardColor,
-                maxWidth: "600px",
                 width: "100%",
                 height: "240px",
                 margin: "0 auto"
@@ -965,374 +972,342 @@ const CrewContent = ({ formValues, handleChange, cardColor, onNavigateToTab, lau
                 )}
               </div>
             </div>
+          </div>
 
-            {/* Preview Table */}
+          {/* Preview Table - Right Side */}
+          <div style={{
+            flex: "1 1 auto",
+            minWidth: "500px",
+            display: "flex",
+            flexDirection: "column"
+          }}>
             <div style={{
-              width: "100%",
-              marginTop: "32px",
-              maxWidth: "1000px"
+              display: "flex",
+              alignItems: "center",
+              gap: "12px",
+              marginBottom: "20px"
             }}>
+              <div style={{
+                width: "4px",
+                height: "24px",
+                backgroundColor: "var(--card-color, #2A00FF)",
+                borderRadius: "2px"
+              }}></div>
               <h4 style={{
-                fontSize: "16px",
-                fontWeight: "600",
+                fontSize: "18px",
+                fontWeight: "700",
                 color: "#1a1a1a",
-                margin: "0 0 16px 0",
+                margin: "0",
                 fontFamily: "Inter, sans-serif"
               }}>
                 Expected Format (Preview - 5 rows)
               </h4>
-              <div style={{
-                overflowX: "auto",
-                border: "1px solid #e2e6ff",
-                borderRadius: "8px",
-                backgroundColor: "#ffffff"
-              }}>
-                <table style={{
-                  width: "100%",
-                  borderCollapse: "collapse",
-                  fontFamily: "Inter, sans-serif",
-                  fontSize: "13px"
-                }}>
-                  <thead>
-                    <tr style={{
-                      backgroundColor: "#f8f9ff",
-                      borderBottom: "2px solid #e2e6ff"
-                    }}>
-                      <th style={{
-                        padding: "12px",
-                        textAlign: "left",
-                        fontWeight: "600",
-                        color: "#1a1a1a",
-                        borderRight: "1px solid #e2e6ff",
-                        whiteSpace: "nowrap"
-                      }}>No</th>
-                      <th style={{
-                        padding: "12px",
-                        textAlign: "left",
-                        fontWeight: "600",
-                        color: "#1a1a1a",
-                        borderRight: "1px solid #e2e6ff",
-                        whiteSpace: "nowrap"
-                      }}>Name</th>
-                      <th style={{
-                        padding: "12px",
-                        textAlign: "left",
-                        fontWeight: "600",
-                        color: "#1a1a1a",
-                        borderRight: "1px solid #e2e6ff",
-                        whiteSpace: "nowrap"
-                      }}>Company</th>
-                      <th style={{
-                        padding: "12px",
-                        textAlign: "left",
-                        fontWeight: "600",
-                        color: "#1a1a1a",
-                        borderRight: "1px solid #e2e6ff",
-                        whiteSpace: "nowrap"
-                      }}>Rank</th>
-                      <th style={{
-                        padding: "12px",
-                        textAlign: "left",
-                        fontWeight: "600",
-                        color: "#1a1a1a",
-                        borderRight: "1px solid #e2e6ff",
-                        whiteSpace: "nowrap"
-                      }}>Nationality</th>
-                      <th style={{
-                        padding: "12px",
-                        textAlign: "left",
-                        fontWeight: "600",
-                        color: "#1a1a1a",
-                        borderRight: "1px solid #e2e6ff",
-                        whiteSpace: "nowrap"
-                      }}>Passport Number</th>
-                      <th style={{
-                        padding: "12px",
-                        textAlign: "left",
-                        fontWeight: "600",
-                        color: "#1a1a1a",
-                        borderRight: "1px solid #e2e6ff",
-                        whiteSpace: "nowrap"
-                      }}>Passport Expiry</th>
-                      <th style={{
-                        padding: "12px",
-                        textAlign: "left",
-                        fontWeight: "600",
-                        color: "#1a1a1a",
-                        borderRight: "1px solid #e2e6ff",
-                        whiteSpace: "nowrap"
-                      }}>KSA Visa Number</th>
-                      <th style={{
-                        padding: "12px",
-                        textAlign: "left",
-                        fontWeight: "600",
-                        color: "#1a1a1a",
-                        whiteSpace: "nowrap"
-                      }}>IQAMA</th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {previewTableData.map((row, rowIndex) => (
-                      <tr
-                        key={rowIndex}
-                        style={{
-                          borderBottom: "1px solid #f0f0f0",
-                          backgroundColor: rowIndex % 2 === 1 ? "#fafafa" : "transparent"
-                        }}
-                      >
-                        <td style={{
-                          padding: "8px 12px",
-                          borderRight: "1px solid #f0f0f0"
-                        }}>
-                          <input
-                            type="text"
-                            value={row.no}
-                            onChange={(e) => handlePreviewTableCellChange(rowIndex, "no", e.target.value)}
-                            onPaste={(e) => handlePreviewTablePaste(e, rowIndex, 0)}
-                            style={{
-                              width: "100%",
-                              border: "none",
-                              outline: "none",
-                              backgroundColor: "transparent",
-                              color: "#666",
-                              fontSize: "13px",
-                              fontFamily: "Inter, sans-serif",
-                              padding: "2px 4px"
-                            }}
-                            readOnly
-                          />
-                        </td>
-                        <td style={{
-                          padding: "8px 12px",
-                          borderRight: "1px solid #f0f0f0"
-                        }}>
-                          <input
-                            type="text"
-                            value={row.name}
-                            onChange={(e) => handlePreviewTableCellChange(rowIndex, "name", e.target.value)}
-                            onPaste={(e) => handlePreviewTablePaste(e, rowIndex, 1)}
-                            placeholder="Enter name"
-                            style={{
-                              width: "100%",
-                              border: "none",
-                              outline: "none",
-                              backgroundColor: "transparent",
-                              color: "#666",
-                              fontSize: "13px",
-                              fontFamily: "Inter, sans-serif",
-                              padding: "2px 4px"
-                            }}
-                          />
-                        </td>
-                        <td style={{
-                          padding: "8px 12px",
-                          borderRight: "1px solid #f0f0f0"
-                        }}>
-                          <input
-                            type="text"
-                            value={row.company}
-                            onChange={(e) => handlePreviewTableCellChange(rowIndex, "company", e.target.value)}
-                            onPaste={(e) => handlePreviewTablePaste(e, rowIndex, 2)}
-                            placeholder="Enter company"
-                            style={{
-                              width: "100%",
-                              border: "none",
-                              outline: "none",
-                              backgroundColor: "transparent",
-                              color: "#666",
-                              fontSize: "13px",
-                              fontFamily: "Inter, sans-serif",
-                              padding: "2px 4px"
-                            }}
-                          />
-                        </td>
-                        <td style={{
-                          padding: "8px 12px",
-                          borderRight: "1px solid #f0f0f0"
-                        }}>
-                          <input
-                            type="text"
-                            value={row.rank}
-                            onChange={(e) => handlePreviewTableCellChange(rowIndex, "rank", e.target.value)}
-                            onPaste={(e) => handlePreviewTablePaste(e, rowIndex, 3)}
-                            placeholder="Enter rank"
-                            style={{
-                              width: "100%",
-                              border: "none",
-                              outline: "none",
-                              backgroundColor: "transparent",
-                              color: "#666",
-                              fontSize: "13px",
-                              fontFamily: "Inter, sans-serif",
-                              padding: "2px 4px"
-                            }}
-                          />
-                        </td>
-                        <td style={{
-                          padding: "8px 12px",
-                          borderRight: "1px solid #f0f0f0"
-                        }}>
-                          <input
-                            type="text"
-                            value={row.nationality}
-                            onChange={(e) => handlePreviewTableCellChange(rowIndex, "nationality", e.target.value)}
-                            onPaste={(e) => handlePreviewTablePaste(e, rowIndex, 4)}
-                            placeholder="Enter nationality"
-                            style={{
-                              width: "100%",
-                              border: "none",
-                              outline: "none",
-                              backgroundColor: "transparent",
-                              color: "#666",
-                              fontSize: "13px",
-                              fontFamily: "Inter, sans-serif",
-                              padding: "2px 4px"
-                            }}
-                          />
-                        </td>
-                        <td style={{
-                          padding: "8px 12px",
-                          borderRight: "1px solid #f0f0f0"
-                        }}>
-                          <input
-                            type="text"
-                            value={row.passportNumber}
-                            onChange={(e) => handlePreviewTableCellChange(rowIndex, "passportNumber", e.target.value)}
-                            onPaste={(e) => handlePreviewTablePaste(e, rowIndex, 5)}
-                            placeholder="Enter passport number"
-                            style={{
-                              width: "100%",
-                              border: "none",
-                              outline: "none",
-                              backgroundColor: "transparent",
-                              color: "#666",
-                              fontSize: "13px",
-                              fontFamily: "Inter, sans-serif",
-                              padding: "2px 4px"
-                            }}
-                          />
-                        </td>
-                        <td style={{
-                          padding: "8px 12px",
-                          borderRight: "1px solid #f0f0f0"
-                        }}>
-                          <input
-                            type="text"
-                            value={row.passportExpiry}
-                            onChange={(e) => handlePreviewTableCellChange(rowIndex, "passportExpiry", e.target.value)}
-                            onPaste={(e) => handlePreviewTablePaste(e, rowIndex, 6)}
-                            placeholder="YYYY-MM-DD"
-                            style={{
-                              width: "100%",
-                              border: "none",
-                              outline: "none",
-                              backgroundColor: "transparent",
-                              color: "#666",
-                              fontSize: "13px",
-                              fontFamily: "Inter, sans-serif",
-                              padding: "2px 4px"
-                            }}
-                          />
-                        </td>
-                        <td style={{
-                          padding: "8px 12px",
-                          borderRight: "1px solid #f0f0f0"
-                        }}>
-                          <input
-                            type="text"
-                            value={row.ksaVisaNumber}
-                            onChange={(e) => handlePreviewTableCellChange(rowIndex, "ksaVisaNumber", e.target.value)}
-                            onPaste={(e) => handlePreviewTablePaste(e, rowIndex, 7)}
-                            placeholder="Enter KSA visa number"
-                            style={{
-                              width: "100%",
-                              border: "none",
-                              outline: "none",
-                              backgroundColor: "transparent",
-                              color: "#666",
-                              fontSize: "13px",
-                              fontFamily: "Inter, sans-serif",
-                              padding: "2px 4px"
-                            }}
-                          />
-                        </td>
-                        <td style={{
-                          padding: "8px 12px"
-                        }}>
-                          <input
-                            type="text"
-                            value={row.iqama}
-                            onChange={(e) => handlePreviewTableCellChange(rowIndex, "iqama", e.target.value)}
-                            onPaste={(e) => handlePreviewTablePaste(e, rowIndex, 8)}
-                            placeholder="Enter IQAMA"
-                            style={{
-                              width: "100%",
-                              border: "none",
-                              outline: "none",
-                              backgroundColor: "transparent",
-                              color: "#666",
-                              fontSize: "13px",
-                              fontFamily: "Inter, sans-serif",
-                              padding: "2px 4px"
-                            }}
-                          />
-                        </td>
-                      </tr>
-                    ))}
-                  </tbody>
-                </table>
-              </div>
-              <p style={{
-                fontSize: "12px",
-                color: "#999",
-                margin: "12px 0 0 0",
+            </div>
+            <div style={{
+              border: "1px solid #e2e6ff",
+              borderRadius: "12px",
+              backgroundColor: "#ffffff",
+              boxShadow: "0 2px 8px rgba(0, 0, 0, 0.04)",
+              overflow: "hidden"
+            }}>
+              <table style={{
+                width: "100%",
+                borderCollapse: "collapse",
                 fontFamily: "Inter, sans-serif",
-                fontStyle: "italic"
+                fontSize: "13px",
+                tableLayout: "fixed"
               }}>
-                Note: You can type directly into the cells or copy and paste data from Excel (tab-separated). Maximum 5 rows. At least one crew member's name is required.
-              </p>
-              <div style={{
-                display: "flex",
-                justifyContent: "center",
-                marginTop: "20px"
-              }}>
-                <button
-                  type="button"
-                  onClick={handleUsePreviewData}
-                  style={{
-                    padding: "12px 24px",
-                    borderRadius: "8px",
-                    border: "none",
-                    backgroundColor: "var(--card-color, #2A00FF)",
-                    color: "#ffffff",
-                    fontSize: "14px",
-                    fontWeight: "600",
-                    cursor: "pointer",
-                    transition: "all 0.2s ease",
-                    fontFamily: "Inter, sans-serif",
-                    display: "flex",
-                    alignItems: "center",
-                    gap: "8px",
-                    boxShadow: "0 2px 8px rgba(42, 0, 255, 0.3)"
-                  }}
-                  onMouseEnter={(e) => {
-                    e.currentTarget.style.opacity = "0.9";
-                    e.currentTarget.style.transform = "translateY(-2px)";
-                    e.currentTarget.style.boxShadow = "0 4px 12px rgba(42, 0, 255, 0.4)";
-                  }}
-                  onMouseLeave={(e) => {
-                    e.currentTarget.style.opacity = "1";
-                    e.currentTarget.style.transform = "translateY(0)";
-                    e.currentTarget.style.boxShadow = "0 2px 8px rgba(42, 0, 255, 0.3)";
-                  }}
-                >
-                  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" style={{ flexShrink: 0 }}>
-                    <path d="M9 11L12 14L22 4" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
-                    <path d="M21 12V19C21 19.5304 20.7893 20.0391 20.4142 20.4142C20.0391 20.7893 19.5304 21 19 21H5C4.46957 21 3.96086 20.7893 3.58579 20.4142C3.21071 20.0391 3 19.5304 3 19V5C3 4.46957 3.21071 3.96086 3.58579 3.58579C3.96086 3.21071 4.46957 3 5 3H16" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
-                  </svg>
-                  <span>Use Preview Data (5 Crew Members)</span>
-                </button>
+                <thead>
+                  <tr style={{
+                    background: "linear-gradient(135deg, var(--card-color, #2A00FF) 0%, rgba(42, 0, 255, 0.9) 100%)"
+                  }}>
+                    <th style={{
+                      width: "4%",
+                      padding: "14px 16px",
+                      textAlign: "left",
+                      fontWeight: "600",
+                      color: "#ffffff",
+                      borderRight: "1px solid rgba(255, 255, 255, 0.2)",
+                      fontSize: "13px",
+                      letterSpacing: "0.3px"
+                    }}>No</th>
+                    <th style={{
+                      width: "14%",
+                      padding: "14px 16px",
+                      textAlign: "left",
+                      fontWeight: "600",
+                      color: "#ffffff",
+                      borderRight: "1px solid rgba(255, 255, 255, 0.2)",
+                      fontSize: "13px",
+                      letterSpacing: "0.3px"
+                    }}>Name</th>
+                    <th style={{
+                      width: "14%",
+                      padding: "14px 16px",
+                      textAlign: "left",
+                      fontWeight: "600",
+                      color: "#ffffff",
+                      borderRight: "1px solid rgba(255, 255, 255, 0.2)",
+                      fontSize: "13px",
+                      letterSpacing: "0.3px"
+                    }}>Company</th>
+                    <th style={{
+                      width: "12%",
+                      padding: "14px 16px",
+                      textAlign: "left",
+                      fontWeight: "600",
+                      color: "#ffffff",
+                      borderRight: "1px solid rgba(255, 255, 255, 0.2)",
+                      fontSize: "13px",
+                      letterSpacing: "0.3px"
+                    }}>Rank</th>
+                    <th style={{
+                      width: "11%",
+                      padding: "14px 16px",
+                      textAlign: "left",
+                      fontWeight: "600",
+                      color: "#ffffff",
+                      borderRight: "1px solid rgba(255, 255, 255, 0.2)",
+                      fontSize: "13px",
+                      letterSpacing: "0.3px"
+                    }}>Nationality</th>
+                    <th style={{
+                      width: "13%",
+                      padding: "14px 16px",
+                      textAlign: "left",
+                      fontWeight: "600",
+                      color: "#ffffff",
+                      borderRight: "1px solid rgba(255, 255, 255, 0.2)",
+                      fontSize: "13px",
+                      letterSpacing: "0.3px"
+                    }}>Passport Number</th>
+                    <th style={{
+                      width: "12%",
+                      padding: "14px 16px",
+                      textAlign: "left",
+                      fontWeight: "600",
+                      color: "#ffffff",
+                      borderRight: "1px solid rgba(255, 255, 255, 0.2)",
+                      fontSize: "13px",
+                      letterSpacing: "0.3px"
+                    }}>Passport Expiry</th>
+                    <th style={{
+                      width: "13%",
+                      padding: "14px 16px",
+                      textAlign: "left",
+                      fontWeight: "600",
+                      color: "#ffffff",
+                      borderRight: "1px solid rgba(255, 255, 255, 0.2)",
+                      fontSize: "13px",
+                      letterSpacing: "0.3px"
+                    }}>KSA Visa Number</th>
+                    <th style={{
+                      width: "11%",
+                      padding: "14px 16px",
+                      textAlign: "left",
+                      fontWeight: "600",
+                      color: "#ffffff",
+                      fontSize: "13px",
+                      letterSpacing: "0.3px"
+                    }}>IQAMA</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {previewTableData.map((row, rowIndex) => (
+                    <tr
+                      key={rowIndex}
+                      style={{
+                        borderBottom: rowIndex < 4 ? "1px solid #f0f0f0" : "none",
+                        backgroundColor: rowIndex % 2 === 1 ? "#fafbfc" : "#ffffff",
+                        transition: "background-color 0.2s ease"
+                      }}
+                      onMouseEnter={(e) => {
+                        e.currentTarget.style.backgroundColor = "#f8f9ff";
+                      }}
+                      onMouseLeave={(e) => {
+                        e.currentTarget.style.backgroundColor = rowIndex % 2 === 1 ? "#fafbfc" : "#ffffff";
+                      }}
+                    >
+                      {[
+                        { field: "no", placeholder: "", readOnly: true },
+                        { field: "name", placeholder: "Enter name" },
+                        { field: "company", placeholder: "Enter company" },
+                        { field: "rank", placeholder: "Enter rank" },
+                        { field: "nationality", placeholder: "Enter nationality" },
+                        { field: "passportNumber", placeholder: "Enter passport number" },
+                        { field: "passportExpiry", placeholder: "YYYY-MM-DD" },
+                        { field: "ksaVisaNumber", placeholder: "Enter KSA visa number" },
+                        { field: "iqama", placeholder: "Enter IQAMA" }
+                      ].map((col, colIndex) => {
+                        const isLast = colIndex === 8;
+                        const hasValue = row[col.field] && row[col.field].trim() !== "";
+                        return (
+                          <td
+                            key={col.field}
+                            style={{
+                              padding: "10px 16px",
+                              borderRight: !isLast ? "1px solid #f0f0f0" : "none",
+                              position: "relative"
+                            }}
+                          >
+                            <input
+                              type="text"
+                              value={row[col.field]}
+                              onChange={(e) => handlePreviewTableCellChange(rowIndex, col.field, e.target.value)}
+                              onPaste={(e) => handlePreviewTablePaste(e, rowIndex, colIndex)}
+                              onFocus={(e) => {
+                                e.target.style.backgroundColor = "#ffffff";
+                                e.target.style.boxShadow = "0 0 0 2px rgba(42, 0, 255, 0.1)";
+                                e.target.style.borderRadius = "4px";
+                              }}
+                              onBlur={(e) => {
+                                e.target.style.backgroundColor = hasValue ? "#f0f7ff" : "transparent";
+                                e.target.style.boxShadow = "none";
+                              }}
+                              placeholder={col.placeholder}
+                              readOnly={col.readOnly}
+                              style={{
+                                width: "100%",
+                                border: "none",
+                                outline: "none",
+                                backgroundColor: hasValue ? "#f0f7ff" : "transparent",
+                                color: hasValue ? "#1a1a1a" : "#999",
+                                fontSize: "13px",
+                                fontFamily: "Inter, sans-serif",
+                                padding: "8px 10px",
+                                borderRadius: "4px",
+                                transition: "all 0.2s ease",
+                                fontWeight: hasValue ? "500" : "400",
+                                boxSizing: "border-box"
+                              }}
+                            />
+                          </td>
+                        );
+                      })}
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+            <div style={{
+              marginTop: "24px",
+              padding: "16px 20px",
+              backgroundColor: "#f8f9ff",
+              borderRadius: "10px",
+              border: "1px solid #e2e6ff",
+              display: "flex",
+              alignItems: "flex-start",
+              gap: "12px"
+            }}>
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" style={{ flexShrink: 0, marginTop: "2px" }}>
+                <path d="M12 22C17.5228 22 22 17.5228 22 12C22 6.47715 17.5228 2 12 2C6.47715 2 2 6.47715 2 12C2 17.5228 6.47715 22 12 22Z" stroke="var(--card-color, #2A00FF)" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" fill="none" />
+                <path d="M12 8V12M12 16H12.01" stroke="var(--card-color, #2A00FF)" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+              </svg>
+              <div style={{ flex: 1 }}>
+                <p style={{
+                  fontSize: "13px",
+                  color: "#1a1a1a",
+                  margin: "0 0 4px 0",
+                  fontFamily: "Inter, sans-serif",
+                  fontWeight: "600"
+                }}>
+                  Quick Entry Guide
+                </p>
+                <p style={{
+                  fontSize: "12px",
+                  color: "#666",
+                  margin: "0",
+                  fontFamily: "Inter, sans-serif",
+                  lineHeight: "1.6"
+                }}>
+                  You can type directly into the cells or copy and paste data from Excel (tab-separated). Maximum 5 rows. At least one crew member's name is required.
+                </p>
               </div>
+            </div>
+            <div style={{
+              display: "flex",
+              justifyContent: "center",
+              marginTop: "28px",
+              gap: "12px"
+            }}>
+              <button
+                type="button"
+                onClick={() => {
+                  setPreviewTableData([
+                    { no: "1", name: "", company: "", rank: "", nationality: "", passportNumber: "", passportExpiry: "", ksaVisaNumber: "", iqama: "" },
+                    { no: "2", name: "", company: "", rank: "", nationality: "", passportNumber: "", passportExpiry: "", ksaVisaNumber: "", iqama: "" },
+                    { no: "3", name: "", company: "", rank: "", nationality: "", passportNumber: "", passportExpiry: "", ksaVisaNumber: "", iqama: "" },
+                    { no: "4", name: "", company: "", rank: "", nationality: "", passportNumber: "", passportExpiry: "", ksaVisaNumber: "", iqama: "" },
+                    { no: "5", name: "", company: "", rank: "", nationality: "", passportNumber: "", passportExpiry: "", ksaVisaNumber: "", iqama: "" },
+                  ]);
+                }}
+                style={{
+                  padding: "10px 20px",
+                  borderRadius: "8px",
+                  border: "1px solid #e2e6ff",
+                  backgroundColor: "#ffffff",
+                  color: "#666",
+                  fontSize: "13px",
+                  fontWeight: "600",
+                  cursor: "pointer",
+                  transition: "all 0.2s ease",
+                  fontFamily: "Inter, sans-serif",
+                  display: "flex",
+                  alignItems: "center",
+                  gap: "6px"
+                }}
+                onMouseEnter={(e) => {
+                  e.currentTarget.style.backgroundColor = "#f8f9ff";
+                  e.currentTarget.style.borderColor = "var(--card-color, #2A00FF)";
+                  e.currentTarget.style.color = "var(--card-color, #2A00FF)";
+                }}
+                onMouseLeave={(e) => {
+                  e.currentTarget.style.backgroundColor = "#ffffff";
+                  e.currentTarget.style.borderColor = "#e2e6ff";
+                  e.currentTarget.style.color = "#666";
+                }}
+              >
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                  <path d="M3 6H5H21" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+                  <path d="M8 6V4C8 3.46957 8.21071 2.96086 8.58579 2.58579C8.96086 2.21071 9.46957 2 10 2H14C14.5304 2 15.0391 2.21071 15.4142 2.58579C15.7893 2.96086 16 3.46957 16 4V6M19 6V20C19 20.5304 18.7893 21.0391 18.4142 21.4142C18.0391 21.7893 17.5304 22 17 22H7C6.46957 22 5.96086 21.7893 5.58579 21.4142C5.21071 21.0391 5 20.5304 5 20V6H19Z" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+                </svg>
+                <span>Clear</span>
+              </button>
+              <button
+                type="button"
+                onClick={handleUsePreviewData}
+                style={{
+                  padding: "12px 32px",
+                  borderRadius: "10px",
+                  border: "none",
+                  background: "linear-gradient(135deg, var(--card-color, #2A00FF) 0%, rgba(42, 0, 255, 0.9) 100%)",
+                  color: "#ffffff",
+                  fontSize: "14px",
+                  fontWeight: "700",
+                  cursor: "pointer",
+                  transition: "all 0.3s ease",
+                  fontFamily: "Inter, sans-serif",
+                  display: "flex",
+                  alignItems: "center",
+                  gap: "10px",
+                  boxShadow: "0 4px 12px rgba(42, 0, 255, 0.35)",
+                  letterSpacing: "0.3px"
+                }}
+                onMouseEnter={(e) => {
+                  e.currentTarget.style.transform = "translateY(-2px)";
+                  e.currentTarget.style.boxShadow = "0 6px 20px rgba(42, 0, 255, 0.45)";
+                }}
+                onMouseLeave={(e) => {
+                  e.currentTarget.style.transform = "translateY(0)";
+                  e.currentTarget.style.boxShadow = "0 4px 12px rgba(42, 0, 255, 0.35)";
+                }}
+              >
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" style={{ flexShrink: 0 }}>
+                  <path d="M9 11L12 14L22 4" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" />
+                  <path d="M21 12V19C21 19.5304 20.7893 20.0391 20.4142 20.4142C20.0391 20.7893 19.5304 21 19 21H5C4.46957 21 3.96086 20.7893 3.58579 20.4142C3.21071 20.0391 3 19.5304 3 19V5C3 4.46957 3.21071 3.96086 3.58579 3.58579C3.96086 3.21071 4.46957 3 5 3H16" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" />
+                </svg>
+                <span>Use Preview Data</span>
+              </button>
             </div>
           </div>
         </div>
