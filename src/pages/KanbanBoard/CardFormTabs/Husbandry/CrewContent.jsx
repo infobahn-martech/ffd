@@ -202,6 +202,15 @@ const CrewContent = ({ formValues, handleChange, cardColor, onNavigateToTab, lau
 
   const displayCrewList = crewList.length > 0 ? crewList : [];
 
+  // Editable preview table data (max 5 rows)
+  const [previewTableData, setPreviewTableData] = useState([
+    { no: "1", name: "", company: "", rank: "", nationality: "", passportNumber: "", passportExpiry: "", ksaVisaNumber: "", iqama: "" },
+    { no: "2", name: "", company: "", rank: "", nationality: "", passportNumber: "", passportExpiry: "", ksaVisaNumber: "", iqama: "" },
+    { no: "3", name: "", company: "", rank: "", nationality: "", passportNumber: "", passportExpiry: "", ksaVisaNumber: "", iqama: "" },
+    { no: "4", name: "", company: "", rank: "", nationality: "", passportNumber: "", passportExpiry: "", ksaVisaNumber: "", iqama: "" },
+    { no: "5", name: "", company: "", rank: "", nationality: "", passportNumber: "", passportExpiry: "", ksaVisaNumber: "", iqama: "" },
+  ]);
+
   // Handle individual crew selection
   const handleCrewToggle = (crewId) => {
     setSelectedCrewIds((prev) => {
@@ -421,6 +430,91 @@ const CrewContent = ({ formValues, handleChange, cardColor, onNavigateToTab, lau
     // Handle view action - can be implemented later
     console.log("View crew:", id);
     // You can add a modal or navigation here
+  };
+
+  // Handle updating preview table cell
+  const handlePreviewTableCellChange = (rowIndex, field, value) => {
+    setPreviewTableData((prev) => {
+      const newData = [...prev];
+      newData[rowIndex] = { ...newData[rowIndex], [field]: value };
+      return newData;
+    });
+  };
+
+  // Handle paste event in preview table
+  const handlePreviewTablePaste = (e, startRowIndex, startColIndex) => {
+    e.preventDefault();
+    const pasteData = e.clipboardData.getData("text");
+    const rows = pasteData.split("\n").filter(row => row.trim() !== "");
+
+    // Limit to 5 rows total
+    const maxRows = Math.min(rows.length, 5 - startRowIndex);
+    const fieldMap = ["no", "name", "company", "rank", "nationality", "passportNumber", "passportExpiry", "ksaVisaNumber", "iqama"];
+
+    setPreviewTableData((prev) => {
+      const newData = [...prev];
+
+      for (let i = 0; i < maxRows; i++) {
+        const rowIndex = startRowIndex + i;
+        if (rowIndex >= 5) break;
+
+        const cells = rows[i].split("\t");
+        const updatedRow = { ...newData[rowIndex] };
+
+        for (let j = 0; j < Math.min(cells.length, fieldMap.length); j++) {
+          const colIndex = startColIndex + j;
+          if (colIndex < fieldMap.length) {
+            updatedRow[fieldMap[colIndex]] = cells[j].trim();
+          }
+        }
+
+        newData[rowIndex] = updatedRow;
+      }
+
+      return newData;
+    });
+  };
+
+  // Handle use preview data - generates crew data from the editable table
+  const handleUsePreviewData = () => {
+    // Filter out empty rows (rows where name is empty)
+    const filledRows = previewTableData.filter(row => row.name && row.name.trim() !== "");
+
+    if (filledRows.length === 0) {
+      alert("Please enter at least one crew member's name in the table.");
+      return;
+    }
+
+    const crewData = filledRows.map((row, index) => ({
+      id: index + 1,
+      crewName: row.name.trim() || `Crew Member ${index + 1}`,
+      company: row.company.trim() || "",
+      rank: row.rank.trim() || "",
+      nationality: row.nationality.trim() || "",
+      passportNo: row.passportNumber.trim() || `P${String(1000000 + index).padStart(7, '0')}`,
+      passportExpiry: row.passportExpiry.trim() || "",
+      ksaVisaNumber: row.ksaVisaNumber.trim() || "",
+      iqamaNumber: row.iqama.trim() || "",
+      transport: ["done", "inProgress", "rejected"][Math.floor(Math.random() * 3)],
+      cgPass: ["done", "inProgress", "rejected"][Math.floor(Math.random() * 3)],
+      zawilPass: ["done", "inProgress", "rejected"][Math.floor(Math.random() * 3)],
+      hotel: ["done", "inProgress", "rejected"][Math.floor(Math.random() * 3)],
+      launchHire: ["done", "inProgress", "rejected"][Math.floor(Math.random() * 3)],
+      medicalService: ["done", "inProgress", "rejected"][Math.floor(Math.random() * 3)],
+      visa: ["done", "inProgress", "rejected"][Math.floor(Math.random() * 3)],
+      passport: ["done", "inProgress", "rejected"][Math.floor(Math.random() * 3)],
+      iqama: ["done", "inProgress", "rejected"][Math.floor(Math.random() * 3)],
+    }));
+
+    // Set the crew list
+    const syntheticEvent = { target: { value: crewData } };
+    handleChange("crewList")(syntheticEvent);
+
+    // Switch to crew list view
+    setIsFileUploaded(true);
+    setUploadedFileName(`Preview Data (${filledRows.length} crew member${filledRows.length > 1 ? 's' : ''})`);
+    const fileNameEvent = { target: { value: `Preview Data (${filledRows.length} crew member${filledRows.length > 1 ? 's' : ''})` } };
+    handleChange("crewUploadedFileName")(fileNameEvent);
   };
 
 
@@ -869,6 +963,375 @@ const CrewContent = ({ formValues, handleChange, cardColor, onNavigateToTab, lau
                     </div>
                   </>
                 )}
+              </div>
+            </div>
+
+            {/* Preview Table */}
+            <div style={{
+              width: "100%",
+              marginTop: "32px",
+              maxWidth: "1000px"
+            }}>
+              <h4 style={{
+                fontSize: "16px",
+                fontWeight: "600",
+                color: "#1a1a1a",
+                margin: "0 0 16px 0",
+                fontFamily: "Inter, sans-serif"
+              }}>
+                Expected Format (Preview - 5 rows)
+              </h4>
+              <div style={{
+                overflowX: "auto",
+                border: "1px solid #e2e6ff",
+                borderRadius: "8px",
+                backgroundColor: "#ffffff"
+              }}>
+                <table style={{
+                  width: "100%",
+                  borderCollapse: "collapse",
+                  fontFamily: "Inter, sans-serif",
+                  fontSize: "13px"
+                }}>
+                  <thead>
+                    <tr style={{
+                      backgroundColor: "#f8f9ff",
+                      borderBottom: "2px solid #e2e6ff"
+                    }}>
+                      <th style={{
+                        padding: "12px",
+                        textAlign: "left",
+                        fontWeight: "600",
+                        color: "#1a1a1a",
+                        borderRight: "1px solid #e2e6ff",
+                        whiteSpace: "nowrap"
+                      }}>No</th>
+                      <th style={{
+                        padding: "12px",
+                        textAlign: "left",
+                        fontWeight: "600",
+                        color: "#1a1a1a",
+                        borderRight: "1px solid #e2e6ff",
+                        whiteSpace: "nowrap"
+                      }}>Name</th>
+                      <th style={{
+                        padding: "12px",
+                        textAlign: "left",
+                        fontWeight: "600",
+                        color: "#1a1a1a",
+                        borderRight: "1px solid #e2e6ff",
+                        whiteSpace: "nowrap"
+                      }}>Company</th>
+                      <th style={{
+                        padding: "12px",
+                        textAlign: "left",
+                        fontWeight: "600",
+                        color: "#1a1a1a",
+                        borderRight: "1px solid #e2e6ff",
+                        whiteSpace: "nowrap"
+                      }}>Rank</th>
+                      <th style={{
+                        padding: "12px",
+                        textAlign: "left",
+                        fontWeight: "600",
+                        color: "#1a1a1a",
+                        borderRight: "1px solid #e2e6ff",
+                        whiteSpace: "nowrap"
+                      }}>Nationality</th>
+                      <th style={{
+                        padding: "12px",
+                        textAlign: "left",
+                        fontWeight: "600",
+                        color: "#1a1a1a",
+                        borderRight: "1px solid #e2e6ff",
+                        whiteSpace: "nowrap"
+                      }}>Passport Number</th>
+                      <th style={{
+                        padding: "12px",
+                        textAlign: "left",
+                        fontWeight: "600",
+                        color: "#1a1a1a",
+                        borderRight: "1px solid #e2e6ff",
+                        whiteSpace: "nowrap"
+                      }}>Passport Expiry</th>
+                      <th style={{
+                        padding: "12px",
+                        textAlign: "left",
+                        fontWeight: "600",
+                        color: "#1a1a1a",
+                        borderRight: "1px solid #e2e6ff",
+                        whiteSpace: "nowrap"
+                      }}>KSA Visa Number</th>
+                      <th style={{
+                        padding: "12px",
+                        textAlign: "left",
+                        fontWeight: "600",
+                        color: "#1a1a1a",
+                        whiteSpace: "nowrap"
+                      }}>IQAMA</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {previewTableData.map((row, rowIndex) => (
+                      <tr
+                        key={rowIndex}
+                        style={{
+                          borderBottom: "1px solid #f0f0f0",
+                          backgroundColor: rowIndex % 2 === 1 ? "#fafafa" : "transparent"
+                        }}
+                      >
+                        <td style={{
+                          padding: "8px 12px",
+                          borderRight: "1px solid #f0f0f0"
+                        }}>
+                          <input
+                            type="text"
+                            value={row.no}
+                            onChange={(e) => handlePreviewTableCellChange(rowIndex, "no", e.target.value)}
+                            onPaste={(e) => handlePreviewTablePaste(e, rowIndex, 0)}
+                            style={{
+                              width: "100%",
+                              border: "none",
+                              outline: "none",
+                              backgroundColor: "transparent",
+                              color: "#666",
+                              fontSize: "13px",
+                              fontFamily: "Inter, sans-serif",
+                              padding: "2px 4px"
+                            }}
+                            readOnly
+                          />
+                        </td>
+                        <td style={{
+                          padding: "8px 12px",
+                          borderRight: "1px solid #f0f0f0"
+                        }}>
+                          <input
+                            type="text"
+                            value={row.name}
+                            onChange={(e) => handlePreviewTableCellChange(rowIndex, "name", e.target.value)}
+                            onPaste={(e) => handlePreviewTablePaste(e, rowIndex, 1)}
+                            placeholder="Enter name"
+                            style={{
+                              width: "100%",
+                              border: "none",
+                              outline: "none",
+                              backgroundColor: "transparent",
+                              color: "#666",
+                              fontSize: "13px",
+                              fontFamily: "Inter, sans-serif",
+                              padding: "2px 4px"
+                            }}
+                          />
+                        </td>
+                        <td style={{
+                          padding: "8px 12px",
+                          borderRight: "1px solid #f0f0f0"
+                        }}>
+                          <input
+                            type="text"
+                            value={row.company}
+                            onChange={(e) => handlePreviewTableCellChange(rowIndex, "company", e.target.value)}
+                            onPaste={(e) => handlePreviewTablePaste(e, rowIndex, 2)}
+                            placeholder="Enter company"
+                            style={{
+                              width: "100%",
+                              border: "none",
+                              outline: "none",
+                              backgroundColor: "transparent",
+                              color: "#666",
+                              fontSize: "13px",
+                              fontFamily: "Inter, sans-serif",
+                              padding: "2px 4px"
+                            }}
+                          />
+                        </td>
+                        <td style={{
+                          padding: "8px 12px",
+                          borderRight: "1px solid #f0f0f0"
+                        }}>
+                          <input
+                            type="text"
+                            value={row.rank}
+                            onChange={(e) => handlePreviewTableCellChange(rowIndex, "rank", e.target.value)}
+                            onPaste={(e) => handlePreviewTablePaste(e, rowIndex, 3)}
+                            placeholder="Enter rank"
+                            style={{
+                              width: "100%",
+                              border: "none",
+                              outline: "none",
+                              backgroundColor: "transparent",
+                              color: "#666",
+                              fontSize: "13px",
+                              fontFamily: "Inter, sans-serif",
+                              padding: "2px 4px"
+                            }}
+                          />
+                        </td>
+                        <td style={{
+                          padding: "8px 12px",
+                          borderRight: "1px solid #f0f0f0"
+                        }}>
+                          <input
+                            type="text"
+                            value={row.nationality}
+                            onChange={(e) => handlePreviewTableCellChange(rowIndex, "nationality", e.target.value)}
+                            onPaste={(e) => handlePreviewTablePaste(e, rowIndex, 4)}
+                            placeholder="Enter nationality"
+                            style={{
+                              width: "100%",
+                              border: "none",
+                              outline: "none",
+                              backgroundColor: "transparent",
+                              color: "#666",
+                              fontSize: "13px",
+                              fontFamily: "Inter, sans-serif",
+                              padding: "2px 4px"
+                            }}
+                          />
+                        </td>
+                        <td style={{
+                          padding: "8px 12px",
+                          borderRight: "1px solid #f0f0f0"
+                        }}>
+                          <input
+                            type="text"
+                            value={row.passportNumber}
+                            onChange={(e) => handlePreviewTableCellChange(rowIndex, "passportNumber", e.target.value)}
+                            onPaste={(e) => handlePreviewTablePaste(e, rowIndex, 5)}
+                            placeholder="Enter passport number"
+                            style={{
+                              width: "100%",
+                              border: "none",
+                              outline: "none",
+                              backgroundColor: "transparent",
+                              color: "#666",
+                              fontSize: "13px",
+                              fontFamily: "Inter, sans-serif",
+                              padding: "2px 4px"
+                            }}
+                          />
+                        </td>
+                        <td style={{
+                          padding: "8px 12px",
+                          borderRight: "1px solid #f0f0f0"
+                        }}>
+                          <input
+                            type="text"
+                            value={row.passportExpiry}
+                            onChange={(e) => handlePreviewTableCellChange(rowIndex, "passportExpiry", e.target.value)}
+                            onPaste={(e) => handlePreviewTablePaste(e, rowIndex, 6)}
+                            placeholder="YYYY-MM-DD"
+                            style={{
+                              width: "100%",
+                              border: "none",
+                              outline: "none",
+                              backgroundColor: "transparent",
+                              color: "#666",
+                              fontSize: "13px",
+                              fontFamily: "Inter, sans-serif",
+                              padding: "2px 4px"
+                            }}
+                          />
+                        </td>
+                        <td style={{
+                          padding: "8px 12px",
+                          borderRight: "1px solid #f0f0f0"
+                        }}>
+                          <input
+                            type="text"
+                            value={row.ksaVisaNumber}
+                            onChange={(e) => handlePreviewTableCellChange(rowIndex, "ksaVisaNumber", e.target.value)}
+                            onPaste={(e) => handlePreviewTablePaste(e, rowIndex, 7)}
+                            placeholder="Enter KSA visa number"
+                            style={{
+                              width: "100%",
+                              border: "none",
+                              outline: "none",
+                              backgroundColor: "transparent",
+                              color: "#666",
+                              fontSize: "13px",
+                              fontFamily: "Inter, sans-serif",
+                              padding: "2px 4px"
+                            }}
+                          />
+                        </td>
+                        <td style={{
+                          padding: "8px 12px"
+                        }}>
+                          <input
+                            type="text"
+                            value={row.iqama}
+                            onChange={(e) => handlePreviewTableCellChange(rowIndex, "iqama", e.target.value)}
+                            onPaste={(e) => handlePreviewTablePaste(e, rowIndex, 8)}
+                            placeholder="Enter IQAMA"
+                            style={{
+                              width: "100%",
+                              border: "none",
+                              outline: "none",
+                              backgroundColor: "transparent",
+                              color: "#666",
+                              fontSize: "13px",
+                              fontFamily: "Inter, sans-serif",
+                              padding: "2px 4px"
+                            }}
+                          />
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+              <p style={{
+                fontSize: "12px",
+                color: "#999",
+                margin: "12px 0 0 0",
+                fontFamily: "Inter, sans-serif",
+                fontStyle: "italic"
+              }}>
+                Note: You can type directly into the cells or copy and paste data from Excel (tab-separated). Maximum 5 rows. At least one crew member's name is required.
+              </p>
+              <div style={{
+                display: "flex",
+                justifyContent: "center",
+                marginTop: "20px"
+              }}>
+                <button
+                  type="button"
+                  onClick={handleUsePreviewData}
+                  style={{
+                    padding: "12px 24px",
+                    borderRadius: "8px",
+                    border: "none",
+                    backgroundColor: "var(--card-color, #2A00FF)",
+                    color: "#ffffff",
+                    fontSize: "14px",
+                    fontWeight: "600",
+                    cursor: "pointer",
+                    transition: "all 0.2s ease",
+                    fontFamily: "Inter, sans-serif",
+                    display: "flex",
+                    alignItems: "center",
+                    gap: "8px",
+                    boxShadow: "0 2px 8px rgba(42, 0, 255, 0.3)"
+                  }}
+                  onMouseEnter={(e) => {
+                    e.currentTarget.style.opacity = "0.9";
+                    e.currentTarget.style.transform = "translateY(-2px)";
+                    e.currentTarget.style.boxShadow = "0 4px 12px rgba(42, 0, 255, 0.4)";
+                  }}
+                  onMouseLeave={(e) => {
+                    e.currentTarget.style.opacity = "1";
+                    e.currentTarget.style.transform = "translateY(0)";
+                    e.currentTarget.style.boxShadow = "0 2px 8px rgba(42, 0, 255, 0.3)";
+                  }}
+                >
+                  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" style={{ flexShrink: 0 }}>
+                    <path d="M9 11L12 14L22 4" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+                    <path d="M21 12V19C21 19.5304 20.7893 20.0391 20.4142 20.4142C20.0391 20.7893 19.5304 21 19 21H5C4.46957 21 3.96086 20.7893 3.58579 20.4142C3.21071 20.0391 3 19.5304 3 19V5C3 4.46957 3.21071 3.96086 3.58579 3.58579C3.96086 3.21071 4.46957 3 5 3H16" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+                  </svg>
+                  <span>Use Preview Data (5 Crew Members)</span>
+                </button>
               </div>
             </div>
           </div>
