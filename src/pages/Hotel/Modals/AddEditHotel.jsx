@@ -7,8 +7,6 @@ import "../../../design/scss/modal-designs.scss";
 import "../../../design/scss/form-designs.scss";
 import userIcon from "../../../assets/images/user.png";
 import edit from "../../../assets/images/edit.svg";
-// import { ROLE_OPTIONS } from "../../../constants/roles"; // ❌ no longer needed
-import { PORT_OPTIONS } from "../../../constants/ports";
 
 export function HotelModal({ showModal, closeModal }) {
     const {
@@ -19,20 +17,18 @@ export function HotelModal({ showModal, closeModal }) {
     } = useForm({
         defaultValues: showModal?._id
             ? {
-                driver_name: showModal?.driver_name || "",
-                employee_no: showModal?.employee_no || "",
+                hotel_name: showModal?.hotel_name || "",
+                contact_name: showModal?.contact_name || "",
                 contact_no: showModal?.contact_no || "",
-                iqama_no: showModal?.iqama_no || "",
-                location: showModal?.location || "",
-                nationality: showModal?.nationality || "",
+                contact_email: showModal?.contact_email || "",
+                hotel_address: showModal?.hotel_address || "",
             }
             : {
-                driver_name: "",
-                employee_no: "",
+                hotel_name: "",
+                contact_name: "",
                 contact_no: "",
-                iqama_no: "",
-                location: "",
-                nationality: "",
+                contact_email: "",
+                hotel_address: "",
             },
     });
 
@@ -97,50 +93,50 @@ export function HotelModal({ showModal, closeModal }) {
                         </div>
                     </div>
 
-                    {/* ===== Driver Name + Driver No ===== */}
+                    {/* ===== Hotel Name + Contact Name ===== */}
                     <div className="mb-lg-3 mb-sm-0">
                         <div className="permInputs row">
-                            {/* DRIVER NAME */}
+                            {/* HOTEL NAME */}
                             <div className="col-lg-6 col-sm-12">
                                 <div className="form-floating desig-inp">
                                     <input
                                         type="text"
-                                        className={`form-control ${errors.driver_name ? "is-invalid" : ""
+                                        className={`form-control ${errors.hotel_name ? "is-invalid" : ""
                                             }`}
-                                        placeholder="Driver Name"
-                                        {...register("driver_name", {
-                                            required: "Driver name is required",
+                                        placeholder="Hotel Name"
+                                        {...register("hotel_name", {
+                                            required: "Hotel name is required",
                                         })}
                                     />
                                     <label>
-                                        Driver Name <span className="text-danger">*</span>
+                                        Hotel Name <span className="text-danger">*</span>
                                     </label>
-                                    {errors.driver_name && (
+                                    {errors.hotel_name && (
                                         <span className="error text-danger">
-                                            {errors.driver_name.message}
+                                            {errors.hotel_name.message}
                                         </span>
                                     )}
                                 </div>
                             </div>
 
-                            {/* EMPLOYEE NO */}
+                            {/* CONTACT NAME */}
                             <div className="col-lg-6 col-sm-12">
                                 <div className="form-floating desig-inp">
                                     <input
                                         type="text"
-                                        className={`form-control ${errors.employee_no ? "is-invalid" : ""
+                                        className={`form-control ${errors.contact_name ? "is-invalid" : ""
                                             }`}
-                                        placeholder="Driver No"
-                                        {...register("employee_no", {
-                                            required: "Employee number is required",
+                                        placeholder="Contact Name"
+                                        {...register("contact_name", {
+                                            required: "Contact name is required",
                                         })}
                                     />
                                     <label>
-                                        Driver No <span className="text-danger">*</span>
+                                        Contact Name <span className="text-danger">*</span>
                                     </label>
-                                    {errors.employee_no && (
+                                    {errors.contact_name && (
                                         <span className="error text-danger">
-                                            {errors.employee_no.message}
+                                            {errors.contact_name.message}
                                         </span>
                                     )}
                                 </div>
@@ -148,7 +144,7 @@ export function HotelModal({ showModal, closeModal }) {
                         </div>
                     </div>
 
-                    {/* ===== Contact No + Iqama No ===== */}
+                    {/* ===== Contact No + Contact Email ===== */}
                     <div className="mb-lg-3 mb-sm-0">
                         <div className="permInputs row">
                             {/* CONTACT NO (PhoneInput) */}
@@ -166,8 +162,7 @@ export function HotelModal({ showModal, closeModal }) {
                                             validate: (value) => {
                                                 const digits = (value || "").replace(/\D/g, "");
                                                 return (
-                                                    digits.length >= 7 ||
-                                                    "Enter a valid phone number"
+                                                    digits.length >= 7 || "Enter a valid phone number"
                                                 );
                                             },
                                         }}
@@ -190,24 +185,28 @@ export function HotelModal({ showModal, closeModal }) {
                                 </div>
                             </div>
 
-                            {/* IQAMA NO */}
+                            {/* CONTACT EMAIL */}
                             <div className="col-lg-6 col-sm-12">
                                 <div className="form-floating desig-inp">
                                     <input
-                                        type="text"
-                                        className={`form-control ${errors.iqama_no ? "is-invalid" : ""
+                                        type="email"
+                                        className={`form-control ${errors.contact_email ? "is-invalid" : ""
                                             }`}
-                                        placeholder="Iqama No"
-                                        {...register("iqama_no", {
-                                            required: "Iqama number is required",
+                                        placeholder="Contact Email"
+                                        {...register("contact_email", {
+                                            required: "Contact email is required",
+                                            pattern: {
+                                                value: /^[^\s@]+@[^\s@]+\.[^\s@]+$/,
+                                                message: "Enter a valid email address",
+                                            },
                                         })}
                                     />
                                     <label>
-                                        Iqama No <span className="text-danger">*</span>
+                                        Contact Email <span className="text-danger">*</span>
                                     </label>
-                                    {errors.iqama_no && (
+                                    {errors.contact_email && (
                                         <span className="error text-danger">
-                                            {errors.iqama_no.message}
+                                            {errors.contact_email.message}
                                         </span>
                                     )}
                                 </div>
@@ -215,55 +214,26 @@ export function HotelModal({ showModal, closeModal }) {
                         </div>
                     </div>
 
-                    {/* ===== Location + Nationality ===== */}
+                    {/* ===== Hotel Address (Full Row) ===== */}
                     <div className="mb-lg-3 mb-sm-0">
                         <div className="permInputs row">
-                            {/* LOCATION */}
-                            <div className="col-lg-6 col-sm-12">
+                            <div className="col-12">
                                 <div className="form-floating desig-inp">
-                                    <select
-                                        className={`form-control ${errors.location ? "is-invalid" : ""
+                                    <textarea
+                                        className={`form-control ${errors.hotel_address ? "is-invalid" : ""
                                             }`}
-                                        {...register("location", {
-                                            required: "Location is required",
-                                        })}
-                                    >
-                                        <option value="">Select Location</option>
-                                        {PORT_OPTIONS.map((port) => (
-                                            <option key={port} value={port}>
-                                                {port}
-                                            </option>
-                                        ))}
-                                    </select>
-                                    <label>
-                                        Location <span className="text-danger">*</span>
-                                    </label>
-                                    {errors.location && (
-                                        <span className="error text-danger">
-                                            {errors.location.message}
-                                        </span>
-                                    )}
-                                </div>
-                            </div>
-
-                            {/* NATIONALITY */}
-                            <div className="col-lg-6 col-sm-12">
-                                <div className="form-floating desig-inp">
-                                    <input
-                                        type="text"
-                                        className={`form-control ${errors.nationality ? "is-invalid" : ""
-                                            }`}
-                                        placeholder="Nationality"
-                                        {...register("nationality", {
-                                            required: "Nationality is required",
+                                        placeholder="Hotel Address"
+                                        style={{ minHeight: "80px" }}
+                                        {...register("hotel_address", {
+                                            required: "Hotel address is required",
                                         })}
                                     />
                                     <label>
-                                        Nationality <span className="text-danger">*</span>
+                                        Hotel Address <span className="text-danger">*</span>
                                     </label>
-                                    {errors.nationality && (
+                                    {errors.hotel_address && (
                                         <span className="error text-danger">
-                                            {errors.nationality.message}
+                                            {errors.hotel_address.message}
                                         </span>
                                     )}
                                 </div>
@@ -280,7 +250,8 @@ export function HotelModal({ showModal, closeModal }) {
             <button type="button" className="btn btn-outline" onClick={closeModal}>
                 Close
             </button>
-            <button type="submit" form="driverForm" className="btn btn-primary">
+            {/* 🔧 form id fixed to "hotelForm" */}
+            <button type="submit" form="hotelForm" className="btn btn-primary">
                 Save
             </button>
         </div>

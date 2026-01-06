@@ -4,218 +4,144 @@ import CustomTable from "../../components/customTable";
 import { HotelModal } from "./Modals/AddEditHotel";
 import { RenderAction } from "./RenderCells";
 import DeleteConfirmationModal from "../../components/DeleteConfirmationModal";
-import { PORT_DETAILS } from "../../constants/ports";
 
-const dummyDrivers = [
+const dummyHotels = [
     {
         _id: "1",
-        driver_name: "Ajay Ullas",
-        driver_no: "EMP-001",
+        hotel_name: "Sea View Hotel",
+        contact_name: "Ajay Ullas",
         contact_no: "+971500000001",
-        iqama_no: "IQM-784512",
-        joining_date: "2022-03-15",
-        location: PORT_DETAILS[0].city,
-        nationality: "Indian",
-        status: "Active",
+        contact_email: "ajay@seaview.com",
+        hotel_address: "Corniche Road, Jeddah, Saudi Arabia",
     },
     {
         _id: "2",
-        driver_name: "Nikhil Varma",
-        driver_no: "EMP-002",
+        hotel_name: "Palm Residency",
+        contact_name: "Nikhil Varma",
         contact_no: "+971500000002",
-        iqama_no: "IQM-784513",
-        joining_date: "2021-11-20",
-        location: PORT_DETAILS[1].city,
-        nationality: "Indian",
-        status: "Inactive",
+        contact_email: "nikhil@palmresidency.com",
+        hotel_address: "King Abdulaziz Street, Dammam, Saudi Arabia",
     },
     {
         _id: "3",
-        driver_name: "Sangeeth Babu",
-        driver_no: "EMP-003",
+        hotel_name: "Desert Pearl Hotel",
+        contact_name: "Sangeeth Babu",
         contact_no: "+971500000003",
-        iqama_no: "IQM-784514",
-        joining_date: "2023-01-10",
-        location: PORT_DETAILS[2].city,
-        nationality: "Indian",
-        status: "Pending",
+        contact_email: "sangeeth@desertpearl.com",
+        hotel_address: "Riyadh City Center, Riyadh, Saudi Arabia",
     },
     {
         _id: "4",
-        driver_name: "Vishnu Menon",
-        driver_no: "EMP-004",
+        hotel_name: "Harbor View Inn",
+        contact_name: "Vishnu Menon",
         contact_no: "+971500000004",
-        iqama_no: "IQM-784515",
-        joining_date: "2020-08-05",
-        location: PORT_DETAILS[3].city,
-        nationality: "Indian",
-        status: "Active",
+        contact_email: "vishnu@harborview.com",
+        hotel_address: "Port Area, Jubail, Saudi Arabia",
     },
     {
         _id: "5",
-        driver_name: "Riya Thomas",
-        driver_no: "EMP-005",
+        hotel_name: "Golden Sands Hotel",
+        contact_name: "Riya Thomas",
         contact_no: "+971500000005",
-        iqama_no: "IQM-784516",
-        joining_date: "2024-02-01",
-        location: PORT_DETAILS[4].city,
-        nationality: "Indian",
-        status: "Inactive",
+        contact_email: "riya@goldensands.com",
+        hotel_address: "Beach Road, Yanbu, Saudi Arabia",
     },
     {
         _id: "6",
-        driver_name: "Deepak Kumar",
-        driver_no: "EMP-006",
+        hotel_name: "City Star Hotel",
+        contact_name: "Deepak Kumar",
         contact_no: "+971500000006",
-        iqama_no: "IQM-784517",
-        joining_date: "2023-06-12",
-        location: PORT_DETAILS[0].city,
-        nationality: "Indian",
-        status: "Pending",
+        contact_email: "deepak@citystar.com",
+        hotel_address: "Business District, Riyadh, Saudi Arabia",
     },
     {
         _id: "7",
-        driver_name: "Meera Suresh",
-        driver_no: "EMP-007",
+        hotel_name: "Blue Waves Hotel",
+        contact_name: "Meera Suresh",
         contact_no: "+971500000007",
-        iqama_no: "IQM-784518",
-        joining_date: "2022-09-30",
-        location: PORT_DETAILS[1].city,
-        nationality: "Indian",
-        status: "Active",
+        contact_email: "meera@bluewaves.com",
+        hotel_address: "Coastal Road, Dammam, Saudi Arabia",
     },
     {
         _id: "8",
-        driver_name: "Arun Joseph",
-        driver_no: "EMP-008",
+        hotel_name: "Harbor Residency",
+        contact_name: "Arun Joseph",
         contact_no: "+971500000008",
-        iqama_no: "IQM-784519",
-        joining_date: "2021-04-18",
-        location: PORT_DETAILS[2].city,
-        nationality: "Indian",
-        status: "Inactive",
+        contact_email: "arun@harborresidency.com",
+        hotel_address: "Dockside Road, Jubail, Saudi Arabia",
     },
     {
         _id: "9",
-        driver_name: "Joel Sunny",
-        driver_no: "EMP-009",
+        hotel_name: "Sunrise Hotel",
+        contact_name: "Joel Sunny",
         contact_no: "+971500000009",
-        iqama_no: "IQM-784520",
-        joining_date: "2024-01-05",
-        location: PORT_DETAILS[3].city,
-        nationality: "Indian",
-        status: "Pending",
+        contact_email: "joel@sunrisehotel.com",
+        hotel_address: "Main Street, Yanbu, Saudi Arabia",
     },
     {
         _id: "10",
-        driver_name: "Sandra Mathew",
-        driver_no: "EMP-010",
+        hotel_name: "Grand Marina Hotel",
+        contact_name: "Sandra Mathew",
         contact_no: "+971500000010",
-        iqama_no: "IQM-784521",
-        joining_date: "2020-12-22",
-        location: PORT_DETAILS[4].city,
-        nationality: "Indian",
-        status: "Active",
+        contact_email: "sandra@grandmarina.com",
+        hotel_address: "Marina Road, Jeddah, Saudi Arabia",
     },
 ];
-
-
-
-
 
 const Hotel = () => {
     const [params, setParams] = useState({
         page: 1,
         searchTerm: "",
         limit: 10,
-        sortBy: "name",
+        sortBy: "hotel_name",
         sortOrder: 1,
     });
 
     const [showHotelModal, setShowHotelModal] = useState(false);
     const [showDeleteModal, setShowDeleteModal] = useState(false);
 
-
-    // 👉 ONLY TWO COLUMNS (Name + Description)
     const cols = [
         {
             name: "Hotel Name",
             selector: "hotel_name",
+            width: "220",
+            thclass: "tb-head",
+            contentClass: "table-content",
+            sort: true,
+        },
+        {
+            name: "Contact Name",
+            selector: "contact_name",
+            width: "220",
+            thclass: "tb-head",
+            contentClass: "table-content",
+            sort: true,
+        },
+        {
+            name: "Contact No",
+            selector: "contact_no",
             width: "200",
             thclass: "tb-head",
             contentClass: "table-content",
             sort: true,
         },
         {
-            name: "Hotel No",
-            selector: "hotel_no",
-            width: "180",
+            name: "Contact Email",
+            selector: "contact_email",
+            width: "260",
             thclass: "tb-head",
             contentClass: "table-content",
             sort: true,
         },
         {
-            name: "Hotel Contact No",
-            selector: "hotel_contact_no",
-            width: "180",
+            name: "Hotel Address",
+            selector: "hotel_address",
+            width: "350",
             thclass: "tb-head",
             contentClass: "table-content",
-            sort: true,
-        },
-        {
-            name: "Hotel Iqama No",
-            selector: "iqama_no",
-            width: "200",
-            thclass: "tb-head",
-            contentClass: "table-content",
-            sort: true,
-        },
-        {
-            name: "Joining Date",
-            selector: "joining_date",
-            width: "180",
-            thclass: "tb-head",
-            contentClass: "table-content",
-            sort: true,
-            // optional: format date
-            // cell: ({ row }) => formatDate(row.joining_date),
-        },
-        {
-            name: "Location",
-            selector: "location",
-            width: "200",
-            thclass: "tb-head",
-            contentClass: "table-content",
-            sort: true,
-        },
-        {
-            name: "Nationality",
-            selector: "nationality",
-            width: "180",
-            thclass: "tb-head",
-            contentClass: "table-content",
-            sort: true,
-        },
-        {
-            name: "Status",
-            selector: "status",
-            width: "150",
-            thclass: "tb-head",
-            contentClass: "table-content",
-            sort: true,
-            cell: ({ row }) => (
-                <span
-                    className={
-                        row.status === "Active"
-                            ? "status-active"
-                            : row.status === "Inactive"
-                                ? "status-inactive"
-                                : "status-pending"
-                    }
-                >
-                    {row.status}
-                </span>
-            ),
+            sort: false,
+            // optional: truncate in UI if your table supports custom cell
+            // cell: ({ row }) => <span title={row.hotel_address}>{row.hotel_address}</span>,
         },
         {
             name: "Actions",
@@ -228,7 +154,6 @@ const Hotel = () => {
             onDeleteClick: () => setShowDeleteModal(true),
         },
     ];
-
 
     return (
         <>
@@ -253,8 +178,8 @@ const Hotel = () => {
                         pagination={{ currentPage: params.page, limit: params.limit }}
                         tableClasses="px-start"
                         columns={cols}
-                        data={dummyDrivers}
-                        count={dummyDrivers.length}
+                        data={dummyHotels}
+                        count={dummyHotels.length}
                         onPageChange={(currentPage) =>
                             setParams({ ...params, page: currentPage })
                         }
@@ -277,16 +202,15 @@ const Hotel = () => {
                             closeModal={() => setShowHotelModal(false)}
                         />
                     )}
+
                     {!!showDeleteModal && (
                         <DeleteConfirmationModal
                             show={showDeleteModal}
                             onCancel={() => setShowDeleteModal(false)}
                             onConfirm={() => { }}
                             deleteText="Are you sure you want to delete this hotel?"
-                        // isLoading={isBeingUpdated}
                         />
                     )}
-
                 </div>
             </div>
         </>

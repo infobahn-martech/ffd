@@ -10,6 +10,7 @@ import BlockersModal from './components/BlockersModal';
 import StickersModal from './components/StickersModal';
 import TagsModal from './components/TagsModal';
 import TypesModal from './components/TypesModal';
+import MyAccountsModal from '../Header/MyAccountsModal';
 import '../../design/scss/common.scss';
 import '../../design/scss/sidebar.scss';
 
@@ -94,6 +95,7 @@ function SideNav({ isMobileMenuOpen, onCloseMobileMenu }) {
   const [showStickersModal, setShowStickersModal] = useState(false);
   const [showTagsModal, setShowTagsModal] = useState(false);
   const [showTypesModal, setShowTypesModal] = useState(false);
+  const [showMyAccountsModal, setShowMyAccountsModal] = useState(false);
 
   const [expand, setExpand] = useState(false);
 
@@ -358,7 +360,7 @@ function SideNav({ isMobileMenuOpen, onCloseMobileMenu }) {
       subMenus: [
         {
           menu: 'My Accounts',
-          to: '/workers-type',
+          to: '/my-accounts',
           hasPermission: true,
         },
         {
@@ -420,6 +422,20 @@ function SideNav({ isMobileMenuOpen, onCloseMobileMenu }) {
         onCloseMobileMenu();
       }
     }
+  };
+
+  const handleSubmenuClick = (subMenu, to, e) => {
+    // If "My Accounts" is clicked, open the modal instead of navigating
+    if (subMenu === 'My Accounts') {
+      setShowMyAccountsModal(true);
+      // Close mobile menu if open
+      if (isMobile && expand && onCloseMobileMenu) {
+        setExpand(false);
+        onCloseMobileMenu();
+      }
+      return true; // Indicate that the click was handled
+    }
+    return false; // Let the default navigation happen
   };
 
   const handleToggle = () => {
@@ -752,6 +768,7 @@ function SideNav({ isMobileMenuOpen, onCloseMobileMenu }) {
                       icon={icon}
                       isOpen={isOpen}
                       toggleCollapse={toggleCollapse}
+                      onSubmenuClick={handleSubmenuClick}
                     />
                   );
                 return null;
@@ -760,6 +777,12 @@ function SideNav({ isMobileMenuOpen, onCloseMobileMenu }) {
         </div>
         <div className="toggleDark" />
       </div>
+
+      {/* My Accounts Modal */}
+      <MyAccountsModal
+        show={showMyAccountsModal}
+        onClose={() => setShowMyAccountsModal(false)}
+      />
     </>
   );
 }

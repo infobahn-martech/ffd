@@ -2,7 +2,7 @@ import { Link, useLocation } from 'react-router-dom';
 import PropTypes from 'prop-types';
 import { ArrowDownIcon } from '../icons';
 
-const DefaultMenu = ({ menu, subMenus, to, icon, isOpen, toggleCollapse }) => {
+const DefaultMenu = ({ menu, subMenus, to, icon, isOpen, toggleCollapse, onSubmenuClick }) => {
   const { pathname } = useLocation();
   return !subMenus ? (
     <li className="menu-link">
@@ -37,21 +37,34 @@ const DefaultMenu = ({ menu, subMenus, to, icon, isOpen, toggleCollapse }) => {
 
       {subMenus
         ?.filter((e) => e.hasPermission === true)
-        ?.map(({ menu: subMenu, to }) => (
-          <div
-            key={to ?? subMenu}
-            className={`submenu_items ${!isOpen ? 'collapse' : 'show'}`}
-          >
-            <Link
-              to={to}
-              className={`link ${pathname === to && 'submenu_active'}`}
+        ?.map(({ menu: subMenu, to }) => {
+          const handleClick = (e) => {
+            if (onSubmenuClick) {
+              const handled = onSubmenuClick(subMenu, to, e);
+              if (handled) {
+                e.preventDefault();
+                return;
+              }
+            }
+          };
+
+          return (
+            <div
+              key={to ?? subMenu}
+              className={`submenu_items ${!isOpen ? 'collapse' : 'show'}`}
             >
-              <ul>
-                <li>{subMenu}</li>
-              </ul>
-            </Link>
-          </div>
-        ))}
+              <Link
+                to={to}
+                className={`link ${pathname === to && 'submenu_active'}`}
+                onClick={handleClick}
+              >
+                <ul>
+                  <li>{subMenu}</li>
+                </ul>
+              </Link>
+            </div>
+          );
+        })}
     </li>
   );
 };
@@ -63,6 +76,7 @@ DefaultMenu.propTypes = {
   subMenus: PropTypes.arrayOf(),
   isOpen: PropTypes.bool,
   toggleCollapse: PropTypes.func,
+  onSubmenuClick: PropTypes.func,
 };
 
 export default DefaultMenu;

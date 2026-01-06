@@ -213,9 +213,9 @@ function Header({ onMenuToggle, mobileMenuOpen: externalMobileMenuOpen }) {
         <button className="icon-btn" aria-label="Settings" title="Settings">
           <FiSettings />
         </button>
-        <button 
-          className="icon-btn icon-btn-hide-mobile" 
-          aria-label="Documents" 
+        <button
+          className="icon-btn icon-btn-hide-mobile"
+          aria-label="Documents"
           title="Documents"
           onClick={() => setShowDocumentsModal(true)}
         >
