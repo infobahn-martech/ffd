@@ -183,7 +183,7 @@ export function JobStatusBEModal({ showModal, closeModal }) {
                     </div>
 
                     {/* DESCRIPTION — FULL ROW TEXTAREA */}
-                    <div className="mb-lg-3 mb-sm-0">
+                    <div className="mb-lg-3 mb-sm-0 mt-3">
                         <div className="form-floating desig-inp">
                             <textarea
                                 className="form-control"
