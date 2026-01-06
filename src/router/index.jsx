@@ -38,6 +38,7 @@ import StatusManagement from "../pages/StatusManagement";
 import MaterialType from "../pages/MaterialType";
 import PackingType from "../pages/PackingType";
 import LogisticsWarehouse from "../pages/LogisticsWarehouse";
+import CustomFields from "../pages/CustomFields";
 // 🔥 Set true to bypass auth temporarily
 const TEST_MODE = true;
 
@@ -89,6 +90,7 @@ const router = createHashRouter([
               { path: "/packing-type", element: <PackingType /> },
               { path: "/logistics-warehouse", element: <LogisticsWarehouse /> },
               { path: "/status-management", element: <StatusManagement /> },
+              { path: "/custom-fields", element: <CustomFields /> },
               { path: "/settings", element: <h1>Settings</h1> },
             ],
           },
@@ -122,6 +124,7 @@ const router = createHashRouter([
                   { path: "/packing-type", element: <PackingType /> },
                   { path: "/logistics-warehouse", element: <LogisticsWarehouse /> },
                   { path: "/status-management", element: <StatusManagement /> },
+                  { path: "/custom-fields", element: <CustomFields /> },
                   { path: "/settings", element: <h1>Settings</h1> },
                 ],
               },
