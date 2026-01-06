@@ -49,50 +49,6 @@ export function HotelModal({ showModal, closeModal }) {
         <div className="modal-body">
             <div className="lead-form">
                 <form id="hotelForm" onSubmit={handleSubmit(onSubmit)}>
-                    {/* ===== Avatar Upload ===== */}
-                    <div className="d-flex justify-content-center mb-4">
-                        <div className="avatar-wrapper" style={{ position: "relative" }}>
-                            <img
-                                src={showModal?.avatar || userIcon}
-                                alt="Hotel Avatar"
-                                className="avatar-image"
-                                style={{
-                                    width: "120px",
-                                    height: "120px",
-                                    borderRadius: "50%",
-                                    objectFit: "cover",
-                                    border: "3px solid #e6e6e6",
-                                }}
-                            />
-
-                            <label
-                                htmlFor="avatarUpload"
-                                className="avatar-edit-icon"
-                                style={{
-                                    position: "absolute",
-                                    bottom: "0",
-                                    right: "10px",
-                                    background: "#e7e7e7",
-                                    width: "30px",
-                                    height: "30px",
-                                    borderRadius: "50%",
-                                    display: "flex",
-                                    justifyContent: "center",
-                                    alignItems: "center",
-                                    cursor: "pointer",
-                                }}
-                            >
-                                <img
-                                    src={edit}
-                                    alt="Edit"
-                                    style={{ width: "14px", height: "18px", filter: "invert(1)" }}
-                                />
-                            </label>
-
-                            <input type="file" id="avatarUpload" className="d-none" />
-                        </div>
-                    </div>
-
                     {/* ===== Hotel Name + Contact Name ===== */}
                     <div className="mb-lg-3 mb-sm-0">
                         <div className="permInputs row">
