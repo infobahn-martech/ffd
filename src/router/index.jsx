@@ -43,6 +43,7 @@ import JobStatusBE from "../pages/JobStatusBE";
 import GroupEmailBE from "../pages/GroupEmailBE";
 import BillingInstruction from "../pages/BillingInstruction";
 import Captains from "../pages/Captains";
+import FleetManagement from "../pages/Fleet";
 // 🔥 Set true to bypass auth temporarily
 const TEST_MODE = true;
 
@@ -99,6 +100,7 @@ const router = createHashRouter([
               { path: "/group-email", element: <GroupEmailBE /> },
               { path: "/billing-instruction", element: <BillingInstruction /> },
               { path: "/captains", element: <Captains /> },
+              { path: "/fleet", element: <FleetManagement /> },
               { path: "/settings", element: <h1>Settings</h1> },
             ],
           },
@@ -137,6 +139,7 @@ const router = createHashRouter([
                   { path: "/custom-fields", element: <CustomFields /> },
                   { path: "/billing-instruction", element: <BillingInstruction /> },
                   { path: "/captains", element: <Captains /> },
+                  { path: "/fleet", element: <FleetManagement /> },
                   { path: "/settings", element: <h1>Settings</h1> },
                 ],
               },
