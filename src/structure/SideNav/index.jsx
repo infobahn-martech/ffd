@@ -250,20 +250,6 @@ function SideNav({ isMobileMenuOpen, onCloseMobileMenu }) {
       icon: workerIcon,
     },
     {
-      menu: 'Pre-Arrival',
-      isDefaultMenu: true,
-      hasPermission: true,
-      isOpen: false,
-      subMenus: [
-        {
-          menu: 'Documents',
-          to: '/documents',
-          hasPermission: true,
-        },
-      ],
-      icon: workerIcon,
-    },
-    {
       menu: 'Operations Configuration',
       isDefaultMenu: true,
       hasPermission: true,

@@ -112,6 +112,11 @@ function Header({ onMenuToggle, mobileMenuOpen: externalMobileMenuOpen }) {
     navigate('/');
   };
 
+  const handleHelpClick = () => {
+    window.open("https://sedres.com/contact-us", "_blank", "noopener,noreferrer");
+  };
+
+
   return (
     <div className="sedres-header">
 
@@ -209,10 +214,6 @@ function Header({ onMenuToggle, mobileMenuOpen: externalMobileMenuOpen }) {
             </div>
           )}
         </div>
-
-        <button className="icon-btn" aria-label="Settings" title="Settings">
-          <FiSettings />
-        </button>
         <button
           className="icon-btn icon-btn-hide-mobile"
           aria-label="Documents"
@@ -221,9 +222,15 @@ function Header({ onMenuToggle, mobileMenuOpen: externalMobileMenuOpen }) {
         >
           <FiFolder />
         </button>
-        <button className="icon-btn icon-btn-hide-mobile" aria-label="Help" title="Help">
+        <button
+          className="icon-btn icon-btn-hide-mobile"
+          aria-label="Help"
+          title="Help"
+          onClick={handleHelpClick}
+        >
           <FiHelpCircle />
         </button>
+
         <button
           className="icon-btn"
           aria-label="Notifications"
