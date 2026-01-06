@@ -247,6 +247,30 @@ function SideNav({ isMobileMenuOpen, onCloseMobileMenu }) {
       icon: workerIcon,
     },
     {
+      menu: 'Launch Hire Management',
+      isDefaultMenu: true,
+      hasPermission: true,
+      isOpen: false,
+      subMenus: [
+        {
+          menu: 'Captains',
+          to: '/captains',
+          hasPermission: true,
+        },
+        {
+          menu: 'Fleet',
+          to: '/fleet',
+          hasPermission: true,
+        },
+        {
+          menu: 'Location',
+          to: '/location',
+          hasPermission: true,
+        },
+      ],
+      icon: workerIcon,
+    },
+    {
       menu: 'Operations Configuration',
       isDefaultMenu: true,
       hasPermission: true,
