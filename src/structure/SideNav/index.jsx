@@ -52,8 +52,8 @@ function SideNav({ isMobileMenuOpen, onCloseMobileMenu }) {
   const kanbanBoardIcons = [
     { id: 1, icon: FiPlus, label: 'Add' },
     { id: 2, icon: FiFilter, label: 'Filter' },
-    { id: 3, icon: FiLayers, label: 'Card tokens' },
-    { id: 4, icon: FiImage, label: 'Board background' },
+    // { id: 3, icon: FiLayers, label: 'Card tokens' },
+    // { id: 4, icon: FiImage, label: 'Board background' },
   ];
 
   const workspacesIcons = [
@@ -61,9 +61,6 @@ function SideNav({ isMobileMenuOpen, onCloseMobileMenu }) {
     { id: 4, icon: FiUsers, label: 'Board teams' },
     { id: 8, icon: FiShield, label: 'Business rules' },
     { id: 9, icon: FiGrid, label: 'Card management' },
-    { id: 5, icon: FiCalendar, label: 'Calendar' },
-    { id: 6, icon: FiFileText, label: 'Reports' },
-    { id: 7, icon: FiSettings, label: 'Settings' },
   ];
 
   // Board teams submenu items
