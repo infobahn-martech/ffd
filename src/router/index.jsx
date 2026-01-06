@@ -34,6 +34,7 @@ import Vehicle from "../pages/Vehicle";
 import CheckList from "../pages/CheckList";
 import DriverVehicleMapping from "../pages/DriverVehicleMapping";
 import Hotel from "../pages/Hotel";
+import StatusManagement from "../pages/StatusManagement";
 import MaterialType from "../pages/MaterialType";
 import PackingType from "../pages/PackingType";
 import LogisticsWarehouse from "../pages/LogisticsWarehouse";
@@ -87,6 +88,7 @@ const router = createHashRouter([
               { path: "/material-type", element: <MaterialType /> },
               { path: "/packing-type", element: <PackingType /> },
               { path: "/logistics-warehouse", element: <LogisticsWarehouse /> },
+              { path: "/status-management", element: <StatusManagement /> },
               { path: "/settings", element: <h1>Settings</h1> },
             ],
           },
@@ -119,6 +121,7 @@ const router = createHashRouter([
                   { path: "/notification", element: <Notification /> },
                   { path: "/packing-type", element: <PackingType /> },
                   { path: "/logistics-warehouse", element: <LogisticsWarehouse /> },
+                  { path: "/status-management", element: <StatusManagement /> },
                   { path: "/settings", element: <h1>Settings</h1> },
                 ],
               },

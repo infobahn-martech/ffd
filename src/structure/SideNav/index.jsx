@@ -364,6 +364,11 @@ function SideNav({ isMobileMenuOpen, onCloseMobileMenu }) {
           to: '/report-management',
           hasPermission: true,
         },
+        {
+          menu: 'Status Management',
+          to: '/status-management',
+          hasPermission: true,
+        },
       ],
     },
   ];

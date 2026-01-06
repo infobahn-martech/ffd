@@ -1,0 +1,14 @@
+/* status.scss */
+
+.status-color-dot {
+    width: 18px;
+    height: 18px;
+    border-radius: 999px;
+    border: 1px solid rgb(215, 211, 211);
+    display: inline-block;
+    background-color: var(--status-color, #000000) !important;
+}
+
+.status-color-text {
+    font-size: 0.875rem;
+}
