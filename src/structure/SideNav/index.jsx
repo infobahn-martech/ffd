@@ -183,27 +183,6 @@ function SideNav({ isMobileMenuOpen, onCloseMobileMenu }) {
       hasPermission: true,
     },
     {
-      menu: 'Driver Management',
-      isDefaultMenu: true,
-      to: '/driver-management',
-      icon: workerIcon,
-      hasPermission: true,
-    },
-    {
-      menu: 'Vehicle Management',
-      isDefaultMenu: true,
-      to: '/vehicle-management',
-      icon: portIcon,
-      hasPermission: true,
-    },
-    {
-      menu: 'Driver Vehicle Mapping',
-      isDefaultMenu: true,
-      to: '/driver-vehicle-mapping',
-      icon: portIcon,
-      hasPermission: true,
-    },
-    {
       menu: 'Hotel Management',
       isDefaultMenu: true,
       to: '/hotel-management',
@@ -320,6 +299,30 @@ function SideNav({ isMobileMenuOpen, onCloseMobileMenu }) {
         },
       ],
       icon: workerIcon,
+    },
+    {
+      menu: 'Transport Management',
+      isDefaultMenu: true,
+      icon: settingsIcon,
+      hasPermission: true,
+      isOpen: false,
+      subMenus: [
+        {
+          menu: 'Driver Management',
+          to: '/driver-management',
+          hasPermission: true,
+        },
+        {
+          menu: 'Vehicle Management',
+          to: '/vehicle-management',
+          hasPermission: true,
+        },
+        {
+          menu: 'Driver Vehicle Mapping',
+          to: '/driver-vehicle-mapping',
+          hasPermission: true,
+        },
+      ],
     },
     {
       menu: 'Material Management',
