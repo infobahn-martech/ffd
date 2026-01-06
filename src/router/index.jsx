@@ -36,13 +36,14 @@ import DriverVehicleMapping from "../pages/DriverVehicleMapping";
 import Hotel from "../pages/Hotel";
 import MaterialType from "../pages/MaterialType";
 import PackingType from "../pages/PackingType";
+import LogisticsWarehouse from "../pages/LogisticsWarehouse";
 // 🔥 Set true to bypass auth temporarily
 const TEST_MODE = true;
 
 const router = createHashRouter([
   {
     element: <App />,
-    errorElement: <h1>In-Progress</h1>,
+    errorElement: <h1>401 Unauthorized</h1>,
 
     children: [
       // Always available public pages
@@ -85,6 +86,7 @@ const router = createHashRouter([
               { path: "/hotel-management", element: <Hotel /> },
               { path: "/material-type", element: <MaterialType /> },
               { path: "/packing-type", element: <PackingType /> },
+              { path: "/logistics-warehouse", element: <LogisticsWarehouse /> },
               { path: "/settings", element: <h1>Settings</h1> },
             ],
           },
@@ -116,6 +118,7 @@ const router = createHashRouter([
                   { path: "/activity-log", element: <ActivityLog /> },
                   { path: "/notification", element: <Notification /> },
                   { path: "/packing-type", element: <PackingType /> },
+                  { path: "/logistics-warehouse", element: <LogisticsWarehouse /> },
                   { path: "/settings", element: <h1>Settings</h1> },
                 ],
               },

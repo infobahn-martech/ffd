@@ -338,6 +338,11 @@ function SideNav({ isMobileMenuOpen, onCloseMobileMenu }) {
           to: '/packing-type',
           hasPermission: true,
         },
+        {
+          menu: 'Logistics Warehouses',
+          to: '/logistics-warehouse',
+          hasPermission: true,
+        },
       ],
     },
 
