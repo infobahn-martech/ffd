@@ -216,16 +216,6 @@ const Crew = () => {
             thclass: 'tb-head',
             width: '150',
         },
-        {
-            name: 'Action',
-            selector: 'action',
-            tableClasses: 'table-striped',
-            contentClass: 'table-content',
-            thclass: 'tb-head',
-            cell: (props) => <RenderAction {...props} onViewClick={handleViewClick} />,
-            width: '100',
-            notView: true,
-        },
     ];
 
     const handleViewClick = (row) => {

@@ -1044,14 +1044,15 @@ const CrewContent = ({ formValues, handleChange, cardColor, onNavigateToTab, lau
               }}>
                 <thead>
                   <tr style={{
-                    background: "linear-gradient(135deg, var(--card-color, #2A00FF) 0%, rgba(42, 0, 255, 0.9) 100%)"
+                    background: '#e0e7ff',
+                    color: "rgb(26 26 26)"
                   }}>
                     <th style={{
                       width: "4%",
                       padding: "14px 16px",
                       textAlign: "left",
                       fontWeight: "600",
-                      color: "#ffffff",
+                      color: "rgb(26 26 26)",
                       borderRight: "1px solid rgba(255, 255, 255, 0.2)",
                       fontSize: "13px",
                       letterSpacing: "0.3px"
@@ -1061,7 +1062,7 @@ const CrewContent = ({ formValues, handleChange, cardColor, onNavigateToTab, lau
                       padding: "14px 16px",
                       textAlign: "left",
                       fontWeight: "600",
-                      color: "#ffffff",
+                      color: "rgb(26 26 26)",
                       borderRight: "1px solid rgba(255, 255, 255, 0.2)",
                       fontSize: "13px",
                       letterSpacing: "0.3px"
@@ -1071,7 +1072,7 @@ const CrewContent = ({ formValues, handleChange, cardColor, onNavigateToTab, lau
                       padding: "14px 16px",
                       textAlign: "left",
                       fontWeight: "600",
-                      color: "#ffffff",
+                      color: "rgb(26 26 26)",
                       borderRight: "1px solid rgba(255, 255, 255, 0.2)",
                       fontSize: "13px",
                       letterSpacing: "0.3px"
@@ -1081,7 +1082,7 @@ const CrewContent = ({ formValues, handleChange, cardColor, onNavigateToTab, lau
                       padding: "14px 16px",
                       textAlign: "left",
                       fontWeight: "600",
-                      color: "#ffffff",
+                      color: "rgb(26 26 26)",
                       borderRight: "1px solid rgba(255, 255, 255, 0.2)",
                       fontSize: "13px",
                       letterSpacing: "0.3px"
@@ -1091,7 +1092,7 @@ const CrewContent = ({ formValues, handleChange, cardColor, onNavigateToTab, lau
                       padding: "14px 16px",
                       textAlign: "left",
                       fontWeight: "600",
-                      color: "#ffffff",
+                      color: "rgb(26 26 26)",
                       borderRight: "1px solid rgba(255, 255, 255, 0.2)",
                       fontSize: "13px",
                       letterSpacing: "0.3px"
@@ -1101,7 +1102,7 @@ const CrewContent = ({ formValues, handleChange, cardColor, onNavigateToTab, lau
                       padding: "14px 16px",
                       textAlign: "left",
                       fontWeight: "600",
-                      color: "#ffffff",
+                      color: "rgb(26 26 26)",
                       borderRight: "1px solid rgba(255, 255, 255, 0.2)",
                       fontSize: "13px",
                       letterSpacing: "0.3px"
@@ -1111,7 +1112,7 @@ const CrewContent = ({ formValues, handleChange, cardColor, onNavigateToTab, lau
                       padding: "14px 16px",
                       textAlign: "left",
                       fontWeight: "600",
-                      color: "#ffffff",
+                      color: "rgb(26 26 26)",
                       borderRight: "1px solid rgba(255, 255, 255, 0.2)",
                       fontSize: "13px",
                       letterSpacing: "0.3px"
@@ -1121,7 +1122,7 @@ const CrewContent = ({ formValues, handleChange, cardColor, onNavigateToTab, lau
                       padding: "14px 16px",
                       textAlign: "left",
                       fontWeight: "600",
-                      color: "#ffffff",
+                      color: "rgb(26 26 26)",
                       borderRight: "1px solid rgba(255, 255, 255, 0.2)",
                       fontSize: "13px",
                       letterSpacing: "0.3px"
@@ -1131,7 +1132,7 @@ const CrewContent = ({ formValues, handleChange, cardColor, onNavigateToTab, lau
                       padding: "14px 16px",
                       textAlign: "left",
                       fontWeight: "600",
-                      color: "#ffffff",
+                      color: "rgb(26 26 26)",
                       fontSize: "13px",
                       letterSpacing: "0.3px"
                     }}>IQAMA</th>
@@ -1305,8 +1306,8 @@ const CrewContent = ({ formValues, handleChange, cardColor, onNavigateToTab, lau
                   padding: "12px 32px",
                   borderRadius: "10px",
                   border: "none",
-                  background: "linear-gradient(135deg, var(--card-color, #2A00FF) 0%, rgba(42, 0, 255, 0.9) 100%)",
-                  color: "#ffffff",
+                  background: "rgb(224 231 255)",
+                  color: "#rgb(26, 26, 26)",
                   fontSize: "14px",
                   fontWeight: "700",
                   cursor: "pointer",
@@ -1315,16 +1316,13 @@ const CrewContent = ({ formValues, handleChange, cardColor, onNavigateToTab, lau
                   display: "flex",
                   alignItems: "center",
                   gap: "10px",
-                  boxShadow: "0 4px 12px rgba(42, 0, 255, 0.35)",
                   letterSpacing: "0.3px"
                 }}
                 onMouseEnter={(e) => {
                   e.currentTarget.style.transform = "translateY(-2px)";
-                  e.currentTarget.style.boxShadow = "0 6px 20px rgba(42, 0, 255, 0.45)";
                 }}
                 onMouseLeave={(e) => {
                   e.currentTarget.style.transform = "translateY(0)";
-                  e.currentTarget.style.boxShadow = "0 4px 12px rgba(42, 0, 255, 0.35)";
                 }}
               >
                 <svg width="20" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" style={{ flexShrink: 0 }}>
@@ -1335,7 +1333,7 @@ const CrewContent = ({ formValues, handleChange, cardColor, onNavigateToTab, lau
               </button>
             </div>
           </div>
-        </div>
+        </div >
       ) : (
         // Crew List
         <>

@@ -168,13 +168,6 @@ function SideNav({ isMobileMenuOpen, onCloseMobileMenu }) {
       hasPermission: true,
     },
     {
-      menu: 'Custom Fields',
-      isDefaultMenu: true,
-      to: '/custom-fields',
-      icon: settingsIcon,
-      hasPermission: true,
-    },
-    {
       menu: 'Custom Inspection',
       isDefaultMenu: true,
       to: '/custom-inspection',
@@ -272,16 +265,6 @@ function SideNav({ isMobileMenuOpen, onCloseMobileMenu }) {
         {
           menu: 'Checklist',
           to: '/check-list',
-          hasPermission: true,
-        },
-        {
-          menu: 'Standard Tariff',
-          to: '/standard-tariff',
-          hasPermission: true,
-        },
-        {
-          menu: 'Tariff Agreements',
-          to: '/tariff-agreements',
           hasPermission: true,
         },
         {
