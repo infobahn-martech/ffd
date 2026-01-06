@@ -333,6 +333,11 @@ function SideNav({ isMobileMenuOpen, onCloseMobileMenu }) {
           to: '/material-type',
           hasPermission: true,
         },
+        {
+          menu: 'Packing Types',
+          to: '/packing-type',
+          hasPermission: true,
+        },
       ],
     },
 

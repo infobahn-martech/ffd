@@ -35,6 +35,7 @@ import CheckList from "../pages/CheckList";
 import DriverVehicleMapping from "../pages/DriverVehicleMapping";
 import Hotel from "../pages/Hotel";
 import MaterialType from "../pages/MaterialType";
+import PackingType from "../pages/PackingType";
 // 🔥 Set true to bypass auth temporarily
 const TEST_MODE = true;
 
@@ -83,6 +84,7 @@ const router = createHashRouter([
               { path: "/check-list", element: <CheckList /> },
               { path: "/hotel-management", element: <Hotel /> },
               { path: "/material-type", element: <MaterialType /> },
+              { path: "/packing-type", element: <PackingType /> },
               { path: "/settings", element: <h1>Settings</h1> },
             ],
           },
@@ -113,6 +115,7 @@ const router = createHashRouter([
                   { path: "/report-management", element: <ReportManagement /> },
                   { path: "/activity-log", element: <ActivityLog /> },
                   { path: "/notification", element: <Notification /> },
+                  { path: "/packing-type", element: <PackingType /> },
                   { path: "/settings", element: <h1>Settings</h1> },
                 ],
               },
