@@ -17,9 +17,11 @@ const KPIDashboard = () => {
                 <SideNav />
                 <div className="kpi-dashboard__content">
                     <HeaderBar />
-                    <CounterCards />
-                    <MiddleRowCards />
-                    <ChartsRow />
+                    <div className="kpi-dashboard__scrollable-content">
+                        <CounterCards />
+                        <MiddleRowCards />
+                        <ChartsRow />
+                    </div>
                 </div>
             </div>
         </div>

@@ -4,11 +4,15 @@
   align-items: center;
   padding: 24px 32px;
   background: transparent;
-  margin-bottom: 24px;
+  margin-bottom: 0;
   box-sizing: border-box;
   width: 100%;
   max-width: 100%;
   gap: 24px;
+  flex-shrink: 0;
+  position: sticky;
+  top: 0;
+  z-index: 10;
 
   &__title {
     color: #FFF;

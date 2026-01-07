@@ -23,11 +23,39 @@
     position: relative;
     z-index: 1;
     width: calc(100% - 280px);
-    min-height: 100vh;
-    padding: 0;
+    height: 100vh;
     margin-left: 280px;
+    overflow: hidden;
+    box-sizing: border-box;
+    display: flex;
+    flex-direction: column;
+  }
+
+  &__scrollable-content {
+    flex: 1;
     overflow-x: hidden;
     overflow-y: auto;
+    padding-top: 24px;
+    padding-bottom: 40px;
     box-sizing: border-box;
+
+    // Custom scrollbar styling
+    &::-webkit-scrollbar {
+      width: 8px;
+    }
+
+    &::-webkit-scrollbar-track {
+      background: rgba(255, 255, 255, 0.05);
+      border-radius: 4px;
+    }
+
+    &::-webkit-scrollbar-thumb {
+      background: rgba(255, 255, 255, 0.2);
+      border-radius: 4px;
+
+      &:hover {
+        background: rgba(255, 255, 255, 0.3);
+      }
+    }
   }
 }
