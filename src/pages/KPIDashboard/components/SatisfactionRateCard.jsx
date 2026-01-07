@@ -49,7 +49,11 @@ const SatisfactionRateCard = () => {
             </div>
           </foreignObject>
         </svg>
-        <div className="kpi-satisfaction-card__percentage">{satisfactionRate}%</div>
+        <div className="kpi-satisfaction-card__percentage-container">
+          <span className="kpi-satisfaction-card__percentage-left">0%</span>
+          <span className="kpi-satisfaction-card__percentage-center">{satisfactionRate}%</span>
+          <span className="kpi-satisfaction-card__percentage-right">100%</span>
+        </div>
       </div>
       <p className="kpi-satisfaction-card__footer">Based on Completed Tasks</p>
     </div>
