@@ -1,6 +1,8 @@
 import React from 'react';
 import KIPBackground from '../../assets/images/KIP-BG.png';
 import SideNav from './components/SideNav';
+import HeaderBar from './components/HeaderBar';
+import CounterCards from './components/CounterCards';
 import './KPIDashboard.scss';
 
 const KPIDashboard = () => {
@@ -12,7 +14,8 @@ const KPIDashboard = () => {
             >
                 <SideNav />
                 <div className="kpi-dashboard__content">
-                    {/* KPI Dashboard content will be added here */}
+                    <HeaderBar />
+                    <CounterCards />
                 </div>
             </div>
         </div>
