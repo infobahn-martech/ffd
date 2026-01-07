@@ -150,9 +150,10 @@ export function DriverModal({ showModal, closeModal }) {
                         </div>
                     </div>
 
-                    {/* ===== Joining Date ===== */}
+                    {/* ===== Joining Date + Location ===== */}
                     <div className="mb-lg-3 mb-sm-0">
                         <div className="permInputs row">
+                            {/* JOINING DATE */}
                             <div className="col-lg-6 col-sm-12">
                                 <div className="form-floating desig-inp">
                                     <input
@@ -170,6 +171,34 @@ export function DriverModal({ showModal, closeModal }) {
                                     {errors.joining_date && (
                                         <span className="error text-danger">
                                             {errors.joining_date.message}
+                                        </span>
+                                    )}
+                                </div>
+                            </div>
+
+                            {/* LOCATION */}
+                            <div className="col-lg-6 col-sm-12">
+                                <div className="form-floating desig-inp">
+                                    <select
+                                        className={`form-control ${errors.location ? "is-invalid" : ""
+                                            }`}
+                                        {...register("location", {
+                                            required: "Location is required",
+                                        })}
+                                    >
+                                        <option value="">Select Location</option>
+                                        {PORT_OPTIONS.map((port) => (
+                                            <option key={port} value={port}>
+                                                {port}
+                                            </option>
+                                        ))}
+                                    </select>
+                                    <label>
+                                        Location <span className="text-danger">*</span>
+                                    </label>
+                                    {errors.location && (
+                                        <span className="error text-danger">
+                                            {errors.location.message}
                                         </span>
                                     )}
                                 </div>
@@ -244,38 +273,9 @@ export function DriverModal({ showModal, closeModal }) {
                         </div>
                     </div>
 
-                    {/* ===== Location + Nationality ===== */}
+                    {/* ===== Nationality ===== */}
                     <div className="mb-lg-3 mb-sm-0">
                         <div className="permInputs row">
-                            {/* LOCATION */}
-                            <div className="col-lg-6 col-sm-12">
-                                <div className="form-floating desig-inp">
-                                    <select
-                                        className={`form-control ${errors.location ? "is-invalid" : ""
-                                            }`}
-                                        {...register("location", {
-                                            required: "Location is required",
-                                        })}
-                                    >
-                                        <option value="">Select Location</option>
-                                        {PORT_OPTIONS.map((port) => (
-                                            <option key={port} value={port}>
-                                                {port}
-                                            </option>
-                                        ))}
-                                    </select>
-                                    <label>
-                                        Location <span className="text-danger">*</span>
-                                    </label>
-                                    {errors.location && (
-                                        <span className="error text-danger">
-                                            {errors.location.message}
-                                        </span>
-                                    )}
-                                </div>
-                            </div>
-
-                            {/* NATIONALITY */}
                             <div className="col-lg-6 col-sm-12">
                                 <div className="form-floating desig-inp">
                                     <input
