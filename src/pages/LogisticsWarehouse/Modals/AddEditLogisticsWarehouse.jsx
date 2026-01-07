@@ -4,6 +4,11 @@ import "../../../design/scss/prospect-modal.scss";
 import "../../../design/scss/modal-designs.scss";
 import "../../../design/scss/form-designs.scss";
 
+const LOCATION_TYPE_OPTIONS = [
+    { value: "material_transport", label: "Material Transport" },
+    { value: "warehouse", label: "Warehouse" },
+];
+
 export function LogisticsWarehouseModal({ showModal, closeModal }) {
     const {
         register,
@@ -12,9 +17,13 @@ export function LogisticsWarehouseModal({ showModal, closeModal }) {
     } = useForm({
         defaultValues: showModal?._id
             ? {
-                logisticsWarehouseName: showModal?.name
+                location: showModal?.location || "",
+                location_type: showModal?.location_type || "",
             }
-            : {}
+            : {
+                location: "",
+                location_type: "",
+            }
     });
 
     const onSubmit = (data) => {
@@ -34,23 +43,52 @@ export function LogisticsWarehouseModal({ showModal, closeModal }) {
         <div className="modal-body">
             <div className="lead-form">
                 <form id="logisticsWarehouseForm" onSubmit={handleSubmit(onSubmit)}>
+                    {/* LOCATION */}
                     <div className="mb-lg-3 mb-sm-0">
                         <div className="form-floating desig-inp">
                             <input
-                                className={`form-control ${errors.logisticsWarehouseName ? "is-invalid" : ""
+                                type="text"
+                                className={`form-control ${errors.location ? "is-invalid" : ""
                                     }`}
-                                placeholder="Logistics Warehouse Name"
-                                {...register("logisticsWarehouseName", {
-                                    required: "Logistics warehouse name is required"
+                                placeholder="Location"
+                                {...register("location", {
+                                    required: "Location is required"
                                 })}
                             />
                             <label>
-                                Logistics Warehouse <span className="text-danger">*</span>
+                                Location <span className="text-danger">*</span>
                             </label>
-
-                            {errors.logisticsWarehouseName && (
+                            {errors.location && (
                                 <span className="error text-danger">
-                                    {errors.logisticsWarehouseName.message}
+                                    {errors.location.message}
+                                </span>
+                            )}
+                        </div>
+                    </div>
+
+                    {/* LOCATION TYPE */}
+                    <div className="mb-lg-3 mb-sm-0">
+                        <div className="form-floating desig-inp">
+                            <select
+                                className={`form-select ${errors.location_type ? "is-invalid" : ""
+                                    }`}
+                                {...register("location_type", {
+                                    required: "Location type is required"
+                                })}
+                            >
+                                <option value="">Select Location Type</option>
+                                {LOCATION_TYPE_OPTIONS.map((option) => (
+                                    <option key={option.value} value={option.value}>
+                                        {option.label}
+                                    </option>
+                                ))}
+                            </select>
+                            <label>
+                                Location Type <span className="text-danger">*</span>
+                            </label>
+                            {errors.location_type && (
+                                <span className="error text-danger">
+                                    {errors.location_type.message}
                                 </span>
                             )}
                         </div>
