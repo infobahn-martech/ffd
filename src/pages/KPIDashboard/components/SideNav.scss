@@ -45,10 +45,10 @@
   }
 
   &__menu {
-    flex: 1;
     display: flex;
     flex-direction: column;
     gap: 8px;
+    margin-bottom: 24px;
   }
 
   &__menu-item {
@@ -92,8 +92,105 @@
     line-height: 100%;
   }
 
+  &__account {
+    margin-bottom: 24px;
+
+    &-separator {
+      color: #A0A0A0;
+      font-family: 'Poppins', sans-serif;
+      font-size: 12px;
+      font-style: normal;
+      font-weight: 500;
+      line-height: 100%;
+      text-transform: uppercase;
+      margin-bottom: 12px;
+      padding: 0 16px;
+    }
+
+    &-menu {
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+    }
+  }
+
   &__help {
     margin-top: auto;
     padding-top: 20px;
+
+    &-card {
+      position: relative;
+      border-radius: 16px;
+      padding: 20px;
+      background-size: cover;
+      background-position: center;
+      background-repeat: no-repeat;
+      overflow: hidden;
+      min-height: 160px;
+      display: flex;
+      flex-direction: column;
+    }
+
+    &-icon {
+      width: 40px;
+      height: 40px;
+      border-radius: 50%;
+      background: #0075FF;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      margin-bottom: 12px;
+      flex-shrink: 0;
+    }
+
+    &-content {
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+      flex: 1;
+    }
+
+    &-title {
+      color: #FFF;
+      font-family: 'Poppins', sans-serif;
+      font-size: 16px;
+      font-style: normal;
+      font-weight: 600;
+      line-height: 100%;
+      margin: 0;
+    }
+
+    &-text {
+      color: rgba(255, 255, 255, 0.8);
+      font-family: 'Poppins', sans-serif;
+      font-size: 12px;
+      font-style: normal;
+      font-weight: 400;
+      line-height: 140%;
+      margin: 0;
+    }
+
+    &-button {
+      margin-top: auto;
+      padding: 10px 16px;
+      border-radius: 8px;
+      background: #1A1F37;
+      border: none;
+      color: #FFF;
+      font-family: 'Poppins', sans-serif;
+      font-size: 12px;
+      font-style: normal;
+      font-weight: 600;
+      line-height: 100%;
+      text-transform: uppercase;
+      cursor: pointer;
+      transition: all 0.2s ease;
+      width: 100%;
+
+      &:hover {
+        opacity: 0.9;
+        transform: translateY(-1px);
+      }
+    }
   }
 }
