@@ -30,28 +30,30 @@ const MonthlyTasksChart = () => {
         <ResponsiveContainer width="100%" height={300}>
           <BarChart data={data} margin={{ top: 20, right: 10, left: 0, bottom: 0 }}>
             <CartesianGrid strokeDasharray="3 3" stroke="rgba(255, 255, 255, 0.1)" />
-            <XAxis 
-              dataKey="name" 
+            <XAxis
+              dataKey="name"
               stroke="rgba(255, 255, 255, 0.7)"
               tick={{ fill: 'rgba(255, 255, 255, 0.7)', fontSize: 10 }}
               angle={-45}
               textAnchor="end"
               height={80}
             />
-            <YAxis 
+            <YAxis
               stroke="rgba(255, 255, 255, 0.7)"
               tick={{ fill: 'rgba(255, 255, 255, 0.7)', fontSize: 12 }}
               domain={[0, 50]}
               ticks={[0, 10, 20, 30, 40, 50]}
             />
-            <Tooltip 
-              contentStyle={{ 
-                backgroundColor: 'rgba(26, 31, 55, 0.95)', 
+            <Tooltip
+              cursor={false}
+              contentStyle={{
+                backgroundColor: 'rgba(26, 31, 55, 0.95)',
                 border: '1px solid rgba(255, 255, 255, 0.1)',
                 borderRadius: '8px',
                 color: '#FFF'
               }}
             />
+
             <Bar dataKey="value" radius={[8, 8, 0, 0]}>
               {data.map((entry, index) => (
                 <Cell key={`cell-${index}`} fill={entry.color} />
@@ -63,8 +65,8 @@ const MonthlyTasksChart = () => {
       <div className="kpi-monthly-tasks-chart__legend">
         {data.map((item, index) => (
           <div key={index} className="kpi-monthly-tasks-chart__legend-item">
-            <div 
-              className="kpi-monthly-tasks-chart__legend-color" 
+            <div
+              className="kpi-monthly-tasks-chart__legend-color"
               style={{ backgroundColor: item.color }}
             ></div>
             <span>{item.name}</span>
