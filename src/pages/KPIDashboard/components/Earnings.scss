@@ -1,0 +1,41 @@
+.kpi-earnings {
+  padding: 0 32px;
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
+
+  &__subtitle {
+    color: #FFF;
+    font-family: 'Poppins', sans-serif;
+    font-size: 18px;
+    font-style: normal;
+    font-weight: 600;
+    line-height: 140%;
+    margin-bottom: 8px;
+  }
+
+  &__content {
+    display: grid;
+    grid-template-columns: 1fr 400px;
+    gap: 24px;
+    align-items: start;
+  }
+
+  &__left {
+    display: flex;
+    flex-direction: column;
+    gap: 24px;
+  }
+
+  &__top-row {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 24px;
+  }
+
+  &__right {
+    position: sticky;
+    top: 100px;
+  }
+}
+

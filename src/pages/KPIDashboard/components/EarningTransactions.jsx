@@ -23,12 +23,12 @@ const CardIcon = () => (
 
 const EarningTransactions = () => {
   const transactions = [
-    { amount: 2800, date: '25 September', status: 'Pending Earning', icon: <BellIcon /> },
-    { amount: 2400, date: '29 August', status: 'Released Earning', icon: <CardIcon /> },
-    { amount: 2400, date: '20 August', status: 'Pending Earning', icon: <BellIcon /> },
-    { amount: 2260, date: '30 July', status: 'Released Earning', icon: <CardIcon /> },
-    { amount: 2260, date: '22 July', status: 'Pending Earning', icon: <BellIcon /> },
-    { amount: 2865, date: '31 June', status: 'Released Earning', icon: <CardIcon /> },
+    { amount: 2400, date: '22 July', status: 'Pending Earning', icon: <BellIcon /> },
+    { amount: 2400, date: '30 July', status: 'Released Earning', icon: <CardIcon /> },
+    { amount: 2260, date: '20 August', status: 'Pending Earning', icon: <BellIcon /> },
+    { amount: 2260, date: '29 August', status: 'Released Earning', icon: <CardIcon /> },
+    { amount: 2865, date: '23 September', status: 'Pending Earning', icon: <BellIcon /> },
+    { amount: 2865, date: '31 August', status: 'Released Earning', icon: <CardIcon /> },
   ];
 
   return (

@@ -4,8 +4,17 @@ import KIPLogo from '../../../assets/images/KIP_LOGO.png';
 import NeedHelpBG from '../../../assets/images/NeedHelpBG.png';
 import './SideNav.scss';
 
-const SideNav = () => {
-  const [activeMenu, setActiveMenu] = useState('Dashboard');
+const SideNav = ({ activeMenu, setActiveMenu }) => {
+  const [localActiveMenu, setLocalActiveMenu] = useState(activeMenu || 'Dashboard');
+
+  const handleMenuClick = (menuId) => {
+    setLocalActiveMenu(menuId);
+    if (setActiveMenu) {
+      setActiveMenu(menuId);
+    }
+  };
+
+  const currentActiveMenu = activeMenu || localActiveMenu;
 
   const DashboardIcon = () => (
     <svg xmlns="http://www.w3.org/2000/svg" width="20" height="12" viewBox="0 0 20 12" fill="none">
@@ -119,12 +128,12 @@ const SideNav = () => {
         <nav className="kpi-sidenav__menu">
           {menuItems.map((item) => {
             const Icon = item.icon;
-            const isActive = activeMenu === item.id;
+            const isActive = currentActiveMenu === item.id;
             return (
               <button
                 key={item.id}
                 className={`kpi-sidenav__menu-item ${isActive ? 'kpi-sidenav__menu-item--active' : ''}`}
-                onClick={() => setActiveMenu(item.id)}
+                onClick={() => handleMenuClick(item.id)}
               >
                 <span className={`kpi-sidenav__menu-icon ${isActive ? 'kpi-sidenav__menu-icon--active' : ''}`}>
                   <Icon />
@@ -141,12 +150,12 @@ const SideNav = () => {
           <nav className="kpi-sidenav__account-menu">
             {accountItems.map((item) => {
               const Icon = item.icon;
-              const isActive = activeMenu === item.id;
+              const isActive = currentActiveMenu === item.id;
               return (
                 <button
                   key={item.id}
                   className={`kpi-sidenav__menu-item ${isActive ? 'kpi-sidenav__menu-item--active' : ''}`}
-                  onClick={() => setActiveMenu(item.id)}
+                  onClick={() => handleMenuClick(item.id)}
                 >
                   <span className={`kpi-sidenav__menu-icon ${isActive ? 'kpi-sidenav__menu-icon--active' : ''}`}>
                     <Icon />

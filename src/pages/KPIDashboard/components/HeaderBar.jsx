@@ -8,7 +8,7 @@ const StarIcon = () => (
   </svg>
 );
 
-const HeaderBar = () => {
+const HeaderBar = ({ title = 'KPI Dashboard' }) => {
   const pointsLeft = 200;
   const currentLevel = 3;
   const nextLevel = 4;
@@ -16,7 +16,7 @@ const HeaderBar = () => {
 
   return (
     <div className="kpi-header-bar">
-      <div className="kpi-header-bar__title">KPI Dashboard</div>
+      <div className="kpi-header-bar__title">{title}</div>
       <div className="kpi-header-bar__left">
         <div className="kpi-header-bar__progress-section">
           <span className="kpi-header-bar__progress-text">
