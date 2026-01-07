@@ -33,6 +33,8 @@ export function UserModal({ showModal, closeModal }) {
 
   const onSubmit = (data) => {
     console.log("USER FORM SUBMITTED:", data);
+    console.log("USER FORM SUBMITTED:", data);
+    console.log("USER FORM SUBMITTED:", data);
     closeModal();
   };
 

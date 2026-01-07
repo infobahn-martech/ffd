@@ -4,19 +4,33 @@ import "../../../design/scss/prospect-modal.scss";
 import "../../../design/scss/modal-designs.scss";
 import "../../../design/scss/form-designs.scss";
 
+const VEHICLE_PURPOSE_OPTIONS = [
+    { value: "crew_transport", label: "Crew Transport" },
+    { value: "material", label: "Material" },
+];
+
 export function VehicleModal({ showModal, closeModal }) {
     const {
         register,
         handleSubmit,
         formState: { errors },
+        watch,
     } = useForm({
         defaultValues: showModal?._id
             ? {
                 vehicle_type: showModal?.vehicle_type || "",
+                vehicle_purpose: showModal?.vehicle_purpose || "",
                 seater: showModal?.seater || "",
             }
-            : {},
+            : {
+                vehicle_type: "",
+                vehicle_purpose: "",
+                seater: "",
+            },
     });
+
+    const vehiclePurpose = watch("vehicle_purpose");
+    const showSeater = vehiclePurpose === "crew_transport";
 
     const onSubmit = (data) => {
         console.log("VEHICLE FORM SUBMITTED:", data);
@@ -58,45 +72,24 @@ export function VehicleModal({ showModal, closeModal }) {
                         </div>
                     </div>
 
-                    {/* SEATER */}
-                    <div className="mb-lg-3 mb-sm-0">
-                        <div className="form-floating desig-inp">
-                            <input
-                                type="number"
-                                className={`form-control ${errors.seater ? "is-invalid" : ""
-                                    }`}
-                                placeholder="Seater"
-                                min={1}
-                                {...register("seater", {
-                                    required: "Seater is required",
-                                    valueAsNumber: true,
-                                    validate: (val) =>
-                                        val > 0 || "Seater must be greater than 0",
-                                })}
-                            />
-                            <label>
-                                Seater <span className="text-danger">*</span>
-                            </label>
-                            {errors.seater && (
-                                <span className="error text-danger">
-                                    {errors.seater.message}
-                                </span>
-                            )}
-                        </div>
-                    </div>
-
                     {/* VEHICLE PURPOSE */}
                     <div className="mb-lg-3 mb-sm-0">
                         <div className="form-floating desig-inp">
-                            <textarea
-                                className={`form-control ${errors.vehicle_purpose ? "is-invalid" : ""
+                            <select
+                                className={`form-select ${errors.vehicle_purpose ? "is-invalid" : ""
                                     }`}
-                                placeholder="Vehicle Purpose"
                                 {...register("vehicle_purpose", {
                                     required: "Vehicle purpose is required",
                                 })}
-                            ></textarea>
-                            <label style={{ marginBottom: "0px" }} className="mb-0">
+                            >
+                                <option value="">Select Vehicle Purpose</option>
+                                {VEHICLE_PURPOSE_OPTIONS.map((option) => (
+                                    <option key={option.value} value={option.value}>
+                                        {option.label}
+                                    </option>
+                                ))}
+                            </select>
+                            <label>
                                 Vehicle Purpose <span className="text-danger">*</span>
                             </label>
                             {errors.vehicle_purpose && (
@@ -106,6 +99,35 @@ export function VehicleModal({ showModal, closeModal }) {
                             )}
                         </div>
                     </div>
+
+                    {/* SEATER - Only show when Crew Transport is selected */}
+                    {showSeater && (
+                        <div className="mb-lg-3 mb-sm-0">
+                            <div className="form-floating desig-inp">
+                                <input
+                                    type="number"
+                                    className={`form-control ${errors.seater ? "is-invalid" : ""
+                                        }`}
+                                    placeholder="Seater"
+                                    min={1}
+                                    {...register("seater", {
+                                        required: showSeater ? "Seater is required" : false,
+                                        valueAsNumber: true,
+                                        validate: (val) =>
+                                            !showSeater || val > 0 || "Seater must be greater than 0",
+                                    })}
+                                />
+                                <label>
+                                    Seater <span className="text-danger">*</span>
+                                </label>
+                                {errors.seater && (
+                                    <span className="error text-danger">
+                                        {errors.seater.message}
+                                    </span>
+                                )}
+                            </div>
+                        </div>
+                    )}
 
 
                 </form>

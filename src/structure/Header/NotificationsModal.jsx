@@ -31,6 +31,8 @@ const initialNotifications = [
     details: "From 'In Progress' to 'Requested'",
     author: 'Infobahn',
     date: '2025-12-29 08:02:30',
+    date: '2025-12-29 08:02:30',
+    formattedDate: '29 Dec 2025 08:02:30',
     event: 'Card moved',
     owner: 'Infobahn',
   },
