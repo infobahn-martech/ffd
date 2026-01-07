@@ -9,18 +9,24 @@ const dummyLogisticsWarehouses = [
     {
         _id: "1",
         name: "Logistics Warehouse 1",
+        location: "Port A",
+        location_type: "warehouse",
         createdAt: "2024-01-01",
         updatedAt: "2024-01-01",
     },
     {
         _id: "2",
         name: "Logistics Warehouse 2",
+        location: "Port B",
+        location_type: "material_transport",
         createdAt: "2024-01-02",
         updatedAt: "2024-01-02",
     },
     {
         _id: "3",
         name: "Logistics Warehouse 3",
+        location: "Port C",
+        location_type: "warehouse",
         createdAt: "2024-01-03",
         updatedAt: "2024-01-03",
     },
@@ -38,7 +44,13 @@ const LogisticsWarehouse = () => {
     const [showLogisticsWarehouseModal, setShowLogisticsWarehouseModal] = useState(false);
     const [showDeleteModal, setShowDeleteModal] = useState(false);
 
-    // 👉 ONLY NAME + ACTIONS
+    // Helper function to format location type
+    const formatLocationType = (type) => {
+        if (type === "material_transport") return "Material Transport";
+        if (type === "warehouse") return "Warehouse";
+        return type;
+    };
+
     const cols = [
         {
             name: "Name",
@@ -47,6 +59,23 @@ const LogisticsWarehouse = () => {
             width: "200",
             thclass: "tb-head",
             contentClass: "table-content",
+        },
+        {
+            name: "Location",
+            selector: "location",
+            sort: true,
+            width: "200",
+            thclass: "tb-head",
+            contentClass: "table-content",
+        },
+        {
+            name: "Location Type",
+            selector: "location_type",
+            sort: true,
+            width: "200",
+            thclass: "tb-head",
+            contentClass: "table-content",
+            cell: ({ row }) => formatLocationType(row.location_type),
         },
         {
             name: "Created At",
