@@ -9,7 +9,8 @@ const SmileIcon = () => (
 
 const SatisfactionRateCard = () => {
   const satisfactionRate = 95;
-  const circumference = 2 * Math.PI * 45; // radius = 45
+  const radius = 50;
+  const circumference = Math.PI * radius; // Semi-circle circumference
   const offset = circumference - (satisfactionRate / 100) * circumference;
 
   return (
@@ -18,37 +19,42 @@ const SatisfactionRateCard = () => {
         <h3 className="kpi-satisfaction-card__title">Satisfaction Rate</h3>
         <p className="kpi-satisfaction-card__subtitle">From all tasks</p>
       </div>
-      <div className="kpi-satisfaction-card__gauge">
-        <svg className="kpi-satisfaction-card__gauge-svg" viewBox="0 0 120 120">
-          {/* Background circle */}
-          <circle
-            cx="60"
-            cy="60"
-            r="45"
-            fill="none"
-            stroke="rgba(255, 255, 255, 0.1)"
-            strokeWidth="8"
-          />
-          {/* Progress circle */}
-          <circle
-            cx="60"
-            cy="60"
-            r="45"
-            fill="none"
-            stroke="#0075FF"
-            strokeWidth="8"
-            strokeDasharray={circumference}
-            strokeDashoffset={offset}
-            strokeLinecap="round"
-            transform="rotate(-90 60 60)"
-          />
-          {/* Center content */}
-          <foreignObject x="35" y="40" width="50" height="50">
-            <div className="kpi-satisfaction-card__gauge-content">
-              <SmileIcon />
-            </div>
-          </foreignObject>
-        </svg>
+      <div className="kpi-satisfaction-card__gauge-wrapper">
+        <div className="kpi-satisfaction-card__gauge">
+          <svg className="kpi-satisfaction-card__gauge-svg" viewBox="0 0 200 120">
+            <defs>
+              <linearGradient id="gaugeGradient" x1="0%" y1="0%" x2="100%" y2="0%">
+                <stop offset="0%" stopColor="#60A5FA" />
+                <stop offset="100%" stopColor="#0075FF" />
+              </linearGradient>
+            </defs>
+            {/* Background semi-circle (top half) */}
+            <path
+              d="M 20 100 A 80 80 0 1 0 180 100"
+              fill="none"
+              stroke="rgba(255, 255, 255, 0.1)"
+              strokeWidth="12"
+              strokeLinecap="round"
+            />
+            {/* Progress semi-circle */}
+            <path
+              d="M 20 100 A 80 80 0 1 0 180 100"
+              fill="none"
+              stroke="url(#gaugeGradient)"
+              strokeWidth="12"
+              strokeLinecap="round"
+              strokeDasharray={circumference}
+              strokeDashoffset={offset}
+            />
+            {/* Smile icon in center circle */}
+            <circle cx="100" cy="50" r="18" fill="#0075FF" />
+            <foreignObject x="87.5" y="41" width="25" height="25">
+              <div className="kpi-satisfaction-card__gauge-content">
+                <SmileIcon />
+              </div>
+            </foreignObject>
+          </svg>
+        </div>
         <div className="kpi-satisfaction-card__percentage-container">
           <span className="kpi-satisfaction-card__percentage-left">0%</span>
           <span className="kpi-satisfaction-card__percentage-center">{satisfactionRate}%</span>
