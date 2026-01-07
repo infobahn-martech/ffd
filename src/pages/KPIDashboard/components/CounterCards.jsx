@@ -80,14 +80,12 @@ const CounterCards = () => {
             </div>
             <div className="kpi-counter-card__content">
               <div className="kpi-counter-card__title">{counter.title}</div>
-              <div className="kpi-counter-card__value-row">
-                <div className="kpi-counter-card__value">{counter.value}</div>
-                {counter.change && (
-                  <div className={`kpi-counter-card__change kpi-counter-card__change--${counter.isPositive ? 'positive' : 'negative'}`}>
-                    {counter.change}
-                  </div>
-                )}
-              </div>
+              <div className="kpi-counter-card__value">{counter.value}</div>
+              {counter.change && (
+                <div className={`kpi-counter-card__change kpi-counter-card__change--${counter.isPositive ? 'positive' : 'negative'}`}>
+                  {counter.change}
+                </div>
+              )}
             </div>
           </div>
         );
