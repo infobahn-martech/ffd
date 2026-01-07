@@ -28,6 +28,7 @@
     flex: 1;
     min-width: 0;
     justify-content: center;
+    padding-left: 790px;
   }
 
   &__progress-section {
@@ -35,7 +36,7 @@
     flex-direction: column;
     gap: 8px;
     flex: 1;
-    max-width: 500px;
+    max-width: 250px;
     min-width: 0;
   }
 
@@ -63,7 +64,6 @@
     background: #0075FF;
     border-radius: 6px;
     transition: width 0.3s ease;
-    position: relative;
     display: flex;
     align-items: center;
     justify-content: flex-end;
@@ -135,4 +135,3 @@
     object-fit: cover;
   }
 }
-
