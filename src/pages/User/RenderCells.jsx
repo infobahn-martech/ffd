@@ -1,17 +1,19 @@
 import { Tooltip } from 'react-tooltip';
 import moment from 'moment';
 
-import eye from '../../assets/images/eye.svg';
 import edit from '../../assets/images/edit.svg';
 import trash from '../../assets/images/delete.svg';
 import { getInitials } from '../../utils/utils';
+import '../../design/scss/managers-modal.scss';
 
-export const RenderAction = ({ onEditClick, row, onDeleteClick, onStatusClick }) => {
+export const RenderAction = ({ onEditClick, row, onDeleteClick, onToggleClick }) => {
+  const isActive = row?.status === "Active";
+  
   return (
     <>
-      <Tooltip id="active" place="bottom" content="Active" />
       <Tooltip id="edit" place="bottom" content="Edit" />
-      <Tooltip id="delete" place="bottom" content="Delete" />
+      <Tooltip id="toggle" place="bottom" content={isActive ? "Deactivate" : "Activate"} />
+      <Tooltip id="archive" place="bottom" content="Archive" />
       <div className="actions">
         <span
           data-tooltip-id="edit"
@@ -21,16 +23,28 @@ export const RenderAction = ({ onEditClick, row, onDeleteClick, onStatusClick })
         >
           <img src={edit} alt="edit" />
         </span>
-        <span data-tooltip-id="active" type="button" className="view" onClick={() => onStatusClick(row)}>
-          <img src={eye} alt="eye" />
+        <span 
+          data-tooltip-id="toggle" 
+          type="button" 
+          className="toggle-action"
+          style={{ display: 'inline-flex', alignItems: 'center', marginRight: '8px' }}
+        >
+          <label className="managers-toggle-switch" style={{ margin: 0 }}>
+            <input
+              type="checkbox"
+              checked={isActive}
+              onChange={() => onToggleClick(row)}
+            />
+            <span className="managers-toggle-slider"></span>
+          </label>
         </span>
         <span
-          data-tooltip-id="delete"
+          data-tooltip-id="archive"
           type="button"
           className="delete"
           onClick={() => onDeleteClick(row)}
         >
-          <img src={trash} alt="delete" />
+          <img src={trash} alt="archive" />
         </span>
       </div>
     </>

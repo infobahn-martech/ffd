@@ -6,7 +6,6 @@ import { RenderAction, RenderName } from "./RenderCells";
 import DeleteConfirmationModal from "../../components/DeleteConfirmationModal";
 import { ROLE_OPTIONS } from "../../constants/roles";
 import { PORT_OPTIONS, PORT_DETAILS } from "../../constants/ports";
-import StatusConfirmationModal from "../../components/StatusConfirmationModal";
 
 const dummyUsers = [
   {
@@ -145,7 +144,7 @@ const User = () => {
 
   const [showUserModal, setShowUserModal] = useState(false);
   const [showDeleteModal, setShowDeleteModal] = useState(false);
-  const [showStatusModal, setShowStatusModal] = useState(false);
+  const [selectedUser, setSelectedUser] = useState(null);
 
 
   // 👉 ONLY TWO COLUMNS (Name + Description)
@@ -228,8 +227,15 @@ const User = () => {
       contentClass: "table-content",
       cell: RenderAction,
       onEditClick: (row) => setShowUserModal(row),
-      onStatusClick: (row) => setShowStatusModal(true),
-      onDeleteClick: () => setShowDeleteModal(true),
+      onToggleClick: (row) => {
+        // Handle toggle active/inactive
+        console.log("Toggle user status:", row);
+        // TODO: Implement API call to update user status
+      },
+      onDeleteClick: (row) => {
+        setSelectedUser(row);
+        setShowDeleteModal(true);
+      },
     },
   ];
 
@@ -284,19 +290,17 @@ const User = () => {
           {!!showDeleteModal && (
             <DeleteConfirmationModal
               show={showDeleteModal}
-              onCancel={() => setShowDeleteModal(false)}
-              onConfirm={() => { }}
-              deleteText="Are you sure you want to delete this user?"
-            // isLoading={isBeingUpdated}
-            />
-          )}
-
-          {!!showStatusModal && (
-            <StatusConfirmationModal
-              show={showStatusModal}
-              onCancel={() => setShowStatusModal(false)}
-              onConfirm={() => { }}
-              statusText="Are you sure you want to deactivate this user?"
+              onCancel={() => {
+                setShowDeleteModal(false);
+                setSelectedUser(null);
+              }}
+              onConfirm={() => {
+                // TODO: Implement API call to archive user
+                console.log("Archive user:", selectedUser);
+                setShowDeleteModal(false);
+                setSelectedUser(null);
+              }}
+              deleteText="Are you sure you want to archive this user?"
             // isLoading={isBeingUpdated}
             />
           )}
