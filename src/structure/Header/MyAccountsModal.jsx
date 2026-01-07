@@ -11,6 +11,8 @@ function MyAccountsModal({ show, onClose }) {
   // const profileEditLoader = useAuthReducer((state) => state.profileEditLoader);
   // const getUserProfile = useAuthReducer((state) => state.getUserProfile);
 
+  const profileEditLoader = false;
+
   // Dummy data for demonstration
   const DUMMY_DATA = {
     firstName: 'John',
@@ -344,7 +346,7 @@ function MyAccountsModal({ show, onClose }) {
               <button
                 type="button"
                 className="btn-common green-btn"
-                onClick={handleSave}
+                // onClick={handleSave}
                 disabled={profileEditLoader}
                 style={{
                   padding: '12px 48px',
