@@ -59,6 +59,7 @@ const router = createHashRouter([
 
       // Standalone KPI Dashboard (no layout, header, or sidebar)
       { path: "/kpi-dashboard", element: <KPIDashboard /> },
+      { path: "/earning-history", element: <KPIDashboard /> },
 
       // If TEST MODE, bypass all auth guards
       ...(TEST_MODE

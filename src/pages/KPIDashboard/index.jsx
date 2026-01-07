@@ -1,4 +1,5 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
+import { useLocation, useNavigate } from 'react-router-dom';
 import KIPBackground from '../../assets/images/KIP-BG.png';
 import SideNav from './components/SideNav';
 import HeaderBar from './components/HeaderBar';
@@ -9,7 +10,29 @@ import Earnings from './components/Earnings';
 import './KPIDashboard.scss';
 
 const KPIDashboard = () => {
-    const [activeMenu, setActiveMenu] = useState('Dashboard');
+    const location = useLocation();
+    const navigate = useNavigate();
+    
+    // Initialize activeMenu based on URL
+    const getInitialMenu = () => {
+        const path = location.pathname || location.hash.replace('#', '');
+        if (path === '/earning-history') {
+            return 'Earning History';
+        }
+        return 'Dashboard';
+    };
+    
+    const [activeMenu, setActiveMenu] = useState(getInitialMenu());
+
+    useEffect(() => {
+        // Sync activeMenu with URL (hash router uses pathname)
+        const path = location.pathname || location.hash.replace('#', '');
+        if (path === '/earning-history') {
+            setActiveMenu('Earning History');
+        } else if (path === '/kpi-dashboard') {
+            setActiveMenu('Dashboard');
+        }
+    }, [location]);
 
     const renderContent = () => {
         switch (activeMenu) {

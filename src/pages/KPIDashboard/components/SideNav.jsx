@@ -1,16 +1,25 @@
 import React, { useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import KIPSideNavBg from '../../../assets/images/KIP-SideNav-Bg.png';
 import KIPLogo from '../../../assets/images/KIP_LOGO.png';
 import NeedHelpBG from '../../../assets/images/NeedHelpBG.png';
 import './SideNav.scss';
 
 const SideNav = ({ activeMenu, setActiveMenu }) => {
+  const navigate = useNavigate();
   const [localActiveMenu, setLocalActiveMenu] = useState(activeMenu || 'Dashboard');
 
   const handleMenuClick = (menuId) => {
     setLocalActiveMenu(menuId);
     if (setActiveMenu) {
       setActiveMenu(menuId);
+    }
+    
+    // Navigate to appropriate route
+    if (menuId === 'Earning History') {
+      navigate('/earning-history');
+    } else if (menuId === 'Dashboard') {
+      navigate('/kpi-dashboard');
     }
   };
 
