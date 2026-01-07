@@ -2,12 +2,24 @@
   display: flex;
   justify-content: space-between;
   align-items: center;
-  padding: 0 32px 24px;
+  padding: 24px 32px;
   background: transparent;
   margin-bottom: 24px;
   box-sizing: border-box;
   width: 100%;
   max-width: 100%;
+  gap: 24px;
+
+  &__title {
+    color: #FFF;
+    font-family: 'Poppins', sans-serif;
+    font-size: 24px;
+    font-style: normal;
+    font-weight: 600;
+    line-height: 140%;
+    flex-shrink: 0;
+    white-space: nowrap;
+  }
 
   &__left {
     display: flex;
@@ -15,6 +27,7 @@
     gap: 20px;
     flex: 1;
     min-width: 0;
+    justify-content: center;
   }
 
   &__progress-section {
@@ -75,6 +88,7 @@
     display: flex;
     align-items: center;
     gap: 16px;
+    flex-shrink: 0;
   }
 
   &__greeting {

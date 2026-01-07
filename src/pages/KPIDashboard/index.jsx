@@ -14,7 +14,6 @@ const KPIDashboard = () => {
             >
                 <SideNav />
                 <div className="kpi-dashboard__content">
-                    <div className="kpi-dashboard__title">KPI Dashboard</div>
                     <HeaderBar />
                     <CounterCards />
                 </div>
