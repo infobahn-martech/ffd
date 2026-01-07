@@ -1,5 +1,6 @@
 import CustomModal from '../../../components/CustomModal';
 import icon from '../../../assets/images/icon-chevToggle.svg';
+import { ROLE_OPTIONS } from '../../../constants/roles';
 import '../../../design/scss/add-permissions.scss';
 
 // -------------------------------------------
@@ -263,13 +264,15 @@ export function PermissionModal({ showModal, closeModal }) {
         <form>
           <div className="permInputs">
             <div className="form-floating desig-inp">
-              <input
-                type="text"
-                className="form-control"
-                id="floatingName"
-                placeholder="Name"
-              />
-              <label htmlFor="floatingInput">Designation name *</label>
+              <select className="form-select" id="floatingRole">
+                <option value="">Select Role</option>
+                {ROLE_OPTIONS.map((role) => (
+                  <option key={role} value={role}>
+                    {role}
+                  </option>
+                ))}
+              </select>
+              <label htmlFor="floatingRole">Role *</label>
             </div>
             <div className="form-floating desc-input">
               <input
