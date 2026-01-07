@@ -1,0 +1,76 @@
+.kpi-import-export-chart {
+  background: rgba(26, 31, 55, 0.6);
+  border-radius: 16px;
+  padding: 24px;
+  backdrop-filter: blur(10px);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  box-sizing: border-box;
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+
+  &__header {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+  }
+
+  &__title {
+    color: #FFF;
+    font-family: 'Poppins', sans-serif;
+    font-size: 18px;
+    font-style: normal;
+    font-weight: 600;
+    line-height: 140%;
+    margin: 0;
+  }
+
+  &__subtitle {
+    color: rgba(255, 255, 255, 0.7);
+    font-family: 'Poppins', sans-serif;
+    font-size: 12px;
+    font-style: normal;
+    font-weight: 400;
+    line-height: 140%;
+    margin: 0;
+  }
+
+  &__chart {
+    flex: 1;
+    min-height: 300px;
+  }
+
+  &__legend {
+    display: flex;
+    gap: 24px;
+    justify-content: center;
+  }
+
+  &__legend-item {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    color: rgba(255, 255, 255, 0.7);
+    font-family: 'Poppins', sans-serif;
+    font-size: 12px;
+    font-style: normal;
+    font-weight: 400;
+    line-height: 140%;
+  }
+
+  &__legend-color {
+    width: 12px;
+    height: 12px;
+    border-radius: 50%;
+
+    &--import {
+      background: #0075FF;
+    }
+
+    &--export {
+      background: #60A5FA;
+    }
+  }
+}
+

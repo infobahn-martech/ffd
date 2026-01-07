@@ -3,6 +3,8 @@ import KIPBackground from '../../assets/images/KIP-BG.png';
 import SideNav from './components/SideNav';
 import HeaderBar from './components/HeaderBar';
 import CounterCards from './components/CounterCards';
+import MiddleRowCards from './components/MiddleRowCards';
+import ChartsRow from './components/ChartsRow';
 import './KPIDashboard.scss';
 
 const KPIDashboard = () => {
@@ -16,6 +18,8 @@ const KPIDashboard = () => {
                 <div className="kpi-dashboard__content">
                     <HeaderBar />
                     <CounterCards />
+                    <MiddleRowCards />
+                    <ChartsRow />
                 </div>
             </div>
         </div>
