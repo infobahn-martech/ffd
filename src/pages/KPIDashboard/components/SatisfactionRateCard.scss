@@ -1,14 +1,15 @@
 .kpi-satisfaction-card {
   background: rgba(26, 31, 55, 0.6);
   border-radius: 16px;
-  padding: 24px;
+  padding: 20px;
   backdrop-filter: blur(10px);
   border: 1px solid rgba(255, 255, 255, 0.1);
   box-sizing: border-box;
-  height: 100%;
+  min-height: 200px;
+  height: auto;
   display: flex;
   flex-direction: column;
-  gap: 20px;
+  gap: 12px;
 
   &__header {
     text-align: left;
@@ -41,17 +42,15 @@
     display: flex;
     flex-direction: column;
     align-items: center;
-    gap: 16px;
-    flex: 1;
+    gap: 8px;
     justify-content: center;
-    min-height: 240px;
   }
 
   &__gauge {
     position: relative;
     width: 100%;
-    max-width: 200px;
-    height: 200px;
+    max-width: 140px;
+    height: 140px;
     display: flex;
     align-items: center;
     justify-content: center;
@@ -85,7 +84,7 @@
   &__percentage-center {
     color: #FFF;
     font-family: 'Poppins', sans-serif;
-    font-size: 36px;
+    font-size: 32px;
     font-style: normal;
     font-weight: 600;
     line-height: 100%;

@@ -9,7 +9,7 @@ const SmileIcon = () => (
 
 const SatisfactionRateCard = () => {
   const satisfactionRate = 95;
-  const radius = 70;
+  const radius = 50;
   const circumference = 2 * Math.PI * radius; // Full circle circumference
   const offset = circumference - (satisfactionRate / 100) * circumference;
   const centerX = 100;

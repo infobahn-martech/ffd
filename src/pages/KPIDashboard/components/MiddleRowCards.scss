@@ -12,6 +12,7 @@
   &__satisfaction,
   &__task-speed {
     min-width: 0;
+    height: auto;
   }
 }
 
@@ -20,4 +21,3 @@
     grid-template-columns: 1fr;
   }
 }
-
