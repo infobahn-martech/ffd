@@ -43,14 +43,19 @@ const EarningTransactions = () => {
       <div className="kpi-earning-transactions__list">
         {transactions.map((transaction, index) => (
           <div key={index} className="kpi-earning-transactions__item">
-            <div className="kpi-earning-transactions__item-left">
-              <div className="kpi-earning-transactions__icon">{transaction.icon}</div>
+            <div className="kpi-earning-transactions__item-content">
+              <div className="kpi-earning-transactions__icon-wrapper">
+                <div className="kpi-earning-transactions__icon">{transaction.icon}</div>
+              </div>
               <div className="kpi-earning-transactions__details">
                 <div className="kpi-earning-transactions__amount">SAR {transaction.amount.toLocaleString()}</div>
-                <div className="kpi-earning-transactions__date">{transaction.date}</div>
+                <div className="kpi-earning-transactions__meta">
+                  <span className="kpi-earning-transactions__date">{transaction.date}</span>
+                  <span className="kpi-earning-transactions__separator">-</span>
+                  <span className="kpi-earning-transactions__status">{transaction.status}</span>
+                </div>
               </div>
             </div>
-            <div className="kpi-earning-transactions__status">{transaction.status}</div>
           </div>
         ))}
       </div>
