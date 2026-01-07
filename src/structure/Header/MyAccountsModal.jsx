@@ -1,15 +1,15 @@
 import { useState, useEffect } from 'react';
 import { FiCamera } from 'react-icons/fi';
 import CustomModal from '../../components/CustomModal';
-import useAuthReducer from '../../store/AuthReducer';
+// import useAuthReducer from '../../store/AuthReducer';
 import '../../design/scss/profile.scss';
 import '../../design/scss/prospect-modal.scss';
 
 function MyAccountsModal({ show, onClose }) {
-  const profileData = useAuthReducer((state) => state.profileData);
-  const patchUserProfile = useAuthReducer((state) => state.patchUserProfile);
-  const profileEditLoader = useAuthReducer((state) => state.profileEditLoader);
-  const getUserProfile = useAuthReducer((state) => state.getUserProfile);
+  // const profileData = useAuthReducer((state) => state.profileData);
+  // const patchUserProfile = useAuthReducer((state) => state.patchUserProfile);
+  // const profileEditLoader = useAuthReducer((state) => state.profileEditLoader);
+  // const getUserProfile = useAuthReducer((state) => state.getUserProfile);
 
   // Dummy data for demonstration
   const DUMMY_DATA = {
@@ -29,26 +29,26 @@ function MyAccountsModal({ show, onClose }) {
     image: null,
   });
 
-  useEffect(() => {
-    if (show) {
-      // Use profile data if available, otherwise use dummy data
-      const data = profileData || DUMMY_DATA;
-      setFormData({
-        firstName: data.firstName || DUMMY_DATA.firstName,
-        lastName: data.lastName || DUMMY_DATA.lastName,
-        phone: data.phone || DUMMY_DATA.phone,
-        email: data.email || DUMMY_DATA.email,
-        image: data.avatar || data.image || DUMMY_DATA.image,
-      });
-      setIsEditing(false);
-    }
-  }, [show, profileData]);
+  // useEffect(() => {
+  //   if (show) {
+  //     // Use profile data if available, otherwise use dummy data
+  //     const data = profileData || DUMMY_DATA;
+  //     setFormData({
+  //       firstName: data.firstName || DUMMY_DATA.firstName,
+  //       lastName: data.lastName || DUMMY_DATA.lastName,
+  //       phone: data.phone || DUMMY_DATA.phone,
+  //       email: data.email || DUMMY_DATA.email,
+  //       image: data.avatar || data.image || DUMMY_DATA.image,
+  //     });
+  //     setIsEditing(false);
+  //   }
+  // }, [show, profileData]);
 
-  useEffect(() => {
-    if (show && !profileData) {
-      getUserProfile();
-    }
-  }, [show, profileData, getUserProfile]);
+  // useEffect(() => {
+  //   if (show && !profileData) {
+  //     getUserProfile();
+  //   }
+  // }, [show, profileData, getUserProfile]);
 
   const handleInputChange = (e) => {
     const { name, value } = e.target;
@@ -76,39 +76,31 @@ function MyAccountsModal({ show, onClose }) {
     setIsEditing(true);
   };
 
-  const handleSave = async () => {
-    try {
-      await patchUserProfile({
-        value: {
-          firstName: formData.firstName,
-          lastName: formData.lastName,
-          phone: formData.phone,
-          ...(formData.image && { avatar: formData.image }),
-        },
-        cb: () => {
-          setIsEditing(false);
-          getUserProfile();
-        },
-      });
-    } catch (error) {
-      console.error('Error updating profile:', error);
-    }
-  };
+  // const handleSave = async () => {
+  //   try {
+  //     await patchUserProfile({
+  //       value: {
+  //         firstName: formData.firstName,
+  //         lastName: formData.lastName,
+  //         phone: formData.phone,
+  //         ...(formData.image && { avatar: formData.image }),
+  //       },
+  //       cb: () => {
+  //         setIsEditing(false);
+  //         getUserProfile();
+  //       },
+  //     });
+  //   } catch (error) {
+  //     console.error('Error updating profile:', error);
+  //   }
+  // };
 
   const handleCancel = () => {
-    const data = profileData || DUMMY_DATA;
-    setFormData({
-      firstName: data.firstName || DUMMY_DATA.firstName,
-      lastName: data.lastName || DUMMY_DATA.lastName,
-      phone: data.phone || DUMMY_DATA.phone,
-      email: data.email || DUMMY_DATA.email,
-      image: data.avatar || data.image || DUMMY_DATA.image,
-    });
     setIsEditing(false);
   };
 
   const getUserInitial = () => {
-    const firstName = formData.firstName || profileData?.firstName || DUMMY_DATA.firstName;
+    const firstName = formData.firstName || DUMMY_DATA.firstName;
     return firstName.charAt(0).toUpperCase();
   };
 
