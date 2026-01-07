@@ -9,8 +9,17 @@
   max-width: 100%;
 
   &__import-export,
-  &__monthly-tasks {
+  &__monthly-tasks,
+  &__our-team,
+  &__earning-transactions {
     min-width: 0;
+  }
+
+  &--bottom {
+    .kpi-our-team,
+    .kpi-earning-transactions {
+      max-height: 400px;
+    }
   }
 }
 
