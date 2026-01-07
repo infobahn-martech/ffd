@@ -21,6 +21,7 @@ export function DriverModal({ showModal, closeModal }) {
             ? {
                 driver_name: showModal?.driver_name || "",
                 employee_no: showModal?.employee_no || "",
+                joining_date: showModal?.joining_date || "",
                 contact_no: showModal?.contact_no || "",
                 iqama_no: showModal?.iqama_no || "",
                 location: showModal?.location || "",
@@ -29,6 +30,7 @@ export function DriverModal({ showModal, closeModal }) {
             : {
                 driver_name: "",
                 employee_no: "",
+                joining_date: "",
                 contact_no: "",
                 iqama_no: "",
                 location: "",
@@ -141,6 +143,33 @@ export function DriverModal({ showModal, closeModal }) {
                                     {errors.employee_no && (
                                         <span className="error text-danger">
                                             {errors.employee_no.message}
+                                        </span>
+                                    )}
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    {/* ===== Joining Date ===== */}
+                    <div className="mb-lg-3 mb-sm-0">
+                        <div className="permInputs row">
+                            <div className="col-lg-6 col-sm-12">
+                                <div className="form-floating desig-inp">
+                                    <input
+                                        type="date"
+                                        className={`form-control ${errors.joining_date ? "is-invalid" : ""
+                                            }`}
+                                        placeholder="Joining Date"
+                                        {...register("joining_date", {
+                                            required: "Joining date is required",
+                                        })}
+                                    />
+                                    <label>
+                                        Joining Date <span className="text-danger">*</span>
+                                    </label>
+                                    {errors.joining_date && (
+                                        <span className="error text-danger">
+                                            {errors.joining_date.message}
                                         </span>
                                     )}
                                 </div>
