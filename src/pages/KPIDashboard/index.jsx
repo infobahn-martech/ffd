@@ -58,16 +58,29 @@ const KPIDashboard = () => {
         }
     };
 
-    const getPageTitle = () => {
+    const getBreadcrumbs = () => {
         switch (activeMenu) {
             case 'Earning History':
-                return 'Pages / Earnings';
+                return [
+                    { label: 'Dashboard', path: '/kpi-dashboard' },
+                    { label: 'Earning History', path: null },
+                ];
             case 'Tasks':
-                return 'Tasks';
+                return [
+                    { label: 'Dashboard', path: '/kpi-dashboard' },
+                    { label: 'Tasks', path: null },
+                ];
             case 'Dashboard':
             default:
-                return 'KPI Dashboard';
+                return null; // No breadcrumbs for dashboard, show title instead
         }
+    };
+
+    const getPageTitle = () => {
+        if (activeMenu === 'Dashboard') {
+            return 'KPI Dashboard';
+        }
+        return null; // Use breadcrumbs for other pages
     };
 
     return (
@@ -78,7 +91,7 @@ const KPIDashboard = () => {
             >
                 <SideNav activeMenu={activeMenu} setActiveMenu={setActiveMenu} />
                 <div className="kpi-dashboard__content">
-                    <HeaderBar title={getPageTitle()} />
+                    <HeaderBar title={getPageTitle()} breadcrumbs={getBreadcrumbs()} />
                     <div className="kpi-dashboard__scrollable-content">
                         {renderContent()}
                     </div>

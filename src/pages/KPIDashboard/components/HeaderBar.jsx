@@ -1,4 +1,5 @@
 import React from 'react';
+import { useNavigate } from 'react-router-dom';
 import ProfileIconKPI from '../../../assets/images/ProfileIconKPI.png';
 import './HeaderBar.scss';
 
@@ -8,15 +9,51 @@ const StarIcon = () => (
   </svg>
 );
 
-const HeaderBar = ({ title = 'KPI Dashboard' }) => {
+const ChevronIcon = () => (
+  <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 16 16" fill="none">
+    <path d="M6 12L10 8L6 4" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
+  </svg>
+);
+
+const HeaderBar = ({ breadcrumbs = null, title = 'KPI Dashboard' }) => {
+  const navigate = useNavigate();
   const pointsLeft = 200;
   const currentLevel = 3;
   const nextLevel = 4;
   const progressPercentage = 60; // 60% filled
 
+  // Use breadcrumbs if provided, otherwise fall back to title
+  const displayContent = breadcrumbs ? (
+    <div className="kpi-header-bar__breadcrumb">
+      {breadcrumbs.map((crumb, index) => (
+        <React.Fragment key={index}>
+          {index > 0 && (
+            <span className="kpi-header-bar__breadcrumb-separator">
+              <ChevronIcon />
+            </span>
+          )}
+          {crumb.path ? (
+            <button
+              className="kpi-header-bar__breadcrumb-item kpi-header-bar__breadcrumb-item--link"
+              onClick={() => navigate(crumb.path)}
+            >
+              {crumb.label}
+            </button>
+          ) : (
+            <span className="kpi-header-bar__breadcrumb-item kpi-header-bar__breadcrumb-item--current">
+              {crumb.label}
+            </span>
+          )}
+        </React.Fragment>
+      ))}
+    </div>
+  ) : (
+    <div className="kpi-header-bar__title">{title}</div>
+  );
+
   return (
     <div className="kpi-header-bar">
-      <div className="kpi-header-bar__title">{title}</div>
+      {displayContent}
       <div className="kpi-header-bar__left">
         <div className="kpi-header-bar__progress-section">
           <span className="kpi-header-bar__progress-text">
