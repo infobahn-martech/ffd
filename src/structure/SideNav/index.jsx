@@ -25,20 +25,7 @@ import useWindowSize from '../../hooks/useWindowSize';
 // 🆕 Kanban sidebar icons + tooltip
 import { Tooltip } from 'react-tooltip';
 import 'react-tooltip/dist/react-tooltip.css';
-import {
-  FiPlus,
-  FiInbox,
-  FiCalendar,
-  FiBarChart2,
-  FiFileText,
-  FiSettings,
-  FiFilter,
-  FiLayers,
-  FiImage,
-  FiUsers,
-  FiShield,
-  FiGrid
-} from 'react-icons/fi';
+import { FiPlus, FiInbox, FiFilter, FiUsers, FiShield, FiGrid } from 'react-icons/fi';
 
 function SideNav({ isMobileMenuOpen, onCloseMobileMenu }) {
   const { pathname } = useLocation();
@@ -52,8 +39,6 @@ function SideNav({ isMobileMenuOpen, onCloseMobileMenu }) {
   const kanbanBoardIcons = [
     { id: 1, icon: FiPlus, label: 'Add' },
     { id: 2, icon: FiFilter, label: 'Filter' },
-    // { id: 3, icon: FiLayers, label: 'Card tokens' },
-    // { id: 4, icon: FiImage, label: 'Board background' },
   ];
 
   const workspacesIcons = [
@@ -81,7 +66,7 @@ function SideNav({ isMobileMenuOpen, onCloseMobileMenu }) {
   const kanbanIcons = pathname === '/kanban-board' ? kanbanBoardIcons : workspacesIcons;
 
   // 🆕 Active state only for Kanban sidebar
-  const [activeKanbanIcon, setActiveKanbanIcon] = useState(2); // default Analytics
+  const [activeKanbanIcon, setActiveKanbanIcon] = useState(2);
   const [showFilterPanel, setShowFilterPanel] = useState(false);
   const [showBoardTeamsSubmenu, setShowBoardTeamsSubmenu] = useState(false);
   const [showCardManagementSubmenu, setShowCardManagementSubmenu] = useState(false);
@@ -95,6 +80,177 @@ function SideNav({ isMobileMenuOpen, onCloseMobileMenu }) {
   const [showMyAccountsModal, setShowMyAccountsModal] = useState(false);
 
   const [expand, setExpand] = useState(false);
+
+  // ✅ NEW: arranged sidebar order (as per your screenshot + recommended grouping)
+  const menus = [
+    {
+      menu: 'Dashboard',
+      isDefaultMenu: true,
+      to: '/dashboard',
+      icon: dashboardIcon,
+      hasPermission: true,
+    },
+
+    // ✅ Core Operations
+    {
+      menu: 'Vessel Management',
+      isDefaultMenu: true,
+      hasPermission: true,
+      isOpen: false,
+      subMenus: [
+        { menu: 'Vessel Types', to: '/vessel-types', hasPermission: true },
+        { menu: 'Barge Types', to: '/barge-types', hasPermission: true },
+        { menu: 'Vessels', to: '/vessel-onboarding', hasPermission: true },
+      ],
+      icon: workerIcon,
+    },
+    {
+      menu: 'Port Management',
+      isDefaultMenu: true,
+      to: '/port-management',
+      icon: portIcon,
+      hasPermission: true,
+    },
+    {
+      menu: 'Crew Management',
+      isDefaultMenu: true,
+      to: '/crew-management',
+      icon: portIcon,
+      hasPermission: true,
+    },
+    {
+      menu: 'Custom Inspection',
+      isDefaultMenu: true,
+      to: '/custom-inspection',
+      icon: portIcon,
+      hasPermission: true,
+    },
+    {
+      menu: 'Launch Hire Management',
+      isDefaultMenu: true,
+      hasPermission: true,
+      isOpen: false,
+      subMenus: [
+        { menu: 'Captains', to: '/captains', hasPermission: true },
+        { menu: 'Fleet', to: '/fleet', hasPermission: true },
+        { menu: 'Location', to: '/location', hasPermission: true },
+      ],
+      icon: workerIcon,
+    },
+    {
+      menu: 'Transport Management',
+      isDefaultMenu: true,
+      icon: settingsIcon,
+      hasPermission: true,
+      isOpen: false,
+      subMenus: [
+        { menu: 'Driver Management', to: '/driver-management', hasPermission: true },
+        { menu: 'Vehicle Management', to: '/vehicle-management', hasPermission: true },
+        { menu: 'Driver Vehicle Mapping', to: '/driver-vehicle-mapping', hasPermission: true },
+      ],
+    },
+    {
+      menu: 'Hotel Management',
+      isDefaultMenu: true,
+      to: '/hotel-management',
+      icon: portIcon,
+      hasPermission: true,
+    },
+    {
+      menu: 'Third Party Management',
+      isDefaultMenu: true,
+      hasPermission: true,
+      isOpen: false,
+      subMenus: [
+        { menu: 'Service Providers', to: '/service-providers', hasPermission: true },
+        { menu: 'Transport Parties', to: '/transport-parties', hasPermission: true },
+      ],
+      icon: workerIcon,
+    },
+    {
+      menu: 'Waste Management',
+      isDefaultMenu: true,
+      hasPermission: true,
+      isOpen: false,
+      subMenus: [{ menu: 'Waste Types', to: '/waste-types', hasPermission: true }],
+      icon: settingsIcon,
+    },
+
+    // ✅ Materials & Logistics
+    {
+      menu: 'Material Management',
+      isDefaultMenu: true,
+      icon: settingsIcon,
+      hasPermission: true,
+      isOpen: false,
+      subMenus: [
+        { menu: 'Material Types', to: '/material-type', hasPermission: true },
+        { menu: 'Packing Types', to: '/packing-type', hasPermission: true },
+        { menu: 'Logistics Warehouses', to: '/logistics-warehouse', hasPermission: true },
+      ],
+    },
+
+    // ✅ Finance
+    {
+      menu: 'Billing Accounts',
+      isDefaultMenu: true,
+      hasPermission: true,
+      isOpen: false,
+      subMenus: [
+        { menu: 'Billing Entity', to: '/billing-entity', hasPermission: true },
+        { menu: 'Group Email', to: '/group-email', hasPermission: true },
+        { menu: 'Job Status', to: '/job-status', hasPermission: true },
+        { menu: 'Customer Pricing', to: '/customer-pricing', hasPermission: true },
+        { menu: 'Billing Instruction', to: '/billing-instruction', hasPermission: true },
+      ],
+      icon: workerIcon,
+    },
+
+    // ✅ Admin + Configuration
+    {
+      menu: 'User Management',
+      isDefaultMenu: true,
+      hasPermission: true,
+      isOpen: false,
+      subMenus: [
+        { menu: 'Roles', to: '/roles', hasPermission: true },
+        { menu: 'Permissions', to: '/permissions', hasPermission: true },
+        { menu: 'Users', to: '/users', hasPermission: true },
+      ],
+      icon: workerIcon,
+    },
+    {
+      menu: 'Operations Configuration',
+      isDefaultMenu: true,
+      hasPermission: true,
+      isOpen: false,
+      subMenus: [
+        { menu: 'Appointment Acceptance', to: '/appointment-acceptance', hasPermission: true },
+        { menu: 'Pre-Arrival Information', to: '/pre-arrival-information', hasPermission: true },
+        { menu: 'Checklist', to: '/check-list', hasPermission: true },
+        { menu: 'Custom Fields', to: '/custom-fields', hasPermission: true },
+      ],
+      icon: workerIcon,
+    },
+
+    // ✅ Settings (last)
+    {
+      menu: 'Settings',
+      isDefaultMenu: true,
+      icon: settingsIcon,
+      hasPermission: true,
+      isOpen: false,
+      subMenus: [
+        { menu: 'My Accounts', to: '/my-accounts', hasPermission: true },
+        { menu: 'Activity Log', to: '/activity-log', hasPermission: true },
+        { menu: 'Notification', to: '/notification', hasPermission: true },
+        { menu: 'Report Management', to: '/report-management', hasPermission: true },
+        { menu: 'Status Management', to: '/status-management', hasPermission: true },
+      ],
+    },
+  ];
+
+  const [menuState, setMenuState] = useState(menus);
 
   // Sync with Header's mobile menu state
   useEffect(() => {
@@ -111,7 +267,7 @@ function SideNav({ isMobileMenuOpen, onCloseMobileMenu }) {
     }
   }, [pathname]); // eslint-disable-line react-hooks/exhaustive-deps
 
-  // Close mobile menu when clicking outside or on route change
+  // Close mobile menu when clicking outside
   useEffect(() => {
     if (isMobile && expand && onCloseMobileMenu) {
       const handleClickOutside = (e) => {
@@ -127,297 +283,6 @@ function SideNav({ isMobileMenuOpen, onCloseMobileMenu }) {
       return () => document.removeEventListener('mousedown', handleClickOutside);
     }
   }, [isMobile, expand, onCloseMobileMenu]);
-
-  const menus = [
-    {
-      menu: 'Dashboard',
-      isDefaultMenu: true,
-      to: '/dashboard',
-      icon: dashboardIcon,
-      hasPermission: true,
-    },
-    {
-      menu: 'User Management',
-      isDefaultMenu: true,
-      hasPermission: true,
-      isOpen: false,
-      subMenus: [
-        {
-          menu: 'Roles',
-          to: '/roles',
-          hasPermission: true,
-        },
-        {
-          menu: 'Permissions',
-          to: '/permissions',
-          hasPermission: true,
-        },
-        {
-          menu: 'Users',
-          to: '/users',
-          hasPermission: true,
-        },
-      ],
-      icon: workerIcon,
-    },
-    {
-      menu: 'Port Management',
-      isDefaultMenu: true,
-      to: '/port-management',
-      icon: portIcon,
-      hasPermission: true,
-    },
-    {
-      menu: 'Custom Inspection',
-      isDefaultMenu: true,
-      to: '/custom-inspection',
-      icon: portIcon,
-      hasPermission: true,
-    },
-    {
-      menu: 'Crew Management',
-      isDefaultMenu: true,
-      to: '/crew-management',
-      icon: portIcon,
-      hasPermission: true,
-    },
-    {
-      menu: 'Hotel Management',
-      isDefaultMenu: true,
-      to: '/hotel-management',
-      icon: portIcon,
-      hasPermission: true,
-    },
-    {
-      menu: 'Billing Accounts',
-      isDefaultMenu: true,
-      hasPermission: true,
-      isOpen: false,
-      subMenus: [
-        {
-          menu: 'Billing Entity',
-          to: '/billing-entity',
-          hasPermission: true,
-        },
-        {
-          menu: 'Group Email',
-          to: '/group-email',
-          hasPermission: true,
-        },
-        {
-          menu: 'Job Status',
-          to: '/job-status',
-          hasPermission: true,
-        },
-        {
-          menu: 'Customer Pricing',
-          to: '/customer-pricing',
-          hasPermission: true,
-        },
-        {
-          menu: 'Billing Instruction',
-          to: '/billing-instruction',
-          hasPermission: true,
-        },
-      ],
-      icon: workerIcon,
-    },
-    {
-      menu: 'Vessel Management',
-      isDefaultMenu: true,
-      hasPermission: true,
-      isOpen: false,
-      subMenus: [
-        {
-          menu: 'Vessel Types',
-          to: '/vessel-types',
-          hasPermission: true,
-        },
-        {
-          menu: 'Barge Types',
-          to: '/barge-types',
-          hasPermission: true,
-        },
-        {
-          menu: 'Vessels',
-          to: '/vessel-onboarding',
-          hasPermission: true,
-        },
-      ],
-      icon: workerIcon,
-    },
-    {
-      menu: 'Launch Hire Management',
-      isDefaultMenu: true,
-      hasPermission: true,
-      isOpen: false,
-      subMenus: [
-        {
-          menu: 'Captains',
-          to: '/captains',
-          hasPermission: true,
-        },
-        {
-          menu: 'Fleet',
-          to: '/fleet',
-          hasPermission: true,
-        },
-        {
-          menu: 'Location',
-          to: '/location',
-          hasPermission: true,
-        },
-      ],
-      icon: workerIcon,
-    },
-    {
-      menu: 'Third Party Management',
-      isDefaultMenu: true,
-      hasPermission: true,
-      isOpen: false,
-      subMenus: [
-        {
-          menu: 'Service Providers',
-          to: '/service-providers',
-          hasPermission: true,
-        },
-        {
-          menu: 'Transport Parties',
-          to: '/transport-parties',
-          hasPermission: true,
-        },
-      ],
-      icon: workerIcon,
-    },
-    {
-      menu: 'Waste Management',
-      isDefaultMenu: true,
-      hasPermission: true,
-      isOpen: false,
-      subMenus: [
-        {
-          menu: 'Waste Types',
-          to: '/waste-types',
-          hasPermission: true,
-        },
-      ],
-      icon: settingsIcon,
-    },
-    {
-      menu: 'Operations Configuration',
-      isDefaultMenu: true,
-      hasPermission: true,
-      isOpen: false,
-      subMenus: [
-        {
-          menu: 'Appointment Acceptance',
-          to: '/appointment-acceptance',
-          hasPermission: true,
-        },
-        {
-          menu: 'Pre-Arrival Information',
-          to: '/pre-arrival-information',
-          hasPermission: true,
-        },
-        {
-          menu: 'Checklist',
-          to: '/check-list',
-          hasPermission: true,
-        },
-        {
-          menu: 'Custom Fields',
-          to: '/custom-fields',
-          hasPermission: true,
-        },
-      ],
-      icon: workerIcon,
-    },
-    {
-      menu: 'Transport Management',
-      isDefaultMenu: true,
-      icon: settingsIcon,
-      hasPermission: true,
-      isOpen: false,
-      subMenus: [
-        {
-          menu: 'Driver Management',
-          to: '/driver-management',
-          hasPermission: true,
-        },
-        {
-          menu: 'Vehicle Management',
-          to: '/vehicle-management',
-          hasPermission: true,
-        },
-        {
-          menu: 'Driver Vehicle Mapping',
-          to: '/driver-vehicle-mapping',
-          hasPermission: true,
-        },
-      ],
-    },
-    {
-      menu: 'Material Management',
-      isDefaultMenu: true,
-      icon: settingsIcon,
-      hasPermission: true,
-      isOpen: false,
-      subMenus: [
-        {
-          menu: 'Material Types',
-          to: '/material-type',
-          hasPermission: true,
-        },
-        {
-          menu: 'Packing Types',
-          to: '/packing-type',
-          hasPermission: true,
-        },
-        {
-          menu: 'Logistics Warehouses',
-          to: '/logistics-warehouse',
-          hasPermission: true,
-        },
-      ],
-    },
-
-    {
-      menu: 'Settings',
-      isDefaultMenu: true,
-      icon: settingsIcon,
-      hasPermission: true,
-      isOpen: false,
-      subMenus: [
-        {
-          menu: 'My Accounts',
-          to: '/my-accounts',
-          hasPermission: true,
-        },
-        {
-          menu: 'Activity Log',
-          to: '/activity-log',
-          hasPermission: true,
-        },
-        {
-          menu: 'Notification',
-          to: '/notification',
-          hasPermission: true,
-        },
-        {
-          menu: 'Report Management',
-          to: '/report-management',
-          hasPermission: true,
-        },
-        {
-          menu: 'Status Management',
-          to: '/status-management',
-          hasPermission: true,
-        },
-      ],
-    },
-  ];
-
-  const [menuState, setMenuState] = useState(menus);
 
   useEffect(() => {
     // 🔒 Don’t touch normal menu behaviour when on Kanban sidebar
@@ -459,44 +324,38 @@ function SideNav({ isMobileMenuOpen, onCloseMobileMenu }) {
     }
   };
 
-  const handleSubmenuClick = (subMenu, to, e) => {
-    // If "My Accounts" is clicked, open the modal instead of navigating
+  const handleSubmenuClickDefault = (subMenu) => {
     if (subMenu === 'My Accounts') {
       setShowMyAccountsModal(true);
-      // Close mobile menu if open
       if (isMobile && expand && onCloseMobileMenu) {
         setExpand(false);
         onCloseMobileMenu();
       }
-      return true; // Indicate that the click was handled
+      return true;
     }
-    return false; // Let the default navigation happen
+    return false;
   };
 
   const handleToggle = () => {
     const newExpand = !expand;
     setExpand(newExpand);
     if (onCloseMobileMenu) {
-      if (newExpand) {
-        // Menu is opening, Header will handle state
-      } else {
-        onCloseMobileMenu();
-      }
+      if (!newExpand) onCloseMobileMenu();
     }
   };
 
-  // Set active icon based on current route (must be outside conditional to follow Rules of Hooks)
+  // Set active icon based on current route
   useEffect(() => {
     if (isKanbanBoard) {
       if (pathname === '/workspaces') {
-        setActiveKanbanIcon(3); // Workspaces icon
+        setActiveKanbanIcon(3);
       } else if (pathname === '/kanban-board') {
-        setActiveKanbanIcon(1); // Default to Add icon (or can be set to any icon id from kanbanBoardIcons)
+        setActiveKanbanIcon(1);
       }
     }
   }, [pathname, isKanbanBoard]);
 
-  // Add/remove class to body when submenu is open to blur workspaces container
+  // Add/remove class to body when submenu is open
   useEffect(() => {
     if (showBoardTeamsSubmenu || showCardManagementSubmenu) {
       document.body.classList.add('board-teams-submenu-open');
@@ -508,7 +367,7 @@ function SideNav({ isMobileMenuOpen, onCloseMobileMenu }) {
     };
   }, [showBoardTeamsSubmenu, showCardManagementSubmenu]);
 
-  // Close submenu when clicking outside
+  // Close submenu when clicking outside (board teams)
   useEffect(() => {
     if (showBoardTeamsSubmenu) {
       const handleClickOutside = (event) => {
@@ -518,13 +377,12 @@ function SideNav({ isMobileMenuOpen, onCloseMobileMenu }) {
           setShowBoardTeamsSubmenu(false);
         }
       };
-
       document.addEventListener('mousedown', handleClickOutside);
       return () => document.removeEventListener('mousedown', handleClickOutside);
     }
   }, [showBoardTeamsSubmenu]);
 
-  // Close card management submenu when clicking outside
+  // Close submenu when clicking outside (card management)
   useEffect(() => {
     if (showCardManagementSubmenu) {
       const handleClickOutside = (event) => {
@@ -534,7 +392,6 @@ function SideNav({ isMobileMenuOpen, onCloseMobileMenu }) {
           setShowCardManagementSubmenu(false);
         }
       };
-
       document.addEventListener('mousedown', handleClickOutside);
       return () => document.removeEventListener('mousedown', handleClickOutside);
     }
@@ -543,148 +400,95 @@ function SideNav({ isMobileMenuOpen, onCloseMobileMenu }) {
   // 🆕 Special layout for /kanban-board and /workspaces
   if (isKanbanBoard) {
     const handleIconClick = (item) => {
-      // If Filter icon is clicked, toggle filter panel
       if (item.label === 'Filter') {
         const newShowState = !showFilterPanel;
         setShowFilterPanel(newShowState);
-        setShowBoardTeamsSubmenu(false); // Close board teams submenu
-        setShowCardManagementSubmenu(false); // Close card management submenu
-        if (newShowState) {
-          setActiveKanbanIcon(item.id);
-        }
+        setShowBoardTeamsSubmenu(false);
+        setShowCardManagementSubmenu(false);
+        if (newShowState) setActiveKanbanIcon(item.id);
         return;
       }
 
-      // If Board teams icon is clicked, toggle submenu
       if (item.label === 'Board teams') {
         const newShowState = !showBoardTeamsSubmenu;
         setShowBoardTeamsSubmenu(newShowState);
-        setShowFilterPanel(false); // Close filter panel
-        setShowBusinessRulesModal(false); // Close business rules modal
-        setShowCardManagementSubmenu(false); // Close card management submenu
-        if (newShowState) {
-          setActiveKanbanIcon(item.id);
-        }
+        setShowFilterPanel(false);
+        setShowBusinessRulesModal(false);
+        setShowCardManagementSubmenu(false);
+        if (newShowState) setActiveKanbanIcon(item.id);
         return;
       }
 
-      // If Business rules icon is clicked, open modal
       if (item.label === 'Business rules') {
         setShowBusinessRulesModal(true);
-        setShowFilterPanel(false); // Close filter panel
-        setShowBoardTeamsSubmenu(false); // Close board teams submenu
-        setShowCardManagementSubmenu(false); // Close card management submenu
+        setShowFilterPanel(false);
+        setShowBoardTeamsSubmenu(false);
+        setShowCardManagementSubmenu(false);
         setActiveKanbanIcon(item.id);
         return;
       }
 
-      // If Card management icon is clicked, toggle submenu
       if (item.label === 'Card management') {
         const newShowState = !showCardManagementSubmenu;
         setShowCardManagementSubmenu(newShowState);
-        setShowFilterPanel(false); // Close filter panel
-        setShowBoardTeamsSubmenu(false); // Close board teams submenu
-        setShowBusinessRulesModal(false); // Close business rules modal
-        setShowBlockersModal(false); // Close blockers modal
-        setShowStickersModal(false); // Close stickers modal
-        setShowTagsModal(false); // Close tags modal
-        setShowTypesModal(false); // Close types modal
-        if (newShowState) {
-          setActiveKanbanIcon(item.id);
-        }
+        setShowFilterPanel(false);
+        setShowBoardTeamsSubmenu(false);
+        setShowBusinessRulesModal(false);
+        setShowBlockersModal(false);
+        setShowStickersModal(false);
+        setShowTagsModal(false);
+        setShowTypesModal(false);
+        if (newShowState) setActiveKanbanIcon(item.id);
         return;
       }
 
-      // Close filter panel, board teams submenu, card management submenu, and business rules modal when other icons are clicked
-      if (showFilterPanel) {
-        setShowFilterPanel(false);
-      }
-      if (showBoardTeamsSubmenu) {
-        setShowBoardTeamsSubmenu(false);
-      }
-      if (showCardManagementSubmenu) {
-        setShowCardManagementSubmenu(false);
-      }
-      if (showBusinessRulesModal) {
-        setShowBusinessRulesModal(false);
-      }
-      if (showBlockersModal) {
-        setShowBlockersModal(false);
-      }
-      if (showStickersModal) {
-        setShowStickersModal(false);
-      }
-      if (showTagsModal) {
-        setShowTagsModal(false);
-      }
-      if (showTypesModal) {
-        setShowTypesModal(false);
-      }
+      if (showFilterPanel) setShowFilterPanel(false);
+      if (showBoardTeamsSubmenu) setShowBoardTeamsSubmenu(false);
+      if (showCardManagementSubmenu) setShowCardManagementSubmenu(false);
+      if (showBusinessRulesModal) setShowBusinessRulesModal(false);
+      if (showBlockersModal) setShowBlockersModal(false);
+      if (showStickersModal) setShowStickersModal(false);
+      if (showTagsModal) setShowTagsModal(false);
+      if (showTypesModal) setShowTypesModal(false);
 
       setActiveKanbanIcon(item.id);
-      // If Add icon is clicked, dispatch event to open CardForm in add mode
+
       if (item.label === 'Add') {
         window.dispatchEvent(new CustomEvent('kanban:add-card'));
       }
-      // If Workspaces icon is clicked, navigate to workspaces route
+
       if (item.label === 'Workspaces') {
         navigate('/workspaces');
       } else if (pathname === '/workspaces' && item.label !== 'Workspaces') {
-        // If on workspaces page and clicking other icons, navigate to kanban-board
         navigate('/kanban-board');
         window.dispatchEvent(new CustomEvent('kanban:hide-workspaces', { detail: { activeIcon: item.id } }));
       } else {
-        // Dispatch event to hide Workspaces view for other icons
         window.dispatchEvent(new CustomEvent('kanban:hide-workspaces', { detail: { activeIcon: item.id } }));
       }
     };
 
-    const handleSubmenuClick = (item) => {
+    const handleSubmenuClickKanban = (item) => {
       setShowBoardTeamsSubmenu(false);
-      if (item.modal === 'managers') {
-        setShowManagersModal(true);
-      } else if (item.modal === 'dashboards') {
-        setShowDashboardsModal(true);
-      }
+      if (item.modal === 'managers') setShowManagersModal(true);
+      else if (item.modal === 'dashboards') setShowDashboardsModal(true);
     };
 
     const handleCardManagementSubmenuClick = (item) => {
       setShowCardManagementSubmenu(false);
-      if (item.modal === 'blockers') {
-        setShowBlockersModal(true);
-        setShowFilterPanel(false);
-        setShowBoardTeamsSubmenu(false);
-        setShowBusinessRulesModal(false);
-        setShowStickersModal(false);
-        setShowTagsModal(false);
-        setShowTypesModal(false);
-      } else if (item.modal === 'stickers') {
-        setShowStickersModal(true);
-        setShowFilterPanel(false);
-        setShowBoardTeamsSubmenu(false);
-        setShowBusinessRulesModal(false);
-        setShowBlockersModal(false);
-        setShowTagsModal(false);
-        setShowTypesModal(false);
-      } else if (item.modal === 'tags') {
-        setShowTagsModal(true);
-        setShowFilterPanel(false);
-        setShowBoardTeamsSubmenu(false);
-        setShowBusinessRulesModal(false);
-        setShowBlockersModal(false);
-        setShowStickersModal(false);
-        setShowTypesModal(false);
-      } else if (item.modal === 'types') {
-        setShowTypesModal(true);
-        setShowFilterPanel(false);
-        setShowBoardTeamsSubmenu(false);
-        setShowBusinessRulesModal(false);
-        setShowBlockersModal(false);
-        setShowStickersModal(false);
-        setShowTagsModal(false);
-      } else if (item.route) {
-        navigate(item.route);
-      }
+
+      setShowFilterPanel(false);
+      setShowBoardTeamsSubmenu(false);
+      setShowBusinessRulesModal(false);
+
+      setShowBlockersModal(false);
+      setShowStickersModal(false);
+      setShowTagsModal(false);
+      setShowTypesModal(false);
+
+      if (item.modal === 'blockers') setShowBlockersModal(true);
+      if (item.modal === 'stickers') setShowStickersModal(true);
+      if (item.modal === 'tags') setShowTagsModal(true);
+      if (item.modal === 'types') setShowTypesModal(true);
     };
 
     return (
@@ -692,11 +496,13 @@ function SideNav({ isMobileMenuOpen, onCloseMobileMenu }) {
         <aside className="kanban-sidebar">
           {kanbanIcons.map((item) => {
             const Icon = item.icon;
-            const isActive = activeKanbanIcon === item.id ||
+            const isActive =
+              activeKanbanIcon === item.id ||
               (item.label === 'Filter' && showFilterPanel) ||
               (item.label === 'Board teams' && showBoardTeamsSubmenu) ||
               (item.label === 'Business rules' && showBusinessRulesModal) ||
               (item.label === 'Card management' && showCardManagementSubmenu);
+
             return (
               <div key={item.id} style={{ position: 'relative' }}>
                 <div
@@ -707,19 +513,21 @@ function SideNav({ isMobileMenuOpen, onCloseMobileMenu }) {
                 >
                   <Icon size={22} />
                 </div>
+
                 {item.label === 'Board teams' && showBoardTeamsSubmenu && (
                   <div className="kanban-sidebar-submenu">
                     {boardTeamsSubmenu.map((subItem, index) => (
                       <div
                         key={index}
                         className="kanban-sidebar-submenu-item"
-                        onClick={() => handleSubmenuClick(subItem)}
+                        onClick={() => handleSubmenuClickKanban(subItem)}
                       >
                         {subItem.label}
                       </div>
                     ))}
                   </div>
                 )}
+
                 {item.label === 'Card management' && showCardManagementSubmenu && (
                   <div className="kanban-sidebar-submenu card-management-submenu">
                     {cardManagementSubmenu.map((subItem, index) => (
@@ -736,6 +544,7 @@ function SideNav({ isMobileMenuOpen, onCloseMobileMenu }) {
               </div>
             );
           })}
+
           <Tooltip
             id="sidebar-tooltip"
             place="right"
@@ -749,6 +558,7 @@ function SideNav({ isMobileMenuOpen, onCloseMobileMenu }) {
             }}
           />
         </aside>
+
         <BoardFilterPanel show={showFilterPanel} onClose={() => setShowFilterPanel(false)} />
         <ManagersModal show={showManagersModal} onClose={() => setShowManagersModal(false)} />
         <DashboardsModal show={showDashboardsModal} onClose={() => setShowDashboardsModal(false)} />
@@ -788,39 +598,36 @@ function SideNav({ isMobileMenuOpen, onCloseMobileMenu }) {
             <span />
           </button>
         </div>
+
         <div className="menuWrp">
           <ul className="menu">
             {menuState
               .filter((e) => e.hasPermission === true)
               .map(({ menu, subMenus, to, isDefaultMenu, icon, isOpen }) => {
-                if (isDefaultMenu)
-                  return (
-                    <DefaultMenu
-                      menu={menu}
-                      subMenus={subMenus}
-                      to={to}
-                      key={menu}
-                      icon={icon}
-                      isOpen={isOpen}
-                      toggleCollapse={toggleCollapse}
-                      onSubmenuClick={handleSubmenuClick}
-                    />
-                  );
-                return null;
+                if (!isDefaultMenu) return null;
+                return (
+                  <DefaultMenu
+                    menu={menu}
+                    subMenus={subMenus}
+                    to={to}
+                    key={menu}
+                    icon={icon}
+                    isOpen={isOpen}
+                    toggleCollapse={toggleCollapse}
+                    onSubmenuClick={handleSubmenuClickDefault}
+                  />
+                );
               })}
           </ul>
         </div>
+
         <div className="toggleDark" />
       </div>
 
       {/* My Accounts Modal */}
-      <MyAccountsModal
-        show={showMyAccountsModal}
-        onClose={() => setShowMyAccountsModal(false)}
-      />
+      <MyAccountsModal show={showMyAccountsModal} onClose={() => setShowMyAccountsModal(false)} />
     </>
   );
 }
 
 export default SideNav;
-
