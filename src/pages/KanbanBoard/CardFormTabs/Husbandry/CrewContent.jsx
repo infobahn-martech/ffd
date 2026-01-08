@@ -241,7 +241,7 @@ const CrewContent = ({ formValues, handleChange, cardColor, onNavigateToTab, lau
     { value: "zawilPass", label: "Zawil Pass", tab: "zawilPass", field: "zawilPassSelectedCrew" },
     { value: "launchHire", label: "Launch Hire", tab: "launchHire", field: "launchHireSelectedCrew" },
     { value: "hotel", label: "Hotel", tab: "hotel", field: "hotelSelectedCrew" },
-    { value: "medicalService", label: "Medical Service", tab: "medicalService", field: "medicalServiceSelectedCrew" },
+    { value: "medicalService", label: "Medical", tab: "medicalService", field: "medicalServiceSelectedCrew" },
   ];
 
   // Filter action options based on launchHireOnly prop
@@ -1758,7 +1758,7 @@ const CrewContent = ({ formValues, handleChange, cardColor, onNavigateToTab, lau
                     Hotel
                   </th>
                   <th style={{ width: "calc((100% - 40px) / 11)", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap", textAlign: "center" }}>
-                    Medical Service
+                    Medical
                   </th>
                   {/* <th>Actions</th> */}
                 </tr>
@@ -2106,7 +2106,7 @@ const CrewContent = ({ formValues, handleChange, cardColor, onNavigateToTab, lau
                           className="crew-table-cell crew-status-icon"
                           style={{ display: "flex", justifyContent: "center", alignItems: "center", position: "relative" }}
                           data-tooltip-id={`medical-status-${crew.id}`}
-                          data-tooltip-content={`Medical Service: ${STATUS_LABELS[crew.medicalService] || STATUS_LABELS.pending}`}
+                          data-tooltip-content={`Medical: ${STATUS_LABELS[crew.medicalService] || STATUS_LABELS.pending}`}
                         >
                           <StatusIcon status={crew.medicalService} IconComponent={MedicalIcon} size={20} />
                           <span style={{

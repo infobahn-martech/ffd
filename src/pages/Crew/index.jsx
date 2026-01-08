@@ -208,7 +208,7 @@ const Crew = () => {
             width: '150',
         },
         {
-            name: 'Medical Service',
+            name: 'Medical',
             selector: 'medicalService',
             tableClasses: 'table-striped',
             sort: true,
