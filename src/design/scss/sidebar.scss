@@ -107,7 +107,8 @@
     .menuWrp {
         overflow-y: auto;
         overflow-x: hidden;
-        max-height: calc(100vh - 100px);
+        max-height: calc(100vh - 170px);
+        padding-bottom: 20px; // Ensure last menu item is fully visible
 
         /* ⭐ Scrollbar Color (#00368c) */
         scrollbar-width: thin;
@@ -128,6 +129,12 @@
 
         @media($sm-1199) {
             padding-top: 30px;
+            max-height: calc(100vh - 190px); // Adjust for smaller screens
+        }
+
+        @media ($sm-991) {
+            max-height: calc(100vh - 120px); // Mobile: account for header and logo
+            padding-bottom: 15px;
         }
 
 
@@ -372,6 +379,9 @@
             }
 
             .menuWrp {
+                max-height: calc(100vh - 140px); // Mobile show state: account for padding and logo
+                padding-bottom: 20px; // Ensure last menu item is visible
+
                 .menu {
                     .link {
                         width: unset;
@@ -530,6 +540,7 @@
         opacity: 0;
         transform: translateX(-8px);
     }
+
     to {
         opacity: 1;
         transform: translateX(0);
