@@ -57,7 +57,7 @@ const HeaderBar = ({ breadcrumbs = null, title = 'KPI Dashboard' }) => {
       <div className="kpi-header-bar__left">
         <div className="kpi-header-bar__progress-section">
           <span className="kpi-header-bar__progress-text">
-            Only {pointsLeft} points left to hit level {nextLevel}
+            Level {nextLevel} in {pointsLeft} points
           </span>
           <div className="kpi-header-bar__progress-bar">
             <div
