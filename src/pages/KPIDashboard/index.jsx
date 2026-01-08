@@ -7,21 +7,25 @@ import CounterCards from './components/CounterCards';
 import MiddleRowCards from './components/MiddleRowCards';
 import ChartsRow from './components/ChartsRow';
 import Earnings from './components/Earnings';
+import Tasks from './components/Tasks';
 import './KPIDashboard.scss';
 
 const KPIDashboard = () => {
     const location = useLocation();
     const navigate = useNavigate();
-    
+
     // Initialize activeMenu based on URL
     const getInitialMenu = () => {
         const path = location.pathname || location.hash.replace('#', '');
         if (path === '/earning-history') {
             return 'Earning History';
         }
+        if (path === '/tasks') {
+            return 'Tasks';
+        }
         return 'Dashboard';
     };
-    
+
     const [activeMenu, setActiveMenu] = useState(getInitialMenu());
 
     useEffect(() => {
@@ -29,6 +33,8 @@ const KPIDashboard = () => {
         const path = location.pathname || location.hash.replace('#', '');
         if (path === '/earning-history') {
             setActiveMenu('Earning History');
+        } else if (path === '/tasks') {
+            setActiveMenu('Tasks');
         } else if (path === '/kpi-dashboard') {
             setActiveMenu('Dashboard');
         }
@@ -38,6 +44,8 @@ const KPIDashboard = () => {
         switch (activeMenu) {
             case 'Earning History':
                 return <Earnings />;
+            case 'Tasks':
+                return <Tasks />;
             case 'Dashboard':
             default:
                 return (
@@ -54,6 +62,8 @@ const KPIDashboard = () => {
         switch (activeMenu) {
             case 'Earning History':
                 return 'Pages / Earnings';
+            case 'Tasks':
+                return 'Tasks';
             case 'Dashboard':
             default:
                 return 'KPI Dashboard';
