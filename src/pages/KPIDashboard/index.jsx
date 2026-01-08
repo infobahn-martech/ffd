@@ -8,6 +8,7 @@ import MiddleRowCards from './components/MiddleRowCards';
 import ChartsRow from './components/ChartsRow';
 import Earnings from './components/Earnings';
 import Tasks from './components/Tasks';
+import TeamLeaderboard from './components/TeamLeaderboard';
 import './KPIDashboard.scss';
 
 const KPIDashboard = () => {
@@ -23,6 +24,9 @@ const KPIDashboard = () => {
         if (path === '/tasks') {
             return 'Tasks';
         }
+        if (path === '/team-leaderboard') {
+            return 'Team Leaderboard';
+        }
         return 'Dashboard';
     };
 
@@ -35,6 +39,8 @@ const KPIDashboard = () => {
             setActiveMenu('Earning History');
         } else if (path === '/tasks') {
             setActiveMenu('Tasks');
+        } else if (path === '/team-leaderboard') {
+            setActiveMenu('Team Leaderboard');
         } else if (path === '/kpi-dashboard') {
             setActiveMenu('Dashboard');
         }
@@ -46,6 +52,8 @@ const KPIDashboard = () => {
                 return <Earnings />;
             case 'Tasks':
                 return <Tasks />;
+            case 'Team Leaderboard':
+                return <TeamLeaderboard />;
             case 'Dashboard':
             default:
                 return (
@@ -69,6 +77,11 @@ const KPIDashboard = () => {
                 return [
                     { label: 'Dashboard', path: '/kpi-dashboard' },
                     { label: 'Tasks', path: null },
+                ];
+            case 'Team Leaderboard':
+                return [
+                    { label: 'Dashboard', path: '/kpi-dashboard' },
+                    { label: 'Team Leaderboard', path: null },
                 ];
             case 'Dashboard':
             default:

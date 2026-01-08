@@ -20,6 +20,8 @@ const SideNav = ({ activeMenu, setActiveMenu }) => {
       navigate('/earning-history');
     } else if (menuId === 'Tasks') {
       navigate('/tasks');
+    } else if (menuId === 'Team Leaderboard') {
+      navigate('/team-leaderboard');
     } else if (menuId === 'Dashboard') {
       navigate('/kpi-dashboard');
     }

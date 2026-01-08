@@ -65,6 +65,7 @@ const router = createHashRouter([
       { path: "/kpi-dashboard", element: <KPIDashboard /> },
       { path: "/earning-history", element: <KPIDashboard /> },
       { path: "/tasks", element: <KPIDashboard /> },
+      { path: "/team-leaderboard", element: <KPIDashboard /> },
 
       // If TEST MODE, bypass all auth guards
       ...(TEST_MODE
