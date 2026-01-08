@@ -184,8 +184,8 @@ const Tasks = () => {
   return (
     <div className="tasks">
       <div className="tasks__header">
-        <h2 className="tasks__title">Tasks</h2>
-        <p className="tasks__subtitle">Manage and track your tasks</p>
+        <h2 className="tasks__title">Task Management</h2>
+        <p className="tasks__subtitle">View, filter, and manage all your assigned tasks</p>
       </div>
 
       {/* Filters Section */}
