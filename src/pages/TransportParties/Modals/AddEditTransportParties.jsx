@@ -77,7 +77,7 @@ export function TransportPartyModal({ showModal, closeModal }) {
 
     return (
         <CustomModal
-            className="fade transport-party-modal-sm modal show"
+            className="fade role-modal-sm modal show"
             dialgName="modal-dialog modal-dialog-centered"
             show={!!showModal}
             closeModal={() => closeModal(null)}
