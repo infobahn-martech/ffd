@@ -1,7 +1,7 @@
 import { useState, useRef } from "react";
 import PropTypes from "prop-types";
 import GroupSettingsIcon from "../../../../assets/images/cv.png";
-import { FormSection, FormField, ReactQuillEditor } from "./Husbandry.components";
+import { FormSection, FormField, FormSelect, ReactQuillEditor } from "./Husbandry.components";
 
 const OnStationContent = ({ formValues, handleChange, cardColor }) => {
   const [isDraggingRequestEmail, setIsDraggingRequestEmail] = useState(false);
@@ -9,19 +9,7 @@ const OnStationContent = ({ formValues, handleChange, cardColor }) => {
   const requestEmailFileInputRef = useRef(null);
   const onStationDocumentsFileInputRef = useRef(null);
 
-  // Handle file upload for Request Email documents
-  const handleRequestEmailFileChange = (e) => {
-    const files = Array.from(e.target.files || []);
-    const syntheticEvent = { target: { value: files } };
-    handleChange("onStationRequestEmailDocuments")(syntheticEvent);
-  };
 
-  // Handle drag and drop for Request Email
-  const handleRequestEmailDragOver = (e) => {
-    e.preventDefault();
-    e.stopPropagation();
-    setIsDraggingRequestEmail(true);
-  };
 
   const handleRequestEmailDragLeave = (e) => {
     e.preventDefault();
@@ -101,9 +89,18 @@ const OnStationContent = ({ formValues, handleChange, cardColor }) => {
   const onStationDocumentsFiles = formValues.onStationDocuments || [];
   const onStationDocumentsFilesCount = onStationDocumentsFiles.length;
 
+  // Document Type options
+  const documentTypeOptions = [
+    { value: "port_clearance", label: "Port clearance" },
+    { value: "arrival_notice", label: "Arrival notice" },
+    { value: "on_station_confirmation", label: "On-station confirmation" },
+    { value: "authority_approvals", label: "Authority approvals" },
+  ];
+
   // Handle save
   const handleSave = () => {
     console.log("Saving On Station data:", {
+      onStationDocumentType: formValues.onStationDocumentType,
       onStationRequestEmailDocuments: formValues.onStationRequestEmailDocuments,
       onStationDocuments: formValues.onStationDocuments,
       onStationDescription: formValues.onStationDescription,
@@ -271,19 +268,13 @@ const OnStationContent = ({ formValues, handleChange, cardColor }) => {
         <div className="pre-arrival-form on-station-form">
           <div className="general-info-two-column">
             <div className="general-info-left">
-              <FormField label="Request Email" className="cf-field-full">
-                {renderFileUpload(
-                  requestEmailFiles,
-                  requestEmailFilesCount,
-                  isDraggingRequestEmail,
-                  requestEmailFileInputRef,
-                  handleRequestEmailDragOver,
-                  handleRequestEmailDragLeave,
-                  handleRequestEmailDrop,
-                  handleRequestEmailBrowseClick,
-                  handleRemoveRequestEmailFile,
-                  "onStationRequestEmailDocuments"
-                )}
+              <FormField label="Document Type" className="cf-field-full">
+                <FormSelect
+                  value={formValues.onStationDocumentType || ""}
+                  onChange={handleChange("onStationDocumentType")}
+                  options={documentTypeOptions}
+                  placeholder="Select document type..."
+                />
               </FormField>
 
               <FormField label="On Station Documents" className="cf-field-full">
