@@ -271,6 +271,25 @@ function SideNav({ isMobileMenuOpen, onCloseMobileMenu }) {
       icon: workerIcon,
     },
     {
+      menu: 'Third Party Management',
+      isDefaultMenu: true,
+      hasPermission: true,
+      isOpen: false,
+      subMenus: [
+        {
+          menu: 'Service Providers',
+          to: '/service-providers',
+          hasPermission: true,
+        },
+        {
+          menu: 'Transport Parties',
+          to: '/transport-parties',
+          hasPermission: true,
+        },
+      ],
+      icon: workerIcon,
+    },
+    {
       menu: 'Operations Configuration',
       isDefaultMenu: true,
       hasPermission: true,
