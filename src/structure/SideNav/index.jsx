@@ -290,6 +290,20 @@ function SideNav({ isMobileMenuOpen, onCloseMobileMenu }) {
       icon: workerIcon,
     },
     {
+      menu: 'Waste Management',
+      isDefaultMenu: true,
+      hasPermission: true,
+      isOpen: false,
+      subMenus: [
+        {
+          menu: 'Waste Types',
+          to: '/waste-types',
+          hasPermission: true,
+        },
+      ],
+      icon: settingsIcon,
+    },
+    {
       menu: 'Operations Configuration',
       isDefaultMenu: true,
       hasPermission: true,

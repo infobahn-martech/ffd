@@ -47,6 +47,7 @@ import FleetManagement from "../pages/Fleet";
 import Location from "../pages/Location";
 import ServiceProviders from "../pages/ServiceProviders";
 import TransportParties from "../pages/TransportParties";
+import WasteTypes from "../pages/WasteTypes";
 // 🔥 Set true to bypass auth temporarily
 const TEST_MODE = true;
 
@@ -108,6 +109,7 @@ const router = createHashRouter([
               { path: "/location", element: <Location /> },
               { path: "/service-providers", element: <ServiceProviders /> },
               { path: "/transport-parties", element: <TransportParties /> },
+              { path: "/waste-types", element: <WasteTypes /> },
               { path: "/settings", element: <h1>Settings</h1> },
             ],
           },
