@@ -51,6 +51,12 @@ const TransportContent = ({ formValues, handleChange, cardColor }) => {
     { value: "Main Office", label: "Main Office" },
   ];
 
+  const transportPartyOptions = [
+    { value: "Party A", label: "Party A" },
+    { value: "Party B", label: "Party B" },
+    { value: "Party C", label: "Party C" },
+  ];
+
   // Handle transport type radio button change
   const handleTransportTypeChange = (e) => {
     const value = e.target.value;
@@ -207,6 +213,7 @@ const TransportContent = ({ formValues, handleChange, cardColor }) => {
       toNotes: formValues.transportToNotes,
       carType: formValues.carType,
       invoiceBranch: formValues.invoiceBranch,
+      transportParty: formValues.transportParty,
     });
     // Add your save logic here
   };
@@ -262,6 +269,17 @@ const TransportContent = ({ formValues, handleChange, cardColor }) => {
                 </div>
               </FormField>
 
+              {transportType === "thirdparty" && (
+                <FormField label="Transport Parties">
+                  <FormSelect
+                    value={formValues.transportParty || ""}
+                    onChange={handleChange("transportParty")}
+                    options={transportPartyOptions}
+                    placeholder="Select transport party..."
+                  />
+                </FormField>
+              )}
+
               <FormField label="Driver Name">
                 {transportType === "inhouse" ? (
                   <FormSelect
@@ -296,7 +314,6 @@ const TransportContent = ({ formValues, handleChange, cardColor }) => {
                   />
                 </div>
               </FormField>
-
               <FormField label="From">
                 <LocationAutocomplete
                   value={formValues.transportFrom || ""}
