@@ -106,6 +106,22 @@ const Dashboard = () => {
     { month: "Dec", revenue: 345000, expenses: 175000 },
   ];
 
+  // Monthly service requests data
+  const serviceRequestsData = [
+    { month: "Jan", requests: 285 },
+    { month: "Feb", requests: 310 },
+    { month: "Mar", requests: 295 },
+    { month: "Apr", requests: 340 },
+    { month: "May", requests: 325 },
+    { month: "Jun", requests: 380 },
+    { month: "Jul", requests: 395 },
+    { month: "Aug", requests: 375 },
+    { month: "Sep", requests: 410 },
+    { month: "Oct", requests: 435 },
+    { month: "Nov", requests: 450 },
+    { month: "Dec", requests: 475 },
+  ];
+
   const COLORS = ["#00368c", "#10b981", "#3b82f6", "#f59e0b", "#8b5cf6", "#ef4444"];
 
   return (
@@ -235,6 +251,29 @@ const Dashboard = () => {
                 }}
               />
             </PieChart>
+          </ResponsiveContainer>
+        </div>
+
+        {/* Bar Chart - Monthly Service Requests */}
+        <div className="chart-card">
+          <div className="chart-header">
+            <h3 className="chart-title">Monthly Service Requests</h3>
+            <p className="chart-subtitle">Service requests trend</p>
+          </div>
+          <ResponsiveContainer width="100%" height={300}>
+            <BarChart data={serviceRequestsData} margin={{ top: 5, right: 30, left: 20, bottom: 5 }}>
+              <CartesianGrid strokeDasharray="3 3" stroke="#e5e7eb" />
+              <XAxis dataKey="month" stroke="#6b7280" />
+              <YAxis stroke="#6b7280" />
+              <Tooltip
+                contentStyle={{
+                  backgroundColor: "#fff",
+                  border: "1px solid #e5e7eb",
+                  borderRadius: "8px",
+                }}
+              />
+              <Bar dataKey="requests" radius={[8, 8, 0, 0]} fill="#8b5cf6" />
+            </BarChart>
           </ResponsiveContainer>
         </div>
 
