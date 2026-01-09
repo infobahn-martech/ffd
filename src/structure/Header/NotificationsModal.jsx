@@ -145,13 +145,7 @@ function NotificationsModal({ show, onClose }) {
     setNotifications(prev => prev.map(notif => ({ ...notif, isRead: true })));
   };
 
-  const handleClose = (e) => {
-    if (e) {
-      e.preventDefault();
-      e.stopPropagation();
-    }
-    onClose();
-  };
+
 
   const renderHeader = () => (
     <div className="notifications-modal-header">
@@ -167,14 +161,20 @@ function NotificationsModal({ show, onClose }) {
         </button>
         <button
           className="notifications-close-btn"
-          onClick={handleClose}
+          onClick={(e) => {
+            e.preventDefault();
+            e.stopPropagation();
+            console.log("X clicked");
+            onClose();
+          }}
           aria-label="Close"
           type="button"
         >
           <FiX />
         </button>
+
       </div>
-    </div>
+    </div >
   );
 
   const formatMessage = (message, highlightedText, highlightedColor) => {
@@ -285,7 +285,7 @@ function NotificationsModal({ show, onClose }) {
       className="modal fade show notifications-modal"
       dialgName="modal-dialog modal-dialog-centered"
       show={show}
-      closeModal={handleClose}
+      closeModal={onClose}
       header={renderHeader()}
       body={renderBody()}
     />
