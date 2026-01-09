@@ -863,6 +863,32 @@ const DispatchNoteContent = ({ formValues, handleChange, cardColor }) => {
                       >
                         <img src={eyeIcon} alt="view" style={{ width: "18px", height: "18px" }} />
                       </button>
+                      <Tooltip id={`edit-note-${note.id}`} place="left" content="Edit" />
+                      <button
+                        type="button"
+                        onClick={() => handleOpenModal(note)}
+                        data-tooltip-id={`edit-note-${note.id}`}
+                        style={{
+                          padding: "6px 8px",
+                          backgroundColor: "transparent",
+                          border: "none",
+                          borderRadius: "4px",
+                          cursor: "pointer",
+                          display: "flex",
+                          alignItems: "center",
+                          justifyContent: "center",
+                          color: "#00368c",
+                          transition: "background-color 0.2s"
+                        }}
+                        onMouseEnter={(e) => {
+                          e.currentTarget.style.backgroundColor = "#f0f0f0";
+                        }}
+                        onMouseLeave={(e) => {
+                          e.currentTarget.style.backgroundColor = "transparent";
+                        }}
+                      >
+                        <img src={editIcon} alt="edit" style={{ width: "18px", height: "18px" }} />
+                      </button>
                       <Tooltip id={`print-note-${note.id}`} place="left" content="Print" />
                       <button
                         type="button"
@@ -940,36 +966,6 @@ const DispatchNoteContent = ({ formValues, handleChange, cardColor }) => {
                               padding: "4px 0"
                             }}
                           >
-                            <button
-                              type="button"
-                              onClick={() => {
-                                handleCloseDropdown();
-                                handleOpenModal(note);
-                              }}
-                              style={{
-                                width: "100%",
-                                padding: "10px 16px",
-                                backgroundColor: "transparent",
-                                border: "none",
-                                textAlign: "left",
-                                cursor: "pointer",
-                                display: "flex",
-                                alignItems: "center",
-                                gap: "10px",
-                                fontSize: "14px",
-                                color: "#1a1a1a",
-                                transition: "background-color 0.2s"
-                              }}
-                              onMouseEnter={(e) => {
-                                e.currentTarget.style.backgroundColor = "#f5f5f5";
-                              }}
-                              onMouseLeave={(e) => {
-                                e.currentTarget.style.backgroundColor = "transparent";
-                              }}
-                            >
-                              <img src={editIcon} alt="edit" style={{ width: "16px", height: "16px" }} />
-                              <span>Edit</span>
-                            </button>
                             <button
                               type="button"
                               onClick={() => {
