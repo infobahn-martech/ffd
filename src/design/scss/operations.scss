@@ -5671,3 +5671,12 @@ body .modal-backdrop.show {
   /* width: 100%; */
   // Removed stray width, syntax fix
 }
+
+.crew-status-icon {
+  width: 40px;
+  margin: 0 auto !important;
+}
+
+.crew-status-icon span {
+  pointer-events: none; // badge won't affect hover
+}

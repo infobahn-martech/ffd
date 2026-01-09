@@ -2066,7 +2066,7 @@ const CrewContent = ({ formValues, handleChange, cardColor, onNavigateToTab, lau
                             {crew.transportCount || 0}
                           </span>
                         </div>
-                        <Tooltip id={`transport-status-${crew.id}`} place="left" positionStrategy="fixed" />
+                        <Tooltip id={`transport-status-${crew.id}`} place="left" positionStrategy="fixed" offset={0} />
                       </td>
                       <td style={{ overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
                         <div
@@ -2097,7 +2097,7 @@ const CrewContent = ({ formValues, handleChange, cardColor, onNavigateToTab, lau
                             {crew.hotelCount || 0}
                           </span>
                         </div>
-                        <Tooltip id={`hotel-status-${crew.id}`} place="left" positionStrategy="fixed" />
+                        <Tooltip id={`hotel-status-${crew.id}`} place="left" positionStrategy="fixed" offset={0} />
                       </td>
                       <td style={{ overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
                         <div
@@ -2128,7 +2128,7 @@ const CrewContent = ({ formValues, handleChange, cardColor, onNavigateToTab, lau
                             {crew.medicalServiceCount || 0}
                           </span>
                         </div>
-                        <Tooltip id={`medical-status-${crew.id}`} place="left" positionStrategy="fixed" />
+                        <Tooltip id={`medical-status-${crew.id}`} place="left" positionStrategy="fixed" offset={0} />
                       </td>
                       {/* <td>
                   <button
