@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import CustomModal from '../../components/CustomModal';
 import { FiAnchor, FiDollarSign, FiClock, FiCheck, FiX, FiAlertCircle, FiCheckCircle, FiTruck, FiUsers, FiFileText, FiMapPin } from 'react-icons/fi';
 import '../../design/scss/common.scss';
@@ -13,6 +13,19 @@ function NotificationsModal({ show, onClose }) {
       setShowAll(false);
     }
   }, [show]);
+
+  // Stable close handler
+  const handleClose = useCallback((e) => {
+    if (e) {
+      e.preventDefault();
+      e.stopPropagation();
+      // Also stop on native event if available
+      if (e.nativeEvent && e.nativeEvent.stopImmediatePropagation) {
+        e.nativeEvent.stopImmediatePropagation();
+      }
+    }
+    onClose();
+  }, [onClose]);
   const initialNotifications = [
     {
       id: 1,
@@ -161,11 +174,14 @@ function NotificationsModal({ show, onClose }) {
         </button>
         <button
           className="notifications-close-btn"
-          onClick={(e) => {
+          onClick={handleClose}
+          onMouseDown={(e) => {
             e.preventDefault();
             e.stopPropagation();
-            console.log("X clicked");
-            onClose();
+          }}
+          onTouchStart={(e) => {
+            e.preventDefault();
+            e.stopPropagation();
           }}
           aria-label="Close"
           type="button"

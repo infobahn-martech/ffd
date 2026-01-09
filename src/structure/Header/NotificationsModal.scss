@@ -36,6 +36,7 @@
     width: 100%;
     box-sizing: border-box;
     position: relative;
+    pointer-events: auto;
 
     @media (max-width: 768px) {
       padding: 20px;
@@ -58,6 +59,9 @@
       display: flex;
       align-items: center;
       gap: 12px;
+      pointer-events: auto;
+      position: relative;
+      z-index: 1;
     }
 
     .mark-all-read-btn {
@@ -104,10 +108,15 @@
       width: 36px;
       height: 36px;
       flex-shrink: 0;
+      position: relative;
+      z-index: 10;
+      pointer-events: auto;
+      -webkit-tap-highlight-color: transparent;
 
       svg {
         width: 20px;
         height: 20px;
+        pointer-events: none;
       }
 
       &:hover {
@@ -117,6 +126,11 @@
 
       &:active {
         transform: scale(0.95);
+      }
+
+      &:focus {
+        outline: 2px solid #0263D1;
+        outline-offset: 2px;
       }
     }
   }
