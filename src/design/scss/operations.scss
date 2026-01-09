@@ -2718,6 +2718,8 @@ body .material-management-modal .files-list::-webkit-scrollbar-thumb:hover {
   background: #ffffff;
   -webkit-overflow-scrolling: touch;
   padding: 0 22px 22px 22px;
+  border-radius: 12px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
 }
 
 .material-table-container::-webkit-scrollbar {
@@ -2819,6 +2821,14 @@ body .material-management-modal .files-list::-webkit-scrollbar-thumb:hover {
   border: none;
 }
 
+.material-table-container .table.material-table thead th:first-child {
+  border-top-left-radius: 12px;
+}
+
+.material-table-container .table.material-table thead th:last-child {
+  border-top-right-radius: 12px;
+}
+
 .material-table tbody td {
   font-size: 12px;
   color: #333;
@@ -2849,6 +2859,14 @@ body .material-management-modal .files-list::-webkit-scrollbar-thumb:hover {
 
 .material-table tbody tr:last-child td {
   border-bottom: none;
+}
+
+.material-table tbody tr:last-child td:first-child {
+  border-bottom-left-radius: 12px;
+}
+
+.material-table tbody tr:last-child td:last-child {
+  border-bottom-right-radius: 12px;
 }
 
 .operation-right .material-management-content-wrapper {
