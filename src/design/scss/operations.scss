@@ -2817,7 +2817,7 @@ body .material-management-modal .files-list::-webkit-scrollbar-thumb:hover {
   text-transform: uppercase;
   letter-spacing: 0.5px;
   padding: 16px;
-  padding-left: 6px;
+  padding-left: 20px;
   border: none;
 }
 
@@ -2839,6 +2839,7 @@ body .material-management-modal .files-list::-webkit-scrollbar-thumb:hover {
   color: #333;
   font-size: 12px;
   line-height: 1.5;
+  padding-left: 12px;
 }
 
 .material-table tbody tr:nth-child(even) {

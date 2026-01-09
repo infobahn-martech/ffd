@@ -1710,7 +1710,7 @@ const LandingNoteContent = ({ formValues, handleChange, cardColor }) => {
         <table className="table table-striped material-table" style={{ "--card-color": "#e2e6ff", overflow: "visible" }}>
           <thead>
             <tr>
-              <th>Landing Note No</th>
+              <th>Order No</th>
               <th>Date</th>
               <th>PO/DO</th>
               <th>Landing Proof</th>
