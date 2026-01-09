@@ -32,6 +32,7 @@ function Header({ onMenuToggle, mobileMenuOpen: externalMobileMenuOpen }) {
   const [showNotificationsModal, setShowNotificationsModal] = useState(false);
   const [showDocumentsModal, setShowDocumentsModal] = useState(false);
   const [imageError, setImageError] = useState(false);
+  const [notificationCount, setNotificationCount] = useState(3); // Default count, can be updated with real data
   const dropdownRef = useRef(null);
   const isMobile = width <= 991;
   const doLogout = useAuthReducer((state) => state.doLogout);
@@ -238,14 +239,19 @@ function Header({ onMenuToggle, mobileMenuOpen: externalMobileMenuOpen }) {
           <FiHelpCircle />
         </button>
 
-        <button
-          className="icon-btn"
-          aria-label="Notifications"
-          title="Notifications"
-          onClick={() => setShowNotificationsModal(true)}
-        >
-          <FiBell />
-        </button>
+        <div className="notification-btn-wrapper">
+          <button
+            className="icon-btn"
+            aria-label="Notifications"
+            title="Notifications"
+            onClick={() => setShowNotificationsModal(true)}
+          >
+            <FiBell />
+          </button>
+          {notificationCount > 0 && (
+            <span className="notification-badge">{notificationCount > 99 ? '99+' : notificationCount}</span>
+          )}
+        </div>
       </div>
 
       {/* My Accounts Modal */}
