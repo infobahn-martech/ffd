@@ -14,18 +14,7 @@ function NotificationsModal({ show, onClose }) {
     }
   }, [show]);
 
-  // Stable close handler
-  const handleClose = useCallback((e) => {
-    if (e) {
-      e.preventDefault();
-      e.stopPropagation();
-      // Also stop on native event if available
-      if (e.nativeEvent && e.nativeEvent.stopImmediatePropagation) {
-        e.nativeEvent.stopImmediatePropagation();
-      }
-    }
-    onClose();
-  }, [onClose]);
+
   const initialNotifications = [
     {
       id: 1,
@@ -174,15 +163,7 @@ function NotificationsModal({ show, onClose }) {
         </button>
         <button
           className="notifications-close-btn"
-          onClick={handleClose}
-          onMouseDown={(e) => {
-            e.preventDefault();
-            e.stopPropagation();
-          }}
-          onTouchStart={(e) => {
-            e.preventDefault();
-            e.stopPropagation();
-          }}
+          onClick={onClose}
           aria-label="Close"
           type="button"
         >

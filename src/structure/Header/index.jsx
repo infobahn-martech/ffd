@@ -255,36 +255,44 @@ function Header({ onMenuToggle, mobileMenuOpen: externalMobileMenuOpen }) {
       </div>
 
       {/* My Accounts Modal */}
-      <MyAccountsModal
-        show={showMyAccountsModal}
-        onClose={() => setShowMyAccountsModal(false)}
-      />
+      {!!showMyAccountsModal && (
+        <MyAccountsModal
+          show={showMyAccountsModal}
+          onClose={() => setShowMyAccountsModal(false)}
+        />
+      )}
 
       {/* Change Password Modal */}
-      <ChangePasswordModal
-        show={showChangePasswordModal}
-        onClose={() => setShowChangePasswordModal(false)}
-      />
+      {!!showChangePasswordModal && (
+        <ChangePasswordModal
+          show={showChangePasswordModal}
+          onClose={() => setShowChangePasswordModal(false)}
+        />
+      )}
 
       {/* Logout Confirmation Modal */}
-      <LogoutConfirmationModal
-        show={showLogoutModal}
-        onCancel={() => setShowLogoutModal(false)}
-        onConfirm={handleLogoutConfirm}
-        logoutText="Are you sure you want to logout?"
-      />
+      {!!showLogoutModal && (
+        <LogoutConfirmationModal
+          show={showLogoutModal}
+          onCancel={() => setShowLogoutModal(false)}
+          onConfirm={handleLogoutConfirm}
+          logoutText="Are you sure you want to logout?"
+        />
+      )}
 
       {/* Notifications Modal */}
-      <NotificationsModal
-        show={showNotificationsModal}
-        onClose={() => setShowNotificationsModal(false)}
-      />
+      {!!showNotificationsModal && (
+        <NotificationsModal
+          show={showNotificationsModal}
+          onClose={() => setShowNotificationsModal(false)}
+        />
+      )}
 
       {/* Documents Modal */}
-      <DocumentsModal
+      {!!showDocumentsModal && <DocumentsModal
         show={showDocumentsModal}
         onClose={() => setShowDocumentsModal(false)}
-      />
+      />}
 
     </div>
   );
