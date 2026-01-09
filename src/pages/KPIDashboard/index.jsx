@@ -10,11 +10,14 @@ import Earnings from './components/Earnings';
 import Tasks from './components/Tasks';
 import TeamLeaderboard from './components/TeamLeaderboard';
 import ProfileModal from './components/ProfileModal';
+import SignOutModal from './components/SignOutModal';
+import useAuthReducer from '../../store/AuthReducer';
 import './KPIDashboard.scss';
 
 const KPIDashboard = () => {
     const location = useLocation();
     const navigate = useNavigate();
+    const doLogout = useAuthReducer((state) => state.doLogout);
 
     // Initialize activeMenu based on URL
     const getInitialMenu = () => {
@@ -33,6 +36,8 @@ const KPIDashboard = () => {
 
     const [activeMenu, setActiveMenu] = useState(getInitialMenu());
     const [showProfileModal, setShowProfileModal] = useState(false);
+    const [showSignOutModal, setShowSignOutModal] = useState(false);
+    const [isLoggingOut, setIsLoggingOut] = useState(false);
 
     useEffect(() => {
         // Sync activeMenu with URL (hash router uses pathname)
@@ -98,6 +103,22 @@ const KPIDashboard = () => {
         return null; // Use breadcrumbs for other pages
     };
 
+    const handleSignOut = () => {
+        setIsLoggingOut(true);
+        try {
+            doLogout();
+            // Navigate to login page after logout
+            setTimeout(() => {
+                navigate('/');
+                setIsLoggingOut(false);
+                setShowSignOutModal(false);
+            }, 500);
+        } catch (error) {
+            console.error('Error during logout:', error);
+            setIsLoggingOut(false);
+        }
+    };
+
     return (
         <div className="kpi-dashboard">
             <div
@@ -108,6 +129,7 @@ const KPIDashboard = () => {
                     activeMenu={activeMenu}
                     setActiveMenu={setActiveMenu}
                     onProfileClick={() => setShowProfileModal(true)}
+                    onSignOutClick={() => setShowSignOutModal(true)}
                 />
                 <div className="kpi-dashboard__content">
                     <HeaderBar title={getPageTitle()} breadcrumbs={getBreadcrumbs()} />
@@ -119,6 +141,12 @@ const KPIDashboard = () => {
             <ProfileModal
                 show={showProfileModal}
                 onClose={() => setShowProfileModal(false)}
+            />
+            <SignOutModal
+                show={showSignOutModal}
+                onClose={() => setShowSignOutModal(false)}
+                onConfirm={handleSignOut}
+                isLoading={isLoggingOut}
             />
         </div>
     );

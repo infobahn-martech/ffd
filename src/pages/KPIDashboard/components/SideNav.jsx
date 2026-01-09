@@ -5,7 +5,7 @@ import KIPLogo from '../../../assets/images/KIP_LOGO.png';
 import NeedHelpBG from '../../../assets/images/NeedHelpBG.png';
 import './SideNav.scss';
 
-const SideNav = ({ activeMenu, setActiveMenu, onProfileClick }) => {
+const SideNav = ({ activeMenu, setActiveMenu, onProfileClick, onSignOutClick }) => {
   const navigate = useNavigate();
   const [localActiveMenu, setLocalActiveMenu] = useState(activeMenu || 'Dashboard');
 
@@ -19,6 +19,14 @@ const SideNav = ({ activeMenu, setActiveMenu, onProfileClick }) => {
     if (menuId === 'Profile') {
       if (onProfileClick) {
         onProfileClick();
+      }
+      return;
+    }
+
+    // Handle Sign Out click separately
+    if (menuId === 'Sign Out') {
+      if (onSignOutClick) {
+        onSignOutClick();
       }
       return;
     }
