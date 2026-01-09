@@ -24,6 +24,8 @@ const SideNav = ({ activeMenu, setActiveMenu }) => {
       navigate('/team-leaderboard');
     } else if (menuId === 'Dashboard') {
       navigate('/kpi-dashboard');
+    } else if (menuId === 'Back to Board') {
+      navigate('/kanban-board');
     }
   };
 
