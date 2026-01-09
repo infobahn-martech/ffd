@@ -9,6 +9,11 @@ import './ChartsRow.scss';
 const ChartsRow = () => {
   return (
     <>
+      <div className="kpi-charts-row kpi-charts-row--task-list">
+        <div className="kpi-charts-row__task-list">
+          <TaskListCard />
+        </div>
+      </div>
       <div className="kpi-charts-row">
         <div className="kpi-charts-row__import-export">
           <ImportExportCallChart />
@@ -23,11 +28,6 @@ const ChartsRow = () => {
         </div>
         <div className="kpi-charts-row__earning-transactions">
           <EarningTransactions />
-        </div>
-      </div>
-      <div className="kpi-charts-row kpi-charts-row--task-list">
-        <div className="kpi-charts-row__task-list">
-          <TaskListCard />
         </div>
       </div>
     </>
