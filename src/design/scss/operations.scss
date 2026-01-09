@@ -2880,6 +2880,15 @@ body .material-management-modal .files-list::-webkit-scrollbar-thumb:hover {
   overflow: visible !important;
 }
 
+/* Tooltip z-index fix for crew table - ensure tooltips appear above counter badges */
+.crew-table-container [id^="react-tooltip-"] {
+  z-index: 10000 !important;
+  white-space: nowrap !important;
+  max-width: none !important;
+  word-break: keep-all !important;
+  overflow: visible !important;
+}
+
 /* ==========================================================
    SALES ORDER STYLES
    ========================================================== */
