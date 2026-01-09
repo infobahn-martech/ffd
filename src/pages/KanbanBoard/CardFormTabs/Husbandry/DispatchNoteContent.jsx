@@ -837,7 +837,7 @@ const DispatchNoteContent = ({ formValues, handleChange, cardColor }) => {
                   </td>
                   <td style={{ position: "relative" }}>
                     <div className="material-table-cell" style={{ position: "relative", overflow: "visible", display: "flex", alignItems: "center", gap: "8px" }}>
-                      <Tooltip id={`view-note-${note.id}`} place="top" content="View" />
+                      <Tooltip id={`view-note-${note.id}`} place="left" content="View" />
                       <button
                         type="button"
                         onClick={() => handleViewNote(note)}
@@ -863,7 +863,7 @@ const DispatchNoteContent = ({ formValues, handleChange, cardColor }) => {
                       >
                         <img src={eyeIcon} alt="view" style={{ width: "18px", height: "18px" }} />
                       </button>
-                      <Tooltip id={`print-note-${note.id}`} place="top" content="Print" />
+                      <Tooltip id={`print-note-${note.id}`} place="left" content="Print" />
                       <button
                         type="button"
                         onClick={() => handlePrintNote(note)}
@@ -895,7 +895,7 @@ const DispatchNoteContent = ({ formValues, handleChange, cardColor }) => {
                         </svg>
                       </button>
                       <div className="action-dropdown-wrapper" style={{ position: "relative", display: "inline-block", zIndex: openDropdownId === note.id ? 9999 : "auto" }}>
-                        <Tooltip id={`more-actions-${note.id}`} place="top" content="More actions" />
+                        <Tooltip id={`more-actions-${note.id}`} place="left" content="More actions" />
                         <button
                           type="button"
                           onClick={(e) => handleToggleDropdown(note.id, e)}

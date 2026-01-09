@@ -1776,7 +1776,7 @@ const LandingNoteContent = ({ formValues, handleChange, cardColor }) => {
                   </td>
                   <td style={{ position: "relative", whiteSpace: "nowrap" }}>
                     <div className="material-table-cell" style={{ position: "relative", overflow: "visible", display: "flex", alignItems: "center", gap: "8px", justifyContent: "flex-end", flexWrap: "nowrap" }}>
-                      <Tooltip id={`view-note-${note.id}`} place="top" content="View" />
+                      <Tooltip id={`view-note-${note.id}`} place="left" content="View" />
                       <button
                         type="button"
                         onClick={() => handleViewNote(note)}
@@ -1803,7 +1803,7 @@ const LandingNoteContent = ({ formValues, handleChange, cardColor }) => {
                       >
                         <img src={eyeIcon} alt="view" style={{ width: "18px", height: "18px" }} />
                       </button>
-                      <Tooltip id={`print-note-${note.id}`} place="top" content="Print" />
+                      <Tooltip id={`print-note-${note.id}`} place="left" content="Print" />
                       <button
                         type="button"
                         onClick={() => handlePrintNote(note)}
@@ -1835,7 +1835,7 @@ const LandingNoteContent = ({ formValues, handleChange, cardColor }) => {
                           <path d="M18 9H6V14H18V9Z" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
                         </svg>
                       </button>
-                      <Tooltip id={`convert-note-${note.id}`} place="top" content="Convert to Dispatch" />
+                      <Tooltip id={`convert-note-${note.id}`} place="left" content="Convert to Dispatch" />
                       <button
                         type="button"
                         onClick={() => handleConvertToDispatch(note)}
@@ -1869,7 +1869,7 @@ const LandingNoteContent = ({ formValues, handleChange, cardColor }) => {
                         </svg>
                       </button>
                       <div className="action-dropdown-wrapper" style={{ position: "relative", display: "inline-block", zIndex: openDropdownId === note.id ? 9999 : "auto", flexShrink: 0 }}>
-                        <Tooltip id={`more-actions-${note.id}`} place="top" content="More actions" />
+                        <Tooltip id={`more-actions-${note.id}`} place="left" content="More actions" />
                         <button
                           type="button"
                           onClick={(e) => handleToggleDropdown(note.id, e)}

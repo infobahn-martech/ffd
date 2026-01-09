@@ -2128,7 +2128,7 @@ const InboundOrdersContent = ({ formValues, handleChange, cardColor }) => {
                   </td>
                   <td style={{ position: "relative" }}>
                     <div className="material-table-cell" style={{ position: "relative", overflow: "visible", display: "flex", alignItems: "center", gap: "8px" }}>
-                      <Tooltip id={`view-order-${order.id}`} place="top" content="View" />
+                      <Tooltip id={`view-order-${order.id}`} place="left" content="View" />
                       <button
                         type="button"
                         onClick={() => handleViewOrder(order)}
@@ -2154,7 +2154,7 @@ const InboundOrdersContent = ({ formValues, handleChange, cardColor }) => {
                       >
                         <img src={eyeIcon} alt="view" style={{ width: "18px", height: "18px" }} />
                       </button>
-                      <Tooltip id={`print-order-${order.id}`} place="top" content="Print" />
+                      <Tooltip id={`print-order-${order.id}`} place="left" content="Print" />
                       <button
                         type="button"
                         onClick={() => handlePrintOrder(order)}
@@ -2185,7 +2185,7 @@ const InboundOrdersContent = ({ formValues, handleChange, cardColor }) => {
                           <path d="M18 9H6V14H18V9Z" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
                         </svg>
                       </button>
-                      <Tooltip id={`convert-order-${order.id}`} place="top" content="Convert to Landing" />
+                      <Tooltip id={`convert-order-${order.id}`} place="left" content="Convert to Landing" />
                       <button
                         type="button"
                         onClick={() => handleConvertToLanding(order)}
@@ -2216,7 +2216,7 @@ const InboundOrdersContent = ({ formValues, handleChange, cardColor }) => {
                         </svg>
                       </button>
                       <div className="action-dropdown-wrapper" style={{ position: "relative", display: "inline-block", zIndex: openDropdownId === order.id ? 9999 : "auto" }}>
-                        <Tooltip id={`more-actions-${order.id}`} place="top" content="More actions" />
+                        <Tooltip id={`more-actions-${order.id}`} place="left" content="More actions" />
                         <button
                           type="button"
                           onClick={(e) => handleToggleDropdown(order.id, e)}
