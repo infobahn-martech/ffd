@@ -11,7 +11,8 @@
   &__import-export,
   &__monthly-tasks,
   &__our-team,
-  &__earning-transactions {
+  &__earning-transactions,
+  &__task-list {
     min-width: 0;
   }
 
@@ -20,6 +21,10 @@
     .kpi-earning-transactions {
       max-height: 400px;
     }
+  }
+
+  &--task-list {
+    grid-template-columns: 1fr;
   }
 }
 
