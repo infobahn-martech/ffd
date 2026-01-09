@@ -2185,7 +2185,7 @@ const InboundOrdersContent = ({ formValues, handleChange, cardColor }) => {
                           <path d="M18 9H6V14H18V9Z" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
                         </svg>
                       </button>
-                      <Tooltip id={`convert-order-${order.id}`} place="left" content="Convert to Landing" />
+                      <Tooltip id={`convert-order-${order.id}`} place="left" content=" Convert" />
                       <button
                         type="button"
                         onClick={() => handleConvertToLanding(order)}

@@ -895,7 +895,7 @@ const DispatchNoteContent = ({ formValues, handleChange, cardColor }) => {
                         </svg>
                       </button>
                       <div className="action-dropdown-wrapper" style={{ position: "relative", display: "inline-block", zIndex: openDropdownId === note.id ? 9999 : "auto" }}>
-                        <Tooltip id={`more-actions-${note.id}`} place="left" content="More actions" />
+                        <Tooltip id={`more-actions-${note.id}`} place="right" content="More actions" />
                         <button
                           type="button"
                           onClick={(e) => handleToggleDropdown(note.id, e)}
