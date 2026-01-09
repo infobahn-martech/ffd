@@ -6,9 +6,6 @@ import './ProfileModal.scss';
 
 const ProfileModal = ({ show, onClose }) => {
   const profileData = useAuthReducer((state) => state.profileData);
-  const patchUserProfile = useAuthReducer((state) => state.patchUserProfile);
-  const profileEditLoader = useAuthReducer((state) => state.profileEditLoader);
-  const getUserProfile = useAuthReducer((state) => state.getUserProfile);
 
   const [isEditing, setIsEditing] = useState(false);
   const [avatarFile, setAvatarFile] = useState(null);
@@ -32,12 +29,6 @@ const ProfileModal = ({ show, onClose }) => {
       setIsEditing(false);
     }
   }, [show, profileData]);
-
-  useEffect(() => {
-    if (show && !profileData) {
-      getUserProfile();
-    }
-  }, [show, profileData, getUserProfile]);
 
   const handleInputChange = (e) => {
     const { name, value } = e.target;
@@ -66,29 +57,9 @@ const ProfileModal = ({ show, onClose }) => {
     setIsEditing(true);
   };
 
-  const handleSave = async () => {
-    try {
-      const formDataToSend = new FormData();
-      formDataToSend.append('firstName', formData.firstName);
-      formDataToSend.append('lastName', formData.lastName);
-      formDataToSend.append('phone', formData.phone);
-      
-      // Only append avatar if a new file was selected
-      if (avatarFile) {
-        formDataToSend.append('avatar', avatarFile);
-      }
-
-      await patchUserProfile({
-        value: formDataToSend,
-        cb: () => {
-          setIsEditing(false);
-          setAvatarFile(null);
-          getUserProfile();
-        },
-      });
-    } catch (error) {
-      console.error('Error updating profile:', error);
-    }
+  const handleSave = () => {
+    setIsEditing(false);
+    setAvatarFile(null);
   };
 
   const handleCancel = () => {
@@ -271,7 +242,6 @@ const ProfileModal = ({ show, onClose }) => {
                 type="button"
                 className="profile-modal__btn profile-modal__btn--secondary"
                 onClick={handleCancel}
-                disabled={profileEditLoader}
               >
                 Cancel
               </button>
@@ -279,16 +249,8 @@ const ProfileModal = ({ show, onClose }) => {
                 type="button"
                 className="profile-modal__btn profile-modal__btn--primary"
                 onClick={handleSave}
-                disabled={profileEditLoader}
               >
-                {profileEditLoader ? (
-                  <>
-                    <div className="profile-modal__spinner" />
-                    Saving...
-                  </>
-                ) : (
-                  'Save Changes'
-                )}
+                Save Changes
               </button>
             </>
           )}
