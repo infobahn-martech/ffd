@@ -1819,7 +1819,7 @@ const CrewContent = ({ formValues, handleChange, cardColor, onNavigateToTab, lau
                             }}
                           />
                           <div style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: "4px" }}>
-                            <Tooltip id={`passport-upload-${crew.id}`} place="right" positionStrategy="fixed" content={passportDocuments[crew.id] ? `Uploaded: ${passportDocuments[crew.id].fileName}` : "Upload"} />
+                            <Tooltip id={`passport-upload-${crew.id}`} place="right" positionStrategy="fixed" content={passportDocuments[crew.id] ? "Uploaded" : "Upload"} />
                             <button
                               type="button"
                               onClick={() => passportFileInputRefs.current[crew.id]?.click()}
@@ -1866,7 +1866,7 @@ const CrewContent = ({ formValues, handleChange, cardColor, onNavigateToTab, lau
                             }}
                           />
                           <div style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: "4px" }}>
-                            <Tooltip id={`iqama-upload-${crew.id}`} place="right" positionStrategy="fixed" content={iqamaDocuments[crew.id] ? `Uploaded: ${iqamaDocuments[crew.id].fileName}` : "Upload"} />
+                            <Tooltip id={`iqama-upload-${crew.id}`} place="right" positionStrategy="fixed" content={iqamaDocuments[crew.id] ? "Uploaded" : "Upload"} />
                             <button
                               type="button"
                               onClick={() => iqamaFileInputRefs.current[crew.id]?.click()}
@@ -1913,7 +1913,7 @@ const CrewContent = ({ formValues, handleChange, cardColor, onNavigateToTab, lau
                             }}
                           />
                           <div style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: "4px" }}>
-                            <Tooltip id={`visa-upload-${crew.id}`} place="right" positionStrategy="fixed" content={visaDocuments[crew.id] ? `Uploaded: ${visaDocuments[crew.id].fileName}` : "Upload"} />
+                            <Tooltip id={`visa-upload-${crew.id}`} place="right" positionStrategy="fixed" content={visaDocuments[crew.id] ? "Uploaded" : "Upload"} />
                             <button
                               type="button"
                               onClick={() => visaFileInputRefs.current[crew.id]?.click()}
@@ -1960,7 +1960,7 @@ const CrewContent = ({ formValues, handleChange, cardColor, onNavigateToTab, lau
                             }}
                           />
                           <div style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: "4px" }}>
-                            <Tooltip id={`cg-pass-upload-${crew.id}`} place="right" positionStrategy="fixed" content={cgPassDocuments[crew.id] ? `Uploaded: ${cgPassDocuments[crew.id].fileName}` : "Upload"} />
+                            <Tooltip id={`cg-pass-upload-${crew.id}`} place="right" positionStrategy="fixed" content={cgPassDocuments[crew.id] ? "Uploaded" : "Upload"} />
                             <button
                               type="button"
                               onClick={() => cgPassFileInputRefs.current[crew.id]?.click()}
@@ -2007,7 +2007,7 @@ const CrewContent = ({ formValues, handleChange, cardColor, onNavigateToTab, lau
                             }}
                           />
                           <div style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: "4px" }}>
-                            <Tooltip id={`zawil-pass-upload-${crew.id}`} place="left" positionStrategy="fixed" content={zawilPassDocuments[crew.id] ? `Uploaded: ${zawilPassDocuments[crew.id].fileName}` : "Upload"} />
+                            <Tooltip id={`zawil-pass-upload-${crew.id}`} place="left" positionStrategy="fixed" content={zawilPassDocuments[crew.id] ? "Uploaded" : "Upload"} />
                             <button
                               type="button"
                               onClick={() => zawilPassFileInputRefs.current[crew.id]?.click()}
@@ -2061,7 +2061,6 @@ const CrewContent = ({ formValues, handleChange, cardColor, onNavigateToTab, lau
                             fontWeight: "700",
                             padding: "0 5px",
                             boxShadow: "0 2px 4px rgba(0, 0, 0, 0.2)",
-                            zIndex: 1,
                             border: "2px solid #ffffff"
                           }}>
                             {crew.transportCount || 0}
@@ -2093,7 +2092,6 @@ const CrewContent = ({ formValues, handleChange, cardColor, onNavigateToTab, lau
                             fontWeight: "700",
                             padding: "0 5px",
                             boxShadow: "0 2px 4px rgba(0, 0, 0, 0.2)",
-                            zIndex: 1,
                             border: "2px solid #ffffff"
                           }}>
                             {crew.hotelCount || 0}
@@ -2125,7 +2123,6 @@ const CrewContent = ({ formValues, handleChange, cardColor, onNavigateToTab, lau
                             fontWeight: "700",
                             padding: "0 5px",
                             boxShadow: "0 2px 4px rgba(0, 0, 0, 0.2)",
-                            zIndex: 1,
                             border: "2px solid #ffffff"
                           }}>
                             {crew.medicalServiceCount || 0}
