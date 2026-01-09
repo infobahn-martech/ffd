@@ -9,6 +9,7 @@ import ChartsRow from './components/ChartsRow';
 import Earnings from './components/Earnings';
 import Tasks from './components/Tasks';
 import TeamLeaderboard from './components/TeamLeaderboard';
+import ProfileModal from './components/ProfileModal';
 import './KPIDashboard.scss';
 
 const KPIDashboard = () => {
@@ -31,6 +32,7 @@ const KPIDashboard = () => {
     };
 
     const [activeMenu, setActiveMenu] = useState(getInitialMenu());
+    const [showProfileModal, setShowProfileModal] = useState(false);
 
     useEffect(() => {
         // Sync activeMenu with URL (hash router uses pathname)
@@ -102,7 +104,11 @@ const KPIDashboard = () => {
                 className="kpi-dashboard__background"
                 style={{ backgroundImage: `url(${KIPBackground})` }}
             >
-                <SideNav activeMenu={activeMenu} setActiveMenu={setActiveMenu} />
+                <SideNav
+                    activeMenu={activeMenu}
+                    setActiveMenu={setActiveMenu}
+                    onProfileClick={() => setShowProfileModal(true)}
+                />
                 <div className="kpi-dashboard__content">
                     <HeaderBar title={getPageTitle()} breadcrumbs={getBreadcrumbs()} />
                     <div className="kpi-dashboard__scrollable-content">
@@ -110,6 +116,10 @@ const KPIDashboard = () => {
                     </div>
                 </div>
             </div>
+            <ProfileModal
+                show={showProfileModal}
+                onClose={() => setShowProfileModal(false)}
+            />
         </div>
     );
 };

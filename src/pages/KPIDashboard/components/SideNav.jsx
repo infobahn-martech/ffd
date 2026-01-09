@@ -5,7 +5,7 @@ import KIPLogo from '../../../assets/images/KIP_LOGO.png';
 import NeedHelpBG from '../../../assets/images/NeedHelpBG.png';
 import './SideNav.scss';
 
-const SideNav = ({ activeMenu, setActiveMenu }) => {
+const SideNav = ({ activeMenu, setActiveMenu, onProfileClick }) => {
   const navigate = useNavigate();
   const [localActiveMenu, setLocalActiveMenu] = useState(activeMenu || 'Dashboard');
 
@@ -13,6 +13,14 @@ const SideNav = ({ activeMenu, setActiveMenu }) => {
     setLocalActiveMenu(menuId);
     if (setActiveMenu) {
       setActiveMenu(menuId);
+    }
+
+    // Handle Profile click separately
+    if (menuId === 'Profile') {
+      if (onProfileClick) {
+        onProfileClick();
+      }
+      return;
     }
 
     // Navigate to appropriate route
