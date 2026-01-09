@@ -5,11 +5,13 @@ import {
   FiSettings,
   FiFolder,
   FiHelpCircle,
-  FiBell
+  FiBell,
+  FiLayout,
+  FiGrid,
+  FiBarChart2
 } from 'react-icons/fi';
 
 import logo from '../../assets/images/SedresLogo.png';
-import BackIcon from '../../assets/images/Back.png';
 import useWindowSize from '../../hooks/useWindowSize';
 import useAuthReducer from '../../store/AuthReducer';
 import MyAccountsModal from './MyAccountsModal';
@@ -144,26 +146,7 @@ function Header({ onMenuToggle, mobileMenuOpen: externalMobileMenuOpen }) {
         />
 
         <div className="top-links">
-
-          {/* Show "Back to Users" links only when on kanban-board */}
-          {pathname === "/kanban-board" ? (
-            <>
-              <NavLink to="/users" className="top-link active back-link">
-                <img src={BackIcon} alt="back" className="back-icon" />
-                <span style={{ cursor: 'pointer' }} className="link-text">Back to Users</span>
-              </NavLink>
-              <NavLink to="/edit-workflow" className="top-link">
-                <span className="link-text">Edit Workflows</span>
-              </NavLink>
-            </>
-          ) : (
-            /* Show "Back to Board" for all other routes */
-            <NavLink to="/kanban-board" className="top-link active back-link">
-              <img src={BackIcon} alt="back" className="back-icon" />
-              <span className="link-text" style={{ cursor: 'pointer' }}>Back to Board</span>
-            </NavLink>
-          )}
-
+          {/* Navigation links can be added here if needed */}
         </div>
       </div>
 
@@ -214,6 +197,30 @@ function Header({ onMenuToggle, mobileMenuOpen: externalMobileMenuOpen }) {
             </div>
           )}
         </div>
+        <button
+          className="icon-btn icon-btn-hide-mobile"
+          aria-label="Master Module"
+          title="Master Module"
+          onClick={() => navigate('/dashboard')}
+        >
+          <FiLayout />
+        </button>
+        <button
+          className="icon-btn icon-btn-hide-mobile"
+          aria-label="Board"
+          title="Board"
+          onClick={() => navigate('/kanban-board')}
+        >
+          <FiGrid />
+        </button>
+        <button
+          className="icon-btn icon-btn-hide-mobile"
+          aria-label="KPI Dashboard"
+          title="KPI Dashboard"
+          onClick={() => navigate('/kpi-dashboard')}
+        >
+          <FiBarChart2 />
+        </button>
         <button
           className="icon-btn icon-btn-hide-mobile"
           aria-label="Documents"

@@ -29,54 +29,54 @@ const ImportExportCallChart = () => {
           <AreaChart data={data} margin={{ top: 10, right: 10, left: 0, bottom: 0 }}>
             <defs>
               <linearGradient id="colorImport" x1="0" y1="0" x2="0" y2="1">
-                <stop offset="5%" stopColor="#0075FF" stopOpacity={0.3}/>
-                <stop offset="95%" stopColor="#0075FF" stopOpacity={0}/>
+                <stop offset="5%" stopColor="#0075FF" stopOpacity={0.3} />
+                <stop offset="95%" stopColor="#0075FF" stopOpacity={0} />
               </linearGradient>
               <linearGradient id="colorExport" x1="0" y1="0" x2="0" y2="1">
-                <stop offset="5%" stopColor="#60A5FA" stopOpacity={0.3}/>
-                <stop offset="95%" stopColor="#60A5FA" stopOpacity={0}/>
+                <stop offset="5%" stopColor="#60A5FA" stopOpacity={0.3} />
+                <stop offset="95%" stopColor="#60A5FA" stopOpacity={0} />
               </linearGradient>
             </defs>
             <CartesianGrid strokeDasharray="3 3" stroke="rgba(255, 255, 255, 0.1)" />
-            <XAxis 
-              dataKey="day" 
+            <XAxis
+              dataKey="day"
               stroke="rgba(255, 255, 255, 0.7)"
               tick={{ fill: 'rgba(255, 255, 255, 0.7)', fontSize: 12 }}
             />
-            <YAxis 
+            <YAxis
               stroke="rgba(255, 255, 255, 0.7)"
               tick={{ fill: 'rgba(255, 255, 255, 0.7)', fontSize: 12 }}
               domain={[0, 250]}
               ticks={[0, 50, 100, 150, 200, 250]}
             />
-            <Tooltip 
-              contentStyle={{ 
-                backgroundColor: 'rgba(26, 31, 55, 0.95)', 
+            <Tooltip
+              contentStyle={{
+                backgroundColor: 'rgba(26, 31, 55, 0.95)',
                 border: '1px solid rgba(255, 255, 255, 0.1)',
                 borderRadius: '8px',
                 color: '#FFF'
               }}
             />
-            <Legend 
+            <Legend
               wrapperStyle={{ paddingTop: '20px' }}
               iconType="circle"
               formatter={(value) => <span style={{ color: 'rgba(255, 255, 255, 0.7)', fontSize: '12px' }}>{value}</span>}
             />
-            <Area 
-              type="monotone" 
-              dataKey="import" 
-              stroke="#0075FF" 
-              fillOpacity={1} 
+            <Area
+              type="monotone"
+              dataKey="import"
+              stroke="#0075FF"
+              fillOpacity={1}
               fill="url(#colorImport)"
               strokeWidth={2}
               dot={{ fill: '#0075FF', r: 4 }}
               activeDot={{ r: 6 }}
             />
-            <Area 
-              type="monotone" 
-              dataKey="export" 
-              stroke="#60A5FA" 
-              fillOpacity={1} 
+            <Area
+              type="monotone"
+              dataKey="export"
+              stroke="#60A5FA"
+              fillOpacity={1}
               fill="url(#colorExport)"
               strokeWidth={2}
               dot={{ fill: '#60A5FA', r: 4 }}
