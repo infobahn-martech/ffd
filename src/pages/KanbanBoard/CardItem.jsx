@@ -1,5 +1,6 @@
 import { Draggable } from "@hello-pangea/dnd";
 import PropTypes from "prop-types";
+import { Tooltip } from "react-tooltip";
 import "../../design/css/CardItem.css";
 import { DownloadIcon, InprogressIcon } from "../../assets/svgs";
 
@@ -75,11 +76,26 @@ function CardItem({ card, index, setSelectedCard, isShrunk = false }) {
                   const maxLength = 10;
                   const isTruncated = card.name.length > maxLength;
                   const displayText = isTruncated ? card.name.substring(0, maxLength) + "..." : card.name;
+                  const tooltipId = `card-name-${card.id}`;
 
                   return (
-                    <span className="card-name">
-                      {displayText}
-                    </span>
+                    <>
+                      <span 
+                        className="card-name"
+                        data-tooltip-id={isTruncated ? tooltipId : undefined}
+                        data-tooltip-content={isTruncated ? card.name : undefined}
+                      >
+                        {displayText}
+                      </span>
+                      {isTruncated && (
+                        <Tooltip 
+                          id={tooltipId} 
+                          place="top" 
+                          className="card-name-tooltip"
+                          offset={5}
+                        />
+                      )}
+                    </>
                   );
                 })()}
               </div>

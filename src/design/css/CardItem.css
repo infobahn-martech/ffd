@@ -522,3 +522,21 @@
   color: #333;
   line-height: 1;
 }
+
+/* Card Name Tooltip Styling - Small and compact */
+.card-name-tooltip {
+  font-size: 12px !important;
+  padding: 3px 6px !important;
+  max-width: 150px !important;
+  white-space: normal !important;
+  word-wrap: break-word !important;
+  z-index: 10001 !important;
+  line-height: 1.2 !important;
+  border-radius: 4px !important;
+}
+
+/* Ensure tooltip appears above card content but doesn't interfere */
+.kanban-card [id^="react-tooltip-"] {
+  z-index: 10001 !important;
+  pointer-events: none !important;
+}
