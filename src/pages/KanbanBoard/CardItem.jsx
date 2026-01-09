@@ -1,29 +1,16 @@
 import { Draggable } from "@hello-pangea/dnd";
 import PropTypes from "prop-types";
-import { Tooltip } from "react-tooltip";
-import "react-tooltip/dist/react-tooltip.css";
 import "../../design/css/CardItem.css";
 import { DownloadIcon, InprogressIcon } from "../../assets/svgs";
 
 function CardItem({ card, index, setSelectedCard, isShrunk = false }) {
   const cardColor = card.color || "#2A00FF";
 
-  // Helper function to truncate text and add tooltip
-  const TruncatedText = ({ text, maxLength = 20, tooltipId }) => {
+  // Helper function to truncate text
+  const TruncatedText = ({ text, maxLength = 20 }) => {
     if (!text) return null;
     const isTruncated = text.length > maxLength;
     const displayText = isTruncated ? text.substring(0, maxLength) + "..." : text;
-
-    if (isTruncated) {
-      return (
-        <>
-          <span data-tooltip-id={tooltipId} data-tooltip-content={text}>
-            {displayText}
-          </span>
-          <Tooltip id={tooltipId} place="top" />
-        </>
-      );
-    }
     return <span>{displayText}</span>;
   };
 
@@ -50,8 +37,6 @@ function CardItem({ card, index, setSelectedCard, isShrunk = false }) {
                   <div
                     className="card-header-icon-compact"
                     style={{ backgroundColor: cardColor }}
-                    data-tooltip-id={`icon-${card.id}`}
-                    data-tooltip-content={`Card Type: ${card.iconType || 'default'}`}
                   >
                     {card.iconType === "inprogress" && <InprogressIcon />}
                     {card.iconType === "download" && <DownloadIcon />}
@@ -63,18 +48,14 @@ function CardItem({ card, index, setSelectedCard, isShrunk = false }) {
                     style={{ backgroundColor: cardColor }}
                   />
                 </div>
-                <Tooltip id={`icon-${card.id}`} place="top" />
 
                 {/* Title with better styling */}
                 <div
                   className="card-title-compact"
                   onClick={() => setSelectedCard(card)}
-                  data-tooltip-id={`title-${card.id}`}
-                  data-tooltip-content={card.title}
                 >
                   {card.title.length > 12 ? card.title.substring(0, 12) + "..." : card.title}
                 </div>
-                <Tooltip id={`title-${card.id}`} place="top" />
               </div>
             </>
           ) : (
@@ -94,26 +75,11 @@ function CardItem({ card, index, setSelectedCard, isShrunk = false }) {
                   const maxLength = 10;
                   const isTruncated = card.name.length > maxLength;
                   const displayText = isTruncated ? card.name.substring(0, maxLength) + "..." : card.name;
-                  const tooltipId = `name-${card.id}`;
 
                   return (
-                    <>
-                      <span
-                        className="card-name"
-                        data-tooltip-id={tooltipId}
-                        data-tooltip-content={card.name}
-                      >
-                        {displayText}
-                      </span>
-                      {isTruncated && (
-                        <Tooltip
-                          id={tooltipId}
-                          place="top"
-                          className="card-name-tooltip"
-                          style={{ zIndex: 9999 }}
-                        />
-                      )}
-                    </>
+                    <span className="card-name">
+                      {displayText}
+                    </span>
                   );
                 })()}
               </div>
@@ -165,7 +131,7 @@ function CardItem({ card, index, setSelectedCard, isShrunk = false }) {
                   <div className="card-detail-item">
                     <span className="detail-dot detail-dot-blue"></span>
                     <span className="detail-label">VESSEL NAME:</span>
-                    <TruncatedText text={card.vesselName} maxLength={20} tooltipId={`vessel-${card.id}`} />
+                    <TruncatedText text={card.vesselName} maxLength={20} />
                   </div>
                 </div>
               )}
