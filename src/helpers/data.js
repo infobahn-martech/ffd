@@ -151,6 +151,12 @@ const generateCard = (workflowId, colId, cardId) => {
     iconType: randomIconType,   // ⭐ Added here
     priority: cardId === 1, // Only first item has priority true
     vesselName: vesselNames[Math.floor(Math.random() * vesselNames.length)],
+    transport: ["done", "rejected", "inProgress"][Math.floor(Math.random() * 3)],
+    transportCount: Math.floor(Math.random() * 5) + 1, // Random count between 1-5
+    hotel: ["done", "rejected", "inProgress"][Math.floor(Math.random() * 3)],
+    hotelCount: Math.floor(Math.random() * 5) + 1, // Random count between 1-5
+    medicalService: ["done", "rejected", "inProgress"][Math.floor(Math.random() * 3)],
+    medicalServiceCount: Math.floor(Math.random() * 5) + 1, // Random count between 1-5
   };
 
   return { id, cardData };
