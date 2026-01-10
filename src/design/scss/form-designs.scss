@@ -1,23 +1,27 @@
 @import "partials/partials";
 
-.form-inp-wrp{
+.form-inp-wrp {
     margin-bottom: 30px;
 }
-.form-floating.form-floating{
+
+.form-floating.form-floating {
     border: 1px solid $borderLight;
     border-radius: 12px;
     margin-bottom: 30px;
-    @media($sm-1199 ){
+
+    @media($sm-1199 ) {
         margin-bottom: 25px;
     }
-    .input-group-text{
+
+    .input-group-text {
         position: absolute;
         top: 0;
         right: 0;
         bottom: 0;
     }
+
     .form-control,
-    .form-select{
+    .form-select {
         border: none !important;
         box-shadow: none !important;
         padding-top: 10px !important;
@@ -25,12 +29,14 @@
         border-radius: 12px;
         height: 50px;
         min-height: 50px;
-        font-size: 13px; 
+        font-size: 13px;
     }
-    textarea.form-control{
+
+    textarea.form-control {
         min-height: 100px;
     }
-    & > label{
+
+    &>label {
         padding: 5px 10px;
         background-color: #ffffff;
         display: flex;
@@ -39,15 +45,17 @@
         color: $txtColor !important;
         font-size: 13px;
         z-index: 0;
-        .req{
+
+        .req {
             color: #ff0000;
             font-size: 0.875em;
         }
     }
-    & >.form-control-plaintext~label,
-    & >.form-control:focus~label,
-    & >.form-control:not(:placeholder-shown)~label,
-    & >.form-select~label{
+
+    &>.form-control-plaintext~label,
+    &>.form-control:focus~label,
+    &>.form-control:not(:placeholder-shown)~label,
+    &>.form-select~label {
         top: -10px !important;
         transform: scale(.85) translateY(-0.4rem) translateX(0.15rem) !important;
         height: unset !important;
@@ -56,28 +64,32 @@
 
 
 
-.form-check{
-    .form-check-input{
+.form-check {
+    .form-check-input {
         box-shadow: none !important;
         border: 1px solid #98CBD0;
         width: 15px;
-        height: 15px; 
+        height: 15px;
     }
-    .form-check-input:checked{
+
+    .form-check-input:checked {
         background-color: #00368C;
         border-color: #00368C;
     }
 }
-.lead-form{
-    .mb-lg-3{
+
+.lead-form {
+    .mb-lg-3 {
         margin-bottom: 0 !important;
     }
 }
 
-.form-control:disabled{
+.form-control:disabled {
     background-color: transparent !important;
 }
-.form-floating>.form-control:disabled~label::after, .form-floating>:disabled~label::after {
+
+.form-floating>.form-control:disabled~label::after,
+.form-floating>:disabled~label::after {
     background-color: transparent;
 }
 
@@ -89,50 +101,55 @@
 }
 
 .form-select {
-.css-13cymwt-control{
-    border: none;
-}}
+    .css-13cymwt-control {
+        border: none;
+    }
+}
 
 .form-control.form-select {
     padding: 6px;
 
-    .css-13cymwt-control{
+    .css-13cymwt-control {
         border: none;
         box-shadow: none;
     }
-    .css-1u9des2-indicatorSeparator{
-    width:0 !important;
+
+    .css-1u9des2-indicatorSeparator {
+        width: 0 !important;
     }
+
     .css-t3ipsp-control:hover {
         border: none;
         box-shadow: none;
     }
-    .css-1nmdiq5-menu{
-        left:-4px !important
-        }
-}
 
-
-
-.lead-form{
-    label{
-    
-            .star{
-                color: red;
-            }
-           
-      
+    .css-1nmdiq5-menu {
+        left: -4px !important
     }
 }
 
 
-.filters-inputs-wrp{
-    .form-floating.form-floating{
+
+.lead-form {
+    label {
+
+        .star {
+            color: red;
+        }
+
+
+    }
+}
+
+
+.filters-inputs-wrp {
+    .form-floating.form-floating {
         margin-bottom: 0;
-        @media($sm-1199 ){
+
+        @media($sm-1199 ) {
             margin-bottom: 25px;
         }
-    }  
+    }
 }
 
 
@@ -148,7 +165,8 @@ label.select-label {
 }
 
 .form-control.form-select {
-position: relative;
+    position: relative;
+
     .css-1jqq78o-placeholder {
         font-size: 13px;
         color: #35475e !important;
@@ -156,10 +174,12 @@ position: relative;
 }
 
 
-.field-disabled{
-    input{
-     color:#79A1A5 !important;}
+.field-disabled {
+    input {
+        color: #79A1A5 !important;
     }
+}
+
 .form-select {
     @media($sm-991) {
         margin-bottom: 25px;
@@ -183,19 +203,20 @@ position: relative;
     font-size: 13px;
 
 }
+
 input::-webkit-outer-spin-button,
 input::-webkit-inner-spin-button {
-  -webkit-appearance: none;
-  margin: 0;
+    -webkit-appearance: none;
+    margin: 0;
 }
 
 input[type=number] {
-  -moz-appearance: textfield;
+    -moz-appearance: textfield;
 }
 
-.react-select__option.css-d7l1ni-option{
+.react-select__option.css-d7l1ni-option {
     background-color: #00368C;
-    color:#fff;
+    color: #fff;
     font-size: 13px;
 }
 
@@ -206,57 +227,60 @@ input[type=number] {
 }
 
 .phone-wrapper {
-  position: relative;
-  margin-bottom: 1.2rem;
+    position: relative;
+    margin-bottom: 28px
 }
 
 .phone-label {
-  position: absolute;
-  top: -10px;
-  left: 14px;
-  font-size: 11px;
-  color: #226166;
-  background: #fff;
-  padding: 0 6px;
-  z-index: 10;
+    position: absolute;
+    top: -10px;
+    left: 14px;
+    font-size: 11px;
+    color: #226166;
+    background: #fff;
+    padding: 0 6px;
+    z-index: 10;
 }
 
 /* Phone input box alignment */
 .phone-input {
-  width: 100% !important;
-  height: 56px !important;
-  padding-left: 62px !important; /* ensure space for flag */
-  border: 1px solid #d3e3f8 !important;
-  border-radius: 8px !important;
-  font-size: 14px !important;
-  line-height: 56px !important; /* ensures perfect vertical alignment */
-  display: flex !important;
-  align-items: center !important;
+    width: 100% !important;
+    height: 50px !important;
+    min-height: 50px !important;
+    padding-left: 62px !important;
+    /* ensure space for flag */
+    border: 1px solid #d3e3f8 !important;
+    border-radius: 8px !important;
+    font-size: 14px !important;
+    line-height: 50px !important;
+    /* ensures perfect vertical alignment */
+    display: flex !important;
+    align-items: center !important;
 }
 
 /* Country flag button */
 .phone-flag {
-  position: absolute !important;
-  top: 50% !important;               /* center vertically */
-  transform: translateY(-50%) !important;
-  left: 14px !important;
-  background: transparent !important;
-  border: none !important;
-  padding: 0 !important;
-  height: auto !important;
+    position: absolute !important;
+    top: 50% !important;
+    /* center vertically */
+    transform: translateY(-50%) !important;
+    left: 14px !important;
+    background: transparent !important;
+    border: none !important;
+    padding: 0 !important;
+    height: auto !important;
 }
 
 /* Remove default react-phone-input-2 padding */
 .react-tel-input .flag-dropdown {
-  border: none !important;
-  background: transparent !important;
+    border: none !important;
+    background: transparent !important;
 }
 
 .avatar-wrapper:hover .avatar-edit-icon {
-  background: #154e50;
+    background: #154e50;
 }
 
 .avatar-image:hover {
-  opacity: 0.9;
+    opacity: 0.9;
 }
-
