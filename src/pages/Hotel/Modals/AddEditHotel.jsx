@@ -1,6 +1,7 @@
 import { useForm, Controller, useFieldArray } from "react-hook-form";
 import PhoneInput from "react-phone-input-2";
 import "react-phone-input-2/lib/bootstrap.css";
+import { FiPlus, FiX } from "react-icons/fi";
 import CustomModal from "../../../components/CustomModal";
 import "../../../design/scss/prospect-modal.scss";
 import "../../../design/scss/modal-designs.scss";
@@ -161,12 +162,13 @@ export function HotelModal({ showModal, closeModal }) {
 
                             {/* CONTACT EMAIL - First Email */}
                             <div className="col-lg-6 col-sm-12">
-                                <div className="form-floating desig-inp">
+                                <div className="form-floating desig-inp" style={{ position: "relative" }}>
                                     <input
                                         type="email"
                                         className={`form-control ${errors.contact_email?.[0]?.value ? "is-invalid" : ""
                                             }`}
                                         placeholder="Contact Email"
+                                        style={{ paddingRight: "35px" }}
                                         {...register("contact_email.0.value", {
                                             required: "Contact email is required",
                                             pattern: {
@@ -178,6 +180,45 @@ export function HotelModal({ showModal, closeModal }) {
                                     <label>
                                         Contact Email <span className="text-danger">*</span>
                                     </label>
+                                    {fields.length === 1 ? (
+                                        <button
+                                            type="button"
+                                            className="btn btn-link p-0"
+                                            style={{
+                                                position: "absolute",
+                                                right: "10px",
+                                                top: "50%",
+                                                transform: "translateY(-50%)",
+                                                zIndex: 10,
+                                                border: "none",
+                                                background: "none",
+                                                color: "#37ADB5",
+                                                cursor: "pointer",
+                                            }}
+                                            onClick={() => append({ value: "" })}
+                                        >
+                                            <FiPlus size={18} />
+                                        </button>
+                                    ) : (
+                                        <button
+                                            type="button"
+                                            className="btn btn-link p-0"
+                                            style={{
+                                                position: "absolute",
+                                                right: "10px",
+                                                top: "50%",
+                                                transform: "translateY(-50%)",
+                                                zIndex: 10,
+                                                border: "none",
+                                                background: "none",
+                                                color: "#dc3545",
+                                                cursor: "pointer",
+                                            }}
+                                            onClick={() => remove(0)}
+                                        >
+                                            <FiX size={18} />
+                                        </button>
+                                    )}
                                     {errors.contact_email?.[0]?.value && (
                                         <span className="error text-danger">
                                             {errors.contact_email[0].value.message}
@@ -191,59 +232,83 @@ export function HotelModal({ showModal, closeModal }) {
                     {/* Additional Contact Emails */}
                     {fields.length > 1 && (
                         <div className="mb-lg-3 mb-sm-0">
-                            {fields.slice(1).map((field, index) => (
-                                <div className="mb-2" key={field.id}>
-                                    <div className="permInputs row">
-                                        <div className="col-lg-6 col-sm-12">
-                                            <div className="form-floating desig-inp">
-                                                <input
-                                                    type="email"
-                                                    className={`form-control ${errors.contact_email?.[index + 1]?.value ? "is-invalid" : ""
-                                                        }`}
-                                                    placeholder="Contact Email"
-                                                    {...register(`contact_email.${index + 1}.value`, {
-                                                        required: "Contact email is required",
-                                                        pattern: {
-                                                            value: /^[^\s@]+@[^\s@]+\.[^\s@]+$/,
-                                                            message: "Enter a valid email address",
-                                                        },
-                                                    })}
-                                                />
-                                                <label>
-                                                    Contact Email <span className="text-danger">*</span>
-                                                </label>
-                                                {errors.contact_email?.[index + 1]?.value && (
-                                                    <span className="error text-danger">
-                                                        {errors.contact_email[index + 1].value.message}
-                                                    </span>
-                                                )}
+                            {fields.slice(1).map((field, index) => {
+                                const actualIndex = index + 1;
+                                const isLastField = actualIndex === fields.length - 1;
+                                return (
+                                    <div className="mb-2" key={field.id}>
+                                        <div className="permInputs row">
+                                            <div className="col-lg-6 col-sm-12">
+                                                <div className="form-floating desig-inp" style={{ position: "relative" }}>
+                                                    <input
+                                                        type="email"
+                                                        className={`form-control ${errors.contact_email?.[actualIndex]?.value ? "is-invalid" : ""
+                                                            }`}
+                                                        placeholder="Contact Email"
+                                                        style={{ paddingRight: "35px" }}
+                                                        {...register(`contact_email.${actualIndex}.value`, {
+                                                            required: "Contact email is required",
+                                                            pattern: {
+                                                                value: /^[^\s@]+@[^\s@]+\.[^\s@]+$/,
+                                                                message: "Enter a valid email address",
+                                                            },
+                                                        })}
+                                                    />
+                                                    <label>
+                                                        Contact Email <span className="text-danger">*</span>
+                                                    </label>
+                                                    {isLastField ? (
+                                                        <button
+                                                            type="button"
+                                                            className="btn btn-link p-0"
+                                                            style={{
+                                                                position: "absolute",
+                                                                right: "10px",
+                                                                top: "50%",
+                                                                transform: "translateY(-50%)",
+                                                                zIndex: 10,
+                                                                border: "none",
+                                                                background: "none",
+                                                                color: "#37ADB5",
+                                                                cursor: "pointer",
+                                                            }}
+                                                            onClick={() => append({ value: "" })}
+                                                        >
+                                                            <FiPlus size={18} />
+                                                        </button>
+                                                    ) : (
+                                                        <button
+                                                            type="button"
+                                                            className="btn btn-link p-0"
+                                                            style={{
+                                                                position: "absolute",
+                                                                right: "10px",
+                                                                top: "50%",
+                                                                transform: "translateY(-50%)",
+                                                                zIndex: 10,
+                                                                border: "none",
+                                                                background: "none",
+                                                                color: "#dc3545",
+                                                                cursor: "pointer",
+                                                            }}
+                                                            onClick={() => remove(actualIndex)}
+                                                        >
+                                                            <FiX size={18} />
+                                                        </button>
+                                                    )}
+                                                    {errors.contact_email?.[actualIndex]?.value && (
+                                                        <span className="error text-danger">
+                                                            {errors.contact_email[actualIndex].value.message}
+                                                        </span>
+                                                    )}
+                                                </div>
                                             </div>
                                         </div>
-                                        <div className="col-lg-6 col-sm-12 d-flex align-items-end">
-                                            <button
-                                                type="button"
-                                                className="btn btn-link text-danger p-0"
-                                                onClick={() => remove(index + 1)}
-                                            >
-                                                Remove
-                                            </button>
-                                        </div>
                                     </div>
-                                </div>
-                            ))}
+                                );
+                            })}
                         </div>
                     )}
-
-                    {/* Add Email Button */}
-                    <div className="mb-lg-3 mb-sm-0">
-                        <button
-                            type="button"
-                            className="btn btn-link p-0"
-                            onClick={() => append({ value: "" })}
-                        >
-                            + Add Another Email
-                        </button>
-                    </div>
 
                     {/* ===== Hotel Address (Full Row) ===== */}
                     <div className="mb-lg-3 mb-sm-0">
