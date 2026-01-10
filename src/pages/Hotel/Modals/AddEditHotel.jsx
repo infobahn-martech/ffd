@@ -1,4 +1,4 @@
-import { useForm, Controller } from "react-hook-form";
+import { useForm, Controller, useFieldArray } from "react-hook-form";
 import PhoneInput from "react-phone-input-2";
 import "react-phone-input-2/lib/bootstrap.css";
 import CustomModal from "../../../components/CustomModal";
@@ -20,20 +20,38 @@ export function HotelModal({ showModal, closeModal }) {
                 hotel_name: showModal?.hotel_name || "",
                 contact_name: showModal?.contact_name || "",
                 contact_no: showModal?.contact_no || "",
-                contact_email: showModal?.contact_email || "",
+                contact_email:
+                    showModal?.contact_email
+                        ? Array.isArray(showModal.contact_email)
+                            ? showModal.contact_email.length > 0
+                                ? showModal.contact_email.map((e) => ({ value: e || "" }))
+                                : [{ value: "" }]
+                            : [{ value: showModal.contact_email }]
+                        : [{ value: "" }],
                 hotel_address: showModal?.hotel_address || "",
             }
             : {
                 hotel_name: "",
                 contact_name: "",
                 contact_no: "",
-                contact_email: "",
+                contact_email: [{ value: "" }],
                 hotel_address: "",
             },
     });
 
+    const { fields, append, remove } = useFieldArray({
+        control,
+        name: "contact_email",
+    });
+
     const onSubmit = (data) => {
-        console.log("HOTEL FORM SUBMITTED:", data);
+        const payload = {
+            ...data,
+            contact_email: data.contact_email
+                .map((e) => e.value?.trim())
+                .filter(Boolean),
+        };
+        console.log("HOTEL FORM SUBMITTED:", payload);
         closeModal();
     };
 
@@ -141,15 +159,15 @@ export function HotelModal({ showModal, closeModal }) {
                                 </div>
                             </div>
 
-                            {/* CONTACT EMAIL */}
+                            {/* CONTACT EMAIL - First Email */}
                             <div className="col-lg-6 col-sm-12">
                                 <div className="form-floating desig-inp">
                                     <input
                                         type="email"
-                                        className={`form-control ${errors.contact_email ? "is-invalid" : ""
+                                        className={`form-control ${errors.contact_email?.[0]?.value ? "is-invalid" : ""
                                             }`}
                                         placeholder="Contact Email"
-                                        {...register("contact_email", {
+                                        {...register("contact_email.0.value", {
                                             required: "Contact email is required",
                                             pattern: {
                                                 value: /^[^\s@]+@[^\s@]+\.[^\s@]+$/,
@@ -160,14 +178,71 @@ export function HotelModal({ showModal, closeModal }) {
                                     <label>
                                         Contact Email <span className="text-danger">*</span>
                                     </label>
-                                    {errors.contact_email && (
+                                    {errors.contact_email?.[0]?.value && (
                                         <span className="error text-danger">
-                                            {errors.contact_email.message}
+                                            {errors.contact_email[0].value.message}
                                         </span>
                                     )}
                                 </div>
                             </div>
                         </div>
+                    </div>
+
+                    {/* Additional Contact Emails */}
+                    {fields.length > 1 && (
+                        <div className="mb-lg-3 mb-sm-0">
+                            {fields.slice(1).map((field, index) => (
+                                <div className="mb-2" key={field.id}>
+                                    <div className="permInputs row">
+                                        <div className="col-lg-6 col-sm-12">
+                                            <div className="form-floating desig-inp">
+                                                <input
+                                                    type="email"
+                                                    className={`form-control ${errors.contact_email?.[index + 1]?.value ? "is-invalid" : ""
+                                                        }`}
+                                                    placeholder="Contact Email"
+                                                    {...register(`contact_email.${index + 1}.value`, {
+                                                        required: "Contact email is required",
+                                                        pattern: {
+                                                            value: /^[^\s@]+@[^\s@]+\.[^\s@]+$/,
+                                                            message: "Enter a valid email address",
+                                                        },
+                                                    })}
+                                                />
+                                                <label>
+                                                    Contact Email <span className="text-danger">*</span>
+                                                </label>
+                                                {errors.contact_email?.[index + 1]?.value && (
+                                                    <span className="error text-danger">
+                                                        {errors.contact_email[index + 1].value.message}
+                                                    </span>
+                                                )}
+                                            </div>
+                                        </div>
+                                        <div className="col-lg-6 col-sm-12 d-flex align-items-end">
+                                            <button
+                                                type="button"
+                                                className="btn btn-link text-danger p-0"
+                                                onClick={() => remove(index + 1)}
+                                            >
+                                                Remove
+                                            </button>
+                                        </div>
+                                    </div>
+                                </div>
+                            ))}
+                        </div>
+                    )}
+
+                    {/* Add Email Button */}
+                    <div className="mb-lg-3 mb-sm-0">
+                        <button
+                            type="button"
+                            className="btn btn-link p-0"
+                            onClick={() => append({ value: "" })}
+                        >
+                            + Add Another Email
+                        </button>
                     </div>
 
                     {/* ===== Hotel Address (Full Row) ===== */}
