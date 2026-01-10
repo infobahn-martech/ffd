@@ -15,6 +15,7 @@ const Tasks = () => {
       remainingTime: '1h 15m',
       remainingMinutes: 75,
       status: 'In Progress',
+      points: 4520,
     },
     {
       id: 2,
@@ -26,6 +27,7 @@ const Tasks = () => {
       remainingTime: '0h 00m',
       remainingMinutes: 0,
       status: 'Completed',
+      points: 3200,
     },
     {
       id: 3,
@@ -37,6 +39,7 @@ const Tasks = () => {
       remainingTime: '1h 15m',
       remainingMinutes: 75,
       status: 'In Progress',
+      points: 7850,
     },
     {
       id: 4,
@@ -48,6 +51,7 @@ const Tasks = () => {
       remainingTime: '2h 10m',
       remainingMinutes: 130,
       status: 'Pending',
+      points: 2150,
     },
     {
       id: 5,
@@ -59,6 +63,7 @@ const Tasks = () => {
       remainingTime: '0h 00m',
       remainingMinutes: 0,
       status: 'Completed',
+      points: 1890,
     },
     {
       id: 6,
@@ -70,6 +75,7 @@ const Tasks = () => {
       remainingTime: '1h 30m',
       remainingMinutes: 90,
       status: 'Pending',
+      points: 950,
     },
     {
       id: 7,
@@ -81,6 +87,7 @@ const Tasks = () => {
       remainingTime: '2h 00m',
       remainingMinutes: 120,
       status: 'In Progress',
+      points: 6230,
     },
     {
       id: 8,
@@ -92,6 +99,7 @@ const Tasks = () => {
       remainingTime: '0h 00m',
       remainingMinutes: 0,
       status: 'Completed',
+      points: 3450,
     },
   ]);
 
@@ -138,6 +146,10 @@ const Tasks = () => {
             aValue = a.status;
             bValue = b.status;
             break;
+          case 'points':
+            aValue = a.points || 0;
+            bValue = b.points || 0;
+            break;
           default:
             return 0;
         }
@@ -179,6 +191,12 @@ const Tasks = () => {
   const getSortIcon = (field) => {
     if (sortField !== field) return null;
     return sortDirection === 'asc' ? <FiChevronUp /> : <FiChevronDown />;
+  };
+
+  // Format points with commas
+  const formatPoints = (points) => {
+    const formattedNumber = (points || 0).toLocaleString('en-US');
+    return `${formattedNumber} Points`;
   };
 
   return (
@@ -281,12 +299,21 @@ const Tasks = () => {
                   {getSortIcon('status')}
                 </div>
               </th>
+              <th
+                className="tasks-table__header tasks-table__header--sortable"
+                onClick={() => handleSort('points')}
+              >
+                <div className="tasks-table__header-content">
+                  Points
+                  {getSortIcon('points')}
+                </div>
+              </th>
             </tr>
           </thead>
           <tbody>
             {filteredAndSortedTasks.length === 0 ? (
               <tr>
-                <td colSpan="5" className="tasks-table__empty">
+                <td colSpan="6" className="tasks-table__empty">
                   No tasks found
                 </td>
               </tr>
@@ -304,6 +331,7 @@ const Tasks = () => {
                       {task.status}
                     </span>
                   </td>
+                  <td className="tasks-table__cell">{formatPoints(task.points)}</td>
                 </tr>
               ))
             )}
