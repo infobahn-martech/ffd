@@ -1,3 +1,4 @@
+import { useState } from "react";
 import { useForm, Controller, useFieldArray } from "react-hook-form";
 import PhoneInput from "react-phone-input-2";
 import "react-phone-input-2/lib/bootstrap.css";
@@ -10,11 +11,14 @@ import userIcon from "../../../assets/images/user.png";
 import edit from "../../../assets/images/edit.svg";
 
 export function HotelModal({ showModal, closeModal }) {
+    const [currentEmailInput, setCurrentEmailInput] = useState("");
+
     const {
         register,
         handleSubmit,
         formState: { errors },
         control,
+        setValue,
     } = useForm({
         defaultValues: showModal?._id
             ? {
@@ -26,16 +30,16 @@ export function HotelModal({ showModal, closeModal }) {
                         ? Array.isArray(showModal.contact_email)
                             ? showModal.contact_email.length > 0
                                 ? showModal.contact_email.map((e) => ({ value: e || "" }))
-                                : [{ value: "" }]
+                                : []
                             : [{ value: showModal.contact_email }]
-                        : [{ value: "" }],
+                        : [],
                 hotel_address: showModal?.hotel_address || "",
             }
             : {
                 hotel_name: "",
                 contact_name: "",
                 contact_no: "",
-                contact_email: [{ value: "" }],
+                contact_email: [],
                 hotel_address: "",
             },
     });
@@ -45,13 +49,76 @@ export function HotelModal({ showModal, closeModal }) {
         name: "contact_email",
     });
 
+    // Register validation for contact_email array
+    register("contact_email", {
+        validate: (value) => {
+            if (!value || value.length === 0) {
+                return "At least one contact email is required";
+            }
+            return true;
+        },
+    });
+
+    const handleAddEmail = () => {
+        const email = currentEmailInput.trim();
+
+        // Validate email
+        const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+        if (!email) {
+            return;
+        }
+
+        if (!emailRegex.test(email)) {
+            // Set error for the input field
+            return;
+        }
+
+        // Check for duplicates
+        const existingEmails = fields.map((f) => f.value);
+        if (existingEmails.includes(email)) {
+            return;
+        }
+
+        // Add email to the array
+        append({ value: email });
+
+        // Clear the input
+        setCurrentEmailInput("");
+    };
+
+    const handleEmailInputKeyPress = (e) => {
+        if (e.key === "Enter") {
+            e.preventDefault();
+            handleAddEmail();
+        }
+    };
+
     const onSubmit = (data) => {
+        // Add current input if it exists and is valid
+        if (currentEmailInput.trim()) {
+            const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+            const email = currentEmailInput.trim();
+            if (emailRegex.test(email)) {
+                const existingEmails = data.contact_email.map((e) => e.value);
+                if (!existingEmails.includes(email)) {
+                    data.contact_email.push({ value: email });
+                }
+            }
+        }
+
         const payload = {
             ...data,
             contact_email: data.contact_email
                 .map((e) => e.value?.trim())
                 .filter(Boolean),
         };
+
+        // Validate at least one email exists
+        if (payload.contact_email.length === 0) {
+            setValue("contact_email", [], { shouldValidate: true });
+            return;
+        }
+
         console.log("HOTEL FORM SUBMITTED:", payload);
         closeModal();
     };
@@ -160,155 +227,97 @@ export function HotelModal({ showModal, closeModal }) {
                                 </div>
                             </div>
 
-                            {/* CONTACT EMAIL - First Email */}
+                            {/* CONTACT EMAIL */}
                             <div className="col-lg-6 col-sm-12">
                                 <div className="form-floating desig-inp" style={{ position: "relative" }}>
                                     <input
                                         type="email"
-                                        className={`form-control ${errors.contact_email?.[0]?.value ? "is-invalid" : ""
+                                        className={`form-control ${fields.length === 0 && errors.contact_email ? "is-invalid" : ""
                                             }`}
                                         placeholder="Contact Email"
                                         style={{ paddingRight: "35px" }}
-                                        {...register("contact_email.0.value", {
-                                            required: "Contact email is required",
-                                            pattern: {
-                                                value: /^[^\s@]+@[^\s@]+\.[^\s@]+$/,
-                                                message: "Enter a valid email address",
-                                            },
-                                        })}
+                                        value={currentEmailInput}
+                                        onChange={(e) => setCurrentEmailInput(e.target.value)}
+                                        onKeyPress={handleEmailInputKeyPress}
                                     />
                                     <label>
                                         Contact Email <span className="text-danger">*</span>
                                     </label>
-                                    {fields.length === 1 ? (
-                                        <button
-                                            type="button"
-                                            className="btn btn-link p-0"
-                                            style={{
-                                                position: "absolute",
-                                                right: "10px",
-                                                top: "50%",
-                                                transform: "translateY(-50%)",
-                                                zIndex: 10,
-                                                border: "none",
-                                                background: "none",
-                                                color: "#37ADB5",
-                                                cursor: "pointer",
-                                            }}
-                                            onClick={() => append({ value: "" })}
-                                        >
-                                            <FiPlus size={18} />
-                                        </button>
-                                    ) : (
-                                        <button
-                                            type="button"
-                                            className="btn btn-link p-0"
-                                            style={{
-                                                position: "absolute",
-                                                right: "10px",
-                                                top: "50%",
-                                                transform: "translateY(-50%)",
-                                                zIndex: 10,
-                                                border: "none",
-                                                background: "none",
-                                                color: "#dc3545",
-                                                cursor: "pointer",
-                                            }}
-                                            onClick={() => remove(0)}
-                                        >
-                                            <FiX size={18} />
-                                        </button>
-                                    )}
-                                    {errors.contact_email?.[0]?.value && (
-                                        <span className="error text-danger">
-                                            {errors.contact_email[0].value.message}
-                                        </span>
-                                    )}
+                                    <button
+                                        type="button"
+                                        className="btn btn-link p-0"
+                                        style={{
+                                            position: "absolute",
+                                            right: "10px",
+                                            top: "50%",
+                                            transform: "translateY(-50%)",
+                                            zIndex: 10,
+                                            border: "none",
+                                            background: "none",
+                                            color: "#37ADB5",
+                                            cursor: "pointer",
+                                        }}
+                                        onClick={handleAddEmail}
+                                    >
+                                        <FiPlus size={18} />
+                                    </button>
                                 </div>
+                                {fields.length === 0 && errors.contact_email && (
+                                    <span className="error text-danger">
+                                        {errors.contact_email.message || "At least one email is required"}
+                                    </span>
+                                )}
                             </div>
                         </div>
                     </div>
+                    <div className="mb-lg-3 mb-sm-0">
+                        <div className="permInputs row">
 
-                    {/* Additional Contact Emails */}
-                    {fields.length > 1 && (
-                        <div className="mb-lg-3 mb-sm-0">
-                            {fields.slice(1).map((field, index) => {
-                                const actualIndex = index + 1;
-                                const isLastField = actualIndex === fields.length - 1;
-                                return (
-                                    <div className="mb-2" key={field.id}>
-                                        <div className="permInputs row">
-                                            <div className="col-lg-6 col-sm-12">
-                                                <div className="form-floating desig-inp" style={{ position: "relative" }}>
-                                                    <input
-                                                        type="email"
-                                                        className={`form-control ${errors.contact_email?.[actualIndex]?.value ? "is-invalid" : ""
-                                                            }`}
-                                                        placeholder="Contact Email"
-                                                        style={{ paddingRight: "35px" }}
-                                                        {...register(`contact_email.${actualIndex}.value`, {
-                                                            required: "Contact email is required",
-                                                            pattern: {
-                                                                value: /^[^\s@]+@[^\s@]+\.[^\s@]+$/,
-                                                                message: "Enter a valid email address",
-                                                            },
-                                                        })}
-                                                    />
-                                                    <label>
-                                                        Contact Email <span className="text-danger">*</span>
-                                                    </label>
-                                                    {isLastField ? (
-                                                        <button
-                                                            type="button"
-                                                            className="btn btn-link p-0"
-                                                            style={{
-                                                                position: "absolute",
-                                                                right: "10px",
-                                                                top: "50%",
-                                                                transform: "translateY(-50%)",
-                                                                zIndex: 10,
-                                                                border: "none",
-                                                                background: "none",
-                                                                color: "#37ADB5",
-                                                                cursor: "pointer",
-                                                            }}
-                                                            onClick={() => append({ value: "" })}
-                                                        >
-                                                            <FiPlus size={18} />
-                                                        </button>
-                                                    ) : (
-                                                        <button
-                                                            type="button"
-                                                            className="btn btn-link p-0"
-                                                            style={{
-                                                                position: "absolute",
-                                                                right: "10px",
-                                                                top: "50%",
-                                                                transform: "translateY(-50%)",
-                                                                zIndex: 10,
-                                                                border: "none",
-                                                                background: "none",
-                                                                color: "#dc3545",
-                                                                cursor: "pointer",
-                                                            }}
-                                                            onClick={() => remove(actualIndex)}
-                                                        >
-                                                            <FiX size={18} />
-                                                        </button>
-                                                    )}
-                                                    {errors.contact_email?.[actualIndex]?.value && (
-                                                        <span className="error text-danger">
-                                                            {errors.contact_email[actualIndex].value.message}
-                                                        </span>
-                                                    )}
-                                                </div>
-                                            </div>
-                                        </div>
+                            {/* CONTACT EMAIL */}
+                            <div className="col-lg-6 col-sm-12">
+
+                                {/* Email Chips/Tags */}
+                                {fields.length > 0 && (
+                                    <div className="mt-2 d-flex gap-2" style={{ gap: "8px" }}>
+                                        {fields.map((field, index) => (
+                                            <span
+                                                key={field.id}
+                                                style={{
+                                                    display: "inline-flex",
+                                                    alignItems: "center",
+                                                    padding: "4px 12px",
+                                                    backgroundColor: "#e7f3ff",
+                                                    border: "1px solid #b3d9ff",
+                                                    borderRadius: "20px",
+                                                    fontSize: "13px",
+                                                    color: "#0066cc",
+                                                    gap: "6px",
+                                                }}
+                                            >
+                                                {field.value}
+                                                <button
+                                                    type="button"
+                                                    onClick={() => remove(index)}
+                                                    style={{
+                                                        border: "none",
+                                                        background: "none",
+                                                        color: "#0066cc",
+                                                        cursor: "pointer",
+                                                        padding: 0,
+                                                        marginLeft: "4px",
+                                                        display: "flex",
+                                                        alignItems: "center",
+                                                    }}
+                                                >
+                                                    <FiX size={14} />
+                                                </button>
+                                            </span>
+                                        ))}
                                     </div>
-                                );
-                            })}
+                                )}
+                            </div>
                         </div>
-                    )}
+                    </div>
 
                     {/* ===== Hotel Address (Full Row) ===== */}
                     <div className="mb-lg-3 mb-sm-0">
