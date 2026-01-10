@@ -14,7 +14,7 @@ function Index() {
 
   const onSubmit = (data) => {
     console.log("FORM DATA:", data);
-    navigate("/kanban-board");
+    navigate("/workspaces");
   };
 
   return (
