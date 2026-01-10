@@ -40,6 +40,8 @@ const SideNav = ({ activeMenu, setActiveMenu, onProfileClick, onSignOutClick }) 
       navigate('/team-leaderboard');
     } else if (menuId === 'Dashboard') {
       navigate('/kpi-dashboard');
+    } else if (menuId === 'Master Module') {
+      navigate('/dashboard');
     } else if (menuId === 'Back to Board') {
       navigate('/kanban-board');
     }
@@ -89,6 +91,13 @@ const SideNav = ({ activeMenu, setActiveMenu, onProfileClick, onSignOutClick }) 
     </svg>
   );
 
+  const MasterModuleIcon = () => (
+    <svg xmlns="http://www.w3.org/2000/svg" width="15" height="15" viewBox="0 0 15 15" fill="none">
+      <path d="M7.5 0L9.18301 5.18237H14.6329L10.225 8.38513L11.908 13.5675L7.5 10.3647L3.09202 13.5675L4.77505 8.38513L0.367076 5.18237H5.81699L7.5 0Z" fill="#0075FF" />
+      <path d="M7.5 2L6.18301 6.18237H2.13293L5.47497 8.63513L4.15802 12.8175L7.5 10.3647L10.842 12.8175L9.52505 8.63513L12.8671 6.18237H8.81699L7.5 2Z" fill="#0075FF" />
+    </svg>
+  );
+
   const BackToBoardIcon = () => (
     <svg xmlns="http://www.w3.org/2000/svg" width="15" height="15" viewBox="0 0 15 15" fill="none">
       <path d="M1.875 2.8125C1.875 2.26022 2.32272 1.8125 2.875 1.8125H5.625C6.17728 1.8125 6.625 2.26022 6.625 2.8125V12.1875C6.625 12.7398 6.17728 13.1875 5.625 13.1875H2.875C2.32272 13.1875 1.875 12.7398 1.875 12.1875V2.8125Z" fill="#0075FF" />
@@ -117,6 +126,7 @@ const SideNav = ({ activeMenu, setActiveMenu, onProfileClick, onSignOutClick }) 
 
   const accountItems = [
     { id: 'Profile', label: 'Profile', icon: ProfileIcon },
+    { id: 'Master Module', label: 'Master Module', icon: MasterModuleIcon },
     { id: 'Back to Board', label: 'Back to Board', icon: BackToBoardIcon },
     { id: 'Sign Out', label: 'Sign Out', icon: SignOutIcon },
   ];
