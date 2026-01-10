@@ -188,14 +188,8 @@ function CardItem({ card, index, setSelectedCard, isShrunk = false }) {
                           justifyContent: "center",
                           position: "relative",
                         }}
-                        data-tooltip-id={`transport-status-${card.id}`}
-                        data-tooltip-content={card.transport === "done" ? "DONE" : card.transport === "rejected" ? "PENDING" : card.transport === "inProgress" ? "IN PROGRESS" : "PENDING"}
                       >
-                        <StatusIcon
-                          status={card.transport || "pending"}
-                          IconComponent={CarIcon}
-                          size={18}
-                        />
+                        <CarIcon size={18} color="#666" />
                         <span style={{
                           position: "absolute",
                           top: "-6px",
@@ -216,7 +210,6 @@ function CardItem({ card, index, setSelectedCard, isShrunk = false }) {
                         }}>
                           {card.transportCount || 0}
                         </span>
-                        <Tooltip id={`transport-status-${card.id}`} place="top" offset={5} />
                       </div>
                     )}
 
@@ -229,14 +222,8 @@ function CardItem({ card, index, setSelectedCard, isShrunk = false }) {
                           justifyContent: "center",
                           position: "relative",
                         }}
-                        data-tooltip-id={`hotel-status-${card.id}`}
-                        data-tooltip-content={card.hotel === "done" ? "DONE" : card.hotel === "rejected" ? "PENDING" : card.hotel === "inProgress" ? "IN PROGRESS" : "PENDING"}
                       >
-                        <StatusIcon
-                          status={card.hotel || "pending"}
-                          IconComponent={HotelIcon}
-                          size={18}
-                        />
+                        <HotelIcon size={18} color="#666" />
                         <span style={{
                           position: "absolute",
                           top: "-6px",
@@ -257,7 +244,6 @@ function CardItem({ card, index, setSelectedCard, isShrunk = false }) {
                         }}>
                           {card.hotelCount || 0}
                         </span>
-                        <Tooltip id={`hotel-status-${card.id}`} place="top" offset={5} />
                       </div>
                     )}
 
@@ -270,14 +256,8 @@ function CardItem({ card, index, setSelectedCard, isShrunk = false }) {
                           justifyContent: "center",
                           position: "relative",
                         }}
-                        data-tooltip-id={`medical-status-${card.id}`}
-                        data-tooltip-content={card.medicalService === "done" ? "DONE" : card.medicalService === "rejected" ? "PENDING" : card.medicalService === "inProgress" ? "IN PROGRESS" : "PENDING"}
                       >
-                        <StatusIcon
-                          status={card.medicalService || "pending"}
-                          IconComponent={MedicalIcon}
-                          size={18}
-                        />
+                        <MedicalIcon size={18} color="#666" />
                         <span style={{
                           position: "absolute",
                           top: "-6px",
@@ -298,7 +278,6 @@ function CardItem({ card, index, setSelectedCard, isShrunk = false }) {
                         }}>
                           {card.medicalServiceCount || 0}
                         </span>
-                        <Tooltip id={`medical-status-${card.id}`} place="top" offset={5} />
                       </div>
                     )}
                   </div>
