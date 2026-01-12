@@ -9,6 +9,7 @@ function Layout() {
   const { pathname } = useLocation();
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const hideSidebar = pathname === '/edit-workflow';
+  const isKanbanBoard = pathname === '/kanban-board';
 
   const handleMenuToggle = (isOpen) => {
     setMobileMenuOpen(isOpen);
@@ -19,7 +20,7 @@ function Layout() {
   };
 
   return (
-    <div className="main-layout">
+    <div className={`main-layout ${isKanbanBoard ? 'kanban-board-layout' : ''}`}>
 
       {/* FULL-WIDTH HEADER */}
       <Header

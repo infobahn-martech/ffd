@@ -6,6 +6,24 @@
   flex-direction: column;
   width: 100%;
   height: 100vh;
+
+  /* Horizontal scroll for kanban board */
+  &.kanban-board-layout {
+    overflow-x: auto;
+    overflow-y: hidden;
+
+    .dashboard-wrp {
+      overflow-x: auto;
+      overflow-y: hidden;
+      min-width: fit-content;
+
+      .page-cont-wrp {
+        overflow-x: auto;
+        overflow-y: auto;
+        min-width: fit-content;
+      }
+    }
+  }
 }
 
 /* SIDEBAR + PAGE CONTENT */
