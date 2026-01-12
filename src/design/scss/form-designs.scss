@@ -228,7 +228,7 @@ input[type=number] {
 
 .phone-wrapper {
     position: relative;
-    margin-bottom: 28px
+    margin-bottom: 30px
 }
 
 .phone-label {
@@ -319,7 +319,7 @@ input[type=number] {
 
 .email-add-btn {
     color: #00368C;
-    
+
     &:hover {
         background: #e8f0fe;
         color: #00368C;
@@ -332,7 +332,7 @@ input[type=number] {
 
 .email-remove-btn {
     color: #dc3545;
-    
+
     &:hover {
         background: #fee;
         color: #dc3545;
@@ -345,6 +345,7 @@ input[type=number] {
 
 /* Remove browser validation icon from email inputs */
 .email-input-no-validation {
+
     &::-webkit-validation-bubble-icon,
     &::-webkit-validation-bubble-arrow,
     &::-webkit-validation-bubble-message {
