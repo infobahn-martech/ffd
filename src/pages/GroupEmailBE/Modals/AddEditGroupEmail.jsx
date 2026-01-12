@@ -1,4 +1,5 @@
 import { useForm, useFieldArray } from "react-hook-form";
+import { FiPlus, FiX } from "react-icons/fi";
 import CustomModal from "../../../components/CustomModal";
 import "../../../design/scss/prospect-modal.scss";
 import "../../../design/scss/modal-designs.scss";
@@ -110,22 +111,54 @@ export function GroupEmailBEModal({ showModal, closeModal }) {
 
                         {fields.map((field, index) => (
                             <div className="row align-items-center mb-2" key={field.id}>
-                                <div className="col-10">
-                                    <div className="form-floating desig-inp">
+                                <div className="col-12">
+                                    <div className="form-floating desig-inp position-relative">
                                         <input
-                                            className={`form-control ${errors.emails?.[index]?.value ? "is-invalid" : ""
+                                            type="email"
+                                            className={`form-control email-input-no-validation ${errors.emails?.[index]?.value ? "is-invalid" : ""
                                                 }`}
-                                            placeholder="email@company.com"
+                                            placeholder="email@example.com"
+                                            style={{ paddingRight: index === fields.length - 1 ? "80px" : "45px" }}
                                             {...register(`emails.${index}.value`, {
                                                 required: "Email is required",
                                                 pattern: {
-                                                    value:
-                                                        /^[^\s@]+@[^\s@]+\.[^\s@]+$/,
-                                                    message: "Invalid email format"
+                                                    value: /^[^\s@]+@[^\s@]+\.[^\s@]+$/,
+                                                    message: "Enter a valid email address"
                                                 }
                                             })}
                                         />
-                                        <label>Email</label>
+                                        <label>Email <span className="text-danger">*</span></label>
+                                        {index === fields.length - 1 ? (
+                                            <>
+                                                {fields.length > 1 && (
+                                                    <button
+                                                        type="button"
+                                                        className="email-action-btn email-remove-btn email-remove-btn-last"
+                                                        onClick={() => remove(index)}
+                                                        title="Remove Email"
+                                                    >
+                                                        <FiX size={18} />
+                                                    </button>
+                                                )}
+                                                <button
+                                                    type="button"
+                                                    className="email-action-btn email-add-btn"
+                                                    onClick={() => append({ value: "" })}
+                                                    title="Add Email"
+                                                >
+                                                    <FiPlus size={18} />
+                                                </button>
+                                            </>
+                                        ) : (
+                                            <button
+                                                type="button"
+                                                className="email-action-btn email-remove-btn"
+                                                onClick={() => remove(index)}
+                                                title="Remove Email"
+                                            >
+                                                <FiX size={18} />
+                                            </button>
+                                        )}
                                         {errors.emails?.[index]?.value && (
                                             <span className="error text-danger">
                                                 {errors.emails[index].value.message}
@@ -133,27 +166,8 @@ export function GroupEmailBEModal({ showModal, closeModal }) {
                                         )}
                                     </div>
                                 </div>
-                                <div className="col-2 d-flex justify-content-end">
-                                    {fields.length > 1 && (
-                                        <button
-                                            type="button"
-                                            className="btn btn-link text-danger p-0"
-                                            onClick={() => remove(index)}
-                                        >
-                                            Remove
-                                        </button>
-                                    )}
-                                </div>
                             </div>
                         ))}
-
-                        <button
-                            type="button"
-                            className="btn btn-link p-0 mt-1"
-                            onClick={() => append({ value: "" })}
-                        >
-                            + Add Email
-                        </button>
                     </div>
 
                     {/* ACTIVE FLAG */}
