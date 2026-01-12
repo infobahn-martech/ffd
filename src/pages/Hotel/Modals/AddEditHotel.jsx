@@ -118,7 +118,7 @@ export function HotelModal({ showModal, closeModal }) {
                     <div className="mb-lg-3 mb-sm-0">
                         <div className="permInputs row">
                             {/* CONTACT NO (PhoneInput) */}
-                            <div className="col-lg-6 col-sm-12">
+                            <div className="col-12">
                                 <div className="phone-wrapper">
                                     <label className="phone-label">
                                         Contact No <span className="text-danger">*</span>
@@ -161,10 +161,6 @@ export function HotelModal({ showModal, closeModal }) {
                     <div className="mb-lg-3 mb-sm-0">
                         <div className="permInputs row">
                             <div className="col-12">
-                                <div className="modal-section-title mb-2">
-                                    Contact Email <span className="text-danger">*</span>
-                                </div>
-                                
                                 {fields.map((field, index) => (
                                     <div className="row align-items-center mb-2" key={field.id}>
                                         <div className="col-10">
@@ -182,7 +178,7 @@ export function HotelModal({ showModal, closeModal }) {
                                                         },
                                                     })}
                                                 />
-                                                <label>Email</label>
+                                                <label>Email <span className="text-danger">*</span></label>
                                                 {errors.contact_emails?.[index]?.value && (
                                                     <span className="error text-danger">
                                                         {errors.contact_emails[index].value.message}
