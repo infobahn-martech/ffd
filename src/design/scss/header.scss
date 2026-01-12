@@ -52,9 +52,11 @@
           &:nth-child(1) {
             transform: rotate(45deg) translate(5px, 5px);
           }
+
           &:nth-child(2) {
             opacity: 0;
           }
+
           &:nth-child(3) {
             transform: rotate(-45deg) translate(7px, -6px);
           }
@@ -140,8 +142,7 @@
         }
 
         .back-link:hover .back-icon {
-          filter: brightness(0) saturate(100%) invert(23%) sepia(100%) 
-                  saturate(1200%) hue-rotate(200deg) brightness(95%) contrast(90%);
+          filter: brightness(0) saturate(100%) invert(23%) sepia(100%) saturate(1200%) hue-rotate(200deg) brightness(95%) contrast(90%);
         }
 
         &.active {
@@ -262,6 +263,7 @@
         opacity: 0;
         transform: translateY(-10px);
       }
+
       to {
         opacity: 1;
         transform: translateY(0);

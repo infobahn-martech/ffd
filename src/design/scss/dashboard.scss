@@ -12,15 +12,91 @@
     overflow-x: auto;
     overflow-y: hidden;
 
+    /* Custom scrollbar styling */
+    &::-webkit-scrollbar {
+      height: 20px;
+      /* Increased height for horizontal scrollbar */
+    }
+
+    &::-webkit-scrollbar-track {
+      background: #e0e0e0;
+      border-radius: 10px;
+    }
+
+    &::-webkit-scrollbar-thumb {
+      background: #4a90e2;
+      /* Blue color */
+      border-radius: 10px;
+      border: 2px solid #e0e0e0;
+    }
+
+    &::-webkit-scrollbar-thumb:hover {
+      background: #357abd;
+      /* Darker blue on hover */
+    }
+
+    /* Firefox scrollbar styling */
+    scrollbar-width: thick;
+    scrollbar-color: #4a90e2 #e0e0e0;
+
     .dashboard-wrp {
       overflow-x: auto;
       overflow-y: hidden;
       min-width: fit-content;
 
+      /* Custom scrollbar styling for dashboard-wrp */
+      &::-webkit-scrollbar {
+        height: 20px;
+      }
+
+      &::-webkit-scrollbar-track {
+        background: #e0e0e0;
+        border-radius: 10px;
+      }
+
+      &::-webkit-scrollbar-thumb {
+        background: #4a90e2;
+        border-radius: 10px;
+        border: 2px solid #e0e0e0;
+      }
+
+      &::-webkit-scrollbar-thumb:hover {
+        background: #357abd;
+      }
+
+      scrollbar-width: thick;
+      scrollbar-color: #4a90e2 #e0e0e0;
+
       .page-cont-wrp {
         overflow-x: auto;
         overflow-y: auto;
         min-width: fit-content;
+
+        /* Custom scrollbar styling for page-cont-wrp */
+        &::-webkit-scrollbar {
+          width: 20px;
+          /* Width for vertical scrollbar */
+          height: 20px;
+          /* Height for horizontal scrollbar */
+        }
+
+        &::-webkit-scrollbar-track {
+          background: #e0e0e0;
+          border-radius: 10px;
+        }
+
+        &::-webkit-scrollbar-thumb {
+          background: #4a90e2;
+          border-radius: 10px;
+          border: 2px solid #e0e0e0;
+        }
+
+        &::-webkit-scrollbar-thumb:hover {
+          background: #357abd;
+        }
+
+        scrollbar-width: thick;
+        scrollbar-color: #4a90e2 #e0e0e0;
       }
     }
   }
