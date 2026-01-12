@@ -9,13 +9,14 @@
 
   /* Horizontal scroll for kanban board */
   &.kanban-board-layout {
+    /* Enable horizontal scroll on main-layout itself */
     overflow-x: auto;
     overflow-y: hidden;
+    min-width: fit-content;
 
-    /* Custom scrollbar styling */
+    /* Custom scrollbar styling for main-layout */
     &::-webkit-scrollbar {
       height: 20px;
-      /* Increased height for horizontal scrollbar */
     }
 
     &::-webkit-scrollbar-track {
@@ -25,59 +26,53 @@
 
     &::-webkit-scrollbar-thumb {
       background: #4a90e2;
-      /* Blue color */
       border-radius: 10px;
       border: 2px solid #e0e0e0;
     }
 
     &::-webkit-scrollbar-thumb:hover {
       background: #357abd;
-      /* Darker blue on hover */
     }
 
     /* Firefox scrollbar styling */
     scrollbar-width: thick;
     scrollbar-color: #4a90e2 #e0e0e0;
 
+    /* Fix header position so it doesn't scroll with content */
+    .sedres-header {
+      position: fixed;
+      top: 0;
+      left: 0;
+      right: 0;
+      z-index: 100;
+      width: 100vw;
+    }
+
     .dashboard-wrp {
-      overflow-x: auto;
-      overflow-y: hidden;
+      overflow: hidden;
       min-width: fit-content;
+      flex: 1;
+      margin-top: 74px; // Account for fixed header height
 
-      /* Custom scrollbar styling for dashboard-wrp */
-      &::-webkit-scrollbar {
-        height: 20px;
+      @media (max-width: 991px) {
+        margin-top: 64px; // Mobile header height
       }
 
-      &::-webkit-scrollbar-track {
-        background: #e0e0e0;
-        border-radius: 10px;
+      @media (max-width: 767px) {
+        margin-top: 60px;
       }
 
-      &::-webkit-scrollbar-thumb {
-        background: #4a90e2;
-        border-radius: 10px;
-        border: 2px solid #e0e0e0;
+      @media (max-width: 479px) {
+        margin-top: 56px;
       }
-
-      &::-webkit-scrollbar-thumb:hover {
-        background: #357abd;
-      }
-
-      scrollbar-width: thick;
-      scrollbar-color: #4a90e2 #e0e0e0;
 
       .page-cont-wrp {
-        overflow-x: auto;
         overflow-y: auto;
         min-width: fit-content;
 
-        /* Custom scrollbar styling for page-cont-wrp */
+        /* Custom scrollbar styling for page-cont-wrp vertical scroll */
         &::-webkit-scrollbar {
           width: 20px;
-          /* Width for vertical scrollbar */
-          height: 20px;
-          /* Height for horizontal scrollbar */
         }
 
         &::-webkit-scrollbar-track {
