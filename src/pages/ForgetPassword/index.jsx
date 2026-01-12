@@ -1,8 +1,10 @@
 import React from "react";
 import { useForm } from "react-hook-form";
 import "../../design/scss/login.scss";
+import { Link, useNavigate } from "react-router-dom";
 
 function ForgetPassword() {
+  const navigate = useNavigate();
   const {
     register,
     handleSubmit,
@@ -84,9 +86,9 @@ function ForgetPassword() {
 
           {/* BACK TO LOGIN */}
           <div className="forgot-wrap">
-            <a href="/" className="link">
+            <Link onClick={() => navigate("/")} className="link">
               ← Back to Login
-            </a>
+            </Link>
           </div>
 
           <p className="copy">© Sedres 2025</p>
