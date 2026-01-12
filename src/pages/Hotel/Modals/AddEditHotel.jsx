@@ -1,7 +1,7 @@
 import { useForm, Controller, useFieldArray } from "react-hook-form";
 import PhoneInput from "react-phone-input-2";
 import "react-phone-input-2/lib/bootstrap.css";
-import { FiPlus } from "react-icons/fi";
+import { FiPlus, FiX } from "react-icons/fi";
 import CustomModal from "../../../components/CustomModal";
 import "../../../design/scss/prospect-modal.scss";
 import "../../../design/scss/modal-designs.scss";
@@ -38,7 +38,7 @@ export function HotelModal({ showModal, closeModal }) {
             },
     });
 
-    const { fields, append, insert } = useFieldArray({
+    const { fields, append, remove } = useFieldArray({
         control,
         name: "contact_emails"
     });
@@ -200,11 +200,11 @@ export function HotelModal({ showModal, closeModal }) {
                                             ) : (
                                                 <button
                                                     type="button"
-                                                    className="btn btn-link p-0"
-                                                    onClick={() => insert(index + 1, { value: "" })}
-                                                    title="Add Email"
+                                                    className="btn btn-link text-danger p-0"
+                                                    onClick={() => remove(index)}
+                                                    title="Remove Email"
                                                 >
-                                                    <FiPlus size={20} />
+                                                    <FiX size={20} />
                                                 </button>
                                             )}
                                         </div>
