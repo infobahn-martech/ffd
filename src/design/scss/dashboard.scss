@@ -9,34 +9,43 @@
 
   /* Horizontal scroll for kanban board */
   &.kanban-board-layout {
-    /* Enable horizontal scroll on main-layout itself */
+    /* Enable both horizontal and vertical scroll on main-layout */
     overflow-x: auto;
-    overflow-y: hidden;
-    min-width: fit-content;
+    overflow-y: auto;
+    // min-width: fit-content;
 
-    /* Custom scrollbar styling for main-layout */
+    /* Custom scrollbar styling for main-layout - Both scrollbars */
     &::-webkit-scrollbar {
-      height: 20px;
+      width: 30px;
+      /* Vertical scrollbar thickness */
+      height: 30px;
+      /* Horizontal scrollbar thickness */
+      display: block;
+      /* Always visible */
     }
 
     &::-webkit-scrollbar-track {
-      background: #e0e0e0;
-      border-radius: 10px;
+      background: linear-gradient(90deg, #d1ebee 0%, #b8d4d8 50%, #d1ebee 100%);
+      border-radius: 15px;
+      border: 2px solid #a0c4c8;
     }
 
     &::-webkit-scrollbar-thumb {
-      background: #4a90e2;
-      border-radius: 10px;
-      border: 2px solid #e0e0e0;
+      background: linear-gradient(90deg, #24666c 0%, #2A00FF 50%, #24666c 100%);
+      border-radius: 15px;
+      border: 3px solid #a0c4c8;
+      box-shadow: inset 0 0 6px rgba(0, 0, 0, 0.3);
     }
 
     &::-webkit-scrollbar-thumb:hover {
-      background: #357abd;
+      background: linear-gradient(90deg, #35475e 0%, #4a00ff 50%, #35475e 100%);
+      border: 3px solid #8fb3b7;
     }
 
     /* Firefox scrollbar styling */
-    scrollbar-width: thick;
-    scrollbar-color: #4a90e2 #e0e0e0;
+    scrollbar-width: auto;
+    /* Changed from thick to auto for better visibility */
+    scrollbar-color: #24666c #d1ebee;
 
     /* Fix header position so it doesn't scroll with content */
     .sedres-header {
@@ -68,30 +77,42 @@
 
       .page-cont-wrp {
         overflow-y: auto;
+        overflow-x: auto;
+        /* Enable horizontal scroll as well */
         min-width: fit-content;
 
-        /* Custom scrollbar styling for page-cont-wrp vertical scroll */
+        /* Custom scrollbar styling for page-cont-wrp - Vertical scrollbar */
         &::-webkit-scrollbar {
-          width: 20px;
+          width: 30px;
+          /* Increased thickness */
+          height: 30px;
+          /* For horizontal scrollbar */
+          display: block;
+          /* Always visible */
         }
 
         &::-webkit-scrollbar-track {
-          background: #e0e0e0;
-          border-radius: 10px;
+          background: linear-gradient(180deg, #d1ebee 0%, #b8d4d8 50%, #d1ebee 100%);
+          border-radius: 15px;
+          border: 2px solid #a0c4c8;
         }
 
         &::-webkit-scrollbar-thumb {
-          background: #4a90e2;
-          border-radius: 10px;
-          border: 2px solid #e0e0e0;
+          background: linear-gradient(180deg, #24666c 0%, #2A00FF 50%, #24666c 100%);
+          border-radius: 15px;
+          border: 3px solid #a0c4c8;
+          box-shadow: inset 0 0 6px rgba(0, 0, 0, 0.3);
         }
 
         &::-webkit-scrollbar-thumb:hover {
-          background: #357abd;
+          background: linear-gradient(180deg, #35475e 0%, #4a00ff 50%, #35475e 100%);
+          border: 3px solid #8fb3b7;
         }
 
-        scrollbar-width: thick;
-        scrollbar-color: #4a90e2 #e0e0e0;
+        /* Firefox scrollbar styling */
+        scrollbar-width: auto;
+        /* Changed from thick to auto for better visibility */
+        scrollbar-color: #24666c #d1ebee;
       }
     }
   }
