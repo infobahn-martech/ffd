@@ -171,7 +171,7 @@ export function HotelModal({ showModal, closeModal }) {
                                                     className={`form-control email-input-no-validation ${errors.contact_emails?.[index]?.value ? "is-invalid" : ""
                                                         }`}
                                                     placeholder="email@example.com"
-                                                    style={{ paddingRight: "45px" }}
+                                                    style={{ paddingRight: index === fields.length - 1 ? "80px" : "45px" }}
                                                     {...register(`contact_emails.${index}.value`, {
                                                         required: "Email is required",
                                                         pattern: {
@@ -182,14 +182,26 @@ export function HotelModal({ showModal, closeModal }) {
                                                 />
                                                 <label>Email <span className="text-danger">*</span></label>
                                                 {index === fields.length - 1 ? (
-                                                    <button
-                                                        type="button"
-                                                        className="email-action-btn email-add-btn"
-                                                        onClick={() => append({ value: "" })}
-                                                        title="Add Email"
-                                                    >
-                                                        <FiPlus size={18} />
-                                                    </button>
+                                                    <>
+                                                        {fields.length > 1 && (
+                                                            <button
+                                                                type="button"
+                                                                className="email-action-btn email-remove-btn email-remove-btn-last"
+                                                                onClick={() => remove(index)}
+                                                                title="Remove Email"
+                                                            >
+                                                                <FiX size={18} />
+                                                            </button>
+                                                        )}
+                                                        <button
+                                                            type="button"
+                                                            className="email-action-btn email-add-btn"
+                                                            onClick={() => append({ value: "" })}
+                                                            title="Add Email"
+                                                        >
+                                                            <FiPlus size={18} />
+                                                        </button>
+                                                    </>
                                                 ) : (
                                                     <button
                                                         type="button"
