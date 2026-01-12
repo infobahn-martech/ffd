@@ -284,3 +284,96 @@ input[type=number] {
 .avatar-image:hover {
     opacity: 0.9;
 }
+
+/* Email action buttons */
+.email-action-btn {
+    position: absolute;
+    right: 8px;
+    top: 50%;
+    transform: translateY(-50%);
+    width: 32px;
+    height: 32px;
+    border-radius: 50%;
+    border: none;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    padding: 0;
+    transition: all 0.2s ease-in-out;
+    z-index: 5;
+    background: transparent;
+
+    &:hover {
+        transform: translateY(-50%) scale(1.1);
+    }
+
+    &:active {
+        transform: translateY(-50%) scale(0.95);
+    }
+
+    svg {
+        transition: all 0.2s ease-in-out;
+    }
+}
+
+.email-add-btn {
+    color: #00368C;
+    
+    &:hover {
+        background: #e8f0fe;
+        color: #00368C;
+    }
+
+    svg {
+        stroke-width: 2.5;
+    }
+}
+
+.email-remove-btn {
+    color: #dc3545;
+    
+    &:hover {
+        background: #fee;
+        color: #dc3545;
+    }
+
+    svg {
+        stroke-width: 2.5;
+    }
+}
+
+/* Remove browser validation icon from email inputs */
+.email-input-no-validation {
+    &::-webkit-validation-bubble-icon,
+    &::-webkit-validation-bubble-arrow,
+    &::-webkit-validation-bubble-message {
+        display: none !important;
+    }
+
+    &::-webkit-inner-spin-button,
+    &::-webkit-outer-spin-button {
+        display: none !important;
+    }
+
+    /* Remove validation icons for all browsers */
+    &::-ms-clear,
+    &::-ms-reveal {
+        display: none !important;
+    }
+
+    /* Remove checkmark/X icons */
+    &:valid {
+        background-image: none !important;
+    }
+
+    &:invalid {
+        background-image: none !important;
+        box-shadow: none !important;
+    }
+
+    /* For Firefox */
+    &:-moz-ui-invalid {
+        box-shadow: none !important;
+    }
+}

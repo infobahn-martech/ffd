@@ -164,13 +164,14 @@ export function HotelModal({ showModal, closeModal }) {
                             <div className="col-12">
                                 {fields.map((field, index) => (
                                     <div className="row align-items-center mb-2" key={field.id}>
-                                        <div className="col-10">
-                                            <div className="form-floating desig-inp">
+                                        <div className="col-12">
+                                            <div className="form-floating desig-inp position-relative">
                                                 <input
                                                     type="email"
-                                                    className={`form-control ${errors.contact_emails?.[index]?.value ? "is-invalid" : ""
+                                                    className={`form-control email-input-no-validation ${errors.contact_emails?.[index]?.value ? "is-invalid" : ""
                                                         }`}
                                                     placeholder="email@example.com"
+                                                    style={{ paddingRight: "45px" }}
                                                     {...register(`contact_emails.${index}.value`, {
                                                         required: "Email is required",
                                                         pattern: {
@@ -180,33 +181,31 @@ export function HotelModal({ showModal, closeModal }) {
                                                     })}
                                                 />
                                                 <label>Email <span className="text-danger">*</span></label>
+                                                {index === fields.length - 1 ? (
+                                                    <button
+                                                        type="button"
+                                                        className="email-action-btn email-add-btn"
+                                                        onClick={() => append({ value: "" })}
+                                                        title="Add Email"
+                                                    >
+                                                        <FiPlus size={18} />
+                                                    </button>
+                                                ) : (
+                                                    <button
+                                                        type="button"
+                                                        className="email-action-btn email-remove-btn"
+                                                        onClick={() => remove(index)}
+                                                        title="Remove Email"
+                                                    >
+                                                        <FiX size={18} />
+                                                    </button>
+                                                )}
                                                 {errors.contact_emails?.[index]?.value && (
                                                     <span className="error text-danger">
                                                         {errors.contact_emails[index].value.message}
                                                     </span>
                                                 )}
                                             </div>
-                                        </div>
-                                        <div className="col-2 d-flex justify-content-end align-items-center">
-                                            {index === fields.length - 1 ? (
-                                                <button
-                                                    type="button"
-                                                    className="btn btn-link p-0"
-                                                    onClick={() => append({ value: "" })}
-                                                    title="Add Email"
-                                                >
-                                                    <FiPlus size={20} />
-                                                </button>
-                                            ) : (
-                                                <button
-                                                    type="button"
-                                                    className="btn btn-link text-danger p-0"
-                                                    onClick={() => remove(index)}
-                                                    title="Remove Email"
-                                                >
-                                                    <FiX size={20} />
-                                                </button>
-                                            )}
                                         </div>
                                     </div>
                                 ))}
