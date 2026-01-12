@@ -1,6 +1,7 @@
 import { useForm, Controller, useFieldArray } from "react-hook-form";
 import PhoneInput from "react-phone-input-2";
 import "react-phone-input-2/lib/bootstrap.css";
+import { FiPlus } from "react-icons/fi";
 import CustomModal from "../../../components/CustomModal";
 import "../../../design/scss/prospect-modal.scss";
 import "../../../design/scss/modal-designs.scss";
@@ -37,7 +38,7 @@ export function HotelModal({ showModal, closeModal }) {
             },
     });
 
-    const { fields, append, remove } = useFieldArray({
+    const { fields, append, insert } = useFieldArray({
         control,
         name: "contact_emails"
     });
@@ -186,27 +187,29 @@ export function HotelModal({ showModal, closeModal }) {
                                                 )}
                                             </div>
                                         </div>
-                                        <div className="col-2 d-flex justify-content-end">
-                                            {fields.length > 1 && (
+                                        <div className="col-2 d-flex justify-content-end align-items-center">
+                                            {index === fields.length - 1 ? (
                                                 <button
                                                     type="button"
-                                                    className="btn btn-link text-danger p-0"
-                                                    onClick={() => remove(index)}
+                                                    className="btn btn-link p-0"
+                                                    onClick={() => append({ value: "" })}
+                                                    title="Add Email"
                                                 >
-                                                    Remove
+                                                    <FiPlus size={20} />
+                                                </button>
+                                            ) : (
+                                                <button
+                                                    type="button"
+                                                    className="btn btn-link p-0"
+                                                    onClick={() => insert(index + 1, { value: "" })}
+                                                    title="Add Email"
+                                                >
+                                                    <FiPlus size={20} />
                                                 </button>
                                             )}
                                         </div>
                                     </div>
                                 ))}
-
-                                <button
-                                    type="button"
-                                    className="btn btn-link p-0 mt-1"
-                                    onClick={() => append({ value: "" })}
-                                >
-                                    + Add Email
-                                </button>
                             </div>
                         </div>
                     </div>
