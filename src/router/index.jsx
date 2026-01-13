@@ -48,13 +48,14 @@ import Location from "../pages/Location";
 import ServiceProviders from "../pages/ServiceProviders";
 import TransportParties from "../pages/TransportParties";
 import WasteTypes from "../pages/WasteTypes";
+import NotFound from "../pages/NotFound";
 // 🔥 Set true to bypass auth temporarily
 const TEST_MODE = true;
 
 const router = createHashRouter([
   {
     element: <App />,
-    errorElement: <h1>401 Unauthorized</h1>,
+    errorElement: <NotFound />,
 
     children: [
       // Always available public pages
