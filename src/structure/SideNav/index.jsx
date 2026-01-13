@@ -20,6 +20,16 @@ import portIcon from '../../assets/images/icon-prospect.svg';
 import workerIcon from '../../assets/images/icon-workers.svg';
 import settingsIcon from '../../assets/images/icon-settings.svg';
 
+// New menu-specific icons
+import crewIcon from '../../assets/images/icon-crew.svg';
+import inspectionIcon from '../../assets/images/icon-inspection.svg';
+import hotelIcon from '../../assets/images/icon-hotel.svg';
+import wasteIcon from '../../assets/images/icon-waste.svg';
+import materialIcon from '../../assets/images/icon-material.svg';
+import billingIcon from '../../assets/images/icon-billing.svg';
+import usersIcon from '../../assets/images/icon-users.svg';
+import configIcon from '../../assets/images/icon-config.svg';
+
 import useWindowSize from '../../hooks/useWindowSize';
 
 // 🆕 Kanban sidebar icons + tooltip
@@ -87,7 +97,7 @@ function SideNav({ isMobileMenuOpen, onCloseMobileMenu }) {
       menu: 'Dashboard',
       isDefaultMenu: true,
       to: '/dashboard',
-      icon: dashboardIcon,
+      icon: dashboardIcon, // 2x2 grid icon
       hasPermission: true,
     },
 
@@ -102,27 +112,27 @@ function SideNav({ isMobileMenuOpen, onCloseMobileMenu }) {
         { menu: 'Barge Types', to: '/barge-types', hasPermission: true },
         { menu: 'Vessels', to: '/vessel-onboarding', hasPermission: true },
       ],
-      icon: workerIcon,
+      icon: workerIcon, // Two stylized human figures
     },
     {
       menu: 'Port Management',
       isDefaultMenu: true,
       to: '/port-management',
-      icon: portIcon,
+      icon: portIcon, // Single human figure with document/badge
       hasPermission: true,
     },
     {
       menu: 'Crew Management',
       isDefaultMenu: true,
       to: '/crew-management',
-      icon: portIcon,
+      icon: crewIcon, // Crew-specific icon
       hasPermission: true,
     },
     {
       menu: 'Custom Inspection',
       isDefaultMenu: true,
       to: '/custom-inspection',
-      icon: portIcon,
+      icon: inspectionIcon, // Inspection-specific icon
       hasPermission: true,
     },
     {
@@ -135,12 +145,12 @@ function SideNav({ isMobileMenuOpen, onCloseMobileMenu }) {
         { menu: 'Fleet', to: '/fleet', hasPermission: true },
         { menu: 'Location', to: '/location', hasPermission: true },
       ],
-      icon: workerIcon,
+      icon: workerIcon, // Two stylized human figures
     },
     {
       menu: 'Transport Management',
       isDefaultMenu: true,
-      icon: settingsIcon,
+      icon: settingsIcon, // Gear/cogwheel icon
       hasPermission: true,
       isOpen: false,
       subMenus: [
@@ -153,7 +163,7 @@ function SideNav({ isMobileMenuOpen, onCloseMobileMenu }) {
       menu: 'Hotel Management',
       isDefaultMenu: true,
       to: '/hotel-management',
-      icon: portIcon,
+      icon: hotelIcon, // Hotel-specific icon
       hasPermission: true,
     },
     {
@@ -165,7 +175,7 @@ function SideNav({ isMobileMenuOpen, onCloseMobileMenu }) {
         { menu: 'Service Providers', to: '/service-providers', hasPermission: true },
         { menu: 'Transport Parties', to: '/transport-parties', hasPermission: true },
       ],
-      icon: workerIcon,
+      icon: workerIcon, // Two stylized human figures
     },
     {
       menu: 'Waste Management',
@@ -173,14 +183,14 @@ function SideNav({ isMobileMenuOpen, onCloseMobileMenu }) {
       hasPermission: true,
       isOpen: false,
       subMenus: [{ menu: 'Waste Types', to: '/waste-types', hasPermission: true }],
-      icon: settingsIcon,
+      icon: wasteIcon, // Waste-specific icon
     },
 
     // ✅ Materials & Logistics
     {
       menu: 'Material Management',
       isDefaultMenu: true,
-      icon: settingsIcon,
+      icon: materialIcon, // Material-specific icon
       hasPermission: true,
       isOpen: false,
       subMenus: [
@@ -203,7 +213,7 @@ function SideNav({ isMobileMenuOpen, onCloseMobileMenu }) {
         { menu: 'Customer Pricing', to: '/customer-pricing', hasPermission: true },
         { menu: 'Billing Instruction', to: '/billing-instruction', hasPermission: true },
       ],
-      icon: workerIcon,
+      icon: billingIcon, // Billing-specific icon
     },
 
     // ✅ Admin + Configuration
@@ -217,7 +227,7 @@ function SideNav({ isMobileMenuOpen, onCloseMobileMenu }) {
         { menu: 'Permissions', to: '/permissions', hasPermission: true },
         { menu: 'Users', to: '/users', hasPermission: true },
       ],
-      icon: workerIcon,
+      icon: usersIcon, // User management-specific icon
     },
     {
       menu: 'Operations Configuration',
@@ -230,7 +240,7 @@ function SideNav({ isMobileMenuOpen, onCloseMobileMenu }) {
         { menu: 'Checklist', to: '/check-list', hasPermission: true },
         { menu: 'Custom Fields', to: '/custom-fields', hasPermission: true },
       ],
-      icon: workerIcon,
+      icon: configIcon, // Configuration-specific icon
     },
 
     // ✅ Settings (last)

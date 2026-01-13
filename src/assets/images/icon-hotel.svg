@@ -1,0 +1,12 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="17.5" height="17.5" viewBox="0 0 17.5 17.5">
+  <g id="Group_5" data-name="Group 5" transform="translate(-41.25 -167.25)">
+    <path id="Vector" d="M0,0H17.5V17.5H0Z" transform="translate(41.25 167.25)" fill="none"/>
+    <path id="Vector-2" data-name="Vector" d="M0,0V17.5" transform="translate(41.25 167.25)" fill="none" stroke="#225fbd" stroke-linecap="round" stroke-width="1.5"/>
+    <path id="Vector-3" data-name="Vector" d="M0,0V17.5" transform="translate(58.75 167.25)" fill="none" stroke="#225fbd" stroke-linecap="round" stroke-width="1.5"/>
+    <path id="Vector-4" data-name="Vector" d="M0,0H17.5" transform="translate(41.25 175)" fill="none" stroke="#225fbd" stroke-linecap="round" stroke-width="1.5"/>
+    <path id="Vector-5" data-name="Vector" d="M0,0H17.5" transform="translate(41.25 182.5)" fill="none" stroke="#225fbd" stroke-linecap="round" stroke-width="1.5"/>
+    <path id="Vector-6" data-name="Vector" d="M0,0H8.75" transform="translate(41.25 170)" fill="none" stroke="#225fbd" stroke-linecap="round" stroke-width="1.5"/>
+    <path id="Vector-7" data-name="Vector" d="M0,0H8.75" transform="translate(41.25 177.5)" fill="none" stroke="#225fbd" stroke-linecap="round" stroke-width="1.5"/>
+    <circle cx="1.5" cy="1.5" r="1.5" transform="translate(47.25 171.25)" fill="#225fbd"/>
+  </g>
+</svg>
