@@ -55,14 +55,6 @@ const GroupEmailBE = () => {
             contentClass: "table-content",
         },
         {
-            name: "Group Code",
-            selector: "code",
-            sort: true,
-            width: "220",
-            thclass: "tb-head",
-            contentClass: "table-content",
-        },
-        {
             name: "Email Count",
             selector: "emails",
             sort: false,

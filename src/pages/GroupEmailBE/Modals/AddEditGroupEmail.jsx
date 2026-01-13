@@ -61,7 +61,7 @@ export function GroupEmailBEModal({ showModal, closeModal }) {
                     {/* GROUP NAME + GROUP CODE */}
                     <div className="row">
                         {/* GROUP NAME */}
-                        <div className="col-lg-6 mb-lg-3 mb-sm-0">
+                        <div className="mb-lg-3 mb-sm-0 mt-2">
                             <div className="form-floating desig-inp">
                                 <input
                                     className={`form-control ${errors.groupEmailName ? "is-invalid" : ""
@@ -81,34 +81,10 @@ export function GroupEmailBEModal({ showModal, closeModal }) {
                                 )}
                             </div>
                         </div>
-
-                        {/* GROUP CODE */}
-                        <div className="col-lg-6 mb-lg-3 mb-sm-0">
-                            <div className="form-floating desig-inp">
-                                <input
-                                    className={`form-control ${errors.groupEmailCode ? "is-invalid" : ""
-                                        }`}
-                                    placeholder="Group Code"
-                                    {...register("groupEmailCode", {
-                                        required: "Group code is required"
-                                    })}
-                                />
-                                <label>
-                                    Group Code <span className="text-danger">*</span>
-                                </label>
-                                {errors.groupEmailCode && (
-                                    <span className="error text-danger">
-                                        {errors.groupEmailCode.message}
-                                    </span>
-                                )}
-                            </div>
-                        </div>
                     </div>
 
                     {/* EMAIL LIST */}
                     <div className="mt-3">
-                        <div className="modal-section-title mb-2">Emails</div>
-
                         {fields.map((field, index) => (
                             <div className="row align-items-center mb-2" key={field.id}>
                                 <div className="col-12">
