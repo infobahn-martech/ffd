@@ -15,7 +15,9 @@ const Tasks = () => {
       remainingTime: '1h 15m',
       remainingMinutes: 75,
       status: 'In Progress',
-      points: 4520,
+      totalPoints: 4520,
+      earnedPoints: 3390,
+      balancePoints: 1130,
     },
     {
       id: 2,
@@ -27,7 +29,9 @@ const Tasks = () => {
       remainingTime: '0h 00m',
       remainingMinutes: 0,
       status: 'Completed',
-      points: 3200,
+      totalPoints: 3200,
+      earnedPoints: 3200,
+      balancePoints: 0,
     },
     {
       id: 3,
@@ -39,7 +43,9 @@ const Tasks = () => {
       remainingTime: '1h 15m',
       remainingMinutes: 75,
       status: 'In Progress',
-      points: 7850,
+      totalPoints: 7850,
+      earnedPoints: 5888,
+      balancePoints: 1962,
     },
     {
       id: 4,
@@ -51,7 +57,9 @@ const Tasks = () => {
       remainingTime: '2h 10m',
       remainingMinutes: 130,
       status: 'Pending',
-      points: 2150,
+      totalPoints: 2150,
+      earnedPoints: 0,
+      balancePoints: 2150,
     },
     {
       id: 5,
@@ -63,7 +71,9 @@ const Tasks = () => {
       remainingTime: '0h 00m',
       remainingMinutes: 0,
       status: 'Completed',
-      points: 1890,
+      totalPoints: 1890,
+      earnedPoints: 1890,
+      balancePoints: 0,
     },
     {
       id: 6,
@@ -75,7 +85,9 @@ const Tasks = () => {
       remainingTime: '1h 30m',
       remainingMinutes: 90,
       status: 'Pending',
-      points: 950,
+      totalPoints: 950,
+      earnedPoints: 0,
+      balancePoints: 950,
     },
     {
       id: 7,
@@ -87,7 +99,9 @@ const Tasks = () => {
       remainingTime: '2h 00m',
       remainingMinutes: 120,
       status: 'In Progress',
-      points: 6230,
+      totalPoints: 6230,
+      earnedPoints: 3738,
+      balancePoints: 2492,
     },
     {
       id: 8,
@@ -99,7 +113,9 @@ const Tasks = () => {
       remainingTime: '0h 00m',
       remainingMinutes: 0,
       status: 'Completed',
-      points: 3450,
+      totalPoints: 3450,
+      earnedPoints: 3450,
+      balancePoints: 0,
     },
   ]);
 
@@ -195,8 +211,7 @@ const Tasks = () => {
 
   // Format points with commas
   const formatPoints = (points) => {
-    const formattedNumber = (points || 0).toLocaleString('en-US');
-    return `${formattedNumber} Points`;
+    return (points || 0).toLocaleString('en-US');
   };
 
   return (
@@ -301,11 +316,29 @@ const Tasks = () => {
               </th>
               <th
                 className="tasks-table__header tasks-table__header--sortable"
-                onClick={() => handleSort('points')}
+                onClick={() => handleSort('totalPoints')}
               >
                 <div className="tasks-table__header-content">
-                  Points
-                  {getSortIcon('points')}
+                  Total Points
+                  {getSortIcon('totalPoints')}
+                </div>
+              </th>
+              <th
+                className="tasks-table__header tasks-table__header--sortable"
+                onClick={() => handleSort('earnedPoints')}
+              >
+                <div className="tasks-table__header-content">
+                  Earned Points
+                  {getSortIcon('earnedPoints')}
+                </div>
+              </th>
+              <th
+                className="tasks-table__header tasks-table__header--sortable"
+                onClick={() => handleSort('balancePoints')}
+              >
+                <div className="tasks-table__header-content">
+                  Balance Points
+                  {getSortIcon('balancePoints')}
                 </div>
               </th>
             </tr>
@@ -313,7 +346,7 @@ const Tasks = () => {
           <tbody>
             {filteredAndSortedTasks.length === 0 ? (
               <tr>
-                <td colSpan="6" className="tasks-table__empty">
+                <td colSpan="8" className="tasks-table__empty">
                   No tasks found
                 </td>
               </tr>
@@ -331,7 +364,9 @@ const Tasks = () => {
                       {task.status}
                     </span>
                   </td>
-                  <td className="tasks-table__cell">{formatPoints(task.points)}</td>
+                  <td className="tasks-table__cell">{formatPoints(task.totalPoints)}</td>
+                  <td className="tasks-table__cell">{formatPoints(task.earnedPoints)}</td>
+                  <td className="tasks-table__cell">{formatPoints(task.balancePoints)}</td>
                 </tr>
               ))
             )}
