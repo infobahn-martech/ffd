@@ -392,6 +392,34 @@
   }
 }
 
+.workflow-info-tooltip {
+  max-width: 200px !important;
+  font-size: 12px !important;
+  line-height: 1.5 !important;
+  padding: 8px 12px !important;
+  text-align: left !important;
+  word-wrap: break-word !important;
+  z-index: 9999 !important;
+
+  div {
+    margin-bottom: 4px;
+
+    &:last-child {
+      margin-bottom: 0;
+    }
+  }
+}
+
+// Ensure tooltip appears above all workflow elements
+[data-tooltip-id^="workflow-info-"] {
+  z-index: 9999 !important;
+}
+
+// Target the actual tooltip element rendered by react-tooltip
+div[role="tooltip"][id^="workflow-info-"] {
+  z-index: 9999 !important;
+}
+
 .workflow-header-right {
   display: flex;
   gap: 16px;
@@ -467,6 +495,7 @@
   position: relative;
   padding-bottom: 16px;
   border-radius: 8px;
+  z-index: 1;
 }
 
 .workflow-column-header {
@@ -480,6 +509,8 @@
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
+  position: relative;
+  z-index: 1;
 }
 
 .workflow-stages-container {

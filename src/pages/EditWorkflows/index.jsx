@@ -291,7 +291,17 @@ function EditWorkflows() {
                                             />
                                         </svg>
                                     </button>
-                                    <Tooltip id={`workflow-info-${workflow.id}`} place="bottom" content={`Workflow: ${workflow.name}. This workflow contains ${workflow.swimlanes.length} swimlane(s) with multiple stages for organizing your work.`} />
+                                    <Tooltip
+                                        id={`workflow-info-${workflow.id}`}
+                                        place="bottom"
+                                        className="workflow-info-tooltip"
+                                        positionStrategy="fixed"
+                                    >
+                                        <div>
+                                            <div>Workflow: {workflow.name}</div>
+                                            <div>This workflow contains {workflow.swimlanes.length} swimlane(s) with multiple stages for organizing your work.</div>
+                                        </div>
+                                    </Tooltip>
                                     <button
                                         className="workflow-info-btn"
                                         type="button"
