@@ -1,7 +1,7 @@
 import Gateway from '../gateway/gateway';
 
 const doLoginValidate = (email, password) =>
-  Gateway.post('auth/signin', { email, password });
+  Gateway.post('users/login', { email, password });
 
 const googleLoginValidate = (idToken, tokenType) =>
   Gateway.post('auth/google-signin', {

@@ -16,16 +16,23 @@ const useAuthReducer = create((set) => ({
   profileEditLoader: null,
   login: async ({ email, password }) => {
     try {
-      set({ isLoginLoading: true });
+      set({ isLoginLoading: true, errorMessage: '' });
       const { data } = await authService.doLoginValidate(email, password);
-      const authData = data.data.userData;
-      setItem('accessToken', data.data.token.accessToken);
-      setItem('refreshToken', data.data.token.refreshToken);
-      set({ authData, isLoggedIn: true, isLoginLoading: false });
+      const authData = data.data?.userData || data.data?.user || data.data;
+      const accessToken = data.data?.token?.accessToken || data.data?.accessToken || data.token?.accessToken || data.accessToken;
+      const refreshToken = data.data?.token?.refreshToken || data.data?.refreshToken || data.token?.refreshToken || data.refreshToken;
+      
+      if (accessToken) {
+        setItem('accessToken', accessToken);
+      }
+      if (refreshToken) {
+        setItem('refreshToken', refreshToken);
+      }
+      set({ authData, isLoggedIn: true, isLoginLoading: false, errorMessage: '' });
     } catch (err) {
       // const { error } = useAlertReducer.getState();
       set({
-        errorMessage: err?.response?.data?.message ?? err?.message,
+        errorMessage: err?.response?.data?.message || err?.response?.data?.error || err?.message || 'Login failed. Please try again.',
         isLoginLoading: false,
       });
       // error(err?.response?.data?.message ?? err.message);

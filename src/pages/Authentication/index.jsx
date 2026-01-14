@@ -1,8 +1,9 @@
-import React from "react";
+import React, { useEffect } from "react";
 import { useForm } from "react-hook-form";
 import { useNavigate } from "react-router-dom";
 import "../../design/scss/login.scss";
 import SedresLogo from "../../assets/images/SedresLogo.png";
+import useAuthReducer from "../../store/AuthReducer";
 
 function Index() {
   const navigate = useNavigate();
@@ -11,10 +12,16 @@ function Index() {
     handleSubmit,
     formState: { errors },
   } = useForm();
+  const { login, isLoginLoading, errorMessage, isLoggedIn } = useAuthReducer();
 
-  const onSubmit = (data) => {
-    console.log("FORM DATA:", data);
-    navigate("/workspaces");
+  useEffect(() => {
+    if (isLoggedIn) {
+      navigate("/workspaces");
+    }
+  }, [isLoggedIn, navigate]);
+
+  const onSubmit = async (data) => {
+    await login({ email: data.email, password: data.password });
   };
 
   return (
@@ -60,13 +67,13 @@ function Index() {
                     type="text"
                     placeholder="Enter your email"
                     className="txt"
-                  // {...register("email", {
-                  //   required: "Email is required",
-                  //   pattern: {
-                  //     value: /^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/i,
-                  //     message: "Enter a valid email",
-                  //   },
-                  // })}
+                    {...register("email", {
+                      required: "Email is required",
+                      pattern: {
+                        value: /^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/i,
+                        message: "Enter a valid email",
+                      },
+                    })}
                   />
 
                   {errors.email && (
@@ -83,13 +90,13 @@ function Index() {
                     type="password"
                     placeholder="************************"
                     className="txt"
-                  // {...register("password", {
-                  //   required: "Password is required",
-                  //   minLength: {
-                  //     value: 6,
-                  //     message: "Password must be at least 6 characters",
-                  //   },
-                  // })}
+                    {...register("password", {
+                      required: "Password is required",
+                      minLength: {
+                        value: 6,
+                        message: "Password must be at least 6 characters",
+                      },
+                    })}
                   />
 
                   {errors.password && (
@@ -116,10 +123,17 @@ function Index() {
                 </label>
               </div>
 
+              {/* ERROR MESSAGE */}
+              {errorMessage && (
+                <div className="error" style={{ marginBottom: "16px", color: "#ff0000" }}>
+                  {errorMessage}
+                </div>
+              )}
+
               {/* BUTTON */}
               <div className="btn-wrap">
-                <button className="btn-red" type="submit">
-                  Login
+                <button className="btn-red" type="submit" disabled={isLoginLoading}>
+                  {isLoginLoading ? "Logging in..." : "Login"}
                 </button>
               </div>
             </form>
