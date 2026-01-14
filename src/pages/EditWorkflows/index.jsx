@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import { Tooltip } from 'react-tooltip';
 import '../../design/scss/EditWorkflows.scss';
 import CreateWorkflowModal from './CreateWorkflowModal';
 
@@ -11,6 +12,8 @@ function EditWorkflows() {
     const [hoveredColumn, setHoveredColumn] = useState(null); // Format: 'workflowId-swimlaneId-stageId'
     const [nextStageId, setNextStageId] = useState(100); // Starting ID for new stages
     const [placeholderCounts, setPlaceholderCounts] = useState({}); // Format: { 'workflowId-swimlaneId': count }
+    const [editingWorkflowId, setEditingWorkflowId] = useState(null); // Track which workflow is being edited
+    const [editingWorkflowName, setEditingWorkflowName] = useState(''); // Temporary name while editing
 
     const [workflows, setWorkflows] = useState([
         {
@@ -210,6 +213,42 @@ function EditWorkflows() {
         }));
     };
 
+    // Handle starting workflow name edit
+    const handleStartEditWorkflow = (workflowId, currentName) => {
+        setEditingWorkflowId(workflowId);
+        setEditingWorkflowName(currentName);
+    };
+
+    // Handle saving workflow name
+    const handleSaveWorkflowName = (workflowId) => {
+        if (editingWorkflowName.trim()) {
+            setWorkflows(prevWorkflows =>
+                prevWorkflows.map(workflow =>
+                    workflow.id === workflowId
+                        ? { ...workflow, name: editingWorkflowName.trim() }
+                        : workflow
+                )
+            );
+        }
+        setEditingWorkflowId(null);
+        setEditingWorkflowName('');
+    };
+
+    // Handle canceling workflow name edit
+    const handleCancelEditWorkflow = () => {
+        setEditingWorkflowId(null);
+        setEditingWorkflowName('');
+    };
+
+    // Handle key press in workflow name input
+    const handleWorkflowNameKeyPress = (e, workflowId) => {
+        if (e.key === 'Enter') {
+            handleSaveWorkflowName(workflowId);
+        } else if (e.key === 'Escape') {
+            handleCancelEditWorkflow();
+        }
+    };
+
     return (
         <div className="edit-workflows-container">
             <div className="edit-workflows-layout">
@@ -224,8 +263,24 @@ function EditWorkflows() {
                                             <path d="M7 5L10 2L13 5M13 15L10 18L7 15" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
                                         </svg>
                                     </button>
-                                    <h3 className="workflow-title">{workflow.name}</h3>
-                                    <button className="workflow-edit-btn" type="button">
+                                    {editingWorkflowId === workflow.id ? (
+                                        <input
+                                            type="text"
+                                            className="workflow-title-input"
+                                            value={editingWorkflowName}
+                                            onChange={(e) => setEditingWorkflowName(e.target.value)}
+                                            onBlur={() => handleSaveWorkflowName(workflow.id)}
+                                            onKeyDown={(e) => handleWorkflowNameKeyPress(e, workflow.id)}
+                                            autoFocus
+                                        />
+                                    ) : (
+                                        <h3 className="workflow-title">{workflow.name}</h3>
+                                    )}
+                                    <button
+                                        className="workflow-edit-btn"
+                                        type="button"
+                                        onClick={() => handleStartEditWorkflow(workflow.id, workflow.name)}
+                                    >
                                         <svg width="18" height="18" viewBox="0 0 18 18" fill="none" xmlns="http://www.w3.org/2000/svg">
                                             <path
                                                 d="M12.75 2.25C12.9468 2.05322 13.1794 1.89585 13.4349 1.78609C13.6904 1.67633 13.9642 1.61621 14.2417 1.60879C14.5192 1.60137 14.7958 1.64677 15.0571 1.74253C15.3184 1.83829 15.5596 1.98259 15.7685 2.16831C15.9774 2.35403 16.1501 2.57764 16.2784 2.82806C16.4067 3.07848 16.4882 3.35112 16.5188 3.63191C16.5494 3.9127 16.5285 4.19687 16.4573 4.46985C16.3861 4.74283 16.2659 5.00005 16.1025 5.22831L15.0825 6.75L11.25 2.9175L12.7717 1.8975C13 1.73412 13.2572 1.61393 13.5302 1.54272C13.8032 1.47152 14.0874 1.45062 14.3682 1.48122C14.649 1.51182 14.9216 1.59334 15.172 1.72162C15.4225 1.8499 15.6461 2.02264 15.8318 2.23153C16.0175 2.44042 16.1618 2.68164 16.2576 2.94294C16.3534 3.20424 16.3988 3.48079 16.3913 3.75831C16.3839 4.03583 16.3238 4.30964 16.214 4.56512C16.1043 4.8206 15.9469 5.05322 15.75 5.25L6.375 14.625L2.25 15.75L3.375 11.625L12.75 2.25Z"
@@ -236,7 +291,12 @@ function EditWorkflows() {
                                             />
                                         </svg>
                                     </button>
-                                    <button className="workflow-info-btn" type="button">
+                                    <Tooltip id={`workflow-info-${workflow.id}`} place="bottom" content={`Workflow: ${workflow.name}. This workflow contains ${workflow.swimlanes.length} swimlane(s) with multiple stages for organizing your work.`} />
+                                    <button
+                                        className="workflow-info-btn"
+                                        type="button"
+                                        data-tooltip-id={`workflow-info-${workflow.id}`}
+                                    >
                                         <svg width="18" height="18" viewBox="0 0 18 18" fill="none" xmlns="http://www.w3.org/2000/svg">
                                             <circle cx="9" cy="9" r="8" stroke="currentColor" strokeWidth="1.5" fill="none" />
                                             <path d="M9 6V9M9 12H9.01" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" />

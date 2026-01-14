@@ -349,6 +349,23 @@
   margin: 0;
 }
 
+.workflow-title-input {
+  font: normal normal 600 18px/1.4 $font-primary;
+  color: $txtColor;
+  background: #ffffff;
+  border: 2px solid #3b82f6;
+  border-radius: 6px;
+  padding: 4px 12px;
+  outline: none;
+  min-width: 200px;
+  transition: all 0.2s ease;
+
+  &:focus {
+    border-color: #2563eb;
+    box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
+  }
+}
+
 .workflow-edit-btn,
 .workflow-info-btn {
   width: 28px;
