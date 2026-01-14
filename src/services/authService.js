@@ -1,20 +1,15 @@
-import Gateway from '../gateway/gateway';
+import Gateway from "../gateway/gateway";
 
 const doLoginValidate = (email, password) =>
-  Gateway.post('users/login', { email, password });
+  Gateway.post("users/login", { email, password });
 
 const googleLoginValidate = (idToken, tokenType) =>
-  Gateway.post('auth/google-signin', {
-    idToken,
-    tokenType,
-  });
+  Gateway.post("auth/google-signin", { idToken, tokenType });
 
-const getUserProfile = () => Gateway.get('user/profile');
+const getUserProfile = () => Gateway.get("user/profile");
 
-const editUserProfile = (value) =>
-  Gateway.patch('user/profile', value, {
-    headers: { 'Content-Type': 'Multipart/formdata' },
-  });
+// IMPORTANT: For FormData, do NOT manually set content-type
+const editUserProfile = (formData) => Gateway.patch("user/profile", formData);
 
 export default {
   doLoginValidate,

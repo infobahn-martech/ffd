@@ -16,26 +16,39 @@ const useAuthReducer = create((set) => ({
   profileEditLoader: null,
   login: async ({ email, password }) => {
     try {
-      set({ isLoginLoading: true, errorMessage: '' });
+      set({ isLoginLoading: true, errorMessage: "" });
+
       const { data } = await authService.doLoginValidate(email, password);
-      const authData = data.data?.userData || data.data?.user || data.data;
-      const accessToken = data.data?.token?.accessToken || data.data?.accessToken || data.token?.accessToken || data.accessToken;
-      const refreshToken = data.data?.token?.refreshToken || data.data?.refreshToken || data.token?.refreshToken || data.refreshToken;
-      
-      if (accessToken) {
-        setItem('accessToken', accessToken);
-      }
-      if (refreshToken) {
-        setItem('refreshToken', refreshToken);
-      }
-      set({ authData, isLoggedIn: true, isLoginLoading: false, errorMessage: '' });
-    } catch (err) {
-      // const { error } = useAlertReducer.getState();
+
+      // ✅ token location based on your response
+      const accessToken = data?.token;
+
+      // ✅ user data from response
+      const authData = {
+        userid: data?.userid,
+        name: data?.name,
+        email: data?.email,
+        status: data?.status,
+        message: data?.message,
+      };
+
+      if (accessToken) setItem("accessToken", accessToken);
+
       set({
-        errorMessage: err?.response?.data?.message || err?.response?.data?.error || err?.message || 'Login failed. Please try again.',
+        authData,
+        isLoggedIn: true,
+        isLoginLoading: false,
+        errorMessage: "",
+      });
+    } catch (err) {
+      set({
+        errorMessage:
+          err?.response?.data?.message ||
+          err?.response?.data?.error ||
+          err?.message ||
+          "Login failed. Please try again.",
         isLoginLoading: false,
       });
-      // error(err?.response?.data?.message ?? err.message);
     }
   },
   googleLogin: async ({ token, tokenType }) => {
