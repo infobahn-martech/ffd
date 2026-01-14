@@ -38,6 +38,7 @@ const KPIDashboard = () => {
     const [showProfileModal, setShowProfileModal] = useState(false);
     const [showSignOutModal, setShowSignOutModal] = useState(false);
     const [isLoggingOut, setIsLoggingOut] = useState(false);
+    const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
 
     useEffect(() => {
         // Sync activeMenu with URL (hash router uses pathname)
@@ -121,6 +122,12 @@ const KPIDashboard = () => {
 
     return (
         <div className="kpi-dashboard">
+            {isMobileMenuOpen && (
+                <div
+                    className="kpi-dashboard__overlay"
+                    onClick={() => setIsMobileMenuOpen(false)}
+                />
+            )}
             <div
                 className="kpi-dashboard__background"
                 style={{ backgroundImage: `url(${KIPBackground})` }}
@@ -130,9 +137,15 @@ const KPIDashboard = () => {
                     setActiveMenu={setActiveMenu}
                     onProfileClick={() => setShowProfileModal(true)}
                     onSignOutClick={() => setShowSignOutModal(true)}
+                    isMobileMenuOpen={isMobileMenuOpen}
+                    onMobileMenuClose={() => setIsMobileMenuOpen(false)}
                 />
                 <div className="kpi-dashboard__content">
-                    <HeaderBar title={getPageTitle()} breadcrumbs={getBreadcrumbs()} />
+                    <HeaderBar
+                        title={getPageTitle()}
+                        breadcrumbs={getBreadcrumbs()}
+                        onMobileMenuToggle={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
+                    />
                     <div className="kpi-dashboard__scrollable-content">
                         {renderContent()}
                     </div>

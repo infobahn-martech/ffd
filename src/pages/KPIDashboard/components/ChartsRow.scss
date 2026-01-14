@@ -34,3 +34,32 @@
   }
 }
 
+@media (max-width: 1024px) {
+  .kpi-charts-row {
+    padding: 0 24px;
+    gap: 16px;
+  }
+}
+
+@media (max-width: 768px) {
+  .kpi-charts-row {
+    padding: 0 16px;
+    margin-bottom: 16px;
+    gap: 16px;
+
+    &--bottom {
+      .kpi-our-team,
+      .kpi-earning-transactions {
+        max-height: 300px;
+      }
+    }
+  }
+}
+
+@media (max-width: 480px) {
+  .kpi-charts-row {
+    padding: 0 12px;
+    gap: 12px;
+  }
+}
+

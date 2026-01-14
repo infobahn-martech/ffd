@@ -5,7 +5,7 @@ import KIPLogo from '../../../assets/images/KIP_LOGO.png';
 import NeedHelpBG from '../../../assets/images/NeedHelpBG.png';
 import './SideNav.scss';
 
-const SideNav = ({ activeMenu, setActiveMenu, onProfileClick, onSignOutClick }) => {
+const SideNav = ({ activeMenu, setActiveMenu, onProfileClick, onSignOutClick, isMobileMenuOpen, onMobileMenuClose }) => {
   const navigate = useNavigate();
   const [localActiveMenu, setLocalActiveMenu] = useState(activeMenu || 'Dashboard');
 
@@ -44,6 +44,11 @@ const SideNav = ({ activeMenu, setActiveMenu, onProfileClick, onSignOutClick }) 
       navigate('/dashboard');
     } else if (menuId === 'Back to Board') {
       navigate('/kanban-board');
+    }
+
+    // Close mobile menu after navigation
+    if (onMobileMenuClose && window.innerWidth <= 1024) {
+      onMobileMenuClose();
     }
   };
 
@@ -133,7 +138,7 @@ const SideNav = ({ activeMenu, setActiveMenu, onProfileClick, onSignOutClick }) 
 
   return (
     <div
-      className="kpi-sidenav"
+      className={`kpi-sidenav ${isMobileMenuOpen ? 'kpi-sidenav--mobile-open' : ''}`}
       style={{ backgroundImage: `url(${KIPSideNavBg})` }}
     >
       <div className="kpi-sidenav__content">

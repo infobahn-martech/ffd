@@ -15,7 +15,13 @@ const ChevronIcon = () => (
   </svg>
 );
 
-const HeaderBar = ({ breadcrumbs = null, title = 'KPI Dashboard' }) => {
+const HamburgerIcon = () => (
+  <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none">
+    <path d="M3 12H21M3 6H21M3 18H21" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+  </svg>
+);
+
+const HeaderBar = ({ breadcrumbs = null, title = 'KPI Dashboard', onMobileMenuToggle }) => {
   const navigate = useNavigate();
   const pointsLeft = 200;
   const currentLevel = 3;
@@ -53,6 +59,15 @@ const HeaderBar = ({ breadcrumbs = null, title = 'KPI Dashboard' }) => {
 
   return (
     <div className="kpi-header-bar">
+      {onMobileMenuToggle && (
+        <button 
+          className="kpi-header-bar__mobile-menu-toggle"
+          onClick={onMobileMenuToggle}
+          aria-label="Toggle menu"
+        >
+          <HamburgerIcon />
+        </button>
+      )}
       {displayContent}
       <div className="kpi-header-bar__left">
         <div className="kpi-header-bar__progress-section">

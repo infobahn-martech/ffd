@@ -96,9 +96,61 @@
   }
 }
 
+@media (max-width: 1024px) {
+  .kpi-counter-cards {
+    grid-template-columns: repeat(2, 1fr);
+    padding: 0 24px;
+  }
+}
+
 @media (max-width: 768px) {
   .kpi-counter-cards {
     grid-template-columns: 1fr;
     padding: 0 16px;
+    gap: 16px;
+  }
+
+  .kpi-counter-card {
+    padding: 16px;
+
+    &__icon {
+      width: 40px;
+      height: 40px;
+      padding: 10px;
+    }
+
+    &__value {
+      font-size: 20px;
+    }
+
+    &__title {
+      font-size: 11px;
+    }
+
+    &__change {
+      font-size: 11px;
+    }
+  }
+}
+
+@media (max-width: 480px) {
+  .kpi-counter-cards {
+    padding: 0 12px;
+    gap: 12px;
+  }
+
+  .kpi-counter-card {
+    padding: 12px;
+    gap: 12px;
+
+    &__icon {
+      width: 36px;
+      height: 36px;
+      padding: 8px;
+    }
+
+    &__value {
+      font-size: 18px;
+    }
   }
 }

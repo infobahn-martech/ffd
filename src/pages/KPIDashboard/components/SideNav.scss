@@ -11,6 +11,16 @@
   z-index: 10;
   overflow-y: auto;
   overflow-x: hidden;
+  transition: transform 0.3s ease;
+
+  @media (max-width: 1024px) {
+    transform: translateX(-100%);
+    z-index: 11;
+
+    &--mobile-open {
+      transform: translateX(0);
+    }
+  }
 
   &__content {
     padding: 24px 20px;
@@ -202,6 +212,55 @@
       &:hover {
         opacity: 0.9;
         transform: translateY(-1px);
+      }
+    }
+  }
+}
+
+// Responsive styles
+@media (max-width: 768px) {
+  .kpi-sidenav {
+    width: 260px;
+
+    &__content {
+      padding: 20px 16px;
+    }
+
+    &__logo {
+      margin-bottom: 24px;
+
+      &-image {
+        width: 180px;
+        height: 44px;
+      }
+    }
+
+    &__menu-item {
+      padding: 10px 12px;
+      min-height: 40px;
+    }
+
+    &__menu-text {
+      font-size: 13px;
+    }
+
+    &__help {
+      &-card {
+        padding: 16px;
+        min-height: 140px;
+      }
+
+      &-title {
+        font-size: 14px;
+      }
+
+      &-text {
+        font-size: 11px;
+      }
+
+      &-button {
+        padding: 8px 12px;
+        font-size: 11px;
       }
     }
   }
