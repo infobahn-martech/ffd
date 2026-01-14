@@ -1,12 +1,14 @@
-import React, { useEffect } from "react";
+import React, { useEffect, useState } from "react";
 import { useForm } from "react-hook-form";
 import { useNavigate } from "react-router-dom";
+import { FiEye, FiEyeOff } from "react-icons/fi";
 import "../../design/scss/login.scss";
 import SedresLogo from "../../assets/images/SedresLogo.png";
 import useAuthReducer from "../../store/AuthReducer";
 
 function Index() {
   const navigate = useNavigate();
+  const [showPassword, setShowPassword] = useState(false);
   const {
     register,
     handleSubmit,
@@ -85,9 +87,9 @@ function Index() {
               {/* PASSWORD */}
               <div className="input-outer-wrap">
                 <label className="label">Password</label>
-                <div className="input-wrap">
+                <div className="input-wrap password-input-wrap">
                   <input
-                    type="password"
+                    type={showPassword ? "text" : "password"}
                     placeholder="************************"
                     className="txt"
                     {...register("password", {
@@ -98,6 +100,14 @@ function Index() {
                       },
                     })}
                   />
+                  <button
+                    type="button"
+                    className="password-toggle"
+                    onClick={() => setShowPassword(!showPassword)}
+                    aria-label={showPassword ? "Hide password" : "Show password"}
+                  >
+                    {showPassword ? <FiEyeOff /> : <FiEye />}
+                  </button>
 
                   {errors.password && (
                     <div className="error">{errors.password.message}</div>
