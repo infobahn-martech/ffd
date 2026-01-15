@@ -24,6 +24,8 @@ function CommonHeader({
   setSearch,
   filterOptions,
   filterValue,
+  onApplyFilter,
+  onClearFilter,
   pageFrom,
   isAddEnabled = true,
   bredcrumpTitle,
@@ -188,8 +190,14 @@ function CommonHeader({
         </div>
       </div>
     </div>
-            {filterCollapse && (
-             <CommonFilter/>
+            {filterCollapse && filterOptions && (
+             <CommonFilter
+               filters={filterOptions}
+               filterValues={filterValue || {}}
+               onFilterChange={onFilterChange}
+               onApplyFilter={onApplyFilter || onFilterChange}
+               onClearFilter={onClearFilter || onFilterChange}
+             />
             )}
     </>
 

@@ -1,70 +1,102 @@
+import PropTypes from 'prop-types';
 import closeIcon from '../assets/images/icon-close.svg';
-import { ROLE_OPTIONS } from '../constants/roles';
-import { PORT_OPTIONS } from '../constants/ports';
 
-function CommonFilter() {
+function CommonFilter({ 
+  filters = [], 
+  filterValues = {}, 
+  onFilterChange, 
+  onApplyFilter, 
+  onClearFilter 
+}) {
+  const handleFilterChange = (key, value) => {
+    if (onFilterChange) {
+      onFilterChange(key, value);
+    }
+  };
+
+  const handleApply = () => {
+    if (onApplyFilter) {
+      onApplyFilter();
+    }
+  };
+
+  const handleClear = () => {
+    if (onClearFilter) {
+      onClearFilter();
+    }
+  };
+
+  if (!filters || filters.length === 0) {
+    return null;
+  }
+
   return (
     <div className="collapse show" id="filtersInputs" style={{}}>
       <div className="filters-inputs-wrp">
         <div className="row w-100">
-
-          {/* Port */}
-          <div className="col-xl col-lg-6 col-sm-12 my-1">
-            <div className="form-floating">
-              <select className="form-select" id="floatingPort">
-                <option value="">Select Port</option>
-                {PORT_OPTIONS.map((port) => (
-                  <option key={port} value={port}>
-                    {port}
-                  </option>
-                ))}
-              </select>
-              <label htmlFor="floatingPort">Port</label>
+          {filters.map((filter) => (
+            <div key={filter.key} className="col-xl col-lg-6 col-sm-12 my-1">
+              <div className="form-floating">
+                <select
+                  className="form-select"
+                  id={`floating${filter.key}`}
+                  value={filterValues[filter.key] || ''}
+                  onChange={(e) => handleFilterChange(filter.key, e.target.value)}
+                >
+                  <option value="">{filter.placeholder || `Select ${filter.label}`}</option>
+                  {filter.options?.map((option) => {
+                    const value = typeof option === 'object' ? option.value : option;
+                    const label = typeof option === 'object' ? option.label : option;
+                    return (
+                      <option key={value} value={value}>
+                        {label}
+                      </option>
+                    );
+                  })}
+                </select>
+                <label htmlFor={`floating${filter.key}`}>{filter.label}</label>
+              </div>
             </div>
-          </div>
-
-          {/* Role */}
-          <div className="col-xl col-lg-6 col-sm-12 my-1">
-            <div className="form-floating">
-              <select className="form-select" id="floatingRole">
-                <option value="">Select Role</option>
-                {ROLE_OPTIONS.map((role) => (
-                  <option key={role} value={role}>
-                    {role}
-                  </option>
-                ))}
-              </select>
-              <label htmlFor="floatingRole">Role</label>
-            </div>
-          </div>
-
-          {/* Status */}
-          <div className="col-xl col-lg-6 col-sm-12 my-1">
-            <div className="form-floating">
-              <select className="form-select" id="floatingStatus">
-                <option value="">Select Status</option>
-                <option value="active">Active</option>
-                <option value="inactive">Inactive</option>
-                <option value="pending">Pending</option>
-              </select>
-              <label htmlFor="floatingStatus">Status</label>
-            </div>
-          </div>
+          ))}
 
           {/* Buttons */}
           <div className="col-xl-auto col-lg-6 col-sm-12 my-1">
             <div className="inp-wrp">
-              <button className="btn btn-primary">Apply Filter</button>
-              <button className="btn btn-outline-danger">
+              <button 
+                type="button"
+                className="btn btn-primary" 
+                onClick={handleApply}
+              >
+                Apply Filter
+              </button>
+              <button 
+                type="button"
+                className="btn btn-outline-danger"
+                onClick={handleClear}
+              >
                 <img src={closeIcon} alt="close" />
               </button>
             </div>
           </div>
-
         </div>
       </div>
     </div>
   );
 }
+
+CommonFilter.propTypes = {
+  filters: PropTypes.arrayOf(
+    PropTypes.shape({
+      key: PropTypes.string.isRequired,
+      label: PropTypes.string.isRequired,
+      placeholder: PropTypes.string,
+      options: PropTypes.array.isRequired,
+    })
+  ),
+  filterValues: PropTypes.object,
+  onFilterChange: PropTypes.func,
+  onApplyFilter: PropTypes.func,
+  onClearFilter: PropTypes.func,
+};
 
 export default CommonFilter;
