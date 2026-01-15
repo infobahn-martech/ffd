@@ -330,6 +330,8 @@
     z-index: 1000;
     overflow: visible;
     animation: fadeInDown 0.2s ease;
+    display: flex;
+    flex-direction: column;
 
     .settings-dropdown-item {
       width: 100%;
@@ -361,7 +363,7 @@
 
       &.settings-dropdown-item-with-submenu {
         &::after {
-          content: '▶';
+          content: '▼';
           position: absolute;
           right: 12px;
           top: 50%;
@@ -370,37 +372,53 @@
           color: #666;
           transition: transform 0.2s ease;
         }
+
+        // Rotate arrow when submenu is open (handled via class)
+        &.submenu-open {
+          background: #f8f9fc;
+          
+          &::after {
+            transform: translateY(-50%) rotate(180deg);
+            color: #00368c;
+          }
+        }
       }
     }
   }
 
   .settings-submenu {
-    position: absolute;
-    left: 100%;
-    top: 0;
-    background: #ffffff;
-    border-radius: 8px;
-    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
-    min-width: 160px;
+    position: relative;
+    width: 100%;
+    background: #f8f9fc;
+    border-radius: 0;
+    box-shadow: none;
+    min-width: 100%;
     z-index: 1002;
-    margin-left: 4px;
-    animation: fadeInRight 0.2s ease;
+    margin: 0;
+    margin-top: -4px;
+    margin-bottom: 4px;
+    animation: fadeInDownAccordion 0.3s ease;
     white-space: nowrap;
+    border-top: 1px solid #e0e0e0;
+    overflow: hidden;
+    max-height: 500px;
 
-    @keyframes fadeInRight {
+    @keyframes fadeInDownAccordion {
       from {
         opacity: 0;
-        transform: translateX(-10px);
+        max-height: 0;
+        transform: translateY(-10px);
       }
       to {
         opacity: 1;
-        transform: translateX(0);
+        max-height: 500px;
+        transform: translateY(0);
       }
     }
 
     .settings-submenu-item {
       width: 100%;
-      padding: 12px 16px;
+      padding: 12px 16px 12px 32px;
       border: none;
       background: transparent;
       text-align: left;
@@ -409,19 +427,28 @@
       color: #333;
       cursor: pointer;
       transition: all 0.2s ease;
-      border-bottom: 1px solid #f0f0f0;
+      border-bottom: 1px solid #e0e0e0;
+      position: relative;
 
       &:last-child {
         border-bottom: none;
       }
 
       &:hover {
-        background: #f8f9fc;
+        background: #e8eef5;
         color: #00368c;
       }
 
       &:active {
-        background: #e8eef5;
+        background: #d0d9e6;
+      }
+
+      &::before {
+        content: '•';
+        position: absolute;
+        left: 16px;
+        color: #00368c;
+        font-size: 18px;
       }
     }
   }

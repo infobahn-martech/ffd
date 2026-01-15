@@ -405,46 +405,46 @@ function Header({ onMenuToggle, mobileMenuOpen: externalMobileMenuOpen }) {
           {showSettingsDropdown && (
             <div className="settings-dropdown">
               <div 
-                className="settings-dropdown-item settings-dropdown-item-with-submenu"
+                className={`settings-dropdown-item settings-dropdown-item-with-submenu ${showBoardTeamsSubmenu ? 'submenu-open' : ''}`}
                 onClick={handleBoardTeamsClick}
               >
                 Board teams
-                {showBoardTeamsSubmenu && (
-                  <div className="settings-submenu">
-                    <div className="settings-submenu-item" onClick={handleManagersClick}>
-                      Managers
-                    </div>
-                    <div className="settings-submenu-item" onClick={handleDashboardsClick}>
-                      Dashboards
-                    </div>
-                  </div>
-                )}
               </div>
+              {showBoardTeamsSubmenu && (
+                <div className="settings-submenu">
+                  <div className="settings-submenu-item" onClick={handleManagersClick}>
+                    Managers
+                  </div>
+                  <div className="settings-submenu-item" onClick={handleDashboardsClick}>
+                    Dashboards
+                  </div>
+                </div>
+              )}
               <div className="settings-dropdown-item" onClick={handleBusinessRulesClick}>
                 Business rules
               </div>
               <div 
-                className="settings-dropdown-item settings-dropdown-item-with-submenu"
+                className={`settings-dropdown-item settings-dropdown-item-with-submenu ${showCardManagementSubmenu ? 'submenu-open' : ''}`}
                 onClick={handleCardManagementClick}
               >
                 Card management
-                {showCardManagementSubmenu && (
-                  <div className="settings-submenu">
-                    <div className="settings-submenu-item" onClick={handleBlockersClick}>
-                      Blockers
-                    </div>
-                    <div className="settings-submenu-item" onClick={handleStickersClick}>
-                      Stickers
-                    </div>
-                    <div className="settings-submenu-item" onClick={handleTagsClick}>
-                      Tags
-                    </div>
-                    <div className="settings-submenu-item" onClick={handleTypesClick}>
-                      Types
-                    </div>
-                  </div>
-                )}
               </div>
+              {showCardManagementSubmenu && (
+                <div className="settings-submenu">
+                  <div className="settings-submenu-item" onClick={handleBlockersClick}>
+                    Blockers
+                  </div>
+                  <div className="settings-submenu-item" onClick={handleStickersClick}>
+                    Stickers
+                  </div>
+                  <div className="settings-submenu-item" onClick={handleTagsClick}>
+                    Tags
+                  </div>
+                  <div className="settings-submenu-item" onClick={handleTypesClick}>
+                    Types
+                  </div>
+                </div>
+              )}
             </div>
           )}
         </div>
