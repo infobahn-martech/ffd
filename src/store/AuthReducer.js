@@ -40,7 +40,10 @@ const useAuthReducer = create((set) => ({
         isLoginLoading: false,
         errorMessage: "",
       });
+      const { success } = useAlertReducer.getState();
+      success(data && data.message);
     } catch (err) {
+      const { error } = useAlertReducer.getState();
       set({
         errorMessage:
           err?.response?.data?.message ||
@@ -49,6 +52,12 @@ const useAuthReducer = create((set) => ({
           "Login failed. Please try again.",
         isLoginLoading: false,
       });
+      error(
+        err?.response?.data?.message ||
+        err?.response?.data?.error ||
+        err?.message ||
+        "Login failed. Please try again."
+      );
     }
   },
   googleLogin: async ({ token, tokenType }) => {
