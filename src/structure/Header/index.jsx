@@ -19,6 +19,13 @@ import ChangePasswordModal from './ChangePasswordModal';
 import LogoutConfirmationModal from '../../components/LogoutConfirmationModal';
 import NotificationsModal from './NotificationsModal';
 import DocumentsModal from './DocumentsModal';
+import BusinessRulesModal from '../SideNav/components/BusinessRulesModal';
+import ManagersModal from '../SideNav/components/ManagersModal';
+import DashboardsModal from '../SideNav/components/DashboardsModal';
+import BlockersModal from '../SideNav/components/BlockersModal';
+import StickersModal from '../SideNav/components/StickersModal';
+import TagsModal from '../SideNav/components/TagsModal';
+import TypesModal from '../SideNav/components/TypesModal';
 
 function Header({ onMenuToggle, mobileMenuOpen: externalMobileMenuOpen }) {
   const { pathname } = useLocation();
@@ -31,9 +38,20 @@ function Header({ onMenuToggle, mobileMenuOpen: externalMobileMenuOpen }) {
   const [showLogoutModal, setShowLogoutModal] = useState(false);
   const [showNotificationsModal, setShowNotificationsModal] = useState(false);
   const [showDocumentsModal, setShowDocumentsModal] = useState(false);
+  const [showSettingsDropdown, setShowSettingsDropdown] = useState(false);
+  const [showBoardTeamsSubmenu, setShowBoardTeamsSubmenu] = useState(false);
+  const [showCardManagementSubmenu, setShowCardManagementSubmenu] = useState(false);
+  const [showBusinessRulesModal, setShowBusinessRulesModal] = useState(false);
+  const [showManagersModal, setShowManagersModal] = useState(false);
+  const [showDashboardsModal, setShowDashboardsModal] = useState(false);
+  const [showBlockersModal, setShowBlockersModal] = useState(false);
+  const [showStickersModal, setShowStickersModal] = useState(false);
+  const [showTagsModal, setShowTagsModal] = useState(false);
+  const [showTypesModal, setShowTypesModal] = useState(false);
   const [imageError, setImageError] = useState(false);
   const [notificationCount, setNotificationCount] = useState(3); // Default count, can be updated with real data
   const dropdownRef = useRef(null);
+  const settingsDropdownRef = useRef(null);
   const isMobile = width <= 991;
   const doLogout = useAuthReducer((state) => state.doLogout);
   const profileData = useAuthReducer((state) => state.profileData);
@@ -79,16 +97,21 @@ function Header({ onMenuToggle, mobileMenuOpen: externalMobileMenuOpen }) {
       if (dropdownRef.current && !dropdownRef.current.contains(event.target)) {
         setShowUserDropdown(false);
       }
+      if (settingsDropdownRef.current && !settingsDropdownRef.current.contains(event.target)) {
+        setShowSettingsDropdown(false);
+        setShowBoardTeamsSubmenu(false);
+        setShowCardManagementSubmenu(false);
+      }
     };
 
-    if (showUserDropdown) {
+    if (showUserDropdown || showSettingsDropdown) {
       document.addEventListener('mousedown', handleClickOutside);
     }
 
     return () => {
       document.removeEventListener('mousedown', handleClickOutside);
     };
-  }, [showUserDropdown]);
+  }, [showUserDropdown, showSettingsDropdown]);
 
   const handleUserCircleClick = () => {
     setShowUserDropdown(!showUserDropdown);
@@ -117,6 +140,137 @@ function Header({ onMenuToggle, mobileMenuOpen: externalMobileMenuOpen }) {
 
   const handleHelpClick = () => {
     window.open("https://sedres.com/contact-us", "_blank", "noopener,noreferrer");
+  };
+
+  const handleSettingsClick = () => {
+    setShowSettingsDropdown(!showSettingsDropdown);
+    setShowBoardTeamsSubmenu(false);
+    setShowCardManagementSubmenu(false);
+  };
+
+  const handleBoardTeamsClick = (e) => {
+    e.stopPropagation();
+    const newShowState = !showBoardTeamsSubmenu;
+    setShowBoardTeamsSubmenu(newShowState);
+    setShowBusinessRulesModal(false);
+    setShowCardManagementSubmenu(false);
+  };
+
+  const handleCardManagementClick = (e) => {
+    e.stopPropagation();
+    const newShowState = !showCardManagementSubmenu;
+    setShowCardManagementSubmenu(newShowState);
+    setShowBoardTeamsSubmenu(false);
+    setShowBusinessRulesModal(false);
+    // Close all card management modals when toggling submenu
+    if (!newShowState) {
+      setShowBlockersModal(false);
+      setShowStickersModal(false);
+      setShowTagsModal(false);
+      setShowTypesModal(false);
+    }
+  };
+
+  const handleBusinessRulesClick = () => {
+    setShowSettingsDropdown(false);
+    setShowBoardTeamsSubmenu(false);
+    setShowCardManagementSubmenu(false);
+    // Close all modals before opening business rules
+    setShowManagersModal(false);
+    setShowDashboardsModal(false);
+    setShowBlockersModal(false);
+    setShowStickersModal(false);
+    setShowTagsModal(false);
+    setShowTypesModal(false);
+    setShowBusinessRulesModal(true);
+  };
+
+  const handleManagersClick = (e) => {
+    e.stopPropagation();
+    setShowSettingsDropdown(false);
+    setShowBoardTeamsSubmenu(false);
+    // Close all other modals
+    setShowDashboardsModal(false);
+    setShowBusinessRulesModal(false);
+    setShowBlockersModal(false);
+    setShowStickersModal(false);
+    setShowTagsModal(false);
+    setShowTypesModal(false);
+    setShowManagersModal(true);
+  };
+
+  const handleDashboardsClick = (e) => {
+    e.stopPropagation();
+    setShowSettingsDropdown(false);
+    setShowBoardTeamsSubmenu(false);
+    // Close all other modals
+    setShowManagersModal(false);
+    setShowBusinessRulesModal(false);
+    setShowBlockersModal(false);
+    setShowStickersModal(false);
+    setShowTagsModal(false);
+    setShowTypesModal(false);
+    setShowDashboardsModal(true);
+  };
+
+  const handleBlockersClick = (e) => {
+    e.stopPropagation();
+    setShowSettingsDropdown(false);
+    setShowCardManagementSubmenu(false);
+    // Close all other modals
+    setShowBoardTeamsSubmenu(false);
+    setShowManagersModal(false);
+    setShowDashboardsModal(false);
+    setShowBusinessRulesModal(false);
+    setShowStickersModal(false);
+    setShowTagsModal(false);
+    setShowTypesModal(false);
+    setShowBlockersModal(true);
+  };
+
+  const handleStickersClick = (e) => {
+    e.stopPropagation();
+    setShowSettingsDropdown(false);
+    setShowCardManagementSubmenu(false);
+    // Close all other modals
+    setShowBoardTeamsSubmenu(false);
+    setShowManagersModal(false);
+    setShowDashboardsModal(false);
+    setShowBusinessRulesModal(false);
+    setShowBlockersModal(false);
+    setShowTagsModal(false);
+    setShowTypesModal(false);
+    setShowStickersModal(true);
+  };
+
+  const handleTagsClick = (e) => {
+    e.stopPropagation();
+    setShowSettingsDropdown(false);
+    setShowCardManagementSubmenu(false);
+    // Close all other modals
+    setShowBoardTeamsSubmenu(false);
+    setShowManagersModal(false);
+    setShowDashboardsModal(false);
+    setShowBusinessRulesModal(false);
+    setShowBlockersModal(false);
+    setShowStickersModal(false);
+    setShowTypesModal(false);
+    setShowTagsModal(true);
+  };
+
+  const handleTypesClick = (e) => {
+    e.stopPropagation();
+    setShowSettingsDropdown(false);
+    setShowCardManagementSubmenu(false);
+    // Close all other modals
+    setShowBoardTeamsSubmenu(false);
+    setShowManagersModal(false);
+    setShowDashboardsModal(false);
+    setShowBusinessRulesModal(false);
+    setShowBlockersModal(false);
+    setShowStickersModal(false);
+    setShowTagsModal(false);
+    setShowTypesModal(true);
   };
 
 
@@ -239,6 +393,62 @@ function Header({ onMenuToggle, mobileMenuOpen: externalMobileMenuOpen }) {
           <FiHelpCircle />
         </button>
 
+        <div className="settings-btn-wrapper" ref={settingsDropdownRef}>
+          <button
+            className="icon-btn icon-btn-hide-mobile"
+            aria-label="Settings"
+            title="Settings"
+            onClick={handleSettingsClick}
+          >
+            <FiSettings />
+          </button>
+          {showSettingsDropdown && (
+            <div className="settings-dropdown">
+              <div 
+                className="settings-dropdown-item settings-dropdown-item-with-submenu"
+                onClick={handleBoardTeamsClick}
+              >
+                Board teams
+                {showBoardTeamsSubmenu && (
+                  <div className="settings-submenu">
+                    <div className="settings-submenu-item" onClick={handleManagersClick}>
+                      Managers
+                    </div>
+                    <div className="settings-submenu-item" onClick={handleDashboardsClick}>
+                      Dashboards
+                    </div>
+                  </div>
+                )}
+              </div>
+              <div className="settings-dropdown-item" onClick={handleBusinessRulesClick}>
+                Business rules
+              </div>
+              <div 
+                className="settings-dropdown-item settings-dropdown-item-with-submenu"
+                onClick={handleCardManagementClick}
+              >
+                Card management
+                {showCardManagementSubmenu && (
+                  <div className="settings-submenu">
+                    <div className="settings-submenu-item" onClick={handleBlockersClick}>
+                      Blockers
+                    </div>
+                    <div className="settings-submenu-item" onClick={handleStickersClick}>
+                      Stickers
+                    </div>
+                    <div className="settings-submenu-item" onClick={handleTagsClick}>
+                      Tags
+                    </div>
+                    <div className="settings-submenu-item" onClick={handleTypesClick}>
+                      Types
+                    </div>
+                  </div>
+                )}
+              </div>
+            </div>
+          )}
+        </div>
+
         <div className="notification-btn-wrapper">
           <button
             className="icon-btn"
@@ -293,6 +503,36 @@ function Header({ onMenuToggle, mobileMenuOpen: externalMobileMenuOpen }) {
         show={showDocumentsModal}
         onClose={() => setShowDocumentsModal(false)}
       />}
+
+      {/* Settings Modals */}
+      <BusinessRulesModal 
+        show={showBusinessRulesModal} 
+        onClose={() => setShowBusinessRulesModal(false)} 
+      />
+      <ManagersModal 
+        show={showManagersModal} 
+        onClose={() => setShowManagersModal(false)} 
+      />
+      <DashboardsModal 
+        show={showDashboardsModal} 
+        onClose={() => setShowDashboardsModal(false)} 
+      />
+      <BlockersModal 
+        show={showBlockersModal} 
+        onClose={() => setShowBlockersModal(false)} 
+      />
+      <StickersModal 
+        show={showStickersModal} 
+        onClose={() => setShowStickersModal(false)} 
+      />
+      <TagsModal 
+        show={showTagsModal} 
+        onClose={() => setShowTagsModal(false)} 
+      />
+      <TypesModal 
+        show={showTypesModal} 
+        onClose={() => setShowTypesModal(false)} 
+      />
 
     </div>
   );

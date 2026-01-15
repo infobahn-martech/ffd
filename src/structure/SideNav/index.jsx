@@ -35,7 +35,7 @@ import useWindowSize from '../../hooks/useWindowSize';
 // 🆕 Kanban sidebar icons + tooltip
 import { Tooltip } from 'react-tooltip';
 import 'react-tooltip/dist/react-tooltip.css';
-import { FiPlus, FiInbox, FiFilter, FiUsers, FiShield, FiGrid } from 'react-icons/fi';
+import { FiPlus, FiInbox, FiFilter } from 'react-icons/fi';
 
 function SideNav({ isMobileMenuOpen, onCloseMobileMenu }) {
   const { pathname } = useLocation();
@@ -53,9 +53,6 @@ function SideNav({ isMobileMenuOpen, onCloseMobileMenu }) {
 
   const workspacesIcons = [
     { id: 3, icon: FiInbox, label: 'Workspaces' },
-    { id: 4, icon: FiUsers, label: 'Board teams' },
-    { id: 8, icon: FiShield, label: 'Business rules' },
-    { id: 9, icon: FiGrid, label: 'Card management' },
   ];
 
   // Board teams submenu items
@@ -185,7 +182,6 @@ function SideNav({ isMobileMenuOpen, onCloseMobileMenu }) {
       subMenus: [{ menu: 'Waste Types', to: '/waste-types', hasPermission: true }],
       icon: wasteIcon, // Waste-specific icon
     },
-
     // ✅ Materials & Logistics
     {
       menu: 'Material Management',

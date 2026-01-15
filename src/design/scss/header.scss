@@ -314,6 +314,118 @@
     }
   }
 
+  .settings-btn-wrapper {
+    position: relative;
+    display: inline-flex;
+  }
+
+  .settings-dropdown {
+    position: absolute;
+    top: calc(100% + 8px);
+    right: 0;
+    background: #ffffff;
+    border-radius: 8px;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+    min-width: 180px;
+    z-index: 1000;
+    overflow: visible;
+    animation: fadeInDown 0.2s ease;
+
+    .settings-dropdown-item {
+      width: 100%;
+      padding: 12px 16px;
+      border: none;
+      background: transparent;
+      text-align: left;
+      font-family: "Poppins", sans-serif;
+      font-size: 14px;
+      color: #333;
+      cursor: pointer;
+      transition: all 0.2s ease;
+      border-bottom: 1px solid #f0f0f0;
+      position: relative;
+      overflow: visible;
+
+      &:last-child {
+        border-bottom: none;
+      }
+
+      &:hover {
+        background: #f8f9fc;
+        color: #00368c;
+      }
+
+      &:active {
+        background: #e8eef5;
+      }
+
+      &.settings-dropdown-item-with-submenu {
+        &::after {
+          content: '▶';
+          position: absolute;
+          right: 12px;
+          top: 50%;
+          transform: translateY(-50%);
+          font-size: 10px;
+          color: #666;
+          transition: transform 0.2s ease;
+        }
+      }
+    }
+  }
+
+  .settings-submenu {
+    position: absolute;
+    left: 100%;
+    top: 0;
+    background: #ffffff;
+    border-radius: 8px;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+    min-width: 160px;
+    z-index: 1002;
+    margin-left: 4px;
+    animation: fadeInRight 0.2s ease;
+    white-space: nowrap;
+
+    @keyframes fadeInRight {
+      from {
+        opacity: 0;
+        transform: translateX(-10px);
+      }
+      to {
+        opacity: 1;
+        transform: translateX(0);
+      }
+    }
+
+    .settings-submenu-item {
+      width: 100%;
+      padding: 12px 16px;
+      border: none;
+      background: transparent;
+      text-align: left;
+      font-family: "Poppins", sans-serif;
+      font-size: 14px;
+      color: #333;
+      cursor: pointer;
+      transition: all 0.2s ease;
+      border-bottom: 1px solid #f0f0f0;
+
+      &:last-child {
+        border-bottom: none;
+      }
+
+      &:hover {
+        background: #f8f9fc;
+        color: #00368c;
+      }
+
+      &:active {
+        background: #e8eef5;
+      }
+    }
+  }
+
   .notification-btn-wrapper {
     position: relative;
     display: inline-flex;
