@@ -9,6 +9,7 @@ import useAuthReducer from "../../store/AuthReducer";
 function Index() {
   const navigate = useNavigate();
   const [showPassword, setShowPassword] = useState(false);
+  const [isTestingMode, setIsTestingMode] = useState(false); // Testing mode: true = normal flow, false = skip validation/API
   const {
     register,
     handleSubmit,
@@ -23,7 +24,13 @@ function Index() {
   }, [isLoggedIn, navigate]);
 
   const onSubmit = async (data) => {
-    await login({ email: data.email, password: data.password });
+    if (isTestingMode) {
+      // Normal flow: validation and API calls
+      await login({ email: data.email, password: data.password });
+    } else {
+      // Testing mode: skip validation and API, directly navigate
+      navigate("/workspaces");
+    }
   };
 
   return (
@@ -60,7 +67,7 @@ function Index() {
 
           <div className="form-content-wrap">
             {/* FORM START */}
-            <form onSubmit={handleSubmit(onSubmit)}>
+            <form onSubmit={isTestingMode ? handleSubmit(onSubmit) : (e) => { e.preventDefault(); navigate("/workspaces"); }}>
               {/* EMAIL */}
               <div className="input-outer-wrap">
                 <label className="label">Email</label>
