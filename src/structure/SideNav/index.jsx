@@ -302,10 +302,8 @@ function SideNav({ isMobileMenuOpen, onCloseMobileMenu }) {
       setMenuState((prev) =>
         prev.map((e) => ({
           ...e,
-          isOpen:
-            e?.subMenus && e.subMenus.some((eS) => eS?.to === pathname)
-              ? true
-              : e?.isOpen,
+          // Only open the menu whose submenu matches the current route, close all others
+          isOpen: e?.subMenus && e.subMenus.some((eS) => eS?.to === pathname) ? true : false,
         }))
       );
     else {
@@ -315,17 +313,20 @@ function SideNav({ isMobileMenuOpen, onCloseMobileMenu }) {
   }, [pathname, width, isKanbanBoard]);
 
   const toggleCollapse = (menu) => {
-    setMenuState((prev) =>
-      prev.map((e) => ({
+    setMenuState((prev) => {
+      const clickedMenu = prev.find((e) => e.menu === menu);
+      const willBeOpen = clickedMenu
+        ? width < 991 && !expand
+          ? true
+          : !clickedMenu.isOpen
+        : false;
+
+      // Close all other menus when opening a menu
+      return prev.map((e) => ({
         ...e,
-        isOpen:
-          e.menu === menu
-            ? width < 991 && !expand
-              ? true
-              : !e.isOpen
-            : e.isOpen,
-      }))
-    );
+        isOpen: e.menu === menu ? willBeOpen : false,
+      }));
+    });
     if (width < 991) {
       setExpand(!expand);
       if (onCloseMobileMenu && expand) {
