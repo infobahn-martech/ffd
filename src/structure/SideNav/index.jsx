@@ -10,6 +10,7 @@ import BlockersModal from './components/BlockersModal';
 import StickersModal from './components/StickersModal';
 import TagsModal from './components/TagsModal';
 import TypesModal from './components/TypesModal';
+import AddDashboardModal from './components/AddDashboardModal';
 import MyAccountsModal from '../Header/MyAccountsModal';
 import '../../design/scss/common.scss';
 import '../../design/scss/sidebar.scss';
@@ -35,7 +36,7 @@ import useWindowSize from '../../hooks/useWindowSize';
 // 🆕 Kanban sidebar icons + tooltip
 import { Tooltip } from 'react-tooltip';
 import 'react-tooltip/dist/react-tooltip.css';
-import { FiPlus, FiInbox, FiFilter } from 'react-icons/fi';
+import { FiPlus, FiInbox, FiFilter, FiPlusCircle } from 'react-icons/fi';
 
 function SideNav({ isMobileMenuOpen, onCloseMobileMenu }) {
   const { pathname } = useLocation();
@@ -53,6 +54,7 @@ function SideNav({ isMobileMenuOpen, onCloseMobileMenu }) {
 
   const workspacesIcons = [
     { id: 3, icon: FiInbox, label: 'Workspaces' },
+    { id: 4, icon: FiPlusCircle, label: 'Add new dashboard' },
   ];
 
   // Board teams submenu items
@@ -84,6 +86,7 @@ function SideNav({ isMobileMenuOpen, onCloseMobileMenu }) {
   const [showStickersModal, setShowStickersModal] = useState(false);
   const [showTagsModal, setShowTagsModal] = useState(false);
   const [showTypesModal, setShowTypesModal] = useState(false);
+  const [showAddDashboardModal, setShowAddDashboardModal] = useState(false);
   const [showMyAccountsModal, setShowMyAccountsModal] = useState(false);
 
   const [expand, setExpand] = useState(false);
@@ -457,11 +460,21 @@ function SideNav({ isMobileMenuOpen, onCloseMobileMenu }) {
       if (showStickersModal) setShowStickersModal(false);
       if (showTagsModal) setShowTagsModal(false);
       if (showTypesModal) setShowTypesModal(false);
+      if (showAddDashboardModal) setShowAddDashboardModal(false);
 
       setActiveKanbanIcon(item.id);
 
       if (item.label === 'Add') {
         window.dispatchEvent(new CustomEvent('kanban:add-card'));
+      }
+
+      if (item.label === 'Add new dashboard') {
+        setShowAddDashboardModal(true);
+        setShowFilterPanel(false);
+        setShowBoardTeamsSubmenu(false);
+        setShowCardManagementSubmenu(false);
+        setActiveKanbanIcon(item.id);
+        return;
       }
 
       if (item.label === 'Workspaces') {
@@ -508,7 +521,8 @@ function SideNav({ isMobileMenuOpen, onCloseMobileMenu }) {
               (item.label === 'Filter' && showFilterPanel) ||
               (item.label === 'Board teams' && showBoardTeamsSubmenu) ||
               (item.label === 'Business rules' && showBusinessRulesModal) ||
-              (item.label === 'Card management' && showCardManagementSubmenu);
+              (item.label === 'Card management' && showCardManagementSubmenu) ||
+              (item.label === 'Add new dashboard' && showAddDashboardModal);
 
             return (
               <div key={item.id} style={{ position: 'relative' }}>
@@ -574,6 +588,14 @@ function SideNav({ isMobileMenuOpen, onCloseMobileMenu }) {
         <StickersModal show={showStickersModal} onClose={() => setShowStickersModal(false)} />
         <TagsModal show={showTagsModal} onClose={() => setShowTagsModal(false)} />
         <TypesModal show={showTypesModal} onClose={() => setShowTypesModal(false)} />
+        <AddDashboardModal
+          show={showAddDashboardModal}
+          onClose={() => setShowAddDashboardModal(false)}
+          onSave={(data) => {
+            console.log('Dashboard saved:', data);
+            // Add your save logic here
+          }}
+        />
       </>
     );
   }
