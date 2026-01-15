@@ -10,6 +10,8 @@ import {
   FiGrid,
   FiBarChart2
 } from 'react-icons/fi';
+import { Tooltip } from 'react-tooltip';
+import 'react-tooltip/dist/react-tooltip.css';
 
 import logo from '../../assets/images/SedresLogo.png';
 import useWindowSize from '../../hooks/useWindowSize';
@@ -281,15 +283,19 @@ function Header({ onMenuToggle, mobileMenuOpen: externalMobileMenuOpen }) {
       <div className="left-section">
         {/* Mobile Menu Toggle Button */}
         {isMobile && (
-          <button
-            className={`mobile-menu-toggle ${mobileMenuOpen ? 'active' : ''}`}
-            onClick={handleMenuToggle}
-            aria-label="Toggle menu"
-          >
-            <span></span>
-            <span></span>
-            <span></span>
-          </button>
+          <>
+            <Tooltip id="mobile-menu-toggle" place="bottom" content="Toggle menu" />
+            <button
+              className={`mobile-menu-toggle ${mobileMenuOpen ? 'active' : ''}`}
+              onClick={handleMenuToggle}
+              aria-label="Toggle menu"
+              data-tooltip-id="mobile-menu-toggle"
+            >
+              <span></span>
+              <span></span>
+              <span></span>
+            </button>
+          </>
         )}
 
         <img
@@ -307,10 +313,12 @@ function Header({ onMenuToggle, mobileMenuOpen: externalMobileMenuOpen }) {
 
       {/* RIGHT — User + Icons */}
       <div className="right-section">
+        <Tooltip id="user-profile" place="bottom" content="User Profile" />
         <div className="user-circle-wrapper" ref={dropdownRef}>
           <div
             className={`user-circle ${showUserDropdown ? 'active' : ''}`}
             onClick={handleUserCircleClick}
+            data-tooltip-id="user-profile"
           >
             {!imageError ? (
               <img
@@ -352,53 +360,59 @@ function Header({ onMenuToggle, mobileMenuOpen: externalMobileMenuOpen }) {
             </div>
           )}
         </div>
+        <Tooltip id="master-module" place="bottom" content="Master Module" />
         <button
           className={`icon-btn icon-btn-hide-mobile ${pathname === '/dashboard' ? 'active' : ''}`}
           aria-label="Master Module"
-          title="Master Module"
           onClick={() => navigate('/dashboard')}
+          data-tooltip-id="master-module"
         >
           <FiLayout />
         </button>
+        <Tooltip id="board" place="bottom" content="Board" />
         <button
           className={`icon-btn icon-btn-hide-mobile ${pathname === '/kanban-board' || pathname === '/workspaces' ? 'active' : ''}`}
           aria-label="Board"
-          title="Board"
           onClick={() => navigate('/kanban-board')}
+          data-tooltip-id="board"
         >
           <FiGrid />
         </button>
+        <Tooltip id="kpi-dashboard" place="bottom" content="KPI Dashboard" />
         <button
           className={`icon-btn icon-btn-hide-mobile ${pathname === '/kpi-dashboard' ? 'active' : ''}`}
           aria-label="KPI Dashboard"
-          title="KPI Dashboard"
           onClick={() => navigate('/kpi-dashboard')}
+          data-tooltip-id="kpi-dashboard"
         >
           <FiBarChart2 />
         </button>
+        <Tooltip id="documents" place="bottom" content="Documents" />
         <button
           className={`icon-btn icon-btn-hide-mobile ${showDocumentsModal ? 'active' : ''}`}
           aria-label="Documents"
-          title="Documents"
           onClick={() => setShowDocumentsModal(true)}
+          data-tooltip-id="documents"
         >
           <FiFolder />
         </button>
+        <Tooltip id="help" place="bottom" content="Help" />
         <button
           className="icon-btn icon-btn-hide-mobile"
           aria-label="Help"
-          title="Help"
           onClick={handleHelpClick}
+          data-tooltip-id="help"
         >
           <FiHelpCircle />
         </button>
 
         <div className="settings-btn-wrapper" ref={settingsDropdownRef}>
+          <Tooltip id="settings" place="bottom" content="Settings" />
           <button
             className={`icon-btn icon-btn-hide-mobile ${showSettingsDropdown ? 'active' : ''}`}
             aria-label="Settings"
-            title="Settings"
             onClick={handleSettingsClick}
+            data-tooltip-id="settings"
           >
             <FiSettings />
           </button>
@@ -450,11 +464,12 @@ function Header({ onMenuToggle, mobileMenuOpen: externalMobileMenuOpen }) {
         </div>
 
         <div className="notification-btn-wrapper">
+          <Tooltip id="notifications" place="bottom" content="Notifications" />
           <button
             className={`icon-btn ${showNotificationsModal ? 'active' : ''}`}
             aria-label="Notifications"
-            title="Notifications"
             onClick={() => setShowNotificationsModal(true)}
+            data-tooltip-id="notifications"
           >
             <FiBell />
           </button>
