@@ -1,0 +1,237 @@
+@import "../../../design/scss/partials/partials";
+
+.add-dashboard-modal {
+  .modal-dialog {
+    max-width: 520px;
+    width: 100%;
+    margin: 1.75rem auto;
+
+    @media (max-width: 575px) {
+      max-width: calc(100% - 30px);
+      margin: 1rem auto;
+    }
+  }
+
+  .modal-content {
+    border-radius: 16px;
+    border: none;
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.15);
+    overflow: hidden;
+  }
+
+  .add-dashboard-modal-header {
+    border-bottom: none;
+    padding: 24px 30px 20px 30px;
+    position: relative;
+
+    @media (max-width: 575px) {
+      padding: 20px 20px 16px 20px;
+    }
+
+    .add-dashboard-modal-title {
+      color: #00368c;
+      font-size: 20px;
+      font-weight: 600;
+      line-height: 1.4;
+      margin: 0;
+      letter-spacing: 0.1px;
+
+      @media (max-width: 575px) {
+        font-size: 18px;
+      }
+    }
+
+    .add-dashboard-modal-close {
+      position: absolute;
+      top: 20px;
+      right: 20px;
+      width: 32px;
+      height: 32px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      background: #D8E7E9;
+      border: none;
+      border-radius: 8px;
+      cursor: pointer;
+      transition: all 0.2s ease;
+      padding: 0;
+      color: #25666C;
+
+      @media (max-width: 575px) {
+        top: 16px;
+        right: 16px;
+        width: 28px;
+        height: 28px;
+      }
+
+      &:hover {
+        background: #BCDEE2;
+        transform: scale(1.05);
+      }
+
+      &:active {
+        transform: scale(0.95);
+      }
+
+      svg {
+        pointer-events: none;
+      }
+    }
+  }
+
+  .add-dashboard-modal-body {
+    padding: 0 30px 0px 30px;
+
+    @media (max-width: 575px) {
+      padding: 0 20px 20px 20px;
+    }
+
+    .add-dashboard-form {
+      .add-dashboard-input-wrapper {
+        margin-bottom: 0;
+
+        .form-floating {
+          border: 1px solid #BCDEE2;
+          border-radius: 12px;
+          transition: all 0.2s ease;
+
+          &:focus-within {
+            border-color: #00368c;
+            box-shadow: 0 0 0 3px rgba(0, 54, 140, 0.1);
+          }
+
+          .form-control {
+            border: none;
+            box-shadow: none;
+            padding: 16px 20px 8px 20px;
+            border-radius: 12px;
+            height: 56px;
+            min-height: 56px;
+            font-size: 15px;
+            color: #174043;
+
+            @media (max-width: 575px) {
+              padding: 14px 18px 6px 18px;
+              height: 52px;
+              min-height: 52px;
+              font-size: 14px;
+            }
+
+            &::placeholder {
+              color: #87ADB1;
+              opacity: 0;
+            }
+
+            &:focus {
+              box-shadow: none;
+              border: none;
+            }
+
+            &:focus~label,
+            &:not(:placeholder-shown)~label {
+              color: #174043;
+              transform: scale(0.85) translateY(-0.5rem) translateX(0.15rem);
+            }
+          }
+
+          label {
+            padding: 8px 20px;
+            color: #87ADB1;
+            font-size: 15px;
+            font-weight: 400;
+            transition: all 0.2s ease;
+            pointer-events: none;
+
+            @media (max-width: 575px) {
+              padding: 6px 18px;
+              font-size: 14px;
+            }
+
+            .text-danger {
+              color: #ff0000;
+              font-size: 0.9em;
+            }
+          }
+        }
+      }
+    }
+  }
+
+  .add-dashboard-modal-footer {
+    border-top: none;
+    padding: 0 30px 30px 30px;
+
+    @media (max-width: 575px) {
+      padding: 0 20px 20px 20px;
+    }
+
+    .add-dashboard-modal-actions {
+      display: flex;
+      justify-content: flex-end;
+      gap: 12px;
+      width: 100%;
+
+      .btn-common {
+        padding: 12px 32px;
+        border-radius: 10px;
+        font-size: 14px;
+        font-weight: 600;
+        transition: all 0.2s ease;
+        border: none;
+        cursor: pointer;
+        min-width: 100px;
+
+        @media (max-width: 575px) {
+          padding: 10px 24px;
+          font-size: 13px;
+          min-width: 90px;
+        }
+
+        &.btn-cancel {
+          background-color: #FFFFFF;
+          color: #00368c;
+          border: 1px solid #BCDEE2;
+
+          &:hover {
+            background-color: #DEF0F2;
+            border-color: #98CBD0;
+          }
+
+          &:active {
+            transform: scale(0.98);
+          }
+        }
+
+        &.btn-save {
+          background-color: #00368c;
+          color: #FFFFFF;
+
+          &:hover:not(:disabled) {
+            background-color: #002b66;
+            transform: translateY(-1px);
+            box-shadow: 0 4px 12px rgba(0, 54, 140, 0.3);
+          }
+
+          &:active:not(:disabled) {
+            transform: translateY(0);
+          }
+
+          &:disabled {
+            background-color: #BCDEE2;
+            color: #87ADB1;
+            cursor: not-allowed;
+            opacity: 0.6;
+          }
+        }
+      }
+    }
+  }
+}
+
+// Ensure modal backdrop is styled properly
+.add-dashboard-modal.show {
+  .modal-backdrop {
+    background-color: rgba(0, 0, 0, 0.5);
+  }
+}

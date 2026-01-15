@@ -5,6 +5,7 @@ import PropTypes from 'prop-types';
 import '../../../design/scss/prospect-modal.scss';
 import '../../../design/scss/modal-designs.scss';
 import '../../../design/scss/form-designs.scss';
+import './AddDashboardModal.scss';
 
 const AddDashboardModal = ({ show, onClose, onSave }) => {
   const [name, setName] = useState('');
@@ -32,25 +33,23 @@ const AddDashboardModal = ({ show, onClose, onSave }) => {
       className="add-dashboard-modal"
       centered
       backdrop="static"
+      size="md"
     >
-      <Modal.Header className="modal-header">
-        <Modal.Title className="modal-title">Add New Dashboard</Modal.Title>
+      <Modal.Header className="add-dashboard-modal-header">
+        <Modal.Title className="add-dashboard-modal-title">Add New Dashboard</Modal.Title>
         <button
           type="button"
-          className="modal-close-btn"
+          className="add-dashboard-modal-close"
           onClick={handleClose}
           aria-label="Close"
         >
           <FiX size={20} />
         </button>
       </Modal.Header>
-      <Modal.Body className="modal-body">
-        <form onSubmit={handleSubmit} className="lead-form">
-          <div className="permInputs row mb-lg-3">
-            <div className="col-lg-12 col-sm-12 mb-3">
-              <label htmlFor="dashboardName" className="form-label">
-                Name <span className="text-danger">*</span>
-              </label>
+      <Modal.Body className="add-dashboard-modal-body">
+        <form onSubmit={handleSubmit} className="add-dashboard-form">
+          <div className="add-dashboard-input-wrapper">
+            <div className="form-floating desig-inp">
               <input
                 type="text"
                 id="dashboardName"
@@ -61,24 +60,26 @@ const AddDashboardModal = ({ show, onClose, onSave }) => {
                 required
                 autoFocus
               />
+              <label htmlFor="dashboardName">
+                Name <span className="text-danger">*</span>
+              </label>
             </div>
           </div>
         </form>
       </Modal.Body>
-      <Modal.Footer className="modal-footer">
-        <div className="two-btn">
+      <Modal.Footer className="add-dashboard-modal-footer">
+        <div className="add-dashboard-modal-actions">
           <button
             type="button"
             onClick={handleClose}
-            className="btn-common close"
-            data-bs-dismiss="modal"
+            className="btn-common btn-cancel"
           >
             Cancel
           </button>
           <button
             type="button"
             onClick={handleSubmit}
-            className="save btn-common green-btn"
+            className="btn-common btn-save"
             disabled={!name.trim()}
           >
             Save
