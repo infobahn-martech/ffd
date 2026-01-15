@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useMemo } from "react";
 import CommonHeader from "../../components/CommonHeader";
 import CustomTable from "../../components/customTable";
 import { CaptainModal } from "./Modals/AddEditCaptain";
@@ -122,9 +122,91 @@ const Captains = () => {
         sortOrder: 1,
     });
 
+    const [filters, setFilters] = useState({
+        port: "",
+        status: "",
+    });
+
     const [showCaptainModal, setShowCaptainModal] = useState(false);
     const [showDeleteModal, setShowDeleteModal] = useState(false);
     const [showStatusModal, setShowStatusModal] = useState(false);
+
+    // Extract unique values for filter options
+    const portOptions = useMemo(() => {
+        const ports = [...new Set(dummyCaptains.map(c => c.port))];
+        return ports.sort();
+    }, []);
+
+    const statusOptions = useMemo(() => {
+        const statuses = [...new Set(dummyCaptains.map(c => c.status))];
+        return statuses.sort();
+    }, []);
+
+    // Filter configuration for CommonFilter
+    const filterOptions = [
+        {
+            key: 'port',
+            label: 'Port',
+            placeholder: 'Select Port',
+            options: portOptions,
+        },
+        {
+            key: 'status',
+            label: 'Status',
+            placeholder: 'Select Status',
+            options: statusOptions,
+        },
+    ];
+
+    // Filter captains based on current filters
+    const filteredCaptains = useMemo(() => {
+        let filtered = [...dummyCaptains];
+
+        // Apply port filter
+        if (filters.port) {
+            filtered = filtered.filter(c => c.port === filters.port);
+        }
+
+        // Apply status filter
+        if (filters.status) {
+            filtered = filtered.filter(c => c.status === filters.status);
+        }
+
+        // Apply search filter
+        if (params.searchTerm) {
+            const searchLower = params.searchTerm.toLowerCase();
+            filtered = filtered.filter(c =>
+                c.captainName?.toLowerCase().includes(searchLower) ||
+                c.email?.toLowerCase().includes(searchLower) ||
+                c.phone?.toLowerCase().includes(searchLower) ||
+                c.address?.toLowerCase().includes(searchLower)
+            );
+        }
+
+        return filtered;
+    }, [filters, params.searchTerm]);
+
+    const handleFilterChange = (key, value) => {
+        setFilters(prev => ({
+            ...prev,
+            [key]: value,
+        }));
+        // Reset to page 1 when filter changes
+        setParams(prev => ({ ...prev, page: 1 }));
+    };
+
+    const handleApplyFilter = () => {
+        // Filter is already applied via state, just reset to page 1
+        setParams(prev => ({ ...prev, page: 1 }));
+    };
+
+    const handleClearFilter = () => {
+        setFilters({
+            port: "",
+            status: "",
+        });
+        setParams(prev => ({ ...prev, page: 1 }));
+    };
 
 
     // 👉 ONLY TWO COLUMNS (Name + Description)
@@ -220,6 +302,11 @@ const Captains = () => {
                             onAddModalClick={() => setShowCaptainModal(true)}
                             exportTitle="Export"
                             exportLoader={false}
+                            filterOptions={filterOptions}
+                            filterValue={filters}
+                            onFilterChange={handleFilterChange}
+                            onApplyFilter={handleApplyFilter}
+                            onClearFilter={handleClearFilter}
                         />
                     </div>
 
@@ -228,8 +315,8 @@ const Captains = () => {
                         pagination={{ currentPage: params.page, limit: params.limit }}
                         tableClasses="px-start"
                         columns={cols}
-                        data={dummyCaptains}
-                        count={dummyCaptains.length}
+                        data={filteredCaptains}
+                        count={filteredCaptains.length}
                         onPageChange={(currentPage) =>
                             setParams({ ...params, page: currentPage })
                         }
