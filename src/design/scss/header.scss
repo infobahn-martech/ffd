@@ -235,6 +235,11 @@
       transform: scale(1.05);
     }
 
+    &.active {
+      border-color: rgba(255, 255, 255, 0.8);
+      box-shadow: 0 0 0 2px rgba(255, 255, 255, 0.3);
+    }
+
     @media (max-width: 767px) {
       width: 32px;
       height: 32px;

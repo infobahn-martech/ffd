@@ -309,7 +309,7 @@ function Header({ onMenuToggle, mobileMenuOpen: externalMobileMenuOpen }) {
       <div className="right-section">
         <div className="user-circle-wrapper" ref={dropdownRef}>
           <div
-            className="user-circle"
+            className={`user-circle ${showUserDropdown ? 'active' : ''}`}
             onClick={handleUserCircleClick}
           >
             {!imageError ? (
@@ -353,7 +353,7 @@ function Header({ onMenuToggle, mobileMenuOpen: externalMobileMenuOpen }) {
           )}
         </div>
         <button
-          className="icon-btn icon-btn-hide-mobile"
+          className={`icon-btn icon-btn-hide-mobile ${pathname === '/dashboard' ? 'active' : ''}`}
           aria-label="Master Module"
           title="Master Module"
           onClick={() => navigate('/dashboard')}
@@ -361,7 +361,7 @@ function Header({ onMenuToggle, mobileMenuOpen: externalMobileMenuOpen }) {
           <FiLayout />
         </button>
         <button
-          className="icon-btn icon-btn-hide-mobile"
+          className={`icon-btn icon-btn-hide-mobile ${pathname === '/kanban-board' || pathname === '/workspaces' ? 'active' : ''}`}
           aria-label="Board"
           title="Board"
           onClick={() => navigate('/kanban-board')}
@@ -369,7 +369,7 @@ function Header({ onMenuToggle, mobileMenuOpen: externalMobileMenuOpen }) {
           <FiGrid />
         </button>
         <button
-          className="icon-btn icon-btn-hide-mobile"
+          className={`icon-btn icon-btn-hide-mobile ${pathname === '/kpi-dashboard' ? 'active' : ''}`}
           aria-label="KPI Dashboard"
           title="KPI Dashboard"
           onClick={() => navigate('/kpi-dashboard')}
@@ -377,7 +377,7 @@ function Header({ onMenuToggle, mobileMenuOpen: externalMobileMenuOpen }) {
           <FiBarChart2 />
         </button>
         <button
-          className="icon-btn icon-btn-hide-mobile"
+          className={`icon-btn icon-btn-hide-mobile ${showDocumentsModal ? 'active' : ''}`}
           aria-label="Documents"
           title="Documents"
           onClick={() => setShowDocumentsModal(true)}
@@ -395,7 +395,7 @@ function Header({ onMenuToggle, mobileMenuOpen: externalMobileMenuOpen }) {
 
         <div className="settings-btn-wrapper" ref={settingsDropdownRef}>
           <button
-            className="icon-btn icon-btn-hide-mobile"
+            className={`icon-btn icon-btn-hide-mobile ${showSettingsDropdown ? 'active' : ''}`}
             aria-label="Settings"
             title="Settings"
             onClick={handleSettingsClick}
@@ -451,7 +451,7 @@ function Header({ onMenuToggle, mobileMenuOpen: externalMobileMenuOpen }) {
 
         <div className="notification-btn-wrapper">
           <button
-            className="icon-btn"
+            className={`icon-btn ${showNotificationsModal ? 'active' : ''}`}
             aria-label="Notifications"
             title="Notifications"
             onClick={() => setShowNotificationsModal(true)}
