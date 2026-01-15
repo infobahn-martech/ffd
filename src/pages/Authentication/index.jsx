@@ -9,7 +9,7 @@ import useAuthReducer from "../../store/AuthReducer";
 function Index() {
   const navigate = useNavigate();
   const [showPassword, setShowPassword] = useState(false);
-  const [isTestingMode, setIsTestingMode] = useState(true); // Testing mode: true = normal flow, false = skip validation/API
+  const [isTestingMode, setIsTestingMode] = useState(false); // Testing mode: true = normal flow, false = skip validation/API
   const {
     register,
     handleSubmit,
@@ -37,8 +37,6 @@ function Index() {
     <div className="login-wrap">
       {/* LEFT SIDE */}
       <div className="left-wrap">
-
-
         <div className="content-wrap">
           <h1 className="title">
             Smarter Ports,
