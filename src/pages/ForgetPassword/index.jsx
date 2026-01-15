@@ -2,17 +2,19 @@ import React from "react";
 import { useForm } from "react-hook-form";
 import "../../design/scss/login.scss";
 import { Link, useNavigate } from "react-router-dom";
+import useAuthReducer from "../../store/AuthReducer";
 
 function ForgetPassword() {
   const navigate = useNavigate();
+  const { forgotPassword, isLoginLoading } = useAuthReducer();
   const {
     register,
     handleSubmit,
     formState: { errors },
   } = useForm();
 
-  const onSubmit = (data) => {
-    console.log("FORGOT PASSWORD DATA:", data);
+  const onSubmit = async (data) => {
+    await forgotPassword({ email: data.email });
   };
 
   return (
@@ -77,8 +79,8 @@ function ForgetPassword() {
 
               {/* BUTTON */}
               <div className="btn-wrap">
-                <button className="btn-red" type="submit">
-                  Send Reset Link
+                <button className="btn-red" type="submit" disabled={isLoginLoading}>
+                  {isLoginLoading ? "Sending..." : "Send Reset Link"}
                 </button>
               </div>
             </form>

@@ -125,6 +125,31 @@ const useAuthReducer = create((set) => ({
       error(err?.response?.data?.message ?? err.message);
     }
   },
+  forgotPassword: async ({ email }) => {
+    try {
+      set({ isLoginLoading: true, errorMessage: "" });
+      const { data } = await authService.forgotPassword(email);
+      set({ isLoginLoading: false, errorMessage: "" });
+      const { success } = useAlertReducer.getState();
+      success(data?.message || "Password reset link sent to your email");
+    } catch (err) {
+      const { error } = useAlertReducer.getState();
+      set({
+        errorMessage:
+          err?.response?.data?.message ||
+          err?.response?.data?.error ||
+          err?.message ||
+          "Failed to send reset link. Please try again.",
+        isLoginLoading: false,
+      });
+      error(
+        err?.response?.data?.message ||
+        err?.response?.data?.error ||
+        err?.message ||
+        "Failed to send reset link. Please try again."
+      );
+    }
+  },
 }));
 
 export default useAuthReducer;
