@@ -97,7 +97,7 @@ function Index() {
                 <div className="input-wrap password-input-wrap">
                   <input
                     type={showPassword ? "text" : "password"}
-                    placeholder="************************"
+                    placeholder="Enter your password"
                     className="txt"
                     {...register("password", {
                       required: "Password is required",
