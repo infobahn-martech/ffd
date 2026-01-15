@@ -9,13 +9,13 @@ import useAuthReducer from "../../store/AuthReducer";
 function Index() {
   const navigate = useNavigate();
   const [showPassword, setShowPassword] = useState(false);
-  const [isTestingMode, setIsTestingMode] = useState(false); // Testing mode: true = normal flow, false = skip validation/API
+  const [isTestingMode, setIsTestingMode] = useState(true); // Testing mode: true = normal flow, false = skip validation/API
   const {
     register,
     handleSubmit,
     formState: { errors },
   } = useForm();
-  const { login, isLoginLoading, errorMessage, isLoggedIn } = useAuthReducer();
+  const { login, isLoginLoading, isLoggedIn } = useAuthReducer();
 
   useEffect(() => {
     if (isLoggedIn) {
@@ -139,13 +139,6 @@ function Index() {
 
                 </label>
               </div>
-
-              {/* ERROR MESSAGE */}
-              {errorMessage && (
-                <div className="error" style={{ marginBottom: "16px", color: "#ff0000" }}>
-                  {errorMessage}
-                </div>
-              )}
 
               {/* BUTTON */}
               <div className="btn-wrap">

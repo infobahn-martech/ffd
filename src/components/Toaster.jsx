@@ -26,11 +26,29 @@ const colors = {
 
 export const notify = (message, type, toastPosition, clear) => {
   if (!_.includes(['success', 'error', 'warn', 'info'], type)) return;
+
+  // Map position string to valid toast position (using string literals for v10+)
+  const getPosition = (pos) => {
+    if (!pos) return 'top-right';
+    const upperPos = pos.toUpperCase();
+    // Handle shorthand positions
+    if (upperPos === 'TOP') return 'top-center';
+    if (upperPos === 'BOTTOM') return 'bottom-center';
+    // Map common position formats to string literals
+    const positionMap = {
+      'TOP_LEFT': 'top-left',
+      'TOP_CENTER': 'top-center',
+      'TOP_RIGHT': 'top-right',
+      'BOTTOM_LEFT': 'bottom-left',
+      'BOTTOM_CENTER': 'bottom-center',
+      'BOTTOM_RIGHT': 'bottom-right',
+    };
+    return positionMap[upperPos] || 'top-right';
+  };
+
   return toast(message, {
     icon: () => <img src={icons[type]} alt="img" />,
-    position: toastPosition
-      ? toast.POSITION[toastPosition]
-      : toast.POSITION.TOP_RIGHT,
+    position: getPosition(toastPosition),
     autoClose: 2000,
     pauseOnFocusLoss: true,
     hideProgressBar: false,
@@ -50,7 +68,7 @@ const Toaster = () => {
 
   useEffect(() => {
     if (value?.message) {
-      notify(value?.message, value.type, 'top', clear);
+      notify(value?.message, value.type, 'top-center', clear);
     }
   }, [value]);
 
