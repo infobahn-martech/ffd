@@ -1,4 +1,5 @@
 import { useState, useCallback } from "react";
+import { DragDropContext, Droppable, Draggable } from "@hello-pangea/dnd";
 import "./DAModule.scss";
 
 // Dummy content templates
@@ -113,6 +114,52 @@ export default function DAModule() {
     );
   }, []);
 
+  const handleDragEnd = useCallback((result) => {
+    const { destination, source, draggableId } = result;
+
+    // If dropped outside a droppable area, do nothing
+    if (!destination) {
+      return;
+    }
+
+    // If dropped in the same position, do nothing
+    if (
+      destination.droppableId === source.droppableId &&
+      destination.index === source.index
+    ) {
+      return;
+    }
+
+    // Only allow dragging within the same column
+    if (destination.droppableId !== source.droppableId) {
+      return;
+    }
+
+    // Find the column
+    const column = columns.find((col) => col.id === source.droppableId);
+    if (!column) {
+      return;
+    }
+
+    // Create a new array with reordered items
+    const newItems = Array.from(column.items);
+    const [removed] = newItems.splice(source.index, 1);
+    newItems.splice(destination.index, 0, removed);
+
+    // Update the column with new items order
+    setColumns((prev) =>
+      prev.map((col) => {
+        if (col.id === column.id) {
+          return {
+            ...col,
+            items: newItems,
+          };
+        }
+        return col;
+      })
+    );
+  }, [columns]);
+
   return (
     <div className="da-module-wrapper">
       {/* Header Section */}
@@ -124,72 +171,102 @@ export default function DAModule() {
 
       {/* Main Content Area */}
       <div className="da-module-content">
-        <div className="da-module-columns-container">
-          {columns.map((column) => (
-            <div key={column.id} className="da-module-column">
-              {/* Column Header */}
-              <div
-                className="da-module-column-header"
-                style={{ borderTopColor: column.color }}
-              >
-                <div className="da-module-column-header-left">
-                  <div
-                    className="da-module-column-indicator"
-                    style={{ backgroundColor: column.color }}
-                  ></div>
-                  <h2 className="da-module-column-title">{column.title}</h2>
-                </div>
-                <div className="da-module-column-count">{column.items.length}</div>
-              </div>
-
-              {/* Column Body */}
-              <div className="da-module-column-body">
-                {column.items.length === 0 ? (
-                  <div className="da-module-empty-state">
-                    <p>No items yet</p>
-                  </div>
-                ) : (
-                  <div className="da-module-items-list">
-                    {column.items.map((item) => (
-                      <div key={item.id} className="da-module-item">
-                        <div className="da-module-item-content">
-                          <h3 className="da-module-item-title">{item.title}</h3>
-                          <p className="da-module-item-description">{item.description}</p>
-                          <div className="da-module-item-meta">
-                            <span className="da-module-item-status">{item.status}</span>
-                            <span className="da-module-item-separator">•</span>
-                            <span className="da-module-item-assignee">{item.assignee}</span>
-                          </div>
-                          <div className="da-module-item-priority">
-                            <span className={`priority-badge priority-${item.priority.toLowerCase()}`}>
-                              {item.priority}
-                            </span>
-                          </div>
-                        </div>
-                        <button
-                          className="da-module-item-delete"
-                          onClick={() => handleDeleteItem(column.id, item.id)}
-                          aria-label="Delete item"
-                        >
-                          ×
-                        </button>
-                      </div>
-                    ))}
-                  </div>
-                )}
-
-                {/* Add Item Button */}
-                <button
-                  className="da-module-add-item-btn"
-                  onClick={() => handleAddItem(column.id)}
+        <DragDropContext onDragEnd={handleDragEnd}>
+          <div className="da-module-columns-container">
+            {columns.map((column) => (
+              <div key={column.id} className="da-module-column">
+                {/* Column Header */}
+                <div
+                  className="da-module-column-header"
+                  style={{ borderTopColor: column.color }}
                 >
-                  <span className="da-module-add-icon">+</span>
-                  <span>Add Item</span>
-                </button>
+                  <div className="da-module-column-header-left">
+                    <div
+                      className="da-module-column-indicator"
+                      style={{ backgroundColor: column.color }}
+                    ></div>
+                    <h2 className="da-module-column-title">{column.title}</h2>
+                  </div>
+                  <div className="da-module-column-count">{column.items.length}</div>
+                </div>
+
+                {/* Column Body */}
+                <div className="da-module-column-body">
+                  {column.items.length === 0 ? (
+                    <div className="da-module-empty-state">
+                      <p>No items yet</p>
+                    </div>
+                  ) : (
+                    <Droppable droppableId={column.id}>
+                      {(provided, snapshot) => (
+                        <div
+                          ref={provided.innerRef}
+                          {...provided.droppableProps}
+                          className={`da-module-items-list ${snapshot.isDraggingOver ? 'drag-over' : ''}`}
+                        >
+                          {column.items.map((item, index) => (
+                            <Draggable
+                              key={item.id}
+                              draggableId={item.id}
+                              index={index}
+                            >
+                              {(provided, snapshot) => (
+                                <div
+                                  ref={provided.innerRef}
+                                  {...provided.draggableProps}
+                                  {...provided.dragHandleProps}
+                                  className={`da-module-item ${snapshot.isDragging ? 'dragging' : ''}`}
+                                  style={provided.draggableProps.style}
+                                >
+                                  <div className="da-module-item-content">
+                                    <h3 className="da-module-item-title">{item.title}</h3>
+                                    <p className="da-module-item-description">{item.description}</p>
+                                    <div className="da-module-item-meta">
+                                      <span className={`da-module-item-status status-${item.status.toLowerCase().replace(' ', '-')}`}>
+                                        {item.status}
+                                      </span>
+                                      <span className="da-module-item-separator">•</span>
+                                      <span className="da-module-item-assignee">{item.assignee}</span>
+                                    </div>
+                                    <div className="da-module-item-priority">
+                                      <span className={`priority-badge priority-${item.priority.toLowerCase()}`}>
+                                        {item.priority}
+                                      </span>
+                                    </div>
+                                  </div>
+                                  <button
+                                    className="da-module-item-delete"
+                                    onClick={(e) => {
+                                      e.stopPropagation();
+                                      handleDeleteItem(column.id, item.id);
+                                    }}
+                                    aria-label="Delete item"
+                                  >
+                                    ×
+                                  </button>
+                                </div>
+                              )}
+                            </Draggable>
+                          ))}
+                          {provided.placeholder}
+                        </div>
+                      )}
+                    </Droppable>
+                  )}
+
+                  {/* Add Item Button */}
+                  <button
+                    className="da-module-add-item-btn"
+                    onClick={() => handleAddItem(column.id)}
+                  >
+                    <span className="da-module-add-icon">+</span>
+                    <span>Add Item</span>
+                  </button>
+                </div>
               </div>
-            </div>
-          ))}
-        </div>
+            ))}
+          </div>
+        </DragDropContext>
       </div>
     </div>
   );
