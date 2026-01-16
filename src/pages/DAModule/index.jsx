@@ -115,7 +115,7 @@ export default function DAModule() {
   }, []);
 
   const handleDragEnd = useCallback((result) => {
-    const { destination, source, draggableId } = result;
+    const { destination, source } = result;
 
     // If dropped outside a droppable area, do nothing
     if (!destination) {
@@ -130,31 +130,60 @@ export default function DAModule() {
       return;
     }
 
-    // Only allow dragging within the same column
-    if (destination.droppableId !== source.droppableId) {
+    // Find source and destination columns
+    const sourceColumn = columns.find((col) => col.id === source.droppableId);
+    const destColumn = columns.find((col) => col.id === destination.droppableId);
+
+    if (!sourceColumn || !destColumn) {
       return;
     }
 
-    // Find the column
-    const column = columns.find((col) => col.id === source.droppableId);
-    if (!column) {
+    // Find the item being moved
+    const itemToMove = sourceColumn.items[source.index];
+    if (!itemToMove) {
       return;
     }
 
-    // Create a new array with reordered items
-    const newItems = Array.from(column.items);
-    const [removed] = newItems.splice(source.index, 1);
-    newItems.splice(destination.index, 0, removed);
+    // Check if moving within the same column or to a different column
+    const isSameColumn = source.droppableId === destination.droppableId;
 
-    // Update the column with new items order
+    // Update columns
     setColumns((prev) =>
       prev.map((col) => {
-        if (col.id === column.id) {
-          return {
-            ...col,
-            items: newItems,
-          };
+        if (isSameColumn) {
+          // Moving within the same column - reorder items
+          if (col.id === source.droppableId) {
+            const newItems = Array.from(col.items);
+            const [removed] = newItems.splice(source.index, 1);
+            newItems.splice(destination.index, 0, removed);
+            return {
+              ...col,
+              items: newItems,
+            };
+          }
+        } else {
+          // Moving between different columns
+          // Remove item from source column
+          if (col.id === source.droppableId) {
+            const newItems = Array.from(col.items);
+            newItems.splice(source.index, 1);
+            return {
+              ...col,
+              items: newItems,
+            };
+          }
+
+          // Add item to destination column
+          if (col.id === destination.droppableId) {
+            const newItems = Array.from(col.items);
+            newItems.splice(destination.index, 0, itemToMove);
+            return {
+              ...col,
+              items: newItems,
+            };
+          }
         }
+
         return col;
       })
     );
