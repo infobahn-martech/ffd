@@ -167,12 +167,6 @@ export function UserModal({ showModal, closeModal }) {
                   )}
                 </div>
               </div>
-            </div>
-          </div>
-
-          {/* ===== Phone + Address ===== */}
-          <div className="mb-lg-3 mb-sm-0">
-            <div className="permInputs row">
               {/* PHONE */}
               <div className="col-lg-6 col-sm-12">
                 <div className="phone-wrapper">
@@ -208,6 +202,13 @@ export function UserModal({ showModal, closeModal }) {
                   )}
                 </div>
               </div>
+            </div>
+          </div>
+
+          {/* ===== Phone + Address ===== */}
+          <div className="mb-lg-3 mb-sm-0">
+            <div className="permInputs row">
+
 
               {/* ADDRESS (optional) */}
               <div className="col-lg-6 col-sm-12">
