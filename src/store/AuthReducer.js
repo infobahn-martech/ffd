@@ -14,6 +14,7 @@ const useAuthReducer = create((set) => ({
   successMessage: '',
   profileData: null,
   profileEditLoader: null,
+  isProfileFetchLoading: false,
   login: async ({ email, password }) => {
     try {
       set({ isLoginLoading: true, errorMessage: "" });
@@ -42,6 +43,12 @@ const useAuthReducer = create((set) => ({
       });
       const { success } = useAlertReducer.getState();
       success(data && data.message);
+
+      // If token and userid exist, fetch user details
+      if (accessToken && data?.userid) {
+        const { getUserProfile } = useAuthReducer.getState();
+        getUserProfile(data.userid);
+      }
     } catch (err) {
       const { error } = useAlertReducer.getState();
       set({
@@ -89,12 +96,25 @@ const useAuthReducer = create((set) => ({
     removeItem('accessToken');
     removeItem('refreshToken');
   },
-  getUserProfile: async () => {
+  getUserProfile: async (userId = null) => {
     try {
       set({ isProfileFetchLoading: true });
-      const { data } = await authService.getUserProfile();
-      const profileData = data.data;
-      set({ profileData, isProfileFetchLoading: false });
+      let response;
+
+      // If userId is provided, use the new endpoint
+      if (userId) {
+        response = await authService.getUserDetail(userId);
+      } else {
+        // Fallback to original endpoint
+        response = await authService.getUserProfile();
+      }
+
+      const profileData = response.data?.data || response.data;
+      set({
+        profileData,
+        userProfile: profileData,
+        isProfileFetchLoading: false
+      });
     } catch (err) {
       const { error } = useAlertReducer.getState();
       set({
