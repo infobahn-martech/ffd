@@ -100,7 +100,19 @@ function SideNav({ isMobileMenuOpen, onCloseMobileMenu }) {
       icon: dashboardIcon, // 2x2 grid icon
       hasPermission: true,
     },
-
+    // ✅ Admin + Configuration
+    {
+      menu: 'User Management',
+      isDefaultMenu: true,
+      hasPermission: true,
+      isOpen: false,
+      subMenus: [
+        { menu: 'Roles', to: '/roles', hasPermission: true },
+        { menu: 'Permissions', to: '/permissions', hasPermission: true },
+        { menu: 'Users', to: '/users', hasPermission: true },
+      ],
+      icon: usersIcon, // User management-specific icon
+    },
     // ✅ Core Operations
     {
       menu: 'Vessel Management',
@@ -213,20 +225,6 @@ function SideNav({ isMobileMenuOpen, onCloseMobileMenu }) {
         { menu: 'Billing Instruction', to: '/billing-instruction', hasPermission: true },
       ],
       icon: billingIcon, // Billing-specific icon
-    },
-
-    // ✅ Admin + Configuration
-    {
-      menu: 'User Management',
-      isDefaultMenu: true,
-      hasPermission: true,
-      isOpen: false,
-      subMenus: [
-        { menu: 'Roles', to: '/roles', hasPermission: true },
-        { menu: 'Permissions', to: '/permissions', hasPermission: true },
-        { menu: 'Users', to: '/users', hasPermission: true },
-      ],
-      icon: usersIcon, // User management-specific icon
     },
     {
       menu: 'Operations Configuration',

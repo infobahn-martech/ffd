@@ -1,17 +1,10 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import CommonHeader from "../../components/CommonHeader";
 import CustomTable from "../../components/customTable";
 import { RoleModal } from "./Modals/AddEditRole";
 import { RenderAction } from "./RenderCells";
 import DeleteConfirmationModal from "../../components/DeleteConfirmationModal";
-import { ROLE_OPTIONS, getRoleDescription } from "../../constants/roles";
-
-const dummyRoles = ROLE_OPTIONS.map((role, index) => ({
-  _id: `${index + 1}`,
-  name: role,
-  description: getRoleDescription(role),
-}));
-
+import useRoleReducer from "../../store/RoleReducer";
 
 const Role = () => {
   const [params, setParams] = useState({
@@ -23,8 +16,45 @@ const Role = () => {
   });
 
   const [showRoleModal, setShowRoleModal] = useState(false);
-  const [showDeleteModal, setShowDeleteModal] = useState(false);
+  const [selectedRoleForDelete, setSelectedRoleForDelete] = useState(null);
 
+  const {
+    fetchRoles,
+    roles,
+    createRole,
+    updateRole,
+    deleteRole,
+    isBeingUpdated,
+    isLoading,
+  } = useRoleReducer((state) => state);
+
+  useEffect(() => {
+    fetchRoles();
+  }, []);
+
+  // Filter roles based on search term
+  const filteredRoles = roles?.filter((role) => {
+    if (!params.searchTerm) return true;
+    const searchLower = params.searchTerm.toLowerCase();
+    return (
+      role.name?.toLowerCase().includes(searchLower) ||
+      role.description?.toLowerCase().includes(searchLower)
+    );
+  }) || [];
+
+  // Sort filtered roles
+  const sortedRoles = [...filteredRoles].sort((a, b) => {
+    const aValue = a[params.sortBy] || '';
+    const bValue = b[params.sortBy] || '';
+    const comparison = aValue.localeCompare(bValue);
+    return params.sortOrder === 1 ? comparison : -comparison;
+  });
+
+  // Paginate sorted roles
+  const paginatedRoles = sortedRoles.slice(
+    (params.page - 1) * params.limit,
+    params.page * params.limit
+  );
 
   // 👉 ONLY TWO COLUMNS (Name + Description)
   const cols = [
@@ -51,7 +81,7 @@ const Role = () => {
       contentClass: 'table-content',
       thclass: 'tb-head',
       onEditClick: (row) => { setShowRoleModal(row) },
-      onDeleteClick: () => { setShowDeleteModal(true) },
+      onDeleteClick: (row) => { setSelectedRoleForDelete(row) },
       cell: RenderAction,
       width: '200',
     },
@@ -79,9 +109,10 @@ const Role = () => {
             Sl
             pagination={{ currentPage: params.page, limit: params.limit }}
             tableClasses="px-start"
-            count={dummyRoles.length}
+            count={filteredRoles.length}
             columns={cols}
-            data={dummyRoles}
+            data={paginatedRoles}
+            isLoading={isLoading}
             onPageChange={(currentPage) =>
               setParams({ ...params, page: currentPage })
             }
@@ -102,15 +133,30 @@ const Role = () => {
             <RoleModal
               showModal={showRoleModal}
               closeModal={() => setShowRoleModal(false)}
+              createRole={createRole}
+              updateRole={updateRole}
+              onSuccess={() => {
+                setShowRoleModal(false);
+                fetchRoles();
+              }}
+              isBeingUpdated={isBeingUpdated}
             />
           )}
-          {!!showDeleteModal && (
+          {!!selectedRoleForDelete && (
             <DeleteConfirmationModal
-              show={showDeleteModal}
-              onCancel={() => setShowDeleteModal(false)}
-              onConfirm={() => { }}
-              deleteText="Are you sure you want to delete this role?"
-            // isLoading={isBeingUpdated}
+              show={!!selectedRoleForDelete}
+              onCancel={() => setSelectedRoleForDelete(null)}
+              onConfirm={() => {
+                deleteRole({
+                  id: selectedRoleForDelete._id,
+                  cb: () => {
+                    setSelectedRoleForDelete(null);
+                    fetchRoles();
+                  },
+                });
+              }}
+              deleteText={`Are you sure you want to delete the role "${selectedRoleForDelete?.name}"?`}
+              isLoading={isBeingUpdated}
             />
           )}
         </div>

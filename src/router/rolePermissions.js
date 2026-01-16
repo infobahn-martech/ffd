@@ -61,12 +61,12 @@ export const hasRouteAccess = (userRoleId, routePath) => {
   if (userRoleId === ROLE_IDS.SUPER_ADMIN || userRoleId === ROLE_IDS.VENDOR) {
     return true;
   }
-  
+
   const allowedRoles = routePermissions[routePath];
   if (!allowedRoles) {
     return false; // Route not in permissions list
   }
-  
+
   return allowedRoles.includes(userRoleId);
 };
 
@@ -75,8 +75,8 @@ export const getAllowedRoutesForRole = (userRoleId) => {
   if (userRoleId === ROLE_IDS.SUPER_ADMIN || userRoleId === ROLE_IDS.VENDOR) {
     return Object.keys(routePermissions); // All routes
   }
-  
-  return Object.keys(routePermissions).filter(route => 
+
+  return Object.keys(routePermissions).filter(route =>
     routePermissions[route].includes(userRoleId)
   );
 };

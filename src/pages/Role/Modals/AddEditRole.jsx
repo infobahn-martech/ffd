@@ -4,7 +4,14 @@ import "../../../design/scss/prospect-modal.scss";
 import "../../../design/scss/modal-designs.scss";
 import "../../../design/scss/form-designs.scss";
 
-export function RoleModal({ showModal, closeModal }) {
+export function RoleModal({ 
+  showModal, 
+  closeModal, 
+  createRole, 
+  updateRole, 
+  onSuccess,
+  isBeingUpdated 
+}) {
   const {
     register,
     handleSubmit,
@@ -13,14 +20,26 @@ export function RoleModal({ showModal, closeModal }) {
     defaultValues: showModal?._id
       ? {
         roleName: showModal?.name,
-        description: showModal?.description
+        description: showModal?.description || ""
       }
       : {}
   });
 
   const onSubmit = (data) => {
-    console.log("ROLE FORM SUBMITTED:", data);
-    closeModal();
+    if (showModal?._id) {
+      // Update existing role
+      updateRole({
+        id: showModal._id,
+        formData: data,
+        cb: onSuccess,
+      });
+    } else {
+      // Create new role
+      createRole({
+        formData: data,
+        cb: onSuccess,
+      });
+    }
   };
 
   const renderHeader = () => (
@@ -79,11 +98,21 @@ export function RoleModal({ showModal, closeModal }) {
 
   const renderFooter = () => (
     <div className="modal-footer">
-      <button type="button" className="btn btn-outline" onClick={closeModal}>
+      <button 
+        type="button" 
+        className="btn btn-outline" 
+        onClick={closeModal}
+        disabled={isBeingUpdated}
+      >
         Close
       </button>
-      <button type="submit" form="roleForm" className="btn btn-primary">
-        Save
+      <button 
+        type="submit" 
+        form="roleForm" 
+        className="btn btn-primary"
+        disabled={isBeingUpdated}
+      >
+        {isBeingUpdated ? "Saving..." : "Save"}
       </button>
     </div>
   );
