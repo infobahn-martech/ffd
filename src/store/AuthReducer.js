@@ -1,6 +1,6 @@
 import { create } from 'zustand';
 import authService from '../services/authService';
-import { getAuthData, removeItem, setItem } from '../helpers/localStorage';
+import { getAuthData, removeItem, setItem, getItem } from '../helpers/localStorage';
 import useAlertReducer from './AlertReducer';
 
 const { isLoggedIn } = getAuthData();
@@ -34,6 +34,8 @@ const useAuthReducer = create((set) => ({
       };
 
       if (accessToken) setItem("accessToken", accessToken);
+      // Store userid in localStorage for refresh persistence
+      if (data?.userid) setItem("userid", data.userid);
 
       set({
         authData,
@@ -95,21 +97,24 @@ const useAuthReducer = create((set) => ({
     });
     removeItem('accessToken');
     removeItem('refreshToken');
+    removeItem('userid');
   },
   getUserProfile: async (userId = null) => {
     try {
       set({ isProfileFetchLoading: true });
-      let response;
 
-      // If userId is provided, use the new endpoint
-      if (userId) {
-        response = await authService.getUserDetail(userId);
-      } else {
-        // Fallback to original endpoint
-        response = await authService.getUserProfile();
+      // Get userId from parameter, authData state, or localStorage
+      const state = useAuthReducer.getState();
+      const finalUserId = userId || state.authData?.userid || getItem('userid');
+
+      if (!finalUserId) {
+        throw new Error("User ID is required to fetch user profile");
       }
 
+      // Always use getUserDetail endpoint
+      const response = await authService.getUserDetail(finalUserId);
       const profileData = response.data?.data || response.data;
+
       set({
         profileData,
         userProfile: profileData,
@@ -124,6 +129,7 @@ const useAuthReducer = create((set) => ({
       error(err?.response?.data?.message ?? err.message);
       removeItem('accessToken');
       removeItem('refreshToken');
+      removeItem('userid');
     }
   },
 

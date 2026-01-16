@@ -4,6 +4,7 @@ import { createHashRouter } from "react-router-dom";
 import App from "../App";
 import PublicRoutes from "./PublicRoute";
 import PrivateRoutes from "./PrivateRoute";
+import RouteGuard from "./RouteGuard";
 import Layout from "../structure/Layout";
 
 import Dashboard from "../pages/Dashboard";
@@ -50,7 +51,7 @@ import TransportParties from "../pages/TransportParties";
 import WasteTypes from "../pages/WasteTypes";
 import NotFound from "../pages/NotFound";
 // 🔥 Set true to bypass auth temporarily
-const TEST_MODE = true;
+const TEST_MODE = false;
 
 const router = createHashRouter([
   {
@@ -134,84 +135,85 @@ const router = createHashRouter([
               {
                 element: <Layout />,
                 children: [
-                  { path: "/dashboard", element: <Dashboard /> },
-                  { path: "/kanban-board", element: <KanbanBoard /> },
-                  { path: "/workspaces", element: <Workspaces /> },
-                  { path: "/edit-workflow", element: <EditWorkflows /> },
-                  { path: "/custom-inspection", element: <CustomInspection /> },
-                  { path: "/job-status", element: <JobStatusBE /> },
-                  { path: "/group-email", element: <GroupEmailBE /> },
-                  { path: "/crew-management", element: <Crew /> },
-                  { path: "/report-management", element: <ReportManagement /> },
-                  { path: "/activity-log", element: <ActivityLog /> },
-                  { path: "/notification", element: <Notification /> },
-                  { path: "/packing-type", element: <PackingType /> },
-                  { path: "/logistics-warehouse", element: <LogisticsWarehouse /> },
-                  { path: "/status-management", element: <StatusManagement /> },
-                  { path: "/custom-fields", element: <CustomFields /> },
-                  { path: "/billing-instruction", element: <BillingInstruction /> },
-                  { path: "/captains", element: <Captains /> },
-                  { path: "/fleet", element: <FleetManagement /> },
-                  { path: "/location", element: <Location /> },
-                  { path: "/service-providers", element: <ServiceProviders /> },
-                  { path: "/transport-parties", element: <TransportParties /> },
-                  { path: "/appointment-acceptance", element: <AppointmentAcceptance /> },
-                  { path: "/pre-arrival-information", element: <PreArrivalInformation /> },
-                  { path: "/driver-management", element: <Driver /> },
-                  { path: "/vehicle-management", element: <Vehicle /> },
-                  { path: "/driver-vehicle-mapping", element: <DriverVehicleMapping /> },
-                  { path: "/check-list", element: <CheckList /> },
-                  { path: "/hotel-management", element: <Hotel /> },
-                  { path: "/material-type", element: <MaterialType /> },
-                  { path: "/packing-type", element: <PackingType /> },
-                  { path: "/logistics-warehouse", element: <LogisticsWarehouse /> },
-                  { path: "/status-management", element: <StatusManagement /> },
-                  { path: "/custom-fields", element: <CustomFields /> },
-                  { path: "/job-status", element: <JobStatusBE /> },
-                  { path: "/group-email", element: <GroupEmailBE /> },
-                  { path: "/billing-instruction", element: <BillingInstruction /> },
-                  { path: "/captains", element: <Captains /> },
-                  { path: "/fleet", element: <FleetManagement /> },
-                  { path: "/location", element: <Location /> },
-                  { path: "/service-providers", element: <ServiceProviders /> },
-                  { path: "/transport-parties", element: <TransportParties /> },
-                  { path: "/appointment-acceptance", element: <AppointmentAcceptance /> },
-                  { path: "/pre-arrival-information", element: <PreArrivalInformation /> },
-                  { path: "/driver-management", element: <Driver /> },
-                  { path: "/vehicle-management", element: <Vehicle /> },
-                  { path: "/driver-vehicle-mapping", element: <DriverVehicleMapping /> },
-                  { path: "/check-list", element: <CheckList /> },
-                  { path: "/hotel-management", element: <Hotel /> },
-                  { path: "/material-type", element: <MaterialType /> },
-                  { path: "/packing-type", element: <PackingType /> },
-                  { path: "/logistics-warehouse", element: <LogisticsWarehouse /> },
-                  { path: "/status-management", element: <StatusManagement /> },
-                  { path: "/custom-fields", element: <CustomFields /> },
-                  { path: "/job-status", element: <JobStatusBE /> },
-                  { path: "/group-email", element: <GroupEmailBE /> },
-                  { path: "/billing-instruction", element: <BillingInstruction /> },
-                  { path: "/captains", element: <Captains /> },
-                  { path: "/fleet", element: <FleetManagement /> },
-                  { path: "/location", element: <Location /> },
-                  { path: "/service-providers", element: <ServiceProviders /> },
-                  { path: "/transport-parties", element: <TransportParties /> },
-                  { path: "/appointment-acceptance", element: <AppointmentAcceptance /> },
-                  { path: "/pre-arrival-information", element: <PreArrivalInformation /> },
-                  { path: "/driver-management", element: <Driver /> },
-                  { path: "/vehicle-management", element: <Vehicle /> },
-                  { path: "/driver-vehicle-mapping", element: <DriverVehicleMapping /> },
-                  { path: "/check-list", element: <CheckList /> },
-                  { path: "/hotel-management", element: <Hotel /> },
-                  { path: "/material-type", element: <MaterialType /> },
-                  { path: "/packing-type", element: <PackingType /> },
-                  { path: "/logistics-warehouse", element: <LogisticsWarehouse /> },
-                  { path: "/status-management", element: <StatusManagement /> },
-                  { path: "/custom-fields", element: <CustomFields /> },
-                  { path: "/job-status", element: <JobStatusBE /> },
-                  { path: "/group-email", element: <GroupEmailBE /> },
-                  { path: "/billing-instruction", element: <BillingInstruction /> },
-                  { path: "/captains", element: <Captains /> },
-                  { path: "/settings", element: <h1>Settings</h1> },
+                  // Dashboard - All roles
+                  { path: "/dashboard", element: <RouteGuard><Dashboard /></RouteGuard> },
+                  // Kanban Board
+                  { path: "/kanban-board", element: <RouteGuard><KanbanBoard /></RouteGuard> },
+                  // Workspaces
+                  { path: "/workspaces", element: <RouteGuard><Workspaces /></RouteGuard> },
+                  // Edit Workflow
+                  { path: "/edit-workflow", element: <RouteGuard><EditWorkflows /></RouteGuard> },
+                  // Role Management - Super Admin, Admin only
+                  { path: "/roles", element: <RouteGuard><Role /></RouteGuard> },
+                  { path: "/permissions", element: <RouteGuard><Permission /></RouteGuard> },
+                  // User Management
+                  { path: "/users", element: <RouteGuard><User /></RouteGuard> },
+                  // Port Management
+                  { path: "/port-management", element: <RouteGuard><Port /></RouteGuard> },
+                  // Vessel Types
+                  { path: "/vessel-types", element: <RouteGuard><VesselType /></RouteGuard> },
+                  // Barge Types
+                  { path: "/barge-types", element: <RouteGuard><BargeType /></RouteGuard> },
+                  // Vessel Onboarding
+                  { path: "/vessel-onboarding", element: <RouteGuard><Vessel /></RouteGuard> },
+                  // Billing Entity
+                  { path: "/billing-entity", element: <RouteGuard><BillingEntity /></RouteGuard> },
+                  // Customer Pricing
+                  { path: "/customer-pricing", element: <RouteGuard><CustomerPricing /></RouteGuard> },
+                  // Custom Inspection
+                  { path: "/custom-inspection", element: <RouteGuard><CustomInspection /></RouteGuard> },
+                  // Crew Management
+                  { path: "/crew-management", element: <RouteGuard><Crew /></RouteGuard> },
+                  // Report Management
+                  { path: "/report-management", element: <RouteGuard><ReportManagement /></RouteGuard> },
+                  // Activity Log
+                  { path: "/activity-log", element: <RouteGuard><ActivityLog /></RouteGuard> },
+                  // Notification
+                  { path: "/notification", element: <RouteGuard><Notification /></RouteGuard> },
+                  // Appointment Acceptance
+                  { path: "/appointment-acceptance", element: <RouteGuard><AppointmentAcceptance /></RouteGuard> },
+                  // Pre Arrival Information
+                  { path: "/pre-arrival-information", element: <RouteGuard><PreArrivalInformation /></RouteGuard> },
+                  // Driver Management
+                  { path: "/driver-management", element: <RouteGuard><Driver /></RouteGuard> },
+                  // Vehicle Management
+                  { path: "/vehicle-management", element: <RouteGuard><Vehicle /></RouteGuard> },
+                  // Driver Vehicle Mapping
+                  { path: "/driver-vehicle-mapping", element: <RouteGuard><DriverVehicleMapping /></RouteGuard> },
+                  // Check List
+                  { path: "/check-list", element: <RouteGuard><CheckList /></RouteGuard> },
+                  // Hotel Management
+                  { path: "/hotel-management", element: <RouteGuard><Hotel /></RouteGuard> },
+                  // Material Type
+                  { path: "/material-type", element: <RouteGuard><MaterialType /></RouteGuard> },
+                  // Packing Type
+                  { path: "/packing-type", element: <RouteGuard><PackingType /></RouteGuard> },
+                  // Logistics Warehouse
+                  { path: "/logistics-warehouse", element: <RouteGuard><LogisticsWarehouse /></RouteGuard> },
+                  // Status Management
+                  { path: "/status-management", element: <RouteGuard><StatusManagement /></RouteGuard> },
+                  // Custom Fields
+                  { path: "/custom-fields", element: <RouteGuard><CustomFields /></RouteGuard> },
+                  // Job Status BE
+                  { path: "/job-status", element: <RouteGuard><JobStatusBE /></RouteGuard> },
+                  // Group Email BE
+                  { path: "/group-email", element: <RouteGuard><GroupEmailBE /></RouteGuard> },
+                  // Billing Instruction
+                  { path: "/billing-instruction", element: <RouteGuard><BillingInstruction /></RouteGuard> },
+                  // Captains
+                  { path: "/captains", element: <RouteGuard><Captains /></RouteGuard> },
+                  // Fleet Management
+                  { path: "/fleet", element: <RouteGuard><FleetManagement /></RouteGuard> },
+                  // Location
+                  { path: "/location", element: <RouteGuard><Location /></RouteGuard> },
+                  // Service Providers
+                  { path: "/service-providers", element: <RouteGuard><ServiceProviders /></RouteGuard> },
+                  // Transport Parties
+                  { path: "/transport-parties", element: <RouteGuard><TransportParties /></RouteGuard> },
+                  // Waste Types
+                  { path: "/waste-types", element: <RouteGuard><WasteTypes /></RouteGuard> },
+                  // Settings
+                  { path: "/settings", element: <RouteGuard><h1>Settings</h1></RouteGuard> },
                 ],
               },
             ],
