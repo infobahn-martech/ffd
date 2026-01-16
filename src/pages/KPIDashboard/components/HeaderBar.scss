@@ -180,6 +180,10 @@
     font-style: normal;
     font-weight: 500;
     line-height: 140%;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    max-width: 100%;
 
     @media (max-width: 768px) {
       font-size: 12px;

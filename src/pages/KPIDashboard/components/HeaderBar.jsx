@@ -60,7 +60,7 @@ const HeaderBar = ({ breadcrumbs = null, title = 'KPI Dashboard', onMobileMenuTo
   return (
     <div className="kpi-header-bar">
       {onMobileMenuToggle && (
-        <button 
+        <button
           className="kpi-header-bar__mobile-menu-toggle"
           onClick={onMobileMenuToggle}
           aria-label="Toggle menu"
@@ -71,7 +71,10 @@ const HeaderBar = ({ breadcrumbs = null, title = 'KPI Dashboard', onMobileMenuTo
       {displayContent}
       <div className="kpi-header-bar__left">
         <div className="kpi-header-bar__progress-section">
-          <span className="kpi-header-bar__progress-text">
+          <span
+            className="kpi-header-bar__progress-text"
+            title={`Level ${nextLevel} in ${pointsLeft} points`}
+          >
             Level {nextLevel} in {pointsLeft} points
           </span>
           <div className="kpi-header-bar__progress-bar">
