@@ -4,13 +4,13 @@ import "../../../design/scss/prospect-modal.scss";
 import "../../../design/scss/modal-designs.scss";
 import "../../../design/scss/form-designs.scss";
 
-export function RoleModal({ 
-  showModal, 
-  closeModal, 
-  createRole, 
-  updateRole, 
+export function RoleModal({
+  showModal,
+  closeModal,
+  createRole,
+  updateRole,
   onSuccess,
-  isBeingUpdated 
+  isBeingUpdated
 }) {
   const {
     register,
@@ -62,7 +62,11 @@ export function RoleModal({
                 className={`form-control ${errors.roleName ? "is-invalid" : ""}`}
                 placeholder="Role Name"
                 {...register("roleName", {
-                  required: "Role name is required"
+                  required: "Role name is required",
+                  minLength: {
+                    value: 3,
+                    message: "Role name must be at least 3 characters"
+                  }
                 })}
               />
               <label>
@@ -83,9 +87,20 @@ export function RoleModal({
                 className="form-control"
                 placeholder="Description"
                 style={{ height: "120px" }}
-                {...register("description")}
+                {...register("description", {
+                  required: false,
+                  minLength: {
+                    value: 10,
+                    message: "Description must be at least 10 characters"
+                  }
+                })}
               ></textarea>
               <label>Description</label>
+              {errors.description && (
+                <span className="error text-danger">
+                  {errors.description.message}
+                </span>
+              )}
             </div>
           </div>
 
@@ -98,17 +113,17 @@ export function RoleModal({
 
   const renderFooter = () => (
     <div className="modal-footer">
-      <button 
-        type="button" 
-        className="btn btn-outline" 
+      <button
+        type="button"
+        className="btn btn-outline"
         onClick={closeModal}
         disabled={isBeingUpdated}
       >
         Close
       </button>
-      <button 
-        type="submit" 
-        form="roleForm" 
+      <button
+        type="submit"
+        form="roleForm"
         className="btn btn-primary"
         disabled={isBeingUpdated}
       >
