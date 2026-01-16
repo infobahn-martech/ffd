@@ -282,15 +282,6 @@ export default function DAModule() {
                       )}
                     </Droppable>
                   )}
-
-                  {/* Add Item Button */}
-                  <button
-                    className="da-module-add-item-btn"
-                    onClick={() => handleAddItem(column.id)}
-                  >
-                    <span className="da-module-add-icon">+</span>
-                    <span>Add Item</span>
-                  </button>
                 </div>
               </div>
             ))}
