@@ -8,7 +8,8 @@ import {
   FiBell,
   FiLayout,
   FiGrid,
-  FiBarChart2
+  FiBarChart2,
+  FiDatabase
 } from 'react-icons/fi';
 import { Tooltip } from 'react-tooltip';
 import 'react-tooltip/dist/react-tooltip.css';
@@ -305,7 +306,6 @@ function Header({ onMenuToggle, mobileMenuOpen: externalMobileMenuOpen }) {
           onClick={() => navigate('/workspaces')}
           style={{ cursor: 'pointer' }}
         />
-
         <div className="top-links">
           {/* Navigation links can be added here if needed */}
         </div>
@@ -378,6 +378,15 @@ function Header({ onMenuToggle, mobileMenuOpen: externalMobileMenuOpen }) {
         >
           <FiGrid />
         </button>
+        <Tooltip id="da-module" place="bottom" content="DA Module" />
+        <button
+          className={`icon-btn icon-btn-hide-mobile ${pathname === '/da-module' ? 'active' : ''}`}
+          aria-label="DA Module"
+          onClick={() => navigate('/da-module')}
+          data-tooltip-id="da-module"
+        >
+          <FiDatabase />
+        </button>
         <Tooltip id="kpi-dashboard" place="bottom" content="KPI Dashboard" />
         <button
           className={`icon-btn icon-btn-hide-mobile ${pathname === '/kpi-dashboard' ? 'active' : ''}`}
@@ -418,7 +427,7 @@ function Header({ onMenuToggle, mobileMenuOpen: externalMobileMenuOpen }) {
           </button>
           {showSettingsDropdown && (
             <div className="settings-dropdown">
-              <div 
+              <div
                 className={`settings-dropdown-item settings-dropdown-item-with-submenu ${showBoardTeamsSubmenu ? 'submenu-open' : ''}`}
                 onClick={handleBoardTeamsClick}
               >
@@ -437,7 +446,7 @@ function Header({ onMenuToggle, mobileMenuOpen: externalMobileMenuOpen }) {
               <div className="settings-dropdown-item" onClick={handleBusinessRulesClick}>
                 Business rules
               </div>
-              <div 
+              <div
                 className={`settings-dropdown-item settings-dropdown-item-with-submenu ${showCardManagementSubmenu ? 'submenu-open' : ''}`}
                 onClick={handleCardManagementClick}
               >
@@ -520,33 +529,33 @@ function Header({ onMenuToggle, mobileMenuOpen: externalMobileMenuOpen }) {
       />}
 
       {/* Settings Modals */}
-      <BusinessRulesModal 
-        show={showBusinessRulesModal} 
-        onClose={() => setShowBusinessRulesModal(false)} 
+      <BusinessRulesModal
+        show={showBusinessRulesModal}
+        onClose={() => setShowBusinessRulesModal(false)}
       />
-      <ManagersModal 
-        show={showManagersModal} 
-        onClose={() => setShowManagersModal(false)} 
+      <ManagersModal
+        show={showManagersModal}
+        onClose={() => setShowManagersModal(false)}
       />
-      <DashboardsModal 
-        show={showDashboardsModal} 
-        onClose={() => setShowDashboardsModal(false)} 
+      <DashboardsModal
+        show={showDashboardsModal}
+        onClose={() => setShowDashboardsModal(false)}
       />
-      <BlockersModal 
-        show={showBlockersModal} 
-        onClose={() => setShowBlockersModal(false)} 
+      <BlockersModal
+        show={showBlockersModal}
+        onClose={() => setShowBlockersModal(false)}
       />
-      <StickersModal 
-        show={showStickersModal} 
-        onClose={() => setShowStickersModal(false)} 
+      <StickersModal
+        show={showStickersModal}
+        onClose={() => setShowStickersModal(false)}
       />
-      <TagsModal 
-        show={showTagsModal} 
-        onClose={() => setShowTagsModal(false)} 
+      <TagsModal
+        show={showTagsModal}
+        onClose={() => setShowTagsModal(false)}
       />
-      <TypesModal 
-        show={showTypesModal} 
-        onClose={() => setShowTypesModal(false)} 
+      <TypesModal
+        show={showTypesModal}
+        onClose={() => setShowTypesModal(false)}
       />
 
     </div>

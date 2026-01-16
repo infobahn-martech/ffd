@@ -8,7 +8,7 @@ import Header from '../Header';
 function Layout() {
   const { pathname } = useLocation();
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
-  const hideSidebar = pathname === '/edit-workflow';
+  const hideSidebar = pathname === '/edit-workflow' || pathname === '/da-module';
   const isKanbanBoard = pathname === '/kanban-board';
 
   const handleMenuToggle = (isOpen) => {

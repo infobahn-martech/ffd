@@ -1,0 +1,238 @@
+.da-module-wrapper {
+  display: flex;
+  flex-direction: column;
+  height: 100vh;
+  width: 100%;
+  background-color: #f5f7fa;
+  overflow: hidden;
+}
+
+.da-module-header {
+  background-color: #ffffff;
+  border-bottom: 1px solid #e5e7eb;
+  padding: 0;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
+  z-index: 10;
+}
+
+.da-module-header-content {
+  max-width: 100%;
+  margin: 0 auto;
+  padding: 24px 32px;
+}
+
+.da-module-title {
+  font-size: 28px;
+  font-weight: 600;
+  color: #1f2937;
+  margin: 0;
+  letter-spacing: -0.5px;
+}
+
+.da-module-content {
+  flex: 1;
+  overflow: auto;
+  padding: 24px 32px;
+}
+
+.da-module-columns-container {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 24px;
+  height: 100%;
+  align-items: start;
+}
+
+.da-module-column {
+  display: flex;
+  flex-direction: column;
+  background-color: #ffffff;
+  border-radius: 12px;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+  overflow: hidden;
+  height: fit-content;
+  min-height: 400px;
+  max-height: calc(100vh - 200px);
+}
+
+.da-module-column-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 16px 20px;
+  background-color: #fafafa;
+  border-top: 4px solid;
+  border-bottom: 1px solid #e5e7eb;
+}
+
+.da-module-column-header-left {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.da-module-column-indicator {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  flex-shrink: 0;
+}
+
+.da-module-column-title {
+  font-size: 16px;
+  font-weight: 600;
+  color: #1f2937;
+  margin: 0;
+}
+
+.da-module-column-count {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 32px;
+  height: 24px;
+  padding: 0 8px;
+  background-color: #f3f4f6;
+  border-radius: 12px;
+  font-size: 14px;
+  font-weight: 600;
+  color: #6b7280;
+}
+
+.da-module-column-body {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  padding: 16px;
+  overflow-y: auto;
+  min-height: 0;
+}
+
+.da-module-empty-state {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex: 1;
+  min-height: 200px;
+  color: #9ca3af;
+  font-size: 14px;
+}
+
+.da-module-items-list {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  margin-bottom: 16px;
+}
+
+.da-module-item {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  padding: 12px;
+  background-color: #f9fafb;
+  border: 1px solid #e5e7eb;
+  border-radius: 8px;
+  transition: all 0.2s ease;
+  cursor: pointer;
+
+  &:hover {
+    background-color: #f3f4f6;
+    border-color: #d1d5db;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+  }
+}
+
+.da-module-item-content {
+  flex: 1;
+}
+
+.da-module-item-title {
+  font-size: 14px;
+  font-weight: 500;
+  color: #1f2937;
+  margin: 0;
+  line-height: 1.5;
+}
+
+.da-module-item-delete {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 24px;
+  height: 24px;
+  background-color: transparent;
+  border: none;
+  border-radius: 4px;
+  color: #9ca3af;
+  font-size: 20px;
+  line-height: 1;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  flex-shrink: 0;
+  margin-left: 8px;
+
+  &:hover {
+    background-color: #fee2e2;
+    color: #ef4444;
+  }
+}
+
+.da-module-add-item-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  width: 100%;
+  padding: 12px;
+  background-color: #f9fafb;
+  border: 2px dashed #d1d5db;
+  border-radius: 8px;
+  color: #6b7280;
+  font-size: 14px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  margin-top: auto;
+
+  &:hover {
+    background-color: #f3f4f6;
+    border-color: #9ca3af;
+    color: #4b5563;
+  }
+
+  &:active {
+    transform: scale(0.98);
+  }
+}
+
+.da-module-add-icon {
+  font-size: 20px;
+  font-weight: 300;
+  line-height: 1;
+}
+
+// Responsive design
+@media (max-width: 1400px) {
+  .da-module-columns-container {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+
+@media (max-width: 768px) {
+  .da-module-columns-container {
+    grid-template-columns: 1fr;
+  }
+
+  .da-module-header-content {
+    padding: 16px 20px;
+  }
+
+  .da-module-content {
+    padding: 16px 20px;
+  }
+
+  .da-module-title {
+    font-size: 24px;
+  }
+}

@@ -11,6 +11,7 @@ import Dashboard from "../pages/Dashboard";
 import Login from "../pages/Authentication";
 import ForgetPassword from "../pages/ForgetPassword";
 import KanbanBoard from "../pages/KanbanBoard";
+import DAModule from "../pages/DAModule";
 import Workspaces from "../pages/Workspaces";
 import EditWorkflows from "../pages/EditWorkflows";
 import Port from "../pages/Port";
@@ -81,6 +82,7 @@ const router = createHashRouter([
               { path: "/users", element: <User /> },
               { path: "/customer-pricing", element: <CustomerPricing /> },
               { path: "/kanban-board", element: <KanbanBoard /> },
+              { path: "/da-module", element: <DAModule /> },
               { path: "/workspaces", element: <Workspaces /> },
               { path: "/edit-workflow", element: <EditWorkflows /> },
               { path: "/port-management", element: <Port /> },
@@ -139,6 +141,8 @@ const router = createHashRouter([
                   { path: "/dashboard", element: <RouteGuard><Dashboard /></RouteGuard> },
                   // Kanban Board
                   { path: "/kanban-board", element: <RouteGuard><KanbanBoard /></RouteGuard> },
+                  // DA Module
+                  { path: "/da-module", element: <RouteGuard><DAModule /></RouteGuard> },
                   // Workspaces
                   { path: "/workspaces", element: <RouteGuard><Workspaces /></RouteGuard> },
                   // Edit Workflow
