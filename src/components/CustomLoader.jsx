@@ -1,15 +1,36 @@
 import CommonSkeleton from './CommonSkeleton';
 
-export default function CustomLoader({ columns, limit = 10 }) {
+export default function CustomLoader({ columns, limit = 10, Sl = false }) {
+  const SKELETON_HEIGHT = 15; // Consistent height for all skeleton rows
+
   return (
     <tbody>
       {Array.from({ length: limit }).map((index, inx) => (
         <tr key={`${index}${inx}`}>
-          {columns?.map(({ colClassName = '', selector }) => (
-            <td className={colClassName} key={`cell${selector}`}>
-              <CommonSkeleton height={30} />
+          {Sl && (
+            <td>
+              <CommonSkeleton height={SKELETON_HEIGHT} width={40} />
             </td>
-          ))}
+          )}
+          {columns?.map(({ colClassName = '', selector, cell, contentClass, width }) => {
+            // If it's an Actions column (has cell renderer), show two smaller skeletons
+            if (cell && selector === 'linksInfo') {
+              return (
+                <td className={colClassName} key={`cell${selector}`}>
+                  <div className={contentClass || 'actions'} style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+                    <CommonSkeleton height={SKELETON_HEIGHT} width={20} borderRadius={4} />
+                    <CommonSkeleton height={SKELETON_HEIGHT} width={20} borderRadius={4} />
+                  </div>
+                </td>
+              );
+            }
+            // For other columns, use full width skeleton
+            return (
+              <td className={colClassName} key={`cell${selector}`}>
+                <CommonSkeleton height={SKELETON_HEIGHT} width="100%" />
+              </td>
+            );
+          })}
         </tr>
       ))}
     </tbody>

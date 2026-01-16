@@ -192,7 +192,7 @@ function CustomTable({
         <div className="row">
           <div className="table-wrapper table-responsive ">
             <table className="table table-striped">
-              {data && data.length > 0 && (
+              {(data && data.length > 0) || isLoading ? (
                 <thead>
                   <tr>
                     {Sl && <th width="100">Sl.No</th>}
@@ -219,10 +219,10 @@ function CustomTable({
                     )}
                   </tr>
                 </thead>
-              )}
+              ) : null}
 
               {isLoading ? (
-                <CustomLoader columns={columns} limit={limit} />
+                <CustomLoader columns={columns} limit={limit} Sl={Sl} />
               ) : !data.length ? (
                 <NoTableData columns={columns} />
               ) : (
