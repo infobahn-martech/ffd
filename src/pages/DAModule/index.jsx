@@ -1,31 +1,75 @@
 import { useState, useCallback } from "react";
 import "./DAModule.scss";
 
+// Dummy content templates
+const dummyContent = [
+  {
+    title: "Project Alpha",
+    description: "Main development project for Q1 2024",
+    status: "In Progress",
+    assignee: "John Smith",
+    priority: "High",
+  },
+  {
+    title: "Task Beta",
+    description: "Review and update documentation",
+    status: "Pending",
+    assignee: "Sarah Johnson",
+    priority: "Medium",
+  },
+  {
+    title: "Feature Gamma",
+    description: "Implement new user authentication",
+    status: "Completed",
+    assignee: "Mike Davis",
+    priority: "High",
+  },
+  {
+    title: "Bug Fix Delta",
+    description: "Resolve login issue on mobile devices",
+    status: "In Review",
+    assignee: "Emily Wilson",
+    priority: "Urgent",
+  },
+];
+
 // Initial data for DA Module with 4 columns
 const createDAModuleData = () => {
   const columns = [
     {
       id: "da-col-1",
       title: "Column 1",
-      items: [],
+      items: dummyContent.map((content, index) => ({
+        id: `col1-item-${index + 1}`,
+        ...content,
+      })),
       color: "#E2106C", // Pink
     },
     {
       id: "da-col-2",
       title: "Column 2",
-      items: [],
+      items: dummyContent.map((content, index) => ({
+        id: `col2-item-${index + 1}`,
+        ...content,
+      })),
       color: "#7915BC", // Purple
     },
     {
       id: "da-col-3",
       title: "Column 3",
-      items: [],
+      items: dummyContent.map((content, index) => ({
+        id: `col3-item-${index + 1}`,
+        ...content,
+      })),
       color: "#3E5EBD", // Blue
     },
     {
       id: "da-col-4",
       title: "Column 4",
-      items: [],
+      items: dummyContent.map((content, index) => ({
+        id: `col4-item-${index + 1}`,
+        ...content,
+      })),
       color: "#41B24A", // Green
     },
   ];
@@ -109,7 +153,18 @@ export default function DAModule() {
                     {column.items.map((item) => (
                       <div key={item.id} className="da-module-item">
                         <div className="da-module-item-content">
-                          <p className="da-module-item-title">{item.title}</p>
+                          <h3 className="da-module-item-title">{item.title}</h3>
+                          <p className="da-module-item-description">{item.description}</p>
+                          <div className="da-module-item-meta">
+                            <span className="da-module-item-status">{item.status}</span>
+                            <span className="da-module-item-separator">•</span>
+                            <span className="da-module-item-assignee">{item.assignee}</span>
+                          </div>
+                          <div className="da-module-item-priority">
+                            <span className={`priority-badge priority-${item.priority.toLowerCase()}`}>
+                              {item.priority}
+                            </span>
+                          </div>
                         </div>
                         <button
                           className="da-module-item-delete"
