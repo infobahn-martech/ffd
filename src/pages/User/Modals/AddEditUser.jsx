@@ -8,7 +8,6 @@ import "../../../design/scss/form-designs.scss";
 import userIcon from "../../../assets/images/user.png";
 import edit from "../../../assets/images/edit.svg";
 import { ROLE_OPTIONS } from "../../../constants/roles";
-import { PORT_OPTIONS } from "../../../constants/ports";
 
 export function UserModal({ showModal, closeModal }) {
   const {
@@ -21,7 +20,6 @@ export function UserModal({ showModal, closeModal }) {
       ? {
         name: showModal?.firstName + " " + showModal?.lastName,
         email: showModal?.email,
-        port: showModal?.port,
         role: showModal?.role,
         phone: showModal?.phone || "",
         address: showModal?.address,
@@ -144,32 +142,9 @@ export function UserModal({ showModal, closeModal }) {
             </div>
           </div>
 
-          {/* ===== Port + Role ===== */}
+          {/* ===== Role ===== */}
           <div className="mb-lg-3 mb-sm-0">
             <div className="permInputs row">
-              {/* PORT */}
-              <div className="col-lg-6 col-sm-12">
-                <div className="form-floating desig-inp">
-                  <select
-                    className={`form-control ${errors.port ? "is-invalid" : ""}`}
-                    {...register("port", { required: "Port is required" })}
-                  >
-                    <option value="">Select Port</option>
-                    {PORT_OPTIONS.map((port) => (
-                      <option key={port} value={port}>
-                        {port}
-                      </option>
-                    ))}
-                  </select>
-                  <label>
-                    Port <span className="text-danger">*</span>
-                  </label>
-                  {errors.port && (
-                    <span className="error text-danger">{errors.port.message}</span>
-                  )}
-                </div>
-              </div>
-
               {/* ROLE */}
               <div className="col-lg-6 col-sm-12">
                 <div className="form-floating desig-inp">

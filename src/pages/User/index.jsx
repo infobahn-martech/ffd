@@ -5,12 +5,11 @@ import { UserModal } from "./Modals/AddEditUser";
 import { RenderAction, RenderName } from "./RenderCells";
 import DeleteConfirmationModal from "../../components/DeleteConfirmationModal";
 import { ROLE_OPTIONS } from "../../constants/roles";
-import { PORT_OPTIONS, PORT_DETAILS } from "../../constants/ports";
+import { PORT_DETAILS } from "../../constants/ports";
 
 const dummyUsers = [
   {
     _id: "1",
-    port: PORT_OPTIONS[0],
     role: ROLE_OPTIONS[0],
     firstName: "Ajay",
     lastName: "Ullas",
@@ -22,7 +21,6 @@ const dummyUsers = [
   },
   {
     _id: "2",
-    port: PORT_OPTIONS[1],
     role: ROLE_OPTIONS[1],
     firstName: "Nikhil",
     lastName: "Varma",
@@ -34,7 +32,6 @@ const dummyUsers = [
   },
   {
     _id: "3",
-    port: PORT_OPTIONS[2],
     role: ROLE_OPTIONS[2],
     firstName: "Sangeeth",
     lastName: "Babu",
@@ -46,7 +43,6 @@ const dummyUsers = [
   },
   {
     _id: "4",
-    port: PORT_OPTIONS[3],
     role: ROLE_OPTIONS[3],
     firstName: "Vishnu",
     lastName: "Menon",
@@ -58,7 +54,6 @@ const dummyUsers = [
   },
   {
     _id: "5",
-    port: PORT_OPTIONS[4],
     role: ROLE_OPTIONS[4],
     firstName: "Riya",
     lastName: "Thomas",
@@ -70,7 +65,6 @@ const dummyUsers = [
   },
   {
     _id: "6",
-    port: PORT_OPTIONS[0],
     role: ROLE_OPTIONS[5],
     firstName: "Deepak",
     lastName: "Kumar",
@@ -82,7 +76,6 @@ const dummyUsers = [
   },
   {
     _id: "7",
-    port: PORT_OPTIONS[1],
     role: ROLE_OPTIONS[6],
     firstName: "Meera",
     lastName: "Suresh",
@@ -94,7 +87,6 @@ const dummyUsers = [
   },
   {
     _id: "8",
-    port: PORT_OPTIONS[2],
     role: ROLE_OPTIONS[7],
     firstName: "Arun",
     lastName: "Joseph",
@@ -106,7 +98,6 @@ const dummyUsers = [
   },
   {
     _id: "9",
-    port: PORT_OPTIONS[3],
     role: ROLE_OPTIONS[8],
     firstName: "Joel",
     lastName: "Sunny",
@@ -118,7 +109,6 @@ const dummyUsers = [
   },
   {
     _id: "10",
-    port: PORT_OPTIONS[4],
     role: ROLE_OPTIONS[9],
     firstName: "Sandra",
     lastName: "Mathew",
@@ -156,14 +146,6 @@ const User = () => {
       thclass: "tb-head",
       contentClass: "table-content",
       cell: RenderName,
-      sort: true,
-    },
-    {
-      name: "Port",
-      selector: "port",
-      width: "200",
-      thclass: "tb-head",
-      contentClass: "table-content",
       sort: true,
     },
     {
