@@ -26,12 +26,28 @@
   &__background {
     width: 100%;
     min-height: 100vh;
-    background-size: cover;
-    background-position: center;
-    background-repeat: no-repeat;
-    background-attachment: fixed;
     position: relative;
     display: flex;
+    // Gradient background matching KIP-BG.png
+    // Dark navy blue to bright electric blue with light source in center-right
+    background: 
+      radial-gradient(
+        ellipse 120% 100% at 70% 45%,
+        #0080ff 0%,
+        #0066ff 15%,
+        #0044cc 30%,
+        #002288 50%,
+        #001144 70%,
+        #000822 85%,
+        #000511 100%
+      ),
+      linear-gradient(
+        180deg,
+        #000822 0%,
+        #001144 50%,
+        #000822 100%
+      );
+    background-attachment: fixed;
 
     @media (max-width: 768px) {
       background-attachment: scroll;

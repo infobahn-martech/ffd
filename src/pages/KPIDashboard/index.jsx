@@ -1,6 +1,5 @@
 import React, { useState, useEffect } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
-import KIPBackground from '../../assets/images/KIP-BG.png';
 import SideNav from './components/SideNav';
 import HeaderBar from './components/HeaderBar';
 import CounterCards from './components/CounterCards';
@@ -128,10 +127,7 @@ const KPIDashboard = () => {
                     onClick={() => setIsMobileMenuOpen(false)}
                 />
             )}
-            <div
-                className="kpi-dashboard__background"
-                style={{ backgroundImage: `url(${KIPBackground})` }}
-            >
+            <div className="kpi-dashboard__background">
                 <SideNav
                     activeMenu={activeMenu}
                     setActiveMenu={setActiveMenu}
