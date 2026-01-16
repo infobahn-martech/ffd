@@ -2,7 +2,7 @@ import { useState, useEffect } from "react";
 import CommonHeader from "../../components/CommonHeader";
 import CustomTable from "../../components/customTable";
 import { RoleModal } from "./Modals/AddEditRole";
-import { RenderAction } from "./RenderCells";
+import { RenderAction, RenderDescription } from "./RenderCells";
 import DeleteConfirmationModal from "../../components/DeleteConfirmationModal";
 import useRoleReducer from "../../store/RoleReducer";
 
@@ -62,7 +62,7 @@ const Role = () => {
       name: "Name",
       selector: "name",
       sort: true,
-      width: "300",
+      width: "200",
       thclass: "tb-head",
       contentClass: "table-content",
     },
@@ -70,9 +70,10 @@ const Role = () => {
       name: "Description",
       selector: "description",
       sort: true,
-      width: "500",
+      width: "600",
       thclass: "tb-head",
       contentClass: "table-content",
+      cell: RenderDescription,
     },
     {
       name: 'Actions',
@@ -83,7 +84,7 @@ const Role = () => {
       onEditClick: (row) => { setShowRoleModal(row) },
       onDeleteClick: (row) => { setSelectedRoleForDelete(row) },
       cell: RenderAction,
-      width: '200',
+      width: '100',
     },
   ];
 

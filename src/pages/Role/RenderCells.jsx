@@ -48,3 +48,34 @@ export const DateFormat = ({ row, selector }) => {
   const formattedDate = moment(row[selector]).format('DD MMMM YYYY hh:mm a');
   return formattedDate;
 };
+
+export const RenderDescription = ({ row, selector }) => {
+  const description = row[selector] || '';
+  const MAX_LENGTH = 120;
+  const isTruncated = description.length > MAX_LENGTH;
+  const truncatedText = isTruncated ? `${description.substring(0, MAX_LENGTH)}...` : description;
+  const tooltipId = `desc-${row._id || Math.random()}`;
+
+  if (!description) {
+    return <span>-</span>;
+  }
+
+  return (
+    <>
+      {isTruncated && (
+        <Tooltip
+          id={tooltipId}
+          place="top"
+          content={description}
+          className="role-description-tooltip"
+        />
+      )}
+      <span
+        data-tooltip-id={isTruncated ? tooltipId : undefined}
+        style={{ cursor: isTruncated ? 'help' : 'default' }}
+      >
+        {truncatedText}
+      </span>
+    </>
+  );
+};
