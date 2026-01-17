@@ -873,21 +873,21 @@ const PreArrivalContent = ({ formValues, handleChange, ownerInitial, cardUser, c
               </div>
               <div className="card-description-wrapper">
                 <FormField label="Weather Forecast">
-                  <FormTextarea
+                  <FormInput
+                    type="text"
                     value={formValues?.weatherForecast || ""}
                     onChange={handleChange("weatherForecast")}
                     placeholder="Enter weather forecast..."
-                    rows={5}
                   />
                 </FormField>
               </div>
               <div className="card-description-wrapper">
                 <FormField label="Coordinates">
-                  <FormTextarea
+                  <FormInput
+                    type="text"
                     value={formValues?.coordinates || ""}
                     onChange={handleChange("coordinates")}
                     placeholder="Enter coordinates..."
-                    rows={5}
                   />
                 </FormField>
               </div>

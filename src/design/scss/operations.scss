@@ -957,6 +957,18 @@
       &:first-child {
         margin-bottom: 24px;
       }
+
+      // Reduce min-height and flex for Weather Forecast and Coordinates (text inputs)
+      &:nth-child(2),
+      &:nth-child(3) {
+        flex: 0 0 auto;
+        min-height: auto;
+        margin-bottom: 16px;
+      }
+
+      &:last-child {
+        margin-bottom: 0;
+      }
     }
   }
 }
