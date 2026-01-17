@@ -31,12 +31,6 @@ const MedicalIcon = ({ size = 20, color = "#666" }) => (
   </svg>
 );
 
-const OnStationIcon = ({ size = 20, color = "#666" }) => (
-  <svg width={size} height={size} viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" style={{ color }}>
-    <path d="M21 10C21 17 12 23 12 23C12 23 3 17 3 10C3 7.61305 3.94821 5.32387 5.63604 3.63604C7.32387 1.94821 9.61305 1 12 1C14.3869 1 16.6761 1.94821 18.364 3.63604C20.0518 5.32387 21 7.61305 21 10Z" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" fill="none" />
-    <path d="M12 13C13.6569 13 15 11.6569 15 10C15 8.34315 13.6569 7 12 7C10.3431 7 9 8.34315 9 10C9 11.6569 10.3431 13 12 13Z" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" fill="none" />
-  </svg>
-);
 
 const MaterialManagementIcon = ({ size = 20, color = "#666" }) => (
   <svg width={size} height={size} viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" style={{ color }}>
@@ -60,6 +54,18 @@ const LaunchHireIcon = ({ size = 20, color = "#666" }) => (
     <path d="M6 14L7 8H17L18 14" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" fill="none" />
     <path d="M12 8V3" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" fill="none" />
     <path d="M12 3L14 5H10L12 3Z" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" fill="none" />
+  </svg>
+);
+
+// Company/Business Icon
+const CompanyIcon = ({ size = 20, color = "#666" }) => (
+  <svg width={size} height={size} viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" style={{ color }}>
+    <path d="M3 21H21" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+    <path d="M5 21V7L12 3L19 7V21" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+    <path d="M9 9V13" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+    <path d="M9 17V21" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+    <path d="M15 9V13" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+    <path d="M15 17V21" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
   </svg>
 );
 
@@ -138,28 +144,28 @@ function CardItem({ card, index, setSelectedCard, isShrunk = false }) {
                   {card.iconType === "document" && <DownloadIcon />}
                 </div>
                 {card.name && (() => {
-                  const maxLength = 10;
-                  const isTruncated = card.name.length > maxLength;
-                  const displayText = isTruncated ? card.name.substring(0, maxLength) + "..." : card.name;
                   const tooltipId = `card-name-${card.id}`;
 
                   return (
                     <>
-                      <span
-                        className="card-name"
-                        data-tooltip-id={isTruncated ? tooltipId : undefined}
-                        data-tooltip-content={isTruncated ? card.name : undefined}
+                      <div
+                        data-tooltip-id={tooltipId}
+                        data-tooltip-content={card.name}
+                        style={{
+                          display: "flex",
+                          alignItems: "center",
+                          justifyContent: "center",
+                          cursor: "pointer",
+                        }}
                       >
-                        {displayText}
-                      </span>
-                      {isTruncated && (
-                        <Tooltip
-                          id={tooltipId}
-                          place="top"
-                          className="card-name-tooltip"
-                          offset={5}
-                        />
-                      )}
+                        <CompanyIcon size={18} color="#666" />
+                      </div>
+                      <Tooltip
+                        id={tooltipId}
+                        place="top"
+                        className="card-name-tooltip"
+                        offset={5}
+                      />
                     </>
                   );
                 })()}
@@ -207,127 +213,126 @@ function CardItem({ card, index, setSelectedCard, isShrunk = false }) {
               </div>
 
               {/* Extra Details Section - Icons with status colors */}
-              {((card.transport !== undefined || card.transportCount !== undefined) ||
-                (card.hotel !== undefined || card.hotelCount !== undefined) ||
-                (card.medicalService !== undefined || card.medicalServiceCount !== undefined) ||
-                (card.onStation !== undefined || card.onStationCount !== undefined) ||
-                (card.materialManagement !== undefined || card.materialManagementCount !== undefined) ||
-                (card.wasteDisposal !== undefined || card.wasteDisposalCount !== undefined) ||
-                (card.launchHire !== undefined || card.launchHireCount !== undefined)) && (
-                  <div className="card-extra-details" style={{ display: "flex", gap: "12px", alignItems: "center", justifyContent: "flex-start", padding: "8px 0" }}>
-                    {/* Transport Icon */}
-                    {(card.transport !== undefined || card.transportCount !== undefined) && (
-                      <div
-                        style={{
-                          display: "flex",
-                          alignItems: "center",
-                          justifyContent: "center",
-                        }}
-                      >
-                        <CarIcon
-                          size={18}
-                          color={card.transport === "done" ? STATUS_COLORS.done : (card.transport === "rejected" || card.transport === "pending" ? STATUS_COLORS.rejected : "#666")}
-                        />
-                      </div>
-                    )}
-
-                    {/* Hotel Icon */}
-                    {(card.hotel !== undefined || card.hotelCount !== undefined) && (
-                      <div
-                        style={{
-                          display: "flex",
-                          alignItems: "center",
-                          justifyContent: "center",
-                        }}
-                      >
-                        <HotelIcon
-                          size={18}
-                          color={card.hotel === "done" ? STATUS_COLORS.done : (card.hotel === "rejected" || card.hotel === "pending" ? STATUS_COLORS.rejected : "#666")}
-                        />
-                      </div>
-                    )}
-
-                    {/* Medical Icon */}
-                    {(card.medicalService !== undefined || card.medicalServiceCount !== undefined) && (
-                      <div
-                        style={{
-                          display: "flex",
-                          alignItems: "center",
-                          justifyContent: "center",
-                        }}
-                      >
-                        <MedicalIcon
-                          size={18}
-                          color={card.medicalService === "done" ? STATUS_COLORS.done : (card.medicalService === "rejected" || card.medicalService === "pending" ? STATUS_COLORS.rejected : "#666")}
-                        />
-                      </div>
-                    )}
-
-                    {/* On Station Icon */}
-                    {(card.onStation !== undefined || card.onStationCount !== undefined) && (
-                      <div
-                        style={{
-                          display: "flex",
-                          alignItems: "center",
-                          justifyContent: "center",
-                        }}
-                      >
-                        <OnStationIcon
-                          size={18}
-                          color={card.onStation === "done" ? STATUS_COLORS.done : (card.onStation === "rejected" || card.onStation === "pending" ? STATUS_COLORS.rejected : "#666")}
-                        />
-                      </div>
-                    )}
-
-                    {/* Material Management Icon */}
-                    {(card.materialManagement !== undefined || card.materialManagementCount !== undefined) && (
-                      <div
-                        style={{
-                          display: "flex",
-                          alignItems: "center",
-                          justifyContent: "center",
-                        }}
-                      >
-                        <MaterialManagementIcon
-                          size={18}
-                          color={card.materialManagement === "done" ? STATUS_COLORS.done : (card.materialManagement === "rejected" || card.materialManagement === "pending" ? STATUS_COLORS.rejected : "#666")}
-                        />
-                      </div>
-                    )}
-
-                    {/* Waste Disposal Icon */}
-                    {(card.wasteDisposal !== undefined || card.wasteDisposalCount !== undefined) && (
-                      <div
-                        style={{
-                          display: "flex",
-                          alignItems: "center",
-                          justifyContent: "center",
-                        }}
-                      >
-                        <WasteDisposalIcon
-                          size={18}
-                          color={card.wasteDisposal === "done" ? STATUS_COLORS.done : (card.wasteDisposal === "rejected" || card.wasteDisposal === "pending" ? STATUS_COLORS.rejected : "#666")}
-                        />
-                      </div>
-                    )}
-
-                    {/* Launch Hire Icon */}
-                    {(card.launchHire !== undefined || card.launchHireCount !== undefined) && (
-                      <div
-                        style={{
-                          display: "flex",
-                          alignItems: "center",
-                          justifyContent: "center",
-                        }}
-                      >
-                        <LaunchHireIcon
-                          size={18}
-                          color={card.launchHire === "done" ? STATUS_COLORS.done : (card.launchHire === "rejected" || card.launchHire === "pending" ? STATUS_COLORS.rejected : "#666")}
-                        />
-                      </div>
-                    )}
+              <div className="card-extra-details" style={{ display: "flex", gap: "12px", alignItems: "center", justifyContent: "flex-start", padding: "8px 0" }}>
+                {/* Transport Icon */}
+                <>
+                  <div
+                    data-tooltip-id={`transport-${card.id}`}
+                    data-tooltip-content="Transport"
+                    style={{
+                      display: "flex",
+                      alignItems: "center",
+                      justifyContent: "center",
+                      cursor: "pointer",
+                    }}
+                  >
+                    <CarIcon
+                      size={18}
+                      color={card.transport === "done" ? STATUS_COLORS.done : STATUS_COLORS.rejected}
+                    />
                   </div>
-                )}
+                  <Tooltip id={`transport-${card.id}`} place="top" />
+                </>
+
+                {/* Hotel Icon */}
+                <>
+                  <div
+                    data-tooltip-id={`hotel-${card.id}`}
+                    data-tooltip-content="Hotel"
+                    style={{
+                      display: "flex",
+                      alignItems: "center",
+                      justifyContent: "center",
+                      cursor: "pointer",
+                    }}
+                  >
+                    <HotelIcon
+                      size={18}
+                      color={card.hotel === "done" ? STATUS_COLORS.done : STATUS_COLORS.rejected}
+                    />
+                  </div>
+                  <Tooltip id={`hotel-${card.id}`} place="top" />
+                </>
+
+                {/* Medical Icon */}
+                <>
+                  <div
+                    data-tooltip-id={`medical-${card.id}`}
+                    data-tooltip-content="Medical"
+                    style={{
+                      display: "flex",
+                      alignItems: "center",
+                      justifyContent: "center",
+                      cursor: "pointer",
+                    }}
+                  >
+                    <MedicalIcon
+                      size={18}
+                      color={card.medicalService === "done" ? STATUS_COLORS.done : STATUS_COLORS.rejected}
+                    />
+                  </div>
+                  <Tooltip id={`medical-${card.id}`} place="top" />
+                </>
+                {/* Material Management Icon */}
+                <>
+                  <div
+                    data-tooltip-id={`material-${card.id}`}
+                    data-tooltip-content="Material Management"
+                    style={{
+                      display: "flex",
+                      alignItems: "center",
+                      justifyContent: "center",
+                      cursor: "pointer",
+                    }}
+                  >
+                    <MaterialManagementIcon
+                      size={18}
+                      color={card.materialManagement === "done" ? STATUS_COLORS.done : STATUS_COLORS.rejected}
+                    />
+                  </div>
+                  <Tooltip id={`material-${card.id}`} place="top" />
+                </>
+
+                {/* Waste Disposal Icon */}
+                <>
+                  <div
+                    data-tooltip-id={`waste-${card.id}`}
+                    data-tooltip-content="Waste Disposal"
+                    style={{
+                      display: "flex",
+                      alignItems: "center",
+                      justifyContent: "center",
+                      cursor: "pointer",
+                    }}
+                  >
+                    <WasteDisposalIcon
+                      size={18}
+                      color={card.wasteDisposal === "done" ? STATUS_COLORS.done : STATUS_COLORS.rejected}
+                    />
+                  </div>
+                  <Tooltip id={`waste-${card.id}`} place="top" />
+                </>
+
+                {/* Launch Hire Icon */}
+                <>
+                  <div
+                    data-tooltip-id={`launch-${card.id}`}
+                    data-tooltip-content="Launch Hire"
+                    style={{
+                      display: "flex",
+                      alignItems: "center",
+                      justifyContent: "center",
+                      cursor: "pointer",
+                    }}
+                  >
+                    <LaunchHireIcon
+                      size={18}
+                      color={card.launchHire === "done" ? STATUS_COLORS.done : STATUS_COLORS.rejected}
+                    />
+                  </div>
+                  <Tooltip id={`launch-${card.id}`} place="top" />
+                </>
+              </div>
             </>
           )}
         </div>
