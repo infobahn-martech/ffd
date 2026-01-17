@@ -28,7 +28,7 @@
 
 /* Top border — starts after the icon */
 .kanban-card::before {
-  left: 36px;
+  left: 8px;
   right: 12px;
   height: 3px;
   border-top-right-radius: 12px;
