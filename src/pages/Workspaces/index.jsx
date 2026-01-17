@@ -477,13 +477,24 @@ function Workspaces() {
               {selectedWorkspace === workspace.id && workspace.boards.length > 0 && (
                 <div className="workspace-boards">
                   {workspace.boards.map((board) => (
-                    <div key={board.id} className={`board-card ${openMenuId === board.id ? 'menu-open' : ''}`}>
+                    <div
+                      key={board.id}
+                      className={`board-card ${openMenuId === board.id ? 'menu-open' : ''}`}
+                      onClick={() => {
+                        // Navigate to kanban board with board id
+                        navigate(`/kanban-board/${board.id}`);
+                      }}
+                      style={{ cursor: 'pointer' }}
+                    >
                       <div className="board-card-header">
                         <div className="board-menu-wrapper" ref={openMenuId === board.id ? menuRef : null}>
                           <button
                             type="button"
                             className="board-menu-btn"
-                            onClick={(e) => handleBoardMenu(board.id, e)}
+                            onClick={(e) => {
+                              e.stopPropagation(); // Prevent navigation when clicking menu
+                              handleBoardMenu(board.id, e);
+                            }}
                             aria-label="Board options"
                             title="Board options"
                           >

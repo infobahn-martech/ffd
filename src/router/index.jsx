@@ -11,6 +11,7 @@ import Dashboard from "../pages/Dashboard";
 import Login from "../pages/Authentication";
 import ForgetPassword from "../pages/ForgetPassword";
 import KanbanBoard from "../pages/KanbanBoard";
+import BoardRouter from "../pages/KanbanBoard/BoardRouter";
 import DAModule from "../pages/DAModule";
 import Workspaces from "../pages/Workspaces";
 import EditWorkflows from "../pages/EditWorkflows";
@@ -139,7 +140,8 @@ const router = createHashRouter([
                 children: [
                   // Dashboard - All roles
                   { path: "/dashboard", element: <RouteGuard><Dashboard /></RouteGuard> },
-                  // Kanban Board
+                  // Kanban Board - with dynamic ID support
+                  { path: "/kanban-board/:id", element: <RouteGuard><BoardRouter /></RouteGuard> },
                   { path: "/kanban-board", element: <RouteGuard><KanbanBoard /></RouteGuard> },
                   // DA Module
                   { path: "/da-module", element: <RouteGuard><DAModule /></RouteGuard> },
