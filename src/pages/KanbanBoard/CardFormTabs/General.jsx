@@ -1427,11 +1427,13 @@ function General({ card, formValues, handleChange, ownerInitial, cardUser, onSav
                     </FormField>
                   </div>
                 ) : (
-                  <DailyTaskTodo
-                    tasks={formValues?.dailyTasks || card?.dailyTasks}
-                    onChange={handleChange("dailyTasks")}
-                    accentColor={accentColor}
-                  />
+                  <div className="daily-task-box-wrapper">
+                    <DailyTaskTodo
+                      tasks={formValues?.dailyTasks || card?.dailyTasks}
+                      onChange={handleChange("dailyTasks")}
+                      accentColor={accentColor}
+                    />
+                  </div>
                 )}
               </div>
             </div>
