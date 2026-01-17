@@ -31,6 +31,38 @@ const MedicalIcon = ({ size = 20, color = "#666" }) => (
   </svg>
 );
 
+const OnStationIcon = ({ size = 20, color = "#666" }) => (
+  <svg width={size} height={size} viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" style={{ color }}>
+    <path d="M21 10C21 17 12 23 12 23C12 23 3 17 3 10C3 7.61305 3.94821 5.32387 5.63604 3.63604C7.32387 1.94821 9.61305 1 12 1C14.3869 1 16.6761 1.94821 18.364 3.63604C20.0518 5.32387 21 7.61305 21 10Z" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" fill="none" />
+    <path d="M12 13C13.6569 13 15 11.6569 15 10C15 8.34315 13.6569 7 12 7C10.3431 7 9 8.34315 9 10C9 11.6569 10.3431 13 12 13Z" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" fill="none" />
+  </svg>
+);
+
+const MaterialManagementIcon = ({ size = 20, color = "#666" }) => (
+  <svg width={size} height={size} viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" style={{ color }}>
+    <path d="M20 7H4C2.89543 7 2 7.89543 2 9V19C2 20.1046 2.89543 21 4 21H20C21.1046 21 22 20.1046 22 19V9C22 7.89543 21.1046 7 20 7Z" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" fill="none" />
+    <path d="M16 21V5C16 4.46957 15.7893 3.96086 15.4142 3.58579C15.0391 3.21071 14.5304 3 14 3H10C9.46957 3 8.96086 3.21071 8.58579 3.58579C8.21071 3.96086 8 4.46957 8 5V21" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" fill="none" />
+  </svg>
+);
+
+const WasteDisposalIcon = ({ size = 20, color = "#666" }) => (
+  <svg width={size} height={size} viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" style={{ color }}>
+    <path d="M3 6H5H21" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+    <path d="M8 6V4C8 3.46957 8.21071 2.96086 8.58579 2.58579C8.96086 2.21071 9.46957 2 10 2H14C14.5304 2 15.0391 2.21071 15.4142 2.58579C15.7893 2.96086 16 3.46957 16 4V6M19 6V20C19 20.5304 18.7893 21.0391 18.4142 21.4142C18.0391 21.7893 17.5304 22 17 22H7C6.46957 22 5.96086 21.7893 5.58579 21.4142C5.21071 21.0391 5 20.5304 5 20V6H19Z" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" fill="none" />
+    <path d="M10 11V17" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+    <path d="M14 11V17" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+  </svg>
+);
+
+const LaunchHireIcon = ({ size = 20, color = "#666" }) => (
+  <svg width={size} height={size} viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" style={{ color }}>
+    <path d="M3 18H21L20 14H4L3 18ZM3 18L2 19H22L21 18" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" fill="none" />
+    <path d="M6 14L7 8H17L18 14" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" fill="none" />
+    <path d="M12 8V3" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" fill="none" />
+    <path d="M12 3L14 5H10L12 3Z" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" fill="none" />
+  </svg>
+);
+
 // Status icon component
 const StatusIcon = ({ status = "pending", IconComponent, size = 20 }) => {
   const color = STATUS_COLORS[status] || STATUS_COLORS.pending;
@@ -174,10 +206,14 @@ function CardItem({ card, index, setSelectedCard, isShrunk = false }) {
                 </div>
               </div>
 
-              {/* Extra Details Section - Transport, Hotel, Medical icons with counters */}
+              {/* Extra Details Section - Icons with status colors */}
               {((card.transport !== undefined || card.transportCount !== undefined) ||
                 (card.hotel !== undefined || card.hotelCount !== undefined) ||
-                (card.medicalService !== undefined || card.medicalServiceCount !== undefined)) && (
+                (card.medicalService !== undefined || card.medicalServiceCount !== undefined) ||
+                (card.onStation !== undefined || card.onStationCount !== undefined) ||
+                (card.materialManagement !== undefined || card.materialManagementCount !== undefined) ||
+                (card.wasteDisposal !== undefined || card.wasteDisposalCount !== undefined) ||
+                (card.launchHire !== undefined || card.launchHireCount !== undefined)) && (
                   <div className="card-extra-details" style={{ display: "flex", gap: "12px", alignItems: "center", justifyContent: "flex-start", padding: "8px 0" }}>
                     {/* Transport Icon */}
                     {(card.transport !== undefined || card.transportCount !== undefined) && (
@@ -186,30 +222,12 @@ function CardItem({ card, index, setSelectedCard, isShrunk = false }) {
                           display: "flex",
                           alignItems: "center",
                           justifyContent: "center",
-                          position: "relative",
                         }}
                       >
-                        <CarIcon size={18} color="#666" />
-                        <span style={{
-                          position: "absolute",
-                          top: "-6px",
-                          right: "-8px",
-                          backgroundColor: (card.transport === "done" ? STATUS_COLORS.done : STATUS_COLORS.rejected),
-                          color: "#ffffff",
-                          borderRadius: "10px",
-                          minWidth: "16px",
-                          height: "16px",
-                          display: "flex",
-                          alignItems: "center",
-                          justifyContent: "center",
-                          fontSize: "9px",
-                          fontWeight: "700",
-                          padding: "0 4px",
-                          boxShadow: "0 2px 4px rgba(0, 0, 0, 0.2)",
-                          border: "2px solid #ffffff"
-                        }}>
-                          {card.transportCount || 0}
-                        </span>
+                        <CarIcon
+                          size={18}
+                          color={card.transport === "done" ? STATUS_COLORS.done : (card.transport === "rejected" || card.transport === "pending" ? STATUS_COLORS.rejected : "#666")}
+                        />
                       </div>
                     )}
 
@@ -220,30 +238,12 @@ function CardItem({ card, index, setSelectedCard, isShrunk = false }) {
                           display: "flex",
                           alignItems: "center",
                           justifyContent: "center",
-                          position: "relative",
                         }}
                       >
-                        <HotelIcon size={18} color="#666" />
-                        <span style={{
-                          position: "absolute",
-                          top: "-6px",
-                          right: "-8px",
-                          backgroundColor: (card.hotel === "done" ? STATUS_COLORS.done : STATUS_COLORS.rejected),
-                          color: "#ffffff",
-                          borderRadius: "10px",
-                          minWidth: "16px",
-                          height: "16px",
-                          display: "flex",
-                          alignItems: "center",
-                          justifyContent: "center",
-                          fontSize: "9px",
-                          fontWeight: "700",
-                          padding: "0 4px",
-                          boxShadow: "0 2px 4px rgba(0, 0, 0, 0.2)",
-                          border: "2px solid #ffffff"
-                        }}>
-                          {card.hotelCount || 0}
-                        </span>
+                        <HotelIcon
+                          size={18}
+                          color={card.hotel === "done" ? STATUS_COLORS.done : (card.hotel === "rejected" || card.hotel === "pending" ? STATUS_COLORS.rejected : "#666")}
+                        />
                       </div>
                     )}
 
@@ -254,30 +254,76 @@ function CardItem({ card, index, setSelectedCard, isShrunk = false }) {
                           display: "flex",
                           alignItems: "center",
                           justifyContent: "center",
-                          position: "relative",
                         }}
                       >
-                        <MedicalIcon size={18} color="#666" />
-                        <span style={{
-                          position: "absolute",
-                          top: "-6px",
-                          right: "-8px",
-                          backgroundColor: (card.medicalService === "done" ? STATUS_COLORS.done : STATUS_COLORS.rejected),
-                          color: "#ffffff",
-                          borderRadius: "10px",
-                          minWidth: "16px",
-                          height: "16px",
+                        <MedicalIcon
+                          size={18}
+                          color={card.medicalService === "done" ? STATUS_COLORS.done : (card.medicalService === "rejected" || card.medicalService === "pending" ? STATUS_COLORS.rejected : "#666")}
+                        />
+                      </div>
+                    )}
+
+                    {/* On Station Icon */}
+                    {(card.onStation !== undefined || card.onStationCount !== undefined) && (
+                      <div
+                        style={{
                           display: "flex",
                           alignItems: "center",
                           justifyContent: "center",
-                          fontSize: "9px",
-                          fontWeight: "700",
-                          padding: "0 4px",
-                          boxShadow: "0 2px 4px rgba(0, 0, 0, 0.2)",
-                          border: "2px solid #ffffff"
-                        }}>
-                          {card.medicalServiceCount || 0}
-                        </span>
+                        }}
+                      >
+                        <OnStationIcon
+                          size={18}
+                          color={card.onStation === "done" ? STATUS_COLORS.done : (card.onStation === "rejected" || card.onStation === "pending" ? STATUS_COLORS.rejected : "#666")}
+                        />
+                      </div>
+                    )}
+
+                    {/* Material Management Icon */}
+                    {(card.materialManagement !== undefined || card.materialManagementCount !== undefined) && (
+                      <div
+                        style={{
+                          display: "flex",
+                          alignItems: "center",
+                          justifyContent: "center",
+                        }}
+                      >
+                        <MaterialManagementIcon
+                          size={18}
+                          color={card.materialManagement === "done" ? STATUS_COLORS.done : (card.materialManagement === "rejected" || card.materialManagement === "pending" ? STATUS_COLORS.rejected : "#666")}
+                        />
+                      </div>
+                    )}
+
+                    {/* Waste Disposal Icon */}
+                    {(card.wasteDisposal !== undefined || card.wasteDisposalCount !== undefined) && (
+                      <div
+                        style={{
+                          display: "flex",
+                          alignItems: "center",
+                          justifyContent: "center",
+                        }}
+                      >
+                        <WasteDisposalIcon
+                          size={18}
+                          color={card.wasteDisposal === "done" ? STATUS_COLORS.done : (card.wasteDisposal === "rejected" || card.wasteDisposal === "pending" ? STATUS_COLORS.rejected : "#666")}
+                        />
+                      </div>
+                    )}
+
+                    {/* Launch Hire Icon */}
+                    {(card.launchHire !== undefined || card.launchHireCount !== undefined) && (
+                      <div
+                        style={{
+                          display: "flex",
+                          alignItems: "center",
+                          justifyContent: "center",
+                        }}
+                      >
+                        <LaunchHireIcon
+                          size={18}
+                          color={card.launchHire === "done" ? STATUS_COLORS.done : (card.launchHire === "rejected" || card.launchHire === "pending" ? STATUS_COLORS.rejected : "#666")}
+                        />
                       </div>
                     )}
                   </div>
@@ -308,6 +354,14 @@ CardItem.propTypes = {
     hotelCount: PropTypes.number,
     medicalService: PropTypes.string,
     medicalServiceCount: PropTypes.number,
+    onStation: PropTypes.string,
+    onStationCount: PropTypes.number,
+    materialManagement: PropTypes.string,
+    materialManagementCount: PropTypes.number,
+    wasteDisposal: PropTypes.string,
+    wasteDisposalCount: PropTypes.number,
+    launchHire: PropTypes.string,
+    launchHireCount: PropTypes.number,
   }).isRequired,
   index: PropTypes.number.isRequired,
   setSelectedCard: PropTypes.func.isRequired,
