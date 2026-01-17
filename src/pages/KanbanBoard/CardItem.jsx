@@ -57,17 +57,69 @@ const LaunchHireIcon = ({ size = 20, color = "#666" }) => (
   </svg>
 );
 
-// Company/Business Icon
-const CompanyIcon = ({ size = 20, color = "#666" }) => (
-  <svg width={size} height={size} viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" style={{ color }}>
-    <path d="M3 21H21" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
-    <path d="M5 21V7L12 3L19 7V21" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
-    <path d="M9 9V13" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
-    <path d="M9 17V21" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
-    <path d="M15 9V13" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
-    <path d="M15 17V21" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+// Abstract Geometric Company Logos (no text)
+const CompanyIcon1 = ({ size = 26 }) => (
+  <svg width={size} height={size} viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+    <path d="M4 4L4 12L8 16L12 12L12 8L8 4L4 4Z" fill="#333333" />
+    <path d="M8 4L12 8L16 12L20 12L20 16L16 16L12 12L8 16L12 16L16 20L12 20L8 16Z" fill="#FF6B35" />
   </svg>
 );
+
+const CompanyIcon2 = ({ size = 26 }) => (
+  <svg width={size} height={size} viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+    <path d="M12 4C8 4 8 8 8 12C8 16 12 20 12 20C12 20 16 16 16 12C16 8 16 4 12 4Z" fill="#333333" />
+    <path d="M12 8C10 8 10 10 10 12C10 14 12 16 12 16C12 16 14 14 14 12C14 10 14 8 12 8Z" fill="#FF6B35" />
+  </svg>
+);
+
+const CompanyIcon3 = ({ size = 26 }) => (
+  <svg width={size} height={size} viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+    <rect x="5" y="6" width="6" height="12" rx="2" fill="#333333" />
+    <rect x="13" y="6" width="6" height="12" rx="2" fill="#FF6B35" />
+    <rect x="9" y="10" width="6" height="4" rx="1" fill="#333333" />
+  </svg>
+);
+
+const CompanyIcon4 = ({ size = 26 }) => (
+  <svg width={size} height={size} viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+    <circle cx="12" cy="12" r="8" fill="#FF6B35" />
+    <path d="M8 12C8 10 10 8 12 8C14 8 16 10 16 12C16 14 14 16 12 16C10 16 8 14 8 12Z" fill="#333333" />
+    <circle cx="12" cy="12" r="3" fill="#FF6B35" />
+  </svg>
+);
+
+const CompanyIcon5 = ({ size = 26 }) => (
+  <svg width={size} height={size} viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+    <rect x="6" y="6" width="4" height="4" rx="0.5" fill="#FF6B35" />
+    <rect x="14" y="6" width="4" height="4" rx="0.5" fill="#FF6B35" />
+    <rect x="6" y="14" width="4" height="4" rx="0.5" fill="#FF6B35" />
+    <rect x="14" y="14" width="4" height="4" rx="0.5" fill="#FF6B35" />
+    <path d="M10 8H14V10H10V8ZM10 12H14V14H10V12Z" fill="#333333" />
+    <path d="M8 10V14H12V10H8Z" fill="#333333" />
+    <path d="M12 10V14H16V10H12Z" fill="#333333" />
+    <path d="M10 14V18H14V14H10Z" fill="#333333" />
+    <path d="M14 14V18H18V14H14Z" fill="#333333" />
+  </svg>
+);
+
+const CompanyIcon6 = ({ size = 26 }) => (
+  <svg width={size} height={size} viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+    <rect x="6" y="10" width="8" height="8" rx="1" fill="#333333" />
+    <circle cx="16" cy="8" r="6" fill="#FF6B35" />
+    <path d="M14 8L16 6L18 8L16 10L14 8Z" fill="#333333" />
+    <path d="M12 14L8 18L10 20L14 16L12 14Z" fill="#FF6B35" />
+  </svg>
+);
+
+// Function to get company icon based on card id/name
+const getCompanyIcon = (cardId, cardName) => {
+  // Use a simple hash to consistently assign icons to cards
+  const hash = cardId ? cardId.split('').reduce((acc, char) => acc + char.charCodeAt(0), 0) : 0;
+  const iconIndex = hash % 6;
+
+  const icons = [CompanyIcon1, CompanyIcon2, CompanyIcon3, CompanyIcon4, CompanyIcon5, CompanyIcon6];
+  return icons[iconIndex];
+};
 
 // Status icon component
 const StatusIcon = ({ status = "pending", IconComponent, size = 20 }) => {
@@ -134,7 +186,7 @@ function CardItem({ card, index, setSelectedCard, isShrunk = false }) {
             // Full view for normal/expanded columns
             <>
               {/* Header */}
-              <div className="card-header">
+              <div className="card-header" style={{ display: "flex", alignItems: "center", justifyContent: "space-between", width: "100%" }}>
                 <div
                   className="card-header-icon"
                   style={{ backgroundColor: cardColor }}
@@ -145,6 +197,7 @@ function CardItem({ card, index, setSelectedCard, isShrunk = false }) {
                 </div>
                 {card.name && (() => {
                   const tooltipId = `card-name-${card.id}`;
+                  const CompanyIconComponent = getCompanyIcon(card.id, card.name);
 
                   return (
                     <>
@@ -156,9 +209,10 @@ function CardItem({ card, index, setSelectedCard, isShrunk = false }) {
                           alignItems: "center",
                           justifyContent: "center",
                           cursor: "pointer",
+                          marginLeft: "auto",
                         }}
                       >
-                        <CompanyIcon size={18} color="#666" />
+                        <CompanyIconComponent size={26} />
                       </div>
                       <Tooltip
                         id={tooltipId}
