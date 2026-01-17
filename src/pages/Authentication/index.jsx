@@ -5,6 +5,7 @@ import { FiEye, FiEyeOff } from "react-icons/fi";
 import "../../design/scss/login.scss";
 import SedresLogo from "../../assets/images/SedresLogo.png";
 import useAuthReducer from "../../store/AuthReducer";
+import { setItem } from "../../helpers/localStorage";
 
 function Index() {
   const navigate = useNavigate();
@@ -24,13 +25,34 @@ function Index() {
   }, [isLoggedIn, navigate]);
 
   const onSubmit = async (data) => {
-    debugger;
     if (isTestingMode) {
       // Normal flow: validation and API calls
       await login({ email: data.email, password: data.password });
     } else {
-      debugger;
-      // Testing mode: skip validation and API, directly navigate
+      // Testing mode: skip validation and API, set auth state and navigate
+      // Set a dummy token in localStorage so route guards pass
+      setItem("accessToken", "test-token");
+      setItem("userid", "test-user-id");
+      // Update Zustand store to mark user as logged in with mock profile
+      // Using role_id "1" (Super Admin) to have access to all routes
+      useAuthReducer.setState({
+        isLoggedIn: true,
+        isProfileFetchLoading: false, // Prevent loading spinner
+        authData: {
+          userid: "test-user-id",
+          name: data.email,
+          email: data.email,
+        },
+        userProfile: {
+          userid: "test-user-id",
+          name: data.email,
+          email: data.email,
+          role: {
+            role_id: "1", // Super Admin - has access to all routes including /workspaces
+            role_name: "Super Admin",
+          },
+        },
+      });
       navigate("/workspaces");
     }
   };
@@ -67,7 +89,7 @@ function Index() {
 
           <div className="form-content-wrap">
             {/* FORM START */}
-            <form onSubmit={isTestingMode ? handleSubmit(onSubmit) : (e) => { e.preventDefault(); navigate("/workspaces"); }}>
+            <form onSubmit={handleSubmit(onSubmit)}>
               {/* EMAIL */}
               <div className="input-outer-wrap">
                 <label className="label">Email</label>
