@@ -13,15 +13,26 @@ function NestedColumn({ column, cards, setSelectedCard, isShrunk = false, column
   const columnRef = useRef(null);
   const columnColor = column.color || "#2A00FF";
   const tooltipId = `nested-column-title-${column.id}`;
+  const onHeightChangeRef = useRef(onHeightChange);
+  const previousHeightRef = useRef(null);
+
+  // Keep the callback ref up to date
+  useEffect(() => {
+    onHeightChangeRef.current = onHeightChange;
+  }, [onHeightChange]);
 
   // Measure column height
   useLayoutEffect(() => {
-    if (!columnRef.current || !onHeightChange) return;
+    if (!columnRef.current || !onHeightChangeRef.current) return;
 
     const measureHeight = () => {
-      if (columnRef.current) {
+      if (columnRef.current && onHeightChangeRef.current) {
         const height = columnRef.current.offsetHeight;
-        onHeightChange(column.id, height);
+        // Only call onHeightChange if height actually changed
+        if (previousHeightRef.current !== height) {
+          previousHeightRef.current = height;
+          onHeightChangeRef.current(column.id, height);
+        }
       }
     };
 
@@ -33,15 +44,19 @@ function NestedColumn({ column, cards, setSelectedCard, isShrunk = false, column
     return () => {
       cancelAnimationFrame(rafId);
     };
-  }, [cards.length, column.id, onHeightChange, isShrunk]);
+  }, [cards.length, column.id, isShrunk]);
 
   useEffect(() => {
-    if (!columnRef.current || !onHeightChange) return;
+    if (!columnRef.current || !onHeightChangeRef.current) return;
 
     const measureHeight = () => {
-      if (columnRef.current) {
+      if (columnRef.current && onHeightChangeRef.current) {
         const height = columnRef.current.offsetHeight;
-        onHeightChange(column.id, height);
+        // Only call onHeightChange if height actually changed
+        if (previousHeightRef.current !== height) {
+          previousHeightRef.current = height;
+          onHeightChangeRef.current(column.id, height);
+        }
       }
     };
 
@@ -56,7 +71,7 @@ function NestedColumn({ column, cards, setSelectedCard, isShrunk = false, column
     return () => {
       resizeObserver.disconnect();
     };
-  }, [cards.length, column.id, onHeightChange, isShrunk]);
+  }, [cards.length, column.id, isShrunk]);
 
   return (
     <div
@@ -105,6 +120,8 @@ function Column({ column, cards, setSelectedCard, isExpanded = false, isShrunk =
   const columnRef = useRef(null);
   const columnColor = column.color || "#2A00FF";
   const isNestedColumn = column.isNested || (subColumns && subColumns.length > 0);
+  const onHeightChangeRef = useRef(onHeightChange);
+  const previousHeightRef = useRef(null);
 
   const displayTitle = isShrunk && column.title.length > 8
     ? column.title.substring(0, 5) + "..."
@@ -118,14 +135,23 @@ function Column({ column, cards, setSelectedCard, isExpanded = false, isShrunk =
     }
   };
 
+  // Keep the callback ref up to date
+  useEffect(() => {
+    onHeightChangeRef.current = onHeightChange;
+  }, [onHeightChange]);
+
   // Measure column height
   useLayoutEffect(() => {
-    if (!columnRef.current || !onHeightChange) return;
+    if (!columnRef.current || !onHeightChangeRef.current) return;
 
     const measureHeight = () => {
-      if (columnRef.current) {
+      if (columnRef.current && onHeightChangeRef.current) {
         const height = columnRef.current.offsetHeight;
-        onHeightChange(column.id, height);
+        // Only call onHeightChange if height actually changed
+        if (previousHeightRef.current !== height) {
+          previousHeightRef.current = height;
+          onHeightChangeRef.current(column.id, height);
+        }
       }
     };
 
@@ -137,15 +163,19 @@ function Column({ column, cards, setSelectedCard, isExpanded = false, isShrunk =
     return () => {
       cancelAnimationFrame(rafId);
     };
-  }, [cards.length, column.id, onHeightChange, isExpanded, isShrunk, subColumns]);
+  }, [cards.length, column.id, isExpanded, isShrunk, subColumns]);
 
   useEffect(() => {
-    if (!columnRef.current || !onHeightChange) return;
+    if (!columnRef.current || !onHeightChangeRef.current) return;
 
     const measureHeight = () => {
-      if (columnRef.current) {
+      if (columnRef.current && onHeightChangeRef.current) {
         const height = columnRef.current.offsetHeight;
-        onHeightChange(column.id, height);
+        // Only call onHeightChange if height actually changed
+        if (previousHeightRef.current !== height) {
+          previousHeightRef.current = height;
+          onHeightChangeRef.current(column.id, height);
+        }
       }
     };
 
@@ -160,7 +190,7 @@ function Column({ column, cards, setSelectedCard, isExpanded = false, isShrunk =
     return () => {
       resizeObserver.disconnect();
     };
-  }, [cards.length, column.id, onHeightChange, isExpanded, isShrunk, subColumns]);
+  }, [cards.length, column.id, isExpanded, isShrunk, subColumns]);
 
   // If this is a nested column parent, render nested structure
   if (isNestedColumn && subColumns && subColumns.length > 0) {
