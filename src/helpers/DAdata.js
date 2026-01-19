@@ -34,8 +34,8 @@ const workflowsConfig = [
     cardCounts: {
       "col-1": 18, // Ready to Finalize
       "col-2": 179, // In Progress (total)
-      "col-2-1": 5, // Working on it
-      "col-2-2": 174, // Awaiting PO
+      "col-2-1": 18, // Working on it - increased to match Ready to Finalize
+      "col-2-2": 18, // Awaiting PO - increased to match Ready to Finalize
       "col-3": 18, // Al Gihaz awaiting submission
       "col-4": 18, // Finalized
       "col-5": 18, // Awaiting acknowledgment
