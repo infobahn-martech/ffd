@@ -13,8 +13,9 @@
 
 .nested-columns-container {
   display: flex;
-  gap: 8px;
+  gap: 3px;
   padding: 12px;
+  padding-left: 0px;
   min-height: 100px;
 }
 
