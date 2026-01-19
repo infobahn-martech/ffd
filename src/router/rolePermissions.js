@@ -62,7 +62,24 @@ export const hasRouteAccess = (userRoleId, routePath) => {
     return true;
   }
 
-  const allowedRoles = routePermissions[routePath];
+  // First, try exact match
+  let allowedRoles = routePermissions[routePath];
+  
+  // If no exact match, check if routePath starts with any base route
+  // This handles dynamic routes like /kanban-board/123 or /kanban-board/123/analytics
+  if (!allowedRoles) {
+    // Find matching base route by checking if routePath starts with any route in routePermissions
+    const matchingRoute = Object.keys(routePermissions).find(baseRoute => {
+      // Match exact route or route with trailing path segments
+      // e.g., /kanban-board matches /kanban-board/123 or /kanban-board/123/analytics
+      return routePath === baseRoute || routePath.startsWith(baseRoute + '/');
+    });
+    
+    if (matchingRoute) {
+      allowedRoles = routePermissions[matchingRoute];
+    }
+  }
+
   if (!allowedRoles) {
     return false; // Route not in permissions list
   }

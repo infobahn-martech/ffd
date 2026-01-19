@@ -18,7 +18,9 @@ function PrivateRoutes() {
       if (!userProfile || !userProfile.role) {
         // Get userId from authData state or localStorage (for refresh scenario)
         const userId = authData?.userid || getItem('userid');
-        getUserProfile(userId);
+        // On refresh, skip API call and use cached/localStorage data
+        // This prevents the API call from being triggered on page refresh
+        getUserProfile(userId, true); // true = skipApiCall flag
       }
     }
   }, []);

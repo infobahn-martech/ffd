@@ -36,6 +36,9 @@ const useAuthReducer = create((set) => ({
       if (accessToken) setItem("accessToken", accessToken);
       // Store userid in localStorage for refresh persistence
       if (data?.userid) setItem("userid", data.userid);
+      // Store user name and email for fallback profile on refresh
+      if (data?.name) setItem("userName", data.name);
+      if (data?.email) setItem("userEmail", data.email);
 
       set({
         authData,
@@ -46,10 +49,10 @@ const useAuthReducer = create((set) => ({
       const { success } = useAlertReducer.getState();
       success(data && data.message);
 
-      // If token and userid exist, fetch user details
+      // If token and userid exist, fetch user details (with API call on login)
       if (accessToken && data?.userid) {
         const { getUserProfile } = useAuthReducer.getState();
-        getUserProfile(data.userid);
+        getUserProfile(data.userid, false); // false = allow API call on login
       }
     } catch (err) {
       const { error } = useAlertReducer.getState();
@@ -98,8 +101,11 @@ const useAuthReducer = create((set) => ({
     removeItem('accessToken');
     removeItem('refreshToken');
     removeItem('userid');
+    removeItem('userProfile');
+    removeItem('userName');
+    removeItem('userEmail');
   },
-  getUserProfile: async (userId = null) => {
+  getUserProfile: async (userId = null, skipApiCall = false) => {
     try {
       set({ isProfileFetchLoading: true });
 
@@ -111,9 +117,70 @@ const useAuthReducer = create((set) => ({
         throw new Error("User ID is required to fetch user profile");
       }
 
-      // Always use getUserDetail endpoint
+      // Try to get cached profile from localStorage first (for refresh scenarios)
+      const cachedProfile = getItem('userProfile');
+      if (cachedProfile) {
+        try {
+          const parsedProfile = JSON.parse(cachedProfile);
+          // Use cached profile if it belongs to the same user
+          if (parsedProfile.userid === finalUserId || parsedProfile.userid === getItem('userid')) {
+            set({
+              profileData: parsedProfile,
+              userProfile: parsedProfile,
+              isProfileFetchLoading: false
+            });
+            // If skipApiCall is true (refresh scenario), don't make API call
+            if (skipApiCall) {
+              return;
+            }
+          }
+        } catch (e) {
+          // If parsing fails, continue to API call
+        }
+      }
+
+      // Skip API call if explicitly requested (for refresh scenarios)
+      if (skipApiCall) {
+        // Create fallback profile from available data without API call
+        const authData = state.authData || {};
+        let role = { role_id: '2' }; // Default to Admin role
+        
+        // Try to get role from cached profile if available
+        if (cachedProfile) {
+          try {
+            const parsed = JSON.parse(cachedProfile);
+            if (parsed.role) {
+              role = parsed.role;
+            }
+          } catch (e) {
+            // Use default role if parsing fails
+          }
+        }
+        
+        const fallbackProfileData = {
+          userid: finalUserId,
+          name: authData.name || getItem('userName') || 'User',
+          email: authData.email || getItem('userEmail') || '',
+          status: authData.status || 'active',
+          role: role,
+          ...authData
+        };
+        set({
+          profileData: fallbackProfileData,
+          userProfile: fallbackProfileData,
+          isProfileFetchLoading: false
+        });
+        return;
+      }
+
+      // Always use getUserDetail endpoint (only if not skipping)
       const response = await authService.getUserDetail(finalUserId);
       const profileData = response.data?.data || response.data;
+
+      // Save to localStorage for future refresh scenarios
+      if (profileData) {
+        setItem('userProfile', JSON.stringify(profileData));
+      }
 
       set({
         profileData,
@@ -125,15 +192,35 @@ const useAuthReducer = create((set) => ({
       const state = useAuthReducer.getState();
       const authData = state.authData || {};
       
-      // Create fallback profile data based on available auth data
-      const fallbackProfileData = {
-        userid: authData.userid || userId || getItem('userid'),
-        name: authData.name || 'User',
-        email: authData.email || '',
-        status: authData.status || 'active',
-        role: 'user', // Default role
-        ...authData
-      };
+      // Try to get cached profile
+      const cachedProfile = getItem('userProfile');
+      let fallbackProfileData;
+      
+      if (cachedProfile) {
+        try {
+          fallbackProfileData = JSON.parse(cachedProfile);
+        } catch (e) {
+          // If parsing fails, create new fallback
+          fallbackProfileData = {
+            userid: authData.userid || userId || getItem('userid'),
+            name: authData.name || 'User',
+            email: authData.email || '',
+            status: authData.status || 'active',
+            role: { role_id: '2' }, // Default to Admin role
+            ...authData
+          };
+        }
+      } else {
+        // Create fallback profile data based on available auth data
+        fallbackProfileData = {
+          userid: authData.userid || userId || getItem('userid'),
+          name: authData.name || 'User',
+          email: authData.email || '',
+          status: authData.status || 'active',
+          role: { role_id: '2' }, // Default to Admin role
+          ...authData
+        };
+      }
 
       set({
         profileData: fallbackProfileData,
