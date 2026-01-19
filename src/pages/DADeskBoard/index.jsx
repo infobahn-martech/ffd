@@ -13,6 +13,7 @@ export default function DADeskBoard() {
   const [selectedCard, setSelectedCard] = useState(null);
   const [isAddMode, setIsAddMode] = useState(false);
   const [showWorkspaces, setShowWorkspaces] = useState(false);
+  const [isLoading, setIsLoading] = useState(true);
   
   // Track expanded state for each workflow
   const [expandedWorkflows, setExpandedWorkflows] = useState(() => {
@@ -75,6 +76,15 @@ export default function DADeskBoard() {
   const handleCloseCard = useCallback(() => {
     setSelectedCard(null);
     setIsAddMode(false);
+  }, []);
+
+  // Set loading to false after component mounts
+  useEffect(() => {
+    // Simulate loading time for board initialization
+    const timer = setTimeout(() => {
+      setIsLoading(false);
+    }, 500);
+    return () => clearTimeout(timer);
   }, []);
 
   // Listen for add card event from SideNav
@@ -549,6 +559,19 @@ export default function DADeskBoard() {
     }
     return selectedCardWorkflow?.columns;
   }, [isAddMode, selectedCardWorkflow, workflows]);
+
+  if (isLoading) {
+    return (
+      <div className="page-loader-overlay">
+        <div className="page-loader-content">
+          <div className="spinner-border text-primary" role="status" style={{ width: '3rem', height: '3rem' }}>
+            <span className="visually-hidden">Loading...</span>
+          </div>
+          <p className="mt-3">Loading board...</p>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <>

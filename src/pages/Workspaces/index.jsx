@@ -80,6 +80,7 @@ function Workspaces() {
   const [showRenameWorkspaceModal, setShowRenameWorkspaceModal] = useState(false);
   const [selectedBoardForRename, setSelectedBoardForRename] = useState(null);
   const [selectedWorkspaceForRename, setSelectedWorkspaceForRename] = useState(null);
+  const [isNavigating, setIsNavigating] = useState(false);
   const menuRef = useRef(null);
   const workspaceMenuRef = useRef(null);
 
@@ -225,6 +226,17 @@ function Workspaces() {
 
   return (
     <div className="workspaces-container">
+      {/* Loading Overlay */}
+      {isNavigating && (
+        <div className="page-loader-overlay">
+          <div className="page-loader-content">
+            <div className="spinner-border text-primary" role="status" style={{ width: '3rem', height: '3rem' }}>
+              <span className="visually-hidden">Loading...</span>
+            </div>
+            <p className="mt-3">Loading board...</p>
+          </div>
+        </div>
+      )}
       {/* Header Section */}
       <div className="workspaces-header">
         <div className="workspaces-header-left">
@@ -481,7 +493,8 @@ function Workspaces() {
                       key={board.id}
                       className={`board-card ${openMenuId === board.id ? 'menu-open' : ''}`}
                       onClick={() => {
-                        // Navigate to kanban board with board id
+                        // Set loading state and navigate to kanban board with board id
+                        setIsNavigating(true);
                         navigate(`/kanban-board/${board.id}`);
                       }}
                       style={{ cursor: 'pointer' }}
