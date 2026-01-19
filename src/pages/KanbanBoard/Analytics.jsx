@@ -17,7 +17,7 @@ import {
   Legend, 
   ResponsiveContainer 
 } from 'recharts';
-import { FiArrowLeft, FiTrendingUp, FiTrendingDown } from 'react-icons/fi';
+import { FiArrowLeft, FiTrendingUp, FiTrendingDown, FiBarChart2 } from 'react-icons/fi';
 import './Analytics.scss';
 
 const COLORS = ['#0075FF', '#00C853', '#FF6B00', '#E91E63', '#9C27B0', '#FFC107'];
@@ -82,7 +82,7 @@ const Analytics = () => {
       value: cardStats.total,
       change: '+12%',
       isPositive: true,
-      icon: '📊',
+      icon: FiBarChart2,
       color: '#0075FF'
     },
     {
@@ -91,7 +91,7 @@ const Analytics = () => {
       value: cardStats.completed,
       change: `+${completionRate}%`,
       isPositive: true,
-      icon: '✅',
+      icon: FiBarChart2,
       color: '#00C853'
     },
     {
@@ -100,7 +100,7 @@ const Analytics = () => {
       value: cardStats.inProgress,
       change: `+${inProgressRate}%`,
       isPositive: true,
-      icon: '🔄',
+      icon: FiBarChart2,
       color: '#FF6B00'
     },
     {
@@ -109,7 +109,7 @@ const Analytics = () => {
       value: cardStats.overdue,
       change: '-8%',
       isPositive: false,
-      icon: '⚠️',
+      icon: FiBarChart2,
       color: '#E91E63'
     },
   ];
@@ -152,19 +152,24 @@ const Analytics = () => {
       <div className="kanban-analytics-content">
         {/* Stats Cards */}
         <div className="stats-cards-grid">
-          {statsCards.map((card) => (
-            <div key={card.id} className="stat-card" style={{ borderTopColor: card.color }}>
-              <div className="stat-card-header">
-                <span className="stat-icon">{card.icon}</span>
-                <span className={`stat-change ${card.isPositive ? 'positive' : 'negative'}`}>
-                  {card.isPositive ? <FiTrendingUp /> : <FiTrendingDown />}
-                  {card.change}
-                </span>
+          {statsCards.map((card) => {
+            const IconComponent = card.icon;
+            return (
+              <div key={card.id} className="stat-card" style={{ borderTopColor: card.color }}>
+                <div className="stat-card-header">
+                  <span className="stat-icon">
+                    <IconComponent size={32} />
+                  </span>
+                  <span className={`stat-change ${card.isPositive ? 'positive' : 'negative'}`}>
+                    {card.isPositive ? <FiTrendingUp /> : <FiTrendingDown />}
+                    {card.change}
+                  </span>
+                </div>
+                <div className="stat-value">{card.value}</div>
+                <div className="stat-title">{card.title}</div>
               </div>
-              <div className="stat-value">{card.value}</div>
-              <div className="stat-title">{card.title}</div>
-            </div>
-          ))}
+            );
+          })}
         </div>
 
         {/* Charts Row 1 */}

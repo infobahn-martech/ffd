@@ -116,7 +116,14 @@
       margin-bottom: 16px;
 
       .stat-icon {
-        font-size: 32px;
+        display: flex;
+        align-items: center;
+        color: #666;
+        
+        svg {
+          width: 32px;
+          height: 32px;
+        }
       }
 
       .stat-change {
