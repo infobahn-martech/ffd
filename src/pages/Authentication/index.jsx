@@ -10,7 +10,7 @@ import { setItem } from "../../helpers/localStorage";
 function Index() {
   const navigate = useNavigate();
   const [showPassword, setShowPassword] = useState(false);
-  const [isTestingMode, setIsTestingMode] = useState(true); // Testing mode: true = normal flow, false = skip validation/API
+  const [isTestingMode, setIsTestingMode] = useState(false); // Testing mode: true = normal flow, false = skip validation/API
   const {
     register,
     handleSubmit,
@@ -30,9 +30,10 @@ function Index() {
       await login({ email: data.email, password: data.password, remember_me: data.rememberMe || false });
     } else {
       // Testing mode: skip validation and API, set auth state and navigate
-      // Set a dummy token in localStorage so route guards pass
+      // Set a dummy token in localStorage so route guards pass for testing
       setItem("accessToken", "test-token");
       setItem("userid", "test-user-id");
+      setItem("refreshToken", "test-refresh-token");
       // Update Zustand store to mark user as logged in with mock profile
       // Using role_id "1" (Super Admin) to have access to all routes
       useAuthReducer.setState({
