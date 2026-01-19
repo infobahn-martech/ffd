@@ -995,7 +995,7 @@ HorizontalProgressBar.propTypes = {
   formValues: PropTypes.object,
 };
 
-function General({ card, formValues, handleChange, ownerInitial, cardUser, onSave, isAddMode = false }) {
+function General({ card, formValues, handleChange, ownerInitial, cardUser, onSave, isAddMode = false, isSimplifiedMode = false }) {
   const accentColor = useMemo(() => card?.color || "#2A00FF", [card?.color]);
   const [vesselNameOptions, setVesselNameOptions] = useState([
     // Add vessel names here or fetch from API
@@ -1156,7 +1156,7 @@ function General({ card, formValues, handleChange, ownerInitial, cardUser, onSav
   return (
     <div className="cardform-body general-tab-body">
       <div className="general-sections-wrapper">
-        {!isAddMode && (
+        {!isAddMode && !isSimplifiedMode && (
           <div className="cf-section job-status-section">
             <div className="cf-section-header">
               <div className="cf-section-title">Job Status</div>
@@ -1426,6 +1426,16 @@ function General({ card, formValues, handleChange, ownerInitial, cardUser, onSav
                       />
                     </FormField>
                   </div>
+                ) : isSimplifiedMode ? (
+                  <div className="remarks-wrapper">
+                    <FormField label="Remarks">
+                      <ReactQuillEditor
+                        value={formValues?.remarks || card?.remarks || ""}
+                        onChange={handleChange("remarks")}
+                        placeholder="Enter remarks..."
+                      />
+                    </FormField>
+                  </div>
                 ) : (
                   <div className="daily-task-box-wrapper">
                     <DailyTaskTodo
@@ -1452,6 +1462,7 @@ General.propTypes = {
   cardUser: PropTypes.string,
   onSave: PropTypes.func,
   isAddMode: PropTypes.bool,
+  isSimplifiedMode: PropTypes.bool,
 };
 
 export default General;

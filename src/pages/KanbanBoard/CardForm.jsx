@@ -470,6 +470,7 @@ const renderTabContent = (activeTab, card, formValues, handleChange, ownerInitia
     formValues,
     handleChange,
     isAddMode,
+    isSimplifiedMode,
   };
 
   if (isSimplifiedMode) {
@@ -578,6 +579,8 @@ function CardForm({ show, close, card, moveCardToColumn, columns, currentColumn,
       // Attachments and Links
       attachments: card?.attachments || [],
       links: card?.links || [],
+      // Remarks (for simplified mode)
+      remarks: card?.remarks || "",
     }),
     [card]
   );
@@ -586,7 +589,10 @@ function CardForm({ show, close, card, moveCardToColumn, columns, currentColumn,
 
   const handleChange = useCallback(
     (field) => (e) => {
-      setFormValues((prev) => ({ ...prev, [field]: e.target.value }));
+      // Handle both regular input events and React Quill synthetic events
+      // React Quill passes synthetic events with e.target.value
+      const value = e?.target?.value !== undefined ? e.target.value : e;
+      setFormValues((prev) => ({ ...prev, [field]: value }));
     },
     []
   );
