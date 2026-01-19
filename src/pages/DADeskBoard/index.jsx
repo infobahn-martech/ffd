@@ -14,7 +14,7 @@ export default function DADeskBoard() {
   const [isAddMode, setIsAddMode] = useState(false);
   const [showWorkspaces, setShowWorkspaces] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
-  
+
   // Track expanded state for each workflow
   const [expandedWorkflows, setExpandedWorkflows] = useState(() => {
     const state = {};
@@ -447,32 +447,48 @@ export default function DADeskBoard() {
 
     // Build column order - handle nested columns
     const columnsToRender = [];
-    
+
     for (let i = 0; i < workflow.columnOrder.length; i++) {
       const colId = workflow.columnOrder[i];
       const column = workflow.columns[colId];
-      
+
       if (!column) continue;
-      
+
       // Check if this is a sub-column (belongs to a nested parent)
       const isSubColumn = column.parentColumnId;
-      
+
       if (isSubColumn) {
         // Skip sub-columns - they'll be rendered within their parent
         continue;
       }
-      
+
       // Check if this is a nested parent column
       if (column.isNested && column.subColumns && column.subColumns.length > 0) {
         // Render nested column parent with sub-columns
-        const subColumns = column.subColumns.map(subColId => workflow.columns[subColId]).filter(Boolean);
+        const subColumns = column.subColumns.map(subColId => {
+          const subCol = workflow.columns[subColId];
+          return subCol;
+        }).filter(Boolean);
+        
         const subColumnCards = {};
         subColumns.forEach(subCol => {
           if (subCol) {
-            subColumnCards[subCol.id] = subCol.cardIds.map(id => workflow.cards[id]).filter(Boolean);
+            // Ensure cardIds exists and is an array
+            const cardIds = Array.isArray(subCol.cardIds) ? subCol.cardIds : [];
+            // Map card IDs to actual card objects from workflow.cards
+            const cardsForSubCol = cardIds
+              .map(id => {
+                const card = workflow.cards && workflow.cards[id] ? workflow.cards[id] : null;
+                return card;
+              })
+              .filter(Boolean);
+            subColumnCards[subCol.id] = cardsForSubCol;
+          } else {
+            // Initialize empty array if sub-column not found
+            subColumnCards[subCol?.id] = [];
           }
         });
-        
+
         const subColumnHeights = {};
         subColumns.forEach(subCol => {
           if (subCol) {

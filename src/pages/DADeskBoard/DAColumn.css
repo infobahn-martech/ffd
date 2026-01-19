@@ -2,7 +2,8 @@
 .nested-column-parent {
   display: flex;
   flex-direction: column;
-  width: 860px !important; /* Double width to accommodate two sub-columns (2 * 430px) */
+  width: 860px !important;
+  /* Double width to accommodate two sub-columns (2 * 430px) */
 }
 
 .nested-column-parent-header {
@@ -18,8 +19,10 @@
 }
 
 .nested-column {
-  width: 430px !important; /* Same width as Ready to Finalize column */
-  flex: 0 0 430px; /* Don't grow or shrink, maintain fixed width */
+  width: 430px !important;
+  /* Same width as Ready to Finalize column */
+  flex: 0 0 430px;
+  /* Don't grow or shrink, maintain fixed width */
   background: #f5f5f5;
   border-radius: 8px;
   border: 1px solid #e0e0e0;
@@ -78,8 +81,4 @@
 /* Adjust regular column styles when nested */
 .column.nested-column-parent .column-header {
   margin-bottom: 0;
-}
-
-.column.nested-column-parent .card-list {
-  display: none;
 }

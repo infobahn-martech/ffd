@@ -200,13 +200,21 @@ const createWorkflow = (workflowConfig) => {
       continue;
     }
 
+    // Ensure column exists and has cardIds array
+    if (!columns[colId]) {
+      continue;
+    }
+
+    // Ensure cardIds is initialized as an array
+    if (!Array.isArray(columns[colId].cardIds)) {
+      columns[colId].cardIds = [];
+    }
+
+    // Generate cards for this column/sub-column
     for (let i = 0; i < count; i++) {
       const { id: generatedCardId, cardData } = generateCard(id, colId, cardId);
       cards[generatedCardId] = cardData;
-      
-      if (columns[colId]) {
-        columns[colId].cardIds.push(generatedCardId);
-      }
+      columns[colId].cardIds.push(generatedCardId);
       cardId++;
       globalCardId++;
     }
@@ -217,7 +225,7 @@ const createWorkflow = (workflowConfig) => {
   for (let i = 0; i < columnTitles.length; i++) {
     const colId = `col-${i + 1}`;
     const column = columns[colId];
-    
+
     if (column && column.isNested) {
       // For nested columns, add parent column id (we'll render sub-columns inside)
       columnOrder.push(colId);
