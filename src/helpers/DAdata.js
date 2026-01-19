@@ -42,6 +42,66 @@ const workflowsConfig = [
       "col-6": 18, // Dispatched
     },
   },
+  {
+    id: "rt-da-board",
+    title: "RT-DA Board",
+    columnColors: {
+      "col-1": "rgb(226 16 108)", // Ready to Finalize - Pink
+      "col-2": "rgb(121 21 188)", // In Progress - Purple
+      "col-3": "rgb(62 94 189)", // Al Gihaz awaiting submission - Blue
+      "col-4": "rgb(65 178 74)", // Finalized - Green
+      "col-5": "rgb(119 86 73)", // Awaiting acknowledgment - Brown
+      "col-6": "rgb(237 142 55)", // Dispatched - Orange
+    },
+    columnTitles: [
+      "Ready to Finalize",
+      "In Progress",
+      "Al Gihaz awaiting submission",
+      "Finalized",
+      "Awaiting acknowledgment",
+      "Dispatched",
+    ],
+    // No nested columns
+    nestedColumns: {},
+    cardCounts: {
+      "col-1": 10,
+      "col-2": 10,
+      "col-3": 10,
+      "col-4": 10,
+      "col-5": 10,
+      "col-6": 10,
+    },
+  },
+  {
+    id: "jub-da-board",
+    title: "JUB-DA Board (in progress normal dont want nested 2 columns)",
+    columnColors: {
+      "col-1": "rgb(226 16 108)", // Ready to Finalize - Pink
+      "col-2": "rgb(121 21 188)", // In Progress - Purple
+      "col-3": "rgb(62 94 189)", // Al Gihaz awaiting submission - Blue
+      "col-4": "rgb(65 178 74)", // Finalized - Green
+      "col-5": "rgb(119 86 73)", // Awaiting acknowledgment - Brown
+      "col-6": "rgb(237 142 55)", // Dispatched - Orange
+    },
+    columnTitles: [
+      "Ready to Finalize",
+      "In Progress",
+      "Al Gihaz awaiting submission",
+      "Finalized",
+      "Awaiting acknowledgment",
+      "Dispatched",
+    ],
+    // No nested columns - explicitly normal columns only
+    nestedColumns: {},
+    cardCounts: {
+      "col-1": 10,
+      "col-2": 10,
+      "col-3": 10,
+      "col-4": 10,
+      "col-5": 10,
+      "col-6": 10,
+    },
+  },
 ];
 
 // ============================================

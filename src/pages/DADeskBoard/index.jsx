@@ -469,7 +469,7 @@ export default function DADeskBoard() {
           const subCol = workflow.columns[subColId];
           return subCol;
         }).filter(Boolean);
-        
+
         const subColumnCards = {};
         subColumns.forEach(subCol => {
           if (subCol) {
