@@ -10,7 +10,7 @@ import { setItem } from "../../helpers/localStorage";
 function Index() {
   const navigate = useNavigate();
   const [showPassword, setShowPassword] = useState(false);
-  const [isTestingMode, setIsTestingMode] = useState(false); // Testing mode: true = normal flow, false = skip validation/API
+  const [isTestingMode, setIsTestingMode] = useState(true); // Testing mode: true = normal flow, false = skip validation/API
   const {
     register,
     handleSubmit,
@@ -27,7 +27,7 @@ function Index() {
   const onSubmit = async (data) => {
     if (isTestingMode) {
       // Normal flow: validation and API calls
-      await login({ email: data.email, password: data.password });
+      await login({ email: data.email, password: data.password, remember_me: data.rememberMe || false });
     } else {
       // Testing mode: skip validation and API, set auth state and navigate
       // Set a dummy token in localStorage so route guards pass

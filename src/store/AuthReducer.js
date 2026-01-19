@@ -15,11 +15,11 @@ const useAuthReducer = create((set) => ({
   profileData: null,
   profileEditLoader: null,
   isProfileFetchLoading: false,
-  login: async ({ email, password }) => {
+  login: async ({ email, password, remember_me = false }) => {
     try {
       set({ isLoginLoading: true, errorMessage: "" });
 
-      const { data } = await authService.doLoginValidate(email, password);
+      const { data } = await authService.doLoginValidate(email, password, remember_me);
 
       // ✅ token location based on your response
       const accessToken = data?.token;
