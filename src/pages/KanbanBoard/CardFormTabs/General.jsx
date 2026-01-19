@@ -1191,36 +1191,38 @@ function General({ card, formValues, handleChange, ownerInitial, cardUser, onSav
                     disabled={isDisabled}
                   />
 
-                  <div className="form-group">
-                    <h3 className="form-group-title">Appointment Details</h3>
-                    <FormField label="Appointment Email">
-                      <DocumentUpload
-                        attachments={appointmentDocuments}
-                        onAdd={handleDocumentAdd}
-                        onRemove={handleDocumentRemove}
-                        cardColor={accentColor}
-                        disabled={isDisabled}
-                      />
-                    </FormField>
-                    <FormField label="Appointment Received">
-                      <div className="cf-input date-time-row">
-                        <input
-                          type="date"
-                          value={getFieldValue("appointmentReceivedDate")}
-                          onChange={handleChange("appointmentReceivedDate")}
-                          placeholder="Select date"
+                  {!isSimplifiedMode && (
+                    <div className="form-group">
+                      <h3 className="form-group-title">Appointment Details</h3>
+                      <FormField label="Appointment Email">
+                        <DocumentUpload
+                          attachments={appointmentDocuments}
+                          onAdd={handleDocumentAdd}
+                          onRemove={handleDocumentRemove}
+                          cardColor={accentColor}
                           disabled={isDisabled}
                         />
-                        <input
-                          type="time"
-                          value={getFieldValue("appointmentReceivedTime")}
-                          onChange={handleChange("appointmentReceivedTime")}
-                          placeholder="Select time"
-                          disabled={isDisabled}
-                        />
-                      </div>
-                    </FormField>
-                  </div>
+                      </FormField>
+                      <FormField label="Appointment Received">
+                        <div className="cf-input date-time-row">
+                          <input
+                            type="date"
+                            value={getFieldValue("appointmentReceivedDate")}
+                            onChange={handleChange("appointmentReceivedDate")}
+                            placeholder="Select date"
+                            disabled={isDisabled}
+                          />
+                          <input
+                            type="time"
+                            value={getFieldValue("appointmentReceivedTime")}
+                            onChange={handleChange("appointmentReceivedTime")}
+                            placeholder="Select time"
+                            disabled={isDisabled}
+                          />
+                        </div>
+                      </FormField>
+                    </div>
+                  )}
 
                   <div className="form-group">
                     <h3 className="form-group-title">Service Information</h3>
@@ -1427,15 +1429,204 @@ function General({ card, formValues, handleChange, ownerInitial, cardUser, onSav
                     </FormField>
                   </div>
                 ) : isSimplifiedMode ? (
-                  <div className="remarks-wrapper">
-                    <FormField label="Remarks">
-                      <ReactQuillEditor
-                        value={formValues?.remarks || card?.remarks || ""}
-                        onChange={handleChange("remarks")}
-                        placeholder="Enter remarks..."
-                      />
-                    </FormField>
-                  </div>
+                  <>
+                    <div className="remarks-wrapper">
+                      <FormField label="Remarks">
+                        <ReactQuillEditor
+                          value={formValues?.remarks || card?.remarks || ""}
+                          onChange={handleChange("remarks")}
+                          placeholder="Enter remarks..."
+                        />
+                      </FormField>
+                    </div>
+                    <div className="appointment-details-list-wrapper">
+                      {/* APPOINTMENT DETAILS Section */}
+                      <h3 className="appointment-details-title">APPOINTMENT DETAILS</h3>
+                      <div className="appointment-details-list">
+                        <div className="appointment-detail-item appointment-detail-file">
+                          <div className="appointment-detail-file-icon">
+                            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                              <path
+                                d="M14 2H6C5.46957 2 4.96086 2.21071 4.58579 2.58579C4.21071 2.96086 4 3.46957 4 4V20C4 20.5304 4.21071 21.0391 4.58579 21.4142C4.96086 21.7893 5.46957 22 6 22H18C18.5304 22 19.0391 21.7893 19.4142 21.4142C19.7893 21.0391 20 20.5304 20 20V8L14 2Z"
+                                stroke="#3e5cb6"
+                                strokeWidth="2"
+                                strokeLinecap="round"
+                                strokeLinejoin="round"
+                                fill="#3e5cb6"
+                                fillOpacity="0.1"
+                              />
+                              <path
+                                d="M14 2V8H20"
+                                stroke="#3e5cb6"
+                                strokeWidth="2"
+                                strokeLinecap="round"
+                                strokeLinejoin="round"
+                              />
+                            </svg>
+                          </div>
+                          <div className="appointment-detail-file-info">
+                            <span className="appointment-detail-label">appointment_document.pdf</span>
+                            <span className="appointment-detail-file-size">1000.0 KB</span>
+                          </div>
+                        </div>
+                      </div>
+
+                      {/* Launch Hire Details Section */}
+                      <h3 className="appointment-details-title">LAUNCH HIRE DETAILS</h3>
+                      <div className="appointment-details-list">
+                        <div className="appointment-detail-item appointment-detail-file">
+                          <div className="appointment-detail-file-icon">
+                            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                              <path
+                                d="M14 2H6C5.46957 2 4.96086 2.21071 4.58579 2.58579C4.21071 2.96086 4 3.46957 4 4V20C4 20.5304 4.21071 21.0391 4.58579 21.4142C4.96086 21.7893 5.46957 22 6 22H18C18.5304 22 19.0391 21.7893 19.4142 21.4142C19.7893 21.0391 20 20.5304 20 20V8L14 2Z"
+                                stroke="#3e5cb6"
+                                strokeWidth="2"
+                                strokeLinecap="round"
+                                strokeLinejoin="round"
+                                fill="#3e5cb6"
+                                fillOpacity="0.1"
+                              />
+                              <path
+                                d="M14 2V8H20"
+                                stroke="#3e5cb6"
+                                strokeWidth="2"
+                                strokeLinecap="round"
+                                strokeLinejoin="round"
+                              />
+                            </svg>
+                          </div>
+                          <div className="appointment-detail-file-info">
+                            <span className="appointment-detail-label">Launch Hire Slips.pdf</span>
+                            <span className="appointment-detail-file-size">1000.0 KB</span>
+                          </div>
+                        </div>
+                      </div>
+
+                      {/* Sailing Clearance Copy Section */}
+                      <h3 className="appointment-details-title">SAILING CLEARANCE COPY</h3>
+                      <div className="appointment-details-list">
+                        <div className="appointment-detail-item appointment-detail-file">
+                          <div className="appointment-detail-file-icon">
+                            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                              <path
+                                d="M14 2H6C5.46957 2 4.96086 2.21071 4.58579 2.58579C4.21071 2.96086 4 3.46957 4 4V20C4 20.5304 4.21071 21.0391 4.58579 21.4142C4.96086 21.7893 5.46957 22 6 22H18C18.5304 22 19.0391 21.7893 19.4142 21.4142C19.7893 21.0391 20 20.5304 20 20V8L14 2Z"
+                                stroke="#3e5cb6"
+                                strokeWidth="2"
+                                strokeLinecap="round"
+                                strokeLinejoin="round"
+                                fill="#3e5cb6"
+                                fillOpacity="0.1"
+                              />
+                              <path
+                                d="M14 2V8H20"
+                                stroke="#3e5cb6"
+                                strokeWidth="2"
+                                strokeLinecap="round"
+                                strokeLinejoin="round"
+                              />
+                            </svg>
+                          </div>
+                          <div className="appointment-detail-file-info">
+                            <span className="appointment-detail-label">Sailing Clearance Copy.pdf</span>
+                            <span className="appointment-detail-file-size">1000.0 KB</span>
+                          </div>
+                        </div>
+                      </div>
+
+                      {/* Inward Clearance Copy Section */}
+                      <h3 className="appointment-details-title">INWARD CLEARANCE COPY</h3>
+                      <div className="appointment-details-list">
+                        <div className="appointment-detail-item appointment-detail-file">
+                          <div className="appointment-detail-file-icon">
+                            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                              <path
+                                d="M14 2H6C5.46957 2 4.96086 2.21071 4.58579 2.58579C4.21071 2.96086 4 3.46957 4 4V20C4 20.5304 4.21071 21.0391 4.58579 21.4142C4.96086 21.7893 5.46957 22 6 22H18C18.5304 22 19.0391 21.7893 19.4142 21.4142C19.7893 21.0391 20 20.5304 20 20V8L14 2Z"
+                                stroke="#3e5cb6"
+                                strokeWidth="2"
+                                strokeLinecap="round"
+                                strokeLinejoin="round"
+                                fill="#3e5cb6"
+                                fillOpacity="0.1"
+                              />
+                              <path
+                                d="M14 2V8H20"
+                                stroke="#3e5cb6"
+                                strokeWidth="2"
+                                strokeLinecap="round"
+                                strokeLinejoin="round"
+                              />
+                            </svg>
+                          </div>
+                          <div className="appointment-detail-file-info">
+                            <span className="appointment-detail-label">Inward Clearance Copy.pdf</span>
+                            <span className="appointment-detail-file-size">1000.0 KB</span>
+                          </div>
+                        </div>
+                      </div>
+
+                      {/* Supporting Documents Section */}
+                      <h3 className="appointment-details-title">SUPPORTING DOCUMENTS</h3>
+                      <div className="appointment-details-list">
+                        <div className="appointment-detail-item appointment-detail-file">
+                          <div className="appointment-detail-file-icon">
+                            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                              <path
+                                d="M14 2H6C5.46957 2 4.96086 2.21071 4.58579 2.58579C4.21071 2.96086 4 3.46957 4 4V20C4 20.5304 4.21071 21.0391 4.58579 21.4142C4.96086 21.7893 5.46957 22 6 22H18C18.5304 22 19.0391 21.7893 19.4142 21.4142C19.7893 21.0391 20 20.5304 20 20V8L14 2Z"
+                                stroke="#3e5cb6"
+                                strokeWidth="2"
+                                strokeLinecap="round"
+                                strokeLinejoin="round"
+                                fill="#3e5cb6"
+                                fillOpacity="0.1"
+                              />
+                              <path
+                                d="M14 2V8H20"
+                                stroke="#3e5cb6"
+                                strokeWidth="2"
+                                strokeLinecap="round"
+                                strokeLinejoin="round"
+                              />
+                            </svg>
+                          </div>
+                          <div className="appointment-detail-file-info">
+                            <span className="appointment-detail-label">Supporting Documents.pdf</span>
+                            <span className="appointment-detail-file-size">1000.0 KB</span>
+                          </div>
+                        </div>
+                      </div>
+
+                      {/* FDA Dispatch Proof Section */}
+                      <h3 className="appointment-details-title">FDA DISPATCH PROOF</h3>
+                      <div className="appointment-details-list">
+                        <div className="appointment-detail-item appointment-detail-file">
+                          <div className="appointment-detail-file-icon">
+                            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                              <path
+                                d="M14 2H6C5.46957 2 4.96086 2.21071 4.58579 2.58579C4.21071 2.96086 4 3.46957 4 4V20C4 20.5304 4.21071 21.0391 4.58579 21.4142C4.96086 21.7893 5.46957 22 6 22H18C18.5304 22 19.0391 21.7893 19.4142 21.4142C19.7893 21.0391 20 20.5304 20 20V8L14 2Z"
+                                stroke="#3e5cb6"
+                                strokeWidth="2"
+                                strokeLinecap="round"
+                                strokeLinejoin="round"
+                                fill="#3e5cb6"
+                                fillOpacity="0.1"
+                              />
+                              <path
+                                d="M14 2V8H20"
+                                stroke="#3e5cb6"
+                                strokeWidth="2"
+                                strokeLinecap="round"
+                                strokeLinejoin="round"
+                              />
+                            </svg>
+                          </div>
+                          <div className="appointment-detail-file-info">
+                            <span className="appointment-detail-label">FDA Dispatch Proof.pdf</span>
+                            <span className="appointment-detail-file-size">1000.0 KB</span>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                  </>
                 ) : (
                   <div className="daily-task-box-wrapper">
                     <DailyTaskTodo
