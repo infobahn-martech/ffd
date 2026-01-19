@@ -12,6 +12,7 @@ import Login from "../pages/Authentication";
 import ForgetPassword from "../pages/ForgetPassword";
 import KanbanBoard from "../pages/KanbanBoard";
 import BoardRouter from "../pages/KanbanBoard/BoardRouter";
+import KanbanAnalytics from "../pages/KanbanBoard/Analytics";
 import DAModule from "../pages/DAModule";
 import Workspaces from "../pages/Workspaces";
 import EditWorkflows from "../pages/EditWorkflows";
@@ -83,6 +84,8 @@ const router = createHashRouter([
               { path: "/users", element: <User /> },
               { path: "/customer-pricing", element: <CustomerPricing /> },
               { path: "/kanban-board", element: <KanbanBoard /> },
+              { path: "/kanban-board/:id/analytics", element: <KanbanAnalytics /> },
+              { path: "/kanban-board/analytics", element: <KanbanAnalytics /> },
               { path: "/da-module", element: <DAModule /> },
               { path: "/workspaces", element: <Workspaces /> },
               { path: "/edit-workflow", element: <EditWorkflows /> },
@@ -143,6 +146,9 @@ const router = createHashRouter([
                   // Kanban Board - with dynamic ID support
                   { path: "/kanban-board/:id", element: <RouteGuard><BoardRouter /></RouteGuard> },
                   { path: "/kanban-board", element: <RouteGuard><KanbanBoard /></RouteGuard> },
+                  // Kanban Board Analytics
+                  { path: "/kanban-board/:id/analytics", element: <RouteGuard><KanbanAnalytics /></RouteGuard> },
+                  { path: "/kanban-board/analytics", element: <RouteGuard><KanbanAnalytics /></RouteGuard> },
                   // DA Module
                   { path: "/da-module", element: <RouteGuard><DAModule /></RouteGuard> },
                   // Workspaces

@@ -9,7 +9,8 @@ import {
   FiLayout,
   FiGrid,
   FiBarChart2,
-  FiDatabase
+  FiDatabase,
+  FiActivity
 } from 'react-icons/fi';
 import { Tooltip } from 'react-tooltip';
 import 'react-tooltip/dist/react-tooltip.css';
@@ -276,6 +277,16 @@ function Header({ onMenuToggle, mobileMenuOpen: externalMobileMenuOpen }) {
     setShowTypesModal(true);
   };
 
+  const handleAnalyticsClick = () => {
+    // Extract board ID from pathname if available
+    const boardIdMatch = pathname.match(/\/kanban-board\/(\d+)/);
+    const boardId = boardIdMatch ? boardIdMatch[1] : '';
+    navigate(`/kanban-board/${boardId ? `${boardId}/` : ''}analytics`);
+  };
+
+  // Check if we're on a kanban board route
+  const isKanbanBoardRoute = pathname.startsWith('/kanban-board');
+
 
   return (
     <div className="sedres-header">
@@ -396,6 +407,19 @@ function Header({ onMenuToggle, mobileMenuOpen: externalMobileMenuOpen }) {
         >
           <FiBarChart2 />
         </button>
+        {isKanbanBoardRoute && (
+          <>
+            <Tooltip id="board-analytics" place="bottom" content="Show Analytics" />
+            <button
+              className={`icon-btn icon-btn-hide-mobile ${pathname.includes('/analytics') ? 'active' : ''}`}
+              aria-label="Show Analytics"
+              onClick={handleAnalyticsClick}
+              data-tooltip-id="board-analytics"
+            >
+              <FiActivity />
+            </button>
+          </>
+        )}
         <Tooltip id="documents" place="bottom" content="Documents" />
         <button
           className={`icon-btn icon-btn-hide-mobile ${showDocumentsModal ? 'active' : ''}`}

@@ -36,7 +36,7 @@ import useWindowSize from '../../hooks/useWindowSize';
 // 🆕 Kanban sidebar icons + tooltip
 import { Tooltip } from 'react-tooltip';
 import 'react-tooltip/dist/react-tooltip.css';
-import { FiPlus, FiInbox, FiFilter, FiPlusCircle } from 'react-icons/fi';
+import { FiPlus, FiInbox, FiFilter, FiPlusCircle, FiActivity } from 'react-icons/fi';
 
 function SideNav({ isMobileMenuOpen, onCloseMobileMenu }) {
   const { pathname } = useLocation();
@@ -50,11 +50,12 @@ function SideNav({ isMobileMenuOpen, onCloseMobileMenu }) {
   const kanbanBoardIcons = [
     { id: 1, icon: FiPlus, label: 'Add' },
     { id: 2, icon: FiFilter, label: 'Filter' },
+    { id: 3, icon: FiActivity, label: 'Analytics' },
   ];
 
   const workspacesIcons = [
-    { id: 3, icon: FiInbox, label: 'Workspaces' },
-    { id: 4, icon: FiPlusCircle, label: 'Add new dashboard' },
+    { id: 4, icon: FiInbox, label: 'Workspaces' },
+    { id: 5, icon: FiPlusCircle, label: 'Add new dashboard' },
   ];
 
   // Board teams submenu items
@@ -356,6 +357,8 @@ function SideNav({ isMobileMenuOpen, onCloseMobileMenu }) {
   useEffect(() => {
     if (isKanbanBoard) {
       if (pathname === '/workspaces') {
+        setActiveKanbanIcon(4);
+      } else if (pathname.includes('/analytics')) {
         setActiveKanbanIcon(3);
       } else if (pathname === '/kanban-board' || pathname.startsWith('/kanban-board/')) {
         setActiveKanbanIcon(1);
@@ -414,6 +417,18 @@ function SideNav({ isMobileMenuOpen, onCloseMobileMenu }) {
         setShowBoardTeamsSubmenu(false);
         setShowCardManagementSubmenu(false);
         if (newShowState) setActiveKanbanIcon(item.id);
+        return;
+      }
+
+      if (item.label === 'Analytics') {
+        // Extract board ID from pathname if available
+        const boardIdMatch = pathname.match(/\/kanban-board\/(\d+)/);
+        const boardId = boardIdMatch ? boardIdMatch[1] : '';
+        navigate(`/kanban-board/${boardId ? `${boardId}/` : ''}analytics`);
+        setActiveKanbanIcon(item.id);
+        setShowFilterPanel(false);
+        setShowBoardTeamsSubmenu(false);
+        setShowCardManagementSubmenu(false);
         return;
       }
 
@@ -517,6 +532,7 @@ function SideNav({ isMobileMenuOpen, onCloseMobileMenu }) {
             const isActive =
               activeKanbanIcon === item.id ||
               (item.label === 'Filter' && showFilterPanel) ||
+              (item.label === 'Analytics' && pathname.includes('/analytics')) ||
               (item.label === 'Board teams' && showBoardTeamsSubmenu) ||
               (item.label === 'Business rules' && showBusinessRulesModal) ||
               (item.label === 'Card management' && showCardManagementSubmenu) ||
