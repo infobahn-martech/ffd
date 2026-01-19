@@ -1,4 +1,5 @@
 import { useState, useMemo, useCallback, useEffect, useRef } from "react";
+import { useLocation } from "react-router-dom";
 import PropTypes from "prop-types";
 import "../../design/css/CardForm.css";
 import ColorPickerIcon from "../../assets/images/ColorPicker.png";
@@ -6,15 +7,33 @@ import PriorityIcon from "../../assets/images/Priority.png";
 
 // Import Tab Components
 import General from "./CardFormTabs/General";
+import Operation from "./CardFormTabs/Operation";
+import Husbandry from "./CardFormTabs/Husbandry";
 import Attachments from "./CardFormTabs/Attachments";
+import SalesOrder from "./CardFormTabs/SalesOrder";
+import Reports from "./CardFormTabs/Reports";
+import KPI from "./CardFormTabs/KPI";
 
-// Constants
-const TOP_TABS = [
+// Constants - All tabs
+const ALL_TOP_TABS = [
+  "Appointment Details",
+  "Operation",
+  "Husbandry",
+  "Sales Order",
+  "Reports",
+  "KPI",
+  "Attachments",
+];
+
+const ALL_ENABLED_TABS = ["Appointment Details", "Operation", "Husbandry", "Sales Order", "Reports", "KPI", "Attachments"];
+
+// Constants - Simplified tabs for kanban-board/{id} routes
+const SIMPLIFIED_TOP_TABS = [
   "General",
   "Attachments",
 ];
 
-const ENABLED_TABS = ["General", "Attachments"];
+const SIMPLIFIED_ENABLED_TABS = ["General", "Attachments"];
 
 const DEFAULT_ACCENT_COLOR = "#2A00FF";
 const TOTAL_STEPS = 6;
@@ -404,10 +423,21 @@ StepsProgress.propTypes = {
   currentStep: PropTypes.number,
 };
 
-const CardFormFooter = ({ accentColor, onUpdate, activeStep = 2, completedSteps = 1, activeTab, onStepClick, currentStep }) => {
+const CardFormFooter = ({ accentColor, onUpdate, activeStep = 2, completedSteps = 1, activeTab, onStepClick, currentStep, isSimplifiedMode = false }) => {
   return (
     <div className="cardform-footer">
-      {activeTab !== "General" && (
+      {!isSimplifiedMode && activeTab !== "Appointment Details" && (
+        <StepsProgress
+          totalSteps={TOTAL_STEPS}
+          activeStep={activeStep}
+          completedSteps={completedSteps}
+          accentColor={accentColor}
+          stepLabels={STEP_LABELS}
+          onStepClick={onStepClick}
+          currentStep={currentStep}
+        />
+      )}
+      {isSimplifiedMode && activeTab !== "General" && (
         <StepsProgress
           totalSteps={TOTAL_STEPS}
           activeStep={activeStep}
@@ -430,10 +460,11 @@ CardFormFooter.propTypes = {
   activeTab: PropTypes.string,
   onStepClick: PropTypes.func,
   currentStep: PropTypes.number,
+  isSimplifiedMode: PropTypes.bool,
 };
 
 // Tab Content Renderer
-const renderTabContent = (activeTab, card, formValues, handleChange, ownerInitial, isAddMode = false) => {
+const renderTabContent = (activeTab, card, formValues, handleChange, ownerInitial, isAddMode = false, isSimplifiedMode = false) => {
   const commonProps = {
     card,
     formValues,
@@ -441,19 +472,57 @@ const renderTabContent = (activeTab, card, formValues, handleChange, ownerInitia
     isAddMode,
   };
 
-  switch (activeTab) {
-    case "General":
-      return <General {...commonProps} ownerInitial={ownerInitial} cardUser={card?.user} />;
-    case "Attachments":
-      return <Attachments {...commonProps} />;
-    default:
-      return <General {...commonProps} ownerInitial={ownerInitial} cardUser={card?.user} />;
+  if (isSimplifiedMode) {
+    // Simplified mode - only General and Attachments
+    switch (activeTab) {
+      case "General":
+        return <General {...commonProps} ownerInitial={ownerInitial} cardUser={card?.user} />;
+      case "Attachments":
+        return <Attachments {...commonProps} />;
+      default:
+        return <General {...commonProps} ownerInitial={ownerInitial} cardUser={card?.user} />;
+    }
+  } else {
+    // Full mode - all tabs
+    switch (activeTab) {
+      case "Appointment Details":
+        return <General {...commonProps} ownerInitial={ownerInitial} cardUser={card?.user} />;
+      case "Operation":
+        return <Operation {...commonProps} ownerInitial={ownerInitial} />;
+      case "Husbandry":
+        return <Husbandry {...commonProps} />;
+      case "Attachments":
+        return <Attachments {...commonProps} />;
+      case "Sales Order":
+        return <SalesOrder {...commonProps} />;
+      case "Reports":
+        return <Reports {...commonProps} />;
+      case "KPI":
+        return <KPI {...commonProps} />;
+      default:
+        return <General {...commonProps} ownerInitial={ownerInitial} cardUser={card?.user} />;
+    }
   }
 };
 
 // Main Component
 function CardForm({ show, close, card, moveCardToColumn, columns, currentColumn, isAddMode = false }) {
-  const [activeTopTab, setActiveTopTab] = useState("General");
+  const location = useLocation();
+  
+  // Check if we're on a kanban-board/{id} route
+  const isKanbanBoardWithId = /^\/kanban-board\/\d+$/.test(location.pathname);
+  
+  // Determine which tabs to use
+  const TOP_TABS = isKanbanBoardWithId ? SIMPLIFIED_TOP_TABS : ALL_TOP_TABS;
+  const ENABLED_TABS = isKanbanBoardWithId ? SIMPLIFIED_ENABLED_TABS : ALL_ENABLED_TABS;
+  const defaultTab = isKanbanBoardWithId ? "General" : "Appointment Details";
+  
+  const [activeTopTab, setActiveTopTab] = useState(defaultTab);
+  
+  // Reset active tab when route changes
+  useEffect(() => {
+    setActiveTopTab(defaultTab);
+  }, [isKanbanBoardWithId, defaultTab]);
 
   // State for topbar color - visual only, never affects card.color
   // Always initialize from card.color (the fixed card color)
@@ -601,7 +670,7 @@ function CardForm({ show, close, card, moveCardToColumn, columns, currentColumn,
             enabledTabs={ENABLED_TABS}
           />
         )}
-        {renderTabContent(activeTopTab, card, formValues, handleChange, ownerInitial, isAddMode)}
+        {renderTabContent(activeTopTab, card, formValues, handleChange, ownerInitial, isAddMode, isKanbanBoardWithId)}
         {!isAddMode && (
           <CardFormFooter
             accentColor={accentColor}
@@ -611,6 +680,7 @@ function CardForm({ show, close, card, moveCardToColumn, columns, currentColumn,
             activeTab={activeTopTab}
             onStepClick={handleStepClick}
             currentStep={currentStep}
+            isSimplifiedMode={isKanbanBoardWithId}
           />
         )}
       </div>
