@@ -43,7 +43,7 @@ function SideNav({ isMobileMenuOpen, onCloseMobileMenu }) {
   const navigate = useNavigate();
   const { width } = useWindowSize();
 
-  const isKanbanBoard = pathname === '/kanban-board' || pathname === '/workspaces';
+  const isKanbanBoard = pathname === '/kanban-board' || pathname.startsWith('/kanban-board/') || pathname === '/workspaces';
   const isMobile = width <= 991;
 
   // 🆕 Kanban icon config - different icons for /kanban-board vs /workspaces
@@ -72,7 +72,7 @@ function SideNav({ isMobileMenuOpen, onCloseMobileMenu }) {
   ];
 
   // Select icons based on route
-  const kanbanIcons = pathname === '/kanban-board' ? kanbanBoardIcons : workspacesIcons;
+  const kanbanIcons = pathname === '/kanban-board' || pathname.startsWith('/kanban-board/') ? kanbanBoardIcons : workspacesIcons;
 
   // 🆕 Active state only for Kanban sidebar
   const [activeKanbanIcon, setActiveKanbanIcon] = useState(2);
@@ -357,7 +357,7 @@ function SideNav({ isMobileMenuOpen, onCloseMobileMenu }) {
     if (isKanbanBoard) {
       if (pathname === '/workspaces') {
         setActiveKanbanIcon(3);
-      } else if (pathname === '/kanban-board') {
+      } else if (pathname === '/kanban-board' || pathname.startsWith('/kanban-board/')) {
         setActiveKanbanIcon(1);
       }
     }
