@@ -6,26 +6,15 @@ import PriorityIcon from "../../assets/images/Priority.png";
 
 // Import Tab Components
 import General from "./CardFormTabs/General";
-import Operation from "./CardFormTabs/Operation";
-import Husbandry from "./CardFormTabs/Husbandry";
 import Attachments from "./CardFormTabs/Attachments";
-import SalesOrder from "./CardFormTabs/SalesOrder";
-import Reports from "./CardFormTabs/Reports";
-import KPI from "./CardFormTabs/KPI";
 
 // Constants
 const TOP_TABS = [
-  "Appointment Details",
-  "Operation",
-  "Husbandry",
-  "Sales Order",
-  "Reports",
-  "KPI",
+  "General",
   "Attachments",
 ];
 
-const ENABLED_TABS = ["Appointment Details", "Operation", "Husbandry", "Sales Order", "Reports", "KPI", "Attachments"];
-// const ENABLED_TABS = ["General", "Operation", "Husbandry", "Attachments", "Sales Order"];
+const ENABLED_TABS = ["General", "Attachments"];
 
 const DEFAULT_ACCENT_COLOR = "#2A00FF";
 const TOTAL_STEPS = 6;
@@ -418,7 +407,7 @@ StepsProgress.propTypes = {
 const CardFormFooter = ({ accentColor, onUpdate, activeStep = 2, completedSteps = 1, activeTab, onStepClick, currentStep }) => {
   return (
     <div className="cardform-footer">
-      {activeTab !== "Appointment Details" && (
+      {activeTab !== "General" && (
         <StepsProgress
           totalSteps={TOTAL_STEPS}
           activeStep={activeStep}
@@ -453,20 +442,10 @@ const renderTabContent = (activeTab, card, formValues, handleChange, ownerInitia
   };
 
   switch (activeTab) {
-    case "Appointment Details":
+    case "General":
       return <General {...commonProps} ownerInitial={ownerInitial} cardUser={card?.user} />;
-    case "Operation":
-      return <Operation {...commonProps} ownerInitial={ownerInitial} />;
-    case "Husbandry":
-      return <Husbandry {...commonProps} />;
     case "Attachments":
       return <Attachments {...commonProps} />;
-    case "Sales Order":
-      return <SalesOrder {...commonProps} />;
-    case "Reports":
-      return <Reports {...commonProps} />;
-    case "KPI":
-      return <KPI {...commonProps} />;
     default:
       return <General {...commonProps} ownerInitial={ownerInitial} cardUser={card?.user} />;
   }
@@ -474,7 +453,7 @@ const renderTabContent = (activeTab, card, formValues, handleChange, ownerInitia
 
 // Main Component
 function CardForm({ show, close, card, moveCardToColumn, columns, currentColumn, isAddMode = false }) {
-  const [activeTopTab, setActiveTopTab] = useState("Appointment Details");
+  const [activeTopTab, setActiveTopTab] = useState("General");
 
   // State for topbar color - visual only, never affects card.color
   // Always initialize from card.color (the fixed card color)
