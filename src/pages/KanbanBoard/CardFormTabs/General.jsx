@@ -404,10 +404,41 @@ const DocumentUpload = ({ attachments = [], onAdd, onRemove, cardColor, disabled
     );
   }
 
+  // Helper function to get file icon based on file type
+  const getFileIcon = (fileName) => {
+    const extension = fileName.split('.').pop()?.toLowerCase();
+    const iconColor = type ? `var(--upload-type-color, #3e5cb6)` : `var(--card-color, #2A00FF)`;
+
+    if (['pdf'].includes(extension)) {
+      return (
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+          <path d="M14 2H6C5.46957 2 4.96086 2.21071 4.58579 2.58579C4.21071 2.96086 4 3.46957 4 4V20C4 20.5304 4.21071 21.0391 4.58579 21.4142C4.96086 21.7893 5.46957 22 6 22H18C18.5304 22 19.0391 21.7893 19.4142 21.4142C19.7893 21.0391 20 20.5304 20 20V8L14 2Z" stroke={iconColor} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" fill="none" />
+          <path d="M14 2V8H20" stroke={iconColor} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+          <path d="M16 13H8" stroke={iconColor} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+          <path d="M16 17H8" stroke={iconColor} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+        </svg>
+      );
+    }
+    return (
+      <svg width="20" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+        <path d="M14 2H6C5.46957 2 4.96086 2.21071 4.58579 2.58579C4.21071 2.96086 4 3.46957 4 4V20C4 20.5304 4.21071 21.0391 4.58579 21.4142C4.96086 21.7893 5.46957 22 6 22H18C18.5304 22 19.0391 21.7893 19.4142 21.4142C19.7893 21.0391 20 20.5304 20 20V8L14 2Z" stroke={iconColor} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" fill="none" />
+        <path d="M14 2V8H20" stroke={iconColor} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+      </svg>
+    );
+  };
+
+  // Helper function to format file size
+  const formatFileSize = (bytes) => {
+    if (!bytes) return '0 KB';
+    if (bytes < 1024) return bytes + ' B';
+    if (bytes < 1024 * 1024) return (bytes / 1024).toFixed(1) + ' KB';
+    return (bytes / (1024 * 1024)).toFixed(2) + ' MB';
+  };
+
   return (
     <div className="document-upload-wrapper">
       <div
-        className={`document-upload-zone ${isDragging ? "dragging" : ""}`}
+        className={`document-upload-zone ${type ? `upload-type-${type.toLowerCase().replace(/\s+/g, '-')}` : ""} ${isDragging ? "dragging" : ""}`}
         onDragEnter={disabled ? undefined : handleDragEnter}
         onDragOver={disabled ? undefined : handleDragOver}
         onDragLeave={disabled ? undefined : handleDragLeave}
@@ -425,36 +456,49 @@ const DocumentUpload = ({ attachments = [], onAdd, onRemove, cardColor, disabled
           disabled={disabled}
         />
         <div className="upload-zone-content">
+          <div className="upload-icon-wrapper">
+          </div>
           <div className="upload-text-content">
             <p className="upload-main-text">
               Drag and drop your files here, or{" "}
               <span className="upload-link">click to browse</span>
             </p>
+            <p className="upload-sub-text">Supports all file formats</p>
           </div>
-          {attachments.length > 0 && (
-            <div className="upload-zone-files-list">
-              {attachments.map((file, index) => (
-                <div key={index} className="upload-zone-file-item">
-                  <span className="upload-zone-file-name">{file.name || file}</span>
-                  {!disabled && (
-                    <button
-                      className="upload-zone-remove-btn"
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        handleRemove(index);
-                      }}
-                      type="button"
-                      title="Remove file"
-                    >
-                      ×
-                    </button>
-                  )}
-                </div>
-              ))}
-            </div>
-          )}
         </div>
       </div>
+
+      {/* File Preview List - Shows below upload zone */}
+      {attachments.length > 0 && (
+        <div className="document-file-preview-list">
+          {attachments.map((file, index) => (
+            <div key={index} className="document-file-preview-item">
+              <div className="document-file-preview-icon">
+                {getFileIcon(file.name || file)}
+              </div>
+              <div className="document-file-preview-info">
+                <span className="document-file-preview-name">{file.name || file}</span>
+                <span className="document-file-preview-size">{formatFileSize(file.size)}</span>
+              </div>
+              {!disabled && (
+                <button
+                  className="document-file-preview-remove"
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    handleRemove(index);
+                  }}
+                  type="button"
+                  title="Remove file"
+                >
+                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                    <path d="M18 6L6 18M6 6L18 18" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+                  </svg>
+                </button>
+              )}
+            </div>
+          ))}
+        </div>
+      )}
     </div>
   );
 };
