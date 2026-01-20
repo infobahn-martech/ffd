@@ -1007,6 +1007,16 @@ function General({ card, formValues, handleChange, ownerInitial, cardUser, onSav
   const [supportingDocuments, setSupportingDocuments] = useState([]);
   const [fdaDispatchProofDocuments, setFdaDispatchProofDocuments] = useState([]);
   const [copyOfSalesOrderDocuments, setCopyOfSalesOrderDocuments] = useState([]);
+  // CREW CHANGE document states
+  const [crewChangeAppointmentEmailDocuments, setCrewChangeAppointmentEmailDocuments] = useState([]);
+  const [launchHireSlipsDocuments, setLaunchHireSlipsDocuments] = useState([]);
+  const [zawilPassCopyDocuments, setZawilPassCopyDocuments] = useState([]);
+  const [cgPermitCopyDocuments, setCgPermitCopyDocuments] = useState([]);
+  const [crewSummarySheetDocuments, setCrewSummarySheetDocuments] = useState([]);
+  const [crewChangeSupportingDocuments, setCrewChangeSupportingDocuments] = useState([]);
+  const [crewChangeFdaDispatchProofDocuments, setCrewChangeFdaDispatchProofDocuments] = useState([]);
+  const [hotelInvoiceDocuments, setHotelInvoiceDocuments] = useState([]);
+  const [crewChangeCopyOfSalesOrderDocuments, setCrewChangeCopyOfSalesOrderDocuments] = useState([]);
   const [dailyReportEmailOptions, setDailyReportEmailOptions] = useState([
     { value: "admin@example.com", label: "admin@example.com" },
     { value: "operations@example.com", label: "operations@example.com" },
@@ -1109,6 +1119,19 @@ function General({ card, formValues, handleChange, ownerInitial, cardUser, onSav
     serviceRequestorName: "Requestor Name",
     dailyReportEmail: ["admin@example.com", "reports@example.com"],
     billingInstructions: "Standard billing instructions apply",
+    // CREW CHANGE specific fields
+    lastMovedDate: "2024-01-20",
+    lastMovedTime: "14:30",
+    taxInvoice: "TI-98765",
+    srtPoWbs: "SRT-123|PO-456|WBS-789",
+    totalOnsigners: "5",
+    totalOffsigners: "3",
+    thirdPartyItems: "Various items",
+    billingEntity: "SS7",
+    operationsCompletionDate: "2024-01-25",
+    operationsCompletionTime: "16:00",
+    invoiceAmount: "50000.00",
+    sapSalesOrderNo: "SO-12345",
   };
 
 
@@ -1174,6 +1197,9 @@ function General({ card, formValues, handleChange, ownerInitial, cardUser, onSav
   // Check if MWP RENEWAL type is selected in simplified mode
   const isMwPRenewal = isSimplifiedMode && getFieldValue("type") === "MWP RENEWAL";
 
+  // Check if CREW CHANGE type is selected in simplified mode
+  const isCrewChange = isSimplifiedMode && getFieldValue("type") === "CREW CHANGE";
+
 
 
 
@@ -1220,7 +1246,155 @@ function General({ card, formValues, handleChange, ownerInitial, cardUser, onSav
             <div className="general-info-two-column">
               <div className="general-info-left">
                 <div className="pre-arrival-form">
-                  {isMwPRenewal ? (
+                  {isCrewChange ? (
+                    <>
+                      <OwnerField
+                        value={getFieldValue("owner") || "None"}
+                        onChange={handleChange("owner")}
+                        ownerInitial={ownerInitialValue}
+                        cardUser={cardUser || card?.user}
+                        disabled={isDisabled}
+                      />
+
+                      <FormField label="Last moved">
+                        <div className="cf-input date-time-row">
+                          <input
+                            type="date"
+                            value={getFieldValue("lastMovedDate")}
+                            onChange={handleChange("lastMovedDate")}
+                            placeholder="Select date"
+                            disabled={isDisabled}
+                          />
+                          <input
+                            type="time"
+                            value={getFieldValue("lastMovedTime")}
+                            onChange={handleChange("lastMovedTime")}
+                            placeholder="Select time"
+                            disabled={isDisabled}
+                          />
+                        </div>
+                      </FormField>
+
+                      <FormField label="Tax Invoice">
+                        <FormInput
+                          type="text"
+                          placeholder="Enter tax invoice..."
+                          value={getFieldValue("taxInvoice")}
+                          onChange={handleChange("taxInvoice")}
+                          disabled={isDisabled}
+                        />
+                      </FormField>
+
+                      <FormField label="SRT|PO|WBS">
+                        <FormInput
+                          type="text"
+                          placeholder="Enter SRT|PO|WBS..."
+                          value={getFieldValue("srtPoWbs")}
+                          onChange={handleChange("srtPoWbs")}
+                          disabled={isDisabled}
+                        />
+                      </FormField>
+
+                      <FormField label="Total Onsigners">
+                        <FormInput
+                          type="number"
+                          placeholder="Enter total onsigners..."
+                          value={getFieldValue("totalOnsigners")}
+                          onChange={handleChange("totalOnsigners")}
+                          disabled={true}
+                        />
+                      </FormField>
+
+                      <FormField label="Total Offsigners">
+                        <FormInput
+                          type="number"
+                          placeholder="Enter total offsigners..."
+                          value={getFieldValue("totalOffsigners")}
+                          onChange={handleChange("totalOffsigners")}
+                          disabled={true}
+                        />
+                      </FormField>
+
+                      <FormField label="3rd Party Items">
+                        <FormInput
+                          type="text"
+                          placeholder="Enter 3rd party items..."
+                          value={getFieldValue("thirdPartyItems")}
+                          onChange={handleChange("thirdPartyItems")}
+                          disabled={isDisabled}
+                        />
+                      </FormField>
+
+                      <FormField label="Billing Entity">
+                        <FormSelect
+                          value={getFieldValue("billingEntity") || "SS7"}
+                          onChange={handleChange("billingEntity")}
+                          options={[{ value: "SS7", label: "SS7" }]}
+                          placeholder="Select billing entity..."
+                          disabled={true}
+                        />
+                      </FormField>
+
+                      <FormField label="Operations completion date">
+                        <div className="cf-input date-time-row">
+                          <input
+                            type="date"
+                            value={getFieldValue("operationsCompletionDate")}
+                            onChange={handleChange("operationsCompletionDate")}
+                            placeholder="Select date"
+                            disabled={isDisabled}
+                          />
+                          <input
+                            type="time"
+                            value={getFieldValue("operationsCompletionTime")}
+                            onChange={handleChange("operationsCompletionTime")}
+                            placeholder="Select time"
+                            disabled={isDisabled}
+                          />
+                        </div>
+                      </FormField>
+
+                      <FormField label="Invoice amount (Including VAT)">
+                        <FormInput
+                          type="text"
+                          placeholder="Enter invoice amount..."
+                          value={getFieldValue("invoiceAmount")}
+                          onChange={handleChange("invoiceAmount")}
+                          disabled={isDisabled}
+                        />
+                      </FormField>
+
+                      <FormField label="VESSEL NAME">
+                        <FormSelect
+                          value={getFieldValue("vesselName") || "MV Ocean Star"}
+                          onChange={handleChange("vesselName")}
+                          options={[{ value: getFieldValue("vesselName") || "MV Ocean Star", label: getFieldValue("vesselName") || "MV Ocean Star" }]}
+                          placeholder="Select vessel name..."
+                          disabled={true}
+                        />
+                      </FormField>
+
+                      <FormField label="SAP Sales Order No">
+                        <FormSelect
+                          value={getFieldValue("sapSalesOrderNo") || "SO-12345"}
+                          onChange={handleChange("sapSalesOrderNo")}
+                          options={[{ value: getFieldValue("sapSalesOrderNo") || "SO-12345", label: getFieldValue("sapSalesOrderNo") || "SO-12345" }]}
+                          placeholder="Select SAP Sales Order No..."
+                          disabled={true}
+                        />
+                      </FormField>
+
+                      <FormField label="Service requester">
+                        <FormSelect
+                          value={getFieldValue("serviceRequestorName") || "Service Requester Name"}
+                          onChange={handleChange("serviceRequestorName")}
+                          options={[{ value: getFieldValue("serviceRequestorName") || "Service Requester Name", label: getFieldValue("serviceRequestorName") || "Service Requester Name" }]}
+                          placeholder="Select service requester..."
+                          disabled={true}
+                        />
+                      </FormField>
+                    </>
+                  ) : isMwPRenewal ? (
                     <>
                       <OwnerField
                         value={getFieldValue("owner") || "None"}
@@ -1589,7 +1763,117 @@ function General({ card, formValues, handleChange, ownerInitial, cardUser, onSav
                         />
                       </FormField>
                     </div>
-                    {isMwPRenewal ? (
+                    {isCrewChange ? (
+                      <div className="appointment-details-list-wrapper">
+                        {/* Appointment Email Section */}
+                        <h3 className="appointment-details-title">Appointment Email</h3>
+                        <FormField>
+                          <DocumentUpload
+                            attachments={crewChangeAppointmentEmailDocuments}
+                            onAdd={(file) => setCrewChangeAppointmentEmailDocuments([...crewChangeAppointmentEmailDocuments, file])}
+                            onRemove={(index) => setCrewChangeAppointmentEmailDocuments(crewChangeAppointmentEmailDocuments.filter((_, i) => i !== index))}
+                            cardColor={accentColor}
+                            disabled={isDisabled}
+                          />
+                        </FormField>
+
+                        {/* Launch Hire Slips Section */}
+                        <h3 className="appointment-details-title">Launch Hire Slips</h3>
+                        <FormField>
+                          <DocumentUpload
+                            attachments={launchHireSlipsDocuments}
+                            onAdd={(file) => setLaunchHireSlipsDocuments([...launchHireSlipsDocuments, file])}
+                            onRemove={(index) => setLaunchHireSlipsDocuments(launchHireSlipsDocuments.filter((_, i) => i !== index))}
+                            cardColor={accentColor}
+                            disabled={isDisabled}
+                          />
+                        </FormField>
+
+                        {/* ZAWIL PASS COPY Section */}
+                        <h3 className="appointment-details-title">ZAWIL PASS COPY</h3>
+                        <FormField>
+                          <DocumentUpload
+                            attachments={zawilPassCopyDocuments}
+                            onAdd={(file) => setZawilPassCopyDocuments([...zawilPassCopyDocuments, file])}
+                            onRemove={(index) => setZawilPassCopyDocuments(zawilPassCopyDocuments.filter((_, i) => i !== index))}
+                            cardColor={accentColor}
+                            disabled={isDisabled}
+                          />
+                        </FormField>
+
+                        {/* CG PERMIT COPY Section */}
+                        <h3 className="appointment-details-title">CG PERMIT COPY</h3>
+                        <FormField>
+                          <DocumentUpload
+                            attachments={cgPermitCopyDocuments}
+                            onAdd={(file) => setCgPermitCopyDocuments([...cgPermitCopyDocuments, file])}
+                            onRemove={(index) => setCgPermitCopyDocuments(cgPermitCopyDocuments.filter((_, i) => i !== index))}
+                            cardColor={accentColor}
+                            disabled={isDisabled}
+                          />
+                        </FormField>
+
+                        {/* Crew Summary sheet Section */}
+                        <h3 className="appointment-details-title">Crew Summary sheet</h3>
+                        <FormField>
+                          <DocumentUpload
+                            attachments={crewSummarySheetDocuments}
+                            onAdd={(file) => setCrewSummarySheetDocuments([...crewSummarySheetDocuments, file])}
+                            onRemove={(index) => setCrewSummarySheetDocuments(crewSummarySheetDocuments.filter((_, i) => i !== index))}
+                            cardColor={accentColor}
+                            disabled={isDisabled}
+                          />
+                        </FormField>
+
+                        {/* SUPPORTING DOCUMENTS Section */}
+                        <h3 className="appointment-details-title">SUPPORTING DOCUMENTS</h3>
+                        <FormField>
+                          <DocumentUpload
+                            attachments={crewChangeSupportingDocuments}
+                            onAdd={(file) => setCrewChangeSupportingDocuments([...crewChangeSupportingDocuments, file])}
+                            onRemove={(index) => setCrewChangeSupportingDocuments(crewChangeSupportingDocuments.filter((_, i) => i !== index))}
+                            cardColor={accentColor}
+                            disabled={isDisabled}
+                          />
+                        </FormField>
+
+                        {/* FDA Dispatch Proof Section */}
+                        <h3 className="appointment-details-title">FDA Dispatch Proof</h3>
+                        <FormField>
+                          <DocumentUpload
+                            attachments={crewChangeFdaDispatchProofDocuments}
+                            onAdd={(file) => setCrewChangeFdaDispatchProofDocuments([...crewChangeFdaDispatchProofDocuments, file])}
+                            onRemove={(index) => setCrewChangeFdaDispatchProofDocuments(crewChangeFdaDispatchProofDocuments.filter((_, i) => i !== index))}
+                            cardColor={accentColor}
+                            disabled={isDisabled}
+                          />
+                        </FormField>
+
+                        {/* Hotel Invoice Section */}
+                        <h3 className="appointment-details-title">Hotel Invoice</h3>
+                        <FormField>
+                          <DocumentUpload
+                            attachments={hotelInvoiceDocuments}
+                            onAdd={(file) => setHotelInvoiceDocuments([...hotelInvoiceDocuments, file])}
+                            onRemove={(index) => setHotelInvoiceDocuments(hotelInvoiceDocuments.filter((_, i) => i !== index))}
+                            cardColor={accentColor}
+                            disabled={isDisabled}
+                          />
+                        </FormField>
+
+                        {/* Copy of Sales order Section */}
+                        <h3 className="appointment-details-title">Copy of Sales order</h3>
+                        <FormField>
+                          <DocumentUpload
+                            attachments={crewChangeCopyOfSalesOrderDocuments}
+                            onAdd={(file) => setCrewChangeCopyOfSalesOrderDocuments([...crewChangeCopyOfSalesOrderDocuments, file])}
+                            onRemove={(index) => setCrewChangeCopyOfSalesOrderDocuments(crewChangeCopyOfSalesOrderDocuments.filter((_, i) => i !== index))}
+                            cardColor={accentColor}
+                            disabled={isDisabled}
+                          />
+                        </FormField>
+                      </div>
+                    ) : isMwPRenewal ? (
                       <div className="appointment-details-list-wrapper">
                         {/* Appointment Email Section */}
                         <h3 className="appointment-details-title">APPOINTMENT EMAIL</h3>
