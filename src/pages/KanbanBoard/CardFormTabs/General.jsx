@@ -1245,8 +1245,8 @@ function General({ card, formValues, handleChange, ownerInitial, cardUser, onSav
   // Check if MWP RENEWAL type is selected in simplified mode
   const isMwPRenewal = isSimplifiedMode && getFieldValue("type") === "MWP RENEWAL";
 
-  // Check if CREW CHANGE type is selected in simplified mode
-  const isCrewChange = isSimplifiedMode && getFieldValue("type") === "CREW CHANGE";
+  // Check if CREW CHANGE type is selected in simplified mode (or Type which should show same fields)
+  const isCrewChange = isSimplifiedMode && (getFieldValue("type") === "CREW CHANGE" || getFieldValue("type") === "Type");
 
   // Check if FLEET type is selected in simplified mode
   const isFleet = isSimplifiedMode && getFieldValue("type") === "FLEET";
