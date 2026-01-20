@@ -1206,6 +1206,9 @@ function General({ card, formValues, handleChange, ownerInitial, cardUser, onSav
   // Check if FLEET type is selected in simplified mode
   const isFleet = isSimplifiedMode && getFieldValue("type") === "FLEET";
 
+  // Check if MATERIAL DELIVERY type is selected in simplified mode
+  const isMaterialDelivery = isSimplifiedMode && getFieldValue("type") === "MATERIAL DELIVERY";
+
 
 
 
@@ -1301,7 +1304,7 @@ function General({ card, formValues, handleChange, ownerInitial, cardUser, onSav
                         />
                       </FormField>
                     </>
-                  ) : isCrewChange ? (
+                  ) : (isCrewChange || isMaterialDelivery) ? (
                     <>
                       <OwnerField
                         value={getFieldValue("owner") || "None"}
@@ -1844,7 +1847,7 @@ function General({ card, formValues, handleChange, ownerInitial, cardUser, onSav
                           />
                         </FormField>
                       </div>
-                    ) : isCrewChange ? (
+                    ) : (isCrewChange || isMaterialDelivery) ? (
                       <div className="appointment-details-list-wrapper">
                         {/* Appointment Email Section */}
                         <h3 className="appointment-details-title">Appointment Email</h3>
