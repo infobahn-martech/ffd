@@ -577,6 +577,8 @@ function CardForm({ show, close, card, moveCardToColumn, columns, columnOrder, c
     () => ({
       cardTitle: card?.title || "",
       owner: card?.user || "None",
+      // FLEEyt (for simplified mode)
+      type: card?.type || "",
       // Service Information
       typeOfCall: card?.typeOfCall || "",
       mainBillingEntity: card?.mainBillingEntity || "SS7",
@@ -619,6 +621,18 @@ function CardForm({ show, close, card, moveCardToColumn, columns, columnOrder, c
       links: card?.links || [],
       // Remarks (for simplified mode)
       remarks: card?.remarks || "",
+      // MWP RENEWAL specific fields
+      taxInvoice: card?.taxInvoice || "",
+      invoiceAmount: card?.invoiceAmount || "",
+      sapSalesOrderNo: card?.sapSalesOrderNo || "",
+      issueDate: card?.issueDate || "",
+      expiryDate: card?.expiryDate || "",
+      // MWP RENEWAL documents
+      appointmentEmailDocuments: card?.appointmentEmailDocuments || [],
+      mwpCopyDocuments: card?.mwpCopyDocuments || [],
+      supportingDocuments: card?.supportingDocuments || [],
+      fdaDispatchProofDocuments: card?.fdaDispatchProofDocuments || [],
+      copyOfSalesOrderDocuments: card?.copyOfSalesOrderDocuments || [],
     }),
     [card]
   );

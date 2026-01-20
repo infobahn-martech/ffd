@@ -1001,6 +1001,12 @@ function General({ card, formValues, handleChange, ownerInitial, cardUser, onSav
     // Add vessel names here or fetch from API
   ]);
   const [appointmentDocuments, setAppointmentDocuments] = useState([]);
+  // MWP RENEWAL document states
+  const [appointmentEmailDocuments, setAppointmentEmailDocuments] = useState([]);
+  const [mwpCopyDocuments, setMwpCopyDocuments] = useState([]);
+  const [supportingDocuments, setSupportingDocuments] = useState([]);
+  const [fdaDispatchProofDocuments, setFdaDispatchProofDocuments] = useState([]);
+  const [copyOfSalesOrderDocuments, setCopyOfSalesOrderDocuments] = useState([]);
   const [dailyReportEmailOptions, setDailyReportEmailOptions] = useState([
     { value: "admin@example.com", label: "admin@example.com" },
     { value: "operations@example.com", label: "operations@example.com" },
@@ -1073,6 +1079,54 @@ function General({ card, formValues, handleChange, ownerInitial, cardUser, onSav
     { value: "Jack Up Barge", label: "Jack Up Barge" },
   ];
 
+  const typeOptions = [
+    { value: "Type", label: "Type" },
+    { value: "MWP RENEWAL", label: "MWP RENEWAL" },
+    { value: "CREW CHANGE", label: "CREW CHANGE" },
+    { value: "FLEET", label: "FLEET" },
+    { value: "MATERIAL DELIVERY", label: "MATERIAL DELIVERY" },
+    { value: "ON STATION", label: "ON STATION" },
+  ];
+
+  // Dummy values for all fields when isAddMode is false
+  const dummyValues = {
+    owner: "John Doe",
+    appointmentReceivedDate: "2024-01-15",
+    appointmentReceivedTime: "10:30",
+    typeOfCall: "Import",
+    mainBillingEntity: "SS7",
+    poNumber: "PO-12345",
+    shipper: "SRT-67890",
+    project: "Project Alpha",
+    vesselType: "Foreign Flag",
+    bargeType: "Barge Import",
+    vesselName: "MV Ocean Star",
+    vesselOwner: "Ocean Shipping Co.",
+    vesselPrincipal: "Principal Marine Ltd.",
+    vesselManager: "Marine Management Inc.",
+    otherBillingEntity: "Other Entity",
+    assignedOperator: "Operator Name",
+    serviceRequestorName: "Requestor Name",
+    dailyReportEmail: ["admin@example.com", "reports@example.com"],
+    billingInstructions: "Standard billing instructions apply",
+  };
+
+
+  // Helper function to get field value - prioritize formValues, then card, then dummy value if not in add mode
+  const getFieldValue = (fieldName) => {
+    if (formValues?.[fieldName] !== undefined && formValues[fieldName] !== null && formValues[fieldName] !== "") {
+      return formValues[fieldName];
+    }
+    if (!isAddMode && card?.[fieldName] !== undefined && card[fieldName] !== null && card[fieldName] !== "") {
+      return card[fieldName];
+    }
+    // Return dummy value when not in add mode
+    if (!isAddMode && dummyValues[fieldName] !== undefined) {
+      return dummyValues[fieldName];
+    }
+    return "";
+  };
+
   // Handle document upload
   const handleDocumentAdd = (file) => {
     setAppointmentDocuments([...appointmentDocuments, file]);
@@ -1112,46 +1166,16 @@ function General({ card, formValues, handleChange, ownerInitial, cardUser, onSav
   // Get owner initial from card user or formValues
   const ownerInitialValue = ownerInitial || (cardUser ? cardUser.charAt(0).toUpperCase() : "U");
 
-  // Determine if fields should be disabled (when isAddMode is false)
-  const isDisabled = !isAddMode;
+  // Determine if fields should be disabled
+  // In simplified mode: always enabled
+  // In full mode: disabled when not in add mode (same as before)
+  const isDisabled = isSimplifiedMode ? false : !isAddMode;
 
-  // Dummy values for all fields when isAddMode is false
-  const dummyValues = {
-    owner: "John Doe",
-    appointmentReceivedDate: "2024-01-15",
-    appointmentReceivedTime: "10:30",
-    typeOfCall: "Import",
-    mainBillingEntity: "SS7",
-    poNumber: "PO-12345",
-    shipper: "SRT-67890",
-    project: "Project Alpha",
-    vesselType: "Foreign Flag",
-    bargeType: "Barge Import",
-    vesselName: "MV Ocean Star",
-    vesselOwner: "Ocean Shipping Co.",
-    vesselPrincipal: "Principal Marine Ltd.",
-    vesselManager: "Marine Management Inc.",
-    otherBillingEntity: "Other Entity",
-    assignedOperator: "Operator Name",
-    serviceRequestorName: "Requestor Name",
-    dailyReportEmail: ["admin@example.com", "reports@example.com"],
-    billingInstructions: "Standard billing instructions apply",
-  };
+  // Check if MWP RENEWAL type is selected in simplified mode
+  const isMwPRenewal = isSimplifiedMode && getFieldValue("type") === "MWP RENEWAL";
 
-  // Helper function to get field value - prioritize formValues, then card, then dummy value if not in add mode
-  const getFieldValue = (fieldName) => {
-    if (formValues?.[fieldName] !== undefined && formValues[fieldName] !== null && formValues[fieldName] !== "") {
-      return formValues[fieldName];
-    }
-    if (!isAddMode && card?.[fieldName] !== undefined && card[fieldName] !== null && card[fieldName] !== "") {
-      return card[fieldName];
-    }
-    // Return dummy value when not in add mode
-    if (!isAddMode && dummyValues[fieldName] !== undefined) {
-      return dummyValues[fieldName];
-    }
-    return "";
-  };
+
+
 
   return (
     <div className="cardform-body general-tab-body">
@@ -1175,245 +1199,371 @@ function General({ card, formValues, handleChange, ownerInitial, cardUser, onSav
 
         <div className="cf-section general-info-section">
           {!isAddMode && (
-            <div className="cf-section-header">
+            <div className="cf-section-header" style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
               <div className="cf-section-title">General Information</div>
+              {isSimplifiedMode && (
+                <div style={{ display: "flex", alignItems: "center", gap: "8px" }}>
+                  <div style={{ minWidth: "200px" }}>
+                    <FormSelect
+                      value={getFieldValue("type")}
+                      onChange={handleChange("type")}
+                      options={typeOptions}
+                      placeholder="Select type..."
+                      disabled={isDisabled}
+                    />
+                  </div>
+                </div>
+              )}
             </div>
           )}
           <div className="cf-section-body">
             <div className="general-info-two-column">
               <div className="general-info-left">
                 <div className="pre-arrival-form">
-                  <OwnerField
-                    value={getFieldValue("owner") || "None"}
-                    onChange={handleChange("owner")}
-                    ownerInitial={ownerInitialValue}
-                    cardUser={cardUser || card?.user}
-                    disabled={isDisabled}
-                  />
+                  {isMwPRenewal ? (
+                    <>
+                      <OwnerField
+                        value={getFieldValue("owner") || "None"}
+                        onChange={handleChange("owner")}
+                        ownerInitial={ownerInitialValue}
+                        cardUser={cardUser || card?.user}
+                        disabled={isDisabled}
+                      />
 
-                  {!isSimplifiedMode && (
-                    <div className="form-group">
-                      <h3 className="form-group-title">Appointment Details</h3>
-                      <FormField label="Appointment Email">
-                        <DocumentUpload
-                          attachments={appointmentDocuments}
-                          onAdd={handleDocumentAdd}
-                          onRemove={handleDocumentRemove}
-                          cardColor={accentColor}
-                          disabled={isDisabled}
-                        />
-                      </FormField>
-                      <FormField label="Appointment Received">
+                      <FormField label="Last moved">
                         <div className="cf-input date-time-row">
                           <input
                             type="date"
-                            value={getFieldValue("appointmentReceivedDate")}
-                            onChange={handleChange("appointmentReceivedDate")}
+                            value={getFieldValue("lastMovedDate")}
+                            onChange={handleChange("lastMovedDate")}
                             placeholder="Select date"
                             disabled={isDisabled}
                           />
                           <input
                             type="time"
-                            value={getFieldValue("appointmentReceivedTime")}
-                            onChange={handleChange("appointmentReceivedTime")}
+                            value={getFieldValue("lastMovedTime")}
+                            onChange={handleChange("lastMovedTime")}
                             placeholder="Select time"
                             disabled={isDisabled}
                           />
                         </div>
                       </FormField>
-                    </div>
-                  )}
 
-                  <div className="form-group">
-                    <h3 className="form-group-title">Service Information</h3>
-                    <FormField label="Type of call / Service">
-                      <FormSelect
-                        value={getFieldValue("typeOfCall")}
-                        onChange={handleChange("typeOfCall")}
-                        options={typeOfCallOptions}
-                        placeholder="Select type of call..."
+                      <FormField label="Tax Invoice">
+                        <FormInput
+                          type="text"
+                          placeholder="Enter tax invoice..."
+                          value={getFieldValue("taxInvoice")}
+                          onChange={handleChange("taxInvoice")}
+                          disabled={isDisabled}
+                        />
+                      </FormField>
+
+                      <FormField label="Invoice amount (Including VAT)">
+                        <FormInput
+                          type="text"
+                          placeholder="Enter invoice amount..."
+                          value={getFieldValue("invoiceAmount")}
+                          onChange={handleChange("invoiceAmount")}
+                          disabled={isDisabled}
+                        />
+                      </FormField>
+
+                      <FormField label="VESSEL NAME">
+                        <FormSelect
+                          value="MV Ocean Star"
+                          onChange={handleChange("vesselName")}
+                          options={[{ value: "MV Ocean Star", label: "MV Ocean Star" }]}
+                          placeholder="Select vessel name..."
+                          disabled={true}
+                        />
+                      </FormField>
+
+                      <FormField label="SAP Sales Order No">
+                        <FormInput
+                          type="number"
+                          placeholder="Enter SAP Sales Order No..."
+                          value={getFieldValue("sapSalesOrderNo")}
+                          onChange={handleChange("sapSalesOrderNo")}
+                          disabled={isDisabled}
+                        />
+                      </FormField>
+
+                      <FormField label="Service requester">
+                        <FormInput
+                          type="text"
+                          placeholder="Enter service requester..."
+                          value={getFieldValue("serviceRequestorName")}
+                          onChange={handleChange("serviceRequestorName")}
+                          disabled={isDisabled}
+                        />
+                      </FormField>
+
+                      <FormField label="PO Number">
+                        <FormInput
+                          type="text"
+                          placeholder="Enter PO number..."
+                          value={getFieldValue("poNumber")}
+                          onChange={handleChange("poNumber")}
+                          disabled={isDisabled}
+                        />
+                      </FormField>
+
+                      <FormField label="Issue date">
+                        <FormInput
+                          type="date"
+                          value={getFieldValue("issueDate")}
+                          onChange={handleChange("issueDate")}
+                          placeholder="Select issue date"
+                          disabled={isDisabled}
+                        />
+                      </FormField>
+
+                      <FormField label="Expiry date">
+                        <FormInput
+                          type="date"
+                          value={getFieldValue("expiryDate")}
+                          onChange={handleChange("expiryDate")}
+                          placeholder="Select expiry date"
+                          disabled={isDisabled}
+                        />
+                      </FormField>
+                    </>
+                  ) : (
+                    <>
+                      <OwnerField
+                        value={getFieldValue("owner") || "None"}
+                        onChange={handleChange("owner")}
+                        ownerInitial={ownerInitialValue}
+                        cardUser={cardUser || card?.user}
                         disabled={isDisabled}
                       />
-                    </FormField>
 
-                    <FormField label="Main Billing entity">
-                      <FormSelect
-                        value={getFieldValue("mainBillingEntity") || "SS7"}
-                        onChange={handleChange("mainBillingEntity")}
-                        options={billingEntityOptions}
-                        placeholder="Select billing entity..."
-                        disabled={isDisabled}
-                      />
-                    </FormField>
+                      {!isSimplifiedMode && (
+                        <div className="form-group">
+                          <h3 className="form-group-title">Appointment Details</h3>
+                          <FormField label="Appointment Email">
+                            <DocumentUpload
+                              attachments={appointmentDocuments}
+                              onAdd={handleDocumentAdd}
+                              onRemove={handleDocumentRemove}
+                              cardColor={accentColor}
+                              disabled={isDisabled}
+                            />
+                          </FormField>
+                          <FormField label="Appointment Received">
+                            <div className="cf-input date-time-row">
+                              <input
+                                type="date"
+                                value={getFieldValue("appointmentReceivedDate")}
+                                onChange={handleChange("appointmentReceivedDate")}
+                                placeholder="Select date"
+                                disabled={isDisabled}
+                              />
+                              <input
+                                type="time"
+                                value={getFieldValue("appointmentReceivedTime")}
+                                onChange={handleChange("appointmentReceivedTime")}
+                                placeholder="Select time"
+                                disabled={isDisabled}
+                              />
+                            </div>
+                          </FormField>
+                        </div>
+                      )}
 
-                    <FormField label="PO number">
-                      <FormInput
-                        type="text"
-                        placeholder="Enter PO number..."
-                        value={getFieldValue("poNumber")}
-                        onChange={handleChange("poNumber")}
-                        disabled={isDisabled}
-                      />
-                    </FormField>
+                      <div className="form-group">
+                        <h3 className="form-group-title">Service Information</h3>
+                        <FormField label="Type of call / Service">
+                          <FormSelect
+                            value={getFieldValue("typeOfCall")}
+                            onChange={handleChange("typeOfCall")}
+                            options={typeOfCallOptions}
+                            placeholder="Select type of call..."
+                            disabled={isDisabled}
+                          />
+                        </FormField>
 
-                    <FormField label="SRT number">
-                      <FormInput
-                        type="text"
-                        placeholder="Enter SRT number..."
-                        value={getFieldValue("shipper")}
-                        onChange={handleChange("shipper")}
-                        disabled={isDisabled}
-                      />
-                    </FormField>
+                        <FormField label="Main Billing entity">
+                          <FormSelect
+                            value={getFieldValue("mainBillingEntity") || "SS7"}
+                            onChange={handleChange("mainBillingEntity")}
+                            options={billingEntityOptions}
+                            placeholder="Select billing entity..."
+                            disabled={isDisabled}
+                          />
+                        </FormField>
 
-                    <FormField label="Project">
-                      <FormInput
-                        type="text"
-                        placeholder="Enter project..."
-                        value={getFieldValue("project")}
-                        onChange={handleChange("project")}
-                        disabled={isDisabled}
-                      />
-                    </FormField>
-                  </div>
+                        <FormField label="PO number">
+                          <FormInput
+                            type="text"
+                            placeholder="Enter PO number..."
+                            value={getFieldValue("poNumber")}
+                            onChange={handleChange("poNumber")}
+                            disabled={isDisabled}
+                          />
+                        </FormField>
 
-                  <div className="form-group">
-                    <h3 className="form-group-title">Vessel Information</h3>
+                        <FormField label="SRT number">
+                          <FormInput
+                            type="text"
+                            placeholder="Enter SRT number..."
+                            value={getFieldValue("shipper")}
+                            onChange={handleChange("shipper")}
+                            disabled={isDisabled}
+                          />
+                        </FormField>
 
-                    <FormField label="Vessel type">
-                      <FormSelect
-                        value={getFieldValue("vesselType")}
-                        onChange={handleChange("vesselType")}
-                        options={vesselTypeOptions}
-                        placeholder="Select vessel type..."
-                        disabled={isDisabled}
-                      />
-                    </FormField>
-
-                    <FormField label="Barge type">
-                      <FormSelect
-                        value={getFieldValue("bargeType")}
-                        onChange={handleChange("bargeType")}
-                        options={bargeTypeOptions}
-                        placeholder="Select barge type..."
-                        disabled={isDisabled}
-                      />
-                    </FormField>
-
-                    <VesselNameField
-                      value={getFieldValue("vesselName")}
-                      onChange={handleChange("vesselName")}
-                      options={vesselNameOptions}
-                      placeholder="Select vessel name..."
-                      onSave={handleVesselSave}
-                      disabled={isDisabled}
-                    />
-
-                    <FormField label="Vessel Owner">
-                      <FormInput
-                        type="text"
-                        placeholder="Enter vessel owner..."
-                        value={getFieldValue("vesselOwner")}
-                        onChange={handleChange("vesselOwner")}
-                        disabled={isDisabled}
-                      />
-                    </FormField>
-
-                    <FormField label="Vessel Principal">
-                      <FormInput
-                        type="text"
-                        placeholder="Enter vessel principal..."
-                        value={getFieldValue("vesselPrincipal")}
-                        onChange={handleChange("vesselPrincipal")}
-                        disabled={isDisabled}
-                      />
-                    </FormField>
-
-                    <FormField label="Vessel Manager">
-                      <FormInput
-                        type="text"
-                        placeholder="Enter vessel manager..."
-                        value={getFieldValue("vesselManager")}
-                        onChange={handleChange("vesselManager")}
-                        disabled={isDisabled}
-                      />
-                    </FormField>
-
-                    <FormField label="Other billing entity">
-                      <FormSelect
-                        value={getFieldValue("otherBillingEntity")}
-                        onChange={handleChange("otherBillingEntity")}
-                        options={[]}
-                        placeholder="Select billing entity..."
-                        disabled={isDisabled}
-                      />
-                    </FormField>
-
-                    <FormField label="Assigned Operator">
-                      <FormSelect
-                        value={getFieldValue("assignedOperator")}
-                        onChange={handleChange("assignedOperator")}
-                        options={[]}
-                        placeholder="Select operator..."
-                        disabled={isDisabled}
-                      />
-                    </FormField>
-
-                    <FormField label="Service Requestor Name">
-                      <FormInput
-                        type="text"
-                        placeholder="Enter service requestor name..."
-                        value={getFieldValue("serviceRequestorName")}
-                        onChange={handleChange("serviceRequestorName")}
-                        disabled={isDisabled}
-                      />
-                    </FormField>
-
-                    <FormField label="Daily Report Email Id">
-                      <MultiSelectEmail
-                        value={
-                          formValues?.dailyReportEmail !== undefined && formValues.dailyReportEmail !== null && formValues.dailyReportEmail.length > 0
-                            ? formValues.dailyReportEmail
-                            : !isAddMode && card?.dailyReportEmail && card.dailyReportEmail.length > 0
-                              ? card.dailyReportEmail
-                              : !isAddMode
-                                ? dummyValues.dailyReportEmail
-                                : []
-                        }
-                        onChange={handleChange("dailyReportEmail")}
-                        options={dailyReportEmailOptions}
-                        placeholder="Select email addresses..."
-                        onAddNew={handleAddNewEmail}
-                        disabled={isDisabled}
-                      />
-                    </FormField>
-
-                    <FormField label="Billing instructions">
-                      <FormInput
-                        type="text"
-                        placeholder="Enter billing instructions..."
-                        value={getFieldValue("billingInstructions")}
-                        onChange={handleChange("billingInstructions")}
-                        disabled={isDisabled}
-                      />
-                    </FormField>
-
-                    {isAddMode && (
-                      <div className="form-save-button-wrapper">
-                        <button
-                          type="button"
-                          className="form-save-button"
-                          onClick={() => {
-                            if (onSave) {
-                              onSave(formValues);
-                            }
-                          }}
-                        >
-                          Save
-                        </button>
+                        <FormField label="Project">
+                          <FormInput
+                            type="text"
+                            placeholder="Enter project..."
+                            value={getFieldValue("project")}
+                            onChange={handleChange("project")}
+                            disabled={isDisabled}
+                          />
+                        </FormField>
                       </div>
-                    )}
-                  </div>
+
+                      <div className="form-group">
+                        <h3 className="form-group-title">Vessel Information</h3>
+
+                        <FormField label="Vessel type">
+                          <FormSelect
+                            value={getFieldValue("vesselType")}
+                            onChange={handleChange("vesselType")}
+                            options={vesselTypeOptions}
+                            placeholder="Select vessel type..."
+                            disabled={isDisabled}
+                          />
+                        </FormField>
+
+                        <FormField label="Barge type">
+                          <FormSelect
+                            value={getFieldValue("bargeType")}
+                            onChange={handleChange("bargeType")}
+                            options={bargeTypeOptions}
+                            placeholder="Select barge type..."
+                            disabled={isDisabled}
+                          />
+                        </FormField>
+
+                        <VesselNameField
+                          value={getFieldValue("vesselName")}
+                          onChange={handleChange("vesselName")}
+                          options={vesselNameOptions}
+                          placeholder="Select vessel name..."
+                          onSave={handleVesselSave}
+                          disabled={isDisabled}
+                        />
+
+                        <FormField label="Vessel Owner">
+                          <FormInput
+                            type="text"
+                            placeholder="Enter vessel owner..."
+                            value={getFieldValue("vesselOwner")}
+                            onChange={handleChange("vesselOwner")}
+                            disabled={isDisabled}
+                          />
+                        </FormField>
+
+                        <FormField label="Vessel Principal">
+                          <FormInput
+                            type="text"
+                            placeholder="Enter vessel principal..."
+                            value={getFieldValue("vesselPrincipal")}
+                            onChange={handleChange("vesselPrincipal")}
+                            disabled={isDisabled}
+                          />
+                        </FormField>
+
+                        <FormField label="Vessel Manager">
+                          <FormInput
+                            type="text"
+                            placeholder="Enter vessel manager..."
+                            value={getFieldValue("vesselManager")}
+                            onChange={handleChange("vesselManager")}
+                            disabled={isDisabled}
+                          />
+                        </FormField>
+
+                        <FormField label="Other billing entity">
+                          <FormSelect
+                            value={getFieldValue("otherBillingEntity")}
+                            onChange={handleChange("otherBillingEntity")}
+                            options={[]}
+                            placeholder="Select billing entity..."
+                            disabled={isDisabled}
+                          />
+                        </FormField>
+
+                        <FormField label="Assigned Operator">
+                          <FormSelect
+                            value={getFieldValue("assignedOperator")}
+                            onChange={handleChange("assignedOperator")}
+                            options={[]}
+                            placeholder="Select operator..."
+                            disabled={isDisabled}
+                          />
+                        </FormField>
+
+                        <FormField label="Service Requestor Name">
+                          <FormInput
+                            type="text"
+                            placeholder="Enter service requestor name..."
+                            value={getFieldValue("serviceRequestorName")}
+                            onChange={handleChange("serviceRequestorName")}
+                            disabled={isDisabled}
+                          />
+                        </FormField>
+
+                        <FormField label="Daily Report Email Id">
+                          <MultiSelectEmail
+                            value={
+                              formValues?.dailyReportEmail !== undefined && formValues.dailyReportEmail !== null && formValues.dailyReportEmail.length > 0
+                                ? formValues.dailyReportEmail
+                                : !isAddMode && card?.dailyReportEmail && card.dailyReportEmail.length > 0
+                                  ? card.dailyReportEmail
+                                  : !isAddMode
+                                    ? dummyValues.dailyReportEmail
+                                    : []
+                            }
+                            onChange={handleChange("dailyReportEmail")}
+                            options={dailyReportEmailOptions}
+                            placeholder="Select email addresses..."
+                            onAddNew={handleAddNewEmail}
+                            disabled={isDisabled}
+                          />
+                        </FormField>
+
+                        <FormField label="Billing instructions">
+                          <FormInput
+                            type="text"
+                            placeholder="Enter billing instructions..."
+                            value={getFieldValue("billingInstructions")}
+                            onChange={handleChange("billingInstructions")}
+                            disabled={isDisabled}
+                          />
+                        </FormField>
+
+                        {isAddMode && (
+                          <div className="form-save-button-wrapper">
+                            <button
+                              type="button"
+                              className="form-save-button"
+                              onClick={() => {
+                                if (onSave) {
+                                  onSave(formValues);
+                                }
+                              }}
+                            >
+                              Save
+                            </button>
+                          </div>
+                        )}
+                      </div>
+                    </>
+                  )}
                 </div>
               </div>
 
@@ -1439,193 +1589,257 @@ function General({ card, formValues, handleChange, ownerInitial, cardUser, onSav
                         />
                       </FormField>
                     </div>
-                    <div className="appointment-details-list-wrapper">
-                      {/* APPOINTMENT DETAILS Section */}
-                      <h3 className="appointment-details-title">APPOINTMENT DETAILS</h3>
-                      <div className="appointment-details-list">
-                        <div className="appointment-detail-item appointment-detail-file">
-                          <div className="appointment-detail-file-icon">
-                            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-                              <path
-                                d="M14 2H6C5.46957 2 4.96086 2.21071 4.58579 2.58579C4.21071 2.96086 4 3.46957 4 4V20C4 20.5304 4.21071 21.0391 4.58579 21.4142C4.96086 21.7893 5.46957 22 6 22H18C18.5304 22 19.0391 21.7893 19.4142 21.4142C19.7893 21.0391 20 20.5304 20 20V8L14 2Z"
-                                stroke="#3e5cb6"
-                                strokeWidth="2"
-                                strokeLinecap="round"
-                                strokeLinejoin="round"
-                                fill="#3e5cb6"
-                                fillOpacity="0.1"
-                              />
-                              <path
-                                d="M14 2V8H20"
-                                stroke="#3e5cb6"
-                                strokeWidth="2"
-                                strokeLinecap="round"
-                                strokeLinejoin="round"
-                              />
-                            </svg>
-                          </div>
-                          <div className="appointment-detail-file-info">
-                            <span className="appointment-detail-label">appointment_document.pdf</span>
-                            <span className="appointment-detail-file-size">1000.0 KB</span>
-                          </div>
-                        </div>
-                      </div>
+                    {isMwPRenewal ? (
+                      <div className="appointment-details-list-wrapper">
+                        {/* Appointment Email Section */}
+                        <h3 className="appointment-details-title">APPOINTMENT EMAIL</h3>
+                        <FormField>
+                          <DocumentUpload
+                            attachments={appointmentEmailDocuments}
+                            onAdd={(file) => setAppointmentEmailDocuments([...appointmentEmailDocuments, file])}
+                            onRemove={(index) => setAppointmentEmailDocuments(appointmentEmailDocuments.filter((_, i) => i !== index))}
+                            cardColor={accentColor}
+                            disabled={isDisabled}
+                          />
+                        </FormField>
 
-                      {/* Launch Hire Details Section */}
-                      <h3 className="appointment-details-title">LAUNCH HIRE DETAILS</h3>
-                      <div className="appointment-details-list">
-                        <div className="appointment-detail-item appointment-detail-file">
-                          <div className="appointment-detail-file-icon">
-                            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-                              <path
-                                d="M14 2H6C5.46957 2 4.96086 2.21071 4.58579 2.58579C4.21071 2.96086 4 3.46957 4 4V20C4 20.5304 4.21071 21.0391 4.58579 21.4142C4.96086 21.7893 5.46957 22 6 22H18C18.5304 22 19.0391 21.7893 19.4142 21.4142C19.7893 21.0391 20 20.5304 20 20V8L14 2Z"
-                                stroke="#3e5cb6"
-                                strokeWidth="2"
-                                strokeLinecap="round"
-                                strokeLinejoin="round"
-                                fill="#3e5cb6"
-                                fillOpacity="0.1"
-                              />
-                              <path
-                                d="M14 2V8H20"
-                                stroke="#3e5cb6"
-                                strokeWidth="2"
-                                strokeLinecap="round"
-                                strokeLinejoin="round"
-                              />
-                            </svg>
-                          </div>
-                          <div className="appointment-detail-file-info">
-                            <span className="appointment-detail-label">Launch Hire Slips.pdf</span>
-                            <span className="appointment-detail-file-size">1000.0 KB</span>
-                          </div>
-                        </div>
-                      </div>
+                        {/* MWP COPY Section */}
+                        <h3 className="appointment-details-title">MWP COPY</h3>
+                        <FormField>
+                          <DocumentUpload
+                            attachments={mwpCopyDocuments}
+                            onAdd={(file) => setMwpCopyDocuments([...mwpCopyDocuments, file])}
+                            onRemove={(index) => setMwpCopyDocuments(mwpCopyDocuments.filter((_, i) => i !== index))}
+                            cardColor={accentColor}
+                            disabled={isDisabled}
+                          />
+                        </FormField>
 
-                      {/* Sailing Clearance Copy Section */}
-                      <h3 className="appointment-details-title">SAILING CLEARANCE COPY</h3>
-                      <div className="appointment-details-list">
-                        <div className="appointment-detail-item appointment-detail-file">
-                          <div className="appointment-detail-file-icon">
-                            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-                              <path
-                                d="M14 2H6C5.46957 2 4.96086 2.21071 4.58579 2.58579C4.21071 2.96086 4 3.46957 4 4V20C4 20.5304 4.21071 21.0391 4.58579 21.4142C4.96086 21.7893 5.46957 22 6 22H18C18.5304 22 19.0391 21.7893 19.4142 21.4142C19.7893 21.0391 20 20.5304 20 20V8L14 2Z"
-                                stroke="#3e5cb6"
-                                strokeWidth="2"
-                                strokeLinecap="round"
-                                strokeLinejoin="round"
-                                fill="#3e5cb6"
-                                fillOpacity="0.1"
-                              />
-                              <path
-                                d="M14 2V8H20"
-                                stroke="#3e5cb6"
-                                strokeWidth="2"
-                                strokeLinecap="round"
-                                strokeLinejoin="round"
-                              />
-                            </svg>
-                          </div>
-                          <div className="appointment-detail-file-info">
-                            <span className="appointment-detail-label">Sailing Clearance Copy.pdf</span>
-                            <span className="appointment-detail-file-size">1000.0 KB</span>
-                          </div>
-                        </div>
-                      </div>
+                        {/* SUPPORTING DOCUMENTS Section */}
+                        <h3 className="appointment-details-title">SUPPORTING DOCUMENTS</h3>
+                        <FormField>
+                          <DocumentUpload
+                            attachments={supportingDocuments}
+                            onAdd={(file) => setSupportingDocuments([...supportingDocuments, file])}
+                            onRemove={(index) => setSupportingDocuments(supportingDocuments.filter((_, i) => i !== index))}
+                            cardColor={accentColor}
+                            disabled={isDisabled}
+                          />
+                        </FormField>
 
-                      {/* Inward Clearance Copy Section */}
-                      <h3 className="appointment-details-title">INWARD CLEARANCE COPY</h3>
-                      <div className="appointment-details-list">
-                        <div className="appointment-detail-item appointment-detail-file">
-                          <div className="appointment-detail-file-icon">
-                            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-                              <path
-                                d="M14 2H6C5.46957 2 4.96086 2.21071 4.58579 2.58579C4.21071 2.96086 4 3.46957 4 4V20C4 20.5304 4.21071 21.0391 4.58579 21.4142C4.96086 21.7893 5.46957 22 6 22H18C18.5304 22 19.0391 21.7893 19.4142 21.4142C19.7893 21.0391 20 20.5304 20 20V8L14 2Z"
-                                stroke="#3e5cb6"
-                                strokeWidth="2"
-                                strokeLinecap="round"
-                                strokeLinejoin="round"
-                                fill="#3e5cb6"
-                                fillOpacity="0.1"
-                              />
-                              <path
-                                d="M14 2V8H20"
-                                stroke="#3e5cb6"
-                                strokeWidth="2"
-                                strokeLinecap="round"
-                                strokeLinejoin="round"
-                              />
-                            </svg>
-                          </div>
-                          <div className="appointment-detail-file-info">
-                            <span className="appointment-detail-label">Inward Clearance Copy.pdf</span>
-                            <span className="appointment-detail-file-size">1000.0 KB</span>
-                          </div>
-                        </div>
-                      </div>
+                        {/* FDA Dispatch Proof Section */}
+                        <h3 className="appointment-details-title">FDA DISPATCH PROOF</h3>
+                        <FormField>
+                          <DocumentUpload
+                            attachments={fdaDispatchProofDocuments}
+                            onAdd={(file) => setFdaDispatchProofDocuments([...fdaDispatchProofDocuments, file])}
+                            onRemove={(index) => setFdaDispatchProofDocuments(fdaDispatchProofDocuments.filter((_, i) => i !== index))}
+                            cardColor={accentColor}
+                            disabled={isDisabled}
+                          />
+                        </FormField>
 
-                      {/* Supporting Documents Section */}
-                      <h3 className="appointment-details-title">SUPPORTING DOCUMENTS</h3>
-                      <div className="appointment-details-list">
-                        <div className="appointment-detail-item appointment-detail-file">
-                          <div className="appointment-detail-file-icon">
-                            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-                              <path
-                                d="M14 2H6C5.46957 2 4.96086 2.21071 4.58579 2.58579C4.21071 2.96086 4 3.46957 4 4V20C4 20.5304 4.21071 21.0391 4.58579 21.4142C4.96086 21.7893 5.46957 22 6 22H18C18.5304 22 19.0391 21.7893 19.4142 21.4142C19.7893 21.0391 20 20.5304 20 20V8L14 2Z"
-                                stroke="#3e5cb6"
-                                strokeWidth="2"
-                                strokeLinecap="round"
-                                strokeLinejoin="round"
-                                fill="#3e5cb6"
-                                fillOpacity="0.1"
-                              />
-                              <path
-                                d="M14 2V8H20"
-                                stroke="#3e5cb6"
-                                strokeWidth="2"
-                                strokeLinecap="round"
-                                strokeLinejoin="round"
-                              />
-                            </svg>
-                          </div>
-                          <div className="appointment-detail-file-info">
-                            <span className="appointment-detail-label">Supporting Documents.pdf</span>
-                            <span className="appointment-detail-file-size">1000.0 KB</span>
+                        {/* Copy of Sales order Section */}
+                        <h3 className="appointment-details-title">COPY OF SALES ORDER</h3>
+                        <FormField>
+                          <DocumentUpload
+                            attachments={copyOfSalesOrderDocuments}
+                            onAdd={(file) => setCopyOfSalesOrderDocuments([...copyOfSalesOrderDocuments, file])}
+                            onRemove={(index) => setCopyOfSalesOrderDocuments(copyOfSalesOrderDocuments.filter((_, i) => i !== index))}
+                            cardColor={accentColor}
+                            disabled={isDisabled}
+                          />
+                        </FormField>
+                      </div>
+                    ) : (
+                      <div className="appointment-details-list-wrapper">
+                        {/* APPOINTMENT DETAILS Section */}
+                        <h3 className="appointment-details-title">APPOINTMENT DETAILS</h3>
+                        <div className="appointment-details-list">
+                          <div className="appointment-detail-item appointment-detail-file">
+                            <div className="appointment-detail-file-icon">
+                              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                                <path
+                                  d="M14 2H6C5.46957 2 4.96086 2.21071 4.58579 2.58579C4.21071 2.96086 4 3.46957 4 4V20C4 20.5304 4.21071 21.0391 4.58579 21.4142C4.96086 21.7893 5.46957 22 6 22H18C18.5304 22 19.0391 21.7893 19.4142 21.4142C19.7893 21.0391 20 20.5304 20 20V8L14 2Z"
+                                  stroke="#3e5cb6"
+                                  strokeWidth="2"
+                                  strokeLinecap="round"
+                                  strokeLinejoin="round"
+                                  fill="#3e5cb6"
+                                  fillOpacity="0.1"
+                                />
+                                <path
+                                  d="M14 2V8H20"
+                                  stroke="#3e5cb6"
+                                  strokeWidth="2"
+                                  strokeLinecap="round"
+                                  strokeLinejoin="round"
+                                />
+                              </svg>
+                            </div>
+                            <div className="appointment-detail-file-info">
+                              <span className="appointment-detail-label">appointment_document.pdf</span>
+                              <span className="appointment-detail-file-size">1000.0 KB</span>
+                            </div>
                           </div>
                         </div>
-                      </div>
 
-                      {/* FDA Dispatch Proof Section */}
-                      <h3 className="appointment-details-title">FDA DISPATCH PROOF</h3>
-                      <div className="appointment-details-list">
-                        <div className="appointment-detail-item appointment-detail-file">
-                          <div className="appointment-detail-file-icon">
-                            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-                              <path
-                                d="M14 2H6C5.46957 2 4.96086 2.21071 4.58579 2.58579C4.21071 2.96086 4 3.46957 4 4V20C4 20.5304 4.21071 21.0391 4.58579 21.4142C4.96086 21.7893 5.46957 22 6 22H18C18.5304 22 19.0391 21.7893 19.4142 21.4142C19.7893 21.0391 20 20.5304 20 20V8L14 2Z"
-                                stroke="#3e5cb6"
-                                strokeWidth="2"
-                                strokeLinecap="round"
-                                strokeLinejoin="round"
-                                fill="#3e5cb6"
-                                fillOpacity="0.1"
-                              />
-                              <path
-                                d="M14 2V8H20"
-                                stroke="#3e5cb6"
-                                strokeWidth="2"
-                                strokeLinecap="round"
-                                strokeLinejoin="round"
-                              />
-                            </svg>
+                        {/* Launch Hire Details Section */}
+                        <h3 className="appointment-details-title">LAUNCH HIRE DETAILS</h3>
+                        <div className="appointment-details-list">
+                          <div className="appointment-detail-item appointment-detail-file">
+                            <div className="appointment-detail-file-icon">
+                              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                                <path
+                                  d="M14 2H6C5.46957 2 4.96086 2.21071 4.58579 2.58579C4.21071 2.96086 4 3.46957 4 4V20C4 20.5304 4.21071 21.0391 4.58579 21.4142C4.96086 21.7893 5.46957 22 6 22H18C18.5304 22 19.0391 21.7893 19.4142 21.4142C19.7893 21.0391 20 20.5304 20 20V8L14 2Z"
+                                  stroke="#3e5cb6"
+                                  strokeWidth="2"
+                                  strokeLinecap="round"
+                                  strokeLinejoin="round"
+                                  fill="#3e5cb6"
+                                  fillOpacity="0.1"
+                                />
+                                <path
+                                  d="M14 2V8H20"
+                                  stroke="#3e5cb6"
+                                  strokeWidth="2"
+                                  strokeLinecap="round"
+                                  strokeLinejoin="round"
+                                />
+                              </svg>
+                            </div>
+                            <div className="appointment-detail-file-info">
+                              <span className="appointment-detail-label">Launch Hire Slips.pdf</span>
+                              <span className="appointment-detail-file-size">1000.0 KB</span>
+                            </div>
                           </div>
-                          <div className="appointment-detail-file-info">
-                            <span className="appointment-detail-label">FDA Dispatch Proof.pdf</span>
-                            <span className="appointment-detail-file-size">1000.0 KB</span>
+                        </div>
+
+                        {/* Sailing Clearance Copy Section */}
+                        <h3 className="appointment-details-title">SAILING CLEARANCE COPY</h3>
+                        <div className="appointment-details-list">
+                          <div className="appointment-detail-item appointment-detail-file">
+                            <div className="appointment-detail-file-icon">
+                              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                                <path
+                                  d="M14 2H6C5.46957 2 4.96086 2.21071 4.58579 2.58579C4.21071 2.96086 4 3.46957 4 4V20C4 20.5304 4.21071 21.0391 4.58579 21.4142C4.96086 21.7893 5.46957 22 6 22H18C18.5304 22 19.0391 21.7893 19.4142 21.4142C19.7893 21.0391 20 20.5304 20 20V8L14 2Z"
+                                  stroke="#3e5cb6"
+                                  strokeWidth="2"
+                                  strokeLinecap="round"
+                                  strokeLinejoin="round"
+                                  fill="#3e5cb6"
+                                  fillOpacity="0.1"
+                                />
+                                <path
+                                  d="M14 2V8H20"
+                                  stroke="#3e5cb6"
+                                  strokeWidth="2"
+                                  strokeLinecap="round"
+                                  strokeLinejoin="round"
+                                />
+                              </svg>
+                            </div>
+                            <div className="appointment-detail-file-info">
+                              <span className="appointment-detail-label">Sailing Clearance Copy.pdf</span>
+                              <span className="appointment-detail-file-size">1000.0 KB</span>
+                            </div>
+                          </div>
+                        </div>
+
+                        {/* Inward Clearance Copy Section */}
+                        <h3 className="appointment-details-title">INWARD CLEARANCE COPY</h3>
+                        <div className="appointment-details-list">
+                          <div className="appointment-detail-item appointment-detail-file">
+                            <div className="appointment-detail-file-icon">
+                              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                                <path
+                                  d="M14 2H6C5.46957 2 4.96086 2.21071 4.58579 2.58579C4.21071 2.96086 4 3.46957 4 4V20C4 20.5304 4.21071 21.0391 4.58579 21.4142C4.96086 21.7893 5.46957 22 6 22H18C18.5304 22 19.0391 21.7893 19.4142 21.4142C19.7893 21.0391 20 20.5304 20 20V8L14 2Z"
+                                  stroke="#3e5cb6"
+                                  strokeWidth="2"
+                                  strokeLinecap="round"
+                                  strokeLinejoin="round"
+                                  fill="#3e5cb6"
+                                  fillOpacity="0.1"
+                                />
+                                <path
+                                  d="M14 2V8H20"
+                                  stroke="#3e5cb6"
+                                  strokeWidth="2"
+                                  strokeLinecap="round"
+                                  strokeLinejoin="round"
+                                />
+                              </svg>
+                            </div>
+                            <div className="appointment-detail-file-info">
+                              <span className="appointment-detail-label">Inward Clearance Copy.pdf</span>
+                              <span className="appointment-detail-file-size">1000.0 KB</span>
+                            </div>
+                          </div>
+                        </div>
+
+                        {/* Supporting Documents Section */}
+                        <h3 className="appointment-details-title">SUPPORTING DOCUMENTS</h3>
+                        <div className="appointment-details-list">
+                          <div className="appointment-detail-item appointment-detail-file">
+                            <div className="appointment-detail-file-icon">
+                              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                                <path
+                                  d="M14 2H6C5.46957 2 4.96086 2.21071 4.58579 2.58579C4.21071 2.96086 4 3.46957 4 4V20C4 20.5304 4.21071 21.0391 4.58579 21.4142C4.96086 21.7893 5.46957 22 6 22H18C18.5304 22 19.0391 21.7893 19.4142 21.4142C19.7893 21.0391 20 20.5304 20 20V8L14 2Z"
+                                  stroke="#3e5cb6"
+                                  strokeWidth="2"
+                                  strokeLinecap="round"
+                                  strokeLinejoin="round"
+                                  fill="#3e5cb6"
+                                  fillOpacity="0.1"
+                                />
+                                <path
+                                  d="M14 2V8H20"
+                                  stroke="#3e5cb6"
+                                  strokeWidth="2"
+                                  strokeLinecap="round"
+                                  strokeLinejoin="round"
+                                />
+                              </svg>
+                            </div>
+                            <div className="appointment-detail-file-info">
+                              <span className="appointment-detail-label">Supporting Documents.pdf</span>
+                              <span className="appointment-detail-file-size">1000.0 KB</span>
+                            </div>
+                          </div>
+                        </div>
+
+                        {/* FDA Dispatch Proof Section */}
+                        <h3 className="appointment-details-title">FDA DISPATCH PROOF</h3>
+                        <div className="appointment-details-list">
+                          <div className="appointment-detail-item appointment-detail-file">
+                            <div className="appointment-detail-file-icon">
+                              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                                <path
+                                  d="M14 2H6C5.46957 2 4.96086 2.21071 4.58579 2.58579C4.21071 2.96086 4 3.46957 4 4V20C4 20.5304 4.21071 21.0391 4.58579 21.4142C4.96086 21.7893 5.46957 22 6 22H18C18.5304 22 19.0391 21.7893 19.4142 21.4142C19.7893 21.0391 20 20.5304 20 20V8L14 2Z"
+                                  stroke="#3e5cb6"
+                                  strokeWidth="2"
+                                  strokeLinecap="round"
+                                  strokeLinejoin="round"
+                                  fill="#3e5cb6"
+                                  fillOpacity="0.1"
+                                />
+                                <path
+                                  d="M14 2V8H20"
+                                  stroke="#3e5cb6"
+                                  strokeWidth="2"
+                                  strokeLinecap="round"
+                                  strokeLinejoin="round"
+                                />
+                              </svg>
+                            </div>
+                            <div className="appointment-detail-file-info">
+                              <span className="appointment-detail-label">FDA Dispatch Proof.pdf</span>
+                              <span className="appointment-detail-file-size">1000.0 KB</span>
+                            </div>
                           </div>
                         </div>
                       </div>
-                    </div>
+                    )}
                   </>
                 ) : (
                   <div className="daily-task-box-wrapper">
