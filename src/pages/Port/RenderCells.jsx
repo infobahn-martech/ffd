@@ -40,3 +40,8 @@ export const DateFormat = ({ row, selector }) => {
   const formattedDate = moment(row[selector]).format('DD MMMM YYYY hh:mm a');
   return formattedDate;
 };
+
+export const RenderEmptyField = ({ row, selector }) => {
+  const value = row[selector];
+  return value && value.trim() !== '' ? value : '-';
+};

@@ -1,29 +1,10 @@
-
-import { useState } from "react";
-import { DateFormat, RenderAction } from "./RenderCells";
+import { useState, useEffect } from "react";
+import { DateFormat, RenderAction, RenderEmptyField } from "./RenderCells";
 import CommonHeader from "../../components/CommonHeader";
 import CustomTable from "../../components/customTable";
 import { PortModal } from "./Modals/AddEditPort";
 import DeleteConfirmationModal from "../../components/DeleteConfirmationModal";
-import { PORT_DETAILS } from "../../constants/ports";
-
-const portTimeline = [
-  { createdAt: "2024-10-12T10:15:00Z", updatedAt: "2024-11-03T08:45:00Z" },
-  { createdAt: "2024-09-20T12:30:00Z", updatedAt: "2024-10-15T14:20:00Z" },
-  { createdAt: "2024-08-05T09:00:00Z", updatedAt: "2024-10-02T11:40:00Z" },
-  { createdAt: "2024-07-18T16:00:00Z", updatedAt: "2024-09-28T10:10:00Z" },
-  { createdAt: "2024-06-12T14:00:00Z", updatedAt: "2024-08-21T09:00:00Z" },
-];
-
-const dummyPorts = PORT_DETAILS.map((port, index) => ({
-  _id: `${index + 1}`,
-  firstName: port.name,
-  phoneNumber: port.phoneNumber,
-  email: port.email,
-  createdAt: portTimeline[index]?.createdAt ?? "2024-06-01T10:00:00Z",
-  updatedAt: portTimeline[index]?.updatedAt ?? "2024-08-01T10:00:00Z",
-}));
-
+import usePortReducer from "../../store/PortReducer";
 
 const Port = () => {
   const [params, setParams] = useState({
@@ -38,13 +19,22 @@ const Port = () => {
   const [showPortModal, setShowPortModal] = useState(false);
   const [showDeleteModal, setShowDeleteModal] = useState(false);
 
-  console.log("showDeleteModal", showDeleteModal)
+  const {
+    getPorts,
+    ports,
+    isLoading,
+    totalPortCount,
+  } = usePortReducer((state) => state);
+
+  useEffect(() => {
+    getPorts({ params });
+  }, [params]);
 
 
   const cols = [
     {
       name: 'Name',
-      selector: 'firstName',
+      selector: 'port',
       tableClasses: 'table-striped',
       contentClass: 'table-content',
       sort: true,
@@ -59,6 +49,7 @@ const Port = () => {
       contentClass: 'table-content',
       thclass: 'tb-head',
       width: '200',
+      cell: RenderEmptyField,
     },
     {
       name: 'Email',
@@ -68,6 +59,7 @@ const Port = () => {
       contentClass: 'table-content',
       thclass: 'tb-head',
       width: '200',
+      cell: RenderEmptyField,
     },
     {
       name: 'Created At',
@@ -115,10 +107,10 @@ const Port = () => {
           <CustomTable
             pagination={{ currentPage: params?.page, limit: params?.limit }}
             tableClasses="px-start"
-            count={dummyPorts.length}
+            count={totalPortCount ?? 0}
             columns={cols}
-            // isLoading={isLoading}
-            data={dummyPorts ?? []}
+            isLoading={isLoading}
+            data={ports ?? []}
             onPageChange={(currentPage) =>
               setParams({ ...params, page: currentPage })
             }
