@@ -10,6 +10,7 @@ import General from "./CardFormTabs/General";
 import Operation from "./CardFormTabs/Operation";
 import Husbandry from "./CardFormTabs/Husbandry";
 import Attachments from "./CardFormTabs/Attachments";
+import Invoice from "./CardFormTabs/Invoice";
 import SalesOrder from "./CardFormTabs/SalesOrder";
 import Reports from "./CardFormTabs/Reports";
 import KPI from "./CardFormTabs/KPI";
@@ -30,10 +31,10 @@ const ALL_ENABLED_TABS = ["Appointment Details", "Operation", "Husbandry", "Sale
 // Constants - Simplified tabs for kanban-board/{id} routes
 const SIMPLIFIED_TOP_TABS = [
   "General",
-  "Attachments",
+  "Invoice",
 ];
 
-const SIMPLIFIED_ENABLED_TABS = ["General", "Attachments"];
+const SIMPLIFIED_ENABLED_TABS = ["General", "Invoice"];
 
 const DEFAULT_ACCENT_COLOR = "#2A00FF";
 const TOTAL_STEPS = 6;
@@ -474,12 +475,12 @@ const renderTabContent = (activeTab, card, formValues, handleChange, ownerInitia
   };
 
   if (isSimplifiedMode) {
-    // Simplified mode - only General and Attachments
+    // Simplified mode - only General and Invoice
     switch (activeTab) {
       case "General":
         return <General {...commonProps} ownerInitial={ownerInitial} cardUser={card?.user} />;
-      case "Attachments":
-        return <Attachments {...commonProps} />;
+      case "Invoice":
+        return <Invoice {...commonProps} />;
       default:
         return <General {...commonProps} ownerInitial={ownerInitial} cardUser={card?.user} />;
     }
@@ -509,17 +510,17 @@ const renderTabContent = (activeTab, card, formValues, handleChange, ownerInitia
 // Main Component
 function CardForm({ show, close, card, moveCardToColumn, columns, currentColumn, isAddMode = false }) {
   const location = useLocation();
-  
+
   // Check if we're on a kanban-board/{id} route
   const isKanbanBoardWithId = /^\/kanban-board\/\d+$/.test(location.pathname);
-  
+
   // Determine which tabs to use
   const TOP_TABS = isKanbanBoardWithId ? SIMPLIFIED_TOP_TABS : ALL_TOP_TABS;
   const ENABLED_TABS = isKanbanBoardWithId ? SIMPLIFIED_ENABLED_TABS : ALL_ENABLED_TABS;
   const defaultTab = isKanbanBoardWithId ? "General" : "Appointment Details";
-  
+
   const [activeTopTab, setActiveTopTab] = useState(defaultTab);
-  
+
   // Reset active tab when route changes
   useEffect(() => {
     setActiveTopTab(defaultTab);

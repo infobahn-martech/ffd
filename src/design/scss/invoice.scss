@@ -1,0 +1,196 @@
+@import "partials/partials";
+
+/* ==========================================================
+   INVOICE TAB STYLES (Simplified – flat list, no categories)
+   ========================================================== */
+
+.invoice-content-wrapper {
+  padding: 0;
+  background: #ffffff;
+  border-radius: 12px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
+  overflow: hidden;
+}
+
+.invoice-list-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 18px 22px;
+  background: #ffffff;
+  border-bottom: 1px solid #f0f0f0;
+}
+
+.invoice-list-title {
+  font-size: 14px;
+  font-weight: 600;
+  color: #1a1a1a;
+  margin: 0;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.invoice-list-title-bar {
+  width: 4px;
+  height: 18px;
+  background: rgb(26 26 26);
+  border-radius: 2px;
+  display: inline-block;
+}
+
+.invoice-list {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  padding: 20px 22px;
+}
+
+.invoice-item {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  padding: 16px 20px;
+  background: #ffffff;
+  border-radius: 12px;
+  border: 1px solid #e2e2ea;
+  transition: all 0.2s ease;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
+}
+
+.invoice-item:hover {
+  background: #ffffff;
+  border-color: #d0d7ff;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+  transform: translateY(-2px);
+}
+
+.invoice-icon-wrapper {
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.invoice-icon-wrapper .file-icon-default {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 48px;
+  height: 48px;
+  border-radius: 10px;
+  overflow: hidden;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.1);
+}
+
+.invoice-icon-wrapper .file-icon-default svg {
+  width: 32px;
+  height: 32px;
+}
+
+.invoice-details {
+  flex: 1;
+  min-width: 0;
+}
+
+.invoice-name {
+  font-size: 14px;
+  font-weight: 600;
+  color: #1a1a1a;
+  margin-bottom: 8px;
+  word-break: break-word;
+  line-height: 1.4;
+}
+
+.invoice-meta {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  font-size: 12px;
+  color: #666;
+  flex-wrap: wrap;
+  line-height: 1.5;
+}
+
+.invoice-separator {
+  color: #ccc;
+  font-size: 10px;
+}
+
+.invoice-size {
+  font-weight: 500;
+  color: #555;
+}
+
+.invoice-date {
+  color: #777;
+}
+
+.invoice-uploader {
+  color: #666;
+  font-style: italic;
+}
+
+.invoice-no-doc {
+  color: #999;
+  font-style: italic;
+}
+
+.invoice-actions {
+  display: flex;
+  gap: 10px;
+  flex-shrink: 0;
+  align-items: center;
+}
+
+.invoice-action-btn {
+  width: 40px;
+  height: 40px;
+  border: none;
+  border-radius: 8px;
+  background: #ffffff;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.2s ease;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.08);
+  color: #666;
+  padding: 0;
+}
+
+.invoice-action-btn:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+}
+
+.invoice-action-btn:not(:disabled):hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.12);
+}
+
+.invoice-action-btn.download {
+  color: rgb(153 153 153);
+  background: rgba(42, 0, 255, 0.08);
+}
+
+.invoice-action-btn.download:not(:disabled):hover {
+  color: #b0b0b0;
+}
+
+.invoice-action-btn.delete {
+  color: #999;
+  background: #f5f5f5;
+}
+
+.invoice-action-btn.delete:not(:disabled):hover {
+  background: #ff3e3e;
+  color: #ffffff;
+}
+
+.invoice-action-btn svg {
+  width: 18px;
+  height: 18px;
+}
