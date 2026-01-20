@@ -1020,6 +1020,11 @@ function General({ card, formValues, handleChange, ownerInitial, cardUser, onSav
   // FLEET document states
   const [fleetAppointmentEmailDocuments, setFleetAppointmentEmailDocuments] = useState([]);
   const [fleetCopyOfSalesOrderDocuments, setFleetCopyOfSalesOrderDocuments] = useState([]);
+  // ON STATION document states
+  const [onStationAppointmentEmailDocuments, setOnStationAppointmentEmailDocuments] = useState([]);
+  const [onStationSupportingDocuments, setOnStationSupportingDocuments] = useState([]);
+  const [onStationFdaDispatchProofDocuments, setOnStationFdaDispatchProofDocuments] = useState([]);
+  const [onStationCopyOfSalesOrderDocuments, setOnStationCopyOfSalesOrderDocuments] = useState([]);
   const [dailyReportEmailOptions, setDailyReportEmailOptions] = useState([
     { value: "admin@example.com", label: "admin@example.com" },
     { value: "operations@example.com", label: "operations@example.com" },
@@ -1209,6 +1214,9 @@ function General({ card, formValues, handleChange, ownerInitial, cardUser, onSav
   // Check if MATERIAL DELIVERY type is selected in simplified mode
   const isMaterialDelivery = isSimplifiedMode && getFieldValue("type") === "MATERIAL DELIVERY";
 
+  // Check if ON STATION type is selected in simplified mode
+  const isOnStation = isSimplifiedMode && getFieldValue("type") === "ON STATION";
+
 
 
 
@@ -1379,6 +1387,124 @@ function General({ card, formValues, handleChange, ownerInitial, cardUser, onSav
                           placeholder="Enter 3rd party items..."
                           value={getFieldValue("thirdPartyItems")}
                           onChange={handleChange("thirdPartyItems")}
+                          disabled={isDisabled}
+                        />
+                      </FormField>
+
+                      <FormField label="Billing Entity">
+                        <FormSelect
+                          value={getFieldValue("billingEntity") || "SS7"}
+                          onChange={handleChange("billingEntity")}
+                          options={[{ value: "SS7", label: "SS7" }]}
+                          placeholder="Select billing entity..."
+                          disabled={true}
+                        />
+                      </FormField>
+
+                      <FormField label="Operations completion date">
+                        <div className="cf-input date-time-row">
+                          <input
+                            type="date"
+                            value={getFieldValue("operationsCompletionDate")}
+                            onChange={handleChange("operationsCompletionDate")}
+                            placeholder="Select date"
+                            disabled={isDisabled}
+                          />
+                          <input
+                            type="time"
+                            value={getFieldValue("operationsCompletionTime")}
+                            onChange={handleChange("operationsCompletionTime")}
+                            placeholder="Select time"
+                            disabled={isDisabled}
+                          />
+                        </div>
+                      </FormField>
+
+                      <FormField label="Invoice amount (Including VAT)">
+                        <FormInput
+                          type="text"
+                          placeholder="Enter invoice amount..."
+                          value={getFieldValue("invoiceAmount")}
+                          onChange={handleChange("invoiceAmount")}
+                          disabled={isDisabled}
+                        />
+                      </FormField>
+
+                      <FormField label="VESSEL NAME">
+                        <FormSelect
+                          value={getFieldValue("vesselName") || "MV Ocean Star"}
+                          onChange={handleChange("vesselName")}
+                          options={[{ value: getFieldValue("vesselName") || "MV Ocean Star", label: getFieldValue("vesselName") || "MV Ocean Star" }]}
+                          placeholder="Select vessel name..."
+                          disabled={true}
+                        />
+                      </FormField>
+
+                      <FormField label="SAP Sales Order No">
+                        <FormSelect
+                          value={getFieldValue("sapSalesOrderNo") || "SO-12345"}
+                          onChange={handleChange("sapSalesOrderNo")}
+                          options={[{ value: getFieldValue("sapSalesOrderNo") || "SO-12345", label: getFieldValue("sapSalesOrderNo") || "SO-12345" }]}
+                          placeholder="Select SAP Sales Order No..."
+                          disabled={true}
+                        />
+                      </FormField>
+
+                      <FormField label="Service requester">
+                        <FormSelect
+                          value={getFieldValue("serviceRequestorName") || "Service Requester Name"}
+                          onChange={handleChange("serviceRequestorName")}
+                          options={[{ value: getFieldValue("serviceRequestorName") || "Service Requester Name", label: getFieldValue("serviceRequestorName") || "Service Requester Name" }]}
+                          placeholder="Select service requester..."
+                          disabled={true}
+                        />
+                      </FormField>
+                    </>
+                  ) : isOnStation ? (
+                    <>
+                      <OwnerField
+                        value={getFieldValue("owner") || "None"}
+                        onChange={handleChange("owner")}
+                        ownerInitial={ownerInitialValue}
+                        cardUser={cardUser || card?.user}
+                        disabled={isDisabled}
+                      />
+
+                      <FormField label="Last moved">
+                        <div className="cf-input date-time-row">
+                          <input
+                            type="date"
+                            value={getFieldValue("lastMovedDate")}
+                            onChange={handleChange("lastMovedDate")}
+                            placeholder="Select date"
+                            disabled={isDisabled}
+                          />
+                          <input
+                            type="time"
+                            value={getFieldValue("lastMovedTime")}
+                            onChange={handleChange("lastMovedTime")}
+                            placeholder="Select time"
+                            disabled={isDisabled}
+                          />
+                        </div>
+                      </FormField>
+
+                      <FormField label="Tax Invoice">
+                        <FormInput
+                          type="text"
+                          placeholder="Enter tax invoice..."
+                          value={getFieldValue("taxInvoice")}
+                          onChange={handleChange("taxInvoice")}
+                          disabled={isDisabled}
+                        />
+                      </FormField>
+
+                      <FormField label="SRT|PO|WBS">
+                        <FormInput
+                          type="text"
+                          placeholder="Enter SRT|PO|WBS..."
+                          value={getFieldValue("srtPoWbs")}
+                          onChange={handleChange("srtPoWbs")}
                           disabled={isDisabled}
                         />
                       </FormField>
@@ -2019,6 +2145,67 @@ function General({ card, formValues, handleChange, ownerInitial, cardUser, onSav
                           />
                         </FormField>
                       </div>
+                    ) : isOnStation ? (
+                      <>
+                        <div className="remarks-wrapper">
+                          <FormField label="Remarks">
+                            <ReactQuillEditor
+                              value={formValues?.remarks || card?.remarks || ""}
+                              onChange={handleChange("remarks")}
+                              placeholder="Enter remarks..."
+                            />
+                          </FormField>
+                        </div>
+                        <div className="appointment-details-list-wrapper">
+                          {/* Appointment Email Section */}
+                          <h3 className="appointment-details-title">Appointment Email</h3>
+                          <FormField>
+                            <DocumentUpload
+                              attachments={onStationAppointmentEmailDocuments}
+                              onAdd={(file) => setOnStationAppointmentEmailDocuments([...onStationAppointmentEmailDocuments, file])}
+                              onRemove={(index) => setOnStationAppointmentEmailDocuments(onStationAppointmentEmailDocuments.filter((_, i) => i !== index))}
+                              cardColor={accentColor}
+                              disabled={isDisabled}
+                            />
+                          </FormField>
+
+                          {/* SUPPORTING DOCUMENTS Section */}
+                          <h3 className="appointment-details-title">SUPPORTING DOCUMENTS</h3>
+                          <FormField>
+                            <DocumentUpload
+                              attachments={onStationSupportingDocuments}
+                              onAdd={(file) => setOnStationSupportingDocuments([...onStationSupportingDocuments, file])}
+                              onRemove={(index) => setOnStationSupportingDocuments(onStationSupportingDocuments.filter((_, i) => i !== index))}
+                              cardColor={accentColor}
+                              disabled={isDisabled}
+                            />
+                          </FormField>
+
+                          {/* FDA Dispatch Proof Section */}
+                          <h3 className="appointment-details-title">FDA Dispatch Proof</h3>
+                          <FormField>
+                            <DocumentUpload
+                              attachments={onStationFdaDispatchProofDocuments}
+                              onAdd={(file) => setOnStationFdaDispatchProofDocuments([...onStationFdaDispatchProofDocuments, file])}
+                              onRemove={(index) => setOnStationFdaDispatchProofDocuments(onStationFdaDispatchProofDocuments.filter((_, i) => i !== index))}
+                              cardColor={accentColor}
+                              disabled={isDisabled}
+                            />
+                          </FormField>
+
+                          {/* Copy of Sales order Section */}
+                          <h3 className="appointment-details-title">Copy of Sales order</h3>
+                          <FormField>
+                            <DocumentUpload
+                              attachments={onStationCopyOfSalesOrderDocuments}
+                              onAdd={(file) => setOnStationCopyOfSalesOrderDocuments([...onStationCopyOfSalesOrderDocuments, file])}
+                              onRemove={(index) => setOnStationCopyOfSalesOrderDocuments(onStationCopyOfSalesOrderDocuments.filter((_, i) => i !== index))}
+                              cardColor={accentColor}
+                              disabled={isDisabled}
+                            />
+                          </FormField>
+                        </div>
+                      </>
                     ) : (
                       <div className="appointment-details-list-wrapper">
                         {/* APPOINTMENT DETAILS Section */}
