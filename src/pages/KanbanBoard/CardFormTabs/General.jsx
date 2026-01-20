@@ -293,7 +293,7 @@ OwnerField.propTypes = {
 };
 
 // Document Upload Component
-const DocumentUpload = ({ attachments = [], onAdd, onRemove, cardColor, disabled = false }) => {
+const DocumentUpload = ({ attachments = [], onAdd, onRemove, cardColor, disabled = false, type = "" }) => {
   const fileInputRef = useRef(null);
   const [isDragging, setIsDragging] = useState(false);
 
@@ -425,17 +425,12 @@ const DocumentUpload = ({ attachments = [], onAdd, onRemove, cardColor, disabled
           disabled={disabled}
         />
         <div className="upload-zone-content">
-          <div className="upload-icon-wrapper">
-            <img src={AttachmentIcon} alt="Upload" style={{ width: "32px", height: "32px" }} />
-          </div>
           <div className="upload-text-content">
             <p className="upload-main-text">
               Drag and drop your files here, or{" "}
               <span className="upload-link">click to browse</span>
             </p>
-            <p className="upload-sub-text">Supports all file formats</p>
           </div>
-
           {attachments.length > 0 && (
             <div className="upload-zone-files-list">
               {attachments.map((file, index) => (
@@ -470,6 +465,7 @@ DocumentUpload.propTypes = {
   onRemove: PropTypes.func,
   cardColor: PropTypes.string,
   disabled: PropTypes.bool,
+  type: PropTypes.string,
 };
 
 // Multi-Select Email Component
@@ -1958,6 +1954,7 @@ function General({ card, formValues, handleChange, ownerInitial, cardUser, onSav
                             onRemove={(index) => setFleetAppointmentEmailDocuments(fleetAppointmentEmailDocuments.filter((_, i) => i !== index))}
                             cardColor={accentColor}
                             disabled={isDisabled}
+                            type="FLEET"
                           />
                         </FormField>
 
@@ -1970,6 +1967,7 @@ function General({ card, formValues, handleChange, ownerInitial, cardUser, onSav
                             onRemove={(index) => setFleetCopyOfSalesOrderDocuments(fleetCopyOfSalesOrderDocuments.filter((_, i) => i !== index))}
                             cardColor={accentColor}
                             disabled={isDisabled}
+                            type="FLEET"
                           />
                         </FormField>
                       </div>
@@ -1984,6 +1982,7 @@ function General({ card, formValues, handleChange, ownerInitial, cardUser, onSav
                             onRemove={(index) => setCrewChangeAppointmentEmailDocuments(crewChangeAppointmentEmailDocuments.filter((_, i) => i !== index))}
                             cardColor={accentColor}
                             disabled={isDisabled}
+                            type={isCrewChange ? "CREW CHANGE" : "MATERIAL DELIVERY"}
                           />
                         </FormField>
 
@@ -1996,6 +1995,7 @@ function General({ card, formValues, handleChange, ownerInitial, cardUser, onSav
                             onRemove={(index) => setLaunchHireSlipsDocuments(launchHireSlipsDocuments.filter((_, i) => i !== index))}
                             cardColor={accentColor}
                             disabled={isDisabled}
+                            type={isCrewChange ? "CREW CHANGE" : "MATERIAL DELIVERY"}
                           />
                         </FormField>
 
@@ -2008,6 +2008,7 @@ function General({ card, formValues, handleChange, ownerInitial, cardUser, onSav
                             onRemove={(index) => setZawilPassCopyDocuments(zawilPassCopyDocuments.filter((_, i) => i !== index))}
                             cardColor={accentColor}
                             disabled={isDisabled}
+                            type={isCrewChange ? "CREW CHANGE" : "MATERIAL DELIVERY"}
                           />
                         </FormField>
 
@@ -2020,6 +2021,7 @@ function General({ card, formValues, handleChange, ownerInitial, cardUser, onSav
                             onRemove={(index) => setCgPermitCopyDocuments(cgPermitCopyDocuments.filter((_, i) => i !== index))}
                             cardColor={accentColor}
                             disabled={isDisabled}
+                            type={isCrewChange ? "CREW CHANGE" : "MATERIAL DELIVERY"}
                           />
                         </FormField>
 
@@ -2032,6 +2034,7 @@ function General({ card, formValues, handleChange, ownerInitial, cardUser, onSav
                             onRemove={(index) => setCrewSummarySheetDocuments(crewSummarySheetDocuments.filter((_, i) => i !== index))}
                             cardColor={accentColor}
                             disabled={isDisabled}
+                            type={isCrewChange ? "CREW CHANGE" : "MATERIAL DELIVERY"}
                           />
                         </FormField>
 
@@ -2044,6 +2047,7 @@ function General({ card, formValues, handleChange, ownerInitial, cardUser, onSav
                             onRemove={(index) => setCrewChangeSupportingDocuments(crewChangeSupportingDocuments.filter((_, i) => i !== index))}
                             cardColor={accentColor}
                             disabled={isDisabled}
+                            type={isCrewChange ? "CREW CHANGE" : "MATERIAL DELIVERY"}
                           />
                         </FormField>
 
@@ -2056,6 +2060,7 @@ function General({ card, formValues, handleChange, ownerInitial, cardUser, onSav
                             onRemove={(index) => setCrewChangeFdaDispatchProofDocuments(crewChangeFdaDispatchProofDocuments.filter((_, i) => i !== index))}
                             cardColor={accentColor}
                             disabled={isDisabled}
+                            type={isCrewChange ? "CREW CHANGE" : "MATERIAL DELIVERY"}
                           />
                         </FormField>
 
@@ -2068,6 +2073,7 @@ function General({ card, formValues, handleChange, ownerInitial, cardUser, onSav
                             onRemove={(index) => setHotelInvoiceDocuments(hotelInvoiceDocuments.filter((_, i) => i !== index))}
                             cardColor={accentColor}
                             disabled={isDisabled}
+                            type={isCrewChange ? "CREW CHANGE" : "MATERIAL DELIVERY"}
                           />
                         </FormField>
 
@@ -2080,6 +2086,7 @@ function General({ card, formValues, handleChange, ownerInitial, cardUser, onSav
                             onRemove={(index) => setCrewChangeCopyOfSalesOrderDocuments(crewChangeCopyOfSalesOrderDocuments.filter((_, i) => i !== index))}
                             cardColor={accentColor}
                             disabled={isDisabled}
+                            type={isCrewChange ? "CREW CHANGE" : "MATERIAL DELIVERY"}
                           />
                         </FormField>
                       </div>
@@ -2166,6 +2173,7 @@ function General({ card, formValues, handleChange, ownerInitial, cardUser, onSav
                               onRemove={(index) => setOnStationAppointmentEmailDocuments(onStationAppointmentEmailDocuments.filter((_, i) => i !== index))}
                               cardColor={accentColor}
                               disabled={isDisabled}
+                              type="ON STATION"
                             />
                           </FormField>
 
@@ -2178,6 +2186,7 @@ function General({ card, formValues, handleChange, ownerInitial, cardUser, onSav
                               onRemove={(index) => setOnStationSupportingDocuments(onStationSupportingDocuments.filter((_, i) => i !== index))}
                               cardColor={accentColor}
                               disabled={isDisabled}
+                              type="ON STATION"
                             />
                           </FormField>
 
@@ -2190,6 +2199,7 @@ function General({ card, formValues, handleChange, ownerInitial, cardUser, onSav
                               onRemove={(index) => setOnStationFdaDispatchProofDocuments(onStationFdaDispatchProofDocuments.filter((_, i) => i !== index))}
                               cardColor={accentColor}
                               disabled={isDisabled}
+                              type="ON STATION"
                             />
                           </FormField>
 
@@ -2202,6 +2212,7 @@ function General({ card, formValues, handleChange, ownerInitial, cardUser, onSav
                               onRemove={(index) => setOnStationCopyOfSalesOrderDocuments(onStationCopyOfSalesOrderDocuments.filter((_, i) => i !== index))}
                               cardColor={accentColor}
                               disabled={isDisabled}
+                              type="ON STATION"
                             />
                           </FormField>
                         </div>
