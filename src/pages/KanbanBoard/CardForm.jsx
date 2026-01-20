@@ -32,9 +32,10 @@ const ALL_ENABLED_TABS = ["Appointment Details", "Operation", "Husbandry", "Sale
 const SIMPLIFIED_TOP_TABS = [
   "General",
   "Invoice",
+  "Sales Order",
 ];
 
-const SIMPLIFIED_ENABLED_TABS = ["General", "Invoice"];
+const SIMPLIFIED_ENABLED_TABS = ["General", "Invoice", "Sales Order"];
 
 const DEFAULT_ACCENT_COLOR = "#2A00FF";
 const TOTAL_STEPS = 6;
@@ -475,12 +476,14 @@ const renderTabContent = (activeTab, card, formValues, handleChange, ownerInitia
   };
 
   if (isSimplifiedMode) {
-    // Simplified mode - only General and Invoice
+    // Simplified mode - General, Invoice, and Sales Order
     switch (activeTab) {
       case "General":
         return <General {...commonProps} ownerInitial={ownerInitial} cardUser={card?.user} />;
       case "Invoice":
         return <Invoice {...commonProps} />;
+      case "Sales Order":
+        return <SalesOrder {...commonProps} />;
       default:
         return <General {...commonProps} ownerInitial={ownerInitial} cardUser={card?.user} />;
     }

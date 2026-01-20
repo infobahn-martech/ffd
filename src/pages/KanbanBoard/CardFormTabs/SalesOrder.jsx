@@ -1,7 +1,7 @@
 import PropTypes from "prop-types";
 import SalesOrderList from "./SalesOrder/SalesOrderList";
 
-function SalesOrder({ card, formValues, handleChange }) {
+function SalesOrder({ card, formValues, handleChange, isSimplifiedMode = false }) {
   const cardColor = "#e2e6ff";
 
   return (
@@ -12,6 +12,7 @@ function SalesOrder({ card, formValues, handleChange }) {
             formValues={formValues}
             handleChange={handleChange}
             cardColor={cardColor}
+            readOnly={isSimplifiedMode}
           />
         </div>
       </div>
@@ -23,6 +24,7 @@ SalesOrder.propTypes = {
   card: PropTypes.object,
   formValues: PropTypes.object,
   handleChange: PropTypes.func,
+  isSimplifiedMode: PropTypes.bool,
 };
 
 export default SalesOrder;

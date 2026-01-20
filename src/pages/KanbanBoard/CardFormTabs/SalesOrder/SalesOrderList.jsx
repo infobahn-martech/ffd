@@ -44,7 +44,7 @@ const generateDummySalesOrders = () => {
   return dummyOrders;
 };
 
-const SalesOrderList = ({ formValues, handleChange, cardColor }) => {
+const SalesOrderList = ({ formValues, handleChange, cardColor, readOnly = false }) => {
   const salesOrderList = formValues.salesOrderList || [];
   const billingEntity = formValues.billingEntity || "ABC Shipping Co.";
   const email = formValues.email || "billing@abccompany.com";
@@ -282,22 +282,26 @@ const SalesOrderList = ({ formValues, handleChange, cardColor }) => {
       </td>
       <td>
         <div className="sales-order-table-cell">
-          <input
-            type="number"
-            min="0"
-            step="1"
-            value={order.qty || 0}
-            onChange={(e) => handleQtyChange(order.id, e.target.value)}
-            className="sales-order-qty-input"
-            style={{
-              width: "100%",
-              border: "1px solid #ddd",
-              borderRadius: "4px",
-              padding: "4px 8px",
-              textAlign: "center",
-              fontSize: "14px",
-            }}
-          />
+          {readOnly ? (
+            (order.qty ?? 0)
+          ) : (
+            <input
+              type="number"
+              min="0"
+              step="1"
+              value={order.qty || 0}
+              onChange={(e) => handleQtyChange(order.id, e.target.value)}
+              className="sales-order-qty-input"
+              style={{
+                width: "100%",
+                border: "1px solid #ddd",
+                borderRadius: "4px",
+                padding: "4px 8px",
+                textAlign: "center",
+                fontSize: "14px",
+              }}
+            />
+          )}
         </div>
       </td>
       <td>
@@ -330,13 +334,15 @@ const SalesOrderList = ({ formValues, handleChange, cardColor }) => {
           <span className="sales-order-list-title-bar"></span>
           SALES ORDER LIST
         </h3>
-        <button
-          type="button"
-          className="sales-order-add-button"
-          onClick={handleAddNewItem}
-        >
-          + Add Item
-        </button>
+        {!readOnly && (
+          <button
+            type="button"
+            className="sales-order-add-button"
+            onClick={handleAddNewItem}
+          >
+            + Add Item
+          </button>
+        )}
       </div>
 
       {/* Summary Section */}
@@ -360,7 +366,7 @@ const SalesOrderList = ({ formValues, handleChange, cardColor }) => {
       </div>
 
       {/* Add Item Accordion */}
-      {isAccordionOpen && (
+      {!readOnly && isAccordionOpen && (
         <div className="sales-order-add-accordion" style={{ "--card-color": cardColor }}>
           <div className="sales-order-add-accordion-header">
             <h4 className="sales-order-add-accordion-title">Add New Sales Order Item</h4>
@@ -521,6 +527,7 @@ SalesOrderList.propTypes = {
   formValues: PropTypes.object.isRequired,
   handleChange: PropTypes.func.isRequired,
   cardColor: PropTypes.string,
+  readOnly: PropTypes.bool,
 };
 
 export default SalesOrderList;
