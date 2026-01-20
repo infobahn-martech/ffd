@@ -22,7 +22,10 @@ const useAuthReducer = create((set) => ({
       const { data } = await authService.doLoginValidate(email, password, remember_me);
 
       // ✅ token location based on your response
-      const accessToken = data?.token;
+      const accessToken = data?.access_token;
+      const refreshToken = data?.refresh_token;
+      const accessExpiresIn = data?.access_expires_in;
+      const refreshExpiresIn = data?.refresh_expires_in;
 
       // ✅ user data from response
       const authData = {
@@ -33,7 +36,24 @@ const useAuthReducer = create((set) => ({
         message: data?.message,
       };
 
-      if (accessToken) setItem("accessToken", accessToken);
+      if (accessToken) {
+        setItem("accessToken", accessToken);
+        // Store expiration time if provided (in seconds, convert to timestamp)
+        if (accessExpiresIn) {
+          const expirationTime = Date.now() + (accessExpiresIn * 1000);
+          setItem("accessTokenExpiry", expirationTime.toString());
+        }
+      }
+
+      if (refreshToken) {
+        setItem("refreshToken", refreshToken);
+        // Store refresh token expiration time if provided
+        if (refreshExpiresIn) {
+          const expirationTime = Date.now() + (refreshExpiresIn * 1000);
+          setItem("refreshTokenExpiry", expirationTime.toString());
+        }
+      }
+
       // Store userid in localStorage for refresh persistence
       if (data?.userid) setItem("userid", data.userid);
       // Store user name and email for fallback profile on refresh
@@ -100,6 +120,8 @@ const useAuthReducer = create((set) => ({
     });
     removeItem('accessToken');
     removeItem('refreshToken');
+    removeItem('accessTokenExpiry');
+    removeItem('refreshTokenExpiry');
     removeItem('userid');
     removeItem('userProfile');
     removeItem('userName');
@@ -144,7 +166,7 @@ const useAuthReducer = create((set) => ({
         // Create fallback profile from available data without API call
         const authData = state.authData || {};
         let role = { role_id: '2' }; // Default to Admin role
-        
+
         // Try to get role from cached profile if available
         if (cachedProfile) {
           try {
@@ -156,7 +178,7 @@ const useAuthReducer = create((set) => ({
             // Use default role if parsing fails
           }
         }
-        
+
         const fallbackProfileData = {
           userid: finalUserId,
           name: authData.name || getItem('userName') || 'User',
@@ -191,11 +213,11 @@ const useAuthReducer = create((set) => ({
       // Always return success with fallback profile data
       const state = useAuthReducer.getState();
       const authData = state.authData || {};
-      
+
       // Try to get cached profile
       const cachedProfile = getItem('userProfile');
       let fallbackProfileData;
-      
+
       if (cachedProfile) {
         try {
           fallbackProfileData = JSON.parse(cachedProfile);
@@ -227,7 +249,7 @@ const useAuthReducer = create((set) => ({
         userProfile: fallbackProfileData,
         isProfileFetchLoading: false
       });
-      
+
       // Optionally log the error without affecting the user experience
       console.warn('getUserDetail API failed, using fallback profile:', err?.response?.data?.message ?? err.message);
     }

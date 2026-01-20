@@ -15,6 +15,8 @@ const editUserProfile = (formData) => Gateway.patch("user/profile", formData);
 
 const forgotPassword = (email) => Gateway.post("users/forgotpassword", { email });
 
+const refreshToken = (refresh_token) => Gateway.post("users/refresh_token", { refresh_token });
+
 export default {
   doLoginValidate,
   googleLoginValidate,
@@ -22,4 +24,5 @@ export default {
   getUserDetail,
   editUserProfile,
   forgotPassword,
+  refreshToken,
 };

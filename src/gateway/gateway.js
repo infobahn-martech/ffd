@@ -26,6 +26,16 @@ const Gateway = axios.create({
   timeout: 30000,
 });
 
+// Create a separate axios instance for refresh token calls (without interceptors)
+const RefreshGateway = axios.create({
+  baseURL,
+  headers: {
+    "Content-Type": "application/json",
+    Accept: "application/json",
+  },
+  timeout: 30000,
+});
+
 // ✅ Attach token
 Gateway.interceptors.request.use(
   (config) => {
@@ -39,12 +49,99 @@ Gateway.interceptors.request.use(
   (error) => Promise.reject(error)
 );
 
-// ✅ Optional: handle 401 globally
+// Flag to prevent multiple simultaneous refresh attempts
+let isRefreshing = false;
+let failedQueue = [];
+
+const processQueue = (error, token = null) => {
+  failedQueue.forEach((prom) => {
+    if (error) {
+      prom.reject(error);
+    } else {
+      prom.resolve(token);
+    }
+  });
+  failedQueue = [];
+};
+
+// ✅ Handle 401 and token refresh
 Gateway.interceptors.response.use(
   (response) => response,
-  (error) => {
-    // Handle 401 globally if needed
-    // if (error?.response?.status === 401) { ...logout / redirect... }
+  async (error) => {
+    const originalRequest = error?.config;
+
+    // If error is 401 and we haven't already tried to refresh
+    if (error?.response?.status === 401 && !originalRequest._retry) {
+      if (isRefreshing) {
+        // If already refreshing, queue this request
+        return new Promise((resolve, reject) => {
+          failedQueue.push({ resolve, reject });
+        })
+          .then((token) => {
+            originalRequest.headers.Authorization = `Bearer ${token}`;
+            return Gateway(originalRequest);
+          })
+          .catch((err) => {
+            return Promise.reject(err);
+          });
+      }
+
+      originalRequest._retry = true;
+      isRefreshing = true;
+
+      const refreshToken = localStorage.getItem("refreshToken");
+
+      if (!refreshToken) {
+        // No refresh token, logout user
+        processQueue(error, null);
+        isRefreshing = false;
+        // You might want to redirect to login here
+        return Promise.reject(error);
+      }
+
+      try {
+        // Call refresh token endpoint using RefreshGateway (no interceptors)
+        const response = await RefreshGateway.post("users/refresh_token", { refresh_token: refreshToken });
+        const { access_token, access_expires_in } = response.data;
+
+        if (access_token) {
+          // Update access token in localStorage
+          localStorage.setItem("accessToken", access_token);
+
+          // Update expiration time if provided
+          if (access_expires_in) {
+            const expirationTime = Date.now() + (access_expires_in * 1000);
+            localStorage.setItem("accessTokenExpiry", expirationTime.toString());
+          }
+
+          // Update the original request with new token
+          originalRequest.headers.Authorization = `Bearer ${access_token}`;
+
+          // Process queued requests
+          processQueue(null, access_token);
+          isRefreshing = false;
+
+          // Retry the original request
+          return Gateway(originalRequest);
+        } else {
+          throw new Error("No access token in refresh response");
+        }
+      } catch (refreshError) {
+        // Refresh failed, logout user
+        processQueue(refreshError, null);
+        isRefreshing = false;
+
+        // Clear tokens
+        localStorage.removeItem("accessToken");
+        localStorage.removeItem("refreshToken");
+        localStorage.removeItem("accessTokenExpiry");
+        localStorage.removeItem("refreshTokenExpiry");
+
+        // You might want to redirect to login here
+        return Promise.reject(refreshError);
+      }
+    }
+
     return Promise.reject(error);
   }
 );

@@ -10,7 +10,7 @@ import { setItem } from "../../helpers/localStorage";
 function Index() {
   const navigate = useNavigate();
   const [showPassword, setShowPassword] = useState(false);
-  const [isTestingMode, setIsTestingMode] = useState(false); // Testing mode: true = normal flow, false = skip validation/API
+  const [isTestingMode, setIsTestingMode] = useState(true); // Testing mode: true = normal flow, false = skip validation/API
   const {
     register,
     handleSubmit,
