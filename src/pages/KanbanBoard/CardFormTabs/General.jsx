@@ -1017,6 +1017,9 @@ function General({ card, formValues, handleChange, ownerInitial, cardUser, onSav
   const [crewChangeFdaDispatchProofDocuments, setCrewChangeFdaDispatchProofDocuments] = useState([]);
   const [hotelInvoiceDocuments, setHotelInvoiceDocuments] = useState([]);
   const [crewChangeCopyOfSalesOrderDocuments, setCrewChangeCopyOfSalesOrderDocuments] = useState([]);
+  // FLEET document states
+  const [fleetAppointmentEmailDocuments, setFleetAppointmentEmailDocuments] = useState([]);
+  const [fleetCopyOfSalesOrderDocuments, setFleetCopyOfSalesOrderDocuments] = useState([]);
   const [dailyReportEmailOptions, setDailyReportEmailOptions] = useState([
     { value: "admin@example.com", label: "admin@example.com" },
     { value: "operations@example.com", label: "operations@example.com" },
@@ -1200,6 +1203,9 @@ function General({ card, formValues, handleChange, ownerInitial, cardUser, onSav
   // Check if CREW CHANGE type is selected in simplified mode
   const isCrewChange = isSimplifiedMode && getFieldValue("type") === "CREW CHANGE";
 
+  // Check if FLEET type is selected in simplified mode
+  const isFleet = isSimplifiedMode && getFieldValue("type") === "FLEET";
+
 
 
 
@@ -1246,7 +1252,56 @@ function General({ card, formValues, handleChange, ownerInitial, cardUser, onSav
             <div className="general-info-two-column">
               <div className="general-info-left">
                 <div className="pre-arrival-form">
-                  {isCrewChange ? (
+                  {isFleet ? (
+                    <>
+                      <OwnerField
+                        value={getFieldValue("owner") || "None"}
+                        onChange={handleChange("owner")}
+                        ownerInitial={ownerInitialValue}
+                        cardUser={cardUser || card?.user}
+                        disabled={isDisabled}
+                      />
+
+                      <FormField label="Last moved">
+                        <div className="cf-input date-time-row">
+                          <input
+                            type="date"
+                            value={getFieldValue("lastMovedDate")}
+                            onChange={handleChange("lastMovedDate")}
+                            placeholder="Select date"
+                            disabled={isDisabled}
+                          />
+                          <input
+                            type="time"
+                            value={getFieldValue("lastMovedTime")}
+                            onChange={handleChange("lastMovedTime")}
+                            placeholder="Select time"
+                            disabled={isDisabled}
+                          />
+                        </div>
+                      </FormField>
+
+                      <FormField label="Billing Entity">
+                        <FormSelect
+                          value={getFieldValue("billingEntity") || "SS7"}
+                          onChange={handleChange("billingEntity")}
+                          options={[{ value: "SS7", label: "SS7" }]}
+                          placeholder="Select billing entity..."
+                          disabled={true}
+                        />
+                      </FormField>
+
+                      <FormField label="VESSEL NAME">
+                        <FormSelect
+                          value={getFieldValue("vesselName") || "MV Ocean Star"}
+                          onChange={handleChange("vesselName")}
+                          options={[{ value: getFieldValue("vesselName") || "MV Ocean Star", label: getFieldValue("vesselName") || "MV Ocean Star" }]}
+                          placeholder="Select vessel name..."
+                          disabled={true}
+                        />
+                      </FormField>
+                    </>
+                  ) : isCrewChange ? (
                     <>
                       <OwnerField
                         value={getFieldValue("owner") || "None"}
@@ -1763,7 +1818,33 @@ function General({ card, formValues, handleChange, ownerInitial, cardUser, onSav
                         />
                       </FormField>
                     </div>
-                    {isCrewChange ? (
+                    {isFleet ? (
+                      <div className="appointment-details-list-wrapper">
+                        {/* Appointment Email Section */}
+                        <h3 className="appointment-details-title">Appointment Email</h3>
+                        <FormField>
+                          <DocumentUpload
+                            attachments={fleetAppointmentEmailDocuments}
+                            onAdd={(file) => setFleetAppointmentEmailDocuments([...fleetAppointmentEmailDocuments, file])}
+                            onRemove={(index) => setFleetAppointmentEmailDocuments(fleetAppointmentEmailDocuments.filter((_, i) => i !== index))}
+                            cardColor={accentColor}
+                            disabled={isDisabled}
+                          />
+                        </FormField>
+
+                        {/* Copy of Sales order Section */}
+                        <h3 className="appointment-details-title">Copy of Sales order</h3>
+                        <FormField>
+                          <DocumentUpload
+                            attachments={fleetCopyOfSalesOrderDocuments}
+                            onAdd={(file) => setFleetCopyOfSalesOrderDocuments([...fleetCopyOfSalesOrderDocuments, file])}
+                            onRemove={(index) => setFleetCopyOfSalesOrderDocuments(fleetCopyOfSalesOrderDocuments.filter((_, i) => i !== index))}
+                            cardColor={accentColor}
+                            disabled={isDisabled}
+                          />
+                        </FormField>
+                      </div>
+                    ) : isCrewChange ? (
                       <div className="appointment-details-list-wrapper">
                         {/* Appointment Email Section */}
                         <h3 className="appointment-details-title">Appointment Email</h3>
