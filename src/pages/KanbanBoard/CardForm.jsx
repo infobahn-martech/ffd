@@ -578,7 +578,7 @@ function CardForm({ show, close, card, moveCardToColumn, columns, columnOrder, c
       cardTitle: card?.title || "",
       owner: card?.user || "None",
       // FLEEyt (for simplified mode)
-      type: card?.type || "",
+      type: card?.type || "Type",
       // Service Information
       typeOfCall: card?.typeOfCall || "",
       mainBillingEntity: card?.mainBillingEntity || "SS7",

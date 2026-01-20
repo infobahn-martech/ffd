@@ -444,7 +444,7 @@ const DocumentUpload = ({ attachments = [], onAdd, onRemove, cardColor, disabled
         onDragLeave={disabled ? undefined : handleDragLeave}
         onDrop={disabled ? undefined : handleDrop}
         onClick={disabled ? undefined : () => fileInputRef.current?.click()}
-        style={{ "--card-color": cardColor || "#2A00FF", pointerEvents: disabled ? "none" : "auto", opacity: disabled ? 0.6 : 1 }}
+        style={{ "--card-color": "#3e5cb6" || "#2A00FF", pointerEvents: disabled ? "none" : "auto", opacity: disabled ? 0.6 : 1 }}
       >
         <input
           ref={fileInputRef}
