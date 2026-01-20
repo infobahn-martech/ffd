@@ -31,8 +31,8 @@ const ALL_ENABLED_TABS = ["Appointment Details", "Operation", "Husbandry", "Sale
 // Constants - Simplified tabs for kanban-board/{id} routes
 const SIMPLIFIED_TOP_TABS = [
   "General",
-  "Invoice",
   "Sales Order",
+  "Invoice",
 ];
 
 const SIMPLIFIED_ENABLED_TABS = ["General", "Invoice", "Sales Order"];
