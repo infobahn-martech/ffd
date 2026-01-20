@@ -508,6 +508,13 @@ export default function KanbanBoard() {
     return selectedCardWorkflow?.columns;
   }, [isAddMode, selectedCardWorkflow, workflows]);
 
+  const columnOrderForCardForm = useMemo(() => {
+    if (isAddMode && !selectedCardWorkflow && workflows.length > 0) {
+      return workflows[0].columnOrder;
+    }
+    return selectedCardWorkflow?.columnOrder;
+  }, [isAddMode, selectedCardWorkflow, workflows]);
+
   return (
     <>
       {workflows.map((workflow) => (
@@ -554,6 +561,7 @@ export default function KanbanBoard() {
           card={selectedCard}
           moveCardToColumn={moveCardToColumn}
           columns={columnsForCardForm}
+          columnOrder={columnOrderForCardForm}
           currentColumn={isAddMode ? null : findCardColumn(selectedCard.id)}
           isAddMode={isAddMode}
         />

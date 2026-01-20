@@ -59,11 +59,25 @@ const COLUMN_TO_STEP_MAP = {
   "Ready to Fianalize": { stepNumber: 6, stepLabel: "Ready to Finalize" }, // Note: typo in data.js
 };
 
-// Helper function to map step label to column ID based on column titles
-const getColumnIdFromStepLabel = (stepLabel, columns) => {
+// Helper: get step labels from columns + columnOrder (e.g. from DAdata columnTitles).
+// When columnOrder is provided, step labels = column titles in that order; else use STEP_LABELS.
+const getStepLabelsFromColumns = (columns, columnOrder) => {
+  if (!columnOrder || !columns || !Array.isArray(columnOrder)) return null;
+  const labels = columnOrder.map((colId) => columns[colId]?.title).filter(Boolean);
+  return labels.length > 0 ? labels : null;
+};
+
+// Helper function to map step label to column ID (column.id for moveCardToColumn)
+const getColumnIdFromStepLabel = (stepLabel, columns, columnOrder) => {
   if (!columns) return null;
 
-  // Normalize step labels to match column titles
+  // When columnOrder is provided (e.g. from DAdata), resolve by title in order
+  if (columnOrder && Array.isArray(columnOrder)) {
+    const colId = columnOrder.find((id) => columns[id]?.title === stepLabel);
+    return colId ? columns[colId]?.id ?? colId : null;
+  }
+
+  // Fallback: legacy step-to-title map
   const stepToColumnMap = {
     "Appointment Received": "Appointment Received",
     "Enroute": "Enroute",
@@ -72,32 +86,41 @@ const getColumnIdFromStepLabel = (stepLabel, columns) => {
     "Vessel Sailed / Awaiting Documents": "Vessel Sailed",
     "Ready to Finalize": "Ready to Fianalize", // Note: typo in data.js
   };
-
   const columnTitle = stepToColumnMap[stepLabel];
   if (!columnTitle) return null;
-
-  // Find column with matching title
   for (const colId in columns) {
     if (columns[colId].title === columnTitle) {
-      return colId;
+      return columns[colId]?.id ?? colId;
     }
   }
-
   return null;
 };
 
 // Helper function to get step number from column title
-const getStepNumberFromColumnTitle = (columnTitle) => {
+const getStepNumberFromColumnTitle = (columnTitle, columns, columnOrder) => {
+  if (columnOrder && columns && Array.isArray(columnOrder)) {
+    const idx = columnOrder.findIndex((colId) => columns[colId]?.title === columnTitle);
+    return idx >= 0 ? idx + 1 : null;
+  }
   const mapping = COLUMN_TO_STEP_MAP[columnTitle];
   return mapping ? mapping.stepNumber : null;
 };
 
-// Helper function to get step number from column ID
-const getStepNumberFromColumnId = (columnId, columns) => {
+// Helper function to get step number from column (resolves parent for sub-columns)
+const getStepNumberFromColumnId = (columnId, columns, columnOrder) => {
   if (!columns || !columnId) return null;
-  const column = columns[columnId];
-  if (!column) return null;
-  return getStepNumberFromColumnTitle(column.title);
+  const colKey = Object.keys(columns).find((k) => columns[k]?.id === columnId);
+  if (!colKey) return null;
+  const col = columns[colKey];
+  const keyForOrder = col.parentColumnId
+    ? Object.keys(columns).find((k) => columns[k]?.id === col.parentColumnId) || colKey
+    : colKey;
+  if (columnOrder && Array.isArray(columnOrder)) {
+    const idx = columnOrder.indexOf(keyForOrder);
+    return idx >= 0 ? idx + 1 : null;
+  }
+  const colForTitle = keyForOrder !== colKey ? columns[keyForOrder] : col;
+  return getStepNumberFromColumnTitle(colForTitle?.title, columns, columnOrder);
 };
 
 // Predefined color palette (matching the image: 2 rows x 6 columns)
@@ -425,27 +448,27 @@ StepsProgress.propTypes = {
   currentStep: PropTypes.number,
 };
 
-const CardFormFooter = ({ accentColor, onUpdate, activeStep = 2, completedSteps = 1, activeTab, onStepClick, currentStep, isSimplifiedMode = false }) => {
+const CardFormFooter = ({ accentColor, onUpdate, activeStep = 2, completedSteps = 1, activeTab, onStepClick, currentStep, isSimplifiedMode = false, stepLabels = STEP_LABELS, totalSteps = TOTAL_STEPS }) => {
   return (
     <div className="cardform-footer">
       {!isSimplifiedMode && activeTab !== "Appointment Details" && (
         <StepsProgress
-          totalSteps={TOTAL_STEPS}
+          totalSteps={totalSteps}
           activeStep={activeStep}
           completedSteps={completedSteps}
           accentColor={accentColor}
-          stepLabels={STEP_LABELS}
+          stepLabels={stepLabels}
           onStepClick={onStepClick}
           currentStep={currentStep}
         />
       )}
       {isSimplifiedMode && activeTab !== "General" && (
         <StepsProgress
-          totalSteps={TOTAL_STEPS}
+          totalSteps={totalSteps}
           activeStep={activeStep}
           completedSteps={completedSteps}
           accentColor={accentColor}
-          stepLabels={STEP_LABELS}
+          stepLabels={stepLabels}
           onStepClick={onStepClick}
           currentStep={currentStep}
         />
@@ -463,6 +486,8 @@ CardFormFooter.propTypes = {
   onStepClick: PropTypes.func,
   currentStep: PropTypes.number,
   isSimplifiedMode: PropTypes.bool,
+  stepLabels: PropTypes.arrayOf(PropTypes.string),
+  totalSteps: PropTypes.number,
 };
 
 // Tab Content Renderer
@@ -511,8 +536,17 @@ const renderTabContent = (activeTab, card, formValues, handleChange, ownerInitia
 };
 
 // Main Component
-function CardForm({ show, close, card, moveCardToColumn, columns, currentColumn, isAddMode = false }) {
+function CardForm({ show, close, card, moveCardToColumn, columns, columnOrder, currentColumn, isAddMode = false }) {
   const location = useLocation();
+
+  // Step labels from columns + columnOrder (e.g. DAdata columnTitles); fallback to STEP_LABELS
+  const { stepLabels, totalSteps } = useMemo(() => {
+    const fromColumns = getStepLabelsFromColumns(columns, columnOrder);
+    if (fromColumns) {
+      return { stepLabels: fromColumns, totalSteps: fromColumns.length };
+    }
+    return { stepLabels: STEP_LABELS, totalSteps: TOTAL_STEPS };
+  }, [columns, columnOrder]);
 
   // Check if we're on a kanban-board/{id} route
   const isKanbanBoardWithId = /^\/kanban-board\/\d+$/.test(location.pathname);
@@ -612,11 +646,11 @@ function CardForm({ show, close, card, moveCardToColumn, columns, currentColumn,
     setActiveTopTab(tab);
   }, []);
 
-  // Calculate current step from current column
+  // Calculate current step from current column (supports sub-columns when columnOrder from DAdata)
   const currentStep = useMemo(() => {
     if (!currentColumn) return null;
-    return getStepNumberFromColumnTitle(currentColumn.title);
-  }, [currentColumn]);
+    return getStepNumberFromColumnId(currentColumn.id, columns, columnOrder);
+  }, [currentColumn, columns, columnOrder]);
 
   const handleStepClick = useCallback((stepLabel, stepNumber) => {
     if (!moveCardToColumn || !card?.id) return;
@@ -630,11 +664,11 @@ function CardForm({ show, close, card, moveCardToColumn, columns, currentColumn,
       }
     }
 
-    const targetColumnId = getColumnIdFromStepLabel(stepLabel, columns);
+    const targetColumnId = getColumnIdFromStepLabel(stepLabel, columns, columnOrder);
     if (targetColumnId) {
       moveCardToColumn(card.id, targetColumnId);
     }
-  }, [moveCardToColumn, card?.id, columns, currentStep]);
+  }, [moveCardToColumn, card?.id, columns, columnOrder, currentStep]);
 
   // Reset topbar color to card's fixed color when card changes
   // This ensures topbar always reflects the card's actual color when form opens
@@ -691,6 +725,8 @@ function CardForm({ show, close, card, moveCardToColumn, columns, currentColumn,
             onStepClick={handleStepClick}
             currentStep={currentStep}
             isSimplifiedMode={isKanbanBoardWithId}
+            stepLabels={stepLabels}
+            totalSteps={totalSteps}
           />
         )}
       </div>
@@ -719,6 +755,7 @@ CardForm.propTypes = {
   }),
   moveCardToColumn: PropTypes.func,
   columns: PropTypes.object,
+  columnOrder: PropTypes.arrayOf(PropTypes.string),
   currentColumn: PropTypes.shape({
     id: PropTypes.string,
     title: PropTypes.string,

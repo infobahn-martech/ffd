@@ -576,6 +576,13 @@ export default function DADeskBoard() {
     return selectedCardWorkflow?.columns;
   }, [isAddMode, selectedCardWorkflow, workflows]);
 
+  const columnOrderForCardForm = useMemo(() => {
+    if (isAddMode && !selectedCardWorkflow && workflows.length > 0) {
+      return workflows[0].columnOrder;
+    }
+    return selectedCardWorkflow?.columnOrder;
+  }, [isAddMode, selectedCardWorkflow, workflows]);
+
   if (isLoading) {
     return (
       <div className="page-loader-overlay">
@@ -635,6 +642,7 @@ export default function DADeskBoard() {
           card={selectedCard}
           moveCardToColumn={moveCardToColumn}
           columns={columnsForCardForm}
+          columnOrder={columnOrderForCardForm}
           currentColumn={isAddMode ? null : findCardColumn(selectedCard.id)}
           isAddMode={isAddMode}
         />
