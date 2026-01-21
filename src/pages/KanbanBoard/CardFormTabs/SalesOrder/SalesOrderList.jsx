@@ -6,6 +6,7 @@ const generateDummySalesOrders = () => {
   const itemNames = ["Container Service", "Shipping Documentation", "Cargo Handling", "Storage Service", "Customs Clearance", "Freight Forwarding", "Warehouse Service", "Distribution Service"];
   const itemCodes = ["ITEM-001", "ITEM-002", "ITEM-003", "ITEM-004", "ITEM-005", "ITEM-006", "ITEM-007", "ITEM-008"];
   const callFiles = ["CALL-001", "CALL-002", "CALL-003", "CALL-004", null]; // Some items may not have callFile
+  const poStatuses = ["Draft", "Issued", "Completed"]; // PO Status options
 
   const dummyOrders = [];
   for (let i = 1; i <= 20; i++) {
@@ -26,6 +27,10 @@ const generateDummySalesOrders = () => {
     const callFileIndex = Math.floor(Math.random() * callFiles.length);
     const callFile = callFiles[callFileIndex];
 
+    // Assign random PO Status
+    const poStatusIndex = Math.floor(Math.random() * poStatuses.length);
+    const poStatus = poStatuses[poStatusIndex];
+
     dummyOrders.push({
       id: i,
       callFile: callFile,
@@ -35,6 +40,7 @@ const generateDummySalesOrders = () => {
       completedDate: completedDate.toISOString(),
       vatPercentage: vatPercentage,
       qty: qty,
+      poStatus: poStatus,
       unitPrice: unitPrice,
       totalUnitAmount: totalUnitAmount,
       vatAmount: vatAmount,
@@ -139,6 +145,34 @@ const SalesOrderList = ({ formValues, handleChange, cardColor, readOnly = false 
     }).format(amount);
   };
 
+  // Get PO Status color
+  const getPOStatusColor = (status) => {
+    switch (status) {
+      case "Draft":
+        return "#FFA500"; // Orange
+      case "Issued":
+        return "#4169E1"; // Royal Blue
+      case "Completed":
+        return "#008000"; // Green
+      default:
+        return "#666666"; // Gray
+    }
+  };
+
+  // Get PO Status background color (lighter version)
+  const getPOStatusBgColor = (status) => {
+    switch (status) {
+      case "Draft":
+        return "#FFF4E6"; // Light Orange
+      case "Issued":
+        return "#E6EDFF"; // Light Blue
+      case "Completed":
+        return "#E6F7E6"; // Light Green
+      default:
+        return "#F5F5F5"; // Light Gray
+    }
+  };
+
   const handleQtyChange = (orderId, newQty) => {
     const updatedList = salesOrderList.map((order) => {
       if (order.id === orderId) {
@@ -208,6 +242,8 @@ const SalesOrderList = ({ formValues, handleChange, cardColor, readOnly = false 
     const qty = 1;
     const unitPrice = 100;
     const vatPercentage = 15;
+    const poStatuses = ["Draft", "Issued", "Completed"];
+    const poStatus = poStatuses[Math.floor(Math.random() * poStatuses.length)];
 
     const totalUnitAmount = qty * unitPrice;
     const vatAmount = (totalUnitAmount * vatPercentage) / 100;
@@ -222,6 +258,7 @@ const SalesOrderList = ({ formValues, handleChange, cardColor, readOnly = false 
       completedDate: completedDateTime,
       vatPercentage: vatPercentage,
       qty: qty,
+      poStatus: poStatus,
       unitPrice: unitPrice,
       totalUnitAmount: totalUnitAmount,
       vatAmount: vatAmount,
@@ -253,11 +290,6 @@ const SalesOrderList = ({ formValues, handleChange, cardColor, readOnly = false 
   // Render a single order row
   const renderOrderRow = (order) => (
     <tr key={order.id}>
-      <td>
-        <div className="sales-order-table-cell">
-          {order.lineItemCode || ""}
-        </div>
-      </td>
       <td>
         <div className="sales-order-table-cell">
           {order.lineItemName || ""}
@@ -302,6 +334,24 @@ const SalesOrderList = ({ formValues, handleChange, cardColor, readOnly = false 
               }}
             />
           )}
+        </div>
+      </td>
+      <td>
+        <div className="sales-order-table-cell">
+          <span
+            style={{
+              display: "inline-block",
+              padding: "4px 12px",
+              borderRadius: "12px",
+              fontSize: "13px",
+              fontWeight: "500",
+              color: getPOStatusColor(order.poStatus || "Draft"),
+              backgroundColor: getPOStatusBgColor(order.poStatus || "Draft"),
+              border: `1px solid ${getPOStatusColor(order.poStatus || "Draft")}`,
+            }}
+          >
+            {order.poStatus || "Draft"}
+          </span>
         </div>
       </td>
       <td>
@@ -444,12 +494,12 @@ const SalesOrderList = ({ formValues, handleChange, cardColor, readOnly = false 
         <table className="table table-striped sales-order-table" style={{ "--card-color": "#e2e6ff" }}>
           <thead>
             <tr>
-              <th>LinedItem Code</th>
               <th>LinedItem Name</th>
               <th>Started</th>
               <th>Completed</th>
               <th>VAT (%)</th>
               <th>Qty</th>
+              <th>PO Status</th>
               <th>Unit Price</th>
               <th>Total Unit Amount</th>
               <th>VAT Amount</th>
