@@ -1668,6 +1668,16 @@ function General({ card, formValues, handleChange, ownerInitial, cardUser, onSav
                         disabled={isDisabled}
                       />
 
+                      <FormField label="VESSEL NAME">
+                        <FormSelect
+                          value="MV Ocean Star"
+                          onChange={handleChange("vesselName")}
+                          options={[{ value: "MV Ocean Star", label: "MV Ocean Star" }]}
+                          placeholder="Select vessel name..."
+                          disabled={true}
+                        />
+                      </FormField>
+
                       <FormField label="Last moved">
                         <div className="cf-input date-time-row">
                           <input
@@ -1707,16 +1717,6 @@ function General({ card, formValues, handleChange, ownerInitial, cardUser, onSav
                         />
                       </FormField>
 
-                      <FormField label="VESSEL NAME">
-                        <FormSelect
-                          value="MV Ocean Star"
-                          onChange={handleChange("vesselName")}
-                          options={[{ value: "MV Ocean Star", label: "MV Ocean Star" }]}
-                          placeholder="Select vessel name..."
-                          disabled={true}
-                        />
-                      </FormField>
-
                       <FormField label="SAP Sales Order No">
                         <FormInput
                           type="number"
@@ -1747,7 +1747,7 @@ function General({ card, formValues, handleChange, ownerInitial, cardUser, onSav
                         />
                       </FormField>
 
-                      <FormField label="Issue date">
+                      <FormField label="Issue Date">
                         <FormInput
                           type="date"
                           value={getFieldValue("issueDate")}
@@ -1757,7 +1757,7 @@ function General({ card, formValues, handleChange, ownerInitial, cardUser, onSav
                         />
                       </FormField>
 
-                      <FormField label="Expiry date">
+                      <FormField label="Expiry Date">
                         <FormInput
                           type="date"
                           value={getFieldValue("expiryDate")}
