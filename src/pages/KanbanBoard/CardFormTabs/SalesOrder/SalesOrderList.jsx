@@ -555,7 +555,7 @@ const SalesOrderList = ({ formValues, handleChange, cardColor, readOnly = false,
                             {orders.length} item{orders.length > 1 ? "s" : ""}
                           </span>
                         </div>
-                        <div style={{ fontWeight: "600", color: "rgb(120, 120, 120)" }}>
+                        <div style={{ fontWeight: "600", color: "rgb(120, 120, 120)", paddingRight: "13px" }}>
                           Total: {formatCurrencySAR(groupTotal)}
                         </div>
                       </div>
