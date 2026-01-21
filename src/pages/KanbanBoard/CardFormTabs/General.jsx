@@ -1550,6 +1550,55 @@ function General({ card, formValues, handleChange, ownerInitial, cardUser, onSav
                         disabled={isDisabled}
                       />
 
+                      <FormField label="Billing Entity">
+                        <FormSelect
+                          value={getFieldValue("billingEntity") || "SS7"}
+                          onChange={handleChange("billingEntity")}
+                          options={[{ value: "SS7", label: "SS7" }]}
+                          placeholder="Select billing entity..."
+                          disabled={true}
+                        />
+                      </FormField>
+
+                      <FormField label="SRT|PO|WBS">
+                        <FormInput
+                          type="text"
+                          placeholder="Enter SRT|PO|WBS..."
+                          value={getFieldValue("srtPoWbs")}
+                          onChange={handleChange("srtPoWbs")}
+                          disabled={isDisabled}
+                        />
+                      </FormField>
+
+                      <FormField label="Operations completion Date">
+                        <div className="cf-input date-time-row">
+                          <input
+                            type="date"
+                            value={getFieldValue("operationsCompletionDate")}
+                            onChange={handleChange("operationsCompletionDate")}
+                            placeholder="Select date"
+                            disabled={isDisabled}
+                          />
+                          <input
+                            type="time"
+                            value={getFieldValue("operationsCompletionTime")}
+                            onChange={handleChange("operationsCompletionTime")}
+                            placeholder="Select time"
+                            disabled={isDisabled}
+                          />
+                        </div>
+                      </FormField>
+
+                      <FormField label="VESSEL NAME">
+                        <FormSelect
+                          value={getFieldValue("vesselName") || "MV Ocean Star"}
+                          onChange={handleChange("vesselName")}
+                          options={[{ value: getFieldValue("vesselName") || "MV Ocean Star", label: getFieldValue("vesselName") || "MV Ocean Star" }]}
+                          placeholder="Select vessel name..."
+                          disabled={true}
+                        />
+                      </FormField>
+
                       <FormField label="Last moved">
                         <div className="cf-input date-time-row">
                           <input
@@ -1579,45 +1628,6 @@ function General({ card, formValues, handleChange, ownerInitial, cardUser, onSav
                         />
                       </FormField>
 
-                      <FormField label="SRT|PO|WBS">
-                        <FormInput
-                          type="text"
-                          placeholder="Enter SRT|PO|WBS..."
-                          value={getFieldValue("srtPoWbs")}
-                          onChange={handleChange("srtPoWbs")}
-                          disabled={isDisabled}
-                        />
-                      </FormField>
-
-                      <FormField label="Billing Entity">
-                        <FormSelect
-                          value={getFieldValue("billingEntity") || "SS7"}
-                          onChange={handleChange("billingEntity")}
-                          options={[{ value: "SS7", label: "SS7" }]}
-                          placeholder="Select billing entity..."
-                          disabled={true}
-                        />
-                      </FormField>
-
-                      <FormField label="Operations completion date">
-                        <div className="cf-input date-time-row">
-                          <input
-                            type="date"
-                            value={getFieldValue("operationsCompletionDate")}
-                            onChange={handleChange("operationsCompletionDate")}
-                            placeholder="Select date"
-                            disabled={isDisabled}
-                          />
-                          <input
-                            type="time"
-                            value={getFieldValue("operationsCompletionTime")}
-                            onChange={handleChange("operationsCompletionTime")}
-                            placeholder="Select time"
-                            disabled={isDisabled}
-                          />
-                        </div>
-                      </FormField>
-
                       <FormField label="Invoice amount (Including VAT)">
                         <FormInput
                           type="text"
@@ -1625,16 +1635,6 @@ function General({ card, formValues, handleChange, ownerInitial, cardUser, onSav
                           value={getFieldValue("invoiceAmount")}
                           onChange={handleChange("invoiceAmount")}
                           disabled={isDisabled}
-                        />
-                      </FormField>
-
-                      <FormField label="VESSEL NAME">
-                        <FormSelect
-                          value={getFieldValue("vesselName") || "MV Ocean Star"}
-                          onChange={handleChange("vesselName")}
-                          options={[{ value: getFieldValue("vesselName") || "MV Ocean Star", label: getFieldValue("vesselName") || "MV Ocean Star" }]}
-                          placeholder="Select vessel name..."
-                          disabled={true}
                         />
                       </FormField>
 
@@ -2264,15 +2264,6 @@ function General({ card, formValues, handleChange, ownerInitial, cardUser, onSav
                       </div>
                     ) : isOnStation ? (
                       <>
-                        <div className="remarks-wrapper">
-                          <FormField label="Remarks">
-                            <ReactQuillEditor
-                              value={formValues?.remarks || card?.remarks || ""}
-                              onChange={handleChange("remarks")}
-                              placeholder="Enter remarks..."
-                            />
-                          </FormField>
-                        </div>
                         <div className="appointment-details-list-wrapper">
                           {/* Appointment Email Section */}
                           <h3 className="appointment-details-title">Appointment Email</h3>
