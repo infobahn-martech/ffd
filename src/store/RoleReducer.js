@@ -7,15 +7,16 @@ const useRoleReducer = create((set) => ({
     errorMessage: '',
     successMessage: '',
     roles: null,
+    totalRoleCount: null,
     isBeingUpdated: false,
-    fetchRoles: async () => {
+    fetchRoles: async ({ params }) => {
         try {
             set({ isLoading: true });
-            const { data } = await roleService.getRoles();
+            const { data } = await roleService.getRoles({ params });
             // Transform API response to match component expectations
             // API returns: { role_id, role, description, ... }
             // Component expects: { _id, name, description, ... }
-            const transformedRoles = data.data?.map((role) => ({
+            const transformedRoles = data?.data?.map((role) => ({
                 _id: role.role_id,
                 name: role.role,
                 description: role.description || '',
@@ -26,6 +27,7 @@ const useRoleReducer = create((set) => ({
             })) || [];
             set({
                 roles: transformedRoles,
+                totalRoleCount: data.pagination?.total || 0,
                 isLoading: false,
             });
         } catch (error) {

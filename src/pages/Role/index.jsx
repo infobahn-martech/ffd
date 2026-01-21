@@ -26,35 +26,19 @@ const Role = () => {
     deleteRole,
     isBeingUpdated,
     isLoading,
+    totalRoleCount,
   } = useRoleReducer((state) => state);
 
   useEffect(() => {
-    fetchRoles();
-  }, []);
-
-  // Filter roles based on search term
-  const filteredRoles = roles?.filter((role) => {
-    if (!params.searchTerm) return true;
-    const searchLower = params.searchTerm.toLowerCase();
-    return (
-      role.name?.toLowerCase().includes(searchLower) ||
-      role.description?.toLowerCase().includes(searchLower)
-    );
-  }) || [];
-
-  // Sort filtered roles
-  const sortedRoles = [...filteredRoles].sort((a, b) => {
-    const aValue = a[params.sortBy] || '';
-    const bValue = b[params.sortBy] || '';
-    const comparison = aValue.localeCompare(bValue);
-    return params.sortOrder === 1 ? comparison : -comparison;
-  });
-
-  // Paginate sorted roles
-  const paginatedRoles = sortedRoles.slice(
-    (params.page - 1) * params.limit,
-    params.page * params.limit
-  );
+    // Map component params to API params
+    const apiParams = {
+      page: params.page,
+      limit: params.limit,
+      ...(params.searchTerm && { search: params.searchTerm }),
+      ...(params.sortBy && { sort_by: params.sortBy }),
+    };
+    fetchRoles({ params: apiParams });
+  }, [params]);
 
   // 👉 ONLY TWO COLUMNS (Name + Description)
   const cols = [
@@ -100,6 +84,7 @@ const Role = () => {
               setSearch={(e) =>
                 setParams({ ...params, searchTerm: e, page: 1 })
               }
+              searchValue={params.searchTerm}
               onAddModalClick={() => setShowRoleModal(true)}
               exportTitle="Export"
               exportLoader={false}
@@ -110,15 +95,15 @@ const Role = () => {
             Sl
             pagination={{ currentPage: params.page, limit: params.limit }}
             tableClasses="px-start"
-            count={filteredRoles.length}
+            count={totalRoleCount ?? 0}
             columns={cols}
-            data={paginatedRoles}
+            data={roles ?? []}
             isLoading={isLoading}
             onPageChange={(currentPage) =>
               setParams({ ...params, page: currentPage })
             }
             setLimit={(newLimit) =>
-              setParams({ ...params, limit: newLimit })
+              setParams({ ...params, limit: newLimit, page: 1 })
             }
             onSorting={(sortBy) =>
               setParams({
@@ -138,7 +123,13 @@ const Role = () => {
               updateRole={updateRole}
               onSuccess={() => {
                 setShowRoleModal(false);
-                fetchRoles();
+                const apiParams = {
+                  page: params.page,
+                  limit: params.limit,
+                  ...(params.searchTerm && { search: params.searchTerm }),
+                  ...(params.sortBy && { sort_by: params.sortBy }),
+                };
+                fetchRoles({ params: apiParams });
               }}
               isBeingUpdated={isBeingUpdated}
             />
@@ -152,7 +143,13 @@ const Role = () => {
                   id: selectedRoleForDelete._id,
                   cb: () => {
                     setSelectedRoleForDelete(null);
-                    fetchRoles();
+                    const apiParams = {
+                      page: params.page,
+                      limit: params.limit,
+                      ...(params.searchTerm && { search: params.searchTerm }),
+                      ...(params.sortBy && { sort_by: params.sortBy }),
+                    };
+                    fetchRoles({ params: apiParams });
                   },
                 });
               }}
