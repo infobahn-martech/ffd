@@ -1057,6 +1057,8 @@ function General({ card, formValues, handleChange, ownerInitial, cardUser, onSav
   const [crewChangeFdaDispatchProofDocuments, setCrewChangeFdaDispatchProofDocuments] = useState([]);
   const [hotelInvoiceDocuments, setHotelInvoiceDocuments] = useState([]);
   const [crewChangeCopyOfSalesOrderDocuments, setCrewChangeCopyOfSalesOrderDocuments] = useState([]);
+  const [inwardClearanceDocuments, setInwardClearanceDocuments] = useState([]);
+  const [outwardClearanceDocuments, setOutwardClearanceDocuments] = useState([]);
   // FLEET document states
   const [fleetAppointmentEmailDocuments, setFleetAppointmentEmailDocuments] = useState([]);
   const [fleetCopyOfSalesOrderDocuments, setFleetCopyOfSalesOrderDocuments] = useState([]);
@@ -1362,6 +1364,36 @@ function General({ card, formValues, handleChange, ownerInitial, cardUser, onSav
                         disabled={isDisabled}
                       />
 
+                      <FormField label="Billing Entity">
+                        <FormSelect
+                          value={getFieldValue("billingEntity") || "SS7"}
+                          onChange={handleChange("billingEntity")}
+                          options={[{ value: "SS7", label: "SS7" }]}
+                          placeholder="Select billing entity..."
+                          disabled={true}
+                        />
+                      </FormField>
+
+                      <FormField label="SRT|PO|WBS">
+                        <FormInput
+                          type="text"
+                          placeholder="Enter SRT|PO|WBS..."
+                          value={getFieldValue("srtPoWbs")}
+                          onChange={handleChange("srtPoWbs")}
+                          disabled={isDisabled}
+                        />
+                      </FormField>
+
+                      <FormField label="VESSEL NAME">
+                        <FormSelect
+                          value={getFieldValue("vesselName") || "MV Ocean Star"}
+                          onChange={handleChange("vesselName")}
+                          options={[{ value: getFieldValue("vesselName") || "MV Ocean Star", label: getFieldValue("vesselName") || "MV Ocean Star" }]}
+                          placeholder="Select vessel name..."
+                          disabled={true}
+                        />
+                      </FormField>
+
                       <FormField label="Last moved">
                         <div className="cf-input date-time-row">
                           <input
@@ -1381,24 +1413,61 @@ function General({ card, formValues, handleChange, ownerInitial, cardUser, onSav
                         </div>
                       </FormField>
 
-                      <FormField label="Tax Invoice">
-                        <FormInput
-                          type="text"
-                          placeholder="Enter tax invoice..."
-                          value={getFieldValue("taxInvoice")}
-                          onChange={handleChange("taxInvoice")}
-                          disabled={isDisabled}
-                        />
+                      <FormField label="Inward Clearance Date">
+                        <div className="cf-input date-time-row">
+                          <input
+                            type="date"
+                            value={getFieldValue("inwardClearanceDate")}
+                            onChange={handleChange("inwardClearanceDate")}
+                            placeholder="Select date"
+                            disabled={isDisabled}
+                          />
+                          <input
+                            type="time"
+                            value={getFieldValue("inwardClearanceTime")}
+                            onChange={handleChange("inwardClearanceTime")}
+                            placeholder="Select time"
+                            disabled={isDisabled}
+                          />
+                        </div>
                       </FormField>
 
-                      <FormField label="SRT|PO|WBS">
-                        <FormInput
-                          type="text"
-                          placeholder="Enter SRT|PO|WBS..."
-                          value={getFieldValue("srtPoWbs")}
-                          onChange={handleChange("srtPoWbs")}
-                          disabled={isDisabled}
-                        />
+                      <FormField label="Outward Clearance Date">
+                        <div className="cf-input date-time-row">
+                          <input
+                            type="date"
+                            value={getFieldValue("outwardClearanceDate")}
+                            onChange={handleChange("outwardClearanceDate")}
+                            placeholder="Select date"
+                            disabled={isDisabled}
+                          />
+                          <input
+                            type="time"
+                            value={getFieldValue("outwardClearanceTime")}
+                            onChange={handleChange("outwardClearanceTime")}
+                            placeholder="Select time"
+                            disabled={isDisabled}
+                          />
+                        </div>
+                      </FormField>
+
+                      <FormField label="Operations completion date">
+                        <div className="cf-input date-time-row">
+                          <input
+                            type="date"
+                            value={getFieldValue("operationsCompletionDate")}
+                            onChange={handleChange("operationsCompletionDate")}
+                            placeholder="Select date"
+                            disabled={isDisabled}
+                          />
+                          <input
+                            type="time"
+                            value={getFieldValue("operationsCompletionTime")}
+                            onChange={handleChange("operationsCompletionTime")}
+                            placeholder="Select time"
+                            disabled={isDisabled}
+                          />
+                        </div>
                       </FormField>
 
                       <FormField label="Total Onsigners">
@@ -1431,33 +1500,14 @@ function General({ card, formValues, handleChange, ownerInitial, cardUser, onSav
                         />
                       </FormField>
 
-                      <FormField label="Billing Entity">
-                        <FormSelect
-                          value={getFieldValue("billingEntity") || "SS7"}
-                          onChange={handleChange("billingEntity")}
-                          options={[{ value: "SS7", label: "SS7" }]}
-                          placeholder="Select billing entity..."
-                          disabled={true}
+                      <FormField label="Tax Invoice">
+                        <FormInput
+                          type="text"
+                          placeholder="Enter tax invoice..."
+                          value={getFieldValue("taxInvoice")}
+                          onChange={handleChange("taxInvoice")}
+                          disabled={isDisabled}
                         />
-                      </FormField>
-
-                      <FormField label="Operations completion date">
-                        <div className="cf-input date-time-row">
-                          <input
-                            type="date"
-                            value={getFieldValue("operationsCompletionDate")}
-                            onChange={handleChange("operationsCompletionDate")}
-                            placeholder="Select date"
-                            disabled={isDisabled}
-                          />
-                          <input
-                            type="time"
-                            value={getFieldValue("operationsCompletionTime")}
-                            onChange={handleChange("operationsCompletionTime")}
-                            placeholder="Select time"
-                            disabled={isDisabled}
-                          />
-                        </div>
                       </FormField>
 
                       <FormField label="Invoice amount (Including VAT)">
@@ -1467,16 +1517,6 @@ function General({ card, formValues, handleChange, ownerInitial, cardUser, onSav
                           value={getFieldValue("invoiceAmount")}
                           onChange={handleChange("invoiceAmount")}
                           disabled={isDisabled}
-                        />
-                      </FormField>
-
-                      <FormField label="VESSEL NAME">
-                        <FormSelect
-                          value={getFieldValue("vesselName") || "MV Ocean Star"}
-                          onChange={handleChange("vesselName")}
-                          options={[{ value: getFieldValue("vesselName") || "MV Ocean Star", label: getFieldValue("vesselName") || "MV Ocean Star" }]}
-                          placeholder="Select vessel name..."
-                          disabled={true}
                         />
                       </FormField>
 
@@ -2076,6 +2116,32 @@ function General({ card, formValues, handleChange, ownerInitial, cardUser, onSav
                             attachments={crewSummarySheetDocuments}
                             onAdd={(file) => setCrewSummarySheetDocuments([...crewSummarySheetDocuments, file])}
                             onRemove={(index) => setCrewSummarySheetDocuments(crewSummarySheetDocuments.filter((_, i) => i !== index))}
+                            cardColor={accentColor}
+                            disabled={isDisabled}
+                            type={isCrewChange ? "CREW CHANGE" : "MATERIAL DELIVERY"}
+                          />
+                        </FormField>
+
+                        {/* Inward Clearance Section */}
+                        <h3 className="appointment-details-title">Inward Clearance</h3>
+                        <FormField>
+                          <DocumentUpload
+                            attachments={inwardClearanceDocuments}
+                            onAdd={(file) => setInwardClearanceDocuments([...inwardClearanceDocuments, file])}
+                            onRemove={(index) => setInwardClearanceDocuments(inwardClearanceDocuments.filter((_, i) => i !== index))}
+                            cardColor={accentColor}
+                            disabled={isDisabled}
+                            type={isCrewChange ? "CREW CHANGE" : "MATERIAL DELIVERY"}
+                          />
+                        </FormField>
+
+                        {/* Outward Clearance Section */}
+                        <h3 className="appointment-details-title">Outward Clearance</h3>
+                        <FormField>
+                          <DocumentUpload
+                            attachments={outwardClearanceDocuments}
+                            onAdd={(file) => setOutwardClearanceDocuments([...outwardClearanceDocuments, file])}
+                            onRemove={(index) => setOutwardClearanceDocuments(outwardClearanceDocuments.filter((_, i) => i !== index))}
                             cardColor={accentColor}
                             disabled={isDisabled}
                             type={isCrewChange ? "CREW CHANGE" : "MATERIAL DELIVERY"}
