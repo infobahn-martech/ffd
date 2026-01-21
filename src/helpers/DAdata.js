@@ -97,21 +97,11 @@ const generateCard = (workflowId, colId, cardId) => {
   const id = `${workflowId}-card-${cardId}`;
 
   const customerNames = [
-    "ABC Shipping Co.",
-    "Global Logistics Ltd.",
-    "Maritime Transport Inc.",
-    "Ocean Freight Solutions",
-    "International Cargo Group",
-    "ABCD",
-    "BNMJ",
-    "XYZ Logistics",
-    "Pacific Shipping",
-    "Atlantic Maritime",
-    "Continental Freight",
-    "Worldwide Cargo",
-    "Express Shipping Co.",
-    "Premium Logistics",
-    "United Transport",
+    "Gulf Marine",
+    "Saudi Marcap",
+    "Snamprogetti",
+    "Saipem",
+    "Lamprell"
   ];
   const vesselNames = [
     "MV Atlantic Star",
