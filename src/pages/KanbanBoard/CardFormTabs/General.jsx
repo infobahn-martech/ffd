@@ -1315,25 +1315,6 @@ function General({ card, formValues, handleChange, ownerInitial, cardUser, onSav
                         disabled={isDisabled}
                       />
 
-                      <FormField label="Last moved">
-                        <div className="cf-input date-time-row">
-                          <input
-                            type="date"
-                            value={getFieldValue("lastMovedDate")}
-                            onChange={handleChange("lastMovedDate")}
-                            placeholder="Select date"
-                            disabled={isDisabled}
-                          />
-                          <input
-                            type="time"
-                            value={getFieldValue("lastMovedTime")}
-                            onChange={handleChange("lastMovedTime")}
-                            placeholder="Select time"
-                            disabled={isDisabled}
-                          />
-                        </div>
-                      </FormField>
-
                       <FormField label="Billing Entity">
                         <FormSelect
                           value={getFieldValue("billingEntity") || "SS7"}
@@ -1352,6 +1333,25 @@ function General({ card, formValues, handleChange, ownerInitial, cardUser, onSav
                           placeholder="Select vessel name..."
                           disabled={true}
                         />
+                      </FormField>
+
+                      <FormField label="Last moved">
+                        <div className="cf-input date-time-row">
+                          <input
+                            type="date"
+                            value={getFieldValue("lastMovedDate")}
+                            onChange={handleChange("lastMovedDate")}
+                            placeholder="Select date"
+                            disabled={isDisabled}
+                          />
+                          <input
+                            type="time"
+                            value={getFieldValue("lastMovedTime")}
+                            onChange={handleChange("lastMovedTime")}
+                            placeholder="Select time"
+                            disabled={isDisabled}
+                          />
+                        </div>
                       </FormField>
                     </>
                   ) : (isCrewChange || isMaterialDelivery) ? (
