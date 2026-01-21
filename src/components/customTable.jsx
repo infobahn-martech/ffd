@@ -109,7 +109,12 @@ function CustomTable({
                   className={`page-item${currentPage === 1 ? ' disabled' : ''}`}
                   onClick={currentPage > 1 ? () => handlePrev() : undefined}
                 >
-                  <a className="page-link" href="# " aria-label="Previous">
+                  <a
+                    className="page-link"
+                    href="#"
+                    aria-label="Previous"
+                    onClick={(e) => e.preventDefault()}
+                  >
                     <img src={prevIcon} alt="" />
                   </a>
                 </li>
@@ -124,8 +129,9 @@ function CustomTable({
                     <Fragment key={`pg${num}`}>
                       {gap && (
                         <a
-                          href="# "
+                          href="#"
                           className="page-link cursor-pointer link-dots"
+                          onClick={(e) => e.preventDefault()}
                         >
                           ...
                         </a>
@@ -136,7 +142,11 @@ function CustomTable({
                           num === currentPage ? undefined : () => handlePage(num)
                         }
                       >
-                        <a href="# " className="page-link ">
+                        <a
+                          href="#"
+                          className="page-link"
+                          onClick={(e) => e.preventDefault()}
+                        >
                           {num}
                         </a>
                       </li>
@@ -151,7 +161,12 @@ function CustomTable({
                     currentPage < totalPages ? () => handleNext() : undefined
                   }
                 >
-                  <a href="# " className="page-link" aria-label="Next">
+                  <a
+                    href="#"
+                    className="page-link"
+                    aria-label="Next"
+                    onClick={(e) => e.preventDefault()}
+                  >
                     <img src={nextIcon} alt="" />
                   </a>
                 </li>
