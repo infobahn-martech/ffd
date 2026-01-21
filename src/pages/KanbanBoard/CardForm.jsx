@@ -491,13 +491,14 @@ CardFormFooter.propTypes = {
 };
 
 // Tab Content Renderer
-const renderTabContent = (activeTab, card, formValues, handleChange, ownerInitial, isAddMode = false, isSimplifiedMode = false) => {
+const renderTabContent = (activeTab, card, formValues, handleChange, ownerInitial, isAddMode = false, isSimplifiedMode = false, isDAModule = false) => {
   const commonProps = {
     card,
     formValues,
     handleChange,
     isAddMode,
     isSimplifiedMode,
+    isDAModule,
   };
 
   if (isSimplifiedMode) {
@@ -550,6 +551,12 @@ function CardForm({ show, close, card, moveCardToColumn, columns, columnOrder, c
 
   // Check if we're on a kanban-board/{id} route
   const isKanbanBoardWithId = /^\/kanban-board\/\d+$/.test(location.pathname);
+
+  // Check if we're on DA module route
+  const isDAModule =
+    location.pathname.startsWith('/kanban-board/') &&
+    location.pathname !== '/kanban-board/';
+
 
   // Determine which tabs to use
   const TOP_TABS = isKanbanBoardWithId ? SIMPLIFIED_TOP_TABS : ALL_TOP_TABS;
@@ -728,7 +735,7 @@ function CardForm({ show, close, card, moveCardToColumn, columns, columnOrder, c
             enabledTabs={ENABLED_TABS}
           />
         )}
-        {renderTabContent(activeTopTab, card, formValues, handleChange, ownerInitial, isAddMode, isKanbanBoardWithId)}
+        {renderTabContent(activeTopTab, card, formValues, handleChange, ownerInitial, isAddMode, isKanbanBoardWithId, isDAModule)}
         {!isAddMode && (
           <CardFormFooter
             accentColor={accentColor}

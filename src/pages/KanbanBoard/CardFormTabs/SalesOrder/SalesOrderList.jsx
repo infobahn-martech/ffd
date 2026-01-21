@@ -50,7 +50,7 @@ const generateDummySalesOrders = () => {
   return dummyOrders;
 };
 
-const SalesOrderList = ({ formValues, handleChange, cardColor, readOnly = false }) => {
+const SalesOrderList = ({ formValues, handleChange, cardColor, readOnly = false, showPOStatus = false }) => {
   const salesOrderList = formValues.salesOrderList || [];
   const billingEntity = formValues.billingEntity || "ABC Shipping Co.";
   const email = formValues.email || "billing@abccompany.com";
@@ -336,24 +336,26 @@ const SalesOrderList = ({ formValues, handleChange, cardColor, readOnly = false 
           )}
         </div>
       </td>
-      <td>
-        <div className="sales-order-table-cell">
-          <span
-            style={{
-              display: "inline-block",
-              padding: "4px 12px",
-              borderRadius: "12px",
-              fontSize: "13px",
-              fontWeight: "500",
-              color: getPOStatusColor(order.poStatus || "Draft"),
-              backgroundColor: getPOStatusBgColor(order.poStatus || "Draft"),
-              border: `1px solid ${getPOStatusColor(order.poStatus || "Draft")}`,
-            }}
-          >
-            {order.poStatus || "Draft"}
-          </span>
-        </div>
-      </td>
+      {showPOStatus && (
+        <td>
+          <div className="sales-order-table-cell">
+            <span
+              style={{
+                display: "inline-block",
+                padding: "4px 12px",
+                borderRadius: "12px",
+                fontSize: "13px",
+                fontWeight: "500",
+                color: getPOStatusColor(order.poStatus || "Draft"),
+                backgroundColor: getPOStatusBgColor(order.poStatus || "Draft"),
+                border: `1px solid ${getPOStatusColor(order.poStatus || "Draft")}`,
+              }}
+            >
+              {order.poStatus || "Draft"}
+            </span>
+          </div>
+        </td>
+      )}
       <td>
         <div className="sales-order-table-cell">
           {formatCurrencySAR(order.unitPrice || 0)}
@@ -499,7 +501,7 @@ const SalesOrderList = ({ formValues, handleChange, cardColor, readOnly = false 
               <th>Completed</th>
               <th>VAT (%)</th>
               <th>Qty</th>
-              <th>PO Status</th>
+              {showPOStatus && <th>PO Status</th>}
               <th>Unit Price</th>
               <th>Total Unit Amount</th>
               <th>VAT Amount</th>
@@ -525,7 +527,7 @@ const SalesOrderList = ({ formValues, handleChange, cardColor, readOnly = false 
                     onClick={() => toggleCallFileAccordion(callFile)}
                     style={{ cursor: "pointer", backgroundColor: isExpanded ? "rgba(42, 0, 255, 0.05)" : "#ffffff" }}
                   >
-                    <td colSpan="10" style={{ padding: "12px 16px" }}>
+                    <td colSpan={showPOStatus ? 10 : 9} style={{ padding: "12px 16px" }}>
                       <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between" }}>
                         <div style={{ display: "flex", alignItems: "center", gap: "12px" }}>
                           <span
@@ -578,6 +580,7 @@ SalesOrderList.propTypes = {
   handleChange: PropTypes.func.isRequired,
   cardColor: PropTypes.string,
   readOnly: PropTypes.bool,
+  showPOStatus: PropTypes.bool,
 };
 
 export default SalesOrderList;
