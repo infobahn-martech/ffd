@@ -638,7 +638,7 @@ ItemDetailModal.propTypes = {
 };
 
 // Checklist Item Component - Table Row Format
-const ChecklistItem = ({ id, label, requirement, itemData, onChange, cardColor = "#2A00FF", isViewOnly = false }) => {
+const ChecklistItem = ({ id, label, requirement, itemData, onChange, cardColor = "#2A00FF", isViewOnly = false, isDAModule = false }) => {
   const [remarks, setRemarks] = useState(itemData?.remarks || "");
   const [uploadedFile, setUploadedFile] = useState(itemData?.uploadedFile || null);
   const [isDragging, setIsDragging] = useState(false);
