@@ -38,7 +38,7 @@ ReportTabs.propTypes = {
   onTabChange: PropTypes.func.isRequired,
 };
 
-function Reports({ card, formValues, handleChange }) {
+function Reports({ card, formValues, handleChange, isDAModule = false }) {
   const [activeReportTab, setActiveReportTab] = useState(REPORT_TABS.SEND_REPORT);
   const cardColor = "#00368c";
 
@@ -62,21 +62,25 @@ function Reports({ card, formValues, handleChange }) {
   return (
     <div className="operation-wrapper" style={{ "--card-color": cardColor }}>
       <div className="operation-content-container">
-        <ReportTabs
-          activeTab={activeReportTab}
-          onTabChange={handleTabChange}
-        />
+        {!isDAModule && (
+          <ReportTabs
+            activeTab={activeReportTab}
+            onTabChange={handleTabChange}
+          />
+        )}
         <div className="operation-right">
-          {activeReportTab === REPORT_TABS.SEND_REPORT && (
+          {(!isDAModule && activeReportTab === REPORT_TABS.SEND_REPORT) || isDAModule ? (
             <ReportsList
               formValues={formValues}
               handleChange={handleChange}
+              isDAModule={isDAModule}
             />
-          )}
-          {activeReportTab === REPORT_TABS.VIEW_REPORT && (
-            <ViewReport
-              sentReports={displaySentReports}
-            />
+          ) : (
+            activeReportTab === REPORT_TABS.VIEW_REPORT && (
+              <ViewReport
+                sentReports={displaySentReports}
+              />
+            )
           )}
         </div>
       </div>
@@ -88,6 +92,7 @@ Reports.propTypes = {
   card: PropTypes.object,
   formValues: PropTypes.object,
   handleChange: PropTypes.func,
+  isDAModule: PropTypes.bool,
 };
 
 export default Reports;

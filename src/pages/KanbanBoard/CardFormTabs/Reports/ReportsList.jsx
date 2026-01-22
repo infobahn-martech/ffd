@@ -34,7 +34,7 @@ const generateDummyReports = () => {
   return dummyReports;
 };
 
-const ReportsList = ({ formValues, handleChange }) => {
+const ReportsList = ({ formValues, handleChange, isDAModule = false }) => {
   const cardColor = "#00368c";
   const reportsList = formValues.reportsList || [];
 
@@ -105,6 +105,7 @@ const ReportsList = ({ formValues, handleChange }) => {
         onViewReport={handleViewReport}
         onSendReport={handleSaveReport}
         onDownloadReport={handleDownloadReport}
+        isDAModule={isDAModule}
       />
     </div>
   );
@@ -113,6 +114,7 @@ const ReportsList = ({ formValues, handleChange }) => {
 ReportsList.propTypes = {
   formValues: PropTypes.object.isRequired,
   handleChange: PropTypes.func.isRequired,
+  isDAModule: PropTypes.bool,
 };
 
 export default ReportsList;

@@ -3,7 +3,7 @@ import PropTypes from "prop-types";
 import CustomModal from "../../../../components/CustomModal";
 import { Modal } from "react-bootstrap";
 
-const ReportsListView = ({ reportsList, cardColor, onViewReport, onSendReport, onDownloadReport }) => {
+const ReportsListView = ({ reportsList, cardColor, onViewReport, onSendReport, onDownloadReport, isDAModule = false }) => {
   const [previewReport, setPreviewReport] = useState(null);
 
   const handleViewClick = (e, report) => {
@@ -90,44 +90,46 @@ const ReportsListView = ({ reportsList, cardColor, onViewReport, onSendReport, o
                   </div>
                 </div>
                 <div className="report-actions">
-                  <button
-                    className="report-action-btn generate"
-                    onClick={(e) => handleViewClick(e, report)}
-                    type="button"
-                    title="Generate"
-                    style={{ "--card-color": cardColor }}
-                  >
-                    <svg width="18" height="18" viewBox="0 0 18 18" fill="none" xmlns="http://www.w3.org/2000/svg">
-                      <path
-                        d="M12 4.5L14.25 2.25L12 0"
-                        stroke="currentColor"
-                        strokeWidth="1.5"
-                        strokeLinecap="round"
-                        strokeLinejoin="round"
-                      />
-                      <path
-                        d="M0 9C0 12.7279 3.27208 16 7 16H14.25"
-                        stroke="currentColor"
-                        strokeWidth="1.5"
-                        strokeLinecap="round"
-                        strokeLinejoin="round"
-                      />
-                      <path
-                        d="M6 13.5L3.75 15.75L6 18"
-                        stroke="currentColor"
-                        strokeWidth="1.5"
-                        strokeLinecap="round"
-                        strokeLinejoin="round"
-                      />
-                      <path
-                        d="M14.25 2H7C3.27208 2 0 5.27208 0 9"
-                        stroke="currentColor"
-                        strokeWidth="1.5"
-                        strokeLinecap="round"
-                        strokeLinejoin="round"
-                      />
-                    </svg>
-                  </button>
+                  {!isDAModule && (
+                    <button
+                      className="report-action-btn generate"
+                      onClick={(e) => handleViewClick(e, report)}
+                      type="button"
+                      title="Generate"
+                      style={{ "--card-color": cardColor }}
+                    >
+                      <svg width="18" height="18" viewBox="0 0 18 18" fill="none" xmlns="http://www.w3.org/2000/svg">
+                        <path
+                          d="M12 4.5L14.25 2.25L12 0"
+                          stroke="currentColor"
+                          strokeWidth="1.5"
+                          strokeLinecap="round"
+                          strokeLinejoin="round"
+                        />
+                        <path
+                          d="M0 9C0 12.7279 3.27208 16 7 16H14.25"
+                          stroke="currentColor"
+                          strokeWidth="1.5"
+                          strokeLinecap="round"
+                          strokeLinejoin="round"
+                        />
+                        <path
+                          d="M6 13.5L3.75 15.75L6 18"
+                          stroke="currentColor"
+                          strokeWidth="1.5"
+                          strokeLinecap="round"
+                          strokeLinejoin="round"
+                        />
+                        <path
+                          d="M14.25 2H7C3.27208 2 0 5.27208 0 9"
+                          stroke="currentColor"
+                          strokeWidth="1.5"
+                          strokeLinecap="round"
+                          strokeLinejoin="round"
+                        />
+                      </svg>
+                    </button>
+                  )}
                   <button
                     className="report-action-btn download"
                     onClick={(e) => handleDownloadClick(e, report)}
@@ -145,23 +147,25 @@ const ReportsListView = ({ reportsList, cardColor, onViewReport, onSendReport, o
                       />
                     </svg>
                   </button>
-                  <button
-                    className="report-action-btn send"
-                    onClick={(e) => handleSendClick(e, report)}
-                    type="button"
-                    title="Send"
-                    style={{ "--card-color": cardColor }}
-                  >
-                    <svg width="18" height="18" viewBox="0 0 18 18" fill="none" xmlns="http://www.w3.org/2000/svg">
-                      <path
-                        d="M15.75 2.25L8.25 9.75M15.75 2.25L12 15.75L8.25 9.75M15.75 2.25L2.25 6L8.25 9.75"
-                        stroke="currentColor"
-                        strokeWidth="1.5"
-                        strokeLinecap="round"
-                        strokeLinejoin="round"
-                      />
-                    </svg>
-                  </button>
+                  {!isDAModule && (
+                    <button
+                      className="report-action-btn send"
+                      onClick={(e) => handleSendClick(e, report)}
+                      type="button"
+                      title="Send"
+                      style={{ "--card-color": cardColor }}
+                    >
+                      <svg width="18" height="18" viewBox="0 0 18 18" fill="none" xmlns="http://www.w3.org/2000/svg">
+                        <path
+                          d="M15.75 2.25L8.25 9.75M15.75 2.25L12 15.75L8.25 9.75M15.75 2.25L2.25 6L8.25 9.75"
+                          stroke="currentColor"
+                          strokeWidth="1.5"
+                          strokeLinecap="round"
+                          strokeLinejoin="round"
+                        />
+                      </svg>
+                    </button>
+                  )}
                 </div>
               </div>
             ))
@@ -210,13 +214,15 @@ const ReportsListView = ({ reportsList, cardColor, onViewReport, onSendReport, o
             >
               Close
             </button>
-            <button
-              type="button"
-              className="reports-preview-modal-btn primary"
-              onClick={handleSendFromModal}
-            >
-              Send
-            </button>
+            {!isDAModule && (
+              <button
+                type="button"
+                className="reports-preview-modal-btn primary"
+                onClick={handleSendFromModal}
+              >
+                Send
+              </button>
+            )}
           </Modal.Footer>
         }
         createModal={true}
@@ -232,6 +238,7 @@ ReportsListView.propTypes = {
   onViewReport: PropTypes.func,
   onSendReport: PropTypes.func,
   onDownloadReport: PropTypes.func,
+  isDAModule: PropTypes.bool,
 };
 
 export default ReportsListView;

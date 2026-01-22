@@ -44,9 +44,11 @@ const DA_TOP_TABS = [
   "Husbandry",
   "Sales Order",
   "Invoice",
+  "Reports",
+  "KPI",
 ];
 
-const DA_ENABLED_TABS = ["General", "Operation", "Husbandry", "Sales Order", "Invoice"];
+const DA_ENABLED_TABS = ["General", "Operation", "Husbandry", "Sales Order", "Invoice", "Reports", "KPI"];
 
 const DEFAULT_ACCENT_COLOR = "#2A00FF";
 const TOTAL_STEPS = 6;
@@ -513,7 +515,7 @@ const renderTabContent = (activeTab, card, formValues, handleChange, ownerInitia
   };
 
   if (isDAModule) {
-    // DA mode - General, Operation, Husbandry, Sales Order, Invoice
+    // DA mode - General, Operation, Husbandry, Sales Order, Invoice, Reports, KPI
     switch (activeTab) {
       case "General":
         return <General {...commonProps} ownerInitial={ownerInitial} cardUser={card?.user} />;
@@ -525,6 +527,10 @@ const renderTabContent = (activeTab, card, formValues, handleChange, ownerInitia
         return <SalesOrder {...commonProps} />;
       case "Invoice":
         return <Invoice {...commonProps} />;
+      case "Reports":
+        return <Reports {...commonProps} />;
+      case "KPI":
+        return <KPI {...commonProps} />;
       default:
         return <General {...commonProps} ownerInitial={ownerInitial} cardUser={card?.user} />;
     }
