@@ -605,9 +605,6 @@ function Husbandry({ card, formValues, handleChange, isDAModule = false }) {
                             )}
                           </div>
                         </div>
-                        <div className={`husbandry-booked-service-status ${getStatusBadgeClass(service.status)}`}>
-                          {service.status || "Pending"}
-                        </div>
                       </div>
                     );
                   })}
