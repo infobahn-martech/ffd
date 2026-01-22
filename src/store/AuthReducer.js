@@ -298,6 +298,33 @@ const useAuthReducer = create((set) => ({
       );
     }
   },
+  resetPassword: async ({ token, user_id, new_password }) => {
+    try {
+      set({ isLoginLoading: true, errorMessage: "" });
+      const { data } = await authService.resetPassword({ token, user_id, new_password });
+      set({ isLoginLoading: false, errorMessage: "", successMessage: data?.message || "Password reset successfully" });
+      const { success } = useAlertReducer.getState();
+      success(data?.message || "Password reset successfully");
+      return { success: true, message: data?.message || "Password reset successfully" };
+    } catch (err) {
+      const { error } = useAlertReducer.getState();
+      set({
+        errorMessage:
+          err?.response?.data?.message ||
+          err?.response?.data?.error ||
+          err?.message ||
+          "Failed to reset password. Please try again.",
+        isLoginLoading: false,
+      });
+      error(
+        err?.response?.data?.message ||
+        err?.response?.data?.error ||
+        err?.message ||
+        "Failed to reset password. Please try again."
+      );
+      return { success: false, error: err?.response?.data?.message || err?.message || "Failed to reset password. Please try again." };
+    }
+  },
 }));
 
 export default useAuthReducer;

@@ -24,5 +24,6 @@ export default {
   getUserDetail,
   editUserProfile,
   forgotPassword,
+  resetPassword,
   refreshToken,
 };

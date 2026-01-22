@@ -10,6 +10,7 @@ import Layout from "../structure/Layout";
 import Dashboard from "../pages/Dashboard";
 import Login from "../pages/Authentication";
 import ForgetPassword from "../pages/ForgetPassword";
+import ResetPassword from "../pages/ResetPassword";
 import KanbanBoard from "../pages/KanbanBoard";
 import BoardRouter from "../pages/KanbanBoard/BoardRouter";
 import KanbanAnalytics from "../pages/KanbanBoard/Analytics";
@@ -131,6 +132,7 @@ const router = createHashRouter([
             children: [
               { path: "/", element: <Login /> },
               { path: "/forget-password", element: <ForgetPassword /> },
+              { path: "/reset-password", element: <ResetPassword /> },
             ],
           },
 
