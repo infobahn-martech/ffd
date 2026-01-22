@@ -1929,8 +1929,8 @@ DepartureContent.propTypes = {
   isViewOnly: PropTypes.bool,
 };
 
-const CheckListContent = ({ card, formValues, handleChange, onSendReport, cardColor }) => {
-  return <Checklist card={card} formValues={formValues} handleChange={handleChange} onSendReport={onSendReport} cardColor={cardColor} />;
+const CheckListContent = ({ card, formValues, handleChange, onSendReport, cardColor, isViewOnly = false }) => {
+  return <Checklist card={card} formValues={formValues} handleChange={handleChange} onSendReport={onSendReport} cardColor={cardColor} isViewOnly={isViewOnly} />;
 };
 
 CheckListContent.propTypes = {
@@ -1939,6 +1939,7 @@ CheckListContent.propTypes = {
   handleChange: PropTypes.func.isRequired,
   onSendReport: PropTypes.func,
   cardColor: PropTypes.string,
+  isViewOnly: PropTypes.bool,
 };
 
 // Send Report Preview Modal Component

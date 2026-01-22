@@ -177,7 +177,7 @@ FormInput.propTypes = {
   className: PropTypes.string,
 };
 
-const FormTextarea = ({ value, onChange, placeholder, className = "", rows = 3 }) => {
+const FormTextarea = ({ value, onChange, placeholder, className = "", rows = 3, disabled = false }) => {
   return (
     <div className={`cf-textarea ${className}`}>
       <textarea
@@ -185,6 +185,7 @@ const FormTextarea = ({ value, onChange, placeholder, className = "", rows = 3 }
         onChange={onChange}
         placeholder={placeholder}
         rows={rows}
+        disabled={disabled}
       />
     </div>
   );
@@ -196,10 +197,11 @@ FormTextarea.propTypes = {
   placeholder: PropTypes.string,
   className: PropTypes.string,
   rows: PropTypes.number,
+  disabled: PropTypes.bool,
 };
 
 // Multi-select component for Checklist Type with tags/chips
-const MultiSelect = ({ value = [], onChange, options = [], placeholder, className = "", cardColor = "#2A00FF" }) => {
+const MultiSelect = ({ value = [], onChange, options = [], placeholder, className = "", cardColor = "#2A00FF", disabled = false }) => {
   const [isOpen, setIsOpen] = useState(false);
   const dropdownRef = useRef(null);
   const inputRef = useRef(null);
@@ -239,10 +241,11 @@ const MultiSelect = ({ value = [], onChange, options = [], placeholder, classNam
   };
 
   return (
-    <div className={`cf-multiselect ${className}`} ref={dropdownRef} style={{ "--card-color": cardColor }}>
+    <div className={`cf-multiselect ${className} ${disabled ? "disabled" : ""}`} ref={dropdownRef} style={{ "--card-color": cardColor }}>
       <div
         className="cf-multiselect-input"
-        onClick={() => setIsOpen(!isOpen)}
+        onClick={() => !disabled && setIsOpen(!isOpen)}
+        style={{ pointerEvents: disabled ? "none" : "auto", opacity: disabled ? 0.6 : 1 }}
       >
         <div className="cf-multiselect-tags">
           {value.length === 0 ? (
@@ -251,14 +254,16 @@ const MultiSelect = ({ value = [], onChange, options = [], placeholder, classNam
             value.map((val) => (
               <span key={val} className="cf-multiselect-tag" style={{ "--card-color": cardColor }}>
                 <span className="cf-multiselect-tag-text">{getOptionLabel(val)}</span>
-                <button
-                  type="button"
-                  className="cf-multiselect-tag-remove"
-                  onClick={(e) => handleRemoveTag(e, val)}
-                  aria-label={`Remove ${getOptionLabel(val)}`}
-                >
-                  ×
-                </button>
+                {!disabled && (
+                  <button
+                    type="button"
+                    className="cf-multiselect-tag-remove"
+                    onClick={(e) => handleRemoveTag(e, val)}
+                    aria-label={`Remove ${getOptionLabel(val)}`}
+                  >
+                    ×
+                  </button>
+                )}
               </span>
             ))
           )}
@@ -580,7 +585,7 @@ ItemDetailModal.propTypes = {
 };
 
 // Checklist Item Component - Table Row Format
-const ChecklistItem = ({ id, label, requirement, itemData, onChange, cardColor = "#2A00FF" }) => {
+const ChecklistItem = ({ id, label, requirement, itemData, onChange, cardColor = "#2A00FF", isViewOnly = false }) => {
   const [remarks, setRemarks] = useState(itemData?.remarks || "");
   const [uploadedFile, setUploadedFile] = useState(itemData?.uploadedFile || null);
   const [isDragging, setIsDragging] = useState(false);
@@ -666,35 +671,88 @@ const ChecklistItem = ({ id, label, requirement, itemData, onChange, cardColor =
         <span className="checklist-item-requirement">{requirement || ""}</span>
       </td>
       <td className="checklist-table-upload">
-        <div
-          className={`checklist-table-upload-zone ${isDragging ? "dragging" : ""} ${uploadedFile ? "has-file" : ""}`}
-          onDragOver={handleDragOver}
-          onDragLeave={handleDragLeave}
-          onDrop={handleDrop}
-          onClick={!uploadedFile ? handleBrowseClick : undefined}
-        >
-          <input
-            ref={fileInputRef}
-            type="file"
-            id={`file-upload-${id}`}
-            onChange={handleFileChange}
-            className="checklist-file-input"
-            accept=".pdf,.doc,.docx,.jpg,.jpeg,.png"
-          />
-          {uploadedFile ? (
-            <div className="checklist-table-file-preview">
-              <FilePreview file={uploadedFile} onRemove={handleRemoveFile} />
-            </div>
-          ) : (
-            <div className="checklist-table-upload-placeholder">
-              <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-                <path d="M12 5V19M12 5L7 10M12 5L17 10" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
-                <path d="M3 15V19C3 20.1046 3.89543 21 5 21H19C20.1046 21 21 20.1046 21 19V15" stroke="currentColor" strokeWidth="2" strokeLinecap="round" />
+        {isViewOnly && uploadedFile ? (
+          // View-only mode: Show file with view icon
+          <div style={{
+            display: "flex",
+            alignItems: "center",
+            gap: "8px",
+            padding: "8px",
+            backgroundColor: "#f8f9fa",
+            borderRadius: "6px",
+            border: "1px solid #e2e2ea"
+          }}>
+            <div style={{ color: "#666", display: "flex", alignItems: "center" }}>
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                <path d="M14 2H6C5.46957 2 4.96086 2.21071 4.58579 2.58579C4.21071 2.96086 4 3.46957 4 4V20C4 20.5304 4.21071 21.0391 4.58579 21.4142C4.96086 21.7893 5.46957 22 6 22H18C18.5304 22 19.0391 21.7893 19.4142 21.4142C19.7893 21.0391 20 20.5304 20 20V8L14 2Z" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" fill="none" />
+                <path d="M14 2V8H20" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" fill="none" />
               </svg>
-              <span>Drop file or click to browse</span>
             </div>
-          )}
-        </div>
+            <div style={{ flex: 1, fontSize: "13px", color: "#1a1a1a" }}>
+              {uploadedFile?.name || uploadedFile?.fileName || "Document.pdf"}
+            </div>
+            <button
+              type="button"
+              onClick={() => {
+                console.log("View document:", uploadedFile?.name || uploadedFile?.fileName);
+              }}
+              style={{
+                padding: "6px",
+                border: "none",
+                backgroundColor: "transparent",
+                cursor: "pointer",
+                display: "flex",
+                alignItems: "center",
+                justifyContent: "center",
+                color: "#3e5cb6",
+                borderRadius: "4px",
+                transition: "background-color 0.2s"
+              }}
+              onMouseEnter={(e) => {
+                e.currentTarget.style.backgroundColor = "#f0f0f0";
+              }}
+              onMouseLeave={(e) => {
+                e.currentTarget.style.backgroundColor = "transparent";
+              }}
+              title="View document"
+            >
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                <path d="M1 12C1 12 5 4 12 4C19 4 23 12 23 12C23 12 19 20 12 20C5 20 1 12 1 12Z" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" fill="none"/>
+                <circle cx="12" cy="12" r="3" stroke="currentColor" strokeWidth="2" fill="none"/>
+              </svg>
+            </button>
+          </div>
+        ) : !isViewOnly ? (
+          <div
+            className={`checklist-table-upload-zone ${isDragging ? "dragging" : ""} ${uploadedFile ? "has-file" : ""}`}
+            onDragOver={handleDragOver}
+            onDragLeave={handleDragLeave}
+            onDrop={handleDrop}
+            onClick={!uploadedFile ? handleBrowseClick : undefined}
+          >
+            <input
+              ref={fileInputRef}
+              type="file"
+              id={`file-upload-${id}`}
+              onChange={handleFileChange}
+              className="checklist-file-input"
+              accept=".pdf,.doc,.docx,.jpg,.jpeg,.png"
+            />
+            {uploadedFile ? (
+              <div className="checklist-table-file-preview">
+                <FilePreview file={uploadedFile} onRemove={handleRemoveFile} />
+              </div>
+            ) : (
+              <div className="checklist-table-upload-placeholder">
+                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                  <path d="M12 5V19M12 5L7 10M12 5L17 10" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+                  <path d="M3 15V19C3 20.1046 3.89543 21 5 21H19C20.1046 21 21 20.1046 21 19V15" stroke="currentColor" strokeWidth="2" strokeLinecap="round" />
+                </svg>
+                <span>Drop file or click to browse</span>
+              </div>
+            )}
+          </div>
+        ) : null}
       </td>
       <td className="checklist-table-remarks">
         <FormTextarea
@@ -703,6 +761,7 @@ const ChecklistItem = ({ id, label, requirement, itemData, onChange, cardColor =
           placeholder="Enter remarks..."
           rows={2}
           className="checklist-table-textarea"
+          disabled={isViewOnly}
         />
       </td>
     </tr>
@@ -716,6 +775,7 @@ ChecklistItem.propTypes = {
   itemData: PropTypes.object,
   onChange: PropTypes.func.isRequired,
   cardColor: PropTypes.string,
+  isViewOnly: PropTypes.bool,
 };
 
 // Checklist Section Component
@@ -729,6 +789,7 @@ const ChecklistSection = ({
   onToggle,
   onSelectAll,
   cardColor = "#2A00FF",
+  isViewOnly = false,
 }) => {
   // All selected means all items have files uploaded (checked is based on file upload)
   const allSelected = items.length > 0 && items.every((item) => {
@@ -837,6 +898,7 @@ const ChecklistSection = ({
                   itemData={itemsData[item.id] || {}}
                   onChange={onItemChange}
                   cardColor={cardColor}
+                  isViewOnly={isViewOnly}
                 />
               ))}
             </tbody>
@@ -862,6 +924,7 @@ ChecklistSection.propTypes = {
   onToggle: PropTypes.func.isRequired,
   onSelectAll: PropTypes.func.isRequired,
   cardColor: PropTypes.string,
+  isViewOnly: PropTypes.bool,
 };
 
 // Checklist Type Group Component (Accordion for type titles)
@@ -876,6 +939,7 @@ const ChecklistTypeGroup = ({
   isOpen,
   onToggle,
   cardColor = "#2A00FF",
+  isViewOnly = false,
 }) => {
   return (
     <div className="checklist-type-group" style={{ "--card-color": cardColor }}>
@@ -921,10 +985,34 @@ ChecklistTypeGroup.propTypes = {
   isOpen: PropTypes.bool.isRequired,
   onToggle: PropTypes.func.isRequired,
   cardColor: PropTypes.string,
+  isViewOnly: PropTypes.bool,
+};
+
+// Helper function to generate dummy file for checklist items
+const getDummyFileForItem = (itemId, itemLabel) => {
+  const fileName = `${itemLabel.replace(/[^a-z0-9]/gi, '_').toLowerCase()}_document.pdf`;
+  return {
+    name: fileName,
+    fileName: fileName,
+    size: Math.floor(Math.random() * 500000) + 100000, // Random size between 100KB and 600KB
+    type: "application/pdf"
+  };
+};
+
+// Helper function to generate dummy remarks for checklist items
+const getDummyRemarksForItem = (itemId, itemLabel) => {
+  const remarksTemplates = [
+    "Document has been reviewed and verified. All requirements are met.",
+    "Submitted on time. No discrepancies found. Ready for processing.",
+    "All necessary information is complete. Document is in order.",
+    "Verified and approved. All conditions satisfied.",
+    "Documentation is complete and accurate. No issues identified.",
+  ];
+  return remarksTemplates[itemId.charCodeAt(itemId.length - 1) % remarksTemplates.length];
 };
 
 // Main Checklist Component
-function Checklist({ card, formValues, handleChange, onSendReport, cardColor: propCardColor }) {
+function Checklist({ card, formValues, handleChange, onSendReport, cardColor: propCardColor, isViewOnly = false }) {
   const cardColor = propCardColor || card?.color || "#2A00FF";
 
   // Form state - Initialize with both checklist types selected by default
@@ -979,11 +1067,20 @@ function Checklist({ card, formValues, handleChange, onSendReport, cardColor: pr
     const initial = {};
     currentChecklistData.forEach((section) => {
       section.items.forEach((item) => {
-        initial[item.id] = card?.checklistItemsData?.[item.id] || {
-          checked: false,
-          remarks: "",
-          uploadedFile: null,
-        };
+        if (isViewOnly) {
+          // For view-only mode, populate with dummy data
+          initial[item.id] = {
+            checked: true,
+            remarks: getDummyRemarksForItem(item.id, item.label),
+            uploadedFile: getDummyFileForItem(item.id, item.label),
+          };
+        } else {
+          initial[item.id] = card?.checklistItemsData?.[item.id] || {
+            checked: false,
+            remarks: "",
+            uploadedFile: null,
+          };
+        }
       });
     });
     return initial;
@@ -1040,13 +1137,31 @@ function Checklist({ card, formValues, handleChange, onSendReport, cardColor: pr
     currentChecklistData.forEach((section) => {
       section.items.forEach((item) => {
         if (!itemsData[item.id]) {
-          newItemsData[item.id] = {
-            checked: false,
-            remarks: "",
-            uploadedFile: null,
-          };
+          if (isViewOnly) {
+            // For view-only mode, populate with dummy data
+            newItemsData[item.id] = {
+              checked: true,
+              remarks: getDummyRemarksForItem(item.id, item.label),
+              uploadedFile: getDummyFileForItem(item.id, item.label),
+            };
+          } else {
+            newItemsData[item.id] = {
+              checked: false,
+              remarks: "",
+              uploadedFile: null,
+            };
+          }
         } else {
-          newItemsData[item.id] = itemsData[item.id];
+          // If item already exists, preserve it unless we're in view-only mode and it needs dummy data
+          if (isViewOnly && (!itemsData[item.id].uploadedFile || !itemsData[item.id].remarks)) {
+            newItemsData[item.id] = {
+              checked: true,
+              remarks: itemsData[item.id].remarks || getDummyRemarksForItem(item.id, item.label),
+              uploadedFile: itemsData[item.id].uploadedFile || getDummyFileForItem(item.id, item.label),
+            };
+          } else {
+            newItemsData[item.id] = itemsData[item.id];
+          }
         }
       });
     });
@@ -1070,7 +1185,7 @@ function Checklist({ card, formValues, handleChange, onSendReport, cardColor: pr
       });
       return updated;
     });
-  }, [currentChecklistData]);
+  }, [currentChecklistData, isViewOnly]);
 
   const handleChecklistTypeChange = (e) => {
     const newValue = e.target.value; // This is already an array from MultiSelect
@@ -1177,7 +1292,7 @@ function Checklist({ card, formValues, handleChange, onSendReport, cardColor: pr
     <>
       <div className="operation-content-header">
         <h3 className="operation-content-title">Checklist Information</h3>
-        {onSendReport && <SendReportButton onClick={onSendReport} cardColor={cardColor} />}
+        {onSendReport && !isViewOnly && <SendReportButton onClick={onSendReport} cardColor={cardColor} />}
       </div>
       {/* Form Section */}
       <>
@@ -1191,6 +1306,7 @@ function Checklist({ card, formValues, handleChange, onSendReport, cardColor: pr
                     onChange={handleChecklistTypeChange}
                     options={checklistTypeOptions}
                     placeholder="Select checklist type..."
+                    disabled={isViewOnly}
                   />
                 </FormField>
               </div>
@@ -1226,27 +1342,30 @@ function Checklist({ card, formValues, handleChange, onSendReport, cardColor: pr
                         isOpen={openTypeGroups[typeTitle] || false}
                         onToggle={() => handleTypeGroupToggle(typeTitle)}
                         cardColor={cardColor}
+                        isViewOnly={isViewOnly}
                       />
                     ));
                   })()}
                 </div>
               </div>
             )}
-            <div className="form-group" style={{ marginTop: "20px", display: "flex", justifyContent: "flex-end" }}>
-              <button
-                type="button"
-                className="checklist-btn-primary"
-                onClick={() => {
-                  console.log("Saving Checklist data:", {
-                    checklistType,
-                    itemsData,
-                  });
-                  // Add your save logic here
-                }}
-              >
-                Save and Confirm
-              </button>
-            </div>
+            {!isViewOnly && (
+              <div className="form-group" style={{ marginTop: "20px", display: "flex", justifyContent: "flex-end" }}>
+                <button
+                  type="button"
+                  className="checklist-btn-primary"
+                  onClick={() => {
+                    console.log("Saving Checklist data:", {
+                      checklistType,
+                      itemsData,
+                    });
+                    // Add your save logic here
+                  }}
+                >
+                  Save and Confirm
+                </button>
+              </div>
+            )}
           </div>
         </div>
       </>
@@ -1260,6 +1379,7 @@ Checklist.propTypes = {
   handleChange: PropTypes.func,
   onSendReport: PropTypes.func,
   cardColor: PropTypes.string,
+  isViewOnly: PropTypes.bool,
 };
 
 export default Checklist;
