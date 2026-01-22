@@ -211,7 +211,7 @@ FormInput.propTypes = {
   disabled: PropTypes.bool,
 };
 
-const FormTextarea = ({ value, onChange, placeholder, className = "", rows = 3 }) => {
+const FormTextarea = ({ value, onChange, placeholder, className = "", rows = 3, disabled = false }) => {
   return (
     <div className={`cf-textarea ${className}`}>
       <textarea
@@ -219,6 +219,7 @@ const FormTextarea = ({ value, onChange, placeholder, className = "", rows = 3 }
         onChange={onChange}
         placeholder={placeholder}
         rows={rows}
+        disabled={disabled}
       />
     </div>
   );
@@ -230,14 +231,15 @@ FormTextarea.propTypes = {
   placeholder: PropTypes.string,
   className: PropTypes.string,
   rows: PropTypes.number,
+  disabled: PropTypes.bool,
 };
 
 // React Quill Editor Component
-const ReactQuillEditor = ({ value, onChange, placeholder, name = "preArrivalDescription", className = "" }) => {
+const ReactQuillEditor = ({ value, onChange, placeholder, name = "preArrivalDescription", className = "", readOnly = false }) => {
   const quillRef = useRef(null);
 
   const modules = {
-    toolbar: [
+    toolbar: readOnly ? false : [
       [{ header: [1, 2, 3, false] }],
       ["bold", "italic", "underline", "strike"],
       [{ list: "ordered" }, { list: "bullet" }],
@@ -276,6 +278,7 @@ const ReactQuillEditor = ({ value, onChange, placeholder, name = "preArrivalDesc
         modules={modules}
         formats={formats}
         placeholder={placeholder || "Enter pre-arrival description..."}
+        readOnly={readOnly}
       />
     </div>
   );
@@ -287,6 +290,7 @@ ReactQuillEditor.propTypes = {
   placeholder: PropTypes.string,
   name: PropTypes.string,
   className: PropTypes.string,
+  readOnly: PropTypes.bool,
 };
 
 const FormMultiSelect = ({ value = [], onChange, options = [], placeholder, className = "" }) => {
@@ -664,7 +668,7 @@ LinksList.propTypes = {
   onRemove: PropTypes.func,
 };
 
-const PreArrivalContent = ({ formValues, handleChange, ownerInitial, cardUser, cardColor, onAddAttachment, onRemoveAttachment, onAddLink, onRemoveLink, onSendReport }) => {
+const PreArrivalContent = ({ formValues, handleChange, ownerInitial, cardUser, cardColor, onAddAttachment, onRemoveAttachment, onAddLink, onRemoveLink, onSendReport, isViewOnly = false }) => {
   const [isDraggingSaberUtDocuments, setIsDraggingSaberUtDocuments] = useState(false);
   const saberUtFileInputRef = useRef(null);
 
@@ -761,12 +765,14 @@ const PreArrivalContent = ({ formValues, handleChange, ownerInitial, cardUser, c
                     value={formValues.expectedArrivalDate || ""}
                     onChange={handleChange("expectedArrivalDate")}
                     placeholder="Select date"
+                    disabled={isViewOnly}
                   />
                   <input
                     type="time"
                     value={formValues.expectedArrivalTime || ""}
                     onChange={handleChange("expectedArrivalTime")}
                     placeholder="Select time"
+                    disabled={isViewOnly}
                   />
                 </div>
               </FormField>
@@ -778,12 +784,14 @@ const PreArrivalContent = ({ formValues, handleChange, ownerInitial, cardUser, c
                     value={formValues.customsInspectionDate || ""}
                     onChange={handleChange("customsInspectionDate")}
                     placeholder="Select date"
+                    disabled={isViewOnly}
                   />
                   <input
                     type="time"
                     value={formValues.customsInspectionTime || ""}
                     onChange={handleChange("customsInspectionTime")}
                     placeholder="Select time"
+                    disabled={isViewOnly}
                   />
                 </div>
               </FormField>
@@ -795,12 +803,14 @@ const PreArrivalContent = ({ formValues, handleChange, ownerInitial, cardUser, c
                     value={formValues.immigrationClearanceDate || ""}
                     onChange={handleChange("immigrationClearanceDate")}
                     placeholder="Select date"
+                    disabled={isViewOnly}
                   />
                   <input
                     type="time"
                     value={formValues.immigrationClearanceTime || ""}
                     onChange={handleChange("immigrationClearanceTime")}
                     placeholder="Select time"
+                    disabled={isViewOnly}
                   />
                 </div>
               </FormField>
@@ -812,12 +822,14 @@ const PreArrivalContent = ({ formValues, handleChange, ownerInitial, cardUser, c
                     value={formValues.inwardClearanceDate || ""}
                     onChange={handleChange("inwardClearanceDate")}
                     placeholder="Select date"
+                    disabled={isViewOnly}
                   />
                   <input
                     type="time"
                     value={formValues.inwardClearanceTime || ""}
                     onChange={handleChange("inwardClearanceTime")}
                     placeholder="Select time"
+                    disabled={isViewOnly}
                   />
                 </div>
               </FormField>
@@ -828,6 +840,7 @@ const PreArrivalContent = ({ formValues, handleChange, ownerInitial, cardUser, c
                   value={formValues.saberUtStatus || ""}
                   onChange={handleChange("saberUtStatus")}
                   placeholder="Enter SABER Status..."
+                  disabled={isViewOnly}
                 />
               </FormField>
 
@@ -868,6 +881,7 @@ const PreArrivalContent = ({ formValues, handleChange, ownerInitial, cardUser, c
                     onChange={handleChange("preArrivalDescription")}
                     placeholder="Enter pre-arrival remarks..."
                     name="preArrivalDescription"
+                    readOnly={isViewOnly}
                   />
                 </FormField>
               </div>
@@ -878,6 +892,7 @@ const PreArrivalContent = ({ formValues, handleChange, ownerInitial, cardUser, c
                     value={formValues?.weatherForecast || ""}
                     onChange={handleChange("weatherForecast")}
                     placeholder="Enter weather forecast..."
+                    disabled={isViewOnly}
                   />
                 </FormField>
               </div>
@@ -888,6 +903,7 @@ const PreArrivalContent = ({ formValues, handleChange, ownerInitial, cardUser, c
                     value={formValues?.coordinates || ""}
                     onChange={handleChange("coordinates")}
                     placeholder="Enter coordinates..."
+                    disabled={isViewOnly}
                   />
                 </FormField>
               </div>
@@ -910,9 +926,10 @@ PreArrivalContent.propTypes = {
   onAddLink: PropTypes.func,
   onRemoveLink: PropTypes.func,
   onSendReport: PropTypes.func,
+  isViewOnly: PropTypes.bool,
 };
 
-const ArrivalContent = ({ formValues, handleChange, cardColor, onAddAttachment, onRemoveAttachment, onAddLink, onRemoveLink, onSendReport }) => {
+const ArrivalContent = ({ formValues, handleChange, cardColor, onAddAttachment, onRemoveAttachment, onAddLink, onRemoveLink, onSendReport, isViewOnly = false }) => {
   const [isDraggingDocuments, setIsDraggingDocuments] = useState(false);
   const documentsFileInputRef = useRef(null);
 
@@ -1018,12 +1035,14 @@ const ArrivalContent = ({ formValues, handleChange, cardColor, onAddAttachment, 
                     value={formValues.actualArrivalDate || ""}
                     onChange={handleChange("actualArrivalDate")}
                     placeholder="Select date"
+                    disabled={isViewOnly}
                   />
                   <input
                     type="time"
                     value={formValues.actualArrivalTime || ""}
                     onChange={handleChange("actualArrivalTime")}
                     placeholder="Select time"
+                    disabled={isViewOnly}
                   />
                 </div>
               </FormField>
@@ -1035,12 +1054,14 @@ const ArrivalContent = ({ formValues, handleChange, cardColor, onAddAttachment, 
                     value={formValues.customInspectionCommencedDate || ""}
                     onChange={handleChange("customInspectionCommencedDate")}
                     placeholder="Select date"
+                    disabled={isViewOnly}
                   />
                   <input
                     type="time"
                     value={formValues.customInspectionCommencedTime || ""}
                     onChange={handleChange("customInspectionCommencedTime")}
                     placeholder="Select time"
+                    disabled={isViewOnly}
                   />
                 </div>
               </FormField>
@@ -1052,12 +1073,14 @@ const ArrivalContent = ({ formValues, handleChange, cardColor, onAddAttachment, 
                     value={formValues.customInspectionCompletedDate || ""}
                     onChange={handleChange("customInspectionCompletedDate")}
                     placeholder="Select date"
+                    disabled={isViewOnly}
                   />
                   <input
                     type="time"
                     value={formValues.customInspectionCompletedTime || ""}
                     onChange={handleChange("customInspectionCompletedTime")}
                     placeholder="Select time"
+                    disabled={isViewOnly}
                   />
                 </div>
               </FormField>
@@ -1065,9 +1088,10 @@ const ArrivalContent = ({ formValues, handleChange, cardColor, onAddAttachment, 
               <FormField label="Custom Inspection Status">
                 <FormInput
                   type="text"
-                  value="Passed"
+                  value={formValues.customInspectionStatus || "Passed"}
                   onChange={() => { }}
                   placeholder=""
+                  disabled={isViewOnly}
                 />
               </FormField>
 
@@ -1078,6 +1102,7 @@ const ArrivalContent = ({ formValues, handleChange, cardColor, onAddAttachment, 
                     onChange={handleChange("customInspectionFailReason")}
                     placeholder="Specify reason for fail..."
                     rows={3}
+                    disabled={isViewOnly}
                   />
                 </FormField>
               )}
@@ -1089,12 +1114,14 @@ const ArrivalContent = ({ formValues, handleChange, cardColor, onAddAttachment, 
                     value={formValues.crewImmigrationCommencedDate || ""}
                     onChange={handleChange("crewImmigrationCommencedDate")}
                     placeholder="Select date"
+                    disabled={isViewOnly}
                   />
                   <input
                     type="time"
                     value={formValues.crewImmigrationCommencedTime || ""}
                     onChange={handleChange("crewImmigrationCommencedTime")}
                     placeholder="Select time"
+                    disabled={isViewOnly}
                   />
                 </div>
               </FormField>
@@ -1105,6 +1132,7 @@ const ArrivalContent = ({ formValues, handleChange, cardColor, onAddAttachment, 
                   onChange={handleChange("crewImmigrationStatus")}
                   options={crewImmigrationStatusOptions}
                   placeholder="Select status..."
+                  disabled={isViewOnly}
                 />
               </FormField>
 
@@ -1116,12 +1144,14 @@ const ArrivalContent = ({ formValues, handleChange, cardColor, onAddAttachment, 
                       value={formValues.crewImmigrationCompletedDate || ""}
                       onChange={handleChange("crewImmigrationCompletedDate")}
                       placeholder="Select date"
+                      disabled={isViewOnly}
                     />
                     <input
                       type="time"
                       value={formValues.crewImmigrationCompletedTime || ""}
                       onChange={handleChange("crewImmigrationCompletedTime")}
                       placeholder="Select time"
+                      disabled={isViewOnly}
                     />
                   </div>
                 </FormField>
@@ -1134,6 +1164,7 @@ const ArrivalContent = ({ formValues, handleChange, cardColor, onAddAttachment, 
                     onChange={handleChange("crewImmigrationHoldRemarks")}
                     placeholder="Specify reason for hold..."
                     rows={3}
+                    disabled={isViewOnly}
                   />
                 </FormField>
               )}
@@ -1145,12 +1176,14 @@ const ArrivalContent = ({ formValues, handleChange, cardColor, onAddAttachment, 
                     value={formValues.vesselInwardFormalitiesCompletedDate || ""}
                     onChange={handleChange("vesselInwardFormalitiesCompletedDate")}
                     placeholder="Select date"
+                    disabled={isViewOnly}
                   />
                   <input
                     type="time"
                     value={formValues.vesselInwardFormalitiesCompletedTime || ""}
                     onChange={handleChange("vesselInwardFormalitiesCompletedTime")}
                     placeholder="Select time"
+                    disabled={isViewOnly}
                   />
                 </div>
               </FormField>
@@ -1162,12 +1195,14 @@ const ArrivalContent = ({ formValues, handleChange, cardColor, onAddAttachment, 
                     value={formValues.marineWorkPermitAppliedDate || ""}
                     onChange={handleChange("marineWorkPermitAppliedDate")}
                     placeholder="Select date"
+                    disabled={isViewOnly}
                   />
                   <input
                     type="time"
                     value={formValues.marineWorkPermitAppliedTime || ""}
                     onChange={handleChange("marineWorkPermitAppliedTime")}
                     placeholder="Select time"
+                    disabled={isViewOnly}
                   />
                 </div>
               </FormField>
@@ -1179,12 +1214,14 @@ const ArrivalContent = ({ formValues, handleChange, cardColor, onAddAttachment, 
                     value={formValues.marineWorkPermitIssuedDate || ""}
                     onChange={handleChange("marineWorkPermitIssuedDate")}
                     placeholder="Select date"
+                    disabled={isViewOnly}
                   />
                   <input
                     type="time"
                     value={formValues.marineWorkPermitIssuedTime || ""}
                     onChange={handleChange("marineWorkPermitIssuedTime")}
                     placeholder="Select time"
+                    disabled={isViewOnly}
                   />
                 </div>
               </FormField>
@@ -1195,12 +1232,14 @@ const ArrivalContent = ({ formValues, handleChange, cardColor, onAddAttachment, 
                     value={formValues.marineWorkPermitExpiresDate || ""}
                     onChange={handleChange("marineWorkPermitExpiresDate")}
                     placeholder="Select date"
+                    disabled={isViewOnly}
                   />
                   <input
                     type="time"
                     value={formValues.marineWorkPermitExpiresTime || ""}
                     onChange={handleChange("marineWorkPermitExpiresTime")}
                     placeholder="Select time"
+                    disabled={isViewOnly}
                   />
                 </div>
               </FormField>
@@ -1310,6 +1349,7 @@ const ArrivalContent = ({ formValues, handleChange, cardColor, onAddAttachment, 
                     placeholder="Enter arrival remarks..."
                     name="arrivalDescription"
                     className="arrival-quill-editor"
+                    readOnly={isViewOnly}
                   />
                 </FormField>
               </div>
@@ -1330,9 +1370,10 @@ ArrivalContent.propTypes = {
   onAddLink: PropTypes.func,
   onRemoveLink: PropTypes.func,
   onSendReport: PropTypes.func,
+  isViewOnly: PropTypes.bool,
 };
 
-const DepartureContent = ({ formValues, handleChange, cardColor, onAddAttachment, onRemoveAttachment, onAddLink, onRemoveLink, onSendReport }) => {
+const DepartureContent = ({ formValues, handleChange, cardColor, onAddAttachment, onRemoveAttachment, onAddLink, onRemoveLink, onSendReport, isViewOnly = false }) => {
   const [isDragging, setIsDragging] = useState(false);
   const fileInputRef = useRef(null);
 
@@ -1439,7 +1480,7 @@ const DepartureContent = ({ formValues, handleChange, cardColor, onAddAttachment
                     value={formValues.outwardClearanceRequestReceivedTime || ""}
                     onChange={handleChange("outwardClearanceRequestReceivedTime")}
                     placeholder="Select time"
-                    disabled
+                    disabled={isViewOnly}
                   />
                 </div>
               </FormField>
@@ -1451,14 +1492,14 @@ const DepartureContent = ({ formValues, handleChange, cardColor, onAddAttachment
                     value={formValues.outwardClearanceIssuedDate || ""}
                     onChange={handleChange("outwardClearanceIssuedDate")}
                     placeholder="Select date"
-                    disabled
+                    disabled={isViewOnly}
                   />
                   <input
                     type="time"
                     value={formValues.outwardClearanceIssuedTime || ""}
                     onChange={handleChange("outwardClearanceIssuedTime")}
                     placeholder="Select time"
-                    disabled
+                    disabled={isViewOnly}
                   />
                 </div>
               </FormField>
@@ -1470,14 +1511,14 @@ const DepartureContent = ({ formValues, handleChange, cardColor, onAddAttachment
                     value={formValues.outwardClearanceDeliveredDate || ""}
                     onChange={handleChange("outwardClearanceDeliveredDate")}
                     placeholder="Select date"
-                    disabled
+                    disabled={isViewOnly}
                   />
                   <input
                     type="time"
                     value={formValues.outwardClearanceDeliveredTime || ""}
                     onChange={handleChange("outwardClearanceDeliveredTime")}
                     placeholder="Select time"
-                    disabled
+                    disabled={isViewOnly}
                   />
                 </div>
               </FormField>
@@ -1489,14 +1530,14 @@ const DepartureContent = ({ formValues, handleChange, cardColor, onAddAttachment
                     value={formValues.vesselSailedDate || ""}
                     onChange={handleChange("vesselSailedDate")}
                     placeholder="Select date"
-                    disabled
+                    disabled={isViewOnly}
                   />
                   <input
                     type="time"
                     value={formValues.vesselSailedTime || ""}
                     onChange={handleChange("vesselSailedTime")}
                     placeholder="Select time"
-                    disabled
+                    disabled={isViewOnly}
                   />
                 </div>
               </FormField>
@@ -1509,7 +1550,7 @@ const DepartureContent = ({ formValues, handleChange, cardColor, onAddAttachment
                   value={formValues.nextPort || ""}
                   onChange={handleChange("nextPort")}
                   placeholder="Enter next port..."
-                  disabled
+                  disabled={isViewOnly}
                 />
               </FormField>
 
@@ -1534,6 +1575,7 @@ const DepartureContent = ({ formValues, handleChange, cardColor, onAddAttachment
                     placeholder="Enter departure remarks..."
                     name="departureDescription"
                     className="departure-quill-editor"
+                    readOnly={isViewOnly}
                   />
                 </FormField>
               </div>
@@ -1554,6 +1596,7 @@ DepartureContent.propTypes = {
   onAddLink: PropTypes.func,
   onRemoveLink: PropTypes.func,
   onSendReport: PropTypes.func,
+  isViewOnly: PropTypes.bool,
 };
 
 const CheckListContent = ({ card, formValues, handleChange, onSendReport, cardColor }) => {
@@ -1763,10 +1806,61 @@ SendReportButton.propTypes = {
   tabName: PropTypes.string.isRequired,
 };
 
+// Dummy values for view-only mode
+const getDummyValues = () => ({
+  expectedArrivalDate: "2024-01-15",
+  expectedArrivalTime: "10:30",
+  customsInspectionDate: "2024-01-15",
+  customsInspectionTime: "11:00",
+  immigrationClearanceDate: "2024-01-15",
+  immigrationClearanceTime: "12:00",
+  inwardClearanceDate: "2024-01-15",
+  inwardClearanceTime: "14:00",
+  saberUtStatus: "Approved",
+  preArrivalDescription: "<p>Vessel is expected to arrive on schedule. All pre-arrival documentation has been submitted.</p>",
+  weatherForecast: "Clear skies, 25°C, light winds",
+  coordinates: "24.7136° N, 46.6753° E",
+  actualArrivalDate: "2024-01-15",
+  actualArrivalTime: "10:35",
+  customInspectionCommencedDate: "2024-01-15",
+  customInspectionCommencedTime: "11:05",
+  customInspectionCompletedDate: "2024-01-15",
+  customInspectionCompletedTime: "13:30",
+  customInspectionStatus: "Passed",
+  crewImmigrationCommencedDate: "2024-01-15",
+  crewImmigrationCommencedTime: "12:05",
+  crewImmigrationStatus: "Completed",
+  crewImmigrationCompletedDate: "2024-01-15",
+  crewImmigrationCompletedTime: "13:00",
+  vesselInwardFormalitiesCompletedDate: "2024-01-15",
+  vesselInwardFormalitiesCompletedTime: "14:15",
+  marineWorkPermitAppliedDate: "2024-01-15",
+  marineWorkPermitAppliedTime: "14:30",
+  marineWorkPermitIssuedDate: "2024-01-15",
+  marineWorkPermitIssuedTime: "15:00",
+  marineWorkPermitExpiresDate: "2024-02-15",
+  marineWorkPermitExpiresTime: "15:00",
+  arrivalDescription: "<p>Vessel arrived on time. All clearance procedures completed successfully.</p>",
+  outwardClearanceRequestReceivedDate: "2024-01-20",
+  outwardClearanceRequestReceivedTime: "09:00",
+  outwardClearanceIssuedDate: "2024-01-20",
+  outwardClearanceIssuedTime: "10:00",
+  outwardClearanceDeliveredDate: "2024-01-20",
+  outwardClearanceDeliveredTime: "10:30",
+  vesselSailedDate: "2024-01-20",
+  vesselSailedTime: "11:00",
+  nextPort: "Jeddah Port",
+  departureDescription: "<p>Vessel departed successfully. All outward clearance documents delivered.</p>",
+});
+
 // Main Operation Component
-function Operation({ card, formValues, handleChange, ownerInitial }) {
+function Operation({ card, formValues, handleChange, ownerInitial, isDAModule = false }) {
   const [activeOperationTab, setActiveOperationTab] = useState(OPERATION_TABS.PRE_ARRIVAL);
   const cardColor = card?.color || "#2A00FF";
+
+  // Merge dummy values with formValues for view-only mode (only for DA routes)
+  const viewOnlyFormValues = isDAModule ? { ...getDummyValues(), ...formValues } : formValues;
+  const isViewOnly = isDAModule;
 
   const handleTabChange = useCallback((tab) => {
     setActiveOperationTab(tab);
@@ -1811,7 +1905,7 @@ function Operation({ card, formValues, handleChange, ownerInitial }) {
         <div className="operation-right">
           {activeOperationTab === OPERATION_TABS.PRE_ARRIVAL && (
             <PreArrivalContent
-              formValues={formValues}
+              formValues={viewOnlyFormValues}
               handleChange={handleChange}
               ownerInitial={ownerInitial}
               cardUser={card?.user}
@@ -1821,20 +1915,22 @@ function Operation({ card, formValues, handleChange, ownerInitial }) {
               onAddLink={handleAddLink}
               onRemoveLink={handleRemoveLink}
               onSendReport={handleSendReport}
+              isViewOnly={isViewOnly}
             />
           )}
           {activeOperationTab === OPERATION_TABS.CHECK_LIST && (
             <CheckListContent
               card={card}
-              formValues={formValues}
+              formValues={viewOnlyFormValues}
               handleChange={handleChange}
               onSendReport={handleSendReport}
               cardColor={cardColor}
+              isViewOnly={isViewOnly}
             />
           )}
           {activeOperationTab === OPERATION_TABS.ARRIVAL && (
             <ArrivalContent
-              formValues={formValues}
+              formValues={viewOnlyFormValues}
               handleChange={handleChange}
               cardColor={cardColor}
               onAddAttachment={handleAddAttachment}
@@ -1842,11 +1938,12 @@ function Operation({ card, formValues, handleChange, ownerInitial }) {
               onAddLink={handleAddLink}
               onRemoveLink={handleRemoveLink}
               onSendReport={handleSendReport}
+              isViewOnly={isViewOnly}
             />
           )}
           {activeOperationTab === OPERATION_TABS.DEPARTURE && (
             <DepartureContent
-              formValues={formValues}
+              formValues={viewOnlyFormValues}
               handleChange={handleChange}
               cardColor={cardColor}
               onAddAttachment={handleAddAttachment}
@@ -1854,6 +1951,7 @@ function Operation({ card, formValues, handleChange, ownerInitial }) {
               onAddLink={handleAddLink}
               onRemoveLink={handleRemoveLink}
               onSendReport={handleSendReport}
+              isViewOnly={isViewOnly}
             />
           )}
         </div>
@@ -1867,6 +1965,7 @@ Operation.propTypes = {
   formValues: PropTypes.object.isRequired,
   handleChange: PropTypes.func.isRequired,
   ownerInitial: PropTypes.string.isRequired,
+  isDAModule: PropTypes.bool,
 };
 
 export default Operation;

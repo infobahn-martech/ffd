@@ -235,7 +235,7 @@ ServiceSelection.propTypes = {
 };
 
 // Main Husbandry Component
-function Husbandry({ card, formValues, handleChange }) {
+function Husbandry({ card, formValues, handleChange, isDAModule = false }) {
   const [serviceSelected, setServiceSelected] = useState(false);
   const [selectedServices, setSelectedServices] = useState([]); // Array to track selected services
   const [activeMainTab, setActiveMainTab] = useState(null);
@@ -244,7 +244,14 @@ function Husbandry({ card, formValues, handleChange }) {
   );
   const [selectedActionTab, setSelectedActionTab] = useState(null);
   const [isLaunchHireMode, setIsLaunchHireMode] = useState(false);
-  const [bookedServices, setBookedServices] = useState([]); // Track booked services with status
+  // Initialize with dummy booked services for view-only mode (only for DA routes)
+  const [bookedServices, setBookedServices] = useState(isDAModule ? [
+    { id: MAIN_TABS.CREW_MANAGEMENT, status: "In Progress", subService: "Transport" },
+    { id: MAIN_TABS.ON_STATION, status: "Pending", subService: null },
+    { id: MAIN_TABS.MATERIAL_MANAGEMENT, status: "Completed", subService: "Inbound Orders" },
+    { id: MAIN_TABS.WASTE_DISPOSAL, status: "Pending", subService: null },
+    { id: "LAUNCH_HIRE", status: "In Progress", subService: null },
+  ] : []);
   const cardColor = "#00368c"; // Fixed color for all buttons, effects, and backgrounds
 
 
@@ -522,7 +529,102 @@ function Husbandry({ card, formValues, handleChange }) {
     }
   };
 
-  // Show service selection if no service has been selected
+  // Show only Booked Services section for DA routes (view-only mode)
+  if (isDAModule) {
+    return (
+      <div className="operation-wrapper husbandry-wrapper" style={{ "--card-color": cardColor }}>
+        <div className="husbandry-service-selection" style={{ "--card-color": cardColor }}>
+          <div className="husbandry-service-selection-content">
+            <h2 className="husbandry-service-selection-title">Booked Services</h2>
+            {bookedServices.length > 0 ? (
+              <div className="husbandry-booked-services-section">
+                <div className="husbandry-booked-services-list">
+                  {bookedServices.map((service) => {
+                    const services = [
+                      { id: MAIN_TABS.CREW_MANAGEMENT, label: "Crew Management", icon: "clock" },
+                      { id: MAIN_TABS.ON_STATION, label: "On station", icon: "document" },
+                      { id: MAIN_TABS.MATERIAL_MANAGEMENT, label: "Material Management", icon: "document" },
+                      { id: MAIN_TABS.WASTE_DISPOSAL, label: "Waste Disposal", icon: "document" },
+                      { id: "LAUNCH_HIRE", label: "Launch Hire", icon: "document" },
+                      { id: MAIN_TABS.MWP_RENEWAL, label: "MWP Renewal", icon: "renewal" },
+                      { id: MAIN_TABS.THIRD_PARTY_SERVICES, label: "Third-Party Services", icon: "document" },
+                    ];
+
+                    const getServiceIcon = (iconType) => {
+                      switch (iconType) {
+                        case "clock":
+                          return (
+                            <svg width="48" height="48" viewBox="0 0 48 48" fill="none" xmlns="http://www.w3.org/2000/svg">
+                              <circle cx="24" cy="24" r="20" stroke="currentColor" strokeWidth="2" fill="none" />
+                              <path d="M24 12V24L30 30" stroke="currentColor" strokeWidth="2" strokeLinecap="round" />
+                            </svg>
+                          );
+                        case "renewal":
+                          return (
+                            <svg width="48" height="48" viewBox="0 0 48 48" fill="none" xmlns="http://www.w3.org/2000/svg">
+                              <circle cx="24" cy="24" r="20" stroke="currentColor" strokeWidth="2" fill="none" />
+                              <path d="M28 16L32 12L28 8" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+                              <path d="M20 32L16 36L20 40" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+                              <path d="M32 12C30 16 28 20 28 24C28 28 30 32 32 36M16 12C18 16 20 20 20 24C20 28 18 32 16 36" stroke="currentColor" strokeWidth="2" strokeLinecap="round" />
+                            </svg>
+                          );
+                        default:
+                          return (
+                            <svg width="48" height="48" viewBox="0 0 48 48" fill="none" xmlns="http://www.w3.org/2000/svg">
+                              <rect x="8" y="8" width="32" height="32" rx="4" stroke="currentColor" strokeWidth="2" fill="none" />
+                              <path d="M16 20H32M16 24H32M16 28H24" stroke="currentColor" strokeWidth="2" strokeLinecap="round" />
+                            </svg>
+                          );
+                      }
+                    };
+
+                    const getStatusBadgeClass = (status) => {
+                      const statusMap = {
+                        "Pending": "booked-status-pending",
+                        "In Progress": "booked-status-in-progress",
+                        "Completed": "booked-status-completed",
+                        "Cancelled": "booked-status-cancelled",
+                      };
+                      return statusMap[status] || "booked-status-pending";
+                    };
+
+                    const serviceInfo = services.find(s => s.id === service.id);
+
+                    return (
+                      <div key={service.id} className="husbandry-booked-service-item">
+                        <div className="husbandry-booked-service-info">
+                          <div className="husbandry-booked-service-icon">
+                            {getServiceIcon(serviceInfo?.icon || "document")}
+                          </div>
+                          <div className="husbandry-booked-service-details">
+                            <span className="husbandry-booked-service-name">
+                              {serviceInfo?.label || service.id}
+                            </span>
+                            {service.subService && (
+                              <span className="husbandry-booked-service-sub">{service.subService}</span>
+                            )}
+                          </div>
+                        </div>
+                        <div className={`husbandry-booked-service-status ${getStatusBadgeClass(service.status)}`}>
+                          {service.status || "Pending"}
+                        </div>
+                      </div>
+                    );
+                  })}
+                </div>
+              </div>
+            ) : (
+              <div className="husbandry-booked-services-section">
+                <p style={{ padding: "20px", textAlign: "center", color: "#666" }}>No booked services</p>
+              </div>
+            )}
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  // Show service selection if no service has been selected (normal mode)
   if (!serviceSelected) {
     return (
       <div className="operation-wrapper husbandry-wrapper" style={{ "--card-color": cardColor }}>
@@ -591,6 +693,7 @@ Husbandry.propTypes = {
   card: PropTypes.object,
   formValues: PropTypes.object.isRequired,
   handleChange: PropTypes.func.isRequired,
+  isDAModule: PropTypes.bool,
 };
 
 export default Husbandry;

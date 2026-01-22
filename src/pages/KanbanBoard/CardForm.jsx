@@ -37,6 +37,17 @@ const SIMPLIFIED_TOP_TABS = [
 
 const SIMPLIFIED_ENABLED_TABS = ["General", "Invoice", "Sales Order"];
 
+// Constants - DA module tabs (includes Operation and Husbandry)
+const DA_TOP_TABS = [
+  "General",
+  "Operation",
+  "Husbandry",
+  "Sales Order",
+  "Invoice",
+];
+
+const DA_ENABLED_TABS = ["General", "Operation", "Husbandry", "Sales Order", "Invoice"];
+
 const DEFAULT_ACCENT_COLOR = "#2A00FF";
 const TOTAL_STEPS = 6;
 
@@ -501,7 +512,23 @@ const renderTabContent = (activeTab, card, formValues, handleChange, ownerInitia
     isDAModule,
   };
 
-  if (isSimplifiedMode) {
+  if (isDAModule) {
+    // DA mode - General, Operation, Husbandry, Sales Order, Invoice
+    switch (activeTab) {
+      case "General":
+        return <General {...commonProps} ownerInitial={ownerInitial} cardUser={card?.user} />;
+      case "Operation":
+        return <Operation {...commonProps} ownerInitial={ownerInitial} />;
+      case "Husbandry":
+        return <Husbandry {...commonProps} />;
+      case "Sales Order":
+        return <SalesOrder {...commonProps} />;
+      case "Invoice":
+        return <Invoice {...commonProps} />;
+      default:
+        return <General {...commonProps} ownerInitial={ownerInitial} cardUser={card?.user} />;
+    }
+  } else if (isSimplifiedMode) {
     // Simplified mode - General, Invoice, and Sales Order
     switch (activeTab) {
       case "General":
@@ -559,9 +586,12 @@ function CardForm({ show, close, card, moveCardToColumn, columns, columnOrder, c
 
 
   // Determine which tabs to use
-  const TOP_TABS = isKanbanBoardWithId ? SIMPLIFIED_TOP_TABS : ALL_TOP_TABS;
-  const ENABLED_TABS = isKanbanBoardWithId ? SIMPLIFIED_ENABLED_TABS : ALL_ENABLED_TABS;
-  const defaultTab = isKanbanBoardWithId ? "General" : "Appointment Details";
+  // For DA routes, use DA tabs (includes Operation and Husbandry)
+  // For other kanban-board/{id} routes, use simplified tabs
+  // Otherwise, use all tabs
+  const TOP_TABS = isDAModule ? DA_TOP_TABS : (isKanbanBoardWithId ? SIMPLIFIED_TOP_TABS : ALL_TOP_TABS);
+  const ENABLED_TABS = isDAModule ? DA_ENABLED_TABS : (isKanbanBoardWithId ? SIMPLIFIED_ENABLED_TABS : ALL_ENABLED_TABS);
+  const defaultTab = (isDAModule || isKanbanBoardWithId) ? "General" : "Appointment Details";
 
   const [activeTopTab, setActiveTopTab] = useState(defaultTab);
 
