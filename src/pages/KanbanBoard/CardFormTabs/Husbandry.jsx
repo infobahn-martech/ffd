@@ -234,13 +234,18 @@ ServiceSelection.propTypes = {
   bookedServices: PropTypes.array,
 };
 
-// Dummy crew data for DA module Husbandry tab (table above Booked Services)
+// Dummy crew data for DA module Husbandry tab
 const DAMODULE_CREW_DUMMY = [
-  { crewName: "Ahmed Al-Rashid", nationality: "Saudi Arabia", rank: "Chief Officer", passportNo: "A12345678", iqamaNo: "IQ-987654", visaNo: "V-2024-001" },
-  { crewName: "John Smith", nationality: "United Kingdom", rank: "Master", passportNo: "UK4521987", iqamaNo: "IQ-112233", visaNo: "V-2024-002" },
-  { crewName: "Maria Santos", nationality: "Philippines", rank: "Chief Cook", passportNo: "PH7890123", iqamaNo: "IQ-445566", visaNo: "V-2024-003" },
-  { crewName: "Viktor Petrov", nationality: "Ukraine", rank: "Chief Engineer", passportNo: "UA3456789", iqamaNo: "IQ-778899", visaNo: "V-2024-004" },
-  { crewName: "Raj Kumar", nationality: "India", rank: "AB Seaman", passportNo: "IN5678901", iqamaNo: "IQ-223344", visaNo: "V-2024-005" },
+  { crewName: "Ahmed Al-Rashid", nationality: "Saudi Arabia", rank: "Chief Officer", passportNo: "A12345678", iqamaNo: "IQ-987654", visaNo: "V-2024-001", service: "Transport" },
+  { crewName: "John Smith", nationality: "United Kingdom", rank: "Master", passportNo: "UK4521987", iqamaNo: "IQ-112233", visaNo: "V-2024-002", service: "Launch Hire" },
+  { crewName: "Maria Santos", nationality: "Philippines", rank: "Chief Cook", passportNo: "PH7890123", iqamaNo: "IQ-445566", visaNo: "V-2024-003", service: "Hotel" },
+  { crewName: "Viktor Petrov", nationality: "Ukraine", rank: "Chief Engineer", passportNo: "UA3456789", iqamaNo: "IQ-778899", visaNo: "V-2024-004", service: "CG Pass" },
+  { crewName: "Raj Kumar", nationality: "India", rank: "AB Seaman", passportNo: "IN5678901", iqamaNo: "IQ-223344", visaNo: "V-2024-005", service: "Waste Disposal" },
+  { crewName: "Elena Kowalski", nationality: "Poland", rank: "2nd Officer", passportNo: "PL2345678", iqamaNo: "IQ-556677", visaNo: "V-2024-006", service: "Inbound Orders" },
+  { crewName: "Carlos Mendez", nationality: "Mexico", rank: "Chief Steward", passportNo: "MX8765432", iqamaNo: "IQ-998877", visaNo: "V-2024-007", service: "Medical Service" },
+  { crewName: "Yuki Tanaka", nationality: "Japan", rank: "3rd Engineer", passportNo: "JP1122334", iqamaNo: "IQ-334455", visaNo: "V-2024-008", service: "Zawil Pass" },
+  { crewName: "Fatima Hassan", nationality: "Egypt", rank: "AB Seaman", passportNo: "EG5678901", iqamaNo: "IQ-667788", visaNo: "V-2024-009", service: "On Station" },
+  { crewName: "James O'Brien", nationality: "Ireland", rank: "Chief Officer", passportNo: "IE9900112", iqamaNo: "IQ-221133", visaNo: "V-2024-010", service: "MWP Renewal" },
 ];
 
 // Main Husbandry Component
@@ -538,7 +543,7 @@ function Husbandry({ card, formValues, handleChange, isDAModule = false }) {
     }
   };
 
-  // Show only Booked Services section for DA routes (view-only mode)
+  // DA module Husbandry: crew table only (no Booked Services)
   if (isDAModule) {
     return (
       <div className="operation-wrapper husbandry-wrapper" style={{ "--card-color": cardColor }}>
@@ -554,6 +559,7 @@ function Husbandry({ card, formValues, handleChange, isDAModule = false }) {
                     <th>Passport No.</th>
                     <th>Iqama No.</th>
                     <th>Visa No.</th>
+                    <th>Services</th>
                   </tr>
                 </thead>
                 <tbody>
@@ -565,91 +571,14 @@ function Husbandry({ card, formValues, handleChange, isDAModule = false }) {
                       <td>{row.passportNo}</td>
                       <td>{row.iqamaNo}</td>
                       <td>{row.visaNo}</td>
+                      <td>
+                        <span className="husbandry-da-crew-service-badge">{row.service}</span>
+                      </td>
                     </tr>
                   ))}
                 </tbody>
               </table>
             </div>
-            <h2 className="husbandry-service-selection-title">Booked Services</h2>
-            {bookedServices.length > 0 ? (
-              <div className="husbandry-booked-services-section">
-                <div className="husbandry-booked-services-list">
-                  {bookedServices.map((service) => {
-                    const services = [
-                      { id: MAIN_TABS.CREW_MANAGEMENT, label: "Crew Management", icon: "clock" },
-                      { id: MAIN_TABS.ON_STATION, label: "On station", icon: "document" },
-                      { id: MAIN_TABS.MATERIAL_MANAGEMENT, label: "Material Management", icon: "document" },
-                      { id: MAIN_TABS.WASTE_DISPOSAL, label: "Waste Disposal", icon: "document" },
-                      { id: "LAUNCH_HIRE", label: "Launch Hire", icon: "document" },
-                      { id: MAIN_TABS.MWP_RENEWAL, label: "MWP Renewal", icon: "renewal" },
-                      { id: MAIN_TABS.THIRD_PARTY_SERVICES, label: "Third-Party Services", icon: "document" },
-                    ];
-
-                    const getServiceIcon = (iconType) => {
-                      switch (iconType) {
-                        case "clock":
-                          return (
-                            <svg width="48" height="48" viewBox="0 0 48 48" fill="none" xmlns="http://www.w3.org/2000/svg">
-                              <circle cx="24" cy="24" r="20" stroke="currentColor" strokeWidth="2" fill="none" />
-                              <path d="M24 12V24L30 30" stroke="currentColor" strokeWidth="2" strokeLinecap="round" />
-                            </svg>
-                          );
-                        case "renewal":
-                          return (
-                            <svg width="48" height="48" viewBox="0 0 48 48" fill="none" xmlns="http://www.w3.org/2000/svg">
-                              <circle cx="24" cy="24" r="20" stroke="currentColor" strokeWidth="2" fill="none" />
-                              <path d="M28 16L32 12L28 8" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
-                              <path d="M20 32L16 36L20 40" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
-                              <path d="M32 12C30 16 28 20 28 24C28 28 30 32 32 36M16 12C18 16 20 20 20 24C20 28 18 32 16 36" stroke="currentColor" strokeWidth="2" strokeLinecap="round" />
-                            </svg>
-                          );
-                        default:
-                          return (
-                            <svg width="48" height="48" viewBox="0 0 48 48" fill="none" xmlns="http://www.w3.org/2000/svg">
-                              <rect x="8" y="8" width="32" height="32" rx="4" stroke="currentColor" strokeWidth="2" fill="none" />
-                              <path d="M16 20H32M16 24H32M16 28H24" stroke="currentColor" strokeWidth="2" strokeLinecap="round" />
-                            </svg>
-                          );
-                      }
-                    };
-
-                    const getStatusBadgeClass = (status) => {
-                      const statusMap = {
-                        "Pending": "booked-status-pending",
-                        "In Progress": "booked-status-in-progress",
-                        "Completed": "booked-status-completed",
-                        "Cancelled": "booked-status-cancelled",
-                      };
-                      return statusMap[status] || "booked-status-pending";
-                    };
-
-                    const serviceInfo = services.find(s => s.id === service.id);
-
-                    return (
-                      <div key={service.id} className="husbandry-booked-service-item">
-                        <div className="husbandry-booked-service-info">
-                          <div className="husbandry-booked-service-icon">
-                            {getServiceIcon(serviceInfo?.icon || "document")}
-                          </div>
-                          <div className="husbandry-booked-service-details">
-                            <span className="husbandry-booked-service-name">
-                              {serviceInfo?.label || service.id}
-                            </span>
-                            {service.subService && (
-                              <span className="husbandry-booked-service-sub">{service.subService}</span>
-                            )}
-                          </div>
-                        </div>
-                      </div>
-                    );
-                  })}
-                </div>
-              </div>
-            ) : (
-              <div className="husbandry-booked-services-section">
-                <p style={{ padding: "20px", textAlign: "center", color: "#666" }}>No booked services</p>
-              </div>
-            )}
           </div>
         </div>
       </div>

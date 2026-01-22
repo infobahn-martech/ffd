@@ -1,22 +1,27 @@
 @import "partials/partials";
 
-.profile-sec{
-    .profile-details{
+.profile-sec {
+    .profile-details {
         padding-left: 60px;
-        @media($sm-1281){
+
+        @media($sm-1281) {
             padding-left: 10px;
         }
-        @media($sm-991){
+
+        @media($sm-991) {
             padding-left: 0px;
         }
-       
+
     }
-    .top-img{
+
+    .top-img {
         padding-bottom: 20px;
-        &:last-child{
+
+        &:last-child {
             // padding-bottom: 0px;
         }
     }
+
     .top-head {
         font-weight: 600;
         font-size: 20px;
@@ -25,15 +30,17 @@
         color: #00368c;
         padding-top: 26px;
         padding-bottom: 41px;
-    
+
     }
-    .profile-pic,.profile-details 
-        {
-            @media($sm-991){
-                width: 100%;
-            }
-        } 
-    .profile-inner{
+
+    .profile-pic,
+    .profile-details {
+        @media($sm-991) {
+            width: 100%;
+        }
+    }
+
+    .profile-inner {
         display: flex;
         justify-content: space-between;
         border: 1px solid #BCDEE2;
@@ -41,62 +48,72 @@
         position: relative;
         // align-items: center;
         padding: 60px;
-        .permInputs{
-            @media($sm-991){
+
+        .permInputs {
+            @media($sm-991) {
                 flex-direction: column;
             }
         }
-        @media($sm-1281){
-           
+
+        @media($sm-1281) {
+
             padding: 30px 20px;
         }
-        @media($sm-991){
+
+        @media($sm-991) {
             flex-direction: column;
-           padding: 30px 20px;
+            padding: 30px 20px;
         }
-        .profile-img{
+
+        .profile-img {
             width: 173px;
             height: 173px;
             border: 8px solid #00368C4A;
             border-radius: 100px;
-            @media($sm-1281){
+
+            @media($sm-1281) {
                 width: 100px;
                 height: 100px;
-                
+
             }
-            @media($sm-991){
+
+            @media($sm-991) {
                 width: 100px;
                 margin-bottom: 20px;
                 height: 100px;
             }
-            img{
+
+            img {
                 object-fit: cover;
                 width: 100%;
                 height: 100%;
                 border-radius: 100px;
             }
         }
+
         span.details {
-        font-size: 12px;
+            font-size: 12px;
             line-height: 17px;
             font-weight: 300;
             margin-left: 5px;
             letter-spacing: 0px;
             color: #00368C;
         }
+
         .text-sec {
             font-size: 13px;
             line-height: 20px;
             padding-left: 19px;
-           
+
         }
-      
-        .edit-btn{
+
+        .edit-btn {
             background-color: #DEF0F2;
             border-radius: 8px;
             border: 1px solid #DEF0F2;
             color: #00368C;
-            @media($sm-1281){
+
+            @media($sm-1281) {
                 padding: 10px;
                 display: inline-block;
             }
@@ -106,13 +123,15 @@
     .profile-name {
         display: flex;
         padding-bottom: 56px;
-        @media($sm-767){
+
+        @media($sm-767) {
             padding-bottom: 0px;
             flex-direction: column;
         }
-        @media($sm-991){
+
+        @media($sm-991) {
             padding-bottom: 0px;
-         
+
         }
     }
 }
@@ -128,100 +147,112 @@
     padding: 0 5px;
     font-weight: 600;
 
-    @media($sm-1679){
-      font-size: 14px;
+    @media($sm-1679) {
+        font-size: 14px;
 
-  }
-  @media($sm-1481){
-      font-size: 12px;
- 
-  }
+    }
+
+    @media($sm-1481) {
+        font-size: 12px;
+
+    }
 }
 
-  
 
-  .profile-btn.two-btn {
+
+.profile-btn.two-btn {
     display: flex;
     justify-content: end;
     margin-top: 100px;
-    &.two-btns{
+
+    &.two-btns {
         margin-top: 50px;
     }
-    @media($sm-991){
+
+    @media($sm-991) {
         margin-top: 0px;
         padding-top: 0px !important;
     }
-    button{
+
+    button {
         padding: 11px 42px;
         margin-right: 10px;
 
-        &:last-child{
+        &:last-child {
             margin-right: 0;
         }
-        &.close{
+
+        &.close {
             background-color: #DEF0F2;
             color: #00368c;
         }
     }
 }
-.green-btn{
+
+.green-btn {
     background: #00368C;
     color: #fff;
 }
 
 
 
-.profile-img{
+.profile-img {
     position: relative;
-    width: 200px; /* Set width as needed */
-    height: 200px; /* Set height as needed */
+    width: 200px;
+    /* Set width as needed */
+    height: 200px;
+    /* Set height as needed */
     overflow: hidden;
-    border-radius: 50%; /* Make it circular */
-  }
-  
+    border-radius: 50%;
+    /* Make it circular */
+}
 
-  .camera-icon {
+
+.camera-icon {
     position: absolute;
     top: 50%;
     left: 50%;
     transform: translate(-50%, -50%);
     font-size: 24px;
     color: #fff;
- 
+
     border-radius: 50%;
     padding: 10px;
     cursor: pointer;
-  }
-  
-  /* Hide file input */
-  .file-input {
+}
+
+/* Hide file input */
+.file-input {
     display: none;
-  }
+}
 
 
-    @media($sm-991){
-        .edit-sec.col-md-1{
- 
+@media($sm-991) {
+    .edit-sec.col-md-1 {
+
         width: 100% !important;
     }
-  }
+}
 
-  .profile1{
-    .profile-inner{
+.profile1 {
+    .profile-inner {
         border: none;
         position: relative;
         justify-content: center;
         padding: 0px;
         padding-bottom: 40px;
         align-items: center;
-        @media($sm-991){
+
+        @media($sm-991) {
             padding: 20px 0px 10px 0px;
         }
-        .profile-img{
+
+        .profile-img {
             width: 124px;
             height: 124px;
             position: unset;
         }
+
         .camera-icon {
             position: absolute;
             top: 60%;
@@ -229,14 +260,15 @@
         }
 
     }
-  }
+}
 
-  .profile-sec{
+.profile-sec {
 
-    .form-floating.form-floating .input-group-text{
+    .form-floating.form-floating .input-group-text {
         border: none;
         background-color: transparent;
     }
+
     .eye-icon {
         position: absolute;
         right: 10px;
@@ -244,35 +276,36 @@
         bottom: 0;
         background: none;
         border: none;
-    }}
+    }
+}
 
-    
-  .change-btn{
-    &.two-btn{
 
-        @media($sm-479){
+.change-btn {
+    &.two-btn {
+
+        @media($sm-479) {
             flex-wrap: wrap;
             justify-content: start;
             margin-top: 10px;
             padding-top: 10px;
-           
-        }
-     
-       .btn-common{
-        margin-bottom: 10px;
-       }
-    }
-  }
 
-  .change-password{
-    .permInputs{
-        .col{
-            &:last-child{
-                .form-floating{
+        }
+
+        .btn-common {
+            margin-bottom: 10px;
+        }
+    }
+}
+
+.change-password {
+    .permInputs {
+        .col {
+            &:last-child {
+                .form-floating {
                     margin-bottom: 10px;
                 }
-              
+
             }
         }
     }
-  }
+}
