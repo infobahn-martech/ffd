@@ -105,6 +105,7 @@ function NestedColumn({ column, cards, setSelectedCard, isShrunk = false, column
                 index={index}
                 setSelectedCard={setSelectedCard}
                 isShrunk={isShrunk}
+                hideExtraDetails={true}
               />
             ))}
             {provided.placeholder}
@@ -290,6 +291,7 @@ function Column({ column, cards, setSelectedCard, isExpanded = false, isShrunk =
                 index={index}
                 setSelectedCard={setSelectedCard}
                 isShrunk={isShrunk}
+                hideExtraDetails={true}
               />
             ))}
             {provided.placeholder}

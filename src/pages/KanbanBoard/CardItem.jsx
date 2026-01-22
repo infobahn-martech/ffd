@@ -94,7 +94,7 @@ const StatusIcon = ({ status = "pending", IconComponent, size = 20 }) => {
   return <IconComponent size={size} color={color} />;
 };
 
-function CardItem({ card, index, setSelectedCard, isShrunk = false }) {
+function CardItem({ card, index, setSelectedCard, isShrunk = false, hideExtraDetails = false }) {
   const cardColor = card.color || "#2A00FF";
 
   // Helper function to truncate text
@@ -248,6 +248,7 @@ function CardItem({ card, index, setSelectedCard, isShrunk = false }) {
               </div>
 
               {/* Extra Details Section - Icons with status colors */}
+              {!hideExtraDetails && (
               <div className="card-extra-details" style={{ display: "flex", gap: "12px", alignItems: "center", justifyContent: "flex-start", padding: "8px 0" }}>
                 {/* Transport Icon */}
                 <>
@@ -368,6 +369,7 @@ function CardItem({ card, index, setSelectedCard, isShrunk = false }) {
                   <Tooltip id={`launch-${card.id}`} place="top" />
                 </>
               </div>
+              )}
             </>
           )}
         </div>
@@ -406,6 +408,7 @@ CardItem.propTypes = {
   index: PropTypes.number.isRequired,
   setSelectedCard: PropTypes.func.isRequired,
   isShrunk: PropTypes.bool,
+  hideExtraDetails: PropTypes.bool,
 };
 
 export default CardItem;
