@@ -102,7 +102,7 @@ export function UserModal({ showModal, closeModal, onSuccess }) {
       if (showModal?.user_id) {
         // Update user
         await updateUser({
-          id: showModal._id,
+          id: showModal?.user_id,
           formData,
           cb: () => {
             closeModal();
