@@ -62,25 +62,22 @@ function Reports({ card, formValues, handleChange, isDAModule = false }) {
   return (
     <div className="operation-wrapper" style={{ "--card-color": cardColor }}>
       <div className="operation-content-container">
-        {!isDAModule && (
-          <ReportTabs
-            activeTab={activeReportTab}
-            onTabChange={handleTabChange}
-          />
-        )}
+        <ReportTabs
+          activeTab={activeReportTab}
+          onTabChange={handleTabChange}
+        />
         <div className="operation-right">
-          {(!isDAModule && activeReportTab === REPORT_TABS.SEND_REPORT) || isDAModule ? (
+          {activeReportTab === REPORT_TABS.SEND_REPORT && (
             <ReportsList
               formValues={formValues}
               handleChange={handleChange}
               isDAModule={isDAModule}
             />
-          ) : (
-            activeReportTab === REPORT_TABS.VIEW_REPORT && (
-              <ViewReport
-                sentReports={displaySentReports}
-              />
-            )
+          )}
+          {activeReportTab === REPORT_TABS.VIEW_REPORT && (
+            <ViewReport
+              sentReports={displaySentReports}
+            />
           )}
         </div>
       </div>
