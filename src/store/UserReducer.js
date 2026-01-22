@@ -29,8 +29,8 @@ const useUserReducer = create((set) => ({
       set({ isLoading: true });
       const { data } = await userService.getUsers({ params });
       set({
-        users: data.data?.data || data.data || [],
-        userCount: data.data?.totalCount || data.totalCount || 0,
+        users: data?.data || [],
+        userCount: data?.pagination?.total || 0,
         isLoading: false
       });
     } catch (error) {

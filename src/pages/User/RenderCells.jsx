@@ -7,27 +7,27 @@ import { getInitials } from '../../utils/utils';
 
 export const RenderAction = ({ onEditClick, row, onDeleteClick, onToggleClick }) => {
   const isActive = row?.status === "Active";
-  
+
   return (
     <>
       <Tooltip id="toggle" place="bottom" content={isActive ? "Deactivate" : "Activate"} />
       <Tooltip id="edit" place="bottom" content="Edit" />
       <Tooltip id="archive" place="bottom" content="Archive" />
       <div className="actions">
-        <span 
-          data-tooltip-id="toggle" 
-          type="button" 
+        <span
+          data-tooltip-id="toggle"
+          type="button"
           className="toggle-action"
-          style={{ 
-            display: 'inline-flex', 
-            alignItems: 'center', 
+          style={{
+            display: 'inline-flex',
+            alignItems: 'center',
             marginRight: '8px',
             cursor: 'pointer'
           }}
         >
-          <label 
-            className="user-toggle-switch" 
-            style={{ 
+          <label
+            className="user-toggle-switch"
+            style={{
               margin: 0,
               position: 'relative',
               display: 'inline-block',
@@ -46,7 +46,7 @@ export const RenderAction = ({ onEditClick, row, onDeleteClick, onToggleClick })
                 height: 0
               }}
             />
-            <span 
+            <span
               className="user-toggle-slider"
               style={{
                 position: 'absolute',
@@ -101,10 +101,9 @@ export const RenderName = ({ row }) => {
   return (
     <>
       <span className="name-letter bg-ltr">
-        {getInitials(`${row?.firstName} ${row?.lastName}`)}
+        {getInitials(`${row?.name}`)}
       </span>
-      {row?.firstName}&nbsp;
-      {row?.lastName}
+      {row?.name}
     </>
   );
 };
