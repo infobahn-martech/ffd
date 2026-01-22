@@ -1144,7 +1144,7 @@ const ArrivalContent = ({ formValues, handleChange, cardColor, onAddAttachment, 
     <div className="cardform-left-full" style={{ "--card-color": cardColor }}>
       <div className="operation-content-header">
         <h3 className="operation-content-title">Arrival Information</h3>
-        {onSendReport && <SendReportButton onClick={onSendReport} cardColor={cardColor} tabName="Arrival" />}
+        {onSendReport && !isViewOnly && <SendReportButton onClick={onSendReport} cardColor={cardColor} tabName="Arrival" />}
       </div>
       <FormSection icon={GroupSettingsIcon} title="">
         <div className="arrival-form">
@@ -1367,112 +1367,216 @@ const ArrivalContent = ({ formValues, handleChange, cardColor, onAddAttachment, 
               </FormField>
 
               <FormField label="Attach Vessel Inward and Marine Work Permit Copies">
-                <div style={{ position: "relative", marginTop: "8px" }}>
-                  <AttachmentsList
-                    attachments={formValues.arrivalDocumentsAttachments || []}
-                    onAdd={() => { }}
-                    onRemove={handleDocumentsRemoveAttachment}
-                    cardColor={cardColor}
-                    isDragging={isDraggingDocuments}
-                    onDragEnter={handleDocumentsDragEnter}
-                    onDragLeave={handleDocumentsDragLeave}
-                    onDragOver={handleDocumentsDragOver}
-                    onDrop={handleDocumentsDrop}
-                    fileInputRef={documentsFileInputRef}
-                    onFileInputChange={handleDocumentsFileInputChange}
-                  />
-                  <button
-                    type="button"
-                    onClick={handleSendDocuments}
-                    className="document-send-btn"
-                    title="Send documents"
-                    disabled={(formValues.arrivalDocumentsAttachments || []).length === 0}
-                    style={{
-                      position: "absolute",
-                      top: "12px",
-                      right: "12px",
-                      background: (formValues.arrivalDocumentsAttachments || []).length > 0 ? "#3e5cb6" : "#c5c5d1",
-                      border: "none",
-                      borderRadius: "6px",
-                      width: "36px",
-                      height: "36px",
-                      display: "flex",
-                      alignItems: "center",
-                      justifyContent: "center",
-                      cursor: (formValues.arrivalDocumentsAttachments || []).length > 0 ? "pointer" : "not-allowed",
-                      color: "#ffffff",
-                      transition: "all 0.2s ease",
-                      zIndex: 10,
-                      boxShadow: (formValues.arrivalDocumentsAttachments || []).length > 0 ? "0 2px 6px rgba(62, 94, 189, 0.3)" : "none",
-                      opacity: (formValues.arrivalDocumentsAttachments || []).length > 0 ? 1 : 0.6,
-                    }}
-                    onMouseEnter={(e) => {
-                      if ((formValues.arrivalDocumentsAttachments || []).length > 0) {
-                        e.currentTarget.style.background = "#2e4a8f";
-                        e.currentTarget.style.transform = "scale(1.1)";
-                        e.currentTarget.style.boxShadow = "0 4px 8px rgba(62, 94, 189, 0.4)";
-                      }
-                    }}
-                    onMouseLeave={(e) => {
-                      if ((formValues.arrivalDocumentsAttachments || []).length > 0) {
-                        e.currentTarget.style.background = "#3e5cb6";
-                        e.currentTarget.style.transform = "scale(1)";
-                        e.currentTarget.style.boxShadow = "0 2px 6px rgba(62, 94, 189, 0.3)";
-                      } else {
-                        e.currentTarget.style.background = "#c5c5d1";
-                        e.currentTarget.style.transform = "scale(1)";
-                        e.currentTarget.style.boxShadow = "none";
-                      }
-                    }}
-                  >
-                    <svg
-                      width="18"
-                      height="18"
-                      viewBox="0 0 24 24"
-                      fill="none"
-                      xmlns="http://www.w3.org/2000/svg"
-                    >
-                      <path
-                        d="M22 2L11 13"
-                        stroke="currentColor"
-                        strokeWidth="2"
-                        strokeLinecap="round"
-                        strokeLinejoin="round"
+                <div style={{ marginTop: "8px" }}>
+                  {isViewOnly ? (
+                    // View-only mode: Show dummy documents list
+                    <div className="attachment-list-wrapper">
+                      <div style={{
+                        padding: "16px",
+                        border: "1px solid #e2e2ea",
+                        borderRadius: "8px",
+                        backgroundColor: "#f8f9fa"
+                      }}>
+                        {(formValues.arrivalDocumentsAttachments || []).map((doc, index) => (
+                          <div
+                            key={index}
+                            style={{
+                              display: "flex",
+                              alignItems: "center",
+                              padding: "12px",
+                              marginBottom: index < (formValues.arrivalDocumentsAttachments || []).length - 1 ? "8px" : "0",
+                              backgroundColor: "#ffffff",
+                              borderRadius: "6px",
+                              border: "1px solid #e2e2ea"
+                            }}
+                          >
+                            <div style={{ marginRight: "12px", color: "#666" }}>
+                              <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                                <path d="M14 2H6C5.46957 2 4.96086 2.21071 4.58579 2.58579C4.21071 2.96086 4 3.46957 4 4V20C4 20.5304 4.21071 21.0391 4.58579 21.4142C4.96086 21.7893 5.46957 22 6 22H18C18.5304 22 19.0391 21.7893 19.4142 21.4142C19.7893 21.0391 20 20.5304 20 20V8L14 2Z" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" fill="none" />
+                                <path d="M14 2V8H20" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" fill="none" />
+                                <path d="M16 13H8" stroke="currentColor" strokeWidth="2" strokeLinecap="round" fill="none" />
+                                <path d="M16 17H8" stroke="currentColor" strokeWidth="2" strokeLinecap="round" fill="none" />
+                                <path d="M10 9H9H8" stroke="currentColor" strokeWidth="2" strokeLinecap="round" fill="none" />
+                              </svg>
+                            </div>
+                            <div style={{ flex: 1 }}>
+                              <div style={{
+                                fontSize: "14px",
+                                fontWeight: "500",
+                                color: "#1a1a1a",
+                                marginBottom: "4px"
+                              }}>
+                                {doc.name}
+                              </div>
+                              {doc.size && (
+                                <div style={{
+                                  fontSize: "12px",
+                                  color: "#666"
+                                }}>
+                                  {(doc.size / 1024).toFixed(2)} KB
+                                </div>
+                              )}
+                            </div>
+                            <button
+                              type="button"
+                              onClick={() => {
+                                // Handle view action
+                                console.log("View document:", doc.name);
+                              }}
+                              style={{
+                                marginLeft: "12px",
+                                padding: "8px",
+                                border: "none",
+                                backgroundColor: "transparent",
+                                cursor: "pointer",
+                                display: "flex",
+                                alignItems: "center",
+                                justifyContent: "center",
+                                color: "#3e5cb6",
+                                borderRadius: "4px",
+                                transition: "background-color 0.2s"
+                              }}
+                              onMouseEnter={(e) => {
+                                e.currentTarget.style.backgroundColor = "#f0f0f0";
+                              }}
+                              onMouseLeave={(e) => {
+                                e.currentTarget.style.backgroundColor = "transparent";
+                              }}
+                              title="View document"
+                            >
+                              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                                <path d="M1 12C1 12 5 4 12 4C19 4 23 12 23 12C23 12 19 20 12 20C5 20 1 12 1 12Z" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" fill="none" />
+                                <circle cx="12" cy="12" r="3" stroke="currentColor" strokeWidth="2" fill="none" />
+                              </svg>
+                            </button>
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                  ) : (
+                    <div style={{ position: "relative" }}>
+                      <AttachmentsList
+                        attachments={formValues.arrivalDocumentsAttachments || []}
+                        onAdd={() => { }}
+                        onRemove={handleDocumentsRemoveAttachment}
+                        cardColor={cardColor}
+                        isDragging={isDraggingDocuments}
+                        onDragEnter={handleDocumentsDragEnter}
+                        onDragLeave={handleDocumentsDragLeave}
+                        onDragOver={handleDocumentsDragOver}
+                        onDrop={handleDocumentsDrop}
+                        fileInputRef={documentsFileInputRef}
+                        onFileInputChange={handleDocumentsFileInputChange}
                       />
-                      <path
-                        d="M22 2L15 22L11 13L2 9L22 2Z"
-                        stroke="currentColor"
-                        strokeWidth="2"
-                        strokeLinecap="round"
-                        strokeLinejoin="round"
-                      />
-                    </svg>
-                  </button>
+                      <button
+                        type="button"
+                        onClick={handleSendDocuments}
+                        className="document-send-btn"
+                        title="Send documents"
+                        disabled={(formValues.arrivalDocumentsAttachments || []).length === 0}
+                        style={{
+                          position: "absolute",
+                          top: "12px",
+                          right: "12px",
+                          background: (formValues.arrivalDocumentsAttachments || []).length > 0 ? "#3e5cb6" : "#c5c5d1",
+                          border: "none",
+                          borderRadius: "6px",
+                          width: "36px",
+                          height: "36px",
+                          display: "flex",
+                          alignItems: "center",
+                          justifyContent: "center",
+                          cursor: (formValues.arrivalDocumentsAttachments || []).length > 0 ? "pointer" : "not-allowed",
+                          color: "#ffffff",
+                          transition: "all 0.2s ease",
+                          zIndex: 10,
+                          boxShadow: (formValues.arrivalDocumentsAttachments || []).length > 0 ? "0 2px 6px rgba(62, 94, 189, 0.3)" : "none",
+                          opacity: (formValues.arrivalDocumentsAttachments || []).length > 0 ? 1 : 0.6,
+                        }}
+                        onMouseEnter={(e) => {
+                          if ((formValues.arrivalDocumentsAttachments || []).length > 0) {
+                            e.currentTarget.style.background = "#2e4a8f";
+                            e.currentTarget.style.transform = "scale(1.1)";
+                            e.currentTarget.style.boxShadow = "0 4px 8px rgba(62, 94, 189, 0.4)";
+                          }
+                        }}
+                        onMouseLeave={(e) => {
+                          if ((formValues.arrivalDocumentsAttachments || []).length > 0) {
+                            e.currentTarget.style.background = "#3e5cb6";
+                            e.currentTarget.style.transform = "scale(1)";
+                            e.currentTarget.style.boxShadow = "0 2px 6px rgba(62, 94, 189, 0.3)";
+                          } else {
+                            e.currentTarget.style.background = "#c5c5d1";
+                            e.currentTarget.style.transform = "scale(1)";
+                            e.currentTarget.style.boxShadow = "none";
+                          }
+                        }}
+                      >
+                        <svg
+                          width="18"
+                          height="18"
+                          viewBox="0 0 24 24"
+                          fill="none"
+                          xmlns="http://www.w3.org/2000/svg"
+                        >
+                          <path
+                            d="M22 2L11 13"
+                            stroke="currentColor"
+                            strokeWidth="2"
+                            strokeLinecap="round"
+                            strokeLinejoin="round"
+                          />
+                          <path
+                            d="M22 2L15 22L11 13L2 9L22 2Z"
+                            stroke="currentColor"
+                            strokeWidth="2"
+                            strokeLinecap="round"
+                            strokeLinejoin="round"
+                          />
+                        </svg>
+                      </button>
+                    </div>
+                  )}
                 </div>
               </FormField>
 
-              <div className="form-save-button-wrapper">
-                <button
-                  type="button"
-                  className="form-save-button"
-                  onClick={handleSave}
-                >
-                  Save
-                </button>
-              </div>
+              {!isViewOnly && (
+                <div className="form-save-button-wrapper">
+                  <button
+                    type="button"
+                    className="form-save-button"
+                    onClick={handleSave}
+                  >
+                    Save
+                  </button>
+                </div>
+              )}
             </div>
 
             <div className="general-info-right">
-              <div className="card-description-wrapper">
+              <div className="card-description-wrapper" style={{
+                minHeight: isViewOnly ? "300px" : "auto",
+                maxHeight: isViewOnly ? "400px" : "none",
+                overflowY: isViewOnly ? "auto" : "visible"
+              }}>
                 <FormField label="Remarks">
-                  <ReactQuillEditor
-                    value={formValues?.arrivalDescription || ""}
-                    onChange={handleChange("arrivalDescription")}
-                    placeholder="Enter arrival remarks..."
-                    name="arrivalDescription"
-                    className="arrival-quill-editor"
-                    readOnly={isViewOnly}
-                  />
+                  <div style={isViewOnly ? {
+                    maxHeight: "350px",
+                    overflowY: "auto",
+                    padding: "8px",
+                    border: "1px solid #e2e2ea",
+                    borderRadius: "4px",
+                    backgroundColor: "#ffffff"
+                  } : {}}>
+                    <ReactQuillEditor
+                      value={formValues?.arrivalDescription || ""}
+                      onChange={handleChange("arrivalDescription")}
+                      placeholder="Enter arrival remarks..."
+                      name="arrivalDescription"
+                      className="arrival-quill-editor"
+                      readOnly={isViewOnly}
+                    />
+                  </div>
                 </FormField>
               </div>
             </div>
@@ -1967,7 +2071,13 @@ const getDummyValues = () => ({
   marineWorkPermitIssuedTime: "15:00",
   marineWorkPermitExpiresDate: "2024-02-15",
   marineWorkPermitExpiresTime: "15:00",
-  arrivalDescription: "<p>Vessel arrived on time. All clearance procedures completed successfully.</p>",
+  arrivalDocumentsAttachments: [
+    { name: "Vessel_Inward_Clearance_001.pdf", size: 456789, type: "application/pdf" },
+    { name: "Marine_Work_Permit_002.pdf", size: 321456, type: "application/pdf" },
+    { name: "Custom_Inspection_Report.pdf", size: 234567, type: "application/pdf" },
+    { name: "Immigration_Clearance_Document.pdf", size: 198765, type: "application/pdf" },
+  ],
+  arrivalDescription: "<p><strong>Arrival Summary:</strong></p><p>Vessel arrived on time. All clearance procedures completed successfully. The vessel SS Central Bay docked at the designated berth without any issues.</p><p><strong>Clearance Status:</strong></p><ul><li>Custom inspection: Passed without any discrepancies</li><li>Crew immigration: Completed for all crew members</li><li>Vessel inward formalities: Successfully completed</li><li>Marine work permit: Issued and valid until expiration date</li></ul><p><strong>Operational Notes:</strong></p><p>All required documentation has been submitted and verified. The vessel is now cleared for operations. Port services have been notified and are ready to commence. Weather conditions were favorable during arrival. All safety protocols were followed during the docking procedure.</p>",
   outwardClearanceRequestReceivedDate: "2024-01-20",
   outwardClearanceRequestReceivedTime: "09:00",
   outwardClearanceIssuedDate: "2024-01-20",

@@ -593,7 +593,7 @@ function CardForm({ show, close, card, moveCardToColumn, columns, columnOrder, c
   const ENABLED_TABS = isDAModule ? DA_ENABLED_TABS : (isKanbanBoardWithId ? SIMPLIFIED_ENABLED_TABS : ALL_ENABLED_TABS);
   const defaultTab = (isDAModule || isKanbanBoardWithId) ? "General" : "Appointment Details";
 
-  const [activeTopTab, setActiveTopTab] = useState(defaultTab);
+  const [activeTopTab, setActiveTopTab] = useState(defaultTab)
 
   // Reset active tab when route changes
   useEffect(() => {
