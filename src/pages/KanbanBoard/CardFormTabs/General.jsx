@@ -1140,12 +1140,12 @@ function General({ card, formValues, handleChange, ownerInitial, cardUser, onSav
   ];
 
   const typeOptions = [
-    { value: "Type", label: "Type" },
+    { value: "Type", label: "IMPORT" },
     { value: "MWP RENEWAL", label: "MWP RENEWAL" },
-    { value: "CREW CHANGE", label: "CREW CHANGE" },
+    // { value: "CREW CHANGE", label: "CREW CHANGE" },
     { value: "FLEET", label: "FLEET" },
-    { value: "MATERIAL DELIVERY", label: "MATERIAL DELIVERY" },
-    { value: "ON STATION", label: "ON STATION" },
+    // { value: "MATERIAL DELIVERY", label: "MATERIAL DELIVERY" },
+    // { value: "ON STATION", label: "ON STATION" },
   ];
 
   // Dummy values for all fields when isAddMode is false
