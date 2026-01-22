@@ -305,7 +305,7 @@ MultiSelect.propTypes = {
 };
 
 // File Preview Component
-const FilePreview = ({ file, onRemove }) => {
+const FilePreview = ({ file, onRemove, isDAModule = false }) => {
   if (!file) return null;
 
   const getFileType = (fileName) => {
@@ -320,6 +320,44 @@ const FilePreview = ({ file, onRemove }) => {
   const isPDF = fileType === 'pdf';
   const isWord = ['doc', 'docx'].includes(fileType);
 
+  const handleDownloadClick = (e) => {
+    e.stopPropagation();
+
+    // Handle File object (from file input)
+    if (file instanceof File) {
+      const url = URL.createObjectURL(file);
+      const link = document.createElement('a');
+      link.href = url;
+      link.download = fileName;
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+      URL.revokeObjectURL(url);
+    }
+    // Handle file with URL (stored file)
+    else if (file?.url || file?.link) {
+      const url = file.url || file.link;
+      const link = document.createElement('a');
+      link.href = url;
+      link.download = fileName;
+      link.target = '_blank';
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+    }
+    // Handle file object with blob data
+    else if (file?.blob) {
+      const url = URL.createObjectURL(file.blob);
+      const link = document.createElement('a');
+      link.href = url;
+      link.download = fileName;
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+      URL.revokeObjectURL(url);
+    }
+  };
+
   const handleRemoveClick = (e) => {
     e.stopPropagation();
     if (onRemove) {
@@ -329,14 +367,28 @@ const FilePreview = ({ file, onRemove }) => {
 
   return (
     <div className="checklist-file-preview">
-      <button
-        type="button"
-        className="checklist-file-preview-close"
-        onClick={handleRemoveClick}
-        title="Remove file"
-      >
-        ×
-      </button>
+      {isDAModule ? (
+        <button
+          type="button"
+          className="checklist-file-preview-download"
+          onClick={handleDownloadClick}
+          title="Download file"
+        >
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <path d="M12 15V3M12 15L7 10M12 15L17 10" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+            <path d="M2 17L2 19C2 20.1046 2.89543 21 4 21L20 21C21.1046 21 22 20.1046 22 19L22 17" stroke="currentColor" strokeWidth="2" strokeLinecap="round" />
+          </svg>
+        </button>
+      ) : (
+        <button
+          type="button"
+          className="checklist-file-preview-close"
+          onClick={handleRemoveClick}
+          title="Remove file"
+        >
+          ×
+        </button>
+      )}
       <div className="checklist-file-preview-icon">
         {isPDF && (
           <div className="checklist-file-icon-pdf">
@@ -390,10 +442,11 @@ const FilePreview = ({ file, onRemove }) => {
 FilePreview.propTypes = {
   file: PropTypes.object,
   onRemove: PropTypes.func,
+  isDAModule: PropTypes.bool,
 };
 
 // Item Detail Modal Component
-const ItemDetailModal = ({ item, isOpen, onClose, itemData, onUpdate, cardColor = "#2A00FF" }) => {
+const ItemDetailModal = ({ item, isOpen, onClose, itemData, onUpdate, cardColor = "#2A00FF", isDAModule = false }) => {
   const [remarks, setRemarks] = useState(itemData?.remarks || "");
   const [checked, setChecked] = useState(itemData?.checked || false);
   const [uploadedFile, setUploadedFile] = useState(itemData?.uploadedFile || null);
@@ -519,7 +572,7 @@ startxref
                     className="checklist-file-input"
                   />
                   <label htmlFor={`file-upload-replace-${item.id}`} className="checklist-file-preview-clickable">
-                    <FilePreview file={uploadedFile} onRemove={handleRemoveFile} />
+                    <FilePreview file={uploadedFile} onRemove={handleRemoveFile} isDAModule={isDAModule} />
                   </label>
                 </div>
               ) : (
@@ -717,8 +770,8 @@ const ChecklistItem = ({ id, label, requirement, itemData, onChange, cardColor =
               title="View document"
             >
               <svg width="18" height="18" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-                <path d="M1 12C1 12 5 4 12 4C19 4 23 12 23 12C23 12 19 20 12 20C5 20 1 12 1 12Z" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" fill="none"/>
-                <circle cx="12" cy="12" r="3" stroke="currentColor" strokeWidth="2" fill="none"/>
+                <path d="M1 12C1 12 5 4 12 4C19 4 23 12 23 12C23 12 19 20 12 20C5 20 1 12 1 12Z" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" fill="none" />
+                <circle cx="12" cy="12" r="3" stroke="currentColor" strokeWidth="2" fill="none" />
               </svg>
             </button>
           </div>
@@ -740,7 +793,7 @@ const ChecklistItem = ({ id, label, requirement, itemData, onChange, cardColor =
             />
             {uploadedFile ? (
               <div className="checklist-table-file-preview">
-                <FilePreview file={uploadedFile} onRemove={handleRemoveFile} />
+                <FilePreview file={uploadedFile} onRemove={handleRemoveFile} isDAModule={isDAModule} />
               </div>
             ) : (
               <div className="checklist-table-upload-placeholder">
@@ -776,6 +829,7 @@ ChecklistItem.propTypes = {
   onChange: PropTypes.func.isRequired,
   cardColor: PropTypes.string,
   isViewOnly: PropTypes.bool,
+  isDAModule: PropTypes.bool,
 };
 
 // Checklist Section Component
@@ -790,6 +844,7 @@ const ChecklistSection = ({
   onSelectAll,
   cardColor = "#2A00FF",
   isViewOnly = false,
+  isDAModule = false,
 }) => {
   // All selected means all items have files uploaded (checked is based on file upload)
   const allSelected = items.length > 0 && items.every((item) => {
@@ -899,6 +954,7 @@ const ChecklistSection = ({
                   onChange={onItemChange}
                   cardColor={cardColor}
                   isViewOnly={isViewOnly}
+                  isDAModule={isDAModule}
                 />
               ))}
             </tbody>
@@ -925,6 +981,7 @@ ChecklistSection.propTypes = {
   onSelectAll: PropTypes.func.isRequired,
   cardColor: PropTypes.string,
   isViewOnly: PropTypes.bool,
+  isDAModule: PropTypes.bool,
 };
 
 // Checklist Type Group Component (Accordion for type titles)
@@ -940,6 +997,7 @@ const ChecklistTypeGroup = ({
   onToggle,
   cardColor = "#2A00FF",
   isViewOnly = false,
+  isDAModule = false,
 }) => {
   return (
     <div className="checklist-type-group" style={{ "--card-color": cardColor }}>
@@ -966,6 +1024,8 @@ const ChecklistTypeGroup = ({
               onToggle={() => onSectionToggle(section.id)}
               onSelectAll={onSelectAll}
               cardColor={cardColor}
+              isViewOnly={isViewOnly}
+              isDAModule={isDAModule}
             />
           ))}
         </div>
@@ -986,6 +1046,7 @@ ChecklistTypeGroup.propTypes = {
   onToggle: PropTypes.func.isRequired,
   cardColor: PropTypes.string,
   isViewOnly: PropTypes.bool,
+  isDAModule: PropTypes.bool,
 };
 
 // Helper function to generate dummy file for checklist items
@@ -1012,7 +1073,7 @@ const getDummyRemarksForItem = (itemId, itemLabel) => {
 };
 
 // Main Checklist Component
-function Checklist({ card, formValues, handleChange, onSendReport, cardColor: propCardColor, isViewOnly = false }) {
+function Checklist({ card, formValues, handleChange, onSendReport, cardColor: propCardColor, isViewOnly = false, isDAModule = false }) {
   const cardColor = propCardColor || card?.color || "#2A00FF";
 
   // Form state - Initialize with both checklist types selected by default
@@ -1343,6 +1404,7 @@ function Checklist({ card, formValues, handleChange, onSendReport, cardColor: pr
                         onToggle={() => handleTypeGroupToggle(typeTitle)}
                         cardColor={cardColor}
                         isViewOnly={isViewOnly}
+                        isDAModule={isDAModule}
                       />
                     ));
                   })()}
@@ -1380,6 +1442,7 @@ Checklist.propTypes = {
   onSendReport: PropTypes.func,
   cardColor: PropTypes.string,
   isViewOnly: PropTypes.bool,
+  isDAModule: PropTypes.bool,
 };
 
 export default Checklist;
