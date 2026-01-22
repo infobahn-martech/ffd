@@ -1,4 +1,5 @@
 import { useForm, Controller } from "react-hook-form";
+import { useState, useEffect } from "react";
 import PhoneInput from "react-phone-input-2";
 import "react-phone-input-2/lib/bootstrap.css";
 import CustomModal from "../../../components/CustomModal";
@@ -7,33 +8,120 @@ import "../../../design/scss/modal-designs.scss";
 import "../../../design/scss/form-designs.scss";
 import userIcon from "../../../assets/images/user.png";
 import edit from "../../../assets/images/edit.svg";
-import { ROLE_OPTIONS } from "../../../constants/roles";
+import useUserReducer from "../../../store/UserReducer";
+import useRoleReducer from "../../../store/RoleReducer";
 
-export function UserModal({ showModal, closeModal }) {
+export function UserModal({ showModal, closeModal, onSuccess }) {
+  const [profileImage, setProfileImage] = useState(null);
+  const [profileImagePreview, setProfileImagePreview] = useState(
+    showModal?.avatar || userIcon
+  );
+
   const {
     register,
     handleSubmit,
     formState: { errors },
     control,
+    reset,
   } = useForm({
     defaultValues: showModal?._id
       ? {
         name: showModal?.firstName + " " + showModal?.lastName,
         email: showModal?.email,
-        role: showModal?.role,
+        roleid: showModal?.roleId || showModal?.role?._id || "",
         phone: showModal?.phone || "",
-        address: showModal?.address,
+        address: showModal?.address || "",
       }
       : {
         phone: "",
       },
   });
 
-  const onSubmit = (data) => {
-    console.log("USER FORM SUBMITTED:", data);
-    console.log("USER FORM SUBMITTED:", data);
-    console.log("USER FORM SUBMITTED:", data);
-    closeModal();
+  const { createUser, updateUser, addEditLoader } = useUserReducer((state) => state);
+  const { fetchRoles, roles } = useRoleReducer((state) => state);
+
+  useEffect(() => {
+    // Fetch roles when modal opens
+    fetchRoles({ params: { page: 1, limit: 100 } });
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
+  useEffect(() => {
+    // Update form when showModal changes
+    if (showModal?._id) {
+      reset({
+        name: showModal?.firstName + " " + showModal?.lastName,
+        email: showModal?.email,
+        roleid: showModal?.roleId || showModal?.role?._id || "",
+        phone: showModal?.phone || "",
+        address: showModal?.address || "",
+      });
+      setProfileImagePreview(showModal?.avatar || userIcon);
+      setProfileImage(null);
+    } else {
+      reset({
+        phone: "",
+        name: "",
+        email: "",
+        roleid: "",
+        address: "",
+      });
+      setProfileImagePreview(userIcon);
+      setProfileImage(null);
+    }
+  }, [showModal, reset]);
+
+  const handleImageChange = (e) => {
+    const file = e.target.files[0];
+    if (file) {
+      setProfileImage(file);
+      const reader = new FileReader();
+      reader.onloadend = () => {
+        setProfileImagePreview(reader.result);
+      };
+      reader.readAsDataURL(file);
+    }
+  };
+
+  const onSubmit = async (data) => {
+    try {
+      const formData = new FormData();
+      
+      // Map form data to API format
+      formData.append("name", data.name);
+      formData.append("email", data.email);
+      formData.append("phone", data.phone);
+      formData.append("address", data.address || "");
+      formData.append("roleid", data.roleid);
+      
+      // Append profile image if selected
+      if (profileImage) {
+        formData.append("profileimg", profileImage);
+      }
+
+      if (showModal?._id) {
+        // Update user
+        await updateUser({
+          id: showModal._id,
+          formData,
+          cb: () => {
+            closeModal();
+            onSuccess && onSuccess();
+          },
+        });
+      } else {
+        // Create user
+        await createUser({
+          formData,
+          cb: () => {
+            closeModal();
+            onSuccess && onSuccess();
+          },
+        });
+      }
+    } catch (error) {
+      console.error("Error submitting user form:", error);
+    }
   };
 
   const renderHeader = () => (
@@ -52,7 +140,7 @@ export function UserModal({ showModal, closeModal }) {
           <div className="d-flex justify-content-center mb-4">
             <div className="avatar-wrapper" style={{ position: "relative" }}>
               <img
-                src={showModal?.avatar || userIcon}
+                src={profileImagePreview}
                 alt="User Avatar"
                 className="avatar-image"
                 style={{
@@ -88,7 +176,13 @@ export function UserModal({ showModal, closeModal }) {
                 />
               </label>
 
-              <input type="file" id="avatarUpload" className="d-none" />
+              <input
+                type="file"
+                id="avatarUpload"
+                className="d-none"
+                accept="image/*"
+                onChange={handleImageChange}
+              />
             </div>
           </div>
 
@@ -149,21 +243,21 @@ export function UserModal({ showModal, closeModal }) {
               <div className="col-lg-6 col-sm-12">
                 <div className="form-floating desig-inp">
                   <select
-                    className={`form-control ${errors.role ? "is-invalid" : ""}`}
-                    {...register("role", { required: "User role is required" })}
+                    className={`form-control ${errors.roleid ? "is-invalid" : ""}`}
+                    {...register("roleid", { required: "User role is required" })}
                   >
                     <option value="">Select User Role</option>
-                    {ROLE_OPTIONS.map((role) => (
-                      <option key={role} value={role}>
-                        {role}
+                    {roles?.map((role) => (
+                      <option key={role._id} value={role._id}>
+                        {role.name}
                       </option>
                     ))}
                   </select>
                   <label>
                     User Role <span className="text-danger">*</span>
                   </label>
-                  {errors.role && (
-                    <span className="error text-danger">{errors.role.message}</span>
+                  {errors.roleid && (
+                    <span className="error text-danger">{errors.roleid.message}</span>
                   )}
                 </div>
               </div>
@@ -231,11 +325,27 @@ export function UserModal({ showModal, closeModal }) {
 
   const renderFooter = () => (
     <div className="modal-footer">
-      <button type="button" className="btn btn-outline" onClick={closeModal}>
+      <button
+        type="button"
+        className="btn btn-outline"
+        onClick={closeModal}
+        disabled={addEditLoader}
+      >
         Close
       </button>
-      <button type="submit" form="userForm" className="btn btn-primary">
-        Save
+      <button
+        type="submit"
+        form="userForm"
+        className="btn btn-primary"
+        disabled={addEditLoader}
+      >
+        {addEditLoader ? (
+          <div className="spinner-border spinner-border-sm" role="status">
+            <span className="visually-hidden">Loading...</span>
+          </div>
+        ) : (
+          showModal?._id ? "Update" : "Save"
+        )}
       </button>
     </div>
   );

@@ -161,7 +161,12 @@ const User = () => {
           {!!showUserModal && (
             <UserModal
               showModal={showUserModal}
-              closeModal={() => setShowUserModal(false)}
+              closeModal={() => {
+                setShowUserModal(false);
+              }}
+              onSuccess={() => {
+                getUsers({ params });
+              }}
             />
           )}
           {!!showDeleteModal && (

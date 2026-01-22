@@ -23,8 +23,8 @@ const getUsers = ({ params }) => {
   return Gateway.get('/users', { params: apiParams });
 };
 
-const createUser = (formData) => Gateway.post('/users', formData);
+const createUser = (formData) => Gateway.post('/users/create', formData);
 
-const updateUser = (id, formData) => Gateway.patch(`/users/${id}`, formData);
+const updateUser = (userId, formData) => Gateway.post(`/users/update/${userId}`, formData);
 
 export default { getUsers, createUser, updateUser };
