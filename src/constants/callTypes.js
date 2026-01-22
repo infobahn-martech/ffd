@@ -8,4 +8,3 @@ export const CALL_TYPE_OPTIONS = [
   "Emergency",
   "Other",
 ];
-

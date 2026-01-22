@@ -234,6 +234,15 @@ ServiceSelection.propTypes = {
   bookedServices: PropTypes.array,
 };
 
+// Dummy crew data for DA module Husbandry tab (table above Booked Services)
+const DAMODULE_CREW_DUMMY = [
+  { crewName: "Ahmed Al-Rashid", nationality: "Saudi Arabia", rank: "Chief Officer", passportNo: "A12345678", iqamaNo: "IQ-987654", visaNo: "V-2024-001" },
+  { crewName: "John Smith", nationality: "United Kingdom", rank: "Master", passportNo: "UK4521987", iqamaNo: "IQ-112233", visaNo: "V-2024-002" },
+  { crewName: "Maria Santos", nationality: "Philippines", rank: "Chief Cook", passportNo: "PH7890123", iqamaNo: "IQ-445566", visaNo: "V-2024-003" },
+  { crewName: "Viktor Petrov", nationality: "Ukraine", rank: "Chief Engineer", passportNo: "UA3456789", iqamaNo: "IQ-778899", visaNo: "V-2024-004" },
+  { crewName: "Raj Kumar", nationality: "India", rank: "AB Seaman", passportNo: "IN5678901", iqamaNo: "IQ-223344", visaNo: "V-2024-005" },
+];
+
 // Main Husbandry Component
 function Husbandry({ card, formValues, handleChange, isDAModule = false }) {
   const [serviceSelected, setServiceSelected] = useState(false);
@@ -535,6 +544,32 @@ function Husbandry({ card, formValues, handleChange, isDAModule = false }) {
       <div className="operation-wrapper husbandry-wrapper" style={{ "--card-color": cardColor }}>
         <div className="husbandry-service-selection" style={{ "--card-color": cardColor }}>
           <div className="husbandry-service-selection-content">
+            <div className="husbandry-da-crew-table-wrapper">
+              <table className="table husbandry-da-crew-table">
+                <thead>
+                  <tr>
+                    <th>Crew Name</th>
+                    <th>Nationality</th>
+                    <th>Rank</th>
+                    <th>Passport No.</th>
+                    <th>Iqama No.</th>
+                    <th>Visa No.</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {DAMODULE_CREW_DUMMY.map((row, idx) => (
+                    <tr key={idx}>
+                      <td>{row.crewName}</td>
+                      <td>{row.nationality}</td>
+                      <td>{row.rank}</td>
+                      <td>{row.passportNo}</td>
+                      <td>{row.iqamaNo}</td>
+                      <td>{row.visaNo}</td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
             <h2 className="husbandry-service-selection-title">Booked Services</h2>
             {bookedServices.length > 0 ? (
               <div className="husbandry-booked-services-section">
