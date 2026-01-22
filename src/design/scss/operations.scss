@@ -389,17 +389,19 @@
   text-transform: uppercase;
   letter-spacing: 0.8px;
   padding: 16px 18px;
+  padding-left: 58px;
   border: none;
   white-space: nowrap;
   text-align: left;
 }
 
 .husbandry-da-crew-table-wrapper .husbandry-da-crew-table thead th:first-child {
-  padding-left: 24px;
+  padding-left: 58px;
 }
 
 .husbandry-da-crew-table-wrapper .husbandry-da-crew-table thead th:last-child {
   padding-right: 24px;
+  min-width: 120px;
 }
 
 .husbandry-da-crew-table-wrapper .husbandry-da-crew-table tbody td {
@@ -434,7 +436,7 @@
   border-bottom: none;
 }
 
-.husbandry-da-crew-service-badge {
+.husbandry-da-crew-table-wrapper .husbandry-da-crew-service-badge {
   display: inline-block;
   padding: 6px 12px;
   font-size: 12px;

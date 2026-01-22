@@ -572,7 +572,7 @@ function Husbandry({ card, formValues, handleChange, isDAModule = false }) {
                       <td>{row.iqamaNo}</td>
                       <td>{row.visaNo}</td>
                       <td>
-                        <span className="husbandry-da-crew-service-badge">{row.service}</span>
+                        <span className="husbandry-da-crew-service-badge">{row.service ?? "—"}</span>
                       </td>
                     </tr>
                   ))}
