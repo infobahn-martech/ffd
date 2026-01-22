@@ -14,7 +14,7 @@ import useRoleReducer from "../../../store/RoleReducer";
 export function UserModal({ showModal, closeModal, onSuccess }) {
   const [profileImage, setProfileImage] = useState(null);
   const [profileImagePreview, setProfileImagePreview] = useState(
-    showModal?.avatar || userIcon
+    showModal?.image || userIcon
   );
 
   const {
@@ -24,11 +24,11 @@ export function UserModal({ showModal, closeModal, onSuccess }) {
     control,
     reset,
   } = useForm({
-    defaultValues: showModal?._id
+    defaultValues: showModal?.user_id
       ? {
-        name: showModal?.firstName + " " + showModal?.lastName,
+        name: showModal?.name,
         email: showModal?.email,
-        roleid: showModal?.roleId || showModal?.role?._id || "",
+        roleid: showModal?.role?.role_id || "",
         phone: showModal?.phone || "",
         address: showModal?.address || "",
       }
@@ -48,15 +48,15 @@ export function UserModal({ showModal, closeModal, onSuccess }) {
 
   useEffect(() => {
     // Update form when showModal changes
-    if (showModal?._id) {
+    if (showModal?.user_id) {
       reset({
-        name: showModal?.firstName + " " + showModal?.lastName,
+        name: showModal?.name,
         email: showModal?.email,
-        roleid: showModal?.roleId || showModal?.role?._id || "",
+        roleid: showModal?.role?.role_id || "",
         phone: showModal?.phone || "",
         address: showModal?.address || "",
       });
-      setProfileImagePreview(showModal?.avatar || userIcon);
+      setProfileImagePreview(showModal?.image || userIcon);
       setProfileImage(null);
     } else {
       reset({
@@ -86,20 +86,20 @@ export function UserModal({ showModal, closeModal, onSuccess }) {
   const onSubmit = async (data) => {
     try {
       const formData = new FormData();
-      
+
       // Map form data to API format
       formData.append("name", data.name);
       formData.append("email", data.email);
       formData.append("phone", data.phone);
       formData.append("address", data.address || "");
       formData.append("roleid", data.roleid);
-      
+
       // Append profile image if selected
       if (profileImage) {
         formData.append("profileimg", profileImage);
       }
 
-      if (showModal?._id) {
+      if (showModal?.user_id) {
         // Update user
         await updateUser({
           id: showModal._id,
@@ -127,7 +127,7 @@ export function UserModal({ showModal, closeModal, onSuccess }) {
   const renderHeader = () => (
     <>
       <h1 className="modal-title">
-        {showModal?._id ? "Edit User" : "Add User"}
+        {showModal?.user_id ? "Edit User" : "Add User"}
       </h1>
     </>
   );
@@ -344,7 +344,7 @@ export function UserModal({ showModal, closeModal, onSuccess }) {
             <span className="visually-hidden">Loading...</span>
           </div>
         ) : (
-          showModal?._id ? "Update" : "Save"
+          showModal?.user_id ? "Update" : "Save"
         )}
       </button>
     </div>
