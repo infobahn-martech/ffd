@@ -1670,26 +1670,115 @@ const DepartureContent = ({ formValues, handleChange, cardColor, onAddAttachment
     <div className="cardform-left-full" style={{ "--card-color": cardColor }}>
       <div className="operation-content-header">
         <h3 className="operation-content-title">Departure Information</h3>
-        {onSendReport && <SendReportButton onClick={onSendReport} cardColor={cardColor} tabName="Departure" />}
+        {onSendReport && !isViewOnly && <SendReportButton onClick={onSendReport} cardColor={cardColor} tabName="Departure" />}
       </div>
       <FormSection icon={GroupSettingsIcon} title="">
         <div className="departure-form">
           <div className="general-info-two-column">
             <div className="general-info-left">
               <FormField label="Email Requested Accept">
-                <AttachmentsList
-                  attachments={formValues.attachments || []}
-                  onAdd={onAddAttachment}
-                  onRemove={onRemoveAttachment}
-                  cardColor={cardColor}
-                  isDragging={isDragging}
-                  onDragEnter={handleDragEnter}
-                  onDragLeave={handleDragLeave}
-                  onDragOver={handleDragOver}
-                  onDrop={handleDrop}
-                  fileInputRef={fileInputRef}
-                  onFileInputChange={handleFileInputChange}
-                />
+                <div style={{ marginTop: "8px" }}>
+                  {isViewOnly ? (
+                    // View-only mode: Show dummy documents list
+                    <div className="attachment-list-wrapper">
+                      <div style={{
+                        padding: "16px",
+                        border: "1px solid #e2e2ea",
+                        borderRadius: "8px",
+                        backgroundColor: "#f8f9fa"
+                      }}>
+                        {(formValues.departureAttachments || []).map((doc, index) => (
+                          <div
+                            key={index}
+                            style={{
+                              display: "flex",
+                              alignItems: "center",
+                              padding: "12px",
+                              marginBottom: index < (formValues.departureAttachments || []).length - 1 ? "8px" : "0",
+                              backgroundColor: "#ffffff",
+                              borderRadius: "6px",
+                              border: "1px solid #e2e2ea"
+                            }}
+                          >
+                            <div style={{ marginRight: "12px", color: "#666" }}>
+                              <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                                <path d="M14 2H6C5.46957 2 4.96086 2.21071 4.58579 2.58579C4.21071 2.96086 4 3.46957 4 4V20C4 20.5304 4.21071 21.0391 4.58579 21.4142C4.96086 21.7893 5.46957 22 6 22H18C18.5304 22 19.0391 21.7893 19.4142 21.4142C19.7893 21.0391 20 20.5304 20 20V8L14 2Z" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" fill="none" />
+                                <path d="M14 2V8H20" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" fill="none" />
+                                <path d="M16 13H8" stroke="currentColor" strokeWidth="2" strokeLinecap="round" fill="none" />
+                                <path d="M16 17H8" stroke="currentColor" strokeWidth="2" strokeLinecap="round" fill="none" />
+                                <path d="M10 9H9H8" stroke="currentColor" strokeWidth="2" strokeLinecap="round" fill="none" />
+                              </svg>
+                            </div>
+                            <div style={{ flex: 1 }}>
+                              <div style={{
+                                fontSize: "14px",
+                                fontWeight: "500",
+                                color: "#1a1a1a",
+                                marginBottom: "4px"
+                              }}>
+                                {doc.name}
+                              </div>
+                              {doc.size && (
+                                <div style={{
+                                  fontSize: "12px",
+                                  color: "#666"
+                                }}>
+                                  {(doc.size / 1024).toFixed(2)} KB
+                                </div>
+                              )}
+                            </div>
+                            <button
+                              type="button"
+                              onClick={() => {
+                                // Handle view action
+                                console.log("View document:", doc.name);
+                              }}
+                              style={{
+                                marginLeft: "12px",
+                                padding: "8px",
+                                border: "none",
+                                backgroundColor: "transparent",
+                                cursor: "pointer",
+                                display: "flex",
+                                alignItems: "center",
+                                justifyContent: "center",
+                                color: "#3e5cb6",
+                                borderRadius: "4px",
+                                transition: "background-color 0.2s"
+                              }}
+                              onMouseEnter={(e) => {
+                                e.currentTarget.style.backgroundColor = "#f0f0f0";
+                              }}
+                              onMouseLeave={(e) => {
+                                e.currentTarget.style.backgroundColor = "transparent";
+                              }}
+                              title="View document"
+                            >
+                              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                                <path d="M1 12C1 12 5 4 12 4C19 4 23 12 23 12C23 12 19 20 12 20C5 20 1 12 1 12Z" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" fill="none" />
+                                <circle cx="12" cy="12" r="3" stroke="currentColor" strokeWidth="2" fill="none" />
+                              </svg>
+                            </button>
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                  ) : (
+                    <AttachmentsList
+                      attachments={formValues.attachments || []}
+                      onAdd={onAddAttachment}
+                      onRemove={onRemoveAttachment}
+                      cardColor={cardColor}
+                      isDragging={isDragging}
+                      onDragEnter={handleDragEnter}
+                      onDragLeave={handleDragLeave}
+                      onDragOver={handleDragOver}
+                      onDrop={handleDrop}
+                      fileInputRef={fileInputRef}
+                      onFileInputChange={handleFileInputChange}
+                    />
+                  )}
+                </div>
               </FormField>
 
               <FormField label="Request for outward clearance received">
@@ -1781,28 +1870,43 @@ const DepartureContent = ({ formValues, handleChange, cardColor, onAddAttachment
               </FormField>
 
 
-              <div className="form-save-button-wrapper">
-                <button
-                  type="button"
-                  className="form-save-button"
-                  onClick={handleSave}
-                >
-                  Save
-                </button>
-              </div>
+              {!isViewOnly && (
+                <div className="form-save-button-wrapper">
+                  <button
+                    type="button"
+                    className="form-save-button"
+                    onClick={handleSave}
+                  >
+                    Save
+                  </button>
+                </div>
+              )}
             </div>
 
             <div className="general-info-right">
-              <div className="card-description-wrapper">
+              <div className="card-description-wrapper" style={{
+                minHeight: isViewOnly ? "300px" : "auto",
+                maxHeight: isViewOnly ? "400px" : "none",
+                overflowY: isViewOnly ? "auto" : "visible"
+              }}>
                 <FormField label="Remarks">
-                  <ReactQuillEditor
-                    value={formValues?.departureDescription || ""}
-                    onChange={handleChange("departureDescription")}
-                    placeholder="Enter departure remarks..."
-                    name="departureDescription"
-                    className="departure-quill-editor"
-                    readOnly={isViewOnly}
-                  />
+                  <div style={isViewOnly ? {
+                    maxHeight: "350px",
+                    overflowY: "auto",
+                    padding: "8px",
+                    border: "1px solid #e2e2ea",
+                    borderRadius: "4px",
+                    backgroundColor: "#ffffff"
+                  } : {}}>
+                    <ReactQuillEditor
+                      value={formValues?.departureDescription || ""}
+                      onChange={handleChange("departureDescription")}
+                      placeholder="Enter departure remarks..."
+                      name="departureDescription"
+                      className="departure-quill-editor"
+                      readOnly={isViewOnly}
+                    />
+                  </div>
                 </FormField>
               </div>
             </div>
@@ -2087,7 +2191,13 @@ const getDummyValues = () => ({
   vesselSailedDate: "2024-01-20",
   vesselSailedTime: "11:00",
   nextPort: "Jeddah Port",
-  departureDescription: "<p>Vessel departed successfully. All outward clearance documents delivered.</p>",
+  departureAttachments: [
+    { name: "Outward_Clearance_Request_001.pdf", size: 345678, type: "application/pdf" },
+    { name: "Outward_Clearance_Issued_002.pdf", size: 298765, type: "application/pdf" },
+    { name: "Outward_Clearance_Delivered_003.pdf", size: 267890, type: "application/pdf" },
+    { name: "Vessel_Sailing_Certificate.pdf", size: 189234, type: "application/pdf" },
+  ],
+  departureDescription: "<p><strong>Departure Summary:</strong></p><p>Vessel departed successfully. All outward clearance documents have been delivered and verified. The vessel SS Central Bay has completed all port formalities and is now en route to the next destination.</p><p><strong>Clearance Status:</strong></p><ul><li>Outward clearance request: Received and processed</li><li>Outward clearance issued: Completed on schedule</li><li>Outward clearance delivered: All documents delivered to vessel</li><li>Vessel sailing: Departed on time without any issues</li></ul><p><strong>Next Port Information:</strong></p><p>The vessel is proceeding to Jeddah Port as scheduled. All required documentation for the next port has been prepared and is ready. The crew has been briefed on the next port procedures. Weather conditions are favorable for the journey.</p>",
 });
 
 // Main Operation Component
