@@ -1,6 +1,30 @@
 import Gateway from '../gateway/gateway';
 
-const changePasswordValidate = (currentPassword, newPassword) =>
-  Gateway.post('user/change-password', { currentPassword, newPassword });
+const getUsers = ({ params }) => {
+  // Map component params to API params
+  const apiParams = {};
+  
+  if (params?.searchTerm) {
+    apiParams.search = params.searchTerm;
+  }
+  
+  if (params?.sortBy) {
+    apiParams.sort_by = params.sortBy;
+  }
+  
+  if (params?.page) {
+    apiParams.page = params.page;
+  }
+  
+  if (params?.limit) {
+    apiParams.limit = params.limit;
+  }
+  
+  return Gateway.get('/users', { params: apiParams });
+};
 
-export default { changePasswordValidate };
+const createUser = (formData) => Gateway.post('/users', formData);
+
+const updateUser = (id, formData) => Gateway.patch(`/users/${id}`, formData);
+
+export default { getUsers, createUser, updateUser };

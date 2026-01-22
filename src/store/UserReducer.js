@@ -1,0 +1,58 @@
+import { create } from 'zustand';
+import userService from '../services/userService';
+import useAlertReducer from './AlertReducer';
+import useAuthReducer from './AuthReducer';
+
+const useUserReducer = create((set) => ({
+  isLoading: false,
+  errorMessage: '',
+  successMessage: '',
+  users: null,
+  userCount: null,
+  addEditLoader: false,
+  createUser: async ({ formData, cb }) => {
+    try {
+      set({ addEditLoader: true });
+      const { data } = await userService.createUser(formData);
+      set({ successMessage: data.message, addEditLoader: false });
+      const { success } = useAlertReducer.getState();
+      success(data && data.message);
+      cb && cb();
+    } catch (err) {
+      const { error } = useAlertReducer.getState();
+      set({ errorMessage: 'Something went wrong fetching user', addEditLoader: false });
+      error(err?.response?.data?.message ?? err.message);
+    }
+  },
+  getUsers: async ({ params }) => {
+    try {
+      set({ isLoading: true });
+      const { data } = await userService.getUsers({ params });
+      set({
+        users: data.data?.data || data.data || [],
+        userCount: data.data?.totalCount || data.totalCount || 0,
+        isLoading: false
+      });
+    } catch (error) {
+      const { error: showError } = useAlertReducer.getState();
+      set({ errorMessage: error.message, isLoading: false });
+      showError(error?.response?.data?.message ?? error.message);
+    }
+  },
+  updateUser: async ({ id, formData, cb }) => {
+    try {
+      set({ addEditLoader: true });
+      const { data } = await userService.updateUser(id, formData);
+      set({ successMessage: data.message, addEditLoader: false });
+      const { success } = useAlertReducer.getState();
+      success(data && data.message);
+      cb && cb();
+    } catch (err) {
+      const { error } = useAlertReducer.getState();
+      set({ errorMessage: 'Something went wrong fetching user', addEditLoader: false });
+      error(err?.response?.data?.message ?? err.message);
+    }
+  },
+}));
+
+export default useUserReducer;
