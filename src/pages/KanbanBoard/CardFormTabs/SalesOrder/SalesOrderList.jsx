@@ -758,7 +758,7 @@ const SalesOrderList = ({ formValues, handleChange, cardColor, readOnly = false,
     <tr key={order.id}>
       {!isDAModule && (
         <td>
-          <div className="sales-order-table-cell" style={{ textAlign: "center", padding: "8px" }}>
+          <div className="sales-order-table-cell" style={{ textAlign: "center", padding: "8px", paddingRight: "21px" }}>
             <input
               type="checkbox"
               checked={selectedItems.has(order.id)}
