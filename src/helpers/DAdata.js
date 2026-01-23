@@ -151,7 +151,7 @@ const generateCard = (workflowId, colId, cardId) => {
     progress: Math.floor(Math.random() * 100),
     color: randomColor,
     iconType: randomIconType,
-    priority: cardId === 1, // Only first item has priority true
+    priority: false, // No blinking for DA cards
     vesselName: vesselNames[Math.floor(Math.random() * vesselNames.length)],
     transport: ["done", "rejected", "inProgress"][Math.floor(Math.random() * 3)],
     transportCount: Math.floor(Math.random() * 5) + 1,
