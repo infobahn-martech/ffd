@@ -1,33 +1,58 @@
 import { useForm } from "react-hook-form";
+import { useEffect } from "react";
 import CustomModal from "../../../components/CustomModal";
+import useBargeTypeReducer from "../../../store/BargeTypeReducer";
 import "../../../design/scss/prospect-modal.scss";
 import "../../../design/scss/modal-designs.scss";
 import "../../../design/scss/form-designs.scss";
 
-export function BargeTypeModal({ showModal, closeModal }) {
+export function BargeTypeModal({ showModal, closeModal, onSuccess }) {
     const {
         register,
         handleSubmit,
         formState: { errors },
-    } = useForm({
-        defaultValues: showModal?._id
-            ? {
-                name: showModal?.name,
-            }
-            : {
-                name: "",
-            },
-    });
+        reset,
+    } = useForm({ defaultValues: { name: "" } });
 
-    const onSubmit = (data) => {
-        console.log("VESSEL TYPE FORM SUBMITTED:", data);
-        closeModal();
+    const { createBargeType, updateBargeType, addEditLoader } = useBargeTypeReducer((state) => state);
+
+    const isEdit = showModal && typeof showModal === "object" && (showModal.barge_type_id ?? showModal._id);
+    const bargeTypeId = isEdit ? (showModal.barge_type_id ?? showModal._id) : null;
+
+    useEffect(() => {
+        if (isEdit) {
+            reset({ name: showModal?.name ?? showModal?.barge_type ?? "" });
+        } else {
+            reset({ name: "" });
+        }
+    }, [showModal, isEdit, reset]);
+
+    const onSubmit = async (data) => {
+        const barge_type = data.name?.trim() ?? "";
+        if (isEdit) {
+            await updateBargeType({
+                barge_type_id: bargeTypeId,
+                barge_type,
+                cb: () => {
+                    closeModal();
+                    onSuccess?.();
+                },
+            });
+        } else {
+            await createBargeType({
+                barge_type,
+                cb: () => {
+                    closeModal();
+                    onSuccess?.();
+                },
+            });
+        }
     };
 
     const renderHeader = () => (
         <>
             <h1 className="modal-title">
-                {showModal?._id ? "Edit Barge Type" : "Add Barge Type"}
+                {isEdit ? "Edit Barge Type" : "Add Barge Type"}
             </h1>
             <button
                 type="button"
@@ -41,7 +66,7 @@ export function BargeTypeModal({ showModal, closeModal }) {
     const renderBody = () => (
         <div className="modal-body">
             <div className="lead-form">
-                <form id="vesselTypeForm" onSubmit={handleSubmit(onSubmit)}>
+                <form id="bargeTypeForm" onSubmit={handleSubmit(onSubmit)}>
                     <div className="permInputs row mb-lg-3">
                         <div className="col-12 mb-3">
                             <div className="form-floating desig-inp">
@@ -66,11 +91,16 @@ export function BargeTypeModal({ showModal, closeModal }) {
 
     const renderFooter = () => (
         <div className="modal-footer">
-            <button type="button" className="btn btn-outline" onClick={closeModal}>
+            <button type="button" className="btn btn-outline" onClick={closeModal} disabled={addEditLoader}>
                 Close
             </button>
-            <button type="submit" form="vesselTypeForm" className="btn btn-primary">
-                Save
+            <button
+                type="submit"
+                form="bargeTypeForm"
+                className="btn btn-primary"
+                disabled={addEditLoader}
+            >
+                {addEditLoader ? "Saving..." : "Save"}
             </button>
         </div>
     );
