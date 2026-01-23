@@ -14,6 +14,7 @@ function SalesOrder({ card, formValues, handleChange, isSimplifiedMode = false, 
             cardColor={cardColor}
             readOnly={isSimplifiedMode}
             showPOStatus={isDAModule}
+            isDAModule={isDAModule}
           />
         </div>
       </div>

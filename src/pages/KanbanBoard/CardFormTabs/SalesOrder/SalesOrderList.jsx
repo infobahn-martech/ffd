@@ -1,5 +1,404 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useState, useRef } from "react";
 import PropTypes from "prop-types";
+
+// Group Checkbox Component with indeterminate support
+const GroupCheckbox = ({ checked, indeterminate, onChange, onClick }) => {
+  const checkboxRef = useRef(null);
+
+  useEffect(() => {
+    if (checkboxRef.current) {
+      checkboxRef.current.indeterminate = indeterminate;
+    }
+  }, [indeterminate]);
+
+  return (
+    <input
+      ref={checkboxRef}
+      type="checkbox"
+      checked={checked}
+      onChange={onChange}
+      onClick={onClick}
+      style={{
+        width: "18px",
+        height: "18px",
+        cursor: "pointer",
+      }}
+    />
+  );
+};
+
+GroupCheckbox.propTypes = {
+  checked: PropTypes.bool.isRequired,
+  indeterminate: PropTypes.bool.isRequired,
+  onChange: PropTypes.func.isRequired,
+  onClick: PropTypes.func.isRequired,
+};
+
+// Work Order Creation Modal Component
+const WorkOrderCreationModal = ({ show, onClose, onCreate, selectedItems, salesOrderList, cardColor }) => {
+  const [formData, setFormData] = useState({
+    workOrderName: "",
+    relatedCallFile: "",
+    assignedDepartment: "",
+    startDate: "",
+    dueDate: "",
+    internalNotes: "",
+    createAs: "Draft", // Default value
+  });
+
+  // Get selected line items details
+  const selectedLineItems = salesOrderList.filter((item) => selectedItems.includes(item.id));
+
+  // Get unique call files from selected items
+  const relatedCallFiles = [...new Set(selectedLineItems.map((item) => item.callFile).filter(Boolean))];
+
+  // Auto-generate work order name
+  useEffect(() => {
+    if (show && selectedLineItems.length > 0) {
+      const timestamp = new Date().toISOString().slice(0, 10).replace(/-/g, "");
+      const itemNames = selectedLineItems.slice(0, 2).map((item) => item.lineItemName).join(", ");
+      const generatedName = `WO-${timestamp}-${itemNames.substring(0, 30)}${itemNames.length > 30 ? "..." : ""}`;
+      setFormData((prev) => ({
+        ...prev,
+        workOrderName: generatedName,
+        relatedCallFile: relatedCallFiles.length === 1 ? relatedCallFiles[0] : "",
+      }));
+    }
+  }, [show, selectedLineItems, relatedCallFiles]);
+
+  const handleInputChange = (field, value) => {
+    setFormData((prev) => ({
+      ...prev,
+      [field]: value,
+    }));
+  };
+
+  const handleSubmit = (e) => {
+    e.preventDefault();
+    onCreate({
+      ...formData,
+      selectedLineItems: selectedLineItems,
+    });
+  };
+
+  const handleBackdropClick = (e) => {
+    if (e.target === e.currentTarget) {
+      onClose();
+    }
+  };
+
+  if (!show) return null;
+
+  return (
+    <div
+      style={{
+        position: "fixed",
+        top: 0,
+        left: 0,
+        right: 0,
+        bottom: 0,
+        backgroundColor: "rgba(0, 0, 0, 0.5)",
+        display: "flex",
+        alignItems: "center",
+        justifyContent: "center",
+        zIndex: 1000,
+      }}
+      onClick={handleBackdropClick}
+    >
+      <div
+        style={{
+          backgroundColor: "#ffffff",
+          borderRadius: "8px",
+          width: "90%",
+          maxWidth: "700px",
+          maxHeight: "90vh",
+          overflow: "auto",
+          boxShadow: "0 4px 20px rgba(0, 0, 0, 0.15)",
+        }}
+        onClick={(e) => e.stopPropagation()}
+      >
+        {/* Modal Header */}
+        <div
+          style={{
+            padding: "20px 24px",
+            borderBottom: "1px solid #e0e0e0",
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "space-between",
+          }}
+        >
+          <h2 style={{ margin: 0, fontSize: "20px", fontWeight: "600", color: "#1a1a1a" }}>
+            Work Order Creation
+          </h2>
+          <button
+            type="button"
+            onClick={onClose}
+            style={{
+              background: "none",
+              border: "none",
+              fontSize: "24px",
+              cursor: "pointer",
+              color: "#666",
+              padding: 0,
+              width: "30px",
+              height: "30px",
+              display: "flex",
+              alignItems: "center",
+              justifyContent: "center",
+            }}
+          >
+            ×
+          </button>
+        </div>
+
+        {/* Modal Body */}
+        <form onSubmit={handleSubmit} style={{ padding: "24px" }}>
+          {/* Work Order Name */}
+          <div style={{ marginBottom: "20px" }}>
+            <label style={{ display: "block", marginBottom: "8px", fontWeight: "500", color: "#333" }}>
+              Work Order Name
+            </label>
+            <input
+              type="text"
+              value={formData.workOrderName}
+              onChange={(e) => handleInputChange("workOrderName", e.target.value)}
+              style={{
+                width: "100%",
+                padding: "10px 12px",
+                border: "1px solid #ddd",
+                borderRadius: "4px",
+                fontSize: "14px",
+              }}
+              required
+            />
+          </div>
+
+          {/* Related Call File */}
+          <div style={{ marginBottom: "20px" }}>
+            <label style={{ display: "block", marginBottom: "8px", fontWeight: "500", color: "#333" }}>
+              Related Call File
+            </label>
+            <input
+              type="text"
+              value={relatedCallFiles.length === 1 ? relatedCallFiles[0] : relatedCallFiles.join(", ")}
+              readOnly
+              style={{
+                width: "100%",
+                padding: "10px 12px",
+                border: "1px solid #ddd",
+                borderRadius: "4px",
+                fontSize: "14px",
+                backgroundColor: "#f5f5f5",
+                color: "#666",
+              }}
+            />
+          </div>
+
+          {/* Selected Line Items */}
+          <div style={{ marginBottom: "20px" }}>
+            <label style={{ display: "block", marginBottom: "8px", fontWeight: "500", color: "#333" }}>
+              Selected Line Items ({selectedLineItems.length})
+            </label>
+            <div
+              style={{
+                maxHeight: "150px",
+                overflowY: "auto",
+                border: "1px solid #ddd",
+                borderRadius: "4px",
+                padding: "12px",
+                backgroundColor: "#f9f9f9",
+              }}
+            >
+              {selectedLineItems.map((item, index) => (
+                <div
+                  key={item.id}
+                  style={{
+                    padding: "8px",
+                    marginBottom: index < selectedLineItems.length - 1 ? "8px" : 0,
+                    backgroundColor: "#ffffff",
+                    borderRadius: "4px",
+                    border: "1px solid #e0e0e0",
+                  }}
+                >
+                  <div style={{ fontWeight: "500", color: "#1a1a1a" }}>{item.lineItemName}</div>
+                  <div style={{ fontSize: "12px", color: "#666", marginTop: "4px" }}>
+                    {item.callFile && `Call File: ${item.callFile} • `}
+                    Qty: {item.qty} • Total: {new Intl.NumberFormat("en-US", {
+                      style: "currency",
+                      currency: "SAR",
+                      minimumFractionDigits: 2,
+                    }).format(item.totalInSARWithVAT || 0)}
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+
+          {/* Assigned Department / Team */}
+          <div style={{ marginBottom: "20px" }}>
+            <label style={{ display: "block", marginBottom: "8px", fontWeight: "500", color: "#333" }}>
+              Assigned Department / Team
+            </label>
+            <select
+              value={formData.assignedDepartment}
+              onChange={(e) => handleInputChange("assignedDepartment", e.target.value)}
+              style={{
+                width: "100%",
+                padding: "10px 12px",
+                border: "1px solid #ddd",
+                borderRadius: "4px",
+                fontSize: "14px",
+              }}
+              required
+            >
+              <option value="">Select Department...</option>
+              <option value="Operations">Operations</option>
+              <option value="Logistics">Logistics</option>
+              <option value="Warehouse">Warehouse</option>
+              <option value="Customs">Customs</option>
+              <option value="Documentation">Documentation</option>
+            </select>
+          </div>
+
+          {/* Start Date / Due Date */}
+          <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "16px", marginBottom: "20px" }}>
+            <div>
+              <label style={{ display: "block", marginBottom: "8px", fontWeight: "500", color: "#333" }}>
+                Start Date
+              </label>
+              <input
+                type="date"
+                value={formData.startDate}
+                onChange={(e) => handleInputChange("startDate", e.target.value)}
+                style={{
+                  width: "100%",
+                  padding: "10px 12px",
+                  border: "1px solid #ddd",
+                  borderRadius: "4px",
+                  fontSize: "14px",
+                }}
+                required
+              />
+            </div>
+            <div>
+              <label style={{ display: "block", marginBottom: "8px", fontWeight: "500", color: "#333" }}>
+                Due Date
+              </label>
+              <input
+                type="date"
+                value={formData.dueDate}
+                onChange={(e) => handleInputChange("dueDate", e.target.value)}
+                style={{
+                  width: "100%",
+                  padding: "10px 12px",
+                  border: "1px solid #ddd",
+                  borderRadius: "4px",
+                  fontSize: "14px",
+                }}
+                required
+              />
+            </div>
+          </div>
+
+          {/* Internal Notes */}
+          <div style={{ marginBottom: "20px" }}>
+            <label style={{ display: "block", marginBottom: "8px", fontWeight: "500", color: "#333" }}>
+              Internal Notes
+            </label>
+            <textarea
+              value={formData.internalNotes}
+              onChange={(e) => handleInputChange("internalNotes", e.target.value)}
+              rows={4}
+              style={{
+                width: "100%",
+                padding: "10px 12px",
+                border: "1px solid #ddd",
+                borderRadius: "4px",
+                fontSize: "14px",
+                resize: "vertical",
+              }}
+              placeholder="Enter any internal notes or instructions..."
+            />
+          </div>
+
+          {/* Create as */}
+          <div style={{ marginBottom: "24px" }}>
+            <label style={{ display: "block", marginBottom: "8px", fontWeight: "500", color: "#333" }}>
+              Create as
+            </label>
+            <select
+              value={formData.createAs}
+              onChange={(e) => handleInputChange("createAs", e.target.value)}
+              style={{
+                width: "100%",
+                padding: "10px 12px",
+                border: "1px solid #ddd",
+                borderRadius: "4px",
+                fontSize: "14px",
+              }}
+            >
+              <option value="Draft">Draft</option>
+              <option value="Active">Active</option>
+              <option value="Pending">Pending</option>
+            </select>
+          </div>
+
+          {/* Modal Footer */}
+          <div
+            style={{
+              display: "flex",
+              justifyContent: "flex-end",
+              gap: "12px",
+              paddingTop: "20px",
+              borderTop: "1px solid #e0e0e0",
+            }}
+          >
+            <button
+              type="button"
+              onClick={onClose}
+              style={{
+                padding: "10px 20px",
+                backgroundColor: "#f5f5f5",
+                color: "#333",
+                border: "1px solid #ddd",
+                borderRadius: "4px",
+                cursor: "pointer",
+                fontSize: "14px",
+                fontWeight: "500",
+              }}
+            >
+              Cancel
+            </button>
+            <button
+              type="submit"
+              style={{
+                padding: "10px 20px",
+                backgroundColor: cardColor || "#2A00FF",
+                color: "#ffffff",
+                border: "none",
+                borderRadius: "4px",
+                cursor: "pointer",
+                fontSize: "14px",
+                fontWeight: "600",
+              }}
+            >
+              Create Work Order
+            </button>
+          </div>
+        </form>
+      </div>
+    </div>
+  );
+};
+
+WorkOrderCreationModal.propTypes = {
+  show: PropTypes.bool.isRequired,
+  onClose: PropTypes.func.isRequired,
+  onCreate: PropTypes.func.isRequired,
+  selectedItems: PropTypes.arrayOf(PropTypes.number).isRequired,
+  salesOrderList: PropTypes.array.isRequired,
+  cardColor: PropTypes.string,
+};
 
 // Generate dummy sales order data
 const generateDummySalesOrders = () => {
@@ -50,7 +449,7 @@ const generateDummySalesOrders = () => {
   return dummyOrders;
 };
 
-const SalesOrderList = ({ formValues, handleChange, cardColor, readOnly = false, showPOStatus = false }) => {
+const SalesOrderList = ({ formValues, handleChange, cardColor, readOnly = false, showPOStatus = false, isDAModule = false }) => {
   const salesOrderList = formValues.salesOrderList || [];
   const billingEntity = formValues.billingEntity || "ABC Shipping Co.";
   const email = formValues.email || "billing@abccompany.com";
@@ -65,6 +464,11 @@ const SalesOrderList = ({ formValues, handleChange, cardColor, readOnly = false,
     lineItemCode: "",
     lineItemName: "",
   });
+
+  // State for checkbox selection (exclude DA module)
+  const [selectedItems, setSelectedItems] = useState(new Set());
+  const [showWorkOrderModal, setShowWorkOrderModal] = useState(false);
+  const bulkActionBarRef = useRef(null);
 
   // Initialize with dummy data on mount if empty
   useEffect(() => {
@@ -287,9 +691,87 @@ const SalesOrderList = ({ formValues, handleChange, cardColor, readOnly = false,
     });
   };
 
+  // Checkbox selection handlers (only for non-DA module)
+  const handleItemCheckboxChange = (itemId, checked) => {
+    if (isDAModule) return; // Exclude DA module
+    
+    setSelectedItems((prev) => {
+      const newSet = new Set(prev);
+      if (checked) {
+        newSet.add(itemId);
+      } else {
+        newSet.delete(itemId);
+      }
+      return newSet;
+    });
+  };
+
+  const handleGroupSelectAll = (callFile, orders, checked) => {
+    if (isDAModule) return; // Exclude DA module
+    
+    setSelectedItems((prev) => {
+      const newSet = new Set(prev);
+      if (checked) {
+        orders.forEach((order) => newSet.add(order.id));
+      } else {
+        orders.forEach((order) => newSet.delete(order.id));
+      }
+      return newSet;
+    });
+  };
+
+  const isGroupAllSelected = (orders) => {
+    if (isDAModule || orders.length === 0) return false;
+    return orders.every((order) => selectedItems.has(order.id));
+  };
+
+  const isGroupSomeSelected = (orders) => {
+    if (isDAModule || orders.length === 0) return false;
+    return orders.some((order) => selectedItems.has(order.id)) && !isGroupAllSelected(orders);
+  };
+
+  const handleClearSelection = () => {
+    setSelectedItems(new Set());
+  };
+
+  const handleGenerateWorkOrder = () => {
+    if (selectedItems.size === 0) return;
+    setShowWorkOrderModal(true);
+  };
+
+  const handleCloseWorkOrderModal = () => {
+    setShowWorkOrderModal(false);
+  };
+
+  const handleCreateWorkOrder = (workOrderData) => {
+    // TODO: Implement API call to create work order
+    console.log("Creating work order:", workOrderData);
+    console.log("Selected items:", Array.from(selectedItems));
+    
+    // Close modal and clear selection after creation
+    setShowWorkOrderModal(false);
+    setSelectedItems(new Set());
+  };
+
   // Render a single order row
   const renderOrderRow = (order) => (
     <tr key={order.id}>
+      {!isDAModule && (
+        <td>
+          <div className="sales-order-table-cell" style={{ textAlign: "center", padding: "8px" }}>
+            <input
+              type="checkbox"
+              checked={selectedItems.has(order.id)}
+              onChange={(e) => handleItemCheckboxChange(order.id, e.target.checked)}
+              style={{
+                width: "18px",
+                height: "18px",
+                cursor: "pointer",
+              }}
+            />
+          </div>
+        </td>
+      )}
       <td>
         <div className="sales-order-table-cell">
           {order.lineItemName || ""}
@@ -492,10 +974,70 @@ const SalesOrderList = ({ formValues, handleChange, cardColor, readOnly = false,
         </div>
       )}
 
-      <div className="table-wrapper table-responsive sales-order-table-container">
+      {/* Sticky Bulk Action Bar */}
+      {!isDAModule && selectedItems.size > 0 && (
+        <div
+          ref={bulkActionBarRef}
+          style={{
+            position: "sticky",
+            bottom: 0,
+            left: 0,
+            right: 0,
+            backgroundColor: "#ffffff",
+            borderTop: "2px solid #2A00FF",
+            padding: "12px 20px",
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "space-between",
+            boxShadow: "0 -2px 8px rgba(0, 0, 0, 0.1)",
+            zIndex: 100,
+            marginTop: "16px",
+          }}
+        >
+          <div style={{ display: "flex", alignItems: "center", gap: "16px" }}>
+            <span style={{ fontWeight: "600", color: "#1a1a1a" }}>
+              {selectedItems.size} item{selectedItems.size > 1 ? "s" : ""} selected
+            </span>
+            <button
+              type="button"
+              onClick={handleClearSelection}
+              style={{
+                padding: "4px 12px",
+                backgroundColor: "transparent",
+                border: "1px solid #ddd",
+                borderRadius: "4px",
+                cursor: "pointer",
+                fontSize: "14px",
+                color: "#666",
+              }}
+            >
+              Clear Selection
+            </button>
+          </div>
+          <button
+            type="button"
+            onClick={handleGenerateWorkOrder}
+            style={{
+              padding: "8px 20px",
+              backgroundColor: "#2A00FF",
+              color: "#ffffff",
+              border: "none",
+              borderRadius: "4px",
+              cursor: "pointer",
+              fontSize: "14px",
+              fontWeight: "600",
+            }}
+          >
+            Generate Work Order
+          </button>
+        </div>
+      )}
+
+      <div className="table-wrapper table-responsive sales-order-table-container" style={{ position: "relative" }}>
         <table className="table table-striped sales-order-table" style={{ "--card-color": "#e2e6ff" }}>
           <thead>
             <tr>
+              {!isDAModule && <th style={{ width: "50px", textAlign: "center" }}></th>}
               <th>LinedItem Name</th>
               <th>Started</th>
               <th>Completed</th>
@@ -519,17 +1061,38 @@ const SalesOrderList = ({ formValues, handleChange, cardColor, readOnly = false,
               const isExpanded = expandedCallFiles.has(callFile);
               const groupTotal = orders.reduce((sum, item) => sum + (parseFloat(item.totalInSARWithVAT) || 0), 0);
 
+              const groupAllSelected = isGroupAllSelected(orders);
+              const groupSomeSelected = isGroupSomeSelected(orders);
+
               return (
                 <React.Fragment key={callFile}>
                   {/* Accordion header row */}
                   <tr
                     className="sales-order-accordion-header-row"
-                    onClick={() => toggleCallFileAccordion(callFile)}
+                    onClick={(e) => {
+                      // Don't toggle if clicking on checkbox
+                      if (!isDAModule && e.target.type === "checkbox") {
+                        e.stopPropagation();
+                        return;
+                      }
+                      toggleCallFileAccordion(callFile);
+                    }}
                     style={{ cursor: "pointer", backgroundColor: isExpanded ? "rgba(42, 0, 255, 0.05)" : "#ffffff" }}
                   >
-                    <td colSpan={showPOStatus ? 10 : 9} style={{ padding: "12px 16px" }}>
+                    <td colSpan={showPOStatus ? (isDAModule ? 10 : 11) : (isDAModule ? 9 : 10)} style={{ padding: "12px 16px" }}>
                       <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between" }}>
                         <div style={{ display: "flex", alignItems: "center", gap: "12px" }}>
+                          {!isDAModule && (
+                            <GroupCheckbox
+                              checked={groupAllSelected}
+                              indeterminate={groupSomeSelected}
+                              onChange={(e) => {
+                                e.stopPropagation();
+                                handleGroupSelectAll(callFile, orders, e.target.checked);
+                              }}
+                              onClick={(e) => e.stopPropagation()}
+                            />
+                          )}
                           <span
                             style={{
                               transform: isExpanded ? "rotate(90deg)" : "rotate(0deg)",
@@ -571,6 +1134,18 @@ const SalesOrderList = ({ formValues, handleChange, cardColor, readOnly = false,
           </tbody>
         </table>
       </div>
+
+      {/* Work Order Creation Modal */}
+      {showWorkOrderModal && (
+        <WorkOrderCreationModal
+          show={showWorkOrderModal}
+          onClose={handleCloseWorkOrderModal}
+          onCreate={handleCreateWorkOrder}
+          selectedItems={Array.from(selectedItems)}
+          salesOrderList={displayOrderList}
+          cardColor={cardColor}
+        />
+      )}
     </div>
   );
 };
@@ -581,6 +1156,7 @@ SalesOrderList.propTypes = {
   cardColor: PropTypes.string,
   readOnly: PropTypes.bool,
   showPOStatus: PropTypes.bool,
+  isDAModule: PropTypes.bool,
 };
 
 export default SalesOrderList;
