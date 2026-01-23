@@ -694,7 +694,7 @@ const SalesOrderList = ({ formValues, handleChange, cardColor, readOnly = false,
   // Checkbox selection handlers (only for non-DA module)
   const handleItemCheckboxChange = (itemId, checked) => {
     if (isDAModule) return; // Exclude DA module
-    
+
     setSelectedItems((prev) => {
       const newSet = new Set(prev);
       if (checked) {
@@ -708,7 +708,7 @@ const SalesOrderList = ({ formValues, handleChange, cardColor, readOnly = false,
 
   const handleGroupSelectAll = (callFile, orders, checked) => {
     if (isDAModule) return; // Exclude DA module
-    
+
     setSelectedItems((prev) => {
       const newSet = new Set(prev);
       if (checked) {
@@ -747,7 +747,7 @@ const SalesOrderList = ({ formValues, handleChange, cardColor, readOnly = false,
     // TODO: Implement API call to create work order
     console.log("Creating work order:", workOrderData);
     console.log("Selected items:", Array.from(selectedItems));
-    
+
     // Close modal and clear selection after creation
     setShowWorkOrderModal(false);
     setSelectedItems(new Set());
@@ -984,12 +984,11 @@ const SalesOrderList = ({ formValues, handleChange, cardColor, readOnly = false,
             left: 0,
             right: 0,
             backgroundColor: "#ffffff",
-            borderTop: "2px solid #2A00FF",
+            borderTop: "2px solid #00368c",
             padding: "12px 20px",
             display: "flex",
             alignItems: "center",
             justifyContent: "space-between",
-            boxShadow: "0 -2px 8px rgba(0, 0, 0, 0.1)",
             zIndex: 100,
             marginTop: "16px",
           }}
@@ -1019,8 +1018,8 @@ const SalesOrderList = ({ formValues, handleChange, cardColor, readOnly = false,
             onClick={handleGenerateWorkOrder}
             style={{
               padding: "8px 20px",
-              backgroundColor: "#2A00FF",
-              color: "#ffffff",
+              backgroundColor: "#e2e6ff",
+              color: "#rgb(44 54 73)",
               border: "none",
               borderRadius: "4px",
               cursor: "pointer",
