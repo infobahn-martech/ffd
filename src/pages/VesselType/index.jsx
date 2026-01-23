@@ -1,32 +1,10 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import CommonHeader from "../../components/CommonHeader";
 import { RenderAction, DateFormat } from "./RenderCells";
 import { VesselTypeModal } from "./Modals/AddEditVesselType";
 import DeleteConfirmationModal from "../../components/DeleteConfirmationModal";
 import CustomTable from "../../components/customTable";
-
-const dummyVesselTypes = [
-  {
-    _id: "1",
-    name: "Foreign Flag Vessel",
-    createdAt: "2024-01-15T10:30:00Z"
-  },
-  {
-    _id: "2",
-    name: "Saudi Flag Vessel",
-    createdAt: "2024-01-16T11:20:00Z"
-  },
-  {
-    _id: "3",
-    name: "Small Boat",
-    createdAt: "2024-01-17T09:15:00Z"
-  },
-  {
-    _id: "4",
-    name: "Taxi Tug Temp Import",
-    createdAt: "2024-01-18T14:45:00Z"
-  },
-];
+import useVesselTypeReducer from "../../store/VesselTypeReducer";
 
 const VesselType = () => {
   const [params, setParams] = useState({
@@ -39,6 +17,24 @@ const VesselType = () => {
 
   const [showVesselTypeModal, setShowVesselTypeModal] = useState(false);
   const [showDeleteModal, setShowDeleteModal] = useState(false);
+  const [selectedRowForDelete, setSelectedRowForDelete] = useState(null);
+
+  const {
+    getVesselTypes,
+    vesselTypes,
+    totalCount,
+    isLoading,
+  } = useVesselTypeReducer((state) => state);
+
+  useEffect(() => {
+    const apiParams = {
+      page: params.page,
+      limit: params.limit,
+      ...(params.searchTerm && { searchTerm: params.searchTerm }),
+      ...(params.sortBy && { sortBy: params.sortBy }),
+    };
+    getVesselTypes({ params: apiParams });
+  }, [params]);
 
   const cols = [
     {
@@ -64,8 +60,11 @@ const VesselType = () => {
       tableClasses: 'table-striped',
       contentClass: 'table-content',
       thclass: 'tb-head',
-      onEditClick: (row) => { setShowVesselTypeModal(row) },
-      onDeleteClick: () => { setShowDeleteModal(true) },
+      onEditClick: (row) => setShowVesselTypeModal(row),
+      onDeleteClick: (row) => {
+        setSelectedRowForDelete(row);
+        setShowDeleteModal(true);
+      },
       cell: RenderAction,
       width: '200',
     },
@@ -92,10 +91,11 @@ const VesselType = () => {
           <CustomTable
             pagination={{ currentPage: params.page, limit: params.limit }}
             tableClasses="px-start"
-            count={dummyVesselTypes.length}
+            count={totalCount ?? 0}
             columns={cols}
-            data={dummyVesselTypes}
+            data={vesselTypes ?? []}
             Sl={true}
+            isLoading={isLoading}
             onPageChange={(currentPage) =>
               setParams({ ...params, page: currentPage })
             }
@@ -112,19 +112,26 @@ const VesselType = () => {
             }
           />
 
-          {showVesselTypeModal && (
+          {!!showVesselTypeModal && (
             <VesselTypeModal
               showModal={showVesselTypeModal}
               closeModal={() => setShowVesselTypeModal(false)}
+              onSuccess={() => getVesselTypes({ params })}
             />
           )}
           {!!showDeleteModal && (
             <DeleteConfirmationModal
               show={showDeleteModal}
-              onCancel={() => setShowDeleteModal(false)}
-              onConfirm={() => { }}
-              deleteText="Are you sure you want to delete this permission?"
-            // isLoading={isBeingUpdated}
+              onCancel={() => {
+                setShowDeleteModal(false);
+                setSelectedRowForDelete(null);
+              }}
+              onConfirm={() => {
+                // TODO: Implement delete API when available
+                setShowDeleteModal(false);
+                setSelectedRowForDelete(null);
+              }}
+              deleteText="Are you sure you want to delete this vessel type?"
             />
           )}
         </div>
