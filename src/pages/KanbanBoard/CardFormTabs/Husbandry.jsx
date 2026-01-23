@@ -92,7 +92,7 @@ const ServiceSelection = ({ onSelectService, cardColor, bookedServices = [] }) =
 
   const services = [
     { id: MAIN_TABS.CREW_MANAGEMENT, label: "Crew Management", icon: "clock" },
-    { id: MAIN_TABS.ON_STATION, label: "On station", icon: "document" },
+    // { id: MAIN_TABS.ON_STATION, label: "On station", icon: "document" },
     { id: MAIN_TABS.MATERIAL_MANAGEMENT, label: "Material Management", icon: "document" },
     { id: MAIN_TABS.WASTE_DISPOSAL, label: "Waste Disposal", icon: "document" },
     { id: "LAUNCH_HIRE", label: "Launch Hire", icon: "document" },
