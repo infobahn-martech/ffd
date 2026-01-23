@@ -18,7 +18,7 @@ const accommodationBargeChecklist = [
     items: [
       {
         id: "commercial_invoice_vessel",
-        label: "Commercial invoice for vessel ORIGINAL REQUIRED",
+        label: "Commercial invoice for ORIGINAL REQUIRED",
         requirement: "COPY OF INVENTORY LIST TO BE SIGNED AND STAMPED BY MASTER (Require minimum 3 days prior arrival to arrange if Arabic translation done from our end)"
       },
       {
@@ -39,7 +39,7 @@ const accommodationBargeChecklist = [
     items: [
       {
         id: "equipment_material_declaration",
-        label: "Equipment/Material Deck declaration letter REQUIRE COPY ONLY FORMAT ATTACHED",
+        label: "Equipment COPY ONLY FORMAT ATTACHED",
         requirement: "COPY OF INVENTORY LIST TO BE SIGNED AND STAMPED BY MASTER (Require minimum 3 days prior arrival to arrange if Arabic translation done from our end)"
       },
       {
@@ -60,7 +60,7 @@ const accommodationBargeChecklist = [
       },
       {
         id: "international_tonnage_certificate",
-        label: "International Tonnage certificate REQUIRE COPY ONLY",
+        label: "International certificate REQUIRE COPY ONLY",
         requirement: "COPY OF INVENTORY LIST TO BE SIGNED AND STAMPED BY MASTER (Require minimum 3 days prior arrival to arrange if Arabic translation done from our end)"
       },
     ],
