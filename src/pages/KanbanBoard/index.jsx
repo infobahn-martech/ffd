@@ -40,6 +40,9 @@ export default function KanbanBoard() {
     return state;
   });
 
+  // Control expand/shrink functionality
+  const [enableExpandShrink, setEnableExpandShrink] = useState(false);
+
   // Context menu state
   const [contextMenu, setContextMenu] = useState(null);
   const [contextMenuColumn, setContextMenuColumn] = useState(null);
@@ -365,6 +368,7 @@ export default function KanbanBoard() {
 
   // Handle column header click to expand/shrink
   const handleColumnHeaderClick = useCallback((workflowId, columnId) => {
+    if (!enableExpandShrink) return; // Disable functionality when false
     setExpandedColumns(prev => {
       const currentExpanded = prev[workflowId];
       // If clicking the same column, collapse it. Otherwise, expand the clicked column.
@@ -373,7 +377,7 @@ export default function KanbanBoard() {
         [workflowId]: currentExpanded === columnId ? null : columnId
       };
     });
-  }, []);
+  }, [enableExpandShrink]);
 
   // Handle column context menu (right-click)
   const handleColumnContextMenu = useCallback((e, column) => {
