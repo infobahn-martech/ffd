@@ -1,5 +1,6 @@
 import React, { useEffect, useState, useRef } from "react";
 import PropTypes from "prop-types";
+import { FiFilePlus, FiFileText } from "react-icons/fi";
 
 // Group Checkbox Component with indeterminate support
 const GroupCheckbox = ({ checked, indeterminate, onChange, onClick }) => {
@@ -773,8 +774,44 @@ const SalesOrderList = ({ formValues, handleChange, cardColor, readOnly = false,
         </td>
       )}
       <td>
-        <div className="sales-order-table-cell">
-          {order.lineItemName || ""}
+        <div className="sales-order-table-cell" style={{ display: "flex", alignItems: "center", justifyContent: "space-between", gap: "8px" }}>
+          <span>{order.lineItemName || ""}</span>
+          {isDAModule && (
+            <>
+              {order.poStatus === "Draft" && (
+                <FiFilePlus
+                  style={{
+                    cursor: "pointer",
+                    color: cardColor || "#2A00FF",
+                    fontSize: "18px",
+                    flexShrink: 0,
+                  }}
+                  title="Create Purchase Order"
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    // TODO: Implement create purchase order functionality
+                    console.log("Create Purchase Order for:", order);
+                  }}
+                />
+              )}
+              {order.poStatus === "Completed" && (
+                <FiFileText
+                  style={{
+                    cursor: "pointer",
+                    color: cardColor || "#2A00FF",
+                    fontSize: "18px",
+                    flexShrink: 0,
+                  }}
+                  title="Generate Invoice"
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    // TODO: Implement generate invoice functionality
+                    console.log("Generate Invoice for:", order);
+                  }}
+                />
+              )}
+            </>
+          )}
         </div>
       </td>
       <td>
