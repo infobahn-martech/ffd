@@ -479,7 +479,7 @@ const PreviewModal = ({ show, onClose, onSend, modalType }) => {
             flexDirection: "column",
             alignItems: "center",
             justifyContent: "center",
-            minHeight: "300px",
+            minHeight: "550px",
           }}
         >
           {/* Document Preview */}
@@ -493,6 +493,7 @@ const PreviewModal = ({ show, onClose, onSend, modalType }) => {
               padding: "30px",
               boxShadow: "0 2px 8px rgba(0, 0, 0, 0.1)",
               position: "relative",
+              minHeight: "468px",
             }}
           >
             {/* Folded corner effect */}
@@ -507,7 +508,7 @@ const PreviewModal = ({ show, onClose, onSend, modalType }) => {
                 borderTopRightRadius: "4px",
               }}
             />
-            
+
             {/* PDF Badge */}
             <div
               style={{
@@ -1394,7 +1395,7 @@ const SalesOrderList = ({ formValues, handleChange, cardColor, readOnly = false,
                             {orders.length} item{orders.length > 1 ? "s" : ""}
                           </span>
                         </div>
-                        <div style={{ fontWeight: "600", color: "rgb(120, 120, 120)", paddingRight: "13px" }}>
+                        <div style={{ fontWeight: "600", color: "rgb(120, 120, 120)", paddingRight: "36px" }}>
                           Total: {formatCurrencySAR(groupTotal)}
                         </div>
                       </div>
