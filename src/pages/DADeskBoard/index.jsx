@@ -42,6 +42,9 @@ export default function DADeskBoard() {
     return state;
   });
 
+  // Control expand/shrink functionality
+  const [enableExpandShrink, setEnableExpandShrink] = useState(false);
+
   // Context menu state
   const [contextMenu, setContextMenu] = useState(null);
   const [contextMenuColumn, setContextMenuColumn] = useState(null);
@@ -356,6 +359,7 @@ export default function DADeskBoard() {
 
   // Handle column header click
   const handleColumnHeaderClick = useCallback((workflowId, columnId) => {
+    if (!enableExpandShrink) return; // Disable functionality when false
     setExpandedColumns(prev => {
       const currentExpanded = prev[workflowId];
       return {
@@ -363,7 +367,7 @@ export default function DADeskBoard() {
         [workflowId]: currentExpanded === columnId ? null : columnId
       };
     });
-  }, []);
+  }, [enableExpandShrink]);
 
   // Handle column context menu
   const handleColumnContextMenu = useCallback((e, column) => {
