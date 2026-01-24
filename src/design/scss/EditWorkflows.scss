@@ -570,6 +570,28 @@ div[role="tooltip"][id^="workflow-info-"] {
   text-overflow: ellipsis;
   display: block;
   width: 100%;
+
+  &:hover {
+    text-decoration: underline;
+  }
+}
+
+.stage-name-input {
+  font: normal normal 600 14px/1.4 $font-primary;
+  color: $txtColor;
+  text-align: center;
+  width: 100%;
+  border: 1px solid #3b82f6;
+  border-radius: 4px;
+  padding: 4px 8px;
+  background: #ffffff;
+  transition: all 0.2s ease;
+
+  &:focus {
+    outline: none;
+    border-color: #00368c;
+    box-shadow: 0 0 0 2px rgba(0, 54, 140, 0.1);
+  }
 }
 
 .stage-box-details {

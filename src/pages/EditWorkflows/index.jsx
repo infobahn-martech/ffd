@@ -14,6 +14,8 @@ function EditWorkflows() {
     const [placeholderCounts, setPlaceholderCounts] = useState({}); // Format: { 'workflowId-swimlaneId': count }
     const [editingWorkflowId, setEditingWorkflowId] = useState(null); // Track which workflow is being edited
     const [editingWorkflowName, setEditingWorkflowName] = useState(''); // Temporary name while editing
+    const [editingStageId, setEditingStageId] = useState(null); // Track which stage is being edited: 'workflowId-swimlaneId-stageId'
+    const [editingStageName, setEditingStageName] = useState(''); // Temporary stage name while editing
 
     const [workflows, setWorkflows] = useState([
         {
@@ -249,6 +251,58 @@ function EditWorkflows() {
         }
     };
 
+    // Handle starting stage name edit
+    const handleStartEditStage = (stageId, currentName) => {
+        setEditingStageId(stageId);
+        setEditingStageName(currentName);
+    };
+
+    // Handle saving stage name
+    const handleSaveStageNameChange = (workflowId, swimlaneId, stageId) => {
+        if (editingStageName.trim()) {
+            setWorkflows(prevWorkflows =>
+                prevWorkflows.map(workflow => {
+                    if (workflow.id === workflowId) {
+                        return {
+                            ...workflow,
+                            swimlanes: workflow.swimlanes.map(swimlane => {
+                                if (swimlane.id === swimlaneId) {
+                                    return {
+                                        ...swimlane,
+                                        stages: swimlane.stages.map(stage =>
+                                            stage.id === stageId
+                                                ? { ...stage, name: editingStageName.trim() }
+                                                : stage
+                                        ),
+                                    };
+                                }
+                                return swimlane;
+                            }),
+                        };
+                    }
+                    return workflow;
+                })
+            );
+        }
+        setEditingStageId(null);
+        setEditingStageName('');
+    };
+
+    // Handle canceling stage name edit
+    const handleCancelEditStage = () => {
+        setEditingStageId(null);
+        setEditingStageName('');
+    };
+
+    // Handle key press in stage name input
+    const handleStageNameKeyPress = (e, workflowId, swimlaneId, stageId) => {
+        if (e.key === 'Enter') {
+            handleSaveStageNameChange(workflowId, swimlaneId, stageId);
+        } else if (e.key === 'Escape') {
+            handleCancelEditStage();
+        }
+    };
+
     return (
         <div className="edit-workflows-container">
             <div className="edit-workflows-layout">
@@ -335,7 +389,6 @@ function EditWorkflows() {
 
                                 return (
                                     <div key={swimlane.id} className="workflow-swimlane">
-                                        <div className="swimlane-label">{swimlane.name}</div>
                                         <div className="workflow-columns">
                                             {Object.entries(stagesByArea).map(([area, rows]) => {
                                                 const firstRowStages = Object.values(rows)[0];
@@ -425,7 +478,26 @@ function EditWorkflows() {
                                                                                         )}
 
                                                                                         <div className="stage-box-header">
-                                                                                            <span className="stage-name" title={stage.name}>{stage.name}</span>
+                                                                                            {editingStageId === `${workflow.id}-${swimlane.id}-${stage.id}` ? (
+                                                                                                <input
+                                                                                                    type="text"
+                                                                                                    className="stage-name-input"
+                                                                                                    value={editingStageName}
+                                                                                                    onChange={(e) => setEditingStageName(e.target.value)}
+                                                                                                    onBlur={() => handleSaveStageNameChange(workflow.id, swimlane.id, stage.id)}
+                                                                                                    onKeyDown={(e) => handleStageNameKeyPress(e, workflow.id, swimlane.id, stage.id)}
+                                                                                                    autoFocus
+                                                                                                />
+                                                                                            ) : (
+                                                                                                <span
+                                                                                                    className="stage-name"
+                                                                                                    title={stage.name}
+                                                                                                    onClick={() => handleStartEditStage(`${workflow.id}-${swimlane.id}-${stage.id}`, stage.name)}
+                                                                                                    style={{ cursor: 'pointer' }}
+                                                                                                >
+                                                                                                    {stage.name}
+                                                                                                </span>
+                                                                                            )}
                                                                                         </div>
                                                                                         <div className="stage-box-details">
                                                                                             <span className="stage-limit">Limit: {stage.limit}</span>
