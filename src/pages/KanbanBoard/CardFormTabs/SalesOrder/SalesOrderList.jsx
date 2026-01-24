@@ -995,6 +995,16 @@ const SalesOrderList = ({ formValues, handleChange, cardColor, readOnly = false,
     handleClosePreviewModal();
   };
 
+  // Helper function to render table header with tooltip if label > 10 chars (DAModule only)
+  const renderTableHeader = (label) => {
+    if (isDAModule && label.length > 10) {
+      const tooltipId = `header-tooltip-${label.replace(/\s+/g, '-').toLowerCase()}`;
+      const truncatedLabel = label.substring(0, 10) + "...";
+      return <th data-tooltip-id={tooltipId}>{truncatedLabel}</th>;
+    }
+    return <th>{label}</th>;
+  };
+
   // Render a single order row
   const renderOrderRow = (order) => (
     <tr key={order.id}>
@@ -1311,20 +1321,43 @@ const SalesOrderList = ({ formValues, handleChange, cardColor, readOnly = false,
       )}
 
       <div className="table-wrapper table-responsive sales-order-table-container" style={{ position: "relative" }}>
+        {/* Tooltips for table headers (DAModule only, labels > 10 chars) */}
+        {isDAModule && (
+          <>
+            <Tooltip
+              id="header-tooltip-lineditem-name"
+              place="top"
+              content="LinedItem Name"
+              className="small-header-tooltip"
+            />
+            <Tooltip
+              id="header-tooltip-total-unit-amount"
+              place="top"
+              content="Total Unit Amount"
+              className="small-header-tooltip"
+            />
+            <Tooltip
+              id="header-tooltip-total-in-sar-with-vat"
+              place="top"
+              content="Total in SAR with VAT"
+              className="small-header-tooltip"
+            />
+          </>
+        )}
         <table className="table table-striped sales-order-table" style={{ "--card-color": "#e2e6ff" }}>
           <thead>
             <tr>
               {!isDAModule && <th style={{ width: "50px", textAlign: "center" }}></th>}
-              <th>LinedItem Name</th>
-              <th>Started</th>
-              <th>Completed</th>
-              <th>VAT (%)</th>
-              <th>Qty</th>
-              {showPOStatus && <th>PO Status</th>}
-              <th>Unit Price</th>
-              <th>Total Unit Amount</th>
-              <th>VAT Amount</th>
-              <th>Total in SAR with VAT</th>
+              {renderTableHeader("LinedItem Name")}
+              {renderTableHeader("Started")}
+              {renderTableHeader("Completed")}
+              {renderTableHeader("VAT (%)")}
+              {renderTableHeader("Qty")}
+              {showPOStatus && renderTableHeader("PO Status")}
+              {renderTableHeader("Unit Price")}
+              {renderTableHeader("Total Unit Amount")}
+              {renderTableHeader("VAT Amount")}
+              {renderTableHeader("Total in SAR with VAT")}
             </tr>
           </thead>
           <tbody>
