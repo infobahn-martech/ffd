@@ -1,135 +1,10 @@
-
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { DateFormat, RenderAction } from "./RenderCells";
 import CommonHeader from "../../components/CommonHeader";
 import CustomTable from "../../components/customTable";
 import DeleteConfirmationModal from "../../components/DeleteConfirmationModal";
 import { BillingEntityModal } from "./Modals/AddEditBillingEntity";
-import { PORT_DETAILS } from "../../constants/ports";
-
-const billingTimeline = [
-  { createdAt: "2024-10-12T10:15:00Z", updatedAt: "2024-11-03T08:45:00Z" },
-  { createdAt: "2024-09-20T12:30:00Z", updatedAt: "2024-10-15T14:20:00Z" },
-  { createdAt: "2024-08-05T09:00:00Z", updatedAt: "2024-10-02T11:40:00Z" },
-  { createdAt: "2024-07-18T16:00:00Z", updatedAt: "2024-09-28T10:10:00Z" },
-  { createdAt: "2024-06-12T14:00:00Z", updatedAt: "2024-08-21T09:00:00Z" },
-];
-
-const slugify = (text) => text.toLowerCase().replace(/[^a-z0-9]+/g, "-");
-
-const dummyBillingEntities = [
-  {
-    _id: "1",
-    name: "Sedres Maritime Co.",
-    customerId: "CUST-001",
-    vatNo: "VAT-SD-12345",
-    phoneNumber: "+966540112233",
-    email: "accounts@sedresmaritime.com",
-    contactPerson: "Mohammed Ali",
-    createdAt: "2024-09-12T10:15:00Z",
-    updatedAt: "2024-10-03T08:45:00Z",
-  },
-  {
-    _id: "2",
-    name: "Al Fajr Shipping LLC",
-    customerId: "CUST-002",
-    vatNo: "VAT-AF-67890",
-    phoneNumber: "+966550221144",
-    email: "billing@alfajrshipping.com",
-    contactPerson: "Rashid Khan",
-    createdAt: "2024-08-20T12:30:00Z",
-    updatedAt: "2024-09-15T14:20:00Z",
-  },
-  {
-    _id: "3",
-    name: "Global Port Services",
-    customerId: "CUST-003",
-    vatNo: "VAT-GP-99887",
-    phoneNumber: "+966531223344",
-    email: "accounts@globalport.com",
-    contactPerson: "John Mathew",
-    createdAt: "2024-07-05T09:00:00Z",
-    updatedAt: "2024-09-02T11:40:00Z",
-  },
-  {
-    _id: "4",
-    name: "Ocean Waves Logistics",
-    customerId: "CUST-004",
-    vatNo: "VAT-OW-55667",
-    phoneNumber: "+966588991122",
-    email: "finance@oceanwaves.com",
-    contactPerson: "Dawood Ibrahim",
-    createdAt: "2024-06-18T16:00:00Z",
-    updatedAt: "2024-08-28T10:10:00Z",
-  },
-  {
-    _id: "5",
-    name: "Blue Horizon Freight",
-    customerId: "CUST-005",
-    vatNo: "VAT-BH-11224",
-    phoneNumber: "+966512007755",
-    email: "billing@bluehorizon.com",
-    contactPerson: "Samuel Thomas",
-    createdAt: "2024-05-12T14:00:00Z",
-    updatedAt: "2024-07-21T09:00:00Z",
-  },
-  {
-    _id: "6",
-    name: "Desert Star Logistics",
-    customerId: "CUST-006",
-    vatNo: "VAT-DS-77882",
-    phoneNumber: "+966599881177",
-    email: "accounts@desertstar.com",
-    contactPerson: "Noura Abdullah",
-    createdAt: "2024-04-09T11:20:00Z",
-    updatedAt: "2024-06-12T09:30:00Z",
-  },
-  {
-    _id: "7",
-    name: "PortLink Arabia",
-    customerId: "CUST-007",
-    vatNo: "VAT-PL-66789",
-    phoneNumber: "+966522334455",
-    email: "finance@portlinkarabia.com",
-    contactPerson: "Hassan Ahmed",
-    createdAt: "2024-03-22T08:45:00Z",
-    updatedAt: "2024-05-18T12:10:00Z",
-  },
-  {
-    _id: "8",
-    name: "CargoMax Trading",
-    customerId: "CUST-008",
-    vatNo: "VAT-CM-33445",
-    phoneNumber: "+966544556677",
-    email: "billing@cargomax.com",
-    contactPerson: "Peter Joseph",
-    createdAt: "2024-02-11T10:00:00Z",
-    updatedAt: "2024-04-02T09:15:00Z",
-  },
-  {
-    _id: "9",
-    name: "Arabian Gulf Movers",
-    customerId: "CUST-009",
-    vatNo: "VAT-AG-22119",
-    phoneNumber: "+966566778899",
-    email: "accounts@agmovers.com",
-    contactPerson: "Kareem Faris",
-    createdAt: "2024-01-29T09:10:00Z",
-    updatedAt: "2024-03-20T08:50:00Z",
-  },
-  {
-    _id: "10",
-    name: "Falcon Marine Services",
-    customerId: "CUST-010",
-    vatNo: "VAT-FM-88001",
-    phoneNumber: "+966533224466",
-    email: "billing@falconmarine.com",
-    contactPerson: "Isaac Daniel",
-    createdAt: "2023-12-15T15:30:00Z",
-    updatedAt: "2024-02-10T12:00:00Z",
-  },
-];
-
+import useBillingEntityReducer from "../../store/BillingEntityReducer";
 
 const BillingEntity = () => {
   const [params, setParams] = useState({
@@ -144,7 +19,23 @@ const BillingEntity = () => {
   const [showBillingEntityModal, setShowBillingEntityModal] = useState(false);
   const [showDeleteModal, setShowDeleteModal] = useState(false);
 
-  console.log("showDeleteModal", showDeleteModal)
+  const {
+    getBillingEntities,
+    billingEntities,
+    totalCount,
+    isLoading,
+  } = useBillingEntityReducer((state) => state);
+
+  useEffect(() => {
+    const apiParams = {
+      page: params.page,
+      limit: params.limit,
+      ...(params.searchTerm && { searchTerm: params.searchTerm }),
+      ...(params.sortBy && { sortBy: params.sortBy }),
+      ...(params.sortOrder != null && { sortOrder: params.sortOrder }),
+    };
+    getBillingEntities({ params: apiParams });
+  }, [params]);
 
 
   const cols = [
@@ -250,10 +141,10 @@ const BillingEntity = () => {
           <CustomTable
             pagination={{ currentPage: params?.page, limit: params?.limit }}
             tableClasses="px-start"
-            count={dummyBillingEntities.length}
+            count={totalCount ?? 0}
             columns={cols}
-            // isLoading={isLoading}
-            data={dummyBillingEntities ?? []}
+            isLoading={isLoading}
+            data={billingEntities ?? []}
             onPageChange={(currentPage) =>
               setParams({ ...params, page: currentPage })
             }
@@ -271,6 +162,16 @@ const BillingEntity = () => {
             <BillingEntityModal
               showModal={showBillingEntityModal}
               closeModal={() => setShowBillingEntityModal(false)}
+              onSuccess={() => {
+                const apiParams = {
+                  page: params.page,
+                  limit: params.limit,
+                  ...(params.searchTerm && { searchTerm: params.searchTerm }),
+                  ...(params.sortBy && { sortBy: params.sortBy }),
+                  ...(params.sortOrder != null && { sortOrder: params.sortOrder }),
+                };
+                getBillingEntities({ params: apiParams });
+              }}
             />
           )}
 

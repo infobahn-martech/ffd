@@ -7,7 +7,7 @@ import "../../../design/scss/modal-designs.scss";
 import "../../../design/scss/form-designs.scss";
 
 
-export function BillingEntityModal({ showModal, closeModal }) {
+export function BillingEntityModal({ showModal, closeModal, onSuccess }) {
   const {
     register,
     handleSubmit,
@@ -33,6 +33,7 @@ export function BillingEntityModal({ showModal, closeModal }) {
 
   const onSubmit = (data) => {
     console.log("BILLING ENTITY FORM SUBMITTED:", data);
+    onSuccess?.();
     closeModal();
   };
 
