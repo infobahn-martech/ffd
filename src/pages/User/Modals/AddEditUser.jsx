@@ -52,11 +52,11 @@ export function UserModal({ showModal, closeModal, onSuccess }) {
       reset({
         name: showModal?.name,
         email: showModal?.email,
-        roleid: showModal?.role?.role_id || "",
+        roleid: showModal?.role_id || "",
         phone: showModal?.phone || "",
         address: showModal?.address || "",
       });
-      setProfileImagePreview(showModal?.image || userIcon);
+      setProfileImagePreview(showModal?.avatar_path || userIcon);
       setProfileImage(null);
     } else {
       reset({

@@ -98,10 +98,34 @@ export const RenderAction = ({ onEditClick, row, onDeleteClick, onToggleClick })
 };
 
 export const RenderName = ({ row }) => {
+  const hasAvatar = row?.avatar_path;
+  
   return (
     <>
       <span className="name-letter bg-ltr">
-        {getInitials(`${row?.name}`)}
+        {hasAvatar ? (
+          <img 
+            src={row.avatar_path} 
+            alt={row?.name || 'User avatar'} 
+            style={{
+              width: '100%',
+              height: '100%',
+              objectFit: 'cover',
+              borderRadius: '50%'
+            }}
+            onError={(e) => {
+              // Hide image and show initials on error
+              e.target.style.display = 'none';
+              const initialsSpan = e.target.nextElementSibling;
+              if (initialsSpan) {
+                initialsSpan.style.display = 'flex';
+              }
+            }}
+          />
+        ) : null}
+        <span style={{ display: hasAvatar ? 'none' : 'flex' }}>
+          {getInitials(`${row?.name}`)}
+        </span>
       </span>
       {row?.name}
     </>
