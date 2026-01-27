@@ -11,6 +11,8 @@ const usePermissionReducer = create((set) => ({
   totalDesignationCount: null,
   permissionsList: null,
   isLoadingPermissions: false,
+  rolePermissionData: null,
+  isLoadingRolePermission: false,
   addPermission: async ({ formData, cb }) => {
     try {
       set({ isBeingUpdated: true });
@@ -110,6 +112,25 @@ const usePermissionReducer = create((set) => ({
         isBeingUpdated: false,
       });
       error(err?.response?.data?.message ?? err.message);
+    }
+  },
+  fetchRolePermission: async ({ role_id }) => {
+    try {
+      set({ isLoadingRolePermission: true });
+      const { data } = await permissionService.getRolePermission(role_id);
+      set({
+        rolePermissionData: data?.data || null,
+        isLoadingRolePermission: false,
+      });
+      return data?.data || null;
+    } catch (err) {
+      const { error } = useAlertReducer.getState();
+      set({
+        errorMessage: 'Something went wrong fetching role permissions',
+        isLoadingRolePermission: false,
+      });
+      error(err?.response?.data?.message ?? err.message);
+      return null;
     }
   },
 }));
