@@ -1,26 +1,25 @@
 import { useForm } from "react-hook-form";
 import CustomModal from "../../../components/CustomModal";
+import useVesselReducer from "../../../store/VesselReducer";
 import "../../../design/scss/prospect-modal.scss";
 import "../../../design/scss/modal-designs.scss";
 import "../../../design/scss/form-designs.scss";
 
 // Vessel Type Options
 const VESSEL_TYPE_OPTIONS = [
-  "Vessel one",
-  "Vessel two",
-  "Vessel three",
-  "Vessel four",
-  "Vessel five",
+  "Bulk",
+  "Container",
+  "Tanker",
+  "Tug Boat",
+  "Fishing Vessel",
+  "Other",
 ];
 
-// Billing Entity Options (will be populated from API or constants)
-const BILLING_ENTITY_OPTIONS = [
-  "Billing Entity 1",
-  "Billing Entity 2",
-  "Billing Entity 3",
-];
 
-export function VesselModal({ showModal, closeModal }) {
+
+export function VesselModal({ showModal, closeModal, billingEntities }) {
+  const { addVessel, updateVessel, isBeingUpdated } = useVesselReducer();
+  
   const {
     register,
     handleSubmit,
@@ -31,6 +30,7 @@ export function VesselModal({ showModal, closeModal }) {
         billingEntity: showModal?.billingEntity || "",
         vesselType: showModal?.vesselType || "",
         vesselName: showModal?.vesselName || "",
+        imoNumber: showModal?.imoNumber || "",
         flagState: showModal?.flagState || "",
         grossTonnage: showModal?.grossTonnage || "",
         callSign: showModal?.callSign || "",
@@ -45,8 +45,37 @@ export function VesselModal({ showModal, closeModal }) {
   });
 
   const onSubmit = (data) => {
-    console.log("VESSEL FORM SUBMITTED:", data);
-    closeModal();
+    // Map form data to API payload format
+    const apiPayload = {
+      entity_id: data.billingEntity,
+      vessel_name: data.vesselName,
+      imo_number: data.imoNumber,
+      vessel_type: data.vesselType,
+      flag_state: data.flagState,
+      gross_tonnage: data.grossTonnage,
+      call_sign: data.callSign,
+      year_built: data.yearBuilt,
+      class_society: data.classSociety,
+      p_i_club: data.pnIClub,
+      loa: data.lengthOverall,
+      beam: data.beam,
+      draft: data.draft,
+    };
+
+    if (showModal?._id) {
+      // Update existing vessel
+      updateVessel({
+        id: showModal._id,
+        formData: apiPayload,
+        cb: () => closeModal(),
+      });
+    } else {
+      // Add new vessel
+      addVessel({
+        formData: apiPayload,
+        cb: () => closeModal(),
+      });
+    }
   };
 
   const renderHeader = () => (
@@ -91,9 +120,35 @@ export function VesselModal({ showModal, closeModal }) {
                 )}
               </div>
             </div>
+            {/* Billing Entity */}
+            <div className="col-lg-6 col-sm-12 mb-3">
+              <div className="form-floating desig-inp">
+                <select
+                  className={`form-control ${errors.billingEntity ? "is-invalid" : ""}`}
+                  {...register("billingEntity", { required: "Billing Entity is required" })}
+                >
+                  <option value="">Select Billing Entity</option>
+                  {billingEntities?.map((entity) => {
+                    const value = typeof entity === 'object' ? entity._id : entity;
+                    const label = typeof entity === 'object' ? (entity.name || entity.billingEntityName || entity._id) : entity;
+                    return (
+                      <option key={value} value={value}>
+                        {label}
+                      </option>
+                    );
+                  })}
+                </select>
+                <label>
+                  Billing Entity <span className="text-danger">*</span>
+                </label>
+                {errors.billingEntity && (
+                  <span className="error text-danger">{errors.billingEntity.message}</span>
+                )}
+              </div>
+            </div>
           </div>
 
-          {/* ROW 2 — Vessel Name + Flag State */}
+          {/* ROW 2 — Vessel Name + IMO Number */}
           <div className="permInputs row mb-lg-3">
             {/* Vessel Name */}
             <div className="col-lg-6 col-sm-12 mb-3">
@@ -112,6 +167,26 @@ export function VesselModal({ showModal, closeModal }) {
               </div>
             </div>
 
+            {/* IMO Number */}
+            <div className="col-lg-6 col-sm-12 mb-3">
+              <div className="form-floating desig-inp">
+                <input
+                  className={`form-control ${errors.imoNumber ? "is-invalid" : ""}`}
+                  placeholder="IMO Number"
+                  {...register("imoNumber", { required: "IMO Number is required" })}
+                />
+                <label>
+                  IMO Number <span className="text-danger">*</span>
+                </label>
+                {errors.imoNumber && (
+                  <span className="error text-danger">{errors.imoNumber.message}</span>
+                )}
+              </div>
+            </div>
+          </div>
+
+          {/* ROW 3 — Flag State */}
+          <div className="permInputs row mb-lg-3">
             {/* Flag State */}
             <div className="col-lg-6 col-sm-12 mb-3">
               <div className="form-floating desig-inp">
@@ -130,7 +205,7 @@ export function VesselModal({ showModal, closeModal }) {
             </div>
           </div>
 
-          {/* ROW 3 — Gross Tonnage + Call Sign */}
+          {/* ROW 4 — Gross Tonnage + Call Sign */}
           <div className="permInputs row mb-lg-3">
             {/* Gross Tonnage */}
             <div className="col-lg-6 col-sm-12 mb-3">
@@ -167,7 +242,7 @@ export function VesselModal({ showModal, closeModal }) {
             </div>
           </div>
 
-          {/* ROW 4 — Year Built + Class Society */}
+          {/* ROW 5 — Year Built + Class Society */}
           <div className="permInputs row mb-lg-3">
             {/* Year Built */}
             <div className="col-lg-6 col-sm-12 mb-3">
@@ -204,7 +279,7 @@ export function VesselModal({ showModal, closeModal }) {
             </div>
           </div>
 
-          {/* ROW 5 — P&I Club + Length Overall */}
+          {/* ROW 6 — P&I Club + Length Overall */}
           <div className="permInputs row mb-lg-3">
             {/* P&I Club */}
             <div className="col-lg-6 col-sm-12 mb-3">
@@ -241,7 +316,7 @@ export function VesselModal({ showModal, closeModal }) {
             </div>
           </div>
 
-          {/* ROW 6 — Beam + Draft */}
+          {/* ROW 7 — Beam + Draft */}
           <div className="permInputs row mb-lg-3">
             {/* Beam */}
             <div className="col-lg-6 col-sm-12 mb-3">
@@ -287,8 +362,13 @@ export function VesselModal({ showModal, closeModal }) {
       <button type="button" className="btn btn-outline" onClick={closeModal}>
         Close
       </button>
-      <button type="submit" form="vesselForm" className="btn btn-primary">
-        Save
+      <button 
+        type="submit" 
+        form="vesselForm" 
+        className="btn btn-primary"
+        disabled={isBeingUpdated}
+      >
+        {isBeingUpdated ? "Saving..." : "Save"}
       </button>
     </div>
   );
