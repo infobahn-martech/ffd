@@ -142,7 +142,7 @@ function SideNav({ isMobileMenuOpen, onCloseMobileMenu }) {
       hasPermission: true,
     },
     {
-      menu: 'Custom Inspection',
+      menu: 'Custom Management',
       isDefaultMenu: true,
       to: '/custom-inspection',
       icon: inspectionIcon, // Inspection-specific icon

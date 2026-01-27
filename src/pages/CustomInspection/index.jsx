@@ -184,9 +184,9 @@ const CustomInspection = () => {
         <div className="prospect employee">
           <div className="container-fluid">
             <CommonHeader
-              tableTitle="Custom Inspection"
+              tableTitle="Custom Management"
               isAddEnabled={false}
-              addModalLabel="Add Custom Inspection"
+              addModalLabel="Add Custom Management"
               setSearch={(e) =>
                 setParams({ ...params, searchTerm: e, page: 1, limit: 10 })
               }
