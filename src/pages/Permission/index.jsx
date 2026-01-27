@@ -3,8 +3,9 @@ import CustomTable from '../../components/CustomTable';
 import CommonHeader from '../../components/CommonHeader';
 import { DateFormat, RenderAction } from './RenderCells';
 import { PermissionModal } from './Modals/AddEditPermission';
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import DeleteConfirmationModal from '../../components/DeleteConfirmationModal';
+import usePermissionReducer from '../../store/PermissionReducer';
 
 const Permission = () => {
   const [params, setParams] = useState({
@@ -17,96 +18,16 @@ const Permission = () => {
   const [showDeleteModal, setShowDeleteModal] = useState(false);
   const [showPermissionModal, setShowPermissionModal] = useState(false);
 
-  // 👉 Dummy Permission Data
-  const dummyPermissions = [
-    {
-      _id: "1",
-      name: "Admin Access",
-      noOfUsers: 12,
-      description: "Full access to all modules",
-      createdAt: "2024-10-12T10:15:00Z",
-      updatedAt: "2024-11-05T09:30:00Z",
-    },
-    {
-      _id: "2",
-      name: "Editor Access",
-      noOfUsers: 8,
-      description: "Can edit content but limited access",
-      createdAt: "2024-09-28T14:20:00Z",
-      updatedAt: "2024-10-15T18:00:00Z",
-    },
-    {
-      _id: "3",
-      name: "Viewer Access",
-      noOfUsers: 19,
-      description: "Only view permissions",
-      createdAt: "2024-08-10T11:45:00Z",
-      updatedAt: "2024-09:02T10:10:00Z",
-    },
+  const {
+    fetchPermission,
+    designations,
+    isLoading,
+    totalDesignationCount,
+  } = usePermissionReducer((state) => state);
 
-    // ➕ New 7 items
-    {
-      _id: "4",
-      name: "User Management Access",
-      noOfUsers: 6,
-      description: "Manage users, roles, and permissions",
-      createdAt: "2024-10-01T09:10:00Z",
-      updatedAt: "2024-11-02T11:30:00Z",
-    },
-    {
-      _id: "5",
-      name: "Finance Access",
-      noOfUsers: 4,
-      description: "Access billing and financial reports",
-      createdAt: "2024-09-15T13:50:00Z",
-      updatedAt: "2024-10-12T15:25:00Z",
-    },
-    {
-      _id: "6",
-      name: "Operations Access",
-      noOfUsers: 9,
-      description: "Manage operational workflows",
-      createdAt: "2024-08-22T16:00:00Z",
-      updatedAt: "2024-08-30T12:45:00Z",
-    },
-    {
-      _id: "7",
-      name: "Approval Access",
-      noOfUsers: 11,
-      description: "Approve tasks and workflow actions",
-      createdAt: "2024-07-10T08:20:00Z",
-      updatedAt: "2024-08-18T17:00:00Z",
-    },
-    {
-      _id: "8",
-      name: "Report Access",
-      noOfUsers: 14,
-      description: "View and download system reports",
-      createdAt: "2024-09-01T11:00:00Z",
-      updatedAt: "2024-10-01T09:30:00Z",
-    },
-    {
-      _id: "9",
-      name: "Support Access",
-      noOfUsers: 7,
-      description: "Access support tickets and communications",
-      createdAt: "2024-09-19T10:05:00Z",
-      updatedAt: "2024-10-25T14:40:00Z",
-    },
-    {
-      _id: "10",
-      name: "Audit Access",
-      noOfUsers: 5,
-      description: "View logs and system audit data",
-      createdAt: "2024-10-05T09:55:00Z",
-      updatedAt: "2024-11-01T08:45:00Z",
-    },
-  ];
-
-  // const dummyPermissions =[]
-
-
-  const totalPermissionCount = dummyPermissions.length;
+  useEffect(() => {
+    fetchPermission({ params });
+  }, [params]);
 
   const cols = [
     {
@@ -176,10 +97,10 @@ const Permission = () => {
           Sl
           pagination={{ currentPage: params.page, limit: params.limit }}
           tableClasses="px-start"
-          count={totalPermissionCount}
+          count={totalDesignationCount || 0}
           columns={cols}
-          isLoading={false}
-          data={dummyPermissions}
+          isLoading={isLoading}
+          data={designations || []}
           onPageChange={(currentPage) =>
             setParams({ ...params, page: currentPage })
           }
