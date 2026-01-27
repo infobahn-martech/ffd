@@ -1036,7 +1036,7 @@ const SalesOrderList = ({ formValues, handleChange, cardColor, readOnly = false,
                   data-tooltip-id="create-purchase-order-tooltip"
                   style={{
                     cursor: "pointer",
-                    color: cardColor || "#2A00FF",
+                    color: "#FFD700",
                     fontSize: "18px",
                     flexShrink: 0,
                   }}
