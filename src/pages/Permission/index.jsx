@@ -49,13 +49,6 @@ const Permission = () => {
       width: '200',
     },
     {
-      name: 'Short Description',
-      selector: 'description',
-      tableClasses: 'table-striped',
-      sort: true,
-      width: '400',
-    },
-    {
       name: 'Created At',
       selector: 'createdAt',
       cell: DateFormat,

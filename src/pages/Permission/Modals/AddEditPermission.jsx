@@ -79,19 +79,18 @@ const transformPermissionsData = (apiData) => {
 //  MAIN COMPONENT
 // -------------------------------------------
 export function PermissionModal({ showModal, closeModal }) {
-  const { 
-    permissionsList, 
-    isLoadingPermissions, 
+  const {
+    permissionsList,
+    isLoadingPermissions,
     fetchPermissionsList,
     assignRolePermission,
-    isBeingUpdated 
+    isBeingUpdated
   } = usePermissionReducer();
-  
+
   const { roles, fetchRoles, isLoading: isLoadingRoles } = useRoleReducer();
   const { error: showError } = useAlertReducer();
-  
+
   const [selectedRoleId, setSelectedRoleId] = useState('');
-  const [description, setDescription] = useState('');
   const [selectedPermissions, setSelectedPermissions] = useState(new Set());
 
   // Fetch permissions and roles when modal opens
@@ -101,7 +100,6 @@ export function PermissionModal({ showModal, closeModal }) {
       fetchRoles({ params: { page: 1, limit: 100 } });
       // Reset form when modal opens
       setSelectedRoleId('');
-      setDescription('');
       setSelectedPermissions(new Set());
     }
   }, [showModal, fetchPermissionsList, fetchRoles]);
@@ -127,7 +125,7 @@ export function PermissionModal({ showModal, closeModal }) {
   // Handle form submission
   const handleSubmit = async (e) => {
     e.preventDefault();
-    
+
     if (!selectedRoleId) {
       showError('Please select a role');
       return;
@@ -139,7 +137,7 @@ export function PermissionModal({ showModal, closeModal }) {
     }
 
     const permissionIdArray = Array.from(selectedPermissions);
-    
+
     await assignRolePermission({
       role_id: selectedRoleId,
       permission_id: permissionIdArray,
@@ -155,14 +153,14 @@ export function PermissionModal({ showModal, closeModal }) {
   // Handle section-level toggle (select/deselect all children)
   const handleSectionToggle = (section, checked) => {
     const permissionIds = [];
-    
+
     // Collect all permission IDs from this section
     if (section.items && section.items.length > 0) {
       section.items.forEach((item) => {
         permissionIds.push(item.permissionId || item.id);
       });
     }
-    
+
     if (section.subSections && section.subSections.length > 0) {
       section.subSections.forEach((sub) => {
         permissionIds.push(sub.permissionId || sub.id);
@@ -173,7 +171,7 @@ export function PermissionModal({ showModal, closeModal }) {
         }
       });
     }
-    
+
     // Also include the section itself
     permissionIds.push(section.permissionId || section.id);
 
@@ -208,8 +206,8 @@ export function PermissionModal({ showModal, closeModal }) {
 
           <span className="toggleSwitch">
             <span className="togglerCheckbox">
-              <input 
-                type="checkbox" 
+              <input
+                type="checkbox"
                 id={toggleId}
                 checked={isSectionSelected}
                 onChange={(e) => handleSectionToggle(section, e.target.checked)}
@@ -296,8 +294,8 @@ export function PermissionModal({ showModal, closeModal }) {
 
           <span className="toggleSwitch">
             <span className="togglerCheckbox">
-              <input 
-                type="checkbox" 
+              <input
+                type="checkbox"
                 id={toggleId}
                 checked={isSubSelected}
                 onChange={(e) => handleSubToggle(e.target.checked)}
@@ -344,8 +342,8 @@ export function PermissionModal({ showModal, closeModal }) {
 
           <span className="toggleSwitch">
             <span className="togglerCheckbox">
-              <input 
-                type="checkbox" 
+              <input
+                type="checkbox"
                 id={toggleId}
                 checked={isItemSelected}
                 onChange={(e) => handlePermissionChange(itemPermissionId, e.target.checked)}
@@ -377,8 +375,8 @@ export function PermissionModal({ showModal, closeModal }) {
 
           <span className="toggleSwitch">
             <span className="togglerCheckbox">
-              <input 
-                type="checkbox" 
+              <input
+                type="checkbox"
                 id={toggleId}
                 checked={isItemSelected}
                 onChange={(e) => handlePermissionChange(itemPermissionId, e.target.checked)}
@@ -404,8 +402,8 @@ export function PermissionModal({ showModal, closeModal }) {
         <form id="permissionForm" onSubmit={handleSubmit}>
           <div className="permInputs">
             <div className="form-floating desig-inp">
-              <select 
-                className="form-select" 
+              <select
+                className="form-select"
                 id="floatingRole"
                 value={selectedRoleId}
                 onChange={(e) => setSelectedRoleId(e.target.value)}
@@ -419,17 +417,6 @@ export function PermissionModal({ showModal, closeModal }) {
                 ))}
               </select>
               <label htmlFor="floatingRole">Role *</label>
-            </div>
-            <div className="form-floating desc-input">
-              <input
-                type="text"
-                className="form-control"
-                id="floatingDesc"
-                placeholder="Description"
-                value={description}
-                onChange={(e) => setDescription(e.target.value)}
-              />
-              <label htmlFor="floatingPassword">Description</label>
             </div>
           </div>
 
@@ -461,15 +448,15 @@ export function PermissionModal({ showModal, closeModal }) {
   // -------------------------------------------
   const renderFooter = () => (
     <div className="modal-footer">
-      <button 
+      <button
         type="button"
-        className="btn btn-outline" 
+        className="btn btn-outline"
         onClick={() => closeModal?.(null)}
         disabled={isBeingUpdated}
       >
         Close
       </button>
-      <button 
+      <button
         type="submit"
         className="btn btn-primary"
         form="permissionForm"
