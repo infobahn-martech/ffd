@@ -92,6 +92,26 @@ const usePermissionReducer = create((set) => ({
       error(err?.response?.data?.message ?? err.message);
     }
   },
+  assignRolePermission: async ({ role_id, permission_id, cb }) => {
+    try {
+      set({ isBeingUpdated: true });
+      const { data } = await permissionService.assignRolePermission({
+        role_id,
+        permission_id,
+      });
+      set({ successMessage: data.message, isBeingUpdated: false });
+      const { success } = useAlertReducer.getState();
+      success(data && data.message);
+      cb && cb();
+    } catch (err) {
+      const { error } = useAlertReducer.getState();
+      set({
+        errorMessage: 'Something went wrong assigning role permissions',
+        isBeingUpdated: false,
+      });
+      error(err?.response?.data?.message ?? err.message);
+    }
+  },
 }));
 
 export default usePermissionReducer;
