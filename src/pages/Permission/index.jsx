@@ -32,7 +32,7 @@ const Permission = () => {
   const cols = [
     {
       name: 'Permission',
-      selector: 'name',
+      selector: 'section_name',
       tableClasses: 'table-striped',
       contentClass: 'table-content',
       sort: true,

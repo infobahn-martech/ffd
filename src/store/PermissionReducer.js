@@ -31,8 +31,8 @@ const usePermissionReducer = create((set) => ({
       set({ isLoading: true });
       const { data } = await permissionService.fetchPermission({ params });
       set({
-        designations: data.data.data,
-        totalDesignationCount: data.data.totalCount,
+        designations: data?.data,
+        totalDesignationCount: data?.pagination?.total,
         isLoading: false,
       });
     } catch (error) {
