@@ -1,24 +1,25 @@
 import { useForm } from "react-hook-form";
+import { useEffect } from "react";
 import CustomModal from "../../../components/CustomModal";
 import useVesselReducer from "../../../store/VesselReducer";
+import useVesselTypeReducer from "../../../store/VesselTypeReducer";
+import useBillingEntityReducer from "../../../store/BillingEntityReducer";
 import "../../../design/scss/prospect-modal.scss";
 import "../../../design/scss/modal-designs.scss";
 import "../../../design/scss/form-designs.scss";
 
-// Vessel Type Options
-const VESSEL_TYPE_OPTIONS = [
-  "Bulk",
-  "Container",
-  "Tanker",
-  "Tug Boat",
-  "Fishing Vessel",
-  "Other",
-];
-
-
-
 export function VesselModal({ showModal, closeModal, billingEntities }) {
   const { addVessel, updateVessel, isBeingUpdated } = useVesselReducer();
+  const { vesselTypes, getVesselTypes, isLoading: isLoadingVesselTypes } = useVesselTypeReducer((state) => state);
+  const { billingEntities: billingEntitiesData, getBillingEntities, isLoading: isLoadingBillingEntities } = useBillingEntityReducer((state) => state);
+
+  // Fetch vessel types and billing entities when modal opens
+  useEffect(() => {
+    if (showModal) {
+      getVesselTypes({ params: { limit: 1000 } });
+      getBillingEntities({ params: { limit: 1000 } });
+    }
+  }, [showModal]);
   
   const {
     register,
@@ -104,13 +105,18 @@ export function VesselModal({ showModal, closeModal, billingEntities }) {
                 <select
                   className={`form-control ${errors.vesselType ? "is-invalid" : ""}`}
                   {...register("vesselType", { required: "Vessel Type is required" })}
+                  disabled={isLoadingVesselTypes}
                 >
                   <option value="">Select Vessel Type</option>
-                  {VESSEL_TYPE_OPTIONS.map((type) => (
-                    <option key={type} value={type}>
-                      {type}
-                    </option>
-                  ))}
+                  {vesselTypes?.map((type) => {
+                    const value = type.vessel_type || type.name || type.vessel_type_id || type._id;
+                    const label = type.vessel_type || type.name || value;
+                    return (
+                      <option key={type.vessel_type_id || type._id || value} value={value}>
+                        {label}
+                      </option>
+                    );
+                  })}
                 </select>
                 <label>
                   Vessel Type <span className="text-danger">*</span>
@@ -126,11 +132,12 @@ export function VesselModal({ showModal, closeModal, billingEntities }) {
                 <select
                   className={`form-control ${errors.billingEntity ? "is-invalid" : ""}`}
                   {...register("billingEntity", { required: "Billing Entity is required" })}
+                  disabled={isLoadingBillingEntities}
                 >
                   <option value="">Select Billing Entity</option>
-                  {billingEntities?.map((entity) => {
-                    const value = typeof entity === 'object' ? entity._id : entity;
-                    const label = typeof entity === 'object' ? (entity.name || entity.billingEntityName || entity._id) : entity;
+                  {billingEntitiesData?.map((entity) => {
+                    const value = entity._id || entity.id;
+                    const label = entity.name || entity.billingEntityName || value;
                     return (
                       <option key={value} value={value}>
                         {label}
@@ -279,10 +286,10 @@ export function VesselModal({ showModal, closeModal, billingEntities }) {
             </div>
           </div>
 
-          {/* ROW 6 — P&I Club + Length Overall */}
+          {/* ROW 6 — P&I Club + Length Overall + Beam */}
           <div className="permInputs row mb-lg-3">
             {/* P&I Club */}
-            <div className="col-lg-6 col-sm-12 mb-3">
+            <div className="col-lg-4 col-sm-12 mb-3">
               <div className="form-floating desig-inp">
                 <input
                   className={`form-control ${errors.pnIClub ? "is-invalid" : ""}`}
@@ -299,7 +306,7 @@ export function VesselModal({ showModal, closeModal, billingEntities }) {
             </div>
 
             {/* Length Overall */}
-            <div className="col-lg-6 col-sm-12 mb-3">
+            <div className="col-lg-4 col-sm-12 mb-3">
               <div className="form-floating desig-inp">
                 <input
                   className={`form-control ${errors.lengthOverall ? "is-invalid" : ""}`}
@@ -314,12 +321,9 @@ export function VesselModal({ showModal, closeModal, billingEntities }) {
                 )}
               </div>
             </div>
-          </div>
 
-          {/* ROW 7 — Beam + Draft */}
-          <div className="permInputs row mb-lg-3">
             {/* Beam */}
-            <div className="col-lg-6 col-sm-12 mb-3">
+            <div className="col-lg-4 col-sm-12 mb-3">
               <div className="form-floating desig-inp">
                 <input
                   className={`form-control ${errors.beam ? "is-invalid" : ""}`}
@@ -334,9 +338,12 @@ export function VesselModal({ showModal, closeModal, billingEntities }) {
                 )}
               </div>
             </div>
+          </div>
 
+          {/* ROW 7 — Draft (Single Field) */}
+          <div className="permInputs row mb-lg-3">
             {/* Draft */}
-            <div className="col-lg-6 col-sm-12 mb-3">
+            <div className="col-lg-12 col-sm-12 mb-3">
               <div className="form-floating desig-inp">
                 <input
                   className={`form-control ${errors.draft ? "is-invalid" : ""}`}
