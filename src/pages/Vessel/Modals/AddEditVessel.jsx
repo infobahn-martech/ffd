@@ -192,7 +192,7 @@ export function VesselModal({ showModal, closeModal, billingEntities }) {
             </div>
           </div>
 
-          {/* ROW 3 — Flag State */}
+          {/* ROW 3 — Flag State + Gross Tonnage */}
           <div className="permInputs row mb-lg-3">
             {/* Flag State */}
             <div className="col-lg-6 col-sm-12 mb-3">
@@ -210,10 +210,7 @@ export function VesselModal({ showModal, closeModal, billingEntities }) {
                 )}
               </div>
             </div>
-          </div>
 
-          {/* ROW 4 — Gross Tonnage + Call Sign */}
-          <div className="permInputs row mb-lg-3">
             {/* Gross Tonnage */}
             <div className="col-lg-6 col-sm-12 mb-3">
               <div className="form-floating desig-inp">
@@ -230,7 +227,10 @@ export function VesselModal({ showModal, closeModal, billingEntities }) {
                 )}
               </div>
             </div>
+          </div>
 
+          {/* ROW 4 — Call Sign + Year Built */}
+          <div className="permInputs row mb-lg-3">
             {/* Call Sign */}
             <div className="col-lg-6 col-sm-12 mb-3">
               <div className="form-floating desig-inp">
@@ -247,10 +247,7 @@ export function VesselModal({ showModal, closeModal, billingEntities }) {
                 )}
               </div>
             </div>
-          </div>
 
-          {/* ROW 5 — Year Built + Class Society */}
-          <div className="permInputs row mb-lg-3">
             {/* Year Built */}
             <div className="col-lg-6 col-sm-12 mb-3">
               <div className="form-floating desig-inp">
@@ -267,7 +264,10 @@ export function VesselModal({ showModal, closeModal, billingEntities }) {
                 )}
               </div>
             </div>
+          </div>
 
+          {/* ROW 5 — Class Society + P&I Club */}
+          <div className="permInputs row mb-lg-3">
             {/* Class Society */}
             <div className="col-lg-6 col-sm-12 mb-3">
               <div className="form-floating desig-inp">
@@ -284,12 +284,9 @@ export function VesselModal({ showModal, closeModal, billingEntities }) {
                 )}
               </div>
             </div>
-          </div>
 
-          {/* ROW 6 — P&I Club + Length Overall + Beam */}
-          <div className="permInputs row mb-lg-3">
             {/* P&I Club */}
-            <div className="col-lg-4 col-sm-12 mb-3">
+            <div className="col-lg-6 col-sm-12 mb-3">
               <div className="form-floating desig-inp">
                 <input
                   className={`form-control ${errors.pnIClub ? "is-invalid" : ""}`}
@@ -304,9 +301,12 @@ export function VesselModal({ showModal, closeModal, billingEntities }) {
                 )}
               </div>
             </div>
+          </div>
 
+          {/* ROW 6 — Length Overall + Beam */}
+          <div className="permInputs row mb-lg-3">
             {/* Length Overall */}
-            <div className="col-lg-4 col-sm-12 mb-3">
+            <div className="col-lg-6 col-sm-12 mb-3">
               <div className="form-floating desig-inp">
                 <input
                   className={`form-control ${errors.lengthOverall ? "is-invalid" : ""}`}
@@ -323,7 +323,7 @@ export function VesselModal({ showModal, closeModal, billingEntities }) {
             </div>
 
             {/* Beam */}
-            <div className="col-lg-4 col-sm-12 mb-3">
+            <div className="col-lg-6 col-sm-12 mb-3">
               <div className="form-floating desig-inp">
                 <input
                   className={`form-control ${errors.beam ? "is-invalid" : ""}`}
@@ -340,10 +340,10 @@ export function VesselModal({ showModal, closeModal, billingEntities }) {
             </div>
           </div>
 
-          {/* ROW 7 — Draft (Single Field) */}
+          {/* ROW 7 — Draft + (Empty) */}
           <div className="permInputs row mb-lg-3">
             {/* Draft */}
-            <div className="col-lg-12 col-sm-12 mb-3">
+            <div className="col-lg-6 col-sm-12 mb-3">
               <div className="form-floating desig-inp">
                 <input
                   className={`form-control ${errors.draft ? "is-invalid" : ""}`}
