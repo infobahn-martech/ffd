@@ -76,7 +76,7 @@ const User = () => {
     },
     {
       name: "Status",
-      selector: "status",
+      selector: "user_status",
       width: "150",
       thclass: "tb-head",
       contentClass: "table-content",
@@ -84,14 +84,14 @@ const User = () => {
       cell: ({ row }) => (
         <span
           className={
-            row.status === "Active"
+            row.user_status === "Active"
               ? "status-active"
-              : row.status === "Inactive"
+              : row.user_status === "Inactive"
                 ? "status-inactive"
                 : "status-pending"
           }
         >
-          {row.status}
+          {row.user_status}
         </span>
       ),
     },
@@ -121,7 +121,7 @@ const User = () => {
         <div className="prospect employee">
           <div className="container-fluid">
             <CommonHeader
-              showFilter
+              // showFilter
               tableTitle="Users"
               isAddEnabled
               addModalLabel="Add User"
