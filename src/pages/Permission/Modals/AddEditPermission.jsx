@@ -1,104 +1,96 @@
+import { useEffect, useMemo } from 'react';
 import CustomModal from '../../../components/CustomModal';
 import icon from '../../../assets/images/icon-chevToggle.svg';
 import { ROLE_OPTIONS } from '../../../constants/roles';
+import usePermissionReducer from '../../../store/PermissionReducer';
 import '../../../design/scss/add-permissions.scss';
-
-// -------------------------------------------
-//  DYNAMIC PERMISSION SECTIONS
-// -------------------------------------------
-const PERMISSION_SECTIONS = [
-  {
-    id: 'dashboard',
-    title: 'Dashboard',
-    items: [
-      { id: 'total_income', title: 'Total Income' },
-      { id: 'total_expense', title: 'Total Expense' },
-      { id: 'net_profit', title: 'Net Profit' },
-      { id: 'new_leads', title: 'New Leads' },
-      { id: 'active_workers', title: 'Active Workers' },
-      { id: 'pending_tasks', title: 'Pending Tasks' },
-    ],
-  },
-
-  {
-    id: "userManagement",
-    title: "User Management",
-    subSections: [
-      {
-        id: "roles",
-        title: "Roles",
-        items: [
-          { id: 'list', title: 'List' },
-          { id: 'add', title: 'Add' },
-          { id: 'edit', title: 'Edit' },
-          { id: 'delete', title: 'Delete' },
-        ]
-      },
-      {
-        id: "permissions",
-        title: "Permissions",
-        items: [
-          { id: 'list', title: 'List' },
-          { id: 'add', title: 'Add' },
-          { id: 'edit', title: 'Edit' },
-          { id: 'delete', title: 'Delete' },
-        ]
-      },
-      {
-        id: "users",
-        title: "Users",
-        items: [
-          { id: 'list', title: 'List' },
-          { id: 'add', title: 'Add' },
-          { id: 'edit', title: 'Edit' },
-          { id: 'status', title: 'Status' },
-          { id: 'delete', title: 'Delete' },
-        ]
-      },
-    ],
-  },
-
-  {
-    id: "portManagement",
-    title: "Port Management",
-    items: [
-      { id: 'list', title: 'List', items: [] },
-    ],
-  },
-
-  {
-    id: "billingAccounts",
-    title: "Billing Accounts",
-    items: [
-      { id: 'list', title: 'List', items: [] },
-    ],
-  },
-
-  {
-    id: "vesselManagement",
-    title: "Vessel Management",
-    subSections: [
-      { id: "vesselTypes", title: "Vessel Types", items: [{ id: 'list', title: 'List' }] },
-      { id: "vessels", title: "Vessels", items: [{ id: 'list', title: 'List' }] },
-    ],
-  },
-
-  {
-    id: "preArrival",
-    title: "Pre-Arrival",
-    subSections: [
-      { id: "documents", title: "Documents", items: [{ id: 'list', title: 'List' }] },
-    ],
-  },
-];
 
 // Unique toggle ID builder
 const buildToggleId = (...parts) => `toggle_${parts.join('_')}`;
 
 // -------------------------------------------
+//  TRANSFORM API RESPONSE TO COMPONENT STRUCTURE
+// -------------------------------------------
+const transformPermissionsData = (apiData) => {
+  if (!apiData || !Array.isArray(apiData)) return [];
+
+  return apiData.map((level1Item) => {
+    const section = {
+      id: level1Item.permission_id,
+      title: level1Item.section_name,
+      permissionId: level1Item.permission_id,
+    };
+
+    // Check if level 1 has subpermissions
+    if (level1Item.subpermission && level1Item.subpermission.length > 0) {
+      // Check if any level 2 item has subpermissions (level 3)
+      const hasLevel3 = level1Item.subpermission.some(
+        (sub) => sub.subpermission && sub.subpermission.length > 0
+      );
+
+      if (hasLevel3) {
+        // Create subSections structure (level 2 items that may have level 3)
+        section.subSections = level1Item.subpermission.map((level2Item) => {
+          const subSection = {
+            id: level2Item.permission_id,
+            title: level2Item.section_name,
+            permissionId: level2Item.permission_id,
+          };
+
+          // If level 2 has level 3 subpermissions, create items from level 3
+          if (level2Item.subpermission && level2Item.subpermission.length > 0) {
+            subSection.items = level2Item.subpermission.map((level3Item) => ({
+              id: level3Item.permission_id,
+              title: level3Item.section_name,
+              permissionId: level3Item.permission_id,
+            }));
+          } else {
+            // Level 2 item without subpermissions - represent itself as a single item
+            subSection.items = [
+              {
+                id: level2Item.permission_id,
+                title: level2Item.section_name,
+                permissionId: level2Item.permission_id,
+              },
+            ];
+          }
+
+          return subSection;
+        });
+      } else {
+        // All level 2 items are direct items (no level 3)
+        section.items = level1Item.subpermission.map((level2Item) => ({
+          id: level2Item.permission_id,
+          title: level2Item.section_name,
+          permissionId: level2Item.permission_id,
+        }));
+      }
+    } else {
+      // Level 1 item without subpermissions
+      section.items = [];
+    }
+
+    return section;
+  });
+};
+
+// -------------------------------------------
 //  MAIN COMPONENT
 // -------------------------------------------
 export function PermissionModal({ showModal, closeModal }) {
+  const { permissionsList, isLoadingPermissions, fetchPermissionsList } = usePermissionReducer();
+
+  // Fetch permissions when modal opens
+  useEffect(() => {
+    if (showModal) {
+      fetchPermissionsList();
+    }
+  }, [showModal, fetchPermissionsList]);
+
+  // Transform API data to component structure
+  const PERMISSION_SECTIONS = useMemo(() => {
+    return transformPermissionsData(permissionsList);
+  }, [permissionsList]);
 
   // -------------------------------------------
   //  RENDER TOP LEVEL MENU
@@ -285,8 +277,24 @@ export function PermissionModal({ showModal, closeModal }) {
             </div>
           </div>
 
+          {/* Loading state */}
+          {isLoadingPermissions && (
+            <div className="text-center py-4">
+              <p>Loading permissions...</p>
+            </div>
+          )}
+
           {/* Render dynamic sections */}
-          {PERMISSION_SECTIONS.map((section) => renderTopLevel(section))}
+          {!isLoadingPermissions && PERMISSION_SECTIONS.length > 0 && (
+            PERMISSION_SECTIONS.map((section) => renderTopLevel(section))
+          )}
+
+          {/* Empty state */}
+          {!isLoadingPermissions && PERMISSION_SECTIONS.length === 0 && (
+            <div className="text-center py-4">
+              <p>No permissions available</p>
+            </div>
+          )}
         </form>
       </div>
     </div>

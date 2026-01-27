@@ -9,6 +9,8 @@ const usePermissionReducer = create((set) => ({
   designations: null,
   isBeingUpdated: false,
   totalDesignationCount: null,
+  permissionsList: null,
+  isLoadingPermissions: false,
   addPermission: async ({ formData, cb }) => {
     try {
       set({ isBeingUpdated: true });
@@ -69,6 +71,23 @@ const usePermissionReducer = create((set) => ({
       set({
         errorMessage: 'Something went wrong deleting the permission',
         isBeingUpdated: false,
+      });
+      error(err?.response?.data?.message ?? err.message);
+    }
+  },
+  fetchPermissionsList: async () => {
+    try {
+      set({ isLoadingPermissions: true });
+      const { data } = await permissionService.getPermissions();
+      set({
+        permissionsList: data?.data || [],
+        isLoadingPermissions: false,
+      });
+    } catch (err) {
+      const { error } = useAlertReducer.getState();
+      set({
+        errorMessage: 'Something went wrong fetching permissions',
+        isLoadingPermissions: false,
       });
       error(err?.response?.data?.message ?? err.message);
     }
