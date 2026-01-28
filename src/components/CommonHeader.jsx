@@ -67,138 +67,138 @@ function CommonHeader({
 
   return (
     <>
-        <div className="row">
-      <div className="top-sec d-flex">
-        <div className="col-lg-2">
-          {bredcrumpTitle ? (
-            renderBreadCrumpTitile(bredcrumpTitle)
-          ) : (
-            <div className="heading left-sec">{tableTitle}</div>
-          )}
-        </div>
-        <div className="col-lg-10">
-          <form action="#" className="right-sec">
-            {!hideSearch && (
-              <div className="search-group mx-2">
-                <div className="input-group">
-                  <span className="input-group-text">
-                    <img src={search} alt="sch" />
-                  </span>
-                  <input
-                    value={searchValue}
-                    onChange={({ target: { value } }) => {
-                      setSearchValue(value.trimStart());
-                      clearTimeout(timer);
-                      const timerSet = setTimeout(() => {
-                        setSearch(value?.trimStart());
-                      }, 500);
-                      setTimer(timerSet);
-                    }}
-                    type="text"
-                    className="form-control"
-                    placeholder={searchPlaceHolder || 'Search...'}
-                  />
+      <div className="row">
+        <div className="top-sec d-flex">
+          <div className="col-lg-2">
+            {bredcrumpTitle ? (
+              renderBreadCrumpTitile(bredcrumpTitle)
+            ) : (
+              <div className="heading left-sec">{tableTitle}</div>
+            )}
+          </div>
+          <div className="col-lg-10">
+            <form action="#" className="right-sec">
+              {!hideSearch && (
+                <div className="search-group mx-2">
+                  <div className="input-group">
+                    <span className="input-group-text">
+                      <img src={search} alt="sch" />
+                    </span>
+                    <input
+                      value={searchValue}
+                      onChange={({ target: { value } }) => {
+                        setSearchValue(value.trimStart());
+                        clearTimeout(timer);
+                        const timerSet = setTimeout(() => {
+                          setSearch(value?.trimStart());
+                        }, 500);
+                        setTimer(timerSet);
+                      }}
+                      type="text"
+                      className="form-control"
+                      placeholder={searchPlaceHolder || 'Search...'}
+                    />
+                  </div>
                 </div>
-              </div>
-            )}
+              )}
 
-            {showFilter && (
-              <div className="filter mx-2">
-                <button className="btn-common" type="button" onClick={()=>{setFilterCollapse(!filterCollapse)}}>
-                  <span>
-                    <img src={filter} alt="filter" />
-                  </span>
-                  <span>Filter</span>
-                </button>
-              </div>
-            )}
-
-            {showImport && (
-              <div className="import mx-2">
-                <button
-                  className="btn-common"
-                  type="button"
-                  onClick={onImportClick}
-                >
-                  <span>Import</span>
-                </button>
-              </div>
-            )}
-
-            {showExport && (
-              <div className="dropdown d-inline-block mx-2">
-                <button
-                  className="btn-common dropdown-toggle"
-                  type="button"
-                  id="actionDropdown"
-                  data-bs-toggle="dropdown"
-                  aria-expanded="false"
-                  // onClick={onExportClick}
-                  disabled={exportLoader}
-                >
-                  <span>{exportTitle}</span>
-                  {!exportLoader ? (
+              {showFilter && (
+                <div className="filter mx-2">
+                  <button className="btn-common" type="button" onClick={() => { setFilterCollapse(!filterCollapse) }}>
                     <span>
-                      <img src={drop} alt="drop-dwn" />
+                      <img src={filter} alt="filter" />
                     </span>
-                  ) : (
-                    <div
-                      className="spinner-border spinner-border-sm"
-                      role="status"
-                    >
-                      <span className="visually-hidden">Loading...</span>
-                    </div>
-                  )}
-                </button>
-                <ul className="dropdown-menu" aria-labelledby="actionDropdown">
-                  {exportOption.map(({ value, label }) => (
-                    <li key={label}>
-                      <button
-                        type="button"
-                        className="dropdown-item"
-                        onClick={() => onExportClick(value)}
-                      >
-                        {label}
-                      </button>
-                    </li>
-                  ))}
-                </ul>
-              </div>
-            )}
-
-            {isAddEnabled && (
-              <div className="filter-items">
-                {/* add filter and export here  */}
-
-                <div className="create-btn mx-2">
-                  <button
-                    className="btn-common green-btn"
-                    type="button"
-                    data-bs-toggle="modal"
-                    data-bs-target="#createLeadModal"
-                    onClick={onAddModalClick}
-                  >
-                    <span>
-                      <img src={create} alt="img" />
-                    </span>
-                    <span>{addModalLabel}</span>
+                    <span>Filter</span>
                   </button>
                 </div>
-              </div>
-            )}
-          </form>
+              )}
+
+              {showImport && (
+                <div className="import mx-2">
+                  <button
+                    className="btn-common"
+                    type="button"
+                    onClick={onImportClick}
+                  >
+                    <span>Import</span>
+                  </button>
+                </div>
+              )}
+
+              {showExport && (
+                <div className="dropdown d-inline-block mx-2">
+                  <button
+                    className="btn-common dropdown-toggle"
+                    type="button"
+                    id="actionDropdown"
+                    data-bs-toggle="dropdown"
+                    aria-expanded="false"
+                    // onClick={onExportClick}
+                    disabled={exportLoader}
+                  >
+                    <span>{exportTitle}</span>
+                    {!exportLoader ? (
+                      <span>
+                        <img src={drop} alt="drop-dwn" />
+                      </span>
+                    ) : (
+                      <div
+                        className="spinner-border spinner-border-sm"
+                        role="status"
+                      >
+                        <span className="visually-hidden">Loading...</span>
+                      </div>
+                    )}
+                  </button>
+                  <ul className="dropdown-menu" aria-labelledby="actionDropdown">
+                    {exportOption.map(({ value, label }) => (
+                      <li key={label}>
+                        <button
+                          type="button"
+                          className="dropdown-item"
+                          onClick={() => onExportClick(value)}
+                        >
+                          {label}
+                        </button>
+                      </li>
+                    ))}
+                  </ul>
+                </div>
+              )}
+
+              {isAddEnabled && (
+                <div className="filter-items">
+                  {/* add filter and export here  */}
+
+                  <div className="create-btn mx-2">
+                    <button
+                      className="btn-common green-btn"
+                      type="button"
+                      data-bs-toggle="modal"
+                      data-bs-target="#createLeadModal"
+                      onClick={onAddModalClick}
+                    >
+                      <span>
+                        <img src={create} alt="img" />
+                      </span>
+                      <span>{addModalLabel}</span>
+                    </button>
+                  </div>
+                </div>
+              )}
+            </form>
+          </div>
         </div>
       </div>
-    </div>
-            {filterCollapse && filterOptions && (
-             <CommonFilter
-               filters={filterOptions}
-               filterValues={filterValue || {}}
-               onFilterChange={onFilterChange}
-               onApplyFilter={onApplyFilter || onFilterChange}
-               onClearFilter={onClearFilter || onFilterChange}
-             />
-            )}
+      {filterCollapse && filterOptions && (
+        <CommonFilter
+          filters={filterOptions}
+          filterValues={filterValue || {}}
+          onFilterChange={onFilterChange}
+          onApplyFilter={onApplyFilter || onFilterChange}
+          onClearFilter={onClearFilter || onFilterChange}
+        />
+      )}
     </>
 
   );

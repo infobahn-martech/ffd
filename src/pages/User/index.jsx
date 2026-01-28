@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import CommonHeader from "../../components/CommonHeader";
-import CustomTable from "../../components/customTable";
+import CustomTable from "../../components/CustomTable";
 import { UserModal } from "./Modals/AddEditUser";
 import { RenderAction, RenderName } from "./RenderCells";
 import DeleteConfirmationModal from "../../components/DeleteConfirmationModal";

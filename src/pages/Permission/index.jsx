@@ -12,7 +12,9 @@ const Permission = () => {
     page: 1,
     total: 0,
     limit: 10,
-    searchTerm: '',
+    search: '',
+    sortBy: "createdAt",
+    sortOrder: 1,
   });
 
   const [showDeleteModal, setShowDeleteModal] = useState(false);
@@ -78,7 +80,7 @@ const Permission = () => {
             }}
             addModalLabel="Add Permission"
             setSearch={(e) =>
-              setParams({ ...params, searchTerm: e, page: 1, limit: 10 })
+              setParams({ ...params, search: e, page: 1, limit: 10 })
             }
             exportTitle="Export"
             exportLoader={false}
@@ -98,6 +100,14 @@ const Permission = () => {
             setParams({ ...params, page: currentPage })
           }
           setLimit={(newlimit) => setParams({ ...params, limit: newlimit })}
+          onSorting={(sortBy) =>
+            setParams({
+              ...params,
+              sortBy,
+              sortOrder: params.sortOrder === 1 ? -1 : 1,
+              page: 1,
+            })
+          }
         />
 
         {!!showPermissionModal && (
