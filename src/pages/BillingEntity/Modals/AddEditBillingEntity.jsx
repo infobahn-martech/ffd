@@ -1,18 +1,27 @@
 import { useForm, Controller } from "react-hook-form";
+import { useState, useEffect } from "react";
 import PhoneInput from "react-phone-input-2";
 import "react-phone-input-2/lib/bootstrap.css";
 import CustomModal from "../../../components/CustomModal";
 import "../../../design/scss/prospect-modal.scss";
 import "../../../design/scss/modal-designs.scss";
 import "../../../design/scss/form-designs.scss";
+import userIcon from "../../../assets/images/DummyProPic.avif";
+import edit from "../../../assets/images/edit.svg";
 
 
 export function BillingEntityModal({ showModal, closeModal, onSuccess }) {
+  const [logoImage, setLogoImage] = useState(null);
+  const [logoImagePreview, setLogoImagePreview] = useState(
+    showModal?.logo_path || userIcon
+  );
+
   const {
     register,
     handleSubmit,
     formState: { errors },
     control,
+    reset,
   } = useForm({
     defaultValues: showModal?._id
       ? {
@@ -28,13 +37,95 @@ export function BillingEntityModal({ showModal, closeModal, onSuccess }) {
       },
   });
 
+  useEffect(() => {
+    // Update form when showModal changes
+    if (showModal?._id) {
+      reset({
+        customerId: showModal?.customerId || "",
+        billingEntityName: showModal?.billingEntityName,
+        vatNumber: showModal?.vatNumber || "",
+        email: showModal?.email,
+        phone: showModal?.phone || "",
+        addressLine1: showModal?.addressLine1,
+      });
+      setLogoImagePreview(showModal?.logo_path || userIcon);
+      setLogoImage(null);
+    } else {
+      reset({
+        phone: "",
+        customerId: "",
+        billingEntityName: "",
+        vatNumber: "",
+        email: "",
+        addressLine1: "",
+      });
+      setLogoImagePreview(userIcon);
+      setLogoImage(null);
+    }
+  }, [showModal, reset]);
+
+  const handleImageChange = (e) => {
+    const file = e.target.files[0];
+    if (file) {
+      setLogoImage(file);
+      const reader = new FileReader();
+      reader.onloadend = () => {
+        setLogoImagePreview(reader.result);
+      };
+      reader.readAsDataURL(file);
+    }
+  };
 
   console.log("errors", errors)
 
-  const onSubmit = (data) => {
-    console.log("BILLING ENTITY FORM SUBMITTED:", data);
-    onSuccess?.();
-    closeModal();
+  const onSubmit = async (data) => {
+    try {
+      const formData = new FormData();
+
+      // Map form data to API format
+      formData.append("customerId", data.customerId || "");
+      formData.append("billingEntityName", data.billingEntityName);
+      formData.append("vatNumber", data.vatNumber || "");
+      formData.append("email", data.email);
+      formData.append("phone", data.phone);
+      formData.append("addressLine1", data.addressLine1);
+
+      // Append logo image
+      if (logoImage) {
+        // New image selected - append the file
+        formData.append("logo", logoImage);
+      } else if (showModal?._id && showModal?.logo_path) {
+        // Updating billing entity without new image - send existing image path
+        // This ensures the backend knows to keep the existing image
+        formData.append("logo", showModal.logo_path);
+      }
+
+      console.log("BILLING ENTITY FORM SUBMITTED:", data);
+      // TODO: Replace with actual API call
+      // if (showModal?._id) {
+      //   await updateBillingEntity({
+      //     id: showModal?._id,
+      //     formData,
+      //     cb: () => {
+      //       closeModal();
+      //       onSuccess && onSuccess();
+      //     },
+      //   });
+      // } else {
+      //   await createBillingEntity({
+      //     formData,
+      //     cb: () => {
+      //       closeModal();
+      //       onSuccess && onSuccess();
+      //     },
+      //   });
+      // }
+
+      onSuccess?.();
+      closeModal();
+    } catch (error) {
+      console.error("Error submitting billing entity form:", error);
+    }
   };
 
   const renderHeader = () => (
@@ -49,6 +140,55 @@ export function BillingEntityModal({ showModal, closeModal, onSuccess }) {
     <div className="modal-body">
       <div className="lead-form">
         <form id="billingEntityForm" onSubmit={handleSubmit(onSubmit)}>
+          {/* ===== Logo Upload ===== */}
+          <div className="d-flex justify-content-center mb-4">
+            <div className="avatar-wrapper" style={{ position: "relative" }}>
+              <img
+                src={logoImagePreview}
+                alt="Billing Entity Logo"
+                className="avatar-image"
+                style={{
+                  width: "120px",
+                  height: "120px",
+                  borderRadius: "50%",
+                  objectFit: "cover",
+                  border: "3px solid #e6e6e6",
+                }}
+              />
+
+              <label
+                htmlFor="logoUpload"
+                className="avatar-edit-icon"
+                style={{
+                  position: "absolute",
+                  bottom: "0",
+                  right: "10px",
+                  background: "#e7e7e7",
+                  width: "30px",
+                  height: "30px",
+                  borderRadius: "50%",
+                  display: "flex",
+                  justifyContent: "center",
+                  alignItems: "center",
+                  cursor: "pointer",
+                }}
+              >
+                <img
+                  src={edit}
+                  alt="Edit"
+                  style={{ width: "14px", height: "18px", filter: "invert(1)" }}
+                />
+              </label>
+
+              <input
+                type="file"
+                id="logoUpload"
+                className="d-none"
+                accept="image/*"
+                onChange={handleImageChange}
+              />
+            </div>
+          </div>
 
           {/* ROW 1 — Customer ID + Billing Entity Name */}
           <div className="permInputs row mb-lg-3">

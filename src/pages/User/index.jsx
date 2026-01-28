@@ -48,7 +48,7 @@ const User = () => {
       sort: true,
     },
     {
-      name: "User Role",
+      name: "Role",
       selector: "role",
       width: "200",
       thclass: "tb-head",
@@ -125,6 +125,7 @@ const User = () => {
     },
   ];
 
+  console.log("users", users);
   return (
     <>
       <div className="page-body">
