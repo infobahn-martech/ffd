@@ -27,4 +27,6 @@ const createUser = (formData) => Gateway.post('/users/create', formData);
 
 const updateUser = (userId, formData) => Gateway.post(`/users/update/${userId}`, formData);
 
-export default { getUsers, createUser, updateUser };
+const getUserPermissions = (userId) => Gateway.get(`/permissions/get_permissions_by_user/${userId}`);
+
+export default { getUsers, createUser, updateUser, getUserPermissions };

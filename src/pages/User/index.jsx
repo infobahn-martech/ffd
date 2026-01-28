@@ -26,6 +26,9 @@ const User = () => {
     users,
     userCount,
     isLoading,
+    getUserPermissions,
+    userPermissions,
+    isLoadingPermissions,
   } = useUserReducer((state) => state);
 
   useEffect(() => {
@@ -110,8 +113,9 @@ const User = () => {
         console.log("Toggle user status:", row);
         // TODO: Implement API call to update user status
       },
-      onPermissionClick: (row) => {
+      onPermissionClick: async (row) => {
         setSelectedUser(row);
+        await getUserPermissions({ userId: row?.user_id });
         setShowPermissionModal(true);
       },
       onDeleteClick: (row) => {
@@ -182,6 +186,9 @@ const User = () => {
                 setShowPermissionModal(false);
                 setSelectedUser(null);
               }}
+              userPermissions={userPermissions}
+              isLoadingPermissions={isLoadingPermissions}
+              selectedUser={selectedUser}
             />
           )}
           {!!showDeleteModal && (
