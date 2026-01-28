@@ -3,9 +3,10 @@ import moment from 'moment';
 
 import edit from '../../assets/images/edit.svg';
 import trash from '../../assets/images/delete.svg';
+import permissionIcon from '../../assets/images/icon-lock.svg';
 import { getInitials } from '../../utils/utils';
 
-export const RenderAction = ({ onEditClick, row, onDeleteClick, onToggleClick }) => {
+export const RenderAction = ({ onEditClick, row, onDeleteClick, onToggleClick, onPermissionClick }) => {
   const isActive = row?.status === "Active";
 
   return (
@@ -13,6 +14,7 @@ export const RenderAction = ({ onEditClick, row, onDeleteClick, onToggleClick })
       <Tooltip id="toggle" place="bottom" content={isActive ? "Deactivate" : "Activate"} />
       <Tooltip id="edit" place="bottom" content="Edit" />
       <Tooltip id="archive" place="bottom" content="Archive" />
+      <Tooltip id="permission" place="bottom" content="Permission" />
       <div className="actions">
         <span
           data-tooltip-id="toggle"
@@ -83,6 +85,15 @@ export const RenderAction = ({ onEditClick, row, onDeleteClick, onToggleClick })
           className="edit"
         >
           <img src={edit} alt="edit" />
+        </span>
+        <span
+          data-tooltip-id="permission"
+          type="button"
+          onClick={() => onPermissionClick(row)}
+          className="permission"
+          style={{ marginRight: '8px', cursor: 'pointer' }}
+        >
+          <img src={permissionIcon} alt="permission" />
         </span>
         <span
           data-tooltip-id="archive"

@@ -2,6 +2,7 @@ import { useState, useEffect } from "react";
 import CommonHeader from "../../components/CommonHeader";
 import CustomTable from "../../components/CustomTable";
 import { UserModal } from "./Modals/AddEditUser";
+import { PermissionModal } from "../Permission/Modals/AddEditPermission";
 import { RenderAction, RenderName } from "./RenderCells";
 import DeleteConfirmationModal from "../../components/DeleteConfirmationModal";
 import useUserReducer from "../../store/UserReducer";
@@ -17,6 +18,7 @@ const User = () => {
 
   const [showUserModal, setShowUserModal] = useState(false);
   const [showDeleteModal, setShowDeleteModal] = useState(false);
+  const [showPermissionModal, setShowPermissionModal] = useState(false);
   const [selectedUser, setSelectedUser] = useState(null);
 
   const {
@@ -108,6 +110,10 @@ const User = () => {
         console.log("Toggle user status:", row);
         // TODO: Implement API call to update user status
       },
+      onPermissionClick: (row) => {
+        setSelectedUser(row);
+        setShowPermissionModal(true);
+      },
       onDeleteClick: (row) => {
         setSelectedUser(row);
         setShowDeleteModal(true);
@@ -166,6 +172,15 @@ const User = () => {
               }}
               onSuccess={() => {
                 getUsers({ params });
+              }}
+            />
+          )}
+          {!!showPermissionModal && (
+            <PermissionModal
+              showModal={showPermissionModal}
+              closeModal={() => {
+                setShowPermissionModal(false);
+                setSelectedUser(null);
               }}
             />
           )}
