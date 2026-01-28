@@ -94,9 +94,14 @@ export function UserModal({ showModal, closeModal, onSuccess }) {
       formData.append("address", data.address || "");
       formData.append("roleid", data.roleid);
 
-      // Append profile image if selected
+      // Append profile image
       if (profileImage) {
+        // New image selected - append the file
         formData.append("profileimg", profileImage);
+      } else if (showModal?.user_id && showModal?.avatar_path) {
+        // Updating user without new image - send existing image path
+        // This ensures the backend knows to keep the existing image
+        formData.append("profileimg", showModal.avatar_path);
       }
 
       if (showModal?.user_id) {
