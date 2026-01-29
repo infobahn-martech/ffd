@@ -10,7 +10,7 @@ import '../../../design/scss/add-permissions.scss';
 const buildToggleId = (...parts) => `toggle_${parts.join('_')}`;
 
 // -------------------------------------------
-//  TRANSFORM API RESPONSE TO COMPONENT STRUCTURE
+//  TRANSFORM API RESPONSE TO COMPONENT STRUCTURE (Permission page - nested subpermission)
 // -------------------------------------------
 const transformPermissionsData = (apiData) => {
   if (!apiData || !Array.isArray(apiData)) return [];
@@ -78,10 +78,17 @@ const transformPermissionsData = (apiData) => {
 // -------------------------------------------
 //  MAIN COMPONENT
 // -------------------------------------------
-export function PermissionModal({ showModal, closeModal }) {
+export function PermissionModal({
+  showModal,
+  closeModal,
+  userPermissions,
+  selectedUser,
+}) {
+  const isUserPermissionMode = !!userPermissions && Array.isArray(userPermissions);
+
   const {
     permissionsList,
-    isLoadingPermissions,
+    isLoadingPermissions: isLoadingPermissionsList,
     fetchPermissionsList,
     assignRolePermission,
     isBeingUpdated
@@ -93,18 +100,34 @@ export function PermissionModal({ showModal, closeModal }) {
   const [selectedRoleId, setSelectedRoleId] = useState('');
   const [selectedPermissions, setSelectedPermissions] = useState(new Set());
 
-  // Fetch permissions and roles when modal opens
+  // When opened from User page: list comes from full permissionsList; loading = list loading
+  const isLoadingPermissions = isLoadingPermissionsList;
+
+  // Fetch full permissions list when modal opens (both Permission page and User page)
   useEffect(() => {
     if (showModal) {
       fetchPermissionsList();
-      fetchRoles({ params: { page: 1, limit: 100 } });
-      // Reset form when modal opens
-      setSelectedRoleId('');
-      setSelectedPermissions(new Set());
+      if (!isUserPermissionMode) {
+        fetchRoles({ params: { page: 1, limit: 100 } });
+        setSelectedRoleId('');
+        setSelectedPermissions(new Set());
+      }
     }
-  }, [showModal, fetchPermissionsList, fetchRoles]);
+  }, [showModal, isUserPermissionMode, fetchPermissionsList, fetchRoles]);
 
-  // Transform API data to component structure
+  // When opened from User page: pre-fill checkboxes from getUserPermissions (is_allowed === '1')
+  useEffect(() => {
+    if (showModal && isUserPermissionMode && userPermissions?.length) {
+      const allowed = new Set(
+        userPermissions.filter((p) => p.is_allowed === '1' || p.is_allowed === 1).map((p) => p.permission_id)
+      );
+      setSelectedPermissions(allowed);
+      const first = userPermissions[0];
+      if (first?.role_id) setSelectedRoleId(String(first.role_id));
+    }
+  }, [showModal, isUserPermissionMode, userPermissions]);
+
+  // Always use full permissions list for display (same structure as Permission page)
   const PERMISSION_SECTIONS = useMemo(() => {
     return transformPermissionsData(permissionsList);
   }, [permissionsList]);
@@ -122,9 +145,10 @@ export function PermissionModal({ showModal, closeModal }) {
     });
   };
 
-  // Handle form submission
+  // Handle form submission (Permission page only; user mode is view/edit of user permissions)
   const handleSubmit = async (e) => {
     e.preventDefault();
+    if (isUserPermissionMode) return;
 
     if (!selectedRoleId) {
       showError('Please select a role');
@@ -402,21 +426,36 @@ export function PermissionModal({ showModal, closeModal }) {
         <form id="permissionForm" onSubmit={handleSubmit}>
           <div className="permInputs">
             <div className="form-floating desig-inp">
-              <select
-                className="form-select"
-                id="floatingRole"
-                value={selectedRoleId}
-                onChange={(e) => setSelectedRoleId(e.target.value)}
-                required
-              >
-                <option value="">Select Role</option>
-                {roles && roles.map((role) => (
-                  <option key={role._id} value={role._id}>
-                    {role.name}
-                  </option>
-                ))}
-              </select>
-              <label htmlFor="floatingRole">Role *</label>
+              {isUserPermissionMode && selectedUser ? (
+                <>
+                  <input
+                    type="text"
+                    className="form-control"
+                    id="floatingRole"
+                    value={selectedUser.role ?? userPermissions?.[0]?.role ?? ''}
+                    readOnly
+                  />
+                  <label htmlFor="floatingRole">Role</label>
+                </>
+              ) : (
+                <>
+                  <select
+                    className="form-select"
+                    id="floatingRole"
+                    value={selectedRoleId}
+                    onChange={(e) => setSelectedRoleId(e.target.value)}
+                    required
+                  >
+                    <option value="">Select Role</option>
+                    {roles && roles.map((role) => (
+                      <option key={role._id} value={role._id}>
+                        {role.name}
+                      </option>
+                    ))}
+                  </select>
+                  <label htmlFor="floatingRole">Role *</label>
+                </>
+              )}
             </div>
           </div>
 
@@ -456,14 +495,16 @@ export function PermissionModal({ showModal, closeModal }) {
       >
         Close
       </button>
-      <button
-        type="submit"
-        className="btn btn-primary"
-        form="permissionForm"
-        disabled={isBeingUpdated || !selectedRoleId}
-      >
-        {isBeingUpdated ? 'Saving...' : 'Save'}
-      </button>
+      {!isUserPermissionMode && (
+        <button
+          type="submit"
+          className="btn btn-primary"
+          form="permissionForm"
+          disabled={isBeingUpdated || !selectedRoleId}
+        >
+          {isBeingUpdated ? 'Saving...' : 'Save'}
+        </button>
+      )}
     </div>
   );
 
@@ -475,7 +516,13 @@ export function PermissionModal({ showModal, closeModal }) {
       closeModal={() => closeModal(null)}
       body={renderBody()}
       footer={renderFooter()}
-      header={<h1 className="modal-title fs-5">Add Designation and Permission</h1>}
+      header={
+        <h1 className="modal-title fs-5">
+          {isUserPermissionMode && selectedUser
+            ? `User Permissions - ${selectedUser.firstName ?? selectedUser.name ?? 'User'}`
+            : 'Add Designation and Permission'}
+        </h1>
+      }
     />
   );
 }
