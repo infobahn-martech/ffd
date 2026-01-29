@@ -89,7 +89,7 @@ const Port = () => {
         <div className="prospect employee">
           <div className="container-fluid">
             <CommonHeader
-              //  showFilter
+              hideSearch
               tableTitle="Ports"
               isAddEnabled={false}
               addModalLabel="Add Port"
