@@ -65,7 +65,10 @@ const useUserReducer = create((set) => ({
       });
     } catch (error) {
       const { error: showError } = useAlertReducer.getState();
-      set({ errorMessage: error.message, isLoadingPermissions: false });
+      set({
+        userPermissions: [],
+        isLoadingPermissions: false
+      });
       showError(error?.response?.data?.message ?? error.message);
     }
   },

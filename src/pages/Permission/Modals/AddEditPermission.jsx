@@ -115,17 +115,22 @@ export function PermissionModal({
     }
   }, [showModal, isUserPermissionMode, fetchPermissionsList, fetchRoles]);
 
-  // When opened from User page: pre-fill checkboxes from getUserPermissions (is_allowed === '1')
+  // When opened from User page: pre-fill from getUserPermissions (is_allowed === '1'), or reset when none/error
   useEffect(() => {
-    if (showModal && isUserPermissionMode && userPermissions?.length) {
-      const allowed = new Set(
-        userPermissions.filter((p) => p.is_allowed === '1' || p.is_allowed === 1).map((p) => p.permission_id)
-      );
-      setSelectedPermissions(allowed);
-      const first = userPermissions[0];
-      if (first?.role_id) setSelectedRoleId(String(first.role_id));
+    if (showModal && isUserPermissionMode && selectedUser) {
+      if (userPermissions?.length) {
+        const allowed = new Set(
+          userPermissions.filter((p) => p.is_allowed === '1' || p.is_allowed === 1).map((p) => p.permission_id)
+        );
+        setSelectedPermissions(allowed);
+        const first = userPermissions[0];
+        if (first?.role_id) setSelectedRoleId(String(first.role_id));
+      } else {
+        setSelectedPermissions(new Set());
+        setSelectedRoleId('');
+      }
     }
-  }, [showModal, isUserPermissionMode, userPermissions]);
+  }, [showModal, isUserPermissionMode, selectedUser, userPermissions]);
 
   // Always use full permissions list for display (same structure as Permission page)
   const PERMISSION_SECTIONS = useMemo(() => {
