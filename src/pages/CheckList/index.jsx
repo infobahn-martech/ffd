@@ -11,7 +11,7 @@ const dummyCheckLists = [
   {
     _id: "1",
     checklistName: "Pre-Arrival Checklist",
-    callType: "inbound",            // Inbound call
+    callType: "inbound",            // Inbound
     vesselType: "cargo",            // Cargo vessel
     bargeType: "flat",              // Flat barge
     sections: [
