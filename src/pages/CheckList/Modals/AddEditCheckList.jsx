@@ -764,102 +764,90 @@ export function CheckListModal({ showModal, closeModal }) {
         <form id="checklistForm" onSubmit={handleSubmit(onSubmit)}>
 
           {/* Call Type - Select */}
-          <div className="mb-lg-3 mb-sm-0">
-            <div className="form-floating desig-inp">
-              <select
-                className={`form-select ${errors.callType ? "is-invalid" : ""}`}
-                {...register("callType", {
-                  required: "Call Type is required"
-                })}
-              >
-                <option value="">Select Call Type</option>
-                <option value="inbound">Inbound</option>
-                <option value="outbound">Outbound</option>
-                <option value="both">Both</option>
-              </select>
-              <label>
-                Call Type <span className="text-danger">*</span>
-              </label>
-              {errors.callType && (
-                <span className="error text-danger">
-                  {errors.callType.message}
-                </span>
-              )}
+          {/* Top Fields in 2 columns */}
+          <div className="row g-3">
+            {/* Checklist Name */}
+            <div className="col-12 col-md-6">
+              <div className="form-floating desig-inp">
+                <input
+                  className={`form-control ${errors.checklistName ? "is-invalid" : ""}`}
+                  placeholder="Checklist Name"
+                  {...register("checklistName", { required: "Checklist Name is required" })}
+                />
+                <label>
+                  Checklist Name <span className="text-danger">*</span>
+                </label>
+                {errors.checklistName && (
+                  <span className="error text-danger">{errors.checklistName.message}</span>
+                )}
+              </div>
+            </div>
+            {/* Call Type */}
+            <div className="col-12 col-md-6">
+              <div className="form-floating desig-inp">
+                <select
+                  className={`form-select ${errors.callType ? "is-invalid" : ""}`}
+                  {...register("callType", { required: "Call Type is required" })}
+                >
+                  <option value="">Select Call Type</option>
+                  <option value="inbound">Inbound</option>
+                  <option value="outbound">Outbound</option>
+                  <option value="both">Both</option>
+                </select>
+                <label>
+                  Call Type <span className="text-danger">*</span>
+                </label>
+                {errors.callType && (
+                  <span className="error text-danger">{errors.callType.message}</span>
+                )}
+              </div>
+            </div>
+
+            {/* Vessel Type */}
+            <div className="col-12 col-md-6">
+              <div className="form-floating desig-inp">
+                <select
+                  className={`form-select ${errors.vesselType ? "is-invalid" : ""}`}
+                  {...register("vesselType", { required: "Vessel Type is required" })}
+                >
+                  <option value="">Select Vessel Type</option>
+                  <option value="cargo">Cargo</option>
+                  <option value="tanker">Tanker</option>
+                  <option value="container">Container</option>
+                  <option value="bulk">Bulk Carrier</option>
+                </select>
+                <label>
+                  Vessel Type <span className="text-danger">*</span>
+                </label>
+                {errors.vesselType && (
+                  <span className="error text-danger">{errors.vesselType.message}</span>
+                )}
+              </div>
+            </div>
+
+            {/* Barge Type */}
+            <div className="col-12 col-md-6">
+              <div className="form-floating desig-inp">
+                <select
+                  className={`form-select ${errors.bargeType ? "is-invalid" : ""}`}
+                  {...register("bargeType", { required: "Barge Type is required" })}
+                >
+                  <option value="">Select Barge Type</option>
+                  <option value="flat">Flat Barge</option>
+                  <option value="hopper">Hopper Barge</option>
+                  <option value="deck">Deck Barge</option>
+                  <option value="tank">Tank Barge</option>
+                </select>
+                <label>
+                  Barge Type <span className="text-danger">*</span>
+                </label>
+                {errors.bargeType && (
+                  <span className="error text-danger">{errors.bargeType.message}</span>
+                )}
+              </div>
             </div>
           </div>
 
-          {/* Vessel Type - Select */}
-          <div className="mb-lg-3 mb-sm-0">
-            <div className="form-floating desig-inp">
-              <select
-                className={`form-select ${errors.vesselType ? "is-invalid" : ""}`}
-                {...register("vesselType", {
-                  required: "Vessel Type is required"
-                })}
-              >
-                <option value="">Select Vessel Type</option>
-                <option value="cargo">Cargo</option>
-                <option value="tanker">Tanker</option>
-                <option value="container">Container</option>
-                <option value="bulk">Bulk Carrier</option>
-              </select>
-              <label>
-                Vessel Type <span className="text-danger">*</span>
-              </label>
-              {errors.vesselType && (
-                <span className="error text-danger">
-                  {errors.vesselType.message}
-                </span>
-              )}
-            </div>
-          </div>
-
-          {/* Barge Type - Select */}
-          <div className="mb-lg-3 mb-sm-0">
-            <div className="form-floating desig-inp">
-              <select
-                className={`form-select ${errors.bargeType ? "is-invalid" : ""}`}
-                {...register("bargeType", {
-                  required: "Barge Type is required"
-                })}
-              >
-                <option value="">Select Barge Type</option>
-                <option value="flat">Flat Barge</option>
-                <option value="hopper">Hopper Barge</option>
-                <option value="deck">Deck Barge</option>
-                <option value="tank">Tank Barge</option>
-              </select>
-              <label>
-                Barge Type <span className="text-danger">*</span>
-              </label>
-              {errors.bargeType && (
-                <span className="error text-danger">
-                  {errors.bargeType.message}
-                </span>
-              )}
-            </div>
-          </div>
-
-          {/* Checklist Name - Text */}
-          <div className="mb-lg-3 mb-sm-0">
-            <div className="form-floating desig-inp">
-              <input
-                className={`form-control ${errors.checklistName ? "is-invalid" : ""}`}
-                placeholder="Checklist Name"
-                {...register("checklistName", {
-                  required: "Checklist Name is required"
-                })}
-              />
-              <label>
-                Checklist Name <span className="text-danger">*</span>
-              </label>
-              {errors.checklistName && (
-                <span className="error text-danger">
-                  {errors.checklistName.message}
-                </span>
-              )}
-            </div>
-          </div>
 
           {/* Sections */}
           <div className="mb-lg-3 mb-sm-0">

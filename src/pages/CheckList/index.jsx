@@ -115,7 +115,7 @@ const CheckList = () => {
   // 👉 COLUMNS (Checklist Name + Call Type + Vessel Type + Barge Type + Sections + Actions)
   const cols = [
     {
-      name: "Checklist Name",
+      name: "Name",
       selector: "checklistName",
       sort: true,
       width: "250",
@@ -173,34 +173,6 @@ const CheckList = () => {
       }
     },
     {
-      name: "Sections",
-      selector: "sections",
-      sort: true,
-      width: "120",
-      thclass: "tb-head",
-      contentClass: "table-content",
-      cell: (row) => {
-        const sectionCount = row.sections?.length || 0;
-        return (
-          <span style={{
-            display: "inline-flex",
-            alignItems: "center",
-            justifyContent: "center",
-            minWidth: "32px",
-            height: "24px",
-            padding: "0 8px",
-            backgroundColor: "#f8f9ff",
-            color: "#00368c",
-            borderRadius: "12px",
-            fontSize: "12px",
-            fontWeight: "600"
-          }}>
-            {sectionCount}
-          </span>
-        );
-      }
-    },
-    {
       name: 'Actions',
       selector: 'linksInfo',
       tableClasses: 'table-striped',
@@ -209,7 +181,7 @@ const CheckList = () => {
       onEditClick: (row) => { setShowCheckListModal(row) },
       onDeleteClick: () => { setShowDeleteModal(true) },
       cell: RenderAction,
-      width: '200',
+      width: '100',
     },
   ];
 
