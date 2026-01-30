@@ -108,9 +108,9 @@ function SideNav({ isMobileMenuOpen, onCloseMobileMenu }) {
       hasPermission: true,
       isOpen: false,
       subMenus: [
-        { menu: 'Roles', to: '/roles', hasPermission: true },
-        { menu: 'Permissions', to: '/permissions', hasPermission: true },
+        // { menu: 'Roles', to: '/roles', hasPermission: true },
         { menu: 'Users', to: '/users', hasPermission: true },
+        { menu: 'Permissions', to: '/permissions', hasPermission: true },
       ],
       icon: usersIcon, // User management-specific icon
     },
