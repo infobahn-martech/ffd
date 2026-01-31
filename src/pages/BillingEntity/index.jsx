@@ -124,12 +124,11 @@ const BillingEntity = () => {
         <div className="prospect employee">
           <div className="container-fluid">
             <CommonHeader
-              showFilter
               tableTitle="Billing Accounts"
               isAddEnabled
               addModalLabel="Add BillingEntity"
               setSearch={(e) =>
-                setParams({ ...params, searchTerm: e, page: 1, limit: 10 })
+                setParams({ ...params, search: e, page: 1, limit: 10 })
               }
               onAddModalClick={() => {
                 setShowBillingEntityModal(true);
@@ -142,7 +141,7 @@ const BillingEntity = () => {
           <CustomTable
             pagination={{ currentPage: params?.page, limit: params?.limit }}
             tableClasses="px-start"
-            count={totalCount ?? 0}
+            count={totalCount}
             columns={cols}
             isLoading={isLoading}
             data={billingEntities ?? []}
@@ -167,7 +166,7 @@ const BillingEntity = () => {
                 const apiParams = {
                   page: params.page,
                   limit: params.limit,
-                  ...(params.searchTerm && { searchTerm: params.searchTerm }),
+                  ...(params.search && { search: params.search }),
                   ...(params.sortBy && { sortBy: params.sortBy }),
                   ...(params.sortOrder != null && { sortOrder: params.sortOrder }),
                 };
@@ -181,7 +180,7 @@ const BillingEntity = () => {
               show={showDeleteModal}
               onCancel={() => setShowDeleteModal(false)}
               onConfirm={() => { }}
-              deleteText="Are you sure you want to delete this port?"
+              deleteText="Are you sure you want to delete this billing entity?"
             // isLoading={isBeingUpdated}
             />
           )}
