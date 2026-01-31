@@ -13,6 +13,8 @@ export function VesselModal({ showModal, closeModal, billingEntities }) {
   const { vesselTypes, getVesselTypes, isLoading: isLoadingVesselTypes } = useVesselTypeReducer((state) => state);
   const { billingEntities: billingEntitiesData, getBillingEntities, isLoading: isLoadingBillingEntities } = useBillingEntityReducer((state) => state);
 
+  console.log("billingEntitiesData", billingEntitiesData)
+
   // Fetch vessel types and billing entities when modal opens
   useEffect(() => {
     if (showModal) {
@@ -135,16 +137,17 @@ export function VesselModal({ showModal, closeModal, billingEntities }) {
                   disabled={isLoadingBillingEntities}
                 >
                   <option value="">Select Billing Entity</option>
-                  {billingEntitiesData?.map((entity) => {
-                    const value = entity._id || entity.id;
-                    const label = entity.name || entity.billingEntityName || value;
-                    return (
-                      <option key={value} value={value}>
-                        {label}
-                      </option>
-                    );
-                  })}
+
+                  {billingEntitiesData?.map((entity) => (
+                    <option
+                      key={entity.entity_id}
+                      value={entity.entity_id}
+                    >
+                      {entity.billing_entity}
+                    </option>
+                  ))}
                 </select>
+
                 <label>
                   Billing Entity <span className="text-danger">*</span>
                 </label>
@@ -272,7 +275,7 @@ export function VesselModal({ showModal, closeModal, billingEntities }) {
             <div className="col-lg-6 col-sm-12 mb-3">
               <div className="form-floating desig-inp">
                 <input
-                  className={`form-control`}
+                  className={`form-control ${errors.classSociety ? "is-invalid" : ""}`}
                   placeholder="Class Society"
                   {...register("classSociety")}
                 />

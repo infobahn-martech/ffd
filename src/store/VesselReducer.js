@@ -39,10 +39,10 @@ const useVesselReducer = create((set) => ({
       set({ errorMessage: error.message, isLoading: false, vessels: [], totalCount: 0 });
     }
   },
-  deleteVessel: async ({ id, cb }) => {
+  updateVessel: async ({ formData, cb }) => {
     try {
       set({ isBeingUpdated: true });
-      const { data } = await vesselService.deleteVessel(id);
+      const { data } = await vesselService.updateVessel(formData);
       set({ successMessage: data.message, isBeingUpdated: false });
       const { success } = useAlertReducer.getState();
       success(data && data.message);
@@ -50,7 +50,24 @@ const useVesselReducer = create((set) => ({
     } catch (err) {
       const { error } = useAlertReducer.getState();
       set({
-        errorMessage: 'Something went wrong deleting the vessel',
+        errorMessage: 'Something went wrong updating the vessel',
+        isBeingUpdated: false,
+      });
+      error(err?.response?.data?.message ?? err.message);
+    }
+  },
+  deleteVessel: async ({ id, cb }) => {
+    try {
+      set({ isBeingUpdated: true });
+      const { data } = await vesselService.updateVessel(formData);
+      set({ successMessage: data.message, isBeingUpdated: false });
+      const { success } = useAlertReducer.getState();
+      success(data && data.message);
+      cb && cb();
+    } catch (err) {
+      const { error } = useAlertReducer.getState();
+      set({
+        errorMessage: 'Something went wrong updating the vessel',
         isBeingUpdated: false,
       });
       error(err?.response?.data?.message ?? err.message);
