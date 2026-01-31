@@ -25,6 +25,7 @@ const BillingEntity = () => {
     totalCount,
     isLoading,
   } = useBillingEntityReducer((state) => state);
+  console.log("billingEntities", billingEntities);
 
   useEffect(() => {
     const apiParams = {
@@ -41,7 +42,7 @@ const BillingEntity = () => {
   const cols = [
     {
       name: 'Billing Entity',
-      selector: 'name',
+      selector: 'billing_entity',
       sort: true,
       width: '200',
       thclass: 'tb-head',
@@ -49,7 +50,7 @@ const BillingEntity = () => {
     },
     {
       name: 'Customer Code',
-      selector: 'customerId',
+      selector: 'customer_code',
       sort: true,
       width: '200',
       thclass: 'tb-head',
