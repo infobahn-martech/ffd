@@ -5,7 +5,7 @@ import "../../../design/scss/modal-designs.scss";
 import "../../../design/scss/form-designs.scss";
 import { useState } from "react";
 
-export function CheckListModal({ showModal, closeModal }) {
+export function CheckListModal({ showModal, closeModal, callTypesOptions }) {
   const [expandedSections, setExpandedSections] = useState({});
   const [expandedSubSections, setExpandedSubSections] = useState({});
 
@@ -800,12 +800,20 @@ export function CheckListModal({ showModal, closeModal }) {
                 <select
                   className={`form-select ${errors.callType ? "is-invalid" : ""}`}
                   {...register("callType", { required: "Call Type is required" })}
+                  defaultValue=""
                 >
                   <option value="">Select Call Type</option>
-                  <option value="inbound">Inbound</option>
-                  <option value="outbound">Outbound</option>
-                  <option value="both">Both</option>
+
+                  {(callTypesOptions ?? []).map((callType) => (
+                    <option
+                      key={callType?.call_type_id}
+                      value={String(callType?.call_type_id)}
+                    >
+                      {callType?.call_type}
+                    </option>
+                  ))}
                 </select>
+
                 <label>
                   Call Type <span className="text-danger">*</span>
                 </label>

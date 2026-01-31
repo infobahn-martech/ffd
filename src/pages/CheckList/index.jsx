@@ -1,9 +1,10 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import CommonHeader from "../../components/CommonHeader";
 import CustomTable from "../../components/customTable";
 import { CheckListModal } from "./Modals/AddEditCheckList";
 import { RenderAction } from "./RenderCells";
 import DeleteConfirmationModal from "../../components/DeleteConfirmationModal";
+import useCommonReducer from "../../store/CommonReducer";
 
 
 
@@ -111,6 +112,17 @@ const CheckList = () => {
 
   const [showCheckListModal, setShowCheckListModal] = useState(false);
   const [showDeleteModal, setShowDeleteModal] = useState(false);
+
+  const {
+    getCallTypes,
+    callTypes,
+  } = useCommonReducer((state) => state);
+
+  console.log("callTypes", callTypes);
+
+  useEffect(() => {
+    getCallTypes();
+  }, []);
 
   // 👉 COLUMNS (Checklist Name + Call Type + Vessel Type + Barge Type + Sections + Actions)
   const cols = [
@@ -230,6 +242,7 @@ const CheckList = () => {
             <CheckListModal
               showModal={showCheckListModal}
               closeModal={() => setShowCheckListModal(false)}
+              callTypesOptions={callTypes}
             />
           )}
           {!!showDeleteModal && (
