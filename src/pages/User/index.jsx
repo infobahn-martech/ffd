@@ -30,6 +30,8 @@ const User = () => {
     userPermissions,
     isLoadingPermissions,
     activateUser,
+    archiveUser,
+    isArchiving,
   } = useUserReducer((state) => state);
 
   useEffect(() => {
@@ -199,13 +201,12 @@ const User = () => {
                 setSelectedUser(null);
               }}
               onConfirm={() => {
-                // TODO: Implement API call to archive user
-                console.log("Archive user:", selectedUser);
+                archiveUser({ user_id: selectedUser?.user_id, cb: () => getUsers({ params }) });
                 setShowDeleteModal(false);
                 setSelectedUser(null);
               }}
-              deleteText="Are you sure you want to archive this user?"
-            // isLoading={isBeingUpdated}
+              deleteText={`Are you sure you want to archive this user ${selectedUser?.firstName ?? selectedUser?.name ?? ""}?`}
+              isLoading={isArchiving}
             />
           )}
 

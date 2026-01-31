@@ -89,6 +89,23 @@ const useUserReducer = create((set) => ({
       error(err?.response?.data?.message ?? err.message);
     }
   },
+  archiveUser: async ({ user_id, cb }) => {
+    try {
+      set({ isLoading: true });
+      const { data } = await userService.archiveUser(user_id);
+      set({ successMessage: data.message, isLoading: false });
+      const { success } = useAlertReducer.getState();
+      success(data && data.message);
+      cb && cb();
+    } catch (err) {
+      const { error } = useAlertReducer.getState();
+      set({
+        errorMessage: 'Something went wrong archiving user',
+        isLoading: false,
+      });
+      error(err?.response?.data?.message ?? err.message);
+    }
+  },
 }));
 
 export default useUserReducer;
