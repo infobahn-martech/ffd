@@ -9,6 +9,7 @@ import "../../../design/scss/modal-designs.scss";
 import "../../../design/scss/form-designs.scss";
 
 export function VesselModal({ showModal, closeModal, callBack }) {
+  debugger;
   const { addVessel, updateVessel, isBeingUpdated } = useVesselReducer();
   const { vesselTypes, getVesselTypes, isLoading: isLoadingVesselTypes } = useVesselTypeReducer((state) => state);
   const { billingEntities: billingEntitiesData, getBillingEntities, isLoading: isLoadingBillingEntities } = useBillingEntityReducer((state) => state);
