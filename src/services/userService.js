@@ -3,23 +3,23 @@ import Gateway from '../gateway/gateway';
 const getUsers = ({ params }) => {
   // Map component params to API params
   const apiParams = {};
-  
+
   if (params?.searchTerm) {
     apiParams.search = params.searchTerm;
   }
-  
+
   if (params?.sortBy) {
     apiParams.sort_by = params.sortBy;
   }
-  
+
   if (params?.page) {
     apiParams.page = params.page;
   }
-  
+
   if (params?.limit) {
     apiParams.limit = params.limit;
   }
-  
+
   return Gateway.get('/users', { params: apiParams });
 };
 
@@ -29,4 +29,6 @@ const updateUser = (userId, formData) => Gateway.post(`/users/update/${userId}`,
 
 const getUserPermissions = (userId) => Gateway.get(`/permissions/get_permissions_by_user/${userId}`);
 
-export default { getUsers, createUser, updateUser, getUserPermissions };
+const activateUser = (user_id) => Gateway.post(`/users/togglestatus/${user_id}`);
+
+export default { getUsers, createUser, updateUser, getUserPermissions, activateUser };

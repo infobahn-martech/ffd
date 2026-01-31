@@ -7,7 +7,8 @@ import permissionIcon from '../../assets/images/icon-lock.svg';
 import { getInitials } from '../../utils/utils';
 
 export const RenderAction = ({ onEditClick, row, onDeleteClick, onToggleClick, onPermissionClick }) => {
-  const isActive = row?.status === "Active";
+  const isActive = row?.user_status === "Active";
+
 
   return (
     <>
@@ -110,14 +111,14 @@ export const RenderAction = ({ onEditClick, row, onDeleteClick, onToggleClick, o
 
 export const RenderName = ({ row }) => {
   const hasAvatar = row?.avatar_path;
-  
+
   return (
     <>
       <span className="name-letter bg-ltr">
         {hasAvatar ? (
-          <img 
-            src={row.avatar_path} 
-            alt={row?.name || 'User avatar'} 
+          <img
+            src={row.avatar_path}
+            alt={row?.name || 'User avatar'}
             style={{
               width: '100%',
               height: '100%',

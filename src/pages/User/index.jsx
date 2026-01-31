@@ -29,6 +29,7 @@ const User = () => {
     getUserPermissions,
     userPermissions,
     isLoadingPermissions,
+    activateUser,
   } = useUserReducer((state) => state);
 
   useEffect(() => {
@@ -109,9 +110,7 @@ const User = () => {
       cell: RenderAction,
       onEditClick: (row) => setShowUserModal(row),
       onToggleClick: (row) => {
-        // Handle toggle active/inactive
-        console.log("Toggle user status:", row);
-        // TODO: Implement API call to update user status
+        activateUser({ user_id: row?.user_id, cb: () => getUsers({ params }) });
       },
       onPermissionClick: async (row) => {
         setSelectedUser(row);
