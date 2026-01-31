@@ -8,7 +8,7 @@ const useCheckListReducer = create((set) => ({
     errorMessage: '',
     successMessage: '',
     CheckLists: null,
-    checklistCount: null,
+    checklistCount: 0,
     addEditLoader: false,
     CheckListsExcelUrl: null,
     isLoadingExcel: false,
@@ -38,9 +38,9 @@ const useCheckListReducer = create((set) => ({
             set({ isLoading: true });
             const { data } = await CheckListService.getChecklist(params);
             set({
-                CheckLists: data.data,
+                CheckLists: data?.data ?? [],
                 isLoading: false,
-                checklistCount: data?.totalCount,
+                checklistCount: data?.totalCount ?? 0,
             });
         } catch (error) {
             set({ errorMessage: error.message, isLoading: false });

@@ -5,108 +5,16 @@ import { CheckListModal } from "./Modals/AddEditCheckList";
 import { RenderAction } from "./RenderCells";
 import DeleteConfirmationModal from "../../components/DeleteConfirmationModal";
 import useCommonReducer from "../../store/CommonReducer";
+import useCheckListReducer from "../../store/CheckListReducer";
 
-
-
-const dummyCheckLists = [
-  {
-    _id: "1",
-    checklistName: "Pre-Arrival Checklist",
-    callType: "inbound",            // Inbound
-    vesselType: "cargo",            // Cargo vessel
-    bargeType: "flat",              // Flat barge
-    sections: [
-      { title: "Documentation", sort_order: 1, items: [], sub_sections: [] },
-      { title: "Safety Equipment", sort_order: 2, items: [], sub_sections: [] },
-      { title: "Crew Verification", sort_order: 3, items: [], sub_sections: [] }
-    ]
-  },
-  {
-    _id: "2",
-    checklistName: "Cargo Operations",
-    callType: "both",               // Inbound & Outbound
-    vesselType: "container",        // Container vessel
-    bargeType: "deck",              // Deck barge
-    sections: [
-      { title: "Cargo Inspection", sort_order: 1, items: [], sub_sections: [] },
-      { title: "Loading Procedures", sort_order: 2, items: [], sub_sections: [] }
-    ]
-  },
-  {
-    _id: "3",
-    checklistName: "Safety Inspection",
-    callType: "inbound",
-    vesselType: "tanker",           // Tanker vessel
-    bargeType: "tank",              // Tank barge
-    sections: [
-      { title: "Fire Safety", sort_order: 1, items: [], sub_sections: [] },
-      { title: "Emergency Procedures", sort_order: 2, items: [], sub_sections: [] },
-      { title: "Equipment Check", sort_order: 3, items: [], sub_sections: [] }
-    ]
-  },
-  {
-    _id: "4",
-    checklistName: "Departure Checklist",
-    callType: "outbound",
-    vesselType: "bulk",             // Bulk carrier
-    bargeType: "hopper",            // Hopper barge
-    sections: [
-      { title: "Final Checks", sort_order: 1, items: [], sub_sections: [] },
-      { title: "Documentation Review", sort_order: 2, items: [], sub_sections: [] }
-    ]
-  },
-  {
-    _id: "5",
-    checklistName: "Emergency Procedures",
-    callType: "both",
-    vesselType: "cargo",
-    bargeType: "flat",
-    sections: [
-      { title: "Emergency Contacts", sort_order: 1, items: [], sub_sections: [] },
-      { title: "Evacuation Plan", sort_order: 2, items: [], sub_sections: [] }
-    ]
-  },
-  {
-    _id: "6",
-    checklistName: "Tanker Loading Checklist",
-    callType: "inbound",
-    vesselType: "tanker",
-    bargeType: "tank",
-    sections: [
-      { title: "Pre-Loading Inspection", sort_order: 1, items: [], sub_sections: [] },
-      { title: "Loading Operations", sort_order: 2, items: [], sub_sections: [] }
-    ]
-  },
-  {
-    _id: "7",
-    checklistName: "Container Vessel Checklist",
-    callType: "outbound",
-    vesselType: "container",
-    bargeType: "deck",
-    sections: [
-      { title: "Container Verification", sort_order: 1, items: [], sub_sections: [] }
-    ]
-  },
-  {
-    _id: "8",
-    checklistName: "Bulk Carrier Operations",
-    callType: "both",
-    vesselType: "bulk",
-    bargeType: "hopper",
-    sections: [
-      { title: "Cargo Handling", sort_order: 1, items: [], sub_sections: [] },
-      { title: "Safety Protocols", sort_order: 2, items: [], sub_sections: [] }
-    ]
-  }
-];
 
 
 const CheckList = () => {
   const [params, setParams] = useState({
     page: 1,
-    searchTerm: "",
     limit: 10,
-    sortBy: "checklistName",
+    search: "",
+    sortBy: "checklist_name",
     sortOrder: 1,
   });
 
@@ -118,7 +26,23 @@ const CheckList = () => {
     callTypes,
   } = useCommonReducer((state) => state);
 
-  console.log("callTypes", callTypes);
+  const {
+    getChecklists,
+    CheckLists,
+    checklistCount
+  } = useCheckListReducer((state) => state);
+
+  console.log("CheckLists", CheckLists);
+
+  useEffect(() => {
+    const apiParams = {
+      page: params.page,
+      limit: params.limit,
+      ...(params.search && { search: params.search }),
+      ...(params.sortBy && { sortBy: params.sortBy }),
+    };
+    getChecklists({ params: apiParams });
+  }, [params]);
 
   useEffect(() => {
     getCallTypes();
@@ -128,7 +52,7 @@ const CheckList = () => {
   const cols = [
     {
       name: "Name",
-      selector: "checklistName",
+      selector: "checklist_name",
       sort: true,
       width: "250",
       thclass: "tb-head",
@@ -136,53 +60,27 @@ const CheckList = () => {
     },
     {
       name: "Call Type",
-      selector: "callType",
+      selector: "call_type",
       sort: true,
       width: "150",
       thclass: "tb-head",
       contentClass: "table-content",
-      cell: (row) => {
-        const callTypeMap = {
-          inbound: "Inbound",
-          outbound: "Outbound",
-          both: "Both"
-        };
-        return callTypeMap[row.callType] || row.callType;
-      }
     },
     {
       name: "Vessel Type",
-      selector: "vesselType",
+      selector: "vessel_type",
       sort: true,
       width: "150",
       thclass: "tb-head",
       contentClass: "table-content",
-      cell: (row) => {
-        const vesselTypeMap = {
-          cargo: "Cargo",
-          tanker: "Tanker",
-          container: "Container",
-          bulk: "Bulk Carrier"
-        };
-        return vesselTypeMap[row.vesselType] || row.vesselType;
-      }
     },
     {
       name: "Barge Type",
-      selector: "bargeType",
+      selector: "barge_type",
       sort: true,
       width: "150",
       thclass: "tb-head",
       contentClass: "table-content",
-      cell: (row) => {
-        const bargeTypeMap = {
-          flat: "Flat Barge",
-          hopper: "Hopper Barge",
-          deck: "Deck Barge",
-          tank: "Tank Barge"
-        };
-        return bargeTypeMap[row.bargeType] || row.bargeType;
-      }
     },
     {
       name: 'Actions',
@@ -207,7 +105,7 @@ const CheckList = () => {
               isAddEnabled
               addModalLabel="Add Checklist"
               setSearch={(e) =>
-                setParams({ ...params, searchTerm: e, page: 1 })
+                setParams({ ...params, search: e, page: 1 })
               }
               onAddModalClick={() => setShowCheckListModal(true)}
               exportTitle="Export"
@@ -219,9 +117,9 @@ const CheckList = () => {
             Sl
             pagination={{ currentPage: params.page, limit: params.limit }}
             tableClasses="px-start"
-            count={dummyCheckLists.length}
+            count={checklistCount}
             columns={cols}
-            data={dummyCheckLists}
+            data={CheckLists ?? []}
             onPageChange={(currentPage) =>
               setParams({ ...params, page: currentPage })
             }
