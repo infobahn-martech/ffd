@@ -116,7 +116,7 @@ export function CheckListModal({ showModal, closeModal }) {
               description: "",
               item_order: fields.length + 1,
               document_details: {
-                sample_url: "",
+                is_copy_required: false,
                 required_copy_only: null,
                 description: ""
               }
@@ -283,17 +283,23 @@ export function CheckListModal({ showModal, closeModal }) {
                 <strong style={{ fontSize: "13px", color: "#1a1a1a" }}>Document Details</strong>
               </div>
               <div className="mb-3">
-                <div className="form-floating">
+                <div className="form-check" style={{ display: "flex", alignItems: "center", gap: "10px" }}>
                   <input
-                    type="url"
-                    className="form-control"
-                    placeholder="Sample URL"
-                    style={{ borderColor: "#e2e6ff", fontSize: "14px" }}
-                    {...register(`sections.${sectionIndex}.items.${itemIndex}.document_details.sample_url`)}
+                    className="form-check-input"
+                    type="checkbox"
+                    id={`copy_required_${sectionIndex}_${itemIndex}`}
+                    {...register(`sections.${sectionIndex}.items.${itemIndex}.document_details.is_copy_required`)}
                   />
-                  <label style={{ fontSize: "13px", color: "#666" }}>Sample URL</label>
+                  <label
+                    className="form-check-label"
+                    htmlFor={`copy_required_${sectionIndex}_${itemIndex}`}
+                    style={{ fontSize: "13px", color: "#666", fontWeight: "600" }}
+                  >
+                    Is Copy Required
+                  </label>
                 </div>
               </div>
+
               <div className="mb-3">
                 <label className="form-label" style={{ fontSize: "13px", color: "#666", fontWeight: "500", marginBottom: "6px" }}>Required Copy Only</label>
                 <input
@@ -362,7 +368,7 @@ export function CheckListModal({ showModal, closeModal }) {
               description: "",
               item_order: fields.length + 1,
               document_details: {
-                sample_url: "",
+                is_copy_required: false,
                 required_copy_only: null,
                 description: ""
               }
@@ -529,17 +535,23 @@ export function CheckListModal({ showModal, closeModal }) {
                 <strong style={{ fontSize: "13px", color: "#1a1a1a" }}>Document Details</strong>
               </div>
               <div className="mb-3">
-                <div className="form-floating">
+                <div className="form-check" style={{ display: "flex", alignItems: "center", gap: "10px" }}>
                   <input
-                    type="url"
-                    className="form-control"
-                    placeholder="Sample URL"
-                    style={{ borderColor: "#e2e6ff", fontSize: "14px" }}
-                    {...register(`sections.${sectionIndex}.sub_sections.${subSectionIndex}.items.${itemIndex}.document_details.sample_url`)}
+                    className="form-check-input"
+                    type="checkbox"
+                    id={`copy_required_${sectionIndex}_${subSectionIndex}_${itemIndex}`}
+                    {...register(`sections.${sectionIndex}.sub_sections.${subSectionIndex}.items.${itemIndex}.document_details.is_copy_required`)}
                   />
-                  <label style={{ fontSize: "13px", color: "#666" }}>Sample URL</label>
+                  <label
+                    className="form-check-label"
+                    htmlFor={`copy_required_${sectionIndex}_${subSectionIndex}_${itemIndex}`}
+                    style={{ fontSize: "13px", color: "#666", fontWeight: "600" }}
+                  >
+                    Is Copy Required
+                  </label>
                 </div>
               </div>
+
               <div className="mb-3">
                 <label className="form-label" style={{ fontSize: "13px", color: "#666", fontWeight: "500", marginBottom: "6px" }}>Required Copy Only</label>
                 <input
