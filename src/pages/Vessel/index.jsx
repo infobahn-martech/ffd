@@ -232,6 +232,7 @@ const Vessel = () => {
             <VesselModal
               showModal={showVesselModal}
               closeModal={() => setShowVesselModal(false)}
+              callBack={() => getVessels({ params: { page: 1, limit: 10, search: "", sortBy: "createdAt", sortOrder: -1 } })}
             />
           )}
 

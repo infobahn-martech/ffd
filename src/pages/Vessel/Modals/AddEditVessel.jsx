@@ -8,12 +8,10 @@ import "../../../design/scss/prospect-modal.scss";
 import "../../../design/scss/modal-designs.scss";
 import "../../../design/scss/form-designs.scss";
 
-export function VesselModal({ showModal, closeModal, billingEntities }) {
+export function VesselModal({ showModal, closeModal, callBack }) {
   const { addVessel, updateVessel, isBeingUpdated } = useVesselReducer();
   const { vesselTypes, getVesselTypes, isLoading: isLoadingVesselTypes } = useVesselTypeReducer((state) => state);
   const { billingEntities: billingEntitiesData, getBillingEntities, isLoading: isLoadingBillingEntities } = useBillingEntityReducer((state) => state);
-
-  console.log("billingEntitiesData", billingEntitiesData)
 
   // Fetch vessel types and billing entities when modal opens
   useEffect(() => {
@@ -70,13 +68,19 @@ export function VesselModal({ showModal, closeModal, billingEntities }) {
       updateVessel({
         id: showModal._id,
         formData: apiPayload,
-        cb: () => closeModal(),
+        cb: () => {
+          closeModal();
+          callBack();
+        },
       });
     } else {
       // Add new vessel
       addVessel({
         formData: apiPayload,
-        cb: () => closeModal(),
+        cb: () => {
+          closeModal();
+          callBack();
+        },
       });
     }
   };
