@@ -1,10 +1,10 @@
 import Gateway from '../gateway/gateway';
 
-const addVessel = (data) => Gateway.post('/vessel/add', data);
-const fetchVessels = ({ params }) => Gateway.get('/vessel', { params });
-const getVessel = (id) => Gateway.get(`/vessel/${id}`);
-const updateVessel = (id, data) => Gateway.patch(`/vessel/${id}`, data);
-const deleteVessel = (id) => Gateway.delete(`/vessel/${id}`);
+const addVessel = (data) => Gateway.post('/vessel/allvessel/add', data);
+const fetchVessels = ({ params }) => Gateway.get('/vessel/allvessel', { params });
+const getVessel = (id) => Gateway.get(`/vessel/allvessel/${id}`);
+const updateVessel = (id, data) => Gateway.patch(`/vessel/allvessel/${id}`, data);
+const deleteVessel = (id) => Gateway.delete(`/vessel/allvessel/${id}`);
 
 export default {
   addVessel,

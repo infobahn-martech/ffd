@@ -1,198 +1,26 @@
-
-import { useState, useMemo } from "react";
+import { useState, useMemo, useEffect } from "react";
 import { RenderAction } from "./RenderCells";
 import CommonHeader from "../../components/CommonHeader";
 import CustomTable from "../../components/customTable";
 import DeleteConfirmationModal from "../../components/DeleteConfirmationModal";
 import { VesselModal } from "./Modals/AddEditVessel";
 import { ViewVesselModal } from "./Modals/ViewVessel";
+import useVesselReducer from "../../store/VesselReducer";
 
-const dummyVessels = [
-  {
-    _id: "1",
-    billingEntity: "Billing Entity 1",
-    vesselType: "Foreign Flag Vessel",
-    bargeType: "Barge Import",
-    vesselName: "MV Ocean Star",
-    flagState: "Liberia",
-    grossTonnage: "15,000",
-    callSign: "A3XY4",
-    yearBuilt: "2010",
-    classSociety: "Lloyd's Register",
-    pnIClub: "North P&I Club",
-    lengthOverall: "150.5",
-    beam: "25.3",
-    draft: "8.5",
-    createdAt: "2024-01-15T10:30:00Z",
-  },
-  {
-    _id: "2",
-    billingEntity: "Billing Entity 2",
-    vesselType: "Saudi Flag Vessel",
-    bargeType: "Flat Barge Import",
-    vesselName: "MV Red Sea",
-    flagState: "Saudi Arabia",
-    grossTonnage: "12,500",
-    callSign: "B4ZW5",
-    yearBuilt: "2015",
-    classSociety: "DNV",
-    pnIClub: "Gard",
-    lengthOverall: "135.2",
-    beam: "22.8",
-    draft: "7.8",
-    createdAt: "2024-01-16T11:20:00Z",
-  },
-  {
-    _id: "3",
-    billingEntity: "Billing Entity 1",
-    vesselType: "Small Boat",
-    bargeType: "Jack Up Barge",
-    vesselName: "SV Wind Runner",
-    flagState: "UAE",
-    grossTonnage: "500",
-    callSign: "C5AB6",
-    yearBuilt: "2020",
-    classSociety: "ABS",
-    pnIClub: "Standard Club",
-    lengthOverall: "45.0",
-    beam: "12.0",
-    draft: "3.5",
-    createdAt: "2024-01-17T09:15:00Z",
-  },
-  {
-    _id: "4",
-    billingEntity: "Billing Entity 3",
-    vesselType: "Taxi Tug Temp Import",
-    bargeType: "Barge Import",
-    vesselName: "TT Harbor Master",
-    flagState: "Bahrain",
-    grossTonnage: "800",
-    callSign: "D6CD7",
-    yearBuilt: "2018",
-    classSociety: "Bureau Veritas",
-    pnIClub: "West of England",
-    lengthOverall: "35.5",
-    beam: "10.5",
-    draft: "4.2",
-    createdAt: "2024-01-18T14:45:00Z",
-  },
-  {
-    _id: "5",
-    billingEntity: "Billing Entity 2",
-    vesselType: "Foreign Flag Vessel",
-    bargeType: "Flat Barge Import",
-    vesselName: "MV Atlantic Voyager",
-    flagState: "Panama",
-    grossTonnage: "18,500",
-    callSign: "E7EF8",
-    yearBuilt: "2012",
-    classSociety: "Lloyd's Register",
-    pnIClub: "North P&I Club",
-    lengthOverall: "165.8",
-    beam: "28.4",
-    draft: "9.2",
-    createdAt: "2024-01-19T08:20:00Z",
-  },
-  {
-    _id: "6",
-    billingEntity: "Billing Entity 1",
-    vesselType: "Saudi Flag Vessel",
-    bargeType: "Jack Up Barge",
-    vesselName: "MV Desert Storm",
-    flagState: "Saudi Arabia",
-    grossTonnage: "14,200",
-    callSign: "F8FG9",
-    yearBuilt: "2016",
-    classSociety: "DNV",
-    pnIClub: "Gard",
-    lengthOverall: "142.6",
-    beam: "24.1",
-    draft: "8.1",
-    createdAt: "2024-01-20T11:30:00Z",
-  },
-  {
-    _id: "7",
-    billingEntity: "Billing Entity 3",
-    vesselType: "Small Boat",
-    bargeType: "Barge Import",
-    vesselName: "SV Coastal Express",
-    flagState: "Oman",
-    grossTonnage: "650",
-    callSign: "G9GH0",
-    yearBuilt: "2021",
-    classSociety: "ABS",
-    pnIClub: "Standard Club",
-    lengthOverall: "48.3",
-    beam: "13.2",
-    draft: "3.8",
-    createdAt: "2024-01-21T09:15:00Z",
-  },
-  {
-    _id: "8",
-    billingEntity: "Billing Entity 2",
-    vesselType: "Taxi Tug Temp Import",
-    bargeType: "Flat Barge Import",
-    vesselName: "TT Port Authority",
-    flagState: "Qatar",
-    grossTonnage: "950",
-    callSign: "H0HI1",
-    yearBuilt: "2019",
-    classSociety: "Bureau Veritas",
-    pnIClub: "West of England",
-    lengthOverall: "38.7",
-    beam: "11.2",
-    draft: "4.5",
-    createdAt: "2024-01-22T13:45:00Z",
-  },
-  {
-    _id: "9",
-    billingEntity: "Billing Entity 1",
-    vesselType: "Foreign Flag Vessel",
-    bargeType: "Jack Up Barge",
-    vesselName: "MV Pacific Star",
-    flagState: "Singapore",
-    grossTonnage: "20,000",
-    callSign: "I1IJ2",
-    yearBuilt: "2011",
-    classSociety: "Lloyd's Register",
-    pnIClub: "North P&I Club",
-    lengthOverall: "175.2",
-    beam: "30.1",
-    draft: "9.8",
-    createdAt: "2024-01-23T10:00:00Z",
-  },
-  {
-    _id: "10",
-    billingEntity: "Billing Entity 3",
-    vesselType: "Small Boat",
-    bargeType: "Barge Import",
-    vesselName: "SV Blue Horizon",
-    flagState: "Kuwait",
-    grossTonnage: "720",
-    callSign: "J2JK3",
-    yearBuilt: "2022",
-    classSociety: "ABS",
-    pnIClub: "Standard Club",
-    lengthOverall: "52.1",
-    beam: "14.5",
-    draft: "4.0",
-    createdAt: "2024-01-24T15:30:00Z",
-  },
-];
 
 const Vessel = () => {
   const [params, setParams] = useState({
     page: 1,
     total: 0,
     limit: 10,
-    searchTerm: '',
+    search: "",
     sortOrder: -1,
-    sortBy: 'createdAt',
+    sortBy: "createdAt",
   });
 
   const [filters, setFilters] = useState({
-    vesselType: '',
-    bargeType: '',
+    vesselType: "",
+    bargeType: "",
   });
 
   const [showVesselModal, setShowVesselModal] = useState(false);
@@ -200,162 +28,157 @@ const Vessel = () => {
   const [selectedVesselForDelete, setSelectedVesselForDelete] = useState(null);
   const [showViewVesselModal, setShowViewVesselModal] = useState(false);
 
-  // Extract unique values for filter options
+  const { getVessels, vessels, totalCount, isLoading } = useVesselReducer(
+    (state) => state
+  );
+
+  // ✅ Fetch vessels
+  useEffect(() => {
+    const apiParams = {
+      page: params.page,
+      limit: params.limit,
+      ...(params.search ? { search: params.search } : {}),
+      ...(params.sortBy ? { sortBy: params.sortBy } : {}),
+      ...(params.sortOrder !== null && params.sortOrder !== undefined
+        ? { sortOrder: params.sortOrder }
+        : {}),
+      // If your API supports filter params, you can send them too:
+      ...(filters.vesselType ? { vesselType: filters.vesselType } : {}),
+      ...(filters.bargeType ? { bargeType: filters.bargeType } : {}),
+    };
+
+    getVessels({ params: apiParams });
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [params.page, params.limit, params.search, params.sortBy, params.sortOrder, filters.vesselType, filters.bargeType]);
+
+
+  // ✅ Extract unique values for filter options
   const vesselTypeOptions = useMemo(() => {
-    const types = [...new Set(dummyVessels.map(v => v.vesselType))];
-    return types.sort();
-  }, []);
+    const types = vessels
+      .map((v) => v.vessel_type ?? v.vesselType)
+      .filter(Boolean);
+    return [...new Set(types)];
+  }, [vessels]);
 
   const bargeTypeOptions = useMemo(() => {
-    const types = [...new Set(dummyVessels.map(v => v.bargeType))];
-    return types.sort();
-  }, []);
+    const types = vessels
+      .map((v) => v.barge_type ?? v.bargeType)
+      .filter(Boolean);
+    return [...new Set(types)];
+  }, [vessels]);
 
-  // Filter configuration for CommonFilter
-  const filterOptions = [
-    {
-      key: 'vesselType',
-      label: 'Type',
-      placeholder: 'Select Type',
-      options: vesselTypeOptions,
-    },
-    {
-      key: 'bargeType',
-      label: 'Barge Type',
-      placeholder: 'Select Barge Type',
-      options: bargeTypeOptions,
-    },
-  ];
+  // ✅ Filter configuration
+  const filterOptions = useMemo(
+    () => [
+      {
+        key: "vesselType",
+        label: "Type",
+        placeholder: "Select Type",
+        options: vesselTypeOptions,
+      },
+      {
+        key: "bargeType",
+        label: "Barge Type",
+        placeholder: "Select Barge Type",
+        options: bargeTypeOptions,
+      },
+    ],
+    [vesselTypeOptions, bargeTypeOptions]
+  );
 
-  // Filter vessels based on current filters
+  // ✅ Filter + Search in UI (client-side)
   const filteredVessels = useMemo(() => {
-    let filtered = [...dummyVessels];
+    let filtered = [...vessels];
 
-    // Apply vessel type filter
     if (filters.vesselType) {
-      filtered = filtered.filter(v => v.vesselType === filters.vesselType);
-    }
-
-    // Apply barge type filter
-    if (filters.bargeType) {
-      filtered = filtered.filter(v => v.bargeType === filters.bargeType);
-    }
-
-    // Apply search filter
-    if (params.searchTerm) {
-      const searchLower = params.searchTerm.toLowerCase();
-      filtered = filtered.filter(v =>
-        v.vesselName?.toLowerCase().includes(searchLower) ||
-        v.flagState?.toLowerCase().includes(searchLower) ||
-        v.billingEntity?.toLowerCase().includes(searchLower)
+      filtered = filtered.filter(
+        (v) => (v.vessel_type ?? v.vesselType) === filters.vesselType
       );
     }
 
+    if (filters.bargeType) {
+      filtered = filtered.filter(
+        (v) => (v.barge_type ?? v.bargeType) === filters.bargeType
+      );
+    }
+
+    if (params.search) {
+      const searchLower = params.search.toLowerCase();
+      filtered = filtered.filter((v) => {
+        const vesselName = (v.vessel_name ?? v.vesselName ?? "").toLowerCase();
+        const billingEntity = (v.billing_entity ?? v.billingEntity ?? "").toLowerCase();
+        return vesselName.includes(searchLower) || billingEntity.includes(searchLower);
+      });
+    }
+
     return filtered;
-  }, [filters, params.searchTerm]);
-
-  const handleFilterChange = (key, value) => {
-    setFilters(prev => ({
-      ...prev,
-      [key]: value,
-    }));
-    // Reset to page 1 when filter changes
-    setParams(prev => ({ ...prev, page: 1 }));
-  };
-
-  const handleApplyFilter = () => {
-    // Filter is already applied via state, just reset to page 1
-    setParams(prev => ({ ...prev, page: 1 }));
-  };
+  }, [vessels, filters.vesselType, filters.bargeType, params.search]);
 
   const handleClearFilter = () => {
-    setFilters({
-      vesselType: '',
-      bargeType: '',
-    });
-    setParams(prev => ({ ...prev, page: 1 }));
+    setFilters({ vesselType: "", bargeType: "" });
+    setParams((prev) => ({ ...prev, page: 1 }));
   };
 
-  const cols = [
-    {
-      name: 'Vessel',
-      selector: 'vesselName',
-      tableClasses: 'table-striped',
-      contentClass: 'table-content',
-      sort: true,
-      thclass: 'tb-head',
-      width: '250',
-    },
-    {
-      name: 'Type',
-      selector: 'vesselType',
-      tableClasses: 'table-striped',
-      contentClass: 'table-content',
-      sort: true,
-      thclass: 'tb-head',
-      width: '200',
-    },
-    {
-      name: 'Barge Type',
-      selector: 'bargeType',
-      tableClasses: 'table-striped',
-      contentClass: 'table-content',
-      sort: true,
-      thclass: 'tb-head',
-      width: '180',
-    },
-    {
-      name: 'Billing Entity',
-      selector: 'billingEntity',
-      tableClasses: 'table-striped',
-      contentClass: 'table-content',
-      sort: true,
-      thclass: 'tb-head',
-      width: '200',
-    },
-    {
-      name: 'Flag',
-      selector: 'flagState',
-      tableClasses: 'table-striped',
-      contentClass: 'table-content',
-      sort: true,
-      thclass: 'tb-head',
-      width: '150',
-    },
-    {
-      name: 'Gross Tonnage',
-      selector: 'grossTonnage',
-      tableClasses: 'table-striped',
-      contentClass: 'table-content',
-      sort: true,
-      thclass: 'tb-head',
-      width: '200',
-    },
-    {
-      name: 'Year',
-      selector: 'yearBuilt',
-      tableClasses: 'table-striped',
-      contentClass: 'table-content',
-      sort: true,
-      thclass: 'tb-head',
-      width: '120',
-    },
-    {
-      name: 'Actions',
-      selector: 'linksInfo',
-      tableClasses: 'table-striped',
-      contentClass: 'table-content',
-      thclass: 'tb-head',
-      onViewClick: (row) => { setShowViewVesselModal(row) },
-      onEditClick: (row) => { setShowVesselModal(row) },
-      onDeleteClick: (row) => {
-        setSelectedVesselForDelete(row);
-        setShowDeleteModal(true);
+  const cols = useMemo(
+    () => [
+      {
+        name: "Vessel",
+        selector: "vessel_name",
+        sort: true,
+        thclass: "tb-head",
+        width: "250",
       },
-      cell: RenderAction,
-      width: '200',
-    },
-  ];
+      {
+        name: "Type",
+        selector: "vessel_type",
+        sort: true,
+        thclass: "tb-head",
+        width: "200",
+      },
+      {
+        name: "Billing Entity",
+        selector: "billing_entity",
+        sort: true,
+        thclass: "tb-head",
+        width: "200",
+      },
+      {
+        name: "Flag",
+        selector: "flag_state",
+        sort: true,
+        thclass: "tb-head",
+        width: "150",
+      },
+      {
+        name: "Gross Tonnage",
+        selector: "gross_tonnage",
+        sort: true,
+        thclass: "tb-head",
+        width: "200",
+      },
+      {
+        name: "Year",
+        selector: "year_built",
+        sort: true,
+        thclass: "tb-head",
+        width: "120",
+      },
+      {
+        name: "Actions",
+        selector: "links_info",
+        thclass: "tb-head",
+        onViewClick: (row) => setShowViewVesselModal(row),
+        onEditClick: (row) => setShowVesselModal(row),
+        onDeleteClick: (row) => {
+          setSelectedVesselForDelete(row);
+          setShowDeleteModal(true);
+        },
+        cell: RenderAction,
+        width: "200",
+      },
+    ],
+    []
+  );
 
   return (
     <>
@@ -368,39 +191,43 @@ const Vessel = () => {
               isAddEnabled
               addModalLabel="Add Vessel"
               setSearch={(e) =>
-                setParams({ ...params, searchTerm: e, page: 1, limit: 10 })
+                setParams((prev) => ({ ...prev, search: e, page: 1, limit: 10 }))
               }
               onAddModalClick={() => setShowVesselModal(true)}
               exportTitle="Export"
               exportLoader={false}
               filterOptions={filterOptions}
               filterValue={filters}
-              onFilterChange={handleFilterChange}
-              onApplyFilter={handleApplyFilter}
+              // If your CommonHeader supports these props, keep them:
+              setFilterValue={setFilters}
               onClearFilter={handleClearFilter}
             />
           </div>
 
           <CustomTable
-            pagination={{ currentPage: params?.page, limit: params?.limit }}
+            pagination={{ currentPage: params.page, limit: params.limit }}
             tableClasses="px-start"
-            count={filteredVessels.length}
+            count={totalCount ?? filteredVessels.length}
             columns={cols}
             data={filteredVessels}
             Sl={true}
+            loading={isLoading}
             onPageChange={(currentPage) =>
-              setParams({ ...params, page: currentPage })
+              setParams((prev) => ({ ...prev, page: currentPage }))
             }
-            setLimit={(newlimit) => setParams({ ...params, limit: newlimit })}
+            setLimit={(newlimit) =>
+              setParams((prev) => ({ ...prev, limit: newlimit }))
+            }
             onSorting={(sortBy) => {
-              setParams({
-                ...params,
+              setParams((prev) => ({
+                ...prev,
                 sortBy,
-                sortOrder: params?.sortOrder === -1 ? 1 : -1,
+                sortOrder: prev.sortOrder === -1 ? 1 : -1,
                 page: 1,
-              });
+              }));
             }}
           />
+
           {!!showVesselModal && (
             <VesselModal
               showModal={showVesselModal}
@@ -408,7 +235,7 @@ const Vessel = () => {
             />
           )}
 
-          {showViewVesselModal && (
+          {!!showViewVesselModal && (
             <ViewVesselModal
               showModal={showViewVesselModal}
               closeModal={() => setShowViewVesselModal(false)}
@@ -427,11 +254,12 @@ const Vessel = () => {
                 setShowDeleteModal(false);
                 setSelectedVesselForDelete(null);
               }}
-              deleteText={`Are you sure you want to delete this vessel ${selectedVesselForDelete?.vesselName || ''}?`}
+              deleteText={`Are you sure you want to delete this vessel ${selectedVesselForDelete?.vessel_name ??
+                selectedVesselForDelete?.vesselName ??
+                ""
+                }?`}
             />
           )}
-
-
         </div>
       </div>
     </>
