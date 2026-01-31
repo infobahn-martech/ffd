@@ -20,7 +20,7 @@ export function VesselModal({ showModal, closeModal, billingEntities }) {
       getBillingEntities({ params: { limit: 1000 } });
     }
   }, [showModal]);
-  
+
   const {
     register,
     handleSubmit,
@@ -272,16 +272,13 @@ export function VesselModal({ showModal, closeModal, billingEntities }) {
             <div className="col-lg-6 col-sm-12 mb-3">
               <div className="form-floating desig-inp">
                 <input
-                  className={`form-control ${errors.classSociety ? "is-invalid" : ""}`}
+                  className={`form-control`}
                   placeholder="Class Society"
-                  {...register("classSociety", { required: "Class Society is required" })}
+                  {...register("classSociety")}
                 />
                 <label>
-                  Class Society <span className="text-danger">*</span>
+                  Class Society
                 </label>
-                {errors.classSociety && (
-                  <span className="error text-danger">{errors.classSociety.message}</span>
-                )}
               </div>
             </div>
 
@@ -289,16 +286,13 @@ export function VesselModal({ showModal, closeModal, billingEntities }) {
             <div className="col-lg-6 col-sm-12 mb-3">
               <div className="form-floating desig-inp">
                 <input
-                  className={`form-control ${errors.pnIClub ? "is-invalid" : ""}`}
+                  className={`form-control`}
                   placeholder="P&I Club"
-                  {...register("pnIClub", { required: "P&I Club is required" })}
+                  {...register("pnIClub")}
                 />
                 <label>
-                  P&I Club <span className="text-danger">*</span>
+                  P&I Club
                 </label>
-                {errors.pnIClub && (
-                  <span className="error text-danger">{errors.pnIClub.message}</span>
-                )}
               </div>
             </div>
           </div>
@@ -309,16 +303,13 @@ export function VesselModal({ showModal, closeModal, billingEntities }) {
             <div className="col-lg-6 col-sm-12 mb-3">
               <div className="form-floating desig-inp">
                 <input
-                  className={`form-control ${errors.lengthOverall ? "is-invalid" : ""}`}
+                  className={`form-control`}
                   placeholder="Length Overall"
-                  {...register("lengthOverall", { required: "Length Overall is required" })}
+                  {...register("lengthOverall")}
                 />
                 <label>
-                  Length Overall <span className="text-danger">*</span>
+                  Length Overall
                 </label>
-                {errors.lengthOverall && (
-                  <span className="error text-danger">{errors.lengthOverall.message}</span>
-                )}
               </div>
             </div>
 
@@ -326,16 +317,13 @@ export function VesselModal({ showModal, closeModal, billingEntities }) {
             <div className="col-lg-6 col-sm-12 mb-3">
               <div className="form-floating desig-inp">
                 <input
-                  className={`form-control ${errors.beam ? "is-invalid" : ""}`}
+                  className={`form-control`}
                   placeholder="Beam"
-                  {...register("beam", { required: "Beam is required" })}
+                  {...register("beam")}
                 />
                 <label>
-                  Beam <span className="text-danger">*</span>
+                  Beam
                 </label>
-                {errors.beam && (
-                  <span className="error text-danger">{errors.beam.message}</span>
-                )}
               </div>
             </div>
           </div>
@@ -346,16 +334,13 @@ export function VesselModal({ showModal, closeModal, billingEntities }) {
             <div className="col-lg-6 col-sm-12 mb-3">
               <div className="form-floating desig-inp">
                 <input
-                  className={`form-control ${errors.draft ? "is-invalid" : ""}`}
+                  className={`form-control`}
                   placeholder="Draft"
-                  {...register("draft", { required: "Draft is required" })}
+                  {...register("draft")}
                 />
                 <label>
-                  Draft <span className="text-danger">*</span>
+                  Draft
                 </label>
-                {errors.draft && (
-                  <span className="error text-danger">{errors.draft.message}</span>
-                )}
               </div>
             </div>
           </div>
@@ -369,9 +354,9 @@ export function VesselModal({ showModal, closeModal, billingEntities }) {
       <button type="button" className="btn btn-outline" onClick={closeModal}>
         Close
       </button>
-      <button 
-        type="submit" 
-        form="vesselForm" 
+      <button
+        type="submit"
+        form="vesselForm"
         className="btn btn-primary"
         disabled={isBeingUpdated}
       >
