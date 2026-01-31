@@ -9,7 +9,6 @@ import "../../../design/scss/modal-designs.scss";
 import "../../../design/scss/form-designs.scss";
 
 export function VesselModal({ showModal, closeModal, callBack }) {
-  debugger;
   const { addVessel, updateVessel, isBeingUpdated } = useVesselReducer();
   const { vesselTypes, getVesselTypes, isLoading: isLoadingVesselTypes } = useVesselTypeReducer((state) => state);
   const { billingEntities: billingEntitiesData, getBillingEntities, isLoading: isLoadingBillingEntities } = useBillingEntityReducer((state) => state);
@@ -27,16 +26,16 @@ export function VesselModal({ showModal, closeModal, callBack }) {
     handleSubmit,
     formState: { errors },
   } = useForm({
-    defaultValues: showModal?._id
+    defaultValues: showModal?.vessel_id
       ? {
-        billingEntity: showModal?.billingEntity || "",
-        vesselType: showModal?.vesselType || "",
-        vesselName: showModal?.vesselName || "",
+        billingEntity: showModal?.billing_entity || "",
+        vesselType: showModal?.vessel_type || "",
+        vesselName: showModal?.vessel_name || "",
         imoNumber: showModal?.imoNumber || "",
-        flagState: showModal?.flagState || "",
-        grossTonnage: showModal?.grossTonnage || "",
+        flagState: showModal?.flag_state || "",
+        grossTonnage: showModal?.gross_tonnage || "",
         callSign: showModal?.callSign || "",
-        yearBuilt: showModal?.yearBuilt || "",
+        yearBuilt: showModal?.year_built || "",
         classSociety: showModal?.classSociety || "",
         pnIClub: showModal?.pnIClub || "",
         lengthOverall: showModal?.lengthOverall || "",
@@ -64,10 +63,10 @@ export function VesselModal({ showModal, closeModal, callBack }) {
       draft: data.draft,
     };
 
-    if (showModal?._id) {
+    if (showModal?.vessel_id) {
       // Update existing vessel
       updateVessel({
-        id: showModal._id,
+        id: showModal.vessel_id,
         formData: apiPayload,
         cb: () => {
           closeModal();
