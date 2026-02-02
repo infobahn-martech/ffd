@@ -4,8 +4,8 @@
 
 const workflowsConfig = [
     {
-        id: "marine-port-calls",
-        title: "Marine Port calls",
+        id: "import-export-domestic-calls",
+        title: "Import / Export / Domestic Calls",
         columnColors: {
             "col-1": "rgb(226 16 108)", // Ready to Finalize - Pink
             "col-2": "rgb(121 21 188)", // In Progress - Purple
@@ -16,8 +16,10 @@ const workflowsConfig = [
         columnTitles: [
             "Backlog",
             "Appointment Received",
-            "Vessel Arrived/ Cleared",
-            "Vessel Sailed",
+            "Enroute",
+            "Vessel Arrived",
+            "Vessel Cleared",
+            "Vessel Sailed / Awaiting Documents",
             "Ready To Finalize",
         ],
         nestedColumns: {},
@@ -30,20 +32,20 @@ const workflowsConfig = [
         },
     },
     {
-        id: "crew-change-material-supply",
-        title: "Crew Change / Material Supply",
+        id: "rt-dammam-husbandry-activity",
+        title: "RT/ Dammam Husbandry Activity",
         columnColors: {
             "col-1": "rgb(226 16 108)", // Ready to Finalize - Pink
             "col-2": "rgb(121 21 188)", // In Progress - Purple
             "col-3": "rgb(62 94 189)", // Al Gihaz awaiting submission - Blue
             "col-4": "rgb(65 178 74)", // Finalized - Green
             "col-5": "rgb(119 86 73)", // Awaiting acknowledgment - Brown
-            "col-6": "rgb(237 142 55)", // Dispatched - Orange
         },
         columnTitles: [
             "Backlog",
-            "Requested",
-            "In Progress",
+            "New Service Request / Awaiting Docs",
+            "Service in Progress",
+            "Service Completed / Awaiting Supporting",
             "Ready To Finalize",
         ],
         // No nested columns - explicitly normal columns only
@@ -54,7 +56,6 @@ const workflowsConfig = [
             "col-3": 10,
             "col-4": 10,
             "col-5": 10,
-            "col-6": 10,
         },
     },
 ];
