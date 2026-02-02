@@ -53,7 +53,9 @@ function Workspaces() {
       name: 'New Offshore Marine Logistics',
       boards: [{ id: 1, name: 'Centralized DA DESK', count: 6 },
       { id: 2, name: 'Jubail Operations', count: 1285 },
-      { id: 3, name: 'Rastanura/ Dammam Operations', count: 11 },],
+      { id: 3, name: 'Rastanura/ Dammam Operations', count: 11 },
+      { id: 3, name: 'Ras Tanura Operations', count: 15 },
+      ],
     },
     {
       id: 3,
