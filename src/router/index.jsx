@@ -55,6 +55,7 @@ import TransportParties from "../pages/TransportParties";
 import WasteTypes from "../pages/WasteTypes";
 import NotFound from "../pages/NotFound";
 import JubailOperations from "../pages/JubailOperations";
+import RastanuraDammamOperations from "../pages/RastanuraDammamOperations";
 // 🔥 Set true to bypass auth temporarily
 const TEST_MODE = false;
 
@@ -149,6 +150,7 @@ const router = createHashRouter([
                   // Kanban Board - with dynamic ID support
                   { path: "/kanban-board/centralized-da-desk", element: <RouteGuard><DADeskBoard /></RouteGuard> },
                   { path: "/kanban-board/jubail-operations", element: <RouteGuard><JubailOperations /></RouteGuard> },
+                  { path: "/kanban-board/rastanura-dammam-operations", element: <RouteGuard><RastanuraDammamOperations /></RouteGuard> },
                   { path: "/kanban-board", element: <RouteGuard><KanbanBoard /></RouteGuard> },
                   // Kanban Board Analytics
                   { path: "/kanban-board/:id/analytics", element: <RouteGuard><KanbanAnalytics /></RouteGuard> },

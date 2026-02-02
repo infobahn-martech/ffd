@@ -224,6 +224,12 @@ function Workspaces() {
     // You can add confirmation modal here if needed
   };
 
+  const toSlug = (text) =>
+    text
+      .toLowerCase()
+      .replace(/[^a-z0-9]+/g, '-')
+      .replace(/(^-|-$)/g, '');
+
   return (
     <div className="workspaces-container">
       {/* Loading Overlay */}
@@ -495,7 +501,7 @@ function Workspaces() {
                       onClick={() => {
                         // Set loading state and navigate to kanban board with board id
                         setIsNavigating(true);
-                        navigate(`/kanban-board/${board.name.toLowerCase().replace(/ /g, '-')}`);
+                        navigate(`/kanban-board/${toSlug(board.name)}`);
                       }}
                       style={{ cursor: 'pointer' }}
                     >
