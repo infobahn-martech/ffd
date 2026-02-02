@@ -26,9 +26,10 @@
 .column-header {
   display: flex;
   align-items: center;
+  justify-content: space-between;
   background: #eef1ff;
   border-radius: 8px;
-  padding: 0;
+  padding: 0 12px 0 0;
   position: relative;
   height: 40px;
   margin-bottom: 10px;
@@ -59,6 +60,16 @@
   display: flex;
   align-items: center;
   gap: 10px;
+  padding-left: 12px;
+}
+
+/* Card count at right end of header */
+.column-count {
+  font-size: 13px;
+  font-weight: 600;
+  color: #5a5a5a;
+  min-width: 1.5em;
+  text-align: right;
 }
 
 

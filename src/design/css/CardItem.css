@@ -308,6 +308,17 @@
   white-space: nowrap;
 }
 
+/* In-progress icon spin */
+@keyframes spin {
+  from {
+    transform: rotate(0deg);
+  }
+
+  to {
+    transform: rotate(360deg);
+  }
+}
+
 /* Priority blinking effect */
 @keyframes blink-red {
 

@@ -8,6 +8,7 @@ import saudimarcapLogo from "../../assets/images/saudimarcap.png";
 import saipemLogo from "../../assets/images/saipem.png";
 import lamprellLogo from "../../assets/images/lamprell.png";
 import gulfmarineLogo from "../../assets/images/gulfmarine.png";
+import { FiFileText, FiDownload, FiLoader } from "react-icons/fi";
 
 // Status colors
 const STATUS_COLORS = {
@@ -129,9 +130,9 @@ function CardItem({ card, index, setSelectedCard, isShrunk = false, hideExtraDet
                     className="card-header-icon-compact"
                     style={{ backgroundColor: cardColor }}
                   >
-                    {card.iconType === "inprogress" && <InprogressIcon />}
-                    {card.iconType === "download" && <DownloadIcon />}
-                    {card.iconType === "document" && <DownloadIcon />}
+                    {card.iconType === "inprogress" && <FiLoader size={14} color="white" style={{ animation: "spin 1s linear infinite" }} />}
+                    {card.iconType === "download" && <FiDownload size={14} color="white" />}
+                    {card.iconType === "document" && <FiFileText size={14} color="white" />}
                   </div>
                   {/* Colored accent line */}
                   <div
@@ -158,9 +159,9 @@ function CardItem({ card, index, setSelectedCard, isShrunk = false, hideExtraDet
                   className="card-header-icon"
                   style={{ backgroundColor: cardColor }}
                 >
-                  {card.iconType === "inprogress" && <InprogressIcon />}
-                  {card.iconType === "download" && <DownloadIcon />}
-                  {card.iconType === "document" && <DownloadIcon />}
+                  {card.iconType === "inprogress" && <FiLoader size={14} color="white" style={{ animation: "spin 1s linear infinite" }} />}
+                  {card.iconType === "download" && <FiDownload size={14} color="white" />}
+                  {card.iconType === "document" && <FiFileText size={14} color="white" />}
                 </div>
                 {card.name && (() => {
                   const tooltipId = `card-name-${card.id}`;

@@ -87,10 +87,6 @@ function Column({ column, cards, setSelectedCard, isExpanded = false, isShrunk =
         onClick={onHeaderClick}
       >
         <div className="column-left">
-          <div className="column-count-box" style={{ background: columnColor }}>
-            <span className="count-number">{cards.length}</span>
-            <img src={PriorityIcon} alt="Priority" className="priority-icon" />
-          </div>
           {isShrunk && column.title.length > 8 ? (
             <>
               <h2
@@ -106,6 +102,7 @@ function Column({ column, cards, setSelectedCard, isExpanded = false, isShrunk =
             <h2 className="column-title">{displayTitle}</h2>
           )}
         </div>
+        <span className="column-count">{cards?.length ?? 0}</span>
       </div>
 
       <Droppable droppableId={column.id}>
