@@ -40,7 +40,7 @@ function Workspaces() {
       id: 1,
       name: 'Sedres Chandling WorkSpace',
       boards: [
-        { id: 1, name: 'DA Module', count: 6 },
+        { id: 1, name: 'CHANDLING OPERATIONS', count: 6 },
         { id: 2, name: 'FROZEN', count: 1285 },
         { id: 3, name: 'LOGISTICS', count: 11 },
         { id: 4, name: 'DRY AND CABIN ITEMS', count: 359 },
@@ -495,7 +495,7 @@ function Workspaces() {
                       onClick={() => {
                         // Set loading state and navigate to kanban board with board id
                         setIsNavigating(true);
-                        navigate(`/kanban-board/${board.id}`);
+                        navigate(`/kanban-board/${board.name.toLowerCase().replace(/ /g, '-')}`);
                       }}
                       style={{ cursor: 'pointer' }}
                     >

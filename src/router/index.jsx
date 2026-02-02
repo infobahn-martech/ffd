@@ -6,7 +6,7 @@ import PublicRoutes from "./PublicRoute";
 import PrivateRoutes from "./PrivateRoute";
 import RouteGuard from "./RouteGuard";
 import Layout from "../structure/Layout";
-
+import DADeskBoard from "../pages/DADeskBoard";
 import Dashboard from "../pages/Dashboard";
 import Login from "../pages/Authentication";
 import ForgetPassword from "../pages/ForgetPassword";
@@ -54,6 +54,7 @@ import ServiceProviders from "../pages/ServiceProviders";
 import TransportParties from "../pages/TransportParties";
 import WasteTypes from "../pages/WasteTypes";
 import NotFound from "../pages/NotFound";
+import JubailOperations from "../pages/JubailOperations";
 // 🔥 Set true to bypass auth temporarily
 const TEST_MODE = false;
 
@@ -146,7 +147,8 @@ const router = createHashRouter([
                   // Dashboard - All roles
                   { path: "/dashboard", element: <RouteGuard><Dashboard /></RouteGuard> },
                   // Kanban Board - with dynamic ID support
-                  { path: "/kanban-board/:id", element: <RouteGuard><BoardRouter /></RouteGuard> },
+                  { path: "/kanban-board/centralized-da-desk", element: <RouteGuard><DADeskBoard /></RouteGuard> },
+                  { path: "/kanban-board/jubail-operations", element: <RouteGuard><JubailOperations /></RouteGuard> },
                   { path: "/kanban-board", element: <RouteGuard><KanbanBoard /></RouteGuard> },
                   // Kanban Board Analytics
                   { path: "/kanban-board/:id/analytics", element: <RouteGuard><KanbanAnalytics /></RouteGuard> },
