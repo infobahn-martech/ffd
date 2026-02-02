@@ -5,57 +5,29 @@
 const workflowsConfig = [
     {
         id: "import-export-domestic-calls",
-        title: "Import / Export / Domestic Calls",
+        title: "Import Calls",
         columnColors: {
-            "col-1": "rgb(226 16 108)", // Ready to Finalize - Pink
+            "col-1": "rgb(226 16 108)", // Pre-Arrival Board - Pink
             "col-2": "rgb(121 21 188)", // In Progress - Purple
-            "col-3": "rgb(62 94 189)", // Al Gihaz awaiting submission - Blue
-            "col-4": "rgb(65 178 74)", // Finalized - Green
-            "col-5": "rgb(119 86 73)", // Awaiting acknowledgment - Brown
+            "col-3": "rgb(62 94 189)", // Vessel Arrived - Blue
+            "col-4": "rgb(65 178 74)", // Vessel Cleared - Green
+            "col-5": "rgb(119 86 73)", // Vessel Sailed - Brown
+            "col-6": "rgb(226 16 108)", // Ops Completed - Pink
         },
         columnTitles: [
-            "Backlog",
-            "Appointment Received",
-            "Enroute",
+            "Pre-Arrival Board",
             "Vessel Arrived",
             "Vessel Cleared",
-            "Vessel Sailed / Awaiting Documents",
-            "Ready To Finalize",
+            "Vessel Sailed",
+            "Ops Completed",
         ],
         nestedColumns: {},
         cardCounts: {
-            "col-1": 18, // Backlog
-            "col-2": 18, // Appointment Received
-            "col-3": 18, // Vessel Arrived/ Cleared
-            "col-4": 18, // Vessel Sailed
-            "col-5": 18, // Ready To Finalize
-        },
-    },
-    {
-        id: "rt-dammam-husbandry-activity",
-        title: "RT/ Dammam Husbandry Activity",
-        columnColors: {
-            "col-1": "rgb(226 16 108)", // Ready to Finalize - Pink
-            "col-2": "rgb(121 21 188)", // In Progress - Purple
-            "col-3": "rgb(62 94 189)", // Al Gihaz awaiting submission - Blue
-            "col-4": "rgb(65 178 74)", // Finalized - Green
-            "col-5": "rgb(119 86 73)", // Awaiting acknowledgment - Brown
-        },
-        columnTitles: [
-            "Backlog",
-            "New Service Request / Awaiting Docs",
-            "Service in Progress",
-            "Service Completed / Awaiting Supporting",
-            "Ready To Finalize",
-        ],
-        // No nested columns - explicitly normal columns only
-        nestedColumns: {},
-        cardCounts: {
-            "col-1": 10,
-            "col-2": 10,
-            "col-3": 10,
-            "col-4": 10,
-            "col-5": 10,
+            "col-1": 3, // Pre-Arrival Board
+            "col-2": 3, // Pre-Arrival Board
+            "col-3": 1, // Vessel Arrived
+            "col-4": 0, // Vessel Cleared
+            "col-5": 0, // Ops Completed
         },
     },
 ];

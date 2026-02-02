@@ -24,11 +24,11 @@ const workflowsConfig = [
         ],
         nestedColumns: {},
         cardCounts: {
-            "col-1": 18, // Backlog
-            "col-2": 18, // Appointment Received
-            "col-3": 18, // Vessel Arrived/ Cleared
-            "col-4": 18, // Vessel Sailed
-            "col-5": 18, // Ready To Finalize
+            "col-1": 3, // Backlog
+            "col-2": 2, // Appointment Received
+            "col-3": 2, // Vessel Arrived/ Cleared
+            "col-4": 0, // Vessel Sailed
+            "col-5": 1, // Ready To Finalize
         },
     },
     {
@@ -51,11 +51,11 @@ const workflowsConfig = [
         // No nested columns - explicitly normal columns only
         nestedColumns: {},
         cardCounts: {
-            "col-1": 10,
-            "col-2": 10,
-            "col-3": 10,
-            "col-4": 10,
-            "col-5": 10,
+            "col-1": 2, // Backlog
+            "col-2": 1, // Appointment Received
+            "col-3": 0, // Vessel Arrived/ Cleared
+            "col-4": 0, // Vessel Sailed
+            "col-5": 1, // Ready To Finalize
         },
     },
 ];
