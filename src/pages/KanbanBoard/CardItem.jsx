@@ -237,7 +237,7 @@ function CardItem({ card, index, setSelectedCard, isShrunk = false, hideExtraDet
                         cy="13"
                         r="11.5"
                         style={{
-                          stroke: cardColor,
+                          stroke: "#0d9488",
                           strokeDashoffset: `calc(72 - (72 * ${card.progress || 0}) / 100)`,
                         }}
                       />
@@ -249,126 +249,126 @@ function CardItem({ card, index, setSelectedCard, isShrunk = false, hideExtraDet
 
               {/* Extra Details Section - Icons with status colors */}
               {!hideExtraDetails && (
-              <div className="card-extra-details" style={{ display: "flex", gap: "12px", alignItems: "center", justifyContent: "flex-start", padding: "8px 0" }}>
-                {/* Transport Icon */}
-                <>
-                  <div
-                    data-tooltip-id={`transport-${card.id}`}
-                    data-tooltip-content="Transport"
-                    style={{
-                      display: "flex",
-                      alignItems: "center",
-                      justifyContent: "center",
-                      cursor: "pointer",
-                    }}
-                  >
-                    <CarIcon
-                      size={18}
-                      color={card.transport === "done" ? STATUS_COLORS.done : STATUS_COLORS.rejected}
-                    />
-                  </div>
-                  <Tooltip id={`transport-${card.id}`} place="top" />
-                </>
+                <div className="card-extra-details" style={{ display: "flex", gap: "12px", alignItems: "center", justifyContent: "flex-start", padding: "8px 0" }}>
+                  {/* Transport Icon */}
+                  <>
+                    <div
+                      data-tooltip-id={`transport-${card.id}`}
+                      data-tooltip-content="Transport"
+                      style={{
+                        display: "flex",
+                        alignItems: "center",
+                        justifyContent: "center",
+                        cursor: "pointer",
+                      }}
+                    >
+                      <CarIcon
+                        size={18}
+                        color={card.transport === "done" ? STATUS_COLORS.done : STATUS_COLORS.rejected}
+                      />
+                    </div>
+                    <Tooltip id={`transport-${card.id}`} place="top" />
+                  </>
 
-                {/* Hotel Icon */}
-                <>
-                  <div
-                    data-tooltip-id={`hotel-${card.id}`}
-                    data-tooltip-content="Hotel"
-                    style={{
-                      display: "flex",
-                      alignItems: "center",
-                      justifyContent: "center",
-                      cursor: "pointer",
-                    }}
-                  >
-                    <HotelIcon
-                      size={18}
-                      color={card.hotel === "done" ? STATUS_COLORS.done : STATUS_COLORS.rejected}
-                    />
-                  </div>
-                  <Tooltip id={`hotel-${card.id}`} place="top" />
-                </>
+                  {/* Hotel Icon */}
+                  <>
+                    <div
+                      data-tooltip-id={`hotel-${card.id}`}
+                      data-tooltip-content="Hotel"
+                      style={{
+                        display: "flex",
+                        alignItems: "center",
+                        justifyContent: "center",
+                        cursor: "pointer",
+                      }}
+                    >
+                      <HotelIcon
+                        size={18}
+                        color={card.hotel === "done" ? STATUS_COLORS.done : STATUS_COLORS.rejected}
+                      />
+                    </div>
+                    <Tooltip id={`hotel-${card.id}`} place="top" />
+                  </>
 
-                {/* Medical Icon */}
-                <>
-                  <div
-                    data-tooltip-id={`medical-${card.id}`}
-                    data-tooltip-content="Medical"
-                    style={{
-                      display: "flex",
-                      alignItems: "center",
-                      justifyContent: "center",
-                      cursor: "pointer",
-                    }}
-                  >
-                    <MedicalIcon
-                      size={18}
-                      color={card.medicalService === "done" ? STATUS_COLORS.done : STATUS_COLORS.rejected}
-                    />
-                  </div>
-                  <Tooltip id={`medical-${card.id}`} place="top" />
-                </>
-                {/* Material Management Icon */}
-                <>
-                  <div
-                    data-tooltip-id={`material-${card.id}`}
-                    data-tooltip-content="Material Management"
-                    style={{
-                      display: "flex",
-                      alignItems: "center",
-                      justifyContent: "center",
-                      cursor: "pointer",
-                    }}
-                  >
-                    <MaterialManagementIcon
-                      size={18}
-                      color={card.materialManagement === "done" ? STATUS_COLORS.done : STATUS_COLORS.rejected}
-                    />
-                  </div>
-                  <Tooltip id={`material-${card.id}`} place="top" />
-                </>
+                  {/* Medical Icon */}
+                  <>
+                    <div
+                      data-tooltip-id={`medical-${card.id}`}
+                      data-tooltip-content="Medical"
+                      style={{
+                        display: "flex",
+                        alignItems: "center",
+                        justifyContent: "center",
+                        cursor: "pointer",
+                      }}
+                    >
+                      <MedicalIcon
+                        size={18}
+                        color={card.medicalService === "done" ? STATUS_COLORS.done : STATUS_COLORS.rejected}
+                      />
+                    </div>
+                    <Tooltip id={`medical-${card.id}`} place="top" />
+                  </>
+                  {/* Material Management Icon */}
+                  <>
+                    <div
+                      data-tooltip-id={`material-${card.id}`}
+                      data-tooltip-content="Material Management"
+                      style={{
+                        display: "flex",
+                        alignItems: "center",
+                        justifyContent: "center",
+                        cursor: "pointer",
+                      }}
+                    >
+                      <MaterialManagementIcon
+                        size={18}
+                        color={card.materialManagement === "done" ? STATUS_COLORS.done : STATUS_COLORS.rejected}
+                      />
+                    </div>
+                    <Tooltip id={`material-${card.id}`} place="top" />
+                  </>
 
-                {/* Waste Disposal Icon */}
-                <>
-                  <div
-                    data-tooltip-id={`waste-${card.id}`}
-                    data-tooltip-content="Waste Disposal"
-                    style={{
-                      display: "flex",
-                      alignItems: "center",
-                      justifyContent: "center",
-                      cursor: "pointer",
-                    }}
-                  >
-                    <WasteDisposalIcon
-                      size={18}
-                      color={card.wasteDisposal === "done" ? STATUS_COLORS.done : STATUS_COLORS.rejected}
-                    />
-                  </div>
-                  <Tooltip id={`waste-${card.id}`} place="top" />
-                </>
+                  {/* Waste Disposal Icon */}
+                  <>
+                    <div
+                      data-tooltip-id={`waste-${card.id}`}
+                      data-tooltip-content="Waste Disposal"
+                      style={{
+                        display: "flex",
+                        alignItems: "center",
+                        justifyContent: "center",
+                        cursor: "pointer",
+                      }}
+                    >
+                      <WasteDisposalIcon
+                        size={18}
+                        color={card.wasteDisposal === "done" ? STATUS_COLORS.done : STATUS_COLORS.rejected}
+                      />
+                    </div>
+                    <Tooltip id={`waste-${card.id}`} place="top" />
+                  </>
 
-                {/* Launch Hire Icon */}
-                <>
-                  <div
-                    data-tooltip-id={`launch-${card.id}`}
-                    data-tooltip-content="Launch Hire"
-                    style={{
-                      display: "flex",
-                      alignItems: "center",
-                      justifyContent: "center",
-                      cursor: "pointer",
-                    }}
-                  >
-                    <LaunchHireIcon
-                      size={18}
-                      color={card.launchHire === "done" ? STATUS_COLORS.done : STATUS_COLORS.rejected}
-                    />
-                  </div>
-                  <Tooltip id={`launch-${card.id}`} place="top" />
-                </>
-              </div>
+                  {/* Launch Hire Icon */}
+                  <>
+                    <div
+                      data-tooltip-id={`launch-${card.id}`}
+                      data-tooltip-content="Launch Hire"
+                      style={{
+                        display: "flex",
+                        alignItems: "center",
+                        justifyContent: "center",
+                        cursor: "pointer",
+                      }}
+                    >
+                      <LaunchHireIcon
+                        size={18}
+                        color={card.launchHire === "done" ? STATUS_COLORS.done : STATUS_COLORS.rejected}
+                      />
+                    </div>
+                    <Tooltip id={`launch-${card.id}`} place="top" />
+                  </>
+                </div>
               )}
             </>
           )}

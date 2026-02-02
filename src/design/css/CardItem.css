@@ -17,30 +17,16 @@
   /* Ensure no extra margins causing spacing issues */
 }
 
-/* Top & Left colored borders */
-.kanban-card::before,
-.kanban-card::after {
+/* Top colored border only (left border removed) */
+.kanban-card::before {
   content: "";
   position: absolute;
   background-color: var(--card-color, #2A00FF);
   border-radius: 4px;
-}
-
-/* Top border — starts after the icon */
-.kanban-card::before {
   left: 8px;
   right: 12px;
   height: 3px;
   border-top-right-radius: 12px;
-}
-
-/* Left border — shorter (doesn't reach header bottom or footer) */
-.kanban-card::after {
-  top: 36px;
-  left: 0;
-  width: 3px;
-  height: calc(100% - 70px);
-  border-bottom-left-radius: 12px;
 }
 
 
@@ -357,8 +343,7 @@
   transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
-.card-shrunk::before,
-.card-shrunk::after {
+.card-shrunk::before {
   display: none;
 }
 
