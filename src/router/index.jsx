@@ -57,6 +57,7 @@ import NotFound from "../pages/NotFound";
 import JubailOperations from "../pages/JubailOperations";
 import RastanuraDammamOperations from "../pages/RastanuraDammamOperations";
 import CoordinatorTransport from "../pages/CoordinatorTransport";
+import RastanuraOperations from "../pages/RastanuraOperations";
 // 🔥 Set true to bypass auth temporarily
 const TEST_MODE = false;
 
@@ -153,6 +154,7 @@ const router = createHashRouter([
                   { path: "/kanban-board/jubail-operations", element: <RouteGuard><JubailOperations /></RouteGuard> },
                   { path: "/kanban-board/rastanura-dammam-operations", element: <RouteGuard><RastanuraDammamOperations /></RouteGuard> },
                   { path: "/kanban-board/coordinator-transport", element: <RouteGuard><CoordinatorTransport /></RouteGuard> },
+                  { path: "/kanban-board/ras-tanura-operations", element: <RouteGuard><RastanuraOperations /></RouteGuard> },
                   { path: "/kanban-board", element: <RouteGuard><KanbanBoard /></RouteGuard> },
                   // Kanban Board Analytics
                   { path: "/kanban-board/:id/analytics", element: <RouteGuard><KanbanAnalytics /></RouteGuard> },
