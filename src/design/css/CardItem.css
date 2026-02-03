@@ -218,6 +218,14 @@
   padding-top: 6px;
 }
 
+/* Footer-1: status icons row – left-aligned */
+.card-footer.footer-1 {
+  justify-content: flex-start;
+  align-items: center;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+
 .card-time-left {
   font-weight: 400;
   font-family: "Inter", sans-serif;
@@ -337,7 +345,7 @@
 }
 
 .kanban-card.priority-blink {
-  animation: blink-red 1.5s ease-in-out infinite;
+  animation: blink-red 1.8s ease-in-out infinite;
 }
 
 /* ============================================

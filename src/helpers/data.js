@@ -126,11 +126,17 @@ const generateCard = (workflowId, colId, cardId) => {
     "Donald Clark"
   ];
 
-  // Footer status icons (1st image): random subset per card (1–4 icons)
-  const footerIconKeys = ["priority", "subtasks", "deadline", "watchers"];
-  const footerIconCount = Math.floor(Math.random() * 4) + 1; // 1, 2, 3, or 4
+  // Footer status icons: random subset per card (1–5 icons, including link)
+  const footerIconKeys = ["priority", "subtasks", "deadline", "watchers", "link"];
+  const footerIconCount = Math.floor(Math.random() * 5) + 1; // 1, 2, 3, 4, or 5
   const shuffledKeys = [...footerIconKeys].sort(() => Math.random() - 0.5);
   const footerShowIcons = shuffledKeys.slice(0, footerIconCount);
+
+  // Extra-details icons: random subset per card (1–6 icons)
+  const extraDetailsKeys = ["transport", "hotel", "medical", "material", "waste", "launch"];
+  const extraDetailsCount = Math.floor(Math.random() * 6) + 1; // 1, 2, 3, 4, 5, or 6
+  const shuffledExtra = [...extraDetailsKeys].sort(() => Math.random() - 0.5);
+  const extraDetailsShowIcons = shuffledExtra.slice(0, extraDetailsCount);
 
   const cardData = {
     id,
@@ -153,11 +159,17 @@ const generateCard = (workflowId, colId, cardId) => {
     hotelCount: Math.floor(Math.random() * 5) + 1, // Random count between 1-5
     medicalService: ["done", "rejected", "inProgress"][Math.floor(Math.random() * 3)],
     medicalServiceCount: Math.floor(Math.random() * 5) + 1, // Random count between 1-5
-    // Footer-1 status icons (priority, subtasks, deadline, watchers) – random subset per card
+    materialManagement: ["done", "rejected", "inProgress"][Math.floor(Math.random() * 3)],
+    wasteDisposal: ["done", "rejected", "inProgress"][Math.floor(Math.random() * 3)],
+    launchHire: ["done", "rejected", "inProgress"][Math.floor(Math.random() * 3)],
+    // Footer-1 status icons (priority, subtasks, deadline, watchers, link) – random subset per card
     footerShowIcons,
+    // Extra-details icons (transport, hotel, medical, material, waste, launch) – random subset per card
+    extraDetailsShowIcons,
     footerSubtasks: Math.floor(Math.random() * 5) + 1,
     footerDeadline: `${Math.floor(Math.random() * 30) + 1}d`,
     footerWatchers: Math.floor(Math.random() * 5) + 1,
+    footerLinkCount: Math.floor(Math.random() * 5), // linked cards count (0–4)
   };
 
   return { id, cardData };

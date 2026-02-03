@@ -90,6 +90,13 @@ const EyeIcon = ({ size = 16, color = "#666" }) => (
   </svg>
 );
 
+const LinkCardIcon = ({ size = 16, color = "#666" }) => (
+  <svg width={size} height={size} viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" style={{ color }}>
+    <path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" fill="none" />
+    <path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" fill="none" />
+  </svg>
+);
+
 // Company logo mapping by name (case-insensitive)
 const companyLogoMap = {
   "gulf marine": gulfmarineLogo,
@@ -144,6 +151,7 @@ function CardItem({ card, index, setSelectedCard, isShrunk = false, hideExtraDet
           style={{
             ...provided.draggableProps.style,
             "--card-color": cardColor,
+            // backgroundColor: "#eef1ff", // Fixed: proper CSS property naming and added missing "f"
           }}
         >
           {isShrunk ? (
@@ -252,8 +260,8 @@ function CardItem({ card, index, setSelectedCard, isShrunk = false, hideExtraDet
                 )}
               </div>
 
-              {/* Footer-1: status icons (priority, subtasks, deadline, watchers) – random subset per card */}
-              <div className="card-footer footer-1" style={{ display: "flex", gap: "10px", alignItems: "center", flexWrap: "wrap" }}>
+              {/* Footer-1: status icons (priority, subtasks, deadline, watchers, link) – random subset per card, left-aligned */}
+              <div className="card-footer footer-1" style={{ display: "flex", gap: "10px", alignItems: "center", justifyContent: "flex-start", flexWrap: "wrap" }}>
                 {card.footerShowIcons?.includes("priority") && (
                   <span className="footer-1-item" title="Priority" style={{ display: "flex", alignItems: "center" }}>
                     <PriorityTriangleIcon size={16} color="#666" />
@@ -275,6 +283,12 @@ function CardItem({ card, index, setSelectedCard, isShrunk = false, hideExtraDet
                   <span className="footer-1-item" title="Watchers" style={{ display: "flex", alignItems: "center", gap: "4px" }}>
                     <EyeIcon size={16} color="#666" />
                     <span>{card.footerWatchers ?? 1}</span>
+                  </span>
+                )}
+                {card.footerShowIcons?.includes("link") && (
+                  <span className="footer-1-item" title="Link card" style={{ display: "flex", alignItems: "center", gap: "4px" }}>
+                    <LinkCardIcon size={16} color="#666" />
+                    <span>{card.footerLinkCount ?? 0}</span>
                   </span>
                 )}
               </div>
@@ -302,127 +316,134 @@ function CardItem({ card, index, setSelectedCard, isShrunk = false, hideExtraDet
                 </div>
               </div>
 
-              {/* Extra Details Section - Icons with status colors */}
+              {/* Extra Details Section - Icons with status colors (random subset per card: 1–6 icons) */}
               {!hideExtraDetails && (
                 <div className="card-extra-details" style={{ display: "flex", gap: "12px", alignItems: "center", justifyContent: "flex-start", padding: "8px 0" }}>
-                  {/* Transport Icon */}
-                  <>
-                    <div
-                      data-tooltip-id={`transport-${card.id}`}
-                      data-tooltip-content="Transport"
-                      style={{
-                        display: "flex",
-                        alignItems: "center",
-                        justifyContent: "center",
-                        cursor: "pointer",
-                      }}
-                    >
-                      <CarIcon
-                        size={18}
-                        color={card.transport === "done" ? STATUS_COLORS.done : STATUS_COLORS.rejected}
-                      />
-                    </div>
-                    <Tooltip id={`transport-${card.id}`} place="top" />
-                  </>
+                  {(!card.extraDetailsShowIcons || card.extraDetailsShowIcons.includes("transport")) && (
+                    <>
+                      <div
+                        data-tooltip-id={`transport-${card.id}`}
+                        data-tooltip-content="Transport"
+                        style={{
+                          display: "flex",
+                          alignItems: "center",
+                          justifyContent: "center",
+                          cursor: "pointer",
+                        }}
+                      >
+                        <CarIcon
+                          size={18}
+                          color={card.transport === "done" ? STATUS_COLORS.done : STATUS_COLORS.rejected}
+                        />
+                      </div>
+                      <Tooltip id={`transport-${card.id}`} place="top" />
+                    </>
+                  )}
 
-                  {/* Hotel Icon */}
-                  <>
-                    <div
-                      data-tooltip-id={`hotel-${card.id}`}
-                      data-tooltip-content="Hotel"
-                      style={{
-                        display: "flex",
-                        alignItems: "center",
-                        justifyContent: "center",
-                        cursor: "pointer",
-                      }}
-                    >
-                      <HotelIcon
-                        size={18}
-                        color={card.hotel === "done" ? STATUS_COLORS.done : STATUS_COLORS.rejected}
-                      />
-                    </div>
-                    <Tooltip id={`hotel-${card.id}`} place="top" />
-                  </>
+                  {card.extraDetailsShowIcons?.includes("hotel") && (
+                    <>
+                      <div
+                        data-tooltip-id={`hotel-${card.id}`}
+                        data-tooltip-content="Hotel"
+                        style={{
+                          display: "flex",
+                          alignItems: "center",
+                          justifyContent: "center",
+                          cursor: "pointer",
+                        }}
+                      >
+                        <HotelIcon
+                          size={18}
+                          color={card.hotel === "done" ? STATUS_COLORS.done : STATUS_COLORS.rejected}
+                        />
+                      </div>
+                      <Tooltip id={`hotel-${card.id}`} place="top" />
+                    </>
+                  )}
 
-                  {/* Medical Icon */}
-                  <>
-                    <div
-                      data-tooltip-id={`medical-${card.id}`}
-                      data-tooltip-content="Medical"
-                      style={{
-                        display: "flex",
-                        alignItems: "center",
-                        justifyContent: "center",
-                        cursor: "pointer",
-                      }}
-                    >
-                      <MedicalIcon
-                        size={18}
-                        color={card.medicalService === "done" ? STATUS_COLORS.done : STATUS_COLORS.rejected}
-                      />
-                    </div>
-                    <Tooltip id={`medical-${card.id}`} place="top" />
-                  </>
-                  {/* Material Management Icon */}
-                  <>
-                    <div
-                      data-tooltip-id={`material-${card.id}`}
-                      data-tooltip-content="Material Management"
-                      style={{
-                        display: "flex",
-                        alignItems: "center",
-                        justifyContent: "center",
-                        cursor: "pointer",
-                      }}
-                    >
-                      <MaterialManagementIcon
-                        size={18}
-                        color={card.materialManagement === "done" ? STATUS_COLORS.done : STATUS_COLORS.rejected}
-                      />
-                    </div>
-                    <Tooltip id={`material-${card.id}`} place="top" />
-                  </>
+                  {(!card.extraDetailsShowIcons || card.extraDetailsShowIcons.includes("medical")) && (
+                    <>
+                      <div
+                        data-tooltip-id={`medical-${card.id}`}
+                        data-tooltip-content="Medical"
+                        style={{
+                          display: "flex",
+                          alignItems: "center",
+                          justifyContent: "center",
+                          cursor: "pointer",
+                        }}
+                      >
+                        <MedicalIcon
+                          size={18}
+                          color={card.medicalService === "done" ? STATUS_COLORS.done : STATUS_COLORS.rejected}
+                        />
+                      </div>
+                      <Tooltip id={`medical-${card.id}`} place="top" />
+                    </>
+                  )}
 
-                  {/* Waste Disposal Icon */}
-                  <>
-                    <div
-                      data-tooltip-id={`waste-${card.id}`}
-                      data-tooltip-content="Waste Disposal"
-                      style={{
-                        display: "flex",
-                        alignItems: "center",
-                        justifyContent: "center",
-                        cursor: "pointer",
-                      }}
-                    >
-                      <WasteDisposalIcon
-                        size={18}
-                        color={card.wasteDisposal === "done" ? STATUS_COLORS.done : STATUS_COLORS.rejected}
-                      />
-                    </div>
-                    <Tooltip id={`waste-${card.id}`} place="top" />
-                  </>
+                  {(!card.extraDetailsShowIcons || card.extraDetailsShowIcons.includes("material")) && (
+                    <>
+                      <div
+                        data-tooltip-id={`material-${card.id}`}
+                        data-tooltip-content="Material Management"
+                        style={{
+                          display: "flex",
+                          alignItems: "center",
+                          justifyContent: "center",
+                          cursor: "pointer",
+                        }}
+                      >
+                        <MaterialManagementIcon
+                          size={18}
+                          color={card.materialManagement === "done" ? STATUS_COLORS.done : STATUS_COLORS.rejected}
+                        />
+                      </div>
+                      <Tooltip id={`material-${card.id}`} place="top" />
+                    </>
+                  )}
 
-                  {/* Launch Hire Icon */}
-                  <>
-                    <div
-                      data-tooltip-id={`launch-${card.id}`}
-                      data-tooltip-content="Launch Hire"
-                      style={{
-                        display: "flex",
-                        alignItems: "center",
-                        justifyContent: "center",
-                        cursor: "pointer",
-                      }}
-                    >
-                      <LaunchHireIcon
-                        size={18}
-                        color={card.launchHire === "done" ? STATUS_COLORS.done : STATUS_COLORS.rejected}
-                      />
-                    </div>
-                    <Tooltip id={`launch-${card.id}`} place="top" />
-                  </>
+                  {(!card.extraDetailsShowIcons || card.extraDetailsShowIcons.includes("waste")) && (
+                    <>
+                      <div
+                        data-tooltip-id={`waste-${card.id}`}
+                        data-tooltip-content="Waste Disposal"
+                        style={{
+                          display: "flex",
+                          alignItems: "center",
+                          justifyContent: "center",
+                          cursor: "pointer",
+                        }}
+                      >
+                        <WasteDisposalIcon
+                          size={18}
+                          color={card.wasteDisposal === "done" ? STATUS_COLORS.done : STATUS_COLORS.rejected}
+                        />
+                      </div>
+                      <Tooltip id={`waste-${card.id}`} place="top" />
+                    </>
+                  )}
+
+                  {(!card.extraDetailsShowIcons || card.extraDetailsShowIcons.includes("launch")) && (
+                    <>
+                      <div
+                        data-tooltip-id={`launch-${card.id}`}
+                        data-tooltip-content="Launch Hire"
+                        style={{
+                          display: "flex",
+                          alignItems: "center",
+                          justifyContent: "center",
+                          cursor: "pointer",
+                        }}
+                      >
+                        <LaunchHireIcon
+                          size={18}
+                          color={card.launchHire === "done" ? STATUS_COLORS.done : STATUS_COLORS.rejected}
+                        />
+                      </div>
+                      <Tooltip id={`launch-${card.id}`} place="top" />
+                    </>
+                  )}
                 </div>
               )}
             </>
@@ -463,6 +484,8 @@ CardItem.propTypes = {
     footerSubtasks: PropTypes.number,
     footerDeadline: PropTypes.string,
     footerWatchers: PropTypes.number,
+    footerLinkCount: PropTypes.number,
+    extraDetailsShowIcons: PropTypes.arrayOf(PropTypes.string),
   }).isRequired,
   index: PropTypes.number.isRequired,
   setSelectedCard: PropTypes.func.isRequired,
