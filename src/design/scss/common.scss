@@ -264,12 +264,25 @@ textarea:disabled,
     gap: 8px;
 }
 
+.kanban-accordion-title-row {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+.kanban-accordion-title-icon {
+    flex-shrink: 0;
+    width: 22px;
+    height: 22px;
+    color: #6366f1;
+}
+
 .kanban-accordion-title {
     font-size: 18px;
     font-weight: 600;
     color: #1f2937;
     margin: 0;
-    font-family: 'Poppins', sans-serif;
+    font-family: "Plus Jakarta Sans", sans-serif
 }
 
 .kanban-accordion-icon {
