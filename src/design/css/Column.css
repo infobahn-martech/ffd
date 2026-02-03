@@ -5,7 +5,7 @@
   /* fits two 260px cards + gap */
   display: flex;
   flex-direction: column;
-  font-family: "Inter", sans-serif;
+  font-family: "Plus Jakarta Sans", sans-serif;
   padding: 0;
   transition: width 0.3s ease, flex-grow 0.3s ease, min-height 0.3s ease;
   /* Ensure card-list doesn't stretch unnecessarily */
@@ -27,9 +27,9 @@
   display: flex;
   align-items: center;
   justify-content: space-between;
-  background: #eef1ff;
+  background: #ffffff;
   border-radius: 8px;
-  padding: 0 12px 0 0;
+  padding: 0 12px;
   position: relative;
   height: 40px;
   margin-bottom: 10px;
@@ -55,18 +55,27 @@
   border-radius: 8px 8px 0 0;
 }
 
-/* Left Section */
+/* Left Section – absolutely positioned so title is centered in full header */
 .column-left {
+  position: absolute;
+  left: 0;
+  right: 0;
+  top: 0;
+  bottom: 0;
   display: flex;
   align-items: center;
+  justify-content: center;
   gap: 10px;
-  padding-left: 12px;
+  pointer-events: none;
 }
 
 /* Card count at right end of header */
 .column-count {
+  position: relative;
+  z-index: 1;
   font-size: 13px;
   font-weight: 600;
+  font-family: "Plus Jakarta Sans", sans-serif;
   color: #5a5a5a;
   min-width: 1.5em;
   text-align: right;
@@ -107,12 +116,14 @@
   /* make icon white */
 }
 
-/* Title */
+/* Title – centered in header */
 .column-title {
   font-size: 14px;
   font-weight: 600;
+  font-family: "Plus Jakarta Sans", sans-serif;
   color: #1a1a1a;
   margin: 0;
+  text-align: center;
 }
 
 /* Card List */
