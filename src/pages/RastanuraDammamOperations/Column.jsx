@@ -5,7 +5,6 @@ import { Tooltip } from "react-tooltip";
 import "react-tooltip/dist/react-tooltip.css";
 import CardItem from "../KanbanBoard/CardItem";
 import "../../design/css/Column.css";
-import PriorityIcon from "../../assets/images/Priority.svg";
 import "./RDColumn.css";
 
 // Nested Column Component (for sub-columns within "In Progress")
@@ -84,9 +83,6 @@ function NestedColumn({ column, cards, setSelectedCard, isShrunk = false, column
                 style={{ "--column-color": columnColor }}
             >
                 <div className="nested-column-title-wrapper">
-                    <div className="nested-column-count-box" style={{ background: columnColor }}>
-                        <span className="count-number">{cards.length}</span>
-                    </div>
                     <h3 className="nested-column-title">{column.title}</h3>
                 </div>
             </div>
@@ -195,11 +191,6 @@ function Column({ column, cards, setSelectedCard, isExpanded = false, isShrunk =
 
     // If this is a nested column parent, render nested structure
     if (isNestedColumn && subColumns && subColumns.length > 0) {
-        const totalCardCount = subColumns.reduce((sum, subCol) => {
-            const subCards = subColumnCards[subCol.id] || [];
-            return sum + subCards.length;
-        }, 0);
-
         return (
             <div
                 ref={columnRef}
@@ -213,10 +204,6 @@ function Column({ column, cards, setSelectedCard, isExpanded = false, isShrunk =
                     onClick={onHeaderClick}
                 >
                     <div className="column-left">
-                        <div className="column-count-box" style={{ background: columnColor }}>
-                            <span className="count-number">{totalCardCount}</span>
-                            <img src={PriorityIcon} alt="Priority" className="priority-icon" />
-                        </div>
                         <h2 className="column-title">{column.title}</h2>
                     </div>
                 </div>
@@ -256,10 +243,6 @@ function Column({ column, cards, setSelectedCard, isExpanded = false, isShrunk =
                 onClick={onHeaderClick}
             >
                 <div className="column-left">
-                    <div className="column-count-box" style={{ background: columnColor }}>
-                        <span className="count-number">{cards.length}</span>
-                        <img src={PriorityIcon} alt="Priority" className="priority-icon" />
-                    </div>
                     {isShrunk && column.title.length > 8 ? (
                         <>
                             <h2

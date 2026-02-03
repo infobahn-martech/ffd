@@ -5,7 +5,6 @@ import { Tooltip } from "react-tooltip";
 import "react-tooltip/dist/react-tooltip.css";
 import CardItem from "./CardItem";
 import "../../design/css/Column.css";
-import PriorityIcon from "../../assets/images/Priority.svg";
 
 function Column({ column, cards, setSelectedCard, isExpanded = false, isShrunk = false, onHeaderClick, onContextMenu, columnHeight, onHeightChange }) {
   const columnRef = useRef(null);
