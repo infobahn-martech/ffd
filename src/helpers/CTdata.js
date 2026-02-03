@@ -28,7 +28,11 @@ const workflowsConfig = [
         },
     },
 ];
-
+// Footer status icons: random subset per card (1–5 icons, including link)
+const footerIconKeys = ["priority", "subtasks", "deadline", "watchers", "link"];
+const footerIconCount = Math.floor(Math.random() * 5) + 1; // 1, 2, 3, 4, or 5
+const shuffledKeys = [...footerIconKeys].sort(() => Math.random() - 0.5);
+const footerShowIcons = shuffledKeys.slice(0, footerIconCount);
 // ============================================
 // HELPER FUNCTIONS
 // ============================================
@@ -114,6 +118,7 @@ const generateCard = (workflowId, colId, cardId) => {
         hotelCount: Math.floor(Math.random() * 5) + 1,
         medicalService: ["done", "rejected", "inProgress"][Math.floor(Math.random() * 3)],
         medicalServiceCount: Math.floor(Math.random() * 5) + 1,
+        footerShowIcons: footerShowIcons,
     };
 
     return { id, cardData };
