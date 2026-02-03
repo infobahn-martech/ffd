@@ -1265,7 +1265,7 @@ function General({ card, formValues, handleChange, ownerInitial, cardUser, onSav
   return (
     <div className="cardform-body general-tab-body">
       <div className="general-sections-wrapper">
-        {!isAddMode && !isSimplifiedMode && (
+        {/* {!isAddMode && !isSimplifiedMode && (
           <div className="cf-section job-status-section">
             <div className="cf-section-header">
               <div className="cf-section-title">Job Status</div>
@@ -1280,7 +1280,7 @@ function General({ card, formValues, handleChange, ownerInitial, cardUser, onSav
               />
             </div>
           </div>
-        )}
+        )} */}
 
         <div className="cf-section general-info-section">
           {!isAddMode && (
