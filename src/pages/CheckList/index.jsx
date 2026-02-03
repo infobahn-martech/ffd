@@ -141,6 +141,15 @@ const CheckList = () => {
               showModal={showCheckListModal}
               closeModal={() => setShowCheckListModal(false)}
               callTypesOptions={callTypes}
+              onSuccess={() => {
+                const apiParams = {
+                  page: params.page,
+                  limit: params.limit,
+                  ...(params.search && { search: params.search }),
+                  ...(params.sortBy && { sortBy: params.sortBy }),
+                };
+                getChecklists({ params: apiParams });
+              }}
             />
           )}
           {!!showDeleteModal && (

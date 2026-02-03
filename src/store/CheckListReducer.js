@@ -15,11 +15,11 @@ const useCheckListReducer = create((set) => ({
     createChecklist: async ({ formData, cb }) => {
         try {
             set({ addEditLoader: true });
-            const { data } = await CheckListService.postChecklist(formData);
+            const { data } = await CheckListService.createChecklist(formData);
             set({
                 successMessage: data.message,
                 addEditLoader: false,
-                checklistCount: data.totalCount,
+                checklistCount: data?.totalCount ?? 0,
             });
             const { success } = useAlertReducer.getState();
             success(data && data.message);
@@ -27,7 +27,7 @@ const useCheckListReducer = create((set) => ({
         } catch (err) {
             const { error } = useAlertReducer.getState();
             set({
-                errorMessage: 'Something went wrong fetching checklist',
+                errorMessage: 'Something went wrong creating checklist',
                 addEditLoader: false,
             });
             error(err?.response?.data?.message ?? err.message);
@@ -49,7 +49,13 @@ const useCheckListReducer = create((set) => ({
     editChecklist: async ({ id, formData, cb }) => {
         try {
             set({ addEditLoader: true });
-            const { data } = await CheckListService.editChecklist(id, formData);
+            const payload = formData instanceof FormData
+                ? formData
+                : { ...formData, _id: id };
+            if (formData instanceof FormData && id != null) {
+                formData.append('_id', id);
+            }
+            const { data } = await CheckListService.updateChecklist(payload);
             set({ successMessage: data.message, addEditLoader: false });
             const { success } = useAlertReducer.getState();
             success(data && data.message);

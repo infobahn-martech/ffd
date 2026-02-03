@@ -4,10 +4,72 @@ import "../../../design/scss/prospect-modal.scss";
 import "../../../design/scss/modal-designs.scss";
 import "../../../design/scss/form-designs.scss";
 import { useState } from "react";
+import useCheckListReducer from "../../../store/CheckListReducer";
 
-export function CheckListModal({ showModal, closeModal, callTypesOptions }) {
+/** Map form item to API item (no file in payload) */
+function mapItemToApi(item) {
+  const doc = item?.document_details ?? {};
+  return {
+    item_name: item?.item_name ?? "",
+    item_order: item?.item_order ?? 0,
+    document_details: {
+      require_copy_only: !!doc?.is_copy_required,
+      description: doc?.description ?? ""
+    }
+  };
+}
+
+/** Map form section to API section (no files in payload) */
+function mapSectionToApi(section) {
+  return {
+    title: section?.title ?? "",
+    sort_order: section?.sort_order ?? 0,
+    items: (section?.items ?? []).map(mapItemToApi),
+    sub_sections: (section?.sub_sections ?? []).map((sub) => ({
+      title: sub?.title ?? "",
+      sort_order: sub?.sort_order ?? 0,
+      items: (sub?.items ?? []).map(mapItemToApi)
+    }))
+  };
+}
+
+/** Collect files with global item index (1-based) -> { "item_1": File, ... } */
+function collectItemFiles(data) {
+  const map = {};
+  let globalIndex = 1;
+  const sections = data?.sections ?? [];
+  for (const section of sections) {
+    for (const item of section?.items ?? []) {
+      const fileInput = item?.document_details?.required_copy_only;
+      const file = fileInput?.length ? fileInput[0] : fileInput;
+      if (file instanceof File) {
+        map[`item_${globalIndex}`] = file;
+      }
+      globalIndex++;
+    }
+    for (const sub of section?.sub_sections ?? []) {
+      for (const item of sub?.items ?? []) {
+        const fileInput = item?.document_details?.required_copy_only;
+        const file = fileInput?.length ? fileInput[0] : fileInput;
+        if (file instanceof File) {
+          map[`item_${globalIndex}`] = file;
+        }
+        globalIndex++;
+      }
+    }
+  }
+  return map;
+}
+
+export function CheckListModal({ showModal, closeModal, callTypesOptions, onSuccess }) {
   const [expandedSections, setExpandedSections] = useState({});
   const [expandedSubSections, setExpandedSubSections] = useState({});
+
+  const { createChecklist, editChecklist, addEditLoader } = useCheckListReducer((s) => ({
+    createChecklist: s.createChecklist,
+    editChecklist: s.editChecklist,
+    addEditLoader: s.addEditLoader
+  }));
 
   const {
     register,
@@ -17,11 +79,11 @@ export function CheckListModal({ showModal, closeModal, callTypesOptions }) {
   } = useForm({
     defaultValues: showModal?._id
       ? {
-        callType: showModal?.callType || "",
-        vesselType: showModal?.vesselType || "",
-        bargeType: showModal?.bargeType || "",
-        checklistName: showModal?.checklistName || "",
-        sections: showModal?.sections || []
+        callType: String(showModal?.call_type_id ?? showModal?.callType ?? ""),
+        vesselType: String(showModal?.vessel_type_id ?? showModal?.vesselType ?? ""),
+        bargeType: showModal?.barge_type_id != null ? String(showModal.barge_type_id) : (showModal?.bargeType ?? ""),
+        checklistName: showModal?.checklist_name ?? showModal?.checklistName ?? "",
+        sections: showModal?.sections ?? []
       }
       : {
         callType: "",
@@ -62,8 +124,51 @@ export function CheckListModal({ showModal, closeModal, callTypesOptions }) {
   };
 
   const onSubmit = (data) => {
-    console.log("CHECKLIST FORM SUBMITTED:", data);
-    closeModal();
+    const sectionsApi = (data.sections ?? []).map(mapSectionToApi);
+    const num = (v) => (v !== "" && v != null && !isNaN(Number(v)) ? Number(v) : null);
+    const callTypeId = num(data.callType);
+    const vesselTypeId = num(data.vesselType);
+    const bargeTypeId = num(data.bargeType);
+
+    const payload = {
+      call_type_id: callTypeId,
+      checklist_name: data.checklistName ?? "",
+      vessel_type_id: vesselTypeId,
+      barge_type_id: bargeTypeId ?? null,
+      sections: sectionsApi
+    };
+
+    const isEdit = showModal?._id;
+    if (isEdit) {
+      payload._id = showModal._id;
+    }
+
+    const fileMap = collectItemFiles(data);
+    const hasFiles = Object.keys(fileMap).length > 0;
+
+    const cb = () => {
+      closeModal();
+      onSuccess?.();
+    };
+
+    if (hasFiles) {
+      const formData = new FormData();
+      formData.append("data", JSON.stringify(payload));
+      Object.entries(fileMap).forEach(([key, file]) => {
+        formData.append(`documents[${key}]`, file);
+      });
+      if (isEdit) {
+        editChecklist({ id: showModal._id, formData, cb });
+      } else {
+        createChecklist({ formData, cb });
+      }
+    } else {
+      if (isEdit) {
+        editChecklist({ id: showModal._id, formData: payload, cb });
+      } else {
+        createChecklist({ formData: payload, cb });
+      }
+    }
   };
 
   const renderHeader = () => (
@@ -1066,11 +1171,11 @@ export function CheckListModal({ showModal, closeModal, callTypesOptions }) {
 
   const renderFooter = () => (
     <div className="modal-footer">
-      <button type="button" className="btn btn-outline" onClick={closeModal}>
+      <button type="button" className="btn btn-outline" onClick={closeModal} disabled={addEditLoader}>
         Close
       </button>
-      <button type="submit" form="checklistForm" className="btn btn-primary">
-        Save
+      <button type="submit" form="checklistForm" className="btn btn-primary" disabled={addEditLoader}>
+        {addEditLoader ? "Saving..." : "Save"}
       </button>
     </div>
   );

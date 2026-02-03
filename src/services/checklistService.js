@@ -1,13 +1,17 @@
 import Gateway from '../gateway/gateway';
 
-const postChecklist = (data) => Gateway.post('/checklist', data);
 const getChecklist = (params) => Gateway.get('/checklist', { params });
-const editChecklist = (id, data) => Gateway.patch(`checklist/${id}`, data);
 const deleteChecklist = (id) => Gateway.delete(`checklist/${id}`);
 
+/** POST checklist/createchecklist - data can be FormData (with files) or JSON */
+const createChecklist = (data) => Gateway.post('checklist/createchecklist', data);
+
+/** POST checklist/updatechecklist - data can be FormData (with files) or JSON; must include _id/checklist_id */
+const updateChecklist = (data) => Gateway.post('checklist/updatechecklist', data);
+
 export default {
-    postChecklist,
-    editChecklist,
+    createChecklist,
+    updateChecklist,
     getChecklist,
     deleteChecklist,
 };
