@@ -63,6 +63,33 @@ const LaunchHireIcon = ({ size = 20, color = "#666" }) => (
   </svg>
 );
 
+// Footer-1 status icons (from 1st image: priority, subtasks, deadline, watchers)
+const PriorityTriangleIcon = ({ size = 16, color = "#666" }) => (
+  <svg width={size} height={size} viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" style={{ color }}>
+    <path d="M12 5L4 19H20L12 5Z" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" fill="none" />
+  </svg>
+);
+
+const SubtasksIcon = ({ size = 16, color = "#666" }) => (
+  <svg width={size} height={size} viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" style={{ color }}>
+    <rect x="4" y="4" width="16" height="16" rx="2" stroke="currentColor" strokeWidth="2" fill="none" />
+  </svg>
+);
+
+const ClockIcon = ({ size = 16, color = "#666" }) => (
+  <svg width={size} height={size} viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" style={{ color }}>
+    <circle cx="12" cy="12" r="9" stroke="currentColor" strokeWidth="2" fill="none" />
+    <path d="M12 7V12L15 15" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+  </svg>
+);
+
+const EyeIcon = ({ size = 16, color = "#666" }) => (
+  <svg width={size} height={size} viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" style={{ color }}>
+    <path d="M1 12C1 12 5 4 12 4C19 4 23 12 23 12C23 12 19 20 12 20C5 20 1 12 1 12Z" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" fill="none" />
+    <circle cx="12" cy="12" r="3" stroke="currentColor" strokeWidth="2" fill="none" />
+  </svg>
+);
+
 // Company logo mapping by name (case-insensitive)
 const companyLogoMap = {
   "gulf marine": gulfmarineLogo,
@@ -222,6 +249,33 @@ function CardItem({ card, index, setSelectedCard, isShrunk = false, hideExtraDet
                     data-initial={card.user[0]?.toUpperCase() || ""}
                     style={{ "--card-color": cardColor }}
                   />
+                )}
+              </div>
+
+              {/* Footer-1: status icons (priority, subtasks, deadline, watchers) – random subset per card */}
+              <div className="card-footer footer-1" style={{ display: "flex", gap: "10px", alignItems: "center", flexWrap: "wrap" }}>
+                {card.footerShowIcons?.includes("priority") && (
+                  <span className="footer-1-item" title="Priority" style={{ display: "flex", alignItems: "center" }}>
+                    <PriorityTriangleIcon size={16} color="#666" />
+                  </span>
+                )}
+                {card.footerShowIcons?.includes("subtasks") && (
+                  <span className="footer-1-item" title="Sub-tasks" style={{ display: "flex", alignItems: "center", gap: "4px" }}>
+                    <SubtasksIcon size={16} color="#666" />
+                    <span>{card.footerSubtasks ?? 1}</span>
+                  </span>
+                )}
+                {card.footerShowIcons?.includes("deadline") && (
+                  <span className="footer-1-item" title="Deadline" style={{ display: "flex", alignItems: "center", gap: "4px" }}>
+                    <ClockIcon size={16} color="#666" />
+                    <span>{card.footerDeadline ?? "21d"}</span>
+                  </span>
+                )}
+                {card.footerShowIcons?.includes("watchers") && (
+                  <span className="footer-1-item" title="Watchers" style={{ display: "flex", alignItems: "center", gap: "4px" }}>
+                    <EyeIcon size={16} color="#666" />
+                    <span>{card.footerWatchers ?? 1}</span>
+                  </span>
                 )}
               </div>
 
@@ -405,6 +459,10 @@ CardItem.propTypes = {
     wasteDisposalCount: PropTypes.number,
     launchHire: PropTypes.string,
     launchHireCount: PropTypes.number,
+    footerShowIcons: PropTypes.arrayOf(PropTypes.string),
+    footerSubtasks: PropTypes.number,
+    footerDeadline: PropTypes.string,
+    footerWatchers: PropTypes.number,
   }).isRequired,
   index: PropTypes.number.isRequired,
   setSelectedCard: PropTypes.func.isRequired,

@@ -126,6 +126,12 @@ const generateCard = (workflowId, colId, cardId) => {
     "Donald Clark"
   ];
 
+  // Footer status icons (1st image): random subset per card (1–4 icons)
+  const footerIconKeys = ["priority", "subtasks", "deadline", "watchers"];
+  const footerIconCount = Math.floor(Math.random() * 4) + 1; // 1, 2, 3, or 4
+  const shuffledKeys = [...footerIconKeys].sort(() => Math.random() - 0.5);
+  const footerShowIcons = shuffledKeys.slice(0, footerIconCount);
+
   const cardData = {
     id,
     title: `CARD – ${["JAN", "FEB", "MAR", "APR", "MAY", "JUN", "JUL", "AUG"][
@@ -147,6 +153,11 @@ const generateCard = (workflowId, colId, cardId) => {
     hotelCount: Math.floor(Math.random() * 5) + 1, // Random count between 1-5
     medicalService: ["done", "rejected", "inProgress"][Math.floor(Math.random() * 3)],
     medicalServiceCount: Math.floor(Math.random() * 5) + 1, // Random count between 1-5
+    // Footer-1 status icons (priority, subtasks, deadline, watchers) – random subset per card
+    footerShowIcons,
+    footerSubtasks: Math.floor(Math.random() * 5) + 1,
+    footerDeadline: `${Math.floor(Math.random() * 30) + 1}d`,
+    footerWatchers: Math.floor(Math.random() * 5) + 1,
   };
 
   return { id, cardData };

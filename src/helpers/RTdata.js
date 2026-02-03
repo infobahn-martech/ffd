@@ -23,8 +23,8 @@ const workflowsConfig = [
         ],
         nestedColumns: {},
         cardCounts: {
-            "col-1": 3, // Pre-Arrival Board
-            "col-2": 3, // Pre-Arrival Board
+            "col-1": 13, // Pre-Arrival Board
+            "col-2": 9, // Pre-Arrival Board
             "col-3": 1, // Vessel Arrived
             "col-4": 0, // Vessel Cleared
             "col-5": 0, // Ops Completed
