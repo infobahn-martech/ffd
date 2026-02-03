@@ -3,7 +3,7 @@ import CustomModal from "../../../components/CustomModal";
 import "../../../design/scss/prospect-modal.scss";
 import "../../../design/scss/modal-designs.scss";
 import "../../../design/scss/form-designs.scss";
-import { useState } from "react";
+import { useState, useMemo } from "react";
 import useCheckListReducer from "../../../store/CheckListReducer";
 
 /** Map form item to API item (no file in payload) */
@@ -61,15 +61,35 @@ function collectItemFiles(data) {
   return map;
 }
 
+const EMPTY_DEFAULTS = {
+  callType: "",
+  vesselType: "",
+  bargeType: "",
+  checklistName: "",
+  sections: []
+};
+
 export function CheckListModal({ showModal, closeModal, callTypesOptions, onSuccess }) {
   const [expandedSections, setExpandedSections] = useState({});
   const [expandedSubSections, setExpandedSubSections] = useState({});
 
-  const { createChecklist, editChecklist, addEditLoader } = useCheckListReducer((s) => ({
-    createChecklist: s.createChecklist,
-    editChecklist: s.editChecklist,
-    addEditLoader: s.addEditLoader
-  }));
+  const createChecklist = useCheckListReducer((s) => s.createChecklist);
+  const editChecklist = useCheckListReducer((s) => s.editChecklist);
+  const addEditLoader = useCheckListReducer((s) => s.addEditLoader);
+
+  const modalKey = showModal && typeof showModal === "object" && showModal._id ? showModal._id : "add";
+  const defaultValues = useMemo(() => {
+    if (showModal && typeof showModal === "object" && showModal._id) {
+      return {
+        callType: String(showModal?.call_type_id ?? showModal?.callType ?? ""),
+        vesselType: String(showModal?.vessel_type_id ?? showModal?.vesselType ?? ""),
+        bargeType: showModal?.barge_type_id != null ? String(showModal.barge_type_id) : (showModal?.bargeType ?? ""),
+        checklistName: showModal?.checklist_name ?? showModal?.checklistName ?? "",
+        sections: Array.isArray(showModal?.sections) ? showModal.sections : []
+      };
+    }
+    return EMPTY_DEFAULTS;
+  }, [modalKey]);
 
   const {
     register,
@@ -77,21 +97,7 @@ export function CheckListModal({ showModal, closeModal, callTypesOptions, onSucc
     control,
     formState: { errors }
   } = useForm({
-    defaultValues: showModal?._id
-      ? {
-        callType: String(showModal?.call_type_id ?? showModal?.callType ?? ""),
-        vesselType: String(showModal?.vessel_type_id ?? showModal?.vesselType ?? ""),
-        bargeType: showModal?.barge_type_id != null ? String(showModal.barge_type_id) : (showModal?.bargeType ?? ""),
-        checklistName: showModal?.checklist_name ?? showModal?.checklistName ?? "",
-        sections: showModal?.sections ?? []
-      }
-      : {
-        callType: "",
-        vesselType: "",
-        bargeType: "",
-        checklistName: "",
-        sections: []
-      }
+    defaultValues
   });
 
   const { fields: sections, append: appendSection, remove: removeSection } = useFieldArray({

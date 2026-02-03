@@ -138,6 +138,7 @@ const CheckList = () => {
 
           {!!showCheckListModal && (
             <CheckListModal
+              key={showCheckListModal?._id ?? "new"}
               showModal={showCheckListModal}
               closeModal={() => setShowCheckListModal(false)}
               callTypesOptions={callTypes}
