@@ -1,33 +1,57 @@
 import { useForm, Controller } from "react-hook-form";
+import { useEffect } from "react";
 import PhoneInput from "react-phone-input-2";
 import "react-phone-input-2/lib/bootstrap.css";
 import CustomModal from "../../../components/CustomModal";
 import "../../../design/scss/prospect-modal.scss";
 import "../../../design/scss/modal-designs.scss";
 import "../../../design/scss/form-designs.scss";
-import userIcon from "../../../assets/images/user.png";
-import edit from "../../../assets/images/edit.svg";
-// import { ROLE_OPTIONS } from "../../../constants/roles"; // ❌ no longer needed
 import { PORT_OPTIONS } from "../../../constants/ports";
+import useDriverReducer from "../../../store/DriverReducer";
 
-export function DriverModal({ showModal, closeModal }) {
+export function DriverModal({ showModal, closeModal, onSuccess }) {
+    const isEdit = !!showModal?.id || !!showModal?._id;
+    const editId = showModal?.id ?? showModal?._id;
+
     const {
         register,
         handleSubmit,
         formState: { errors },
         control,
+        reset,
     } = useForm({
-        defaultValues: showModal?._id
-            ? {
+        defaultValues: {
+            driver_name: "",
+            employee_no: "",
+            joining_date: "",
+            contact_no: "",
+            iqama_no: "",
+            location: "",
+            nationality: "",
+        },
+    });
+
+    const { countries, fetchAllCountries, addDriver, updateDriver, isBeingUpdated } = useDriverReducer();
+
+    useEffect(() => {
+        if (showModal) {
+            fetchAllCountries();
+        }
+    }, [showModal]);
+
+    useEffect(() => {
+        if (showModal && isEdit) {
+            reset({
                 driver_name: showModal?.driver_name || "",
                 employee_no: showModal?.employee_no || "",
                 joining_date: showModal?.joining_date || "",
                 contact_no: showModal?.contact_no || "",
                 iqama_no: showModal?.iqama_no || "",
                 location: showModal?.location || "",
-                nationality: showModal?.nationality || "",
-            }
-            : {
+                nationality: showModal?.nationality ?? showModal?.country_id ?? "",
+            });
+        } else if (showModal && !isEdit) {
+            reset({
                 driver_name: "",
                 employee_no: "",
                 joining_date: "",
@@ -35,18 +59,44 @@ export function DriverModal({ showModal, closeModal }) {
                 iqama_no: "",
                 location: "",
                 nationality: "",
-            },
-    });
+            });
+        }
+    }, [showModal, isEdit, reset]);
 
     const onSubmit = (data) => {
-        console.log("DRIVER FORM SUBMITTED:", data);
-        closeModal();
+        const payload = {
+            driver_name: data.driver_name,
+            employee_no: data.employee_no,
+            contact_no: data.contact_no,
+            iqama_no: data.iqama_no,
+            nationality: data.nationality,
+            location: data.location,
+            joining_date: data.joining_date,
+        };
+        if (isEdit) {
+            payload.id = editId;
+            updateDriver({
+                formData: payload,
+                cb: () => {
+                    closeModal();
+                    onSuccess?.();
+                },
+            });
+        } else {
+            addDriver({
+                formData: payload,
+                cb: () => {
+                    closeModal();
+                    onSuccess?.();
+                },
+            });
+        }
     };
 
     const renderHeader = () => (
         <>
             <h1 className="modal-title">
-                {showModal?._id ? "Edit Driver" : "Add Driver"}
+                {isEdit ? "Edit Driver" : "Add Driver"}
             </h1>
         </>
     );
@@ -55,50 +105,6 @@ export function DriverModal({ showModal, closeModal }) {
         <div className="modal-body">
             <div className="lead-form">
                 <form id="driverForm" onSubmit={handleSubmit(onSubmit)}>
-                    {/* ===== Avatar Upload ===== */}
-                    <div className="d-flex justify-content-center mb-4">
-                        <div className="avatar-wrapper" style={{ position: "relative" }}>
-                            <img
-                                src={showModal?.avatar || userIcon}
-                                alt="Driver Avatar"
-                                className="avatar-image"
-                                style={{
-                                    width: "120px",
-                                    height: "120px",
-                                    borderRadius: "50%",
-                                    objectFit: "cover",
-                                    border: "3px solid #e6e6e6",
-                                }}
-                            />
-
-                            <label
-                                htmlFor="avatarUpload"
-                                className="avatar-edit-icon"
-                                style={{
-                                    position: "absolute",
-                                    bottom: "0",
-                                    right: "10px",
-                                    background: "#e7e7e7",
-                                    width: "30px",
-                                    height: "30px",
-                                    borderRadius: "50%",
-                                    display: "flex",
-                                    justifyContent: "center",
-                                    alignItems: "center",
-                                    cursor: "pointer",
-                                }}
-                            >
-                                <img
-                                    src={edit}
-                                    alt="Edit"
-                                    style={{ width: "14px", height: "18px", filter: "invert(1)" }}
-                                />
-                            </label>
-
-                            <input type="file" id="avatarUpload" className="d-none" />
-                        </div>
-                    </div>
-
                     {/* ===== Driver Name + Driver No ===== */}
                     <div className="mb-lg-3 mb-sm-0">
                         <div className="permInputs row">
@@ -273,20 +279,25 @@ export function DriverModal({ showModal, closeModal }) {
                         </div>
                     </div>
 
-                    {/* ===== Nationality ===== */}
+                    {/* ===== Nationality (from all_country API) ===== */}
                     <div className="mb-lg-3 mb-sm-0">
                         <div className="permInputs row">
                             <div className="col-lg-6 col-sm-12">
                                 <div className="form-floating desig-inp">
-                                    <input
-                                        type="text"
+                                    <select
                                         className={`form-control ${errors.nationality ? "is-invalid" : ""
                                             }`}
-                                        placeholder="Nationality"
                                         {...register("nationality", {
                                             required: "Nationality is required",
                                         })}
-                                    />
+                                    >
+                                        <option value="">Select Nationality</option>
+                                        {(countries || []).map((c) => (
+                                            <option key={c.country_id} value={c.country_id}>
+                                                {c.country || c.country_code || c.country_id}
+                                            </option>
+                                        ))}
+                                    </select>
                                     <label>
                                         Nationality <span className="text-danger">*</span>
                                     </label>
@@ -306,11 +317,11 @@ export function DriverModal({ showModal, closeModal }) {
 
     const renderFooter = () => (
         <div className="modal-footer">
-            <button type="button" className="btn btn-outline" onClick={closeModal}>
+            <button type="button" className="btn btn-outline" onClick={closeModal} disabled={isBeingUpdated}>
                 Close
             </button>
-            <button type="submit" form="driverForm" className="btn btn-primary">
-                Save
+            <button type="submit" form="driverForm" className="btn btn-primary" disabled={isBeingUpdated}>
+                {isBeingUpdated ? "Saving..." : "Save"}
             </button>
         </div>
     );
