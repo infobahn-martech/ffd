@@ -112,7 +112,6 @@ export function PermissionModal({
   useEffect(() => {
     if (showModal) {
       fetchPermissionsList();
-
       if (!isUserPermissionMode) {
         fetchRoles({ params: { page: 1, limit: 100 } });
         setSelectedRoleId("");

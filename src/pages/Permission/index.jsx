@@ -34,7 +34,7 @@ const Permission = () => {
   const cols = [
     {
       name: 'Role',
-      selector: 'role_name',
+      selector: 'role',
       tableClasses: 'table-striped',
       contentClass: 'table-content',
       sort: true,
