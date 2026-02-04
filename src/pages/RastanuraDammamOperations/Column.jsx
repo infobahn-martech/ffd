@@ -206,6 +206,7 @@ function Column({ column, cards, setSelectedCard, isExpanded = false, isShrunk =
                     <div className="column-left">
                         <h2 className="column-title">{column.title}</h2>
                     </div>
+                    <span className="column-count">{cards?.length ?? 0}</span>
                 </div>
 
                 <div className="nested-columns-container">
@@ -225,6 +226,7 @@ function Column({ column, cards, setSelectedCard, isExpanded = false, isShrunk =
                         );
                     })}
                 </div>
+                <span className="column-count">{cards?.length ?? 0}</span>
             </div>
         );
     }
@@ -258,6 +260,7 @@ function Column({ column, cards, setSelectedCard, isExpanded = false, isShrunk =
                         <h2 className="column-title">{displayTitle}</h2>
                     )}
                 </div>
+                <span className="column-count">{cards?.length ?? 0}</span>
             </div>
 
             <Droppable droppableId={column.id}>
