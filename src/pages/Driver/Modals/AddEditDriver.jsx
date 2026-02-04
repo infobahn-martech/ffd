@@ -10,8 +10,8 @@ import { PORT_OPTIONS } from "../../../constants/ports";
 import useDriverReducer from "../../../store/DriverReducer";
 
 export function DriverModal({ showModal, closeModal, onSuccess }) {
-    const isEdit = !!showModal?.id || !!showModal?._id;
-    const editId = showModal?.id ?? showModal?._id;
+    const isEdit = !!showModal?.driver_id || !!showModal?.driver_id;
+    const editId = showModal?.driver_id ?? showModal?.driver_id;
 
     const {
         register,
@@ -76,6 +76,7 @@ export function DriverModal({ showModal, closeModal, onSuccess }) {
         if (isEdit) {
             payload.id = editId;
             updateDriver({
+                driver_id: editId,
                 formData: payload,
                 cb: () => {
                     closeModal();
