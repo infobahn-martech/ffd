@@ -165,7 +165,7 @@ function CardItem({ card, index, setSelectedCard, isShrunk = false, hideExtraDet
                     className="card-header-icon-compact"
                     style={{ backgroundColor: cardColor }}
                   >
-                    {card.iconType === "inprogress" && <FiLoader size={14} color="white" style={{ animation: "spin 1s linear infinite" }} />}
+                    {card.iconType === "inprogress" && <FiLoader size={14} color="white" />}
                     {card.iconType === "download" && <FiDownload size={14} color="white" />}
                     {card.iconType === "document" && <FiFileText size={14} color="white" />}
                   </div>
@@ -194,7 +194,7 @@ function CardItem({ card, index, setSelectedCard, isShrunk = false, hideExtraDet
                   className="card-header-icon"
                   style={{ backgroundColor: cardColor }}
                 >
-                  {card.iconType === "inprogress" && <FiLoader size={14} color="white" style={{ animation: "spin 1s linear infinite" }} />}
+                  {card.iconType === "inprogress" && <FiLoader size={14} color="white" />}
                   {card.iconType === "download" && <FiDownload size={14} color="white" />}
                   {card.iconType === "document" && <FiFileText size={14} color="white" />}
                 </div>
