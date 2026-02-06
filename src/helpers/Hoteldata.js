@@ -1,33 +1,28 @@
 // ============================================
-// RAS TANURA DAMMAM OPERATIONS WORKFLOW CONFIGURATION
+// HOTEL WORKFLOW CONFIGURATION
 // ============================================
 
 const workflowsConfig = [
     {
-        id: "import-export-domestic-calls",
-        title: "Import Calls",
+        id: "hotel",
+        title: "Hotel Board",
         columnColors: {
-            "col-1": "rgb(226 16 108)", // Pre-Arrival Board - Pink
+            "col-1": "rgb(226 16 108)", // ToDo - Pink
             "col-2": "rgb(121 21 188)", // In Progress - Purple
-            "col-3": "rgb(62 94 189)", // Vessel Arrived - Blue
-            "col-4": "rgb(65 178 74)", // Vessel Cleared - Green
-            "col-5": "rgb(119 86 73)", // Vessel Sailed - Brown
-            "col-6": "rgb(226 16 108)", // Ops Completed - Pink
+            "col-3": "rgb(62 94 189)", // Done - Blue
         },
         columnTitles: [
-            "Pre-Arrival Board",
-            "Vessel Arrived",
-            "Vessel Cleared",
-            "Vessel Sailed",
-            "Ops Completed",
+            "Backlog",
+            "ToDo",
+            "In Progress",
+            "Completed",
         ],
         nestedColumns: {},
         cardCounts: {
-            "col-1": 13, // Pre-Arrival Board
-            "col-2": 9, // Pre-Arrival Board
-            "col-3": 1, // Vessel Arrived
-            "col-4": 0, // Vessel Cleared
-            "col-5": 0, // Ops Completed
+            "col-1": 1,// Backlog
+            "col-2": 2, // ToDo
+            "col-3": 1, // In Progress
+            "col-4": 0, // Completed
         },
     },
 ];
@@ -95,6 +90,15 @@ const generateCard = (workflowId, colId, cardId) => {
         "Mark Harris",
         "Donald Clark",
     ];
+    const callTypes = ["Import", "Export", "Domestic", "Transit"];
+    const vesselTypes = ["Cargo", "Tanker", "Bulk Carrier", "Container", "LNG"];
+    const nationalities = ["Saudi", "Indian", "Filipino", "Egyptian", "Pakistani", "Indonesian", "Bangladeshi", "Sri Lankan"];
+    const crewNames = [
+        "Ahmed Al-Rashid", "Vikram Singh", "Juan Dela Cruz", "Omar Hassan",
+        "Fatima Khan", "Carlos Mendez", "James Okonkwo", "Wei Zhang",
+        "Priya Patel", "Mohammed Ali", "Elena Petrova", "Kwame Osei",
+        "Yuki Tanaka", "Luis Fernandez", "Anna Kowalski", "Hassan Ibrahim",
+    ];
 
     // Footer status icons: random subset per card (1–5 icons, including link)
     const footerIconKeys = ["priority", "subtasks", "deadline", "watchers", "link"];
@@ -124,6 +128,20 @@ const generateCard = (workflowId, colId, cardId) => {
         medicalService: ["done", "rejected", "inProgress"][Math.floor(Math.random() * 3)],
         medicalServiceCount: Math.floor(Math.random() * 5) + 1,
         footerShowIcons: footerShowIcons,
+        typeOfCall: callTypes[Math.floor(Math.random() * callTypes.length)],
+        vesselType: vesselTypes[Math.floor(Math.random() * vesselTypes.length)],
+        crew: (() => {
+            const n = Math.floor(Math.random() * 7) + 6; // 6–12 crew per card
+            const statuses = ["done", "pending"];
+            return Array.from({ length: n }, (_, i) => ({
+                id: `crew-${cardId}-${i + 1}`,
+                crewName: crewNames[(cardId + i) % crewNames.length],
+                nationality: nationalities[(cardId + i) % nationalities.length],
+                passportNo: `P${String(1000000 + cardId * 1000 + i).slice(-7)}`,
+                pickUpStatus: statuses[Math.floor(Math.random() * 2)],
+                dropOffStatus: statuses[Math.floor(Math.random() * 2)],
+            }));
+        })(),
     };
 
     return { id, cardData };
