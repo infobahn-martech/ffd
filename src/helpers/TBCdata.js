@@ -1,33 +1,28 @@
 // ============================================
-// RAS TANURA DAMMAM OPERATIONS WORKFLOW CONFIGURATION
+// TAXI BOAT CAPTAIN WORKFLOW CONFIGURATION
 // ============================================
 
 const workflowsConfig = [
     {
-        id: "import-export-domestic-calls",
-        title: "Import Calls",
+        id: "taxi-boat-captain-workflow",
+        title: "Taxi Boat Captain Board",
         columnColors: {
-            "col-1": "rgb(226 16 108)", // Pre-Arrival Board - Pink
+            "col-1": "rgb(226 16 108)", // ToDo - Pink
             "col-2": "rgb(121 21 188)", // In Progress - Purple
-            "col-3": "rgb(62 94 189)", // Vessel Arrived - Blue
-            "col-4": "rgb(65 178 74)", // Vessel Cleared - Green
-            "col-5": "rgb(119 86 73)", // Vessel Sailed - Brown
-            "col-6": "rgb(226 16 108)", // Ops Completed - Pink
+            "col-3": "rgb(62 94 189)", // Done - Blue
         },
         columnTitles: [
-            "Pre-Arrival Board",
-            "Vessel Arrived",
-            "Vessel Cleared",
-            "Vessel Sailed",
-            "Ops Completed",
+            "Backlog",
+            "ToDo",
+            "In Progress",
+            "Done",
         ],
         nestedColumns: {},
         cardCounts: {
-            "col-1": 13, // Pre-Arrival Board
-            "col-2": 9, // Pre-Arrival Board
-            "col-3": 1, // Vessel Arrived
-            "col-4": 0, // Vessel Cleared
-            "col-5": 0, // Ops Completed
+            "col-1": 2, // Backlog
+            "col-2": 5, // ToDo
+            "col-3": 3, // In Progress
+            "col-4": 0, // Done
         },
     },
 ];

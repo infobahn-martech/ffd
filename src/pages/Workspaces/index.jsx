@@ -42,7 +42,7 @@ function Workspaces() {
       boards: [
         { id: 2, name: 'Driver', count: 15 },
         { id: 2, name: 'MWP', count: 15 },
-        { id: 2, name: 'Taxi boat Caption', count: 15 },
+        { id: 2, name: 'Taxi boat Captain', count: 15 },
         { id: 2, name: 'Taxi boat Operator', count: 15 },
         { id: 2, name: 'GRO', count: 15 },
         { id: 2, name: 'Hotel', count: 15 },
