@@ -62,6 +62,7 @@ import DriverBoard from "../pages/DriverBoard";
 import TBCBoard from "../pages/TBCBoard";
 import TBOBoard from "../pages/TBOBoard";
 import MWPBoard from "../pages/MWPBoard";
+import GROBoard from "../pages/GROBoard";
 // 🔥 Set true to bypass auth temporarily
 const TEST_MODE = false;
 
@@ -163,6 +164,7 @@ const router = createHashRouter([
                   { path: "/kanban-board/taxi-boat-captain", element: <RouteGuard><TBCBoard /></RouteGuard> },
                   { path: "/kanban-board/taxi-boat-operator", element: <RouteGuard><TBOBoard /></RouteGuard> },
                   { path: "/kanban-board/mwp", element: <RouteGuard><MWPBoard /></RouteGuard> },
+                  { path: "/kanban-board/gro", element: <RouteGuard><GROBoard /></RouteGuard> },
                   { path: "/kanban-board", element: <RouteGuard><KanbanBoard /></RouteGuard> },
                   // Kanban Board Analytics
                   { path: "/kanban-board/:id/analytics", element: <RouteGuard><KanbanAnalytics /></RouteGuard> },

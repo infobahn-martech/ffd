@@ -1004,6 +1004,27 @@
   overflow: hidden;
 }
 
+/* MWP Board card view */
+.mwp-card-view {
+  flex: 1;
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
+  padding: 24px 28px;
+  overflow-y: auto;
+}
+
+.mwp-card-view-content {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  max-width: 600px;
+}
+
+.mwp-card-view .cf-field {
+  margin-bottom: 12px;
+}
+
 .driver-card-counters {
   display: flex;
   gap: 16px;

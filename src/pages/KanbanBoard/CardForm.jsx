@@ -2,6 +2,7 @@ import { useState, useMemo, useCallback, useEffect, useRef } from "react";
 import { useLocation } from "react-router-dom";
 import PropTypes from "prop-types";
 import "../../design/css/CardForm.css";
+import "../../design/scss/general.scss";
 import ColorPickerIcon from "../../assets/images/ColorPicker.png";
 import PriorityIcon from "../../assets/images/Priority.png";
 
@@ -494,6 +495,98 @@ CardFormFooter.propTypes = {
   totalSteps: PropTypes.number,
 };
 
+// MWP Board card view: Application No, Application Submitted, SADAD No, Approved, Issued, MWP copy, Expiry
+const MWPCardView = ({ card }) => {
+  const formatFileSize = (bytes) => {
+    if (!bytes) return '0 KB';
+    if (bytes < 1024) return bytes + ' B';
+    if (bytes < 1024 * 1024) return (bytes / 1024).toFixed(1) + ' KB';
+    return (bytes / (1024 * 1024)).toFixed(2) + ' MB';
+  };
+
+  const applicationNo = card?.applicationNo ?? "MWP-2025-0001";
+  const applicationSubmittedDate = card?.applicationSubmittedDate ?? "2024-01-15";
+  const applicationSubmittedTime = card?.applicationSubmittedTime ?? "10:30";
+  const sadadNo = card?.sadadNo ?? "SADAD-123456";
+  const approvedDate = card?.approvedDate ?? "2024-01-18";
+  const approvedTime = card?.approvedTime ?? "14:00";
+  const issuedDate = card?.issuedDate ?? "2024-01-20";
+  const issuedTime = card?.issuedTime ?? "09:15";
+  const mwpCopyFiles = Array.isArray(card?.mwpCopy) && card.mwpCopy.length > 0
+    ? card.mwpCopy
+    : [{ name: "mwp_copy.pdf", size: 1024000 }];
+  const expiryDate = card?.expiryDate ?? "2025-01-20";
+  const expiryTime = card?.expiryTime ?? "23:59";
+
+  const FormField = ({ label, children }) => (
+    <div className="cf-field">
+      {label && <label>{label}</label>}
+      {children}
+    </div>
+  );
+
+  const DateTimeRow = ({ dateValue, timeValue }) => (
+    <div className="cf-input eta-row">
+      <input type="date" value={dateValue} readOnly />
+      <input type="time" value={timeValue} readOnly />
+    </div>
+  );
+
+  return (
+    <div className="mwp-card-view">
+      <div className="mwp-card-view-content">
+        <FormField label="Application No.">
+          <div className="cf-input">
+            <input type="text" value={applicationNo} readOnly />
+          </div>
+        </FormField>
+        <FormField label="Application Submitted">
+          <DateTimeRow dateValue={applicationSubmittedDate} timeValue={applicationSubmittedTime} />
+        </FormField>
+        <FormField label="SADAD No.">
+          <div className="cf-input">
+            <input type="text" value={sadadNo} readOnly />
+          </div>
+        </FormField>
+        <FormField label="Approved">
+          <DateTimeRow dateValue={approvedDate} timeValue={approvedTime} />
+        </FormField>
+        <FormField label="Issued">
+          <DateTimeRow dateValue={issuedDate} timeValue={issuedTime} />
+        </FormField>
+        <FormField label="MWP copy">
+          <div className="document-upload-wrapper">
+            <div className="document-file-preview-list">
+              {mwpCopyFiles.map((file, index) => (
+                <div key={index} className="document-file-preview-item">
+                  <div className="document-file-preview-icon">
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                      <path d="M14 2H6C5.46957 2 4.96086 2.21071 4.58579 2.58579C4.21071 2.96086 4 3.46957 4 4V20C4 20.5304 4.21071 21.0391 4.58579 21.4142C4.96086 21.7893 5.46957 22 6 22H18C18.5304 22 19.0391 21.7893 19.4142 21.4142C19.7893 21.0391 20 20.5304 20 20V8L14 2Z" stroke="#3e5cb6" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" fill="#3e5cb6" fillOpacity="0.1" />
+                      <path d="M14 2V8H20" stroke="#3e5cb6" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+                      <path d="M16 13H8M16 17H8" stroke="#3e5cb6" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+                    </svg>
+                  </div>
+                  <div className="document-file-preview-info">
+                    <span className="document-file-preview-name">{file.name || file}</span>
+                    <span className="document-file-preview-size">{formatFileSize(file.size)}</span>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+        </FormField>
+        <FormField label="Expiry">
+          <DateTimeRow dateValue={expiryDate} timeValue={expiryTime} />
+        </FormField>
+      </div>
+    </div>
+  );
+};
+
+MWPCardView.propTypes = {
+  card: PropTypes.object,
+};
+
 // Driver Board card view: 4 counters + crew table
 const DriverCardView = ({ card }) => {
   const owner = card?.user ?? "—";
@@ -642,6 +735,7 @@ const renderTabContent = (activeTab, card, formValues, handleChange, ownerInitia
 function CardForm({ show, close, card, moveCardToColumn, columns, columnOrder, currentColumn, isAddMode = false, variant = "default" }) {
   const location = useLocation();
   const isDriverVariant = variant === "driver";
+  const isMWPVariant = variant === "mwp";
 
   // Step labels from columns + columnOrder (e.g. DAdata columnTitles); fallback to STEP_LABELS
   const { stepLabels, totalSteps } = useMemo(() => {
@@ -835,9 +929,11 @@ function CardForm({ show, close, card, moveCardToColumn, columns, columnOrder, c
         />
         {isDriverVariant ? (
           <DriverCardView card={card} />
+        ) : isMWPVariant ? (
+          <MWPCardView card={card} />
         ) : (
           <>
-            {!isAddMode && (
+            {!isAddMode && !isMWPVariant && (
               <TopTabs
                 tabs={TOP_TABS}
                 activeTab={activeTopTab}
@@ -845,10 +941,10 @@ function CardForm({ show, close, card, moveCardToColumn, columns, columnOrder, c
                 enabledTabs={ENABLED_TABS}
               />
             )}
-            {renderTabContent(activeTopTab, card, formValues, handleChange, ownerInitial, isAddMode, isKanbanBoardWithId, isDAModule)}
+            {!isMWPVariant && renderTabContent(activeTopTab, card, formValues, handleChange, ownerInitial, isAddMode, isKanbanBoardWithId, isDAModule)}
           </>
         )}
-        {!isAddMode && (
+        {!isAddMode && !isMWPVariant && (
           <CardFormFooter
             accentColor={accentColor}
             onUpdate={handleUpdate}
@@ -897,7 +993,7 @@ CardForm.propTypes = {
     cardIds: PropTypes.array,
   }),
   isAddMode: PropTypes.bool,
-  variant: PropTypes.oneOf(["default", "driver"]),
+  variant: PropTypes.oneOf(["default", "driver", "mwp"]),
 };
 
 export default CardForm;

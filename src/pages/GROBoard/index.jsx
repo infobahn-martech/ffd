@@ -1,7 +1,7 @@
 import { useState, useCallback, useMemo, useEffect } from "react";
 import { DragDropContext } from "@hello-pangea/dnd";
 import { FiLayers } from "react-icons/fi";
-import { initialData } from "../../helpers/DAdata";
+import { initialData } from "../../helpers/GROdata";
 import Column from "./Column";
 import CardForm from "../KanbanBoard/CardForm";
 import ContextMenu from "../KanbanBoard/ContextMenu";
@@ -9,7 +9,7 @@ import AccordionMenu from "../KanbanBoard/AccordionMenu";
 import Workspaces from "../Workspaces";
 import "../../design/scss/common.scss";
 
-export default function DADeskBoard() {
+export default function GROBoard() {
   const [workflows, setWorkflows] = useState(initialData);
   const [selectedCard, setSelectedCard] = useState(null);
   const [isAddMode, setIsAddMode] = useState(false);
