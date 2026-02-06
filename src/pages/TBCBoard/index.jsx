@@ -647,7 +647,7 @@ export default function TBCBoard() {
         <CardForm
           show={true}
           close={handleCloseCard}
-          card={selectedCard}
+          card={{ ...selectedCard, crew: [] }}
           moveCardToColumn={moveCardToColumn}
           columns={columnsForCardForm}
           columnOrder={columnOrderForCardForm}
