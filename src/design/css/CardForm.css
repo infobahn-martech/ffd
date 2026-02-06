@@ -1305,19 +1305,19 @@
   padding: 8px 16px;
   font-size: 12px;
   font-weight: 600;
-  color: #2A00FF;
-  background: #ede8ff;
-  border: 1px solid #c4b5f5;
+  color: #000000;
+  background: #e2e6ff;
+  border: 1px solid #e2e6ff;
   border-radius: 8px;
   cursor: pointer;
   font-family: "Poppins", sans-serif;
   transition: background 0.2s, color 0.2s;
 }
 
-.gro-inward-clearance-btn:hover {
-  background: #ddd4ff;
-  color: #1a00b3;
-}
+/* .gro-inward-clearance-btn:hover {
+  background: #c4b5f5;
+  color: #000000;
+} */
 
 .gro-document-list {
   display: flex;
@@ -1390,8 +1390,8 @@
   padding: 8px 16px;
   font-size: 12px;
   font-weight: 600;
-  color: #fff;
-  background: #2A00FF;
+  color: #000000;
+  background: #e2e6ff;
   border: none;
   border-radius: 8px;
   cursor: pointer;
@@ -1399,10 +1399,10 @@
   transition: background 0.2s, opacity 0.2s;
 }
 
-.gro-require-doc-btn:hover {
-  background: #2200cc;
+/* .gro-require-doc-btn:hover {
+  background: #c4b5f5;
   opacity: 0.95;
-}
+} */
 
 .gro-require-form {
   background: #fff;
@@ -1465,17 +1465,17 @@
   padding: 8px 16px;
   font-size: 13px;
   font-weight: 600;
-  color: #fff;
-  background: #2A00FF;
+  color: #000000;
+  background: #e2e6ff;
   border: none;
   border-radius: 8px;
   cursor: pointer;
   font-family: "Poppins", sans-serif;
 }
 
-.gro-require-submit:hover {
-  background: #2200cc;
-}
+/* .gro-require-submit:hover {
+  background: #c4b5f5;
+} */
 
 /* Inward clearance form */
 .gro-inward-form {
