@@ -991,3 +991,114 @@
 .cardform-panel *::-webkit-scrollbar-thumb:hover {
   background: transparent;
 }
+
+/* =======================================
+   DRIVER BOARD CARD VIEW (4 counters + crew table)
+   ======================================= */
+.driver-card-view {
+  flex: 1;
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
+  padding: 20px 24px;
+  overflow: hidden;
+}
+
+.driver-card-counters {
+  display: flex;
+  gap: 16px;
+  flex-wrap: wrap;
+  margin-bottom: 20px;
+  flex-shrink: 0;
+}
+
+.driver-card-counter {
+  flex: 1;
+  min-width: 160px;
+  background: #fff;
+  border: 1px solid #e1e2e8;
+  border-radius: 10px;
+  padding: 14px 18px;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.06);
+}
+
+.driver-card-counter-label {
+  font-size: 11px;
+  font-weight: 600;
+  color: #6b6b6b;
+  letter-spacing: 0.04em;
+  margin-bottom: 6px;
+}
+
+.driver-card-counter-value {
+  font-size: 15px;
+  font-weight: 600;
+  color: #1a1a1a;
+}
+
+.driver-crew-table-wrap {
+  flex: 1;
+  min-height: 0;
+  overflow: auto;
+  background: #fff;
+  border: 1px solid #e1e2e8;
+  border-radius: 10px;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.06);
+}
+
+.driver-crew-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 13px;
+}
+
+.driver-crew-table thead {
+  position: sticky;
+  top: 0;
+  z-index: 1;
+  background: #e8e4f3;
+}
+
+.driver-crew-table th {
+  padding: 12px 14px;
+  text-align: left;
+  font-weight: 600;
+  color: #333;
+  border-bottom: 2px solid #d4cce8;
+}
+
+.driver-crew-table td {
+  padding: 10px 14px;
+  border-bottom: 1px solid #eee;
+  color: #1a1a1a;
+}
+
+.driver-crew-table tbody tr:hover {
+  background: #f8f7fc;
+}
+
+.driver-crew-empty {
+  text-align: center;
+  color: #888;
+  padding: 24px !important;
+}
+
+.driver-crew-status-btn {
+  padding: 6px 12px;
+  border: none;
+  border-radius: 6px;
+  font-size: 12px;
+  font-weight: 600;
+  cursor: default;
+  min-width: 72px;
+}
+
+.driver-crew-status-btn.status-done {
+  background: #2e7d32;
+  color: #fff !important;
+}
+
+.driver-crew-status-btn.status-pending {
+  background: #c62828;
+  color: #fff !important;
+}

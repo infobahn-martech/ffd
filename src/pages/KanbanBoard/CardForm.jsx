@@ -461,21 +461,11 @@ StepsProgress.propTypes = {
   currentStep: PropTypes.number,
 };
 
-const CardFormFooter = ({ accentColor, onUpdate, activeStep = 2, completedSteps = 1, activeTab, onStepClick, currentStep, isSimplifiedMode = false, stepLabels = STEP_LABELS, totalSteps = TOTAL_STEPS }) => {
+const CardFormFooter = ({ accentColor, onUpdate, activeStep = 2, completedSteps = 1, activeTab, onStepClick, currentStep, isSimplifiedMode = false, isDriverMode = false, stepLabels = STEP_LABELS, totalSteps = TOTAL_STEPS }) => {
+  const showSteps = isDriverMode || (!isSimplifiedMode && activeTab !== "Appointment Details") || (isSimplifiedMode && activeTab !== "General");
   return (
     <div className="cardform-footer">
-      {!isSimplifiedMode && activeTab !== "Appointment Details" && (
-        <StepsProgress
-          totalSteps={totalSteps}
-          activeStep={activeStep}
-          completedSteps={completedSteps}
-          accentColor={accentColor}
-          stepLabels={stepLabels}
-          onStepClick={onStepClick}
-          currentStep={currentStep}
-        />
-      )}
-      {isSimplifiedMode && activeTab !== "General" && (
+      {showSteps && (
         <StepsProgress
           totalSteps={totalSteps}
           activeStep={activeStep}
@@ -499,8 +489,87 @@ CardFormFooter.propTypes = {
   onStepClick: PropTypes.func,
   currentStep: PropTypes.number,
   isSimplifiedMode: PropTypes.bool,
+  isDriverMode: PropTypes.bool,
   stepLabels: PropTypes.arrayOf(PropTypes.string),
   totalSteps: PropTypes.number,
+};
+
+// Driver Board card view: 4 counters + crew table
+const DriverCardView = ({ card }) => {
+  const owner = card?.user ?? "—";
+  const callType = card?.typeOfCall ?? "—";
+  const vesselName = card?.vesselName ?? "—";
+  const vesselType = card?.vesselType ?? "—";
+  const crew = Array.isArray(card?.crew) ? card.crew : [];
+
+  const CounterCard = ({ label, value }) => (
+    <div className="driver-card-counter">
+      <div className="driver-card-counter-label">{label}</div>
+      <div className="driver-card-counter-value">{value}</div>
+    </div>
+  );
+
+  const StatusButton = ({ status, label }) => {
+    const isDone = status === "done";
+    return (
+      <button
+        type="button"
+        className={`driver-crew-status-btn ${isDone ? "status-done" : "status-pending"}`}
+        title={isDone ? "Done" : "Pending"}
+      >
+        {label}
+      </button>
+    );
+  };
+
+  return (
+    <div className="driver-card-view">
+      <div className="driver-card-counters">
+        <CounterCard label="OWNER" value={owner} />
+        <CounterCard label="CALL TYPE" value={callType} />
+        <CounterCard label="VESSEL NAME" value={vesselName} />
+        <CounterCard label="VESSEL TYPE" value={vesselType} />
+      </div>
+      <div className="driver-crew-table-wrap">
+        <table className="driver-crew-table">
+          <thead>
+            <tr>
+              <th>Crew Name</th>
+              <th>Nationality</th>
+              <th>Passport No</th>
+              <th>PickUp</th>
+              <th>Drop Off</th>
+            </tr>
+          </thead>
+          <tbody>
+            {crew.length === 0 ? (
+              <tr>
+                <td colSpan={5} className="driver-crew-empty">No crew data</td>
+              </tr>
+            ) : (
+              crew.map((row) => (
+                <tr key={row.id || row.crewName + row.passportNo}>
+                  <td>{row.crewName ?? "—"}</td>
+                  <td>{row.nationality ?? "—"}</td>
+                  <td>{row.passportNo ?? "—"}</td>
+                  <td>
+                    <StatusButton status={row.pickUpStatus} label="PickUp" />
+                  </td>
+                  <td>
+                    <StatusButton status={row.dropOffStatus} label="Drop Off" />
+                  </td>
+                </tr>
+              ))
+            )}
+          </tbody>
+        </table>
+      </div>
+    </div>
+  );
+};
+
+DriverCardView.propTypes = {
+  card: PropTypes.object,
 };
 
 // Tab Content Renderer
@@ -570,8 +639,9 @@ const renderTabContent = (activeTab, card, formValues, handleChange, ownerInitia
 };
 
 // Main Component
-function CardForm({ show, close, card, moveCardToColumn, columns, columnOrder, currentColumn, isAddMode = false }) {
+function CardForm({ show, close, card, moveCardToColumn, columns, columnOrder, currentColumn, isAddMode = false, variant = "default" }) {
   const location = useLocation();
+  const isDriverVariant = variant === "driver";
 
   // Step labels from columns + columnOrder (e.g. DAdata columnTitles); fallback to STEP_LABELS
   const { stepLabels, totalSteps } = useMemo(() => {
@@ -763,15 +833,21 @@ function CardForm({ show, close, card, moveCardToColumn, columns, columnOrder, c
           formValues={formValues}
           handleChange={handleChange}
         />
-        {!isAddMode && (
-          <TopTabs
-            tabs={TOP_TABS}
-            activeTab={activeTopTab}
-            onTabChange={handleTopTabChange}
-            enabledTabs={ENABLED_TABS}
-          />
+        {isDriverVariant ? (
+          <DriverCardView card={card} />
+        ) : (
+          <>
+            {!isAddMode && (
+              <TopTabs
+                tabs={TOP_TABS}
+                activeTab={activeTopTab}
+                onTabChange={handleTopTabChange}
+                enabledTabs={ENABLED_TABS}
+              />
+            )}
+            {renderTabContent(activeTopTab, card, formValues, handleChange, ownerInitial, isAddMode, isKanbanBoardWithId, isDAModule)}
+          </>
         )}
-        {renderTabContent(activeTopTab, card, formValues, handleChange, ownerInitial, isAddMode, isKanbanBoardWithId, isDAModule)}
         {!isAddMode && (
           <CardFormFooter
             accentColor={accentColor}
@@ -782,6 +858,7 @@ function CardForm({ show, close, card, moveCardToColumn, columns, columnOrder, c
             onStepClick={handleStepClick}
             currentStep={currentStep}
             isSimplifiedMode={isKanbanBoardWithId}
+            isDriverMode={isDriverVariant}
             stepLabels={stepLabels}
             totalSteps={totalSteps}
           />
@@ -820,6 +897,7 @@ CardForm.propTypes = {
     cardIds: PropTypes.array,
   }),
   isAddMode: PropTypes.bool,
+  variant: PropTypes.oneOf(["default", "driver"]),
 };
 
 export default CardForm;
