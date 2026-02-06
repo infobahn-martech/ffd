@@ -38,6 +38,21 @@ function Workspaces() {
   const [workspacesData, setWorkspacesData] = useState([
     {
       id: 1,
+      name: 'Users',
+      boards: [
+        { id: 2, name: 'Driver', count: 15 },
+        { id: 2, name: 'MWP', count: 15 },
+        { id: 2, name: 'Taxi boat Caption', count: 15 },
+        { id: 2, name: 'Taxi boat Operator', count: 15 },
+        { id: 2, name: 'GRO', count: 15 },
+        { id: 2, name: 'Hotel', count: 15 },
+        { id: 2, name: 'Operator', count: 15 },
+        { id: 2, name: 'Supervisor', count: 15 },
+        { id: 2, name: 'Admin', count: 15 },
+      ],
+    },
+    {
+      id: 2,
       name: 'Sedres Chandling WorkSpace',
       boards: [
         { id: 1, name: 'CHANDLING OPERATIONS', count: 6 },
@@ -49,7 +64,7 @@ function Workspaces() {
       ],
     },
     {
-      id: 2,
+      id: 3,
       name: 'New Offshore Marine Logistics',
       boards: [{ id: 1, name: 'Centralized DA DESK', count: 6 },
       { id: 2, name: 'Jubail Operations', count: 1285 },
@@ -58,12 +73,13 @@ function Workspaces() {
       ],
     },
     {
-      id: 3,
+      id: 4,
       name: 'Limousine',
       boards: [
         { id: 2, name: 'Coordinator Transport', count: 1285 },
       ],
     },
+
   ]);
 
   // Find the first workspace with boards to set as initially expanded
