@@ -1276,11 +1276,47 @@
   margin-top: 8px;
 }
 
+.gro-document-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 12px;
+  flex-shrink: 0;
+}
+
+.gro-document-header .gro-section-title {
+  margin: 0;
+}
+
+.gro-document-header-actions {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
 .gro-section-title {
   font-size: 13px;
   font-weight: 600;
   color: #333;
   margin: 0 0 12px 0;
+}
+
+.gro-inward-clearance-btn {
+  padding: 8px 16px;
+  font-size: 12px;
+  font-weight: 600;
+  color: #2A00FF;
+  background: #ede8ff;
+  border: 1px solid #c4b5f5;
+  border-radius: 8px;
+  cursor: pointer;
+  font-family: "Poppins", sans-serif;
+  transition: background 0.2s, color 0.2s;
+}
+
+.gro-inward-clearance-btn:hover {
+  background: #ddd4ff;
+  color: #1a00b3;
 }
 
 .gro-document-list {
@@ -1350,14 +1386,9 @@
   color: #1b5e20;
 }
 
-.gro-require-section {
-  margin-top: 20px;
-  flex-shrink: 0;
-}
-
 .gro-require-doc-btn {
-  padding: 10px 20px;
-  font-size: 13px;
+  padding: 8px 16px;
+  font-size: 12px;
   font-weight: 600;
   color: #fff;
   background: #2A00FF;
@@ -1444,4 +1475,55 @@
 
 .gro-require-submit:hover {
   background: #2200cc;
+}
+
+/* Inward clearance form */
+.gro-inward-form {
+  margin-top: 16px;
+  background: #fff;
+  border: 1px solid #e1e2e8;
+  border-radius: 10px;
+  padding: 16px;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.06);
+}
+
+.gro-inward-file {
+  width: 100%;
+  padding: 8px 0;
+  font-size: 13px;
+  font-family: "Poppins", sans-serif;
+  margin-bottom: 12px;
+  box-sizing: border-box;
+}
+
+.gro-inward-datetime {
+  display: flex;
+  gap: 16px;
+  margin-bottom: 12px;
+  flex-wrap: wrap;
+}
+
+.gro-inward-field {
+  flex: 1;
+  min-width: 140px;
+}
+
+.gro-inward-field .gro-require-label {
+  margin-bottom: 6px;
+}
+
+.gro-inward-input {
+  width: 100%;
+  padding: 8px 12px;
+  font-size: 13px;
+  font-family: "Poppins", sans-serif;
+  border: 1px solid #e1e2e8;
+  border-radius: 8px;
+  box-sizing: border-box;
+}
+
+.gro-inward-input:focus {
+  outline: none;
+  border-color: #2A00FF;
+  box-shadow: 0 0 0 2px rgba(42, 0, 255, 0.15);
 }

@@ -710,6 +710,9 @@ const GRO_DOCUMENT_TYPES = [
 const GROCardView = ({ card }) => {
   const [showRequireDocument, setShowRequireDocument] = useState(false);
   const [requireRemark, setRequireRemark] = useState("");
+  const [showInwardClearance, setShowInwardClearance] = useState(false);
+  const [inwardDate, setInwardDate] = useState("2024-01-15");
+  const [inwardTime, setInwardTime] = useState("10:30");
 
   const owner = card?.user ?? "Richard Wilson";
   const callType = card?.typeOfCall ?? "Domestic";
@@ -727,6 +730,11 @@ const GROCardView = ({ card }) => {
     // TODO: API call to submit require document request with requireRemark
     setRequireRemark("");
     setShowRequireDocument(false);
+  };
+
+  const handleInwardSubmit = () => {
+    // TODO: API call to submit inward clearance with file, inwardDate, inwardTime
+    setShowInwardClearance(false);
   };
 
   const DocIcon = () => (
@@ -754,7 +762,25 @@ const GROCardView = ({ card }) => {
       </div>
 
       <div className="gro-document-section">
-        <h3 className="gro-section-title">Documents</h3>
+        <div className="gro-document-header">
+          <h3 className="gro-section-title">Documents</h3>
+          <div className="gro-document-header-actions">
+            <button
+              type="button"
+              className="gro-inward-clearance-btn"
+              onClick={() => setShowInwardClearance(!showInwardClearance)}
+            >
+              Inward clearance
+            </button>
+            <button
+              type="button"
+              className="gro-require-doc-btn"
+              onClick={() => setShowRequireDocument(!showRequireDocument)}
+            >
+              Require Document
+            </button>
+          </div>
+        </div>
         <div className="gro-document-list">
           {GRO_DOCUMENT_TYPES.map((docName) => (
             <div key={docName} className="gro-document-row">
@@ -775,18 +801,8 @@ const GROCardView = ({ card }) => {
             </div>
           ))}
         </div>
-      </div>
 
-      <div className="gro-require-section">
-        {!showRequireDocument ? (
-          <button
-            type="button"
-            className="gro-require-doc-btn"
-            onClick={() => setShowRequireDocument(true)}
-          >
-            Require Document
-          </button>
-        ) : (
+        {showRequireDocument && (
           <div className="gro-require-form">
             <label className="gro-require-label">Remarks</label>
             <textarea
@@ -801,6 +817,45 @@ const GROCardView = ({ card }) => {
                 Cancel
               </button>
               <button type="button" className="gro-require-submit" onClick={handleRequireSubmit}>
+                Submit
+              </button>
+            </div>
+          </div>
+        )}
+
+        {showInwardClearance && (
+          <div className="gro-inward-form">
+            <label className="gro-require-label">File upload</label>
+            <input
+              type="file"
+              className="gro-inward-file"
+              accept=".pdf,.doc,.docx,.jpg,.jpeg,.png"
+            />
+            <div className="gro-inward-datetime">
+              <div className="gro-inward-field">
+                <label className="gro-require-label">Date</label>
+                <input
+                  type="date"
+                  className="gro-inward-input"
+                  value={inwardDate}
+                  onChange={(e) => setInwardDate(e.target.value)}
+                />
+              </div>
+              <div className="gro-inward-field">
+                <label className="gro-require-label">Time</label>
+                <input
+                  type="time"
+                  className="gro-inward-input"
+                  value={inwardTime}
+                  onChange={(e) => setInwardTime(e.target.value)}
+                />
+              </div>
+            </div>
+            <div className="gro-require-actions">
+              <button type="button" className="gro-require-cancel" onClick={() => setShowInwardClearance(false)}>
+                Cancel
+              </button>
+              <button type="button" className="gro-require-submit" onClick={handleInwardSubmit}>
                 Submit
               </button>
             </div>
