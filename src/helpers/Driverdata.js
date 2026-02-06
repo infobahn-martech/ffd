@@ -92,10 +92,12 @@ const generateCard = (workflowId, colId, cardId) => {
     ];
     const callTypes = ["Import", "Export", "Domestic", "Transit"];
     const vesselTypes = ["Cargo", "Tanker", "Bulk Carrier", "Container", "LNG"];
-    const nationalities = ["Saudi", "Indian", "Filipino", "Egyptian", "Pakistani", "Indonesian"];
+    const nationalities = ["Saudi", "Indian", "Filipino", "Egyptian", "Pakistani", "Indonesian", "Bangladeshi", "Sri Lankan"];
     const crewNames = [
         "Ahmed Al-Rashid", "Vikram Singh", "Juan Dela Cruz", "Omar Hassan",
         "Fatima Khan", "Carlos Mendez", "James Okonkwo", "Wei Zhang",
+        "Priya Patel", "Mohammed Ali", "Elena Petrova", "Kwame Osei",
+        "Yuki Tanaka", "Luis Fernandez", "Anna Kowalski", "Hassan Ibrahim",
     ];
 
     // Footer status icons: random subset per card (1–5 icons, including link)
@@ -129,7 +131,7 @@ const generateCard = (workflowId, colId, cardId) => {
         typeOfCall: callTypes[Math.floor(Math.random() * callTypes.length)],
         vesselType: vesselTypes[Math.floor(Math.random() * vesselTypes.length)],
         crew: (() => {
-            const n = Math.floor(Math.random() * 4) + 2; // 2–5 crew per card
+            const n = Math.floor(Math.random() * 7) + 6; // 6–12 crew per card
             const statuses = ["done", "pending"];
             return Array.from({ length: n }, (_, i) => ({
                 id: `crew-${cardId}-${i + 1}`,

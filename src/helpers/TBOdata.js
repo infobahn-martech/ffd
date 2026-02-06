@@ -90,6 +90,15 @@ const generateCard = (workflowId, colId, cardId) => {
         "Mark Harris",
         "Donald Clark",
     ];
+    const callTypes = ["Import", "Export", "Domestic", "Transit"];
+    const vesselTypes = ["Cargo", "Tanker", "Bulk Carrier", "Container", "LNG"];
+    const nationalities = ["Saudi", "Indian", "Filipino", "Egyptian", "Pakistani", "Indonesian", "Bangladeshi", "Sri Lankan"];
+    const crewNames = [
+        "Ahmed Al-Rashid", "Vikram Singh", "Juan Dela Cruz", "Omar Hassan",
+        "Fatima Khan", "Carlos Mendez", "James Okonkwo", "Wei Zhang",
+        "Priya Patel", "Mohammed Ali", "Elena Petrova", "Kwame Osei",
+        "Yuki Tanaka", "Luis Fernandez", "Anna Kowalski", "Hassan Ibrahim",
+    ];
 
     // Footer status icons: random subset per card (1–5 icons, including link)
     const footerIconKeys = ["priority", "subtasks", "deadline", "watchers", "link"];
@@ -119,6 +128,20 @@ const generateCard = (workflowId, colId, cardId) => {
         medicalService: ["done", "rejected", "inProgress"][Math.floor(Math.random() * 3)],
         medicalServiceCount: Math.floor(Math.random() * 5) + 1,
         footerShowIcons: footerShowIcons,
+        typeOfCall: callTypes[Math.floor(Math.random() * callTypes.length)],
+        vesselType: vesselTypes[Math.floor(Math.random() * vesselTypes.length)],
+        crew: (() => {
+            const n = Math.floor(Math.random() * 7) + 6; // 6–12 crew per card
+            const statuses = ["done", "pending"];
+            return Array.from({ length: n }, (_, i) => ({
+                id: `crew-${cardId}-${i + 1}`,
+                crewName: crewNames[(cardId + i) % crewNames.length],
+                nationality: nationalities[(cardId + i) % nationalities.length],
+                passportNo: `P${String(1000000 + cardId * 1000 + i).slice(-7)}`,
+                pickUpStatus: statuses[Math.floor(Math.random() * 2)],
+                dropOffStatus: statuses[Math.floor(Math.random() * 2)],
+            }));
+        })(),
     };
 
     return { id, cardData };
