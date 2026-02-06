@@ -10,6 +10,7 @@ const workflowsConfig = [
             "col-1": "rgb(226 16 108)", // ToDo - Pink
             "col-2": "rgb(121 21 188)", // In Progress - Purple
             "col-3": "rgb(62 94 189)", // Done - Blue
+            "col-4": "rgb(62 94 189)", // Completed - Blue
         },
         columnTitles: [
             "Backlog",
@@ -19,8 +20,8 @@ const workflowsConfig = [
         ],
         nestedColumns: {},
         cardCounts: {
-            "col-1": 1,// Backlog
-            "col-2": 2, // ToDo
+            "col-1": 0,// Backlog
+            "col-2": 1, // ToDo
             "col-3": 1, // In Progress
             "col-4": 0, // Completed
         },
