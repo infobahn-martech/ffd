@@ -1,36 +1,118 @@
 // ============================================
-// RAS TANURA DAMMAM OPERATIONS WORKFLOW CONFIGURATION
+// DA DESK WORKFLOW CONFIGURATION
 // ============================================
 
 const workflowsConfig = [
     {
-        id: "import-export-domestic-calls",
-        title: "Import Calls",
+        id: "main-work-flow-rt",
+        title: "Main work flow RT",
         columnColors: {
-            "col-1": "rgb(226 16 108)", // Pre-Arrival Board - Pink
+            "col-1": "rgb(226 16 108)", // Ready to Finalize - Pink
             "col-2": "rgb(121 21 188)", // In Progress - Purple
-            "col-3": "rgb(62 94 189)", // Vessel Arrived - Blue
-            "col-4": "rgb(65 178 74)", // Vessel Cleared - Green
-            "col-5": "rgb(119 86 73)", // Vessel Sailed - Brown
-            "col-6": "rgb(226 16 108)", // Ops Completed - Pink
+            "col-2-1": "rgb(121 21 188)", // Working on it - Purple
+            "col-2-2": "rgb(121 21 188)", // Awaiting PO - Purple
+            "col-3": "rgb(62 94 189)", // Al Gihaz awaiting submission - Blue
+            "col-4": "rgb(65 178 74)", // Finalized - Green
+            "col-5": "rgb(119 86 73)", // Awaiting acknowledgment - Brown
+            "col-6": "rgb(237 142 55)", // Dispatched - Orange
         },
         columnTitles: [
-            "Pre-Arrival Board",
+            "Appointment Received",
+            "Enroute",
             "Vessel Arrived",
             "Vessel Cleared",
             "Vessel Sailed",
-            "Ops Completed",
+            "Ready To Finalize",
         ],
+        // Nested columns for In Progress
+        nestedColumns: {
+            "col-4": [
+                { id: "col-2-1", title: "Working on it", color: "rgb(121 21 188)" },
+                { id: "col-2-2", title: "Awaiting PO", color: "rgb(121 21 188)" },
+            ],
+        },
+        cardCounts: {
+            "col-1": 0, // Ready to Finalize
+            "col-2": 0, // In Progress (total)
+            "col-2-1": 0, // Working on it - increased to match Ready to Finalize
+            "col-2-2": 0, // Awaiting PO - increased to match Ready to Finalize
+            "col-3": 0, // Al Gihaz awaiting submission
+            "col-4": 0, // Finalized
+            "col-5": 0, // Awaiting acknowledgment
+            "col-6": 0, // Dispatched
+        },
+    },
+    {
+        id: "import-export-rt",
+        title: "Import Export RT",
+        columnColors: {
+            "col-1": "rgb(226 16 108)", // Ready to Finalize - Pink
+            "col-2": "rgb(121 21 188)", // In Progress - Purple
+            "col-3": "rgb(62 94 189)", // Al Gihaz awaiting submission - Blue
+            "col-4": "rgb(65 178 74)", // Finalized - Green
+            "col-5": "rgb(119 86 73)", // Awaiting acknowledgment - Brown
+            "col-6": "rgb(237 142 55)", // Dispatched - Orange
+        },
+        columnTitles: [
+            "Backlog",
+            "Appointment Received",
+            "Enroute",
+            "Vessel Arrived",
+            "Vessel Cleared",
+            "Vessel Sailed",
+            "Awaiting Documents",
+            "Ready To Finalize",
+        ],
+        // No nested columns - explicitly normal columns only
         nestedColumns: {},
         cardCounts: {
-            "col-1": 13, // Pre-Arrival Board
-            "col-2": 9, // Pre-Arrival Board
-            "col-3": 1, // Vessel Arrived
-            "col-4": 0, // Vessel Cleared
-            "col-5": 0, // Ops Completed
+            "col-1": 0,
+            "col-2": 0,
+            "col-3": 0,
+            "col-4": 0,
+            "col-5": 0,
+            "col-6": 0,
+        },
+    },
+    {
+        id: "husbandry-rt",
+        title: "Husbandry RT",
+        columnColors: {
+            "col-1": "rgb(226 16 108)", // Ready to Finalize - Pink
+            "col-2": "rgb(121 21 188)", // In Progress - Purple
+            "col-3": "rgb(62 94 189)", // Al Gihaz awaiting submission - Blue
+            "col-4": "rgb(65 178 74)", // Finalized - Green
+            "col-5": "rgb(119 86 73)", // Awaiting acknowledgment - Brown
+            "col-6": "rgb(237 142 55)", // Dispatched - Orange
+        },
+        columnTitles: [
+            "Backlog",
+            "Appointment Received",
+            "Enroute",
+            "Vessel Arrived",
+            "Vessel Cleared",
+            "Vessel Sailed",
+            "Awaiting Documents",
+            "Ready To Finalize",
+        ],
+        // No nested columns - explicitly normal columns only
+        nestedColumns: {},
+        cardCounts: {
+            "col-1": 0,
+            "col-2": 0,
+            "col-3": 0,
+            "col-4": 0,
+            "col-5": 0,
+            "col-6": 0,
         },
     },
 ];
+
+// Footer status icons: random subset per card (1–5 icons, including link)
+const footerIconKeys = ["priority", "subtasks", "deadline", "watchers", "link"];
+const footerIconCount = Math.floor(Math.random() * 5) + 1; // 1, 2, 3, 4, or 5
+const shuffledKeys = [...footerIconKeys].sort(() => Math.random() - 0.5);
+const footerShowIcons = shuffledKeys.slice(0, footerIconCount);
 
 // ============================================
 // HELPER FUNCTIONS
@@ -95,12 +177,6 @@ const generateCard = (workflowId, colId, cardId) => {
         "Mark Harris",
         "Donald Clark",
     ];
-
-    // Footer status icons: random subset per card (1–5 icons, including link)
-    const footerIconKeys = ["priority", "subtasks", "deadline", "watchers", "link"];
-    const footerIconCount = Math.floor(Math.random() * 5) + 1; // 1, 2, 3, 4, or 5
-    const shuffledKeys = [...footerIconKeys].sort(() => Math.random() - 0.5);
-    const footerShowIcons = shuffledKeys.slice(0, footerIconCount);
 
     const cardData = {
         id,
