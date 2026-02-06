@@ -1257,3 +1257,191 @@
   background: #c62828;
   color: #fff !important;
 }
+
+/* GRO card view: 4 sections + documents + require document */
+.gro-card-view {
+  flex: 1;
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
+  padding: 20px 24px;
+  overflow: auto;
+}
+
+.gro-document-section {
+  flex: 1;
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
+  margin-top: 8px;
+}
+
+.gro-section-title {
+  font-size: 13px;
+  font-weight: 600;
+  color: #333;
+  margin: 0 0 12px 0;
+}
+
+.gro-document-list {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  background: #fff;
+  border: 1px solid #e1e2e8;
+  border-radius: 10px;
+  padding: 16px;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.06);
+  overflow: auto;
+}
+
+.gro-document-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 10px 12px;
+  background: #f8f7fc;
+  border-radius: 8px;
+  border: 1px solid #e8e4f3;
+}
+
+.gro-document-preview {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.gro-document-preview-icon {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 40px;
+  height: 40px;
+  background: #fff;
+  border: 1px solid #e1e2e8;
+  border-radius: 8px;
+  color: #6b6b6b;
+}
+
+.gro-document-preview-label {
+  font-size: 13px;
+  font-weight: 500;
+  color: #1a1a1a;
+}
+
+.gro-document-download-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 8px 14px;
+  font-size: 12px;
+  font-weight: 600;
+  color: #2e7d32;
+  background: #e8f5e9;
+  border: 1px solid #a5d6a7;
+  border-radius: 8px;
+  cursor: pointer;
+  font-family: "Poppins", sans-serif;
+  transition: background 0.2s, color 0.2s;
+}
+
+.gro-document-download-btn:hover {
+  background: #c8e6c9;
+  color: #1b5e20;
+}
+
+.gro-require-section {
+  margin-top: 20px;
+  flex-shrink: 0;
+}
+
+.gro-require-doc-btn {
+  padding: 10px 20px;
+  font-size: 13px;
+  font-weight: 600;
+  color: #fff;
+  background: #2A00FF;
+  border: none;
+  border-radius: 8px;
+  cursor: pointer;
+  font-family: "Poppins", sans-serif;
+  transition: background 0.2s, opacity 0.2s;
+}
+
+.gro-require-doc-btn:hover {
+  background: #2200cc;
+  opacity: 0.95;
+}
+
+.gro-require-form {
+  background: #fff;
+  border: 1px solid #e1e2e8;
+  border-radius: 10px;
+  padding: 16px;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.06);
+}
+
+.gro-require-label {
+  display: block;
+  font-size: 12px;
+  font-weight: 600;
+  color: #6b6b6b;
+  margin-bottom: 8px;
+}
+
+.gro-require-remark {
+  width: 100%;
+  min-height: 72px;
+  padding: 10px 12px;
+  font-size: 13px;
+  font-family: "Poppins", sans-serif;
+  border: 1px solid #e1e2e8;
+  border-radius: 8px;
+  resize: vertical;
+  margin-bottom: 12px;
+  box-sizing: border-box;
+}
+
+.gro-require-remark:focus {
+  outline: none;
+  border-color: #2A00FF;
+  box-shadow: 0 0 0 2px rgba(42, 0, 255, 0.15);
+}
+
+.gro-require-actions {
+  display: flex;
+  gap: 10px;
+  justify-content: flex-end;
+}
+
+.gro-require-cancel {
+  padding: 8px 16px;
+  font-size: 13px;
+  font-weight: 600;
+  color: #6b6b6b;
+  background: #f0f0f0;
+  border: 1px solid #e1e2e8;
+  border-radius: 8px;
+  cursor: pointer;
+  font-family: "Poppins", sans-serif;
+}
+
+.gro-require-cancel:hover {
+  background: #e5e5e5;
+}
+
+.gro-require-submit {
+  padding: 8px 16px;
+  font-size: 13px;
+  font-weight: 600;
+  color: #fff;
+  background: #2A00FF;
+  border: none;
+  border-radius: 8px;
+  cursor: pointer;
+  font-family: "Poppins", sans-serif;
+}
+
+.gro-require-submit:hover {
+  background: #2200cc;
+}

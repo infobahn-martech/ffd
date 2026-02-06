@@ -462,8 +462,8 @@ StepsProgress.propTypes = {
   currentStep: PropTypes.number,
 };
 
-const CardFormFooter = ({ accentColor, onUpdate, activeStep = 2, completedSteps = 1, activeTab, onStepClick, currentStep, isSimplifiedMode = false, isDriverMode = false, stepLabels = STEP_LABELS, totalSteps = TOTAL_STEPS }) => {
-  const showSteps = isDriverMode || (!isSimplifiedMode && activeTab !== "Appointment Details") || (isSimplifiedMode && activeTab !== "General");
+const CardFormFooter = ({ accentColor, onUpdate, activeStep = 2, completedSteps = 1, activeTab, onStepClick, currentStep, isSimplifiedMode = false, isDriverMode = false, isGROMode = false, stepLabels = STEP_LABELS, totalSteps = TOTAL_STEPS }) => {
+  const showSteps = isGROMode || isDriverMode || (!isSimplifiedMode && activeTab !== "Appointment Details") || (isSimplifiedMode && activeTab !== "General");
   return (
     <div className="cardform-footer">
       {showSteps && (
@@ -491,6 +491,7 @@ CardFormFooter.propTypes = {
   currentStep: PropTypes.number,
   isSimplifiedMode: PropTypes.bool,
   isDriverMode: PropTypes.bool,
+  isGROMode: PropTypes.bool,
   stepLabels: PropTypes.arrayOf(PropTypes.string),
   totalSteps: PropTypes.number,
 };
@@ -694,6 +695,126 @@ DriverCardView.propTypes = {
   card: PropTypes.object,
 };
 
+// GRO Board card view: 4 info sections + document list + require document
+const GRO_DOCUMENT_TYPES = [
+  "Registry",
+  "Tonnage",
+  "Ship Radio Station License",
+  "Maritime Health Declaration",
+  "Sanitation Certificate",
+  "Last Port clearance",
+  "Crew List",
+  "Immigration Batches",
+];
+
+const GROCardView = ({ card }) => {
+  const [showRequireDocument, setShowRequireDocument] = useState(false);
+  const [requireRemark, setRequireRemark] = useState("");
+
+  const owner = card?.user ?? "Richard Wilson";
+  const callType = card?.typeOfCall ?? "Domestic";
+  const vesselName = card?.vesselName ?? "MV Atlantic Star";
+  const vesselType = card?.vesselType ?? "Container";
+
+  const CounterCard = ({ label, value }) => (
+    <div className="driver-card-counter">
+      <div className="driver-card-counter-label">{label}</div>
+      <div className="driver-card-counter-value">{value}</div>
+    </div>
+  );
+
+  const handleRequireSubmit = () => {
+    // TODO: API call to submit require document request with requireRemark
+    setRequireRemark("");
+    setShowRequireDocument(false);
+  };
+
+  const DocIcon = () => (
+    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+      <path
+        d="M14 2H6C5.46957 2 4.96086 2.21071 4.58579 2.58579C4.21071 2.96086 4 3.46957 4 4V20C4 20.5304 4.21071 21.0391 4.58579 21.4142C4.96086 21.7893 5.46957 22 6 22H18C18.5304 22 19.0391 21.7893 19.4142 21.4142C19.7893 21.0391 20 20.5304 20 20V8L14 2Z"
+        stroke="currentColor"
+        strokeWidth="2"
+        strokeLinecap="round"
+        strokeLinejoin="round"
+        fill="none"
+      />
+      <path d="M14 2V8H20" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+      <path d="M16 13H8M16 17H8" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+    </svg>
+  );
+
+  return (
+    <div className="gro-card-view">
+      <div className="driver-card-counters">
+        <CounterCard label="OWNER" value={owner} />
+        <CounterCard label="CALL TYPE" value={callType} />
+        <CounterCard label="VESSEL NAME" value={vesselName} />
+        <CounterCard label="VESSEL TYPE" value={vesselType} />
+      </div>
+
+      <div className="gro-document-section">
+        <h3 className="gro-section-title">Documents</h3>
+        <div className="gro-document-list">
+          {GRO_DOCUMENT_TYPES.map((docName) => (
+            <div key={docName} className="gro-document-row">
+              <div className="gro-document-preview">
+                <div className="gro-document-preview-icon">
+                  <DocIcon />
+                </div>
+                <span className="gro-document-preview-label">{docName}</span>
+              </div>
+              <button type="button" className="gro-document-download-btn" title="Download">
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                  <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" />
+                  <polyline points="7 10 12 15 17 10" />
+                  <line x1="12" y1="15" x2="12" y2="3" />
+                </svg>
+                Download
+              </button>
+            </div>
+          ))}
+        </div>
+      </div>
+
+      <div className="gro-require-section">
+        {!showRequireDocument ? (
+          <button
+            type="button"
+            className="gro-require-doc-btn"
+            onClick={() => setShowRequireDocument(true)}
+          >
+            Require Document
+          </button>
+        ) : (
+          <div className="gro-require-form">
+            <label className="gro-require-label">Remarks</label>
+            <textarea
+              className="gro-require-remark"
+              placeholder="Enter remarks for document request..."
+              value={requireRemark}
+              onChange={(e) => setRequireRemark(e.target.value)}
+              rows={3}
+            />
+            <div className="gro-require-actions">
+              <button type="button" className="gro-require-cancel" onClick={() => { setShowRequireDocument(false); setRequireRemark(""); }}>
+                Cancel
+              </button>
+              <button type="button" className="gro-require-submit" onClick={handleRequireSubmit}>
+                Submit
+              </button>
+            </div>
+          </div>
+        )}
+      </div>
+    </div>
+  );
+};
+
+GROCardView.propTypes = {
+  card: PropTypes.object,
+};
+
 // Tab Content Renderer
 const renderTabContent = (activeTab, card, formValues, handleChange, ownerInitial, isAddMode = false, isSimplifiedMode = false, isDAModule = false) => {
   const commonProps = {
@@ -765,6 +886,7 @@ function CardForm({ show, close, card, moveCardToColumn, columns, columnOrder, c
   const location = useLocation();
   const isDriverVariant = variant === "driver";
   const isMWPVariant = variant === "mwp";
+  const isGROVariant = variant === "gro";
 
   // Step labels from columns + columnOrder (e.g. DAdata columnTitles); fallback to STEP_LABELS
   const { stepLabels, totalSteps } = useMemo(() => {
@@ -960,9 +1082,11 @@ function CardForm({ show, close, card, moveCardToColumn, columns, columnOrder, c
           <DriverCardView card={card} />
         ) : isMWPVariant ? (
           <MWPCardView card={card} />
+        ) : isGROVariant ? (
+          <GROCardView card={card} />
         ) : (
           <>
-            {!isAddMode && !isMWPVariant && (
+            {!isAddMode && !isMWPVariant && !isGROVariant && (
               <TopTabs
                 tabs={TOP_TABS}
                 activeTab={activeTopTab}
@@ -970,7 +1094,7 @@ function CardForm({ show, close, card, moveCardToColumn, columns, columnOrder, c
                 enabledTabs={ENABLED_TABS}
               />
             )}
-            {!isMWPVariant && renderTabContent(activeTopTab, card, formValues, handleChange, ownerInitial, isAddMode, isKanbanBoardWithId, isDAModule)}
+            {!isMWPVariant && !isGROVariant && renderTabContent(activeTopTab, card, formValues, handleChange, ownerInitial, isAddMode, isKanbanBoardWithId, isDAModule)}
           </>
         )}
         {!isAddMode && !isMWPVariant && (
@@ -984,6 +1108,7 @@ function CardForm({ show, close, card, moveCardToColumn, columns, columnOrder, c
             currentStep={currentStep}
             isSimplifiedMode={isKanbanBoardWithId}
             isDriverMode={isDriverVariant}
+            isGROMode={isGROVariant}
             stepLabels={stepLabels}
             totalSteps={totalSteps}
           />
@@ -1022,7 +1147,7 @@ CardForm.propTypes = {
     cardIds: PropTypes.array,
   }),
   isAddMode: PropTypes.bool,
-  variant: PropTypes.oneOf(["default", "driver", "mwp"]),
+  variant: PropTypes.oneOf(["default", "driver", "mwp", "gro"]),
 };
 
 export default CardForm;
