@@ -20,9 +20,9 @@ const workflowsConfig = [
         ],
         nestedColumns: {},
         cardCounts: {
-            "col-1": 1,// Backlog
-            "col-2": 2, // ToDo
-            "col-3": 1, // In Progress
+            "col-1": 0,// Backlog
+            "col-2": 1, // ToDo
+            "col-3": 0, // In Progress
             "col-4": 0, // Submitted
         },
     },
@@ -107,6 +107,14 @@ const generateCard = (workflowId, colId, cardId) => {
     const shuffledKeys = [...footerIconKeys].sort(() => Math.random() - 0.5);
     const footerShowIcons = shuffledKeys.slice(0, footerIconCount);
 
+    // Card-extra-details: random subset of bottom row icons (2–6 icons per card)
+    const extraDetailKeys = ["transport", "hotel", "medical", "material", "waste", "launch"];
+    const extraDetailCount = Math.floor(Math.random() * 5) + 2; // 2 to 6
+    const shuffledExtra = [...extraDetailKeys].sort(() => Math.random() - 0.5);
+    const extraDetailsShowIcons = shuffledExtra.slice(0, extraDetailCount);
+
+    const statusChoice = () => ["done", "rejected", "inProgress"][Math.floor(Math.random() * 3)];
+
     const cardData = {
         id,
         title: `CARD – ${["JAN", "FEB", "MAR", "APR", "MAY", "JUN", "JUL", "AUG"][
@@ -122,13 +130,21 @@ const generateCard = (workflowId, colId, cardId) => {
         iconType: randomIconType,
         priority: false, // No blinking for DA cards
         vesselName: vesselNames[Math.floor(Math.random() * vesselNames.length)],
-        transport: ["done", "rejected", "inProgress"][Math.floor(Math.random() * 3)],
+        transport: statusChoice(),
         transportCount: Math.floor(Math.random() * 5) + 1,
-        hotel: ["done", "rejected", "inProgress"][Math.floor(Math.random() * 3)],
+        hotel: statusChoice(),
         hotelCount: Math.floor(Math.random() * 5) + 1,
-        medicalService: ["done", "rejected", "inProgress"][Math.floor(Math.random() * 3)],
+        medicalService: statusChoice(),
         medicalServiceCount: Math.floor(Math.random() * 5) + 1,
+        materialManagement: statusChoice(),
+        wasteDisposal: statusChoice(),
+        launchHire: statusChoice(),
         footerShowIcons: footerShowIcons,
+        footerSubtasks: Math.floor(Math.random() * 6), // 0–5
+        footerDeadline: `${Math.floor(Math.random() * 30) + 1}d`,
+        footerWatchers: Math.floor(Math.random() * 11), // 0–10
+        footerLinkCount: Math.floor(Math.random() * 4), // 0–3
+        extraDetailsShowIcons: extraDetailsShowIcons,
         typeOfCall: callTypes[Math.floor(Math.random() * callTypes.length)],
         vesselType: vesselTypes[Math.floor(Math.random() * vesselTypes.length)],
         crew: (() => {
