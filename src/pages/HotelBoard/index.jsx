@@ -653,6 +653,7 @@ export default function HotelBoard() {
           columnOrder={columnOrderForCardForm}
           currentColumn={isAddMode ? null : findCardColumn(selectedCard.id)}
           isAddMode={isAddMode}
+          variant="hotel"
         />
       )}
 

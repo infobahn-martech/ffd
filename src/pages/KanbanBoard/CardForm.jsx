@@ -617,13 +617,24 @@ MWPCardView.propTypes = {
   card: PropTypes.object,
 };
 
+// Stable random index (0 or 1) from row id for Status label
+const getStatusIndex = (row) => {
+  const id = String(row?.id ?? row?.crewName ?? Math.random());
+  const hash = id.split("").reduce((a, c) => ((a << 5) - a) + c.charCodeAt(0), 0);
+  return Math.abs(hash) % 2;
+};
+
 // Driver Board card view: 4 counters + crew table
-const DriverCardView = ({ card }) => {
+// variant: "driver" => Status = Pickup (green) / Drop off (orange) | "hotel" => Status = CheckIn (green) / CheckOut (orange)
+const DriverCardView = ({ card, variant = "driver" }) => {
   const owner = card?.user ?? "—";
   const callType = card?.typeOfCall ?? "—";
   const vesselName = card?.vesselName ?? "—";
   const vesselType = card?.vesselType ?? "—";
   const crew = Array.isArray(card?.crew) ? card.crew : [];
+
+  const isHotel = variant === "hotel";
+  const statusOptions = isHotel ? ["CheckIn", "CheckOut"] : ["Pickup", "Drop off"];
 
   const CounterCard = ({ label, value }) => (
     <div className="driver-card-counter">
@@ -632,16 +643,17 @@ const DriverCardView = ({ card }) => {
     </div>
   );
 
-  const StatusButton = ({ status, label }) => {
-    const isDone = status === "done";
+  const StatusBadge = ({ row }) => {
+    const index = getStatusIndex(row);
+    const label = statusOptions[index];
+    const isGreen = index === 0;
     return (
-      <button
-        type="button"
-        className={`driver-crew-status-btn ${isDone ? "status-done" : "status-pending"}`}
-        title={isDone ? "Done" : "Pending"}
+      <span
+        className={`driver-crew-status-btn driver-crew-status-badge ${isGreen ? "status-green-border" : "status-orange-border"}`}
+        title={label}
       >
         {label}
-      </button>
+      </span>
     );
   };
 
@@ -660,14 +672,13 @@ const DriverCardView = ({ card }) => {
               <th>Crew Name</th>
               <th>Nationality</th>
               <th>Passport No</th>
-              <th>PickUp</th>
-              <th>Drop Off</th>
+              <th>Status</th>
             </tr>
           </thead>
           <tbody>
             {crew.length === 0 ? (
               <tr>
-                <td colSpan={5} className="driver-crew-empty">No crew data</td>
+                <td colSpan={4} className="driver-crew-empty">No crew data</td>
               </tr>
             ) : (
               crew.map((row) => (
@@ -676,10 +687,7 @@ const DriverCardView = ({ card }) => {
                   <td>{row.nationality ?? "—"}</td>
                   <td>{row.passportNo ?? "—"}</td>
                   <td>
-                    <StatusButton status={row.pickUpStatus} label="PickUp" />
-                  </td>
-                  <td>
-                    <StatusButton status={row.dropOffStatus} label="Drop Off" />
+                    <StatusBadge row={row} />
                   </td>
                 </tr>
               ))
@@ -693,6 +701,7 @@ const DriverCardView = ({ card }) => {
 
 DriverCardView.propTypes = {
   card: PropTypes.object,
+  variant: PropTypes.oneOf(["driver", "hotel"]),
 };
 
 // GRO Board card view: 4 info sections + document list + require document
@@ -940,8 +949,10 @@ const renderTabContent = (activeTab, card, formValues, handleChange, ownerInitia
 function CardForm({ show, close, card, moveCardToColumn, columns, columnOrder, currentColumn, isAddMode = false, variant = "default" }) {
   const location = useLocation();
   const isDriverVariant = variant === "driver";
+  const isHotelVariant = variant === "hotel";
   const isMWPVariant = variant === "mwp";
   const isGROVariant = variant === "gro";
+  const isDriverStyleView = isDriverVariant || isHotelVariant;
 
   // Step labels from columns + columnOrder (e.g. DAdata columnTitles); fallback to STEP_LABELS
   const { stepLabels, totalSteps } = useMemo(() => {
@@ -1133,8 +1144,8 @@ function CardForm({ show, close, card, moveCardToColumn, columns, columnOrder, c
           formValues={formValues}
           handleChange={handleChange}
         />
-        {isDriverVariant ? (
-          <DriverCardView card={card} />
+        {isDriverStyleView ? (
+          <DriverCardView card={card} variant={variant} />
         ) : isMWPVariant ? (
           <MWPCardView card={card} />
         ) : isGROVariant ? (
@@ -1162,7 +1173,7 @@ function CardForm({ show, close, card, moveCardToColumn, columns, columnOrder, c
             onStepClick={handleStepClick}
             currentStep={currentStep}
             isSimplifiedMode={isKanbanBoardWithId}
-            isDriverMode={isDriverVariant}
+            isDriverMode={isDriverStyleView}
             isGROMode={isGROVariant}
             stepLabels={stepLabels}
             totalSteps={totalSteps}
@@ -1202,7 +1213,7 @@ CardForm.propTypes = {
     cardIds: PropTypes.array,
   }),
   isAddMode: PropTypes.bool,
-  variant: PropTypes.oneOf(["default", "driver", "mwp", "gro"]),
+  variant: PropTypes.oneOf(["default", "driver", "hotel", "mwp", "gro"]),
 };
 
 export default CardForm;
