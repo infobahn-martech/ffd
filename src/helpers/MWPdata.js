@@ -4,30 +4,27 @@
 
 const workflowsConfig = [
     {
-        id: "import-export-domestic-calls",
-        title: "Import Calls",
+        id: "maintenance-work-permit",
+        title: "Maintenance Work Permit",
         columnColors: {
-            "col-1": "rgb(226 16 108)", // Pre-Arrival Board - Pink
+            "col-1": "rgb(226 16 108)", // Documents ready - Pink
             "col-2": "rgb(121 21 188)", // In Progress - Purple
-            "col-3": "rgb(62 94 189)", // Vessel Arrived - Blue
-            "col-4": "rgb(65 178 74)", // Vessel Cleared - Green
-            "col-5": "rgb(119 86 73)", // Vessel Sailed - Brown
-            "col-6": "rgb(226 16 108)", // Ops Completed - Pink
+            "col-3": "rgb(62 94 189)", // Approved - Blue
+            "col-4": "rgb(65 178 74)", // Issued - Green
+
         },
         columnTitles: [
-            "Pre-Arrival Board",
-            "Vessel Arrived",
-            "Vessel Cleared",
-            "Vessel Sailed",
-            "Ops Completed",
+            "Documents ready", // Documents ready
+            "Applied", // Applied
+            "Approved", // Approved
+            "Issued", // Issued
         ],
         nestedColumns: {},
         cardCounts: {
-            "col-1": 13, // Pre-Arrival Board
-            "col-2": 9, // Pre-Arrival Board
-            "col-3": 1, // Vessel Arrived
-            "col-4": 0, // Vessel Cleared
-            "col-5": 0, // Ops Completed
+            "col-1": 0,// Documents ready
+            "col-2": 0, // Applied
+            "col-3": 1, // Approved
+            "col-4": 0, // Issued
         },
     },
 ];
