@@ -1970,46 +1970,50 @@ const SendReportPreviewModal = ({ show, onClose, cardColor, tabName }) => {
   const renderBody = () => (
     <div className="send-report-preview-modal">
       <div className="send-report-form">
-        <div className="send-report-field">
-          <label>From</label>
-          <input
-            type="email"
-            value={formData.from}
-            onChange={(e) => handleInputChange("from", e.target.value)}
-            className="send-report-input"
-          />
+        <div className="send-report-form-row send-report-form-row--double">
+          <div className="send-report-field">
+            <label>From</label>
+            <input
+              type="email"
+              value={formData.from}
+              onChange={(e) => handleInputChange("from", e.target.value)}
+              className="send-report-input"
+              placeholder="sender@example.com"
+            />
+          </div>
+          <div className="send-report-field">
+            <label>To</label>
+            <input
+              type="email"
+              value={formData.to}
+              onChange={(e) => handleInputChange("to", e.target.value)}
+              className="send-report-input"
+              placeholder="recipient@example.com"
+            />
+          </div>
         </div>
-
-        <div className="send-report-field">
-          <label>To</label>
-          <input
-            type="email"
-            value={formData.to}
-            onChange={(e) => handleInputChange("to", e.target.value)}
-            className="send-report-input"
-          />
+        <div className="send-report-form-row send-report-form-row--double">
+          <div className="send-report-field">
+            <label>CC</label>
+            <input
+              type="email"
+              value={formData.cc}
+              onChange={(e) => handleInputChange("cc", e.target.value)}
+              className="send-report-input"
+              placeholder="cc@example.com"
+            />
+          </div>
+          <div className="send-report-field">
+            <label>BCC</label>
+            <input
+              type="email"
+              value={formData.bcc}
+              onChange={(e) => handleInputChange("bcc", e.target.value)}
+              className="send-report-input"
+              placeholder="bcc@example.com"
+            />
+          </div>
         </div>
-
-        <div className="send-report-field">
-          <label>CC</label>
-          <input
-            type="email"
-            value={formData.cc}
-            onChange={(e) => handleInputChange("cc", e.target.value)}
-            className="send-report-input"
-          />
-        </div>
-
-        <div className="send-report-field">
-          <label>BCC</label>
-          <input
-            type="email"
-            value={formData.bcc}
-            onChange={(e) => handleInputChange("bcc", e.target.value)}
-            className="send-report-input"
-          />
-        </div>
-
         <div className="send-report-field">
           <label>Subject</label>
           <input
@@ -2017,16 +2021,17 @@ const SendReportPreviewModal = ({ show, onClose, cardColor, tabName }) => {
             value={formData.subject}
             onChange={(e) => handleInputChange("subject", e.target.value)}
             className="send-report-input"
+            placeholder="Report subject"
           />
         </div>
-
-        <div className="send-report-field">
+        <div className="send-report-field send-report-field--body">
           <label>Body</label>
           <textarea
             value={formData.body}
             onChange={(e) => handleInputChange("body", e.target.value)}
             className="send-report-textarea"
-            rows={5}
+            rows={10}
+            placeholder="Enter report content..."
           />
         </div>
       </div>
@@ -2051,8 +2056,21 @@ const SendReportPreviewModal = ({ show, onClose, cardColor, tabName }) => {
   );
 
   const renderHeader = () => (
-    <div className="modal-header">
-      <h5 className="modal-title">Send Report Preview - {tabName}</h5>
+    <div className="send-report-modal-header">
+      <h5 className="send-report-modal-title">Send Report Preview - {tabName}</h5>
+      <div className="send-report-modal-header-actions">
+        <button
+          type="button"
+          className="send-report-header-close-btn"
+          onClick={onClose}
+          aria-label="Close"
+        >
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+            <line x1="18" y1="6" x2="6" y2="18" />
+            <line x1="6" y1="6" x2="18" y2="18" />
+          </svg>
+        </button>
+      </div>
     </div>
   );
 

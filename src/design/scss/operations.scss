@@ -4,114 +4,237 @@
    SEND REPORT PREVIEW MODAL STYLES
    ========================================================== */
 
+/* Send Report modal uses a unique teal accent (not card blue) */
+$send-report-accent: #0d9488;
+$send-report-accent-hover: #0f766e;
+
 .send-report-modal-dialog {
-  max-width: 500px;
-  width: 90%;
+  max-width: 800px;
+  width: 92%;
 
   .modal-content {
+    padding: 0 !important;
+    border: none;
+    border-radius: 12px;
+    box-shadow: 0 20px 60px rgba(0, 0, 0, 0.15);
+    overflow: hidden;
+  }
+
+  .modal-header {
+    padding: 0 !important;
+    border-bottom: none !important;
+    min-height: 56px;
+    display: flex !important;
+    align-items: stretch !important;
+    // background: $send-report-accent !important;
+  }
+
+  .modal-body {
     padding: 0 !important;
   }
 }
 
+.send-report-modal .send-report-modal-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex: 1;
+  min-height: 56px;
+  padding: 0 20px;
+  background: transparent;
+  color: #fff;
+}
+
+.send-report-modal-title {
+  margin: 0;
+  font-size: 18px;
+  font-weight: 600;
+  font-family: "Inter", "Poppins", sans-serif;
+  letter-spacing: 0.2px;
+  color: #000;
+}
+
+.send-report-modal-header-actions {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.send-report-header-send-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 9px 16px;
+  background: rgba(255, 255, 255, 0.95);
+  color: $send-report-accent;
+  border: none;
+  border-radius: 8px;
+  font-size: 14px;
+  font-weight: 600;
+  font-family: "Inter", "Poppins", sans-serif;
+  cursor: pointer;
+  transition: background 0.2s ease, color 0.2s ease;
+
+  &:hover {
+    background: #fff;
+    color: $send-report-accent-hover;
+  }
+
+  svg {
+    flex-shrink: 0;
+  }
+}
+
+.send-report-header-close-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 36px;
+  height: 36px;
+  padding: 0;
+  background: transparent;
+  color: #fff;
+  border: none;
+  border-radius: 8px;
+  cursor: pointer;
+  transition: background 0.2s ease;
+
+  &:hover {
+    background: rgba(255, 255, 255, 0.15);
+  }
+}
+
 .send-report-preview-modal {
-  padding: 16px;
+  padding: 24px 28px 28px;
 }
 
 .send-report-form {
   display: flex;
   flex-direction: column;
-  gap: 12px;
+  gap: 18px;
+}
+
+.send-report-form-row {
+  &.send-report-form-row--double {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 18px;
+  }
 }
 
 .send-report-field {
   display: flex;
   flex-direction: column;
-  gap: 6px;
+  gap: 8px;
+
+  &.send-report-field--body {
+    margin-top: 4px;
+  }
 }
 
 .send-report-field label {
   font-size: 13px;
   font-weight: 600;
-  color: #333;
+  color: #374151;
   font-family: "Inter", sans-serif;
 }
 
 .send-report-input,
 .send-report-textarea {
   width: 100%;
-  padding: 10px 12px;
-  border: 1px solid #e2e2ea;
+  padding: 12px 14px;
+  border: 1px solid #e5e7eb;
   border-radius: 8px;
-  font-size: 13px;
+  font-size: 14px;
   font-family: "Inter", sans-serif;
   color: #1a1a1a;
-  transition: border-color 0.2s ease;
+  transition: border-color 0.2s ease, box-shadow 0.2s ease;
+
+  &::placeholder {
+    color: #9ca3af;
+  }
 }
 
-.send-report-input:focus,
-.send-report-textarea:focus {
+.send-report-modal .send-report-input:focus,
+.send-report-modal .send-report-textarea:focus {
   outline: none;
-  border-color: var(--card-color, #2A00FF);
+  border-color: $send-report-accent;
+  box-shadow: 0 0 0 3px rgba(13, 148, 136, 0.2);
 }
 
 .send-report-textarea {
   resize: vertical;
-  min-height: 100px;
+  min-height: 200px;
+  line-height: 1.5;
 }
 
 .send-report-actions {
   display: flex;
   justify-content: flex-end;
   gap: 12px;
-  margin-top: 16px;
-  padding-top: 16px;
-  border-top: 1px solid #e2e2ea;
+  margin-top: 24px;
+  padding-top: 20px;
+  border-top: 1px solid #e5e7eb;
 }
 
 .send-report-cancel-btn,
 .send-report-send-btn {
-  padding: 10px 24px;
+  padding: 12px 28px;
   border-radius: 8px;
-  font-size: 13px;
+  font-size: 14px;
   font-weight: 600;
-  font-family: "Inter", sans-serif;
+  font-family: "Inter", "Poppins", sans-serif;
   cursor: pointer;
   transition: all 0.2s ease;
   border: none;
 }
 
 .send-report-cancel-btn {
-  background-color: #f5f5f5;
-  color: #666;
+  background-color: #f3f4f6;
+  color: #4b5563;
 }
 
 .send-report-cancel-btn:hover {
-  background-color: #e5e5e5;
+  background-color: #e5e7eb;
+  color: #374151;
 }
 
-.send-report-send-btn {
+.send-report-modal .send-report-send-btn {
   background: #e2e6ff !important;
-  border: none;
-  color: #000000 !important;
-  padding: 10px 27px;
+  color: #000 !important;
+  padding: 12px 28px;
   border-radius: 8px;
   font-size: 14px;
   font-weight: 600;
   cursor: pointer;
   transition: all 0.2s ease;
   font-family: "Poppins", sans-serif;
-  min-width: 100px;
+  min-width: 120px;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.08);
 }
 
-.send-report-send-btn:hover {
-  opacity: 0.9;
+.send-report-modal .send-report-send-btn:hover {
+  opacity: 0.95;
   transform: translateY(-1px);
-  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.15);
+  box-shadow: 0 4px 12px rgba(13, 148, 136, 0.35);
 }
 
 .send-report-send-btn:active {
   transform: translateY(0);
-  box-shadow: 0 2px 6px rgba(42, 0, 255, 0.2);
+}
+
+@media (max-width: 640px) {
+  .send-report-form-row.send-report-form-row--double {
+    grid-template-columns: 1fr;
+  }
+
+  .send-report-modal-dialog {
+    width: 95%;
+  }
+
+  .send-report-preview-modal {
+    padding: 18px 20px 22px;
+  }
 }
 
 /* ==========================================================
