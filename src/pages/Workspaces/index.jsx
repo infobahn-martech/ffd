@@ -40,11 +40,11 @@ function Workspaces() {
       id: 1,
       name: 'Users',
       boards: [
+        { id: 5, name: 'GRO', count: 15 },
         { id: 1, name: 'Driver', count: 15 },
         { id: 2, name: 'MWP', count: 15 },
         { id: 3, name: 'Taxi boat Captain', count: 15 },
         { id: 4, name: 'Taxi boat Operator', count: 15 },
-        { id: 5, name: 'GRO', count: 15 },
         { id: 6, name: 'Hotel', count: 15 },
         { id: 7, name: 'Admin', count: 15 },
       ],
