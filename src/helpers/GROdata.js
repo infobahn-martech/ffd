@@ -5,7 +5,7 @@
 const workflowsConfig = [
     {
         id: "gro",
-        title: "Gulf Marine Operations (GRO)",
+        title: "Government Relations Officer (GRO)",
         columnColors: {
             "col-1": "rgb(226 16 108)", // ToDo - Pink
             "col-2": "rgb(121 21 188)", // In Progress - Purple
@@ -22,8 +22,8 @@ const workflowsConfig = [
         cardCounts: {
             "col-1": 0,// Backlog
             "col-2": 1, // ToDo
-            "col-3": 0, // In Progress
-            "col-4": 0, // Submitted
+            "col-3": 3, // In Progress
+            "col-4": 1, // Submitted
         },
     },
 ];
