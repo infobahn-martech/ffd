@@ -213,26 +213,28 @@
 
 .checklist-table-checkbox-header {
   width: 50px;
-  text-align: center;
+  min-width: 50px;
+  text-align: left;
+  padding-left: 16px;
 }
 
 .checklist-table-label-header {
-  width: 25%;
+  width: 29%;
   min-width: 200px;
 }
 
 .checklist-table-requirement-header {
-  width: 30%;
-  min-width: 250px;
+  width: 14%;
+  min-width: 130px;
 }
 
 .checklist-table-upload-header {
-  width: 25%;
+  width: 30%;
   min-width: 200px;
 }
 
 .checklist-table-remarks-header {
-  width: 20%;
+  width: 21%;
   min-width: 180px;
 }
 
@@ -257,8 +259,14 @@
 }
 
 .checklist-table-checkbox {
-  text-align: center;
+  text-align: left;
   width: 50px;
+  min-width: 50px;
+  padding-left: 16px;
+}
+
+.checklist-table-checkbox .checklist-checkbox-wrapper {
+  justify-content: flex-start;
 }
 
 .checklist-table-label {
@@ -271,6 +279,13 @@
 .checklist-table-row.checked .checklist-table-label {
   color: #1b5e20;
   font-weight: 600;
+}
+
+.checklist-table-expiry {
+  width: 14%;
+  min-width: 130px;
+  padding-left: 16px;
+  padding-right: 8px;
 }
 
 .checklist-table-requirement {
