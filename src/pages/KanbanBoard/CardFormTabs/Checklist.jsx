@@ -19,17 +19,17 @@ const accommodationBargeChecklist = [
       {
         id: "commercial_invoice_vessel",
         label: "Commercial invoice for ORIGINAL REQUIRED",
-        requirement: "COPY OF INVENTORY LIST TO BE SIGNED AND STAMPED BY MASTER (Require minimum 3 days prior arrival to arrange if Arabic translation done from our end)"
+        expiry: "March 10, 2026"
       },
       {
         id: "bill_of_lading_vessel",
         label: "Bill of lading REQUIRE COPY ONLY",
-        requirement: "Noncompliance with the enclosed flyer could lead to failure to pass pre-berthing, which leads to berthing delays, and in some cases — aborted operations"
+        expiry: "March 12, 2026"
       },
       {
         id: "charter_party_agreement",
         label: "Charter Party Agreement REQUIRE COPY ONLY",
-        requirement: "COPY OF INVENTORY LIST TO BE SIGNED AND STAMPED BY MASTER (Require minimum 3 days prior arrival to arrange if Arabic translation done from our end)"
+        expiry: "March 15, 2026"
       },
     ],
   },
@@ -40,12 +40,12 @@ const accommodationBargeChecklist = [
       {
         id: "equipment_material_declaration",
         label: "Equipment COPY ONLY FORMAT ATTACHED",
-        requirement: "COPY OF INVENTORY LIST TO BE SIGNED AND STAMPED BY MASTER (Require minimum 3 days prior arrival to arrange if Arabic translation done from our end)"
+        expiry: "March 17, 2026"
       },
       {
         id: "bill_of_lading_tug",
         label: "Bill of lading REQUIRE COPY ONLY",
-        requirement: "COPY OF INVENTORY LIST TO BE SIGNED AND STAMPED BY MASTER (Require minimum 3 days prior arrival to arrange if Arabic translation done from our end)"
+        expiry: "March 19, 2026"
       },
     ],
   },
@@ -56,12 +56,12 @@ const accommodationBargeChecklist = [
       {
         id: "vessel_registry_certificate",
         label: "Vessel Registry certificate REQUIRE COPY ONLY",
-        requirement: "COPY OF INVENTORY LIST TO BE SIGNED AND STAMPED BY MASTER (Require minimum 3 days prior arrival to arrange if Arabic translation done from our end)"
+        expiry: "March 21, 2026"
       },
       {
         id: "international_tonnage_certificate",
         label: "International certificate REQUIRE COPY ONLY",
-        requirement: "COPY OF INVENTORY LIST TO BE SIGNED AND STAMPED BY MASTER (Require minimum 3 days prior arrival to arrange if Arabic translation done from our end)"
+        expiry: "March 23, 2026"
       },
     ],
   },
@@ -72,7 +72,7 @@ const accommodationBargeChecklist = [
       {
         id: "commercial_registration",
         label: "Commercial Registration REQUIRE COPY ONLY",
-        requirement: "COPY OF INVENTORY LIST TO BE SIGNED AND STAMPED BY MASTER (Require minimum 3 days prior arrival to arrange if Arabic translation done from our end)"
+        expiry: "March 25, 2026"
       },
     ],
   },
@@ -87,17 +87,17 @@ const boatArrivingOnboardChecklist = [
       {
         id: "arrival_notice",
         label: "Arrival Notice REQUIRE COPY ONLY",
-        requirement: "COPY OF INVENTORY LIST TO BE SIGNED AND STAMPED BY MASTER (Require minimum 3 days prior arrival to arrange if Arabic translation done from our end)"
+        expiry: "March 27, 2026"
       },
       {
         id: "crew_declaration",
         label: "Crew Declaration REQUIRE COPY ONLY",
-        requirement: "COPY OF INVENTORY LIST TO BE SIGNED AND STAMPED BY MASTER (Require minimum 3 days prior arrival to arrange if Arabic translation done from our end)"
+        expiry: "March 29, 2026"
       },
       {
         id: "cargo_declaration",
         label: "Cargo Declaration REQUIRE COPY ONLY",
-        requirement: "COPY OF INVENTORY LIST TO BE SIGNED AND STAMPED BY MASTER (Require minimum 3 days prior arrival to arrange if Arabic translation done from our end)"
+        expiry: "March 31, 2026"
       },
     ],
   },
@@ -108,17 +108,17 @@ const boatArrivingOnboardChecklist = [
       {
         id: "port_entry_permit",
         label: "Port Entry Permit REQUIRE COPY ONLY",
-        requirement: "COPY OF INVENTORY LIST TO BE SIGNED AND STAMPED BY MASTER (Require minimum 3 days prior arrival to arrange if Arabic translation done from our end)"
+        expiry: "April 2, 2026"
       },
       {
         id: "health_certificate",
         label: "Health Certificate REQUIRE COPY ONLY",
-        requirement: "COPY OF INVENTORY LIST TO BE SIGNED AND STAMPED BY MASTER (Require minimum 3 days prior arrival to arrange if Arabic translation done from our end)"
+        expiry: "April 4, 2026"
       },
       {
         id: "customs_declaration",
         label: "Customs Declaration REQUIRE COPY ONLY",
-        requirement: "COPY OF INVENTORY LIST TO BE SIGNED AND STAMPED BY MASTER (Require minimum 3 days prior arrival to arrange if Arabic translation done from our end)"
+        expiry: "April 6, 2026"
       },
     ],
   },
@@ -129,12 +129,12 @@ const boatArrivingOnboardChecklist = [
       {
         id: "safety_equipment_list",
         label: "Safety Equipment List REQUIRE COPY ONLY",
-        requirement: "COPY OF INVENTORY LIST TO BE SIGNED AND STAMPED BY MASTER (Require minimum 3 days prior arrival to arrange if Arabic translation done from our end)"
+        expiry: "April 8, 2026"
       },
       {
         id: "emergency_contact_list",
         label: "Emergency Contact List REQUIRE COPY ONLY",
-        requirement: "COPY OF INVENTORY LIST TO BE SIGNED AND STAMPED BY MASTER (Require minimum 3 days prior arrival to arrange if Arabic translation done from our end)"
+        expiry: "April 10, 2026"
       },
     ],
   },
@@ -638,7 +638,7 @@ ItemDetailModal.propTypes = {
 };
 
 // Checklist Item Component - Table Row Format
-const ChecklistItem = ({ id, label, requirement, itemData, onChange, cardColor = "#2A00FF", isViewOnly = false, isDAModule = false }) => {
+const ChecklistItem = ({ id, label, expiry, itemData, onChange, cardColor = "#2A00FF", isViewOnly = false, isDAModule = false }) => {
   const [remarks, setRemarks] = useState(itemData?.remarks || "");
   const [uploadedFile, setUploadedFile] = useState(itemData?.uploadedFile || null);
   const [isDragging, setIsDragging] = useState(false);
@@ -720,8 +720,8 @@ const ChecklistItem = ({ id, label, requirement, itemData, onChange, cardColor =
       <td className="checklist-table-label">
         <span className="checklist-item-text">{label}</span>
       </td>
-      <td className="checklist-table-requirement">
-        <span className="checklist-item-requirement">{requirement || ""}</span>
+      <td className="checklist-table-expiry">
+        <span className="checklist-item-expiry">{expiry || ""}</span>
       </td>
       <td className="checklist-table-upload">
         {isViewOnly && uploadedFile ? (
@@ -824,7 +824,7 @@ const ChecklistItem = ({ id, label, requirement, itemData, onChange, cardColor =
 ChecklistItem.propTypes = {
   id: PropTypes.string.isRequired,
   label: PropTypes.string.isRequired,
-  requirement: PropTypes.string,
+  expiry: PropTypes.string,
   itemData: PropTypes.object,
   onChange: PropTypes.func.isRequired,
   cardColor: PropTypes.string,
@@ -938,7 +938,7 @@ const ChecklistSection = ({
                   />
                 </th>
                 <th className="checklist-table-label-header">CheckList</th>
-                <th className="checklist-table-requirement-header">Requirement</th>
+                <th className="checklist-table-requirement-header">Expiry</th>
                 <th className="checklist-table-upload-header">Document Upload</th>
                 <th className="checklist-table-remarks-header">Remarks</th>
               </tr>
@@ -949,7 +949,7 @@ const ChecklistSection = ({
                   key={item.id}
                   id={item.id}
                   label={item.label}
-                  requirement={item.requirement}
+                  expiry={item.expiry}
                   itemData={itemsData[item.id] || {}}
                   onChange={onItemChange}
                   cardColor={cardColor}
