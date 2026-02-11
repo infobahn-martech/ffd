@@ -401,3 +401,12 @@
     }
   }
 }
+
+/* On Station modal: icon-only action buttons */
+.on-station-action-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 6px 10px;
+  min-width: 34px;
+}

@@ -2,7 +2,7 @@ import { useState, useMemo, useEffect } from 'react';
 import CustomModal from '../../components/CustomModal';
 import CustomTable from '../../components/customTable';
 import { Tooltip } from 'react-tooltip';
-import { FiX, FiChevronLeft, FiChevronRight, FiSearch } from 'react-icons/fi';
+import { FiX, FiChevronLeft, FiChevronRight, FiSearch, FiFileText, FiDollarSign, FiList } from 'react-icons/fi';
 import '../../design/scss/common.scss';
 import './DocumentsModal.scss';
 
@@ -141,20 +141,21 @@ function OnStationModal({ show, onClose }) {
         );
     };
 
-    // ✅ Helpers for Action buttons
-    const ActionButton = ({ label, disabled, tooltip, onClick, tooltipId }) => {
+    // ✅ Helpers for Action buttons (icon-only with tooltip)
+    const ActionButton = ({ icon: Icon, disabled, tooltip, onClick, tooltipId }) => {
         if (disabled) {
             return (
                 <>
                     <button
                         type="button"
-                        className="btn btn-sm btn-outline-secondary me-2"
+                        className="btn btn-sm btn-outline-secondary me-2 on-station-action-btn"
                         disabled
                         data-tooltip-id={tooltipId}
                         data-tooltip-content={tooltip}
                         style={{ opacity: 0.7, cursor: 'not-allowed' }}
+                        aria-label={tooltip}
                     >
-                        {label}
+                        <Icon size={18} />
                     </button>
                     <Tooltip id={tooltipId} place="top" />
                 </>
@@ -162,13 +163,19 @@ function OnStationModal({ show, onClose }) {
         }
 
         return (
-            <button
-                type="button"
-                className="btn btn-sm btn-outline-primary me-2"
-                onClick={onClick}
-            >
-                {label}
-            </button>
+            <>
+                <button
+                    type="button"
+                    className="btn btn-sm btn-outline-primary me-2 on-station-action-btn"
+                    onClick={onClick}
+                    data-tooltip-id={tooltipId}
+                    data-tooltip-content={tooltip}
+                    aria-label={tooltip}
+                >
+                    <Icon size={18} />
+                </button>
+                <Tooltip id={tooltipId} place="top" />
+            </>
         );
     };
 
@@ -226,7 +233,7 @@ function OnStationModal({ show, onClose }) {
             cell: (props) => <span>{props.row.exportDate || '-'}</span>,
         },
         {
-            name: 'ON STATION (SWITCH BUTTON)',
+            name: 'ON STATION',
             selector: 'actions',
             tableClasses: 'table-striped',
             contentClass: 'table-content',
@@ -240,27 +247,25 @@ function OnStationModal({ show, onClose }) {
                 const canPrintInvoice = !!row.salesOrderConverted && !!row.assignedTo;
 
                 return (
-                    <div className="d-flex flex-wrap align-items-center">
+                    <div className="d-flex flex-wrap align-items-center gap-1">
                         <ActionButton
-                            label="Print Sales Order"
+                            icon={FiFileText}
                             disabled={!row.salesOrderPrinted}
-                            tooltip="Sales Order not available yet"
+                            tooltip={row.salesOrderPrinted ? 'Print Sales Order' : 'Sales Order not available yet'}
                             tooltipId={`so-${row._id}`}
                             onClick={() => console.log('Print Sales Order:', row.cardId)}
                         />
-
                         <ActionButton
-                            label="Print Invoice"
+                            icon={FiDollarSign}
                             disabled={!canPrintInvoice}
-                            tooltip="Invoice will be reflected once Sales Order is converted by Assigned Operator/Supervisor"
+                            tooltip={canPrintInvoice ? 'Print Invoice' : 'Invoice will be reflected once Sales Order is converted by Assigned Operator/Supervisor'}
                             tooltipId={`inv-${row._id}`}
                             onClick={() => console.log('Print Invoice:', row.cardId)}
                         />
-
                         <ActionButton
-                            label="Print Summary"
+                            icon={FiList}
                             disabled={!row.summaryReady}
-                            tooltip="Summary Sheet not ready"
+                            tooltip={row.summaryReady ? 'Print Summary' : 'Summary Sheet not ready'}
                             tooltipId={`sum-${row._id}`}
                             onClick={() => console.log('Print Summary:', row.cardId)}
                         />
