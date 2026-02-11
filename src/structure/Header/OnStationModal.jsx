@@ -1,0 +1,377 @@
+import { useState, useMemo, useEffect } from 'react';
+import CustomModal from '../../components/CustomModal';
+import CustomTable from '../../components/customTable';
+import { Tooltip } from 'react-tooltip';
+import { FiX, FiChevronLeft, FiChevronRight, FiSearch } from 'react-icons/fi';
+import '../../design/scss/common.scss';
+import './DocumentsModal.scss';
+
+// ✅ Updated Dummy data for On Station (as per image)
+const initialOnStation = [
+    {
+        _id: '1',
+        cardId: 95,
+        vesselName: 'Chayari Tide',
+        client: 'Tide Water',
+        importDate: '15th Feb 2026',
+        exportDate: '-',
+        salesOrderPrinted: true,
+        salesOrderConverted: true,
+        assignedTo: 'Operator',
+        summaryReady: true,
+    },
+    {
+        _id: '2',
+        cardId: 99,
+        vesselName: 'Ocean Star',
+        client: 'Blue Marine',
+        importDate: '16th Feb 2026',
+        exportDate: '-',
+        salesOrderPrinted: true,
+        salesOrderConverted: false,
+        assignedTo: null,
+        summaryReady: false,
+    },
+    {
+        _id: '3',
+        cardId: 92,
+        vesselName: 'Sea Falcon',
+        client: 'Harbor Logistics',
+        importDate: '18th Feb 2026',
+        exportDate: '-',
+        salesOrderPrinted: true,
+        salesOrderConverted: true,
+        assignedTo: 'Supervisor',
+        summaryReady: false,
+    },
+    {
+        _id: '4',
+        cardId: 88,
+        vesselName: 'Wave Rider',
+        client: 'Port Co.',
+        importDate: '20th Feb 2026',
+        exportDate: '-',
+        salesOrderPrinted: false,
+        salesOrderConverted: false,
+        assignedTo: null,
+        summaryReady: false,
+    },
+    {
+        _id: '5',
+        cardId: 85,
+        vesselName: 'Neptune Voyager',
+        client: 'Global Shipping',
+        importDate: '22nd Feb 2026',
+        exportDate: '-',
+        salesOrderPrinted: true,
+        salesOrderConverted: true,
+        assignedTo: 'Operator',
+        summaryReady: true,
+    },
+];
+
+function OnStationModal({ show, onClose }) {
+    const [onStation] = useState(initialOnStation);
+    const [searchQuery, setSearchQuery] = useState('');
+
+    const [params, setParams] = useState({
+        page: 1,
+        total: initialOnStation.length,
+        limit: 10,
+        sortBy: '',
+        sortOrder: -1,
+    });
+
+    // ✅ keep total updated
+    useEffect(() => {
+        setParams((prev) => ({ ...prev, total: onStation.length }));
+    }, [onStation]);
+
+    // ✅ Filter based on search query (updated fields)
+    const filteredDocuments = useMemo(() => {
+        if (!searchQuery.trim()) return onStation;
+
+        const query = searchQuery.toLowerCase();
+
+        return onStation.filter((row) => {
+            const assigned = row.assignedTo ? row.assignedTo.toLowerCase() : '';
+            return (
+                row.cardId.toString().includes(query) ||
+                (row.vesselName || '').toLowerCase().includes(query) ||
+                (row.client || '').toLowerCase().includes(query) ||
+                (row.importDate || '').toLowerCase().includes(query) ||
+                (row.exportDate || '').toLowerCase().includes(query) ||
+                assigned.includes(query)
+            );
+        });
+    }, [onStation, searchQuery]);
+
+    // ✅ Pagination
+    const paginatedData = useMemo(() => {
+        const startIndex = (params.page - 1) * params.limit;
+        const endIndex = startIndex + params.limit;
+        return filteredDocuments.slice(startIndex, endIndex);
+    }, [filteredDocuments, params.page, params.limit]);
+
+    const totalPages = Math.ceil(filteredDocuments.length / params.limit);
+
+    // Reset to page 1 when search changes
+    const handleSearchChange = (e) => {
+        setSearchQuery(e.target.value);
+        setParams((prev) => ({ ...prev, page: 1 }));
+    };
+
+    // Helper component for truncated text with tooltip
+    const TruncatedCell = ({ text, maxLength = 30, tooltipId }) => {
+        if (!text) return <span>-</span>;
+        const isTruncated = text.length > maxLength;
+        const displayText = isTruncated ? text.substring(0, maxLength) + '...' : text;
+
+        return (
+            <>
+                <span
+                    data-tooltip-id={isTruncated ? tooltipId : undefined}
+                    data-tooltip-content={isTruncated ? text : undefined}
+                    className="truncated-cell-text"
+                >
+                    {displayText}
+                </span>
+                {isTruncated && <Tooltip id={tooltipId} place="top" />}
+            </>
+        );
+    };
+
+    // ✅ Helpers for Action buttons
+    const ActionButton = ({ label, disabled, tooltip, onClick, tooltipId }) => {
+        if (disabled) {
+            return (
+                <>
+                    <button
+                        type="button"
+                        className="btn btn-sm btn-outline-secondary me-2"
+                        disabled
+                        data-tooltip-id={tooltipId}
+                        data-tooltip-content={tooltip}
+                        style={{ opacity: 0.7, cursor: 'not-allowed' }}
+                    >
+                        {label}
+                    </button>
+                    <Tooltip id={tooltipId} place="top" />
+                </>
+            );
+        }
+
+        return (
+            <button
+                type="button"
+                className="btn btn-sm btn-outline-primary me-2"
+                onClick={onClick}
+            >
+                {label}
+            </button>
+        );
+    };
+
+    const cols = [
+        {
+            name: 'VESSEL NAME',
+            selector: 'vesselName',
+            tableClasses: 'table-striped',
+            sort: true,
+            contentClass: 'table-content',
+            thclass: 'tb-head',
+            width: '200',
+            cell: (props) => (
+                <TruncatedCell
+                    text={props.row.vesselName}
+                    maxLength={20}
+                    tooltipId={`vessel-${props.row._id}`}
+                />
+            ),
+        },
+        {
+            name: 'CLIENT',
+            selector: 'client',
+            tableClasses: 'table-striped',
+            sort: true,
+            contentClass: 'table-content',
+            thclass: 'tb-head',
+            width: '180',
+            cell: (props) => (
+                <TruncatedCell
+                    text={props.row.client}
+                    maxLength={18}
+                    tooltipId={`client-${props.row._id}`}
+                />
+            ),
+        },
+        {
+            name: 'IMPORT DATE',
+            selector: 'importDate',
+            tableClasses: 'table-striped',
+            sort: true,
+            contentClass: 'table-content',
+            thclass: 'tb-head',
+            width: '140',
+            cell: (props) => <span>{props.row.importDate || '-'}</span>,
+        },
+        {
+            name: 'EXPORT DATE',
+            selector: 'exportDate',
+            tableClasses: 'table-striped',
+            sort: true,
+            contentClass: 'table-content',
+            thclass: 'tb-head',
+            width: '140',
+            cell: (props) => <span>{props.row.exportDate || '-'}</span>,
+        },
+        {
+            name: 'ON STATION (SWITCH BUTTON)',
+            selector: 'actions',
+            tableClasses: 'table-striped',
+            contentClass: 'table-content',
+            thclass: 'tb-head',
+            width: '420',
+            cell: (props) => {
+                const row = props.row;
+
+                // ✅ Rule from image:
+                // Print Invoice should be enabled only AFTER sales order is converted by Assigned Operator or Supervisor.
+                const canPrintInvoice = !!row.salesOrderConverted && !!row.assignedTo;
+
+                return (
+                    <div className="d-flex flex-wrap align-items-center">
+                        <ActionButton
+                            label="Print Sales Order"
+                            disabled={!row.salesOrderPrinted}
+                            tooltip="Sales Order not available yet"
+                            tooltipId={`so-${row._id}`}
+                            onClick={() => console.log('Print Sales Order:', row.cardId)}
+                        />
+
+                        <ActionButton
+                            label="Print Invoice"
+                            disabled={!canPrintInvoice}
+                            tooltip="Invoice will be reflected once Sales Order is converted by Assigned Operator/Supervisor"
+                            tooltipId={`inv-${row._id}`}
+                            onClick={() => console.log('Print Invoice:', row.cardId)}
+                        />
+
+                        <ActionButton
+                            label="Print Summary"
+                            disabled={!row.summaryReady}
+                            tooltip="Summary Sheet not ready"
+                            tooltipId={`sum-${row._id}`}
+                            onClick={() => console.log('Print Summary:', row.cardId)}
+                        />
+                    </div>
+                );
+            },
+        },
+    ];
+
+    const renderBody = () => (
+        <div className="documents-modal-body">
+            {/* Search Section */}
+            <div className="documents-search">
+                <div className="search-group">
+                    <div className="search-input-wrapper">
+                        <FiSearch className="search-icon" />
+                        <input
+                            type="text"
+                            className="form-control search-input"
+                            placeholder="Search by Card ID, Vessel Name, Client, Import/Export Date, Assigned..."
+                            value={searchQuery}
+                            onChange={handleSearchChange}
+                        />
+                    </div>
+                </div>
+            </div>
+
+            {/* Table Section */}
+            <div className="documents-table-wrapper">
+                <CustomTable
+                    tableClasses="documents-table"
+                    count={filteredDocuments.length}
+                    columns={cols}
+                    data={paginatedData ?? []}
+                    pagination={{ currentPage: params.page, limit: params.limit }}
+                    onSorting={(sortBy) => {
+                        setParams((prev) => ({
+                            ...prev,
+                            sortBy,
+                            sortOrder: prev?.sortOrder === -1 ? 1 : -1,
+                            page: 1,
+                        }));
+                    }}
+                />
+            </div>
+
+            {/* Footer with Pagination */}
+            <div className="documents-footer">
+                <div className="footer-left">
+                    <span className="results-info">
+                        {filteredDocuments.length === 0
+                            ? 'Showing 0 entries'
+                            : `Showing ${((params.page - 1) * params.limit) + 1} to ${Math.min(
+                                params.page * params.limit,
+                                filteredDocuments.length
+                            )} of ${filteredDocuments.length} entries`}
+                    </span>
+                </div>
+
+                <div className="footer-right">
+                    <div className="simple-pagination">
+                        <button
+                            className="pagination-btn prev-btn"
+                            onClick={() => setParams((prev) => ({ ...prev, page: Math.max(1, prev.page - 1) }))}
+                            disabled={params.page === 1}
+                            aria-label="Previous page"
+                        >
+                            <FiChevronLeft />
+                        </button>
+
+                        <button className="pagination-btn page-number-btn active">
+                            {params.page}
+                        </button>
+
+                        <button
+                            className="pagination-btn next-btn"
+                            onClick={() => setParams((prev) => ({ ...prev, page: Math.min(totalPages, prev.page + 1) }))}
+                            disabled={params.page >= totalPages || totalPages === 0}
+                            aria-label="Next page"
+                        >
+                            <FiChevronRight />
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    );
+
+    return (
+        <CustomModal
+            className="modal fade show documents-modal"
+            dialgName="modal-dialog modal-dialog-centered modal-xl"
+            createModal
+            show={show}
+            closeModal={onClose}
+            header={
+                <div className="modal-header">
+                    <h5 className="modal-title">On Station</h5>
+                    <button
+                        type="button"
+                        className="modal-close-btn"
+                        onClick={onClose}
+                        aria-label="Close modal"
+                    >
+                        <FiX size={20} />
+                    </button>
+                </div>
+            }
+            body={renderBody()}
+        />
+    );
+}
+
+export default OnStationModal;

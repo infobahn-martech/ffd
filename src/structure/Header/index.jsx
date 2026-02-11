@@ -8,7 +8,8 @@ import {
   FiBell,
   FiLayout,
   FiGrid,
-  FiBarChart2
+  FiBarChart2,
+  FiMapPin
 } from 'react-icons/fi';
 import { Tooltip } from 'react-tooltip';
 import 'react-tooltip/dist/react-tooltip.css';
@@ -21,6 +22,7 @@ import ChangePasswordModal from './ChangePasswordModal';
 import LogoutConfirmationModal from '../../components/LogoutConfirmationModal';
 import NotificationsModal from './NotificationsModal';
 import DocumentsModal from './DocumentsModal';
+import OnStationModal from './OnStationModal';
 import BusinessRulesModal from '../SideNav/components/BusinessRulesModal';
 import ManagersModal from '../SideNav/components/ManagersModal';
 import DashboardsModal from '../SideNav/components/DashboardsModal';
@@ -40,6 +42,7 @@ function Header({ onMenuToggle, mobileMenuOpen: externalMobileMenuOpen }) {
   const [showLogoutModal, setShowLogoutModal] = useState(false);
   const [showNotificationsModal, setShowNotificationsModal] = useState(false);
   const [showDocumentsModal, setShowDocumentsModal] = useState(false);
+  const [showOnStationModal, setShowOnStationModal] = useState(false);
   const [showSettingsDropdown, setShowSettingsDropdown] = useState(false);
   const [showBoardTeamsSubmenu, setShowBoardTeamsSubmenu] = useState(false);
   const [showCardManagementSubmenu, setShowCardManagementSubmenu] = useState(false);
@@ -369,6 +372,15 @@ function Header({ onMenuToggle, mobileMenuOpen: externalMobileMenuOpen }) {
         >
           <FiLayout />
         </button>
+        <Tooltip id="on-station" place="bottom" content="On Station" />
+        <button
+          className={`icon-btn icon-btn-hide-mobile ${showOnStationModal ? 'active' : ''}`}
+          aria-label="On Station"
+          onClick={() => setShowOnStationModal(true)}
+          data-tooltip-id="on-station"
+        >
+          <FiMapPin />
+        </button>
         <Tooltip id="board" place="bottom" content="Board" />
         <button
           className={`icon-btn icon-btn-hide-mobile ${pathname === '/kanban-board' || pathname === '/workspaces' ? 'active' : ''}`}
@@ -517,6 +529,12 @@ function Header({ onMenuToggle, mobileMenuOpen: externalMobileMenuOpen }) {
       {!!showDocumentsModal && <DocumentsModal
         show={showDocumentsModal}
         onClose={() => setShowDocumentsModal(false)}
+      />}
+
+      {/* On Station Modal */}
+      {!!showOnStationModal && <OnStationModal
+        show={showOnStationModal}
+        onClose={() => setShowOnStationModal(false)}
       />}
 
       {/* Settings Modals */}
