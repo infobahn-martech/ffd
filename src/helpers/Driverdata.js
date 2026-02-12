@@ -21,8 +21,8 @@ const workflowsConfig = [
         nestedColumns: {},
         cardCounts: {
             "col-1": 0, // Backlog
-            "col-2": 1, // ToDo
-            "col-3": 0, // In Progress
+            "col-2": 7, // ToDo
+            "col-3": 3, // In Progress
             "col-4": 1, // Done
         },
     },

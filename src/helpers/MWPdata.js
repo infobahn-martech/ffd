@@ -22,8 +22,8 @@ const workflowsConfig = [
         nestedColumns: {},
         cardCounts: {
             "col-1": 0,// Documents ready
-            "col-2": 0, // Applied
-            "col-3": 1, // Approved
+            "col-2": 2, // Applied
+            "col-3": 3, // Approved
             "col-4": 0, // Issued
         },
     },
