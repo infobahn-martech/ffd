@@ -320,31 +320,30 @@ function OnStationModal({ show, onClose }) {
 
                 const canPrintInvoice = !!row.salesOrderConverted && !!row.assignedTo;
 
-                // When true: show only filled blue circle (no toggle control); click to turn off
+                // Pill-style toggle (matches reference: light gray track, white thumb)
+                const toggleSwitch = (
+                    <button
+                        type="button"
+                        role="switch"
+                        aria-checked={isOn}
+                        className={`on-station-pill-toggle ${isOn ? 'on-station-pill-toggle--on' : ''}`}
+                        onClick={handleToggle}
+                        title={isOn ? 'On Station (click to show actions)' : 'Show as on station'}
+                        aria-label={isOn ? 'On Station, click to show actions' : 'Show as on station'}
+                    >
+                        <span className="on-station-pill-toggle__thumb" />
+                    </button>
+                );
+
+                // When true: show only the toggle (on state); click to turn off
                 if (isOn) {
-                    return (
-                        <div className="d-flex align-items-center">
-                            <button
-                                type="button"
-                                className="on-station-indicator on-station-indicator--on"
-                                onClick={handleToggle}
-                                title="On Station (click to show actions)"
-                                aria-label="On Station, click to show actions"
-                            />
-                        </div>
-                    );
+                    return <div className="d-flex align-items-center">{toggleSwitch}</div>;
                 }
 
-                // When false: show toggle button (outline circle) + action buttons
+                // When false: show toggle (off state) + action buttons
                 return (
                     <div className="d-flex flex-wrap align-items-center gap-2">
-                        <button
-                            type="button"
-                            className="on-station-toggle-btn"
-                            onClick={handleToggle}
-                            title="Show as on station"
-                            aria-label="Show as on station"
-                        />
+                        {toggleSwitch}
                         <ActionButton
                             icon={FiFileText}
                             disabled={!row.salesOrderPrinted}
