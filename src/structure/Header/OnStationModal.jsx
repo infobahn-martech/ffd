@@ -320,7 +320,7 @@ function OnStationModal({ show, onClose }) {
 
                 const canPrintInvoice = !!row.salesOrderConverted && !!row.assignedTo;
 
-                // Pill-style toggle (matches reference: light gray track, white thumb)
+                // Pill-style toggle: when false = only toggle; when true = toggle removed, show actions
                 const toggleSwitch = (
                     <button
                         type="button"
@@ -328,22 +328,21 @@ function OnStationModal({ show, onClose }) {
                         aria-checked={isOn}
                         className={`on-station-pill-toggle ${isOn ? 'on-station-pill-toggle--on' : ''}`}
                         onClick={handleToggle}
-                        title={isOn ? 'On Station (click to show actions)' : 'Show as on station'}
-                        aria-label={isOn ? 'On Station, click to show actions' : 'Show as on station'}
+                        title="Switch to show actions"
+                        aria-label="Switch to show actions"
                     >
                         <span className="on-station-pill-toggle__thumb" />
                     </button>
                 );
 
-                // When true: show only the toggle (on state); click to turn off
-                if (isOn) {
+                // When false: only the toggle button (no action buttons)
+                if (!isOn) {
                     return <div className="d-flex align-items-center">{toggleSwitch}</div>;
                 }
 
-                // When false: show toggle (off state) + action buttons
+                // When true: toggle is removed, only action buttons (Print Sales Order, Print Invoice, Print Summary)
                 return (
                     <div className="d-flex flex-wrap align-items-center gap-2">
-                        {toggleSwitch}
                         <ActionButton
                             icon={FiFileText}
                             disabled={!row.salesOrderPrinted}
@@ -365,6 +364,15 @@ function OnStationModal({ show, onClose }) {
                             tooltipId={`sum-${row._id}`}
                             onClick={() => console.log('Print Summary:', row.cardId)}
                         />
+                        {/* <button
+                            type="button"
+                            className="btn btn-sm btn-link text-secondary on-station-hide-actions p-0 ms-1"
+                            onClick={handleToggle}
+                            title="Hide actions"
+                            aria-label="Hide actions"
+                        >
+                            Hide
+                        </button> */}
                     </div>
                 );
             },
