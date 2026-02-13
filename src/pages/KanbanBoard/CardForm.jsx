@@ -662,6 +662,28 @@ const getDummyDropoff = (row) => {
   return DUMMY_DROPOFF[i];
 };
 
+// Dummy Check In / Check Out date and time for Hotel (corresponding to CheckIn vs CheckOut status)
+const DUMMY_CHECK_IN = [
+  { date: "14 Jul 2026", time: "14:00" },
+  { date: "15 Jul 2026", time: "15:30" },
+  { date: "16 Jul 2026", time: "10:00" },
+];
+const DUMMY_CHECK_OUT = [
+  { date: "17 Jul 2026", time: "11:00" },
+  { date: "18 Jul 2026", time: "09:30" },
+  { date: "19 Jul 2026", time: "12:00" },
+];
+const getDummyCheckIn = (row) => {
+  const id = String(row?.id ?? row?.crewName ?? "");
+  const i = Math.abs(id.split("").reduce((a, c) => ((a << 5) - a) + c.charCodeAt(0), 0)) % DUMMY_CHECK_IN.length;
+  return DUMMY_CHECK_IN[i];
+};
+const getDummyCheckOut = (row) => {
+  const id = String(row?.id ?? row?.crewName ?? "");
+  const i = Math.abs(id.split("").reduce((a, c) => ((a << 5) - a) + c.charCodeAt(0), 0)) % DUMMY_CHECK_OUT.length;
+  return DUMMY_CHECK_OUT[i];
+};
+
 // Driver Board card view: 4 counters + crew table
 // variant: "driver" => Status = Pickup (green) / Drop off (orange) | "hotel" => Status = CheckIn (green) / CheckOut (orange)
 const DriverCardView = ({ card, variant = "driver" }) => {
@@ -710,8 +732,17 @@ const DriverCardView = ({ card, variant = "driver" }) => {
               <th>Crew Name</th>
               <th>Nationality</th>
               <th>Passport No</th>
-              <th>PickUp Date, Time and Location</th>
-              <th>DropOff Date, Time and Location</th>
+              {isHotel ? (
+                <>
+                  <th>Check In Date and Time</th>
+                  <th>Check Out Date and Time</th>
+                </>
+              ) : (
+                <>
+                  <th>PickUp Date, Time and Location</th>
+                  <th>DropOff Date, Time and Location</th>
+                </>
+              )}
               <th>Status</th>
             </tr>
           </thead>
@@ -723,13 +754,51 @@ const DriverCardView = ({ card, variant = "driver" }) => {
             ) : (
               crew.map((row) => {
                 const statusIndex = getStatusIndex(row);
-                const isPickup = statusIndex === 0;
+                const isFirstStatus = statusIndex === 0; // Pickup / CheckIn
+                if (isHotel) {
+                  const checkInData = row.checkInDate || row.checkInTime
+                    ? { date: row.checkInDate, time: row.checkInTime }
+                    : (isFirstStatus ? getDummyCheckIn(row) : getDummyCheckIn(row));
+                  const checkOutData = row.checkOutDate || row.checkOutTime
+                    ? { date: row.checkOutDate, time: row.checkOutTime }
+                    : (!isFirstStatus ? getDummyCheckOut(row) : null);
+                  return (
+                    <tr key={row.id || row.crewName + row.passportNo}>
+                      <td>{row.crewName ?? "—"}</td>
+                      <td>{row.nationality ?? "—"}</td>
+                      <td>{row.passportNo ?? "—"}</td>
+                      <td className="driver-crew-datetime-loc">
+                        {checkInData ? (
+                          <>
+                            {checkInData.date && <span>{checkInData.date}</span>}
+                            {checkInData.time && <span>{checkInData.time}</span>}
+                          </>
+                        ) : (
+                          "—"
+                        )}
+                      </td>
+                      <td className="driver-crew-datetime-loc">
+                        {checkOutData ? (
+                          <>
+                            {checkOutData.date && <span>{checkOutData.date}</span>}
+                            {checkOutData.time && <span>{checkOutData.time}</span>}
+                          </>
+                        ) : (
+                          "—"
+                        )}
+                      </td>
+                      <td>
+                        <StatusBadge row={row} />
+                      </td>
+                    </tr>
+                  );
+                }
                 const pickupData = row.pickupDate || row.pickupTime || row.pickupLocation
                   ? { date: row.pickupDate, time: row.pickupTime, location: row.pickupLocation }
-                  : (isPickup ? getDummyPickup(row) : getDummyPickup(row));
+                  : getDummyPickup(row);
                 const dropoffData = row.dropoffDate || row.dropoffTime || row.dropoffLocation
                   ? { date: row.dropoffDate, time: row.dropoffTime, location: row.dropoffLocation }
-                  : (!isPickup ? getDummyDropoff(row) : null);
+                  : (!isFirstStatus ? getDummyDropoff(row) : null);
                 return (
                   <tr key={row.id || row.crewName + row.passportNo}>
                     <td>{row.crewName ?? "—"}</td>
