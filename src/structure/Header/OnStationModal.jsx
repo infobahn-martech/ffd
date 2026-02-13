@@ -13,6 +13,8 @@ const initialOnStation = [
         cardId: 95,
         vesselName: 'Chayari Tide',
         client: 'Tide Water',
+        ownerName: 'Pacific Maritime Ltd',
+        vesselManager: 'John Smith',
         importDate: '15th Feb 2026',
         exportDate: '-',
         salesOrderPrinted: true,
@@ -25,6 +27,8 @@ const initialOnStation = [
         cardId: 99,
         vesselName: 'Ocean Star',
         client: 'Blue Marine',
+        ownerName: 'Atlantic Shipping Co',
+        vesselManager: 'Sarah Wilson',
         importDate: '16th Feb 2026',
         exportDate: '-',
         salesOrderPrinted: true,
@@ -37,6 +41,8 @@ const initialOnStation = [
         cardId: 92,
         vesselName: 'Sea Falcon',
         client: 'Harbor Logistics',
+        ownerName: 'Harbor Fleet Inc',
+        vesselManager: 'Michael Brown',
         importDate: '18th Feb 2026',
         exportDate: '-',
         salesOrderPrinted: true,
@@ -49,6 +55,8 @@ const initialOnStation = [
         cardId: 88,
         vesselName: 'Wave Rider',
         client: 'Port Co.',
+        ownerName: 'Port Holdings',
+        vesselManager: 'Emma Davis',
         importDate: '20th Feb 2026',
         exportDate: '-',
         salesOrderPrinted: false,
@@ -61,6 +69,8 @@ const initialOnStation = [
         cardId: 85,
         vesselName: 'Neptune Voyager',
         client: 'Global Shipping',
+        ownerName: 'Global Maritime Group',
+        vesselManager: 'James Taylor',
         importDate: '22nd Feb 2026',
         exportDate: '-',
         salesOrderPrinted: true,
@@ -73,6 +83,10 @@ const initialOnStation = [
 function OnStationModal({ show, onClose }) {
     const [onStation] = useState(initialOnStation);
     const [searchQuery, setSearchQuery] = useState('');
+    // Toggle per row: when true, show action icons (document, invoice, summary)
+    const [actionToggles, setActionToggles] = useState(() =>
+        Object.fromEntries(initialOnStation.map((r) => [r._id, true]))
+    );
 
     const [params, setParams] = useState({
         page: 1,
@@ -99,6 +113,8 @@ function OnStationModal({ show, onClose }) {
                 row.cardId.toString().includes(query) ||
                 (row.vesselName || '').toLowerCase().includes(query) ||
                 (row.client || '').toLowerCase().includes(query) ||
+                (row.ownerName || '').toLowerCase().includes(query) ||
+                (row.vesselManager || '').toLowerCase().includes(query) ||
                 (row.importDate || '').toLowerCase().includes(query) ||
                 (row.exportDate || '').toLowerCase().includes(query) ||
                 assigned.includes(query)
@@ -213,6 +229,38 @@ function OnStationModal({ show, onClose }) {
             ),
         },
         {
+            name: 'OWNER NAME',
+            selector: 'ownerName',
+            tableClasses: 'table-striped',
+            sort: true,
+            contentClass: 'table-content',
+            thclass: 'tb-head',
+            width: '180',
+            cell: (props) => (
+                <TruncatedCell
+                    text={props.row.ownerName}
+                    maxLength={18}
+                    tooltipId={`owner-${props.row._id}`}
+                />
+            ),
+        },
+        {
+            name: 'VESSEL MANAGER',
+            selector: 'vesselManager',
+            tableClasses: 'table-striped',
+            sort: true,
+            contentClass: 'table-content',
+            thclass: 'tb-head',
+            width: '140',
+            cell: (props) => (
+                <TruncatedCell
+                    text={props.row.vesselManager}
+                    maxLength={18}
+                    tooltipId={`manager-${props.row._id}`}
+                />
+            ),
+        },
+        {
             name: 'IMPORT DATE',
             selector: 'importDate',
             tableClasses: 'table-striped',
@@ -241,34 +289,60 @@ function OnStationModal({ show, onClose }) {
             width: '420',
             cell: (props) => {
                 const row = props.row;
+                const isActionsVisible = actionToggles[row._id] !== false;
+
+                const handleToggle = () => {
+                    setActionToggles((prev) => ({
+                        ...prev,
+                        [row._id]: !prev[row._id],
+                    }));
+                };
 
                 // ✅ Rule from image:
                 // Print Invoice should be enabled only AFTER sales order is converted by Assigned Operator or Supervisor.
                 const canPrintInvoice = !!row.salesOrderConverted && !!row.assignedTo;
 
                 return (
-                    <div className="d-flex flex-wrap align-items-center gap-1">
-                        <ActionButton
-                            icon={FiFileText}
-                            disabled={!row.salesOrderPrinted}
-                            tooltip={row.salesOrderPrinted ? 'Print Sales Order' : 'Sales Order not available yet'}
-                            tooltipId={`so-${row._id}`}
-                            onClick={() => console.log('Print Sales Order:', row.cardId)}
-                        />
-                        <ActionButton
-                            icon={FiDollarSign}
-                            disabled={!canPrintInvoice}
-                            tooltip={canPrintInvoice ? 'Print Invoice' : 'Invoice will be reflected once Sales Order is converted by Assigned Operator/Supervisor'}
-                            tooltipId={`inv-${row._id}`}
-                            onClick={() => console.log('Print Invoice:', row.cardId)}
-                        />
-                        <ActionButton
-                            icon={FiList}
-                            disabled={!row.summaryReady}
-                            tooltip={row.summaryReady ? 'Print Summary' : 'Summary Sheet not ready'}
-                            tooltipId={`sum-${row._id}`}
-                            onClick={() => console.log('Print Summary:', row.cardId)}
-                        />
+                    <div className="d-flex flex-wrap align-items-center gap-2">
+                        <div className="form-check form-switch mb-0" title={isActionsVisible ? 'Hide actions' : 'Show actions'}>
+                            <input
+                                className="form-check-input"
+                                type="checkbox"
+                                role="switch"
+                                id={`on-station-toggle-${row._id}`}
+                                checked={isActionsVisible}
+                                onChange={handleToggle}
+                                aria-label={isActionsVisible ? 'Hide actions' : 'Show actions'}
+                            />
+                            <label className="form-check-label visually-hidden" htmlFor={`on-station-toggle-${row._id}`}>
+                                {isActionsVisible ? 'Hide' : 'Show'} action buttons
+                            </label>
+                        </div>
+                        {isActionsVisible && (
+                            <>
+                                <ActionButton
+                                    icon={FiFileText}
+                                    disabled={!row.salesOrderPrinted}
+                                    tooltip={row.salesOrderPrinted ? 'Print Sales Order' : 'Sales Order not available yet'}
+                                    tooltipId={`so-${row._id}`}
+                                    onClick={() => console.log('Print Sales Order:', row.cardId)}
+                                />
+                                <ActionButton
+                                    icon={FiDollarSign}
+                                    disabled={!canPrintInvoice}
+                                    tooltip={canPrintInvoice ? 'Print Invoice' : 'Invoice will be reflected once Sales Order is converted by Assigned Operator/Supervisor'}
+                                    tooltipId={`inv-${row._id}`}
+                                    onClick={() => console.log('Print Invoice:', row.cardId)}
+                                />
+                                <ActionButton
+                                    icon={FiList}
+                                    disabled={!row.summaryReady}
+                                    tooltip={row.summaryReady ? 'Print Summary' : 'Summary Sheet not ready'}
+                                    tooltipId={`sum-${row._id}`}
+                                    onClick={() => console.log('Print Summary:', row.cardId)}
+                                />
+                            </>
+                        )}
                     </div>
                 );
             },
@@ -285,7 +359,7 @@ function OnStationModal({ show, onClose }) {
                         <input
                             type="text"
                             className="form-control search-input"
-                            placeholder="Search by Card ID, Vessel Name, Client, Import/Export Date, Assigned..."
+                            placeholder="Search by Card ID, Vessel Name, Client, Owner, Vessel Manager, Import/Export Date, Assigned..."
                             value={searchQuery}
                             onChange={handleSearchChange}
                         />
