@@ -55,6 +55,7 @@ function Header({ onMenuToggle, mobileMenuOpen: externalMobileMenuOpen }) {
   const [showTypesModal, setShowTypesModal] = useState(false);
   const [imageError, setImageError] = useState(false);
   const [notificationCount, setNotificationCount] = useState(3); // Default count, can be updated with real data
+  const [kanbanBoardLoading, setKanbanBoardLoading] = useState(false);
   const dropdownRef = useRef(null);
   const settingsDropdownRef = useRef(null);
   const isMobile = width <= 991;
@@ -95,6 +96,13 @@ function Header({ onMenuToggle, mobileMenuOpen: externalMobileMenuOpen }) {
       onMenuToggle(newState);
     }
   };
+
+  // Clear kanban board loader when route has changed to /kanban-board
+  useEffect(() => {
+    if (pathname === '/kanban-board') {
+      setKanbanBoardLoading(false);
+    }
+  }, [pathname]);
 
   // Close dropdown when clicking outside
   useEffect(() => {
@@ -278,7 +286,10 @@ function Header({ onMenuToggle, mobileMenuOpen: externalMobileMenuOpen }) {
     setShowTypesModal(true);
   };
 
-
+  const handleKanbanBoardClick = () => {
+    setKanbanBoardLoading(true);
+    navigate('/kanban-board');
+  };
 
   return (
     <div className="sedres-header">
@@ -385,7 +396,8 @@ function Header({ onMenuToggle, mobileMenuOpen: externalMobileMenuOpen }) {
         <button
           className={`icon-btn icon-btn-hide-mobile ${pathname === '/kanban-board' ? 'active' : ''}`}
           aria-label="Board"
-          onClick={() => navigate('/kanban-board')}
+          onClick={handleKanbanBoardClick}
+          disabled={kanbanBoardLoading}
           data-tooltip-id="board"
         >
           <FiGrid />
@@ -566,6 +578,18 @@ function Header({ onMenuToggle, mobileMenuOpen: externalMobileMenuOpen }) {
         show={showTypesModal}
         onClose={() => setShowTypesModal(false)}
       />
+
+      {/* Kanban Board navigation loader */}
+      {kanbanBoardLoading && (
+        <div className="page-loader-overlay">
+          <div className="page-loader-content">
+            <div className="spinner-border text-primary" role="status" style={{ width: '3rem', height: '3rem' }}>
+              <span className="visually-hidden">Loading...</span>
+            </div>
+            <p className="mt-2">Loading board...</p>
+          </div>
+        </div>
+      )}
 
     </div>
   );
