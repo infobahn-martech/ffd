@@ -552,8 +552,24 @@ const MWPCardView = ({ card }) => {
     </div>
   );
 
+  const CounterCard = ({ label, value }) => (
+    <div className="driver-card-counter">
+      <div className="driver-card-counter-label">{label}</div>
+      <div className="driver-card-counter-value">{value}</div>
+    </div>
+  );
+
+  const billingEntity = card?.user ?? "—";
+  const expiryDisplay = `${formatDisplayDate(expiryDate)} ${formatDisplayTime(expiryTime)}`;
+
   return (
     <div className="mwp-card-view">
+      <div className="driver-card-counters">
+        <CounterCard label="Billing Entity" value={billingEntity} />
+        <CounterCard label="Application No" value={applicationNo} />
+        <CounterCard label="SADAD No" value={sadadNo} />
+        <CounterCard label="Expiry" value={expiryDisplay} />
+      </div>
       <div className="mwp-card-view-grid">
         <div className="mwp-section">
           <h3 className="mwp-section-title">Application</h3>
