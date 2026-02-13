@@ -383,7 +383,7 @@ function Header({ onMenuToggle, mobileMenuOpen: externalMobileMenuOpen }) {
         </button>
         <Tooltip id="board" place="bottom" content="Board" />
         <button
-          className={`icon-btn icon-btn-hide-mobile ${pathname === '/kanban-board' || pathname === '/workspaces' ? 'active' : ''}`}
+          className={`icon-btn icon-btn-hide-mobile ${pathname === '/kanban-board' ? 'active' : ''}`}
           aria-label="Board"
           onClick={() => navigate('/kanban-board')}
           data-tooltip-id="board"
