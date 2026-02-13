@@ -624,6 +624,28 @@ const getStatusIndex = (row) => {
   return Math.abs(hash) % 2;
 };
 
+// Dummy PickUp/DropOff values corresponding to status (Pickup vs Drop off)
+const DUMMY_PICKUP = [
+  { date: "15 Jul 2026", time: "09:00", location: "Port Terminal A" },
+  { date: "14 Jul 2026", time: "08:30", location: "Airport Arrival Hall" },
+  { date: "16 Jul 2026", time: "10:15", location: "Marina Bay Pier" },
+];
+const DUMMY_DROPOFF = [
+  { date: "15 Jul 2026", time: "14:30", location: "Vessel MV Indian Ocean" },
+  { date: "14 Jul 2026", time: "16:00", location: "Port Terminal B" },
+  { date: "16 Jul 2026", time: "11:45", location: "Harbor Gate 2" },
+];
+const getDummyPickup = (row) => {
+  const id = String(row?.id ?? row?.crewName ?? "");
+  const i = Math.abs(id.split("").reduce((a, c) => ((a << 5) - a) + c.charCodeAt(0), 0)) % DUMMY_PICKUP.length;
+  return DUMMY_PICKUP[i];
+};
+const getDummyDropoff = (row) => {
+  const id = String(row?.id ?? row?.crewName ?? "");
+  const i = Math.abs(id.split("").reduce((a, c) => ((a << 5) - a) + c.charCodeAt(0), 0)) % DUMMY_DROPOFF.length;
+  return DUMMY_DROPOFF[i];
+};
+
 // Driver Board card view: 4 counters + crew table
 // variant: "driver" => Status = Pickup (green) / Drop off (orange) | "hotel" => Status = CheckIn (green) / CheckOut (orange)
 const DriverCardView = ({ card, variant = "driver" }) => {
@@ -672,25 +694,59 @@ const DriverCardView = ({ card, variant = "driver" }) => {
               <th>Crew Name</th>
               <th>Nationality</th>
               <th>Passport No</th>
+              <th>PickUp Date, Time and Location</th>
+              <th>DropOff Date, Time and Location</th>
               <th>Status</th>
             </tr>
           </thead>
           <tbody>
             {crew.length === 0 ? (
               <tr>
-                <td colSpan={4} className="driver-crew-empty">No crew data</td>
+                <td colSpan={6} className="driver-crew-empty">No crew data</td>
               </tr>
             ) : (
-              crew.map((row) => (
-                <tr key={row.id || row.crewName + row.passportNo}>
-                  <td>{row.crewName ?? "—"}</td>
-                  <td>{row.nationality ?? "—"}</td>
-                  <td>{row.passportNo ?? "—"}</td>
-                  <td>
-                    <StatusBadge row={row} />
-                  </td>
-                </tr>
-              ))
+              crew.map((row) => {
+                const statusIndex = getStatusIndex(row);
+                const isPickup = statusIndex === 0;
+                const pickupData = row.pickupDate || row.pickupTime || row.pickupLocation
+                  ? { date: row.pickupDate, time: row.pickupTime, location: row.pickupLocation }
+                  : (isPickup ? getDummyPickup(row) : getDummyPickup(row));
+                const dropoffData = row.dropoffDate || row.dropoffTime || row.dropoffLocation
+                  ? { date: row.dropoffDate, time: row.dropoffTime, location: row.dropoffLocation }
+                  : (!isPickup ? getDummyDropoff(row) : null);
+                return (
+                  <tr key={row.id || row.crewName + row.passportNo}>
+                    <td>{row.crewName ?? "—"}</td>
+                    <td>{row.nationality ?? "—"}</td>
+                    <td>{row.passportNo ?? "—"}</td>
+                    <td className="driver-crew-datetime-loc">
+                      {pickupData ? (
+                        <>
+                          {pickupData.date && <span>{pickupData.date}</span>}
+                          {pickupData.time && <span>{pickupData.time}</span>}
+                          {pickupData.location && <span>{pickupData.location}</span>}
+                        </>
+                      ) : (
+                        "—"
+                      )}
+                    </td>
+                    <td className="driver-crew-datetime-loc">
+                      {dropoffData ? (
+                        <>
+                          {dropoffData.date && <span>{dropoffData.date}</span>}
+                          {dropoffData.time && <span>{dropoffData.time}</span>}
+                          {dropoffData.location && <span>{dropoffData.location}</span>}
+                        </>
+                      ) : (
+                        "—"
+                      )}
+                    </td>
+                    <td>
+                      <StatusBadge row={row} />
+                    </td>
+                  </tr>
+                );
+              })
             )}
           </tbody>
         </table>

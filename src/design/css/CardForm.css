@@ -1232,6 +1232,20 @@
   background: #f8f7fc;
 }
 
+.driver-crew-datetime-loc {
+  white-space: normal;
+  min-width: 140px;
+}
+
+.driver-crew-datetime-loc span {
+  display: block;
+  line-height: 1.4;
+}
+
+.driver-crew-datetime-loc span + span {
+  margin-top: 2px;
+}
+
 .driver-crew-empty {
   text-align: center;
   color: #888;
