@@ -660,7 +660,7 @@ const DriverCardView = ({ card, variant = "driver" }) => {
   return (
     <div className="driver-card-view">
       <div className="driver-card-counters">
-        <CounterCard label="OWNER" value={owner} />
+        <CounterCard label="Billing Entity" value={owner} />
         <CounterCard label="CALL TYPE" value={callType} />
         <CounterCard label="VESSEL NAME" value={vesselName} />
         <CounterCard label="VESSEL TYPE" value={vesselType} />
@@ -764,7 +764,7 @@ const GROCardView = ({ card }) => {
   return (
     <div className="gro-card-view">
       <div className="driver-card-counters">
-        <CounterCard label="OWNER" value={owner} />
+        <CounterCard label="Billing Entity" value={owner} />
         <CounterCard label="CALL TYPE" value={callType} />
         <CounterCard label="VESSEL NAME" value={vesselName} />
         <CounterCard label="VESSEL TYPE" value={vesselType} />
