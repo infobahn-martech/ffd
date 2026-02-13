@@ -212,11 +212,11 @@ function CustomTable({
                   <tr>
                     {Sl && <th width="100">Sl.No</th>}
                     {columns.map(
-                      ({ thclass, sort, selector, name, thProps, width }) => (
+                      ({ thclass, sort, selector, name, thProps, width }, colIdx) => (
                         <th
                           width={width}
                           scope="col"
-                          key={`head${name}`}
+                          key={`head-${colIdx}-${typeof name === 'string' ? name : selector}`}
                           {...thProps}
                         >
                           <div className={`${thclass} d-inline`}>{name}</div>
@@ -302,7 +302,7 @@ CustomTable.propTypes = {
       thclass: PropTypes.string,
       sort: PropTypes.bool,
       selector: PropTypes.oneOfType([PropTypes.string, PropTypes.func]),
-      name: PropTypes.string.isRequired,
+      name: PropTypes.oneOfType([PropTypes.string, PropTypes.node]).isRequired,
       thProps: PropTypes.object,
       width: PropTypes.oneOfType([PropTypes.string, PropTypes.number]),
       cell: PropTypes.func,

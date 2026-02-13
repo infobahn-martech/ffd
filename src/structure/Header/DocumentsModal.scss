@@ -410,3 +410,44 @@
   padding: 6px 10px;
   min-width: 34px;
 }
+
+/* On Station toggle: styled circle */
+.on-station-indicator,
+.on-station-toggle-btn {
+  width: 24px;
+  height: 24px;
+  border-radius: 50%;
+  flex-shrink: 0;
+  padding: 0;
+  border: 2px solid #00368c;
+  cursor: pointer;
+  transition: background-color 0.2s ease, transform 0.15s ease;
+  background-color: transparent;
+
+  &:hover {
+    transform: scale(1.08);
+  }
+  &:active {
+    transform: scale(0.95);
+  }
+}
+
+.on-station-indicator--on {
+  background-color: #00368c;
+  border-color: #00368c;
+}
+
+.on-station-toggle-btn {
+  &:hover {
+    background-color: rgba(0, 54, 140, 0.08);
+  }
+}
+
+/* Table header label truncation */
+.table-header-label {
+  display: inline-block;
+  max-width: 100%;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}

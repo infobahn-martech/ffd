@@ -83,9 +83,9 @@ const initialOnStation = [
 function OnStationModal({ show, onClose }) {
     const [onStation] = useState(initialOnStation);
     const [searchQuery, setSearchQuery] = useState('');
-    // Toggle per row: when true, show action icons (document, invoice, summary)
+    // Toggle per row: when true, show only filled circle; when false, show toggle + action buttons
     const [actionToggles, setActionToggles] = useState(() =>
-        Object.fromEntries(initialOnStation.map((r) => [r._id, true]))
+        Object.fromEntries(initialOnStation.map((r, i) => [r._id, i === 0]))
     );
 
     const [params, setParams] = useState({
@@ -137,8 +137,28 @@ function OnStationModal({ show, onClose }) {
         setParams((prev) => ({ ...prev, page: 1 }));
     };
 
-    // Helper component for truncated text with tooltip
-    const TruncatedCell = ({ text, maxLength = 30, tooltipId }) => {
+    const HEADER_TRUNCATE_LENGTH = 9;
+
+    // Column header: truncate after 11 chars with "..." and tooltip
+    const HeaderLabel = ({ label, tooltipId }) => {
+        const isTruncated = label.length > HEADER_TRUNCATE_LENGTH;
+        const displayText = isTruncated ? label.substring(0, HEADER_TRUNCATE_LENGTH) + '..' : label;
+        return (
+            <>
+                <span
+                    data-tooltip-id={isTruncated ? tooltipId : undefined}
+                    data-tooltip-content={isTruncated ? label : undefined}
+                    className="table-header-label"
+                >
+                    {displayText}
+                </span>
+                {isTruncated && <Tooltip id={tooltipId} place="top" />}
+            </>
+        );
+    };
+
+    // Helper component for truncated text with tooltip (data cells: 11 chars)
+    const TruncatedCell = ({ text, maxLength = 11, tooltipId }) => {
         if (!text) return <span>-</span>;
         const isTruncated = text.length > maxLength;
         const displayText = isTruncated ? text.substring(0, maxLength) + '...' : text;
@@ -197,7 +217,7 @@ function OnStationModal({ show, onClose }) {
 
     const cols = [
         {
-            name: 'VESSEL NAME',
+            name: <HeaderLabel label="VESSEL NAME" tooltipId="th-vessel-name" />,
             selector: 'vesselName',
             tableClasses: 'table-striped',
             sort: true,
@@ -207,13 +227,13 @@ function OnStationModal({ show, onClose }) {
             cell: (props) => (
                 <TruncatedCell
                     text={props.row.vesselName}
-                    maxLength={20}
+                    maxLength={11}
                     tooltipId={`vessel-${props.row._id}`}
                 />
             ),
         },
         {
-            name: 'CLIENT',
+            name: <HeaderLabel label="CLIENT" tooltipId="th-client" />,
             selector: 'client',
             tableClasses: 'table-striped',
             sort: true,
@@ -223,13 +243,13 @@ function OnStationModal({ show, onClose }) {
             cell: (props) => (
                 <TruncatedCell
                     text={props.row.client}
-                    maxLength={18}
+                    maxLength={11}
                     tooltipId={`client-${props.row._id}`}
                 />
             ),
         },
         {
-            name: 'OWNER NAME',
+            name: <HeaderLabel label="OWNER NAME" tooltipId="th-owner-name" />,
             selector: 'ownerName',
             tableClasses: 'table-striped',
             sort: true,
@@ -239,13 +259,13 @@ function OnStationModal({ show, onClose }) {
             cell: (props) => (
                 <TruncatedCell
                     text={props.row.ownerName}
-                    maxLength={18}
+                    maxLength={11}
                     tooltipId={`owner-${props.row._id}`}
                 />
             ),
         },
         {
-            name: 'VESSEL MANAGER',
+            name: <HeaderLabel label="VESSEL MANAGER" tooltipId="th-vessel-manager" />,
             selector: 'vesselManager',
             tableClasses: 'table-striped',
             sort: true,
@@ -255,13 +275,13 @@ function OnStationModal({ show, onClose }) {
             cell: (props) => (
                 <TruncatedCell
                     text={props.row.vesselManager}
-                    maxLength={18}
+                    maxLength={11}
                     tooltipId={`manager-${props.row._id}`}
                 />
             ),
         },
         {
-            name: 'IMPORT DATE',
+            name: <HeaderLabel label="IMPORT DATE" tooltipId="th-import-date" />,
             selector: 'importDate',
             tableClasses: 'table-striped',
             sort: true,
@@ -271,7 +291,7 @@ function OnStationModal({ show, onClose }) {
             cell: (props) => <span>{props.row.importDate || '-'}</span>,
         },
         {
-            name: 'EXPORT DATE',
+            name: <HeaderLabel label="EXPORT DATE" tooltipId="th-export-date" />,
             selector: 'exportDate',
             tableClasses: 'table-striped',
             sort: true,
@@ -281,7 +301,7 @@ function OnStationModal({ show, onClose }) {
             cell: (props) => <span>{props.row.exportDate || '-'}</span>,
         },
         {
-            name: 'ON STATION',
+            name: <HeaderLabel label="ON STATION" tooltipId="th-on-station" />,
             selector: 'actions',
             tableClasses: 'table-striped',
             contentClass: 'table-content',
@@ -289,7 +309,7 @@ function OnStationModal({ show, onClose }) {
             width: '420',
             cell: (props) => {
                 const row = props.row;
-                const isActionsVisible = actionToggles[row._id] !== false;
+                const isOn = actionToggles[row._id] !== false;
 
                 const handleToggle = () => {
                     setActionToggles((prev) => ({
@@ -298,51 +318,54 @@ function OnStationModal({ show, onClose }) {
                     }));
                 };
 
-                // ✅ Rule from image:
-                // Print Invoice should be enabled only AFTER sales order is converted by Assigned Operator or Supervisor.
                 const canPrintInvoice = !!row.salesOrderConverted && !!row.assignedTo;
 
+                // When true: show only filled blue circle (no toggle control); click to turn off
+                if (isOn) {
+                    return (
+                        <div className="d-flex align-items-center">
+                            <button
+                                type="button"
+                                className="on-station-indicator on-station-indicator--on"
+                                onClick={handleToggle}
+                                title="On Station (click to show actions)"
+                                aria-label="On Station, click to show actions"
+                            />
+                        </div>
+                    );
+                }
+
+                // When false: show toggle button (outline circle) + action buttons
                 return (
                     <div className="d-flex flex-wrap align-items-center gap-2">
-                        <div className="form-check form-switch mb-0" title={isActionsVisible ? 'Hide actions' : 'Show actions'}>
-                            <input
-                                className="form-check-input"
-                                type="checkbox"
-                                role="switch"
-                                id={`on-station-toggle-${row._id}`}
-                                checked={isActionsVisible}
-                                onChange={handleToggle}
-                                aria-label={isActionsVisible ? 'Hide actions' : 'Show actions'}
-                            />
-                            <label className="form-check-label visually-hidden" htmlFor={`on-station-toggle-${row._id}`}>
-                                {isActionsVisible ? 'Hide' : 'Show'} action buttons
-                            </label>
-                        </div>
-                        {isActionsVisible && (
-                            <>
-                                <ActionButton
-                                    icon={FiFileText}
-                                    disabled={!row.salesOrderPrinted}
-                                    tooltip={row.salesOrderPrinted ? 'Print Sales Order' : 'Sales Order not available yet'}
-                                    tooltipId={`so-${row._id}`}
-                                    onClick={() => console.log('Print Sales Order:', row.cardId)}
-                                />
-                                <ActionButton
-                                    icon={FiDollarSign}
-                                    disabled={!canPrintInvoice}
-                                    tooltip={canPrintInvoice ? 'Print Invoice' : 'Invoice will be reflected once Sales Order is converted by Assigned Operator/Supervisor'}
-                                    tooltipId={`inv-${row._id}`}
-                                    onClick={() => console.log('Print Invoice:', row.cardId)}
-                                />
-                                <ActionButton
-                                    icon={FiList}
-                                    disabled={!row.summaryReady}
-                                    tooltip={row.summaryReady ? 'Print Summary' : 'Summary Sheet not ready'}
-                                    tooltipId={`sum-${row._id}`}
-                                    onClick={() => console.log('Print Summary:', row.cardId)}
-                                />
-                            </>
-                        )}
+                        <button
+                            type="button"
+                            className="on-station-toggle-btn"
+                            onClick={handleToggle}
+                            title="Show as on station"
+                            aria-label="Show as on station"
+                        />
+                        <ActionButton
+                            icon={FiFileText}
+                            disabled={!row.salesOrderPrinted}
+                            tooltip={row.salesOrderPrinted ? 'Print Sales Order' : 'Sales Order not available yet'}
+                            tooltipId={`so-${row._id}`}
+                            onClick={() => console.log('Print Sales Order:', row.cardId)}
+                        />
+                        <ActionButton
+                            icon={FiDollarSign}
+                            disabled={!canPrintInvoice}
+                            tooltip={canPrintInvoice ? 'Print Invoice' : 'Invoice will be reflected once Sales Order is converted by Assigned Operator/Supervisor'}
+                            tooltipId={`inv-${row._id}`}
+                            onClick={() => console.log('Print Invoice:', row.cardId)}
+                        />
+                        <ActionButton
+                            icon={FiList}
+                            disabled={!row.summaryReady}
+                            tooltip={row.summaryReady ? 'Print Summary' : 'Summary Sheet not ready'}
+                            tooltipId={`sum-${row._id}`}
+                            onClick={() => console.log('Print Summary:', row.cardId)}
+                        />
                     </div>
                 );
             },
