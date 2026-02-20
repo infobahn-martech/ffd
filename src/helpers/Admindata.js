@@ -1,24 +1,24 @@
 // ============================================
 // DA DESK WORKFLOW CONFIGURATION
 // ============================================
-// rgb(156, 163, 175)
-// rgb(59, 130, 246)
-// rgb(245, 158, 11)
-// rgb(16, 185, 129)
+// 'REQUESTED AREA': '#2666be',
+// 'IN PROGRESS AREA': '#f38a30',
+// 'DONE AREA': '#42af49',
+// 'READY TO ARCHIVE AREA': '#7333bd',
 const workflowsConfig = [
     {
         id: "main-work-flow-rt",
         title: "Main work flow RT",
         columnColors: {
-            "col-1": "rgb(59, 130, 246)", // Appointment Received - Purple
-            "col-2": "rgb(59, 130, 246)", // Working on it - Purple
-            "col-3": "rgb(245, 158, 11)", // Awaiting PO - Purple
-            "col-4": "rgb(245, 158, 11)", // Al Gihaz awaiting submission - Blue
-            "col-5": "rgb(245, 158, 11)", // Finalized - Green
-            "col-6": "rgb(245, 158, 11)", // Awaiting acknowledgment - Brown
-            "col-7": "rgb(16, 185, 129)", // Dispatched - Orange
-            "col-8": "rgb(16, 185, 129)", // In Client System - Orange
-            "col-9": "rgb(139, 92, 246)", // Ready To Archive - Orange
+            "col-1": "#2666be", // Appointment Received - Purple
+            "col-2": "#2666be", // Working on it - Purple
+            "col-3": "#f38a30", // Awaiting PO - Purple
+            "col-4": "#f38a30", // Al Gihaz awaiting submission - Blue
+            "col-5": "#f38a30", // Finalized - Green
+            "col-6": "#f38a30", // Awaiting acknowledgment - Brown
+            "col-7": "#42af49", // Dispatched - Orange
+            "col-8": "#42af49", // In Client System - Orange
+            "col-9": "#7333bd", // Ready To Archive - Orange
 
         },
         columnTitles: [
@@ -55,15 +55,15 @@ const workflowsConfig = [
         id: "import-export-rt",
         title: "Import Export RT",
         columnColors: {
-            "col-1": "rgb(245, 158, 11)", // Ready to Finalize - Pink
-            "col-2": "rgb(245, 158, 11)", // In Progress - Purple
-            "col-3": "rgb(245, 158, 11)", // Al Gihaz awaiting submission - Blue
-            "col-4": "rgb(245, 158, 11)", // Finalized - Green
-            "col-5": "rgb(245, 158, 11)", // Awaiting acknowledgment - Brown
-            "col-6": "rgb(245, 158, 11)", // Dispatched - Orange
-            "col-7": "rgb(245, 158, 11)", // In Client System - Orange
-            "col-8": "rgb(16, 185, 129)", // Ready To Archive - Orange
-            "col-9": "rgb(16, 185, 129)", // Ready To Archive - Orange
+            "col-1": "#f38a30", // Ready to Finalize - Pink
+            "col-2": "#f38a30", // In Progress - Purple
+            "col-3": "#f38a30", // Al Gihaz awaiting submission - Blue
+            "col-4": "#f38a30", // Finalized - Green
+            "col-5": "#f38a30", // Awaiting acknowledgment - Brown
+            "col-6": "#f38a30", // Dispatched - Orange
+            "col-7": "#f38a30", // In Client System - Orange
+            "col-8": "#42af49", // Ready To Archive - Orange
+            "col-9": "#42af49", // Ready To Archive - Orange
         },
         columnTitles: [
             "Arrived",
@@ -94,11 +94,11 @@ const workflowsConfig = [
         id: "husbandry-rt",
         title: "Husbandry RT",
         columnColors: {
-            "col-1": "rgb(59, 130, 246)", // Ready to Finalize - Pink
-            "col-2": "rgb(245, 158, 11)", // In Progress - Purple
-            "col-3": "rgb(245, 158, 11)", // Al Gihaz awaiting submission - Blue
-            "col-4": "rgb(16, 185, 129)", // Finalized - Green
-            "col-5": "rgb(139, 92, 246)", // Awaiting acknowledgment - Brown
+            "col-1": "#2666be", // Requested - Pink
+            "col-2": "#f38a30", // Service In Progress - Purple
+            "col-3": "#f38a30", // Service In Progress - Blue
+            "col-4": "#42af49", // Done - Green
+            "col-5": "#7333bd", // Ready To Archive - Brown
         },
         columnTitles: [
             "Requested",
