@@ -20,34 +20,59 @@ function EditWorkflows() {
     const [workflows, setWorkflows] = useState([
         {
             id: 1,
-            name: 'Initiatives Workflow',
+            name: 'Main work flow RT',
             swimlanes: [
                 {
                     id: 1,
-                    name: 'Portfolio Lane',
+                    name: 'Main work flow RT',
                     stages: [
-                        { id: 1, name: 'Backlog', area: 'BACKLOG AREA', limit: 0, cardsPerRow: 1, row: 0 },
-                        { id: 2, name: 'Requested', area: 'REQUESTED AREA', limit: 0, cardsPerRow: 1, row: 0 },
-                        { id: 3, name: 'In Progress', area: 'IN PROGRESS AREA', limit: 0, cardsPerRow: 1, row: 0 },
-                        { id: 4, name: 'Done', area: 'DONE AREA', limit: 0, cardsPerRow: 1, row: 0 },
-                        { id: 5, name: 'Ready to Archive', area: 'READY TO ARCHIVE AREA', limit: 0, cardsPerRow: 1, row: 0 },
+                        { id: 1, name: 'Appointment Received', area: 'REQUESTED AREA', limit: 0, cardsPerRow: 1, row: 0 },
+                        { id: 2, name: 'Enroute', area: 'REQUESTED AREA', limit: 0, cardsPerRow: 1, row: 0 },
+                        { id: 3, name: 'Ops In Progress', area: 'IN PROGRESS AREA', limit: 0, cardsPerRow: 1, row: 0 },
+                        { id: 4, name: 'Ops Completed', area: 'IN PROGRESS AREA', limit: 0, cardsPerRow: 1, row: 0 },
+                        { id: 5, name: 'Ready To Finalize', area: 'IN PROGRESS AREA', limit: 0, cardsPerRow: 1, row: 0 },
+                        { id: 6, name: 'Awaiting on client', area: 'IN PROGRESS AREA', limit: 0, cardsPerRow: 1, row: 0 },
+                        { id: 7, name: 'Dispatched', area: 'DONE AREA', limit: 0, cardsPerRow: 1, row: 0 },
+                        { id: 8, name: 'In Client System', area: 'DONE AREA', limit: 0, cardsPerRow: 1, row: 0 },
+                        { id: 9, name: 'Ready To Archive', area: 'READY TO ARCHIVE AREA', limit: 0, cardsPerRow: 1, row: 0 }
                     ],
                 },
             ],
         },
         {
             id: 2,
-            name: 'Cards workflow',
+            name: 'Import Export RT',
             swimlanes: [
                 {
                     id: 1,
-                    name: 'Default Swimlane',
+                    name: 'Import Export RT',
                     stages: [
-                        { id: 1, name: 'Backlog', area: 'BACKLOG AREA', limit: 0, cardsPerRow: 1, row: 0 },
-                        { id: 2, name: 'Requested', area: 'REQUESTED AREA', limit: 0, cardsPerRow: 1, row: 0 },
-                        { id: 3, name: 'In Progress', area: 'IN PROGRESS AREA', limit: 0, cardsPerRow: 1, row: 0 },
-                        { id: 4, name: 'Done', area: 'DONE AREA', limit: 0, cardsPerRow: 1, row: 0 },
-                        { id: 5, name: 'Ready to Archive', area: 'READY TO ARCHIVE AREA', limit: 0, cardsPerRow: 1, row: 0 },
+                        { id: 1, name: 'Arrived', area: 'IN PROGRESS AREA', limit: 0, cardsPerRow: 1, row: 0 },
+                        { id: 2, name: 'Cleared', area: 'IN PROGRESS AREA', limit: 0, cardsPerRow: 1, row: 0 },
+                        { id: 3, name: 'Inward Completed', area: 'IN PROGRESS AREA', limit: 0, cardsPerRow: 1, row: 0 },
+                        { id: 4, name: 'MWP Applied', area: 'IN PROGRESS AREA', limit: 0, cardsPerRow: 1, row: 0 },
+                        { id: 5, name: 'MWP Issued', area: 'IN PROGRESS AREA', limit: 0, cardsPerRow: 1, row: 0 },
+                        { id: 6, name: 'Outward Clearance', area: 'IN PROGRESS AREA', limit: 0, cardsPerRow: 1, row: 0 },
+                        { id: 7, name: 'Sailed', area: 'IN PROGRESS AREA', limit: 0, cardsPerRow: 1, row: 0 },
+                        { id: 8, name: 'Ops Completed', area: 'DONE AREA', limit: 0, cardsPerRow: 1, row: 0 },
+                        { id: 9, name: 'DA Rejected', area: 'DONE AREA', limit: 0, cardsPerRow: 1, row: 0 },
+                    ],
+                },
+            ],
+        },
+        {
+            id: 3,
+            name: 'Husbandry RT',
+            swimlanes: [
+                {
+                    id: 1,
+                    name: 'Husbandry RT',
+                    stages: [
+                        { id: 1, name: 'Requested', area: 'REQUESTED AREA', limit: 0, cardsPerRow: 1, row: 0 },
+                        { id: 2, name: 'Service In Progress', area: 'IN PROGRESS AREA', limit: 0, cardsPerRow: 1, row: 0 },
+                        { id: 3, name: 'Service Completed', area: 'IN PROGRESS AREA', limit: 0, cardsPerRow: 1, row: 0 },
+                        { id: 3, name: 'Done', area: 'DONE AREA', limit: 0, cardsPerRow: 1, row: 0 },
+                        { id: 4, name: 'Ready To Archive', area: 'READY TO ARCHIVE AREA', limit: 0, cardsPerRow: 1, row: 0 },
                     ],
                 },
             ],
@@ -55,12 +80,18 @@ function EditWorkflows() {
     ]);
 
     const areaColors = {
-        'BACKLOG AREA': '#9ca3af',
-        'REQUESTED AREA': '#3b82f6',
-        'IN PROGRESS AREA': '#f59e0b',
-        'DONE AREA': '#10b981',
-        'READY TO ARCHIVE AREA': '#8b5cf6',
+        'REQUESTED AREA': '#2666be',
+        'IN PROGRESS AREA': '#f38a30',
+        'DONE AREA': '#42af49',
+        'READY TO ARCHIVE AREA': '#7333bd',
     };
+
+    // const areaColors = {
+    //     'REQUESTED AREA': 'rgb(59, 130, 246)',
+    //     'IN PROGRESS AREA': 'rgb(245, 158, 11)',
+    //     'DONE AREA': 'rgb(16, 185, 129)',
+    //     'READY TO ARCHIVE AREA': 'rgb(139, 92, 246)',
+    // };
 
     // Generate unique column key for hover tracking
     const getColumnKey = (workflowId, swimlaneId, stageId) => {
