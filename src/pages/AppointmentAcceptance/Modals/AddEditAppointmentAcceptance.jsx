@@ -1,5 +1,6 @@
 import { useForm, Controller } from "react-hook-form";
 import CustomModal from "../../../components/CustomModal";
+import useAppointmentAcceptanceReducer from "../../../store/AppointmentAcceptanceReducer";
 import "../../../design/scss/prospect-modal.scss";
 import "../../../design/scss/modal-designs.scss";
 import "../../../design/scss/form-designs.scss";
