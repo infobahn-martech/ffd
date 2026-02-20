@@ -1,67 +1,80 @@
 // ============================================
 // DA DESK WORKFLOW CONFIGURATION
 // ============================================
-
+// rgb(156, 163, 175)
+// rgb(59, 130, 246)
+// rgb(245, 158, 11)
+// rgb(16, 185, 129)
 const workflowsConfig = [
     {
         id: "main-work-flow-rt",
         title: "Main work flow RT",
         columnColors: {
-            "col-1": "rgb(226 16 108)", // Ready to Finalize - Pink
-            "col-2": "rgb(121 21 188)", // In Progress - Purple
-            "col-2-1": "rgb(121 21 188)", // Working on it - Purple
-            "col-2-2": "rgb(121 21 188)", // Awaiting PO - Purple
-            "col-3": "rgb(62 94 189)", // Al Gihaz awaiting submission - Blue
-            "col-4": "rgb(65 178 74)", // Finalized - Green
-            "col-5": "rgb(119 86 73)", // Awaiting acknowledgment - Brown
-            "col-6": "rgb(237 142 55)", // Dispatched - Orange
+            "col-1": "rgb(59, 130, 246)", // Appointment Received - Purple
+            "col-2": "rgb(59, 130, 246)", // Working on it - Purple
+            "col-3": "rgb(245, 158, 11)", // Awaiting PO - Purple
+            "col-4": "rgb(245, 158, 11)", // Al Gihaz awaiting submission - Blue
+            "col-5": "rgb(245, 158, 11)", // Finalized - Green
+            "col-6": "rgb(245, 158, 11)", // Awaiting acknowledgment - Brown
+            "col-7": "rgb(16, 185, 129)", // Dispatched - Orange
+            "col-8": "rgb(16, 185, 129)", // In Client System - Orange
+            "col-9": "rgb(139, 92, 246)", // Ready To Archive - Orange
+
         },
         columnTitles: [
             "Appointment Received",
             "Enroute",
-            "Vessel Arrived",
-            "Vessel Cleared",
-            "Vessel Sailed",
+            "Ops In Progress",
+            "Ops Completed",
             "Ready To Finalize",
+            "Awaiting on client",
+            "Dispatched",
+            "In Client System",
+            "Ready To Archive",
         ],
-        // Nested columns for In Progress
-        nestedColumns: {
-            "col-4": [
-                { id: "col-2-1", title: "Working on it", color: "rgb(121 21 188)" },
-                { id: "col-2-2", title: "Awaiting PO", color: "rgb(121 21 188)" },
-            ],
-        },
+        // // Nested columns for In Progress
+        // nestedColumns: {
+        //     "col-4": [
+        //         { id: "col-2-1", title: "Working on it", color: "rgb(121 21 188)" },
+        //         { id: "col-2-2", title: "Awaiting PO", color: "rgb(121 21 188)" },
+        //     ],
+        // },
         cardCounts: {
-            "col-1": 0, // Ready to Finalize
-            "col-2": 0, // In Progress (total)
-            "col-2-1": 0, // Working on it - increased to match Ready to Finalize
-            "col-2-2": 0, // Awaiting PO - increased to match Ready to Finalize
-            "col-3": 0, // Al Gihaz awaiting submission
-            "col-4": 0, // Finalized
-            "col-5": 0, // Awaiting acknowledgment
-            "col-6": 0, // Dispatched
+            "col-1": 0, // Appointment Received
+            "col-2": 0, // Enroute
+            "col-3": 0, // Ops In Progress
+            "col-4": 0, // Ops Completed
+            "col-5": 0, // Ready To Finalize
+            "col-6": 0, // Awaiting on client
+            "col-7": 0, // Dispatched
+            "col-8": 0, // In Client System
+            "col-9": 0, // Ready To Archive
         },
     },
     {
         id: "import-export-rt",
         title: "Import Export RT",
         columnColors: {
-            "col-1": "rgb(226 16 108)", // Ready to Finalize - Pink
-            "col-2": "rgb(121 21 188)", // In Progress - Purple
-            "col-3": "rgb(62 94 189)", // Al Gihaz awaiting submission - Blue
-            "col-4": "rgb(65 178 74)", // Finalized - Green
-            "col-5": "rgb(119 86 73)", // Awaiting acknowledgment - Brown
-            "col-6": "rgb(237 142 55)", // Dispatched - Orange
+            "col-1": "rgb(245, 158, 11)", // Ready to Finalize - Pink
+            "col-2": "rgb(245, 158, 11)", // In Progress - Purple
+            "col-3": "rgb(245, 158, 11)", // Al Gihaz awaiting submission - Blue
+            "col-4": "rgb(245, 158, 11)", // Finalized - Green
+            "col-5": "rgb(245, 158, 11)", // Awaiting acknowledgment - Brown
+            "col-6": "rgb(245, 158, 11)", // Dispatched - Orange
+            "col-7": "rgb(245, 158, 11)", // In Client System - Orange
+            "col-8": "rgb(16, 185, 129)", // Ready To Archive - Orange
+            "col-9": "rgb(16, 185, 129)", // Ready To Archive - Orange
         },
         columnTitles: [
-            "Backlog",
-            "Appointment Received",
-            "Enroute",
-            "Vessel Arrived",
-            "Vessel Cleared",
-            "Vessel Sailed",
-            "Awaiting Documents",
-            "Ready To Finalize",
+            "Arrived",
+            "Cleared",
+            "Inward Completed",
+            "MWP Applied",
+            "MWP Issued",
+            "Outward Clearance",
+            "Sailed",
+            "Ops Completed",
+            "DA Rejected",
         ],
         // No nested columns - explicitly normal columns only
         nestedColumns: {},
@@ -72,28 +85,27 @@ const workflowsConfig = [
             "col-4": 0,
             "col-5": 0,
             "col-6": 0,
+            "col-7": 0,
+            "col-8": 0,
+            "col-9": 0,
         },
     },
     {
         id: "husbandry-rt",
         title: "Husbandry RT",
         columnColors: {
-            "col-1": "rgb(226 16 108)", // Ready to Finalize - Pink
-            "col-2": "rgb(121 21 188)", // In Progress - Purple
-            "col-3": "rgb(62 94 189)", // Al Gihaz awaiting submission - Blue
-            "col-4": "rgb(65 178 74)", // Finalized - Green
-            "col-5": "rgb(119 86 73)", // Awaiting acknowledgment - Brown
-            "col-6": "rgb(237 142 55)", // Dispatched - Orange
+            "col-1": "rgb(59, 130, 246)", // Ready to Finalize - Pink
+            "col-2": "rgb(245, 158, 11)", // In Progress - Purple
+            "col-3": "rgb(245, 158, 11)", // Al Gihaz awaiting submission - Blue
+            "col-4": "rgb(16, 185, 129)", // Finalized - Green
+            "col-5": "rgb(139, 92, 246)", // Awaiting acknowledgment - Brown
         },
         columnTitles: [
-            "Backlog",
-            "Appointment Received",
-            "Enroute",
-            "Vessel Arrived",
-            "Vessel Cleared",
-            "Vessel Sailed",
-            "Awaiting Documents",
-            "Ready To Finalize",
+            "Requested",
+            "Service In Progress",
+            "Service Completed",
+            "Done",
+            "Ready To Archive",
         ],
         // No nested columns - explicitly normal columns only
         nestedColumns: {},
@@ -103,7 +115,6 @@ const workflowsConfig = [
             "col-3": 0,
             "col-4": 0,
             "col-5": 0,
-            "col-6": 0,
         },
     },
 ];
