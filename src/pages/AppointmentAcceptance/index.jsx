@@ -10,7 +10,6 @@ import DeleteConfirmationModal from "../../components/DeleteConfirmationModal";
 import useAppointmentAcceptanceReducer from "../../store/AppointmentAcceptanceReducer";
 import useCommonReducer from "../../store/CommonReducer";
 import usePortReducer from "../../store/PortReducer";
-// ex: "../../stores/AppointmentAcceptanceReducer"
 
 const AppointmentAcceptance = () => {
   const {
@@ -36,7 +35,6 @@ const AppointmentAcceptance = () => {
   const [showDeleteModal, setShowDeleteModal] = useState(false);
   const [selectedRow, setSelectedRow] = useState(null);
 
-  // ✅ Strip HTML tags for display in table (safe for browser)
   const stripHtml = (html) => {
     if (!html) return "";
     const tmp = document.createElement("DIV");
@@ -66,7 +64,6 @@ const AppointmentAcceptance = () => {
     getAppointmentAcceptanceData,
   ]);
 
-  // ✅ Debounced search
   const debouncedSearch = useMemo(
     () =>
       debounce((value) => {
@@ -79,20 +76,7 @@ const AppointmentAcceptance = () => {
     return () => debouncedSearch.cancel();
   }, [debouncedSearch]);
 
-  // ✅ Support common API response shapes:
-  // A) { data: [...], total: number }
-  // B) { data: { data: [...], total: number } }
-  const tableRows =
-    appointmentAcceptanceData?.data?.data ||
-    appointmentAcceptanceData?.data ||
-    [];
-  const totalCount =
-    appointmentAcceptanceData?.total ||
-    appointmentAcceptanceData?.data?.total ||
-    appointmentAcceptanceData?.count ||
-    appointmentAcceptanceData?.data?.count ||
-    tableRows?.length ||
-    0;
+  const totalCount = appointmentAcceptanceData?.total ?? 0;
 
   const cols = [
     {
@@ -105,7 +89,7 @@ const AppointmentAcceptance = () => {
     },
     {
       name: "Call Type",
-      selector: "callType",
+      selector: "call_type",
       sort: true,
       width: "200",
       thclass: "tb-head",
@@ -118,7 +102,7 @@ const AppointmentAcceptance = () => {
       width: "300",
       thclass: "tb-head",
       contentClass: "table-content",
-      cell: (row) => (
+      cell: ({ row }) => (
         <div
           style={{
             maxWidth: "300px",
@@ -126,9 +110,9 @@ const AppointmentAcceptance = () => {
             textOverflow: "ellipsis",
             whiteSpace: "nowrap",
           }}
-          title={stripHtml(row.subject)}
+          title={stripHtml(row?.subject)}
         >
-          {stripHtml(row.subject) || "-"}
+          {stripHtml(row?.subject) || "-"}
         </div>
       ),
     },
@@ -139,7 +123,7 @@ const AppointmentAcceptance = () => {
       width: "400",
       thclass: "tb-head",
       contentClass: "table-content",
-      cell: (row) => (
+      cell: ({ row }) => (
         <div
           style={{
             maxWidth: "400px",
@@ -147,9 +131,9 @@ const AppointmentAcceptance = () => {
             textOverflow: "ellipsis",
             whiteSpace: "nowrap",
           }}
-          title={stripHtml(row.body)}
+          title={stripHtml(row?.body)}
         >
-          {stripHtml(row.body) || "-"}
+          {stripHtml(row?.body) || "-"}
         </div>
       ),
     },
@@ -160,18 +144,18 @@ const AppointmentAcceptance = () => {
       contentClass: "table-content",
       thclass: "tb-head",
       width: "200",
-      cell: (props) =>
+      cell: ({ row }) =>
         RenderAction({
-          ...props,
-          onEditClick: (row) => {
+          row,
+          onEditClick: () => {
             setSelectedRow(row);
-            setShowModal(row);
+            setShowModal(true);
           },
-          onDeleteClick: (row) => {
+          onDeleteClick: () => {
             setSelectedRow(row);
             setShowDeleteModal(true);
           },
-        }),
+        })
     },
   ];
 
@@ -191,8 +175,6 @@ const AppointmentAcceptance = () => {
 
     const payload = { template_id: templateId };
 
-    // If your deleteData expects only id:
-    // await deleteData(selectedRow._id);
     await deleteAppointmentAcceptance?.(payload);
 
     setShowDeleteModal(false);
@@ -225,7 +207,7 @@ const AppointmentAcceptance = () => {
           tableClasses="px-start"
           count={totalCount}
           columns={cols}
-          data={tableRows}
+          data={appointmentAcceptanceData ?? []}
           onPageChange={(currentPage) =>
             setParams((prev) => ({ ...prev, page: currentPage }))
           }
