@@ -9,6 +9,20 @@ const useAppointmentAcceptanceReducer = create((set) => ({
   appointmentAcceptanceData: [],
   isBeingUpdated: false,
   totalCount: 0,
+  templateById: null,
+  getTemplateByTemplateId: async ({ template_id }) => {
+    try {
+      set({ isLoading: true });
+      const { data } = await appointmentAcceptanceService.getTemplateByTemplateId(template_id);
+      set({ templateById: data?.data ?? data ?? null, isLoading: false });
+      return data?.data ?? data ?? null;
+    } catch (err) {
+      const { error } = useAlertReducer.getState();
+      set({ isLoading: false, templateById: null });
+      error(err?.response?.data?.message ?? err.message);
+      return null;
+    }
+  },
   addAppointmentAcceptance: async ({ formData, cb }) => {
     try {
       set({ isBeingUpdated: true });
@@ -42,10 +56,14 @@ const useAppointmentAcceptanceReducer = create((set) => ({
   updateAppointmentAcceptance: async ({ formData, cb }) => {
     try {
       set({ isBeingUpdated: true });
-      const { data } = await appointmentAcceptanceService.updateAppointmentAcceptance(formData);
-      set({ successMessage: data.message, isBeingUpdated: false });
+      const { template_id, ...data } = formData;
+      const { data: res } = await appointmentAcceptanceService.updateAppointmentAcceptance({
+        template_id,
+        data,
+      });
+      set({ successMessage: res?.message, isBeingUpdated: false });
       const { success } = useAlertReducer.getState();
-      success(data && data.message);
+      success(res?.message ?? 'Template updated successfully');
       cb && cb();
     } catch (err) {
       const { error } = useAlertReducer.getState();
@@ -57,10 +75,11 @@ const useAppointmentAcceptanceReducer = create((set) => ({
     }
   },
   deleteAppointmentAcceptance: async (payload) => {
-    const { appointment_acceptance_id, cb } = payload || {};
+    const template_id = payload?.template_id ?? payload?.appointment_acceptance_id ?? payload;
+    const cb = payload?.cb;
     try {
       set({ isBeingUpdated: true });
-      const { data } = await appointmentAcceptanceService.deleteAppointmentAcceptance(appointment_acceptance_id);
+      const { data } = await appointmentAcceptanceService.deleteAppointmentAcceptance(template_id);
       set({ successMessage: data?.message, isBeingUpdated: false });
       const { success } = useAlertReducer.getState();
       success(data?.message ?? 'Appointment acceptance deleted successfully');

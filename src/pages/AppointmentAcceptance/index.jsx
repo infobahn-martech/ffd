@@ -7,12 +7,12 @@ import { AppointmentAcceptanceModal } from "./Modals/AddEditAppointmentAcceptanc
 import { RenderAction } from "./RenderCells";
 import DeleteConfirmationModal from "../../components/DeleteConfirmationModal";
 
-// ✅ CHANGE THIS IMPORT PATH based on your project structure
 import useAppointmentAcceptanceReducer from "../../store/AppointmentAcceptanceReducer";
+import useCommonReducer from "../../store/CommonReducer";
+import usePortReducer from "../../store/PortReducer";
 // ex: "../../stores/AppointmentAcceptanceReducer"
 
 const AppointmentAcceptance = () => {
-  // ✅ Store / API
   const {
     getAppointmentAcceptanceData,
     appointmentAcceptanceData,
@@ -20,6 +20,9 @@ const AppointmentAcceptance = () => {
     deleteAppointmentAcceptance,
     isBeingUpdated,
   } = useAppointmentAcceptanceReducer((state) => state);
+
+  const { getCallTypes, callTypes } = useCommonReducer((state) => state);
+  const { getPorts, ports } = usePortReducer((state) => state);
 
   const [params, setParams] = useState({
     page: 1,
@@ -41,7 +44,11 @@ const AppointmentAcceptance = () => {
     return tmp.textContent || tmp.innerText || "";
   };
 
-  // ✅ Fetch list when params change
+  useEffect(() => {
+    getCallTypes?.();
+    getPorts?.({ params: {} });
+  }, [getCallTypes, getPorts]);
+
   useEffect(() => {
     getAppointmentAcceptanceData?.({
       search: params.searchTerm || "",
@@ -179,10 +186,10 @@ const AppointmentAcceptance = () => {
   };
 
   const handleDelete = async () => {
-    if (!selectedRow?._id) return;
+    const templateId = selectedRow?.template_id ?? selectedRow?._id;
+    if (!templateId) return;
 
-    // ✅ adjust payload key if backend expects different
-    const payload = { template_id: selectedRow._id };
+    const payload = { template_id: templateId };
 
     // If your deleteData expects only id:
     // await deleteData(selectedRow._id);
@@ -237,7 +244,7 @@ const AppointmentAcceptance = () => {
 
         {!!showModal && (
           <AppointmentAcceptanceModal
-            showModal={showModal} // boolean OR row object for edit
+            showModal={showModal}
             closeModal={() => {
               setShowModal(false);
               setSelectedRow(null);
@@ -247,6 +254,8 @@ const AppointmentAcceptance = () => {
               setSelectedRow(null);
               refreshList();
             }}
+            callTypesOptions={callTypes ?? []}
+            portOptions={ports ?? []}
           />
         )}
 

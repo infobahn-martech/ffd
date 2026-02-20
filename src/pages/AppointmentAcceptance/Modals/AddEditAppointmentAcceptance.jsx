@@ -1,39 +1,96 @@
 import { useForm, Controller } from "react-hook-form";
+import { useEffect, useMemo } from "react";
 import CustomModal from "../../../components/CustomModal";
 import useAppointmentAcceptanceReducer from "../../../store/AppointmentAcceptanceReducer";
 import "../../../design/scss/prospect-modal.scss";
 import "../../../design/scss/modal-designs.scss";
 import "../../../design/scss/form-designs.scss";
-import { PORT_OPTIONS } from "../../../constants/ports";
-import { CALL_TYPE_OPTIONS } from "../../../constants/callTypes";
 import ReactQuill from "react-quill";
 import "react-quill/dist/quill.snow.css";
 
-export function AppointmentAcceptanceModal({ showModal, closeModal }) {
+export function AppointmentAcceptanceModal({
+  showModal,
+  closeModal,
+  onSuccess,
+  callTypesOptions = [],
+  portOptions = [],
+}) {
+  const templateId = showModal?._id ?? showModal?.template_id;
+  const isEdit = !!templateId;
+
+  const {
+    getTemplateByTemplateId,
+    addAppointmentAcceptance,
+    updateAppointmentAcceptance,
+    isBeingUpdated,
+  } = useAppointmentAcceptanceReducer((state) => state);
+
+  const defaultValues = useMemo(
+    () =>
+      isEdit
+        ? {
+            port_id: String(showModal?.port_id ?? showModal?.port ?? ""),
+            call_type_id: String(showModal?.call_type_id ?? showModal?.callType ?? ""),
+            subject: showModal?.subject ?? "",
+            body: showModal?.body ?? "",
+          }
+        : {
+            port_id: "",
+            call_type_id: "",
+            subject: "",
+            body: "",
+          },
+    [isEdit, showModal?._id, showModal?.template_id]
+  );
+
   const {
     register,
     handleSubmit,
     control,
-    formState: { errors }
-  } = useForm({
-    defaultValues: showModal?._id
-      ? {
-        port: showModal?.port,
-        callType: showModal?.callType,
-        subject: showModal?.subject || "",
-        body: showModal?.body || ""
-      }
-      : {
-        port: "",
-        callType: "",
-        subject: "",
-        body: ""
-      }
-  });
+    reset,
+    formState: { errors },
+  } = useForm({ defaultValues });
+
+  useEffect(() => {
+    if (isEdit && templateId) {
+      getTemplateByTemplateId({ template_id: templateId }).then((template) => {
+        if (template) {
+          reset({
+            port_id: String(template?.port_id ?? template?.port ?? ""),
+            call_type_id: String(template?.call_type_id ?? template?.callType ?? ""),
+            subject: template?.subject ?? "",
+            body: template?.body ?? "",
+          });
+        }
+      });
+    } else {
+      reset(defaultValues);
+    }
+  }, [isEdit, templateId]);
 
   const onSubmit = (data) => {
-    console.log("APPOINTMENT ACCEPTANCE FORM SUBMITTED:", data);
-    closeModal();
+    const num = (v) => (v !== "" && v != null && !isNaN(Number(v)) ? Number(v) : null);
+    const port_id = num(data.port_id);
+    const call_type_id = num(data.call_type_id);
+
+    const payload = {
+      port_id,
+      call_type_id,
+      subject: data.subject ?? "",
+      body: data.body ?? "",
+    };
+
+    const cb = () => {
+      closeModal();
+      onSuccess?.();
+    };
+
+    if (isEdit) {
+      payload.template_id = Number(templateId);
+      updateAppointmentAcceptance({ formData: payload, cb });
+    } else {
+      addAppointmentAcceptance({ formData: payload, cb });
+    }
   };
 
   const quillModules = {
@@ -64,7 +121,7 @@ export function AppointmentAcceptanceModal({ showModal, closeModal }) {
   const renderHeader = () => (
     <>
       <h1 className="modal-title">
-        {showModal?._id ? "Edit Appointment Acceptance" : "Add Appointment Acceptance"}
+        {isEdit ? "Edit Appointment Acceptance" : "Add Appointment Acceptance"}
       </h1>
     </>
   );
@@ -81,21 +138,25 @@ export function AppointmentAcceptanceModal({ showModal, closeModal }) {
               <div className="col-lg-6 col-sm-12">
                 <div className="form-floating desig-inp">
                   <select
-                    className={`form-control ${errors.port ? "is-invalid" : ""}`}
-                    {...register("port", { required: "Port is required" })}
+                    className={`form-control ${errors.port_id ? "is-invalid" : ""}`}
+                    {...register("port_id", { required: "Port is required" })}
                   >
                     <option value="">Select Port</option>
-                    {PORT_OPTIONS.map((port) => (
-                      <option key={port} value={port}>
-                        {port}
-                      </option>
-                    ))}
+                    {(portOptions ?? []).map((p) => {
+                      const id = p?.port_id ?? p?._id ?? p?.id;
+                      const label = p?.port ?? p?.name ?? p?.port_name ?? String(id);
+                      return (
+                        <option key={id} value={id}>
+                          {label}
+                        </option>
+                      );
+                    })}
                   </select>
                   <label>
                     Port <span className="text-danger">*</span>
                   </label>
-                  {errors.port && (
-                    <span className="error text-danger">{errors.port.message}</span>
+                  {errors.port_id && (
+                    <span className="error text-danger">{errors.port_id.message}</span>
                   )}
                 </div>
               </div>
@@ -104,21 +165,21 @@ export function AppointmentAcceptanceModal({ showModal, closeModal }) {
               <div className="col-lg-6 col-sm-12">
                 <div className="form-floating desig-inp">
                   <select
-                    className={`form-control ${errors.callType ? "is-invalid" : ""}`}
-                    {...register("callType", { required: "Call Type is required" })}
+                    className={`form-control ${errors.call_type_id ? "is-invalid" : ""}`}
+                    {...register("call_type_id", { required: "Call Type is required" })}
                   >
                     <option value="">Select Call Type</option>
-                    {CALL_TYPE_OPTIONS.map((callType) => (
-                      <option key={callType} value={callType}>
-                        {callType}
+                    {(callTypesOptions ?? []).map((ct) => (
+                      <option key={ct?.call_type_id} value={String(ct?.call_type_id)}>
+                        {ct?.call_type ?? ct?.callType ?? ""}
                       </option>
                     ))}
                   </select>
                   <label>
                     Call Type <span className="text-danger">*</span>
                   </label>
-                  {errors.callType && (
-                    <span className="error text-danger">{errors.callType.message}</span>
+                  {errors.call_type_id && (
+                    <span className="error text-danger">{errors.call_type_id.message}</span>
                   )}
                 </div>
               </div>
@@ -192,11 +253,16 @@ export function AppointmentAcceptanceModal({ showModal, closeModal }) {
 
   const renderFooter = () => (
     <div className="modal-footer">
-      <button type="button" className="btn btn-outline" onClick={closeModal}>
+      <button type="button" className="btn btn-outline" onClick={closeModal} disabled={isBeingUpdated}>
         Close
       </button>
-      <button type="submit" form="appointmentAcceptanceForm" className="btn btn-primary">
-        Save
+      <button
+        type="submit"
+        form="appointmentAcceptanceForm"
+        className="btn btn-primary"
+        disabled={isBeingUpdated}
+      >
+        {isBeingUpdated ? "Saving..." : "Save"}
       </button>
     </div>
   );
