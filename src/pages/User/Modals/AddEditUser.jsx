@@ -26,9 +26,10 @@ export function UserModal({ showModal, closeModal, onSuccess }) {
   } = useForm({
     defaultValues: showModal?.user_id
       ? {
-        name: showModal?.name,
-        email: showModal?.email,
-        roleid: showModal?.role?.role_id || showModal?.role_id || "",
+        name: showModal?.name || "",
+        email: showModal?.email || "",
+        // ✅ FIX: roleid should come from showModal.role_id (string/number) not showModal.role.role_id
+        roleid: String(showModal?.role_id || ""),
         phone: showModal?.phone || "",
         address: showModal?.address || "",
       }
@@ -53,15 +54,17 @@ export function UserModal({ showModal, closeModal, onSuccess }) {
   }, []);
 
   useEffect(() => {
-    // Update form when showModal changes
+    // ✅ Update form when showModal changes
     if (showModal?.user_id) {
       reset({
-        name: showModal?.name,
-        email: showModal?.email,
-        roleid: showModal?.role?.role_id || showModal?.role_id || "",
+        name: showModal?.name || "",
+        email: showModal?.email || "",
+        // ✅ FIX: ensure string + correct key
+        roleid: String(showModal?.role_id || ""),
         phone: showModal?.phone || "",
         address: showModal?.address || "",
       });
+
       setProfileImagePreview(showModal?.avatar_path || userIcon);
       setProfileImage(null);
     } else {
@@ -72,6 +75,7 @@ export function UserModal({ showModal, closeModal, onSuccess }) {
         roleid: "",
         address: "",
       });
+
       setProfileImagePreview(userIcon);
       setProfileImage(null);
     }
@@ -100,6 +104,7 @@ export function UserModal({ showModal, closeModal, onSuccess }) {
       if (profileImage) {
         formData.append("profileimg", profileImage);
       } else if (showModal?.user_id && showModal?.avatar_path) {
+        // NOTE: if backend expects FILE only, remove this else-if
         formData.append("profileimg", showModal.avatar_path);
       }
 
@@ -247,16 +252,22 @@ export function UserModal({ showModal, closeModal, onSuccess }) {
               <div className="col-lg-6 col-sm-12">
                 <div className="form-floating desig-inp">
                   <select
-                    className={`form-control form-select ${errors.roleid ? "is-invalid" : ""}`}
-                    {...register("roleid", { required: "User role is required" })}
+                    className={`form-control form-select ${errors.roleid ? "is-invalid" : ""
+                      }`}
+                    {...register("roleid", {
+                      required: "User role is required",
+                    })}
                   >
                     <option value="">Select User Role</option>
+
+                    {/* ✅ FIX: roles array has _id, not role_id */}
                     {(roles || []).map((role) => (
-                      <option key={role._id} value={role._id}>
+                      <option key={role._id} value={String(role._id)}>
                         {role.name}
                       </option>
                     ))}
                   </select>
+
                   <label>
                     User Role <span className="text-danger">*</span>
                   </label>
@@ -282,7 +293,9 @@ export function UserModal({ showModal, closeModal, onSuccess }) {
                       required: "Phone is required",
                       validate: (value) => {
                         const digits = (value || "").replace(/\D/g, "");
-                        return digits.length >= 7 || "Enter a valid phone number";
+                        return (
+                          digits.length >= 7 || "Enter a valid phone number"
+                        );
                       },
                     }}
                     render={({ field }) => (
