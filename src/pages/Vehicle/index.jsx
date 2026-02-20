@@ -91,27 +91,27 @@ const Vehicle = () => {
             contentClass: "table-content",
             sort: true,
         },
-        {
-            name: "Status",
-            selector: "status",
-            width: "220",
-            thclass: "tb-head",
-            contentClass: "table-content",
-            sort: true,
-            cell: ({ row }) => (
-                <span
-                    className={
-                        row.status === "Active"
-                            ? "status-active"
-                            : row.status === "Inactive"
-                                ? "status-inactive"
-                                : "status-pending"
-                    }
-                >
-                    {row.status}
-                </span>
-            ),
-        },
+        // {
+        //     name: "Status",
+        //     selector: "status",
+        //     width: "220",
+        //     thclass: "tb-head",
+        //     contentClass: "table-content",
+        //     sort: true,
+        //     cell: ({ row }) => (
+        //         <span
+        //             className={
+        //                 row.status === "Active"
+        //                     ? "status-active"
+        //                     : row.status === "Inactive"
+        //                         ? "status-inactive"
+        //                         : "status-pending"
+        //             }
+        //         >
+        //             {row.status}
+        //         </span>
+        //     ),
+        // },
         {
             name: "Actions",
             selector: "linksInfo",
@@ -161,7 +161,7 @@ const Vehicle = () => {
             <div className="prospect employee">
                 <div className="container-fluid">
                     <CommonHeader
-                        showFilter
+                        // showFilter
                         tableTitle="Vehicle Management"
                         isAddEnabled
                         addModalLabel="Add Vehicle"

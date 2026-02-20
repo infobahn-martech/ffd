@@ -1,5 +1,7 @@
 import { useForm } from "react-hook-form";
+import { useEffect } from "react";
 import CustomModal from "../../../components/CustomModal";
+import useVehicleReducer from "../../../store/VehicleReducer";
 import "../../../design/scss/prospect-modal.scss";
 import "../../../design/scss/modal-designs.scss";
 import "../../../design/scss/form-designs.scss";
@@ -9,38 +11,70 @@ const VEHICLE_PURPOSE_OPTIONS = [
     { value: "material", label: "Material" },
 ];
 
-export function VehicleModal({ showModal, closeModal }) {
+export function VehicleModal({ showModal, closeModal, onSuccess }) {
     const {
         register,
         handleSubmit,
         formState: { errors },
         watch,
+        reset,
     } = useForm({
-        defaultValues: showModal?._id
-            ? {
-                vehicle_type: showModal?.vehicle_type || "",
-                vehicle_purpose: showModal?.vehicle_purpose || "",
-                seater: showModal?.seater || "",
-            }
-            : {
-                vehicle_type: "",
-                vehicle_purpose: "",
-                seater: "",
-            },
+        defaultValues: {
+            vehicle_type: "",
+            vehicle_purpose: "",
+            seater: "",
+        },
     });
 
+    const { addVehicle, updateVehicle, isBeingUpdated } = useVehicleReducer((state) => state);
     const vehiclePurpose = watch("vehicle_purpose");
     const showSeater = vehiclePurpose === "crew_transport";
 
-    const onSubmit = (data) => {
-        console.log("VEHICLE FORM SUBMITTED:", data);
-        closeModal();
+    const isEdit = showModal && typeof showModal === "object" && (showModal.vehicle_type_id ?? showModal._id);
+    const vehicleTypeId = isEdit ? (showModal.vehicle_type_id ?? showModal._id) : null;
+
+    useEffect(() => {
+        if (isEdit) {
+            reset({
+                vehicle_type: showModal?.vehicle_type ?? "",
+                vehicle_purpose: showModal?.vehicle_purpose ?? "",
+                seater: showModal?.seater ?? "",
+            });
+        } else {
+            reset({
+                vehicle_type: "",
+                vehicle_purpose: "",
+                seater: "",
+            });
+        }
+    }, [showModal, isEdit, reset]);
+
+    const onSubmit = async (data) => {
+        const formData = {
+            vehicle_type: data.vehicle_type?.trim() ?? "",
+            vehicle_purpose: data.vehicle_purpose ?? "",
+            seater: showSeater ? (data.seater ?? null) : null,
+        };
+
+        const cb = () => {
+            closeModal();
+            onSuccess?.();
+        };
+
+        if (isEdit) {
+            await updateVehicle({
+                formData: { vehicle_type_id: vehicleTypeId, ...formData },
+                cb,
+            });
+        } else {
+            await addVehicle({ formData, cb });
+        }
     };
 
     const renderHeader = () => (
         <>
             <h1 className="modal-title">
-                {showModal?._id ? "Edit Vehicle" : "Add Vehicle"}
+                {isEdit ? "Edit Vehicle Type" : "Add Vehicle Type"}
             </h1>
         </>
     );
@@ -137,11 +171,11 @@ export function VehicleModal({ showModal, closeModal }) {
 
     const renderFooter = () => (
         <div className="modal-footer">
-            <button type="button" className="btn btn-outline" onClick={closeModal}>
+            <button type="button" className="btn btn-outline" onClick={closeModal} disabled={isBeingUpdated}>
                 Close
             </button>
-            <button type="submit" form="vehicleForm" className="btn btn-primary">
-                Save
+            <button type="submit" form="vehicleForm" className="btn btn-primary" disabled={isBeingUpdated}>
+                {isBeingUpdated ? "Saving..." : "Save"}
             </button>
         </div>
     );
