@@ -3,13 +3,15 @@ import PhoneInput from "react-phone-input-2";
 import "react-phone-input-2/lib/bootstrap.css";
 import { FiPlus, FiX } from "react-icons/fi";
 import CustomModal from "../../../components/CustomModal";
+import useHotelReducer from "../../../store/HotelReducer";
 import "../../../design/scss/prospect-modal.scss";
 import "../../../design/scss/modal-designs.scss";
 import "../../../design/scss/form-designs.scss";
 import userIcon from "../../../assets/images/user.png";
 import edit from "../../../assets/images/edit.svg";
 
-export function HotelModal({ showModal, closeModal }) {
+export function HotelModal({ showModal, closeModal, onSuccess }) {
+    const { addHotel, updateHotel, isBeingUpdated } = useHotelReducer((state) => state);
     const {
         register,
         handleSubmit,
@@ -45,11 +47,32 @@ export function HotelModal({ showModal, closeModal }) {
 
     const onSubmit = (data) => {
         const payload = {
-            ...data,
-            contact_email: data.contact_emails.map((e) => e.value?.trim()).filter(Boolean)
+            hotel_name: data.hotel_name,
+            contact_name: data.contact_name,
+            contact_no: data.contact_no,
+            contact_email: data.contact_emails.map((e) => e.value?.trim()).filter(Boolean),
+            hotel_address: data.hotel_address,
         };
-        console.log("HOTEL FORM SUBMITTED:", payload);
-        closeModal();
+
+        const isEdit = !!showModal?._id;
+
+        if (isEdit) {
+            updateHotel({
+                formData: { ...payload, hotel_id: showModal._id },
+                cb: () => {
+                    closeModal(null);
+                    onSuccess?.();
+                },
+            });
+        } else {
+            addHotel({
+                formData: payload,
+                cb: () => {
+                    closeModal(null);
+                    onSuccess?.();
+                },
+            });
+        }
     };
 
     const renderHeader = () => (
@@ -258,12 +281,16 @@ export function HotelModal({ showModal, closeModal }) {
 
     const renderFooter = () => (
         <div className="modal-footer">
-            <button type="button" className="btn btn-outline" onClick={closeModal}>
+            <button type="button" className="btn btn-outline" onClick={closeModal} disabled={isBeingUpdated}>
                 Close
             </button>
-            {/* 🔧 form id fixed to "hotelForm" */}
-            <button type="submit" form="hotelForm" className="btn btn-primary">
-                Save
+            <button
+                type="submit"
+                form="hotelForm"
+                className="btn btn-primary"
+                disabled={isBeingUpdated}
+            >
+                {isBeingUpdated ? "Saving..." : "Save"}
             </button>
         </div>
     );
