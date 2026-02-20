@@ -15,7 +15,7 @@ export function AppointmentAcceptanceModal({
   callTypesOptions = [],
   portOptions = [],
 }) {
-  const templateId = showModal?._id ?? showModal?.template_id;
+  const templateId = showModal?.template_id
   const isEdit = !!templateId;
 
   const {
@@ -23,24 +23,27 @@ export function AppointmentAcceptanceModal({
     addAppointmentAcceptance,
     updateAppointmentAcceptance,
     isBeingUpdated,
+    templateById,
   } = useAppointmentAcceptanceReducer((state) => state);
+
+  console.log("templateById", templateById);
 
   const defaultValues = useMemo(
     () =>
-      isEdit
+      isEdit && templateById
         ? {
-            port_id: String(showModal?.port_id ?? showModal?.port ?? ""),
-            call_type_id: String(showModal?.call_type_id ?? showModal?.callType ?? ""),
-            subject: showModal?.subject ?? "",
-            body: showModal?.body ?? "",
-          }
+          port_id: String(templateById?.port_id ?? ""),
+          call_type_id: String(templateById?.call_type_id ?? ""),
+          subject: templateById?.subject ?? "",
+          body: templateById?.body ?? "",
+        }
         : {
-            port_id: "",
-            call_type_id: "",
-            subject: "",
-            body: "",
-          },
-    [isEdit, showModal?._id, showModal?.template_id]
+          port_id: "",
+          call_type_id: "",
+          subject: "",
+          body: "",
+        },
+    [isEdit, templateById]
   );
 
   const {
@@ -52,21 +55,21 @@ export function AppointmentAcceptanceModal({
   } = useForm({ defaultValues });
 
   useEffect(() => {
-    if (isEdit && templateId) {
-      getTemplateByTemplateId({ template_id: templateId }).then((template) => {
-        if (template) {
-          reset({
-            port_id: String(template?.port_id ?? template?.port ?? ""),
-            call_type_id: String(template?.call_type_id ?? template?.callType ?? ""),
-            subject: template?.subject ?? "",
-            body: template?.body ?? "",
-          });
-        }
-      });
-    } else {
-      reset(defaultValues);
+    if (showModal?.template_id) {
+      getTemplateByTemplateId({ template_id: showModal?.template_id });
     }
-  }, [isEdit, templateId]);
+  }, [showModal?.template_id]);
+
+  useEffect(() => {
+    if (showModal?.template_id) {
+      reset({
+        port_id: String(showModal?.port_id ?? ""),
+        call_type_id: String(showModal?.call_type_id ?? ""),
+        subject: showModal?.subject ?? "",
+        body: showModal?.body ?? "",
+      });
+    }
+  }, [showModal?.template_id, reset]);
 
   const onSubmit = (data) => {
     const num = (v) => (v !== "" && v != null && !isNaN(Number(v)) ? Number(v) : null);
@@ -86,7 +89,7 @@ export function AppointmentAcceptanceModal({
     };
 
     if (isEdit) {
-      payload.template_id = Number(templateId);
+      payload.template_id = Number(templateById?.template_id ?? templateId ?? "");
       updateAppointmentAcceptance({ formData: payload, cb });
     } else {
       addAppointmentAcceptance({ formData: payload, cb });

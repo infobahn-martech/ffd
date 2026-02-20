@@ -14,7 +14,7 @@ const useAppointmentAcceptanceReducer = create((set) => ({
     try {
       set({ isLoading: true });
       const { data } = await appointmentAcceptanceService.getTemplateByTemplateId(template_id);
-      set({ templateById: data?.data ?? data ?? null, isLoading: false });
+      set({ templateById: data?.data, isLoading: false });
       return data?.data ?? data ?? null;
     } catch (err) {
       const { error } = useAlertReducer.getState();

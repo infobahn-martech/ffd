@@ -148,8 +148,8 @@ const AppointmentAcceptance = () => {
         RenderAction({
           row,
           onEditClick: () => {
+            setShowModal({ template_id: row?.template_id });
             setSelectedRow(row);
-            setShowModal(true);
           },
           onDeleteClick: () => {
             setSelectedRow(row);
