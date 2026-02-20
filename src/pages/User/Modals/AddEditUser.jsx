@@ -52,7 +52,7 @@ export function UserModal({ showModal, closeModal, onSuccess }) {
       reset({
         name: showModal?.name,
         email: showModal?.email,
-        roleid: showModal?.role_id || "",
+        roleid: showModal?.role?.role_id || showModal?.role_id || "",
         phone: showModal?.phone || "",
         address: showModal?.address || "",
       });
