@@ -26,16 +26,17 @@ export function AppointmentAcceptanceModal({
     templateById,
   } = useAppointmentAcceptanceReducer((state) => state);
 
-  console.log("templateById", templateById);
+  // API returns array; use first element for form values
+  const template = Array.isArray(templateById) ? templateById?.[0] : templateById;
 
   const defaultValues = useMemo(
     () =>
-      isEdit && templateById
+      isEdit && template
         ? {
-          port_id: String(templateById?.port_id ?? ""),
-          call_type_id: String(templateById?.call_type_id ?? ""),
-          subject: templateById?.subject ?? "",
-          body: templateById?.body ?? "",
+          port_id: String(template?.port_id ?? ""),
+          call_type_id: String(template?.call_type_id ?? ""),
+          subject: template?.subject ?? "",
+          body: template?.body ?? "",
         }
         : {
           port_id: "",
@@ -43,7 +44,7 @@ export function AppointmentAcceptanceModal({
           subject: "",
           body: "",
         },
-    [isEdit, templateById]
+    [isEdit, template]
   );
 
   const {
@@ -61,15 +62,15 @@ export function AppointmentAcceptanceModal({
   }, [showModal?.template_id]);
 
   useEffect(() => {
-    if (showModal?.template_id) {
+    if (isEdit && template) {
       reset({
-        port_id: String(showModal?.port_id ?? ""),
-        call_type_id: String(showModal?.call_type_id ?? ""),
-        subject: showModal?.subject ?? "",
-        body: showModal?.body ?? "",
+        port_id: String(template?.port_id ?? ""),
+        call_type_id: String(template?.call_type_id ?? ""),
+        subject: template?.subject ?? "",
+        body: template?.body ?? "",
       });
     }
-  }, [showModal?.template_id, reset]);
+  }, [isEdit, template, reset]);
 
   const onSubmit = (data) => {
     const num = (v) => (v !== "" && v != null && !isNaN(Number(v)) ? Number(v) : null);
@@ -89,7 +90,7 @@ export function AppointmentAcceptanceModal({
     };
 
     if (isEdit) {
-      payload.template_id = Number(templateById?.template_id ?? templateId ?? "");
+      payload.template_id = Number(template?.template_id ?? templateId ?? "");
       updateAppointmentAcceptance({ formData: payload, cb });
     } else {
       addAppointmentAcceptance({ formData: payload, cb });
