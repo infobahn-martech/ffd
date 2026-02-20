@@ -56,11 +56,14 @@ const useAppointmentAcceptanceReducer = create((set) => ({
   updateAppointmentAcceptance: async ({ formData, cb }) => {
     try {
       set({ isBeingUpdated: true });
-      const { template_id, ...data } = formData;
-      const { data: res } = await appointmentAcceptanceService.updateAppointmentAcceptance({
-        template_id,
-        data,
-      });
+      const payload = {
+        template_id: formData.template_id,
+        port_id: formData.port_id,
+        call_type_id: formData.call_type_id,
+        subject: formData.subject,
+        body: formData.body,
+      };
+      const { data: res } = await appointmentAcceptanceService.updateAppointmentAcceptance(payload);
       set({ successMessage: res?.message, isBeingUpdated: false });
       const { success } = useAlertReducer.getState();
       success(res?.message ?? 'Template updated successfully');

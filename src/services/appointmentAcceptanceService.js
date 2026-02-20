@@ -9,8 +9,8 @@ const addAppointmentAcceptance = (data) =>
 const getAppointmentAcceptanceData = ({ params }) =>
   Gateway.get('/appointment/template', { params });
 
-const updateAppointmentAcceptance = ({ template_id, data }) =>
-  Gateway.post(`/appointment/updatetemplate/${template_id}`, data);
+const updateAppointmentAcceptance = (payload) =>
+  Gateway.post(`/appointment/updatetemplate/${payload.template_id}`, payload);
 
 const deleteAppointmentAcceptance = (template_id) =>
   Gateway.delete(`/appointment/template/${template_id}`);
