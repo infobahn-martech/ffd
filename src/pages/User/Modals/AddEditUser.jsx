@@ -28,16 +28,22 @@ export function UserModal({ showModal, closeModal, onSuccess }) {
       ? {
         name: showModal?.name,
         email: showModal?.email,
-        roleid: showModal?.role?.role_id || "",
+        roleid: showModal?.role?.role_id || showModal?.role_id || "",
         phone: showModal?.phone || "",
         address: showModal?.address || "",
       }
       : {
         phone: "",
+        name: "",
+        email: "",
+        roleid: "",
+        address: "",
       },
   });
 
-  const { createUser, updateUser, addEditLoader } = useUserReducer((state) => state);
+  const { createUser, updateUser, addEditLoader } = useUserReducer(
+    (state) => state
+  );
   const { fetchRoles, roles } = useRoleReducer((state) => state);
 
   useEffect(() => {
@@ -72,13 +78,11 @@ export function UserModal({ showModal, closeModal, onSuccess }) {
   }, [showModal, reset]);
 
   const handleImageChange = (e) => {
-    const file = e.target.files[0];
+    const file = e.target.files?.[0];
     if (file) {
       setProfileImage(file);
       const reader = new FileReader();
-      reader.onloadend = () => {
-        setProfileImagePreview(reader.result);
-      };
+      reader.onloadend = () => setProfileImagePreview(reader.result);
       reader.readAsDataURL(file);
     }
   };
@@ -87,25 +91,19 @@ export function UserModal({ showModal, closeModal, onSuccess }) {
     try {
       const formData = new FormData();
 
-      // Map form data to API format
       formData.append("name", data.name);
       formData.append("email", data.email);
       formData.append("phone", data.phone);
       formData.append("address", data.address || "");
       formData.append("roleid", data.roleid);
 
-      // Append profile image
       if (profileImage) {
-        // New image selected - append the file
         formData.append("profileimg", profileImage);
       } else if (showModal?.user_id && showModal?.avatar_path) {
-        // Updating user without new image - send existing image path
-        // This ensures the backend knows to keep the existing image
         formData.append("profileimg", showModal.avatar_path);
       }
 
       if (showModal?.user_id) {
-        // Update user
         await updateUser({
           id: showModal?.user_id,
           formData,
@@ -115,7 +113,6 @@ export function UserModal({ showModal, closeModal, onSuccess }) {
           },
         });
       } else {
-        // Create user
         await createUser({
           formData,
           cb: () => {
@@ -201,15 +198,15 @@ export function UserModal({ showModal, closeModal, onSuccess }) {
                     type="text"
                     className={`form-control ${errors.name ? "is-invalid" : ""}`}
                     placeholder="Name"
-                    {...register("name", {
-                      required: "Name is required",
-                    })}
+                    {...register("name", { required: "Name is required" })}
                   />
                   <label>
                     Name <span className="text-danger">*</span>
                   </label>
                   {errors.name && (
-                    <span className="error text-danger">{errors.name.message}</span>
+                    <span className="error text-danger">
+                      {errors.name.message}
+                    </span>
                   )}
                 </div>
               </div>
@@ -234,25 +231,27 @@ export function UserModal({ showModal, closeModal, onSuccess }) {
                     Email <span className="text-danger">*</span>
                   </label>
                   {errors.email && (
-                    <span className="error text-danger">{errors.email.message}</span>
+                    <span className="error text-danger">
+                      {errors.email.message}
+                    </span>
                   )}
                 </div>
               </div>
             </div>
           </div>
 
-          {/* ===== Role ===== */}
+          {/* ===== Role + Phone ===== */}
           <div className="mb-lg-3 mb-sm-0">
             <div className="permInputs row">
               {/* ROLE */}
               <div className="col-lg-6 col-sm-12">
                 <div className="form-floating desig-inp">
                   <select
-                    className={`form-control ${errors.roleid ? "is-invalid" : ""}`}
+                    className={`form-control form-select ${errors.roleid ? "is-invalid" : ""}`}
                     {...register("roleid", { required: "User role is required" })}
                   >
                     <option value="">Select User Role</option>
-                    {roles?.map((role) => (
+                    {(roles || []).map((role) => (
                       <option key={role._id} value={role._id}>
                         {role.name}
                       </option>
@@ -262,10 +261,13 @@ export function UserModal({ showModal, closeModal, onSuccess }) {
                     User Role <span className="text-danger">*</span>
                   </label>
                   {errors.roleid && (
-                    <span className="error text-danger">{errors.roleid.message}</span>
+                    <span className="error text-danger">
+                      {errors.roleid.message}
+                    </span>
                   )}
                 </div>
               </div>
+
               {/* PHONE */}
               <div className="col-lg-6 col-sm-12">
                 <div className="phone-wrapper">
@@ -304,12 +306,9 @@ export function UserModal({ showModal, closeModal, onSuccess }) {
             </div>
           </div>
 
-          {/* ===== Phone + Address ===== */}
+          {/* ===== Address ===== */}
           <div className="mb-lg-3 mb-sm-0">
             <div className="permInputs row">
-
-
-              {/* ADDRESS (optional) */}
               <div className="col-lg-6 col-sm-12">
                 <div className="form-floating desig-inp">
                   <textarea
@@ -317,7 +316,7 @@ export function UserModal({ showModal, closeModal, onSuccess }) {
                     placeholder="Address"
                     style={{ height: "100px" }}
                     {...register("address")}
-                  ></textarea>
+                  />
                   <label>Address</label>
                 </div>
               </div>
@@ -338,6 +337,7 @@ export function UserModal({ showModal, closeModal, onSuccess }) {
       >
         Close
       </button>
+
       <button
         type="submit"
         form="userForm"
@@ -348,8 +348,10 @@ export function UserModal({ showModal, closeModal, onSuccess }) {
           <div className="spinner-border spinner-border-sm" role="status">
             <span className="visually-hidden">Loading...</span>
           </div>
+        ) : showModal?.user_id ? (
+          "Update"
         ) : (
-          showModal?.user_id ? "Update" : "Save"
+          "Save"
         )}
       </button>
     </div>

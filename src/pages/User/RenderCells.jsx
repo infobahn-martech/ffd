@@ -87,7 +87,7 @@ export const RenderAction = ({ onEditClick, row, onDeleteClick, onToggleClick, o
         >
           <img src={edit} alt="edit" />
         </span>
-        <span
+        {/* <span
           data-tooltip-id="permission"
           type="button"
           onClick={() => onPermissionClick(row)}
@@ -95,7 +95,7 @@ export const RenderAction = ({ onEditClick, row, onDeleteClick, onToggleClick, o
           style={{ marginRight: '8px', cursor: 'pointer' }}
         >
           <img src={permissionIcon} alt="permission" />
-        </span>
+        </span> */}
         <span
           data-tooltip-id="archive"
           type="button"
