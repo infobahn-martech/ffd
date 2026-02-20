@@ -1,5 +1,5 @@
 import { useForm, Controller } from "react-hook-form";
-import { useState, useEffect } from "react";
+import { useState, useEffect, useMemo } from "react";
 import PhoneInput from "react-phone-input-2";
 import "react-phone-input-2/lib/bootstrap.css";
 import CustomModal from "../../../components/CustomModal";
@@ -23,46 +23,51 @@ export function UserModal({ showModal, closeModal, onSuccess }) {
     formState: { errors },
     control,
     reset,
+    watch,
+    setValue,
+    getValues,
   } = useForm({
-    defaultValues: showModal?.user_id
-      ? {
-        name: showModal?.name || "",
-        email: showModal?.email || "",
-        // ✅ FIX: roleid should come from showModal.role_id (string/number) not showModal.role.role_id
-        roleid: String(showModal?.role_id || ""),
-        phone: showModal?.phone || "",
-        address: showModal?.address || "",
-      }
-      : {
-        phone: "",
-        name: "",
-        email: "",
-        roleid: "",
-        address: "",
-      },
+    defaultValues: {
+      phone: "",
+      name: "",
+      email: "",
+      roleid: "",
+      address: "",
+    },
   });
 
   const { createUser, updateUser, addEditLoader } = useUserReducer(
     (state) => state
   );
-  const { fetchRoles, roles } = useRoleReducer((state) => state);
+  const { fetchRoles, roles, isLoading: isLoadingRoles } = useRoleReducer(
+    (state) => state
+  );
 
+  // --- helpers ---
+  const roleOptions = useMemo(() => {
+    return (roles || []).map((r) => ({
+      id: String(r?._id ?? r?.role_id ?? ""), // ✅ supports either _id or role_id
+      name: r?.name || "",
+    }));
+  }, [roles]);
+
+  const isRolesReady = !isLoadingRoles && roleOptions.length > 0;
+
+  // Fetch roles when modal opens
   useEffect(() => {
-    // Fetch roles when modal opens
     fetchRoles({ params: { page: 1, limit: 100 } });
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
+  // Reset other fields immediately when showModal changes (NOT role)
   useEffect(() => {
-    // ✅ Update form when showModal changes
     if (showModal?.user_id) {
       reset({
         name: showModal?.name || "",
         email: showModal?.email || "",
-        // ✅ FIX: ensure string + correct key
-        roleid: String(showModal?.role_id || ""),
         phone: showModal?.phone || "",
         address: showModal?.address || "",
+        roleid: "", // ✅ keep empty first, set after roles loaded
       });
 
       setProfileImagePreview(showModal?.avatar_path || userIcon);
@@ -80,6 +85,24 @@ export function UserModal({ showModal, closeModal, onSuccess }) {
       setProfileImage(null);
     }
   }, [showModal, reset]);
+
+  // ✅ SET ROLE ONLY AFTER ROLES LOADED
+  useEffect(() => {
+    if (!showModal?.user_id) return; // only for edit
+    if (!isRolesReady) return;
+
+    const incomingRoleId = String(showModal?.role_id || "");
+    if (!incomingRoleId) return;
+
+    const exists = roleOptions.some((r) => r.id === incomingRoleId);
+    if (!exists) return;
+
+    // avoid extra setValue if already set
+    const current = String(getValues("roleid") || "");
+    if (current !== incomingRoleId) {
+      setValue("roleid", incomingRoleId, { shouldValidate: true });
+    }
+  }, [showModal?.user_id, showModal?.role_id, isRolesReady, roleOptions, setValue, getValues]);
 
   const handleImageChange = (e) => {
     const file = e.target.files?.[0];
@@ -221,8 +244,7 @@ export function UserModal({ showModal, closeModal, onSuccess }) {
                 <div className="form-floating desig-inp">
                   <input
                     type="email"
-                    className={`form-control ${errors.email ? "is-invalid" : ""
-                      }`}
+                    className={`form-control ${errors.email ? "is-invalid" : ""}`}
                     placeholder="Email"
                     {...register("email", {
                       required: "Email is required",
@@ -252,17 +274,18 @@ export function UserModal({ showModal, closeModal, onSuccess }) {
               <div className="col-lg-6 col-sm-12">
                 <div className="form-floating desig-inp">
                   <select
-                    className={`form-control form-select ${errors.roleid ? "is-invalid" : ""
-                      }`}
+                    className={`form-control form-select ${errors.roleid ? "is-invalid" : ""}`}
                     {...register("roleid", {
                       required: "User role is required",
                     })}
+                    disabled={!isRolesReady} // ✅ prevent user selecting before roles loaded
                   >
-                    <option value="">Select User Role</option>
+                    <option value="">
+                      {isLoadingRoles ? "Loading roles..." : "Select User Role"}
+                    </option>
 
-                    {/* ✅ FIX: roles array has _id, not role_id */}
-                    {(roles || []).map((role) => (
-                      <option key={role._id} value={String(role._id)}>
+                    {roleOptions.map((role) => (
+                      <option key={role.id} value={role.id}>
                         {role.name}
                       </option>
                     ))}
@@ -293,9 +316,7 @@ export function UserModal({ showModal, closeModal, onSuccess }) {
                       required: "Phone is required",
                       validate: (value) => {
                         const digits = (value || "").replace(/\D/g, "");
-                        return (
-                          digits.length >= 7 || "Enter a valid phone number"
-                        );
+                        return digits.length >= 7 || "Enter a valid phone number";
                       },
                     }}
                     render={({ field }) => (
