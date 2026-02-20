@@ -1,77 +1,76 @@
-import { useState } from "react";
+import React, { useEffect, useMemo, useState } from "react";
+import { debounce } from "lodash";
+
 import CommonHeader from "../../components/CommonHeader";
 import CustomTable from "../../components/customTable";
 import { DriverVehicleMappingModal } from "./Modals/AddEditDriverVehicleMapping";
 import { RenderAction } from "./RenderCells";
 import DeleteConfirmationModal from "../../components/DeleteConfirmationModal";
-import { PORT_DETAILS } from "../../constants/ports";
 
-// DUMMY DRIVER–VEHICLE MAPPING DATA
-const dummyDriverVehicleMappings = [
-    {
-        _id: "1",
-        driver_id: "1",
-        driver_name: "Ajay Ullas",
-        driver_no: "EMP-001",
-        vehicle_id: "V1",
-        vehicle_name: "Hiace 14 Seater",
-        location: PORT_DETAILS[0].city,
-        status: "Active",
-    },
-    {
-        _id: "2",
-        driver_id: "2",
-        driver_name: "Nikhil Varma",
-        driver_no: "EMP-002",
-        vehicle_id: "V2",
-        vehicle_name: "Coaster 30 Seater",
-        location: PORT_DETAILS[1].city,
-        status: "Inactive",
-    },
-    {
-        _id: "3",
-        driver_id: "3",
-        driver_name: "Sangeeth Babu",
-        driver_no: "EMP-003",
-        vehicle_id: "V3",
-        vehicle_name: "Van 7 Seater",
-        location: PORT_DETAILS[2].city,
-        status: "Pending",
-    },
-    {
-        _id: "4",
-        driver_id: "4",
-        driver_name: "Vishnu Menon",
-        driver_no: "EMP-004",
-        vehicle_id: "V4",
-        vehicle_name: "Pickup",
-        location: PORT_DETAILS[3].city,
-        status: "Active",
-    },
-    {
-        _id: "5",
-        driver_id: "5",
-        driver_name: "Riya Thomas",
-        driver_no: "EMP-005",
-        vehicle_id: "V5",
-        vehicle_name: "Bus 50 Seater",
-        location: PORT_DETAILS[4].city,
-        status: "Inactive",
-    },
-];
+// ✅ CHANGE THIS IMPORT PATH based on your project structure
+import useDriverVehicleMappingReducer from "../../store/DriverVehicleReducer";
+// ex: "../../stores/DriverVehicleMappingReducer"
 
 const DriverVehicleMapping = () => {
+    // ✅ Store / API
+    const {
+        getDriverVehicleMappingData,
+        driverVehicleMappingData,
+        isLoading,
+        totalDriverVehicleMappingCount,
+        deleteDriverVehicleMapping,
+    } = useDriverVehicleMappingReducer((state) => state);
+
+    // ✅ Table params (API params)
     const [params, setParams] = useState({
         page: 1,
         searchTerm: "",
         limit: 10,
         sortBy: "driver_name",
-        sortOrder: 1,
+        sortOrder: 1, // 1 = ASC, -1 = DESC
     });
 
+    // ✅ Modals
     const [showDriverVehicleMappingModal, setShowDriverVehicleMappingModal] =
-        useState(false);
+        useState(false); // boolean OR row object
     const [showDeleteModal, setShowDeleteModal] = useState(false);
+    const [selectedRow, setSelectedRow] = useState(null);
+
+    // ✅ Fetch list whenever params change
+    useEffect(() => {
+        getDriverVehicleMappingData?.({
+            search: params.searchTerm || "",
+            page: params.page,
+            limit: params.limit,
+            sortBy: params.sortBy,
+            sortOrder: params.sortOrder,
+        });
+    }, [
+        params.page,
+        params.limit,
+        params.searchTerm,
+        params.sortBy,
+        params.sortOrder,
+        getDriverVehicleMappingData,
+    ]);
+
+    // ✅ Debounced search
+    const debouncedSearch = useMemo(
+        () =>
+            debounce((value) => {
+                setParams((prev) => ({ ...prev, searchTerm: value, page: 1 }));
+            }, 500),
+        []
+    );
+
+    useEffect(() => {
+        return () => debouncedSearch.cancel();
+    }, [debouncedSearch]);
+
+    // ✅ Support common API response shapes:
+    // A) { data: [...], total: number }
+    // B) { data: { data: [...], total: number } }
+
 
     const cols = [
         {
@@ -133,71 +132,106 @@ const DriverVehicleMapping = () => {
             width: "200",
             thclass: "tb-head",
             contentClass: "table-content",
-            cell: RenderAction,
-            onEditClick: (row) => setShowDriverVehicleMappingModal(row),
-            onDeleteClick: () => setShowDeleteModal(true),
+            cell: (props) =>
+                RenderAction({
+                    ...props,
+                    onEditClick: (row) => setShowDriverVehicleMappingModal(row),
+                    onDeleteClick: (row) => {
+                        setSelectedRow(row);
+                        setShowDeleteModal(true);
+                    },
+                }),
         },
     ];
 
+    const refreshList = () => {
+        getDriverVehicleMappingData?.({
+            search: params.searchTerm || "",
+            page: params.page,
+            limit: params.limit,
+            sortBy: params.sortBy,
+            sortOrder: params.sortOrder,
+        });
+    };
+
+    const handleDelete = async () => {
+        if (!selectedRow?._id) return;
+
+        // ✅ adjust payload if backend expects different key
+        const payload = { driver_vehicle_mapping_id: selectedRow._id };
+
+        // If your deleteData expects just id: await deleteData(selectedRow._id);
+        await deleteDriverVehicleMapping?.(payload);
+
+        setShowDeleteModal(false);
+        setSelectedRow(null);
+        refreshList();
+    };
+
     return (
-        <>
-            <div className="page-body">
-                <div className="prospect employee">
-                    <div className="container-fluid">
-                        <CommonHeader
-                            showFilter
-                            tableTitle="Driver Vehicle Mapping"
-                            isAddEnabled
-                            addModalLabel="Add Driver Vehicle Mapping"
-                            setSearch={(e) =>
-                                setParams({ ...params, searchTerm: e, page: 1 })
-                            }
-                            onAddModalClick={() => setShowDriverVehicleMappingModal(true)}
-                            exportTitle="Export"
-                            exportLoader={false}
-                        />
-                    </div>
-
-                    <CustomTable
-                        pagination={{ currentPage: params.page, limit: params.limit }}
-                        tableClasses="px-start"
-                        columns={cols}
-                        data={dummyDriverVehicleMappings}
-                        count={dummyDriverVehicleMappings.length}
-                        onPageChange={(currentPage) =>
-                            setParams({ ...params, page: currentPage })
-                        }
-                        setLimit={(newLimit) =>
-                            setParams({ ...params, limit: newLimit })
-                        }
-                        onSorting={(sortBy) =>
-                            setParams({
-                                ...params,
-                                sortBy,
-                                sortOrder: params.sortOrder === 1 ? -1 : 1,
-                                page: 1,
-                            })
-                        }
+        <div className="page-body">
+            <div className="prospect employee">
+                <div className="container-fluid">
+                    <CommonHeader
+                        showFilter
+                        tableTitle="Driver Vehicle Mapping"
+                        isAddEnabled
+                        addModalLabel="Add Driver Vehicle Mapping"
+                        setSearch={(value) => debouncedSearch(value)}
+                        onAddModalClick={() => setShowDriverVehicleMappingModal(true)}
+                        exportTitle="Export"
+                        exportLoader={false}
                     />
-
-                    {!!showDriverVehicleMappingModal && (
-                        <DriverVehicleMappingModal
-                            showModal={showDriverVehicleMappingModal}
-                            closeModal={() => setShowDriverVehicleMappingModal(false)}
-                        />
-                    )}
-
-                    {!!showDeleteModal && (
-                        <DeleteConfirmationModal
-                            show={showDeleteModal}
-                            onCancel={() => setShowDeleteModal(false)}
-                            onConfirm={() => { }}
-                            deleteText="Are you sure you want to delete this driver vehicle mapping?"
-                        />
-                    )}
                 </div>
+
+                <CustomTable
+                    loading={isLoading}
+                    pagination={{ currentPage: params.page, limit: params.limit }}
+                    tableClasses="px-start"
+                    columns={cols}
+                    data={driverVehicleMappingData}
+                    count={totalDriverVehicleMappingCount}
+                    onPageChange={(currentPage) =>
+                        setParams((prev) => ({ ...prev, page: currentPage }))
+                    }
+                    setLimit={(newLimit) =>
+                        setParams((prev) => ({ ...prev, limit: newLimit, page: 1 }))
+                    }
+                    onSorting={(sortBy) =>
+                        setParams((prev) => ({
+                            ...prev,
+                            sortBy,
+                            sortOrder: prev.sortOrder === 1 ? -1 : 1,
+                            page: 1,
+                        }))
+                    }
+                />
+
+                {!!showDriverVehicleMappingModal && (
+                    <DriverVehicleMappingModal
+                        showModal={showDriverVehicleMappingModal} // boolean OR row object
+                        closeModal={() => setShowDriverVehicleMappingModal(false)}
+                        onSuccess={() => {
+                            setShowDriverVehicleMappingModal(false);
+                            refreshList();
+                        }}
+                    />
+                )}
+
+                {!!showDeleteModal && (
+                    <DeleteConfirmationModal
+                        show={showDeleteModal}
+                        onCancel={() => {
+                            setShowDeleteModal(false);
+                            setSelectedRow(null);
+                        }}
+                        onConfirm={handleDelete}
+                        isLoading={isLoading}
+                        deleteText="Are you sure you want to delete this driver vehicle mapping?"
+                    />
+                )}
             </div>
-        </>
+        </div>
     );
 };
 
