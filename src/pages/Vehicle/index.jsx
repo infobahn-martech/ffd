@@ -1,94 +1,70 @@
-import { useState } from "react";
+import React, { useEffect, useMemo, useState } from "react";
+import { debounce } from "lodash";
+
 import CommonHeader from "../../components/CommonHeader";
 import CustomTable from "../../components/customTable";
 import { VehicleModal } from "./Modals/AddEditVehicle";
 import { RenderAction } from "./RenderCells";
 import DeleteConfirmationModal from "../../components/DeleteConfirmationModal";
 
-const dummyVehicles = [
-    {
-        _id: "1",
-        vehicle_type: "Sedan",
-        seater: 4,
-        vehicle_purpose: "Personal",
-        status: "Active",
-    },
-    {
-        _id: "2",
-        vehicle_type: "SUV",
-        seater: 7,
-        vehicle_purpose: "Personal",
-        status: "Inactive",
-    },
-    {
-        _id: "3",
-        vehicle_type: "Minivan",
-        seater: 8,
-        vehicle_purpose: "Personal",
-        status: "Pending",
-    },
-    {
-        _id: "4",
-        vehicle_type: "Bus",
-        seater: 30,
-        vehicle_purpose: "Personal",
-        status: "Active",
-    },
-    {
-        _id: "5",
-        vehicle_type: "Pickup",
-        seater: 5,
-        vehicle_purpose: "Personal",
-        status: "Inactive",
-    },
-    {
-        _id: "6",
-        vehicle_type: "Hatchback",
-        seater: 4,
-        vehicle_purpose: "Personal",
-        status: "Pending",
-    },
-    {
-        _id: "7",
-        vehicle_type: "Coaster",
-        seater: 22,
-        vehicle_purpose: "Personal",
-        status: "Active",
-    },
-    {
-        _id: "8",
-        vehicle_type: "Luxury SUV",
-        seater: 7,
-        vehicle_purpose: "Personal",
-        status: "Inactive",
-    },
-    {
-        _id: "9",
-        vehicle_type: "Hiace",
-        seater: 14,
-        vehicle_purpose: "Crew",
-        status: "Pending",
-    },
-    {
-        _id: "10",
-        vehicle_type: "Crew Bus",
-        seater: 40,
-        vehicle_purpose: "Crew",
-        status: "Active",
-    },
-];
+// ✅ CHANGE THIS IMPORT PATH based on your project structure
+import useVehicleReducer from "../../store/VehicleReducer";
+// If your store path is different, update it like your other modules:
+// import useVehicleReducer from "../../stores/VehicleReducer";
 
 const Vehicle = () => {
+    // ✅ Store / API
+    const {
+        vehicles,
+        getVehicles,
+        isLoading,
+        totalCount,
+        deleteVehicle,
+    } = useVehicleReducer((state) => state);
+
+    // ✅ Table params (API params)
     const [params, setParams] = useState({
         page: 1,
         searchTerm: "",
         limit: 10,
         sortBy: "vehicle_type",
-        sortOrder: 1,
+        sortOrder: 1, // 1 = ASC, -1 = DESC (keep as your backend expects)
     });
 
-    const [showVehicleModal, setShowVehicleModal] = useState(false);
+    // ✅ Modals
+    const [showVehicleModal, setShowVehicleModal] = useState(false); // boolean OR row object
     const [showDeleteModal, setShowDeleteModal] = useState(false);
+    const [selectedRow, setSelectedRow] = useState(null);
+
+    // ✅ Fetch list (whenever params change)
+    useEffect(() => {
+        // adjust payload keys if your backend expects different names
+        getVehicles?.({
+            search: params.searchTerm || "",
+            page: params.page,
+            limit: params.limit,
+            sortBy: params.sortBy,
+            sortOrder: params.sortOrder,
+        });
+    }, [params.page, params.limit, params.searchTerm, params.sortBy, params.sortOrder, getVehicles]);
+
+    // ✅ Debounced search
+    const debouncedSearch = useMemo(
+        () =>
+            debounce((value) => {
+                setParams((prev) => ({ ...prev, searchTerm: value, page: 1 }));
+            }, 500),
+        []
+    );
+
+    useEffect(() => {
+        return () => debouncedSearch.cancel();
+    }, [debouncedSearch]);
+
+    // ✅ Data mapping (depends on your API response)
+    // Supports both:
+    // 1) { data: [...], total: 100 }
+    // 2) { data: { data: [...], total: 100 } }
 
     const cols = [
         {
@@ -142,71 +118,108 @@ const Vehicle = () => {
             width: "100",
             thclass: "tb-head",
             contentClass: "table-content",
-            cell: RenderAction,
-            onEditClick: (row) => setShowVehicleModal(row),
-            onDeleteClick: () => setShowDeleteModal(true),
+            cell: (props) =>
+                RenderAction({
+                    ...props,
+                    onEditClick: (row) => setShowVehicleModal(row),
+                    onDeleteClick: (row) => {
+                        setSelectedRow(row);
+                        setShowDeleteModal(true);
+                    },
+                }),
         },
     ];
 
+    const handleRefresh = () => {
+        getVehicles?.({
+            search: params.searchTerm || "",
+            page: params.page,
+            limit: params.limit,
+            sortBy: params.sortBy,
+            sortOrder: params.sortOrder,
+        });
+    };
+
+    const handleDelete = async () => {
+        if (!selectedRow?._id) return;
+
+        // ✅ adjust key if your backend expects something else
+        const payload = { vehicle_id: selectedRow._id };
+
+        // If your deleteData expects just id, use: await deleteData(selectedRow._id);
+        await deleteVehicle?.(payload);
+
+        setShowDeleteModal(false);
+        setSelectedRow(null);
+
+        // ✅ optional refresh
+        handleRefresh();
+    };
+
     return (
-        <>
-            <div className="page-body">
-                <div className="prospect employee">
-                    <div className="container-fluid">
-                        <CommonHeader
-                            showFilter
-                            tableTitle="Vehicle Management"
-                            isAddEnabled
-                            addModalLabel="Add Vehicle"
-                            setSearch={(e) =>
-                                setParams({ ...params, searchTerm: e, page: 1 })
-                            }
-                            onAddModalClick={() => setShowVehicleModal(true)}
-                            exportTitle="Export"
-                            exportLoader={false}
-                        />
-                    </div>
-
-                    <CustomTable
-                        pagination={{ currentPage: params.page, limit: params.limit }}
-                        tableClasses="px-start"
-                        columns={cols}
-                        data={dummyVehicles}
-                        count={dummyVehicles.length}
-                        onPageChange={(currentPage) =>
-                            setParams({ ...params, page: currentPage })
-                        }
-                        setLimit={(newLimit) =>
-                            setParams({ ...params, limit: newLimit })
-                        }
-                        onSorting={(sortBy) =>
-                            setParams({
-                                ...params,
-                                sortBy,
-                                sortOrder: params.sortOrder === 1 ? -1 : 1,
-                                page: 1,
-                            })
-                        }
+        <div className="page-body">
+            <div className="prospect employee">
+                <div className="container-fluid">
+                    <CommonHeader
+                        showFilter
+                        tableTitle="Vehicle Management"
+                        isAddEnabled
+                        addModalLabel="Add Vehicle"
+                        setSearch={(value) => debouncedSearch(value)}
+                        onAddModalClick={() => setShowVehicleModal(true)}
+                        exportTitle="Export"
+                        exportLoader={false}
                     />
-
-                    {!!showVehicleModal && (
-                        <VehicleModal
-                            showModal={showVehicleModal}
-                            closeModal={() => setShowVehicleModal(false)}
-                        />
-                    )}
-
-                    {!!showDeleteModal && (
-                        <DeleteConfirmationModal
-                            show={showDeleteModal}
-                            onCancel={() => setShowDeleteModal(false)}
-                            onConfirm={() => { }}
-                            deleteText="Are you sure you want to delete this vehicle?"
-                        />
-                    )}
                 </div>
+
+                <CustomTable
+                    loading={isLoading}
+                    pagination={{ currentPage: params.page, limit: params.limit }}
+                    tableClasses="px-start"
+                    columns={cols}
+                    data={vehicles}
+                    count={totalCount}
+                    onPageChange={(currentPage) =>
+                        setParams((prev) => ({ ...prev, page: currentPage }))
+                    }
+                    setLimit={(newLimit) =>
+                        setParams((prev) => ({ ...prev, limit: newLimit, page: 1 }))
+                    }
+                    onSorting={(sortBy) =>
+                        setParams((prev) => ({
+                            ...prev,
+                            sortBy,
+                            sortOrder: prev.sortOrder === 1 ? -1 : 1,
+                            page: 1,
+                        }))
+                    }
+                />
+
+                {!!showVehicleModal && (
+                    <VehicleModal
+                        showModal={showVehicleModal} // boolean OR row object (edit)
+                        closeModal={() => setShowVehicleModal(false)}
+                        onSuccess={() => {
+                            setShowVehicleModal(false);
+                            handleRefresh();
+                        }}
+                    />
+                )}
+
+                {!!showDeleteModal && (
+                    <DeleteConfirmationModal
+                        show={showDeleteModal}
+                        onCancel={() => {
+                            setShowDeleteModal(false);
+                            setSelectedRow(null);
+                        }}
+                        onConfirm={handleDelete}
+                        isLoading={isLoading}
+                        deleteText="Are you sure you want to delete this vehicle?"
+                    />
+                )}
             </div>
-        </>
+        </div>
     );
 };
 
