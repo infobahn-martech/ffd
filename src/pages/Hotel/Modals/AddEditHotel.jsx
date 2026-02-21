@@ -1,7 +1,6 @@
-import { useForm, Controller, useFieldArray } from "react-hook-form";
+import { useForm, Controller } from "react-hook-form";
 import PhoneInput from "react-phone-input-2";
 import "react-phone-input-2/lib/bootstrap.css";
-import { FiPlus, FiX } from "react-icons/fi";
 import CustomModal from "../../../components/CustomModal";
 import useHotelReducer from "../../../store/HotelReducer";
 import "../../../design/scss/prospect-modal.scss";
@@ -11,38 +10,30 @@ import userIcon from "../../../assets/images/user.png";
 import edit from "../../../assets/images/edit.svg";
 
 export function HotelModal({ showModal, closeModal, onSuccess }) {
-    const { addHotel, updateHotel, isBeingUpdated } = useHotelReducer((state) => state);
+    const { addHotel, updateHotel, isBeingUpdated } = useHotelReducer(
+        (state) => state
+    );
     const {
         register,
         handleSubmit,
         formState: { errors },
         control,
     } = useForm({
-        defaultValues: showModal?._id
+        defaultValues: showModal?.hotel_id
             ? {
                 hotel_name: showModal?.hotel_name || "",
                 contact_name: showModal?.contact_name || "",
                 contact_no: showModal?.contact_no || "",
-                contact_emails:
-                    showModal?.contact_email
-                        ? Array.isArray(showModal.contact_email)
-                            ? showModal.contact_email.map((e) => ({ value: e }))
-                            : [{ value: showModal.contact_email }]
-                        : [{ value: "" }],
+                contact_email: showModal?.contact_email || "", // ✅ single email
                 hotel_address: showModal?.hotel_address || "",
             }
             : {
                 hotel_name: "",
                 contact_name: "",
                 contact_no: "",
-                contact_emails: [{ value: "" }],
+                contact_email: "", // ✅ single email
                 hotel_address: "",
             },
-    });
-
-    const { fields, append, remove } = useFieldArray({
-        control,
-        name: "contact_emails"
     });
 
     const onSubmit = (data) => {
@@ -50,15 +41,15 @@ export function HotelModal({ showModal, closeModal, onSuccess }) {
             hotel_name: data.hotel_name,
             contact_name: data.contact_name,
             contact_no: data.contact_no,
-            contact_email: data.contact_emails.map((e) => e.value?.trim()).filter(Boolean),
+            contact_email: data.contact_email?.trim(), // ✅ single email string
             hotel_address: data.hotel_address,
         };
 
-        const isEdit = !!showModal?._id;
+        const isEdit = !!showModal?.hotel_id;
 
         if (isEdit) {
             updateHotel({
-                formData: { ...payload, hotel_id: showModal._id },
+                formData: { ...payload, hotel_id: showModal.hotel_id },
                 cb: () => {
                     closeModal(null);
                     onSuccess?.();
@@ -77,9 +68,7 @@ export function HotelModal({ showModal, closeModal, onSuccess }) {
 
     const renderHeader = () => (
         <>
-            <h1 className="modal-title">
-                {showModal?._id ? "Edit Hotel" : "Add Hotel"}
-            </h1>
+            <h1 className="modal-title">{showModal?.hotel_id ? "Edit Hotel" : "Add Hotel"}</h1>
         </>
     );
 
@@ -95,8 +84,7 @@ export function HotelModal({ showModal, closeModal, onSuccess }) {
                                 <div className="form-floating desig-inp">
                                     <input
                                         type="text"
-                                        className={`form-control ${errors.hotel_name ? "is-invalid" : ""
-                                            }`}
+                                        className={`form-control ${errors.hotel_name ? "is-invalid" : ""}`}
                                         placeholder="Hotel Name"
                                         {...register("hotel_name", {
                                             required: "Hotel name is required",
@@ -118,8 +106,7 @@ export function HotelModal({ showModal, closeModal, onSuccess }) {
                                 <div className="form-floating desig-inp">
                                     <input
                                         type="text"
-                                        className={`form-control ${errors.contact_name ? "is-invalid" : ""
-                                            }`}
+                                        className={`form-control ${errors.contact_name ? "is-invalid" : ""}`}
                                         placeholder="Contact Name"
                                         {...register("contact_name", {
                                             required: "Contact name is required",
@@ -141,7 +128,6 @@ export function HotelModal({ showModal, closeModal, onSuccess }) {
                     {/* ===== Contact No ===== */}
                     <div className="mb-lg-3 mb-sm-0">
                         <div className="permInputs row">
-                            {/* CONTACT NO (PhoneInput) */}
                             <div className="col-12">
                                 <div className="phone-wrapper">
                                     <label className="phone-label">
@@ -155,9 +141,7 @@ export function HotelModal({ showModal, closeModal, onSuccess }) {
                                             required: "Contact no is required",
                                             validate: (value) => {
                                                 const digits = (value || "").replace(/\D/g, "");
-                                                return (
-                                                    digits.length >= 7 || "Enter a valid phone number"
-                                                );
+                                                return digits.length >= 7 || "Enter a valid phone number";
                                             },
                                         }}
                                         render={({ field }) => (
@@ -181,69 +165,34 @@ export function HotelModal({ showModal, closeModal, onSuccess }) {
                         </div>
                     </div>
 
-                    {/* ===== Contact Email (Multiple) ===== */}
+                    {/* ===== Contact Email (Single) ===== */}
                     <div className="mb-lg-3 mb-sm-0">
                         <div className="permInputs row">
                             <div className="col-12">
-                                {fields.map((field, index) => (
-                                    <div className="row align-items-center mb-2" key={field.id}>
-                                        <div className="col-12">
-                                            <div className="form-floating desig-inp position-relative">
-                                                <input
-                                                    type="email"
-                                                    className={`form-control email-input-no-validation ${errors.contact_emails?.[index]?.value ? "is-invalid" : ""
-                                                        }`}
-                                                    placeholder="email@example.com"
-                                                    style={{ paddingRight: index === fields.length - 1 ? "80px" : "45px" }}
-                                                    {...register(`contact_emails.${index}.value`, {
-                                                        required: "Email is required",
-                                                        pattern: {
-                                                            value: /^[^\s@]+@[^\s@]+\.[^\s@]+$/,
-                                                            message: "Enter a valid email address",
-                                                        },
-                                                    })}
-                                                />
-                                                <label>Email <span className="text-danger">*</span></label>
-                                                {index === fields.length - 1 ? (
-                                                    <>
-                                                        {fields.length > 1 && (
-                                                            <button
-                                                                type="button"
-                                                                className="email-action-btn email-remove-btn email-remove-btn-last"
-                                                                onClick={() => remove(index)}
-                                                                title="Remove Email"
-                                                            >
-                                                                <FiX size={18} />
-                                                            </button>
-                                                        )}
-                                                        <button
-                                                            type="button"
-                                                            className="email-action-btn email-add-btn"
-                                                            onClick={() => append({ value: "" })}
-                                                            title="Add Email"
-                                                        >
-                                                            <FiPlus size={18} />
-                                                        </button>
-                                                    </>
-                                                ) : (
-                                                    <button
-                                                        type="button"
-                                                        className="email-action-btn email-remove-btn"
-                                                        onClick={() => remove(index)}
-                                                        title="Remove Email"
-                                                    >
-                                                        <FiX size={18} />
-                                                    </button>
-                                                )}
-                                                {errors.contact_emails?.[index]?.value && (
-                                                    <span className="error text-danger">
-                                                        {errors.contact_emails[index].value.message}
-                                                    </span>
-                                                )}
-                                            </div>
-                                        </div>
-                                    </div>
-                                ))}
+                                <div className="form-floating desig-inp">
+                                    <input
+                                        type="email"
+                                        className={`form-control ${errors.contact_email ? "is-invalid" : ""
+                                            }`}
+                                        placeholder="email@example.com"
+                                        {...register("contact_email", {
+                                            required: "Email is required",
+                                            pattern: {
+                                                value: /^[^\s@]+@[^\s@]+\.[^\s@]+$/,
+                                                message: "Enter a valid email address",
+                                            },
+                                        })}
+                                    />
+                                    <label>
+                                        Email <span className="text-danger">*</span>
+                                    </label>
+
+                                    {errors.contact_email && (
+                                        <span className="error text-danger">
+                                            {errors.contact_email.message}
+                                        </span>
+                                    )}
+                                </div>
                             </div>
                         </div>
                     </div>
@@ -281,9 +230,15 @@ export function HotelModal({ showModal, closeModal, onSuccess }) {
 
     const renderFooter = () => (
         <div className="modal-footer">
-            <button type="button" className="btn btn-outline" onClick={closeModal} disabled={isBeingUpdated}>
+            <button
+                type="button"
+                className="btn btn-outline"
+                onClick={closeModal}
+                disabled={isBeingUpdated}
+            >
                 Close
             </button>
+
             <button
                 type="submit"
                 form="hotelForm"
