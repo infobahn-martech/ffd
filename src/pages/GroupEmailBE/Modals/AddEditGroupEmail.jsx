@@ -1,7 +1,9 @@
+import { useEffect } from "react";
 import { useForm, useFieldArray, Controller } from "react-hook-form";
 import { FiPlus, FiX } from "react-icons/fi";
 import CustomModal from "../../../components/CustomModal";
 import useGroupEmailBEReducer from "../../../store/GroupEmailBEReducer";
+import useBillingEntityReducer from "../../../store/BillingEntityReducer";
 import "../../../design/scss/prospect-modal.scss";
 import "../../../design/scss/modal-designs.scss";
 import "../../../design/scss/form-designs.scss";
@@ -10,7 +12,14 @@ export function GroupEmailBEModal({ showModal, closeModal, onSuccess }) {
     const { addGroupEmailBE, updateGroupEmailBE, isBeingUpdated } =
         useGroupEmailBEReducer((state) => state);
 
+    const { getBillingEntities, billingEntities, isLoading: billingLoading } =
+        useBillingEntityReducer((state) => state);
+
     const isEdit = !!showModal?.entity_id;
+
+    useEffect(() => {
+        getBillingEntities({ params: { page: 1, limit: 1000 } });
+    }, []);
 
     const {
         control,
@@ -20,6 +29,7 @@ export function GroupEmailBEModal({ showModal, closeModal, onSuccess }) {
     } = useForm({
         defaultValues: isEdit
             ? {
+                entity_id: showModal.entity_id,
                 emails:
                     showModal?.emails?.length > 0
                         ? showModal.emails.map((e) => ({
@@ -30,6 +40,7 @@ export function GroupEmailBEModal({ showModal, closeModal, onSuccess }) {
                         : [{ email_id: "", value: "", is_active: true }],
             }
             : {
+                entity_id: "",
                 emails: [{ email_id: "", value: "", is_active: true }],
             },
     });
@@ -42,7 +53,7 @@ export function GroupEmailBEModal({ showModal, closeModal, onSuccess }) {
     const onSubmit = (data) => {
         if (isEdit) {
             const payload = {
-                entity_id: showModal.entity_id,
+                entity_id: data.entity_id,
                 emails: data.emails.map((e) => ({
                     email_id: e.email_id,
                     email: e.value?.trim(),
@@ -58,7 +69,7 @@ export function GroupEmailBEModal({ showModal, closeModal, onSuccess }) {
             });
         } else {
             const payload = {
-                entity_id: showModal?.entity_id,
+                entity_id: data.entity_id,
                 emails: data.emails.map((e) => e.value?.trim()).filter(Boolean),
             };
             addGroupEmailBE({
@@ -81,6 +92,36 @@ export function GroupEmailBEModal({ showModal, closeModal, onSuccess }) {
         <div className="modal-body">
             <div className="lead-form">
                 <form id="groupEmailForm" onSubmit={handleSubmit(onSubmit)}>
+                    {/* BILLING ENTITY SELECT */}
+                    <div className="mb-lg-3 mb-sm-0 mt-2">
+                        <div className="form-floating desig-inp">
+                            <select
+                                className={`form-control form-select ${errors.entity_id ? "is-invalid" : ""}`}
+                                disabled={isEdit || billingLoading}
+                                {...register("entity_id", {
+                                    required: "Billing entity is required",
+                                })}
+                            >
+                                <option value="">
+                                    {billingLoading ? "Loading..." : "Select Billing Entity"}
+                                </option>
+                                {(billingEntities ?? []).map((be) => (
+                                    <option key={be._id} value={be._id}>
+                                        {be.name}
+                                    </option>
+                                ))}
+                            </select>
+                            <label>
+                                Billing Entity <span className="text-danger">*</span>
+                            </label>
+                            {errors.entity_id && (
+                                <span className="error text-danger">
+                                    {errors.entity_id.message}
+                                </span>
+                            )}
+                        </div>
+                    </div>
+
                     {/* EMAIL LIST */}
                     <div className="mt-3">
                         {fields.map((field, index) => (
