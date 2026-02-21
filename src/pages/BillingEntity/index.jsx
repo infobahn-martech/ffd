@@ -25,7 +25,6 @@ const BillingEntity = () => {
     totalCount,
     isLoading,
   } = useBillingEntityReducer((state) => state);
-  console.log("billingEntities", billingEntities);
 
   useEffect(() => {
     const apiParams = {
@@ -56,17 +55,17 @@ const BillingEntity = () => {
       thclass: 'tb-head',
       contentClass: 'table-content',
     },
-    {
-      name: 'VAT Number',
-      selector: 'vatNo',
-      sort: true,
-      width: '200',
-      thclass: 'tb-head',
-      contentClass: 'table-content',
-    },
+    // {
+    //   name: 'VAT Number',
+    //   selector: 'vatNo',
+    //   sort: true,
+    //   width: '200',
+    //   thclass: 'tb-head',
+    //   contentClass: 'table-content',
+    // },
     {
       name: 'Contact Person',
-      selector: 'contactPerson',
+      selector: 'contact_name',
       sort: true,
       width: '220',
       thclass: 'tb-head',
@@ -80,32 +79,32 @@ const BillingEntity = () => {
       thclass: 'tb-head',
       contentClass: 'table-content',
     },
-    {
-      name: 'Email',
-      selector: 'email',
-      sort: true,
-      width: '250',
-      thclass: 'tb-head',
-      contentClass: 'table-content',
-    },
-    {
-      name: 'Created At',
-      selector: 'createdAt',
-      sort: true,
-      width: '200',
-      cell: DateFormat,
-      thclass: 'tb-head',
-      contentClass: 'table-content',
-    },
-    {
-      name: 'Updated At',
-      selector: 'updatedAt',
-      sort: true,
-      width: '200',
-      cell: DateFormat,
-      thclass: 'tb-head',
-      contentClass: 'table-content',
-    },
+    // {
+    //   name: 'Email',
+    //   selector: 'email',
+    //   sort: true,
+    //   width: '250',
+    //   thclass: 'tb-head',
+    //   contentClass: 'table-content',
+    // },
+    // {
+    //   name: 'Created At',
+    //   selector: 'createdAt',
+    //   sort: true,
+    //   width: '200',
+    //   cell: DateFormat,
+    //   thclass: 'tb-head',
+    //   contentClass: 'table-content',
+    // },
+    // {
+    //   name: 'Updated At',
+    //   selector: 'updatedAt',
+    //   sort: true,
+    //   width: '200',
+    //   cell: DateFormat,
+    //   thclass: 'tb-head',
+    //   contentClass: 'table-content',
+    // },
     {
       name: 'Actions',
       selector: 'actions',
