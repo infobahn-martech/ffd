@@ -69,10 +69,10 @@ const useDriverReducer = create((set) => ({
         }
     },
 
-    updateDriver: async ({ driver_id, formData, cb }) => {
+    updateDriver: async ({ formData, cb }) => {
         try {
             set({ isBeingUpdated: true });
-            const { data } = await driverService.updateDriver(driver_id, formData);
+            const { data } = await driverService.updateDriver(formData);
             const { success } = useAlertReducer.getState();
             success(data?.message ?? 'Driver updated successfully');
             set({ isBeingUpdated: false });

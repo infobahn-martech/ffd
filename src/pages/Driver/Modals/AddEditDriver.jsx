@@ -74,10 +74,8 @@ export function DriverModal({ showModal, closeModal, onSuccess }) {
             joining_date: data.joining_date,
         };
         if (isEdit) {
-            payload.id = editId;
             updateDriver({
-                driver_id: editId,
-                formData: payload,
+                formData: { driver_id: editId, ...payload },
                 cb: () => {
                     closeModal();
                     onSuccess?.();
