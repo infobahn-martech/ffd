@@ -1,32 +1,36 @@
-import { useForm, useFieldArray } from "react-hook-form";
+import { useForm, useFieldArray, Controller } from "react-hook-form";
 import { FiPlus, FiX } from "react-icons/fi";
 import CustomModal from "../../../components/CustomModal";
+import useGroupEmailBEReducer from "../../../store/GroupEmailBEReducer";
 import "../../../design/scss/prospect-modal.scss";
 import "../../../design/scss/modal-designs.scss";
 import "../../../design/scss/form-designs.scss";
 
-export function GroupEmailBEModal({ showModal, closeModal }) {
+export function GroupEmailBEModal({ showModal, closeModal, onSuccess }) {
+    const { addGroupEmailBE, updateGroupEmailBE, isBeingUpdated } =
+        useGroupEmailBEReducer((state) => state);
+
+    const isEdit = !!showModal?.entity_id;
+
     const {
         control,
         register,
         handleSubmit,
         formState: { errors },
     } = useForm({
-        defaultValues: showModal?._id
+        defaultValues: isEdit
             ? {
-                groupEmailName: showModal?.name || "",
-                groupEmailCode: showModal?.code || "",
-                description: showModal?.description || "",
                 emails:
                     showModal?.emails?.length > 0
-                        ? showModal.emails.map((e) => ({ value: e }))
-                        : [{ value: "" }],
+                        ? showModal.emails.map((e) => ({
+                            email_id: e.email_id,
+                            value: e.email,
+                            is_active: e.is_active ?? true,
+                        }))
+                        : [{ email_id: "", value: "", is_active: true }],
             }
             : {
-                groupEmailName: "",
-                groupEmailCode: "",
-                description: "",
-                emails: [{ value: "" }],
+                emails: [{ email_id: "", value: "", is_active: true }],
             },
     });
 
@@ -36,56 +40,52 @@ export function GroupEmailBEModal({ showModal, closeModal }) {
     });
 
     const onSubmit = (data) => {
-        const payload = {
-            ...data,
-            emails: data.emails.map((e) => e.value?.trim()).filter(Boolean),
-        };
-        console.log("GROUP EMAIL FORM SUBMITTED:", payload);
-        closeModal();
+        if (isEdit) {
+            const payload = {
+                entity_id: showModal.entity_id,
+                emails: data.emails.map((e) => ({
+                    email_id: e.email_id,
+                    email: e.value?.trim(),
+                    is_active: e.is_active,
+                })),
+            };
+            updateGroupEmailBE({
+                formData: payload,
+                cb: () => {
+                    closeModal(null);
+                    onSuccess?.();
+                },
+            });
+        } else {
+            const payload = {
+                entity_id: showModal?.entity_id,
+                emails: data.emails.map((e) => e.value?.trim()).filter(Boolean),
+            };
+            addGroupEmailBE({
+                formData: payload,
+                cb: () => {
+                    closeModal(null);
+                    onSuccess?.();
+                },
+            });
+        }
     };
 
     const renderHeader = () => (
-        <>
-            <h1 className="modal-title">
-                {showModal?._id ? "Edit Group Email" : "Add Group Email"}
-            </h1>
-        </>
+        <h1 className="modal-title">
+            {isEdit ? "Edit Group Email" : "Add Group Email"}
+        </h1>
     );
 
     const renderBody = () => (
         <div className="modal-body">
             <div className="lead-form">
                 <form id="groupEmailForm" onSubmit={handleSubmit(onSubmit)}>
-                    {/* GROUP NAME + GROUP CODE */}
-                    <div className="row">
-                        {/* GROUP NAME */}
-                        <div className="mb-lg-3 mb-sm-0 mt-2">
-                            <div className="form-floating desig-inp">
-                                <input
-                                    className={`form-control ${errors.groupEmailName ? "is-invalid" : ""
-                                        }`}
-                                    placeholder="Group Name"
-                                    {...register("groupEmailName", {
-                                        required: "Group name is required",
-                                    })}
-                                />
-                                <label>
-                                    Group Name <span className="text-danger">*</span>
-                                </label>
-                                {errors.groupEmailName && (
-                                    <span className="error text-danger">
-                                        {errors.groupEmailName.message}
-                                    </span>
-                                )}
-                            </div>
-                        </div>
-                    </div>
-
                     {/* EMAIL LIST */}
                     <div className="mt-3">
                         {fields.map((field, index) => (
                             <div className="row align-items-center mb-2" key={field.id}>
-                                <div className="col-12">
+                                <div className={isEdit ? "col-9 col-md-10" : "col-12"}>
                                     <div className="form-floating desig-inp position-relative">
                                         <input
                                             type="email"
@@ -94,7 +94,9 @@ export function GroupEmailBEModal({ showModal, closeModal }) {
                                             placeholder="email@example.com"
                                             style={{
                                                 paddingRight:
-                                                    index === fields.length - 1 ? "80px" : "45px",
+                                                    !isEdit && index === fields.length - 1
+                                                        ? "80px"
+                                                        : "45px",
                                             }}
                                             {...register(`emails.${index}.value`, {
                                                 required: "Email is required",
@@ -108,37 +110,43 @@ export function GroupEmailBEModal({ showModal, closeModal }) {
                                             Email <span className="text-danger">*</span>
                                         </label>
 
-                                        {index === fields.length - 1 ? (
+                                        {/* Add / Remove buttons — only shown outside edit mode */}
+                                        {!isEdit && (
                                             <>
-                                                {fields.length > 1 && (
+                                                {index === fields.length - 1 ? (
+                                                    <>
+                                                        {fields.length > 1 && (
+                                                            <button
+                                                                type="button"
+                                                                className="email-action-btn email-remove-btn email-remove-btn-last"
+                                                                onClick={() => remove(index)}
+                                                                title="Remove Email"
+                                                            >
+                                                                <FiX size={18} />
+                                                            </button>
+                                                        )}
+                                                        <button
+                                                            type="button"
+                                                            className="email-action-btn email-add-btn"
+                                                            onClick={() =>
+                                                                append({ email_id: "", value: "", is_active: true })
+                                                            }
+                                                            title="Add Email"
+                                                        >
+                                                            <FiPlus size={18} />
+                                                        </button>
+                                                    </>
+                                                ) : (
                                                     <button
                                                         type="button"
-                                                        className="email-action-btn email-remove-btn email-remove-btn-last"
+                                                        className="email-action-btn email-remove-btn"
                                                         onClick={() => remove(index)}
                                                         title="Remove Email"
                                                     >
                                                         <FiX size={18} />
                                                     </button>
                                                 )}
-
-                                                <button
-                                                    type="button"
-                                                    className="email-action-btn email-add-btn"
-                                                    onClick={() => append({ value: "" })}
-                                                    title="Add Email"
-                                                >
-                                                    <FiPlus size={18} />
-                                                </button>
                                             </>
-                                        ) : (
-                                            <button
-                                                type="button"
-                                                className="email-action-btn email-remove-btn"
-                                                onClick={() => remove(index)}
-                                                title="Remove Email"
-                                            >
-                                                <FiX size={18} />
-                                            </button>
                                         )}
 
                                         {errors.emails?.[index]?.value && (
@@ -148,19 +156,37 @@ export function GroupEmailBEModal({ showModal, closeModal }) {
                                         )}
                                     </div>
                                 </div>
+
+                                {/* Active checkbox — only shown in edit mode */}
+                                {isEdit && (
+                                    <div className="col-3 col-md-2 d-flex align-items-center justify-content-center">
+                                        <Controller
+                                            control={control}
+                                            name={`emails.${index}.is_active`}
+                                            render={({ field: { value, onChange } }) => (
+                                                <div className="form-check d-flex flex-column align-items-center gap-1 mb-0">
+                                                    <input
+                                                        type="checkbox"
+                                                        id={`active-${field.id}`}
+                                                        className="form-check-input"
+                                                        style={{ width: "18px", height: "18px", cursor: "pointer" }}
+                                                        checked={!!value}
+                                                        onChange={(e) => onChange(e.target.checked)}
+                                                    />
+                                                    <label
+                                                        htmlFor={`active-${field.id}`}
+                                                        className="form-check-label"
+                                                        style={{ fontSize: "11px", cursor: "pointer" }}
+                                                    >
+                                                        Active
+                                                    </label>
+                                                </div>
+                                            )}
+                                        />
+                                    </div>
+                                )}
                             </div>
                         ))}
-                    </div>
-
-                    {/* DESCRIPTION — FULL ROW TEXTAREA */}
-                    <div className="mb-lg-3 mb-sm-0 mt-2">
-                        <label className="form-label mb-2">Description</label>
-                        <textarea
-                            className="form-control"
-                            placeholder="Description"
-                            rows={4}
-                            {...register("description")}
-                        ></textarea>
                     </div>
                 </form>
             </div>
@@ -173,11 +199,17 @@ export function GroupEmailBEModal({ showModal, closeModal }) {
                 type="button"
                 className="btn btn-outline"
                 onClick={() => closeModal(null)}
+                disabled={isBeingUpdated}
             >
                 Close
             </button>
-            <button type="submit" form="groupEmailForm" className="btn btn-primary">
-                Save
+            <button
+                type="submit"
+                form="groupEmailForm"
+                className="btn btn-primary"
+                disabled={isBeingUpdated}
+            >
+                {isBeingUpdated ? "Saving..." : "Save"}
             </button>
         </div>
     );

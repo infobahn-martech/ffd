@@ -43,9 +43,8 @@ const GroupEmailBE = () => {
         [params]
     );
 
-    // ✅ Fetch list
     useEffect(() => {
-        getGroupEmailBEs(apiParams);
+        getGroupEmailBEs({ params: apiParams });
     }, [params]);
 
     // ✅ Normalize list + count (supports different backend response shapes)
@@ -67,15 +66,16 @@ const GroupEmailBE = () => {
     };
 
     const handleConfirmDelete = async () => {
-        if (!selectedRow?._id) return;
+        if (!selectedRow?.entity_id) return;
 
-        await deleteGroupEmailBE(selectedRow._id);
-
-        setShowDeleteModal(false);
-        setSelectedRow(null);
-
-        // refresh
-        getGroupEmailBEs(apiParams);
+        await deleteGroupEmailBE({
+            groupEmailBE_id: selectedRow.entity_id,
+            cb: () => {
+                setShowDeleteModal(false);
+                setSelectedRow(null);
+                getGroupEmailBEs({ params: apiParams });
+            },
+        });
     };
 
     const cols = [
@@ -89,12 +89,12 @@ const GroupEmailBE = () => {
         },
         {
             name: "Email Count",
-            selector: "emails",
+            selector: "email_count",
             sort: false,
             width: "140",
             thclass: "tb-head",
             contentClass: "table-content",
-            cell: (row) => row?.emails?.length || 0,
+            cell: (row) => row?.email_count ?? 0,
         },
         // {
         //     name: "Active",
@@ -176,7 +176,7 @@ const GroupEmailBE = () => {
                             onSuccess={() => {
                                 setShowGroupEmailModal(false);
                                 setSelectedRow(null);
-                                getGroupEmailBEs(apiParams);
+                                getGroupEmailBEs({ params: apiParams });
                             }}
                         />
                     )}
