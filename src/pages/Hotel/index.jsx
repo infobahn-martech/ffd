@@ -61,11 +61,34 @@ const Hotel = () => {
         return () => debouncedSearch.cancel();
     }, [debouncedSearch]);
 
-
     const cols = [
         {
             name: "Hotel Name",
             selector: "hotel_name",
+            width: "220",
+            thclass: "tb-head",
+            contentClass: "table-content",
+            sort: true,
+        },
+        {
+            name: "Check In Time",
+            selector: "check_in_time",
+            width: "220",
+            thclass: "tb-head",
+            contentClass: "table-content",
+            sort: true,
+        },
+        {
+            name: "Check Out Time",
+            selector: "check_out_time",
+            width: "220",
+            thclass: "tb-head",
+            contentClass: "table-content",
+            sort: true,
+        },
+        {
+            name: "Billing Entity",
+            selector: "billing_entity",
             width: "220",
             thclass: "tb-head",
             contentClass: "table-content",
