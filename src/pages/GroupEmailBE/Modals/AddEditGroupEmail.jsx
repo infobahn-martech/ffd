@@ -10,7 +10,7 @@ export function GroupEmailBEModal({ showModal, closeModal }) {
         control,
         register,
         handleSubmit,
-        formState: { errors }
+        formState: { errors },
     } = useForm({
         defaultValues: showModal?._id
             ? {
@@ -21,26 +21,24 @@ export function GroupEmailBEModal({ showModal, closeModal }) {
                     showModal?.emails?.length > 0
                         ? showModal.emails.map((e) => ({ value: e }))
                         : [{ value: "" }],
-                isActive: showModal?.isActive ?? true
             }
             : {
                 groupEmailName: "",
                 groupEmailCode: "",
                 description: "",
                 emails: [{ value: "" }],
-                isActive: true
-            }
+            },
     });
 
     const { fields, append, remove } = useFieldArray({
         control,
-        name: "emails"
+        name: "emails",
     });
 
     const onSubmit = (data) => {
         const payload = {
             ...data,
-            emails: data.emails.map((e) => e.value?.trim()).filter(Boolean)
+            emails: data.emails.map((e) => e.value?.trim()).filter(Boolean),
         };
         console.log("GROUP EMAIL FORM SUBMITTED:", payload);
         closeModal();
@@ -68,7 +66,7 @@ export function GroupEmailBEModal({ showModal, closeModal }) {
                                         }`}
                                     placeholder="Group Name"
                                     {...register("groupEmailName", {
-                                        required: "Group name is required"
+                                        required: "Group name is required",
                                     })}
                                 />
                                 <label>
@@ -94,16 +92,22 @@ export function GroupEmailBEModal({ showModal, closeModal }) {
                                             className={`form-control email-input-no-validation ${errors.emails?.[index]?.value ? "is-invalid" : ""
                                                 }`}
                                             placeholder="email@example.com"
-                                            style={{ paddingRight: index === fields.length - 1 ? "80px" : "45px" }}
+                                            style={{
+                                                paddingRight:
+                                                    index === fields.length - 1 ? "80px" : "45px",
+                                            }}
                                             {...register(`emails.${index}.value`, {
                                                 required: "Email is required",
                                                 pattern: {
                                                     value: /^[^\s@]+@[^\s@]+\.[^\s@]+$/,
-                                                    message: "Enter a valid email address"
-                                                }
+                                                    message: "Enter a valid email address",
+                                                },
                                             })}
                                         />
-                                        <label>Email <span className="text-danger">*</span></label>
+                                        <label>
+                                            Email <span className="text-danger">*</span>
+                                        </label>
+
                                         {index === fields.length - 1 ? (
                                             <>
                                                 {fields.length > 1 && (
@@ -116,6 +120,7 @@ export function GroupEmailBEModal({ showModal, closeModal }) {
                                                         <FiX size={18} />
                                                     </button>
                                                 )}
+
                                                 <button
                                                     type="button"
                                                     className="email-action-btn email-add-btn"
@@ -135,6 +140,7 @@ export function GroupEmailBEModal({ showModal, closeModal }) {
                                                 <FiX size={18} />
                                             </button>
                                         )}
+
                                         {errors.emails?.[index]?.value && (
                                             <span className="error text-danger">
                                                 {errors.emails[index].value.message}
@@ -144,23 +150,6 @@ export function GroupEmailBEModal({ showModal, closeModal }) {
                                 </div>
                             </div>
                         ))}
-                    </div>
-
-                    {/* ACTIVE FLAG */}
-                    <div className="row mb-lg-3 mb-sm-0 mt-3">
-                        <div className="col-lg-6 d-flex align-items-center">
-                            <div className="form-check mt-2">
-                                <input
-                                    type="checkbox"
-                                    className="form-check-input"
-                                    id="isActive"
-                                    {...register("isActive")}
-                                />
-                                <label className="form-check-label" htmlFor="isActive">
-                                    Active
-                                </label>
-                            </div>
-                        </div>
                     </div>
 
                     {/* DESCRIPTION — FULL ROW TEXTAREA */}
@@ -187,11 +176,7 @@ export function GroupEmailBEModal({ showModal, closeModal }) {
             >
                 Close
             </button>
-            <button
-                type="submit"
-                form="groupEmailForm"
-                className="btn btn-primary"
-            >
+            <button type="submit" form="groupEmailForm" className="btn btn-primary">
                 Save
             </button>
         </div>
