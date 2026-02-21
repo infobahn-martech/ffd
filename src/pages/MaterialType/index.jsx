@@ -1,42 +1,79 @@
-import { useState } from "react";
+import React, { useEffect, useMemo, useState } from "react";
 import CommonHeader from "../../components/CommonHeader";
 import CustomTable from "../../components/customTable";
 import { MaterialTypeModal } from "./Modals/AddEditMaterialType";
 import { RenderAction } from "./RenderCells";
 import DeleteConfirmationModal from "../../components/DeleteConfirmationModal";
 
-const dummyMaterialTypes = [
-    {
-        _id: "1",
-        name: "Material Type 1",
-        createdAt: "2024-01-01",
-        updatedAt: "2024-01-01",
-    },
-    {
-        _id: "2",
-        name: "Material Type 2",
-        createdAt: "2024-01-02",
-        updatedAt: "2024-01-02",
-    },
-    {
-        _id: "3",
-        name: "Material Type 3",
-        createdAt: "2024-01-03",
-        updatedAt: "2024-01-03",
-    },
-];
+// ✅ reducer (create this like your other reducers: RoleReducer, OptionalServiceReducer, etc.)
+import useMaterialTypeReducer from "../../store/MaterialTypeReducer";
 
 const MaterialType = () => {
+    const { getMaterialTypes, materialTypes, isLoadingGet, deleteData, isLoadingDelete } =
+        useMaterialTypeReducer((state) => state);
+
     const [params, setParams] = useState({
         page: 1,
         searchTerm: "",
         limit: 10,
         sortBy: "name",
-        sortOrder: 1,
+        sortOrder: 1, // 1 = ASC, -1 = DESC
     });
 
     const [showMaterialTypeModal, setShowMaterialTypeModal] = useState(false);
     const [showDeleteModal, setShowDeleteModal] = useState(false);
+    const [selectedRow, setSelectedRow] = useState(null);
+
+    // ✅ Build API params (adjust keys if your backend expects different names)
+    const apiParams = useMemo(
+        () => ({
+            search: params.searchTerm || "",
+            page: params.page,
+            limit: params.limit,
+            sortBy: params.sortBy,
+            sortOrder: params.sortOrder === 1 ? "ASC" : "DESC", // change if your API expects 1/-1
+        }),
+        [params]
+    );
+
+    // ✅ Fetch list (dynamic)
+    useEffect(() => {
+        getMaterialTypes(apiParams);
+    }, [getMaterialTypes, apiParams]);
+
+    const list = materialTypes || [];
+    const totalCount =
+        materialTypes?.total ||
+        materialTypes?.count ||
+        materialTypes?.pagination?.total ||
+        list.length;
+
+    const handleOpenAdd = () => {
+        setSelectedRow(null);
+        setShowMaterialTypeModal(true);
+    };
+
+    const handleOpenEdit = (row) => {
+        setSelectedRow(row);
+        setShowMaterialTypeModal(row); // keep your current modal behavior
+    };
+
+    const handleOpenDelete = (row) => {
+        setSelectedRow(row);
+        setShowDeleteModal(true);
+    };
+
+    const handleConfirmDelete = async () => {
+        if (!selectedRow?._id) return;
+
+        // ✅ delete API
+        await deleteData(selectedRow._id);
+
+        // ✅ refresh
+        setShowDeleteModal(false);
+        setSelectedRow(null);
+        getMaterialTypes(apiParams);
+    };
 
     // 👉 ONLY NAME + ACTIONS
     const cols = [
@@ -70,12 +107,8 @@ const MaterialType = () => {
             tableClasses: "table-striped",
             contentClass: "table-content",
             thclass: "tb-head",
-            onEditClick: (row) => {
-                setShowMaterialTypeModal(row);
-            },
-            onDeleteClick: () => {
-                setShowDeleteModal(true);
-            },
+            onEditClick: (row) => handleOpenEdit(row),
+            onDeleteClick: (row) => handleOpenDelete(row),
             cell: RenderAction,
             width: "100",
         },
@@ -90,10 +123,8 @@ const MaterialType = () => {
                             tableTitle="Material Types"
                             isAddEnabled
                             addModalLabel="Add Material Type"
-                            setSearch={(e) =>
-                                setParams({ ...params, searchTerm: e, page: 1 })
-                            }
-                            onAddModalClick={() => setShowMaterialTypeModal(true)}
+                            setSearch={(e) => setParams({ ...params, searchTerm: e, page: 1 })}
+                            onAddModalClick={handleOpenAdd}
                             exportTitle="Export"
                             exportLoader={false}
                         />
@@ -101,17 +132,16 @@ const MaterialType = () => {
 
                     <CustomTable
                         Sl
+                        isLoading={isLoadingGet}
                         pagination={{ currentPage: params.page, limit: params.limit }}
                         tableClasses="px-start"
-                        count={dummyMaterialTypes.length}
+                        count={totalCount}
                         columns={cols}
-                        data={dummyMaterialTypes}
+                        data={list}
                         onPageChange={(currentPage) =>
                             setParams({ ...params, page: currentPage })
                         }
-                        setLimit={(newLimit) =>
-                            setParams({ ...params, limit: newLimit })
-                        }
+                        setLimit={(newLimit) => setParams({ ...params, limit: newLimit, page: 1 })}
                         onSorting={(sortBy) =>
                             setParams({
                                 ...params,
@@ -124,16 +154,28 @@ const MaterialType = () => {
 
                     {!!showMaterialTypeModal && (
                         <MaterialTypeModal
-                            showModal={showMaterialTypeModal}
-                            closeModal={() => setShowMaterialTypeModal(false)}
+                            showModal={showMaterialTypeModal} // true or row (same as your pattern)
+                            closeModal={() => {
+                                setShowMaterialTypeModal(false);
+                                setSelectedRow(null);
+                            }}
+                            onSuccess={() => {
+                                setShowMaterialTypeModal(false);
+                                setSelectedRow(null);
+                                getMaterialTypes(apiParams);
+                            }}
                         />
                     )}
 
                     {!!showDeleteModal && (
                         <DeleteConfirmationModal
                             show={showDeleteModal}
-                            onCancel={() => setShowDeleteModal(false)}
-                            onConfirm={() => { }}
+                            loading={isLoadingDelete}
+                            onCancel={() => {
+                                setShowDeleteModal(false);
+                                setSelectedRow(null);
+                            }}
+                            onConfirm={handleConfirmDelete}
                             deleteText="Are you sure you want to delete this material type?"
                         />
                     )}
