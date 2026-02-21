@@ -3,11 +3,12 @@ import useAlertReducer from './AlertReducer';
 import materialTypeService from '../services/materialTypeService';
 
 const useMaterialTypeReducer = create((set) => ({
-    isLoading: false,
+    isLoadingGet: false,
+    isLoadingDelete: false,
+    isBeingUpdated: false,
     errorMessage: '',
     successMessage: '',
     materialTypes: [],
-    isBeingUpdated: false,
     totalCount: 0,
     addMaterialType: async ({ formData, cb }) => {
         try {
@@ -26,17 +27,17 @@ const useMaterialTypeReducer = create((set) => ({
             error(err?.response?.data?.message ?? err.message);
         }
     },
-    getMaterialTypes: async ({ params }) => {
+    getMaterialTypes: async (params) => {
         try {
-            set({ isLoading: true });
+            set({ isLoadingGet: true });
             const { data } = await materialTypeService.getMaterialTypes({ params });
             set({
                 materialTypes: data?.data ?? [],
                 totalCount: data?.pagination?.total ?? 0,
-                isLoading: false,
+                isLoadingGet: false,
             });
-        } catch (error) {
-            set({ errorMessage: error.message, isLoading: false, materialTypes: [], totalCount: 0 });
+        } catch (err) {
+            set({ errorMessage: err.message, isLoadingGet: false, materialTypes: [], totalCount: 0 });
         }
     },
     updateMaterialType: async ({ formData, cb }) => {
@@ -56,20 +57,18 @@ const useMaterialTypeReducer = create((set) => ({
             error(err?.response?.data?.message ?? err.message);
         }
     },
-    deleteMaterialType: async (payload) => {
-        const { material_type_id, cb } = payload || {};
+    deleteData: async (material_type_id) => {
         try {
-            set({ isBeingUpdated: true });
+            set({ isLoadingDelete: true });
             const { data } = await materialTypeService.deleteMaterialType(material_type_id);
-            set({ successMessage: data?.message, isBeingUpdated: false });
+            set({ successMessage: data?.message, isLoadingDelete: false });
             const { success } = useAlertReducer.getState();
             success(data?.message ?? 'Material type deleted successfully');
-            cb?.();
         } catch (err) {
             const { error } = useAlertReducer.getState();
             set({
                 errorMessage: 'Something went wrong deleting the material type',
-                isBeingUpdated: false,
+                isLoadingDelete: false,
             });
             error(err?.response?.data?.message ?? err.message);
         }

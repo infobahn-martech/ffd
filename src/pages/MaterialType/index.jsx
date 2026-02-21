@@ -5,11 +5,10 @@ import { MaterialTypeModal } from "./Modals/AddEditMaterialType";
 import { RenderAction } from "./RenderCells";
 import DeleteConfirmationModal from "../../components/DeleteConfirmationModal";
 
-// ✅ reducer (create this like your other reducers: RoleReducer, OptionalServiceReducer, etc.)
 import useMaterialTypeReducer from "../../store/MaterialTypeReducer";
 
 const MaterialType = () => {
-    const { getMaterialTypes, materialTypes, isLoadingGet, deleteData, isLoadingDelete } =
+    const { getMaterialTypes, materialTypes, isLoadingGet, deleteData, isLoadingDelete, totalCount } =
         useMaterialTypeReducer((state) => state);
 
     const [params, setParams] = useState({
@@ -24,7 +23,6 @@ const MaterialType = () => {
     const [showDeleteModal, setShowDeleteModal] = useState(false);
     const [selectedRow, setSelectedRow] = useState(null);
 
-    // ✅ Build API params (adjust keys if your backend expects different names)
     const apiParams = useMemo(
         () => ({
             search: params.searchTerm || "",
@@ -36,17 +34,11 @@ const MaterialType = () => {
         [params]
     );
 
-    // ✅ Fetch list (dynamic)
     useEffect(() => {
         getMaterialTypes(apiParams);
     }, [getMaterialTypes, apiParams]);
 
-    const list = materialTypes || [];
-    const totalCount =
-        materialTypes?.total ||
-        materialTypes?.count ||
-        materialTypes?.pagination?.total ||
-        list.length;
+    const list = Array.isArray(materialTypes) ? materialTypes : [];
 
     const handleOpenAdd = () => {
         setSelectedRow(null);
@@ -55,7 +47,7 @@ const MaterialType = () => {
 
     const handleOpenEdit = (row) => {
         setSelectedRow(row);
-        setShowMaterialTypeModal(row); // keep your current modal behavior
+        setShowMaterialTypeModal(true);
     };
 
     const handleOpenDelete = (row) => {
@@ -66,16 +58,12 @@ const MaterialType = () => {
     const handleConfirmDelete = async () => {
         if (!selectedRow?._id) return;
 
-        // ✅ delete API
         await deleteData(selectedRow._id);
-
-        // ✅ refresh
         setShowDeleteModal(false);
         setSelectedRow(null);
         getMaterialTypes(apiParams);
     };
 
-    // 👉 ONLY NAME + ACTIONS
     const cols = [
         {
             name: "Name",
@@ -154,7 +142,7 @@ const MaterialType = () => {
 
                     {!!showMaterialTypeModal && (
                         <MaterialTypeModal
-                            showModal={showMaterialTypeModal} // true or row (same as your pattern)
+                            showModal={selectedRow || true}
                             closeModal={() => {
                                 setShowMaterialTypeModal(false);
                                 setSelectedRow(null);
