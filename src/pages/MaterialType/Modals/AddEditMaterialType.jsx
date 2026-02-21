@@ -11,8 +11,8 @@ export function MaterialTypeModal({ showModal, closeModal, onSuccess }) {
         (state) => state
     );
 
-    const isEdit = showModal && typeof showModal === "object" && showModal._id;
-    const materialTypeId = isEdit ? showModal._id : null;
+    const isEdit = showModal && typeof showModal === "object" && showModal?.material_type_id;
+    const materialTypeId = isEdit ? showModal?.material_type_id : null;
 
     const {
         register,

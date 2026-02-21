@@ -67,23 +67,7 @@ const MaterialType = () => {
     const cols = [
         {
             name: "Name",
-            selector: "name",
-            sort: true,
-            width: "200",
-            thclass: "tb-head",
-            contentClass: "table-content",
-        },
-        {
-            name: "Created At",
-            selector: "createdAt",
-            sort: true,
-            width: "200",
-            thclass: "tb-head",
-            contentClass: "table-content",
-        },
-        {
-            name: "Updated At",
-            selector: "updatedAt",
+            selector: "material_type",
             sort: true,
             width: "200",
             thclass: "tb-head",
