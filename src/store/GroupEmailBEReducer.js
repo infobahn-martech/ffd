@@ -1,0 +1,80 @@
+import { create } from 'zustand';
+import useAlertReducer from './AlertReducer';
+import groupEmailBEService from '../services/groupEmailBEService';
+
+const useGroupEmailBEReducer = create((set) => ({
+    isLoading: false,
+    errorMessage: '',
+    successMessage: '',
+    groupEmailBEs: [],
+    isBeingUpdated: false,
+    totalCount: 0,
+    addGroupEmailBE: async ({ formData, cb }) => {
+        try {
+            set({ isBeingUpdated: true });
+            const { data } = await groupEmailBEService.addGroupEmailBE(formData);
+            set({ successMessage: data.message, isBeingUpdated: false });
+            const { success } = useAlertReducer.getState();
+            success(data && data.message);
+            cb && cb();
+        } catch (err) {
+            const { error } = useAlertReducer.getState();
+            set({
+                errorMessage: 'Something went wrong with adding a vehicle',
+                isBeingUpdated: false,
+            });
+            error(err?.response?.data?.message ?? err.message);
+        }
+    },
+    getGroupEmailBEs: async ({ params }) => {
+        debugger;
+        try {
+            set({ isLoading: true });
+            const { data } = await groupEmailBEService.fetchGroupEmailBEs({ params });
+            set({
+                groupEmailBEs: data?.data ?? [],
+                totalCount: data?.pagination?.total ?? 0,
+                isLoading: false,
+            });
+        } catch (error) {
+            set({ errorMessage: error.message, isLoading: false, groupEmailBEs: [], totalCount: 0 });
+        }
+    },
+    updateGroupEmailBE: async ({ formData, cb }) => {
+        try {
+            set({ isBeingUpdated: true });
+            const { data } = await groupEmailBEService.updateGroupEmailBE(formData);
+            set({ successMessage: data.message, isBeingUpdated: false });
+            const { success } = useAlertReducer.getState();
+            success(data && data.message);
+            cb && cb();
+        } catch (err) {
+            const { error } = useAlertReducer.getState();
+            set({
+                errorMessage: 'Something went wrong updating the group email BE',
+                isBeingUpdated: false,
+            });
+            error(err?.response?.data?.message ?? err.message);
+        }
+    },
+    deleteGroupEmailBE: async (payload) => {
+        const { groupEmailBE_id, cb } = payload || {};
+        try {
+            set({ isBeingUpdated: true });
+            const { data } = await groupEmailBEService.deleteGroupEmailBE(groupEmailBE_id);
+            set({ successMessage: data?.message, isBeingUpdated: false });
+            const { success } = useAlertReducer.getState();
+            success(data?.message ?? 'Group email BE deleted successfully');
+            cb?.();
+        } catch (err) {
+            const { error } = useAlertReducer.getState();
+            set({
+                errorMessage: 'Something went wrong deleting the group email BE',
+                isBeingUpdated: false,
+            });
+            error(err?.response?.data?.message ?? err.message);
+        }
+    },
+}));
+
+export default useGroupEmailBEReducer;

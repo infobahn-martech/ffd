@@ -1,54 +1,87 @@
-import { useState } from "react";
+import React, { useEffect, useMemo, useState } from "react";
 import CommonHeader from "../../components/CommonHeader";
 import CustomTable from "../../components/customTable";
 import { GroupEmailBEModal } from "./Modals/AddEditGroupEmail";
 import { RenderAction } from "./renderCells";
 import DeleteConfirmationModal from "../../components/DeleteConfirmationModal";
 
-const dummyGroupEmailsBE = [
-    {
-        _id: "1",
-        name: "Finance Team",
-        code: "FIN_TEAM",
-        emails: ["finance@sedres.com", "accounts@sedres.com"],
-        description: "Primary finance & billing communication group.",
-        isActive: true,
-    },
-    {
-        _id: "2",
-        name: "Billing Approvers",
-        code: "BILLING_APPROVERS",
-        emails: ["billing.head@sedres.com", "manager@sedres.com"],
-        description: "Approvers for billing and invoice related actions.",
-        isActive: true,
-    },
-    {
-        _id: "3",
-        name: "Payment Reminder",
-        code: "PAYMENT_REMINDER",
-        emails: ["reminder@sedres.com"],
-        description: "Group used for payment reminder notifications.",
-        isActive: true,
-    },
-];
+// ✅ Create this reducer like your other modules (getData, deleteData, data, loaders)
+import useGroupEmailBEReducer from "../../store/GroupEmailBEReducer";
 
 const GroupEmailBE = () => {
+    const {
+        getGroupEmailBEs,
+        groupEmailBEs,
+        isLoadingGet,
+        deleteGroupEmailBE,
+        isLoadingDelete,
+        totalCount,
+        isLoading,
+    } = useGroupEmailBEReducer((state) => state);
+
     const [params, setParams] = useState({
         page: 1,
-        searchTerm: "",
+        search: "",
         limit: 10,
-        sortBy: "name",
-        sortOrder: 1,
+        sortBy: "billing_entity",
+        sortOrder: 1, // 1 ASC, -1 DESC
     });
 
     const [showGroupEmailModal, setShowGroupEmailModal] = useState(false);
     const [showDeleteModal, setShowDeleteModal] = useState(false);
-    // const [selectedRow, setSelectedRow] = useState(null);
+    const [selectedRow, setSelectedRow] = useState(null);
+
+    // ✅ API params (adjust keys if your backend differs)
+    const apiParams = useMemo(
+        () => ({
+            search: params.search || "",
+            page: params.page,
+            limit: params.limit,
+            sortBy: params.sortBy,
+            sortOrder: params.sortOrder === 1 ? "ASC" : "DESC", // or params.sortOrder if backend expects 1/-1
+        }),
+        [params]
+    );
+
+    // ✅ Fetch list
+    useEffect(() => {
+        getGroupEmailBEs(apiParams);
+    }, [params]);
+
+    // ✅ Normalize list + count (supports different backend response shapes)
+    const list = groupEmailBEs || [];
+
+    const handleOpenAdd = () => {
+        setSelectedRow(null);
+        setShowGroupEmailModal({}); // you used {} for add
+    };
+
+    const handleOpenEdit = (row) => {
+        setSelectedRow(row);
+        setShowGroupEmailModal(row);
+    };
+
+    const handleOpenDelete = (row) => {
+        setSelectedRow(row);
+        setShowDeleteModal(true);
+    };
+
+    const handleConfirmDelete = async () => {
+        if (!selectedRow?._id) return;
+
+        await deleteGroupEmailBE(selectedRow._id);
+
+        setShowDeleteModal(false);
+        setSelectedRow(null);
+
+        // refresh
+        getGroupEmailBEs(apiParams);
+    };
 
     const cols = [
         {
-            name: "Group Name",
-            selector: "name",
+            name: "Billing Entity",
+            selector: "billing_entity",
             sort: true,
             width: "220",
             thclass: "tb-head",
@@ -63,36 +96,31 @@ const GroupEmailBE = () => {
             contentClass: "table-content",
             cell: (row) => row?.emails?.length || 0,
         },
-        {
-            name: "Active",
-            selector: "isActive",
-            sort: true,
-            width: "120",
-            thclass: "tb-head",
-            contentClass: "table-content",
-            cell: (row) => (row?.isActive ? "Yes" : "No"),
-        },
-        {
-            name: "Description",
-            selector: "description",
-            sort: true,
-            width: "400",
-            thclass: "tb-head",
-            contentClass: "table-content",
-        },
+        // {
+        //     name: "Active",
+        //     selector: "isActive",
+        //     sort: true,
+        //     width: "120",
+        //     thclass: "tb-head",
+        //     contentClass: "table-content",
+        //     cell: (row) => (row?.isActive ? "Yes" : "No"),
+        // },
+        // {
+        //     name: "Description",
+        //     selector: "description",
+        //     sort: true,
+        //     width: "400",
+        //     thclass: "tb-head",
+        //     contentClass: "table-content",
+        // },
         {
             name: "Actions",
             selector: "linksInfo",
             tableClasses: "table-striped",
             contentClass: "table-content",
             thclass: "tb-head",
-            onEditClick: (row) => {
-                setShowGroupEmailModal(row);
-            },
-            onDeleteClick: (row) => {
-                // setSelectedRow(row);
-                setShowDeleteModal(true);
-            },
+            onEditClick: (row) => handleOpenEdit(row),
+            onDeleteClick: (row) => handleOpenDelete(row),
             cell: RenderAction,
             width: "180",
         },
@@ -107,10 +135,8 @@ const GroupEmailBE = () => {
                             tableTitle="Billing Entity Group Email"
                             isAddEnabled
                             addModalLabel="Add Group Email"
-                            setSearch={(e) =>
-                                setParams({ ...params, searchTerm: e, page: 1 })
-                            }
-                            onAddModalClick={() => setShowGroupEmailModal({})}
+                            setSearch={(e) => setParams({ ...params, search: e, page: 1 })}
+                            onAddModalClick={handleOpenAdd}
                             exportTitle="Export"
                             exportLoader={false}
                         />
@@ -118,16 +144,17 @@ const GroupEmailBE = () => {
 
                     <CustomTable
                         Sl
+                        isLoading={isLoadingGet}
                         pagination={{ currentPage: params.page, limit: params.limit }}
                         tableClasses="px-start"
-                        count={dummyGroupEmailsBE.length}
+                        count={totalCount}
                         columns={cols}
-                        data={dummyGroupEmailsBE}
+                        data={list}
                         onPageChange={(currentPage) =>
                             setParams({ ...params, page: currentPage })
                         }
                         setLimit={(newLimit) =>
-                            setParams({ ...params, limit: newLimit })
+                            setParams({ ...params, limit: newLimit, page: 1 })
                         }
                         onSorting={(sortBy) =>
                             setParams({
@@ -142,18 +169,27 @@ const GroupEmailBE = () => {
                     {!!showGroupEmailModal && (
                         <GroupEmailBEModal
                             showModal={showGroupEmailModal}
-                            closeModal={() => setShowGroupEmailModal(false)}
+                            closeModal={() => {
+                                setShowGroupEmailModal(false);
+                                setSelectedRow(null);
+                            }}
+                            onSuccess={() => {
+                                setShowGroupEmailModal(false);
+                                setSelectedRow(null);
+                                getGroupEmailBEs(apiParams);
+                            }}
                         />
                     )}
 
                     {!!showDeleteModal && (
                         <DeleteConfirmationModal
                             show={showDeleteModal}
-                            onCancel={() => setShowDeleteModal(false)}
-                            onConfirm={() => {
-                                // handle delete here using selectedRow if you track it
+                            loading={isLoadingDelete}
+                            onCancel={() => {
                                 setShowDeleteModal(false);
+                                setSelectedRow(null);
                             }}
+                            onConfirm={handleConfirmDelete}
                             deleteText="Are you sure you want to delete this group email?"
                         />
                     )}
