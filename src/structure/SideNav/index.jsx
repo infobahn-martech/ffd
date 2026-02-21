@@ -116,18 +116,6 @@ function SideNav({ isMobileMenuOpen, onCloseMobileMenu }) {
     },
     // ✅ Core Operations
     {
-      menu: 'Vessel Management',
-      isDefaultMenu: true,
-      hasPermission: true,
-      isOpen: false,
-      subMenus: [
-        { menu: 'Vessel Types', to: '/vessel-types', hasPermission: true },
-        { menu: 'Barge Types', to: '/barge-types', hasPermission: true },
-        { menu: 'Vessels', to: '/vessel-onboarding', hasPermission: true },
-      ],
-      icon: workerIcon, // Two stylized human figures
-    },
-    {
       menu: 'Port Management',
       isDefaultMenu: true,
       to: '/port-management',
@@ -141,6 +129,7 @@ function SideNav({ isMobileMenuOpen, onCloseMobileMenu }) {
       icon: crewIcon, // Crew-specific icon
       hasPermission: true,
     },
+
     {
       menu: 'Custom Management',
       isDefaultMenu: true,
@@ -211,16 +200,16 @@ function SideNav({ isMobileMenuOpen, onCloseMobileMenu }) {
         { menu: 'Logistics Warehouses', to: '/logistics-warehouse', hasPermission: true },
       ],
     },
-
     // ✅ Finance
     {
-      menu: 'Billing Accounts',
+      menu: 'Entity Management',
       isDefaultMenu: true,
       hasPermission: true,
       isOpen: false,
       subMenus: [
-        { menu: 'Billing Entity', to: '/billing-entity', hasPermission: true },
+        { menu: 'Vessel Management', to: '/vessel-onboarding', hasPermission: true },
         { menu: 'Group Email', to: '/group-email', hasPermission: true },
+        { menu: 'Billing Entity', to: '/billing-entity', hasPermission: true },
         { menu: 'Job Status', to: '/job-status', hasPermission: true },
         { menu: 'Customer Pricing', to: '/customer-pricing', hasPermission: true },
         { menu: 'Billing Instruction', to: '/billing-instruction', hasPermission: true },
@@ -235,12 +224,22 @@ function SideNav({ isMobileMenuOpen, onCloseMobileMenu }) {
       subMenus: [
         { menu: 'Appointment Acceptance', to: '/appointment-acceptance', hasPermission: true },
         { menu: 'Pre-Arrival Information', to: '/pre-arrival-information', hasPermission: true },
-        { menu: 'Checklist', to: '/check-list', hasPermission: true },
         { menu: 'Custom Fields', to: '/custom-fields', hasPermission: true },
       ],
       icon: configIcon, // Configuration-specific icon
     },
-
+    {
+      menu: 'Checklist Management',
+      isDefaultMenu: true,
+      hasPermission: true,
+      isOpen: false,
+      subMenus: [
+        { menu: 'Vessel Types', to: '/vessel-types', hasPermission: true },
+        { menu: 'Barge Types', to: '/barge-types', hasPermission: true },
+        { menu: 'Checklist', to: '/check-list', hasPermission: true },
+      ],
+      icon: workerIcon, // Two stylized human figures
+    },
     // ✅ Settings (last)
     {
       menu: 'Settings',
