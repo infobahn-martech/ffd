@@ -106,8 +106,8 @@ export function GroupEmailBEModal({ showModal, closeModal, onSuccess }) {
                                     {billingLoading ? "Loading..." : "Select Billing Entity"}
                                 </option>
                                 {(billingEntities ?? []).map((be) => (
-                                    <option key={be._id} value={be._id}>
-                                        {be.name}
+                                    <option key={be.entity_id} value={be.entity_id}>
+                                        {be.billing_entity}
                                     </option>
                                 ))}
                             </select>

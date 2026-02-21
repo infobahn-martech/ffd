@@ -94,7 +94,6 @@ const GroupEmailBE = () => {
             width: "140",
             thclass: "tb-head",
             contentClass: "table-content",
-            cell: (row) => row?.email_count ?? 0,
         },
         // {
         //     name: "Active",
