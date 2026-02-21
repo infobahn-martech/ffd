@@ -27,7 +27,6 @@ const useGroupEmailBEReducer = create((set) => ({
         }
     },
     getGroupEmailBEs: async ({ params }) => {
-        debugger;
         try {
             set({ isLoading: true });
             const { data } = await groupEmailBEService.fetchGroupEmailBEs({ params });
