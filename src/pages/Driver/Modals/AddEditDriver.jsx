@@ -31,7 +31,7 @@ export function DriverModal({ showModal, closeModal, onSuccess }) {
         },
     });
 
-    const { countries, fetchAllCountries, addDriver, updateDriver, isBeingUpdated } = useDriverReducer();
+    const { countries, fetchAllCountries, addDriver, updateDriver, isBeingUpdated, isLoadingCountries } = useDriverReducer();
 
     useEffect(() => {
         if (showModal) {
@@ -40,7 +40,7 @@ export function DriverModal({ showModal, closeModal, onSuccess }) {
     }, [showModal]);
 
     useEffect(() => {
-        if (showModal && isEdit) {
+        if (showModal && isEdit && !isLoadingCountries && countries) {
             reset({
                 driver_name: showModal?.driver_name || "",
                 employee_no: showModal?.employee_no || "",
@@ -61,7 +61,7 @@ export function DriverModal({ showModal, closeModal, onSuccess }) {
                 nationality: "",
             });
         }
-    }, [showModal, isEdit, reset]);
+    }, [showModal, isEdit, reset, isLoadingCountries, countries]);
 
     const onSubmit = (data) => {
         const payload = {
@@ -288,16 +288,23 @@ export function DriverModal({ showModal, closeModal, onSuccess }) {
                                     <select
                                         className={`form-control ${errors.nationality ? "is-invalid" : ""
                                             }`}
+                                        disabled={isLoadingCountries || countries === null}
                                         {...register("nationality", {
                                             required: "Nationality is required",
                                         })}
                                     >
-                                        <option value="">Select Nationality</option>
-                                        {(countries || []).map((c) => (
-                                            <option key={c.country_id} value={c.country_id}>
-                                                {c.country || c.country_code || c.country_id}
-                                            </option>
-                                        ))}
+                                        {(isLoadingCountries || countries === null) ? (
+                                            <option value="">Loading...</option>
+                                        ) : (
+                                            <>
+                                                <option value="">Select Nationality</option>
+                                                {(countries || []).map((c) => (
+                                                    <option key={c.country_id} value={c.country_id}>
+                                                        {c.country || c.country_code || c.country_id}
+                                                    </option>
+                                                ))}
+                                            </>
+                                        )}
                                     </select>
                                     <label>
                                         Nationality <span className="text-danger">*</span>

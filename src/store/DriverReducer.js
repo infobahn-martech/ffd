@@ -33,7 +33,7 @@ const useDriverReducer = create((set) => ({
 
     fetchAllCountries: async () => {
         try {
-            set({ isLoadingCountries: true });
+            set({ isLoadingCountries: true, countries: null });
             const { data } = await driverService.getAllCountries();
             set({
                 countries: data?.data ?? data ?? [],
