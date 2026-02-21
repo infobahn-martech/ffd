@@ -83,10 +83,6 @@ const initialOnStation = [
 function OnStationModal({ show, onClose }) {
     const [onStation] = useState(initialOnStation);
     const [searchQuery, setSearchQuery] = useState('');
-    // Toggle per row: when true, show only filled circle; when false, show toggle + action buttons
-    const [actionToggles, setActionToggles] = useState(() =>
-        Object.fromEntries(initialOnStation.map((r, i) => [r._id, i === 0]))
-    );
 
     const [params, setParams] = useState({
         page: 1,
@@ -309,38 +305,8 @@ function OnStationModal({ show, onClose }) {
             width: '420',
             cell: (props) => {
                 const row = props.row;
-                const isOn = actionToggles[row._id] !== false;
-
-                const handleToggle = () => {
-                    setActionToggles((prev) => ({
-                        ...prev,
-                        [row._id]: !prev[row._id],
-                    }));
-                };
-
                 const canPrintInvoice = !!row.salesOrderConverted && !!row.assignedTo;
 
-                // Pill-style toggle: when false = only toggle; when true = toggle removed, show actions
-                const toggleSwitch = (
-                    <button
-                        type="button"
-                        role="switch"
-                        aria-checked={isOn}
-                        className={`on-station-pill-toggle ${isOn ? 'on-station-pill-toggle--on' : ''}`}
-                        onClick={handleToggle}
-                        title="Switch to show actions"
-                        aria-label="Switch to show actions"
-                    >
-                        <span className="on-station-pill-toggle__thumb" />
-                    </button>
-                );
-
-                // When false: only the toggle button (no action buttons)
-                if (!isOn) {
-                    return <div className="d-flex align-items-center">{toggleSwitch}</div>;
-                }
-
-                // When true: toggle is removed, only action buttons (Print Sales Order, Print Invoice, Print Summary)
                 return (
                     <div className="d-flex flex-wrap align-items-center gap-2">
                         <ActionButton
@@ -364,15 +330,6 @@ function OnStationModal({ show, onClose }) {
                             tooltipId={`sum-${row._id}`}
                             onClick={() => console.log('Print Summary:', row.cardId)}
                         />
-                        {/* <button
-                            type="button"
-                            className="btn btn-sm btn-link text-secondary on-station-hide-actions p-0 ms-1"
-                            onClick={handleToggle}
-                            title="Hide actions"
-                            aria-label="Hide actions"
-                        >
-                            Hide
-                        </button> */}
                     </div>
                 );
             },
