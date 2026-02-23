@@ -102,6 +102,68 @@
         display: none; // Hide on mobile, can be shown in mobile menu if needed
       }
 
+      .layout-view-toggle {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+      }
+
+      .layout-view-label {
+        font-family: "Poppins", sans-serif;
+        font-size: 14px;
+        color: #848484;
+        white-space: nowrap;
+      }
+
+      .layout-view-switch {
+        display: flex;
+        background: #eaeaea;
+        border-radius: 8px;
+        padding: 4px;
+        gap: 2px;
+      }
+
+      .layout-view-option {
+        display: inline-flex;
+        align-items: center;
+        gap: 6px;
+        padding: 6px 14px;
+        border: none;
+        border-radius: 6px;
+        font-family: "Poppins", sans-serif;
+        font-size: 13px;
+        font-weight: 500;
+        color: #666;
+        background: transparent;
+        cursor: pointer;
+        transition: all 0.2s ease;
+
+        .layout-view-icon {
+          width: 14px;
+          height: 14px;
+          opacity: 0.85;
+        }
+
+        &:hover {
+          color: #00368c;
+          background: rgba(0, 54, 140, 0.08);
+
+          .layout-view-icon {
+            opacity: 1;
+          }
+        }
+
+        &.active {
+          background: #00368c;
+          color: #ffffff;
+          box-shadow: 0 1px 3px rgba(0, 54, 140, 0.3);
+
+          .layout-view-icon {
+            opacity: 1;
+          }
+        }
+      }
+
       .top-link {
         font-family: "Poppins", sans-serif;
         font-size: 15px;

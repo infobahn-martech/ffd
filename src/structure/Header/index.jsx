@@ -8,6 +8,7 @@ import {
   FiBell,
   FiLayout,
   FiGrid,
+  FiMenu,
   FiBarChart2,
   FiMapPin
 } from 'react-icons/fi';
@@ -31,7 +32,7 @@ import StickersModal from '../SideNav/components/StickersModal';
 import TagsModal from '../SideNav/components/TagsModal';
 import TypesModal from '../SideNav/components/TypesModal';
 
-function Header({ onMenuToggle, mobileMenuOpen: externalMobileMenuOpen }) {
+function Header({ onMenuToggle, mobileMenuOpen: externalMobileMenuOpen, layoutView: externalLayoutView, onLayoutViewChange }) {
   const { pathname } = useLocation();
   const navigate = useNavigate();
   const { width } = useWindowSize();
@@ -54,6 +55,12 @@ function Header({ onMenuToggle, mobileMenuOpen: externalMobileMenuOpen }) {
   const [showTagsModal, setShowTagsModal] = useState(false);
   const [showTypesModal, setShowTypesModal] = useState(false);
   const [imageError, setImageError] = useState(false);
+  const [internalLayoutView, setInternalLayoutView] = useState('classic'); // 'classic' | 'modern'
+  const layoutView = externalLayoutView ?? internalLayoutView;
+  const handleLayoutViewChange = (value) => {
+    if (externalLayoutView === undefined) setInternalLayoutView(value);
+    onLayoutViewChange?.(value);
+  };
   const [notificationCount, setNotificationCount] = useState(3); // Default count, can be updated with real data
   const [kanbanBoardLoading, setKanbanBoardLoading] = useState(false);
   const dropdownRef = useRef(null);
@@ -321,7 +328,29 @@ function Header({ onMenuToggle, mobileMenuOpen: externalMobileMenuOpen }) {
           style={{ cursor: 'pointer' }}
         />
         <div className="top-links">
-          {/* Navigation links can be added here if needed */}
+          <div className="layout-view-toggle">
+            {/* <span className="layout-view-label">Layout View:</span> */}
+            <div className="layout-view-switch">
+              <button
+                type="button"
+                className={`layout-view-option ${layoutView === 'classic' ? 'active' : ''}`}
+                onClick={() => handleLayoutViewChange('classic')}
+                aria-pressed={layoutView === 'classic'}
+              >
+                <FiMenu className="layout-view-icon" aria-hidden />
+                Classic
+              </button>
+              <button
+                type="button"
+                className={`layout-view-option ${layoutView === 'modern' ? 'active' : ''}`}
+                onClick={() => handleLayoutViewChange('modern')}
+                aria-pressed={layoutView === 'modern'}
+              >
+                <FiGrid className="layout-view-icon" aria-hidden />
+                Modern
+              </button>
+            </div>
+          </div>
         </div>
       </div>
 
