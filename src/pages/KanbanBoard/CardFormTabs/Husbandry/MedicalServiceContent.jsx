@@ -14,6 +14,25 @@ const MedicalServiceContent = ({ formValues, handleChange, cardColor }) => {
     label: crew.crewName || `Crew Member ${crew.id}`,
   })) || [];
 
+  // Medical Service options (can be replaced with API data)
+  const medicalServiceOptions = formValues.medicalServiceList || [
+    { value: "general_checkup", label: "General Checkup" },
+    { value: "vaccination", label: "Vaccination" },
+    { value: "emergency_care", label: "Emergency Care" },
+    { value: "dental", label: "Dental" },
+    { value: "laboratory", label: "Laboratory" },
+    { value: "other", label: "Other" },
+  ];
+
+  // Hospital options (can be replaced with API data)
+  const hospitalOptions = formValues.hospitalList || [
+    { value: "hospital_1", label: "King Faisal Specialist Hospital" },
+    { value: "hospital_2", label: "Dr. Sulaiman Al-Habib Medical Center" },
+    { value: "hospital_3", label: "Saudi German Hospital" },
+    { value: "hospital_4", label: "International Medical Center" },
+    { value: "hospital_5", label: "Other" },
+  ];
+
   // Handle multi-select crew change
   const handleCrewChange = (selectedOptions) => {
     const values = selectedOptions?.map((option) => option.value) || [];
@@ -25,6 +44,28 @@ const MedicalServiceContent = ({ formValues, handleChange, cardColor }) => {
   const selectedCrewValues = formValues.medicalServiceSelectedCrew?.map((crewId) =>
     crewOptions.find((opt) => opt.value === crewId?.toString() || opt.value === crewId)
   ).filter(Boolean) || [];
+
+  // Handle Medical Service select change (single select)
+  const handleMedicalServiceChange = (selectedOption) => {
+    const value = selectedOption?.value ?? null;
+    const syntheticEvent = { target: { value } };
+    handleChange("medicalServiceSelectedService")(syntheticEvent);
+  };
+
+  // Handle Hospital select change (single select)
+  const handleHospitalChange = (selectedOption) => {
+    const value = selectedOption?.value ?? null;
+    const syntheticEvent = { target: { value } };
+    handleChange("medicalServiceSelectedHospital")(syntheticEvent);
+  };
+
+  // Get selected Medical Service and Hospital for react-select
+  const selectedMedicalService = medicalServiceOptions.find(
+    (opt) => opt.value === formValues.medicalServiceSelectedService
+  ) || null;
+  const selectedHospital = hospitalOptions.find(
+    (opt) => opt.value === formValues.medicalServiceSelectedHospital
+  ) || null;
 
   // Custom styles for react-select multi-select
   const customSelectStyles = {
@@ -78,6 +119,11 @@ const MedicalServiceContent = ({ formValues, handleChange, cardColor }) => {
         backgroundColor: 'rgba(255, 255, 255, 0.2)',
         color: '#ffffff',
       },
+    }),
+    singleValue: (base) => ({
+      ...base,
+      color: '#1a1a1a',
+      fontSize: '13px',
     }),
     placeholder: (base) => ({
       ...base,
@@ -199,6 +245,8 @@ const MedicalServiceContent = ({ formValues, handleChange, cardColor }) => {
   const handleSave = () => {
     console.log("Saving Medical Service data:", {
       medicalServiceSelectedCrew: formValues.medicalServiceSelectedCrew,
+      medicalServiceSelectedService: formValues.medicalServiceSelectedService,
+      medicalServiceSelectedHospital: formValues.medicalServiceSelectedHospital,
       medicalServiceDocuments: formValues.medicalServiceDocuments,
     });
   };
@@ -223,6 +271,36 @@ const MedicalServiceContent = ({ formValues, handleChange, cardColor }) => {
                     isSearchable
                     closeMenuOnSelect={false}
                     hideSelectedOptions={false}
+                  />
+                </div>
+              </FormField>
+
+              <FormField label="Medical Service (select)">
+                <div className="cf-select react-select-container">
+                  <Select
+                    value={selectedMedicalService}
+                    onChange={handleMedicalServiceChange}
+                    options={medicalServiceOptions}
+                    placeholder="Select medical service..."
+                    classNamePrefix="react-select"
+                    styles={customSelectStyles}
+                    isClearable
+                    isSearchable
+                  />
+                </div>
+              </FormField>
+
+              <FormField label="Hospital (select)">
+                <div className="cf-select react-select-container">
+                  <Select
+                    value={selectedHospital}
+                    onChange={handleHospitalChange}
+                    options={hospitalOptions}
+                    placeholder="Select hospital..."
+                    classNamePrefix="react-select"
+                    styles={customSelectStyles}
+                    isClearable
+                    isSearchable
                   />
                 </div>
               </FormField>
