@@ -129,7 +129,7 @@ const StatusIcon = ({ status = "pending", IconComponent, size = 20 }) => {
   return <IconComponent size={size} color={color} />;
 };
 
-function CardItem({ card, index, setSelectedCard, isShrunk = false, hideExtraDetails = false }) {
+function CardItem({ card, index, setSelectedCard, isShrunk = false, hideExtraDetails = false, isClassicLayout = false }) {
   const cardColor = card.color || "#2A00FF";
 
   // Helper function to truncate text
@@ -144,7 +144,7 @@ function CardItem({ card, index, setSelectedCard, isShrunk = false, hideExtraDet
     <Draggable draggableId={card.id} index={index}>
       {(provided, snapshot) => (
         <div
-          className={`kanban-card ${snapshot.isDragging ? "dragging" : ""} ${card.priority ? "priority-blink" : ""} ${isShrunk ? "card-shrunk" : ""}`}
+          className={`kanban-card ${snapshot.isDragging ? "dragging" : ""} ${card.priority ? "priority-blink" : ""} ${isShrunk ? "card-shrunk" : ""} ${isClassicLayout ? "kanban-card-classic" : ""}`}
           ref={provided.innerRef}
           {...provided.draggableProps}
           {...provided.dragHandleProps}
@@ -244,13 +244,36 @@ function CardItem({ card, index, setSelectedCard, isShrunk = false, hideExtraDet
 
               {/* Title */}
               <div className="card-title-row" style={{ position: "relative" }}>
-                <h3
-                  className="card-title"
-                  style={{ cursor: "pointer" }}
-                  onClick={() => setSelectedCard(card)}
-                >
-                  {card.vesselName || card.title}
-                </h3>
+                <div style={{ flex: 1, minWidth: 0 }}>
+                  <h3
+                    className="card-title"
+                    style={{ cursor: "pointer" }}
+                    onClick={() => setSelectedCard(card)}
+                  >
+                    {card.vesselName || card.title}
+                  </h3>
+                  {isClassicLayout && (
+                    <div className="card-mini-tags">
+                      {card.port && (
+                        <span className="card-mini-tag card-mini-tag-port" title="Port">{card.port}</span>
+                      )}
+                      {(card.priorityLevel || card.priority) && (
+                        <span
+                          className={`card-mini-tag card-mini-tag-priority ${
+                            String(card.priorityLevel || (card.priority ? 'H' : 'M')).toLowerCase() === 'l' ? 'low' :
+                            String(card.priorityLevel || '').toLowerCase() === 'm' ? 'medium' : ''
+                          }`}
+                          title="Priority"
+                        >
+                          {card.priorityLevel || (card.priority ? 'H' : 'M')}
+                        </span>
+                      )}
+                      {card.name && (
+                        <span className="card-mini-tag card-mini-tag-client" title="Client">{card.name.charAt(0)}</span>
+                      )}
+                    </div>
+                  )}
+                </div>
                 {card.user && (
                   <div
                     className="card-avatar"
@@ -491,6 +514,7 @@ CardItem.propTypes = {
   setSelectedCard: PropTypes.func.isRequired,
   isShrunk: PropTypes.bool,
   hideExtraDetails: PropTypes.bool,
+  isClassicLayout: PropTypes.bool,
 };
 
 export default CardItem;

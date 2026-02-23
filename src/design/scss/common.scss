@@ -377,10 +377,112 @@ textarea:disabled,
     border-radius: 10px;
 }
 
+/* ================================
+   KANBAN — CLASSIC LAYOUT
+================================ */
+
+.kanban-classic-layout {
+  background: #f0f1f5 !important;
+
+  .kanban-board {
+    gap: 8px;
+  }
+
+  .column {
+    background: #f5f6fa;
+  }
+
+  .column-classic .column-header-classic {
+    position: sticky;
+    top: 0;
+    z-index: 2;
+    border-top: 4px solid var(--column-color, #2a00ff);
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.06);
+  }
+
+  .column-classic .column-wip-badge {
+    font-weight: 500;
+    font-size: 13px;
+    color: #5a5a5a;
+    margin-left: 2px;
+  }
+
+  .column-classic .card-list {
+    background: #eef0f5;
+    padding: 8px;
+  }
+
+  .column-classic .card-list.drag-over {
+    background: #e2e6ff;
+  }
+
+  .kanban-card.kanban-card-classic {
+    padding: 6px 8px;
+    box-shadow: none;
+    border: 1px solid #e0e2e8;
+    border-radius: 6px;
+    transition: none;
+
+    &::before {
+      height: 4px;
+      left: 0;
+      right: 0;
+      width: 100%;
+      border-radius: 6px 6px 0 0;
+    }
+
+    &.dragging {
+      box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+    }
+  }
+
+  .card-mini-tags {
+    display: flex;
+    gap: 4px;
+    margin-top: 4px;
+    flex-wrap: wrap;
+  }
+
+  .card-mini-tag {
+    font-size: 10px;
+    font-weight: 600;
+    padding: 2px 5px;
+    border-radius: 4px;
+    min-width: 18px;
+    text-align: center;
+    line-height: 1.2;
+  }
+
+  .card-mini-tag-port {
+    background: #e3f2fd;
+    color: #1565c0;
+  }
+
+  .card-mini-tag-priority {
+    background: #fff3e0;
+    color: #e65100;
+  }
+
+  .card-mini-tag-priority.low {
+    background: #e8f5e9;
+    color: #2e7d32;
+  }
+
+  .card-mini-tag-priority.medium {
+    background: #fff8e1;
+    color: #f9a825;
+  }
+
+  .card-mini-tag-client {
+    background: #f3e5f5;
+    color: #7b1fa2;
+  }
+}
+
 /* Scrollbars */
 .kanban-container::-webkit-scrollbar,
 .page-cont-wrp::-webkit-scrollbar {
-    height: 6px;
+  height: 6px;
 }
 
 .kanban-container::-webkit-scrollbar-thumb,

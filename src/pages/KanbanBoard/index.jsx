@@ -2,6 +2,7 @@ import { useState, useCallback, useMemo, useEffect } from "react";
 import { DragDropContext } from "@hello-pangea/dnd";
 import { FiLayers } from "react-icons/fi";
 import { initialData } from "../../helpers/data";
+import { useLayoutView } from "../../context/LayoutViewContext";
 import Column from "./Column";
 import CardForm from "./CardForm";
 import ContextMenu from "./ContextMenu";
@@ -10,6 +11,8 @@ import Workspaces from "../Workspaces";
 import "../../design/scss/common.scss";
 
 export default function KanbanBoard() {
+  const { layoutView } = useLayoutView();
+  const isClassicLayout = layoutView === 'classic';
   const [workflows, setWorkflows] = useState(initialData);
   const [selectedCard, setSelectedCard] = useState(null);
   const [isAddMode, setIsAddMode] = useState(false);
@@ -485,10 +488,11 @@ export default function KanbanBoard() {
           onContextMenu={handleColumnContextMenu}
           columnHeight={maxHeight > 0 ? maxHeight : undefined}
           onHeightChange={handleColumnHeightChange}
+          isClassicLayout={isClassicLayout}
         />
       );
     });
-  }, [handleSelectCard, expandedColumns, handleColumnHeaderClick, handleColumnContextMenu, maxColumnHeights, handleColumnHeightChange]);
+  }, [handleSelectCard, expandedColumns, handleColumnHeaderClick, handleColumnContextMenu, maxColumnHeights, handleColumnHeightChange, isClassicLayout]);
 
   // Show Workspaces view when Workspaces icon is clicked
   if (showWorkspaces) {
@@ -551,7 +555,7 @@ export default function KanbanBoard() {
           </div>
 
           {expandedWorkflows[workflow.id] && (
-            <div className="kanban-container">
+            <div className={`kanban-container ${isClassicLayout ? 'kanban-classic-layout' : ''}`}>
               <DragDropContext onDragEnd={createDragEndHandler(workflow.id)}>
                 <div className="kanban-board">
                   {renderWorkflowColumns(workflow)}

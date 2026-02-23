@@ -31,6 +31,14 @@ const workflowsConfig = [
       "col-5": 18, // Vessel Sailed
       "col-6": 18, // Ready to Fianalize
     },
+    wipLimits: {
+      "col-1": 25,
+      "col-2": 25,
+      "col-3": 25,
+      "col-4": 25,
+      "col-5": 25,
+      "col-6": 25,
+    },
   },
   {
     id: "workflow-2",
@@ -58,6 +66,14 @@ const workflowsConfig = [
       "col-4": 11, // Vessel Cleared
       "col-5": 12, // Vessel Sailed
       "col-6": 11, // Ready to Fianalize
+    },
+    wipLimits: {
+      "col-1": 20,
+      "col-2": 20,
+      "col-3": 20,
+      "col-4": 20,
+      "col-5": 20,
+      "col-6": 20,
     },
   },
 ];
@@ -91,6 +107,7 @@ const generateCard = (workflowId, colId, cardId) => {
     "Saipem",
     "Lamprell"
   ];
+  const ports = ["DAM", "JED", "RUH", "JUB", "RAS", "YAN"];
   const vesselNames = [
     "MV Atlantic Star",
     "SS Pacific Wave",
@@ -138,12 +155,13 @@ const generateCard = (workflowId, colId, cardId) => {
   const shuffledExtra = [...extraDetailsKeys].sort(() => Math.random() - 0.5);
   const extraDetailsShowIcons = shuffledExtra.slice(0, extraDetailsCount);
 
+  const customerName = customerNames[Math.floor(Math.random() * customerNames.length)];
   const cardData = {
     id,
     title: `CARD – ${["JAN", "FEB", "MAR", "APR", "MAY", "JUN", "JUL", "AUG"][
       Math.floor(Math.random() * 8)
     ]} ${2025 + Math.floor(Math.random() * 2)}`,
-    name: customerNames[Math.floor(Math.random() * customerNames.length)],
+    name: customerName,
     user: drivers[Math.floor(Math.random() * drivers.length)],
     timeLeft: `${Math.floor(Math.random() * 90)}d ${Math.floor(Math.random() * 24)}h ${Math.floor(
       Math.random() * 60
@@ -153,6 +171,8 @@ const generateCard = (workflowId, colId, cardId) => {
     iconType: randomIconType,   // ⭐ Added here
     priority: cardId === 1, // Only first item has priority true
     vesselName: vesselNames[Math.floor(Math.random() * vesselNames.length)],
+    port: ports[Math.floor(Math.random() * ports.length)],
+    priorityLevel: ["H", "M", "L"][Math.floor(Math.random() * 3)],
     transport: ["done", "rejected", "inProgress"][Math.floor(Math.random() * 3)],
     transportCount: Math.floor(Math.random() * 5) + 1, // Random count between 1-5
     hotel: ["done", "rejected", "inProgress"][Math.floor(Math.random() * 3)],
@@ -177,7 +197,7 @@ const generateCard = (workflowId, colId, cardId) => {
 
 // Helper function to create a workflow
 const createWorkflow = (workflowConfig) => {
-  const { id, columnColors, columnTitles, cardCounts } = workflowConfig;
+  const { id, columnColors, columnTitles, cardCounts, wipLimits = {} } = workflowConfig;
   const columns = {};
   const cards = {};
   let cardId = 1;
@@ -190,6 +210,7 @@ const createWorkflow = (workflowConfig) => {
       title: columnTitles[i],
       cardIds: [],
       color: columnColors[colId],
+      wipLimit: wipLimits[colId] ?? null,
     };
   }
 

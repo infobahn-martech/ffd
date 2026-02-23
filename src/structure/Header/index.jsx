@@ -31,8 +31,9 @@ import BlockersModal from '../SideNav/components/BlockersModal';
 import StickersModal from '../SideNav/components/StickersModal';
 import TagsModal from '../SideNav/components/TagsModal';
 import TypesModal from '../SideNav/components/TypesModal';
+import { useLayoutView } from '../../context/LayoutViewContext';
 
-function Header({ onMenuToggle, mobileMenuOpen: externalMobileMenuOpen, layoutView: externalLayoutView, onLayoutViewChange }) {
+function Header({ onMenuToggle, mobileMenuOpen: externalMobileMenuOpen }) {
   const { pathname } = useLocation();
   const navigate = useNavigate();
   const { width } = useWindowSize();
@@ -55,12 +56,7 @@ function Header({ onMenuToggle, mobileMenuOpen: externalMobileMenuOpen, layoutVi
   const [showTagsModal, setShowTagsModal] = useState(false);
   const [showTypesModal, setShowTypesModal] = useState(false);
   const [imageError, setImageError] = useState(false);
-  const [internalLayoutView, setInternalLayoutView] = useState('classic'); // 'classic' | 'modern'
-  const layoutView = externalLayoutView ?? internalLayoutView;
-  const handleLayoutViewChange = (value) => {
-    if (externalLayoutView === undefined) setInternalLayoutView(value);
-    onLayoutViewChange?.(value);
-  };
+  const { layoutView, setLayoutView } = useLayoutView();
   const [notificationCount, setNotificationCount] = useState(3); // Default count, can be updated with real data
   const [kanbanBoardLoading, setKanbanBoardLoading] = useState(false);
   const dropdownRef = useRef(null);
@@ -334,7 +330,7 @@ function Header({ onMenuToggle, mobileMenuOpen: externalMobileMenuOpen, layoutVi
               <button
                 type="button"
                 className={`layout-view-option ${layoutView === 'classic' ? 'active' : ''}`}
-                onClick={() => handleLayoutViewChange('classic')}
+                onClick={() => setLayoutView('classic')}
                 aria-pressed={layoutView === 'classic'}
               >
                 <FiMenu className="layout-view-icon" aria-hidden />
@@ -343,7 +339,7 @@ function Header({ onMenuToggle, mobileMenuOpen: externalMobileMenuOpen, layoutVi
               <button
                 type="button"
                 className={`layout-view-option ${layoutView === 'modern' ? 'active' : ''}`}
-                onClick={() => handleLayoutViewChange('modern')}
+                onClick={() => setLayoutView('modern')}
                 aria-pressed={layoutView === 'modern'}
               >
                 <FiGrid className="layout-view-icon" aria-hidden />

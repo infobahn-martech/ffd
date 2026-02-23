@@ -6,7 +6,7 @@ import "react-tooltip/dist/react-tooltip.css";
 import CardItem from "./CardItem";
 import "../../design/css/Column.css";
 
-function Column({ column, cards, setSelectedCard, isExpanded = false, isShrunk = false, onHeaderClick, onContextMenu, columnHeight, onHeightChange }) {
+function Column({ column, cards, setSelectedCard, isExpanded = false, isShrunk = false, onHeaderClick, onContextMenu, columnHeight, onHeightChange, isClassicLayout = false }) {
   const columnRef = useRef(null);
   const columnColor = column.color || "#2A00FF";
 
@@ -73,15 +73,19 @@ function Column({ column, cards, setSelectedCard, isExpanded = false, isShrunk =
     };
   }, [cards.length, column.id, onHeightChange, isExpanded, isShrunk]);
 
+  const cardCount = cards?.length ?? 0;
+  const wipLimit = column.wipLimit;
+  const wipDisplay = wipLimit ? `${cardCount} / ${wipLimit}` : String(cardCount);
+
   return (
     <div
       ref={columnRef}
-      className={`column ${isExpanded ? 'column-expanded' : ''} ${isShrunk ? 'column-shrunk' : ''}`}
+      className={`column ${isExpanded ? 'column-expanded' : ''} ${isShrunk ? 'column-shrunk' : ''} ${isClassicLayout ? 'column-classic' : ''}`}
       onContextMenu={handleContextMenu}
       style={columnHeight ? { minHeight: `${columnHeight}px` } : {}}
     >
       <div
-        className="column-header"
+        className={`column-header ${isClassicLayout ? 'column-header-classic' : ''}`}
         style={{ "--column-color": columnColor }}
         onClick={onHeaderClick}
       >
@@ -98,10 +102,18 @@ function Column({ column, cards, setSelectedCard, isExpanded = false, isShrunk =
               <Tooltip id={tooltipId} place="top" />
             </>
           ) : (
-            <h2 className="column-title">{displayTitle}</h2>
+            <h2 className="column-title">
+              {isClassicLayout && wipLimit ? (
+                <>
+                  {column.title} <span className="column-wip-badge">({wipDisplay})</span>
+                </>
+              ) : (
+                displayTitle
+              )}
+            </h2>
           )}
         </div>
-        <span className="column-count">{cards?.length ?? 0}</span>
+        {!isShrunk && <span className="column-count">{wipDisplay}</span>}
       </div>
 
       <Droppable droppableId={column.id}>
@@ -118,6 +130,7 @@ function Column({ column, cards, setSelectedCard, isExpanded = false, isShrunk =
                 index={index}
                 setSelectedCard={setSelectedCard}
                 isShrunk={isShrunk}
+                isClassicLayout={isClassicLayout}
               />
             ))}
             {provided.placeholder}
@@ -133,6 +146,7 @@ Column.propTypes = {
     id: PropTypes.string.isRequired,
     title: PropTypes.string.isRequired,
     color: PropTypes.string,
+    wipLimit: PropTypes.number,
   }).isRequired,
   cards: PropTypes.arrayOf(PropTypes.object).isRequired,
   setSelectedCard: PropTypes.func.isRequired,
@@ -142,6 +156,7 @@ Column.propTypes = {
   onContextMenu: PropTypes.func,
   columnHeight: PropTypes.number,
   onHeightChange: PropTypes.func,
+  isClassicLayout: PropTypes.bool,
 };
 
 export default Column;

@@ -4,6 +4,7 @@ import '../../design/scss/dashboard.scss';
 import { Outlet } from 'react-router';
 import SideNav from '../SideNav/index';
 import Header from '../Header';
+import { LayoutViewProvider } from '../../context/LayoutViewContext';
 
 function Layout() {
   const { pathname } = useLocation();
@@ -20,6 +21,7 @@ function Layout() {
   };
 
   return (
+    <LayoutViewProvider>
     <div className={`main-layout ${isKanbanBoard ? 'kanban-board-layout' : ''}`}>
 
       {/* FULL-WIDTH HEADER */}
@@ -43,6 +45,7 @@ function Layout() {
       </div>
 
     </div>
+    </LayoutViewProvider>
   );
 }
 
