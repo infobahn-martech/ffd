@@ -2,7 +2,7 @@ import { useState, useRef } from "react";
 import PropTypes from "prop-types";
 import Select from "react-select";
 import GroupSettingsIcon from "../../../../assets/images/cv.png";
-import { FormSection, FormField, ReactQuillEditor } from "./Husbandry.components";
+import { FormSection, FormField, FormSelect, ReactQuillEditor } from "./Husbandry.components";
 
 const MedicalServiceContent = ({ formValues, handleChange, cardColor }) => {
   const [isDragging, setIsDragging] = useState(false);
@@ -45,29 +45,7 @@ const MedicalServiceContent = ({ formValues, handleChange, cardColor }) => {
     crewOptions.find((opt) => opt.value === crewId?.toString() || opt.value === crewId)
   ).filter(Boolean) || [];
 
-  // Handle Medical Service select change (single select)
-  const handleMedicalServiceChange = (selectedOption) => {
-    const value = selectedOption?.value ?? null;
-    const syntheticEvent = { target: { value } };
-    handleChange("medicalServiceSelectedService")(syntheticEvent);
-  };
-
-  // Handle Hospital select change (single select)
-  const handleHospitalChange = (selectedOption) => {
-    const value = selectedOption?.value ?? null;
-    const syntheticEvent = { target: { value } };
-    handleChange("medicalServiceSelectedHospital")(syntheticEvent);
-  };
-
-  // Get selected Medical Service and Hospital for react-select
-  const selectedMedicalService = medicalServiceOptions.find(
-    (opt) => opt.value === formValues.medicalServiceSelectedService
-  ) || null;
-  const selectedHospital = hospitalOptions.find(
-    (opt) => opt.value === formValues.medicalServiceSelectedHospital
-  ) || null;
-
-  // Custom styles for react-select multi-select
+  // Custom styles for react-select multi-select (Select Crew)
   const customSelectStyles = {
     control: (base, state) => ({
       ...base,
@@ -275,34 +253,22 @@ const MedicalServiceContent = ({ formValues, handleChange, cardColor }) => {
                 </div>
               </FormField>
 
-              <FormField label="Medical Service (select)">
-                <div className="cf-select react-select-container">
-                  <Select
-                    value={selectedMedicalService}
-                    onChange={handleMedicalServiceChange}
-                    options={medicalServiceOptions}
-                    placeholder="Select medical service..."
-                    classNamePrefix="react-select"
-                    styles={customSelectStyles}
-                    isClearable
-                    isSearchable
-                  />
-                </div>
+              <FormField label="Medical Service">
+                <FormSelect
+                  value={formValues.medicalServiceSelectedService || ""}
+                  onChange={handleChange("medicalServiceSelectedService")}
+                  options={medicalServiceOptions}
+                  placeholder="Select medical service..."
+                />
               </FormField>
 
-              <FormField label="Hospital (select)">
-                <div className="cf-select react-select-container">
-                  <Select
-                    value={selectedHospital}
-                    onChange={handleHospitalChange}
-                    options={hospitalOptions}
-                    placeholder="Select hospital..."
-                    classNamePrefix="react-select"
-                    styles={customSelectStyles}
-                    isClearable
-                    isSearchable
-                  />
-                </div>
+              <FormField label="Hospital">
+                <FormSelect
+                  value={formValues.medicalServiceSelectedHospital || ""}
+                  onChange={handleChange("medicalServiceSelectedHospital")}
+                  options={hospitalOptions}
+                  placeholder="Select hospital..."
+                />
               </FormField>
 
               <FormField label="Documents" className="cf-field-full">
