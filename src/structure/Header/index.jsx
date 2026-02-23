@@ -335,6 +335,7 @@ function Header({ onMenuToggle, mobileMenuOpen: externalMobileMenuOpen }) {
           onClick={() => navigate('/workspaces')}
           style={{ cursor: 'pointer' }}
         />
+        {pathname === '/kanban-board' && (
         <div className="top-links">
           <div className="layout-view-toggle">
             {/* <span className="layout-view-label">Layout View:</span> */}
@@ -378,6 +379,7 @@ function Header({ onMenuToggle, mobileMenuOpen: externalMobileMenuOpen }) {
             </div>
           </div>
         </div>
+        )}
       </div>
 
       {/* RIGHT — User + Icons */}
