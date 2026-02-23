@@ -48,7 +48,7 @@ import JobStatusBE from "../pages/JobStatusBE";
 import GroupEmailBE from "../pages/GroupEmailBE";
 import BillingInstruction from "../pages/BillingInstruction";
 import Captains from "../pages/Captains";
-import FleetManagement from "../pages/Fleet";
+import Operators from "../pages/Operators";
 import Location from "../pages/Location";
 import ServiceProviders from "../pages/ServiceProviders";
 import TransportParties from "../pages/TransportParties";
@@ -127,7 +127,7 @@ const router = createHashRouter([
               { path: "/group-email", element: <GroupEmailBE /> },
               { path: "/billing-instruction", element: <BillingInstruction /> },
               { path: "/captains", element: <Captains /> },
-              { path: "/fleet", element: <FleetManagement /> },
+              { path: "/operators", element: <Operators /> },
               { path: "/location", element: <Location /> },
               { path: "/service-providers", element: <ServiceProviders /> },
               { path: "/transport-parties", element: <TransportParties /> },
@@ -239,7 +239,8 @@ const router = createHashRouter([
                   // Captains
                   { path: "/captains", element: <RouteGuard><Captains /></RouteGuard> },
                   // Fleet Management
-                  { path: "/fleet", element: <RouteGuard><FleetManagement /></RouteGuard> },
+                  // Operators
+                  { path: "/operators", element: <RouteGuard><Operators /></RouteGuard> },
                   // Location
                   { path: "/location", element: <RouteGuard><Location /></RouteGuard> },
                   // Service Providers
