@@ -109,21 +109,21 @@ const generateCard = (workflowId, colId, cardId) => {
   ];
   const ports = ["DAM", "JED", "RUH", "JUB", "RAS", "YAN"];
   const vesselNames = [
-    "MV Atlantic Star",
-    "SS Pacific Wave",
-    "MV Indian Ocean",
-    "SS Mediterranean",
-    "MV Caribbean Breeze",
-    "MV Ocean Express",
-    "SS Blue Horizon",
-    "MV Sea Voyager",
-    "SS Trade Wind",
-    "MV Golden Gate",
-    "SS Northern Star",
-    "MV Southern Cross",
-    "SS Eastern Dawn",
-    "MV Western Tide",
-    "SS Central Bay"
+    "Atlantic Star",
+    "Pacific Wave",
+    "Indian Ocean",
+    "Mediterranean",
+    "Caribbean Breeze",
+    "Ocean Express",
+    "Blue Horizon",
+    "Sea Voyager",
+    "Trade Wind",
+    "Golden Gate",
+    "Northern Star",
+    "Southern Cross",
+    "Eastern Dawn",
+    "Western Tide",
+    "Central Bay"
   ];
   const drivers = [
     "John Smith",
