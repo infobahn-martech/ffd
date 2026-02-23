@@ -37,6 +37,7 @@ import useWindowSize from '../../hooks/useWindowSize';
 import { Tooltip } from 'react-tooltip';
 import 'react-tooltip/dist/react-tooltip.css';
 import { FiPlus, FiInbox, FiFilter, FiPlusCircle, FiActivity } from 'react-icons/fi';
+import { useLayoutView } from '../../context/LayoutViewContext';
 
 function SideNav({ isMobileMenuOpen, onCloseMobileMenu }) {
   const { pathname } = useLocation();
@@ -45,6 +46,8 @@ function SideNav({ isMobileMenuOpen, onCloseMobileMenu }) {
 
   const isKanbanBoard = pathname === '/kanban-board' || pathname.startsWith('/kanban-board/') || pathname === '/workspaces';
   const isMobile = width <= 991;
+  const { layoutView } = useLayoutView();
+  const isDarkMode = layoutView === 'dark';
 
   // 🆕 Kanban icon config - different icons for /kanban-board vs /workspaces
   const kanbanBoardIcons = [
@@ -525,7 +528,7 @@ function SideNav({ isMobileMenuOpen, onCloseMobileMenu }) {
 
     return (
       <>
-        <aside className="kanban-sidebar">
+        <aside className={`kanban-sidebar ${isDarkMode ? 'kanban-sidebar-dark' : ''}`}>
           {kanbanIcons.map((item) => {
             const Icon = item.icon;
             const isActive =

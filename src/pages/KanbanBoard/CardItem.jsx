@@ -129,7 +129,7 @@ const StatusIcon = ({ status = "pending", IconComponent, size = 20 }) => {
   return <IconComponent size={size} color={color} />;
 };
 
-function CardItem({ card, index, setSelectedCard, isShrunk = false, hideExtraDetails = false, isClassicLayout = false, isModernLayout = false }) {
+function CardItem({ card, index, setSelectedCard, isShrunk = false, hideExtraDetails = false, isClassicLayout = false, isModernLayout = false, isDarkMode = false }) {
   const cardColor = card.color || "#2A00FF";
 
   // Helper function to truncate text
@@ -144,7 +144,7 @@ function CardItem({ card, index, setSelectedCard, isShrunk = false, hideExtraDet
     <Draggable draggableId={card.id} index={index}>
       {(provided, snapshot) => (
         <div
-          className={`kanban-card ${snapshot.isDragging ? "dragging" : ""} ${card.priority ? "priority-blink" : ""} ${isShrunk ? "card-shrunk" : ""} ${isClassicLayout ? "kanban-card-classic" : ""} ${isModernLayout ? "kanban-card-modern" : ""}`}
+          className={`kanban-card ${snapshot.isDragging ? "dragging" : ""} ${card.priority ? "priority-blink" : ""} ${isShrunk ? "card-shrunk" : ""} ${isClassicLayout ? "kanban-card-classic" : ""} ${isModernLayout ? "kanban-card-modern" : ""} ${isDarkMode ? "kanban-card-dark" : ""}`}
           ref={provided.innerRef}
           {...provided.draggableProps}
           {...provided.dragHandleProps}
@@ -539,6 +539,7 @@ CardItem.propTypes = {
   hideExtraDetails: PropTypes.bool,
   isClassicLayout: PropTypes.bool,
   isModernLayout: PropTypes.bool,
+  isDarkMode: PropTypes.bool,
 };
 
 export default CardItem;

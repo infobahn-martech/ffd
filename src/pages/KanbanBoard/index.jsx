@@ -14,6 +14,7 @@ export default function KanbanBoard() {
   const { layoutView } = useLayoutView();
   const isClassicLayout = layoutView === 'classic';
   const isModernLayout = layoutView === 'modern';
+  const isDarkMode = layoutView === 'dark';
   const [workflows, setWorkflows] = useState(initialData);
   const [selectedCard, setSelectedCard] = useState(null);
   const [isAddMode, setIsAddMode] = useState(false);
@@ -491,10 +492,11 @@ export default function KanbanBoard() {
           onHeightChange={handleColumnHeightChange}
           isClassicLayout={isClassicLayout}
           isModernLayout={isModernLayout}
+          isDarkMode={isDarkMode}
         />
       );
     });
-  }, [handleSelectCard, expandedColumns, handleColumnHeaderClick, handleColumnContextMenu, maxColumnHeights, handleColumnHeightChange, isClassicLayout, isModernLayout]);
+  }, [handleSelectCard, expandedColumns, handleColumnHeaderClick, handleColumnContextMenu, maxColumnHeights, handleColumnHeightChange, isClassicLayout, isModernLayout, isDarkMode]);
 
   // Show Workspaces view when Workspaces icon is clicked
   if (showWorkspaces) {
@@ -527,9 +529,9 @@ export default function KanbanBoard() {
   }, [isAddMode, selectedCardWorkflow, workflows]);
 
   return (
-    <>
+    <div className={isDarkMode ? 'kanban-board-wrapper kanban-board-wrapper-dark' : 'kanban-board-wrapper'}>
       {workflows.map((workflow) => (
-        <div key={workflow.id} className="kanban-accordion">
+        <div key={workflow.id} className={`kanban-accordion ${isDarkMode ? 'kanban-dark-mode' : ''}`}>
           <div
             className="kanban-accordion-header"
             onClick={() => toggleWorkflow(workflow.id)}
@@ -603,6 +605,6 @@ export default function KanbanBoard() {
         isPinned={accordionMenuWorkflowId ? pinnedWorkflows[accordionMenuWorkflowId] : false}
         onTogglePin={handleTogglePin}
       />
-    </>
+    </div>
   );
 }

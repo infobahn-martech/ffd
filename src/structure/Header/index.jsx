@@ -10,6 +10,7 @@ import {
   FiGrid,
   FiMenu,
   FiSquare,
+  FiMoon,
   FiBarChart2,
   FiMapPin
 } from 'react-icons/fi';
@@ -295,8 +296,18 @@ function Header({ onMenuToggle, mobileMenuOpen: externalMobileMenuOpen }) {
     navigate('/kanban-board');
   };
 
+  // Apply dark mode to body for header/sidebar/scroll styling
+  useEffect(() => {
+    if (layoutView === 'dark') {
+      document.body.classList.add('app-dark-mode');
+    } else {
+      document.body.classList.remove('app-dark-mode');
+    }
+    return () => document.body.classList.remove('app-dark-mode');
+  }, [layoutView]);
+
   return (
-    <div className="sedres-header">
+    <div className={`sedres-header ${layoutView === 'dark' ? 'sedres-header-dark' : ''}`}>
 
       {/* LEFT — LOGO + NAV LINKS */}
       <div className="left-section">
@@ -354,6 +365,15 @@ function Header({ onMenuToggle, mobileMenuOpen: externalMobileMenuOpen }) {
               >
                 <FiSquare className="layout-view-icon" aria-hidden />
                 Normal
+              </button>
+              <button
+                type="button"
+                className={`layout-view-option ${layoutView === 'dark' ? 'active' : ''}`}
+                onClick={() => setLayoutView('dark')}
+                aria-pressed={layoutView === 'dark'}
+              >
+                <FiMoon className="layout-view-icon" aria-hidden />
+                Dark
               </button>
             </div>
           </div>
