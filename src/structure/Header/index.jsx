@@ -9,6 +9,7 @@ import {
   FiLayout,
   FiGrid,
   FiMenu,
+  FiSquare,
   FiBarChart2,
   FiMapPin
 } from 'react-icons/fi';
@@ -344,6 +345,15 @@ function Header({ onMenuToggle, mobileMenuOpen: externalMobileMenuOpen }) {
               >
                 <FiGrid className="layout-view-icon" aria-hidden />
                 Modern
+              </button>
+              <button
+                type="button"
+                className={`layout-view-option ${layoutView === 'normal' ? 'active' : ''}`}
+                onClick={() => setLayoutView('normal')}
+                aria-pressed={layoutView === 'normal'}
+              >
+                <FiSquare className="layout-view-icon" aria-hidden />
+                Normal
               </button>
             </div>
           </div>

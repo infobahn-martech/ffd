@@ -382,6 +382,7 @@ textarea:disabled,
 ================================ */
 
 .kanban-classic-layout {
+  animation: layoutFadeIn 0.3s ease-out;
   background: #f0f1f5 !important;
 
   .kanban-board {
@@ -476,6 +477,123 @@ textarea:disabled,
   .card-mini-tag-client {
     background: #f3e5f5;
     color: #7b1fa2;
+  }
+}
+
+/* ================================
+   KANBAN — MODERN LAYOUT
+   (Minimal / Clean / Executive)
+================================ */
+
+.kanban-modern-layout {
+  animation: layoutFadeIn 0.3s ease-out;
+
+  .kanban-board {
+    gap: 16px;
+  }
+
+  .column {
+    background: #fafbfc;
+  }
+
+  .column-modern .column-header-modern {
+    background: rgba(255, 255, 255, 0.9);
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
+    border-radius: 12px;
+    transition: box-shadow 0.2s ease, transform 0.2s ease;
+
+    &:hover {
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+    }
+  }
+
+  .column-modern .card-list {
+    gap: 14px;
+  }
+
+  .kanban-card.kanban-card-modern {
+    padding: 14px 16px;
+    border-radius: 14px;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
+    transition: box-shadow 0.25s ease, transform 0.25s ease;
+
+    &:hover {
+      box-shadow: 0 6px 20px rgba(0, 0, 0, 0.1);
+      transform: translateY(-2px);
+    }
+
+    &.dragging {
+      box-shadow: 0 12px 28px rgba(0, 0, 0, 0.15);
+    }
+  }
+
+  .card-title-modern {
+    font-size: 16px !important;
+    font-weight: 600;
+  }
+
+  .kanban-card-modern .card-header .card-action-menu-btn {
+    margin-left: auto;
+    padding: 6px;
+    border: none;
+    background: transparent;
+    color: #6b7280;
+    cursor: pointer;
+    border-radius: 8px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: color 0.2s ease, background 0.2s ease;
+
+    &:hover {
+      color: #374151;
+      background: rgba(0, 0, 0, 0.05);
+    }
+  }
+
+  .card-footer-modern {
+    padding-top: 10px;
+  }
+
+  .footer-progress-horizontal {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+  }
+
+  .progress-bar-horizontal {
+    flex: 1;
+    height: 6px;
+    background: #e5e7eb;
+    border-radius: 4px;
+    overflow: hidden;
+    min-width: 60px;
+  }
+
+  .progress-fill-horizontal {
+    height: 100%;
+    border-radius: 4px;
+    transition: width 0.4s ease;
+  }
+
+  .progress-text-horizontal {
+    font-size: 12px;
+    font-weight: 600;
+    color: #6b7280;
+    min-width: 28px;
+  }
+}
+
+.kanban-normal-layout {
+  animation: layoutFadeIn 0.3s ease-out;
+}
+
+@keyframes layoutFadeIn {
+  from {
+    opacity: 0.7;
+  }
+  to {
+    opacity: 1;
   }
 }
 

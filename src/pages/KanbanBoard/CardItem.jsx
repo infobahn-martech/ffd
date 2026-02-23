@@ -8,7 +8,7 @@ import saudimarcapLogo from "../../assets/images/saudimarcap.png";
 import saipemLogo from "../../assets/images/saipem.png";
 import lamprellLogo from "../../assets/images/lamprell.png";
 import gulfmarineLogo from "../../assets/images/gulfmarine.png";
-import { FiFileText, FiDownload, FiLoader } from "react-icons/fi";
+import { FiFileText, FiDownload, FiLoader, FiMoreHorizontal } from "react-icons/fi";
 
 // Status colors
 const STATUS_COLORS = {
@@ -129,7 +129,7 @@ const StatusIcon = ({ status = "pending", IconComponent, size = 20 }) => {
   return <IconComponent size={size} color={color} />;
 };
 
-function CardItem({ card, index, setSelectedCard, isShrunk = false, hideExtraDetails = false, isClassicLayout = false }) {
+function CardItem({ card, index, setSelectedCard, isShrunk = false, hideExtraDetails = false, isClassicLayout = false, isModernLayout = false }) {
   const cardColor = card.color || "#2A00FF";
 
   // Helper function to truncate text
@@ -144,7 +144,7 @@ function CardItem({ card, index, setSelectedCard, isShrunk = false, hideExtraDet
     <Draggable draggableId={card.id} index={index}>
       {(provided, snapshot) => (
         <div
-          className={`kanban-card ${snapshot.isDragging ? "dragging" : ""} ${card.priority ? "priority-blink" : ""} ${isShrunk ? "card-shrunk" : ""} ${isClassicLayout ? "kanban-card-classic" : ""}`}
+          className={`kanban-card ${snapshot.isDragging ? "dragging" : ""} ${card.priority ? "priority-blink" : ""} ${isShrunk ? "card-shrunk" : ""} ${isClassicLayout ? "kanban-card-classic" : ""} ${isModernLayout ? "kanban-card-modern" : ""}`}
           ref={provided.innerRef}
           {...provided.draggableProps}
           {...provided.dragHandleProps}
@@ -190,19 +190,20 @@ function CardItem({ card, index, setSelectedCard, isShrunk = false, hideExtraDet
             <>
               {/* Header */}
               <div className="card-header" style={{ display: "flex", alignItems: "center", justifyContent: "space-between", width: "100%" }}>
-                <div
-                  className="card-header-icon"
-                  style={{ backgroundColor: cardColor }}
-                >
-                  {card.iconType === "inprogress" && <FiLoader size={14} color="white" />}
-                  {card.iconType === "download" && <FiDownload size={14} color="white" />}
-                  {card.iconType === "document" && <FiFileText size={14} color="white" />}
-                </div>
-                {card.name && (() => {
+                {!isModernLayout && (
+                  <div
+                    className="card-header-icon"
+                    style={{ backgroundColor: cardColor }}
+                  >
+                    {card.iconType === "inprogress" && <FiLoader size={14} color="white" />}
+                    {card.iconType === "download" && <FiDownload size={14} color="white" />}
+                    {card.iconType === "document" && <FiFileText size={14} color="white" />}
+                  </div>
+                )}
+                {!isModernLayout && card.name && (() => {
                   const tooltipId = `card-name-${card.id}`;
                   const companyIcon = getCompanyIcon(card.id, card.name);
 
-                  // Only render if we have a valid company icon
                   if (!companyIcon) return null;
 
                   return (
@@ -231,22 +232,27 @@ function CardItem({ card, index, setSelectedCard, isShrunk = false, hideExtraDet
                           />
                         )}
                       </div>
-                      <Tooltip
-                        id={tooltipId}
-                        place="top"
-                        className="card-name-tooltip"
-                        offset={5}
-                      />
+                      <Tooltip id={tooltipId} place="top" className="card-name-tooltip" offset={5} />
                     </>
                   );
                 })()}
+                {isModernLayout && (
+                  <button
+                    type="button"
+                    className="card-action-menu-btn"
+                    onClick={(e) => { e.stopPropagation(); setSelectedCard(card); }}
+                    aria-label="Actions"
+                  >
+                    <FiMoreHorizontal size={18} />
+                  </button>
+                )}
               </div>
 
               {/* Title */}
               <div className="card-title-row" style={{ position: "relative" }}>
                 <div style={{ flex: 1, minWidth: 0 }}>
                   <h3
-                    className="card-title"
+                    className={`card-title ${isModernLayout ? "card-title-modern" : ""}`}
                     style={{ cursor: "pointer" }}
                     onClick={() => setSelectedCard(card)}
                   >
@@ -283,7 +289,8 @@ function CardItem({ card, index, setSelectedCard, isShrunk = false, hideExtraDet
                 )}
               </div>
 
-              {/* Footer-1: status icons (priority, subtasks, deadline, watchers, link) – random subset per card, left-aligned */}
+              {/* Footer-1: status icons (priority, subtasks, deadline, watchers, link) – hidden in Modern for fewer icons */}
+              {!isModernLayout && (
               <div className="card-footer footer-1" style={{ display: "flex", gap: "10px", alignItems: "center", justifyContent: "flex-start", flexWrap: "wrap" }}>
                 {card.footerShowIcons?.includes("priority") && (
                   <span className="footer-1-item" title="Priority" style={{ display: "flex", alignItems: "center" }}>
@@ -315,32 +322,48 @@ function CardItem({ card, index, setSelectedCard, isShrunk = false, hideExtraDet
                   </span>
                 )}
               </div>
+              )}
 
               {/* Footer */}
-              <div className="card-footer">
+              <div className={`card-footer ${isModernLayout ? "card-footer-modern" : ""}`}>
                 <span className="card-time-left">{card?.timeLeft}</span>
-                <div className="footer-progress">
-                  <div className="circular-progress">
-                    <svg className="progress-svg">
-                      <circle className="bg" cx="13" cy="13" r="11.5" />
-                      <circle
-                        className="progress"
-                        cx="13"
-                        cy="13"
-                        r="11.5"
+                {isModernLayout ? (
+                  <div className="footer-progress-horizontal">
+                    <div className="progress-bar-horizontal">
+                      <div
+                        className="progress-fill-horizontal"
                         style={{
-                          stroke: "#0d9488",
-                          strokeDashoffset: `calc(72 - (72 * ${card.progress || 0}) / 100)`,
+                          width: `${card.progress || 0}%`,
+                          backgroundColor: "var(--card-color, #0d9488)",
                         }}
                       />
-                    </svg>
-                    <div className="progress-text">{card.progress || 0}%</div>
+                    </div>
+                    <span className="progress-text-horizontal">{card.progress || 0}%</span>
                   </div>
-                </div>
+                ) : (
+                  <div className="footer-progress">
+                    <div className="circular-progress">
+                      <svg className="progress-svg">
+                        <circle className="bg" cx="13" cy="13" r="11.5" />
+                        <circle
+                          className="progress"
+                          cx="13"
+                          cy="13"
+                          r="11.5"
+                          style={{
+                            stroke: "#0d9488",
+                            strokeDashoffset: `calc(72 - (72 * ${card.progress || 0}) / 100)`,
+                          }}
+                        />
+                      </svg>
+                      <div className="progress-text">{card.progress || 0}%</div>
+                    </div>
+                  </div>
+                )}
               </div>
 
-              {/* Extra Details Section - Icons with status colors (random subset per card: 1–6 icons) */}
-              {!hideExtraDetails && (
+              {/* Extra Details Section - Icons with status colors; replaced by 3-dot menu in Modern */}
+              {!hideExtraDetails && !isModernLayout && (
                 <div className="card-extra-details" style={{ display: "flex", gap: "12px", alignItems: "center", justifyContent: "flex-start", padding: "8px 0" }}>
                   {(!card.extraDetailsShowIcons || card.extraDetailsShowIcons.includes("transport")) && (
                     <>
@@ -515,6 +538,7 @@ CardItem.propTypes = {
   isShrunk: PropTypes.bool,
   hideExtraDetails: PropTypes.bool,
   isClassicLayout: PropTypes.bool,
+  isModernLayout: PropTypes.bool,
 };
 
 export default CardItem;

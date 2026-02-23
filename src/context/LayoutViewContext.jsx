@@ -3,7 +3,7 @@ import { createContext, useContext, useState, useCallback } from 'react';
 const LayoutViewContext = createContext(null);
 
 export function LayoutViewProvider({ children }) {
-  const [layoutView, setLayoutView] = useState('classic');
+  const [layoutView, setLayoutView] = useState('normal');
 
   const setLayoutViewValue = useCallback((value) => {
     setLayoutView(value);
@@ -18,5 +18,5 @@ export function LayoutViewProvider({ children }) {
 
 export function useLayoutView() {
   const ctx = useContext(LayoutViewContext);
-  return ctx || { layoutView: 'classic', setLayoutView: () => {} };
+  return ctx || { layoutView: 'normal', setLayoutView: () => {} };
 }

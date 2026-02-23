@@ -13,6 +13,7 @@ import "../../design/scss/common.scss";
 export default function KanbanBoard() {
   const { layoutView } = useLayoutView();
   const isClassicLayout = layoutView === 'classic';
+  const isModernLayout = layoutView === 'modern';
   const [workflows, setWorkflows] = useState(initialData);
   const [selectedCard, setSelectedCard] = useState(null);
   const [isAddMode, setIsAddMode] = useState(false);
@@ -489,10 +490,11 @@ export default function KanbanBoard() {
           columnHeight={maxHeight > 0 ? maxHeight : undefined}
           onHeightChange={handleColumnHeightChange}
           isClassicLayout={isClassicLayout}
+          isModernLayout={isModernLayout}
         />
       );
     });
-  }, [handleSelectCard, expandedColumns, handleColumnHeaderClick, handleColumnContextMenu, maxColumnHeights, handleColumnHeightChange, isClassicLayout]);
+  }, [handleSelectCard, expandedColumns, handleColumnHeaderClick, handleColumnContextMenu, maxColumnHeights, handleColumnHeightChange, isClassicLayout, isModernLayout]);
 
   // Show Workspaces view when Workspaces icon is clicked
   if (showWorkspaces) {
@@ -555,7 +557,14 @@ export default function KanbanBoard() {
           </div>
 
           {expandedWorkflows[workflow.id] && (
-            <div className={`kanban-container ${isClassicLayout ? 'kanban-classic-layout' : ''}`}>
+            <div
+              className={`kanban-container ${
+                isClassicLayout ? 'kanban-classic-layout' : ''
+              } ${isModernLayout ? 'kanban-modern-layout' : ''} ${
+                layoutView === 'normal' ? 'kanban-normal-layout' : ''
+              }`}
+              key={layoutView}
+            >
               <DragDropContext onDragEnd={createDragEndHandler(workflow.id)}>
                 <div className="kanban-board">
                   {renderWorkflowColumns(workflow)}

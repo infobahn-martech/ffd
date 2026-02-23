@@ -6,7 +6,7 @@ import "react-tooltip/dist/react-tooltip.css";
 import CardItem from "./CardItem";
 import "../../design/css/Column.css";
 
-function Column({ column, cards, setSelectedCard, isExpanded = false, isShrunk = false, onHeaderClick, onContextMenu, columnHeight, onHeightChange, isClassicLayout = false }) {
+function Column({ column, cards, setSelectedCard, isExpanded = false, isShrunk = false, onHeaderClick, onContextMenu, columnHeight, onHeightChange, isClassicLayout = false, isModernLayout = false }) {
   const columnRef = useRef(null);
   const columnColor = column.color || "#2A00FF";
 
@@ -80,12 +80,12 @@ function Column({ column, cards, setSelectedCard, isExpanded = false, isShrunk =
   return (
     <div
       ref={columnRef}
-      className={`column ${isExpanded ? 'column-expanded' : ''} ${isShrunk ? 'column-shrunk' : ''} ${isClassicLayout ? 'column-classic' : ''}`}
+      className={`column ${isExpanded ? 'column-expanded' : ''} ${isShrunk ? 'column-shrunk' : ''} ${isClassicLayout ? 'column-classic' : ''} ${isModernLayout ? 'column-modern' : ''}`}
       onContextMenu={handleContextMenu}
       style={columnHeight ? { minHeight: `${columnHeight}px` } : {}}
     >
       <div
-        className={`column-header ${isClassicLayout ? 'column-header-classic' : ''}`}
+        className={`column-header ${isClassicLayout ? 'column-header-classic' : ''} ${isModernLayout ? 'column-header-modern' : ''}`}
         style={{ "--column-color": columnColor }}
         onClick={onHeaderClick}
       >
@@ -131,6 +131,7 @@ function Column({ column, cards, setSelectedCard, isExpanded = false, isShrunk =
                 setSelectedCard={setSelectedCard}
                 isShrunk={isShrunk}
                 isClassicLayout={isClassicLayout}
+                isModernLayout={isModernLayout}
               />
             ))}
             {provided.placeholder}
@@ -157,6 +158,7 @@ Column.propTypes = {
   columnHeight: PropTypes.number,
   onHeightChange: PropTypes.func,
   isClassicLayout: PropTypes.bool,
+  isModernLayout: PropTypes.bool,
 };
 
 export default Column;
