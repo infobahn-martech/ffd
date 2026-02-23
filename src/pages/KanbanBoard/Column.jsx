@@ -113,7 +113,7 @@ function Column({ column, cards, setSelectedCard, isExpanded = false, isShrunk =
             </h2>
           )}
         </div>
-        {!isShrunk && <span className="column-count">{wipDisplay}</span>}
+        {!isShrunk && !isClassicLayout && <span className="column-count">{wipDisplay}</span>}
       </div>
 
       <Droppable droppableId={column.id}>
