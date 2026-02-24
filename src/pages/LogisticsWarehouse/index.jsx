@@ -1,38 +1,22 @@
-import { useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import CommonHeader from "../../components/CommonHeader";
 import CustomTable from "../../components/customTable";
 import { LogisticsWarehouseModal } from "./Modals/AddEditLogisticsWarehouse";
 import { RenderAction } from "./RenderCells";
 import DeleteConfirmationModal from "../../components/DeleteConfirmationModal";
 
-const dummyLogisticsWarehouses = [
-    {
-        _id: "1",
-        name: "Logistics Warehouse 1",
-        location: "Port A",
-        location_type: "warehouse",
-        createdAt: "2024-01-01",
-        updatedAt: "2024-01-01",
-    },
-    {
-        _id: "2",
-        name: "Logistics Warehouse 2",
-        location: "Port B",
-        location_type: "material_transport",
-        createdAt: "2024-01-02",
-        updatedAt: "2024-01-02",
-    },
-    {
-        _id: "3",
-        name: "Logistics Warehouse 3",
-        location: "Port C",
-        location_type: "warehouse",
-        createdAt: "2024-01-03",
-        updatedAt: "2024-01-03",
-    },
-];
+// ✅ change this import based on your actual store file
+import useLogisticsWarehouseReducer from "../../store/LogisticsWarehouseReducer";
 
 const LogisticsWarehouse = () => {
+    const {
+        getData,
+        logisticsWarehouseData,
+        isLoadingGet,
+        deleteData,
+        isLoadingDelete,
+    } = useLogisticsWarehouseReducer((state) => state);
+
     const [params, setParams] = useState({
         page: 1,
         searchTerm: "",
@@ -41,15 +25,53 @@ const LogisticsWarehouse = () => {
         sortOrder: 1,
     });
 
-    const [showLogisticsWarehouseModal, setShowLogisticsWarehouseModal] = useState(false);
+    const [showLogisticsWarehouseModal, setShowLogisticsWarehouseModal] =
+        useState(false);
     const [showDeleteModal, setShowDeleteModal] = useState(false);
+    const [selectedRow, setSelectedRow] = useState(null);
 
-    // Helper function to format location type
+    // ✅ Helper function to format location type
     const formatLocationType = (type) => {
         if (type === "material_transport") return "Material Transport";
         if (type === "warehouse") return "Warehouse";
-        return type;
+        return type || "-";
     };
+
+    // ✅ Fetch when params change
+    useEffect(() => {
+        getData({
+            page: params.page,
+            limit: params.limit,
+            search: params.searchTerm,
+            sortBy: params.sortBy,
+            sortOrder: params.sortOrder,
+        });
+    }, [
+        params.page,
+        params.limit,
+        params.searchTerm,
+        params.sortBy,
+        params.sortOrder,
+    ]);
+
+    // ✅ Normalize API response shape safely
+    const tableData = useMemo(() => {
+        if (!logisticsWarehouseData) return { rows: [], total: 0 };
+
+        const rows =
+            logisticsWarehouseData?.data ||
+            logisticsWarehouseData?.docs ||
+            logisticsWarehouseData?.results ||
+            [];
+
+        const total =
+            logisticsWarehouseData?.total ||
+            logisticsWarehouseData?.count ||
+            logisticsWarehouseData?.totalDocs ||
+            rows.length;
+
+        return { rows, total };
+    }, [logisticsWarehouseData]);
 
     const cols = [
         {
@@ -75,7 +97,7 @@ const LogisticsWarehouse = () => {
             width: "200",
             thclass: "tb-head",
             contentClass: "table-content",
-            cell: ({ row }) => formatLocationType(row.location_type),
+            cell: ({ row }) => formatLocationType(row?.location_type),
         },
         {
             name: "Created At",
@@ -99,16 +121,38 @@ const LogisticsWarehouse = () => {
             tableClasses: "table-striped",
             contentClass: "table-content",
             thclass: "tb-head",
+            width: "100",
             onEditClick: (row) => {
-                setShowLogisticsWarehouseModal(row);
+                setShowLogisticsWarehouseModal(row); // edit mode
             },
-            onDeleteClick: () => {
+            onDeleteClick: (row) => {
+                setSelectedRow(row);
                 setShowDeleteModal(true);
             },
             cell: RenderAction,
-            width: "100",
         },
     ];
+
+    const refreshList = () => {
+        getData({
+            page: params.page,
+            limit: params.limit,
+            search: params.searchTerm,
+            sortBy: params.sortBy,
+            sortOrder: params.sortOrder,
+        });
+    };
+
+    const handleDelete = async () => {
+        if (!selectedRow?._id) return;
+
+        await deleteData(selectedRow._id);
+
+        setShowDeleteModal(false);
+        setSelectedRow(null);
+
+        refreshList();
+    };
 
     return (
         <>
@@ -119,9 +163,7 @@ const LogisticsWarehouse = () => {
                             tableTitle="Logistics Warehouses"
                             isAddEnabled
                             addModalLabel="Add Logistics Warehouse"
-                            setSearch={(e) =>
-                                setParams({ ...params, searchTerm: e, page: 1 })
-                            }
+                            setSearch={(e) => setParams({ ...params, searchTerm: e, page: 1 })}
                             onAddModalClick={() => setShowLogisticsWarehouseModal(true)}
                             exportTitle="Export"
                             exportLoader={false}
@@ -130,16 +172,17 @@ const LogisticsWarehouse = () => {
 
                     <CustomTable
                         Sl
+                        isLoading={isLoadingGet}
                         pagination={{ currentPage: params.page, limit: params.limit }}
                         tableClasses="px-start"
-                        count={dummyLogisticsWarehouses.length}
+                        count={tableData.total}
                         columns={cols}
-                        data={dummyLogisticsWarehouses}
+                        data={tableData.rows}
                         onPageChange={(currentPage) =>
                             setParams({ ...params, page: currentPage })
                         }
                         setLimit={(newLimit) =>
-                            setParams({ ...params, limit: newLimit })
+                            setParams({ ...params, limit: newLimit, page: 1 })
                         }
                         onSorting={(sortBy) =>
                             setParams({
@@ -155,14 +198,22 @@ const LogisticsWarehouse = () => {
                         <LogisticsWarehouseModal
                             showModal={showLogisticsWarehouseModal}
                             closeModal={() => setShowLogisticsWarehouseModal(false)}
+                            onSuccess={() => {
+                                setShowLogisticsWarehouseModal(false);
+                                refreshList();
+                            }}
                         />
                     )}
 
                     {!!showDeleteModal && (
                         <DeleteConfirmationModal
                             show={showDeleteModal}
-                            onCancel={() => setShowDeleteModal(false)}
-                            onConfirm={() => { }}
+                            onCancel={() => {
+                                setShowDeleteModal(false);
+                                setSelectedRow(null);
+                            }}
+                            onConfirm={handleDelete}
+                            isLoading={isLoadingDelete}
                             deleteText="Are you sure you want to delete this logistics warehouse?"
                         />
                     )}
