@@ -34,9 +34,9 @@ export const RenderName = ({ row }) => {
     return (
         <>
             <span className="name-letter bg-ltr">
-                {getInitials(`${row?.name}`)}
+                {getInitials(`${row?.package_type || row?.name}`)}
             </span>
-            {row?.name}
+            {row?.package_type ?? row?.name}
         </>
     );
 };

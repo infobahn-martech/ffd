@@ -1,31 +1,54 @@
 import { useForm } from "react-hook-form";
 import CustomModal from "../../../components/CustomModal";
+import usePackingTypeReducer from "../../../store/PackingTypeReducer";
 import "../../../design/scss/prospect-modal.scss";
 import "../../../design/scss/modal-designs.scss";
 import "../../../design/scss/form-designs.scss";
 
-export function PackingTypeModal({ showModal, closeModal }) {
+export function PackingTypeModal({ showModal, closeModal, onSuccess }) {
+    const addPackingType = usePackingTypeReducer((s) => s.addPackingType);
+    const updatePackingType = usePackingTypeReducer((s) => s.updatePackingType);
+    const isBeingUpdated = usePackingTypeReducer((s) => s.isBeingUpdated);
+
+    const isEdit = !!showModal?.package_type_id;
+
     const {
         register,
         handleSubmit,
         formState: { errors }
     } = useForm({
-        defaultValues: showModal?._id
-            ? {
-                packingTypeName: showModal?.name
-            }
-            : {}
+        defaultValues: isEdit
+            ? { package_type: showModal?.package_type }
+            : { package_type: "" }
     });
 
-    const onSubmit = (data) => {
-        console.log("PACKING TYPE FORM SUBMITTED:", data);
-        closeModal();
+    const onSubmit = async (data) => {
+        if (isEdit) {
+            await updatePackingType({
+                formData: {
+                    package_type_id: showModal.package_type_id,
+                    package_type: data.package_type,
+                },
+                cb: () => {
+                    closeModal();
+                    onSuccess?.();
+                },
+            });
+        } else {
+            await addPackingType({
+                formData: { package_type: data.package_type },
+                cb: () => {
+                    closeModal();
+                    onSuccess?.();
+                },
+            });
+        }
     };
 
     const renderHeader = () => (
         <>
             <h1 className="modal-title">
-                {showModal?._id ? "Edit Packing Type" : "Add Packing Type"}
+                {isEdit ? "Edit Packing Type" : "Add Packing Type"}
             </h1>
         </>
     );
@@ -37,10 +60,9 @@ export function PackingTypeModal({ showModal, closeModal }) {
                     <div className="mb-lg-3 mb-sm-0">
                         <div className="form-floating desig-inp">
                             <input
-                                className={`form-control ${errors.packingTypeName ? "is-invalid" : ""
-                                    }`}
+                                className={`form-control ${errors.package_type ? "is-invalid" : ""}`}
                                 placeholder="Packing Type Name"
-                                {...register("packingTypeName", {
+                                {...register("package_type", {
                                     required: "Packing type name is required"
                                 })}
                             />
@@ -48,9 +70,9 @@ export function PackingTypeModal({ showModal, closeModal }) {
                                 Packing Type <span className="text-danger">*</span>
                             </label>
 
-                            {errors.packingTypeName && (
+                            {errors.package_type && (
                                 <span className="error text-danger">
-                                    {errors.packingTypeName.message}
+                                    {errors.package_type.message}
                                 </span>
                             )}
                         </div>
@@ -65,8 +87,13 @@ export function PackingTypeModal({ showModal, closeModal }) {
             <button type="button" className="btn btn-outline" onClick={closeModal}>
                 Close
             </button>
-            <button type="submit" form="packingTypeForm" className="btn btn-primary">
-                Save
+            <button
+                type="submit"
+                form="packingTypeForm"
+                className="btn btn-primary"
+                disabled={isBeingUpdated}
+            >
+                {isBeingUpdated ? "Saving..." : "Save"}
             </button>
         </div>
     );
