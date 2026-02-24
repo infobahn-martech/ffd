@@ -570,7 +570,6 @@ export function PermissionModal({
           type="submit"
           className="btn btn-primary"
           form="permissionForm"
-          disabled={isBeingUpdated || !roleText?.trim()}
         >
           {isBeingUpdated ? "Saving..." : "Save"}
         </button>
