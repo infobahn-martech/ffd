@@ -132,14 +132,13 @@ function SideNav({ isMobileMenuOpen, onCloseMobileMenu }) {
       icon: crewIcon, // Crew-specific icon
       hasPermission: true,
     },
-
-    {
-      menu: 'Custom Management',
-      isDefaultMenu: true,
-      to: '/custom-inspection',
-      icon: inspectionIcon, // Inspection-specific icon
-      hasPermission: true,
-    },
+    // {
+    //   menu: 'Custom Management',
+    //   isDefaultMenu: true,
+    //   to: '/custom-inspection',
+    //   icon: inspectionIcon, // Inspection-specific icon
+    //   hasPermission: true,
+    // },
     {
       menu: 'Launch Hire Management',
       isDefaultMenu: true,

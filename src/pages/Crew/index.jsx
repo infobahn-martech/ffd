@@ -1,220 +1,145 @@
-import { useState } from "react";
-import { RenderAction } from "./RenderCells";
+import { useEffect, useMemo, useState } from "react";
 import CommonHeader from "../../components/CommonHeader";
 import CustomTable from "../../components/customTable";
 import { ViewCrewModal } from "./Modals/ViewCrew";
 import "./Crew.scss";
 
-const initialCrews = [
-    {
-        _id: "1",
-        crewName: "John Smith",
-        nationality: "American",
-        rank: "Captain",
-        passport: "P123456",
-        visa: "V789012",
-        transport: "Airport Pickup",
-        cgPass: "CG001",
-        zawilPass: "ZW001",
-        hotel: "Grand Hotel",
-        medicalService: "Completed",
-    },
-    {
-        _id: "2",
-        crewName: "Ahmed Al-Rashid",
-        nationality: "Saudi",
-        rank: "Chief Engineer",
-        passport: "P234567",
-        visa: "V890123",
-        transport: "Taxi Service",
-        cgPass: "CG002",
-        zawilPass: "ZW002",
-        hotel: "Marina Hotel",
-        medicalService: "Pending",
-    },
-    {
-        _id: "3",
-        crewName: "Maria Garcia",
-        nationality: "Spanish",
-        rank: "First Officer",
-        passport: "P345678",
-        visa: "V901234",
-        transport: "Company Vehicle",
-        cgPass: "CG003",
-        zawilPass: "ZW003",
-        hotel: "Port View Hotel",
-        medicalService: "Completed",
-    },
-    {
-        _id: "4",
-        crewName: "David Chen",
-        nationality: "Chinese",
-        rank: "Second Engineer",
-        passport: "P456789",
-        visa: "V012345",
-        transport: "Airport Pickup",
-        cgPass: "CG004",
-        zawilPass: "ZW004",
-        hotel: "Harbor Inn",
-        medicalService: "In Progress",
-    },
-    {
-        _id: "5",
-        crewName: "James Wilson",
-        nationality: "British",
-        rank: "Chief Cook",
-        passport: "P567890",
-        visa: "V123456",
-        transport: "Taxi Service",
-        cgPass: "CG005",
-        zawilPass: "ZW005",
-        hotel: "Seaside Resort",
-        medicalService: "Completed",
-    },
-    {
-        _id: "6",
-        crewName: "Fatima Hassan",
-        nationality: "Egyptian",
-        rank: "Deck Officer",
-        passport: "P678901",
-        visa: "V234567",
-        transport: "Company Vehicle",
-        cgPass: "CG006",
-        zawilPass: "ZW006",
-        hotel: "Ocean Breeze Hotel",
-        medicalService: "Pending",
-    },
-    {
-        _id: "7",
-        crewName: "Roberto Silva",
-        nationality: "Brazilian",
-        rank: "Electrician",
-        passport: "P789012",
-        visa: "V345678",
-        transport: "Airport Pickup",
-        cgPass: "CG007",
-        zawilPass: "ZW007",
-        hotel: "Portside Hotel",
-        medicalService: "Completed",
-    },
-    {
-        _id: "8",
-        crewName: "Yuki Tanaka",
-        nationality: "Japanese",
-        rank: "Bosun",
-        passport: "P890123",
-        visa: "V456789",
-        transport: "Taxi Service",
-        cgPass: "CG008",
-        zawilPass: "ZW008",
-        hotel: "Maritime Hotel",
-        medicalService: "In Progress",
-    },
-];
+// ✅ Change this to your actual store
+import useCrewReducer from "../../store/CrewReducer";
 
 const Crew = () => {
-    const [crews, setCrews] = useState(initialCrews);
+    const { fetchAllCrews, crews, isLoadingGet } = useCrewReducer((state) => state);
+
     const [viewModal, setViewModal] = useState(null);
 
     const [params, setParams] = useState({
         page: 1,
-        total: 0,
         limit: 10,
-        searchTerm: '',
+        searchTerm: "",
         sortOrder: -1,
-        sortBy: 'crewName',
+        sortBy: "createdAt",
     });
 
+    // ✅ fetch crew list (dynamic)
+    useEffect(() => {
+        fetchAllCrews({
+            page: params.page,
+            limit: params.limit,
+            search: params.searchTerm,
+            sortBy: params.sortBy,
+            sortOrder: params.sortOrder,
+        });
+    }, [params.page, params.limit, params.searchTerm, params.sortBy, params.sortOrder]);
+
+    // ✅ normalize API response safely
+    const tableData = useMemo(() => {
+        if (!crews) return { rows: [], total: 0 };
+
+        const rows = crews?.data || crews?.docs || crews?.results || [];
+        const total = crews?.total || crews?.count || crews?.totalDocs || rows.length;
+
+        return { rows, total };
+    }, [crews]);
     const cols = [
         {
-            name: 'Crew Name',
-            selector: 'crewName',
-            tableClasses: 'table-striped',
-            contentClass: 'table-content',
+            name: "Crew Name",
+            selector: "crew_name",
+            tableClasses: "table-striped",
+            contentClass: "table-content",
             sort: true,
-            thclass: 'tb-head',
-            width: '200',
+            thclass: "tb-head",
+            width: "200",
         },
         {
-            name: 'Nationality',
-            selector: 'nationality',
-            tableClasses: 'table-striped',
+            name: "Vessel Name",
+            selector: "vessel_name",
+            tableClasses: "table-striped",
+            contentClass: "table-content",
             sort: true,
-            contentClass: 'table-content',
-            thclass: 'tb-head',
-            width: '150',
+            thclass: "tb-head",
+            width: "200",
         },
         {
-            name: 'Rank',
-            selector: 'rank',
-            tableClasses: 'table-striped',
+            name: "Billing Entity",
+            selector: "billing_entity",
+            tableClasses: "table-striped",
+            contentClass: "table-content",
             sort: true,
-            contentClass: 'table-content',
-            thclass: 'tb-head',
-            width: '150',
+            thclass: "tb-head",
+            width: "200",
         },
         {
-            name: 'Passport',
-            selector: 'passport',
-            tableClasses: 'table-striped',
+            name: "Nationality",
+            selector: "country",
+            tableClasses: "table-striped",
             sort: true,
-            contentClass: 'table-content',
-            thclass: 'tb-head',
-            width: '120',
+            contentClass: "table-content",
+            thclass: "tb-head",
+            width: "150",
         },
         {
-            name: 'Visa',
-            selector: 'visa',
-            tableClasses: 'table-striped',
+            name: "Rank",
+            selector: "rank",
+            tableClasses: "table-striped",
             sort: true,
-            contentClass: 'table-content',
-            thclass: 'tb-head',
-            width: '120',
+            contentClass: "table-content",
+            thclass: "tb-head",
+            width: "150",
         },
         {
-            name: 'Transport',
-            selector: 'transport',
-            tableClasses: 'table-striped',
+            name: "Passport",
+            selector: "passport_no",
+            tableClasses: "table-striped",
             sort: true,
-            contentClass: 'table-content',
-            thclass: 'tb-head',
-            width: '150',
+            contentClass: "table-content",
+            thclass: "tb-head",
+            width: "120",
+        },
+
+        {
+            name: "Passport Expiry",
+            selector: "passport_expiry",
+            tableClasses: "table-striped",
+            sort: true,
+            contentClass: "table-content",
+            thclass: "tb-head",
+            width: "120",
         },
         {
-            name: 'CG Pass',
-            selector: 'cgPass',
-            tableClasses: 'table-striped',
+            name: "Visa",
+            selector: "visa_no",
+            tableClasses: "table-striped",
             sort: true,
-            contentClass: 'table-content',
-            thclass: 'tb-head',
-            width: '120',
+            contentClass: "table-content",
+            thclass: "tb-head",
+            width: "120",
         },
         {
-            name: 'Zawil Pass',
-            selector: 'zawilPass',
-            tableClasses: 'table-striped',
+            name: "Visa Expiry",
+            selector: "visa_expiry",
+            tableClasses: "table-striped",
             sort: true,
-            contentClass: 'table-content',
-            thclass: 'tb-head',
-            width: '120',
+            contentClass: "table-content",
+            thclass: "tb-head",
+            width: "120",
         },
         {
-            name: 'Hotel',
-            selector: 'hotel',
-            tableClasses: 'table-striped',
+            name: "IQAMA",
+            selector: "iqama_no",
+            tableClasses: "table-striped",
             sort: true,
-            contentClass: 'table-content',
-            thclass: 'tb-head',
-            width: '150',
+            contentClass: "table-content",
+            thclass: "tb-head",
+            width: "120",
         },
         {
-            name: 'Medical',
-            selector: 'medicalService',
-            tableClasses: 'table-striped',
+            name: "IQAMA Expiry",
+            selector: "iqama_expiry",
+            tableClasses: "table-striped",
             sort: true,
-            contentClass: 'table-content',
-            thclass: 'tb-head',
-            width: '150',
+            contentClass: "table-content",
+            thclass: "tb-head",
+            width: "120",
         },
     ];
 
@@ -240,37 +165,36 @@ const Crew = () => {
                     </div>
 
                     <CustomTable
-                        pagination={{ currentPage: params?.page, limit: params?.limit }}
+                        isLoading={isLoadingGet}
+                        pagination={{ currentPage: params.page, limit: params.limit }}
                         tableClasses="px-start"
-                        count={crews.length}
+                        count={tableData.total}
                         columns={cols}
-                        data={crews ?? []}
+                        data={tableData.rows}
                         onPageChange={(currentPage) =>
                             setParams({ ...params, page: currentPage })
                         }
-                        setLimit={(newlimit) => setParams({ ...params, limit: newlimit })}
-                        onSorting={(sortBy) => {
+                        setLimit={(newLimit) =>
+                            setParams({ ...params, limit: newLimit, page: 1 })
+                        }
+                        onSorting={(sortBy) =>
                             setParams({
                                 ...params,
                                 sortBy,
-                                sortOrder: params?.sortOrder === -1 ? 1 : -1,
+                                sortOrder: params.sortOrder === -1 ? 1 : -1,
                                 page: 1,
-                            });
-                        }}
+                            })
+                        }
                         onView={handleViewClick}
                     />
                 </div>
             </div>
 
             {!!viewModal && (
-                <ViewCrewModal
-                    showModal={viewModal}
-                    closeModal={() => setViewModal(null)}
-                />
+                <ViewCrewModal showModal={viewModal} closeModal={() => setViewModal(null)} />
             )}
         </>
     );
 };
 
 export default Crew;
-
