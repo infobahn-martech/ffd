@@ -10,8 +10,9 @@ import useLogisticsWarehouseReducer from "../../store/LogisticsWarehouseReducer"
 
 const LogisticsWarehouse = () => {
     const {
-        getData,
-        logisticsWarehouseData,
+        getLogisticsWarehouses,
+        logisticsWarehouses,
+        totalCount,
         isLoadingGet,
         deleteData,
         isLoadingDelete,
@@ -39,7 +40,7 @@ const LogisticsWarehouse = () => {
 
     // ✅ Fetch when params change
     useEffect(() => {
-        getData({
+        getLogisticsWarehouses({
             page: params.page,
             limit: params.limit,
             search: params.searchTerm,
@@ -54,34 +55,13 @@ const LogisticsWarehouse = () => {
         params.sortOrder,
     ]);
 
-    // ✅ Normalize API response shape safely
+    // ✅ Normalize API response shape (location_id, location_type, location)
     const tableData = useMemo(() => {
-        if (!logisticsWarehouseData) return { rows: [], total: 0 };
-
-        const rows =
-            logisticsWarehouseData?.data ||
-            logisticsWarehouseData?.docs ||
-            logisticsWarehouseData?.results ||
-            [];
-
-        const total =
-            logisticsWarehouseData?.total ||
-            logisticsWarehouseData?.count ||
-            logisticsWarehouseData?.totalDocs ||
-            rows.length;
-
-        return { rows, total };
-    }, [logisticsWarehouseData]);
+        const rows = Array.isArray(logisticsWarehouses) ? logisticsWarehouses : [];
+        return { rows, total: totalCount || rows.length };
+    }, [logisticsWarehouses, totalCount]);
 
     const cols = [
-        {
-            name: "Name",
-            selector: "name",
-            sort: true,
-            width: "200",
-            thclass: "tb-head",
-            contentClass: "table-content",
-        },
         {
             name: "Location",
             selector: "location",
@@ -98,22 +78,6 @@ const LogisticsWarehouse = () => {
             thclass: "tb-head",
             contentClass: "table-content",
             cell: ({ row }) => formatLocationType(row?.location_type),
-        },
-        {
-            name: "Created At",
-            selector: "createdAt",
-            sort: true,
-            width: "200",
-            thclass: "tb-head",
-            contentClass: "table-content",
-        },
-        {
-            name: "Updated At",
-            selector: "updatedAt",
-            sort: true,
-            width: "200",
-            thclass: "tb-head",
-            contentClass: "table-content",
         },
         {
             name: "Actions",
@@ -134,7 +98,7 @@ const LogisticsWarehouse = () => {
     ];
 
     const refreshList = () => {
-        getData({
+        getLogisticsWarehouses({
             page: params.page,
             limit: params.limit,
             search: params.searchTerm,
@@ -144,9 +108,9 @@ const LogisticsWarehouse = () => {
     };
 
     const handleDelete = async () => {
-        if (!selectedRow?._id) return;
+        if (!selectedRow?.location_id) return;
 
-        await deleteData(selectedRow._id);
+        await deleteData(selectedRow.location_id);
 
         setShowDeleteModal(false);
         setSelectedRow(null);

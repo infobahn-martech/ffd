@@ -1,5 +1,6 @@
 import { useForm } from "react-hook-form";
 import CustomModal from "../../../components/CustomModal";
+import useLogisticsWarehouseReducer from "../../../store/LogisticsWarehouseReducer";
 import "../../../design/scss/prospect-modal.scss";
 import "../../../design/scss/modal-designs.scss";
 import "../../../design/scss/form-designs.scss";
@@ -9,13 +10,19 @@ const LOCATION_TYPE_OPTIONS = [
     { value: "warehouse", label: "Warehouse" },
 ];
 
-export function LogisticsWarehouseModal({ showModal, closeModal }) {
+export function LogisticsWarehouseModal({ showModal, closeModal, onSuccess }) {
+    const addLogisticsWarehouse = useLogisticsWarehouseReducer((s) => s.addLogisticsWarehouse);
+    const updateLogisticsWarehouse = useLogisticsWarehouseReducer((s) => s.updateLogisticsWarehouse);
+    const isBeingUpdated = useLogisticsWarehouseReducer((s) => s.isBeingUpdated);
+
+    const isEdit = !!showModal?.location_id;
+
     const {
         register,
         handleSubmit,
         formState: { errors }
     } = useForm({
-        defaultValues: showModal?._id
+        defaultValues: isEdit
             ? {
                 location: showModal?.location || "",
                 location_type: showModal?.location_type || "",
@@ -26,15 +33,37 @@ export function LogisticsWarehouseModal({ showModal, closeModal }) {
             }
     });
 
-    const onSubmit = (data) => {
-        console.log("LOGISTICS WAREHOUSE FORM SUBMITTED:", data);
-        closeModal();
+    const onSubmit = async (data) => {
+        if (isEdit) {
+            await updateLogisticsWarehouse({
+                formData: {
+                    location_id: showModal.location_id,
+                    location: data.location,
+                    location_type: data.location_type,
+                },
+                cb: () => {
+                    closeModal();
+                    onSuccess?.();
+                },
+            });
+        } else {
+            await addLogisticsWarehouse({
+                formData: {
+                    location: data.location,
+                    location_type: data.location_type,
+                },
+                cb: () => {
+                    closeModal();
+                    onSuccess?.();
+                },
+            });
+        }
     };
 
     const renderHeader = () => (
         <>
             <h1 className="modal-title">
-                {showModal?._id ? "Edit Logistics Warehouse" : "Add Logistics Warehouse"}
+                {isEdit ? "Edit Logistics Warehouse" : "Add Logistics Warehouse"}
             </h1>
         </>
     );
@@ -103,8 +132,13 @@ export function LogisticsWarehouseModal({ showModal, closeModal }) {
             <button type="button" className="btn btn-outline" onClick={closeModal}>
                 Close
             </button>
-            <button type="submit" form="logisticsWarehouseForm" className="btn btn-primary">
-                Save
+            <button
+                type="submit"
+                form="logisticsWarehouseForm"
+                className="btn btn-primary"
+                disabled={isBeingUpdated}
+            >
+                {isBeingUpdated ? "Saving..." : "Save"}
             </button>
         </div>
     );

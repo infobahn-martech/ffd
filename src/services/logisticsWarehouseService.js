@@ -1,8 +1,9 @@
 import Gateway from '../gateway/gateway';
 
-const addLogisticsWarehouse = (data) => Gateway.post('/logistics/add_logistics_warehouse', data);
-const getLogisticsWarehouses = ({ params }) => Gateway.get('/logistics/get_all_logistics_warehouse', { params });
-const updateLogisticsWarehouse = (data) => Gateway.post(`/logistics/update_logistics_warehouse`, data);
-const deleteLogisticsWarehouse = (id) => Gateway.delete(`/logistics/delete_logistics_warehouse/${id}`);
+const addLocation = (data) => Gateway.post('/material/add_location', data);
+const getLocations = (params) => Gateway.get('/material/get_all_location', { params });
+const updateLocation = (data) => Gateway.post('/material/update_location', data);
+// Add delete endpoint when API is available: material/delete_location
+const deleteLocation = (id) => Gateway.delete(`/material/delete_location/${id}`);
 
-export default { addLogisticsWarehouse, getLogisticsWarehouses, updateLogisticsWarehouse, deleteLogisticsWarehouse };
+export default { addLocation, getLocations, updateLocation, deleteLocation };
