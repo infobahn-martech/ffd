@@ -111,15 +111,15 @@ const usePermissionReducer = create((set) => ({
       error(err?.response?.data?.message ?? err.message);
     }
   },
-  fetchRolePermission: async ({ role_id }) => {
+  fetchRolePermission: async (data) => {
     try {
       set({ isLoadingRolePermission: true });
-      const { data } = await permissionService.getRolePermission(role_id);
+      const { data } = await permissionService.getRolePermission(data);
       set({
-        rolePermissionData: data?.data || null,
+        rolePermissionData: data || null,
         isLoadingRolePermission: false,
       });
-      return data?.data || null;
+      return data || null;
     } catch (err) {
       const { error } = useAlertReducer.getState();
       set({

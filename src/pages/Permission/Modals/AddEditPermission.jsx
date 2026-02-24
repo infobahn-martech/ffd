@@ -126,7 +126,7 @@ export function PermissionModal({
           if (roleId) {
             fetchRolePermission({ role_id: roleId }).then((data) => {
               if (!data) return;
-              if (data?.description !== undefined)
+              if (data.description)
                 setRoleDescription(data.description ?? "");
               if (data?.permissions?.length) {
                 const ids = new Set(
