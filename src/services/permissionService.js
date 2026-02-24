@@ -2,7 +2,8 @@ import Gateway from '../gateway/gateway';
 
 const fetchPermission = ({ params }) => Gateway.get('/permissions/get_all_roles', { params });
 const getPermissions = () => Gateway.get('/permissions');
-const getRolePermission = (data) => Gateway.post(`/permissions/get_role_permission`, data);
+const getRolePermission = ({ role_id }) =>
+  Gateway.post(`/permissions/get_role_permission/${role_id}`, { role_id });
 const assignRolePermission = (data) =>
   Gateway.post('/permissions/assign_role_permission', data);
 const updateRolePermission = (data) =>
