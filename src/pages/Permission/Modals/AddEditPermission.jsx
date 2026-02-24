@@ -2,7 +2,6 @@ import { useEffect, useMemo, useState } from "react";
 import CustomModal from "../../../components/CustomModal";
 import icon from "../../../assets/images/icon-chevToggle.svg";
 import usePermissionReducer from "../../../store/PermissionReducer";
-import useRoleReducer from "../../../store/RoleReducer";
 import useAlertReducer from "../../../store/AlertReducer";
 import "../../../design/scss/add-permissions.scss";
 
@@ -83,25 +82,31 @@ export function PermissionModal({
   closeModal,
   userPermissions,
   selectedUser,
+  onSuccess,
 }) {
   const isUserPermissionMode =
     !!userPermissions && Array.isArray(userPermissions);
+
+  const isEditMode =
+    showModal &&
+    typeof showModal === "object" &&
+    !Array.isArray(showModal) &&
+    !isUserPermissionMode;
+  const editData = isEditMode ? showModal : null;
 
   const {
     permissionsList,
     isLoadingPermissions: isLoadingPermissionsList,
     fetchPermissionsList,
+    fetchRolePermission,
     assignRolePermission,
+    updateRolePermission,
     isBeingUpdated,
   } = usePermissionReducer();
 
-  const { roles, fetchRoles, isLoading: isLoadingRoles } = useRoleReducer();
   const { error: showError } = useAlertReducer();
 
-  const [selectedRoleId, setSelectedRoleId] = useState("");
   const [selectedPermissions, setSelectedPermissions] = useState(new Set());
-
-  // NEW: Role text + Description
   const [roleText, setRoleText] = useState("");
   const [roleDescription, setRoleDescription] = useState("");
 
@@ -113,16 +118,46 @@ export function PermissionModal({
     if (showModal) {
       fetchPermissionsList();
       if (!isUserPermissionMode) {
-        fetchRoles({ params: { page: 1, limit: 100 } });
-        setSelectedRoleId("");
-        setSelectedPermissions(new Set());
-
-        // NEW resets
-        setRoleText("");
-        setRoleDescription("");
+        if (isEditMode && editData) {
+          const roleId = editData.role_id ?? editData._id ?? editData.id;
+          setRoleText(editData.role ?? "");
+          setRoleDescription(editData.description ?? "");
+          setSelectedPermissions(new Set());
+          if (roleId) {
+            fetchRolePermission({ role_id: roleId }).then((data) => {
+              if (!data) return;
+              if (data?.description !== undefined)
+                setRoleDescription(data.description ?? "");
+              if (data?.permissions?.length) {
+                const ids = new Set(
+                  data.permissions.map((p) => p.permission_id ?? p.id ?? p)
+                );
+                setSelectedPermissions(ids);
+              } else if (Array.isArray(data?.permission_id)) {
+                setSelectedPermissions(new Set(data.permission_id));
+              } else if (Array.isArray(data)) {
+                const allowed = data
+                  .filter((p) => p.is_allowed === "1" || p.is_allowed === 1)
+                  .map((p) => p.permission_id ?? p.id ?? p);
+                setSelectedPermissions(new Set(allowed));
+              }
+            });
+          }
+        } else {
+          setRoleText("");
+          setRoleDescription("");
+          setSelectedPermissions(new Set());
+        }
       }
     }
-  }, [showModal, isUserPermissionMode, fetchPermissionsList, fetchRoles]);
+  }, [
+    showModal,
+    isUserPermissionMode,
+    isEditMode,
+    editData,
+    fetchPermissionsList,
+    fetchRolePermission,
+  ]);
 
   // When opened from User page: pre-fill from getUserPermissions (is_allowed === '1'), or reset when none/error
   useEffect(() => {
@@ -134,18 +169,11 @@ export function PermissionModal({
             .map((p) => p.permission_id)
         );
         setSelectedPermissions(allowed);
-
         const first = userPermissions[0];
-        if (first?.role_id) setSelectedRoleId(String(first.role_id));
-
-        // NEW: prefill role text (read-only in user mode)
         if (first?.role) setRoleText(String(first.role));
         else if (selectedUser?.role) setRoleText(String(selectedUser.role));
       } else {
         setSelectedPermissions(new Set());
-        setSelectedRoleId("");
-
-        // NEW resets
         setRoleText("");
         setRoleDescription("");
       }
@@ -172,9 +200,9 @@ export function PermissionModal({
     e.preventDefault();
     if (isUserPermissionMode) return;
 
-    // For typed role field, ensure it matched existing role (selectedRoleId set)
-    if (!selectedRoleId) {
-      showError("Please select a valid role");
+    const role = roleText?.trim();
+    if (!role) {
+      showError("Please enter a role");
       return;
     }
 
@@ -184,19 +212,32 @@ export function PermissionModal({
     }
 
     const permissionIdArray = Array.from(selectedPermissions);
+    const cb = () => {
+      onSuccess?.();
+      closeModal?.(null);
+    };
 
-    await assignRolePermission({
-      role_id: selectedRoleId,
-      permission_id: permissionIdArray,
-
-      // If your API supports description, keep this.
-      // If not supported, you can remove it.
-      description: roleDescription,
-
-      cb: () => {
-        closeModal?.(null);
-      },
-    });
+    if (isEditMode && editData) {
+      const roleId = editData.role_id ?? editData._id ?? editData.id;
+      if (!roleId) {
+        showError("Invalid role for update");
+        return;
+      }
+      await updateRolePermission({
+        role_id: roleId,
+        role,
+        description: roleDescription?.trim() ?? "",
+        permission_id: permissionIdArray,
+        cb,
+      });
+    } else {
+      await assignRolePermission({
+        role,
+        description: roleDescription?.trim() ?? "",
+        permission_id: permissionIdArray,
+        cb,
+      });
+    }
   };
 
   // Check if a permission is selected
@@ -465,29 +506,9 @@ export function PermissionModal({
                       : roleText
                   }
                   readOnly={isUserPermissionMode && selectedUser}
-                  list={!isUserPermissionMode ? "rolesList" : undefined}
-                  onChange={(e) => {
-                    const val = e.target.value;
-                    setRoleText(val);
-
-                    // Match typed role with roles list -> set roleId (required for Save)
-                    const matched = roles?.find(
-                      (r) =>
-                        (r.name || "").toLowerCase() ===
-                        val.trim().toLowerCase()
-                    );
-                    setSelectedRoleId(matched?._id ? String(matched._id) : "");
-                  }}
+                  onChange={(e) => setRoleText(e.target.value)}
                 />
                 <label htmlFor="floatingRole">Role *</label>
-
-                {!isUserPermissionMode && (
-                  <datalist id="rolesList">
-                    {roles?.map((role) => (
-                      <option key={role._id} value={role.name} />
-                    ))}
-                  </datalist>
-                )}
               </div>
             </div>
 
@@ -549,7 +570,7 @@ export function PermissionModal({
           type="submit"
           className="btn btn-primary"
           form="permissionForm"
-          disabled={isBeingUpdated || !selectedRoleId}
+          disabled={isBeingUpdated || !roleText?.trim()}
         >
           {isBeingUpdated ? "Saving..." : "Save"}
         </button>
@@ -568,9 +589,10 @@ export function PermissionModal({
       header={
         <h1 className="modal-title fs-5">
           {isUserPermissionMode && selectedUser
-            ? `User Permissions - ${selectedUser.firstName ?? selectedUser.name ?? "User"
-            }`
-            : "Add Designation and Permission"}
+            ? `User Permissions - ${selectedUser.firstName ?? selectedUser.name ?? "User"}`
+            : isEditMode
+              ? "Edit Designation and Permission"
+              : "Add Designation and Permission"}
         </h1>
       }
     />

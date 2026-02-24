@@ -13,23 +13,6 @@ const usePermissionReducer = create((set) => ({
   isLoadingPermissions: false,
   rolePermissionData: null,
   isLoadingRolePermission: false,
-  addPermission: async ({ formData, cb }) => {
-    try {
-      set({ isBeingUpdated: true });
-      const { data } = await permissionService.addPermission(formData);
-      set({ successMessage: data.message, isBeingUpdated: false });
-      const { success } = useAlertReducer.getState();
-      success(data && data.message);
-      cb && cb();
-    } catch (err) {
-      const { error } = useAlertReducer.getState();
-      set({
-        errorMessage: 'Something went wrong with adding a permission',
-        isBeingUpdated: false,
-      });
-      error(err?.response?.data?.message ?? err.message);
-    }
-  },
   fetchPermission: async ({ params }) => {
     try {
       set({ isLoading: true });
@@ -43,18 +26,52 @@ const usePermissionReducer = create((set) => ({
       set({ errorMessage: error.message, isLoading: false });
     }
   },
-  updatePermission: async ({ id, formData, cb }) => {
+  assignRolePermission: async ({ role, description, permission_id, cb }) => {
     try {
       set({ isBeingUpdated: true });
-      const { data } = await permissionService.updatePermission(id, formData);
+      const { data } = await permissionService.assignRolePermission({
+        role,
+        description,
+        permission_id,
+      });
       set({ successMessage: data.message, isBeingUpdated: false });
       const { success } = useAlertReducer.getState();
       success(data && data.message);
       cb && cb();
+      return data;
     } catch (err) {
       const { error } = useAlertReducer.getState();
       set({
-        errorMessage: 'Something went wrong editing the permission',
+        errorMessage: 'Something went wrong assigning role permissions',
+        isBeingUpdated: false,
+      });
+      error(err?.response?.data?.message ?? err.message);
+    }
+  },
+  updateRolePermission: async ({
+    role_id,
+    role,
+    description,
+    permission_id,
+    cb,
+  }) => {
+    try {
+      set({ isBeingUpdated: true });
+      const { data } = await permissionService.updateRolePermission({
+        role_id,
+        role,
+        description,
+        permission_id,
+      });
+      set({ successMessage: data.message, isBeingUpdated: false });
+      const { success } = useAlertReducer.getState();
+      success(data && data.message);
+      cb && cb();
+      return data;
+    } catch (err) {
+      const { error } = useAlertReducer.getState();
+      set({
+        errorMessage: 'Something went wrong updating role permissions',
         isBeingUpdated: false,
       });
       error(err?.response?.data?.message ?? err.message);
@@ -90,26 +107,6 @@ const usePermissionReducer = create((set) => ({
       set({
         errorMessage: 'Something went wrong fetching permissions',
         isLoadingPermissions: false,
-      });
-      error(err?.response?.data?.message ?? err.message);
-    }
-  },
-  assignRolePermission: async ({ role_id, permission_id, cb }) => {
-    try {
-      set({ isBeingUpdated: true });
-      const { data } = await permissionService.assignRolePermission({
-        role_id,
-        permission_id,
-      });
-      set({ successMessage: data.message, isBeingUpdated: false });
-      const { success } = useAlertReducer.getState();
-      success(data && data.message);
-      cb && cb();
-    } catch (err) {
-      const { error } = useAlertReducer.getState();
-      set({
-        errorMessage: 'Something went wrong assigning role permissions',
-        isBeingUpdated: false,
       });
       error(err?.response?.data?.message ?? err.message);
     }

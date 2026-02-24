@@ -114,6 +114,7 @@ const Permission = () => {
           <PermissionModal
             showModal={showPermissionModal}
             closeModal={() => setShowPermissionModal(false)}
+            onSuccess={() => fetchPermission({ params })}
           />
         )}
 
