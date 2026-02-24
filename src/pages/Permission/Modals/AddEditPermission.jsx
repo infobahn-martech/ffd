@@ -124,7 +124,7 @@ export function PermissionModal({
           setRoleDescription(editData.description ?? "");
           setSelectedPermissions(new Set());
           if (roleId) {
-            fetchRolePermission({ role_id: roleId }).then((data) => {
+            fetchRolePermission({ role_id: roleId }).then(({ data }) => {
               if (!data) return;
               if (data.description)
                 setRoleDescription(data.description ?? "");
