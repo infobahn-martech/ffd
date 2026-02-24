@@ -109,6 +109,7 @@ export function PermissionModal({
   const [selectedPermissions, setSelectedPermissions] = useState(new Set());
   const [roleText, setRoleText] = useState("");
   const [roleDescription, setRoleDescription] = useState("");
+  const [roleError, setRoleError] = useState("");
 
   // When opened from User page: list comes from full permissionsList; loading = list loading
   const isLoadingPermissions = isLoadingPermissionsList;
@@ -116,6 +117,7 @@ export function PermissionModal({
   // Fetch full permissions list when modal opens (both Permission page and User page)
   useEffect(() => {
     if (showModal) {
+      setRoleError("");
       fetchPermissionsList();
       if (!isUserPermissionMode) {
         if (isEditMode && editData) {
@@ -147,6 +149,7 @@ export function PermissionModal({
           setRoleText("");
           setRoleDescription("");
           setSelectedPermissions(new Set());
+          setRoleError("");
         }
       }
     }
@@ -202,9 +205,10 @@ export function PermissionModal({
 
     const role = roleText?.trim();
     if (!role) {
-      showError("Please enter a role");
+      setRoleError("Role name is required");
       return;
     }
+    setRoleError("");
 
     if (selectedPermissions.size === 0) {
       showError("Please select at least one permission");
@@ -497,7 +501,7 @@ export function PermissionModal({
               <div className="form-floating desig-inp">
                 <input
                   type="text"
-                  className="form-control"
+                  className={`form-control${roleError ? " is-invalid" : ""}`}
                   id="floatingRole"
                   placeholder="Role"
                   value={
@@ -506,9 +510,15 @@ export function PermissionModal({
                       : roleText
                   }
                   readOnly={isUserPermissionMode && selectedUser}
-                  onChange={(e) => setRoleText(e.target.value)}
+                  onChange={(e) => {
+                    setRoleText(e.target.value);
+                    if (roleError) setRoleError("");
+                  }}
                 />
                 <label htmlFor="floatingRole">Role *</label>
+                {roleError && (
+                  <span className="error text-danger">{roleError}</span>
+                )}
               </div>
             </div>
 

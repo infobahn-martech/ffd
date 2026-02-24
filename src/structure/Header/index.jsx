@@ -335,51 +335,55 @@ function Header({ onMenuToggle, mobileMenuOpen: externalMobileMenuOpen }) {
           onClick={() => navigate('/workspaces')}
           style={{ cursor: 'pointer' }}
         />
+
         {pathname === '/kanban-board' && (
-        <div className="top-links">
-          <div className="layout-view-toggle">
-            {/* <span className="layout-view-label">Layout View:</span> */}
-            <div className="layout-view-switch">
-              <button
-                type="button"
-                className={`layout-view-option ${layoutView === 'classic' ? 'active' : ''}`}
-                onClick={() => setLayoutView('classic')}
-                aria-pressed={layoutView === 'classic'}
-              >
-                <FiMenu className="layout-view-icon" aria-hidden />
-                Classic
-              </button>
-              <button
-                type="button"
-                className={`layout-view-option ${layoutView === 'modern' ? 'active' : ''}`}
-                onClick={() => setLayoutView('modern')}
-                aria-pressed={layoutView === 'modern'}
-              >
-                <FiGrid className="layout-view-icon" aria-hidden />
-                Modern
-              </button>
-              <button
-                type="button"
-                className={`layout-view-option ${layoutView === 'normal' ? 'active' : ''}`}
-                onClick={() => setLayoutView('normal')}
-                aria-pressed={layoutView === 'normal'}
-              >
-                <FiSquare className="layout-view-icon" aria-hidden />
-                Normal
-              </button>
-              <button
-                type="button"
-                className={`layout-view-option ${layoutView === 'dark' ? 'active' : ''}`}
-                onClick={() => setLayoutView('dark')}
-                aria-pressed={layoutView === 'dark'}
-              >
-                <FiMoon className="layout-view-icon" aria-hidden />
-                Dark
-              </button>
-            </div>
-          </div>
-        </div>
+          <></>
+          // <div className="top-links">
+          //   <div className="layout-view-toggle">
+          //     {/* <span className="layout-view-label">Layout View:</span> */}
+          //     <div className="layout-view-switch">
+          //       <button
+          //         type="button"
+          //         className={`layout-view-option ${layoutView === 'classic' ? 'active' : ''}`}
+          //         onClick={() => setLayoutView('classic')}
+          //         aria-pressed={layoutView === 'classic'}
+          //       >
+          //         <FiMenu className="layout-view-icon" aria-hidden />
+          //         Classic
+          //       </button>
+          //       <button
+          //         type="button"
+          //         className={`layout-view-option ${layoutView === 'modern' ? 'active' : ''}`}
+          //         onClick={() => setLayoutView('modern')}
+          //         aria-pressed={layoutView === 'modern'}
+          //       >
+          //         <FiGrid className="layout-view-icon" aria-hidden />
+          //         Modern
+          //       </button>
+          //       <button
+          //         type="button"
+          //         className={`layout-view-option ${layoutView === 'normal' ? 'active' : ''}`}
+          //         onClick={() => setLayoutView('normal')}
+          //         aria-pressed={layoutView === 'normal'}
+          //       >
+          //         <FiSquare className="layout-view-icon" aria-hidden />
+          //         Normal
+          //       </button>
+          //       <button
+          //         type="button"
+          //         className={`layout-view-option ${layoutView === 'dark' ? 'active' : ''}`}
+          //         onClick={() => setLayoutView('dark')}
+          //         aria-pressed={layoutView === 'dark'}
+          //       >
+          //         <FiMoon className="layout-view-icon" aria-hidden />
+          //         Dark
+          //       </button>
+          //     </div>
+          //   </div>
+          // </div>
         )}
+
+
       </div>
 
       {/* RIGHT — User + Icons */}
