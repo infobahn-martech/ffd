@@ -9,7 +9,7 @@ import "../../../design/scss/modal-designs.scss";
 import "../../../design/scss/form-designs.scss";
 
 export function DriverVehicleMappingModal({ showModal, closeModal, onSuccess }) {
-    const isEdit = !!(showModal?._id || showModal?.driver_vehicle_id);
+    const isEdit = !!(showModal?.driver_vehicle_id || showModal?.driver_vehicle_id);
     const driverVehicleId = showModal?.driver_vehicle_id ?? showModal?._id;
 
     const { addDriverVehicleMapping, updateDriverVehicleMapping, isBeingUpdated } = useDriverVehicleMappingReducer((state) => state);
@@ -32,10 +32,10 @@ export function DriverVehicleMappingModal({ showModal, closeModal, onSuccess }) 
     }, [showModal]);
 
     useEffect(() => {
-        if (showModal && typeof showModal === "object") {
+        if (showModal?.driver_vehicle_id) {
             reset({
                 transport_driver_id: showModal?.transport_driver_id ?? showModal?.driver_id ?? "",
-                vehicle_type_id: showModal?.vehicle_type_id ?? showModal?.vehicle_id ?? "",
+                vehicle_type_id: showModal?.vehicle_type_id ?? "",
                 plate_no: showModal?.plate_no ?? "",
             });
         } else if (showModal) {
@@ -67,7 +67,7 @@ export function DriverVehicleMappingModal({ showModal, closeModal, onSuccess }) 
     const renderHeader = () => (
         <>
             <h1 className="modal-title">
-                {showModal?._id ? "Edit Driver Vehicle Mapping" : "Add Driver Vehicle Mapping"}
+                {showModal?.driver_vehicle_id ? "Edit Driver Vehicle Mapping" : "Add Driver Vehicle Mapping"}
             </h1>
         </>
     );
