@@ -6,6 +6,7 @@ import CustomTable from "../../components/customTable";
 import { DriverVehicleMappingModal } from "./Modals/AddEditDriverVehicleMapping";
 import { RenderAction } from "./RenderCells";
 import DeleteConfirmationModal from "../../components/DeleteConfirmationModal";
+import { DateFormat } from "../ActivityLog/RenderCells";
 
 // ✅ CHANGE THIS IMPORT PATH based on your project structure
 import useDriverVehicleMappingReducer from "../../store/DriverVehicleReducer";
@@ -83,7 +84,7 @@ const DriverVehicleMapping = () => {
         },
         {
             name: "Driver No",
-            selector: "driver_no",
+            selector: "plate_no",
             width: "160",
             thclass: "tb-head",
             contentClass: "table-content",
@@ -91,40 +92,20 @@ const DriverVehicleMapping = () => {
         },
         {
             name: "Vehicle",
-            selector: "vehicle_name",
+            selector: "vehicle_type",
             width: "220",
             thclass: "tb-head",
             contentClass: "table-content",
             sort: true,
         },
         {
-            name: "Location",
-            selector: "location",
-            width: "180",
+            name: "Created At",
+            selector: "created_date",
+            width: "220",
             thclass: "tb-head",
             contentClass: "table-content",
             sort: true,
-        },
-        {
-            name: "Status",
-            selector: "status",
-            width: "150",
-            thclass: "tb-head",
-            contentClass: "table-content",
-            sort: true,
-            cell: ({ row }) => (
-                <span
-                    className={
-                        row.status === "Active"
-                            ? "status-active"
-                            : row.status === "Inactive"
-                                ? "status-inactive"
-                                : "status-pending"
-                    }
-                >
-                    {row.status}
-                </span>
-            ),
+            cell: (row) => DateFormat({ row, selector: "created_date" }),
         },
         {
             name: "Actions",
