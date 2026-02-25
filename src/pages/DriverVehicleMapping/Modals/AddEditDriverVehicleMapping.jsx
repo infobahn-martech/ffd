@@ -1,34 +1,67 @@
 import { useForm } from "react-hook-form";
+import { useEffect } from "react";
 import CustomModal from "../../../components/CustomModal";
+import useDriverVehicleMappingReducer from "../../../store/DriverVehicleReducer";
+import useDriverReducer from "../../../store/DriverReducer";
+import useVehicleReducer from "../../../store/VehicleReducer";
 import "../../../design/scss/prospect-modal.scss";
 import "../../../design/scss/modal-designs.scss";
 import "../../../design/scss/form-designs.scss";
 
-export function DriverVehicleMappingModal({ showModal, closeModal }) {
+export function DriverVehicleMappingModal({ showModal, closeModal, onSuccess }) {
+    const isEdit = !!(showModal?._id || showModal?.driver_vehicle_id);
+    const driverVehicleId = showModal?.driver_vehicle_id ?? showModal?._id;
 
-    // You can pass drivers & vehicles via props later if needed
-    const drivers = [
-        { id: 1, name: "Driver 1" },
-        { id: 2, name: "Driver 2" },
-    ];
+    const { addDriverVehicleMapping, updateDriverVehicleMapping, isBeingUpdated } = useDriverVehicleMappingReducer((state) => state);
+    const { drivers = [], fetchAllDrivers } = useDriverReducer((state) => state);
+    const { vehicles = [], getVehicles } = useVehicleReducer((state) => state);
 
-    const vehicles = [
-        { id: 1, name: "Bus 14 Seater" },
-        { id: 2, name: "Van 7 Seater" },
-    ];
-
-    const { register, handleSubmit, formState: { errors } } = useForm({
-        defaultValues: showModal?._id
-            ? {
-                driver_id: showModal?.driver_id || "",
-                vehicle_id: showModal?.vehicle_id || "",
-            }
-            : {},
+    const { register, handleSubmit, formState: { errors }, reset } = useForm({
+        defaultValues: {
+            transport_driver_id: "",
+            vehicle_type_id: "",
+            plate_no: "",
+        },
     });
 
-    const onSubmit = (data) => {
-        console.log("DRIVER VEHICLE MAPPING FORM SUBMITTED:", data);
-        closeModal();
+    useEffect(() => {
+        if (showModal) {
+            fetchAllDrivers?.({ params: {} });
+            getVehicles?.({ params: {} });
+        }
+    }, [showModal]);
+
+    useEffect(() => {
+        if (showModal && typeof showModal === "object") {
+            reset({
+                transport_driver_id: showModal?.transport_driver_id ?? showModal?.driver_id ?? "",
+                vehicle_type_id: showModal?.vehicle_type_id ?? showModal?.vehicle_id ?? "",
+                plate_no: showModal?.plate_no ?? "",
+            });
+        } else if (showModal) {
+            reset({
+                transport_driver_id: "",
+                vehicle_type_id: "",
+                plate_no: "",
+            });
+        }
+    }, [showModal, reset]);
+
+    const onSubmit = async (data) => {
+        const payload = {
+            transport_driver_id: data.transport_driver_id,
+            vehicle_type_id: data.vehicle_type_id,
+            plate_no: data.plate_no?.trim() ?? "",
+        };
+        const cb = () => {
+            closeModal();
+            onSuccess?.();
+        };
+        if (isEdit) {
+            await updateDriverVehicleMapping({ formData: { driver_vehicle_id: driverVehicleId, ...payload }, cb });
+        } else {
+            await addDriverVehicleMapping({ formData: payload, cb });
+        }
     };
 
     const renderHeader = () => (
@@ -48,19 +81,21 @@ export function DriverVehicleMappingModal({ showModal, closeModal }) {
                     <div className="mb-lg-3 mb-sm-0">
                         <div className="form-floating desig-inp">
                             <select
-                                className={`form-control ${errors.driver_id ? "is-invalid" : ""}`}
-                                {...register("driver_id", { required: "Driver is required" })}
+                                className={`form-control ${errors.transport_driver_id ? "is-invalid" : ""}`}
+                                {...register("transport_driver_id", { required: "Driver is required" })}
                             >
                                 <option value="">Select Driver</option>
-                                {drivers.map((d) => (
-                                    <option key={d.id} value={d.id}>{d.name}</option>
+                                {(drivers || []).map((d) => (
+                                    <option key={d.driver_id ?? d.transport_driver_id ?? d._id} value={d.driver_id ?? d.transport_driver_id ?? d._id}>
+                                        {d.driver_name ?? d.name ?? `Driver ${d.driver_id ?? d._id}`}
+                                    </option>
                                 ))}
                             </select>
                             <label>
                                 Driver <span className="text-danger">*</span>
                             </label>
-                            {errors.driver_id && (
-                                <span className="error text-danger">{errors.driver_id.message}</span>
+                            {errors.transport_driver_id && (
+                                <span className="error text-danger">{errors.transport_driver_id.message}</span>
                             )}
                         </div>
                     </div>
@@ -69,19 +104,39 @@ export function DriverVehicleMappingModal({ showModal, closeModal }) {
                     <div className="mb-lg-3 mb-sm-0">
                         <div className="form-floating desig-inp">
                             <select
-                                className={`form-control ${errors.vehicle_id ? "is-invalid" : ""}`}
-                                {...register("vehicle_id", { required: "Vehicle is required" })}
+                                className={`form-control ${errors.vehicle_type_id ? "is-invalid" : ""}`}
+                                {...register("vehicle_type_id", { required: "Vehicle is required" })}
                             >
                                 <option value="">Select Vehicle</option>
-                                {vehicles.map((v) => (
-                                    <option key={v.id} value={v.id}>{v.name}</option>
+                                {(vehicles || []).map((v) => (
+                                    <option key={v.vehicle_type_id ?? v._id} value={v.vehicle_type_id ?? v._id}>
+                                        {v.vehicle_type ?? v.name ?? `Vehicle ${v.vehicle_type_id ?? v._id}`}
+                                    </option>
                                 ))}
                             </select>
                             <label>
                                 Vehicle <span className="text-danger">*</span>
                             </label>
-                            {errors.vehicle_id && (
-                                <span className="error text-danger">{errors.vehicle_id.message}</span>
+                            {errors.vehicle_type_id && (
+                                <span className="error text-danger">{errors.vehicle_type_id.message}</span>
+                            )}
+                        </div>
+                    </div>
+
+                    {/* PLATE NO */}
+                    <div className="mb-lg-3 mb-sm-0">
+                        <div className="form-floating desig-inp">
+                            <input
+                                type="text"
+                                className={`form-control ${errors.plate_no ? "is-invalid" : ""}`}
+                                placeholder=" "
+                                {...register("plate_no", { required: "Plate number is required" })}
+                            />
+                            <label>
+                                Plate No <span className="text-danger">*</span>
+                            </label>
+                            {errors.plate_no && (
+                                <span className="error text-danger">{errors.plate_no.message}</span>
                             )}
                         </div>
                     </div>
@@ -96,8 +151,8 @@ export function DriverVehicleMappingModal({ showModal, closeModal }) {
             <button type="button" className="btn btn-outline" onClick={closeModal}>
                 Close
             </button>
-            <button type="submit" form="driverVehicleMappingForm" className="btn btn-primary">
-                Save
+            <button type="submit" form="driverVehicleMappingForm" className="btn btn-primary" disabled={isBeingUpdated}>
+                {isBeingUpdated ? "Saving..." : "Save"}
             </button>
         </div>
     );
