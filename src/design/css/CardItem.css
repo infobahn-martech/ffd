@@ -257,11 +257,19 @@
   font-weight: 400;
 }
 
+/* Separator between time/progress and footer-1 icons row (car, hotel, etc.) */
+.card-eta-footer-separator {
+  height: 0;
+  margin: 8px 0 0;
+  border: none;
+  border-top: 1px solid #d1d5db;
+}
+
 /* Extra Details Section */
 .card-extra-details {
-  margin-top: 6px;
-  padding-top: 6px;
-  border-top: 1px solid #eee;
+  margin-top: 0;
+  padding-top: 8px;
+  border-top: none;
 }
 
 .card-detail-item {

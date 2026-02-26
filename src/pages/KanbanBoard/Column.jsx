@@ -132,6 +132,7 @@ function Column({ column, cards, setSelectedCard, isExpanded = false, isShrunk =
                 isShrunk={isShrunk}
                 isClassicLayout={isClassicLayout}
                 isModernLayout={isModernLayout}
+                columnTitle={column.title}
               />
             ))}
             {provided.placeholder}

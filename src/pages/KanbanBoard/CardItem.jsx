@@ -146,7 +146,7 @@ const StatusIcon = ({ status = "pending", IconComponent, size = 20 }) => {
   return <IconComponent size={size} color={color} />;
 };
 
-function CardItem({ card, index, setSelectedCard, isShrunk = false, hideExtraDetails = false, isClassicLayout = false, isModernLayout = false, isDarkMode = false }) {
+function CardItem({ card, index, setSelectedCard, isShrunk = false, hideExtraDetails = false, isClassicLayout = false, isModernLayout = false, isDarkMode = false, columnTitle = "" }) {
   const cardColor = card.color || "#2A00FF";
 
   // Helper function to truncate text
@@ -305,30 +305,13 @@ function CardItem({ card, index, setSelectedCard, isShrunk = false, hideExtraDet
                 )}
               </div>
 
-              {/* Footer-1: status icons (priority, subtasks, deadline, watchers, link) – hidden in Modern for fewer icons */}
+              {/* Footer-1: deadline, link; ETA only in Enroute column – hidden in Modern */}
               {!isModernLayout && (
                 <div className="card-footer footer-1" style={{ display: "flex", gap: "10px", alignItems: "center", justifyContent: "flex-start", flexWrap: "wrap" }}>
-                  {card.footerShowIcons?.includes("priority") && (
-                    <span className="footer-1-item" title="Priority" style={{ display: "flex", alignItems: "center" }}>
-                      <PriorityTriangleIcon size={16} color="#666" />
-                    </span>
-                  )}
-                  {card.footerShowIcons?.includes("subtasks") && (
-                    <span className="footer-1-item" title="Sub-tasks" style={{ display: "flex", alignItems: "center", gap: "4px" }}>
-                      <SubtasksIcon size={16} color="#666" />
-                      <span>{card.footerSubtasks ?? 1}</span>
-                    </span>
-                  )}
                   {card.footerShowIcons?.includes("deadline") && (
                     <span className="footer-1-item" title="Deadline" style={{ display: "flex", alignItems: "center", gap: "4px" }}>
                       <ClockIcon size={16} color="#666" />
                       <span>{card.footerDeadline ?? "21d"}</span>
-                    </span>
-                  )}
-                  {card.footerShowIcons?.includes("watchers") && (
-                    <span className="footer-1-item" title="Watchers" style={{ display: "flex", alignItems: "center", gap: "4px" }}>
-                      <EyeIcon size={16} color="#666" />
-                      <span>{card.footerWatchers ?? 1}</span>
                     </span>
                   )}
                   {card.footerShowIcons?.includes("link") && (
@@ -337,14 +320,16 @@ function CardItem({ card, index, setSelectedCard, isShrunk = false, hideExtraDet
                       <span>{card.footerLinkCount ?? 0}</span>
                     </span>
                   )}
-                  <span className="footer-1-item" title="ETA" style={{ display: "flex", alignItems: "center", gap: "4px" }}>
-                    <EtaIcon size={16} color="#666" />
-                    <span>{card.footerEta ?? getRandomEta(card.id)}</span>
-                  </span>
+                  {(columnTitle || "").toLowerCase() === "enroute" && (
+                    <span className="footer-1-item" title="ETA" style={{ display: "flex", alignItems: "center", gap: "4px" }}>
+                      <EtaIcon size={16} color="#666" />
+                      <span>{card.footerEta ?? getRandomEta(card.id)}</span>
+                    </span>
+                  )}
                 </div>
               )}
 
-              {/* Footer */}
+              {/* Footer: time left + progress */}
               <div className={`card-footer ${isModernLayout ? "card-footer-modern" : ""}`}>
                 <span className="card-time-left">{card?.timeLeft}</span>
                 {isModernLayout ? (
@@ -381,6 +366,9 @@ function CardItem({ card, index, setSelectedCard, isShrunk = false, hideExtraDet
                   </div>
                 )}
               </div>
+
+              {/* Separator between ETA/footer area and card-footer footer-1 (icons row) */}
+              {!hideExtraDetails && !isModernLayout && <div className="card-eta-footer-separator" aria-hidden="true" />}
 
               {/* Extra Details Section - Icons with status colors; replaced by 3-dot menu in Modern */}
               {!hideExtraDetails && !isModernLayout && (
@@ -561,6 +549,7 @@ CardItem.propTypes = {
   isClassicLayout: PropTypes.bool,
   isModernLayout: PropTypes.bool,
   isDarkMode: PropTypes.bool,
+  columnTitle: PropTypes.string,
 };
 
 export default CardItem;
