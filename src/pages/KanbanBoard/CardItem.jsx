@@ -305,29 +305,41 @@ function CardItem({ card, index, setSelectedCard, isShrunk = false, hideExtraDet
                 )}
               </div>
 
-              {/* Footer-1: deadline, link; ETA only in Enroute column – hidden in Modern */}
-              {!isModernLayout && (
-                <div className="card-footer footer-1" style={{ display: "flex", gap: "10px", alignItems: "center", justifyContent: "flex-start", flexWrap: "wrap" }}>
-                  {card.footerShowIcons?.includes("deadline") && (
-                    <span className="footer-1-item" title="Deadline" style={{ display: "flex", alignItems: "center", gap: "4px" }}>
-                      <ClockIcon size={16} color="#666" />
-                      <span>{card.footerDeadline ?? "21d"}</span>
-                    </span>
-                  )}
-                  {card.footerShowIcons?.includes("link") && (
-                    <span className="footer-1-item" title="Link card" style={{ display: "flex", alignItems: "center", gap: "4px" }}>
-                      <LinkCardIcon size={16} color="#666" />
-                      <span>{card.footerLinkCount ?? 0}</span>
-                    </span>
-                  )}
-                  {(columnTitle || "").toLowerCase() === "enroute" && (
-                    <span className="footer-1-item" title="ETA" style={{ display: "flex", alignItems: "center", gap: "4px" }}>
-                      <EtaIcon size={16} color="#666" />
-                      <span>{card.footerEta ?? getRandomEta(card.id)}</span>
-                    </span>
-                  )}
-                </div>
-              )}
+              {/* Footer-1: deadline, link; ETA only in Enroute column – hidden in Modern; at least one icon always shown */}
+              {!isModernLayout && (() => {
+                const hasDeadline = card.footerShowIcons?.includes("deadline");
+                const hasLink = card.footerShowIcons?.includes("link");
+                const isEnroute = (columnTitle || "").toLowerCase() === "enroute";
+                const hasAny = hasDeadline || hasLink || isEnroute;
+                return (
+                  <div className="card-footer footer-1" style={{ display: "flex", gap: "10px", alignItems: "center", justifyContent: "flex-start", flexWrap: "wrap" }}>
+                    {hasDeadline && (
+                      <span className="footer-1-item" title="Deadline" style={{ display: "flex", alignItems: "center", gap: "4px" }}>
+                        <ClockIcon size={16} color="#666" />
+                        <span>{card.footerDeadline ?? "21d"}</span>
+                      </span>
+                    )}
+                    {hasLink && (
+                      <span className="footer-1-item" title="Link card" style={{ display: "flex", alignItems: "center", gap: "4px" }}>
+                        <LinkCardIcon size={16} color="#666" />
+                        <span>{card.footerLinkCount ?? 0}</span>
+                      </span>
+                    )}
+                    {isEnroute && (
+                      <span className="footer-1-item" title="ETA" style={{ display: "flex", alignItems: "center", gap: "4px" }}>
+                        <EtaIcon size={16} color="#666" />
+                        <span>{card.footerEta ?? getRandomEta(card.id)}</span>
+                      </span>
+                    )}
+                    {!hasAny && (
+                      <span className="footer-1-item" title="Schedule" style={{ display: "flex", alignItems: "center", gap: "4px" }}>
+                        <ClockIcon size={16} color="#666" />
+                        <span>—</span>
+                      </span>
+                    )}
+                  </div>
+                );
+              })()}
 
               {/* Footer: time left + progress */}
               <div className={`card-footer ${isModernLayout ? "card-footer-modern" : ""}`}>
