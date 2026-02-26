@@ -995,7 +995,7 @@
 // Special styling for larger board cards (like SUPER MARKET MAIN BOARD)
 .workspace-boards {
   .board-card:nth-child(7) {
-    grid-column: span 2;
+    // grid-column: span 2;
 
     @media ($sm-991) {
       grid-column: span 1;

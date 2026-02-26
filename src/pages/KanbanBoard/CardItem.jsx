@@ -97,6 +97,13 @@ const LinkCardIcon = ({ size = 16, color = "#666" }) => (
   </svg>
 );
 
+const EtaIcon = ({ size = 16, color = "#666" }) => (
+  <svg width={size} height={size} viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" style={{ color }}>
+    <rect x="3" y="4" width="18" height="18" rx="2" stroke="currentColor" strokeWidth="2" fill="none" />
+    <path d="M16 2V6M8 2V6M3 10H21" stroke="currentColor" strokeWidth="2" strokeLinecap="round" fill="none" />
+  </svg>
+);
+
 // Company logo mapping by name (case-insensitive)
 const companyLogoMap = {
   "gulf marine": gulfmarineLogo,
@@ -106,6 +113,16 @@ const companyLogoMap = {
   "snamprogetti": saipemLogo, // Using Saipem logo as Snamprogetti is a subsidiary of Saipem
   "saipem": saipemLogo,
   "lamprell": lamprellLogo,
+};
+
+// Deterministic "random" ETA from card id (stable per card)
+const getRandomEta = (cardId) => {
+  if (!cardId) return "5d 12h";
+  let h = 0;
+  for (let i = 0; i < cardId.length; i++) h = (h << 5) - h + cardId.charCodeAt(i) | 0;
+  const d = Math.abs(h % 21) + 1;
+  const hrs = Math.abs((h >> 8) % 24);
+  return `${d}d ${hrs}h`;
 };
 
 // Function to get company icon based on card name
@@ -265,10 +282,9 @@ function CardItem({ card, index, setSelectedCard, isShrunk = false, hideExtraDet
                       )}
                       {(card.priorityLevel || card.priority) && (
                         <span
-                          className={`card-mini-tag card-mini-tag-priority ${
-                            String(card.priorityLevel || (card.priority ? 'H' : 'M')).toLowerCase() === 'l' ? 'low' :
+                          className={`card-mini-tag card-mini-tag-priority ${String(card.priorityLevel || (card.priority ? 'H' : 'M')).toLowerCase() === 'l' ? 'low' :
                             String(card.priorityLevel || '').toLowerCase() === 'm' ? 'medium' : ''
-                          }`}
+                            }`}
                           title="Priority"
                         >
                           {card.priorityLevel || (card.priority ? 'H' : 'M')}
@@ -291,37 +307,41 @@ function CardItem({ card, index, setSelectedCard, isShrunk = false, hideExtraDet
 
               {/* Footer-1: status icons (priority, subtasks, deadline, watchers, link) – hidden in Modern for fewer icons */}
               {!isModernLayout && (
-              <div className="card-footer footer-1" style={{ display: "flex", gap: "10px", alignItems: "center", justifyContent: "flex-start", flexWrap: "wrap" }}>
-                {card.footerShowIcons?.includes("priority") && (
-                  <span className="footer-1-item" title="Priority" style={{ display: "flex", alignItems: "center" }}>
-                    <PriorityTriangleIcon size={16} color="#666" />
+                <div className="card-footer footer-1" style={{ display: "flex", gap: "10px", alignItems: "center", justifyContent: "flex-start", flexWrap: "wrap" }}>
+                  {card.footerShowIcons?.includes("priority") && (
+                    <span className="footer-1-item" title="Priority" style={{ display: "flex", alignItems: "center" }}>
+                      <PriorityTriangleIcon size={16} color="#666" />
+                    </span>
+                  )}
+                  {card.footerShowIcons?.includes("subtasks") && (
+                    <span className="footer-1-item" title="Sub-tasks" style={{ display: "flex", alignItems: "center", gap: "4px" }}>
+                      <SubtasksIcon size={16} color="#666" />
+                      <span>{card.footerSubtasks ?? 1}</span>
+                    </span>
+                  )}
+                  {card.footerShowIcons?.includes("deadline") && (
+                    <span className="footer-1-item" title="Deadline" style={{ display: "flex", alignItems: "center", gap: "4px" }}>
+                      <ClockIcon size={16} color="#666" />
+                      <span>{card.footerDeadline ?? "21d"}</span>
+                    </span>
+                  )}
+                  {card.footerShowIcons?.includes("watchers") && (
+                    <span className="footer-1-item" title="Watchers" style={{ display: "flex", alignItems: "center", gap: "4px" }}>
+                      <EyeIcon size={16} color="#666" />
+                      <span>{card.footerWatchers ?? 1}</span>
+                    </span>
+                  )}
+                  {card.footerShowIcons?.includes("link") && (
+                    <span className="footer-1-item" title="Link card" style={{ display: "flex", alignItems: "center", gap: "4px" }}>
+                      <LinkCardIcon size={16} color="#666" />
+                      <span>{card.footerLinkCount ?? 0}</span>
+                    </span>
+                  )}
+                  <span className="footer-1-item" title="ETA" style={{ display: "flex", alignItems: "center", gap: "4px" }}>
+                    <EtaIcon size={16} color="#666" />
+                    <span>{card.footerEta ?? getRandomEta(card.id)}</span>
                   </span>
-                )}
-                {card.footerShowIcons?.includes("subtasks") && (
-                  <span className="footer-1-item" title="Sub-tasks" style={{ display: "flex", alignItems: "center", gap: "4px" }}>
-                    <SubtasksIcon size={16} color="#666" />
-                    <span>{card.footerSubtasks ?? 1}</span>
-                  </span>
-                )}
-                {card.footerShowIcons?.includes("deadline") && (
-                  <span className="footer-1-item" title="Deadline" style={{ display: "flex", alignItems: "center", gap: "4px" }}>
-                    <ClockIcon size={16} color="#666" />
-                    <span>{card.footerDeadline ?? "21d"}</span>
-                  </span>
-                )}
-                {card.footerShowIcons?.includes("watchers") && (
-                  <span className="footer-1-item" title="Watchers" style={{ display: "flex", alignItems: "center", gap: "4px" }}>
-                    <EyeIcon size={16} color="#666" />
-                    <span>{card.footerWatchers ?? 1}</span>
-                  </span>
-                )}
-                {card.footerShowIcons?.includes("link") && (
-                  <span className="footer-1-item" title="Link card" style={{ display: "flex", alignItems: "center", gap: "4px" }}>
-                    <LinkCardIcon size={16} color="#666" />
-                    <span>{card.footerLinkCount ?? 0}</span>
-                  </span>
-                )}
-              </div>
+                </div>
               )}
 
               {/* Footer */}
@@ -531,6 +551,7 @@ CardItem.propTypes = {
     footerDeadline: PropTypes.string,
     footerWatchers: PropTypes.number,
     footerLinkCount: PropTypes.number,
+    footerEta: PropTypes.string,
     extraDetailsShowIcons: PropTypes.arrayOf(PropTypes.string),
   }).isRequired,
   index: PropTypes.number.isRequired,
