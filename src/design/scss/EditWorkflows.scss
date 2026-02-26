@@ -648,11 +648,12 @@ div[role="tooltip"][id^="workflow-info-"] {
   }
 }
 
-// Color picker in stage-box-actions
+// Color picker in stage-box-actions (z-index above add-column buttons)
 .stage-action-color-picker-wrapper {
   position: relative;
   display: flex;
   align-items: center;
+  z-index: 100;
 }
 
 // Color picker dropdown (scoped to edit-workflows to avoid conflicts)
@@ -664,7 +665,7 @@ div[role="tooltip"][id^="workflow-info-"] {
   border-radius: 12px;
   box-shadow: 0 4px 16px rgba(0, 0, 0, 0.15);
   padding: 12px;
-  z-index: 10000;
+  z-index: 10001;
   min-width: 200px;
 }
 

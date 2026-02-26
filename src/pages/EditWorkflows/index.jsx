@@ -568,10 +568,7 @@ function EditWorkflows() {
                                                                                     <div key={stage.id} className="workflow-stage-wrapper">
                                                                                         <div
                                                                                             className="workflow-stage-box"
-                                                                                            style={{
-                                                                                                position: 'relative',
-                                                                                                backgroundColor: stage.color || '#ffffff',
-                                                                                            }}
+                                                                                            style={{ position: 'relative' }}
                                                                                             onMouseEnter={() => setHoveredColumn(stageColumnKey)}
                                                                                             onMouseLeave={() => setHoveredColumn(null)}
                                                                                         >
