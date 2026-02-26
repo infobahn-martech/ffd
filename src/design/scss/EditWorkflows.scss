@@ -537,6 +537,11 @@ div[role="tooltip"][id^="workflow-info-"] {
   flex: 1;
   min-width: 150px;
   gap: 8px;
+  position: relative;
+
+  &.workflow-stage-wrapper-color-picker-open {
+    z-index: 1000;
+  }
 }
 
 .workflow-stage-box {

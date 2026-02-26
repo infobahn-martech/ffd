@@ -564,8 +564,13 @@ function EditWorkflows() {
                                                                                 const isLastRow = rowArrayIndex === rowsArray.length - 1;
                                                                                 const isLastStageInLastRow = isLastRow && stageIndex === stages.length - 1;
 
+                                                                                const isColorPickerOpen = openColorPickerForStage === stageColumnKey;
+
                                                                                 return (
-                                                                                    <div key={stage.id} className="workflow-stage-wrapper">
+                                                                                    <div
+                                                                                        key={stage.id}
+                                                                                        className={`workflow-stage-wrapper${isColorPickerOpen ? ' workflow-stage-wrapper-color-picker-open' : ''}`}
+                                                                                    >
                                                                                         <div
                                                                                             className="workflow-stage-box"
                                                                                             style={{ position: 'relative' }}
