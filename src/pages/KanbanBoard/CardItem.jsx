@@ -370,29 +370,28 @@ function CardItem({ card, index, setSelectedCard, isShrunk = false, hideExtraDet
               {/* Separator between ETA/footer area and card-footer footer-1 (icons row) */}
               {!hideExtraDetails && !isModernLayout && <div className="card-eta-footer-separator" aria-hidden="true" />}
 
-              {/* Extra Details Section - Icons with status colors; replaced by 3-dot menu in Modern */}
+              {/* Extra Details Section - Icons with status colors; at least one icon (Transport) always shown */}
               {!hideExtraDetails && !isModernLayout && (
                 <div className="card-extra-details" style={{ display: "flex", gap: "12px", alignItems: "center", justifyContent: "flex-start", padding: "8px 0" }}>
-                  {(!card.extraDetailsShowIcons || card.extraDetailsShowIcons.includes("transport")) && (
-                    <>
-                      <div
-                        data-tooltip-id={`transport-${card.id}`}
-                        data-tooltip-content="Transport"
-                        style={{
-                          display: "flex",
-                          alignItems: "center",
-                          justifyContent: "center",
-                          cursor: "pointer",
-                        }}
-                      >
-                        <CarIcon
-                          size={18}
-                          color={card.transport === "done" ? STATUS_COLORS.done : STATUS_COLORS.rejected}
-                        />
-                      </div>
-                      <Tooltip id={`transport-${card.id}`} place="top" />
-                    </>
-                  )}
+                  {/* Transport icon always shown so every card has at least one icon */}
+                  <>
+                    <div
+                      data-tooltip-id={`transport-${card.id}`}
+                      data-tooltip-content="Transport"
+                      style={{
+                        display: "flex",
+                        alignItems: "center",
+                        justifyContent: "center",
+                        cursor: "pointer",
+                      }}
+                    >
+                      <CarIcon
+                        size={18}
+                        color={card.transport === "done" ? STATUS_COLORS.done : STATUS_COLORS.rejected}
+                      />
+                    </div>
+                    <Tooltip id={`transport-${card.id}`} place="top" />
+                  </>
 
                   {card.extraDetailsShowIcons?.includes("hotel") && (
                     <>
