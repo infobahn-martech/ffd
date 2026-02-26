@@ -518,7 +518,16 @@ export default function AdminBoard() {
       }
     }
 
+    const IMPORT_EXPORT_RT_ACCENT_COLUMNS = ["Cleared", "Inward Completed", "MWP Issued"];
+    const isImportExportRt = workflow.id === "import-export-rt";
+
     return columnsToRender.map((item, index) => {
+      const accentStyle = { backgroundColor: "rgb(65, 105, 225)" };
+      const columnStyle = isImportExportRt && IMPORT_EXPORT_RT_ACCENT_COLUMNS.includes(item.column.title)
+        ? accentStyle
+        : undefined;
+      const cardListStyle = columnStyle;
+
       if (item.type === 'nested') {
         const isExpanded = expandedColumnId === item.column.id;
         const isShrunk = expandedColumnId !== null && expandedColumnId !== item.column.id;
@@ -537,6 +546,8 @@ export default function AdminBoard() {
             subColumns={item.subColumns}
             subColumnCards={item.subColumnCards}
             subColumnHeights={item.subColumnHeights}
+            columnStyle={columnStyle}
+            cardListStyle={cardListStyle}
           />
         );
       } else {
@@ -554,6 +565,8 @@ export default function AdminBoard() {
             onContextMenu={handleColumnContextMenu}
             columnHeight={maxHeight > 0 ? maxHeight : undefined}
             onHeightChange={handleColumnHeightChange}
+            columnStyle={columnStyle}
+            cardListStyle={cardListStyle}
           />
         );
       }

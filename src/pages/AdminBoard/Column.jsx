@@ -114,7 +114,7 @@ function NestedColumn({ column, cards, setSelectedCard, isShrunk = false, column
 }
 
 // Main Column Component (handles both regular and nested columns)
-function Column({ column, cards, setSelectedCard, isExpanded = false, isShrunk = false, onHeaderClick, onContextMenu, columnHeight, onHeightChange, subColumns, subColumnCards, subColumnHeights }) {
+function Column({ column, cards, setSelectedCard, isExpanded = false, isShrunk = false, onHeaderClick, onContextMenu, columnHeight, onHeightChange, subColumns, subColumnCards, subColumnHeights, columnStyle, cardListStyle }) {
   const columnRef = useRef(null);
   const columnColor = column.color || "#2A00FF";
   const isNestedColumn = column.isNested || (subColumns && subColumns.length > 0);
@@ -202,7 +202,7 @@ function Column({ column, cards, setSelectedCard, isExpanded = false, isShrunk =
         ref={columnRef}
         className={`column nested-column-parent ${isExpanded ? 'column-expanded' : ''} ${isShrunk ? 'column-shrunk' : ''}`}
         onContextMenu={handleContextMenu}
-        style={columnHeight ? { minHeight: `${columnHeight}px` } : {}}
+        style={{ ...columnStyle, ...(columnHeight ? { minHeight: `${columnHeight}px` } : {}) }}
       >
         <div
           className="column-header nested-column-parent-header"
@@ -242,7 +242,7 @@ function Column({ column, cards, setSelectedCard, isExpanded = false, isShrunk =
       ref={columnRef}
       className={`column ${isExpanded ? 'column-expanded' : ''} ${isShrunk ? 'column-shrunk' : ''}`}
       onContextMenu={handleContextMenu}
-      style={columnHeight ? { minHeight: `${columnHeight}px` } : {}}
+      style={{ ...columnStyle, ...(columnHeight ? { minHeight: `${columnHeight}px` } : {}) }}
     >
       <div
         className="column-header"
@@ -274,6 +274,7 @@ function Column({ column, cards, setSelectedCard, isExpanded = false, isShrunk =
             className={`card-list ${snapshot.isDraggingOver ? "drag-over" : ""}`}
             ref={provided.innerRef}
             {...provided.droppableProps}
+            style={cardListStyle}
           >
             {cards.map((card, index) => (
               <CardItem
@@ -311,6 +312,8 @@ Column.propTypes = {
   subColumns: PropTypes.array,
   subColumnCards: PropTypes.object,
   subColumnHeights: PropTypes.object,
+  columnStyle: PropTypes.object,
+  cardListStyle: PropTypes.object,
 };
 
 NestedColumn.propTypes = {
