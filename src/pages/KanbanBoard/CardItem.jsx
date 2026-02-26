@@ -305,8 +305,8 @@ function CardItem({ card, index, setSelectedCard, isShrunk = false, hideExtraDet
                 )}
               </div>
 
-              {/* Footer-1: deadline, link; ETA only in Enroute column – hidden in Modern; at least one icon always shown */}
-              {!isModernLayout && (() => {
+              {/* Footer-1: deadline, link; ETA only in Enroute column – hidden in Modern or when hideExtraDetails (e.g. GRO); at least one icon always shown */}
+              {!isModernLayout && !hideExtraDetails && (() => {
                 const hasDeadline = card.footerShowIcons?.includes("deadline");
                 const hasLink = card.footerShowIcons?.includes("link");
                 const isEnroute = (columnTitle || "").toLowerCase() === "enroute";
