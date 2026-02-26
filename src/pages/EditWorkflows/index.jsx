@@ -1,7 +1,100 @@
-import { useState } from 'react';
+import { useState, useRef, useEffect } from 'react';
 import { Tooltip } from 'react-tooltip';
 import '../../design/scss/EditWorkflows.scss';
 import CreateWorkflowModal from './CreateWorkflowModal';
+
+// Color palette (matching CardForm.jsx)
+const COLOR_PALETTE = [
+    { hex: '#FF00FF', rgb: 'rgb(255, 0, 255)', name: 'Fuchsia' },
+    { hex: '#800080', rgb: 'rgb(128, 0, 128)', name: 'Purple' },
+    { hex: '#4169E1', rgb: 'rgb(65, 105, 225)', name: 'Royal Blue' },
+    { hex: '#008000', rgb: 'rgb(0, 128, 0)', name: 'Green' },
+    { hex: '#FFFF00', rgb: 'rgb(255, 255, 0)', name: 'Yellow' },
+    { hex: '#FFA500', rgb: 'rgb(255, 165, 0)', name: 'Orange' },
+    { hex: '#8B0000', rgb: 'rgb(139, 0, 0)', name: 'Dark Red' },
+    { hex: '#775649', rgb: 'rgb(119, 86, 73)', name: 'Brown' },
+    { hex: '#D3D3D3', rgb: 'rgb(211, 211, 211)', name: 'Light Gray' },
+    { hex: '#708090', rgb: 'rgb(112, 128, 144)', name: 'Slate Blue' },
+    { hex: '#000000', rgb: 'rgb(0, 0, 0)', name: 'Black' },
+    { hex: '#FFFFFF', rgb: 'rgb(255, 255, 255)', name: 'White' },
+];
+
+const rgbToHex = (rgb) => {
+    if (!rgb) return '#f9fafb';
+    if (rgb.startsWith('#')) return rgb.toUpperCase();
+    const match = rgb.match(/\d+/g);
+    if (!match || match.length < 3) return '#f9fafb';
+    return '#' + match.map(x => {
+        const hex = parseInt(x).toString(16);
+        return hex.length === 1 ? '0' + hex : hex;
+    }).join('').toUpperCase();
+};
+
+const normalizeRgb = (rgb) => {
+    if (!rgb) return '';
+    if (rgb.startsWith('#')) return rgb;
+    const match = rgb.match(/\d+/g);
+    if (!match || match.length < 3) return '';
+    return `rgb(${match[0]}, ${match[1]}, ${match[2]})`;
+};
+
+const ColorPickerDropdown = ({ isOpen, onClose, selectedColor, onColorSelect }) => {
+    const dropdownRef = useRef(null);
+
+    useEffect(() => {
+        const handleClickOutside = (event) => {
+            if (dropdownRef.current && !dropdownRef.current.contains(event.target)) {
+                onClose();
+            }
+        };
+        if (isOpen) {
+            document.addEventListener('mousedown', handleClickOutside);
+            return () => document.removeEventListener('mousedown', handleClickOutside);
+        }
+    }, [isOpen, onClose]);
+
+    const handleColorClick = (color) => {
+        onColorSelect(color.rgb);
+        onClose();
+    };
+
+    if (!isOpen) return null;
+
+    return (
+        <div className="edit-workflows-color-picker-dropdown" ref={dropdownRef}>
+            <div className="edit-workflows-color-picker-grid">
+                {COLOR_PALETTE.map((color, index) => {
+                    const selectedHex = rgbToHex(selectedColor);
+                    const isSelected = selectedHex === color.hex || normalizeRgb(selectedColor) === normalizeRgb(color.rgb);
+                    return (
+                        <button
+                            key={index}
+                            type="button"
+                            className={`edit-workflows-color-swatch ${isSelected ? 'selected' : ''} ${color.hex === '#FFFFFF' ? 'white-swatch' : ''}`}
+                            style={{ backgroundColor: color.hex }}
+                            onClick={() => handleColorClick(color)}
+                            title={color.name}
+                            aria-label={`Select ${color.name} color`}
+                        >
+                            {isSelected && (
+                                <svg width="16" height="16" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg" className="edit-workflows-color-checkmark">
+                                    <path
+                                        d="M13.3333 4L6 11.3333L2.66667 8"
+                                        stroke={color.hex === '#000000' ? '#ffffff' : color.hex === '#FFFFFF' ? '#000000' : '#ffffff'}
+                                        strokeWidth="2"
+                                        strokeLinecap="round"
+                                        strokeLinejoin="round"
+                                    />
+                                </svg>
+                            )}
+                            {color.hex === '#FFFFFF' && !isSelected && <div className="edit-workflows-color-swatch-outline" />}
+                        </button>
+                    );
+                })}
+            </div>
+        </div>
+    );
+};
 
 function EditWorkflows() {
     const [boardName, setBoardName] = useState('Team workspace');
@@ -15,6 +108,7 @@ function EditWorkflows() {
     const [editingWorkflowName, setEditingWorkflowName] = useState(''); // Temporary name while editing
     const [editingStageId, setEditingStageId] = useState(null); // Track which stage is being edited: 'workflowId-swimlaneId-stageId'
     const [editingStageName, setEditingStageName] = useState(''); // Temporary stage name while editing
+    const [openColorPickerForStage, setOpenColorPickerForStage] = useState(null); // 'workflowId-swimlaneId-stageId' or null
 
     const [workflows, setWorkflows] = useState([
         {
@@ -324,6 +418,28 @@ function EditWorkflows() {
         }
     };
 
+    // Handle stage color change
+    const handleStageColorChange = (workflowId, swimlaneId, stageId, rgbColor) => {
+        setWorkflows(prevWorkflows =>
+            prevWorkflows.map(workflow => {
+                if (workflow.id !== workflowId) return workflow;
+                return {
+                    ...workflow,
+                    swimlanes: workflow.swimlanes.map(swimlane => {
+                        if (swimlane.id !== swimlaneId) return swimlane;
+                        return {
+                            ...swimlane,
+                            stages: swimlane.stages.map(stage =>
+                                stage.id === stageId ? { ...stage, color: rgbColor } : stage
+                            ),
+                        };
+                    }),
+                };
+            })
+        );
+        setOpenColorPickerForStage(null);
+    };
+
     return (
         <div className="edit-workflows-container">
             <div className="edit-workflows-layout">
@@ -452,7 +568,10 @@ function EditWorkflows() {
                                                                                     <div key={stage.id} className="workflow-stage-wrapper">
                                                                                         <div
                                                                                             className="workflow-stage-box"
-                                                                                            style={{ position: 'relative' }}
+                                                                                            style={{
+                                                                                                position: 'relative',
+                                                                                                backgroundColor: stage.color || '#ffffff',
+                                                                                            }}
                                                                                             onMouseEnter={() => setHoveredColumn(stageColumnKey)}
                                                                                             onMouseLeave={() => setHoveredColumn(null)}
                                                                                         >
@@ -566,9 +685,37 @@ function EditWorkflows() {
                                                                                                         />
                                                                                                     </svg>
                                                                                                 </button>
+                                                                                                <div className="stage-action-color-picker-wrapper">
+                                                                                                    <button
+                                                                                                        className="stage-action-btn"
+                                                                                                        type="button"
+                                                                                                        title="Stage color"
+                                                                                                        onClick={(e) => {
+                                                                                                            e.stopPropagation();
+                                                                                                            setOpenColorPickerForStage(openColorPickerForStage === stageColumnKey ? null : stageColumnKey);
+                                                                                                        }}
+                                                                                                        aria-label="Stage color"
+                                                                                                    >
+                                                                                                        <svg width="16" height="16" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
+                                                                                                            <path d="M2 4h12v8H2V4z" fill="currentColor" />
+                                                                                                            <rect x="4" y="6" width="8" height="4" fill="white" stroke="currentColor" strokeWidth="0.5" />
+                                                                                                        </svg>
+                                                                                                    </button>
+                                                                                                    <ColorPickerDropdown
+                                                                                                        isOpen={openColorPickerForStage === stageColumnKey}
+                                                                                                        onClose={() => setOpenColorPickerForStage(null)}
+                                                                                                        selectedColor={stage.color || '#f9fafb'}
+                                                                                                        onColorSelect={(rgb) => handleStageColorChange(workflow.id, swimlane.id, stage.id, rgb)}
+                                                                                                    />
+                                                                                                </div>
                                                                                             </div>
                                                                                         </div>
-                                                                                        <div className="workflow-stage-placeholder">
+                                                                                        <div
+                                                                                            className="workflow-stage-placeholder"
+                                                                                            style={{
+                                                                                                backgroundColor: stage.color || '#f9fafb',
+                                                                                            }}
+                                                                                        >
                                                                                             <span>Limit: 0</span>
                                                                                         </div>
                                                                                     </div>

@@ -648,6 +648,79 @@ div[role="tooltip"][id^="workflow-info-"] {
   }
 }
 
+// Color picker in stage-box-actions
+.stage-action-color-picker-wrapper {
+  position: relative;
+  display: flex;
+  align-items: center;
+}
+
+// Color picker dropdown (scoped to edit-workflows to avoid conflicts)
+.edit-workflows-color-picker-dropdown {
+  position: absolute;
+  bottom: calc(100% + 8px);
+  left: 0;
+  background: #ffffff;
+  border-radius: 12px;
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.15);
+  padding: 12px;
+  z-index: 10000;
+  min-width: 200px;
+}
+
+.edit-workflows-color-picker-grid {
+  display: grid;
+  grid-template-columns: repeat(6, 1fr);
+  gap: 8px;
+  width: 100%;
+}
+
+.edit-workflows-color-swatch {
+  width: 28px;
+  height: 28px;
+  border-radius: 50%;
+  border: 2px solid transparent;
+  cursor: pointer;
+  padding: 0;
+  margin: 0;
+  position: relative;
+  transition: all 0.2s ease-in-out;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+.edit-workflows-color-swatch:hover {
+  transform: scale(1.1);
+  border-color: rgba(0, 0, 0, 0.2);
+}
+
+.edit-workflows-color-swatch.selected {
+  border-color: #333;
+  box-shadow: 0 0 0 2px rgba(0, 0, 0, 0.1);
+}
+
+.edit-workflows-color-swatch.white-swatch {
+  border: 1px solid #e5e7eb;
+}
+
+.edit-workflows-color-swatch.white-swatch.selected {
+  border-color: #333;
+}
+
+.edit-workflows-color-swatch-outline {
+  position: absolute;
+  inset: -1px;
+  border: 1px dashed #d1d5db;
+  border-radius: 50%;
+  pointer-events: none;
+}
+
+.edit-workflows-color-checkmark {
+  pointer-events: none;
+}
+
 .workflow-stage-placeholder {
   padding: 16px;
   border: 2px dashed #d1d5db;
