@@ -11,7 +11,6 @@ function EditWorkflows() {
     const [showCreateWorkflowModal, setShowCreateWorkflowModal] = useState(false);
     const [hoveredColumn, setHoveredColumn] = useState(null); // Format: 'workflowId-swimlaneId-stageId'
     const [nextStageId, setNextStageId] = useState(100); // Starting ID for new stages
-    const [placeholderCounts, setPlaceholderCounts] = useState({}); // Format: { 'workflowId-swimlaneId': count }
     const [editingWorkflowId, setEditingWorkflowId] = useState(null); // Track which workflow is being edited
     const [editingWorkflowName, setEditingWorkflowName] = useState(''); // Temporary name while editing
     const [editingStageId, setEditingStageId] = useState(null); // Track which stage is being edited: 'workflowId-swimlaneId-stageId'
@@ -237,15 +236,6 @@ function EditWorkflows() {
         });
     };
 
-    // Handle adding a placeholder to all columns in a swimlane
-    const handleAddPlaceholder = (workflowId, swimlaneId) => {
-        const key = `${workflowId}-${swimlaneId}`;
-        setPlaceholderCounts(prev => ({
-            ...prev,
-            [key]: (prev[key] || 0) + 1
-        }));
-    };
-
     // Handle starting workflow name edit
     const handleStartEditWorkflow = (workflowId, currentName) => {
         setEditingWorkflowId(workflowId);
@@ -459,13 +449,13 @@ function EditWorkflows() {
                                                                                 const isLastStageInLastRow = isLastRow && stageIndex === stages.length - 1;
 
                                                                                 return (
-                                                                                    <div
-                                                                                        key={stage.id}
-                                                                                        className="workflow-stage-box"
-                                                                                        style={{ position: 'relative' }}
-                                                                                        onMouseEnter={() => setHoveredColumn(stageColumnKey)}
-                                                                                        onMouseLeave={() => setHoveredColumn(null)}
-                                                                                    >
+                                                                                    <div key={stage.id} className="workflow-stage-wrapper">
+                                                                                        <div
+                                                                                            className="workflow-stage-box"
+                                                                                            style={{ position: 'relative' }}
+                                                                                            onMouseEnter={() => setHoveredColumn(stageColumnKey)}
+                                                                                            onMouseLeave={() => setHoveredColumn(null)}
+                                                                                        >
                                                                                         {/* Left + Icon */}
                                                                                         {isStageHovered && (
                                                                                             <button
@@ -577,6 +567,10 @@ function EditWorkflows() {
                                                                                                 </svg>
                                                                                             </button>
                                                                                         </div>
+                                                                                        </div>
+                                                                                        <div className="workflow-stage-placeholder">
+                                                                                            <span>Limit: 0</span>
+                                                                                        </div>
                                                                                     </div>
                                                                                 );
                                                                             })}
@@ -584,26 +578,9 @@ function EditWorkflows() {
                                                                     );
                                                                 })}
                                                         </div>
-                                                        {Array.from({ length: (placeholderCounts[`${workflow.id}-${swimlane.id}`] || 0) + 1 }).map((_, index) => (
-                                                            <div key={index} className="workflow-stage-placeholder">
-                                                                <span>Limit: 0</span>
-                                                            </div>
-                                                        ))}
                                                     </div>
                                                 );
                                             })}
-                                        </div>
-                                        <div className="workflow-add-placeholder-container">
-                                            <button
-                                                className="workflow-add-placeholder-btn"
-                                                type="button"
-                                                onClick={() => handleAddPlaceholder(workflow.id, swimlane.id)}
-                                                title="Add placeholder to all columns"
-                                            >
-                                                <svg width="20" height="20" viewBox="0 0 20 20" fill="none" xmlns="http://www.w3.org/2000/svg">
-                                                    <path d="M10 4V16M4 10H16" stroke="currentColor" strokeWidth="2" strokeLinecap="round" />
-                                                </svg>
-                                            </button>
                                         </div>
                                     </div>
                                 );
