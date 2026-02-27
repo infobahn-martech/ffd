@@ -3,6 +3,11 @@ import PropTypes from "prop-types";
 import { FiFilePlus, FiFileText } from "react-icons/fi";
 import { Tooltip } from "react-tooltip";
 import "react-tooltip/dist/react-tooltip.css";
+import "../../../../design/scss/operations.scss";
+import { PORT_OPTIONS } from "../../../../constants/ports";
+
+const BP_CURRENCY_OPTIONS = ["SAR", "USD", "EURO"];
+const USD_TO_SAR_RATE = 3.75;
 
 // Group Checkbox Component with indeterminate support
 const GroupCheckbox = ({ checked, indeterminate, onChange, onClick }) => {
@@ -674,8 +679,28 @@ const SalesOrderList = ({ formValues, handleChange, cardColor, readOnly = false,
   const salesOrderList = formValues.salesOrderList || [];
   const billingEntity = formValues.billingEntity || "ABC Shipping Co.";
   const email = formValues.email || "billing@abccompany.com";
-  const lineItem = formValues.lineItem || "Container Service";
   const lineItemTotal = formValues.lineItemTotal || 0;
+
+  // SO Header fields
+  const soCustomerCode = formValues.soCustomerCode || "CUST-00124";
+  const soCustomerName = formValues.soCustomerName || "";
+  const soContactPerson = formValues.soContactPerson || "";
+  const soBpCurrency = formValues.soBpCurrency || "SAR";
+  const soEuroRate = formValues.soEuroRate || "";
+  const soPoNo = formValues.soPoNo || "";
+  const soPort = formValues.soPort || "";
+  const soSoNo = formValues.soSoNo || "SO-AUTO-" + (formValues.id || "001");
+  const soPostingDate = formValues.soPostingDate || new Date().toISOString().slice(0, 10);
+  const soDeliveryDate = formValues.soDeliveryDate || "";
+  const soDocumentDate = formValues.soDocumentDate || "";
+  const soShipName = formValues.soShipName || "";
+  const soProjectName = formValues.soProjectName || "";
+
+  // Derive SO Status: OPEN if delivery date is in the future or empty; CLOSED otherwise
+  const soStatus = (() => {
+    if (!soDeliveryDate) return "OPEN";
+    return new Date(soDeliveryDate) >= new Date(new Date().toDateString()) ? "OPEN" : "CLOSED";
+  })();
 
   // State for accordion and form
   const [isAccordionOpen, setIsAccordionOpen] = useState(false);
@@ -1165,6 +1190,184 @@ const SalesOrderList = ({ formValues, handleChange, cardColor, readOnly = false,
             + Add Item
           </button>
         )}
+      </div>
+
+      {/* SO Header Fields Panel */}
+      <div className="so-header-panel">
+        {/* Row 1 */}
+        <div className="so-header-row">
+          <div className="so-header-field">
+            <label className="so-header-label">Customer Code</label>
+            <input
+              type="text"
+              className="so-header-input so-header-input-readonly"
+              value={soCustomerCode}
+              readOnly
+            />
+          </div>
+          <div className="so-header-field">
+            <label className="so-header-label">Customer Name</label>
+            <input
+              type="text"
+              className="so-header-input so-header-input-readonly"
+              value={soCustomerName}
+              readOnly
+            />
+          </div>
+          <div className="so-header-field">
+            <label className="so-header-label">Contact Person</label>
+            <input
+              type="text"
+              className="so-header-input so-header-input-readonly"
+              value={soContactPerson}
+              readOnly
+            />
+          </div>
+          <div className="so-header-field">
+            <label className="so-header-label">BP Currency</label>
+            <div className="so-currency-wrapper">
+              <select
+                className="so-header-select"
+                value={soBpCurrency}
+                onChange={handleChange("soBpCurrency")}
+                disabled={readOnly}
+              >
+                {BP_CURRENCY_OPTIONS.map((c) => (
+                  <option key={c} value={c}>{c === "EURO" ? "EURO (€)" : c}</option>
+                ))}
+              </select>
+              {soBpCurrency === "USD" && (
+                <span className="so-currency-rate">Rate: {USD_TO_SAR_RATE} SAR</span>
+              )}
+              {soBpCurrency === "EURO" && (
+                <input
+                  type="number"
+                  min="0"
+                  step="0.01"
+                  className="so-header-input so-currency-rate-input"
+                  placeholder="€ rate"
+                  value={soEuroRate}
+                  onChange={handleChange("soEuroRate")}
+                  readOnly={readOnly}
+                />
+              )}
+            </div>
+          </div>
+        </div>
+
+        {/* Row 2 */}
+        <div className="so-header-row">
+          <div className="so-header-field">
+            <label className="so-header-label">PO No <span className="so-required">*</span></label>
+            <input
+              type="text"
+              className={"so-header-input" + (!soPoNo && !readOnly ? " so-input-required" : "")}
+              placeholder="Enter PO No..."
+              value={soPoNo}
+              onChange={handleChange("soPoNo")}
+              readOnly={readOnly}
+              required
+            />
+          </div>
+          <div className="so-header-field">
+            <label className="so-header-label">Port</label>
+            <select
+              className="so-header-select"
+              value={soPort}
+              onChange={handleChange("soPort")}
+              disabled={readOnly}
+            >
+              <option value="">Select Port...</option>
+              {PORT_OPTIONS.map((p) => (
+                <option key={p} value={p}>{p}</option>
+              ))}
+            </select>
+          </div>
+          <div className="so-header-field">
+            <label className="so-header-label">Branch</label>
+            <input
+              type="text"
+              className="so-header-input so-header-input-readonly"
+              value="Marine Offshore"
+              readOnly
+            />
+          </div>
+          <div className="so-header-field">
+            <label className="so-header-label">SO No</label>
+            <input
+              type="text"
+              className="so-header-input so-header-input-readonly"
+              value={soSoNo}
+              readOnly
+            />
+          </div>
+        </div>
+
+        {/* Row 3 */}
+        <div className="so-header-row">
+          <div className="so-header-field">
+            <label className="so-header-label">Status</label>
+            <span className={"so-status-badge so-status-" + soStatus.toLowerCase()}>
+              {soStatus}
+            </span>
+          </div>
+          <div className="so-header-field">
+            <label className="so-header-label">Posting Date</label>
+            <input
+              type="date"
+              className="so-header-input so-header-input-readonly"
+              value={soPostingDate}
+              readOnly
+            />
+          </div>
+          <div className="so-header-field">
+            <label className="so-header-label">Delivery Date</label>
+            <input
+              type="date"
+              className="so-header-input"
+              value={soDeliveryDate}
+              onChange={handleChange("soDeliveryDate")}
+              readOnly={readOnly}
+            />
+          </div>
+          <div className="so-header-field">
+            <label className="so-header-label">Document Date</label>
+            <input
+              type="date"
+              className="so-header-input"
+              value={soDocumentDate}
+              onChange={handleChange("soDocumentDate")}
+              readOnly={readOnly}
+            />
+          </div>
+        </div>
+
+        {/* Row 4 */}
+        <div className="so-header-row">
+          <div className="so-header-field">
+            <label className="so-header-label">Ship Name</label>
+            <input
+              type="text"
+              className="so-header-input"
+              placeholder="Enter ship name..."
+              value={soShipName}
+              onChange={handleChange("soShipName")}
+              readOnly={readOnly}
+            />
+          </div>
+          <div className="so-header-field so-header-field-wide">
+            <label className="so-header-label">Project Name <span className="so-required">*</span></label>
+            <input
+              type="text"
+              className={"so-header-input" + (!soProjectName && !readOnly ? " so-input-required" : "")}
+              placeholder="Enter project name..."
+              value={soProjectName}
+              onChange={handleChange("soProjectName")}
+              readOnly={readOnly}
+              required
+            />
+          </div>
+        </div>
       </div>
 
       {/* Summary Section */}

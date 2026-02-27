@@ -1198,6 +1198,20 @@ function CardForm({ show, close, card, moveCardToColumn, columns, columnOrder, c
       supportingDocuments: card?.supportingDocuments || [],
       fdaDispatchProofDocuments: card?.fdaDispatchProofDocuments || [],
       copyOfSalesOrderDocuments: card?.copyOfSalesOrderDocuments || [],
+      // Sales Order header fields
+      soCustomerCode: card?.soCustomerCode || "CUST-00124",
+      soCustomerName: card?.soCustomerName || card?.name || "",
+      soContactPerson: card?.soContactPerson || card?.user || "",
+      soBpCurrency: card?.soBpCurrency || "SAR",
+      soEuroRate: card?.soEuroRate || "",
+      soPoNo: card?.soPoNo || "",
+      soPort: card?.soPort || card?.port || "",
+      soSoNo: card?.soSoNo || "",
+      soPostingDate: card?.soPostingDate || new Date().toISOString().slice(0, 10),
+      soDeliveryDate: card?.soDeliveryDate || "",
+      soDocumentDate: card?.soDocumentDate || "",
+      soShipName: card?.soShipName || card?.vesselName || "",
+      soProjectName: card?.soProjectName || "",
     }),
     [card]
   );
