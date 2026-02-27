@@ -3551,12 +3551,12 @@ body .material-management-modal .files-list::-webkit-scrollbar-thumb:hover {
 // ACCOUNTING SUMMARY PANEL
 // ============================================================
 
+// Outer wrapper — borderless, just provides spacing and title
 .so-accounting-summary {
   margin: 0 22px 20px 22px;
-  background: #ffffff;
-  border: 1px solid #e8eaf0;
-  border-radius: 10px;
-  padding: 16px 24px 20px;
+  background: transparent;
+  border: none;
+  padding: 0;
 }
 
 .so-accounting-title {
@@ -3568,7 +3568,7 @@ body .material-management-modal .files-list::-webkit-scrollbar-thumb:hover {
   letter-spacing: 0.8px;
   text-transform: uppercase;
   color: #6b7280;
-  margin-bottom: 16px;
+  margin-bottom: 12px;
 }
 
 .so-accounting-title-bar {
@@ -3579,25 +3579,32 @@ body .material-management-modal .files-list::-webkit-scrollbar-thumb:hover {
   flex-shrink: 0;
 }
 
+// The actual compact card — right-aligned, fixed width
 .so-accounting-grid {
   display: flex;
   flex-direction: column;
   gap: 0;
-  max-width: 400px;
+  width: 460px;
+  max-width: 100%;
   margin-left: auto;
+  background: #ffffff;
+  border: 1px solid #e0e2ee;
+  border-radius: 10px;
+  padding: 6px 20px 10px;
+  box-shadow: 0 2px 10px rgba(42, 0, 255, 0.05);
 }
 
 .so-accounting-row {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  padding: 8px 0;
+  padding: 7px 0;
 }
 
 .so-accounting-divider {
   height: 1px;
   background: #e8eaf0;
-  margin: 4px 0;
+  margin: 2px 0;
 }
 
 .so-accounting-label {
@@ -3617,7 +3624,7 @@ body .material-management-modal .files-list::-webkit-scrollbar-thumb:hover {
   display: inline-flex;
   align-items: center;
   background: #f0f2ff;
-  border: 1px solid #dde0ea;
+  border: 1px solid #c7caff;
   border-radius: 6px;
   padding: 2px 10px;
   font-size: 12px;
@@ -3631,7 +3638,14 @@ body .material-management-modal .files-list::-webkit-scrollbar-thumb:hover {
 }
 
 .so-accounting-grand {
-  padding: 10px 0 6px;
+  padding: 9px 0 5px;
+  background: linear-gradient(135deg, rgba(42, 0, 255, 0.03) 0%, rgba(42, 0, 255, 0.01) 100%);
+  margin: 0 -20px;
+  padding-left: 20px;
+  padding-right: 20px;
+  border-top: 2px solid #e0e2ee;
+  border-bottom-left-radius: 10px;
+  border-bottom-right-radius: 10px;
 
   .so-accounting-label {
     font-size: 14px;
