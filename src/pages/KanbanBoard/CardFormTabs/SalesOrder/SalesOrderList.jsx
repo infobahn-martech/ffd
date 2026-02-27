@@ -1225,34 +1225,41 @@ const SalesOrderList = ({ formValues, handleChange, cardColor, readOnly = false,
           </div>
           <div className="so-header-field">
             <label className="so-header-label">BP Currency</label>
-            <div className="so-currency-wrapper">
-              <select
-                className="so-header-select"
-                value={soBpCurrency}
-                onChange={handleChange("soBpCurrency")}
-                disabled={readOnly}
-              >
-                {BP_CURRENCY_OPTIONS.map((c) => (
-                  <option key={c} value={c}>{c === "EURO" ? "EURO (€)" : c}</option>
-                ))}
-              </select>
-              {soBpCurrency === "USD" && (
-                <span className="so-currency-rate">Rate: {USD_TO_SAR_RATE} SAR</span>
-              )}
-              {soBpCurrency === "EURO" && (
-                <input
-                  type="number"
-                  min="0"
-                  step="0.01"
-                  className="so-header-input so-currency-rate-input"
-                  placeholder="€ rate"
-                  value={soEuroRate}
-                  onChange={handleChange("soEuroRate")}
-                  readOnly={readOnly}
-                />
-              )}
-            </div>
+            <select
+              className="so-header-select"
+              value={soBpCurrency}
+              onChange={handleChange("soBpCurrency")}
+              disabled={readOnly}
+            >
+              {BP_CURRENCY_OPTIONS.map((c) => (
+                <option key={c} value={c}>{c === "EURO" ? "EURO (€)" : c}</option>
+              ))}
+            </select>
           </div>
+          {soBpCurrency === "USD" && (
+            <div className="so-header-field">
+              <label className="so-header-label">USD → SAR Rate</label>
+              <span className="so-currency-rate so-currency-rate-block">
+                1 USD = {USD_TO_SAR_RATE} SAR (fixed)
+              </span>
+            </div>
+          )}
+          {soBpCurrency === "EURO" && (
+            <div className="so-header-field">
+              <label className="so-header-label">Conversion Rate (€ → SAR) <span className="so-required">*</span></label>
+              <input
+                type="number"
+                min="0"
+                step="0.01"
+                className={"so-header-input" + (!soEuroRate && !readOnly ? " so-input-required" : "")}
+                placeholder="Enter EUR → SAR rate..."
+                value={soEuroRate}
+                onChange={handleChange("soEuroRate")}
+                readOnly={readOnly}
+                required
+              />
+            </div>
+          )}
         </div>
 
         {/* Row 2 */}
@@ -1301,16 +1308,16 @@ const SalesOrderList = ({ formValues, handleChange, cardColor, readOnly = false,
               readOnly
             />
           </div>
-        </div>
-
-        {/* Row 3 */}
-        <div className="so-header-row">
-          <div className="so-header-field">
+          <div className="so-header-field so-header-field-status">
             <label className="so-header-label">Status</label>
             <span className={"so-status-badge so-status-" + soStatus.toLowerCase()}>
               {soStatus}
             </span>
           </div>
+        </div>
+
+        {/* Row 3 */}
+        <div className="so-header-row">
           <div className="so-header-field">
             <label className="so-header-label">Posting Date</label>
             <input

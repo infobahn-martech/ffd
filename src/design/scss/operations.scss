@@ -3496,9 +3496,18 @@ body .material-management-modal .files-list::-webkit-scrollbar-thumb:hover {
   font-family: "Poppins", sans-serif;
 }
 
-.so-currency-rate-input {
-  width: 90px !important;
-  flex-shrink: 0;
+.so-currency-rate-block {
+  display: inline-flex;
+  align-items: center;
+  height: 33px;
+  font-size: 13px;
+  font-weight: 500;
+  white-space: nowrap;
+}
+
+.so-header-field-status {
+  flex: 0 0 auto;
+  min-width: 90px;
 }
 
 .so-status-badge {
@@ -3512,6 +3521,8 @@ body .material-management-modal .files-list::-webkit-scrollbar-thumb:hover {
   letter-spacing: 0.6px;
   border: 1.5px solid transparent;
   align-self: flex-start;
+  height: 33px;
+  box-sizing: border-box;
 }
 
 .so-status-open {
