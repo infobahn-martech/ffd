@@ -627,6 +627,18 @@ PreviewModal.propTypes = {
 };
 
 const TAX_CODE_OPTIONS = ["15%", "5%", "0%"];
+const TYPE_OF_PO_OPTIONS = ["Inhouse", "Outhouse PO", "Multiple PO"];
+
+const DUMMY_VENDORS = [
+  { code: "VEND-001", name: "Al Rashid Trading Co." },
+  { code: "VEND-002", name: "Gulf Marine Supplies" },
+  { code: "VEND-003", name: "Eastern Shipping LLC" },
+  { code: "VEND-004", name: "Red Sea Logistics" },
+  { code: "VEND-005", name: "Arabian Cargo Services" },
+  { code: "VEND-006", name: "Jubail Maritime Group" },
+  { code: "VEND-007", name: "Dammam Port Services" },
+  { code: "VEND-008", name: "Saudi Freight Solutions" },
+];
 
 // Generate dummy sales order data
 const generateDummySalesOrders = () => {
@@ -642,14 +654,12 @@ const generateDummySalesOrders = () => {
     const taxRate = parseFloat(taxCode) / 100;
     const qty = Math.floor(Math.random() * 100) + 1;
     const unitPrice = Math.round((Math.random() * 5000 + 100) * 100) / 100;
-    const discount = Math.round(Math.random() * 20 * 100) / 100; // 0–20%
+    const discount = Math.round(Math.random() * 20 * 100) / 100;
     const discountedPrice = unitPrice * (1 - discount / 100);
     const totalBeforeTax = qty * discountedPrice;
-    const taxAmount = totalBeforeTax * taxRate;
-    const totalAmount = totalBeforeTax + taxAmount;
-
+    const totalAmount = totalBeforeTax + totalBeforeTax * taxRate;
     const callFile = callFiles[Math.floor(Math.random() * callFiles.length)];
-    const poStatus = poStatuses[Math.floor(Math.random() * poStatuses.length)];
+    const vendor = DUMMY_VENDORS[Math.floor(Math.random() * DUMMY_VENDORS.length)];
 
     dummyOrders.push({
       id: i,
@@ -661,10 +671,73 @@ const generateDummySalesOrders = () => {
       discount,
       taxCode,
       totalAmount,
-      poStatus,
+      poStatus: poStatuses[Math.floor(Math.random() * poStatuses.length)],
+      typeOfPo: TYPE_OF_PO_OPTIONS[Math.floor(Math.random() * TYPE_OF_PO_OPTIONS.length)],
+      supplierCode: vendor.code,
+      supplierName: vendor.name,
     });
   }
   return dummyOrders;
+};
+
+// Vendor List Modal
+const VendorListModal = ({ show, onClose, onSelect }) => {
+  const [search, setSearch] = useState("");
+  if (!show) return null;
+
+  const filtered = DUMMY_VENDORS.filter(
+    (v) =>
+      v.code.toLowerCase().includes(search.toLowerCase()) ||
+      v.name.toLowerCase().includes(search.toLowerCase())
+  );
+
+  return (
+    <div
+      style={{ position: "fixed", inset: 0, backgroundColor: "rgba(0,0,0,0.45)", display: "flex", alignItems: "center", justifyContent: "center", zIndex: 1100 }}
+      onClick={(e) => { if (e.target === e.currentTarget) onClose(); }}
+    >
+      <div style={{ background: "#fff", borderRadius: "10px", width: "480px", maxHeight: "70vh", display: "flex", flexDirection: "column", boxShadow: "0 8px 32px rgba(0,0,0,0.18)" }}>
+        <div style={{ padding: "18px 22px", borderBottom: "1px solid #eee", display: "flex", alignItems: "center", justifyContent: "space-between" }}>
+          <h3 style={{ margin: 0, fontSize: "16px", fontWeight: "600", color: "#1a1a2e" }}>Select Vendor</h3>
+          <button onClick={onClose} style={{ background: "none", border: "none", fontSize: "22px", cursor: "pointer", color: "#888", lineHeight: 1 }}>×</button>
+        </div>
+        <div style={{ padding: "14px 22px", borderBottom: "1px solid #eee" }}>
+          <input
+            type="text"
+            placeholder="Search by code or name..."
+            value={search}
+            onChange={(e) => setSearch(e.target.value)}
+            autoFocus
+            style={{ width: "100%", padding: "8px 12px", border: "1px solid #dde0ea", borderRadius: "7px", fontSize: "13px", boxSizing: "border-box", fontFamily: "inherit" }}
+          />
+        </div>
+        <div style={{ overflowY: "auto", flex: 1 }}>
+          {filtered.length === 0 ? (
+            <div style={{ padding: "24px", textAlign: "center", color: "#888", fontSize: "13px" }}>No vendors found.</div>
+          ) : (
+            filtered.map((v) => (
+              <div
+                key={v.code}
+                onClick={() => { onSelect(v); onClose(); }}
+                style={{ padding: "12px 22px", cursor: "pointer", borderBottom: "1px solid #f4f4f8", display: "flex", alignItems: "center", gap: "14px", transition: "background 0.1s" }}
+                onMouseEnter={(e) => (e.currentTarget.style.background = "#f5f6ff")}
+                onMouseLeave={(e) => (e.currentTarget.style.background = "")}
+              >
+                <span style={{ fontFamily: "monospace", fontSize: "12px", color: "#5a5f8a", background: "#f0f2ff", padding: "3px 8px", borderRadius: "5px", flexShrink: 0 }}>{v.code}</span>
+                <span style={{ fontSize: "14px", color: "#1a1a2e", fontWeight: "500" }}>{v.name}</span>
+              </div>
+            ))
+          )}
+        </div>
+      </div>
+    </div>
+  );
+};
+
+VendorListModal.propTypes = {
+  show: PropTypes.bool.isRequired,
+  onClose: PropTypes.func.isRequired,
+  onSelect: PropTypes.func.isRequired,
 };
 
 const SalesOrderList = ({ formValues, handleChange, cardColor, readOnly = false, showPOStatus = false, isDAModule = false }) => {
@@ -705,6 +778,9 @@ const SalesOrderList = ({ formValues, handleChange, cardColor, readOnly = false,
     unitPrice: "",
     discount: "0",
     taxCode: "15%",
+    typeOfPo: "",
+    supplierCode: "",
+    supplierName: "",
   });
 
   // State for checkbox selection (exclude DA module)
@@ -714,7 +790,10 @@ const SalesOrderList = ({ formValues, handleChange, cardColor, readOnly = false,
 
   // State for preview modal (DA module only)
   const [showPreviewModal, setShowPreviewModal] = useState(false);
-  const [previewModalType, setPreviewModalType] = useState(null); // "invoice" or "purchaseOrder"
+  const [previewModalType, setPreviewModalType] = useState(null);
+
+  // State for vendor modal (row-level supplier picker)
+  const [vendorModalTarget, setVendorModalTarget] = useState(null); // orderId or "new"
 
   // Initialize with dummy data on mount if empty
   useEffect(() => {
@@ -843,6 +922,18 @@ const SalesOrderList = ({ formValues, handleChange, cardColor, readOnly = false,
     handleChange("salesOrderList")({ target: { value: updatedList } });
   };
 
+  const handleVendorSelect = (vendor) => {
+    if (vendorModalTarget === "new") {
+      setNewItemForm((prev) => ({ ...prev, supplierCode: vendor.code, supplierName: vendor.name }));
+    } else if (vendorModalTarget !== null) {
+      const updatedList = salesOrderList.map((order) =>
+        order.id === vendorModalTarget ? { ...order, supplierCode: vendor.code, supplierName: vendor.name } : order
+      );
+      handleChange("salesOrderList")({ target: { value: updatedList } });
+    }
+    setVendorModalTarget(null);
+  };
+
   const handleAddNewItem = () => {
     setNewItemForm({
       callFile: "",
@@ -852,6 +943,9 @@ const SalesOrderList = ({ formValues, handleChange, cardColor, readOnly = false,
       unitPrice: "",
       discount: "0",
       taxCode: "15%",
+      typeOfPo: "",
+      supplierCode: "",
+      supplierName: "",
     });
     setIsAccordionOpen(true);
   };
@@ -881,35 +975,24 @@ const SalesOrderList = ({ formValues, handleChange, cardColor, readOnly = false,
       unitPrice: parseFloat(newItemForm.unitPrice) || 0,
       discount: parseFloat(newItemForm.discount) || 0,
       taxCode: newItemForm.taxCode || "15%",
+      typeOfPo: newItemForm.typeOfPo || "",
+      supplierCode: newItemForm.supplierCode || "",
+      supplierName: newItemForm.supplierName || "",
       poStatus: "Draft",
     };
     newItem.totalAmount = calcRowTotal(newItem);
 
     handleChange("salesOrderList")({ target: { value: [...currentList, newItem] } });
 
+    const emptyForm = { callFile: "", itemNo: "", itemDescription: "", qty: "", unitPrice: "", discount: "0", taxCode: "15%", typeOfPo: "", supplierCode: "", supplierName: "" };
     setIsAccordionOpen(false);
-    setNewItemForm({
-      callFile: "",
-      itemNo: "",
-      itemDescription: "",
-      qty: "",
-      unitPrice: "",
-      discount: "0",
-      taxCode: "15%",
-    });
+    setNewItemForm(emptyForm);
   };
 
   const handleCancel = () => {
+    const emptyForm = { callFile: "", itemNo: "", itemDescription: "", qty: "", unitPrice: "", discount: "0", taxCode: "15%", typeOfPo: "", supplierCode: "", supplierName: "" };
     setIsAccordionOpen(false);
-    setNewItemForm({
-      callFile: "",
-      itemNo: "",
-      itemDescription: "",
-      qty: "",
-      unitPrice: "",
-      discount: "0",
-      taxCode: "15%",
-    });
+    setNewItemForm(emptyForm);
   };
 
   // Checkbox selection handlers (only for non-DA module)
@@ -1122,6 +1205,50 @@ const SalesOrderList = ({ formValues, handleChange, cardColor, readOnly = false,
                 <option key={t} value={t}>{t}</option>
               ))}
             </select>
+          )}
+        </div>
+      </td>
+
+      {/* Type of PO */}
+      <td>
+        <div className="sales-order-table-cell">
+          {readOnly ? (order.typeOfPo || "—") : (
+            <select
+              value={order.typeOfPo || ""}
+              onChange={(e) => handleFieldChange(order.id, "typeOfPo", e.target.value)}
+              style={{ ...cellStyle, cursor: "pointer" }}
+            >
+              <option value="">— Select —</option>
+              {TYPE_OF_PO_OPTIONS.map((t) => (
+                <option key={t} value={t}>{t}</option>
+              ))}
+            </select>
+          )}
+        </div>
+      </td>
+
+      {/* Supplier Code */}
+      <td>
+        <div className="sales-order-table-cell" style={{ display: "flex", alignItems: "center", gap: "6px", minWidth: "140px" }}>
+          {readOnly ? (
+            <span title={order.supplierName || ""}>{order.supplierCode || "—"}</span>
+          ) : (
+            <>
+              <span
+                title={order.supplierName || ""}
+                style={{ fontSize: "13px", color: order.supplierCode ? "#1a1a2e" : "#aaa", flex: 1, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}
+              >
+                {order.supplierCode ? `${order.supplierCode}` : "—"}
+              </span>
+              <button
+                type="button"
+                onClick={() => setVendorModalTarget(order.id)}
+                title={order.supplierName || "Select Vendor"}
+                style={{ flexShrink: 0, padding: "3px 8px", fontSize: "12px", border: "1px solid #b3baff", borderRadius: "5px", background: "#f0f2ff", color: "#2A00FF", cursor: "pointer", fontFamily: "inherit", whiteSpace: "nowrap" }}
+              >
+                {order.supplierCode ? "Change" : "Select"}
+              </button>
+            </>
           )}
         </div>
       </td>
@@ -1460,6 +1587,39 @@ const SalesOrderList = ({ formValues, handleChange, cardColor, readOnly = false,
                   ))}
                 </select>
               </div>
+              <div className="sales-order-add-form-field">
+                <label>Type of PO</label>
+                <select
+                  value={newItemForm.typeOfPo}
+                  onChange={(e) => handleFormChange("typeOfPo", e.target.value)}
+                  className="sales-order-add-form-input"
+                >
+                  <option value="">— Select —</option>
+                  {TYPE_OF_PO_OPTIONS.map((t) => (
+                    <option key={t} value={t}>{t}</option>
+                  ))}
+                </select>
+              </div>
+              <div className="sales-order-add-form-field">
+                <label>Supplier Code</label>
+                <div style={{ display: "flex", alignItems: "center", gap: "6px" }}>
+                  <input
+                    type="text"
+                    value={newItemForm.supplierCode ? `${newItemForm.supplierCode} — ${newItemForm.supplierName}` : ""}
+                    readOnly
+                    placeholder="— Select vendor —"
+                    className="sales-order-add-form-input"
+                    style={{ flex: 1, cursor: "default", background: "#f6f7fb" }}
+                  />
+                  <button
+                    type="button"
+                    onClick={() => setVendorModalTarget("new")}
+                    style={{ flexShrink: 0, padding: "6px 12px", fontSize: "12px", border: "1px solid #b3baff", borderRadius: "5px", background: "#f0f2ff", color: "#2A00FF", cursor: "pointer", fontFamily: "inherit", whiteSpace: "nowrap" }}
+                  >
+                    {newItemForm.supplierCode ? "Change" : "Select"}
+                  </button>
+                </div>
+              </div>
             </div>
             <div className="sales-order-add-form-actions">
               <button
@@ -1558,6 +1718,8 @@ const SalesOrderList = ({ formValues, handleChange, cardColor, readOnly = false,
               {renderTableHeader("Unit Price")}
               {renderTableHeader("Discount %")}
               {renderTableHeader("Tax Code")}
+              {renderTableHeader("Type of PO")}
+              {renderTableHeader("Supplier Code")}
               {renderTableHeader("Total Amount")}
             </tr>
           </thead>
@@ -1570,8 +1732,6 @@ const SalesOrderList = ({ formValues, handleChange, cardColor, readOnly = false,
               }
 
               const isExpanded = expandedCallFiles.has(callFile);
-              const groupTotal = orders.reduce((sum, item) => sum + (parseFloat(item.totalAmount) || 0), 0);
-
               const groupAllSelected = isGroupAllSelected(orders);
               const groupSomeSelected = isGroupSomeSelected(orders);
 
@@ -1590,7 +1750,7 @@ const SalesOrderList = ({ formValues, handleChange, cardColor, readOnly = false,
                     }}
                     style={{ cursor: "pointer", backgroundColor: isExpanded ? "rgba(42, 0, 255, 0.05)" : "#ffffff" }}
                   >
-                    <td colSpan={isDAModule ? 7 : 8} style={{ padding: "12px 16px" }}>
+                    <td colSpan={isDAModule ? 9 : 10} style={{ padding: "12px 16px" }}>
                       <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between" }}>
                         <div style={{ display: "flex", alignItems: "center", gap: "12px" }}>
                           {!isDAModule && (
@@ -1629,9 +1789,6 @@ const SalesOrderList = ({ formValues, handleChange, cardColor, readOnly = false,
                             {orders.length} item{orders.length > 1 ? "s" : ""}
                           </span>
                         </div>
-                        <div style={{ fontWeight: "600", color: "rgb(120, 120, 120)", paddingRight: "36px" }}>
-                          Total: {formatCurrencySAR(groupTotal)}
-                        </div>
                       </div>
                     </td>
                   </tr>
@@ -1645,6 +1802,64 @@ const SalesOrderList = ({ formValues, handleChange, cardColor, readOnly = false,
           </tbody>
         </table>
       </div>
+
+      {/* Accounting Summary Panel */}
+      {(() => {
+        const subtotal = displayOrderList.reduce((sum, item) => {
+          const qty = parseFloat(item.qty) || 0;
+          const unitPrice = parseFloat(item.unitPrice) || 0;
+          return sum + qty * unitPrice;
+        }, 0);
+        const totalDiscount = displayOrderList.reduce((sum, item) => {
+          const qty = parseFloat(item.qty) || 0;
+          const unitPrice = parseFloat(item.unitPrice) || 0;
+          const discount = parseFloat(item.discount) || 0;
+          return sum + qty * unitPrice * (discount / 100);
+        }, 0);
+        const totalTax = displayOrderList.reduce((sum, item) => {
+          const qty = parseFloat(item.qty) || 0;
+          const unitPrice = parseFloat(item.unitPrice) || 0;
+          const discount = parseFloat(item.discount) || 0;
+          const taxRate = parseFloat(item.taxCode) / 100 || 0;
+          const discountedTotal = qty * unitPrice * (1 - discount / 100);
+          return sum + discountedTotal * taxRate;
+        }, 0);
+        const grandTotal = subtotal - totalDiscount + totalTax;
+        const currencyLabel = soBpCurrency === "EURO" ? "EURO (€)" : soBpCurrency;
+
+        return (
+          <div className="so-accounting-summary">
+            <div className="so-accounting-title">
+              <span className="so-accounting-title-bar"></span>
+              ACCOUNTING SUMMARY
+            </div>
+            <div className="so-accounting-grid">
+              <div className="so-accounting-row">
+                <span className="so-accounting-label">Currency</span>
+                <span className="so-accounting-value so-accounting-currency">{currencyLabel}</span>
+              </div>
+              <div className="so-accounting-divider" />
+              <div className="so-accounting-row">
+                <span className="so-accounting-label">Subtotal</span>
+                <span className="so-accounting-value">{formatCurrencySAR(subtotal)}</span>
+              </div>
+              <div className="so-accounting-row">
+                <span className="so-accounting-label">Total Discount</span>
+                <span className="so-accounting-value so-accounting-discount">− {formatCurrencySAR(totalDiscount)}</span>
+              </div>
+              <div className="so-accounting-row">
+                <span className="so-accounting-label">Total Tax</span>
+                <span className="so-accounting-value">{formatCurrencySAR(totalTax)}</span>
+              </div>
+              <div className="so-accounting-divider" />
+              <div className="so-accounting-row so-accounting-grand">
+                <span className="so-accounting-label">Grand Total</span>
+                <span className="so-accounting-value so-accounting-grand-value">{formatCurrencySAR(grandTotal)}</span>
+              </div>
+            </div>
+          </div>
+        );
+      })()}
 
       {/* Work Order Creation Modal */}
       {showWorkOrderModal && (
@@ -1667,6 +1882,13 @@ const SalesOrderList = ({ formValues, handleChange, cardColor, readOnly = false,
           modalType={previewModalType}
         />
       )}
+
+      {/* Vendor List Modal */}
+      <VendorListModal
+        show={vendorModalTarget !== null}
+        onClose={() => setVendorModalTarget(null)}
+        onSelect={handleVendorSelect}
+      />
     </div>
   );
 };

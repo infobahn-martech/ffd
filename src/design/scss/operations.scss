@@ -3547,6 +3547,105 @@ body .material-management-modal .files-list::-webkit-scrollbar-thumb:hover {
   }
 }
 
+// ============================================================
+// ACCOUNTING SUMMARY PANEL
+// ============================================================
+
+.so-accounting-summary {
+  margin: 0 22px 20px 22px;
+  background: #ffffff;
+  border: 1px solid #e8eaf0;
+  border-radius: 10px;
+  padding: 16px 24px 20px;
+}
+
+.so-accounting-title {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  font-size: 12px;
+  font-weight: 700;
+  letter-spacing: 0.8px;
+  text-transform: uppercase;
+  color: #6b7280;
+  margin-bottom: 16px;
+}
+
+.so-accounting-title-bar {
+  width: 3px;
+  height: 16px;
+  border-radius: 2px;
+  background: var(--card-color, #e2e6ff);
+  flex-shrink: 0;
+}
+
+.so-accounting-grid {
+  display: flex;
+  flex-direction: column;
+  gap: 0;
+  max-width: 400px;
+  margin-left: auto;
+}
+
+.so-accounting-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 8px 0;
+}
+
+.so-accounting-divider {
+  height: 1px;
+  background: #e8eaf0;
+  margin: 4px 0;
+}
+
+.so-accounting-label {
+  font-size: 13px;
+  color: #6b7280;
+  font-weight: 500;
+}
+
+.so-accounting-value {
+  font-size: 13px;
+  color: #1a1a2e;
+  font-weight: 600;
+  font-variant-numeric: tabular-nums;
+}
+
+.so-accounting-currency {
+  display: inline-flex;
+  align-items: center;
+  background: #f0f2ff;
+  border: 1px solid #dde0ea;
+  border-radius: 6px;
+  padding: 2px 10px;
+  font-size: 12px;
+  font-weight: 700;
+  color: #2A00FF;
+  letter-spacing: 0.4px;
+}
+
+.so-accounting-discount {
+  color: #c0392b;
+}
+
+.so-accounting-grand {
+  padding: 10px 0 6px;
+
+  .so-accounting-label {
+    font-size: 14px;
+    font-weight: 700;
+    color: #1a1a2e;
+  }
+}
+
+.so-accounting-grand-value {
+  font-size: 16px !important;
+  font-weight: 700 !important;
+  color: #1a1a2e !important;
+}
+
 .sales-order-table-container {
   overflow-x: auto;
   width: 100%;
