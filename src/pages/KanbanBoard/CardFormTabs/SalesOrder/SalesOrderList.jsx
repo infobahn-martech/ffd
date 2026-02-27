@@ -64,7 +64,7 @@ const WorkOrderCreationModal = ({ show, onClose, onCreate, selectedItems, salesO
   useEffect(() => {
     if (show && selectedLineItems.length > 0) {
       const timestamp = new Date().toISOString().slice(0, 10).replace(/-/g, "");
-      const itemNames = selectedLineItems.slice(0, 2).map((item) => item.lineItemName).join(", ");
+      const itemNames = selectedLineItems.slice(0, 2).map((item) => item.itemDescription || item.itemNo || "").join(", ");
       const generatedName = `WO-${timestamp}-${itemNames.substring(0, 30)}${itemNames.length > 30 ? "..." : ""}`;
       setFormData((prev) => ({
         ...prev,
@@ -228,14 +228,14 @@ const WorkOrderCreationModal = ({ show, onClose, onCreate, selectedItems, salesO
                     border: "1px solid #e0e0e0",
                   }}
                 >
-                  <div style={{ fontWeight: "500", color: "#1a1a1a" }}>{item.lineItemName}</div>
+                  <div style={{ fontWeight: "500", color: "#1a1a1a" }}>{item.itemDescription || item.itemNo || ""}</div>
                   <div style={{ fontSize: "12px", color: "#666", marginTop: "4px" }}>
                     {item.callFile && `Call File: ${item.callFile} • `}
                     Qty: {item.qty} • Total: {new Intl.NumberFormat("en-US", {
                       style: "currency",
                       currency: "SAR",
                       minimumFractionDigits: 2,
-                    }).format(item.totalInSARWithVAT || 0)}
+                    }).format(item.totalAmount || 0)}
                   </div>
                 </div>
               ))}
@@ -626,50 +626,42 @@ PreviewModal.propTypes = {
   modalType: PropTypes.oneOf(["invoice", "purchaseOrder"]).isRequired,
 };
 
+const TAX_CODE_OPTIONS = ["15%", "5%", "0%"];
+
 // Generate dummy sales order data
 const generateDummySalesOrders = () => {
-  const itemNames = ["Container Service", "Shipping Documentation", "Cargo Handling", "Storage Service", "Customs Clearance", "Freight Forwarding", "Warehouse Service", "Distribution Service"];
-  const itemCodes = ["ITEM-001", "ITEM-002", "ITEM-003", "ITEM-004", "ITEM-005", "ITEM-006", "ITEM-007", "ITEM-008"];
-  const callFiles = ["CALL-001", "CALL-002", "CALL-003", "CALL-004", null]; // Some items may not have callFile
-  const poStatuses = ["Draft", "Issued", "Completed"]; // PO Status options
+  const itemDescriptions = ["Container Handling Service", "Shipping Documentation", "Cargo Handling", "Storage Service", "Customs Clearance", "Freight Forwarding", "Warehouse Service", "Distribution Service"];
+  const itemNos = ["ITEM-001", "ITEM-002", "ITEM-003", "ITEM-004", "ITEM-005", "ITEM-006", "ITEM-007", "ITEM-008"];
+  const callFiles = ["CALL-001", "CALL-002", "CALL-003", "CALL-004", null];
+  const poStatuses = ["Draft", "Issued", "Completed"];
 
   const dummyOrders = [];
   for (let i = 1; i <= 20; i++) {
-    const itemIndex = Math.floor(Math.random() * itemNames.length);
-    const startDate = new Date();
-    startDate.setDate(startDate.getDate() - Math.floor(Math.random() * 60));
-    const completedDate = new Date(startDate);
-    completedDate.setDate(completedDate.getDate() + Math.floor(Math.random() * 30) + 7);
-
-    const vatPercentage = [5, 15, 20][Math.floor(Math.random() * 3)];
+    const itemIndex = Math.floor(Math.random() * itemDescriptions.length);
+    const taxCode = TAX_CODE_OPTIONS[Math.floor(Math.random() * TAX_CODE_OPTIONS.length)];
+    const taxRate = parseFloat(taxCode) / 100;
     const qty = Math.floor(Math.random() * 100) + 1;
-    const unitPrice = Math.random() * 5000 + 100;
-    const totalUnitAmount = qty * unitPrice;
-    const vatAmount = (totalUnitAmount * vatPercentage) / 100;
-    const totalWithVAT = totalUnitAmount + vatAmount;
+    const unitPrice = Math.round((Math.random() * 5000 + 100) * 100) / 100;
+    const discount = Math.round(Math.random() * 20 * 100) / 100; // 0–20%
+    const discountedPrice = unitPrice * (1 - discount / 100);
+    const totalBeforeTax = qty * discountedPrice;
+    const taxAmount = totalBeforeTax * taxRate;
+    const totalAmount = totalBeforeTax + taxAmount;
 
-    // Assign callFile - some items share the same callFile to create groups
-    const callFileIndex = Math.floor(Math.random() * callFiles.length);
-    const callFile = callFiles[callFileIndex];
-
-    // Assign random PO Status
-    const poStatusIndex = Math.floor(Math.random() * poStatuses.length);
-    const poStatus = poStatuses[poStatusIndex];
+    const callFile = callFiles[Math.floor(Math.random() * callFiles.length)];
+    const poStatus = poStatuses[Math.floor(Math.random() * poStatuses.length)];
 
     dummyOrders.push({
       id: i,
-      callFile: callFile,
-      lineItemCode: itemCodes[itemIndex],
-      lineItemName: itemNames[itemIndex],
-      startedDate: startDate.toISOString(),
-      completedDate: completedDate.toISOString(),
-      vatPercentage: vatPercentage,
-      qty: qty,
-      poStatus: poStatus,
-      unitPrice: unitPrice,
-      totalUnitAmount: totalUnitAmount,
-      vatAmount: vatAmount,
-      totalInSARWithVAT: totalWithVAT,
+      callFile,
+      itemNo: itemNos[itemIndex],
+      itemDescription: itemDescriptions[itemIndex],
+      qty,
+      unitPrice,
+      discount,
+      taxCode,
+      totalAmount,
+      poStatus,
     });
   }
   return dummyOrders;
@@ -707,8 +699,12 @@ const SalesOrderList = ({ formValues, handleChange, cardColor, readOnly = false,
   const [expandedCallFiles, setExpandedCallFiles] = useState(new Set());
   const [newItemForm, setNewItemForm] = useState({
     callFile: "",
-    lineItemCode: "",
-    lineItemName: "",
+    itemNo: "",
+    itemDescription: "",
+    qty: "",
+    unitPrice: "",
+    discount: "0",
+    taxCode: "15%",
   });
 
   // State for checkbox selection (exclude DA module)
@@ -767,9 +763,20 @@ const SalesOrderList = ({ formValues, handleChange, cardColor, readOnly = false,
     });
   };
 
+  const calcRowTotal = (order, overrides = {}) => {
+    const qty = parseFloat(overrides.qty ?? order.qty) || 0;
+    const unitPrice = parseFloat(overrides.unitPrice ?? order.unitPrice) || 0;
+    const discount = parseFloat(overrides.discount ?? order.discount) || 0;
+    const taxCode = overrides.taxCode ?? order.taxCode ?? "15%";
+    const taxRate = parseFloat(taxCode) / 100;
+    const discountedPrice = unitPrice * (1 - discount / 100);
+    const totalBeforeTax = qty * discountedPrice;
+    return Math.round((totalBeforeTax + totalBeforeTax * taxRate) * 100) / 100;
+  };
+
   // Calculate total line item total from list if not provided
   const calculatedLineItemTotal = lineItemTotal || displayOrderList.reduce((sum, item) => {
-    return sum + (parseFloat(item.totalInSARWithVAT) || 0);
+    return sum + (parseFloat(item.totalAmount) || 0);
   }, 0);
 
   const formatDate = (dateString) => {
@@ -827,38 +834,24 @@ const SalesOrderList = ({ formValues, handleChange, cardColor, readOnly = false,
     }
   };
 
-  const handleQtyChange = (orderId, newQty) => {
+  const handleFieldChange = (orderId, field, value) => {
     const updatedList = salesOrderList.map((order) => {
-      if (order.id === orderId) {
-        const qty = parseFloat(newQty) || 0;
-        const unitPrice = parseFloat(order.unitPrice) || 0;
-        const vatPercentage = parseFloat(order.vatPercentage) || 0;
-
-        const totalUnitAmount = qty * unitPrice;
-        const vatAmount = (totalUnitAmount * vatPercentage) / 100;
-        const totalInSARWithVAT = totalUnitAmount + vatAmount;
-
-        return {
-          ...order,
-          qty: qty,
-          totalUnitAmount: totalUnitAmount,
-          vatAmount: vatAmount,
-          totalInSARWithVAT: totalInSARWithVAT,
-        };
-      }
-      return order;
+      if (order.id !== orderId) return order;
+      const overrides = { [field]: value };
+      return { ...order, ...overrides, totalAmount: calcRowTotal(order, overrides) };
     });
-
-    const syntheticEvent = { target: { value: updatedList } };
-    handleChange("salesOrderList")(syntheticEvent);
+    handleChange("salesOrderList")({ target: { value: updatedList } });
   };
 
   const handleAddNewItem = () => {
-    // Set default values and open accordion
     setNewItemForm({
       callFile: "",
-      lineItemCode: "",
-      lineItemName: "",
+      itemNo: "",
+      itemDescription: "",
+      qty: "",
+      unitPrice: "",
+      discount: "0",
+      taxCode: "15%",
     });
     setIsAccordionOpen(true);
   };
@@ -871,64 +864,38 @@ const SalesOrderList = ({ formValues, handleChange, cardColor, readOnly = false,
   };
 
   const handleSaveNewItem = () => {
-    // Validate required fields
-    if (!newItemForm.lineItemCode || !newItemForm.lineItemName) {
-      alert("Please fill in Line Item Code and Line Item Name");
+    if (!newItemForm.itemNo || !newItemForm.itemDescription) {
+      alert("Please fill in Item No and Item Description");
       return;
     }
 
     const currentList = salesOrderList.length > 0 ? salesOrderList : [];
-
-    // Generate a unique ID for the new item
-    const maxId = currentList.length > 0
-      ? Math.max(...currentList.map(item => item.id || 0))
-      : 0;
-    const newId = maxId + 1;
-
-    // Set default values for removed fields
-    const currentDate = new Date();
-    const completedDate = new Date(currentDate);
-    completedDate.setDate(completedDate.getDate() + 7);
-
-    const startedDateTime = currentDate.toISOString();
-    const completedDateTime = completedDate.toISOString();
-
-    const qty = 1;
-    const unitPrice = 100;
-    const vatPercentage = 15;
-    const poStatuses = ["Draft", "Issued", "Completed"];
-    const poStatus = poStatuses[Math.floor(Math.random() * poStatuses.length)];
-
-    const totalUnitAmount = qty * unitPrice;
-    const vatAmount = (totalUnitAmount * vatPercentage) / 100;
-    const totalInSARWithVAT = totalUnitAmount + vatAmount;
+    const maxId = currentList.length > 0 ? Math.max(...currentList.map((item) => item.id || 0)) : 0;
 
     const newItem = {
-      id: newId,
+      id: maxId + 1,
       callFile: newItemForm.callFile || null,
-      lineItemCode: newItemForm.lineItemCode,
-      lineItemName: newItemForm.lineItemName,
-      startedDate: startedDateTime,
-      completedDate: completedDateTime,
-      vatPercentage: vatPercentage,
-      qty: qty,
-      poStatus: poStatus,
-      unitPrice: unitPrice,
-      totalUnitAmount: totalUnitAmount,
-      vatAmount: vatAmount,
-      totalInSARWithVAT: totalInSARWithVAT,
+      itemNo: newItemForm.itemNo,
+      itemDescription: newItemForm.itemDescription,
+      qty: parseFloat(newItemForm.qty) || 1,
+      unitPrice: parseFloat(newItemForm.unitPrice) || 0,
+      discount: parseFloat(newItemForm.discount) || 0,
+      taxCode: newItemForm.taxCode || "15%",
+      poStatus: "Draft",
     };
+    newItem.totalAmount = calcRowTotal(newItem);
 
-    const updatedList = [...currentList, newItem];
-    const syntheticEvent = { target: { value: updatedList } };
-    handleChange("salesOrderList")(syntheticEvent);
+    handleChange("salesOrderList")({ target: { value: [...currentList, newItem] } });
 
-    // Reset form and close accordion
     setIsAccordionOpen(false);
     setNewItemForm({
       callFile: "",
-      lineItemCode: "",
-      lineItemName: "",
+      itemNo: "",
+      itemDescription: "",
+      qty: "",
+      unitPrice: "",
+      discount: "0",
+      taxCode: "15%",
     });
   };
 
@@ -936,8 +903,12 @@ const SalesOrderList = ({ formValues, handleChange, cardColor, readOnly = false,
     setIsAccordionOpen(false);
     setNewItemForm({
       callFile: "",
-      lineItemCode: "",
-      lineItemName: "",
+      itemNo: "",
+      itemDescription: "",
+      qty: "",
+      unitPrice: "",
+      discount: "0",
+      taxCode: "15%",
     });
   };
 
@@ -1030,6 +1001,16 @@ const SalesOrderList = ({ formValues, handleChange, cardColor, readOnly = false,
     return <th>{label}</th>;
   };
 
+  const cellStyle = {
+    width: "100%",
+    border: "1px solid #ddd",
+    borderRadius: "4px",
+    padding: "4px 8px",
+    textAlign: "center",
+    fontSize: "14px",
+    fontFamily: "inherit",
+  };
+
   // Render a single order row
   const renderOrderRow = (order) => (
     <tr key={order.id}>
@@ -1040,18 +1021,16 @@ const SalesOrderList = ({ formValues, handleChange, cardColor, readOnly = false,
               type="checkbox"
               checked={selectedItems.has(order.id)}
               onChange={(e) => handleItemCheckboxChange(order.id, e.target.checked)}
-              style={{
-                width: "18px",
-                height: "18px",
-                cursor: "pointer",
-              }}
+              style={{ width: "18px", height: "18px", cursor: "pointer" }}
             />
           </div>
         </td>
       )}
+
+      {/* Item No */}
       <td>
         <div className="sales-order-table-cell" style={{ display: "flex", alignItems: "center", justifyContent: "space-between", gap: "8px" }}>
-          <span>{order.lineItemName || ""}</span>
+          <span>{order.itemNo || ""}</span>
           {isDAModule && (
             <>
               <Tooltip id="create-purchase-order-tooltip" place="top" content="Create Purchase Order" />
@@ -1059,116 +1038,98 @@ const SalesOrderList = ({ formValues, handleChange, cardColor, readOnly = false,
               {order.poStatus === "Draft" && (
                 <FiFilePlus
                   data-tooltip-id="create-purchase-order-tooltip"
-                  style={{
-                    cursor: "pointer",
-                    color: "#FFD700",
-                    fontSize: "18px",
-                    flexShrink: 0,
-                  }}
-                  onClick={(e) => {
-                    e.stopPropagation();
-                    handleOpenPreviewModal("purchaseOrder");
-                  }}
+                  style={{ cursor: "pointer", color: "#FFD700", fontSize: "18px", flexShrink: 0 }}
+                  onClick={(e) => { e.stopPropagation(); handleOpenPreviewModal("purchaseOrder"); }}
                 />
               )}
               {order.poStatus === "Completed" && (
                 <FiFileText
                   data-tooltip-id="generate-invoice-tooltip"
-                  style={{
-                    cursor: "pointer",
-                    color: "#008000",
-                    fontSize: "18px",
-                    flexShrink: 0,
-                  }}
-                  onClick={(e) => {
-                    e.stopPropagation();
-                    handleOpenPreviewModal("invoice");
-                  }}
+                  style={{ cursor: "pointer", color: "#008000", fontSize: "18px", flexShrink: 0 }}
+                  onClick={(e) => { e.stopPropagation(); handleOpenPreviewModal("invoice"); }}
                 />
               )}
             </>
           )}
         </div>
       </td>
+
+      {/* Item Description */}
       <td>
-        <div className="sales-order-table-cell">
-          <div className="sales-order-date">{formatDate(order.startedDate)}</div>
-          <div className="sales-order-time">{formatTime(order.startedDate)}</div>
-        </div>
+        <div className="sales-order-table-cell">{order.itemDescription || ""}</div>
       </td>
+
+      {/* Qty */}
       <td>
         <div className="sales-order-table-cell">
-          <div className="sales-order-date">{formatDate(order.completedDate)}</div>
-          <div className="sales-order-time">{formatTime(order.completedDate)}</div>
-        </div>
-      </td>
-      <td>
-        <div className="sales-order-table-cell">
-          {order.vatPercentage ? `${order.vatPercentage}%` : ""}
-        </div>
-      </td>
-      <td>
-        <div className="sales-order-table-cell">
-          {readOnly ? (
-            (order.qty ?? 0)
-          ) : (
+          {readOnly ? (order.qty ?? 0) : (
             <input
               type="number"
               min="0"
               step="1"
-              value={order.qty || 0}
-              onChange={(e) => handleQtyChange(order.id, e.target.value)}
+              value={order.qty ?? 0}
+              onChange={(e) => handleFieldChange(order.id, "qty", e.target.value)}
               className="sales-order-qty-input"
-              style={{
-                width: "100%",
-                border: "1px solid #ddd",
-                borderRadius: "4px",
-                padding: "4px 8px",
-                textAlign: "center",
-                fontSize: "14px",
-              }}
+              style={cellStyle}
             />
           )}
         </div>
       </td>
-      {showPOStatus && (
-        <td>
-          <div className="sales-order-table-cell">
-            <span
-              style={{
-                display: "inline-block",
-                padding: "4px 12px",
-                borderRadius: "12px",
-                fontSize: "13px",
-                fontWeight: "500",
-                color: getPOStatusColor(order.poStatus || "Draft"),
-                backgroundColor: getPOStatusBgColor(order.poStatus || "Draft"),
-                border: `1px solid ${getPOStatusColor(order.poStatus || "Draft")}`,
-              }}
+
+      {/* Unit Price */}
+      <td>
+        <div className="sales-order-table-cell">
+          {readOnly ? formatCurrencySAR(order.unitPrice || 0) : (
+            <input
+              type="number"
+              min="0"
+              step="0.01"
+              value={order.unitPrice ?? 0}
+              onChange={(e) => handleFieldChange(order.id, "unitPrice", e.target.value)}
+              style={cellStyle}
+            />
+          )}
+        </div>
+      </td>
+
+      {/* Discount % */}
+      <td>
+        <div className="sales-order-table-cell">
+          {readOnly ? `${order.discount ?? 0}%` : (
+            <input
+              type="number"
+              min="0"
+              max="100"
+              step="0.01"
+              value={order.discount ?? 0}
+              onChange={(e) => handleFieldChange(order.id, "discount", e.target.value)}
+              style={cellStyle}
+            />
+          )}
+        </div>
+      </td>
+
+      {/* Tax Code */}
+      <td>
+        <div className="sales-order-table-cell">
+          {readOnly ? (order.taxCode || "15%") : (
+            <select
+              value={order.taxCode || "15%"}
+              onChange={(e) => handleFieldChange(order.id, "taxCode", e.target.value)}
+              style={{ ...cellStyle, cursor: "pointer" }}
             >
-              {order.poStatus || "Draft"}
-            </span>
-          </div>
-        </td>
-      )}
-      <td>
-        <div className="sales-order-table-cell">
-          {formatCurrencySAR(order.unitPrice || 0)}
+              {TAX_CODE_OPTIONS.map((t) => (
+                <option key={t} value={t}>{t}</option>
+              ))}
+            </select>
+          )}
         </div>
       </td>
-      <td>
-        <div className="sales-order-table-cell">
-          {formatCurrencySAR(order.totalUnitAmount || 0)}
-        </div>
-      </td>
-      <td>
-        <div className="sales-order-table-cell">
-          {formatCurrencySAR(order.vatAmount || 0)}
-        </div>
-      </td>
+
+      {/* Total Amount */}
       <td>
         <div className="sales-order-table-cell sales-order-table-cell-total">
-          {formatCurrencySAR(order.totalInSARWithVAT || 0)}
+          {formatCurrencySAR(order.totalAmount || 0)}
         </div>
       </td>
     </tr>
@@ -1412,7 +1373,7 @@ const SalesOrderList = ({ formValues, handleChange, cardColor, readOnly = false,
             </button>
           </div>
           <div className="sales-order-add-accordion-body">
-            <div className="sales-order-add-form-grid" style={{ gridTemplateColumns: "repeat(3, 1fr)" }}>
+            <div className="sales-order-add-form-grid" style={{ gridTemplateColumns: "repeat(4, 1fr)" }}>
               <div className="sales-order-add-form-field">
                 <label>Call File</label>
                 <select
@@ -1429,26 +1390,75 @@ const SalesOrderList = ({ formValues, handleChange, cardColor, readOnly = false,
                 </select>
               </div>
               <div className="sales-order-add-form-field">
-                <label>Line Item Code *</label>
+                <label>Item No <span style={{ color: "#e53935" }}>*</span></label>
                 <input
                   type="text"
-                  value={newItemForm.lineItemCode}
-                  onChange={(e) => handleFormChange("lineItemCode", e.target.value)}
+                  value={newItemForm.itemNo}
+                  onChange={(e) => handleFormChange("itemNo", e.target.value)}
                   placeholder="e.g., ITEM-001"
                   className="sales-order-add-form-input"
                   required
                 />
               </div>
-              <div className="sales-order-add-form-field">
-                <label>Line Item Name *</label>
+              <div className="sales-order-add-form-field" style={{ gridColumn: "span 2" }}>
+                <label>Item Description <span style={{ color: "#e53935" }}>*</span></label>
                 <input
                   type="text"
-                  value={newItemForm.lineItemName}
-                  onChange={(e) => handleFormChange("lineItemName", e.target.value)}
-                  placeholder="e.g., Container Service"
+                  value={newItemForm.itemDescription}
+                  onChange={(e) => handleFormChange("itemDescription", e.target.value)}
+                  placeholder="e.g., Container Handling Service"
                   className="sales-order-add-form-input"
                   required
                 />
+              </div>
+              <div className="sales-order-add-form-field">
+                <label>Qty</label>
+                <input
+                  type="number"
+                  min="0"
+                  step="1"
+                  value={newItemForm.qty}
+                  onChange={(e) => handleFormChange("qty", e.target.value)}
+                  placeholder="1"
+                  className="sales-order-add-form-input"
+                />
+              </div>
+              <div className="sales-order-add-form-field">
+                <label>Unit Price</label>
+                <input
+                  type="number"
+                  min="0"
+                  step="0.01"
+                  value={newItemForm.unitPrice}
+                  onChange={(e) => handleFormChange("unitPrice", e.target.value)}
+                  placeholder="0.00"
+                  className="sales-order-add-form-input"
+                />
+              </div>
+              <div className="sales-order-add-form-field">
+                <label>Discount %</label>
+                <input
+                  type="number"
+                  min="0"
+                  max="100"
+                  step="0.01"
+                  value={newItemForm.discount}
+                  onChange={(e) => handleFormChange("discount", e.target.value)}
+                  placeholder="0"
+                  className="sales-order-add-form-input"
+                />
+              </div>
+              <div className="sales-order-add-form-field">
+                <label>Tax Code</label>
+                <select
+                  value={newItemForm.taxCode}
+                  onChange={(e) => handleFormChange("taxCode", e.target.value)}
+                  className="sales-order-add-form-input"
+                >
+                  {TAX_CODE_OPTIONS.map((t) => (
+                    <option key={t} value={t}>{t}</option>
+                  ))}
+                </select>
               </div>
             </div>
             <div className="sales-order-add-form-actions">
@@ -1534,40 +1544,21 @@ const SalesOrderList = ({ formValues, handleChange, cardColor, readOnly = false,
         {/* Tooltips for table headers (DAModule only, labels > 10 chars) */}
         {isDAModule && (
           <>
-            <Tooltip
-              id="header-tooltip-lineditem-name"
-              place="top"
-              content="LinedItem Name"
-              className="small-header-tooltip"
-            />
-            <Tooltip
-              id="header-tooltip-total-unit-amount"
-              place="top"
-              content="Total Unit Amount"
-              className="small-header-tooltip"
-            />
-            <Tooltip
-              id="header-tooltip-total-in-sar-with-vat"
-              place="top"
-              content="Total in SAR with VAT"
-              className="small-header-tooltip"
-            />
+            <Tooltip id="header-tooltip-item-description" place="top" content="Item Description" className="small-header-tooltip" />
+            <Tooltip id="header-tooltip-total-amount" place="top" content="Total Amount" className="small-header-tooltip" />
           </>
         )}
         <table className="table table-striped sales-order-table" style={{ "--card-color": "#e2e6ff" }}>
           <thead>
             <tr>
               {!isDAModule && <th style={{ width: "50px", textAlign: "center" }}></th>}
-              {renderTableHeader("LinedItem Name")}
-              {renderTableHeader("Started")}
-              {renderTableHeader("Completed")}
-              {renderTableHeader("VAT (%)")}
+              {renderTableHeader("Item No")}
+              {renderTableHeader("Item Description")}
               {renderTableHeader("Qty")}
-              {showPOStatus && renderTableHeader("PO Status")}
               {renderTableHeader("Unit Price")}
-              {renderTableHeader("Total Unit Amount")}
-              {renderTableHeader("VAT Amount")}
-              {renderTableHeader("Total in SAR with VAT")}
+              {renderTableHeader("Discount %")}
+              {renderTableHeader("Tax Code")}
+              {renderTableHeader("Total Amount")}
             </tr>
           </thead>
           <tbody>
@@ -1579,7 +1570,7 @@ const SalesOrderList = ({ formValues, handleChange, cardColor, readOnly = false,
               }
 
               const isExpanded = expandedCallFiles.has(callFile);
-              const groupTotal = orders.reduce((sum, item) => sum + (parseFloat(item.totalInSARWithVAT) || 0), 0);
+              const groupTotal = orders.reduce((sum, item) => sum + (parseFloat(item.totalAmount) || 0), 0);
 
               const groupAllSelected = isGroupAllSelected(orders);
               const groupSomeSelected = isGroupSomeSelected(orders);
@@ -1599,7 +1590,7 @@ const SalesOrderList = ({ formValues, handleChange, cardColor, readOnly = false,
                     }}
                     style={{ cursor: "pointer", backgroundColor: isExpanded ? "rgba(42, 0, 255, 0.05)" : "#ffffff" }}
                   >
-                    <td colSpan={showPOStatus ? (isDAModule ? 10 : 11) : (isDAModule ? 9 : 10)} style={{ padding: "12px 16px" }}>
+                    <td colSpan={isDAModule ? 7 : 8} style={{ padding: "12px 16px" }}>
                       <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between" }}>
                         <div style={{ display: "flex", alignItems: "center", gap: "12px" }}>
                           {!isDAModule && (
