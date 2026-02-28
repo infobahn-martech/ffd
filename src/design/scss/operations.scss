@@ -3385,23 +3385,25 @@ body .material-management-modal .files-list::-webkit-scrollbar-thumb:hover {
 }
 
 .so-header-row {
-  display: flex;
-  flex-wrap: wrap;
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
   gap: 14px;
   align-items: flex-end;
 }
 
 .so-header-field {
-  flex: 1;
-  min-width: 160px;
   display: flex;
   flex-direction: column;
   gap: 5px;
+  min-width: 0;
 }
 
 .so-header-field-wide {
-  flex: 2;
-  min-width: 260px;
+  grid-column: span 2;
+}
+
+.so-header-field-status {
+  grid-column: auto;
 }
 
 .so-header-label {
@@ -3505,11 +3507,6 @@ body .material-management-modal .files-list::-webkit-scrollbar-thumb:hover {
   white-space: nowrap;
 }
 
-.so-header-field-status {
-  flex: 0 0 auto;
-  min-width: 90px;
-}
-
 .so-status-badge {
   display: inline-flex;
   align-items: center;
@@ -3542,8 +3539,12 @@ body .material-management-modal .files-list::-webkit-scrollbar-thumb:hover {
     margin: 0 12px 12px 12px;
   }
 
-  .so-header-field {
-    min-width: 140px;
+  .so-header-row {
+    grid-template-columns: repeat(2, 1fr);
+  }
+
+  .so-header-field-wide {
+    grid-column: span 2;
   }
 }
 
