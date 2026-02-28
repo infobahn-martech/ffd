@@ -12,6 +12,7 @@ const useUserReducer = create((set) => ({
   addEditLoader: false,
   userPermissions: null,
   isLoadingPermissions: false,
+  isUpdatingUserPermission: false,
   createUser: async ({ formData, cb }) => {
     try {
       set({ addEditLoader: true });
@@ -70,6 +71,20 @@ const useUserReducer = create((set) => ({
         isLoadingPermissions: false
       });
       showError(error?.response?.data?.message ?? error.message);
+    }
+  },
+  updateUserPermission: async ({ user_id, permissions, cb }) => {
+    try {
+      set({ isUpdatingUserPermission: true });
+      const { data } = await userService.updateUserPermission({ user_id, permissions });
+      set({ isUpdatingUserPermission: false });
+      const { success } = useAlertReducer.getState();
+      success(data && data.message);
+      cb && cb();
+    } catch (err) {
+      const { error } = useAlertReducer.getState();
+      set({ isUpdatingUserPermission: false });
+      error(err?.response?.data?.message ?? err.message);
     }
   },
   activateUser: async ({ user_id, cb }) => {

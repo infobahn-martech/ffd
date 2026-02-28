@@ -83,6 +83,8 @@ export function PermissionModal({
   userPermissions,
   selectedUser,
   onSuccess,
+  updateUserPermission,
+  isUpdatingUserPermission,
 }) {
   const isUserPermissionMode =
     !!userPermissions && Array.isArray(userPermissions);
@@ -198,10 +200,45 @@ export function PermissionModal({
     });
   };
 
-  // Handle form submission (Permission page only; user mode is view/edit of user permissions)
+  // Handle form submission
   const handleSubmit = async (e) => {
     e.preventDefault();
-    if (isUserPermissionMode) return;
+
+    if (isUserPermissionMode) {
+      if (!selectedUser?.user_id) {
+        showError("Invalid user");
+        return;
+      }
+
+      const permissions = Array.from(
+        // Build the full list: every known permission id mapped to is_allowed
+        (permissionsList ?? []).flatMap((level1) => {
+          const collectIds = (item) => {
+            const ids = [item.permission_id];
+            if (item.subpermission?.length) {
+              item.subpermission.forEach((sub) => ids.push(...collectIds(sub)));
+            }
+            return ids;
+          };
+          return collectIds(level1);
+        })
+      ).map((permission_id) => ({
+        permission_id,
+        is_allowed: selectedPermissions.has(permission_id) ? 1 : 0,
+      }));
+
+      const cb = () => {
+        onSuccess?.();
+        closeModal?.(null);
+      };
+
+      await updateUserPermission?.({
+        user_id: selectedUser.user_id,
+        permissions,
+        cb,
+      });
+      return;
+    }
 
     const role = roleText?.trim();
     if (!role) {
@@ -564,28 +601,33 @@ export function PermissionModal({
   // -------------------------------------------
   //  Footer
   // -------------------------------------------
-  const renderFooter = () => (
-    <div className="modal-footer">
-      <button
-        type="button"
-        className="btn btn-outline"
-        onClick={() => closeModal?.(null)}
-        disabled={isBeingUpdated}
-      >
-        Close
-      </button>
+  const renderFooter = () => {
+    const isSaving = isUserPermissionMode
+      ? !!isUpdatingUserPermission
+      : !!isBeingUpdated;
 
-      {!isUserPermissionMode && (
+    return (
+      <div className="modal-footer">
+        <button
+          type="button"
+          className="btn btn-outline"
+          onClick={() => closeModal?.(null)}
+          disabled={isSaving}
+        >
+          Close
+        </button>
+
         <button
           type="submit"
           className="btn btn-primary"
           form="permissionForm"
+          disabled={isSaving}
         >
-          {isBeingUpdated ? "Saving..." : "Save"}
+          {isSaving ? "Saving..." : "Save"}
         </button>
-      )}
-    </div>
-  );
+      </div>
+    );
+  };
 
   return (
     <CustomModal

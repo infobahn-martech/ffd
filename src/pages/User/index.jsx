@@ -29,6 +29,8 @@ const User = () => {
     getUserPermissions,
     userPermissions,
     isLoadingPermissions,
+    updateUserPermission,
+    isUpdatingUserPermission,
     activateUser,
     archiveUser,
     isArchiving,
@@ -191,6 +193,8 @@ const User = () => {
               userPermissions={userPermissions}
               isLoadingPermissions={isLoadingPermissions}
               selectedUser={selectedUser}
+              updateUserPermission={updateUserPermission}
+              isUpdatingUserPermission={isUpdatingUserPermission}
             />
           )}
           {!!showDeleteModal && (
