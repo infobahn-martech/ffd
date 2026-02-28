@@ -115,14 +115,27 @@ const companyLogoMap = {
   "lamprell": lamprellLogo,
 };
 
-// Deterministic "random" ETA from card id (stable per card)
 const getRandomEta = (cardId) => {
-  if (!cardId) return "5d 12h";
+  if (!cardId) return "2025-11-24 16:48";
+
   let h = 0;
-  for (let i = 0; i < cardId.length; i++) h = (h << 5) - h + cardId.charCodeAt(i) | 0;
-  const d = Math.abs(h % 21) + 1;
-  const hrs = Math.abs((h >> 8) % 24);
-  return `${d}d ${hrs}h`;
+  for (let i = 0; i < cardId.length; i++) {
+    h = (h << 5) - h + cardId.charCodeAt(i);
+    h |= 0;
+  }
+
+  const daysToAdd = Math.abs(h % 30) + 1;      // 1–30 days
+  const hoursToAdd = Math.abs((h >> 8) % 24);  // 0–23 hours
+  const minutesToAdd = Math.abs((h >> 16) % 60); // 0–59 minutes
+
+  const date = new Date();
+  date.setDate(date.getDate() + daysToAdd);
+  date.setHours(date.getHours() + hoursToAdd);
+  date.setMinutes(date.getMinutes() + minutesToAdd);
+
+  const pad = (n) => n.toString().padStart(2, "0");
+
+  return `${date.getFullYear()}-${pad(date.getMonth() + 1)}-${pad(date.getDate())} ${pad(date.getHours())}:${pad(date.getMinutes())}`;
 };
 
 // Function to get company icon based on card name
