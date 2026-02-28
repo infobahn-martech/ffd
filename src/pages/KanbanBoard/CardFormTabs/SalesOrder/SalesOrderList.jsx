@@ -1466,7 +1466,7 @@ const SalesOrderList = ({ formValues, handleChange, cardColor, readOnly = false,
       </div>
 
       {/* Summary Section */}
-      <div className="sales-order-summary-section">
+      {/* <div className="sales-order-summary-section">
         <div className="sales-order-summary-grid">
           <div className="sales-order-summary-item">
             <label className="sales-order-summary-label">Billing Entity</label>
@@ -1483,7 +1483,7 @@ const SalesOrderList = ({ formValues, handleChange, cardColor, readOnly = false,
             </div>
           </div>
         </div>
-      </div>
+      </div> */}
 
       {/* Add Item Accordion */}
       {!readOnly && isAccordionOpen && (
