@@ -132,7 +132,9 @@ export function PermissionModal({
               if (!data) return;
               if (data.description)
                 setRoleDescription(data.description ?? "");
-              if (data?.permissions?.length) {
+              if (Array.isArray(data?.permission_ids)) {
+                setSelectedPermissions(new Set(data.permission_ids));
+              } else if (data?.permissions?.length) {
                 const ids = new Set(
                   data.permissions.map((p) => p.permission_id ?? p.id ?? p)
                 );
