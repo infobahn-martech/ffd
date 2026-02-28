@@ -3580,14 +3580,99 @@ body .material-management-modal .files-list::-webkit-scrollbar-thumb:hover {
   flex-shrink: 0;
 }
 
-// The actual compact card — right-aligned, fixed width
+// Two-column body: left info fields + right accounting card
+.so-accounting-body {
+  display: flex;
+  gap: 20px;
+  align-items: flex-start;
+}
+
+.so-accounting-info {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+
+.so-accounting-info-field {
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+}
+
+.so-accounting-info-label {
+  font-size: 11px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  color: #8a8fa8;
+  white-space: nowrap;
+}
+
+.so-accounting-info-value {
+  width: 100%;
+  padding: 7px 11px;
+  font-size: 13px;
+  border: 1px solid #dde0ea;
+  border-radius: 7px;
+  background: #f6f7fb;
+  color: #555b7a;
+  box-sizing: border-box;
+  font-family: "Poppins", sans-serif;
+  cursor: default;
+}
+
+.so-accounting-info-textarea {
+  width: 100%;
+  padding: 7px 11px;
+  font-size: 13px;
+  border: 1px solid #dde0ea;
+  border-radius: 7px;
+  background: #fff;
+  color: #1a1a2e;
+  box-sizing: border-box;
+  font-family: "Poppins", sans-serif;
+  resize: vertical;
+  min-height: 72px;
+  transition: border-color 0.18s, box-shadow 0.18s;
+
+  &:focus {
+    outline: none;
+    border-color: #b3baff;
+    box-shadow: 0 0 0 2px rgba(226, 230, 255, 0.6);
+  }
+
+  &:disabled {
+    background: #f6f7fb;
+    color: #555b7a;
+    cursor: default;
+  }
+}
+
+// Right column wrapper
+.so-accounting-right {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  flex-shrink: 0;
+}
+
+.so-accounting-card-title {
+  font-size: 12px;
+  font-weight: 700;
+  letter-spacing: 0.8px;
+  text-transform: uppercase;
+  color: #6b7280;
+}
+
+// The actual compact card — right side fixed width
 .so-accounting-grid {
   display: flex;
   flex-direction: column;
   gap: 0;
   width: 460px;
   max-width: 100%;
-  margin-left: auto;
   background: #ffffff;
   border: 1px solid #e0e2ee;
   border-radius: 10px;
