@@ -1376,12 +1376,7 @@ const SalesOrderList = ({ formValues, handleChange, cardColor, readOnly = false,
 
         {/* Row 3: Status | Posting Date | Delivery Date | Document Date */}
         <div className="so-header-row">
-          <div className="so-header-field so-header-field-status">
-            <label className="so-header-label">Status</label>
-            <span className={"so-status-badge so-status-" + soStatus.toLowerCase()}>
-              {soStatus}
-            </span>
-          </div>
+
           <div className="so-header-field">
             <label className="so-header-label">Posting Date</label>
             <input
@@ -1411,10 +1406,6 @@ const SalesOrderList = ({ formValues, handleChange, cardColor, readOnly = false,
               readOnly={readOnly}
             />
           </div>
-        </div>
-
-        {/* Row 4: Ship Name | Project Name (span 2) | Conversion Rate (conditional) */}
-        <div className="so-header-row">
           <div className="so-header-field">
             <label className="so-header-label">Ship Name</label>
             <input
@@ -1426,7 +1417,11 @@ const SalesOrderList = ({ formValues, handleChange, cardColor, readOnly = false,
               readOnly={readOnly}
             />
           </div>
-          <div className="so-header-field so-header-field-wide">
+        </div>
+
+        {/* Row 4: Ship Name | Project Name (span 2) | Conversion Rate (conditional) */}
+        <div className="so-header-row">
+          <div className="so-header-field">
             <label className="so-header-label">Project Name <span className="so-required">*</span></label>
             <input
               type="text"
@@ -1437,6 +1432,12 @@ const SalesOrderList = ({ formValues, handleChange, cardColor, readOnly = false,
               readOnly={readOnly}
               required
             />
+          </div>
+          <div className="so-header-field so-header-field-status">
+            <label className="so-header-label">Status</label>
+            <span className={"so-status-badge so-status-" + soStatus.toLowerCase()}>
+              {soStatus}
+            </span>
           </div>
           {soBpCurrency === "USD" && (
             <div className="so-header-field">
