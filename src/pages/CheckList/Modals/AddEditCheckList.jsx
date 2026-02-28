@@ -14,6 +14,7 @@ function mapItemToApi(item) {
     item_order: item?.item_order ?? 0,
     document_details: {
       require_copy_only: !!doc?.is_copy_required,
+      expiry_date_reqd: doc?.expiry_date_reqd ? 1 : 0,
       description: doc?.description ?? ""
     }
   };
@@ -228,6 +229,7 @@ export function CheckListModal({ showModal, closeModal, callTypesOptions, onSucc
               item_order: fields.length + 1,
               document_details: {
                 is_copy_required: false,
+                expiry_date_reqd: false,
                 required_copy_only: null,
                 description: ""
               }
@@ -393,7 +395,7 @@ export function CheckListModal({ showModal, closeModal, callTypesOptions, onSucc
                 }}></div>
                 <strong style={{ fontSize: "13px", color: "#1a1a1a" }}>Document Details</strong>
               </div>
-              <div className="mb-3">
+              <div style={{ display: "flex", gap: "24px", flexWrap: "wrap", marginBottom: "12px" }}>
                 <div className="form-check" style={{ display: "flex", alignItems: "center", gap: "10px" }}>
                   <input
                     className="form-check-input"
@@ -407,6 +409,21 @@ export function CheckListModal({ showModal, closeModal, callTypesOptions, onSucc
                     style={{ fontSize: "13px", color: "#666", fontWeight: "600" }}
                   >
                     Is Copy Required
+                  </label>
+                </div>
+                <div className="form-check" style={{ display: "flex", alignItems: "center", gap: "10px" }}>
+                  <input
+                    className="form-check-input"
+                    type="checkbox"
+                    id={`expiry_date_reqd_${sectionIndex}_${itemIndex}`}
+                    {...register(`sections.${sectionIndex}.items.${itemIndex}.document_details.expiry_date_reqd`)}
+                  />
+                  <label
+                    className="form-check-label"
+                    htmlFor={`expiry_date_reqd_${sectionIndex}_${itemIndex}`}
+                    style={{ fontSize: "13px", color: "#666", fontWeight: "600" }}
+                  >
+                    Expiry Date Required
                   </label>
                 </div>
               </div>
@@ -480,6 +497,7 @@ export function CheckListModal({ showModal, closeModal, callTypesOptions, onSucc
               item_order: fields.length + 1,
               document_details: {
                 is_copy_required: false,
+                expiry_date_reqd: false,
                 required_copy_only: null,
                 description: ""
               }
@@ -645,7 +663,7 @@ export function CheckListModal({ showModal, closeModal, callTypesOptions, onSucc
                 }}></div>
                 <strong style={{ fontSize: "13px", color: "#1a1a1a" }}>Document Details</strong>
               </div>
-              <div className="mb-3">
+              <div style={{ display: "flex", gap: "24px", flexWrap: "wrap", marginBottom: "12px" }}>
                 <div className="form-check" style={{ display: "flex", alignItems: "center", gap: "10px" }}>
                   <input
                     className="form-check-input"
@@ -659,6 +677,21 @@ export function CheckListModal({ showModal, closeModal, callTypesOptions, onSucc
                     style={{ fontSize: "13px", color: "#666", fontWeight: "600" }}
                   >
                     Is Copy Required
+                  </label>
+                </div>
+                <div className="form-check" style={{ display: "flex", alignItems: "center", gap: "10px" }}>
+                  <input
+                    className="form-check-input"
+                    type="checkbox"
+                    id={`expiry_date_reqd_${sectionIndex}_${subSectionIndex}_${itemIndex}`}
+                    {...register(`sections.${sectionIndex}.sub_sections.${subSectionIndex}.items.${itemIndex}.document_details.expiry_date_reqd`)}
+                  />
+                  <label
+                    className="form-check-label"
+                    htmlFor={`expiry_date_reqd_${sectionIndex}_${subSectionIndex}_${itemIndex}`}
+                    style={{ fontSize: "13px", color: "#666", fontWeight: "600" }}
+                  >
+                    Expiry Date Required
                   </label>
                 </div>
               </div>
