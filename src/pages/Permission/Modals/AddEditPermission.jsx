@@ -252,7 +252,7 @@ export function PermissionModal({
       return;
     }
 
-    const permissionIdArray = Array.from(selectedPermissions);
+    const permissionIdArray = Array.from(selectedPermissions).map(Number);
     const cb = () => {
       onSuccess?.();
       closeModal?.(null);
