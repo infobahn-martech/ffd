@@ -1209,6 +1209,13 @@ const SalesOrderList = ({ formValues, handleChange, cardColor, readOnly = false,
         </div>
       </td>
 
+      {/* Total Amount */}
+      <td>
+        <div className="sales-order-table-cell sales-order-table-cell-total">
+          {formatCurrencySAR(order.totalAmount || 0)}
+        </div>
+      </td>
+
       {/* Type of PO */}
       <td>
         <div className="sales-order-table-cell">
@@ -1250,13 +1257,6 @@ const SalesOrderList = ({ formValues, handleChange, cardColor, readOnly = false,
               </button>
             </>
           )}
-        </div>
-      </td>
-
-      {/* Total Amount */}
-      <td>
-        <div className="sales-order-table-cell sales-order-table-cell-total">
-          {formatCurrencySAR(order.totalAmount || 0)}
         </div>
       </td>
     </tr>
@@ -1719,9 +1719,9 @@ const SalesOrderList = ({ formValues, handleChange, cardColor, readOnly = false,
               {renderTableHeader("Unit Price")}
               {renderTableHeader("Discount %")}
               {renderTableHeader("Tax Code")}
+              {renderTableHeader("Total Amount")}
               {renderTableHeader("Type of PO")}
               {renderTableHeader("Supplier Code")}
-              {renderTableHeader("Total Amount")}
             </tr>
           </thead>
           <tbody>
