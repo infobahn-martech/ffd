@@ -133,18 +133,18 @@ export function PermissionModal({
               if (data.description)
                 setRoleDescription(data.description ?? "");
               if (Array.isArray(data?.permission_ids)) {
-                setSelectedPermissions(new Set(data.permission_ids));
+                setSelectedPermissions(new Set(data.permission_ids.map(Number)));
               } else if (data?.permissions?.length) {
                 const ids = new Set(
-                  data.permissions.map((p) => p.permission_id ?? p.id ?? p)
+                  data.permissions.map((p) => Number(p.permission_id ?? p.id ?? p))
                 );
                 setSelectedPermissions(ids);
               } else if (Array.isArray(data?.permission_id)) {
-                setSelectedPermissions(new Set(data.permission_id));
+                setSelectedPermissions(new Set(data.permission_id.map(Number)));
               } else if (Array.isArray(data)) {
                 const allowed = data
                   .filter((p) => p.is_allowed === "1" || p.is_allowed === 1)
-                  .map((p) => p.permission_id ?? p.id ?? p);
+                  .map((p) => Number(p.permission_id ?? p.id ?? p));
                 setSelectedPermissions(new Set(allowed));
               }
             });
@@ -173,7 +173,7 @@ export function PermissionModal({
         const allowed = new Set(
           userPermissions
             .filter((p) => p.is_allowed === "1" || p.is_allowed === 1)
-            .map((p) => p.permission_id)
+            .map((p) => Number(p.permission_id))
         );
         setSelectedPermissions(allowed);
         const first = userPermissions[0];
@@ -196,8 +196,8 @@ export function PermissionModal({
   const handlePermissionChange = (permissionId, checked) => {
     setSelectedPermissions((prev) => {
       const newSet = new Set(prev);
-      if (checked) newSet.add(permissionId);
-      else newSet.delete(permissionId);
+      if (checked) newSet.add(Number(permissionId));
+      else newSet.delete(Number(permissionId));
       return newSet;
     });
   };
@@ -284,7 +284,7 @@ export function PermissionModal({
   };
 
   // Check if a permission is selected
-  const isPermissionSelected = (permissionId) => selectedPermissions.has(permissionId);
+  const isPermissionSelected = (permissionId) => selectedPermissions.has(Number(permissionId));
 
   // Handle section-level toggle (select/deselect all children)
   const handleSectionToggle = (section, checked) => {
@@ -293,23 +293,23 @@ export function PermissionModal({
     // Collect all permission IDs from this section
     if (section.items && section.items.length > 0) {
       section.items.forEach((item) => {
-        permissionIds.push(item.permissionId || item.id);
+        permissionIds.push(Number(item.permissionId || item.id));
       });
     }
 
     if (section.subSections && section.subSections.length > 0) {
       section.subSections.forEach((sub) => {
-        permissionIds.push(sub.permissionId || sub.id);
+        permissionIds.push(Number(sub.permissionId || sub.id));
         if (sub.items && sub.items.length > 0) {
           sub.items.forEach((item) => {
-            permissionIds.push(item.permissionId || item.id);
+            permissionIds.push(Number(item.permissionId || item.id));
           });
         }
       });
     }
 
     // Also include the section itself
-    permissionIds.push(section.permissionId || section.id);
+    permissionIds.push(Number(section.permissionId || section.id));
 
     setSelectedPermissions((prev) => {
       const newSet = new Set(prev);
@@ -400,10 +400,10 @@ export function PermissionModal({
 
     // Handle sub-section toggle
     const handleSubToggle = (checked) => {
-      const permissionIds = [subPermissionId];
+      const permissionIds = [Number(subPermissionId)];
       if (sub.items && sub.items.length > 0) {
         sub.items.forEach((item) => {
-          permissionIds.push(item.permissionId || item.id);
+          permissionIds.push(Number(item.permissionId || item.id));
         });
       }
 
