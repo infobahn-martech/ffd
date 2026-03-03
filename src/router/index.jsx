@@ -65,6 +65,7 @@ import MWPBoard from "../pages/MWPBoard";
 import GROBoard from "../pages/GROBoard";
 import HotelBoard from "../pages/HotelBoard";
 import AdminBoard from "../pages/AdminBoard";
+import LHServices from "../pages/LHServices";
 // 🔥 Set true to bypass auth temporarily
 const TEST_MODE = false;
 
@@ -101,7 +102,7 @@ const router = createHashRouter([
               { path: "/da-module", element: <DAModule /> },
               { path: "/workspaces", element: <Workspaces /> },
               { path: "/edit-workflow", element: <EditWorkflows /> },
-              { path: "/port-management", element: <Port /> },
+              // { path: "/port-management", element: <Port /> },
               { path: "/vessel-types", element: <VesselType /> },
               { path: "/barge-types", element: <BargeType /> },
               { path: "/vessel-onboarding", element: <Vessel /> },
@@ -185,7 +186,7 @@ const router = createHashRouter([
                   // User Management
                   { path: "/users", element: <RouteGuard><User /></RouteGuard> },
                   // Port Management
-                  { path: "/port-management", element: <RouteGuard><Port /></RouteGuard> },
+                  // { path: "/port-management", element: <RouteGuard><Port /></RouteGuard> },
                   // Vessel Types
                   { path: "/vessel-types", element: <RouteGuard><VesselType /></RouteGuard> },
                   // Barge Types
@@ -238,7 +239,8 @@ const router = createHashRouter([
                   { path: "/billing-instruction", element: <RouteGuard><BillingInstruction /></RouteGuard> },
                   // Captains
                   { path: "/captains", element: <RouteGuard><Captains /></RouteGuard> },
-                  // Fleet Management
+                  // LH Services
+                  { path: "/lh-services", element: <RouteGuard><LHServices /></RouteGuard> },
                   // Operators
                   { path: "/operators", element: <RouteGuard><Operators /></RouteGuard> },
                   // Location

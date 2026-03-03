@@ -145,10 +145,10 @@ function SideNav({ isMobileMenuOpen, onCloseMobileMenu }) {
       hasPermission: true,
       isOpen: false,
       subMenus: [
-        { menu: 'Captains', to: '/captains', hasPermission: true },
         { menu: 'Operators', to: '/operators', hasPermission: true },
-        { menu: 'Services', to: '/services', hasPermission: true },
-        // { menu: 'Fleet', to: '/fleet', hasPermission: true },
+        { menu: 'Fleet', to: '/fleet', hasPermission: true },
+        { menu: 'Captains', to: '/captains', hasPermission: true },
+        { menu: 'Services', to: '/lh-services', hasPermission: true },
         // { menu: 'Location', to: '/location', hasPermission: true },
       ],
       icon: workerIcon, // Two stylized human figures
