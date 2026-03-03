@@ -38,12 +38,13 @@ export const RenderAction = ({ onEditClick, row, onDeleteClick, onStatusClick })
 };
 
 export const RenderName = ({ row }) => {
+    const name = row?.operator_name ?? row?.operatorName;
     return (
         <>
             <span className="name-letter bg-ltr">
-                {getInitials(`${row?.operatorName}`)}
+                {getInitials(`${name}`)}
             </span>
-            {row?.operatorName}
+            {name}
         </>
     );
 };

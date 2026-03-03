@@ -33,6 +33,11 @@ export const PORT_DETAILS = [
 
 export const PORT_OPTIONS = PORT_DETAILS.map(({ name }) => name);
 
+export const PORT_OPTIONS_WITH_ID = PORT_DETAILS.map((p, i) => ({
+  id: i + 1,
+  name: p.name,
+}));
+
 export const getPortDetails = (portName) =>
   PORT_DETAILS.find(({ name }) => name === portName);
 
