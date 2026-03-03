@@ -31,12 +31,13 @@ export const RenderAction = ({ onEditClick, row, onDeleteClick }) => {
 };
 
 export const RenderName = ({ row }) => {
+    const name = row?.service_name ?? row?.fleetName;
     return (
         <>
             <span className="name-letter bg-ltr">
-                {getInitials(`${row?.fleetName}`)}
+                {getInitials(`${name}`)}
             </span>
-            {row?.fleetName}
+            {name}
         </>
     );
 };

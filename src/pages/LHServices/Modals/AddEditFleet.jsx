@@ -1,220 +1,126 @@
+import { useEffect } from "react";
 import { useForm } from "react-hook-form";
 import CustomModal from "../../../components/CustomModal";
+import useLaunchHireServiceReducer from "../../../store/LaunchHireServiceReducer";
 import "../../../design/scss/prospect-modal.scss";
 import "../../../design/scss/modal-designs.scss";
 import "../../../design/scss/form-designs.scss";
 
-export function FleetModal({ showModal, closeModal }) {
+export function FleetModal({ showModal, closeModal, onSuccess }) {
+    const {
+        addLaunchHireService,
+        updateLaunchHireService,
+        getLaunchHireServiceById,
+        serviceDetail,
+        isBeingUpdated,
+        isDetailLoading,
+        clearServiceDetail,
+    } = useLaunchHireServiceReducer((state) => state);
+
+    const isEdit = !!showModal?.launchhire_service_id;
+    const serviceId = showModal?.launchhire_service_id;
+
     const {
         register,
         handleSubmit,
         formState: { errors },
+        reset,
     } = useForm({
-        defaultValues: showModal?._id
-            ? {
-                // assuming list row has these keys:
-                fleetName: showModal?.name,
-                fleetType: showModal?.type,
-                fleetCode: showModal?.code,
-                registrationNo: showModal?.registrationNo,
-                ownership: showModal?.ownership,
-                capacity: showModal?.capacity,
-                baseLocation: showModal?.baseLocation,
-                department: showModal?.department,
-                assignedTo: showModal?.assignedTo,
-                status: showModal?.status,
-                description: showModal?.description,
-            }
-            : {},
+        defaultValues: {
+            service_name: "",
+            description: "",
+        },
     });
 
+    useEffect(() => {
+        if (isEdit && serviceId) {
+            getLaunchHireServiceById(serviceId);
+        } else {
+            clearServiceDetail?.();
+            reset({
+                service_name: "",
+                description: "",
+            });
+        }
+    }, [isEdit, serviceId, getLaunchHireServiceById, clearServiceDetail, reset]);
+
+    useEffect(() => {
+        if (serviceDetail && isEdit) {
+            reset({
+                service_name: serviceDetail?.service_name ?? "",
+                description: serviceDetail?.description ?? "",
+            });
+        }
+    }, [serviceDetail, isEdit, reset]);
+
     const onSubmit = (data) => {
-        console.log("FLEET FORM SUBMITTED:", data);
-        closeModal();
+        const payload = {
+            service_name: data.service_name,
+            description: data.description || null,
+        };
+
+        if (isEdit) {
+            updateLaunchHireService({
+                formData: {
+                    ...payload,
+                    launchhire_service_id: serviceId,
+                },
+                cb: () => {
+                    closeModal(null);
+                    onSuccess?.();
+                },
+            });
+        } else {
+            addLaunchHireService({
+                formData: payload,
+                cb: () => {
+                    closeModal(null);
+                    onSuccess?.();
+                },
+            });
+        }
     };
 
     const renderHeader = () => (
-        <>
-            <h1 className="modal-title">
-                {showModal?._id ? "Edit Fleet" : "Add Fleet"}
-            </h1>
-        </>
+        <h1 className="modal-title">
+            {isEdit ? "Edit Service" : "Add Service"}
+        </h1>
     );
 
     const renderBody = () => (
         <div className="modal-body">
             <div className="lead-form">
-                <form id="fleetForm" onSubmit={handleSubmit(onSubmit)}>
-                    {/* ROW 0 – FLEET NAME (FULL) */}
+                <form id="launchHireServiceForm" onSubmit={handleSubmit(onSubmit)}>
                     <div className="mb-lg-3 mb-sm-0">
                         <div className="form-floating desig-inp">
                             <input
-                                className={`form-control ${errors.fleetName ? "is-invalid" : ""
-                                    }`}
-                                placeholder="Fleet Name"
-                                {...register("fleetName", {
-                                    required: "Fleet name is required",
+                                type="text"
+                                className={`form-control ${errors.service_name ? "is-invalid" : ""}`}
+                                placeholder="Service Name"
+                                {...register("service_name", {
+                                    required: "Service name is required",
                                 })}
                             />
                             <label>
-                                Fleet Name <span className="text-danger">*</span>
+                                Service Name <span className="text-danger">*</span>
                             </label>
-                            {errors.fleetName && (
+                            {errors.service_name && (
                                 <span className="error text-danger">
-                                    {errors.fleetName.message}
+                                    {errors.service_name.message}
                                 </span>
                             )}
                         </div>
                     </div>
 
-                    {/* ROW 1 – FLEET TYPE + FLEET CODE */}
-                    <div className="row">
-                        <div className="col-md-6 mb-lg-3 mb-sm-0">
-                            <div className="form-floating desig-inp">
-                                <select
-                                    className={`form-select ${errors.fleetType ? "is-invalid" : ""
-                                        }`}
-                                    {...register("fleetType", {
-                                        required: "Fleet type is required",
-                                    })}
-                                >
-                                    <option value="">Select</option>
-                                    <option value="Vehicle">Vehicle</option>
-                                    <option value="Launch / Boat">Launch / Boat</option>
-                                    <option value="Equipment">Equipment</option>
-                                    <option value="Other">Other</option>
-                                </select>
-                                <label>
-                                    Fleet Type <span className="text-danger">*</span>
-                                </label>
-                                {errors.fleetType && (
-                                    <span className="error text-danger">
-                                        {errors.fleetType.message}
-                                    </span>
-                                )}
-                            </div>
-                        </div>
-
-                        <div className="col-md-6 mb-lg-3 mb-sm-0">
-                            <div className="form-floating desig-inp">
-                                <input
-                                    className="form-control"
-                                    placeholder="Fleet Code"
-                                    {...register("fleetCode")}
-                                />
-                                <label>Fleet Code</label>
-                            </div>
-                        </div>
-                    </div>
-
-                    {/* ROW 2 – REGISTRATION NO + OWNERSHIP TYPE */}
-                    <div className="row">
-                        <div className="col-md-6 mb-lg-3 mb-sm-0">
-                            <div className="form-floating desig-inp">
-                                <input
-                                    className="form-control"
-                                    placeholder="Registration No"
-                                    {...register("registrationNo")}
-                                />
-                                <label>Registration No</label>
-                            </div>
-                        </div>
-
-                        <div className="col-md-6 mb-lg-3 mb-sm-0">
-                            <div className="form-floating desig-inp">
-                                <select
-                                    className="form-select"
-                                    {...register("ownership")}
-                                >
-                                    <option value="">Select</option>
-                                    <option value="Owned">Owned</option>
-                                    <option value="Rented">Rented</option>
-                                    <option value="Third Party">Third Party</option>
-                                </select>
-                                <label>Ownership Type</label>
-                            </div>
-                        </div>
-                    </div>
-
-                    {/* ROW 3 – CAPACITY + BASE LOCATION */}
-                    <div className="row">
-                        <div className="col-md-6 mb-lg-3 mb-sm-0">
-                            <div className="form-floating desig-inp">
-                                <input
-                                    className="form-control"
-                                    placeholder="Capacity (eg: 7 Seats / 30 Pax)"
-                                    {...register("capacity")}
-                                />
-                                <label>Capacity</label>
-                            </div>
-                        </div>
-
-                        <div className="col-md-6 mb-lg-3 mb-sm-0">
-                            <div className="form-floating desig-inp">
-                                <input
-                                    className="form-control"
-                                    placeholder="Base Location / Port"
-                                    {...register("baseLocation")}
-                                />
-                                <label>Base Location / Port</label>
-                            </div>
-                        </div>
-                    </div>
-
-                    {/* ROW 4 – DEPARTMENT + ASSIGNED TO */}
-                    <div className="row">
-                        <div className="col-md-6 mb-lg-3 mb-sm-0">
-                            <div className="form-floating desig-inp">
-                                <input
-                                    className="form-control"
-                                    placeholder="Assigned Department"
-                                    {...register("department")}
-                                />
-                                <label>Assigned Department</label>
-                            </div>
-                        </div>
-
-                        <div className="col-md-6 mb-lg-3 mb-sm-0">
-                            <div className="form-floating desig-inp">
-                                <input
-                                    className="form-control"
-                                    placeholder="Assigned To (Driver / Captain)"
-                                    {...register("assignedTo")}
-                                />
-                                <label>Assigned To (Driver / Captain)</label>
-                            </div>
-                        </div>
-                    </div>
-
-                    {/* ROW 5 – STATUS + DESCRIPTION (DESCRIPTION FULL HEIGHT) */}
-                    <div className="row">
-                        <div className="col-md-6 mb-lg-3 mb-sm-0">
-                            <div className="form-floating desig-inp">
-                                <select
-                                    className="form-select"
-                                    {...register("status")}
-                                >
-                                    <option value="">Select</option>
-                                    <option value="Active">Active</option>
-                                    <option value="In Service">In Service</option>
-                                    <option value="Under Maintenance">Under Maintenance</option>
-                                    <option value="Breakdown">Breakdown</option>
-                                    <option value="Retired">Retired</option>
-                                </select>
-                                <label>Status</label>
-                            </div>
-                        </div>
-
-                        <div className="col-md-6 mb-lg-3 mb-sm-0">
-                            <div className="form-floating desig-inp">
-                                <textarea
-                                    className="form-control"
-                                    placeholder="Description / Remarks"
-                                    style={{ height: "120px" }}
-                                    {...register("description")}
-                                ></textarea>
-                                <label>Description / Remarks</label>
-                            </div>
+                    <div className="mb-lg-3 mb-sm-0">
+                        <div className="form-floating desig-inp">
+                            <textarea
+                                className="form-control"
+                                placeholder="Description"
+                                style={{ height: "120px" }}
+                                {...register("description")}
+                            />
+                            <label>Description</label>
                         </div>
                     </div>
                 </form>
@@ -228,11 +134,17 @@ export function FleetModal({ showModal, closeModal }) {
                 type="button"
                 className="btn btn-outline"
                 onClick={closeModal}
+                disabled={isBeingUpdated}
             >
                 Close
             </button>
-            <button type="submit" form="fleetForm" className="btn btn-primary">
-                Save
+            <button
+                type="submit"
+                form="launchHireServiceForm"
+                className="btn btn-primary"
+                disabled={isBeingUpdated || (isEdit && isDetailLoading)}
+            >
+                {isBeingUpdated ? "Saving..." : "Save"}
             </button>
         </div>
     );
