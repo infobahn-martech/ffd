@@ -66,6 +66,7 @@ import GROBoard from "../pages/GROBoard";
 import HotelBoard from "../pages/HotelBoard";
 import AdminBoard from "../pages/AdminBoard";
 import LHServices from "../pages/LHServices";
+import Fleet from "../pages/Fleet";
 // 🔥 Set true to bypass auth temporarily
 const TEST_MODE = false;
 
@@ -239,6 +240,8 @@ const router = createHashRouter([
                   { path: "/billing-instruction", element: <RouteGuard><BillingInstruction /></RouteGuard> },
                   // Captains
                   { path: "/captains", element: <RouteGuard><Captains /></RouteGuard> },
+                  // Fleet
+                  { path: "/fleet", element: <RouteGuard><Fleet /></RouteGuard> },
                   // LH Services
                   { path: "/lh-services", element: <RouteGuard><LHServices /></RouteGuard> },
                   // Operators

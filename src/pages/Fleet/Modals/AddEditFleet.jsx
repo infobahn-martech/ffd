@@ -1,0 +1,271 @@
+import React, { useEffect } from "react";
+import { useForm } from "react-hook-form";
+import CustomModal from "../../../components/CustomModal";
+import useFleetReducer from "../../../store/FleetReducer";
+import operatorService from "../../../services/operatorService";
+import "../../../design/scss/prospect-modal.scss";
+import "../../../design/scss/modal-designs.scss";
+import "../../../design/scss/form-designs.scss";
+
+export function FleetModal({ showModal, closeModal, onSuccess }) {
+    const {
+        addFleet,
+        updateFleet,
+        getFleetById,
+        fleetDetail,
+        isBeingUpdated,
+        isDetailLoading,
+        clearFleetDetail,
+    } = useFleetReducer((state) => state);
+
+    const isEdit = !!showModal?.taxi_boat_id;
+    const fleetId = showModal?.taxi_boat_id;
+
+    const {
+        register,
+        handleSubmit,
+        formState: { errors },
+        reset,
+    } = useForm({
+        defaultValues: {
+            taxi_boat_name: "",
+            registration_no: "",
+            operator_id: "",
+            capacity_persons: "",
+            insurance_expiry: "",
+            certificate_expiry: "",
+        },
+    });
+
+    const [operatorList, setOperatorList] = React.useState([]);
+
+    useEffect(() => {
+        const fetchOperators = async () => {
+            try {
+                const { data } = await operatorService.getAllOperators({
+                    limit: 1000,
+                    page: 1,
+                });
+                setOperatorList(data?.data ?? []);
+            } catch {
+                setOperatorList([]);
+            }
+        };
+        if (showModal) fetchOperators();
+    }, [!!showModal]);
+
+    useEffect(() => {
+        if (isEdit && fleetId) {
+            getFleetById(fleetId);
+        } else {
+            clearFleetDetail?.();
+            reset({
+                taxi_boat_name: "",
+                registration_no: "",
+                operator_id: "",
+                capacity_persons: "",
+                insurance_expiry: "",
+                certificate_expiry: "",
+            });
+        }
+    }, [isEdit, fleetId]);
+
+    useEffect(() => {
+        if (fleetDetail && isEdit) {
+            reset({
+                taxi_boat_name: fleetDetail?.taxi_boat_name ?? "",
+                registration_no: fleetDetail?.registration_no ?? "",
+                operator_id: fleetDetail?.operator_id ?? "",
+                capacity_persons: fleetDetail?.capacity_persons ?? "",
+                insurance_expiry: fleetDetail?.insurance_expiry
+                    ? fleetDetail.insurance_expiry.split("T")[0]
+                    : "",
+                certificate_expiry: fleetDetail?.certificate_expiry
+                    ? fleetDetail.certificate_expiry.split("T")[0]
+                    : "",
+            });
+        }
+    }, [fleetDetail, isEdit, reset]);
+
+    const onSubmit = (data) => {
+        const payload = {
+            taxi_boat_name: data.taxi_boat_name,
+            registration_no: data.registration_no,
+            operator_id: Number(data.operator_id),
+            capacity_persons: data.capacity_persons ? Number(data.capacity_persons) : null,
+            insurance_expiry: data.insurance_expiry || null,
+            certificate_expiry: data.certificate_expiry || null,
+        };
+
+        if (isEdit) {
+            updateFleet({
+                formData: { ...payload, taxi_boat_id: fleetId },
+                cb: () => {
+                    closeModal(null);
+                    onSuccess?.();
+                },
+            });
+        } else {
+            addFleet({
+                formData: payload,
+                cb: () => {
+                    closeModal(null);
+                    onSuccess?.();
+                },
+            });
+        }
+    };
+
+    const renderHeader = () => (
+        <h1 className="modal-title">
+            {isEdit ? "Edit Fleet" : "Add Fleet"}
+        </h1>
+    );
+
+    const renderBody = () => (
+        <div className="modal-body">
+            <div className="lead-form">
+                <form id="fleetForm" onSubmit={handleSubmit(onSubmit)}>
+                    {/* Taxi Boat Name */}
+                    <div className="mb-lg-3 mb-sm-0">
+                        <div className="permInputs row">
+                            <div className="col-12">
+                                <div className="form-floating desig-inp">
+                                    <input
+                                        type="text"
+                                        className={`form-control ${errors.taxi_boat_name ? "is-invalid" : ""}`}
+                                        placeholder="Taxi Boat Name"
+                                        {...register("taxi_boat_name", {
+                                            required: "Taxi boat name is required",
+                                        })}
+                                    />
+                                    <label>Taxi Boat Name <span className="text-danger">*</span></label>
+                                    {errors.taxi_boat_name && (
+                                        <span className="error text-danger">{errors.taxi_boat_name.message}</span>
+                                    )}
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    {/* Registration No + Operator */}
+                    <div className="mb-lg-3 mb-sm-0">
+                        <div className="permInputs row">
+                            <div className="col-lg-6 col-sm-12">
+                                <div className="form-floating desig-inp">
+                                    <input
+                                        type="text"
+                                        className="form-control"
+                                        placeholder="Registration No"
+                                        {...register("registration_no")}
+                                    />
+                                    <label>Registration No</label>
+                                </div>
+                            </div>
+                            <div className="col-lg-6 col-sm-12">
+                                <div className="form-floating desig-inp">
+                                    <select
+                                        className={`form-control ${errors.operator_id ? "is-invalid" : ""}`}
+                                        {...register("operator_id", {
+                                            required: "Operator is required",
+                                        })}
+                                    >
+                                        <option value="">Select Operator</option>
+                                        {operatorList.map((op) => (
+                                            <option key={op.operator_id} value={op.operator_id}>
+                                                {op.operator_name}
+                                            </option>
+                                        ))}
+                                    </select>
+                                    <label>Operator <span className="text-danger">*</span></label>
+                                    {errors.operator_id && (
+                                        <span className="error text-danger">{errors.operator_id.message}</span>
+                                    )}
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    {/* Capacity + Insurance Expiry */}
+                    <div className="mb-lg-3 mb-sm-0">
+                        <div className="permInputs row">
+                            <div className="col-lg-6 col-sm-12">
+                                <div className="form-floating desig-inp">
+                                    <input
+                                        type="number"
+                                        className="form-control"
+                                        placeholder="Capacity (Persons)"
+                                        min="1"
+                                        {...register("capacity_persons")}
+                                    />
+                                    <label>Capacity (Persons)</label>
+                                </div>
+                            </div>
+                            <div className="col-lg-6 col-sm-12">
+                                <div className="form-floating desig-inp">
+                                    <input
+                                        type="date"
+                                        className="form-control"
+                                        placeholder="Insurance Expiry"
+                                        {...register("insurance_expiry")}
+                                    />
+                                    <label>Insurance Expiry</label>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    {/* Certificate Expiry */}
+                    <div className="mb-lg-3 mb-sm-0">
+                        <div className="permInputs row">
+                            <div className="col-lg-6 col-sm-12">
+                                <div className="form-floating desig-inp">
+                                    <input
+                                        type="date"
+                                        className="form-control"
+                                        placeholder="Certificate Expiry"
+                                        {...register("certificate_expiry")}
+                                    />
+                                    <label>Certificate Expiry</label>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </form>
+            </div>
+        </div>
+    );
+
+    const renderFooter = () => (
+        <div className="modal-footer">
+            <button
+                type="button"
+                className="btn btn-outline"
+                onClick={closeModal}
+                disabled={isBeingUpdated}
+            >
+                Close
+            </button>
+            <button
+                type="submit"
+                form="fleetForm"
+                className="btn btn-primary"
+                disabled={isBeingUpdated || (isEdit && isDetailLoading)}
+            >
+                {isBeingUpdated ? "Saving..." : "Save"}
+            </button>
+        </div>
+    );
+
+    return (
+        <CustomModal
+            className="status-modal-sm"
+            dialgName="modal-dialog modal-dialog-centered"
+            show={!!showModal}
+            closeModal={() => closeModal(null)}
+            body={renderBody()}
+            footer={renderFooter()}
+            header={renderHeader()}
+        />
+    );
+}
