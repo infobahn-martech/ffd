@@ -117,14 +117,14 @@ function SideNav({ isMobileMenuOpen, onCloseMobileMenu }) {
       ],
       icon: usersIcon, // User management-specific icon
     },
-    // ✅ Core Operations
-    {
-      menu: 'Port Management',
-      isDefaultMenu: true,
-      to: '/port-management',
-      icon: portIcon, // Single human figure with document/badge
-      hasPermission: true,
-    },
+    // // ✅ Core Operations
+    // {
+    //   menu: 'Port Management',
+    //   isDefaultMenu: true,
+    //   to: '/port-management',
+    //   icon: portIcon, // Single human figure with document/badge
+    //   hasPermission: true,
+    // },
     {
       menu: 'Crew Management',
       isDefaultMenu: true,
