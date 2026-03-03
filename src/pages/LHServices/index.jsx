@@ -7,7 +7,7 @@ import { RenderAction, RenderName } from "./RenderCells";
 import DeleteConfirmationModal from "../../components/DeleteConfirmationModal";
 import useLaunchHireServiceReducer from "../../store/LaunchHireServiceReducer";
 
-const FleetManagement = () => {
+const LHServices = () => {
     const {
         getLaunchHireServiceData,
         serviceData,
@@ -74,7 +74,6 @@ const FleetManagement = () => {
             width: "350",
             thclass: "tb-head",
             contentClass: "table-content",
-            cell: RenderName,
         },
         {
             name: "Actions",
@@ -172,4 +171,4 @@ const FleetManagement = () => {
     );
 };
 
-export default FleetManagement;
+export default LHServices;
