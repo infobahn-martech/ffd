@@ -38,12 +38,13 @@ export const RenderAction = ({ onEditClick, row, onDeleteClick, onStatusClick })
 };
 
 export const RenderName = ({ row }) => {
+    const name = row?.captain_name ?? row?.captainName;
     return (
         <>
             <span className="name-letter bg-ltr">
-                {getInitials(`${row?.captainName}`)}
+                {getInitials(`${name}`)}
             </span>
-            {row?.captainName}
+            {name}
         </>
     );
 };

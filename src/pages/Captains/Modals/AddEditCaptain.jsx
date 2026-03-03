@@ -1,182 +1,206 @@
+import { useEffect, useState } from "react";
 import { useForm, Controller } from "react-hook-form";
 import PhoneInput from "react-phone-input-2";
 import "react-phone-input-2/lib/bootstrap.css";
 import CustomModal from "../../../components/CustomModal";
+import useCaptainReducer from "../../../store/CaptainReducer";
+import fleetService from "../../../services/fleetService";
 import "../../../design/scss/prospect-modal.scss";
 import "../../../design/scss/modal-designs.scss";
 import "../../../design/scss/form-designs.scss";
 import userIcon from "../../../assets/images/user.png";
-import edit from "../../../assets/images/edit.svg";
-import { PORT_OPTIONS } from "../../../constants/ports";
 
-export function CaptainModal({ showModal, closeModal }) {
+export function CaptainModal({ showModal, closeModal, onSuccess }) {
+    const {
+        addCaptain,
+        updateCaptain,
+        getCaptainById,
+        captainDetail,
+        isBeingUpdated,
+        isDetailLoading,
+        clearCaptainDetail,
+    } = useCaptainReducer((state) => state);
+
+    const isEdit = !!showModal?.taxiboat_captain_id;
+    const captainId = showModal?.taxiboat_captain_id;
+
     const {
         register,
         handleSubmit,
         formState: { errors },
         control,
+        reset,
     } = useForm({
-        defaultValues: showModal?._id
-            ? {
-                name: showModal?.captainName,
-                email: showModal?.email,
-                port: showModal?.port,
-                phone: showModal?.phone || "",
-                address: showModal?.address,
-            }
-            : {
-                phone: "",
-            },
+        defaultValues: {
+            captain_name: "",
+            taxi_boat_id: "",
+            contact_no: "",
+            license_no: "",
+            license_expiry: "",
+        },
     });
 
+    const [taxiBoatList, setTaxiBoatList] = useState([]);
+
+    useEffect(() => {
+        const fetchTaxiBoats = async () => {
+            try {
+                const { data } = await fleetService.getAllFleet({
+                    limit: 1000,
+                    page: 1,
+                });
+                setTaxiBoatList(data?.data ?? []);
+            } catch {
+                setTaxiBoatList([]);
+            }
+        };
+        if (showModal) fetchTaxiBoats();
+    }, [!!showModal]);
+
+    useEffect(() => {
+        if (isEdit && captainId) {
+            getCaptainById(captainId);
+        } else {
+            clearCaptainDetail?.();
+            reset({
+                captain_name: "",
+                taxi_boat_id: "",
+                contact_no: "",
+                license_no: "",
+                license_expiry: "",
+            });
+        }
+    }, [isEdit, captainId, getCaptainById, clearCaptainDetail, reset]);
+
+    useEffect(() => {
+        if (captainDetail && isEdit) {
+            reset({
+                captain_name: captainDetail?.captain_name ?? "",
+                taxi_boat_id: captainDetail?.taxi_boat_id ?? "",
+                contact_no: captainDetail?.contact_no ?? "",
+                license_no: captainDetail?.license_no ?? "",
+                license_expiry: captainDetail?.license_expiry
+                    ? captainDetail.license_expiry.split("T")[0]
+                    : "",
+            });
+        }
+    }, [captainDetail, isEdit, reset]);
+
     const onSubmit = (data) => {
-        console.log("CAPTAIN FORM SUBMITTED:", data);
-        closeModal();
+        const payload = {
+            captain_name: data.captain_name,
+            taxi_boat_id: Number(data.taxi_boat_id),
+            contact_no: data.contact_no,
+            license_no: data.license_no || null,
+            license_expiry: data.license_expiry || null,
+        };
+
+        if (isEdit) {
+            updateCaptain({
+                formData: {
+                    ...payload,
+                    taxiboat_captain_id: captainId,
+                },
+                cb: () => {
+                    closeModal(null);
+                    onSuccess?.();
+                },
+            });
+        } else {
+            addCaptain({
+                formData: payload,
+                cb: () => {
+                    closeModal(null);
+                    onSuccess?.();
+                },
+            });
+        }
     };
 
     const renderHeader = () => (
-        <>
-            <h1 className="modal-title">
-                {showModal?._id ? "Edit Captain" : "Add Captain"}
-            </h1>
-        </>
+        <h1 className="modal-title">
+            {isEdit ? "Edit Captain" : "Add Captain"}
+        </h1>
     );
 
     const renderBody = () => (
         <div className="modal-body">
             <div className="lead-form">
                 <form id="captainForm" onSubmit={handleSubmit(onSubmit)}>
-                    {/* ===== Avatar Upload ===== */}
                     <div className="d-flex justify-content-center mb-4">
-                        <div className="avatar-wrapper" style={{ position: "relative" }}>
-                            <img
-                                src={showModal?.avatar || userIcon}
-                                alt="User Avatar"
-                                className="avatar-image"
-                                style={{
-                                    width: "120px",
-                                    height: "120px",
-                                    borderRadius: "50%",
-                                    objectFit: "cover",
-                                    border: "3px solid #e6e6e6",
-                                }}
-                            />
-
-                            <label
-                                htmlFor="avatarUpload"
-                                className="avatar-edit-icon"
-                                style={{
-                                    position: "absolute",
-                                    bottom: "0",
-                                    right: "10px",
-                                    background: "#e7e7e7",
-                                    width: "30px",
-                                    height: "30px",
-                                    borderRadius: "50%",
-                                    display: "flex",
-                                    justifyContent: "center",
-                                    alignItems: "center",
-                                    cursor: "pointer",
-                                }}
-                            >
-                                <img
-                                    src={edit}
-                                    alt="Edit"
-                                    style={{ width: "14px", height: "18px", filter: "invert(1)" }}
-                                />
-                            </label>
-
-                            <input type="file" id="avatarUpload" className="d-none" />
-                        </div>
+                        <img
+                            src={userIcon}
+                            alt="User"
+                            style={{
+                                width: "80px",
+                                height: "80px",
+                                borderRadius: "50%",
+                                objectFit: "cover",
+                                border: "3px solid #e6e6e6",
+                            }}
+                        />
                     </div>
 
-                    {/* ===== Name + Email ===== */}
+                    {/* Captain Name */}
                     <div className="mb-lg-3 mb-sm-0">
                         <div className="permInputs row">
-                            {/* NAME */}
-                            <div className="col-lg-6 col-sm-12">
+                            <div className="col-12">
                                 <div className="form-floating desig-inp">
                                     <input
                                         type="text"
-                                        className={`form-control ${errors.name ? "is-invalid" : ""}`}
-                                        placeholder="Name"
-                                        {...register("name", {
-                                            required: "Name is required",
+                                        className={`form-control ${errors.captain_name ? "is-invalid" : ""}`}
+                                        placeholder="Captain Name"
+                                        {...register("captain_name", {
+                                            required: "Captain name is required",
                                         })}
                                     />
                                     <label>
-                                        Name <span className="text-danger">*</span>
+                                        Captain Name <span className="text-danger">*</span>
                                     </label>
-                                    {errors.name && (
-                                        <span className="error text-danger">{errors.name.message}</span>
-                                    )}
-                                </div>
-                            </div>
-
-                            {/* EMAIL */}
-                            <div className="col-lg-6 col-sm-12">
-                                <div className="form-floating desig-inp">
-                                    <input
-                                        type="email"
-                                        className={`form-control ${errors.email ? "is-invalid" : ""
-                                            }`}
-                                        placeholder="Email"
-                                        {...register("email", {
-                                            required: "Email is required",
-                                            pattern: {
-                                                value: /^[^\s@]+@[^\s@]+\.[^\s@]+$/,
-                                                message: "Enter a valid email",
-                                            },
-                                        })}
-                                    />
-                                    <label>
-                                        Email <span className="text-danger">*</span>
-                                    </label>
-                                    {errors.email && (
-                                        <span className="error text-danger">{errors.email.message}</span>
+                                    {errors.captain_name && (
+                                        <span className="error text-danger">{errors.captain_name.message}</span>
                                     )}
                                 </div>
                             </div>
                         </div>
                     </div>
 
-                    {/* ===== Port ===== */}
+                    {/* Taxi Boat + Contact No */}
                     <div className="mb-lg-3 mb-sm-0">
                         <div className="permInputs row">
-                            {/* PORT */}
                             <div className="col-lg-6 col-sm-12">
                                 <div className="form-floating desig-inp">
                                     <select
-                                        className={`form-control ${errors.port ? "is-invalid" : ""}`}
-                                        {...register("port", { required: "Port is required" })}
+                                        className={`form-control ${errors.taxi_boat_id ? "is-invalid" : ""}`}
+                                        {...register("taxi_boat_id", {
+                                            required: "Taxi boat is required",
+                                        })}
                                     >
-                                        <option value="">Select Port</option>
-                                        {PORT_OPTIONS.map((port) => (
-                                            <option key={port} value={port}>
-                                                {port}
+                                        <option value="">Select Taxi Boat</option>
+                                        {taxiBoatList.map((boat) => (
+                                            <option key={boat.taxi_boat_id} value={boat.taxi_boat_id}>
+                                                {boat.taxi_boat_name}
                                             </option>
                                         ))}
                                     </select>
                                     <label>
-                                        Port <span className="text-danger">*</span>
+                                        Taxi Boat <span className="text-danger">*</span>
                                     </label>
-                                    {errors.port && (
-                                        <span className="error text-danger">{errors.port.message}</span>
+                                    {errors.taxi_boat_id && (
+                                        <span className="error text-danger">{errors.taxi_boat_id.message}</span>
                                     )}
                                 </div>
                             </div>
-                            {/* PHONE */}
                             <div className="col-lg-6 col-sm-12">
                                 <div className="phone-wrapper">
                                     <label className="phone-label">
-                                        Phone <span className="text-danger">*</span>
+                                        Contact No <span className="text-danger">*</span>
                                     </label>
-
                                     <Controller
-                                        name="phone"
+                                        name="contact_no"
                                         control={control}
                                         rules={{
-                                            required: "Phone is required",
+                                            required: "Contact no is required",
                                             validate: (value) => {
                                                 const digits = (value || "").replace(/\D/g, "");
                                                 return digits.length >= 7 || "Enter a valid phone number";
@@ -192,10 +216,9 @@ export function CaptainModal({ showModal, closeModal }) {
                                             />
                                         )}
                                     />
-
-                                    {errors.phone && (
+                                    {errors.contact_no && (
                                         <span className="error text-danger">
-                                            {errors.phone.message}
+                                            {errors.contact_no.message}
                                         </span>
                                     )}
                                 </div>
@@ -203,19 +226,29 @@ export function CaptainModal({ showModal, closeModal }) {
                         </div>
                     </div>
 
-                    {/* ===== Phone + Address ===== */}
+                    {/* License No + License Expiry */}
                     <div className="mb-lg-3 mb-sm-0">
                         <div className="permInputs row">
-                            {/* ADDRESS (optional) */}
                             <div className="col-lg-6 col-sm-12">
                                 <div className="form-floating desig-inp">
-                                    <textarea
+                                    <input
+                                        type="text"
                                         className="form-control"
-                                        placeholder="Address"
-                                        style={{ height: "100px" }}
-                                        {...register("address")}
-                                    ></textarea>
-                                    <label>Address</label>
+                                        placeholder="License No"
+                                        {...register("license_no")}
+                                    />
+                                    <label>License No</label>
+                                </div>
+                            </div>
+                            <div className="col-lg-6 col-sm-12">
+                                <div className="form-floating desig-inp">
+                                    <input
+                                        type="date"
+                                        className="form-control"
+                                        placeholder="License Expiry"
+                                        {...register("license_expiry")}
+                                    />
+                                    <label>License Expiry</label>
                                 </div>
                             </div>
                         </div>
@@ -227,11 +260,21 @@ export function CaptainModal({ showModal, closeModal }) {
 
     const renderFooter = () => (
         <div className="modal-footer">
-            <button type="button" className="btn btn-outline" onClick={closeModal}>
+            <button
+                type="button"
+                className="btn btn-outline"
+                onClick={closeModal}
+                disabled={isBeingUpdated}
+            >
                 Close
             </button>
-            <button type="submit" form="captainForm" className="btn btn-primary">
-                Save
+            <button
+                type="submit"
+                form="captainForm"
+                className="btn btn-primary"
+                disabled={isBeingUpdated || (isEdit && isDetailLoading)}
+            >
+                {isBeingUpdated ? "Saving..." : "Save"}
             </button>
         </div>
     );
