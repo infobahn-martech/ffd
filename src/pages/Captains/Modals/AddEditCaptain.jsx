@@ -127,7 +127,7 @@ export function CaptainModal({ showModal, closeModal, onSuccess }) {
         <div className="modal-body">
             <div className="lead-form">
                 <form id="captainForm" onSubmit={handleSubmit(onSubmit)}>
-                    <div className="d-flex justify-content-center mb-4">
+                    {/* <div className="d-flex justify-content-center mb-4">
                         <img
                             src={userIcon}
                             alt="User"
@@ -139,7 +139,7 @@ export function CaptainModal({ showModal, closeModal, onSuccess }) {
                                 border: "3px solid #e6e6e6",
                             }}
                         />
-                    </div>
+                    </div> */}
 
                     {/* Captain Name */}
                     <div className="mb-lg-3 mb-sm-0">

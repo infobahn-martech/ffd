@@ -75,7 +75,6 @@ const Captains = () => {
             width: "200",
             thclass: "tb-head",
             contentClass: "table-content",
-            cell: RenderName,
             sort: true,
         },
         {
