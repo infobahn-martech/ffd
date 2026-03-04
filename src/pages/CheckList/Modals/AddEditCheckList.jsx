@@ -12,9 +12,9 @@ function mapItemToApi(item) {
   return {
     item_name: item?.item_name ?? "",
     item_order: item?.item_order ?? 0,
+    expiry_date_reqd: item?.expiry_date_reqd ? 1 : 0,
     document_details: {
       require_copy_only: !!doc?.is_copy_required,
-      expiry_date_reqd: doc?.expiry_date_reqd ? 1 : 0,
       description: doc?.description ?? ""
     }
   };
@@ -70,6 +70,33 @@ const EMPTY_DEFAULTS = {
   sections: []
 };
 
+/** Normalize sections: move expiry_date_reqd from document_details to item level for edit mode */
+function normalizeSectionsForForm(sections) {
+  if (!Array.isArray(sections)) return [];
+  return sections.map((sec) => ({
+    ...sec,
+    items: (sec.items ?? []).map((item) => {
+      const doc = item?.document_details ?? {};
+      return {
+        ...item,
+        expiry_date_reqd: item?.expiry_date_reqd ?? !!doc?.expiry_date_reqd ?? false,
+        document_details: { ...doc, expiry_date_reqd: undefined }
+      };
+    }),
+    sub_sections: (sec.sub_sections ?? []).map((sub) => ({
+      ...sub,
+      items: (sub.items ?? []).map((item) => {
+        const doc = item?.document_details ?? {};
+        return {
+          ...item,
+          expiry_date_reqd: item?.expiry_date_reqd ?? !!doc?.expiry_date_reqd ?? false,
+          document_details: { ...doc, expiry_date_reqd: undefined }
+        };
+      })
+    }))
+  }));
+}
+
 export function CheckListModal({ showModal, closeModal, callTypesOptions, onSuccess }) {
   const [expandedSections, setExpandedSections] = useState({});
   const [expandedSubSections, setExpandedSubSections] = useState({});
@@ -86,7 +113,7 @@ export function CheckListModal({ showModal, closeModal, callTypesOptions, onSucc
         vesselType: String(showModal?.vessel_type_id ?? showModal?.vesselType ?? ""),
         bargeType: showModal?.barge_type_id != null ? String(showModal.barge_type_id) : (showModal?.bargeType ?? ""),
         checklistName: showModal?.checklist_name ?? showModal?.checklistName ?? "",
-        sections: Array.isArray(showModal?.sections) ? showModal.sections : []
+        sections: normalizeSectionsForForm(showModal?.sections ?? [])
       };
     }
     return EMPTY_DEFAULTS;
@@ -376,7 +403,7 @@ export function CheckListModal({ showModal, closeModal, callTypesOptions, onSucc
                 className="form-check-input"
                 type="checkbox"
                 id={`expiry_date_reqd_${sectionIndex}_${itemIndex}`}
-                {...register(`sections.${sectionIndex}.items.${itemIndex}.document_details.expiry_date_reqd`)}
+                {...register(`sections.${sectionIndex}.items.${itemIndex}.expiry_date_reqd`)}
               />
               <label
                 className="form-check-label"
@@ -496,9 +523,9 @@ export function CheckListModal({ showModal, closeModal, callTypesOptions, onSucc
               item_name: "",
               description: "",
               item_order: fields.length + 1,
+              expiry_date_reqd: false,
               document_details: {
                 is_copy_required: false,
-                expiry_date_reqd: false,
                 required_copy_only: null,
                 description: ""
               }
@@ -645,7 +672,7 @@ export function CheckListModal({ showModal, closeModal, callTypesOptions, onSucc
                 className="form-check-input"
                 type="checkbox"
                 id={`expiry_date_reqd_${sectionIndex}_${subSectionIndex}_${itemIndex}`}
-                {...register(`sections.${sectionIndex}.sub_sections.${subSectionIndex}.items.${itemIndex}.document_details.expiry_date_reqd`)}
+                {...register(`sections.${sectionIndex}.sub_sections.${subSectionIndex}.items.${itemIndex}.expiry_date_reqd`)}
               />
               <label
                 className="form-check-label"
