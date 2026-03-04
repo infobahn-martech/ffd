@@ -1,50 +1,39 @@
 import { create } from 'zustand';
 import useAlertReducer from './AlertReducer';
-import PreArrivalInfoService from '../services/preArrivalInfoService';
+import CrewTemplateService from '../services/crewTemplateService';
 
-const usePreArrivalInfoReducer = create((set, get) => ({
+const useCrewTemplateReducer = create((set) => ({
   isLoading: false,
   addEditLoader: false,
   errorMessage: '',
-  preArrivalTemplates: [],
+  crewTemplates: [],
   templateCount: 0,
-  templateUserTypes: [],
 
   getTemplates: async ({ params } = {}) => {
     try {
       set({ isLoading: true });
-      const { data } = await PreArrivalInfoService.getAllTemplates(params || {});
+      const { data } = await CrewTemplateService.getAllTemplates(params || {});
       const list = data?.data ?? data ?? [];
       const items = Array.isArray(list) ? list : [];
       set({
-        preArrivalTemplates: items,
+        crewTemplates: items,
         templateCount: data?.totalCount ?? items.length,
         isLoading: false,
       });
     } catch (error) {
       set({
         errorMessage: error?.response?.data?.message ?? error?.message ?? 'Failed to fetch templates',
-        preArrivalTemplates: [],
+        crewTemplates: [],
         templateCount: 0,
         isLoading: false,
       });
     }
   },
 
-  getTemplateUserTypes: async () => {
-    try {
-      const { data } = await PreArrivalInfoService.getTemplateUserTypes();
-      const list = data?.data ?? data ?? [];
-      set({ templateUserTypes: Array.isArray(list) ? list : [] });
-    } catch (error) {
-      set({ templateUserTypes: [] });
-    }
-  },
-
-  addTemplate: async ({ payload, cb }) => {
+  addTemplate: async ({ formData, cb }) => {
     try {
       set({ addEditLoader: true });
-      const { data } = await PreArrivalInfoService.addTemplate(payload);
+      const { data } = await CrewTemplateService.addTemplate(formData);
       const { success } = useAlertReducer.getState();
       success(data?.message ?? 'Template added successfully');
       set({ addEditLoader: false });
@@ -56,10 +45,10 @@ const usePreArrivalInfoReducer = create((set, get) => ({
     }
   },
 
-  updateTemplate: async ({ templateId, payload, cb }) => {
+  updateTemplate: async ({ templateId, formData, cb }) => {
     try {
       set({ addEditLoader: true });
-      const { data } = await PreArrivalInfoService.updateTemplate(templateId, payload);
+      const { data } = await CrewTemplateService.updateTemplate(templateId, formData);
       const { success } = useAlertReducer.getState();
       success(data?.message ?? 'Template updated successfully');
       set({ addEditLoader: false });
@@ -72,4 +61,4 @@ const usePreArrivalInfoReducer = create((set, get) => ({
   },
 }));
 
-export default usePreArrivalInfoReducer;
+export default useCrewTemplateReducer;

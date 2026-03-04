@@ -1,10 +1,10 @@
 import { useState, useEffect } from "react";
 import CommonHeader from "../../components/CommonHeader";
 import CustomTable from "../../components/customTable";
-import { PreArrivalInformationModal } from "./Modals/AddEditPreArrivalInformation";
+import { AddEditCrewTemplateModal } from "./Modals/AddEditCrewTemplate";
 import { RenderAction } from "./RenderCells";
 import DeleteConfirmationModal from "../../components/DeleteConfirmationModal";
-import usePreArrivalInfoReducer from "../../store/PreArrivalInfoReducer";
+import useCrewTemplateReducer from "../../store/CrewTemplateReducer";
 
 const CrewTemplate = () => {
   const [params, setParams] = useState({
@@ -19,8 +19,8 @@ const CrewTemplate = () => {
   const [showDeleteModal, setShowDeleteModal] = useState(false);
   const [selectedRow, setSelectedRow] = useState(null);
 
-  const { getTemplates, preArrivalTemplates, templateCount } =
-    usePreArrivalInfoReducer((state) => state);
+  const { getTemplates, crewTemplates, templateCount } =
+    useCrewTemplateReducer((state) => state);
 
   useEffect(() => {
     getTemplates({
@@ -34,8 +34,8 @@ const CrewTemplate = () => {
     });
   }, [params.page, params.limit, params.searchTerm, params.sortBy, params.sortOrder]);
 
-  // get_all_template response: template_id, template_name, port, call_type, usertype_name, subject_line, description_content, agent_full_details, important_contacts
-  const tableData = (preArrivalTemplates ?? []).map((row) => ({
+  // get_all_templates response: template_id, template_name, port_id, port, call_type_id, call_type, file_name, file_path, uploaded_at
+  const tableData = (crewTemplates ?? []).map((row) => ({
     ...row,
     _id: row.template_id ?? row._id ?? row.id,
   }));
@@ -73,10 +73,18 @@ const CrewTemplate = () => {
       contentClass: "table-content",
     },
     {
-      name: "User Type",
-      selector: "usertype_name",
+      name: "File Name",
+      selector: "file_name",
       sort: true,
-      width: "120",
+      width: "180",
+      thclass: "tb-head",
+      contentClass: "table-content",
+    },
+    {
+      name: "Uploaded At",
+      selector: "uploaded_at",
+      sort: true,
+      width: "150",
       thclass: "tb-head",
       contentClass: "table-content",
     },
@@ -228,7 +236,7 @@ const CrewTemplate = () => {
           />
 
           {!!showModal && (
-            <PreArrivalInformationModal
+            <AddEditCrewTemplateModal
               showModal={showModal}
               closeModal={() => {
                 setShowModal(false);
@@ -256,11 +264,11 @@ const CrewTemplate = () => {
                 setSelectedRow(null);
               }}
               onConfirm={() => {
-                console.log("Delete pre-arrival information:", selectedRow);
+                console.log("Delete crew template:", selectedRow);
                 setShowDeleteModal(false);
                 setSelectedRow(null);
               }}
-              deleteText="Are you sure you want to delete this pre-arrival information?"
+              deleteText="Are you sure you want to delete this crew template?"
             />
           )}
         </div>
