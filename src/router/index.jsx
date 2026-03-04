@@ -67,6 +67,7 @@ import HotelBoard from "../pages/HotelBoard";
 import AdminBoard from "../pages/AdminBoard";
 import LHServices from "../pages/LHServices";
 import Fleet from "../pages/Fleet";
+import CrewTemplate from "../pages/CrewTemplate";
 // 🔥 Set true to bypass auth temporarily
 const TEST_MODE = false;
 
@@ -232,6 +233,8 @@ const router = createHashRouter([
                   { path: "/status-management", element: <RouteGuard><StatusManagement /></RouteGuard> },
                   // Custom Fields
                   { path: "/custom-fields", element: <RouteGuard><CustomFields /></RouteGuard> },
+                  // Crew Template
+                  { path: "/crew-template", element: <RouteGuard><CrewTemplate /></RouteGuard> },
                   // Job Status BE
                   { path: "/job-status", element: <RouteGuard><JobStatusBE /></RouteGuard> },
                   // Group Email BE

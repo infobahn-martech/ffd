@@ -22,29 +22,29 @@ function Layout() {
 
   return (
     <LayoutViewProvider>
-    <div className={`main-layout ${isKanbanBoard ? 'kanban-board-layout' : ''}`}>
+      <div className={`main-layout ${isKanbanBoard ? 'kanban-board-layout' : ''}`}>
 
-      {/* FULL-WIDTH HEADER */}
-      <Header
-        onMenuToggle={handleMenuToggle}
-        mobileMenuOpen={mobileMenuOpen}
-      />
+        {/* FULL-WIDTH HEADER */}
+        <Header
+          onMenuToggle={handleMenuToggle}
+          mobileMenuOpen={mobileMenuOpen}
+        />
 
-      {/* SIDEBAR + PAGE CONTENT */}
-      <div className={`dashboard-wrp ${hideSidebar ? 'no-sidebar' : ''}`}>
-        {!hideSidebar && (
-          <SideNav
-            isMobileMenuOpen={mobileMenuOpen}
-            onCloseMobileMenu={handleCloseMobileMenu}
-          />
-        )}
+        {/* SIDEBAR + PAGE CONTENT */}
+        <div className={`dashboard-wrp ${hideSidebar ? 'no-sidebar' : ''}`}>
+          {!hideSidebar && (
+            <SideNav
+              isMobileMenuOpen={mobileMenuOpen}
+              onCloseMobileMenu={handleCloseMobileMenu}
+            />
+          )}
 
-        <div className={`page-cont-wrp ${hideSidebar ? 'full-width' : ''}`}>
-          <Outlet />
+          <div className={`page-cont-wrp ${hideSidebar ? 'full-width' : ''}`}>
+            <Outlet />
+          </div>
         </div>
-      </div>
 
-    </div>
+      </div>
     </LayoutViewProvider>
   );
 }

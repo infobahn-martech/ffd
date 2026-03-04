@@ -228,7 +228,8 @@ function SideNav({ isMobileMenuOpen, onCloseMobileMenu }) {
       subMenus: [
         { menu: 'Appointment Acceptance', to: '/appointment-acceptance', hasPermission: true },
         { menu: 'Pre-Arrival Information', to: '/pre-arrival-information', hasPermission: true },
-        { menu: 'Custom Fields', to: '/custom-fields', hasPermission: true },
+        { menu: 'Crew Template', to: '/crew-template', hasPermission: true },
+        // { menu: 'Custom Fields', to: '/custom-fields', hasPermission: true },
       ],
       icon: configIcon, // Configuration-specific icon
     },
