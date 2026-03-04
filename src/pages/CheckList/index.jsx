@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useMemo } from "react";
 import CommonHeader from "../../components/CommonHeader";
 import CustomTable from "../../components/customTable";
 import { CheckListModal } from "./Modals/AddEditCheckList";
@@ -6,8 +6,8 @@ import { RenderAction } from "./RenderCells";
 import DeleteConfirmationModal from "../../components/DeleteConfirmationModal";
 import useCommonReducer from "../../store/CommonReducer";
 import useCheckListReducer from "../../store/CheckListReducer";
-
-
+import useVesselTypeReducer from "../../store/VesselTypeReducer";
+import useBargeTypeReducer from "../../store/BargeTypeReducer";
 
 const CheckList = () => {
   const [params, setParams] = useState({
@@ -18,13 +18,18 @@ const CheckList = () => {
     sortOrder: 1,
   });
 
+  const [filters, setFilters] = useState({
+    call_type_id: "",
+    vessel_type_id: "",
+    barge_type_id: "",
+  });
+
   const [showCheckListModal, setShowCheckListModal] = useState(false);
   const [showDeleteModal, setShowDeleteModal] = useState(false);
 
-  const {
-    getCallTypes,
-    callTypes,
-  } = useCommonReducer((state) => state);
+  const { getCallTypes, callTypes } = useCommonReducer((state) => state);
+  const { vesselTypes, getVesselTypes } = useVesselTypeReducer((state) => state);
+  const { bargeTypes, getBargeTypes } = useBargeTypeReducer((state) => state);
 
   const {
     getChecklists,
@@ -45,8 +50,6 @@ const CheckList = () => {
     });
   };
 
-  console.log("CheckLists", CheckLists);
-
   useEffect(() => {
     const apiParams = {
       page: params.page,
@@ -59,7 +62,65 @@ const CheckList = () => {
 
   useEffect(() => {
     getCallTypes();
+    getVesselTypes({ params: { limit: 1000 } });
+    getBargeTypes({ params: { limit: 1000 } });
   }, []);
+
+  useEffect(() => {
+    const apiParams = {
+      page: params.page,
+      limit: params.limit,
+      ...(params.search && { search: params.search }),
+      ...(params.sortBy && { sortBy: params.sortBy }),
+      ...(filters.call_type_id && { call_type_id: filters.call_type_id }),
+      ...(filters.vessel_type_id && { vessel_type_id: filters.vessel_type_id }),
+      ...(filters.barge_type_id && { barge_type_id: filters.barge_type_id }),
+    };
+    getChecklists({ params: apiParams });
+  }, [params.page, params.limit, params.search, params.sortBy, params.sortOrder, filters.call_type_id, filters.vessel_type_id, filters.barge_type_id]);
+
+  const filterOptions = useMemo(
+    () => [
+      {
+        key: "call_type_id",
+        label: "Call Type",
+        placeholder: "Select Call Type",
+        options: (callTypes ?? []).map((c) => ({
+          value: String(c?.call_type_id ?? c?._id ?? ""),
+          label: c?.call_type ?? c?.name ?? "",
+        })),
+      },
+      {
+        key: "vessel_type_id",
+        label: "Vessel Type",
+        placeholder: "Select Vessel Type",
+        options: (vesselTypes ?? []).map((v) => ({
+          value: String(v?.vessel_type_id ?? v?._id ?? ""),
+          label: v?.vessel_type ?? v?.name ?? "",
+        })),
+      },
+      {
+        key: "barge_type_id",
+        label: "Barge Type",
+        placeholder: "Select Barge Type",
+        options: (bargeTypes ?? []).map((b) => ({
+          value: String(b?.barge_type_id ?? b?._id ?? ""),
+          label: b?.barge_type ?? b?.name ?? "",
+        })),
+      },
+    ],
+    [callTypes, vesselTypes, bargeTypes]
+  );
+
+  const handleFilterChange = (key, value) => {
+    setFilters((prev) => ({ ...prev, [key]: value }));
+    setParams((prev) => ({ ...prev, page: 1 }));
+  };
+
+  const handleClearFilter = () => {
+    setFilters({ call_type_id: "", vessel_type_id: "", barge_type_id: "" });
+    setParams((prev) => ({ ...prev, page: 1 }));
+  };
 
   // 👉 COLUMNS (Checklist Name + Call Type + Vessel Type + Barge Type + Sections + Actions)
   const cols = [
@@ -118,11 +179,17 @@ const CheckList = () => {
               isAddEnabled
               addModalLabel="Add Checklist"
               setSearch={(e) =>
-                setParams({ ...params, search: e, page: 1 })
+                setParams((prev) => ({ ...prev, search: e, page: 1 }))
               }
               onAddModalClick={() => setShowCheckListModal(true)}
               exportTitle="Export"
               exportLoader={false}
+              showFilter={true}
+              filterOptions={filterOptions}
+              filterValue={filters}
+              onFilterChange={handleFilterChange}
+              onApplyFilter={() => {}}
+              onClearFilter={handleClearFilter}
             />
           </div>
 
@@ -161,6 +228,9 @@ const CheckList = () => {
                   limit: params.limit,
                   ...(params.search && { search: params.search }),
                   ...(params.sortBy && { sortBy: params.sortBy }),
+                  ...(filters.call_type_id && { call_type_id: filters.call_type_id }),
+                  ...(filters.vessel_type_id && { vessel_type_id: filters.vessel_type_id }),
+                  ...(filters.barge_type_id && { barge_type_id: filters.barge_type_id }),
                 };
                 getChecklists({ params: apiParams });
               }}

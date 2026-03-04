@@ -1,6 +1,8 @@
 import Gateway from '../gateway/gateway';
 
 const getChecklist = (params) => Gateway.get('/checklist', { params });
+const getChecklistByType = (params) =>
+  Gateway.get('checklist/get_checklist_by_type', { params });
 const getChecklistById = (checklist_type_id) =>
   Gateway.post(`checklist/get_checklist_by_id/${checklist_type_id}`, { checklist_type_id });
 const deleteChecklist = (id) => Gateway.delete(`checklist/${id}`);
@@ -15,6 +17,7 @@ export default {
     createChecklist,
     updateChecklist,
     getChecklist,
+    getChecklistByType,
     getChecklistById,
     deleteChecklist,
 };

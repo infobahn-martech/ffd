@@ -36,7 +36,12 @@ const useCheckListReducer = create((set) => ({
     getChecklists: async ({ params }) => {
         try {
             set({ isLoading: true });
-            const { data } = await CheckListService.getChecklist(params);
+            const hasTypeFilter =
+                params?.call_type_id != null ||
+                params?.vessel_type_id != null ||
+                params?.barge_type_id != null;
+            const service = hasTypeFilter ? CheckListService.getChecklistByType : CheckListService.getChecklist;
+            const { data } = await service(params);
             set({
                 CheckLists: data?.data ?? [],
                 isLoading: false,
