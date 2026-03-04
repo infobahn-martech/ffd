@@ -55,19 +55,6 @@ const PreArrivalInformation = () => {
       width: "180",
       thclass: "tb-head",
       contentClass: "table-content",
-      cell: (row) => (
-        <div
-          style={{
-            maxWidth: "180px",
-            overflow: "hidden",
-            textOverflow: "ellipsis",
-            whiteSpace: "nowrap",
-          }}
-          title={row.template_name}
-        >
-          {row.template_name || "-"}
-        </div>
-      ),
     },
     {
       name: "Port",
@@ -93,90 +80,90 @@ const PreArrivalInformation = () => {
       thclass: "tb-head",
       contentClass: "table-content",
     },
-    {
-      name: "Subject",
-      selector: "subject_line",
-      sort: true,
-      width: "200",
-      thclass: "tb-head",
-      contentClass: "table-content",
-      cell: (row) => (
-        <div
-          style={{
-            maxWidth: "200px",
-            overflow: "hidden",
-            textOverflow: "ellipsis",
-            whiteSpace: "nowrap",
-          }}
-          title={row.subject_line}
-        >
-          {row.subject_line || "-"}
-        </div>
-      ),
-    },
-    {
-      name: "Description",
-      selector: "description_content",
-      sort: true,
-      width: "200",
-      thclass: "tb-head",
-      contentClass: "table-content",
-      cell: (row) => (
-        <div
-          style={{
-            maxWidth: "200px",
-            overflow: "hidden",
-            textOverflow: "ellipsis",
-            whiteSpace: "nowrap",
-          }}
-          title={stripHtml(row.description_content)}
-        >
-          {stripHtml(row.description_content) || "-"}
-        </div>
-      ),
-    },
-    {
-      name: "Agent Full Details",
-      selector: "agent_full_details",
-      sort: true,
-      width: "180",
-      thclass: "tb-head",
-      contentClass: "table-content",
-      cell: (row) => (
-        <div
-          style={{
-            maxWidth: "180px",
-            overflow: "hidden",
-            textOverflow: "ellipsis",
-            whiteSpace: "nowrap",
-          }}
-          title={stripHtml(row.agent_full_details)}
-        >
-          {stripHtml(row.agent_full_details) || "-"}
-        </div>
-      ),
-    },
-    {
-      name: "Important Contacts",
-      selector: "important_contacts",
-      sort: true,
-      width: "180",
-      thclass: "tb-head",
-      contentClass: "table-content",
-      cell: (row) => (
-        <div
-          style={{
-            maxWidth: "180px",
-            overflow: "hidden",
-            textOverflow: "ellipsis",
-            whiteSpace: "nowrap",
-          }}
-          title={stripHtml(row.important_contacts)}
-        >
-          {stripHtml(row.important_contacts) || "-"}
-        </div>
-      ),
-    },
+    // {
+    //   name: "Subject",
+    //   selector: "subject_line",
+    //   sort: true,
+    //   width: "200",
+    //   thclass: "tb-head",
+    //   contentClass: "table-content",
+    //   cell: (row) => (
+    //     <div
+    //       style={{
+    //         maxWidth: "200px",
+    //         overflow: "hidden",
+    //         textOverflow: "ellipsis",
+    //         whiteSpace: "nowrap",
+    //       }}
+    //       title={row.subject_line}
+    //     >
+    //       {row.subject_line || "-"}
+    //     </div>
+    //   ),
+    // },
+    // {
+    //   name: "Description",
+    //   selector: "description_content",
+    //   sort: true,
+    //   width: "200",
+    //   thclass: "tb-head",
+    //   contentClass: "table-content",
+    //   cell: (row) => (
+    //     <div
+    //       style={{
+    //         maxWidth: "200px",
+    //         overflow: "hidden",
+    //         textOverflow: "ellipsis",
+    //         whiteSpace: "nowrap",
+    //       }}
+    //       title={stripHtml(row.description_content)}
+    //     >
+    //       {stripHtml(row.description_content) || "-"}
+    //     </div>
+    //   ),
+    // },
+    // {
+    //   name: "Agent Full Details",
+    //   selector: "agent_full_details",
+    //   sort: true,
+    //   width: "180",
+    //   thclass: "tb-head",
+    //   contentClass: "table-content",
+    //   cell: (row) => (
+    //     <div
+    //       style={{
+    //         maxWidth: "180px",
+    //         overflow: "hidden",
+    //         textOverflow: "ellipsis",
+    //         whiteSpace: "nowrap",
+    //       }}
+    //       title={stripHtml(row.agent_full_details)}
+    //     >
+    //       {stripHtml(row.agent_full_details) || "-"}
+    //     </div>
+    //   ),
+    // },
+    // {
+    //   name: "Important Contacts",
+    //   selector: "important_contacts",
+    //   sort: true,
+    //   width: "180",
+    //   thclass: "tb-head",
+    //   contentClass: "table-content",
+    //   cell: (row) => (
+    //     <div
+    //       style={{
+    //         maxWidth: "180px",
+    //         overflow: "hidden",
+    //         textOverflow: "ellipsis",
+    //         whiteSpace: "nowrap",
+    //       }}
+    //       title={stripHtml(row.important_contacts)}
+    //     >
+    //       {stripHtml(row.important_contacts) || "-"}
+    //     </div>
+    //   ),
+    // },
     {
       name: "Actions",
       selector: "linksInfo",
