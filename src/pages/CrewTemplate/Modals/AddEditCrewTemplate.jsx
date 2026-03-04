@@ -1,4 +1,4 @@
-import { useEffect } from "react";
+import { useEffect, useState, useRef } from "react";
 import { useForm } from "react-hook-form";
 import CustomModal from "../../../components/CustomModal";
 import "../../../design/scss/prospect-modal.scss";
@@ -18,11 +18,16 @@ export function AddEditCrewTemplateModal({ showModal, closeModal, onSuccess }) {
   const { ports, getPorts } = usePortReducer((state) => state);
   const { callTypes, getCallTypes } = useCommonReducer((state) => state);
 
+  const [isDragging, setIsDragging] = useState(false);
+  const fileInputRef = useRef(null);
+
   const {
     register,
     handleSubmit,
     formState: { errors },
     reset,
+    watch,
+    setValue,
   } = useForm({
     defaultValues: {
       template_name: "",
@@ -54,6 +59,32 @@ export function AddEditCrewTemplateModal({ showModal, closeModal, onSuccess }) {
       });
     }
   }, [showModal, isEdit, reset]);
+
+  const selectedFile = watch("template_file")?.[0];
+
+  const handleFileChange = (e) => {
+    const file = e.target?.files?.[0];
+    if (file) setValue("template_file", [file]);
+  };
+
+  const handleFileDrop = (e) => {
+    e.preventDefault();
+    setIsDragging(false);
+    const file = e.dataTransfer?.files?.[0];
+    if (file) setValue("template_file", [file]);
+  };
+
+  const clearFile = (e) => {
+    e.stopPropagation();
+    setValue("template_file", null);
+    if (fileInputRef.current) fileInputRef.current.value = "";
+  };
+
+  const templateFileRegister = register("template_file", {
+    required: !isEdit ? "Template file is required" : false,
+    onChange: handleFileChange,
+  });
+  const { ref: templateFileRef, ...templateFileRest } = templateFileRegister;
 
   const onSubmit = (data) => {
     const formData = new FormData();
@@ -104,7 +135,7 @@ export function AddEditCrewTemplateModal({ showModal, closeModal, onSuccess }) {
             )}
           </div>
 
-          <div className="form-field form-row-3">
+          <div className="form-field form-row-2">
             <div>
               <label className="form-field-label">Port <span className="text-danger">*</span></label>
               <select
@@ -149,18 +180,50 @@ export function AddEditCrewTemplateModal({ showModal, closeModal, onSuccess }) {
             <label className="form-field-label">
               Template File {!isEdit && <span className="text-danger">*</span>}
             </label>
-            <input
-              type="file"
-              className={`form-control ${errors.template_file ? "is-invalid" : ""}`}
-              accept=".xlsx,.xls,.doc,.docx,.pdf"
-              {...register("template_file", {
-                required: !isEdit ? "Template file is required" : false,
-              })}
-            />
-            {isEdit && showModal?.file_name && (
-              <span className="form-text text-muted">
-                Current: {showModal.file_name}
-              </span>
+            <div
+              className={`crew-template-upload-zone ${isDragging ? "dragging" : ""} ${selectedFile ? "has-file" : ""} ${errors.template_file ? "is-invalid" : ""}`}
+              onDragOver={(e) => { e.preventDefault(); setIsDragging(true); }}
+              onDragLeave={() => setIsDragging(false)}
+              onDrop={handleFileDrop}
+              onClick={() => fileInputRef.current?.click()}
+              onKeyDown={(e) => e.key === "Enter" && fileInputRef.current?.click()}
+              role="button"
+              tabIndex={0}
+              aria-label="Upload template file - click or drag and drop"
+            >
+              <input
+                type="file"
+                className="file-input-hidden"
+                accept=".xlsx,.xls,.doc,.docx,.pdf"
+                aria-label="Upload template file"
+                {...templateFileRest}
+                ref={(el) => {
+                  fileInputRef.current = el;
+                  templateFileRef(el);
+                }}
+              />
+              {selectedFile ? (
+                <div className="upload-zone-file-info">
+                  <span className="file-name">{selectedFile.name}</span>
+                  <button type="button" className="remove-file-btn" onClick={clearFile} aria-label="Remove file">
+                    Remove
+                  </button>
+                </div>
+              ) : (
+                <div className="upload-zone-placeholder">
+                  <div className="upload-icon">
+                    <svg width="40" height="40" viewBox="0 0 48 48" fill="none" aria-hidden="true">
+                      <rect x="4" y="4" width="40" height="40" rx="8" stroke="currentColor" strokeWidth="2" strokeDasharray="4 4" fill="none" />
+                      <path d="M24 16V32M24 16L18 22M24 16L30 22M12 36H36" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+                    </svg>
+                  </div>
+                  <p className="upload-main-text">Drag and drop your file here, or <span className="upload-link">browse</span></p>
+                  <p className="upload-sub-text">Supports: PDF, DOC, DOCX, XLS, XLSX (Max 10MB)</p>
+                </div>
+              )}
+            </div>
+            {isEdit && showModal?.file_name && !selectedFile && (
+              <span className="form-text text-muted">Current: {showModal.file_name}</span>
             )}
             {errors.template_file && (
               <span className="field-error">{errors.template_file.message}</span>
@@ -186,8 +249,16 @@ export function AddEditCrewTemplateModal({ showModal, closeModal, onSuccess }) {
         form="crewTemplateForm"
         className="btn btn-primary"
         disabled={addEditLoader}
+        aria-busy={addEditLoader}
       >
-        {addEditLoader ? "Saving..." : "Save"}
+        {addEditLoader ? (
+          <>
+            <span className="spinner-border spinner-border-sm me-2" role="status" aria-hidden="true" />
+            Saving...
+          </>
+        ) : (
+          "Save"
+        )}
       </button>
     </div>
   );
