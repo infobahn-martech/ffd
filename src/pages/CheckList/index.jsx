@@ -28,9 +28,22 @@ const CheckList = () => {
 
   const {
     getChecklists,
+    getChecklistById,
     CheckLists,
     checklistCount
   } = useCheckListReducer((state) => state);
+
+  const handleEditClick = (row) => {
+    const checklistTypeId = row?.checklist_type_id ?? row?._id;
+    if (!checklistTypeId) {
+      setShowCheckListModal(row);
+      return;
+    }
+    getChecklistById({
+      checklist_type_id: checklistTypeId,
+      cb: (data) => setShowCheckListModal(data ?? row)
+    });
+  };
 
   console.log("CheckLists", CheckLists);
 
@@ -88,7 +101,7 @@ const CheckList = () => {
       tableClasses: 'table-striped',
       contentClass: 'table-content',
       thclass: 'tb-head',
-      onEditClick: (row) => { setShowCheckListModal(row) },
+      onEditClick: handleEditClick,
       onDeleteClick: () => { setShowDeleteModal(true) },
       cell: RenderAction,
       width: '100',

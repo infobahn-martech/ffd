@@ -72,29 +72,27 @@ const EMPTY_DEFAULTS = {
   sections: []
 };
 
-/** Normalize sections: move expiry_date_reqd from document_details to item level for edit mode */
+/** Normalize sections for form: expiry_date_reqd at item level, require_copy_only -> is_copy_required */
 function normalizeSectionsForForm(sections) {
   if (!Array.isArray(sections)) return [];
+  const mapItem = (item) => {
+    const doc = item?.document_details ?? {};
+    return {
+      ...item,
+      expiry_date_reqd: item?.expiry_date_reqd ?? !!doc?.expiry_date_reqd ?? false,
+      document_details: {
+        is_copy_required: doc?.require_copy_only ?? doc?.is_copy_required ?? false,
+        required_copy_only: null,
+        description: doc?.description ?? ""
+      }
+    };
+  };
   return sections.map((sec) => ({
     ...sec,
-    items: (sec.items ?? []).map((item) => {
-      const doc = item?.document_details ?? {};
-      return {
-        ...item,
-        expiry_date_reqd: item?.expiry_date_reqd ?? !!doc?.expiry_date_reqd ?? false,
-        document_details: { ...doc, expiry_date_reqd: undefined }
-      };
-    }),
+    items: (sec.items ?? []).map(mapItem),
     sub_sections: (sec.sub_sections ?? []).map((sub) => ({
       ...sub,
-      items: (sub.items ?? []).map((item) => {
-        const doc = item?.document_details ?? {};
-        return {
-          ...item,
-          expiry_date_reqd: item?.expiry_date_reqd ?? !!doc?.expiry_date_reqd ?? false,
-          document_details: { ...doc, expiry_date_reqd: undefined }
-        };
-      })
+      items: (sub.items ?? []).map(mapItem)
     }))
   }));
 }

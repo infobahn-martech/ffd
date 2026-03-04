@@ -46,6 +46,17 @@ const useCheckListReducer = create((set) => ({
             set({ errorMessage: error.message, isLoading: false });
         }
     },
+    getChecklistById: async ({ checklist_type_id, cb }) => {
+        try {
+            const { data } = await CheckListService.getChecklistById(checklist_type_id);
+            const raw = data?.data ?? data;
+            const normalized = raw ? { ...raw, _id: raw.checklist_type_id ?? raw._id ?? checklist_type_id } : null;
+            cb?.(normalized);
+        } catch (err) {
+            const { error } = useAlertReducer.getState();
+            error(err?.response?.data?.message ?? err?.message ?? 'Failed to fetch checklist');
+        }
+    },
     editChecklist: async ({ id, formData, cb }) => {
         try {
             set({ addEditLoader: true });
