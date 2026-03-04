@@ -1,85 +1,10 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import CommonHeader from "../../components/CommonHeader";
 import CustomTable from "../../components/customTable";
 import { PreArrivalInformationModal } from "./Modals/AddEditPreArrivalInformation";
 import { RenderAction } from "./RenderCells";
 import DeleteConfirmationModal from "../../components/DeleteConfirmationModal";
-import { PORT_OPTIONS } from "../../constants/ports";
-import { CALL_TYPE_OPTIONS } from "../../constants/callTypes";
-
-// Dummy data for demonstration
-const dummyPreArrivalInformations = [
-  {
-    _id: "1",
-    port: "Dammam Port",
-    callType: "Port Call",
-    subject: "<p>Vessel Arrival Confirmation</p>",
-    body: "<p>This is to confirm the arrival of the vessel at Dammam Port. All necessary documentation has been submitted and verified. The vessel is expected to arrive on schedule.</p>",
-  },
-  {
-    _id: "2",
-    port: "Al Jubail Commercial Sea Port",
-    callType: "Bunkering",
-    subject: "<p>Bunkering Request</p>",
-    body: "<p>Request for bunkering services at Al Jubail Port. Vessel requires 500 tons of marine fuel oil and 200 tons of diesel. Please confirm availability and schedule.</p>",
-  },
-  {
-    _id: "3",
-    port: "Ras Tanura Refinery",
-    callType: "Cargo Operations",
-    subject: "<p>Cargo Loading Operations</p>",
-    body: "<p>Schedule for cargo loading operations at Ras Tanura. Expected completion time is 48 hours. All cargo documentation is ready and customs clearance has been obtained.</p>",
-  },
-  {
-    _id: "4",
-    port: "Al Khafji Port",
-    callType: "Repair & Maintenance",
-    subject: "<p>Emergency Repair Request</p>",
-    body: "<p>Vessel requires immediate repair and maintenance services. Engine malfunction detected during voyage. Request urgent assistance for engine repair and technical support.</p>",
-  },
-  {
-    _id: "5",
-    port: "As Safaniya Port",
-    callType: "Crew Change",
-    subject: "<p>Crew Change Schedule</p>",
-    body: "<p>Request for crew change operations. 12 crew members need to be replaced at As Safaniya Port. New crew members are ready for boarding and all immigration documents are prepared.</p>",
-  },
-  {
-    _id: "6",
-    port: "Dammam Port",
-    callType: "Inspection",
-    subject: "<p>Port State Control Inspection</p>",
-    body: "<p>Vessel scheduled for Port State Control inspection. All certificates and documentation are ready for review. The vessel is fully compliant with all safety and environmental regulations.</p>",
-  },
-  {
-    _id: "7",
-    port: "Al Jubail Commercial Sea Port",
-    callType: "Port Call",
-    subject: "<p>Regular Port Call Notification</p>",
-    body: "<p>Standard port call notification for routine operations. Vessel ETA is scheduled for next week. All port services including pilotage and tug assistance are requested.</p>",
-  },
-  {
-    _id: "8",
-    port: "Ras Tanura Refinery",
-    callType: "Bunkering",
-    subject: "<p>Fuel Bunkering Appointment</p>",
-    body: "<p>Request for fuel bunkering services. Vessel requires 800 tons of MGO and 1200 tons of IFO. Please arrange for bunker barge and confirm the bunkering schedule.</p>",
-  },
-  {
-    _id: "9",
-    port: "Al Khafji Port",
-    callType: "Cargo Operations",
-    subject: "<p>Bulk Cargo Discharge</p>",
-    body: "<p>Scheduled bulk cargo discharge operations. Approximately 15,000 tons of grain to be unloaded. All cargo handling equipment and stevedores are required for the operation.</p>",
-  },
-  {
-    _id: "10",
-    port: "As Safaniya Port",
-    callType: "Emergency",
-    subject: "<p>Medical Emergency</p>",
-    body: "<p>Medical emergency on board. Crew member requires immediate medical attention and evacuation. Request urgent medical assistance and ambulance service at the port.</p>",
-  },
-];
+import usePreArrivalInfoReducer from "../../store/PreArrivalInfoReducer";
 
 const PreArrivalInformation = () => {
   const [params, setParams] = useState({
@@ -94,7 +19,27 @@ const PreArrivalInformation = () => {
   const [showDeleteModal, setShowDeleteModal] = useState(false);
   const [selectedRow, setSelectedRow] = useState(null);
 
-  // Strip HTML tags for display in table
+  const { getTemplates, preArrivalTemplates, templateCount } =
+    usePreArrivalInfoReducer((state) => state);
+
+  useEffect(() => {
+    getTemplates({
+      params: {
+        page: params.page,
+        limit: params.limit,
+        ...(params.searchTerm && { search: params.searchTerm }),
+        ...(params.sortBy && { sortBy: params.sortBy }),
+        ...(params.sortOrder && { sortOrder: params.sortOrder }),
+      },
+    });
+  }, [params.page, params.limit, params.searchTerm, params.sortBy, params.sortOrder]);
+
+  // get_all_template response: template_id, template_name, port, call_type, usertype_name, subject_line, description_content, agent_full_details, important_contacts
+  const tableData = (preArrivalTemplates ?? []).map((row) => ({
+    ...row,
+    _id: row.template_id ?? row._id ?? row.id,
+  }));
+
   const stripHtml = (html) => {
     if (!html) return "";
     const tmp = document.createElement("DIV");
@@ -104,60 +49,131 @@ const PreArrivalInformation = () => {
 
   const cols = [
     {
+      name: "Name",
+      selector: "template_name",
+      sort: true,
+      width: "180",
+      thclass: "tb-head",
+      contentClass: "table-content",
+      cell: (row) => (
+        <div
+          style={{
+            maxWidth: "180px",
+            overflow: "hidden",
+            textOverflow: "ellipsis",
+            whiteSpace: "nowrap",
+          }}
+          title={row.template_name}
+        >
+          {row.template_name || "-"}
+        </div>
+      ),
+    },
+    {
       name: "Port",
       selector: "port",
       sort: true,
-      width: "250",
+      width: "150",
       thclass: "tb-head",
       contentClass: "table-content",
     },
     {
       name: "Call Type",
-      selector: "callType",
+      selector: "call_type",
       sort: true,
-      width: "200",
+      width: "120",
+      thclass: "tb-head",
+      contentClass: "table-content",
+    },
+    {
+      name: "User Type",
+      selector: "usertype_name",
+      sort: true,
+      width: "120",
       thclass: "tb-head",
       contentClass: "table-content",
     },
     {
       name: "Subject",
-      selector: "subject",
+      selector: "subject_line",
       sort: true,
-      width: "300",
+      width: "200",
       thclass: "tb-head",
       contentClass: "table-content",
       cell: (row) => (
         <div
           style={{
-            maxWidth: "300px",
+            maxWidth: "200px",
             overflow: "hidden",
             textOverflow: "ellipsis",
             whiteSpace: "nowrap",
           }}
-          title={stripHtml(row.subject)}
+          title={row.subject_line}
         >
-          {stripHtml(row.subject) || "-"}
+          {row.subject_line || "-"}
         </div>
       ),
     },
     {
-      name: "Body",
-      selector: "body",
+      name: "Description",
+      selector: "description_content",
       sort: true,
-      width: "400",
+      width: "200",
       thclass: "tb-head",
       contentClass: "table-content",
       cell: (row) => (
         <div
           style={{
-            maxWidth: "400px",
+            maxWidth: "200px",
             overflow: "hidden",
             textOverflow: "ellipsis",
             whiteSpace: "nowrap",
           }}
-          title={stripHtml(row.body)}
+          title={stripHtml(row.description_content)}
         >
-          {stripHtml(row.body) || "-"}
+          {stripHtml(row.description_content) || "-"}
+        </div>
+      ),
+    },
+    {
+      name: "Agent Full Details",
+      selector: "agent_full_details",
+      sort: true,
+      width: "180",
+      thclass: "tb-head",
+      contentClass: "table-content",
+      cell: (row) => (
+        <div
+          style={{
+            maxWidth: "180px",
+            overflow: "hidden",
+            textOverflow: "ellipsis",
+            whiteSpace: "nowrap",
+          }}
+          title={stripHtml(row.agent_full_details)}
+        >
+          {stripHtml(row.agent_full_details) || "-"}
+        </div>
+      ),
+    },
+    {
+      name: "Important Contacts",
+      selector: "important_contacts",
+      sort: true,
+      width: "180",
+      thclass: "tb-head",
+      contentClass: "table-content",
+      cell: (row) => (
+        <div
+          style={{
+            maxWidth: "180px",
+            overflow: "hidden",
+            textOverflow: "ellipsis",
+            whiteSpace: "nowrap",
+          }}
+          title={stripHtml(row.important_contacts)}
+        >
+          {stripHtml(row.important_contacts) || "-"}
         </div>
       ),
     },
@@ -205,9 +221,9 @@ const PreArrivalInformation = () => {
             Sl
             pagination={{ currentPage: params.page, limit: params.limit }}
             tableClasses="px-start"
-            count={dummyPreArrivalInformations.length}
+            count={templateCount}
             columns={cols}
-            data={dummyPreArrivalInformations}
+            data={tableData}
             onPageChange={(currentPage) =>
               setParams({ ...params, page: currentPage })
             }
@@ -230,6 +246,17 @@ const PreArrivalInformation = () => {
               closeModal={() => {
                 setShowModal(false);
                 setSelectedRow(null);
+              }}
+              onSuccess={() => {
+                getTemplates({
+                  params: {
+                    page: params.page,
+                    limit: params.limit,
+                    ...(params.searchTerm && { search: params.searchTerm }),
+                    ...(params.sortBy && { sortBy: params.sortBy }),
+                    ...(params.sortOrder && { sortOrder: params.sortOrder }),
+                  },
+                });
               }}
             />
           )}
