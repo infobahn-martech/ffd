@@ -3,8 +3,10 @@ import CustomModal from "../../../components/CustomModal";
 import "../../../design/scss/prospect-modal.scss";
 import "../../../design/scss/modal-designs.scss";
 import "../../../design/scss/form-designs.scss";
-import { useState, useMemo } from "react";
+import { useState, useMemo, useEffect } from "react";
 import useCheckListReducer from "../../../store/CheckListReducer";
+import useVesselTypeReducer from "../../../store/VesselTypeReducer";
+import useBargeTypeReducer from "../../../store/BargeTypeReducer";
 
 /** Map form item to API item (no file in payload) */
 function mapItemToApi(item) {
@@ -104,6 +106,15 @@ export function CheckListModal({ showModal, closeModal, callTypesOptions, onSucc
   const createChecklist = useCheckListReducer((s) => s.createChecklist);
   const editChecklist = useCheckListReducer((s) => s.editChecklist);
   const addEditLoader = useCheckListReducer((s) => s.addEditLoader);
+  const { vesselTypes, getVesselTypes, isLoading: isLoadingVesselTypes } = useVesselTypeReducer((s) => s);
+  const { bargeTypes, getBargeTypes, isLoading: isLoadingBargeTypes } = useBargeTypeReducer((s) => s);
+
+  useEffect(() => {
+    if (showModal) {
+      getVesselTypes({ params: { limit: 1000 } });
+      getBargeTypes({ params: { limit: 1000 } });
+    }
+  }, [showModal]);
 
   const modalKey = showModal && typeof showModal === "object" && showModal._id ? showModal._id : "add";
   const defaultValues = useMemo(() => {
@@ -1002,12 +1013,18 @@ export function CheckListModal({ showModal, closeModal, callTypesOptions, onSucc
                 <select
                   className={`form-select ${errors.vesselType ? "is-invalid" : ""}`}
                   {...register("vesselType", { required: "Vessel Type is required" })}
+                  disabled={isLoadingVesselTypes}
                 >
                   <option value="">Select Vessel Type</option>
-                  <option value="cargo">Cargo</option>
-                  <option value="tanker">Tanker</option>
-                  <option value="container">Container</option>
-                  <option value="bulk">Bulk Carrier</option>
+                  {(vesselTypes ?? []).map((type) => {
+                    const value = type.vessel_type_id ?? type._id ?? type.vessel_type ?? type.name;
+                    const label = type.vessel_type ?? type.name ?? value;
+                    return (
+                      <option key={value} value={String(value)}>
+                        {label}
+                      </option>
+                    );
+                  })}
                 </select>
                 <label>
                   Vessel Type <span className="text-danger">*</span>
@@ -1024,12 +1041,18 @@ export function CheckListModal({ showModal, closeModal, callTypesOptions, onSucc
                 <select
                   className={`form-select ${errors.bargeType ? "is-invalid" : ""}`}
                   {...register("bargeType", { required: "Barge Type is required" })}
+                  disabled={isLoadingBargeTypes}
                 >
                   <option value="">Select Barge Type</option>
-                  <option value="flat">Flat Barge</option>
-                  <option value="hopper">Hopper Barge</option>
-                  <option value="deck">Deck Barge</option>
-                  <option value="tank">Tank Barge</option>
+                  {(bargeTypes ?? []).map((type) => {
+                    const value = type.barge_type_id ?? type._id ?? type.barge_type ?? type.name;
+                    const label = type.barge_type ?? type.name ?? value;
+                    return (
+                      <option key={value} value={String(value)}>
+                        {label}
+                      </option>
+                    );
+                  })}
                 </select>
                 <label>
                   Barge Type <span className="text-danger">*</span>
