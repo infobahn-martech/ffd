@@ -20,6 +20,7 @@ const workflowsConfig = [
       "Enroute",
       "Vessel Arrived",
       "Vessel Cleared",
+      "Vessel on Standby",
       "Vessel Sailed",
       "Ready to Fianalize",
     ],
@@ -28,8 +29,9 @@ const workflowsConfig = [
       "col-2": 18,  // Enroute
       "col-3": 18,  // Vessel Arrived
       "col-4": 18, // Vessel Cleared
-      "col-5": 18, // Vessel Sailed
-      "col-6": 18, // Ready to Fianalize
+      "col-5": 18, // Vessel on Standby
+      "col-6": 18, // Vessel Sailed
+      "col-7": 18, // Ready to Fianalize
     },
     wipLimits: {
       "col-1": 25,
@@ -38,6 +40,7 @@ const workflowsConfig = [
       "col-4": 25,
       "col-5": 25,
       "col-6": 25,
+      "col-7": 25,
     },
   },
   {
