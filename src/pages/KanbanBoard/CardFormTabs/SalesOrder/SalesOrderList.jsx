@@ -1075,13 +1075,14 @@ const SalesOrderList = ({ formValues, handleChange, cardColor, readOnly = false,
   };
 
   // Helper function to render table header with tooltip if label > 10 chars (DAModule only)
-  const renderTableHeader = (label) => {
+  const renderTableHeader = (label, className = "") => {
+    const thProps = { className: className || undefined };
     if (isDAModule && label.length > 10) {
       const tooltipId = `header-tooltip-${label.replace(/\s+/g, '-').toLowerCase()}`;
       const truncatedLabel = label.substring(0, 10) + "...";
-      return <th data-tooltip-id={tooltipId}>{truncatedLabel}</th>;
+      return <th {...thProps} data-tooltip-id={tooltipId}>{truncatedLabel}</th>;
     }
-    return <th>{label}</th>;
+    return <th {...thProps}>{label}</th>;
   };
 
   const cellStyle = {
@@ -1184,7 +1185,7 @@ const SalesOrderList = ({ formValues, handleChange, cardColor, readOnly = false,
               min="0"
               max="100"
               step="0.01"
-              value={order.discount ?? 0}
+              value={order.discount !== undefined && order.discount !== null && order.discount !== "" ? order.discount : 0}
               onChange={(e) => handleFieldChange(order.id, "discount", e.target.value)}
               style={cellStyle}
             />
@@ -1709,19 +1710,19 @@ const SalesOrderList = ({ formValues, handleChange, cardColor, readOnly = false,
             <Tooltip id="header-tooltip-total-amount" place="top" content="Total Amount" className="small-header-tooltip" />
           </>
         )}
-        <table className="table table-striped sales-order-table" style={{ "--card-color": "#e2e6ff" }}>
+        <table className="table table-striped sales-order-table sales-order-list-table" style={{ "--card-color": "#e2e6ff" }}>
           <thead>
             <tr>
-              {!isDAModule && <th style={{ width: "50px", textAlign: "center" }}></th>}
-              {renderTableHeader("Item No")}
-              {renderTableHeader("Item Description")}
-              {renderTableHeader("Qty")}
-              {renderTableHeader("Unit Price")}
-              {renderTableHeader("Discount %")}
-              {renderTableHeader("Tax Code")}
-              {renderTableHeader("Total Amount")}
-              {renderTableHeader("Type of PO")}
-              {renderTableHeader("Supplier Code")}
+              {!isDAModule && <th className="col-checkbox"></th>}
+              {renderTableHeader("Item No", "col-item-no")}
+              {renderTableHeader("Item Description", "col-item-desc")}
+              {renderTableHeader("Qty", "col-qty")}
+              {renderTableHeader("Unit Price", "col-unit-price")}
+              {renderTableHeader("Discount %", "col-discount")}
+              {renderTableHeader("Tax Code", "col-tax")}
+              {renderTableHeader("Total Amount", "col-total")}
+              {renderTableHeader("Type of PO", "col-type-po")}
+              {renderTableHeader("Supplier Code", "col-supplier")}
             </tr>
           </thead>
           <tbody>
@@ -1869,31 +1870,31 @@ const SalesOrderList = ({ formValues, handleChange, cardColor, readOnly = false,
 
               {/* Right: accounting card */}
               <div className="so-accounting-right">
-              <div className="so-accounting-card-title">Accounting</div>
-              <div className="so-accounting-grid">
-                <div className="so-accounting-row">
-                  <span className="so-accounting-label">Currency</span>
-                  <span className="so-accounting-value so-accounting-currency">{currencyLabel}</span>
+                <div className="so-accounting-card-title">Accounting</div>
+                <div className="so-accounting-grid">
+                  <div className="so-accounting-row">
+                    <span className="so-accounting-label">Currency</span>
+                    <span className="so-accounting-value so-accounting-currency">{currencyLabel}</span>
+                  </div>
+                  <div className="so-accounting-divider" />
+                  <div className="so-accounting-row">
+                    <span className="so-accounting-label">Subtotal</span>
+                    <span className="so-accounting-value">{formatCurrencySAR(subtotal)}</span>
+                  </div>
+                  <div className="so-accounting-row">
+                    <span className="so-accounting-label">Total Discount</span>
+                    <span className="so-accounting-value so-accounting-discount">− {formatCurrencySAR(totalDiscount)}</span>
+                  </div>
+                  <div className="so-accounting-row">
+                    <span className="so-accounting-label">Total Tax</span>
+                    <span className="so-accounting-value">{formatCurrencySAR(totalTax)}</span>
+                  </div>
+                  <div className="so-accounting-divider" />
+                  <div className="so-accounting-row so-accounting-grand">
+                    <span className="so-accounting-label">Grand Total</span>
+                    <span className="so-accounting-value so-accounting-grand-value">{formatCurrencySAR(grandTotal)}</span>
+                  </div>
                 </div>
-                <div className="so-accounting-divider" />
-                <div className="so-accounting-row">
-                  <span className="so-accounting-label">Subtotal</span>
-                  <span className="so-accounting-value">{formatCurrencySAR(subtotal)}</span>
-                </div>
-                <div className="so-accounting-row">
-                  <span className="so-accounting-label">Total Discount</span>
-                  <span className="so-accounting-value so-accounting-discount">− {formatCurrencySAR(totalDiscount)}</span>
-                </div>
-                <div className="so-accounting-row">
-                  <span className="so-accounting-label">Total Tax</span>
-                  <span className="so-accounting-value">{formatCurrencySAR(totalTax)}</span>
-                </div>
-                <div className="so-accounting-divider" />
-                <div className="so-accounting-row so-accounting-grand">
-                  <span className="so-accounting-label">Grand Total</span>
-                  <span className="so-accounting-value so-accounting-grand-value">{formatCurrencySAR(grandTotal)}</span>
-                </div>
-              </div>
               </div>
             </div>
           </div>

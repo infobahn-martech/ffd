@@ -4001,6 +4001,88 @@ body .material-management-modal .files-list::-webkit-scrollbar-thumb:hover {
   border-bottom: none;
 }
 
+/* Sales Order List Table - reduced spacing, grid lines, adjusted column widths */
+.sales-order-list-table {
+  border-collapse: collapse;
+
+  thead th {
+    padding: 8px 10px !important;
+    letter-spacing: 0.3px;
+    text-align: left;
+    border-right: 1px solid rgba(255, 255, 255, 0.3);
+    white-space: nowrap;
+  }
+
+  thead th:last-child {
+    border-right: none;
+  }
+
+  tbody td {
+    padding: 8px 10px !important;
+    border-right: 1px solid #e8e8e8;
+  }
+
+  tbody td:last-child {
+    border-right: none;
+  }
+
+  /* Column widths: reduce Item No, increase Description */
+  .col-checkbox {
+    width: 44px;
+    min-width: 44px;
+    text-align: center;
+  }
+
+  .col-item-no {
+    width: 100px;
+    min-width: 100px;
+  }
+
+  .col-item-desc {
+    width: 220px;
+    min-width: 220px;
+  }
+
+  .col-qty {
+    width: 70px;
+    min-width: 70px;
+    text-align: center;
+  }
+
+  .col-unit-price {
+    width: 100px;
+    min-width: 100px;
+    text-align: right;
+  }
+
+  .col-discount {
+    width: 85px;
+    min-width: 85px;
+    text-align: center;
+  }
+
+  .col-tax {
+    width: 85px;
+    min-width: 85px;
+  }
+
+  .col-total {
+    width: 110px;
+    min-width: 110px;
+    text-align: right;
+  }
+
+  .col-type-po {
+    width: 110px;
+    min-width: 110px;
+  }
+
+  .col-supplier {
+    width: 130px;
+    min-width: 130px;
+  }
+}
+
 /* Sales Order Accordion for Grouped Items */
 .sales-order-accordion-header-row {
   background: #ffffff;
