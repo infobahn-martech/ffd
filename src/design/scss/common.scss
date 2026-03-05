@@ -335,6 +335,11 @@ textarea:disabled,
   flex-shrink: 0;
   padding: 0 8px 10px 8px;
   transition: width 0.3s ease, flex-grow 0.3s ease;
+  border-right: 1px solid rgba(0, 0, 0, 0.1);
+
+  &:last-child {
+    border-right: none;
+  }
 }
 
 .column-expanded {
@@ -645,6 +650,11 @@ textarea:disabled,
 .kanban-dark-mode .column-classic,
 .kanban-dark-mode .column-modern {
   background: transparent;
+  border-right: 1px solid rgba(255, 255, 255, 0.1);
+
+  &:last-child {
+    border-right: none;
+  }
 }
 
 .kanban-dark-mode .column-header,

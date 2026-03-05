@@ -560,11 +560,9 @@ export default function KanbanBoard() {
 
           {expandedWorkflows[workflow.id] && (
             <div
-              className={`kanban-container ${
-                isClassicLayout ? 'kanban-classic-layout' : ''
-              } ${isModernLayout ? 'kanban-modern-layout' : ''} ${
-                layoutView === 'normal' ? 'kanban-normal-layout' : ''
-              }`}
+              className={`kanban-container ${isClassicLayout ? 'kanban-classic-layout' : ''
+                } ${isModernLayout ? 'kanban-modern-layout' : ''} ${layoutView === 'normal' ? 'kanban-normal-layout' : ''
+                }`}
               key={layoutView}
             >
               <DragDropContext onDragEnd={createDragEndHandler(workflow.id)}>
