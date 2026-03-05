@@ -64,24 +64,23 @@ export function AddEditCrewTemplateModal({ showModal, closeModal, onSuccess }) {
 
   const handleFileChange = (e) => {
     const file = e.target?.files?.[0];
-    if (file) setValue("template_file", [file]);
+    if (file) setValue("template_file", [file], { shouldValidate: true });
   };
 
   const handleFileDrop = (e) => {
     e.preventDefault();
     setIsDragging(false);
     const file = e.dataTransfer?.files?.[0];
-    if (file) setValue("template_file", [file]);
+    if (file) setValue("template_file", [file], { shouldValidate: true });
   };
 
   const clearFile = (e) => {
     e.stopPropagation();
-    setValue("template_file", null);
+    setValue("template_file", null, { shouldValidate: true });
     if (fileInputRef.current) fileInputRef.current.value = "";
   };
 
   const templateFileRegister = register("template_file", {
-    required: !isEdit ? "Template file is required" : false,
     onChange: handleFileChange,
   });
   const { ref: templateFileRef, ...templateFileRest } = templateFileRegister;
@@ -177,9 +176,7 @@ export function AddEditCrewTemplateModal({ showModal, closeModal, onSuccess }) {
           </div>
 
           <div className="form-field">
-            <label className="form-field-label">
-              Template File {!isEdit && <span className="text-danger">*</span>}
-            </label>
+            <label className="form-field-label">Template File</label>
             <div
               className={`crew-template-upload-zone ${isDragging ? "dragging" : ""} ${selectedFile ? "has-file" : ""} ${errors.template_file ? "is-invalid" : ""}`}
               onDragOver={(e) => { e.preventDefault(); setIsDragging(true); }}
