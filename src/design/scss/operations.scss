@@ -3212,7 +3212,8 @@ body .material-management-modal .files-list::-webkit-scrollbar-thumb:hover {
   background: #ffffff;
   border-radius: 12px;
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
-  overflow: hidden;
+  overflow-x: hidden; /* Allow table horizontal scroll; prevent horizontal page overflow */
+  overflow-y: visible;
 }
 
 .sales-order-list-header {
@@ -3747,30 +3748,45 @@ body .material-management-modal .files-list::-webkit-scrollbar-thumb:hover {
 }
 
 .sales-order-table-container {
-  overflow-x: auto;
+  overflow-x: auto !important;
+  overflow-y: visible !important;
   width: 100%;
+  min-width: 0; /* Allow flex/block children to shrink and trigger scroll */
   margin: 0 22px 20px 22px;
   padding-right: 34px;
+  padding-bottom: 8px; /* Space for visible scrollbar */
   box-sizing: border-box;
   background: #ffffff;
   -webkit-overflow-scrolling: touch;
 }
 
+/* Override cardform-panel transparent scrollbar - must be visible for table */
+.cardform-panel .sales-order-table-container::-webkit-scrollbar,
 .sales-order-table-container::-webkit-scrollbar {
-  height: 6px;
+  height: 8px !important;
 }
 
+.cardform-panel .sales-order-table-container::-webkit-scrollbar-track,
 .sales-order-table-container::-webkit-scrollbar-track {
-  background: #f1f1f1;
+  background: #e8e8e8 !important;
 }
 
+.cardform-panel .sales-order-table-container::-webkit-scrollbar-thumb,
 .sales-order-table-container::-webkit-scrollbar-thumb {
-  background: #888;
-  border-radius: 3px;
+  background: #888 !important;
+  border-radius: 4px;
 }
 
+.cardform-panel .sales-order-table-container::-webkit-scrollbar-thumb:hover,
 .sales-order-table-container::-webkit-scrollbar-thumb:hover {
-  background: #555;
+  background: #555 !important;
+}
+
+/* Firefox */
+.cardform-panel .sales-order-table-container,
+.sales-order-table-container {
+  scrollbar-width: thin;
+  scrollbar-color: #888 #e8e8e8;
 }
 
 .sales-order-table {
@@ -4002,13 +4018,16 @@ body .material-management-modal .files-list::-webkit-scrollbar-thumb:hover {
 }
 
 /* Sales Order List Table - reduced spacing, grid lines, adjusted column widths */
-.sales-order-list-table {
+.sales-order-table-container .sales-order-list-table {
   border-collapse: collapse;
+  table-layout: auto !important; /* Override fixed - allow table to size to content */
+  width: max-content !important; /* Table grows with columns, triggering horizontal scroll */
+  min-width: 1200px; /* Minimum width so scroll appears when container is narrower */
 
   thead th {
     padding: 8px 10px !important;
     letter-spacing: 0.3px;
-    text-align: left;
+    text-align: center;
     border-right: 1px solid rgba(255, 255, 255, 0.3);
     white-space: nowrap;
   }
@@ -4052,7 +4071,7 @@ body .material-management-modal .files-list::-webkit-scrollbar-thumb:hover {
   .col-unit-price {
     width: 100px;
     min-width: 100px;
-    text-align: right;
+    text-align: center;
   }
 
   .col-discount {
@@ -4069,7 +4088,7 @@ body .material-management-modal .files-list::-webkit-scrollbar-thumb:hover {
   .col-total {
     width: 110px;
     min-width: 110px;
-    text-align: right;
+    text-align: center;
   }
 
   .col-type-po {

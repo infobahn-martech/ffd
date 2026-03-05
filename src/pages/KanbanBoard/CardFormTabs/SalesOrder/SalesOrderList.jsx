@@ -963,7 +963,7 @@ const SalesOrderList = ({ formValues, handleChange, cardColor, readOnly = false,
       return;
     }
 
-    const currentList = salesOrderList.length > 0 ? salesOrderList : [];
+    const currentList = salesOrderList.length > 0 ? salesOrderList : []; image.png
     const maxId = currentList.length > 0 ? Math.max(...currentList.map((item) => item.id || 0)) : 0;
 
     const newItem = {
