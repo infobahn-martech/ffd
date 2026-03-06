@@ -202,7 +202,7 @@ const WorkOrderCreationModal = ({ show, onClose, onCreate, selectedItems, salesO
             />
           </div>
 
-          {/* Selected Line Items */}
+          {/* Selected Line Items - Internal Code, Job Description, Quantity (no pricing) */}
           <div style={{ marginBottom: "20px" }}>
             <label style={{ display: "block", marginBottom: "8px", fontWeight: "500", color: "#333" }}>
               Selected Line Items ({selectedLineItems.length})
@@ -221,21 +221,29 @@ const WorkOrderCreationModal = ({ show, onClose, onCreate, selectedItems, salesO
                 <div
                   key={item.id}
                   style={{
-                    padding: "8px",
+                    padding: "10px 12px",
                     marginBottom: index < selectedLineItems.length - 1 ? "8px" : 0,
                     backgroundColor: "#ffffff",
                     borderRadius: "4px",
                     border: "1px solid #e0e0e0",
+                    display: "grid",
+                    gridTemplateColumns: "120px 1fr 80px",
+                    gap: "16px",
+                    alignItems: "center",
+                    fontSize: "14px",
                   }}
                 >
-                  <div style={{ fontWeight: "500", color: "#1a1a1a" }}>{item.itemDescription || item.itemNo || ""}</div>
-                  <div style={{ fontSize: "12px", color: "#666", marginTop: "4px" }}>
-                    {item.callFile && `Call File: ${item.callFile} • `}
-                    Qty: {item.qty} • Total: {new Intl.NumberFormat("en-US", {
-                      style: "currency",
-                      currency: "SAR",
-                      minimumFractionDigits: 2,
-                    }).format(item.totalAmount || 0)}
+                  <div>
+                    <span style={{ fontSize: "11px", color: "#888", textTransform: "uppercase", fontWeight: "600" }}>Internal Code</span>
+                    <div style={{ fontWeight: "500", color: "#1a1a1a", marginTop: "2px" }}>{item.itemNo || "—"}</div>
+                  </div>
+                  <div>
+                    <span style={{ fontSize: "11px", color: "#888", textTransform: "uppercase", fontWeight: "600" }}>Job Description</span>
+                    <div style={{ fontWeight: "500", color: "#1a1a1a", marginTop: "2px" }}>{item.itemDescription || "—"}</div>
+                  </div>
+                  <div>
+                    <span style={{ fontSize: "11px", color: "#888", textTransform: "uppercase", fontWeight: "600" }}>Quantity</span>
+                    <div style={{ fontWeight: "500", color: "#1a1a1a", marginTop: "2px" }}>{item.qty ?? "—"}</div>
                   </div>
                 </div>
               ))}
