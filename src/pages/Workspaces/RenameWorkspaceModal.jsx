@@ -2,7 +2,7 @@ import { useState, useEffect } from 'react';
 import CustomModal from '../../components/CustomModal';
 import '../../design/scss/Workspaces.scss';
 
-const RenameWorkspaceModal = ({ show, onClose, onSave, currentName }) => {
+const RenameWorkspaceModal = ({ show, onClose, onSave, currentName, isSaving = false }) => {
   const [workspaceName, setWorkspaceName] = useState('');
 
   useEffect(() => {
@@ -82,9 +82,9 @@ const RenameWorkspaceModal = ({ show, onClose, onSave, currentName }) => {
                 type="button"
                 className="rename-board-form-btn rename-board-form-btn-save"
                 onClick={handleSave}
-                disabled={!workspaceName.trim()}
+                disabled={!workspaceName.trim() || isSaving}
               >
-                Save
+                {isSaving ? 'Saving...' : 'Save'}
               </button>
             </div>
           </div>

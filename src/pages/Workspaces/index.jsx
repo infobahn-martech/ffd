@@ -41,11 +41,11 @@ const transformWorkspaces = (data) => {
     status: ws.workspace_status,
     boards: Array.isArray(ws.boards)
       ? ws.boards.map((b) => ({
-          id: b.board_id,
-          name: b.board_name,
-          status: b.board_status,
-          count: b.count ?? 0,
-        }))
+        id: b.board_id,
+        name: b.board_name,
+        status: b.board_status,
+        count: b.count ?? 0,
+      }))
       : [],
   }));
 };
@@ -57,8 +57,8 @@ function Workspaces() {
     isLoading: workspacesLoading,
     listAllWorkspaces,
     createWorkspace,
+    renameWorkspace,
     addEditLoader,
-    updateWorkspaceName,
     updateBoardName,
   } = useWorkSpaceReducer();
 
@@ -165,9 +165,14 @@ function Workspaces() {
   };
 
   const handleSaveRenameWorkspace = (workspaceId, newName) => {
-    updateWorkspaceName(workspaceId, newName);
-    setShowRenameWorkspaceModal(false);
-    setSelectedWorkspaceForRename(null);
+    renameWorkspace({
+      workspace_id: workspaceId,
+      workspace_name: newName,
+      cb: () => {
+        setShowRenameWorkspaceModal(false);
+        setSelectedWorkspaceForRename(null);
+      },
+    });
   };
 
   const handleAddToDashboard = (workspaceId) => {
@@ -702,6 +707,7 @@ function Workspaces() {
           }}
           onSave={(newName) => handleSaveRenameWorkspace(selectedWorkspaceForRename.id, newName)}
           currentName={selectedWorkspaceForRename.name}
+          isSaving={addEditLoader}
         />
       )}
     </div>

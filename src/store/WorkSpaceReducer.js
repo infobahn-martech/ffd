@@ -36,6 +36,24 @@ const useWorkSpaceReducer = create((set, get) => ({
       set({ errorMessage: error.message, isLoading: false, workspaces: [] });
     }
   },
+  renameWorkspace: async ({ workspace_id, workspace_name, cb }) => {
+    try {
+      set({ addEditLoader: true });
+      const { data } = await workSpaceService.renameWorkspace(workspace_id, {
+        workspace_id,
+        workspace_name,
+      });
+      set({ addEditLoader: false });
+      const { success } = useAlertReducer.getState();
+      success(data?.message ?? 'Workspace renamed successfully');
+      cb && cb();
+      get().listAllWorkspaces();
+    } catch (err) {
+      const { error } = useAlertReducer.getState();
+      set({ addEditLoader: false });
+      error(err?.response?.data?.message ?? err.message ?? 'Failed to rename workspace');
+    }
+  },
   updateWorkspaceName: (workspaceId, newName) =>
     set((state) => ({
       workspaces: state.workspaces.map((w) =>
