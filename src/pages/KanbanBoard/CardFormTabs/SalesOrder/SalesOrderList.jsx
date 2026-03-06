@@ -792,6 +792,9 @@ const SalesOrderList = ({ formValues, handleChange, cardColor, readOnly = false,
   const [showPreviewModal, setShowPreviewModal] = useState(false);
   const [previewModalType, setPreviewModalType] = useState(null);
 
+  // State for Generate PO loading popup
+  const [showGeneratePOPopup, setShowGeneratePOPopup] = useState(false);
+
   // State for vendor modal (row-level supplier picker)
   const [vendorModalTarget, setVendorModalTarget] = useState(null); // orderId or "new"
 
@@ -1066,6 +1069,16 @@ const SalesOrderList = ({ formValues, handleChange, cardColor, readOnly = false,
   const handleClosePreviewModal = () => {
     setShowPreviewModal(false);
     setPreviewModalType(null);
+  };
+
+  const handleGeneratePO = () => {
+    if (selectedItems.size === 0) return;
+    setShowGeneratePOPopup(true);
+    // TODO: Implement actual Generate PO API call - for now just show loading popup
+  };
+
+  const handleCloseGeneratePOPopup = () => {
+    setShowGeneratePOPopup(false);
   };
 
   const handleSendPreview = () => {
@@ -1683,22 +1696,56 @@ const SalesOrderList = ({ formValues, handleChange, cardColor, readOnly = false,
               Clear Selection
             </button>
           </div>
-          <button
-            type="button"
-            onClick={handleGenerateWorkOrder}
-            style={{
-              padding: "8px 20px",
-              backgroundColor: "#e2e6ff",
-              color: "#rgb(44 54 73)",
-              border: "none",
-              borderRadius: "4px",
-              cursor: "pointer",
-              fontSize: "14px",
-              fontWeight: "600",
-            }}
-          >
-            Generate Work Order
-          </button>
+          <div style={{ display: "flex", alignItems: "center", gap: "12px" }}>
+            <button
+              type="button"
+              onClick={handleClearSelection}
+              style={{
+                padding: "8px 20px",
+                backgroundColor: "#f5f5f5",
+                color: "#333",
+                border: "1px solid #ddd",
+                borderRadius: "4px",
+                cursor: "pointer",
+                fontSize: "14px",
+                fontWeight: "500",
+              }}
+            >
+              Cancel
+            </button>
+            <button
+              type="button"
+              onClick={handleGeneratePO}
+              style={{
+                padding: "8px 20px",
+                backgroundColor: "#e2e6ff",
+                color: "rgb(44, 54, 73)",
+                border: "none",
+                borderRadius: "4px",
+                cursor: "pointer",
+                fontSize: "14px",
+                fontWeight: "600",
+              }}
+            >
+              Generate PO
+            </button>
+            <button
+              type="button"
+              onClick={handleGenerateWorkOrder}
+              style={{
+                padding: "8px 20px",
+                backgroundColor: "#e2e6ff",
+                color: "rgb(44, 54, 73)",
+                border: "none",
+                borderRadius: "4px",
+                cursor: "pointer",
+                fontSize: "14px",
+                fontWeight: "600",
+              }}
+            >
+              Generate Work Order
+            </button>
+          </div>
         </div>
       )}
 
@@ -1921,6 +1968,68 @@ const SalesOrderList = ({ formValues, handleChange, cardColor, readOnly = false,
           onSend={handleSendPreview}
           modalType={previewModalType}
         />
+      )}
+
+      {/* Generate PO Loading Popup */}
+      {showGeneratePOPopup && (
+        <div
+          style={{
+            position: "fixed",
+            top: 0,
+            left: 0,
+            right: 0,
+            bottom: 0,
+            backgroundColor: "rgba(0, 0, 0, 0.5)",
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "center",
+            zIndex: 1100,
+          }}
+          onClick={(e) => e.target === e.currentTarget && handleCloseGeneratePOPopup()}
+        >
+          <div
+            style={{
+              backgroundColor: "#ffffff",
+              borderRadius: "8px",
+              padding: "32px 48px",
+              boxShadow: "0 4px 20px rgba(0, 0, 0, 0.15)",
+              display: "flex",
+              flexDirection: "column",
+              alignItems: "center",
+              gap: "20px",
+              minWidth: "280px",
+            }}
+            onClick={(e) => e.stopPropagation()}
+          >
+            <div
+              style={{
+                width: "48px",
+                height: "48px",
+                border: "4px solid #e0e0e0",
+                borderTopColor: cardColor || "#2A00FF",
+                borderRadius: "50%",
+                animation: "spin 0.8s linear infinite",
+              }}
+            />
+            <style>{`@keyframes spin { to { transform: rotate(360deg); } }`}</style>
+            <span style={{ fontSize: "16px", fontWeight: "600", color: "#1a1a1a" }}>Generating PO...</span>
+            <button
+              type="button"
+              onClick={handleCloseGeneratePOPopup}
+              style={{
+                padding: "8px 20px",
+                backgroundColor: "#f5f5f5",
+                color: "#333",
+                border: "1px solid #ddd",
+                borderRadius: "4px",
+                cursor: "pointer",
+                fontSize: "14px",
+              }}
+            >
+              Close
+            </button>
+          </div>
+        </div>
       )}
 
       {/* Vendor List Modal */}
