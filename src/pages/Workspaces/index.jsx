@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef } from 'react';
+import { useState, useEffect, useRef, useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Tooltip } from 'react-tooltip';
 import 'react-tooltip/dist/react-tooltip.css';
@@ -9,6 +9,7 @@ import AnalyticsIcon from '../../assets/images/analytics 1.svg';
 import ClockIcon from '../../assets/images/ClockIcon.svg';
 import filterIcon from '../../assets/images/filter.svg';
 import NewWorkspaceModal from './NewWorkspaceModal';
+import useWorkSpaceReducer from '../../store/WorkSpaceReducer';
 import AddBoardModal from './AddBoardModal';
 import ArchivedWorkspacesModal from './ArchivedWorkspacesModal';
 import RenameBoardModal from './RenameBoardModal';
@@ -31,61 +32,54 @@ const WorkspaceBarChartIcon = ({ className }) => (
   </svg>
 );
 
+// Transform API response to UI format
+const transformWorkspaces = (data) => {
+  if (!Array.isArray(data)) return [];
+  return data.map((ws) => ({
+    id: ws.workspace_id,
+    name: ws.workspace_name,
+    status: ws.workspace_status,
+    boards: Array.isArray(ws.boards)
+      ? ws.boards.map((b) => ({
+          id: b.board_id,
+          name: b.board_name,
+          status: b.board_status,
+          count: b.count ?? 0,
+        }))
+      : [],
+  }));
+};
+
 function Workspaces() {
   const navigate = useNavigate();
+  const {
+    workspaces: apiWorkspaces,
+    isLoading: workspacesLoading,
+    listAllWorkspaces,
+    createWorkspace,
+    addEditLoader,
+    updateWorkspaceName,
+    updateBoardName,
+  } = useWorkSpaceReducer();
 
-  // Mock data - replace with actual API data
-  const [workspacesData, setWorkspacesData] = useState([
-    {
-      id: 1,
-      name: 'Users',
-      boards: [
-        { id: 5, name: 'GRO', count: 15 },
-        { id: 1, name: 'Driver', count: 15 },
-        { id: 2, name: 'MWP', count: 15 },
-        { id: 3, name: 'Taxi boat Captain', count: 15 },
-        { id: 4, name: 'Taxi boat Operator', count: 15 },
-        { id: 6, name: 'Hotel', count: 15 },
-        { id: 7, name: 'Admin', count: 15 },
-      ],
-    },
-    {
-      id: 2,
-      name: 'Sedres Chandling WorkSpace',
-      boards: [
-        { id: 1, name: 'CHANDLING OPERATIONS', count: 6 },
-        { id: 2, name: 'FROZEN', count: 1285 },
-        { id: 3, name: 'LOGISTICS', count: 11 },
-        { id: 4, name: 'DRY AND CABIN ITEMS', count: 359 },
-        { id: 5, name: 'DN', count: 324 },
-        { id: 6, name: 'CHILLER', count: 1213 },
-      ],
-    },
-    {
-      id: 3,
-      name: 'New Offshore Marine Logistics',
-      boards: [{ id: 1, name: 'Centralized DA DESK', count: 6 },
-      { id: 2, name: 'Jubail Operations', count: 1285 },
-      { id: 3, name: 'Dammam Operations', count: 11 },
-      { id: 3, name: 'Ras Tanura Operations', count: 15 },
-      ],
-    },
-    {
-      id: 4,
-      name: 'Limousine',
-      boards: [
-        { id: 2, name: 'Coordinator Transport', count: 1285 },
-      ],
-    },
-
-  ]);
+  const workspacesData = useMemo(() => transformWorkspaces(apiWorkspaces), [apiWorkspaces]);
 
   // Find the first workspace with boards to set as initially expanded
-  const firstWorkspaceWithBoards = workspacesData.find((workspace) => workspace.boards.length > 0);
+  const firstWorkspaceWithBoards = workspacesData.find((workspace) => workspace.boards?.length > 0);
   const initialSelectedWorkspace = firstWorkspaceWithBoards ? firstWorkspaceWithBoards.id : null;
-
   const [filterValue, setFilterValue] = useState('');
-  const [selectedWorkspace, setSelectedWorkspace] = useState(initialSelectedWorkspace);
+  const [selectedWorkspace, setSelectedWorkspace] = useState(null);
+
+  useEffect(() => {
+    listAllWorkspaces();
+  }, []);
+
+  useEffect(() => {
+    if (selectedWorkspace == null && workspacesData.length > 0 && firstWorkspaceWithBoards) {
+      setSelectedWorkspace(firstWorkspaceWithBoards.id);
+    }
+  }, [workspacesData, firstWorkspaceWithBoards, selectedWorkspace]);
+
   const [showNewWorkspaceModal, setShowNewWorkspaceModal] = useState(false);
   const [showAddBoardModal, setShowAddBoardModal] = useState(false);
   const [selectedWorkspaceForBoard, setSelectedWorkspaceForBoard] = useState(null);
@@ -124,7 +118,7 @@ function Workspaces() {
   }, [openMenuId, openWorkspaceMenuId]);
 
   const handleWorkspaceClick = (workspace) => {
-    if (workspace.boards.length > 0) {
+    if (workspace.boards?.length > 0) {
       setSelectedWorkspace(selectedWorkspace === workspace.id ? null : workspace.id);
     }
   };
@@ -134,9 +128,11 @@ function Workspaces() {
   };
 
   const handleSaveWorkspace = (workspaceData) => {
-    // TODO: Implement save workspace functionality
-    console.log('Save workspace:', workspaceData);
-    // Here you would typically make an API call to save the workspace
+    createWorkspace({
+      workspace_name: workspaceData.workspaceName,
+      board_name: workspaceData.boardName,
+      cb: () => setShowNewWorkspaceModal(false),
+    });
   };
 
   const handleDeleteWorkspace = () => {
@@ -169,13 +165,9 @@ function Workspaces() {
   };
 
   const handleSaveRenameWorkspace = (workspaceId, newName) => {
-    setWorkspacesData((prev) =>
-      prev.map((workspace) => (workspace.id === workspaceId ? { ...workspace, name: newName } : workspace))
-    );
+    updateWorkspaceName(workspaceId, newName);
     setShowRenameWorkspaceModal(false);
     setSelectedWorkspaceForRename(null);
-    // TODO: Make API call to update workspace name
-    console.log('Renamed workspace:', workspaceId, 'to:', newName);
   };
 
   const handleAddToDashboard = (workspaceId) => {
@@ -214,18 +206,11 @@ function Workspaces() {
   };
 
   const handleSaveRename = (boardId, newName) => {
-    setWorkspacesData((prev) =>
-      prev.map((workspace) => ({
-        ...workspace,
-        boards: workspace.boards.map((board) =>
-          board.id === boardId ? { ...board, name: newName } : board
-        ),
-      }))
-    );
+    if (selectedBoardForRename?.workspaceId != null) {
+      updateBoardName(selectedBoardForRename.workspaceId, boardId, newName);
+    }
     setShowRenameModal(false);
     setSelectedBoardForRename(null);
-    // TODO: Make API call to update board name
-    console.log('Renamed board:', boardId, 'to:', newName);
   };
 
   const handleEditWorkflows = (boardId) => {
@@ -338,7 +323,14 @@ function Workspaces() {
 
       {/* Workspaces List */}
       <div className="workspaces-list">
-        {filteredWorkspaces.length === 0 ? (
+        {workspacesLoading ? (
+          <div className="workspaces-empty-state">
+            <div className="spinner-border text-primary" role="status" style={{ width: '3rem', height: '3rem' }}>
+              <span className="visually-hidden">Loading workspaces...</span>
+            </div>
+            <p className="mt-3">Loading workspaces...</p>
+          </div>
+        ) : filteredWorkspaces.length === 0 ? (
           <div className="workspaces-empty-state">
             <div className="workspaces-empty-icon">
               <img src={GroupIcon} alt="No workspaces" />
@@ -363,7 +355,7 @@ function Workspaces() {
           filteredWorkspaces.map((workspace) => (
             <div
               key={workspace.id}
-              className={`workspace-card ${selectedWorkspace === workspace.id ? 'expanded' : ''} ${workspace.boards.length === 0 ? 'no-boards' : ''} ${openWorkspaceMenuId === workspace.id ? 'menu-open' : ''}`}
+              className={`workspace-card ${selectedWorkspace === workspace.id ? 'expanded' : ''} ${workspace.boards?.length === 0 ? 'no-boards' : ''} ${openWorkspaceMenuId === workspace.id ? 'menu-open' : ''}`}
               onClick={() => handleWorkspaceClick(workspace)}
             >
               <div className="workspace-card-header">
@@ -372,13 +364,13 @@ function Workspaces() {
                     <WorkspaceBarChartIcon className="workspace-icon" />
                   </div>
                   <h2 className="workspace-name">{workspace.name}</h2>
-                  {workspace.boards.length > 0 && (
+                  {workspace.boards?.length > 0 && (
                     <span className="workspace-board-count-badge">
                       {workspace.boards.length} {workspace.boards.length === 1 ? 'board' : 'boards'}
                     </span>
                   )}
                 </div>
-                {workspace.boards.length > 0 && (
+                {workspace.boards?.length > 0 && (
                   <div className="workspace-card-actions">
                     <button
                       type="button"
@@ -508,7 +500,7 @@ function Workspaces() {
               </div>
 
               {/* Boards Grid - shown when expanded */}
-              {selectedWorkspace === workspace.id && workspace.boards.length > 0 && (
+              {selectedWorkspace === workspace.id && workspace.boards?.length > 0 && (
                 <div className="workspace-boards">
                   {workspace.boards.map((board) => (
                     <div
@@ -640,7 +632,7 @@ function Workspaces() {
                             data-tooltip-content={`Card Count: ${board.count.toLocaleString()} cards`}
                           >
                             <img src={ClockIcon} alt="Clock" className="board-clock-icon" />
-                            <span className="board-count-number">{board.count.toLocaleString()}</span>
+                            <span className="board-count-number">{(board.count ?? 0).toLocaleString()}</span>
                           </div>
                           <Tooltip id={`board-count-${board.id}`} place="top" />
 
@@ -670,6 +662,7 @@ function Workspaces() {
         show={showNewWorkspaceModal}
         onClose={() => setShowNewWorkspaceModal(false)}
         onSave={handleSaveWorkspace}
+        isSaving={addEditLoader}
       />
 
       {/* Add Board Modal */}

@@ -3,7 +3,7 @@ import CustomModal from '../../components/CustomModal';
 import BoardsListModal from './BoardsListModal';
 import '../../design/scss/Workspaces.scss';
 
-const NewWorkspaceModal = ({ show, onClose, onSave }) => {
+const NewWorkspaceModal = ({ show, onClose, onSave, isSaving = false }) => {
   const [step, setStep] = useState('form'); // Always 'form' now - directly show Team Workspace
   const [workspaceType, setWorkspaceType] = useState('team'); // Always 'team' - skip selection
   const [showBoardsListModal, setShowBoardsListModal] = useState(false);
@@ -47,13 +47,13 @@ const NewWorkspaceModal = ({ show, onClose, onSave }) => {
   };
 
   const handleSave = () => {
-    if (onSave) {
+    if (onSave && formData.workspaceName && formData.boardName) {
       onSave({
         type: workspaceType,
         ...formData,
       });
     }
-    handleClose();
+    // Modal is closed by parent's callback on successful API response
   };
 
   const handleClose = () => {
@@ -321,9 +321,9 @@ const NewWorkspaceModal = ({ show, onClose, onSave }) => {
             type="button"
             className="workspace-form-btn workspace-form-btn-save"
             onClick={handleSave}
-            disabled={!formData.workspaceName || !formData.boardName}
+            disabled={!formData.workspaceName || !formData.boardName || isSaving}
           >
-            Save
+            {isSaving ? 'Saving...' : 'Save'}
           </button>
         </div>
       </div>
@@ -559,9 +559,9 @@ const NewWorkspaceModal = ({ show, onClose, onSave }) => {
             type="button"
             className="workspace-form-btn workspace-form-btn-save"
             onClick={handleSave}
-            disabled={!formData.workspaceName || !formData.boardName}
+            disabled={!formData.workspaceName || !formData.boardName || isSaving}
           >
-            Save
+            {isSaving ? 'Saving...' : 'Save'}
           </button>
         </div>
       </div>
