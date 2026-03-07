@@ -590,6 +590,26 @@ textarea:disabled,
   animation: layoutFadeIn 0.3s ease-out;
 }
 
+.kanban-compact-layout {
+  animation: layoutFadeIn 0.3s ease-out;
+
+  .kanban-board {
+    gap: 8px;
+  }
+
+  .column,
+  .column-classic,
+  .column-modern {
+    min-width: 200px;
+  }
+
+  .kanban-card,
+  .kanban-card-classic,
+  .kanban-card-modern {
+    padding: 8px 10px;
+  }
+}
+
 /* ================================
    KANBAN — DARK MODE
    Premium / User-attractive

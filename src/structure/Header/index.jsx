@@ -10,6 +10,7 @@ import {
   FiGrid,
   FiMenu,
   FiSquare,
+  FiLayers,
   FiMoon,
   FiBarChart2,
   FiMapPin
@@ -367,6 +368,15 @@ function Header({ onMenuToggle, mobileMenuOpen: externalMobileMenuOpen }) {
                 >
                   <FiSquare className="layout-view-icon" aria-hidden />
                   Normal
+                </button>
+                <button
+                  type="button"
+                  className={`layout-view-option ${layoutView === 'compact' ? 'active' : ''}`}
+                  onClick={() => setLayoutView('compact')}
+                  aria-pressed={layoutView === 'compact'}
+                >
+                  <FiLayers className="layout-view-icon" aria-hidden />
+                  Compact
                 </button>
                 <button
                   type="button"
