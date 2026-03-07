@@ -61,6 +61,7 @@ function Workspaces() {
     renameWorkspace,
     renameBoard,
     archiveWorkspace,
+    archiveBoard,
     addEditLoader,
     updateBoardName,
   } = useWorkSpaceReducer();
@@ -238,9 +239,7 @@ function Workspaces() {
 
   const handleArchiveBoard = (boardId) => {
     setOpenMenuId(null);
-    // TODO: Implement archive functionality
-    console.log('Archive board:', boardId);
-    // You can add confirmation modal here if needed
+    archiveBoard({ board_id: boardId });
   };
 
   const toSlug = (text) =>

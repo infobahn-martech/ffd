@@ -40,6 +40,11 @@ const renameBoard = (boardId, data) =>
     board_name: data.board_name,
   });
 
+const archiveBoard = (boardId) =>
+  Gateway.post(`/kanban_board/archive_board/${boardId}`, {
+    board_id: boardId,
+  });
+
 export default {
   createWorkspace,
   listAllWorkspaces,
@@ -49,4 +54,5 @@ export default {
   unarchiveWorkspace,
   createBoard,
   renameBoard,
+  archiveBoard,
 };

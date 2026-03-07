@@ -135,6 +135,21 @@ const useWorkSpaceReducer = create((set, get) => ({
       error(err?.response?.data?.message ?? err.message ?? 'Failed to rename board');
     }
   },
+  archiveBoard: async ({ board_id, cb }) => {
+    try {
+      set({ addEditLoader: true });
+      const { data } = await workSpaceService.archiveBoard(board_id);
+      set({ addEditLoader: false });
+      const { success } = useAlertReducer.getState();
+      success(data?.message ?? 'Board archived successfully');
+      cb && cb();
+      get().listAllWorkspaces();
+    } catch (err) {
+      const { error } = useAlertReducer.getState();
+      set({ addEditLoader: false });
+      error(err?.response?.data?.message ?? err.message ?? 'Failed to archive board');
+    }
+  },
   updateWorkspaceName: (workspaceId, newName) =>
     set((state) => ({
       workspaces: state.workspaces.map((w) =>
