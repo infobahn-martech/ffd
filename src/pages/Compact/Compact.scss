@@ -4,6 +4,14 @@
   background: #f5f5f5;
 }
 
+.compact-list-item-clickable {
+  cursor: pointer;
+
+  &:hover {
+    background: #f9fafb;
+  }
+}
+
 .compact-list {
   display: flex;
   flex-direction: column;
@@ -47,5 +55,147 @@
 
   &:hover {
     color: #111827;
+  }
+}
+
+/* Board view (when Marine Port calls is clicked) */
+.compact-board-view {
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  min-height: 100%;
+  background: #f0f1f5;
+}
+
+.compact-board-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 14px 20px;
+  background: #00368c;
+  color: #fff;
+  flex-shrink: 0;
+}
+
+.compact-board-back {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: none;
+  border: none;
+  padding: 4px;
+  color: #fff;
+  cursor: pointer;
+  margin-right: 12px;
+
+  &:hover {
+    color: rgba(255, 255, 255, 0.9);
+  }
+}
+
+.compact-board-title {
+  flex: 1;
+  margin: 0;
+  font-size: 18px;
+  font-weight: 600;
+  text-align: center;
+}
+
+.compact-board-actions {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.compact-board-action-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: none;
+  border: none;
+  padding: 6px;
+  color: #fff;
+  cursor: pointer;
+
+  &:hover {
+    color: rgba(255, 255, 255, 0.9);
+  }
+}
+
+.compact-board-content {
+  flex: 1;
+  overflow-x: auto;
+  overflow-y: auto;
+  padding: 16px;
+}
+
+.compact-kanban-board {
+  display: flex;
+  gap: 8px;
+  min-height: 300px;
+}
+
+.compact-column {
+  width: 270px;
+  min-width: 270px;
+  flex-shrink: 0;
+  background: #f5f6fa;
+  border-radius: 10px;
+  padding: 0 8px 10px 8px;
+  border-left: 2px solid rgba(0, 0, 0, 0.12);
+  border-right: 2px solid rgba(0, 0, 0, 0.12);
+
+  .compact-column-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    padding: 8px 12px;
+    margin-bottom: 6px;
+    border-radius: 8px;
+    font-weight: 600;
+    font-size: 15px;
+    border-top: 4px solid #00368c;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.06);
+    background: #fff;
+  }
+
+  .compact-column-header-left {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+  }
+
+  .compact-column-title {
+    margin: 0;
+    font-size: 14px;
+    color: #1f2937;
+  }
+
+  .compact-column-count {
+    font-size: 12px;
+    color: #6b7280;
+    font-weight: 500;
+  }
+
+  .compact-column-kebab {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: none;
+    border: none;
+    padding: 4px;
+    color: #6b7280;
+    cursor: pointer;
+
+    &:hover {
+      color: #1f2937;
+    }
+  }
+
+  .card-list {
+    min-height: 120px;
+    background: #eef0f5;
+    border-radius: 8px;
+    padding: 8px;
   }
 }
