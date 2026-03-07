@@ -3,10 +3,11 @@ import CustomModal from '../../components/CustomModal';
 import useWorkSpaceReducer from '../../store/WorkSpaceReducer';
 import '../../design/scss/Workspaces.scss';
 
-// Map API response (snake_case) to UI shape; API may also return workspace_id for unarchive
+// Map API response (snake_case) to UI shape
+// workspace_id: from API or fallback to archive_log_id if backend uses it for unarchive lookup
 const mapArchiveLogItem = (row) => ({
   id: row.archive_log_id,
-  workspace_id: row.workspace_id,
+  workspace_id: row.workspace_id ?? row.workspaceId ?? row.archive_log_id,
   workspace: row.workspace_name ?? '',
   board: row.board_name ?? '',
   archivedBy: row.archive_by ?? '',
@@ -35,11 +36,11 @@ const ArchivedWorkspacesModal = ({ show, onClose }) => {
     if (show) fetchWorkspaceArchiveLog();
   }, [show, fetchWorkspaceArchiveLog]);
 
-  const handleUnarchive = (workspaceId) => {
-    if (!workspaceId) return;
+  const handleUnarchive = (id) => {
+    if (id == null || id === '') return;
     unarchiveWorkspace({
-      workspace_id: workspaceId,
-      cb: () => { },
+      workspace_id: id,
+      cb: () => { onClose(); fetchWorkspaceArchiveLog() },
     });
   };
 
@@ -170,8 +171,9 @@ const ArchivedWorkspacesModal = ({ show, onClose }) => {
                             className="archived-workspaces-action-btn"
                             aria-label="Unarchive"
                             title="Unarchive"
-                            // disabled={!item.workspace_id || addEditLoader}
+                            disabled={addEditLoader}
                             onClick={(e) => {
+                              e.preventDefault();
                               e.stopPropagation();
                               handleUnarchive(item.workspace_id);
                             }}
