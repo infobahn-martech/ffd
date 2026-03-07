@@ -369,7 +369,7 @@ function Header({ onMenuToggle, mobileMenuOpen: externalMobileMenuOpen }) {
                   <FiSquare className="layout-view-icon" aria-hidden />
                   Normal
                 </button>
-                <button
+                {/* <button
                   type="button"
                   className={`layout-view-option ${pathname === '/compact' ? 'active' : ''}`}
                   onClick={() => navigate('/compact')}
@@ -377,7 +377,7 @@ function Header({ onMenuToggle, mobileMenuOpen: externalMobileMenuOpen }) {
                 >
                   <FiLayers className="layout-view-icon" aria-hidden />
                   Compact
-                </button>
+                </button> */}
                 <button
                   type="button"
                   className={`layout-view-option ${layoutView === 'dark' ? 'active' : ''}`}
