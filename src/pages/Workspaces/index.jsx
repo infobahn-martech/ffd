@@ -58,6 +58,7 @@ function Workspaces() {
     listAllWorkspaces,
     createWorkspace,
     renameWorkspace,
+    archiveWorkspace,
     addEditLoader,
     updateBoardName,
   } = useWorkSpaceReducer();
@@ -183,8 +184,10 @@ function Workspaces() {
 
   const handleArchiveWorkspace = (workspaceId) => {
     setOpenWorkspaceMenuId(null);
-    // TODO: Implement archive workspace functionality
-    console.log('Archive workspace:', workspaceId);
+    archiveWorkspace({
+      workspace_id: workspaceId,
+      cb: () => setSelectedWorkspace(null),
+    });
   };
 
   const handleBoardMenu = (boardId, e) => {

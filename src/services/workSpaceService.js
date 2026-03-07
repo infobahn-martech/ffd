@@ -15,8 +15,14 @@ const renameWorkspace = (workspaceId, data) =>
     workspace_name: data.workspace_name,
   });
 
+const archiveWorkspace = (workspaceId) =>
+  Gateway.post(`/kanban_workspace/archive_workspace/${workspaceId}`, {
+    workspace_id: workspaceId,
+  });
+
 export default {
   createWorkspace,
   listAllWorkspaces,
   renameWorkspace,
+  archiveWorkspace,
 };

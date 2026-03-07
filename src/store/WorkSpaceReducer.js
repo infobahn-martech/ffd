@@ -54,6 +54,21 @@ const useWorkSpaceReducer = create((set, get) => ({
       error(err?.response?.data?.message ?? err.message ?? 'Failed to rename workspace');
     }
   },
+  archiveWorkspace: async ({ workspace_id, cb }) => {
+    try {
+      set({ addEditLoader: true });
+      const { data } = await workSpaceService.archiveWorkspace(workspace_id);
+      set({ addEditLoader: false });
+      const { success } = useAlertReducer.getState();
+      success(data?.message ?? 'Workspace archived successfully');
+      cb && cb();
+      get().listAllWorkspaces();
+    } catch (err) {
+      const { error } = useAlertReducer.getState();
+      set({ addEditLoader: false });
+      error(err?.response?.data?.message ?? err.message ?? 'Failed to archive workspace');
+    }
+  },
   updateWorkspaceName: (workspaceId, newName) =>
     set((state) => ({
       workspaces: state.workspaces.map((w) =>
