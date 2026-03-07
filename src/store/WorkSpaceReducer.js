@@ -8,6 +8,8 @@ const useWorkSpaceReducer = create((set, get) => ({
   successMessage: '',
   workspaces: [],
   addEditLoader: false,
+  archiveLog: [],
+  archiveLogLoading: false,
   createWorkspace: async ({ workspace_name, board_name, cb }) => {
     try {
       set({ addEditLoader: true });
@@ -67,6 +69,34 @@ const useWorkSpaceReducer = create((set, get) => ({
       const { error } = useAlertReducer.getState();
       set({ addEditLoader: false });
       error(err?.response?.data?.message ?? err.message ?? 'Failed to archive workspace');
+    }
+  },
+  fetchWorkspaceArchiveLog: async () => {
+    try {
+      set({ archiveLogLoading: true });
+      const { data } = await workSpaceService.getWorkspaceArchiveLog();
+      const list = data?.status === 'success' ? data.data ?? [] : [];
+      set({ archiveLog: Array.isArray(list) ? list : [], archiveLogLoading: false });
+    } catch (err) {
+      const { error } = useAlertReducer.getState();
+      error(err?.response?.data?.message ?? err.message ?? 'Failed to load archive log');
+      set({ archiveLog: [], archiveLogLoading: false });
+    }
+  },
+  unarchiveWorkspace: async ({ workspace_id, cb }) => {
+    try {
+      set({ addEditLoader: true });
+      const { data } = await workSpaceService.unarchiveWorkspace(workspace_id);
+      set({ addEditLoader: false });
+      const { success } = useAlertReducer.getState();
+      success(data?.message ?? 'Workspace restored successfully');
+      cb && cb();
+      get().fetchWorkspaceArchiveLog();
+      get().listAllWorkspaces();
+    } catch (err) {
+      const { error } = useAlertReducer.getState();
+      set({ addEditLoader: false });
+      error(err?.response?.data?.message ?? err.message ?? 'Failed to restore workspace');
     }
   },
   updateWorkspaceName: (workspaceId, newName) =>

@@ -20,9 +20,19 @@ const archiveWorkspace = (workspaceId) =>
     workspace_id: workspaceId,
   });
 
+const getWorkspaceArchiveLog = () =>
+  Gateway.get('/kanban_workspace/workspace_archive_log');
+
+const unarchiveWorkspace = (workspaceId) =>
+  Gateway.post(`/kanban_workspace/unarchive_workspace/${workspaceId}`, {
+    workspace_id: workspaceId,
+  });
+
 export default {
   createWorkspace,
   listAllWorkspaces,
   renameWorkspace,
   archiveWorkspace,
+  getWorkspaceArchiveLog,
+  unarchiveWorkspace,
 };

@@ -1,71 +1,51 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import CustomModal from '../../components/CustomModal';
+import useWorkSpaceReducer from '../../store/WorkSpaceReducer';
 import '../../design/scss/Workspaces.scss';
+
+// Map API response (snake_case) to UI shape; API may also return workspace_id for unarchive
+const mapArchiveLogItem = (row) => ({
+  id: row.archive_log_id,
+  workspace_id: row.workspace_id,
+  workspace: row.workspace_name ?? '',
+  board: row.board_name ?? '',
+  archivedBy: row.archive_by ?? '',
+  archivedByAvatar: (row.archive_by ?? '').charAt(0).toUpperCase() || '?',
+  archivedAt: row.archived_at ?? '',
+});
 
 const ArchivedWorkspacesModal = ({ show, onClose }) => {
   const [filterValue, setFilterValue] = useState('');
+  const {
+    archiveLog,
+    archiveLogLoading,
+    fetchWorkspaceArchiveLog,
+    unarchiveWorkspace,
+    addEditLoader,
+  } = useWorkSpaceReducer();
 
-  // Mock archived data - replace with actual API data
-  const archivedItems = [
-    {
-      id: 1,
-      workspace: 'Team Workspace',
-      board: 'Board name Team Workspace',
-      archivedBy: 'I Infobahn',
-      archivedAt: '2025-12-16',
-      archivedByAvatar: 'I',
-    },
-    {
-      id: 2,
-      workspace: 'Team Boards',
-      board: 'sdfsd',
-      archivedBy: 'I Infobahn',
-      archivedAt: '2025-12-16',
-      archivedByAvatar: 'I',
-    },
-    {
-      id: 3,
-      workspace: 'Team Boards',
-      board: 'Team B',
-      archivedBy: 'I Infobahn',
-      archivedAt: '2025-12-15',
-      archivedByAvatar: 'I',
-    },
-    {
-      id: 4,
-      workspace: 'Team Boards',
-      board: 'Team A',
-      archivedBy: 'I Infobahn',
-      archivedAt: '2025-12-15',
-      archivedByAvatar: 'I',
-    },
-    {
-      id: 5,
-      workspace: 'Management Boards',
-      board: 'Strategic Objectives',
-      archivedBy: 'I Infobahn',
-      archivedAt: '2025-12-15',
-      archivedByAvatar: 'I',
-    },
-  ];
-
+  const archivedItems = (archiveLog || []).map(mapArchiveLogItem);
   const filteredItems = archivedItems.filter(
     (item) =>
       item.workspace.toLowerCase().includes(filterValue.toLowerCase()) ||
       item.board.toLowerCase().includes(filterValue.toLowerCase())
   );
 
-  const handleUnarchive = (id) => {
-    // TODO: Implement unarchive functionality
-    console.log('Unarchive item:', id);
-    // Here you would typically make an API call to unarchive the item
+  useEffect(() => {
+    if (show) fetchWorkspaceArchiveLog();
+  }, [show, fetchWorkspaceArchiveLog]);
+
+  const handleUnarchive = (workspaceId) => {
+    if (!workspaceId) return;
+    unarchiveWorkspace({
+      workspace_id: workspaceId,
+      cb: () => { },
+    });
   };
 
   const handleDelete = (id) => {
-    // TODO: Implement delete functionality
+    // TODO: Implement delete functionality when API is available
     console.log('Delete item:', id);
-    // Here you would typically make an API call to delete the item
-    // You might want to add a confirmation modal here
   };
 
   return (
@@ -155,7 +135,13 @@ const ArchivedWorkspacesModal = ({ show, onClose }) => {
                 </tr>
               </thead>
               <tbody>
-                {filteredItems.length === 0 ? (
+                {archiveLogLoading ? (
+                  <tr>
+                    <td colSpan="5" className="archived-workspaces-empty">
+                      Loading...
+                    </td>
+                  </tr>
+                ) : filteredItems.length === 0 ? (
                   <tr>
                     <td colSpan="5" className="archived-workspaces-empty">
                       No archived items found
@@ -166,9 +152,9 @@ const ArchivedWorkspacesModal = ({ show, onClose }) => {
                     <tr key={item.id} className="archived-workspaces-row">
                       <td className="archived-workspaces-td-workspace">{item.workspace}</td>
                       <td className="archived-workspaces-td-board">
-                        <a href="#" className="archived-workspaces-board-link">
+                        <span className="archived-workspaces-board-link">
                           {item.board}
-                        </a>
+                        </span>
                       </td>
                       <td className="archived-workspaces-td-archived-by">
                         <div className="archived-workspaces-user-info">
@@ -184,9 +170,10 @@ const ArchivedWorkspacesModal = ({ show, onClose }) => {
                             className="archived-workspaces-action-btn"
                             aria-label="Unarchive"
                             title="Unarchive"
+                            // disabled={!item.workspace_id || addEditLoader}
                             onClick={(e) => {
                               e.stopPropagation();
-                              handleUnarchive(item.id);
+                              handleUnarchive(item.workspace_id);
                             }}
                           >
                             <svg width="16" height="16" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
