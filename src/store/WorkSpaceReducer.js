@@ -99,6 +99,24 @@ const useWorkSpaceReducer = create((set, get) => ({
       error(err?.response?.data?.message ?? err.message ?? 'Failed to restore workspace');
     }
   },
+  createBoard: async ({ workspace_id, board_name, cb }) => {
+    try {
+      set({ addEditLoader: true });
+      const { data } = await workSpaceService.createBoard({
+        workspace_id,
+        board_name,
+      });
+      set({ addEditLoader: false });
+      const { success } = useAlertReducer.getState();
+      success(data?.message ?? 'Board created successfully');
+      cb && cb();
+      get().listAllWorkspaces();
+    } catch (err) {
+      const { error } = useAlertReducer.getState();
+      set({ addEditLoader: false });
+      error(err?.response?.data?.message ?? err.message ?? 'Failed to create board');
+    }
+  },
   updateWorkspaceName: (workspaceId, newName) =>
     set((state) => ({
       workspaces: state.workspaces.map((w) =>

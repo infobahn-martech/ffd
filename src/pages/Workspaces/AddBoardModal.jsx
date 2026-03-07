@@ -2,7 +2,7 @@ import { useState, useEffect } from 'react';
 import CustomModal from '../../components/CustomModal';
 import '../../design/scss/Workspaces.scss';
 
-const AddBoardModal = ({ show, onClose, onSave, workspaceId }) => {
+const AddBoardModal = ({ show, onClose, onSave, workspaceId, isSaving = false }) => {
   const [boardName, setBoardName] = useState('');
 
   useEffect(() => {
@@ -12,13 +12,13 @@ const AddBoardModal = ({ show, onClose, onSave, workspaceId }) => {
   }, [show]);
 
   const handleSave = () => {
-    if (onSave) {
+    if (onSave && boardName?.trim()) {
       onSave({
         workspaceId,
-        boardName,
+        boardName: boardName.trim(),
       });
     }
-    handleClose();
+    // Modal closes via parent's callback on successful API response
   };
 
   const handleClose = () => {
@@ -155,9 +155,9 @@ const AddBoardModal = ({ show, onClose, onSave, workspaceId }) => {
                 type="button"
                 className="add-board-form-btn add-board-form-btn-save"
                 onClick={handleSave}
-                disabled={!boardName}
+                disabled={!boardName?.trim() || isSaving}
               >
-                Save
+                {isSaving ? 'Saving...' : 'Save'}
               </button>
             </div>
           </div>

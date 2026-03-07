@@ -57,6 +57,7 @@ function Workspaces() {
     isLoading: workspacesLoading,
     listAllWorkspaces,
     createWorkspace,
+    createBoard,
     renameWorkspace,
     archiveWorkspace,
     addEditLoader,
@@ -146,9 +147,14 @@ function Workspaces() {
   };
 
   const handleSaveBoard = (boardData) => {
-    // TODO: Implement save board functionality
-    console.log('Save board:', boardData);
-    // Here you would typically make an API call to save the board
+    createBoard({
+      workspace_id: boardData.workspaceId,
+      board_name: boardData.boardName,
+      cb: () => {
+        setShowAddBoardModal(false);
+        setSelectedWorkspaceForBoard(null);
+      },
+    });
   };
 
   const handleWorkspaceMenu = (workspaceId, e) => {
@@ -676,9 +682,13 @@ function Workspaces() {
       {/* Add Board Modal */}
       <AddBoardModal
         show={showAddBoardModal}
-        onClose={() => setShowAddBoardModal(false)}
+        onClose={() => {
+          setShowAddBoardModal(false);
+          setSelectedWorkspaceForBoard(null);
+        }}
         onSave={handleSaveBoard}
         workspaceId={selectedWorkspaceForBoard}
+        isSaving={addEditLoader}
       />
 
       {/* Archived Workspaces Modal */}
