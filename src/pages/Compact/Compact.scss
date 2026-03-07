@@ -1,0 +1,51 @@
+.compact-page {
+  padding: 24px;
+  min-height: 100%;
+  background: #f5f5f5;
+}
+
+.compact-list {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  max-width: 600px;
+}
+
+.compact-list-item {
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: #ffffff;
+  border-radius: 6px;
+  padding: 14px 48px 14px 18px;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.08);
+  font-family: 'Poppins', sans-serif;
+}
+
+.compact-list-item-text {
+  flex: 1;
+  text-align: center;
+  font-size: 15px;
+  font-weight: 400;
+  color: #374151;
+}
+
+.compact-list-item-kebab {
+  position: absolute;
+  right: 14px;
+  top: 50%;
+  transform: translateY(-50%);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: none;
+  border: none;
+  padding: 4px;
+  color: #374151;
+  cursor: pointer;
+
+  &:hover {
+    color: #1f2937;
+  }
+}
