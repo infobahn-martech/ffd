@@ -43,10 +43,10 @@ const ArchivedWorkspacesModal = ({ show, onClose }) => {
     });
   };
 
-  const handleDelete = (id) => {
-    // TODO: Implement delete functionality when API is available
-    console.log('Delete item:', id);
-  };
+  // const handleDelete = (id) => {
+  //   // TODO: Implement delete functionality when API is available
+  //   console.log('Delete item:', id);
+  // };
 
   return (
     <CustomModal
@@ -186,7 +186,7 @@ const ArchivedWorkspacesModal = ({ show, onClose }) => {
                               />
                             </svg>
                           </button>
-                          <button
+                          {/* <button
                             type="button"
                             className="archived-workspaces-action-btn archived-workspaces-action-btn-delete"
                             aria-label="Delete"
@@ -205,7 +205,7 @@ const ArchivedWorkspacesModal = ({ show, onClose }) => {
                                 strokeLinejoin="round"
                               />
                             </svg>
-                          </button>
+                          </button> */}
                         </div>
                       </td>
                     </tr>
