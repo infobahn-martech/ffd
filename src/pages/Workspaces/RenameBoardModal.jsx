@@ -2,7 +2,7 @@ import { useState, useEffect } from 'react';
 import CustomModal from '../../components/CustomModal';
 import '../../design/scss/Workspaces.scss';
 
-const RenameBoardModal = ({ show, onClose, onSave, currentName }) => {
+const RenameBoardModal = ({ show, onClose, onSave, currentName, isSaving = false }) => {
     const [boardName, setBoardName] = useState('');
 
     useEffect(() => {
@@ -17,6 +17,7 @@ const RenameBoardModal = ({ show, onClose, onSave, currentName }) => {
         } else {
             onClose();
         }
+        // Modal closes via parent's callback on successful API response
     };
 
     const handleClose = () => {
@@ -82,9 +83,9 @@ const RenameBoardModal = ({ show, onClose, onSave, currentName }) => {
                                 type="button"
                                 className="rename-board-form-btn rename-board-form-btn-save"
                                 onClick={handleSave}
-                                disabled={!boardName.trim()}
+                                disabled={!boardName.trim() || boardName.trim() === currentName || isSaving}
                             >
-                                Save
+                                {isSaving ? 'Saving...' : 'Save'}
                             </button>
                         </div>
                     </div>

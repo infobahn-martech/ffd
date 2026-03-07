@@ -59,6 +59,7 @@ function Workspaces() {
     createWorkspace,
     createBoard,
     renameWorkspace,
+    renameBoard,
     archiveWorkspace,
     addEditLoader,
     updateBoardName,
@@ -220,11 +221,14 @@ function Workspaces() {
   };
 
   const handleSaveRename = (boardId, newName) => {
-    if (selectedBoardForRename?.workspaceId != null) {
-      updateBoardName(selectedBoardForRename.workspaceId, boardId, newName);
-    }
-    setShowRenameModal(false);
-    setSelectedBoardForRename(null);
+    renameBoard({
+      board_id: boardId,
+      board_name: newName,
+      cb: () => {
+        setShowRenameModal(false);
+        setSelectedBoardForRename(null);
+      },
+    });
   };
 
   const handleEditWorkflows = (boardId) => {
@@ -707,6 +711,7 @@ function Workspaces() {
           }}
           onSave={(newName) => handleSaveRename(selectedBoardForRename.id, newName)}
           currentName={selectedBoardForRename.name}
+          isSaving={addEditLoader}
         />
       )}
 

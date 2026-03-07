@@ -34,6 +34,12 @@ const createBoard = (data) =>
     board_name: data.board_name,
   });
 
+const renameBoard = (boardId, data) =>
+  Gateway.post(`/kanban_board/rename_board/${boardId}`, {
+    board_id: data.board_id,
+    board_name: data.board_name,
+  });
+
 export default {
   createWorkspace,
   listAllWorkspaces,
@@ -42,4 +48,5 @@ export default {
   getWorkspaceArchiveLog,
   unarchiveWorkspace,
   createBoard,
+  renameBoard,
 };
