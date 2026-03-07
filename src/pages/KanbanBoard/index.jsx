@@ -562,7 +562,6 @@ export default function KanbanBoard() {
             <div
               className={`kanban-container ${isClassicLayout ? 'kanban-classic-layout' : ''
                 } ${isModernLayout ? 'kanban-modern-layout' : ''} ${layoutView === 'normal' ? 'kanban-normal-layout' : ''
-                } ${layoutView === 'compact' ? 'kanban-compact-layout' : ''
                 }`}
               key={layoutView}
             >

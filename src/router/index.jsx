@@ -54,6 +54,7 @@ import ServiceProviders from "../pages/ServiceProviders";
 import TransportParties from "../pages/TransportParties";
 import WasteTypes from "../pages/WasteTypes";
 import NotFound from "../pages/NotFound";
+import Compact from "../pages/Compact";
 import JubailOperations from "../pages/JubailOperations";
 import RastanuraDammamOperations from "../pages/RastanuraDammamOperations";
 import CoordinatorTransport from "../pages/CoordinatorTransport";
@@ -173,6 +174,7 @@ const router = createHashRouter([
                   { path: "/kanban-board/hotel", element: <RouteGuard><HotelBoard /></RouteGuard> },
                   { path: "/kanban-board/admin", element: <RouteGuard><AdminBoard /></RouteGuard> },
                   { path: "/kanban-board", element: <RouteGuard><KanbanBoard /></RouteGuard> },
+                  { path: "/compact", element: <RouteGuard><Compact /></RouteGuard> },
                   // Kanban Board Analytics
                   { path: "/kanban-board/:id/analytics", element: <RouteGuard><KanbanAnalytics /></RouteGuard> },
                   { path: "/kanban-board/analytics", element: <RouteGuard><KanbanAnalytics /></RouteGuard> },

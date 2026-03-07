@@ -337,7 +337,7 @@ function Header({ onMenuToggle, mobileMenuOpen: externalMobileMenuOpen }) {
           style={{ cursor: 'pointer' }}
         />
 
-        {pathname === '/kanban-board' && (
+        {(pathname === '/kanban-board' || pathname === '/compact') && (
           <div className="top-links">
             <div className="layout-view-toggle">
               {/* <span className="layout-view-label">Layout View:</span> */}
@@ -345,7 +345,7 @@ function Header({ onMenuToggle, mobileMenuOpen: externalMobileMenuOpen }) {
                 <button
                   type="button"
                   className={`layout-view-option ${layoutView === 'classic' ? 'active' : ''}`}
-                  onClick={() => setLayoutView('classic')}
+                  onClick={() => { setLayoutView('classic'); pathname === '/compact' && navigate('/kanban-board'); }}
                   aria-pressed={layoutView === 'classic'}
                 >
                   <FiMenu className="layout-view-icon" aria-hidden />
@@ -354,7 +354,7 @@ function Header({ onMenuToggle, mobileMenuOpen: externalMobileMenuOpen }) {
                 <button
                   type="button"
                   className={`layout-view-option ${layoutView === 'modern' ? 'active' : ''}`}
-                  onClick={() => setLayoutView('modern')}
+                  onClick={() => { setLayoutView('modern'); pathname === '/compact' && navigate('/kanban-board'); }}
                   aria-pressed={layoutView === 'modern'}
                 >
                   <FiGrid className="layout-view-icon" aria-hidden />
@@ -363,7 +363,7 @@ function Header({ onMenuToggle, mobileMenuOpen: externalMobileMenuOpen }) {
                 <button
                   type="button"
                   className={`layout-view-option ${layoutView === 'normal' ? 'active' : ''}`}
-                  onClick={() => setLayoutView('normal')}
+                  onClick={() => { setLayoutView('normal'); pathname === '/compact' && navigate('/kanban-board'); }}
                   aria-pressed={layoutView === 'normal'}
                 >
                   <FiSquare className="layout-view-icon" aria-hidden />
@@ -371,9 +371,9 @@ function Header({ onMenuToggle, mobileMenuOpen: externalMobileMenuOpen }) {
                 </button>
                 <button
                   type="button"
-                  className={`layout-view-option ${layoutView === 'compact' ? 'active' : ''}`}
-                  onClick={() => setLayoutView('compact')}
-                  aria-pressed={layoutView === 'compact'}
+                  className={`layout-view-option ${pathname === '/compact' ? 'active' : ''}`}
+                  onClick={() => navigate('/compact')}
+                  aria-pressed={pathname === '/compact'}
                 >
                   <FiLayers className="layout-view-icon" aria-hidden />
                   Compact
@@ -381,7 +381,7 @@ function Header({ onMenuToggle, mobileMenuOpen: externalMobileMenuOpen }) {
                 <button
                   type="button"
                   className={`layout-view-option ${layoutView === 'dark' ? 'active' : ''}`}
-                  onClick={() => setLayoutView('dark')}
+                  onClick={() => { setLayoutView('dark'); pathname === '/compact' && navigate('/kanban-board'); }}
                   aria-pressed={layoutView === 'dark'}
                 >
                   <FiMoon className="layout-view-icon" aria-hidden />
