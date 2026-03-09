@@ -119,48 +119,11 @@ function EditWorkflows() {
                     id: 1,
                     name: 'Main work flow RT',
                     stages: [
-                        { id: 1, name: 'Appointment Received', area: 'REQUESTED AREA', limit: 0, cardsPerRow: 1, row: 0 },
+                        { id: 1, name: 'Backlog', area: 'BACKLOG AREA', limit: 0, cardsPerRow: 1, row: 0 },
+                        { id: 2, name: 'Appointment Received', area: 'REQUESTED AREA', limit: 0, cardsPerRow: 1, row: 0 },
                         { id: 3, name: 'Ops In Progress', area: 'IN PROGRESS AREA', limit: 0, cardsPerRow: 1, row: 0 },
-                        { id: 7, name: 'Dispatched', area: 'DONE AREA', limit: 0, cardsPerRow: 1, row: 0 },
-                        { id: 9, name: 'Ready To Archive', area: 'READY TO ARCHIVE AREA', limit: 0, cardsPerRow: 1, row: 0 }
-                    ],
-                },
-            ],
-        },
-        {
-            id: 2,
-            name: 'Import Export RT',
-            swimlanes: [
-                {
-                    id: 1,
-                    name: 'Import Export RT',
-                    stages: [
-                        { id: 1, name: 'Arrived', area: 'IN PROGRESS AREA', limit: 0, cardsPerRow: 1, row: 0 },
-                        { id: 2, name: 'Cleared', area: 'IN PROGRESS AREA', limit: 0, cardsPerRow: 1, row: 0 },
-                        { id: 3, name: 'Inward Completed', area: 'IN PROGRESS AREA', limit: 0, cardsPerRow: 1, row: 0 },
-                        { id: 4, name: 'MWP Applied', area: 'IN PROGRESS AREA', limit: 0, cardsPerRow: 1, row: 0 },
-                        { id: 5, name: 'MWP Issued', area: 'IN PROGRESS AREA', limit: 0, cardsPerRow: 1, row: 0 },
-                        { id: 6, name: 'Outward Clearance', area: 'IN PROGRESS AREA', limit: 0, cardsPerRow: 1, row: 0 },
-                        { id: 7, name: 'Sailed', area: 'IN PROGRESS AREA', limit: 0, cardsPerRow: 1, row: 0 },
-                        { id: 8, name: 'Ops Completed', area: 'DONE AREA', limit: 0, cardsPerRow: 1, row: 0 },
-                        { id: 9, name: 'DA Rejected', area: 'DONE AREA', limit: 0, cardsPerRow: 1, row: 0 },
-                    ],
-                },
-            ],
-        },
-        {
-            id: 3,
-            name: 'Husbandry RT',
-            swimlanes: [
-                {
-                    id: 1,
-                    name: 'Husbandry RT',
-                    stages: [
-                        { id: 1, name: 'Requested', area: 'REQUESTED AREA', limit: 0, cardsPerRow: 1, row: 0 },
-                        { id: 2, name: 'Service In Progress', area: 'IN PROGRESS AREA', limit: 0, cardsPerRow: 1, row: 0 },
-                        { id: 3, name: 'Service Completed', area: 'IN PROGRESS AREA', limit: 0, cardsPerRow: 1, row: 0 },
-                        { id: 4, name: 'Done', area: 'DONE AREA', limit: 0, cardsPerRow: 1, row: 0 },
-                        { id: 5, name: 'Ready To Archive', area: 'READY TO ARCHIVE AREA', limit: 0, cardsPerRow: 1, row: 0 },
+                        { id: 4, name: 'Dispatched', area: 'DONE AREA', limit: 0, cardsPerRow: 1, row: 0 },
+                        { id: 5, name: 'Ready To Archive', area: 'READY TO ARCHIVE AREA', limit: 0, cardsPerRow: 1, row: 0 }
                     ],
                 },
             ],
@@ -168,6 +131,7 @@ function EditWorkflows() {
     ]);
 
     const AREA_ORDER = [
+        "BACKLOG AREA",
         'REQUESTED AREA',
         'IN PROGRESS AREA',
         'DONE AREA',
@@ -175,6 +139,7 @@ function EditWorkflows() {
     ];
 
     const areaColors = {
+        'BACKLOG AREA': '#cfd8dc',
         'REQUESTED AREA': '#2666be',
         'IN PROGRESS AREA': '#f38a30',
         'DONE AREA': '#42af49',
@@ -521,6 +486,9 @@ function EditWorkflows() {
                                     const totalCols = boardStructure.reduce((sum, x) => sum + x.cols, 0);
                                     if (totalCols === 0) return null;
 
+                                    const STAGE_CELL_WIDTH = 160;
+                                    const STAGE_GAP = 8;
+
                                     const renderPlaceholderCell = (slId, a, idx) => (
                                         <div key={`ph-${slId}-${a}-${idx}`} className="workflow-stage-wrapper workflow-stage-placeholder-cell">
                                             <div className="workflow-stage-placeholder">
@@ -640,8 +608,18 @@ function EditWorkflows() {
                                         </div>
                                     );
 
+                                    const LABEL_WIDTH = 120;
+                                    const boardMinWidth = LABEL_WIDTH + 12 + totalCols * STAGE_CELL_WIDTH + Math.max(0, totalCols - 1) * STAGE_GAP;
+
                                     return (
-                                        <>
+                                        <div
+                                            className="workflow-board-inner"
+                                            style={{
+                                                minWidth: boardMinWidth,
+                                                '--stage-cell-width': `${STAGE_CELL_WIDTH}px`,
+                                                '--stage-gap': `${STAGE_GAP}px`,
+                                            }}
+                                        >
                                             {/* Board-level area headers - rendered once */}
                                             <div className="workflow-board-headers-row">
                                                 <div className="workflow-board-header-spacer" />
@@ -651,7 +629,8 @@ function EditWorkflows() {
                                                             key={area}
                                                             className="workflow-board-area-header"
                                                             style={{
-                                                                flex: cols,
+                                                                flex: `${cols} 0 0`,
+                                                                minWidth: cols * STAGE_CELL_WIDTH + (cols - 1) * STAGE_GAP,
                                                                 backgroundColor: areaColors[area],
                                                             }}
                                                             title={area}
@@ -706,7 +685,7 @@ function EditWorkflows() {
                                                     </div>
                                                 </div>
                                             ))}
-                                        </>
+                                        </div>
                                     );
                                 })()}
                             </div>
