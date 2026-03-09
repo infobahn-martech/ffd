@@ -120,13 +120,8 @@ function EditWorkflows() {
                     name: 'Main work flow RT',
                     stages: [
                         { id: 1, name: 'Appointment Received', area: 'REQUESTED AREA', limit: 0, cardsPerRow: 1, row: 0 },
-                        { id: 2, name: 'Enroute', area: 'REQUESTED AREA', limit: 0, cardsPerRow: 1, row: 0 },
                         { id: 3, name: 'Ops In Progress', area: 'IN PROGRESS AREA', limit: 0, cardsPerRow: 1, row: 0 },
-                        { id: 4, name: 'Ops Completed', area: 'IN PROGRESS AREA', limit: 0, cardsPerRow: 1, row: 0 },
-                        { id: 5, name: 'Ready To Finalize', area: 'IN PROGRESS AREA', limit: 0, cardsPerRow: 1, row: 0 },
-                        { id: 6, name: 'Awaiting on client', area: 'IN PROGRESS AREA', limit: 0, cardsPerRow: 1, row: 0 },
                         { id: 7, name: 'Dispatched', area: 'DONE AREA', limit: 0, cardsPerRow: 1, row: 0 },
-                        { id: 8, name: 'In Client System', area: 'DONE AREA', limit: 0, cardsPerRow: 1, row: 0 },
                         { id: 9, name: 'Ready To Archive', area: 'READY TO ARCHIVE AREA', limit: 0, cardsPerRow: 1, row: 0 }
                     ],
                 },
