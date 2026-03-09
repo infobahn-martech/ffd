@@ -461,6 +461,67 @@ div[role="tooltip"][id^="workflow-info-"] {
   }
 }
 
+.workflow-swimlane-row {
+  display: flex;
+  align-items: stretch;
+  width: 100%;
+  min-height: 0;
+}
+
+.workflow-swimlane-label-cell {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: flex-start;
+  gap: 8px;
+  flex-shrink: 0;
+  min-width: 120px;
+  padding: 12px 16px;
+  background: #f9fafb;
+  border: 1px solid #e5e7eb;
+  border-radius: 8px;
+  margin-right: 12px;
+}
+
+.workflow-swimlane-name {
+  font: normal normal 600 13px/1.4 $font-primary;
+  color: $txtColor;
+  text-align: center;
+  word-break: break-word;
+}
+
+.workflow-swimlane-label-actions {
+  display: flex;
+  gap: 4px;
+  align-items: center;
+  justify-content: center;
+}
+
+.workflow-swimlane-action-btn {
+  width: 28px;
+  height: 28px;
+  border: none;
+  background: transparent;
+  color: #9ca3af;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  border-radius: 4px;
+  transition: all 0.2s ease;
+  padding: 0;
+
+  &:hover {
+    background: #f3f4f6;
+    color: #3b82f6;
+  }
+
+  svg {
+    width: 14px;
+    height: 14px;
+  }
+}
+
 .swimlane-label {
   font: normal normal 600 14px/1.4 $font-primary;
   color: $txtColor;
@@ -469,6 +530,8 @@ div[role="tooltip"][id^="workflow-info-"] {
 }
 
 .workflow-columns {
+  flex: 1;
+  min-width: 0;
   display: flex;
   align-items: stretch;
   gap: 12px;
