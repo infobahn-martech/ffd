@@ -629,8 +629,7 @@ function EditWorkflows() {
                                                             key={area}
                                                             className="workflow-board-area-header"
                                                             style={{
-                                                                flex: `${cols} 0 0`,
-                                                                minWidth: cols * STAGE_CELL_WIDTH + (cols - 1) * STAGE_GAP,
+                                                                width: cols * STAGE_CELL_WIDTH + Math.max(0, cols - 1) * STAGE_GAP,
                                                                 backgroundColor: areaColors[area],
                                                             }}
                                                             title={area}
