@@ -117,7 +117,7 @@ function EditWorkflows() {
             swimlanes: [
                 {
                     id: 1,
-                    name: 'Main work flow RT',
+                    name: 'Default Swimlane',
                     stages: [
                         { id: 1, name: 'Backlog', area: 'BACKLOG AREA', limit: 0, cardsPerRow: 1, row: 0 },
                         { id: 2, name: 'Appointment Received', area: 'REQUESTED AREA', limit: 0, cardsPerRow: 1, row: 0 },
