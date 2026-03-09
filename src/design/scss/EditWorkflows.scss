@@ -453,12 +453,60 @@ div[role="tooltip"][id^="workflow-info-"] {
   }
 }
 
-.workflow-swimlane {
-  margin-bottom: 24px;
+// Board wrapper - table-like layout with shared headers and swimlane rows
+.workflow-board {
+  display: flex;
+  flex-direction: column;
+  gap: 0;
+  width: 100%;
+  min-width: 0;
+  overflow-x: auto;
+  overflow-y: visible;
+  padding-bottom: 8px;
+}
 
-  &:last-child {
-    margin-bottom: 0;
-  }
+.workflow-board-headers-row {
+  display: flex;
+  align-items: stretch;
+  width: 100%;
+  min-height: 0;
+  flex-shrink: 0;
+}
+
+.workflow-board-header-spacer {
+  flex-shrink: 0;
+  min-width: 120px;
+  margin-right: 12px;
+}
+
+.workflow-board-headers {
+  flex: 1;
+  display: flex;
+  align-items: stretch;
+  gap: 8px;
+  min-width: 0;
+}
+
+.workflow-board-area-header {
+  flex: 1;
+  padding: 12px 16px;
+  color: #ffffff;
+  font: normal normal 600 13px/1.4 $font-primary;
+  text-align: center;
+  border-radius: 8px;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.workflow-board-columns {
+  flex: 1;
+  display: flex;
+  align-items: stretch;
+  gap: 8px;
+  min-width: 0;
 }
 
 .workflow-swimlane-row {
@@ -466,6 +514,11 @@ div[role="tooltip"][id^="workflow-info-"] {
   align-items: stretch;
   width: 100%;
   min-height: 0;
+  margin-bottom: 12px;
+
+  &:last-child {
+    margin-bottom: 0;
+  }
 }
 
 .workflow-swimlane-label-cell {
@@ -476,6 +529,7 @@ div[role="tooltip"][id^="workflow-info-"] {
   gap: 8px;
   flex-shrink: 0;
   min-width: 120px;
+  width: 120px;
   padding: 12px 16px;
   background: #f9fafb;
   border: 1px solid #e5e7eb;
@@ -604,6 +658,10 @@ div[role="tooltip"][id^="workflow-info-"] {
 
   &.workflow-stage-wrapper-color-picker-open {
     z-index: 1000;
+  }
+
+  &.workflow-stage-placeholder-cell {
+    min-width: 120px;
   }
 }
 
