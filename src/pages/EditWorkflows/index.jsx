@@ -179,14 +179,6 @@ function EditWorkflows() {
         );
     };
 
-    // Max row count for a swimlane across all areas (for grid alignment)
-    const getMaxRowCount = (workflow, swimlane) => {
-        const sl = workflow.swimlanes.find((s) => s.id === swimlane.id);
-        if (!sl) return 1;
-        const maxRow = Math.max(0, ...sl.stages.map((s) => s.row ?? 0));
-        return Math.max(1, maxRow + 1);
-    };
-
     // Build per-area matrix: { row: { col: stage } } - stage at (row, col)
     const getAreaMatrix = (swimlane, area) => {
         const matrix = {};
@@ -199,6 +191,13 @@ function EditWorkflows() {
                 matrix[row][col] = s;
             });
         return matrix;
+    };
+
+    // Get stages at a specific col in an area, sorted by row (for vertical stacking)
+    const getStagesInColumn = (swimlane, area, colIdx) => {
+        return swimlane.stages
+            .filter((s) => s.area === area && (s.col ?? 0) === colIdx)
+            .sort((a, b) => (a.row ?? 0) - (b.row ?? 0));
     };
 
     // const areaColors = {
@@ -522,14 +521,14 @@ function EditWorkflows() {
                                     const STAGE_CELL_WIDTH = 160;
                                     const STAGE_GAP = 8;
 
-                                    const renderEmptyCell = (slId, area, rowIdx, colIdx) => (
-                                        <div key={`empty-${slId}-${area}-${rowIdx}-${colIdx}`} className="workflow-stage-wrapper workflow-stage-empty-cell" aria-hidden="true" />
+                                    const renderEmptyCell = (slId, area, colIdx) => (
+                                        <div key={`empty-${slId}-${area}-${colIdx}`} className="workflow-stage-wrapper workflow-stage-empty-cell workflow-stage-single" aria-hidden="true" />
                                     );
 
-                                    const renderStageCell = (stage, swimlaneRef, stageColumnKey, isStageHovered, isColorPickerOpen, showAddSubcolumn) => (
+                                    const renderStageCell = (stage, swimlaneRef, stageColumnKey, isStageHovered, isColorPickerOpen, showAddSubcolumn, isSingleInCol) => (
                                         <div
                                             key={stage.id}
-                                            className={`workflow-stage-wrapper${isColorPickerOpen ? ' workflow-stage-wrapper-color-picker-open' : ''}`}
+                                            className={`workflow-stage-wrapper${isColorPickerOpen ? ' workflow-stage-wrapper-color-picker-open' : ''}${isSingleInCol ? ' workflow-stage-single' : ' workflow-stage-stacked'}`}
                                         >
                                             <div
                                                 className="workflow-stage-box"
@@ -678,43 +677,41 @@ function EditWorkflows() {
                                                     ))}
                                                 </div>
                                             </div>
-                                            {/* Swimlane rows */}
-                                            {workflow.swimlanes.map((swimlane) => {
-                                                const maxRows = getMaxRowCount(workflow, swimlane);
-                                                return (
-                                                    <div key={swimlane.id} className="workflow-swimlane-row">
-                                                        <div className="workflow-board-body">
-                                                            {Array.from({ length: maxRows }, (_, rowIdx) => (
-                                                                <div key={rowIdx} className="workflow-board-logical-row">
-                                                                    {boardStructure.map(({ area, cols }) => {
-                                                                        const matrix = getAreaMatrix(swimlane, area);
-                                                                        return (
-                                                                            <div
-                                                                                key={area}
-                                                                                className="workflow-area-row"
-                                                                                style={{
-                                                                                    width: cols * STAGE_CELL_WIDTH + Math.max(0, cols - 1) * STAGE_GAP,
-                                                                                }}
-                                                                            >
-                                                                                {Array.from({ length: cols }, (_, colIdx) => {
-                                                                                    const stage = matrix[rowIdx]?.[colIdx] || null;
-                                                                                    if (stage) {
-                                                                                        const stageColumnKey = getColumnKey(workflow.id, swimlane.id, stage.id);
-                                                                                        const isStageHovered = hoveredColumn === stageColumnKey;
-                                                                                        const isColorPickerOpen = openColorPickerForStage === stageColumnKey;
-                                                                                        return renderStageCell(stage, swimlane, stageColumnKey, isStageHovered, isColorPickerOpen, true);
-                                                                                    }
-                                                                                    return renderEmptyCell(swimlane.id, area, rowIdx, colIdx);
-                                                                                })}
-                                                                            </div>
-                                                                        );
-                                                                    })}
-                                                                </div>
-                                                            ))}
-                                                        </div>
+                                            {/* Swimlane rows - area-column layout: vertical subcolumns stack inside each area */}
+                                            {workflow.swimlanes.map((swimlane) => (
+                                                <div key={swimlane.id} className="workflow-swimlane-row">
+                                                    <div className="workflow-board-body">
+                                                        {boardStructure.map(({ area, cols }) => (
+                                                            <div
+                                                                key={area}
+                                                                className="workflow-area-block"
+                                                                style={{
+                                                                    width: cols * STAGE_CELL_WIDTH + Math.max(0, cols - 1) * STAGE_GAP,
+                                                                }}
+                                                            >
+                                                                {Array.from({ length: cols }, (_, colIdx) => {
+                                                                    const stagesInCol = getStagesInColumn(swimlane, area, colIdx);
+                                                                    const isSingle = stagesInCol.length <= 1;
+                                                                    return (
+                                                                        <div key={`${area}-${colIdx}`} className="workflow-area-col-stack">
+                                                                            {stagesInCol.length > 0 ? (
+                                                                                stagesInCol.map((stage) => {
+                                                                                    const stageColumnKey = getColumnKey(workflow.id, swimlane.id, stage.id);
+                                                                                    const isStageHovered = hoveredColumn === stageColumnKey;
+                                                                                    const isColorPickerOpen = openColorPickerForStage === stageColumnKey;
+                                                                                    return renderStageCell(stage, swimlane, stageColumnKey, isStageHovered, isColorPickerOpen, true, isSingle);
+                                                                                })
+                                                                            ) : (
+                                                                                renderEmptyCell(swimlane.id, area, colIdx)
+                                                                            )}
+                                                                        </div>
+                                                                    );
+                                                                })}
+                                                            </div>
+                                                        ))}
                                                     </div>
-                                                );
-                                            })}
+                                                </div>
+                                            ))}
                                         </div>
                                     );
                                 })()}

@@ -535,37 +535,37 @@ div[role="tooltip"][id^="workflow-info-"] {
   }
 }
 
-// Body container: flex column of logical rows (ensures row alignment across areas)
+// Body container: single row of area blocks (each area = one column, vertical stacks inside)
 .workflow-board-body {
   flex: 1 0 auto;
   display: flex;
-  flex-direction: column;
+  flex-direction: row;
+  flex-wrap: nowrap;
   gap: var(--stage-gap, 8px);
+  align-items: stretch;
   min-width: 0;
 }
 
-// Each logical row: one flex row containing all area cells for that row
-.workflow-board-logical-row {
+// Area block: one per area, stretches to full height; contains col stacks
+.workflow-area-block {
   display: flex;
+  flex-direction: row;
   flex-wrap: nowrap;
   gap: var(--stage-gap, 8px);
   align-items: stretch;
+  flex-shrink: 0;
   min-height: 0;
 }
 
-.workflow-area-block {
+// Vertical stack within one col of an area (subcolumns stack here)
+.workflow-area-col-stack {
   display: flex;
   flex-direction: column;
   gap: var(--stage-gap, 8px);
-  flex-shrink: 0;
-}
-
-.workflow-area-row {
-  display: flex;
-  flex-wrap: nowrap;
-  gap: var(--stage-gap, 8px);
+  flex: 1 0 var(--stage-cell-width, 160px);
+  min-width: var(--stage-cell-width, 160px);
+  min-height: 0;
   align-items: stretch;
-  flex-shrink: 0;
 }
 
 .workflow-swimlane-row {
@@ -655,8 +655,8 @@ div[role="tooltip"][id^="workflow-info-"] {
   display: flex;
   flex-direction: column;
   flex: 0 0 auto;
-  width: var(--stage-cell-width, 160px);
-  min-width: var(--stage-cell-width, 160px);
+  width: 100%;
+  min-width: 0;
   gap: 8px;
   position: relative;
 
@@ -664,7 +664,19 @@ div[role="tooltip"][id^="workflow-info-"] {
     z-index: 1000;
   }
 
+  // Single stage in col: fill full height of area (tall panel)
+  &.workflow-stage-single {
+    flex: 1 1 auto;
+    min-height: 100px;
+  }
+
+  // Stacked stages: natural height, no stretch
+  &.workflow-stage-stacked {
+    flex: 0 0 auto;
+  }
+
   &.workflow-stage-empty-cell {
+    flex: 1 1 auto;
     min-height: 100px;
   }
 }
