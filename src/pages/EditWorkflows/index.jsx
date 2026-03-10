@@ -522,13 +522,8 @@ function EditWorkflows() {
                                     const STAGE_CELL_WIDTH = 160;
                                     const STAGE_GAP = 8;
 
-                                    const renderPlaceholderCell = (slId, area, rowIdx, colIdx) => (
-                                        <div key={`ph-${slId}-${area}-${rowIdx}-${colIdx}`} className="workflow-stage-wrapper workflow-stage-placeholder-cell">
-                                            <div className="workflow-stage-placeholder-spacer" aria-hidden="true" />
-                                            <div className="workflow-stage-placeholder">
-                                                <span>Limit: 0</span>
-                                            </div>
-                                        </div>
+                                    const renderEmptyCell = (slId, area, rowIdx, colIdx) => (
+                                        <div key={`empty-${slId}-${area}-${rowIdx}-${colIdx}`} className="workflow-stage-wrapper workflow-stage-empty-cell" aria-hidden="true" />
                                     );
 
                                     const renderStageCell = (stage, swimlaneRef, stageColumnKey, isStageHovered, isColorPickerOpen, showAddSubcolumn) => (
@@ -651,14 +646,10 @@ function EditWorkflows() {
                                                     </div>
                                                 </div>
                                             </div>
-                                            <div className="workflow-stage-placeholder" style={{ backgroundColor: stage.color || '#f9fafb' }}>
-                                                <span>Limit: 0</span>
-                                            </div>
                                         </div>
                                     );
 
-                                    const LABEL_WIDTH = 120;
-                                    const boardMinWidth = LABEL_WIDTH + 12 + totalCols * STAGE_CELL_WIDTH + Math.max(0, totalCols - 1) * STAGE_GAP;
+                                    const boardMinWidth = totalCols * STAGE_CELL_WIDTH + Math.max(0, totalCols - 1) * STAGE_GAP;
 
                                     return (
                                         <div
@@ -671,7 +662,6 @@ function EditWorkflows() {
                                         >
                                             {/* Board-level area headers - rendered once */}
                                             <div className="workflow-board-headers-row">
-                                                <div className="workflow-board-header-spacer" />
                                                 <div className="workflow-board-headers">
                                                     {boardStructure.map(({ area, cols }) => (
                                                         <div
@@ -693,28 +683,6 @@ function EditWorkflows() {
                                                 const maxRows = getMaxRowCount(workflow, swimlane);
                                                 return (
                                                     <div key={swimlane.id} className="workflow-swimlane-row">
-                                                        <div className="workflow-swimlane-label-cell">
-                                                            <span className="workflow-swimlane-name">{swimlane.name}</span>
-                                                            <div className="workflow-swimlane-label-actions">
-                                                                <button className="workflow-swimlane-action-btn" type="button" title="Members">
-                                                                    <svg width="16" height="16" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
-                                                                        <path d="M10.6667 14V12.6667C10.6667 11.9594 10.3857 11.2811 9.88562 10.781C9.38552 10.281 8.70725 10 8 10H4C3.29276 10 2.61448 10.281 2.11438 10.781C1.61428 11.2811 1.33333 11.9594 1.33333 12.6667V14" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
-                                                                        <path d="M6.00001 7.33333C7.47276 7.33333 8.66667 6.13943 8.66667 4.66667C8.66667 3.19391 7.47276 2 6.00001 2C4.52725 2 3.33334 3.19391 3.33334 4.66667C3.33334 6.13943 4.52725 7.33333 6.00001 7.33333Z" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
-                                                                    </svg>
-                                                                </button>
-                                                                <button className="workflow-swimlane-action-btn" type="button" title="Settings">
-                                                                    <svg width="16" height="16" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
-                                                                        <path d="M8 10C9.10457 10 10 9.10457 10 8C10 6.89543 9.10457 6 8 6C6.89543 6 6 6.89543 6 8C6 9.10457 6.89543 10 8 10Z" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
-                                                                    </svg>
-                                                                </button>
-                                                                <button className="workflow-swimlane-action-btn" type="button" title="Time tracking">
-                                                                    <svg width="16" height="16" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
-                                                                        <circle cx="8" cy="8" r="6" stroke="currentColor" strokeWidth="1.5" fill="none" />
-                                                                        <path d="M8 4V8L10 10" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
-                                                                    </svg>
-                                                                </button>
-                                                            </div>
-                                                        </div>
                                                         <div className="workflow-board-body">
                                                             {Array.from({ length: maxRows }, (_, rowIdx) => (
                                                                 <div key={rowIdx} className="workflow-board-logical-row">
@@ -736,7 +704,7 @@ function EditWorkflows() {
                                                                                         const isColorPickerOpen = openColorPickerForStage === stageColumnKey;
                                                                                         return renderStageCell(stage, swimlane, stageColumnKey, isStageHovered, isColorPickerOpen, true);
                                                                                     }
-                                                                                    return renderPlaceholderCell(swimlane.id, area, rowIdx, colIdx);
+                                                                                    return renderEmptyCell(swimlane.id, area, rowIdx, colIdx);
                                                                                 })}
                                                                             </div>
                                                                         );
