@@ -566,6 +566,34 @@ div[role="tooltip"][id^="workflow-info-"] {
   min-width: var(--stage-cell-width, 160px);
   min-height: 0;
   align-items: stretch;
+  position: relative;
+}
+
+// Row-aware insertion rails for stacked columns
+.workflow-insertion-rail {
+  position: absolute;
+  width: 32px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  pointer-events: none;
+  z-index: 10;
+  border: 2px solid rgba(16, 185, 129, 0.4);
+  border-radius: 4px;
+  background: rgba(16, 185, 129, 0.06);
+
+  .workflow-column-add-btn {
+    pointer-events: auto;
+  }
+}
+
+.workflow-insertion-rail-left {
+  left: -16px;
+}
+
+.workflow-insertion-rail-right {
+  left: auto;
+  right: -16px;
 }
 
 .workflow-swimlane-row {
