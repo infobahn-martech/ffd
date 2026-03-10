@@ -205,6 +205,26 @@ function EditWorkflows() {
         return Math.max(...stagesInArea.map((s) => s.row ?? 0));
     };
 
+    // Global rows across all areas in a swimlane (for equal-height area blocks)
+    const getGlobalRowsForSwimlane = (swimlane, boardStructure) => {
+        let maxRows = 0;
+        boardStructure.forEach(({ area }) => {
+            const rowsInArea = getMaxRowInArea(swimlane, area) + 1;
+            if (rowsInArea > maxRows) maxRows = rowsInArea;
+        });
+        return Math.max(1, maxRows);
+    };
+
+    // Check if a cell (row, col) is occupied by any stage in the area
+    const isCellOccupied = (areaStages, row, col) => {
+        return areaStages.some((s) => {
+            const sRow = s.row ?? 0;
+            const sCol = s.col ?? 0;
+            const sSpan = s.colSpan ?? 1;
+            return sRow === row && sCol <= col && col < sCol + sSpan;
+        });
+    };
+
     // const areaColors = {
     //     'REQUESTED AREA': 'rgb(59, 130, 246)',
     //     'IN PROGRESS AREA': 'rgb(245, 158, 11)',
@@ -735,116 +755,137 @@ function EditWorkflows() {
                                                     ))}
                                                 </div>
                                             </div>
-                                            {/* Swimlane rows - area-column layout: vertical subcolumns stack inside each area */}
-                                            {workflow.swimlanes.map((swimlane) => (
-                                                <div key={swimlane.id} className="workflow-swimlane-row">
-                                                    <div className="workflow-board-body">
-                                                        {boardStructure.map(({ area, cols }) => {
-                                                            const maxRows = getMaxRowInArea(swimlane, area) + 1;
-                                                            const rowCount = Math.max(1, maxRows);
-                                                            const areaStages = swimlane.stages.filter((s) => s.area === area);
-                                                            return (
-                                                                <div
-                                                                    key={area}
-                                                                    className="workflow-area-block workflow-area-block-grid"
-                                                                    style={{
-                                                                        width: cols * STAGE_CELL_WIDTH + Math.max(0, cols - 1) * STAGE_GAP,
-                                                                        display: 'grid',
-                                                                        gridTemplateColumns: `repeat(${cols}, var(--stage-cell-width))`,
-                                                                        gridTemplateRows: `repeat(${rowCount}, auto)`,
-                                                                        gap: 'var(--stage-gap)',
-                                                                    }}
-                                                                >
-                                                                    {/* Col-stacks for rail positioning (behind stages) */}
-                                                                    {Array.from({ length: cols }, (_, colIdx) => {
-                                                                        const stagesInCol = getStagesInColumn(swimlane, area, colIdx);
-                                                                        const isSingle = stagesInCol.length <= 1;
-                                                                        const colStackKey = getColStackKey(workflow.id, swimlane.id, area, colIdx);
-                                                                        const showStackedRails = !isSingle && stackedRailMetrics?.colStackKey === colStackKey;
-                                                                        return (
-                                                                            <div
-                                                                                key={`col-${area}-${colIdx}`}
-                                                                                className="workflow-area-col-stack"
-                                                                                data-col-stack-key={colStackKey}
-                                                                                onMouseLeave={handleStageBoxMouseLeave}
-                                                                                style={{
-                                                                                    gridColumn: `${colIdx + 1}`,
-                                                                                    gridRow: `1 / span ${rowCount}`,
-                                                                                }}
-                                                                            >
-                                                                                {stagesInCol.length === 0 && renderEmptyCell(swimlane.id, area, colIdx)}
-                                                                                {showStackedRails && stackedRailMetrics && (
-                                                                                    <>
-                                                                                        <div
-                                                                                            className="workflow-insertion-rail workflow-insertion-rail-left"
-                                                                                            style={{
-                                                                                                top: stackedRailMetrics.top,
-                                                                                                height: stackedRailMetrics.height,
-                                                                                            }}
-                                                                                        >
-                                                                                            <button
-                                                                                                className="workflow-column-add-btn workflow-column-add-left"
-                                                                                                type="button"
-                                                                                                onClick={() => handleAddColumnLeft(stackedRailMetrics.workflowId, stackedRailMetrics.swimlaneId, stackedRailMetrics.stageId)}
-                                                                                                title={`Add a new column before ${stackedRailMetrics.stageName || ''}`}
+                                            {/* Swimlane rows - area-column layout with equal-height area blocks */}
+                                            {workflow.swimlanes.map((swimlane) => {
+                                                const globalRows = getGlobalRowsForSwimlane(swimlane, boardStructure);
+                                                return (
+                                                    <div key={swimlane.id} className="workflow-swimlane-row">
+                                                        <div className="workflow-board-body">
+                                                            {boardStructure.map(({ area, cols }) => {
+                                                                const areaStages = swimlane.stages.filter((s) => s.area === area);
+                                                                return (
+                                                                    <div
+                                                                        key={area}
+                                                                        className="workflow-area-block workflow-area-block-grid"
+                                                                        style={{
+                                                                            width: cols * STAGE_CELL_WIDTH + Math.max(0, cols - 1) * STAGE_GAP,
+                                                                            minHeight: globalRows * 100 + (globalRows - 1) * STAGE_GAP,
+                                                                            display: 'grid',
+                                                                            gridTemplateColumns: `repeat(${cols}, minmax(${STAGE_CELL_WIDTH}px, 1fr))`,
+                                                                            gridTemplateRows: `repeat(${globalRows}, minmax(100px, 1fr))`,
+                                                                            gap: 'var(--stage-gap)',
+                                                                        }}
+                                                                    >
+                                                                        {/* Col-stacks for rail positioning (behind stages) */}
+                                                                        {Array.from({ length: cols }, (_, colIdx) => {
+                                                                            const stagesInCol = getStagesInColumn(swimlane, area, colIdx);
+                                                                            const isSingle = stagesInCol.length <= 1;
+                                                                            const colStackKey = getColStackKey(workflow.id, swimlane.id, area, colIdx);
+                                                                            const showStackedRails = !isSingle && stackedRailMetrics?.colStackKey === colStackKey;
+                                                                            return (
+                                                                                <div
+                                                                                    key={`col-${area}-${colIdx}`}
+                                                                                    className="workflow-area-col-stack"
+                                                                                    data-col-stack-key={colStackKey}
+                                                                                    onMouseLeave={handleStageBoxMouseLeave}
+                                                                                    style={{
+                                                                                        gridColumn: `${colIdx + 1}`,
+                                                                                        gridRow: `1 / span ${globalRows}`,
+                                                                                    }}
+                                                                                >
+                                                                                    {showStackedRails && stackedRailMetrics && (
+                                                                                        <>
+                                                                                            <div
+                                                                                                className="workflow-insertion-rail workflow-insertion-rail-left"
+                                                                                                style={{
+                                                                                                    top: stackedRailMetrics.top,
+                                                                                                    height: stackedRailMetrics.height,
+                                                                                                }}
                                                                                             >
-                                                                                                <svg width="16" height="16" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
-                                                                                                    <path d="M8 3V13M3 8H13" stroke="currentColor" strokeWidth="2" strokeLinecap="round" />
-                                                                                                </svg>
-                                                                                            </button>
-                                                                                        </div>
-                                                                                        <div
-                                                                                            className="workflow-insertion-rail workflow-insertion-rail-right"
-                                                                                            style={{
-                                                                                                top: stackedRailMetrics.top,
-                                                                                                height: stackedRailMetrics.height,
-                                                                                            }}
-                                                                                        >
-                                                                                            <button
-                                                                                                className="workflow-column-add-btn workflow-column-add-right"
-                                                                                                type="button"
-                                                                                                onClick={() => handleAddColumnRight(stackedRailMetrics.workflowId, stackedRailMetrics.swimlaneId, stackedRailMetrics.stageId)}
-                                                                                                title={`Add a new column after ${stackedRailMetrics.stageName || ''}`}
+                                                                                                <button
+                                                                                                    className="workflow-column-add-btn workflow-column-add-left"
+                                                                                                    type="button"
+                                                                                                    onClick={() => handleAddColumnLeft(stackedRailMetrics.workflowId, stackedRailMetrics.swimlaneId, stackedRailMetrics.stageId)}
+                                                                                                    title={`Add a new column before ${stackedRailMetrics.stageName || ''}`}
+                                                                                                >
+                                                                                                    <svg width="16" height="16" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
+                                                                                                        <path d="M8 3V13M3 8H13" stroke="currentColor" strokeWidth="2" strokeLinecap="round" />
+                                                                                                    </svg>
+                                                                                                </button>
+                                                                                            </div>
+                                                                                            <div
+                                                                                                className="workflow-insertion-rail workflow-insertion-rail-right"
+                                                                                                style={{
+                                                                                                    top: stackedRailMetrics.top,
+                                                                                                    height: stackedRailMetrics.height,
+                                                                                                }}
                                                                                             >
-                                                                                                <svg width="16" height="16" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
-                                                                                                    <path d="M8 3V13M3 8H13" stroke="currentColor" strokeWidth="2" strokeLinecap="round" />
-                                                                                                </svg>
-                                                                                            </button>
-                                                                                        </div>
-                                                                                    </>
-                                                                                )}
-                                                                            </div>
-                                                                        );
-                                                                    })}
-                                                                    {/* Stages with grid positioning */}
-                                                                    {areaStages.map((stage) => {
-                                                                        const stageCol = stage.col ?? 0;
-                                                                        const stageRow = stage.row ?? 0;
-                                                                        const stageColSpan = stage.colSpan ?? 1;
-                                                                        const stagesInCol = getStagesInColumn(swimlane, area, stageCol);
-                                                                        const isSingleInCol = stagesInCol.length <= 1;
-                                                                        const stageColumnKey = getColumnKey(workflow.id, swimlane.id, stage.id);
-                                                                        const isStageHovered = hoveredColumn === stageColumnKey;
-                                                                        const isColorPickerOpen = openColorPickerForStage === stageColumnKey;
-                                                                        return (
-                                                                            <div
-                                                                                key={stage.id}
-                                                                                className="workflow-stage-grid-item"
-                                                                                style={{
-                                                                                    gridColumn: `${stageCol + 1} / span ${stageColSpan}`,
-                                                                                    gridRow: `${stageRow + 1}`,
-                                                                                }}
-                                                                            >
-                                                                                {renderStageCell(stage, swimlane, stageColumnKey, isStageHovered, isColorPickerOpen, true, isSingleInCol)}
-                                                                            </div>
-                                                                        );
-                                                                    })}
-                                                                </div>
-                                                            );
-                                                        })}
+                                                                                                <button
+                                                                                                    className="workflow-column-add-btn workflow-column-add-right"
+                                                                                                    type="button"
+                                                                                                    onClick={() => handleAddColumnRight(stackedRailMetrics.workflowId, stackedRailMetrics.swimlaneId, stackedRailMetrics.stageId)}
+                                                                                                    title={`Add a new column after ${stackedRailMetrics.stageName || ''}`}
+                                                                                                >
+                                                                                                    <svg width="16" height="16" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
+                                                                                                        <path d="M8 3V13M3 8H13" stroke="currentColor" strokeWidth="2" strokeLinecap="round" />
+                                                                                                    </svg>
+                                                                                                </button>
+                                                                                            </div>
+                                                                                        </>
+                                                                                    )}
+                                                                                </div>
+                                                                            );
+                                                                        })}
+                                                                        {/* Empty placeholder cells for unoccupied grid positions */}
+                                                                        {Array.from({ length: globalRows }, (_, rowIdx) =>
+                                                                            Array.from({ length: cols }, (_, colIdx) => {
+                                                                                if (isCellOccupied(areaStages, rowIdx, colIdx)) return null;
+                                                                                return (
+                                                                                    <div
+                                                                                        key={`empty-${swimlane.id}-${area}-${rowIdx}-${colIdx}`}
+                                                                                        className="workflow-stage-grid-item workflow-stage-empty-placeholder"
+                                                                                        style={{
+                                                                                            gridColumn: `${colIdx + 1}`,
+                                                                                            gridRow: `${rowIdx + 1}`,
+                                                                                        }}
+                                                                                        aria-hidden="true"
+                                                                                    >
+                                                                                        <div className="workflow-stage-wrapper workflow-stage-empty-cell workflow-stage-single" />
+                                                                                    </div>
+                                                                                );
+                                                                            })
+                                                                        ).flat().filter(Boolean)}
+                                                                        {/* Stages with grid positioning */}
+                                                                        {areaStages.map((stage) => {
+                                                                            const stageCol = stage.col ?? 0;
+                                                                            const stageRow = stage.row ?? 0;
+                                                                            const stageColSpan = stage.colSpan ?? 1;
+                                                                            const stagesInCol = getStagesInColumn(swimlane, area, stageCol);
+                                                                            const isSingleInCol = stagesInCol.length <= 1;
+                                                                            const stageColumnKey = getColumnKey(workflow.id, swimlane.id, stage.id);
+                                                                            const isStageHovered = hoveredColumn === stageColumnKey;
+                                                                            const isColorPickerOpen = openColorPickerForStage === stageColumnKey;
+                                                                            return (
+                                                                                <div
+                                                                                    key={stage.id}
+                                                                                    className="workflow-stage-grid-item"
+                                                                                    style={{
+                                                                                        gridColumn: `${stageCol + 1} / span ${stageColSpan}`,
+                                                                                        gridRow: `${stageRow + 1}`,
+                                                                                        height: '100%',
+                                                                                    }}
+                                                                                >
+                                                                                    {renderStageCell(stage, swimlane, stageColumnKey, isStageHovered, isColorPickerOpen, true, isSingleInCol)}
+                                                                                </div>
+                                                                            );
+                                                                        })}
+                                                                    </div>
+                                                                );
+                                                            })}
+                                                        </div>
                                                     </div>
-                                                </div>
-                                            ))}
+                                                );
+                                            })}
                                         </div>
                                     );
                                 })()}
