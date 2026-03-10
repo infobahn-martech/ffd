@@ -103,7 +103,6 @@ function EditWorkflows() {
     const [customCardId, setCustomCardId] = useState('Repeating value');
     const [showCreateWorkflowModal, setShowCreateWorkflowModal] = useState(false);
     const [hoveredColumn, setHoveredColumn] = useState(null); // Format: 'workflowId-swimlaneId-stageId'
-    const [nextStageId, setNextStageId] = useState(100); // Starting ID for new stages
     const [editingWorkflowId, setEditingWorkflowId] = useState(null); // Track which workflow is being edited
     const [editingWorkflowName, setEditingWorkflowName] = useState(''); // Temporary name while editing
     const [editingStageId, setEditingStageId] = useState(null); // Track which stage is being edited: 'workflowId-swimlaneId-stageId'
@@ -119,11 +118,11 @@ function EditWorkflows() {
                     id: 1,
                     name: 'Default Swimlane',
                     stages: [
-                        { id: 1, name: 'Backlog', area: 'BACKLOG AREA', limit: 0, cardsPerRow: 1, row: 0 },
-                        { id: 2, name: 'Appointment Received', area: 'REQUESTED AREA', limit: 0, cardsPerRow: 1, row: 0 },
-                        { id: 3, name: 'Ops In Progress', area: 'IN PROGRESS AREA', limit: 0, cardsPerRow: 1, row: 0 },
-                        { id: 4, name: 'Dispatched', area: 'DONE AREA', limit: 0, cardsPerRow: 1, row: 0 },
-                        { id: 5, name: 'Ready To Archive', area: 'READY TO ARCHIVE AREA', limit: 0, cardsPerRow: 1, row: 0 }
+                        { id: 1, name: 'Backlog', area: 'BACKLOG AREA', limit: 0, cardsPerRow: 1, row: 0, col: 0 },
+                        { id: 2, name: 'Appointment Received', area: 'REQUESTED AREA', limit: 0, cardsPerRow: 1, row: 0, col: 0 },
+                        { id: 3, name: 'Ops In Progress', area: 'IN PROGRESS AREA', limit: 0, cardsPerRow: 1, row: 0, col: 0 },
+                        { id: 4, name: 'Dispatched', area: 'DONE AREA', limit: 0, cardsPerRow: 1, row: 0, col: 0 },
+                        { id: 5, name: 'Ready To Archive', area: 'READY TO ARCHIVE AREA', limit: 0, cardsPerRow: 1, row: 0, col: 0 }
                     ],
                 },
             ],
@@ -146,44 +145,60 @@ function EditWorkflows() {
         'READY TO ARCHIVE AREA': '#7333bd',
     };
 
-    // Build board column structure: { area, cols: number }[] - columns per area for this workflow
+    // Get next unique stage ID (avoids setState-in-callback issues)
+    const getNextStageId = (workflow) => {
+        const maxId = Math.max(0, ...workflow.swimlanes.flatMap((sl) => sl.stages.map((s) => s.id)));
+        return maxId + 1;
+    };
+
+    // Build board column structure: { area, cols: number }[] - horizontal columns per area (max per row)
+    // Subcolumns (vertical) do NOT affect header width
     const getBoardColumnStructure = (workflow) => {
         const colsPerArea = {};
         AREA_ORDER.forEach((area) => {
             let maxCols = 0;
             workflow.swimlanes.forEach((swimlane) => {
-                const stagesInArea = swimlane.stages
-                    .filter((s) => s.area === area)
-                    .sort((a, b) => {
-                        const aIdx = swimlane.stages.findIndex((st) => st.id === a.id);
-                        const bIdx = swimlane.stages.findIndex((st) => st.id === b.id);
-                        return aIdx - bIdx;
-                    });
+                const stagesInArea = swimlane.stages.filter((s) => s.area === area);
                 const byRow = {};
                 stagesInArea.forEach((s) => {
                     const row = s.row ?? 0;
                     if (!byRow[row]) byRow[row] = [];
                     byRow[row].push(s);
                 });
-                const flatCount = Object.values(byRow).flat().length;
-                if (flatCount > maxCols) maxCols = flatCount;
+                Object.values(byRow).forEach((rowStages) => {
+                    const maxColInRow = rowStages.length
+                        ? Math.max(...rowStages.map((s) => (s.col ?? 0))) + 1
+                        : 0;
+                    if (maxColInRow > maxCols) maxCols = maxColInRow;
+                });
+                if (maxCols > (colsPerArea[area] ?? 0)) colsPerArea[area] = maxCols;
             });
-            colsPerArea[area] = maxCols;
         });
         return AREA_ORDER.map((area) => ({ area, cols: colsPerArea[area] || 0 })).filter(
             (x) => x.cols > 0
         );
     };
 
-    // Get stages for a swimlane in an area, sorted by original order
-    const getStagesInArea = (swimlane, area) => {
-        return swimlane.stages
+    // Max row count for a swimlane across all areas (for grid alignment)
+    const getMaxRowCount = (workflow, swimlane) => {
+        const sl = workflow.swimlanes.find((s) => s.id === swimlane.id);
+        if (!sl) return 1;
+        const maxRow = Math.max(0, ...sl.stages.map((s) => s.row ?? 0));
+        return Math.max(1, maxRow + 1);
+    };
+
+    // Build per-area matrix: { row: { col: stage } } - stage at (row, col)
+    const getAreaMatrix = (swimlane, area) => {
+        const matrix = {};
+        swimlane.stages
             .filter((s) => s.area === area)
-            .sort((a, b) => {
-                const aIdx = swimlane.stages.findIndex((st) => st.id === a.id);
-                const bIdx = swimlane.stages.findIndex((st) => st.id === b.id);
-                return aIdx - bIdx;
+            .forEach((s) => {
+                const row = s.row ?? 0;
+                const col = s.col ?? 0;
+                if (!matrix[row]) matrix[row] = {};
+                matrix[row][col] = s;
             });
+        return matrix;
     };
 
     // const areaColors = {
@@ -198,102 +213,120 @@ function EditWorkflows() {
         return `${workflowId}-${swimlaneId}-${stageId}`;
     };
 
-    // Handle adding a new stage box in the same row (to the left)
+    // Horizontal add (left): insert new sibling column in same row, same area; shift cols right
     const handleAddColumnLeft = (workflowId, swimlaneId, stageId) => {
         setWorkflows(prevWorkflows => {
             return prevWorkflows.map(workflow => {
-                if (workflow.id === workflowId) {
-                    return {
-                        ...workflow,
-                        swimlanes: workflow.swimlanes.map(swimlane => {
-                            if (swimlane.id === swimlaneId) {
-                                const stageIndex = swimlane.stages.findIndex(s => s.id === stageId);
-                                if (stageIndex !== -1) {
-                                    const stageToDuplicate = swimlane.stages[stageIndex];
-                                    // Find all stages with the same area and same row
-                                    const sameRowStages = swimlane.stages.filter(
-                                        s => s.area === stageToDuplicate.area && s.row === stageToDuplicate.row
-                                    );
-                                    const sameRowIndex = sameRowStages.findIndex(s => s.id === stageId);
+                if (workflow.id !== workflowId) return workflow;
+                const newId = getNextStageId(workflow);
+                return {
+                    ...workflow,
+                    swimlanes: workflow.swimlanes.map(swimlane => {
+                        if (swimlane.id !== swimlaneId) return swimlane;
+                        const stage = swimlane.stages.find(s => s.id === stageId);
+                        if (!stage) return swimlane;
+                        const area = stage.area;
+                        const targetRow = stage.row ?? 0;
+                        const targetCol = stage.col ?? 0;
 
-                                    const newStage = {
-                                        ...stageToDuplicate,
-                                        id: nextStageId,
-                                        name: `New Column`,
-                                        row: stageToDuplicate.row,
-                                    };
+                        const newStage = {
+                            ...stage,
+                            id: newId,
+                            name: 'New Column',
+                            row: targetRow,
+                            col: targetCol,
+                        };
 
-                                    // Find the index in the full stages array where to insert (before current stage in same row)
-                                    const stagesInSameRow = swimlane.stages.filter(
-                                        s => s.area === stageToDuplicate.area && s.row === stageToDuplicate.row
-                                    );
-                                    const firstStageInRow = stagesInSameRow[0];
-                                    const firstStageIndex = swimlane.stages.findIndex(s => s.id === firstStageInRow.id);
-
-                                    const newStages = [...swimlane.stages];
-                                    newStages.splice(firstStageIndex + sameRowIndex, 0, newStage);
-                                    setNextStageId(prev => prev + 1);
-                                    return {
-                                        ...swimlane,
-                                        stages: newStages,
-                                    };
-                                }
+                        const newStages = swimlane.stages.map(s => {
+                            if (s.area === area && s.row === targetRow && (s.col ?? 0) >= targetCol) {
+                                return { ...s, col: (s.col ?? 0) + 1 };
                             }
-                            return swimlane;
-                        }),
-                    };
-                }
-                return workflow;
+                            return s;
+                        });
+                        newStages.push(newStage);
+                        return { ...swimlane, stages: newStages };
+                    }),
+                };
             });
         });
     };
 
-    // Handle adding a new stage box in the same row (to the right)
+    // Vertical add (subcolumn): insert new stage below in same col; shift existing stages in column down
+    const handleAddSubcolumn = (workflowId, swimlaneId, stageId) => {
+        setWorkflows(prevWorkflows => {
+            return prevWorkflows.map(workflow => {
+                if (workflow.id !== workflowId) return workflow;
+                const newId = getNextStageId(workflow);
+                return {
+                    ...workflow,
+                    swimlanes: workflow.swimlanes.map(swimlane => {
+                        if (swimlane.id !== swimlaneId) return swimlane;
+                        const stage = swimlane.stages.find(s => s.id === stageId);
+                        if (!stage) return swimlane;
+                        const area = stage.area;
+                        const currentRow = stage.row ?? 0;
+                        const currentCol = stage.col ?? 0;
+                        const insertRow = currentRow + 1;
+
+                        const newStage = {
+                            ...stage,
+                            id: newId,
+                            name: 'New Column',
+                            area,
+                            row: insertRow,
+                            col: currentCol,
+                            limit: stage.limit ?? 0,
+                            cardsPerRow: stage.cardsPerRow ?? 1,
+                        };
+
+                        const newStages = swimlane.stages.map(s => {
+                            if (s.area === area && s.col === currentCol && (s.row ?? 0) >= insertRow) {
+                                return { ...s, row: (s.row ?? 0) + 1 };
+                            }
+                            return s;
+                        });
+                        newStages.push(newStage);
+                        return { ...swimlane, stages: newStages };
+                    }),
+                };
+            });
+        });
+    };
+
+    // Horizontal add (right): insert new sibling column in same row, same area; shift cols right
     const handleAddColumnRight = (workflowId, swimlaneId, stageId) => {
         setWorkflows(prevWorkflows => {
             return prevWorkflows.map(workflow => {
-                if (workflow.id === workflowId) {
-                    return {
-                        ...workflow,
-                        swimlanes: workflow.swimlanes.map(swimlane => {
-                            if (swimlane.id === swimlaneId) {
-                                const stageIndex = swimlane.stages.findIndex(s => s.id === stageId);
-                                if (stageIndex !== -1) {
-                                    const stageToDuplicate = swimlane.stages[stageIndex];
-                                    // Find all stages with the same area and same row
-                                    const sameRowStages = swimlane.stages.filter(
-                                        s => s.area === stageToDuplicate.area && s.row === stageToDuplicate.row
-                                    );
-                                    const sameRowIndex = sameRowStages.findIndex(s => s.id === stageId);
+                if (workflow.id !== workflowId) return workflow;
+                const newId = getNextStageId(workflow);
+                return {
+                    ...workflow,
+                    swimlanes: workflow.swimlanes.map(swimlane => {
+                        if (swimlane.id !== swimlaneId) return swimlane;
+                        const stage = swimlane.stages.find(s => s.id === stageId);
+                        if (!stage) return swimlane;
+                        const area = stage.area;
+                        const targetRow = stage.row ?? 0;
+                        const targetCol = (stage.col ?? 0) + 1;
 
-                                    const newStage = {
-                                        ...stageToDuplicate,
-                                        id: nextStageId,
-                                        name: `New Column`,
-                                        row: stageToDuplicate.row,
-                                    };
+                        const newStage = {
+                            ...stage,
+                            id: newId,
+                            name: 'New Column',
+                            row: targetRow,
+                            col: targetCol,
+                        };
 
-                                    // Find the index in the full stages array where to insert (after current stage in same row)
-                                    const stagesInSameRow = swimlane.stages.filter(
-                                        s => s.area === stageToDuplicate.area && s.row === stageToDuplicate.row
-                                    );
-                                    const firstStageInRow = stagesInSameRow[0];
-                                    const firstStageIndex = swimlane.stages.findIndex(s => s.id === firstStageInRow.id);
-
-                                    const newStages = [...swimlane.stages];
-                                    newStages.splice(firstStageIndex + sameRowIndex + 1, 0, newStage);
-                                    setNextStageId(prev => prev + 1);
-                                    return {
-                                        ...swimlane,
-                                        stages: newStages,
-                                    };
-                                }
+                        const newStages = swimlane.stages.map(s => {
+                            if (s.area === area && s.row === targetRow && (s.col ?? 0) >= targetCol) {
+                                return { ...s, col: (s.col ?? 0) + 1 };
                             }
-                            return swimlane;
-                        }),
-                    };
-                }
-                return workflow;
+                            return s;
+                        });
+                        newStages.push(newStage);
+                        return { ...swimlane, stages: newStages };
+                    }),
+                };
             });
         });
     };
@@ -489,15 +522,16 @@ function EditWorkflows() {
                                     const STAGE_CELL_WIDTH = 160;
                                     const STAGE_GAP = 8;
 
-                                    const renderPlaceholderCell = (slId, a, idx) => (
-                                        <div key={`ph-${slId}-${a}-${idx}`} className="workflow-stage-wrapper workflow-stage-placeholder-cell">
+                                    const renderPlaceholderCell = (slId, area, rowIdx, colIdx) => (
+                                        <div key={`ph-${slId}-${area}-${rowIdx}-${colIdx}`} className="workflow-stage-wrapper workflow-stage-placeholder-cell">
+                                            <div className="workflow-stage-placeholder-spacer" aria-hidden="true" />
                                             <div className="workflow-stage-placeholder">
                                                 <span>Limit: 0</span>
                                             </div>
                                         </div>
                                     );
 
-                                    const renderStageCell = (stage, swimlaneRef, stageColumnKey, isStageHovered, isColorPickerOpen) => (
+                                    const renderStageCell = (stage, swimlaneRef, stageColumnKey, isStageHovered, isColorPickerOpen, showAddSubcolumn) => (
                                         <div
                                             key={stage.id}
                                             className={`workflow-stage-wrapper${isColorPickerOpen ? ' workflow-stage-wrapper-color-picker-open' : ''}`}
@@ -526,6 +560,21 @@ function EditWorkflows() {
                                                         type="button"
                                                         onClick={() => handleAddColumnRight(workflow.id, swimlaneRef.id, stage.id)}
                                                         title={`Add a new column after ${stage.name}`}
+                                                    >
+                                                        <svg width="16" height="16" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
+                                                            <path d="M8 3V13M3 8H13" stroke="currentColor" strokeWidth="2" strokeLinecap="round" />
+                                                        </svg>
+                                                    </button>
+                                                )}
+                                                {isStageHovered && showAddSubcolumn && (
+                                                    <button
+                                                        className="workflow-column-add-btn workflow-column-add-below"
+                                                        type="button"
+                                                        onClick={(e) => {
+                                                            e.stopPropagation();
+                                                            handleAddSubcolumn(workflow.id, swimlaneRef.id, stage.id);
+                                                        }}
+                                                        title="Add a new subcolumn"
                                                     >
                                                         <svg width="16" height="16" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
                                                             <path d="M8 3V13M3 8H13" stroke="currentColor" strokeWidth="2" strokeLinecap="round" />
@@ -640,50 +689,64 @@ function EditWorkflows() {
                                                 </div>
                                             </div>
                                             {/* Swimlane rows */}
-                                            {workflow.swimlanes.map((swimlane) => (
-                                                <div key={swimlane.id} className="workflow-swimlane-row">
-                                                    <div className="workflow-swimlane-label-cell">
-                                                        <span className="workflow-swimlane-name">{swimlane.name}</span>
-                                                        <div className="workflow-swimlane-label-actions">
-                                                            <button className="workflow-swimlane-action-btn" type="button" title="Members">
-                                                                <svg width="16" height="16" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
-                                                                    <path d="M10.6667 14V12.6667C10.6667 11.9594 10.3857 11.2811 9.88562 10.781C9.38552 10.281 8.70725 10 8 10H4C3.29276 10 2.61448 10.281 2.11438 10.781C1.61428 11.2811 1.33333 11.9594 1.33333 12.6667V14" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
-                                                                    <path d="M6.00001 7.33333C7.47276 7.33333 8.66667 6.13943 8.66667 4.66667C8.66667 3.19391 7.47276 2 6.00001 2C4.52725 2 3.33334 3.19391 3.33334 4.66667C3.33334 6.13943 4.52725 7.33333 6.00001 7.33333Z" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
-                                                                </svg>
-                                                            </button>
-                                                            <button className="workflow-swimlane-action-btn" type="button" title="Settings">
-                                                                <svg width="16" height="16" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
-                                                                    <path d="M8 10C9.10457 10 10 9.10457 10 8C10 6.89543 9.10457 6 8 6C6.89543 6 6 6.89543 6 8C6 9.10457 6.89543 10 8 10Z" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
-                                                                </svg>
-                                                            </button>
-                                                            <button className="workflow-swimlane-action-btn" type="button" title="Time tracking">
-                                                                <svg width="16" height="16" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
-                                                                    <circle cx="8" cy="8" r="6" stroke="currentColor" strokeWidth="1.5" fill="none" />
-                                                                    <path d="M8 4V8L10 10" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
-                                                                </svg>
-                                                            </button>
+                                            {workflow.swimlanes.map((swimlane) => {
+                                                const maxRows = getMaxRowCount(workflow, swimlane);
+                                                return (
+                                                    <div key={swimlane.id} className="workflow-swimlane-row">
+                                                        <div className="workflow-swimlane-label-cell">
+                                                            <span className="workflow-swimlane-name">{swimlane.name}</span>
+                                                            <div className="workflow-swimlane-label-actions">
+                                                                <button className="workflow-swimlane-action-btn" type="button" title="Members">
+                                                                    <svg width="16" height="16" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
+                                                                        <path d="M10.6667 14V12.6667C10.6667 11.9594 10.3857 11.2811 9.88562 10.781C9.38552 10.281 8.70725 10 8 10H4C3.29276 10 2.61448 10.281 2.11438 10.781C1.61428 11.2811 1.33333 11.9594 1.33333 12.6667V14" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
+                                                                        <path d="M6.00001 7.33333C7.47276 7.33333 8.66667 6.13943 8.66667 4.66667C8.66667 3.19391 7.47276 2 6.00001 2C4.52725 2 3.33334 3.19391 3.33334 4.66667C3.33334 6.13943 4.52725 7.33333 6.00001 7.33333Z" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
+                                                                    </svg>
+                                                                </button>
+                                                                <button className="workflow-swimlane-action-btn" type="button" title="Settings">
+                                                                    <svg width="16" height="16" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
+                                                                        <path d="M8 10C9.10457 10 10 9.10457 10 8C10 6.89543 9.10457 6 8 6C6.89543 6 6 6.89543 6 8C6 9.10457 6.89543 10 8 10Z" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
+                                                                    </svg>
+                                                                </button>
+                                                                <button className="workflow-swimlane-action-btn" type="button" title="Time tracking">
+                                                                    <svg width="16" height="16" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
+                                                                        <circle cx="8" cy="8" r="6" stroke="currentColor" strokeWidth="1.5" fill="none" />
+                                                                        <path d="M8 4V8L10 10" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
+                                                                    </svg>
+                                                                </button>
+                                                            </div>
+                                                        </div>
+                                                        <div className="workflow-board-body">
+                                                            {Array.from({ length: maxRows }, (_, rowIdx) => (
+                                                                <div key={rowIdx} className="workflow-board-logical-row">
+                                                                    {boardStructure.map(({ area, cols }) => {
+                                                                        const matrix = getAreaMatrix(swimlane, area);
+                                                                        return (
+                                                                            <div
+                                                                                key={area}
+                                                                                className="workflow-area-row"
+                                                                                style={{
+                                                                                    width: cols * STAGE_CELL_WIDTH + Math.max(0, cols - 1) * STAGE_GAP,
+                                                                                }}
+                                                                            >
+                                                                                {Array.from({ length: cols }, (_, colIdx) => {
+                                                                                    const stage = matrix[rowIdx]?.[colIdx] || null;
+                                                                                    if (stage) {
+                                                                                        const stageColumnKey = getColumnKey(workflow.id, swimlane.id, stage.id);
+                                                                                        const isStageHovered = hoveredColumn === stageColumnKey;
+                                                                                        const isColorPickerOpen = openColorPickerForStage === stageColumnKey;
+                                                                                        return renderStageCell(stage, swimlane, stageColumnKey, isStageHovered, isColorPickerOpen, true);
+                                                                                    }
+                                                                                    return renderPlaceholderCell(swimlane.id, area, rowIdx, colIdx);
+                                                                                })}
+                                                                            </div>
+                                                                        );
+                                                                    })}
+                                                                </div>
+                                                            ))}
                                                         </div>
                                                     </div>
-                                                    <div className="workflow-board-columns">
-                                                        {boardStructure.flatMap(({ area, cols }) => {
-                                                            const stagesInArea = getStagesInArea(swimlane, area);
-                                                            const cells = [];
-                                                            for (let colIdx = 0; colIdx < cols; colIdx++) {
-                                                                const stage = stagesInArea[colIdx] || null;
-                                                                if (stage) {
-                                                                    const stageColumnKey = getColumnKey(workflow.id, swimlane.id, stage.id);
-                                                                    const isStageHovered = hoveredColumn === stageColumnKey;
-                                                                    const isColorPickerOpen = openColorPickerForStage === stageColumnKey;
-                                                                    cells.push(renderStageCell(stage, swimlane, stageColumnKey, isStageHovered, isColorPickerOpen));
-                                                                } else {
-                                                                    cells.push(renderPlaceholderCell(swimlane.id, area, colIdx));
-                                                                }
-                                                            }
-                                                            return cells;
-                                                        })}
-                                                    </div>
-                                                </div>
-                                            ))}
+                                                );
+                                            })}
                                         </div>
                                     );
                                 })()}

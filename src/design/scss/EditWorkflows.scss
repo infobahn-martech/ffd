@@ -535,6 +535,44 @@ div[role="tooltip"][id^="workflow-info-"] {
   align-items: stretch;
   flex-wrap: nowrap;
   gap: var(--stage-gap, 8px);
+
+  &.workflow-board-columns-grid {
+    display: flex;
+    align-items: stretch;
+  }
+}
+
+// Body container: flex column of logical rows (ensures row alignment across areas)
+.workflow-board-body {
+  flex: 1 0 auto;
+  display: flex;
+  flex-direction: column;
+  gap: var(--stage-gap, 8px);
+  min-width: 0;
+}
+
+// Each logical row: one flex row containing all area cells for that row
+.workflow-board-logical-row {
+  display: flex;
+  flex-wrap: nowrap;
+  gap: var(--stage-gap, 8px);
+  align-items: stretch;
+  min-height: 0;
+}
+
+.workflow-area-block {
+  display: flex;
+  flex-direction: column;
+  gap: var(--stage-gap, 8px);
+  flex-shrink: 0;
+}
+
+.workflow-area-row {
+  display: flex;
+  flex-wrap: nowrap;
+  gap: var(--stage-gap, 8px);
+  align-items: stretch;
+  flex-shrink: 0;
 }
 
 .workflow-swimlane-row {
@@ -553,15 +591,17 @@ div[role="tooltip"][id^="workflow-info-"] {
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  gap: 4px;
+  gap: 6px;
   flex-shrink: 0;
   min-width: 120px;
   width: 120px;
-  padding: 4px 8px;
+  padding: 8px 10px;
   margin-right: 12px;
-  background: #ffffff;
-  border: 1px solid #e2e4e8;
+  background: #fafbfc;
+  border: 1px solid #d1d5db;
   border-radius: 2px;
+  align-self: stretch;
+  min-height: 0;
 }
 
 .workflow-swimlane-label-cell .workflow-swimlane-name {
@@ -701,6 +741,11 @@ div[role="tooltip"][id^="workflow-info-"] {
     width: var(--stage-cell-width, 160px);
     min-width: var(--stage-cell-width, 160px);
   }
+}
+
+.workflow-stage-placeholder-spacer {
+  min-height: 100px;
+  flex-shrink: 0;
 }
 
 .workflow-stage-box {
@@ -992,7 +1037,8 @@ div[role="tooltip"][id^="workflow-info-"] {
   }
 }
 
-.workflow-column-add-bottom {
+.workflow-column-add-bottom,
+.workflow-column-add-below {
   left: 50%;
   bottom: -16px;
   transform: translateX(-50%);
