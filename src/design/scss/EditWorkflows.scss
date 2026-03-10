@@ -546,7 +546,7 @@ div[role="tooltip"][id^="workflow-info-"] {
   min-width: 0;
 }
 
-// Area block: one per area, stretches to full height; contains col stacks
+// Area block: one per area, stretches to full height; contains col stacks or grid
 .workflow-area-block {
   display: flex;
   flex-direction: row;
@@ -557,7 +557,27 @@ div[role="tooltip"][id^="workflow-info-"] {
   min-height: 0;
 }
 
-// Vertical stack within one col of an area (subcolumns stack here)
+// Area block using CSS Grid for colSpan support
+.workflow-area-block-grid {
+  display: grid !important;
+  align-items: start;
+
+  .workflow-area-col-stack {
+    flex: none;
+    min-width: 0;
+    display: flex;
+    flex-direction: column;
+    align-self: stretch;
+  }
+
+  .workflow-stage-grid-item {
+    position: relative;
+    z-index: 1;
+    min-width: 0;
+  }
+}
+
+// Vertical stack within one col of an area (subcolumns stack here, or rail container in grid mode)
 .workflow-area-col-stack {
   display: flex;
   flex-direction: column;
@@ -567,6 +587,7 @@ div[role="tooltip"][id^="workflow-info-"] {
   min-height: 0;
   align-items: stretch;
   position: relative;
+  z-index: 0;
 }
 
 // Row-aware insertion rails for stacked columns

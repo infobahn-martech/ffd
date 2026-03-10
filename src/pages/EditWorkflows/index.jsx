@@ -119,11 +119,11 @@ function EditWorkflows() {
                     id: 1,
                     name: 'Default Swimlane',
                     stages: [
-                        { id: 1, name: 'Backlog', area: 'BACKLOG AREA', limit: 0, cardsPerRow: 1, row: 0, col: 0 },
-                        { id: 2, name: 'Appointment Received', area: 'REQUESTED AREA', limit: 0, cardsPerRow: 1, row: 0, col: 0 },
-                        { id: 3, name: 'Ops In Progress', area: 'IN PROGRESS AREA', limit: 0, cardsPerRow: 1, row: 0, col: 0 },
-                        { id: 4, name: 'Dispatched', area: 'DONE AREA', limit: 0, cardsPerRow: 1, row: 0, col: 0 },
-                        { id: 5, name: 'Ready To Archive', area: 'READY TO ARCHIVE AREA', limit: 0, cardsPerRow: 1, row: 0, col: 0 }
+                        { id: 1, name: 'Backlog', area: 'BACKLOG AREA', limit: 0, cardsPerRow: 1, row: 0, col: 0, colSpan: 1 },
+                        { id: 2, name: 'Appointment Received', area: 'REQUESTED AREA', limit: 0, cardsPerRow: 1, row: 0, col: 0, colSpan: 1 },
+                        { id: 3, name: 'Ops In Progress', area: 'IN PROGRESS AREA', limit: 0, cardsPerRow: 1, row: 0, col: 0, colSpan: 1 },
+                        { id: 4, name: 'Dispatched', area: 'DONE AREA', limit: 0, cardsPerRow: 1, row: 0, col: 0, colSpan: 1 },
+                        { id: 5, name: 'Ready To Archive', area: 'READY TO ARCHIVE AREA', limit: 0, cardsPerRow: 1, row: 0, col: 0, colSpan: 1 }
                     ],
                 },
             ],
@@ -153,25 +153,17 @@ function EditWorkflows() {
     };
 
     // Build board column structure: { area, cols: number }[] - horizontal columns per area (max per row)
-    // Subcolumns (vertical) do NOT affect header width
+    // Uses max(stage.col + stage.colSpan) to account for spanning
     const getBoardColumnStructure = (workflow) => {
         const colsPerArea = {};
         AREA_ORDER.forEach((area) => {
             let maxCols = 0;
             workflow.swimlanes.forEach((swimlane) => {
                 const stagesInArea = swimlane.stages.filter((s) => s.area === area);
-                const byRow = {};
-                stagesInArea.forEach((s) => {
-                    const row = s.row ?? 0;
-                    if (!byRow[row]) byRow[row] = [];
-                    byRow[row].push(s);
-                });
-                Object.values(byRow).forEach((rowStages) => {
-                    const maxColInRow = rowStages.length
-                        ? Math.max(...rowStages.map((s) => (s.col ?? 0))) + 1
-                        : 0;
-                    if (maxColInRow > maxCols) maxCols = maxColInRow;
-                });
+                const maxColInArea = stagesInArea.length
+                    ? Math.max(...stagesInArea.map((s) => (s.col ?? 0) + (s.colSpan ?? 1)))
+                    : 0;
+                if (maxColInArea > maxCols) maxCols = maxColInArea;
                 if (maxCols > (colsPerArea[area] ?? 0)) colsPerArea[area] = maxCols;
             });
         });
@@ -194,11 +186,23 @@ function EditWorkflows() {
         return matrix;
     };
 
-    // Get stages at a specific col in an area, sorted by row (for vertical stacking)
+    // Get stages that occupy a specific column in an area (considers colSpan)
     const getStagesInColumn = (swimlane, area, colIdx) => {
         return swimlane.stages
-            .filter((s) => s.area === area && (s.col ?? 0) === colIdx)
+            .filter((s) => {
+                if (s.area !== area) return false;
+                const col = s.col ?? 0;
+                const span = s.colSpan ?? 1;
+                return col <= colIdx && colIdx < col + span;
+            })
             .sort((a, b) => (a.row ?? 0) - (b.row ?? 0));
+    };
+
+    // Get max row index in an area for grid row count
+    const getMaxRowInArea = (swimlane, area) => {
+        const stagesInArea = swimlane.stages.filter((s) => s.area === area);
+        if (stagesInArea.length === 0) return -1;
+        return Math.max(...stagesInArea.map((s) => s.row ?? 0));
     };
 
     // const areaColors = {
@@ -219,15 +223,16 @@ function EditWorkflows() {
     };
 
     // Handle stage hover: set hoveredColumn and, for stacked columns, compute row-aware rail metrics
-    const handleStageBoxMouseEnter = (e, stageColumnKey, workflowId, swimlaneId, stageId, stageName, isStacked) => {
+    const handleStageBoxMouseEnter = (e, stageColumnKey, workflowId, swimlaneId, stageId, stageName, isStacked, area, stageCol) => {
         setHoveredColumn(stageColumnKey);
-        if (isStacked) {
-            const colStack = e.currentTarget.closest('.workflow-area-col-stack');
+        if (isStacked && area != null && stageCol != null) {
+            const areaBlock = e.currentTarget.closest('.workflow-area-block');
             const stageWrapper = e.currentTarget.closest('.workflow-stage-wrapper');
+            const colStackKey = getColStackKey(workflowId, swimlaneId, area, stageCol);
+            const colStack = areaBlock?.querySelector(`[data-col-stack-key="${colStackKey}"]`);
             if (colStack && stageWrapper) {
                 const colRect = colStack.getBoundingClientRect();
                 const stageRect = stageWrapper.getBoundingClientRect();
-                const colStackKey = colStack.getAttribute('data-col-stack-key');
                 setStackedRailMetrics({
                     colStackKey,
                     stageId,
@@ -238,7 +243,7 @@ function EditWorkflows() {
                     height: colRect.bottom - stageRect.top,
                 });
             }
-        } else {
+        } else if (!isStacked) {
             setStackedRailMetrics(null);
         }
     };
@@ -270,6 +275,7 @@ function EditWorkflows() {
                             name: 'New Column',
                             row: targetRow,
                             col: targetCol,
+                            colSpan: stage.colSpan ?? 1,
                         };
 
                         const newStages = swimlane.stages.map(s => {
@@ -310,6 +316,7 @@ function EditWorkflows() {
                             area,
                             row: insertRow,
                             col: currentCol,
+                            colSpan: 1,
                             limit: stage.limit ?? 0,
                             cardsPerRow: stage.cardsPerRow ?? 1,
                         };
@@ -329,6 +336,7 @@ function EditWorkflows() {
     };
 
     // Horizontal add (right): insert new sibling column in same row, same area; shift cols right
+    // When adding beside stacked child (targetRow > 0), expand parent stages above by increasing colSpan
     const handleAddColumnRight = (workflowId, swimlaneId, stageId) => {
         setWorkflows(prevWorkflows => {
             return prevWorkflows.map(workflow => {
@@ -350,11 +358,22 @@ function EditWorkflows() {
                             name: 'New Column',
                             row: targetRow,
                             col: targetCol,
+                            colSpan: stage.colSpan ?? 1,
                         };
 
                         const newStages = swimlane.stages.map(s => {
                             if (s.area === area && s.row === targetRow && (s.col ?? 0) >= targetCol) {
                                 return { ...s, col: (s.col ?? 0) + 1 };
+                            }
+                            // Expand parent stages above when adding beside stacked child (targetRow > 0)
+                            if (targetRow > 0 && s.area === area && s.row === targetRow - 1) {
+                                const sCol = s.col ?? 0;
+                                const sSpan = s.colSpan ?? 1;
+                                const stageCol = stage.col ?? 0;
+                                // Parent covers our stage: sCol <= stageCol and sCol + sSpan > stageCol
+                                if (sCol <= stageCol && sCol + sSpan > stageCol) {
+                                    return { ...s, colSpan: (s.colSpan ?? 1) + 1 };
+                                }
                             }
                             return s;
                         });
@@ -572,7 +591,7 @@ function EditWorkflows() {
                                                 <div
                                                     className="workflow-stage-box"
                                                     style={{ position: 'relative' }}
-                                                    onMouseEnter={(e) => handleStageBoxMouseEnter(e, stageColumnKey, workflow.id, swimlaneRef.id, stage.id, stage.name, isStacked)}
+                                                    onMouseEnter={(e) => handleStageBoxMouseEnter(e, stageColumnKey, workflow.id, swimlaneRef.id, stage.id, stage.name, isStacked, stage.area, stage.col ?? 0)}
                                                 >
                                                     {isStageHovered && showInlineAddButtons && (
                                                         <button
@@ -720,81 +739,109 @@ function EditWorkflows() {
                                             {workflow.swimlanes.map((swimlane) => (
                                                 <div key={swimlane.id} className="workflow-swimlane-row">
                                                     <div className="workflow-board-body">
-                                                        {boardStructure.map(({ area, cols }) => (
-                                                            <div
-                                                                key={area}
-                                                                className="workflow-area-block"
-                                                                style={{
-                                                                    width: cols * STAGE_CELL_WIDTH + Math.max(0, cols - 1) * STAGE_GAP,
-                                                                }}
-                                                            >
-                                                                {Array.from({ length: cols }, (_, colIdx) => {
-                                                                    const stagesInCol = getStagesInColumn(swimlane, area, colIdx);
-                                                                    const isSingle = stagesInCol.length <= 1;
-                                                                    const colStackKey = getColStackKey(workflow.id, swimlane.id, area, colIdx);
-                                                                    const showStackedRails = !isSingle && stackedRailMetrics?.colStackKey === colStackKey;
-                                                                    return (
-                                                                        <div
-                                                                            key={`${area}-${colIdx}`}
-                                                                            className="workflow-area-col-stack"
-                                                                            data-col-stack-key={colStackKey}
-                                                                            onMouseLeave={handleStageBoxMouseLeave}
-                                                                        >
-                                                                            {stagesInCol.length > 0 ? (
-                                                                                stagesInCol.map((stage) => {
-                                                                                    const stageColumnKey = getColumnKey(workflow.id, swimlane.id, stage.id);
-                                                                                    const isStageHovered = hoveredColumn === stageColumnKey;
-                                                                                    const isColorPickerOpen = openColorPickerForStage === stageColumnKey;
-                                                                                    return renderStageCell(stage, swimlane, stageColumnKey, isStageHovered, isColorPickerOpen, true, isSingle);
-                                                                                })
-                                                                            ) : (
-                                                                                renderEmptyCell(swimlane.id, area, colIdx)
-                                                                            )}
-                                                                            {showStackedRails && stackedRailMetrics && (
-                                                                                <>
-                                                                                    <div
-                                                                                        className="workflow-insertion-rail workflow-insertion-rail-left"
-                                                                                        style={{
-                                                                                            top: stackedRailMetrics.top,
-                                                                                            height: stackedRailMetrics.height,
-                                                                                        }}
-                                                                                    >
-                                                                                        <button
-                                                                                            className="workflow-column-add-btn workflow-column-add-left"
-                                                                                            type="button"
-                                                                                            onClick={() => handleAddColumnLeft(stackedRailMetrics.workflowId, stackedRailMetrics.swimlaneId, stackedRailMetrics.stageId)}
-                                                                                            title={`Add a new column before ${stackedRailMetrics.stageName || ''}`}
+                                                        {boardStructure.map(({ area, cols }) => {
+                                                            const maxRows = getMaxRowInArea(swimlane, area) + 1;
+                                                            const rowCount = Math.max(1, maxRows);
+                                                            const areaStages = swimlane.stages.filter((s) => s.area === area);
+                                                            return (
+                                                                <div
+                                                                    key={area}
+                                                                    className="workflow-area-block workflow-area-block-grid"
+                                                                    style={{
+                                                                        width: cols * STAGE_CELL_WIDTH + Math.max(0, cols - 1) * STAGE_GAP,
+                                                                        display: 'grid',
+                                                                        gridTemplateColumns: `repeat(${cols}, var(--stage-cell-width))`,
+                                                                        gridTemplateRows: `repeat(${rowCount}, auto)`,
+                                                                        gap: 'var(--stage-gap)',
+                                                                    }}
+                                                                >
+                                                                    {/* Col-stacks for rail positioning (behind stages) */}
+                                                                    {Array.from({ length: cols }, (_, colIdx) => {
+                                                                        const stagesInCol = getStagesInColumn(swimlane, area, colIdx);
+                                                                        const isSingle = stagesInCol.length <= 1;
+                                                                        const colStackKey = getColStackKey(workflow.id, swimlane.id, area, colIdx);
+                                                                        const showStackedRails = !isSingle && stackedRailMetrics?.colStackKey === colStackKey;
+                                                                        return (
+                                                                            <div
+                                                                                key={`col-${area}-${colIdx}`}
+                                                                                className="workflow-area-col-stack"
+                                                                                data-col-stack-key={colStackKey}
+                                                                                onMouseLeave={handleStageBoxMouseLeave}
+                                                                                style={{
+                                                                                    gridColumn: `${colIdx + 1}`,
+                                                                                    gridRow: `1 / span ${rowCount}`,
+                                                                                }}
+                                                                            >
+                                                                                {stagesInCol.length === 0 && renderEmptyCell(swimlane.id, area, colIdx)}
+                                                                                {showStackedRails && stackedRailMetrics && (
+                                                                                    <>
+                                                                                        <div
+                                                                                            className="workflow-insertion-rail workflow-insertion-rail-left"
+                                                                                            style={{
+                                                                                                top: stackedRailMetrics.top,
+                                                                                                height: stackedRailMetrics.height,
+                                                                                            }}
                                                                                         >
-                                                                                            <svg width="16" height="16" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
-                                                                                                <path d="M8 3V13M3 8H13" stroke="currentColor" strokeWidth="2" strokeLinecap="round" />
-                                                                                            </svg>
-                                                                                        </button>
-                                                                                    </div>
-                                                                                    <div
-                                                                                        className="workflow-insertion-rail workflow-insertion-rail-right"
-                                                                                        style={{
-                                                                                            top: stackedRailMetrics.top,
-                                                                                            height: stackedRailMetrics.height,
-                                                                                        }}
-                                                                                    >
-                                                                                        <button
-                                                                                            className="workflow-column-add-btn workflow-column-add-right"
-                                                                                            type="button"
-                                                                                            onClick={() => handleAddColumnRight(stackedRailMetrics.workflowId, stackedRailMetrics.swimlaneId, stackedRailMetrics.stageId)}
-                                                                                            title={`Add a new column after ${stackedRailMetrics.stageName || ''}`}
+                                                                                            <button
+                                                                                                className="workflow-column-add-btn workflow-column-add-left"
+                                                                                                type="button"
+                                                                                                onClick={() => handleAddColumnLeft(stackedRailMetrics.workflowId, stackedRailMetrics.swimlaneId, stackedRailMetrics.stageId)}
+                                                                                                title={`Add a new column before ${stackedRailMetrics.stageName || ''}`}
+                                                                                            >
+                                                                                                <svg width="16" height="16" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
+                                                                                                    <path d="M8 3V13M3 8H13" stroke="currentColor" strokeWidth="2" strokeLinecap="round" />
+                                                                                                </svg>
+                                                                                            </button>
+                                                                                        </div>
+                                                                                        <div
+                                                                                            className="workflow-insertion-rail workflow-insertion-rail-right"
+                                                                                            style={{
+                                                                                                top: stackedRailMetrics.top,
+                                                                                                height: stackedRailMetrics.height,
+                                                                                            }}
                                                                                         >
-                                                                                            <svg width="16" height="16" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
-                                                                                                <path d="M8 3V13M3 8H13" stroke="currentColor" strokeWidth="2" strokeLinecap="round" />
-                                                                                            </svg>
-                                                                                        </button>
-                                                                                    </div>
-                                                                                </>
-                                                                            )}
-                                                                        </div>
-                                                                    );
-                                                                })}
-                                                            </div>
-                                                        ))}
+                                                                                            <button
+                                                                                                className="workflow-column-add-btn workflow-column-add-right"
+                                                                                                type="button"
+                                                                                                onClick={() => handleAddColumnRight(stackedRailMetrics.workflowId, stackedRailMetrics.swimlaneId, stackedRailMetrics.stageId)}
+                                                                                                title={`Add a new column after ${stackedRailMetrics.stageName || ''}`}
+                                                                                            >
+                                                                                                <svg width="16" height="16" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
+                                                                                                    <path d="M8 3V13M3 8H13" stroke="currentColor" strokeWidth="2" strokeLinecap="round" />
+                                                                                                </svg>
+                                                                                            </button>
+                                                                                        </div>
+                                                                                    </>
+                                                                                )}
+                                                                            </div>
+                                                                        );
+                                                                    })}
+                                                                    {/* Stages with grid positioning */}
+                                                                    {areaStages.map((stage) => {
+                                                                        const stageCol = stage.col ?? 0;
+                                                                        const stageRow = stage.row ?? 0;
+                                                                        const stageColSpan = stage.colSpan ?? 1;
+                                                                        const stagesInCol = getStagesInColumn(swimlane, area, stageCol);
+                                                                        const isSingleInCol = stagesInCol.length <= 1;
+                                                                        const stageColumnKey = getColumnKey(workflow.id, swimlane.id, stage.id);
+                                                                        const isStageHovered = hoveredColumn === stageColumnKey;
+                                                                        const isColorPickerOpen = openColorPickerForStage === stageColumnKey;
+                                                                        return (
+                                                                            <div
+                                                                                key={stage.id}
+                                                                                className="workflow-stage-grid-item"
+                                                                                style={{
+                                                                                    gridColumn: `${stageCol + 1} / span ${stageColSpan}`,
+                                                                                    gridRow: `${stageRow + 1}`,
+                                                                                }}
+                                                                            >
+                                                                                {renderStageCell(stage, swimlane, stageColumnKey, isStageHovered, isColorPickerOpen, true, isSingleInCol)}
+                                                                            </div>
+                                                                        );
+                                                                    })}
+                                                                </div>
+                                                            );
+                                                        })}
                                                     </div>
                                                 </div>
                                             ))}
