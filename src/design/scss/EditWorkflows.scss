@@ -819,10 +819,11 @@ div[role="tooltip"][id^="workflow-info-"] {
   pointer-events: auto;
 }
 
-// Stacked cards: inset so col-stack rails show at sides (rail layer behind card)
-.workflow-stage-stacked .workflow-stage-box {
-  margin-left: 22px;
-  margin-right: 22px;
+// Stacked cards: reserve side rail space via padding so rails stay inside the column cell.
+// Rails (in col-stack behind) show through the padding; card stays centered between them.
+.workflow-stage-stacked {
+  padding-left: 22px;
+  padding-right: 22px;
 }
 
 .workflow-stage-box-content {
