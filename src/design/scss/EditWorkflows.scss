@@ -616,31 +616,58 @@ div[role="tooltip"][id^="workflow-info-"] {
   z-index: 0;
 }
 
-// Row-aware insertion rails for stacked columns
+// Row-aware insertion rails (vertical + horizontal) - embedded rectangular slots inside box
 .workflow-insertion-rail {
   position: absolute;
-  width: 32px;
   display: flex;
   align-items: center;
   justify-content: center;
   pointer-events: none;
-  z-index: 10;
-  border: 2px solid rgba(16, 185, 129, 0.4);
-  border-radius: 4px;
-  background: rgba(16, 185, 129, 0.06);
+  z-index: 5;
+  border: 1px solid #59d38c;
+  background: #f7fff9;
+  border-radius: 0;
+  box-sizing: border-box;
 
   .workflow-column-add-btn {
     pointer-events: auto;
   }
 }
 
+// Inline rails - inside stage box, no negative offsets
+.workflow-stage-box .workflow-insertion-rail-left {
+  left: 0;
+  top: 0;
+  bottom: 0;
+  width: 22px;
+  border-right: 1px solid #59d38c;
+}
+
+.workflow-stage-box .workflow-insertion-rail-right {
+  right: 0;
+  top: 0;
+  bottom: 0;
+  width: 22px;
+  border-left: 1px solid #59d38c;
+}
+
+.workflow-stage-box .workflow-insertion-rail-bottom {
+  left: 0;
+  right: 0;
+  bottom: 0;
+  height: 22px;
+  border-top: 1px solid #59d38c;
+}
+
+// Stacked rails - in col-stack (height from inline style)
 .workflow-insertion-rail-left {
-  left: -16px;
+  left: 0;
+  width: 22px;
 }
 
 .workflow-insertion-rail-right {
-  left: auto;
-  right: -16px;
+  right: 0;
+  width: 22px;
 }
 
 .workflow-swimlane-row {
@@ -771,18 +798,30 @@ div[role="tooltip"][id^="workflow-info-"] {
   background: #ffffff;
   border: 1px solid #e2e4e8;
   border-radius: 2px;
-  padding: 10px 12px;
+  padding: 10px 22px 22px;
   min-height: 100px;
   min-width: 0;
   width: 100%;
   flex: 1;
   position: relative;
-  overflow: visible;
+  overflow: hidden;
   display: flex;
   flex-direction: column;
   align-items: center;
   text-align: center;
   justify-content: flex-end;
+}
+
+.workflow-stage-box-content {
+  position: relative;
+  z-index: 2;
+  width: 100%;
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: flex-end;
+  text-align: center;
 }
 
 // First row styling
@@ -987,76 +1026,55 @@ div[role="tooltip"][id^="workflow-info-"] {
   }
 }
 
-// Add Column Buttons (Hover + Icons)
-.workflow-column-add-btn {
-  position: absolute;
-  width: 32px;
-  height: 32px;
-  background: #10b981;
-  border: 2px solid #ffffff;
-  border-radius: 50%;
+// Add Column Buttons - rail style (fills slot, grey plus icon)
+.workflow-insertion-rail .workflow-column-add-btn {
+  position: static;
+  width: 100%;
+  height: 100%;
+  min-width: 0;
+  min-height: 0;
+  background: transparent;
+  border: none;
+  border-radius: 0;
   display: flex;
   align-items: center;
   justify-content: center;
   cursor: pointer;
-  z-index: 10;
-  transition: opacity 0.2s ease, transform 0.2s ease;
   padding: 0;
-  box-shadow: 0 2px 8px rgba(16, 185, 129, 0.3);
-  pointer-events: auto;
-  will-change: transform;
+  box-shadow: none;
+  transition: background 0.2s ease;
 
   &:hover {
-    background: #059669;
-    transform: scale(1.1);
-    box-shadow: 0 4px 12px rgba(16, 185, 129, 0.4);
+    background: rgba(16, 185, 129, 0.08);
+    transform: none;
+    box-shadow: none;
   }
 
   svg {
-    width: 16px;
-    height: 16px;
-    stroke: #ffffff;
+    width: 14px;
+    height: 14px;
+    stroke: #9ca3af;
     stroke-width: 2;
+    flex-shrink: 0;
+  }
+
+  &:hover svg {
+    stroke: #10b981;
   }
 }
 
-.workflow-column-add-left {
-  left: -16px;
-  top: 50%;
-  transform: translateY(-50%);
-  transform-origin: center center;
+.workflow-insertion-rail .workflow-column-add-left,
+.workflow-insertion-rail .workflow-column-add-right,
+.workflow-insertion-rail .workflow-column-add-below {
+  left: auto;
+  right: auto;
+  top: auto;
+  bottom: auto;
+  transform: none;
 
   &:hover {
-    transform: translateY(-50%) scale(1.1);
+    transform: none;
   }
-}
-
-.workflow-column-add-right {
-  right: -16px;
-  top: 50%;
-  transform: translateY(-50%);
-  transform-origin: center center;
-
-  &:hover {
-    transform: translateY(-50%) scale(1.1);
-  }
-}
-
-.workflow-column-add-bottom,
-.workflow-column-add-below {
-  left: 50%;
-  bottom: -16px;
-  transform: translateX(-50%);
-  transform-origin: center center;
-
-  &:hover {
-    transform: translateX(-50%) scale(1.1);
-  }
-}
-
-// Ensure workflow-stage-box is the positioning context
-.workflow-stage-box {
-  position: relative;
 }
 
 // Full width layout when sidebar is hidden

@@ -614,44 +614,51 @@ function EditWorkflows() {
                                                     onMouseEnter={(e) => handleStageBoxMouseEnter(e, stageColumnKey, workflow.id, swimlaneRef.id, stage.id, stage.name, isStacked, stage.area, stage.col ?? 0)}
                                                 >
                                                     {isStageHovered && showInlineAddButtons && (
-                                                        <button
-                                                            className="workflow-column-add-btn workflow-column-add-left"
-                                                            type="button"
-                                                            onClick={() => handleAddColumnLeft(workflow.id, swimlaneRef.id, stage.id)}
-                                                            title={`Add a new column before ${stage.name}`}
-                                                        >
-                                                            <svg width="16" height="16" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
-                                                                <path d="M8 3V13M3 8H13" stroke="currentColor" strokeWidth="2" strokeLinecap="round" />
-                                                            </svg>
-                                                        </button>
+                                                        <div className="workflow-insertion-rail workflow-insertion-rail-left">
+                                                            <button
+                                                                className="workflow-column-add-btn workflow-column-add-left"
+                                                                type="button"
+                                                                onClick={() => handleAddColumnLeft(workflow.id, swimlaneRef.id, stage.id)}
+                                                                title={`Add a new column before ${stage.name}`}
+                                                            >
+                                                                <svg width="16" height="16" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
+                                                                    <path d="M8 3V13M3 8H13" stroke="currentColor" strokeWidth="2" strokeLinecap="round" />
+                                                                </svg>
+                                                            </button>
+                                                        </div>
                                                     )}
                                                     {isStageHovered && showInlineAddButtons && (
-                                                        <button
-                                                            className="workflow-column-add-btn workflow-column-add-right"
-                                                            type="button"
-                                                            onClick={() => handleAddColumnRight(workflow.id, swimlaneRef.id, stage.id)}
-                                                            title={`Add a new column after ${stage.name}`}
-                                                        >
-                                                            <svg width="16" height="16" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
-                                                                <path d="M8 3V13M3 8H13" stroke="currentColor" strokeWidth="2" strokeLinecap="round" />
-                                                            </svg>
-                                                        </button>
+                                                        <div className="workflow-insertion-rail workflow-insertion-rail-right">
+                                                            <button
+                                                                className="workflow-column-add-btn workflow-column-add-right"
+                                                                type="button"
+                                                                onClick={() => handleAddColumnRight(workflow.id, swimlaneRef.id, stage.id)}
+                                                                title={`Add a new column after ${stage.name}`}
+                                                            >
+                                                                <svg width="16" height="16" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
+                                                                    <path d="M8 3V13M3 8H13" stroke="currentColor" strokeWidth="2" strokeLinecap="round" />
+                                                                </svg>
+                                                            </button>
+                                                        </div>
                                                     )}
                                                     {isStageHovered && showAddSubcolumn && (
-                                                        <button
-                                                            className="workflow-column-add-btn workflow-column-add-below"
-                                                            type="button"
-                                                            onClick={(e) => {
-                                                                e.stopPropagation();
-                                                                handleAddSubcolumn(workflow.id, swimlaneRef.id, stage.id);
-                                                            }}
-                                                            title="Add a new subcolumn"
-                                                        >
-                                                            <svg width="16" height="16" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
-                                                                <path d="M8 3V13M3 8H13" stroke="currentColor" strokeWidth="2" strokeLinecap="round" />
-                                                            </svg>
-                                                        </button>
+                                                        <div className="workflow-insertion-rail workflow-insertion-rail-bottom">
+                                                            <button
+                                                                className="workflow-column-add-btn workflow-column-add-below"
+                                                                type="button"
+                                                                onClick={(e) => {
+                                                                    e.stopPropagation();
+                                                                    handleAddSubcolumn(workflow.id, swimlaneRef.id, stage.id);
+                                                                }}
+                                                                title="Add a new subcolumn"
+                                                            >
+                                                                <svg width="16" height="16" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
+                                                                    <path d="M8 3V13M3 8H13" stroke="currentColor" strokeWidth="2" strokeLinecap="round" />
+                                                                </svg>
+                                                            </button>
+                                                        </div>
                                                     )}
+                                                    <div className="workflow-stage-box-content">
                                                     <div className="stage-box-header">
                                                         {editingStageId === stageColumnKey ? (
                                                             <input
@@ -720,6 +727,7 @@ function EditWorkflows() {
                                                                 onColorSelect={(rgb) => handleStageColorChange(workflow.id, swimlaneRef.id, stage.id, rgb)}
                                                             />
                                                         </div>
+                                                    </div>
                                                     </div>
                                                 </div>
                                             </div>
