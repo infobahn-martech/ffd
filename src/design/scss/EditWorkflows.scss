@@ -500,7 +500,7 @@ div[role="tooltip"][id^="workflow-info-"] {
   display: flex;
   align-items: stretch;
   flex-wrap: nowrap;
-  gap: var(--stage-gap, 8px);
+  gap: var(--stage-gap, 10px);
 }
 
 .workflow-board-area-header {
@@ -527,7 +527,7 @@ div[role="tooltip"][id^="workflow-info-"] {
   display: flex;
   align-items: stretch;
   flex-wrap: nowrap;
-  gap: var(--stage-gap, 8px);
+  gap: var(--stage-gap, 10px);
 
   &.workflow-board-columns-grid {
     display: flex;
@@ -541,7 +541,7 @@ div[role="tooltip"][id^="workflow-info-"] {
   display: flex;
   flex-direction: row;
   flex-wrap: nowrap;
-  gap: var(--stage-gap, 8px);
+  gap: var(--stage-gap, 10px);
   align-items: stretch;
   min-width: 0;
 }
@@ -551,7 +551,7 @@ div[role="tooltip"][id^="workflow-info-"] {
   display: flex;
   flex-direction: row;
   flex-wrap: nowrap;
-  gap: var(--stage-gap, 8px);
+  gap: var(--stage-gap, 10px);
   align-items: stretch;
   flex-shrink: 0;
   min-height: 0;
@@ -609,9 +609,9 @@ div[role="tooltip"][id^="workflow-info-"] {
 .workflow-area-col-stack {
   display: flex;
   flex-direction: column;
-  gap: var(--stage-gap, 8px);
-  flex: 1 0 var(--stage-cell-width, 160px);
-  min-width: var(--stage-cell-width, 160px);
+  gap: var(--stage-gap, 10px);
+  flex: 1 0 var(--stage-cell-width, 176px);
+  min-width: var(--stage-cell-width, 176px);
   min-height: 0;
   align-items: stretch;
   position: relative;
@@ -804,7 +804,7 @@ div[role="tooltip"][id^="workflow-info-"] {
   background: #ffffff;
   border: 1px solid #e2e4e8;
   border-radius: 2px;
-  padding: 10px 22px 22px;
+  padding: 12px 22px 18px;
   min-height: 100px;
   min-width: 0;
   width: 100%;
@@ -846,7 +846,7 @@ div[role="tooltip"][id^="workflow-info-"] {
 }
 
 .stage-box-header {
-  margin-bottom: 8px;
+  margin-bottom: 10px;
   width: 100%;
   text-align: center;
 }
@@ -893,7 +893,7 @@ div[role="tooltip"][id^="workflow-info-"] {
   display: flex;
   flex-direction: column;
   gap: 4px;
-  margin-bottom: 8px;
+  margin-bottom: 10px;
   font: normal normal 400 11px/1.3 $font-primary;
   color: #6b7280;
   align-items: center;
