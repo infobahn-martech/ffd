@@ -216,7 +216,24 @@ function EditWorkflows() {
     };
 
     // Check if a cell (row, col) is occupied by any stage in the area
-    const isCellOccupied = (areaStages, row, col) => {
+    // For full-height single columns, all rows in that column are treated as occupied
+    const isCellOccupied = (areaStages, row, col, globalRows) => {
+        const occupyingStages = areaStages.filter((s) => {
+            const sCol = s.col ?? 0;
+            const sSpan = s.colSpan ?? 1;
+            return sCol <= col && col < sCol + sSpan;
+        });
+
+        if (!occupyingStages.length) return false;
+
+        const exactColumnStages = occupyingStages.filter((s) => (s.col ?? 0) === col && (s.colSpan ?? 1) === 1);
+        if (exactColumnStages.length === 1) {
+            const sameColStages = areaStages.filter((s) => (s.col ?? 0) === col);
+            if (sameColStages.length === 1) {
+                return true;
+            }
+        }
+
         return areaStages.some((s) => {
             const sRow = s.row ?? 0;
             const sCol = s.col ?? 0;
@@ -847,7 +864,7 @@ function EditWorkflows() {
                                                                         {/* Empty placeholder cells for unoccupied grid positions */}
                                                                         {Array.from({ length: globalRows }, (_, rowIdx) =>
                                                                             Array.from({ length: cols }, (_, colIdx) => {
-                                                                                if (isCellOccupied(areaStages, rowIdx, colIdx)) return null;
+                                                                                if (isCellOccupied(areaStages, rowIdx, colIdx, globalRows)) return null;
                                                                                 return (
                                                                                     <div
                                                                                         key={`empty-${swimlane.id}-${area}-${rowIdx}-${colIdx}`}
@@ -870,6 +887,9 @@ function EditWorkflows() {
                                                                             const stageColSpan = stage.colSpan ?? 1;
                                                                             const stagesInCol = getStagesInColumn(swimlane, area, stageCol);
                                                                             const isSingleInCol = stagesInCol.length <= 1;
+                                                                            const sortedStagesInCol = [...stagesInCol].sort((a, b) => (a.row ?? 0) - (b.row ?? 0));
+                                                                            const isTopStackedCard = !isSingleInCol && sortedStagesInCol[0]?.id === stage.id;
+                                                                            const stageGridRow = isSingleInCol ? `1 / span ${globalRows}` : `${stageRow + 1}`;
                                                                             const stageColumnKey = getColumnKey(workflow.id, swimlane.id, stage.id);
                                                                             const isStageHovered = hoveredColumn === stageColumnKey;
                                                                             const isColorPickerOpen = openColorPickerForStage === stageColumnKey;
@@ -879,11 +899,12 @@ function EditWorkflows() {
                                                                                     className="workflow-stage-grid-item"
                                                                                     style={{
                                                                                         gridColumn: `${stageCol + 1} / span ${stageColSpan}`,
-                                                                                        gridRow: `${stageRow + 1}`,
+                                                                                        gridRow: stageGridRow,
                                                                                         height: '100%',
+                                                                                        minHeight: 0,
                                                                                     }}
                                                                                 >
-                                                                                    {renderStageCell(stage, swimlane, stageColumnKey, isStageHovered, isColorPickerOpen, true, isSingleInCol)}
+                                                                                    {renderStageCell(stage, swimlane, stageColumnKey, isStageHovered, isColorPickerOpen, isSingleInCol ? true : !isTopStackedCard, isSingleInCol)}
                                                                                 </div>
                                                                             );
                                                                         })}
