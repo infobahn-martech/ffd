@@ -62,7 +62,8 @@ function EditWorkflows() {
     stageName,
     isStacked,
     area,
-    stageCol
+    stageCol,
+    stageColSpan
   ) => {
     setHoveredColumn(stageColumnKey);
     if (isStacked && area != null && stageCol != null) {
@@ -81,6 +82,7 @@ function EditWorkflows() {
           swimlaneId,
           top: stageRect.top - colRect.top,
           height: colRect.bottom - stageRect.top,
+          colSpan: stageColSpan ?? 1,
         });
       }
     } else if (!isStacked) {

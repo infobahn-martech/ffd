@@ -58,6 +58,10 @@ function WorkflowAreaGrid({
         const isSingle = stagesInCol.length <= 1;
         const colStackKey = getColStackKey(workflowId, swimlane.id, area, colIdx);
         const showStackedRails = !isSingle && stackedRailMetrics?.colStackKey === colStackKey;
+        const stackedColSpan =
+          showStackedRails && stackedRailMetrics?.colSpan ? stackedRailMetrics.colSpan : 1;
+        const colStackGridColumn =
+          stackedColSpan > 1 ? `${colIdx + 1} / span ${stackedColSpan}` : `${colIdx + 1}`;
         return (
           <div
             key={`col-${area}-${colIdx}`}
@@ -65,7 +69,7 @@ function WorkflowAreaGrid({
             data-col-stack-key={colStackKey}
             onMouseLeave={onStageMouseLeave}
             style={{
-              gridColumn: `${colIdx + 1}`,
+              gridColumn: colStackGridColumn,
               gridRow: `1 / span ${globalRows}`,
             }}
           >

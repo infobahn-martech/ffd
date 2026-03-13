@@ -127,7 +127,18 @@ function WorkflowStageCard({
         className="workflow-stage-box"
         style={{ position: 'relative' }}
         onMouseEnter={(e) =>
-          onStageMouseEnter(e, stageColumnKey, workflowId, swimlaneId, stage.id, stage.name, isStacked, stage.area, stage.col ?? 0)
+          onStageMouseEnter(
+            e,
+            stageColumnKey,
+            workflowId,
+            swimlaneId,
+            stage.id,
+            stage.name,
+            isStacked,
+            stage.area,
+            stage.col ?? 0,
+            stage.colSpan ?? 1
+          )
         }
       >
         {isStageHovered && showInlineAddButtons && (
