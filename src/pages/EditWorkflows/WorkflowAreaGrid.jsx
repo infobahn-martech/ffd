@@ -65,7 +65,7 @@ function WorkflowAreaGrid({
         return (
           <div
             key={`col-${area}-${colIdx}`}
-            className="workflow-area-col-stack"
+            className={`workflow-area-col-stack${showStackedRails ? ' workflow-area-col-stack--stacked-rails' : ''}`}
             data-col-stack-key={colStackKey}
             onMouseLeave={onStageMouseLeave}
             style={{

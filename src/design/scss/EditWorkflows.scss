@@ -611,7 +611,9 @@ div[role="tooltip"][id^="workflow-info-"] {
   }
 }
 
-// Vertical stack within one col of an area - background layer behind cards for rail positioning
+// Vertical stack within one col of an area - rail overlay (above cards when stacked)
+// Layering: col-stack--stacked-rails sits above stage grid items (z-index 3 > 2) but uses
+// pointer-events: none so card area passes through; rails use pointer-events: auto.
 .workflow-area-col-stack {
   display: flex;
   flex-direction: column;
@@ -622,10 +624,16 @@ div[role="tooltip"][id^="workflow-info-"] {
   align-items: stretch;
   position: relative;
   z-index: 0;
+
+  &.workflow-area-col-stack--stacked-rails {
+    z-index: 3;
+    pointer-events: none;
+  }
 }
 
 .workflow-area-col-stack .workflow-insertion-rail {
-  z-index: 1;
+  z-index: 3;
+  pointer-events: auto;
 }
 
 // Row-aware insertion rails (vertical + horizontal) - embedded rectangular slots inside box
@@ -807,7 +815,7 @@ div[role="tooltip"][id^="workflow-info-"] {
 }
 
 .workflow-stage-box {
-  background: #ffffff;
+  // background: #ffffff;
   border: 1px solid #e2e4e8;
   border-radius: 2px;
   padding: 16px 28px 22px;
@@ -825,12 +833,6 @@ div[role="tooltip"][id^="workflow-info-"] {
   pointer-events: auto;
 }
 
-// Stacked cards: reserve side rail space via padding so rails stay inside the column cell.
-// Rails (in col-stack behind) show through the padding; card stays centered between them.
-.workflow-stage-stacked {
-  padding-left: 28px;
-  padding-right: 28px;
-}
 
 .workflow-stage-box-content {
   position: relative;
