@@ -164,7 +164,7 @@ const WorkOrderCreationModal = ({ show, onClose, onCreate, selectedItems, salesO
             justifyContent: "space-between",
           }}
         >
-          <h2 style={{ margin: 0, fontSize: "22px", fontWeight: "700", color: "#ffffff", letterSpacing: "-0.02em", textShadow: "0 1px 2px rgba(0,0,0,0.2)" }}>
+          <h2 style={{ margin: 0, fontSize: "22px", fontWeight: "700", color: "#0rgb(51, 65, 85)", letterSpacing: "-0.02em", textShadow: "0 1px 2px rgba(0,0,0,0.2)" }}>
             Work Order Creation
           </h2>
           <button
@@ -195,174 +195,174 @@ const WorkOrderCreationModal = ({ show, onClose, onCreate, selectedItems, salesO
         {/* Modal Body - Header and footer stay fixed, only content scrolls */}
         <form onSubmit={handleSubmit} style={{ display: "flex", flexDirection: "column", flex: 1, minHeight: 0 }}>
           <div style={{ overflowY: "auto", flex: 1, padding: "28px" }}>
-          {/* Work Order Name */}
-          <div style={{ marginBottom: "20px" }}>
-            <label style={labelStyle}>Work Order Name</label>
-            <input
-              type="text"
-              value={formData.workOrderName}
-              onChange={(e) => handleInputChange("workOrderName", e.target.value)}
-              style={inputBase}
-              onFocus={(e) => Object.assign(e.target.style, inputFocus)}
-              onBlur={(e) => Object.assign(e.target.style, { borderColor: "#e2e8f0", boxShadow: "none" })}
-              required
-            />
-          </div>
-
-          {/* Call File */}
-          <div style={{ marginBottom: "20px" }}>
-            <label style={labelStyle}>Call File</label>
-            <input
-              type="text"
-              value={formData.relatedCallFile || callFileDisplay}
-              readOnly
-              style={{ ...inputBase, backgroundColor: "#f8fafc", color: "#64748b", cursor: "not-allowed" }}
-            />
-          </div>
-
-          {/* Vessel Name & Port Name - Single Row */}
-          <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "16px", marginBottom: "20px" }}>
-            <div>
-              <label style={labelStyle}>Vessel Name</label>
+            {/* Work Order Name */}
+            <div style={{ marginBottom: "20px" }}>
+              <label style={labelStyle}>Work Order Name</label>
               <input
                 type="text"
-                value={formData.vesselName}
-                onChange={(e) => handleInputChange("vesselName", e.target.value)}
-                placeholder="Enter vessel name"
+                value={formData.workOrderName}
+                onChange={(e) => handleInputChange("workOrderName", e.target.value)}
                 style={inputBase}
+                onFocus={(e) => Object.assign(e.target.style, inputFocus)}
+                onBlur={(e) => Object.assign(e.target.style, { borderColor: "#e2e8f0", boxShadow: "none" })}
+                required
+              />
+            </div>
+
+            {/* Call File */}
+            <div style={{ marginBottom: "20px" }}>
+              <label style={labelStyle}>Call File</label>
+              <input
+                type="text"
+                value={formData.relatedCallFile || callFileDisplay}
+                readOnly
+                style={{ ...inputBase, backgroundColor: "#f8fafc", color: "#64748b", cursor: "not-allowed" }}
+              />
+            </div>
+
+            {/* Vessel Name & Port Name - Single Row */}
+            <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "16px", marginBottom: "20px" }}>
+              <div>
+                <label style={labelStyle}>Vessel Name</label>
+                <input
+                  type="text"
+                  value={formData.vesselName}
+                  onChange={(e) => handleInputChange("vesselName", e.target.value)}
+                  placeholder="Enter vessel name"
+                  style={inputBase}
+                  onFocus={(e) => Object.assign(e.target.style, inputFocus)}
+                  onBlur={(e) => Object.assign(e.target.style, { borderColor: "#e2e8f0", boxShadow: "none" })}
+                />
+              </div>
+              <div>
+                <label style={labelStyle}>Port Name</label>
+                <input
+                  type="text"
+                  value={formData.portName}
+                  onChange={(e) => handleInputChange("portName", e.target.value)}
+                  placeholder="Enter port name"
+                  style={inputBase}
+                  onFocus={(e) => Object.assign(e.target.style, inputFocus)}
+                  onBlur={(e) => Object.assign(e.target.style, { borderColor: "#e2e8f0", boxShadow: "none" })}
+                />
+              </div>
+            </div>
+
+            {/* Selected Line */}
+            <div style={{ marginBottom: "20px" }}>
+              <label style={labelStyle}>Selected Line ({selectedLineItems.length})</label>
+              <div
+                style={{
+                  maxHeight: "160px",
+                  overflowY: "auto",
+                  border: "1px solid #e2e8f0",
+                  borderRadius: "10px",
+                  padding: "14px",
+                  backgroundColor: "#f8fafc",
+                }}
+              >
+                {selectedLineItems.map((item, index) => (
+                  <div
+                    key={item.id}
+                    style={{
+                      padding: "12px 14px",
+                      marginBottom: index < selectedLineItems.length - 1 ? "10px" : 0,
+                      backgroundColor: "#ffffff",
+                      borderRadius: "8px",
+                      border: "1px solid #e2e8f0",
+                      display: "grid",
+                      gridTemplateColumns: "120px 1fr 80px",
+                      gap: "16px",
+                      alignItems: "center",
+                      fontSize: "14px",
+                    }}
+                  >
+                    <div>
+                      <span style={{ fontSize: "11px", color: "#64748b", textTransform: "uppercase", fontWeight: "600" }}>Internal Code</span>
+                      <div style={{ fontWeight: "500", color: "#1e293b", marginTop: "2px" }}>{item.itemNo || "—"}</div>
+                    </div>
+                    <div>
+                      <span style={{ fontSize: "11px", color: "#64748b", textTransform: "uppercase", fontWeight: "600" }}>Job Description</span>
+                      <div style={{ fontWeight: "500", color: "#1e293b", marginTop: "2px" }}>{item.itemDescription || "—"}</div>
+                    </div>
+                    <div>
+                      <span style={{ fontSize: "11px", color: "#64748b", textTransform: "uppercase", fontWeight: "600" }}>Quantity</span>
+                      <div style={{ fontWeight: "500", color: "#1e293b", marginTop: "2px" }}>{item.qty ?? "—"}</div>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+
+            {/* Assigned To */}
+            <div style={{ marginBottom: "20px" }}>
+              <label style={labelStyle}>Assigned To</label>
+              <select
+                value={formData.assignedTo}
+                onChange={(e) => handleInputChange("assignedTo", e.target.value)}
+                style={inputBase}
+                required
+              >
+                <option value="">Select department or team...</option>
+                <option value="Operations">Operations</option>
+                <option value="Logistics">Logistics</option>
+                <option value="Warehouse">Warehouse</option>
+                <option value="Customs">Customs</option>
+                <option value="Documentation">Documentation</option>
+              </select>
+            </div>
+
+            {/* Start Date & End Date */}
+            <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "16px", marginBottom: "20px" }}>
+              <div>
+                <label style={labelStyle}>Start Date</label>
+                <input
+                  type="date"
+                  value={formData.startDate}
+                  onChange={(e) => handleInputChange("startDate", e.target.value)}
+                  style={inputBase}
+                  required
+                />
+              </div>
+              <div>
+                <label style={labelStyle}>End Date</label>
+                <input
+                  type="date"
+                  value={formData.endDate}
+                  onChange={(e) => handleInputChange("endDate", e.target.value)}
+                  style={inputBase}
+                  required
+                />
+              </div>
+            </div>
+
+            {/* remarks */}
+            <div style={{ marginBottom: "24px" }}>
+              <label style={labelStyle}>Remarks</label>
+              <textarea
+                value={formData.remarks}
+                onChange={(e) => handleInputChange("remarks", e.target.value)}
+                rows={4}
+                style={{ ...inputBase, resize: "vertical" }}
+                placeholder="Enter any internal notes or instructions..."
                 onFocus={(e) => Object.assign(e.target.style, inputFocus)}
                 onBlur={(e) => Object.assign(e.target.style, { borderColor: "#e2e8f0", boxShadow: "none" })}
               />
             </div>
-            <div>
-              <label style={labelStyle}>Port Name</label>
-              <input
-                type="text"
-                value={formData.portName}
-                onChange={(e) => handleInputChange("portName", e.target.value)}
-                placeholder="Enter port name"
+
+            {/* Create as */}
+            <div style={{ marginBottom: "24px" }}>
+              <label style={labelStyle}>Create as</label>
+              <select
+                value={formData.createAs}
+                onChange={(e) => handleInputChange("createAs", e.target.value)}
                 style={inputBase}
-                onFocus={(e) => Object.assign(e.target.style, inputFocus)}
-                onBlur={(e) => Object.assign(e.target.style, { borderColor: "#e2e8f0", boxShadow: "none" })}
-              />
+              >
+                <option value="Draft">Draft</option>
+                <option value="Active">Active</option>
+                <option value="Pending">Pending</option>
+              </select>
             </div>
-          </div>
-
-          {/* Selected Line */}
-          <div style={{ marginBottom: "20px" }}>
-            <label style={labelStyle}>Selected Line ({selectedLineItems.length})</label>
-            <div
-              style={{
-                maxHeight: "160px",
-                overflowY: "auto",
-                border: "1px solid #e2e8f0",
-                borderRadius: "10px",
-                padding: "14px",
-                backgroundColor: "#f8fafc",
-              }}
-            >
-              {selectedLineItems.map((item, index) => (
-                <div
-                  key={item.id}
-                  style={{
-                    padding: "12px 14px",
-                    marginBottom: index < selectedLineItems.length - 1 ? "10px" : 0,
-                    backgroundColor: "#ffffff",
-                    borderRadius: "8px",
-                    border: "1px solid #e2e8f0",
-                    display: "grid",
-                    gridTemplateColumns: "120px 1fr 80px",
-                    gap: "16px",
-                    alignItems: "center",
-                    fontSize: "14px",
-                  }}
-                >
-                  <div>
-                    <span style={{ fontSize: "11px", color: "#64748b", textTransform: "uppercase", fontWeight: "600" }}>Internal Code</span>
-                    <div style={{ fontWeight: "500", color: "#1e293b", marginTop: "2px" }}>{item.itemNo || "—"}</div>
-                  </div>
-                  <div>
-                    <span style={{ fontSize: "11px", color: "#64748b", textTransform: "uppercase", fontWeight: "600" }}>Job Description</span>
-                    <div style={{ fontWeight: "500", color: "#1e293b", marginTop: "2px" }}>{item.itemDescription || "—"}</div>
-                  </div>
-                  <div>
-                    <span style={{ fontSize: "11px", color: "#64748b", textTransform: "uppercase", fontWeight: "600" }}>Quantity</span>
-                    <div style={{ fontWeight: "500", color: "#1e293b", marginTop: "2px" }}>{item.qty ?? "—"}</div>
-                  </div>
-                </div>
-              ))}
-            </div>
-          </div>
-
-          {/* Assigned To */}
-          <div style={{ marginBottom: "20px" }}>
-            <label style={labelStyle}>Assigned To</label>
-            <select
-              value={formData.assignedTo}
-              onChange={(e) => handleInputChange("assignedTo", e.target.value)}
-              style={inputBase}
-              required
-            >
-              <option value="">Select department or team...</option>
-              <option value="Operations">Operations</option>
-              <option value="Logistics">Logistics</option>
-              <option value="Warehouse">Warehouse</option>
-              <option value="Customs">Customs</option>
-              <option value="Documentation">Documentation</option>
-            </select>
-          </div>
-
-          {/* Start Date & End Date */}
-          <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "16px", marginBottom: "20px" }}>
-            <div>
-              <label style={labelStyle}>Start Date</label>
-              <input
-                type="date"
-                value={formData.startDate}
-                onChange={(e) => handleInputChange("startDate", e.target.value)}
-                style={inputBase}
-                required
-              />
-            </div>
-            <div>
-              <label style={labelStyle}>End Date</label>
-              <input
-                type="date"
-                value={formData.endDate}
-                onChange={(e) => handleInputChange("endDate", e.target.value)}
-                style={inputBase}
-                required
-              />
-            </div>
-          </div>
-
-          {/* remarks */}
-          <div style={{ marginBottom: "24px" }}>
-            <label style={labelStyle}>remarks</label>
-            <textarea
-              value={formData.remarks}
-              onChange={(e) => handleInputChange("remarks", e.target.value)}
-              rows={4}
-              style={{ ...inputBase, resize: "vertical" }}
-              placeholder="Enter any internal notes or instructions..."
-              onFocus={(e) => Object.assign(e.target.style, inputFocus)}
-              onBlur={(e) => Object.assign(e.target.style, { borderColor: "#e2e8f0", boxShadow: "none" })}
-            />
-          </div>
-
-          {/* Create as */}
-          <div style={{ marginBottom: "24px" }}>
-            <label style={labelStyle}>Create as</label>
-            <select
-              value={formData.createAs}
-              onChange={(e) => handleInputChange("createAs", e.target.value)}
-              style={inputBase}
-            >
-              <option value="Draft">Draft</option>
-              <option value="Active">Active</option>
-              <option value="Pending">Pending</option>
-            </select>
-          </div>
           </div>
 
           {/* Modal Footer - Create Work & Share Buttons - Single Row */}
@@ -412,7 +412,7 @@ const WorkOrderCreationModal = ({ show, onClose, onCreate, selectedItems, salesO
               }}
             >
               <FaWhatsapp size={18} />
-              Share (WhatsApp)
+              Share
             </button>
             <button
               type="button"
@@ -432,7 +432,7 @@ const WorkOrderCreationModal = ({ show, onClose, onCreate, selectedItems, salesO
               }}
             >
               <FaEnvelope size={16} />
-              Share (Email)
+              Share
             </button>
             <button
               type="submit"
@@ -448,7 +448,7 @@ const WorkOrderCreationModal = ({ show, onClose, onCreate, selectedItems, salesO
                 boxShadow: `0 4px 14px ${accentColor}40`,
               }}
             >
-              Create Work Order
+              Generate
             </button>
           </div>
         </form>
