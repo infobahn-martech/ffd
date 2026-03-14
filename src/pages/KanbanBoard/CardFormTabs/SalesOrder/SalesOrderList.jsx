@@ -131,8 +131,7 @@ const WorkOrderCreationModal = ({ show, onClose, onCreate, selectedItems, salesO
         left: 0,
         right: 0,
         bottom: 0,
-        backgroundColor: "rgba(15, 23, 42, 0.6)",
-        backdropFilter: "blur(4px)",
+        backgroundColor: "rgba(0, 0, 0, 0.35)",
         display: "flex",
         alignItems: "center",
         justifyContent: "center",
@@ -147,14 +146,16 @@ const WorkOrderCreationModal = ({ show, onClose, onCreate, selectedItems, salesO
           width: "90%",
           maxWidth: "720px",
           maxHeight: "90vh",
-          overflow: "auto",
+          display: "flex",
+          flexDirection: "column",
           boxShadow: "0 25px 50px -12px rgba(0, 0, 0, 0.25), 0 0 0 1px rgba(0, 0, 0, 0.05)",
         }}
         onClick={(e) => e.stopPropagation()}
       >
-        {/* Premium Modal Header */}
+        {/* Premium Modal Header - Sticky, always visible */}
         <div
           style={{
+            flexShrink: 0,
             padding: "24px 28px",
             background: headerGradient,
             borderRadius: "16px 16px 0 0",
@@ -163,7 +164,7 @@ const WorkOrderCreationModal = ({ show, onClose, onCreate, selectedItems, salesO
             justifyContent: "space-between",
           }}
         >
-          <h2 style={{ margin: 0, fontSize: "22px", fontWeight: "700", color: "#ffffff", letterSpacing: "-0.02em" }}>
+          <h2 style={{ margin: 0, fontSize: "22px", fontWeight: "700", color: "#ffffff", letterSpacing: "-0.02em", textShadow: "0 1px 2px rgba(0,0,0,0.2)" }}>
             Work Order Creation
           </h2>
           <button
@@ -191,8 +192,9 @@ const WorkOrderCreationModal = ({ show, onClose, onCreate, selectedItems, salesO
           </button>
         </div>
 
-        {/* Modal Body */}
-        <form onSubmit={handleSubmit} style={{ padding: "28px" }}>
+        {/* Modal Body - Header and footer stay fixed, only content scrolls */}
+        <form onSubmit={handleSubmit} style={{ display: "flex", flexDirection: "column", flex: 1, minHeight: 0 }}>
+          <div style={{ overflowY: "auto", flex: 1, padding: "28px" }}>
           {/* Work Order Name */}
           <div style={{ marginBottom: "20px" }}>
             <label style={labelStyle}>Work Order Name</label>
@@ -361,16 +363,19 @@ const WorkOrderCreationModal = ({ show, onClose, onCreate, selectedItems, salesO
               <option value="Pending">Pending</option>
             </select>
           </div>
+          </div>
 
-          {/* Modal Footer - Create Work & Share Buttons */}
+          {/* Modal Footer - Create Work & Share Buttons - Single Row */}
           <div
             style={{
+              flexShrink: 0,
               display: "flex",
-              flexWrap: "wrap",
+              flexWrap: "nowrap",
               justifyContent: "flex-end",
-              gap: "12px",
-              paddingTop: "24px",
+              gap: "10px",
+              padding: "20px 28px",
               borderTop: "1px solid #e2e8f0",
+              backgroundColor: "#fafbfc",
             }}
           >
             <button
