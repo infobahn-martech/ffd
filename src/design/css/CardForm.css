@@ -289,10 +289,11 @@
 .cardform-tabs .tab {
   border: none;
   background: transparent;
-  font-size: 12px;
-  color: #6b6b6b;
-  padding: 4px 10px;
-  border-radius: 999px;
+  font-size: 14px;
+  font-weight: 600;
+  color: #000;
+  padding: 8px 10px;
+  border-radius: 6px;
   cursor: pointer;
 }
 
@@ -1242,7 +1243,7 @@
   line-height: 1.4;
 }
 
-.driver-crew-datetime-loc span + span {
+.driver-crew-datetime-loc span+span {
   margin-top: 2px;
 }
 

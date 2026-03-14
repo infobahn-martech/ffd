@@ -564,7 +564,7 @@
 
 // Adjust two-column layout - 50-50 split
 .general-info-two-column {
-  grid-template-columns: 1fr 1fr;
+  // grid-template-columns: 1fr 1fr;
   gap: 28px;
   align-items: start;
 
