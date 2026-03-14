@@ -3815,17 +3815,17 @@ body .material-management-modal .files-list::-webkit-scrollbar-thumb:hover {
   white-space: normal;
 }
 
-.sales-order-table th:nth-child(1),
-.sales-order-table td:nth-child(1) {
-  width: 190px;
-  min-width: 190px;
-}
+// .sales-order-table th:nth-child(1),
+// .sales-order-table td:nth-child(1) {
+//   width: 190px;
+//   min-width: 190px;
+// }
 
 /* Line Item Code */
 .sales-order-table th:nth-child(2),
 .sales-order-table td:nth-child(2) {
-  width: 180px;
-  min-width: 180px;
+  width: 160px;
+  min-width: 160px;
 }
 
 /* Line Item Name */
@@ -3845,8 +3845,8 @@ body .material-management-modal .files-list::-webkit-scrollbar-thumb:hover {
 /* Completed Date/Time */
 .sales-order-table th:nth-child(5),
 .sales-order-table td:nth-child(5) {
-  width: 100px;
-  min-width: 100px;
+  width: 160px;
+  min-width: 160px;
 }
 
 /* VAT % */
@@ -3896,8 +3896,8 @@ body .material-management-modal .files-list::-webkit-scrollbar-thumb:hover {
 .sales-order-table-container .table.sales-order-table thead th {
   background: var(--card-color, #2A00FF) !important;
   color: #3e3633;
-  font-weight: 600;
-  font-size: 12px;
+  font-weight: 650;
+  font-size: 13px;
   letter-spacing: 0.5px;
   padding: 16px;
   border: none;
@@ -4032,7 +4032,7 @@ body .material-management-modal .files-list::-webkit-scrollbar-thumb:hover {
   thead th {
     padding: 8px 10px !important;
     letter-spacing: 0.3px;
-    text-align: center;
+    // text-align: center;
     border-right: 1px solid rgba(255, 255, 255, 0.3);
     white-space: nowrap;
   }
@@ -4054,7 +4054,7 @@ body .material-management-modal .files-list::-webkit-scrollbar-thumb:hover {
   .col-checkbox {
     width: 44px;
     min-width: 44px;
-    text-align: center;
+    // text-align: center;
   }
 
   .col-item-no {
@@ -4070,19 +4070,19 @@ body .material-management-modal .files-list::-webkit-scrollbar-thumb:hover {
   .col-qty {
     width: 70px;
     min-width: 70px;
-    text-align: center;
+    // text-align: center;
   }
 
   .col-unit-price {
     width: 100px;
     min-width: 100px;
-    text-align: center;
+    // text-align: center;
   }
 
   .col-discount {
     width: 85px;
     min-width: 85px;
-    text-align: center;
+    // text-align: center;
   }
 
   .col-tax {
@@ -4093,7 +4093,7 @@ body .material-management-modal .files-list::-webkit-scrollbar-thumb:hover {
   .col-total {
     width: 110px;
     min-width: 110px;
-    text-align: center;
+    // text-align: center;
   }
 
   .col-type-po {

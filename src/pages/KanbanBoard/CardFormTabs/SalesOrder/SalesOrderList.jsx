@@ -1562,7 +1562,7 @@ const SalesOrderList = ({ formValues, handleChange, cardColor, readOnly = false,
                 />
               </div>
               <div className="sales-order-add-form-field">
-                <label>Qty</label>
+                <label>Quantity</label>
                 <input
                   type="number"
                   min="0"
@@ -1771,7 +1771,7 @@ const SalesOrderList = ({ formValues, handleChange, cardColor, readOnly = false,
               {!isDAModule && <th className="col-checkbox"></th>}
               {renderTableHeader("Item No", "col-item-no")}
               {renderTableHeader("Item Description", "col-item-desc")}
-              {renderTableHeader("Qty", "col-qty")}
+              {renderTableHeader("Quantity", "col-qty")}
               {renderTableHeader("Unit Price", "col-unit-price")}
               {renderTableHeader("Discount %", "col-discount")}
               {renderTableHeader("Tax Code", "col-tax")}
