@@ -1,6 +1,7 @@
 import React, { useEffect, useState, useRef } from "react";
 import PropTypes from "prop-types";
 import { FiFilePlus, FiFileText } from "react-icons/fi";
+import { FaWhatsapp, FaEnvelope } from "react-icons/fa";
 import { Tooltip } from "react-tooltip";
 import "react-tooltip/dist/react-tooltip.css";
 import "../../../../design/scss/operations.scss";
@@ -42,16 +43,19 @@ GroupCheckbox.propTypes = {
   onClick: PropTypes.func.isRequired,
 };
 
-// Work Order Creation Modal Component
-const WorkOrderCreationModal = ({ show, onClose, onCreate, selectedItems, salesOrderList, cardColor }) => {
+// Work Order Creation Modal Component - Premium UI
+const WorkOrderCreationModal = ({ show, onClose, onCreate, selectedItems, salesOrderList, cardColor, vesselName = "", portName = "" }) => {
+  const accentColor = cardColor || "#2A00FF";
   const [formData, setFormData] = useState({
     workOrderName: "",
     relatedCallFile: "",
-    assignedDepartment: "",
+    assignedTo: "",
+    vesselName: "",
+    portName: "",
     startDate: "",
-    dueDate: "",
-    internalNotes: "",
-    createAs: "Draft", // Default value
+    endDate: "",
+    remarks: "",
+    createAs: "Draft",
   });
 
   // Get selected line items details
@@ -59,8 +63,9 @@ const WorkOrderCreationModal = ({ show, onClose, onCreate, selectedItems, salesO
 
   // Get unique call files from selected items
   const relatedCallFiles = [...new Set(selectedLineItems.map((item) => item.callFile).filter(Boolean))];
+  const callFileDisplay = relatedCallFiles.length === 1 ? relatedCallFiles[0] : relatedCallFiles.join(", ");
 
-  // Auto-generate work order name
+  // Auto-generate work order name and pre-fill vessel/port
   useEffect(() => {
     if (show && selectedLineItems.length > 0) {
       const timestamp = new Date().toISOString().slice(0, 10).replace(/-/g, "");
@@ -69,33 +74,54 @@ const WorkOrderCreationModal = ({ show, onClose, onCreate, selectedItems, salesO
       setFormData((prev) => ({
         ...prev,
         workOrderName: generatedName,
-        relatedCallFile: relatedCallFiles.length === 1 ? relatedCallFiles[0] : "",
+        relatedCallFile: callFileDisplay,
+        vesselName: vesselName || prev.vesselName,
+        portName: portName || prev.portName,
       }));
     }
-  }, [show, selectedLineItems, relatedCallFiles]);
+  }, [show, selectedLineItems, callFileDisplay, vesselName, portName]);
 
   const handleInputChange = (field, value) => {
-    setFormData((prev) => ({
-      ...prev,
-      [field]: value,
-    }));
+    setFormData((prev) => ({ ...prev, [field]: value }));
   };
+
+  const buildPayload = () => ({
+    ...formData,
+    assignedDepartment: formData.assignedTo,
+    dueDate: formData.endDate,
+    internalNotes: formData.remarks,
+    selectedLineItems: selectedLineItems,
+  });
 
   const handleSubmit = (e) => {
     e.preventDefault();
-    onCreate({
-      ...formData,
-      selectedLineItems: selectedLineItems,
-    });
+    onCreate(buildPayload());
+  };
+
+  const handleShare = (channel) => {
+    const payload = buildPayload();
+    onCreate({ ...payload, shareVia: channel });
+    onClose();
   };
 
   const handleBackdropClick = (e) => {
-    if (e.target === e.currentTarget) {
-      onClose();
-    }
+    if (e.target === e.currentTarget) onClose();
   };
 
   if (!show) return null;
+
+  const headerGradient = `linear-gradient(135deg, ${accentColor} 0%, ${accentColor}99 100%)`;
+  const inputBase = {
+    width: "100%",
+    padding: "12px 14px",
+    border: "1px solid #e2e8f0",
+    borderRadius: "8px",
+    fontSize: "14px",
+    transition: "border-color 0.2s, box-shadow 0.2s",
+    outline: "none",
+  };
+  const inputFocus = { borderColor: accentColor, boxShadow: `0 0 0 3px ${accentColor}20` };
+  const labelStyle = { display: "block", marginBottom: "8px", fontWeight: "600", color: "#334155", fontSize: "13px" };
 
   return (
     <div
@@ -105,7 +131,8 @@ const WorkOrderCreationModal = ({ show, onClose, onCreate, selectedItems, salesO
         left: 0,
         right: 0,
         bottom: 0,
-        backgroundColor: "rgba(0, 0, 0, 0.5)",
+        backgroundColor: "rgba(15, 23, 42, 0.6)",
+        backdropFilter: "blur(4px)",
         display: "flex",
         alignItems: "center",
         justifyContent: "center",
@@ -116,116 +143,131 @@ const WorkOrderCreationModal = ({ show, onClose, onCreate, selectedItems, salesO
       <div
         style={{
           backgroundColor: "#ffffff",
-          borderRadius: "8px",
+          borderRadius: "16px",
           width: "90%",
-          maxWidth: "700px",
+          maxWidth: "720px",
           maxHeight: "90vh",
           overflow: "auto",
-          boxShadow: "0 4px 20px rgba(0, 0, 0, 0.15)",
+          boxShadow: "0 25px 50px -12px rgba(0, 0, 0, 0.25), 0 0 0 1px rgba(0, 0, 0, 0.05)",
         }}
         onClick={(e) => e.stopPropagation()}
       >
-        {/* Modal Header */}
+        {/* Premium Modal Header */}
         <div
           style={{
-            padding: "20px 24px",
-            borderBottom: "1px solid #e0e0e0",
+            padding: "24px 28px",
+            background: headerGradient,
+            borderRadius: "16px 16px 0 0",
             display: "flex",
             alignItems: "center",
             justifyContent: "space-between",
           }}
         >
-          <h2 style={{ margin: 0, fontSize: "20px", fontWeight: "600", color: "#1a1a1a" }}>
+          <h2 style={{ margin: 0, fontSize: "22px", fontWeight: "700", color: "#ffffff", letterSpacing: "-0.02em" }}>
             Work Order Creation
           </h2>
           <button
             type="button"
             onClick={onClose}
             style={{
-              background: "none",
+              background: "rgba(255,255,255,0.2)",
               border: "none",
-              fontSize: "24px",
+              fontSize: "20px",
               cursor: "pointer",
-              color: "#666",
-              padding: 0,
-              width: "30px",
-              height: "30px",
+              color: "#ffffff",
+              padding: "6px",
+              width: "36px",
+              height: "36px",
               display: "flex",
               alignItems: "center",
               justifyContent: "center",
+              borderRadius: "8px",
+              transition: "background 0.2s",
             }}
+            onMouseOver={(e) => { e.currentTarget.style.background = "rgba(255,255,255,0.3)"; }}
+            onMouseOut={(e) => { e.currentTarget.style.background = "rgba(255,255,255,0.2)"; }}
           >
             ×
           </button>
         </div>
 
         {/* Modal Body */}
-        <form onSubmit={handleSubmit} style={{ padding: "24px" }}>
+        <form onSubmit={handleSubmit} style={{ padding: "28px" }}>
           {/* Work Order Name */}
           <div style={{ marginBottom: "20px" }}>
-            <label style={{ display: "block", marginBottom: "8px", fontWeight: "500", color: "#333" }}>
-              Work Order Name
-            </label>
+            <label style={labelStyle}>Work Order Name</label>
             <input
               type="text"
               value={formData.workOrderName}
               onChange={(e) => handleInputChange("workOrderName", e.target.value)}
-              style={{
-                width: "100%",
-                padding: "10px 12px",
-                border: "1px solid #ddd",
-                borderRadius: "4px",
-                fontSize: "14px",
-              }}
+              style={inputBase}
+              onFocus={(e) => Object.assign(e.target.style, inputFocus)}
+              onBlur={(e) => Object.assign(e.target.style, { borderColor: "#e2e8f0", boxShadow: "none" })}
               required
             />
           </div>
 
-          {/* Related Call File */}
+          {/* Call File */}
           <div style={{ marginBottom: "20px" }}>
-            <label style={{ display: "block", marginBottom: "8px", fontWeight: "500", color: "#333" }}>
-              Related Call File
-            </label>
+            <label style={labelStyle}>Call File</label>
             <input
               type="text"
-              value={relatedCallFiles.length === 1 ? relatedCallFiles[0] : relatedCallFiles.join(", ")}
+              value={formData.relatedCallFile || callFileDisplay}
               readOnly
-              style={{
-                width: "100%",
-                padding: "10px 12px",
-                border: "1px solid #ddd",
-                borderRadius: "4px",
-                fontSize: "14px",
-                backgroundColor: "#f5f5f5",
-                color: "#666",
-              }}
+              style={{ ...inputBase, backgroundColor: "#f8fafc", color: "#64748b", cursor: "not-allowed" }}
             />
           </div>
 
-          {/* Selected Line Items - Internal Code, Job Description, Quantity (no pricing) */}
+          {/* Vessel Name & Port Name - Single Row */}
+          <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "16px", marginBottom: "20px" }}>
+            <div>
+              <label style={labelStyle}>Vessel Name</label>
+              <input
+                type="text"
+                value={formData.vesselName}
+                onChange={(e) => handleInputChange("vesselName", e.target.value)}
+                placeholder="Enter vessel name"
+                style={inputBase}
+                onFocus={(e) => Object.assign(e.target.style, inputFocus)}
+                onBlur={(e) => Object.assign(e.target.style, { borderColor: "#e2e8f0", boxShadow: "none" })}
+              />
+            </div>
+            <div>
+              <label style={labelStyle}>Port Name</label>
+              <input
+                type="text"
+                value={formData.portName}
+                onChange={(e) => handleInputChange("portName", e.target.value)}
+                placeholder="Enter port name"
+                style={inputBase}
+                onFocus={(e) => Object.assign(e.target.style, inputFocus)}
+                onBlur={(e) => Object.assign(e.target.style, { borderColor: "#e2e8f0", boxShadow: "none" })}
+              />
+            </div>
+          </div>
+
+          {/* Selected Line */}
           <div style={{ marginBottom: "20px" }}>
-            <label style={{ display: "block", marginBottom: "8px", fontWeight: "500", color: "#333" }}>
-              Selected Line Items ({selectedLineItems.length})
-            </label>
+            <label style={labelStyle}>Selected Line ({selectedLineItems.length})</label>
             <div
               style={{
-                maxHeight: "150px",
+                maxHeight: "160px",
                 overflowY: "auto",
-                border: "1px solid #ddd",
-                borderRadius: "4px",
-                padding: "12px",
-                backgroundColor: "#f9f9f9",
+                border: "1px solid #e2e8f0",
+                borderRadius: "10px",
+                padding: "14px",
+                backgroundColor: "#f8fafc",
               }}
             >
               {selectedLineItems.map((item, index) => (
                 <div
                   key={item.id}
                   style={{
-                    padding: "10px 12px",
-                    marginBottom: index < selectedLineItems.length - 1 ? "8px" : 0,
+                    padding: "12px 14px",
+                    marginBottom: index < selectedLineItems.length - 1 ? "10px" : 0,
                     backgroundColor: "#ffffff",
-                    borderRadius: "4px",
-                    border: "1px solid #e0e0e0",
+                    borderRadius: "8px",
+                    border: "1px solid #e2e8f0",
                     display: "grid",
                     gridTemplateColumns: "120px 1fr 80px",
                     gap: "16px",
@@ -234,40 +276,32 @@ const WorkOrderCreationModal = ({ show, onClose, onCreate, selectedItems, salesO
                   }}
                 >
                   <div>
-                    <span style={{ fontSize: "11px", color: "#888", textTransform: "uppercase", fontWeight: "600" }}>Internal Code</span>
-                    <div style={{ fontWeight: "500", color: "#1a1a1a", marginTop: "2px" }}>{item.itemNo || "—"}</div>
+                    <span style={{ fontSize: "11px", color: "#64748b", textTransform: "uppercase", fontWeight: "600" }}>Internal Code</span>
+                    <div style={{ fontWeight: "500", color: "#1e293b", marginTop: "2px" }}>{item.itemNo || "—"}</div>
                   </div>
                   <div>
-                    <span style={{ fontSize: "11px", color: "#888", textTransform: "uppercase", fontWeight: "600" }}>Job Description</span>
-                    <div style={{ fontWeight: "500", color: "#1a1a1a", marginTop: "2px" }}>{item.itemDescription || "—"}</div>
+                    <span style={{ fontSize: "11px", color: "#64748b", textTransform: "uppercase", fontWeight: "600" }}>Job Description</span>
+                    <div style={{ fontWeight: "500", color: "#1e293b", marginTop: "2px" }}>{item.itemDescription || "—"}</div>
                   </div>
                   <div>
-                    <span style={{ fontSize: "11px", color: "#888", textTransform: "uppercase", fontWeight: "600" }}>Quantity</span>
-                    <div style={{ fontWeight: "500", color: "#1a1a1a", marginTop: "2px" }}>{item.qty ?? "—"}</div>
+                    <span style={{ fontSize: "11px", color: "#64748b", textTransform: "uppercase", fontWeight: "600" }}>Quantity</span>
+                    <div style={{ fontWeight: "500", color: "#1e293b", marginTop: "2px" }}>{item.qty ?? "—"}</div>
                   </div>
                 </div>
               ))}
             </div>
           </div>
 
-          {/* Assigned Department / Team */}
+          {/* Assigned To */}
           <div style={{ marginBottom: "20px" }}>
-            <label style={{ display: "block", marginBottom: "8px", fontWeight: "500", color: "#333" }}>
-              Assigned Department / Team
-            </label>
+            <label style={labelStyle}>Assigned To</label>
             <select
-              value={formData.assignedDepartment}
-              onChange={(e) => handleInputChange("assignedDepartment", e.target.value)}
-              style={{
-                width: "100%",
-                padding: "10px 12px",
-                border: "1px solid #ddd",
-                borderRadius: "4px",
-                fontSize: "14px",
-              }}
+              value={formData.assignedTo}
+              onChange={(e) => handleInputChange("assignedTo", e.target.value)}
+              style={inputBase}
               required
             >
-              <option value="">Select Department...</option>
+              <option value="">Select department or team...</option>
               <option value="Operations">Operations</option>
               <option value="Logistics">Logistics</option>
               <option value="Warehouse">Warehouse</option>
@@ -276,82 +310,51 @@ const WorkOrderCreationModal = ({ show, onClose, onCreate, selectedItems, salesO
             </select>
           </div>
 
-          {/* Start Date / Due Date */}
+          {/* Start Date & End Date */}
           <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "16px", marginBottom: "20px" }}>
             <div>
-              <label style={{ display: "block", marginBottom: "8px", fontWeight: "500", color: "#333" }}>
-                Start Date
-              </label>
+              <label style={labelStyle}>Start Date</label>
               <input
                 type="date"
                 value={formData.startDate}
                 onChange={(e) => handleInputChange("startDate", e.target.value)}
-                style={{
-                  width: "100%",
-                  padding: "10px 12px",
-                  border: "1px solid #ddd",
-                  borderRadius: "4px",
-                  fontSize: "14px",
-                }}
+                style={inputBase}
                 required
               />
             </div>
             <div>
-              <label style={{ display: "block", marginBottom: "8px", fontWeight: "500", color: "#333" }}>
-                Due Date
-              </label>
+              <label style={labelStyle}>End Date</label>
               <input
                 type="date"
-                value={formData.dueDate}
-                onChange={(e) => handleInputChange("dueDate", e.target.value)}
-                style={{
-                  width: "100%",
-                  padding: "10px 12px",
-                  border: "1px solid #ddd",
-                  borderRadius: "4px",
-                  fontSize: "14px",
-                }}
+                value={formData.endDate}
+                onChange={(e) => handleInputChange("endDate", e.target.value)}
+                style={inputBase}
                 required
               />
             </div>
           </div>
 
-          {/* Internal Notes */}
-          <div style={{ marginBottom: "20px" }}>
-            <label style={{ display: "block", marginBottom: "8px", fontWeight: "500", color: "#333" }}>
-              Internal Notes
-            </label>
+          {/* remarks */}
+          <div style={{ marginBottom: "24px" }}>
+            <label style={labelStyle}>remarks</label>
             <textarea
-              value={formData.internalNotes}
-              onChange={(e) => handleInputChange("internalNotes", e.target.value)}
+              value={formData.remarks}
+              onChange={(e) => handleInputChange("remarks", e.target.value)}
               rows={4}
-              style={{
-                width: "100%",
-                padding: "10px 12px",
-                border: "1px solid #ddd",
-                borderRadius: "4px",
-                fontSize: "14px",
-                resize: "vertical",
-              }}
+              style={{ ...inputBase, resize: "vertical" }}
               placeholder="Enter any internal notes or instructions..."
+              onFocus={(e) => Object.assign(e.target.style, inputFocus)}
+              onBlur={(e) => Object.assign(e.target.style, { borderColor: "#e2e8f0", boxShadow: "none" })}
             />
           </div>
 
           {/* Create as */}
           <div style={{ marginBottom: "24px" }}>
-            <label style={{ display: "block", marginBottom: "8px", fontWeight: "500", color: "#333" }}>
-              Create as
-            </label>
+            <label style={labelStyle}>Create as</label>
             <select
               value={formData.createAs}
               onChange={(e) => handleInputChange("createAs", e.target.value)}
-              style={{
-                width: "100%",
-                padding: "10px 12px",
-                border: "1px solid #ddd",
-                borderRadius: "4px",
-                fontSize: "14px",
-              }}
+              style={inputBase}
             >
               <option value="Draft">Draft</option>
               <option value="Active">Active</option>
@@ -359,43 +362,85 @@ const WorkOrderCreationModal = ({ show, onClose, onCreate, selectedItems, salesO
             </select>
           </div>
 
-          {/* Modal Footer */}
+          {/* Modal Footer - Create Work & Share Buttons */}
           <div
             style={{
               display: "flex",
+              flexWrap: "wrap",
               justifyContent: "flex-end",
               gap: "12px",
-              paddingTop: "20px",
-              borderTop: "1px solid #e0e0e0",
+              paddingTop: "24px",
+              borderTop: "1px solid #e2e8f0",
             }}
           >
             <button
               type="button"
               onClick={onClose}
               style={{
-                padding: "10px 20px",
-                backgroundColor: "#f5f5f5",
-                color: "#333",
-                border: "1px solid #ddd",
-                borderRadius: "4px",
+                padding: "12px 22px",
+                backgroundColor: "#f1f5f9",
+                color: "#475569",
+                border: "1px solid #e2e8f0",
+                borderRadius: "10px",
                 cursor: "pointer",
                 fontSize: "14px",
-                fontWeight: "500",
+                fontWeight: "600",
               }}
             >
               Cancel
             </button>
             <button
-              type="submit"
+              type="button"
+              onClick={() => handleShare("whatsapp")}
               style={{
-                padding: "10px 20px",
-                backgroundColor: cardColor || "#2A00FF",
+                padding: "12px 20px",
+                backgroundColor: "#25D366",
                 color: "#ffffff",
                 border: "none",
-                borderRadius: "4px",
+                borderRadius: "10px",
                 cursor: "pointer",
                 fontSize: "14px",
                 fontWeight: "600",
+                display: "flex",
+                alignItems: "center",
+                gap: "8px",
+              }}
+            >
+              <FaWhatsapp size={18} />
+              Share (WhatsApp)
+            </button>
+            <button
+              type="button"
+              onClick={() => handleShare("email")}
+              style={{
+                padding: "12px 20px",
+                backgroundColor: "#6366f1",
+                color: "#ffffff",
+                border: "none",
+                borderRadius: "10px",
+                cursor: "pointer",
+                fontSize: "14px",
+                fontWeight: "600",
+                display: "flex",
+                alignItems: "center",
+                gap: "8px",
+              }}
+            >
+              <FaEnvelope size={16} />
+              Share (Email)
+            </button>
+            <button
+              type="submit"
+              style={{
+                padding: "12px 24px",
+                backgroundColor: accentColor,
+                color: "#ffffff",
+                border: "none",
+                borderRadius: "10px",
+                cursor: "pointer",
+                fontSize: "14px",
+                fontWeight: "600",
+                boxShadow: `0 4px 14px ${accentColor}40`,
               }}
             >
               Create Work Order
@@ -414,6 +459,8 @@ WorkOrderCreationModal.propTypes = {
   selectedItems: PropTypes.arrayOf(PropTypes.number).isRequired,
   salesOrderList: PropTypes.array.isRequired,
   cardColor: PropTypes.string,
+  vesselName: PropTypes.string,
+  portName: PropTypes.string,
 };
 
 // Preview Modal Component for Generate Invoice and Create Purchase Order
@@ -1059,11 +1106,20 @@ const SalesOrderList = ({ formValues, handleChange, cardColor, readOnly = false,
   };
 
   const handleCreateWorkOrder = (workOrderData) => {
-    // TODO: Implement API call to create work order
+    const shareVia = workOrderData.shareVia;
+    if (shareVia === "whatsapp") {
+      // TODO: Implement WhatsApp share (e.g. open wa.me link with work order summary)
+      const text = encodeURIComponent(`Work Order: ${workOrderData.workOrderName}\nCall File: ${workOrderData.relatedCallFile}`);
+      window.open(`https://wa.me/?text=${text}`, "_blank");
+    } else if (shareVia === "email") {
+      // TODO: Implement Email share (e.g. open mailto: link)
+      const subject = encodeURIComponent(`Work Order: ${workOrderData.workOrderName}`);
+      const body = encodeURIComponent(`Work Order: ${workOrderData.workOrderName}\nCall File: ${workOrderData.relatedCallFile}\nAssigned To: ${workOrderData.assignedDepartment || workOrderData.assignedTo}`);
+      window.open(`mailto:?subject=${subject}&body=${body}`, "_blank");
+    }
+    // TODO: Implement API call to create work order (when not sharing)
     console.log("Creating work order:", workOrderData);
-    console.log("Selected items:", Array.from(selectedItems));
 
-    // Close modal and clear selection after creation
     setShowWorkOrderModal(false);
     setSelectedItems(new Set());
   };
@@ -1465,7 +1521,7 @@ const SalesOrderList = ({ formValues, handleChange, cardColor, readOnly = false,
             <div className="so-header-field">
               <label className="so-header-label">USD → SAR Rate</label>
               <span className="so-currency-rate so-currency-rate-block">
-                1 USD = {USD_TO_SAR_RATE} SAR (fixed)
+                1 USD = {USD_TO_SAR_RATE} SAR
               </span>
             </div>
           )}
@@ -1965,6 +2021,8 @@ const SalesOrderList = ({ formValues, handleChange, cardColor, readOnly = false,
           selectedItems={Array.from(selectedItems)}
           salesOrderList={displayOrderList}
           cardColor={cardColor}
+          vesselName={soShipName}
+          portName={soPort}
         />
       )}
 
