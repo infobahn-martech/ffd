@@ -133,39 +133,57 @@
   }
 }
 
-/* Daily Task/Todo Box Wrapper - positioned at top-right */
+/* Daily Task/Todo Box Wrapper - positioned at top-right, sticky */
 .daily-task-box-wrapper {
-  position: relative;
+  position: sticky;
+  top: 16px;
   width: 100%;
-  height: 100%;
+  max-width: 340px;
+  align-self: flex-start;
   display: flex;
   align-items: flex-start;
-  justify-content: center;
+  justify-content: flex-start;
   padding-top: 0;
 }
 
-/* Daily Task/Todo Styles */
+/* Daily Task/Todo Styles - compact, sticky, premium */
 .daily-task-todo-wrapper {
-  width: 570px;
-  max-width: 100%;
-  background: #f8f9ff;
-  border-radius: 12px;
-  padding: 20px;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
-  border: 1px solid #e8e9f0;
+  width: 100%;
+  max-width: 340px;
+  background: linear-gradient(165deg, #ffffff 0%, #f8faff 50%, #f0f4ff 100%);
+  border-radius: 14px;
+  padding: 16px;
+  box-shadow:
+    0 4px 6px -1px rgba(0, 0, 0, 0.06),
+    0 2px 4px -2px rgba(0, 0, 0, 0.04),
+    0 0 0 1px rgba(46, 125, 50, 0.06),
+    inset 0 1px 0 rgba(255, 255, 255, 0.8);
+  border: 1px solid rgba(226, 232, 240, 0.9);
   display: flex;
   flex-direction: column;
-  max-height: 718px;
+  max-height: 420px;
   position: relative;
+  backdrop-filter: blur(8px);
+  transition: box-shadow 0.2s ease, transform 0.2s ease;
+
+  &:hover {
+    box-shadow:
+      0 8px 16px -4px rgba(0, 0, 0, 0.08),
+      0 4px 8px -4px rgba(0, 0, 0, 0.04),
+      0 0 0 1px rgba(46, 125, 50, 0.1),
+      inset 0 1px 0 rgba(255, 255, 255, 0.9);
+  }
 
   .cf-field {
-    margin-bottom: 16px;
+    margin-bottom: 12px;
 
     label {
-      font-size: 14px;
-      font-weight: 600;
-      color: #1e1e1e;
-      margin-bottom: 12px;
+      font-size: 12px;
+      font-weight: 700;
+      color: #1e293b;
+      margin-bottom: 10px;
+      letter-spacing: 0.02em;
+      text-transform: uppercase;
     }
   }
 }
@@ -173,46 +191,47 @@
 .daily-task-container {
   display: flex;
   flex-direction: column;
-  gap: 16px;
+  gap: 12px;
   flex: 1;
   min-height: 0;
 }
 
 .daily-task-input-row {
   display: flex;
-  gap: 10px;
+  gap: 8px;
   align-items: center;
 
   .cf-input {
     input {
-      border: 1.5px solid #e2e2ea;
-      border-radius: 8px;
-      padding: 10px 14px;
-      font-size: 13px;
+      border: 1.5px solid #e2e8f0;
+      border-radius: 10px;
+      padding: 8px 12px;
+      font-size: 12px;
       font-family: "Poppins", sans-serif;
-      transition: border-color 0.2s ease;
+      transition: border-color 0.2s ease, box-shadow 0.2s ease;
       width: 100%;
 
       &:focus {
         outline: none;
         border-color: #2e7d32;
+        box-shadow: 0 0 0 3px rgba(46, 125, 50, 0.12);
       }
 
       &::placeholder {
-        color: #999;
+        color: #94a3b8;
       }
     }
   }
 }
 
 .daily-task-add-btn {
-  background: #2e7d32;
+  background: linear-gradient(135deg, #2e7d32 0%, #1b5e20 100%);
   border: none;
   color: #ffffff;
-  width: 40px;
-  height: 40px;
-  border-radius: 8px;
-  font-size: 20px;
+  width: 34px;
+  height: 34px;
+  border-radius: 10px;
+  font-size: 18px;
   font-weight: 600;
   cursor: pointer;
   display: flex;
@@ -220,17 +239,17 @@
   justify-content: center;
   transition: all 0.2s ease;
   flex-shrink: 0;
+  box-shadow: 0 2px 4px rgba(46, 125, 50, 0.25);
 
   &:hover:not(:disabled) {
-    background: rgba(46, 125, 50, 0.9);
+    background: linear-gradient(135deg, #388e3c 0%, #2e7d32 100%);
     transform: translateY(-1px);
-    box-shadow: 0 2px 8px rgba(46, 125, 50, 0.3);
+    box-shadow: 0 4px 12px rgba(46, 125, 50, 0.35);
   }
 
   &:active:not(:disabled) {
-    background: rgba(46, 125, 50, 0.85);
     transform: translateY(0);
-    box-shadow: 0 1px 4px rgba(46, 125, 50, 0.2);
+    box-shadow: 0 1px 3px rgba(46, 125, 50, 0.2);
   }
 
   &:disabled {
@@ -244,9 +263,9 @@
   overflow-y: auto;
   display: flex;
   flex-direction: column;
-  gap: 10px;
+  gap: 8px;
   min-height: 0;
-  max-height: 500px;
+  max-height: 280px;
   padding-right: 4px;
 
   &::-webkit-scrollbar {
@@ -271,26 +290,27 @@
 .daily-task-item {
   display: flex;
   align-items: flex-start;
-  gap: 12px;
-  padding: 12px 14px;
-  background: #ffffff;
-  border: 1.5px solid #e2e2ea;
-  border-radius: 8px;
+  gap: 10px;
+  padding: 10px 12px;
+  background: rgba(255, 255, 255, 0.9);
+  border: 1px solid #e2e8f0;
+  border-radius: 10px;
   transition: all 0.2s ease;
   position: relative;
+  backdrop-filter: blur(4px);
 
   &:hover {
-    border-color: rgba(46, 125, 50, 0.3);
-    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
-    transform: translateY(-1px);
+    border-color: rgba(46, 125, 50, 0.25);
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04);
+    transform: translateY(-0.5px);
   }
 
   &.completed {
-    background: #f8f9fa;
+    background: rgba(248, 250, 252, 0.95);
 
     .daily-task-text {
       text-decoration: line-through;
-      color: #6c757d;
+      color: #64748b;
     }
 
     .daily-task-checkbox-icon {
@@ -331,10 +351,10 @@
 }
 
 .daily-task-checkbox-icon {
-  width: 22px;
-  height: 22px;
-  border: 2px solid #e2e2ea;
-  border-radius: 5px;
+  width: 18px;
+  height: 18px;
+  border: 2px solid #cbd5e1;
+  border-radius: 6px;
   background: #ffffff;
   display: flex;
   align-items: center;
@@ -343,7 +363,7 @@
   flex-shrink: 0;
 
   &.checked {
-    background: #2e7d32;
+    background: linear-gradient(135deg, #2e7d32 0%, #1b5e20 100%);
     border-color: #2e7d32;
   }
 
@@ -352,36 +372,36 @@
   }
 
   svg {
-    width: 12px;
-    height: 12px;
+    width: 10px;
+    height: 10px;
   }
 }
 
 .daily-task-text {
   flex: 1;
-  font-size: 13px;
-  color: #1a1a1a;
+  font-size: 12px;
+  color: #1e293b;
   font-family: "Poppins", sans-serif;
   word-break: break-word;
-  line-height: 1.6;
-  font-weight: 400;
-  padding-top: 2px;
+  line-height: 1.5;
+  font-weight: 500;
+  padding-top: 1px;
 }
 
 .daily-task-remove-btn {
   background: transparent;
   border: none;
-  color: #999;
-  font-size: 20px;
+  color: #94a3b8;
+  font-size: 18px;
   font-weight: 300;
   cursor: pointer;
-  padding: 4px 8px;
+  padding: 2px 6px;
   line-height: 1;
   transition: all 0.2s ease;
   flex-shrink: 0;
-  border-radius: 4px;
+  border-radius: 6px;
   opacity: 0;
-  margin-top: 2px;
+  margin-top: 1px;
 
   .daily-task-item:hover & {
     opacity: 1;
@@ -401,42 +421,43 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  padding: 40px 20px;
+  padding: 24px 16px;
   text-align: center;
-  color: #999;
-  font-size: 14px;
+  color: #64748b;
+  font-size: 12px;
   font-family: "Poppins", sans-serif;
 }
 
 .daily-task-summary {
-  padding-top: 16px;
-  border-top: 1.5px solid #e8e9f0;
+  padding-top: 12px;
+  border-top: 1px solid #e2e8f0;
   display: flex;
   flex-direction: column;
-  gap: 8px;
+  gap: 6px;
 }
 
 .daily-task-summary-text {
-  font-size: 12px;
-  color: #666;
+  font-size: 11px;
+  color: #64748b;
   font-family: "Poppins", sans-serif;
-  font-weight: 500;
+  font-weight: 600;
+  letter-spacing: 0.01em;
 }
 
 .daily-task-progress-bar {
   width: 100%;
-  height: 8px;
-  background: #e9ecef;
-  border-radius: 10px;
+  height: 6px;
+  background: #e2e8f0;
+  border-radius: 6px;
   overflow: hidden;
   position: relative;
 }
 
 .daily-task-progress-fill {
   height: 100%;
-  border-radius: 10px;
+  border-radius: 6px;
   transition: width 0.3s ease;
-  background: #2e7d32;
+  background: linear-gradient(90deg, #2e7d32 0%, #43a047 100%);
 }
 
 .react-quill-wrapper {
