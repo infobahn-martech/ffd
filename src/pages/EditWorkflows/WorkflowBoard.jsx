@@ -40,7 +40,9 @@ function WorkflowBoard({
 
   if (totalCols === 0) return null;
 
+  const labelSpacerWidth = 200;
   const boardMinWidth =
+    labelSpacerWidth + stageGap +
     totalCols * stageCellWidth + Math.max(0, totalCols - 1) * stageGap;
 
   return (
@@ -54,6 +56,7 @@ function WorkflowBoard({
     >
       {/* Board-level area headers - rendered once */}
       <div className="workflow-board-headers-row">
+        <div className="workflow-board-label-spacer" aria-hidden="true" />
         <div className="workflow-board-headers">
           {boardStructure.map(({ area, cols }) => (
             <div

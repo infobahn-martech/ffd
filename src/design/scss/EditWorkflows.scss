@@ -499,6 +499,12 @@ div[role="tooltip"][id^="workflow-info-"] {
   display: flex;
   align-items: stretch;
   flex-shrink: 0;
+  gap: var(--stage-gap, 14px);
+}
+
+.workflow-board-label-spacer {
+  flex: 0 0 200px;
+  min-width: 200px;
 }
 
 .workflow-board-headers {
@@ -690,28 +696,114 @@ div[role="tooltip"][id^="workflow-info-"] {
   width: 28px;
 }
 
-.workflow-swimlane-row {
+// Swimlane block: stage row + swimlane content row
+.workflow-swimlane-block {
   display: flex;
-  align-items: stretch;
+  flex-direction: column;
   flex-shrink: 0;
   margin-bottom: 16px;
-
-  .workflow-board-body {
-    flex: 1;
-    display: flex;
-    align-items: stretch;
-  }
+  gap: 0;
 
   &:last-child {
     margin-bottom: 0;
   }
 }
 
-.swimlane-label {
-  font: normal normal 600 14px/1.4 $font-primary;
+
+// Swimlane content row: label + cells, compact, immediately below stage cards
+.workflow-swimlane-row {
+  display: flex;
+  align-items: stretch;
+  flex-shrink: 0;
+  min-height: 0;
+  gap: var(--stage-gap, 14px);
+  border-top: 1px solid #e5e7eb;
+}
+
+.workflow-swimlane-label-cell {
+  flex: 0 0 200px;
+  min-width: 200px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 8px 12px;
+  border-right: 1px solid #e5e7eb;
+  background: #fafbfc;
+  font: normal normal 600 13px/1.35 $font-primary;
   color: $txtColor;
-  margin-bottom: 16px;
-  padding-left: 8px;
+  text-align: center;
+}
+
+.workflow-swimlane-label-text {
+  display: block;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.workflow-swimlane-label-icons {
+  display: flex;
+  gap: 6px;
+  justify-content: center;
+  margin-top: 4px;
+}
+
+.workflow-swimlane-icon {
+  color: #9ca3af;
+  flex-shrink: 0;
+}
+
+.workflow-swimlane-content-row {
+  flex: 1;
+  display: flex;
+  align-items: stretch;
+  flex-wrap: nowrap;
+  gap: var(--stage-gap, 14px);
+  min-width: 0;
+}
+
+.workflow-swimlane-content-area {
+  display: flex;
+  flex-direction: row;
+  flex-wrap: nowrap;
+  gap: var(--stage-gap, 14px);
+  flex-shrink: 0;
+}
+
+.workflow-swimlane-content-cell {
+  flex: 0 0 var(--stage-cell-width, 220px);
+  min-width: var(--stage-cell-width, 220px);
+  width: var(--stage-cell-width, 220px);
+  display: flex;
+  flex-direction: column;
+  align-items: stretch;
+  padding: 4px 8px;
+  border-right: 1px solid #e5e7eb;
+  background: #ffffff;
+  min-height: 0;
+  box-sizing: border-box;
+
+  &:last-child {
+    border-right: none;
+  }
+}
+
+.workflow-swimlane-cell-limit {
+  font: normal normal 400 12px/1.4 $font-primary;
+  color: #6b7280;
+  flex-shrink: 0;
+  padding-bottom: 3px;
+}
+
+.workflow-swimlane-dashed-placeholder {
+  flex: 0 1 auto;
+  min-height: 40px;
+  max-height: 56px;
+  border: 1px dashed #d1d5db;
+  border-radius: 2px;
+  background: transparent;
+  box-sizing: border-box;
 }
 
 .workflow-columns {
