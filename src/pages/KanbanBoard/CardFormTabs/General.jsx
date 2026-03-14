@@ -751,10 +751,6 @@ const DailyTaskTodo = ({ tasks = [], onChange, accentColor }) => {
       { id: 1, text: "Review vessel arrival documents", completed: true },
       { id: 2, text: "Coordinate with port authorities", completed: true },
       { id: 3, text: "Prepare crew change schedule", completed: false },
-      { id: 4, text: "Update vessel status in system", completed: false },
-      { id: 5, text: "Schedule maintenance activities", completed: false },
-      { id: 6, text: "Send daily report to operations team", completed: true },
-      { id: 7, text: "Verify cargo documentation", completed: false },
     ];
   });
 

@@ -3212,7 +3212,8 @@ body .material-management-modal .files-list::-webkit-scrollbar-thumb:hover {
   background: #ffffff;
   border-radius: 12px;
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
-  overflow-x: hidden; /* Allow table horizontal scroll; prevent horizontal page overflow */
+  overflow-x: hidden;
+  /* Allow table horizontal scroll; prevent horizontal page overflow */
   overflow-y: visible;
 }
 
@@ -3751,10 +3752,12 @@ body .material-management-modal .files-list::-webkit-scrollbar-thumb:hover {
   overflow-x: auto !important;
   overflow-y: visible !important;
   width: 100%;
-  min-width: 0; /* Allow flex/block children to shrink and trigger scroll */
+  min-width: 0;
+  /* Allow flex/block children to shrink and trigger scroll */
   margin: 0 22px 20px 22px;
   padding-right: 34px;
-  padding-bottom: 8px; /* Space for visible scrollbar */
+  padding-bottom: 8px;
+  /* Space for visible scrollbar */
   box-sizing: border-box;
   background: #ffffff;
   -webkit-overflow-scrolling: touch;
@@ -3895,7 +3898,6 @@ body .material-management-modal .files-list::-webkit-scrollbar-thumb:hover {
   color: #3e3633;
   font-weight: 600;
   font-size: 12px;
-  text-transform: uppercase;
   letter-spacing: 0.5px;
   padding: 16px;
   border: none;
@@ -4020,9 +4022,12 @@ body .material-management-modal .files-list::-webkit-scrollbar-thumb:hover {
 /* Sales Order List Table - reduced spacing, grid lines, adjusted column widths */
 .sales-order-table-container .sales-order-list-table {
   border-collapse: collapse;
-  table-layout: auto !important; /* Override fixed - allow table to size to content */
-  width: max-content !important; /* Table grows with columns, triggering horizontal scroll */
-  min-width: 1200px; /* Minimum width so scroll appears when container is narrower */
+  table-layout: auto !important;
+  /* Override fixed - allow table to size to content */
+  width: max-content !important;
+  /* Table grows with columns, triggering horizontal scroll */
+  min-width: 1200px;
+  /* Minimum width so scroll appears when container is narrower */
 
   thead th {
     padding: 8px 10px !important;
