@@ -97,6 +97,10 @@ function EditWorkflows() {
   };
 
   const handleAddColumnLeft = (workflowId, swimlaneId, stageId) => {
+    // Reset hover / stacked rail state so insertion rails don't use stale metrics
+    setHoveredColumn(null);
+    setStackedRailMetrics(null);
+
     setWorkflows((prevWorkflows) =>
       prevWorkflows.map((workflow) => {
         if (workflow.id !== workflowId) return workflow;
@@ -114,6 +118,10 @@ function EditWorkflows() {
   };
 
   const handleAddColumnRight = (workflowId, swimlaneId, stageId) => {
+    // Reset hover / stacked rail state so insertion rails don't use stale metrics
+    setHoveredColumn(null);
+    setStackedRailMetrics(null);
+
     setWorkflows((prevWorkflows) =>
       prevWorkflows.map((workflow) => {
         if (workflow.id !== workflowId) return workflow;
@@ -131,6 +139,10 @@ function EditWorkflows() {
   };
 
   const handleAddSubcolumn = (workflowId, swimlaneId, stageId) => {
+    // Reset hover / stacked rail state so insertion rails don't use stale metrics
+    setHoveredColumn(null);
+    setStackedRailMetrics(null);
+
     setWorkflows((prevWorkflows) =>
       prevWorkflows.map((workflow) => {
         if (workflow.id !== workflowId) return workflow;

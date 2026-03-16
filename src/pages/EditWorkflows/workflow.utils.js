@@ -280,8 +280,18 @@ export function insertColumnRight(stages, targetStageId, newId, newStageName = '
 
   const area = stage.area;
   const targetRow = stage.row ?? 0;
-  const targetCol = (stage.col ?? 0) + 1;
   const stageCol = stage.col ?? 0;
+  const stageSpan = stage.colSpan ?? 1;
+
+  // When the target is a top-level parent that already spans multiple columns,
+  // "add to the right" should insert the new column immediately after the
+  // entire parent block (at parentCol + colSpan), not just after the first
+  // column of the span. For stacked children (row > 0), we still want the
+  // insert directly to the right of the child cell.
+  const targetCol =
+    targetRow === 0
+      ? stageCol + stageSpan
+      : stageCol + 1;
 
   // For stacked children (row > 0), treat the insert as a full-area column insert
   // under the owning parent in the row above.
