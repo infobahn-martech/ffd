@@ -227,7 +227,9 @@ export function insertColumnLeft(stages, targetStageId, newId, newStageName = 'N
     name: newStageName,
     row: targetRow,
     col: targetCol,
-    colSpan: span,
+    // New top-level parents should always start as a single-column block.
+    // For stacked children (row > 0), we preserve the original span.
+    colSpan: targetRow === 0 ? 1 : span,
   };
 
   const newStages = stages.map((s) => {
@@ -319,7 +321,9 @@ export function insertColumnRight(stages, targetStageId, newId, newStageName = '
     name: newStageName,
     row: targetRow,
     col: targetCol,
-    colSpan: stage.colSpan ?? 1,
+    // New top-level parents should always start as a single-column block.
+    // For stacked children (row > 0), we preserve the original span (usually 1).
+    colSpan: targetRow === 0 ? 1 : stage.colSpan ?? 1,
   };
 
   const newStages = stages.map((s) => {
