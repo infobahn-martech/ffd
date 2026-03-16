@@ -201,6 +201,26 @@ export function insertColumnLeft(stages, targetStageId, newId, newStageName = 'N
   const targetCol = stage.col ?? 0;
   const span = stage.colSpan ?? 1;
 
+  // For stacked children (row > 0), we need to treat the insert
+  // as a full-area column insert under the owning parent in the row above.
+  let parentStage = null;
+  let parentEndCol = null;
+  if (targetRow > 0) {
+    parentStage = stages.find((s) => {
+      if (s.area !== area) return false;
+      const row = s.row ?? 0;
+      if (row !== targetRow - 1) return false;
+      const col = s.col ?? 0;
+      const colSpan = s.colSpan ?? 1;
+      return col <= targetCol && targetCol < col + colSpan;
+    });
+    if (parentStage) {
+      const parentCol = parentStage.col ?? 0;
+      const parentSpan = parentStage.colSpan ?? 1;
+      parentEndCol = parentCol + parentSpan; // first column strictly to the right of the parent before expansion
+    }
+  }
+
   const newStage = {
     ...stage,
     id: newId,
@@ -211,18 +231,38 @@ export function insertColumnLeft(stages, targetStageId, newId, newStageName = 'N
   };
 
   const newStages = stages.map((s) => {
-    if (s.area === area && (s.row ?? 0) === targetRow && (s.col ?? 0) >= targetCol) {
-      return { ...s, col: (s.col ?? 0) + 1 };
-    }
-    // Expand parent stages above when adding left of stacked child (targetRow > 0),
-    // so the new column stays inside the same parent block instead of creating an extra grid column.
-    if (targetRow > 0 && s.area === area && (s.row ?? 0) === targetRow - 1) {
-      const sCol = s.col ?? 0;
-      const sSpan = s.colSpan ?? 1;
-      if (sCol <= targetCol && sCol + sSpan > targetCol) {
-        return { ...s, colSpan: (s.colSpan ?? 1) + 1 };
+    if (s.area !== area) return s;
+
+    const row = s.row ?? 0;
+    const col = s.col ?? 0;
+    const colSpan = s.colSpan ?? 1;
+
+    // Non-stacked behaviour (row 0) stays as before: only shift siblings in the same row.
+    if (!parentStage || targetRow === 0) {
+      if (row === targetRow && col >= targetCol) {
+        return { ...s, col: col + 1 };
       }
+      return s;
     }
+
+    // Stacked behaviour (row > 0):
+    // 1) Expand the owning parent above by increasing its colSpan by 1.
+    if (s === parentStage) {
+      return { ...s, colSpan: colSpan + 1 };
+    }
+
+    // 2) Shift the original target stage (and any same-row siblings to its right *within* the parent)
+    //    one column to the right so the new stage can be inserted on the left.
+    if (row === targetRow && col >= targetCol && col < parentEndCol) {
+      return { ...s, col: col + 1 };
+    }
+
+    // 3) For all stages at or beyond the parent's right boundary, shift one column to the right
+    //    so we don't overlap the expanded parent in row 0.
+    if (parentEndCol != null && col >= parentEndCol) {
+      return { ...s, col: col + 1 };
+    }
+
     return s;
   });
   newStages.push(newStage);
@@ -241,6 +281,27 @@ export function insertColumnRight(stages, targetStageId, newId, newStageName = '
   const area = stage.area;
   const targetRow = stage.row ?? 0;
   const targetCol = (stage.col ?? 0) + 1;
+  const stageCol = stage.col ?? 0;
+
+  // For stacked children (row > 0), treat the insert as a full-area column insert
+  // under the owning parent in the row above.
+  let parentStage = null;
+  let parentEndCol = null;
+  if (targetRow > 0) {
+    parentStage = stages.find((s) => {
+      if (s.area !== area) return false;
+      const row = s.row ?? 0;
+      if (row !== targetRow - 1) return false;
+      const col = s.col ?? 0;
+      const colSpan = s.colSpan ?? 1;
+      return col <= stageCol && stageCol < col + colSpan;
+    });
+    if (parentStage) {
+      const parentCol = parentStage.col ?? 0;
+      const parentSpan = parentStage.colSpan ?? 1;
+      parentEndCol = parentCol + parentSpan; // first column strictly to the right of the parent before expansion
+    }
+  }
 
   const newStage = {
     ...stage,
@@ -252,18 +313,38 @@ export function insertColumnRight(stages, targetStageId, newId, newStageName = '
   };
 
   const newStages = stages.map((s) => {
-    if (s.area === area && (s.row ?? 0) === targetRow && (s.col ?? 0) >= targetCol) {
-      return { ...s, col: (s.col ?? 0) + 1 };
-    }
-    // Expand parent stages above when adding beside stacked child (targetRow > 0)
-    if (targetRow > 0 && s.area === area && (s.row ?? 0) === targetRow - 1) {
-      const sCol = s.col ?? 0;
-      const sSpan = s.colSpan ?? 1;
-      const stageCol = stage.col ?? 0;
-      if (sCol <= stageCol && sCol + sSpan > stageCol) {
-        return { ...s, colSpan: (s.colSpan ?? 1) + 1 };
+    if (s.area !== area) return s;
+
+    const row = s.row ?? 0;
+    const col = s.col ?? 0;
+    const colSpan = s.colSpan ?? 1;
+
+    // Non-stacked behaviour (row 0) stays as before: only shift siblings in the same row.
+    if (!parentStage || targetRow === 0) {
+      if (row === targetRow && col >= targetCol) {
+        return { ...s, col: col + 1 };
       }
+      return s;
     }
+
+    // Stacked behaviour (row > 0):
+    // 1) Expand the owning parent above by increasing its colSpan by 1.
+    if (s === parentStage) {
+      return { ...s, colSpan: colSpan + 1 };
+    }
+
+    // 2) All stacked children in the same row at or to the right of the insertion column
+    //    should shift one column to the right (the new child is inserted after the target).
+    if (row === targetRow && col >= targetCol && col < parentEndCol) {
+      return { ...s, col: col + 1 };
+    }
+
+    // 3) For all stages at or beyond the parent's right boundary, shift one column to the right
+    //    so we don't overlap the expanded parent in row 0.
+    if (parentEndCol != null && col >= parentEndCol) {
+      return { ...s, col: col + 1 };
+    }
+
     return s;
   });
   newStages.push(newStage);
