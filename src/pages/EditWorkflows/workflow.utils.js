@@ -214,6 +214,15 @@ export function insertColumnLeft(stages, targetStageId, newId, newStageName = 'N
     if (s.area === area && (s.row ?? 0) === targetRow && (s.col ?? 0) >= targetCol) {
       return { ...s, col: (s.col ?? 0) + 1 };
     }
+    // Expand parent stages above when adding left of stacked child (targetRow > 0),
+    // so the new column stays inside the same parent block instead of creating an extra grid column.
+    if (targetRow > 0 && s.area === area && (s.row ?? 0) === targetRow - 1) {
+      const sCol = s.col ?? 0;
+      const sSpan = s.colSpan ?? 1;
+      if (sCol <= targetCol && sCol + sSpan > targetCol) {
+        return { ...s, colSpan: (s.colSpan ?? 1) + 1 };
+      }
+    }
     return s;
   });
   newStages.push(newStage);
