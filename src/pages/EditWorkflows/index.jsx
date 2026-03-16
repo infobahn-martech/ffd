@@ -1,4 +1,5 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
+import { useSearchParams } from 'react-router-dom';
 import { Tooltip } from 'react-tooltip';
 import '../../design/scss/EditWorkflows.scss';
 import CreateWorkflowModal from './CreateWorkflowModal';
@@ -11,6 +12,7 @@ import {
   insertSubcolumnBelow,
   duplicateSwimlane,
 } from './workflow.utils';
+import useWorkFlowReducer from '../../store/WorkFlowReducer';
 
 const areaColors = {
   'BACKLOG AREA': '#cfd8dc',
@@ -21,6 +23,9 @@ const areaColors = {
 };
 
 function EditWorkflows() {
+  const [searchParams] = useSearchParams();
+  const { getWorkflowByBoard, renameWorkflow } = useWorkFlowReducer();
+
   const [boardName, setBoardName] = useState('Team workspace');
   const [description, setDescription] = useState('There is no description');
   const [defaultTemplates, setDefaultTemplates] = useState('Default template configurations: 0');
@@ -53,6 +58,13 @@ function EditWorkflows() {
       ],
     },
   ]);
+
+  useEffect(() => {
+    const boardId = searchParams.get('boardId');
+    if (boardId) {
+      getWorkflowByBoard({ boardId });
+    }
+  }, [searchParams, getWorkflowByBoard]);
 
   const handleStageBoxMouseEnter = (
     e,
@@ -165,14 +177,14 @@ function EditWorkflows() {
   };
 
   const handleSaveWorkflowName = (workflowId) => {
-    if (editingWorkflowName.trim()) {
+    const trimmedName = editingWorkflowName.trim();
+    if (trimmedName) {
       setWorkflows((prevWorkflows) =>
         prevWorkflows.map((workflow) =>
-          workflow.id === workflowId
-            ? { ...workflow, name: editingWorkflowName.trim() }
-            : workflow
+          workflow.id === workflowId ? { ...workflow, name: trimmedName } : workflow
         )
       );
+      renameWorkflow({ workflow_id: workflowId, workflow_name: trimmedName });
     }
     setEditingWorkflowId(null);
     setEditingWorkflowName('');
