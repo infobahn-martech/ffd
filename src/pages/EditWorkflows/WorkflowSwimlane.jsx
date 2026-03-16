@@ -28,12 +28,60 @@ function WorkflowSwimlane({
   onStageNameKeyPress,
   onColorPickerToggle,
   onColorSelect,
+  onAddSwimlane,
+  swimlaneIndex,
 }) {
   const globalRows = getGlobalRowsForSwimlane(swimlane, boardStructure);
 
   const contentRow = (
     <div className="workflow-swimlane-row">
         <div className="workflow-swimlane-label-cell">
+          {onAddSwimlane && (
+            <>
+              <button
+                type="button"
+                className="workflow-swimlane-add-grid-bar workflow-swimlane-add-grid-bar--top"
+                onClick={(e) => {
+                  e.stopPropagation();
+                  onAddSwimlane(workflowId, swimlaneIndex);
+                }}
+                onKeyDown={(e) => {
+                  if (e.key === 'Enter' || e.key === ' ') {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    onAddSwimlane(workflowId, swimlaneIndex);
+                  }
+                }}
+                title="Add swimlane above"
+                aria-label={`Add swimlane before row ${swimlaneIndex + 1}`}
+              >
+                <svg width="14" height="14" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden>
+                  <path d="M8 3V13M3 8H13" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" />
+                </svg>
+              </button>
+              <button
+                type="button"
+                className="workflow-swimlane-add-grid-bar workflow-swimlane-add-grid-bar--bottom"
+                onClick={(e) => {
+                  e.stopPropagation();
+                  onAddSwimlane(workflowId, swimlaneIndex + 1);
+                }}
+                onKeyDown={(e) => {
+                  if (e.key === 'Enter' || e.key === ' ') {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    onAddSwimlane(workflowId, swimlaneIndex + 1);
+                  }
+                }}
+                title="Add swimlane below"
+                aria-label={`Add swimlane after row ${swimlaneIndex + 1}`}
+              >
+                <svg width="14" height="14" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden>
+                  <path d="M8 3V13M3 8H13" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" />
+                </svg>
+              </button>
+            </>
+          )}
           <span className="workflow-swimlane-label-text">{swimlane.name}</span>
           <div className="workflow-swimlane-label-icons">
             <svg width="14" height="14" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg" className="workflow-swimlane-icon" title="Settings">

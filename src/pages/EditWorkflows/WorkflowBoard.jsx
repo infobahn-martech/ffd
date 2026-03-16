@@ -114,32 +114,8 @@ function WorkflowBoard({
           })}
         </div>
       )}
-      {/* Swimlane rows with add-grid only in left column (LIVE: insertion bar between swimlanes) */}
-      {workflow.swimlanes.flatMap((swimlane, index) => [
-        <div
-          key={`add-grid-${index}`}
-          className="workflow-add-grid-row"
-          onClick={() => onAddSwimlane?.(workflow.id, index)}
-          onKeyDown={(e) => {
-            if (e.key === 'Enter' || e.key === ' ') {
-              e.preventDefault();
-              onAddSwimlane?.(workflow.id, index);
-            }
-          }}
-          role="button"
-          tabIndex={0}
-          title="Add swimlane"
-          aria-label={`Add swimlane before row ${index + 1}`}
-        >
-          <div className="workflow-add-grid-cell">
-            <span className="workflow-add-grid-bar">
-              <svg width="14" height="14" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden>
-                <path d="M8 3V13M3 8H13" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" />
-              </svg>
-            </span>
-          </div>
-          <div className="workflow-add-grid-spacer" aria-hidden="true" />
-        </div>,
+      {/* Swimlane rows with add-grid bars inside each swimlane label card (visible on hover) */}
+      {workflow.swimlanes.map((swimlane, index) => (
         <WorkflowSwimlane
           key={swimlane.id}
           workflowId={workflow.id}
@@ -164,34 +140,10 @@ function WorkflowBoard({
           onStageNameKeyPress={onStageNameKeyPress}
           onColorPickerToggle={onColorPickerToggle}
           onColorSelect={onColorSelect}
-        />,
-      ])}
-      {/* Add-grid bar after the last swimlane */}
-      {onAddSwimlane && (
-        <div
-          className="workflow-add-grid-row"
-          onClick={() => onAddSwimlane(workflow.id, workflow.swimlanes.length)}
-          onKeyDown={(e) => {
-            if (e.key === 'Enter' || e.key === ' ') {
-              e.preventDefault();
-              onAddSwimlane(workflow.id, workflow.swimlanes.length);
-            }
-          }}
-          role="button"
-          tabIndex={0}
-          title="Add swimlane"
-          aria-label="Add swimlane at end"
-        >
-          <div className="workflow-add-grid-cell">
-            <span className="workflow-add-grid-bar">
-              <svg width="14" height="14" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden>
-                <path d="M8 3V13M3 8H13" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" />
-              </svg>
-            </span>
-          </div>
-          <div className="workflow-add-grid-spacer" aria-hidden="true" />
-        </div>
-      )}
+          onAddSwimlane={onAddSwimlane}
+          swimlaneIndex={index}
+        />
+      ))}
     </div>
   );
 }
