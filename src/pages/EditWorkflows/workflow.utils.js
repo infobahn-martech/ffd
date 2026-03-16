@@ -239,8 +239,17 @@ export function insertColumnLeft(stages, targetStageId, newId, newStageName = 'N
     const col = s.col ?? 0;
     const colSpan = s.colSpan ?? 1;
 
-    // Non-stacked behaviour (row 0) stays as before: only shift siblings in the same row.
-    if (!parentStage || targetRow === 0) {
+    // When there is no parentStage (non-stacked insert) we want:
+    // - For top-level parents (row 0): shift ALL stages at/after targetCol in this area,
+    //   so parent and any stacked children under it move together.
+    // - For purely same-row inserts in lower rows: keep previous behaviour (shift same-row siblings only).
+    if (!parentStage) {
+      if (targetRow === 0) {
+        if (col >= targetCol) {
+          return { ...s, col: col + 1 };
+        }
+        return s;
+      }
       if (row === targetRow && col >= targetCol) {
         return { ...s, col: col + 1 };
       }
