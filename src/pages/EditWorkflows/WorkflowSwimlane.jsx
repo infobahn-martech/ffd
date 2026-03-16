@@ -87,7 +87,7 @@ function WorkflowSwimlane({
           </div>
         </div>
         <div className="workflow-swimlane-content-row">
-          {boardStructure.map(({ area, cols }, areaIndex) => {
+          {boardStructure.map(({ area, cols }) => {
             const blockWidth = cols * stageCellWidth + Math.max(0, cols - 1) * stageGap;
             return (
               <div
@@ -99,15 +99,14 @@ function WorkflowSwimlane({
                   const stagesInCol = getStagesInColumn(swimlane, area, colIdx);
                   const stage = stagesInCol[0];
                   const limit = stage?.limit ?? 0;
-                  const isFirstCell = areaIndex === 0 && colIdx === 0;
                   return (
                     <div
                       key={`${area}-${colIdx}`}
                       className="workflow-swimlane-content-cell"
                     >
                       <span className="workflow-swimlane-cell-limit">Limit: {limit}</span>
-                      {isFirstCell && (
-                        <div className="workflow-swimlane-cell-icons">
+                      <div className="workflow-swimlane-dashed-placeholder">
+                        <div className="workflow-swimlane-placeholder-icons">
                           <svg width="14" height="14" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg" className="workflow-swimlane-cell-icon" title="Settings">
                             <path d="M8 10C9.10457 10 10 9.10457 10 8C10 6.89543 9.10457 6 8 6C6.89543 6 6 6.89543 6 8C6 9.10457 6.89543 10 8 10Z" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
                             <path d="M1.33331 8.66667V7.33333C1.33331 6.89131 1.509 6.46738 1.82156 6.15482C2.13412 5.84226 2.55805 5.66667 2.99998 5.66667H3.33331C3.59853 5.66667 3.85289 5.57143 4.05295 5.37137C4.25301 5.17131 4.34831 4.91695 4.34831 4.65167V4.31833C4.34831 3.87631 4.524 3.45238 4.83656 3.13982C5.14912 2.82726 5.57305 2.65167 6.01498 2.65167H6.34831C6.61353 2.65167 6.86789 2.55643 7.06795 2.35637C7.26801 2.15631 7.36331 1.90195 7.36331 1.63667V1.33333" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
@@ -117,8 +116,7 @@ function WorkflowSwimlane({
                             <path d="M2 4H14M2 8H14M2 12H10" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" />
                           </svg>
                         </div>
-                      )}
-                      <div className="workflow-swimlane-dashed-placeholder" />
+                      </div>
                     </div>
                   );
                 })}

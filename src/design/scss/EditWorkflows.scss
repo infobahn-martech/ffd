@@ -794,12 +794,21 @@ div[role="tooltip"][id^="workflow-info-"] {
   padding-bottom: 4px;
 }
 
-.workflow-swimlane-cell-icons {
+// Icons inside dashed placeholder: centered, visible only on cell hover (no layout shift)
+.workflow-swimlane-placeholder-icons {
+  position: absolute;
+  inset: 0;
   display: flex;
-  gap: 6px;
+  align-items: center;
   justify-content: center;
-  flex-shrink: 0;
-  padding-bottom: 6px;
+  gap: 6px;
+  opacity: 0;
+  transition: opacity 0.15s ease;
+  pointer-events: none;
+}
+
+.workflow-swimlane-content-cell:hover .workflow-swimlane-placeholder-icons {
+  opacity: 1;
 }
 
 .workflow-swimlane-cell-icon {
@@ -808,6 +817,7 @@ div[role="tooltip"][id^="workflow-info-"] {
 }
 
 .workflow-swimlane-dashed-placeholder {
+  position: relative;
   flex: 1 1 auto;
   min-height: 40px;
   width: 100%;
