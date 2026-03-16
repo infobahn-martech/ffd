@@ -768,6 +768,7 @@ div[role="tooltip"][id^="workflow-info-"] {
 .workflow-swimlane-label-cell {
   flex: 0 0 200px;
   min-width: 200px;
+  min-height: 100px;
   display: flex;
   flex-direction: column;
   align-items: center;
