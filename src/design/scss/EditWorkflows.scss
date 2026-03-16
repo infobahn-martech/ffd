@@ -710,14 +710,13 @@ div[role="tooltip"][id^="workflow-info-"] {
 }
 
 
-// Swimlane content row: label + cells, compact, immediately below stage cards
+// Swimlane content row: label + cells as individual bordered cards, no separator line above
 .workflow-swimlane-row {
   display: flex;
   align-items: stretch;
   flex-shrink: 0;
   min-height: 0;
   gap: var(--stage-gap, 14px);
-  border-top: 1px solid #e5e7eb;
 }
 
 .workflow-swimlane-label-cell {
@@ -728,11 +727,12 @@ div[role="tooltip"][id^="workflow-info-"] {
   align-items: center;
   justify-content: center;
   padding: 8px 12px;
-  border-right: 1px solid #e5e7eb;
-  background: #fafbfc;
+  border: 1px solid #e5e7eb;
+  background: #ffffff;
   font: normal normal 600 13px/1.35 $font-primary;
   color: $txtColor;
   text-align: center;
+  box-sizing: border-box;
 }
 
 .workflow-swimlane-label-text {
@@ -777,28 +777,40 @@ div[role="tooltip"][id^="workflow-info-"] {
   width: var(--stage-cell-width, 220px);
   display: flex;
   flex-direction: column;
-  align-items: stretch;
-  padding: 4px 8px;
-  border-right: 1px solid #e5e7eb;
+  align-items: center;
+  padding: 8px 12px;
+  border: 1px solid #e5e7eb;
   background: #ffffff;
   min-height: 0;
   box-sizing: border-box;
-
-  &:last-child {
-    border-right: none;
-  }
 }
 
 .workflow-swimlane-cell-limit {
   font: normal normal 400 12px/1.4 $font-primary;
   color: #6b7280;
   flex-shrink: 0;
-  padding-bottom: 3px;
+  text-align: center;
+  width: 100%;
+  padding-bottom: 4px;
+}
+
+.workflow-swimlane-cell-icons {
+  display: flex;
+  gap: 6px;
+  justify-content: center;
+  flex-shrink: 0;
+  padding-bottom: 6px;
+}
+
+.workflow-swimlane-cell-icon {
+  color: #9ca3af;
+  flex-shrink: 0;
 }
 
 .workflow-swimlane-dashed-placeholder {
-  flex: 0 1 auto;
+  flex: 1 1 auto;
   min-height: 40px;
+  width: 100%;
   max-height: 56px;
   border: 1px dashed #d1d5db;
   border-radius: 2px;
