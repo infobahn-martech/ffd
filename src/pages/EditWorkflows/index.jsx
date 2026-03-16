@@ -9,6 +9,7 @@ import {
   insertColumnLeft,
   insertColumnRight,
   insertSubcolumnBelow,
+  duplicateSwimlane,
 } from './workflow.utils';
 
 const areaColors = {
@@ -243,6 +244,23 @@ function EditWorkflows() {
     setOpenColorPickerForStage(null);
   };
 
+  const handleAddSwimlane = (workflowId, insertAtIndex) => {
+    setWorkflows((prevWorkflows) =>
+      prevWorkflows.map((workflow) => {
+        if (workflow.id !== workflowId) return workflow;
+        const sourceSwimlane = workflow.swimlanes[0] ?? workflow.swimlanes[insertAtIndex];
+        if (!sourceSwimlane) return workflow;
+        const newSwimlane = duplicateSwimlane(workflow, sourceSwimlane);
+        const newSwimlanes = [
+          ...workflow.swimlanes.slice(0, insertAtIndex),
+          newSwimlane,
+          ...workflow.swimlanes.slice(insertAtIndex),
+        ];
+        return { ...workflow, swimlanes: newSwimlanes };
+      })
+    );
+  };
+
   return (
     <div className="edit-workflows-container">
       <div className="edit-workflows-layout">
@@ -330,6 +348,7 @@ function EditWorkflows() {
                     setOpenColorPickerForStage((prev) => (key === null ? null : prev === key ? null : key))
                   }
                   onColorSelect={handleStageColorChange}
+                  onAddSwimlane={handleAddSwimlane}
                 />
               </div>
             </div>

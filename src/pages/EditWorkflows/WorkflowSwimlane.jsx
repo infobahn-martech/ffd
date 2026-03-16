@@ -2,7 +2,8 @@ import { getGlobalRowsForSwimlane, getStagesInColumn } from './workflow.utils';
 import WorkflowAreaGrid, { STAGE_CELL_WIDTH, STAGE_GAP } from './WorkflowAreaGrid';
 
 /**
- * Single swimlane: stage row + swimlane content row (Default Swimlane label + cells).
+ * Single swimlane: optionally stage row + swimlane content row (label + cells).
+ * When contentRowOnly is true, only the swimlane content row is rendered (for LIVE: one shared stage row, then swimlane rows with add-grid between).
  */
 function WorkflowSwimlane({
   workflowId,
@@ -10,6 +11,7 @@ function WorkflowSwimlane({
   boardStructure,
   stageCellWidth = STAGE_CELL_WIDTH,
   stageGap = STAGE_GAP,
+  contentRowOnly = false,
   hoveredColumn,
   stackedRailMetrics,
   openColorPickerForStage,
@@ -29,46 +31,8 @@ function WorkflowSwimlane({
 }) {
   const globalRows = getGlobalRowsForSwimlane(swimlane, boardStructure);
 
-  return (
-    <div className="workflow-swimlane-block">
-      {/* Stage cards row */}
-      <div className="workflow-board-body workflow-stage-row">
-        <div className="workflow-board-label-spacer" aria-hidden="true" />
-        {boardStructure.map(({ area, cols }) => {
-          const areaStages = swimlane.stages.filter((s) => s.area === area);
-          return (
-            <WorkflowAreaGrid
-              key={area}
-              workflowId={workflowId}
-              swimlane={swimlane}
-              area={area}
-              cols={cols}
-              globalRows={globalRows}
-              areaStages={areaStages}
-              stageCellWidth={stageCellWidth}
-              stageGap={stageGap}
-              hoveredColumn={hoveredColumn}
-              stackedRailMetrics={stackedRailMetrics}
-              openColorPickerForStage={openColorPickerForStage}
-              editingStageId={editingStageId}
-              editingStageName={editingStageName}
-              onStageMouseEnter={onStageMouseEnter}
-              onStageMouseLeave={onStageMouseLeave}
-              onAddColumnLeft={onAddColumnLeft}
-              onAddColumnRight={onAddColumnRight}
-              onAddSubcolumn={onAddSubcolumn}
-              onStartEditStage={onStartEditStage}
-              onEditingStageNameChange={onEditingStageNameChange}
-              onSaveStageName={onSaveStageName}
-              onStageNameKeyPress={onStageNameKeyPress}
-              onColorPickerToggle={onColorPickerToggle}
-              onColorSelect={onColorSelect}
-            />
-          );
-        })}
-      </div>
-      {/* Swimlane content row: Default Swimlane label + cells with Limit + dashed placeholder */}
-      <div className="workflow-swimlane-row">
+  const contentRow = (
+    <div className="workflow-swimlane-row">
         <div className="workflow-swimlane-label-cell">
           <span className="workflow-swimlane-label-text">{swimlane.name}</span>
           <div className="workflow-swimlane-label-icons">
@@ -125,6 +89,51 @@ function WorkflowSwimlane({
           })}
         </div>
       </div>
+  );
+
+  if (contentRowOnly) {
+    return contentRow;
+  }
+
+  return (
+    <div className="workflow-swimlane-block">
+      {/* Stage cards row - shared when contentRowOnly is used from board */}
+      <div className="workflow-board-body workflow-stage-row">
+        <div className="workflow-board-label-spacer" aria-hidden="true" />
+        {boardStructure.map(({ area, cols }) => {
+          const areaStages = swimlane.stages.filter((s) => s.area === area);
+          return (
+            <WorkflowAreaGrid
+              key={area}
+              workflowId={workflowId}
+              swimlane={swimlane}
+              area={area}
+              cols={cols}
+              globalRows={globalRows}
+              areaStages={areaStages}
+              stageCellWidth={stageCellWidth}
+              stageGap={stageGap}
+              hoveredColumn={hoveredColumn}
+              stackedRailMetrics={stackedRailMetrics}
+              openColorPickerForStage={openColorPickerForStage}
+              editingStageId={editingStageId}
+              editingStageName={editingStageName}
+              onStageMouseEnter={onStageMouseEnter}
+              onStageMouseLeave={onStageMouseLeave}
+              onAddColumnLeft={onAddColumnLeft}
+              onAddColumnRight={onAddColumnRight}
+              onAddSubcolumn={onAddSubcolumn}
+              onStartEditStage={onStartEditStage}
+              onEditingStageNameChange={onEditingStageNameChange}
+              onSaveStageName={onSaveStageName}
+              onStageNameKeyPress={onStageNameKeyPress}
+              onColorPickerToggle={onColorPickerToggle}
+              onColorSelect={onColorSelect}
+            />
+          );
+        })}
+      </div>
+      {contentRow}
     </div>
   );
 }

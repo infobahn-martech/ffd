@@ -45,6 +45,32 @@ export function getNextStageId(workflow) {
 }
 
 /**
+ * Get next unique swimlane ID from a workflow.
+ */
+export function getNextSwimlaneId(workflow) {
+  const maxId = Math.max(0, ...workflow.swimlanes.map((sl) => sl.id));
+  return maxId + 1;
+}
+
+/**
+ * Duplicate a swimlane with new ids; new swimlane name is "New Swimlane".
+ * Returns a new swimlane object (immutable).
+ */
+export function duplicateSwimlane(workflow, sourceSwimlane) {
+  const newSwimlaneId = getNextSwimlaneId(workflow);
+  const maxStageId = Math.max(0, ...workflow.swimlanes.flatMap((sl) => sl.stages.map((s) => s.id)));
+  const newStages = sourceSwimlane.stages.map((s, i) => ({
+    ...s,
+    id: maxStageId + 1 + i,
+  }));
+  return {
+    id: newSwimlaneId,
+    name: 'New Swimlane',
+    stages: newStages,
+  };
+}
+
+/**
  * Build board column structure: { area, cols: number }[] - horizontal columns per area.
  */
 export function getBoardColumnStructure(workflow, areaOrder = AREA_ORDER) {

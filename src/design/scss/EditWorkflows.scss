@@ -696,17 +696,63 @@ div[role="tooltip"][id^="workflow-info-"] {
   width: 28px;
 }
 
+// Add-grid insertion row: thin horizontal bar in swimlane column only (LIVE), visible on hover, no layout break
+.workflow-add-grid-row {
+  display: flex;
+  align-items: center;
+  flex-shrink: 0;
+  min-height: 10px;
+  margin-top: 2px;
+  margin-bottom: 2px;
+  gap: var(--stage-gap, 14px);
+  cursor: pointer;
+  transition: background-color 0.15s ease;
+
+  &:hover .workflow-add-grid-bar {
+    opacity: 1;
+  }
+}
+
+.workflow-add-grid-cell {
+  flex: 0 0 200px;
+  min-width: 200px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.workflow-add-grid-bar {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 100%;
+  max-width: 200px;
+  min-height: 8px;
+  padding: 2px 8px;
+  border: 1px solid #d1d5db;
+  border-radius: 2px;
+  background: #fafbfc;
+  color: #6b7280;
+  opacity: 0;
+  transition: opacity 0.15s ease;
+
+  svg {
+    flex-shrink: 0;
+  }
+}
+
+.workflow-add-grid-spacer {
+  flex: 1;
+  min-width: 0;
+}
+
 // Swimlane block: stage row + swimlane content row
 .workflow-swimlane-block {
   display: flex;
   flex-direction: column;
   flex-shrink: 0;
-  margin-bottom: 16px;
+  margin-bottom: 0;
   gap: 0;
-
-  &:last-child {
-    margin-bottom: 0;
-  }
 }
 
 
