@@ -7,14 +7,14 @@ const workflowsConfig = [
     id: "da-desk-workflow",
     title: "RT-DA Board",
     columnColors: {
-      "col-1": "rgb(226 16 108)", // Ready to Finalize - Pink
-      "col-2": "rgb(121 21 188)", // In Progress - Purple
+      "col-1": "#2666be", // Ready to Finalize - Pink
+      "col-2": "#f38a30", // In Progress - Purple
       "col-2-1": "rgb(121 21 188)", // Working on it - Purple
       "col-2-2": "rgb(121 21 188)", // Awaiting PO - Purple
-      "col-3": "rgb(62 94 189)", // Al Gihaz awaiting submission - Blue
-      "col-4": "rgb(65 178 74)", // Finalized - Green
-      "col-5": "rgb(119 86 73)", // Awaiting acknowledgment - Brown
-      "col-6": "rgb(237 142 55)", // Dispatched - Orange
+      "col-3": "#42af49", // Al Gihaz awaiting submission - Blue
+      "col-4": "#42af49", // Finalized - Green
+      "col-5": "#42af49", // Awaiting acknowledgment - Brown
+      "col-6": "#42af49", // Dispatched - Orange
     },
     columnTitles: [
       "Ready to Finalize",
@@ -46,12 +46,12 @@ const workflowsConfig = [
     id: "jub-da-board",
     title: "JUB-DA Board",
     columnColors: {
-      "col-1": "rgb(226 16 108)", // Ready to Finalize - Pink
-      "col-2": "rgb(121 21 188)", // In Progress - Purple
-      "col-3": "rgb(62 94 189)", // Al Gihaz awaiting submission - Blue
-      "col-4": "rgb(65 178 74)", // Finalized - Green
-      "col-5": "rgb(119 86 73)", // Awaiting acknowledgment - Brown
-      "col-6": "rgb(237 142 55)", // Dispatched - Orange
+      "col-1": "#2666be", // Ready to Finalize - Pink
+      "col-2": "#f38a30", // In Progress - Purple
+      "col-3": "#42af49", // Al Gihaz awaiting submission - Blue
+      "col-4": "#42af49", // Finalized - Green
+      "col-5": "#42af49", // Awaiting acknowledgment - Brown
+      "col-6": "#42af49", // Dispatched - Orange
     },
     columnTitles: [
       "Ready to Finalize",
