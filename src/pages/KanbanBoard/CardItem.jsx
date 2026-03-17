@@ -162,7 +162,7 @@ const StatusIcon = ({ status = "pending", IconComponent, size = 20 }) => {
 function CardItem({ card, index, setSelectedCard, isShrunk = false, hideExtraDetails = false, isClassicLayout = false, isModernLayout = false, isDarkMode = false, columnTitle = "" }) {
   const cardColor = card.color || "#2A00FF";
   const invoiceAmount = card.invoiceAmount != null ? Number(card.invoiceAmount) : null;
-  const isHighInvoice = invoiceAmount != null && invoiceAmount > 100000;
+  const highlightInvoice = !!card.highlightInvoice; // Only 2 cards get this
   const formatInvoiceAmount = (val) =>
     new Intl.NumberFormat("en-SA", { minimumFractionDigits: 0, maximumFractionDigits: 0 }).format(val) + " SAR";
 
@@ -178,7 +178,7 @@ function CardItem({ card, index, setSelectedCard, isShrunk = false, hideExtraDet
     <Draggable draggableId={card.id} index={index}>
       {(provided, snapshot) => (
         <div
-          className={`kanban-card ${snapshot.isDragging ? "dragging" : ""} ${card.priority ? "priority-blink" : ""} ${isShrunk ? "card-shrunk" : ""} ${isClassicLayout ? "kanban-card-classic" : ""} ${isModernLayout ? "kanban-card-modern" : ""} ${isDarkMode ? "kanban-card-dark" : ""} ${isHighInvoice ? "card-highlight-invoice" : ""}`}
+          className={`kanban-card ${snapshot.isDragging ? "dragging" : ""} ${card.priority ? "priority-blink" : ""} ${isShrunk ? "card-shrunk" : ""} ${isClassicLayout ? "kanban-card-classic" : ""} ${isModernLayout ? "kanban-card-modern" : ""} ${isDarkMode ? "kanban-card-dark" : ""} ${highlightInvoice ? "card-highlight-invoice card-blink-invoice" : ""}`}
           ref={provided.innerRef}
           {...provided.draggableProps}
           {...provided.dragHandleProps}
@@ -361,6 +361,7 @@ function CardItem({ card, index, setSelectedCard, isShrunk = false, hideExtraDet
               {/* Invoice Amount */}
               {invoiceAmount != null && !isShrunk && (
                 <div className="card-invoice-amount">
+                  <span className="card-invoice-label">Invoice Amount</span>{" "}
                   {formatInvoiceAmount(invoiceAmount)}
                 </div>
               )}

@@ -272,6 +272,15 @@ const createWorkflow = (workflowConfig) => {
     }
   }
 
+  // Mark exactly 2 cards with invoiceAmount > 100,000 for highlight + blink
+  const highInvoiceCardIds = Object.entries(cards)
+    .filter(([, c]) => c.invoiceAmount != null && Number(c.invoiceAmount) > 100000)
+    .map(([id]) => id);
+  const toHighlight = highInvoiceCardIds.slice(0, 2);
+  toHighlight.forEach((id) => {
+    cards[id].highlightInvoice = true;
+  });
+
   return {
     id,
     title: workflowConfig.title,
