@@ -28,19 +28,19 @@ const MOCK_INVOICE_STATUS = {
 };
 
 const MOCK_RECENT_INVOICES = [
-    { refNo: 'INV-2024-101', woNo: 'WO-8842', poNo: 'PO-2201', amount: '£3,200', date: '12 Mar 2025', status: 'Pending' },
-    { refNo: 'INV-2024-100', woNo: 'WO-8839', poNo: 'PO-2198', amount: '£1,850', date: '10 Mar 2025', status: 'Approved' },
-    { refNo: 'INV-2024-099', woNo: 'WO-8835', poNo: 'PO-2194', amount: '£5,100', date: '08 Mar 2025', status: 'Paid' },
-    { refNo: 'INV-2024-098', woNo: 'WO-8830', poNo: 'PO-2189', amount: '£2,400', date: '05 Mar 2025', status: 'Rejected' },
-    { refNo: 'INV-2024-097', woNo: 'WO-8828', poNo: 'PO-2187', amount: '£4,200', date: '03 Mar 2025', status: 'Paid' },
+    { refNo: 'INV-2024-101', woNo: 'WO-8842', poNo: 'PO-2201', company: 'Sedres Ltd', type: 'Service', amount: '£3,200', date: '12 Mar 2025', status: 'Pending' },
+    { refNo: 'INV-2024-100', woNo: 'WO-8839', poNo: 'PO-2198', company: 'Marine Services Co', type: 'Provisions', amount: '£1,850', date: '10 Mar 2025', status: 'Approved' },
+    { refNo: 'INV-2024-099', woNo: 'WO-8835', poNo: 'PO-2194', company: 'Sedres Ltd', type: 'Transport', amount: '£5,100', date: '08 Mar 2025', status: 'Paid' },
+    { refNo: 'INV-2024-098', woNo: 'WO-8830', poNo: 'PO-2189', company: 'Port Authority', type: 'Agency', amount: '£2,400', date: '05 Mar 2025', status: 'Rejected' },
+    { refNo: 'INV-2024-097', woNo: 'WO-8828', poNo: 'PO-2187', company: 'Marine Services Co', type: 'Launch hire', amount: '£4,200', date: '03 Mar 2025', status: 'Paid' },
 ];
 
 const MOCK_RECENT_ORDERS = [
-    { orderNo: 'PO-2205', woNo: 'WO-8845', service: 'Launch hire – Port A', approvedAmount: '£2,500', remainingAmount: '£2,500', status: 'Open' },
-    { orderNo: 'PO-2203', woNo: 'WO-8841', service: 'Transport – Crew transfer', approvedAmount: '£1,200', remainingAmount: '£0', status: 'Closed' },
-    { orderNo: 'PO-2200', woNo: 'WO-8838', service: 'Provisions supply', approvedAmount: '£3,800', remainingAmount: '£1,900', status: 'Open' },
-    { orderNo: 'PO-2197', woNo: 'WO-8834', service: 'Agency services', approvedAmount: '£950', remainingAmount: '£0', status: 'Closed' },
-    { orderNo: 'PO-2195', woNo: 'WO-8832', service: 'Fresh water supply', approvedAmount: '£600', remainingAmount: '£600', status: 'Open' },
+    { orderNo: 'PO-2205', woNo: 'WO-8845', company: 'Sedres Ltd', orderDate: '10 Mar 2025', purchaser: 'J. Smith', service: 'Launch hire – Port A', approvedAmount: '£2,500', remainingAmount: '£2,500', status: 'Open' },
+    { orderNo: 'PO-2203', woNo: 'WO-8841', company: 'Marine Services Co', orderDate: '08 Mar 2025', purchaser: 'M. Jones', service: 'Transport – Crew transfer', approvedAmount: '£1,200', remainingAmount: '£0', status: 'Closed' },
+    { orderNo: 'PO-2200', woNo: 'WO-8838', company: 'Sedres Ltd', orderDate: '05 Mar 2025', purchaser: 'K. Brown', service: 'Provisions supply', approvedAmount: '£3,800', remainingAmount: '£1,900', status: 'Open' },
+    { orderNo: 'PO-2197', woNo: 'WO-8834', company: 'Port Authority', orderDate: '03 Mar 2025', purchaser: 'J. Smith', service: 'Agency services', approvedAmount: '£950', remainingAmount: '£0', status: 'Closed' },
+    { orderNo: 'PO-2195', woNo: 'WO-8832', company: 'Marine Services Co', orderDate: '01 Mar 2025', purchaser: 'M. Jones', service: 'Fresh water supply', approvedAmount: '£600', remainingAmount: '£600', status: 'Open' },
 ];
 
 const Dashboard = () => {
@@ -133,43 +133,6 @@ const Dashboard = () => {
                 </div>
             </div>
 
-            {/* 3. Recent Invoices table */}
-            <div className="vendor-dashboard-section">
-                <h3 className="vendor-section-title">Recent Invoices</h3>
-                <div className="vendor-table-wrapper">
-                    <div style={{ overflowX: 'auto' }}>
-                        <table className="vendor-table">
-                            <thead>
-                                <tr>
-                                    <th>Ref No</th>
-                                    <th>WO No</th>
-                                    <th>PO No</th>
-                                    <th>Amount</th>
-                                    <th>Date</th>
-                                    <th>Status</th>
-                                </tr>
-                            </thead>
-                            <tbody>
-                                {MOCK_RECENT_INVOICES.map((row, idx) => (
-                                    <tr key={idx}>
-                                        <td>{row.refNo}</td>
-                                        <td>{row.woNo}</td>
-                                        <td>{row.poNo}</td>
-                                        <td>{row.amount}</td>
-                                        <td>{row.date}</td>
-                                        <td>
-                                            <span className={`vendor-status-badge ${getStatusClass(row.status)}`}>
-                                                {row.status}
-                                            </span>
-                                        </td>
-                                    </tr>
-                                ))}
-                            </tbody>
-                        </table>
-                    </div>
-                </div>
-            </div>
-
             {/* 4. Recent Orders table */}
             <div className="vendor-dashboard-section">
                 <h3 className="vendor-section-title">Recent Orders</h3>
@@ -180,6 +143,9 @@ const Dashboard = () => {
                                 <tr>
                                     <th>Order No / PO No</th>
                                     <th>WO No</th>
+                                    <th>Company</th>
+                                    <th>Order date</th>
+                                    <th>Purchaser</th>
                                     <th>Service / Subject</th>
                                     <th>Approved Amount</th>
                                     <th>Remaining Amount</th>
@@ -191,6 +157,9 @@ const Dashboard = () => {
                                     <tr key={idx}>
                                         <td>{row.orderNo}</td>
                                         <td>{row.woNo}</td>
+                                        <td>{row.company}</td>
+                                        <td>{row.orderDate}</td>
+                                        <td>{row.purchaser}</td>
                                         <td>{row.service}</td>
                                         <td>{row.approvedAmount}</td>
                                         <td>{row.remainingAmount}</td>
@@ -206,6 +175,49 @@ const Dashboard = () => {
                     </div>
                 </div>
             </div>
+
+            {/* 3. Recent Invoices table */}
+            <div className="vendor-dashboard-section">
+                <h3 className="vendor-section-title">Recent Invoices</h3>
+                <div className="vendor-table-wrapper">
+                    <div style={{ overflowX: 'auto' }}>
+                        <table className="vendor-table">
+                            <thead>
+                                <tr>
+                                    <th>Ref No</th>
+                                    <th>WO No</th>
+                                    <th>PO No</th>
+                                    <th>Company</th>
+                                    <th>Type</th>
+                                    <th>Amount</th>
+                                    <th>Date</th>
+                                    <th>Status</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {MOCK_RECENT_INVOICES.map((row, idx) => (
+                                    <tr key={idx}>
+                                        <td>{row.refNo}</td>
+                                        <td>{row.woNo}</td>
+                                        <td>{row.poNo}</td>
+                                        <td>{row.company}</td>
+                                        <td>{row.type}</td>
+                                        <td>{row.amount}</td>
+                                        <td>{row.date}</td>
+                                        <td>
+                                            <span className={`vendor-status-badge ${getStatusClass(row.status)}`}>
+                                                {row.status}
+                                            </span>
+                                        </td>
+                                    </tr>
+                                ))}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+
+
 
             {/* 5. Quick actions */}
             <div className="vendor-dashboard-section">
