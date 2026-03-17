@@ -39,12 +39,19 @@ import 'react-tooltip/dist/react-tooltip.css';
 import { FiPlus, FiInbox, FiFilter, FiPlusCircle, FiActivity } from 'react-icons/fi';
 import { useLayoutView } from '../../context/LayoutViewContext';
 
-function SideNav({ isMobileMenuOpen, onCloseMobileMenu }) {
+function SideNav({ isMobileMenuOpen, onCloseMobileMenu, isVendorPortal = false }) {
   const { pathname } = useLocation();
   const navigate = useNavigate();
   const { width } = useWindowSize();
 
   const isKanbanBoard = pathname === '/kanban-board' || pathname.startsWith('/kanban-board/') || pathname === '/workspaces' || pathname === '/compact';
+
+  // Vendor Portal menu - simple direct links, no accordions
+  const vendorMenus = [
+    { menu: 'Dashboard', isDefaultMenu: true, to: '/vendor-portal/dashboard', icon: dashboardIcon, hasPermission: true },
+    { menu: 'Invoices', isDefaultMenu: true, to: '/vendor-portal/invoices', icon: billingIcon, hasPermission: true },
+    { menu: 'Orders', isDefaultMenu: true, to: '/vendor-portal/orders', icon: materialIcon, hasPermission: true },
+  ];
   const isMobile = width <= 991;
   const { layoutView } = useLayoutView();
   const isDarkMode = layoutView === 'dark';
@@ -298,7 +305,7 @@ function SideNav({ isMobileMenuOpen, onCloseMobileMenu }) {
 
   useEffect(() => {
     // 🔒 Don’t touch normal menu behaviour when on Kanban sidebar
-    if (isKanbanBoard) return;
+    if (isKanbanBoard || isVendorPortal) return;
 
     if (width > 991)
       setMenuState((prev) =>
@@ -312,7 +319,7 @@ function SideNav({ isMobileMenuOpen, onCloseMobileMenu }) {
       setMenuState((prev) => prev.map((e) => ({ ...e, isOpen: false })));
       setExpand(false);
     }
-  }, [pathname, width, isKanbanBoard]);
+  }, [pathname, width, isKanbanBoard, isVendorPortal]);
 
   const toggleCollapse = (menu) => {
     setMenuState((prev) => {
@@ -412,8 +419,8 @@ function SideNav({ isMobileMenuOpen, onCloseMobileMenu }) {
     }
   }, [showCardManagementSubmenu]);
 
-  // 🆕 Special layout for /kanban-board and /workspaces
-  if (isKanbanBoard) {
+  // 🆕 Special layout for /kanban-board and /workspaces (skip when in Vendor Portal)
+  if (isKanbanBoard && !isVendorPortal) {
     const handleIconClick = (item) => {
       if (item.label === 'Filter') {
         const newShowState = !showFilterPanel;
@@ -648,7 +655,7 @@ function SideNav({ isMobileMenuOpen, onCloseMobileMenu }) {
 
         <div className="menuWrp">
           <ul className="menu">
-            {menuState
+            {(isVendorPortal ? vendorMenus : menuState)
               .filter((e) => e.hasPermission === true)
               .map(({ menu, subMenus, to, isDefaultMenu, icon, isOpen }) => {
                 if (!isDefaultMenu) return null;

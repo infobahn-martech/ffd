@@ -140,6 +140,9 @@ const router = createHashRouter([
               { path: "/transport-parties", element: <TransportParties /> },
               { path: "/waste-types", element: <WasteTypes /> },
               { path: "/settings", element: <h1>Settings</h1> },
+              { path: "/vendor-portal/dashboard", element: <VendorPortalDashboard /> },
+              { path: "/vendor-portal/invoices", element: <VendorPortalInvoices /> },
+              { path: "/vendor-portal/orders", element: <VendorPortalOrders /> },
             ],
           },
         ]
@@ -264,6 +267,10 @@ const router = createHashRouter([
                   { path: "/waste-types", element: <RouteGuard><WasteTypes /></RouteGuard> },
                   // Settings
                   { path: "/settings", element: <RouteGuard><h1>Settings</h1></RouteGuard> },
+                  // Vendor Portal
+                  { path: "/vendor-portal/dashboard", element: <RouteGuard><VendorPortalDashboard /></RouteGuard> },
+                  { path: "/vendor-portal/invoices", element: <RouteGuard><VendorPortalInvoices /></RouteGuard> },
+                  { path: "/vendor-portal/orders", element: <RouteGuard><VendorPortalOrders /></RouteGuard> },
                 ],
               },
             ],

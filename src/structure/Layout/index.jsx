@@ -11,6 +11,7 @@ function Layout() {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const hideSidebar = pathname === '/edit-workflow' || pathname === '/da-module';
   const isKanbanBoard = pathname === '/kanban-board' || pathname.startsWith('/kanban-board/') || pathname === '/compact';
+  const isVendorPortal = pathname.startsWith('/vendor-portal');
 
   const handleMenuToggle = (isOpen) => {
     setMobileMenuOpen(isOpen);
@@ -28,6 +29,7 @@ function Layout() {
         <Header
           onMenuToggle={handleMenuToggle}
           mobileMenuOpen={mobileMenuOpen}
+          isVendorPortal={isVendorPortal}
         />
 
         {/* SIDEBAR + PAGE CONTENT */}
@@ -36,6 +38,7 @@ function Layout() {
             <SideNav
               isMobileMenuOpen={mobileMenuOpen}
               onCloseMobileMenu={handleCloseMobileMenu}
+              isVendorPortal={isVendorPortal}
             />
           )}
 

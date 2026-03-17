@@ -13,7 +13,8 @@ import {
   FiLayers,
   FiMoon,
   FiBarChart2,
-  FiMapPin
+  FiMapPin,
+  FiShoppingBag
 } from 'react-icons/fi';
 import { Tooltip } from 'react-tooltip';
 import 'react-tooltip/dist/react-tooltip.css';
@@ -36,7 +37,7 @@ import TagsModal from '../SideNav/components/TagsModal';
 import TypesModal from '../SideNav/components/TypesModal';
 import { useLayoutView } from '../../context/LayoutViewContext';
 
-function Header({ onMenuToggle, mobileMenuOpen: externalMobileMenuOpen }) {
+function Header({ onMenuToggle, mobileMenuOpen: externalMobileMenuOpen, isVendorPortal = false }) {
   const { pathname } = useLocation();
   const navigate = useNavigate();
   const { width } = useWindowSize();
@@ -446,12 +447,21 @@ function Header({ onMenuToggle, mobileMenuOpen: externalMobileMenuOpen }) {
         </div>
         <Tooltip id="master-module" place="bottom" content="Master Module" />
         <button
-          className={`icon-btn icon-btn-hide-mobile ${pathname === '/dashboard' ? 'active' : ''}`}
+          className={`icon-btn icon-btn-hide-mobile ${!isVendorPortal ? 'active' : ''}`}
           aria-label="Master Module"
           onClick={() => navigate('/dashboard')}
           data-tooltip-id="master-module"
         >
           <FiLayout />
+        </button>
+        <Tooltip id="vendor-portal" place="bottom" content="Vendor Portal" />
+        <button
+          className={`icon-btn icon-btn-hide-mobile ${isVendorPortal ? 'active' : ''}`}
+          aria-label="Vendor Portal"
+          onClick={() => navigate('/vendor-portal/dashboard')}
+          data-tooltip-id="vendor-portal"
+        >
+          <FiShoppingBag />
         </button>
         <Tooltip id="on-station" place="bottom" content="On Station" />
         <button
