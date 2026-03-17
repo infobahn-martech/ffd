@@ -538,7 +538,9 @@ export default function KanbanBoard() {
           >
             <div className="kanban-accordion-title-row">
               <FiLayers className="kanban-accordion-title-icon" aria-hidden />
-              <h2 className="kanban-accordion-title">{workflow.title}</h2>
+              <h2 className="kanban-accordion-title" style={{ fontWeight: 700 }}>
+                {workflow.title}
+              </h2>
             </div>
             <div className="kanban-accordion-actions">
               <button
