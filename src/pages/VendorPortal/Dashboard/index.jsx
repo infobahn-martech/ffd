@@ -28,19 +28,19 @@ const MOCK_INVOICE_STATUS = {
 };
 
 const MOCK_RECENT_INVOICES = [
-    { refNo: 'INV-2024-101', woNo: 'WO-8842', poNo: 'PO-2201', company: 'Sedres Ltd', type: 'Service', amount: '£3,200', date: '12 Mar 2025', status: 'Pending' },
-    { refNo: 'INV-2024-100', woNo: 'WO-8839', poNo: 'PO-2198', company: 'Marine Services Co', type: 'Provisions', amount: '£1,850', date: '10 Mar 2025', status: 'Approved' },
-    { refNo: 'INV-2024-099', woNo: 'WO-8835', poNo: 'PO-2194', company: 'Sedres Ltd', type: 'Transport', amount: '£5,100', date: '08 Mar 2025', status: 'Paid' },
-    { refNo: 'INV-2024-098', woNo: 'WO-8830', poNo: 'PO-2189', company: 'Port Authority', type: 'Agency', amount: '£2,400', date: '05 Mar 2025', status: 'Rejected' },
-    { refNo: 'INV-2024-097', woNo: 'WO-8828', poNo: 'PO-2187', company: 'Marine Services Co', type: 'Launch hire', amount: '£4,200', date: '03 Mar 2025', status: 'Paid' },
+    { invoiceNo: 'INV-2024-101', refNo: 'WO-8842', company: 'Sedres Ltd', type: 'Service', amount: '3,200', currency: '£', date: '12 Mar 2025', status: 'Approved' },
+    { invoiceNo: 'INV-2024-100', refNo: 'WO-8839', company: 'Marine Services Co', type: 'Provisions', amount: '1,850', currency: '£', date: '10 Mar 2025', status: 'Approved' },
+    { invoiceNo: 'INV-2024-099', refNo: 'WO-8835', company: 'Sedres Ltd', type: 'Transport', amount: '5,100', currency: '£', date: '08 Mar 2025', status: 'Paid' },
+    { invoiceNo: 'INV-2024-098', refNo: 'WO-8830', company: 'Port Authority', type: 'Agency', amount: '2,400', currency: '£', date: '05 Mar 2025', status: 'Rejected' },
+    { invoiceNo: 'INV-2024-097', refNo: 'WO-8828', company: 'Marine Services Co', type: 'Launch hire', amount: '4,200', currency: '£', date: '03 Mar 2025', status: 'Paid' },
 ];
 
 const MOCK_RECENT_ORDERS = [
-    { orderNo: 'PO-2205', woNo: 'WO-8845', company: 'Sedres Ltd', orderDate: '10 Mar 2025', purchaser: 'J. Smith', service: 'Launch hire – Port A', approvedAmount: '£2,500', remainingAmount: '£2,500', status: 'Open' },
-    { orderNo: 'PO-2203', woNo: 'WO-8841', company: 'Marine Services Co', orderDate: '08 Mar 2025', purchaser: 'M. Jones', service: 'Transport – Crew transfer', approvedAmount: '£1,200', remainingAmount: '£0', status: 'Closed' },
-    { orderNo: 'PO-2200', woNo: 'WO-8838', company: 'Sedres Ltd', orderDate: '05 Mar 2025', purchaser: 'K. Brown', service: 'Provisions supply', approvedAmount: '£3,800', remainingAmount: '£1,900', status: 'Open' },
-    { orderNo: 'PO-2197', woNo: 'WO-8834', company: 'Port Authority', orderDate: '03 Mar 2025', purchaser: 'J. Smith', service: 'Agency services', approvedAmount: '£950', remainingAmount: '£0', status: 'Closed' },
-    { orderNo: 'PO-2195', woNo: 'WO-8832', company: 'Marine Services Co', orderDate: '01 Mar 2025', purchaser: 'M. Jones', service: 'Fresh water supply', approvedAmount: '£600', remainingAmount: '£600', status: 'Open' },
+    { orderNo: 'PO-2205', company: 'Sedres Ltd', orderDate: '10 Mar 2025', purchaser: 'J. Smith', subject: 'Launch hire – Port A', amount: '2,500', currency: '£', status: 'in progress' },
+    { orderNo: 'PO-2203', company: 'Marine Services Co', orderDate: '08 Mar 2025', purchaser: 'M. Jones', subject: 'Transport – Crew transfer', amount: '1,200', currency: '£', status: 'Closed' },
+    { orderNo: 'PO-2200', company: 'Sedres Ltd', orderDate: '05 Mar 2025', purchaser: 'K. Brown', subject: 'Provisions supply', amount: '3,800', currency: '£', status: 'in progress' },
+    { orderNo: 'PO-2197', company: 'Port Authority', orderDate: '03 Mar 2025', purchaser: 'J. Smith', subject: 'Agency services', amount: '950', currency: '£', status: 'closed' },
+    { orderNo: 'PO-2195', company: 'Marine Services Co', orderDate: '01 Mar 2025', purchaser: 'M. Jones', subject: 'Fresh water supply', amount: '600', currency: '£', status: 'in progress' },
 ];
 
 const Dashboard = () => {
@@ -75,7 +75,7 @@ const Dashboard = () => {
 
     const getStatusClass = (status) => {
         const s = (status || '').toLowerCase();
-        if (s === 'pending') return 'status-pending';
+        if (s === 'in progress') return 'status-pending';
         if (s === 'approved') return 'status-approved';
         if (s === 'rejected') return 'status-rejected';
         if (s === 'paid') return 'status-paid';
@@ -142,12 +142,12 @@ const Dashboard = () => {
                             <thead>
                                 <tr>
                                     <th>PO No</th>
+                                    <th>Subject</th>
                                     <th>Company</th>
                                     <th>Order date</th>
                                     <th>Purchaser</th>
-                                    <th>Service / Subject</th>
-                                    <th>Approved Amount</th>
-                                    <th>Remaining Amount</th>
+                                    <th>Amount</th>
+                                    <th>Currency</th>
                                     <th>Status</th>
                                 </tr>
                             </thead>
@@ -155,13 +155,12 @@ const Dashboard = () => {
                                 {MOCK_RECENT_ORDERS.map((row, idx) => (
                                     <tr key={idx}>
                                         <td>{row.orderNo}</td>
-                                        <td>{row.woNo}</td>
+                                        <td>{row.subject}</td>
                                         <td>{row.company}</td>
                                         <td>{row.orderDate}</td>
                                         <td>{row.purchaser}</td>
-                                        <td>{row.service}</td>
-                                        <td>{row.approvedAmount}</td>
-                                        <td>{row.remainingAmount}</td>
+                                        <td>{row.amount}</td>
+                                        <td>{row.currency}</td>
                                         <td>
                                             <span className={`vendor-status-badge ${getStatusClass(row.status)}`}>
                                                 {row.status}
@@ -183,26 +182,26 @@ const Dashboard = () => {
                         <table className="vendor-table">
                             <thead>
                                 <tr>
+                                    <th>Invoice No</th>
                                     <th>Ref No</th>
-                                    <th>WO No</th>
-                                    <th>PO No</th>
                                     <th>Company</th>
                                     <th>Type</th>
+                                    <th>Invoice Date</th>
                                     <th>Amount</th>
-                                    <th>Date</th>
+                                    <th>Currency</th>
                                     <th>Status</th>
                                 </tr>
                             </thead>
                             <tbody>
                                 {MOCK_RECENT_INVOICES.map((row, idx) => (
                                     <tr key={idx}>
+                                        <td>{row.invoiceNo}</td>
                                         <td>{row.refNo}</td>
-                                        <td>{row.woNo}</td>
-                                        <td>{row.poNo}</td>
                                         <td>{row.company}</td>
                                         <td>{row.type}</td>
-                                        <td>{row.amount}</td>
                                         <td>{row.date}</td>
+                                        <td>{row.amount}</td>
+                                        <td>{row.currency}</td>
                                         <td>
                                             <span className={`vendor-status-badge ${getStatusClass(row.status)}`}>
                                                 {row.status}
@@ -222,13 +221,13 @@ const Dashboard = () => {
             <div className="vendor-dashboard-section">
                 <h3 className="vendor-section-title">Quick Actions</h3>
                 <div className="vendor-quick-actions">
-                    <button
+                    {/* <button
                         type="button"
                         className="vendor-quick-action-btn primary"
                         onClick={() => navigate('/vendor-portal/invoices')}
                     >
                         <FiPlusCircle /> Add Invoice
-                    </button>
+                    </button> */}
                     <button
                         type="button"
                         className="vendor-quick-action-btn"
