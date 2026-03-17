@@ -89,10 +89,19 @@ let globalCardId = 1;
 // Icon pool
 const iconTypes = ["inprogress", "download", "document"];
 
+const colorOptions = [
+  "#34a97b",
+  "#7333bd",
+  "#e6186a",
+  "#f37325",
+  "#af0020",
+  "#607d8b",
+  "#336633",]
+
 // Helper function to generate a single card
 const generateCard = (workflowId, colId, cardId) => {
   const workflow = workflowsConfig.find((w) => w.id === workflowId);
-  const colorPool = Object.values(workflow.columnColors);
+  const colorPool = Object.values(colorOptions);
 
   // Random color
   const randomColor = colorPool[Math.floor(Math.random() * colorPool.length)];
