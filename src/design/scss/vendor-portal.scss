@@ -1,0 +1,226 @@
+@import "partials/partials";
+
+/* Vendor Portal – shared shell; Dashboard uses same spacing/cards as main Dashboard */
+.vendor-dashboard-container {
+  padding: 30px;
+  background: #f8f9fc;
+  min-height: 100%;
+
+  @media (max-width: 991px) {
+    padding: 20px 15px;
+  }
+}
+
+.vendor-dashboard-header {
+  margin-bottom: 30px;
+
+  .vendor-dashboard-title {
+    font: normal normal 600 32px/1.4 $font-primary;
+    letter-spacing: 0.1px;
+    color: $colorPrimary;
+    margin: 0 0 8px 0;
+  }
+
+  .vendor-dashboard-subtitle {
+    font: normal normal 400 16px/1.5 'Inter', sans-serif;
+    color: #6b7280;
+    margin: 0;
+  }
+}
+
+/* Section block (reusable for tables and status overview) */
+.vendor-dashboard-section {
+  margin-bottom: 30px;
+
+  .vendor-section-title {
+    font: normal normal 600 20px/1.4 $font-primary;
+    color: $txtColor;
+    margin: 0 0 16px 0;
+  }
+
+  .vendor-section-subtitle {
+    font: normal normal 400 14px/1.5 $font-primary;
+    color: #6b7280;
+    margin: 0 0 16px 0;
+  }
+}
+
+/* Invoice Status Overview – small status summary cards */
+.vendor-invoice-status-cards {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 16px;
+
+  @media (max-width: 991px) {
+    grid-template-columns: repeat(2, 1fr);
+  }
+
+  @media (max-width: 479px) {
+    grid-template-columns: 1fr;
+  }
+}
+
+.vendor-status-card {
+  background: #ffffff;
+  border-radius: 12px;
+  padding: 16px 20px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+  border: 1px solid #e5e7eb;
+  text-align: center;
+
+  .vendor-status-label {
+    font: normal normal 400 13px/1.4 $font-primary;
+    color: #6b7280;
+    margin: 0 0 6px 0;
+  }
+
+  .vendor-status-value {
+    font: normal normal 700 22px/1.2 $font-primary;
+    color: $txtColor;
+    margin: 0;
+  }
+
+  &.status-pending .vendor-status-value { color: #f59e0b; }
+  &.status-approved .vendor-status-value { color: #3b82f6; }
+  &.status-rejected .vendor-status-value { color: #ef4444; }
+  &.status-paid .vendor-status-value { color: #10b981; }
+}
+
+/* Table wrappers – Sedres-style tables */
+.vendor-table-wrapper {
+  background: #ffffff;
+  border-radius: 12px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+  border: 1px solid #e5e7eb;
+  overflow: hidden;
+  margin-bottom: 0;
+}
+
+.vendor-table {
+  width: 100%;
+  border-collapse: collapse;
+
+  thead th {
+    padding: 14px 20px;
+    text-align: left;
+    font: normal normal 600 13px/1.4 $font-primary;
+    color: #6b7280;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    background: #f9fafb;
+    border-bottom: 1px solid #e5e7eb;
+  }
+
+  tbody td {
+    padding: 14px 20px;
+    font: normal normal 400 14px/1.5 $font-primary;
+    color: $txtColor;
+    border-bottom: 1px solid #f3f4f6;
+  }
+
+  tbody tr:nth-of-type(even) td {
+    background-color: #f8f9fc;
+  }
+
+  tbody tr:hover td {
+    background: #f9fafb;
+  }
+
+  tbody tr:last-child td {
+    border-bottom: none;
+  }
+
+  @media (max-width: 767px) {
+    thead th,
+    tbody td {
+      padding: 12px 14px;
+      font-size: 13px;
+    }
+  }
+}
+
+/* Status badges in tables */
+.vendor-status-badge {
+  display: inline-block;
+  padding: 4px 10px;
+  border-radius: 6px;
+  font: normal normal 500 12px/1.4 $font-primary;
+
+  &.status-pending {
+    background: #fef3c7;
+    color: #b45309;
+  }
+
+  &.status-approved {
+    background: #dbeafe;
+    color: #1d4ed8;
+  }
+
+  &.status-rejected {
+    background: #fee2e2;
+    color: #b91c1c;
+  }
+
+  &.status-paid {
+    background: #d1fae5;
+    color: #047857;
+  }
+
+  &.status-open {
+    background: #e0e7ff;
+    color: #3730a3;
+  }
+
+  &.status-closed {
+    background: #e5e7eb;
+    color: #4b5563;
+  }
+}
+
+/* Quick actions */
+.vendor-quick-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+  align-items: center;
+}
+
+.vendor-quick-action-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 10px 20px;
+  font: normal normal 500 14px/1.5 $font-primary;
+  color: $colorPrimary;
+  background: #ffffff;
+  border: 1px solid $borderLight;
+  border-radius: 8px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  text-decoration: none;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.06);
+
+  &:hover {
+    background: #eef1ff;
+    border-color: $colorPrimary;
+    color: $colorPrimary;
+  }
+
+  svg {
+    width: 18px;
+    height: 18px;
+    flex-shrink: 0;
+  }
+}
+
+.vendor-quick-action-btn.primary {
+  background: $colorPrimary;
+  color: #fff;
+  border-color: $colorPrimary;
+
+  &:hover {
+    background: #002a6e;
+    border-color: #002a6e;
+    color: #fff;
+  }
+}
