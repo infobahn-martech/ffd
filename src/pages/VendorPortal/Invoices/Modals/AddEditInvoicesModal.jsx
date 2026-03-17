@@ -1,5 +1,5 @@
-import { useEffect } from "react";
-import { useForm } from "react-hook-form";
+import { useEffect, useState } from "react";
+import { useForm, Controller } from "react-hook-form";
 import CustomModal from "../../../../components/CustomModal";
 import "../../../../design/scss/prospect-modal.scss";
 import "../../../../design/scss/modal-designs.scss";
@@ -12,10 +12,12 @@ export function AddEditInvoicesModal({
     onSuccess,
     isBeingUpdated = false,
 }) {
+    const [isDragging, setIsDragging] = useState(false);
     const {
         register,
         handleSubmit,
         reset,
+        control,
         formState: { errors },
     } = useForm({
         defaultValues: {
@@ -104,18 +106,22 @@ export function AddEditInvoicesModal({
                                 <label className="form-label mb-2">
                                     Tax Invoice Attachment <span className="text-danger">*</span>
                                 </label>
-                                <input
-                                    type="file"
-                                    className={`form-control ${errors.taxInvoiceFile ? "is-invalid" : ""}`}
-                                    accept=".pdf,.jpg,.jpeg"
-                                    {...register("taxInvoiceFile", {
+                                <Controller
+                                    name="taxInvoiceFile"
+                                    control={control}
+                                    rules={{
                                         validate: {
                                             required: (files) => {
-                                                if (selectedData?._id && selectedData?.taxInvoiceFileName) return true;
-                                                return files?.length > 0 || "Tax Invoice attachment is required";
+                                                if (selectedData?._id && selectedData?.taxInvoiceFileName)
+                                                    return true;
+                                                return (
+                                                    (files?.length > 0 && files[0]) ||
+                                                    "Tax Invoice attachment is required"
+                                                );
                                             },
                                             fileType: (files) => {
-                                                if (!files || files.length === 0) return true;
+                                                if (!files || files.length === 0 || !files[0])
+                                                    return true;
                                                 const file = files[0];
                                                 const allowedTypes = [
                                                     "application/pdf",
@@ -128,15 +134,91 @@ export function AddEditInvoicesModal({
                                                 );
                                             },
                                         },
-                                    })}
+                                    }}
+                                    render={({ field: { onChange, value } }) => {
+                                        const fileList = value && (Array.isArray(value) ? value : [value]);
+                                        const file = fileList?.[0] || (value instanceof File ? value : null);
+
+                                        const handleDragOver = (e) => {
+                                            e.preventDefault();
+                                            e.stopPropagation();
+                                            setIsDragging(true);
+                                        };
+                                        const handleDragLeave = (e) => {
+                                            e.preventDefault();
+                                            e.stopPropagation();
+                                            setIsDragging(false);
+                                        };
+                                        const handleDrop = (e) => {
+                                            e.preventDefault();
+                                            e.stopPropagation();
+                                            setIsDragging(false);
+                                            const dropped = e.dataTransfer?.files;
+                                            if (dropped?.length) onChange(Array.from(dropped));
+                                        };
+                                        const handleChange = (e) => {
+                                            const chosen = e.target?.files;
+                                            if (chosen?.length) onChange(Array.from(chosen));
+                                        };
+                                        const clearFile = () => onChange(null);
+
+                                        return (
+                                            <div className="file-drop-zone-wrapper">
+                                                <div
+                                                    className={`file-drop-zone ${isDragging ? "file-drop-zone--active" : ""} ${errors.taxInvoiceFile ? "file-drop-zone--error" : ""}`}
+                                                    onDragOver={handleDragOver}
+                                                    onDragLeave={handleDragLeave}
+                                                    onDrop={handleDrop}
+                                                    onClick={() => document.getElementById("tax-invoice-input").click()}
+                                                >
+                                                    <input
+                                                        id="tax-invoice-input"
+                                                        type="file"
+                                                        className="d-none"
+                                                        accept=".pdf,.jpg,.jpeg,.jpe"
+                                                        onChange={handleChange}
+                                                    />
+                                                    {file ? (
+                                                        <div className="file-drop-zone__selected">
+                                                            <span className="file-drop-zone__icon">✓</span>
+                                                            <span className="file-drop-zone__name">{file.name}</span>
+                                                            <button
+                                                                type="button"
+                                                                className="file-drop-zone__clear"
+                                                                onClick={(e) => {
+                                                                    e.stopPropagation();
+                                                                    clearFile();
+                                                                    const input = document.getElementById("tax-invoice-input");
+                                                                    if (input) input.value = "";
+                                                                }}
+                                                            >
+                                                                Remove
+                                                            </button>
+                                                        </div>
+                                                    ) : (
+                                                        <>
+                                                            <span className="file-drop-zone__icon">📎</span>
+                                                            <span className="file-drop-zone__text">
+                                                                {isDragging
+                                                                    ? "Drop your file here"
+                                                                    : "Drag and drop your file here"}
+                                                            </span>
+                                                            <span className="file-drop-zone__hint">or click to browse</span>
+                                                            <span className="file-drop-zone__formats">PDF, JPG, JPEG</span>
+                                                        </>
+                                                    )}
+                                                </div>
+                                                {selectedData?.taxInvoiceFileName && !file && (
+                                                    <small className="d-block mt-2 text-muted">
+                                                        Current file: {selectedData.taxInvoiceFileName}
+                                                    </small>
+                                                )}
+                                            </div>
+                                        );
+                                    }}
                                 />
-                                {selectedData?.taxInvoiceFileName && (
-                                    <small className="d-block mt-2 text-muted">
-                                        Current file: {selectedData.taxInvoiceFileName}
-                                    </small>
-                                )}
                                 {errors.taxInvoiceFile && (
-                                    <span className="error text-danger">
+                                    <span className="error text-danger d-block mt-1">
                                         {errors.taxInvoiceFile.message}
                                     </span>
                                 )}
@@ -171,8 +253,8 @@ export function AddEditInvoicesModal({
 
     return (
         <CustomModal
-            className="role-modal-sm"
-            dialgName="modal-dialog modal-dialog-centered"
+            className="invoice-modal-sm"
+            dialgName="modal-dialog modal-dialog-centered modal-lg"
             show={!!showModal}
             closeModal={() => closeModal(null)}
             body={renderBody()}

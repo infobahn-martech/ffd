@@ -84,6 +84,93 @@
     }
 }
 
+/* File drop zone (drag & drop upload) */
+.file-drop-zone-wrapper {
+    position: relative;
+}
+
+.file-drop-zone {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    min-height: 140px;
+    padding: 20px;
+    border: 2px dashed $borderLight;
+    border-radius: 12px;
+    background-color: #f8fcff;
+    cursor: pointer;
+    transition: border-color 0.2s, background-color 0.2s;
+
+    &:hover {
+        border-color: $colorPrimary;
+        background-color: #eef6ff;
+    }
+
+    &--active {
+        border-color: $colorPrimary;
+        background-color: #eef6ff;
+    }
+
+    &--error {
+        border-color: #dc3545;
+        background-color: #fff5f5;
+    }
+
+    &__icon {
+        font-size: 28px;
+        margin-bottom: 8px;
+    }
+
+    &__text {
+        font-size: 14px;
+        color: $txtColor;
+        font-weight: 500;
+    }
+
+    &__hint {
+        font-size: 13px;
+        color: #6c757d;
+        margin-top: 4px;
+    }
+
+    &__formats {
+        font-size: 12px;
+        color: #adb5bd;
+        margin-top: 4px;
+    }
+
+    &__selected {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        flex-wrap: wrap;
+        justify-content: center;
+    }
+
+    &__name {
+        font-size: 14px;
+        color: $txtColor;
+        font-weight: 500;
+    }
+
+    &__clear {
+        padding: 4px 12px;
+        font-size: 13px;
+        color: #dc3545;
+        background: transparent;
+        border: 1px solid #dc3545;
+        border-radius: 6px;
+        cursor: pointer;
+        transition: background-color 0.2s, color 0.2s;
+
+        &:hover {
+            background-color: #dc3545;
+            color: #fff;
+        }
+    }
+}
+
 .form-control:disabled {
     background-color: transparent !important;
 }
