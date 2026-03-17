@@ -3,51 +3,25 @@ import { AddEditInvoicesModal } from "./Modals/AddEditInvoicesModal";
 import DeleteConfirmationModal from "../../../components/DeleteConfirmationModal";
 import CommonHeader from "../../../components/CommonHeader";
 import CustomTable from "../../../components/customTable";
-
-// Optional: replace these with your actual table action renderers if already available
-const RenderStatusBadge = ({ row }) => {
-    const statusMap = {
-        Pending: { bg: "#FFF3CD", color: "#856404" },
-        Approved: { bg: "#DDEBFF", color: "#1D4ED8" },
-        Paid: { bg: "#D1FAE5", color: "#047857" },
-        Rejected: { bg: "#FEE2E2", color: "#DC2626" },
-    };
-
-    const style = statusMap[row.status] || { bg: "#E5E7EB", color: "#374151" };
-
-    return (
-        <span
-            style={{
-                background: style.bg,
-                color: style.color,
-                padding: "4px 10px",
-                borderRadius: "12px",
-                fontSize: "12px",
-                fontWeight: 600,
-                display: "inline-block",
-            }}
-        >
-            {row.status}
-        </span>
-    );
-};
+import editIcon from "../../../assets/images/edit.svg";
+import deleteIcon from "../../../assets/images/delete.svg";
 
 const RenderAction = ({ row, onEditClick, onDeleteClick }) => {
     return (
-        <div style={{ display: "flex", gap: "8px" }}>
+        <div className="actions">
             <button
                 type="button"
-                className="btn btn-sm btn-outline-primary"
+                className="btn edit"
                 onClick={() => onEditClick(row)}
             >
-                Edit
+                <img src={editIcon} alt="Edit" />
             </button>
             <button
                 type="button"
-                className="btn btn-sm btn-outline-danger"
+                className="btn delete"
                 onClick={() => onDeleteClick(row)}
             >
-                Delete
+                <img src={deleteIcon} alt="Delete" />
             </button>
         </div>
     );
@@ -56,57 +30,39 @@ const RenderAction = ({ row, onEditClick, onDeleteClick }) => {
 const initialMockInvoices = [
     {
         _id: "1",
-        refNo: "INV-2024-101",
         woNo: "WO-8842",
         poNo: "PO-2201",
         amount: "£3,200",
-        date: "12 Mar 2025",
-        status: "Pending",
     },
     {
         _id: "2",
-        refNo: "INV-2024-100",
         woNo: "WO-8839",
         poNo: "PO-2198",
         amount: "£1,850",
-        date: "10 Mar 2025",
-        status: "Approved",
     },
     {
         _id: "3",
-        refNo: "INV-2024-099",
         woNo: "WO-8835",
         poNo: "PO-2194",
         amount: "£5,100",
-        date: "08 Mar 2025",
-        status: "Paid",
     },
     {
         _id: "4",
-        refNo: "INV-2024-098",
         woNo: "WO-8830",
         poNo: "PO-2189",
         amount: "£2,400",
-        date: "05 Mar 2025",
-        status: "Rejected",
     },
     {
         _id: "5",
-        refNo: "INV-2024-097",
         woNo: "WO-8828",
         poNo: "PO-2187",
         amount: "£4,200",
-        date: "03 Mar 2025",
-        status: "Paid",
     },
     {
         _id: "6",
-        refNo: "INV-2024-096",
         woNo: "WO-8826",
         poNo: "PO-2185",
         amount: "£950",
-        date: "01 Mar 2025",
-        status: "Pending",
     },
 ];
 
@@ -115,7 +71,7 @@ const Invoices = () => {
         page: 1,
         searchTerm: "",
         limit: 10,
-        sortBy: "refNo",
+        sortBy: "woNo",
         sortOrder: 1,
     });
 
@@ -130,7 +86,7 @@ const Invoices = () => {
         if (params.searchTerm) {
             const search = params.searchTerm.toLowerCase();
             data = data.filter((item) =>
-                [item.refNo, item.woNo, item.poNo, item.status, item.amount, item.date]
+                [item.woNo, item.poNo, item.amount]
                     .filter(Boolean)
                     .some((value) => String(value).toLowerCase().includes(search))
             );
@@ -158,18 +114,10 @@ const Invoices = () => {
 
     const cols = [
         {
-            name: "Ref No",
-            selector: "refNo",
-            sort: true,
-            width: "180",
-            thclass: "tb-head",
-            contentClass: "table-content",
-        },
-        {
             name: "WO No",
             selector: "woNo",
             sort: true,
-            width: "160",
+            width: "220",
             thclass: "tb-head",
             contentClass: "table-content",
         },
@@ -177,7 +125,7 @@ const Invoices = () => {
             name: "PO No",
             selector: "poNo",
             sort: true,
-            width: "160",
+            width: "220",
             thclass: "tb-head",
             contentClass: "table-content",
         },
@@ -185,31 +133,14 @@ const Invoices = () => {
             name: "Amount",
             selector: "amount",
             sort: true,
-            width: "140",
+            width: "200",
             thclass: "tb-head",
             contentClass: "table-content",
-        },
-        {
-            name: "Date",
-            selector: "date",
-            sort: true,
-            width: "160",
-            thclass: "tb-head",
-            contentClass: "table-content",
-        },
-        {
-            name: "Status",
-            selector: "status",
-            sort: true,
-            width: "160",
-            thclass: "tb-head",
-            contentClass: "table-content",
-            cell: RenderStatusBadge,
         },
         {
             name: "Actions",
             selector: "actions",
-            width: "160",
+            width: "180",
             thclass: "tb-head",
             contentClass: "table-content",
             cell: (row) => (
@@ -324,7 +255,7 @@ const Invoices = () => {
                             );
                             setSelectedInvoiceForDelete(null);
                         }}
-                        deleteText={`Are you sure you want to delete invoice "${selectedInvoiceForDelete?.refNo}"?`}
+                        deleteText={`Are you sure you want to delete this invoice?`}
                         isLoading={false}
                     />
                 )}
