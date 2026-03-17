@@ -56,7 +56,7 @@ export function AddEditInvoicesModal({
 
     const renderHeader = () => (
         <h1 className="modal-title">
-            {selectedData?._id ? "Edit Invoice" : "Add Invoice"}
+            {selectedData?._id ? "Upload Invoice" : "Upload Invoice"}
         </h1>
     );
 

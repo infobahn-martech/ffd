@@ -141,8 +141,7 @@ const Dashboard = () => {
                         <table className="vendor-table">
                             <thead>
                                 <tr>
-                                    <th>Order No / PO No</th>
-                                    <th>WO No</th>
+                                    <th>PO No</th>
                                     <th>Company</th>
                                     <th>Order date</th>
                                     <th>Purchaser</th>

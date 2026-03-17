@@ -193,7 +193,7 @@ const Invoices = () => {
                     <CommonHeader
                         tableTitle="Invoices"
                         isAddEnabled
-                        addModalLabel="Add Invoice"
+                        addModalLabel="Upload Invoice"
                         setSearch={(e) =>
                             setParams((prev) => ({
                                 ...prev,
