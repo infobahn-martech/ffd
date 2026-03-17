@@ -49,8 +49,8 @@ function SideNav({ isMobileMenuOpen, onCloseMobileMenu, isVendorPortal = false }
   // Vendor Portal menu - simple direct links, no accordions
   const vendorMenus = [
     { menu: 'Dashboard', isDefaultMenu: true, to: '/vendor-portal/dashboard', icon: dashboardIcon, hasPermission: true },
-    { menu: 'Invoices', isDefaultMenu: true, to: '/vendor-portal/invoices', icon: billingIcon, hasPermission: true },
-    { menu: 'Orders', isDefaultMenu: true, to: '/vendor-portal/orders', icon: materialIcon, hasPermission: true },
+    { menu: 'Invoices Management', isDefaultMenu: true, to: '/vendor-portal/invoices', icon: billingIcon, hasPermission: true },
+    { menu: 'Orders Management', isDefaultMenu: true, to: '/vendor-portal/orders', icon: materialIcon, hasPermission: true },
   ];
   const isMobile = width <= 991;
   const { layoutView } = useLayoutView();
