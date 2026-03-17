@@ -94,10 +94,18 @@ const iconTypes = ["inprogress", "download", "document"];
 // Helper function to generate a single card
 const generateCard = (workflowId, colId, cardId) => {
   const workflow = workflowsConfig.find(w => w.id === workflowId);
-  const colorPool = Object.values(workflow.columnColors);
+
+  const colorOptions = [
+    "#34a97b",
+    "#7333bd",
+    "#e6186a",
+    "#f37325",
+    "#af0020",
+    "#607d8b",
+    "#336633",]
 
   // Random color
-  const randomColor = colorPool[Math.floor(Math.random() * colorPool.length)];
+  const randomColor = colorOptions[Math.floor(Math.random() * colorOptions.length)];
 
   // ⭐ Random icon assigned permanently
   const randomIconType = iconTypes[Math.floor(Math.random() * iconTypes.length)];
