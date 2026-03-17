@@ -175,6 +175,8 @@ const generateCard = (workflowId, colId, cardId) => {
     medicalService: ["done", "rejected", "inProgress"][Math.floor(Math.random() * 3)],
     medicalServiceCount: Math.floor(Math.random() * 5) + 1,
     footerShowIcons: footerShowIcons,
+    // Invoice amount in SAR (range: 20k–250k so some cards exceed 100k)
+    invoiceAmount: Math.floor(Math.random() * 230000) + 20000,
   };
 
   return { id, cardData };

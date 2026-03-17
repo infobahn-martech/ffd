@@ -36,6 +36,22 @@
   box-shadow: 0 8px 18px rgba(0, 0, 0, 0.15);
 }
 
+/* Invoice amount > 100,000 SAR highlight */
+.kanban-card.card-highlight-invoice {
+  border: 2px solid #f59e0b;
+  box-shadow: 0 2px 10px rgba(245, 158, 11, 0.35);
+  background: linear-gradient(to bottom, #fffbeb 0%, #fff 30%);
+}
+
+/* Invoice amount display */
+.card-invoice-amount {
+  font-size: 12px;
+  font-weight: 600;
+  color: #374151;
+  margin-bottom: 6px;
+  padding: 4px 0;
+}
+
 /* Header */
 .card-header {
   display: flex;

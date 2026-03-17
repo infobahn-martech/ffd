@@ -161,6 +161,10 @@ const StatusIcon = ({ status = "pending", IconComponent, size = 20 }) => {
 
 function CardItem({ card, index, setSelectedCard, isShrunk = false, hideExtraDetails = false, isClassicLayout = false, isModernLayout = false, isDarkMode = false, columnTitle = "" }) {
   const cardColor = card.color || "#2A00FF";
+  const invoiceAmount = card.invoiceAmount != null ? Number(card.invoiceAmount) : null;
+  const isHighInvoice = invoiceAmount != null && invoiceAmount > 100000;
+  const formatInvoiceAmount = (val) =>
+    new Intl.NumberFormat("en-SA", { minimumFractionDigits: 0, maximumFractionDigits: 0 }).format(val) + " SAR";
 
   // Helper function to truncate text
   const TruncatedText = ({ text, maxLength = 20 }) => {
@@ -174,7 +178,7 @@ function CardItem({ card, index, setSelectedCard, isShrunk = false, hideExtraDet
     <Draggable draggableId={card.id} index={index}>
       {(provided, snapshot) => (
         <div
-          className={`kanban-card ${snapshot.isDragging ? "dragging" : ""} ${card.priority ? "priority-blink" : ""} ${isShrunk ? "card-shrunk" : ""} ${isClassicLayout ? "kanban-card-classic" : ""} ${isModernLayout ? "kanban-card-modern" : ""} ${isDarkMode ? "kanban-card-dark" : ""}`}
+          className={`kanban-card ${snapshot.isDragging ? "dragging" : ""} ${card.priority ? "priority-blink" : ""} ${isShrunk ? "card-shrunk" : ""} ${isClassicLayout ? "kanban-card-classic" : ""} ${isModernLayout ? "kanban-card-modern" : ""} ${isDarkMode ? "kanban-card-dark" : ""} ${isHighInvoice ? "card-highlight-invoice" : ""}`}
           ref={provided.innerRef}
           {...provided.draggableProps}
           {...provided.dragHandleProps}
@@ -353,6 +357,13 @@ function CardItem({ card, index, setSelectedCard, isShrunk = false, hideExtraDet
                   </div>
                 );
               })()}
+
+              {/* Invoice Amount */}
+              {invoiceAmount != null && !isShrunk && (
+                <div className="card-invoice-amount">
+                  {formatInvoiceAmount(invoiceAmount)}
+                </div>
+              )}
 
               {/* Footer: time left + progress */}
               <div className={`card-footer ${isModernLayout ? "card-footer-modern" : ""}`}>
