@@ -69,6 +69,9 @@ import AdminBoard from "../pages/AdminBoard";
 import LHServices from "../pages/LHServices";
 import Fleet from "../pages/Fleet";
 import CrewTemplate from "../pages/CrewTemplate";
+import VendorPortalDashboard from "../pages/VendorPortal/Dashboard";
+import VendorPortalInvoices from "../pages/VendorPortal/Invoices";
+import VendorPortalOrders from "../pages/VendorPortal/Orders";
 // 🔥 Set true to bypass auth temporarily
 const TEST_MODE = false;
 
