@@ -23,9 +23,9 @@ const archiveWorkspace = (workspaceId) =>
 const getWorkspaceArchiveLog = () =>
   Gateway.get('/kanban_workspace/workspace_archive_log');
 
-const unarchiveWorkspace = (workspaceId) =>
-  Gateway.post(`/kanban_workspace/unarchive_workspace/${workspaceId}`, {
-    workspace_id: workspaceId,
+const unarchiveWorkspace = (board_id) =>
+  Gateway.post(`/kanban_workspace/unarchive_board/${board_id}`, {
+    board_id: board_id,
   });
 
 const createBoard = (data) =>

@@ -83,10 +83,11 @@ const useWorkSpaceReducer = create((set, get) => ({
       set({ archiveLog: [], archiveLogLoading: false });
     }
   },
-  unarchiveWorkspace: async ({ workspace_id, cb }) => {
+  unarchiveWorkspace: async ({ board_id, cb }) => {
+    debugger;
     try {
       set({ addEditLoader: true });
-      const { data } = await workSpaceService.unarchiveWorkspace(workspace_id);
+      const { data } = await workSpaceService.unarchiveWorkspace(board_id);
       set({ addEditLoader: false });
       const { success } = useAlertReducer.getState();
       success(data?.message ?? 'Workspace restored successfully');
@@ -161,11 +162,11 @@ const useWorkSpaceReducer = create((set, get) => ({
       workspaces: state.workspaces.map((w) =>
         String(w.workspace_id) === String(workspaceId)
           ? {
-              ...w,
-              boards: (w.boards || []).map((b) =>
-                String(b.board_id) === String(boardId) ? { ...b, board_name: newName } : b
-              ),
-            }
+            ...w,
+            boards: (w.boards || []).map((b) =>
+              String(b.board_id) === String(boardId) ? { ...b, board_name: newName } : b
+            ),
+          }
           : w
       ),
     })),

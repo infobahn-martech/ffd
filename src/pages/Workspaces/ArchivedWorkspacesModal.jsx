@@ -7,6 +7,7 @@ import '../../design/scss/Workspaces.scss';
 // workspace_id: from API or fallback to archive_log_id if backend uses it for unarchive lookup
 const mapArchiveLogItem = (row) => ({
   id: row.archive_log_id,
+  board_id: row.board_id ?? row.boardId ?? row.archive_log_id,
   workspace_id: row.workspace_id ?? row.workspaceId ?? row.archive_log_id,
   workspace: row.workspace_name ?? '',
   board: row.board_name ?? '',
@@ -31,7 +32,7 @@ const ArchivedWorkspacesModal = ({ show, onClose }) => {
       item.workspace.toLowerCase().includes(filterValue.toLowerCase()) ||
       item.board.toLowerCase().includes(filterValue.toLowerCase())
   );
-
+  console.log("archiveLog", archiveLog);
   useEffect(() => {
     if (show) fetchWorkspaceArchiveLog();
   }, [show, fetchWorkspaceArchiveLog]);
@@ -39,7 +40,7 @@ const ArchivedWorkspacesModal = ({ show, onClose }) => {
   const handleUnarchive = (id) => {
     if (id == null || id === '') return;
     unarchiveWorkspace({
-      workspace_id: id,
+      board_id: id,
       cb: () => { onClose(); fetchWorkspaceArchiveLog() },
     });
   };
@@ -175,7 +176,7 @@ const ArchivedWorkspacesModal = ({ show, onClose }) => {
                             onClick={(e) => {
                               e.preventDefault();
                               e.stopPropagation();
-                              handleUnarchive(item.workspace_id);
+                              handleUnarchive(item.board_id);
                             }}
                           >
                             <svg width="16" height="16" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
