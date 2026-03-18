@@ -36,11 +36,11 @@ const MOCK_RECENT_INVOICES = [
 ];
 
 const MOCK_RECENT_ORDERS = [
-    { orderNo: 'PO-2205', company: 'Sedres Ltd', orderDate: '10 Mar 2025', purchaser: 'J. Smith', subject: 'Launch hire – Port A', amount: '2,500', currency: '£', status: 'in progress' },
-    { orderNo: 'PO-2203', company: 'Marine Services Co', orderDate: '08 Mar 2025', purchaser: 'M. Jones', subject: 'Transport – Crew transfer', amount: '1,200', currency: '£', status: 'Closed' },
-    { orderNo: 'PO-2200', company: 'Sedres Ltd', orderDate: '05 Mar 2025', purchaser: 'K. Brown', subject: 'Provisions supply', amount: '3,800', currency: '£', status: 'in progress' },
-    { orderNo: 'PO-2197', company: 'Port Authority', orderDate: '03 Mar 2025', purchaser: 'J. Smith', subject: 'Agency services', amount: '950', currency: '£', status: 'closed' },
-    { orderNo: 'PO-2195', company: 'Marine Services Co', orderDate: '01 Mar 2025', purchaser: 'M. Jones', subject: 'Fresh water supply', amount: '600', currency: '£', status: 'in progress' },
+    { orderNo: 'PO-2205', company: 'Sedres Ltd', orderDate: '10 Mar 2025', purchaser: 'J. Smith', subject: 'Launch hire – Port A', amount: '2,500', currency: '£', status: 'In progress' },
+    { orderNo: 'PO-2203', company: 'Marine Services Co', orderDate: '08 Mar 2025', purchaser: 'M. Jones', subject: 'Transport – Crew transfer', amount: '1,200', currency: '£', status: 'In progress' },
+    { orderNo: 'PO-2200', company: 'Sedres Ltd', orderDate: '05 Mar 2025', purchaser: 'K. Brown', subject: 'Provisions supply', amount: '3,800', currency: '£', status: 'In progress' },
+    { orderNo: 'PO-2197', company: 'Port Authority', orderDate: '03 Mar 2025', purchaser: 'J. Smith', subject: 'Agency services', amount: '950', currency: '£', status: 'Closed' },
+    { orderNo: 'PO-2195', company: 'Marine Services Co', orderDate: '01 Mar 2025', purchaser: 'M. Jones', subject: 'Fresh water supply', amount: '600', currency: '£', status: 'In progress' },
 ];
 
 const Dashboard = () => {
