@@ -17,7 +17,7 @@ const MOCK_SUMMARY = {
     totalOrders: 24,
     invoicesSubmitted: 18,
     pendingInvoices: 5,
-    paidAmount: '£42,750',
+    paidAmount: 'SAR42,750',
 };
 
 const MOCK_INVOICE_STATUS = {
@@ -28,19 +28,19 @@ const MOCK_INVOICE_STATUS = {
 };
 
 const MOCK_RECENT_INVOICES = [
-    { invoiceNo: 'INV-2024-101', refNo: 'WO-8842', company: 'Sedres Ltd', type: 'Service', amount: '3,200', currency: '£', date: '12 Mar 2025', status: 'Approved' },
-    { invoiceNo: 'INV-2024-100', refNo: 'WO-8839', company: 'Marine Services Co', type: 'Provisions', amount: '1,850', currency: '£', date: '10 Mar 2025', status: 'Approved' },
-    { invoiceNo: 'INV-2024-099', refNo: 'WO-8835', company: 'Sedres Ltd', type: 'Transport', amount: '5,100', currency: '£', date: '08 Mar 2025', status: 'Paid' },
-    { invoiceNo: 'INV-2024-098', refNo: 'WO-8830', company: 'Port Authority', type: 'Agency', amount: '2,400', currency: '£', date: '05 Mar 2025', status: 'Rejected' },
-    { invoiceNo: 'INV-2024-097', refNo: 'WO-8828', company: 'Marine Services Co', type: 'Launch hire', amount: '4,200', currency: '£', date: '03 Mar 2025', status: 'Paid' },
+    { invoiceNo: 'INV-2024-101', refNo: 'WO-8842', company: 'Sedres Ltd', type: 'Service', amount: '3,200', currency: 'SAR', date: '12 Mar 2025', status: 'Approved' },
+    { invoiceNo: 'INV-2024-100', refNo: 'WO-8839', company: 'Marine Services Co', type: 'Provisions', amount: '1,850', currency: 'SAR', date: '10 Mar 2025', status: 'Approved' },
+    { invoiceNo: 'INV-2024-099', refNo: 'WO-8835', company: 'Sedres Ltd', type: 'Transport', amount: '5,100', currency: 'SAR', date: '08 Mar 2025', status: 'Paid' },
+    { invoiceNo: 'INV-2024-098', refNo: 'WO-8830', company: 'Port Authority', type: 'Agency', amount: '2,400', currency: 'SAR', date: '05 Mar 2025', status: 'Rejected' },
+    { invoiceNo: 'INV-2024-097', refNo: 'WO-8828', company: 'Marine Services Co', type: 'Launch hire', amount: '4,200', currency: 'SAR', date: '03 Mar 2025', status: 'Paid' },
 ];
 
 const MOCK_RECENT_ORDERS = [
-    { orderNo: 'PO-2205', company: 'Sedres Ltd', orderDate: '10 Mar 2025', purchaser: 'J. Smith', subject: 'Launch hire – Port A', amount: '2,500', currency: '£', status: 'In progress' },
-    { orderNo: 'PO-2203', company: 'Marine Services Co', orderDate: '08 Mar 2025', purchaser: 'M. Jones', subject: 'Transport – Crew transfer', amount: '1,200', currency: '£', status: 'In progress' },
-    { orderNo: 'PO-2200', company: 'Sedres Ltd', orderDate: '05 Mar 2025', purchaser: 'K. Brown', subject: 'Provisions supply', amount: '3,800', currency: '£', status: 'In progress' },
-    { orderNo: 'PO-2197', company: 'Port Authority', orderDate: '03 Mar 2025', purchaser: 'J. Smith', subject: 'Agency services', amount: '950', currency: '£', status: 'Closed' },
-    { orderNo: 'PO-2195', company: 'Marine Services Co', orderDate: '01 Mar 2025', purchaser: 'M. Jones', subject: 'Fresh water supply', amount: '600', currency: '£', status: 'In progress' },
+    { orderNo: 'PO-2205', company: 'Sedres Ltd', orderDate: '10 Mar 2025', purchaser: 'J. Smith', subject: 'Launch hire – Port A', amount: '2,500', currency: 'SAR', status: 'In progress' },
+    { orderNo: 'PO-2203', company: 'Marine Services Co', orderDate: '08 Mar 2025', purchaser: 'M. Jones', subject: 'Transport – Crew transfer', amount: '1,200', currency: 'SAR', status: 'In progress' },
+    { orderNo: 'PO-2200', company: 'Sedres Ltd', orderDate: '05 Mar 2025', purchaser: 'K. Brown', subject: 'Provisions supply', amount: '3,800', currency: 'SAR', status: 'In progress' },
+    { orderNo: 'PO-2197', company: 'Port Authority', orderDate: '03 Mar 2025', purchaser: 'J. Smith', subject: 'Agency services', amount: '950', currency: 'SAR', status: 'Closed' },
+    { orderNo: 'PO-2195', company: 'Marine Services Co', orderDate: '01 Mar 2025', purchaser: 'M. Jones', subject: 'Fresh water supply', amount: '600', currency: 'SAR', status: 'In progress' },
 ];
 
 const Dashboard = () => {
@@ -133,6 +133,34 @@ const Dashboard = () => {
                 </div>
             </div>
 
+            {/* 5. Quick actions */}
+            <div className="vendor-dashboard-section">
+                <h3 className="vendor-section-title">Quick Actions</h3>
+                <div className="vendor-quick-actions">
+                    {/* <button
+                        type="button"
+                        className="vendor-quick-action-btn primary"
+                        onClick={() => navigate('/vendor-portal/invoices')}
+                    >
+                        <FiPlusCircle /> Add Invoice
+                    </button> */}
+                    <button
+                        type="button"
+                        className="vendor-quick-action-btn"
+                        onClick={() => navigate('/vendor-portal/invoices')}
+                    >
+                        <FiList /> View Invoices
+                    </button>
+                    <button
+                        type="button"
+                        className="vendor-quick-action-btn"
+                        onClick={() => navigate('/vendor-portal/orders')}
+                    >
+                        <FiPackage /> View Orders
+                    </button>
+                </div>
+            </div>
+
             {/* 4. Recent Orders table */}
             <div className="vendor-dashboard-section">
                 <h3 className="vendor-section-title">Recent Orders</h3>
@@ -217,33 +245,6 @@ const Dashboard = () => {
 
 
 
-            {/* 5. Quick actions */}
-            <div className="vendor-dashboard-section">
-                <h3 className="vendor-section-title">Quick Actions</h3>
-                <div className="vendor-quick-actions">
-                    {/* <button
-                        type="button"
-                        className="vendor-quick-action-btn primary"
-                        onClick={() => navigate('/vendor-portal/invoices')}
-                    >
-                        <FiPlusCircle /> Add Invoice
-                    </button> */}
-                    <button
-                        type="button"
-                        className="vendor-quick-action-btn"
-                        onClick={() => navigate('/vendor-portal/invoices')}
-                    >
-                        <FiList /> View Invoices
-                    </button>
-                    <button
-                        type="button"
-                        className="vendor-quick-action-btn"
-                        onClick={() => navigate('/vendor-portal/orders')}
-                    >
-                        <FiPackage /> View Orders
-                    </button>
-                </div>
-            </div>
         </div>
     );
 };

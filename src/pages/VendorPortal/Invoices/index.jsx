@@ -32,37 +32,37 @@ const initialMockInvoices = [
         _id: "1",
         woNo: "WO-8842",
         poNo: "PO-2201",
-        amount: "£3,200",
+        amount: "SAR3,200",
     },
     {
         _id: "2",
         woNo: "WO-8839",
         poNo: "PO-2198",
-        amount: "£1,850",
+        amount: "SAR1,850",
     },
     {
         _id: "3",
         woNo: "WO-8835",
         poNo: "PO-2194",
-        amount: "£5,100",
+        amount: "SAR5,100",
     },
     {
         _id: "4",
         woNo: "WO-8830",
         poNo: "PO-2189",
-        amount: "£2,400",
+        amount: "SAR2,400",
     },
     {
         _id: "5",
         woNo: "WO-8828",
         poNo: "PO-2187",
-        amount: "£4,200",
+        amount: "SAR4,200",
     },
     {
         _id: "6",
         woNo: "WO-8826",
         poNo: "PO-2185",
-        amount: "£950",
+        amount: "SAR950",
     },
 ];
 

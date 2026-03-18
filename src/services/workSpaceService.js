@@ -24,7 +24,7 @@ const getWorkspaceArchiveLog = () =>
   Gateway.get('/kanban_workspace/workspace_archive_log');
 
 const unarchiveWorkspace = (board_id) =>
-  Gateway.post(`/kanban_workspace/unarchive_board/${board_id}`, {
+  Gateway.post(`/kanban_board/unarchive_board/${board_id}`, {
     board_id: board_id,
   });
 

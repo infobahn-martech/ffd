@@ -34,7 +34,7 @@ const mockOrders = [
         refNo: "ORD-2025-001",
         dateSubmitted: "12 Mar 2025",
         woPoNo: "WO-8842 / PO-2201",
-        amount: "£3,200",
+        amount: "SAR3,200",
         status: "Pending",
     },
     {
@@ -42,7 +42,7 @@ const mockOrders = [
         refNo: "ORD-2025-002",
         dateSubmitted: "10 Mar 2025",
         woPoNo: "WO-8839 / PO-2198",
-        amount: "£1,850",
+        amount: "SAR1,850",
         status: "Approved",
     },
     {
@@ -50,7 +50,7 @@ const mockOrders = [
         refNo: "ORD-2025-003",
         dateSubmitted: "08 Mar 2025",
         woPoNo: "WO-8835 / PO-2194",
-        amount: "£5,100",
+        amount: "SAR5,100",
         status: "Paid",
     },
     {
@@ -58,7 +58,7 @@ const mockOrders = [
         refNo: "ORD-2025-004",
         dateSubmitted: "05 Mar 2025",
         woPoNo: "WO-8830 / PO-2189",
-        amount: "£2,400",
+        amount: "SAR2,400",
         status: "Pending",
     },
     {
@@ -66,7 +66,7 @@ const mockOrders = [
         refNo: "ORD-2025-005",
         dateSubmitted: "03 Mar 2025",
         woPoNo: "WO-8828 / PO-2187",
-        amount: "£4,200",
+        amount: "SAR4,200",
         status: "Approved",
     },
 ];
