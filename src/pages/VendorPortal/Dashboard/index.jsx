@@ -17,7 +17,7 @@ const MOCK_SUMMARY = {
     totalOrders: 24,
     invoicesSubmitted: 18,
     pendingInvoices: 5,
-    paidAmount: 'SAR42,750',
+    paidAmount: '42,750 SAR',
 };
 
 const MOCK_INVOICE_STATUS = {
