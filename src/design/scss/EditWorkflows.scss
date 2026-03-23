@@ -232,6 +232,16 @@
   min-width: 0;
   background: #f8f9fc;
 
+  .workflows-loading,
+  .workflows-empty {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    min-height: 200px;
+    color: #6b7280;
+    font-size: 15px;
+  }
+
   // Transparent scrollbar
   scrollbar-width: thin;
   scrollbar-color: transparent transparent;

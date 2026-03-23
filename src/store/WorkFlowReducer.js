@@ -1,6 +1,7 @@
 import { create } from 'zustand';
 import useAlertReducer from './AlertReducer';
 import workflowService from '../services/workflowService';
+import { transformApiWorkflowToInternal } from '../pages/EditWorkflows/workflow.utils';
 
 const useWorkFlowReducer = create((set) => ({
     isLoading: false,
@@ -12,11 +13,9 @@ const useWorkFlowReducer = create((set) => ({
         try {
             set({ isLoading: true });
             const { data } = await workflowService.getWorkflowByBoard(boardId);
-            // For now we only log the response and keep UI static
-            // eslint-disable-next-line no-console
-            console.log('get_workflow_by_board response:', data);
+            const transformed = transformApiWorkflowToInternal(data);
             set({
-                workflows: data?.data ?? null,
+                workflows: transformed ? [transformed] : null,
                 isLoading: false,
             });
         } catch (err) {

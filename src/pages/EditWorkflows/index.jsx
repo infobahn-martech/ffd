@@ -23,9 +23,29 @@ const areaColors = {
   'READY TO ARCHIVE AREA': '#7333bd',
 };
 
+const DEFAULT_WORKFLOWS = [
+  {
+    id: 1,
+    name: 'Default Workflow',
+    swimlanes: [
+      {
+        id: 1,
+        name: 'Default Swimlane',
+        stages: [
+          { id: 1, name: 'Backlog', area: 'BACKLOG AREA', limit: 0, cardsPerRow: 1, row: 0, col: 0, colSpan: 1 },
+          { id: 2, name: 'Requested', area: 'REQUESTED AREA', limit: 0, cardsPerRow: 1, row: 0, col: 0, colSpan: 1 },
+          { id: 3, name: 'In Progress', area: 'IN PROGRESS AREA', limit: 0, cardsPerRow: 1, row: 0, col: 0, colSpan: 1 },
+          { id: 4, name: 'Done', area: 'DONE AREA', limit: 0, cardsPerRow: 1, row: 0, col: 0, colSpan: 1 },
+          { id: 5, name: 'Ready to Archive', area: 'READY TO ARCHIVE AREA', limit: 0, cardsPerRow: 1, row: 0, col: 0, colSpan: 1 },
+        ],
+      },
+    ],
+  },
+];
+
 function EditWorkflows() {
   const [searchParams] = useSearchParams();
-  const { getWorkflowByBoard, renameWorkflow } = useWorkFlowReducer();
+  const { getWorkflowByBoard, renameWorkflow, workflows: apiWorkflows, isLoading } = useWorkFlowReducer();
 
   const [boardName, setBoardName] = useState('Team workspace');
   const [description, setDescription] = useState('There is no description');
@@ -38,25 +58,7 @@ function EditWorkflows() {
   const [editingWorkflowName, setEditingWorkflowName] = useState('');
   const [editingStageId, setEditingStageId] = useState(null);
   const [editingStageName, setEditingStageName] = useState('');
-  const [workflows, setWorkflows] = useState([
-    {
-      id: 1,
-      name: 'Main work flow RT',
-      swimlanes: [
-        {
-          id: 1,
-          name: 'Default Swimlane',
-          stages: [
-            { id: 1, name: 'Backlog', area: 'BACKLOG AREA', limit: 0, cardsPerRow: 1, row: 0, col: 0, colSpan: 1 },
-            { id: 2, name: 'Appointment Received', area: 'REQUESTED AREA', limit: 0, cardsPerRow: 1, row: 0, col: 0, colSpan: 1 },
-            { id: 3, name: 'Ops In Progress', area: 'IN PROGRESS AREA', limit: 0, cardsPerRow: 1, row: 0, col: 0, colSpan: 1 },
-            { id: 4, name: 'Dispatched', area: 'DONE AREA', limit: 0, cardsPerRow: 1, row: 0, col: 0, colSpan: 1 },
-            { id: 5, name: 'Ready To Archive', area: 'READY TO ARCHIVE AREA', limit: 0, cardsPerRow: 1, row: 0, col: 0, colSpan: 1 },
-          ],
-        },
-      ],
-    },
-  ]);
+  const [workflows, setWorkflows] = useState(DEFAULT_WORKFLOWS);
 
   useEffect(() => {
     const boardId = searchParams.get('boardId');
@@ -64,6 +66,12 @@ function EditWorkflows() {
       getWorkflowByBoard({ boardId });
     }
   }, [searchParams, getWorkflowByBoard]);
+
+  useEffect(() => {
+    if (apiWorkflows && Array.isArray(apiWorkflows) && apiWorkflows.length > 0) {
+      setWorkflows(apiWorkflows);
+    }
+  }, [apiWorkflows]);
 
   const handleStageBoxMouseEnter = (
     e,
@@ -342,7 +350,12 @@ function EditWorkflows() {
     <div className="edit-workflows-container">
       <div className="edit-workflows-layout">
         <div className="workflows-content">
-          {workflows.map((workflow) => (
+          {isLoading ? (
+            <div className="workflows-loading">Loading workflow…</div>
+          ) : workflows.length === 0 ? (
+            <div className="workflows-empty">No workflow found. Add boardId to the URL to load a workflow.</div>
+          ) : (
+          workflows.map((workflow) => (
             <div key={workflow.id} className="workflow-card">
               <div className="workflow-header">
                 <div className="workflow-header-left">
@@ -427,7 +440,8 @@ function EditWorkflows() {
                 />
               </div>
             </div>
-          ))}
+          ))
+          )}
         </div>
 
         <div className="workflows-sidebar">

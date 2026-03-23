@@ -11,6 +11,106 @@ export const AREA_ORDER = [
   'READY TO ARCHIVE AREA',
 ];
 
+/**
+ * Map API stage to internal area.
+ * Uses is_archive_stage, is_done_stage, then stage_order.
+ */
+function getAreaForApiStage(apiStage) {
+  if (apiStage.is_archive_stage === '1') return 'READY TO ARCHIVE AREA';
+  if (apiStage.is_done_stage === '1') return 'DONE AREA';
+  const order = parseInt(apiStage.stage_order, 10) || 0;
+  return AREA_ORDER[Math.max(0, order - 1)] ?? AREA_ORDER[0];
+}
+
+/**
+ * Transform API workflow response to internal workflow shape.
+ * Accepts full response { status, data } or inner data { workflow_id, workflow_name, stages, swimlanes }.
+ * API: { workflow_id, workflow_name, stages: [{ stage_id, stage_name, stage_order, color_code, is_done_stage, is_archive_stage, columns }], swimlanes }
+ * Internal: { id, name, swimlanes: [{ id, name, stages: [{ id, name, area, limit, cardsPerRow, row, col, colSpan, color }] }] }
+ */
+export function transformApiWorkflowToInternal(apiResponse) {
+  const inner = apiResponse?.status === 'success' ? apiResponse?.data : apiResponse;
+  if (!inner?.workflow_id) return null;
+  const { workflow_id, workflow_name, stages = [], swimlanes: apiSwimlanes = [] } = inner;
+
+  const workflowId = parseInt(workflow_id, 10) || workflow_id;
+  const workflowName = workflow_name || 'Workflow';
+
+  const internalSwimlanes =
+    apiSwimlanes.length > 0
+      ? transformApiSwimlanes(apiSwimlanes, stages)
+      : [createDefaultSwimlaneFromStages(stages)];
+
+  return {
+    id: workflowId,
+    name: workflowName,
+    swimlanes: internalSwimlanes,
+  };
+}
+
+function createDefaultSwimlaneFromStages(apiStages) {
+  const sortedStages = [...apiStages].sort(
+    (a, b) => (parseInt(a.stage_order, 10) || 0) - (parseInt(b.stage_order, 10) || 0)
+  );
+
+  const stages = [];
+  sortedStages.forEach((apiStage) => {
+    const area = getAreaForApiStage(apiStage);
+    const columns = apiStage.columns || [{ column_id: apiStage.stage_id, column_name: apiStage.stage_name, column_order: '1', cards_per_row: '1' }];
+    const sortedColumns = [...columns].sort(
+      (a, b) => (parseInt(a.column_order, 10) || 0) - (parseInt(b.column_order, 10) || 0)
+    );
+    sortedColumns.forEach((col, colIdx) => {
+      stages.push({
+        id: parseInt(col.column_id, 10) || stages.length + 1,
+        name: col.column_name || apiStage.stage_name,
+        area,
+        limit: 0,
+        cardsPerRow: parseInt(col.cards_per_row, 10) || 1,
+        row: 0,
+        col: colIdx,
+        colSpan: 1,
+        color: apiStage.color_code || undefined,
+      });
+    });
+  });
+
+  return {
+    id: 1,
+    name: 'Default Swimlane',
+    stages,
+  };
+}
+
+function transformApiSwimlanes(apiSwimlanes, apiStages) {
+  const stageMap = new Map((apiStages || []).map((s) => [String(s.stage_id), s]));
+  return apiSwimlanes.map((sl, idx) => {
+    const swimlaneId = parseInt(sl.swimlane_id ?? sl.id, 10) || idx + 1;
+    const stages = (sl.stages || sl.columns || []).flatMap((ref) => {
+      const apiStage = typeof ref === 'object' ? stageMap.get(String(ref.stage_id ?? ref)) : null;
+      if (!apiStage) return [];
+      const area = getAreaForApiStage(apiStage);
+      const columns = apiStage.columns || [{ column_id: apiStage.stage_id, column_name: apiStage.stage_name, column_order: '1', cards_per_row: '1' }];
+      return columns.map((col, colIdx) => ({
+        id: parseInt(col.column_id, 10) || 0,
+        name: col.column_name || apiStage.stage_name,
+        area,
+        limit: 0,
+        cardsPerRow: parseInt(col.cards_per_row, 10) || 1,
+        row: 0,
+        col: colIdx,
+        colSpan: 1,
+        color: apiStage.color_code || undefined,
+      }));
+    });
+    return {
+      id: swimlaneId,
+      name: sl.swimlane_name ?? sl.name ?? `Swimlane ${idx + 1}`,
+      stages,
+    };
+  });
+}
+
 export function rgbToHex(rgb) {
   if (!rgb) return '#f9fafb';
   if (rgb.startsWith('#')) return rgb.toUpperCase();
