@@ -38,142 +38,120 @@ function WorkflowSwimlane({
 
   const contentRow = (
     <div className="workflow-swimlane-row">
-        <div className="workflow-swimlane-label-cell">
-          {onAddSwimlane && (
-            <>
-              <button
-                type="button"
-                className="workflow-swimlane-add-grid-bar workflow-swimlane-add-grid-bar--top"
-                onClick={(e) => {
+      <div className="workflow-swimlane-label-cell">
+        {onAddSwimlane && (
+          <>
+            <button
+              type="button"
+              className="workflow-swimlane-add-grid-bar workflow-swimlane-add-grid-bar--top"
+              onClick={(e) => {
+                e.stopPropagation();
+                onAddSwimlane(workflowId, swimlaneIndex);
+              }}
+              onKeyDown={(e) => {
+                if (e.key === 'Enter' || e.key === ' ') {
+                  e.preventDefault();
                   e.stopPropagation();
                   onAddSwimlane(workflowId, swimlaneIndex);
-                }}
-                onKeyDown={(e) => {
-                  if (e.key === 'Enter' || e.key === ' ') {
-                    e.preventDefault();
-                    e.stopPropagation();
-                    onAddSwimlane(workflowId, swimlaneIndex);
-                  }
-                }}
-                title="Add swimlane above"
-                aria-label={`Add swimlane before row ${swimlaneIndex + 1}`}
-              >
-                <svg width="14" height="14" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden>
-                  <path d="M8 3V13M3 8H13" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" />
-                </svg>
-              </button>
-              <button
-                type="button"
-                className="workflow-swimlane-add-grid-bar workflow-swimlane-add-grid-bar--bottom"
-                onClick={(e) => {
+                }
+              }}
+              title="Add swimlane above"
+              aria-label={`Add swimlane before row ${swimlaneIndex + 1}`}
+            >
+              <svg width="14" height="14" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden>
+                <path d="M8 3V13M3 8H13" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" />
+              </svg>
+            </button>
+            <button
+              type="button"
+              className="workflow-swimlane-add-grid-bar workflow-swimlane-add-grid-bar--bottom"
+              onClick={(e) => {
+                e.stopPropagation();
+                onAddSwimlane(workflowId, swimlaneIndex + 1);
+              }}
+              onKeyDown={(e) => {
+                if (e.key === 'Enter' || e.key === ' ') {
+                  e.preventDefault();
                   e.stopPropagation();
                   onAddSwimlane(workflowId, swimlaneIndex + 1);
-                }}
-                onKeyDown={(e) => {
-                  if (e.key === 'Enter' || e.key === ' ') {
-                    e.preventDefault();
-                    e.stopPropagation();
-                    onAddSwimlane(workflowId, swimlaneIndex + 1);
-                  }
-                }}
-                title="Add swimlane below"
-                aria-label={`Add swimlane after row ${swimlaneIndex + 1}`}
-              >
-                <svg width="14" height="14" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden>
-                  <path d="M8 3V13M3 8H13" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" />
-                </svg>
-              </button>
-            </>
-          )}
-          <span className="workflow-swimlane-label-text">{swimlane.name}</span>
-          <div className="workflow-swimlane-label-icons">
-            <button type="button" className="workflow-swimlane-icon-btn" title="Color" aria-label="Color">
-              <svg width="14" height="14" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
-                <path d="M2 4h12v8H2V4z" fill="currentColor" />
-                <rect x="4" y="6" width="8" height="4" fill="white" stroke="currentColor" strokeWidth="0.5" />
+                }
+              }}
+              title="Add swimlane below"
+              aria-label={`Add swimlane after row ${swimlaneIndex + 1}`}
+            >
+              <svg width="14" height="14" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden>
+                <path d="M8 3V13M3 8H13" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" />
               </svg>
             </button>
-            <button type="button" className="workflow-swimlane-icon-btn workflow-swimlane-icon-btn-delete" title="Delete" aria-label="Delete swimlane">
-              <svg width="14" height="14" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
-                <path d="M2 4H14M5 4V3C5 2.44772 5.44772 2 6 2H10C10.5523 2 11 2.44772 11 3V4M6 7V11M10 7V11M3 4L3 13C3 13.5523 3.44772 14 4 14H12C12.5523 14 13 13.5523 13 13V4" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
-              </svg>
-            </button>
-          </div>
-        </div>
-        <div className="workflow-swimlane-content-row">
-          {boardStructure.map(({ area, cols }) => {
-            const blockWidth = cols * stageCellWidth + Math.max(0, cols - 1) * stageGap;
-            return (
-              <div
-                key={area}
-                className="workflow-swimlane-content-area"
-                style={{ width: blockWidth, minWidth: blockWidth }}
-              >
-                {Array.from({ length: cols }, (_, colIdx) => {
-                  const stagesInCol = getStagesInColumn(swimlane, area, colIdx);
-                  const stage = stagesInCol[0];
-                  const limit = stage?.limit ?? 0;
-                  const cardsPerRow = stage?.cardsPerRow ?? 1;
-                  return (
-                    <div
-                      key={`${area}-${colIdx}`}
-                      className="workflow-swimlane-content-cell"
-                    >
-                      <div className="workflow-swimlane-cell-fields">
-                        <label className="workflow-swimlane-cell-field">
-                          <span className="workflow-swimlane-cell-label">Limit:</span>
-                          <input
-                            type="number"
-                            min={0}
-                            className="workflow-swimlane-inline-input"
-                            value={limit}
-                            onChange={(e) => {
-                              const v = e.target.value;
-                              if ((v === '' || /^\d+$/.test(v)) && stage && onStageLimitChange) {
-                                onStageLimitChange(workflowId, swimlane.id, stage.id, v === '' ? '0' : v);
-                              }
-                            }}
-                            onBlur={(e) => {
-                              const num = Math.max(0, parseInt(e.target.value, 10) || 0);
-                              if (stage && onStageLimitChange) {
-                                onStageLimitChange(workflowId, swimlane.id, stage.id, String(num));
-                              }
-                            }}
-                            onClick={(e) => e.stopPropagation()}
-                          />
-                        </label>
-                        <label className="workflow-swimlane-cell-field">
-                          <span className="workflow-swimlane-cell-label">Cards per row:</span>
-                          <input
-                            type="number"
-                            min={1}
-                            className="workflow-swimlane-inline-input"
-                            value={cardsPerRow}
-                            onChange={(e) => {
-                              const v = e.target.value;
-                              if ((v === '' || /^\d+$/.test(v)) && stage && onStageCardsPerRowChange) {
-                                onStageCardsPerRowChange(workflowId, swimlane.id, stage.id, v === '' ? '1' : v);
-                              }
-                            }}
-                            onBlur={(e) => {
-                              const num = Math.max(1, parseInt(e.target.value, 10) || 1);
-                              if (stage && onStageCardsPerRowChange) {
-                                onStageCardsPerRowChange(workflowId, swimlane.id, stage.id, String(num));
-                              }
-                            }}
-                            onClick={(e) => e.stopPropagation()}
-                          />
-                        </label>
-                      </div>
-                      <div className="workflow-swimlane-dashed-placeholder" />
-                    </div>
-                  );
-                })}
-              </div>
-            );
-          })}
+          </>
+        )}
+        <span className="workflow-swimlane-label-text">{swimlane.name}</span>
+        <div className="workflow-swimlane-label-icons">
+          <button type="button" className="workflow-swimlane-icon-btn" title="Color" aria-label="Color">
+            <svg width="14" height="14" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
+              <path d="M2 4h12v8H2V4z" fill="currentColor" />
+              <rect x="4" y="6" width="8" height="4" fill="white" stroke="currentColor" strokeWidth="0.5" />
+            </svg>
+          </button>
+          <button type="button" className="workflow-swimlane-icon-btn workflow-swimlane-icon-btn-delete" title="Delete" aria-label="Delete swimlane">
+            <svg width="14" height="14" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
+              <path d="M2 4H14M5 4V3C5 2.44772 5.44772 2 6 2H10C10.5523 2 11 2.44772 11 3V4M6 7V11M10 7V11M3 4L3 13C3 13.5523 3.44772 14 4 14H12C12.5523 14 13 13.5523 13 13V4" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
+            </svg>
+          </button>
         </div>
       </div>
+      <div className="workflow-swimlane-content-row">
+        {boardStructure.map(({ area, cols }) => {
+          const blockWidth = cols * stageCellWidth + Math.max(0, cols - 1) * stageGap;
+          return (
+            <div
+              key={area}
+              className="workflow-swimlane-content-area"
+              style={{ width: blockWidth, minWidth: blockWidth }}
+            >
+              {Array.from({ length: cols }, (_, colIdx) => {
+                const stagesInCol = getStagesInColumn(swimlane, area, colIdx);
+                const stage = stagesInCol[0];
+                const limit = stage?.limit ?? 0;
+                const cardsPerRow = stage?.cardsPerRow ?? 1;
+                return (
+                  <div
+                    key={`${area}-${colIdx}`}
+                    className="workflow-swimlane-content-cell"
+                  >
+                    <div className="workflow-swimlane-cell-fields">
+                      <label className="workflow-swimlane-cell-field">
+                        <span className="workflow-swimlane-cell-label">Limit:</span>
+                        <input
+                          type="number"
+                          min={0}
+                          className="workflow-swimlane-inline-input"
+                          value={limit}
+                          onChange={(e) => {
+                            const v = e.target.value;
+                            if ((v === '' || /^\d+$/.test(v)) && stage && onStageLimitChange) {
+                              onStageLimitChange(workflowId, swimlane.id, stage.id, v === '' ? '0' : v);
+                            }
+                          }}
+                          onBlur={(e) => {
+                            const num = Math.max(0, parseInt(e.target.value, 10) || 0);
+                            if (stage && onStageLimitChange) {
+                              onStageLimitChange(workflowId, swimlane.id, stage.id, String(num));
+                            }
+                          }}
+                          onClick={(e) => e.stopPropagation()}
+                        />
+                      </label>
+                    </div>
+                    <div className="workflow-swimlane-dashed-placeholder" />
+                  </div>
+                );
+              })}
+            </div>
+          );
+        })}
+      </div>
+    </div>
   );
 
   if (contentRowOnly) {
