@@ -83,29 +83,38 @@ function createDefaultSwimlaneFromStages(apiStages) {
 }
 
 function transformApiSwimlanes(apiSwimlanes, apiStages) {
+  const defaultSwimlane = createDefaultSwimlaneFromStages(apiStages);
   const stageMap = new Map((apiStages || []).map((s) => [String(s.stage_id), s]));
+
   return apiSwimlanes.map((sl, idx) => {
     const swimlaneId = parseInt(sl.swimlane_id ?? sl.id, 10) || idx + 1;
-    const stages = (sl.stages || sl.columns || []).flatMap((ref) => {
-      const apiStage = typeof ref === 'object' ? stageMap.get(String(ref.stage_id ?? ref)) : null;
-      if (!apiStage) return [];
-      const area = getAreaForApiStage(apiStage);
-      const columns = apiStage.columns || [{ column_id: apiStage.stage_id, column_name: apiStage.stage_name, column_order: '1', cards_per_row: '1' }];
-      return columns.map((col, colIdx) => ({
-        id: parseInt(col.column_id, 10) || 0,
-        name: col.column_name || apiStage.stage_name,
-        area,
-        limit: 0,
-        cardsPerRow: parseInt(col.cards_per_row, 10) || 1,
-        row: 0,
-        col: colIdx,
-        colSpan: 1,
-        color: apiStage.color_code || undefined,
-      }));
-    });
+    const swimlaneName = sl.swimlane_name ?? sl.name ?? `Swimlane ${idx + 1}`;
+
+    const refs = sl.stages ?? sl.columns ?? [];
+    const stages =
+      refs.length > 0
+        ? refs.flatMap((ref) => {
+            const apiStage = typeof ref === 'object' ? stageMap.get(String(ref.stage_id ?? ref)) : null;
+            if (!apiStage) return [];
+            const area = getAreaForApiStage(apiStage);
+            const columns = apiStage.columns || [{ column_id: apiStage.stage_id, column_name: apiStage.stage_name, column_order: '1', cards_per_row: '1' }];
+            return columns.map((col, colIdx) => ({
+              id: parseInt(col.column_id, 10) || 0,
+              name: col.column_name || apiStage.stage_name,
+              area,
+              limit: 0,
+              cardsPerRow: parseInt(col.cards_per_row, 10) || 1,
+              row: 0,
+              col: colIdx,
+              colSpan: 1,
+              color: apiStage.color_code || undefined,
+            }));
+          })
+        : defaultSwimlane.stages;
+
     return {
       id: swimlaneId,
-      name: sl.swimlane_name ?? sl.name ?? `Swimlane ${idx + 1}`,
+      name: swimlaneName,
       stages,
     };
   });
