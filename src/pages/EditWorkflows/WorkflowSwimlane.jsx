@@ -140,73 +140,37 @@ function WorkflowSwimlane({
                       <div className="workflow-swimlane-cell-field">
                         <span className="workflow-swimlane-cell-label">Limit:</span>
                         <span className="workflow-swimlane-cell-value-slot">
-                        {isEditingLimit ? (
-                          <input
-                            type="text"
-                            inputMode="numeric"
-                            pattern="[0-9]*"
-                            className="workflow-swimlane-inline-input workflow-swimlane-inline-input-edit"
-                            value={editValue}
-                            onChange={(e) => {
-                              const v = e.target.value;
-                              if (v === '' || /^\d+$/.test(v)) setEditValue(v);
-                            }}
-                            onBlur={saveLimit}
-                            onKeyDown={(e) => {
-                              if (e.key === 'Enter') saveLimit();
-                              else if (e.key === 'Escape') setEditingFieldKey(null);
-                            }}
-                            onClick={(e) => e.stopPropagation()}
-                            autoFocus
-                          />
-                        ) : (
-                          <span
-                            className="workflow-swimlane-cell-value"
-                            onClick={(e) => { e.stopPropagation(); if (stage) { setEditingFieldKey(limitKey); setEditValue(String(limit)); } }}
-                            role="button"
-                            tabIndex={0}
-                            onKeyDown={(e) => { if ((e.key === 'Enter' || e.key === ' ') && stage) { e.preventDefault(); setEditingFieldKey(limitKey); setEditValue(String(limit)); } }}
-                            title="Click to edit"
-                          >
-                            {limit}
-                          </span>
-                        )}
-                        </span>
-                      </div>
-                      <div className="workflow-swimlane-cell-field">
-                        <span className="workflow-swimlane-cell-label">Cards per row:</span>
-                        <span className="workflow-swimlane-cell-value-slot">
-                        {isEditingCards ? (
-                          <input
-                            type="text"
-                            inputMode="numeric"
-                            pattern="[0-9]*"
-                            className="workflow-swimlane-inline-input workflow-swimlane-inline-input-edit"
-                            value={editValue}
-                            onChange={(e) => {
-                              const v = e.target.value;
-                              if (v === '' || /^\d+$/.test(v)) setEditValue(v);
-                            }}
-                            onBlur={saveCardsPerRow}
-                            onKeyDown={(e) => {
-                              if (e.key === 'Enter') saveCardsPerRow();
-                              else if (e.key === 'Escape') setEditingFieldKey(null);
-                            }}
-                            onClick={(e) => e.stopPropagation()}
-                            autoFocus
-                          />
-                        ) : (
-                          <span
-                            className="workflow-swimlane-cell-value"
-                            onClick={(e) => { e.stopPropagation(); if (stage) { setEditingFieldKey(cardsKey); setEditValue(String(cardsPerRow)); } }}
-                            role="button"
-                            tabIndex={0}
-                            onKeyDown={(e) => { if ((e.key === 'Enter' || e.key === ' ') && stage) { e.preventDefault(); setEditingFieldKey(cardsKey); setEditValue(String(cardsPerRow)); } }}
-                            title="Click to edit"
-                          >
-                            {cardsPerRow}
-                          </span>
-                        )}
+                          {isEditingLimit ? (
+                            <input
+                              type="text"
+                              inputMode="numeric"
+                              pattern="[0-9]*"
+                              className="workflow-swimlane-inline-input workflow-swimlane-inline-input-edit"
+                              value={editValue}
+                              onChange={(e) => {
+                                const v = e.target.value;
+                                if (v === '' || /^\d+$/.test(v)) setEditValue(v);
+                              }}
+                              onBlur={saveLimit}
+                              onKeyDown={(e) => {
+                                if (e.key === 'Enter') saveLimit();
+                                else if (e.key === 'Escape') setEditingFieldKey(null);
+                              }}
+                              onClick={(e) => e.stopPropagation()}
+                              autoFocus
+                            />
+                          ) : (
+                            <span
+                              className="workflow-swimlane-cell-value"
+                              onClick={(e) => { e.stopPropagation(); if (stage) { setEditingFieldKey(limitKey); setEditValue(String(limit)); } }}
+                              role="button"
+                              tabIndex={0}
+                              onKeyDown={(e) => { if ((e.key === 'Enter' || e.key === ' ') && stage) { e.preventDefault(); setEditingFieldKey(limitKey); setEditValue(String(limit)); } }}
+                              title="Click to edit"
+                            >
+                              {limit}
+                            </span>
+                          )}
                         </span>
                       </div>
                     </div>
