@@ -850,9 +850,10 @@ div[role="tooltip"][id^="workflow-info-"] {
   flex-shrink: 0;
 }
 
+// Swimlane label icons - smaller, lighter, clean (live-style)
 .workflow-swimlane-icon-btn {
-  width: 24px;
-  height: 24px;
+  width: 20px;
+  height: 20px;
   padding: 0;
   border: none;
   background: transparent;
@@ -861,22 +862,20 @@ div[role="tooltip"][id^="workflow-info-"] {
   align-items: center;
   justify-content: center;
   cursor: pointer;
-  border-radius: 4px;
-  transition: all 0.2s ease;
+  transition: color 0.2s ease;
+  flex-shrink: 0;
 
   &:hover {
-    background: #f3f4f6;
-    color: #3b82f6;
+    color: #6b7280;
   }
 
   &.workflow-swimlane-icon-btn-delete:hover {
     color: #ef4444;
-    background: #fef2f2;
   }
 
   svg {
-    width: 14px;
-    height: 14px;
+    width: 12px;
+    height: 12px;
   }
 }
 
@@ -944,7 +943,7 @@ div[role="tooltip"][id^="workflow-info-"] {
 }
 
 .workflow-swimlane-inline-input {
-  width: 40px;
+  width: 32px;
   padding: 2px 4px;
   border: 1px solid #e5e7eb;
   border-radius: 4px;
@@ -967,6 +966,24 @@ div[role="tooltip"][id^="workflow-info-"] {
   }
 
   -moz-appearance: textfield;
+
+  &.workflow-swimlane-inline-input-edit {
+    width: 36px;
+    min-width: 36px;
+  }
+}
+
+.workflow-swimlane-cell-value {
+  cursor: pointer;
+  padding: 1px 4px;
+  border-radius: 2px;
+  min-width: 16px;
+  display: inline-block;
+  transition: background 0.15s ease;
+
+  &:hover {
+    background: #f3f4f6;
+  }
 }
 
 .workflow-swimlane-dashed-placeholder {
@@ -1168,7 +1185,7 @@ div[role="tooltip"][id^="workflow-info-"] {
   display: flex;
   flex-direction: column;
   gap: 6px;
-  margin-bottom: 12px;
+  margin-bottom: 8px;
   font: normal normal 400 12px/1.4 $font-primary;
   color: #6b7280;
   align-items: center;
@@ -1188,9 +1205,22 @@ div[role="tooltip"][id^="workflow-info-"] {
   flex-shrink: 0;
 }
 
+.stage-detail-value {
+  cursor: pointer;
+  padding: 1px 4px;
+  border-radius: 2px;
+  min-width: 20px;
+  display: inline-block;
+  transition: background 0.15s ease;
+
+  &:hover {
+    background: #f3f4f6;
+  }
+}
+
 .stage-inline-input {
-  width: 48px;
-  padding: 2px 6px;
+  width: 36px;
+  padding: 2px 4px;
   border: 1px solid #e5e7eb;
   border-radius: 4px;
   font: normal normal 400 12px/1.4 $font-primary;
@@ -1212,20 +1242,25 @@ div[role="tooltip"][id^="workflow-info-"] {
   }
 
   -moz-appearance: textfield;
+
+  &.stage-inline-input-edit {
+    width: 40px;
+    min-width: 40px;
+  }
 }
 
 .stage-box-actions {
   display: flex;
-  gap: 8px;
-  padding-top: 10px;
-  border-top: 1px solid #f0f1f3;
+  gap: 6px;
   justify-content: center;
+  align-items: center;
   width: 100%;
 }
 
-.stage-action-btn {
-  width: 30px;
-  height: 30px;
+// Minimal icon buttons - smaller, lighter, no boxed appearance
+.stage-action-icon {
+  width: 20px;
+  height: 20px;
   border: none;
   background: transparent;
   color: #9ca3af;
@@ -1233,107 +1268,44 @@ div[role="tooltip"][id^="workflow-info-"] {
   align-items: center;
   justify-content: center;
   cursor: pointer;
-  border-radius: 4px;
-  transition: all 0.2s ease;
   padding: 0;
+  transition: color 0.2s ease;
+  flex-shrink: 0;
 
   &:hover {
-    background: #f3f4f6;
-    color: #3b82f6;
+    color: #6b7280;
   }
 
   svg {
-    width: 15px;
-    height: 15px;
+    width: 14px;
+    height: 14px;
   }
 
-  &.stage-action-btn-delete:hover {
+  &.stage-action-icon-delete:hover {
     color: #ef4444;
-    background: #fef2f2;
   }
 }
 
-// Color picker in stage-box-actions (z-index above add-column buttons)
-.stage-action-color-picker-wrapper {
-  position: relative;
-  display: inline-flex;
-  align-items: center;
-  z-index: 100;
-}
-
-// Allow dropdown to escape overflow when color picker is open
-.workflow-stage-wrapper-color-picker-open .workflow-stage-box {
-  overflow: visible;
-}
-
-// Color picker dropdown (scoped to edit-workflows to avoid conflicts)
-// Position below color button, centered, visually attached to the icon
-.edit-workflows-color-picker-dropdown {
+// Native color input - overlays icon, invisible, opens OS color picker on click
+.stage-color-input-native {
   position: absolute;
-  top: calc(100% + 8px);
-  left: 50%;
-  transform: translateX(-50%);
-  background: #ffffff;
-  border-radius: 12px;
-  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.15);
-  padding: 12px;
-  z-index: 10001;
-  min-width: 200px;
-  margin-top: 0;
-  margin-left: 0;
-}
-
-.edit-workflows-color-picker-grid {
-  display: grid;
-  grid-template-columns: repeat(6, 1fr);
-  gap: 8px;
+  inset: 0;
   width: 100%;
-}
-
-.edit-workflows-color-swatch {
-  width: 28px;
-  height: 28px;
-  border-radius: 50%;
-  border: 2px solid transparent;
+  height: 100%;
+  opacity: 0;
   cursor: pointer;
   padding: 0;
   margin: 0;
+  border: none;
+  z-index: 1;
+}
+
+.stage-action-color-wrapper {
   position: relative;
-  transition: all 0.2s ease-in-out;
-  display: flex;
+  display: inline-flex;
   align-items: center;
-  justify-content: center;
-  flex-shrink: 0;
-}
-
-.edit-workflows-color-swatch:hover {
-  transform: scale(1.1);
-  border-color: rgba(0, 0, 0, 0.2);
-}
-
-.edit-workflows-color-swatch.selected {
-  border-color: #333;
-  box-shadow: 0 0 0 2px rgba(0, 0, 0, 0.1);
-}
-
-.edit-workflows-color-swatch.white-swatch {
-  border: 1px solid #e5e7eb;
-}
-
-.edit-workflows-color-swatch.white-swatch.selected {
-  border-color: #333;
-}
-
-.edit-workflows-color-swatch-outline {
-  position: absolute;
-  inset: -1px;
-  border: 1px dashed #d1d5db;
-  border-radius: 50%;
-  pointer-events: none;
-}
-
-.edit-workflows-color-checkmark {
-  pointer-events: none;
+  width: 20px;
+  height: 20px;
 }
 
 .workflow-add-placeholder-container {

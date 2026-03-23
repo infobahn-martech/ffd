@@ -23,7 +23,6 @@ function WorkflowAreaGrid({
   stageGap = STAGE_GAP,
   hoveredColumn,
   stackedRailMetrics,
-  openColorPickerForStage,
   editingStageId,
   editingStageName,
   onStageMouseEnter,
@@ -35,7 +34,6 @@ function WorkflowAreaGrid({
   onEditingStageNameChange,
   onSaveStageName,
   onStageNameKeyPress,
-  onColorPickerToggle,
   onColorSelect,
   onDeleteStage,
   onStageLimitChange,
@@ -186,7 +184,6 @@ function WorkflowAreaGrid({
         const stageGridRow = isSingleInCol ? `1 / span ${globalRows}` : `${stageRow + 1}`;
         const stageColumnKey = getColumnKey(workflowId, swimlane.id, stage.id);
         const isStageHovered = hoveredColumn === stageColumnKey;
-        const isColorPickerOpen = openColorPickerForStage === stageColumnKey;
         const showAddSubcolumn = isSingleInCol ? true : !isTopStackedCard;
 
         return (
@@ -206,7 +203,6 @@ function WorkflowAreaGrid({
               workflowId={workflowId}
               stageColumnKey={stageColumnKey}
               isStageHovered={isStageHovered}
-              isColorPickerOpen={isColorPickerOpen}
               showAddSubcolumn={showAddSubcolumn}
               isSingleInCol={isSingleInCol}
               editingStageId={editingStageId}
@@ -219,7 +215,6 @@ function WorkflowAreaGrid({
               onEditingStageNameChange={onEditingStageNameChange}
               onSaveStageName={onSaveStageName}
               onStageNameKeyPress={onStageNameKeyPress}
-              onColorPickerToggle={onColorPickerToggle}
               onColorSelect={onColorSelect}
               onDeleteStage={onDeleteStage}
               onStageLimitChange={onStageLimitChange}

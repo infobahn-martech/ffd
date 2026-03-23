@@ -20,7 +20,6 @@ function WorkflowBoard({
   stageGap = STAGE_GAP,
   hoveredColumn,
   stackedRailMetrics,
-  openColorPickerForStage,
   editingStageId,
   editingStageName,
   onStageMouseEnter,
@@ -32,7 +31,6 @@ function WorkflowBoard({
   onEditingStageNameChange,
   onSaveStageName,
   onStageNameKeyPress,
-  onColorPickerToggle,
   onColorSelect,
   onDeleteStage,
   onStageLimitChange,
@@ -98,7 +96,6 @@ function WorkflowBoard({
                 stageGap={stageGap}
                 hoveredColumn={hoveredColumn}
                 stackedRailMetrics={stackedRailMetrics}
-                openColorPickerForStage={openColorPickerForStage}
                 editingStageId={editingStageId}
                 editingStageName={editingStageName}
                 onStageMouseEnter={onStageMouseEnter}
@@ -110,7 +107,6 @@ function WorkflowBoard({
                 onEditingStageNameChange={onEditingStageNameChange}
                 onSaveStageName={onSaveStageName}
                 onStageNameKeyPress={onStageNameKeyPress}
-                onColorPickerToggle={onColorPickerToggle}
                 onColorSelect={onColorSelect}
                 onDeleteStage={onDeleteStage}
                 onStageLimitChange={onStageLimitChange}
@@ -132,7 +128,6 @@ function WorkflowBoard({
           contentRowOnly
           hoveredColumn={hoveredColumn}
           stackedRailMetrics={stackedRailMetrics}
-          openColorPickerForStage={openColorPickerForStage}
           editingStageId={editingStageId}
           editingStageName={editingStageName}
           onStageMouseEnter={onStageMouseEnter}
@@ -144,7 +139,6 @@ function WorkflowBoard({
           onEditingStageNameChange={onEditingStageNameChange}
           onSaveStageName={onSaveStageName}
           onStageNameKeyPress={onStageNameKeyPress}
-          onColorPickerToggle={onColorPickerToggle}
           onColorSelect={onColorSelect}
           onDeleteStage={onDeleteStage}
           onStageLimitChange={onStageLimitChange}

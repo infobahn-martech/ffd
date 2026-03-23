@@ -1,99 +1,8 @@
-import { useRef, useEffect } from 'react';
-import { rgbToHex, normalizeRgb } from './workflow.utils';
-
-// Color palette (matching CardForm.jsx)
-const COLOR_PALETTE = [
-  { hex: '#FF00FF', rgb: 'rgb(255, 0, 255)', name: 'Fuchsia' },
-  { hex: '#800080', rgb: 'rgb(128, 0, 128)', name: 'Purple' },
-  { hex: '#4169E1', rgb: 'rgb(65, 105, 225)', name: 'Royal Blue' },
-  { hex: '#008000', rgb: 'rgb(0, 128, 0)', name: 'Green' },
-  { hex: '#FFFF00', rgb: 'rgb(255, 255, 0)', name: 'Yellow' },
-  { hex: '#FFA500', rgb: 'rgb(255, 165, 0)', name: 'Orange' },
-  { hex: '#8B0000', rgb: 'rgb(139, 0, 0)', name: 'Dark Red' },
-  { hex: '#775649', rgb: 'rgb(119, 86, 73)', name: 'Brown' },
-  { hex: '#D3D3D3', rgb: 'rgb(211, 211, 211)', name: 'Light Gray' },
-  { hex: '#708090', rgb: 'rgb(112, 128, 144)', name: 'Slate Blue' },
-  { hex: '#000000', rgb: 'rgb(0, 0, 0)', name: 'Black' },
-  { hex: '#FFFFFF', rgb: 'rgb(255, 255, 255)', name: 'White' },
-];
-
-const ColorPickerDropdown = ({ isOpen, onClose, selectedColor, onColorSelect, anchorRef }) => {
-  const dropdownRef = useRef(null);
-
-  useEffect(() => {
-    const handleClickOutside = (event) => {
-      if (dropdownRef.current && !dropdownRef.current.contains(event.target) &&
-          anchorRef?.current && !anchorRef.current.contains(event.target)) {
-        onClose();
-      }
-    };
-    if (isOpen) {
-      document.addEventListener('mousedown', handleClickOutside);
-      return () => document.removeEventListener('mousedown', handleClickOutside);
-    }
-  }, [isOpen, onClose, anchorRef]);
-
-  const handleColorClick = (color) => {
-    onColorSelect(color.rgb);
-    onClose();
-  };
-
-  if (!isOpen) return null;
-
-  return (
-    <div className="edit-workflows-color-picker-dropdown" ref={dropdownRef}>
-      <div className="edit-workflows-color-picker-grid">
-        {COLOR_PALETTE.map((color, index) => {
-          const selectedHex = rgbToHex(selectedColor);
-          const isSelected =
-            selectedHex === color.hex || normalizeRgb(selectedColor) === normalizeRgb(color.rgb);
-          return (
-            <button
-              key={index}
-              type="button"
-              className={`edit-workflows-color-swatch ${isSelected ? 'selected' : ''} ${color.hex === '#FFFFFF' ? 'white-swatch' : ''}`}
-              style={{ backgroundColor: color.hex }}
-              onClick={() => handleColorClick(color)}
-              title={color.name}
-              aria-label={`Select ${color.name} color`}
-            >
-              {isSelected && (
-                <svg
-                  width="16"
-                  height="16"
-                  viewBox="0 0 16 16"
-                  fill="none"
-                  xmlns="http://www.w3.org/2000/svg"
-                  className="edit-workflows-color-checkmark"
-                >
-                  <path
-                    d="M13.3333 4L6 11.3333L2.66667 8"
-                    stroke={
-                      color.hex === '#000000'
-                        ? '#ffffff'
-                        : color.hex === '#FFFFFF'
-                          ? '#000000'
-                          : '#ffffff'
-                    }
-                    strokeWidth="2"
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                  />
-                </svg>
-              )}
-              {color.hex === '#FFFFFF' && !isSelected && (
-                <div className="edit-workflows-color-swatch-outline" />
-              )}
-            </button>
-          );
-        })}
-      </div>
-    </div>
-  );
-};
+import { useRef, useState } from 'react';
+import { rgbToHex, hexToRgb } from './workflow.utils';
 
 /**
- * Single stage card with insertion rails, title editing, and color picker.
+ * Single stage card with insertion rails, title editing, and minimal color action.
  */
 function WorkflowStageCard({
   stage,
@@ -101,7 +10,6 @@ function WorkflowStageCard({
   workflowId,
   stageColumnKey,
   isStageHovered,
-  isColorPickerOpen,
   showAddSubcolumn,
   isSingleInCol,
   editingStageId,
@@ -114,7 +22,6 @@ function WorkflowStageCard({
   onEditingStageNameChange,
   onSaveStageName,
   onStageNameKeyPress,
-  onColorPickerToggle,
   onColorSelect,
   onDeleteStage,
   onStageLimitChange,
@@ -122,11 +29,60 @@ function WorkflowStageCard({
 }) {
   const showInlineAddButtons = isSingleInCol;
   const isStacked = !isSingleInCol;
-  const colorButtonRef = useRef(null);
+  const colorInputRef = useRef(null);
+
+  const [editingField, setEditingField] = useState(null);
+  const [editValue, setEditValue] = useState('');
+
+  const limit = stage.limit ?? 0;
+  const cardsPerRow = stage.cardsPerRow ?? 1;
+  const displayColor = stage.color ? rgbToHex(stage.color) : '#f9fafb';
+
+  const startEditLimit = () => {
+    setEditingField('limit');
+    setEditValue(String(limit));
+  };
+
+  const startEditCardsPerRow = () => {
+    setEditingField('cardsPerRow');
+    setEditValue(String(cardsPerRow));
+  };
+
+  const saveLimit = () => {
+    const num = Math.max(0, parseInt(editValue, 10) || 0);
+    onStageLimitChange?.(workflowId, swimlaneId, stage.id, String(num));
+    setEditingField(null);
+  };
+
+  const saveCardsPerRow = () => {
+    const num = Math.max(1, parseInt(editValue, 10) || 1);
+    onStageCardsPerRowChange?.(workflowId, swimlaneId, stage.id, String(num));
+    setEditingField(null);
+  };
+
+  const cancelEdit = () => {
+    setEditingField(null);
+  };
+
+  const handleLimitKeyDown = (e) => {
+    if (e.key === 'Enter') saveLimit();
+    else if (e.key === 'Escape') cancelEdit();
+  };
+
+  const handleCardsPerRowKeyDown = (e) => {
+    if (e.key === 'Enter') saveCardsPerRow();
+    else if (e.key === 'Escape') cancelEdit();
+  };
+
+  const handleColorChange = (e) => {
+    const hex = e.target.value;
+    const rgb = hexToRgb(hex);
+    if (rgb) onColorSelect(workflowId, swimlaneId, stage.id, rgb);
+  };
 
   return (
     <div
-      className={`workflow-stage-wrapper${isColorPickerOpen ? ' workflow-stage-wrapper-color-picker-open' : ''}${isSingleInCol ? ' workflow-stage-single' : ' workflow-stage-stacked'}`}
+      className={`workflow-stage-wrapper${isSingleInCol ? ' workflow-stage-single' : ' workflow-stage-stacked'}`}
     >
       <div
         className="workflow-stage-box"
@@ -215,74 +171,90 @@ function WorkflowStageCard({
             )}
           </div>
           <div className="stage-box-details">
-            <label className="stage-detail-row">
+            <div className="stage-detail-row">
               <span className="stage-detail-label">Limit:</span>
-              <input
-                type="number"
-                min={0}
-                className="stage-inline-input"
-                value={stage.limit ?? 0}
-                onChange={(e) => {
-                  const v = e.target.value;
-                  if (v === '' || /^\d+$/.test(v)) {
-                    onStageLimitChange?.(workflowId, swimlaneId, stage.id, v === '' ? '0' : v);
-                  }
-                }}
-                onBlur={(e) => {
-                  const num = Math.max(0, parseInt(e.target.value, 10) || 0);
-                  onStageLimitChange?.(workflowId, swimlaneId, stage.id, String(num));
-                }}
-                onClick={(e) => e.stopPropagation()}
-              />
-            </label>
-            <label className="stage-detail-row">
+              {editingField === 'limit' ? (
+                <input
+                  type="text"
+                  inputMode="numeric"
+                  pattern="[0-9]*"
+                  className="stage-inline-input stage-inline-input-edit"
+                  value={editValue}
+                  onChange={(e) => {
+                    const v = e.target.value;
+                    if (v === '' || /^\d+$/.test(v)) setEditValue(v);
+                  }}
+                  onBlur={saveLimit}
+                  onKeyDown={handleLimitKeyDown}
+                  onClick={(e) => e.stopPropagation()}
+                  autoFocus
+                />
+              ) : (
+                <span
+                  className="stage-detail-value"
+                  onClick={(e) => { e.stopPropagation(); startEditLimit(); }}
+                  role="button"
+                  tabIndex={0}
+                  onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); startEditLimit(); } }}
+                  title="Click to edit"
+                >
+                  {limit}
+                </span>
+              )}
+            </div>
+            <div className="stage-detail-row">
               <span className="stage-detail-label">Cards per row:</span>
-              <input
-                type="number"
-                min={1}
-                className="stage-inline-input"
-                value={stage.cardsPerRow ?? 1}
-                onChange={(e) => {
-                  const v = e.target.value;
-                  if (v === '' || /^\d+$/.test(v)) {
-                    onStageCardsPerRowChange?.(workflowId, swimlaneId, stage.id, v === '' ? '1' : v);
-                  }
-                }}
-                onBlur={(e) => {
-                  const num = Math.max(1, parseInt(e.target.value, 10) || 1);
-                  onStageCardsPerRowChange?.(workflowId, swimlaneId, stage.id, String(num));
-                }}
-                onClick={(e) => e.stopPropagation()}
-              />
-            </label>
+              {editingField === 'cardsPerRow' ? (
+                <input
+                  type="text"
+                  inputMode="numeric"
+                  pattern="[0-9]*"
+                  className="stage-inline-input stage-inline-input-edit"
+                  value={editValue}
+                  onChange={(e) => {
+                    const v = e.target.value;
+                    if (v === '' || /^\d+$/.test(v)) setEditValue(v);
+                  }}
+                  onBlur={saveCardsPerRow}
+                  onKeyDown={handleCardsPerRowKeyDown}
+                  onClick={(e) => e.stopPropagation()}
+                  autoFocus
+                />
+              ) : (
+                <span
+                  className="stage-detail-value"
+                  onClick={(e) => { e.stopPropagation(); startEditCardsPerRow(); }}
+                  role="button"
+                  tabIndex={0}
+                  onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); startEditCardsPerRow(); } }}
+                  title="Click to edit"
+                >
+                  {cardsPerRow}
+                </span>
+              )}
+            </div>
           </div>
           <div className="stage-box-actions">
-            <div className="stage-action-color-picker-wrapper" ref={colorButtonRef}>
-              <button
-                className="stage-action-btn"
-                type="button"
+            <label className="stage-action-color-wrapper">
+              <input
+                ref={colorInputRef}
+                type="color"
+                value={displayColor}
+                onChange={handleColorChange}
+                className="stage-color-input-native"
                 title="Stage color"
-                onClick={(e) => {
-                  e.stopPropagation();
-                  onColorPickerToggle(stageColumnKey);
-                }}
                 aria-label="Stage color"
-              >
-                <svg width="16" height="16" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
+                onClick={(e) => e.stopPropagation()}
+              />
+              <span className="stage-action-icon" aria-hidden="true">
+                <svg width="14" height="14" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
                   <path d="M2 4h12v8H2V4z" fill="currentColor" />
                   <rect x="4" y="6" width="8" height="4" fill="white" stroke="currentColor" strokeWidth="0.5" />
                 </svg>
-              </button>
-              <ColorPickerDropdown
-                isOpen={isColorPickerOpen}
-                onClose={() => onColorPickerToggle(null)}
-                selectedColor={stage.color || '#f9fafb'}
-                onColorSelect={(rgb) => onColorSelect(workflowId, swimlaneId, stage.id, rgb)}
-                anchorRef={colorButtonRef}
-              />
-            </div>
+              </span>
+            </label>
             <button
-              className="stage-action-btn stage-action-btn-delete"
+              className="stage-action-icon stage-action-icon-delete"
               type="button"
               title="Delete stage"
               onClick={(e) => {
@@ -291,7 +263,7 @@ function WorkflowStageCard({
               }}
               aria-label="Delete stage"
             >
-              <svg width="16" height="16" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
+              <svg width="14" height="14" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
                 <path d="M2 4H14M5 4V3C5 2.44772 5.44772 2 6 2H10C10.5523 2 11 2.44772 11 3V4M6 7V11M10 7V11M3 4L3 13C3 13.5523 3.44772 14 4 14H12C12.5523 14 13 13.5523 13 13V4" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
               </svg>
             </button>

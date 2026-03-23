@@ -1,3 +1,4 @@
+import { useState } from 'react';
 import { getGlobalRowsForSwimlane, getStagesInColumn } from './workflow.utils';
 import WorkflowAreaGrid, { STAGE_CELL_WIDTH, STAGE_GAP } from './WorkflowAreaGrid';
 
@@ -14,7 +15,6 @@ function WorkflowSwimlane({
   contentRowOnly = false,
   hoveredColumn,
   stackedRailMetrics,
-  openColorPickerForStage,
   editingStageId,
   editingStageName,
   onStageMouseEnter,
@@ -26,7 +26,6 @@ function WorkflowSwimlane({
   onEditingStageNameChange,
   onSaveStageName,
   onStageNameKeyPress,
-  onColorPickerToggle,
   onColorSelect,
   onDeleteStage,
   onStageLimitChange,
@@ -35,6 +34,8 @@ function WorkflowSwimlane({
   swimlaneIndex,
 }) {
   const globalRows = getGlobalRowsForSwimlane(swimlane, boardStructure);
+  const [editingFieldKey, setEditingFieldKey] = useState(null);
+  const [editValue, setEditValue] = useState('');
 
   const contentRow = (
     <div className="workflow-swimlane-row">
@@ -114,34 +115,96 @@ function WorkflowSwimlane({
                 const stage = stagesInCol[0];
                 const limit = stage?.limit ?? 0;
                 const cardsPerRow = stage?.cardsPerRow ?? 1;
+                const limitKey = stage ? `${stage.id}-limit` : null;
+                const cardsKey = stage ? `${stage.id}-cardsPerRow` : null;
+                const isEditingLimit = editingFieldKey === limitKey;
+                const isEditingCards = editingFieldKey === cardsKey;
+
+                const saveLimit = () => {
+                  const num = Math.max(0, parseInt(editValue, 10) || 0);
+                  if (stage && onStageLimitChange) onStageLimitChange(workflowId, swimlane.id, stage.id, String(num));
+                  setEditingFieldKey(null);
+                };
+                const saveCardsPerRow = () => {
+                  const num = Math.max(1, parseInt(editValue, 10) || 1);
+                  if (stage && onStageCardsPerRowChange) onStageCardsPerRowChange(workflowId, swimlane.id, stage.id, String(num));
+                  setEditingFieldKey(null);
+                };
+
                 return (
                   <div
                     key={`${area}-${colIdx}`}
                     className="workflow-swimlane-content-cell"
                   >
                     <div className="workflow-swimlane-cell-fields">
-                      <label className="workflow-swimlane-cell-field">
+                      <div className="workflow-swimlane-cell-field">
                         <span className="workflow-swimlane-cell-label">Limit:</span>
-                        <input
-                          type="number"
-                          min={0}
-                          className="workflow-swimlane-inline-input"
-                          value={limit}
-                          onChange={(e) => {
-                            const v = e.target.value;
-                            if ((v === '' || /^\d+$/.test(v)) && stage && onStageLimitChange) {
-                              onStageLimitChange(workflowId, swimlane.id, stage.id, v === '' ? '0' : v);
-                            }
-                          }}
-                          onBlur={(e) => {
-                            const num = Math.max(0, parseInt(e.target.value, 10) || 0);
-                            if (stage && onStageLimitChange) {
-                              onStageLimitChange(workflowId, swimlane.id, stage.id, String(num));
-                            }
-                          }}
-                          onClick={(e) => e.stopPropagation()}
-                        />
-                      </label>
+                        {isEditingLimit ? (
+                          <input
+                            type="text"
+                            inputMode="numeric"
+                            pattern="[0-9]*"
+                            className="workflow-swimlane-inline-input workflow-swimlane-inline-input-edit"
+                            value={editValue}
+                            onChange={(e) => {
+                              const v = e.target.value;
+                              if (v === '' || /^\d+$/.test(v)) setEditValue(v);
+                            }}
+                            onBlur={saveLimit}
+                            onKeyDown={(e) => {
+                              if (e.key === 'Enter') saveLimit();
+                              else if (e.key === 'Escape') setEditingFieldKey(null);
+                            }}
+                            onClick={(e) => e.stopPropagation()}
+                            autoFocus
+                          />
+                        ) : (
+                          <span
+                            className="workflow-swimlane-cell-value"
+                            onClick={(e) => { e.stopPropagation(); if (stage) { setEditingFieldKey(limitKey); setEditValue(String(limit)); } }}
+                            role="button"
+                            tabIndex={0}
+                            onKeyDown={(e) => { if ((e.key === 'Enter' || e.key === ' ') && stage) { e.preventDefault(); setEditingFieldKey(limitKey); setEditValue(String(limit)); } }}
+                            title="Click to edit"
+                          >
+                            {limit}
+                          </span>
+                        )}
+                      </div>
+                      <div className="workflow-swimlane-cell-field">
+                        <span className="workflow-swimlane-cell-label">Cards per row:</span>
+                        {isEditingCards ? (
+                          <input
+                            type="text"
+                            inputMode="numeric"
+                            pattern="[0-9]*"
+                            className="workflow-swimlane-inline-input workflow-swimlane-inline-input-edit"
+                            value={editValue}
+                            onChange={(e) => {
+                              const v = e.target.value;
+                              if (v === '' || /^\d+$/.test(v)) setEditValue(v);
+                            }}
+                            onBlur={saveCardsPerRow}
+                            onKeyDown={(e) => {
+                              if (e.key === 'Enter') saveCardsPerRow();
+                              else if (e.key === 'Escape') setEditingFieldKey(null);
+                            }}
+                            onClick={(e) => e.stopPropagation()}
+                            autoFocus
+                          />
+                        ) : (
+                          <span
+                            className="workflow-swimlane-cell-value"
+                            onClick={(e) => { e.stopPropagation(); if (stage) { setEditingFieldKey(cardsKey); setEditValue(String(cardsPerRow)); } }}
+                            role="button"
+                            tabIndex={0}
+                            onKeyDown={(e) => { if ((e.key === 'Enter' || e.key === ' ') && stage) { e.preventDefault(); setEditingFieldKey(cardsKey); setEditValue(String(cardsPerRow)); } }}
+                            title="Click to edit"
+                          >
+                            {cardsPerRow}
+                          </span>
+                        )}
+                      </div>
                     </div>
                     <div className="workflow-swimlane-dashed-placeholder" />
                   </div>
@@ -178,7 +241,6 @@ function WorkflowSwimlane({
               stageGap={stageGap}
               hoveredColumn={hoveredColumn}
               stackedRailMetrics={stackedRailMetrics}
-              openColorPickerForStage={openColorPickerForStage}
               editingStageId={editingStageId}
               editingStageName={editingStageName}
               onStageMouseEnter={onStageMouseEnter}
@@ -190,7 +252,6 @@ function WorkflowSwimlane({
               onEditingStageNameChange={onEditingStageNameChange}
               onSaveStageName={onSaveStageName}
               onStageNameKeyPress={onStageNameKeyPress}
-              onColorPickerToggle={onColorPickerToggle}
               onColorSelect={onColorSelect}
             />
           );

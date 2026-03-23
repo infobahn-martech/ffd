@@ -38,8 +38,6 @@ function EditWorkflows() {
   const [editingWorkflowName, setEditingWorkflowName] = useState('');
   const [editingStageId, setEditingStageId] = useState(null);
   const [editingStageName, setEditingStageName] = useState('');
-  const [openColorPickerForStage, setOpenColorPickerForStage] = useState(null);
-
   const [workflows, setWorkflows] = useState([
     {
       id: 1,
@@ -264,7 +262,6 @@ function EditWorkflows() {
         };
       })
     );
-    setOpenColorPickerForStage(null);
   };
 
   const handleStageLimitChange = (workflowId, swimlaneId, stageId, value) => {
@@ -327,7 +324,6 @@ function EditWorkflows() {
         };
       })
     );
-    setOpenColorPickerForStage(null);
   };
 
   const handleAddSwimlane = (workflowId, insertAtIndex) => {
@@ -418,7 +414,6 @@ function EditWorkflows() {
                   areaColors={areaColors}
                   hoveredColumn={hoveredColumn}
                   stackedRailMetrics={stackedRailMetrics}
-                  openColorPickerForStage={openColorPickerForStage}
                   editingStageId={editingStageId}
                   editingStageName={editingStageName}
                   onStageMouseEnter={handleStageBoxMouseEnter}
@@ -430,9 +425,6 @@ function EditWorkflows() {
                   onEditingStageNameChange={setEditingStageName}
                   onSaveStageName={handleSaveStageNameChange}
                   onStageNameKeyPress={handleStageNameKeyPress}
-                  onColorPickerToggle={(key) =>
-                    setOpenColorPickerForStage((prev) => (key === null ? null : prev === key ? null : key))
-                  }
                   onColorSelect={handleStageColorChange}
                   onDeleteStage={handleDeleteStage}
                   onStageLimitChange={handleStageLimitChange}
