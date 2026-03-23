@@ -15,7 +15,6 @@ function WorkflowStageCard({
   editingStageId,
   editingStageName,
   onStageMouseEnter,
-  onStageMouseLeave,
   onAddColumnLeft,
   onAddColumnRight,
   onAddSubcolumn,
@@ -101,7 +100,6 @@ function WorkflowStageCard({
             stage.colSpan ?? 1
           )
         }
-        onMouseLeave={() => onStageMouseLeave?.()}
       >
         {isStageHovered && showInlineAddButtons && (
           <div className="workflow-insertion-rail workflow-insertion-rail-left">

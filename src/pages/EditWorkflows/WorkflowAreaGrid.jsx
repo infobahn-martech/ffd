@@ -26,7 +26,6 @@ function WorkflowAreaGrid({
   editingStageId,
   editingStageName,
   onStageMouseEnter,
-  onStageMouseLeave,
   onAddColumnLeft,
   onAddColumnRight,
   onAddSubcolumn,
@@ -68,7 +67,6 @@ function WorkflowAreaGrid({
             key={`col-${area}-${colIdx}`}
             className={`workflow-area-col-stack${showStackedRails ? ' workflow-area-col-stack--stacked-rails' : ''}`}
             data-col-stack-key={colStackKey}
-            onMouseLeave={onStageMouseLeave}
             style={{
               gridColumn: colStackGridColumn,
               gridRow: `1 / span ${globalRows}`,
@@ -208,7 +206,6 @@ function WorkflowAreaGrid({
               editingStageId={editingStageId}
               editingStageName={editingStageName}
               onStageMouseEnter={onStageMouseEnter}
-              onStageMouseLeave={onStageMouseLeave}
               onAddColumnLeft={onAddColumnLeft}
               onAddColumnRight={onAddColumnRight}
               onAddSubcolumn={onAddSubcolumn}

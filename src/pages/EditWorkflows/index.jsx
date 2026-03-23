@@ -102,11 +102,6 @@ function EditWorkflows() {
     }
   };
 
-  const handleStageBoxMouseLeave = () => {
-    setHoveredColumn(null);
-    setStackedRailMetrics(null);
-  };
-
   const handleAddColumnLeft = (workflowId, swimlaneId, stageId) => {
     // Reset hover / stacked rail state so insertion rails don't use stale metrics
     setHoveredColumn(null);
@@ -417,7 +412,6 @@ function EditWorkflows() {
                   editingStageId={editingStageId}
                   editingStageName={editingStageName}
                   onStageMouseEnter={handleStageBoxMouseEnter}
-                  onStageMouseLeave={handleStageBoxMouseLeave}
                   onAddColumnLeft={handleAddColumnLeft}
                   onAddColumnRight={handleAddColumnRight}
                   onAddSubcolumn={handleAddSubcolumn}
