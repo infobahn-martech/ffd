@@ -11,6 +11,7 @@ import {
   insertColumnRight,
   insertSubcolumnBelow,
   duplicateSwimlane,
+  removeStage,
 } from './workflow.utils';
 import useWorkFlowReducer from '../../store/WorkFlowReducer';
 
@@ -247,6 +248,67 @@ function EditWorkflows() {
     }
   };
 
+  const handleDeleteStage = (workflowId, swimlaneId, stageId) => {
+    setWorkflows((prevWorkflows) =>
+      prevWorkflows.map((workflow) => {
+        if (workflow.id !== workflowId) return workflow;
+        return {
+          ...workflow,
+          swimlanes: workflow.swimlanes.map((swimlane) => {
+            if (swimlane.id !== swimlaneId) return swimlane;
+            return {
+              ...swimlane,
+              stages: removeStage(swimlane.stages, stageId),
+            };
+          }),
+        };
+      })
+    );
+    setOpenColorPickerForStage(null);
+  };
+
+  const handleStageLimitChange = (workflowId, swimlaneId, stageId, value) => {
+    const num = Math.max(0, parseInt(value, 10) || 0);
+    setWorkflows((prevWorkflows) =>
+      prevWorkflows.map((workflow) => {
+        if (workflow.id !== workflowId) return workflow;
+        return {
+          ...workflow,
+          swimlanes: workflow.swimlanes.map((swimlane) => {
+            if (swimlane.id !== swimlaneId) return swimlane;
+            return {
+              ...swimlane,
+              stages: swimlane.stages.map((stage) =>
+                stage.id === stageId ? { ...stage, limit: num } : stage
+              ),
+            };
+          }),
+        };
+      })
+    );
+  };
+
+  const handleStageCardsPerRowChange = (workflowId, swimlaneId, stageId, value) => {
+    const num = Math.max(1, parseInt(value, 10) || 1);
+    setWorkflows((prevWorkflows) =>
+      prevWorkflows.map((workflow) => {
+        if (workflow.id !== workflowId) return workflow;
+        return {
+          ...workflow,
+          swimlanes: workflow.swimlanes.map((swimlane) => {
+            if (swimlane.id !== swimlaneId) return swimlane;
+            return {
+              ...swimlane,
+              stages: swimlane.stages.map((stage) =>
+                stage.id === stageId ? { ...stage, cardsPerRow: num } : stage
+              ),
+            };
+          }),
+        };
+      })
+    );
+  };
+
   const handleStageColorChange = (workflowId, swimlaneId, stageId, rgbColor) => {
     setWorkflows((prevWorkflows) =>
       prevWorkflows.map((workflow) => {
@@ -372,6 +434,9 @@ function EditWorkflows() {
                     setOpenColorPickerForStage((prev) => (key === null ? null : prev === key ? null : key))
                   }
                   onColorSelect={handleStageColorChange}
+                  onDeleteStage={handleDeleteStage}
+                  onStageLimitChange={handleStageLimitChange}
+                  onStageCardsPerRowChange={handleStageCardsPerRowChange}
                   onAddSwimlane={handleAddSwimlane}
                 />
               </div>

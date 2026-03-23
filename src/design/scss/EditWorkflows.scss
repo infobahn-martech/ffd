@@ -850,6 +850,36 @@ div[role="tooltip"][id^="workflow-info-"] {
   flex-shrink: 0;
 }
 
+.workflow-swimlane-icon-btn {
+  width: 24px;
+  height: 24px;
+  padding: 0;
+  border: none;
+  background: transparent;
+  color: #9ca3af;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  border-radius: 4px;
+  transition: all 0.2s ease;
+
+  &:hover {
+    background: #f3f4f6;
+    color: #3b82f6;
+  }
+
+  &.workflow-swimlane-icon-btn-delete:hover {
+    color: #ef4444;
+    background: #fef2f2;
+  }
+
+  svg {
+    width: 14px;
+    height: 14px;
+  }
+}
+
 .workflow-swimlane-content-row {
   flex: 1;
   display: flex;
@@ -890,26 +920,53 @@ div[role="tooltip"][id^="workflow-info-"] {
   padding-bottom: 4px;
 }
 
-// Icons inside dashed placeholder: centered, visible only on cell hover (no layout shift)
-.workflow-swimlane-placeholder-icons {
-  position: absolute;
-  inset: 0;
+.workflow-swimlane-cell-fields {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  width: 100%;
+  flex-shrink: 0;
+  padding-bottom: 4px;
+}
+
+.workflow-swimlane-cell-field {
   display: flex;
   align-items: center;
   justify-content: center;
   gap: 6px;
-  opacity: 0;
-  transition: opacity 0.15s ease;
-  pointer-events: none;
+  cursor: default;
 }
 
-.workflow-swimlane-content-cell:hover .workflow-swimlane-placeholder-icons {
-  opacity: 1;
-}
-
-.workflow-swimlane-cell-icon {
-  color: #9ca3af;
+.workflow-swimlane-cell-label {
+  font: normal normal 400 12px/1.4 $font-primary;
+  color: #6b7280;
   flex-shrink: 0;
+}
+
+.workflow-swimlane-inline-input {
+  width: 40px;
+  padding: 2px 4px;
+  border: 1px solid #e5e7eb;
+  border-radius: 4px;
+  font: normal normal 400 12px/1.4 $font-primary;
+  color: $txtColor;
+  text-align: center;
+  background: #ffffff;
+  transition: border-color 0.2s ease, box-shadow 0.2s ease;
+
+  &:focus {
+    outline: none;
+    border-color: #3b82f6;
+    box-shadow: 0 0 0 2px rgba(59, 130, 246, 0.1);
+  }
+
+  &::-webkit-inner-spin-button,
+  &::-webkit-outer-spin-button {
+    -webkit-appearance: none;
+    margin: 0;
+  }
+
+  -moz-appearance: textfield;
 }
 
 .workflow-swimlane-dashed-placeholder {
@@ -1119,6 +1176,44 @@ div[role="tooltip"][id^="workflow-info-"] {
   width: 100%;
 }
 
+.stage-detail-row {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  cursor: default;
+}
+
+.stage-detail-label {
+  flex-shrink: 0;
+}
+
+.stage-inline-input {
+  width: 48px;
+  padding: 2px 6px;
+  border: 1px solid #e5e7eb;
+  border-radius: 4px;
+  font: normal normal 400 12px/1.4 $font-primary;
+  color: $txtColor;
+  text-align: center;
+  background: #ffffff;
+  transition: border-color 0.2s ease, box-shadow 0.2s ease;
+
+  &:focus {
+    outline: none;
+    border-color: #3b82f6;
+    box-shadow: 0 0 0 2px rgba(59, 130, 246, 0.1);
+  }
+
+  &::-webkit-inner-spin-button,
+  &::-webkit-outer-spin-button {
+    -webkit-appearance: none;
+    margin: 0;
+  }
+
+  -moz-appearance: textfield;
+}
+
 .stage-box-actions {
   display: flex;
   gap: 8px;
@@ -1151,27 +1246,41 @@ div[role="tooltip"][id^="workflow-info-"] {
     width: 15px;
     height: 15px;
   }
+
+  &.stage-action-btn-delete:hover {
+    color: #ef4444;
+    background: #fef2f2;
+  }
 }
 
 // Color picker in stage-box-actions (z-index above add-column buttons)
 .stage-action-color-picker-wrapper {
   position: relative;
-  display: flex;
+  display: inline-flex;
   align-items: center;
   z-index: 100;
 }
 
+// Allow dropdown to escape overflow when color picker is open
+.workflow-stage-wrapper-color-picker-open .workflow-stage-box {
+  overflow: visible;
+}
+
 // Color picker dropdown (scoped to edit-workflows to avoid conflicts)
+// Position below color button, centered, visually attached to the icon
 .edit-workflows-color-picker-dropdown {
   position: absolute;
-  bottom: calc(100% + 8px);
-  left: 0;
+  top: calc(100% + 8px);
+  left: 50%;
+  transform: translateX(-50%);
   background: #ffffff;
   border-radius: 12px;
   box-shadow: 0 4px 16px rgba(0, 0, 0, 0.15);
   padding: 12px;
   z-index: 10001;
   min-width: 200px;
+  margin-top: 0;
+  margin-left: 0;
 }
 
 .edit-workflows-color-picker-grid {

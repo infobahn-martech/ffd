@@ -17,12 +17,13 @@ const COLOR_PALETTE = [
   { hex: '#FFFFFF', rgb: 'rgb(255, 255, 255)', name: 'White' },
 ];
 
-const ColorPickerDropdown = ({ isOpen, onClose, selectedColor, onColorSelect }) => {
+const ColorPickerDropdown = ({ isOpen, onClose, selectedColor, onColorSelect, anchorRef }) => {
   const dropdownRef = useRef(null);
 
   useEffect(() => {
     const handleClickOutside = (event) => {
-      if (dropdownRef.current && !dropdownRef.current.contains(event.target)) {
+      if (dropdownRef.current && !dropdownRef.current.contains(event.target) &&
+          anchorRef?.current && !anchorRef.current.contains(event.target)) {
         onClose();
       }
     };
@@ -30,7 +31,7 @@ const ColorPickerDropdown = ({ isOpen, onClose, selectedColor, onColorSelect }) 
       document.addEventListener('mousedown', handleClickOutside);
       return () => document.removeEventListener('mousedown', handleClickOutside);
     }
-  }, [isOpen, onClose]);
+  }, [isOpen, onClose, anchorRef]);
 
   const handleColorClick = (color) => {
     onColorSelect(color.rgb);
@@ -115,9 +116,13 @@ function WorkflowStageCard({
   onStageNameKeyPress,
   onColorPickerToggle,
   onColorSelect,
+  onDeleteStage,
+  onStageLimitChange,
+  onStageCardsPerRowChange,
 }) {
   const showInlineAddButtons = isSingleInCol;
   const isStacked = !isSingleInCol;
+  const colorButtonRef = useRef(null);
 
   return (
     <div
@@ -210,47 +215,49 @@ function WorkflowStageCard({
             )}
           </div>
           <div className="stage-box-details">
-            <span className="stage-limit">Limit: {stage.limit ?? 0}</span>
-            <span className="stage-cards-per-row">Cards per row: {stage.cardsPerRow ?? 1}</span>
+            <label className="stage-detail-row">
+              <span className="stage-detail-label">Limit:</span>
+              <input
+                type="number"
+                min={0}
+                className="stage-inline-input"
+                value={stage.limit ?? 0}
+                onChange={(e) => {
+                  const v = e.target.value;
+                  if (v === '' || /^\d+$/.test(v)) {
+                    onStageLimitChange?.(workflowId, swimlaneId, stage.id, v === '' ? '0' : v);
+                  }
+                }}
+                onBlur={(e) => {
+                  const num = Math.max(0, parseInt(e.target.value, 10) || 0);
+                  onStageLimitChange?.(workflowId, swimlaneId, stage.id, String(num));
+                }}
+                onClick={(e) => e.stopPropagation()}
+              />
+            </label>
+            <label className="stage-detail-row">
+              <span className="stage-detail-label">Cards per row:</span>
+              <input
+                type="number"
+                min={1}
+                className="stage-inline-input"
+                value={stage.cardsPerRow ?? 1}
+                onChange={(e) => {
+                  const v = e.target.value;
+                  if (v === '' || /^\d+$/.test(v)) {
+                    onStageCardsPerRowChange?.(workflowId, swimlaneId, stage.id, v === '' ? '1' : v);
+                  }
+                }}
+                onBlur={(e) => {
+                  const num = Math.max(1, parseInt(e.target.value, 10) || 1);
+                  onStageCardsPerRowChange?.(workflowId, swimlaneId, stage.id, String(num));
+                }}
+                onClick={(e) => e.stopPropagation()}
+              />
+            </label>
           </div>
           <div className="stage-box-actions">
-            <button className="stage-action-btn" type="button" title="Settings">
-              <svg width="16" height="16" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
-                <path
-                  d="M8 10C9.10457 10 10 9.10457 10 8C10 6.89543 9.10457 6 8 6C6.89543 6 6 6.89543 6 8C6 9.10457 6.89543 10 8 10Z"
-                  stroke="currentColor"
-                  strokeWidth="1.5"
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                />
-                <path
-                  d="M1.33331 8.66667V7.33333C1.33331 6.89131 1.509 6.46738 1.82156 6.15482C2.13412 5.84226 2.55805 5.66667 2.99998 5.66667H3.33331C3.59853 5.66667 3.85289 5.57143 4.05295 5.37137C4.25301 5.17131 4.34831 4.91695 4.34831 4.65167V4.31833C4.34831 3.87631 4.524 3.45238 4.83656 3.13982C5.14912 2.82726 5.57305 2.65167 6.01498 2.65167H6.34831C6.61353 2.65167 6.86789 2.55643 7.06795 2.35637C7.26801 2.15631 7.36331 1.90195 7.36331 1.63667V1.33333"
-                  stroke="currentColor"
-                  strokeWidth="1.5"
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                />
-                <path
-                  d="M14.6667 7.33333V8.66667C14.6667 9.10869 14.491 9.53262 14.1784 9.84518C13.8659 10.1577 13.4419 10.3333 13 10.3333H12.6667C12.4015 10.3333 12.1471 10.4286 11.9471 10.6286C11.747 10.8287 11.6517 11.083 11.6517 11.3483V11.6817C11.6517 12.1237 11.476 12.5476 11.1634 12.8602C10.8509 13.1727 10.4269 13.3483 9.985 13.3483H9.65167C9.38645 13.3483 9.13209 13.4436 8.93203 13.6436C8.73197 13.8437 8.63667 14.098 8.63667 14.3633V14.6667"
-                  stroke="currentColor"
-                  strokeWidth="1.5"
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                />
-              </svg>
-            </button>
-            <button className="stage-action-btn" type="button" title="Time tracking">
-              <svg width="16" height="16" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
-                <circle cx="8" cy="8" r="6" stroke="currentColor" strokeWidth="1.5" fill="none" />
-                <path d="M8 4V8L10 10" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
-              </svg>
-            </button>
-            <button className="stage-action-btn" type="button" title="Card details">
-              <svg width="16" height="16" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
-                <path d="M2 4H14M2 8H14M2 12H10" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" />
-              </svg>
-            </button>
-            <div className="stage-action-color-picker-wrapper">
+            <div className="stage-action-color-picker-wrapper" ref={colorButtonRef}>
               <button
                 className="stage-action-btn"
                 type="button"
@@ -271,8 +278,23 @@ function WorkflowStageCard({
                 onClose={() => onColorPickerToggle(null)}
                 selectedColor={stage.color || '#f9fafb'}
                 onColorSelect={(rgb) => onColorSelect(workflowId, swimlaneId, stage.id, rgb)}
+                anchorRef={colorButtonRef}
               />
             </div>
+            <button
+              className="stage-action-btn stage-action-btn-delete"
+              type="button"
+              title="Delete stage"
+              onClick={(e) => {
+                e.stopPropagation();
+                onDeleteStage?.(workflowId, swimlaneId, stage.id);
+              }}
+              aria-label="Delete stage"
+            >
+              <svg width="16" height="16" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
+                <path d="M2 4H14M5 4V3C5 2.44772 5.44772 2 6 2H10C10.5523 2 11 2.44772 11 3V4M6 7V11M10 7V11M3 4L3 13C3 13.5523 3.44772 14 4 14H12C12.5523 14 13 13.5523 13 13V4" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
+              </svg>
+            </button>
           </div>
         </div>
       </div>

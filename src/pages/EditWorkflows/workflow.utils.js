@@ -375,6 +375,14 @@ export function insertColumnRight(stages, targetStageId, newId, newStageName = '
 }
 
 /**
+ * Remove a stage by id from a swimlane.
+ * Returns new stages array (immutable).
+ */
+export function removeStage(stages, stageId) {
+  return stages.filter((s) => s.id !== stageId);
+}
+
+/**
  * Insert a new subcolumn below the target stage in the same column.
  * Returns new stages array (immutable).
  */

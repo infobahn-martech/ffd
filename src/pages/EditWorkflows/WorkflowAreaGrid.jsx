@@ -37,6 +37,9 @@ function WorkflowAreaGrid({
   onStageNameKeyPress,
   onColorPickerToggle,
   onColorSelect,
+  onDeleteStage,
+  onStageLimitChange,
+  onStageCardsPerRowChange,
 }) {
   const blockWidth = cols * stageCellWidth + Math.max(0, cols - 1) * stageGap;
 
@@ -218,6 +221,9 @@ function WorkflowAreaGrid({
               onStageNameKeyPress={onStageNameKeyPress}
               onColorPickerToggle={onColorPickerToggle}
               onColorSelect={onColorSelect}
+              onDeleteStage={onDeleteStage}
+              onStageLimitChange={onStageLimitChange}
+              onStageCardsPerRowChange={onStageCardsPerRowChange}
             />
           </div>
         );

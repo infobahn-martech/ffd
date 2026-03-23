@@ -34,6 +34,9 @@ function WorkflowBoard({
   onStageNameKeyPress,
   onColorPickerToggle,
   onColorSelect,
+  onDeleteStage,
+  onStageLimitChange,
+  onStageCardsPerRowChange,
   onAddSwimlane,
 }) {
   const boardStructure = getBoardColumnStructure(workflow);
@@ -109,6 +112,9 @@ function WorkflowBoard({
                 onStageNameKeyPress={onStageNameKeyPress}
                 onColorPickerToggle={onColorPickerToggle}
                 onColorSelect={onColorSelect}
+                onDeleteStage={onDeleteStage}
+                onStageLimitChange={onStageLimitChange}
+                onStageCardsPerRowChange={onStageCardsPerRowChange}
               />
             );
           })}
@@ -140,6 +146,9 @@ function WorkflowBoard({
           onStageNameKeyPress={onStageNameKeyPress}
           onColorPickerToggle={onColorPickerToggle}
           onColorSelect={onColorSelect}
+          onDeleteStage={onDeleteStage}
+          onStageLimitChange={onStageLimitChange}
+          onStageCardsPerRowChange={onStageCardsPerRowChange}
           onAddSwimlane={onAddSwimlane}
           swimlaneIndex={index}
         />
