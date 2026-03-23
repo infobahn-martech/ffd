@@ -139,6 +139,7 @@ function WorkflowSwimlane({
                     <div className="workflow-swimlane-cell-fields">
                       <div className="workflow-swimlane-cell-field">
                         <span className="workflow-swimlane-cell-label">Limit:</span>
+                        <span className="workflow-swimlane-cell-value-slot">
                         {isEditingLimit ? (
                           <input
                             type="text"
@@ -170,9 +171,11 @@ function WorkflowSwimlane({
                             {limit}
                           </span>
                         )}
+                        </span>
                       </div>
                       <div className="workflow-swimlane-cell-field">
                         <span className="workflow-swimlane-cell-label">Cards per row:</span>
+                        <span className="workflow-swimlane-cell-value-slot">
                         {isEditingCards ? (
                           <input
                             type="text"
@@ -204,6 +207,7 @@ function WorkflowSwimlane({
                             {cardsPerRow}
                           </span>
                         )}
+                        </span>
                       </div>
                     </div>
                     <div className="workflow-swimlane-dashed-placeholder" />

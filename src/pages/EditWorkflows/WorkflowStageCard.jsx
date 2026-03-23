@@ -1,4 +1,4 @@
-import { useRef, useState } from 'react';
+import { useState } from 'react';
 import { rgbToHex, hexToRgb } from './workflow.utils';
 
 /**
@@ -15,6 +15,7 @@ function WorkflowStageCard({
   editingStageId,
   editingStageName,
   onStageMouseEnter,
+  onStageMouseLeave,
   onAddColumnLeft,
   onAddColumnRight,
   onAddSubcolumn,
@@ -29,7 +30,6 @@ function WorkflowStageCard({
 }) {
   const showInlineAddButtons = isSingleInCol;
   const isStacked = !isSingleInCol;
-  const colorInputRef = useRef(null);
 
   const [editingField, setEditingField] = useState(null);
   const [editValue, setEditValue] = useState('');
@@ -101,6 +101,7 @@ function WorkflowStageCard({
             stage.colSpan ?? 1
           )
         }
+        onMouseLeave={() => onStageMouseLeave?.()}
       >
         {isStageHovered && showInlineAddButtons && (
           <div className="workflow-insertion-rail workflow-insertion-rail-left">
@@ -173,71 +174,74 @@ function WorkflowStageCard({
           <div className="stage-box-details">
             <div className="stage-detail-row">
               <span className="stage-detail-label">Limit:</span>
-              {editingField === 'limit' ? (
-                <input
-                  type="text"
-                  inputMode="numeric"
-                  pattern="[0-9]*"
-                  className="stage-inline-input stage-inline-input-edit"
-                  value={editValue}
-                  onChange={(e) => {
-                    const v = e.target.value;
-                    if (v === '' || /^\d+$/.test(v)) setEditValue(v);
-                  }}
-                  onBlur={saveLimit}
-                  onKeyDown={handleLimitKeyDown}
-                  onClick={(e) => e.stopPropagation()}
-                  autoFocus
-                />
-              ) : (
-                <span
-                  className="stage-detail-value"
-                  onClick={(e) => { e.stopPropagation(); startEditLimit(); }}
-                  role="button"
-                  tabIndex={0}
-                  onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); startEditLimit(); } }}
-                  title="Click to edit"
-                >
-                  {limit}
-                </span>
-              )}
+              <span className="stage-detail-value-slot">
+                {editingField === 'limit' ? (
+                  <input
+                    type="text"
+                    inputMode="numeric"
+                    pattern="[0-9]*"
+                    className="stage-inline-input stage-inline-input-edit"
+                    value={editValue}
+                    onChange={(e) => {
+                      const v = e.target.value;
+                      if (v === '' || /^\d+$/.test(v)) setEditValue(v);
+                    }}
+                    onBlur={saveLimit}
+                    onKeyDown={handleLimitKeyDown}
+                    onClick={(e) => e.stopPropagation()}
+                    autoFocus
+                  />
+                ) : (
+                  <span
+                    className="stage-detail-value"
+                    onClick={(e) => { e.stopPropagation(); startEditLimit(); }}
+                    role="button"
+                    tabIndex={0}
+                    onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); startEditLimit(); } }}
+                    title="Click to edit"
+                  >
+                    {limit}
+                  </span>
+                )}
+              </span>
             </div>
             <div className="stage-detail-row">
               <span className="stage-detail-label">Cards per row:</span>
-              {editingField === 'cardsPerRow' ? (
-                <input
-                  type="text"
-                  inputMode="numeric"
-                  pattern="[0-9]*"
-                  className="stage-inline-input stage-inline-input-edit"
-                  value={editValue}
-                  onChange={(e) => {
-                    const v = e.target.value;
-                    if (v === '' || /^\d+$/.test(v)) setEditValue(v);
-                  }}
-                  onBlur={saveCardsPerRow}
-                  onKeyDown={handleCardsPerRowKeyDown}
-                  onClick={(e) => e.stopPropagation()}
-                  autoFocus
-                />
-              ) : (
-                <span
-                  className="stage-detail-value"
-                  onClick={(e) => { e.stopPropagation(); startEditCardsPerRow(); }}
-                  role="button"
-                  tabIndex={0}
-                  onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); startEditCardsPerRow(); } }}
-                  title="Click to edit"
-                >
-                  {cardsPerRow}
-                </span>
-              )}
+              <span className="stage-detail-value-slot">
+                {editingField === 'cardsPerRow' ? (
+                  <input
+                    type="text"
+                    inputMode="numeric"
+                    pattern="[0-9]*"
+                    className="stage-inline-input stage-inline-input-edit"
+                    value={editValue}
+                    onChange={(e) => {
+                      const v = e.target.value;
+                      if (v === '' || /^\d+$/.test(v)) setEditValue(v);
+                    }}
+                    onBlur={saveCardsPerRow}
+                    onKeyDown={handleCardsPerRowKeyDown}
+                    onClick={(e) => e.stopPropagation()}
+                    autoFocus
+                  />
+                ) : (
+                  <span
+                    className="stage-detail-value"
+                    onClick={(e) => { e.stopPropagation(); startEditCardsPerRow(); }}
+                    role="button"
+                    tabIndex={0}
+                    onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); startEditCardsPerRow(); } }}
+                    title="Click to edit"
+                  >
+                    {cardsPerRow}
+                  </span>
+                )}
+              </span>
             </div>
           </div>
           <div className="stage-box-actions">
             <label className="stage-action-color-wrapper">
               <input
-                ref={colorInputRef}
                 type="color"
                 value={displayColor}
                 onChange={handleColorChange}

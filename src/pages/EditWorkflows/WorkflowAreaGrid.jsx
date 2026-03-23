@@ -208,6 +208,7 @@ function WorkflowAreaGrid({
               editingStageId={editingStageId}
               editingStageName={editingStageName}
               onStageMouseEnter={onStageMouseEnter}
+              onStageMouseLeave={onStageMouseLeave}
               onAddColumnLeft={onAddColumnLeft}
               onAddColumnRight={onAddColumnRight}
               onAddSubcolumn={onAddSubcolumn}
