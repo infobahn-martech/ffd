@@ -460,6 +460,12 @@ div[role="tooltip"][id^="workflow-info-"] {
     color: #2563eb;
   }
 
+  &:disabled {
+    opacity: 0.55;
+    cursor: not-allowed;
+    pointer-events: none;
+  }
+
   &.workflow-action-link-delete {
     color: #ef4444;
 
