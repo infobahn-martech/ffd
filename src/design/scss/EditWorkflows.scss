@@ -854,6 +854,24 @@ div[role="tooltip"][id^="workflow-info-"] {
   text-overflow: ellipsis;
 }
 
+.workflow-swimlane-label-input {
+  font: normal normal 600 13px/1.35 $font-primary;
+  color: $txtColor;
+  background: #ffffff;
+  border: 2px solid #3b82f6;
+  border-radius: 4px;
+  padding: 4px 8px;
+  outline: none;
+  min-width: 120px;
+  max-width: 100%;
+  transition: all 0.2s ease;
+
+  &:focus {
+    border-color: #2563eb;
+    box-shadow: 0 0 0 2px rgba(59, 130, 246, 0.15);
+  }
+}
+
 .workflow-swimlane-label-icons {
   display: flex;
   gap: 6px;

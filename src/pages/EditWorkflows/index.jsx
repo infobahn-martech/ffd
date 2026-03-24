@@ -10,7 +10,6 @@ import {
   insertColumnLeft,
   insertColumnRight,
   insertSubcolumnBelow,
-  duplicateSwimlane,
   removeStage,
 } from './workflow.utils';
 import useWorkFlowReducer from '../../store/WorkFlowReducer';
@@ -50,6 +49,9 @@ function EditWorkflows() {
     renameWorkflow,
     deleteWorkflow,
     disableWorkflow,
+    createSwimlane,
+    renameSwimlane,
+    deleteSwimlane,
     workflows: apiWorkflows,
     isLoading,
     addEditLoader,
@@ -361,21 +363,41 @@ function EditWorkflows() {
     });
   };
 
-  const handleAddSwimlane = (workflowId, insertAtIndex) => {
+  const handleAddSwimlane = (workflowId, insertAtIndex, swimlaneName = 'New Swimlane') => {
+    createSwimlane({
+      workflow_id: workflowId,
+      swimlane_name: swimlaneName,
+      cb: refetchBoardWorkflows,
+    });
+  };
+
+  const handleRenameSwimlane = (workflowId, swimlaneId, newName) => {
+    const trimmed = newName?.trim();
+    if (!trimmed) return;
     setWorkflows((prevWorkflows) =>
-      prevWorkflows.map((workflow) => {
-        if (workflow.id !== workflowId) return workflow;
-        const sourceSwimlane = workflow.swimlanes[0] ?? workflow.swimlanes[insertAtIndex];
-        if (!sourceSwimlane) return workflow;
-        const newSwimlane = duplicateSwimlane(workflow, sourceSwimlane);
-        const newSwimlanes = [
-          ...workflow.swimlanes.slice(0, insertAtIndex),
-          newSwimlane,
-          ...workflow.swimlanes.slice(insertAtIndex),
-        ];
-        return { ...workflow, swimlanes: newSwimlanes };
+      prevWorkflows.map((w) => {
+        if (w.id !== workflowId) return w;
+        return {
+          ...w,
+          swimlanes: w.swimlanes.map((sl) =>
+            sl.id === swimlaneId ? { ...sl, name: trimmed } : sl
+          ),
+        };
       })
     );
+    renameSwimlane({
+      swimlane_id: swimlaneId,
+      swimlane_name: trimmed,
+      cb: refetchBoardWorkflows,
+    });
+  };
+
+  const handleDeleteSwimlane = (workflowId, swimlaneId) => {
+    if (!window.confirm('Delete this swimlane? This cannot be undone.')) return;
+    deleteSwimlane({
+      swimlane_id: swimlaneId,
+      cb: refetchBoardWorkflows,
+    });
   };
 
   return (
@@ -483,6 +505,8 @@ function EditWorkflows() {
                     onStageLimitChange={handleStageLimitChange}
                     onStageCardsPerRowChange={handleStageCardsPerRowChange}
                     onAddSwimlane={handleAddSwimlane}
+                    onRenameSwimlane={handleRenameSwimlane}
+                    onDeleteSwimlane={handleDeleteSwimlane}
                   />
                 </div>
               </div>

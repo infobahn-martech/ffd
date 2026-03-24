@@ -35,6 +35,8 @@ function WorkflowBoard({
   onStageLimitChange,
   onStageCardsPerRowChange,
   onAddSwimlane,
+  onRenameSwimlane,
+  onDeleteSwimlane,
 }) {
   const boardStructure = getBoardColumnStructure(workflow);
   const totalCols = boardStructure.reduce((sum, x) => sum + x.cols, 0);
@@ -141,6 +143,8 @@ function WorkflowBoard({
           onStageLimitChange={onStageLimitChange}
           onStageCardsPerRowChange={onStageCardsPerRowChange}
           onAddSwimlane={onAddSwimlane}
+          onRenameSwimlane={onRenameSwimlane}
+          onDeleteSwimlane={onDeleteSwimlane}
           swimlaneIndex={index}
         />
       ))}

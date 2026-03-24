@@ -87,6 +87,71 @@ const useWorkFlowReducer = create((set) => ({
             error(err?.response?.data?.message ?? err.message);
         }
     },
+
+    createSwimlane: async ({ workflow_id, swimlane_name, cb }) => {
+        try {
+            set({ addEditLoader: true });
+            const { data } = await workflowService.createSwimlane({ workflow_id, swimlane_name });
+            set({ addEditLoader: false });
+            const { success } = useAlertReducer.getState();
+            success(data && data.message);
+            cb && cb();
+        } catch (err) {
+            set({
+                errorMessage: err?.response?.data?.message ?? err.message,
+                addEditLoader: false,
+            });
+            const { error } = useAlertReducer.getState();
+            error(err?.response?.data?.message ?? err.message);
+        }
+    },
+
+    getSwimlaneByWorkflow: async ({ workflow_id }) => {
+        try {
+            const { data } = await workflowService.getSwimlaneByWorkflow(workflow_id);
+            return data;
+        } catch (err) {
+            const { error } = useAlertReducer.getState();
+            error(err?.response?.data?.message ?? err.message);
+            throw err;
+        }
+    },
+
+    renameSwimlane: async ({ swimlane_id, swimlane_name, cb }) => {
+        try {
+            set({ addEditLoader: true });
+            const { data } = await workflowService.renameSwimlane({ swimlane_id, swimlane_name });
+            set({ addEditLoader: false });
+            const { success } = useAlertReducer.getState();
+            success(data && data.message);
+            cb && cb();
+        } catch (err) {
+            set({
+                errorMessage: err?.response?.data?.message ?? err.message,
+                addEditLoader: false,
+            });
+            const { error } = useAlertReducer.getState();
+            error(err?.response?.data?.message ?? err.message);
+        }
+    },
+
+    deleteSwimlane: async ({ swimlane_id, cb }) => {
+        try {
+            set({ addEditLoader: true });
+            const { data } = await workflowService.deleteSwimlane({ swimlane_id });
+            set({ addEditLoader: false });
+            const { success } = useAlertReducer.getState();
+            success(data && data.message);
+            cb && cb();
+        } catch (err) {
+            set({
+                errorMessage: err?.response?.data?.message ?? err.message,
+                addEditLoader: false,
+            });
+            const { error } = useAlertReducer.getState();
+            error(err?.response?.data?.message ?? err.message);
+        }
+    },
 }));
 
 export default useWorkFlowReducer;
