@@ -178,6 +178,11 @@
         color: #047857;
     }
 
+    &.status-completed {
+        background: #d1fae5;
+        color: #047857;
+    }
+
     &.status-open {
         background: #e0e7ff;
         color: #3730a3;
@@ -234,5 +239,40 @@
         background: #002a6e;
         border-color: #002a6e;
         color: #fff;
+    }
+}
+
+/* Upload invoice button in Recent Orders table */
+.vendor-upload-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    padding: 8px 12px;
+    font: normal normal 500 13px/1.4 $font-primary;
+    color: $colorPrimary;
+    background: #ffffff;
+    border: 1px solid $borderLight;
+    border-radius: 8px;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    text-decoration: none;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.06);
+
+    svg {
+        width: 16px;
+        height: 16px;
+        flex-shrink: 0;
+    }
+
+    &:hover {
+        background: #eef1ff;
+        border-color: $colorPrimary;
+        color: $colorPrimary;
+    }
+
+    &:disabled {
+        opacity: 0.6;
+        cursor: not-allowed;
+        background: #f3f4f6;
     }
 }
