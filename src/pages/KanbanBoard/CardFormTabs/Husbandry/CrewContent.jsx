@@ -173,6 +173,7 @@ const CrewContent = ({ formValues, handleChange, cardColor, onNavigateToTab, lau
   const hasCrewList = formValues.crewList && formValues.crewList.length > 0;
 
   const [isFileUploaded, setIsFileUploaded] = useState(hasCrewList);
+  const [showCrewListUploadSuccessModal, setShowCrewListUploadSuccessModal] = useState(false);
   const [isDragging, setIsDragging] = useState(false);
   const [uploadedFileName, setUploadedFileName] = useState(formValues.crewUploadedFileName || "");
   const fileInputRef = useRef(null);
@@ -287,14 +288,18 @@ const CrewContent = ({ formValues, handleChange, cardColor, onNavigateToTab, lau
         // Generate crew data from Excel
         const crewData = generateCrewFromExcel(excelContent);
 
-        // Always show crew list regardless of data validation
+        // Always persist crew list regardless of data validation
         const syntheticEvent = { target: { value: crewData } };
         handleChange("crewList")(syntheticEvent);
-        setIsFileUploaded(true);
         setUploadedFileName(file.name);
         // Save uploaded file name to formValues
         const fileNameEvent = { target: { value: file.name } };
         handleChange("crewUploadedFileName")(fileNameEvent);
+        if (crewData.length > 0) {
+          setShowCrewListUploadSuccessModal(true);
+        } else {
+          setIsFileUploaded(true);
+        }
       } catch (error) {
         console.error("Error parsing file:", error);
         // Even on error, show the crew list (empty or with default data)
@@ -516,14 +521,16 @@ const CrewContent = ({ formValues, handleChange, cardColor, onNavigateToTab, lau
     const syntheticEvent = { target: { value: crewData } };
     handleChange("crewList")(syntheticEvent);
 
-    // Switch to crew list view
-    setIsFileUploaded(true);
     setUploadedFileName(`Preview Data (${filledRows.length} crew member${filledRows.length > 1 ? 's' : ''})`);
     const fileNameEvent = { target: { value: `Preview Data (${filledRows.length} crew member${filledRows.length > 1 ? 's' : ''})` } };
     handleChange("crewUploadedFileName")(fileNameEvent);
+    setShowCrewListUploadSuccessModal(true);
   };
 
-
+  const handleConfirmCrewListUploadSuccess = () => {
+    setShowCrewListUploadSuccessModal(false);
+    setIsFileUploaded(true);
+  };
 
   // Determine what to show based on upload progress
   const showCrewList = isFileUploaded;
@@ -1480,6 +1487,7 @@ const CrewContent = ({ formValues, handleChange, cardColor, onNavigateToTab, lau
                 type="button"
                 onClick={() => {
                   setIsFileUploaded(false);
+                  setShowCrewListUploadSuccessModal(false);
                   setUploadedFileName("");
                   const syntheticEvent = { target: { value: [] } };
                   handleChange("crewList")(syntheticEvent);
@@ -2148,6 +2156,90 @@ const CrewContent = ({ formValues, handleChange, cardColor, onNavigateToTab, lau
           </div>
         </>
       )}
+
+      <CustomModal
+        show={showCrewListUploadSuccessModal}
+        closeModal={handleConfirmCrewListUploadSuccess}
+        createModal
+        className="modal fade"
+        dialgName="modal-dialog modal-dialog-centered"
+        header={
+          <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", width: "100%", padding: "16px 24px", borderBottom: "1px solid #e2e2ea" }}>
+            <h5 style={{ margin: 0, fontSize: "18px", fontWeight: "600", color: "#1a1a1a", fontFamily: "Inter, sans-serif" }}>
+              Crew list uploaded
+            </h5>
+            <button
+              type="button"
+              onClick={handleConfirmCrewListUploadSuccess}
+              aria-label="Close"
+              style={{
+                background: "none",
+                border: "none",
+                fontSize: "24px",
+                color: "#999",
+                cursor: "pointer",
+                padding: "0",
+                width: "32px",
+                height: "32px",
+                display: "flex",
+                alignItems: "center",
+                justifyContent: "center",
+                borderRadius: "4px",
+                transition: "all 0.2s ease"
+              }}
+              onMouseEnter={(e) => {
+                e.currentTarget.style.backgroundColor = "#f5f5f5";
+                e.currentTarget.style.color = "#333";
+              }}
+              onMouseLeave={(e) => {
+                e.currentTarget.style.backgroundColor = "transparent";
+                e.currentTarget.style.color = "#999";
+              }}
+            >
+              ×
+            </button>
+          </div>
+        }
+        body={
+          <div style={{ padding: "8px 8px 24px", fontFamily: "Inter, sans-serif", fontSize: "15px", lineHeight: 1.6, color: "#333" }}>
+            <p style={{ margin: "0 0 12px 0" }}>
+              Your crew list was uploaded successfully. Next, you can add documents in either of these ways:
+            </p>
+            <ul style={{ margin: "0 0 12px 0", paddingLeft: "20px" }}>
+              <li style={{ marginBottom: "8px" }}>
+                <strong>Bulk upload</strong> passports, visas, and Iqamas from the <strong>Bulk Upload</strong> menu on the crew list.
+              </li>
+              <li>
+                <strong>Single upload</strong> per crew member using the upload icons in each row for passport, visa, Iqama, and related columns.
+              </li>
+            </ul>
+            <p style={{ margin: 0, color: "#666", fontSize: "14px" }}>
+              Click OK when you are ready to view the crew list.
+            </p>
+          </div>
+        }
+        footer={
+          <div style={{ display: "flex", justifyContent: "flex-end", padding: "16px 24px", borderTop: "1px solid #e2e2ea", width: "100%" }}>
+            <button
+              type="button"
+              onClick={handleConfirmCrewListUploadSuccess}
+              style={{
+                padding: "10px 24px",
+                borderRadius: "8px",
+                border: "none",
+                backgroundColor: "var(--card-color, #2A00FF)",
+                color: "#ffffff",
+                fontSize: "14px",
+                fontWeight: "600",
+                cursor: "pointer",
+                fontFamily: "Inter, sans-serif"
+              }}
+            >
+              OK
+            </button>
+          </div>
+        }
+      />
 
       {/* Bulk Passport Upload Modal */}
       <CustomModal
