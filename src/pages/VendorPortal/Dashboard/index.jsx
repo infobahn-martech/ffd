@@ -9,6 +9,7 @@ import {
     FiList,
     FiPackage,
     FiUpload,
+    FiChevronRight,
 } from 'react-icons/fi';
 import '../../Dashboard/dashboard-content.scss';
 import '../../../design/scss/vendor-portal.scss';
@@ -41,11 +42,79 @@ const MOCK_RECENT_INVOICES = [
 ];
 
 const MOCK_RECENT_ORDERS = [
-    { orderNo: 'PO-2205', workOrderNo: 'WO-2205', company: 'Sedres Ltd', orderDate: '10 Mar 2025', purchaser: 'J. Smith', subject: 'Launch hire – Port A', amount: '2,500', currency: 'SAR', status: 'In progress' },
-    { orderNo: 'PO-2203', workOrderNo: 'WO-2203', company: 'Marine Services Co', orderDate: '08 Mar 2025', purchaser: 'M. Jones', subject: 'Transport – Crew transfer', amount: '1,200', currency: 'SAR', status: 'In progress' },
-    { orderNo: 'PO-2200', workOrderNo: 'WO-2200', company: 'Sedres Ltd', orderDate: '05 Mar 2025', purchaser: 'K. Brown', subject: 'Provisions supply', amount: '3,800', currency: 'SAR', status: 'In progress' },
-    { orderNo: 'PO-2197', workOrderNo: 'WO-2197', company: 'Port Authority', orderDate: '03 Mar 2025', purchaser: 'J. Smith', subject: 'Agency services', amount: '950', currency: 'SAR', status: 'In progress' },
-    { orderNo: 'PO-2195', workOrderNo: 'WO-2195', company: 'Marine Services Co', orderDate: '01 Mar 2025', purchaser: 'M. Jones', subject: 'Fresh water supply', amount: '600', currency: 'SAR', status: 'In progress' },
+    {
+        orderNo: 'PO-2205',
+        workOrderNo: 'WO-2205',
+        company: 'Sedres Ltd',
+        orderDate: '10 Mar 2025',
+        purchaser: 'J. Smith',
+        subject: 'Launch hire – Port A',
+        amount: '2,500',
+        currency: 'SAR',
+        status: 'In progress',
+        crewDetails: [
+            { name: 'Amina Al-Khalifa', nationality: 'Bahrain', passport: 'BA1234567', visa: 'VISA-BA-7781' },
+            { name: 'Omar Hassan', nationality: 'Oman', passport: 'OM9988776', visa: 'VISA-OM-4420' },
+        ],
+    },
+    {
+        orderNo: 'PO-2203',
+        workOrderNo: 'WO-2203',
+        company: 'Marine Services Co',
+        orderDate: '08 Mar 2025',
+        purchaser: 'M. Jones',
+        subject: 'Transport – Crew transfer',
+        amount: '1,200',
+        currency: 'SAR',
+        status: 'In progress',
+        crewDetails: [
+            { name: 'Lina Rodriguez', nationality: 'Philippines', passport: 'PH3344556', visa: 'VISA-PH-1102' },
+            { name: 'Ravi Patel', nationality: 'India', passport: 'IN7788990', visa: 'VISA-IN-2209' },
+        ],
+    },
+    {
+        orderNo: 'PO-2200',
+        workOrderNo: 'WO-2200',
+        company: 'Sedres Ltd',
+        orderDate: '05 Mar 2025',
+        purchaser: 'K. Brown',
+        subject: 'Provisions supply',
+        amount: '3,800',
+        currency: 'SAR',
+        status: 'In progress',
+        crewDetails: [
+            { name: 'Samir El-Masri', nationality: 'Egypt', passport: 'EG4455667', visa: 'VISA-EG-9003' },
+        ],
+    },
+    {
+        orderNo: 'PO-2197',
+        workOrderNo: 'WO-2197',
+        company: 'Port Authority',
+        orderDate: '03 Mar 2025',
+        purchaser: 'J. Smith',
+        subject: 'Agency services',
+        amount: '950',
+        currency: 'SAR',
+        status: 'In progress',
+        crewDetails: [
+            { name: 'Noah Wilson', nationality: 'United Kingdom', passport: 'GB1230098', visa: 'VISA-UK-3157' },
+            { name: 'Fatima Zahra', nationality: 'Morocco', passport: 'MA6600221', visa: 'VISA-MA-8842' },
+        ],
+    },
+    {
+        orderNo: 'PO-2195',
+        workOrderNo: 'WO-2195',
+        company: 'Marine Services Co',
+        orderDate: '01 Mar 2025',
+        purchaser: 'M. Jones',
+        subject: 'Fresh water supply',
+        amount: '600',
+        currency: 'SAR',
+        status: 'In progress',
+        crewDetails: [
+            { name: 'Ehsan Karim', nationality: 'Iran', passport: 'IR5566778', visa: 'VISA-IR-7014' },
+        ],
+    },
 ];
 
 function UploadInvoiceModal({ show, closeModal, orderNo, onUploadComplete }) {
@@ -232,6 +301,7 @@ function UploadInvoiceModal({ show, closeModal, orderNo, onUploadComplete }) {
 const Dashboard = () => {
     const navigate = useNavigate();
     const [recentOrders, setRecentOrders] = useState(MOCK_RECENT_ORDERS);
+    const [expandedRowId, setExpandedRowId] = useState(null);
 
     const [uploadModalOrderNo, setUploadModalOrderNo] = useState(null);
     const [showUploadModal, setShowUploadModal] = useState(false);
@@ -281,8 +351,18 @@ const Dashboard = () => {
         return s === 'closed' || s === 'completed';
     };
 
+    const toggleRow = (rowId) => {
+        setExpandedRowId((prev) => (prev === rowId ? null : rowId));
+    };
+
     return (
         <div className="dashboard-container">
+            <style>{`
+                @keyframes vendorAccordionIn {
+                    from { opacity: 0; transform: translateY(-4px); }
+                    to { opacity: 1; transform: translateY(0); }
+                }
+            `}</style>
             <div className="dashboard-header">
                 <h2 className="dashboard-title">Vendor Dashboard</h2>
                 <p className="dashboard-subtitle">
@@ -366,6 +446,7 @@ const Dashboard = () => {
                         <table className="vendor-table">
                             <thead>
                                 <tr>
+                                    <th style={{ width: 46 }} aria-label="Expand row" />
                                     <th>PO No</th>
                                     <th>WO No</th>
                                     <th>Subject</th>
@@ -379,38 +460,97 @@ const Dashboard = () => {
                                 </tr>
                             </thead>
                             <tbody>
-                                {recentOrders.map((row, idx) => (
-                                    <tr key={idx}>
-                                        <td>{row.orderNo}</td>
-                                        <td>{row.workOrderNo}</td>
-                                        <td>{row.subject}</td>
-                                        <td>{row.company}</td>
-                                        <td>{row.orderDate}</td>
-                                        <td>{row.purchaser}</td>
-                                        <td>{row.amount}</td>
-                                        <td>{row.currency}</td>
-                                        <td>
-                                            <button
-                                                type="button"
-                                                className="vendor-upload-btn"
-                                                disabled={isUploadDisabled(row.status) || uploadingOrderNo === row.orderNo}
-                                                onClick={() => {
-                                                    setUploadModalOrderNo(row.orderNo);
-                                                    setUploadingOrderNo(row.orderNo);
-                                                    setShowUploadModal(true);
-                                                }}
-                                            >
-                                                <FiUpload />
-                                                Upload
-                                            </button>
-                                        </td>
-                                        <td>
-                                            <span className={`vendor-status-badge ${getStatusClass(row.status)}`}>
-                                                {row.status}
-                                            </span>
-                                        </td>
-                                    </tr>
-                                ))}
+                                {recentOrders.map((row) => {
+                                    const rowId = row.orderNo;
+                                    const isExpanded = expandedRowId === rowId;
+
+                                    return (
+                                        <React.Fragment key={rowId}>
+                                            <tr onClick={() => toggleRow(rowId)} style={{ cursor: 'pointer' }}>
+                                                <td aria-label={isExpanded ? 'Collapse row' : 'Expand row'}>
+                                                    <FiChevronRight
+                                                        style={{
+                                                            transition: 'transform 0.2s ease',
+                                                            transform: isExpanded ? 'rotate(90deg)' : 'rotate(0deg)',
+                                                        }}
+                                                    />
+                                                </td>
+                                                <td>{row.orderNo}</td>
+                                                <td>{row.workOrderNo}</td>
+                                                <td>{row.subject}</td>
+                                                <td>{row.company}</td>
+                                                <td>{row.orderDate}</td>
+                                                <td>{row.purchaser}</td>
+                                                <td>{row.amount}</td>
+                                                <td>{row.currency}</td>
+                                                <td>
+                                                    <button
+                                                        type="button"
+                                                        className="vendor-upload-btn"
+                                                        disabled={isUploadDisabled(row.status) || uploadingOrderNo === row.orderNo}
+                                                        onClick={(e) => {
+                                                            // Prevent row expansion when using the upload action.
+                                                            e.stopPropagation();
+                                                            setUploadModalOrderNo(row.orderNo);
+                                                            setUploadingOrderNo(row.orderNo);
+                                                            setShowUploadModal(true);
+                                                        }}
+                                                    >
+                                                        <FiUpload />
+                                                        Upload
+                                                    </button>
+                                                </td>
+                                                <td>
+                                                    <span className={`vendor-status-badge ${getStatusClass(row.status)}`}>
+                                                        {row.status}
+                                                    </span>
+                                                </td>
+                                            </tr>
+
+                                            {isExpanded && (
+                                                <tr>
+                                                    <td colSpan={11} style={{ padding: 0 }}>
+                                                        <div
+                                                            style={{
+                                                                padding: '14px 20px',
+                                                                animation: 'vendorAccordionIn 0.18s ease-out both',
+                                                            }}
+                                                        >
+                                                            <table className="vendor-table" style={{ marginBottom: 0 }}>
+                                                                <thead>
+                                                                    <tr>
+                                                                        <th>Crew Name</th>
+                                                                        <th>Nationality</th>
+                                                                        <th>Passport No</th>
+                                                                        <th>Visa No</th>
+                                                                    </tr>
+                                                                </thead>
+                                                                <tbody>
+                                                                    {(row.crewDetails || []).length ? (
+                                                                        row.crewDetails.map((crew, i) => (
+                                                                            <tr key={`${rowId}-crew-${i}`}>
+                                                                                <td>{crew.name}</td>
+                                                                                <td>{crew.nationality}</td>
+                                                                                <td>{crew.passport}</td>
+                                                                                <td>{crew.visa}</td>
+                                                                            </tr>
+                                                                        ))
+                                                                    ) : (
+                                                                        <tr>
+                                                                            <td colSpan={4} style={{ color: '#6b7280' }}>
+                                                                                No crew details available
+                                                                            </td>
+                                                                        </tr>
+                                                                    )}
+                                                                </tbody>
+                                                            </table>
+                                                        </div>
+                                                    </td>
+                                                </tr>
+                                            )}
+                                        </React.Fragment>
+                                    );
+                                })}
                             </tbody>
                         </table>
                     </div>
