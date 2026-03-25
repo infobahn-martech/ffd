@@ -161,7 +161,7 @@ const Orders = () => {
             <div className="prospect employee">
                 <div className="container-fluid">
                     <CommonHeader
-                        tableTitle="Orders"
+                        tableTitle="Invoice History"
                         setSearch={(e) =>
                             setParams((prev) => ({
                                 ...prev,

@@ -50,7 +50,7 @@ function SideNav({ isMobileMenuOpen, onCloseMobileMenu, isVendorPortal = false }
   const vendorMenus = [
     { menu: 'Dashboard', isDefaultMenu: true, to: '/vendor-portal/dashboard', icon: dashboardIcon, hasPermission: true },
     // { menu: 'Invoices Management', isDefaultMenu: true, to: '/vendor-portal/invoices', icon: billingIcon, hasPermission: true },
-    { menu: 'Transaction History', isDefaultMenu: true, to: '/vendor-portal/orders', icon: materialIcon, hasPermission: true },
+    { menu: 'Invoice Management', isDefaultMenu: true, to: '/vendor-portal/orders', icon: materialIcon, hasPermission: true },
   ];
   const isMobile = width <= 991;
   const { layoutView } = useLayoutView();

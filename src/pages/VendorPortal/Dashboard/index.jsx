@@ -147,17 +147,17 @@ const Dashboard = () => {
                     <button
                         type="button"
                         className="vendor-quick-action-btn"
-                        onClick={() => navigate('/vendor-portal/invoices')}
+                        onClick={() => navigate('/vendor-portal/orders')}
                     >
                         <FiList /> View Invoices
                     </button>
-                    <button
+                    {/* <button
                         type="button"
                         className="vendor-quick-action-btn"
                         onClick={() => navigate('/vendor-portal/orders')}
                     >
                         <FiPackage /> View Orders
-                    </button>
+                    </button> */}
                 </div>
             </div>
 
@@ -203,7 +203,7 @@ const Dashboard = () => {
             </div>
 
             {/* 3. Recent Invoices table */}
-            <div className="vendor-dashboard-section">
+            {/* <div className="vendor-dashboard-section">
                 <h3 className="vendor-section-title">Recent Invoices</h3>
                 <div className="vendor-table-wrapper">
                     <div style={{ overflowX: 'auto' }}>
@@ -241,7 +241,7 @@ const Dashboard = () => {
                         </table>
                     </div>
                 </div>
-            </div>
+            </div> */}
 
 
 
