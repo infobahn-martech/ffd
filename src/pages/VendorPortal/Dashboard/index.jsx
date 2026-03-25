@@ -41,11 +41,11 @@ const MOCK_RECENT_INVOICES = [
 ];
 
 const MOCK_RECENT_ORDERS = [
-    { orderNo: 'PO-2205', company: 'Sedres Ltd', orderDate: '10 Mar 2025', purchaser: 'J. Smith', subject: 'Launch hire – Port A', amount: '2,500', currency: 'SAR', status: 'In progress' },
-    { orderNo: 'PO-2203', company: 'Marine Services Co', orderDate: '08 Mar 2025', purchaser: 'M. Jones', subject: 'Transport – Crew transfer', amount: '1,200', currency: 'SAR', status: 'In progress' },
-    { orderNo: 'PO-2200', company: 'Sedres Ltd', orderDate: '05 Mar 2025', purchaser: 'K. Brown', subject: 'Provisions supply', amount: '3,800', currency: 'SAR', status: 'In progress' },
-    { orderNo: 'PO-2197', company: 'Port Authority', orderDate: '03 Mar 2025', purchaser: 'J. Smith', subject: 'Agency services', amount: '950', currency: 'SAR', status: 'In progress' },
-    { orderNo: 'PO-2195', company: 'Marine Services Co', orderDate: '01 Mar 2025', purchaser: 'M. Jones', subject: 'Fresh water supply', amount: '600', currency: 'SAR', status: 'In progress' },
+    { orderNo: 'PO-2205', workOrderNo: 'WO-2205', company: 'Sedres Ltd', orderDate: '10 Mar 2025', purchaser: 'J. Smith', subject: 'Launch hire – Port A', amount: '2,500', currency: 'SAR', status: 'In progress' },
+    { orderNo: 'PO-2203', workOrderNo: 'WO-2203', company: 'Marine Services Co', orderDate: '08 Mar 2025', purchaser: 'M. Jones', subject: 'Transport – Crew transfer', amount: '1,200', currency: 'SAR', status: 'In progress' },
+    { orderNo: 'PO-2200', workOrderNo: 'WO-2200', company: 'Sedres Ltd', orderDate: '05 Mar 2025', purchaser: 'K. Brown', subject: 'Provisions supply', amount: '3,800', currency: 'SAR', status: 'In progress' },
+    { orderNo: 'PO-2197', workOrderNo: 'WO-2197', company: 'Port Authority', orderDate: '03 Mar 2025', purchaser: 'J. Smith', subject: 'Agency services', amount: '950', currency: 'SAR', status: 'In progress' },
+    { orderNo: 'PO-2195', workOrderNo: 'WO-2195', company: 'Marine Services Co', orderDate: '01 Mar 2025', purchaser: 'M. Jones', subject: 'Fresh water supply', amount: '600', currency: 'SAR', status: 'In progress' },
 ];
 
 function UploadInvoiceModal({ show, closeModal, orderNo, onUploadComplete }) {
@@ -367,6 +367,7 @@ const Dashboard = () => {
                             <thead>
                                 <tr>
                                     <th>PO No</th>
+                                    <th>WO No</th>
                                     <th>Subject</th>
                                     <th>Company</th>
                                     <th>Order date</th>
@@ -381,6 +382,7 @@ const Dashboard = () => {
                                 {recentOrders.map((row, idx) => (
                                     <tr key={idx}>
                                         <td>{row.orderNo}</td>
+                                        <td>{row.workOrderNo}</td>
                                         <td>{row.subject}</td>
                                         <td>{row.company}</td>
                                         <td>{row.orderDate}</td>
