@@ -2335,9 +2335,9 @@ const CrewContent = ({ formValues, handleChange, cardColor, onNavigateToTab, lau
         }
         body={
           <div className="crew-bulk-upload-wizard__body" style={{ "--card-color": cardColor }}>
-            <p className="crew-bulk-upload-wizard__helper">
+            {/* <p className="crew-bulk-upload-wizard__helper">
               Complete each step in order. Upcoming steps are locked until the current step is uploaded successfully.
-            </p>
+            </p> */}
             {wizardWarning && (
               <div className="crew-bulk-upload-wizard__warning">
                 {wizardWarning}
