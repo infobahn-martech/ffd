@@ -918,6 +918,19 @@ const CrewContent = ({ formValues, handleChange, cardColor, onNavigateToTab, lau
     </svg>
   );
 
+  const totalWizardSteps = steps.length;
+  const currentWizardStepNumber = Math.min(activeStepIndex + 1, totalWizardSteps);
+  const wizardTransitionClass = wizardSlideDirection === "forward" ? "wizard-step-panel--forward" : "wizard-step-panel--backward";
+  const getWizardStepClass = (step, index) => {
+    const classes = ["crew-wizard-step-chip"];
+    if (index === activeStepIndex) classes.push("is-active");
+    if (step.status === WIZARD_STEP_STATUS.COMPLETED) classes.push("is-completed");
+    if (step.status === WIZARD_STEP_STATUS.LOCKED) classes.push("is-locked");
+    if (step.status === WIZARD_STEP_STATUS.ERROR) classes.push("is-error");
+    return classes.join(" ");
+  };
+  const activeStepFileNames = activeStep?.uploadedFile?.map((item) => item.name).filter(Boolean) || [];
+
   return (
     <>
       {!showCrewList ? (
@@ -2291,45 +2304,51 @@ const CrewContent = ({ formValues, handleChange, cardColor, onNavigateToTab, lau
         show={isWizardOpen}
         closeModal={handleWizardClose}
         createModal
-        className="modal fade"
-        dialgName="modal-dialog modal-dialog-centered"
+        className="modal fade crew-bulk-upload-modal"
+        dialgName="modal-dialog modal-dialog-centered crew-bulk-upload-modal-dialog"
         header={
-          <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", width: "100%", padding: "16px 24px", borderBottom: "1px solid #e2e2ea" }}>
-            <div>
-              <h5 style={{ margin: 0, fontSize: "18px", fontWeight: "700", color: "#1a1a1a", fontFamily: "Inter, sans-serif" }}>
-                Crew Bulk Upload
-              </h5>
-              <p style={{ margin: "4px 0 0", fontSize: "13px", color: "#666", fontFamily: "Inter, sans-serif" }}>
-                Upload required crew documents step by step
-              </p>
+          <div className="crew-bulk-upload-wizard__header" style={{ "--card-color": cardColor }}>
+            <div className="crew-bulk-upload-wizard__title-group">
+              <div className="crew-bulk-upload-wizard__icon-badge" aria-hidden="true">
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                  <path d="M12 3L19 7V12C19 17 15.5 20.8 12 22C8.5 20.8 5 17 5 12V7L12 3Z" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" />
+                  <path d="M9 12L11 14L15 10" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" />
+                </svg>
+              </div>
+              <div>
+                <h5 className="crew-bulk-upload-wizard__title">Crew Bulk Upload</h5>
+                <p className="crew-bulk-upload-wizard__subtitle">Upload required crew documents step by step</p>
+              </div>
             </div>
-            <button
-              type="button"
-              onClick={handleWizardClose}
-              aria-label="Close"
-              style={{ background: "none", border: "none", fontSize: "24px", color: "#999", cursor: "pointer", padding: 0, width: "32px", height: "32px" }}
-            >
-              ×
-            </button>
+            <div className="crew-bulk-upload-wizard__header-meta">
+              <span className="crew-bulk-upload-wizard__step-counter">Step {currentWizardStepNumber} of {totalWizardSteps}</span>
+              <button
+                type="button"
+                onClick={handleWizardClose}
+                aria-label="Close"
+                className="crew-bulk-upload-wizard__close-btn"
+              >
+                <span>×</span>
+              </button>
+            </div>
           </div>
         }
         body={
-          <div style={{ padding: "20px 24px", "--card-color": cardColor }}>
-            <p style={{ margin: "0 0 12px 0", fontSize: "12px", color: "#666", fontFamily: "Inter, sans-serif" }}>
+          <div className="crew-bulk-upload-wizard__body" style={{ "--card-color": cardColor }}>
+            <p className="crew-bulk-upload-wizard__helper">
               Complete each step in order. Upcoming steps are locked until the current step is uploaded successfully.
             </p>
             {wizardWarning && (
-              <div style={{ marginBottom: "12px", backgroundColor: "#fff4e5", border: "1px solid #ffd9a3", color: "#8a5a00", borderRadius: "8px", padding: "8px 10px", fontSize: "12px" }}>
+              <div className="crew-bulk-upload-wizard__warning">
                 {wizardWarning}
               </div>
             )}
             {activeStep && (
-              <div style={{ minHeight: "330px", transition: "all 0.25s ease", transform: `translateX(${wizardSlideDirection === "forward" ? "0" : "-2px"})` }}>
-                <h4 style={{ margin: 0, fontSize: "18px", fontWeight: "700", color: "#1a1a1a" }}>{activeStep.title}</h4>
-                <p style={{ margin: "6px 0 14px", fontSize: "13px", color: "#666" }}>{activeStep.description}</p>
-
+              <div className={`wizard-step-panel ${wizardTransitionClass}`}>
+                <h4 className="wizard-step-panel__title">{activeStep.title}</h4>
+                <p className="wizard-step-panel__description">{activeStep.description}</p>
                 <div
-                  className={`document-upload-zone crew-excel-upload-zone ${isDraggingWizardUpload ? "dragging" : ""} ${activeStep.uploadedFile?.length ? "uploaded" : ""}`}
+                  className={`document-upload-zone crew-excel-upload-zone crew-wizard-upload-card ${isDraggingWizardUpload ? "dragging" : ""} ${activeStep.uploadedFile?.length ? "uploaded" : ""} ${activeStep.status === WIZARD_STEP_STATUS.ERROR ? "has-error" : ""}`}
                   onDragEnter={handleWizardDragEnter}
                   onDragOver={handleWizardDragOver}
                   onDragLeave={handleWizardDragLeave}
@@ -2339,7 +2358,7 @@ const CrewContent = ({ formValues, handleChange, cardColor, onNavigateToTab, lau
                       wizardStepFileInputRef.current?.click();
                     }
                   }}
-                  style={{ "--card-color": cardColor, maxWidth: "740px", width: "100%", height: "220px", margin: "0 auto", cursor: activeStep.status === WIZARD_STEP_STATUS.LOCKED ? "not-allowed" : "pointer", opacity: activeStep.status === WIZARD_STEP_STATUS.LOCKED ? 0.6 : 1 }}
+                  style={{ "--card-color": cardColor }}
                 >
                   <input
                     ref={wizardStepFileInputRef}
@@ -2352,45 +2371,48 @@ const CrewContent = ({ formValues, handleChange, cardColor, onNavigateToTab, lau
                   />
                   <div className="upload-zone-content">
                     {isUploadingStep ? (
-                      <p style={{ fontSize: "14px", color: "#666" }}>Uploading {activeStep.label} files...</p>
+                      <div className="crew-wizard-upload-state">
+                        <span className="crew-wizard-upload-spinner" />
+                        <p className="crew-wizard-upload-state__title">Uploading {activeStep.label} files...</p>
+                        <p className="crew-wizard-upload-state__desc">Please keep this modal open while we process your upload.</p>
+                      </div>
                     ) : activeStep.uploadedFile?.length ? (
-                      <div style={{ textAlign: "center" }}>
-                        <p style={{ margin: 0, color: "#28a745", fontWeight: "700", fontSize: "15px" }}>
-                          ✓ {activeStep.uploadedFile.length} file(s) uploaded successfully
-                        </p>
-                        <p style={{ margin: "8px 0 0", color: "#666", fontSize: "12px" }}>
-                          {activeStep.uploadedFile.map((item) => item.name).slice(0, 2).join(", ")}
-                        </p>
-                        <p style={{ margin: "8px 0 0", color: "var(--card-color, #2A00FF)", fontSize: "12px", fontWeight: 600 }}>
-                          Replace file
-                        </p>
+                      <div className="crew-wizard-upload-state crew-wizard-upload-state--success">
+                        <div className="crew-wizard-upload-state__icon" aria-hidden="true">
+                          <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                            <path d="M20 7L10 17L5 12" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round" />
+                          </svg>
+                        </div>
+                        <p className="crew-wizard-upload-state__title">{activeStep.uploadedFile.length} file(s) uploaded successfully</p>
+                        <p className="crew-wizard-upload-state__desc">{activeStepFileNames.slice(0, 2).join(", ")}</p>
+                        <span className="crew-wizard-upload-state__link">Replace file</span>
                       </div>
                     ) : (
-                      <>
+                      <div className="crew-wizard-upload-state">
                         <div className="upload-icon-wrapper">
                           <UploadIconSVG />
                         </div>
                         <div className="upload-text-content">
-                          <p className="upload-main-text">
+                          <p className="upload-main-text crew-wizard-upload-main-text">
                             Drag and drop your {activeStep.label.toLowerCase()} files here, or{" "}
                             <span className="upload-link">click to browse</span>
                           </p>
-                          <p className="upload-sub-text">Allowed formats: {activeStep.accepts}</p>
+                          <p className="upload-sub-text crew-wizard-upload-sub-text">Allowed formats: {activeStep.accepts}</p>
                         </div>
-                      </>
+                      </div>
                     )}
                   </div>
                 </div>
                 {activeStep.status === WIZARD_STEP_STATUS.ERROR && activeStep.errorMessage && (
-                  <div style={{ marginTop: "10px", color: "#dc3545", fontSize: "13px", textAlign: "center" }}>{activeStep.errorMessage}</div>
+                  <div className="crew-wizard-inline-error">{activeStep.errorMessage}</div>
                 )}
               </div>
             )}
           </div>
         }
         footer={
-          <div style={{ padding: "14px 20px", borderTop: "1px solid #e2e2ea", display: "flex", flexDirection: "column", gap: "12px", width: "100%" }}>
-            <div style={{ display: "flex", alignItems: "center", gap: "8px" }}>
+          <div className="crew-bulk-upload-wizard__footer">
+            <div className="crew-wizard-stepper">
               <button
                 type="button"
                 onClick={() => {
@@ -2401,14 +2423,12 @@ const CrewContent = ({ formValues, handleChange, cardColor, onNavigateToTab, lau
                   }
                 }}
                 disabled={activeStepIndex === 0}
-                style={{ border: "1px solid #e2e2ea", borderRadius: "8px", background: "#fff", padding: "6px 10px", cursor: activeStepIndex === 0 ? "not-allowed" : "pointer" }}
+                className="crew-wizard-nav-btn"
               >
-                ←
+                <span aria-hidden="true">←</span>
               </button>
-              <div style={{ display: "flex", overflowX: "auto", gap: "8px", flex: 1, paddingBottom: "2px" }}>
+              <div className="crew-wizard-stepper-track">
                 {steps.map((step, index) => {
-                  const isActive = index === activeStepIndex;
-                  const color = step.status === WIZARD_STEP_STATUS.COMPLETED ? "#28a745" : step.status === WIZARD_STEP_STATUS.ERROR ? "#dc3545" : step.status === WIZARD_STEP_STATUS.ACTIVE ? "var(--card-color, #2A00FF)" : "#b0b5c3";
                   return (
                     <button
                       key={step.key}
@@ -2420,10 +2440,12 @@ const CrewContent = ({ formValues, handleChange, cardColor, onNavigateToTab, lau
                         }
                       }}
                       disabled={step.status === WIZARD_STEP_STATUS.LOCKED}
-                      style={{ minWidth: "110px", borderRadius: "12px", border: `1px solid ${color}`, background: isActive ? `${color}12` : "#fff", color, fontSize: "12px", fontWeight: 700, padding: "8px 10px", cursor: step.status === WIZARD_STEP_STATUS.LOCKED ? "not-allowed" : "pointer", opacity: step.status === WIZARD_STEP_STATUS.LOCKED ? 0.65 : 1 }}
+                      className={getWizardStepClass(step, index)}
                     >
-                      {step.status === WIZARD_STEP_STATUS.COMPLETED ? "✓ " : ""}
-                      {step.label}
+                      <span className="crew-wizard-step-chip__icon">
+                        {step.status === WIZARD_STEP_STATUS.COMPLETED ? "✓" : step.status === WIZARD_STEP_STATUS.ERROR ? "!" : index + 1}
+                      </span>
+                      <span className="crew-wizard-step-chip__label">{step.label}</span>
                     </button>
                   );
                 })}
@@ -2441,22 +2463,22 @@ const CrewContent = ({ formValues, handleChange, cardColor, onNavigateToTab, lau
                   }
                 }}
                 disabled={activeStepIndex === steps.length - 1}
-                style={{ border: "1px solid #e2e2ea", borderRadius: "8px", background: "#fff", padding: "6px 10px", cursor: activeStepIndex === steps.length - 1 ? "not-allowed" : "pointer" }}
+                className="crew-wizard-nav-btn"
               >
-                →
+                <span aria-hidden="true">→</span>
               </button>
             </div>
-            <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+            <div className="crew-wizard-footer-bar">
               {isWizardCompleted ? (
-                <p style={{ margin: 0, color: "#28a745", fontSize: "13px", fontWeight: "600" }}>All required bulk upload steps are complete.</p>
+                <p className="crew-wizard-footer-message is-success">All required bulk upload steps are complete.</p>
               ) : (
-                <p style={{ margin: 0, color: "#666", fontSize: "12px" }}>Current step: {activeStep?.label || "-"}</p>
+                <p className="crew-wizard-footer-message">Current step: {activeStep?.label || "-"}</p>
               )}
-              <div style={{ display: "flex", gap: "8px" }}>
+              <div className="crew-wizard-footer-actions">
                 <button
                   type="button"
                   onClick={handleWizardClose}
-                  style={{ padding: "9px 14px", borderRadius: "8px", border: "1px solid #e2e2ea", background: "#fff", fontSize: "13px", fontWeight: "600" }}
+                  className="crew-wizard-btn crew-wizard-btn--ghost"
                 >
                   Close
                 </button>
@@ -2464,7 +2486,7 @@ const CrewContent = ({ formValues, handleChange, cardColor, onNavigateToTab, lau
                   <button
                     type="button"
                     onClick={handleOpenCrewList}
-                    style={{ padding: "9px 14px", borderRadius: "8px", border: "none", background: "var(--card-color, #2A00FF)", color: "#fff", fontSize: "13px", fontWeight: "700" }}
+                    className="crew-wizard-btn crew-wizard-btn--primary"
                   >
                     View Crew List
                   </button>
