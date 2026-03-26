@@ -1,4 +1,4 @@
-import { useEffect, useState, useRef } from "react";
+import { useEffect, useState, useRef, useMemo } from "react";
 import PropTypes from "prop-types";
 import * as XLSX from "xlsx";
 import { Tooltip } from "react-tooltip";
@@ -115,6 +115,59 @@ const StatusIcon = ({ status = "pending", IconComponent, size = 20 }) => {
   return <IconComponent size={size} color={color} />;
 };
 
+const WIZARD_STEP_STATUS = {
+  COMPLETED: "completed",
+  ACTIVE: "active",
+  LOCKED: "locked",
+  ERROR: "error"
+};
+
+const getDefaultBulkStepConfig = (includeIqama = false) => {
+  const base = [
+    { key: "crewList", label: "Crew List", title: "Crew List Uploaded", description: "Crew list upload is completed.", storageField: "crewUploadedFileName", accepts: ".xls,.xlsx,.csv", allowMultiple: false },
+    { key: "passport", label: "Passport", title: "Upload Passport File", description: "Upload passport documents in bulk for crew members.", storageField: "crewPassportFiles", accepts: "*/*", allowMultiple: true },
+    { key: "visa", label: "Visa", title: "Upload Visa File", description: "Upload visa documents in bulk for crew members.", storageField: "crewVisaFiles", accepts: "*/*", allowMultiple: true }
+  ];
+
+  if (includeIqama) {
+    base.push({ key: "iqama", label: "Iqama", title: "Upload Iqama File", description: "Upload iqama documents in bulk for crew members.", storageField: "crewIqamaFiles", accepts: "*/*", allowMultiple: true });
+  }
+
+  base.push(
+    { key: "cgPass", label: "CG Pass", title: "Upload CG Pass File", description: "Upload CG pass documents in bulk for crew members.", storageField: "crewCgPassFiles", accepts: "*/*", allowMultiple: true },
+    { key: "zawilPass", label: "Zawil Pass", title: "Upload Zawil Pass File", description: "Upload zawil pass documents in bulk for crew members.", storageField: "crewZawilPassFiles", accepts: "*/*", allowMultiple: true }
+  );
+
+  return base;
+};
+
+const buildWizardSteps = ({ includeIqama, uploadedFileName, formValues }) => {
+  const config = getDefaultBulkStepConfig(includeIqama);
+  return config.map((step, index) => {
+    if (step.key === "crewList") {
+      return {
+        ...step,
+        status: WIZARD_STEP_STATUS[index === 0 ? "ACTIVE" : "LOCKED"],
+        uploadedFile: uploadedFileName ? [{ name: uploadedFileName }] : null,
+        uploadedAt: uploadedFileName ? new Date().toISOString() : null,
+        serverResponse: null,
+        errorMessage: null
+      };
+    }
+
+    const existingFiles = formValues[step.storageField] || null;
+    const hasExistingFiles = Array.isArray(existingFiles) ? existingFiles.length > 0 : Boolean(existingFiles);
+    return {
+      ...step,
+      status: WIZARD_STEP_STATUS.LOCKED,
+      uploadedFile: hasExistingFiles ? existingFiles : null,
+      uploadedAt: hasExistingFiles ? new Date().toISOString() : null,
+      serverResponse: null,
+      errorMessage: null
+    };
+  });
+};
+
 // Generate crew data from Excel file
 const generateCrewFromExcel = (excelData) => {
   if (!excelData || excelData.length === 0) return [];
@@ -171,26 +224,27 @@ const CrewContent = ({ formValues, handleChange, cardColor, onNavigateToTab, lau
 
   // Check if documents are already uploaded from formValues
   const hasCrewList = formValues.crewList && formValues.crewList.length > 0;
+  const includeIqamaInBulkFlow = Boolean(formValues?.includeIqamaInBulkFlow);
 
   const [isFileUploaded, setIsFileUploaded] = useState(hasCrewList);
-  const [showCrewListUploadSuccessModal, setShowCrewListUploadSuccessModal] = useState(false);
+  const [isCrewListVisible, setIsCrewListVisible] = useState(hasCrewList);
+  const [isWizardOpen, setIsWizardOpen] = useState(false);
+  const [wizardSlideDirection, setWizardSlideDirection] = useState("forward");
+  const [wizardWarning, setWizardWarning] = useState("");
+  const [activeStepIndex, setActiveStepIndex] = useState(0);
+  const [steps, setSteps] = useState(() => buildWizardSteps({ includeIqama: includeIqamaInBulkFlow, uploadedFileName: formValues.crewUploadedFileName || "", formValues }));
+  const [isUploadingStep, setIsUploadingStep] = useState(false);
   const [isDragging, setIsDragging] = useState(false);
   const [uploadedFileName, setUploadedFileName] = useState(formValues.crewUploadedFileName || "");
   const fileInputRef = useRef(null);
 
-  // Bulk Passport and Visa modal states
-  const [showPassportModal, setShowPassportModal] = useState(false);
-  const [showVisaModal, setShowVisaModal] = useState(false);
-  const [showIqamaModal, setShowIqamaModal] = useState(false);
-  const [isDraggingPassport, setIsDraggingPassport] = useState(false);
-  const [isDraggingVisa, setIsDraggingVisa] = useState(false);
-  const [isDraggingIqama, setIsDraggingIqama] = useState(false);
+  const [isDraggingWizardUpload, setIsDraggingWizardUpload] = useState(false);
   const [passportFiles, setPassportFiles] = useState(formValues.crewPassportFiles || []);
   const [visaFiles, setVisaFiles] = useState(formValues.crewVisaFiles || []);
   const [iqamaFiles, setIqamaFiles] = useState(formValues.crewIqamaFiles || []);
-  const passportFileInputRef = useRef(null);
-  const visaFileInputRef = useRef(null);
-  const iqamaFileInputRef = useRef(null);
+  const [cgPassFiles, setCgPassFiles] = useState(formValues.crewCgPassFiles || []);
+  const [zawilPassFiles, setZawilPassFiles] = useState(formValues.crewZawilPassFiles || []);
+  const wizardStepFileInputRef = useRef(null);
 
   // Individual passport and visa documents per crew member
   const [passportDocuments, setPassportDocuments] = useState(formValues.crewPassportDocuments || {});
@@ -296,9 +350,12 @@ const CrewContent = ({ formValues, handleChange, cardColor, onNavigateToTab, lau
         const fileNameEvent = { target: { value: file.name } };
         handleChange("crewUploadedFileName")(fileNameEvent);
         if (crewData.length > 0) {
-          setShowCrewListUploadSuccessModal(true);
+          setIsFileUploaded(true);
+          setIsCrewListVisible(false);
+          handleOpenWizardFromCrewUpload(file.name);
         } else {
           setIsFileUploaded(true);
+          setIsCrewListVisible(true);
         }
       } catch (error) {
         console.error("Error parsing file:", error);
@@ -306,10 +363,12 @@ const CrewContent = ({ formValues, handleChange, cardColor, onNavigateToTab, lau
         const syntheticEvent = { target: { value: [] } };
         handleChange("crewList")(syntheticEvent);
         setIsFileUploaded(true);
+        setIsCrewListVisible(false);
         setUploadedFileName(file.name);
         // Save uploaded file name to formValues
         const fileNameEvent = { target: { value: file.name } };
         handleChange("crewUploadedFileName")(fileNameEvent);
+        handleOpenWizardFromCrewUpload(file.name);
       }
     };
     reader.readAsArrayBuffer(file);
@@ -524,16 +583,42 @@ const CrewContent = ({ formValues, handleChange, cardColor, onNavigateToTab, lau
     setUploadedFileName(`Preview Data (${filledRows.length} crew member${filledRows.length > 1 ? 's' : ''})`);
     const fileNameEvent = { target: { value: `Preview Data (${filledRows.length} crew member${filledRows.length > 1 ? 's' : ''})` } };
     handleChange("crewUploadedFileName")(fileNameEvent);
-    setShowCrewListUploadSuccessModal(true);
-  };
-
-  const handleConfirmCrewListUploadSuccess = () => {
-    setShowCrewListUploadSuccessModal(false);
     setIsFileUploaded(true);
+    setIsCrewListVisible(false);
+    const stepsAfterCrewUpload = buildWizardSteps({
+      includeIqama: includeIqamaInBulkFlow,
+      uploadedFileName: `Preview Data (${filledRows.length} crew member${filledRows.length > 1 ? "s" : ""})`,
+      formValues
+    }).map((step, index) => {
+      if (step.key === "crewList") {
+        return { ...step, status: WIZARD_STEP_STATUS.COMPLETED };
+      }
+      if (index === 1) {
+        return { ...step, status: WIZARD_STEP_STATUS.ACTIVE };
+      }
+      return { ...step, status: WIZARD_STEP_STATUS.LOCKED };
+    });
+    setSteps(stepsAfterCrewUpload);
+    setActiveStepIndex(1);
+    setIsWizardOpen(true);
   };
 
   // Determine what to show based on upload progress
-  const showCrewList = isFileUploaded;
+  const showCrewList = isFileUploaded && isCrewListVisible;
+  const activeStep = useMemo(() => steps[activeStepIndex] || null, [steps, activeStepIndex]);
+  const isWizardCompleted = useMemo(() => steps.length > 0 && steps.every((step) => step.status === WIZARD_STEP_STATUS.COMPLETED), [steps]);
+
+  const getStepStorageField = (stepKey) => {
+    const step = steps.find((item) => item.key === stepKey);
+    return step?.storageField;
+  };
+
+  const persistStepFiles = (stepKey, files) => {
+    const fieldName = getStepStorageField(stepKey);
+    if (!fieldName) return;
+    const value = files.map((f) => ({ name: f.name, file: f, size: f.size, type: f.type }));
+    handleChange(fieldName)({ target: { value } });
+  };
 
   // Handle passport bulk upload
   const handlePassportBulkUpload = (files) => {
@@ -564,123 +649,154 @@ const CrewContent = ({ formValues, handleChange, cardColor, onNavigateToTab, lau
     const syntheticEvent = { target: { value: fileArray.map(f => ({ name: f.name, file: f, size: f.size, type: f.type })) } };
     handleChange("crewIqamaFiles")(syntheticEvent);
   };
-
-  // Handle passport drag and drop
-  const handlePassportDragEnter = (e) => {
-    e.preventDefault();
-    e.stopPropagation();
-    setIsDraggingPassport(true);
+  const handleCgPassBulkUpload = (files) => {
+    if (!files || files.length === 0) return;
+    const fileArray = Array.from(files);
+    setCgPassFiles(fileArray);
+    handleChange("crewCgPassFiles")({ target: { value: fileArray.map((f) => ({ name: f.name, file: f, size: f.size, type: f.type })) } });
   };
 
-  const handlePassportDragLeave = (e) => {
-    e.preventDefault();
-    e.stopPropagation();
-    setIsDraggingPassport(false);
+  const handleZawilPassBulkUpload = (files) => {
+    if (!files || files.length === 0) return;
+    const fileArray = Array.from(files);
+    setZawilPassFiles(fileArray);
+    handleChange("crewZawilPassFiles")({ target: { value: fileArray.map((f) => ({ name: f.name, file: f, size: f.size, type: f.type })) } });
   };
 
-  const handlePassportDragOver = (e) => {
-    e.preventDefault();
-    e.stopPropagation();
-  };
+  const markWizardStepSuccess = (stepKey, files, serverResponse = null) => {
+    const currentIndex = steps.findIndex((step) => step.key === stepKey);
+    if (currentIndex < 0) return;
 
-  const handlePassportDrop = (e) => {
-    e.preventDefault();
-    e.stopPropagation();
-    setIsDraggingPassport(false);
-    const files = e.dataTransfer.files;
-    if (files && files.length > 0) {
-      handlePassportBulkUpload(files);
+    const nextIndex = currentIndex + 1;
+    const updated = steps.map((step, idx) => {
+      if (idx === currentIndex) {
+        return {
+          ...step,
+          status: WIZARD_STEP_STATUS.COMPLETED,
+          uploadedFile: files,
+          uploadedAt: new Date().toISOString(),
+          serverResponse,
+          errorMessage: null
+        };
+      }
+      if (idx === nextIndex) {
+        return { ...step, status: WIZARD_STEP_STATUS.ACTIVE, errorMessage: null };
+      }
+      return step;
+    });
+
+    setWizardSlideDirection("forward");
+    setSteps(updated);
+    if (nextIndex < updated.length) {
+      setActiveStepIndex(nextIndex);
     }
   };
 
-  // Handle visa drag and drop
-  const handleVisaDragEnter = (e) => {
-    e.preventDefault();
-    e.stopPropagation();
-    setIsDraggingVisa(true);
+  const markWizardStepError = (stepKey, message) => {
+    setSteps((prev) =>
+      prev.map((step) =>
+        step.key === stepKey ? { ...step, status: WIZARD_STEP_STATUS.ERROR, errorMessage: message } : step
+      )
+    );
   };
 
-  const handleVisaDragLeave = (e) => {
-    e.preventDefault();
-    e.stopPropagation();
-    setIsDraggingVisa(false);
-  };
-
-  const handleVisaDragOver = (e) => {
-    e.preventDefault();
-    e.stopPropagation();
-  };
-
-  const handleVisaDrop = (e) => {
-    e.preventDefault();
-    e.stopPropagation();
-    setIsDraggingVisa(false);
-    const files = e.dataTransfer.files;
-    if (files && files.length > 0) {
-      handleVisaBulkUpload(files);
+  const handleWizardStepUpload = async (filesLike) => {
+    if (!activeStep || !filesLike || filesLike.length === 0 || activeStep.status === WIZARD_STEP_STATUS.LOCKED) return;
+    const files = Array.from(filesLike);
+    setIsUploadingStep(true);
+    setWizardWarning("");
+    try {
+      const stepKey = activeStep.key;
+      if (stepKey === "passport") {
+        handlePassportBulkUpload(files);
+      } else if (stepKey === "visa") {
+        handleVisaBulkUpload(files);
+      } else if (stepKey === "iqama") {
+        handleIqamaBulkUpload(files);
+      } else if (stepKey === "cgPass") {
+        handleCgPassBulkUpload(files);
+      } else if (stepKey === "zawilPass") {
+        handleZawilPassBulkUpload(files);
+      }
+      persistStepFiles(stepKey, files);
+      markWizardStepSuccess(stepKey, files, { ok: true });
+    } catch (error) {
+      const msg = error?.message || `Unable to upload ${activeStep.label}. Please retry.`;
+      markWizardStepError(activeStep.key, msg);
+    } finally {
+      setIsUploadingStep(false);
     }
   };
 
-  // Handle iqama drag and drop
-
-  const handleIqamaDragEnter = (e) => {
-    e.preventDefault();
-    e.stopPropagation();
-    setIsDraggingIqama(true);
-  };
-
-  const handleIqamaDragLeave = (e) => {
-    e.preventDefault();
-    e.stopPropagation();
-    setIsDraggingIqama(false);
-  };
-
-  const handleIqamaDragOver = (e) => {
-    e.preventDefault();
-    e.stopPropagation();
-  };
-
-  const handleIqamaDrop = (e) => {
-    e.preventDefault();
-    e.stopPropagation();
-    setIsDraggingIqama(false);
-    const files = e.dataTransfer.files;
-    if (files && files.length > 0) {
-      handleIqamaBulkUpload(files);
-    }
-  };
-
-  // Handle passport file input change
-  const handlePassportFileInputChange = (e) => {
+  const handleWizardFileInputChange = (e) => {
     const files = e.target.files;
     if (files && files.length > 0) {
-      handlePassportBulkUpload(files);
+      handleWizardStepUpload(files);
     }
-    if (passportFileInputRef.current) {
-      passportFileInputRef.current.value = "";
-    }
-  };
-
-  // Handle visa file input change
-  const handleVisaFileInputChange = (e) => {
-    const files = e.target.files;
-    if (files && files.length > 0) {
-      handleVisaBulkUpload(files);
-    }
-    if (visaFileInputRef.current) {
-      visaFileInputRef.current.value = "";
+    if (wizardStepFileInputRef.current) {
+      wizardStepFileInputRef.current.value = "";
     }
   };
 
-  // Handle iqama file input change
-  const handleIqamaFileInputChange = (e) => {
-    const files = e.target.files;
+  const handleWizardDragEnter = (e) => {
+    e.preventDefault();
+    e.stopPropagation();
+    if (activeStep && activeStep.status !== WIZARD_STEP_STATUS.LOCKED) {
+      setIsDraggingWizardUpload(true);
+    }
+  };
+
+  const handleWizardDragLeave = (e) => {
+    e.preventDefault();
+    e.stopPropagation();
+    setIsDraggingWizardUpload(false);
+  };
+
+  const handleWizardDragOver = (e) => {
+    e.preventDefault();
+    e.stopPropagation();
+  };
+
+  const handleWizardDrop = (e) => {
+    e.preventDefault();
+    e.stopPropagation();
+    setIsDraggingWizardUpload(false);
+    const files = e.dataTransfer.files;
     if (files && files.length > 0) {
-      handleIqamaBulkUpload(files);
+      handleWizardStepUpload(files);
     }
-    if (iqamaFileInputRef.current) {
-      iqamaFileInputRef.current.value = "";
+  };
+
+  const handleOpenWizardFromCrewUpload = (fileName = uploadedFileName) => {
+    const initialSteps = buildWizardSteps({
+      includeIqama: includeIqamaInBulkFlow,
+      uploadedFileName: fileName,
+      formValues
+    }).map((step, index) => {
+      if (step.key === "crewList") return { ...step, status: WIZARD_STEP_STATUS.COMPLETED };
+      if (index === 1) return { ...step, status: WIZARD_STEP_STATUS.ACTIVE };
+      return { ...step, status: WIZARD_STEP_STATUS.LOCKED };
+    });
+    setSteps(initialSteps);
+    setActiveStepIndex(1);
+    setWizardWarning("");
+    setIsWizardOpen(true);
+  };
+
+  const handleWizardClose = () => {
+    if (isWizardCompleted) {
+      setIsWizardOpen(false);
+      return;
     }
+    const shouldClose = window.confirm("Bulk upload is not complete yet. Are you sure you want to close?");
+    if (shouldClose) {
+      setIsWizardOpen(false);
+    }
+  };
+
+  const handleOpenCrewList = () => {
+    setIsWizardOpen(false);
+    setIsCrewListVisible(true);
   };
 
   // Handle individual passport document upload
@@ -1487,7 +1603,8 @@ const CrewContent = ({ formValues, handleChange, cardColor, onNavigateToTab, lau
                 type="button"
                 onClick={() => {
                   setIsFileUploaded(false);
-                  setShowCrewListUploadSuccessModal(false);
+                  setIsCrewListVisible(false);
+                  setIsWizardOpen(false);
                   setUploadedFileName("");
                   const syntheticEvent = { target: { value: [] } };
                   handleChange("crewList")(syntheticEvent);
@@ -1546,12 +1663,23 @@ const CrewContent = ({ formValues, handleChange, cardColor, onNavigateToTab, lau
               <div style={{ position: "relative" }}>
                 <select
                   onChange={(e) => {
-                    if (e.target.value === "passport") {
-                      setShowPassportModal(true);
-                    } else if (e.target.value === "visa") {
-                      setShowVisaModal(true);
-                    } else if (e.target.value === "iqama") {
-                      setShowIqamaModal(true);
+                    const selectedKey = e.target.value;
+                    if (!selectedKey) return;
+
+                    const selectedIndex = steps.findIndex((step) => step.key === selectedKey);
+                    if (selectedIndex >= 0) {
+                      const selectedStep = steps[selectedIndex];
+                      setIsWizardOpen(true);
+                      if (selectedStep.status === WIZARD_STEP_STATUS.COMPLETED) {
+                        setWizardSlideDirection(selectedIndex >= activeStepIndex ? "forward" : "backward");
+                        setActiveStepIndex(selectedIndex);
+                        setWizardWarning("");
+                      } else if (selectedStep.status === WIZARD_STEP_STATUS.ACTIVE || selectedStep.status === WIZARD_STEP_STATUS.ERROR) {
+                        setActiveStepIndex(selectedIndex);
+                        setWizardWarning("");
+                      } else {
+                        setWizardWarning("Complete the current active step before opening upcoming steps.");
+                      }
                     }
                     e.target.value = ""; // Reset dropdown
                   }}
@@ -1580,7 +1708,9 @@ const CrewContent = ({ formValues, handleChange, cardColor, onNavigateToTab, lau
                   </option>
                   <option value="passport">Passport</option>
                   <option value="visa">Visa</option>
-                  <option value="iqama">Iqama</option>
+                  {includeIqamaInBulkFlow && <option value="iqama">Iqama</option>}
+                  <option value="cgPass">CG Pass</option>
+                  <option value="zawilPass">Zawil Pass</option>
                 </select>
               </div>
               {showActionDropdown && launchHireOnly && (
@@ -2158,553 +2288,189 @@ const CrewContent = ({ formValues, handleChange, cardColor, onNavigateToTab, lau
       )}
 
       <CustomModal
-        show={showCrewListUploadSuccessModal}
-        closeModal={handleConfirmCrewListUploadSuccess}
+        show={isWizardOpen}
+        closeModal={handleWizardClose}
         createModal
         className="modal fade"
         dialgName="modal-dialog modal-dialog-centered"
         header={
           <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", width: "100%", padding: "16px 24px", borderBottom: "1px solid #e2e2ea" }}>
-            <h5 style={{ margin: 0, fontSize: "18px", fontWeight: "600", color: "#1a1a1a", fontFamily: "Inter, sans-serif" }}>
-              Crew list uploaded
-            </h5>
+            <div>
+              <h5 style={{ margin: 0, fontSize: "18px", fontWeight: "700", color: "#1a1a1a", fontFamily: "Inter, sans-serif" }}>
+                Crew Bulk Upload
+              </h5>
+              <p style={{ margin: "4px 0 0", fontSize: "13px", color: "#666", fontFamily: "Inter, sans-serif" }}>
+                Upload required crew documents step by step
+              </p>
+            </div>
             <button
               type="button"
-              onClick={handleConfirmCrewListUploadSuccess}
+              onClick={handleWizardClose}
               aria-label="Close"
-              style={{
-                background: "none",
-                border: "none",
-                fontSize: "24px",
-                color: "#999",
-                cursor: "pointer",
-                padding: "0",
-                width: "32px",
-                height: "32px",
-                display: "flex",
-                alignItems: "center",
-                justifyContent: "center",
-                borderRadius: "4px",
-                transition: "all 0.2s ease"
-              }}
-              onMouseEnter={(e) => {
-                e.currentTarget.style.backgroundColor = "#f5f5f5";
-                e.currentTarget.style.color = "#333";
-              }}
-              onMouseLeave={(e) => {
-                e.currentTarget.style.backgroundColor = "transparent";
-                e.currentTarget.style.color = "#999";
-              }}
+              style={{ background: "none", border: "none", fontSize: "24px", color: "#999", cursor: "pointer", padding: 0, width: "32px", height: "32px" }}
             >
               ×
             </button>
           </div>
         }
         body={
-          <div style={{ padding: "8px 8px 24px", fontFamily: "Inter, sans-serif", fontSize: "15px", lineHeight: 1.6, color: "#333" }}>
-            <p style={{ margin: "0 0 12px 0" }}>
-              Your crew list was uploaded successfully. Next, you can add documents in either of these ways:
+          <div style={{ padding: "20px 24px", "--card-color": cardColor }}>
+            <p style={{ margin: "0 0 12px 0", fontSize: "12px", color: "#666", fontFamily: "Inter, sans-serif" }}>
+              Complete each step in order. Upcoming steps are locked until the current step is uploaded successfully.
             </p>
-            <ul style={{ margin: "0 0 12px 0", paddingLeft: "20px" }}>
-              <li style={{ marginBottom: "8px" }}>
-                <strong>Bulk upload</strong> passports, visas, and Iqamas from the <strong>Bulk Upload</strong> menu on the crew list.
-              </li>
-              <li>
-                <strong>Single upload</strong> per crew member using the upload icons in each row for passport, visa, Iqama, and related columns.
-              </li>
-            </ul>
-            <p style={{ margin: 0, color: "#666", fontSize: "14px" }}>
-              Click OK when you are ready to view the crew list.
-            </p>
+            {wizardWarning && (
+              <div style={{ marginBottom: "12px", backgroundColor: "#fff4e5", border: "1px solid #ffd9a3", color: "#8a5a00", borderRadius: "8px", padding: "8px 10px", fontSize: "12px" }}>
+                {wizardWarning}
+              </div>
+            )}
+            {activeStep && (
+              <div style={{ minHeight: "330px", transition: "all 0.25s ease", transform: `translateX(${wizardSlideDirection === "forward" ? "0" : "-2px"})` }}>
+                <h4 style={{ margin: 0, fontSize: "18px", fontWeight: "700", color: "#1a1a1a" }}>{activeStep.title}</h4>
+                <p style={{ margin: "6px 0 14px", fontSize: "13px", color: "#666" }}>{activeStep.description}</p>
+
+                <div
+                  className={`document-upload-zone crew-excel-upload-zone ${isDraggingWizardUpload ? "dragging" : ""} ${activeStep.uploadedFile?.length ? "uploaded" : ""}`}
+                  onDragEnter={handleWizardDragEnter}
+                  onDragOver={handleWizardDragOver}
+                  onDragLeave={handleWizardDragLeave}
+                  onDrop={handleWizardDrop}
+                  onClick={() => {
+                    if (activeStep.status === WIZARD_STEP_STATUS.ACTIVE || activeStep.status === WIZARD_STEP_STATUS.ERROR || activeStep.status === WIZARD_STEP_STATUS.COMPLETED) {
+                      wizardStepFileInputRef.current?.click();
+                    }
+                  }}
+                  style={{ "--card-color": cardColor, maxWidth: "740px", width: "100%", height: "220px", margin: "0 auto", cursor: activeStep.status === WIZARD_STEP_STATUS.LOCKED ? "not-allowed" : "pointer", opacity: activeStep.status === WIZARD_STEP_STATUS.LOCKED ? 0.6 : 1 }}
+                >
+                  <input
+                    ref={wizardStepFileInputRef}
+                    type="file"
+                    className="file-input-hidden"
+                    accept={activeStep.accepts}
+                    multiple={activeStep.allowMultiple}
+                    onChange={handleWizardFileInputChange}
+                    disabled={activeStep.status === WIZARD_STEP_STATUS.LOCKED || isUploadingStep}
+                  />
+                  <div className="upload-zone-content">
+                    {isUploadingStep ? (
+                      <p style={{ fontSize: "14px", color: "#666" }}>Uploading {activeStep.label} files...</p>
+                    ) : activeStep.uploadedFile?.length ? (
+                      <div style={{ textAlign: "center" }}>
+                        <p style={{ margin: 0, color: "#28a745", fontWeight: "700", fontSize: "15px" }}>
+                          ✓ {activeStep.uploadedFile.length} file(s) uploaded successfully
+                        </p>
+                        <p style={{ margin: "8px 0 0", color: "#666", fontSize: "12px" }}>
+                          {activeStep.uploadedFile.map((item) => item.name).slice(0, 2).join(", ")}
+                        </p>
+                        <p style={{ margin: "8px 0 0", color: "var(--card-color, #2A00FF)", fontSize: "12px", fontWeight: 600 }}>
+                          Replace file
+                        </p>
+                      </div>
+                    ) : (
+                      <>
+                        <div className="upload-icon-wrapper">
+                          <UploadIconSVG />
+                        </div>
+                        <div className="upload-text-content">
+                          <p className="upload-main-text">
+                            Drag and drop your {activeStep.label.toLowerCase()} files here, or{" "}
+                            <span className="upload-link">click to browse</span>
+                          </p>
+                          <p className="upload-sub-text">Allowed formats: {activeStep.accepts}</p>
+                        </div>
+                      </>
+                    )}
+                  </div>
+                </div>
+                {activeStep.status === WIZARD_STEP_STATUS.ERROR && activeStep.errorMessage && (
+                  <div style={{ marginTop: "10px", color: "#dc3545", fontSize: "13px", textAlign: "center" }}>{activeStep.errorMessage}</div>
+                )}
+              </div>
+            )}
           </div>
         }
         footer={
-          <div style={{ display: "flex", justifyContent: "flex-end", padding: "16px 24px", borderTop: "1px solid #e2e2ea", width: "100%" }}>
-            <button
-              type="button"
-              onClick={handleConfirmCrewListUploadSuccess}
-              style={{
-                padding: "10px 24px",
-                borderRadius: "8px",
-                border: "none",
-                backgroundColor: "var(--card-color, #2A00FF)",
-                color: "#ffffff",
-                fontSize: "14px",
-                fontWeight: "600",
-                cursor: "pointer",
-                fontFamily: "Inter, sans-serif"
-              }}
-            >
-              OK
-            </button>
-          </div>
-        }
-      />
-
-      {/* Bulk Passport Upload Modal */}
-      <CustomModal
-        show={showPassportModal}
-        closeModal={() => setShowPassportModal(false)}
-        createModal
-        className="modal fade"
-        dialgName="modal-dialog modal-dialog-centered"
-        header={
-          <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", width: "100%", padding: "16px 24px", borderBottom: "1px solid #e2e2ea" }}>
-            <h5 style={{ margin: 0, fontSize: "18px", fontWeight: "600", color: "#1a1a1a", fontFamily: "Inter, sans-serif" }}>
-              Bulk Passport Upload
-            </h5>
-            <button
-              onClick={() => setShowPassportModal(false)}
-              style={{
-                background: "none",
-                border: "none",
-                fontSize: "24px",
-                color: "#999",
-                cursor: "pointer",
-                padding: "0",
-                width: "32px",
-                height: "32px",
-                display: "flex",
-                alignItems: "center",
-                justifyContent: "center",
-                borderRadius: "4px",
-                transition: "all 0.2s ease"
-              }}
-              onMouseEnter={(e) => {
-                e.currentTarget.style.backgroundColor = "#f5f5f5";
-                e.currentTarget.style.color = "#333";
-              }}
-              onMouseLeave={(e) => {
-                e.currentTarget.style.backgroundColor = "transparent";
-                e.currentTarget.style.color = "#999";
-              }}
-            >
-              ×
-            </button>
-          </div>
-        }
-        body={
-          <div style={{ padding: "32px", "--card-color": cardColor }}>
-            <div
-              className={`document-upload-zone crew-excel-upload-zone ${isDraggingPassport ? "dragging" : ""} ${passportFiles.length > 0 ? "uploaded" : ""}`}
-              onDragEnter={handlePassportDragEnter}
-              onDragOver={handlePassportDragOver}
-              onDragLeave={handlePassportDragLeave}
-              onDrop={handlePassportDrop}
-              onClick={() => passportFileInputRef.current?.click()}
-              style={{
-                "--card-color": cardColor,
-                maxWidth: "600px",
-                width: "100%",
-                height: "240px",
-                margin: "0 auto"
-              }}
-            >
-              <input
-                ref={passportFileInputRef}
-                type="file"
-                className="file-input-hidden"
-                accept="*/*"
-                multiple
-                onChange={handlePassportFileInputChange}
-              />
-              <div className="upload-zone-content">
-                {passportFiles.length > 0 ? (
-                  <div style={{
-                    display: "flex",
-                    flexDirection: "column",
-                    alignItems: "center",
-                    gap: "16px"
-                  }}>
-                    <div style={{
-                      width: "64px",
-                      height: "64px",
-                      borderRadius: "50%",
-                      background: "linear-gradient(135deg, #28a745 0%, #20c997 100%)",
-                      display: "flex",
-                      alignItems: "center",
-                      justifyContent: "center",
-                      boxShadow: "0 4px 12px rgba(40, 167, 69, 0.3)"
-                    }}>
-                      <svg width="32" height="32" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-                        <path d="M20 6L9 17L4 12" stroke="white" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" />
-                      </svg>
-                    </div>
-                    <div style={{ textAlign: "center" }}>
-                      <p style={{
-                        fontSize: "16px",
-                        fontWeight: "600",
-                        color: "#28a745",
-                        margin: "0 0 8px 0",
-                        fontFamily: "Inter, sans-serif"
-                      }}>
-                        ✓ {passportFiles.length} file(s) uploaded successfully
-                      </p>
-                      <p style={{
-                        fontSize: "12px",
-                        color: "#999",
-                        margin: "0",
-                        fontFamily: "Inter, sans-serif"
-                      }}>
-                        Click to upload different files
-                      </p>
-                    </div>
-                  </div>
-                ) : (
-                  <>
-                    <div className="upload-icon-wrapper">
-                      <UploadIconSVG />
-                    </div>
-                    <div className="upload-text-content">
-                      <p className="upload-main-text">
-                        Drag and drop your passport files here, or{" "}
-                        <span className="upload-link">click to browse</span>
-                      </p>
-                      <p className="upload-sub-text">Supports all file formats</p>
-                    </div>
-                  </>
+          <div style={{ padding: "14px 20px", borderTop: "1px solid #e2e2ea", display: "flex", flexDirection: "column", gap: "12px", width: "100%" }}>
+            <div style={{ display: "flex", alignItems: "center", gap: "8px" }}>
+              <button
+                type="button"
+                onClick={() => {
+                  const targetIndex = Math.max(0, activeStepIndex - 1);
+                  if (targetIndex !== activeStepIndex) {
+                    setWizardSlideDirection("backward");
+                    setActiveStepIndex(targetIndex);
+                  }
+                }}
+                disabled={activeStepIndex === 0}
+                style={{ border: "1px solid #e2e2ea", borderRadius: "8px", background: "#fff", padding: "6px 10px", cursor: activeStepIndex === 0 ? "not-allowed" : "pointer" }}
+              >
+                ←
+              </button>
+              <div style={{ display: "flex", overflowX: "auto", gap: "8px", flex: 1, paddingBottom: "2px" }}>
+                {steps.map((step, index) => {
+                  const isActive = index === activeStepIndex;
+                  const color = step.status === WIZARD_STEP_STATUS.COMPLETED ? "#28a745" : step.status === WIZARD_STEP_STATUS.ERROR ? "#dc3545" : step.status === WIZARD_STEP_STATUS.ACTIVE ? "var(--card-color, #2A00FF)" : "#b0b5c3";
+                  return (
+                    <button
+                      key={step.key}
+                      type="button"
+                      onClick={() => {
+                        if (step.status === WIZARD_STEP_STATUS.COMPLETED || step.status === WIZARD_STEP_STATUS.ACTIVE || step.status === WIZARD_STEP_STATUS.ERROR) {
+                          setWizardSlideDirection(index > activeStepIndex ? "forward" : "backward");
+                          setActiveStepIndex(index);
+                        }
+                      }}
+                      disabled={step.status === WIZARD_STEP_STATUS.LOCKED}
+                      style={{ minWidth: "110px", borderRadius: "12px", border: `1px solid ${color}`, background: isActive ? `${color}12` : "#fff", color, fontSize: "12px", fontWeight: 700, padding: "8px 10px", cursor: step.status === WIZARD_STEP_STATUS.LOCKED ? "not-allowed" : "pointer", opacity: step.status === WIZARD_STEP_STATUS.LOCKED ? 0.65 : 1 }}
+                    >
+                      {step.status === WIZARD_STEP_STATUS.COMPLETED ? "✓ " : ""}
+                      {step.label}
+                    </button>
+                  );
+                })}
+              </div>
+              <button
+                type="button"
+                onClick={() => {
+                  const targetIndex = Math.min(steps.length - 1, activeStepIndex + 1);
+                  if (targetIndex !== activeStepIndex) {
+                    const targetStep = steps[targetIndex];
+                    if (targetStep.status !== WIZARD_STEP_STATUS.LOCKED) {
+                      setWizardSlideDirection("forward");
+                      setActiveStepIndex(targetIndex);
+                    }
+                  }
+                }}
+                disabled={activeStepIndex === steps.length - 1}
+                style={{ border: "1px solid #e2e2ea", borderRadius: "8px", background: "#fff", padding: "6px 10px", cursor: activeStepIndex === steps.length - 1 ? "not-allowed" : "pointer" }}
+              >
+                →
+              </button>
+            </div>
+            <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+              {isWizardCompleted ? (
+                <p style={{ margin: 0, color: "#28a745", fontSize: "13px", fontWeight: "600" }}>All required bulk upload steps are complete.</p>
+              ) : (
+                <p style={{ margin: 0, color: "#666", fontSize: "12px" }}>Current step: {activeStep?.label || "-"}</p>
+              )}
+              <div style={{ display: "flex", gap: "8px" }}>
+                <button
+                  type="button"
+                  onClick={handleWizardClose}
+                  style={{ padding: "9px 14px", borderRadius: "8px", border: "1px solid #e2e2ea", background: "#fff", fontSize: "13px", fontWeight: "600" }}
+                >
+                  Close
+                </button>
+                {isWizardCompleted && (
+                  <button
+                    type="button"
+                    onClick={handleOpenCrewList}
+                    style={{ padding: "9px 14px", borderRadius: "8px", border: "none", background: "var(--card-color, #2A00FF)", color: "#fff", fontSize: "13px", fontWeight: "700" }}
+                  >
+                    View Crew List
+                  </button>
                 )}
               </div>
             </div>
-          </div>
-        }
-        footer={
-          <div style={{ padding: "16px 24px", borderTop: "1px solid #e2e2ea", display: "flex", justifyContent: "flex-end", gap: "12px" }}>
-            <button
-              onClick={() => setShowPassportModal(false)}
-              style={{
-                padding: "10px 24px",
-                borderRadius: "8px",
-                border: "1px solid #e2e2ea",
-                backgroundColor: "#ffffff",
-                color: "#1a1a1a",
-                fontSize: "14px",
-                fontWeight: "600",
-                cursor: "pointer",
-                transition: "all 0.2s ease",
-                fontFamily: "Inter, sans-serif"
-              }}
-              onMouseEnter={(e) => {
-                e.currentTarget.style.backgroundColor = "#f5f5f5";
-              }}
-              onMouseLeave={(e) => {
-                e.currentTarget.style.backgroundColor = "#ffffff";
-              }}
-            >
-              Close
-            </button>
-          </div>
-        }
-      />
-
-      {/* Bulk Visa Upload Modal */}
-      <CustomModal
-        show={showVisaModal}
-        closeModal={() => setShowVisaModal(false)}
-        createModal
-        className="modal fade"
-        dialgName="modal-dialog modal-dialog-centered"
-        header={
-          <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", width: "100%", padding: "16px 24px", borderBottom: "1px solid #e2e2ea" }}>
-            <h5 style={{ margin: 0, fontSize: "18px", fontWeight: "600", color: "#1a1a1a", fontFamily: "Inter, sans-serif" }}>
-              Bulk Visa Upload
-            </h5>
-            <button
-              onClick={() => setShowVisaModal(false)}
-              style={{
-                background: "none",
-                border: "none",
-                fontSize: "24px",
-                color: "#999",
-                cursor: "pointer",
-                padding: "0",
-                width: "32px",
-                height: "32px",
-                display: "flex",
-                alignItems: "center",
-                justifyContent: "center",
-                borderRadius: "4px",
-                transition: "all 0.2s ease"
-              }}
-              onMouseEnter={(e) => {
-                e.currentTarget.style.backgroundColor = "#f5f5f5";
-                e.currentTarget.style.color = "#333";
-              }}
-              onMouseLeave={(e) => {
-                e.currentTarget.style.backgroundColor = "transparent";
-                e.currentTarget.style.color = "#999";
-              }}
-            >
-              ×
-            </button>
-          </div>
-        }
-        body={
-          <div style={{ padding: "32px", "--card-color": cardColor }}>
-            <div
-              className={`document-upload-zone crew-excel-upload-zone ${isDraggingVisa ? "dragging" : ""} ${visaFiles.length > 0 ? "uploaded" : ""}`}
-              onDragEnter={handleVisaDragEnter}
-              onDragOver={handleVisaDragOver}
-              onDragLeave={handleVisaDragLeave}
-              onDrop={handleVisaDrop}
-              onClick={() => visaFileInputRef.current?.click()}
-              style={{
-                "--card-color": cardColor,
-                maxWidth: "600px",
-                width: "100%",
-                height: "240px",
-                margin: "0 auto"
-              }}
-            >
-              <input
-                ref={visaFileInputRef}
-                type="file"
-                className="file-input-hidden"
-                accept="*/*"
-                multiple
-                onChange={handleVisaFileInputChange}
-              />
-              <div className="upload-zone-content">
-                {visaFiles.length > 0 ? (
-                  <div style={{
-                    display: "flex",
-                    flexDirection: "column",
-                    alignItems: "center",
-                    gap: "16px"
-                  }}>
-                    <div style={{
-                      width: "64px",
-                      height: "64px",
-                      borderRadius: "50%",
-                      background: "linear-gradient(135deg, #28a745 0%, #20c997 100%)",
-                      display: "flex",
-                      alignItems: "center",
-                      justifyContent: "center",
-                      boxShadow: "0 4px 12px rgba(40, 167, 69, 0.3)"
-                    }}>
-                      <svg width="32" height="32" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-                        <path d="M20 6L9 17L4 12" stroke="white" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" />
-                      </svg>
-                    </div>
-                    <div style={{ textAlign: "center" }}>
-                      <p style={{
-                        fontSize: "16px",
-                        fontWeight: "600",
-                        color: "#28a745",
-                        margin: "0 0 8px 0",
-                        fontFamily: "Inter, sans-serif"
-                      }}>
-                        ✓ {visaFiles.length} file(s) uploaded successfully
-                      </p>
-                      <p style={{
-                        fontSize: "12px",
-                        color: "#999",
-                        margin: "0",
-                        fontFamily: "Inter, sans-serif"
-                      }}>
-                        Click to upload different files
-                      </p>
-                    </div>
-                  </div>
-                ) : (
-                  <>
-                    <div className="upload-icon-wrapper">
-                      <UploadIconSVG />
-                    </div>
-                    <div className="upload-text-content">
-                      <p className="upload-main-text">
-                        Drag and drop your visa files here, or{" "}
-                        <span className="upload-link">click to browse</span>
-                      </p>
-                      <p className="upload-sub-text">Supports all file formats</p>
-                    </div>
-                  </>
-                )}
-              </div>
-            </div>
-          </div>
-        }
-        footer={
-          <div style={{ padding: "16px 24px", borderTop: "1px solid #e2e2ea", display: "flex", justifyContent: "flex-end", gap: "12px" }}>
-            <button
-              onClick={() => setShowVisaModal(false)}
-              style={{
-                padding: "10px 24px",
-                borderRadius: "8px",
-                border: "1px solid #e2e2ea",
-                backgroundColor: "#ffffff",
-                color: "#1a1a1a",
-                fontSize: "14px",
-                fontWeight: "600",
-                cursor: "pointer",
-                transition: "all 0.2s ease",
-                fontFamily: "Inter, sans-serif"
-              }}
-              onMouseEnter={(e) => {
-                e.currentTarget.style.backgroundColor = "#f5f5f5";
-              }}
-              onMouseLeave={(e) => {
-                e.currentTarget.style.backgroundColor = "#ffffff";
-              }}
-            >
-              Close
-            </button>
-          </div>
-        }
-      />
-
-      {/* Bulk Iqama Upload Modal */}
-      <CustomModal
-        show={showIqamaModal}
-        closeModal={() => setShowIqamaModal(false)}
-        createModal
-        className="modal fade"
-        dialgName="modal-dialog modal-dialog-centered"
-        header={
-          <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", width: "100%", padding: "16px 24px", borderBottom: "1px solid #e2e2ea" }}>
-            <h5 style={{ margin: 0, fontSize: "18px", fontWeight: "600", color: "#1a1a1a", fontFamily: "Inter, sans-serif" }}>
-              Bulk Iqama Upload
-            </h5>
-            <button
-              onClick={() => setShowIqamaModal(false)}
-              style={{
-                background: "none",
-                border: "none",
-                fontSize: "24px",
-                color: "#999",
-                cursor: "pointer",
-                padding: "0",
-                width: "32px",
-                height: "32px",
-                display: "flex",
-                alignItems: "center",
-                justifyContent: "center",
-                borderRadius: "4px",
-                transition: "all 0.2s ease"
-              }}
-              onMouseEnter={(e) => {
-                e.currentTarget.style.backgroundColor = "#f5f5f5";
-                e.currentTarget.style.color = "#333";
-              }}
-              onMouseLeave={(e) => {
-                e.currentTarget.style.backgroundColor = "transparent";
-                e.currentTarget.style.color = "#999";
-              }}
-            >
-              ×
-            </button>
-          </div>
-        }
-        body={
-          <div style={{ padding: "32px", "--card-color": cardColor }}>
-            <div
-              className={`document-upload-zone crew-excel-upload-zone ${isDraggingIqama ? "dragging" : ""} ${iqamaFiles.length > 0 ? "uploaded" : ""}`}
-              onDragEnter={handleIqamaDragEnter}
-              onDragOver={handleIqamaDragOver}
-              onDragLeave={handleIqamaDragLeave}
-              onDrop={handleIqamaDrop}
-              onClick={() => iqamaFileInputRef.current?.click()}
-              style={{
-                "--card-color": cardColor,
-                maxWidth: "600px",
-                width: "100%",
-                height: "240px",
-                margin: "0 auto"
-              }}
-            >
-              <input
-                ref={iqamaFileInputRef}
-                type="file"
-                className="file-input-hidden"
-                accept="*/*"
-                multiple
-                onChange={handleIqamaFileInputChange}
-              />
-              <div className="upload-zone-content">
-                {iqamaFiles.length > 0 ? (
-                  <div style={{
-                    display: "flex",
-                    flexDirection: "column",
-                    alignItems: "center",
-                    gap: "16px"
-                  }}>
-                    <div style={{
-                      width: "64px",
-                      height: "64px",
-                      borderRadius: "50%",
-                      background: "linear-gradient(135deg, #28a745 0%, #20c997 100%)",
-                      display: "flex",
-                      alignItems: "center",
-                      justifyContent: "center",
-                      boxShadow: "0 4px 12px rgba(40, 167, 69, 0.3)"
-                    }}>
-                      <svg width="32" height="32" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-                        <path d="M20 6L9 17L4 12" stroke="white" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" />
-                      </svg>
-                    </div>
-                    <div style={{ textAlign: "center" }}>
-                      <p style={{
-                        fontSize: "16px",
-                        fontWeight: "600",
-                        color: "#28a745",
-                        margin: "0 0 8px 0",
-                        fontFamily: "Inter, sans-serif"
-                      }}>
-                        ✓ {iqamaFiles.length} file(s) uploaded successfully
-                      </p>
-                      <p style={{
-                        fontSize: "12px",
-                        color: "#999",
-                        margin: "0",
-                        fontFamily: "Inter, sans-serif"
-                      }}>
-                        Click to upload different files
-                      </p>
-                    </div>
-                  </div>
-                ) : (
-                  <>
-                    <div className="upload-icon-wrapper">
-                      <UploadIconSVG />
-                    </div>
-                    <div className="upload-text-content">
-                      <p className="upload-main-text">
-                        Drag and drop your iqama files here, or{" "}
-                        <span className="upload-link">click to browse</span>
-                      </p>
-                      <p className="upload-sub-text">Supports all file formats</p>
-                    </div>
-                  </>
-                )}
-              </div>
-            </div>
-          </div>
-        }
-        footer={
-          <div style={{ padding: "16px 24px", borderTop: "1px solid #e2e2ea", display: "flex", justifyContent: "flex-end", gap: "12px" }}>
-            <button
-              onClick={() => setShowIqamaModal(false)}
-              style={{
-                padding: "10px 24px",
-                borderRadius: "8px",
-                border: "1px solid #e2e2ea",
-                backgroundColor: "#ffffff",
-                color: "#1a1a1a",
-                fontSize: "14px",
-                fontWeight: "600",
-                cursor: "pointer",
-                transition: "all 0.2s ease",
-                fontFamily: "Inter, sans-serif"
-              }}
-              onMouseEnter={(e) => {
-                e.currentTarget.style.backgroundColor = "#f5f5f5";
-              }}
-              onMouseLeave={(e) => {
-                e.currentTarget.style.backgroundColor = "#ffffff";
-              }}
-            >
-              Close
-            </button>
           </div>
         }
       />
