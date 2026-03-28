@@ -1,10 +1,10 @@
-import { defineConfig } from "vite";
-import react from "@vitejs/plugin-react";
+import { defineConfig } from 'vite';
+import react from '@vitejs/plugin-react';
 
-export default defineConfig(({ command }) => ({
+export default defineConfig({
   plugins: [react()],
-  base: command === "build" ? "/sedres-fe/" : "/",  // build vs dev
+  base: '/sedres-fe/',
   build: {
-    outDir: "docs",
+    outDir: 'docs',
   },
-}));
+});
