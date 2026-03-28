@@ -76,6 +76,20 @@
   color: #6b7280;
 }
 
+.card-invoice-amount-with-trend {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 4px 6px;
+}
+
+.card-invoice-trend {
+  display: inline-flex;
+  align-items: center;
+  color: #059669;
+  margin-left: 2px;
+}
+
 /* Header */
 .card-header {
   display: flex;

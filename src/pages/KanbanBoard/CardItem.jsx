@@ -8,7 +8,7 @@ import saudimarcapLogo from "../../assets/images/saudimarcap.png";
 import saipemLogo from "../../assets/images/saipem.png";
 import lamprellLogo from "../../assets/images/lamprell.png";
 import gulfmarineLogo from "../../assets/images/gulfmarine.png";
-import { FiFileText, FiDownload, FiLoader, FiMoreHorizontal } from "react-icons/fi";
+import { FiFileText, FiDownload, FiLoader, FiMoreHorizontal, FiTrendingUp } from "react-icons/fi";
 
 // Status colors
 const STATUS_COLORS = {
@@ -162,7 +162,7 @@ const StatusIcon = ({ status = "pending", IconComponent, size = 20 }) => {
 function CardItem({ card, index, setSelectedCard, isShrunk = false, hideExtraDetails = false, isClassicLayout = false, isModernLayout = false, isDarkMode = false, columnTitle = "" }) {
   const cardColor = card.color || "#2A00FF";
   const invoiceAmount = card.invoiceAmount != null ? Number(card.invoiceAmount) : null;
-  const highlightInvoice = !!card.highlightInvoice; // Only 2 cards get this
+  const highlightInvoice = !!card.highlightInvoice; // 1st card (DA board): show invoice trend icon, no border pulse
   const formatInvoiceAmount = (val) =>
     new Intl.NumberFormat("en-SA", { minimumFractionDigits: 0, maximumFractionDigits: 0 }).format(val) + " SAR";
 
@@ -178,7 +178,7 @@ function CardItem({ card, index, setSelectedCard, isShrunk = false, hideExtraDet
     <Draggable draggableId={card.id} index={index}>
       {(provided, snapshot) => (
         <div
-          className={`kanban-card ${snapshot.isDragging ? "dragging" : ""} ${card.priority ? "priority-blink" : ""} ${isShrunk ? "card-shrunk" : ""} ${isClassicLayout ? "kanban-card-classic" : ""} ${isModernLayout ? "kanban-card-modern" : ""} ${isDarkMode ? "kanban-card-dark" : ""} ${highlightInvoice ? "card-highlight-invoice card-blink-invoice" : ""}`}
+          className={`kanban-card ${snapshot.isDragging ? "dragging" : ""} ${card.priority ? "priority-blink" : ""} ${isShrunk ? "card-shrunk" : ""} ${isClassicLayout ? "kanban-card-classic" : ""} ${isModernLayout ? "kanban-card-modern" : ""} ${isDarkMode ? "kanban-card-dark" : ""}`}
           ref={provided.innerRef}
           {...provided.draggableProps}
           {...provided.dragHandleProps}
@@ -360,9 +360,19 @@ function CardItem({ card, index, setSelectedCard, isShrunk = false, hideExtraDet
 
               {/* Invoice Amount */}
               {invoiceAmount != null && !isShrunk && (
-                <div className="card-invoice-amount">
+                <div className={`card-invoice-amount ${highlightInvoice ? "card-invoice-amount-with-trend" : ""}`}>
                   <span className="card-invoice-label">Invoice Amount</span>{" "}
                   {formatInvoiceAmount(invoiceAmount)}
+                  {highlightInvoice && (
+                    <span
+                      className="card-invoice-trend"
+                      title="Notable invoice amount"
+                      role="img"
+                      aria-label="Notable invoice amount"
+                    >
+                      <FiTrendingUp size={14} strokeWidth={2.5} aria-hidden />
+                    </span>
+                  )}
                 </div>
               )}
 

@@ -272,7 +272,7 @@ const createWorkflow = (workflowConfig) => {
     }
   }
 
-  // Mark only the 1st card for highlight + blink
+  // Mark first generated card (Ready to Finalize, first in insertion order) for invoice trend UI only
   const allCardIds = Object.keys(cards);
   if (allCardIds.length > 0) {
     cards[allCardIds[0]].highlightInvoice = true;
