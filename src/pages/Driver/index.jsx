@@ -39,6 +39,12 @@ const Driver = () => {
             thclass: "tb-head",
             contentClass: "table-content",
             sort: true,
+            cell: ({ row }) => {
+                const v = Number(row.driver_for);
+                if (v === 2) return "Material";
+                if (v === 1) return "Transport";
+                return row.driver_for ?? "—";
+            },
         },
         {
             name: "Driver No",

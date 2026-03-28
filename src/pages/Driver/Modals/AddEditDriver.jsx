@@ -28,6 +28,7 @@ export function DriverModal({ showModal, closeModal, onSuccess }) {
             iqama_no: "",
             location: "",
             nationality: "",
+            driver_for: 1,
         },
     });
 
@@ -49,6 +50,7 @@ export function DriverModal({ showModal, closeModal, onSuccess }) {
                 iqama_no: showModal?.iqama_no || "",
                 location: showModal?.location || "",
                 nationality: showModal?.nationality ?? showModal?.country_id ?? "",
+                driver_for: Number(showModal?.driver_for) === 2 ? 2 : 1,
             });
         } else if (showModal && !isEdit) {
             reset({
@@ -59,6 +61,7 @@ export function DriverModal({ showModal, closeModal, onSuccess }) {
                 iqama_no: "",
                 location: "",
                 nationality: "",
+                driver_for: 1,
             });
         }
     }, [showModal, isEdit, reset, isLoadingCountries, countries]);
@@ -72,6 +75,7 @@ export function DriverModal({ showModal, closeModal, onSuccess }) {
             nationality: data.nationality,
             location: data.location,
             joining_date: data.joining_date,
+            driver_for: Number(data.driver_for) === 2 ? 2 : 1,
         };
         if (isEdit) {
             updateDriver({
@@ -310,6 +314,61 @@ export function DriverModal({ showModal, closeModal, onSuccess }) {
                                     {errors.nationality && (
                                         <span className="error text-danger">
                                             {errors.nationality.message}
+                                        </span>
+                                    )}
+                                </div>
+                            </div>
+
+                            {/* DRIVER FOR — Transport (1) / Material (2) */}
+                            <div className="col-lg-6 col-sm-12">
+                                <div className="phone-wrapper">
+                                    <label className="phone-label">
+                                        Driver For <span className="text-danger">*</span>
+                                    </label>
+                                    <div
+                                        className="d-flex align-items-center flex-wrap gap-3 pt-2"
+                                        style={{ minHeight: 50 }}
+                                    >
+                                        <div className="form-check form-check-inline mb-0">
+                                            <input
+                                                className="form-check-input"
+                                                type="radio"
+                                                id="driver_for_transport"
+                                                value={1}
+                                                {...register("driver_for", {
+                                                    required: true,
+                                                    valueAsNumber: true,
+                                                })}
+                                            />
+                                            <label
+                                                className="form-check-label"
+                                                htmlFor="driver_for_transport"
+                                            >
+                                                Transport
+                                            </label>
+                                        </div>
+                                        <div className="form-check form-check-inline mb-0">
+                                            <input
+                                                className="form-check-input"
+                                                type="radio"
+                                                id="driver_for_material"
+                                                value={2}
+                                                {...register("driver_for", {
+                                                    required: true,
+                                                    valueAsNumber: true,
+                                                })}
+                                            />
+                                            <label
+                                                className="form-check-label"
+                                                htmlFor="driver_for_material"
+                                            >
+                                                Material
+                                            </label>
+                                        </div>
+                                    </div>
+                                    {errors.driver_for && (
+                                        <span className="error text-danger d-block mt-1">
+                                            Please select Driver For
                                         </span>
                                     )}
                                 </div>
