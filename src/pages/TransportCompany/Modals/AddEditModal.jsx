@@ -8,50 +8,58 @@ import "../../../design/scss/prospect-modal.scss";
 import "../../../design/scss/modal-designs.scss";
 import "../../../design/scss/form-designs.scss";
 
-export function DriverVehicleMappingModal({ showModal, closeModal, onSuccess }) {
-    const isEdit = !!(showModal?.driver_vehicle_id || showModal?.driver_vehicle_id);
-    const driverVehicleId = showModal?.driver_vehicle_id ?? showModal?._id;
+export function TransportCompanyModal({ showModal, closeModal, onSuccess }) {
+    const isEdit = !!(showModal?.transport_company_id || showModal?.transport_company_id);
+    const transportCompanyId = showModal?.transport_company_id ?? showModal?._id;
 
-    const { addDriverVehicleMapping, updateDriverVehicleMapping, isBeingUpdated } = useDriverVehicleMappingReducer((state) => state);
-    const { drivers = [], fetchAllDrivers } = useDriverReducer((state) => state);
-    const { vehicles = [], getVehicles } = useVehicleReducer((state) => state);
+    const { addTransportCompany, updateTransportCompany, isBeingUpdated } = useTransportCompanyReducer((state) => state);
 
     const { register, handleSubmit, formState: { errors }, reset } = useForm({
         defaultValues: {
-            transport_driver_id: "",
-            vehicle_type_id: "",
-            plate_no: "",
+            name: "",
+            address: "",
+            phone: "",
+            email: "",
+            website: "",
+            status: "Active",
         },
     });
 
     useEffect(() => {
         if (showModal) {
-            fetchAllDrivers?.({ params: {} });
-            getVehicles?.({ params: {} });
         }
     }, [showModal]);
 
     useEffect(() => {
-        if (showModal?.driver_vehicle_id) {
+        if (showModal?.transport_company_id) {
             reset({
-                transport_driver_id: showModal?.transport_driver_id ?? showModal?.driver_id ?? "",
-                vehicle_type_id: showModal?.vehicle_type_id ?? "",
-                plate_no: showModal?.plate_no ?? "",
+                name: showModal?.name ?? "",
+                address: showModal?.address ?? "",
+                phone: showModal?.phone ?? "",
+                email: showModal?.email ?? "",
+                website: showModal?.website ?? "",
+                status: showModal?.status ?? "Active",
             });
         } else if (showModal) {
             reset({
-                transport_driver_id: "",
-                vehicle_type_id: "",
-                plate_no: "",
+                name: "",
+                address: "",
+                phone: "",
+                email: "",
+                website: "",
+                status: "Active",
             });
         }
     }, [showModal, reset]);
 
     const onSubmit = async (data) => {
         const payload = {
-            transport_driver_id: data.transport_driver_id,
-            vehicle_type_id: data.vehicle_type_id,
-            plate_no: data.plate_no?.trim() ?? "",
+            name: data.name,
+            address: data.address,
+            phone: data.phone,
+            email: data.email,
+            website: data.website,
+            status: data.status,
         };
         const cb = () => {
             closeModal();
@@ -67,7 +75,7 @@ export function DriverVehicleMappingModal({ showModal, closeModal, onSuccess }) 
     const renderHeader = () => (
         <>
             <h1 className="modal-title">
-                {showModal?.driver_vehicle_id ? "Edit Driver Vehicle Mapping" : "Add Driver Vehicle Mapping"}
+                {showModal?.transport_company_id ? "Edit Transport Company" : "Add Transport Company"}
             </h1>
         </>
     );
@@ -75,7 +83,7 @@ export function DriverVehicleMappingModal({ showModal, closeModal, onSuccess }) 
     const renderBody = () => (
         <div className="modal-body">
             <div className="lead-form">
-                <form id="driverVehicleMappingForm" onSubmit={handleSubmit(onSubmit)}>
+                <form id="transportCompanyForm" onSubmit={handleSubmit(onSubmit)}>
 
                     {/* DRIVER SELECT */}
                     <div className="mb-lg-3 mb-sm-0">

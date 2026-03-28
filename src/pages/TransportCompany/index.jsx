@@ -3,7 +3,7 @@ import { debounce } from "lodash";
 
 import CommonHeader from "../../components/CommonHeader";
 import CustomTable from "../../components/customTable";
-import { DriverVehicleMappingModal } from "./Modals/AddEditDriverVehicleMapping";
+import { DriverVehicleMappingModal } from "./Modals/AddEditModal";
 import { RenderAction } from "./RenderCells";
 import DeleteConfirmationModal from "../../components/DeleteConfirmationModal";
 import { DateFormat } from "../ActivityLog/RenderCells";
