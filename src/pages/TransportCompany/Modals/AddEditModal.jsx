@@ -11,6 +11,10 @@ export const COMPANY_TYPE = {
   THIRD_PARTY: 2,
 };
 
+/** API may return string or number; form uses "1" | "2" for radios */
+const toCompanyTypeRadio = (val) =>
+  Number(val) === COMPANY_TYPE.THIRD_PARTY ? String(COMPANY_TYPE.THIRD_PARTY) : String(COMPANY_TYPE.SEDRES);
+
 export function TransportCompanyModal({ showModal, closeModal, onSuccess }) {
   const transportCompanyId = showModal?.transport_company_id;
   const isEdit = !!transportCompanyId;
@@ -23,7 +27,7 @@ export function TransportCompanyModal({ showModal, closeModal, onSuccess }) {
   const { register, handleSubmit, formState: { errors }, reset } = useForm({
     defaultValues: {
       transport_company: '',
-      company_type: COMPANY_TYPE.SEDRES,
+      company_type: String(COMPANY_TYPE.SEDRES),
     },
   });
 
@@ -35,11 +39,8 @@ export function TransportCompanyModal({ showModal, closeModal, onSuccess }) {
 
     if (showModal.transport_company !== undefined && showModal.transport_company !== null) {
       reset({
-        transport_company: showModal.transport_company ?? '',
-        company_type:
-          showModal.company_type === COMPANY_TYPE.THIRD_PARTY
-            ? COMPANY_TYPE.THIRD_PARTY
-            : COMPANY_TYPE.SEDRES,
+        transport_company: String(showModal.transport_company ?? ''),
+        company_type: toCompanyTypeRadio(showModal.company_type),
       });
     }
 
@@ -51,9 +52,8 @@ export function TransportCompanyModal({ showModal, closeModal, onSuccess }) {
         const row = await getTransportCompanyById(transportCompanyId);
         if (cancelled || !row) return;
         reset({
-          transport_company: row.transport_company ?? '',
-          company_type:
-            row.company_type === COMPANY_TYPE.THIRD_PARTY ? COMPANY_TYPE.THIRD_PARTY : COMPANY_TYPE.SEDRES,
+          transport_company: String(row.transport_company ?? ''),
+          company_type: toCompanyTypeRadio(row.company_type),
         });
       } catch (e) {
         if (!cancelled) {
@@ -71,13 +71,13 @@ export function TransportCompanyModal({ showModal, closeModal, onSuccess }) {
     if (showModal && !transportCompanyId) {
       reset({
         transport_company: '',
-        company_type: COMPANY_TYPE.SEDRES,
+        company_type: String(COMPANY_TYPE.SEDRES),
       });
     }
   }, [showModal, transportCompanyId, reset]);
 
   const onSubmit = async (data) => {
-    const company_type = Number(data.company_type);
+    const company_type = Number(data.company_type) || COMPANY_TYPE.SEDRES;
     const payload = {
       transport_company: data.transport_company?.trim() ?? '',
       company_type,
@@ -126,24 +126,31 @@ export function TransportCompanyModal({ showModal, closeModal, onSuccess }) {
           </div>
 
           <div className="mb-lg-3 mb-sm-0">
-            <label className="form-label d-block mb-2">Company type</label>
-            <div className="d-flex flex-wrap gap-3">
-              <label className="d-flex align-items-center gap-2 mb-0">
-                <input
-                  type="radio"
-                  value={COMPANY_TYPE.SEDRES}
-                  {...register('company_type', { valueAsNumber: true })}
-                />
-                Sedres
+            <div className="desig-inp">
+              <label className="form-label company-type-label mb-2 d-block">
+                Company type <span className="text-danger">*</span>
               </label>
-              <label className="d-flex align-items-center gap-2 mb-0">
-                <input
-                  type="radio"
-                  value={COMPANY_TYPE.THIRD_PARTY}
-                  {...register('company_type', { valueAsNumber: true })}
-                />
-                Third Party
-              </label>
+              <div className="d-flex flex-wrap gap-3">
+                <label className="d-flex align-items-center gap-2 mb-0">
+                  <input
+                    type="radio"
+                    value={String(COMPANY_TYPE.SEDRES)}
+                    {...register('company_type', { required: 'Company type is required' })}
+                  />
+                  Sedres
+                </label>
+                <label className="d-flex align-items-center gap-2 mb-0">
+                  <input
+                    type="radio"
+                    value={String(COMPANY_TYPE.THIRD_PARTY)}
+                    {...register('company_type', { required: 'Company type is required' })}
+                  />
+                  Third Party
+                </label>
+              </div>
+              {errors.company_type && (
+                <span className="error text-danger d-block mt-1">{errors.company_type.message}</span>
+              )}
             </div>
           </div>
         </form>

@@ -47,7 +47,9 @@ const useTransportCompanyReducer = create((set) => ({
   },
   getTransportCompanyById: async (transport_company_id) => {
     const { data } = await transportCompanyService.getTransportCompanyById(transport_company_id);
-    return data?.data ?? data;
+    const raw = data?.data ?? data;
+    if (Array.isArray(raw)) return raw[0] ?? null;
+    return raw ?? null;
   },
   updateTransportCompany: async ({ formData, cb }) => {
     try {
