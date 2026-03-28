@@ -11,202 +11,201 @@ import { DateFormat } from "../ActivityLog/RenderCells";
 import useTransportCompanyReducer from "../../store/TransportCompanyReducer";
 
 const companyTypeLabel = (value) =>
-  Number(value) === COMPANY_TYPE.THIRD_PARTY ? "Third Party" : "Sedres";
+    Number(value) === COMPANY_TYPE.THIRD_PARTY ? "Third Party" : "Sedres";
 
 const TransportCompany = () => {
-  const {
-    getTransportCompanyData,
-    transportCompanyData,
-    isLoading,
-    totalTransportCompanyCount,
-    deleteTransportCompany,
-  } = useTransportCompanyReducer((state) => state);
+    const {
+        getTransportCompanyData,
+        transportCompanyData,
+        isLoading,
+        totalTransportCompanyCount,
+        deleteTransportCompany,
+    } = useTransportCompanyReducer((state) => state);
 
-  const [params, setParams] = useState({
-    page: 1,
-    searchTerm: "",
-    limit: 10,
-    sortBy: "transport_company",
-    sortOrder: 1,
-  });
-
-  const [showTransportCompanyModal, setShowTransportCompanyModal] = useState(false);
-  const [showDeleteModal, setShowDeleteModal] = useState(false);
-  const [selectedRow, setSelectedRow] = useState(null);
-
-  useEffect(() => {
-    getTransportCompanyData?.({
-      search: params.searchTerm || "",
-      page: params.page,
-      limit: params.limit,
-      sortBy: params.sortBy,
-      sortOrder: params.sortOrder,
+    const [params, setParams] = useState({
+        page: 1,
+        searchTerm: "",
+        limit: 10,
+        sortBy: "transport_company",
+        sortOrder: 1,
     });
-  }, [
-    params.page,
-    params.limit,
-    params.searchTerm,
-    params.sortBy,
-    params.sortOrder,
-    getTransportCompanyData,
-  ]);
 
-  const debouncedSearch = useMemo(
-    () =>
-      debounce((value) => {
-        setParams((prev) => ({ ...prev, searchTerm: value, page: 1 }));
-      }, 500),
-    []
-  );
+    const [showTransportCompanyModal, setShowTransportCompanyModal] = useState(false);
+    const [showDeleteModal, setShowDeleteModal] = useState(false);
+    const [selectedRow, setSelectedRow] = useState(null);
 
-  useEffect(() => {
-    return () => debouncedSearch.cancel();
-  }, [debouncedSearch]);
+    useEffect(() => {
+        getTransportCompanyData?.({
+            search: params.searchTerm || "",
+            page: params.page,
+            limit: params.limit,
+            sortBy: params.sortBy,
+            sortOrder: params.sortOrder,
+        });
+    }, [
+        params.page,
+        params.limit,
+        params.searchTerm,
+        params.sortBy,
+        params.sortOrder,
+        getTransportCompanyData,
+    ]);
 
-  const cols = [
-    {
-      name: "Transport company",
-      selector: "transport_company",
-      width: "260",
-      thclass: "tb-head",
-      contentClass: "table-content",
-      sort: true,
-    },
-    {
-      name: "Company type",
-      selector: "company_type",
-      width: "160",
-      thclass: "tb-head",
-      contentClass: "table-content",
-      sort: true,
-      cell: ({ row }) => companyTypeLabel(row.company_type),
-    },
-    {
-      name: "Created At",
-      selector: "created_date",
-      width: "200",
-      thclass: "tb-head",
-      contentClass: "table-content",
-      sort: true,
-      cell: ({ row }) => DateFormat({ row, selector: "created_date" }),
-    },
-    {
-      name: "Updated At",
-      selector: "updated_date",
-      width: "200",
-      thclass: "tb-head",
-      contentClass: "table-content",
-      sort: true,
-      cell: ({ row }) => {
-        const key =
-          row.updated_date != null ? "updated_date" : "udpated_date";
-        return DateFormat({ row, selector: key });
-      },
-    },
-    {
-      name: "Actions",
-      selector: "linksInfo",
-      width: "200",
-      thclass: "tb-head",
-      contentClass: "table-content",
-      cell: (props) =>
-        RenderAction({
-          ...props,
-          onEditClick: (row) => setShowTransportCompanyModal(row),
-          onDeleteClick: (row) => {
-            setSelectedRow(row);
-            setShowDeleteModal(true);
-          },
-        }),
-    },
-  ];
+    const debouncedSearch = useMemo(
+        () =>
+            debounce((value) => {
+                setParams((prev) => ({ ...prev, searchTerm: value, page: 1 }));
+            }, 500),
+        []
+    );
 
-  const refreshList = () => {
-    getTransportCompanyData?.({
-      search: params.searchTerm || "",
-      page: params.page,
-      limit: params.limit,
-      sortBy: params.sortBy,
-      sortOrder: params.sortOrder,
-    });
-  };
+    useEffect(() => {
+        return () => debouncedSearch.cancel();
+    }, [debouncedSearch]);
 
-  const handleDelete = async () => {
-    const id = selectedRow?.transport_company_id ?? selectedRow?._id;
-    if (!id) return;
+    const cols = [
+        {
+            name: "Transport company",
+            selector: "transport_company",
+            width: "260",
+            thclass: "tb-head",
+            contentClass: "table-content",
+            sort: true,
+        },
+        {
+            name: "Company type",
+            selector: "company_type",
+            width: "160",
+            thclass: "tb-head",
+            contentClass: "table-content",
+            sort: true,
+        },
+        {
+            name: "Created At",
+            selector: "created_date",
+            width: "200",
+            thclass: "tb-head",
+            contentClass: "table-content",
+            sort: true,
+            cell: ({ row }) => DateFormat({ row, selector: "created_date" }),
+        },
+        {
+            name: "Updated At",
+            selector: "updated_date",
+            width: "200",
+            thclass: "tb-head",
+            contentClass: "table-content",
+            sort: true,
+            cell: ({ row }) => {
+                const key =
+                    row.updated_date != null ? "updated_date" : "udpated_date";
+                return DateFormat({ row, selector: key });
+            },
+        },
+        {
+            name: "Actions",
+            selector: "linksInfo",
+            width: "200",
+            thclass: "tb-head",
+            contentClass: "table-content",
+            cell: (props) =>
+                RenderAction({
+                    ...props,
+                    onEditClick: (row) => setShowTransportCompanyModal(row),
+                    onDeleteClick: (row) => {
+                        setSelectedRow(row);
+                        setShowDeleteModal(true);
+                    },
+                }),
+        },
+    ];
 
-    await deleteTransportCompany?.({ transport_company_id: id });
+    const refreshList = () => {
+        getTransportCompanyData?.({
+            search: params.searchTerm || "",
+            page: params.page,
+            limit: params.limit,
+            sortBy: params.sortBy,
+            sortOrder: params.sortOrder,
+        });
+    };
 
-    setShowDeleteModal(false);
-    setSelectedRow(null);
-    refreshList();
-  };
+    const handleDelete = async () => {
+        const id = selectedRow?.transport_company_id ?? selectedRow?._id;
+        if (!id) return;
 
-  return (
-    <div className="page-body">
-      <div className="prospect employee">
-        <div className="container-fluid">
-          <CommonHeader
-            showFilter
-            tableTitle="Transport Company"
-            isAddEnabled
-            addModalLabel="Add Transport Company"
-            setSearch={(value) => debouncedSearch(value)}
-            onAddModalClick={() => setShowTransportCompanyModal(true)}
-            exportTitle="Export"
-            exportLoader={false}
-          />
+        await deleteTransportCompany?.({ transport_company_id: id });
+
+        setShowDeleteModal(false);
+        setSelectedRow(null);
+        refreshList();
+    };
+
+    return (
+        <div className="page-body">
+            <div className="prospect employee">
+                <div className="container-fluid">
+                    <CommonHeader
+                        showFilter
+                        tableTitle="Transport Company"
+                        isAddEnabled
+                        addModalLabel="Add Transport Company"
+                        setSearch={(value) => debouncedSearch(value)}
+                        onAddModalClick={() => setShowTransportCompanyModal(true)}
+                        exportTitle="Export"
+                        exportLoader={false}
+                    />
+                </div>
+
+                <CustomTable
+                    isLoading={isLoading}
+                    pagination={{ currentPage: params.page, limit: params.limit }}
+                    tableClasses="px-start"
+                    columns={cols}
+                    data={transportCompanyData}
+                    count={totalTransportCompanyCount}
+                    onPageChange={(currentPage) =>
+                        setParams((prev) => ({ ...prev, page: currentPage }))
+                    }
+                    setLimit={(newLimit) =>
+                        setParams((prev) => ({ ...prev, limit: newLimit, page: 1 }))
+                    }
+                    onSorting={(sortBy) =>
+                        setParams((prev) => ({
+                            ...prev,
+                            sortBy,
+                            sortOrder: prev.sortOrder === 1 ? -1 : 1,
+                            page: 1,
+                        }))
+                    }
+                />
+
+                {!!showTransportCompanyModal && (
+                    <TransportCompanyModal
+                        showModal={showTransportCompanyModal}
+                        closeModal={() => setShowTransportCompanyModal(false)}
+                        onSuccess={() => {
+                            setShowTransportCompanyModal(false);
+                            refreshList();
+                        }}
+                    />
+                )}
+
+                {!!showDeleteModal && (
+                    <DeleteConfirmationModal
+                        show={showDeleteModal}
+                        onCancel={() => {
+                            setShowDeleteModal(false);
+                            setSelectedRow(null);
+                        }}
+                        onConfirm={handleDelete}
+                        isLoading={isLoading}
+                        deleteText="Are you sure you want to delete this transport company?"
+                    />
+                )}
+            </div>
         </div>
-
-        <CustomTable
-          isLoading={isLoading}
-          pagination={{ currentPage: params.page, limit: params.limit }}
-          tableClasses="px-start"
-          columns={cols}
-          data={transportCompanyData}
-          count={totalTransportCompanyCount}
-          onPageChange={(currentPage) =>
-            setParams((prev) => ({ ...prev, page: currentPage }))
-          }
-          setLimit={(newLimit) =>
-            setParams((prev) => ({ ...prev, limit: newLimit, page: 1 }))
-          }
-          onSorting={(sortBy) =>
-            setParams((prev) => ({
-              ...prev,
-              sortBy,
-              sortOrder: prev.sortOrder === 1 ? -1 : 1,
-              page: 1,
-            }))
-          }
-        />
-
-        {!!showTransportCompanyModal && (
-          <TransportCompanyModal
-            showModal={showTransportCompanyModal}
-            closeModal={() => setShowTransportCompanyModal(false)}
-            onSuccess={() => {
-              setShowTransportCompanyModal(false);
-              refreshList();
-            }}
-          />
-        )}
-
-        {!!showDeleteModal && (
-          <DeleteConfirmationModal
-            show={showDeleteModal}
-            onCancel={() => {
-              setShowDeleteModal(false);
-              setSelectedRow(null);
-            }}
-            onConfirm={handleDelete}
-            isLoading={isLoading}
-            deleteText="Are you sure you want to delete this transport company?"
-          />
-        )}
-      </div>
-    </div>
-  );
+    );
 };
 
 export default TransportCompany;
