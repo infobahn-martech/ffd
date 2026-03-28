@@ -72,6 +72,7 @@ import CrewTemplate from "../pages/CrewTemplate";
 import VendorPortalDashboard from "../pages/VendorPortal/Dashboard";
 import VendorPortalInvoices from "../pages/VendorPortal/Invoices";
 import VendorPortalOrders from "../pages/VendorPortal/Orders";
+import TransportCompany from "../pages/TransportCompany";
 // 🔥 Set true to bypass auth temporarily
 const TEST_MODE = false;
 
@@ -143,6 +144,7 @@ const router = createHashRouter([
               { path: "/vendor-portal/dashboard", element: <VendorPortalDashboard /> },
               { path: "/vendor-portal/invoices", element: <VendorPortalInvoices /> },
               { path: "/vendor-portal/orders", element: <VendorPortalOrders /> },
+              { path: "/transport-company", element: <TransportCompany /> },
             ],
           },
         ]
@@ -271,6 +273,8 @@ const router = createHashRouter([
                   { path: "/vendor-portal/dashboard", element: <RouteGuard><VendorPortalDashboard /></RouteGuard> },
                   { path: "/vendor-portal/invoices", element: <RouteGuard><VendorPortalInvoices /></RouteGuard> },
                   { path: "/vendor-portal/orders", element: <RouteGuard><VendorPortalOrders /></RouteGuard> },
+                  // Transport Company
+                  { path: "/transport-company", element: <RouteGuard><TransportCompany /></RouteGuard> },
                 ],
               },
             ],

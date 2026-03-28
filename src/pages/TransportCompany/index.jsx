@@ -3,7 +3,7 @@ import { debounce } from "lodash";
 
 import CommonHeader from "../../components/CommonHeader";
 import CustomTable from "../../components/customTable";
-import { DriverVehicleMappingModal } from "./Modals/AddEditModal";
+import { TransportCompanyModal } from "./Modals/AddEditModal";
 import { RenderAction } from "./RenderCells";
 import DeleteConfirmationModal from "../../components/DeleteConfirmationModal";
 import { DateFormat } from "../ActivityLog/RenderCells";
@@ -15,11 +15,11 @@ import useTransportCompanyReducer from "../../store/TransportCompanyReducer";
 const TransportCompany = () => {
     // ✅ Store / API
     const {
-        getDriverVehicleMappingData,
-        driverVehicleMappingData,
+        getTransportCompanyData,
+        transportCompanyData,
         isLoading,
-        totalDriverVehicleMappingCount,
-        deleteDriverVehicleMapping,
+        totalTransportCompanyCount,
+        deleteTransportCompany,
     } = useTransportCompanyReducer((state) => state);
 
     // ✅ Table params (API params)
@@ -32,14 +32,14 @@ const TransportCompany = () => {
     });
 
     // ✅ Modals
-    const [showDriverVehicleMappingModal, setShowDriverVehicleMappingModal] =
+    const [showTransportCompanyModal, setShowTransportCompanyModal] =
         useState(false); // boolean OR row object
     const [showDeleteModal, setShowDeleteModal] = useState(false);
     const [selectedRow, setSelectedRow] = useState(null);
 
     // ✅ Fetch list whenever params change
     useEffect(() => {
-        getDriverVehicleMappingData?.({
+        getTransportCompanyData?.({
             search: params.searchTerm || "",
             page: params.page,
             limit: params.limit,
@@ -52,7 +52,7 @@ const TransportCompany = () => {
         params.searchTerm,
         params.sortBy,
         params.sortOrder,
-        getDriverVehicleMappingData,
+        getTransportCompanyData,
     ]);
 
     // ✅ Debounced search
@@ -159,7 +159,7 @@ const TransportCompany = () => {
                         isAddEnabled
                         addModalLabel="Add Driver Vehicle Mapping"
                         setSearch={(value) => debouncedSearch(value)}
-                        onAddModalClick={() => setShowDriverVehicleMappingModal(true)}
+                        onAddModalClick={() => setShowTransportCompanyModal(true)}
                         exportTitle="Export"
                         exportLoader={false}
                     />
@@ -188,12 +188,12 @@ const TransportCompany = () => {
                     }
                 />
 
-                {!!showDriverVehicleMappingModal && (
-                    <DriverVehicleMappingModal
-                        showModal={showDriverVehicleMappingModal} // boolean OR row object
-                        closeModal={() => setShowDriverVehicleMappingModal(false)}
+                {!!showTransportCompanyModal && (
+                    <TransportCompanyModal
+                        showModal={showTransportCompanyModal} // boolean OR row object
+                        closeModal={() => setShowTransportCompanyModal(false)}
                         onSuccess={() => {
-                            setShowDriverVehicleMappingModal(false);
+                            setShowTransportCompanyModal(false);
                             refreshList();
                         }}
                     />
@@ -208,7 +208,7 @@ const TransportCompany = () => {
                         }}
                         onConfirm={handleDelete}
                         isLoading={isLoading}
-                        deleteText="Are you sure you want to delete this driver vehicle mapping?"
+                        deleteText="Are you sure you want to delete this transport company?"
                     />
                 )}
             </div>

@@ -170,6 +170,8 @@ function SideNav({ isMobileMenuOpen, onCloseMobileMenu, isVendorPortal = false }
         { menu: 'Driver Management', to: '/driver-management', hasPermission: true },
         { menu: 'Vehicle Management', to: '/vehicle-management', hasPermission: true },
         { menu: 'Driver Vehicle Mapping', to: '/driver-vehicle-mapping', hasPermission: true },
+        { menu: 'Transport Company', to: '/transport-company', hasPermission: true },
+
       ],
     },
     {
