@@ -33,6 +33,14 @@ const Driver = () => {
             sort: true,
         },
         {
+            name: "Driver For",
+            selector: "driver_for",
+            width: "180",
+            thclass: "tb-head",
+            contentClass: "table-content",
+            sort: true,
+        },
+        {
             name: "Driver No",
             selector: "employee_no",
             width: "180",
