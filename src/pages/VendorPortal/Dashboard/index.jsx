@@ -616,17 +616,6 @@ const Dashboard = () => {
                                                             onClick={(e) => e.stopPropagation()}
                                                             role="presentation"
                                                         >
-                                                            <p
-                                                                className="mb-2"
-                                                                style={{
-                                                                    fontSize: 13,
-                                                                    fontWeight: 600,
-                                                                    color: '#374151',
-                                                                    margin: '0 0 8px',
-                                                                }}
-                                                            >
-                                                                Crew list
-                                                            </p>
                                                             <div style={{ overflowX: 'auto' }}>
                                                                 <table className="vendor-table" style={{ marginBottom: 0, minWidth: 960 }}>
                                                                     <thead>
