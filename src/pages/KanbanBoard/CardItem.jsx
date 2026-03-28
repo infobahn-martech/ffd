@@ -360,19 +360,21 @@ function CardItem({ card, index, setSelectedCard, isShrunk = false, hideExtraDet
 
               {/* Invoice Amount */}
               {invoiceAmount != null && !isShrunk && (
-                <div className={`card-invoice-amount ${highlightInvoice ? "card-invoice-amount-with-trend" : ""}`}>
+                <div className="card-invoice-amount">
                   <span className="card-invoice-label">Invoice Amount</span>{" "}
-                  {formatInvoiceAmount(invoiceAmount)}
-                  {highlightInvoice && (
-                    <span
-                      className="card-invoice-trend"
-                      title="Notable invoice amount"
-                      role="img"
-                      aria-label="Notable invoice amount"
-                    >
-                      <FiTrendingUp size={14} strokeWidth={2.5} aria-hidden />
-                    </span>
-                  )}
+                  <span className="card-invoice-amount-value">
+                    {formatInvoiceAmount(invoiceAmount)}
+                    {highlightInvoice && (
+                      <span
+                        className="card-invoice-trend"
+                        title="Notable invoice amount"
+                        role="img"
+                        aria-label="Notable invoice amount"
+                      >
+                        <FiTrendingUp size={14} strokeWidth={2.5} aria-hidden />
+                      </span>
+                    )}
+                  </span>
                 </div>
               )}
 
