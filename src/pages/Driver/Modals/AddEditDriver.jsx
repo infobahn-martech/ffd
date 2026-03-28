@@ -9,6 +9,18 @@ import "../../../design/scss/form-designs.scss";
 import { PORT_OPTIONS } from "../../../constants/ports";
 import useDriverReducer from "../../../store/DriverReducer";
 
+/** API may return driver_for as 1/2, "1"/"2", or "Transport" / "Material". */
+function normalizeDriverFor(value) {
+    if (value === 2 || value === "2") return 2;
+    if (value === 1 || value === "1") return 1;
+    if (typeof value === "string") {
+        const v = value.trim().toLowerCase();
+        if (v === "material") return 2;
+        if (v === "transport") return 1;
+    }
+    return 1;
+}
+
 export function DriverModal({ showModal, closeModal, onSuccess }) {
     const isEdit = !!showModal?.driver_id || !!showModal?.driver_id;
     const editId = showModal?.driver_id ?? showModal?.driver_id;
@@ -50,7 +62,7 @@ export function DriverModal({ showModal, closeModal, onSuccess }) {
                 iqama_no: showModal?.iqama_no || "",
                 location: showModal?.location || "",
                 nationality: showModal?.nationality ?? showModal?.country_id ?? "",
-                driver_for: Number(showModal?.driver_for) === 2 ? 2 : 1,
+                driver_for: normalizeDriverFor(showModal?.driver_for),
             });
         } else if (showModal && !isEdit) {
             reset({
@@ -75,7 +87,7 @@ export function DriverModal({ showModal, closeModal, onSuccess }) {
             nationality: data.nationality,
             location: data.location,
             joining_date: data.joining_date,
-            driver_for: Number(data.driver_for) === 2 ? 2 : 1,
+            driver_for: normalizeDriverFor(data.driver_for),
         };
         if (isEdit) {
             updateDriver({
