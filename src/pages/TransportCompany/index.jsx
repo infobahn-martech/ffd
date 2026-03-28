@@ -9,10 +9,10 @@ import DeleteConfirmationModal from "../../components/DeleteConfirmationModal";
 import { DateFormat } from "../ActivityLog/RenderCells";
 
 // ✅ CHANGE THIS IMPORT PATH based on your project structure
-import useDriverVehicleMappingReducer from "../../store/DriverVehicleReducer";
+import useTransportCompanyReducer from "../../store/TransportCompanyReducer";
 // ex: "../../stores/DriverVehicleMappingReducer"
 
-const DriverVehicleMapping = () => {
+const TransportCompany = () => {
     // ✅ Store / API
     const {
         getDriverVehicleMappingData,
@@ -20,7 +20,7 @@ const DriverVehicleMapping = () => {
         isLoading,
         totalDriverVehicleMappingCount,
         deleteDriverVehicleMapping,
-    } = useDriverVehicleMappingReducer((state) => state);
+    } = useTransportCompanyReducer((state) => state);
 
     // ✅ Table params (API params)
     const [params, setParams] = useState({
@@ -216,4 +216,4 @@ const DriverVehicleMapping = () => {
     );
 };
 
-export default DriverVehicleMapping;
+export default TransportCompany;
