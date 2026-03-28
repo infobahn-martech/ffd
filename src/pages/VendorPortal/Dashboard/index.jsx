@@ -53,8 +53,26 @@ const MOCK_RECENT_ORDERS = [
         currency: 'SAR',
         status: 'In progress',
         crewDetails: [
-            { name: 'Amina Al-Khalifa', nationality: 'Bahrain', passport: 'BA1234567', visa: 'VISA-BA-7781' },
-            { name: 'Omar Hassan', nationality: 'Oman', passport: 'OM9988776', visa: 'VISA-OM-4420' },
+            {
+                name: 'Amina Al-Khalifa',
+                rank: 'Chief Engineer',
+                nationality: 'Bahrain',
+                passport: 'BA1234567',
+                visa: 'VISA-BA-7781',
+                iqama: '2123456789',
+                checkIn: '2025-03-10T08:00',
+                checkOut: '2025-03-15T18:00',
+            },
+            {
+                name: 'Omar Hassan',
+                rank: 'Able Seaman',
+                nationality: 'Oman',
+                passport: 'OM9988776',
+                visa: 'VISA-OM-4420',
+                iqama: '2987654321',
+                checkIn: '2025-03-10T09:30',
+                checkOut: '2025-03-14T17:00',
+            },
         ],
     },
     {
@@ -68,8 +86,26 @@ const MOCK_RECENT_ORDERS = [
         currency: 'SAR',
         status: 'In progress',
         crewDetails: [
-            { name: 'Lina Rodriguez', nationality: 'Philippines', passport: 'PH3344556', visa: 'VISA-PH-1102' },
-            { name: 'Ravi Patel', nationality: 'India', passport: 'IN7788990', visa: 'VISA-IN-2209' },
+            {
+                name: 'Lina Rodriguez',
+                rank: 'Cook',
+                nationality: 'Philippines',
+                passport: 'PH3344556',
+                visa: 'VISA-PH-1102',
+                iqama: '2456123789',
+                checkIn: '2025-03-08T07:00',
+                checkOut: '2025-03-20T19:00',
+            },
+            {
+                name: 'Ravi Patel',
+                rank: 'Deck Officer',
+                nationality: 'India',
+                passport: 'IN7788990',
+                visa: 'VISA-IN-2209',
+                iqama: '2567890123',
+                checkIn: '2025-03-08T10:15',
+                checkOut: '2025-03-18T16:45',
+            },
         ],
     },
     {
@@ -83,7 +119,16 @@ const MOCK_RECENT_ORDERS = [
         currency: 'SAR',
         status: 'In progress',
         crewDetails: [
-            { name: 'Samir El-Masri', nationality: 'Egypt', passport: 'EG4455667', visa: 'VISA-EG-9003' },
+            {
+                name: 'Samir El-Masri',
+                rank: 'Electrician',
+                nationality: 'Egypt',
+                passport: 'EG4455667',
+                visa: 'VISA-EG-9003',
+                iqama: '2345678901',
+                checkIn: '2025-03-05T06:00',
+                checkOut: '2025-03-25T12:00',
+            },
         ],
     },
     {
@@ -97,8 +142,26 @@ const MOCK_RECENT_ORDERS = [
         currency: 'SAR',
         status: 'In progress',
         crewDetails: [
-            { name: 'Noah Wilson', nationality: 'United Kingdom', passport: 'GB1230098', visa: 'VISA-UK-3157' },
-            { name: 'Fatima Zahra', nationality: 'Morocco', passport: 'MA6600221', visa: 'VISA-MA-8842' },
+            {
+                name: 'Noah Wilson',
+                rank: 'Master',
+                nationality: 'United Kingdom',
+                passport: 'GB1230098',
+                visa: 'VISA-UK-3157',
+                iqama: '2011122233',
+                checkIn: '2025-03-03T14:00',
+                checkOut: '2025-03-12T09:00',
+            },
+            {
+                name: 'Fatima Zahra',
+                rank: 'Steward',
+                nationality: 'Morocco',
+                passport: 'MA6600221',
+                visa: 'VISA-MA-8842',
+                iqama: '2678901234',
+                checkIn: '2025-03-03T15:30',
+                checkOut: '2025-03-11T11:00',
+            },
         ],
     },
     {
@@ -112,7 +175,16 @@ const MOCK_RECENT_ORDERS = [
         currency: 'SAR',
         status: 'In progress',
         crewDetails: [
-            { name: 'Ehsan Karim', nationality: 'Iran', passport: 'IR5566778', visa: 'VISA-IR-7014' },
+            {
+                name: 'Ehsan Karim',
+                rank: 'Fitter',
+                nationality: 'Iran',
+                passport: 'IR5566778',
+                visa: 'VISA-IR-7014',
+                iqama: '2789012345',
+                checkIn: '2025-03-01T05:45',
+                checkOut: '2025-03-28T22:00',
+            },
         ],
     },
 ];
@@ -302,6 +374,8 @@ const Dashboard = () => {
     const navigate = useNavigate();
     const [recentOrders, setRecentOrders] = useState(MOCK_RECENT_ORDERS);
     const [expandedRowId, setExpandedRowId] = useState(null);
+    /** Keyed by `${orderNo}-${crewIndex}` — editable CheckIn / CheckOut (datetime-local values). */
+    const [crewDateTimeEdits, setCrewDateTimeEdits] = useState({});
 
     const [uploadModalOrderNo, setUploadModalOrderNo] = useState(null);
     const [showUploadModal, setShowUploadModal] = useState(false);
@@ -353,6 +427,30 @@ const Dashboard = () => {
 
     const toggleRow = (rowId) => {
         setExpandedRowId((prev) => (prev === rowId ? null : rowId));
+    };
+
+    const crewEditKey = (orderNo, crewIndex) => `${orderNo}-${crewIndex}`;
+
+    const getCrewCheckIn = (orderNo, crewIndex, crew) =>
+        crewDateTimeEdits[crewEditKey(orderNo, crewIndex)]?.checkIn ?? crew.checkIn ?? '';
+
+    const getCrewCheckOut = (orderNo, crewIndex, crew) =>
+        crewDateTimeEdits[crewEditKey(orderNo, crewIndex)]?.checkOut ?? crew.checkOut ?? '';
+
+    const setCrewCheckIn = (orderNo, crewIndex, value) => {
+        const key = crewEditKey(orderNo, crewIndex);
+        setCrewDateTimeEdits((prev) => ({
+            ...prev,
+            [key]: { ...prev[key], checkIn: value },
+        }));
+    };
+
+    const setCrewCheckOut = (orderNo, crewIndex, value) => {
+        const key = crewEditKey(orderNo, crewIndex);
+        setCrewDateTimeEdits((prev) => ({
+            ...prev,
+            [key]: { ...prev[key], checkOut: value },
+        }));
     };
 
     return (
@@ -515,35 +613,78 @@ const Dashboard = () => {
                                                                 padding: '14px 20px',
                                                                 animation: 'vendorAccordionIn 0.18s ease-out both',
                                                             }}
+                                                            onClick={(e) => e.stopPropagation()}
+                                                            role="presentation"
                                                         >
-                                                            <table className="vendor-table" style={{ marginBottom: 0 }}>
-                                                                <thead>
-                                                                    <tr>
-                                                                        <th>Crew Name</th>
-                                                                        <th>Nationality</th>
-                                                                        <th>Passport No</th>
-                                                                        <th>Visa No</th>
-                                                                    </tr>
-                                                                </thead>
-                                                                <tbody>
-                                                                    {(row.crewDetails || []).length ? (
-                                                                        row.crewDetails.map((crew, i) => (
-                                                                            <tr key={`${rowId}-crew-${i}`}>
-                                                                                <td>{crew.name}</td>
-                                                                                <td>{crew.nationality}</td>
-                                                                                <td>{crew.passport}</td>
-                                                                                <td>{crew.visa}</td>
-                                                                            </tr>
-                                                                        ))
-                                                                    ) : (
+                                                            <p
+                                                                className="mb-2"
+                                                                style={{
+                                                                    fontSize: 13,
+                                                                    fontWeight: 600,
+                                                                    color: '#374151',
+                                                                    margin: '0 0 8px',
+                                                                }}
+                                                            >
+                                                                Crew list
+                                                            </p>
+                                                            <div style={{ overflowX: 'auto' }}>
+                                                                <table className="vendor-table" style={{ marginBottom: 0, minWidth: 960 }}>
+                                                                    <thead>
                                                                         <tr>
-                                                                            <td colSpan={4} style={{ color: '#6b7280' }}>
-                                                                                No crew details available
-                                                                            </td>
+                                                                            <th>Crew Name</th>
+                                                                            <th>Rank</th>
+                                                                            <th>Nationality</th>
+                                                                            <th>Passport No</th>
+                                                                            <th>Visa No</th>
+                                                                            <th>IQAMA</th>
+                                                                            <th>CheckIn</th>
+                                                                            <th>CheckOut</th>
                                                                         </tr>
-                                                                    )}
-                                                                </tbody>
-                                                            </table>
+                                                                    </thead>
+                                                                    <tbody>
+                                                                        {(row.crewDetails || []).length ? (
+                                                                            row.crewDetails.map((crew, i) => (
+                                                                                <tr key={`${rowId}-crew-${i}`}>
+                                                                                    <td>{crew.name}</td>
+                                                                                    <td>{crew.rank ?? '—'}</td>
+                                                                                    <td>{crew.nationality}</td>
+                                                                                    <td>{crew.passport}</td>
+                                                                                    <td>{crew.visa}</td>
+                                                                                    <td>{crew.iqama ?? '—'}</td>
+                                                                                    <td>
+                                                                                        <input
+                                                                                            type="datetime-local"
+                                                                                            className="form-control form-control-sm"
+                                                                                            style={{ minWidth: 200 }}
+                                                                                            value={getCrewCheckIn(rowId, i, crew)}
+                                                                                            onChange={(e) =>
+                                                                                                setCrewCheckIn(rowId, i, e.target.value)
+                                                                                            }
+                                                                                        />
+                                                                                    </td>
+                                                                                    <td>
+                                                                                        <input
+                                                                                            type="datetime-local"
+                                                                                            className="form-control form-control-sm"
+                                                                                            style={{ minWidth: 200 }}
+                                                                                            value={getCrewCheckOut(rowId, i, crew)}
+                                                                                            onChange={(e) =>
+                                                                                                setCrewCheckOut(rowId, i, e.target.value)
+                                                                                            }
+                                                                                        />
+                                                                                    </td>
+                                                                                </tr>
+                                                                            ))
+                                                                        ) : (
+                                                                            <tr>
+                                                                                <td colSpan={8} style={{ color: '#6b7280' }}>
+                                                                                    No crew details available
+                                                                                </td>
+                                                                            </tr>
+                                                                        )}
+                                                                    </tbody>
+                                                                </table>
+                                                            </div>
                                                         </div>
                                                     </td>
                                                 </tr>
