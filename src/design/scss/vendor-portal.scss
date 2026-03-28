@@ -151,6 +151,15 @@
     }
 }
 
+/* Crew list — compact CheckIn / CheckOut datetime-local to match table body scale */
+.vendor-table .vendor-crew-datetime-input {
+    font-size: 14px;
+    line-height: 1.35;
+    padding: 3px 6px;
+    min-width: 156px;
+    max-width: 100%;
+}
+
 /* Status badges in tables */
 .vendor-status-badge {
     display: inline-block;

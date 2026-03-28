@@ -643,8 +643,7 @@ const Dashboard = () => {
                                                                                     <td>
                                                                                         <input
                                                                                             type="datetime-local"
-                                                                                            className="form-control form-control-sm"
-                                                                                            style={{ minWidth: 200 }}
+                                                                                            className="form-control form-control-sm vendor-crew-datetime-input"
                                                                                             value={getCrewCheckIn(rowId, i, crew)}
                                                                                             onChange={(e) =>
                                                                                                 setCrewCheckIn(rowId, i, e.target.value)
@@ -654,8 +653,7 @@ const Dashboard = () => {
                                                                                     <td>
                                                                                         <input
                                                                                             type="datetime-local"
-                                                                                            className="form-control form-control-sm"
-                                                                                            style={{ minWidth: 200 }}
+                                                                                            className="form-control form-control-sm vendor-crew-datetime-input"
                                                                                             value={getCrewCheckOut(rowId, i, crew)}
                                                                                             onChange={(e) =>
                                                                                                 setCrewCheckOut(rowId, i, e.target.value)
