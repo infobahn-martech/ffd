@@ -31,6 +31,7 @@ export function DriverModal({ showModal, closeModal, onSuccess }) {
         formState: { errors },
         control,
         reset,
+        setValue,
     } = useForm({
         defaultValues: {
             driver_name: "",
@@ -77,6 +78,15 @@ export function DriverModal({ showModal, closeModal, onSuccess }) {
             });
         }
     }, [showModal, isEdit, reset, isLoadingCountries, countries]);
+
+    // Ensure driver_for syncs for edit (row may load before/after main reset; radios are controlled).
+    useEffect(() => {
+        if (!showModal || !isEdit || !showModal?.driver_id) return;
+        setValue("driver_for", normalizeDriverFor(showModal.driver_for), {
+            shouldValidate: false,
+            shouldDirty: false,
+        });
+    }, [showModal?.driver_id, showModal?.driver_for, isEdit, setValue]);
 
     const onSubmit = (data) => {
         const payload = {
@@ -341,42 +351,50 @@ export function DriverModal({ showModal, closeModal, onSuccess }) {
                                         className="d-flex align-items-center flex-wrap gap-3 pt-2"
                                         style={{ minHeight: 50 }}
                                     >
-                                        <div className="form-check form-check-inline mb-0">
-                                            <input
-                                                className="form-check-input"
-                                                type="radio"
-                                                id="driver_for_transport"
-                                                value={1}
-                                                {...register("driver_for", {
-                                                    required: true,
-                                                    valueAsNumber: true,
-                                                })}
-                                            />
-                                            <label
-                                                className="form-check-label"
-                                                htmlFor="driver_for_transport"
-                                            >
-                                                Transport
-                                            </label>
-                                        </div>
-                                        <div className="form-check form-check-inline mb-0">
-                                            <input
-                                                className="form-check-input"
-                                                type="radio"
-                                                id="driver_for_material"
-                                                value={2}
-                                                {...register("driver_for", {
-                                                    required: true,
-                                                    valueAsNumber: true,
-                                                })}
-                                            />
-                                            <label
-                                                className="form-check-label"
-                                                htmlFor="driver_for_material"
-                                            >
-                                                Material
-                                            </label>
-                                        </div>
+                                        <Controller
+                                            name="driver_for"
+                                            control={control}
+                                            rules={{ required: true }}
+                                            render={({ field }) => (
+                                                <>
+                                                    <div className="form-check form-check-inline mb-0">
+                                                        <input
+                                                            className="form-check-input"
+                                                            type="radio"
+                                                            id="driver_for_transport"
+                                                            checked={Number(field.value) === 1}
+                                                            onChange={() => field.onChange(1)}
+                                                            onBlur={field.onBlur}
+                                                            ref={field.ref}
+                                                            name={field.name}
+                                                        />
+                                                        <label
+                                                            className="form-check-label"
+                                                            htmlFor="driver_for_transport"
+                                                        >
+                                                            Transport
+                                                        </label>
+                                                    </div>
+                                                    <div className="form-check form-check-inline mb-0">
+                                                        <input
+                                                            className="form-check-input"
+                                                            type="radio"
+                                                            id="driver_for_material"
+                                                            checked={Number(field.value) === 2}
+                                                            onChange={() => field.onChange(2)}
+                                                            onBlur={field.onBlur}
+                                                            name={field.name}
+                                                        />
+                                                        <label
+                                                            className="form-check-label"
+                                                            htmlFor="driver_for_material"
+                                                        >
+                                                            Material
+                                                        </label>
+                                                    </div>
+                                                </>
+                                            )}
+                                        />
                                     </div>
                                     {errors.driver_for && (
                                         <span className="error text-danger d-block mt-1">
