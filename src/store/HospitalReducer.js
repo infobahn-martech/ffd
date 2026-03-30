@@ -7,8 +7,10 @@ const useHospitalReducer = create((set) => ({
     errorMessage: '',
     successMessage: '',
     hospitalData: [],
+    medicalServiceData: [],
     isBeingUpdated: false,
     totalHospitalCount: 0,
+    totalMedicalServiceCount: 0,
     addHospital: async ({ formData, cb }) => {
         try {
             set({ isBeingUpdated: true });
@@ -87,6 +89,94 @@ const useHospitalReducer = create((set) => ({
             const { error } = useAlertReducer.getState();
             set({
                 errorMessage: 'Something went wrong deleting the hospital',
+                isBeingUpdated: false,
+            });
+            error(err?.response?.data?.message ?? err.message);
+        }
+    },
+    addMedicalService: async ({ formData, cb }) => {
+        try {
+            set({ isBeingUpdated: true });
+            const { data } = await hospitalService.addMedicalService(formData);
+            set({ successMessage: data.message, isBeingUpdated: false });
+            const { success } = useAlertReducer.getState();
+            success(data && data.message);
+            cb && cb();
+        } catch (err) {
+            const { error } = useAlertReducer.getState();
+            set({
+                errorMessage: 'Something went wrong with adding a medical service',
+                isBeingUpdated: false,
+            });
+            error(err?.response?.data?.message ?? err.message);
+        }
+    },
+    getMedicalServiceData: async ({ params }) => {
+        try {
+            set({ isLoading: true });
+            const { data } = await hospitalService.getMedicalServiceData({ params });
+            const rawList = data?.data ?? data?.medical_services ?? [];
+            const list = Array.isArray(rawList)
+                ? rawList.map((row) => ({
+                      ...row,
+                      _id: row.service_id ?? row._id,
+                  }))
+                : [];
+            set({
+                medicalServiceData: list,
+                totalMedicalServiceCount:
+                    data?.pagination?.total ?? data?.total ?? data?.meta?.total ?? 0,
+                isLoading: false,
+            });
+        } catch (error) {
+            set({
+                errorMessage: error.message,
+                isLoading: false,
+                medicalServiceData: [],
+                totalMedicalServiceCount: 0,
+            });
+        }
+    },
+    getMedicalServiceDetail: async (serviceId) => {
+        try {
+            const { data } = await hospitalService.getMedicalServiceById(serviceId);
+            return data?.data ?? data ?? null;
+        } catch (err) {
+            const { error } = useAlertReducer.getState();
+            error(err?.response?.data?.message ?? err.message);
+            return null;
+        }
+    },
+    updateMedicalService: async ({ formData, cb }) => {
+        try {
+            set({ isBeingUpdated: true });
+            const { data } = await hospitalService.updateMedicalService(formData);
+            set({ successMessage: data.message, isBeingUpdated: false });
+            const { success } = useAlertReducer.getState();
+            success(data && data.message);
+            cb && cb();
+        } catch (err) {
+            const { error } = useAlertReducer.getState();
+            set({
+                errorMessage: 'Something went wrong updating the medical service',
+                isBeingUpdated: false,
+            });
+            error(err?.response?.data?.message ?? err.message);
+        }
+    },
+    deleteMedicalService: async (payload) => {
+        const { service_id, cb } = payload || {};
+        try {
+            set({ isBeingUpdated: true });
+            const { data } = await hospitalService.deleteMedicalService(service_id);
+            set({ successMessage: data?.message, isBeingUpdated: false });
+            const { success } = useAlertReducer.getState();
+            success(data?.message ?? 'Medical service deleted successfully');
+            cb?.();
+        } catch (err) {
+            const { error } = useAlertReducer.getState();
+            set({
+                errorMessage: 'Something went wrong deleting the medical service',
                 isBeingUpdated: false,
             });
             error(err?.response?.data?.message ?? err.message);

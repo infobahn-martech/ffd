@@ -23,10 +23,39 @@ const updateHospital = (data) => {
 
 const deleteHospital = (id) => Gateway.delete(`/hospital/delete_hospital/${id}`);
 
+const addMedicalService = (data) => Gateway.post('/medical/add_medical_service', data);
+
+const getMedicalServiceData = ({ params }) => {
+  const p = params || {};
+  const apiParams = {
+    search: p.searchTerm ?? p.search ?? '',
+    page: p.page,
+    limit: p.limit,
+  };
+  if (p.sortBy) apiParams.sort_by = p.sortBy;
+  return Gateway.get('/medical/get_all_medical_services', { params: apiParams });
+};
+
+const getMedicalServiceById = (serviceId) =>
+  Gateway.get(`/medical/get_medical_service_by_id/${serviceId}`);
+
+const updateMedicalService = (data) => {
+  const { service_id, ...body } = data;
+  return Gateway.post(`/medical/update_medical_service/${service_id}`, body);
+};
+
+const deleteMedicalService = (serviceId) =>
+  Gateway.delete(`/medical/delete_medical_service/${serviceId}`);
+
 export default {
   addHospital,
   getHospitalData,
   getHospitalById,
   updateHospital,
   deleteHospital,
+  addMedicalService,
+  getMedicalServiceData,
+  getMedicalServiceById,
+  updateMedicalService,
+  deleteMedicalService,
 };

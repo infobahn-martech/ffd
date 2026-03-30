@@ -1,85 +1,74 @@
 import { useEffect } from "react";
-import { useForm, Controller } from "react-hook-form";
-import PhoneInput from "react-phone-input-2";
-import "react-phone-input-2/lib/bootstrap.css";
+import { useForm } from "react-hook-form";
 import CustomModal from "../../../components/CustomModal";
 import useHospitalReducer from "../../../store/HospitalReducer";
 import "../../../design/scss/prospect-modal.scss";
 import "../../../design/scss/modal-designs.scss";
 import "../../../design/scss/form-designs.scss";
 
-export function HospitalModal({ showModal, closeModal, onSuccess }) {
-    const { addHospital, updateHospital, getHospitalDetail, isBeingUpdated } =
+export function MedicalServiceModal({ showModal, closeModal, onSuccess }) {
+    const { addMedicalService, updateMedicalService, getMedicalServiceDetail, isBeingUpdated } =
         useHospitalReducer((state) => state);
 
-    const hospitalId =
+    const serviceId =
         showModal && typeof showModal === "object"
-            ? showModal.hospital_id ?? showModal._id
+            ? showModal.service_id ?? showModal._id
             : null;
-    const isEdit = !!(hospitalId);
+    const isEdit = !!serviceId;
 
     const {
         register,
         handleSubmit,
         reset,
         formState: { errors },
-        control,
     } = useForm({
         defaultValues: isEdit
             ? {
-                  hospital_name: showModal?.hospital_name ?? "",
-                  location: showModal?.location ?? "",
-                  contact_person: showModal?.contact_person ?? "",
-                  contact_number: showModal?.contact_number ?? "",
-                  email: showModal?.email ?? "",
-              }
+                service_code: showModal?.service_code ?? "",
+                service_name: showModal?.service_name ?? "",
+                description: showModal?.description ?? "",
+            }
             : {
-                  hospital_name: "",
-                  location: "",
-                  contact_person: "",
-                  contact_number: "",
-                  email: "",
-              },
+                service_code: "",
+                service_name: "",
+                description: "",
+            },
     });
 
     useEffect(() => {
-        if (!isEdit || !hospitalId) return;
+        if (!isEdit || !serviceId) return;
         let cancelled = false;
         (async () => {
-            const detail = await getHospitalDetail(hospitalId);
+            const detail = await getMedicalServiceDetail(serviceId);
             if (cancelled || !detail) return;
             reset({
-                hospital_name: detail.hospital_name ?? "",
-                location: detail.location ?? "",
-                contact_person: detail.contact_person ?? "",
-                contact_number: detail.contact_number ?? "",
-                email: detail.email ?? "",
+                service_code: detail.service_code ?? "",
+                service_name: detail.service_name ?? "",
+                description: detail.description ?? "",
             });
         })();
         return () => {
             cancelled = true;
         };
-    }, [isEdit, hospitalId, getHospitalDetail, reset]);
+    }, [isEdit, serviceId, getMedicalServiceDetail, reset]);
 
     const onSubmit = (data) => {
         const payload = {
-            hospital_name: data.hospital_name.trim(),
-            location: data.location.trim(),
-            contact_person: data.contact_person.trim(),
-            contact_number: (data.contact_number || "").trim(),
-            email: data.email.trim(),
+            service_code: data.service_code.trim(),
+            service_name: data.service_name.trim(),
+            description: data.description.trim(),
         };
 
         if (isEdit) {
-            updateHospital({
-                formData: { ...payload, hospital_id: hospitalId },
+            updateMedicalService({
+                formData: { ...payload, service_id: serviceId },
                 cb: () => {
                     closeModal(null);
                     onSuccess?.();
                 },
             });
         } else {
-            addHospital({
+            addMedicalService({
                 formData: payload,
                 cb: () => {
                     closeModal(null);
@@ -91,36 +80,36 @@ export function HospitalModal({ showModal, closeModal, onSuccess }) {
 
     const renderHeader = () => (
         <>
-            <h1 className="modal-title">{isEdit ? "Edit Hospital" : "Add Hospital"}</h1>
+            <h1 className="modal-title">{isEdit ? "Edit Medical Service" : "Add Medical Service"}</h1>
         </>
     );
 
     const renderBody = () => (
         <div className="modal-body">
             <div className="lead-form">
-                <form id="hospitalForm" onSubmit={handleSubmit(onSubmit)}>
+                <form id="medicalServiceForm" onSubmit={handleSubmit(onSubmit)}>
                     <div className="mb-lg-3 mb-sm-0">
                         <div className="permInputs row">
                             <div className="col-lg-6 col-sm-12">
                                 <div className="form-floating desig-inp">
                                     <input
                                         type="text"
-                                        className={`form-control ${errors.hospital_name ? "is-invalid" : ""}`}
-                                        placeholder="Hospital Name"
-                                        {...register("hospital_name", {
-                                            required: "Hospital name is required",
+                                        className={`form-control ${errors.service_code ? "is-invalid" : ""}`}
+                                        placeholder="Service Code"
+                                        {...register("service_code", {
+                                            required: "Service code is required",
                                             minLength: {
                                                 value: 2,
-                                                message: "Hospital name must be at least 2 characters",
+                                                message: "Service code must be at least 2 characters",
                                             },
                                         })}
                                     />
                                     <label>
-                                        Hospital Name <span className="text-danger">*</span>
+                                        Service Code <span className="text-danger">*</span>
                                     </label>
-                                    {errors.hospital_name && (
+                                    {errors.service_code && (
                                         <span className="error text-danger">
-                                            {errors.hospital_name.message}
+                                            {errors.service_code.message}
                                         </span>
                                     )}
                                 </div>
@@ -130,86 +119,23 @@ export function HospitalModal({ showModal, closeModal, onSuccess }) {
                                 <div className="form-floating desig-inp">
                                     <input
                                         type="text"
-                                        className={`form-control ${errors.contact_person ? "is-invalid" : ""}`}
-                                        placeholder="Contact Person"
-                                        {...register("contact_person", {
-                                            required: "Contact person is required",
-                                        })}
-                                    />
-                                    <label>
-                                        Contact Person <span className="text-danger">*</span>
-                                    </label>
-                                    {errors.contact_person && (
-                                        <span className="error text-danger">
-                                            {errors.contact_person.message}
-                                        </span>
-                                    )}
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-
-                    <div className="mb-lg-3 mb-sm-0">
-                        <div className="permInputs row">
-                            <div className="col-12">
-                                <div className="phone-wrapper">
-                                    <label className="phone-label">
-                                        Contact Number <span className="text-danger">*</span>
-                                    </label>
-
-                                    <Controller
-                                        name="contact_number"
-                                        control={control}
-                                        rules={{
-                                            required: "Contact number is required",
-                                            validate: (value) => {
-                                                const digits = (value || "").replace(/\D/g, "");
-                                                return digits.length >= 7 || "Enter a valid phone number";
-                                            },
-                                        }}
-                                        render={({ field }) => (
-                                            <PhoneInput
-                                                {...field}
-                                                country="sa"
-                                                enableSearch
-                                                inputClass="phone-input"
-                                                buttonClass="phone-flag"
-                                            />
-                                        )}
-                                    />
-
-                                    {errors.contact_number && (
-                                        <span className="error text-danger">
-                                            {errors.contact_number.message}
-                                        </span>
-                                    )}
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-
-                    <div className="mb-lg-3 mb-sm-0">
-                        <div className="permInputs row">
-                            <div className="col-12">
-                                <div className="form-floating desig-inp">
-                                    <input
-                                        type="email"
-                                        className={`form-control ${errors.email ? "is-invalid" : ""}`}
-                                        placeholder="email@example.com"
-                                        {...register("email", {
-                                            required: "Email is required",
-                                            pattern: {
-                                                value: /^[^\s@]+@[^\s@]+\.[^\s@]+$/,
-                                                message: "Enter a valid email address",
+                                        className={`form-control ${errors.service_name ? "is-invalid" : ""}`}
+                                        placeholder="Service Name"
+                                        {...register("service_name", {
+                                            required: "Service name is required",
+                                            minLength: {
+                                                value: 2,
+                                                message: "Service name must be at least 2 characters",
                                             },
                                         })}
                                     />
                                     <label>
-                                        Email <span className="text-danger">*</span>
+                                        Service Name <span className="text-danger">*</span>
                                     </label>
-
-                                    {errors.email && (
-                                        <span className="error text-danger">{errors.email.message}</span>
+                                    {errors.service_name && (
+                                        <span className="error text-danger">
+                                            {errors.service_name.message}
+                                        </span>
                                     )}
                                 </div>
                             </div>
@@ -221,22 +147,22 @@ export function HospitalModal({ showModal, closeModal, onSuccess }) {
                             <div className="col-12">
                                 <div className="form-floating desig-inp">
                                     <textarea
-                                        className={`form-control ${errors.location ? "is-invalid" : ""}`}
-                                        placeholder="Location"
+                                        className={`form-control ${errors.description ? "is-invalid" : ""}`}
+                                        placeholder="Description"
                                         style={{ minHeight: "80px" }}
-                                        {...register("location", {
-                                            required: "Location is required",
+                                        {...register("description", {
+                                            required: "Description is required",
                                             minLength: {
                                                 value: 3,
-                                                message: "Location must be at least 3 characters",
+                                                message: "Description must be at least 3 characters",
                                             },
                                         })}
                                     />
                                     <label>
-                                        Location <span className="text-danger">*</span>
+                                        Description <span className="text-danger">*</span>
                                     </label>
-                                    {errors.location && (
-                                        <span className="error text-danger">{errors.location.message}</span>
+                                    {errors.description && (
+                                        <span className="error text-danger">{errors.description.message}</span>
                                     )}
                                 </div>
                             </div>
@@ -260,7 +186,7 @@ export function HospitalModal({ showModal, closeModal, onSuccess }) {
 
             <button
                 type="submit"
-                form="hospitalForm"
+                form="medicalServiceForm"
                 className="btn btn-primary"
                 disabled={isBeingUpdated}
             >

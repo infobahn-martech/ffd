@@ -6,10 +6,8 @@ import CustomTable from "../../components/customTable";
 import { RenderAction } from "./RenderCells";
 import DeleteConfirmationModal from "../../components/DeleteConfirmationModal";
 
-// ✅ CHANGE THIS IMPORT PATH based on your project structure
 import useHospitalReducer from "../../store/HospitalReducer";
-// ex: "../../stores/HotelReducer"
-import { HospitalModal } from "./Modals/AddEditHospital";
+import { MedicalServiceModal } from "./Modals/AddEditHospital";
 
 const MedicalServices = () => {
     // ✅ Store / API
@@ -21,7 +19,7 @@ const MedicalServices = () => {
         page: 1,
         searchTerm: "",
         limit: 10,
-        sortBy: "hospital_name",
+        sortBy: "service_name",
         sortOrder: 1, // 1 = ASC, -1 = DESC
     });
 
@@ -40,7 +38,7 @@ const MedicalServices = () => {
     // ✅ Fetch list when params change
     useEffect(() => {
         getMedicalServiceData?.({ params: listQueryParams });
-    }, [params.page, params.limit, params.searchTerm, params.sortBy, getHospitalData]);
+    }, [params.page, params.limit, params.searchTerm, params.sortBy, getMedicalServiceData]);
 
     // ✅ Debounced search
     const debouncedSearch = useMemo(
@@ -57,40 +55,24 @@ const MedicalServices = () => {
 
     const cols = [
         {
-            name: "Hospital Name",
-            selector: "hospital_name",
+            name: "Service Code",
+            selector: "service_code",
             width: "220",
             thclass: "tb-head",
             contentClass: "table-content",
             sort: true,
         },
         {
-            name: "Contact Person",
-            selector: "contact_person",
+            name: "Service Name",
+            selector: "service_name",
             width: "220",
             thclass: "tb-head",
             contentClass: "table-content",
             sort: true,
         },
         {
-            name: "Contact No",
-            selector: "contact_number",
-            width: "200",
-            thclass: "tb-head",
-            contentClass: "table-content",
-            sort: true,
-        },
-        {
-            name: "Email",
-            selector: "email",
-            width: "260",
-            thclass: "tb-head",
-            contentClass: "table-content",
-            sort: true,
-        },
-        {
-            name: "Location",
-            selector: "location",
+            name: "Description",
+            selector: "description",
             width: "350",
             thclass: "tb-head",
             contentClass: "table-content",
@@ -105,7 +87,7 @@ const MedicalServices = () => {
             cell: (props) =>
                 RenderAction({
                     ...props,
-                    onEditClick: (row) => setShowHospitalModal(row),
+                    onEditClick: (row) => setShowMedicalServiceModal(row),
                     onDeleteClick: (row) => {
                         setSelectedRow(row);
                         setShowDeleteModal(true);
@@ -114,23 +96,21 @@ const MedicalServices = () => {
         },
     ];
 
-    const refreshHospitalList = () => {
-        getHospitalData?.({ params: listQueryParams });
+    const refreshMedicalServiceList = () => {
+        getMedicalServiceData?.({ params: listQueryParams });
     };
 
     const handleDelete = async () => {
-        const hospitalId = selectedRow?.hospital_id ?? selectedRow?._id;
-        if (!hospitalId) return;
+        const serviceId = selectedRow?.service_id ?? selectedRow?._id;
+        if (!serviceId) return;
 
-        const payload = { hospital_id: hospitalId };
+        const payload = { service_id: serviceId };
 
-        // If your deleteData expects only id:
-        // await deleteData(selectedRow._id);
-        await deleteHospital?.(payload);
+        await deleteMedicalService?.(payload);
 
         setShowDeleteModal(false);
         setSelectedRow(null);
-        refreshHospitalList();
+        refreshMedicalServiceList();
     };
 
     return (
@@ -139,11 +119,11 @@ const MedicalServices = () => {
                 <div className="container-fluid">
                     <CommonHeader
                         showFilter
-                        tableTitle="Hospital Management"
+                        tableTitle="Medical Service Management"
                         isAddEnabled
-                        addModalLabel="Add Hospital"
+                        addModalLabel="Add Medical Service"
                         setSearch={(value) => debouncedSearch(value)}
-                        onAddModalClick={() => setShowHospitalModal(true)}
+                        onAddModalClick={() => setShowMedicalServiceModal(true)}
                         exportTitle="Export"
                         exportLoader={false}
                     />
@@ -154,8 +134,8 @@ const MedicalServices = () => {
                     pagination={{ currentPage: params.page, limit: params.limit }}
                     tableClasses="px-start"
                     columns={cols}
-                    data={hospitalData}
-                    count={totalHospitalCount}
+                    data={medicalServiceData}
+                    count={totalMedicalServiceCount}
                     onPageChange={(currentPage) =>
                         setParams((prev) => ({ ...prev, page: currentPage }))
                     }
@@ -172,13 +152,13 @@ const MedicalServices = () => {
                     }
                 />
 
-                {!!showHospitalModal && (
-                    <HospitalModal
-                        showModal={showHospitalModal} // boolean OR row object for edit
-                        closeModal={() => setShowHospitalModal(false)}
+                {!!showMedicalServiceModal && (
+                    <MedicalServiceModal
+                        showModal={showMedicalServiceModal} // boolean OR row object for edit
+                        closeModal={() => setShowMedicalServiceModal(false)}
                         onSuccess={() => {
-                            setShowHospitalModal(false);
-                            refreshHospitalList();
+                            setShowMedicalServiceModal(false);
+                            refreshMedicalServiceList();
                         }}
                     />
                 )}
@@ -192,7 +172,7 @@ const MedicalServices = () => {
                         }}
                         onConfirm={handleDelete}
                         isLoading={isLoading}
-                        deleteText="Are you sure you want to delete this hospital?"
+                        deleteText="Are you sure you want to delete this medical service?"
                     />
                 )}
             </div>
