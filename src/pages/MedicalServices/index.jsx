@@ -7,7 +7,8 @@ import { RenderAction } from "./RenderCells";
 import DeleteConfirmationModal from "../../components/DeleteConfirmationModal";
 
 import useHospitalReducer from "../../store/HospitalReducer";
-import { MedicalServiceModal } from "./Modals/AddEditHospital";
+import { MedicalServiceModal } from "./Modals/AddEditMedicalServices";
+
 
 const MedicalServices = () => {
     // ✅ Store / API
@@ -119,7 +120,7 @@ const MedicalServices = () => {
                 <div className="container-fluid">
                     <CommonHeader
                         showFilter
-                        tableTitle="Medical Service Management"
+                        tableTitle="Medical Services"
                         isAddEnabled
                         addModalLabel="Add Medical Service"
                         setSearch={(value) => debouncedSearch(value)}
