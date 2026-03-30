@@ -74,6 +74,7 @@ import VendorPortalInvoices from "../pages/VendorPortal/Invoices";
 import VendorPortalOrders from "../pages/VendorPortal/Orders";
 import TransportCompany from "../pages/TransportCompany";
 import Hospital from "../pages/Hospital";
+import MedicalServices from "../pages/MedicalServices";
 // 🔥 Set true to bypass auth temporarily
 const TEST_MODE = false;
 
@@ -277,6 +278,7 @@ const router = createHashRouter([
                   // Transport Company
                   { path: "/transport-company", element: <RouteGuard><TransportCompany /></RouteGuard> },
                   { path: "/hospital-management", element: <RouteGuard><Hospital /></RouteGuard> },
+                  { path: "/medical-services", element: <RouteGuard><MedicalServices /></RouteGuard> },
                 ],
               },
             ],
