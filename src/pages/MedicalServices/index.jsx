@@ -11,9 +11,9 @@ import useHospitalReducer from "../../store/HospitalReducer";
 // ex: "../../stores/HotelReducer"
 import { HospitalModal } from "./Modals/AddEditHospital";
 
-const Hospital = () => {
+const MedicalServices = () => {
     // ✅ Store / API
-    const { getHospitalData, hospitalData, isLoading, totalHospitalCount, deleteHospital } =
+    const { getMedicalServiceData, medicalServiceData, isLoading, totalMedicalServiceCount, deleteMedicalService } =
         useHospitalReducer((state) => state);
 
     // ✅ Table params
@@ -26,7 +26,7 @@ const Hospital = () => {
     });
 
     // ✅ Modals
-    const [showHospitalModal, setShowHospitalModal] = useState(false); // boolean OR row object
+    const [showMedicalServiceModal, setShowMedicalServiceModal] = useState(false); // boolean OR row object
     const [showDeleteModal, setShowDeleteModal] = useState(false);
     const [selectedRow, setSelectedRow] = useState(null);
 
@@ -39,7 +39,7 @@ const Hospital = () => {
 
     // ✅ Fetch list when params change
     useEffect(() => {
-        getHospitalData?.({ params: listQueryParams });
+        getMedicalServiceData?.({ params: listQueryParams });
     }, [params.page, params.limit, params.searchTerm, params.sortBy, getHospitalData]);
 
     // ✅ Debounced search
@@ -200,4 +200,4 @@ const Hospital = () => {
     );
 };
 
-export default Hospital;
+export default MedicalServices;
