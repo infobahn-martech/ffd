@@ -1,5 +1,5 @@
 import '../../design/scss/employee.scss';
-import CustomTable from '../../components/CustomTable';
+import CustomTable from '../../components/customTable';
 import CommonHeader from '../../components/CommonHeader';
 import { DateFormat, RenderAction } from './RenderCells';
 import { PermissionModal } from './Modals/AddEditPermission';
@@ -49,12 +49,6 @@ const Permission = () => {
       contentClass: 'table-content',
       thclass: 'tb-head',
       width: '200',
-    },
-    {
-      name: 'Created At',
-      selector: 'createdAt',
-      cell: DateFormat,
-      width: '400',
     },
     {
       name: 'Actions',
