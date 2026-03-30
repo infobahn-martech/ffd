@@ -184,9 +184,12 @@ function SideNav({ isMobileMenuOpen, onCloseMobileMenu, isVendorPortal = false }
     {
       menu: 'Hospital Management',
       isDefaultMenu: true,
-      to: '/hospital-management',
       icon: usersIcon, // Hospital-specific icon
       hasPermission: true,
+      subMenus: [
+        { menu: 'Hospitals', to: '/hospital-management', hasPermission: true },
+        { menu: 'Medical Services', to: '/medical-services', hasPermission: true },
+      ],
     },
     {
       menu: 'Third Party Management',
