@@ -30,23 +30,17 @@ const Hospital = () => {
     const [showDeleteModal, setShowDeleteModal] = useState(false);
     const [selectedRow, setSelectedRow] = useState(null);
 
+    const listQueryParams = {
+        searchTerm: params.searchTerm || "",
+        page: params.page,
+        limit: params.limit,
+        sortBy: params.sortBy,
+    };
+
     // ✅ Fetch list when params change
     useEffect(() => {
-        getHospitalData?.({
-            search: params.searchTerm || "",
-            page: params.page,
-            limit: params.limit,
-            sortBy: params.sortBy,
-            sortOrder: params.sortOrder,
-        });
-    }, [
-        params.page,
-        params.limit,
-        params.searchTerm,
-        params.sortBy,
-        params.sortOrder,
-        getHospitalData,
-    ]);
+        getHospitalData?.({ params: listQueryParams });
+    }, [params.page, params.limit, params.searchTerm, params.sortBy, getHospitalData]);
 
     // ✅ Debounced search
     const debouncedSearch = useMemo(
@@ -71,8 +65,8 @@ const Hospital = () => {
             sort: true,
         },
         {
-            name: "Contact Name",
-            selector: "contact_name",
+            name: "Contact Person",
+            selector: "contact_person",
             width: "220",
             thclass: "tb-head",
             contentClass: "table-content",
@@ -80,29 +74,27 @@ const Hospital = () => {
         },
         {
             name: "Contact No",
-            selector: "contact_no",
+            selector: "contact_number",
             width: "200",
             thclass: "tb-head",
             contentClass: "table-content",
             sort: true,
         },
         {
-            name: "Contact Email",
-            selector: "contact_email",
+            name: "Email",
+            selector: "email",
             width: "260",
             thclass: "tb-head",
             contentClass: "table-content",
             sort: true,
         },
         {
-            name: "Hotel Address",
-            selector: "hotel_address",
+            name: "Location",
+            selector: "location",
             width: "350",
             thclass: "tb-head",
             contentClass: "table-content",
             sort: false,
-            // If you want tooltip truncation:
-            // cell: ({ row }) => <span title={row.hotel_address}>{row.hotel_address}</span>,
         },
         {
             name: "Actions",
@@ -113,7 +105,7 @@ const Hospital = () => {
             cell: (props) =>
                 RenderAction({
                     ...props,
-                    onEditClick: (row) => setShowHotelModal(row),
+                    onEditClick: (row) => setShowHospitalModal(row),
                     onDeleteClick: (row) => {
                         setSelectedRow(row);
                         setShowDeleteModal(true);
@@ -123,20 +115,14 @@ const Hospital = () => {
     ];
 
     const refreshHospitalList = () => {
-        getHospitalData?.({
-            search: params.searchTerm || "",
-            page: params.page,
-            limit: params.limit,
-            sortBy: params.sortBy,
-            sortOrder: params.sortOrder,
-        });
+        getHospitalData?.({ params: listQueryParams });
     };
 
     const handleDelete = async () => {
-        if (!selectedRow?._id) return;
+        const hospitalId = selectedRow?.hospital_id ?? selectedRow?._id;
+        if (!hospitalId) return;
 
-        // ✅ adjust this payload key based on your backend
-        const payload = { hospital_id: selectedRow._id };
+        const payload = { hospital_id: hospitalId };
 
         // If your deleteData expects only id:
         // await deleteData(selectedRow._id);
@@ -168,8 +154,8 @@ const Hospital = () => {
                     pagination={{ currentPage: params.page, limit: params.limit }}
                     tableClasses="px-start"
                     columns={cols}
-                    data={hotelData}
-                    count={totalHotelCount}
+                    data={hospitalData}
+                    count={totalHospitalCount}
                     onPageChange={(currentPage) =>
                         setParams((prev) => ({ ...prev, page: currentPage }))
                     }

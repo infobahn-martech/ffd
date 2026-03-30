@@ -1,3 +1,4 @@
+import { useEffect } from "react";
 import { useForm, Controller } from "react-hook-form";
 import PhoneInput from "react-phone-input-2";
 import "react-phone-input-2/lib/bootstrap.css";
@@ -6,50 +7,72 @@ import useHospitalReducer from "../../../store/HospitalReducer";
 import "../../../design/scss/prospect-modal.scss";
 import "../../../design/scss/modal-designs.scss";
 import "../../../design/scss/form-designs.scss";
-import userIcon from "../../../assets/images/user.png";
-import edit from "../../../assets/images/edit.svg";
 
 export function HospitalModal({ showModal, closeModal, onSuccess }) {
-    const { addHospital, updateHospital, isBeingUpdated } = useHospitalReducer(
-        (state) => state
-    );
+    const { addHospital, updateHospital, getHospitalDetail, isBeingUpdated } =
+        useHospitalReducer((state) => state);
+
+    const hospitalId =
+        showModal && typeof showModal === "object"
+            ? showModal.hospital_id ?? showModal._id
+            : null;
+    const isEdit = !!(hospitalId);
+
     const {
         register,
         handleSubmit,
+        reset,
         formState: { errors },
         control,
     } = useForm({
-        defaultValues: showModal?.hospital_id
+        defaultValues: isEdit
             ? {
-                hospital_name: showModal?.hospital_name || "",
-                contact_name: showModal?.contact_name || "",
-                contact_no: showModal?.contact_no || "",
-                contact_email: showModal?.contact_email || "", // ✅ single email
-                hospital_address: showModal?.hospital_address || "",
-            }
+                  hospital_name: showModal?.hospital_name ?? "",
+                  location: showModal?.location ?? "",
+                  contact_person: showModal?.contact_person ?? "",
+                  contact_number: showModal?.contact_number ?? "",
+                  email: showModal?.email ?? "",
+              }
             : {
-                hospital_name: "",
-                contact_name: "",
-                contact_no: "",
-                contact_email: "", // ✅ single email
-                hospital_address: "",
-            },
+                  hospital_name: "",
+                  location: "",
+                  contact_person: "",
+                  contact_number: "",
+                  email: "",
+              },
     });
+
+    useEffect(() => {
+        if (!isEdit || !hospitalId) return;
+        let cancelled = false;
+        (async () => {
+            const detail = await getHospitalDetail(hospitalId);
+            if (cancelled || !detail) return;
+            reset({
+                hospital_name: detail.hospital_name ?? "",
+                location: detail.location ?? "",
+                contact_person: detail.contact_person ?? "",
+                contact_number: detail.contact_number ?? "",
+                email: detail.email ?? "",
+            });
+        })();
+        return () => {
+            cancelled = true;
+        };
+    }, [isEdit, hospitalId, getHospitalDetail, reset]);
 
     const onSubmit = (data) => {
         const payload = {
-            hospital_name: data.hospital_name,
-            contact_name: data.contact_name,
-            contact_no: data.contact_no,
-            contact_email: data.contact_email?.trim(), // ✅ single email string
-            hospital_address: data.hospital_address,
+            hospital_name: data.hospital_name.trim(),
+            location: data.location.trim(),
+            contact_person: data.contact_person.trim(),
+            contact_number: (data.contact_number || "").trim(),
+            email: data.email.trim(),
         };
-
-        const isEdit = !!showModal?.hospital_id;
 
         if (isEdit) {
             updateHospital({
-                formData: { ...payload, hospital_id: showModal.hospital_id },
+                formData: { ...payload, hospital_id: hospitalId },
                 cb: () => {
                     closeModal(null);
                     onSuccess?.();
@@ -68,7 +91,7 @@ export function HospitalModal({ showModal, closeModal, onSuccess }) {
 
     const renderHeader = () => (
         <>
-            <h1 className="modal-title">{showModal?.hospital_id ? "Edit Hospital" : "Add Hospital"}</h1>
+            <h1 className="modal-title">{isEdit ? "Edit Hospital" : "Add Hospital"}</h1>
         </>
     );
 
@@ -76,48 +99,49 @@ export function HospitalModal({ showModal, closeModal, onSuccess }) {
         <div className="modal-body">
             <div className="lead-form">
                 <form id="hospitalForm" onSubmit={handleSubmit(onSubmit)}>
-                    {/* ===== Hotel Name + Contact Name ===== */}
                     <div className="mb-lg-3 mb-sm-0">
                         <div className="permInputs row">
-                            {/* HOTEL NAME */}
                             <div className="col-lg-6 col-sm-12">
                                 <div className="form-floating desig-inp">
                                     <input
                                         type="text"
-                                        className={`form-control ${errors.hotel_name ? "is-invalid" : ""}`}
-                                        placeholder="Hotel Name"
-                                        {...register("hotel_name", {
-                                            required: "Hotel name is required",
+                                        className={`form-control ${errors.hospital_name ? "is-invalid" : ""}`}
+                                        placeholder="Hospital Name"
+                                        {...register("hospital_name", {
+                                            required: "Hospital name is required",
+                                            minLength: {
+                                                value: 2,
+                                                message: "Hospital name must be at least 2 characters",
+                                            },
                                         })}
                                     />
                                     <label>
-                                        Hotel Name <span className="text-danger">*</span>
+                                        Hospital Name <span className="text-danger">*</span>
                                     </label>
-                                    {errors.hotel_name && (
+                                    {errors.hospital_name && (
                                         <span className="error text-danger">
-                                            {errors.hotel_name.message}
+                                            {errors.hospital_name.message}
                                         </span>
                                     )}
                                 </div>
                             </div>
 
-                            {/* CONTACT NAME */}
                             <div className="col-lg-6 col-sm-12">
                                 <div className="form-floating desig-inp">
                                     <input
                                         type="text"
-                                        className={`form-control ${errors.contact_name ? "is-invalid" : ""}`}
-                                        placeholder="Contact Name"
-                                        {...register("contact_name", {
-                                            required: "Contact name is required",
+                                        className={`form-control ${errors.contact_person ? "is-invalid" : ""}`}
+                                        placeholder="Contact Person"
+                                        {...register("contact_person", {
+                                            required: "Contact person is required",
                                         })}
                                     />
                                     <label>
-                                        Contact Name <span className="text-danger">*</span>
+                                        Contact Person <span className="text-danger">*</span>
                                     </label>
-                                    {errors.contact_name && (
+                                    {errors.contact_person && (
                                         <span className="error text-danger">
-                                            {errors.contact_name.message}
+                                            {errors.contact_person.message}
                                         </span>
                                     )}
                                 </div>
@@ -125,20 +149,19 @@ export function HospitalModal({ showModal, closeModal, onSuccess }) {
                         </div>
                     </div>
 
-                    {/* ===== Contact No ===== */}
                     <div className="mb-lg-3 mb-sm-0">
                         <div className="permInputs row">
                             <div className="col-12">
                                 <div className="phone-wrapper">
                                     <label className="phone-label">
-                                        Contact No <span className="text-danger">*</span>
+                                        Contact Number <span className="text-danger">*</span>
                                     </label>
 
                                     <Controller
-                                        name="contact_no"
+                                        name="contact_number"
                                         control={control}
                                         rules={{
-                                            required: "Contact no is required",
+                                            required: "Contact number is required",
                                             validate: (value) => {
                                                 const digits = (value || "").replace(/\D/g, "");
                                                 return digits.length >= 7 || "Enter a valid phone number";
@@ -155,9 +178,9 @@ export function HospitalModal({ showModal, closeModal, onSuccess }) {
                                         )}
                                     />
 
-                                    {errors.contact_no && (
+                                    {errors.contact_number && (
                                         <span className="error text-danger">
-                                            {errors.contact_no.message}
+                                            {errors.contact_number.message}
                                         </span>
                                     )}
                                 </div>
@@ -165,17 +188,15 @@ export function HospitalModal({ showModal, closeModal, onSuccess }) {
                         </div>
                     </div>
 
-                    {/* ===== Contact Email (Single) ===== */}
                     <div className="mb-lg-3 mb-sm-0">
                         <div className="permInputs row">
                             <div className="col-12">
                                 <div className="form-floating desig-inp">
                                     <input
                                         type="email"
-                                        className={`form-control ${errors.contact_email ? "is-invalid" : ""
-                                            }`}
+                                        className={`form-control ${errors.email ? "is-invalid" : ""}`}
                                         placeholder="email@example.com"
-                                        {...register("contact_email", {
+                                        {...register("email", {
                                             required: "Email is required",
                                             pattern: {
                                                 value: /^[^\s@]+@[^\s@]+\.[^\s@]+$/,
@@ -187,37 +208,35 @@ export function HospitalModal({ showModal, closeModal, onSuccess }) {
                                         Email <span className="text-danger">*</span>
                                     </label>
 
-                                    {errors.contact_email && (
-                                        <span className="error text-danger">
-                                            {errors.contact_email.message}
-                                        </span>
+                                    {errors.email && (
+                                        <span className="error text-danger">{errors.email.message}</span>
                                     )}
                                 </div>
                             </div>
                         </div>
                     </div>
 
-                    {/* ===== Hotel Address (Full Row) ===== */}
                     <div className="mb-lg-3 mb-sm-0">
                         <div className="permInputs row">
                             <div className="col-12">
                                 <div className="form-floating desig-inp">
                                     <textarea
-                                        className={`form-control ${errors.hospital_address ? "is-invalid" : ""
-                                            }`}
-                                        placeholder="Hospital Address"
+                                        className={`form-control ${errors.location ? "is-invalid" : ""}`}
+                                        placeholder="Location"
                                         style={{ minHeight: "80px" }}
-                                        {...register("hospital_address", {
-                                            required: "Hospital address is required",
+                                        {...register("location", {
+                                            required: "Location is required",
+                                            minLength: {
+                                                value: 3,
+                                                message: "Location must be at least 3 characters",
+                                            },
                                         })}
                                     />
                                     <label>
-                                        Hospital Address <span className="text-danger">*</span>
+                                        Location <span className="text-danger">*</span>
                                     </label>
-                                    {errors.hospital_address && (
-                                        <span className="error text-danger">
-                                            {errors.hospital_address.message}
-                                        </span>
+                                    {errors.location && (
+                                        <span className="error text-danger">{errors.location.message}</span>
                                     )}
                                 </div>
                             </div>
@@ -241,7 +260,7 @@ export function HospitalModal({ showModal, closeModal, onSuccess }) {
 
             <button
                 type="submit"
-                form="hotelForm"
+                form="hospitalForm"
                 className="btn btn-primary"
                 disabled={isBeingUpdated}
             >

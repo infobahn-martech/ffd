@@ -30,13 +30,31 @@ const useHospitalReducer = create((set) => ({
         try {
             set({ isLoading: true });
             const { data } = await hospitalService.getHospitalData({ params });
+            const rawList = data?.data ?? data?.hospitals ?? [];
+            const list = Array.isArray(rawList)
+                ? rawList.map((row) => ({
+                      ...row,
+                      _id: row.hospital_id ?? row._id,
+                  }))
+                : [];
             set({
-                hospitalData: data?.data ?? [],
-                totalHospitalCount: data?.pagination?.total ?? 0,
+                hospitalData: list,
+                totalHospitalCount:
+                    data?.pagination?.total ?? data?.total ?? data?.meta?.total ?? 0,
                 isLoading: false,
             });
         } catch (error) {
             set({ errorMessage: error.message, isLoading: false, hospitalData: [], totalHospitalCount: 0 });
+        }
+    },
+    getHospitalDetail: async (hospitalId) => {
+        try {
+            const { data } = await hospitalService.getHospitalById(hospitalId);
+            return data?.data ?? data ?? null;
+        } catch (err) {
+            const { error } = useAlertReducer.getState();
+            error(err?.response?.data?.message ?? err.message);
+            return null;
         }
     },
     updateHospital: async ({ formData, cb }) => {
