@@ -1,7 +1,7 @@
 import { create } from 'zustand';
 import useAlertReducer from './AlertReducer';
 import workflowService from '../services/workflowService';
-import { transformApiWorkflowToInternal } from '../pages/EditWorkflows/workflow.utils';
+import { normalizeWorkflowData } from '../pages/EditWorkflows/workflow.utils';
 
 const useWorkFlowReducer = create((set) => ({
     isLoading: false,
@@ -13,9 +13,9 @@ const useWorkFlowReducer = create((set) => ({
         try {
             set({ isLoading: true });
             const { data } = await workflowService.getWorkflowByBoard(boardId);
-            const transformed = transformApiWorkflowToInternal(data);
+            const transformed = normalizeWorkflowData(data);
             set({
-                workflows: transformed ? [transformed] : null,
+                workflows: transformed,
                 isLoading: false,
             });
         } catch (err) {

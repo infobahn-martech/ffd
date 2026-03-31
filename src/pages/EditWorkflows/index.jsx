@@ -11,6 +11,7 @@ import {
   insertColumnRight,
   insertSubcolumnBelow,
   removeStage,
+  normalizeWorkflowData,
 } from './workflow.utils';
 import useWorkFlowReducer from '../../store/WorkFlowReducer';
 
@@ -78,8 +79,26 @@ function EditWorkflows() {
   }, [searchParams, getWorkflowByBoard]);
 
   useEffect(() => {
-    if (apiWorkflows && Array.isArray(apiWorkflows) && apiWorkflows.length > 0) {
-      setWorkflows(apiWorkflows);
+    const normalizedWorkflows = normalizeWorkflowData(apiWorkflows);
+    if (process.env.NODE_ENV !== 'production') {
+      const rawCount = Array.isArray(apiWorkflows) ? apiWorkflows.length : 0;
+      // Keep debug output focused on payload sizing and mapping correctness.
+      console.log('[EditWorkflows] Raw API workflows count:', rawCount);
+      console.log('[EditWorkflows] Normalized workflows count:', normalizedWorkflows.length);
+      normalizedWorkflows.forEach((workflow) => {
+        const swimlaneCount = Array.isArray(workflow?.swimlanes) ? workflow.swimlanes.length : 0;
+        const stageCount = workflow.swimlanes?.reduce(
+          (sum, swimlane) => sum + (Array.isArray(swimlane?.stages) ? swimlane.stages.length : 0),
+          0
+        ) ?? 0;
+        console.log(
+          `[EditWorkflows] Workflow mapped: id=${workflow.id}, name="${workflow.name}", swimlanes=${swimlaneCount}, stageColumns=${stageCount}`
+        );
+      });
+    }
+
+    if (normalizedWorkflows.length > 0) {
+      setWorkflows(normalizedWorkflows);
     }
   }, [apiWorkflows]);
 

@@ -175,18 +175,21 @@ function WorkflowAreaGrid({
         const stageCol = stage.col ?? 0;
         const stageRow = stage.row ?? 0;
         const stageColSpan = stage.colSpan ?? 1;
+        const stageStableId = stage.id ?? `${stage.stageId ?? 'stage'}-${stage.columnId ?? 'column'}-${stageRow}-${stageCol}`;
         const stagesInCol = getStagesInColumn(swimlane, area, stageCol);
         const isSingleInCol = stagesInCol.length <= 1;
         const sortedStagesInCol = [...stagesInCol].sort((a, b) => (a.row ?? 0) - (b.row ?? 0));
-        const isTopStackedCard = !isSingleInCol && sortedStagesInCol[0]?.id === stage.id;
+        const getStableStageId = (stageItem) =>
+          stageItem?.id ?? `${stageItem?.stageId ?? 'stage'}-${stageItem?.columnId ?? 'column'}-${stageItem?.row ?? 0}-${stageItem?.col ?? 0}`;
+        const isTopStackedCard = !isSingleInCol && getStableStageId(sortedStagesInCol[0]) === stageStableId;
         const stageGridRow = isSingleInCol ? `1 / span ${globalRows}` : `${stageRow + 1}`;
-        const stageColumnKey = getColumnKey(workflowId, swimlane.id, stage.id);
+        const stageColumnKey = getColumnKey(workflowId, swimlane.id, stageStableId);
         const isStageHovered = hoveredColumn === stageColumnKey;
         const showAddSubcolumn = isSingleInCol ? true : !isTopStackedCard;
 
         return (
           <div
-            key={stage.id}
+            key={`${swimlane.id}-${stageStableId}-${stageRow}-${stageCol}`}
             className="workflow-stage-grid-item"
             style={{
               gridColumn: `${stageCol + 1} / span ${stageColSpan}`,
