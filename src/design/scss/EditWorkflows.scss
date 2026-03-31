@@ -519,8 +519,8 @@ div[role="tooltip"][id^="workflow-info-"] {
 }
 
 .workflow-board-label-spacer {
-  flex: 0 0 200px;
-  min-width: 200px;
+  flex: 0 0 170px;
+  min-width: 170px;
 }
 
 .workflow-board-headers {
@@ -640,8 +640,8 @@ div[role="tooltip"][id^="workflow-info-"] {
   display: flex;
   flex-direction: column;
   gap: var(--stage-gap, 14px);
-  flex: 1 0 var(--stage-cell-width, 220px);
-  min-width: var(--stage-cell-width, 220px);
+  flex: 1 0 var(--stage-cell-width, 180px);
+  min-width: var(--stage-cell-width, 180px);
   min-height: 0;
   align-items: stretch;
   position: relative;
@@ -730,8 +730,8 @@ div[role="tooltip"][id^="workflow-info-"] {
 }
 
 .workflow-add-grid-cell {
-  flex: 0 0 200px;
-  min-width: 200px;
+  flex: 0 0 170px;
+  min-width: 170px;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -742,7 +742,7 @@ div[role="tooltip"][id^="workflow-info-"] {
   align-items: center;
   justify-content: center;
   width: 100%;
-  max-width: 200px;
+  max-width: 170px;
   min-height: 8px;
   padding: 2px 8px;
   border: 1px solid #d1d5db;
@@ -782,9 +782,9 @@ div[role="tooltip"][id^="workflow-info-"] {
 }
 
 .workflow-swimlane-label-cell {
-  flex: 0 0 200px;
-  min-width: 200px;
-  min-height: 100px;
+  flex: 0 0 170px;
+  min-width: 170px;
+  min-height: 88px;
   display: flex;
   flex-direction: column;
   align-items: center;
@@ -931,13 +931,13 @@ div[role="tooltip"][id^="workflow-info-"] {
 }
 
 .workflow-swimlane-content-cell {
-  flex: 0 0 var(--stage-cell-width, 220px);
-  min-width: var(--stage-cell-width, 220px);
-  width: var(--stage-cell-width, 220px);
+  flex: 0 0 var(--stage-cell-width, 180px);
+  min-width: var(--stage-cell-width, 180px);
+  width: var(--stage-cell-width, 180px);
   display: flex;
   flex-direction: column;
   align-items: center;
-  padding: 8px 12px;
+  padding: 6px 10px;
   border: 1px solid #e5e7eb;
   background: #ffffff;
   min-height: 0;
@@ -1129,7 +1129,7 @@ div[role="tooltip"][id^="workflow-info-"] {
   // Single stage in col: fill full height of area (tall panel)
   &.workflow-stage-single {
     flex: 1 1 auto;
-    min-height: 125px;
+    min-height: 108px;
   }
 
   // Stacked stages: natural height, no stretch
@@ -1139,7 +1139,7 @@ div[role="tooltip"][id^="workflow-info-"] {
 
   &.workflow-stage-empty-cell {
     flex: 1 1 auto;
-    min-height: 125px;
+    min-height: 108px;
   }
 
   // In grid context: fill cell height
@@ -1152,8 +1152,8 @@ div[role="tooltip"][id^="workflow-info-"] {
   // background: #ffffff;
   border: 1px solid #e2e4e8;
   border-radius: 2px;
-  padding: 16px 28px 22px;
-  min-height: 125px;
+  padding: 12px 22px 16px;
+  min-height: 108px;
   min-width: 0;
   width: 100%;
   flex: 1;

@@ -6,8 +6,8 @@ import {
 } from './workflow.utils';
 import WorkflowStageCard from './WorkflowStageCard';
 
-const STAGE_CELL_WIDTH = 220;
-const STAGE_GAP = 14;
+const STAGE_CELL_WIDTH = 180;
+const STAGE_GAP = 10;
 
 /**
  * Single area block with grid layout, col-stacks for rails, empty placeholders, and stage cards.
@@ -45,10 +45,10 @@ function WorkflowAreaGrid({
       className="workflow-area-block workflow-area-block-grid"
       style={{
         width: blockWidth,
-        minHeight: globalRows * 125 + (globalRows - 1) * stageGap,
+        minHeight: globalRows * 108 + (globalRows - 1) * stageGap,
         display: 'grid',
         gridTemplateColumns: `repeat(${cols}, minmax(${stageCellWidth}px, 1fr))`,
-        gridTemplateRows: `repeat(${globalRows}, minmax(125px, 1fr))`,
+        gridTemplateRows: `repeat(${globalRows}, minmax(108px, 1fr))`,
         gap: `var(--stage-gap, ${stageGap}px)`,
       }}
     >

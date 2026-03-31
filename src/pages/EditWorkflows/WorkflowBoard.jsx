@@ -43,7 +43,7 @@ function WorkflowBoard({
 
   if (totalCols === 0) return null;
 
-  const labelSpacerWidth = 200;
+  const labelSpacerWidth = 170;
   const boardMinWidth =
     labelSpacerWidth + stageGap +
     totalCols * stageCellWidth + Math.max(0, totalCols - 1) * stageGap;
