@@ -681,7 +681,7 @@ div[role="tooltip"][id^="workflow-info-"] {
   left: 0;
   top: 0;
   bottom: 0;
-  width: 28px;
+  width: 22px;
   border-right: 1px solid #59d38c;
 }
 
@@ -689,7 +689,7 @@ div[role="tooltip"][id^="workflow-info-"] {
   right: 0;
   top: 0;
   bottom: 0;
-  width: 28px;
+  width: 22px;
   border-left: 1px solid #59d38c;
 }
 
@@ -697,19 +697,19 @@ div[role="tooltip"][id^="workflow-info-"] {
   left: 0;
   right: 0;
   bottom: 0;
-  height: 28px;
+  height: 22px;
   border-top: 1px solid #59d38c;
 }
 
 // Stacked rails - in col-stack (height from inline style)
 .workflow-insertion-rail-left {
   left: 0;
-  width: 28px;
+  width: 22px;
 }
 
 .workflow-insertion-rail-right {
   right: 0;
-  width: 28px;
+  width: 22px;
 }
 
 // Add-grid insertion row: thin horizontal bar in swimlane column only (LIVE), visible on hover, no layout break
