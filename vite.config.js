@@ -5,6 +5,6 @@ export default defineConfig({
   plugins: [react()],
   base: '/sedres-fe/',
   build: {
-    outDir: 'docs',
+    outDir: 'dist',
   },
 });
