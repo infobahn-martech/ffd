@@ -68,7 +68,7 @@ function Index() {
             <span>Stronger Operations.</span>
           </h1>
           <p className="des">
-            Delivering smarter coordination, faster workflows, and seamless
+            Delivering smarter coordination, faster workflows and seamless
             port-management solutions for global marine services.
           </p>
         </div>
