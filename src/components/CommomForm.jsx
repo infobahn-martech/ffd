@@ -9,7 +9,7 @@ import '../design/scss/form-designs.scss';
 const RenderModalHeader = ({ ModalHeading }) => {
   return (
     <h5 className="modal-title" id="createLeadModalLabel">
-      {ModalHeading}
+      {ModalHeading || ''}
     </h5>
   );
 };
