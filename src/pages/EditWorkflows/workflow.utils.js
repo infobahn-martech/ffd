@@ -68,8 +68,35 @@ function buildInternalStagesFromApiStages(apiStages = [], fallbackStartId = 1) {
 
     if (areaNextCol[area] == null) areaNextCol[area] = 0;
 
-    columns.forEach((col, colIdx) => {
+    const topLevelColumns = columns.filter(
+      (c) => c?.parent_column_id == null || c?.parent_column_id === ''
+    );
+
+    topLevelColumns.forEach((col, colIdx) => {
+      const children = Array.isArray(col?.children) ? sortByOrder(col.children, 'column_order') : [];
       const stageInternalId = toPositiveNumber(col?.column_id) ?? nextGeneratedId++;
+      const colorCode = apiStage?.color_code || undefined;
+
+      if (children.length === 0) {
+        stages.push({
+          id: stageInternalId,
+          name: col?.column_name || apiStage?.stage_name || 'Stage',
+          area,
+          limit: 0,
+          cardsPerRow: Math.max(1, getSortableNumber(col?.cards_per_row, 1)),
+          row: 0,
+          col: areaNextCol[area],
+          colSpan: 1,
+          color: colorCode,
+          stageId,
+          columnId: String(col?.column_id ?? `${stageId}-${colIdx + 1}`),
+        });
+        areaNextCol[area] += 1;
+        return;
+      }
+
+      const startCol = areaNextCol[area];
+      const span = children.length;
       stages.push({
         id: stageInternalId,
         name: col?.column_name || apiStage?.stage_name || 'Stage',
@@ -77,13 +104,31 @@ function buildInternalStagesFromApiStages(apiStages = [], fallbackStartId = 1) {
         limit: 0,
         cardsPerRow: Math.max(1, getSortableNumber(col?.cards_per_row, 1)),
         row: 0,
-        col: areaNextCol[area],
-        colSpan: 1,
-        color: apiStage?.color_code || undefined,
+        col: startCol,
+        colSpan: span,
+        color: colorCode,
         stageId,
         columnId: String(col?.column_id ?? `${stageId}-${colIdx + 1}`),
       });
-      areaNextCol[area] += 1;
+
+      children.forEach((child, childIdx) => {
+        const childInternalId = toPositiveNumber(child?.column_id) ?? nextGeneratedId++;
+        stages.push({
+          id: childInternalId,
+          name: child?.column_name || 'Stage',
+          area,
+          limit: 0,
+          cardsPerRow: Math.max(1, getSortableNumber(child?.cards_per_row, 1)),
+          row: 1,
+          col: startCol + childIdx,
+          colSpan: 1,
+          color: colorCode,
+          stageId,
+          columnId: String(child?.column_id ?? `${stageId}-${childIdx + 1}`),
+        });
+      });
+
+      areaNextCol[area] += span;
     });
   });
 

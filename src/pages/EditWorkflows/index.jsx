@@ -15,14 +15,6 @@ import {
 } from './workflow.utils';
 import useWorkFlowReducer from '../../store/WorkFlowReducer';
 
-const areaColors = {
-  'BACKLOG AREA': '#cfd8dc',
-  'REQUESTED AREA': '#2666be',
-  'IN PROGRESS AREA': '#f38a30',
-  'DONE AREA': '#42af49',
-  'READY TO ARCHIVE AREA': '#7333bd',
-};
-
 const DEFAULT_WORKFLOWS = [
   {
     id: 1,
@@ -506,7 +498,6 @@ function EditWorkflows() {
                 <div className="workflow-board">
                   <WorkflowBoard
                     workflow={workflow}
-                    areaColors={areaColors}
                     hoveredColumn={hoveredColumn}
                     stackedRailMetrics={stackedRailMetrics}
                     editingStageId={editingStageId}

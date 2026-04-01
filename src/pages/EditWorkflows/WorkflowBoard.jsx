@@ -2,20 +2,19 @@ import { getBoardColumnStructure, getGlobalRowsForSwimlane } from './workflow.ut
 import WorkflowSwimlane from './WorkflowSwimlane';
 import WorkflowAreaGrid, { STAGE_CELL_WIDTH, STAGE_GAP } from './WorkflowAreaGrid';
 
-const DEFAULT_AREA_COLORS = {
-  'BACKLOG AREA': '#cfd8dc',
-  'REQUESTED AREA': '#2666be',
-  'IN PROGRESS AREA': '#f38a30',
-  'DONE AREA': '#42af49',
-  'READY TO ARCHIVE AREA': '#7333bd',
-};
+const FALLBACK_AREA_HEADER_COLOR = '#e5e7eb';
+
+function getAreaHeaderColorFromStages(swimlane, area) {
+  const stage = swimlane?.stages?.find((s) => s.area === area);
+  if (stage?.color) return stage.color;
+  return FALLBACK_AREA_HEADER_COLOR;
+}
 
 /**
  * Workflow board: area headers + swimlane rows with area blocks.
  */
 function WorkflowBoard({
   workflow,
-  areaColors = DEFAULT_AREA_COLORS,
   stageCellWidth = STAGE_CELL_WIDTH,
   stageGap = STAGE_GAP,
   hoveredColumn,
@@ -43,6 +42,8 @@ function WorkflowBoard({
 
   if (totalCols === 0) return null;
 
+  const firstSwimlane = workflow.swimlanes[0];
+
   const labelSpacerWidth = 170;
   const boardMinWidth =
     labelSpacerWidth + stageGap +
@@ -67,7 +68,7 @@ function WorkflowBoard({
               className="workflow-board-area-header"
               style={{
                 width: cols * stageCellWidth + Math.max(0, cols - 1) * stageGap,
-                backgroundColor: areaColors[area] ?? '#e5e7eb',
+                backgroundColor: getAreaHeaderColorFromStages(firstSwimlane, area),
               }}
               title={area}
             >
@@ -81,7 +82,6 @@ function WorkflowBoard({
         <div className="workflow-board-body workflow-stage-row">
           <div className="workflow-board-label-spacer" aria-hidden="true" />
           {boardStructure.map(({ area, cols }) => {
-            const firstSwimlane = workflow.swimlanes[0];
             const areaStages = firstSwimlane.stages.filter((s) => s.area === area);
             const globalRows = getGlobalRowsForSwimlane(firstSwimlane, boardStructure);
             return (
