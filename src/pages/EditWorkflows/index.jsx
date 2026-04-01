@@ -42,6 +42,7 @@ function EditWorkflows() {
     renameWorkflow,
     deleteWorkflow,
     disableWorkflow,
+    createWorkflow,
     createSwimlane,
     renameSwimlane,
     deleteSwimlane,
@@ -357,6 +358,19 @@ function EditWorkflows() {
     }
   };
 
+  const handleCreateWorkflow = ({ workflow_name }) => {
+    const boardId = searchParams.get('boardId');
+    if (!boardId || !workflow_name?.trim()) return;
+    createWorkflow({
+      board_id: boardId,
+      workflow_name: workflow_name.trim(),
+      cb: () => {
+        refetchBoardWorkflows();
+        setShowCreateWorkflowModal(false);
+      },
+    });
+  };
+
   const handleDeleteWorkflow = (workflowId) => {
     if (!window.confirm('Delete this workflow? This cannot be undone.')) {
       return;
@@ -594,10 +608,8 @@ function EditWorkflows() {
       <CreateWorkflowModal
         show={showCreateWorkflowModal}
         onClose={() => setShowCreateWorkflowModal(false)}
-        onSave={(workflowData) => {
-          console.log('Save workflow:', workflowData);
-          setShowCreateWorkflowModal(false);
-        }}
+        onSave={handleCreateWorkflow}
+        isSaving={addEditLoader}
       />
     </div>
   );

@@ -88,6 +88,24 @@ const useWorkFlowReducer = create((set) => ({
         }
     },
 
+    createWorkflow: async ({ board_id, workflow_name, cb }) => {
+        try {
+            set({ addEditLoader: true });
+            const { data } = await workflowService.createWorkflow({ board_id, workflow_name });
+            set({ addEditLoader: false });
+            const { success } = useAlertReducer.getState();
+            success(data && data.message);
+            cb && cb();
+        } catch (err) {
+            set({
+                errorMessage: err?.response?.data?.message ?? err.message,
+                addEditLoader: false,
+            });
+            const { error } = useAlertReducer.getState();
+            error(err?.response?.data?.message ?? err.message);
+        }
+    },
+
     createSwimlane: async ({ workflow_id, swimlane_name, cb }) => {
         try {
             set({ addEditLoader: true });

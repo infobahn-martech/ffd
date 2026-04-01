@@ -2,17 +2,16 @@ import { useState } from 'react';
 import CustomModal from '../../components/CustomModal';
 import '../../design/scss/EditWorkflows.scss';
 
-const CreateWorkflowModal = ({ show, onClose, onSave }) => {
+const CreateWorkflowModal = ({ show, onClose, onSave, isSaving = false }) => {
   const [workflowName, setWorkflowName] = useState('');
 
   const handleSave = () => {
     if (workflowName.trim()) {
       if (onSave) {
         onSave({
-          name: workflowName.trim(),
+          workflow_name: workflowName.trim(),
         });
       }
-      handleClose();
     }
   };
 
@@ -76,6 +75,7 @@ const CreateWorkflowModal = ({ show, onClose, onSave }) => {
               type="button"
               className="create-workflow-btn create-workflow-btn-cancel"
               onClick={handleClose}
+              disabled={isSaving}
             >
               Cancel
             </button>
@@ -83,7 +83,7 @@ const CreateWorkflowModal = ({ show, onClose, onSave }) => {
               type="button"
               className="create-workflow-btn create-workflow-btn-save"
               onClick={handleSave}
-              disabled={!workflowName.trim()}
+              disabled={!workflowName.trim() || isSaving}
             >
               Save
             </button>

@@ -12,6 +12,9 @@ const deleteWorkflow = (workflowId) =>
 const disableWorkflow = (workflowId) =>
     Gateway.post(`/kanban_workflow/disable_workflow/${workflowId}`, { workflow_id: workflowId });
 
+const createWorkflow = (data) =>
+    Gateway.post('/kanban_workflow/create_workflow', data);
+
 const createSwimlane = (data) =>
     Gateway.post('/kanban_workflow/create_swimlane', data);
 
@@ -29,6 +32,7 @@ export default {
     renameWorkflow,
     deleteWorkflow,
     disableWorkflow,
+    createWorkflow,
     createSwimlane,
     getSwimlaneByWorkflow,
     renameSwimlane,
