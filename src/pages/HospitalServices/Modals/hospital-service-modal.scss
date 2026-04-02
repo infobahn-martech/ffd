@@ -114,19 +114,35 @@ body .user-modal-sm.hospital-service-modal .modal-dialog {
     }
   }
 
+  /* operations.scss sets .crew-multi-select .react-select__control { border: none !important } — override here */
+  .crew-multi-select {
+    padding: 0 !important;
+    min-height: auto;
+    border: none !important;
+    background: transparent !important;
+  }
+
+  .crew-multi-select:hover,
+  .crew-multi-select:focus-within {
+    border-color: transparent !important;
+    box-shadow: none !important;
+    background: transparent !important;
+  }
+
   .crew-multi-select .react-select__control {
-    min-height: 48px;
-    border-radius: 8px;
-    border-color: #d8dee6;
-    box-shadow: none;
+    min-height: 48px !important;
+    border-radius: 8px !important;
+    border: 1px solid #d8dee6 !important;
+    box-shadow: none !important;
+    background: #fff !important;
 
     &:hover {
-      border-color: #b8c9dc;
+      border-color: #b8c9dc !important;
     }
   }
 
   .crew-multi-select .react-select__control--is-focused {
-    border-color: #00368c !important;
+    border: 1px solid #00368c !important;
     box-shadow: 0 0 0 3px rgba(0, 54, 140, 0.12) !important;
   }
 
@@ -144,5 +160,61 @@ body .user-modal-sm.hospital-service-modal .modal-dialog {
   .react-select-container:not(.crew-multi-select) .react-select__control--is-focused {
     border-color: #00368c !important;
     box-shadow: 0 0 0 3px rgba(0, 54, 140, 0.12) !important;
+  }
+
+  /* Dropdown list + chips: match User Role–style vibrant blue (#1976D2) from reference UI */
+  $rs-option-blue: #1976d2;
+  $rs-option-blue-active: #1565c0;
+
+  .crew-multi-select .react-select__multi-value {
+    background-color: $rs-option-blue !important;
+    border-radius: 6px !important;
+  }
+
+  .crew-multi-select .react-select__multi-value__label {
+    color: #fff !important;
+  }
+
+  .crew-multi-select .react-select__multi-value__remove {
+    color: #fff !important;
+
+    &:hover {
+      background: rgba(255, 255, 255, 0.2) !important;
+      color: #fff !important;
+    }
+  }
+
+  .react-select__option {
+    &--is-focused {
+      background-color: $rs-option-blue !important;
+      color: #fff !important;
+    }
+
+    &--is-selected {
+      background-color: $rs-option-blue !important;
+      color: #fff !important;
+      font-weight: 500;
+    }
+
+    &:active {
+      background-color: $rs-option-blue-active !important;
+      color: #fff !important;
+    }
+  }
+
+  /* Multi-select menu: override operations.scss focused = purple tint */
+  .crew-multi-select .react-select__option--is-focused {
+    background-color: $rs-option-blue !important;
+    color: #fff !important;
+  }
+
+  .crew-multi-select .react-select__option--is-selected {
+    background-color: $rs-option-blue !important;
+    color: #fff !important;
+  }
+
+  .crew-multi-select .react-select__option:active {
+    background-color: $rs-option-blue-active !important;
+    color: #fff !important;
   }
 }

@@ -239,7 +239,7 @@ export function HospitalServiceModal({ showModal, closeModal, onSuccess }) {
                                     placeholder={
                                         loadingOptions
                                             ? "Loading…"
-                                            : "Search or select services (multiple allowed)"
+                                            : ""
                                     }
                                     isDisabled={loadingOptions || isBeingUpdated}
                                     options={serviceOptions}
@@ -275,7 +275,6 @@ export function HospitalServiceModal({ showModal, closeModal, onSuccess }) {
                             id="hospital-service-remarks"
                             className={`form-control hospital-service-modal__textarea ${errors.remarks ? "is-invalid" : ""
                                 }`}
-                            placeholder="Add any extra context (optional)"
                             {...register("remarks")}
                         />
                     </div>
