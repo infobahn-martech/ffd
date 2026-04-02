@@ -1,49 +1,45 @@
-import { useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import CommonHeader from "../../components/CommonHeader";
 import { RenderAction, DateFormat } from "./RenderCells";
 import { WasteTypeModal } from "./Modals/AddEditWasteTypes";
 import DeleteConfirmationModal from "../../components/DeleteConfirmationModal";
 import CustomTable from "../../components/customTable";
-
-const dummyWasteTypes = [
-    {
-        _id: "1",
-        name: "Waste Type 1",
-        createdAt: "2024-01-15T10:30:00Z"
-    },
-    {
-        _id: "2",
-        name: "Waste Type 2",
-        createdAt: "2024-01-16T11:20:00Z"
-    },
-    {
-        _id: "3",
-        name: "Waste Type 3",
-        createdAt: "2024-01-17T09:15:00Z"
-    },
-    {
-        _id: "4",
-        name: "Waste Type 4",
-        createdAt: "2024-01-18T14:45:00Z"
-    },
-];
+import useWasteTypeReducer from "../../store/WasteTypeReducer";
 
 const WasteTypes = () => {
     const [params, setParams] = useState({
         page: 1,
         searchTerm: "",
         limit: 10,
-        sortBy: "name",
+        sortBy: "waste_type",
         sortOrder: 1,
     });
+
+    const { getWasteTypes, wasteTypes, isLoadingGet, totalCount } = useWasteTypeReducer(
+        (state) => state
+    );
 
     const [showWasteTypeModal, setShowWasteTypeModal] = useState(false);
     const [showDeleteModal, setShowDeleteModal] = useState(false);
 
+    const apiParams = useMemo(
+        () => ({
+            searchTerm: params.searchTerm || "",
+            page: params.page,
+            limit: params.limit,
+            sortBy: params.sortBy,
+        }),
+        [params.page, params.limit, params.searchTerm, params.sortBy]
+    );
+
+    useEffect(() => {
+        getWasteTypes?.(apiParams);
+    }, [getWasteTypes, apiParams]);
+
     const cols = [
         {
             name: "Waste Type",
-            selector: "name",
+            selector: "waste_type",
             sort: true,
             width: "400",
             thclass: "tb-head",
@@ -90,17 +86,18 @@ const WasteTypes = () => {
                     </div>
 
                     <CustomTable
+                        isLoading={isLoadingGet}
                         pagination={{ currentPage: params.page, limit: params.limit }}
                         tableClasses="px-start"
-                        count={dummyWasteTypes.length}
+                        count={totalCount ?? 0}
                         columns={cols}
-                        data={dummyWasteTypes}
+                        data={Array.isArray(wasteTypes) ? wasteTypes : []}
                         Sl={true}
                         onPageChange={(currentPage) =>
                             setParams({ ...params, page: currentPage })
                         }
                         setLimit={(newLimit) =>
-                            setParams({ ...params, limit: newLimit })
+                            setParams({ ...params, limit: newLimit, page: 1 })
                         }
                         onSorting={(sortBy) =>
                             setParams({
@@ -116,13 +113,14 @@ const WasteTypes = () => {
                         <WasteTypeModal
                             showModal={showWasteTypeModal}
                             closeModal={() => setShowWasteTypeModal(false)}
+                            onSuccess={() => getWasteTypes?.(apiParams)}
                         />
                     )}
                     {!!showDeleteModal && (
                         <DeleteConfirmationModal
                             show={showDeleteModal}
                             onCancel={() => setShowDeleteModal(false)}
-                            onConfirm={() => { }}
+                            onConfirm={() => setShowDeleteModal(false)}
                             deleteText="Are you sure you want to delete this waste type?"
                         // isLoading={isBeingUpdated}
                         />

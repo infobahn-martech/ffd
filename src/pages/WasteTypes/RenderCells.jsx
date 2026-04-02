@@ -44,6 +44,9 @@ export const RenderName = ({ row }) => {
 };
 
 export const DateFormat = ({ row, selector }) => {
-    const formattedDate = moment(row[selector]).format('DD MMMM YYYY hh:mm a');
-    return formattedDate;
+    const value = row?.[selector];
+    if (!value) return "—";
+    const m = moment(value);
+    if (!m.isValid()) return "—";
+    return m.format("DD MMMM YYYY hh:mm a");
 };
