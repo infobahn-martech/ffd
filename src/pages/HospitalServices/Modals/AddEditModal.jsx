@@ -231,6 +231,7 @@ export function HospitalServiceModal({ showModal, closeModal, onSuccess }) {
                             }}
                             render={({ field }) => (
                                 <Select
+                                    menuIsOpen={true}
                                     inputId="hospital-service-services"
                                     isMulti
                                     classNamePrefix="react-select"

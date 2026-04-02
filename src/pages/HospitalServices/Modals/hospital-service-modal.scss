@@ -163,8 +163,8 @@ body .user-modal-sm.hospital-service-modal .modal-dialog {
   }
 
   /* Dropdown list + chips: match User Role–style vibrant blue (#1976D2) from reference UI */
-  $rs-option-blue: #1976d2;
-  $rs-option-blue-active: #1565c0;
+  $rs-option-blue: #00368c;
+  $rs-option-blue-active: #00368c;
 
   .crew-multi-select .react-select__multi-value {
     background-color: $rs-option-blue !important;
