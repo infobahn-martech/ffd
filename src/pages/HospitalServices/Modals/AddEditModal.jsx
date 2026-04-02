@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useRef, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { useForm, Controller, useWatch } from "react-hook-form";
 import Select from "react-select";
 import CustomModal from "../../../components/CustomModal";
@@ -61,23 +61,6 @@ export function HospitalServiceModal({ showModal, closeModal, onSuccess }) {
     const [hospitalOptions, setHospitalOptions] = useState([]);
     const [serviceOptions, setServiceOptions] = useState([]);
     const [loadingOptions, setLoadingOptions] = useState(false);
-
-    const [isHospitalDancing, setIsHospitalDancing] = useState(false);
-    const [isServicesDancing, setIsServicesDancing] = useState(false);
-    const hospitalDanceTimerRef = useRef(null);
-    const servicesDanceTimerRef = useRef(null);
-
-    const triggerHospitalDance = () => {
-        setIsHospitalDancing(true);
-        if (hospitalDanceTimerRef.current) clearTimeout(hospitalDanceTimerRef.current);
-        hospitalDanceTimerRef.current = setTimeout(() => setIsHospitalDancing(false), 480);
-    };
-
-    const triggerServicesDance = () => {
-        setIsServicesDancing(true);
-        if (servicesDanceTimerRef.current) clearTimeout(servicesDanceTimerRef.current);
-        servicesDanceTimerRef.current = setTimeout(() => setIsServicesDancing(false), 480);
-    };
 
     const {
         register,
@@ -227,7 +210,7 @@ export function HospitalServiceModal({ showModal, closeModal, onSuccess }) {
                                 <Select
                                     inputId="hospital-service-hospital"
                                     classNamePrefix="react-select"
-                                    className={`react-select-container ${isHospitalDancing ? "select-dance" : ""} ${errors.hospital_id ? "is-invalid" : ""
+                                    className={`react-select-container ${errors.hospital_id ? "is-invalid" : ""
                                         }`}
                                     placeholder={loadingOptions ? "Loading…" : "Select a hospital"}
                                     isDisabled={loadingOptions || isBeingUpdated}
@@ -238,7 +221,6 @@ export function HospitalServiceModal({ showModal, closeModal, onSuccess }) {
                                     }
                                     onChange={(opt) => {
                                         field.onChange(opt?.value ?? null);
-                                        triggerHospitalDance();
                                     }}
                                     styles={selectStyles}
                                     menuPortalTarget={
@@ -249,11 +231,11 @@ export function HospitalServiceModal({ showModal, closeModal, onSuccess }) {
                                 />
                             )}
                         />
-                        {errors.hospital_id && (
+                        {/* {errors.hospital_id && (
                             <span className="error text-danger d-block mt-1 small">
                                 {errors.hospital_id.message}
                             </span>
-                        )}
+                        )} */}
                     </div>
 
                     <div className="hospital-service-modal__field">
@@ -279,7 +261,7 @@ export function HospitalServiceModal({ showModal, closeModal, onSuccess }) {
                                     inputId="hospital-service-services"
                                     isMulti
                                     classNamePrefix="react-select"
-                                    className={`crew-multi-select react-select-container ${isServicesDancing ? "select-dance" : ""} ${errors.service_ids ? "is-invalid" : ""
+                                    className={`crew-multi-select react-select-container ${errors.service_ids ? "is-invalid" : ""
                                         }`}
                                     placeholder={
                                         loadingOptions
@@ -293,7 +275,6 @@ export function HospitalServiceModal({ showModal, closeModal, onSuccess }) {
                                     )}
                                     onChange={(opts) => {
                                         field.onChange(opts?.map((o) => o.value) ?? []);
-                                        triggerServicesDance();
                                     }}
                                     styles={selectStyles}
                                     menuPortalTarget={
@@ -306,11 +287,11 @@ export function HospitalServiceModal({ showModal, closeModal, onSuccess }) {
                                 />
                             )}
                         />
-                        {errors.service_ids && (
+                        {/* {errors.service_ids && (
                             <span className="error text-danger d-block mt-1 small">
                                 {errors.service_ids.message}
                             </span>
-                        )}
+                        )} */}
                     </div>
 
                     <div className="hospital-service-modal__field">
