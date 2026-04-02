@@ -189,6 +189,7 @@ function SideNav({ isMobileMenuOpen, onCloseMobileMenu, isVendorPortal = false }
       subMenus: [
         { menu: 'Hospitals', to: '/hospital-management', hasPermission: true },
         { menu: 'Medical Services', to: '/medical-services', hasPermission: true },
+        { menu: 'Hospital Services', to: '/hospital-services', hasPermission: true },
       ],
     },
     {

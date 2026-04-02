@@ -7,10 +7,10 @@ import { RenderAction } from "./RenderCells";
 import DeleteConfirmationModal from "../../components/DeleteConfirmationModal";
 
 import useHospitalReducer from "../../store/HospitalReducer";
-import { MedicalServiceModal } from "./Modals/AddEditMedicalServices";
+import { HospitalServiceModal } from "./Modals/AddEditHospitalServices";
 
 
-const MedicalServices = () => {
+const HospitalServices = () => {
     // ✅ Store / API
     const { getMedicalServiceData, medicalServiceData, isLoading, totalMedicalServiceCount, deleteMedicalService } =
         useHospitalReducer((state) => state);
@@ -154,7 +154,7 @@ const MedicalServices = () => {
                 />
 
                 {!!showMedicalServiceModal && (
-                    <MedicalServiceModal
+                    <HospitalServiceModal
                         showModal={showMedicalServiceModal} // boolean OR row object for edit
                         closeModal={() => setShowMedicalServiceModal(false)}
                         onSuccess={() => {
@@ -173,7 +173,7 @@ const MedicalServices = () => {
                         }}
                         onConfirm={handleDelete}
                         isLoading={isLoading}
-                        deleteText="Are you sure you want to delete this medical service?"
+                        deleteText="Are you sure you want to delete this hospital service?"
                     />
                 )}
             </div>
@@ -181,4 +181,4 @@ const MedicalServices = () => {
     );
 };
 
-export default MedicalServices;
+export default HospitalServices;
