@@ -7,6 +7,7 @@ import vesselService from "../../../services/vesselService";
 import "../../../design/scss/prospect-modal.scss";
 import "../../../design/scss/modal-designs.scss";
 import "../../../design/scss/form-designs.scss";
+import "./AddEditVessel.scss";
 
 const VESSEL_TYPES = ["Bulk", "Container", "Carrier", "Tanker"];
 
@@ -495,7 +496,7 @@ export function VesselModal({ showModal, closeModal, callBack }) {
 
   return (
     <CustomModal
-      dialgName="modal-dialog modal-dialog-centered modal-lg"
+      dialgName="modal-dialog modal-dialog-centered vessel-modal-dialog"
       show={!!showModal}
       closeModal={() => closeModal(null)}
       body={renderBody()}
