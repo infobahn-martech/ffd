@@ -36,9 +36,36 @@ function mapDetailToForm(d) {
     lengthOverall: d.loa ?? "",
     beam: d.beam ?? "",
     draft: d.draft ?? "",
-    mwpDocument: d.mwp_document ?? "",
     mwpExpiryDate: toDateInputValue(d.mwp_expiry_date),
   };
+}
+
+function appendIfPresent(fd, key, value) {
+  if (value === undefined || value === null || value === "") return;
+  fd.append(key, String(value));
+}
+
+function buildVesselFormData(data) {
+  const fd = new FormData();
+  fd.append("entity_id", data.billingEntity);
+  fd.append("vessel_name", data.vesselName.trim());
+  fd.append("imo_number", data.imoNumber.trim());
+  fd.append("vessel_type", data.vesselType);
+  fd.append("flag_state", data.flagState.trim());
+  fd.append("gross_tonnage", String(data.grossTonnage).trim());
+  fd.append("call_sign", data.callSign.trim());
+  fd.append("year_built", String(data.yearBuilt).trim());
+  appendIfPresent(fd, "class_society", data.classSociety?.trim());
+  appendIfPresent(fd, "p_i_club", data.pnIClub?.trim());
+  appendIfPresent(fd, "loa", data.lengthOverall?.toString().trim());
+  appendIfPresent(fd, "beam", data.beam?.toString().trim());
+  appendIfPresent(fd, "draft", data.draft?.toString().trim());
+  appendIfPresent(fd, "mwp_expiry_date", data.mwpExpiryDate?.trim());
+  const file = data.mwpDocument?.[0];
+  if (file instanceof File) {
+    fd.append("mwp_document", file);
+  }
+  return fd;
 }
 
 export function VesselModal({ showModal, closeModal, callBack }) {
@@ -56,6 +83,7 @@ export function VesselModal({ showModal, closeModal, callBack }) {
   const vesselId = isEditRow ? (showModal.vessel_id ?? showModal._id) : null;
 
   const [loadingDetail, setLoadingDetail] = useState(false);
+  const [existingMwpDocument, setExistingMwpDocument] = useState(null);
 
   const {
     register,
@@ -74,11 +102,13 @@ export function VesselModal({ showModal, closeModal, callBack }) {
     if (!showModal) {
       reset({});
       setLoadingDetail(false);
+      setExistingMwpDocument(null);
       return;
     }
     if (showModal === true) {
       reset({});
       setLoadingDetail(false);
+      setExistingMwpDocument(null);
       return;
     }
     const id = showModal?.vessel_id ?? showModal?._id;
@@ -88,9 +118,11 @@ export function VesselModal({ showModal, closeModal, callBack }) {
       .getVesselByVesselId(id)
       .then(({ data }) => {
         const d = data?.data ?? data;
+        setExistingMwpDocument(d?.mwp_document || null);
         reset(mapDetailToForm(d));
       })
       .catch(() => {
+        setExistingMwpDocument(showModal?.mwp_document || null);
         reset(mapDetailToForm(showModal));
       })
       .finally(() => setLoadingDetail(false));
@@ -105,6 +137,9 @@ export function VesselModal({ showModal, closeModal, callBack }) {
   };
 
   const onSubmit = (data) => {
+    const mwpFile = data.mwpDocument?.[0];
+    const useMultipart = mwpFile instanceof File;
+
     const apiPayload = {
       entity_id: data.billingEntity,
       vessel_name: data.vesselName.trim(),
@@ -119,16 +154,17 @@ export function VesselModal({ showModal, closeModal, callBack }) {
       loa: data.lengthOverall?.toString().trim() || undefined,
       beam: data.beam?.toString().trim() || undefined,
       draft: data.draft?.toString().trim() || undefined,
-      mwp_document: data.mwpDocument?.trim() || undefined,
       mwp_expiry_date: data.mwpExpiryDate?.trim() || undefined,
     };
 
     trimPayload(apiPayload);
 
+    const payload = useMultipart ? buildVesselFormData(data) : apiPayload;
+
     if (vesselId) {
       updateVessel({
         id: vesselId,
-        formData: apiPayload,
+        formData: payload,
         cb: () => {
           closeModal();
           callBack();
@@ -141,7 +177,7 @@ export function VesselModal({ showModal, closeModal, callBack }) {
         )?.billing_entity ?? "";
 
       addVessel({
-        formData: apiPayload,
+        formData: payload,
         successMessage: (created) => {
           const c = created && typeof created === "object" ? created : {};
           const name = c.vessel_name ?? data.vesselName.trim();
@@ -451,25 +487,48 @@ export function VesselModal({ showModal, closeModal, callBack }) {
               <div className="col-lg-6 col-sm-12 mb-3">
                 <div className="form-floating desig-inp">
                   <input
-                    className="form-control"
-                    placeholder="MWP document (reference or URL)"
-                    {...register("mwpDocument")}
-                  />
-                  <label>MWP document</label>
-                </div>
-              </div>
-            </div>
-
-            <div className="permInputs row mb-lg-3">
-              <div className="col-lg-6 col-sm-12 mb-3">
-                <div className="form-floating desig-inp">
-                  <input
                     type="date"
                     className="form-control"
                     {...register("mwpExpiryDate")}
                   />
                   <label>MWP expiry date</label>
                 </div>
+              </div>
+
+            </div>
+
+            <div className="permInputs row mb-lg-3">
+              <div className="col-lg-6 col-sm-12 mb-3">
+                <label className="form-label text-muted small mb-1 d-block">
+                  MWP document
+                </label>
+                {existingMwpDocument ? (
+                  <div className="small text-secondary mb-2 text-break">
+                    Current file:{" "}
+                    {/^https?:\/\//i.test(String(existingMwpDocument)) ? (
+                      <a
+                        href={existingMwpDocument}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                      >
+                        Open link
+                      </a>
+                    ) : (
+                      String(existingMwpDocument)
+                    )}
+                  </div>
+                ) : null}
+                <input
+                  type="file"
+                  className="form-control vessel-mwp-file"
+                  accept=".pdf,.doc,.docx,application/pdf,application/msword,application/vnd.openxmlformats-officedocument.wordprocessingml.document,image/*"
+                  {...register("mwpDocument")}
+                />
+                <span className="small text-muted">
+                  {existingMwpDocument
+                    ? "Upload a new file to replace the current one."
+                    : ""}
+                </span>
               </div>
             </div>
           </form>

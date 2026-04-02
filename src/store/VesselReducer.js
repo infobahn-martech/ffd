@@ -49,7 +49,13 @@ const useVesselReducer = create((set) => ({
   updateVessel: async ({ id, formData, cb }) => {
     try {
       set({ isBeingUpdated: true });
-      const payload = id != null ? { ...formData, vessel_id: id } : formData;
+      let payload;
+      if (formData instanceof FormData) {
+        payload = formData;
+        if (id != null) payload.append('vessel_id', id);
+      } else {
+        payload = id != null ? { ...formData, vessel_id: id } : formData;
+      }
       const { data } = await vesselService.updateVessel(payload);
       set({ successMessage: data.message, isBeingUpdated: false });
       const { success } = useAlertReducer.getState();
