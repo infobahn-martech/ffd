@@ -1,10 +1,10 @@
 import React, { useEffect, useMemo, useState } from "react";
 import CommonHeader from "../../components/CommonHeader";
 import CustomTable from "../../components/customTable";
-import { AddEditThirdPartyServiceModal } from "./Modals/AddEditThirdPartyService";
+import { AddEditThirdPartyServiceModal } from "./Modals/AddEditModal";
 import { RenderAction } from "./RenderCells";
 import DeleteConfirmationModal from "../../components/DeleteConfirmationModal";
-import useThirdPartyServiceReducer from "../../store/ThirdPartyServiceReducer";
+import useThirdPartyServiceReducer from "../../store/ThirdPartyReducer";
 
 const ThirdPartyService = () => {
     const { getThirdPartyServices, thirdPartyServices, isLoadingGet, deleteData, isLoadingDelete, totalCount } =
@@ -14,7 +14,7 @@ const ThirdPartyService = () => {
         page: 1,
         searchTerm: "",
         limit: 10,
-        sortBy: "name",
+        sortBy: "third_party_service",
         sortOrder: 1, // 1 = ASC, -1 = DESC
     });
 
@@ -55,9 +55,10 @@ const ThirdPartyService = () => {
     };
 
     const handleConfirmDelete = async () => {
-        if (!selectedRow?._id) return;
+        const id = selectedRow?.third_party_service_id ?? selectedRow?._id;
+        if (!id) return;
 
-        await deleteData(selectedRow._id);
+        await deleteData(id);
         setShowDeleteModal(false);
         setSelectedRow(null);
         getThirdPartyServices(apiParams);
@@ -65,10 +66,18 @@ const ThirdPartyService = () => {
 
     const cols = [
         {
-            name: "Name",
+            name: "Third party service",
             selector: "third_party_service",
             sort: true,
             width: "200",
+            thclass: "tb-head",
+            contentClass: "table-content",
+        },
+        {
+            name: "Description",
+            selector: "description",
+            sort: true,
+            width: "280",
             thclass: "tb-head",
             contentClass: "table-content",
         },

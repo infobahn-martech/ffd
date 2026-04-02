@@ -1,7 +1,7 @@
 import { useEffect } from "react";
 import { useForm } from "react-hook-form";
 import CustomModal from "../../../components/CustomModal";
-import useThirdPartyServiceReducer from "../../../store/ThirdPartyServiceReducer";
+import useThirdPartyServiceReducer from "../../../store/ThirdPartyReducer";
 import "../../../design/scss/prospect-modal.scss";
 import "../../../design/scss/modal-designs.scss";
 import "../../../design/scss/form-designs.scss";
@@ -11,8 +11,13 @@ export function AddEditThirdPartyServiceModal({ showModal, closeModal, onSuccess
         (state) => state
     );
 
-    const isEdit = showModal && typeof showModal === "object" && showModal?.third_party_service_id;
-    const thirdPartyServiceId = isEdit ? showModal?.third_party_service_id : null;
+    const isEdit =
+        showModal &&
+        typeof showModal === "object" &&
+        !!(showModal?.third_party_service_id ?? showModal?._id);
+    const thirdPartyServiceId = isEdit
+        ? showModal?.third_party_service_id ?? showModal?._id
+        : null;
 
     const {
         register,
@@ -20,14 +25,17 @@ export function AddEditThirdPartyServiceModal({ showModal, closeModal, onSuccess
         formState: { errors },
         reset,
     } = useForm({
-        defaultValues: { third_party_service: "" },
+        defaultValues: { third_party_service: "", description: "" },
     });
 
     useEffect(() => {
         if (isEdit) {
-            reset({ third_party_service: showModal?.third_party_service ?? showModal?.name ?? "" });
+            reset({
+                third_party_service: showModal?.third_party_service ?? showModal?.name ?? "",
+                description: showModal?.description ?? "",
+            });
         } else {
-            reset({ third_party_service: "" });
+            reset({ third_party_service: "", description: "" });
         }
     }, [showModal, isEdit, reset]);
 
@@ -37,14 +45,22 @@ export function AddEditThirdPartyServiceModal({ showModal, closeModal, onSuccess
             onSuccess?.();
         };
 
+        const payloadBase = {
+            third_party_service: data.third_party_service.trim(),
+            description: (data.description ?? "").trim(),
+        };
+
         if (isEdit) {
             await updateThirdPartyService({
-                formData: { third_party_service_id: thirdPartyServiceId, third_party_service: data.third_party_service.trim() },
+                formData: {
+                    third_party_service_id: thirdPartyServiceId,
+                    ...payloadBase,
+                },
                 cb,
             });
         } else {
             await addThirdPartyService({
-                formData: { third_party_service: data.third_party_service.trim() },
+                formData: payloadBase,
                 cb,
             });
         }
@@ -79,6 +95,25 @@ export function AddEditThirdPartyServiceModal({ showModal, closeModal, onSuccess
                                     {errors.third_party_service.message}
                                 </span>
                             )}
+                        </div>
+                    </div>
+
+                    <div className="mb-lg-3 mb-sm-0">
+                        <div className="permInputs row">
+                            <div className="col-12">
+                                <div className="form-floating desig-inp">
+                                    <textarea
+                                        className={`form-control ${errors.description ? "is-invalid" : ""}`}
+                                        placeholder="Description"
+                                        style={{ minHeight: "80px" }}
+                                        {...register("description")}
+                                    />
+                                    <label>Description</label>
+                                    {errors.description && (
+                                        <span className="error text-danger">{errors.description.message}</span>
+                                    )}
+                                </div>
+                            </div>
                         </div>
                     </div>
                 </form>

@@ -31,9 +31,11 @@ const useThirdPartyServiceReducer = create((set) => ({
         try {
             set({ isLoadingGet: true });
             const { data } = await thirdPartyService.getThirdPartyServices({ params });
+            const rows = data?.data ?? data;
+            const list = Array.isArray(rows) ? rows : [];
             set({
-                thirdPartyServices: data?.data ?? [],
-                totalCount: data?.pagination?.total ?? 0,
+                thirdPartyServices: list,
+                totalCount: data?.pagination?.total ?? list.length,
                 isLoadingGet: false,
             });
         } catch (err) {
