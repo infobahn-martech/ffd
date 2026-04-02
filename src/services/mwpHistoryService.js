@@ -1,7 +1,8 @@
 import Gateway from '../gateway/gateway';
 
-const getAllCrews = (params) => Gateway.get('/crew/get_all_crew', { params });
+const getAllMWPHistory = ({ params } = {}) =>
+  Gateway.get('/vessel/all_mwp_history', { params });
 
 export default {
-    getAllCrews,
+  getAllMWPHistory,
 };

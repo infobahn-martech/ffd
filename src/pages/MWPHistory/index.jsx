@@ -1,199 +1,88 @@
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo } from "react";
 import CommonHeader from "../../components/CommonHeader";
 import CustomTable from "../../components/customTable";
-import { ViewCrewModal } from "./Modals/ViewCrew";
+import useMWPHistoryReducer from "../../store/MWPHistoryReducer";
 import "./Crew.scss";
 
-// ✅ Change this to your actual store
-import useCrewReducer from "../../store/CrewReducer";
-
 const MWPHistory = () => {
-    const { fetchAllCrews, crews, isLoadingGet } = useCrewReducer((state) => state);
+    const { fetchAllMWPHistory, mwpHistory, vessel, isLoadingGet } =
+        useMWPHistoryReducer((state) => state);
 
-    const [viewModal, setViewModal] = useState(null);
-
-    const [params, setParams] = useState({
-        page: 1,
-        limit: 10,
-        searchTerm: "",
-        sortOrder: -1,
-        sortBy: "createdAt",
-    });
-
-    // ✅ fetch crew list (dynamic)
     useEffect(() => {
-        fetchAllCrews({
-            page: params.page,
-            limit: params.limit,
-            search: params.searchTerm,
-            sortBy: params.sortBy,
-            sortOrder: params.sortOrder,
-        });
-    }, [params.page, params.limit, params.searchTerm, params.sortBy, params.sortOrder]);
+        fetchAllMWPHistory();
+    }, [fetchAllMWPHistory]);
 
-    // ✅ normalize API response safely
     const tableData = useMemo(() => {
-        if (!crews) return { rows: [], total: 0 };
+        const rows = Array.isArray(mwpHistory) ? mwpHistory : [];
+        return { rows, total: rows.length };
+    }, [mwpHistory]);
 
-        const rows = crews?.data || crews?.docs || crews?.results || [];
-        const total = crews?.total || crews?.count || crews?.totalDocs || rows.length;
+    const limit = tableData.total || 10;
 
-        return { rows, total };
-    }, [crews]);
     const cols = [
         {
-            name: "Crew Name",
-            selector: "crew_name",
+            name: "MWP ID",
+            selector: "mwp_id",
             tableClasses: "table-striped",
             contentClass: "table-content",
-            sort: true,
-            thclass: "tb-head",
-            width: "200",
-        },
-        {
-            name: "Vessel Name",
-            selector: "vessel_name",
-            tableClasses: "table-striped",
-            contentClass: "table-content",
-            sort: true,
-            thclass: "tb-head",
-            width: "200",
-        },
-        {
-            name: "Billing Entity",
-            selector: "billing_entity",
-            tableClasses: "table-striped",
-            contentClass: "table-content",
-            sort: true,
-            thclass: "tb-head",
-            width: "200",
-        },
-        {
-            name: "Nationality",
-            selector: "country",
-            tableClasses: "table-striped",
-            sort: true,
-            contentClass: "table-content",
+            sort: false,
             thclass: "tb-head",
             width: "150",
         },
         {
-            name: "Rank",
-            selector: "rank",
+            name: "Document",
+            selector: "document",
             tableClasses: "table-striped",
-            sort: true,
             contentClass: "table-content",
+            sort: false,
+            thclass: "tb-head",
+            width: "250",
+        },
+        {
+            name: "Expiry Date",
+            selector: "expiry_date",
+            tableClasses: "table-striped",
+            contentClass: "table-content",
+            sort: false,
+            thclass: "tb-head",
+            width: "170",
+        },
+        {
+            name: "Status",
+            selector: "status",
+            tableClasses: "table-striped",
+            contentClass: "table-content",
+            sort: false,
             thclass: "tb-head",
             width: "150",
-        },
-        {
-            name: "Passport",
-            selector: "passport_no",
-            tableClasses: "table-striped",
-            sort: true,
-            contentClass: "table-content",
-            thclass: "tb-head",
-            width: "120",
-        },
-
-        {
-            name: "Passport Expiry",
-            selector: "passport_expiry",
-            tableClasses: "table-striped",
-            sort: true,
-            contentClass: "table-content",
-            thclass: "tb-head",
-            width: "120",
-        },
-        {
-            name: "Visa",
-            selector: "visa_no",
-            tableClasses: "table-striped",
-            sort: true,
-            contentClass: "table-content",
-            thclass: "tb-head",
-            width: "120",
-        },
-        {
-            name: "Visa Expiry",
-            selector: "visa_expiry",
-            tableClasses: "table-striped",
-            sort: true,
-            contentClass: "table-content",
-            thclass: "tb-head",
-            width: "120",
-        },
-        {
-            name: "IQAMA",
-            selector: "iqama_no",
-            tableClasses: "table-striped",
-            sort: true,
-            contentClass: "table-content",
-            thclass: "tb-head",
-            width: "120",
-        },
-        {
-            name: "IQAMA Expiry",
-            selector: "iqama_expiry",
-            tableClasses: "table-striped",
-            sort: true,
-            contentClass: "table-content",
-            thclass: "tb-head",
-            width: "120",
         },
     ];
 
-    const handleViewClick = (row) => {
-        setViewModal(row);
-    };
-
     return (
-        <>
-            <div className="page-body">
-                <div className="prospect employee">
-                    <div className="container-fluid">
-                        <CommonHeader
-                            tableTitle="Crew Management"
-                            isAddEnabled={false}
-                            addModalLabel="Add Crew"
-                            setSearch={(e) =>
-                                setParams({ ...params, searchTerm: e, page: 1, limit: 10 })
-                            }
-                            exportTitle="Export"
-                            exportLoader={false}
-                        />
-                    </div>
-
-                    <CustomTable
-                        isLoading={isLoadingGet}
-                        pagination={{ currentPage: params.page, limit: params.limit }}
-                        tableClasses="px-start"
-                        count={tableData.total}
-                        columns={cols}
-                        data={tableData.rows}
-                        onPageChange={(currentPage) =>
-                            setParams({ ...params, page: currentPage })
-                        }
-                        setLimit={(newLimit) =>
-                            setParams({ ...params, limit: newLimit, page: 1 })
-                        }
-                        onSorting={(sortBy) =>
-                            setParams({
-                                ...params,
-                                sortBy,
-                                sortOrder: params.sortOrder === -1 ? 1 : -1,
-                                page: 1,
-                            })
-                        }
-                        onView={handleViewClick}
+        <div className="page-body">
+            <div className="prospect employee">
+                <div className="container-fluid">
+                    <CommonHeader
+                        tableTitle="MWP History"
+                        isAddEnabled={false}
+                        addModalLabel="Add MWP"
+                        hideSearch
+                        setSearch={() => { }}
+                        exportTitle="Export"
+                        exportLoader={false}
                     />
                 </div>
-            </div>
 
-            {!!viewModal && (
-                <ViewCrewModal showModal={viewModal} closeModal={() => setViewModal(null)} />
-            )}
-        </>
+                <CustomTable
+                    isLoading={isLoadingGet}
+                    pagination={{ currentPage: 1, limit }}
+                    tableClasses="px-start"
+                    count={tableData.total}
+                    columns={cols}
+                    data={tableData.rows}
+                />
+            </div>
+        </div>
     );
 };
 
