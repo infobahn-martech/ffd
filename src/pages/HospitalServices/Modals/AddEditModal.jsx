@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { useForm, Controller, useWatch } from "react-hook-form";
 import Select from "react-select";
 import CustomModal from "../../../components/CustomModal";
@@ -23,6 +23,31 @@ const selectStyles = {
         color: "#9ca3af",
         fontSize: "0.9rem",
     }),
+    option: (base, state) => ({
+        ...base,
+        backgroundColor:
+            state.isFocused || state.isSelected ? "#00368c" : base.backgroundColor,
+        color: state.isFocused || state.isSelected ? "#fff" : base.color,
+        fontWeight: state.isSelected ? 500 : base.fontWeight,
+    }),
+    multiValue: (base) => ({
+        ...base,
+        backgroundColor: "#00368c",
+    }),
+    multiValueLabel: (base) => ({
+        ...base,
+        color: "#fff",
+        fontWeight: 500,
+    }),
+    multiValueRemove: (base) => ({
+        ...base,
+        color: "#fff",
+        cursor: "pointer",
+        ":hover": {
+            backgroundColor: "rgba(255, 255, 255, 0.18)",
+            color: "#fff",
+        },
+    }),
 };
 
 export function HospitalServiceModal({ showModal, closeModal, onSuccess }) {
@@ -36,6 +61,23 @@ export function HospitalServiceModal({ showModal, closeModal, onSuccess }) {
     const [hospitalOptions, setHospitalOptions] = useState([]);
     const [serviceOptions, setServiceOptions] = useState([]);
     const [loadingOptions, setLoadingOptions] = useState(false);
+
+    const [isHospitalDancing, setIsHospitalDancing] = useState(false);
+    const [isServicesDancing, setIsServicesDancing] = useState(false);
+    const hospitalDanceTimerRef = useRef(null);
+    const servicesDanceTimerRef = useRef(null);
+
+    const triggerHospitalDance = () => {
+        setIsHospitalDancing(true);
+        if (hospitalDanceTimerRef.current) clearTimeout(hospitalDanceTimerRef.current);
+        hospitalDanceTimerRef.current = setTimeout(() => setIsHospitalDancing(false), 480);
+    };
+
+    const triggerServicesDance = () => {
+        setIsServicesDancing(true);
+        if (servicesDanceTimerRef.current) clearTimeout(servicesDanceTimerRef.current);
+        servicesDanceTimerRef.current = setTimeout(() => setIsServicesDancing(false), 480);
+    };
 
     const {
         register,
@@ -185,7 +227,7 @@ export function HospitalServiceModal({ showModal, closeModal, onSuccess }) {
                                 <Select
                                     inputId="hospital-service-hospital"
                                     classNamePrefix="react-select"
-                                    className={`react-select-container ${errors.hospital_id ? "is-invalid" : ""
+                                    className={`react-select-container ${isHospitalDancing ? "select-dance" : ""} ${errors.hospital_id ? "is-invalid" : ""
                                         }`}
                                     placeholder={loadingOptions ? "Loading…" : "Select a hospital"}
                                     isDisabled={loadingOptions || isBeingUpdated}
@@ -194,7 +236,10 @@ export function HospitalServiceModal({ showModal, closeModal, onSuccess }) {
                                     value={
                                         hospitalOptions.find((o) => o.value === field.value) ?? null
                                     }
-                                    onChange={(opt) => field.onChange(opt?.value ?? null)}
+                                    onChange={(opt) => {
+                                        field.onChange(opt?.value ?? null);
+                                        triggerHospitalDance();
+                                    }}
                                     styles={selectStyles}
                                     menuPortalTarget={
                                         typeof document !== "undefined" ? document.body : null
@@ -231,11 +276,10 @@ export function HospitalServiceModal({ showModal, closeModal, onSuccess }) {
                             }}
                             render={({ field }) => (
                                 <Select
-                                    menuIsOpen={true}
                                     inputId="hospital-service-services"
                                     isMulti
                                     classNamePrefix="react-select"
-                                    className={`crew-multi-select react-select-container ${errors.service_ids ? "is-invalid" : ""
+                                    className={`crew-multi-select react-select-container ${isServicesDancing ? "select-dance" : ""} ${errors.service_ids ? "is-invalid" : ""
                                         }`}
                                     placeholder={
                                         loadingOptions
@@ -247,9 +291,10 @@ export function HospitalServiceModal({ showModal, closeModal, onSuccess }) {
                                     value={serviceOptions.filter((o) =>
                                         (field.value || []).includes(o.value),
                                     )}
-                                    onChange={(opts) =>
-                                        field.onChange(opts?.map((o) => o.value) ?? [])
-                                    }
+                                    onChange={(opts) => {
+                                        field.onChange(opts?.map((o) => o.value) ?? []);
+                                        triggerServicesDance();
+                                    }}
                                     styles={selectStyles}
                                     menuPortalTarget={
                                         typeof document !== "undefined" ? document.body : null

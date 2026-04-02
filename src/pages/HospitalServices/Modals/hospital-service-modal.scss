@@ -218,3 +218,24 @@ body .user-modal-sm.hospital-service-modal .modal-dialog {
     color: #fff !important;
   }
 }
+
+@keyframes hospitalServiceSelectDance {
+  0% {
+    transform: translateY(0) rotate(0);
+  }
+  30% {
+    transform: translateY(-3px) rotate(-0.35deg);
+  }
+  60% {
+    transform: translateY(2px) rotate(0.35deg);
+  }
+  100% {
+    transform: translateY(0) rotate(0);
+  }
+}
+
+.user-modal-sm.hospital-service-modal {
+  .react-select-container.select-dance .react-select__control {
+    animation: hospitalServiceSelectDance 480ms ease-in-out;
+  }
+}
