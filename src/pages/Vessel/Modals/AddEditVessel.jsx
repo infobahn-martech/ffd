@@ -187,10 +187,6 @@ export function VesselModal({ showModal, closeModal, callBack }) {
           const imo = c.imo_number ?? data.imoNumber.trim();
           return [
             "Vessel created successfully.",
-            `Vessel name: ${name}`,
-            `Billing entity: ${billing}`,
-            `Vessel unique ID: ${vesselUid}`,
-            `IMO number: ${imo}`,
           ].join("\n");
         },
         cb: () => {
