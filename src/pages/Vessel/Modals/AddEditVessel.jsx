@@ -1,5 +1,5 @@
 import { useForm } from "react-hook-form";
-import { useEffect, useState } from "react";
+import { useEffect, useLayoutEffect, useState } from "react";
 import CustomModal from "../../../components/CustomModal";
 import useVesselReducer from "../../../store/VesselReducer";
 import useBillingEntityReducer from "../../../store/BillingEntityReducer";
@@ -20,22 +20,49 @@ function toDateInputValue(value) {
   return s;
 }
 
-function mapDetailToForm(d) {
+/**
+ * API may return { data: { ... } }, { data: [ {...} ] }, or the vessel object at top level.
+ */
+function unwrapVesselDetail(payload) {
+  if (payload == null) return null;
+  let node = payload.data !== undefined ? payload.data : payload;
+  if (Array.isArray(node)) {
+    return node[0] ?? null;
+  }
+  if (node && typeof node === "object" && Array.isArray(node.data)) {
+    return node.data[0] ?? null;
+  }
+  return node;
+}
+
+function resolveBillingEntityId(d, billingEntities) {
+  const direct = d?.entity_id;
+  if (direct != null && direct !== "") return String(direct);
+  const name = d?.billing_entity;
+  if (!name || !billingEntities?.length) return "";
+  const match = billingEntities.find(
+    (e) =>
+      String(e.billing_entity ?? "").trim() === String(name).trim()
+  );
+  return match != null ? String(match.entity_id) : "";
+}
+
+function mapDetailToForm(d, billingEntities) {
   if (!d) return {};
   return {
-    billingEntity: String(d.entity_id ?? ""),
+    billingEntity: resolveBillingEntityId(d, billingEntities),
     vesselName: d.vessel_name ?? "",
     imoNumber: String(d.imo_number ?? ""),
     vesselType: d.vessel_type ?? "",
     flagState: d.flag_state ?? "",
-    grossTonnage: d.gross_tonnage ?? "",
+    grossTonnage: d.gross_tonnage != null ? String(d.gross_tonnage) : "",
     callSign: d.call_sign ?? "",
-    yearBuilt: d.year_built ?? "",
+    yearBuilt: d.year_built != null ? String(d.year_built) : "",
     classSociety: d.class_society ?? "",
     pnIClub: d.p_i_club ?? "",
-    lengthOverall: d.loa ?? "",
-    beam: d.beam ?? "",
-    draft: d.draft ?? "",
+    lengthOverall: d.loa != null ? String(d.loa) : "",
+    beam: d.beam != null ? String(d.beam) : "",
+    draft: d.draft != null ? String(d.draft) : "",
     mwpExpiryDate: toDateInputValue(d.mwp_expiry_date),
   };
 }
@@ -84,6 +111,8 @@ export function VesselModal({ showModal, closeModal, callBack }) {
 
   const [loadingDetail, setLoadingDetail] = useState(false);
   const [existingMwpDocument, setExistingMwpDocument] = useState(null);
+  /** Normalized vessel row from GET vessel_by_vessel_id (not the raw axios envelope). */
+  const [vesselDetailForEdit, setVesselDetailForEdit] = useState(null);
 
   const {
     register,
@@ -103,30 +132,51 @@ export function VesselModal({ showModal, closeModal, callBack }) {
       reset({});
       setLoadingDetail(false);
       setExistingMwpDocument(null);
+      setVesselDetailForEdit(null);
       return;
     }
     if (showModal === true) {
       reset({});
       setLoadingDetail(false);
       setExistingMwpDocument(null);
+      setVesselDetailForEdit(null);
       return;
     }
     const id = showModal?.vessel_id ?? showModal?._id;
     if (!id) return;
     setLoadingDetail(true);
+    setVesselDetailForEdit(null);
     vesselService
       .getVesselByVesselId(id)
       .then(({ data }) => {
-        const d = data?.data ?? data;
-        setExistingMwpDocument(d?.mwp_document || null);
-        reset(mapDetailToForm(d));
+        const d = unwrapVesselDetail(data);
+        if (d) {
+          setVesselDetailForEdit(d);
+          setExistingMwpDocument(d?.mwp_document || null);
+        } else {
+          const fallback = unwrapVesselDetail(showModal) || showModal;
+          setVesselDetailForEdit(fallback);
+          setExistingMwpDocument(showModal?.mwp_document || null);
+        }
       })
       .catch(() => {
+        const fallback = unwrapVesselDetail(showModal) || showModal;
+        setVesselDetailForEdit(fallback);
         setExistingMwpDocument(showModal?.mwp_document || null);
-        reset(mapDetailToForm(showModal));
       })
       .finally(() => setLoadingDetail(false));
   }, [showModal, reset]);
+
+  useLayoutEffect(() => {
+    if (!showModal || showModal === true) return;
+    if (!vesselDetailForEdit) return;
+    reset(mapDetailToForm(vesselDetailForEdit, billingEntitiesData));
+  }, [
+    vesselDetailForEdit,
+    billingEntitiesData,
+    reset,
+    showModal,
+  ]);
 
   const trimPayload = (apiPayload) => {
     Object.keys(apiPayload).forEach((k) => {
@@ -187,6 +237,10 @@ export function VesselModal({ showModal, closeModal, callBack }) {
           const imo = c.imo_number ?? data.imoNumber.trim();
           return [
             "Vessel created successfully.",
+            `Vessel name: ${name}`,
+            `Billing entity: ${billing}`,
+            `Vessel unique ID: ${vesselUid}`,
+            `IMO number: ${imo}`,
           ].join("\n");
         },
         cb: () => {
