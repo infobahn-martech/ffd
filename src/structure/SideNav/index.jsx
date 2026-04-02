@@ -199,6 +199,7 @@ function SideNav({ isMobileMenuOpen, onCloseMobileMenu, isVendorPortal = false }
       subMenus: [
         { menu: 'Service Providers', to: '/service-providers', hasPermission: true },
         { menu: 'Transport Parties', to: '/transport-parties', hasPermission: true },
+        { menu: 'Third Party Services', to: '/third-party-service', hasPermission: true },
       ],
       icon: workerIcon, // Two stylized human figures
     },
