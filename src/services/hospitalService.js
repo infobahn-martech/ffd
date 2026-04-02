@@ -47,6 +47,26 @@ const updateMedicalService = (data) => {
 const deleteMedicalService = (serviceId) =>
   Gateway.delete(`/medical/delete_medical_service/${serviceId}`);
 
+const getAllHospitalServices = ({ params }) => {
+  const p = params || {};
+  const apiParams = {
+    search: p.searchTerm ?? p.search ?? '',
+    page: p.page,
+    limit: p.limit,
+  };
+  if (p.sortBy) apiParams.sort_by = p.sortBy;
+  return Gateway.get('/medical/get_all_hospital_services', { params: apiParams });
+};
+
+const addUpdateHospitalService = (data) =>
+  Gateway.post('/medical/add_update_hospital_service', data);
+
+const getServiceByHospital = (hospitalId, body = {}) =>
+  Gateway.post(`/medical/get_service_by_hospital/${hospitalId}`, {
+    hospital_id: hospitalId,
+    ...body,
+  });
+
 export default {
   addHospital,
   getHospitalData,
@@ -58,4 +78,7 @@ export default {
   getMedicalServiceById,
   updateMedicalService,
   deleteMedicalService,
+  getAllHospitalServices,
+  addUpdateHospitalService,
+  getServiceByHospital,
 };

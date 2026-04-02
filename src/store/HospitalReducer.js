@@ -8,9 +8,11 @@ const useHospitalReducer = create((set) => ({
     successMessage: '',
     hospitalData: [],
     medicalServiceData: [],
+    hospitalServicesData: [],
     isBeingUpdated: false,
     totalHospitalCount: 0,
     totalMedicalServiceCount: 0,
+    totalHospitalServicesCount: 0,
     addHospital: async ({ formData, cb }) => {
         try {
             set({ isBeingUpdated: true });
@@ -180,6 +182,59 @@ const useHospitalReducer = create((set) => ({
                 isBeingUpdated: false,
             });
             error(err?.response?.data?.message ?? err.message);
+        }
+    },
+    getHospitalServicesData: async ({ params }) => {
+        try {
+            set({ isLoading: true });
+            const { data } = await hospitalService.getAllHospitalServices({ params });
+            const rawList = data?.data ?? data?.hospital_services ?? [];
+            const list = Array.isArray(rawList)
+                ? rawList.map((row) => ({
+                      ...row,
+                      _id: row.hospital_service_id ?? row.hospital_id ?? row._id,
+                  }))
+                : [];
+            set({
+                hospitalServicesData: list,
+                totalHospitalServicesCount:
+                    data?.pagination?.total ?? data?.total ?? data?.meta?.total ?? 0,
+                isLoading: false,
+            });
+        } catch (error) {
+            set({
+                errorMessage: error.message,
+                isLoading: false,
+                hospitalServicesData: [],
+                totalHospitalServicesCount: 0,
+            });
+        }
+    },
+    addUpdateHospitalService: async ({ formData, cb }) => {
+        try {
+            set({ isBeingUpdated: true });
+            const { data } = await hospitalService.addUpdateHospitalService(formData);
+            set({ successMessage: data?.message, isBeingUpdated: false });
+            const { success } = useAlertReducer.getState();
+            success(data?.message ?? 'Saved successfully');
+            cb && cb();
+        } catch (err) {
+            const { error } = useAlertReducer.getState();
+            set({
+                errorMessage: 'Something went wrong saving hospital services',
+                isBeingUpdated: false,
+            });
+            error(err?.response?.data?.message ?? err.message);
+        }
+    },
+    getServicesByHospital: async (hospitalId) => {
+        try {
+            const { data } = await hospitalService.getServiceByHospital(hospitalId);
+            return data?.data ?? data ?? null;
+        } catch (err) {
+            const { error } = useAlertReducer.getState();
+            error(err?.response?.data?.message ?? err.message);
+            return null;
         }
     },
 }));
