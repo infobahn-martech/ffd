@@ -139,6 +139,13 @@ function SideNav({ isMobileMenuOpen, onCloseMobileMenu, isVendorPortal = false }
       icon: crewIcon, // Crew-specific icon
       hasPermission: true,
     },
+    {
+      menu: 'MWP History',
+      isDefaultMenu: true,
+      to: '/mwp-history',
+      icon: crewIcon, // Crew-specific icon
+      hasPermission: true,
+    },
     // {
     //   menu: 'Custom Management',
     //   isDefaultMenu: true,

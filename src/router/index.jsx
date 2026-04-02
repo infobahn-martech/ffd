@@ -77,6 +77,7 @@ import Hospital from "../pages/Hospital";
 import MedicalServices from "../pages/MedicalServices";
 import ThirdPartyService from "../pages/ThirdPartyService";
 import HospitalServices from "../pages/HospitalServices";
+import MWPHistory from "../pages/MWPHistory";
 // 🔥 Set true to bypass auth temporarily
 const TEST_MODE = false;
 
@@ -284,6 +285,7 @@ const router = createHashRouter([
                   { path: "/third-party-service", element: <RouteGuard><ThirdPartyService /></RouteGuard> },
                   { path: "/transport-company", element: <RouteGuard><TransportCompany /></RouteGuard> },
                   { path: "/hospital-services", element: <RouteGuard><HospitalServices /></RouteGuard> },
+                  { path: "/mwp-history", element: <RouteGuard><MWPHistory /></RouteGuard> },
                 ],
               },
             ],
