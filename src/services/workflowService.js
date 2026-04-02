@@ -24,8 +24,8 @@ const getSwimlaneByWorkflow = (workflowId) =>
 const renameSwimlane = (data) =>
     Gateway.post('/kanban_workflow/rename_swimlane', data);
 
-const deleteSwimlane = (data) =>
-    Gateway.post('/kanban_workflow/delete_swimlane', data);
+const deleteSwimlane = ({ swimlane_id }) =>
+    Gateway.post(`/kanban_workflow/delete_swimlane/${swimlane_id}`, { swimlane_id });
 
 export default {
     getWorkflowByBoard,
