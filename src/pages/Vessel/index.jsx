@@ -15,12 +15,11 @@ const Vessel = () => {
     limit: 10,
     search: "",
     sortOrder: -1,
-    sortBy: "createdAt",
+    sortBy: "vessel_name",
   });
 
   const [filters, setFilters] = useState({
     vesselType: "",
-    bargeType: "",
   });
 
   const [showVesselModal, setShowVesselModal] = useState(false);
@@ -39,35 +38,23 @@ const Vessel = () => {
       limit: params.limit,
       ...(params.search ? { search: params.search } : {}),
       ...(params.sortBy ? { sortBy: params.sortBy } : {}),
-      ...(params.sortOrder !== null && params.sortOrder !== undefined
-        ? { sortOrder: params.sortOrder }
-        : {}),
-      // If your API supports filter params, you can send them too:
-      ...(filters.vesselType ? { vesselType: filters.vesselType } : {}),
-      ...(filters.bargeType ? { bargeType: filters.bargeType } : {}),
     };
 
     getVessels({ params: apiParams });
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [params.page, params.limit, params.search, params.sortBy, params.sortOrder, filters.vesselType, filters.bargeType]);
+  }, [params.page, params.limit, params.search, params.sortBy, params.sortOrder]);
 
 
   // ✅ Extract unique values for filter options
   const vesselTypeOptions = useMemo(() => {
-    const types = vessels
+    const standard = ["Bulk", "Container", "Carrier", "Tanker"];
+    const fromData = vessels
       .map((v) => v.vessel_type ?? v.vesselType)
       .filter(Boolean);
-    return [...new Set(types)];
+    return [...new Set([...standard, ...fromData])];
   }, [vessels]);
 
-  const bargeTypeOptions = useMemo(() => {
-    const types = vessels
-      .map((v) => v.barge_type ?? v.bargeType)
-      .filter(Boolean);
-    return [...new Set(types)];
-  }, [vessels]);
-
-  // ✅ Filter configuration
+  // ✅ Filter configuration (type filter is client-side on the current page)
   const filterOptions = useMemo(
     () => [
       {
@@ -76,46 +63,19 @@ const Vessel = () => {
         placeholder: "Select Type",
         options: vesselTypeOptions,
       },
-      {
-        key: "bargeType",
-        label: "Barge Type",
-        placeholder: "Select Barge Type",
-        options: bargeTypeOptions,
-      },
     ],
-    [vesselTypeOptions, bargeTypeOptions]
+    [vesselTypeOptions]
   );
 
-  // ✅ Filter + Search in UI (client-side)
   const filteredVessels = useMemo(() => {
-    let filtered = [...vessels];
-
-    if (filters.vesselType) {
-      filtered = filtered.filter(
-        (v) => (v.vessel_type ?? v.vesselType) === filters.vesselType
-      );
-    }
-
-    if (filters.bargeType) {
-      filtered = filtered.filter(
-        (v) => (v.barge_type ?? v.bargeType) === filters.bargeType
-      );
-    }
-
-    if (params.search) {
-      const searchLower = params.search.toLowerCase();
-      filtered = filtered.filter((v) => {
-        const vesselName = (v.vessel_name ?? v.vesselName ?? "").toLowerCase();
-        const billingEntity = (v.billing_entity ?? v.billingEntity ?? "").toLowerCase();
-        return vesselName.includes(searchLower) || billingEntity.includes(searchLower);
-      });
-    }
-
-    return filtered;
-  }, [vessels, filters.vesselType, filters.bargeType, params.search]);
+    if (!filters.vesselType) return vessels;
+    return vessels.filter(
+      (v) => (v.vessel_type ?? v.vesselType) === filters.vesselType
+    );
+  }, [vessels, filters.vesselType]);
 
   const handleClearFilter = () => {
-    setFilters({ vesselType: "", bargeType: "" });
+    setFilters({ vesselType: "" });
     setParams((prev) => ({ ...prev, page: 1 }));
   };
 
@@ -126,14 +86,21 @@ const Vessel = () => {
         selector: "vessel_name",
         sort: true,
         thclass: "tb-head",
-        width: "250",
+        width: "220",
+      },
+      {
+        name: "Unique ID",
+        selector: "vessel_unique_id",
+        sort: true,
+        thclass: "tb-head",
+        width: "160",
       },
       {
         name: "Type",
         selector: "vessel_type",
         sort: true,
         thclass: "tb-head",
-        width: "200",
+        width: "140",
       },
       {
         name: "Billing Entity",
@@ -161,7 +128,14 @@ const Vessel = () => {
         selector: "year_built",
         sort: true,
         thclass: "tb-head",
-        width: "120",
+        width: "100",
+      },
+      {
+        name: "Days to MWP expiry",
+        selector: "days_to_expiry",
+        sort: true,
+        thclass: "tb-head",
+        width: "160",
       },
       {
         name: "Actions",
@@ -174,7 +148,7 @@ const Vessel = () => {
           setShowDeleteModal(true);
         },
         cell: RenderAction,
-        width: "200",
+        width: "180",
       },
     ],
     []
@@ -230,9 +204,27 @@ const Vessel = () => {
 
           {!!showVesselModal && (
             <VesselModal
+              key={
+                showVesselModal === true
+                  ? "vessel-add"
+                  : String(
+                      showVesselModal?.vessel_id ??
+                        showVesselModal?._id ??
+                        "vessel-edit"
+                    )
+              }
               showModal={showVesselModal}
               closeModal={() => setShowVesselModal(false)}
-              callBack={() => getVessels({ params: { page: 1, limit: 10, search: "", sortBy: "createdAt", sortOrder: -1 } })}
+              callBack={() =>
+                getVessels({
+                  params: {
+                    page: 1,
+                    limit: 10,
+                    search: "",
+                    sortBy: "vessel_name",
+                  },
+                })
+              }
             />
           )}
 
