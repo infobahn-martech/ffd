@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { FiX } from 'react-icons/fi';
 import { Modal } from 'react-bootstrap';
 import PropTypes from 'prop-types';
@@ -7,15 +7,19 @@ import './AddDashboardModal.scss';
 const AddDashboardModal = ({ show, onClose, onSave }) => {
   const [name, setName] = useState('');
 
+  useEffect(() => {
+    if (!show) setName('');
+  }, [show]);
+
   const handleSubmit = (e) => {
     e.preventDefault();
-    if (name.trim()) {
-      if (onSave) {
-        onSave({ name: name.trim() });
-      }
-      setName('');
-      onClose();
+    if (!name.trim()) return;
+    if (onSave) {
+      onSave({ name: name.trim() });
+      return;
     }
+    setName('');
+    onClose();
   };
 
   const handleClose = () => {

@@ -14,7 +14,8 @@ function Layout() {
     pathname === '/kanban-board' ||
     pathname.startsWith('/kanban-board/') ||
     pathname === '/compact' ||
-    pathname === '/workspaces';
+    pathname === '/workspaces' ||
+    pathname.startsWith('/workspaces/dashboard');
   const isVendorPortal = pathname.startsWith('/vendor-portal');
 
   const handleMenuToggle = (isOpen) => {

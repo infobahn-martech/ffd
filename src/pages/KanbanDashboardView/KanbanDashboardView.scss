@@ -1,0 +1,101 @@
+@import '../../design/scss/partials/partials';
+
+.kanban-dashboard-view {
+  width: 100%;
+  min-height: calc(100vh - 74px);
+  background: #e8ecf0;
+  padding: 24px 24px 32px;
+  box-sizing: border-box;
+
+  @media ($sm-991) {
+    min-height: calc(100vh - 64px);
+    padding: 20px 16px 24px;
+  }
+}
+
+.kanban-dashboard-view-toolbar {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  padding: 14px 24px;
+  background: #fff;
+  border-radius: 14px;
+  box-shadow: 0 1px 3px rgba(15, 23, 42, 0.06);
+  font-family: $font-primary, 'Plus Jakarta Sans', sans-serif;
+  font-size: 15px;
+  font-weight: 600;
+  color: #00368c;
+  margin-bottom: 24px;
+}
+
+.kanban-dashboard-view-sep {
+  color: #94a3b8;
+  font-weight: 500;
+}
+
+.kanban-dashboard-view-canvas {
+  min-height: 420px;
+  border-radius: 16px;
+  background: #eef1f4;
+  border: 1px dashed #cbd5e1;
+}
+
+/* Match workspaces page offset when sidebar is open */
+body.kanban-workspaces-sidebar-open .kanban-dashboard-view {
+  padding-left: 260px;
+}
+
+body.kanban-workspaces-sidebar-open.kanban-workspaces-sidebar-collapsed .kanban-dashboard-view {
+  padding-left: 72px;
+}
+
+@media ($sm-1481) {
+  body.kanban-workspaces-sidebar-open .kanban-dashboard-view {
+    padding-left: 260px;
+  }
+
+  body.kanban-workspaces-sidebar-open.kanban-workspaces-sidebar-collapsed .kanban-dashboard-view {
+    padding-left: 72px;
+  }
+}
+
+@media ($sm-1281) {
+  body.kanban-workspaces-sidebar-open .kanban-dashboard-view {
+    padding-left: 248px;
+  }
+
+  body.kanban-workspaces-sidebar-open.kanban-workspaces-sidebar-collapsed .kanban-dashboard-view {
+    padding-left: 72px;
+  }
+}
+
+@media ($sm-991) {
+  body.kanban-workspaces-sidebar-open .kanban-dashboard-view {
+    padding-left: 240px;
+  }
+
+  body.kanban-workspaces-sidebar-open.kanban-workspaces-sidebar-collapsed .kanban-dashboard-view {
+    padding-left: 64px;
+  }
+}
+
+@media ($sm-767) {
+  body.kanban-workspaces-sidebar-open .kanban-dashboard-view {
+    padding-left: min(240px, calc(100vw - 56px));
+  }
+
+  body.kanban-workspaces-sidebar-open.kanban-workspaces-sidebar-collapsed .kanban-dashboard-view {
+    padding-left: 64px;
+  }
+}
+
+@media ($sm-479) {
+  body.kanban-workspaces-sidebar-open .kanban-dashboard-view {
+    padding-left: min(220px, calc(100vw - 48px));
+  }
+
+  body.kanban-workspaces-sidebar-open.kanban-workspaces-sidebar-collapsed .kanban-dashboard-view {
+    padding-left: 60px;
+  }
+}

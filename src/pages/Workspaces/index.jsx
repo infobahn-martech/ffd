@@ -79,27 +79,6 @@ function Workspaces() {
   }, []);
 
   useEffect(() => {
-    const onSidebarFilter = (e) => {
-      if (typeof e.detail?.value === 'string') setFilterValue(e.detail.value);
-    };
-    window.addEventListener('workspaces:sidebar-filter', onSidebarFilter);
-    return () => window.removeEventListener('workspaces:sidebar-filter', onSidebarFilter);
-  }, []);
-
-  useEffect(() => {
-    const onFocusWorkspace = (e) => {
-      const id = e.detail?.workspaceId;
-      if (id == null) return;
-      setSelectedWorkspace(id);
-      requestAnimationFrame(() => {
-        document.getElementById(`workspace-row-${id}`)?.scrollIntoView({ behavior: 'smooth', block: 'start' });
-      });
-    };
-    window.addEventListener('workspaces:focus-workspace', onFocusWorkspace);
-    return () => window.removeEventListener('workspaces:focus-workspace', onFocusWorkspace);
-  }, []);
-
-  useEffect(() => {
     if (selectedWorkspace == null && workspacesData.length > 0 && firstWorkspaceWithBoards) {
       setSelectedWorkspace(firstWorkspaceWithBoards.id);
     }

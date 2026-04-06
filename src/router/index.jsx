@@ -16,6 +16,7 @@ import BoardRouter from "../pages/KanbanBoard/BoardRouter";
 import KanbanAnalytics from "../pages/KanbanBoard/Analytics";
 import DAModule from "../pages/DAModule";
 import Workspaces from "../pages/Workspaces";
+import KanbanDashboardView from "../pages/KanbanDashboardView";
 import EditWorkflows from "../pages/EditWorkflows";
 import Port from "../pages/Port";
 import Role from "../pages/Role";
@@ -113,6 +114,7 @@ const router = createHashRouter([
               { path: "/kanban-board/analytics", element: <KanbanAnalytics /> },
               { path: "/da-module", element: <DAModule /> },
               { path: "/workspaces", element: <Workspaces /> },
+              { path: "/workspaces/dashboard/:dashboardId", element: <KanbanDashboardView /> },
               { path: "/edit-workflow", element: <EditWorkflows /> },
               // { path: "/port-management", element: <Port /> },
               { path: "/vessel-types", element: <VesselType /> },
@@ -195,6 +197,14 @@ const router = createHashRouter([
                   { path: "/da-module", element: <RouteGuard><DAModule /></RouteGuard> },
                   // Workspaces
                   { path: "/workspaces", element: <RouteGuard><Workspaces /></RouteGuard> },
+                  {
+                    path: "/workspaces/dashboard/:dashboardId",
+                    element: (
+                      <RouteGuard>
+                        <KanbanDashboardView />
+                      </RouteGuard>
+                    ),
+                  },
                   // Edit Workflow
                   { path: "/edit-workflow", element: <RouteGuard><EditWorkflows /></RouteGuard> },
                   // Role Management - Super Admin, Admin only

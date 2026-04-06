@@ -1,40 +1,39 @@
 import { useEffect, useMemo, useState } from 'react';
+import { useLocation, useNavigate } from 'react-router-dom';
 import { FiChevronLeft, FiChevronRight, FiHome, FiMoreVertical, FiPlus, FiSearch } from 'react-icons/fi';
 import { Tooltip } from 'react-tooltip';
 import useWorkSpaceReducer from '../../../store/WorkSpaceReducer';
 
-const transformWorkspaces = (data) => {
-  if (!Array.isArray(data)) return [];
-  return data.map((ws) => ({
-    id: ws.workspace_id,
-    name: ws.workspace_name,
-    status: ws.workspace_status,
-    boards: Array.isArray(ws.boards)
-      ? ws.boards.map((b) => ({
-        id: b.board_id,
-        name: b.board_name,
-        status: b.board_status,
-        count: b.count ?? 0,
-      }))
-      : [],
-  }));
-};
-
 function WorkspacesSideNavPanel({ isDarkMode, onNewDashboard }) {
-  const { workspaces: apiWorkspaces, listAllWorkspaces } = useWorkSpaceReducer();
+  const navigate = useNavigate();
+  const { pathname } = useLocation();
+  const { dashboards: apiDashboards, listAllDashboards, dashboardsLoading } = useWorkSpaceReducer();
   const [filterText, setFilterText] = useState('');
   const [collapsed, setCollapsed] = useState(false);
 
+  const selectedDashboardId = useMemo(() => {
+    const m = pathname.match(/\/workspaces\/dashboard\/([^/]+)/);
+    return m ? m[1] : null;
+  }, [pathname]);
+
+  const isAllWorkspacesActive = pathname === '/workspaces';
+
   useEffect(() => {
-    listAllWorkspaces();
+    listAllDashboards();
     // eslint-disable-next-line react-hooks/exhaustive-deps -- load once on mount
   }, []);
 
-  const workspacesData = useMemo(() => transformWorkspaces(apiWorkspaces), [apiWorkspaces]);
+  const dashboardsData = useMemo(() => {
+    if (!Array.isArray(apiDashboards)) return [];
+    return apiDashboards.map((d) => ({
+      id: d.dashboard_id,
+      name: d.dashboard_name,
+    }));
+  }, [apiDashboards]);
 
   const filtered = useMemo(
-    () => workspacesData.filter((w) => w.name.toLowerCase().includes(filterText.toLowerCase())),
-    [workspacesData, filterText]
+    () => dashboardsData.filter((d) => d.name.toLowerCase().includes(filterText.toLowerCase())),
+    [dashboardsData, filterText]
   );
 
   useEffect(() => {
@@ -47,11 +46,14 @@ function WorkspacesSideNavPanel({ isDarkMode, onNewDashboard }) {
 
   const pushFilter = (value) => {
     setFilterText(value);
-    window.dispatchEvent(new CustomEvent('workspaces:sidebar-filter', { detail: { value } }));
   };
 
-  const focusWorkspace = (workspaceId) => {
-    window.dispatchEvent(new CustomEvent('workspaces:focus-workspace', { detail: { workspaceId } }));
+  const goAllWorkspaces = () => {
+    navigate('/workspaces');
+  };
+
+  const openDashboard = (dashboardId) => {
+    navigate(`/workspaces/dashboard/${dashboardId}`);
   };
 
   const asideClass = [
@@ -64,8 +66,8 @@ function WorkspacesSideNavPanel({ isDarkMode, onNewDashboard }) {
     .join(' ');
 
   return (
-    <aside className={asideClass} aria-label="Workspaces navigation">
-      {/* <button
+    <aside className={asideClass} aria-label="Dashboards navigation">
+      <button
         type="button"
         className="kanban-sidebar-workspaces-collapse"
         onClick={() => setCollapsed((c) => !c)}
@@ -74,15 +76,19 @@ function WorkspacesSideNavPanel({ isDarkMode, onNewDashboard }) {
         title={collapsed ? 'Expand sidebar' : 'Collapse sidebar'}
       >
         {collapsed ? <FiChevronRight size={14} /> : <FiChevronLeft size={14} />}
-      </button> */}
+      </button>
 
       {!collapsed ? (
         <div className="kanban-sidebar-workspaces-inner">
           <nav className="kanban-sidebar-workspaces-nav" aria-label="Primary">
-            <div className="kanban-sidebar-workspaces-nav-item kanban-sidebar-workspaces-nav-item--active">
+            <button
+              type="button"
+              className={`kanban-sidebar-workspaces-nav-item ${isAllWorkspacesActive ? 'kanban-sidebar-workspaces-nav-item--active' : ''}`}
+              onClick={goAllWorkspaces}
+            >
               <FiHome size={18} aria-hidden />
               <span>All workspaces</span>
-            </div>
+            </button>
           </nav>
 
           <div className="kanban-sidebar-workspaces-filter">
@@ -93,7 +99,7 @@ function WorkspacesSideNavPanel({ isDarkMode, onNewDashboard }) {
               placeholder="Filter"
               value={filterText}
               onChange={(e) => pushFilter(e.target.value)}
-              aria-label="Filter workspaces"
+              aria-label="Filter dashboards"
               autoComplete="off"
             />
           </div>
@@ -101,29 +107,39 @@ function WorkspacesSideNavPanel({ isDarkMode, onNewDashboard }) {
           <hr className="kanban-sidebar-workspaces-divider" aria-hidden />
 
           <ul className="kanban-sidebar-workspaces-list">
-            {filtered.map((ws) => (
-              <li key={ws.id} className="kanban-sidebar-workspaces-row">
-                <button
-                  type="button"
-                  className="kanban-sidebar-workspaces-row-main"
-                  onClick={() => focusWorkspace(ws.id)}
-                >
-                  <span className="kanban-sidebar-workspaces-dot" aria-hidden />
-                  <span className="kanban-sidebar-workspaces-name">{ws.name}</span>
-                </button>
-                <button
-                  type="button"
-                  className="kanban-sidebar-workspaces-row-menu"
-                  aria-label={`Actions for ${ws.name}`}
-                  onClick={(e) => {
-                    e.stopPropagation();
-                    focusWorkspace(ws.id);
-                  }}
-                >
-                  <FiMoreVertical size={16} />
-                </button>
-              </li>
-            ))}
+            {dashboardsLoading ? (
+              <li className="kanban-sidebar-workspaces-loading">Loading…</li>
+            ) : (
+              filtered.map((d) => {
+                const isActive = selectedDashboardId != null && String(selectedDashboardId) === String(d.id);
+                return (
+                  <li
+                    key={d.id}
+                    className={`kanban-sidebar-workspaces-row ${isActive ? 'kanban-sidebar-workspaces-row--active' : ''}`}
+                  >
+                    <button
+                      type="button"
+                      className="kanban-sidebar-workspaces-row-main"
+                      onClick={() => openDashboard(d.id)}
+                    >
+                      <span className="kanban-sidebar-workspaces-dot" aria-hidden />
+                      <span className="kanban-sidebar-workspaces-name">{d.name}</span>
+                    </button>
+                    <button
+                      type="button"
+                      className="kanban-sidebar-workspaces-row-menu"
+                      aria-label={`Actions for ${d.name}`}
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        openDashboard(d.id);
+                      }}
+                    >
+                      <FiMoreVertical size={16} />
+                    </button>
+                  </li>
+                );
+              })
+            )}
           </ul>
 
           <button type="button" className="kanban-sidebar-workspaces-new-db" onClick={onNewDashboard}>
@@ -132,14 +148,17 @@ function WorkspacesSideNavPanel({ isDarkMode, onNewDashboard }) {
         </div>
       ) : (
         <div className="kanban-sidebar-workspaces-collapsed-stack">
-          <div
-            className="kanban-sidebar-icon kanban-sidebar-icon--collapsed active"
+          <button
+            type="button"
+            className={`kanban-sidebar-icon kanban-sidebar-icon--collapsed ${isAllWorkspacesActive ? 'active' : ''}`}
             data-tooltip-id="ws-sidebar-tt"
             data-tooltip-content="All workspaces"
-            aria-current="page"
+            aria-label="All workspaces"
+            aria-current={isAllWorkspacesActive ? 'page' : undefined}
+            onClick={goAllWorkspaces}
           >
             <FiHome size={22} />
-          </div>
+          </button>
           <button
             type="button"
             className="kanban-sidebar-icon kanban-sidebar-icon--collapsed"

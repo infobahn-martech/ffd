@@ -39,13 +39,22 @@ import { Tooltip } from 'react-tooltip';
 import 'react-tooltip/dist/react-tooltip.css';
 import { FiPlus, FiInbox, FiFilter, FiPlusCircle, FiActivity } from 'react-icons/fi';
 import { useLayoutView } from '../../context/LayoutViewContext';
+import useWorkSpaceReducer from '../../store/WorkSpaceReducer';
 
 function SideNav({ isMobileMenuOpen, onCloseMobileMenu, isVendorPortal = false }) {
   const { pathname } = useLocation();
   const navigate = useNavigate();
   const { width } = useWindowSize();
+  const createDashboard = useWorkSpaceReducer((s) => s.createDashboard);
 
-  const isKanbanBoard = pathname === '/kanban-board' || pathname.startsWith('/kanban-board/') || pathname === '/workspaces' || pathname === '/compact';
+  const isKanbanBoard =
+    pathname === '/kanban-board' ||
+    pathname.startsWith('/kanban-board/') ||
+    pathname === '/workspaces' ||
+    pathname.startsWith('/workspaces/dashboard') ||
+    pathname === '/compact';
+
+  const isWorkspacesShell = pathname === '/workspaces' || pathname.startsWith('/workspaces/dashboard');
 
   // Vendor Portal menu - simple direct links, no accordions
   const vendorMenus = [
@@ -442,7 +451,7 @@ function SideNav({ isMobileMenuOpen, onCloseMobileMenu, isVendorPortal = false }
   }, [showCardManagementSubmenu]);
 
   // 🆕 Special layout for /kanban-board and /workspaces (skip when in Vendor Portal)
-  if (isKanbanBoard && !isVendorPortal && pathname === '/workspaces') {
+  if (isKanbanBoard && !isVendorPortal && isWorkspacesShell) {
     return (
       <>
         <WorkspacesSideNavPanel isDarkMode={isDarkMode} onNewDashboard={() => setShowAddDashboardModal(true)} />
@@ -458,8 +467,13 @@ function SideNav({ isMobileMenuOpen, onCloseMobileMenu, isVendorPortal = false }
           show={showAddDashboardModal}
           onClose={() => setShowAddDashboardModal(false)}
           onSave={(data) => {
-            console.log('Dashboard saved:', data);
-            // Add your save logic here
+            createDashboard({
+              dashboard_name: data.name,
+              cb: (newId) => {
+                setShowAddDashboardModal(false);
+                if (newId) navigate(`/workspaces/dashboard/${newId}`);
+              },
+            });
           }}
         />
       </>
@@ -663,8 +677,13 @@ function SideNav({ isMobileMenuOpen, onCloseMobileMenu, isVendorPortal = false }
           show={showAddDashboardModal}
           onClose={() => setShowAddDashboardModal(false)}
           onSave={(data) => {
-            console.log('Dashboard saved:', data);
-            // Add your save logic here
+            createDashboard({
+              dashboard_name: data.name,
+              cb: (newId) => {
+                setShowAddDashboardModal(false);
+                if (newId) navigate(`/workspaces/dashboard/${newId}`);
+              },
+            });
           }}
         />
       </>

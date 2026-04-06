@@ -1,12 +1,15 @@
 import { create } from 'zustand';
 import useAlertReducer from './AlertReducer';
 import workSpaceService from '../services/workSpaceService';
+import kanbanDashboardService from '../services/kanbanDashboardService';
 
 const useWorkSpaceReducer = create((set, get) => ({
   isLoading: false,
   errorMessage: '',
   successMessage: '',
   workspaces: [],
+  dashboards: [],
+  dashboardsLoading: false,
   addEditLoader: false,
   archiveLog: [],
   archiveLogLoading: false,
@@ -36,6 +39,46 @@ const useWorkSpaceReducer = create((set, get) => ({
       set({ workspaces, isLoading: false });
     } catch (error) {
       set({ errorMessage: error.message, isLoading: false, workspaces: [] });
+    }
+  },
+  listAllDashboards: async () => {
+    try {
+      set({ dashboardsLoading: true });
+      const { data } = await kanbanDashboardService.listAllDashboards();
+      const raw = data?.status === 'success' ? data.data ?? [] : [];
+      const dashboards = Array.isArray(raw) ? raw : [];
+      set({ dashboards, dashboardsLoading: false });
+    } catch (error) {
+      set({ errorMessage: error.message, dashboardsLoading: false, dashboards: [] });
+    }
+  },
+  createDashboard: async ({ dashboard_name, cb }) => {
+    try {
+      set({ addEditLoader: true });
+      const { data } = await kanbanDashboardService.createDashboard({ dashboard_name });
+      set({ addEditLoader: false });
+      const { success } = useAlertReducer.getState();
+      success(data?.message ?? 'Dashboard created successfully');
+
+      let newId;
+      const payload = data?.data;
+      if (payload && typeof payload === 'object') {
+        if (!Array.isArray(payload)) {
+          newId = payload.dashboard_id ?? payload.id;
+        } else if (payload[0] && typeof payload[0] === 'object') {
+          newId = payload[0].dashboard_id ?? payload[0].id;
+        }
+      }
+      if (newId != null && newId !== '') {
+        cb && cb(String(newId));
+      } else {
+        cb && cb(undefined);
+      }
+      get().listAllDashboards();
+    } catch (err) {
+      const { error } = useAlertReducer.getState();
+      set({ addEditLoader: false });
+      error(err?.response?.data?.message ?? err.message ?? 'Failed to create dashboard');
     }
   },
   renameWorkspace: async ({ workspace_id, workspace_name, cb }) => {
@@ -84,7 +127,6 @@ const useWorkSpaceReducer = create((set, get) => ({
     }
   },
   unarchiveWorkspace: async ({ board_id, cb }) => {
-    debugger;
     try {
       set({ addEditLoader: true });
       const { data } = await workSpaceService.unarchiveWorkspace(board_id);

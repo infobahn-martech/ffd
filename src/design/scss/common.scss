@@ -1010,6 +1010,15 @@ body.app-dark-mode {
         border-color: rgba(96, 165, 250, 0.4);
       }
     }
+
+    .kanban-sidebar-workspaces-row--active {
+      background: rgba(59, 130, 246, 0.12);
+    }
+
+    .kanban-sidebar-workspaces-nav-item:hover:not(.kanban-sidebar-workspaces-nav-item--active) {
+      background: rgba(255, 255, 255, 0.06);
+      color: #e4e4e7;
+    }
   }
 
   .kanban-sidebar-dark .kanban-sidebar-icon {
