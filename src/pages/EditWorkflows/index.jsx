@@ -45,6 +45,7 @@ function EditWorkflows() {
     renameSwimlane,
     deleteSwimlane,
     createWorkflowColumn,
+    renameWorkflowColumn,
     workflows: apiWorkflows,
     isLoading,
     addEditLoader,
@@ -190,20 +191,38 @@ function EditWorkflows() {
   };
 
   const handleSaveStageNameChange = (workflowId, swimlaneId, stageId) => {
-    if (editingStageName.trim()) {
+    const trimmed = editingStageName.trim();
+    if (!trimmed) {
+      setEditingStageId(null);
+      setEditingStageName('');
+      return;
+    }
+
+    const workflow = workflows.find((w) => w.id === workflowId || String(w.id) === String(workflowId));
+    const swimlane = workflow?.swimlanes.find(
+      (sl) => sl.id === swimlaneId || String(sl.id) === String(swimlaneId)
+    );
+    const stage = swimlane?.stages.find((s) => s.id === stageId || String(s.id) === String(stageId));
+    const columnId = stage?.columnId;
+
+    if (boardId && columnId != null && String(columnId) !== '') {
+      renameWorkflowColumn({
+        column_id: columnId,
+        column_name: trimmed,
+        cb: () => getWorkflowByBoard({ boardId }),
+      });
+    } else {
       setWorkflows((prevWorkflows) =>
-        prevWorkflows.map((workflow) => {
-          if (workflow.id !== workflowId) return workflow;
+        prevWorkflows.map((w) => {
+          if (w.id !== workflowId) return w;
           return {
-            ...workflow,
-            swimlanes: workflow.swimlanes.map((swimlane) => {
-              if (swimlane.id !== swimlaneId) return swimlane;
+            ...w,
+            swimlanes: w.swimlanes.map((sl) => {
+              if (sl.id !== swimlaneId) return sl;
               return {
-                ...swimlane,
-                stages: swimlane.stages.map((stage) =>
-                  stage.id === stageId
-                    ? { ...stage, name: editingStageName.trim() }
-                    : stage
+                ...sl,
+                stages: sl.stages.map((st) =>
+                  st.id === stageId ? { ...st, name: trimmed } : st
                 ),
               };
             }),
@@ -211,6 +230,7 @@ function EditWorkflows() {
         })
       );
     }
+
     setEditingStageId(null);
     setEditingStageName('');
   };
