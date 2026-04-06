@@ -10,7 +10,11 @@ function Layout() {
   const { pathname } = useLocation();
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const hideSidebar = pathname === '/edit-workflow' || pathname === '/da-module';
-  const isKanbanBoard = pathname === '/kanban-board' || pathname.startsWith('/kanban-board/') || pathname === '/compact';
+  const isKanbanBoard =
+    pathname === '/kanban-board' ||
+    pathname.startsWith('/kanban-board/') ||
+    pathname === '/compact' ||
+    pathname === '/workspaces';
   const isVendorPortal = pathname.startsWith('/vendor-portal');
 
   const handleMenuToggle = (isOpen) => {

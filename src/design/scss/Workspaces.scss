@@ -3121,3 +3121,71 @@
     cursor: not-allowed;
   }
 }
+
+/* Left sidebar (Businessmap-style) — content offset & hide duplicate header filter */
+body.kanban-workspaces-sidebar-open .workspaces-container {
+  padding-left: 260px;
+}
+
+body.kanban-workspaces-sidebar-open.kanban-workspaces-sidebar-collapsed .workspaces-container {
+  padding-left: 72px;
+}
+
+body.kanban-workspaces-sidebar-open .workspaces-header .workspaces-header-right {
+  display: none;
+}
+
+@media ($sm-1481) {
+  body.kanban-workspaces-sidebar-open .workspaces-container {
+    padding: 28px 32px;
+    padding-left: 260px;
+  }
+
+  body.kanban-workspaces-sidebar-open.kanban-workspaces-sidebar-collapsed .workspaces-container {
+    padding-left: 72px;
+  }
+}
+
+@media ($sm-1281) {
+  body.kanban-workspaces-sidebar-open .workspaces-container {
+    padding: 24px 28px;
+    padding-left: 248px;
+  }
+
+  body.kanban-workspaces-sidebar-open.kanban-workspaces-sidebar-collapsed .workspaces-container {
+    padding-left: 72px;
+  }
+}
+
+@media ($sm-991) {
+  body.kanban-workspaces-sidebar-open .workspaces-container {
+    padding: 20px 20px;
+    padding-left: 240px;
+  }
+
+  body.kanban-workspaces-sidebar-open.kanban-workspaces-sidebar-collapsed .workspaces-container {
+    padding-left: 64px;
+  }
+}
+
+@media ($sm-767) {
+  body.kanban-workspaces-sidebar-open .workspaces-container {
+    padding: 16px 16px;
+    padding-left: min(240px, calc(100vw - 56px));
+  }
+
+  body.kanban-workspaces-sidebar-open.kanban-workspaces-sidebar-collapsed .workspaces-container {
+    padding-left: 64px;
+  }
+}
+
+@media ($sm-479) {
+  body.kanban-workspaces-sidebar-open .workspaces-container {
+    padding: 12px 12px;
+    padding-left: min(220px, calc(100vw - 48px));
+  }
+
+  body.kanban-workspaces-sidebar-open.kanban-workspaces-sidebar-collapsed .workspaces-container {
+    padding-left: 60px;
+  }
+}

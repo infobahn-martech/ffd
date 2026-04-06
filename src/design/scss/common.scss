@@ -945,6 +945,68 @@ body.app-dark-mode {
     box-shadow: none;
   }
 
+  .kanban-sidebar-dark.kanban-sidebar--workspaces {
+    .kanban-sidebar-workspaces-nav-item--active {
+      background: rgba(59, 130, 246, 0.12);
+      color: #93c5fd;
+      border-color: rgba(96, 165, 250, 0.35);
+      box-shadow: none;
+    }
+
+    .kanban-sidebar-workspaces-filter {
+      background: rgba(255, 255, 255, 0.06);
+      border-color: transparent;
+
+      &:focus-within {
+        border-color: rgba(96, 165, 250, 0.35);
+        box-shadow: 0 0 0 2px rgba(59, 130, 246, 0.15);
+      }
+    }
+
+    .kanban-sidebar-workspaces-filter-input {
+      color: #e4e4e7;
+
+      &::placeholder {
+        color: #71717a;
+      }
+    }
+
+    .kanban-sidebar-workspaces-filter-icon {
+      color: #71717a;
+    }
+
+    .kanban-sidebar-workspaces-row-main {
+      color: #e4e4e7;
+
+      &:hover {
+        background: rgba(255, 255, 255, 0.06);
+      }
+    }
+
+    .kanban-sidebar-workspaces-dot {
+      background: #71717a;
+    }
+
+    .kanban-sidebar-workspaces-row-menu {
+      color: #71717a;
+
+      &:hover {
+        background: rgba(255, 255, 255, 0.08);
+        color: #e4e4e7;
+      }
+    }
+
+    .kanban-sidebar-workspaces-new-db {
+      background: #18181b;
+      border-color: rgba(96, 165, 250, 0.4);
+      color: #93c5fd;
+
+      &:hover {
+        background: rgba(255, 255, 255, 0.06);
+      }
+    }
+  }
+
   .kanban-sidebar-dark .kanban-sidebar-icon {
     color: #a1a1aa;
 

@@ -11,6 +11,7 @@ import StickersModal from './components/StickersModal';
 import TagsModal from './components/TagsModal';
 import TypesModal from './components/TypesModal';
 import AddDashboardModal from './components/AddDashboardModal';
+import WorkspacesSideNavPanel from './components/WorkspacesSideNavPanel';
 import MyAccountsModal from '../Header/MyAccountsModal';
 import '../../design/scss/common.scss';
 import '../../design/scss/sidebar.scss';
@@ -441,6 +442,30 @@ function SideNav({ isMobileMenuOpen, onCloseMobileMenu, isVendorPortal = false }
   }, [showCardManagementSubmenu]);
 
   // 🆕 Special layout for /kanban-board and /workspaces (skip when in Vendor Portal)
+  if (isKanbanBoard && !isVendorPortal && pathname === '/workspaces') {
+    return (
+      <>
+        <WorkspacesSideNavPanel isDarkMode={isDarkMode} onNewDashboard={() => setShowAddDashboardModal(true)} />
+        <BoardFilterPanel show={showFilterPanel} onClose={() => setShowFilterPanel(false)} />
+        <ManagersModal show={showManagersModal} onClose={() => setShowManagersModal(false)} />
+        <DashboardsModal show={showDashboardsModal} onClose={() => setShowDashboardsModal(false)} />
+        <BusinessRulesModal show={showBusinessRulesModal} onClose={() => setShowBusinessRulesModal(false)} />
+        <BlockersModal show={showBlockersModal} onClose={() => setShowBlockersModal(false)} />
+        <StickersModal show={showStickersModal} onClose={() => setShowStickersModal(false)} />
+        <TagsModal show={showTagsModal} onClose={() => setShowTagsModal(false)} />
+        <TypesModal show={showTypesModal} onClose={() => setShowTypesModal(false)} />
+        <AddDashboardModal
+          show={showAddDashboardModal}
+          onClose={() => setShowAddDashboardModal(false)}
+          onSave={(data) => {
+            console.log('Dashboard saved:', data);
+            // Add your save logic here
+          }}
+        />
+      </>
+    );
+  }
+
   if (isKanbanBoard && !isVendorPortal) {
     const handleIconClick = (item) => {
       if (item.label === 'Filter') {
