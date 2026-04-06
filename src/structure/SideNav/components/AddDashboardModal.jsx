@@ -2,9 +2,6 @@ import { useState } from 'react';
 import { FiX } from 'react-icons/fi';
 import { Modal } from 'react-bootstrap';
 import PropTypes from 'prop-types';
-import '../../../design/scss/prospect-modal.scss';
-import '../../../design/scss/modal-designs.scss';
-import '../../../design/scss/form-designs.scss';
 import './AddDashboardModal.scss';
 
 const AddDashboardModal = ({ show, onClose, onSave }) => {
@@ -33,59 +30,54 @@ const AddDashboardModal = ({ show, onClose, onSave }) => {
       className="add-dashboard-modal"
       centered
       backdrop="static"
-      size="md"
+      backdropClassName="add-dashboard-modal-backdrop"
+      dialogClassName="add-dashboard-modal-dialog"
+      contentClassName="add-dashboard-modal-content"
     >
-      <Modal.Header className="add-dashboard-modal-header">
-        <Modal.Title className="add-dashboard-modal-title">Add New Dashboard</Modal.Title>
-        <button
-          type="button"
-          className="add-dashboard-modal-close"
-          onClick={handleClose}
-          aria-label="Close"
-        >
-          <FiX size={20} />
-        </button>
-      </Modal.Header>
-      <Modal.Body className="add-dashboard-modal-body">
-        <form onSubmit={handleSubmit} className="add-dashboard-form">
-          <div className="add-dashboard-input-wrapper">
-            <div className="form-floating desig-inp">
-              <input
-                type="text"
-                id="dashboardName"
-                className="form-control"
-                placeholder="Enter dashboard name"
-                value={name}
-                onChange={(e) => setName(e.target.value)}
-                required
-                autoFocus
-              />
-              <label htmlFor="dashboardName">
-                Name <span className="text-danger">*</span>
-              </label>
-            </div>
-          </div>
-        </form>
-      </Modal.Body>
-      <Modal.Footer className="add-dashboard-modal-footer">
-        <div className="add-dashboard-modal-actions">
+      <form onSubmit={handleSubmit} className="add-dashboard-form">
+        <div className="add-dashboard-modal-header">
+          <h2 className="add-dashboard-modal-title" id="add-dashboard-modal-title">
+            New dashboard
+          </h2>
           <button
             type="button"
+            className="add-dashboard-modal-close"
             onClick={handleClose}
-            className="btn-common btn-cancel"
+            aria-label="Close"
           >
+            <FiX size={22} strokeWidth={2} />
+          </button>
+        </div>
+
+        <div className="add-dashboard-modal-body">
+          <label htmlFor="dashboardName" className="add-dashboard-label">
+            Name
+          </label>
+          <input
+            type="text"
+            id="dashboardName"
+            className="add-dashboard-input"
+            placeholder=""
+            value={name}
+            onChange={(e) => setName(e.target.value)}
+            required
+            autoFocus
+          />
+        </div>
+
+        <div className="add-dashboard-modal-footer">
+          <button type="button" onClick={handleClose} className="add-dashboard-btn add-dashboard-btn--text">
             Cancel
           </button>
           <button
-            type="button"
-            onClick={handleSubmit}
-            className="btn-common btn-save"
+            type="submit"
+            className="add-dashboard-btn add-dashboard-btn--text"
             disabled={!name.trim()}
           >
             Save
           </button>
         </div>
-      </Modal.Footer>
+      </form>
     </Modal>
   );
 };

@@ -1,237 +1,176 @@
 @import "../../../design/scss/partials/partials";
 
+.add-dashboard-modal-backdrop.show {
+  background-color: rgba(15, 23, 42, 0.35);
+}
+
 .add-dashboard-modal {
-  .modal-dialog {
-    max-width: 520px;
-    width: 100%;
+  .modal-dialog.add-dashboard-modal-dialog {
+    max-width: 420px;
+    width: calc(100% - 2rem);
     margin: 1.75rem auto;
 
     @media (max-width: 575px) {
-      max-width: calc(100% - 30px);
+      max-width: calc(100% - 1.5rem);
       margin: 1rem auto;
     }
   }
 
-  .modal-content {
-    border-radius: 16px;
+  .modal-content.add-dashboard-modal-content {
+    padding: 0;
+    background: #fff;
     border: none;
-    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.15);
+    border-radius: 24px;
+    box-shadow: 0 12px 40px rgba(15, 23, 42, 0.12), 0 4px 12px rgba(15, 23, 42, 0.06);
     overflow: hidden;
-  }
-
-  .add-dashboard-modal-header {
-    border-bottom: none;
-    padding: 24px 30px 20px 30px;
-    position: relative;
-
-    @media (max-width: 575px) {
-      padding: 20px 20px 16px 20px;
-    }
-
-    .add-dashboard-modal-title {
-      color: #00368c;
-      font-size: 20px;
-      font-weight: 600;
-      line-height: 1.4;
-      margin: 0;
-      letter-spacing: 0.1px;
-
-      @media (max-width: 575px) {
-        font-size: 18px;
-      }
-    }
-
-    .add-dashboard-modal-close {
-      position: absolute;
-      top: 20px;
-      right: 20px;
-      width: 32px;
-      height: 32px;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      background: #D8E7E9;
-      border: none;
-      border-radius: 8px;
-      cursor: pointer;
-      transition: all 0.2s ease;
-      padding: 0;
-      color: #25666C;
-
-      @media (max-width: 575px) {
-        top: 16px;
-        right: 16px;
-        width: 28px;
-        height: 28px;
-      }
-
-      &:hover {
-        background: #BCDEE2;
-        transform: scale(1.05);
-      }
-
-      &:active {
-        transform: scale(0.95);
-      }
-
-      svg {
-        pointer-events: none;
-      }
-    }
-  }
-
-  .add-dashboard-modal-body {
-    padding: 0 30px 0px 30px;
-
-    @media (max-width: 575px) {
-      padding: 0 20px 20px 20px;
-    }
-
-    .add-dashboard-form {
-      .add-dashboard-input-wrapper {
-        margin-bottom: 0;
-
-        .form-floating {
-          border: 1px solid #BCDEE2;
-          border-radius: 12px;
-          transition: all 0.2s ease;
-
-          &:focus-within {
-            border-color: #00368c;
-            box-shadow: 0 0 0 3px rgba(0, 54, 140, 0.1);
-          }
-
-          .form-control {
-            border: none;
-            box-shadow: none;
-            padding: 16px 20px 8px 20px;
-            border-radius: 12px;
-            height: 56px;
-            min-height: 56px;
-            font-size: 15px;
-            color: #174043;
-
-            @media (max-width: 575px) {
-              padding: 14px 18px 6px 18px;
-              height: 52px;
-              min-height: 52px;
-              font-size: 14px;
-            }
-
-            &::placeholder {
-              color: #87ADB1;
-              opacity: 0;
-            }
-
-            &:focus {
-              box-shadow: none;
-              border: none;
-            }
-
-            &:focus~label,
-            &:not(:placeholder-shown)~label {
-              color: #174043;
-              transform: scale(0.85) translateY(-0.5rem) translateX(0.15rem);
-            }
-          }
-
-          label {
-            padding: 8px 20px;
-            color: #87ADB1;
-            font-size: 15px;
-            font-weight: 400;
-            transition: all 0.2s ease;
-            pointer-events: none;
-
-            @media (max-width: 575px) {
-              padding: 6px 18px;
-              font-size: 14px;
-            }
-
-            .text-danger {
-              color: #ff0000;
-              font-size: 0.9em;
-            }
-          }
-        }
-      }
-    }
-  }
-
-  .add-dashboard-modal-footer {
-    border-top: none;
-    padding: 0 30px 30px 30px;
-
-    @media (max-width: 575px) {
-      padding: 0 20px 20px 20px;
-    }
-
-    .add-dashboard-modal-actions {
-      display: flex;
-      justify-content: flex-end;
-      gap: 12px;
-      width: 100%;
-
-      .btn-common {
-        padding: 12px 32px;
-        border-radius: 10px;
-        font-size: 14px;
-        font-weight: 600;
-        transition: all 0.2s ease;
-        border: none;
-        cursor: pointer;
-        min-width: 100px;
-
-        @media (max-width: 575px) {
-          padding: 10px 24px;
-          font-size: 13px;
-          min-width: 90px;
-        }
-
-        &.btn-cancel {
-          background-color: #FFFFFF;
-          color: #00368c;
-          border: 1px solid #BCDEE2;
-
-          &:hover {
-            background-color: #DEF0F2;
-            border-color: #98CBD0;
-          }
-
-          &:active {
-            transform: scale(0.98);
-          }
-        }
-
-        &.btn-save {
-          background-color: #00368c;
-          color: #FFFFFF;
-
-          &:hover:not(:disabled) {
-            background-color: #002b66;
-            transform: translateY(-1px);
-            box-shadow: 0 4px 12px rgba(0, 54, 140, 0.3);
-          }
-
-          &:active:not(:disabled) {
-            transform: translateY(0);
-          }
-
-          &:disabled {
-            background-color: #BCDEE2;
-            color: #87ADB1;
-            cursor: not-allowed;
-            opacity: 0.6;
-          }
-        }
-      }
-    }
   }
 }
 
-// Ensure modal backdrop is styled properly
-.add-dashboard-modal.show {
-  .modal-backdrop {
-    background-color: rgba(0, 0, 0, 0.5);
+.add-dashboard-form {
+  display: flex;
+  flex-direction: column;
+  padding: 28px 28px 24px;
+
+  @media (max-width: 575px) {
+    padding: 22px 20px 20px;
+  }
+}
+
+.add-dashboard-modal-header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 16px;
+  margin-bottom: 24px;
+  padding: 0;
+  border: none;
+}
+
+.add-dashboard-modal-title {
+  margin: 0;
+  font-family: $font-primary, "Plus Jakarta Sans", system-ui, sans-serif;
+  font-size: 1.5rem;
+  font-weight: 600;
+  line-height: 1.35;
+  letter-spacing: -0.02em;
+  color: #1e293b;
+
+  @media (max-width: 575px) {
+    font-size: 1.35rem;
+  }
+}
+
+.add-dashboard-modal-close {
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 36px;
+  height: 36px;
+  margin: -6px -8px 0 0;
+  padding: 0;
+  border: none;
+  border-radius: 10px;
+  background: transparent;
+  color: #94a3b8;
+  cursor: pointer;
+  transition: color 0.2s ease, background 0.2s ease;
+
+  &:hover {
+    color: #475569;
+    background: rgba(15, 23, 42, 0.05);
+  }
+
+  &:focus-visible {
+    outline: 2px solid rgba(0, 54, 140, 0.35);
+    outline-offset: 2px;
+  }
+
+  svg {
+    display: block;
+  }
+}
+
+.add-dashboard-modal-body {
+  padding: 0;
+  margin-bottom: 32px;
+}
+
+.add-dashboard-label {
+  display: block;
+  margin-bottom: 8px;
+  font-size: 0.8125rem;
+  font-weight: 500;
+  color: #94a3b8;
+  letter-spacing: 0.02em;
+}
+
+.add-dashboard-input {
+  display: block;
+  width: 100%;
+  box-sizing: border-box;
+  padding: 12px 14px;
+  font-size: 0.9375rem;
+  line-height: 1.45;
+  color: #1e293b;
+  background: #fff;
+  border: 1px solid #e2e8f0;
+  border-radius: 10px;
+  transition: border-color 0.2s ease, box-shadow 0.2s ease;
+
+  &::placeholder {
+    color: #cbd5e1;
+  }
+
+  &:hover {
+    border-color: #cbd5e1;
+  }
+
+  &:focus {
+    outline: none;
+    border-color: rgba(0, 54, 140, 0.35);
+    box-shadow: 0 0 0 3px rgba(0, 54, 140, 0.08);
+  }
+}
+
+.add-dashboard-modal-footer {
+  display: flex;
+  justify-content: flex-end;
+  align-items: center;
+  gap: 20px;
+  padding: 0;
+  margin: 0;
+  border: none;
+}
+
+.add-dashboard-btn {
+  &.add-dashboard-btn--text {
+    padding: 8px 4px;
+    min-height: auto;
+    font-family: $font-primary, "Plus Jakarta Sans", system-ui, sans-serif;
+    font-size: 0.9375rem;
+    font-weight: 600;
+    color: #00368c;
+    background: transparent;
+    border: none;
+    border-radius: 6px;
+    cursor: pointer;
+    transition: color 0.2s ease, opacity 0.2s ease;
+
+    &:hover:not(:disabled) {
+      color: #002a66;
+      text-decoration: none;
+    }
+
+    &:focus-visible {
+      outline: 2px solid rgba(0, 54, 140, 0.35);
+      outline-offset: 2px;
+    }
+
+    &:disabled {
+      color: #94a3b8;
+      cursor: not-allowed;
+      opacity: 0.65;
+    }
   }
 }

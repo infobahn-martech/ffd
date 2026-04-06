@@ -17,9 +17,9 @@ const DashboardsModal = ({ show, onClose }) => {
   );
 
   return (
-    <Modal 
-      show={show} 
-      onHide={onClose} 
+    <Modal
+      show={show}
+      onHide={onClose}
       className="dashboards-modal"
       centered
       size="xl"
