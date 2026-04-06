@@ -11,11 +11,11 @@ const transformWorkspaces = (data) => {
     status: ws.workspace_status,
     boards: Array.isArray(ws.boards)
       ? ws.boards.map((b) => ({
-          id: b.board_id,
-          name: b.board_name,
-          status: b.board_status,
-          count: b.count ?? 0,
-        }))
+        id: b.board_id,
+        name: b.board_name,
+        status: b.board_status,
+        count: b.count ?? 0,
+      }))
       : [],
   }));
 };
