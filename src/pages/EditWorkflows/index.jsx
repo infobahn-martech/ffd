@@ -604,7 +604,7 @@ function EditWorkflows() {
               />
             </div>
 
-            <div className="workflows-undo-redo">
+            {/* <div className="workflows-undo-redo">
               <button className="workflows-btn workflows-btn-undo" disabled>
                 Undo
                 <svg width="16" height="16" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
@@ -617,13 +617,13 @@ function EditWorkflows() {
                   <path d="M12 6L8 2L4 6" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
                 </svg>
               </button>
-            </div>
+            </div> */}
           </div>
 
-          <div className="workflows-actions-bottom">
+          {/* <div className="workflows-actions-bottom">
             <button className="workflows-btn workflows-btn-discard">Discard</button>
             <button className="workflows-btn workflows-btn-save">Save</button>
-          </div>
+          </div> */}
         </div>
       </div>
 
