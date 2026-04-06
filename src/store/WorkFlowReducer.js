@@ -77,7 +77,7 @@ const useWorkFlowReducer = create((set) => ({
             set({ addEditLoader: false });
             const { success } = useAlertReducer.getState();
             success(data && data.message);
-            cb && cb();
+            cb && cb(data);
         } catch (err) {
             set({
                 errorMessage: err?.response?.data?.message ?? err.message,

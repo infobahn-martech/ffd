@@ -161,12 +161,19 @@ function isAlreadyInternalWorkflow(workflow) {
   return Boolean(workflow && workflow.id != null && Array.isArray(workflow.swimlanes));
 }
 
+function normalizeIsActive(raw) {
+  if (raw === undefined || raw === null) return 1;
+  if (raw === 0 || raw === false || raw === '0') return 0;
+  return 1;
+}
+
 function normalizeSingleWorkflow(workflow, idx = 0) {
   if (!workflow) return null;
   if (isAlreadyInternalWorkflow(workflow)) {
     return {
       ...workflow,
       swimlanes: Array.isArray(workflow.swimlanes) ? workflow.swimlanes : [],
+      is_active: normalizeIsActive(workflow.is_active),
     };
   }
 
@@ -187,6 +194,7 @@ function normalizeSingleWorkflow(workflow, idx = 0) {
     id: workflowId,
     name: workflowName,
     swimlanes: normalizedSwimlanes,
+    is_active: normalizeIsActive(workflow?.is_active),
   };
 }
 

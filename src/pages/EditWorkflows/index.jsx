@@ -384,7 +384,17 @@ function EditWorkflows() {
   const handleDisableWorkflow = (workflowId) => {
     disableWorkflow({
       workflow_id: workflowId,
-      cb: refetchBoardWorkflows,
+      cb: (data) => {
+        if (data && typeof data.is_active !== 'undefined') {
+          const nextActive = data.is_active == 0 ? 0 : 1;
+          setWorkflows((prev) =>
+            prev.map((w) =>
+              String(w.id) === String(workflowId) ? { ...w, is_active: nextActive } : w
+            )
+          );
+        }
+        refetchBoardWorkflows();
+      },
     });
   };
 
@@ -536,7 +546,7 @@ function EditWorkflows() {
                       disabled={addEditLoader}
                       onClick={() => handleDisableWorkflow(workflow.id)}
                     >
-                      Disable
+                      {workflow.is_active == 0 ? 'Enable' : 'Disable'}
                     </button>
                   </div>
                 </div>
