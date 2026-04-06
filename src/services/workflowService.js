@@ -10,7 +10,7 @@ const deleteWorkflow = (workflowId) =>
     Gateway.post(`/kanban_workflow/delete_workflow/${workflowId}`, { workflow_id: workflowId });
 
 const disableWorkflow = (workflowId) =>
-    Gateway.post(`/kanban_workflow/disable_workflow/${workflowId}`, { workflow_id: workflowId });
+    Gateway.post(`/kanban_workflow/enable_disable_workflow/${workflowId}`, { workflow_id: workflowId });
 
 const createWorkflow = (data) =>
     Gateway.post('/kanban_workflow/create_workflow', data);
