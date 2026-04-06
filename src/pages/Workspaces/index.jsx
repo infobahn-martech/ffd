@@ -129,6 +129,12 @@ function Workspaces() {
     return new Set(raw.map((w) => String(w.widget_id ?? w.id ?? w.widgetId)));
   }, [currentDashboard]);
 
+  const workspaceIdsOnCurrentDashboard = useMemo(() => {
+    const raw = currentDashboard?.workspaces ?? [];
+    if (!Array.isArray(raw)) return new Set();
+    return new Set(raw.map((w) => String(w.workspace_id ?? w.id)));
+  }, [currentDashboard]);
+
   // Find the first workspace with boards to set as initially expanded
   const firstWorkspaceWithBoards = workspacesData.find((workspace) => workspace.boards?.length > 0);
   const initialSelectedWorkspace = firstWorkspaceWithBoards ? firstWorkspaceWithBoards.id : null;
@@ -272,8 +278,20 @@ function Workspaces() {
 
   const handleAddToDashboard = (workspaceId) => {
     setOpenWorkspaceMenuId(null);
-    // TODO: Implement add to dashboard functionality
-    console.log('Add to dashboard:', workspaceId);
+    if (!isDashboardView || !currentDashboard) return;
+    addWorkspaceToDashboard({
+      dashboard_id: currentDashboard.dashboard_id,
+      workspace_id: workspaceId,
+    });
+  };
+
+  const handleRemoveFromDashboard = (workspaceId) => {
+    setOpenWorkspaceMenuId(null);
+    if (!isDashboardView || !currentDashboard) return;
+    removeWorkspaceFromDashboard({
+      dashboard_id: currentDashboard.dashboard_id,
+      workspace_id: workspaceId,
+    });
   };
 
   const handleArchiveWorkspace = (workspaceId) => {
@@ -530,46 +548,121 @@ function Workspaces() {
                           </svg>
                           <span>Rename</span>
                         </button>
-                        <button
-                          type="button"
-                          className="workspace-context-menu-item"
-                          onClick={(e) => {
-                            e.stopPropagation();
-                            handleAddToDashboard(workspace.id);
-                          }}
-                        >
-                          <svg width="16" height="16" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
-                            <path
-                              d="M2 2H6V6H2V2Z"
-                              stroke="currentColor"
-                              strokeWidth="1.5"
-                              strokeLinecap="round"
-                              strokeLinejoin="round"
-                            />
-                            <path
-                              d="M10 2H14V6H10V2Z"
-                              stroke="currentColor"
-                              strokeWidth="1.5"
-                              strokeLinecap="round"
-                              strokeLinejoin="round"
-                            />
-                            <path
-                              d="M2 10H6V14H2V10Z"
-                              stroke="currentColor"
-                              strokeWidth="1.5"
-                              strokeLinecap="round"
-                              strokeLinejoin="round"
-                            />
-                            <path
-                              d="M10 10H14V14H10V10Z"
-                              stroke="currentColor"
-                              strokeWidth="1.5"
-                              strokeLinecap="round"
-                              strokeLinejoin="round"
-                            />
-                          </svg>
-                          <span>Add to Dashboard</span>
-                        </button>
+                        {isDashboardView && currentDashboard && (
+                          <>
+                            {!workspaceIdsOnCurrentDashboard.has(String(workspace.id)) ? (
+                              <button
+                                type="button"
+                                className="workspace-context-menu-item"
+                                onClick={(e) => {
+                                  e.stopPropagation();
+                                  handleAddToDashboard(workspace.id);
+                                }}
+                              >
+                                <svg width="16" height="16" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
+                                  <path
+                                    d="M2 2H6V6H2V2Z"
+                                    stroke="currentColor"
+                                    strokeWidth="1.5"
+                                    strokeLinecap="round"
+                                    strokeLinejoin="round"
+                                  />
+                                  <path
+                                    d="M10 2H14V6H10V2Z"
+                                    stroke="currentColor"
+                                    strokeWidth="1.5"
+                                    strokeLinecap="round"
+                                    strokeLinejoin="round"
+                                  />
+                                  <path
+                                    d="M2 10H6V14H2V10Z"
+                                    stroke="currentColor"
+                                    strokeWidth="1.5"
+                                    strokeLinecap="round"
+                                    strokeLinejoin="round"
+                                  />
+                                  <path
+                                    d="M10 10H14V14H10V10Z"
+                                    stroke="currentColor"
+                                    strokeWidth="1.5"
+                                    strokeLinecap="round"
+                                    strokeLinejoin="round"
+                                  />
+                                </svg>
+                                <span>Add to Dashboard</span>
+                              </button>
+                            ) : (
+                              <button
+                                type="button"
+                                className="workspace-context-menu-item"
+                                onClick={(e) => {
+                                  e.stopPropagation();
+                                  handleRemoveFromDashboard(workspace.id);
+                                }}
+                              >
+                                <svg width="16" height="16" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
+                                  <path
+                                    d="M2 4H14M6 4V3C6 2.44772 6.44772 2 7 2H9C9.55228 2 10 2.44772 10 3V4M12.6667 4L12 13.3333C12 13.687 11.8595 14.0261 11.6095 14.2762C11.3594 14.5262 11.0203 14.6667 10.6667 14.6667H5.33334C4.97971 14.6667 4.64057 14.5262 4.39052 14.2762C4.14048 14.0261 4 13.687 4 13.3333L3.33334 4"
+                                    stroke="currentColor"
+                                    strokeWidth="1.5"
+                                    strokeLinecap="round"
+                                    strokeLinejoin="round"
+                                  />
+                                  <path
+                                    d="M6.66667 7.33334V11.3333M9.33333 7.33334V11.3333"
+                                    stroke="currentColor"
+                                    strokeWidth="1.5"
+                                    strokeLinecap="round"
+                                    strokeLinejoin="round"
+                                  />
+                                </svg>
+                                <span>Remove</span>
+                              </button>
+                            )}
+                          </>
+                        )}
+                        {!isDashboardView && (
+                          <button
+                            type="button"
+                            className="workspace-context-menu-item"
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              handleAddToDashboard(workspace.id);
+                            }}
+                          >
+                            <svg width="16" height="16" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
+                              <path
+                                d="M2 2H6V6H2V2Z"
+                                stroke="currentColor"
+                                strokeWidth="1.5"
+                                strokeLinecap="round"
+                                strokeLinejoin="round"
+                              />
+                              <path
+                                d="M10 2H14V6H10V2Z"
+                                stroke="currentColor"
+                                strokeWidth="1.5"
+                                strokeLinecap="round"
+                                strokeLinejoin="round"
+                              />
+                              <path
+                                d="M2 10H6V14H2V10Z"
+                                stroke="currentColor"
+                                strokeWidth="1.5"
+                                strokeLinecap="round"
+                                strokeLinejoin="round"
+                              />
+                              <path
+                                d="M10 10H14V14H10V10Z"
+                                stroke="currentColor"
+                                strokeWidth="1.5"
+                                strokeLinecap="round"
+                                strokeLinejoin="round"
+                              />
+                            </svg>
+                            <span>Add to Dashboard</span>
+                          </button>
+                        )}
                         <button
                           type="button"
                           className="workspace-context-menu-item"

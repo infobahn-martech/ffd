@@ -272,7 +272,7 @@ const useWorkSpaceReducer = create((set, get) => ({
     })),
   addWorkspaceToDashboard: async ({ dashboard_id, workspace_id, cb }) => {
     try {
-      const { data } = await kanbanDashboardService.addWorkspaceToDashboard(dashboard_id, { workspace_id });
+      const { data } = await kanbanDashboardService.addWorkspaceToDashboard({ dashboard_id, workspace_id });
       const { success } = useAlertReducer.getState();
       success(data?.message ?? 'Workspace added to dashboard');
       cb && cb();
@@ -284,7 +284,7 @@ const useWorkSpaceReducer = create((set, get) => ({
   },
   removeWorkspaceFromDashboard: async ({ dashboard_id, workspace_id, cb }) => {
     try {
-      const { data } = await kanbanDashboardService.removeWorkspaceFromDashboard(dashboard_id, { workspace_id });
+      const { data } = await kanbanDashboardService.removeWorkspaceFromDashboard({ dashboard_id, workspace_id });
       const { success } = useAlertReducer.getState();
       success(data?.message ?? 'Workspace removed from dashboard');
       cb && cb();
