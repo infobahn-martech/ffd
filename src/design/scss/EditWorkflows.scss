@@ -101,6 +101,8 @@
   gap: 20px;
   margin-bottom: 24px;
   flex-shrink: 0;
+  width: 100%;
+  box-sizing: border-box;
 
   @media ($sm-767) {
     flex-direction: column;
@@ -110,6 +112,9 @@
 
     .workflows-toolbar-actions {
       order: -1;
+      margin-left: 0;
+      width: 100%;
+      justify-content: stretch;
     }
 
     .workflows-btn-create--toolbar {
@@ -144,6 +149,8 @@
   flex-shrink: 0;
   display: flex;
   justify-content: flex-end;
+  align-self: flex-start;
+  margin-left: auto;
   padding-top: 2px;
 }
 
@@ -1560,148 +1567,5 @@ div[role="tooltip"][id^="workflow-info-"] {
   .page-cont-wrp.full-width {
     width: 100%;
     margin-left: 0;
-  }
-}
-
-// Create Workflow Modal
-.create-workflow-modal {
-  .modal-dialog {
-    max-width: 500px;
-    margin: 1.75rem auto;
-
-    .modal-content {
-      border: none;
-      border-radius: 12px;
-      box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
-      overflow: hidden;
-      padding: 0 !important; // Override global modal-content padding
-    }
-  }
-}
-
-.create-workflow-modal-content {
-  padding: 32px;
-  background: #ffffff;
-  border-radius: 12px;
-}
-
-.create-workflow-modal-header {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  margin-bottom: 24px;
-  padding-bottom: 0;
-  border-bottom: none;
-}
-
-.create-workflow-modal-title {
-  font: normal normal 600 22px/1.4 $font-primary;
-  color: $txtColor;
-  margin: 0;
-}
-
-.create-workflow-modal-close {
-  width: 32px;
-  height: 32px;
-  border: none;
-  background: transparent;
-  border-radius: 50%;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  cursor: pointer;
-  color: #6b7280;
-  transition: all 0.2s ease;
-  padding: 0;
-
-  &:hover {
-    background: #f3f4f6;
-    color: #374151;
-  }
-
-  svg {
-    width: 16px;
-    height: 16px;
-  }
-}
-
-.create-workflow-name-section {
-  margin-bottom: 24px;
-}
-
-.create-workflow-name-label {
-  display: block;
-  font: normal normal 600 14px/1.4 $font-primary;
-  color: $txtColor;
-  margin-bottom: 8px;
-}
-
-.create-workflow-name-input {
-  width: 100%;
-  padding: 12px 16px;
-  border: 1px solid #e5e7eb;
-  border-radius: 8px;
-  font: normal normal 400 14px/1.5 $font-primary;
-  color: $txtColor;
-  background: #ffffff;
-  transition: all 0.2s ease;
-
-  &:focus {
-    outline: none;
-    border-color: #3b82f6;
-    box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
-  }
-
-  &::placeholder {
-    color: #9ca3af;
-  }
-}
-
-.create-workflow-actions {
-  display: flex;
-  justify-content: flex-end;
-  gap: 12px;
-  padding-top: 24px;
-  border-top: 1px solid #e5e7eb;
-  margin-top: 24px;
-}
-
-.create-workflow-btn {
-  padding: 10px 24px;
-  border-radius: 8px;
-  font: normal normal 600 14px/1.4 $font-primary;
-  cursor: pointer;
-  transition: all 0.2s ease;
-  border: none;
-  min-width: 100px;
-
-  &:disabled {
-    opacity: 0.5;
-    cursor: not-allowed;
-  }
-}
-
-.create-workflow-btn-cancel {
-  background: #ffffff;
-  color: #374151;
-  border: 1px solid #d1d5db;
-
-  &:hover:not(:disabled) {
-    background: #f3f4f6;
-    border-color: #9ca3af;
-  }
-}
-
-.create-workflow-btn-save {
-  background: #00368c;
-  color: #ffffff;
-
-  &:hover:not(:disabled) {
-    background: #002d73;
-    box-shadow: 0 4px 6px -1px rgba(0, 54, 140, 0.2);
-  }
-
-  &:disabled {
-    background: #d1d5db;
   }
 }

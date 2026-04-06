@@ -1,98 +1,94 @@
-import { useState } from 'react';
-import CustomModal from '../../components/CustomModal';
-import '../../design/scss/EditWorkflows.scss';
+import { useState, useEffect } from 'react';
+import { FiX } from 'react-icons/fi';
+import { Modal } from 'react-bootstrap';
+import '../../structure/SideNav/components/AddDashboardModal.scss';
 
 const CreateWorkflowModal = ({ show, onClose, onSave, isSaving = false }) => {
   const [workflowName, setWorkflowName] = useState('');
 
-  const handleSave = () => {
-    if (workflowName.trim()) {
-      if (onSave) {
-        onSave({
-          workflow_name: workflowName.trim(),
-        });
-      }
+  useEffect(() => {
+    if (!show) setWorkflowName('');
+  }, [show]);
+
+  const handleSubmit = (e) => {
+    e.preventDefault();
+    if (!workflowName.trim() || isSaving) return;
+    if (onSave) {
+      onSave({
+        workflow_name: workflowName.trim(),
+      });
     }
   };
 
   const handleClose = () => {
+    if (isSaving) return;
     setWorkflowName('');
     onClose();
   };
 
-  const handleKeyPress = (e) => {
-    if (e.key === 'Enter' && workflowName.trim()) {
-      handleSave();
-    }
-  };
-
   return (
-    <CustomModal
+    <Modal
       show={show}
-      closeModal={handleClose}
-      className="create-workflow-modal"
-      dialgName="modal-dialog modal-dialog-centered"
-      createModal={false}
-      body={
-        <div className="create-workflow-modal-content">
-          {/* Header */}
-          <div className="create-workflow-modal-header">
-            <h2 className="create-workflow-modal-title">Create New Workflow</h2>
-            <button
-              type="button"
-              className="create-workflow-modal-close"
-              onClick={handleClose}
-              aria-label="Close"
-            >
-              <svg width="20" height="20" viewBox="0 0 20 20" fill="none" xmlns="http://www.w3.org/2000/svg">
-                <path
-                  d="M15 5L5 15M5 5L15 15"
-                  stroke="currentColor"
-                  strokeWidth="2"
-                  strokeLinecap="round"
-                />
-              </svg>
-            </button>
-          </div>
-
-          {/* Workflow Name Input */}
-          <div className="create-workflow-name-section">
-            <label className="create-workflow-name-label">Workflow name</label>
-            <input
-              type="text"
-              className="create-workflow-name-input"
-              placeholder="Enter workflow name"
-              value={workflowName}
-              onChange={(e) => setWorkflowName(e.target.value)}
-              onKeyPress={handleKeyPress}
-              autoFocus
-            />
-          </div>
-
-          {/* Action Buttons */}
-          <div className="create-workflow-actions">
-            <button
-              type="button"
-              className="create-workflow-btn create-workflow-btn-cancel"
-              onClick={handleClose}
-              disabled={isSaving}
-            >
-              Cancel
-            </button>
-            <button
-              type="button"
-              className="create-workflow-btn create-workflow-btn-save"
-              onClick={handleSave}
-              disabled={!workflowName.trim() || isSaving}
-            >
-              Save
-            </button>
-          </div>
+      onHide={handleClose}
+      className="add-dashboard-modal"
+      centered
+      backdrop="static"
+      backdropClassName="add-dashboard-modal-backdrop"
+      dialogClassName="add-dashboard-modal-dialog"
+      contentClassName="add-dashboard-modal-content"
+    >
+      <form onSubmit={handleSubmit} className="add-dashboard-form">
+        <div className="add-dashboard-modal-header">
+          <h2 className="add-dashboard-modal-title" id="create-workflow-modal-title">
+            New workflow
+          </h2>
+          <button
+            type="button"
+            className="add-dashboard-modal-close"
+            onClick={handleClose}
+            disabled={isSaving}
+            aria-label="Close"
+          >
+            <FiX size={22} strokeWidth={2} />
+          </button>
         </div>
-      }
-    />
+
+        <div className="add-dashboard-modal-body">
+          <label htmlFor="workflowName" className="add-dashboard-label">
+            Name
+          </label>
+          <input
+            type="text"
+            id="workflowName"
+            className="add-dashboard-input"
+            placeholder=""
+            value={workflowName}
+            onChange={(e) => setWorkflowName(e.target.value)}
+            disabled={isSaving}
+            autoFocus
+          />
+        </div>
+
+        <div className="add-dashboard-modal-footer">
+          <button
+            type="button"
+            onClick={handleClose}
+            className="add-dashboard-btn add-dashboard-btn--text"
+            disabled={isSaving}
+          >
+            Cancel
+          </button>
+          <button
+            type="submit"
+            className="add-dashboard-btn add-dashboard-btn--text"
+            disabled={!workflowName.trim() || isSaving}
+          >
+            Save
+          </button>
+        </div>
+      </form>
+    </Modal>
   );
 };
 
 export default CreateWorkflowModal;
-
