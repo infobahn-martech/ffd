@@ -37,6 +37,7 @@ function WorkflowAreaGrid({
   onDeleteStage,
   onStageLimitChange,
   onStageCardsPerRowChange,
+  columnActionsDisabled = false,
 }) {
   const blockWidth = cols * stageCellWidth + Math.max(0, cols - 1) * stageGap;
 
@@ -84,6 +85,7 @@ function WorkflowAreaGrid({
                   <button
                     className="workflow-column-add-btn workflow-column-add-left"
                     type="button"
+                    disabled={columnActionsDisabled}
                     onClick={() =>
                       onAddColumnLeft(
                         stackedRailMetrics.workflowId,
@@ -119,6 +121,7 @@ function WorkflowAreaGrid({
                   <button
                     className="workflow-column-add-btn workflow-column-add-right"
                     type="button"
+                    disabled={columnActionsDisabled}
                     onClick={() =>
                       onAddColumnRight(
                         stackedRailMetrics.workflowId,
@@ -206,6 +209,7 @@ function WorkflowAreaGrid({
               isStageHovered={isStageHovered}
               showAddSubcolumn={showAddSubcolumn}
               isSingleInCol={isSingleInCol}
+              columnActionsDisabled={columnActionsDisabled}
               editingStageId={editingStageId}
               editingStageName={editingStageName}
               onStageMouseEnter={onStageMouseEnter}

@@ -12,6 +12,7 @@ function WorkflowStageCard({
   isStageHovered,
   showAddSubcolumn,
   isSingleInCol,
+  columnActionsDisabled = false,
   editingStageId,
   editingStageName,
   onStageMouseEnter,
@@ -106,6 +107,7 @@ function WorkflowStageCard({
             <button
               className="workflow-column-add-btn workflow-column-add-left"
               type="button"
+              disabled={columnActionsDisabled}
               onClick={() => onAddColumnLeft(workflowId, swimlaneId, stage.id)}
               title={`Add a new column before ${stage.name}`}
             >
@@ -120,6 +122,7 @@ function WorkflowStageCard({
             <button
               className="workflow-column-add-btn workflow-column-add-right"
               type="button"
+              disabled={columnActionsDisabled}
               onClick={() => onAddColumnRight(workflowId, swimlaneId, stage.id)}
               title={`Add a new column after ${stage.name}`}
             >
@@ -134,6 +137,7 @@ function WorkflowStageCard({
             <button
               className="workflow-column-add-btn workflow-column-add-below"
               type="button"
+              disabled={columnActionsDisabled}
               onClick={(e) => {
                 e.stopPropagation();
                 onAddSubcolumn(workflowId, swimlaneId, stage.id);

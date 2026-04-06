@@ -623,3 +623,210 @@ export function insertSubcolumnBelow(stages, targetStageId, newId, newStageName 
   newStages.push(newStage);
   return newStages;
 }
+
+/** Default name for new columns (matches insertColumnLeft/Right/Subcolumn). */
+export const DEFAULT_NEW_COLUMN_NAME = 'New Column';
+
+export function findStageByInternalId(stages, internalId) {
+  return stages.find((s) => s.id === internalId || String(s.id) === String(internalId));
+}
+
+/**
+ * Row-0 parent stage that spans the given stacked child column (row >= 1).
+ */
+export function findParentRow0Stage(stages, childStage) {
+  if (!childStage) return null;
+  const row = childStage.row ?? 0;
+  if (row === 0) return null;
+  const col = childStage.col ?? 0;
+  return (
+    stages.find((s) => {
+      if (s.area !== childStage.area) return false;
+      if (String(s.stageId ?? '') !== String(childStage.stageId ?? '')) return false;
+      if ((s.row ?? 0) !== 0) return false;
+      const c = s.col ?? 0;
+      const span = s.colSpan ?? 1;
+      return c <= col && col < c + span;
+    }) ?? null
+  );
+}
+
+function getChildStagesUnderParent(stages, parent) {
+  const pCol = parent.col ?? 0;
+  const pSpan = parent.colSpan ?? 1;
+  return stages
+    .filter(
+      (s) =>
+        s.area === parent.area &&
+        String(s.stageId ?? '') === String(parent.stageId ?? '') &&
+        (s.row ?? 0) > 0 &&
+        (s.col ?? 0) >= pCol &&
+        (s.col ?? 0) < pCol + pSpan
+    )
+    .sort((a, b) => {
+      const rd = (a.row ?? 0) - (b.row ?? 0);
+      if (rd !== 0) return rd;
+      return (a.col ?? 0) - (b.col ?? 0);
+    });
+}
+
+function compactCreateColumnPayload(parts) {
+  const out = {
+    workflow_stage_id: String(parts.workflow_stage_id),
+    column_name: parts.column_name,
+  };
+  if (parts.parent_column_id != null && parts.parent_column_id !== '') {
+    out.parent_column_id = String(parts.parent_column_id);
+  }
+  if (parts.insert_after_column_id != null && parts.insert_after_column_id !== '') {
+    out.insert_after_column_id = String(parts.insert_after_column_id);
+  }
+  return out;
+}
+
+/**
+ * Build POST body for create_workflow_column from current swimlane stage list and UI action.
+ * @param {'left'|'right'|'subcolumn'} action
+ * @returns {{ ok: true, payload: object } | { ok: false, message: string }}
+ */
+export function buildCreateWorkflowColumnPayload(stages, targetInternalId, action) {
+  const target = findStageByInternalId(stages, targetInternalId);
+  if (!target) {
+    return { ok: false, message: 'Column not found.' };
+  }
+  const workflowStageId = target.stageId != null && target.stageId !== '' ? String(target.stageId) : null;
+  if (!workflowStageId) {
+    return { ok: false, message: 'Missing workflow stage. Load the board from the server before adding columns.' };
+  }
+  if (target.columnId == null || target.columnId === '') {
+    return { ok: false, message: 'Missing column id. Load the board from the server before adding columns.' };
+  }
+
+  const columnName = DEFAULT_NEW_COLUMN_NAME;
+  const base = { workflow_stage_id: workflowStageId, column_name: columnName };
+
+  if (action === 'subcolumn') {
+    const row = target.row ?? 0;
+    if (row === 0) {
+      const children = getChildStagesUnderParent(stages, target);
+      if (children.length === 0) {
+        return {
+          ok: true,
+          payload: compactCreateColumnPayload({
+            ...base,
+            parent_column_id: String(target.columnId),
+          }),
+        };
+      }
+      const last = children[children.length - 1];
+      return {
+        ok: true,
+        payload: compactCreateColumnPayload({
+          ...base,
+          parent_column_id: String(target.columnId),
+          insert_after_column_id: String(last.columnId),
+        }),
+      };
+    }
+
+    const parent = findParentRow0Stage(stages, target);
+    if (!parent || parent.columnId == null || parent.columnId === '') {
+      return { ok: false, message: 'Parent column not found for stacked column.' };
+    }
+    return {
+      ok: true,
+      payload: compactCreateColumnPayload({
+        ...base,
+        parent_column_id: String(parent.columnId),
+        insert_after_column_id: String(target.columnId),
+      }),
+    };
+  }
+
+  const row = target.row ?? 0;
+  if (row === 0) {
+    const siblings = stages
+      .filter(
+        (s) =>
+          s.area === target.area &&
+          String(s.stageId ?? '') === String(target.stageId ?? '') &&
+          (s.row ?? 0) === 0
+      )
+      .sort((a, b) => (a.col ?? 0) - (b.col ?? 0));
+    const idx = siblings.findIndex((s) => s.id === target.id || String(s.id) === String(target.id));
+    if (action === 'right') {
+      return {
+        ok: true,
+        payload: compactCreateColumnPayload({
+          ...base,
+          insert_after_column_id: String(target.columnId),
+        }),
+      };
+    }
+    if (action === 'left') {
+      if (idx <= 0) {
+        return { ok: true, payload: compactCreateColumnPayload({ ...base }) };
+      }
+      const prev = siblings[idx - 1];
+      return {
+        ok: true,
+        payload: compactCreateColumnPayload({
+          ...base,
+          insert_after_column_id: String(prev.columnId),
+        }),
+      };
+    }
+  }
+
+  if (row >= 1) {
+    const parent = findParentRow0Stage(stages, target);
+    if (!parent || parent.columnId == null || parent.columnId === '') {
+      return { ok: false, message: 'Parent column not found.' };
+    }
+    const pCol = parent.col ?? 0;
+    const pSpan = parent.colSpan ?? 1;
+    const siblings = stages
+      .filter(
+        (s) =>
+          s.area === target.area &&
+          String(s.stageId ?? '') === String(target.stageId ?? '') &&
+          (s.row ?? 0) === row &&
+          (s.col ?? 0) >= pCol &&
+          (s.col ?? 0) < pCol + pSpan
+      )
+      .sort((a, b) => (a.col ?? 0) - (b.col ?? 0));
+    const idx = siblings.findIndex((s) => s.id === target.id || String(s.id) === String(target.id));
+    if (action === 'right') {
+      return {
+        ok: true,
+        payload: compactCreateColumnPayload({
+          ...base,
+          parent_column_id: String(parent.columnId),
+          insert_after_column_id: String(target.columnId),
+        }),
+      };
+    }
+    if (action === 'left') {
+      if (idx <= 0) {
+        return {
+          ok: true,
+          payload: compactCreateColumnPayload({
+            ...base,
+            parent_column_id: String(parent.columnId),
+          }),
+        };
+      }
+      const prev = siblings[idx - 1];
+      return {
+        ok: true,
+        payload: compactCreateColumnPayload({
+          ...base,
+          parent_column_id: String(parent.columnId),
+          insert_after_column_id: String(prev.columnId),
+        }),
+      };
+    }
+  }
+
+  return { ok: false, message: 'Unsupported column action.' };
+}

@@ -5,15 +5,13 @@ import '../../design/scss/EditWorkflows.scss';
 import CreateWorkflowModal from './CreateWorkflowModal';
 import WorkflowBoard from './WorkflowBoard';
 import {
-  getNextStageId,
   getColStackKey,
-  insertColumnLeft,
-  insertColumnRight,
-  insertSubcolumnBelow,
+  buildCreateWorkflowColumnPayload,
   removeStage,
   normalizeWorkflowData,
 } from './workflow.utils';
 import useWorkFlowReducer from '../../store/WorkFlowReducer';
+import useAlertReducer from '../../store/AlertReducer';
 
 const DEFAULT_WORKFLOWS = [
   {
@@ -46,10 +44,13 @@ function EditWorkflows() {
     createSwimlane,
     renameSwimlane,
     deleteSwimlane,
+    createWorkflowColumn,
     workflows: apiWorkflows,
     isLoading,
     addEditLoader,
   } = useWorkFlowReducer();
+
+  const { error: showError } = useAlertReducer();
 
   const [boardName, setBoardName] = useState('Team workspace');
   const [description, setDescription] = useState('There is no description');
@@ -77,23 +78,6 @@ function EditWorkflows() {
     }
 
     const normalizedWorkflows = normalizeWorkflowData(apiWorkflows);
-    if (process.env.NODE_ENV !== 'production') {
-      const rawCount = Array.isArray(apiWorkflows) ? apiWorkflows.length : 0;
-      // Keep debug output focused on payload sizing and mapping correctness.
-      console.log('[EditWorkflows] Raw API workflows count:', rawCount);
-      console.log('[EditWorkflows] Normalized workflows count:', normalizedWorkflows.length);
-      normalizedWorkflows.forEach((workflow) => {
-        const swimlaneCount = Array.isArray(workflow?.swimlanes) ? workflow.swimlanes.length : 0;
-        const stageCount = workflow.swimlanes?.reduce(
-          (sum, swimlane) => sum + (Array.isArray(swimlane?.stages) ? swimlane.stages.length : 0),
-          0
-        ) ?? 0;
-        console.log(
-          `[EditWorkflows] Workflow mapped: id=${workflow.id}, name="${workflow.name}", swimlanes=${swimlaneCount}, stageColumns=${stageCount}`
-        );
-      });
-    }
-
     setWorkflows(normalizedWorkflows);
   }, [apiWorkflows]);
 
@@ -134,68 +118,39 @@ function EditWorkflows() {
     }
   };
 
-  const handleAddColumnLeft = (workflowId, swimlaneId, stageId) => {
-    // Reset hover / stacked rail state so insertion rails don't use stale metrics
+  const runCreateWorkflowColumn = (workflowId, swimlaneId, stageId, action) => {
+    if (addEditLoader) return;
     setHoveredColumn(null);
     setStackedRailMetrics(null);
-
-    setWorkflows((prevWorkflows) =>
-      prevWorkflows.map((workflow) => {
-        if (workflow.id !== workflowId) return workflow;
-        const newId = getNextStageId(workflow);
-        return {
-          ...workflow,
-          swimlanes: workflow.swimlanes.map((swimlane) => {
-            if (swimlane.id !== swimlaneId) return swimlane;
-            const newStages = insertColumnLeft(swimlane.stages, stageId, newId);
-            return { ...swimlane, stages: newStages };
-          }),
-        };
-      })
+    if (!boardId) {
+      showError('Open a board (boardId in URL) to add columns.');
+      return;
+    }
+    const workflow = workflows.find((w) => w.id === workflowId || String(w.id) === String(workflowId));
+    if (!workflow) return;
+    const swimlane = workflow.swimlanes.find(
+      (sl) => sl.id === swimlaneId || String(sl.id) === String(swimlaneId)
     );
+    if (!swimlane) return;
+    const built = buildCreateWorkflowColumnPayload(swimlane.stages, stageId, action);
+    if (!built.ok) {
+      showError(built.message);
+      return;
+    }
+    createWorkflowColumn({
+      body: built.payload,
+      cb: () => getWorkflowByBoard({ boardId }),
+    });
   };
 
-  const handleAddColumnRight = (workflowId, swimlaneId, stageId) => {
-    // Reset hover / stacked rail state so insertion rails don't use stale metrics
-    setHoveredColumn(null);
-    setStackedRailMetrics(null);
+  const handleAddColumnLeft = (workflowId, swimlaneId, stageId) =>
+    runCreateWorkflowColumn(workflowId, swimlaneId, stageId, 'left');
 
-    setWorkflows((prevWorkflows) =>
-      prevWorkflows.map((workflow) => {
-        if (workflow.id !== workflowId) return workflow;
-        const newId = getNextStageId(workflow);
-        return {
-          ...workflow,
-          swimlanes: workflow.swimlanes.map((swimlane) => {
-            if (swimlane.id !== swimlaneId) return swimlane;
-            const newStages = insertColumnRight(swimlane.stages, stageId, newId);
-            return { ...swimlane, stages: newStages };
-          }),
-        };
-      })
-    );
-  };
+  const handleAddColumnRight = (workflowId, swimlaneId, stageId) =>
+    runCreateWorkflowColumn(workflowId, swimlaneId, stageId, 'right');
 
-  const handleAddSubcolumn = (workflowId, swimlaneId, stageId) => {
-    // Reset hover / stacked rail state so insertion rails don't use stale metrics
-    setHoveredColumn(null);
-    setStackedRailMetrics(null);
-
-    setWorkflows((prevWorkflows) =>
-      prevWorkflows.map((workflow) => {
-        if (workflow.id !== workflowId) return workflow;
-        const newId = getNextStageId(workflow);
-        return {
-          ...workflow,
-          swimlanes: workflow.swimlanes.map((swimlane) => {
-            if (swimlane.id !== swimlaneId) return swimlane;
-            const newStages = insertSubcolumnBelow(swimlane.stages, stageId, newId);
-            return { ...swimlane, stages: newStages };
-          }),
-        };
-      })
-    );
-  };
+  const handleAddSubcolumn = (workflowId, swimlaneId, stageId) =>
+    runCreateWorkflowColumn(workflowId, swimlaneId, stageId, 'subcolumn');
 
   const handleStartEditWorkflow = (workflowId, currentName) => {
     setEditingWorkflowId(workflowId);
@@ -554,6 +509,7 @@ function EditWorkflows() {
                 <div className="workflow-board">
                   <WorkflowBoard
                     workflow={workflow}
+                    columnActionsDisabled={addEditLoader}
                     hoveredColumn={hoveredColumn}
                     stackedRailMetrics={stackedRailMetrics}
                     editingStageId={editingStageId}

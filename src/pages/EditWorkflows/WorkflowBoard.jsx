@@ -15,6 +15,7 @@ function getAreaHeaderColorFromStages(swimlane, area) {
  */
 function WorkflowBoard({
   workflow,
+  columnActionsDisabled = false,
   stageCellWidth = STAGE_CELL_WIDTH,
   stageGap = STAGE_GAP,
   hoveredColumn,
@@ -111,6 +112,7 @@ function WorkflowBoard({
                 onDeleteStage={onDeleteStage}
                 onStageLimitChange={onStageLimitChange}
                 onStageCardsPerRowChange={onStageCardsPerRowChange}
+                columnActionsDisabled={columnActionsDisabled}
               />
             );
           })}
