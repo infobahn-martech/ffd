@@ -65,7 +65,7 @@ function WorkspacesSideNavPanel({ isDarkMode, onNewDashboard }) {
 
   return (
     <aside className={asideClass} aria-label="Workspaces navigation">
-      <button
+      {/* <button
         type="button"
         className="kanban-sidebar-workspaces-collapse"
         onClick={() => setCollapsed((c) => !c)}
@@ -74,7 +74,7 @@ function WorkspacesSideNavPanel({ isDarkMode, onNewDashboard }) {
         title={collapsed ? 'Expand sidebar' : 'Collapse sidebar'}
       >
         {collapsed ? <FiChevronRight size={14} /> : <FiChevronLeft size={14} />}
-      </button>
+      </button> */}
 
       {!collapsed ? (
         <div className="kanban-sidebar-workspaces-inner">
