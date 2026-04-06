@@ -408,6 +408,11 @@
     margin-bottom: 16px;
     max-height: 60vh;
   }
+
+  &--disabled {
+    max-height: none;
+    overflow: visible;
+  }
 }
 
 .workflow-header {
