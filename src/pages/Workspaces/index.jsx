@@ -743,12 +743,6 @@ function Workspaces() {
           </div>
           <div className="workspaces-dashboard-canvas" style={dashboardCanvasStyle}>
             <div className="workspaces-dashboard-inner">
-              <div className="workspaces-header workspaces-header--dashboard">
-                <div className="workspaces-header-left">
-                  <h1 className="workspaces-title">{currentDashboard?.dashboard_name ?? 'Dashboard'}</h1>
-                  {headerActions}
-                </div>
-              </div>
               {workspacesListSection}
             </div>
           </div>
