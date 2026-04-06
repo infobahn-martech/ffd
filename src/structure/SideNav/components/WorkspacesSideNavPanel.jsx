@@ -71,6 +71,7 @@ function WorkspacesSideNavPanel({ isDarkMode, onNewDashboard }) {
         onClick={() => setCollapsed((c) => !c)}
         aria-expanded={!collapsed}
         aria-label={collapsed ? 'Expand sidebar' : 'Collapse sidebar'}
+        title={collapsed ? 'Expand sidebar' : 'Collapse sidebar'}
       >
         {collapsed ? <FiChevronRight size={14} /> : <FiChevronLeft size={14} />}
       </button>
@@ -96,6 +97,8 @@ function WorkspacesSideNavPanel({ isDarkMode, onNewDashboard }) {
               autoComplete="off"
             />
           </div>
+
+          <hr className="kanban-sidebar-workspaces-divider" aria-hidden />
 
           <ul className="kanban-sidebar-workspaces-list">
             {filtered.map((ws) => (

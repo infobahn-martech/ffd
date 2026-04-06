@@ -637,7 +637,7 @@
     align-items: stretch;
     justify-content: flex-start;
     gap: 0;
-    padding: 16px 14px 20px;
+    padding: 16px 16px 20px;
     margin-top: 87px;
     height: calc(100vh - 87px);
     border-top-right-radius: 0;
@@ -661,49 +661,64 @@
 
 .kanban-sidebar-workspaces-collapse {
     position: absolute;
-    right: -14px;
-    top: 24px;
-    width: 28px;
-    height: 28px;
+    right: 0;
+    top: 23px;
+    width: 26px;
+    height: 26px;
     border-radius: 50%;
-    border: 1px solid #e2e8f0;
-    background: #fff;
-    color: #475569;
+    border: none;
+    background: #1e293b;
+    color: #fff;
     display: flex;
     align-items: center;
     justify-content: center;
     cursor: pointer;
-    box-shadow: 0 1px 4px rgba(15, 23, 42, 0.12);
-    z-index: 2;
+    box-shadow:
+        0 2px 10px rgba(15, 23, 42, 0.35),
+        0 0 0 1px rgba(15, 23, 42, 0.2);
+    z-index: 11;
     padding: 0;
-    transition: background 0.2s ease, color 0.2s ease, transform 0.15s ease;
+    transform: translateX(50%);
+    transition: background 0.2s ease, box-shadow 0.2s ease, transform 0.15s ease;
+
+    svg {
+        stroke-width: 2.25;
+    }
 
     &:hover {
-        background: #eef2ff;
-        color: #00368c;
-        border-color: #c7d2fe;
+        background: #334155;
+        box-shadow:
+            0 3px 14px rgba(15, 23, 42, 0.4),
+            0 0 0 1px rgba(15, 23, 42, 0.15);
+    }
+
+    &:active {
+        transform: translateX(50%) scale(0.96);
     }
 }
 
 .kanban-sidebar.kanban-sidebar--workspaces.kanban-sidebar-dark .kanban-sidebar-workspaces-collapse {
-    background: #18181b;
-    border-color: rgba(255, 255, 255, 0.12);
-    color: #e4e4e7;
+    background: #09090b;
+    color: #fafafa;
+    box-shadow:
+        0 2px 10px rgba(0, 0, 0, 0.45),
+        0 0 0 1px rgba(255, 255, 255, 0.08);
 
     &:hover {
-        background: rgba(255, 255, 255, 0.08);
-        color: #fafafa;
+        background: #27272a;
+        color: #fff;
     }
 }
 
 .kanban-sidebar-workspaces-inner {
     display: flex;
     flex-direction: column;
-    gap: 14px;
-    min-height: 0;
-    flex: 1;
+    align-items: stretch;
+    gap: 12px;
     width: 100%;
-    overflow: hidden;
+    flex: 0 1 auto;
+    min-height: 0;
+    overflow: visible;
 }
 
 .kanban-sidebar-workspaces-nav {
@@ -715,6 +730,7 @@
     align-items: center;
     gap: 10px;
     padding: 10px 14px;
+    margin-right: 8px;
     border-radius: 999px;
     font-size: 14px;
     font-weight: 600;
@@ -732,6 +748,17 @@
         flex-shrink: 0;
         color: inherit;
     }
+}
+
+.kanban-sidebar-workspaces-divider {
+    display: block;
+    width: 100%;
+    height: 0;
+    margin: 2px 0 4px;
+    padding: 0;
+    border: none;
+    border-top: 1px solid #e2e8f0;
+    flex-shrink: 0;
 }
 
 .kanban-sidebar-workspaces-filter {
@@ -778,10 +805,11 @@
 .kanban-sidebar-workspaces-list {
     list-style: none;
     margin: 0;
-    padding: 4px 0 0;
+    padding: 0;
+    overflow-x: hidden;
     overflow-y: auto;
-    flex: 1;
-    min-height: 80px;
+    flex: 0 1 auto;
+    max-height: calc(100vh - 300px);
     scrollbar-width: thin;
     scrollbar-color: #cbd5e1 transparent;
 
@@ -798,8 +826,9 @@
 .kanban-sidebar-workspaces-row {
     display: flex;
     align-items: center;
-    gap: 4px;
-    margin-bottom: 6px;
+    gap: 2px;
+    margin: 0 0 2px;
+    min-height: 36px;
 }
 
 .kanban-sidebar-workspaces-row-main {
@@ -808,7 +837,7 @@
     display: flex;
     align-items: center;
     gap: 10px;
-    padding: 8px 10px;
+    padding: 6px 8px;
     border: none;
     border-radius: 10px;
     background: transparent;
@@ -841,8 +870,8 @@
 
 .kanban-sidebar-workspaces-row-menu {
     flex-shrink: 0;
-    width: 32px;
-    height: 32px;
+    width: 30px;
+    height: 30px;
     display: flex;
     align-items: center;
     justify-content: center;
@@ -863,25 +892,27 @@
 .kanban-sidebar-workspaces-new-db {
     flex-shrink: 0;
     width: 100%;
-    display: flex;
+    display: inline-flex;
     align-items: center;
     justify-content: center;
-    gap: 8px;
-    padding: 11px 14px;
-    margin-top: auto;
-    border-radius: 10px;
-    border: 1px solid rgba(0, 54, 140, 0.35);
+    gap: 6px;
+    padding: 9px 16px;
+    margin-top: 6px;
+    border-radius: 999px;
+    border: 1px solid rgba(0, 54, 140, 0.22);
     background: #fff;
     color: #00368c;
-    font-size: 14px;
+    font-size: 13px;
     font-weight: 600;
     cursor: pointer;
     font-family: 'Inter', 'Plus Jakarta Sans', sans-serif;
-    transition: background 0.2s ease, box-shadow 0.2s ease;
+    letter-spacing: 0.01em;
+    transition: background 0.2s ease, box-shadow 0.2s ease, border-color 0.2s ease;
 
     &:hover {
         background: rgba(0, 54, 140, 0.04);
-        box-shadow: 0 2px 8px rgba(0, 54, 140, 0.12);
+        border-color: rgba(0, 54, 140, 0.32);
+        box-shadow: 0 1px 4px rgba(0, 54, 140, 0.1);
     }
 }
 
