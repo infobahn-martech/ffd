@@ -3216,6 +3216,29 @@ body.kanban-workspaces-sidebar-open .workspaces-header .workspaces-header-right 
   font-weight: 500;
 }
 
+.workspaces-dashboard-toolbar-link {
+  background: none;
+  border: none;
+  padding: 0;
+  margin: 0;
+  font: inherit;
+  font-size: inherit;
+  font-weight: inherit;
+  color: inherit;
+  cursor: pointer;
+  text-decoration: none;
+
+  &:hover {
+    text-decoration: underline;
+  }
+
+  &:focus-visible {
+    outline: 2px solid rgba(0, 54, 140, 0.35);
+    outline-offset: 2px;
+    border-radius: 4px;
+  }
+}
+
 .workspaces-dashboard-canvas {
   min-height: 420px;
   border-radius: 16px;

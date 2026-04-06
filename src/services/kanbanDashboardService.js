@@ -17,10 +17,30 @@ const changeBackground = (dashboardId, data) =>
 const deleteDashboard = (dashboardId) =>
   Gateway.post(`/kanban_dashboard/delete_dashboard/${dashboardId}`);
 
+/** Catalog of widgets available to add to dashboards (backend path assumed; adjust if API differs). */
+const listAllWidgets = () => Gateway.get('/kanban_dashboard/list_all_widgets');
+
+const addWorkspaceToDashboard = (dashboardId, { workspace_id }) =>
+  Gateway.post(`/kanban_dashboard/add_workspace_to_dashboard/${dashboardId}`, { workspace_id });
+
+const removeWorkspaceFromDashboard = (dashboardId, { workspace_id }) =>
+  Gateway.post(`/kanban_dashboard/remove_workspace_from_dashboard/${dashboardId}`, { workspace_id });
+
+const addWidgetToDashboard = (dashboardId, { widget_id }) =>
+  Gateway.post(`/kanban_dashboard/add_widget_to_dashboard/${dashboardId}`, { widget_id });
+
+const removeWidgetFromDashboard = (dashboardId, { widget_id }) =>
+  Gateway.post(`/kanban_dashboard/remove_widget_from_dashboard/${dashboardId}`, { widget_id });
+
 export default {
   createDashboard,
   listAllDashboards,
   renameDashboard,
   changeBackground,
   deleteDashboard,
+  listAllWidgets,
+  addWorkspaceToDashboard,
+  removeWorkspaceFromDashboard,
+  addWidgetToDashboard,
+  removeWidgetFromDashboard,
 };

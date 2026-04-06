@@ -10,7 +10,9 @@ import ClockIcon from '../../assets/images/ClockIcon.svg';
 import filterIcon from '../../assets/images/filter.svg';
 import NewWorkspaceModal from './NewWorkspaceModal';
 import useWorkSpaceReducer from '../../store/WorkSpaceReducer';
+import kanbanDashboardService from '../../services/kanbanDashboardService';
 import AddBoardModal from './AddBoardModal';
+import DashboardAddItemsModal from './DashboardAddItemsModal';
 import ArchivedWorkspacesModal from './ArchivedWorkspacesModal';
 import RenameBoardModal from './RenameBoardModal';
 import RenameWorkspaceModal from './RenameWorkspaceModal';
@@ -78,10 +80,15 @@ function Workspaces() {
   const {
     workspaces: apiWorkspaces,
     isLoading: workspacesLoading,
+    errorMessage: workspacesErrorMessage,
     dashboards: apiDashboards,
     dashboardsLoading,
     listAllWorkspaces,
     listAllDashboards,
+    addWorkspaceToDashboard,
+    removeWorkspaceFromDashboard,
+    addWidgetToDashboard,
+    removeWidgetFromDashboard,
     createWorkspace,
     createBoard,
     renameWorkspace,
@@ -103,6 +110,24 @@ function Workspaces() {
     }
     return transformWorkspaces(apiWorkspaces);
   }, [isDashboardView, currentDashboard, apiWorkspaces]);
+
+  const dashboardWorkspaceModalRows = useMemo(() => {
+    if (!Array.isArray(apiWorkspaces)) return [];
+    const onDashboard = new Set(
+      (currentDashboard?.workspaces ?? []).map((w) => String(w.workspace_id ?? w.id))
+    );
+    return apiWorkspaces.map((w) => ({
+      id: w.workspace_id,
+      name: w.workspace_name ?? 'Workspace',
+      addedToDashboard: onDashboard.has(String(w.workspace_id)),
+    }));
+  }, [apiWorkspaces, currentDashboard]);
+
+  const dashboardWidgetIdSet = useMemo(() => {
+    const raw = currentDashboard?.widgets ?? currentDashboard?.dashboard_widgets ?? [];
+    if (!Array.isArray(raw)) return new Set();
+    return new Set(raw.map((w) => String(w.widget_id ?? w.id ?? w.widgetId)));
+  }, [currentDashboard]);
 
   // Find the first workspace with boards to set as initially expanded
   const firstWorkspaceWithBoards = workspacesData.find((workspace) => workspace.boards?.length > 0);
@@ -137,8 +162,27 @@ function Workspaces() {
   const [selectedBoardForRename, setSelectedBoardForRename] = useState(null);
   const [selectedWorkspaceForRename, setSelectedWorkspaceForRename] = useState(null);
   const [isNavigating, setIsNavigating] = useState(false);
+  const [showDashboardItemsModal, setShowDashboardItemsModal] = useState(false);
+  const [dashboardItemsModalType, setDashboardItemsModalType] = useState('workspace');
+  const [dashboardModalSearch, setDashboardModalSearch] = useState('');
+  const [dashboardModalFilterChip, setDashboardModalFilterChip] = useState(true);
+  const [pendingDashboardToggleId, setPendingDashboardToggleId] = useState(null);
+  const [widgetCatalog, setWidgetCatalog] = useState([]);
+  const [widgetCatalogLoading, setWidgetCatalogLoading] = useState(false);
+  const [widgetCatalogError, setWidgetCatalogError] = useState(null);
+  const [widgetCatalogRetryKey, setWidgetCatalogRetryKey] = useState(0);
   const menuRef = useRef(null);
   const workspaceMenuRef = useRef(null);
+
+  const dashboardWidgetModalRows = useMemo(
+    () =>
+      widgetCatalog.map((w) => ({
+        id: w.id,
+        name: w.name,
+        addedToDashboard: dashboardWidgetIdSet.has(String(w.id)),
+      })),
+    [widgetCatalog, dashboardWidgetIdSet]
+  );
 
   const filteredWorkspaces = workspacesData.filter((workspace) =>
     workspace.name.toLowerCase().includes(filterValue.toLowerCase())
@@ -282,6 +326,51 @@ function Workspaces() {
   const handleArchiveBoard = (boardId) => {
     setOpenMenuId(null);
     archiveBoard({ board_id: boardId });
+  };
+
+  const openDashboardWorkspaceModal = () => {
+    setDashboardItemsModalType('workspace');
+    setDashboardModalSearch('');
+    setDashboardModalFilterChip(true);
+    setShowDashboardItemsModal(true);
+  };
+
+  const openDashboardWidgetModal = () => {
+    setDashboardItemsModalType('widget');
+    setDashboardModalSearch('');
+    setDashboardModalFilterChip(true);
+    setShowDashboardItemsModal(true);
+  };
+
+  const handleDashboardModalToggle = async (itemId, nextOn) => {
+    if (!currentDashboard) return;
+    const dashboard_id = currentDashboard.dashboard_id;
+    const idKey = String(itemId);
+    setPendingDashboardToggleId(idKey);
+    try {
+      if (dashboardItemsModalType === 'workspace') {
+        if (nextOn) {
+          await addWorkspaceToDashboard({ dashboard_id, workspace_id: itemId });
+        } else {
+          await removeWorkspaceFromDashboard({ dashboard_id, workspace_id: itemId });
+        }
+      } else if (nextOn) {
+        await addWidgetToDashboard({ dashboard_id, widget_id: itemId });
+      } else {
+        await removeWidgetFromDashboard({ dashboard_id, widget_id: itemId });
+      }
+    } finally {
+      setPendingDashboardToggleId(null);
+    }
+  };
+
+  const handleDashboardModalAddClick = () => {
+    if (dashboardItemsModalType === 'workspace') {
+      setShowDashboardItemsModal(false);
+      setShowNewWorkspaceModal(true);
+      return;
+    }
+    // TODO: open create widget flow when available
   };
 
   const dashboardNotFound = isDashboardView && !dashboardsLoading && !currentDashboard;
@@ -737,9 +826,13 @@ function Workspaces() {
       ) : (
         <>
           <div className="workspaces-dashboard-toolbar">
-            <span>Add Workspace</span>
+            <button type="button" className="workspaces-dashboard-toolbar-link" onClick={openDashboardWorkspaceModal}>
+              Add Workspace
+            </button>
             <span className="workspaces-dashboard-toolbar-sep">/</span>
-            <span>Add Widget</span>
+            <button type="button" className="workspaces-dashboard-toolbar-link" onClick={openDashboardWidgetModal}>
+              Add Widget
+            </button>
           </div>
           <div className="workspaces-dashboard-canvas" style={dashboardCanvasStyle}>
             <div className="workspaces-dashboard-inner">
@@ -800,6 +893,44 @@ function Workspaces() {
           onSave={(newName) => handleSaveRenameWorkspace(selectedWorkspaceForRename.id, newName)}
           currentName={selectedWorkspaceForRename.name}
           isSaving={addEditLoader}
+        />
+      )}
+
+      {isDashboardView && (
+        <DashboardAddItemsModal
+          show={showDashboardItemsModal}
+          onClose={() => setShowDashboardItemsModal(false)}
+          title={
+            dashboardItemsModalType === 'workspace'
+              ? `Dashboard workspaces (${currentDashboard?.dashboard_name ?? 'Dashboard'})`
+              : `Dashboard widgets (${currentDashboard?.dashboard_name ?? 'Dashboard'})`
+          }
+          columnLabel={dashboardItemsModalType === 'workspace' ? 'Workspace' : 'Widget'}
+          rows={dashboardItemsModalType === 'workspace' ? dashboardWorkspaceModalRows : dashboardWidgetModalRows}
+          loading={dashboardItemsModalType === 'workspace' ? workspacesLoading : widgetCatalogLoading}
+          fetchError={
+            dashboardItemsModalType === 'workspace'
+              ? !workspacesLoading && workspacesErrorMessage
+                ? workspacesErrorMessage
+                : null
+              : widgetCatalogError
+          }
+          onRetry={
+            dashboardItemsModalType === 'workspace'
+              ? () => listAllWorkspaces()
+              : () => setWidgetCatalogRetryKey((k) => k + 1)
+          }
+          searchText={dashboardModalSearch}
+          onSearchChange={setDashboardModalSearch}
+          filterChipActive={dashboardModalFilterChip}
+          onFilterChipRemove={() => setDashboardModalFilterChip(false)}
+          onFilterToolbarClick={() => {
+            if (!dashboardModalFilterChip) setDashboardModalFilterChip(true);
+          }}
+          pendingToggleId={pendingDashboardToggleId}
+          onToggle={handleDashboardModalToggle}
+          onAddClick={handleDashboardModalAddClick}
+          addButtonLabel={dashboardItemsModalType === 'workspace' ? 'Create workspace' : 'Add widget'}
         />
       )}
     </div>

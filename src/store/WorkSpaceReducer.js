@@ -36,7 +36,7 @@ const useWorkSpaceReducer = create((set, get) => ({
       set({ isLoading: true });
       const { data } = await workSpaceService.listAllWorkspaces();
       const workspaces = data?.status === 'success' ? data.data ?? [] : [];
-      set({ workspaces, isLoading: false });
+      set({ workspaces, isLoading: false, errorMessage: '' });
     } catch (error) {
       set({ errorMessage: error.message, isLoading: false, workspaces: [] });
     }
@@ -270,6 +270,54 @@ const useWorkSpaceReducer = create((set, get) => ({
           : w
       ),
     })),
+  addWorkspaceToDashboard: async ({ dashboard_id, workspace_id, cb }) => {
+    try {
+      const { data } = await kanbanDashboardService.addWorkspaceToDashboard(dashboard_id, { workspace_id });
+      const { success } = useAlertReducer.getState();
+      success(data?.message ?? 'Workspace added to dashboard');
+      cb && cb();
+      get().listAllDashboards();
+    } catch (err) {
+      const { error } = useAlertReducer.getState();
+      error(err?.response?.data?.message ?? err.message ?? 'Failed to add workspace to dashboard');
+    }
+  },
+  removeWorkspaceFromDashboard: async ({ dashboard_id, workspace_id, cb }) => {
+    try {
+      const { data } = await kanbanDashboardService.removeWorkspaceFromDashboard(dashboard_id, { workspace_id });
+      const { success } = useAlertReducer.getState();
+      success(data?.message ?? 'Workspace removed from dashboard');
+      cb && cb();
+      get().listAllDashboards();
+    } catch (err) {
+      const { error } = useAlertReducer.getState();
+      error(err?.response?.data?.message ?? err.message ?? 'Failed to remove workspace from dashboard');
+    }
+  },
+  addWidgetToDashboard: async ({ dashboard_id, widget_id, cb }) => {
+    try {
+      const { data } = await kanbanDashboardService.addWidgetToDashboard(dashboard_id, { widget_id });
+      const { success } = useAlertReducer.getState();
+      success(data?.message ?? 'Widget added to dashboard');
+      cb && cb();
+      get().listAllDashboards();
+    } catch (err) {
+      const { error } = useAlertReducer.getState();
+      error(err?.response?.data?.message ?? err.message ?? 'Failed to add widget to dashboard');
+    }
+  },
+  removeWidgetFromDashboard: async ({ dashboard_id, widget_id, cb }) => {
+    try {
+      const { data } = await kanbanDashboardService.removeWidgetFromDashboard(dashboard_id, { widget_id });
+      const { success } = useAlertReducer.getState();
+      success(data?.message ?? 'Widget removed from dashboard');
+      cb && cb();
+      get().listAllDashboards();
+    } catch (err) {
+      const { error } = useAlertReducer.getState();
+      error(err?.response?.data?.message ?? err.message ?? 'Failed to remove widget from dashboard');
+    }
+  },
 }));
 
 export default useWorkSpaceReducer;
