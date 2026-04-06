@@ -22,9 +22,9 @@ const useWorkFlowReducer = create((set) => ({
             set({
                 errorMessage: err?.response?.data?.message ?? err.message,
                 isLoading: false,
+                workflows: [],
             });
-            const { error } = useAlertReducer.getState();
-            error(err?.response?.data?.message ?? err.message);
+            // List load failures are surfaced on Edit Workflows (empty state), not as a toast.
         }
     },
 

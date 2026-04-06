@@ -25,6 +25,16 @@
   display: flex;
   flex-direction: column;
 
+  &--compact-stack {
+    .workflows-config-section {
+      flex: 0 0 auto;
+    }
+
+    .workflows-actions-bottom {
+      margin-top: 20px;
+    }
+  }
+
   // Transparent scrollbar
   scrollbar-width: thin;
   scrollbar-color: transparent transparent;
@@ -232,6 +242,13 @@
   min-width: 0;
   background: #f8f9fc;
 
+  &--empty-workflow {
+    padding-top: 20px;
+    background-color: #f1f4fa;
+    background-image: radial-gradient(circle at 1px 1px, rgba(0, 54, 140, 0.06) 1px, transparent 0);
+    background-size: 20px 20px;
+  }
+
   .workflows-loading,
   .workflows-empty {
     display: flex;
@@ -240,6 +257,78 @@
     min-height: 200px;
     color: #6b7280;
     font-size: 15px;
+  }
+
+  .workflows-not-found {
+    display: flex;
+    align-items: flex-start;
+    justify-content: stretch;
+    width: 100%;
+    min-height: 0;
+    padding: 0 0 8px;
+  }
+
+  .workflows-not-found-card {
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+    gap: 24px;
+    width: 100%;
+    max-width: none;
+    text-align: left;
+    background: #ffffff;
+    border-radius: 14px;
+    padding: 22px 26px;
+    box-shadow: 0 2px 12px rgba(15, 23, 42, 0.06);
+    border: 1px solid #e2e8f0;
+  }
+
+  .workflows-not-found-icon {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+    width: 64px;
+    height: 64px;
+    border-radius: 12px;
+    background: rgba(0, 54, 140, 0.06);
+    color: #00368c;
+    opacity: 1;
+  }
+
+  .workflows-not-found-copy {
+    flex: 1;
+    min-width: 0;
+  }
+
+  .workflows-not-found-actions {
+    flex-shrink: 0;
+    display: flex;
+    align-items: center;
+  }
+
+  .workflows-not-found-title {
+    margin: 0 0 6px;
+    font-size: 1.2rem;
+    font-weight: 600;
+    letter-spacing: -0.02em;
+    color: #111827;
+  }
+
+  .workflows-not-found-text {
+    margin: 0;
+    font-size: 14px;
+    line-height: 1.5;
+    color: #64748b;
+  }
+
+  .workflows-not-found-cta {
+    width: auto;
+    min-width: 168px;
+    margin: 0;
+    padding-left: 22px;
+    padding-right: 22px;
+    white-space: nowrap;
   }
 
   // Transparent scrollbar
@@ -265,6 +354,26 @@
 
   @media ($sm-767) {
     padding: 16px;
+
+    .workflows-not-found-card {
+      flex-direction: column;
+      align-items: stretch;
+      text-align: center;
+      padding: 24px 20px;
+    }
+
+    .workflows-not-found-icon {
+      margin: 0 auto;
+    }
+
+    .workflows-not-found-actions {
+      justify-content: center;
+    }
+
+    .workflows-not-found-cta {
+      width: 100%;
+      min-width: 0;
+    }
   }
 }
 

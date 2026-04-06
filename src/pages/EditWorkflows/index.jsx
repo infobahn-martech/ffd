@@ -63,15 +63,19 @@ function EditWorkflows() {
   const [editingStageId, setEditingStageId] = useState(null);
   const [editingStageName, setEditingStageName] = useState('');
   const [workflows, setWorkflows] = useState(DEFAULT_WORKFLOWS);
+  const boardId = searchParams.get('boardId');
 
   useEffect(() => {
-    const boardId = searchParams.get('boardId');
     if (boardId) {
       getWorkflowByBoard({ boardId });
     }
-  }, [searchParams, getWorkflowByBoard]);
+  }, [searchParams, getWorkflowByBoard, boardId]);
 
   useEffect(() => {
+    if (apiWorkflows === null) {
+      return;
+    }
+
     const normalizedWorkflows = normalizeWorkflowData(apiWorkflows);
     if (process.env.NODE_ENV !== 'production') {
       const rawCount = Array.isArray(apiWorkflows) ? apiWorkflows.length : 0;
@@ -90,9 +94,7 @@ function EditWorkflows() {
       });
     }
 
-    if (normalizedWorkflows.length > 0) {
-      setWorkflows(normalizedWorkflows);
-    }
+    setWorkflows(normalizedWorkflows);
   }, [apiWorkflows]);
 
   const handleStageBoxMouseEnter = (
@@ -352,14 +354,12 @@ function EditWorkflows() {
   };
 
   const refetchBoardWorkflows = () => {
-    const boardId = searchParams.get('boardId');
     if (boardId) {
       getWorkflowByBoard({ boardId });
     }
   };
 
   const handleCreateWorkflow = ({ workflow_name }) => {
-    const boardId = searchParams.get('boardId');
     if (!boardId || !workflow_name?.trim()) return;
     createWorkflow({
       board_id: boardId,
@@ -425,12 +425,44 @@ function EditWorkflows() {
     });
   };
 
+  const showNoWorkflowEmptyState = Boolean(boardId) && !isLoading && workflows.length === 0;
+
   return (
     <div className="edit-workflows-container">
       <div className="edit-workflows-layout">
-        <div className="workflows-content">
+        <div
+          className={`workflows-content${showNoWorkflowEmptyState ? ' workflows-content--empty-workflow' : ''}`}
+        >
           {isLoading ? (
             <div className="workflows-loading">Loading workflow…</div>
+          ) : showNoWorkflowEmptyState ? (
+            <div className="workflows-not-found">
+              <div className="workflows-not-found-card">
+                <div className="workflows-not-found-icon" aria-hidden>
+                  <svg width="48" height="48" viewBox="0 0 56 56" fill="none" xmlns="http://www.w3.org/2000/svg">
+                    <rect x="8" y="10" width="12" height="36" rx="2" stroke="currentColor" strokeWidth="1.75" />
+                    <rect x="22" y="10" width="12" height="36" rx="2" stroke="currentColor" strokeWidth="1.75" />
+                    <rect x="36" y="10" width="12" height="36" rx="2" stroke="currentColor" strokeWidth="1.75" />
+                    <path d="M11 18h6M29 18h6M43 18h6" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" />
+                  </svg>
+                </div>
+                <div className="workflows-not-found-copy">
+                  <h2 className="workflows-not-found-title">Create your first workflow</h2>
+                  <p className="workflows-not-found-text">
+                    Add a workflow to define stages and swimlanes—then you can fine-tune columns and limits here.
+                  </p>
+                </div>
+                <div className="workflows-not-found-actions">
+                  <button
+                    type="button"
+                    className="workflows-btn workflows-btn-create workflows-not-found-cta"
+                    onClick={() => setShowCreateWorkflowModal(true)}
+                  >
+                    Create workflow
+                  </button>
+                </div>
+              </div>
+            </div>
           ) : workflows.length === 0 ? (
             <div className="workflows-empty">No workflow found. Add boardId to the URL to load a workflow.</div>
           ) : (
@@ -538,13 +570,17 @@ function EditWorkflows() {
           )}
         </div>
 
-        <div className="workflows-sidebar">
-          <button
-            className="workflows-btn workflows-btn-create"
-            onClick={() => setShowCreateWorkflowModal(true)}
-          >
-            Create new workflow
-          </button>
+        <div
+          className={`workflows-sidebar${showNoWorkflowEmptyState ? ' workflows-sidebar--compact-stack' : ''}`}
+        >
+          {!showNoWorkflowEmptyState ? (
+            <button
+              className="workflows-btn workflows-btn-create"
+              onClick={() => setShowCreateWorkflowModal(true)}
+            >
+              Create new workflow
+            </button>
+          ) : null}
 
           <div className="workflows-config-section">
             <h3 className="workflows-config-title">Board Configurations</h3>
