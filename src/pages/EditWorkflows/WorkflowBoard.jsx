@@ -23,6 +23,7 @@ function WorkflowBoard({
   editingStageId,
   editingStageName,
   onStageMouseEnter,
+  onStageMouseLeave,
   onAddColumnLeft,
   onAddColumnRight,
   onAddSubcolumn,
@@ -101,6 +102,7 @@ function WorkflowBoard({
                 editingStageId={editingStageId}
                 editingStageName={editingStageName}
                 onStageMouseEnter={onStageMouseEnter}
+                onStageMouseLeave={onStageMouseLeave}
                 onAddColumnLeft={onAddColumnLeft}
                 onAddColumnRight={onAddColumnRight}
                 onAddSubcolumn={onAddSubcolumn}
@@ -133,6 +135,7 @@ function WorkflowBoard({
           editingStageId={editingStageId}
           editingStageName={editingStageName}
           onStageMouseEnter={onStageMouseEnter}
+          onStageMouseLeave={onStageMouseLeave}
           onAddColumnLeft={onAddColumnLeft}
           onAddColumnRight={onAddColumnRight}
           onAddSubcolumn={onAddSubcolumn}

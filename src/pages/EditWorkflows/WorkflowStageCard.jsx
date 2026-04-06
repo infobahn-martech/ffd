@@ -9,6 +9,7 @@ function WorkflowStageCard({
   swimlaneId,
   workflowId,
   stageColumnKey,
+  colStackKey,
   isStageHovered,
   showAddSubcolumn,
   isSingleInCol,
@@ -16,6 +17,7 @@ function WorkflowStageCard({
   editingStageId,
   editingStageName,
   onStageMouseEnter,
+  onStageMouseLeave,
   onAddColumnLeft,
   onAddColumnRight,
   onAddSubcolumn,
@@ -101,6 +103,7 @@ function WorkflowStageCard({
             stage.colSpan ?? 1
           )
         }
+        onMouseLeave={(e) => onStageMouseLeave?.(e, stageColumnKey, colStackKey)}
       >
         {isStageHovered && showInlineAddButtons && (
           <div className="workflow-insertion-rail workflow-insertion-rail-left">

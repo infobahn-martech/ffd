@@ -26,6 +26,7 @@ function WorkflowAreaGrid({
   editingStageId,
   editingStageName,
   onStageMouseEnter,
+  onStageMouseLeave,
   onAddColumnLeft,
   onAddColumnRight,
   onAddSubcolumn,
@@ -81,6 +82,9 @@ function WorkflowAreaGrid({
                     top: stackedRailMetrics.top,
                     height: stackedRailMetrics.height,
                   }}
+                  onMouseLeave={(e) =>
+                    onStageMouseLeave?.(e, hoveredColumn, colStackKey)
+                  }
                 >
                   <button
                     className="workflow-column-add-btn workflow-column-add-left"
@@ -117,6 +121,9 @@ function WorkflowAreaGrid({
                     top: stackedRailMetrics.top,
                     height: stackedRailMetrics.height,
                   }}
+                  onMouseLeave={(e) =>
+                    onStageMouseLeave?.(e, hoveredColumn, colStackKey)
+                  }
                 >
                   <button
                     className="workflow-column-add-btn workflow-column-add-right"
@@ -187,6 +194,7 @@ function WorkflowAreaGrid({
         const isTopStackedCard = !isSingleInCol && getStableStageId(sortedStagesInCol[0]) === stageStableId;
         const stageGridRow = isSingleInCol ? `1 / span ${globalRows}` : `${stageRow + 1}`;
         const stageColumnKey = getColumnKey(workflowId, swimlane.id, stageStableId);
+        const colStackKey = getColStackKey(workflowId, swimlane.id, area, stageCol);
         const isStageHovered = hoveredColumn === stageColumnKey;
         const showAddSubcolumn = isSingleInCol ? true : !isTopStackedCard;
 
@@ -194,6 +202,7 @@ function WorkflowAreaGrid({
           <div
             key={`${swimlane.id}-${stageStableId}-${stageRow}-${stageCol}`}
             className="workflow-stage-grid-item"
+            data-col-stack-key={colStackKey}
             style={{
               gridColumn: `${stageCol + 1} / span ${stageColSpan}`,
               gridRow: stageGridRow,
@@ -206,6 +215,7 @@ function WorkflowAreaGrid({
               swimlaneId={swimlane.id}
               workflowId={workflowId}
               stageColumnKey={stageColumnKey}
+              colStackKey={colStackKey}
               isStageHovered={isStageHovered}
               showAddSubcolumn={showAddSubcolumn}
               isSingleInCol={isSingleInCol}
@@ -213,6 +223,7 @@ function WorkflowAreaGrid({
               editingStageId={editingStageId}
               editingStageName={editingStageName}
               onStageMouseEnter={onStageMouseEnter}
+              onStageMouseLeave={onStageMouseLeave}
               onAddColumnLeft={onAddColumnLeft}
               onAddColumnRight={onAddColumnRight}
               onAddSubcolumn={onAddSubcolumn}

@@ -10,6 +10,16 @@ import {
   removeStage,
   normalizeWorkflowData,
 } from './workflow.utils';
+
+function isNodeInColumnZone(node, colStackKey) {
+  if (!node || node.nodeType !== 1 || colStackKey == null) return false;
+  let el = node;
+  while (el) {
+    if (el.getAttribute?.('data-col-stack-key') === colStackKey) return true;
+    el = el.parentElement;
+  }
+  return false;
+}
 import useWorkFlowReducer from '../../store/WorkFlowReducer';
 import useAlertReducer from '../../store/AlertReducer';
 
@@ -81,7 +91,18 @@ function EditWorkflows() {
 
     const normalizedWorkflows = normalizeWorkflowData(apiWorkflows);
     setWorkflows(normalizedWorkflows);
+    setHoveredColumn(null);
+    setStackedRailMetrics(null);
   }, [apiWorkflows]);
+
+  useEffect(() => {
+    const clearHover = () => {
+      setHoveredColumn(null);
+      setStackedRailMetrics(null);
+    };
+    window.addEventListener('scroll', clearHover, true);
+    return () => window.removeEventListener('scroll', clearHover, true);
+  }, []);
 
   const handleStageBoxMouseEnter = (
     e,
@@ -114,10 +135,22 @@ function EditWorkflows() {
           height: colRect.bottom - stageRect.top,
           colSpan: stageColSpan ?? 1,
         });
+      } else {
+        setStackedRailMetrics(null);
       }
     } else if (!isStacked) {
       setStackedRailMetrics(null);
     }
+  };
+
+  const handleStageBoxMouseLeave = (e, stageColumnKey, colStackKey) => {
+    const rt = e.relatedTarget;
+    if (isNodeInColumnZone(rt, colStackKey)) return;
+    setHoveredColumn((prev) => (prev === stageColumnKey ? null : prev));
+    setStackedRailMetrics((prev) => {
+      if (!prev || prev.colStackKey !== colStackKey) return prev;
+      return null;
+    });
   };
 
   const runCreateWorkflowColumn = (workflowId, swimlaneId, stageId, action) => {
@@ -614,6 +647,7 @@ function EditWorkflows() {
                       editingStageId={editingStageId}
                       editingStageName={editingStageName}
                       onStageMouseEnter={handleStageBoxMouseEnter}
+                      onStageMouseLeave={handleStageBoxMouseLeave}
                       onAddColumnLeft={handleAddColumnLeft}
                       onAddColumnRight={handleAddColumnRight}
                       onAddSubcolumn={handleAddSubcolumn}
