@@ -207,6 +207,24 @@ const useWorkFlowReducer = create((set) => ({
             error(err?.response?.data?.message ?? err.message);
         }
     },
+
+    removeWorkflowColumn: async ({ column_id, cb }) => {
+        try {
+            set({ addEditLoader: true });
+            const { data } = await workflowService.removeWorkflowColumn(column_id);
+            set({ addEditLoader: false });
+            const { success } = useAlertReducer.getState();
+            success(data && data.message);
+            cb && cb();
+        } catch (err) {
+            set({
+                errorMessage: err?.response?.data?.message ?? err.message,
+                addEditLoader: false,
+            });
+            const { error } = useAlertReducer.getState();
+            error(err?.response?.data?.message ?? err.message);
+        }
+    },
 }));
 
 export default useWorkFlowReducer;

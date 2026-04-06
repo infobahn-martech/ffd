@@ -33,6 +33,9 @@ const createWorkflowColumn = (data) =>
 const renameWorkflowColumn = (columnId, data) =>
     Gateway.post(`/kanban_workflow/rename_workflow_column/${columnId}`, data);
 
+const removeWorkflowColumn = (columnId) =>
+    Gateway.post(`/kanban_workflow/remove_workflow_column/${columnId}`, { column_id: columnId });
+
 export default {
     getWorkflowByBoard,
     renameWorkflow,
@@ -45,4 +48,5 @@ export default {
     deleteSwimlane,
     createWorkflowColumn,
     renameWorkflowColumn,
+    removeWorkflowColumn,
 };

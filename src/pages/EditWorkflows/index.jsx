@@ -46,6 +46,7 @@ function EditWorkflows() {
     deleteSwimlane,
     createWorkflowColumn,
     renameWorkflowColumn,
+    removeWorkflowColumn,
     workflows: apiWorkflows,
     isLoading,
     addEditLoader,
@@ -249,16 +250,33 @@ function EditWorkflows() {
   };
 
   const handleDeleteStage = (workflowId, swimlaneId, stageId) => {
+    if (addEditLoader) return;
+
+    const workflow = workflows.find((w) => w.id === workflowId || String(w.id) === String(workflowId));
+    const swimlane = workflow?.swimlanes.find(
+      (sl) => sl.id === swimlaneId || String(sl.id) === String(swimlaneId)
+    );
+    const stage = swimlane?.stages.find((s) => s.id === stageId || String(s.id) === String(stageId));
+    const columnId = stage?.columnId;
+
+    if (boardId && columnId != null && String(columnId) !== '') {
+      removeWorkflowColumn({
+        column_id: columnId,
+        cb: () => getWorkflowByBoard({ boardId }),
+      });
+      return;
+    }
+
     setWorkflows((prevWorkflows) =>
-      prevWorkflows.map((workflow) => {
-        if (workflow.id !== workflowId) return workflow;
+      prevWorkflows.map((w) => {
+        if (w.id !== workflowId) return w;
         return {
-          ...workflow,
-          swimlanes: workflow.swimlanes.map((swimlane) => {
-            if (swimlane.id !== swimlaneId) return swimlane;
+          ...w,
+          swimlanes: w.swimlanes.map((sl) => {
+            if (sl.id !== swimlaneId) return sl;
             return {
-              ...swimlane,
-              stages: removeStage(swimlane.stages, stageId),
+              ...sl,
+              stages: removeStage(sl.stages, stageId),
             };
           }),
         };
