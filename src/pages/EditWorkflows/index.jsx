@@ -414,217 +414,195 @@ function EditWorkflows() {
 
   return (
     <div className="edit-workflows-container">
-      <div className="edit-workflows-layout">
-        <div
-          className={`workflows-content${showNoWorkflowEmptyState ? ' workflows-content--empty-workflow' : ''}`}
-        >
-          {isLoading ? (
-            <div className="workflows-loading">Loading workflow…</div>
-          ) : showNoWorkflowEmptyState ? (
-            <div className="workflows-not-found">
-              <div className="workflows-not-found-card">
-                <div className="workflows-not-found-icon" aria-hidden>
-                  <svg width="48" height="48" viewBox="0 0 56 56" fill="none" xmlns="http://www.w3.org/2000/svg">
-                    <rect x="8" y="10" width="12" height="36" rx="2" stroke="currentColor" strokeWidth="1.75" />
-                    <rect x="22" y="10" width="12" height="36" rx="2" stroke="currentColor" strokeWidth="1.75" />
-                    <rect x="36" y="10" width="12" height="36" rx="2" stroke="currentColor" strokeWidth="1.75" />
-                    <path d="M11 18h6M29 18h6M43 18h6" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" />
-                  </svg>
+      <div
+        className={`workflows-content${showNoWorkflowEmptyState ? ' workflows-content--empty-workflow' : ''}`}
+      >
+        <div className="workflows-page-toolbar">
+          {/* <div className="workflows-board-config-card">
+            <h3 className="workflows-config-title">Board Configurations</h3>
+            <div className="workflows-board-config-fields">
+              <div className="workflows-config-field">
+                <label className="workflows-config-label">Board name</label>
+                <input
+                  type="text"
+                  className="workflows-config-input"
+                  value={boardName}
+                  onChange={(e) => setBoardName(e.target.value)}
+                />
+              </div>
+              <div className="workflows-config-field">
+                <label className="workflows-config-label">
+                  Description
+                  <button className="workflows-edit-icon" type="button">
+                    <svg width="16" height="16" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
+                      <path
+                        d="M11.3333 2.00004C11.5084 1.82488 11.7163 1.68601 11.9444 1.59128C12.1726 1.49655 12.4163 1.44775 12.6622 1.44775C12.9081 1.44775 13.1518 1.49655 13.38 1.59128C13.6081 1.68601 13.816 1.82488 13.9911 2.00004C14.1663 2.17519 14.3052 2.38313 14.3999 2.61126C14.4946 2.83939 14.5434 3.08309 14.5434 3.32904C14.5434 3.57499 14.4946 3.81869 14.3999 4.04682C14.3052 4.27495 14.1663 4.48289 13.9911 4.65804L5.32444 13.3247L1.33331 14.6667L2.67531 10.6756L11.3333 2.00004Z"
+                        stroke="currentColor"
+                        strokeWidth="1.5"
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                      />
+                    </svg>
+                  </button>
+                </label>
+                <input
+                  type="text"
+                  className="workflows-config-input"
+                  value={description}
+                  onChange={(e) => setDescription(e.target.value)}
+                />
+              </div>
+            </div>
+          </div> */}
+          {!showNoWorkflowEmptyState ? (
+            <div className="workflows-toolbar-actions">
+              <button
+                type="button"
+                className="workflows-btn workflows-btn-create workflows-btn-create--toolbar"
+                onClick={() => setShowCreateWorkflowModal(true)}
+              >
+                Create new workflow
+              </button>
+            </div>
+          ) : null}
+        </div>
+
+        {isLoading ? (
+          <div className="workflows-loading">Loading workflow…</div>
+        ) : showNoWorkflowEmptyState ? (
+          <div className="workflows-not-found">
+            <div className="workflows-not-found-card">
+              <div className="workflows-not-found-icon" aria-hidden>
+                <svg width="48" height="48" viewBox="0 0 56 56" fill="none" xmlns="http://www.w3.org/2000/svg">
+                  <rect x="8" y="10" width="12" height="36" rx="2" stroke="currentColor" strokeWidth="1.75" />
+                  <rect x="22" y="10" width="12" height="36" rx="2" stroke="currentColor" strokeWidth="1.75" />
+                  <rect x="36" y="10" width="12" height="36" rx="2" stroke="currentColor" strokeWidth="1.75" />
+                  <path d="M11 18h6M29 18h6M43 18h6" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" />
+                </svg>
+              </div>
+              <div className="workflows-not-found-copy">
+                <h2 className="workflows-not-found-title">Create your first workflow</h2>
+                <p className="workflows-not-found-text">
+                  Add a workflow to define stages and swimlanes—then you can fine-tune columns and limits here.
+                </p>
+              </div>
+              <div className="workflows-not-found-actions">
+                <button
+                  type="button"
+                  className="workflows-btn workflows-btn-create workflows-not-found-cta"
+                  onClick={() => setShowCreateWorkflowModal(true)}
+                >
+                  Create workflow
+                </button>
+              </div>
+            </div>
+          </div>
+        ) : workflows.length === 0 ? (
+          <div className="workflows-empty">No workflow found. Add boardId to the URL to load a workflow.</div>
+        ) : (
+          workflows.map((workflow) => (
+            <div key={workflow.id} className="workflow-card">
+              <div className="workflow-header">
+                <div className="workflow-header-left">
+                  <button className="workflow-move-btn" type="button">
+                    <svg width="20" height="20" viewBox="0 0 20 20" fill="none" xmlns="http://www.w3.org/2000/svg">
+                      <path d="M7 5L10 2L13 5M13 15L10 18L7 15" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
+                    </svg>
+                  </button>
+                  {editingWorkflowId === workflow.id ? (
+                    <input
+                      type="text"
+                      className="workflow-title-input"
+                      value={editingWorkflowName}
+                      onChange={(e) => setEditingWorkflowName(e.target.value)}
+                      onBlur={() => handleSaveWorkflowName(workflow.id)}
+                      onKeyDown={(e) => handleWorkflowNameKeyPress(e, workflow.id)}
+                      autoFocus
+                    />
+                  ) : (
+                    <h3 className="workflow-title">{workflow.name}</h3>
+                  )}
+                  <button
+                    className="workflow-edit-btn"
+                    type="button"
+                    onClick={() => handleStartEditWorkflow(workflow.id, workflow.name)}
+                  >
+                    <svg width="18" height="18" viewBox="0 0 18 18" fill="none" xmlns="http://www.w3.org/2000/svg">
+                      <path
+                        d="M12.75 2.25C12.9468 2.05322 13.1794 1.89585 13.4349 1.78609C13.6904 1.67633 13.9642 1.61621 14.2417 1.60879C14.5192 1.60137 14.7958 1.64677 15.0571 1.74253C15.3184 1.83829 15.5596 1.98259 15.7685 2.16831C15.9774 2.35403 16.1501 2.57764 16.2784 2.82806C16.4067 3.07848 16.4882 3.35112 16.5188 3.63191C16.5494 3.9127 16.5285 4.19687 16.4573 4.46985C16.3861 4.74283 16.2659 5.00005 16.1025 5.22831L15.0825 6.75L11.25 2.9175L12.7717 1.8975C13 1.73412 13.2572 1.61393 13.5302 1.54272C13.8032 1.47152 14.0874 1.45062 14.3682 1.48122C14.649 1.51182 14.9216 1.59334 15.172 1.72162C15.4225 1.8499 15.6461 2.02264 15.8318 2.23153C16.0175 2.44042 16.1618 2.68164 16.2576 2.94294C16.3534 3.20424 16.3988 3.48079 16.3913 3.75831C16.3839 4.03583 16.3238 4.30964 16.214 4.56512C16.1043 4.8206 15.9469 5.05322 15.75 5.25L6.375 14.625L2.25 15.75L3.375 11.625L12.75 2.25Z"
+                        stroke="currentColor"
+                        strokeWidth="1.5"
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                      />
+                    </svg>
+                  </button>
+                  <Tooltip
+                    id={`workflow-info-${workflow.id}`}
+                    place="bottom"
+                    className="workflow-info-tooltip"
+                    positionStrategy="fixed"
+                  >
+                    <div>
+                      <div>Workflow: {workflow.name}</div>
+                      <div>This workflow contains {workflow.swimlanes.length} swimlane(s) with multiple stages for organizing your work.</div>
+                    </div>
+                  </Tooltip>
+                  <button className="workflow-info-btn" type="button" data-tooltip-id={`workflow-info-${workflow.id}`}>
+                    <svg width="18" height="18" viewBox="0 0 18 18" fill="none" xmlns="http://www.w3.org/2000/svg">
+                      <circle cx="9" cy="9" r="8" stroke="currentColor" strokeWidth="1.5" fill="none" />
+                      <path d="M9 6V9M9 12H9.01" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" />
+                    </svg>
+                  </button>
                 </div>
-                <div className="workflows-not-found-copy">
-                  <h2 className="workflows-not-found-title">Create your first workflow</h2>
-                  <p className="workflows-not-found-text">
-                    Add a workflow to define stages and swimlanes—then you can fine-tune columns and limits here.
-                  </p>
-                </div>
-                <div className="workflows-not-found-actions">
+                <div className="workflow-header-right">
                   <button
                     type="button"
-                    className="workflows-btn workflows-btn-create workflows-not-found-cta"
-                    onClick={() => setShowCreateWorkflowModal(true)}
+                    className="workflow-action-link workflow-action-link-delete"
+                    disabled={addEditLoader}
+                    onClick={() => handleDeleteWorkflow(workflow.id)}
                   >
-                    Create workflow
+                    Delete
+                  </button>
+                  <button
+                    type="button"
+                    className="workflow-action-link"
+                    disabled={addEditLoader}
+                    onClick={() => handleDisableWorkflow(workflow.id)}
+                  >
+                    {workflow.is_active == 0 ? 'Enable' : 'Disable'}
                   </button>
                 </div>
               </div>
-            </div>
-          ) : workflows.length === 0 ? (
-            <div className="workflows-empty">No workflow found. Add boardId to the URL to load a workflow.</div>
-          ) : (
-            workflows.map((workflow) => (
-              <div key={workflow.id} className="workflow-card">
-                <div className="workflow-header">
-                  <div className="workflow-header-left">
-                    <button className="workflow-move-btn" type="button">
-                      <svg width="20" height="20" viewBox="0 0 20 20" fill="none" xmlns="http://www.w3.org/2000/svg">
-                        <path d="M7 5L10 2L13 5M13 15L10 18L7 15" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
-                      </svg>
-                    </button>
-                    {editingWorkflowId === workflow.id ? (
-                      <input
-                        type="text"
-                        className="workflow-title-input"
-                        value={editingWorkflowName}
-                        onChange={(e) => setEditingWorkflowName(e.target.value)}
-                        onBlur={() => handleSaveWorkflowName(workflow.id)}
-                        onKeyDown={(e) => handleWorkflowNameKeyPress(e, workflow.id)}
-                        autoFocus
-                      />
-                    ) : (
-                      <h3 className="workflow-title">{workflow.name}</h3>
-                    )}
-                    <button
-                      className="workflow-edit-btn"
-                      type="button"
-                      onClick={() => handleStartEditWorkflow(workflow.id, workflow.name)}
-                    >
-                      <svg width="18" height="18" viewBox="0 0 18 18" fill="none" xmlns="http://www.w3.org/2000/svg">
-                        <path
-                          d="M12.75 2.25C12.9468 2.05322 13.1794 1.89585 13.4349 1.78609C13.6904 1.67633 13.9642 1.61621 14.2417 1.60879C14.5192 1.60137 14.7958 1.64677 15.0571 1.74253C15.3184 1.83829 15.5596 1.98259 15.7685 2.16831C15.9774 2.35403 16.1501 2.57764 16.2784 2.82806C16.4067 3.07848 16.4882 3.35112 16.5188 3.63191C16.5494 3.9127 16.5285 4.19687 16.4573 4.46985C16.3861 4.74283 16.2659 5.00005 16.1025 5.22831L15.0825 6.75L11.25 2.9175L12.7717 1.8975C13 1.73412 13.2572 1.61393 13.5302 1.54272C13.8032 1.47152 14.0874 1.45062 14.3682 1.48122C14.649 1.51182 14.9216 1.59334 15.172 1.72162C15.4225 1.8499 15.6461 2.02264 15.8318 2.23153C16.0175 2.44042 16.1618 2.68164 16.2576 2.94294C16.3534 3.20424 16.3988 3.48079 16.3913 3.75831C16.3839 4.03583 16.3238 4.30964 16.214 4.56512C16.1043 4.8206 15.9469 5.05322 15.75 5.25L6.375 14.625L2.25 15.75L3.375 11.625L12.75 2.25Z"
-                          stroke="currentColor"
-                          strokeWidth="1.5"
-                          strokeLinecap="round"
-                          strokeLinejoin="round"
-                        />
-                      </svg>
-                    </button>
-                    <Tooltip
-                      id={`workflow-info-${workflow.id}`}
-                      place="bottom"
-                      className="workflow-info-tooltip"
-                      positionStrategy="fixed"
-                    >
-                      <div>
-                        <div>Workflow: {workflow.name}</div>
-                        <div>This workflow contains {workflow.swimlanes.length} swimlane(s) with multiple stages for organizing your work.</div>
-                      </div>
-                    </Tooltip>
-                    <button className="workflow-info-btn" type="button" data-tooltip-id={`workflow-info-${workflow.id}`}>
-                      <svg width="18" height="18" viewBox="0 0 18 18" fill="none" xmlns="http://www.w3.org/2000/svg">
-                        <circle cx="9" cy="9" r="8" stroke="currentColor" strokeWidth="1.5" fill="none" />
-                        <path d="M9 6V9M9 12H9.01" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" />
-                      </svg>
-                    </button>
-                  </div>
-                  <div className="workflow-header-right">
-                    <button
-                      type="button"
-                      className="workflow-action-link workflow-action-link-delete"
-                      disabled={addEditLoader}
-                      onClick={() => handleDeleteWorkflow(workflow.id)}
-                    >
-                      Delete
-                    </button>
-                    <button
-                      type="button"
-                      className="workflow-action-link"
-                      disabled={addEditLoader}
-                      onClick={() => handleDisableWorkflow(workflow.id)}
-                    >
-                      {workflow.is_active == 0 ? 'Enable' : 'Disable'}
-                    </button>
-                  </div>
-                </div>
 
-                <div className="workflow-board">
-                  <WorkflowBoard
-                    workflow={workflow}
-                    columnActionsDisabled={addEditLoader}
-                    hoveredColumn={hoveredColumn}
-                    stackedRailMetrics={stackedRailMetrics}
-                    editingStageId={editingStageId}
-                    editingStageName={editingStageName}
-                    onStageMouseEnter={handleStageBoxMouseEnter}
-                    onAddColumnLeft={handleAddColumnLeft}
-                    onAddColumnRight={handleAddColumnRight}
-                    onAddSubcolumn={handleAddSubcolumn}
-                    onStartEditStage={handleStartEditStage}
-                    onEditingStageNameChange={setEditingStageName}
-                    onSaveStageName={handleSaveStageNameChange}
-                    onStageNameKeyPress={handleStageNameKeyPress}
-                    onColorSelect={handleStageColorChange}
-                    onDeleteStage={handleDeleteStage}
-                    onStageLimitChange={handleStageLimitChange}
-                    onStageCardsPerRowChange={handleStageCardsPerRowChange}
-                    onAddSwimlane={handleAddSwimlane}
-                    onRenameSwimlane={handleRenameSwimlane}
-                    onDeleteSwimlane={handleDeleteSwimlane}
-                  />
-                </div>
+              <div className="workflow-board">
+                <WorkflowBoard
+                  workflow={workflow}
+                  columnActionsDisabled={addEditLoader}
+                  hoveredColumn={hoveredColumn}
+                  stackedRailMetrics={stackedRailMetrics}
+                  editingStageId={editingStageId}
+                  editingStageName={editingStageName}
+                  onStageMouseEnter={handleStageBoxMouseEnter}
+                  onAddColumnLeft={handleAddColumnLeft}
+                  onAddColumnRight={handleAddColumnRight}
+                  onAddSubcolumn={handleAddSubcolumn}
+                  onStartEditStage={handleStartEditStage}
+                  onEditingStageNameChange={setEditingStageName}
+                  onSaveStageName={handleSaveStageNameChange}
+                  onStageNameKeyPress={handleStageNameKeyPress}
+                  onColorSelect={handleStageColorChange}
+                  onDeleteStage={handleDeleteStage}
+                  onStageLimitChange={handleStageLimitChange}
+                  onStageCardsPerRowChange={handleStageCardsPerRowChange}
+                  onAddSwimlane={handleAddSwimlane}
+                  onRenameSwimlane={handleRenameSwimlane}
+                  onDeleteSwimlane={handleDeleteSwimlane}
+                />
               </div>
-            ))
-          )}
-        </div>
-
-        <div
-          className={`workflows-sidebar${showNoWorkflowEmptyState ? ' workflows-sidebar--compact-stack' : ''}`}
-        >
-          {!showNoWorkflowEmptyState ? (
-            <button
-              className="workflows-btn workflows-btn-create"
-              onClick={() => setShowCreateWorkflowModal(true)}
-            >
-              Create new workflow
-            </button>
-          ) : null}
-
-          <div className="workflows-config-section">
-            <h3 className="workflows-config-title">Board Configurations</h3>
-
-            <div className="workflows-config-field">
-              <label className="workflows-config-label">Board name</label>
-              <input
-                type="text"
-                className="workflows-config-input"
-                value={boardName}
-                onChange={(e) => setBoardName(e.target.value)}
-              />
             </div>
-
-            <div className="workflows-config-field">
-              <label className="workflows-config-label">
-                Description
-                <button className="workflows-edit-icon" type="button">
-                  <svg width="16" height="16" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
-                    <path
-                      d="M11.3333 2.00004C11.5084 1.82488 11.7163 1.68601 11.9444 1.59128C12.1726 1.49655 12.4163 1.44775 12.6622 1.44775C12.9081 1.44775 13.1518 1.49655 13.38 1.59128C13.6081 1.68601 13.816 1.82488 13.9911 2.00004C14.1663 2.17519 14.3052 2.38313 14.3999 2.61126C14.4946 2.83939 14.5434 3.08309 14.5434 3.32904C14.5434 3.57499 14.4946 3.81869 14.3999 4.04682C14.3052 4.27495 14.1663 4.48289 13.9911 4.65804L5.32444 13.3247L1.33331 14.6667L2.67531 10.6756L11.3333 2.00004Z"
-                      stroke="currentColor"
-                      strokeWidth="1.5"
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                    />
-                  </svg>
-                </button>
-              </label>
-              <input
-                type="text"
-                className="workflows-config-input"
-                value={description}
-                onChange={(e) => setDescription(e.target.value)}
-              />
-            </div>
-
-            {/* <div className="workflows-undo-redo">
-              <button className="workflows-btn workflows-btn-undo" disabled>
-                Undo
-                <svg width="16" height="16" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
-                  <path d="M4 6L8 2L12 6" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
-                </svg>
-              </button>
-              <button className="workflows-btn workflows-btn-redo" disabled>
-                Redo
-                <svg width="16" height="16" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
-                  <path d="M12 6L8 2L4 6" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
-                </svg>
-              </button>
-            </div> */}
-          </div>
-
-          {/* <div className="workflows-actions-bottom">
-            <button className="workflows-btn workflows-btn-discard">Discard</button>
-            <button className="workflows-btn workflows-btn-save">Save</button>
-          </div> */}
-        </div>
+          ))
+        )}
       </div>
 
       <CreateWorkflowModal
