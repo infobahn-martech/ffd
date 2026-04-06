@@ -16,7 +16,6 @@ import BoardRouter from "../pages/KanbanBoard/BoardRouter";
 import KanbanAnalytics from "../pages/KanbanBoard/Analytics";
 import DAModule from "../pages/DAModule";
 import Workspaces from "../pages/Workspaces";
-import KanbanDashboardView from "../pages/KanbanDashboardView";
 import EditWorkflows from "../pages/EditWorkflows";
 import Port from "../pages/Port";
 import Role from "../pages/Role";
@@ -114,7 +113,7 @@ const router = createHashRouter([
               { path: "/kanban-board/analytics", element: <KanbanAnalytics /> },
               { path: "/da-module", element: <DAModule /> },
               { path: "/workspaces", element: <Workspaces /> },
-              { path: "/workspaces/dashboard/:dashboardId", element: <KanbanDashboardView /> },
+              { path: "/workspaces/dashboard/:dashboardId", element: <Workspaces /> },
               { path: "/edit-workflow", element: <EditWorkflows /> },
               // { path: "/port-management", element: <Port /> },
               { path: "/vessel-types", element: <VesselType /> },
@@ -201,7 +200,7 @@ const router = createHashRouter([
                     path: "/workspaces/dashboard/:dashboardId",
                     element: (
                       <RouteGuard>
-                        <KanbanDashboardView />
+                        <Workspaces />
                       </RouteGuard>
                     ),
                   },

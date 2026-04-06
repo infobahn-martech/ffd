@@ -3189,3 +3189,89 @@ body.kanban-workspaces-sidebar-open .workspaces-header .workspaces-header-right 
     padding-left: 60px;
   }
 }
+
+/* Per-dashboard view: background from list_all_dashboard + toolbar */
+.workspaces-container--dashboard {
+  background: #e8ecf0;
+}
+
+.workspaces-dashboard-toolbar {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  padding: 14px 24px;
+  background: #fff;
+  border-radius: 14px;
+  box-shadow: 0 1px 3px rgba(15, 23, 42, 0.06);
+  font-family: $font-primary, 'Plus Jakarta Sans', sans-serif;
+  font-size: 15px;
+  font-weight: 600;
+  color: #00368c;
+  margin-bottom: 24px;
+}
+
+.workspaces-dashboard-toolbar-sep {
+  color: #94a3b8;
+  font-weight: 500;
+}
+
+.workspaces-dashboard-canvas {
+  min-height: 420px;
+  border-radius: 16px;
+  padding: 24px;
+  box-sizing: border-box;
+  border: 1px solid rgba(255, 255, 255, 0.25);
+}
+
+.workspaces-dashboard-inner {
+  max-width: 100%;
+}
+
+.workspaces-header--dashboard {
+  margin-bottom: 24px;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
+}
+
+.workspaces-list--in-dashboard {
+  background: $white;
+  border-radius: 12px;
+  padding: 8px 0 16px;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.06);
+}
+
+body.kanban-workspaces-sidebar-open .workspaces-container--dashboard {
+  padding-left: 260px;
+}
+
+body.kanban-workspaces-sidebar-open.kanban-workspaces-sidebar-collapsed .workspaces-container--dashboard {
+  padding-left: 72px;
+}
+
+@media ($sm-1281) {
+  body.kanban-workspaces-sidebar-open .workspaces-container--dashboard {
+    padding-left: 248px;
+  }
+}
+
+@media ($sm-991) {
+  body.kanban-workspaces-sidebar-open .workspaces-container--dashboard {
+    padding-left: 240px;
+  }
+
+  .workspaces-dashboard-canvas {
+    padding: 16px;
+  }
+}
+
+@media ($sm-767) {
+  body.kanban-workspaces-sidebar-open .workspaces-container--dashboard {
+    padding-left: min(240px, calc(100vw - 56px));
+  }
+}
+
+@media ($sm-479) {
+  body.kanban-workspaces-sidebar-open .workspaces-container--dashboard {
+    padding-left: min(220px, calc(100vw - 48px));
+  }
+}

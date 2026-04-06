@@ -1,5 +1,5 @@
 import { useState, useEffect, useRef, useMemo } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useParams } from 'react-router-dom';
 import { Tooltip } from 'react-tooltip';
 import 'react-tooltip/dist/react-tooltip.css';
 import { FiLayers } from 'react-icons/fi';
@@ -50,12 +50,38 @@ const transformWorkspaces = (data) => {
   }));
 };
 
+/** Inline styles for dashboard canvas from `list_all_dashboard` background object */
+function getDashboardCanvasStyle(background) {
+  if (!background || typeof background !== 'object') {
+    return { backgroundColor: '#eef1f4' };
+  }
+  const { type, value } = background;
+  if (type === 'color' && value) {
+    return { backgroundColor: value, backgroundImage: 'none' };
+  }
+  if ((type === 'wallpaper' || type === 'image') && value) {
+    const v = String(value).trim();
+    const url = v.startsWith('url(') ? v : `url(${v})`;
+    return {
+      backgroundImage: url,
+      backgroundSize: 'cover',
+      backgroundPosition: 'center',
+    };
+  }
+  return { backgroundColor: '#eef1f4' };
+}
+
 function Workspaces() {
   const navigate = useNavigate();
+  const { dashboardId } = useParams();
+  const isDashboardView = Boolean(dashboardId);
   const {
     workspaces: apiWorkspaces,
     isLoading: workspacesLoading,
+    dashboards: apiDashboards,
+    dashboardsLoading,
     listAllWorkspaces,
+    listAllDashboards,
     createWorkspace,
     createBoard,
     renameWorkspace,
@@ -66,7 +92,17 @@ function Workspaces() {
     updateBoardName,
   } = useWorkSpaceReducer();
 
-  const workspacesData = useMemo(() => transformWorkspaces(apiWorkspaces), [apiWorkspaces]);
+  const currentDashboard = useMemo(() => {
+    if (!isDashboardView || !Array.isArray(apiDashboards)) return null;
+    return apiDashboards.find((d) => String(d.dashboard_id) === String(dashboardId)) ?? null;
+  }, [isDashboardView, apiDashboards, dashboardId]);
+
+  const workspacesData = useMemo(() => {
+    if (isDashboardView) {
+      return transformWorkspaces(currentDashboard?.workspaces ?? []);
+    }
+    return transformWorkspaces(apiWorkspaces);
+  }, [isDashboardView, currentDashboard, apiWorkspaces]);
 
   // Find the first workspace with boards to set as initially expanded
   const firstWorkspaceWithBoards = workspacesData.find((workspace) => workspace.boards?.length > 0);
@@ -74,9 +110,15 @@ function Workspaces() {
   const [filterValue, setFilterValue] = useState('');
   const [selectedWorkspace, setSelectedWorkspace] = useState(null);
 
+  const listLoading = isDashboardView ? dashboardsLoading : workspacesLoading;
+
   useEffect(() => {
-    listAllWorkspaces();
-  }, []);
+    if (isDashboardView) {
+      listAllDashboards();
+    } else {
+      listAllWorkspaces();
+    }
+  }, [isDashboardView]);
 
   useEffect(() => {
     if (selectedWorkspace == null && workspacesData.length > 0 && firstWorkspaceWithBoards) {
@@ -242,14 +284,394 @@ function Workspaces() {
     archiveBoard({ board_id: boardId });
   };
 
+  const dashboardNotFound = isDashboardView && !dashboardsLoading && !currentDashboard;
+
+  const dashboardCanvasStyle = useMemo(
+    () => getDashboardCanvasStyle(currentDashboard?.background),
+    [currentDashboard]
+  );
+
   const toSlug = (text) =>
     text
       .toLowerCase()
       .replace(/[^a-z0-9]+/g, '-')
       .replace(/(^-|-$)/g, '');
 
+  const headerActions = (
+    <div className="workspaces-header-actions">
+      <button
+        type="button"
+        className="workspaces-btn workspaces-btn-add"
+        onClick={handleAddWorkspace}
+        aria-label="Add workspace"
+        title="Add new workspace"
+      >
+        <svg width="16" height="16" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
+          <path d="M8 3V13M3 8H13" stroke="currentColor" strokeWidth="2" strokeLinecap="round" />
+        </svg>
+      </button>
+      <button
+        type="button"
+        className="workspaces-btn workspaces-btn-delete"
+        onClick={handleDeleteWorkspace}
+        aria-label="Delete workspace"
+        title="Delete workspace"
+      >
+        <svg width="16" height="16" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
+          <path
+            d="M2 4H14M6 4V3C6 2.44772 6.44772 2 7 2H9C9.55228 2 10 2.44772 10 3V4M13 4V13C13 13.5523 12.5523 14 12 14H4C3.44772 14 3 13.5523 3 13V4H13Z"
+            stroke="currentColor"
+            strokeWidth="1.5"
+            strokeLinecap="round"
+            strokeLinejoin="round"
+          />
+        </svg>
+      </button>
+    </div>
+  );
+
+  const workspacesListSection = (
+    <div
+      className={isDashboardView ? 'workspaces-list workspaces-list--in-dashboard' : 'workspaces-list'}
+    >
+      {dashboardNotFound ? (
+        <div className="workspaces-empty-state">
+          <h3 className="workspaces-empty-title">Dashboard not found</h3>
+          <p className="workspaces-empty-message">This dashboard may have been removed or you may not have access.</p>
+        </div>
+      ) : listLoading ? (
+        <div className="workspaces-empty-state">
+          <div className="spinner-border text-primary" role="status" style={{ width: '3rem', height: '3rem' }}>
+            <span className="visually-hidden">Loading workspaces...</span>
+          </div>
+          <p className="mt-3">Loading workspaces...</p>
+        </div>
+      ) : filteredWorkspaces.length === 0 ? (
+        <div className="workspaces-empty-state">
+          <div className="workspaces-empty-icon">
+            <img src={GroupIcon} alt="No workspaces" />
+          </div>
+          <h3 className="workspaces-empty-title">No workspaces found</h3>
+          <p className="workspaces-empty-message">
+            {filterValue
+              ? 'Try adjusting your filter to see more results.'
+              : isDashboardView
+                ? 'No workspaces have been added to this dashboard yet.'
+                : 'Get started by creating your first workspace.'}
+          </p>
+          {!filterValue && (
+            <button type="button" className="workspaces-empty-btn" onClick={handleAddWorkspace}>
+              Create Workspace
+            </button>
+          )}
+        </div>
+      ) : (
+        filteredWorkspaces.map((workspace) => (
+          <div
+            key={workspace.id}
+            id={`workspace-row-${workspace.id}`}
+            className={`workspace-card ${selectedWorkspace === workspace.id ? 'expanded' : ''} ${workspace.boards?.length === 0 ? 'no-boards' : ''} ${openWorkspaceMenuId === workspace.id ? 'menu-open' : ''}`}
+            onClick={() => handleWorkspaceClick(workspace)}
+          >
+            <div className="workspace-card-header">
+              <div className="workspace-card-title">
+                <div className="workspace-icon-wrapper">
+                  <WorkspaceBarChartIcon className="workspace-icon" />
+                </div>
+                <h2 className="workspace-name">{workspace.name}</h2>
+                {workspace.boards?.length > 0 && (
+                  <span className="workspace-board-count-badge">
+                    {workspace.boards.length} {workspace.boards.length === 1 ? 'board' : 'boards'}
+                  </span>
+                )}
+              </div>
+              {workspace.boards?.length > 0 && (
+                <div className="workspace-card-actions">
+                  <button
+                    type="button"
+                    className="workspace-action-btn"
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      handleAddBoard(workspace.id);
+                    }}
+                    aria-label="Add board"
+                    title="Add board"
+                  >
+                    <svg width="16" height="16" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
+                      <path
+                        d="M8 3V13M3 8H13"
+                        stroke="currentColor"
+                        strokeWidth="2"
+                        strokeLinecap="round"
+                      />
+                    </svg>
+                  </button>
+                  <div className="workspace-menu-wrapper" ref={openWorkspaceMenuId === workspace.id ? workspaceMenuRef : null}>
+                    <button
+                      type="button"
+                      className="workspace-action-btn"
+                      onClick={(e) => handleWorkspaceMenu(workspace.id, e)}
+                      aria-label="More options"
+                      title="More options"
+                    >
+                      <svg width="16" height="16" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
+                        <circle cx="8" cy="4" r="1.5" fill="currentColor" />
+                        <circle cx="8" cy="8" r="1.5" fill="currentColor" />
+                        <circle cx="8" cy="12" r="1.5" fill="currentColor" />
+                      </svg>
+                    </button>
+                    {openWorkspaceMenuId === workspace.id && (
+                      <div className="workspace-context-menu">
+                        <button
+                          type="button"
+                          className="workspace-context-menu-item"
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            handleRenameWorkspace(workspace.id);
+                          }}
+                        >
+                          <svg width="16" height="16" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
+                            <path
+                              d="M11.3333 2.00001C11.5084 1.82497 11.7163 1.68606 11.9455 1.59127C12.1748 1.49648 12.4209 1.44775 12.6667 1.44775C12.9124 1.44775 13.1585 1.49648 13.3878 1.59127C13.617 1.68606 13.8249 1.82497 14 2.00001C14.175 2.17505 14.3139 2.38297 14.4087 2.61224C14.5035 2.8415 14.5522 3.08755 14.5522 3.33334C14.5522 3.57913 14.5035 3.82518 14.4087 4.05445C14.3139 4.28371 14.175 4.49164 14 4.66667L5.00001 13.6667L1.33334 14.6667L2.33334 11L11.3333 2.00001Z"
+                              stroke="currentColor"
+                              strokeWidth="1.5"
+                              strokeLinecap="round"
+                              strokeLinejoin="round"
+                            />
+                          </svg>
+                          <span>Rename</span>
+                        </button>
+                        <button
+                          type="button"
+                          className="workspace-context-menu-item"
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            handleAddToDashboard(workspace.id);
+                          }}
+                        >
+                          <svg width="16" height="16" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
+                            <path
+                              d="M2 2H6V6H2V2Z"
+                              stroke="currentColor"
+                              strokeWidth="1.5"
+                              strokeLinecap="round"
+                              strokeLinejoin="round"
+                            />
+                            <path
+                              d="M10 2H14V6H10V2Z"
+                              stroke="currentColor"
+                              strokeWidth="1.5"
+                              strokeLinecap="round"
+                              strokeLinejoin="round"
+                            />
+                            <path
+                              d="M2 10H6V14H2V10Z"
+                              stroke="currentColor"
+                              strokeWidth="1.5"
+                              strokeLinecap="round"
+                              strokeLinejoin="round"
+                            />
+                            <path
+                              d="M10 10H14V14H10V10Z"
+                              stroke="currentColor"
+                              strokeWidth="1.5"
+                              strokeLinecap="round"
+                              strokeLinejoin="round"
+                            />
+                          </svg>
+                          <span>Add to Dashboard</span>
+                        </button>
+                        <button
+                          type="button"
+                          className="workspace-context-menu-item"
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            handleArchiveWorkspace(workspace.id);
+                          }}
+                        >
+                          <svg width="16" height="16" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
+                            <path
+                              d="M2 4H14M6 4V3C6 2.44772 6.44772 2 7 2H9C9.55228 2 10 2.44772 10 3V4M13 4V13C13 13.5523 12.5523 14 12 14H4C3.44772 14 3 13.5523 3 13V4H13Z"
+                              stroke="currentColor"
+                              strokeWidth="1.5"
+                              strokeLinecap="round"
+                              strokeLinejoin="round"
+                            />
+                            <path
+                              d="M8 8V12M8 8L6 10M8 8L10 10"
+                              stroke="currentColor"
+                              strokeWidth="1.5"
+                              strokeLinecap="round"
+                              strokeLinejoin="round"
+                            />
+                          </svg>
+                          <span>Archive</span>
+                        </button>
+                      </div>
+                    )}
+                  </div>
+                </div>
+              )}
+            </div>
+
+            {selectedWorkspace === workspace.id && workspace.boards?.length > 0 && (
+              <div className="workspace-boards">
+                {workspace.boards.map((board) => (
+                  <div
+                    key={board.id}
+                    className={`board-card ${openMenuId === board.id ? 'menu-open' : ''}`}
+                    onClick={() => {
+                      setIsNavigating(true);
+                      navigate(`/kanban-board/${toSlug(board.name)}`);
+                    }}
+                    style={{ cursor: 'pointer' }}
+                  >
+                    <div className="board-card-header">
+                      <div className="board-menu-wrapper" ref={openMenuId === board.id ? menuRef : null}>
+                        <button
+                          type="button"
+                          className="board-menu-btn"
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            handleBoardMenu(board.id, e);
+                          }}
+                          aria-label="Board options"
+                          title="Board options"
+                        >
+                          <svg width="16" height="16" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
+                            <circle cx="8" cy="4" r="1.5" fill="currentColor" />
+                            <circle cx="8" cy="8" r="1.5" fill="currentColor" />
+                            <circle cx="8" cy="12" r="1.5" fill="currentColor" />
+                          </svg>
+                        </button>
+                        {openMenuId === board.id && (
+                          <div className="board-context-menu">
+                            <button
+                              type="button"
+                              className="board-context-menu-item"
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                handleRenameBoard(board.id);
+                              }}
+                            >
+                              <svg width="16" height="16" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
+                                <path
+                                  d="M11.3333 2.00001C11.5084 1.82497 11.7163 1.68606 11.9455 1.59127C12.1748 1.49648 12.4209 1.44775 12.6667 1.44775C12.9124 1.44775 13.1585 1.49648 13.3878 1.59127C13.617 1.68606 13.8249 1.82497 14 2.00001C14.175 2.17505 14.3139 2.38297 14.4087 2.61224C14.5035 2.8415 14.5522 3.08755 14.5522 3.33334C14.5522 3.57913 14.5035 3.82518 14.4087 4.05445C14.3139 4.28371 14.175 4.49164 14 4.66667L5.00001 13.6667L1.33334 14.6667L2.33334 11L11.3333 2.00001Z"
+                                  stroke="currentColor"
+                                  strokeWidth="1.5"
+                                  strokeLinecap="round"
+                                  strokeLinejoin="round"
+                                />
+                              </svg>
+                              <span>Rename</span>
+                            </button>
+                            <button
+                              type="button"
+                              className="board-context-menu-item"
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                handleEditWorkflows(board.id);
+                              }}
+                            >
+                              <svg width="16" height="16" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
+                                <path
+                                  d="M2 2H6V6H2V2Z"
+                                  stroke="currentColor"
+                                  strokeWidth="1.5"
+                                  strokeLinecap="round"
+                                  strokeLinejoin="round"
+                                />
+                                <path
+                                  d="M10 2H14V6H10V2Z"
+                                  stroke="currentColor"
+                                  strokeWidth="1.5"
+                                  strokeLinecap="round"
+                                  strokeLinejoin="round"
+                                />
+                                <path
+                                  d="M2 10H6V14H2V10Z"
+                                  stroke="currentColor"
+                                  strokeWidth="1.5"
+                                  strokeLinecap="round"
+                                  strokeLinejoin="round"
+                                />
+                                <path
+                                  d="M10 10H14V14H10V10Z"
+                                  stroke="currentColor"
+                                  strokeWidth="1.5"
+                                  strokeLinecap="round"
+                                  strokeLinejoin="round"
+                                />
+                              </svg>
+                              <span>Edit Workflows</span>
+                            </button>
+                            <button
+                              type="button"
+                              className="board-context-menu-item"
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                handleArchiveBoard(board.id);
+                              }}
+                            >
+                              <svg width="16" height="16" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
+                                <path
+                                  d="M2.66667 4H13.3333M6.66667 7.33334V11.3333M9.33333 7.33334V11.3333M3.33334 4L4 13.3333C4 13.687 4.14048 14.0261 4.39052 14.2762C4.64057 14.5262 4.97971 14.6667 5.33334 14.6667H10.6667C11.0203 14.6667 11.3594 14.5262 11.6095 14.2762C11.8595 14.0261 12 13.687 12 13.3333L12.6667 4M6.66667 4V2.66667C6.66667 2.48986 6.73691 2.32029 6.86193 2.19526C6.98696 2.07024 7.15653 2 7.33334 2H8.66667C8.84348 2 9.01305 2.07024 9.13807 2.19526C9.2631 2.32029 9.33334 2.48986 9.33334 2.66667V4"
+                                  stroke="currentColor"
+                                  strokeWidth="1.5"
+                                  strokeLinecap="round"
+                                  strokeLinejoin="round"
+                                />
+                              </svg>
+                              <span>Archive</span>
+                            </button>
+                          </div>
+                        )}
+                      </div>
+                    </div>
+                    <div className="board-card-content">
+                      <h3
+                        className="board-name"
+                        data-tooltip-id={`board-name-${board.id}`}
+                        data-tooltip-content={board.name}
+                      >
+                        {board.name}
+                      </h3>
+                      <Tooltip id={`board-name-${board.id}`} place="top" />
+
+                      <div className="board-counts-row">
+                        <div
+                          className="board-count"
+                          data-tooltip-id={`board-count-${board.id}`}
+                          data-tooltip-content={`Card Count: ${board.count.toLocaleString()} cards`}
+                        >
+                          <img src={ClockIcon} alt="Clock" className="board-clock-icon" />
+                          <span className="board-count-number">{(board.count ?? 0).toLocaleString()}</span>
+                        </div>
+                        <Tooltip id={`board-count-${board.id}`} place="top" />
+
+                        <div
+                          className="board-id-count"
+                          data-tooltip-id={`board-id-${board.id}`}
+                          data-tooltip-content={`Board ID: ${board.id}`}
+                        >
+                          <FiLayers className="board-id-icon" />
+                          <span className="board-id-number">{board.id}</span>
+                        </div>
+                        <Tooltip id={`board-id-${board.id}`} place="top" />
+                      </div>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            )}
+          </div>
+        ))
+      )}
+    </div>
+  );
+
   return (
-    <div className="workspaces-container">
+    <div className={`workspaces-container ${isDashboardView ? 'workspaces-container--dashboard' : ''}`}>
       {/* Loading Overlay */}
       {isNavigating && (
         <div className="page-loader-overlay">
@@ -261,419 +683,77 @@ function Workspaces() {
           </div>
         </div>
       )}
-      {/* Header Section */}
-      <div className="workspaces-header">
-        <div className="workspaces-header-left">
-          <h1 className="workspaces-title">My workspaces</h1>
-          <div className="workspaces-header-actions">
-            <button
-              type="button"
-              className="workspaces-btn workspaces-btn-add"
-              onClick={handleAddWorkspace}
-              aria-label="Add workspace"
-              title="Add new workspace"
-            >
-              <svg width="16" height="16" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
-                <path d="M8 3V13M3 8H13" stroke="currentColor" strokeWidth="2" strokeLinecap="round" />
-              </svg>
-            </button>
-            <button
-              type="button"
-              className="workspaces-btn workspaces-btn-delete"
-              onClick={handleDeleteWorkspace}
-              aria-label="Delete workspace"
-              title="Delete workspace"
-            >
-              <svg width="16" height="16" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
-                <path
-                  d="M2 4H14M6 4V3C6 2.44772 6.44772 2 7 2H9C9.55228 2 10 2.44772 10 3V4M13 4V13C13 13.5523 12.5523 14 12 14H4C3.44772 14 3 13.5523 3 13V4H13Z"
-                  stroke="currentColor"
-                  strokeWidth="1.5"
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                />
-              </svg>
-            </button>
-          </div>
-        </div>
-        <div className="workspaces-header-right">
-          <div className="workspaces-filter">
-            <img src={filterIcon} alt="Filter" className="workspaces-filter-icon" />
-            <input
-              type="text"
-              placeholder="Filter workspaces..."
-              value={filterValue}
-              onChange={(e) => setFilterValue(e.target.value)}
-              className="workspaces-filter-input"
-            />
-            {filterValue && (
-              <button
-                type="button"
-                className="workspaces-filter-clear-btn"
-                onClick={() => setFilterValue('')}
-                aria-label="Clear filter"
-                title="Clear filter"
-              >
-                <svg width="14" height="14" viewBox="0 0 14 14" fill="none" xmlns="http://www.w3.org/2000/svg">
-                  <path
-                    d="M10.5 3.5L3.5 10.5M3.5 3.5L10.5 10.5"
-                    stroke="currentColor"
-                    strokeWidth="1.5"
-                    strokeLinecap="round"
-                  />
-                </svg>
-              </button>
-            )}
-            <button type="button" className="workspaces-filter-list-btn" aria-label="List view" title="List view">
-              <svg width="16" height="16" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
-                <path
-                  d="M2 4H14M2 8H14M2 12H14"
-                  stroke="currentColor"
-                  strokeWidth="2"
-                  strokeLinecap="round"
-                />
-              </svg>
-            </button>
-          </div>
-        </div>
-      </div>
-
-      {/* Workspaces List */}
-      <div className="workspaces-list">
-        {workspacesLoading ? (
-          <div className="workspaces-empty-state">
-            <div className="spinner-border text-primary" role="status" style={{ width: '3rem', height: '3rem' }}>
-              <span className="visually-hidden">Loading workspaces...</span>
+      {!isDashboardView ? (
+        <>
+          {/* Header Section */}
+          <div className="workspaces-header">
+            <div className="workspaces-header-left">
+              <h1 className="workspaces-title">My workspaces</h1>
+              {headerActions}
             </div>
-            <p className="mt-3">Loading workspaces...</p>
-          </div>
-        ) : filteredWorkspaces.length === 0 ? (
-          <div className="workspaces-empty-state">
-            <div className="workspaces-empty-icon">
-              <img src={GroupIcon} alt="No workspaces" />
-            </div>
-            <h3 className="workspaces-empty-title">No workspaces found</h3>
-            <p className="workspaces-empty-message">
-              {filterValue
-                ? 'Try adjusting your filter to see more results.'
-                : 'Get started by creating your first workspace.'}
-            </p>
-            {!filterValue && (
-              <button
-                type="button"
-                className="workspaces-empty-btn"
-                onClick={handleAddWorkspace}
-              >
-                Create Workspace
-              </button>
-            )}
-          </div>
-        ) : (
-          filteredWorkspaces.map((workspace) => (
-            <div
-              key={workspace.id}
-              id={`workspace-row-${workspace.id}`}
-              className={`workspace-card ${selectedWorkspace === workspace.id ? 'expanded' : ''} ${workspace.boards?.length === 0 ? 'no-boards' : ''} ${openWorkspaceMenuId === workspace.id ? 'menu-open' : ''}`}
-              onClick={() => handleWorkspaceClick(workspace)}
-            >
-              <div className="workspace-card-header">
-                <div className="workspace-card-title">
-                  <div className="workspace-icon-wrapper">
-                    <WorkspaceBarChartIcon className="workspace-icon" />
-                  </div>
-                  <h2 className="workspace-name">{workspace.name}</h2>
-                  {workspace.boards?.length > 0 && (
-                    <span className="workspace-board-count-badge">
-                      {workspace.boards.length} {workspace.boards.length === 1 ? 'board' : 'boards'}
-                    </span>
-                  )}
-                </div>
-                {workspace.boards?.length > 0 && (
-                  <div className="workspace-card-actions">
-                    <button
-                      type="button"
-                      className="workspace-action-btn"
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        handleAddBoard(workspace.id);
-                      }}
-                      aria-label="Add board"
-                      title="Add board"
-                    >
-                      <svg width="16" height="16" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
-                        <path
-                          d="M8 3V13M3 8H13"
-                          stroke="currentColor"
-                          strokeWidth="2"
-                          strokeLinecap="round"
-                        />
-                      </svg>
-                    </button>
-                    <div className="workspace-menu-wrapper" ref={openWorkspaceMenuId === workspace.id ? workspaceMenuRef : null}>
-                      <button
-                        type="button"
-                        className="workspace-action-btn"
-                        onClick={(e) => handleWorkspaceMenu(workspace.id, e)}
-                        aria-label="More options"
-                        title="More options"
-                      >
-                        <svg width="16" height="16" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
-                          <circle cx="8" cy="4" r="1.5" fill="currentColor" />
-                          <circle cx="8" cy="8" r="1.5" fill="currentColor" />
-                          <circle cx="8" cy="12" r="1.5" fill="currentColor" />
-                        </svg>
-                      </button>
-                      {openWorkspaceMenuId === workspace.id && (
-                        <div className="workspace-context-menu">
-                          <button
-                            type="button"
-                            className="workspace-context-menu-item"
-                            onClick={(e) => {
-                              e.stopPropagation();
-                              handleRenameWorkspace(workspace.id);
-                            }}
-                          >
-                            <svg width="16" height="16" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
-                              <path
-                                d="M11.3333 2.00001C11.5084 1.82497 11.7163 1.68606 11.9455 1.59127C12.1748 1.49648 12.4209 1.44775 12.6667 1.44775C12.9124 1.44775 13.1585 1.49648 13.3878 1.59127C13.617 1.68606 13.8249 1.82497 14 2.00001C14.175 2.17505 14.3139 2.38297 14.4087 2.61224C14.5035 2.8415 14.5522 3.08755 14.5522 3.33334C14.5522 3.57913 14.5035 3.82518 14.4087 4.05445C14.3139 4.28371 14.175 4.49164 14 4.66667L5.00001 13.6667L1.33334 14.6667L2.33334 11L11.3333 2.00001Z"
-                                stroke="currentColor"
-                                strokeWidth="1.5"
-                                strokeLinecap="round"
-                                strokeLinejoin="round"
-                              />
-                            </svg>
-                            <span>Rename</span>
-                          </button>
-                          <button
-                            type="button"
-                            className="workspace-context-menu-item"
-                            onClick={(e) => {
-                              e.stopPropagation();
-                              handleAddToDashboard(workspace.id);
-                            }}
-                          >
-                            <svg width="16" height="16" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
-                              <path
-                                d="M2 2H6V6H2V2Z"
-                                stroke="currentColor"
-                                strokeWidth="1.5"
-                                strokeLinecap="round"
-                                strokeLinejoin="round"
-                              />
-                              <path
-                                d="M10 2H14V6H10V2Z"
-                                stroke="currentColor"
-                                strokeWidth="1.5"
-                                strokeLinecap="round"
-                                strokeLinejoin="round"
-                              />
-                              <path
-                                d="M2 10H6V14H2V10Z"
-                                stroke="currentColor"
-                                strokeWidth="1.5"
-                                strokeLinecap="round"
-                                strokeLinejoin="round"
-                              />
-                              <path
-                                d="M10 10H14V14H10V10Z"
-                                stroke="currentColor"
-                                strokeWidth="1.5"
-                                strokeLinecap="round"
-                                strokeLinejoin="round"
-                              />
-                            </svg>
-                            <span>Add to Dashboard</span>
-                          </button>
-                          <button
-                            type="button"
-                            className="workspace-context-menu-item"
-                            onClick={(e) => {
-                              e.stopPropagation();
-                              handleArchiveWorkspace(workspace.id);
-                            }}
-                          >
-                            <svg width="16" height="16" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
-                              <path
-                                d="M2 4H14M6 4V3C6 2.44772 6.44772 2 7 2H9C9.55228 2 10 2.44772 10 3V4M13 4V13C13 13.5523 12.5523 14 12 14H4C3.44772 14 3 13.5523 3 13V4H13Z"
-                                stroke="currentColor"
-                                strokeWidth="1.5"
-                                strokeLinecap="round"
-                                strokeLinejoin="round"
-                              />
-                              <path
-                                d="M8 8V12M8 8L6 10M8 8L10 10"
-                                stroke="currentColor"
-                                strokeWidth="1.5"
-                                strokeLinecap="round"
-                                strokeLinejoin="round"
-                              />
-                            </svg>
-                            <span>Archive</span>
-                          </button>
-                        </div>
-                      )}
-                    </div>
-                  </div>
+            <div className="workspaces-header-right">
+              <div className="workspaces-filter">
+                <img src={filterIcon} alt="Filter" className="workspaces-filter-icon" />
+                <input
+                  type="text"
+                  placeholder="Filter workspaces..."
+                  value={filterValue}
+                  onChange={(e) => setFilterValue(e.target.value)}
+                  className="workspaces-filter-input"
+                />
+                {filterValue && (
+                  <button
+                    type="button"
+                    className="workspaces-filter-clear-btn"
+                    onClick={() => setFilterValue('')}
+                    aria-label="Clear filter"
+                    title="Clear filter"
+                  >
+                    <svg width="14" height="14" viewBox="0 0 14 14" fill="none" xmlns="http://www.w3.org/2000/svg">
+                      <path
+                        d="M10.5 3.5L3.5 10.5M3.5 3.5L10.5 10.5"
+                        stroke="currentColor"
+                        strokeWidth="1.5"
+                        strokeLinecap="round"
+                      />
+                    </svg>
+                  </button>
                 )}
+                <button type="button" className="workspaces-filter-list-btn" aria-label="List view" title="List view">
+                  <svg width="16" height="16" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
+                    <path
+                      d="M2 4H14M2 8H14M2 12H14"
+                      stroke="currentColor"
+                      strokeWidth="2"
+                      strokeLinecap="round"
+                    />
+                  </svg>
+                </button>
               </div>
-
-              {/* Boards Grid - shown when expanded */}
-              {selectedWorkspace === workspace.id && workspace.boards?.length > 0 && (
-                <div className="workspace-boards">
-                  {workspace.boards.map((board) => (
-                    <div
-                      key={board.id}
-                      className={`board-card ${openMenuId === board.id ? 'menu-open' : ''}`}
-                      onClick={() => {
-                        // Set loading state and navigate to kanban board with board id
-                        setIsNavigating(true);
-                        navigate(`/kanban-board/${toSlug(board.name)}`);
-                      }}
-                      style={{ cursor: 'pointer' }}
-                    >
-                      <div className="board-card-header">
-                        <div className="board-menu-wrapper" ref={openMenuId === board.id ? menuRef : null}>
-                          <button
-                            type="button"
-                            className="board-menu-btn"
-                            onClick={(e) => {
-                              e.stopPropagation(); // Prevent navigation when clicking menu
-                              handleBoardMenu(board.id, e);
-                            }}
-                            aria-label="Board options"
-                            title="Board options"
-                          >
-                            <svg width="16" height="16" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
-                              <circle cx="8" cy="4" r="1.5" fill="currentColor" />
-                              <circle cx="8" cy="8" r="1.5" fill="currentColor" />
-                              <circle cx="8" cy="12" r="1.5" fill="currentColor" />
-                            </svg>
-                          </button>
-                          {openMenuId === board.id && (
-                            <div className="board-context-menu">
-                              <button
-                                type="button"
-                                className="board-context-menu-item"
-                                onClick={(e) => {
-                                  e.stopPropagation();
-                                  handleRenameBoard(board.id);
-                                }}
-                              >
-                                <svg width="16" height="16" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
-                                  <path
-                                    d="M11.3333 2.00001C11.5084 1.82497 11.7163 1.68606 11.9455 1.59127C12.1748 1.49648 12.4209 1.44775 12.6667 1.44775C12.9124 1.44775 13.1585 1.49648 13.3878 1.59127C13.617 1.68606 13.8249 1.82497 14 2.00001C14.175 2.17505 14.3139 2.38297 14.4087 2.61224C14.5035 2.8415 14.5522 3.08755 14.5522 3.33334C14.5522 3.57913 14.5035 3.82518 14.4087 4.05445C14.3139 4.28371 14.175 4.49164 14 4.66667L5.00001 13.6667L1.33334 14.6667L2.33334 11L11.3333 2.00001Z"
-                                    stroke="currentColor"
-                                    strokeWidth="1.5"
-                                    strokeLinecap="round"
-                                    strokeLinejoin="round"
-                                  />
-                                </svg>
-                                <span>Rename</span>
-                              </button>
-                              <button
-                                type="button"
-                                className="board-context-menu-item"
-                                onClick={(e) => {
-                                  e.stopPropagation();
-                                  handleEditWorkflows(board.id);
-                                }}
-                              >
-                                <svg width="16" height="16" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
-                                  <path
-                                    d="M2 2H6V6H2V2Z"
-                                    stroke="currentColor"
-                                    strokeWidth="1.5"
-                                    strokeLinecap="round"
-                                    strokeLinejoin="round"
-                                  />
-                                  <path
-                                    d="M10 2H14V6H10V2Z"
-                                    stroke="currentColor"
-                                    strokeWidth="1.5"
-                                    strokeLinecap="round"
-                                    strokeLinejoin="round"
-                                  />
-                                  <path
-                                    d="M2 10H6V14H2V10Z"
-                                    stroke="currentColor"
-                                    strokeWidth="1.5"
-                                    strokeLinecap="round"
-                                    strokeLinejoin="round"
-                                  />
-                                  <path
-                                    d="M10 10H14V14H10V10Z"
-                                    stroke="currentColor"
-                                    strokeWidth="1.5"
-                                    strokeLinecap="round"
-                                    strokeLinejoin="round"
-                                  />
-                                </svg>
-                                <span>Edit Workflows</span>
-                              </button>
-                              <button
-                                type="button"
-                                className="board-context-menu-item"
-                                onClick={(e) => {
-                                  e.stopPropagation();
-                                  handleArchiveBoard(board.id);
-                                }}
-                              >
-                                <svg width="16" height="16" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
-                                  <path
-                                    d="M2.66667 4H13.3333M6.66667 7.33334V11.3333M9.33333 7.33334V11.3333M3.33334 4L4 13.3333C4 13.687 4.14048 14.0261 4.39052 14.2762C4.64057 14.5262 4.97971 14.6667 5.33334 14.6667H10.6667C11.0203 14.6667 11.3594 14.5262 11.6095 14.2762C11.8595 14.0261 12 13.687 12 13.3333L12.6667 4M6.66667 4V2.66667C6.66667 2.48986 6.73691 2.32029 6.86193 2.19526C6.98696 2.07024 7.15653 2 7.33334 2H8.66667C8.84348 2 9.01305 2.07024 9.13807 2.19526C9.2631 2.32029 9.33334 2.48986 9.33334 2.66667V4"
-                                    stroke="currentColor"
-                                    strokeWidth="1.5"
-                                    strokeLinecap="round"
-                                    strokeLinejoin="round"
-                                  />
-                                </svg>
-                                <span>Archive</span>
-                              </button>
-                            </div>
-                          )}
-                        </div>
-                      </div>
-                      <div className="board-card-content">
-                        <h3
-                          className="board-name"
-                          data-tooltip-id={`board-name-${board.id}`}
-                          data-tooltip-content={board.name}
-                        >
-                          {board.name}
-                        </h3>
-                        <Tooltip id={`board-name-${board.id}`} place="top" />
-
-                        <div className="board-counts-row">
-                          <div
-                            className="board-count"
-                            data-tooltip-id={`board-count-${board.id}`}
-                            data-tooltip-content={`Card Count: ${board.count.toLocaleString()} cards`}
-                          >
-                            <img src={ClockIcon} alt="Clock" className="board-clock-icon" />
-                            <span className="board-count-number">{(board.count ?? 0).toLocaleString()}</span>
-                          </div>
-                          <Tooltip id={`board-count-${board.id}`} place="top" />
-
-                          {/* Board ID Icon with Count */}
-                          <div
-                            className="board-id-count"
-                            data-tooltip-id={`board-id-${board.id}`}
-                            data-tooltip-content={`Board ID: ${board.id}`}
-                          >
-                            <FiLayers className="board-id-icon" />
-                            <span className="board-id-number">{board.id}</span>
-                          </div>
-                          <Tooltip id={`board-id-${board.id}`} place="top" />
-                        </div>
-                      </div>
-                    </div>
-                  ))}
-                </div>
-              )}
             </div>
-          ))
-        )}
-      </div>
+          </div>
+          {workspacesListSection}
+        </>
+      ) : (
+        <>
+          <div className="workspaces-dashboard-toolbar">
+            <span>Add Workspace</span>
+            <span className="workspaces-dashboard-toolbar-sep">/</span>
+            <span>Add Widget</span>
+          </div>
+          <div className="workspaces-dashboard-canvas" style={dashboardCanvasStyle}>
+            <div className="workspaces-dashboard-inner">
+              <div className="workspaces-header workspaces-header--dashboard">
+                <div className="workspaces-header-left">
+                  <h1 className="workspaces-title">{currentDashboard?.dashboard_name ?? 'Dashboard'}</h1>
+                  {headerActions}
+                </div>
+              </div>
+              {workspacesListSection}
+            </div>
+          </div>
+        </>
+      )}
 
       {/* New Workspace Modal */}
       <NewWorkspaceModal
