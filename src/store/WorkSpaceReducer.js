@@ -52,6 +52,64 @@ const useWorkSpaceReducer = create((set, get) => ({
       set({ errorMessage: error.message, dashboardsLoading: false, dashboards: [] });
     }
   },
+  renameDashboard: async ({ dashboard_id, dashboard_name, cb }) => {
+    try {
+      set({ addEditLoader: true });
+      const { data } = await kanbanDashboardService.renameDashboard(dashboard_id, { dashboard_name });
+      set({ addEditLoader: false });
+      const { success } = useAlertReducer.getState();
+      success(data?.message ?? 'Dashboard renamed successfully');
+      cb && cb();
+      get().listAllDashboards();
+    } catch (err) {
+      const { error } = useAlertReducer.getState();
+      set({ addEditLoader: false });
+      error(err?.response?.data?.message ?? err.message ?? 'Failed to rename dashboard');
+    }
+  },
+  changeDashboardBackground: async ({ dashboard_id, background_type, color, background_image, cb }) => {
+    try {
+      set({ addEditLoader: true });
+      if (background_type === 'wallpaper' && background_image) {
+        const formData = new FormData();
+        formData.append('background_type', 'wallpaper');
+        formData.append('background_image', background_image);
+        const { data } = await kanbanDashboardService.changeBackground(dashboard_id, formData);
+        set({ addEditLoader: false });
+        const { success } = useAlertReducer.getState();
+        success(data?.message ?? 'Background updated');
+      } else {
+        const { data } = await kanbanDashboardService.changeBackground(dashboard_id, {
+          background_type: 'color',
+          color,
+        });
+        set({ addEditLoader: false });
+        const { success } = useAlertReducer.getState();
+        success(data?.message ?? 'Background updated');
+      }
+      cb && cb();
+      get().listAllDashboards();
+    } catch (err) {
+      const { error } = useAlertReducer.getState();
+      set({ addEditLoader: false });
+      error(err?.response?.data?.message ?? err.message ?? 'Failed to update background');
+    }
+  },
+  deleteDashboard: async ({ dashboard_id, cb }) => {
+    try {
+      set({ addEditLoader: true });
+      const { data } = await kanbanDashboardService.deleteDashboard(dashboard_id);
+      set({ addEditLoader: false });
+      const { success } = useAlertReducer.getState();
+      success(data?.message ?? 'Dashboard deleted');
+      cb && cb();
+      get().listAllDashboards();
+    } catch (err) {
+      const { error } = useAlertReducer.getState();
+      set({ addEditLoader: false });
+      error(err?.response?.data?.message ?? err.message ?? 'Failed to delete dashboard');
+    }
+  },
   createDashboard: async ({ dashboard_name, cb }) => {
     try {
       set({ addEditLoader: true });
