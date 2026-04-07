@@ -1943,6 +1943,95 @@ CheckListContent.propTypes = {
   isDAModule: PropTypes.bool,
 };
 
+/** Parse comma-separated recipients into locked chips + current inline input segment (Gmail-style). */
+const parseRecipientFieldValue = (value) => {
+  if (value == null || value === "") return { chips: [], input: "" };
+  const parts = value.split(",");
+  const chips = parts.slice(0, -1).map((p) => p.trim()).filter(Boolean);
+  const input = (parts[parts.length - 1] ?? "").trimStart();
+  return { chips, input };
+};
+
+const buildRecipientFieldValue = (chips, input) => {
+  if (!chips.length) return input;
+  if (!input) return chips.join(", ");
+  return `${chips.join(", ")}, ${input}`;
+};
+
+const RecipientChipField = ({
+  value,
+  onChange,
+  id,
+  ariaLabelledBy,
+  placeholder,
+  className = "",
+}) => {
+  const { chips, input } = parseRecipientFieldValue(value ?? "");
+
+  const update = (nextChips, nextInput) => {
+    onChange(buildRecipientFieldValue(nextChips, nextInput));
+  };
+
+  const removeChip = (index) => {
+    update(
+      chips.filter((_, i) => i !== index),
+      input
+    );
+  };
+
+  const handleInputChange = (e) => {
+    update(chips, e.target.value);
+  };
+
+  const handleKeyDown = (e) => {
+    if (e.key === "Backspace" && input === "" && chips.length > 0) {
+      e.preventDefault();
+      update(chips.slice(0, -1), "");
+    }
+  };
+
+  return (
+    <div
+      className={`send-report-compose-recipients${className ? ` ${className}` : ""}`}
+      id={id}
+    >
+      {chips.map((email, i) => (
+        <span key={`${i}-${email}`} className="send-report-recipient-chip">
+          <span className="send-report-recipient-chip-text">{email}</span>
+          <button
+            type="button"
+            className="send-report-recipient-chip-remove"
+            onClick={() => removeChip(i)}
+            aria-label={`Remove ${email}`}
+          >
+            ×
+          </button>
+        </span>
+      ))}
+      <input
+        type="text"
+        className="send-report-compose-recipients-input"
+        value={input}
+        onChange={handleInputChange}
+        onKeyDown={handleKeyDown}
+        placeholder={chips.length ? "" : placeholder}
+        autoComplete="off"
+        spellCheck={false}
+        aria-labelledby={ariaLabelledBy}
+      />
+    </div>
+  );
+};
+
+RecipientChipField.propTypes = {
+  value: PropTypes.string.isRequired,
+  onChange: PropTypes.func.isRequired,
+  id: PropTypes.string,
+  ariaLabelledBy: PropTypes.string,
+  placeholder: PropTypes.string,
+  className: PropTypes.string,
+};
+
 // Send Report Preview Modal Component
 const SendReportPreviewModal = ({ show, onClose, cardColor, tabName }) => {
   const [formData, setFormData] = useState({
@@ -1953,6 +2042,14 @@ const SendReportPreviewModal = ({ show, onClose, cardColor, tabName }) => {
     subject: `Report - ${tabName}`,
     body: `This is a preview of the ${tabName} report.\n\nPlease review the details before sending.`,
   });
+
+  const [bccExpanded, setBccExpanded] = useState(false);
+
+  useEffect(() => {
+    if (show) {
+      setBccExpanded(!!formData.bcc?.trim());
+    }
+  }, [show]);
 
   const handleInputChange = (field, value) => {
     setFormData(prev => ({
@@ -1968,70 +2065,104 @@ const SendReportPreviewModal = ({ show, onClose, cardColor, tabName }) => {
   };
 
   const renderBody = () => (
-    <div className="send-report-preview-modal">
-      <div className="send-report-form">
-        <div className="send-report-form-row send-report-form-row--double">
-          <div className="send-report-field">
-            <label>From</label>
+    <div className="send-report-preview-modal send-report-compose">
+      <div className="send-report-compose-fields">
+        <div className="send-report-compose-row send-report-compose-row--field">
+          <span className="send-report-compose-label" id="send-report-from-label">
+            From
+          </span>
+          <div className="send-report-compose-field-inner">
             <input
               type="email"
               value={formData.from}
               onChange={(e) => handleInputChange("from", e.target.value)}
-              className="send-report-input"
+              className="send-report-compose-input"
               placeholder="sender@example.com"
+              aria-labelledby="send-report-from-label"
             />
           </div>
-          <div className="send-report-field">
-            <label>To</label>
-            <input
-              type="email"
+        </div>
+        <div className="send-report-compose-row send-report-compose-row--field">
+          <span className="send-report-compose-label" id="send-report-to-label">
+            To
+          </span>
+          <div className="send-report-compose-field-inner">
+            <RecipientChipField
               value={formData.to}
-              onChange={(e) => handleInputChange("to", e.target.value)}
-              className="send-report-input"
-              placeholder="recipient@example.com"
+              onChange={(v) => handleInputChange("to", v)}
+              placeholder="Recipients"
+              ariaLabelledBy="send-report-to-label"
             />
           </div>
         </div>
-        <div className="send-report-form-row send-report-form-row--double">
-          <div className="send-report-field">
-            <label>CC</label>
-            <input
-              type="email"
+        <div className="send-report-compose-row send-report-compose-row--field send-report-compose-row--optional">
+          <span className="send-report-compose-label send-report-compose-label--optional" id="send-report-cc-label">
+            Cc
+          </span>
+          <div className="send-report-compose-field-inner">
+            <RecipientChipField
               value={formData.cc}
-              onChange={(e) => handleInputChange("cc", e.target.value)}
-              className="send-report-input"
-              placeholder="cc@example.com"
+              onChange={(v) => handleInputChange("cc", v)}
+              className="send-report-compose-recipients--optional"
+              placeholder="Recipients"
+              ariaLabelledBy="send-report-cc-label"
             />
           </div>
-          <div className="send-report-field">
-            <label>BCC</label>
+        </div>
+        {!bccExpanded ? (
+          <div className="send-report-compose-row send-report-compose-row--add-bcc">
+            <span className="send-report-compose-label send-report-compose-label--ghost" aria-hidden="true">
+              &nbsp;
+            </span>
+            <div className="send-report-compose-field-inner send-report-compose-field-inner--link">
+              <button
+                type="button"
+                className="send-report-compose-add-bcc"
+                onClick={() => setBccExpanded(true)}
+              >
+                Add Bcc
+              </button>
+            </div>
+          </div>
+        ) : (
+          <div className="send-report-compose-row send-report-compose-row--field send-report-compose-row--optional">
+            <span className="send-report-compose-label send-report-compose-label--optional" id="send-report-bcc-label">
+              Bcc
+            </span>
+            <div className="send-report-compose-field-inner">
+              <RecipientChipField
+                value={formData.bcc}
+                onChange={(v) => handleInputChange("bcc", v)}
+                className="send-report-compose-recipients--optional"
+                placeholder="Recipients"
+                ariaLabelledBy="send-report-bcc-label"
+              />
+            </div>
+          </div>
+        )}
+        <div className="send-report-compose-row send-report-compose-row--subject">
+          <span className="send-report-compose-label" id="send-report-subject-label">
+            Subject
+          </span>
+          <div className="send-report-compose-field-inner">
             <input
-              type="email"
-              value={formData.bcc}
-              onChange={(e) => handleInputChange("bcc", e.target.value)}
-              className="send-report-input"
-              placeholder="bcc@example.com"
+              type="text"
+              value={formData.subject}
+              onChange={(e) => handleInputChange("subject", e.target.value)}
+              className="send-report-compose-input"
+              placeholder="Subject"
+              aria-labelledby="send-report-subject-label"
             />
           </div>
         </div>
-        <div className="send-report-field">
-          <label>Subject</label>
-          <input
-            type="text"
-            value={formData.subject}
-            onChange={(e) => handleInputChange("subject", e.target.value)}
-            className="send-report-input"
-            placeholder="Report subject"
-          />
-        </div>
-        <div className="send-report-field send-report-field--body">
-          <label>Body</label>
+        <div className="send-report-compose-editor">
           <textarea
             value={formData.body}
             onChange={(e) => handleInputChange("body", e.target.value)}
-            className="send-report-textarea"
-            rows={10}
-            placeholder="Enter report content..."
+            className="send-report-compose-message"
+            placeholder="Compose your message…"
+            aria-label="Message body"
+            rows={12}
           />
         </div>
       </div>
@@ -2049,7 +2180,7 @@ const SendReportPreviewModal = ({ show, onClose, cardColor, tabName }) => {
           className="send-report-send-btn"
           onClick={handleSend}
         >
-          Send Report
+          Send
         </button>
       </div>
     </div>
@@ -2057,7 +2188,7 @@ const SendReportPreviewModal = ({ show, onClose, cardColor, tabName }) => {
 
   const renderHeader = () => (
     <div className="send-report-modal-header">
-      <h5 className="send-report-modal-title">Send Report Preview - {tabName}</h5>
+      <h5 className="send-report-modal-title">Send report — {tabName}</h5>
       <div className="send-report-modal-header-actions">
         <button
           type="button"
