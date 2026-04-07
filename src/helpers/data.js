@@ -26,13 +26,13 @@ const workflowsConfig = [
       "Ready to Fianalize",
     ],
     cardCounts: {
-      "col-1": 18, // Appointment Received
-      "col-2": 18,  // Enroute
-      "col-3": 18,  // Vessel Arrived
-      "col-4": 18, // Vessel Cleared
-      "col-5": 18, // Vessel on Standby
-      "col-6": 18, // Vessel Sailed
-      "col-7": 18, // Ready to Fianalize
+      "col-1": 1, // Appointment Received
+      "col-2": 0,  // Enroute
+      "col-3": 1,  // Vessel Arrived
+      "col-4": 0, // Vessel Cleared
+      "col-5": 0, // Vessel on Standby
+      "col-6": 0, // Vessel Sailed
+      "col-7": 0, // Ready to Fianalize
     },
     wipLimits: {
       "col-1": 25,
@@ -64,12 +64,12 @@ const workflowsConfig = [
       "Ready to Fianalize",
     ],
     cardCounts: {
-      "col-1": 12, // Appointment Received
-      "col-2": 12,  // Enroute
-      "col-3": 12,  // Vessel Arrived
-      "col-4": 11, // Vessel Cleared
-      "col-5": 12, // Vessel Sailed
-      "col-6": 11, // Ready to Fianalize
+      "col-1": 1, // Appointment Received
+      "col-2": 0,  // Enroute
+      "col-3": 1,  // Vessel Arrived
+      "col-4": 0, // Vessel Cleared
+      "col-5": 0, // Vessel Sailed
+      "col-6": 0, // Ready to Fianalize
     },
     wipLimits: {
       "col-1": 20,

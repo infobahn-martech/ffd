@@ -136,7 +136,7 @@
   padding: 10px;
   background: #f3f4f8;
   border-radius: 8px;
-  min-height: 150px;
+  min-height: 800px;
   flex: 1;
   transition: background 0.2s ease;
   align-items: start;
