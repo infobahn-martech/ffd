@@ -39,6 +39,7 @@ function WorkflowStageCard({
   const limit = stage.limit ?? 0;
   const cardsPerRow = stage.cardsPerRow ?? 1;
   const displayColor = stage.color ? rgbToHex(stage.color) : '#f9fafb';
+  const isChildColumn = !!stage.parent_column_id;
 
   const startEditLimit = () => {
     setEditingField('limit');
@@ -136,13 +137,16 @@ function WorkflowStageCard({
           </div>
         )}
         {isStageHovered && showAddSubcolumn && (
-          <div className="workflow-insertion-rail workflow-insertion-rail-bottom">
+          <div
+            className={`workflow-insertion-rail workflow-insertion-rail-bottom bottom-add-grid${isChildColumn ? ' disabled' : ''}`}
+          >
             <button
               className="workflow-column-add-btn workflow-column-add-below"
               type="button"
-              disabled={columnActionsDisabled}
+              disabled={columnActionsDisabled || isChildColumn}
               onClick={(e) => {
                 e.stopPropagation();
+                if (isChildColumn) return;
                 onAddSubcolumn(workflowId, swimlaneId, stage.id);
               }}
               title="Add a new subcolumn"

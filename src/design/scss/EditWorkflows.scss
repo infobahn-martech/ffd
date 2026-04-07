@@ -803,6 +803,23 @@ div[role="tooltip"][id^="workflow-info-"] {
   border-top: 1px solid #59d38c;
 }
 
+.workflow-stage-box .workflow-insertion-rail-bottom.bottom-add-grid.disabled {
+  opacity: 0.5;
+  pointer-events: none;
+  cursor: not-allowed;
+
+  .workflow-column-add-btn {
+    pointer-events: none;
+    cursor: not-allowed;
+  }
+
+  .workflow-column-add-btn:hover,
+  .workflow-column-add-btn:hover svg {
+    background: transparent;
+    stroke: #9ca3af;
+  }
+}
+
 // Stacked rails - in col-stack (height from inline style)
 .workflow-insertion-rail-left {
   left: 0;
