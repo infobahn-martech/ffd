@@ -681,6 +681,9 @@ function compactCreateColumnPayload(parts) {
   if (parts.insert_after_column_id != null && parts.insert_after_column_id !== '') {
     out.insert_after_column_id = String(parts.insert_after_column_id);
   }
+  if (parts.insert_before_column_id != null && parts.insert_before_column_id !== '') {
+    out.insert_before_column_id = String(parts.insert_before_column_id);
+  }
   return out;
 }
 
@@ -745,15 +748,6 @@ export function buildCreateWorkflowColumnPayload(stages, targetInternalId, actio
 
   const row = target.row ?? 0;
   if (row === 0) {
-    const siblings = stages
-      .filter(
-        (s) =>
-          s.area === target.area &&
-          String(s.stageId ?? '') === String(target.stageId ?? '') &&
-          (s.row ?? 0) === 0
-      )
-      .sort((a, b) => (a.col ?? 0) - (b.col ?? 0));
-    const idx = siblings.findIndex((s) => s.id === target.id || String(s.id) === String(target.id));
     if (action === 'right') {
       return {
         ok: true,
@@ -764,15 +758,11 @@ export function buildCreateWorkflowColumnPayload(stages, targetInternalId, actio
       };
     }
     if (action === 'left') {
-      if (idx <= 0) {
-        return { ok: true, payload: compactCreateColumnPayload({ ...base }) };
-      }
-      const prev = siblings[idx - 1];
       return {
         ok: true,
         payload: compactCreateColumnPayload({
           ...base,
-          insert_after_column_id: String(prev.columnId),
+          insert_before_column_id: String(target.columnId),
         }),
       };
     }
@@ -783,19 +773,6 @@ export function buildCreateWorkflowColumnPayload(stages, targetInternalId, actio
     if (!parent || parent.columnId == null || parent.columnId === '') {
       return { ok: false, message: 'Parent column not found.' };
     }
-    const pCol = parent.col ?? 0;
-    const pSpan = parent.colSpan ?? 1;
-    const siblings = stages
-      .filter(
-        (s) =>
-          s.area === target.area &&
-          String(s.stageId ?? '') === String(target.stageId ?? '') &&
-          (s.row ?? 0) === row &&
-          (s.col ?? 0) >= pCol &&
-          (s.col ?? 0) < pCol + pSpan
-      )
-      .sort((a, b) => (a.col ?? 0) - (b.col ?? 0));
-    const idx = siblings.findIndex((s) => s.id === target.id || String(s.id) === String(target.id));
     if (action === 'right') {
       return {
         ok: true,
@@ -807,22 +784,12 @@ export function buildCreateWorkflowColumnPayload(stages, targetInternalId, actio
       };
     }
     if (action === 'left') {
-      if (idx <= 0) {
-        return {
-          ok: true,
-          payload: compactCreateColumnPayload({
-            ...base,
-            parent_column_id: String(parent.columnId),
-          }),
-        };
-      }
-      const prev = siblings[idx - 1];
       return {
         ok: true,
         payload: compactCreateColumnPayload({
           ...base,
           parent_column_id: String(parent.columnId),
-          insert_after_column_id: String(prev.columnId),
+          insert_before_column_id: String(target.columnId),
         }),
       };
     }
