@@ -1,6 +1,5 @@
 import { useState, useCallback, useMemo, useEffect } from "react";
 import { DragDropContext } from "@hello-pangea/dnd";
-import { FiLayers } from "react-icons/fi";
 import { initialData } from "../../helpers/data";
 import { useLayoutView } from "../../context/LayoutViewContext";
 import Column from "./Column";
@@ -536,8 +535,7 @@ export default function KanbanBoard() {
             className="kanban-accordion-header"
             onClick={() => toggleWorkflow(workflow.id)}
           >
-            <div className="kanban-accordion-title-row">
-              <FiLayers className="kanban-accordion-title-icon" aria-hidden />
+            <div className="kanban-accordion-title-row" style={{ flex: 1, justifyContent: "center" }}>
               <h2 className="kanban-accordion-title" style={{ fontWeight: 700 }}>
                 {workflow.title}
               </h2>
