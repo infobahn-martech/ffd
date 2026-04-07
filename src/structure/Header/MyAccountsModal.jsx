@@ -397,7 +397,7 @@ function MyAccountsModal({ show, onClose }) {
             color: '#00368c',
             fontSize: '24px',
             fontWeight: '600',
-            fontFamily: '"Poppins", sans-serif',
+            fontFamily: '"Open Sans", sans-serif',
           }}>
             My Accounts
           </h5>

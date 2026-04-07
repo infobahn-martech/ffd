@@ -7,7 +7,7 @@
   align-items: center;
   background: rgb(37 36 36 / 58%);
   z-index: 1200;
-  font-family: "Poppins", sans-serif;
+  font-family: "Open Sans", sans-serif;
 }
 
 /* Panel */
@@ -22,10 +22,10 @@
   display: flex;
   flex-direction: column;
   box-shadow: 0 6px 24px rgba(0, 0, 0, 0.18);
-  font-family: "Poppins", sans-serif;
+  font-family: "Open Sans", sans-serif;
 }
 
-/* Ensure all text elements within cardform use Poppins */
+/* Ensure all text elements within cardform use Open Sans */
 .cardform-panel,
 .cardform-panel *,
 .cardform-panel input,
@@ -47,7 +47,7 @@
 .cardform-panel li,
 .cardform-panel a,
 .cardform-panel option {
-  font-family: "Poppins", sans-serif !important;
+  font-family: "Open Sans", sans-serif !important;
 }
 
 /* Top bar */
@@ -88,7 +88,7 @@
   padding: 8px 16px;
   font-size: 14px;
   font-weight: 600;
-  font-family: "Poppins", sans-serif;
+  font-family: "Open Sans", sans-serif;
   color: #1a1a1a;
   width: 100%;
   min-width: 0;
@@ -485,7 +485,7 @@
   outline: none;
   width: 100%;
   color: #1a1a1a;
-  font-family: "Poppins", sans-serif;
+  font-family: "Open Sans", sans-serif;
 }
 
 .cf-input input::placeholder {
@@ -1346,7 +1346,7 @@
   border: 1px solid #e2e6ff;
   border-radius: 8px;
   cursor: pointer;
-  font-family: "Poppins", sans-serif;
+  font-family: "Open Sans", sans-serif;
   transition: background 0.2s, color 0.2s;
 }
 
@@ -1413,7 +1413,7 @@
   border: 1px solid #a5d6a7;
   border-radius: 8px;
   cursor: pointer;
-  font-family: "Poppins", sans-serif;
+  font-family: "Open Sans", sans-serif;
   transition: background 0.2s, color 0.2s;
 }
 
@@ -1431,7 +1431,7 @@
   border: none;
   border-radius: 8px;
   cursor: pointer;
-  font-family: "Poppins", sans-serif;
+  font-family: "Open Sans", sans-serif;
   transition: background 0.2s, opacity 0.2s;
 }
 
@@ -1461,7 +1461,7 @@
   min-height: 72px;
   padding: 10px 12px;
   font-size: 13px;
-  font-family: "Poppins", sans-serif;
+  font-family: "Open Sans", sans-serif;
   border: 1px solid #e1e2e8;
   border-radius: 8px;
   resize: vertical;
@@ -1490,7 +1490,7 @@
   border: 1px solid #e1e2e8;
   border-radius: 8px;
   cursor: pointer;
-  font-family: "Poppins", sans-serif;
+  font-family: "Open Sans", sans-serif;
 }
 
 .gro-require-cancel:hover {
@@ -1506,7 +1506,7 @@
   border: none;
   border-radius: 8px;
   cursor: pointer;
-  font-family: "Poppins", sans-serif;
+  font-family: "Open Sans", sans-serif;
 }
 
 /* .gro-require-submit:hover {
@@ -1527,7 +1527,7 @@
   width: 100%;
   padding: 8px 0;
   font-size: 13px;
-  font-family: "Poppins", sans-serif;
+  font-family: "Open Sans", sans-serif;
   margin-bottom: 12px;
   box-sizing: border-box;
 }
@@ -1552,7 +1552,7 @@
   width: 100%;
   padding: 8px 12px;
   font-size: 13px;
-  font-family: "Poppins", sans-serif;
+  font-family: "Open Sans", sans-serif;
   border: 1px solid #e1e2e8;
   border-radius: 8px;
   box-sizing: border-box;

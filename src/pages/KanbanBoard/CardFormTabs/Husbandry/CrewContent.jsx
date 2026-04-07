@@ -975,7 +975,7 @@ const CrewContent = ({ formValues, handleChange, cardColor, onNavigateToTab, lau
                     fontWeight: "700",
                     color: "#1a1a1a",
                     margin: "0 0 8px 0",
-                    fontFamily: "Inter, sans-serif",
+                    fontFamily: "\"Open Sans\", sans-serif",
                     display: "flex",
                     alignItems: "center",
                     gap: "12px"
@@ -992,7 +992,7 @@ const CrewContent = ({ formValues, handleChange, cardColor, onNavigateToTab, lau
                     fontSize: "14px",
                     color: "#666",
                     margin: "0",
-                    fontFamily: "Inter, sans-serif",
+                    fontFamily: "\"Open Sans\", sans-serif",
                     paddingLeft: "16px"
                   }}>
                     Please upload your crew data in Excel format
@@ -1012,7 +1012,7 @@ const CrewContent = ({ formValues, handleChange, cardColor, onNavigateToTab, lau
                     fontWeight: "600",
                     cursor: "pointer",
                     transition: "all 0.2s ease",
-                    fontFamily: "Inter, sans-serif",
+                    fontFamily: "\"Open Sans\", sans-serif",
                     display: "flex",
                     alignItems: "center",
                     gap: "8px",
@@ -1094,7 +1094,7 @@ const CrewContent = ({ formValues, handleChange, cardColor, onNavigateToTab, lau
                         fontWeight: "600",
                         color: "#28a745",
                         margin: "0 0 8px 0",
-                        fontFamily: "Inter, sans-serif"
+                        fontFamily: "\"Open Sans\", sans-serif"
                       }}>
                         ✓ File Uploaded Successfully
                       </p>
@@ -1102,7 +1102,7 @@ const CrewContent = ({ formValues, handleChange, cardColor, onNavigateToTab, lau
                         fontSize: "14px",
                         color: "#666",
                         margin: "0 0 4px 0",
-                        fontFamily: "Inter, sans-serif",
+                        fontFamily: "\"Open Sans\", sans-serif",
                         wordBreak: "break-word"
                       }}>
                         {uploadedFileName}
@@ -1111,7 +1111,7 @@ const CrewContent = ({ formValues, handleChange, cardColor, onNavigateToTab, lau
                         fontSize: "12px",
                         color: "#999",
                         margin: "0",
-                        fontFamily: "Inter, sans-serif"
+                        fontFamily: "\"Open Sans\", sans-serif"
                       }}>
                         Click to upload a different file
                       </p>
@@ -1159,7 +1159,7 @@ const CrewContent = ({ formValues, handleChange, cardColor, onNavigateToTab, lau
                 fontWeight: "700",
                 color: "#1a1a1a",
                 margin: "0",
-                fontFamily: "Inter, sans-serif"
+                fontFamily: "\"Open Sans\", sans-serif"
               }}>
                 Expected Format (Preview - 5 rows)
               </h4>
@@ -1174,7 +1174,7 @@ const CrewContent = ({ formValues, handleChange, cardColor, onNavigateToTab, lau
               <table style={{
                 width: "100%",
                 borderCollapse: "collapse",
-                fontFamily: "Inter, sans-serif",
+                fontFamily: "\"Open Sans\", sans-serif",
                 fontSize: "13px",
                 tableLayout: "fixed"
               }}>
@@ -1335,7 +1335,7 @@ const CrewContent = ({ formValues, handleChange, cardColor, onNavigateToTab, lau
                                 backgroundColor: hasValue ? "#f0f7ff" : "transparent",
                                 color: hasValue ? "#1a1a1a" : "#999",
                                 fontSize: "13px",
-                                fontFamily: "Inter, sans-serif",
+                                fontFamily: "\"Open Sans\", sans-serif",
                                 padding: "8px 10px",
                                 borderRadius: "4px",
                                 transition: "all 0.2s ease",
@@ -1370,7 +1370,7 @@ const CrewContent = ({ formValues, handleChange, cardColor, onNavigateToTab, lau
                   fontSize: "13px",
                   color: "#1a1a1a",
                   margin: "0 0 4px 0",
-                  fontFamily: "Inter, sans-serif",
+                  fontFamily: "\"Open Sans\", sans-serif",
                   fontWeight: "600"
                 }}>
                   Quick Entry Guide
@@ -1379,7 +1379,7 @@ const CrewContent = ({ formValues, handleChange, cardColor, onNavigateToTab, lau
                   fontSize: "12px",
                   color: "#666",
                   margin: "0",
-                  fontFamily: "Inter, sans-serif",
+                  fontFamily: "\"Open Sans\", sans-serif",
                   lineHeight: "1.6"
                 }}>
                   You can type directly into the cells or copy and paste data from Excel (tab-separated). Maximum 5 rows. At least one crew member's name is required.
@@ -1413,7 +1413,7 @@ const CrewContent = ({ formValues, handleChange, cardColor, onNavigateToTab, lau
                   fontWeight: "600",
                   cursor: "pointer",
                   transition: "all 0.2s ease",
-                  fontFamily: "Inter, sans-serif",
+                  fontFamily: "\"Open Sans\", sans-serif",
                   display: "flex",
                   alignItems: "center",
                   gap: "6px"
@@ -1448,7 +1448,7 @@ const CrewContent = ({ formValues, handleChange, cardColor, onNavigateToTab, lau
                   fontWeight: "700",
                   cursor: "pointer",
                   transition: "all 0.3s ease",
-                  fontFamily: "Inter, sans-serif",
+                  fontFamily: "\"Open Sans\", sans-serif",
                   display: "flex",
                   alignItems: "center",
                   gap: "10px",
@@ -1487,7 +1487,7 @@ const CrewContent = ({ formValues, handleChange, cardColor, onNavigateToTab, lau
                 fontWeight: "700",
                 color: "#1a1a1a",
                 margin: "0",
-                fontFamily: "Inter, sans-serif",
+                fontFamily: "\"Open Sans\", sans-serif",
                 display: "flex",
                 alignItems: "center",
                 gap: "12px",
@@ -1602,7 +1602,7 @@ const CrewContent = ({ formValues, handleChange, cardColor, onNavigateToTab, lau
                       fontSize: "13px",
                       color: "#666",
                       fontWeight: "500",
-                      fontFamily: "Inter, sans-serif",
+                      fontFamily: "\"Open Sans\", sans-serif",
                       whiteSpace: "nowrap"
                     }}
                     title={uploadedFileName}
@@ -1638,7 +1638,7 @@ const CrewContent = ({ formValues, handleChange, cardColor, onNavigateToTab, lau
                   fontWeight: "600",
                   cursor: "pointer",
                   transition: "all 0.2s ease",
-                  fontFamily: "Inter, sans-serif",
+                  fontFamily: "\"Open Sans\", sans-serif",
                   display: "flex",
                   alignItems: "center",
                   gap: "8px",
@@ -1706,7 +1706,7 @@ const CrewContent = ({ formValues, handleChange, cardColor, onNavigateToTab, lau
                     fontWeight: "600",
                     cursor: "pointer",
                     outline: "none",
-                    fontFamily: "Inter, sans-serif",
+                    fontFamily: "\"Open Sans\", sans-serif",
                     appearance: "none",
                     backgroundImage: `url("data:image/svg+xml,%3Csvg width='12' height='8' viewBox='0 0 12 8' fill='none' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M1 1L6 6L11 1' stroke='%23666' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E")`,
                     backgroundRepeat: "no-repeat",
@@ -1748,7 +1748,7 @@ const CrewContent = ({ formValues, handleChange, cardColor, onNavigateToTab, lau
                       fontWeight: "600",
                       cursor: "pointer",
                       transition: "all 0.2s ease",
-                      fontFamily: "Inter, sans-serif",
+                      fontFamily: "\"Open Sans\", sans-serif",
                       display: "flex",
                       alignItems: "center",
                       gap: "8px",
@@ -1827,7 +1827,7 @@ const CrewContent = ({ formValues, handleChange, cardColor, onNavigateToTab, lau
                   fontWeight: "600",
                   cursor: "pointer",
                   transition: "all 0.2s ease",
-                  fontFamily: "Inter, sans-serif",
+                  fontFamily: "\"Open Sans\", sans-serif",
                   minWidth: 0
                 }}
                 onMouseEnter={(e) => {

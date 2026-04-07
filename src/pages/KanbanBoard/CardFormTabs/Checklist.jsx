@@ -411,7 +411,7 @@ const FilePreview = ({ file, onRemove, isDAModule = false }) => {
               <div className="checklist-file-icon-word-logo">
                 <svg width="40" height="40" viewBox="0 0 40 40" fill="none" xmlns="http://www.w3.org/2000/svg">
                   <rect x="8" y="8" width="24" height="24" rx="2" fill="#2B579A" />
-                  <text x="20" y="27" textAnchor="middle" fill="white" fontSize="20" fontWeight="bold" fontFamily="Arial, sans-serif">W</text>
+                  <text x="20" y="27" textAnchor="middle" fill="white" fontSize="20" fontWeight="bold" fontFamily="'Open Sans', sans-serif">W</text>
                 </svg>
               </div>
               <div className="checklist-file-icon-word-lines">

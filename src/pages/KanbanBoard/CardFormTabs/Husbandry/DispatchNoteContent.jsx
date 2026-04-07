@@ -263,7 +263,7 @@ const DispatchNoteContent = ({ formValues, handleChange, cardColor }) => {
           <title>Print - Dispatch Note ${note.orderNo || ''}</title>
           <style>
             body {
-              font-family: Arial, sans-serif;
+              font-family: "Open Sans", sans-serif;
               padding: 20px;
               color: #333;
             }

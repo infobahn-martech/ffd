@@ -567,7 +567,7 @@ const InboundOrdersContent = ({ formValues, handleChange, cardColor }) => {
           <title>Print - Inbound Order ${order.orderNo || ''}</title>
           <style>
             body {
-              font-family: Arial, sans-serif;
+              font-family: "Open Sans", sans-serif;
               padding: 20px;
               color: #333;
             }

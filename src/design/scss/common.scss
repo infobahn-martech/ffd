@@ -1,7 +1,37 @@
 @import "partials/partials";
 
+:root {
+  --bs-font-sans-serif: 'Open Sans', sans-serif;
+  --bs-body-font-family: 'Open Sans', sans-serif;
+}
+
+html,
+body,
+#root {
+  font-family: 'Open Sans', sans-serif;
+  letter-spacing: 0.2px;
+}
+
 body {
-  font-family: 'Poppins', sans-serif;
+  font-weight: 400;
+}
+
+h1,
+h2,
+h3,
+h4,
+h5,
+h6 {
+  font-family: 'Open Sans', sans-serif;
+  font-weight: 600;
+}
+
+button,
+input,
+select,
+textarea,
+table {
+  font-family: inherit;
 }
 
 /* ==========================================================
@@ -282,7 +312,7 @@ textarea:disabled,
   font-weight: 600;
   color: #1f2937;
   margin: 0;
-  font-family: "Plus Jakarta Sans", sans-serif
+  font-family: 'Open Sans', sans-serif;
 }
 
 .kanban-accordion-icon {

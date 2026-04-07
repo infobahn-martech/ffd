@@ -154,7 +154,7 @@ function Index() {
                       marginLeft: "4px",
                       fontSize: "16px",
                       color: "#0c234c",
-                      fontFamily: `"Raleway", sans-serif`,
+                      fontFamily: `"Open Sans", sans-serif`,
                     }}
                   >
                     Remember Me

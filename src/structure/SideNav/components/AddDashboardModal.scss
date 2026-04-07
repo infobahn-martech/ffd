@@ -48,7 +48,7 @@
 
 .add-dashboard-modal-title {
   margin: 0;
-  font-family: $font-primary, "Plus Jakarta Sans", system-ui, sans-serif;
+  font-family: $font-primary;
   font-size: 1.5rem;
   font-weight: 600;
   line-height: 1.35;
@@ -147,7 +147,7 @@
   &.add-dashboard-btn--text {
     padding: 8px 4px;
     min-height: auto;
-    font-family: $font-primary, "Plus Jakarta Sans", system-ui, sans-serif;
+    font-family: $font-primary;
     font-size: 0.9375rem;
     font-weight: 600;
     color: #00368c;

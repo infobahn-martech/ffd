@@ -1,6 +1,6 @@
 @import "partials/partials";
 
-$primary-font: "Poppins", sans-serif;
+$primary-font: "Open Sans", sans-serif;
 
 .modal-header {
   border-bottom: none;
@@ -175,12 +175,12 @@ $primary-font: "Poppins", sans-serif;
   }
 
   .popup-title {
-    font: normal normal 600 20px/30px Poppins;
+    font: normal normal 600 20px/30px 'Open Sans';
     color: #00368C;
   }
 
   .popup-sub-title {
-    font: normal normal normal 14px/21px Poppins;
+    font: normal normal normal 14px/21px 'Open Sans';
   }
 
   .modal-body {
