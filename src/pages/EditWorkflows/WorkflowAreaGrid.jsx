@@ -39,7 +39,7 @@ function WorkflowAreaGrid({
   onDeleteStage,
   onStageLimitChange,
   onStageCardsPerRowChange,
-  columnActionsDisabled = false,
+  mutationTargets = {},
 }) {
   const blockWidth = cols * stageCellWidth + Math.max(0, cols - 1) * stageGap;
 
@@ -61,6 +61,15 @@ function WorkflowAreaGrid({
         const isSingle = stagesInCol.length <= 1;
         const colStackKey = getColStackKey(workflowId, swimlane.id, area, colIdx);
         const showStackedRails = !isSingle && stackedRailMetrics?.colStackKey === colStackKey;
+        const stackedStageKey =
+          showStackedRails && stackedRailMetrics
+            ? getColumnKey(
+                stackedRailMetrics.workflowId,
+                stackedRailMetrics.swimlaneId,
+                stackedRailMetrics.stageId
+              )
+            : null;
+        const stackedRailBusy = Boolean(stackedStageKey && mutationTargets[stackedStageKey]);
         const stackedColSpan =
           showStackedRails && stackedRailMetrics?.colSpan ? stackedRailMetrics.colSpan : 1;
         const colStackGridColumn =
@@ -90,7 +99,7 @@ function WorkflowAreaGrid({
                   <button
                     className="workflow-column-add-btn workflow-column-add-left"
                     type="button"
-                    disabled={columnActionsDisabled}
+                    disabled={stackedRailBusy}
                     onClick={() =>
                       onAddColumnLeft(
                         stackedRailMetrics.workflowId,
@@ -129,7 +138,7 @@ function WorkflowAreaGrid({
                   <button
                     className="workflow-column-add-btn workflow-column-add-right"
                     type="button"
-                    disabled={columnActionsDisabled}
+                    disabled={stackedRailBusy}
                     onClick={() =>
                       onAddColumnRight(
                         stackedRailMetrics.workflowId,
@@ -199,6 +208,7 @@ function WorkflowAreaGrid({
         const colStackKey = getColStackKey(workflowId, swimlane.id, area, stageCol);
         const isStageHovered = hoveredColumn === stageColumnKey;
         const showAddSubcolumn = isSingleInCol ? true : !isTopStackedCard;
+        const columnMutationState = mutationTargets[stageColumnKey];
 
         return (
           <div
@@ -221,7 +231,7 @@ function WorkflowAreaGrid({
               isStageHovered={isStageHovered}
               showAddSubcolumn={showAddSubcolumn}
               isSingleInCol={isSingleInCol}
-              columnActionsDisabled={columnActionsDisabled}
+              mutationState={columnMutationState}
               editingStageId={editingStageId}
               editingStageName={editingStageName}
               onStageMouseEnter={onStageMouseEnter}

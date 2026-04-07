@@ -34,6 +34,7 @@ function WorkflowSwimlane({
   onRenameSwimlane,
   onDeleteSwimlane,
   swimlaneIndex,
+  mutationTargets = {},
 }) {
   const globalRows = getGlobalRowsForSwimlane(swimlane, boardStructure);
   const [editingFieldKey, setEditingFieldKey] = useState(null);
@@ -63,6 +64,10 @@ function WorkflowSwimlane({
     setSwimlaneNameValue(swimlane.name);
   };
 
+  const slMutationPending = Boolean(mutationTargets[`sl:${swimlane.id}`]);
+  const swimlaneAddTopPending = Boolean(mutationTargets[`swimlane-add:${workflowId}:${swimlaneIndex}`]);
+  const swimlaneAddBottomPending = Boolean(mutationTargets[`swimlane-add:${workflowId}:${swimlaneIndex + 1}`]);
+
   const contentRow = (
     <div className="workflow-swimlane-row">
       <div className="workflow-swimlane-label-cell">
@@ -70,7 +75,8 @@ function WorkflowSwimlane({
           <>
             <button
               type="button"
-              className="workflow-swimlane-add-grid-bar workflow-swimlane-add-grid-bar--top"
+              className={`workflow-swimlane-add-grid-bar workflow-swimlane-add-grid-bar--top${swimlaneAddTopPending ? ' workflow-swimlane-add-grid-bar--pending' : ''}`}
+              disabled={swimlaneAddTopPending}
               onClick={(e) => {
                 e.stopPropagation();
                 onAddSwimlane(workflowId, swimlaneIndex);
@@ -91,7 +97,8 @@ function WorkflowSwimlane({
             </button>
             <button
               type="button"
-              className="workflow-swimlane-add-grid-bar workflow-swimlane-add-grid-bar--bottom"
+              className={`workflow-swimlane-add-grid-bar workflow-swimlane-add-grid-bar--bottom${swimlaneAddBottomPending ? ' workflow-swimlane-add-grid-bar--pending' : ''}`}
+              disabled={swimlaneAddBottomPending}
               onClick={(e) => {
                 e.stopPropagation();
                 onAddSwimlane(workflowId, swimlaneIndex + 1);
@@ -136,6 +143,7 @@ function WorkflowSwimlane({
               className="workflow-swimlane-icon-btn"
               title="Rename swimlane"
               aria-label="Rename swimlane"
+              disabled={slMutationPending}
               onClick={(e) => {
                 e.stopPropagation();
                 handleStartEditSwimlaneName();
@@ -164,6 +172,7 @@ function WorkflowSwimlane({
               className="workflow-swimlane-icon-btn workflow-swimlane-icon-btn-delete"
               title="Delete swimlane"
               aria-label="Delete swimlane"
+              disabled={slMutationPending}
               onClick={(e) => {
                 e.stopPropagation();
                 onDeleteSwimlane(workflowId, swimlane.id);
@@ -175,6 +184,11 @@ function WorkflowSwimlane({
             </button>
           )}
         </div>
+        {slMutationPending ? (
+          <div className="workflow-swimlane-mutation-overlay" aria-busy="true">
+            <span className="workflow-item-mutation-skeleton workflow-item-mutation-skeleton--pill" />
+          </div>
+        ) : null}
       </div>
       <div className="workflow-swimlane-content-row">
         {boardStructure.map(({ area, cols }) => {
@@ -303,6 +317,10 @@ function WorkflowSwimlane({
               onSaveStageName={onSaveStageName}
               onStageNameKeyPress={onStageNameKeyPress}
               onColorSelect={onColorSelect}
+              onDeleteStage={onDeleteStage}
+              onStageLimitChange={onStageLimitChange}
+              onStageCardsPerRowChange={onStageCardsPerRowChange}
+              mutationTargets={mutationTargets}
             />
           );
         })}

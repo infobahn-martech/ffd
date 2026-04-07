@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback, useRef } from 'react';
 import { useSearchParams } from 'react-router-dom';
 import { Tooltip } from 'react-tooltip';
 import '../../design/scss/EditWorkflows.scss';
@@ -6,6 +6,7 @@ import CreateWorkflowModal from './CreateWorkflowModal';
 import WorkflowBoard from './WorkflowBoard';
 import {
   getColStackKey,
+  getColumnKey,
   buildCreateWorkflowColumnPayload,
   removeStage,
   normalizeWorkflowData,
@@ -60,7 +61,6 @@ function EditWorkflows() {
     removeWorkflowColumn,
     workflows: apiWorkflows,
     isLoading,
-    addEditLoader,
   } = useWorkFlowReducer();
 
   const { error: showError } = useAlertReducer();
@@ -77,7 +77,27 @@ function EditWorkflows() {
   const [editingStageId, setEditingStageId] = useState(null);
   const [editingStageName, setEditingStageName] = useState('');
   const [workflows, setWorkflows] = useState(DEFAULT_WORKFLOWS);
+  const [mutationTargets, setMutationTargets] = useState({});
+  const [createWorkflowSaving, setCreateWorkflowSaving] = useState(false);
+  const mutationInflightRef = useRef(new Set());
   const boardId = searchParams.get('boardId');
+
+  const clearMutationKey = useCallback((key) => {
+    mutationInflightRef.current.delete(key);
+    setMutationTargets((prev) => {
+      if (!(key in prev)) return prev;
+      const next = { ...prev };
+      delete next[key];
+      return next;
+    });
+  }, []);
+
+  const startMutation = useCallback((key, label = true) => {
+    if (mutationInflightRef.current.has(key)) return false;
+    mutationInflightRef.current.add(key);
+    setMutationTargets((prev) => ({ ...prev, [key]: label }));
+    return true;
+  }, []);
 
   useEffect(() => {
     if (boardId) {
@@ -155,27 +175,37 @@ function EditWorkflows() {
   };
 
   const runCreateWorkflowColumn = (workflowId, swimlaneId, stageId, action) => {
-    if (addEditLoader) return;
+    const stageKey = getColumnKey(workflowId, swimlaneId, stageId);
+    if (!startMutation(stageKey, 'adding-column')) return;
     setHoveredColumn(null);
     setStackedRailMetrics(null);
     if (!boardId) {
+      clearMutationKey(stageKey);
       showError('Open a board (boardId in URL) to add columns.');
       return;
     }
     const workflow = workflows.find((w) => w.id === workflowId || String(w.id) === String(workflowId));
-    if (!workflow) return;
+    if (!workflow) {
+      clearMutationKey(stageKey);
+      return;
+    }
     const swimlane = workflow.swimlanes.find(
       (sl) => sl.id === swimlaneId || String(sl.id) === String(swimlaneId)
     );
-    if (!swimlane) return;
+    if (!swimlane) {
+      clearMutationKey(stageKey);
+      return;
+    }
     const built = buildCreateWorkflowColumnPayload(swimlane.stages, stageId, action);
     if (!built.ok) {
+      clearMutationKey(stageKey);
       showError(built.message);
       return;
     }
     createWorkflowColumn({
       body: built.payload,
-      cb: () => getWorkflowByBoard({ boardId }),
+      cb: () => boardId && getWorkflowByBoard({ boardId, silent: true }),
+      onSettled: () => clearMutationKey(stageKey),
     });
   };
 
@@ -203,12 +233,23 @@ function EditWorkflows() {
   const handleSaveWorkflowName = (workflowId) => {
     const trimmedName = editingWorkflowName.trim();
     if (trimmedName) {
+      const wfKey = `wf:${workflowId}`;
+      if (!startMutation(wfKey, 'rename')) {
+        setEditingWorkflowId(null);
+        setEditingWorkflowName('');
+        return;
+      }
       setWorkflows((prevWorkflows) =>
         prevWorkflows.map((workflow) =>
           workflow.id === workflowId ? { ...workflow, name: trimmedName } : workflow
         )
       );
-      renameWorkflow({ workflow_id: workflowId, workflow_name: trimmedName });
+      renameWorkflow({
+        workflow_id: workflowId,
+        workflow_name: trimmedName,
+        cb: () => boardId && getWorkflowByBoard({ boardId, silent: true }),
+        onSettled: () => clearMutationKey(wfKey),
+      });
     }
     setEditingWorkflowId(null);
     setEditingWorkflowName('');
@@ -248,11 +289,15 @@ function EditWorkflows() {
     const columnId = stage?.columnId;
 
     if (boardId && columnId != null && String(columnId) !== '') {
-      renameWorkflowColumn({
-        column_id: columnId,
-        column_name: trimmed,
-        cb: () => getWorkflowByBoard({ boardId }),
-      });
+      const colKey = getColumnKey(workflowId, swimlaneId, stageId);
+      if (startMutation(colKey, 'rename')) {
+        renameWorkflowColumn({
+          column_id: columnId,
+          column_name: trimmed,
+          cb: () => getWorkflowByBoard({ boardId, silent: true }),
+          onSettled: () => clearMutationKey(colKey),
+        });
+      }
     } else {
       setWorkflows((prevWorkflows) =>
         prevWorkflows.map((w) => {
@@ -291,8 +336,6 @@ function EditWorkflows() {
   };
 
   const handleDeleteStage = (workflowId, swimlaneId, stageId) => {
-    if (addEditLoader) return;
-
     const workflow = workflows.find((w) => w.id === workflowId || String(w.id) === String(workflowId));
     const swimlane = workflow?.swimlanes.find(
       (sl) => sl.id === swimlaneId || String(sl.id) === String(swimlaneId)
@@ -301,9 +344,12 @@ function EditWorkflows() {
     const columnId = stage?.columnId;
 
     if (boardId && columnId != null && String(columnId) !== '') {
+      const colKey = getColumnKey(workflowId, swimlaneId, stageId);
+      if (!startMutation(colKey, 'deleting')) return;
       removeWorkflowColumn({
         column_id: columnId,
-        cb: () => getWorkflowByBoard({ boardId }),
+        cb: () => getWorkflowByBoard({ boardId, silent: true }),
+        onSettled: () => clearMutationKey(colKey),
       });
       return;
     }
@@ -389,19 +435,21 @@ function EditWorkflows() {
 
   const refetchBoardWorkflows = () => {
     if (boardId) {
-      getWorkflowByBoard({ boardId });
+      getWorkflowByBoard({ boardId, silent: true });
     }
   };
 
   const handleCreateWorkflow = ({ workflow_name }) => {
     if (!boardId || !workflow_name?.trim()) return;
+    setCreateWorkflowSaving(true);
     createWorkflow({
       board_id: boardId,
       workflow_name: workflow_name.trim(),
       cb: () => {
-        refetchBoardWorkflows();
+        getWorkflowByBoard({ boardId, silent: true });
         setShowCreateWorkflowModal(false);
       },
+      onSettled: () => setCreateWorkflowSaving(false),
     });
   };
 
@@ -409,13 +457,18 @@ function EditWorkflows() {
     if (!window.confirm('Delete this workflow? This cannot be undone.')) {
       return;
     }
+    const wfKey = `wf:${workflowId}`;
+    if (!startMutation(wfKey, 'delete')) return;
     deleteWorkflow({
       workflow_id: workflowId,
-      cb: refetchBoardWorkflows,
+      cb: () => refetchBoardWorkflows(),
+      onSettled: () => clearMutationKey(wfKey),
     });
   };
 
   const handleDisableWorkflow = (workflowId) => {
+    const wfKey = `wf:${workflowId}`;
+    if (!startMutation(wfKey, 'disable')) return;
     disableWorkflow({
       workflow_id: workflowId,
       cb: (data) => {
@@ -429,20 +482,26 @@ function EditWorkflows() {
         }
         refetchBoardWorkflows();
       },
+      onSettled: () => clearMutationKey(wfKey),
     });
   };
 
   const handleAddSwimlane = (workflowId, insertAtIndex, swimlaneName = 'New Swimlane') => {
+    const k = `swimlane-add:${workflowId}:${insertAtIndex}`;
+    if (!startMutation(k, true)) return;
     createSwimlane({
       workflow_id: workflowId,
       swimlane_name: swimlaneName,
       cb: refetchBoardWorkflows,
+      onSettled: () => clearMutationKey(k),
     });
   };
 
   const handleRenameSwimlane = (workflowId, swimlaneId, newName) => {
     const trimmed = newName?.trim();
     if (!trimmed) return;
+    const slKey = `sl:${swimlaneId}`;
+    if (!startMutation(slKey, 'rename')) return;
     setWorkflows((prevWorkflows) =>
       prevWorkflows.map((w) => {
         if (w.id !== workflowId) return w;
@@ -458,14 +517,18 @@ function EditWorkflows() {
       swimlane_id: swimlaneId,
       swimlane_name: trimmed,
       cb: refetchBoardWorkflows,
+      onSettled: () => clearMutationKey(slKey),
     });
   };
 
   const handleDeleteSwimlane = (workflowId, swimlaneId) => {
     if (!window.confirm('Delete this swimlane? This cannot be undone.')) return;
+    const slKey = `sl:${swimlaneId}`;
+    if (!startMutation(slKey, 'deleting')) return;
     deleteSwimlane({
       swimlane_id: swimlaneId,
       cb: refetchBoardWorkflows,
+      onSettled: () => clearMutationKey(slKey),
     });
   };
 
@@ -561,18 +624,19 @@ function EditWorkflows() {
         ) : (
           workflows.map((workflow) => {
             const workflowIsDisabled = workflow.is_active == 0;
+            const wfMutationPending = Boolean(mutationTargets[`wf:${workflow.id}`]);
             return (
               <div
                 key={workflow.id}
                 className={`workflow-card${workflowIsDisabled ? ' workflow-card--disabled' : ''}`}
               >
-                <div className="workflow-header">
+                <div className="workflow-header workflow-header--mutation-host">
                   <div className="workflow-header-left">
                     {workflowIsDisabled ? (
                       <h3 className="workflow-title">{workflow.name}</h3>
                     ) : (
                       <>
-                        <button className="workflow-move-btn" type="button">
+                        <button className="workflow-move-btn" type="button" disabled={wfMutationPending}>
                           <svg width="20" height="20" viewBox="0 0 20 20" fill="none" xmlns="http://www.w3.org/2000/svg">
                             <path d="M7 5L10 2L13 5M13 15L10 18L7 15" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
                           </svg>
@@ -593,6 +657,7 @@ function EditWorkflows() {
                         <button
                           className="workflow-edit-btn"
                           type="button"
+                          disabled={wfMutationPending}
                           onClick={() => handleStartEditWorkflow(workflow.id, workflow.name)}
                         >
                           <svg width="18" height="18" viewBox="0 0 18 18" fill="none" xmlns="http://www.w3.org/2000/svg">
@@ -616,7 +681,12 @@ function EditWorkflows() {
                             <div>This workflow contains {workflow.swimlanes.length} swimlane(s) with multiple stages for organizing your work.</div>
                           </div>
                         </Tooltip>
-                        <button className="workflow-info-btn" type="button" data-tooltip-id={`workflow-info-${workflow.id}`}>
+                        <button
+                          className="workflow-info-btn"
+                          type="button"
+                          disabled={wfMutationPending}
+                          data-tooltip-id={`workflow-info-${workflow.id}`}
+                        >
                           <svg width="18" height="18" viewBox="0 0 18 18" fill="none" xmlns="http://www.w3.org/2000/svg">
                             <circle cx="9" cy="9" r="8" stroke="currentColor" strokeWidth="1.5" fill="none" />
                             <path d="M9 6V9M9 12H9.01" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" />
@@ -629,7 +699,7 @@ function EditWorkflows() {
                     <button
                       type="button"
                       className="workflow-action-link workflow-action-link-delete"
-                      disabled={addEditLoader}
+                      disabled={wfMutationPending}
                       onClick={() => handleDeleteWorkflow(workflow.id)}
                     >
                       Delete
@@ -637,19 +707,24 @@ function EditWorkflows() {
                     <button
                       type="button"
                       className="workflow-action-link"
-                      disabled={addEditLoader}
+                      disabled={wfMutationPending}
                       onClick={() => handleDisableWorkflow(workflow.id)}
                     >
                       {workflowIsDisabled ? 'Enable' : 'Disable'}
                     </button>
                   </div>
+                  {wfMutationPending ? (
+                    <div className="workflow-header-mutation-overlay" aria-busy="true">
+                      <span className="workflow-item-mutation-skeleton workflow-item-mutation-skeleton--pill" />
+                    </div>
+                  ) : null}
                 </div>
 
                 {!workflowIsDisabled ? (
                   <div className="workflow-board">
                     <WorkflowBoard
                       workflow={workflow}
-                      columnActionsDisabled={addEditLoader}
+                      mutationTargets={mutationTargets}
                       hoveredColumn={hoveredColumn}
                       stackedRailMetrics={stackedRailMetrics}
                       editingStageId={editingStageId}
@@ -683,7 +758,7 @@ function EditWorkflows() {
         show={showCreateWorkflowModal}
         onClose={() => setShowCreateWorkflowModal(false)}
         onSave={handleCreateWorkflow}
-        isSaving={addEditLoader}
+        isSaving={createWorkflowSaving}
       />
     </div>
   );

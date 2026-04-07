@@ -13,7 +13,7 @@ function WorkflowStageCard({
   isStageHovered,
   showAddSubcolumn,
   isSingleInCol,
-  columnActionsDisabled = false,
+  mutationState,
   editingStageId,
   editingStageName,
   onStageMouseEnter,
@@ -40,6 +40,8 @@ function WorkflowStageCard({
   const cardsPerRow = stage.cardsPerRow ?? 1;
   const displayColor = stage.color ? rgbToHex(stage.color) : '#f9fafb';
   const isChildColumn = !!stage.parent_column_id;
+  const columnBusy = Boolean(mutationState);
+  const isDeleting = mutationState === 'deleting';
 
   const startEditLimit = () => {
     setEditingField('limit');
@@ -88,7 +90,7 @@ function WorkflowStageCard({
       className={`workflow-stage-wrapper${isSingleInCol ? ' workflow-stage-single' : ' workflow-stage-stacked'}`}
     >
       <div
-        className="workflow-stage-box"
+        className={`workflow-stage-box${isDeleting ? ' workflow-stage-box--mutation-deleting' : ''}`}
         style={{ position: 'relative' }}
         onMouseEnter={(e) =>
           onStageMouseEnter(
@@ -106,12 +108,20 @@ function WorkflowStageCard({
         }
         onMouseLeave={(e) => onStageMouseLeave?.(e, stageColumnKey, colStackKey)}
       >
-        {isStageHovered && showInlineAddButtons && (
+        {columnBusy ? (
+          <div
+            className={`workflow-stage-mutation-overlay${isDeleting ? ' workflow-stage-mutation-overlay--deleting' : ''}`}
+            aria-busy="true"
+          >
+            <span className="workflow-stage-mutation-skeleton" />
+          </div>
+        ) : null}
+        {isStageHovered && showInlineAddButtons && !columnBusy && (
           <div className="workflow-insertion-rail workflow-insertion-rail-left">
             <button
               className="workflow-column-add-btn workflow-column-add-left"
               type="button"
-              disabled={columnActionsDisabled}
+              disabled={columnBusy}
               onClick={() => onAddColumnLeft(workflowId, swimlaneId, stage.id)}
               title={`Add a new column before ${stage.name}`}
             >
@@ -121,12 +131,12 @@ function WorkflowStageCard({
             </button>
           </div>
         )}
-        {isStageHovered && showInlineAddButtons && (
+        {isStageHovered && showInlineAddButtons && !columnBusy && (
           <div className="workflow-insertion-rail workflow-insertion-rail-right">
             <button
               className="workflow-column-add-btn workflow-column-add-right"
               type="button"
-              disabled={columnActionsDisabled}
+              disabled={columnBusy}
               onClick={() => onAddColumnRight(workflowId, swimlaneId, stage.id)}
               title={`Add a new column after ${stage.name}`}
             >
@@ -136,14 +146,14 @@ function WorkflowStageCard({
             </button>
           </div>
         )}
-        {isStageHovered && showAddSubcolumn && (
+        {isStageHovered && showAddSubcolumn && !columnBusy && (
           <div
             className={`workflow-insertion-rail workflow-insertion-rail-bottom bottom-add-grid${isChildColumn ? ' disabled' : ''}`}
           >
             <button
               className="workflow-column-add-btn workflow-column-add-below"
               type="button"
-              disabled={columnActionsDisabled || isChildColumn}
+              disabled={columnBusy || isChildColumn}
               onClick={(e) => {
                 e.stopPropagation();
                 if (isChildColumn) return;
@@ -157,7 +167,7 @@ function WorkflowStageCard({
             </button>
           </div>
         )}
-        <div className="workflow-stage-box-content">
+        <div className={`workflow-stage-box-content${columnBusy ? ' workflow-stage-box-content--muted' : ''}`}>
           <div className="stage-box-header">
             {editingStageId === stageColumnKey ? (
               <input
@@ -167,14 +177,15 @@ function WorkflowStageCard({
                 onChange={(e) => onEditingStageNameChange?.(e.target.value)}
                 onBlur={() => onSaveStageName(workflowId, swimlaneId, stage.id)}
                 onKeyDown={(e) => onStageNameKeyPress(e, workflowId, swimlaneId, stage.id)}
+                disabled={columnBusy}
                 autoFocus
               />
             ) : (
               <span
                 className="stage-name"
                 title={stage.name}
-                onClick={() => onStartEditStage(stageColumnKey, stage.name)}
-                style={{ cursor: 'pointer' }}
+                onClick={() => !columnBusy && onStartEditStage(stageColumnKey, stage.name)}
+                style={{ cursor: columnBusy ? 'default' : 'pointer' }}
               >
                 {stage.name}
               </span>

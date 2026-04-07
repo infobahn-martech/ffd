@@ -3,15 +3,16 @@ import useAlertReducer from './AlertReducer';
 import workflowService from '../services/workflowService';
 import { normalizeWorkflowData } from '../pages/EditWorkflows/workflow.utils';
 
-const useWorkFlowReducer = create((set) => ({
+const useWorkFlowReducer = create((set, get) => ({
     isLoading: false,
-    addEditLoader: false,
     errorMessage: '',
     workflows: null,
 
-    getWorkflowByBoard: async ({ boardId }) => {
+    getWorkflowByBoard: async ({ boardId, silent = false }) => {
         try {
-            set({ isLoading: true });
+            if (!silent) {
+                set({ isLoading: true });
+            }
             const { data } = await workflowService.getWorkflowByBoard(boardId);
             const transformed = normalizeWorkflowData(data);
             set({
@@ -22,105 +23,100 @@ const useWorkFlowReducer = create((set) => ({
             set({
                 errorMessage: err?.response?.data?.message ?? err.message,
                 isLoading: false,
-                workflows: [],
+                workflows: silent ? get().workflows : [],
             });
-            // List load failures are surfaced on Edit Workflows (empty state), not as a toast.
+            if (!silent) {
+                // List load failures are surfaced on Edit Workflows (empty state), not as a toast.
+            }
         }
     },
 
-    renameWorkflow: async ({ workflow_id, workflow_name, cb }) => {
+    renameWorkflow: async ({ workflow_id, workflow_name, cb, onSettled }) => {
         try {
-            set({ addEditLoader: true });
             const payload = {
                 workflow_id,
                 workflow_name,
             };
             const { data } = await workflowService.renameWorkflow(workflow_id, payload);
-            set({
-                addEditLoader: false,
-            });
             const { success } = useAlertReducer.getState();
             success(data && data.message);
             cb && cb();
         } catch (err) {
             set({
                 errorMessage: err?.response?.data?.message ?? err.message,
-                addEditLoader: false,
             });
             const { error } = useAlertReducer.getState();
             error(err?.response?.data?.message ?? err.message);
+        } finally {
+            onSettled && onSettled();
         }
     },
 
-    deleteWorkflow: async ({ workflow_id, cb }) => {
+    deleteWorkflow: async ({ workflow_id, cb, onSettled }) => {
         try {
-            set({ addEditLoader: true });
             const { data } = await workflowService.deleteWorkflow(workflow_id);
-            set({ addEditLoader: false });
             const { success } = useAlertReducer.getState();
             success(data && data.message);
             cb && cb();
         } catch (err) {
             set({
                 errorMessage: err?.response?.data?.message ?? err.message,
-                addEditLoader: false,
             });
             const { error } = useAlertReducer.getState();
             error(err?.response?.data?.message ?? err.message);
+        } finally {
+            onSettled && onSettled();
         }
     },
 
-    disableWorkflow: async ({ workflow_id, cb }) => {
+    disableWorkflow: async ({ workflow_id, cb, onSettled }) => {
         try {
-            set({ addEditLoader: true });
             const { data } = await workflowService.disableWorkflow(workflow_id);
-            set({ addEditLoader: false });
             const { success } = useAlertReducer.getState();
             success(data && data.message);
             cb && cb(data);
         } catch (err) {
             set({
                 errorMessage: err?.response?.data?.message ?? err.message,
-                addEditLoader: false,
             });
             const { error } = useAlertReducer.getState();
             error(err?.response?.data?.message ?? err.message);
+        } finally {
+            onSettled && onSettled();
         }
     },
 
-    createWorkflow: async ({ board_id, workflow_name, cb }) => {
+    createWorkflow: async ({ board_id, workflow_name, cb, onSettled }) => {
         try {
-            set({ addEditLoader: true });
             const { data } = await workflowService.createWorkflow({ board_id, workflow_name });
-            set({ addEditLoader: false });
             const { success } = useAlertReducer.getState();
             success(data && data.message);
             cb && cb();
         } catch (err) {
             set({
                 errorMessage: err?.response?.data?.message ?? err.message,
-                addEditLoader: false,
             });
             const { error } = useAlertReducer.getState();
             error(err?.response?.data?.message ?? err.message);
+        } finally {
+            onSettled && onSettled();
         }
     },
 
-    createSwimlane: async ({ workflow_id, swimlane_name, cb }) => {
+    createSwimlane: async ({ workflow_id, swimlane_name, cb, onSettled }) => {
         try {
-            set({ addEditLoader: true });
             const { data } = await workflowService.createSwimlane({ workflow_id, swimlane_name });
-            set({ addEditLoader: false });
             const { success } = useAlertReducer.getState();
             success(data && data.message);
             cb && cb();
         } catch (err) {
             set({
                 errorMessage: err?.response?.data?.message ?? err.message,
-                addEditLoader: false,
             });
             const { error } = useAlertReducer.getState();
             error(err?.response?.data?.message ?? err.message);
+        } finally {
+            onSettled && onSettled();
         }
     },
 
@@ -135,94 +131,89 @@ const useWorkFlowReducer = create((set) => ({
         }
     },
 
-    renameSwimlane: async ({ swimlane_id, swimlane_name, cb }) => {
+    renameSwimlane: async ({ swimlane_id, swimlane_name, cb, onSettled }) => {
         try {
-            set({ addEditLoader: true });
             const { data } = await workflowService.renameSwimlane({ swimlane_id, swimlane_name });
-            set({ addEditLoader: false });
             const { success } = useAlertReducer.getState();
             success(data && data.message);
             cb && cb();
         } catch (err) {
             set({
                 errorMessage: err?.response?.data?.message ?? err.message,
-                addEditLoader: false,
             });
             const { error } = useAlertReducer.getState();
             error(err?.response?.data?.message ?? err.message);
+        } finally {
+            onSettled && onSettled();
         }
     },
 
-    deleteSwimlane: async ({ swimlane_id, cb }) => {
+    deleteSwimlane: async ({ swimlane_id, cb, onSettled }) => {
         try {
-            set({ addEditLoader: true });
             const { data } = await workflowService.deleteSwimlane({ swimlane_id });
-            set({ addEditLoader: false });
             const { success } = useAlertReducer.getState();
             success(data && data.message);
             cb && cb();
         } catch (err) {
             set({
                 errorMessage: err?.response?.data?.message ?? err.message,
-                addEditLoader: false,
             });
             const { error } = useAlertReducer.getState();
             error(err?.response?.data?.message ?? err.message);
+        } finally {
+            onSettled && onSettled();
         }
     },
 
-    createWorkflowColumn: async ({ body, cb }) => {
+    createWorkflowColumn: async ({ body, cb, onSettled }) => {
         try {
-            set({ addEditLoader: true });
             const { data } = await workflowService.createWorkflowColumn(body);
-            set({ addEditLoader: false });
             const { success } = useAlertReducer.getState();
             success(data && data.message);
             cb && cb();
         } catch (err) {
             set({
                 errorMessage: err?.response?.data?.message ?? err.message,
-                addEditLoader: false,
             });
             const { error } = useAlertReducer.getState();
             error(err?.response?.data?.message ?? err.message);
+        } finally {
+            onSettled && onSettled();
         }
     },
 
-    renameWorkflowColumn: async ({ column_id, column_name, cb }) => {
+    renameWorkflowColumn: async ({ column_id, column_name, cb, onSettled }) => {
         try {
-            set({ addEditLoader: true });
             const payload = { column_id, column_name };
             const { data } = await workflowService.renameWorkflowColumn(column_id, payload);
-            set({ addEditLoader: false });
             const { success } = useAlertReducer.getState();
             success(data && data.message);
             cb && cb();
         } catch (err) {
             set({
                 errorMessage: err?.response?.data?.message ?? err.message,
-                addEditLoader: false,
             });
             const { error } = useAlertReducer.getState();
             error(err?.response?.data?.message ?? err.message);
+        } finally {
+            onSettled && onSettled();
         }
     },
 
-    removeWorkflowColumn: async ({ column_id, cb }) => {
+    removeWorkflowColumn: async ({ column_id, cb, onSettled }) => {
         try {
-            set({ addEditLoader: true });
             const { data } = await workflowService.removeWorkflowColumn(column_id);
-            set({ addEditLoader: false });
             const { success } = useAlertReducer.getState();
             success(data && data.message);
             cb && cb();
         } catch (err) {
             set({
                 errorMessage: err?.response?.data?.message ?? err.message,
-                addEditLoader: false,
             });
             const { error } = useAlertReducer.getState();
             error(err?.response?.data?.message ?? err.message);
+        } finally {
+            onSettled && onSettled();
         }
     },
 }));
