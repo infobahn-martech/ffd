@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { getGlobalRowsForSwimlane, getStagesInColumn } from './workflow.utils';
+import { getGlobalRowsForSwimlane, getStagesInColumn, isWorkflowStageChildColumn } from './workflow.utils';
 import WorkflowAreaGrid, { STAGE_CELL_WIDTH, STAGE_GAP } from './WorkflowAreaGrid';
 
 /**
@@ -187,6 +187,11 @@ function WorkflowSwimlane({
             >
               {Array.from({ length: cols }, (_, colIdx) => {
                 const stagesInCol = getStagesInColumn(swimlane, area, colIdx);
+                const deepestRow = stagesInCol.length
+                  ? Math.max(...stagesInCol.map((s) => s.row ?? 0))
+                  : -1;
+                const deepestInCol = stagesInCol.filter((s) => (s.row ?? 0) === deepestRow);
+                const hideNestedAddHint = deepestInCol.some((s) => isWorkflowStageChildColumn(s));
                 const stage = stagesInCol[0];
                 const limit = stage?.limit ?? 0;
                 const cardsPerRow = stage?.cardsPerRow ?? 1;
@@ -249,7 +254,9 @@ function WorkflowSwimlane({
                         </span>
                       </div>
                     </div>
-                    <div className="workflow-swimlane-dashed-placeholder" />
+                    {!hideNestedAddHint ? (
+                      <div className="workflow-swimlane-dashed-placeholder" />
+                    ) : null}
                   </div>
                 );
               })}

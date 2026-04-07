@@ -111,8 +111,13 @@ function buildInternalStagesFromApiStages(apiStages = [], fallbackStartId = 1) {
         columnId: String(col?.column_id ?? `${stageId}-${colIdx + 1}`),
       });
 
+      const parentColumnIdStr = String(col?.column_id ?? '');
       children.forEach((child, childIdx) => {
         const childInternalId = toPositiveNumber(child?.column_id) ?? nextGeneratedId++;
+        const childParentId =
+          child?.parent_column_id != null && String(child?.parent_column_id) !== ''
+            ? String(child.parent_column_id)
+            : parentColumnIdStr;
         stages.push({
           id: childInternalId,
           name: child?.column_name || 'Stage',
@@ -125,6 +130,7 @@ function buildInternalStagesFromApiStages(apiStages = [], fallbackStartId = 1) {
           color: colorCode,
           stageId,
           columnId: String(child?.column_id ?? `${stageId}-${childIdx + 1}`),
+          parent_column_id: childParentId,
         });
       });
 
@@ -631,6 +637,31 @@ export function findStageByInternalId(stages, internalId) {
   return stages.find((s) => s.id === internalId || String(s.id) === String(internalId));
 }
 
+/** True if this stage is a child column (under a row-0 parent), not a top-level parent column. */
+export function isWorkflowStageChildColumn(stage) {
+  if (!stage) return false;
+  const p = stage.parent_column_id;
+  if (p != null && String(p) !== '') return true;
+  return (stage.row ?? 0) >= 1;
+}
+
+/**
+ * When global row count exceeds this column's depth and the deepest stage is a child,
+ * suppress empty grid placeholders below (no third nesting level).
+ */
+export function isEmptyGridCellSuppressedForChildCap(areaStages, rowIdx, colIdx) {
+  const overlapping = areaStages.filter((s) => {
+    const sCol = s.col ?? 0;
+    const sSpan = s.colSpan ?? 1;
+    return sCol <= colIdx && colIdx < sCol + sSpan;
+  });
+  if (overlapping.length === 0) return false;
+  const maxR = Math.max(...overlapping.map((s) => s.row ?? 0));
+  if (rowIdx <= maxR) return false;
+  const bottom = overlapping.filter((s) => (s.row ?? 0) === maxR);
+  return bottom.some((s) => isWorkflowStageChildColumn(s));
+}
+
 /**
  * Row-0 parent stage that spans the given stacked child column (row >= 1).
  */
@@ -709,6 +740,9 @@ export function buildCreateWorkflowColumnPayload(stages, targetInternalId, actio
   const base = { workflow_stage_id: workflowStageId, column_name: columnName };
 
   if (action === 'subcolumn') {
+    if (isWorkflowStageChildColumn(target)) {
+      return { ok: false, message: 'Cannot nest columns under a child column.' };
+    }
     const row = target.row ?? 0;
     if (row === 0) {
       const children = getChildStagesUnderParent(stages, target);

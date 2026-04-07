@@ -9,6 +9,7 @@ import {
   buildCreateWorkflowColumnPayload,
   removeStage,
   normalizeWorkflowData,
+  isWorkflowStageChildColumn,
 } from './workflow.utils';
 
 function isNodeInColumnZone(node, colStackKey) {
@@ -184,8 +185,15 @@ function EditWorkflows() {
   const handleAddColumnRight = (workflowId, swimlaneId, stageId) =>
     runCreateWorkflowColumn(workflowId, swimlaneId, stageId, 'right');
 
-  const handleAddSubcolumn = (workflowId, swimlaneId, stageId) =>
+  const handleAddSubcolumn = (workflowId, swimlaneId, stageId) => {
+    const workflow = workflows.find((w) => w.id === workflowId || String(w.id) === String(workflowId));
+    const swimlane = workflow?.swimlanes.find(
+      (sl) => sl.id === swimlaneId || String(sl.id) === String(swimlaneId)
+    );
+    const stage = swimlane?.stages.find((s) => s.id === stageId || String(s.id) === String(stageId));
+    if (isWorkflowStageChildColumn(stage)) return;
     runCreateWorkflowColumn(workflowId, swimlaneId, stageId, 'subcolumn');
+  };
 
   const handleStartEditWorkflow = (workflowId, currentName) => {
     setEditingWorkflowId(workflowId);

@@ -3,6 +3,8 @@ import {
   getColStackKey,
   isCellOccupied,
   getColumnKey,
+  isWorkflowStageChildColumn,
+  isEmptyGridCellSuppressedForChildCap,
 } from './workflow.utils';
 import WorkflowStageCard from './WorkflowStageCard';
 
@@ -163,6 +165,7 @@ function WorkflowAreaGrid({
       {Array.from({ length: globalRows }, (_, rowIdx) =>
         Array.from({ length: cols }, (_, colIdx) => {
           if (isCellOccupied(areaStages, rowIdx, colIdx, globalRows)) return null;
+          if (isEmptyGridCellSuppressedForChildCap(areaStages, rowIdx, colIdx)) return null;
           return (
             <div
               key={`empty-${swimlane.id}-${area}-${rowIdx}-${colIdx}`}
@@ -196,7 +199,8 @@ function WorkflowAreaGrid({
         const stageColumnKey = getColumnKey(workflowId, swimlane.id, stageStableId);
         const colStackKey = getColStackKey(workflowId, swimlane.id, area, stageCol);
         const isStageHovered = hoveredColumn === stageColumnKey;
-        const showAddSubcolumn = isSingleInCol ? true : !isTopStackedCard;
+        const showAddSubcolumn =
+          (isSingleInCol ? true : !isTopStackedCard) && !isWorkflowStageChildColumn(stage);
 
         return (
           <div
