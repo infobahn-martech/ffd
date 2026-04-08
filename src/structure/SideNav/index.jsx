@@ -252,10 +252,9 @@ function SideNav({ isMobileMenuOpen, onCloseMobileMenu, isVendorPortal = false }
         { menu: 'Vessel Management', to: '/vessel-onboarding', hasPermission: true },
         { menu: 'Group Email', to: '/group-email', hasPermission: true },
         { menu: 'Billing Entity', to: '/billing-entity', hasPermission: true },
-        { menu: 'Billing Instruction', to: '/bebi', hasPermission: true },
-        { menu: 'Job Status', to: '/job-status', hasPermission: true },
-        { menu: 'Customer Pricing', to: '/customer-pricing', hasPermission: true },
         { menu: 'Billing Instruction', to: '/billing-instruction', hasPermission: true },
+        // { menu: 'Job Status', to: '/job-status', hasPermission: true },
+        { menu: 'Customer Pricing', to: '/customer-pricing', hasPermission: true },
       ],
       icon: billingIcon, // Billing-specific icon
     },
