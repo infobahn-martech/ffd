@@ -1,148 +1,109 @@
-import { useState } from "react";
-import { DateFormat, RenderAction } from "./RenderCells";
+import { useEffect, useMemo, useState } from "react";
+import { RenderAction } from "./RenderCells";
 import CommonHeader from "../../components/CommonHeader";
 import CustomTable from "../../components/customTable";
-import DeleteConfirmationModal from "../../components/DeleteConfirmationModal";
 import { BillingInstructionModal } from "./Modals/AddEditBillingInstruction";
+import useBillingInstructionReducer from "../../store/BillingInstructionReducer";
 
-// Dummy Billing Instructions
-const dummyBillingInstructions = [
-    {
-        _id: "1",
-        name: "Invoice must be reviewed",
-        code: "REVIEW_REQUIRED",
-        appliesTo: "GLOBAL",
-        type: "MANDATORY",
-        description: "Invoice must be reviewed by finance before sending to client.",
-        isActive: true,
-        createdAt: "2024-09-12T10:15:00Z",
-        updatedAt: "2024-10-03T08:45:00Z",
-    },
-    {
-        _id: "2",
-        name: "Attach supporting documents",
-        code: "ATTACH_DOCS",
-        appliesTo: "BILLING_ENTITY",
-        description: "Attach PO, contract and job completion report with invoice.",
-        type: "INFO",
-        isActive: true,
-        createdAt: "2024-08-20T12:30:00Z",
-        updatedAt: "2024-09-15T14:20:00Z",
-    },
-    {
-        _id: "3",
-        name: "Late payment surcharge note",
-        code: "LATE_SURCHARGE",
-        appliesTo: "GLOBAL",
-        description: "Include note about late payment surcharge in the invoice.",
-        type: "WARNING",
-        isActive: false,
-        createdAt: "2024-07-05T09:00:00Z",
-        updatedAt: "2024-09-02T11:40:00Z",
-    },
-];
+const formatEmailsCell = (row) => {
+    if (row?.instruction_type !== "Email") return "—";
+    const raw = row?.emails;
+    if (!Array.isArray(raw) || raw.length === 0) return "—";
+    return raw
+        .map((e) => (typeof e === "string" ? e : e?.email))
+        .filter(Boolean)
+        .join(", ");
+};
+
+const formatDescriptionCell = (row) => {
+    if (row?.instruction_type === "Email") return "—";
+    const d = row?.description;
+    return d && String(d).trim() ? d : "—";
+};
 
 const BillingInstruction = () => {
+    const { getAllBillingInstructions, billingInstructions, isLoading, totalCount } =
+        useBillingInstructionReducer((state) => state);
+
     const [params, setParams] = useState({
         page: 1,
-        total: 0,
+        search: "",
         limit: 10,
-        searchTerm: "",
-        sortOrder: -1,
-        sortBy: "createdAt",
+        sortBy: "billing_entity",
+        sortOrder: 1,
     });
 
-    const [showBillingInstructionModal, setShowBillingInstructionModal] =
-        useState(false);
-    const [showDeleteModal, setShowDeleteModal] = useState(false);
-    // const [selectedRow, setSelectedRow] = useState(null);
+    const [showBillingInstructionModal, setShowBillingInstructionModal] = useState(false);
+
+    const apiParams = useMemo(
+        () => ({
+            search: params.search || "",
+            page: params.page,
+            limit: params.limit,
+            sortBy: params.sortBy,
+            sortOrder: params.sortOrder === 1 ? "ASC" : "DESC",
+        }),
+        [params]
+    );
+
+    useEffect(() => {
+        getAllBillingInstructions({ params: apiParams });
+    }, [params]);
+
+    const list = billingInstructions || [];
+
+    const handleOpenAdd = () => {
+        setShowBillingInstructionModal({});
+    };
+
+    const handleOpenEdit = (row) => {
+        setShowBillingInstructionModal(row);
+    };
 
     const cols = [
         {
-            name: "Title",
-            selector: "name",
+            name: "Billing Entity",
+            selector: "billing_entity",
             sort: true,
             width: "220",
             thclass: "tb-head",
             contentClass: "table-content",
         },
         {
-            name: "Code",
-            selector: "code",
-            sort: true,
-            width: "200",
-            thclass: "tb-head",
-            contentClass: "table-content",
-        },
-        {
-            name: "Applies To",
-            selector: "appliesTo",
+            name: "Instruction Type",
+            selector: "instruction_type",
             sort: true,
             width: "180",
             thclass: "tb-head",
             contentClass: "table-content",
-            cell: (row) =>
-                row?.appliesTo === "BILLING_ENTITY"
-                    ? "Specific Billing Entity"
-                    : "Global",
-        },
-        {
-            name: "Type",
-            selector: "type",
-            sort: true,
-            width: "150",
-            thclass: "tb-head",
-            contentClass: "table-content",
-            cell: (row) => {
-                const t = row?.type;
-                if (t === "MANDATORY") return "Mandatory";
-                if (t === "WARNING") return "Warning";
-                return "Info";
-            },
-        },
-        {
-            name: "Active",
-            selector: "isActive",
-            sort: true,
-            width: "120",
-            thclass: "tb-head",
-            contentClass: "table-content",
-            cell: (row) => (row?.isActive ? "Yes" : "No"),
         },
         {
             name: "Description",
             selector: "description",
-            sort: true,
-            width: "350",
+            sort: false,
+            width: "280",
             thclass: "tb-head",
             contentClass: "table-content",
+            cell: ({ row }) => formatDescriptionCell(row),
         },
         {
-            name: "Created At",
-            selector: "createdAt",
-            sort: true,
-            width: "200",
-            cell: DateFormat,
+            name: "Emails",
+            selector: "emails",
+            sort: false,
+            width: "260",
             thclass: "tb-head",
             contentClass: "table-content",
-        },
-        {
-            name: "Updated At",
-            selector: "updatedAt",
-            sort: true,
-            width: "200",
-            cell: DateFormat,
-            thclass: "tb-head",
-            contentClass: "table-content",
+            cell: ({ row }) => formatEmailsCell(row),
         },
         {
             name: "Actions",
             selector: "actions",
-            width: "150",
+            width: "120",
             cell: RenderAction,
             thclass: "tb-head",
-            onEditClick: (row) => setShowBillingInstructionModal(row),
-            onDeleteClick: () => setShowDeleteModal(true),
+            onEditClick: (row) => handleOpenEdit(row),
+            onDeleteClick: () => {},
+            hideDelete: true,
         },
     ];
 
@@ -152,60 +113,47 @@ const BillingInstruction = () => {
                 <div className="prospect employee">
                     <div className="container-fluid">
                         <CommonHeader
-                            showFilter
                             tableTitle="Billing Instructions"
                             isAddEnabled
                             addModalLabel="Add Billing Instruction"
-                            setSearch={(e) =>
-                                setParams({ ...params, searchTerm: e, page: 1, limit: 10 })
-                            }
-                            onAddModalClick={() => {
-                                // pass {} so modal runs in ADD mode (showModal?._id will be undefined)
-                                setShowBillingInstructionModal({});
-                            }}
+                            setSearch={(e) => setParams({ ...params, search: e, page: 1 })}
+                            onAddModalClick={handleOpenAdd}
                             exportTitle="Export"
                             exportLoader={false}
                         />
                     </div>
 
                     <CustomTable
-                        pagination={{ currentPage: params?.page, limit: params?.limit }}
+                        isLoading={isLoading}
+                        pagination={{ currentPage: params.page, limit: params.limit }}
                         tableClasses="px-start"
-                        count={dummyBillingInstructions.length}
+                        count={totalCount}
                         columns={cols}
-                        data={dummyBillingInstructions ?? []}
+                        data={list}
                         onPageChange={(currentPage) =>
                             setParams({ ...params, page: currentPage })
                         }
-                        setLimit={(newlimit) =>
-                            setParams({ ...params, limit: newlimit })
+                        setLimit={(newLimit) =>
+                            setParams({ ...params, limit: newLimit, page: 1 })
                         }
-                        onSorting={(sortBy) => {
+                        onSorting={(sortBy) =>
                             setParams({
                                 ...params,
                                 sortBy,
-                                sortOrder: params?.sortOrder === -1 ? 1 : -1,
+                                sortOrder: params.sortOrder === 1 ? -1 : 1,
                                 page: 1,
-                            });
-                        }}
+                            })
+                        }
                     />
 
                     {!!showBillingInstructionModal && (
                         <BillingInstructionModal
                             showModal={showBillingInstructionModal}
                             closeModal={() => setShowBillingInstructionModal(false)}
-                        />
-                    )}
-
-                    {!!showDeleteModal && (
-                        <DeleteConfirmationModal
-                            show={showDeleteModal}
-                            onCancel={() => setShowDeleteModal(false)}
-                            onConfirm={() => {
-                                // handle delete here using selectedRow if you track it
-                                setShowDeleteModal(false);
+                            onSuccess={() => {
+                                setShowBillingInstructionModal(false);
+                                getAllBillingInstructions({ params: apiParams });
                             }}
-                            deleteText="Are you sure you want to delete this billing instruction?"
                         />
                     )}
                 </div>

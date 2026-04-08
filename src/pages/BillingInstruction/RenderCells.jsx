@@ -5,11 +5,11 @@ import edit from '../../assets/images/edit.svg';
 import trash from '../../assets/images/delete.svg';
 import { getInitials } from '../../utils/utils';
 
-export const RenderAction = ({ onEditClick, row, onDeleteClick }) => {
+export const RenderAction = ({ onEditClick, row, onDeleteClick, hideDelete }) => {
     return (
         <>
             <Tooltip id="edit" place="bottom" content="Edit" />
-            <Tooltip id="delete" place="bottom" content="Delete" />
+            {!hideDelete && <Tooltip id="delete" place="bottom" content="Delete" />}
             <div className="actions">
                 <span
                     data-tooltip-id="edit"
@@ -19,14 +19,16 @@ export const RenderAction = ({ onEditClick, row, onDeleteClick }) => {
                 >
                     <img src={edit} alt="edit" />
                 </span>
-                <span
-                    data-tooltip-id="delete"
-                    type="button"
-                    className="delete"
-                    onClick={() => onDeleteClick(row)}
-                >
-                    <img src={trash} alt="delete" />
-                </span>
+                {!hideDelete && (
+                    <span
+                        data-tooltip-id="delete"
+                        type="button"
+                        onClick={() => onDeleteClick(row)}
+                        className="delete"
+                    >
+                        <img src={trash} alt="delete" />
+                    </span>
+                )}
             </div>
         </>
     );
