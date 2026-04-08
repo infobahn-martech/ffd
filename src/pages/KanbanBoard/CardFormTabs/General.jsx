@@ -224,7 +224,7 @@ const VesselNameField = ({ value, onChange, options = [], placeholder, onSave, d
             ))}
           </select>
         </div>
-        {!showAddInput && !disabled && (
+        {/* {!showAddInput && !disabled && (
           <button
             type="button"
             className="cf-add-vessel-btn"
@@ -233,7 +233,7 @@ const VesselNameField = ({ value, onChange, options = [], placeholder, onSave, d
           >
             +
           </button>
-        )}
+        )} */}
       </div>
       {showAddInput && (
         <div className="cf-add-vessel-input-row">
@@ -463,7 +463,7 @@ const DocumentUpload = ({ attachments = [], onAdd, onRemove, cardColor, disabled
               Drag and drop your files here, or{" "}
               <span className="upload-link">click to browse</span>
             </p>
-            <p className="upload-sub-text">Supports all file formats</p>
+            {/* <p className="upload-sub-text">Supports all file formats</p> */}
           </div>
         </div>
       </div>
@@ -1808,6 +1808,15 @@ function General({ card, formValues, handleChange, ownerInitial, cardUser, onSav
 
                       <div className="form-group">
                         <h3 className="form-group-title">Service Information</h3>
+                        <FormField label="Port">
+                          <FormSelect
+                            value={getFieldValue("port")}
+                            onChange={handleChange("port")}
+                            options={portOptions}
+                            placeholder="Select port..."
+                            disabled={isDisabled}
+                          />
+                        </FormField>
                         <FormField label="Type of call / Service">
                           <FormSelect
                             value={getFieldValue("typeOfCall")}
@@ -1828,7 +1837,7 @@ function General({ card, formValues, handleChange, ownerInitial, cardUser, onSav
                           />
                         </FormField>
 
-                        <FormField label="PO number">
+                        {/* <FormField label="PO number">
                           <FormInput
                             type="text"
                             placeholder="Enter PO number..."
@@ -1836,9 +1845,9 @@ function General({ card, formValues, handleChange, ownerInitial, cardUser, onSav
                             onChange={handleChange("poNumber")}
                             disabled={isDisabled}
                           />
-                        </FormField>
+                        </FormField> */}
 
-                        <FormField label="SRT number">
+                        {/* <FormField label="SRT number">
                           <FormInput
                             type="text"
                             placeholder="Enter SRT number..."
@@ -1846,9 +1855,9 @@ function General({ card, formValues, handleChange, ownerInitial, cardUser, onSav
                             onChange={handleChange("shipper")}
                             disabled={isDisabled}
                           />
-                        </FormField>
+                        </FormField> */}
 
-                        <FormField label="Project">
+                        {/* <FormField label="Project">
                           <FormInput
                             type="text"
                             placeholder="Enter project..."
@@ -1856,7 +1865,7 @@ function General({ card, formValues, handleChange, ownerInitial, cardUser, onSav
                             onChange={handleChange("project")}
                             disabled={isDisabled}
                           />
-                        </FormField>
+                        </FormField> */}
                       </div>
 
                       <div className="form-group">
