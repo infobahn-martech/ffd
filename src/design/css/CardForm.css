@@ -12,7 +12,7 @@
 
 /* Panel */
 .cardform-panel {
-  width: 80vw;
+  width: 100%;
   max-width: 1800px;
   height: 85vh;
   max-height: 90vh;

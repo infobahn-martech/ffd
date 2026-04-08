@@ -110,6 +110,27 @@ const Vessel = () => {
         width: "200",
       },
       {
+        name: "Owner",
+        selector: "vessel_owner",
+        sort: true,
+        thclass: "tb-head",
+        width: "180",
+      },
+      {
+        name: "Manager",
+        selector: "vessel_manager",
+        sort: true,
+        thclass: "tb-head",
+        width: "180",
+      },
+      {
+        name: "Principal",
+        selector: "vessel_principal",
+        sort: true,
+        thclass: "tb-head",
+        width: "180",
+      },
+      {
         name: "Flag",
         selector: "flag_state",
         sort: true,
@@ -184,7 +205,7 @@ const Vessel = () => {
             count={totalCount ?? filteredVessels.length}
             columns={cols}
             data={filteredVessels}
-            Sl={true}
+            Sl={false}
             loading={isLoading}
             onPageChange={(currentPage) =>
               setParams((prev) => ({ ...prev, page: currentPage }))
@@ -208,10 +229,10 @@ const Vessel = () => {
                 showVesselModal === true
                   ? "vessel-add"
                   : String(
-                      showVesselModal?.vessel_id ??
-                        showVesselModal?._id ??
-                        "vessel-edit"
-                    )
+                    showVesselModal?.vessel_id ??
+                    showVesselModal?._id ??
+                    "vessel-edit"
+                  )
               }
               showModal={showVesselModal}
               closeModal={() => setShowVesselModal(false)}

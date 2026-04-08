@@ -52,6 +52,9 @@ function mapDetailToForm(d, billingEntities) {
   return {
     billingEntity: resolveBillingEntityId(d, billingEntities),
     vesselName: d.vessel_name ?? "",
+    vesselOwner: d.vessel_owner ?? "",
+    vesselPrincipal: d.vessel_principal ?? "",
+    vesselManager: d.vessel_manager ?? "",
     imoNumber: String(d.imo_number ?? ""),
     vesselType: d.vessel_type ?? "",
     flagState: d.flag_state ?? "",
@@ -76,6 +79,9 @@ function buildVesselFormData(data) {
   const fd = new FormData();
   fd.append("entity_id", data.billingEntity);
   fd.append("vessel_name", data.vesselName.trim());
+  appendIfPresent(fd, "vessel_owner", data.vesselOwner?.trim());
+  appendIfPresent(fd, "vessel_principal", data.vesselPrincipal?.trim());
+  appendIfPresent(fd, "vessel_manager", data.vesselManager?.trim());
   fd.append("imo_number", data.imoNumber.trim());
   fd.append("vessel_type", data.vesselType);
   fd.append("flag_state", data.flagState.trim());
@@ -193,6 +199,9 @@ export function VesselModal({ showModal, closeModal, callBack }) {
     const apiPayload = {
       entity_id: data.billingEntity,
       vessel_name: data.vesselName.trim(),
+      vessel_owner: data.vesselOwner?.trim() || undefined,
+      vessel_principal: data.vesselPrincipal?.trim() || undefined,
+      vessel_manager: data.vesselManager?.trim() || undefined,
       imo_number: data.imoNumber.trim(),
       vessel_type: data.vesselType,
       flag_state: data.flagState.trim(),
@@ -319,6 +328,42 @@ export function VesselModal({ showModal, closeModal, callBack }) {
                       {errors.vesselName.message}
                     </span>
                   )}
+                </div>
+              </div>
+            </div>
+
+            <div className="permInputs row mb-lg-3">
+              <div className="col-lg-6 col-sm-12 mb-3">
+                <div className="form-floating desig-inp">
+                  <input
+                    className="form-control"
+                    placeholder="Vessel Owner"
+                    {...register("vesselOwner")}
+                  />
+                  <label>Vessel Owner</label>
+                </div>
+              </div>
+              <div className="col-lg-6 col-sm-12 mb-3">
+                <div className="form-floating desig-inp">
+                  <input
+                    className="form-control"
+                    placeholder="Vessel Principal"
+                    {...register("vesselPrincipal")}
+                  />
+                  <label>Vessel Principal</label>
+                </div>
+              </div>
+            </div>
+
+            <div className="permInputs row mb-lg-3">
+              <div className="col-lg-6 col-sm-12 mb-3">
+                <div className="form-floating desig-inp">
+                  <input
+                    className="form-control"
+                    placeholder="Vessel Manager"
+                    {...register("vesselManager")}
+                  />
+                  <label>Vessel Manager</label>
                 </div>
               </div>
             </div>
