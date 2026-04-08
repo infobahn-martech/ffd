@@ -776,7 +776,7 @@ const PreArrivalContent = ({ formValues, handleChange, ownerInitial, cardUser, c
       </div>
       <FormSection icon={GroupSettingsIcon} title="">
         <div className="pre-arrival-form">
-          <div className="general-info-two-column">
+          <div className="general-info-two-column operation-section-form-layout">
             <div className="general-info-left">
               <FormField label="Expected time of arrival">
                 <div className="cf-input date-time-row">
@@ -1148,7 +1148,7 @@ const ArrivalContent = ({ formValues, handleChange, cardColor, onAddAttachment, 
       </div>
       <FormSection icon={GroupSettingsIcon} title="">
         <div className="arrival-form">
-          <div className="general-info-two-column">
+          <div className="general-info-two-column operation-section-form-layout">
             <div className="general-info-left">
               <FormField label="Actual time of arrival">
                 <div className="cf-input date-time-row">
@@ -1674,7 +1674,7 @@ const DepartureContent = ({ formValues, handleChange, cardColor, onAddAttachment
       </div>
       <FormSection icon={GroupSettingsIcon} title="">
         <div className="departure-form">
-          <div className="general-info-two-column">
+          <div className="general-info-two-column operation-section-form-layout">
             <div className="general-info-left">
               <FormField label="Email Requested Accept">
                 <div style={{ marginTop: "8px" }}>

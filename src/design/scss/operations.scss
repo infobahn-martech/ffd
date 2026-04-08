@@ -1515,6 +1515,115 @@ $send-report-optional: #80868b;
   }
 }
 
+/* Operation: Pre-Arrival / Arrival / Departure — 50/50 columns, compact upload zones */
+.pre-arrival-form .operation-section-form-layout,
+.arrival-form .operation-section-form-layout,
+.departure-form .operation-section-form-layout {
+  grid-template-columns: 1fr 1fr;
+  gap: 20px;
+  align-items: stretch;
+}
+
+@media (max-width: 900px) {
+  .pre-arrival-form .operation-section-form-layout,
+  .arrival-form .operation-section-form-layout,
+  .departure-form .operation-section-form-layout {
+    grid-template-columns: 1fr;
+  }
+}
+
+.pre-arrival-form .operation-section-form-layout .general-info-left .attachment-list-wrapper .document-upload-zone,
+.arrival-form .operation-section-form-layout .general-info-left .attachment-list-wrapper .document-upload-zone,
+.departure-form .operation-section-form-layout .general-info-left .attachment-list-wrapper .document-upload-zone {
+  height: auto;
+  min-height: 56px;
+  padding: 8px 12px;
+  max-width: 100%;
+}
+
+.pre-arrival-form .operation-section-form-layout .general-info-left .attachment-list-wrapper .document-upload-zone:hover,
+.arrival-form .operation-section-form-layout .general-info-left .attachment-list-wrapper .document-upload-zone:hover,
+.departure-form .operation-section-form-layout .general-info-left .attachment-list-wrapper .document-upload-zone:hover {
+  transform: none;
+}
+
+.pre-arrival-form .operation-section-form-layout .general-info-left .attachment-list-wrapper .document-upload-zone.dragging,
+.arrival-form .operation-section-form-layout .general-info-left .attachment-list-wrapper .document-upload-zone.dragging,
+.departure-form .operation-section-form-layout .general-info-left .attachment-list-wrapper .document-upload-zone.dragging {
+  transform: none;
+}
+
+.pre-arrival-form .operation-section-form-layout .general-info-left .attachment-list-wrapper .upload-zone-content,
+.arrival-form .operation-section-form-layout .general-info-left .attachment-list-wrapper .upload-zone-content,
+.departure-form .operation-section-form-layout .general-info-left .attachment-list-wrapper .upload-zone-content {
+  flex-direction: column;
+  justify-content: center;
+  gap: 4px;
+  min-height: 0;
+}
+
+.pre-arrival-form .operation-section-form-layout .general-info-left .attachment-list-wrapper .upload-icon-wrapper,
+.arrival-form .operation-section-form-layout .general-info-left .attachment-list-wrapper .upload-icon-wrapper,
+.departure-form .operation-section-form-layout .general-info-left .attachment-list-wrapper .upload-icon-wrapper {
+  margin-bottom: 0;
+}
+
+.pre-arrival-form .operation-section-form-layout .general-info-left .attachment-list-wrapper .upload-icon-wrapper svg,
+.arrival-form .operation-section-form-layout .general-info-left .attachment-list-wrapper .upload-icon-wrapper svg,
+.departure-form .operation-section-form-layout .general-info-left .attachment-list-wrapper .upload-icon-wrapper svg {
+  width: 28px;
+  height: 28px;
+}
+
+.pre-arrival-form .operation-section-form-layout .general-info-left .attachment-list-wrapper .upload-main-text,
+.arrival-form .operation-section-form-layout .general-info-left .attachment-list-wrapper .upload-main-text,
+.departure-form .operation-section-form-layout .general-info-left .attachment-list-wrapper .upload-main-text {
+  font-size: 13px;
+  line-height: 1.35;
+}
+
+.pre-arrival-form .operation-section-form-layout .general-info-left .attachment-list-wrapper .upload-sub-text,
+.arrival-form .operation-section-form-layout .general-info-left .attachment-list-wrapper .upload-sub-text,
+.departure-form .operation-section-form-layout .general-info-left .attachment-list-wrapper .upload-sub-text {
+  font-size: 11px;
+  line-height: 1.25;
+}
+
+.arrival-form .operation-section-form-layout .document-send-btn {
+  top: 8px;
+  right: 10px;
+}
+
+.pre-arrival-form .operation-section-form-layout .general-info-right .card-description-wrapper:first-child,
+.arrival-form .operation-section-form-layout .general-info-right .card-description-wrapper:first-child,
+.departure-form .operation-section-form-layout .general-info-right .card-description-wrapper:first-child {
+  min-height: 280px;
+}
+
+.pre-arrival-form .operation-section-form-layout .react-quill-wrapper .ql-container {
+  min-height: 300px;
+}
+
+.pre-arrival-form .operation-section-form-layout .react-quill-wrapper .ql-editor {
+  min-height: 250px;
+}
+
+.arrival-form .operation-section-form-layout .react-quill-wrapper.arrival-quill-editor .ql-container {
+  min-height: 280px;
+}
+
+.arrival-form .operation-section-form-layout .react-quill-wrapper.arrival-quill-editor .ql-editor {
+  min-height: 260px;
+}
+
+.departure-form .operation-section-form-layout .react-quill-wrapper.departure-quill-editor .ql-container {
+  min-height: 280px;
+}
+
+.departure-form .operation-section-form-layout .react-quill-wrapper.departure-quill-editor .ql-editor {
+  min-height: 260px;
+}
+
 /* Override ReactQuill min-height for Husbandry Transport tab */
 .transport-form {
   .general-info-two-column {
