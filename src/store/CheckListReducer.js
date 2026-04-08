@@ -54,9 +54,7 @@ const useCheckListReducer = create((set) => ({
     getChecklistById: async ({ checklist_type_id, cb }) => {
         try {
             const { data } = await CheckListService.getChecklistById(checklist_type_id);
-            const raw = data?.data ?? data;
-            const normalized = raw ? { ...raw, _id: raw.checklist_type_id ?? raw._id ?? checklist_type_id } : null;
-            cb?.(normalized);
+            cb?.(data);
         } catch (err) {
             const { error } = useAlertReducer.getState();
             error(err?.response?.data?.message ?? err?.message ?? 'Failed to fetch checklist');
@@ -65,12 +63,14 @@ const useCheckListReducer = create((set) => ({
     editChecklist: async ({ id, formData, cb }) => {
         try {
             set({ addEditLoader: true });
+            const hasChecklistTypeId = formData instanceof FormData
+                ? false
+                : formData?.checklist_type_id != null && formData?.checklist_type_id !== '';
             const payload = formData instanceof FormData
                 ? formData
-                : { ...formData, _id: id };
-            if (formData instanceof FormData && id != null) {
-                formData.append('_id', id);
-            }
+                : hasChecklistTypeId
+                    ? formData
+                    : { ...formData, ...(id != null ? { _id: id } : {}) };
             const { data } = await CheckListService.updateChecklist(payload);
             set({ successMessage: data.message, addEditLoader: false });
             const { success } = useAlertReducer.getState();

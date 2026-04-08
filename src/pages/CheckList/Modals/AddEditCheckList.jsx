@@ -3,7 +3,7 @@ import CustomModal from "../../../components/CustomModal";
 import "../../../design/scss/prospect-modal.scss";
 import "../../../design/scss/modal-designs.scss";
 import "../../../design/scss/form-designs.scss";
-import { useState, useMemo, useEffect } from "react";
+import { useState, useEffect } from "react";
 import useCheckListReducer from "../../../store/CheckListReducer";
 import useVesselTypeReducer from "../../../store/VesselTypeReducer";
 import useBargeTypeReducer from "../../../store/BargeTypeReducer";
@@ -72,29 +72,34 @@ const EMPTY_DEFAULTS = {
   sections: []
 };
 
-/** Normalize sections for form: expiry_date_reqd at item level, require_copy_only -> is_copy_required */
-function normalizeSectionsForForm(sections) {
-  if (!Array.isArray(sections)) return [];
-  const mapItem = (item) => {
-    const doc = item?.document_details ?? {};
-    return {
-      ...item,
-      expiry_date_reqd: item?.expiry_date_reqd ?? !!doc?.expiry_date_reqd ?? false,
-      document_details: {
-        is_copy_required: doc?.require_copy_only ?? doc?.is_copy_required ?? false,
-        required_copy_only: null,
-        description: doc?.description ?? ""
-      }
-    };
-  };
-  return sections.map((sec) => ({
-    ...sec,
-    items: (sec.items ?? []).map(mapItem),
-    sub_sections: (sec.sub_sections ?? []).map((sub) => ({
-      ...sub,
-      items: (sub.items ?? []).map(mapItem)
+function mapApiToForm(data) {
+  const mapItem = (item) => ({
+    item_name: item.item_name || "",
+    item_order: Number(item.item_order) || 0,
+    expiry_date_reqd: item.expiry_date_reqd == "1",
+    description: item.description || "",
+    document_details: {
+      is_copy_required: item.document_details?.require_copy_only || false,
+      required_copy_only: null,
+      description: item.document_details?.description || ""
+    }
+  });
+  return {
+    callType: String(data.call_type_id || ""),
+    vesselType: String(data.vessel_type_id || ""),
+    bargeType: String(data.barge_type_id || ""),
+    checklistName: data.checklist_name || "",
+    sections: (data.sections || []).map((section) => ({
+      title: section.title || "",
+      sort_order: Number(section.sort_order) || 0,
+      items: (section.items || []).map(mapItem),
+      sub_sections: (section.sub_sections || []).map((sub) => ({
+        title: sub.title || "",
+        sort_order: Number(sub.sort_order) || 0,
+        items: (sub.items || []).map(mapItem)
+      }))
     }))
-  }));
+  };
 }
 
 export function CheckListModal({ showModal, closeModal, callTypesOptions, onSuccess }) {
@@ -114,28 +119,23 @@ export function CheckListModal({ showModal, closeModal, callTypesOptions, onSucc
     }
   }, [showModal]);
 
-  const modalKey = showModal && typeof showModal === "object" && showModal._id ? showModal._id : "add";
-  const defaultValues = useMemo(() => {
-    if (showModal && typeof showModal === "object" && showModal._id) {
-      return {
-        callType: String(showModal?.call_type_id ?? showModal?.callType ?? ""),
-        vesselType: String(showModal?.vessel_type_id ?? showModal?.vesselType ?? ""),
-        bargeType: showModal?.barge_type_id != null ? String(showModal.barge_type_id) : (showModal?.bargeType ?? ""),
-        checklistName: showModal?.checklist_name ?? showModal?.checklistName ?? "",
-        sections: normalizeSectionsForForm(showModal?.sections ?? [])
-      };
-    }
-    return EMPTY_DEFAULTS;
-  }, [modalKey]);
-
   const {
     register,
     handleSubmit,
     control,
+    reset,
     formState: { errors }
   } = useForm({
-    defaultValues
+    defaultValues: EMPTY_DEFAULTS
   });
+
+  useEffect(() => {
+    if (showModal && showModal.checklist_type_id) {
+      reset(mapApiToForm(showModal));
+    } else {
+      reset(EMPTY_DEFAULTS);
+    }
+  }, [showModal, reset]);
 
   const { fields: sections, append: appendSection, remove: removeSection } = useFieldArray({
     control,
@@ -173,18 +173,24 @@ export function CheckListModal({ showModal, closeModal, callTypesOptions, onSucc
     const vesselTypeId = num(data.vesselType);
     const bargeTypeId = num(data.bargeType);
 
-    const payload = {
-      call_type_id: callTypeId,
-      checklist_name: data.checklistName ?? "",
-      vessel_type_id: vesselTypeId,
-      barge_type_id: bargeTypeId ?? null,
-      sections: sectionsApi
-    };
+    const isEdit = !!showModal?.checklist_type_id;
 
-    const isEdit = showModal?._id;
-    if (isEdit) {
-      payload._id = showModal._id;
-    }
+    const payload = isEdit
+      ? {
+          checklist_type_id: showModal.checklist_type_id,
+          call_type_id: callTypeId,
+          vessel_type_id: vesselTypeId,
+          barge_type_id: bargeTypeId ?? null,
+          checklist_name: data.checklistName ?? "",
+          sections: sectionsApi
+        }
+      : {
+          call_type_id: callTypeId,
+          checklist_name: data.checklistName ?? "",
+          vessel_type_id: vesselTypeId,
+          barge_type_id: bargeTypeId ?? null,
+          sections: sectionsApi
+        };
 
     const fileMap = collectItemFiles(data);
     const hasFiles = Object.keys(fileMap).length > 0;
@@ -201,13 +207,13 @@ export function CheckListModal({ showModal, closeModal, callTypesOptions, onSucc
         formData.append(`documents[${key}]`, file);
       });
       if (isEdit) {
-        editChecklist({ id: showModal._id, formData, cb });
+        editChecklist({ formData, cb });
       } else {
         createChecklist({ formData, cb });
       }
     } else {
       if (isEdit) {
-        editChecklist({ id: showModal._id, formData: payload, cb });
+        editChecklist({ formData: payload, cb });
       } else {
         createChecklist({ formData: payload, cb });
       }
@@ -217,7 +223,7 @@ export function CheckListModal({ showModal, closeModal, callTypesOptions, onSucc
   const renderHeader = () => (
     <>
       <h1 className="modal-title">
-        {showModal?._id ? "Edit Checklist" : "Add Checklist"}
+        {showModal?.checklist_type_id ? "Edit Checklist" : "Add Checklist"}
       </h1>
     </>
   );

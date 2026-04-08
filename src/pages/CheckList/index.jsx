@@ -46,7 +46,22 @@ const CheckList = () => {
     }
     getChecklistById({
       checklist_type_id: checklistTypeId,
-      cb: (data) => setShowCheckListModal(data ?? row)
+      cb: (res) => {
+        const details = res?.checklist_details;
+        if (!details) {
+          setShowCheckListModal(row);
+          return;
+        }
+        const mappedEditData = {
+          checklist_type_id: Number(details.checklist_type_id ?? checklistTypeId),
+          call_type_id: Number(details.call_type_id),
+          vessel_type_id: Number(details.vessel_type_id),
+          barge_type_id: Number(details.barge_type_id),
+          checklist_name: details.checklist_name,
+          sections: res?.data ?? []
+        };
+        setShowCheckListModal(mappedEditData);
+      }
     });
   };
 
@@ -188,7 +203,7 @@ const CheckList = () => {
               filterOptions={filterOptions}
               filterValue={filters}
               onFilterChange={handleFilterChange}
-              onApplyFilter={() => {}}
+              onApplyFilter={() => { }}
               onClearFilter={handleClearFilter}
             />
           </div>
@@ -218,7 +233,7 @@ const CheckList = () => {
 
           {!!showCheckListModal && (
             <CheckListModal
-              key={showCheckListModal?._id ?? "new"}
+              key={showCheckListModal?.checklist_type_id ?? "new"}
               showModal={showCheckListModal}
               closeModal={() => setShowCheckListModal(false)}
               callTypesOptions={callTypes}
