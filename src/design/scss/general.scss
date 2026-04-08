@@ -176,6 +176,80 @@
   }
 }
 
+/* General tab (CardFormTabs/General.jsx): balanced columns, compact upload, taller Quill */
+.cf-section.general-info-section .general-tab-form-layout {
+  grid-template-columns: 1fr 1fr;
+  gap: 20px;
+}
+
+@media (max-width: 900px) {
+  .cf-section.general-info-section .general-tab-form-layout {
+    grid-template-columns: 1fr;
+  }
+}
+
+.cf-section.general-info-section .general-tab-form-layout .general-info-left .document-upload-zone {
+  height: auto;
+  min-height: 52px;
+  padding: 8px 12px;
+  max-width: 100%;
+}
+
+.cf-section.general-info-section .general-tab-form-layout .general-info-left .document-upload-zone:hover {
+  transform: none;
+}
+
+.cf-section.general-info-section .general-tab-form-layout .general-info-left .document-upload-zone.dragging {
+  transform: none;
+}
+
+.cf-section.general-info-section .general-tab-form-layout .general-info-left .upload-zone-content {
+  flex-direction: column;
+  justify-content: center;
+  gap: 4px;
+  min-height: 0;
+}
+
+.cf-section.general-info-section .general-tab-form-layout .general-info-left .upload-icon-wrapper {
+  margin-bottom: 0;
+}
+
+.cf-section.general-info-section .general-tab-form-layout .general-info-left .upload-main-text {
+  font-size: 13px;
+  line-height: 1.35;
+}
+
+.cf-section.general-info-section .general-tab-form-layout .general-info-left .upload-sub-text {
+  font-size: 11px;
+  line-height: 1.25;
+}
+
+.cf-section.general-info-section .general-tab-form-layout .general-info-right .card-description-wrapper {
+  min-height: 300px;
+
+  &:first-child {
+    min-height: 300px;
+  }
+
+  &:last-child:not(:first-child) {
+    min-height: 260px;
+  }
+}
+
+.cf-section.general-info-section .general-tab-form-layout .general-info-right .remarks-wrapper {
+  min-height: 280px;
+}
+
+.cf-section.general-info-section .general-tab-form-layout .general-info-right .react-quill-wrapper {
+  .ql-container {
+    min-height: 280px;
+  }
+
+  .ql-editor {
+    min-height: 280px;
+  }
+}
+
 /* Daily Task/Todo Box Wrapper - fixed in right column, never scrolls */
 .daily-task-box-wrapper {
   width: 100%;

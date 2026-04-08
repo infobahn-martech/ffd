@@ -1298,7 +1298,7 @@ function General({ card, formValues, handleChange, ownerInitial, cardUser, onSav
             </div>
           )}
           <div className="cf-section-body">
-            <div className="general-info-two-column">
+            <div className="general-info-two-column general-tab-form-layout">
               <div className="general-info-left">
                 <div className="pre-arrival-form">
                   {isFleet ? (
