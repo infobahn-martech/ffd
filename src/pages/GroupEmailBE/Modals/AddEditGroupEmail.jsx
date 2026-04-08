@@ -161,8 +161,10 @@ export function GroupEmailBEModal({ showModal, closeModal, onSuccess }) {
                     {/* EMAIL LIST */}
                     <div className="mt-3">
                         {fields.map((field, index) => (
-                            <div className="row align-items-center mb-2" key={field.id}>
-                                <div className={isEdit ? "col-9 col-md-10" : "col-12"}>
+                            <div className="row align-items-center mb-2 g-1" key={field.id}>
+                                <div
+                                    className={isEdit ? "col min-w-0" : "col-12"}
+                                >
                                     <div className="form-floating desig-inp position-relative">
                                         <input
                                             type="email"
@@ -171,7 +173,7 @@ export function GroupEmailBEModal({ showModal, closeModal, onSuccess }) {
                                             placeholder="email@example.com"
                                             style={{
                                                 paddingRight:
-                                                    !isEdit && index === fields.length - 1
+                                                    index === fields.length - 1
                                                         ? "80px"
                                                         : "45px",
                                             }}
@@ -187,43 +189,42 @@ export function GroupEmailBEModal({ showModal, closeModal, onSuccess }) {
                                             Email <span className="text-danger">*</span>
                                         </label>
 
-                                        {/* Add / Remove buttons — only shown outside edit mode */}
-                                        {!isEdit && (
+                                        {index === fields.length - 1 ? (
                                             <>
-                                                {index === fields.length - 1 ? (
-                                                    <>
-                                                        {fields.length > 1 && (
-                                                            <button
-                                                                type="button"
-                                                                className="email-action-btn email-remove-btn email-remove-btn-last"
-                                                                onClick={() => remove(index)}
-                                                                title="Remove Email"
-                                                            >
-                                                                <FiX size={18} />
-                                                            </button>
-                                                        )}
-                                                        <button
-                                                            type="button"
-                                                            className="email-action-btn email-add-btn"
-                                                            onClick={() =>
-                                                                append({ email_id: "", value: "", is_active: true })
-                                                            }
-                                                            title="Add Email"
-                                                        >
-                                                            <FiPlus size={18} />
-                                                        </button>
-                                                    </>
-                                                ) : (
+                                                {fields.length > 1 && (
                                                     <button
                                                         type="button"
-                                                        className="email-action-btn email-remove-btn"
+                                                        className="email-action-btn email-remove-btn email-remove-btn-last"
                                                         onClick={() => remove(index)}
                                                         title="Remove Email"
                                                     >
                                                         <FiX size={18} />
                                                     </button>
                                                 )}
+                                                <button
+                                                    type="button"
+                                                    className="email-action-btn email-add-btn"
+                                                    onClick={() =>
+                                                        append({
+                                                            email_id: "",
+                                                            value: "",
+                                                            is_active: true,
+                                                        })
+                                                    }
+                                                    title="Add Email"
+                                                >
+                                                    <FiPlus size={18} />
+                                                </button>
                                             </>
+                                        ) : (
+                                            <button
+                                                type="button"
+                                                className="email-action-btn email-remove-btn"
+                                                onClick={() => remove(index)}
+                                                title="Remove Email"
+                                            >
+                                                <FiX size={18} />
+                                            </button>
                                         )}
 
                                         {errors.emails?.[index]?.value && (
@@ -234,9 +235,8 @@ export function GroupEmailBEModal({ showModal, closeModal, onSuccess }) {
                                     </div>
                                 </div>
 
-                                {/* Active checkbox — only shown in edit mode */}
                                 {isEdit && (
-                                    <div className="col-3 col-md-2 d-flex align-items-center justify-content-center">
+                                    <div className="col-12 col-md-auto d-flex align-items-center justify-content-center justify-content-md-center pt-2 pt-md-0">
                                         <Controller
                                             control={control}
                                             name={`emails.${index}.is_active`}
