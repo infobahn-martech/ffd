@@ -9,8 +9,15 @@ import "../../../design/scss/modal-designs.scss";
 import "../../../design/scss/form-designs.scss";
 
 export function GroupEmailBEModal({ showModal, closeModal, onSuccess }) {
-    const { addGroupEmailBE, updateGroupEmailBE, isBeingUpdated } =
-        useGroupEmailBEReducer((state) => state);
+    const {
+        addGroupEmailBE,
+        updateGroupEmailBE,
+        isBeingUpdated,
+        getGroupEmailBEByEntity,
+        groupEmailBEDetail,
+        isLoadingDetail,
+        clearGroupEmailBEDetail,
+    } = useGroupEmailBEReducer((state) => state);
 
     const { getBillingEntities, billingEntities, isLoading: billingLoading } =
         useBillingEntityReducer((state) => state);
@@ -25,25 +32,45 @@ export function GroupEmailBEModal({ showModal, closeModal, onSuccess }) {
         control,
         register,
         handleSubmit,
+        reset,
         formState: { errors },
     } = useForm({
-        defaultValues: isEdit
-            ? {
-                entity_id: showModal.entity_id,
-                emails:
-                    showModal?.emails?.length > 0
-                        ? showModal.emails.map((e) => ({
-                            email_id: e.email_id,
-                            value: e.email,
-                            is_active: e.is_active ?? true,
-                        }))
-                        : [{ email_id: "", value: "", is_active: true }],
-            }
-            : {
+        defaultValues: {
+            entity_id: "",
+            emails: [{ email_id: "", value: "", is_active: true }],
+        },
+    });
+
+    useEffect(() => {
+        return () => clearGroupEmailBEDetail();
+    }, [clearGroupEmailBEDetail]);
+
+    useEffect(() => {
+        if (!showModal?.entity_id) {
+            clearGroupEmailBEDetail();
+            reset({
                 entity_id: "",
                 emails: [{ email_id: "", value: "", is_active: true }],
-            },
-    });
+            });
+            return;
+        }
+        getGroupEmailBEByEntity(showModal.entity_id);
+    }, [showModal?.entity_id, getGroupEmailBEByEntity, reset, clearGroupEmailBEDetail]);
+
+    useEffect(() => {
+        if (!isEdit || !groupEmailBEDetail) return;
+        reset({
+            entity_id: String(groupEmailBEDetail.entity_id ?? ""),
+            emails:
+                (groupEmailBEDetail.emails ?? []).length > 0
+                    ? groupEmailBEDetail.emails.map((e) => ({
+                          email_id: e.email_id,
+                          value: e.email,
+                          is_active: e.is_active ?? true,
+                      }))
+                    : [{ email_id: "", value: "", is_active: true }],
+        });
+    }, [groupEmailBEDetail, isEdit, reset]);
 
     const { fields, append, remove } = useFieldArray({
         control,
@@ -91,7 +118,16 @@ export function GroupEmailBEModal({ showModal, closeModal, onSuccess }) {
     const renderBody = () => (
         <div className="modal-body">
             <div className="lead-form">
-                <form id="groupEmailForm" onSubmit={handleSubmit(onSubmit)}>
+                {isEdit && isLoadingDetail && (
+                    <div className="text-center py-4 text-muted">Loading...</div>
+                )}
+                <form
+                    id="groupEmailForm"
+                    onSubmit={handleSubmit(onSubmit)}
+                    style={{
+                        display: isEdit && isLoadingDetail ? "none" : undefined,
+                    }}
+                >
                     {/* BILLING ENTITY SELECT */}
                     <div className="mb-lg-3 mb-sm-0 mt-2">
                         <div className="form-floating desig-inp">
@@ -240,7 +276,7 @@ export function GroupEmailBEModal({ showModal, closeModal, onSuccess }) {
                 type="button"
                 className="btn btn-outline"
                 onClick={() => closeModal(null)}
-                disabled={isBeingUpdated}
+                disabled={isBeingUpdated || (isEdit && isLoadingDetail)}
             >
                 Close
             </button>
@@ -248,7 +284,7 @@ export function GroupEmailBEModal({ showModal, closeModal, onSuccess }) {
                 type="submit"
                 form="groupEmailForm"
                 className="btn btn-primary"
-                disabled={isBeingUpdated}
+                disabled={isBeingUpdated || (isEdit && isLoadingDetail)}
             >
                 {isBeingUpdated ? "Saving..." : "Save"}
             </button>

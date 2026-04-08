@@ -12,11 +12,10 @@ const GroupEmailBE = () => {
     const {
         getGroupEmailBEs,
         groupEmailBEs,
-        isLoadingGet,
+        isLoading,
         deleteGroupEmailBE,
         isLoadingDelete,
         totalCount,
-        isLoading,
     } = useGroupEmailBEReducer((state) => state);
 
     const [params, setParams] = useState({
@@ -143,7 +142,7 @@ const GroupEmailBE = () => {
 
                     <CustomTable
                         Sl
-                        isLoading={isLoadingGet}
+                        isLoading={isLoading}
                         pagination={{ currentPage: params.page, limit: params.limit }}
                         tableClasses="px-start"
                         count={totalCount}

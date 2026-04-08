@@ -7,6 +7,8 @@ const useGroupEmailBEReducer = create((set) => ({
     errorMessage: '',
     successMessage: '',
     groupEmailBEs: [],
+    groupEmailBEDetail: null,
+    isLoadingDetail: false,
     isBeingUpdated: false,
     totalCount: 0,
     addGroupEmailBE: async ({ formData, cb }) => {
@@ -39,6 +41,21 @@ const useGroupEmailBEReducer = create((set) => ({
             set({ errorMessage: error.message, isLoading: false, groupEmailBEs: [], totalCount: 0 });
         }
     },
+    getGroupEmailBEByEntity: async (billingentity_id) => {
+        try {
+            set({ isLoadingDetail: true, groupEmailBEDetail: null });
+            const { data } = await groupEmailBEService.fetchGroupEmailBEByEntity(billingentity_id);
+            const detail = data?.data ?? data;
+            set({ groupEmailBEDetail: detail, isLoadingDetail: false });
+            return detail;
+        } catch (err) {
+            const { error } = useAlertReducer.getState();
+            set({ groupEmailBEDetail: null, isLoadingDetail: false });
+            error(err?.response?.data?.message ?? err.message);
+            return null;
+        }
+    },
+    clearGroupEmailBEDetail: () => set({ groupEmailBEDetail: null }),
     updateGroupEmailBE: async ({ formData, cb }) => {
         try {
             set({ isBeingUpdated: true });
