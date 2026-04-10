@@ -503,12 +503,10 @@ $send-report-optional: #80868b;
 @keyframes send-report-view-in {
   from {
     opacity: 0;
-    transform: translateY(6px);
   }
 
   to {
     opacity: 1;
-    transform: translateY(0);
   }
 }
 
@@ -602,6 +600,8 @@ $send-report-optional: #80868b;
   overflow-y: auto;
   overflow-x: hidden;
   -webkit-overflow-scrolling: touch;
+  /* Reserve scrollbar gutter so width does not change when overflow appears — avoids horizontal jump of centered __inner */
+  scrollbar-gutter: stable;
 }
 
 .send-report-fullwidth__inner {
