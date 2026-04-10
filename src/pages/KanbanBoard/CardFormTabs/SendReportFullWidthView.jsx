@@ -95,6 +95,38 @@ function formatAttachmentSize(size) {
 }
 
 /**
+ * Single-row compact header: back + divider + title. Shared by all Send Report screens.
+ */
+export function SendReportScreenHeader({ formSectionLabel, tabName, onBack, disabled }) {
+  return (
+    <header className="send-report-screen-header" role="banner">
+      <div className="send-report-screen-header__row">
+        <button
+          type="button"
+          className="send-report-screen-header__back"
+          onClick={onBack}
+          disabled={disabled}
+        >
+          <span className="send-report-screen-header__back-icon" aria-hidden="true">
+            ←
+          </span>
+          <span className="send-report-screen-header__back-text">Back to {formSectionLabel}</span>
+        </button>
+        <span className="send-report-screen-header__divider" aria-hidden="true" />
+        <h1 className="send-report-screen-header__title">Send Report — {tabName}</h1>
+      </div>
+    </header>
+  );
+}
+
+SendReportScreenHeader.propTypes = {
+  formSectionLabel: PropTypes.string.isRequired,
+  tabName: PropTypes.string.isRequired,
+  onBack: PropTypes.func.isRequired,
+  disabled: PropTypes.bool,
+};
+
+/**
  * Full-width send report preview (replaces form area). Reusable across Operation tabs.
  */
 export function SendReportFullWidthView({
@@ -166,20 +198,12 @@ export function SendReportFullWidthView({
   return (
     <div className="send-report-fullwidth">
       <div className="send-report-fullwidth__shell">
-        <header className="send-report-fullwidth__header">
-          <button
-            type="button"
-            className="send-report-fullwidth__back"
-            onClick={onBack}
-            disabled={sending}
-          >
-            <span className="send-report-fullwidth__back-icon" aria-hidden="true">
-              ←
-            </span>
-            <span>Back to {formSectionLabel}</span>
-          </button>
-          <h1 className="send-report-fullwidth__title">Send Report — {tabName}</h1>
-        </header>
+        <SendReportScreenHeader
+          formSectionLabel={formSectionLabel}
+          tabName={tabName}
+          onBack={onBack}
+          disabled={sending}
+        />
 
         <div className="send-report-fullwidth__scroll">
           <div className="send-report-fullwidth__inner">
