@@ -1,29 +1,10 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { RenderAction } from "./RenderCells";
 import CommonHeader from "../../components/CommonHeader";
 import CustomTable from "../../components/customTable";
 import DeleteConfirmationModal from "../../components/DeleteConfirmationModal";
 import { AddEditCustomerPricing } from "./Modals/AddEditCustomerPricing";
-import { PORT_DETAILS } from "../../constants/ports";
-
-const billingTimeline = [
-    { createdAt: "2024-10-12T10:15:00Z", updatedAt: "2024-11-03T08:45:00Z" },
-    { createdAt: "2024-09-20T12:30:00Z", updatedAt: "2024-10-15T14:20:00Z" },
-    { createdAt: "2024-08-05T09:00:00Z", updatedAt: "2024-10-02T11:40:00Z" },
-    { createdAt: "2024-07-18T16:00:00Z", updatedAt: "2024-09-28T10:10:00Z" },
-    { createdAt: "2024-06-12T14:00:00Z", updatedAt: "2024-08-21T09:00:00Z" },
-];
-
-// 🔹 Dummy Customer Pricing data (per port) – only fields we care about in table
-const dummyCustomerPricing = PORT_DETAILS.map((port, index) => ({
-    _id: `${index + 1}`,
-    customerName: `${port.name} Main Customer`,
-    billingEntity: `${port.name} Billing Entity`,
-    portName: port.name,
-    currency: "AED",
-    createdAt: billingTimeline[index]?.createdAt ?? "2024-06-01T10:00:00Z",
-    updatedAt: billingTimeline[index]?.updatedAt ?? "2024-08-01T10:00:00Z",
-}));
+import useCustomerPricingReducer from "../../store/CustomerPricingReducer";
 
 const CustomerPricing = () => {
     const [params, setParams] = useState({
@@ -37,6 +18,24 @@ const CustomerPricing = () => {
 
     const [showCustomerPricingModal, setShowCustomerPricingModal] = useState(false);
     const [showDeleteModal, setShowDeleteModal] = useState(false);
+
+    const {
+        getCustomerPriceList,
+        customerPriceList,
+        totalCount,
+        isLoading,
+    } = useCustomerPricingReducer((state) => state);
+
+    useEffect(() => {
+        const apiParams = {
+            page: params.page,
+            limit: params.limit,
+            ...(params.searchTerm && { searchTerm: params.searchTerm }),
+            ...(params.sortBy && { sortBy: params.sortBy }),
+            ...(params.sortOrder != null && { sortOrder: params.sortOrder }),
+        };
+        getCustomerPriceList({ params: apiParams });
+    }, [params]);
 
     const cols = [
         {
@@ -116,9 +115,10 @@ const CustomerPricing = () => {
                     <CustomTable
                         pagination={{ currentPage: params?.page, limit: params?.limit }}
                         tableClasses="px-start"
-                        count={dummyCustomerPricing.length}
+                        count={totalCount}
                         columns={cols}
-                        data={dummyCustomerPricing ?? []}
+                        isLoading={isLoading}
+                        data={customerPriceList ?? []}
                         onPageChange={(currentPage) =>
                             setParams({ ...params, page: currentPage })
                         }
@@ -137,6 +137,16 @@ const CustomerPricing = () => {
                         <AddEditCustomerPricing
                             showModal={showCustomerPricingModal}
                             closeModal={() => setShowCustomerPricingModal(false)}
+                            onSuccess={() => {
+                                const apiParams = {
+                                    page: params.page,
+                                    limit: params.limit,
+                                    ...(params.searchTerm && { searchTerm: params.searchTerm }),
+                                    ...(params.sortBy && { sortBy: params.sortBy }),
+                                    ...(params.sortOrder != null && { sortOrder: params.sortOrder }),
+                                };
+                                getCustomerPriceList({ params: apiParams });
+                            }}
                         />
                     )}
 

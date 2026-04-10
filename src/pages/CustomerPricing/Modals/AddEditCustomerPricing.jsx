@@ -20,7 +20,7 @@ const BILLING_ENTITY_OPTIONS = [
 // Common currency options
 const CURRENCY_OPTIONS = ["USD", "SAR", "AED", "EUR", "GBP", "INR"];
 
-export function AddEditCustomerPricing({ showModal, closeModal }) {
+export function AddEditCustomerPricing({ showModal, closeModal, onSuccess }) {
     const {
         register,
         handleSubmit,
@@ -40,6 +40,7 @@ export function AddEditCustomerPricing({ showModal, closeModal }) {
 
     const onSubmit = (data) => {
         console.log("CUSTOMER PRICING FORM SUBMITTED:", data);
+        onSuccess?.();
         closeModal();
     };
 
