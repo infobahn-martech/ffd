@@ -1,7 +1,6 @@
 import PropTypes from "prop-types";
-import { useState, useMemo, useEffect, useRef } from "react";
-import { SendReportPreviewModal } from "./Operation";
-import CustomModal from "../../../components/CustomModal";
+import { useState, useMemo, useEffect, useRef, useCallback } from "react";
+import { SendReportButton } from "./SendReportFullWidthView";
 import "../../../design/scss/checklist.scss";
 
 // Checklist Type Options
@@ -1073,7 +1072,7 @@ const getDummyRemarksForItem = (itemId, itemLabel) => {
 };
 
 // Main Checklist Component
-function Checklist({ card, formValues, handleChange, onSendReport, cardColor: propCardColor, isViewOnly = false, isDAModule = false }) {
+function Checklist({ card, formValues, handleChange, onOpenReportPreview, cardColor: propCardColor, isViewOnly = false, isDAModule = false }) {
   const cardColor = propCardColor || card?.color || "#2A00FF";
 
   // Form state - Initialize with both checklist types selected by default
@@ -1295,65 +1294,35 @@ function Checklist({ card, formValues, handleChange, onSendReport, cardColor: pr
     },
   ];
 
-  // Send Report Button Component
-  const SendReportButton = ({ onClick, cardColor }) => {
-    const [showPreview, setShowPreview] = useState(false);
-
-    const handleSendReport = () => {
-      setShowPreview(true);
-      if (onClick) {
-        onClick();
-      }
-    };
-
-    return (
-      <>
-        <button
-          style={{ backgroundColor: "rgb(244 242 255)" }}
-          type="button"
-          className="operation-send-report-btn"
-          onClick={handleSendReport}
-          title="Send Report"
-        >
-          <svg
-            width="20"
-            height="20"
-            viewBox="0 0 24 24"
-            fill="none"
-            xmlns="http://www.w3.org/2000/svg"
-          >
-            <path
-              d="M22 2L11 13"
-              stroke="currentColor"
-              strokeWidth="2"
-              strokeLinecap="round"
-              strokeLinejoin="round"
-            />
-            <path
-              d="M22 2L15 22L11 13L2 9L22 2Z"
-              stroke="currentColor"
-              strokeWidth="2"
-              strokeLinecap="round"
-              strokeLinejoin="round"
-            />
-          </svg>
-          <span className="send-report-text">Send Report</span>
-        </button>
-        <SendReportPreviewModal
-          show={showPreview}
-          onClose={() => setShowPreview(false)}
-          cardColor={cardColor}
-          tabName="Check List"
-        />
-      </>
-    );
-  };
+  const handleOpenChecklistReport = useCallback(() => {
+    if (!onOpenReportPreview) return;
+    const lines = ["Checklist report", "", `Checklist types: ${(checklistType || []).join("; ")}`, ""];
+    currentChecklistData.forEach((section) => {
+      lines.push(section.title);
+      section.items.forEach((item) => {
+        const d = itemsData[item.id] || {};
+        const fileName = d.uploadedFile?.name || d.uploadedFile?.fileName || "No file uploaded";
+        lines.push(`  • ${item.label}`);
+        lines.push(`    Status: ${d.checked ? "Complete" : "Pending"} | File: ${fileName}`);
+        if (d.remarks) lines.push(`    Remarks: ${d.remarks}`);
+      });
+      lines.push("");
+    });
+    onOpenReportPreview({
+      tabName: "Check List",
+      formSectionLabel: "Checklist Information",
+      getBody: () => lines.join("\n"),
+      getAttachments: () => [],
+    });
+  }, [onOpenReportPreview, checklistType, currentChecklistData, itemsData]);
 
   return (
     <>
       <div className="operation-content-header">
         <h3 className="operation-content-title">Checklist Information</h3>
-        {onSendReport && !isViewOnly && <SendReportButton onClick={onSendReport} cardColor={cardColor} />}
+        {onOpenReportPreview && !isViewOnly && (
+          <SendReportButton onClick={handleOpenChecklistReport} cardColor={cardColor} tabName="Check List" />
+        )}
       </div>
       {/* Form Section */}
       <>
@@ -1431,7 +1400,7 @@ function Checklist({ card, formValues, handleChange, onSendReport, cardColor: pr
           </div>
         </div>
       </>
-    </ >
+    </>
   );
 }
 
@@ -1439,7 +1408,7 @@ Checklist.propTypes = {
   card: PropTypes.object,
   formValues: PropTypes.object,
   handleChange: PropTypes.func,
-  onSendReport: PropTypes.func,
+  onOpenReportPreview: PropTypes.func,
   cardColor: PropTypes.string,
   isViewOnly: PropTypes.bool,
   isDAModule: PropTypes.bool,

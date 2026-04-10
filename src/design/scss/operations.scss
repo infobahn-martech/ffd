@@ -474,6 +474,237 @@ $send-report-optional: #80868b;
   }
 }
 
+/* ----- Send report: full-width inline view (replaces form in main column) ----- */
+
+.operation-right--send-report {
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+  padding: 0;
+}
+
+.operation-right--send-report .operation-report-pane {
+  flex: 1;
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+}
+
+.send-report-fullwidth {
+  flex: 1;
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
+  background: #f8f9fb;
+  animation: send-report-view-in 0.24s ease;
+}
+
+@keyframes send-report-view-in {
+  from {
+    opacity: 0;
+    transform: translateY(6px);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.send-report-fullwidth__shell {
+  flex: 1;
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
+  max-width: 100%;
+}
+
+.send-report-fullwidth__header {
+  flex-shrink: 0;
+  padding: 16px 24px 12px;
+  border-bottom: 1px solid $send-report-border;
+  background: #fff;
+  z-index: 2;
+}
+
+.send-report-fullwidth__back {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  margin: 0 0 12px;
+  padding: 6px 4px 6px 0;
+  border: none;
+  background: transparent;
+  font-size: 14px;
+  font-weight: 500;
+  font-family: "Open Sans", Roboto, "Segoe UI", sans-serif;
+  color: #1a73e8;
+  cursor: pointer;
+  transition: color 0.15s ease, opacity 0.15s ease;
+
+  &:hover:not(:disabled) {
+    color: #1557b0;
+    text-decoration: underline;
+  }
+
+  &:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+  }
+}
+
+.send-report-fullwidth__back-icon {
+  font-size: 16px;
+  line-height: 1;
+}
+
+.send-report-fullwidth__title {
+  margin: 0;
+  font-size: 20px;
+  font-weight: 600;
+  font-family: "Open Sans", Roboto, "Segoe UI", sans-serif;
+  letter-spacing: -0.02em;
+  color: $send-report-text;
+  line-height: 1.3;
+}
+
+.send-report-fullwidth__scroll {
+  flex: 1;
+  min-height: 0;
+  overflow-y: auto;
+  overflow-x: hidden;
+  -webkit-overflow-scrolling: touch;
+}
+
+.send-report-fullwidth__inner {
+  max-width: 1100px;
+  margin: 0 auto;
+  padding: 20px 24px 28px;
+  width: 100%;
+  box-sizing: border-box;
+}
+
+.send-report-fullwidth__meta {
+  margin-bottom: 8px;
+}
+
+.send-report-fullwidth__meta-card {
+  background: #fff;
+  border: 1px solid $send-report-border;
+  border-radius: 10px;
+  box-shadow: 0 1px 3px rgba(60, 64, 67, 0.06);
+  overflow: hidden;
+}
+
+.send-report-fullwidth__compose-fields {
+  padding: 0;
+}
+
+.send-report-fullwidth__body-section {
+  margin-top: 20px;
+}
+
+.send-report-fullwidth__section-label {
+  margin: 0 0 10px;
+  font-size: 11px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: $send-report-muted;
+}
+
+.send-report-fullwidth__editor-wrap {
+  background: #fff;
+  border: 1px solid $send-report-row-border;
+  border-radius: 10px;
+  padding: 16px 18px;
+  box-shadow: 0 1px 2px rgba(60, 64, 67, 0.05);
+}
+
+.send-report-fullwidth__textarea {
+  min-height: 220px;
+  width: 100%;
+  box-sizing: border-box;
+  resize: vertical;
+}
+
+.send-report-fullwidth__attachments {
+  margin-top: 24px;
+  padding: 16px 18px;
+  background: #fff;
+  border: 1px solid $send-report-row-border;
+  border-radius: 10px;
+}
+
+.send-report-fullwidth__attachments-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+
+.send-report-fullwidth__attachment-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  gap: 16px;
+  font-size: 14px;
+  padding: 10px 0;
+  border-bottom: 1px solid #f0f0f0;
+
+  &:last-child {
+    border-bottom: none;
+    padding-bottom: 0;
+  }
+}
+
+.send-report-fullwidth__attachment-name {
+  color: $send-report-text;
+  word-break: break-word;
+}
+
+.send-report-fullwidth__attachment-size {
+  flex-shrink: 0;
+  font-size: 12px;
+  color: $send-report-optional;
+}
+
+.send-report-fullwidth__footer {
+  display: flex;
+  justify-content: flex-end;
+  align-items: center;
+  gap: 10px;
+  flex-shrink: 0;
+  padding: 14px 24px;
+  border-top: 1px solid $send-report-row-border;
+  background: #fff;
+  z-index: 2;
+  box-shadow: 0 -4px 16px rgba(60, 64, 67, 0.06);
+}
+
+.send-report-fullwidth__send-btn {
+  padding: 9px 26px;
+  border-radius: 6px;
+  font-size: 14px;
+  font-weight: 600;
+  font-family: "Open Sans", Roboto, "Segoe UI", sans-serif;
+  cursor: pointer;
+  transition: background 0.15s ease, opacity 0.15s ease;
+  border: none;
+  min-width: 100px;
+  background: $send-report-accent;
+  color: #fff;
+
+  &:hover:not(:disabled) {
+    background: $send-report-accent-hover;
+  }
+
+  &:disabled {
+    opacity: 0.75;
+    cursor: wait;
+  }
+}
+
 /* ==========================================================
    OPERATION TAB STYLES
    ========================================================== */

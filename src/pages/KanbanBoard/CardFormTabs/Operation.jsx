@@ -6,7 +6,13 @@ import "react-quill/dist/quill.snow.css";
 import GroupSettingsIcon from "../../../assets/images/cv.png";
 import CircleTickIcon from "../../../assets/images/CircleTick.svg";
 import Checklist from "./Checklist";
-import CustomModal from "../../../components/CustomModal";
+import { notify } from "../../../components/Toaster";
+import { SendReportFullWidthView, SendReportButton } from "./SendReportFullWidthView";
+import {
+  buildPreArrivalReportBody,
+  buildArrivalReportBody,
+  buildDepartureReportBody,
+} from "./sendReportBodyBuilders";
 import "../../../design/scss/operations.scss";
 
 // Constants
@@ -688,7 +694,7 @@ LinksList.propTypes = {
   onRemove: PropTypes.func,
 };
 
-const PreArrivalContent = ({ formValues, handleChange, ownerInitial, cardUser, cardColor, onAddAttachment, onRemoveAttachment, onAddLink, onRemoveLink, onSendReport, isViewOnly = false }) => {
+const PreArrivalContent = ({ formValues, handleChange, ownerInitial, cardUser, cardColor, onAddAttachment, onRemoveAttachment, onAddLink, onRemoveLink, onOpenReportPreview, isViewOnly = false }) => {
   const [isDraggingSaberUtDocuments, setIsDraggingSaberUtDocuments] = useState(false);
   const saberUtFileInputRef = useRef(null);
 
@@ -772,7 +778,20 @@ const PreArrivalContent = ({ formValues, handleChange, ownerInitial, cardUser, c
     <div className="cardform-left-full" style={{ "--card-color": cardColor }}>
       <div className="operation-content-header">
         <h3 className="operation-content-title">Pre-Arrival Information</h3>
-        {onSendReport && !isViewOnly && <SendReportButton onClick={onSendReport} cardColor={cardColor} tabName="Pre Arrival" />}
+        {onOpenReportPreview && !isViewOnly && (
+          <SendReportButton
+            onClick={() =>
+              onOpenReportPreview({
+                tabName: "Pre Arrival",
+                formSectionLabel: "Pre-Arrival Information",
+                getBody: () => buildPreArrivalReportBody(formValues),
+                getAttachments: () => formValues.saberUtDocumentsAttachments || [],
+              })
+            }
+            cardColor={cardColor}
+            tabName="Pre Arrival"
+          />
+        )}
       </div>
       <FormSection icon={GroupSettingsIcon} title="">
         <div className="pre-arrival-form">
@@ -1047,11 +1066,11 @@ PreArrivalContent.propTypes = {
   onRemoveAttachment: PropTypes.func,
   onAddLink: PropTypes.func,
   onRemoveLink: PropTypes.func,
-  onSendReport: PropTypes.func,
+  onOpenReportPreview: PropTypes.func,
   isViewOnly: PropTypes.bool,
 };
 
-const ArrivalContent = ({ formValues, handleChange, cardColor, onAddAttachment, onRemoveAttachment, onAddLink, onRemoveLink, onSendReport, isViewOnly = false }) => {
+const ArrivalContent = ({ formValues, handleChange, cardColor, onAddAttachment, onRemoveAttachment, onAddLink, onRemoveLink, onOpenReportPreview, isViewOnly = false }) => {
   const [isDraggingDocuments, setIsDraggingDocuments] = useState(false);
   const documentsFileInputRef = useRef(null);
 
@@ -1144,7 +1163,20 @@ const ArrivalContent = ({ formValues, handleChange, cardColor, onAddAttachment, 
     <div className="cardform-left-full" style={{ "--card-color": cardColor }}>
       <div className="operation-content-header">
         <h3 className="operation-content-title">Arrival Information</h3>
-        {onSendReport && !isViewOnly && <SendReportButton onClick={onSendReport} cardColor={cardColor} tabName="Arrival" />}
+        {onOpenReportPreview && !isViewOnly && (
+          <SendReportButton
+            onClick={() =>
+              onOpenReportPreview({
+                tabName: "Arrival",
+                formSectionLabel: "Arrival Information",
+                getBody: () => buildArrivalReportBody(formValues),
+                getAttachments: () => formValues.arrivalDocumentsAttachments || [],
+              })
+            }
+            cardColor={cardColor}
+            tabName="Arrival"
+          />
+        )}
       </div>
       <FormSection icon={GroupSettingsIcon} title="">
         <div className="arrival-form">
@@ -1595,11 +1627,11 @@ ArrivalContent.propTypes = {
   onRemoveAttachment: PropTypes.func,
   onAddLink: PropTypes.func,
   onRemoveLink: PropTypes.func,
-  onSendReport: PropTypes.func,
+  onOpenReportPreview: PropTypes.func,
   isViewOnly: PropTypes.bool,
 };
 
-const DepartureContent = ({ formValues, handleChange, cardColor, onAddAttachment, onRemoveAttachment, onAddLink, onRemoveLink, onSendReport, isViewOnly = false }) => {
+const DepartureContent = ({ formValues, handleChange, cardColor, onAddAttachment, onRemoveAttachment, onAddLink, onRemoveLink, onOpenReportPreview, isViewOnly = false }) => {
   const [isDragging, setIsDragging] = useState(false);
   const fileInputRef = useRef(null);
 
@@ -1670,7 +1702,20 @@ const DepartureContent = ({ formValues, handleChange, cardColor, onAddAttachment
     <div className="cardform-left-full" style={{ "--card-color": cardColor }}>
       <div className="operation-content-header">
         <h3 className="operation-content-title">Departure Information</h3>
-        {onSendReport && !isViewOnly && <SendReportButton onClick={onSendReport} cardColor={cardColor} tabName="Departure" />}
+        {onOpenReportPreview && !isViewOnly && (
+          <SendReportButton
+            onClick={() =>
+              onOpenReportPreview({
+                tabName: "Departure",
+                formSectionLabel: "Departure Information",
+                getBody: () => buildDepartureReportBody(formValues),
+                getAttachments: () => formValues.attachments || [],
+              })
+            }
+            cardColor={cardColor}
+            tabName="Departure"
+          />
+        )}
       </div>
       <FormSection icon={GroupSettingsIcon} title="">
         <div className="departure-form">
@@ -1925,366 +1970,32 @@ DepartureContent.propTypes = {
   onRemoveAttachment: PropTypes.func,
   onAddLink: PropTypes.func,
   onRemoveLink: PropTypes.func,
-  onSendReport: PropTypes.func,
+  onOpenReportPreview: PropTypes.func,
   isViewOnly: PropTypes.bool,
 };
 
-const CheckListContent = ({ card, formValues, handleChange, onSendReport, cardColor, isViewOnly = false, isDAModule = false }) => {
-  return <Checklist card={card} formValues={formValues} handleChange={handleChange} onSendReport={onSendReport} cardColor={cardColor} isViewOnly={isViewOnly} isDAModule={isDAModule} />;
+const CheckListContent = ({ card, formValues, handleChange, onOpenReportPreview, cardColor, isViewOnly = false, isDAModule = false }) => {
+  return (
+    <Checklist
+      card={card}
+      formValues={formValues}
+      handleChange={handleChange}
+      onOpenReportPreview={onOpenReportPreview}
+      cardColor={cardColor}
+      isViewOnly={isViewOnly}
+      isDAModule={isDAModule}
+    />
+  );
 };
 
 CheckListContent.propTypes = {
   card: PropTypes.object,
   formValues: PropTypes.object.isRequired,
   handleChange: PropTypes.func.isRequired,
-  onSendReport: PropTypes.func,
+  onOpenReportPreview: PropTypes.func,
   cardColor: PropTypes.string,
   isViewOnly: PropTypes.bool,
   isDAModule: PropTypes.bool,
-};
-
-/** Parse comma-separated recipients into locked chips + current inline input segment (Gmail-style). */
-const parseRecipientFieldValue = (value) => {
-  if (value == null || value === "") return { chips: [], input: "" };
-  const parts = value.split(",");
-  const chips = parts.slice(0, -1).map((p) => p.trim()).filter(Boolean);
-  const input = (parts[parts.length - 1] ?? "").trimStart();
-  return { chips, input };
-};
-
-const buildRecipientFieldValue = (chips, input) => {
-  if (!chips.length) return input;
-  if (!input) return chips.join(", ");
-  return `${chips.join(", ")}, ${input}`;
-};
-
-const RecipientChipField = ({
-  value,
-  onChange,
-  id,
-  ariaLabelledBy,
-  placeholder,
-  className = "",
-}) => {
-  const { chips, input } = parseRecipientFieldValue(value ?? "");
-
-  const update = (nextChips, nextInput) => {
-    onChange(buildRecipientFieldValue(nextChips, nextInput));
-  };
-
-  const removeChip = (index) => {
-    update(
-      chips.filter((_, i) => i !== index),
-      input
-    );
-  };
-
-  const handleInputChange = (e) => {
-    update(chips, e.target.value);
-  };
-
-  const handleKeyDown = (e) => {
-    if (e.key === "Backspace" && input === "" && chips.length > 0) {
-      e.preventDefault();
-      update(chips.slice(0, -1), "");
-    }
-  };
-
-  return (
-    <div
-      className={`send-report-compose-recipients${className ? ` ${className}` : ""}`}
-      id={id}
-    >
-      {chips.map((email, i) => (
-        <span key={`${i}-${email}`} className="send-report-recipient-chip">
-          <span className="send-report-recipient-chip-text">{email}</span>
-          <button
-            type="button"
-            className="send-report-recipient-chip-remove"
-            onClick={() => removeChip(i)}
-            aria-label={`Remove ${email}`}
-          >
-            ×
-          </button>
-        </span>
-      ))}
-      <input
-        type="text"
-        className="send-report-compose-recipients-input"
-        value={input}
-        onChange={handleInputChange}
-        onKeyDown={handleKeyDown}
-        placeholder={chips.length ? "" : placeholder}
-        autoComplete="off"
-        spellCheck={false}
-        aria-labelledby={ariaLabelledBy}
-      />
-    </div>
-  );
-};
-
-RecipientChipField.propTypes = {
-  value: PropTypes.string.isRequired,
-  onChange: PropTypes.func.isRequired,
-  id: PropTypes.string,
-  ariaLabelledBy: PropTypes.string,
-  placeholder: PropTypes.string,
-  className: PropTypes.string,
-};
-
-// Send Report Preview Modal Component
-const SendReportPreviewModal = ({ show, onClose, cardColor, tabName }) => {
-  const [formData, setFormData] = useState({
-    from: "operations@shipping.com",
-    to: "recipient@example.com",
-    cc: "cc@example.com",
-    bcc: "",
-    subject: `Report - ${tabName}`,
-    body: `This is a preview of the ${tabName} report.\n\nPlease review the details before sending.`,
-  });
-
-  const [bccExpanded, setBccExpanded] = useState(false);
-
-  useEffect(() => {
-    if (show) {
-      setBccExpanded(!!formData.bcc?.trim());
-    }
-  }, [show]);
-
-  const handleInputChange = (field, value) => {
-    setFormData(prev => ({
-      ...prev,
-      [field]: value
-    }));
-  };
-
-  const handleSend = () => {
-    console.log("Sending report:", formData);
-    // TODO: Implement actual send logic
-    onClose();
-  };
-
-  const renderBody = () => (
-    <div className="send-report-preview-modal send-report-compose">
-      <div className="send-report-compose-fields">
-        <div className="send-report-compose-row send-report-compose-row--field">
-          <span className="send-report-compose-label" id="send-report-from-label">
-            From
-          </span>
-          <div className="send-report-compose-field-inner">
-            <input
-              type="email"
-              value={formData.from}
-              onChange={(e) => handleInputChange("from", e.target.value)}
-              className="send-report-compose-input"
-              placeholder="sender@example.com"
-              aria-labelledby="send-report-from-label"
-            />
-          </div>
-        </div>
-        <div className="send-report-compose-row send-report-compose-row--field">
-          <span className="send-report-compose-label" id="send-report-to-label">
-            To
-          </span>
-          <div className="send-report-compose-field-inner">
-            <RecipientChipField
-              value={formData.to}
-              onChange={(v) => handleInputChange("to", v)}
-              placeholder="Recipients"
-              ariaLabelledBy="send-report-to-label"
-            />
-          </div>
-        </div>
-        <div className="send-report-compose-row send-report-compose-row--field send-report-compose-row--optional">
-          <span className="send-report-compose-label send-report-compose-label--optional" id="send-report-cc-label">
-            Cc
-          </span>
-          <div className="send-report-compose-field-inner">
-            <RecipientChipField
-              value={formData.cc}
-              onChange={(v) => handleInputChange("cc", v)}
-              className="send-report-compose-recipients--optional"
-              placeholder="Recipients"
-              ariaLabelledBy="send-report-cc-label"
-            />
-          </div>
-        </div>
-        {!bccExpanded ? (
-          <div className="send-report-compose-row send-report-compose-row--add-bcc">
-            <span className="send-report-compose-label send-report-compose-label--ghost" aria-hidden="true">
-              &nbsp;
-            </span>
-            <div className="send-report-compose-field-inner send-report-compose-field-inner--link">
-              <button
-                type="button"
-                className="send-report-compose-add-bcc"
-                onClick={() => setBccExpanded(true)}
-              >
-                Add Bcc
-              </button>
-            </div>
-          </div>
-        ) : (
-          <div className="send-report-compose-row send-report-compose-row--field send-report-compose-row--optional">
-            <span className="send-report-compose-label send-report-compose-label--optional" id="send-report-bcc-label">
-              Bcc
-            </span>
-            <div className="send-report-compose-field-inner">
-              <RecipientChipField
-                value={formData.bcc}
-                onChange={(v) => handleInputChange("bcc", v)}
-                className="send-report-compose-recipients--optional"
-                placeholder="Recipients"
-                ariaLabelledBy="send-report-bcc-label"
-              />
-            </div>
-          </div>
-        )}
-        <div className="send-report-compose-row send-report-compose-row--subject">
-          <span className="send-report-compose-label" id="send-report-subject-label">
-            Subject
-          </span>
-          <div className="send-report-compose-field-inner">
-            <input
-              type="text"
-              value={formData.subject}
-              onChange={(e) => handleInputChange("subject", e.target.value)}
-              className="send-report-compose-input"
-              placeholder="Subject"
-              aria-labelledby="send-report-subject-label"
-            />
-          </div>
-        </div>
-        <div className="send-report-compose-editor">
-          <textarea
-            value={formData.body}
-            onChange={(e) => handleInputChange("body", e.target.value)}
-            className="send-report-compose-message"
-            placeholder="Compose your message…"
-            aria-label="Message body"
-            rows={12}
-          />
-        </div>
-      </div>
-
-      <div className="send-report-actions">
-        <button
-          type="button"
-          className="send-report-cancel-btn"
-          onClick={onClose}
-        >
-          Cancel
-        </button>
-        <button
-          type="button"
-          className="send-report-send-btn"
-          onClick={handleSend}
-        >
-          Send
-        </button>
-      </div>
-    </div>
-  );
-
-  const renderHeader = () => (
-    <div className="send-report-modal-header">
-      <h5 className="send-report-modal-title">Send report — {tabName}</h5>
-      <div className="send-report-modal-header-actions">
-        <button
-          type="button"
-          className="send-report-header-close-btn"
-          onClick={onClose}
-          aria-label="Close"
-        >
-          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
-            <line x1="18" y1="6" x2="6" y2="18" />
-            <line x1="6" y1="6" x2="18" y2="18" />
-          </svg>
-        </button>
-      </div>
-    </div>
-  );
-
-  return (
-    <CustomModal
-      show={show}
-      closeModal={onClose}
-      body={renderBody()}
-      header={renderHeader()}
-      createModal={true}
-      dialgName="modal-dialog modal-dialog-centered send-report-modal-dialog"
-      className="modal fade send-report-modal"
-    />
-  );
-};
-
-SendReportPreviewModal.propTypes = {
-  show: PropTypes.bool.isRequired,
-  onClose: PropTypes.func.isRequired,
-  cardColor: PropTypes.string,
-  tabName: PropTypes.string.isRequired,
-};
-
-// Export for use in other components
-export { SendReportPreviewModal };
-
-// Send Report Button Component
-const SendReportButton = ({ onClick, cardColor, tabName }) => {
-  const [showPreview, setShowPreview] = useState(false);
-
-  const handleSendReport = () => {
-    setShowPreview(true);
-    if (onClick) {
-      onClick();
-    }
-  };
-
-  return (
-    <>
-      <button
-        type="button"
-        className="operation-send-report-btn"
-        onClick={handleSendReport}
-        title="Send Report"
-      >
-        <svg
-          width="20"
-          height="20"
-          viewBox="0 0 24 24"
-          fill="none"
-          xmlns="http://www.w3.org/2000/svg"
-        >
-          <path
-            d="M22 2L11 13"
-            stroke="currentColor"
-            strokeWidth="2"
-            strokeLinecap="round"
-            strokeLinejoin="round"
-          />
-          <path
-            d="M22 2L15 22L11 13L2 9L22 2Z"
-            stroke="currentColor"
-            strokeWidth="2"
-            strokeLinecap="round"
-            strokeLinejoin="round"
-          />
-        </svg>
-        <span className="send-report-text">Send Report</span>
-      </button>
-      <SendReportPreviewModal
-        show={showPreview}
-        onClose={() => setShowPreview(false)}
-        cardColor={cardColor}
-        tabName={tabName}
-      />
-    </>
-  );
-};
-
-SendReportButton.propTypes = {
-  onClick: PropTypes.func,
-  cardColor: PropTypes.string,
-  tabName: PropTypes.string.isRequired,
 };
 
 // Dummy values for view-only mode
@@ -2352,8 +2063,16 @@ const getDummyValues = () => ({
 });
 
 // Main Operation Component
+async function sendOperationReportRequest(payload) {
+  // Replace with a real API call (e.g. POST report email) when the backend is available.
+  void payload;
+  await new Promise((r) => setTimeout(r, 600));
+}
+
 function Operation({ card, formValues, handleChange, ownerInitial, isDAModule = false }) {
   const [activeOperationTab, setActiveOperationTab] = useState(OPERATION_TABS.PRE_ARRIVAL);
+  const [viewMode, setViewMode] = useState("form");
+  const [reportPreviewConfig, setReportPreviewConfig] = useState(null);
   const cardColor = card?.color || "#2A00FF";
 
   // Merge dummy values with formValues for view-only mode (only for DA routes)
@@ -2363,12 +2082,27 @@ function Operation({ card, formValues, handleChange, ownerInitial, isDAModule = 
 
   const handleTabChange = useCallback((tab) => {
     setActiveOperationTab(tab);
+    setViewMode("form");
   }, []);
 
-  const handleSendReport = useCallback(() => {
-    console.log("Sending report for tab:", activeOperationTab);
-    // TODO: Implement send report logic
-  }, [activeOperationTab]);
+  const handleOpenReportPreview = useCallback((config) => {
+    setReportPreviewConfig(config);
+    setViewMode("reportPreview");
+  }, []);
+
+  const handleBackToForm = useCallback(() => {
+    setViewMode("form");
+  }, []);
+
+  const handleSendReportRequest = useCallback(async (payload) => {
+    try {
+      await sendOperationReportRequest(payload);
+      notify("Report sent successfully.", "success");
+      setViewMode("form");
+    } catch (err) {
+      notify(err?.message || "Failed to send report.", "error");
+    }
+  }, []);
 
   const handleAddAttachment = useCallback((attachment) => {
     const currentAttachments = formValues.attachments || [];
@@ -2394,6 +2128,8 @@ function Operation({ card, formValues, handleChange, ownerInitial, isDAModule = 
     console.log("Remove link", index);
   }, []);
 
+  const showSendReportView = viewMode === "reportPreview" && reportPreviewConfig;
+
   return (
     <div className="operation-wrapper" style={{ "--card-color": cardColor }}>
       <div className="operation-content-container">
@@ -2401,58 +2137,79 @@ function Operation({ card, formValues, handleChange, ownerInitial, isDAModule = 
           activeTab={activeOperationTab}
           onTabChange={handleTabChange}
         />
-        <div className="operation-right">
-          {activeOperationTab === OPERATION_TABS.PRE_ARRIVAL && (
-            <PreArrivalContent
-              formValues={viewOnlyFormValues}
-              handleChange={handleChange}
-              ownerInitial={ownerInitial}
-              cardUser={card?.user}
-              cardColor={cardColor}
-              onAddAttachment={handleAddAttachment}
-              onRemoveAttachment={handleRemoveAttachment}
-              onAddLink={handleAddLink}
-              onRemoveLink={handleRemoveLink}
-              onSendReport={handleSendReport}
-              isViewOnly={isViewOnly}
-            />
-          )}
-          {activeOperationTab === OPERATION_TABS.CHECK_LIST && (
-            <CheckListContent
-              card={card}
-              formValues={viewOnlyFormValues}
-              handleChange={handleChange}
-              onSendReport={handleSendReport}
-              cardColor={cardColor}
-              isViewOnly={isViewOnly}
-              isDAModule={isDAModule}
-            />
-          )}
-          {activeOperationTab === OPERATION_TABS.ARRIVAL && (
-            <ArrivalContent
-              formValues={viewOnlyFormValues}
-              handleChange={handleChange}
-              cardColor={cardColor}
-              onAddAttachment={handleAddAttachment}
-              onRemoveAttachment={handleRemoveAttachment}
-              onAddLink={handleAddLink}
-              onRemoveLink={handleRemoveLink}
-              onSendReport={handleSendReport}
-              isViewOnly={isViewOnly}
-            />
-          )}
-          {activeOperationTab === OPERATION_TABS.DEPARTURE && (
-            <DepartureContent
-              formValues={viewOnlyFormValues}
-              handleChange={handleChange}
-              cardColor={cardColor}
-              onAddAttachment={handleAddAttachment}
-              onRemoveAttachment={handleRemoveAttachment}
-              onAddLink={handleAddLink}
-              onRemoveLink={handleRemoveLink}
-              onSendReport={handleSendReport}
-              isViewOnly={isViewOnly}
-            />
+        <div
+          className={`operation-right${showSendReportView ? " operation-right--send-report" : ""}`}
+        >
+          {/* Keep form mounted but hidden in report mode so local component state (e.g. Checklist) is preserved */}
+          <div
+            className="operation-form-pane"
+            style={{ display: showSendReportView ? "none" : "block" }}
+            aria-hidden={showSendReportView}
+          >
+            {activeOperationTab === OPERATION_TABS.PRE_ARRIVAL && (
+              <PreArrivalContent
+                formValues={viewOnlyFormValues}
+                handleChange={handleChange}
+                ownerInitial={ownerInitial}
+                cardUser={card?.user}
+                cardColor={cardColor}
+                onAddAttachment={handleAddAttachment}
+                onRemoveAttachment={handleRemoveAttachment}
+                onAddLink={handleAddLink}
+                onRemoveLink={handleRemoveLink}
+                onOpenReportPreview={handleOpenReportPreview}
+                isViewOnly={isViewOnly}
+              />
+            )}
+            {activeOperationTab === OPERATION_TABS.CHECK_LIST && (
+              <CheckListContent
+                card={card}
+                formValues={viewOnlyFormValues}
+                handleChange={handleChange}
+                onOpenReportPreview={handleOpenReportPreview}
+                cardColor={cardColor}
+                isViewOnly={isViewOnly}
+                isDAModule={isDAModule}
+              />
+            )}
+            {activeOperationTab === OPERATION_TABS.ARRIVAL && (
+              <ArrivalContent
+                formValues={viewOnlyFormValues}
+                handleChange={handleChange}
+                cardColor={cardColor}
+                onAddAttachment={handleAddAttachment}
+                onRemoveAttachment={handleRemoveAttachment}
+                onAddLink={handleAddLink}
+                onRemoveLink={handleRemoveLink}
+                onOpenReportPreview={handleOpenReportPreview}
+                isViewOnly={isViewOnly}
+              />
+            )}
+            {activeOperationTab === OPERATION_TABS.DEPARTURE && (
+              <DepartureContent
+                formValues={viewOnlyFormValues}
+                handleChange={handleChange}
+                cardColor={cardColor}
+                onAddAttachment={handleAddAttachment}
+                onRemoveAttachment={handleRemoveAttachment}
+                onAddLink={handleAddLink}
+                onRemoveLink={handleRemoveLink}
+                onOpenReportPreview={handleOpenReportPreview}
+                isViewOnly={isViewOnly}
+              />
+            )}
+          </div>
+          {showSendReportView && (
+            <div className="operation-report-pane">
+              <SendReportFullWidthView
+                tabName={reportPreviewConfig.tabName}
+                formSectionLabel={reportPreviewConfig.formSectionLabel}
+                getBody={reportPreviewConfig.getBody}
+                getAttachments={reportPreviewConfig.getAttachments}
+                onBack={handleBackToForm}
+                onSend={handleSendReportRequest}
+              />
+            </div>
           )}
         </div>
       </div>

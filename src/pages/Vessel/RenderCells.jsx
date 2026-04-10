@@ -13,14 +13,14 @@ export const RenderAction = ({ onViewClick, onEditClick, row, onDeleteClick }) =
       <Tooltip id="edit" place="bottom" content="Edit" />
       <Tooltip id="delete" place="bottom" content="Delete" />
       <div className="actions">
-        <span
+        {/* <span
           data-tooltip-id="view"
           type="button"
           className="view"
           onClick={() => onViewClick(row)}
         >
           <img src={eye} alt="view" />
-        </span>
+        </span> */}
         <span
           data-tooltip-id="edit"
           type="button"

@@ -144,13 +144,13 @@ const Vessel = () => {
         thclass: "tb-head",
         width: "200",
       },
-      {
-        name: "Year",
-        selector: "year_built",
-        sort: true,
-        thclass: "tb-head",
-        width: "100",
-      },
+      // {
+      //   name: "Year",
+      //   selector: "year_built",
+      //   sort: true,
+      //   thclass: "tb-head",
+      //   width: "100",
+      // },
       {
         name: "Days to MWP expiry",
         selector: "days_to_expiry",
@@ -162,7 +162,7 @@ const Vessel = () => {
         name: "Actions",
         selector: "links_info",
         thclass: "tb-head",
-        onViewClick: (row) => setShowViewVesselModal(row),
+        // onViewClick: (row) => setShowViewVesselModal(row),
         onEditClick: (row) => setShowVesselModal(row),
         onDeleteClick: (row) => {
           setSelectedVesselForDelete(row);
