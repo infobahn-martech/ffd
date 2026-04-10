@@ -210,19 +210,19 @@
 }
 
 .checklist-col-label {
-  width: 34%;
+  width: 20%;
 }
 
 .checklist-col-expiry {
-  width: 14%;
+  width: 16%;
 }
 
 .checklist-col-upload {
-  width: 24%;
+  width: 30%;
 }
 
 .checklist-col-remarks {
-  width: 24%;
+  width: 30%;
 }
 
 .checklist-items-table thead {
@@ -252,7 +252,7 @@
 }
 
 .checklist-table-label-header {
-  min-width: 160px;
+  min-width: 0;
 }
 
 .checklist-table-requirement-header {
@@ -289,13 +289,13 @@
 }
 
 .checklist-table-row td {
-  padding: 10px 18px;
+  padding: 8px 18px;
   vertical-align: middle;
   border-bottom: 1px solid #f1f5f9;
 }
 
 .checklist-items-table tbody tr.checklist-table-row td {
-  min-height: 88px;
+  min-height: 86px;
 }
 
 .checklist-table-checkbox {
@@ -326,13 +326,18 @@
   align-items: flex-start;
   gap: 6px;
   min-width: 0;
+  max-width: 100%;
 }
 
 .checklist-item-text--table {
   font-size: 14px;
-  font-weight: 600;
+  font-weight: 500;
   color: #1f2937;
   line-height: 1.45;
+  max-width: 100%;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 
 .checklist-label-badge {
@@ -348,7 +353,10 @@
   background: #f1f5f9;
   border: 1px solid #e2e8f0;
   line-height: 1.3;
-  word-break: break-word;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 
 .checklist-table-row.checked .checklist-item-text--table {
@@ -360,6 +368,7 @@
   font-weight: 500;
   color: #2c3e50;
   line-height: 1.45;
+  min-width: 0;
 }
 
 .checklist-table-row.checked .checklist-table-label {
@@ -409,10 +418,12 @@
 }
 
 .checklist-table-upload-zone {
-  min-height: 60px;
-  max-height: 64px;
+  box-sizing: border-box;
+  height: 56px;
+  min-height: 56px;
+  max-height: 56px;
   border: 1px dashed #cbd5e1;
-  border-radius: 12px;
+  border-radius: 10px;
   padding: 8px 12px;
   cursor: pointer;
   transition: border-color 0.18s ease, background-color 0.18s ease, box-shadow 0.18s ease;
@@ -420,6 +431,7 @@
   display: flex;
   align-items: center;
   justify-content: center;
+  gap: 6px;
   position: relative;
 }
 
@@ -437,11 +449,14 @@
 .checklist-table-upload-zone.has-file {
   border-style: solid;
   border-color: #86efac;
-  background: rgba(240, 253, 244, 0.85);
+  background: #f0fdf4;
   cursor: default;
-  min-height: auto;
-  max-height: none;
-  padding: 6px 8px;
+  height: 56px;
+  min-height: 56px;
+  max-height: 56px;
+  padding: 0;
+  overflow: hidden;
+  justify-content: stretch;
 }
 
 .checklist-table-upload-placeholder {
@@ -449,7 +464,7 @@
   flex-direction: row;
   align-items: center;
   justify-content: center;
-  gap: 10px;
+  gap: 6px;
   color: #475569;
   font-size: 13px;
   font-weight: 500;
@@ -458,6 +473,8 @@
 
 .checklist-table-upload-icon {
   flex-shrink: 0;
+  width: 16px;
+  height: 16px;
   color: #64748b;
   opacity: 0.9;
 }
@@ -471,14 +488,14 @@
 
 .checklist-table-file-preview {
   width: 100%;
+  height: 100%;
+  min-height: 0;
+  max-height: 56px;
   display: flex;
-  justify-content: stretch;
   align-items: center;
-}
-
-.checklist-table-file-preview .checklist-file-preview {
+  justify-content: center;
   margin: 0;
-  transform: none;
+  padding: 0;
 }
 
 .checklist-table-remarks {
@@ -486,99 +503,143 @@
   vertical-align: middle;
 }
 
+/* Override global .cf-textarea (min-height 120px) so remarks match upload row height */
+.checklist-table-textarea.cf-textarea {
+  min-height: 0;
+  height: 56px;
+  max-height: 56px;
+  padding: 0;
+  margin: 0;
+  border: none;
+  background: transparent;
+  box-shadow: none;
+  display: flex;
+  align-items: center;
+  justify-content: stretch;
+  flex-direction: row;
+}
+
+.checklist-table-textarea.cf-textarea:hover,
+.checklist-table-textarea.cf-textarea:focus-within {
+  border: none;
+  box-shadow: none;
+  background: transparent;
+}
+
 .checklist-table-textarea {
   width: 100%;
   min-height: 0;
+  max-height: 56px;
+  display: flex;
+  align-items: center;
 }
 
-.checklist-table-textarea textarea {
+.cf-textarea.checklist-table-textarea textarea {
+  box-sizing: border-box;
   width: 100%;
+  height: 56px;
   min-height: 56px;
-  max-height: 120px;
-  padding: 10px 14px;
+  max-height: 56px;
+  padding: 10px 12px;
   border: 1px solid #d1d5db;
-  border-radius: 12px;
+  border-radius: 10px;
   font-size: 13px;
-  line-height: 1.45;
-  resize: vertical;
+  line-height: 1.4;
+  resize: none;
   background: #ffffff;
   color: #1f2937;
   transition: border-color 0.18s ease, box-shadow 0.18s ease;
+  flex: 0 1 auto;
+  align-self: center;
 }
 
-.checklist-table-textarea textarea::placeholder {
+.cf-textarea.checklist-table-textarea textarea::placeholder {
   color: #9ca3af;
 }
 
-.checklist-table-textarea textarea:focus {
+.cf-textarea.checklist-table-textarea textarea:focus {
   outline: none;
   border-color: rgb(77 85 188);
   box-shadow: 0 0 0 3px rgba(77, 85, 188, 0.12);
 }
 
-/* Compact file chip inside table rows */
-.checklist-file-preview--compact {
-  flex-direction: row;
+/* Compact single-row file chip inside upload cell (same 56px as empty state) */
+.checklist-table-file-chip-inner {
+  display: flex;
   align-items: center;
+  justify-content: space-between;
   gap: 10px;
+  padding: 8px 12px;
+  height: 56px;
+  max-height: 56px;
+  min-height: 56px;
+  box-sizing: border-box;
   width: 100%;
-  padding: 4px 36px 4px 6px;
-  position: relative;
-  min-height: 48px;
+  border-radius: 10px;
+  overflow: hidden;
 }
 
-.checklist-file-preview--compact .checklist-file-preview-close,
-.checklist-file-preview--compact .checklist-file-preview-download {
-  top: 50%;
-  right: 6px;
-  transform: translateY(-50%);
-  width: 28px;
-  height: 28px;
-  font-size: 16px;
-  border-width: 1px;
-}
-
-.checklist-file-preview--compact .checklist-file-preview-icon {
+.checklist-table-file-chip-left {
   flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #64748b;
 }
 
-.checklist-file-preview--compact .checklist-file-icon-pdf {
-  width: 36px;
-  height: 44px;
+.checklist-table-file-chip-main {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  gap: 1px;
+  overflow: hidden;
 }
 
-.checklist-file-preview--compact .checklist-file-icon-pdf::before {
-  border-width: 0 10px 10px 0;
+.checklist-table-file-chip-name {
+  font-size: 13px;
+  font-weight: 500;
+  color: #1f2937;
+  line-height: 1.25;
+  max-width: min(180px, 100%);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 
-.checklist-file-preview--compact .checklist-file-icon-pdf-inner {
-  padding: 4px;
-  gap: 2px;
+.checklist-table-file-chip-meta {
+  font-size: 11px;
+  font-weight: 500;
+  color: #6b7280;
+  line-height: 1.2;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 
-.checklist-file-preview--compact .checklist-file-icon-pdf-graphic svg {
-  width: 20px;
-  height: 20px;
+.checklist-table-file-chip-btn {
+  flex-shrink: 0;
+  width: 24px;
+  height: 24px;
+  padding: 0;
+  margin: 0;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border: none;
+  border-radius: 6px;
+  background: transparent;
+  color: #64748b;
+  font-size: 18px;
+  line-height: 1;
+  cursor: pointer;
+  transition: background-color 0.15s ease, color 0.15s ease;
 }
 
-.checklist-file-preview--compact .checklist-file-icon-pdf-text {
-  font-size: 7px;
-  letter-spacing: 0.5px;
-}
-
-.checklist-file-preview--compact .checklist-file-icon-word {
-  width: 36px;
-  height: 44px;
-}
-
-.checklist-file-preview--compact .checklist-file-icon-word-logo svg {
-  width: 22px;
-  height: 22px;
-}
-
-.checklist-file-preview--compact .checklist-file-icon-generic svg {
-  width: 36px;
-  height: 36px;
+.checklist-table-file-chip-btn:hover {
+  background: rgba(15, 23, 42, 0.06);
+  color: #1f2937;
 }
 
 .checklist-file-preview-text {
@@ -590,26 +651,8 @@
   min-width: 0;
 }
 
-.checklist-file-preview--compact .checklist-file-preview-text {
-  align-items: flex-start;
-  flex: 1;
-  min-width: 0;
-}
-
 .checklist-file-preview-name {
   max-width: 100%;
-}
-
-.checklist-file-preview--compact .checklist-file-preview-name {
-  font-size: 12px;
-  font-weight: 600;
-  color: #1f2937;
-  text-align: left;
-  line-height: 1.35;
-  display: -webkit-box;
-  -webkit-line-clamp: 2;
-  -webkit-box-orient: vertical;
-  overflow: hidden;
 }
 
 .checklist-file-preview-size {
@@ -623,9 +666,12 @@
   align-items: center;
   gap: 10px;
   width: 100%;
-  min-height: 48px;
-  padding: 8px 10px;
-  border-radius: 12px;
+  height: 56px;
+  min-height: 56px;
+  max-height: 56px;
+  box-sizing: border-box;
+  padding: 8px 12px;
+  border-radius: 10px;
   border: 1px solid #e5e7eb;
   background: #fafbfc;
   transition: border-color 0.18s ease, background-color 0.18s ease;
