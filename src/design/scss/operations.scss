@@ -4,8 +4,8 @@
    SEND REPORT PREVIEW MODAL — email compose (Gmail/Outlook-like)
    ========================================================== */
 
-$send-report-accent: #0d9488;
-$send-report-accent-hover: #0f766e;
+$send-report-accent: #e2e6ff;
+$send-report-accent-hover: #e2e6ff;
 $send-report-border: #e8eaed;
 $send-report-row-border: #eee;
 $send-report-text: #202124;
@@ -723,7 +723,7 @@ $send-report-optional: #80868b;
   border: none;
   min-width: 100px;
   background: $send-report-accent;
-  color: #fff;
+  color: #000000;
 
   &:hover:not(:disabled) {
     background: $send-report-accent-hover;
@@ -1786,6 +1786,7 @@ $send-report-optional: #80868b;
 }
 
 @media (max-width: 900px) {
+
   .pre-arrival-form .operation-section-form-layout,
   .arrival-form .operation-section-form-layout,
   .departure-form .operation-section-form-layout {
