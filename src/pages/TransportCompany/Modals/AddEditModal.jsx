@@ -175,7 +175,7 @@ export function TransportCompanyModal({ showModal, closeModal, onSuccess }) {
             </div>
           </div>
 
-          <div className="mt-4 transport-company-drivers">
+          <div className="mt-2 transport-company-drivers">
             <div className="transport-company-drivers__heading">
               <span className="transport-company-drivers__title">Drivers</span>
               <span className="transport-company-drivers__req" aria-hidden="true">
@@ -187,49 +187,51 @@ export function TransportCompanyModal({ showModal, closeModal, onSuccess }) {
                 <div className="transport-company-driver-row" key={field.id}>
                   <input type="hidden" {...register(`drivers.${index}.transport_driver_id`)} />
                   <div className="transport-company-driver-row__fields">
-                    <div className="transport-company-driver-field">
-                      <div className="form-floating desig-inp">
-                        <input
-                          type="text"
-                          className={`form-control ${errors.drivers?.[index]?.driver_name ? 'is-invalid' : ''}`}
-                          placeholder=" "
-                          disabled={isEdit && isLoadingDetail}
-                          {...register(`drivers.${index}.driver_name`, {
-                            required: 'Driver name is required',
-                          })}
-                        />
-                        <label>
-                          Driver name <span className="text-danger">*</span>
-                        </label>
-                        {/* {errors.drivers?.[index]?.driver_name && (
-                          <span className="error text-danger d-block small">
-                            {errors.drivers[index].driver_name.message}
-                          </span>
-                        )} */}
+                    <div className="transport-company-driver-row__pair">
+                      <div className="transport-company-driver-field">
+                        <div className="form-floating desig-inp">
+                          <input
+                            type="text"
+                            className={`form-control ${errors.drivers?.[index]?.driver_name ? 'is-invalid' : ''}`}
+                            placeholder=" "
+                            disabled={isEdit && isLoadingDetail}
+                            {...register(`drivers.${index}.driver_name`, {
+                              required: 'Driver name is required',
+                            })}
+                          />
+                          <label>
+                            Driver name <span className="text-danger">*</span>
+                          </label>
+                          {/* {errors.drivers?.[index]?.driver_name && (
+                            <span className="error text-danger d-block small">
+                              {errors.drivers[index].driver_name.message}
+                            </span>
+                          )} */}
+                        </div>
+                      </div>
+                      <div className="transport-company-driver-field">
+                        <div className="form-floating desig-inp">
+                          <input
+                            type="text"
+                            className={`form-control ${errors.drivers?.[index]?.contact_no ? 'is-invalid' : ''}`}
+                            placeholder=" "
+                            disabled={isEdit && isLoadingDetail}
+                            {...register(`drivers.${index}.contact_no`, {
+                              required: 'Contact number is required',
+                            })}
+                          />
+                          <label>
+                            Contact no <span className="text-danger">*</span>
+                          </label>
+                          {/* {errors.drivers?.[index]?.contact_no && (
+                            <span className="error text-danger d-block small">
+                              {errors.drivers[index].contact_no.message}
+                            </span>
+                          )} */}
+                        </div>
                       </div>
                     </div>
-                    <div className="transport-company-driver-field">
-                      <div className="form-floating desig-inp">
-                        <input
-                          type="text"
-                          className={`form-control ${errors.drivers?.[index]?.contact_no ? 'is-invalid' : ''}`}
-                          placeholder=" "
-                          disabled={isEdit && isLoadingDetail}
-                          {...register(`drivers.${index}.contact_no`, {
-                            required: 'Contact number is required',
-                          })}
-                        />
-                        <label>
-                          Contact no <span className="text-danger">*</span>
-                        </label>
-                        {/* {errors.drivers?.[index]?.contact_no && (
-                          <span className="error text-danger d-block small">
-                            {errors.drivers[index].contact_no.message}
-                          </span>
-                        )} */}
-                      </div>
-                    </div>
-                    <div className="transport-company-driver-field">
+                    <div className="transport-company-driver-field transport-company-driver-field--vehicle">
                       <div className="form-floating desig-inp transport-company-driver-field--select">
                         <select
                           className={`form-select ${errors.drivers?.[index]?.vehicle_type_id ? 'is-invalid' : ''}`}
@@ -245,9 +247,9 @@ export function TransportCompanyModal({ showModal, closeModal, onSuccess }) {
                             </option>
                           ))}
                         </select>
-                        <label>
+                        {/* <label>
                           Vehicle type <span className="text-danger">*</span>
-                        </label>
+                        </label> */}
                         {/* {errors.drivers?.[index]?.vehicle_type_id && (
                           <span className="error text-danger d-block small">
                             {errors.drivers[index].vehicle_type_id.message}
