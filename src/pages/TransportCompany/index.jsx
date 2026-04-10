@@ -3,15 +3,12 @@ import { debounce } from "lodash";
 
 import CommonHeader from "../../components/CommonHeader";
 import CustomTable from "../../components/customTable";
-import { TransportCompanyModal, COMPANY_TYPE } from "./Modals/AddEditModal";
+import { TransportCompanyModal } from "./Modals/AddEditModal";
 import { RenderAction } from "./RenderCells";
 import DeleteConfirmationModal from "../../components/DeleteConfirmationModal";
 import { DateFormat } from "../ActivityLog/RenderCells";
 
 import useTransportCompanyReducer from "../../store/TransportCompanyReducer";
-
-const companyTypeLabel = (value) =>
-    Number(value) === COMPANY_TYPE.THIRD_PARTY ? "Third Party" : "Sedres";
 
 const TransportCompany = () => {
     const {
@@ -68,14 +65,6 @@ const TransportCompany = () => {
             name: "Transport company",
             selector: "transport_company",
             width: "260",
-            thclass: "tb-head",
-            contentClass: "table-content",
-            sort: true,
-        },
-        {
-            name: "Company type",
-            selector: "company_type",
-            width: "160",
             thclass: "tb-head",
             contentClass: "table-content",
             sort: true,
