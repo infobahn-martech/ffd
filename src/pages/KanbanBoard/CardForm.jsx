@@ -1295,8 +1295,8 @@ function CardForm({ show, close, card, moveCardToColumn, columns, columnOrder, c
   if (!show) return null;
 
   return (
-    <div className="cardform-overlay" onClick={close}>
-      <div className={`cardform-panel ${isAddMode ? 'add-mode' : ''}`} onClick={(e) => e.stopPropagation()}>
+    <div className="cardform-overlay">
+      <div className={`cardform-panel ${isAddMode ? 'add-mode' : ''}`}>
         <TopBar
           card={card}
           topbarColor={topbarColor}
