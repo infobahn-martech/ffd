@@ -1,13 +1,51 @@
-import { useState, useRef } from "react";
+import { useState, useRef, useEffect } from "react";
 import PropTypes from "prop-types";
 import GroupSettingsIcon from "../../../../assets/images/cv.png";
 import { FormSection, FormField, FormSelect, ReactQuillEditor } from "./Husbandry.components";
+import wasteTypeService from "../../../../services/wasteTypeService";
 
 const WasteDisposalContent = ({ formValues, handleChange, cardColor }) => {
   const [isDraggingRequestEmail, setIsDraggingRequestEmail] = useState(false);
   const [isDraggingWasteDisposalDocuments, setIsDraggingWasteDisposalDocuments] = useState(false);
   const requestEmailFileInputRef = useRef(null);
   const wasteDisposalDocumentsFileInputRef = useRef(null);
+
+  const [wasteTypes, setWasteTypes] = useState([]);
+  const [loadingWasteTypes, setLoadingWasteTypes] = useState(false);
+
+  useEffect(() => {
+    let cancelled = false;
+    (async () => {
+      try {
+        setLoadingWasteTypes(true);
+        const { data } = await wasteTypeService.getWasteTypes({
+          params: { page: 1, limit: 500 },
+        });
+        const rawList = data?.data ?? data?.waste_types ?? [];
+        const list = Array.isArray(rawList) ? rawList : [];
+        if (!cancelled) setWasteTypes(list);
+      } catch {
+        if (!cancelled) setWasteTypes([]);
+      } finally {
+        if (!cancelled) setLoadingWasteTypes(false);
+      }
+    })();
+    return () => {
+      cancelled = true;
+    };
+  }, []);
+
+  const wasteTypeOptions = wasteTypes.map((w) => ({
+    value: String(w.waste_type_id ?? w._id ?? ""),
+    label: w.waste_type ?? "",
+  }));
+
+  const handleWasteTypeChange = (e) => {
+    handleChange("wasteTypeId")(e);
+    const id = e.target.value;
+    const row = wasteTypes.find((w) => String(w.waste_type_id ?? w._id) === id);
+    handleChange("wasteType")({ target: { value: row?.waste_type ?? "" } });
+  };
 
   // Handle file upload for Request Email documents
   const handleRequestEmailFileChange = (e) => {
@@ -101,25 +139,17 @@ const WasteDisposalContent = ({ formValues, handleChange, cardColor }) => {
   const wasteDisposalDocumentsFiles = formValues.wasteDisposalDocuments || [];
   const wasteDisposalDocumentsFilesCount = wasteDisposalDocumentsFiles.length;
 
-  // Waste Type options
-  const wasteTypeOptions = [
-    { value: "Hazardous", label: "Hazardous" },
-    { value: "Non-Hazardous", label: "Non-Hazardous" },
-    { value: "Recyclable", label: "Recyclable" },
-    { value: "Organic", label: "Organic" },
-  ];
-
   // Handle save
   const handleSave = () => {
     console.log("Saving Waste Disposal data:", {
       wasteDisposalRequestEmailDocuments: formValues.wasteDisposalRequestEmailDocuments,
       wasteDisposalPONumber: formValues.wasteDisposalPONumber,
+      wasteTypeId: formValues.wasteTypeId,
       wasteType: formValues.wasteType,
       wasteDisposalDate: formValues.wasteDisposalDate,
       wasteDisposalDocuments: formValues.wasteDisposalDocuments,
       wasteDisposalDescription: formValues.wasteDisposalDescription,
     });
-    // Add your save logic here
   };
 
   // File upload component renderer
@@ -310,10 +340,11 @@ const WasteDisposalContent = ({ formValues, handleChange, cardColor }) => {
 
               <FormField label="Waste Type">
                 <FormSelect
-                  value={formValues.wasteType || ""}
-                  onChange={handleChange("wasteType")}
+                  value={formValues.wasteTypeId || ""}
+                  onChange={handleWasteTypeChange}
                   options={wasteTypeOptions}
-                  placeholder="Select waste type..."
+                  placeholder={loadingWasteTypes ? "Loading waste types..." : "Select waste type..."}
+                  disabled={loadingWasteTypes}
                 />
               </FormField>
 

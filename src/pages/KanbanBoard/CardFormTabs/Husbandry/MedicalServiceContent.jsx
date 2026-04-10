@@ -1,12 +1,18 @@
-import { useState, useRef } from "react";
+import { useState, useRef, useEffect } from "react";
 import PropTypes from "prop-types";
 import Select from "react-select";
 import GroupSettingsIcon from "../../../../assets/images/cv.png";
 import { FormSection, FormField, FormSelect, ReactQuillEditor } from "./Husbandry.components";
+import hospitalService from "../../../../services/hospitalService";
 
 const MedicalServiceContent = ({ formValues, handleChange, cardColor }) => {
   const [isDragging, setIsDragging] = useState(false);
   const fileInputRef = useRef(null);
+
+  const [hospitals, setHospitals] = useState([]);
+  const [hospitalServices, setHospitalServices] = useState([]);
+  const [loadingHospitals, setLoadingHospitals] = useState(false);
+  const [loadingServices, setLoadingServices] = useState(false);
 
   // Generate crew options from crewList
   const crewOptions = formValues.crewList?.map((crew) => ({
@@ -14,24 +20,66 @@ const MedicalServiceContent = ({ formValues, handleChange, cardColor }) => {
     label: crew.crewName || `Crew Member ${crew.id}`,
   })) || [];
 
-  // Medical Service options (can be replaced with API data)
-  const medicalServiceOptions = formValues.medicalServiceList || [
-    { value: "general_checkup", label: "General Checkup" },
-    { value: "vaccination", label: "Vaccination" },
-    { value: "emergency_care", label: "Emergency Care" },
-    { value: "dental", label: "Dental" },
-    { value: "laboratory", label: "Laboratory" },
-    { value: "other", label: "Other" },
-  ];
+  useEffect(() => {
+    let cancelled = false;
+    (async () => {
+      try {
+        setLoadingHospitals(true);
+        const { data } = await hospitalService.getHospitalData({
+          params: { page: 1, limit: 500, search: "" },
+        });
+        const list = data?.data ?? [];
+        if (!cancelled) setHospitals(Array.isArray(list) ? list : []);
+      } catch {
+        if (!cancelled) setHospitals([]);
+      } finally {
+        if (!cancelled) setLoadingHospitals(false);
+      }
+    })();
+    return () => {
+      cancelled = true;
+    };
+  }, []);
 
-  // Hospital options (can be replaced with API data)
-  const hospitalOptions = formValues.hospitalList || [
-    { value: "hospital_1", label: "King Faisal Specialist Hospital" },
-    { value: "hospital_2", label: "Dr. Sulaiman Al-Habib Medical Center" },
-    { value: "hospital_3", label: "Saudi German Hospital" },
-    { value: "hospital_4", label: "International Medical Center" },
-    { value: "hospital_5", label: "Other" },
-  ];
+  useEffect(() => {
+    const hospitalId = formValues.medicalServiceSelectedHospital;
+    if (!hospitalId) {
+      setHospitalServices([]);
+      return;
+    }
+    let cancelled = false;
+    (async () => {
+      try {
+        setLoadingServices(true);
+        const { data } = await hospitalService.getServiceByHospital(hospitalId);
+        const payload = data?.data ?? data;
+        const list = payload?.services ?? [];
+        if (!cancelled) setHospitalServices(Array.isArray(list) ? list : []);
+      } catch {
+        if (!cancelled) setHospitalServices([]);
+      } finally {
+        if (!cancelled) setLoadingServices(false);
+      }
+    })();
+    return () => {
+      cancelled = true;
+    };
+  }, [formValues.medicalServiceSelectedHospital]);
+
+  const hospitalOptions = hospitals.map((h) => ({
+    value: String(h.hospital_id ?? h._id ?? ""),
+    label: h.hospital_name ?? "",
+  }));
+
+  const medicalServiceOptions = hospitalServices.map((s) => ({
+    value: String(s.service_id ?? s._id ?? ""),
+    label: s.service_name ?? "",
+  }));
+
+  const handleHospitalChange = (e) => {
+    handleChange("medicalServiceSelectedHospital")(e);
+    handleChange("medicalServiceSelectedService")({ target: { value: "" } });
+  };
 
   // Handle multi-select crew change
   const handleCrewChange = (selectedOptions) => {
@@ -223,8 +271,8 @@ const MedicalServiceContent = ({ formValues, handleChange, cardColor }) => {
   const handleSave = () => {
     console.log("Saving Medical Service data:", {
       medicalServiceSelectedCrew: formValues.medicalServiceSelectedCrew,
-      medicalServiceSelectedService: formValues.medicalServiceSelectedService,
       medicalServiceSelectedHospital: formValues.medicalServiceSelectedHospital,
+      medicalServiceSelectedService: formValues.medicalServiceSelectedService,
       medicalServiceDocuments: formValues.medicalServiceDocuments,
     });
   };
@@ -253,21 +301,29 @@ const MedicalServiceContent = ({ formValues, handleChange, cardColor }) => {
                 </div>
               </FormField>
 
+              <FormField label="Hospital">
+                <FormSelect
+                  value={formValues.medicalServiceSelectedHospital || ""}
+                  onChange={handleHospitalChange}
+                  options={hospitalOptions}
+                  placeholder={loadingHospitals ? "Loading hospitals..." : "Select hospital..."}
+                  disabled={loadingHospitals}
+                />
+              </FormField>
+
               <FormField label="Medical Service">
                 <FormSelect
                   value={formValues.medicalServiceSelectedService || ""}
                   onChange={handleChange("medicalServiceSelectedService")}
                   options={medicalServiceOptions}
-                  placeholder="Select medical service..."
-                />
-              </FormField>
-
-              <FormField label="Hospital">
-                <FormSelect
-                  value={formValues.medicalServiceSelectedHospital || ""}
-                  onChange={handleChange("medicalServiceSelectedHospital")}
-                  options={hospitalOptions}
-                  placeholder="Select hospital..."
+                  placeholder={
+                    !formValues.medicalServiceSelectedHospital
+                      ? "Select a hospital first..."
+                      : loadingServices
+                        ? "Loading services..."
+                        : "Select medical service..."
+                  }
+                  disabled={!formValues.medicalServiceSelectedHospital || loadingServices}
                 />
               </FormField>
 

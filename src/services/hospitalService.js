@@ -61,11 +61,8 @@ const getAllHospitalServices = ({ params }) => {
 const addUpdateHospitalService = (data) =>
   Gateway.post('/medical/add_update_hospital_service', data);
 
-const getServiceByHospital = (hospitalId, body = {}) =>
-  Gateway.post(`/medical/get_service_by_hospital/${hospitalId}`, {
-    hospital_id: hospitalId,
-    ...body,
-  });
+const getServiceByHospital = (hospitalId) =>
+  Gateway.get(`/medical/get_service_by_hospital/${hospitalId}`);
 
 export default {
   addHospital,

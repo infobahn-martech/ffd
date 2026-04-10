@@ -1,12 +1,22 @@
-import { useState, useRef } from "react";
+import { useState, useRef, useEffect } from "react";
 import PropTypes from "prop-types";
 import Select from "react-select";
 import GroupSettingsIcon from "../../../../assets/images/cv.png";
-import { FormSection, FormField, FormInput, FormSelect, ReactQuillEditor } from "./Husbandry.components";
+import { FormSection, FormField, FormSelect, ReactQuillEditor } from "./Husbandry.components";
+import hotelService from "../../../../services/hotelService";
+
+const unwrapApiList = (axiosData) => {
+  const payload = axiosData?.data ?? axiosData;
+  if (Array.isArray(payload)) return payload;
+  if (Array.isArray(payload?.data)) return payload.data;
+  return [];
+};
 
 const HotelContent = ({ formValues, handleChange, cardColor }) => {
   const [isDragging, setIsDragging] = useState(false);
   const fileInputRef = useRef(null);
+  const [hotels, setHotels] = useState([]);
+  const [loadingHotels, setLoadingHotels] = useState(false);
 
   // Generate crew options from crewList
   const crewOptions = formValues.crewList?.map((crew) => ({
@@ -14,17 +24,36 @@ const HotelContent = ({ formValues, handleChange, cardColor }) => {
     label: crew.crewName || `Crew Member ${crew.id}`,
   })) || [];
 
-  // Hotel options
-  const hotelOptions = [
-    { value: "hotel1", label: "Hotel Al Khobar" },
-    { value: "hotel2", label: "Marriott Dammam" },
-    { value: "hotel3", label: "Holiday Inn Express" },
-    { value: "hotel4", label: "Radisson Blu" },
-    { value: "hotel5", label: "Sheraton Hotel" },
-    { value: "hotel6", label: "Crowne Plaza" },
-    { value: "hotel7", label: "InterContinental" },
-    { value: "hotel8", label: "Hilton Hotel" },
-  ];
+  useEffect(() => {
+    let cancelled = false;
+    (async () => {
+      try {
+        setLoadingHotels(true);
+        const { data } = await hotelService.getHotels();
+        const list = unwrapApiList(data);
+        if (!cancelled) setHotels(list);
+      } catch {
+        if (!cancelled) setHotels([]);
+      } finally {
+        if (!cancelled) setLoadingHotels(false);
+      }
+    })();
+    return () => {
+      cancelled = true;
+    };
+  }, []);
+
+  const hotelOptions = hotels.map((h) => ({
+    value: String(h.hotel_id ?? h._id ?? ""),
+    label: h.hotel_name ?? "",
+  }));
+
+  const handleHotelChange = (e) => {
+    handleChange("hotelId")(e);
+    const id = e.target.value;
+    const row = hotels.find((h) => String(h.hotel_id ?? h._id) === id);
+    handleChange("hotelName")({ target: { value: row?.hotel_name ?? "" } });
+  };
 
   // Handle multi-select crew change
   const handleCrewChange = (selectedOptions) => {
@@ -211,6 +240,7 @@ const HotelContent = ({ formValues, handleChange, cardColor }) => {
   const handleSave = () => {
     console.log("Saving Hotel data:", {
       hotelSelectedCrew: formValues.hotelSelectedCrew,
+      hotelId: formValues.hotelId,
       hotelName: formValues.hotelName,
       hotelCheckInDate: formValues.hotelCheckInDate,
       hotelCheckInTime: formValues.hotelCheckInTime,
@@ -244,10 +274,11 @@ const HotelContent = ({ formValues, handleChange, cardColor }) => {
 
               <FormField label="Hotel Name">
                 <FormSelect
-                  value={formValues.hotelName || ""}
-                  onChange={handleChange("hotelName")}
+                  value={formValues.hotelId || ""}
+                  onChange={handleHotelChange}
                   options={hotelOptions}
-                  placeholder="Select hotel name..."
+                  placeholder={loadingHotels ? "Loading hotels..." : "Select hotel name..."}
+                  disabled={loadingHotels}
                 />
               </FormField>
 
