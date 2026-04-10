@@ -478,7 +478,7 @@ const TransportContent = ({ formValues, handleChange, cardColor }) => {
                     />
                   </FormField>
 
-                  {formValues.transportCompanyId &&
+                  {/* {formValues.transportCompanyId &&
                     !loadingThirdPartyDrivers &&
                     thirdPartyDrivers.length > 0 && (
                       <FormField label="">
@@ -511,7 +511,7 @@ const TransportContent = ({ formValues, handleChange, cardColor }) => {
                           </ul>
                         </div>
                       </FormField>
-                    )}
+                    )} */}
                 </>
               )}
 
