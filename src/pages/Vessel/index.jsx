@@ -7,6 +7,45 @@ import { VesselModal } from "./Modals/AddEditVessel";
 import { ViewVesselModal } from "./Modals/ViewVessel";
 import useVesselReducer from "../../store/VesselReducer";
 
+export function truncateText(value, limit) {
+  const s = value == null ? "" : String(value);
+  if (s.length <= limit) return s;
+  return `${s.slice(0, limit)}...`;
+}
+
+const ellipsisOverflowStyle = {
+  whiteSpace: "nowrap",
+  // overflow: "hidden",
+  textOverflow: "ellipsis",
+  display: "inline-block",
+  maxWidth: "100%",
+};
+
+export function EllipsisText({ value, limit, title }) {
+  const full = value == null ? "" : String(value);
+  const display = truncateText(full, limit);
+  const showTitle = full.length > limit;
+  return (
+    <span
+      title={showTitle ? title ?? full : undefined}
+      style={ellipsisOverflowStyle}
+    >
+      {display}
+    </span>
+  );
+}
+
+/** Truncated column header with native tooltip; use for long labels without changing `selector` / sorting. */
+export function EllipsisHeader({ label, limit }) {
+  const full = label == null ? "" : String(label);
+  const display = truncateText(full, limit);
+  const showTitle = full.length > limit;
+  return (
+    <span title={showTitle ? full : undefined} style={ellipsisOverflowStyle}>
+      {display}
+    </span>
+  );
+}
 
 const Vessel = () => {
   const [params, setParams] = useState({
@@ -87,6 +126,9 @@ const Vessel = () => {
         sort: true,
         thclass: "tb-head",
         width: "220",
+        cell: ({ row }) => (
+          <EllipsisText value={row.vessel_name} limit={10} />
+        ),
       },
       {
         name: "Unique ID",
@@ -152,11 +194,14 @@ const Vessel = () => {
       //   width: "100",
       // },
       {
-        name: "Days to MWP expiry",
+        name: <EllipsisHeader label="Days to MWP expiry" limit={8} />,
         selector: "days_to_expiry",
         sort: true,
         thclass: "tb-head",
         width: "160",
+        cell: ({ row }) => (
+          <EllipsisText value={row.days_to_expiry} limit={8} />
+        ),
       },
       {
         name: "Actions",
