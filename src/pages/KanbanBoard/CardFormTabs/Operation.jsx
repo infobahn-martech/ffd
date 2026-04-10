@@ -545,7 +545,7 @@ const AttachmentsList = ({ attachments = [], onAdd, onRemove, cardColor, isDragg
   return (
     <div className="attachment-list-wrapper">
       {/* Always show drag and drop zone */}
-      <div className="attachment-upload-section">
+      <div>
         <div
           className={`document-upload-zone ${isDragging ? "dragging" : ""}`}
           onDragEnter={onDragEnter}
@@ -564,7 +564,7 @@ const AttachmentsList = ({ attachments = [], onAdd, onRemove, cardColor, isDragg
             onChange={onFileInputChange}
           />
           <div className="upload-zone-content">
-            <div className="upload-icon-wrapper">
+            {/* <div className="upload-icon-wrapper">
               <svg
                 width="64"
                 height="64"
@@ -595,7 +595,7 @@ const AttachmentsList = ({ attachments = [], onAdd, onRemove, cardColor, isDragg
                   strokeLinejoin="round"
                 />
               </svg>
-            </div>
+            </div> */}
             <div className="upload-text-content">
               <p className="upload-main-text">
                 Drag and drop your files here, or{" "}

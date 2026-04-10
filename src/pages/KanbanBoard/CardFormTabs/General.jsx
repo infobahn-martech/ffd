@@ -5,6 +5,22 @@ import "react-quill/dist/quill.snow.css";
 import "../../../design/scss/general.scss";
 import "../../../design/css/CardForm.css";
 import AttachmentIcon from "../../../assets/images/Attachment.svg";
+import callFileService from "../../../services/callFileService";
+import portService from "../../../services/portService";
+import CommonService from "../../../services/commonService";
+import billingEntityService from "../../../services/billingEntityService";
+import vesselTypeService from "../../../services/vesselTypeService";
+import bargeTypeService from "../../../services/bargeTypeService";
+import {
+  unwrapListResponse,
+  mapOperatorsToOptions,
+  mapPortsToOptions,
+  mapCallTypesToOptions,
+  mapBillingEntitiesToOptions,
+  mapVesselTypesToOptions,
+  mapBargeTypesToOptions,
+  mergeOptionIfMissing,
+} from "../../../helpers/callFileFormOptions";
 
 // Job statuses in order with icons and descriptions (4 statuses)
 const JOB_STATUSES = [
@@ -135,9 +151,10 @@ CustomSelect.propTypes = {
 };
 
 const FormSelect = ({ value, onChange, options = [], placeholder, className = "", disabled = false }) => {
+  const normalizedValue = value === undefined || value === null ? "" : String(value);
   return (
     <CustomSelect
-      value={value}
+      value={normalizedValue}
       onChange={onChange}
       options={options}
       placeholder={placeholder}
@@ -161,19 +178,25 @@ FormSelect.propTypes = {
   disabled: PropTypes.bool,
 };
 
-const OwnerField = ({ value, onChange, ownerInitial, cardUser, disabled = false }) => {
+const OwnerField = ({ value, onChange, options = [], placeholder = "Select owner", disabled = false }) => {
+  const selected = options.find((opt) => String(opt.value) === String(value ?? ""));
+  const avatarLetter = selected?.label?.trim()?.charAt(0)?.toUpperCase() || "U";
   return (
     <FormField label="Owner">
       <div className="cf-owner-row">
-        <div className="cf-owner-avatar">{ownerInitial}</div>
+        <div className="cf-owner-avatar">{avatarLetter}</div>
         <select
-          value={value || "None"}
+          value={value === undefined || value === null ? "" : String(value)}
           onChange={onChange}
           className="cf-owner-select"
           disabled={disabled}
         >
-          <option value="None">None</option>
-          {cardUser && <option value={cardUser}>{cardUser}</option>}
+          <option value="">{placeholder}</option>
+          {options.map((opt) => (
+            <option key={String(opt.value)} value={String(opt.value)}>
+              {opt.label}
+            </option>
+          ))}
         </select>
       </div>
     </FormField>
@@ -285,10 +308,15 @@ VesselNameField.propTypes = {
 };
 
 OwnerField.propTypes = {
-  value: PropTypes.string.isRequired,
+  value: PropTypes.oneOfType([PropTypes.string, PropTypes.number]),
   onChange: PropTypes.func.isRequired,
-  ownerInitial: PropTypes.string.isRequired,
-  cardUser: PropTypes.string,
+  options: PropTypes.arrayOf(
+    PropTypes.shape({
+      value: PropTypes.string.isRequired,
+      label: PropTypes.string.isRequired,
+    })
+  ),
+  placeholder: PropTypes.string,
   disabled: PropTypes.bool,
 };
 
@@ -1031,7 +1059,7 @@ HorizontalProgressBar.propTypes = {
   formValues: PropTypes.object,
 };
 
-function General({ card, formValues, handleChange, ownerInitial, cardUser, onSave, isAddMode = false, isSimplifiedMode = false }) {
+function General({ card, formValues, handleChange, onSave, isAddMode = false, isSimplifiedMode = false }) {
   const accentColor = useMemo(() => card?.color || "#2A00FF", [card?.color]);
   const [vesselNameOptions, setVesselNameOptions] = useState([
     // Add vessel names here or fetch from API
@@ -1071,6 +1099,14 @@ function General({ card, formValues, handleChange, ownerInitial, cardUser, onSav
     { value: "supervisor@example.com", label: "supervisor@example.com" },
   ]);
 
+  const [masterDataLoading, setMasterDataLoading] = useState(false);
+  const [operatorOptions, setOperatorOptions] = useState([]);
+  const [portSelectOptions, setPortSelectOptions] = useState([]);
+  const [callTypeOptions, setCallTypeOptions] = useState([]);
+  const [billingEntitySelectOptions, setBillingEntitySelectOptions] = useState([]);
+  const [vesselTypeSelectOptions, setVesselTypeSelectOptions] = useState([]);
+  const [bargeTypeSelectOptions, setBargeTypeSelectOptions] = useState([]);
+
   // Initialize dummy document when not in add mode
   useEffect(() => {
     if (!isAddMode && appointmentDocuments.length === 0) {
@@ -1084,6 +1120,54 @@ function General({ card, formValues, handleChange, ownerInitial, cardUser, onSav
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [isAddMode]);
 
+  useEffect(() => {
+    let cancelled = false;
+
+    const fetchRow = async (label, request, mapFn) => {
+      try {
+        const { data } = await request;
+        const list = unwrapListResponse(data);
+        return { label, options: mapFn(list) };
+      } catch (e) {
+        console.error(`[General] ${label} master data failed`, e);
+        return { label, options: [] };
+      }
+    };
+
+    const loadMasterData = async () => {
+      setMasterDataLoading(true);
+      const results = await Promise.all([
+        fetchRow("operators", callFileService.getAllOperators(), mapOperatorsToOptions),
+        fetchRow("ports", portService.getPorts({ params: { limit: 1000 } }), mapPortsToOptions),
+        fetchRow("callTypes", CommonService.getCallTypes(), mapCallTypesToOptions),
+        fetchRow(
+          "billingEntities",
+          billingEntityService.getBillingEntities({ params: { page: 1, limit: 1000 } }),
+          mapBillingEntitiesToOptions
+        ),
+        fetchRow("vesselTypes", vesselTypeService.getVesselTypes({ params: { limit: 1000 } }), mapVesselTypesToOptions),
+        fetchRow("bargeTypes", bargeTypeService.getBargeTypes({ params: { limit: 1000 } }), mapBargeTypesToOptions),
+      ]);
+
+      if (cancelled) return;
+
+      for (const { label, options } of results) {
+        if (label === "operators") setOperatorOptions(options);
+        if (label === "ports") setPortSelectOptions(options);
+        if (label === "callTypes") setCallTypeOptions(options);
+        if (label === "billingEntities") setBillingEntitySelectOptions(options);
+        if (label === "vesselTypes") setVesselTypeSelectOptions(options);
+        if (label === "bargeTypes") setBargeTypeSelectOptions(options);
+      }
+      setMasterDataLoading(false);
+    };
+
+    loadMasterData();
+    return () => {
+      cancelled = true;
+    };
+  }, []);
+
   // Determine current job status from card data (updated for 5 statuses)
   const currentStatus = useMemo(() => {
     // Map card properties to status keys
@@ -1095,45 +1179,6 @@ function General({ card, formValues, handleChange, ownerInitial, cardUser, onSav
     // Default to Received
     return "expected";
   }, [card]);
-
-  const typeOfCallOptions = [
-    { value: "Import", label: "Import" },
-    { value: "Export", label: "Export" },
-    { value: "Domestic", label: "Domestic" },
-  ];
-
-  const billingEntityOptions = [
-    { value: "SS7", label: "SS7" },
-    { value: "Larsen & Tubro", label: "Larsen & Tubro" },
-    { value: "Saipem", label: "Saipem" },
-    { value: "Al Gihaz", label: "Al Gihaz" },
-    { value: "Zamil", label: "Zamil" },
-    { value: "Rawabi", label: "Rawabi" },
-    { value: "Mcdermott", label: "Mcdermott" },
-    { value: "Horizon", label: "Horizon" },
-  ];
-
-  const portOptions = [
-    { value: "Dammam Port", label: "Dammam Port" },
-    { value: "Al Jubail Commercial Sea Port", label: "Al Jubail Commercial Sea Port" },
-    { value: "Ras Tanura Refinery", label: "Ras Tanura Refinery" },
-    { value: "Al Khafji Port", label: "Al Khafji Port" },
-    { value: "As Safaniya Port", label: "As Safaniya Port" },
-  ];
-
-  const vesselTypeOptions = [
-    { value: "Foreign Flag", label: "Foreign Flag" },
-    { value: "Saudi Flag", label: "Saudi Flag" },
-    { value: "Small Boat", label: "Small Boat" },
-    { value: "Taxi Tug Temp Import", label: "Taxi Tug Temp Import" },
-  ];
-
-  const bargeTypeOptions = [
-    { value: "N/A", label: "N/A" },
-    { value: "Barge Import", label: "Barge Import" },
-    { value: "Flat Barge Import", label: "Flat Barge Import" },
-    { value: "Jack Up Barge", label: "Jack Up Barge" },
-  ];
 
   const typeOptions = [
     { value: "Type", label: "IMPORT" },
@@ -1232,13 +1277,11 @@ function General({ card, formValues, handleChange, ownerInitial, cardUser, onSav
     handleChange("vesselName")(syntheticEvent);
   };
 
-  // Get owner initial from card user or formValues
-  const ownerInitialValue = ownerInitial || (cardUser ? cardUser.charAt(0).toUpperCase() : "U");
-
   // Determine if fields should be disabled
   // In simplified mode: always enabled
   // In full mode: disabled when not in add mode (same as before)
   const isDisabled = isSimplifiedMode ? false : !isAddMode;
+  const masterInputsDisabled = isDisabled || masterDataLoading;
 
   // Check if MWP RENEWAL type is selected in simplified mode
   const isMwPRenewal = isSimplifiedMode && getFieldValue("type") === "MWP RENEWAL";
@@ -1304,11 +1347,11 @@ function General({ card, formValues, handleChange, ownerInitial, cardUser, onSav
                   {isFleet ? (
                     <>
                       <OwnerField
-                        value={getFieldValue("owner") || "None"}
+                        value={getFieldValue("owner")}
                         onChange={handleChange("owner")}
-                        ownerInitial={ownerInitialValue}
-                        cardUser={cardUser || card?.user}
-                        disabled={isDisabled}
+                        options={mergeOptionIfMissing(operatorOptions, getFieldValue("owner"))}
+                        placeholder="Select owner"
+                        disabled={masterInputsDisabled}
                       />
 
                       <FormField label="Billing Entity">
@@ -1353,11 +1396,11 @@ function General({ card, formValues, handleChange, ownerInitial, cardUser, onSav
                   ) : (isCrewChange || isMaterialDelivery) ? (
                     <>
                       <OwnerField
-                        value={getFieldValue("owner") || "None"}
+                        value={getFieldValue("owner")}
                         onChange={handleChange("owner")}
-                        ownerInitial={ownerInitialValue}
-                        cardUser={cardUser || card?.user}
-                        disabled={isDisabled}
+                        options={mergeOptionIfMissing(operatorOptions, getFieldValue("owner"))}
+                        placeholder="Select owner"
+                        disabled={masterInputsDisabled}
                       />
 
                       <FormField label="Billing Entity">
@@ -1539,11 +1582,11 @@ function General({ card, formValues, handleChange, ownerInitial, cardUser, onSav
                   ) : isOnStation ? (
                     <>
                       <OwnerField
-                        value={getFieldValue("owner") || "None"}
+                        value={getFieldValue("owner")}
                         onChange={handleChange("owner")}
-                        ownerInitial={ownerInitialValue}
-                        cardUser={cardUser || card?.user}
-                        disabled={isDisabled}
+                        options={mergeOptionIfMissing(operatorOptions, getFieldValue("owner"))}
+                        placeholder="Select owner"
+                        disabled={masterInputsDisabled}
                       />
 
                       <FormField label="Billing Entity">
@@ -1657,11 +1700,11 @@ function General({ card, formValues, handleChange, ownerInitial, cardUser, onSav
                   ) : isMwPRenewal ? (
                     <>
                       <OwnerField
-                        value={getFieldValue("owner") || "None"}
+                        value={getFieldValue("owner")}
                         onChange={handleChange("owner")}
-                        ownerInitial={ownerInitialValue}
-                        cardUser={cardUser || card?.user}
-                        disabled={isDisabled}
+                        options={mergeOptionIfMissing(operatorOptions, getFieldValue("owner"))}
+                        placeholder="Select owner"
+                        disabled={masterInputsDisabled}
                       />
 
                       <FormField label="VESSEL NAME">
@@ -1766,11 +1809,11 @@ function General({ card, formValues, handleChange, ownerInitial, cardUser, onSav
                   ) : (
                     <>
                       <OwnerField
-                        value={getFieldValue("owner") || "None"}
+                        value={getFieldValue("owner")}
                         onChange={handleChange("owner")}
-                        ownerInitial={ownerInitialValue}
-                        cardUser={cardUser || card?.user}
-                        disabled={isDisabled}
+                        options={mergeOptionIfMissing(operatorOptions, getFieldValue("owner"))}
+                        placeholder="Select owner"
+                        disabled={masterInputsDisabled}
                       />
 
                       {!isSimplifiedMode && (
@@ -1812,28 +1855,28 @@ function General({ card, formValues, handleChange, ownerInitial, cardUser, onSav
                           <FormSelect
                             value={getFieldValue("port")}
                             onChange={handleChange("port")}
-                            options={portOptions}
-                            placeholder="Select port..."
-                            disabled={isDisabled}
+                            options={mergeOptionIfMissing(portSelectOptions, getFieldValue("port"))}
+                            placeholder="Select port"
+                            disabled={masterInputsDisabled}
                           />
                         </FormField>
                         <FormField label="Type of call / Service">
                           <FormSelect
                             value={getFieldValue("typeOfCall")}
                             onChange={handleChange("typeOfCall")}
-                            options={typeOfCallOptions}
-                            placeholder="Select type of call..."
-                            disabled={isDisabled}
+                            options={mergeOptionIfMissing(callTypeOptions, getFieldValue("typeOfCall"))}
+                            placeholder="Select type of call"
+                            disabled={masterInputsDisabled}
                           />
                         </FormField>
 
                         <FormField label="Main Billing entity">
                           <FormSelect
-                            value={getFieldValue("mainBillingEntity") || "SS7"}
+                            value={getFieldValue("mainBillingEntity")}
                             onChange={handleChange("mainBillingEntity")}
-                            options={billingEntityOptions}
-                            placeholder="Select billing entity..."
-                            disabled={isDisabled}
+                            options={mergeOptionIfMissing(billingEntitySelectOptions, getFieldValue("mainBillingEntity"))}
+                            placeholder="Select billing entity"
+                            disabled={masterInputsDisabled}
                           />
                         </FormField>
 
@@ -1875,9 +1918,9 @@ function General({ card, formValues, handleChange, ownerInitial, cardUser, onSav
                           <FormSelect
                             value={getFieldValue("vesselType")}
                             onChange={handleChange("vesselType")}
-                            options={vesselTypeOptions}
-                            placeholder="Select vessel type..."
-                            disabled={isDisabled}
+                            options={mergeOptionIfMissing(vesselTypeSelectOptions, getFieldValue("vesselType"))}
+                            placeholder="Select vessel type"
+                            disabled={masterInputsDisabled}
                           />
                         </FormField>
 
@@ -1885,9 +1928,9 @@ function General({ card, formValues, handleChange, ownerInitial, cardUser, onSav
                           <FormSelect
                             value={getFieldValue("bargeType")}
                             onChange={handleChange("bargeType")}
-                            options={bargeTypeOptions}
-                            placeholder="Select barge type..."
-                            disabled={isDisabled}
+                            options={mergeOptionIfMissing(bargeTypeSelectOptions, getFieldValue("bargeType"))}
+                            placeholder="Select barge type"
+                            disabled={masterInputsDisabled}
                           />
                         </FormField>
 
@@ -1934,9 +1977,9 @@ function General({ card, formValues, handleChange, ownerInitial, cardUser, onSav
                           <FormSelect
                             value={getFieldValue("otherBillingEntity")}
                             onChange={handleChange("otherBillingEntity")}
-                            options={[]}
-                            placeholder="Select billing entity..."
-                            disabled={isDisabled}
+                            options={mergeOptionIfMissing(billingEntitySelectOptions, getFieldValue("otherBillingEntity"))}
+                            placeholder="Select billing entity"
+                            disabled={masterInputsDisabled}
                           />
                         </FormField>
 
@@ -1944,9 +1987,9 @@ function General({ card, formValues, handleChange, ownerInitial, cardUser, onSav
                           <FormSelect
                             value={getFieldValue("assignedOperator")}
                             onChange={handleChange("assignedOperator")}
-                            options={[]}
-                            placeholder="Select operator..."
-                            disabled={isDisabled}
+                            options={mergeOptionIfMissing(operatorOptions, getFieldValue("assignedOperator"))}
+                            placeholder="Select operator"
+                            disabled={masterInputsDisabled}
                           />
                         </FormField>
 
@@ -2535,8 +2578,6 @@ General.propTypes = {
   card: PropTypes.object,
   formValues: PropTypes.object,
   handleChange: PropTypes.func,
-  ownerInitial: PropTypes.string,
-  cardUser: PropTypes.string,
   onSave: PropTypes.func,
   isAddMode: PropTypes.bool,
   isSimplifiedMode: PropTypes.bool,

@@ -5,6 +5,7 @@ import "../../design/css/CardForm.css";
 import "../../design/scss/general.scss";
 import ColorPickerIcon from "../../assets/images/ColorPicker.png";
 import PriorityIcon from "../../assets/images/Priority.png";
+import { getItem } from "../../helpers/localStorage";
 
 // Import Tab Components
 import General from "./CardFormTabs/General";
@@ -1035,7 +1036,7 @@ const renderTabContent = (activeTab, card, formValues, handleChange, ownerInitia
     // DA mode - General, Operation, Husbandry, Sales Order, Reports, KPI, Invoice
     switch (activeTab) {
       case "General":
-        return <General {...commonProps} ownerInitial={ownerInitial} cardUser={card?.user} />;
+        return <General {...commonProps} />;
       case "Operation":
         return <Operation {...commonProps} ownerInitial={ownerInitial} />;
       case "Husbandry":
@@ -1049,25 +1050,25 @@ const renderTabContent = (activeTab, card, formValues, handleChange, ownerInitia
       case "KPI":
         return <KPI {...commonProps} />;
       default:
-        return <General {...commonProps} ownerInitial={ownerInitial} cardUser={card?.user} />;
+        return <General {...commonProps} />;
     }
   } else if (isSimplifiedMode) {
     // Simplified mode - General, Invoice, and Sales Order
     switch (activeTab) {
       case "General":
-        return <General {...commonProps} ownerInitial={ownerInitial} cardUser={card?.user} />;
+        return <General {...commonProps} />;
       case "Invoice":
         return <Invoice {...commonProps} />;
       case "Sales Order":
         return <SalesOrder {...commonProps} />;
       default:
-        return <General {...commonProps} ownerInitial={ownerInitial} cardUser={card?.user} />;
+        return <General {...commonProps} />;
     }
   } else {
     // Full mode - all tabs
     switch (activeTab) {
       case "Appointment Details":
-        return <General {...commonProps} ownerInitial={ownerInitial} cardUser={card?.user} />;
+        return <General {...commonProps} />;
       case "Operation":
         return <Operation {...commonProps} ownerInitial={ownerInitial} />;
       case "Husbandry":
@@ -1081,7 +1082,7 @@ const renderTabContent = (activeTab, card, formValues, handleChange, ownerInitia
       case "KPI":
         return <KPI {...commonProps} />;
       default:
-        return <General {...commonProps} ownerInitial={ownerInitial} cardUser={card?.user} />;
+        return <General {...commonProps} />;
     }
   }
 };
@@ -1141,25 +1142,27 @@ function CardForm({ show, close, card, moveCardToColumn, columns, columnOrder, c
   const initialFormValues = useMemo(
     () => ({
       cardTitle: card?.title || "",
-      owner: card?.user || "None",
+      owner: isAddMode
+        ? String(getItem("userid") ?? "")
+        : String(card?.owner_user_id ?? card?.owner ?? ""),
       // FLEEyt (for simplified mode)
       type: card?.type || "Type",
-      // Service Information
-      typeOfCall: card?.typeOfCall || "",
-      mainBillingEntity: card?.mainBillingEntity || "SS7",
+      // Service Information (ids for API payloads)
+      typeOfCall: String(card?.call_type_id ?? card?.typeOfCall ?? ""),
+      mainBillingEntity: String(card?.main_billing_entity_id ?? card?.mainBillingEntity ?? ""),
       // Appointment Details
       appointmentReceivedDate: card?.appointmentReceivedDate || "",
       appointmentAcceptanceDate: card?.appointmentAcceptanceDate || "",
       // Vessel Information
-      port: card?.port || "",
-      vesselType: card?.vesselType || "",
-      bargeType: card?.bargeType || "",
+      port: String(card?.port_id ?? card?.port ?? ""),
+      vesselType: String(card?.vessel_type_id ?? card?.vesselType ?? ""),
+      bargeType: String(card?.barge_type_id ?? card?.bargeType ?? ""),
       vesselName: card?.vesselName || "",
       vesselOwner: card?.vesselOwner || "",
       vesselPrincipal: card?.vesselPrincipal || "",
       vesselManager: card?.vesselManager || "",
-      otherBillingEntity: card?.otherBillingEntity || "",
-      assignedOperator: card?.assignedOperator || "",
+      otherBillingEntity: String(card?.other_billing_entity_id ?? card?.otherBillingEntity ?? ""),
+      assignedOperator: String(card?.assigned_operator_id ?? card?.assignedOperator ?? ""),
       serviceRequestorName: card?.serviceRequestorName || "",
       serviceRequestorEmail: card?.serviceRequestorEmail || "",
       dailyReportEmail: card?.dailyReportEmail || "",
@@ -1213,10 +1216,14 @@ function CardForm({ show, close, card, moveCardToColumn, columns, columnOrder, c
       soShipName: card?.soShipName || card?.vesselName || "",
       soProjectName: card?.soProjectName || "",
     }),
-    [card]
+    [card, isAddMode]
   );
 
   const [formValues, setFormValues] = useState(initialFormValues);
+
+  useEffect(() => {
+    setFormValues(initialFormValues);
+  }, [initialFormValues]);
 
   const handleChange = useCallback(
     (field) => (e) => {
