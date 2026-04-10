@@ -649,11 +649,16 @@ $send-report-optional: #80868b;
   box-shadow: 0 1px 2px rgba(60, 64, 67, 0.05);
 }
 
+.send-report-fullwidth__editor-wrap--scroll .send-report-fullwidth__textarea {
+  min-height: 200px;
+  max-height: min(48vh, 400px);
+  overflow-y: auto;
+  resize: vertical;
+}
+
 .send-report-fullwidth__textarea {
-  min-height: 260px;
   width: 100%;
   box-sizing: border-box;
-  resize: vertical;
 }
 
 .send-report-fullwidth__attachments {
@@ -696,20 +701,18 @@ $send-report-optional: #80868b;
   color: $send-report-optional;
 }
 
-.send-report-fullwidth__footer {
+.send-report-fullwidth__actions {
+  margin-top: 16px;
+  padding-top: 16px;
+  border-top: 1px solid $send-report-row-border;
   display: flex;
   justify-content: flex-end;
   align-items: center;
-  gap: 8px;
-  flex-shrink: 0;
-  padding: 10px 20px;
-  border-top: 1px solid $send-report-row-border;
-  background: #fff;
-  z-index: 2;
-  box-shadow: 0 -2px 10px rgba(60, 64, 67, 0.04);
+  gap: 10px;
+  flex-wrap: wrap;
 }
 
-.send-report-fullwidth__send-btn {
+.send-report-fullwidth__actions .send-report-fullwidth__send-btn {
   padding: 8px 22px;
   border-radius: 6px;
   font-size: 14px;

@@ -304,14 +304,14 @@ export function SendReportFullWidthView({
 
             <section className="send-report-fullwidth__body-section" aria-label="Report body">
               <h2 className="send-report-fullwidth__section-label">Message</h2>
-              <div className="send-report-fullwidth__editor-wrap">
+              <div className="send-report-fullwidth__editor-wrap send-report-fullwidth__editor-wrap--scroll">
                 <textarea
                   value={formData.body}
                   onChange={(e) => handleInputChange("body", e.target.value)}
                   className="send-report-compose-message send-report-fullwidth__textarea"
                   placeholder="Compose your message…"
                   aria-label="Message body"
-                  rows={14}
+                  rows={10}
                 />
               </div>
             </section>
@@ -331,22 +331,22 @@ export function SendReportFullWidthView({
                 </ul>
               </section>
             )}
+
+            <div className="send-report-fullwidth__actions" role="group" aria-label="Send report actions">
+              <button type="button" className="send-report-cancel-btn" onClick={onBack} disabled={sending}>
+                Cancel
+              </button>
+              <button
+                type="button"
+                className="send-report-send-btn send-report-fullwidth__send-btn"
+                onClick={handleSend}
+                disabled={sending}
+              >
+                {sending ? "Sending…" : "Send"}
+              </button>
+            </div>
           </div>
         </div>
-
-        <footer className="send-report-fullwidth__footer">
-          <button type="button" className="send-report-cancel-btn" onClick={onBack} disabled={sending}>
-            Cancel
-          </button>
-          <button
-            type="button"
-            className="send-report-send-btn send-report-fullwidth__send-btn"
-            onClick={handleSend}
-            disabled={sending}
-          >
-            {sending ? "Sending…" : "Send"}
-          </button>
-        </footer>
       </div>
     </div>
   );
