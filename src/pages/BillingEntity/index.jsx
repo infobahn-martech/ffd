@@ -105,15 +105,15 @@ const BillingEntity = () => {
     //   thclass: 'tb-head',
     //   contentClass: 'table-content',
     // },
-    {
-      name: 'Actions',
-      selector: 'actions',
-      width: '150',
-      cell: RenderAction,
-      thclass: 'tb-head',
-      onEditClick: (row) => setShowBillingEntityModal(row),
-      onDeleteClick: () => setShowDeleteModal(true),
-    },
+    // {
+    //   name: 'Actions',
+    //   selector: 'actions',
+    //   width: '150',
+    //   cell: RenderAction,
+    //   thclass: 'tb-head',
+    //   onEditClick: (row) => setShowBillingEntityModal(row),
+    //   onDeleteClick: () => setShowDeleteModal(true),
+    // },
   ];
 
 
@@ -124,14 +124,10 @@ const BillingEntity = () => {
           <div className="container-fluid">
             <CommonHeader
               tableTitle="Billing Accounts"
-              isAddEnabled
-              addModalLabel="Add BillingEntity"
+              isAddEnabled={false}
               setSearch={(e) =>
                 setParams({ ...params, search: e, page: 1, limit: 10 })
               }
-              onAddModalClick={() => {
-                setShowBillingEntityModal(true);
-              }}
               exportTitle="Export"
               exportLoader={false}
             />
