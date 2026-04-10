@@ -276,3 +276,105 @@ span.error.text-danger {
 .logout-modal1 {
   padding: 50px;
 }
+
+/* Transport Company modal — driver rows, spacing, section grouping */
+.transport-company-modal {
+  .modal-body.transport-company-modal-body {
+    text-align: left;
+  }
+
+  .modal-footer.transport-company-modal-footer {
+    border-top: 1px solid #e3eef0;
+    padding-top: 1.25rem;
+    margin-top: 0.25rem;
+  }
+}
+
+.transport-company-drivers {
+  border: 1px solid #d8e8ec;
+  border-radius: 12px;
+  padding: 1rem 1rem 1rem;
+  background: linear-gradient(180deg, #f9fcfd 0%, #ffffff 100%);
+}
+
+.transport-company-drivers__heading {
+  margin-bottom: 0.875rem;
+  font-size: 13px;
+  font-weight: 600;
+  color: #35475e;
+  letter-spacing: 0.02em;
+}
+
+.transport-company-drivers__req {
+  color: #dc3545;
+  margin-left: 2px;
+  font-weight: 600;
+}
+
+.transport-company-drivers__list {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+}
+
+.transport-company-driver-row {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-start;
+  gap: 0.5rem 0.75rem;
+}
+
+.transport-company-driver-row__fields {
+  display: flex;
+  flex-wrap: wrap;
+  flex: 1 1 0;
+  gap: 0.75rem;
+  min-width: 0;
+}
+
+.transport-company-driver-field {
+  flex: 1 1 160px;
+  min-width: 0;
+}
+
+.transport-company-modal-body,
+.transport-company-modal {
+  .transport-company-driver-field .form-floating.desig-inp {
+    margin-bottom: 0;
+    padding-bottom: 20px;
+  }
+
+  .transport-company-driver-field--select.form-floating.desig-inp > .form-select {
+    padding-top: 0.625rem;
+    padding-bottom: 0.625rem;
+    line-height: 1.4;
+  }
+
+  .transport-company-driver-field--select.form-floating.desig-inp > label {
+    z-index: 2;
+  }
+}
+
+.transport-company-driver-row__actions {
+  flex: 0 0 auto;
+  display: flex;
+  align-items: center;
+  padding-top: 6px;
+}
+
+.transport-company-driver-row__remove {
+  width: 40px;
+  height: 40px;
+  padding: 0;
+  border-radius: 10px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.transport-company-drivers__add {
+  margin-top: 0.75rem;
+  border-radius: 10px;
+  font-weight: 600;
+  padding: 0.4rem 0.85rem;
+}

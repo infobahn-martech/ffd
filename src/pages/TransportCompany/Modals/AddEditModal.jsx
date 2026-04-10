@@ -145,7 +145,7 @@ export function TransportCompanyModal({ showModal, closeModal, onSuccess }) {
   );
 
   const renderBody = () => (
-    <div className="modal-body">
+    <div className="modal-body transport-company-modal-body">
       <div className="lead-form">
         {isEdit && isLoadingDetail && (
           <div className="text-center py-4 text-muted">Loading...</div>
@@ -175,119 +175,112 @@ export function TransportCompanyModal({ showModal, closeModal, onSuccess }) {
             </div>
           </div>
 
-          <div className="mt-3">
-            <label className="form-label mb-2 d-block">
-              Drivers <span className="text-danger">*</span>
-            </label>
-            {fields.map((field, index) => {
-              const isLast = index === fields.length - 1;
-              return (
-                <div className="row align-items-end g-2 mb-2" key={field.id}>
+          <div className="mt-4 transport-company-drivers">
+            <div className="transport-company-drivers__heading">
+              <span className="transport-company-drivers__title">Drivers</span>
+              <span className="transport-company-drivers__req" aria-hidden="true">
+                *
+              </span>
+            </div>
+            <div className="transport-company-drivers__list">
+              {fields.map((field, index) => (
+                <div className="transport-company-driver-row" key={field.id}>
                   <input type="hidden" {...register(`drivers.${index}.transport_driver_id`)} />
-                  <div className="col-12 col-md-4">
-                    <div className="form-floating desig-inp">
-                      <input
-                        type="text"
-                        className={`form-control ${errors.drivers?.[index]?.driver_name ? 'is-invalid' : ''}`}
-                        placeholder=" "
-                        disabled={isEdit && isLoadingDetail}
-                        {...register(`drivers.${index}.driver_name`, {
-                          required: 'Driver name is required',
-                        })}
-                      />
-                      <label>
-                        Driver name <span className="text-danger">*</span>
-                      </label>
-                      {errors.drivers?.[index]?.driver_name && (
-                        <span className="error text-danger d-block small">
-                          {errors.drivers[index].driver_name.message}
-                        </span>
-                      )}
+                  <div className="transport-company-driver-row__fields">
+                    <div className="transport-company-driver-field">
+                      <div className="form-floating desig-inp">
+                        <input
+                          type="text"
+                          className={`form-control ${errors.drivers?.[index]?.driver_name ? 'is-invalid' : ''}`}
+                          placeholder=" "
+                          disabled={isEdit && isLoadingDetail}
+                          {...register(`drivers.${index}.driver_name`, {
+                            required: 'Driver name is required',
+                          })}
+                        />
+                        <label>
+                          Driver name <span className="text-danger">*</span>
+                        </label>
+                        {/* {errors.drivers?.[index]?.driver_name && (
+                          <span className="error text-danger d-block small">
+                            {errors.drivers[index].driver_name.message}
+                          </span>
+                        )} */}
+                      </div>
                     </div>
-                  </div>
-                  <div className="col-12 col-md-3">
-                    <div className="form-floating desig-inp">
-                      <input
-                        type="text"
-                        className={`form-control ${errors.drivers?.[index]?.contact_no ? 'is-invalid' : ''}`}
-                        placeholder=" "
-                        disabled={isEdit && isLoadingDetail}
-                        {...register(`drivers.${index}.contact_no`, {
-                          required: 'Contact number is required',
-                        })}
-                      />
-                      <label>
-                        Contact no <span className="text-danger">*</span>
-                      </label>
-                      {errors.drivers?.[index]?.contact_no && (
-                        <span className="error text-danger d-block small">
-                          {errors.drivers[index].contact_no.message}
-                        </span>
-                      )}
+                    <div className="transport-company-driver-field">
+                      <div className="form-floating desig-inp">
+                        <input
+                          type="text"
+                          className={`form-control ${errors.drivers?.[index]?.contact_no ? 'is-invalid' : ''}`}
+                          placeholder=" "
+                          disabled={isEdit && isLoadingDetail}
+                          {...register(`drivers.${index}.contact_no`, {
+                            required: 'Contact number is required',
+                          })}
+                        />
+                        <label>
+                          Contact no <span className="text-danger">*</span>
+                        </label>
+                        {/* {errors.drivers?.[index]?.contact_no && (
+                          <span className="error text-danger d-block small">
+                            {errors.drivers[index].contact_no.message}
+                          </span>
+                        )} */}
+                      </div>
                     </div>
-                  </div>
-                  <div className="col-12 col-md-3">
-                    <div className="form-floating desig-inp">
-                      <select
-                        className={`form-control form-select ${errors.drivers?.[index]?.vehicle_type_id ? 'is-invalid' : ''}`}
-                        disabled={isEdit && isLoadingDetail}
-                        {...register(`drivers.${index}.vehicle_type_id`, {
-                          required: 'Vehicle type is required',
-                        })}
-                      >
-                        <option value="">Select vehicle type</option>
-                        {(vehicles || []).map((v) => (
-                          <option key={v.vehicle_type_id ?? v._id} value={v.vehicle_type_id ?? v._id}>
-                            {v.vehicle_type ?? v.name ?? `Vehicle ${v.vehicle_type_id ?? v._id}`}
-                          </option>
-                        ))}
-                      </select>
-                      <label>
-                        Vehicle type <span className="text-danger">*</span>
-                      </label>
-                      {errors.drivers?.[index]?.vehicle_type_id && (
-                        <span className="error text-danger d-block small">
-                          {errors.drivers[index].vehicle_type_id.message}
-                        </span>
-                      )}
-                    </div>
-                  </div>
-                  <div className="col-12 col-md-2 d-flex align-items-center justify-content-end gap-1 pb-1">
-                    {isLast ? (
-                      <>
-                        {fields.length > 1 && (
-                          <button
-                            type="button"
-                            className="btn btn-sm btn-outline-danger rounded-circle p-2 d-inline-flex align-items-center justify-content-center"
-                            onClick={() => remove(index)}
-                            title="Remove driver"
-                          >
-                            <FiX size={18} />
-                          </button>
-                        )}
-                        <button
-                          type="button"
-                          className="btn btn-sm btn-outline-primary rounded-circle p-2 d-inline-flex align-items-center justify-content-center"
-                          onClick={() => append(emptyDriver())}
-                          title="Add driver"
+                    <div className="transport-company-driver-field">
+                      <div className="form-floating desig-inp transport-company-driver-field--select">
+                        <select
+                          className={`form-select ${errors.drivers?.[index]?.vehicle_type_id ? 'is-invalid' : ''}`}
+                          disabled={isEdit && isLoadingDetail}
+                          {...register(`drivers.${index}.vehicle_type_id`, {
+                            required: 'Vehicle type is required',
+                          })}
                         >
-                          <FiPlus size={18} />
-                        </button>
-                      </>
-                    ) : (
+                          <option value="">Select vehicle type</option>
+                          {(vehicles || []).map((v) => (
+                            <option key={v.vehicle_type_id ?? v._id} value={v.vehicle_type_id ?? v._id}>
+                              {v.vehicle_type ?? v.name ?? `Vehicle ${v.vehicle_type_id ?? v._id}`}
+                            </option>
+                          ))}
+                        </select>
+                        <label>
+                          Vehicle type <span className="text-danger">*</span>
+                        </label>
+                        {/* {errors.drivers?.[index]?.vehicle_type_id && (
+                          <span className="error text-danger d-block small">
+                            {errors.drivers[index].vehicle_type_id.message}
+                          </span>
+                        )} */}
+                      </div>
+                    </div>
+                  </div>
+                  {fields.length > 1 && (
+                    <div className="transport-company-driver-row__actions">
                       <button
                         type="button"
-                        className="btn btn-sm btn-outline-danger rounded-circle p-2 d-inline-flex align-items-center justify-content-center"
+                        className="btn btn-sm btn-outline-danger transport-company-driver-row__remove"
                         onClick={() => remove(index)}
                         title="Remove driver"
+                        aria-label="Remove driver"
                       >
                         <FiX size={18} />
                       </button>
-                    )}
-                  </div>
+                    </div>
+                  )}
                 </div>
-              );
-            })}
+              ))}
+            </div>
+            <button
+              type="button"
+              className="btn btn-sm btn-outline-primary transport-company-drivers__add"
+              onClick={() => append(emptyDriver())}
+              disabled={isEdit && isLoadingDetail}
+            >
+              <FiPlus size={16} className="me-1" aria-hidden />
+              Add driver
+            </button>
           </div>
         </form>
       </div>
@@ -295,7 +288,7 @@ export function TransportCompanyModal({ showModal, closeModal, onSuccess }) {
   );
 
   const renderFooter = () => (
-    <div className="modal-footer">
+    <div className="modal-footer transport-company-modal-footer">
       <button
         type="button"
         className="btn btn-outline"
@@ -317,7 +310,7 @@ export function TransportCompanyModal({ showModal, closeModal, onSuccess }) {
 
   return (
     <CustomModal
-      className="fade role-modal-sm modal show"
+      className="fade role-modal-sm modal show transport-company-modal"
       dialgName="modal-dialog modal-dialog-centered modal-lg"
       show={!!showModal}
       closeModal={() => closeModal(null)}
