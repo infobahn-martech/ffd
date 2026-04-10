@@ -3,6 +3,29 @@ import { useState, useMemo, useEffect, useRef, useCallback } from "react";
 import { SendReportButton } from "./SendReportFullWidthView";
 import "../../../design/scss/checklist.scss";
 
+/** Splits checklist labels into title + requirement suffix for hierarchy (display only). */
+const CHECKLIST_LABEL_SUFFIX_RE =
+  /^(.+?)\s+(ORIGINAL REQUIRED|REQUIRE COPY ONLY|COPY ONLY FORMAT ATTACHED)$/i;
+
+const parseChecklistLabel = (label) => {
+  if (!label || typeof label !== "string") {
+    return { primary: "", badge: null };
+  }
+  const m = label.match(CHECKLIST_LABEL_SUFFIX_RE);
+  if (!m) {
+    return { primary: label.trim(), badge: null };
+  }
+  return { primary: m[1].trim(), badge: m[2] };
+};
+
+const formatFileSizeBytes = (bytes) => {
+  if (bytes == null || Number.isNaN(Number(bytes))) return null;
+  const n = Number(bytes);
+  if (n < 1024) return `${n} B`;
+  if (n < 1024 * 1024) return `${(n / 1024).toFixed(1)} KB`;
+  return `${(n / (1024 * 1024)).toFixed(1)} MB`;
+};
+
 // Checklist Type Options
 const CHECKLIST_TYPES = {
   BOAT_ARRIVING_ONBOARD: "BOAT ARRIVING ONBOARD",
@@ -304,7 +327,7 @@ MultiSelect.propTypes = {
 };
 
 // File Preview Component
-const FilePreview = ({ file, onRemove, isDAModule = false }) => {
+const FilePreview = ({ file, onRemove, isDAModule = false, compact = false }) => {
   if (!file) return null;
 
   const getFileType = (fileName) => {
@@ -364,8 +387,10 @@ const FilePreview = ({ file, onRemove, isDAModule = false }) => {
     }
   };
 
+  const sizeLabel = compact ? formatFileSizeBytes(file?.size) : null;
+
   return (
-    <div className="checklist-file-preview">
+    <div className={`checklist-file-preview${compact ? " checklist-file-preview--compact" : ""}`}>
       {isDAModule ? (
         <button
           type="button"
@@ -433,7 +458,10 @@ const FilePreview = ({ file, onRemove, isDAModule = false }) => {
           </div>
         )}
       </div>
-      <div className="checklist-file-preview-name">{fileName}</div>
+      <div className="checklist-file-preview-text">
+        <div className="checklist-file-preview-name">{fileName}</div>
+        {sizeLabel ? <div className="checklist-file-preview-size">{sizeLabel}</div> : null}
+      </div>
     </div>
   );
 };
@@ -442,6 +470,7 @@ FilePreview.propTypes = {
   file: PropTypes.object,
   onRemove: PropTypes.func,
   isDAModule: PropTypes.bool,
+  compact: PropTypes.bool,
 };
 
 // Item Detail Modal Component
@@ -535,7 +564,7 @@ startxref
             <FormTextarea
               value={remarks}
               onChange={(e) => setRemarks(e.target.value)}
-              placeholder="Enter remarks..."
+              placeholder="Add remarks..."
               rows={4}
             />
           </FormField>
@@ -700,10 +729,12 @@ const ChecklistItem = ({ id, label, expiry, itemData, onChange, cardColor = "#2A
     onChange(id, { ...itemData, uploadedFile, remarks: newRemarks, checked });
   };
 
+  const { primary: labelPrimary, badge: labelBadge } = parseChecklistLabel(label);
+
   return (
     <tr className={`checklist-table-row ${checked ? "checked" : ""}`} style={{ "--card-color": cardColor }}>
       <td className="checklist-table-checkbox">
-        <div className="checklist-checkbox-wrapper">
+        <div className="checklist-checkbox-wrapper checklist-checkbox-wrapper--table">
           <input
             type="checkbox"
             checked={checked}
@@ -711,64 +742,48 @@ const ChecklistItem = ({ id, label, expiry, itemData, onChange, cardColor = "#2A
             className="checklist-checkbox"
             readOnly
           />
-          <span className="checklist-checkbox-custom">
+          <span className="checklist-checkbox-custom checklist-checkbox-custom--table">
             {checked && <span className="checkmark">✓</span>}
           </span>
         </div>
       </td>
       <td className="checklist-table-label">
-        <span className="checklist-item-text">{label}</span>
+        <div className="checklist-label-stack">
+          <span className="checklist-item-text checklist-item-text--table">{labelPrimary}</span>
+          {labelBadge ? (
+            <span className="checklist-label-badge">{labelBadge}</span>
+          ) : null}
+        </div>
       </td>
       <td className="checklist-table-expiry">
-        <span className="checklist-item-expiry">{expiry || ""}</span>
+        {expiry ? <span className="checklist-expiry-badge">{expiry}</span> : null}
       </td>
       <td className="checklist-table-upload">
         {isViewOnly && uploadedFile ? (
-          // View-only mode: Show file with view icon
-          <div style={{
-            display: "flex",
-            alignItems: "center",
-            gap: "8px",
-            padding: "8px",
-            backgroundColor: "#f8f9fa",
-            borderRadius: "6px",
-            border: "1px solid #e2e2ea"
-          }}>
-            <div style={{ color: "#666", display: "flex", alignItems: "center" }}>
-              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+          <div className="checklist-table-view-file-chip">
+            <div className="checklist-table-view-file-chip-icon" aria-hidden>
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
                 <path d="M14 2H6C5.46957 2 4.96086 2.21071 4.58579 2.58579C4.21071 2.96086 4 3.46957 4 4V20C4 20.5304 4.21071 21.0391 4.58579 21.4142C4.96086 21.7893 5.46957 22 6 22H18C18.5304 22 19.0391 21.7893 19.4142 21.4142C19.7893 21.0391 20 20.5304 20 20V8L14 2Z" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" fill="none" />
                 <path d="M14 2V8H20" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" fill="none" />
               </svg>
             </div>
-            <div style={{ flex: 1, fontSize: "13px", color: "#1a1a1a" }}>
-              {uploadedFile?.name || uploadedFile?.fileName || "Document.pdf"}
+            <div className="checklist-table-view-file-chip-body">
+              <span className="checklist-table-view-file-chip-name">
+                {uploadedFile?.name || uploadedFile?.fileName || "Document.pdf"}
+              </span>
+              {formatFileSizeBytes(uploadedFile?.size) ? (
+                <span className="checklist-table-view-file-chip-size">{formatFileSizeBytes(uploadedFile?.size)}</span>
+              ) : null}
             </div>
             <button
               type="button"
+              className="checklist-table-view-file-chip-action"
               onClick={() => {
                 console.log("View document:", uploadedFile?.name || uploadedFile?.fileName);
               }}
-              style={{
-                padding: "6px",
-                border: "none",
-                backgroundColor: "transparent",
-                cursor: "pointer",
-                display: "flex",
-                alignItems: "center",
-                justifyContent: "center",
-                color: "#3e5cb6",
-                borderRadius: "4px",
-                transition: "background-color 0.2s"
-              }}
-              onMouseEnter={(e) => {
-                e.currentTarget.style.backgroundColor = "#f0f0f0";
-              }}
-              onMouseLeave={(e) => {
-                e.currentTarget.style.backgroundColor = "transparent";
-              }}
               title="View document"
             >
-              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
                 <path d="M1 12C1 12 5 4 12 4C19 4 23 12 23 12C23 12 19 20 12 20C5 20 1 12 1 12Z" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" fill="none" />
                 <circle cx="12" cy="12" r="3" stroke="currentColor" strokeWidth="2" fill="none" />
               </svg>
@@ -792,15 +807,20 @@ const ChecklistItem = ({ id, label, expiry, itemData, onChange, cardColor = "#2A
             />
             {uploadedFile ? (
               <div className="checklist-table-file-preview">
-                <FilePreview file={uploadedFile} onRemove={handleRemoveFile} isDAModule={isDAModule} />
+                <FilePreview
+                  file={uploadedFile}
+                  onRemove={handleRemoveFile}
+                  isDAModule={isDAModule}
+                  compact
+                />
               </div>
             ) : (
               <div className="checklist-table-upload-placeholder">
-                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                <svg className="checklist-table-upload-icon" width="18" height="18" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden>
                   <path d="M12 5V19M12 5L7 10M12 5L17 10" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
                   <path d="M3 15V19C3 20.1046 3.89543 21 5 21H19C20.1046 21 21 20.1046 21 19V15" stroke="currentColor" strokeWidth="2" strokeLinecap="round" />
                 </svg>
-                <span>Drop file or click to browse</span>
+                <span className="checklist-table-upload-placeholder-text">Drop file or click to browse</span>
               </div>
             )}
           </div>
@@ -810,7 +830,7 @@ const ChecklistItem = ({ id, label, expiry, itemData, onChange, cardColor = "#2A
         <FormTextarea
           value={remarks}
           onChange={handleRemarksChange}
-          placeholder="Enter remarks..."
+          placeholder="Add remarks..."
           rows={2}
           className="checklist-table-textarea"
           disabled={isViewOnly}
@@ -923,8 +943,15 @@ const ChecklistSection = ({
         </div>
       </div>
       {isOpen && (
-        <div className="checklist-items-table-wrapper">
+        <div className="checklist-items-table-wrapper checklist-table-card">
           <table className="checklist-items-table">
+            <colgroup>
+              <col className="checklist-col-check" />
+              <col className="checklist-col-label" />
+              <col className="checklist-col-expiry" />
+              <col className="checklist-col-upload" />
+              <col className="checklist-col-remarks" />
+            </colgroup>
             <thead>
               <tr>
                 <th className="checklist-table-checkbox-header">
