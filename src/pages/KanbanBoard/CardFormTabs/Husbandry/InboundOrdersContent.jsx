@@ -10,6 +10,23 @@ import { FormField, FormInput, FormSelect } from "./Husbandry.components";
 import editIcon from "../../../../assets/images/edit.svg";
 import deleteIcon from "../../../../assets/images/delete.svg";
 import eyeIcon from "../../../../assets/images/eye.svg";
+import logisticsWarehouseService from "../../../../services/logisticsWarehouseService";
+import packingTypeService from "../../../../services/packingTypeService";
+import vehicleService from "../../../../services/vehicleService";
+
+const extractListFromApi = (body) => {
+  if (body == null) return [];
+  if (Array.isArray(body)) return body;
+  if (Array.isArray(body.data)) return body.data;
+  return [];
+};
+
+const mergeOptionForValue = (options, value) => {
+  if (value == null || value === "") return options;
+  const s = String(value);
+  if (options.some((o) => o.value === s)) return options;
+  return [...options, { value: s, label: s }];
+};
 
 // Generate dummy inbound orders data
 const generateDummyInboundOrders = () => {
@@ -247,13 +264,67 @@ const InboundOrdersContent = ({ formValues, handleChange, cardColor }) => {
     }],
   });
 
-  // Dummy options for dropdowns
-  const warehouseOptions = [
-    { value: "warehouse1", label: "Warehouse 1" },
-    { value: "warehouse2", label: "Warehouse 2" },
-    { value: "warehouse3", label: "Warehouse 3" },
-    { value: "warehouse4", label: "Warehouse 4" },
-  ];
+  const [warehouseLocationOptions, setWarehouseLocationOptions] = useState([]);
+  const [packageTypeOptions, setPackageTypeOptions] = useState([]);
+  const [materialVehicleOptions, setMaterialVehicleOptions] = useState([]);
+  const [materialDriverOptions, setMaterialDriverOptions] = useState([]);
+
+  useEffect(() => {
+    let cancelled = false;
+    const loadReferenceData = async () => {
+      try {
+        const [whRes, pkgRes, vehRes, drvRes] = await Promise.all([
+          logisticsWarehouseService.getWarehouseLocations(),
+          packingTypeService.getPackingTypes(),
+          vehicleService.getMaterialVehicles(),
+          vehicleService.getMaterialDrivers(),
+        ]);
+        if (cancelled) return;
+        const whRows = extractListFromApi(whRes?.data);
+        setWarehouseLocationOptions(
+          whRows
+            .map((r) => ({
+              value: String(r.location_id ?? ""),
+              label: String(r.location ?? ""),
+            }))
+            .filter((o) => o.value && o.label)
+        );
+        const pkgRows = extractListFromApi(pkgRes?.data);
+        setPackageTypeOptions(
+          pkgRows
+            .map((r) => ({
+              value: String(r.package_type_id ?? ""),
+              label: String(r.package_type ?? ""),
+            }))
+            .filter((o) => o.value && o.label)
+        );
+        const vehRows = extractListFromApi(vehRes?.data);
+        setMaterialVehicleOptions(
+          vehRows
+            .map((r) => ({
+              value: String(r.vehicle_type_id ?? ""),
+              label: String(r.vehicle_name ?? ""),
+            }))
+            .filter((o) => o.value && o.label)
+        );
+        const drvRows = extractListFromApi(drvRes?.data);
+        setMaterialDriverOptions(
+          drvRows
+            .map((r) => ({
+              value: String(r.driver_id ?? ""),
+              label: String(r.driver_name ?? ""),
+            }))
+            .filter((o) => o.value && o.label)
+        );
+      } catch (err) {
+        console.error("Inbound orders reference data failed to load", err);
+      }
+    };
+    loadReferenceData();
+    return () => {
+      cancelled = true;
+    };
+  }, []);
 
   // Initialize with dummy data on mount if empty
   useEffect(() => {
@@ -340,7 +411,23 @@ const InboundOrdersContent = ({ formValues, handleChange, cardColor }) => {
     setFormData({
       date: "",
       warehouse: "",
-      orders: [{ id: 1, poDo: "", quantity: "", packageType: "", description: "" }],
+      orders: [{
+        id: 1,
+        orderNo: "",
+        poDo: "",
+        quantity: "",
+        packageType: "",
+        description: "",
+        transportation: false,
+        typeOfVehicle: "",
+        fromLocation: "",
+        pickUpFrom: "",
+        toLocation: "",
+        driverName: "",
+        slotNo: "",
+        reason: "",
+        dispatchDate: ""
+      }],
     });
   };
 
@@ -928,39 +1015,6 @@ const InboundOrdersContent = ({ formValues, handleChange, cardColor }) => {
     });
   };
 
-  const packageTypeOptions = [
-    { value: "Box", label: "Box" },
-    { value: "Pallet", label: "Pallet" },
-    { value: "Crate", label: "Crate" },
-    { value: "Bag", label: "Bag" },
-    { value: "Container", label: "Container" },
-    { value: "Loose", label: "Loose" },
-  ];
-
-  const vehicleTypeOptions = [
-    { value: "Car", label: "Car" },
-    { value: "Truck", label: "Truck" },
-    { value: "Van", label: "Van" },
-    { value: "Bus", label: "Bus" },
-    { value: "Motorcycle", label: "Motorcycle" },
-  ];
-
-  const locationOptions = [
-    { value: "Rastanura", label: "Rastanura" },
-    { value: "Dammam", label: "Dammam" },
-    { value: "Al Jubail", label: "Al Jubail" },
-    { value: "Al Khafji", label: "Al Khafji" },
-    { value: "As Safaniya", label: "As Safaniya" },
-  ];
-
-  const driverNameOptions = [
-    { value: "ABDUL", label: "ABDUL" },
-    { value: "AHMED", label: "AHMED" },
-    { value: "MOHAMMED", label: "MOHAMMED" },
-    { value: "ALI", label: "ALI" },
-    { value: "HASSAN", label: "HASSAN" },
-  ];
-
   const slotNoOptions = [
     { value: "Slot 1", label: "Slot 1" },
     { value: "Slot 2", label: "Slot 2" },
@@ -987,12 +1041,12 @@ const InboundOrdersContent = ({ formValues, handleChange, cardColor }) => {
       <div className="lead-form">
         <form id="inboundOrderForm" onSubmit={handleSubmit}>
           {/* Basic Details Section */}
-          <div style={{ marginBottom: "32px", paddingBottom: "24px", borderBottom: "1px solid #e2e2ea" }}>
-            <h3 style={{ fontSize: "18px", fontWeight: "600", marginBottom: "20px", color: "#1a1a1a" }}>
+          <div style={{ marginBottom: "20px", paddingBottom: "16px", borderBottom: "1px solid #e2e2ea" }}>
+            <h3 style={{ fontSize: "16px", fontWeight: "600", marginBottom: "14px", color: "#1a1a1a" }}>
               Basic Details
             </h3>
-            <div className="row mb-lg-3">
-              <div className="col-md-6 mb-3">
+            <div className="row g-2 mb-2">
+              <div className="col-md-6 mb-2">
                 <FormField label="Date">
                   <div className="cf-select cf-date-input">
                     <input
@@ -1037,12 +1091,12 @@ const InboundOrdersContent = ({ formValues, handleChange, cardColor }) => {
                 </FormField>
               </div>
 
-              <div className="col-md-6 mb-3">
+              <div className="col-md-6 mb-2">
                 <FormField label="Warehouse">
                   <FormSelect
                     value={formData.warehouse}
                     onChange={(e) => handleFormChange("warehouse", e.target.value)}
-                    options={warehouseOptions}
+                    options={mergeOptionForValue(warehouseLocationOptions, formData.warehouse)}
                     placeholder="Select warehouse"
                   />
                 </FormField>
@@ -1052,8 +1106,8 @@ const InboundOrdersContent = ({ formValues, handleChange, cardColor }) => {
 
           {/* Order Details Section */}
           <div>
-            <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "20px" }}>
-              <h3 style={{ fontSize: "18px", fontWeight: "600", margin: 0, color: "#1a1a1a" }}>
+            <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "14px" }}>
+              <h3 style={{ fontSize: "16px", fontWeight: "600", margin: 0, color: "#1a1a1a" }}>
                 Order Details
               </h3>
               <button
@@ -1117,7 +1171,7 @@ const InboundOrdersContent = ({ formValues, handleChange, cardColor }) => {
                 <div
                   onClick={() => toggleOrderExpand(order.id)}
                   style={{
-                    padding: "16px 20px",
+                    padding: "12px 16px",
                     backgroundColor: "#f8f9fa",
                     cursor: "pointer",
                     display: "flex",
@@ -1132,7 +1186,7 @@ const InboundOrdersContent = ({ formValues, handleChange, cardColor }) => {
                     e.currentTarget.style.backgroundColor = "#f8f9fa";
                   }}
                 >
-                  <span style={{ fontSize: "15px", fontWeight: "600", color: "#1a1a1a" }}>
+                  <span style={{ fontSize: "14px", fontWeight: "600", color: "#1a1a1a" }}>
                     Order {index + 1}
                   </span>
                   <div style={{ display: "flex", gap: "12px", alignItems: "center" }}>
@@ -1184,9 +1238,9 @@ const InboundOrdersContent = ({ formValues, handleChange, cardColor }) => {
                 </div>
 
                 {expandedOrders[order.id] && (
-                  <div style={{ padding: "24px", backgroundColor: "white" }}>
-                    <div className="row mb-lg-3">
-                      <div className="col-md-6 mb-3">
+                  <div style={{ padding: "16px", backgroundColor: "white" }}>
+                    <div className="row g-2 mb-1">
+                      <div className="col-lg-4 col-md-6">
                         <FormField label="Order No">
                           <FormInput
                             type="text"
@@ -1197,7 +1251,7 @@ const InboundOrdersContent = ({ formValues, handleChange, cardColor }) => {
                         </FormField>
                       </div>
 
-                      <div className="col-md-6 mb-3">
+                      <div className="col-lg-4 col-md-6">
                         <FormField label="PO/DO">
                           <FormInput
                             type="text"
@@ -1208,7 +1262,18 @@ const InboundOrdersContent = ({ formValues, handleChange, cardColor }) => {
                         </FormField>
                       </div>
 
-                      <div className="col-md-6 mb-3">
+                      <div className="col-lg-4 col-md-6">
+                        <FormField label="Quantity">
+                          <FormInput
+                            type="number"
+                            value={order.quantity}
+                            onChange={(e) => handleOrderChange(order.id, "quantity", e.target.value)}
+                            placeholder="Enter quantity..."
+                          />
+                        </FormField>
+                      </div>
+
+                      <div className="col-lg-6 col-md-12">
                         <FormField label="Description">
                           <FormInput
                             type="text"
@@ -1219,32 +1284,21 @@ const InboundOrdersContent = ({ formValues, handleChange, cardColor }) => {
                         </FormField>
                       </div>
 
-                      <div className="col-md-6 mb-3">
+                      <div className="col-lg-6 col-md-12">
                         <FormField label="Package Type">
                           <FormSelect
                             value={order.packageType}
                             onChange={(e) => handleOrderChange(order.id, "packageType", e.target.value)}
-                            options={packageTypeOptions}
+                            options={mergeOptionForValue(packageTypeOptions, order.packageType)}
                             placeholder="Select package type..."
-                          />
-                        </FormField>
-                      </div>
-
-                      <div className="col-md-6 mb-3">
-                        <FormField label="Quantity">
-                          <FormInput
-                            type="number"
-                            value={order.quantity}
-                            onChange={(e) => handleOrderChange(order.id, "quantity", e.target.value)}
-                            placeholder="Enter quantity..."
                           />
                         </FormField>
                       </div>
                     </div>
 
                     {/* Transportation Section */}
-                    <div style={{ marginTop: "24px", paddingTop: "24px", borderTop: "1px solid #e2e2ea" }}>
-                      <div style={{ marginBottom: "16px" }}>
+                    <div style={{ marginTop: "14px", paddingTop: "14px", borderTop: "1px solid #e2e2ea" }}>
+                      <div style={{ marginBottom: "10px" }}>
                         <label style={{ display: "flex", alignItems: "center", gap: "8px", cursor: "pointer" }}>
                           <input
                             type="checkbox"
@@ -1252,35 +1306,35 @@ const InboundOrdersContent = ({ formValues, handleChange, cardColor }) => {
                             onChange={(e) => handleOrderChange(order.id, "transportation", e.target.checked)}
                             style={{ cursor: "pointer", width: "18px", height: "18px" }}
                           />
-                          <span style={{ fontSize: "15px", fontWeight: "600", color: "#1a1a1a" }}>Transportation</span>
+                          <span style={{ fontSize: "14px", fontWeight: "600", color: "#1a1a1a" }}>Transportation</span>
                         </label>
                       </div>
 
                       {order.transportation && (
-                        <div className="row mb-lg-3">
-                          <div className="col-md-6 mb-3">
+                        <div className="row g-2 mb-1">
+                          <div className="col-lg-4 col-md-6">
                             <FormField label="Type of Vehicle">
                               <FormSelect
                                 value={order.typeOfVehicle}
                                 onChange={(e) => handleOrderChange(order.id, "typeOfVehicle", e.target.value)}
-                                options={vehicleTypeOptions}
+                                options={mergeOptionForValue(materialVehicleOptions, order.typeOfVehicle)}
                                 placeholder="Select type of vehicle..."
                               />
                             </FormField>
                           </div>
 
-                          <div className="col-md-6 mb-3">
+                          <div className="col-lg-4 col-md-6">
                             <FormField label="From Location">
                               <FormSelect
                                 value={order.fromLocation}
                                 onChange={(e) => handleOrderChange(order.id, "fromLocation", e.target.value)}
-                                options={locationOptions}
+                                options={mergeOptionForValue(warehouseLocationOptions, order.fromLocation)}
                                 placeholder="Select from location..."
                               />
                             </FormField>
                           </div>
 
-                          <div className="col-md-6 mb-3">
+                          <div className="col-lg-4 col-md-6">
                             <FormField label="Pick-Up From">
                               <FormInput
                                 type="text"
@@ -1291,23 +1345,23 @@ const InboundOrdersContent = ({ formValues, handleChange, cardColor }) => {
                             </FormField>
                           </div>
 
-                          <div className="col-md-6 mb-3">
+                          <div className="col-lg-4 col-md-6">
                             <FormField label="To Location">
                               <FormSelect
                                 value={order.toLocation}
                                 onChange={(e) => handleOrderChange(order.id, "toLocation", e.target.value)}
-                                options={locationOptions}
+                                options={mergeOptionForValue(warehouseLocationOptions, order.toLocation)}
                                 placeholder="Select to location..."
                               />
                             </FormField>
                           </div>
 
-                          <div className="col-md-6 mb-3">
+                          <div className="col-lg-4 col-md-6">
                             <FormField label="Driver Name">
                               <FormSelect
                                 value={order.driverName}
                                 onChange={(e) => handleOrderChange(order.id, "driverName", e.target.value)}
-                                options={driverNameOptions}
+                                options={mergeOptionForValue(materialDriverOptions, order.driverName)}
                                 placeholder="Select driver name..."
                               />
                             </FormField>
@@ -1392,12 +1446,12 @@ const InboundOrdersContent = ({ formValues, handleChange, cardColor }) => {
       <div className="lead-form">
         <form id="convertToLandingForm" onSubmit={handleConvertSubmit}>
           {/* Basic Details Section */}
-          <div style={{ marginBottom: "32px", paddingBottom: "24px", borderBottom: "1px solid #e2e2ea" }}>
-            <h3 style={{ fontSize: "18px", fontWeight: "600", marginBottom: "20px", color: "#1a1a1a" }}>
+          <div style={{ marginBottom: "20px", paddingBottom: "16px", borderBottom: "1px solid #e2e2ea" }}>
+            <h3 style={{ fontSize: "16px", fontWeight: "600", marginBottom: "14px", color: "#1a1a1a" }}>
               Basic Details
             </h3>
-            <div className="row mb-lg-3">
-              <div className="col-md-6 mb-3">
+            <div className="row g-2 mb-2">
+              <div className="col-md-6 mb-2">
                 <FormField label="Date">
                   <div className="cf-select cf-date-input">
                     <input
@@ -1442,12 +1496,12 @@ const InboundOrdersContent = ({ formValues, handleChange, cardColor }) => {
                 </FormField>
               </div>
 
-              <div className="col-md-6 mb-3">
+              <div className="col-md-6 mb-2">
                 <FormField label="Warehouse">
                   <FormSelect
                     value={convertFormData.warehouse}
                     onChange={(e) => handleConvertFormChange("warehouse", e.target.value)}
-                    options={warehouseOptions}
+                    options={mergeOptionForValue(warehouseLocationOptions, convertFormData.warehouse)}
                     placeholder="Select warehouse"
                   />
                 </FormField>
@@ -1455,12 +1509,12 @@ const InboundOrdersContent = ({ formValues, handleChange, cardColor }) => {
             </div>
 
             {/* Receipt Details Section */}
-            <div style={{ marginTop: "24px", paddingTop: "24px", borderTop: "1px solid #e2e2ea" }}>
-              <h3 style={{ fontSize: "18px", fontWeight: "600", marginBottom: "20px", color: "#1a1a1a" }}>
+            <div style={{ marginTop: "16px", paddingTop: "16px", borderTop: "1px solid #e2e2ea" }}>
+              <h3 style={{ fontSize: "16px", fontWeight: "600", marginBottom: "14px", color: "#1a1a1a" }}>
                 Receipt Details
               </h3>
-              <div className="row mb-lg-3">
-                <div className="col-md-6 mb-3">
+              <div className="row g-2 mb-2">
+                <div className="col-md-6 mb-2">
                   <FormField label="Received From">
                     <FormInput
                       type="text"
@@ -1471,7 +1525,7 @@ const InboundOrdersContent = ({ formValues, handleChange, cardColor }) => {
                   </FormField>
                 </div>
 
-                <div className="col-md-6 mb-3">
+                <div className="col-md-6 mb-2">
                   <FormField label="Location">
                     <FormInput
                       type="text"
@@ -1487,8 +1541,8 @@ const InboundOrdersContent = ({ formValues, handleChange, cardColor }) => {
 
           {/* Order Details Section */}
           <div>
-            <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "20px" }}>
-              <h3 style={{ fontSize: "18px", fontWeight: "600", margin: 0, color: "#1a1a1a" }}>
+            <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "14px" }}>
+              <h3 style={{ fontSize: "16px", fontWeight: "600", margin: 0, color: "#1a1a1a" }}>
                 Order Details
               </h3>
               <button
@@ -1552,7 +1606,7 @@ const InboundOrdersContent = ({ formValues, handleChange, cardColor }) => {
                 <div
                   onClick={() => toggleConvertOrderExpand(order.id)}
                   style={{
-                    padding: "16px 20px",
+                    padding: "12px 16px",
                     backgroundColor: "#f8f9fa",
                     cursor: "pointer",
                     display: "flex",
@@ -1567,7 +1621,7 @@ const InboundOrdersContent = ({ formValues, handleChange, cardColor }) => {
                     e.currentTarget.style.backgroundColor = "#f8f9fa";
                   }}
                 >
-                  <span style={{ fontSize: "15px", fontWeight: "600", color: "#1a1a1a" }}>
+                  <span style={{ fontSize: "14px", fontWeight: "600", color: "#1a1a1a" }}>
                     Order {index + 1}
                   </span>
                   <div style={{ display: "flex", gap: "12px", alignItems: "center" }}>
@@ -1619,9 +1673,9 @@ const InboundOrdersContent = ({ formValues, handleChange, cardColor }) => {
                 </div>
 
                 {expandedConvertOrders[order.id] && (
-                  <div style={{ padding: "24px", backgroundColor: "white" }}>
-                    <div className="row mb-lg-3">
-                      <div className="col-md-6 mb-3">
+                  <div style={{ padding: "16px", backgroundColor: "white" }}>
+                    <div className="row g-2 mb-1">
+                      <div className="col-lg-4 col-md-6">
                         <FormField label="Order No">
                           <FormInput
                             type="text"
@@ -1632,7 +1686,7 @@ const InboundOrdersContent = ({ formValues, handleChange, cardColor }) => {
                         </FormField>
                       </div>
 
-                      <div className="col-md-6 mb-3">
+                      <div className="col-lg-4 col-md-6">
                         <FormField label="PO/DO">
                           <FormInput
                             type="text"
@@ -1643,7 +1697,18 @@ const InboundOrdersContent = ({ formValues, handleChange, cardColor }) => {
                         </FormField>
                       </div>
 
-                      <div className="col-md-6 mb-3">
+                      <div className="col-lg-4 col-md-6">
+                        <FormField label="Quantity">
+                          <FormInput
+                            type="number"
+                            value={order.quantity}
+                            onChange={(e) => handleConvertOrderChange(order.id, "quantity", e.target.value)}
+                            placeholder="Enter quantity..."
+                          />
+                        </FormField>
+                      </div>
+
+                      <div className="col-lg-6 col-md-12">
                         <FormField label="Description">
                           <FormInput
                             type="text"
@@ -1654,32 +1719,21 @@ const InboundOrdersContent = ({ formValues, handleChange, cardColor }) => {
                         </FormField>
                       </div>
 
-                      <div className="col-md-6 mb-3">
+                      <div className="col-lg-6 col-md-12">
                         <FormField label="Package Type">
                           <FormSelect
                             value={order.packageType}
                             onChange={(e) => handleConvertOrderChange(order.id, "packageType", e.target.value)}
-                            options={packageTypeOptions}
+                            options={mergeOptionForValue(packageTypeOptions, order.packageType)}
                             placeholder="Select package type..."
-                          />
-                        </FormField>
-                      </div>
-
-                      <div className="col-md-6 mb-3">
-                        <FormField label="Quantity">
-                          <FormInput
-                            type="number"
-                            value={order.quantity}
-                            onChange={(e) => handleConvertOrderChange(order.id, "quantity", e.target.value)}
-                            placeholder="Enter quantity..."
                           />
                         </FormField>
                       </div>
                     </div>
 
                     {/* Transportation Section */}
-                    <div style={{ marginTop: "24px", paddingTop: "24px", borderTop: "1px solid #e2e2ea" }}>
-                      <div style={{ marginBottom: "16px" }}>
+                    <div style={{ marginTop: "14px", paddingTop: "14px", borderTop: "1px solid #e2e2ea" }}>
+                      <div style={{ marginBottom: "10px" }}>
                         <label style={{ display: "flex", alignItems: "center", gap: "8px", cursor: "pointer" }}>
                           <input
                             type="checkbox"
@@ -1687,35 +1741,35 @@ const InboundOrdersContent = ({ formValues, handleChange, cardColor }) => {
                             onChange={(e) => handleConvertOrderChange(order.id, "transportation", e.target.checked)}
                             style={{ cursor: "pointer", width: "18px", height: "18px" }}
                           />
-                          <span style={{ fontSize: "15px", fontWeight: "600", color: "#1a1a1a" }}>Transportation</span>
+                          <span style={{ fontSize: "14px", fontWeight: "600", color: "#1a1a1a" }}>Transportation</span>
                         </label>
                       </div>
 
                       {order.transportation && (
-                        <div className="row mb-lg-3">
-                          <div className="col-md-6 mb-3">
+                        <div className="row g-2 mb-1">
+                          <div className="col-lg-4 col-md-6">
                             <FormField label="Type of Vehicle">
                               <FormSelect
                                 value={order.typeOfVehicle}
                                 onChange={(e) => handleConvertOrderChange(order.id, "typeOfVehicle", e.target.value)}
-                                options={vehicleTypeOptions}
+                                options={mergeOptionForValue(materialVehicleOptions, order.typeOfVehicle)}
                                 placeholder="Select type of vehicle..."
                               />
                             </FormField>
                           </div>
 
-                          <div className="col-md-6 mb-3">
+                          <div className="col-lg-4 col-md-6">
                             <FormField label="From Location">
                               <FormSelect
                                 value={order.fromLocation}
                                 onChange={(e) => handleConvertOrderChange(order.id, "fromLocation", e.target.value)}
-                                options={locationOptions}
+                                options={mergeOptionForValue(warehouseLocationOptions, order.fromLocation)}
                                 placeholder="Select from location..."
                               />
                             </FormField>
                           </div>
 
-                          <div className="col-md-6 mb-3">
+                          <div className="col-lg-4 col-md-6">
                             <FormField label="Pick-Up From">
                               <FormInput
                                 type="text"
@@ -1726,23 +1780,23 @@ const InboundOrdersContent = ({ formValues, handleChange, cardColor }) => {
                             </FormField>
                           </div>
 
-                          <div className="col-md-6 mb-3">
+                          <div className="col-lg-4 col-md-6">
                             <FormField label="To Location">
                               <FormSelect
                                 value={order.toLocation}
                                 onChange={(e) => handleConvertOrderChange(order.id, "toLocation", e.target.value)}
-                                options={locationOptions}
+                                options={mergeOptionForValue(warehouseLocationOptions, order.toLocation)}
                                 placeholder="Select to location..."
                               />
                             </FormField>
                           </div>
 
-                          <div className="col-md-6 mb-3">
+                          <div className="col-lg-4 col-md-6">
                             <FormField label="Driver Name">
                               <FormSelect
                                 value={order.driverName}
                                 onChange={(e) => handleConvertOrderChange(order.id, "driverName", e.target.value)}
-                                options={driverNameOptions}
+                                options={mergeOptionForValue(materialDriverOptions, order.driverName)}
                                 placeholder="Select driver name..."
                               />
                             </FormField>
@@ -1751,8 +1805,8 @@ const InboundOrdersContent = ({ formValues, handleChange, cardColor }) => {
                       )}
 
                       {/* Slot No, Reason, Dispatch Date - After Transportation */}
-                      <div className="row mb-lg-3" style={{ marginTop: "16px" }}>
-                        <div className="col-md-4 mb-3">
+                      <div className="row g-2 mb-1" style={{ marginTop: "12px" }}>
+                        <div className="col-lg-4 col-md-6">
                           <FormField label="Slot No">
                             <FormSelect
                               value={order.slotNo}
@@ -1763,7 +1817,7 @@ const InboundOrdersContent = ({ formValues, handleChange, cardColor }) => {
                           </FormField>
                         </div>
 
-                        <div className="col-md-4 mb-3">
+                        <div className="col-lg-4 col-md-6">
                           <FormField label="Reason">
                             <FormSelect
                               value={order.reason}
@@ -1774,7 +1828,7 @@ const InboundOrdersContent = ({ formValues, handleChange, cardColor }) => {
                           </FormField>
                         </div>
 
-                        <div className="col-md-4 mb-3">
+                        <div className="col-lg-4 col-md-6">
                           <FormField label="Dispatch Date">
                             <div className="cf-select cf-date-input">
                               <input
@@ -2341,7 +2395,7 @@ const InboundOrdersContent = ({ formValues, handleChange, cardColor }) => {
       </div>
 
       <CustomModal
-        className="material-management-modal"
+        className="material-management-modal inbound-orders-modal"
         show={showModal}
         closeModal={handleCloseModal}
         header={renderHeader()}
@@ -2351,7 +2405,7 @@ const InboundOrdersContent = ({ formValues, handleChange, cardColor }) => {
       />
 
       <CustomModal
-        className="material-management-modal"
+        className="material-management-modal inbound-orders-modal"
         show={showConvertModal}
         closeModal={handleCloseConvertModal}
         header={renderConvertHeader()}
@@ -2361,7 +2415,7 @@ const InboundOrdersContent = ({ formValues, handleChange, cardColor }) => {
       />
 
       <CustomModal
-        className="material-management-modal"
+        className="material-management-modal inbound-orders-modal"
         show={showViewModal}
         closeModal={handleCloseViewModal}
         header={renderViewHeader()}

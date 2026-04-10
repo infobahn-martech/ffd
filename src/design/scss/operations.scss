@@ -7327,6 +7327,17 @@ body .material-management-modal .modal-footer {
   gap: 12px;
 }
 
+/* Inbound Orders — wider dialog, shorter scroll area, tighter body */
+body .inbound-orders-modal .modal-dialog {
+  max-width: 1180px !important;
+  width: 96% !important;
+}
+
+body .inbound-orders-modal .modal-body {
+  max-height: min(58vh, 620px);
+  padding: 18px 24px;
+}
+
 /* Material Management Modal - Apply #e2e6ff color to labels, buttons, hover states */
 body .material-management-modal {
 

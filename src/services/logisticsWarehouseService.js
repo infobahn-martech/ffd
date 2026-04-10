@@ -6,4 +6,6 @@ const updateLocation = (data) => Gateway.post('/material/update_location', data)
 // Add delete endpoint when API is available: material/delete_location
 const deleteLocation = (id) => Gateway.delete(`/material/delete_location/${id}`);
 
-export default { addLocation, getLocations, updateLocation, deleteLocation };
+const getWarehouseLocations = () => Gateway.get('/material/get_warehouse_locations');
+
+export default { addLocation, getLocations, updateLocation, deleteLocation, getWarehouseLocations };

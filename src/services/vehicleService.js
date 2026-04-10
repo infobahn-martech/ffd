@@ -10,6 +10,10 @@ const getAllTransportVehicles = () => Gateway.get('/transport/get_all_transport_
 const getDriversByVehicleType = (vehicle_type_id) =>
   Gateway.get(`/transport/all_drivers_by_vehicletype/${vehicle_type_id}`);
 
+const getMaterialVehicles = () => Gateway.get('/transport/get_all_material_vehicles');
+
+const getMaterialDrivers = () => Gateway.get('/transport/get_material_drivers');
+
 export default {
   addVehicle,
   fetchVehicles,
@@ -17,4 +21,6 @@ export default {
   deleteVehicle,
   getAllTransportVehicles,
   getDriversByVehicleType,
+  getMaterialVehicles,
+  getMaterialDrivers,
 };
