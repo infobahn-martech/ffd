@@ -1,13 +1,49 @@
-import { useState, useRef } from "react";
+import { useState, useRef, useEffect, useMemo } from "react";
 import PropTypes from "prop-types";
 import GroupSettingsIcon from "../../../../assets/images/cv.png";
 import { FormSection, FormField, FormSelect, ReactQuillEditor } from "./Husbandry.components";
+import thirdPartyService from "../../../../services/thirdPartyService";
+
+const unwrapApiList = (axiosData) => {
+  const payload = axiosData?.data ?? axiosData;
+  if (Array.isArray(payload)) return payload;
+  if (Array.isArray(payload?.data)) return payload.data;
+  return [];
+};
 
 const ThirdPartyServicesContent = ({ formValues, handleChange, cardColor }) => {
   const [isDraggingRequestEmail, setIsDraggingRequestEmail] = useState(false);
   const [isDraggingThirdPartyDocuments, setIsDraggingThirdPartyDocuments] = useState(false);
+  const [thirdPartyServiceCatalog, setThirdPartyServiceCatalog] = useState([]);
+  const [loadingThirdPartyServiceCatalog, setLoadingThirdPartyServiceCatalog] = useState(false);
   const requestEmailFileInputRef = useRef(null);
   const thirdPartyDocumentsFileInputRef = useRef(null);
+
+  useEffect(() => {
+    let cancelled = false;
+    (async () => {
+      try {
+        setLoadingThirdPartyServiceCatalog(true);
+        const { data } = await thirdPartyService.getThirdPartyServices({
+          params: {
+            page: 1,
+            limit: 1000,
+            sortBy: "third_party_service",
+            sortOrder: "ASC",
+          },
+        });
+        const list = unwrapApiList(data);
+        if (!cancelled) setThirdPartyServiceCatalog(list);
+      } catch {
+        if (!cancelled) setThirdPartyServiceCatalog([]);
+      } finally {
+        if (!cancelled) setLoadingThirdPartyServiceCatalog(false);
+      }
+    })();
+    return () => {
+      cancelled = true;
+    };
+  }, []);
 
   // Handle file upload for Request Email documents
   const handleRequestEmailFileChange = (e) => {
@@ -101,20 +137,14 @@ const ThirdPartyServicesContent = ({ formValues, handleChange, cardColor }) => {
   const thirdPartyDocumentsFiles = formValues.thirdPartyServicesDocuments || [];
   const thirdPartyDocumentsFilesCount = thirdPartyDocumentsFiles.length;
 
-  // Service Type options
-  const serviceTypeOptions = [
-    { value: "Blue Sticker Inspection", label: "Blue Sticker Inspection" },
-    { value: "White Sticker Inspection", label: "White Sticker Inspection" },
-    { value: "LLG certification", label: "LLG certification" },
-    { value: "General Condition Survey", label: "General Condition Survey" },
-    { value: "Towing certificate", label: "Towing certificate" },
-    { value: "Crane Assessment Operator", label: "Crane Assessment Operator" },
-    { value: "Bollard Pull Test", label: "Bollard Pull Test" },
-    { value: "ROB survey", label: "ROB survey" },
-    { value: "On Hire Survey", label: "On Hire Survey" },
-    { value: "Off Hire Survey", label: "Off Hire Survey" },
-    { value: "Others", label: "Others" },
-  ];
+  // Service Type options from GET /service/get_all_third_party_service { third_party_service_id, third_party_service }
+  const serviceTypeOptions = useMemo(() => {
+    const fromApi = thirdPartyServiceCatalog.map((row) => ({
+      value: String(row.third_party_service_id ?? row._id ?? ""),
+      label: row.third_party_service ?? "",
+    }));
+    return [...fromApi.filter((o) => o.value), { value: "Others", label: "Others" }];
+  }, [thirdPartyServiceCatalog]);
 
   // Check if "Others" is selected
   const isOthersSelected = formValues.thirdPartyServiceType === "Others";
@@ -297,7 +327,8 @@ const ThirdPartyServicesContent = ({ formValues, handleChange, cardColor }) => {
                   value={formValues.thirdPartyServiceType || ""}
                   onChange={handleChange("thirdPartyServiceType")}
                   options={serviceTypeOptions}
-                  placeholder="Select service type..."
+                  placeholder={loadingThirdPartyServiceCatalog ? "Loading service types..." : "Select service type..."}
+                  disabled={loadingThirdPartyServiceCatalog}
                 />
               </FormField>
 
