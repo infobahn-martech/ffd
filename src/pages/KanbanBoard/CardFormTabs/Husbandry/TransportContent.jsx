@@ -1,9 +1,18 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import PropTypes from "prop-types";
 import Select from "react-select";
 import GroupSettingsIcon from "../../../../assets/images/cv.png";
-import { FormSection, FormField, FormInput, FormSelect, FormTextarea, ReactQuillEditor } from "./Husbandry.components";
+import { FormSection, FormField, FormSelect, FormTextarea, ReactQuillEditor } from "./Husbandry.components";
 import LocationAutocomplete from "./LocationAutocomplete";
+import vehicleService from "../../../../services/vehicleService";
+import transportCompanyService from "../../../../services/transportCompanyService";
+
+const unwrapApiList = (axiosData) => {
+  const payload = axiosData?.data ?? axiosData;
+  if (Array.isArray(payload)) return payload;
+  if (Array.isArray(payload?.data)) return payload.data;
+  return [];
+};
 
 const TransportContent = ({ formValues, handleChange, cardColor }) => {
   // Radio button state - default to "inhouse" if not set
@@ -21,27 +30,15 @@ const TransportContent = ({ formValues, handleChange, cardColor }) => {
     label: crew.crewName || `Crew Member ${crew.id}`,
   })) || [];
 
-  // Driver name options
-  const driverOptions = [
-    { value: "John Smith", label: "John Smith" },
-    { value: "Michael Johnson", label: "Michael Johnson" },
-    { value: "David Williams", label: "David Williams" },
-    { value: "Robert Brown", label: "Robert Brown" },
-    { value: "James Davis", label: "James Davis" },
-    { value: "William Miller", label: "William Miller" },
-    { value: "Richard Wilson", label: "Richard Wilson" },
-    { value: "Joseph Moore", label: "Joseph Moore" },
-  ];
+  const [transportVehicles, setTransportVehicles] = useState([]);
+  const [inhouseDrivers, setInhouseDrivers] = useState([]);
+  const [transportCompanies, setTransportCompanies] = useState([]);
+  const [thirdPartyDrivers, setThirdPartyDrivers] = useState([]);
 
-  // Type of car options
-  const carTypeOptions = [
-    { value: "Sedan", label: "Sedan" },
-    { value: "SUV", label: "SUV" },
-    { value: "Van", label: "Van" },
-    { value: "Bus", label: "Bus" },
-    { value: "Truck", label: "Truck" },
-    { value: "Taxi", label: "Taxi" },
-  ];
+  const [loadingVehicles, setLoadingVehicles] = useState(false);
+  const [loadingInhouseDrivers, setLoadingInhouseDrivers] = useState(false);
+  const [loadingCompanies, setLoadingCompanies] = useState(false);
+  const [loadingThirdPartyDrivers, setLoadingThirdPartyDrivers] = useState(false);
 
   // Invoice Branch options
   const invoiceBranchOptions = [
@@ -51,11 +48,132 @@ const TransportContent = ({ formValues, handleChange, cardColor }) => {
     { value: "Main Office", label: "Main Office" },
   ];
 
-  const transportPartyOptions = [
-    { value: "Party A", label: "Party A" },
-    { value: "Party B", label: "Party B" },
-    { value: "Party C", label: "Party C" },
-  ];
+  useEffect(() => {
+    let cancelled = false;
+    (async () => {
+      try {
+        setLoadingVehicles(true);
+        const { data } = await vehicleService.getAllTransportVehicles();
+        const list = unwrapApiList(data);
+        if (!cancelled) setTransportVehicles(list);
+      } catch {
+        if (!cancelled) setTransportVehicles([]);
+      } finally {
+        if (!cancelled) setLoadingVehicles(false);
+      }
+    })();
+    return () => {
+      cancelled = true;
+    };
+  }, []);
+
+  useEffect(() => {
+    let cancelled = false;
+    (async () => {
+      try {
+        setLoadingCompanies(true);
+        const { data } = await transportCompanyService.getTransportCompanyData({
+          params: { page: 1, limit: 500, search: "" },
+        });
+        const list = data?.data ?? [];
+        if (!cancelled) setTransportCompanies(Array.isArray(list) ? list : []);
+      } catch {
+        if (!cancelled) setTransportCompanies([]);
+      } finally {
+        if (!cancelled) setLoadingCompanies(false);
+      }
+    })();
+    return () => {
+      cancelled = true;
+    };
+  }, []);
+
+  useEffect(() => {
+    const vehicleTypeId = formValues.transportVehicleTypeId;
+    if (!vehicleTypeId || transportType !== "inhouse") {
+      setInhouseDrivers([]);
+      return;
+    }
+    let cancelled = false;
+    (async () => {
+      try {
+        setLoadingInhouseDrivers(true);
+        const { data } = await vehicleService.getDriversByVehicleType(vehicleTypeId);
+        const list = unwrapApiList(data);
+        if (!cancelled) setInhouseDrivers(list);
+      } catch {
+        if (!cancelled) setInhouseDrivers([]);
+      } finally {
+        if (!cancelled) setLoadingInhouseDrivers(false);
+      }
+    })();
+    return () => {
+      cancelled = true;
+    };
+  }, [formValues.transportVehicleTypeId, transportType]);
+
+  useEffect(() => {
+    const companyId = formValues.transportCompanyId;
+    if (!companyId || transportType !== "thirdparty") {
+      setThirdPartyDrivers([]);
+      return;
+    }
+    let cancelled = false;
+    (async () => {
+      try {
+        setLoadingThirdPartyDrivers(true);
+        const { data } = await transportCompanyService.getTransportCompanyById(companyId);
+        const row = data?.data ?? data;
+        const company = Array.isArray(row) ? row[0] : row;
+        const drivers = company?.drivers;
+        if (!cancelled) setThirdPartyDrivers(Array.isArray(drivers) ? drivers : []);
+      } catch {
+        if (!cancelled) setThirdPartyDrivers([]);
+      } finally {
+        if (!cancelled) setLoadingThirdPartyDrivers(false);
+      }
+    })();
+    return () => {
+      cancelled = true;
+    };
+  }, [formValues.transportCompanyId, transportType]);
+
+  const vehicleOptions = transportVehicles.map((v) => ({
+    value: String(v.vehicle_type_id ?? ""),
+    label: [v.vehicle_type, v.seater != null ? `${v.seater} seater` : null]
+      .filter(Boolean)
+      .join(" · ") || `Vehicle ${v.vehicle_type_id}`,
+  }));
+
+  const inhouseDriverOptions = inhouseDrivers.map((d) => ({
+    value: String(d.driver_id ?? ""),
+    label: d.driver_name ?? "",
+  }));
+
+  const companyOptions = transportCompanies.map((c) => ({
+    value: String(c.transport_company_id ?? c._id ?? ""),
+    label: c.transport_company ?? "",
+  }));
+
+  const thirdPartyDriverOptions = thirdPartyDrivers.map((d) => ({
+    value: String(d.transport_driver_id ?? ""),
+    label: [
+      d.driver_name,
+      d.vehicle_type,
+      d.seater != null ? `${d.seater} seater` : null,
+      d.contact_no,
+    ]
+      .filter(Boolean)
+      .join(" · "),
+  }));
+
+  const clearTransportSelections = useCallback(() => {
+    handleChange("transportVehicleTypeId")({ target: { value: "" } });
+    handleChange("transportDriverId")({ target: { value: "" } });
+    handleChange("transportCompanyId")({ target: { value: "" } });
+    handleChange("transportThirdPartyDriverId")({ target: { value: "" } });
+    handleChange("driverName")({ target: { value: "" } });
+  }, [handleChange]);
 
   // Handle transport type radio button change
   const handleTransportTypeChange = (e) => {
@@ -63,6 +181,33 @@ const TransportContent = ({ formValues, handleChange, cardColor }) => {
     setTransportType(value);
     const syntheticEvent = { target: { value: value } };
     handleChange("transportType")(syntheticEvent);
+    clearTransportSelections();
+  };
+
+  const handleVehicleChange = (e) => {
+    handleChange("transportVehicleTypeId")(e);
+    handleChange("transportDriverId")({ target: { value: "" } });
+    handleChange("driverName")({ target: { value: "" } });
+  };
+
+  const handleInhouseDriverChange = (e) => {
+    handleChange("transportDriverId")(e);
+    const id = e.target.value;
+    const row = inhouseDrivers.find((d) => String(d.driver_id) === id);
+    handleChange("driverName")({ target: { value: row?.driver_name ?? "" } });
+  };
+
+  const handleCompanyChange = (e) => {
+    handleChange("transportCompanyId")(e);
+    handleChange("transportThirdPartyDriverId")({ target: { value: "" } });
+    handleChange("driverName")({ target: { value: "" } });
+  };
+
+  const handleThirdPartyDriverChange = (e) => {
+    handleChange("transportThirdPartyDriverId")(e);
+    const id = e.target.value;
+    const row = thirdPartyDrivers.find((d) => String(d.transport_driver_id) === id);
+    handleChange("driverName")({ target: { value: row?.driver_name ?? "" } });
   };
 
   // Handle multi-select crew change
@@ -201,9 +346,13 @@ const TransportContent = ({ formValues, handleChange, cardColor }) => {
 
   // Handle save
   const handleSave = () => {
-    // You can add validation here
     console.log("Saving transport data:", {
+      transportType: formValues.transportType,
       selectedCrew: formValues.selectedCrew,
+      transportVehicleTypeId: formValues.transportVehicleTypeId,
+      transportDriverId: formValues.transportDriverId,
+      transportCompanyId: formValues.transportCompanyId,
+      transportThirdPartyDriverId: formValues.transportThirdPartyDriverId,
       driverName: formValues.driverName,
       dateTime: formValues.transportDateTime,
       time: formValues.transportTime,
@@ -211,11 +360,9 @@ const TransportContent = ({ formValues, handleChange, cardColor }) => {
       fromNotes: formValues.transportFromNotes,
       to: formValues.transportTo,
       toNotes: formValues.transportToNotes,
-      carType: formValues.carType,
       invoiceBranch: formValues.invoiceBranch,
-      transportParty: formValues.transportParty,
+      transportDescription: formValues.transportDescription,
     });
-    // Add your save logic here
   };
 
   return (
@@ -269,34 +416,104 @@ const TransportContent = ({ formValues, handleChange, cardColor }) => {
                 </div>
               </FormField>
 
-              {transportType === "thirdparty" && (
-                <FormField label="Transport Parties">
-                  <FormSelect
-                    value={formValues.transportParty || ""}
-                    onChange={handleChange("transportParty")}
-                    options={transportPartyOptions}
-                    placeholder="Select transport party..."
-                  />
-                </FormField>
+              {transportType === "inhouse" && (
+                <>
+                  <FormField label="Vehicle">
+                    <FormSelect
+                      value={formValues.transportVehicleTypeId || ""}
+                      onChange={handleVehicleChange}
+                      options={vehicleOptions}
+                      placeholder={
+                        loadingVehicles ? "Loading vehicles..." : "Select vehicle..."
+                      }
+                      disabled={loadingVehicles}
+                    />
+                  </FormField>
+
+                  <FormField label="Driver Name">
+                    <FormSelect
+                      value={formValues.transportDriverId || ""}
+                      onChange={handleInhouseDriverChange}
+                      options={inhouseDriverOptions}
+                      placeholder={
+                        !formValues.transportVehicleTypeId
+                          ? "Select a vehicle first..."
+                          : loadingInhouseDrivers
+                            ? "Loading drivers..."
+                            : "Select driver name..."
+                      }
+                      disabled={!formValues.transportVehicleTypeId || loadingInhouseDrivers}
+                    />
+                  </FormField>
+                </>
               )}
 
-              <FormField label="Driver Name">
-                {transportType === "inhouse" ? (
-                  <FormSelect
-                    value={formValues.driverName || ""}
-                    onChange={handleChange("driverName")}
-                    options={driverOptions}
-                    placeholder="Select driver name..."
-                  />
-                ) : (
-                  <FormInput
-                    type="text"
-                    value={formValues.driverName || ""}
-                    onChange={handleChange("driverName")}
-                    placeholder="Enter driver name..."
-                  />
-                )}
-              </FormField>
+              {transportType === "thirdparty" && (
+                <>
+                  <FormField label="Transport Company">
+                    <FormSelect
+                      value={formValues.transportCompanyId || ""}
+                      onChange={handleCompanyChange}
+                      options={companyOptions}
+                      placeholder={
+                        loadingCompanies ? "Loading companies..." : "Select transport company..."
+                      }
+                      disabled={loadingCompanies}
+                    />
+                  </FormField>
+
+                  <FormField label="Driver Name">
+                    <FormSelect
+                      value={formValues.transportThirdPartyDriverId || ""}
+                      onChange={handleThirdPartyDriverChange}
+                      options={thirdPartyDriverOptions}
+                      placeholder={
+                        !formValues.transportCompanyId
+                          ? "Select a company first..."
+                          : loadingThirdPartyDrivers
+                            ? "Loading drivers..."
+                            : "Select driver..."
+                      }
+                      disabled={!formValues.transportCompanyId || loadingThirdPartyDrivers}
+                    />
+                  </FormField>
+
+                  {formValues.transportCompanyId &&
+                    !loadingThirdPartyDrivers &&
+                    thirdPartyDrivers.length > 0 && (
+                      <FormField label="">
+                        <div
+                          className="third-party-drivers-detail"
+                          style={{
+                            marginTop: "4px",
+                            padding: "12px",
+                            background: "#f7f8fb",
+                            borderRadius: "8px",
+                            border: "1px solid #e2e2ea",
+                            fontSize: "13px",
+                          }}
+                        >
+                          <div style={{ fontWeight: 600, marginBottom: "8px", color: "#1a1a1a" }}>
+                            Drivers and vehicles
+                          </div>
+                          <ul style={{ margin: 0, paddingLeft: "18px", color: "#333" }}>
+                            {thirdPartyDrivers.map((d) => (
+                              <li key={d.transport_driver_id ?? d.driver_name} style={{ marginBottom: "6px" }}>
+                                <strong>{d.driver_name || "—"}</strong>
+                                {d.contact_no ? ` · ${d.contact_no}` : ""}
+                                {d.vehicle_type || d.seater != null
+                                  ? ` · ${[d.vehicle_type, d.seater != null ? `${d.seater} seater` : null]
+                                      .filter(Boolean)
+                                      .join(" · ")}`
+                                  : ""}
+                              </li>
+                            ))}
+                          </ul>
+                        </div>
+                      </FormField>
+                    )}
+                </>
+              )}
 
               <FormField label="Pickup Date Time">
                 <div className="cf-input date-time-row">
@@ -354,15 +571,6 @@ const TransportContent = ({ formValues, handleChange, cardColor }) => {
 
               {transportType === "inhouse" && (
                 <>
-                  <FormField label="Type of Car">
-                    <FormSelect
-                      value={formValues.carType || ""}
-                      onChange={handleChange("carType")}
-                      options={carTypeOptions}
-                      placeholder="Select type of car..."
-                    />
-                  </FormField>
-
                   <FormField label="Invoice Branch">
                     <FormSelect
                       value={formValues.invoiceBranch || ""}
