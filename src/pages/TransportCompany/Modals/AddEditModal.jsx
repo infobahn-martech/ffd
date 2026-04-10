@@ -176,12 +176,12 @@ export function TransportCompanyModal({ showModal, closeModal, onSuccess }) {
           </div>
 
           <div className="mt-2 transport-company-drivers">
-            <div className="transport-company-drivers__heading">
+            {/* <div className="transport-company-drivers__heading">
               <span className="transport-company-drivers__title">Drivers</span>
               <span className="transport-company-drivers__req" aria-hidden="true">
                 *
               </span>
-            </div>
+            </div> */}
             <div className="transport-company-drivers__list">
               {fields.map((field, index) => (
                 <div className="transport-company-driver-row" key={field.id}>
