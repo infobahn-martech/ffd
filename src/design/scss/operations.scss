@@ -2819,8 +2819,18 @@ $send-report-optional: #80868b;
   box-shadow: 0 4px 8px rgba(0, 0, 0, 0.15);
 }
 
+.crew-upload-actions__download-btn-icon,
 .crew-upload-actions__download-btn svg {
   flex-shrink: 0;
+  display: block;
+  width: 18px;
+  height: 18px;
+  color: currentColor;
+}
+
+.crew-upload-actions__download-btn:hover .crew-upload-actions__download-btn-icon,
+.crew-upload-actions__download-btn:hover svg {
+  color: var(--card-color, #2a00ff);
 }
 
 @media (max-width: 768px) {
