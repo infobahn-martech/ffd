@@ -3712,6 +3712,16 @@ body .material-management-modal .files-list::-webkit-scrollbar-thumb:hover {
   font-size: 14px;
 }
 
+.crew-wizard-optional-skip {
+  display: flex;
+  justify-content: center;
+  margin-top: 16px;
+}
+
+.crew-wizard-optional-skip .crew-wizard-btn {
+  min-width: 200px;
+}
+
 .crew-wizard-upload-card {
   max-width: 760px;
   min-height: 230px;

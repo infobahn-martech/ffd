@@ -135,8 +135,26 @@ const getDefaultBulkStepConfig = (includeIqama = false) => {
   }
 
   base.push(
-    { key: "cgPass", label: "CG Pass", title: "Upload CG Pass File", description: "Upload CG pass documents in bulk for crew members.", storageField: "crewCgPassFiles", accepts: "*/*", allowMultiple: true },
-    { key: "zawilPass", label: "Zawil Pass", title: "Upload Zawil Pass File", description: "Upload zawil pass documents in bulk for crew members.", storageField: "crewZawilPassFiles", accepts: "*/*", allowMultiple: true }
+    {
+      key: "cgPass",
+      label: "CG Pass",
+      title: "Upload CG Pass File (optional)",
+      description: "Optional — upload CG pass documents in bulk, or skip if not needed.",
+      storageField: "crewCgPassFiles",
+      accepts: "*/*",
+      allowMultiple: true,
+      optional: true
+    },
+    {
+      key: "zawilPass",
+      label: "Zawil Pass",
+      title: "Upload Zawil Pass File (optional)",
+      description: "Optional — upload zawil pass documents in bulk, or skip if not needed.",
+      storageField: "crewZawilPassFiles",
+      accepts: "*/*",
+      allowMultiple: true,
+      optional: true
+    }
   );
 
   return base;
@@ -152,7 +170,8 @@ const buildWizardSteps = ({ includeIqama, uploadedFileName, formValues }) => {
         uploadedFile: uploadedFileName ? [{ name: uploadedFileName }] : null,
         uploadedAt: uploadedFileName ? new Date().toISOString() : null,
         serverResponse: null,
-        errorMessage: null
+        errorMessage: null,
+        skipped: false
       };
     }
 
@@ -164,7 +183,8 @@ const buildWizardSteps = ({ includeIqama, uploadedFileName, formValues }) => {
       uploadedFile: hasExistingFiles ? existingFiles : null,
       uploadedAt: hasExistingFiles ? new Date().toISOString() : null,
       serverResponse: null,
-      errorMessage: null
+      errorMessage: null,
+      skipped: false
     };
   });
 };
@@ -677,7 +697,50 @@ const CrewContent = ({ formValues, handleChange, cardColor, onNavigateToTab, lau
           uploadedFile: files,
           uploadedAt: new Date().toISOString(),
           serverResponse,
-          errorMessage: null
+          errorMessage: null,
+          skipped: false
+        };
+      }
+      if (idx === nextIndex) {
+        return { ...step, status: WIZARD_STEP_STATUS.ACTIVE, errorMessage: null };
+      }
+      return step;
+    });
+
+    setWizardSlideDirection("forward");
+    setSteps(updated);
+    if (nextIndex < updated.length) {
+      setActiveStepIndex(nextIndex);
+    }
+  };
+
+  const skipOptionalWizardStep = () => {
+    if (!activeStep?.optional || activeStep.status !== WIZARD_STEP_STATUS.ACTIVE) return;
+    const stepKey = activeStep.key;
+    const currentIndex = steps.findIndex((s) => s.key === stepKey);
+    if (currentIndex < 0) return;
+
+    const fieldName = getStepStorageField(stepKey);
+    if (fieldName) {
+      handleChange(fieldName)({ target: { value: [] } });
+    }
+    if (stepKey === "cgPass") {
+      setCgPassFiles([]);
+    } else if (stepKey === "zawilPass") {
+      setZawilPassFiles([]);
+    }
+
+    const nextIndex = currentIndex + 1;
+    const updated = steps.map((step, idx) => {
+      if (idx === currentIndex) {
+        return {
+          ...step,
+          status: WIZARD_STEP_STATUS.COMPLETED,
+          uploadedFile: null,
+          uploadedAt: null,
+          serverResponse: null,
+          errorMessage: null,
+          skipped: true
         };
       }
       if (idx === nextIndex) {
@@ -2185,7 +2248,7 @@ const CrewContent = ({ formValues, handleChange, cardColor, onNavigateToTab, lau
               </div>
               <div>
                 <h5 className="crew-bulk-upload-wizard__title">Crew Bulk Upload</h5>
-                <p className="crew-bulk-upload-wizard__subtitle">Upload required crew documents step by step</p>
+                <p className="crew-bulk-upload-wizard__subtitle">Upload crew documents step by step — CG Pass and Zawil Pass are optional</p>
               </div>
             </div>
             <div className="crew-bulk-upload-wizard__header-meta">
@@ -2271,6 +2334,17 @@ const CrewContent = ({ formValues, handleChange, cardColor, onNavigateToTab, lau
                     )}
                   </div>
                 </div>
+                {activeStep.optional && activeStep.status === WIZARD_STEP_STATUS.ACTIVE && !isUploadingStep && (
+                  <div className="crew-wizard-optional-skip">
+                    <button
+                      type="button"
+                      className="crew-wizard-btn crew-wizard-btn--ghost"
+                      onClick={skipOptionalWizardStep}
+                    >
+                      Skip — no file needed
+                    </button>
+                  </div>
+                )}
                 {activeStep.status === WIZARD_STEP_STATUS.ERROR && activeStep.errorMessage && (
                   <div className="crew-wizard-inline-error">{activeStep.errorMessage}</div>
                 )}
@@ -2338,7 +2412,7 @@ const CrewContent = ({ formValues, handleChange, cardColor, onNavigateToTab, lau
             </div>
             <div className="crew-wizard-footer-bar">
               {isWizardCompleted ? (
-                <p className="crew-wizard-footer-message is-success">All required bulk upload steps are complete.</p>
+                <p className="crew-wizard-footer-message is-success">Bulk upload is complete.</p>
               ) : (
                 <p className="crew-wizard-footer-message">Current step: {activeStep?.label || "-"}</p>
               )}
