@@ -13,6 +13,7 @@ import {
   buildArrivalReportBody,
   buildDepartureReportBody,
 } from "./sendReportBodyBuilders";
+import AttachmentsList from "./AttachmentsList";
 import "../../../design/scss/operations.scss";
 
 // Constants
@@ -545,111 +546,6 @@ EmptySection.propTypes = {
   message: PropTypes.string.isRequired,
   buttonText: PropTypes.string.isRequired,
   onButtonClick: PropTypes.func,
-};
-
-const AttachmentsList = ({ attachments = [], onAdd, onRemove, cardColor, isDragging, onDragEnter, onDragLeave, onDragOver, onDrop, fileInputRef, onFileInputChange }) => {
-  return (
-    <div className="attachment-list-wrapper">
-      {/* Always show drag and drop zone */}
-      <div>
-        <div
-          className={`document-upload-zone ${isDragging ? "dragging" : ""}`}
-          onDragEnter={onDragEnter}
-          onDragOver={onDragOver}
-          onDragLeave={onDragLeave}
-          onDrop={onDrop}
-          onClick={() => fileInputRef.current?.click()}
-          style={{ "--card-color": "#00368c" }}
-        >
-          <input
-            ref={fileInputRef}
-            type="file"
-            className="file-input-hidden"
-            accept="*/*"
-            multiple
-            onChange={onFileInputChange}
-          />
-          <div className="upload-zone-content">
-            {/* <div className="upload-icon-wrapper">
-              <svg
-                width="64"
-                height="64"
-                viewBox="0 0 24 24"
-                fill="none"
-                xmlns="http://www.w3.org/2000/svg"
-                style={{ color: "#00368c" }}
-              >
-                <path
-                  d="M12 15V3M12 3L8 7M12 3L16 7"
-                  stroke="currentColor"
-                  strokeWidth="2"
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                />
-                <path
-                  d="M2 17L2 18C2 19.1046 2.89543 20 4 20L20 20C21.1046 20 22 19.1046 22 18L22 17"
-                  stroke="currentColor"
-                  strokeWidth="2"
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                />
-                <path
-                  d="M7 11L12 6L17 11"
-                  stroke="currentColor"
-                  strokeWidth="2"
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                />
-              </svg>
-            </div> */}
-            <div className="upload-text-content">
-              <p className="upload-main-text">
-                Drag and drop your files here, or{" "}
-                <span className="upload-link">click to browse</span>
-              </p>
-              <p className="upload-sub-text">Supports all file formats</p>
-            </div>
-
-            {/* Show file names inside upload zone */}
-            {attachments.length > 0 && (
-              <div className="upload-zone-files-list">
-                {attachments.map((item, index) => (
-                  <div key={index} className="upload-zone-file-item">
-                    <span className="upload-zone-file-name">{item.name || item}</span>
-                    <button
-                      className="upload-zone-remove-btn"
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        onRemove(index);
-                      }}
-                      type="button"
-                      title="Remove file"
-                    >
-                      ×
-                    </button>
-                  </div>
-                ))}
-              </div>
-            )}
-          </div>
-        </div>
-      </div>
-    </div>
-  );
-};
-
-AttachmentsList.propTypes = {
-  attachments: PropTypes.array,
-  onAdd: PropTypes.func,
-  onRemove: PropTypes.func,
-  cardColor: PropTypes.string,
-  isDragging: PropTypes.bool,
-  onDragEnter: PropTypes.func,
-  onDragLeave: PropTypes.func,
-  onDragOver: PropTypes.func,
-  onDrop: PropTypes.func,
-  fileInputRef: PropTypes.object,
-  onFileInputChange: PropTypes.func,
 };
 
 const LinksList = ({ links = [], onAdd, onRemove }) => {
