@@ -2753,13 +2753,92 @@ $send-report-optional: #80868b;
   line-height: 1.25;
 }
 
-/* Upload drop zone + download stacked, right-aligned */
+.crew-upload-section--excel-inline {
+  align-items: stretch !important;
+  justify-content: flex-start !important;
+  padding: 0 !important;
+  width: 100%;
+}
+
+.crew-upload-excel-panel {
+  background: #f9fafb;
+  padding: 16px;
+  border-radius: 10px;
+  margin-bottom: 24px;
+  width: 100%;
+  box-sizing: border-box;
+}
+
+.crew-upload-excel-panel .crew-husbandry-section-heading {
+  margin-bottom: 16px;
+}
+
+/* Upload drop zone + download in one row (Husbandry crew Excel) */
 .crew-upload-actions {
   display: flex;
-  flex-direction: column;
-  align-items: flex-end;
-  gap: 10px;
+  flex-direction: row;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
   width: 100%;
+}
+
+.crew-upload-actions__field {
+  flex: 0 0 75%;
+  max-width: 75%;
+  min-width: 0;
+}
+
+.crew-upload-actions__download-btn {
+  flex: 0 0 auto;
+  width: 160px;
+  min-width: 160px;
+  padding: 8px 14px;
+  border-radius: 8px;
+  border: 1px solid #e2e6ff;
+  background-color: #ffffff;
+  color: #1a1a1a;
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background-color 0.2s ease, border-color 0.2s ease, box-shadow 0.2s ease, transform 0.2s ease;
+  font-family: "Open Sans", sans-serif;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+  white-space: nowrap;
+  box-sizing: border-box;
+}
+
+.crew-upload-actions__download-btn:hover {
+  background-color: #f8f9ff;
+  border-color: var(--card-color, #2a00ff);
+  transform: translateY(-1px);
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.15);
+}
+
+.crew-upload-actions__download-btn svg {
+  flex-shrink: 0;
+}
+
+@media (max-width: 768px) {
+  .crew-upload-actions {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .crew-upload-actions__field {
+    flex: 1 1 auto;
+    max-width: none;
+    width: 100%;
+  }
+
+  .crew-upload-actions__download-btn {
+    width: 100%;
+    min-width: 0;
+  }
 }
 
 .crew-excel-upload-zone--compact {
@@ -2771,10 +2850,20 @@ $send-report-optional: #80868b;
 }
 
 .crew-upload-actions .crew-excel-upload-zone--compact {
-  width: min(100%, 600px);
-  min-width: 280px;
-  max-width: 600px;
-  padding: 8px 14px !important;
+  width: 100%;
+  min-width: 0;
+  max-width: none;
+  height: 48px !important;
+  min-height: 48px !important;
+  padding: 0 14px !important;
+  border-radius: 10px;
+  box-sizing: border-box;
+  overflow: hidden;
+}
+
+.crew-upload-actions .crew-excel-upload-zone--compact .crew-excel-upload-zone--compact__content {
+  height: 100%;
+  min-height: 0;
 }
 
 .crew-excel-upload-zone--compact:hover {
