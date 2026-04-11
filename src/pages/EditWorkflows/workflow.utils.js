@@ -4,7 +4,7 @@
  */
 
 export const AREA_ORDER = [
-  'BACKLOG AREA',
+  // 'BACKLOG AREA',
   'REQUESTED AREA',
   'IN PROGRESS AREA',
   'DONE AREA',
