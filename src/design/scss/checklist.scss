@@ -394,6 +394,17 @@
   line-height: 1.25;
 }
 
+.checklist-expiry-input {
+  width: 100%;
+  max-width: 168px;
+  padding: 6px 8px;
+  font-size: 13px;
+  border: 1px solid #e5e7eb;
+  border-radius: 8px;
+  background: #fff;
+  color: #374151;
+}
+
 .checklist-table-requirement {
   font-size: 13px;
   font-weight: 400;

@@ -1,6 +1,7 @@
 import PropTypes from "prop-types";
 import { useState, useMemo, useEffect, useRef, useCallback } from "react";
 import { SendReportButton } from "./SendReportFullWidthView";
+import ChecklistService from "../../../services/checklistService";
 import "../../../design/scss/checklist.scss";
 
 /** Splits checklist labels into title + requirement suffix for hierarchy (display only). */
@@ -26,141 +27,90 @@ const formatFileSizeBytes = (bytes) => {
   return `${(n / (1024 * 1024)).toFixed(1)} MB`;
 };
 
-// Checklist Type Options
-const CHECKLIST_TYPES = {
-  BOAT_ARRIVING_ONBOARD: "BOAT ARRIVING ONBOARD",
-  ACCOMMODATION_CONSTRUCTION_BARGE: "ACCOMODATION/CONSTRUCITON BARGE",
+/** Normalize various API list shapes to an array of checklist type rows. */
+const extractChecklistTypeRows = (payload) => {
+  if (!payload) return [];
+  if (Array.isArray(payload)) return payload;
+  if (Array.isArray(payload.data)) return payload.data;
+  if (Array.isArray(payload.checklists)) return payload.checklists;
+  if (Array.isArray(payload.rows)) return payload.rows;
+  return [];
 };
 
-// Checklist Data for ACCOMODATION/CONSTRUCITON BARGE
-const accommodationBargeChecklist = [
-  {
-    id: "documents_vessel_owners",
-    title: "A) DOCUMENTS REQUIRED FROM VESSEL OWNERS / PRINCIPAL VESSEL",
-    items: [
-      {
-        id: "commercial_invoice_vessel",
-        label: "Commercial invoice for ORIGINAL REQUIRED",
-        expiry: "March 10, 2026"
-      },
-      {
-        id: "bill_of_lading_vessel",
-        label: "Bill of lading REQUIRE COPY ONLY",
-        expiry: "March 12, 2026"
-      },
-      {
-        id: "charter_party_agreement",
-        label: "Charter Party Agreement REQUIRE COPY ONLY",
-        expiry: "March 15, 2026"
-      },
-    ],
-  },
-  {
-    id: "documents_towing_tug",
-    title: "B) DOCUMENTS REQUIRED FROM VESSEL TOWING TUG MASTER",
-    items: [
-      {
-        id: "equipment_material_declaration",
-        label: "Equipment COPY ONLY FORMAT ATTACHED",
-        expiry: "March 17, 2026"
-      },
-      {
-        id: "bill_of_lading_tug",
-        label: "Bill of lading REQUIRE COPY ONLY",
-        expiry: "March 19, 2026"
-      },
-    ],
-  },
-  {
-    id: "marine_work_permit",
-    title: "1. MARINE WORK PERMIT",
-    items: [
-      {
-        id: "vessel_registry_certificate",
-        label: "Vessel Registry certificate REQUIRE COPY ONLY",
-        expiry: "March 21, 2026"
-      },
-      {
-        id: "international_tonnage_certificate",
-        label: "International certificate REQUIRE COPY ONLY",
-        expiry: "March 23, 2026"
-      },
-    ],
-  },
-  {
-    id: "authorisation_letter",
-    title: "C) AUTHORISATION LETTER FOR AGENCY & UNDERTAKING LETTER (DOCUMENT REQUIRED FROM CONSIGNEE)",
-    items: [
-      {
-        id: "commercial_registration",
-        label: "Commercial Registration REQUIRE COPY ONLY",
-        expiry: "March 25, 2026"
-      },
-    ],
-  },
-];
+const mergeChecklistTypeOptions = (lists) => {
+  const map = new Map();
+  lists.flat().forEach((row) => {
+    const id = row?.checklist_type_id ?? row?.id;
+    if (id == null || id === "") return;
+    const key = String(id);
+    if (!map.has(key)) {
+      map.set(key, {
+        value: key,
+        label: String(row.checklist_name ?? row.name ?? `Checklist ${key}`).trim() || `Checklist ${key}`,
+      });
+    }
+  });
+  return Array.from(map.values()).sort((a, b) => a.label.localeCompare(b.label));
+};
 
-// Dummy Checklist Data for BOAT ARRIVING ONBOARD
-const boatArrivingOnboardChecklist = [
-  {
-    id: "pre_arrival_documents",
-    title: "A) PRE-ARRIVAL DOCUMENTS",
-    items: [
-      {
-        id: "arrival_notice",
-        label: "Arrival Notice REQUIRE COPY ONLY",
-        expiry: "March 27, 2026"
-      },
-      {
-        id: "crew_declaration",
-        label: "Crew Declaration REQUIRE COPY ONLY",
-        expiry: "March 29, 2026"
-      },
-      {
-        id: "cargo_declaration",
-        label: "Cargo Declaration REQUIRE COPY ONLY",
-        expiry: "March 31, 2026"
-      },
-    ],
-  },
-  {
-    id: "clearance_documents",
-    title: "B) CLEARANCE DOCUMENTS",
-    items: [
-      {
-        id: "port_entry_permit",
-        label: "Port Entry Permit REQUIRE COPY ONLY",
-        expiry: "April 2, 2026"
-      },
-      {
-        id: "health_certificate",
-        label: "Health Certificate REQUIRE COPY ONLY",
-        expiry: "April 4, 2026"
-      },
-      {
-        id: "customs_declaration",
-        label: "Customs Declaration REQUIRE COPY ONLY",
-        expiry: "April 6, 2026"
-      },
-    ],
-  },
-  {
-    id: "safety_documents",
-    title: "C) SAFETY DOCUMENTS",
-    items: [
-      {
-        id: "safety_equipment_list",
-        label: "Safety Equipment List REQUIRE COPY ONLY",
-        expiry: "April 8, 2026"
-      },
-      {
-        id: "emergency_contact_list",
-        label: "Emergency Contact List REQUIRE COPY ONLY",
-        expiry: "April 10, 2026"
-      },
-    ],
-  },
-];
+const buildLabelFromApiItem = (item) => {
+  const name = (item?.item_name ?? "").trim();
+  const dd = item?.document_details ?? {};
+  const copyOnly = dd.require_copy_only ?? dd.required_copy_only ?? dd.is_copy_required;
+  let suffix = "";
+  if (copyOnly) suffix = "REQUIRE COPY ONLY";
+  else if (dd.description) {
+    const d = String(dd.description).trim();
+    if (/copy\s*only/i.test(d)) suffix = "REQUIRE COPY ONLY";
+    else if (/original/i.test(d)) suffix = "ORIGINAL REQUIRED";
+    else if (/format attached/i.test(d)) suffix = "COPY ONLY FORMAT ATTACHED";
+    else suffix = d.toUpperCase();
+  }
+  return suffix ? `${name} ${suffix}` : name;
+};
+
+/** Turn API sections (+ nested sub_sections) into flat UI sections for this checklist type. */
+const flattenApiSectionsToUi = (sections, checklistTypeIdStr, checklistName) => {
+  const result = [];
+
+  const mapItems = (items, sectionId) => {
+    if (!Array.isArray(items)) return [];
+    return items.map((it, i) => {
+      const iid = it.checklist_item_id ?? i;
+      const itemId = `${sectionId}_item_${iid}`;
+      const label = buildLabelFromApiItem(it);
+      const expiryDateRequired = Number(it.expiry_date_reqd) === 1;
+      return {
+        id: itemId,
+        label,
+        expiry: null,
+        expiryDateRequired,
+      };
+    });
+  };
+
+  const walk = (secList) => {
+    if (!Array.isArray(secList)) return;
+    secList.forEach((sec, idx) => {
+      const sid = sec.checklist_section_id ?? `idx_${idx}`;
+      const sectionId = `ct_${checklistTypeIdStr}_sec_${sid}`;
+      const items = mapItems(sec.items, sectionId);
+      result.push({
+        id: sectionId,
+        title: sec.title || "",
+        items,
+        checklistType: checklistTypeIdStr,
+        checklistTypeTitle: checklistName,
+      });
+      if (Array.isArray(sec.sub_sections) && sec.sub_sections.length > 0) {
+        walk(sec.sub_sections);
+      }
+    });
+  };
+
+  walk(sections);
+  return result;
+};
 
 // Form Components
 const FormField = ({ label, children, className = "" }) => {
@@ -709,7 +659,17 @@ ItemDetailModal.propTypes = {
 };
 
 // Checklist Item Component - Table Row Format
-const ChecklistItem = ({ id, label, expiry, itemData, onChange, cardColor = "#2A00FF", isViewOnly = false, isDAModule = false }) => {
+const ChecklistItem = ({
+  id,
+  label,
+  expiry,
+  expiryDateRequired = false,
+  itemData,
+  onChange,
+  cardColor = "#2A00FF",
+  isViewOnly = false,
+  isDAModule = false,
+}) => {
   const [remarks, setRemarks] = useState(itemData?.remarks || "");
   const [uploadedFile, setUploadedFile] = useState(itemData?.uploadedFile || null);
   const [isDragging, setIsDragging] = useState(false);
@@ -799,7 +759,20 @@ const ChecklistItem = ({ id, label, expiry, itemData, onChange, cardColor = "#2A
         </div>
       </td>
       <td className="checklist-table-expiry">
-        {expiry ? <span className="checklist-expiry-badge">{expiry}</span> : null}
+        {expiryDateRequired ? (
+          <input
+            type="date"
+            className="checklist-expiry-input"
+            value={itemData?.expiryDate || ""}
+            onChange={(e) => {
+              const expiryDate = e.target.value;
+              onChange(id, { ...itemData, uploadedFile, remarks, checked, expiryDate });
+            }}
+            disabled={isViewOnly}
+          />
+        ) : expiry ? (
+          <span className="checklist-expiry-badge">{expiry}</span>
+        ) : null}
       </td>
       <td className="checklist-table-upload">
         {isViewOnly && uploadedFile ? (
@@ -887,6 +860,7 @@ ChecklistItem.propTypes = {
   id: PropTypes.string.isRequired,
   label: PropTypes.string.isRequired,
   expiry: PropTypes.string,
+  expiryDateRequired: PropTypes.bool,
   itemData: PropTypes.object,
   onChange: PropTypes.func.isRequired,
   cardColor: PropTypes.string,
@@ -1019,6 +993,7 @@ const ChecklistSection = ({
                   id={item.id}
                   label={item.label}
                   expiry={item.expiry}
+                  expiryDateRequired={item.expiryDateRequired}
                   itemData={itemsData[item.id] || {}}
                   onChange={onItemChange}
                   cardColor={cardColor}
@@ -1141,191 +1116,233 @@ const getDummyRemarksForItem = (itemId, itemLabel) => {
   return remarksTemplates[itemId.charCodeAt(itemId.length - 1) % remarksTemplates.length];
 };
 
+const normalizeSelectedChecklistIds = (raw) => {
+  if (!Array.isArray(raw)) return [];
+  return raw.map((v) => String(v)).filter((v) => v.length > 0);
+};
+
 // Main Checklist Component
 function Checklist({ card, formValues, handleChange, onOpenReportPreview, cardColor: propCardColor, isViewOnly = false, isDAModule = false }) {
   const cardColor = propCardColor || card?.color || "#2A00FF";
 
-  // Form state - Initialize with both checklist types selected by default
-  const [checklistType, setChecklistType] = useState(
-    formValues?.checklistType || [
-      CHECKLIST_TYPES.BOAT_ARRIVING_ONBOARD,
-      CHECKLIST_TYPES.ACCOMMODATION_CONSTRUCTION_BARGE,
-    ]
+  const [checklistTypeOptions, setChecklistTypeOptions] = useState([]);
+  const [checklistOptionsLoading, setChecklistOptionsLoading] = useState(false);
+  const [checklistOptionsError, setChecklistOptionsError] = useState(null);
+
+  const [checklistType, setChecklistType] = useState(() =>
+    normalizeSelectedChecklistIds(formValues?.checklistType)
   );
 
-  // Get checklist data based on selected type - group by checklist type
-  const currentChecklistData = useMemo(() => {
-    const groupedData = [];
+  const [checklistDetailsMap, setChecklistDetailsMap] = useState({});
+  const detailsMapRef = useRef({});
 
-    if (checklistType.includes(CHECKLIST_TYPES.ACCOMMODATION_CONSTRUCTION_BARGE)) {
-      // Add prefix to section titles and item IDs for ACCOMMODATION/CONSTRUCITON BARGE
-      const bargeData = accommodationBargeChecklist.map((section) => ({
-        ...section,
-        id: `accommodation_${section.id}`,
-        checklistType: CHECKLIST_TYPES.ACCOMMODATION_CONSTRUCTION_BARGE,
-        checklistTypeTitle: "ACCOMODATION/CONSTRUCITON BARGE IMPORT CHECKLIST",
-        title: section.title,
-        items: section.items.map((item) => ({
-          ...item,
-          id: `accommodation_${item.id}`,
-        })),
-      }));
-      groupedData.push(...bargeData);
+  useEffect(() => {
+    detailsMapRef.current = checklistDetailsMap;
+  }, [checklistDetailsMap]);
+
+  const calltype = Number(formValues?.typeOfCall);
+  const vesselTypeId = Number(formValues?.vesselType);
+  const bargeTypeId = Number(formValues?.bargeType);
+
+  useEffect(() => {
+    if (!calltype || Number.isNaN(calltype)) {
+      setChecklistTypeOptions([]);
+      setChecklistOptionsError(null);
+      return;
     }
 
-    if (checklistType.includes(CHECKLIST_TYPES.BOAT_ARRIVING_ONBOARD)) {
-      // Add prefix to section titles and item IDs for BOAT ARRIVING ONBOARD
-      const boatData = boatArrivingOnboardChecklist.map((section) => ({
-        ...section,
-        id: `boat_${section.id}`,
-        checklistType: CHECKLIST_TYPES.BOAT_ARRIVING_ONBOARD,
-        checklistTypeTitle: "BOAT ARRIVING ONBOARD IMPORT CHECKLIST",
-        title: section.title,
-        items: section.items.map((item) => ({
-          ...item,
-          id: `boat_${item.id}`,
-        })),
-      }));
-      groupedData.push(...boatData);
+    const hasVessel = vesselTypeId && !Number.isNaN(vesselTypeId);
+    const hasBarge = bargeTypeId && !Number.isNaN(bargeTypeId);
+    if (!hasVessel && !hasBarge) {
+      setChecklistTypeOptions([]);
+      setChecklistOptionsError(null);
+      return;
     }
 
-    return groupedData;
+    let cancelled = false;
+    setChecklistOptionsLoading(true);
+    setChecklistOptionsError(null);
+
+    const requests = [];
+    if (hasVessel) {
+      requests.push(
+        ChecklistService.getChecklistsByVesselType({ vessel_type_id: vesselTypeId, calltype }).then((res) =>
+          extractChecklistTypeRows(res?.data)
+        )
+      );
+    }
+    if (hasBarge) {
+      requests.push(
+        ChecklistService.getChecklistsByBargeType({ barge_type_id: bargeTypeId, calltype }).then((res) =>
+          extractChecklistTypeRows(res?.data)
+        )
+      );
+    }
+
+    Promise.all(requests)
+      .then((lists) => {
+        if (cancelled) return;
+        setChecklistTypeOptions(mergeChecklistTypeOptions(lists));
+      })
+      .catch((err) => {
+        if (cancelled) return;
+        console.error("[Checklist] Failed to load checklist types", err);
+        setChecklistOptionsError(err?.response?.data?.message ?? err?.message ?? "Failed to load checklist types");
+        setChecklistTypeOptions([]);
+      })
+      .finally(() => {
+        if (!cancelled) setChecklistOptionsLoading(false);
+      });
+
+    return () => {
+      cancelled = true;
+    };
+  }, [calltype, vesselTypeId, bargeTypeId]);
+
+  useEffect(() => {
+    if (!checklistTypeOptions.length) return;
+    const valid = new Set(checklistTypeOptions.map((o) => o.value));
+    setChecklistType((prev) => {
+      const filtered = prev.filter((id) => valid.has(String(id)));
+      if (filtered.length === prev.length) return prev;
+      if (handleChange) {
+        handleChange("checklistType")({ target: { value: filtered, name: "checklistType" } });
+      }
+      return filtered;
+    });
+  }, [checklistTypeOptions, handleChange]);
+
+  useEffect(() => {
+    const ids = normalizeSelectedChecklistIds(checklistType);
+    if (ids.length === 0) {
+      setChecklistDetailsMap({});
+      detailsMapRef.current = {};
+      return;
+    }
+
+    const toFetch = ids.filter((id) => {
+      const cur = detailsMapRef.current[id];
+      return !cur?.sections;
+    });
+    if (toFetch.length === 0) return;
+
+    let cancelled = false;
+    (async () => {
+      const fetched = {};
+      await Promise.all(
+        toFetch.map(async (id) => {
+          try {
+            const { data } = await ChecklistService.getChecklistById(Number(id));
+            const details = data?.checklist_details ?? data;
+            if (details && Array.isArray(details.sections)) {
+              fetched[id] = details;
+            }
+          } catch (err) {
+            console.error("[Checklist] get_checklist_by_id failed", id, err);
+          }
+        })
+      );
+      if (cancelled || Object.keys(fetched).length === 0) return;
+      setChecklistDetailsMap((prev) => {
+        const next = { ...prev, ...fetched };
+        detailsMapRef.current = next;
+        return next;
+      });
+    })();
+
+    return () => {
+      cancelled = true;
+    };
   }, [checklistType]);
 
-  // State for checklist items data (remarks, files, checked status)
-  const [itemsData, setItemsData] = useState(() => {
-    const initial = {};
-    currentChecklistData.forEach((section) => {
-      section.items.forEach((item) => {
-        if (isViewOnly) {
-          // For view-only mode, populate with dummy data
-          initial[item.id] = {
-            checked: true,
-            remarks: getDummyRemarksForItem(item.id, item.label),
-            uploadedFile: getDummyFileForItem(item.id, item.label),
-          };
-        } else {
-          initial[item.id] = card?.checklistItemsData?.[item.id] || {
+  const currentChecklistData = useMemo(() => {
+    const groupedData = [];
+    const ids = normalizeSelectedChecklistIds(checklistType);
+    ids.forEach((typeId) => {
+      const details = checklistDetailsMap[typeId];
+      if (!details?.sections?.length) return;
+      const name = details.checklist_name || `Checklist ${typeId}`;
+      groupedData.push(...flattenApiSectionsToUi(details.sections, typeId, name));
+    });
+    return groupedData;
+  }, [checklistType, checklistDetailsMap]);
+
+  const [itemsData, setItemsData] = useState({});
+
+  const [openSections, setOpenSections] = useState({});
+
+  const [openTypeGroups, setOpenTypeGroups] = useState({});
+
+  useEffect(() => {
+    setItemsData((prev) => {
+      const newItemsData = {};
+      currentChecklistData.forEach((section) => {
+        section.items.forEach((item) => {
+          const base = {
             checked: false,
             remarks: "",
             uploadedFile: null,
+            ...(item.expiryDateRequired ? { expiryDate: "" } : {}),
           };
-        }
+          const persisted = card?.checklistItemsData?.[item.id];
+          const existing = prev[item.id];
+          if (!existing) {
+            if (isViewOnly) {
+              newItemsData[item.id] = {
+                checked: true,
+                remarks: getDummyRemarksForItem(item.id, item.label),
+                uploadedFile: getDummyFileForItem(item.id, item.label),
+                ...(item.expiryDateRequired ? { expiryDate: "" } : {}),
+              };
+            } else {
+              newItemsData[item.id] = persisted ? { ...base, ...persisted } : base;
+            }
+          } else if (isViewOnly && (!existing.uploadedFile || !existing.remarks)) {
+            newItemsData[item.id] = {
+              ...existing,
+              checked: true,
+              remarks: existing.remarks || getDummyRemarksForItem(item.id, item.label),
+              uploadedFile: existing.uploadedFile || getDummyFileForItem(item.id, item.label),
+            };
+          } else {
+            newItemsData[item.id] = { ...existing };
+            if (item.expiryDateRequired && newItemsData[item.id].expiryDate === undefined) {
+              newItemsData[item.id].expiryDate = "";
+            }
+          }
+        });
       });
+      return newItemsData;
     });
-    return initial;
-  });
 
-
-  // State for accordion (which sections are open)
-  const [openSections, setOpenSections] = useState(() => {
-    const initial = {};
-    currentChecklistData.forEach((section) => {
-      initial[section.id] = true;
+    setOpenSections((prev) => {
+      const next = { ...prev };
+      currentChecklistData.forEach((section) => {
+        if (next[section.id] === undefined) next[section.id] = true;
+      });
+      return next;
     });
-    return initial;
-  });
 
-  // State for checklist type group accordions (which type groups are open)
-  const [openTypeGroups, setOpenTypeGroups] = useState(() => {
-    const initial = {};
     const groupedByType = {};
     currentChecklistData.forEach((section) => {
       const type = section.checklistTypeTitle || section.checklistType;
-      if (!groupedByType[type]) {
-        groupedByType[type] = [];
-      }
-      groupedByType[type].push(section);
-    });
-    Object.keys(groupedByType).forEach((typeTitle) => {
-      initial[typeTitle] = true; // Start with all type groups open
-    });
-    return initial;
-  });
-
-
-  // Initialize checklistType in formValues if not present
-  useEffect(() => {
-    if (!formValues?.checklistType || formValues.checklistType.length === 0) {
-      const defaultChecklistTypes = [
-        CHECKLIST_TYPES.BOAT_ARRIVING_ONBOARD,
-        CHECKLIST_TYPES.ACCOMMODATION_CONSTRUCTION_BARGE,
-      ];
-      if (handleChange) {
-        const syntheticEvent = {
-          target: { value: defaultChecklistTypes, name: "checklistType" },
-        };
-        handleChange("checklistType")(syntheticEvent);
-      }
-    }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []); // Only run once on mount
-
-  // Update itemsData when checklist data changes
-  useEffect(() => {
-    const newItemsData = {};
-    currentChecklistData.forEach((section) => {
-      section.items.forEach((item) => {
-        if (!itemsData[item.id]) {
-          if (isViewOnly) {
-            // For view-only mode, populate with dummy data
-            newItemsData[item.id] = {
-              checked: true,
-              remarks: getDummyRemarksForItem(item.id, item.label),
-              uploadedFile: getDummyFileForItem(item.id, item.label),
-            };
-          } else {
-            newItemsData[item.id] = {
-              checked: false,
-              remarks: "",
-              uploadedFile: null,
-            };
-          }
-        } else {
-          // If item already exists, preserve it unless we're in view-only mode and it needs dummy data
-          if (isViewOnly && (!itemsData[item.id].uploadedFile || !itemsData[item.id].remarks)) {
-            newItemsData[item.id] = {
-              checked: true,
-              remarks: itemsData[item.id].remarks || getDummyRemarksForItem(item.id, item.label),
-              uploadedFile: itemsData[item.id].uploadedFile || getDummyFileForItem(item.id, item.label),
-            };
-          } else {
-            newItemsData[item.id] = itemsData[item.id];
-          }
-        }
-      });
-    });
-    setItemsData(newItemsData);
-
-    // Update openTypeGroups when checklist data changes
-    const groupedByType = {};
-    currentChecklistData.forEach((section) => {
-      const type = section.checklistTypeTitle || section.checklistType;
-      if (!groupedByType[type]) {
-        groupedByType[type] = [];
-      }
+      if (!groupedByType[type]) groupedByType[type] = [];
       groupedByType[type].push(section);
     });
     setOpenTypeGroups((prev) => {
       const updated = { ...prev };
       Object.keys(groupedByType).forEach((typeTitle) => {
-        if (updated[typeTitle] === undefined) {
-          updated[typeTitle] = true; // Default to open for new types
-        }
+        if (updated[typeTitle] === undefined) updated[typeTitle] = true;
       });
       return updated;
     });
-  }, [currentChecklistData, isViewOnly]);
+  }, [currentChecklistData, isViewOnly, card?.checklistItemsData]);
 
   const handleChecklistTypeChange = (e) => {
-    const newValue = e.target.value; // This is already an array from MultiSelect
+    const newValue = normalizeSelectedChecklistIds(e.target.value);
     setChecklistType(newValue);
-    // Create a synthetic event for handleChange if needed
     if (handleChange) {
-      const syntheticEvent = {
-        target: { value: newValue, name: "checklistType" },
-      };
-      handleChange("checklistType")(syntheticEvent);
+      handleChange("checklistType")({ target: { value: newValue, name: "checklistType" } });
     }
   };
 
@@ -1343,11 +1360,7 @@ function Checklist({ card, formValues, handleChange, onOpenReportPreview, cardCo
     }));
   };
 
-  const handleSelectAll = (sectionId, selectAll) => {
-    // Note: Select All functionality is disabled since checkbox is now controlled by file upload
-    // This function is kept for compatibility but doesn't modify checked state
-    // The checked state is automatically set when a file is uploaded
-  };
+  const handleSelectAll = () => { };
 
   const handleTypeGroupToggle = (typeTitle) => {
     setOpenTypeGroups((prev) => ({
@@ -1356,17 +1369,14 @@ function Checklist({ card, formValues, handleChange, onOpenReportPreview, cardCo
     }));
   };
 
-  const checklistTypeOptions = [
-    { value: CHECKLIST_TYPES.BOAT_ARRIVING_ONBOARD, label: CHECKLIST_TYPES.BOAT_ARRIVING_ONBOARD },
-    {
-      value: CHECKLIST_TYPES.ACCOMMODATION_CONSTRUCTION_BARGE,
-      label: CHECKLIST_TYPES.ACCOMMODATION_CONSTRUCTION_BARGE,
-    },
-  ];
+  const checklistTypeLabels = useMemo(() => {
+    const map = new Map(checklistTypeOptions.map((o) => [o.value, o.label]));
+    return (checklistType || []).map((id) => map.get(String(id)) || id);
+  }, [checklistType, checklistTypeOptions]);
 
   const handleOpenChecklistReport = useCallback(() => {
     if (!onOpenReportPreview) return;
-    const lines = ["Checklist report", "", `Checklist types: ${(checklistType || []).join("; ")}`, ""];
+    const lines = ["Checklist report", "", `Checklist types: ${checklistTypeLabels.join("; ")}`, ""];
     currentChecklistData.forEach((section) => {
       lines.push(section.title);
       section.items.forEach((item) => {
@@ -1374,6 +1384,7 @@ function Checklist({ card, formValues, handleChange, onOpenReportPreview, cardCo
         const fileName = d.uploadedFile?.name || d.uploadedFile?.fileName || "No file uploaded";
         lines.push(`  • ${item.label}`);
         lines.push(`    Status: ${d.checked ? "Complete" : "Pending"} | File: ${fileName}`);
+        if (d.expiryDate) lines.push(`    Expiry: ${d.expiryDate}`);
         if (d.remarks) lines.push(`    Remarks: ${d.remarks}`);
       });
       lines.push("");
@@ -1384,7 +1395,7 @@ function Checklist({ card, formValues, handleChange, onOpenReportPreview, cardCo
       getBody: () => lines.join("\n"),
       getAttachments: () => [],
     });
-  }, [onOpenReportPreview, checklistType, currentChecklistData, itemsData]);
+  }, [onOpenReportPreview, checklistTypeLabels, currentChecklistData, itemsData]);
 
   return (
     <>
@@ -1401,13 +1412,28 @@ function Checklist({ card, formValues, handleChange, onOpenReportPreview, cardCo
             <div className="form-group">
               <div className="cf-grid two">
                 <FormField label="Checklist Type">
-                  <MultiSelect
-                    value={checklistType}
-                    onChange={handleChecklistTypeChange}
-                    options={checklistTypeOptions}
-                    placeholder="Select checklist type..."
-                    disabled={isViewOnly}
-                  />
+                  {checklistOptionsLoading ? (
+                    <div className="cf-input" style={{ padding: "10px 12px", color: "#666" }}>
+                      Loading checklist types…
+                    </div>
+                  ) : (
+                    <MultiSelect
+                      value={checklistType}
+                      onChange={handleChecklistTypeChange}
+                      options={checklistTypeOptions}
+                      placeholder={
+                        !calltype || Number.isNaN(calltype)
+                          ? "Set call type on the card first…"
+                          : !vesselTypeId && !bargeTypeId
+                            ? "Set vessel type and/or barge type…"
+                            : "Select checklist type…"
+                      }
+                      disabled={isViewOnly || checklistOptionsLoading || checklistTypeOptions.length === 0}
+                    />
+                  )}
+                  {checklistOptionsError ? (
+                    <div style={{ marginTop: 8, fontSize: 12, color: "#c0392b" }}>{checklistOptionsError}</div>
+                  ) : null}
                 </FormField>
               </div>
             </div>
