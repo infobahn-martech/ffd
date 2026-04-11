@@ -694,7 +694,7 @@ LinksList.propTypes = {
   onRemove: PropTypes.func,
 };
 
-const PreArrivalContent = ({ formValues, handleChange, ownerInitial, cardUser, cardColor, onAddAttachment, onRemoveAttachment, onAddLink, onRemoveLink, onOpenReportPreview, isViewOnly = false }) => {
+const PreArrivalContent = ({ formValues, handleChange, ownerInitial, cardUser, cardColor, onAddLink, onRemoveLink, onOpenReportPreview, isViewOnly = false }) => {
   const [isDraggingSaberUtDocuments, setIsDraggingSaberUtDocuments] = useState(false);
   const saberUtFileInputRef = useRef(null);
 
@@ -1062,15 +1062,13 @@ PreArrivalContent.propTypes = {
   ownerInitial: PropTypes.string.isRequired,
   cardUser: PropTypes.string,
   cardColor: PropTypes.string,
-  onAddAttachment: PropTypes.func,
-  onRemoveAttachment: PropTypes.func,
   onAddLink: PropTypes.func,
   onRemoveLink: PropTypes.func,
   onOpenReportPreview: PropTypes.func,
   isViewOnly: PropTypes.bool,
 };
 
-const ArrivalContent = ({ formValues, handleChange, cardColor, onAddAttachment, onRemoveAttachment, onAddLink, onRemoveLink, onOpenReportPreview, isViewOnly = false }) => {
+const ArrivalContent = ({ formValues, handleChange, cardColor, onAddLink, onRemoveLink, onOpenReportPreview, isViewOnly = false }) => {
   const [isDraggingDocuments, setIsDraggingDocuments] = useState(false);
   const documentsFileInputRef = useRef(null);
 
@@ -1623,73 +1621,77 @@ ArrivalContent.propTypes = {
   formValues: PropTypes.object.isRequired,
   handleChange: PropTypes.func.isRequired,
   cardColor: PropTypes.string,
-  onAddAttachment: PropTypes.func,
-  onRemoveAttachment: PropTypes.func,
   onAddLink: PropTypes.func,
   onRemoveLink: PropTypes.func,
   onOpenReportPreview: PropTypes.func,
   isViewOnly: PropTypes.bool,
 };
 
-const DepartureContent = ({ formValues, handleChange, cardColor, onAddAttachment, onRemoveAttachment, onAddLink, onRemoveLink, onOpenReportPreview, isViewOnly = false }) => {
-  const [isDragging, setIsDragging] = useState(false);
-  const fileInputRef = useRef(null);
+const DepartureContent = ({ formValues, handleChange, cardColor, onAddLink, onRemoveLink, onOpenReportPreview, isViewOnly = false }) => {
+  const [isDraggingDepartureDocuments, setIsDraggingDepartureDocuments] = useState(false);
+  const departureFileInputRef = useRef(null);
 
-  // Handle drag and drop
-  const handleDragEnter = (e) => {
+  const handleDepartureDragEnter = (e) => {
     e.preventDefault();
     e.stopPropagation();
-    setIsDragging(true);
+    setIsDraggingDepartureDocuments(true);
   };
 
-  const handleDragLeave = (e) => {
+  const handleDepartureDragLeave = (e) => {
     e.preventDefault();
     e.stopPropagation();
-    setIsDragging(false);
+    setIsDraggingDepartureDocuments(false);
   };
 
-  const handleDragOver = (e) => {
+  const handleDepartureDragOver = (e) => {
     e.preventDefault();
     e.stopPropagation();
   };
 
-  const handleDrop = (e) => {
+  const handleDepartureDrop = (e) => {
     e.preventDefault();
     e.stopPropagation();
-    setIsDragging(false);
+    setIsDraggingDepartureDocuments(false);
 
     const files = Array.from(e.dataTransfer.files || []);
-    if (files.length > 0 && onAddAttachment) {
-      files.forEach((file) => {
-        const attachment = {
-          name: file.name,
-          file: file,
-          size: file.size,
-          type: file.type,
-        };
-        onAddAttachment(attachment);
-      });
+    if (files.length > 0) {
+      const currentAttachments = formValues.departureAttachments || [];
+      const newAttachments = files.map((file) => ({
+        name: file.name,
+        file: file,
+        size: file.size,
+        type: file.type,
+      }));
+      const updatedAttachments = [...currentAttachments, ...newAttachments];
+      const syntheticEvent = { target: { value: updatedAttachments } };
+      handleChange("departureAttachments")(syntheticEvent);
     }
   };
 
-  // Handle file input change
-  const handleFileInputChange = (e) => {
+  const handleDepartureFileInputChange = (e) => {
     const files = Array.from(e.target.files || []);
-    if (files.length > 0 && onAddAttachment) {
-      files.forEach((file) => {
-        const attachment = {
-          name: file.name,
-          file: file,
-          size: file.size,
-          type: file.type,
-        };
-        onAddAttachment(attachment);
-      });
+    if (files.length > 0) {
+      const currentAttachments = formValues.departureAttachments || [];
+      const newAttachments = files.map((file) => ({
+        name: file.name,
+        file: file,
+        size: file.size,
+        type: file.type,
+      }));
+      const updatedAttachments = [...currentAttachments, ...newAttachments];
+      const syntheticEvent = { target: { value: updatedAttachments } };
+      handleChange("departureAttachments")(syntheticEvent);
     }
-    // Reset input value to allow selecting the same file again
-    if (fileInputRef.current) {
-      fileInputRef.current.value = "";
+    if (departureFileInputRef.current) {
+      departureFileInputRef.current.value = "";
     }
+  };
+
+  const handleDepartureRemoveAttachment = (index) => {
+    const currentAttachments = formValues.departureAttachments || [];
+    const updatedAttachments = currentAttachments.filter((_, i) => i !== index);
+    const syntheticEvent = { target: { value: updatedAttachments } };
+    handleChange("departureAttachments")(syntheticEvent);
   };
 
   // Handle save
@@ -1709,7 +1711,7 @@ const DepartureContent = ({ formValues, handleChange, cardColor, onAddAttachment
                 tabName: "Departure",
                 formSectionLabel: "Departure Information",
                 getBody: () => buildDepartureReportBody(formValues),
-                getAttachments: () => formValues.attachments || [],
+                getAttachments: () => formValues.departureAttachments || [],
               })
             }
             cardColor={cardColor}
@@ -1810,17 +1812,17 @@ const DepartureContent = ({ formValues, handleChange, cardColor, onAddAttachment
                     </div>
                   ) : (
                     <AttachmentsList
-                      attachments={formValues.attachments || []}
-                      onAdd={onAddAttachment}
-                      onRemove={onRemoveAttachment}
+                      attachments={formValues.departureAttachments || []}
+                      onAdd={() => { }}
+                      onRemove={handleDepartureRemoveAttachment}
                       cardColor={cardColor}
-                      isDragging={isDragging}
-                      onDragEnter={handleDragEnter}
-                      onDragLeave={handleDragLeave}
-                      onDragOver={handleDragOver}
-                      onDrop={handleDrop}
-                      fileInputRef={fileInputRef}
-                      onFileInputChange={handleFileInputChange}
+                      isDragging={isDraggingDepartureDocuments}
+                      onDragEnter={handleDepartureDragEnter}
+                      onDragLeave={handleDepartureDragLeave}
+                      onDragOver={handleDepartureDragOver}
+                      onDrop={handleDepartureDrop}
+                      fileInputRef={departureFileInputRef}
+                      onFileInputChange={handleDepartureFileInputChange}
                     />
                   )}
                 </div>
@@ -1966,8 +1968,6 @@ DepartureContent.propTypes = {
   formValues: PropTypes.object.isRequired,
   handleChange: PropTypes.func.isRequired,
   cardColor: PropTypes.string,
-  onAddAttachment: PropTypes.func,
-  onRemoveAttachment: PropTypes.func,
   onAddLink: PropTypes.func,
   onRemoveLink: PropTypes.func,
   onOpenReportPreview: PropTypes.func,
@@ -2104,20 +2104,6 @@ function Operation({ card, formValues, handleChange, ownerInitial, isDAModule = 
     }
   }, []);
 
-  const handleAddAttachment = useCallback((attachment) => {
-    const currentAttachments = formValues.attachments || [];
-    const updatedAttachments = [...currentAttachments, attachment];
-    const syntheticEvent = { target: { value: updatedAttachments } };
-    handleChange("attachments")(syntheticEvent);
-  }, [formValues.attachments, handleChange]);
-
-  const handleRemoveAttachment = useCallback((index) => {
-    const currentAttachments = formValues.attachments || [];
-    const updatedAttachments = currentAttachments.filter((_, i) => i !== index);
-    const syntheticEvent = { target: { value: updatedAttachments } };
-    handleChange("attachments")(syntheticEvent);
-  }, [formValues.attachments, handleChange]);
-
   const handleAddLink = useCallback(() => {
     // TODO: Implement link add logic
     console.log("Add link");
@@ -2153,8 +2139,6 @@ function Operation({ card, formValues, handleChange, ownerInitial, isDAModule = 
                 ownerInitial={ownerInitial}
                 cardUser={card?.user}
                 cardColor={cardColor}
-                onAddAttachment={handleAddAttachment}
-                onRemoveAttachment={handleRemoveAttachment}
                 onAddLink={handleAddLink}
                 onRemoveLink={handleRemoveLink}
                 onOpenReportPreview={handleOpenReportPreview}
@@ -2177,8 +2161,6 @@ function Operation({ card, formValues, handleChange, ownerInitial, isDAModule = 
                 formValues={viewOnlyFormValues}
                 handleChange={handleChange}
                 cardColor={cardColor}
-                onAddAttachment={handleAddAttachment}
-                onRemoveAttachment={handleRemoveAttachment}
                 onAddLink={handleAddLink}
                 onRemoveLink={handleRemoveLink}
                 onOpenReportPreview={handleOpenReportPreview}
@@ -2190,8 +2172,6 @@ function Operation({ card, formValues, handleChange, ownerInitial, isDAModule = 
                 formValues={viewOnlyFormValues}
                 handleChange={handleChange}
                 cardColor={cardColor}
-                onAddAttachment={handleAddAttachment}
-                onRemoveAttachment={handleRemoveAttachment}
                 onAddLink={handleAddLink}
                 onRemoveLink={handleRemoveLink}
                 onOpenReportPreview={handleOpenReportPreview}

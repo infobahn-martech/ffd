@@ -1186,6 +1186,7 @@ function CardForm({ show, close, card, moveCardToColumn, columns, columnOrder, c
       lastMovedTime: card?.lastMovedTime || "",
       // Attachments and Links
       attachments: card?.attachments || [],
+      departureAttachments: card?.departureAttachments || [],
       links: card?.links || [],
       // Remarks (for simplified mode)
       remarks: card?.remarks || "",
