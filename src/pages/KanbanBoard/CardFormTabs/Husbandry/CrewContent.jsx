@@ -935,19 +935,23 @@ const CrewContent = ({ formValues, handleChange, cardColor, onNavigateToTab, lau
     <>
       {!showCrewList ? (
         // Crew Excel Upload Section
-        <div className="crew-upload-sections-container" style={{
-          display: "flex",
-          flexDirection: "row",
-          alignItems: "flex-start",
-          justifyContent: "center",
-          gap: "32px",
-          minHeight: "400px",
-          padding: "40px 24px",
-          maxWidth: "1600px",
-          margin: "0 auto",
-          width: "100%",
-          flexWrap: "wrap"
-        }}>
+        <div
+          className="crew-upload-sections-container"
+          style={{
+            display: "flex",
+            flexDirection: "row",
+            alignItems: "flex-start",
+            justifyContent: "center",
+            gap: "32px",
+            minHeight: "auto",
+            padding: "16px 24px 24px",
+            maxWidth: "1600px",
+            margin: "0 auto",
+            width: "100%",
+            flexWrap: "wrap",
+            "--card-color": cardColor,
+          }}
+        >
           {/* Crew Excel Upload - Left Side */}
           <div className="crew-upload-section" style={{
             flex: "0 0 850px",
@@ -957,181 +961,89 @@ const CrewContent = ({ formValues, handleChange, cardColor, onNavigateToTab, lau
             minWidth: "400px",
             paddingRight: "16px"
           }}>
-            {/* Header above upload zone with Download Preview button */}
-            <div style={{
-              width: "100%",
-              marginBottom: "24px"
-            }}>
-              <div style={{
-                display: "flex",
-                justifyContent: "space-between",
-                alignItems: "flex-start",
-                marginBottom: "16px",
-                gap: "16px"
-              }}>
-                <div style={{ flex: 1 }}>
-                  <h3 style={{
-                    fontSize: "20px",
-                    fontWeight: "700",
-                    color: "#1a1a1a",
-                    margin: "0 0 8px 0",
-                    fontFamily: "\"Open Sans\", sans-serif",
-                    display: "flex",
-                    alignItems: "center",
-                    gap: "12px"
-                  }}>
-                    <div style={{
-                      width: "4px",
-                      height: "24px",
-                      backgroundColor: "var(--card-color, #2A00FF)",
-                      borderRadius: "2px"
-                    }}></div>
-                    Upload Crew Excel File
-                  </h3>
-                  <p style={{
-                    fontSize: "14px",
-                    color: "#666",
-                    margin: "0",
-                    fontFamily: "\"Open Sans\", sans-serif",
-                    paddingLeft: "16px"
-                  }}>
-                    Please upload your crew data in Excel format
-                  </p>
-                </div>
-                {/* Download Preview Button */}
-                <button
-                  type="button"
-                  onClick={handleDownloadPreview}
-                  style={{
-                    padding: "10px 18px",
-                    borderRadius: "8px",
-                    border: "1px solid #e2e6ff",
-                    backgroundColor: "#ffffff",
-                    color: "#1a1a1a",
-                    fontSize: "13px",
-                    fontWeight: "600",
-                    cursor: "pointer",
-                    transition: "all 0.2s ease",
-                    fontFamily: "\"Open Sans\", sans-serif",
-                    display: "flex",
-                    alignItems: "center",
-                    gap: "8px",
-                    boxShadow: "0 2px 4px rgba(0, 0, 0, 0.1)",
-                    whiteSpace: "nowrap",
-                    flexShrink: 0
-                  }}
-                  onMouseEnter={(e) => {
-                    e.currentTarget.style.backgroundColor = "#f8f9ff";
-                    e.currentTarget.style.borderColor = "var(--card-color, #2A00FF)";
-                    e.currentTarget.style.transform = "translateY(-1px)";
-                    e.currentTarget.style.boxShadow = "0 4px 8px rgba(0, 0, 0, 0.15)";
-                  }}
-                  onMouseLeave={(e) => {
-                    e.currentTarget.style.backgroundColor = "#ffffff";
-                    e.currentTarget.style.borderColor = "#e2e6ff";
-                    e.currentTarget.style.transform = "translateY(0)";
-                    e.currentTarget.style.boxShadow = "0 2px 4px rgba(0, 0, 0, 0.1)";
-                  }}
-                >
-                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" style={{ flexShrink: 0 }}>
-                    <path d="M21 15V19C21 19.5304 20.7893 20.0391 20.4142 20.4142C20.0391 20.7893 19.5304 21 19 21H5C4.46957 21 3.96086 20.7893 3.58579 20.4142C3.21071 20.0391 3 19.5304 3 19V15" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
-                    <path d="M7 10L12 15L17 10" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
-                    <path d="M12 15V3" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
-                  </svg>
-                  <span>Download Preview</span>
-                </button>
-              </div>
+            <div className="crew-husbandry-section-heading">
+              <div className="crew-husbandry-section-heading__accent" aria-hidden="true" />
+              <h4 className="crew-husbandry-section-heading__title">Upload Crew Excel File</h4>
             </div>
-
-            <div
-              className={`document-upload-zone crew-excel-upload-zone ${isDragging ? "dragging" : ""} ${isFileUploaded ? "uploaded" : ""}`}
-              onDragEnter={handleDragEnter}
-              onDragOver={handleDragOver}
-              onDragLeave={handleDragLeave}
-              onDrop={handleDrop}
-              onClick={handleUploadZoneClick}
-              style={{
-                "--card-color": cardColor,
-                width: "100%",
-                minHeight: "280px",
-                height: "auto",
-                margin: "0",
-                padding: "32px 24px"
-              }}
-            >
-              <input
-                ref={fileInputRef}
-                type="file"
-                className="file-input-hidden"
-                accept=".xlsx,.xls,.csv"
-                onChange={handleFileInputChange}
-              />
-              <div className="upload-zone-content">
-                {isFileUploaded ? (
-                  <div style={{
-                    display: "flex",
-                    flexDirection: "column",
-                    alignItems: "center",
-                    gap: "16px"
-                  }}>
-                    <div style={{
-                      width: "64px",
-                      height: "64px",
-                      borderRadius: "50%",
-                      background: "linear-gradient(135deg, #28a745 0%, #20c997 100%)",
-                      display: "flex",
-                      alignItems: "center",
-                      justifyContent: "center",
-                      boxShadow: "0 4px 12px rgba(40, 167, 69, 0.3)"
-                    }}>
-                      <svg width="32" height="32" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-                        <path d="M20 6L9 17L4 12" stroke="white" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" />
+            <div className="crew-upload-actions">
+              <div
+                className={`document-upload-zone crew-excel-upload-zone crew-excel-upload-zone--compact ${isDragging ? "dragging" : ""} ${isFileUploaded ? "uploaded" : ""}`}
+                onDragEnter={handleDragEnter}
+                onDragOver={handleDragOver}
+                onDragLeave={handleDragLeave}
+                onDrop={handleDrop}
+                onClick={handleUploadZoneClick}
+                style={{ "--card-color": cardColor }}
+              >
+                <input
+                  ref={fileInputRef}
+                  type="file"
+                  className="file-input-hidden"
+                  accept=".xlsx,.xls,.csv"
+                  onChange={handleFileInputChange}
+                />
+                <div className="upload-zone-content crew-excel-upload-zone--compact__content">
+                  {isFileUploaded ? (
+                    <div className="crew-excel-upload-zone--compact__uploaded">
+                      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true" className="crew-excel-upload-zone--compact__check">
+                        <path d="M20 6L9 17L4 12" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round" />
                       </svg>
+                      <span className="crew-excel-upload-zone--compact__uploaded-title">Uploaded</span>
+                      <span className="crew-excel-upload-zone--compact__uploaded-name" title={uploadedFileName}>{uploadedFileName}</span>
+                      <span className="crew-excel-upload-zone--compact__uploaded-hint">· Click to replace</span>
                     </div>
-                    <div style={{ textAlign: "center" }}>
-                      <p style={{
-                        fontSize: "16px",
-                        fontWeight: "600",
-                        color: "#28a745",
-                        margin: "0 0 8px 0",
-                        fontFamily: "\"Open Sans\", sans-serif"
-                      }}>
-                        ✓ File Uploaded Successfully
-                      </p>
-                      <p style={{
-                        fontSize: "14px",
-                        color: "#666",
-                        margin: "0 0 4px 0",
-                        fontFamily: "\"Open Sans\", sans-serif",
-                        wordBreak: "break-word"
-                      }}>
-                        {uploadedFileName}
-                      </p>
-                      <p style={{
-                        fontSize: "12px",
-                        color: "#999",
-                        margin: "0",
-                        fontFamily: "\"Open Sans\", sans-serif"
-                      }}>
-                        Click to upload a different file
-                      </p>
-                    </div>
-                  </div>
-                ) : (
-                  <>
-                    <div className="upload-icon-wrapper">
-                      <UploadIconSVG />
-                    </div>
-                    <div className="upload-text-content">
-                      <p className="upload-main-text">
-                        Drag and drop your crew Excel file here, or{" "}
-                        <span className="upload-link">click to browse</span>
-                      </p>
-                      <p className="upload-sub-text">Supports .xlsx, .xls, and .csv file formats</p>
-                    </div>
-                  </>
-                )}
+                  ) : (
+                    <p className="upload-main-text crew-excel-upload-zone--compact__main">
+                      Drag and drop your crew file here, or{" "}
+                      <span className="upload-link">click to browse</span>
+                      <span className="crew-excel-upload-zone--compact__formats"> · .xlsx, .xls, .csv</span>
+                    </p>
+                  )}
+                </div>
               </div>
+
+              <button
+                type="button"
+                onClick={handleDownloadPreview}
+                className="crew-upload-actions__download-btn"
+                style={{
+                  padding: "8px 14px",
+                  borderRadius: "8px",
+                  border: "1px solid #e2e6ff",
+                  backgroundColor: "#ffffff",
+                  color: "#1a1a1a",
+                  fontSize: "13px",
+                  fontWeight: "600",
+                  cursor: "pointer",
+                  transition: "all 0.2s ease",
+                  fontFamily: "\"Open Sans\", sans-serif",
+                  display: "flex",
+                  alignItems: "center",
+                  gap: "8px",
+                  boxShadow: "0 2px 4px rgba(0, 0, 0, 0.1)",
+                  whiteSpace: "nowrap",
+                  flexShrink: 0
+                }}
+                onMouseEnter={(e) => {
+                  e.currentTarget.style.backgroundColor = "#f8f9ff";
+                  e.currentTarget.style.borderColor = "var(--card-color, #2A00FF)";
+                  e.currentTarget.style.transform = "translateY(-1px)";
+                  e.currentTarget.style.boxShadow = "0 4px 8px rgba(0, 0, 0, 0.15)";
+                }}
+                onMouseLeave={(e) => {
+                  e.currentTarget.style.backgroundColor = "#ffffff";
+                  e.currentTarget.style.borderColor = "#e2e6ff";
+                  e.currentTarget.style.transform = "translateY(0)";
+                  e.currentTarget.style.boxShadow = "0 2px 4px rgba(0, 0, 0, 0.1)";
+                }}
+              >
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" style={{ flexShrink: 0 }}>
+                  <path d="M21 15V19C21 19.5304 20.7893 20.0391 20.4142 20.4142C20.0391 20.7893 19.5304 21 19 21H5C4.46957 21 3.96086 20.7893 3.58579 20.4142C3.21071 20.0391 3 19.5304 3 19V15" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+                  <path d="M7 10L12 15L17 10" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+                  <path d="M12 15V3" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+                </svg>
+                <span>Download Preview</span>
+              </button>
             </div>
           </div>
 
@@ -1142,27 +1054,9 @@ const CrewContent = ({ formValues, handleChange, cardColor, onNavigateToTab, lau
             display: "flex",
             flexDirection: "column"
           }}>
-            <div style={{
-              display: "flex",
-              alignItems: "center",
-              gap: "12px",
-              marginBottom: "20px"
-            }}>
-              <div style={{
-                width: "4px",
-                height: "24px",
-                backgroundColor: "var(--card-color, #2A00FF)",
-                borderRadius: "2px"
-              }}></div>
-              <h4 style={{
-                fontSize: "18px",
-                fontWeight: "700",
-                color: "#1a1a1a",
-                margin: "0",
-                fontFamily: "\"Open Sans\", sans-serif"
-              }}>
-                Expected Format (Preview - 5 rows)
-              </h4>
+            <div className="crew-husbandry-section-heading">
+              <div className="crew-husbandry-section-heading__accent" aria-hidden="true" />
+              <h4 className="crew-husbandry-section-heading__title">Expected Format (Preview - 5 rows)</h4>
             </div>
             <div style={{
               border: "1px solid #e2e6ff",
