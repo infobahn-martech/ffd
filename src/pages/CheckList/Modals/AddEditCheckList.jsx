@@ -72,6 +72,29 @@ const EMPTY_DEFAULTS = {
   sections: []
 };
 
+/** Normalize API data so vessel and barge types are never both set (vessel wins if both present). */
+function normalizeVesselBargeFormFields(data) {
+  const vt = data?.vessel_type_id;
+  const bt = data?.barge_type_id;
+  const hasV = vt != null && vt !== "";
+  const hasB = bt != null && bt !== "";
+  if (hasV) {
+    return { vesselType: String(vt), bargeType: "" };
+  }
+  if (hasB) {
+    return { vesselType: "", bargeType: String(bt) };
+  }
+  return { vesselType: "", bargeType: "" };
+}
+
+function validateVesselOrBargeExclusive(_value, formValues) {
+  const hasV = formValues.vesselType !== "" && formValues.vesselType != null;
+  const hasB = formValues.bargeType !== "" && formValues.bargeType != null;
+  if (!hasV && !hasB) return "Select either Vessel Type or Barge Type";
+  if (hasV && hasB) return "Select only one of Vessel Type or Barge Type";
+  return true;
+}
+
 function mapApiToForm(data) {
   const mapItem = (item) => ({
     item_name: item.item_name || "",
@@ -84,10 +107,11 @@ function mapApiToForm(data) {
       description: item.document_details?.description || ""
     }
   });
+  const { vesselType, bargeType } = normalizeVesselBargeFormFields(data);
   return {
     callType: String(data.call_type_id || ""),
-    vesselType: String(data.vessel_type_id || ""),
-    bargeType: String(data.barge_type_id || ""),
+    vesselType,
+    bargeType,
     checklistName: data.checklist_name || "",
     sections: (data.sections || []).map((section) => ({
       title: section.title || "",
@@ -124,6 +148,8 @@ export function CheckListModal({ showModal, closeModal, callTypesOptions, onSucc
     handleSubmit,
     control,
     reset,
+    setValue,
+    trigger,
     formState: { errors }
   } = useForm({
     defaultValues: EMPTY_DEFAULTS
@@ -172,6 +198,8 @@ export function CheckListModal({ showModal, closeModal, callTypesOptions, onSucc
     const callTypeId = num(data.callType);
     const vesselTypeId = num(data.vesselType);
     const bargeTypeId = num(data.bargeType);
+    const vessel_type_id = vesselTypeId != null ? vesselTypeId : null;
+    const barge_type_id = vesselTypeId != null ? null : bargeTypeId ?? null;
 
     const isEdit = !!showModal?.checklist_type_id;
 
@@ -179,16 +207,16 @@ export function CheckListModal({ showModal, closeModal, callTypesOptions, onSucc
       ? {
           checklist_type_id: showModal.checklist_type_id,
           call_type_id: callTypeId,
-          vessel_type_id: vesselTypeId,
-          barge_type_id: bargeTypeId ?? null,
+          vessel_type_id,
+          barge_type_id,
           checklist_name: data.checklistName ?? "",
           sections: sectionsApi
         }
       : {
           call_type_id: callTypeId,
           checklist_name: data.checklistName ?? "",
-          vessel_type_id: vesselTypeId,
-          barge_type_id: bargeTypeId ?? null,
+          vessel_type_id,
+          barge_type_id,
           sections: sectionsApi
         };
 
@@ -958,7 +986,16 @@ export function CheckListModal({ showModal, closeModal, callTypesOptions, onSucc
     );
   };
 
-  const renderBody = () => (
+  const renderBody = () => {
+    const { onChange: onVesselTypeChange, ...vesselTypeSelectRest } = register("vesselType", {
+      validate: validateVesselOrBargeExclusive
+    });
+    const { onChange: onBargeTypeChange, ...bargeTypeSelectRest } = register("bargeType", {
+      validate: validateVesselOrBargeExclusive
+    });
+    const vesselBargeFieldError = errors.vesselType || errors.bargeType;
+
+    return (
     <div className="modal-body" style={{ maxHeight: "70vh", overflowY: "auto" }}>
       <div className="lead-form">
         <form id="checklistForm" onSubmit={handleSubmit(onSubmit)}>
@@ -1015,8 +1052,15 @@ export function CheckListModal({ showModal, closeModal, callTypesOptions, onSucc
             <div className="col-12 col-md-6">
               <div className="form-floating desig-inp">
                 <select
-                  className={`form-select ${errors.vesselType ? "is-invalid" : ""}`}
-                  {...register("vesselType", { required: "Vessel Type is required" })}
+                  className={`form-select ${vesselBargeFieldError ? "is-invalid" : ""}`}
+                  {...vesselTypeSelectRest}
+                  onChange={(e) => {
+                    onVesselTypeChange(e);
+                    if (e.target.value !== "") {
+                      setValue("bargeType", "", { shouldValidate: true });
+                    }
+                    trigger(["vesselType", "bargeType"]);
+                  }}
                   disabled={isLoadingVesselTypes}
                 >
                   <option value="">Select Vessel Type</option>
@@ -1033,8 +1077,8 @@ export function CheckListModal({ showModal, closeModal, callTypesOptions, onSucc
                 <label>
                   Vessel Type <span className="text-danger">*</span>
                 </label>
-                {errors.vesselType && (
-                  <span className="error text-danger">{errors.vesselType.message}</span>
+                {vesselBargeFieldError && (
+                  <span className="error text-danger">{vesselBargeFieldError.message}</span>
                 )}
               </div>
             </div>
@@ -1043,8 +1087,15 @@ export function CheckListModal({ showModal, closeModal, callTypesOptions, onSucc
             <div className="col-12 col-md-6">
               <div className="form-floating desig-inp">
                 <select
-                  className={`form-select ${errors.bargeType ? "is-invalid" : ""}`}
-                  {...register("bargeType", { required: "Barge Type is required" })}
+                  className={`form-select ${vesselBargeFieldError ? "is-invalid" : ""}`}
+                  {...bargeTypeSelectRest}
+                  onChange={(e) => {
+                    onBargeTypeChange(e);
+                    if (e.target.value !== "") {
+                      setValue("vesselType", "", { shouldValidate: true });
+                    }
+                    trigger(["vesselType", "bargeType"]);
+                  }}
                   disabled={isLoadingBargeTypes}
                 >
                   <option value="">Select Barge Type</option>
@@ -1061,8 +1112,8 @@ export function CheckListModal({ showModal, closeModal, callTypesOptions, onSucc
                 <label>
                   Barge Type <span className="text-danger">*</span>
                 </label>
-                {errors.bargeType && (
-                  <span className="error text-danger">{errors.bargeType.message}</span>
+                {vesselBargeFieldError && (
+                  <span className="error text-danger">{vesselBargeFieldError.message}</span>
                 )}
               </div>
             </div>
@@ -1262,7 +1313,8 @@ export function CheckListModal({ showModal, closeModal, callTypesOptions, onSucc
         </form>
       </div>
     </div>
-  );
+    );
+  };
 
   const renderFooter = () => (
     <div className="modal-footer">
