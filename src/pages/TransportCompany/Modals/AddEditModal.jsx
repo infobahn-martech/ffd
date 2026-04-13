@@ -176,59 +176,52 @@ export function TransportCompanyModal({ showModal, closeModal, onSuccess }) {
           </div>
 
           <div className="mt-2 transport-company-drivers">
-            {/* <div className="transport-company-drivers__heading">
-              <span className="transport-company-drivers__title">Drivers</span>
-              <span className="transport-company-drivers__req" aria-hidden="true">
-                *
+            <div className="transport-company-drivers__header">
+              <span
+                className="transport-company-drivers__header-title"
+                id="transport-company-driver-details-heading"
+              >
+                Driver details
               </span>
-            </div> */}
-            <div className="transport-company-drivers__list">
+            </div>
+            <div
+              className="transport-company-drivers__list"
+              aria-labelledby="transport-company-driver-details-heading"
+            >
               {fields.map((field, index) => (
                 <div className="transport-company-driver-row" key={field.id}>
                   <input type="hidden" {...register(`drivers.${index}.transport_driver_id`)} />
                   <div className="transport-company-driver-row__fields">
-                    <div className="transport-company-driver-row__pair">
-                      <div className="transport-company-driver-field">
-                        <div className="form-floating desig-inp">
-                          <input
-                            type="text"
-                            className={`form-control ${errors.drivers?.[index]?.driver_name ? 'is-invalid' : ''}`}
-                            placeholder=" "
-                            disabled={isEdit && isLoadingDetail}
-                            {...register(`drivers.${index}.driver_name`, {
-                              required: 'Driver name is required',
-                            })}
-                          />
-                          <label>
-                            Driver name <span className="text-danger">*</span>
-                          </label>
-                          {/* {errors.drivers?.[index]?.driver_name && (
-                            <span className="error text-danger d-block small">
-                              {errors.drivers[index].driver_name.message}
-                            </span>
-                          )} */}
-                        </div>
+                    <div className="transport-company-driver-field">
+                      <div className="form-floating desig-inp">
+                        <input
+                          type="text"
+                          className={`form-control ${errors.drivers?.[index]?.driver_name ? 'is-invalid' : ''}`}
+                          placeholder=" "
+                          disabled={isEdit && isLoadingDetail}
+                          {...register(`drivers.${index}.driver_name`, {
+                            required: 'Driver name is required',
+                          })}
+                        />
+                        <label>
+                          Driver name <span className="text-danger">*</span>
+                        </label>
                       </div>
-                      <div className="transport-company-driver-field">
-                        <div className="form-floating desig-inp">
-                          <input
-                            type="text"
-                            className={`form-control ${errors.drivers?.[index]?.contact_no ? 'is-invalid' : ''}`}
-                            placeholder=" "
-                            disabled={isEdit && isLoadingDetail}
-                            {...register(`drivers.${index}.contact_no`, {
-                              required: 'Contact number is required',
-                            })}
-                          />
-                          <label>
-                            Contact no <span className="text-danger">*</span>
-                          </label>
-                          {/* {errors.drivers?.[index]?.contact_no && (
-                            <span className="error text-danger d-block small">
-                              {errors.drivers[index].contact_no.message}
-                            </span>
-                          )} */}
-                        </div>
+                    </div>
+                    <div className="transport-company-driver-field">
+                      <div className="form-floating desig-inp">
+                        <input
+                          type="text"
+                          className={`form-control ${errors.drivers?.[index]?.contact_no ? 'is-invalid' : ''}`}
+                          placeholder=" "
+                          disabled={isEdit && isLoadingDetail}
+                          {...register(`drivers.${index}.contact_no`, {
+                            required: 'Contact number is required',
+                          })}
+                        />
+                        <label>
+                          Contact no <span className="text-danger">*</span>
+                        </label>
                       </div>
                     </div>
                     <div className="transport-company-driver-field transport-company-driver-field--vehicle">
@@ -247,42 +240,37 @@ export function TransportCompanyModal({ showModal, closeModal, onSuccess }) {
                             </option>
                           ))}
                         </select>
-                        {/* <label>
-                          Vehicle type <span className="text-danger">*</span>
-                        </label> */}
-                        {/* {errors.drivers?.[index]?.vehicle_type_id && (
-                          <span className="error text-danger d-block small">
-                            {errors.drivers[index].vehicle_type_id.message}
-                          </span>
-                        )} */}
                       </div>
                     </div>
-                  </div>
-                  {fields.length > 1 && (
                     <div className="transport-company-driver-row__actions">
-                      <button
-                        type="button"
-                        className="btn btn-sm btn-outline-danger transport-company-driver-row__remove"
-                        onClick={() => remove(index)}
-                        title="Remove driver"
-                        aria-label="Remove driver"
-                      >
-                        <FiX size={18} />
-                      </button>
+                      {fields.length > 1 && (
+                        <button
+                          type="button"
+                          className="btn btn-sm btn-outline-danger transport-company-driver-row__remove"
+                          onClick={() => remove(index)}
+                          title="Remove driver"
+                          aria-label="Remove driver"
+                        >
+                          <FiX size={18} />
+                        </button>
+                      )}
+                      {index === fields.length - 1 && (
+                        <button
+                          type="button"
+                          className="btn btn-sm btn-outline-primary transport-company-drivers__add transport-company-drivers__add--icon"
+                          onClick={() => append(emptyDriver())}
+                          disabled={isEdit && isLoadingDetail}
+                          title="Add driver"
+                          aria-label="Add driver"
+                        >
+                          <FiPlus size={18} aria-hidden />
+                        </button>
+                      )}
                     </div>
-                  )}
+                  </div>
                 </div>
               ))}
             </div>
-            <button
-              type="button"
-              className="btn btn-sm btn-outline-primary transport-company-drivers__add"
-              onClick={() => append(emptyDriver())}
-              disabled={isEdit && isLoadingDetail}
-            >
-              <FiPlus size={16} className="me-1" aria-hidden />
-              Add driver
-            </button>
           </div>
         </form>
       </div>
@@ -313,7 +301,7 @@ export function TransportCompanyModal({ showModal, closeModal, onSuccess }) {
   return (
     <CustomModal
       className="fade role-modal-sm modal show transport-company-modal"
-      dialgName="modal-dialog modal-dialog-centered modal-lg"
+      dialgName="modal-dialog modal-dialog-centered modal-xl transport-company-modal-dialog"
       show={!!showModal}
       closeModal={() => closeModal(null)}
       body={renderBody()}

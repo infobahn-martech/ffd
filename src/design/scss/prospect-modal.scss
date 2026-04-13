@@ -290,11 +290,30 @@ span.error.text-danger {
   }
 }
 
+.transport-company-modal-dialog.modal-xl {
+  max-width: min(1180px, calc(100vw - 2rem));
+}
+
 .transport-company-drivers {
   border: 1px solid #d8e8ec;
   border-radius: 10px;
-  padding: 0.5rem 0.65rem 0.55rem;
+  padding: 0.65rem 0.75rem 0.65rem;
   background: linear-gradient(180deg, #f9fcfd 0%, #ffffff 100%);
+}
+
+.transport-company-drivers__header {
+  margin-bottom: 0.65rem;
+  padding-bottom: 0.45rem;
+  border-bottom: 1px solid #e3eef0;
+}
+
+.transport-company-drivers__header-title {
+  margin: 0;
+  font-size: 13px;
+  font-weight: 600;
+  color: #35475e;
+  letter-spacing: 0.02em;
+  line-height: 1.35;
 }
 
 .transport-company-drivers__heading {
@@ -320,23 +339,17 @@ span.error.text-danger {
 .transport-company-driver-row {
   display: flex;
   flex-wrap: wrap;
-  align-items: flex-start;
+  align-items: stretch;
   gap: 0.35rem 0.5rem;
 }
 
 .transport-company-driver-row__fields {
   display: flex;
-  flex-direction: column;
-  flex: 1 1 0;
-  gap: 0.35rem;
-  min-width: 0;
-}
-
-.transport-company-driver-row__pair {
-  display: flex;
+  flex-direction: row;
   flex-wrap: wrap;
-  gap: 0.45rem;
-  width: 100%;
+  align-items: flex-end;
+  flex: 1 1 100%;
+  gap: 0.45rem 0.5rem;
   min-width: 0;
 }
 
@@ -346,8 +359,8 @@ span.error.text-danger {
 }
 
 .transport-company-driver-field--vehicle {
-  flex: 1 1 100%;
-  width: 100%;
+  flex: 1.25 1 180px;
+  min-width: min(160px, 100%);
 }
 
 .transport-company-modal-body,
@@ -387,10 +400,14 @@ span.error.text-danger {
 
 .transport-company-driver-row__actions {
   flex: 0 0 auto;
-  display: flex;
-  align-items: flex-start;
-  align-self: flex-start;
-  padding-top: 2px;
+  display: inline-flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: flex-end;
+  align-self: flex-end;
+  gap: 0.35rem;
+  min-height: 42px;
+  padding-bottom: 1px;
 }
 
 .transport-company-driver-row__remove {
@@ -404,9 +421,18 @@ span.error.text-danger {
 }
 
 .transport-company-drivers__add {
-  margin-top: 0.35rem;
+  flex-shrink: 0;
   border-radius: 8px;
   font-weight: 600;
   padding: 0.25rem 0.6rem;
   font-size: 13px;
+}
+
+.transport-company-drivers__add--icon {
+  width: 42px;
+  height: 42px;
+  padding: 0;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
 }
