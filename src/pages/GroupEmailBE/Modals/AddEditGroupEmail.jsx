@@ -33,7 +33,6 @@ export function GroupEmailBEModal({ showModal, closeModal, onSuccess }) {
         register,
         handleSubmit,
         reset,
-        setError,
         formState: { errors },
     } = useForm({
         defaultValues: {
@@ -51,10 +50,8 @@ export function GroupEmailBEModal({ showModal, closeModal, onSuccess }) {
             clearGroupEmailBEDetail();
             reset({
                 entity_id: "",
-                emails: [{ email_id: "", value: "" }],
+                emails: [{ value: "" }],
             });
-            setError("emails", { message: "Email is required" });
-            setError("emails.0.value", { message: "Email is required" });
             return;
         }
         getGroupEmailBEByEntity(showModal.entity_id);
