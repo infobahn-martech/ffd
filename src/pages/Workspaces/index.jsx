@@ -16,6 +16,7 @@ import DashboardAddItemsModal from './DashboardAddItemsModal';
 import ArchivedWorkspacesModal from './ArchivedWorkspacesModal';
 import RenameBoardModal from './RenameBoardModal';
 import RenameWorkspaceModal from './RenameWorkspaceModal';
+import { getDashboardCanvasStyle } from '../../utils/dashboardBackground';
 
 // Workspace Icon Component - Bar Chart Icon (like in first image)
 const WorkspaceBarChartIcon = ({ className }) => (
@@ -51,27 +52,6 @@ const transformWorkspaces = (data) => {
       : [],
   }));
 };
-
-/** Inline styles for dashboard canvas from `list_all_dashboard` background object */
-function getDashboardCanvasStyle(background) {
-  if (!background || typeof background !== 'object') {
-    return { backgroundColor: '#eef1f4' };
-  }
-  const { type, value } = background;
-  if (type === 'color' && value) {
-    return { backgroundColor: value, backgroundImage: 'none' };
-  }
-  if ((type === 'wallpaper' || type === 'image') && value) {
-    const v = String(value).trim();
-    const url = v.startsWith('url(') ? v : `url(${v})`;
-    return {
-      backgroundImage: url,
-      backgroundSize: 'cover',
-      backgroundPosition: 'center',
-    };
-  }
-  return { backgroundColor: '#eef1f4' };
-}
 
 function Workspaces() {
   const navigate = useNavigate();

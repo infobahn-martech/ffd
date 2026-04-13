@@ -1018,6 +1018,26 @@
     border-radius: 6px;
     border: 1px solid rgba(15, 23, 42, 0.14);
     box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.35);
+
+    &--wallpaper {
+        background-size: cover;
+        background-position: center;
+        background-repeat: no-repeat;
+    }
+}
+
+.kanban-dashboard-actions-menu-item--wallpaper-row {
+    justify-content: space-between;
+}
+
+.kanban-dashboard-actions-wallpaper-thumb {
+    width: 18px;
+    height: 18px;
+    border-radius: 6px;
+    border: 1px solid rgba(15, 23, 42, 0.14);
+    background-size: cover;
+    background-position: center;
+    flex-shrink: 0;
 }
 
 .kanban-dashboard-color-picker-popover {
@@ -1199,6 +1219,10 @@
     }
 
     .kanban-dashboard-actions-color-swatch {
+        border-color: rgba(255, 255, 255, 0.28);
+    }
+
+    .kanban-dashboard-actions-wallpaper-thumb {
         border-color: rgba(255, 255, 255, 0.28);
     }
 }

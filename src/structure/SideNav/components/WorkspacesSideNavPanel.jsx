@@ -16,6 +16,7 @@ import {
 import { Modal } from 'react-bootstrap';
 import { Tooltip } from 'react-tooltip';
 import useWorkSpaceReducer from '../../../store/WorkSpaceReducer';
+import { normalizeDashboardBackground } from '../../../utils/dashboardBackground';
 import './AddDashboardModal.scss';
 
 const DASHBOARD_MENU_WIDTH = 200;
@@ -239,6 +240,16 @@ function WorkspacesSideNavPanel({ isDarkMode, onNewDashboard }) {
   );
 
   useEffect(() => {
+    if (openActionsId == null || !menuTargetDashboard) return;
+    const bg = menuTargetDashboard.background;
+    if (bg?.type === 'color' && bg.color) {
+      setPickerColor(normalizeHexColor(bg.color));
+    } else {
+      setPickerColor(DEFAULT_PICKER_COLOR);
+    }
+  }, [openActionsId, menuTargetDashboard]);
+
+  useEffect(() => {
     if (openActionsId == null) {
       setIsColorPickerOpen(false);
       setIsAdvancedPaletteOpen(false);
@@ -271,7 +282,12 @@ function WorkspacesSideNavPanel({ isDarkMode, onNewDashboard }) {
   }, [isColorPickerOpen]);
 
   const openColorPicker = () => {
-    setPickerColor((prev) => normalizeHexColor(prev));
+    const bg = menuTargetDashboard?.background;
+    if (bg?.type === 'color' && bg.color) {
+      setPickerColor(normalizeHexColor(bg.color));
+    } else {
+      setPickerColor((prev) => normalizeHexColor(prev));
+    }
     setIsColorPickerOpen(true);
   };
 
@@ -324,6 +340,11 @@ function WorkspacesSideNavPanel({ isDarkMode, onNewDashboard }) {
   ]
     .filter(Boolean)
     .join(' ');
+
+  const menuBackground = menuTargetDashboard?.background;
+  const colorRowSwatchWallpaper = menuBackground?.type === 'wallpaper';
+  const colorRowSwatchHex =
+    menuBackground?.type === 'color' ? normalizeHexColor(menuBackground.color) : DEFAULT_PICKER_COLOR;
 
   return (
     <aside className={asideClass} aria-label="Dashboards navigation">
@@ -469,8 +490,12 @@ function WorkspacesSideNavPanel({ isDarkMode, onNewDashboard }) {
                             >
                               <span>Color</span>
                               <span
-                                className="kanban-dashboard-actions-color-swatch"
-                                style={{ backgroundColor: normalizeHexColor(pickerColor) }}
+                                className={`kanban-dashboard-actions-color-swatch ${colorRowSwatchWallpaper ? 'kanban-dashboard-actions-color-swatch--wallpaper' : ''}`}
+                                style={
+                                  colorRowSwatchWallpaper
+                                    ? { backgroundImage: `url(${menuBackground.url})` }
+                                    : { backgroundColor: colorRowSwatchHex }
+                                }
                                 aria-hidden
                               />
                             </button>
@@ -575,10 +600,18 @@ function WorkspacesSideNavPanel({ isDarkMode, onNewDashboard }) {
                           <button
                             type="button"
                             role="menuitem"
-                            className="kanban-dashboard-actions-menu-item"
+                            className="kanban-dashboard-actions-menu-item kanban-dashboard-actions-menu-item--wallpaper-row"
                             onClick={() => wallpaperInputRef.current?.click()}
                           >
                             <span>Wallpaper</span>
+                            {menuBackground?.type === 'wallpaper' && (
+                              <span
+                                className="kanban-dashboard-actions-wallpaper-thumb"
+                                style={{ backgroundImage: `url(${menuBackground.url})` }}
+                                title={menuBackground.fileName ?? undefined}
+                                aria-hidden
+                              />
+                            )}
                           </button>
                         </li>
                       </ul>
