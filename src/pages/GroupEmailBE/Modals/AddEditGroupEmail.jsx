@@ -64,10 +64,10 @@ export function GroupEmailBEModal({ showModal, closeModal, onSuccess }) {
             emails:
                 (groupEmailBEDetail.emails ?? []).length > 0
                     ? groupEmailBEDetail.emails.map((e) => ({
-                          email_id: e.email_id,
-                          value: e.email,
-                          is_active: e.is_active ?? true,
-                      }))
+                        email_id: e.email_id,
+                        value: e.email,
+                        is_active: e.is_active ?? true,
+                    }))
                     : [{ email_id: "", value: "", is_active: true }],
         });
     }, [groupEmailBEDetail, isEdit, reset]);
@@ -235,7 +235,7 @@ export function GroupEmailBEModal({ showModal, closeModal, onSuccess }) {
                                     </div>
                                 </div>
 
-                                {isEdit && (
+                                {/* {isEdit && (
                                     <div className="col-12 col-md-auto d-flex align-items-center justify-content-center justify-content-md-center pt-2 pt-md-0">
                                         <Controller
                                             control={control}
@@ -261,7 +261,7 @@ export function GroupEmailBEModal({ showModal, closeModal, onSuccess }) {
                                             )}
                                         />
                                     </div>
-                                )}
+                                )} */}
                             </div>
                         ))}
                     </div>
