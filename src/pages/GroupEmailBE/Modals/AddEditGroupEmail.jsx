@@ -1,5 +1,5 @@
 import { useEffect } from "react";
-import { useForm, useFieldArray, Controller } from "react-hook-form";
+import { useForm, useFieldArray } from "react-hook-form";
 import { FiPlus, FiX } from "react-icons/fi";
 import CustomModal from "../../../components/CustomModal";
 import useGroupEmailBEReducer from "../../../store/GroupEmailBEReducer";
@@ -33,11 +33,12 @@ export function GroupEmailBEModal({ showModal, closeModal, onSuccess }) {
         register,
         handleSubmit,
         reset,
+        setError,
         formState: { errors },
     } = useForm({
         defaultValues: {
             entity_id: "",
-            emails: [{ email_id: "", value: "", is_active: true }],
+            emails: [{ value: "" }],
         },
     });
 
@@ -50,8 +51,10 @@ export function GroupEmailBEModal({ showModal, closeModal, onSuccess }) {
             clearGroupEmailBEDetail();
             reset({
                 entity_id: "",
-                emails: [{ email_id: "", value: "", is_active: true }],
+                emails: [{ email_id: "", value: "" }],
             });
+            setError("emails", { message: "Email is required" });
+            setError("emails.0.value", { message: "Email is required" });
             return;
         }
         getGroupEmailBEByEntity(showModal.entity_id);
@@ -59,16 +62,15 @@ export function GroupEmailBEModal({ showModal, closeModal, onSuccess }) {
 
     useEffect(() => {
         if (!isEdit || !groupEmailBEDetail) return;
+        const rawEmails = groupEmailBEDetail.emails;
+        const emailList = Array.isArray(rawEmails)
+            ? rawEmails.map((e) => ({
+                value: typeof e === "string" ? e : e?.email ?? "",
+            }))
+            : [];
         reset({
             entity_id: String(groupEmailBEDetail.entity_id ?? ""),
-            emails:
-                (groupEmailBEDetail.emails ?? []).length > 0
-                    ? groupEmailBEDetail.emails.map((e) => ({
-                        email_id: e.email_id,
-                        value: e.email,
-                        is_active: e.is_active ?? true,
-                    }))
-                    : [{ email_id: "", value: "", is_active: true }],
+            emails: emailList.length > 0 ? emailList : [{ value: "" }],
         });
     }, [groupEmailBEDetail, isEdit, reset]);
 
@@ -81,11 +83,7 @@ export function GroupEmailBEModal({ showModal, closeModal, onSuccess }) {
         if (isEdit) {
             const payload = {
                 entity_id: data.entity_id,
-                emails: data.emails.map((e) => ({
-                    email_id: e.email_id,
-                    email: e.value?.trim(),
-                    is_active: e.is_active,
-                })),
+                emails: data.emails.map((e) => e.value?.trim()).filter(Boolean),
             };
             updateGroupEmailBE({
                 formData: payload,
@@ -162,9 +160,7 @@ export function GroupEmailBEModal({ showModal, closeModal, onSuccess }) {
                     <div className="mt-3">
                         {fields.map((field, index) => (
                             <div className="row align-items-center mb-2 g-1" key={field.id}>
-                                <div
-                                    className={isEdit ? "col min-w-0" : "col-12"}
-                                >
+                                <div className="col-12">
                                     <div className="form-floating desig-inp position-relative">
                                         <input
                                             type="email"
@@ -206,9 +202,7 @@ export function GroupEmailBEModal({ showModal, closeModal, onSuccess }) {
                                                     className="email-action-btn email-add-btn"
                                                     onClick={() =>
                                                         append({
-                                                            email_id: "",
                                                             value: "",
-                                                            is_active: true,
                                                         })
                                                     }
                                                     title="Add Email"
@@ -234,34 +228,6 @@ export function GroupEmailBEModal({ showModal, closeModal, onSuccess }) {
                                         )}
                                     </div>
                                 </div>
-
-                                {/* {isEdit && (
-                                    <div className="col-12 col-md-auto d-flex align-items-center justify-content-center justify-content-md-center pt-2 pt-md-0">
-                                        <Controller
-                                            control={control}
-                                            name={`emails.${index}.is_active`}
-                                            render={({ field: { value, onChange } }) => (
-                                                <div className="form-check d-flex flex-column align-items-center gap-1 mb-0">
-                                                    <input
-                                                        type="checkbox"
-                                                        id={`active-${field.id}`}
-                                                        className="form-check-input"
-                                                        style={{ width: "18px", height: "18px", cursor: "pointer" }}
-                                                        checked={!!value}
-                                                        onChange={(e) => onChange(e.target.checked)}
-                                                    />
-                                                    <label
-                                                        htmlFor={`active-${field.id}`}
-                                                        className="form-check-label"
-                                                        style={{ fontSize: "11px", cursor: "pointer" }}
-                                                    >
-                                                        Active
-                                                    </label>
-                                                </div>
-                                            )}
-                                        />
-                                    </div>
-                                )} */}
                             </div>
                         ))}
                     </div>
