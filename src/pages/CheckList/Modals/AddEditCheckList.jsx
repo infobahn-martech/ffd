@@ -1,4 +1,4 @@
-import { useForm, useFieldArray } from "react-hook-form";
+import { useForm, useFieldArray, useWatch } from "react-hook-form";
 import CustomModal from "../../../components/CustomModal";
 import "../../../design/scss/prospect-modal.scss";
 import "../../../design/scss/modal-designs.scss";
@@ -75,6 +75,66 @@ function logFormDataEntries(formData) {
   }
 }
 
+/** API may return strings or objects; normalize to display names for the form only */
+function normalizeUploadedFilesForForm(uploaded) {
+  if (uploaded == null) return [];
+  const list = Array.isArray(uploaded) ? uploaded : [uploaded];
+  return list
+    .map((u) => {
+      if (typeof u === "string") return u.trim();
+      if (u && typeof u === "object") {
+        const n = u.file_name ?? u.name ?? u.filename ?? u.original_name;
+        return n != null ? String(n).trim() : "";
+      }
+      return "";
+    })
+    .filter(Boolean);
+}
+
+function ItemFilePreview({ control, basePath }) {
+  const requiredCopyOnly = useWatch({
+    control,
+    name: `${basePath}.document_details.required_copy_only`
+  });
+  const existingFiles = useWatch({
+    control,
+    name: `${basePath}.document_details.existing_files`
+  });
+
+  let selectedName = null;
+  if (requiredCopyOnly instanceof FileList && requiredCopyOnly.length > 0) {
+    selectedName = requiredCopyOnly[0]?.name ?? null;
+  } else if (requiredCopyOnly instanceof File) {
+    selectedName = requiredCopyOnly.name;
+  }
+
+  const existingNames = Array.isArray(existingFiles)
+    ? existingFiles.filter((x) => x != null && String(x).trim() !== "")
+    : existingFiles != null && String(existingFiles).trim() !== ""
+      ? [String(existingFiles).trim()]
+      : [];
+  const existingLabel = existingNames.join(", ");
+
+  if (selectedName) {
+    return (
+      <div style={{ fontSize: "12px", color: "#444", marginTop: "8px", fontWeight: "500" }}>
+        Selected file:{" "}
+        <span style={{ color: "#1a1a1a", fontWeight: "600" }}>{selectedName}</span>
+      </div>
+    );
+  }
+  if (existingLabel) {
+    const prefix = existingNames.length > 1 ? "Existing files" : "Existing file";
+    return (
+      <div style={{ fontSize: "12px", color: "#444", marginTop: "8px", fontWeight: "500" }}>
+        {prefix}:{" "}
+        <span style={{ color: "#1a1a1a", fontWeight: "600" }}>{existingLabel}</span>
+      </div>
+    );
+  }
+  return null;
+}
+
 const EMPTY_DEFAULTS = {
   callType: "",
   vesselType: "",
@@ -115,6 +175,7 @@ function mapApiToForm(data) {
     document_details: {
       is_copy_required: item.document_details?.require_copy_only || false,
       required_copy_only: null,
+      existing_files: normalizeUploadedFilesForForm(item.document_details?.uploaded_files),
       description: item.document_details?.description || ""
     }
   });
@@ -224,20 +285,20 @@ export function CheckListModal({ showModal, closeModal, callTypesOptions, onSucc
 
     const payload = isEdit
       ? {
-          checklist_type_id: showModal.checklist_type_id,
-          call_type_id: callTypeId,
-          vessel_type_id,
-          barge_type_id,
-          checklist_name: data.checklistName ?? "",
-          sections: sectionsApi
-        }
+        checklist_type_id: showModal.checklist_type_id,
+        call_type_id: callTypeId,
+        vessel_type_id,
+        barge_type_id,
+        checklist_name: data.checklistName ?? "",
+        sections: sectionsApi
+      }
       : {
-          call_type_id: callTypeId,
-          checklist_name: data.checklistName ?? "",
-          vessel_type_id,
-          barge_type_id,
-          sections: sectionsApi
-        };
+        call_type_id: callTypeId,
+        checklist_name: data.checklistName ?? "",
+        vessel_type_id,
+        barge_type_id,
+        sections: sectionsApi
+      };
 
     const fileMap = collectItemFiles(data);
     const hasFiles = Object.keys(fileMap).length > 0;
@@ -322,6 +383,7 @@ export function CheckListModal({ showModal, closeModal, callTypesOptions, onSucc
                 is_copy_required: false,
                 expiry_date_reqd: false,
                 required_copy_only: null,
+                existing_files: [],
                 description: ""
               }
             })}
@@ -528,6 +590,10 @@ export function CheckListModal({ showModal, closeModal, callTypesOptions, onSucc
                   style={{ borderColor: "#e2e6ff", fontSize: "14px", padding: "10px" }}
                   {...register(`sections.${sectionIndex}.items.${itemIndex}.document_details.required_copy_only`)}
                 />
+                <ItemFilePreview
+                  control={control}
+                  basePath={`sections.${sectionIndex}.items.${itemIndex}`}
+                />
               </div>
               <div className="mb-0">
                 <div className="form-floating">
@@ -591,6 +657,7 @@ export function CheckListModal({ showModal, closeModal, callTypesOptions, onSucc
               document_details: {
                 is_copy_required: false,
                 required_copy_only: null,
+                existing_files: [],
                 description: ""
               }
             })}
@@ -796,6 +863,10 @@ export function CheckListModal({ showModal, closeModal, callTypesOptions, onSucc
                   className="form-control"
                   style={{ borderColor: "#e2e6ff", fontSize: "14px", padding: "10px" }}
                   {...register(`sections.${sectionIndex}.sub_sections.${subSectionIndex}.items.${itemIndex}.document_details.required_copy_only`)}
+                />
+                <ItemFilePreview
+                  control={control}
+                  basePath={`sections.${sectionIndex}.sub_sections.${subSectionIndex}.items.${itemIndex}`}
                 />
               </div>
               <div className="mb-0">
@@ -1017,323 +1088,323 @@ export function CheckListModal({ showModal, closeModal, callTypesOptions, onSucc
     const vesselBargeFieldError = errors.vesselType || errors.bargeType;
 
     return (
-    <div className="modal-body" style={{ maxHeight: "70vh", overflowY: "auto" }}>
-      <div className="lead-form">
-        <form id="checklistForm" onSubmit={handleSubmit(onSubmit)}>
+      <div className="modal-body" style={{ maxHeight: "70vh", overflowY: "auto" }}>
+        <div className="lead-form">
+          <form id="checklistForm" onSubmit={handleSubmit(onSubmit)}>
 
-          {/* Call Type - Select */}
-          {/* Top Fields in 2 columns */}
-          <div className="row g-3">
-            {/* Checklist Name */}
-            <div className="col-12 col-md-6">
-              <div className="form-floating desig-inp">
-                <input
-                  className={`form-control ${errors.checklistName ? "is-invalid" : ""}`}
-                  placeholder="Checklist Name"
-                  {...register("checklistName", { required: "Checklist Name is required" })}
-                />
-                <label>
-                  Checklist Name <span className="text-danger">*</span>
-                </label>
-                {errors.checklistName && (
-                  <span className="error text-danger">{errors.checklistName.message}</span>
-                )}
-              </div>
-            </div>
-            {/* Call Type */}
-            <div className="col-12 col-md-6">
-              <div className="form-floating desig-inp">
-                <select
-                  className={`form-select ${errors.callType ? "is-invalid" : ""}`}
-                  {...register("callType", { required: "Call Type is required" })}
-                  defaultValue=""
-                >
-                  <option value="">Select Call Type</option>
-
-                  {(callTypesOptions ?? []).map((callType) => (
-                    <option
-                      key={callType?.call_type_id}
-                      value={String(callType?.call_type_id)}
-                    >
-                      {callType?.call_type}
-                    </option>
-                  ))}
-                </select>
-
-                <label>
-                  Call Type <span className="text-danger">*</span>
-                </label>
-                {errors.callType && (
-                  <span className="error text-danger">{errors.callType.message}</span>
-                )}
-              </div>
-            </div>
-
-            {/* Vessel Type */}
-            <div className="col-12 col-md-6">
-              <div className="form-floating desig-inp">
-                <select
-                  className={`form-select ${vesselBargeFieldError ? "is-invalid" : ""}`}
-                  {...vesselTypeSelectRest}
-                  onChange={(e) => {
-                    onVesselTypeChange(e);
-                    if (e.target.value !== "") {
-                      setValue("bargeType", "", { shouldValidate: true });
-                    }
-                    trigger(["vesselType", "bargeType"]);
-                  }}
-                  disabled={isLoadingVesselTypes}
-                >
-                  <option value="">Select Vessel Type</option>
-                  {(vesselTypes ?? []).map((type) => {
-                    const value = type.vessel_type_id ?? type._id ?? type.vessel_type ?? type.name;
-                    const label = type.vessel_type ?? type.name ?? value;
-                    return (
-                      <option key={value} value={String(value)}>
-                        {label}
-                      </option>
-                    );
-                  })}
-                </select>
-                <label>
-                  Vessel Type <span className="text-danger">*</span>
-                </label>
-                {vesselBargeFieldError && (
-                  <span className="error text-danger">{vesselBargeFieldError.message}</span>
-                )}
-              </div>
-            </div>
-
-            {/* Barge Type */}
-            <div className="col-12 col-md-6">
-              <div className="form-floating desig-inp">
-                <select
-                  className={`form-select ${vesselBargeFieldError ? "is-invalid" : ""}`}
-                  {...bargeTypeSelectRest}
-                  onChange={(e) => {
-                    onBargeTypeChange(e);
-                    if (e.target.value !== "") {
-                      setValue("vesselType", "", { shouldValidate: true });
-                    }
-                    trigger(["vesselType", "bargeType"]);
-                  }}
-                  disabled={isLoadingBargeTypes}
-                >
-                  <option value="">Select Barge Type</option>
-                  {(bargeTypes ?? []).map((type) => {
-                    const value = type.barge_type_id ?? type._id ?? type.barge_type ?? type.name;
-                    const label = type.barge_type ?? type.name ?? value;
-                    return (
-                      <option key={value} value={String(value)}>
-                        {label}
-                      </option>
-                    );
-                  })}
-                </select>
-                <label>
-                  Barge Type <span className="text-danger">*</span>
-                </label>
-                {vesselBargeFieldError && (
-                  <span className="error text-danger">{vesselBargeFieldError.message}</span>
-                )}
-              </div>
-            </div>
-          </div>
-
-
-          {/* Sections */}
-          <div className="mb-lg-3 mb-sm-0">
-            <div style={{
-              display: "flex",
-              justifyContent: "space-between",
-              alignItems: "center",
-              marginBottom: "20px",
-              paddingBottom: "15px",
-              borderBottom: "2px solid #e2e6ff"
-            }}>
-              <h5 style={{
-                margin: 0,
-                fontWeight: "700",
-                fontSize: "18px",
-                color: "#1a1a1a",
-                display: "flex",
-                alignItems: "center",
-                gap: "12px"
-              }}>
-                <div style={{
-                  width: "4px",
-                  height: "24px",
-                  backgroundColor: "#00368c",
-                  borderRadius: "2px"
-                }}></div>
-                Sections
-              </h5>
-              <button
-                type="button"
-                onClick={addSection}
-                className="btn"
-                style={{
-                  fontSize: "13px",
-                  padding: "10px 20px",
-                  backgroundColor: "var(--card-color, #00368c)",
-                  color: "#fff",
-                  border: "none",
-                  borderRadius: "8px",
-                  fontWeight: "600",
-                  transition: "all 0.2s ease",
-                  boxShadow: "0 2px 8px rgba(0, 54, 140, 0.3)"
-                }}
-                onMouseEnter={(e) => {
-                  e.currentTarget.style.backgroundColor = "#002d6f";
-                  e.currentTarget.style.transform = "translateY(-1px)";
-                  e.currentTarget.style.boxShadow = "0 4px 12px rgba(0, 54, 140, 0.4)";
-                }}
-                onMouseLeave={(e) => {
-                  e.currentTarget.style.backgroundColor = "#00368c";
-                  e.currentTarget.style.transform = "translateY(0)";
-                  e.currentTarget.style.boxShadow = "0 2px 8px rgba(0, 54, 140, 0.3)";
-                }}
-              >
-                + Add Section
-              </button>
-            </div>
-
-            {sections.map((section, sectionIndex) => (
-              <div key={section.id} style={{
-                border: "1px solid #e2e6ff",
-                borderRadius: "12px",
-                padding: "0",
-                marginBottom: "20px",
-                backgroundColor: "#ffffff",
-                boxShadow: "0 2px 8px rgba(0, 0, 0, 0.06)",
-                overflow: "hidden"
-              }}>
-                {/* Section Header */}
-                <div style={{
-                  display: "flex",
-                  justifyContent: "space-between",
-                  alignItems: "center",
-                  padding: "16px 20px",
-                  backgroundColor: "#f8f9ff",
-                  borderBottom: expandedSections[sectionIndex] ? "1px solid #e2e6ff" : "none"
-                }}>
-                  <button
-                    type="button"
-                    onClick={() => toggleSection(sectionIndex)}
-                    style={{
-                      background: "none",
-                      border: "none",
-                      fontWeight: "700",
-                      fontSize: "15px",
-                      color: "#1a1a1a",
-                      cursor: "pointer",
-                      flex: 1,
-                      textAlign: "left",
-                      display: "flex",
-                      alignItems: "center",
-                      gap: "10px",
-                      padding: 0
-                    }}
-                  >
-                    <span style={{
-                      fontSize: "18px",
-                      color: "#00368c",
-                      display: "inline-block",
-                      transition: "transform 0.2s ease",
-                      transform: expandedSections[sectionIndex] ? "rotate(90deg)" : "rotate(0deg)"
-                    }}>
-                      ▶
-                    </span>
-                    <span>Section {sectionIndex + 1}</span>
-                  </button>
-                  <button
-                    type="button"
-                    onClick={() => removeSection(sectionIndex)}
-                    className="btn btn-sm"
-                    style={{
-                      fontSize: "12px",
-                      padding: "6px 14px",
-                      backgroundColor: "#fff",
-                      border: "1px solid #dc3545",
-                      color: "#dc3545",
-                      borderRadius: "6px",
-                      fontWeight: "600",
-                      transition: "all 0.2s ease"
-                    }}
-                    onMouseEnter={(e) => {
-                      e.currentTarget.style.backgroundColor = "#dc3545";
-                      e.currentTarget.style.color = "#fff";
-                    }}
-                    onMouseLeave={(e) => {
-                      e.currentTarget.style.backgroundColor = "#fff";
-                      e.currentTarget.style.color = "#dc3545";
-                    }}
-                  >
-                    Remove
-                  </button>
+            {/* Call Type - Select */}
+            {/* Top Fields in 2 columns */}
+            <div className="row g-3">
+              {/* Checklist Name */}
+              <div className="col-12 col-md-6">
+                <div className="form-floating desig-inp">
+                  <input
+                    className={`form-control ${errors.checklistName ? "is-invalid" : ""}`}
+                    placeholder="Checklist Name"
+                    {...register("checklistName", { required: "Checklist Name is required" })}
+                  />
+                  <label>
+                    Checklist Name <span className="text-danger">*</span>
+                  </label>
+                  {errors.checklistName && (
+                    <span className="error text-danger">{errors.checklistName.message}</span>
+                  )}
                 </div>
-
-                {expandedSections[sectionIndex] && (
-                  <div style={{ padding: "20px" }}>
-                    {/* Section Title and Sort Order in Grid */}
-                    <div style={{
-                      display: "grid",
-                      gridTemplateColumns: "1fr 150px",
-                      gap: "15px",
-                      marginBottom: "20px"
-                    }}>
-                      {/* Section Title */}
-                      <div>
-                        <div className="form-floating">
-                          <input
-                            className="form-control"
-                            placeholder="Section Title"
-                            style={{ borderColor: "#e2e6ff" }}
-                            {...register(`sections.${sectionIndex}.title`, {
-                              required: "Section title is required"
-                            })}
-                          />
-                          <label style={{ color: "#666" }}>Section Title <span className="text-danger">*</span></label>
-                        </div>
-                      </div>
-
-                      {/* Section Sort Order */}
-                      <div>
-                        <div className="form-floating">
-                          <input
-                            type="number"
-                            className="form-control"
-                            placeholder="Sort Order"
-                            style={{ borderColor: "#e2e6ff" }}
-                            {...register(`sections.${sectionIndex}.sort_order`, {
-                              required: "Sort order is required",
-                              valueAsNumber: true
-                            })}
-                          />
-                          <label style={{ color: "#666" }}>Sort Order <span className="text-danger">*</span></label>
-                        </div>
-                      </div>
-                    </div>
-
-                    {/* Divider */}
-                    <div style={{
-                      height: "1px",
-                      backgroundColor: "#e2e6ff",
-                      margin: "20px 0",
-                      width: "100%"
-                    }}></div>
-
-                    <SectionItems sectionIndex={sectionIndex} items={section.items} />
-                    <SubSections sectionIndex={sectionIndex} subSections={section.sub_sections} />
-                  </div>
-                )}
               </div>
-            ))}
-          </div>
+              {/* Call Type */}
+              <div className="col-12 col-md-6">
+                <div className="form-floating desig-inp">
+                  <select
+                    className={`form-select ${errors.callType ? "is-invalid" : ""}`}
+                    {...register("callType", { required: "Call Type is required" })}
+                    defaultValue=""
+                  >
+                    <option value="">Select Call Type</option>
 
-        </form>
+                    {(callTypesOptions ?? []).map((callType) => (
+                      <option
+                        key={callType?.call_type_id}
+                        value={String(callType?.call_type_id)}
+                      >
+                        {callType?.call_type}
+                      </option>
+                    ))}
+                  </select>
+
+                  <label>
+                    Call Type <span className="text-danger">*</span>
+                  </label>
+                  {errors.callType && (
+                    <span className="error text-danger">{errors.callType.message}</span>
+                  )}
+                </div>
+              </div>
+
+              {/* Vessel Type */}
+              <div className="col-12 col-md-6">
+                <div className="form-floating desig-inp">
+                  <select
+                    className={`form-select ${vesselBargeFieldError ? "is-invalid" : ""}`}
+                    {...vesselTypeSelectRest}
+                    onChange={(e) => {
+                      onVesselTypeChange(e);
+                      if (e.target.value !== "") {
+                        setValue("bargeType", "", { shouldValidate: true });
+                      }
+                      trigger(["vesselType", "bargeType"]);
+                    }}
+                    disabled={isLoadingVesselTypes}
+                  >
+                    <option value="">Select Vessel Type</option>
+                    {(vesselTypes ?? []).map((type) => {
+                      const value = type.vessel_type_id ?? type._id ?? type.vessel_type ?? type.name;
+                      const label = type.vessel_type ?? type.name ?? value;
+                      return (
+                        <option key={value} value={String(value)}>
+                          {label}
+                        </option>
+                      );
+                    })}
+                  </select>
+                  <label>
+                    Vessel Type <span className="text-danger">*</span>
+                  </label>
+                  {vesselBargeFieldError && (
+                    <span className="error text-danger">{vesselBargeFieldError.message}</span>
+                  )}
+                </div>
+              </div>
+
+              {/* Barge Type */}
+              <div className="col-12 col-md-6">
+                <div className="form-floating desig-inp">
+                  <select
+                    className={`form-select ${vesselBargeFieldError ? "is-invalid" : ""}`}
+                    {...bargeTypeSelectRest}
+                    onChange={(e) => {
+                      onBargeTypeChange(e);
+                      if (e.target.value !== "") {
+                        setValue("vesselType", "", { shouldValidate: true });
+                      }
+                      trigger(["vesselType", "bargeType"]);
+                    }}
+                    disabled={isLoadingBargeTypes}
+                  >
+                    <option value="">Select Barge Type</option>
+                    {(bargeTypes ?? []).map((type) => {
+                      const value = type.barge_type_id ?? type._id ?? type.barge_type ?? type.name;
+                      const label = type.barge_type ?? type.name ?? value;
+                      return (
+                        <option key={value} value={String(value)}>
+                          {label}
+                        </option>
+                      );
+                    })}
+                  </select>
+                  <label>
+                    Barge Type <span className="text-danger">*</span>
+                  </label>
+                  {vesselBargeFieldError && (
+                    <span className="error text-danger">{vesselBargeFieldError.message}</span>
+                  )}
+                </div>
+              </div>
+            </div>
+
+
+            {/* Sections */}
+            <div className="mb-lg-3 mb-sm-0">
+              <div style={{
+                display: "flex",
+                justifyContent: "space-between",
+                alignItems: "center",
+                marginBottom: "20px",
+                paddingBottom: "15px",
+                borderBottom: "2px solid #e2e6ff"
+              }}>
+                <h5 style={{
+                  margin: 0,
+                  fontWeight: "700",
+                  fontSize: "18px",
+                  color: "#1a1a1a",
+                  display: "flex",
+                  alignItems: "center",
+                  gap: "12px"
+                }}>
+                  <div style={{
+                    width: "4px",
+                    height: "24px",
+                    backgroundColor: "#00368c",
+                    borderRadius: "2px"
+                  }}></div>
+                  Sections
+                </h5>
+                <button
+                  type="button"
+                  onClick={addSection}
+                  className="btn"
+                  style={{
+                    fontSize: "13px",
+                    padding: "10px 20px",
+                    backgroundColor: "var(--card-color, #00368c)",
+                    color: "#fff",
+                    border: "none",
+                    borderRadius: "8px",
+                    fontWeight: "600",
+                    transition: "all 0.2s ease",
+                    boxShadow: "0 2px 8px rgba(0, 54, 140, 0.3)"
+                  }}
+                  onMouseEnter={(e) => {
+                    e.currentTarget.style.backgroundColor = "#002d6f";
+                    e.currentTarget.style.transform = "translateY(-1px)";
+                    e.currentTarget.style.boxShadow = "0 4px 12px rgba(0, 54, 140, 0.4)";
+                  }}
+                  onMouseLeave={(e) => {
+                    e.currentTarget.style.backgroundColor = "#00368c";
+                    e.currentTarget.style.transform = "translateY(0)";
+                    e.currentTarget.style.boxShadow = "0 2px 8px rgba(0, 54, 140, 0.3)";
+                  }}
+                >
+                  + Add Section
+                </button>
+              </div>
+
+              {sections.map((section, sectionIndex) => (
+                <div key={section.id} style={{
+                  border: "1px solid #e2e6ff",
+                  borderRadius: "12px",
+                  padding: "0",
+                  marginBottom: "20px",
+                  backgroundColor: "#ffffff",
+                  boxShadow: "0 2px 8px rgba(0, 0, 0, 0.06)",
+                  overflow: "hidden"
+                }}>
+                  {/* Section Header */}
+                  <div style={{
+                    display: "flex",
+                    justifyContent: "space-between",
+                    alignItems: "center",
+                    padding: "16px 20px",
+                    backgroundColor: "#f8f9ff",
+                    borderBottom: expandedSections[sectionIndex] ? "1px solid #e2e6ff" : "none"
+                  }}>
+                    <button
+                      type="button"
+                      onClick={() => toggleSection(sectionIndex)}
+                      style={{
+                        background: "none",
+                        border: "none",
+                        fontWeight: "700",
+                        fontSize: "15px",
+                        color: "#1a1a1a",
+                        cursor: "pointer",
+                        flex: 1,
+                        textAlign: "left",
+                        display: "flex",
+                        alignItems: "center",
+                        gap: "10px",
+                        padding: 0
+                      }}
+                    >
+                      <span style={{
+                        fontSize: "18px",
+                        color: "#00368c",
+                        display: "inline-block",
+                        transition: "transform 0.2s ease",
+                        transform: expandedSections[sectionIndex] ? "rotate(90deg)" : "rotate(0deg)"
+                      }}>
+                        ▶
+                      </span>
+                      <span>Section {sectionIndex + 1}</span>
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => removeSection(sectionIndex)}
+                      className="btn btn-sm"
+                      style={{
+                        fontSize: "12px",
+                        padding: "6px 14px",
+                        backgroundColor: "#fff",
+                        border: "1px solid #dc3545",
+                        color: "#dc3545",
+                        borderRadius: "6px",
+                        fontWeight: "600",
+                        transition: "all 0.2s ease"
+                      }}
+                      onMouseEnter={(e) => {
+                        e.currentTarget.style.backgroundColor = "#dc3545";
+                        e.currentTarget.style.color = "#fff";
+                      }}
+                      onMouseLeave={(e) => {
+                        e.currentTarget.style.backgroundColor = "#fff";
+                        e.currentTarget.style.color = "#dc3545";
+                      }}
+                    >
+                      Remove
+                    </button>
+                  </div>
+
+                  {expandedSections[sectionIndex] && (
+                    <div style={{ padding: "20px" }}>
+                      {/* Section Title and Sort Order in Grid */}
+                      <div style={{
+                        display: "grid",
+                        gridTemplateColumns: "1fr 150px",
+                        gap: "15px",
+                        marginBottom: "20px"
+                      }}>
+                        {/* Section Title */}
+                        <div>
+                          <div className="form-floating">
+                            <input
+                              className="form-control"
+                              placeholder="Section Title"
+                              style={{ borderColor: "#e2e6ff" }}
+                              {...register(`sections.${sectionIndex}.title`, {
+                                required: "Section title is required"
+                              })}
+                            />
+                            <label style={{ color: "#666" }}>Section Title <span className="text-danger">*</span></label>
+                          </div>
+                        </div>
+
+                        {/* Section Sort Order */}
+                        <div>
+                          <div className="form-floating">
+                            <input
+                              type="number"
+                              className="form-control"
+                              placeholder="Sort Order"
+                              style={{ borderColor: "#e2e6ff" }}
+                              {...register(`sections.${sectionIndex}.sort_order`, {
+                                required: "Sort order is required",
+                                valueAsNumber: true
+                              })}
+                            />
+                            <label style={{ color: "#666" }}>Sort Order <span className="text-danger">*</span></label>
+                          </div>
+                        </div>
+                      </div>
+
+                      {/* Divider */}
+                      <div style={{
+                        height: "1px",
+                        backgroundColor: "#e2e6ff",
+                        margin: "20px 0",
+                        width: "100%"
+                      }}></div>
+
+                      <SectionItems sectionIndex={sectionIndex} items={section.items} />
+                      <SubSections sectionIndex={sectionIndex} subSections={section.sub_sections} />
+                    </div>
+                  )}
+                </div>
+              ))}
+            </div>
+
+          </form>
+        </div>
       </div>
-    </div>
     );
   };
 
