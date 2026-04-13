@@ -54,7 +54,11 @@ const useTransportCompanyReducer = create((set) => ({
   updateTransportCompany: async ({ formData, cb }) => {
     try {
       set({ isBeingUpdated: true });
-      const { data } = await transportCompanyService.updateTransportCompanyData(formData);
+      const { transport_company_id, ...payload } = formData;
+      const { data } = await transportCompanyService.updateTransportCompanyData(
+        transport_company_id,
+        payload
+      );
       set({ successMessage: data.message, isBeingUpdated: false });
       const { success } = useAlertReducer.getState();
       success(data && data.message);
