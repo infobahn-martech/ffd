@@ -37,7 +37,7 @@ export function GroupEmailBEModal({ showModal, closeModal, onSuccess }) {
     } = useForm({
         defaultValues: {
             entity_id: "",
-            emails: [{ value: "" }],
+            emails: [{ value: "", email_id: "" }],
         },
     });
 
@@ -50,7 +50,7 @@ export function GroupEmailBEModal({ showModal, closeModal, onSuccess }) {
             clearGroupEmailBEDetail();
             reset({
                 entity_id: "",
-                emails: [{ value: "" }],
+                emails: [{ value: "", email_id: "" }],
             });
             return;
         }
@@ -61,13 +61,20 @@ export function GroupEmailBEModal({ showModal, closeModal, onSuccess }) {
         if (!isEdit || !groupEmailBEDetail) return;
         const rawEmails = groupEmailBEDetail.emails;
         const emailList = Array.isArray(rawEmails)
-            ? rawEmails.map((e) => ({
-                value: typeof e === "string" ? e : e?.email ?? "",
-            }))
+            ? rawEmails.map((e) => {
+                if (typeof e === "string") {
+                    return { value: e, email_id: "" };
+                }
+                const id = e?.email_id ?? e?.id;
+                return {
+                    value: e?.email ?? "",
+                    email_id: id != null && id !== "" ? id : "",
+                };
+            })
             : [];
         reset({
             entity_id: String(groupEmailBEDetail.entity_id ?? ""),
-            emails: emailList.length > 0 ? emailList : [{ value: "" }],
+            emails: emailList.length > 0 ? emailList : [{ value: "", email_id: "" }],
         });
     }, [groupEmailBEDetail, isEdit, reset]);
 
@@ -76,11 +83,22 @@ export function GroupEmailBEModal({ showModal, closeModal, onSuccess }) {
         name: "emails",
     });
 
+    const normalizeEmailIdForPayload = (rawId) => {
+        if (rawId === "" || rawId == null || rawId === undefined) return "";
+        const n = Number(rawId);
+        return Number.isFinite(n) ? n : rawId;
+    };
+
     const onSubmit = (data) => {
         if (isEdit) {
             const payload = {
-                entity_id: data.entity_id,
-                emails: data.emails.map((e) => e.value?.trim()).filter(Boolean),
+                entity_id: Number(data.entity_id) || data.entity_id,
+                emails: data.emails
+                    .filter((e) => e.value?.trim())
+                    .map((e) => ({
+                        email_id: normalizeEmailIdForPayload(e.email_id),
+                        email: e.value.trim(),
+                    })),
             };
             updateGroupEmailBE({
                 formData: payload,
@@ -160,6 +178,10 @@ export function GroupEmailBEModal({ showModal, closeModal, onSuccess }) {
                                 <div className="col-12">
                                     <div className="form-floating desig-inp position-relative">
                                         <input
+                                            type="hidden"
+                                            {...register(`emails.${index}.email_id`)}
+                                        />
+                                        <input
                                             type="email"
                                             className={`form-control email-input-no-validation ${errors.emails?.[index]?.value ? "is-invalid" : ""
                                                 }`}
@@ -200,6 +222,7 @@ export function GroupEmailBEModal({ showModal, closeModal, onSuccess }) {
                                                     onClick={() =>
                                                         append({
                                                             value: "",
+                                                            email_id: "",
                                                         })
                                                     }
                                                     title="Add Email"
