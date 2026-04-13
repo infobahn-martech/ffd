@@ -1,6 +1,7 @@
 import { useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState } from 'react';
 import { createPortal } from 'react-dom';
 import { useLocation, useNavigate } from 'react-router-dom';
+import { HexColorPicker } from 'react-colorful';
 import {
   FiChevronRight,
   FiEdit2,
@@ -18,6 +19,44 @@ import useWorkSpaceReducer from '../../../store/WorkSpaceReducer';
 import './AddDashboardModal.scss';
 
 const DASHBOARD_MENU_WIDTH = 200;
+const DEFAULT_PICKER_COLOR = '#6366f1';
+const PRIMARY_PRESET_COLORS = ['#6366f1', '#2563eb', '#0ea5e9', '#10b981', '#f59e0b', '#ef4444', '#ec4899'];
+const SECONDARY_PRESET_COLORS = [
+  '#1e293b',
+  '#334155',
+  '#64748b',
+  '#94a3b8',
+  '#e2e8f0',
+  '#f8fafc',
+  '#7c3aed',
+  '#8b5cf6',
+  '#a855f7',
+  '#3b82f6',
+  '#06b6d4',
+  '#14b8a6',
+  '#22c55e',
+  '#84cc16',
+  '#eab308',
+  '#f97316',
+  '#f43f5e',
+  '#be123c',
+];
+
+const normalizeHexColor = (value) => {
+  if (!value) return DEFAULT_PICKER_COLOR;
+  const trimmed = value.trim();
+  const withHash = trimmed.startsWith('#') ? trimmed : `#${trimmed}`;
+  const threeHexMatch = /^#[0-9a-fA-F]{3}$/.test(withHash);
+  const sixHexMatch = /^#[0-9a-fA-F]{6}$/.test(withHash);
+  if (sixHexMatch) return withHash.toLowerCase();
+  if (threeHexMatch) {
+    const r = withHash[1];
+    const g = withHash[2];
+    const b = withHash[3];
+    return `#${r}${r}${g}${g}${b}${b}`.toLowerCase();
+  }
+  return DEFAULT_PICKER_COLOR;
+};
 
 function WorkspacesSideNavPanel({ isDarkMode, onNewDashboard }) {
   const navigate = useNavigate();
@@ -38,9 +77,14 @@ function WorkspacesSideNavPanel({ isDarkMode, onNewDashboard }) {
   const [backgroundSubOpen, setBackgroundSubOpen] = useState(false);
   const [renameModal, setRenameModal] = useState(null);
   const [renameDraft, setRenameDraft] = useState('');
+  const [isColorPickerOpen, setIsColorPickerOpen] = useState(false);
+  const [pickerColor, setPickerColor] = useState(DEFAULT_PICKER_COLOR);
+  const [isAdvancedPaletteOpen, setIsAdvancedPaletteOpen] = useState(false);
   const wallpaperInputRef = useRef(null);
   const menuBtnRef = useRef(null);
   const dropdownRef = useRef(null);
+  const colorPickerRef = useRef(null);
+  const colorHexInputRef = useRef(null);
   const [menuPlacement, setMenuPlacement] = useState({ top: 0, left: 0 });
 
   const selectedDashboardId = useMemo(() => {
@@ -109,6 +153,7 @@ function WorkspacesSideNavPanel({ isDarkMode, onNewDashboard }) {
       if (menuBtnRef.current?.contains(t) || dropdownRef.current?.contains(t)) return;
       setOpenActionsId(null);
       setBackgroundSubOpen(false);
+      setIsColorPickerOpen(false);
     };
     document.addEventListener('mousedown', onDoc);
     return () => document.removeEventListener('mousedown', onDoc);
@@ -144,6 +189,8 @@ function WorkspacesSideNavPanel({ isDarkMode, onNewDashboard }) {
   const closeMenus = () => {
     setOpenActionsId(null);
     setBackgroundSubOpen(false);
+    setIsColorPickerOpen(false);
+    setIsAdvancedPaletteOpen(false);
   };
 
   const handleRenameSave = (e) => {
@@ -190,6 +237,65 @@ function WorkspacesSideNavPanel({ isDarkMode, onNewDashboard }) {
       dashboardsData.find((x) => String(x.id) === String(openActionsId)) ?? null,
     [dashboardsData, openActionsId]
   );
+
+  useEffect(() => {
+    if (openActionsId == null) {
+      setIsColorPickerOpen(false);
+      setIsAdvancedPaletteOpen(false);
+    }
+  }, [openActionsId]);
+
+  useEffect(() => {
+    if (!backgroundSubOpen) {
+      setIsColorPickerOpen(false);
+      setIsAdvancedPaletteOpen(false);
+    }
+  }, [backgroundSubOpen]);
+
+  useEffect(() => {
+    if (!isColorPickerOpen) return undefined;
+    const handleEscape = (event) => {
+      if (event.key !== 'Escape') return;
+      event.stopPropagation();
+      setIsColorPickerOpen(false);
+    };
+    document.addEventListener('keydown', handleEscape);
+    return () => document.removeEventListener('keydown', handleEscape);
+  }, [isColorPickerOpen]);
+
+  useEffect(() => {
+    if (isColorPickerOpen) {
+      colorHexInputRef.current?.focus();
+      colorHexInputRef.current?.select();
+    }
+  }, [isColorPickerOpen]);
+
+  const openColorPicker = () => {
+    setPickerColor((prev) => normalizeHexColor(prev));
+    setIsColorPickerOpen(true);
+  };
+
+  const handlePresetClick = (hex) => {
+    setPickerColor(normalizeHexColor(hex));
+  };
+
+  const handleHexInputChange = (nextValue) => {
+    if (nextValue === '#') {
+      setPickerColor('#');
+      return;
+    }
+    const sanitized = nextValue.replace(/[^0-9a-fA-F#]/g, '').slice(0, 7);
+    if (!sanitized) {
+      setPickerColor('#');
+      return;
+    }
+    setPickerColor(sanitized.startsWith('#') ? sanitized : `#${sanitized}`);
+  };
+
+  const handleApplyColor = () => {
+    if (!menuTargetDashboard) return;
+    handleColorPick(menuTargetDashboard.id, normalizeHexColor(pickerColor));
+  };
 
   const handleDelete = (d) => {
     if (
@@ -345,18 +451,125 @@ function WorkspacesSideNavPanel({ isDarkMode, onNewDashboard }) {
                     {backgroundSubOpen && (
                       <ul className="kanban-dashboard-actions-submenu" role="menu">
                         <li role="none">
-                          <label className="kanban-dashboard-actions-menu-item kanban-dashboard-actions-menu-item--color">
-                            <span>Color</span>
-                            <input
-                              type="color"
-                              className="kanban-dashboard-actions-color-input"
-                              aria-label="Dashboard background color"
-                              defaultValue="#6366f1"
-                              onChange={(ev) =>
-                                handleColorPick(menuTargetDashboard.id, ev.target.value)
-                              }
-                            />
-                          </label>
+                          <div className="kanban-dashboard-actions-menu-item kanban-dashboard-actions-menu-item--color">
+                            <button
+                              type="button"
+                              role="menuitem"
+                              className="kanban-dashboard-actions-menu-item kanban-dashboard-actions-menu-item--color-trigger"
+                              aria-haspopup="dialog"
+                              aria-expanded={isColorPickerOpen}
+                              aria-controls="workspace-color-picker"
+                              onClick={openColorPicker}
+                              onKeyDown={(event) => {
+                                if (event.key === 'Enter' || event.key === ' ') {
+                                  event.preventDefault();
+                                  openColorPicker();
+                                }
+                              }}
+                            >
+                              <span>Color</span>
+                              <span
+                                className="kanban-dashboard-actions-color-swatch"
+                                style={{ backgroundColor: normalizeHexColor(pickerColor) }}
+                                aria-hidden
+                              />
+                            </button>
+                            {isColorPickerOpen && (
+                              <div
+                                id="workspace-color-picker"
+                                ref={colorPickerRef}
+                                className={`kanban-dashboard-color-picker-popover ${isDarkMode ? 'kanban-dashboard-color-picker-popover--dark' : ''}`}
+                                role="dialog"
+                                aria-label="Pick dashboard background color"
+                                onKeyDown={(event) => {
+                                  if (event.key === 'Escape') {
+                                    event.preventDefault();
+                                    setIsColorPickerOpen(false);
+                                  }
+                                }}
+                              >
+                                <div className="kanban-dashboard-color-picker-row">
+                                  {PRIMARY_PRESET_COLORS.map((color) => (
+                                    <button
+                                      key={color}
+                                      type="button"
+                                      className={`kanban-dashboard-color-dot ${normalizeHexColor(pickerColor) === normalizeHexColor(color) ? 'is-active' : ''}`}
+                                      style={{ backgroundColor: color }}
+                                      onClick={() => handlePresetClick(color)}
+                                      aria-label={`Choose color ${color}`}
+                                    />
+                                  ))}
+                                </div>
+
+                                {isAdvancedPaletteOpen && (
+                                  <div className="kanban-dashboard-color-picker-secondary-grid">
+                                    {SECONDARY_PRESET_COLORS.map((color) => (
+                                      <button
+                                        key={color}
+                                        type="button"
+                                        className={`kanban-dashboard-color-dot kanban-dashboard-color-dot--secondary ${normalizeHexColor(pickerColor) === normalizeHexColor(color) ? 'is-active' : ''}`}
+                                        style={{ backgroundColor: color }}
+                                        onClick={() => handlePresetClick(color)}
+                                        aria-label={`Choose shade ${color}`}
+                                      />
+                                    ))}
+                                  </div>
+                                )}
+
+                                <button
+                                  type="button"
+                                  className="kanban-dashboard-color-picker-toggle"
+                                  onClick={() => setIsAdvancedPaletteOpen((v) => !v)}
+                                  aria-expanded={isAdvancedPaletteOpen}
+                                >
+                                  {isAdvancedPaletteOpen ? 'Hide advanced palette' : 'Show advanced palette'}
+                                </button>
+
+                                {isAdvancedPaletteOpen && (
+                                  <div className="kanban-dashboard-color-picker-advanced">
+                                    <HexColorPicker color={normalizeHexColor(pickerColor)} onChange={setPickerColor} />
+                                  </div>
+                                )}
+
+                                <div className="kanban-dashboard-color-picker-input-row">
+                                  <label htmlFor="workspaceColorHex" className="kanban-dashboard-color-picker-hex-label">
+                                    HEX
+                                  </label>
+                                  <input
+                                    id="workspaceColorHex"
+                                    ref={colorHexInputRef}
+                                    type="text"
+                                    value={pickerColor}
+                                    onChange={(event) => handleHexInputChange(event.target.value)}
+                                    className="kanban-dashboard-color-picker-hex-input"
+                                    aria-label="Hex color value"
+                                  />
+                                  <span
+                                    className="kanban-dashboard-color-picker-preview"
+                                    style={{ backgroundColor: normalizeHexColor(pickerColor) }}
+                                    aria-label={`Selected color preview ${normalizeHexColor(pickerColor)}`}
+                                  />
+                                </div>
+
+                                <div className="kanban-dashboard-color-picker-actions">
+                                  <button
+                                    type="button"
+                                    className="kanban-dashboard-color-picker-btn kanban-dashboard-color-picker-btn--ghost"
+                                    onClick={() => setIsColorPickerOpen(false)}
+                                  >
+                                    Cancel
+                                  </button>
+                                  <button
+                                    type="button"
+                                    className="kanban-dashboard-color-picker-btn kanban-dashboard-color-picker-btn--primary"
+                                    onClick={handleApplyColor}
+                                  >
+                                    Apply
+                                  </button>
+                                </div>
+                              </div>
+                            )}
+                          </div>
                         </li>
                         <li role="none">
                           <button
