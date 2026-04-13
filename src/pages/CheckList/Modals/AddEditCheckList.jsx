@@ -45,7 +45,7 @@ function collectItemFiles(data) {
     for (const item of section?.items ?? []) {
       const fileInput = item?.document_details?.required_copy_only;
       const file = fileInput?.length ? fileInput[0] : fileInput;
-      if (file instanceof File) {
+      if (file instanceof File && file.size > 0) {
         map[`item_${globalIndex}`] = file;
       }
       globalIndex++;
@@ -54,7 +54,7 @@ function collectItemFiles(data) {
       for (const item of sub?.items ?? []) {
         const fileInput = item?.document_details?.required_copy_only;
         const file = fileInput?.length ? fileInput[0] : fileInput;
-        if (file instanceof File) {
+        if (file instanceof File && file.size > 0) {
           map[`item_${globalIndex}`] = file;
         }
         globalIndex++;
@@ -62,6 +62,17 @@ function collectItemFiles(data) {
     }
   }
   return map;
+}
+
+function logFormDataEntries(formData) {
+  console.log("[Checklist] FormData entries (before API call):");
+  for (const [key, value] of formData.entries()) {
+    if (value instanceof File) {
+      console.log(key, `[File: ${value.name}, ${value.size} bytes]`);
+    } else {
+      console.log(key, value);
+    }
+  }
 }
 
 const EMPTY_DEFAULTS = {
@@ -196,10 +207,18 @@ export function CheckListModal({ showModal, closeModal, callTypesOptions, onSucc
     const sectionsApi = (data.sections ?? []).map(mapSectionToApi);
     const num = (v) => (v !== "" && v != null && !isNaN(Number(v)) ? Number(v) : null);
     const callTypeId = num(data.callType);
-    const vesselTypeId = num(data.vesselType);
-    const bargeTypeId = num(data.bargeType);
-    const vessel_type_id = vesselTypeId != null ? vesselTypeId : null;
-    const barge_type_id = vesselTypeId != null ? null : bargeTypeId ?? null;
+
+    let vessel_type_id = null;
+    let barge_type_id = null;
+    const hasVessel = data.vesselType !== "" && data.vesselType != null;
+    const hasBarge = data.bargeType !== "" && data.bargeType != null;
+    if (hasVessel) {
+      vessel_type_id = num(data.vesselType);
+      barge_type_id = null;
+    } else if (hasBarge) {
+      barge_type_id = num(data.bargeType);
+      vessel_type_id = null;
+    }
 
     const isEdit = !!showModal?.checklist_type_id;
 
@@ -232,8 +251,10 @@ export function CheckListModal({ showModal, closeModal, callTypesOptions, onSucc
       const formData = new FormData();
       formData.append("data", JSON.stringify(payload));
       Object.entries(fileMap).forEach(([key, file]) => {
-        formData.append(`documents[${key}]`, file);
+        if (!(file instanceof File) || file.size === 0) return;
+        formData.append(`documents[${key}][]`, file);
       });
+      logFormDataEntries(formData);
       if (isEdit) {
         editChecklist({ formData, cb });
       } else {
