@@ -646,6 +646,24 @@ export function isWorkflowStageChildColumn(stage) {
 }
 
 /**
+ * True if this column is a parent with nested child columns (hide "Cards per row" in the editor).
+ * Supports nested arrays on the stage object, or flattened siblings linked by parent_column_id.
+ */
+export function workflowStageHasChildColumns(stage, swimlaneStages = []) {
+  if (!stage) return false;
+  if (Array.isArray(stage.child_columns) && stage.child_columns.length > 0) return true;
+  if (Array.isArray(stage.sub_columns) && stage.sub_columns.length > 0) return true;
+  if (Array.isArray(stage.children) && stage.children.length > 0) return true;
+  const cid = stage.columnId;
+  if (cid == null || cid === '') return false;
+  const pid = String(cid);
+  return swimlaneStages.some((s) => {
+    const p = s?.parent_column_id;
+    return p != null && String(p) !== '' && String(p) === pid;
+  });
+}
+
+/**
  * When global row count exceeds this column's depth and the deepest stage is a child,
  * suppress empty grid placeholders below (no third nesting level).
  */

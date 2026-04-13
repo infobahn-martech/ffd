@@ -224,6 +224,7 @@ function WorkflowAreaGrid({
           >
             <WorkflowStageCard
               stage={stage}
+              swimlaneStages={swimlane.stages}
               swimlaneId={swimlane.id}
               workflowId={workflowId}
               stageColumnKey={stageColumnKey}

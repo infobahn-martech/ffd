@@ -1,11 +1,12 @@
 import { useState } from 'react';
-import { rgbToHex, hexToRgb } from './workflow.utils';
+import { rgbToHex, hexToRgb, workflowStageHasChildColumns } from './workflow.utils';
 
 /**
  * Single stage card with insertion rails, title editing, and minimal color action.
  */
 function WorkflowStageCard({
   stage,
+  swimlaneStages = [],
   swimlaneId,
   workflowId,
   stageColumnKey,
@@ -38,6 +39,7 @@ function WorkflowStageCard({
 
   const limit = stage.limit ?? 0;
   const cardsPerRow = stage.cardsPerRow ?? 1;
+  const hasChildren = workflowStageHasChildColumns(stage, swimlaneStages);
   const displayColor = stage.color ? rgbToHex(stage.color) : '#f9fafb';
   const isChildColumn = !!stage.parent_column_id;
   const columnBusy = Boolean(mutationState);
@@ -225,39 +227,41 @@ function WorkflowStageCard({
                 )}
               </span>
             </div>
-            <div className="stage-detail-row">
-              <span className="stage-detail-label">Cards per row:</span>
-              <span className="stage-detail-value-slot">
-                {editingField === 'cardsPerRow' ? (
-                  <input
-                    type="text"
-                    inputMode="numeric"
-                    pattern="[0-9]*"
-                    className="stage-inline-input stage-inline-input-edit"
-                    value={editValue}
-                    onChange={(e) => {
-                      const v = e.target.value;
-                      if (v === '' || /^\d+$/.test(v)) setEditValue(v);
-                    }}
-                    onBlur={saveCardsPerRow}
-                    onKeyDown={handleCardsPerRowKeyDown}
-                    onClick={(e) => e.stopPropagation()}
-                    autoFocus
-                  />
-                ) : (
-                  <span
-                    className="stage-detail-value"
-                    onClick={(e) => { e.stopPropagation(); startEditCardsPerRow(); }}
-                    role="button"
-                    tabIndex={0}
-                    onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); startEditCardsPerRow(); } }}
-                    title="Click to edit"
-                  >
-                    {cardsPerRow}
-                  </span>
-                )}
-              </span>
-            </div>
+            {!hasChildren ? (
+              <div className="stage-detail-row">
+                <span className="stage-detail-label">Cards per row:</span>
+                <span className="stage-detail-value-slot">
+                  {editingField === 'cardsPerRow' ? (
+                    <input
+                      type="text"
+                      inputMode="numeric"
+                      pattern="[0-9]*"
+                      className="stage-inline-input stage-inline-input-edit"
+                      value={editValue}
+                      onChange={(e) => {
+                        const v = e.target.value;
+                        if (v === '' || /^\d+$/.test(v)) setEditValue(v);
+                      }}
+                      onBlur={saveCardsPerRow}
+                      onKeyDown={handleCardsPerRowKeyDown}
+                      onClick={(e) => e.stopPropagation()}
+                      autoFocus
+                    />
+                  ) : (
+                    <span
+                      className="stage-detail-value"
+                      onClick={(e) => { e.stopPropagation(); startEditCardsPerRow(); }}
+                      role="button"
+                      tabIndex={0}
+                      onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); startEditCardsPerRow(); } }}
+                      title="Click to edit"
+                    >
+                      {cardsPerRow}
+                    </span>
+                  )}
+                </span>
+              </div>
+            ) : null}
           </div>
           <div className="stage-box-actions">
             <label className="stage-action-color-wrapper">
