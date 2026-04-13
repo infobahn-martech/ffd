@@ -58,6 +58,7 @@ function EditWorkflows() {
     deleteSwimlane,
     createWorkflowColumn,
     renameWorkflowColumn,
+    updateWorkflowColumn,
     removeWorkflowColumn,
     workflows: apiWorkflows,
     isLoading,
@@ -394,23 +395,46 @@ function EditWorkflows() {
 
   const handleStageCardsPerRowChange = (workflowId, swimlaneId, stageId, value) => {
     const num = Math.max(1, parseInt(value, 10) || 1);
-    setWorkflows((prevWorkflows) =>
-      prevWorkflows.map((workflow) => {
-        if (workflow.id !== workflowId) return workflow;
-        return {
-          ...workflow,
-          swimlanes: workflow.swimlanes.map((swimlane) => {
-            if (swimlane.id !== swimlaneId) return swimlane;
-            return {
-              ...swimlane,
-              stages: swimlane.stages.map((stage) =>
-                stage.id === stageId ? { ...stage, cardsPerRow: num } : stage
-              ),
-            };
-          }),
-        };
-      })
+    const workflow = workflows.find((w) => w.id === workflowId || String(w.id) === String(workflowId));
+    const swimlane = workflow?.swimlanes.find(
+      (sl) => sl.id === swimlaneId || String(sl.id) === String(swimlaneId)
     );
+    const stage = swimlane?.stages.find((s) => s.id === stageId || String(s.id) === String(stageId));
+    const columnId = stage?.columnId;
+
+    const applyLocal = () =>
+      setWorkflows((prevWorkflows) =>
+        prevWorkflows.map((wf) => {
+          if (wf.id !== workflowId) return wf;
+          return {
+            ...wf,
+            swimlanes: wf.swimlanes.map((sl) => {
+              if (sl.id !== swimlaneId) return sl;
+              return {
+                ...sl,
+                stages: sl.stages.map((st) =>
+                  st.id === stageId ? { ...st, cardsPerRow: num } : st
+                ),
+              };
+            }),
+          };
+        })
+      );
+
+    if (boardId && columnId != null && String(columnId) !== '') {
+      const colKey = getColumnKey(workflowId, swimlaneId, stageId);
+      if (!startMutation(colKey, 'cards-per-row')) return;
+      applyLocal();
+      updateWorkflowColumn({
+        column_id: columnId,
+        cards_per_row: num,
+        cb: () => getWorkflowByBoard({ boardId, silent: true }),
+        onSettled: () => clearMutationKey(colKey),
+      });
+      return;
+    }
+
+    applyLocal();
   };
 
   const handleStageColorChange = (workflowId, swimlaneId, stageId, rgbColor) => {

@@ -200,6 +200,24 @@ const useWorkFlowReducer = create((set, get) => ({
         }
     },
 
+    updateWorkflowColumn: async ({ column_id, cards_per_row, cb, onSettled }) => {
+        try {
+            const payload = { cards_per_row };
+            const { data } = await workflowService.updateWorkflowColumn(column_id, payload);
+            const { success } = useAlertReducer.getState();
+            success(data && data.message);
+            cb && cb();
+        } catch (err) {
+            set({
+                errorMessage: err?.response?.data?.message ?? err.message,
+            });
+            const { error } = useAlertReducer.getState();
+            error(err?.response?.data?.message ?? err.message);
+        } finally {
+            onSettled && onSettled();
+        }
+    },
+
     removeWorkflowColumn: async ({ column_id, cb, onSettled }) => {
         try {
             const { data } = await workflowService.removeWorkflowColumn(column_id);
