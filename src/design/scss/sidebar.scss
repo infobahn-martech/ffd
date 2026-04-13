@@ -1021,107 +1021,111 @@
 }
 
 .kanban-dashboard-color-picker-popover {
-    margin-top: 8px;
-    width: 228px;
-    border-radius: 12px;
+    margin-top: 10px;
+    width: 308px;
+    border-radius: 14px;
     border: 1px solid #e2e8f0;
     background: #fff;
-    box-shadow: 0 10px 26px rgba(15, 23, 42, 0.16);
-    padding: 10px;
+    box-shadow:
+        0 14px 38px rgba(15, 23, 42, 0.2),
+        0 2px 8px rgba(15, 23, 42, 0.08);
+    padding: 14px;
 }
 
 .kanban-dashboard-color-picker-row {
     display: grid;
     grid-template-columns: repeat(7, minmax(0, 1fr));
-    gap: 8px;
+    gap: 10px;
 }
 
 .kanban-dashboard-color-picker-secondary-grid {
-    margin-top: 8px;
+    margin-top: 10px;
     display: grid;
     grid-template-columns: repeat(9, minmax(0, 1fr));
-    gap: 6px;
+    gap: 8px;
 }
 
 .kanban-dashboard-color-dot {
-    width: 20px;
-    height: 20px;
-    border-radius: 6px;
+    width: 28px;
+    height: 28px;
+    border-radius: 8px;
     border: 1px solid rgba(15, 23, 42, 0.2);
     cursor: pointer;
-    transition: transform 0.15s ease, box-shadow 0.15s ease;
+    transition: transform 0.15s ease, box-shadow 0.15s ease, border-color 0.15s ease;
 
     &:hover {
         transform: translateY(-1px);
+        border-color: rgba(15, 23, 42, 0.32);
     }
 
     &.is-active {
-        box-shadow: 0 0 0 2px rgba(37, 99, 235, 0.28);
+        box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.26);
     }
 
     &--secondary {
-        width: 18px;
-        height: 18px;
-        border-radius: 5px;
+        width: 24px;
+        height: 24px;
+        border-radius: 7px;
     }
 }
 
 .kanban-dashboard-color-picker-toggle {
-    margin-top: 10px;
+    margin-top: 12px;
     border: none;
     background: transparent;
     color: #1d4ed8;
-    font-size: 12px;
+    font-size: 13px;
     font-weight: 600;
     cursor: pointer;
     padding: 0;
 }
 
 .kanban-dashboard-color-picker-advanced {
-    margin-top: 10px;
+    margin-top: 12px;
 
     .react-colorful {
         width: 100%;
-        height: 146px;
+        height: 182px;
     }
 
     .react-colorful__saturation {
-        border-radius: 8px;
+        border-radius: 10px;
     }
 
     .react-colorful__hue {
-        height: 10px;
+        height: 12px;
         border-radius: 999px;
-        margin-top: 8px;
+        margin-top: 10px;
     }
 
     .react-colorful__hue-pointer,
     .react-colorful__saturation-pointer {
-        width: 14px;
-        height: 14px;
+        width: 16px;
+        height: 16px;
     }
 }
 
 .kanban-dashboard-color-picker-input-row {
-    margin-top: 10px;
+    margin-top: 12px;
     display: flex;
     align-items: center;
-    gap: 8px;
+    gap: 10px;
 }
 
 .kanban-dashboard-color-picker-hex-label {
-    font-size: 11px;
+    font-size: 12px;
     color: #64748b;
     font-weight: 600;
     letter-spacing: 0.04em;
 }
 
 .kanban-dashboard-color-picker-hex-input {
-    width: 88px;
+    width: 114px;
     border: 1px solid #d1d5db;
-    border-radius: 8px;
-    padding: 6px 8px;
-    font-size: 12px;
+    border-radius: 9px;
+    padding: 8px 10px;
+    font-size: 14px;
+    line-height: 1.2;
     color: #0f172a;
 
     &:focus {
@@ -1132,25 +1136,26 @@
 }
 
 .kanban-dashboard-color-picker-preview {
-    width: 24px;
-    height: 24px;
-    border-radius: 7px;
+    width: 32px;
+    height: 32px;
+    border-radius: 9px;
     border: 1px solid rgba(15, 23, 42, 0.16);
 }
 
 .kanban-dashboard-color-picker-actions {
-    margin-top: 10px;
+    margin-top: 14px;
     display: flex;
     justify-content: flex-end;
-    gap: 8px;
+    gap: 10px;
 }
 
 .kanban-dashboard-color-picker-btn {
     border: 1px solid transparent;
-    border-radius: 8px;
-    font-size: 12px;
+    border-radius: 10px;
+    font-size: 15px;
     font-weight: 600;
-    padding: 5px 10px;
+    padding: 9px 16px;
+    line-height: 1;
     cursor: pointer;
 
     &--ghost {
