@@ -2,14 +2,6 @@ import { getBoardColumnStructure, getGlobalRowsForSwimlane } from './workflow.ut
 import WorkflowSwimlane from './WorkflowSwimlane';
 import WorkflowAreaGrid, { STAGE_CELL_WIDTH, STAGE_GAP } from './WorkflowAreaGrid';
 
-const FALLBACK_AREA_HEADER_COLOR = '#e5e7eb';
-
-function getAreaHeaderColorFromStages(swimlane, area) {
-  const stage = swimlane?.stages?.find((s) => s.area === area);
-  if (stage?.color) return stage.color;
-  return FALLBACK_AREA_HEADER_COLOR;
-}
-
 /**
  * Workflow board: area headers + swimlane rows with area blocks.
  */
@@ -70,7 +62,6 @@ function WorkflowBoard({
               className="workflow-board-area-header"
               style={{
                 width: cols * stageCellWidth + Math.max(0, cols - 1) * stageGap,
-                backgroundColor: getAreaHeaderColorFromStages(firstSwimlane, area),
               }}
               title={area}
             >

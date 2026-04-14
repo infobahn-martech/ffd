@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { getGlobalRowsForSwimlane, getStagesInColumn, isWorkflowStageChildColumn } from './workflow.utils';
+import { getGlobalRowsForSwimlane, getStagesInColumn, isWorkflowStageChildColumn, rgbToHex } from './workflow.utils';
 import WorkflowAreaGrid, { STAGE_CELL_WIDTH, STAGE_GAP } from './WorkflowAreaGrid';
 
 /**
@@ -229,6 +229,11 @@ function WorkflowSwimlane({
                   <div
                     key={`${area}-${colIdx}`}
                     className="workflow-swimlane-content-cell"
+                    style={
+                      stage?.color
+                        ? { '--workflow-swimlane-cell-bg': rgbToHex(stage.color) }
+                        : undefined
+                    }
                   >
                     <div className="workflow-swimlane-cell-fields">
                       <div className="workflow-swimlane-cell-field">

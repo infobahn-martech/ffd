@@ -1,5 +1,11 @@
-import { useState } from 'react';
+import { useCallback, useEffect, useLayoutEffect, useRef, useState } from 'react';
+import { createPortal } from 'react-dom';
+import SedresColorPicker from '../../components/SedresColorPicker/SedresColorPicker';
+import { normalizeHexColor } from '../../components/SedresColorPicker/sedresColorPickerConstants';
 import { rgbToHex, hexToRgb, workflowStageHasChildColumns } from './workflow.utils';
+
+const STAGE_COLOR_PICKER_WIDTH = 308;
+const STAGE_COLOR_PICKER_Z = 10050;
 
 /**
  * Single stage card with insertion rails, title editing, and minimal color action.
@@ -41,6 +47,10 @@ function WorkflowStageCard({
   const cardsPerRow = stage.cardsPerRow ?? 1;
   const hasChildren = workflowStageHasChildColumns(stage, swimlaneStages);
   const displayColor = stage.color ? rgbToHex(stage.color) : '#f9fafb';
+  const [isStageColorPickerOpen, setIsStageColorPickerOpen] = useState(false);
+  const stageColorTriggerRef = useRef(null);
+  const stageColorPickerPopoverRef = useRef(null);
+  const [stageColorPickerPlacement, setStageColorPickerPlacement] = useState({ top: 0, left: 0 });
   const isChildColumn = !!stage.parent_column_id;
   const columnBusy = Boolean(mutationState);
   const isDeleting = mutationState === 'deleting';
@@ -81,10 +91,60 @@ function WorkflowStageCard({
     else if (e.key === 'Escape') cancelEdit();
   };
 
-  const handleColorChange = (e) => {
-    const hex = e.target.value;
-    const rgb = hexToRgb(hex);
-    if (rgb) onColorSelect(workflowId, swimlaneId, stage.id, rgb);
+  const updateStageColorPickerPlacement = useCallback(() => {
+    const el = stageColorTriggerRef.current;
+    if (!el) return;
+    const r = el.getBoundingClientRect();
+    const margin = 8;
+    let left = r.left;
+    if (left + STAGE_COLOR_PICKER_WIDTH > window.innerWidth - margin) {
+      left = window.innerWidth - STAGE_COLOR_PICKER_WIDTH - margin;
+    }
+    left = Math.max(margin, left);
+    setStageColorPickerPlacement({ top: r.bottom + margin, left });
+  }, []);
+
+  useLayoutEffect(() => {
+    if (!isStageColorPickerOpen) return;
+    updateStageColorPickerPlacement();
+  }, [isStageColorPickerOpen, updateStageColorPickerPlacement]);
+
+  useEffect(() => {
+    if (!isStageColorPickerOpen) return undefined;
+    updateStageColorPickerPlacement();
+    window.addEventListener('scroll', updateStageColorPickerPlacement, true);
+    window.addEventListener('resize', updateStageColorPickerPlacement);
+    return () => {
+      window.removeEventListener('scroll', updateStageColorPickerPlacement, true);
+      window.removeEventListener('resize', updateStageColorPickerPlacement);
+    };
+  }, [isStageColorPickerOpen, updateStageColorPickerPlacement]);
+
+  useEffect(() => {
+    if (!isStageColorPickerOpen) return undefined;
+    const onDoc = (e) => {
+      const t = e.target;
+      if (stageColorTriggerRef.current?.contains(t) || stageColorPickerPopoverRef.current?.contains(t)) return;
+      setIsStageColorPickerOpen(false);
+    };
+    document.addEventListener('mousedown', onDoc);
+    return () => document.removeEventListener('mousedown', onDoc);
+  }, [isStageColorPickerOpen]);
+
+  const closeStageColorPicker = useCallback(() => setIsStageColorPickerOpen(false), []);
+
+  const applyStageColor = useCallback(
+    (hex) => {
+      const rgb = hexToRgb(hex);
+      if (rgb) onColorSelect(workflowId, swimlaneId, stage.id, rgb);
+      setIsStageColorPickerOpen(false);
+    },
+    [onColorSelect, workflowId, swimlaneId, stage.id]
+  );
+
+  const openStageColorPicker = (e) => {
+    e?.stopPropagation?.();
+    setIsStageColorPickerOpen(true);
   };
 
   return (
@@ -264,23 +324,53 @@ function WorkflowStageCard({
             ) : null}
           </div>
           <div className="stage-box-actions">
-            <label className="stage-action-color-wrapper">
-              <input
-                type="color"
-                value={displayColor}
-                onChange={handleColorChange}
-                className="stage-color-input-native"
-                title="Stage color"
-                aria-label="Stage color"
-                onClick={(e) => e.stopPropagation()}
+            <button
+              ref={stageColorTriggerRef}
+              type="button"
+              className="stage-action-color-trigger"
+              title="Stage color"
+              aria-label="Stage color"
+              aria-haspopup="dialog"
+              aria-expanded={isStageColorPickerOpen}
+              aria-controls={`stage-color-picker-${stage.id}`}
+              onClick={openStageColorPicker}
+              onKeyDown={(event) => {
+                if (event.key === 'Enter' || event.key === ' ') {
+                  event.preventDefault();
+                  openStageColorPicker(event);
+                }
+              }}
+            >
+              <span
+                className="kanban-dashboard-actions-color-swatch stage-action-color-swatch"
+                style={{ backgroundColor: normalizeHexColor(displayColor) }}
+                aria-hidden
               />
-              <span className="stage-action-icon" aria-hidden="true">
-                <svg width="14" height="14" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
-                  <path d="M2 4h12v8H2V4z" fill="currentColor" />
-                  <rect x="4" y="6" width="8" height="4" fill="white" stroke="currentColor" strokeWidth="0.5" />
-                </svg>
-              </span>
-            </label>
+            </button>
+            {isStageColorPickerOpen &&
+              createPortal(
+                <div
+                  className="workflow-stage-color-picker-anchor"
+                  style={{
+                    position: 'fixed',
+                    top: stageColorPickerPlacement.top,
+                    left: stageColorPickerPlacement.left,
+                    zIndex: STAGE_COLOR_PICKER_Z,
+                  }}
+                >
+                  <SedresColorPicker
+                    popoverRef={stageColorPickerPopoverRef}
+                    popoverId={`stage-color-picker-${stage.id}`}
+                    initialHex={displayColor}
+                    onApply={applyStageColor}
+                    onCancel={closeStageColorPicker}
+                    ariaLabel={`Pick color for stage ${stage.name}`}
+                    hexInputId={`stage-color-hex-${stage.id}`}
+                    className="kanban-dashboard-color-picker-popover--floating"
+                  />
+                </div>,
+                document.body
+              )}
             <button
               className="stage-action-icon stage-action-icon-delete"
               type="button"
