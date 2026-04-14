@@ -7,7 +7,8 @@ import {
   getStagesInColumn,
   isWorkflowStageChildColumn,
   rgbToHex,
-  hexToRgb,
+  sanitizeSwimlaneColorCode,
+  pickForegroundOnSwimlaneBackground,
   DEFAULT_STAGE_SWATCH_HEX,
 } from './workflow.utils';
 import WorkflowAreaGrid, { STAGE_CELL_WIDTH, STAGE_GAP } from './WorkflowAreaGrid';
@@ -82,7 +83,14 @@ function WorkflowSwimlane({
   const swimlaneAddTopPending = Boolean(mutationTargets[`swimlane-add:${workflowId}:${swimlaneIndex}`]);
   const swimlaneAddBottomPending = Boolean(mutationTargets[`swimlane-add:${workflowId}:${swimlaneIndex + 1}`]);
 
-  const displayLaneColor = swimlane.laneColor ? rgbToHex(swimlane.laneColor) : DEFAULT_STAGE_SWATCH_HEX;
+  const labelBgHex = sanitizeSwimlaneColorCode(swimlane.colorCode);
+  const displayLaneColor = labelBgHex ?? DEFAULT_STAGE_SWATCH_HEX;
+  const labelCellSurfaceStyle = labelBgHex
+    ? {
+        backgroundColor: labelBgHex,
+        color: pickForegroundOnSwimlaneBackground(labelBgHex),
+      }
+    : undefined;
   const [isSwimlaneColorPickerOpen, setIsSwimlaneColorPickerOpen] = useState(false);
   const swimlaneColorTriggerRef = useRef(null);
   const swimlaneColorPickerPopoverRef = useRef(null);
@@ -132,8 +140,7 @@ function WorkflowSwimlane({
 
   const applySwimlaneColor = useCallback(
     (hex) => {
-      const rgb = hexToRgb(hex);
-      if (rgb && onSwimlaneColorSelect) onSwimlaneColorSelect(workflowId, swimlane.id, rgb);
+      if (onSwimlaneColorSelect) onSwimlaneColorSelect(workflowId, swimlane.id, hex);
       setIsSwimlaneColorPickerOpen(false);
     },
     [onSwimlaneColorSelect, workflowId, swimlane.id]
@@ -144,9 +151,11 @@ function WorkflowSwimlane({
     setIsSwimlaneColorPickerOpen(true);
   };
 
+  const slColorMutationPending = Boolean(mutationTargets[`sl-color:${swimlane.id}`]);
+
   const contentRow = (
     <div className="workflow-swimlane-row">
-      <div className="workflow-swimlane-label-cell">
+      <div className="workflow-swimlane-label-cell" style={labelCellSurfaceStyle}>
         {onAddSwimlane && (
           <>
             <button
@@ -245,7 +254,7 @@ function WorkflowSwimlane({
             aria-haspopup="dialog"
             aria-expanded={isSwimlaneColorPickerOpen}
             aria-controls={`swimlane-color-picker-${swimlane.id}`}
-            disabled={slMutationPending || !onSwimlaneColorSelect}
+            disabled={slMutationPending || slColorMutationPending || !onSwimlaneColorSelect}
             onClick={openSwimlaneColorPicker}
             onKeyDown={(event) => {
               if (event.key === 'Enter' || event.key === ' ') {
@@ -303,7 +312,7 @@ function WorkflowSwimlane({
             </button>
           )}
         </div>
-        {slMutationPending ? (
+        {slMutationPending || slColorMutationPending ? (
           <div className="workflow-swimlane-mutation-overlay" aria-busy="true">
             <span className="workflow-item-mutation-skeleton workflow-item-mutation-skeleton--pill" />
           </div>

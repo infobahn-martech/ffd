@@ -12,6 +12,7 @@ import {
   normalizeWorkflowData,
   isWorkflowStageChildColumn,
   rgbToHex,
+  sanitizeSwimlaneColorCode,
 } from './workflow.utils';
 
 function isNodeInColumnZone(node, colStackKey) {
@@ -57,6 +58,7 @@ function EditWorkflows() {
     createSwimlane,
     renameSwimlane,
     deleteSwimlane,
+    updateSwimlaneColor,
     createWorkflowColumn,
     renameWorkflowColumn,
     updateWorkflowColumn,
@@ -581,18 +583,32 @@ function EditWorkflows() {
     });
   };
 
-  const handleSwimlaneColorChange = (workflowId, swimlaneId, rgbColor) => {
+  const handleSwimlaneColorChange = (workflowId, swimlaneId, colorHex) => {
+    const color_code = sanitizeSwimlaneColorCode(colorHex);
+    if (!color_code) return;
+    if (!boardId) {
+      showError('Open a board (boardId in URL) to update swimlane color.');
+      return;
+    }
+    const key = `sl-color:${swimlaneId}`;
+    if (!startMutation(key, 'color')) return;
     setWorkflows((prevWorkflows) =>
       prevWorkflows.map((w) => {
         if (w.id !== workflowId) return w;
         return {
           ...w,
           swimlanes: w.swimlanes.map((sl) =>
-            sl.id === swimlaneId ? { ...sl, laneColor: rgbColor } : sl
+            sl.id === swimlaneId ? { ...sl, colorCode: color_code } : sl
           ),
         };
       })
     );
+    updateSwimlaneColor({
+      swimlane_id: swimlaneId,
+      color_code,
+      cb: () => getWorkflowByBoard({ boardId, silent: true }),
+      onSettled: () => clearMutationKey(key),
+    });
   };
 
   const showNoWorkflowEmptyState = Boolean(boardId) && !isLoading && workflows.length === 0;

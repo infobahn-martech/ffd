@@ -27,6 +27,9 @@ const renameSwimlane = (data) =>
 const deleteSwimlane = ({ swimlane_id }) =>
     Gateway.post(`/kanban_workflow/delete_swimlane/${swimlane_id}`, { swimlane_id });
 
+const updateSwimlaneColor = (swimlaneId, data) =>
+    Gateway.post(`/kanban_workflow/update_swimlane_color/${swimlaneId}`, data);
+
 const createWorkflowColumn = (data) =>
     Gateway.post('/kanban_workflow/create_workflow_column', data);
 
@@ -49,6 +52,7 @@ export default {
     getSwimlaneByWorkflow,
     renameSwimlane,
     deleteSwimlane,
+    updateSwimlaneColor,
     createWorkflowColumn,
     renameWorkflowColumn,
     updateWorkflowColumn,

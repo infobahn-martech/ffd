@@ -51,7 +51,8 @@ function getAreaForApiStage(apiStage) {
  * Transform API workflow response to internal workflow shape.
  * Accepts full response { status, data } or inner data { workflow_id, workflow_name, stages, swimlanes }.
  * API: { workflow_id, workflow_name, stages: [{ stage_id, stage_name, stage_order, color_code, is_done_stage, is_archive_stage, columns }], swimlanes }
- * Internal: { id, name, swimlanes: [{ id, name, stages: [{ id, name, area, limit, cardsPerRow, row, col, colSpan, color?, bgColor? }] }] }
+ * Internal: { id, name, swimlanes: [{ id, name, colorCode?, stages: [{ id, name, area, limit, cardsPerRow, row, col, colSpan, color?, bgColor? }] }] }
+ * Swimlane `colorCode`: 6-digit hex from API `color_code` (see sanitizeSwimlaneColorCode).
  * Lane colors: `columns[].background_color` when present, else `stage.color_code` — maps to `color` / `bgColor` on internal stages.
  */
 function toPositiveNumber(value) {
@@ -186,15 +187,48 @@ function createDefaultSwimlaneFromStages(apiStages, workflowIdForKey) {
   };
 }
 
+/**
+ * Normalize swimlane `color_code` from the API to a 6-char #hex (fixes common 5-digit values like #fffff).
+ */
+export function sanitizeSwimlaneColorCode(raw) {
+  if (raw == null || String(raw).trim() === '') return undefined;
+  let s = String(raw).trim();
+  if (!s.startsWith('#')) s = `#${s}`;
+  if (/^#[0-9a-fA-F]{5}$/.test(s)) return `${s}f`.toLowerCase();
+  if (/^#[0-9a-fA-F]{6}$/.test(s)) return s.toLowerCase();
+  if (/^#[0-9a-fA-F]{3}$/.test(s)) {
+    const r = s[1];
+    const g = s[2];
+    const b = s[3];
+    return `#${r}${r}${g}${g}${b}${b}`.toLowerCase();
+  }
+  return undefined;
+}
+
+/**
+ * Readable label text on a swimlane color background (WCAG-style luminance).
+ */
+export function pickForegroundOnSwimlaneBackground(hex6) {
+  const h = hex6?.replace('#', '');
+  if (!h || h.length !== 6) return '#1f2937';
+  const r = parseInt(h.slice(0, 2), 16) / 255;
+  const g = parseInt(h.slice(2, 4), 16) / 255;
+  const b = parseInt(h.slice(4, 6), 16) / 255;
+  const L = 0.2126 * r + 0.7152 * g + 0.0722 * b;
+  return L > 0.62 ? '#1f2937' : '#ffffff';
+}
+
 function transformApiSwimlanes(apiSwimlanes, apiStages, workflowIdForKey) {
   const defaultStages = buildInternalStagesFromApiStages(apiStages);
 
   return apiSwimlanes.map((sl, idx) => {
     const swimlaneId = toPositiveNumber(sl?.swimlane_id ?? sl?.id) ?? `${workflowIdForKey}-sl-${idx + 1}`;
     const swimlaneName = sl.swimlane_name ?? sl.name ?? `Swimlane ${idx + 1}`;
+    const colorCode = sanitizeSwimlaneColorCode(sl?.color_code);
     return {
       id: swimlaneId,
       name: swimlaneName,
+      ...(colorCode ? { colorCode } : {}),
       stages: defaultStages.map((stage) => ({ ...stage })),
     };
   });

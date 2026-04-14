@@ -165,6 +165,23 @@ const useWorkFlowReducer = create((set, get) => ({
         }
     },
 
+    updateSwimlaneColor: async ({ swimlane_id, color_code, cb, onSettled }) => {
+        try {
+            const { data } = await workflowService.updateSwimlaneColor(swimlane_id, { color_code });
+            const { success } = useAlertReducer.getState();
+            success(data && data.message);
+            cb && cb();
+        } catch (err) {
+            set({
+                errorMessage: err?.response?.data?.message ?? err.message,
+            });
+            const { error } = useAlertReducer.getState();
+            error(err?.response?.data?.message ?? err.message);
+        } finally {
+            onSettled && onSettled();
+        }
+    },
+
     createWorkflowColumn: async ({ body, cb, onSettled }) => {
         try {
             const { data } = await workflowService.createWorkflowColumn(body);
