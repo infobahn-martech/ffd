@@ -11,6 +11,7 @@ import CommonService from "../../../services/commonService";
 import billingEntityService from "../../../services/billingEntityService";
 import vesselTypeService from "../../../services/vesselTypeService";
 import bargeTypeService from "../../../services/bargeTypeService";
+import vesselService from "../../../services/vesselService";
 import {
   unwrapListResponse,
   mapOperatorsToOptions,
@@ -1064,6 +1065,7 @@ function General({ card, formValues, handleChange, onSave, isAddMode = false, is
   const [vesselNameOptions, setVesselNameOptions] = useState([
     // Add vessel names here or fetch from API
   ]);
+  const [vesselOptionsLoading, setVesselOptionsLoading] = useState(false);
   const [appointmentDocuments, setAppointmentDocuments] = useState([]);
   // MWP RENEWAL document states
   const [appointmentEmailDocuments, setAppointmentEmailDocuments] = useState([]);
@@ -1282,6 +1284,77 @@ function General({ card, formValues, handleChange, onSave, isAddMode = false, is
     [normalizeEntityEmailOptions]
   );
 
+  const normalizeVesselOptions = useCallback((payload) => {
+    const rows = unwrapListResponse(payload);
+    return rows
+      .map((row) => {
+        const vesselId = row?.vessel_id === undefined || row?.vessel_id === null ? "" : String(row.vessel_id);
+        const vesselName = row?.vessel_name ? String(row.vessel_name).trim() : "";
+        if (!vesselId || !vesselName) return null;
+        return { value: vesselId, label: vesselName };
+      })
+      .filter(Boolean);
+  }, []);
+
+  const fetchVesselsByEntity = useCallback(
+    async (entityId) => {
+      const normalizedEntityId = entityId === undefined || entityId === null ? "" : String(entityId).trim();
+      if (!normalizedEntityId) {
+        setVesselNameOptions([]);
+        return;
+      }
+
+      setVesselOptionsLoading(true);
+      try {
+        const { data } = await vesselService.getVesselByEntity(normalizedEntityId);
+        setVesselNameOptions(normalizeVesselOptions(data));
+      } catch (error) {
+        console.error("[General] vessels by entity fetch failed", error);
+        setVesselNameOptions([]);
+      } finally {
+        setVesselOptionsLoading(false);
+      }
+    },
+    [normalizeVesselOptions]
+  );
+
+  const normalizeVesselDetails = useCallback((payload) => {
+    const raw = payload?.data ?? payload ?? {};
+    const detail = Array.isArray(raw) ? (raw[0] ?? {}) : raw;
+    return {
+      vessel_name: detail?.vessel_name ? String(detail.vessel_name) : "",
+      vessel_owner: detail?.vessel_owner ? String(detail.vessel_owner) : "",
+      vessel_manager: detail?.vessel_manager ? String(detail.vessel_manager) : "",
+      vessel_principal: detail?.vessel_principal ? String(detail.vessel_principal) : "",
+    };
+  }, []);
+
+  const handleVesselSelectionChange = useCallback(
+    async (event) => {
+      const selectedVesselId = event?.target?.value ?? "";
+      handleChange("vesselName")(event);
+
+      // Clear details immediately to avoid showing stale data.
+      handleChange("vesselOwner")({ target: { value: "", name: "vesselOwner" } });
+      handleChange("vesselManager")({ target: { value: "", name: "vesselManager" } });
+      handleChange("vesselPrincipal")({ target: { value: "", name: "vesselPrincipal" } });
+
+      const normalizedVesselId = selectedVesselId === undefined || selectedVesselId === null ? "" : String(selectedVesselId).trim();
+      if (!normalizedVesselId) return;
+
+      try {
+        const { data } = await vesselService.getVesselDetailByVesselId(normalizedVesselId);
+        const detail = normalizeVesselDetails(data);
+        handleChange("vesselOwner")({ target: { value: detail.vessel_owner, name: "vesselOwner" } });
+        handleChange("vesselManager")({ target: { value: detail.vessel_manager, name: "vesselManager" } });
+        handleChange("vesselPrincipal")({ target: { value: detail.vessel_principal, name: "vesselPrincipal" } });
+      } catch (error) {
+        console.error("[General] vessel detail fetch failed", error);
+      }
+    },
+    [handleChange, normalizeVesselDetails]
+  );
+
   // Handle new email addition
   const handleAddNewEmail = useCallback(
     async (email) => {
@@ -1428,13 +1501,18 @@ function General({ card, formValues, handleChange, onSave, isAddMode = false, is
       handleChange("dailyReportEmail")({
         target: { value: [], name: "dailyReportEmail" }
       });
+      handleChange("vesselName")({ target: { value: "", name: "vesselName" } });
+      handleChange("vesselOwner")({ target: { value: "", name: "vesselOwner" } });
+      handleChange("vesselManager")({ target: { value: "", name: "vesselManager" } });
+      handleChange("vesselPrincipal")({ target: { value: "", name: "vesselPrincipal" } });
       setEntityFields([]);
       setEntityFieldValues({});
       setEntityFieldsError("");
       void fetchEntityFields(selectedEntityId);
       void fetchBillingEntityEmails(selectedEntityId);
+      void fetchVesselsByEntity(selectedEntityId);
     },
-    [fetchBillingEntityEmails, fetchEntityFields, handleChange]
+    [fetchBillingEntityEmails, fetchEntityFields, fetchVesselsByEntity, handleChange]
   );
 
   useEffect(() => {
@@ -1442,6 +1520,7 @@ function General({ card, formValues, handleChange, onSave, isAddMode = false, is
     if (!selectedEntityId) return;
     void fetchEntityFields(selectedEntityId, entityFieldValues);
     void fetchBillingEntityEmails(selectedEntityId);
+    void fetchVesselsByEntity(selectedEntityId);
     // Intentionally only bootstraps once for initial selected entity.
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
@@ -2112,11 +2191,11 @@ function General({ card, formValues, handleChange, onSave, isAddMode = false, is
 
                         <VesselNameField
                           value={getFieldValue("vesselName")}
-                          onChange={handleChange("vesselName")}
+                          onChange={handleVesselSelectionChange}
                           options={vesselNameOptions}
                           placeholder="Select vessel name..."
                           onSave={handleVesselSave}
-                          disabled={isDisabled}
+                          disabled={isDisabled || vesselOptionsLoading}
                         />
 
                         <FormField label="Vessel Owner">

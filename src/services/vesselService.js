@@ -17,6 +17,12 @@ const fetchVessels = ({ params }) => {
 const getVesselByVesselId = (vesselId) =>
   Gateway.get(`/vessel/vessel_by_vessel_id/${vesselId}`);
 
+const getVesselByEntity = (entityId) =>
+  Gateway.get(`/vessel/vessel_by_entity/${entityId}`);
+
+const getVesselDetailByVesselId = (vesselId) =>
+  Gateway.get(`/vessel/vessel_detail_vessel_id/${vesselId}`);
+
 const updateVessel = (data) => Gateway.post(`/vessel/update`, data);
 const deleteVessel = (id) => Gateway.delete(`/vessel/allvessel/${id}`);
 
@@ -24,6 +30,8 @@ export default {
   addVessel,
   fetchVessels,
   getVesselByVesselId,
+  getVesselByEntity,
+  getVesselDetailByVesselId,
   updateVessel,
   deleteVessel,
 };
