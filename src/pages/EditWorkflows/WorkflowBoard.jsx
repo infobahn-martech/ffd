@@ -30,6 +30,7 @@ function WorkflowBoard({
   onAddSwimlane,
   onRenameSwimlane,
   onDeleteSwimlane,
+  onSwimlaneColorSelect,
 }) {
   const boardStructure = getBoardColumnStructure(workflow);
   const totalCols = boardStructure.reduce((sum, x) => sum + x.cols, 0);
@@ -142,6 +143,7 @@ function WorkflowBoard({
           onAddSwimlane={onAddSwimlane}
           onRenameSwimlane={onRenameSwimlane}
           onDeleteSwimlane={onDeleteSwimlane}
+          onSwimlaneColorSelect={onSwimlaneColorSelect}
           swimlaneIndex={index}
           mutationTargets={mutationTargets}
         />

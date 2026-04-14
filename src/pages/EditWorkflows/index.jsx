@@ -581,6 +581,20 @@ function EditWorkflows() {
     });
   };
 
+  const handleSwimlaneColorChange = (workflowId, swimlaneId, rgbColor) => {
+    setWorkflows((prevWorkflows) =>
+      prevWorkflows.map((w) => {
+        if (w.id !== workflowId) return w;
+        return {
+          ...w,
+          swimlanes: w.swimlanes.map((sl) =>
+            sl.id === swimlaneId ? { ...sl, laneColor: rgbColor } : sl
+          ),
+        };
+      })
+    );
+  };
+
   const showNoWorkflowEmptyState = Boolean(boardId) && !isLoading && workflows.length === 0;
 
   return (
@@ -794,6 +808,7 @@ function EditWorkflows() {
                       onAddSwimlane={handleAddSwimlane}
                       onRenameSwimlane={handleRenameSwimlane}
                       onDeleteSwimlane={handleDeleteSwimlane}
+                      onSwimlaneColorSelect={handleSwimlaneColorChange}
                     />
                   </div>
                 ) : null}

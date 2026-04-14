@@ -1,12 +1,19 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback, useLayoutEffect, useRef } from 'react';
+import { createPortal } from 'react-dom';
+import SedresColorPicker from '../../components/SedresColorPicker/SedresColorPicker';
+import { normalizeHexColor } from '../../components/SedresColorPicker/sedresColorPickerConstants';
 import {
   getGlobalRowsForSwimlane,
   getStagesInColumn,
   isWorkflowStageChildColumn,
   rgbToHex,
+  hexToRgb,
   DEFAULT_STAGE_SWATCH_HEX,
 } from './workflow.utils';
 import WorkflowAreaGrid, { STAGE_CELL_WIDTH, STAGE_GAP } from './WorkflowAreaGrid';
+
+const SWIMLANE_COLOR_PICKER_WIDTH = 308;
+const SWIMLANE_COLOR_PICKER_Z = 10050;
 
 /**
  * Single swimlane: optionally stage row + swimlane content row (label + cells).
@@ -39,6 +46,7 @@ function WorkflowSwimlane({
   onAddSwimlane,
   onRenameSwimlane,
   onDeleteSwimlane,
+  onSwimlaneColorSelect,
   swimlaneIndex,
   mutationTargets = {},
 }) {
@@ -73,6 +81,68 @@ function WorkflowSwimlane({
   const slMutationPending = Boolean(mutationTargets[`sl:${swimlane.id}`]);
   const swimlaneAddTopPending = Boolean(mutationTargets[`swimlane-add:${workflowId}:${swimlaneIndex}`]);
   const swimlaneAddBottomPending = Boolean(mutationTargets[`swimlane-add:${workflowId}:${swimlaneIndex + 1}`]);
+
+  const displayLaneColor = swimlane.laneColor ? rgbToHex(swimlane.laneColor) : DEFAULT_STAGE_SWATCH_HEX;
+  const [isSwimlaneColorPickerOpen, setIsSwimlaneColorPickerOpen] = useState(false);
+  const swimlaneColorTriggerRef = useRef(null);
+  const swimlaneColorPickerPopoverRef = useRef(null);
+  const [swimlaneColorPickerPlacement, setSwimlaneColorPickerPlacement] = useState({ top: 0, left: 0 });
+
+  const updateSwimlaneColorPickerPlacement = useCallback(() => {
+    const el = swimlaneColorTriggerRef.current;
+    if (!el) return;
+    const r = el.getBoundingClientRect();
+    const margin = 8;
+    let left = r.left;
+    if (left + SWIMLANE_COLOR_PICKER_WIDTH > window.innerWidth - margin) {
+      left = window.innerWidth - SWIMLANE_COLOR_PICKER_WIDTH - margin;
+    }
+    left = Math.max(margin, left);
+    setSwimlaneColorPickerPlacement({ top: r.bottom + margin, left });
+  }, []);
+
+  useLayoutEffect(() => {
+    if (!isSwimlaneColorPickerOpen) return;
+    updateSwimlaneColorPickerPlacement();
+  }, [isSwimlaneColorPickerOpen, updateSwimlaneColorPickerPlacement]);
+
+  useEffect(() => {
+    if (!isSwimlaneColorPickerOpen) return undefined;
+    updateSwimlaneColorPickerPlacement();
+    window.addEventListener('scroll', updateSwimlaneColorPickerPlacement, true);
+    window.addEventListener('resize', updateSwimlaneColorPickerPlacement);
+    return () => {
+      window.removeEventListener('scroll', updateSwimlaneColorPickerPlacement, true);
+      window.removeEventListener('resize', updateSwimlaneColorPickerPlacement);
+    };
+  }, [isSwimlaneColorPickerOpen, updateSwimlaneColorPickerPlacement]);
+
+  useEffect(() => {
+    if (!isSwimlaneColorPickerOpen) return undefined;
+    const onDoc = (e) => {
+      const t = e.target;
+      if (swimlaneColorTriggerRef.current?.contains(t) || swimlaneColorPickerPopoverRef.current?.contains(t)) return;
+      setIsSwimlaneColorPickerOpen(false);
+    };
+    document.addEventListener('mousedown', onDoc);
+    return () => document.removeEventListener('mousedown', onDoc);
+  }, [isSwimlaneColorPickerOpen]);
+
+  const closeSwimlaneColorPicker = useCallback(() => setIsSwimlaneColorPickerOpen(false), []);
+
+  const applySwimlaneColor = useCallback(
+    (hex) => {
+      const rgb = hexToRgb(hex);
+      if (rgb && onSwimlaneColorSelect) onSwimlaneColorSelect(workflowId, swimlane.id, rgb);
+      setIsSwimlaneColorPickerOpen(false);
+    },
+    [onSwimlaneColorSelect, workflowId, swimlane.id]
+  );
+
+  const openSwimlaneColorPicker = (e) => {
+    e?.stopPropagation?.();
+    setIsSwimlaneColorPickerOpen(true);
+  };
 
   const contentRow = (
     <div className="workflow-swimlane-row">
@@ -166,12 +236,55 @@ function WorkflowSwimlane({
               </svg>
             </button>
           )}
-          <button type="button" className="workflow-swimlane-icon-btn" title="Color" aria-label="Color">
-            <svg width="14" height="14" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
-              <path d="M2 4h12v8H2V4z" fill="currentColor" />
-              <rect x="4" y="6" width="8" height="4" fill="white" stroke="currentColor" strokeWidth="0.5" />
-            </svg>
+          <button
+            ref={swimlaneColorTriggerRef}
+            type="button"
+            className="stage-action-color-trigger"
+            title="Swimlane color"
+            aria-label="Swimlane color"
+            aria-haspopup="dialog"
+            aria-expanded={isSwimlaneColorPickerOpen}
+            aria-controls={`swimlane-color-picker-${swimlane.id}`}
+            disabled={slMutationPending || !onSwimlaneColorSelect}
+            onClick={openSwimlaneColorPicker}
+            onKeyDown={(event) => {
+              if (event.key === 'Enter' || event.key === ' ') {
+                event.preventDefault();
+                openSwimlaneColorPicker(event);
+              }
+            }}
+          >
+            <span
+              className="kanban-dashboard-actions-color-swatch stage-action-color-swatch"
+              style={{ backgroundColor: normalizeHexColor(displayLaneColor) }}
+              aria-hidden
+            />
           </button>
+          {isSwimlaneColorPickerOpen &&
+            onSwimlaneColorSelect &&
+            createPortal(
+              <div
+                className="workflow-stage-color-picker-anchor"
+                style={{
+                  position: 'fixed',
+                  top: swimlaneColorPickerPlacement.top,
+                  left: swimlaneColorPickerPlacement.left,
+                  zIndex: SWIMLANE_COLOR_PICKER_Z,
+                }}
+              >
+                <SedresColorPicker
+                  popoverRef={swimlaneColorPickerPopoverRef}
+                  popoverId={`swimlane-color-picker-${swimlane.id}`}
+                  initialHex={displayLaneColor}
+                  onApply={applySwimlaneColor}
+                  onCancel={closeSwimlaneColorPicker}
+                  ariaLabel={`Pick color for swimlane ${swimlane.name}`}
+                  hexInputId={`swimlane-color-hex-${swimlane.id}`}
+                  className="kanban-dashboard-color-picker-popover--floating"
+                />
+              </div>,
+              document.body
+            )}
           {onDeleteSwimlane && (
             <button
               type="button"
