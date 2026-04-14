@@ -52,7 +52,7 @@ function getAreaForApiStage(apiStage) {
  * Accepts full response { status, data } or inner data { workflow_id, workflow_name, stages, swimlanes }.
  * API: { workflow_id, workflow_name, stages: [{ stage_id, stage_name, stage_order, color_code, is_done_stage, is_archive_stage, columns }], swimlanes }
  * Internal: { id, name, swimlanes: [{ id, name, stages: [{ id, name, area, limit, cardsPerRow, row, col, colSpan, color?, bgColor? }] }] }
- * Note: `color_code` from the API is not copied onto `color`/`bgColor` so the editor shows DEFAULT_STAGE_SWATCH_HEX until the user picks a lane color locally.
+ * Lane colors: `columns[].background_color` when present, else `stage.color_code` — maps to `color` / `bgColor` on internal stages.
  */
 function toPositiveNumber(value) {
   const num = parseInt(value, 10);
@@ -66,6 +66,18 @@ function getSortableNumber(value, fallback = 0) {
 
 function sortByOrder(list, key) {
   return [...list].sort((a, b) => getSortableNumber(a?.[key]) - getSortableNumber(b?.[key]));
+}
+
+/**
+ * Swimlane/column lane color from API: prefer column `background_color`, then stage `color_code`.
+ * Stored on internal stage as hex (or rgb string) for swatch + cell; picker saves via `update_workflow_column` `{ background_color }`.
+ */
+function getLaneColorFromApiColumn(column, apiStage) {
+  const fromCol = column?.background_color;
+  if (fromCol != null && String(fromCol).trim() !== '') return String(fromCol).trim();
+  const fromStage = apiStage?.color_code;
+  if (fromStage != null && String(fromStage).trim() !== '') return String(fromStage).trim();
+  return undefined;
 }
 
 function buildInternalStagesFromApiStages(apiStages = [], fallbackStartId = 1) {
@@ -100,6 +112,7 @@ function buildInternalStagesFromApiStages(apiStages = [], fallbackStartId = 1) {
       const stageInternalId = toPositiveNumber(col?.column_id) ?? nextGeneratedId++;
 
       if (children.length === 0) {
+        const laneColor = getLaneColorFromApiColumn(col, apiStage);
         stages.push({
           id: stageInternalId,
           name: col?.column_name || apiStage?.stage_name || 'Stage',
@@ -111,6 +124,7 @@ function buildInternalStagesFromApiStages(apiStages = [], fallbackStartId = 1) {
           colSpan: 1,
           stageId,
           columnId: String(col?.column_id ?? `${stageId}-${colIdx + 1}`),
+          ...(laneColor ? { color: laneColor, bgColor: laneColor } : {}),
         });
         areaNextCol[area] += 1;
         return;
@@ -118,6 +132,7 @@ function buildInternalStagesFromApiStages(apiStages = [], fallbackStartId = 1) {
 
       const startCol = areaNextCol[area];
       const span = children.length;
+      const parentLaneColor = getLaneColorFromApiColumn(col, apiStage);
       stages.push({
         id: stageInternalId,
         name: col?.column_name || apiStage?.stage_name || 'Stage',
@@ -129,6 +144,7 @@ function buildInternalStagesFromApiStages(apiStages = [], fallbackStartId = 1) {
         colSpan: span,
         stageId,
         columnId: String(col?.column_id ?? `${stageId}-${colIdx + 1}`),
+        ...(parentLaneColor ? { color: parentLaneColor, bgColor: parentLaneColor } : {}),
       });
 
       const parentColumnIdStr = String(col?.column_id ?? '');
@@ -138,6 +154,7 @@ function buildInternalStagesFromApiStages(apiStages = [], fallbackStartId = 1) {
           child?.parent_column_id != null && String(child?.parent_column_id) !== ''
             ? String(child.parent_column_id)
             : parentColumnIdStr;
+        const childLaneColor = getLaneColorFromApiColumn(child, apiStage);
         stages.push({
           id: childInternalId,
           name: child?.column_name || 'Stage',
@@ -150,6 +167,7 @@ function buildInternalStagesFromApiStages(apiStages = [], fallbackStartId = 1) {
           stageId,
           columnId: String(child?.column_id ?? `${stageId}-${childIdx + 1}`),
           parent_column_id: childParentId,
+          ...(childLaneColor ? { color: childLaneColor, bgColor: childLaneColor } : {}),
         });
       });
 

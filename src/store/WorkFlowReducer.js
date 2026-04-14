@@ -200,9 +200,15 @@ const useWorkFlowReducer = create((set, get) => ({
         }
     },
 
-    updateWorkflowColumn: async ({ column_id, cards_per_row, cb, onSettled }) => {
+    updateWorkflowColumn: async ({ column_id, cards_per_row, background_color, cb, onSettled }) => {
         try {
-            const payload = { cards_per_row };
+            const payload = {};
+            if (cards_per_row !== undefined && cards_per_row !== null) {
+                payload.cards_per_row = cards_per_row;
+            }
+            if (background_color !== undefined && background_color !== null && background_color !== '') {
+                payload.background_color = background_color;
+            }
             const { data } = await workflowService.updateWorkflowColumn(column_id, payload);
             const { success } = useAlertReducer.getState();
             success(data && data.message);

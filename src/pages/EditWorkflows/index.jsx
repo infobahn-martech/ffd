@@ -11,6 +11,7 @@ import {
   removeStage,
   normalizeWorkflowData,
   isWorkflowStageChildColumn,
+  rgbToHex,
 } from './workflow.utils';
 
 function isNodeInColumnZone(node, colStackKey) {
@@ -438,23 +439,47 @@ function EditWorkflows() {
   };
 
   const handleStageColorChange = (workflowId, swimlaneId, stageId, rgbColor) => {
-    setWorkflows((prevWorkflows) =>
-      prevWorkflows.map((workflow) => {
-        if (workflow.id !== workflowId) return workflow;
-        return {
-          ...workflow,
-          swimlanes: workflow.swimlanes.map((swimlane) => {
-            if (swimlane.id !== swimlaneId) return swimlane;
-            return {
-              ...swimlane,
-              stages: swimlane.stages.map((stage) =>
-                stage.id === stageId ? { ...stage, color: rgbColor, bgColor: rgbColor } : stage
-              ),
-            };
-          }),
-        };
-      })
+    const workflow = workflows.find((w) => w.id === workflowId || String(w.id) === String(workflowId));
+    const swimlane = workflow?.swimlanes.find(
+      (sl) => sl.id === swimlaneId || String(sl.id) === String(swimlaneId)
     );
+    const stage = swimlane?.stages.find((s) => s.id === stageId || String(s.id) === String(stageId));
+    const columnId = stage?.columnId;
+
+    const applyLocal = () =>
+      setWorkflows((prevWorkflows) =>
+        prevWorkflows.map((w) => {
+          if (w.id !== workflowId) return w;
+          return {
+            ...w,
+            swimlanes: w.swimlanes.map((sl) => {
+              if (sl.id !== swimlaneId) return sl;
+              return {
+                ...sl,
+                stages: sl.stages.map((st) =>
+                  st.id === stageId ? { ...st, color: rgbColor, bgColor: rgbColor } : st
+                ),
+              };
+            }),
+          };
+        })
+      );
+
+    if (boardId && columnId != null && String(columnId) !== '') {
+      const colKey = getColumnKey(workflowId, swimlaneId, stageId);
+      if (!startMutation(colKey, 'color')) return;
+      applyLocal();
+      const background_color = rgbToHex(rgbColor);
+      updateWorkflowColumn({
+        column_id: columnId,
+        background_color,
+        cb: () => getWorkflowByBoard({ boardId, silent: true }),
+        onSettled: () => clearMutationKey(colKey),
+      });
+      return;
+    }
+
+    applyLocal();
   };
 
   const refetchBoardWorkflows = () => {
