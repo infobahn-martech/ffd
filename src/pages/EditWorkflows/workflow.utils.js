@@ -11,6 +11,25 @@ export const AREA_ORDER = [
   'READY TO ARCHIVE AREA',
 ];
 
+/** Fixed area banner colors — never tied to the stage color picker. Keys match `area` strings. */
+export const WORKFLOW_AREA_HEADER_BACKGROUND = {
+  'REQUESTED AREA': '#1976d2',
+  'IN PROGRESS AREA': '#fb8c00',
+  'DONE AREA': '#43a047',
+  'READY TO ARCHIVE AREA': '#7b1fa2',
+};
+
+/**
+ * Inline styles for `.workflow-board-area-header` only (picker does not affect these).
+ */
+export function getWorkflowAreaHeaderStyles(area) {
+  const backgroundColor = WORKFLOW_AREA_HEADER_BACKGROUND[area];
+  if (backgroundColor) {
+    return { backgroundColor, color: '#ffffff' };
+  }
+  return { backgroundColor: '#e5e7eb', color: '#374151' };
+}
+
 const DEFAULT_SWIMLANE_ID = 'default';
 const DEFAULT_SWIMLANE_NAME = 'Default Swimlane';
 
@@ -29,7 +48,7 @@ function getAreaForApiStage(apiStage) {
  * Transform API workflow response to internal workflow shape.
  * Accepts full response { status, data } or inner data { workflow_id, workflow_name, stages, swimlanes }.
  * API: { workflow_id, workflow_name, stages: [{ stage_id, stage_name, stage_order, color_code, is_done_stage, is_archive_stage, columns }], swimlanes }
- * Internal: { id, name, swimlanes: [{ id, name, stages: [{ id, name, area, limit, cardsPerRow, row, col, colSpan, color }] }] }
+ * Internal: { id, name, swimlanes: [{ id, name, stages: [{ id, name, area, limit, cardsPerRow, row, col, colSpan, color, bgColor }] }] }
  */
 function toPositiveNumber(value) {
   const num = parseInt(value, 10);
@@ -88,6 +107,7 @@ function buildInternalStagesFromApiStages(apiStages = [], fallbackStartId = 1) {
           col: areaNextCol[area],
           colSpan: 1,
           color: colorCode,
+          bgColor: colorCode,
           stageId,
           columnId: String(col?.column_id ?? `${stageId}-${colIdx + 1}`),
         });
@@ -107,6 +127,7 @@ function buildInternalStagesFromApiStages(apiStages = [], fallbackStartId = 1) {
         col: startCol,
         colSpan: span,
         color: colorCode,
+        bgColor: colorCode,
         stageId,
         columnId: String(col?.column_id ?? `${stageId}-${colIdx + 1}`),
       });
@@ -128,6 +149,7 @@ function buildInternalStagesFromApiStages(apiStages = [], fallbackStartId = 1) {
           col: startCol + childIdx,
           colSpan: 1,
           color: colorCode,
+          bgColor: colorCode,
           stageId,
           columnId: String(child?.column_id ?? `${stageId}-${childIdx + 1}`),
           parent_column_id: childParentId,

@@ -225,15 +225,14 @@ function WorkflowSwimlane({
                   setEditingFieldKey(null);
                 };
 
+                const laneBgSource = stage?.bgColor ?? stage?.color;
+                const bgColor = laneBgSource ? rgbToHex(laneBgSource) : null;
+
                 return (
                   <div
                     key={`${area}-${colIdx}`}
                     className="workflow-swimlane-content-cell"
-                    style={
-                      stage?.color
-                        ? { '--workflow-swimlane-cell-bg': rgbToHex(stage.color) }
-                        : undefined
-                    }
+                    style={{ backgroundColor: bgColor ?? '#ffffff' }}
                   >
                     <div className="workflow-swimlane-cell-fields">
                       <div className="workflow-swimlane-cell-field">

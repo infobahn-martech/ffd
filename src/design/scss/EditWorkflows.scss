@@ -749,9 +749,7 @@ div[role="tooltip"][id^="workflow-info-"] {
   align-items: center;
   justify-content: center;
   box-sizing: border-box;
-  // Static neutral header only — stage colors apply on .workflow-swimlane-content-cell
-  background: #e5e7eb !important;
-  color: #374151 !important;
+  // Background/text: fixed per area name in JS (`getWorkflowAreaHeaderStyles`), not the color picker
 }
 
 .workflow-board-columns {
@@ -1166,8 +1164,8 @@ div[role="tooltip"][id^="workflow-info-"] {
   align-items: center;
   padding: 6px 10px;
   border: 1px solid #e5e7eb;
-  // Per-cell stage color via inline --workflow-swimlane-cell-bg (set only on this element)
-  background: var(--workflow-swimlane-cell-bg, #ffffff);
+  // Lane fill: inline `backgroundColor` from stage `bgColor` / picker (default white in JSX)
+  background: #ffffff;
   min-height: 0;
   box-sizing: border-box;
 }

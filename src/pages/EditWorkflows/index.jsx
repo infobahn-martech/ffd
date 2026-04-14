@@ -448,7 +448,7 @@ function EditWorkflows() {
             return {
               ...swimlane,
               stages: swimlane.stages.map((stage) =>
-                stage.id === stageId ? { ...stage, color: rgbColor } : stage
+                stage.id === stageId ? { ...stage, color: rgbColor, bgColor: rgbColor } : stage
               ),
             };
           }),
