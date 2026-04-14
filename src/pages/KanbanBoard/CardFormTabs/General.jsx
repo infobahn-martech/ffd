@@ -1,5 +1,5 @@
 import PropTypes from "prop-types";
-import { useMemo, useRef, useState, useEffect } from "react";
+import { useMemo, useRef, useState, useEffect, useCallback } from "react";
 import ReactQuill from "react-quill";
 import "react-quill/dist/quill.snow.css";
 import "../../../design/scss/general.scss";
@@ -1106,6 +1106,10 @@ function General({ card, formValues, handleChange, onSave, isAddMode = false, is
   const [billingEntitySelectOptions, setBillingEntitySelectOptions] = useState([]);
   const [vesselTypeSelectOptions, setVesselTypeSelectOptions] = useState([]);
   const [bargeTypeSelectOptions, setBargeTypeSelectOptions] = useState([]);
+  const [entityFields, setEntityFields] = useState([]);
+  const [entityFieldValues, setEntityFieldValues] = useState({});
+  const [entityFieldsLoading, setEntityFieldsLoading] = useState(false);
+  const [entityFieldsError, setEntityFieldsError] = useState("");
 
   // Initialize dummy document when not in add mode
   useEffect(() => {
@@ -1297,6 +1301,100 @@ function General({ card, formValues, handleChange, onSave, isAddMode = false, is
 
   // Check if ON STATION type is selected in simplified mode
   const isOnStation = isSimplifiedMode && getFieldValue("type") === "ON STATION";
+
+  const normalizeEntityFields = useCallback((rows) => {
+    if (!Array.isArray(rows)) return [];
+    return rows
+      .map((row) => ({
+        field_id: row?.field_id === undefined || row?.field_id === null ? "" : String(row.field_id),
+        field_name: row?.field_name ? String(row.field_name).trim() : "",
+      }))
+      .filter((row) => row.field_id && row.field_name);
+  }, []);
+
+  const buildEntityFieldsPayload = useCallback(
+    (fields, values) =>
+      fields
+        .map((field) => {
+          const rawValue = values?.[field.field_id];
+          const value = rawValue === undefined || rawValue === null ? "" : String(rawValue);
+          return {
+            field_id: field.field_id,
+            field_name: field.field_name,
+            value,
+          };
+        })
+        .filter((item) => item.value.trim() !== ""),
+    []
+  );
+
+  const handleEntityFieldValueChange = useCallback((fieldId) => (event) => {
+    const nextValue = event?.target?.value ?? "";
+    setEntityFieldValues((prev) => ({
+      ...prev,
+      [fieldId]: nextValue,
+    }));
+  }, []);
+
+  const fetchEntityFields = useCallback(
+    async (entityId, preservedValues = {}) => {
+      const normalizedEntityId = entityId === undefined || entityId === null ? "" : String(entityId).trim();
+      if (!normalizedEntityId) {
+        setEntityFields([]);
+        setEntityFieldValues({});
+        setEntityFieldsLoading(false);
+        setEntityFieldsError("");
+        return;
+      }
+
+      setEntityFieldsLoading(true);
+      setEntityFieldsError("");
+      try {
+        const { data } = await callFileService.getEntityFields(normalizedEntityId);
+        const rows = unwrapListResponse(data);
+        const normalizedFields = normalizeEntityFields(rows);
+
+        setEntityFields(normalizedFields);
+        setEntityFieldValues(() => {
+          if (!normalizedFields.length) return {};
+          const nextValues = {};
+          normalizedFields.forEach((field) => {
+            const previousValue = preservedValues?.[field.field_id];
+            nextValues[field.field_id] = previousValue === undefined || previousValue === null ? "" : String(previousValue);
+          });
+          return nextValues;
+        });
+      } catch (error) {
+        console.error("[General] entity fields fetch failed", error);
+        setEntityFields([]);
+        setEntityFieldValues({});
+        setEntityFieldsError("Unable to load billing entity fields.");
+      } finally {
+        setEntityFieldsLoading(false);
+      }
+    },
+    [normalizeEntityFields]
+  );
+
+  const handleMainBillingEntityChange = useCallback(
+    (event) => {
+      const selectedEntityId = event?.target?.value ?? "";
+      handleChange("mainBillingEntity")(event);
+      setEntityFields([]);
+      setEntityFieldValues({});
+      setEntityFieldsError("");
+      void fetchEntityFields(selectedEntityId);
+    },
+    [fetchEntityFields, handleChange]
+  );
+
+  useEffect(() => {
+    const selectedEntityId = getFieldValue("mainBillingEntity");
+    if (!selectedEntityId) return;
+    void fetchEntityFields(selectedEntityId, entityFieldValues);
+    // Intentionally only bootstraps once for initial selected entity.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
 
 
@@ -1873,12 +1971,40 @@ function General({ card, formValues, handleChange, onSave, isAddMode = false, is
                         <FormField label="Main Billing entity">
                           <FormSelect
                             value={getFieldValue("mainBillingEntity")}
-                            onChange={handleChange("mainBillingEntity")}
+                            onChange={handleMainBillingEntityChange}
                             options={mergeOptionIfMissing(billingEntitySelectOptions, getFieldValue("mainBillingEntity"))}
                             placeholder="Select billing entity"
                             disabled={masterInputsDisabled}
                           />
                         </FormField>
+
+                        {entityFieldsLoading && (
+                          <FormField label="">
+                            <div className="cf-input">
+                              <input type="text" value="Loading fields..." readOnly />
+                            </div>
+                          </FormField>
+                        )}
+
+                        {!entityFieldsLoading && entityFields.map((field) => (
+                          <FormField key={field.field_id} label={field.field_name}>
+                            <FormInput
+                              type="text"
+                              placeholder={`Enter ${field.field_name}...`}
+                              value={entityFieldValues[field.field_id] || ""}
+                              onChange={handleEntityFieldValueChange(field.field_id)}
+                              disabled={isDisabled}
+                            />
+                          </FormField>
+                        ))}
+
+                        {!entityFieldsLoading && entityFieldsError && (
+                          <FormField label="">
+                            <div className="cf-input">
+                              <input type="text" value={entityFieldsError} readOnly />
+                            </div>
+                          </FormField>
+                        )}
 
                         {/* <FormField label="PO number">
                           <FormInput
@@ -2039,7 +2165,11 @@ function General({ card, formValues, handleChange, onSave, isAddMode = false, is
                               className="form-save-button"
                               onClick={() => {
                                 if (onSave) {
-                                  onSave(formValues);
+                                  const entityFieldsPayload = buildEntityFieldsPayload(entityFields, entityFieldValues);
+                                  onSave({
+                                    ...formValues,
+                                    entity_fields: entityFieldsPayload,
+                                  });
                                 }
                               }}
                             >
