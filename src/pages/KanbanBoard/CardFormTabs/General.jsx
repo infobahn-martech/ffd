@@ -9,6 +9,7 @@ import callFileService from "../../../services/callFileService";
 import portService from "../../../services/portService";
 import CommonService from "../../../services/commonService";
 import billingEntityService from "../../../services/billingEntityService";
+import billingInstructionService from "../../../services/billingInstructionService";
 import vesselTypeService from "../../../services/vesselTypeService";
 import bargeTypeService from "../../../services/bargeTypeService";
 import vesselService from "../../../services/vesselService";
@@ -1095,6 +1096,9 @@ function General({ card, formValues, handleChange, onSave, isAddMode = false, is
   const [onStationCopyOfSalesOrderDocuments, setOnStationCopyOfSalesOrderDocuments] = useState([]);
   const [dailyReportEmailOptions, setDailyReportEmailOptions] = useState([]);
   const [dailyReportEmailLoading, setDailyReportEmailLoading] = useState(false);
+  const [billingInstructionType, setBillingInstructionType] = useState("");
+  const [billingInstructionEmailOptions, setBillingInstructionEmailOptions] = useState([]);
+  const [billingInstructionLoading, setBillingInstructionLoading] = useState(false);
 
   const [masterDataLoading, setMasterDataLoading] = useState(false);
   const [operatorOptions, setOperatorOptions] = useState([]);
@@ -1284,6 +1288,59 @@ function General({ card, formValues, handleChange, onSave, isAddMode = false, is
     [normalizeEntityEmailOptions]
   );
 
+  const normalizeBillingInstruction = useCallback((payload) => {
+    const root = payload?.data ?? payload ?? {};
+    const data = root?.data ?? root ?? {};
+    const instructionType = data?.instruction_type ? String(data.instruction_type).trim() : "";
+    const description = data?.description ? String(data.description) : "";
+    const emails = Array.isArray(data?.emails) ? data.emails : [];
+    const emailOptions = emails
+      .map((email) => {
+        const normalizedEmail = email ? String(email).trim() : "";
+        return normalizedEmail ? { value: normalizedEmail, label: normalizedEmail } : null;
+      })
+      .filter(Boolean);
+
+    return { instructionType, description, emailOptions };
+  }, []);
+
+  const fetchBillingInstructionByEntity = useCallback(
+    async (entityId) => {
+      const normalizedEntityId = entityId === undefined || entityId === null ? "" : String(entityId).trim();
+      if (!normalizedEntityId) {
+        setBillingInstructionType("");
+        setBillingInstructionEmailOptions([]);
+        handleChange("billingInstructions")({ target: { value: "", name: "billingInstructions" } });
+        handleChange("billingInstructionEmails")({ target: { value: [], name: "billingInstructionEmails" } });
+        return;
+      }
+
+      setBillingInstructionLoading(true);
+      try {
+        const { data } = await billingInstructionService.fetchInstructionByEntity(normalizedEntityId);
+        const { instructionType, description, emailOptions } = normalizeBillingInstruction(data);
+        setBillingInstructionType(instructionType);
+        setBillingInstructionEmailOptions(emailOptions);
+
+        const isEmailInstruction = instructionType.toLowerCase() === "email";
+        handleChange("billingInstructionEmails")({
+          target: { value: isEmailInstruction ? emailOptions.map((opt) => opt.value) : [], name: "billingInstructionEmails" }
+        });
+        handleChange("billingInstructions")({
+          target: { value: isEmailInstruction ? "" : description, name: "billingInstructions" }
+        });
+      } catch (error) {
+        console.error("[General] billing instruction fetch failed", error);
+        setBillingInstructionType("");
+        setBillingInstructionEmailOptions([]);
+        handleChange("billingInstructionEmails")({ target: { value: [], name: "billingInstructionEmails" } });
+      } finally {
+        setBillingInstructionLoading(false);
+      }
+    },
+    [handleChange, normalizeBillingInstruction]
+  );
+
   const normalizeVesselOptions = useCallback((payload) => {
     const rows = unwrapListResponse(payload);
     return rows
@@ -1373,6 +1430,30 @@ function General({ card, formValues, handleChange, onSave, isAddMode = false, is
       }
 
       setDailyReportEmailOptions((prev) => {
+        if (prev.some((opt) => opt.value === normalizedEmail)) return prev;
+        return [...prev, { value: normalizedEmail, label: normalizedEmail }];
+      });
+    },
+    [getFieldValue]
+  );
+
+  const handleAddBillingInstructionEmail = useCallback(
+    async (email) => {
+      const normalizedEmail = email ? String(email).trim() : "";
+      const currentEntityId = getFieldValue("mainBillingEntity");
+      const normalizedEntityId = currentEntityId === undefined || currentEntityId === null ? "" : String(currentEntityId).trim();
+      if (!normalizedEmail || !normalizedEntityId) return;
+
+      try {
+        await billingInstructionService.addBillingInstructionEmail({
+          entity_id: normalizedEntityId,
+          email: normalizedEmail,
+        });
+      } catch (error) {
+        console.error("[General] add billing instruction email failed", error);
+      }
+
+      setBillingInstructionEmailOptions((prev) => {
         if (prev.some((opt) => opt.value === normalizedEmail)) return prev;
         return [...prev, { value: normalizedEmail, label: normalizedEmail }];
       });
@@ -1501,6 +1582,12 @@ function General({ card, formValues, handleChange, onSave, isAddMode = false, is
       handleChange("dailyReportEmail")({
         target: { value: [], name: "dailyReportEmail" }
       });
+      handleChange("billingInstructionEmails")({
+        target: { value: [], name: "billingInstructionEmails" }
+      });
+      handleChange("billingInstructions")({
+        target: { value: "", name: "billingInstructions" }
+      });
       handleChange("vesselName")({ target: { value: "", name: "vesselName" } });
       handleChange("vesselOwner")({ target: { value: "", name: "vesselOwner" } });
       handleChange("vesselManager")({ target: { value: "", name: "vesselManager" } });
@@ -1510,9 +1597,10 @@ function General({ card, formValues, handleChange, onSave, isAddMode = false, is
       setEntityFieldsError("");
       void fetchEntityFields(selectedEntityId);
       void fetchBillingEntityEmails(selectedEntityId);
+      void fetchBillingInstructionByEntity(selectedEntityId);
       void fetchVesselsByEntity(selectedEntityId);
     },
-    [fetchBillingEntityEmails, fetchEntityFields, fetchVesselsByEntity, handleChange]
+    [fetchBillingEntityEmails, fetchBillingInstructionByEntity, fetchEntityFields, fetchVesselsByEntity, handleChange]
   );
 
   useEffect(() => {
@@ -1520,6 +1608,7 @@ function General({ card, formValues, handleChange, onSave, isAddMode = false, is
     if (!selectedEntityId) return;
     void fetchEntityFields(selectedEntityId, entityFieldValues);
     void fetchBillingEntityEmails(selectedEntityId);
+    void fetchBillingInstructionByEntity(selectedEntityId);
     void fetchVesselsByEntity(selectedEntityId);
     // Intentionally only bootstraps once for initial selected entity.
     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -2278,13 +2367,28 @@ function General({ card, formValues, handleChange, onSave, isAddMode = false, is
                         </FormField>
 
                         <FormField label="Billing instructions">
-                          <FormInput
-                            type="text"
-                            placeholder="Enter billing instructions..."
-                            value={getFieldValue("billingInstructions")}
-                            onChange={handleChange("billingInstructions")}
-                            disabled={isDisabled}
-                          />
+                          {billingInstructionType.toLowerCase() === "email" ? (
+                            <MultiSelectEmail
+                              value={
+                                Array.isArray(formValues?.billingInstructionEmails)
+                                  ? formValues.billingInstructionEmails
+                                  : []
+                              }
+                              onChange={handleChange("billingInstructionEmails")}
+                              options={billingInstructionEmailOptions}
+                              placeholder="Select billing instruction emails..."
+                              onAddNew={handleAddBillingInstructionEmail}
+                              disabled={isDisabled || billingInstructionLoading}
+                            />
+                          ) : (
+                            <FormInput
+                              type="text"
+                              placeholder="Enter billing instructions..."
+                              value={getFieldValue("billingInstructions")}
+                              onChange={handleChange("billingInstructions")}
+                              disabled={isDisabled || billingInstructionLoading}
+                            />
+                          )}
                         </FormField>
 
                         {isAddMode && (

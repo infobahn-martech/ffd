@@ -12,9 +12,13 @@ const updateBillingInstruction = (data) =>
 const fetchInstructionByEntity = (entity_id) =>
   Gateway.get(`/billingentity/get_instruction_by_entity/${entity_id}`);
 
+const addBillingInstructionEmail = (payload) =>
+  Gateway.post('/billingentity/add_billing_instruction_email', payload);
+
 export default {
   addBillingInstruction,
   fetchAllBillingInstructions,
   updateBillingInstruction,
   fetchInstructionByEntity,
+  addBillingInstructionEmail,
 };
