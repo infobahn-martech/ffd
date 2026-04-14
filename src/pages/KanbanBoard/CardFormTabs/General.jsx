@@ -1091,13 +1091,8 @@ function General({ card, formValues, handleChange, onSave, isAddMode = false, is
   const [onStationSupportingDocuments, setOnStationSupportingDocuments] = useState([]);
   const [onStationFdaDispatchProofDocuments, setOnStationFdaDispatchProofDocuments] = useState([]);
   const [onStationCopyOfSalesOrderDocuments, setOnStationCopyOfSalesOrderDocuments] = useState([]);
-  const [dailyReportEmailOptions, setDailyReportEmailOptions] = useState([
-    { value: "admin@example.com", label: "admin@example.com" },
-    { value: "operations@example.com", label: "operations@example.com" },
-    { value: "reports@example.com", label: "reports@example.com" },
-    { value: "manager@example.com", label: "manager@example.com" },
-    { value: "supervisor@example.com", label: "supervisor@example.com" },
-  ]);
+  const [dailyReportEmailOptions, setDailyReportEmailOptions] = useState([]);
+  const [dailyReportEmailLoading, setDailyReportEmailLoading] = useState(false);
 
   const [masterDataLoading, setMasterDataLoading] = useState(false);
   const [operatorOptions, setOperatorOptions] = useState([]);
@@ -1254,13 +1249,63 @@ function General({ card, formValues, handleChange, onSave, isAddMode = false, is
     setAppointmentDocuments(appointmentDocuments.filter((_, i) => i !== index));
   };
 
+  const normalizeEntityEmailOptions = useCallback((payload) => {
+    const root = payload?.data ?? payload ?? {};
+    const rows = Array.isArray(root?.emails) ? root.emails : [];
+    return rows
+      .map((row) => {
+        const value = row?.email ? String(row.email).trim() : "";
+        return value ? { value, label: value } : null;
+      })
+      .filter(Boolean);
+  }, []);
+
+  const fetchBillingEntityEmails = useCallback(
+    async (entityId) => {
+      const normalizedEntityId = entityId === undefined || entityId === null ? "" : String(entityId).trim();
+      if (!normalizedEntityId) {
+        setDailyReportEmailOptions([]);
+        return;
+      }
+
+      setDailyReportEmailLoading(true);
+      try {
+        const { data } = await billingEntityService.getAllEmailByEntity(normalizedEntityId);
+        setDailyReportEmailOptions(normalizeEntityEmailOptions(data));
+      } catch (error) {
+        console.error("[General] billing entity emails fetch failed", error);
+        setDailyReportEmailOptions([]);
+      } finally {
+        setDailyReportEmailLoading(false);
+      }
+    },
+    [normalizeEntityEmailOptions]
+  );
+
   // Handle new email addition
-  const handleAddNewEmail = (email) => {
-    const newOption = { value: email, label: email };
-    if (!dailyReportEmailOptions.some(opt => opt.value === email)) {
-      setDailyReportEmailOptions([...dailyReportEmailOptions, newOption]);
-    }
-  };
+  const handleAddNewEmail = useCallback(
+    async (email) => {
+      const normalizedEmail = email ? String(email).trim() : "";
+      const currentEntityId = getFieldValue("mainBillingEntity");
+      const normalizedEntityId = currentEntityId === undefined || currentEntityId === null ? "" : String(currentEntityId).trim();
+      if (!normalizedEmail || !normalizedEntityId) return;
+
+      try {
+        await billingEntityService.addBillingEntityEmail({
+          entity_id: normalizedEntityId,
+          email: normalizedEmail,
+        });
+      } catch (error) {
+        console.error("[General] add billing entity email failed", error);
+      }
+
+      setDailyReportEmailOptions((prev) => {
+        if (prev.some((opt) => opt.value === normalizedEmail)) return prev;
+        return [...prev, { value: normalizedEmail, label: normalizedEmail }];
+      });
+    },
+    [getFieldValue]
+  );
 
   // Handle vessel save - add new vessel to options and update form value
   const handleVesselSave = (vesselName) => {
@@ -1380,18 +1425,23 @@ function General({ card, formValues, handleChange, onSave, isAddMode = false, is
     (event) => {
       const selectedEntityId = event?.target?.value ?? "";
       handleChange("mainBillingEntity")(event);
+      handleChange("dailyReportEmail")({
+        target: { value: [], name: "dailyReportEmail" }
+      });
       setEntityFields([]);
       setEntityFieldValues({});
       setEntityFieldsError("");
       void fetchEntityFields(selectedEntityId);
+      void fetchBillingEntityEmails(selectedEntityId);
     },
-    [fetchEntityFields, handleChange]
+    [fetchBillingEntityEmails, fetchEntityFields, handleChange]
   );
 
   useEffect(() => {
     const selectedEntityId = getFieldValue("mainBillingEntity");
     if (!selectedEntityId) return;
     void fetchEntityFields(selectedEntityId, entityFieldValues);
+    void fetchBillingEntityEmails(selectedEntityId);
     // Intentionally only bootstraps once for initial selected entity.
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
@@ -2144,7 +2194,7 @@ function General({ card, formValues, handleChange, onSave, isAddMode = false, is
                             options={dailyReportEmailOptions}
                             placeholder="Select email addresses..."
                             onAddNew={handleAddNewEmail}
-                            disabled={isDisabled}
+                            disabled={isDisabled || dailyReportEmailLoading}
                           />
                         </FormField>
 

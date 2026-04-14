@@ -20,4 +20,10 @@ const getCustomerPriceList = ({ params }) => {
   return Gateway.get('/billingentity/get_customer_price_list', { params: apiParams });
 };
 
-export default { getBillingEntities, getCustomerPriceList };
+const getAllEmailByEntity = (billingEntityId) =>
+  Gateway.get(`/billingentity/getallemailbyentity/${billingEntityId}`);
+
+const addBillingEntityEmail = (payload) =>
+  Gateway.post('/billingentity/add_billing_entity_email', payload);
+
+export default { getBillingEntities, getCustomerPriceList, getAllEmailByEntity, addBillingEntityEmail };
