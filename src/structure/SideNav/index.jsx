@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useState } from 'react';
+import { useCallback, useEffect, useRef, useState } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
 
 import DefaultMenu from './components/DefaultMenu';
@@ -115,8 +115,10 @@ function SideNav({ isMobileMenuOpen, onCloseMobileMenu, isVendorPortal = false }
   const [selectedWorkflowId, setSelectedWorkflowId] = useState(null);
 
   const availableWorkflows = useKanbanSidebarBridge((s) => s.boardWorkflows);
+  const pendingAddCardFromWorkflowRef = useRef(null);
 
   const closeSelectWorkflowModal = useCallback(() => {
+    pendingAddCardFromWorkflowRef.current = null;
     setShowSelectWorkflowModal(false);
     setSelectedWorkflowId(null);
   }, []);
@@ -144,11 +146,19 @@ function SideNav({ isMobileMenuOpen, onCloseMobileMenu, isVendorPortal = false }
       (x) => x.id === selectedWorkflowId || String(x.id) === String(selectedWorkflowId)
     );
     if (!w) return;
-    closeSelectWorkflowModal();
-    window.dispatchEvent(
-      new CustomEvent('kanban:add-card', { detail: { workflowId: w.id, workflowName: w.name } })
-    );
-  }, [availableWorkflows, selectedWorkflowId, closeSelectWorkflowModal]);
+    pendingAddCardFromWorkflowRef.current = { workflowId: w.id, workflowName: w.name };
+    setShowSelectWorkflowModal(false);
+    setSelectedWorkflowId(null);
+  }, [availableWorkflows, selectedWorkflowId]);
+
+  const handleSelectWorkflowModalExited = useCallback(() => {
+    const d = pendingAddCardFromWorkflowRef.current;
+    if (!d) return;
+    pendingAddCardFromWorkflowRef.current = null;
+    requestAnimationFrame(() => {
+      window.dispatchEvent(new CustomEvent('kanban:add-card', { detail: d }));
+    });
+  }, []);
 
   const [expand, setExpand] = useState(false);
 
@@ -742,6 +752,7 @@ function SideNav({ isMobileMenuOpen, onCloseMobileMenu, isVendorPortal = false }
           onSelectWorkflowId={setSelectedWorkflowId}
           onClose={closeSelectWorkflowModal}
           onContinue={handleSelectWorkflowContinue}
+          onExited={handleSelectWorkflowModalExited}
         />
       </>
     );

@@ -3,7 +3,15 @@ import { Modal } from 'react-bootstrap';
 import PropTypes from 'prop-types';
 import './SelectWorkflowModal.scss';
 
-function SelectWorkflowModal({ show, workflows, selectedWorkflowId, onSelectWorkflowId, onClose, onContinue }) {
+function SelectWorkflowModal({
+  show,
+  workflows,
+  selectedWorkflowId,
+  onSelectWorkflowId,
+  onClose,
+  onContinue,
+  onExited,
+}) {
   const handleClose = () => {
     onClose();
   };
@@ -22,6 +30,7 @@ function SelectWorkflowModal({ show, workflows, selectedWorkflowId, onSelectWork
     <Modal
       show={show}
       onHide={handleClose}
+      onExited={onExited}
       className="select-workflow-modal"
       centered
       backdrop="static"
@@ -74,7 +83,7 @@ function SelectWorkflowModal({ show, workflows, selectedWorkflowId, onSelectWork
           <button
             type="button"
             onClick={handleContinue}
-            className="select-workflow-btn select-workflow-btn--text"
+            className="select-workflow-btn select-workflow-btn--primary"
             disabled={empty || selectedWorkflowId == null}
           >
             Continue
@@ -97,11 +106,13 @@ SelectWorkflowModal.propTypes = {
   onSelectWorkflowId: PropTypes.func.isRequired,
   onClose: PropTypes.func.isRequired,
   onContinue: PropTypes.func.isRequired,
+  onExited: PropTypes.func,
 };
 
 SelectWorkflowModal.defaultProps = {
   workflows: [],
   selectedWorkflowId: null,
+  onExited: undefined,
 };
 
 export default SelectWorkflowModal;

@@ -5,6 +5,10 @@
   --bs-body-font-family: 'Open Sans', sans-serif;
 }
 
+html {
+  scrollbar-gutter: stable;
+}
+
 html,
 body,
 #root {
