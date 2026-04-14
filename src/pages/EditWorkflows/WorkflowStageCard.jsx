@@ -2,7 +2,7 @@ import { useCallback, useEffect, useLayoutEffect, useRef, useState } from 'react
 import { createPortal } from 'react-dom';
 import SedresColorPicker from '../../components/SedresColorPicker/SedresColorPicker';
 import { normalizeHexColor } from '../../components/SedresColorPicker/sedresColorPickerConstants';
-import { rgbToHex, hexToRgb, workflowStageHasChildColumns } from './workflow.utils';
+import { rgbToHex, hexToRgb, workflowStageHasChildColumns, DEFAULT_STAGE_SWATCH_HEX } from './workflow.utils';
 
 const STAGE_COLOR_PICKER_WIDTH = 308;
 const STAGE_COLOR_PICKER_Z = 10050;
@@ -46,7 +46,7 @@ function WorkflowStageCard({
   const limit = stage.limit ?? 0;
   const cardsPerRow = stage.cardsPerRow ?? 1;
   const hasChildren = workflowStageHasChildColumns(stage, swimlaneStages);
-  const displayColor = stage.color ? rgbToHex(stage.color) : '#f9fafb';
+  const displayColor = stage.color ? rgbToHex(stage.color) : DEFAULT_STAGE_SWATCH_HEX;
   const [isStageColorPickerOpen, setIsStageColorPickerOpen] = useState(false);
   const stageColorTriggerRef = useRef(null);
   const stageColorPickerPopoverRef = useRef(null);

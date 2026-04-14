@@ -1164,8 +1164,8 @@ div[role="tooltip"][id^="workflow-info-"] {
   align-items: center;
   padding: 6px 10px;
   border: 1px solid #e5e7eb;
-  // Lane fill: inline `backgroundColor` from stage `bgColor` / picker (default white in JSX)
-  background: #ffffff;
+  // Lane fill: inline `backgroundColor` from stage `bgColor` / picker (default matches `DEFAULT_STAGE_SWATCH_HEX`)
+  background: #f8fafc;
   min-height: 0;
   box-sizing: border-box;
 }
