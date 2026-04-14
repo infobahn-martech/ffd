@@ -8,6 +8,9 @@ import ContextMenu from "../KanbanBoard/ContextMenu";
 import AccordionMenu from "../KanbanBoard/AccordionMenu";
 import Workspaces from "../Workspaces";
 import "../../design/scss/common.scss";
+import useSyncKanbanSidebarWorkflows from "../../hooks/useSyncKanbanSidebarWorkflows";
+import useKanbanAddCardFromSidebar from "../../hooks/useKanbanAddCardFromSidebar";
+import { getAddModeCardFormWorkflow } from "../../helpers/kanbanSidebarWorkflow";
 
 export default function JubailOperations() {
     const [workflows, setWorkflows] = useState(initialData);
@@ -15,6 +18,7 @@ export default function JubailOperations() {
     const [isAddMode, setIsAddMode] = useState(false);
     const [showWorkspaces, setShowWorkspaces] = useState(false);
     const [isLoading, setIsLoading] = useState(true);
+    const [addTargetWorkflowId, setAddTargetWorkflowId] = useState(null);
 
     // Track expanded state for each workflow
     const [expandedWorkflows, setExpandedWorkflows] = useState(() => {
@@ -75,11 +79,13 @@ export default function JubailOperations() {
     const handleSelectCard = useCallback(card => {
         setSelectedCard(card);
         setIsAddMode(false);
+        setAddTargetWorkflowId(null);
     }, []);
 
     const handleCloseCard = useCallback(() => {
         setSelectedCard(null);
         setIsAddMode(false);
+        setAddTargetWorkflowId(null);
     }, []);
 
     // Set loading to false after component mounts
@@ -91,18 +97,11 @@ export default function JubailOperations() {
         return () => clearTimeout(timer);
     }, []);
 
+    useSyncKanbanSidebarWorkflows(workflows);
+    useKanbanAddCardFromSidebar({ setSelectedCard, setIsAddMode, setAddTargetWorkflowId });
+
     // Listen for add card event from SideNav
     useEffect(() => {
-        const handleAddCard = () => {
-            const newCard = {
-                id: `new-${Date.now()}`,
-                title: '',
-                color: '#2A00FF',
-            };
-            setSelectedCard(newCard);
-            setIsAddMode(true);
-        };
-
         const handleShowWorkspaces = () => {
             setShowWorkspaces(true);
         };
@@ -111,11 +110,9 @@ export default function JubailOperations() {
             setShowWorkspaces(false);
         };
 
-        window.addEventListener('kanban:add-card', handleAddCard);
         window.addEventListener('kanban:show-workspaces', handleShowWorkspaces);
         window.addEventListener('kanban:hide-workspaces', handleHideWorkspaces);
         return () => {
-            window.removeEventListener('kanban:add-card', handleAddCard);
             window.removeEventListener('kanban:show-workspaces', handleShowWorkspaces);
             window.removeEventListener('kanban:hide-workspaces', handleHideWorkspaces);
         };
@@ -393,6 +390,7 @@ export default function JubailOperations() {
         };
         setSelectedCard(newCard);
         setIsAddMode(true);
+        setAddTargetWorkflowId(null);
     }, [contextMenuColumn]);
 
     useEffect(() => {
@@ -574,19 +572,13 @@ export default function JubailOperations() {
 
     const selectedCardWorkflow = getSelectedCardWorkflow();
 
-    const columnsForCardForm = useMemo(() => {
-        if (isAddMode && !selectedCardWorkflow && workflows.length > 0) {
-            return workflows[0].columns;
-        }
-        return selectedCardWorkflow?.columns;
-    }, [isAddMode, selectedCardWorkflow, workflows]);
+    const addModeCardWorkflow = useMemo(
+        () => getAddModeCardFormWorkflow(workflows, isAddMode, selectedCardWorkflow, addTargetWorkflowId),
+        [workflows, isAddMode, selectedCardWorkflow, addTargetWorkflowId]
+    );
 
-    const columnOrderForCardForm = useMemo(() => {
-        if (isAddMode && !selectedCardWorkflow && workflows.length > 0) {
-            return workflows[0].columnOrder;
-        }
-        return selectedCardWorkflow?.columnOrder;
-    }, [isAddMode, selectedCardWorkflow, workflows]);
+    const columnsForCardForm = addModeCardWorkflow?.columns;
+    const columnOrderForCardForm = addModeCardWorkflow?.columnOrder;
 
     if (isLoading) {
         return (

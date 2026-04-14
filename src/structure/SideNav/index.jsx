@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useCallback, useEffect, useState } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
 
 import DefaultMenu from './components/DefaultMenu';
@@ -11,6 +11,7 @@ import StickersModal from './components/StickersModal';
 import TagsModal from './components/TagsModal';
 import TypesModal from './components/TypesModal';
 import AddDashboardModal from './components/AddDashboardModal';
+import SelectWorkflowModal from './components/SelectWorkflowModal';
 import WorkspacesSideNavPanel from './components/WorkspacesSideNavPanel';
 import MyAccountsModal from '../Header/MyAccountsModal';
 import '../../design/scss/common.scss';
@@ -40,6 +41,7 @@ import 'react-tooltip/dist/react-tooltip.css';
 import { FiPlus, FiInbox, FiFilter, FiPlusCircle, FiActivity } from 'react-icons/fi';
 import { useLayoutView } from '../../context/LayoutViewContext';
 import useWorkSpaceReducer from '../../store/WorkSpaceReducer';
+import { useKanbanSidebarBridge } from '../../store/kanbanSidebarBridge';
 
 function SideNav({ isMobileMenuOpen, onCloseMobileMenu, isVendorPortal = false }) {
   const { pathname } = useLocation();
@@ -109,6 +111,44 @@ function SideNav({ isMobileMenuOpen, onCloseMobileMenu, isVendorPortal = false }
   const [showTypesModal, setShowTypesModal] = useState(false);
   const [showAddDashboardModal, setShowAddDashboardModal] = useState(false);
   const [showMyAccountsModal, setShowMyAccountsModal] = useState(false);
+  const [showSelectWorkflowModal, setShowSelectWorkflowModal] = useState(false);
+  const [selectedWorkflowId, setSelectedWorkflowId] = useState(null);
+
+  const availableWorkflows = useKanbanSidebarBridge((s) => s.boardWorkflows);
+
+  const closeSelectWorkflowModal = useCallback(() => {
+    setShowSelectWorkflowModal(false);
+    setSelectedWorkflowId(null);
+  }, []);
+
+  const beginSidebarAddCard = useCallback(() => {
+    const list = availableWorkflows;
+    if (list.length === 0) {
+      setSelectedWorkflowId(null);
+      setShowSelectWorkflowModal(true);
+      return;
+    }
+    if (list.length === 1) {
+      const w = list[0];
+      window.dispatchEvent(
+        new CustomEvent('kanban:add-card', { detail: { workflowId: w.id, workflowName: w.name } })
+      );
+      return;
+    }
+    setSelectedWorkflowId(null);
+    setShowSelectWorkflowModal(true);
+  }, [availableWorkflows]);
+
+  const handleSelectWorkflowContinue = useCallback(() => {
+    const w = availableWorkflows.find(
+      (x) => x.id === selectedWorkflowId || String(x.id) === String(selectedWorkflowId)
+    );
+    if (!w) return;
+    closeSelectWorkflowModal();
+    window.dispatchEvent(
+      new CustomEvent('kanban:add-card', { detail: { workflowId: w.id, workflowName: w.name } })
+    );
+  }, [availableWorkflows, selectedWorkflowId, closeSelectWorkflowModal]);
 
   const [expand, setExpand] = useState(false);
 
@@ -484,6 +524,7 @@ function SideNav({ isMobileMenuOpen, onCloseMobileMenu, isVendorPortal = false }
     const handleIconClick = (item) => {
       if (item.label === 'Filter') {
         const newShowState = !showFilterPanel;
+        closeSelectWorkflowModal();
         setShowFilterPanel(newShowState);
         setShowBoardTeamsSubmenu(false);
         setShowCardManagementSubmenu(false);
@@ -492,6 +533,7 @@ function SideNav({ isMobileMenuOpen, onCloseMobileMenu, isVendorPortal = false }
       }
 
       if (item.label === 'Analytics') {
+        closeSelectWorkflowModal();
         // Extract board ID from pathname if available
         const boardIdMatch = pathname.match(/\/kanban-board\/(\d+)/);
         const boardId = boardIdMatch ? boardIdMatch[1] : '';
@@ -505,6 +547,7 @@ function SideNav({ isMobileMenuOpen, onCloseMobileMenu, isVendorPortal = false }
 
       if (item.label === 'Board teams') {
         const newShowState = !showBoardTeamsSubmenu;
+        closeSelectWorkflowModal();
         setShowBoardTeamsSubmenu(newShowState);
         setShowFilterPanel(false);
         setShowBusinessRulesModal(false);
@@ -514,6 +557,7 @@ function SideNav({ isMobileMenuOpen, onCloseMobileMenu, isVendorPortal = false }
       }
 
       if (item.label === 'Business rules') {
+        closeSelectWorkflowModal();
         setShowBusinessRulesModal(true);
         setShowFilterPanel(false);
         setShowBoardTeamsSubmenu(false);
@@ -524,6 +568,7 @@ function SideNav({ isMobileMenuOpen, onCloseMobileMenu, isVendorPortal = false }
 
       if (item.label === 'Card management') {
         const newShowState = !showCardManagementSubmenu;
+        closeSelectWorkflowModal();
         setShowCardManagementSubmenu(newShowState);
         setShowFilterPanel(false);
         setShowBoardTeamsSubmenu(false);
@@ -545,11 +590,14 @@ function SideNav({ isMobileMenuOpen, onCloseMobileMenu, isVendorPortal = false }
       if (showTagsModal) setShowTagsModal(false);
       if (showTypesModal) setShowTypesModal(false);
       if (showAddDashboardModal) setShowAddDashboardModal(false);
+      if (item.label !== 'Add') {
+        closeSelectWorkflowModal();
+      }
 
       setActiveKanbanIcon(item.id);
 
       if (item.label === 'Add') {
-        window.dispatchEvent(new CustomEvent('kanban:add-card'));
+        beginSidebarAddCard();
       }
 
       if (item.label === 'Add new dashboard') {
@@ -607,7 +655,8 @@ function SideNav({ isMobileMenuOpen, onCloseMobileMenu, isVendorPortal = false }
               (item.label === 'Board teams' && showBoardTeamsSubmenu) ||
               (item.label === 'Business rules' && showBusinessRulesModal) ||
               (item.label === 'Card management' && showCardManagementSubmenu) ||
-              (item.label === 'Add new dashboard' && showAddDashboardModal);
+              (item.label === 'Add new dashboard' && showAddDashboardModal) ||
+              (item.label === 'Add' && showSelectWorkflowModal);
 
             return (
               <div key={item.id} style={{ position: 'relative' }}>
@@ -685,6 +734,14 @@ function SideNav({ isMobileMenuOpen, onCloseMobileMenu, isVendorPortal = false }
               },
             });
           }}
+        />
+        <SelectWorkflowModal
+          show={showSelectWorkflowModal}
+          workflows={availableWorkflows}
+          selectedWorkflowId={selectedWorkflowId}
+          onSelectWorkflowId={setSelectedWorkflowId}
+          onClose={closeSelectWorkflowModal}
+          onContinue={handleSelectWorkflowContinue}
         />
       </>
     );

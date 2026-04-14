@@ -8,6 +8,9 @@ import ContextMenu from "./ContextMenu";
 import AccordionMenu from "./AccordionMenu";
 import Workspaces from "../Workspaces";
 import "../../design/scss/common.scss";
+import useSyncKanbanSidebarWorkflows from "../../hooks/useSyncKanbanSidebarWorkflows";
+import useKanbanAddCardFromSidebar from "../../hooks/useKanbanAddCardFromSidebar";
+import { getAddModeCardFormWorkflow } from "../../helpers/kanbanSidebarWorkflow";
 
 export default function KanbanBoard() {
   const { layoutView } = useLayoutView();
@@ -18,6 +21,7 @@ export default function KanbanBoard() {
   const [selectedCard, setSelectedCard] = useState(null);
   const [isAddMode, setIsAddMode] = useState(false);
   const [showWorkspaces, setShowWorkspaces] = useState(false);
+  const [addTargetWorkflowId, setAddTargetWorkflowId] = useState(null);
   // Track expanded state for each workflow
   const [expandedWorkflows, setExpandedWorkflows] = useState(() => {
     const state = {};
@@ -77,25 +81,19 @@ export default function KanbanBoard() {
   const handleSelectCard = useCallback(card => {
     setSelectedCard(card);
     setIsAddMode(false);
+    setAddTargetWorkflowId(null);
   }, []);
   const handleCloseCard = useCallback(() => {
     setSelectedCard(null);
     setIsAddMode(false);
+    setAddTargetWorkflowId(null);
   }, []);
+
+  useSyncKanbanSidebarWorkflows(workflows);
+  useKanbanAddCardFromSidebar({ setSelectedCard, setIsAddMode, setAddTargetWorkflowId });
 
   // Listen for add card event from SideNav
   useEffect(() => {
-    const handleAddCard = () => {
-      // Create a new empty card object for add mode
-      const newCard = {
-        id: `new-${Date.now()}`,
-        title: '',
-        color: '#2A00FF',
-      };
-      setSelectedCard(newCard);
-      setIsAddMode(true);
-    };
-
     const handleShowWorkspaces = () => {
       setShowWorkspaces(true);
     };
@@ -104,11 +102,9 @@ export default function KanbanBoard() {
       setShowWorkspaces(false);
     };
 
-    window.addEventListener('kanban:add-card', handleAddCard);
     window.addEventListener('kanban:show-workspaces', handleShowWorkspaces);
     window.addEventListener('kanban:hide-workspaces', handleHideWorkspaces);
     return () => {
-      window.removeEventListener('kanban:add-card', handleAddCard);
       window.removeEventListener('kanban:show-workspaces', handleShowWorkspaces);
       window.removeEventListener('kanban:hide-workspaces', handleHideWorkspaces);
     };
@@ -409,6 +405,7 @@ export default function KanbanBoard() {
     };
     setSelectedCard(newCard);
     setIsAddMode(true);
+    setAddTargetWorkflowId(null);
     // If we have a column, we could potentially set the initial column for the card
   }, [contextMenuColumn]);
 
@@ -497,35 +494,25 @@ export default function KanbanBoard() {
     });
   }, [handleSelectCard, expandedColumns, handleColumnHeaderClick, handleColumnContextMenu, maxColumnHeights, handleColumnHeightChange, isClassicLayout, isModernLayout, isDarkMode]);
 
+  const selectedCardWorkflow = useMemo(() => {
+    if (!selectedCard) return null;
+    return workflows.find((workflow) =>
+      Object.values(workflow.cards).some((card) => card.id === selectedCard.id)
+    );
+  }, [selectedCard, workflows]);
+
+  const addModeCardWorkflow = useMemo(
+    () => getAddModeCardFormWorkflow(workflows, isAddMode, selectedCardWorkflow, addTargetWorkflowId),
+    [workflows, isAddMode, selectedCardWorkflow, addTargetWorkflowId]
+  );
+
+  const columnsForCardForm = addModeCardWorkflow?.columns;
+  const columnOrderForCardForm = addModeCardWorkflow?.columnOrder;
+
   // Show Workspaces view when Workspaces icon is clicked
   if (showWorkspaces) {
     return <Workspaces />;
   }
-
-  // Find the workflow that contains the selected card
-  const getSelectedCardWorkflow = useCallback(() => {
-    if (!selectedCard) return null;
-    return workflows.find(workflow =>
-      Object.values(workflow.cards).some(card => card.id === selectedCard.id)
-    );
-  }, [selectedCard, workflows]);
-
-  const selectedCardWorkflow = getSelectedCardWorkflow();
-
-  // For add mode, use the first workflow's columns if no workflow is found
-  const columnsForCardForm = useMemo(() => {
-    if (isAddMode && !selectedCardWorkflow && workflows.length > 0) {
-      return workflows[0].columns;
-    }
-    return selectedCardWorkflow?.columns;
-  }, [isAddMode, selectedCardWorkflow, workflows]);
-
-  const columnOrderForCardForm = useMemo(() => {
-    if (isAddMode && !selectedCardWorkflow && workflows.length > 0) {
-      return workflows[0].columnOrder;
-    }
-    return selectedCardWorkflow?.columnOrder;
-  }, [isAddMode, selectedCardWorkflow, workflows]);
 
   return (
     <div className={isDarkMode ? 'kanban-board-wrapper kanban-board-wrapper-dark' : 'kanban-board-wrapper'}>
