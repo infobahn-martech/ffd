@@ -26,4 +26,13 @@ const getAllEmailByEntity = (billingEntityId) =>
 const addBillingEntityEmail = (payload) =>
   Gateway.post('/billingentity/add_billing_entity_email', payload);
 
-export default { getBillingEntities, getCustomerPriceList, getAllEmailByEntity, addBillingEntityEmail };
+const updateBillingEntityLogo = (formData) =>
+  Gateway.post('/billingentity/update_billing_entity_logo', formData);
+
+export default {
+  getBillingEntities,
+  getCustomerPriceList,
+  getAllEmailByEntity,
+  addBillingEntityEmail,
+  updateBillingEntityLogo,
+};

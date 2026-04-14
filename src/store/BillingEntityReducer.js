@@ -9,6 +9,8 @@ const useBillingEntityReducer = create((set) => ({
   billingEntities: null,
   totalCount: null,
   addEditLoader: false,
+  isLogoUploading: false,
+  logoUploadEntityId: null,
 
   getBillingEntities: async ({ params }) => {
     try {
@@ -44,6 +46,35 @@ const useBillingEntityReducer = create((set) => ({
       showError(
         error?.response?.data?.message ?? error?.message ?? 'Failed to fetch billing entities'
       );
+    }
+  },
+  updateBillingEntityLogo: async ({ entityId, file, cb }) => {
+    try {
+      set({ isLogoUploading: true, logoUploadEntityId: entityId });
+      const formData = new FormData();
+      formData.append('entity_id', entityId);
+      formData.append('entity_logo', file);
+      const { data } = await billingEntityService.updateBillingEntityLogo(formData);
+      const { success } = useAlertReducer.getState();
+      success(data?.message ?? 'Billing entity logo updated successfully');
+      cb && cb(data);
+      set({
+        successMessage: data?.message ?? '',
+        isLogoUploading: false,
+        logoUploadEntityId: null,
+      });
+      return true;
+    } catch (error) {
+      const { error: showError } = useAlertReducer.getState();
+      set({
+        errorMessage: error?.message ?? 'Failed to update billing entity logo',
+        isLogoUploading: false,
+        logoUploadEntityId: null,
+      });
+      showError(
+        error?.response?.data?.message ?? error?.message ?? 'Failed to update billing entity logo'
+      );
+      return false;
     }
   },
 }));
