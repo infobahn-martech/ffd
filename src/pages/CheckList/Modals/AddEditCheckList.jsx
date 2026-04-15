@@ -1168,7 +1168,7 @@ export function CheckListModal({ showModal, closeModal, callTypesOptions, onSucc
                     })}
                   </select>
                   <label>
-                    Vessel Type <span className="text-danger">*</span>
+                    Vessel Type
                   </label>
                   {vesselBargeFieldError && (
                     <span className="error text-danger">{vesselBargeFieldError.message}</span>
@@ -1203,7 +1203,7 @@ export function CheckListModal({ showModal, closeModal, callTypesOptions, onSucc
                     })}
                   </select>
                   <label>
-                    Barge Type <span className="text-danger">*</span>
+                    Barge Type
                   </label>
                   {vesselBargeFieldError && (
                     <span className="error text-danger">{vesselBargeFieldError.message}</span>
