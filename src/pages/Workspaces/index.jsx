@@ -902,10 +902,10 @@ function Workspaces() {
             <button type="button" className="workspaces-dashboard-toolbar-link" onClick={openDashboardWorkspaceModal}>
               Add Workspace
             </button>
-            <span className="workspaces-dashboard-toolbar-sep">/</span>
+            {/* <span className="workspaces-dashboard-toolbar-sep">/</span>
             <button type="button" className="workspaces-dashboard-toolbar-link" onClick={openDashboardWidgetModal}>
               Add Widget
-            </button>
+            </button> */}
           </div>
           <div className="workspaces-dashboard-canvas" style={dashboardCanvasStyle}>
             <div className="workspaces-dashboard-inner">
