@@ -71,8 +71,8 @@ function SideNav({ isMobileMenuOpen, onCloseMobileMenu, isVendorPortal = false }
   // 🆕 Kanban icon config - different icons for /kanban-board vs /workspaces
   const kanbanBoardIcons = [
     { id: 1, icon: FiPlus, label: 'Add' },
-    { id: 2, icon: FiFilter, label: 'Filter' },
-    { id: 3, icon: FiActivity, label: 'Analytics' },
+    // { id: 2, icon: FiFilter, label: 'Filter' },
+    // { id: 3, icon: FiActivity, label: 'Analytics' },
   ];
 
   const workspacesIcons = [
@@ -259,17 +259,24 @@ function SideNav({ isMobileMenuOpen, onCloseMobileMenu, isVendorPortal = false }
         { menu: 'Hospital Services', to: '/hospital-services', hasPermission: true },
       ],
     },
+    // {
+    //   menu: 'Third Party Management',
+    //   isDefaultMenu: true,
+    //   hasPermission: true,
+    //   isOpen: false,
+    //   subMenus: [
+    //     { menu: 'Service Providers', to: '/service-providers', hasPermission: true },
+    //     { menu: 'Transport Parties', to: '/transport-parties', hasPermission: true },
+    //     { menu: 'Third Party Services', to: '/third-party-service', hasPermission: true },
+    //   ],
+    //   icon: workerIcon, // Two stylized human figures
+    // },
     {
       menu: 'Third Party Management',
       isDefaultMenu: true,
+      to: '/third-party-service',
+      icon: workerIcon, // Third Party Services-specific icon
       hasPermission: true,
-      isOpen: false,
-      subMenus: [
-        { menu: 'Service Providers', to: '/service-providers', hasPermission: true },
-        { menu: 'Transport Parties', to: '/transport-parties', hasPermission: true },
-        { menu: 'Third Party Services', to: '/third-party-service', hasPermission: true },
-      ],
-      icon: workerIcon, // Two stylized human figures
     },
     {
       menu: 'Waste Management',
@@ -343,9 +350,9 @@ function SideNav({ isMobileMenuOpen, onCloseMobileMenu, isVendorPortal = false }
       subMenus: [
         { menu: 'My Accounts', to: '/my-accounts', hasPermission: true },
         { menu: 'Activity Log', to: '/activity-log', hasPermission: true },
-        { menu: 'Notification', to: '/notification', hasPermission: true },
-        { menu: 'Report Management', to: '/report-management', hasPermission: true },
-        { menu: 'Status Management', to: '/status-management', hasPermission: true },
+        // { menu: 'Notification', to: '/notification', hasPermission: true },
+        // { menu: 'Report Management', to: '/report-management', hasPermission: true },
+        // { menu: 'Status Management', to: '/status-management', hasPermission: true },
       ],
     },
   ];

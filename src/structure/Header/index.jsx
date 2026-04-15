@@ -522,7 +522,7 @@ function Header({ onMenuToggle, mobileMenuOpen: externalMobileMenuOpen, isVendor
           </button>
           {showSettingsDropdown && (
             <div className="settings-dropdown">
-              <div
+              {/* <div
                 className={`settings-dropdown-item settings-dropdown-item-with-submenu ${showBoardTeamsSubmenu ? 'submenu-open' : ''}`}
                 onClick={handleBoardTeamsClick}
               >
@@ -537,7 +537,7 @@ function Header({ onMenuToggle, mobileMenuOpen: externalMobileMenuOpen, isVendor
                     Dashboards
                   </div>
                 </div>
-              )}
+              )} */}
               <div className="settings-dropdown-item" onClick={handleBusinessRulesClick}>
                 Business rules
               </div>
