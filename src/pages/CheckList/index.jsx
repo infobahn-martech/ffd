@@ -9,6 +9,13 @@ import useCheckListReducer from "../../store/CheckListReducer";
 import useVesselTypeReducer from "../../store/VesselTypeReducer";
 import useBargeTypeReducer from "../../store/BargeTypeReducer";
 
+/** API returns null for absent FKs; Number(null) is 0 and breaks vessel/barge exclusivity in the edit form. */
+function optionalTypeId(value) {
+  if (value === null || value === undefined || value === "") return null;
+  const n = Number(value);
+  return Number.isFinite(n) ? n : null;
+}
+
 const CheckList = () => {
   const [params, setParams] = useState({
     page: 1,
@@ -55,8 +62,8 @@ const CheckList = () => {
         const mappedEditData = {
           checklist_type_id: Number(details.checklist_type_id ?? checklistTypeId),
           call_type_id: Number(details.call_type_id),
-          vessel_type_id: Number(details.vessel_type_id),
-          barge_type_id: Number(details.barge_type_id),
+          vessel_type_id: optionalTypeId(details.vessel_type_id),
+          barge_type_id: optionalTypeId(details.barge_type_id),
           checklist_name: details.checklist_name,
           sections: res?.data ?? []
         };
