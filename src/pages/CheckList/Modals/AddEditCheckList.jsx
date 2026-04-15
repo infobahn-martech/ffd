@@ -284,50 +284,37 @@ export function CheckListModal({ showModal, closeModal, callTypesOptions, onSucc
 
     const isEdit = !!showModal?.checklist_type_id;
 
+    const basePayload = {
+      call_type_id: callTypeId,
+      checklist_name: data.checklistName ?? "",
+      vessel_type_id,
+      barge_type_id,
+      sections: sectionsApi
+    };
+
     const payload = isEdit
-      ? {
-        checklist_type_id: showModal.checklist_type_id,
-        call_type_id: callTypeId,
-        vessel_type_id,
-        barge_type_id,
-        checklist_name: data.checklistName ?? "",
-        sections: sectionsApi
-      }
-      : {
-        call_type_id: callTypeId,
-        checklist_name: data.checklistName ?? "",
-        vessel_type_id,
-        barge_type_id,
-        sections: sectionsApi
-      };
+      ? { ...basePayload, checklist_type_id: showModal.checklist_type_id }
+      : basePayload;
 
     const fileMap = collectItemFiles(data);
-    const hasFiles = Object.keys(fileMap).length > 0;
 
     const cb = () => {
       closeModal();
       onSuccess?.();
     };
 
-    if (hasFiles) {
-      const formData = new FormData();
-      formData.append("data", JSON.stringify(payload));
-      Object.entries(fileMap).forEach(([key, file]) => {
-        if (!(file instanceof File) || file.size === 0) return;
-        formData.append(`documents[${key}][]`, file);
-      });
-      logFormDataEntries(formData);
-      if (isEdit) {
-        editChecklist({ formData, cb });
-      } else {
-        createChecklist({ formData, cb });
-      }
+    const formData = new FormData();
+    formData.append("data", JSON.stringify(payload));
+    Object.entries(fileMap).forEach(([key, file]) => {
+      if (!(file instanceof File) || file.size === 0) return;
+      formData.append(`documents[${key}][]`, file);
+    });
+    logFormDataEntries(formData);
+
+    if (isEdit) {
+      editChecklist({ formData, cb });
     } else {
-      if (isEdit) {
-        editChecklist({ formData: payload, cb });
-      } else {
-        createChecklist({ formData: payload, cb });
-      }
+      createChecklist({ formData, cb });
     }
   };
 
