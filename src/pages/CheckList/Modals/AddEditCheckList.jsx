@@ -13,6 +13,7 @@ function mapItemToApi(item) {
   const doc = item?.document_details ?? {};
   return {
     item_name: item?.item_name ?? "",
+    description: item?.description ?? "",
     item_order: item?.item_order ?? 0,
     expiry_date_reqd: item?.expiry_date_reqd ? 1 : 0,
     document_details: {
