@@ -24,16 +24,6 @@ import {
   mergeOptionIfMissing,
 } from "../../../helpers/callFileFormOptions";
 
-// Job statuses in order with icons and descriptions (4 statuses)
-const JOB_STATUSES = [
-  { id: 1, title: "Received", key: "received", icon: "🚢", description: "Lorem Ipsum is simply dummy text of the printing and typesetting industry.Lorem Ipsum is simply dummy text of the printing and typesetting industry" },
-  { id: 2, title: "Expected", key: "expected", icon: "🚢", description: "Lorem Ipsum is simply dummy text of the printing and typesetting industry.Lorem Ipsum is simply dummy text of the printing and typesetting industry" },
-  { id: 3, title: "Arrived", key: "arrived", icon: "🔍", description: "Lorem Ipsum is simply dummy text of the printing and typesetting industry.Lorem Ipsum is simply dummy text of the printing and typesetting industry" },
-  { id: 4, title: "Cleared", key: "cleared", icon: "✅", description: "Lorem Ipsum is simply dummy text of the printing and typesetting industry.Lorem Ipsum is simply dummy text of the printing and typesetting industry" },
-  { id: 5, title: "Sailed", key: "sailed", icon: "⛵", description: "Lorem Ipsum is simply dummy text of the printing and typesetting industry.Lorem Ipsum is simply dummy text of the printing and typesetting industry" },
-];
-
-
 // Form Components
 const FormField = ({ label, children, className = "" }) => {
   return (
@@ -1667,23 +1657,6 @@ function General({
   return (
     <div className="cardform-body general-tab-body">
       <div className="general-sections-wrapper">
-        {/* {!isAddMode && !isSimplifiedMode && (
-          <div className="cf-section job-status-section">
-            <div className="cf-section-header">
-              <div className="cf-section-title">Job Status</div>
-            </div>
-            <div className="cf-section-body job-status-section-body">
-              <HorizontalProgressBar
-                stages={JOB_STATUSES}
-                currentStatus={currentStatus}
-                accentColor={accentColor}
-                card={card}
-                formValues={formValues}
-              />
-            </div>
-          </div>
-        )} */}
-
         <div className="cf-section general-info-section">
           {!isAddMode && (
             <div className="cf-section-header" style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
@@ -2200,7 +2173,7 @@ function General({
                                 placeholder="Select date"
                                 disabled={isDisabled}
                               />
-                              
+
                               <input
                                 type="time"
                                 value={getFieldValue("appointmentReceivedTime")}
