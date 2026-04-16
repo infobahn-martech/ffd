@@ -340,17 +340,17 @@ function SideNav({ isMobileMenuOpen, onCloseMobileMenu, isVendorPortal = false }
       ],
       icon: workerIcon, // Two stylized human figures
     },
-    {
-      menu: 'KPI Dashboard',
-      isDefaultMenu: true,
-      hasPermission: true,
-      isOpen: false,
-      subMenus: [
-        { menu: 'Tasks', to: '/kpi-tasks', hasPermission: true },
-        { menu: 'Dashboard', to: '/kpi-dashboard', hasPermission: true },
-      ],
-      icon: dashboardIcon, // Two stylized human figures
-    },
+    // {
+    //   menu: 'KPI Dashboard',
+    //   isDefaultMenu: true,
+    //   hasPermission: true,
+    //   isOpen: false,
+    //   subMenus: [
+    //     { menu: 'Tasks', to: '/kpi-tasks', hasPermission: true },
+    //     { menu: 'Dashboard', to: '/kpi-dashboard', hasPermission: true },
+    //   ],
+    //   icon: dashboardIcon, // Two stylized human figures
+    // },
     // ✅ Settings (last)
     {
       menu: 'Settings',
