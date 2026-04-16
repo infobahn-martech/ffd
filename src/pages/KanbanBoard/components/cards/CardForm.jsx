@@ -1133,29 +1133,22 @@ function CardForm({
     return { stepLabels: STEP_LABELS, totalSteps: TOTAL_STEPS };
   }, [columns, columnOrder]);
 
-  // Check if we're on a kanban-board/{id} route
-  const isKanbanBoardWithId = /^\/kanban-board\/\d+$/.test(location.pathname);
+  const isSimplifiedMode = false;
 
-  // Check if we're on DA module route
-  const isDAModule =
-    location.pathname.startsWith('/kanban-board/') &&
-    location.pathname !== '/kanban-board/';
+  // Enable DA mode only for explicit DA routes, not generic /kanban-board/:boardId.
+  const isDAModule = /^\/kanban-board\/(centralized-da-desk|jubail-operations|rastanura-dammam-operations|coordinator-transport|ras-tanura-operations)$/.test(location.pathname);
 
 
-  // Determine which tabs to use
-  // For DA routes, use DA tabs (includes Operation and Husbandry)
-  // For other kanban-board/{id} routes, use simplified tabs
-  // Otherwise, use all tabs
-  const TOP_TABS = isDAModule ? DA_TOP_TABS : (isKanbanBoardWithId ? SIMPLIFIED_TOP_TABS : ALL_TOP_TABS);
-  const ENABLED_TABS = isDAModule ? DA_ENABLED_TABS : (isKanbanBoardWithId ? SIMPLIFIED_ENABLED_TABS : ALL_ENABLED_TABS);
-  const defaultTab = (isDAModule || isKanbanBoardWithId) ? "General" : "Appointment Details";
+  const TOP_TABS = isDAModule ? DA_TOP_TABS : (isSimplifiedMode ? SIMPLIFIED_TOP_TABS : ALL_TOP_TABS);
+  const ENABLED_TABS = isDAModule ? DA_ENABLED_TABS : (isSimplifiedMode ? SIMPLIFIED_ENABLED_TABS : ALL_ENABLED_TABS);
+  const defaultTab = isDAModule ? "General" : (isSimplifiedMode ? "General" : "Appointment Details");
 
   const [activeTopTab, setActiveTopTab] = useState(defaultTab)
 
-  // Reset active tab when route changes
+  // Reset active tab when mode changes
   useEffect(() => {
     setActiveTopTab(defaultTab);
-  }, [isKanbanBoardWithId, defaultTab]);
+  }, [isSimplifiedMode, defaultTab]);
 
   // State for topbar color - visual only, never affects card.color
   // Always initialize from card.color (the fixed card color)
@@ -1399,7 +1392,7 @@ function CardForm({
                 handleChange,
                 ownerInitial,
                 isAddMode,
-                isKanbanBoardWithId,
+                isSimplifiedMode,
                 isDAModule,
                 addModeSaveProps
               )}
@@ -1414,7 +1407,7 @@ function CardForm({
             activeTab={activeTopTab}
             onStepClick={handleStepClick}
             currentStep={currentStep}
-            isSimplifiedMode={isKanbanBoardWithId}
+            isSimplifiedMode={isSimplifiedMode}
             isDriverMode={isDriverStyleView}
             isGROMode={isGROVariant}
             stepLabels={stepLabels}
