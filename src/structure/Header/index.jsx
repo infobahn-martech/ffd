@@ -107,7 +107,7 @@ function Header({ onMenuToggle, mobileMenuOpen: externalMobileMenuOpen, isVendor
 
   // Clear kanban board loader when route has changed to /kanban-board
   useEffect(() => {
-    if (pathname === '/kanban-board') {
+    if (pathname === '/kanban-board/operator') {
       setKanbanBoardLoading(false);
     }
   }, [pathname]);
@@ -296,7 +296,7 @@ function Header({ onMenuToggle, mobileMenuOpen: externalMobileMenuOpen, isVendor
 
   const handleKanbanBoardClick = () => {
     setKanbanBoardLoading(true);
-    navigate('/kanban-board');
+    navigate('/kanban-board/operator');
   };
 
   // Apply dark mode to body for header/sidebar/scroll styling
@@ -339,7 +339,7 @@ function Header({ onMenuToggle, mobileMenuOpen: externalMobileMenuOpen, isVendor
           style={{ cursor: 'pointer' }}
         />
 
-        {(pathname === '/kanban-board' || pathname === '/compact') && (
+        {(pathname === '/kanban-board/operator' || pathname === '/compact') && (
           <div className="top-links">
             <div className="layout-view-toggle">
               {/* <span className="layout-view-label">Layout View:</span> */}
@@ -347,7 +347,7 @@ function Header({ onMenuToggle, mobileMenuOpen: externalMobileMenuOpen, isVendor
                 <NavTabButton
                   className="layout-view-option"
                   active={layoutView === 'classic'}
-                  onClick={() => { setLayoutView('classic'); pathname === '/compact' && navigate('/kanban-board'); }}
+                  onClick={() => { setLayoutView('classic'); pathname === '/compact' && navigate('/kanban-board/operator'); }}
                   aria-pressed={layoutView === 'classic'}
                 >
                   <FiMenu className="layout-view-icon" aria-hidden />
@@ -356,7 +356,7 @@ function Header({ onMenuToggle, mobileMenuOpen: externalMobileMenuOpen, isVendor
                 <NavTabButton
                   className="layout-view-option"
                   active={layoutView === 'modern'}
-                  onClick={() => { setLayoutView('modern'); pathname === '/compact' && navigate('/kanban-board'); }}
+                  onClick={() => { setLayoutView('modern'); pathname === '/compact' && navigate('/kanban-board/operator'); }}
                   aria-pressed={layoutView === 'modern'}
                 >
                   <FiGrid className="layout-view-icon" aria-hidden />
@@ -365,7 +365,7 @@ function Header({ onMenuToggle, mobileMenuOpen: externalMobileMenuOpen, isVendor
                 <NavTabButton
                   className="layout-view-option"
                   active={layoutView === 'normal'}
-                  onClick={() => { setLayoutView('normal'); pathname === '/compact' && navigate('/kanban-board'); }}
+                  onClick={() => { setLayoutView('normal'); pathname === '/compact' && navigate('/kanban-board/operator'); }}
                   aria-pressed={layoutView === 'normal'}
                 >
                   <FiSquare className="layout-view-icon" aria-hidden />
@@ -383,7 +383,7 @@ function Header({ onMenuToggle, mobileMenuOpen: externalMobileMenuOpen, isVendor
                 <NavTabButton
                   className="layout-view-option"
                   active={layoutView === 'dark'}
-                  onClick={() => { setLayoutView('dark'); pathname === '/compact' && navigate('/kanban-board'); }}
+                  onClick={() => { setLayoutView('dark'); pathname === '/compact' && navigate('/kanban-board/operator'); }}
                   aria-pressed={layoutView === 'dark'}
                 >
                   <FiMoon className="layout-view-icon" aria-hidden />
@@ -480,7 +480,7 @@ function Header({ onMenuToggle, mobileMenuOpen: externalMobileMenuOpen, isVendor
         <Tooltip id="board" place="bottom" content="Board" />
         <NavTabButton
           className="icon-btn icon-btn-hide-mobile"
-          active={pathname === '/kanban-board'}
+          active={pathname === '/kanban-board/operator'}
           aria-label="Board"
           onClick={handleKanbanBoardClick}
           disabled={kanbanBoardLoading}

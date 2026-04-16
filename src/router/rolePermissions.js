@@ -15,6 +15,7 @@ export const ROLE_IDS = {
 export const routePermissions = {
   "/dashboard": [ROLE_IDS.SUPER_ADMIN, ROLE_IDS.ADMIN, ROLE_IDS.PORT_ADMIN, ROLE_IDS.PORT_OPERATOR, ROLE_IDS.PORT_MANAGER, ROLE_IDS.VENDOR, ROLE_IDS.FINANCE],
   "/kanban-board": [ROLE_IDS.SUPER_ADMIN, ROLE_IDS.ADMIN, ROLE_IDS.PORT_ADMIN, ROLE_IDS.PORT_OPERATOR, ROLE_IDS.PORT_MANAGER, ROLE_IDS.VENDOR],
+  "/kanban-board/operator": [ROLE_IDS.SUPER_ADMIN, ROLE_IDS.ADMIN, ROLE_IDS.PORT_ADMIN, ROLE_IDS.PORT_OPERATOR, ROLE_IDS.PORT_MANAGER, ROLE_IDS.VENDOR],
   "/compact": [ROLE_IDS.SUPER_ADMIN, ROLE_IDS.ADMIN, ROLE_IDS.PORT_ADMIN, ROLE_IDS.PORT_OPERATOR, ROLE_IDS.PORT_MANAGER, ROLE_IDS.VENDOR],
   "/workspaces": [ROLE_IDS.SUPER_ADMIN, ROLE_IDS.ADMIN, ROLE_IDS.PORT_ADMIN, ROLE_IDS.PORT_OPERATOR, ROLE_IDS.PORT_MANAGER, ROLE_IDS.VENDOR],
   "/edit-workflow": [ROLE_IDS.SUPER_ADMIN, ROLE_IDS.ADMIN, ROLE_IDS.PORT_ADMIN, ROLE_IDS.VENDOR],
@@ -65,7 +66,7 @@ export const hasRouteAccess = (userRoleId, routePath) => {
 
   // First, try exact match
   let allowedRoles = routePermissions[routePath];
-  
+
   // If no exact match, check if routePath starts with any base route
   // This handles dynamic routes like /kanban-board/123 or /kanban-board/123/analytics
   if (!allowedRoles) {
@@ -75,7 +76,7 @@ export const hasRouteAccess = (userRoleId, routePath) => {
       // e.g., /kanban-board matches /kanban-board/123 or /kanban-board/123/analytics
       return routePath === baseRoute || routePath.startsWith(baseRoute + '/');
     });
-    
+
     if (matchingRoute) {
       allowedRoles = routePermissions[matchingRoute];
     }

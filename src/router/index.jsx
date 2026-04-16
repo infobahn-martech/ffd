@@ -110,7 +110,7 @@ const router = createHashRouter([
               { path: "/permissions", element: <Permission /> },
               { path: "/users", element: <User /> },
               { path: "/customer-pricing", element: <CustomerPricing /> },
-              { path: "/kanban-board", element: <KanbanBoard /> },
+              { path: "/kanban-board/operator", element: <KanbanBoard /> },
               { path: "/kanban-board/:id/analytics", element: <KanbanAnalytics /> },
               { path: "/kanban-board/analytics", element: <KanbanAnalytics /> },
               { path: "/kanban-board/:boardId", element: <KanbanBoard /> },
@@ -192,7 +192,7 @@ const router = createHashRouter([
                   { path: "/kanban-board/gro", element: <RouteGuard><GROBoard /></RouteGuard> },
                   { path: "/kanban-board/hotel", element: <RouteGuard><HotelBoard /></RouteGuard> },
                   { path: "/kanban-board/admin", element: <RouteGuard><AdminBoard /></RouteGuard> },
-                  { path: "/kanban-board", element: <RouteGuard><KanbanBoard /></RouteGuard> },
+                  { path: "/kanban-board/operator", element: <RouteGuard><KanbanBoard /></RouteGuard> },
                   { path: "/compact", element: <RouteGuard><Compact /></RouteGuard> },
                   // Kanban Board Analytics
                   { path: "/kanban-board/:id/analytics", element: <RouteGuard><KanbanAnalytics /></RouteGuard> },

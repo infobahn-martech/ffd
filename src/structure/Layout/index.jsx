@@ -11,7 +11,7 @@ function Layout() {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const hideSidebar = pathname === '/edit-workflow' || pathname === '/da-module';
   const isKanbanBoard =
-    pathname === '/kanban-board' ||
+    pathname === '/kanban-board/operator' ||
     pathname.startsWith('/kanban-board/') ||
     pathname === '/compact' ||
     pathname === '/workspaces' ||
