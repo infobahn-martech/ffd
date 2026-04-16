@@ -78,6 +78,8 @@ import MedicalServices from "../pages/MedicalServices";
 import ThirdPartyService from "../pages/ThirdPartyService";
 import HospitalServices from "../pages/HospitalServices";
 import MWPHistory from "../pages/MWPHistory";
+import KPITasks from "../pages/KPITasks";
+import KPIUsers from "../pages/KPIUsers";
 // 🔥 Set true to bypass auth temporarily
 const TEST_MODE = false;
 
@@ -151,6 +153,8 @@ const router = createHashRouter([
               { path: "/vendor-portal/invoices", element: <VendorPortalInvoices /> },
               { path: "/vendor-portal/orders", element: <VendorPortalOrders /> },
               { path: "/transport-company", element: <TransportCompany /> },
+              { path: "/kpi-tasks", element: <KPITasks /> },
+              { path: "/kpi-users", element: <KPIUsers /> },
             ],
           },
         ]
