@@ -1061,7 +1061,15 @@ HorizontalProgressBar.propTypes = {
   formValues: PropTypes.object,
 };
 
-function General({ card, formValues, handleChange, onSave, isAddMode = false, isSimplifiedMode = false }) {
+function General({
+  card,
+  formValues,
+  handleChange,
+  onSave,
+  isAddMode = false,
+  isSimplifiedMode = false,
+  isSavingGeneral = false,
+}) {
   const accentColor = useMemo(() => card?.color || "#2A00FF", [card?.color]);
   const [vesselNameOptions, setVesselNameOptions] = useState([
     // Add vessel names here or fetch from API
@@ -1109,6 +1117,7 @@ function General({ card, formValues, handleChange, onSave, isAddMode = false, is
   const [bargeTypeSelectOptions, setBargeTypeSelectOptions] = useState([]);
   const [entityFields, setEntityFields] = useState([]);
   const [entityFieldValues, setEntityFieldValues] = useState({});
+  const [entityFieldErrors, setEntityFieldErrors] = useState({});
   const [entityFieldsLoading, setEntityFieldsLoading] = useState(false);
   const [entityFieldsError, setEntityFieldsError] = useState("");
 
@@ -1503,12 +1512,26 @@ function General({ card, formValues, handleChange, onSave, isAddMode = false, is
 
   const normalizeEntityFields = useCallback((rows) => {
     if (!Array.isArray(rows)) return [];
-    return rows
-      .map((row) => ({
-        field_id: row?.field_id === undefined || row?.field_id === null ? "" : String(row.field_id),
-        field_name: row?.field_name ? String(row.field_name).trim() : "",
-      }))
+    const parsed = rows
+      .map((row) => {
+        const field_id = row?.field_id === undefined || row?.field_id === null ? "" : String(row.field_id);
+        const field_name = row?.field_name ? String(row.field_name).trim() : "";
+        const field_type = row?.field_type ? String(row.field_type).trim() : "";
+        const rawRequired = row?.is_required;
+        const is_required =
+          rawRequired === 1 || rawRequired === "1" || rawRequired === true ? 1 : 0;
+        const seqRaw = row?.sequence_order;
+        let sequence_order = 0;
+        if (typeof seqRaw === "number" && !Number.isNaN(seqRaw)) {
+          sequence_order = seqRaw;
+        } else if (seqRaw !== undefined && seqRaw !== null && String(seqRaw).trim() !== "") {
+          const n = Number.parseInt(String(seqRaw), 10);
+          sequence_order = Number.isNaN(n) ? 0 : n;
+        }
+        return { field_id, field_name, field_type, is_required, sequence_order };
+      })
       .filter((row) => row.field_id && row.field_name);
+    return parsed.sort((a, b) => a.sequence_order - b.sequence_order);
   }, []);
 
   const buildEntityFieldsPayload = useCallback(
@@ -1533,6 +1556,26 @@ function General({ card, formValues, handleChange, onSave, isAddMode = false, is
       ...prev,
       [fieldId]: nextValue,
     }));
+    setEntityFieldErrors((prev) => {
+      if (!prev[fieldId]) return prev;
+      const next = { ...prev };
+      delete next[fieldId];
+      return next;
+    });
+  }, []);
+
+  const validateRequiredEntityFields = useCallback((fields, values) => {
+    const nextErrors = {};
+    fields.forEach((field) => {
+      if (field.is_required !== 1) return;
+      const raw = values?.[field.field_id];
+      const trimmed = raw === undefined || raw === null ? "" : String(raw).trim();
+      if (trimmed === "") {
+        const name = field.field_name || "This field";
+        nextErrors[field.field_id] = `${name} is required.`;
+      }
+    });
+    return nextErrors;
   }, []);
 
   const fetchEntityFields = useCallback(
@@ -1541,6 +1584,7 @@ function General({ card, formValues, handleChange, onSave, isAddMode = false, is
       if (!normalizedEntityId) {
         setEntityFields([]);
         setEntityFieldValues({});
+        setEntityFieldErrors({});
         setEntityFieldsLoading(false);
         setEntityFieldsError("");
         return;
@@ -1548,6 +1592,7 @@ function General({ card, formValues, handleChange, onSave, isAddMode = false, is
 
       setEntityFieldsLoading(true);
       setEntityFieldsError("");
+      setEntityFieldErrors({});
       try {
         const { data } = await callFileService.getEntityFields(normalizedEntityId);
         const rows = unwrapListResponse(data);
@@ -1567,6 +1612,7 @@ function General({ card, formValues, handleChange, onSave, isAddMode = false, is
         console.error("[General] entity fields fetch failed", error);
         setEntityFields([]);
         setEntityFieldValues({});
+        setEntityFieldErrors({});
         setEntityFieldsError("Unable to load billing entity fields.");
       } finally {
         setEntityFieldsLoading(false);
@@ -1594,6 +1640,7 @@ function General({ card, formValues, handleChange, onSave, isAddMode = false, is
       handleChange("vesselPrincipal")({ target: { value: "", name: "vesselPrincipal" } });
       setEntityFields([]);
       setEntityFieldValues({});
+      setEntityFieldErrors({});
       setEntityFieldsError("");
       void fetchEntityFields(selectedEntityId);
       void fetchBillingEntityEmails(selectedEntityId);
@@ -2153,6 +2200,7 @@ function General({ card, formValues, handleChange, onSave, isAddMode = false, is
                                 placeholder="Select date"
                                 disabled={isDisabled}
                               />
+                              
                               <input
                                 type="time"
                                 value={getFieldValue("appointmentReceivedTime")}
@@ -2205,7 +2253,10 @@ function General({ card, formValues, handleChange, onSave, isAddMode = false, is
                         )}
 
                         {!entityFieldsLoading && entityFields.map((field) => (
-                          <FormField key={field.field_id} label={field.field_name}>
+                          <FormField
+                            key={field.field_id}
+                            label={field.is_required === 1 ? `${field.field_name} *` : field.field_name}
+                          >
                             <FormInput
                               type="text"
                               placeholder={`Enter ${field.field_name}...`}
@@ -2213,6 +2264,11 @@ function General({ card, formValues, handleChange, onSave, isAddMode = false, is
                               onChange={handleEntityFieldValueChange(field.field_id)}
                               disabled={isDisabled}
                             />
+                            {entityFieldErrors[field.field_id] && (
+                              <span className="error-txt" style={{ display: "block", marginTop: "4px" }}>
+                                {entityFieldErrors[field.field_id]}
+                              </span>
+                            )}
                           </FormField>
                         ))}
 
@@ -2397,16 +2453,23 @@ function General({ card, formValues, handleChange, onSave, isAddMode = false, is
                               type="button"
                               className="form-save-button"
                               onClick={() => {
-                                if (onSave) {
-                                  const entityFieldsPayload = buildEntityFieldsPayload(entityFields, entityFieldValues);
-                                  onSave({
-                                    ...formValues,
-                                    entity_fields: entityFieldsPayload,
-                                  });
+                                if (!onSave) return;
+                                const requiredErrors = validateRequiredEntityFields(entityFields, entityFieldValues);
+                                if (Object.keys(requiredErrors).length > 0) {
+                                  setEntityFieldErrors(requiredErrors);
+                                  return;
                                 }
+                                setEntityFieldErrors({});
+                                const entityFieldsPayload = buildEntityFieldsPayload(entityFields, entityFieldValues);
+                                onSave({
+                                  ...formValues,
+                                  entity_fields: entityFieldsPayload,
+                                  appointment_email_files: appointmentDocuments,
+                                });
                               }}
+                              disabled={isSavingGeneral}
                             >
-                              Save
+                              {isSavingGeneral ? "Saving…" : "Save"}
                             </button>
                           </div>
                         )}
@@ -2944,6 +3007,7 @@ General.propTypes = {
   onSave: PropTypes.func,
   isAddMode: PropTypes.bool,
   isSimplifiedMode: PropTypes.bool,
+  isSavingGeneral: PropTypes.bool,
 };
 
 export default General;

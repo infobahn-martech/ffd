@@ -572,6 +572,7 @@ export default function KanbanBoard() {
           columnOrder={columnOrderForCardForm}
           currentColumn={isAddMode ? null : findCardColumn(selectedCard.id)}
           isAddMode={isAddMode}
+          boardId={addModeCardWorkflow?.boardId ?? addModeCardWorkflow?.id}
         />
       )}
 

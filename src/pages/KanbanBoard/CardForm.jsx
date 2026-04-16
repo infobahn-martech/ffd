@@ -1,6 +1,9 @@
 import { useState, useMemo, useCallback, useEffect, useRef } from "react";
 import { useLocation } from "react-router-dom";
 import PropTypes from "prop-types";
+import callFileService from "../../services/callFileService";
+import { buildCreateCallFileFormData } from "../../helpers/createCallFilePayload";
+import { notify } from "../../components/Toaster";
 import "../../design/css/CardForm.css";
 import "../../design/scss/general.scss";
 import ColorPickerIcon from "../../assets/images/ColorPicker.png";
@@ -1024,7 +1027,17 @@ GROCardView.propTypes = {
 };
 
 // Tab Content Renderer
-const renderTabContent = (activeTab, card, formValues, handleChange, ownerInitial, isAddMode = false, isSimplifiedMode = false, isDAModule = false) => {
+const renderTabContent = (
+  activeTab,
+  card,
+  formValues,
+  handleChange,
+  ownerInitial,
+  isAddMode = false,
+  isSimplifiedMode = false,
+  isDAModule = false,
+  addModeSave = {}
+) => {
   const commonProps = {
     card,
     formValues,
@@ -1032,6 +1045,8 @@ const renderTabContent = (activeTab, card, formValues, handleChange, ownerInitia
     isAddMode,
     isSimplifiedMode,
     isDAModule,
+    onSave: addModeSave.onSave,
+    isSavingGeneral: addModeSave.isSavingGeneral,
   };
 
   if (isDAModule) {
@@ -1090,7 +1105,18 @@ const renderTabContent = (activeTab, card, formValues, handleChange, ownerInitia
 };
 
 // Main Component
-function CardForm({ show, close, card, moveCardToColumn, columns, columnOrder, currentColumn, isAddMode = false, variant = "default" }) {
+function CardForm({
+  show,
+  close,
+  card,
+  moveCardToColumn,
+  columns,
+  columnOrder,
+  currentColumn,
+  isAddMode = false,
+  variant = "default",
+  boardId: boardIdProp,
+}) {
   const location = useLocation();
   const isDriverVariant = variant === "driver";
   const isHotelVariant = variant === "hotel";
@@ -1154,6 +1180,7 @@ function CardForm({ show, close, card, moveCardToColumn, columns, columnOrder, c
       mainBillingEntity: String(card?.main_billing_entity_id ?? card?.mainBillingEntity ?? ""),
       // Appointment Details
       appointmentReceivedDate: card?.appointmentReceivedDate || "",
+      appointmentReceivedTime: card?.appointmentReceivedTime || "",
       appointmentAcceptanceDate: card?.appointmentAcceptanceDate || "",
       // Vessel Information
       port: String(card?.port_id ?? card?.port ?? ""),
@@ -1168,6 +1195,7 @@ function CardForm({ show, close, card, moveCardToColumn, columns, columnOrder, c
       serviceRequestorName: card?.serviceRequestorName || "",
       serviceRequestorEmail: card?.serviceRequestorEmail || "",
       dailyReportEmail: card?.dailyReportEmail || "",
+      billingInstructionEmails: Array.isArray(card?.billingInstructionEmails) ? card.billingInstructionEmails : [],
       billingInstructions: card?.billingInstructions || "",
       // Pre-Arrival Information
       expectedArrivalDate: card?.expectedArrivalDate || "",
@@ -1238,12 +1266,49 @@ function CardForm({ show, close, card, moveCardToColumn, columns, columnOrder, c
     []
   );
 
+  const [isSavingGeneral, setIsSavingGeneral] = useState(false);
+
+  const handleCreateCallFile = useCallback(
+    async (payload) => {
+      const files = payload?.appointment_email_files;
+      const { appointment_email_files: _a, ...rest } = payload || {};
+      setIsSavingGeneral(true);
+      try {
+        const formData = buildCreateCallFileFormData(rest, {
+          appointmentFiles: Array.isArray(files) ? files : [],
+          boardId: boardIdProp ?? card?.board_id,
+        });
+        await callFileService.createCallFile(formData);
+        notify("Call file created successfully.", "success");
+        close();
+      } catch (error) {
+        const msg =
+          error?.response?.data?.message ||
+          error?.response?.data?.error ||
+          error?.message ||
+          "Could not create call file.";
+        notify(typeof msg === "string" ? msg : "Could not create call file.", "error");
+      } finally {
+        setIsSavingGeneral(false);
+      }
+    },
+    [boardIdProp, card?.board_id, close]
+  );
+
   const handleUpdate = useCallback(() => {
     // TODO: Add API call to update card
     // NOTE: topbarColor is visual only - never save it to card.color
     // card.color must remain fixed and unchanged
     close();
   }, [close]);
+
+  const addModeSaveProps = useMemo(
+    () =>
+      isAddMode
+        ? { onSave: handleCreateCallFile, isSavingGeneral }
+        : { onSave: undefined, isSavingGeneral: false },
+    [isAddMode, handleCreateCallFile, isSavingGeneral]
+  );
 
   const handleTopTabChange = useCallback((tab) => {
     setActiveTopTab(tab);
@@ -1325,7 +1390,19 @@ function CardForm({ show, close, card, moveCardToColumn, columns, columnOrder, c
                 enabledTabs={ENABLED_TABS}
               />
             )}
-            {!isMWPVariant && !isGROVariant && renderTabContent(activeTopTab, card, formValues, handleChange, ownerInitial, isAddMode, isKanbanBoardWithId, isDAModule)}
+            {!isMWPVariant &&
+              !isGROVariant &&
+              renderTabContent(
+                activeTopTab,
+                card,
+                formValues,
+                handleChange,
+                ownerInitial,
+                isAddMode,
+                isKanbanBoardWithId,
+                isDAModule,
+                addModeSaveProps
+              )}
           </>
         )}
         {!isAddMode && !isMWPVariant && (
@@ -1379,6 +1456,7 @@ CardForm.propTypes = {
   }),
   isAddMode: PropTypes.bool,
   variant: PropTypes.oneOf(["default", "driver", "hotel", "mwp", "gro"]),
+  boardId: PropTypes.oneOfType([PropTypes.string, PropTypes.number]),
 };
 
 export default CardForm;

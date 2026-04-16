@@ -117,7 +117,7 @@ const router = createHashRouter([
               { path: "/workspaces", element: <Workspaces /> },
               { path: "/workspaces/dashboard/:dashboardId", element: <Workspaces /> },
               { path: "/edit-workflow", element: <EditWorkflows /> },
-              // { path: "/port-management", element: <Port /> },
+              { path: "/port-management", element: <Port /> },
               { path: "/vessel-types", element: <VesselType /> },
               { path: "/barge-types", element: <BargeType /> },
               { path: "/vessel-onboarding", element: <Vessel /> },
@@ -216,7 +216,7 @@ const router = createHashRouter([
                   // User Management
                   { path: "/users", element: <RouteGuard><User /></RouteGuard> },
                   // Port Management
-                  // { path: "/port-management", element: <RouteGuard><Port /></RouteGuard> },
+                  { path: "/port-management", element: <RouteGuard><Port /></RouteGuard> },
                   // Vessel Types
                   { path: "/vessel-types", element: <RouteGuard><VesselType /></RouteGuard> },
                   // Barge Types
