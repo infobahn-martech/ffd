@@ -2,7 +2,6 @@ import { useEffect, useMemo, useState } from "react";
 import CommonHeader from "../../components/CommonHeader";
 import CustomTable from "../../components/customTable";
 import { ViewCrewModal } from "./Modals/ViewCrew";
-import "./Crew.scss";
 
 // ✅ Change this to your actual store
 import useKPIUsersReducer from "../../store/KPIUsersReducer";
