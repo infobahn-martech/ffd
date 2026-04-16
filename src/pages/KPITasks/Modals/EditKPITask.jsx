@@ -84,13 +84,19 @@ export function EditKPITaskModal({ showModal, closeModal, onSuccess }) {
         <div className="modal-body">
             <div className="lead-form">
                 <form id="kpiTaskEditForm" onSubmit={handleSubmit(onSubmit)}>
-                    <div className="mb-3">
-                        <label className="form-label text-muted small">Task name</label>
-                        <div className="form-control-plaintext">{showModal?.task_name ?? "—"}</div>
-                    </div>
-                    <div className="mb-3">
-                        <label className="form-label text-muted small">User role</label>
-                        <div className="form-control-plaintext">{showModal?.role ?? "—"}</div>
+                    <div className="mb-lg-3 mb-sm-0">
+                        <div className="form-floating desig-inp">
+                            <input
+                                className="form-control"
+                                placeholder="Task name"
+                                type="text"
+                                value={showModal?.task_name ?? "—"}
+                                readOnly
+                            />
+                            <label>
+                                Task name
+                            </label>
+                        </div>
                     </div>
 
                     <div className="mb-lg-3 mb-sm-0">
