@@ -2463,6 +2463,7 @@ function General({
                                 const entityFieldsPayload = buildEntityFieldsPayload(entityFields, entityFieldValues);
                                 onSave({
                                   ...formValues,
+                                  board_id: formValues?.board_id ?? formValues?.boardId ?? card?.board_id ?? card?.boardId,
                                   entity_fields: entityFieldsPayload,
                                   appointment_email_files: appointmentDocuments,
                                 });
