@@ -14,6 +14,7 @@ import {
   buildDepartureReportBody,
 } from "./sendReportBodyBuilders";
 import AttachmentsList from "./AttachmentsList";
+import NavTabButton from "../../../components/NavTabButton";
 import "../../../design/scss/operations.scss";
 
 // Constants
@@ -36,14 +37,14 @@ const OperationTabs = ({ activeTab, onTabChange }) => {
   return (
     <div className="operation-left">
       {tabs.map((tab) => (
-        <button
+        <NavTabButton
           key={tab.id}
-          className={`op-tab ${activeTab === tab.id ? "active" : ""}`}
+          className="op-tab"
+          active={activeTab === tab.id}
           onClick={() => onTabChange(tab.id)}
-          type="button"
         >
           {tab.label}
-        </button>
+        </NavTabButton>
       ))}
     </div>
   );

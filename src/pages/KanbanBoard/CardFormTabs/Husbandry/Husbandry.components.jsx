@@ -4,6 +4,7 @@ import ReactQuill from "react-quill";
 import "react-quill/dist/quill.snow.css";
 import GroupSettingsIcon from "../../../../assets/images/cv.png";
 import { MAIN_TABS, CREW_MANAGEMENT_SUBTABS, MATERIAL_MANAGEMENT_SUBTABS } from "./Husbandry.constants";
+import NavTabButton from "../../../../components/NavTabButton";
 
 // Sub-components
 export const HusbandryTabs = ({ activeMainTab, activeSubTab, onMainTabChange, onSubTabChange, selectedActionTab = null, selectedServices = [], onBackToServiceSelection, cardColor = "#00368c" }) => {
@@ -104,25 +105,25 @@ export const HusbandryTabs = ({ activeMainTab, activeSubTab, onMainTabChange, on
 
         return (
           <div key={tab.id} className="op-tab-group">
-            <button
-              className={`op-tab op-tab-main ${isActive ? "active" : ""}`}
+            <NavTabButton
+              className="op-tab op-tab-main"
+              active={isActive}
               onClick={() => onMainTabChange(tab.id)}
-              type="button"
             >
               {tab.label}
-            </button>
+            </NavTabButton>
             {isActive && currentSubTabs.length > 0 && (
               <div className="op-submenu">
                 {currentSubTabs.map((subTab) => {
                   return (
-                    <button
+                    <NavTabButton
                       key={subTab.id}
-                      className={`op-tab op-tab-sub ${activeSubTab === subTab.id ? "active" : ""}`}
+                      className="op-tab op-tab-sub"
+                      active={activeSubTab === subTab.id}
                       onClick={() => onSubTabChange(subTab.id)}
-                      type="button"
                     >
                       {subTab.label}
-                    </button>
+                    </NavTabButton>
                   );
                 })}
               </div>

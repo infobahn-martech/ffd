@@ -36,6 +36,7 @@ import StickersModal from '../SideNav/components/StickersModal';
 import TagsModal from '../SideNav/components/TagsModal';
 import TypesModal from '../SideNav/components/TypesModal';
 import { useLayoutView } from '../../context/LayoutViewContext';
+import NavTabButton from '../../components/NavTabButton';
 
 function Header({ onMenuToggle, mobileMenuOpen: externalMobileMenuOpen, isVendorPortal = false }) {
   const { pathname } = useLocation();
@@ -343,33 +344,33 @@ function Header({ onMenuToggle, mobileMenuOpen: externalMobileMenuOpen, isVendor
             <div className="layout-view-toggle">
               {/* <span className="layout-view-label">Layout View:</span> */}
               <div className="layout-view-switch">
-                <button
-                  type="button"
-                  className={`layout-view-option ${layoutView === 'classic' ? 'active' : ''}`}
+                <NavTabButton
+                  className="layout-view-option"
+                  active={layoutView === 'classic'}
                   onClick={() => { setLayoutView('classic'); pathname === '/compact' && navigate('/kanban-board'); }}
                   aria-pressed={layoutView === 'classic'}
                 >
                   <FiMenu className="layout-view-icon" aria-hidden />
                   Classic
-                </button>
-                <button
-                  type="button"
-                  className={`layout-view-option ${layoutView === 'modern' ? 'active' : ''}`}
+                </NavTabButton>
+                <NavTabButton
+                  className="layout-view-option"
+                  active={layoutView === 'modern'}
                   onClick={() => { setLayoutView('modern'); pathname === '/compact' && navigate('/kanban-board'); }}
                   aria-pressed={layoutView === 'modern'}
                 >
                   <FiGrid className="layout-view-icon" aria-hidden />
                   Modern
-                </button>
-                <button
-                  type="button"
-                  className={`layout-view-option ${layoutView === 'normal' ? 'active' : ''}`}
+                </NavTabButton>
+                <NavTabButton
+                  className="layout-view-option"
+                  active={layoutView === 'normal'}
                   onClick={() => { setLayoutView('normal'); pathname === '/compact' && navigate('/kanban-board'); }}
                   aria-pressed={layoutView === 'normal'}
                 >
                   <FiSquare className="layout-view-icon" aria-hidden />
                   Normal
-                </button>
+                </NavTabButton>
                 {/* <button
                   type="button"
                   className={`layout-view-option ${pathname === '/compact' ? 'active' : ''}`}
@@ -379,15 +380,15 @@ function Header({ onMenuToggle, mobileMenuOpen: externalMobileMenuOpen, isVendor
                   <FiLayers className="layout-view-icon" aria-hidden />
                   Compact
                 </button> */}
-                <button
-                  type="button"
-                  className={`layout-view-option ${layoutView === 'dark' ? 'active' : ''}`}
+                <NavTabButton
+                  className="layout-view-option"
+                  active={layoutView === 'dark'}
                   onClick={() => { setLayoutView('dark'); pathname === '/compact' && navigate('/kanban-board'); }}
                   aria-pressed={layoutView === 'dark'}
                 >
                   <FiMoon className="layout-view-icon" aria-hidden />
                   Dark
-                </button>
+                </NavTabButton>
               </div>
             </div>
           </div>
@@ -446,23 +447,27 @@ function Header({ onMenuToggle, mobileMenuOpen: externalMobileMenuOpen, isVendor
           )}
         </div>
         <Tooltip id="master-module" place="bottom" content="Master Module" />
-        <button
-          className={`icon-btn icon-btn-hide-mobile ${!isVendorPortal ? 'active' : ''}`}
+        <NavTabButton
+          className="icon-btn icon-btn-hide-mobile"
+          active={!isVendorPortal}
+          locked={pathname === '/dashboard'}
           aria-label="Master Module"
           onClick={() => navigate('/dashboard')}
           data-tooltip-id="master-module"
         >
           <FiLayout />
-        </button>
+        </NavTabButton>
         <Tooltip id="vendor-portal" place="bottom" content="Vendor Portal" />
-        <button
-          className={`icon-btn icon-btn-hide-mobile ${isVendorPortal ? 'active' : ''}`}
+        <NavTabButton
+          className="icon-btn icon-btn-hide-mobile"
+          active={isVendorPortal}
+          locked={pathname === '/vendor-portal/dashboard'}
           aria-label="Vendor Portal"
           onClick={() => navigate('/vendor-portal/dashboard')}
           data-tooltip-id="vendor-portal"
         >
           <FiShoppingBag />
-        </button>
+        </NavTabButton>
         <Tooltip id="on-station" place="bottom" content="On Station" />
         <button
           className={`icon-btn icon-btn-hide-mobile ${showOnStationModal ? 'active' : ''}`}
@@ -473,24 +478,26 @@ function Header({ onMenuToggle, mobileMenuOpen: externalMobileMenuOpen, isVendor
           <FiMapPin />
         </button>
         <Tooltip id="board" place="bottom" content="Board" />
-        <button
-          className={`icon-btn icon-btn-hide-mobile ${pathname === '/kanban-board' ? 'active' : ''}`}
+        <NavTabButton
+          className="icon-btn icon-btn-hide-mobile"
+          active={pathname === '/kanban-board'}
           aria-label="Board"
           onClick={handleKanbanBoardClick}
           disabled={kanbanBoardLoading}
           data-tooltip-id="board"
         >
           <FiGrid />
-        </button>
+        </NavTabButton>
         <Tooltip id="kpi-dashboard" place="bottom" content="KPI Dashboard" />
-        <button
-          className={`icon-btn icon-btn-hide-mobile ${pathname === '/kpi-dashboard' ? 'active' : ''}`}
+        <NavTabButton
+          className="icon-btn icon-btn-hide-mobile"
+          active={pathname === '/kpi-dashboard'}
           aria-label="KPI Dashboard"
           onClick={() => navigate('/kpi-dashboard')}
           data-tooltip-id="kpi-dashboard"
         >
           <FiBarChart2 />
-        </button>
+        </NavTabButton>
         <Tooltip id="documents" place="bottom" content="Documents" />
         <button
           className={`icon-btn icon-btn-hide-mobile ${showDocumentsModal ? 'active' : ''}`}

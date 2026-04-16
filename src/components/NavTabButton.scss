@@ -1,0 +1,7 @@
+// Keeps the same look as .active while blocking repeat navigation (no default disabled dimming)
+.nav-tab-locked:disabled,
+.nav-tab-locked[disabled] {
+  opacity: 1;
+  cursor: default;
+  pointer-events: none;
+}

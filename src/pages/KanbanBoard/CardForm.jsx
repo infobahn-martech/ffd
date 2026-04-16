@@ -16,6 +16,7 @@ import Invoice from "./CardFormTabs/Invoice";
 import SalesOrder from "./CardFormTabs/SalesOrder";
 import Reports from "./CardFormTabs/Reports";
 import KPI from "./CardFormTabs/KPI";
+import NavTabButton from "../../components/NavTabButton";
 
 // Constants - All tabs
 const ALL_TOP_TABS = [
@@ -348,15 +349,16 @@ const TopTabs = ({ tabs, activeTab, onTabChange, enabledTabs }) => {
       {tabs.map((tab) => {
         const isEnabled = enabledTabs.includes(tab);
         return (
-          <button
+          <NavTabButton
             key={tab}
-            className={`tab ${tab === activeTab ? "active" : ""} ${!isEnabled ? "disabled" : ""}`}
-            onClick={() => isEnabled && onTabChange(tab)}
-            type="button"
+            className={`tab ${!isEnabled ? "disabled" : ""}`}
+            active={tab === activeTab}
+            locked={isEnabled && tab === activeTab}
+            onClick={() => onTabChange(tab)}
             disabled={!isEnabled}
           >
             {tab}
-          </button>
+          </NavTabButton>
         );
       })}
     </div>

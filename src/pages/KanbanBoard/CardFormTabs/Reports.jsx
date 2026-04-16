@@ -2,6 +2,7 @@ import { useState, useCallback } from "react";
 import PropTypes from "prop-types";
 import ReportsList from "./Reports/ReportsList";
 import ViewReport from "./Reports/ViewReport";
+import NavTabButton from "../../../components/NavTabButton";
 import "../../../design/scss/operations.scss";
 
 // Constants
@@ -20,14 +21,14 @@ const ReportTabs = ({ activeTab, onTabChange }) => {
   return (
     <div className="operation-left">
       {tabs.map((tab) => (
-        <button
+        <NavTabButton
           key={tab.id}
-          className={`op-tab ${activeTab === tab.id ? "active" : ""}`}
+          className="op-tab"
+          active={activeTab === tab.id}
           onClick={() => onTabChange(tab.id)}
-          type="button"
         >
           {tab.label}
-        </button>
+        </NavTabButton>
       ))}
     </div>
   );
