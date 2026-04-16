@@ -86,13 +86,16 @@ const KPITasks = () => {
             width: "160",
         },
         {
-            name: "Time (mins)",
-            selector: "time_duration",
+            name: "Time",
+            // selector: "time_duration",
             tableClasses: "table-striped",
             contentClass: "table-content",
             sort: true,
             thclass: "tb-head",
             width: "120",
+            cell: ({ row }) => {
+                return <span>{`${row.time_duration || 0} minutes`}</span>;
+            },
         },
         {
             name: "Point",
