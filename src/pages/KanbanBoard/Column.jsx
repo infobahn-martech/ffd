@@ -8,6 +8,7 @@ import "../../design/css/Column.css";
 
 function Column({ column, cards, setSelectedCard, isExpanded = false, isShrunk = false, onHeaderClick, onContextMenu, columnHeight, onHeightChange, isClassicLayout = false, isModernLayout = false, isDarkMode = false }) {
   const columnRef = useRef(null);
+  const lastReportedHeightRef = useRef(null);
   const columnColor = column.color || "#2A00FF";
 
   // Truncate title to 8 characters when shrunk
@@ -31,7 +32,10 @@ function Column({ column, cards, setSelectedCard, isExpanded = false, isShrunk =
     const measureHeight = () => {
       if (columnRef.current) {
         const height = columnRef.current.offsetHeight;
-        onHeightChange(column.id, height);
+        if (lastReportedHeightRef.current !== height) {
+          lastReportedHeightRef.current = height;
+          onHeightChange(column.id, height);
+        }
       }
     };
 
@@ -55,7 +59,10 @@ function Column({ column, cards, setSelectedCard, isExpanded = false, isShrunk =
     const measureHeight = () => {
       if (columnRef.current) {
         const height = columnRef.current.offsetHeight;
-        onHeightChange(column.id, height);
+        if (lastReportedHeightRef.current !== height) {
+          lastReportedHeightRef.current = height;
+          onHeightChange(column.id, height);
+        }
       }
     };
 
