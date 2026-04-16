@@ -1,6 +1,6 @@
 import { useParams } from 'react-router-dom';
-import KanbanBoard from './index';
-import DADeskBoard from '../DADeskBoard';
+import KanbanBoard from '../../index';
+import DADeskBoard from '../../../DADeskBoard';
 
 // Router component that determines which board to render based on ID
 export default function BoardRouter() {

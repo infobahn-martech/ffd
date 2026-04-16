@@ -3,7 +3,7 @@ import { Droppable } from "@hello-pangea/dnd";
 import PropTypes from "prop-types";
 import { Tooltip } from "react-tooltip";
 import "react-tooltip/dist/react-tooltip.css";
-import CardItem from "../KanbanBoard/CardItem";
+import CardItem from "../KanbanBoard/components/cards/CardItem";
 import "../../design/css/Column.css";
 import "./JPColumn.css";
 

@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { 
   BarChart, 
@@ -18,7 +18,7 @@ import {
   ResponsiveContainer 
 } from 'recharts';
 import { FiArrowLeft, FiTrendingUp, FiTrendingDown, FiBarChart2 } from 'react-icons/fi';
-import './Analytics.scss';
+import '../styles/analytics.scss';
 
 const COLORS = ['#0075FF', '#00C853', '#FF6B00', '#E91E63', '#9C27B0', '#FFC107'];
 

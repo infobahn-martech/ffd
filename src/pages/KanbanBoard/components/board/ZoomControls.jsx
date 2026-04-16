@@ -1,5 +1,5 @@
 import PropTypes from 'prop-types';
-import '../../design/scss/common.scss';
+import '../../../../design/scss/common.scss';
 
 function ZoomControls({ zoomIn, zoomOut, resetZoom }) {
     return (
