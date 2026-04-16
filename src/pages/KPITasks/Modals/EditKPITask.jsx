@@ -105,9 +105,9 @@ export function EditKPITaskModal({ showModal, closeModal, onSuccess }) {
                                 className={`form-select ${errors.time_type ? "is-invalid" : ""}`}
                                 {...register("time_type", { required: true })}
                             >
-                                <option value={TIME_TYPES.DURATION}>Duration (minutes)</option>
+                                <option value={TIME_TYPES.DURATION}>Duration</option>
                                 <option value={TIME_TYPES.FIXED_TIME}>Fixed time</option>
-                                <option value={TIME_TYPES.BEFORE_EVENT}>Before event (hours)</option>
+                                <option value={TIME_TYPES.BEFORE_EVENT}>Before event</option>
                             </select>
                             <label>
                                 Time type <span className="text-danger">*</span>
