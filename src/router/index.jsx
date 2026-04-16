@@ -113,6 +113,7 @@ const router = createHashRouter([
               { path: "/kanban-board", element: <KanbanBoard /> },
               { path: "/kanban-board/:id/analytics", element: <KanbanAnalytics /> },
               { path: "/kanban-board/analytics", element: <KanbanAnalytics /> },
+              { path: "/kanban-board/:boardId", element: <KanbanBoard /> },
               { path: "/da-module", element: <DAModule /> },
               { path: "/workspaces", element: <Workspaces /> },
               { path: "/workspaces/dashboard/:dashboardId", element: <Workspaces /> },
@@ -196,6 +197,7 @@ const router = createHashRouter([
                   // Kanban Board Analytics
                   { path: "/kanban-board/:id/analytics", element: <RouteGuard><KanbanAnalytics /></RouteGuard> },
                   { path: "/kanban-board/analytics", element: <RouteGuard><KanbanAnalytics /></RouteGuard> },
+                  { path: "/kanban-board/:boardId", element: <RouteGuard><KanbanBoard /></RouteGuard> },
                   // DA Module
                   { path: "/da-module", element: <RouteGuard><DAModule /></RouteGuard> },
                   // Workspaces

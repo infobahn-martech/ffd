@@ -1,5 +1,6 @@
 import { useState, useCallback, useMemo, useEffect } from "react";
 import { DragDropContext } from "@hello-pangea/dnd";
+import { useParams } from "react-router-dom";
 import { initialData } from "../../helpers/data";
 import { useLayoutView } from "../../context/LayoutViewContext";
 import Column from "./Column";
@@ -13,6 +14,8 @@ import useKanbanAddCardFromSidebar from "../../hooks/useKanbanAddCardFromSidebar
 import { getAddModeCardFormWorkflow } from "../../helpers/kanbanSidebarWorkflow";
 
 export default function KanbanBoard() {
+  const { boardId } = useParams();
+  const selectedBoardId = boardId ?? null;
   const { layoutView } = useLayoutView();
   const isClassicLayout = layoutView === 'classic';
   const isModernLayout = layoutView === 'modern';
@@ -77,6 +80,14 @@ export default function KanbanBoard() {
     });
     return state;
   });
+
+  // Keep route-driven board context ready for API integration.
+  // When boardId changes, reset transient card form state to avoid stale board-specific UI.
+  useEffect(() => {
+    setSelectedCard(null);
+    setIsAddMode(false);
+    setAddTargetWorkflowId(null);
+  }, [selectedBoardId]);
 
   const handleSelectCard = useCallback(card => {
     setSelectedCard(card);

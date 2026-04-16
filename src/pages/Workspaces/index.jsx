@@ -378,12 +378,6 @@ function Workspaces() {
     [currentDashboard]
   );
 
-  const toSlug = (text) =>
-    text
-      .toLowerCase()
-      .replace(/[^a-z0-9]+/g, '-')
-      .replace(/(^-|-$)/g, '');
-
   const headerActions = (
     <div className="workspaces-header-actions">
       <button
@@ -684,7 +678,7 @@ function Workspaces() {
                     className={`board-card ${openMenuId === board.id ? 'menu-open' : ''}`}
                     onClick={() => {
                       setIsNavigating(true);
-                      navigate(`/kanban-board/${toSlug(board.name)}`);
+                      navigate(`/kanban-board/${board.id}`);
                     }}
                     style={{ cursor: 'pointer' }}
                   >
