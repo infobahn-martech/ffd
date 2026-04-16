@@ -11,14 +11,7 @@ import PriorityIcon from "../../../../assets/images/Priority.png";
 import { getItem } from "../../../../helpers/localStorage";
 
 // Import Tab Components
-import General from "../../CardFormTabs/General";
-import Operation from "../../CardFormTabs/Operation";
-import Husbandry from "../../CardFormTabs/Husbandry";
-import Attachments from "../../CardFormTabs/Attachments";
-import Invoice from "../../CardFormTabs/Invoice";
-import SalesOrder from "../../CardFormTabs/SalesOrder";
-import Reports from "../../CardFormTabs/Reports";
-import KPI from "../../CardFormTabs/KPI";
+import { General, Operation, Husbandry, Attachments, Invoice, SalesOrder, Reports, KPI } from "../../CardFormTabs";
 import NavTabButton from "../../../../components/NavTabButton";
 
 // Constants - All tabs

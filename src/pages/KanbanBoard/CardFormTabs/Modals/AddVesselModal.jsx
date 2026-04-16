@@ -1,5 +1,5 @@
 import { useState } from "react";
-import CustomModal from "../../../../components/CustomModal";
+import CustomModal from "../../../components/CustomModal";
 import "../../../../design/scss/prospect-modal.scss";
 import "../../../../design/scss/modal-designs.scss";
 import "../../../../design/scss/form-designs.scss";
