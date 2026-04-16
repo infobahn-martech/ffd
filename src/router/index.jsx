@@ -299,6 +299,8 @@ const router = createHashRouter([
                   { path: "/transport-company", element: <RouteGuard><TransportCompany /></RouteGuard> },
                   { path: "/hospital-services", element: <RouteGuard><HospitalServices /></RouteGuard> },
                   { path: "/mwp-history", element: <RouteGuard><MWPHistory /></RouteGuard> },
+                  { path: "/kpi-tasks", element: <RouteGuard><KPITasks /></RouteGuard> },
+                  { path: "/kpi-users", element: <RouteGuard><KPIUsers /></RouteGuard> },
                 ],
               },
             ],

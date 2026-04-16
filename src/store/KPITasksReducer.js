@@ -1,77 +1,50 @@
 import { create } from 'zustand';
 import useAlertReducer from './AlertReducer';
-import hotelService from '../services/hotelService';
+import kpiTasksService from '../services/kpiTasksService';
 
 const useKPITasksReducer = create((set) => ({
-    isLoading: false,
-    errorMessage: '',
-    successMessage: '',
-    hotelData: [],
+    isLoadingGet: false,
     isBeingUpdated: false,
-    totalHotelCount: 0,
-    addHotel: async ({ formData, cb }) => {
+    kpiTasksList: [],
+    totalKpiTasksCount: 0,
+    errorMessage: '',
+
+    fetchAllKPITasks: async () => {
         try {
-            set({ isBeingUpdated: true });
-            const { data } = await hotelService.addHotel(formData);
-            set({ successMessage: data.message, isBeingUpdated: false });
-            const { success } = useAlertReducer.getState();
-            success(data && data.message);
-            cb && cb();
+            set({ isLoadingGet: true, errorMessage: '' });
+            const { data } = await kpiTasksService.getAllKpiTasks();
+            const raw = data?.data ?? data?.docs ?? data?.results ?? data;
+            const list = Array.isArray(raw) ? raw : [];
+            const total =
+                data?.pagination?.total ??
+                data?.total ??
+                data?.count ??
+                list.length;
+            set({ kpiTasksList: list, totalKpiTasksCount: total, isLoadingGet: false });
         } catch (err) {
+            set({
+                errorMessage: err?.message ?? 'Failed to load KPI tasks',
+                kpiTasksList: [],
+                totalKpiTasksCount: 0,
+                isLoadingGet: false,
+            });
             const { error } = useAlertReducer.getState();
-            set({
-                errorMessage: 'Something went wrong with adding a hotel',
-                isBeingUpdated: false,
-            });
-            error(err?.response?.data?.message ?? err.message);
+            error(err?.response?.data?.message ?? err?.message ?? 'Failed to load KPI tasks');
         }
     },
-    getHotelData: async ({ params }) => {
-        try {
-            set({ isLoading: true });
-            const { data } = await hotelService.getHotelData({ params });
-            set({
-                hotelData: data?.data ?? [],
-                totalHotelCount: data?.pagination?.total ?? 0,
-                isLoading: false,
-            });
-        } catch (error) {
-            set({ errorMessage: error.message, isLoading: false, hotelData: [], totalHotelCount: 0 });
-        }
-    },
-    updateHotel: async ({ formData, cb }) => {
+
+    updateKpiPointTime: async ({ payload, cb }) => {
         try {
             set({ isBeingUpdated: true });
-            const { data } = await hotelService.updateHotel(formData);
-            set({ successMessage: data.message, isBeingUpdated: false });
+            const { data } = await kpiTasksService.updateKpiPointTime(payload);
+            set({ isBeingUpdated: false });
             const { success } = useAlertReducer.getState();
-            success(data && data.message);
-            cb && cb();
-        } catch (err) {
-            const { error } = useAlertReducer.getState();
-            set({
-                errorMessage: 'Something went wrong updating the hotel',
-                isBeingUpdated: false,
-            });
-            error(err?.response?.data?.message ?? err.message);
-        }
-    },
-    deleteHotel: async (payload) => {
-        const { hotel_id, cb } = payload || {};
-        try {
-            set({ isBeingUpdated: true });
-            const { data } = await hotelService.deleteHotel(hotel_id);
-            set({ successMessage: data?.message, isBeingUpdated: false });
-            const { success } = useAlertReducer.getState();
-            success(data?.message ?? 'Hotel deleted successfully');
+            success(data?.message ?? 'KPI task updated');
             cb?.();
         } catch (err) {
+            set({ isBeingUpdated: false });
             const { error } = useAlertReducer.getState();
-            set({
-                errorMessage: 'Something went wrong deleting the hotel',
-                isBeingUpdated: false,
-            });
-            error(err?.response?.data?.message ?? err.message);
+            error(err?.response?.data?.message ?? err?.message ?? 'Update failed');
         }
     },
 }));

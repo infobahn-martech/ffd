@@ -1,136 +1,120 @@
 import { useEffect, useMemo, useState } from "react";
 import CommonHeader from "../../components/CommonHeader";
 import CustomTable from "../../components/customTable";
-import { ViewCrewModal } from "./Modals/ViewCrew";
+import { EditKPITaskModal } from "./Modals/EditKPITask";
+import { RenderEditAction } from "./RenderCells";
 
-// ✅ Change this to your actual store
 import useKPITasksReducer from "../../store/KPITasksReducer";
 
 const KPITasks = () => {
-    const { fetchAllKPITasks, KPITasks, isLoadingGet } = useKPITasksReducer((state) => state);
+    const { fetchAllKPITasks, kpiTasksList, isLoadingGet } = useKPITasksReducer((state) => state);
 
+    const [editModal, setEditModal] = useState(null);
 
+    const [params, setParams] = useState({
+        page: 1,
+        limit: 10,
+        searchTerm: "",
+        sortBy: "task_name",
+        sortOrder: -1,
+    });
 
-    // ✅ fetch KPITasks list (dynamic)
     useEffect(() => {
         fetchAllKPITasks();
-    }, []);
+    }, [fetchAllKPITasks]);
 
-    // ✅ normalize API response safely
+    const filteredRows = useMemo(() => {
+        const list = Array.isArray(kpiTasksList) ? kpiTasksList : [];
+        const q = (params.searchTerm || "").trim().toLowerCase();
+        if (!q) return list;
+        return list.filter((row) => {
+            const name = String(row?.task_name ?? "").toLowerCase();
+            const role = String(row?.role ?? "").toLowerCase();
+            return name.includes(q) || role.includes(q);
+        });
+    }, [kpiTasksList, params.searchTerm]);
+
+    const sortedRows = useMemo(() => {
+        const key = params.sortBy || "task_name";
+        const dir = params.sortOrder === 1 ? 1 : -1;
+        const copy = [...filteredRows];
+        const sortVal = (row) => {
+            const v = row[key];
+            if (key === "points" || key === "time_duration") {
+                const n = Number(v);
+                return Number.isNaN(n) ? v : n;
+            }
+            return String(v ?? "").toLowerCase();
+        };
+        copy.sort((a, b) => {
+            const av = sortVal(a);
+            const bv = sortVal(b);
+            if (av < bv) return -1 * dir;
+            if (av > bv) return 1 * dir;
+            return 0;
+        });
+        return copy;
+    }, [filteredRows, params.sortBy, params.sortOrder]);
+
     const tableData = useMemo(() => {
-        if (!crews) return { rows: [], total: 0 };
-
-        const rows = crews?.data || crews?.docs || crews?.results || [];
-        const total = crews?.total || crews?.count || crews?.totalDocs || rows.length;
-
+        const total = sortedRows.length;
+        const start = (params.page - 1) * params.limit;
+        const rows = sortedRows.slice(start, start + params.limit).map((row) => ({
+            ...row,
+            id: row.kpi_id ?? row.id,
+        }));
         return { rows, total };
-    }, [crews]);
+    }, [sortedRows, params.page, params.limit]);
+
     const cols = [
         {
-            name: "Crew Name",
-            selector: "crew_name",
+            name: "Task Name",
+            selector: "task_name",
             tableClasses: "table-striped",
             contentClass: "table-content",
             sort: true,
             thclass: "tb-head",
-            width: "200",
+            width: "260",
         },
         {
-            name: "Vessel Name",
-            selector: "vessel_name",
+            name: "User Role",
+            selector: "role",
             tableClasses: "table-striped",
             contentClass: "table-content",
             sort: true,
             thclass: "tb-head",
-            width: "200",
+            width: "160",
         },
         {
-            name: "Billing Entity",
-            selector: "billing_entity",
+            name: "Time (mins)",
+            selector: "time_duration",
             tableClasses: "table-striped",
             contentClass: "table-content",
             sort: true,
-            thclass: "tb-head",
-            width: "200",
-        },
-        {
-            name: "Nationality",
-            selector: "country",
-            tableClasses: "table-striped",
-            sort: true,
-            contentClass: "table-content",
-            thclass: "tb-head",
-            width: "150",
-        },
-        {
-            name: "Rank",
-            selector: "rank",
-            tableClasses: "table-striped",
-            sort: true,
-            contentClass: "table-content",
-            thclass: "tb-head",
-            width: "150",
-        },
-        {
-            name: "Passport",
-            selector: "passport_no",
-            tableClasses: "table-striped",
-            sort: true,
-            contentClass: "table-content",
-            thclass: "tb-head",
-            width: "120",
-        },
-
-        {
-            name: "Passport Expiry",
-            selector: "passport_expiry",
-            tableClasses: "table-striped",
-            sort: true,
-            contentClass: "table-content",
             thclass: "tb-head",
             width: "120",
         },
         {
-            name: "Visa",
-            selector: "visa_no",
+            name: "Point",
+            selector: "points",
             tableClasses: "table-striped",
-            sort: true,
             contentClass: "table-content",
+            sort: true,
             thclass: "tb-head",
-            width: "120",
+            width: "100",
         },
         {
-            name: "Visa Expiry",
-            selector: "visa_expiry",
+            name: "Actions",
+            selector: "actions",
             tableClasses: "table-striped",
-            sort: true,
             contentClass: "table-content",
             thclass: "tb-head",
-            width: "120",
-        },
-        {
-            name: "IQAMA",
-            selector: "iqama_no",
-            tableClasses: "table-striped",
-            sort: true,
-            contentClass: "table-content",
-            thclass: "tb-head",
-            width: "120",
-        },
-        {
-            name: "IQAMA Expiry",
-            selector: "iqama_expiry",
-            tableClasses: "table-striped",
-            sort: true,
-            contentClass: "table-content",
-            thclass: "tb-head",
-            width: "120",
+            notView: true,
+            onEditClick: (row) => setEditModal(row),
+            cell: RenderEditAction,
+            width: "100",
         },
     ];
-
-    const handleViewClick = (row) => {
-        setViewModal(row);
-    };
 
     return (
         <>
@@ -138,11 +122,11 @@ const KPITasks = () => {
                 <div className="prospect employee">
                     <div className="container-fluid">
                         <CommonHeader
-                            tableTitle="Crew Management"
+                            tableTitle="KPI Tasks"
                             isAddEnabled={false}
-                            addModalLabel="Add Crew"
+                            addModalLabel=""
                             setSearch={(e) =>
-                                setParams({ ...params, searchTerm: e, page: 1, limit: 10 })
+                                setParams({ ...params, searchTerm: e, page: 1, limit: params.limit })
                             }
                             exportTitle="Export"
                             exportLoader={false}
@@ -159,9 +143,6 @@ const KPITasks = () => {
                         onPageChange={(currentPage) =>
                             setParams({ ...params, page: currentPage })
                         }
-                        setLimit={(newLimit) =>
-                            setParams({ ...params, limit: newLimit, page: 1 })
-                        }
                         onSorting={(sortBy) =>
                             setParams({
                                 ...params,
@@ -170,13 +151,19 @@ const KPITasks = () => {
                                 page: 1,
                             })
                         }
-                        onView={handleViewClick}
                     />
                 </div>
             </div>
 
-            {!!viewModal && (
-                <ViewCrewModal showModal={viewModal} closeModal={() => setViewModal(null)} />
+            {!!editModal && (
+                <EditKPITaskModal
+                    showModal={editModal}
+                    closeModal={() => setEditModal(null)}
+                    onSuccess={() => {
+                        setEditModal(null);
+                        fetchAllKPITasks();
+                    }}
+                />
             )}
         </>
     );

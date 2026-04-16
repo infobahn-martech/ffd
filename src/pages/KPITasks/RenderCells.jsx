@@ -1,25 +1,24 @@
 import { Tooltip } from 'react-tooltip';
 
-import eye from '../../assets/images/eye.svg';
+import edit from '../../assets/images/edit.svg';
 
-export const RenderAction = ({ row, onViewClick }) => {
-  return (
-    <>
-      <Tooltip id="view" place="bottom" content="View" />
-      <div className="actions">
-        <span
-          data-tooltip-id="view"
-          type="button"
-          className="view"
-          onClick={(e) => {
-            e.stopPropagation();
-            onViewClick && onViewClick(row);
-          }}
-        >
-          <img src={eye} alt="view" />
-        </span>
-      </div>
-    </>
-  );
+export const RenderEditAction = ({ row, onEditClick }) => {
+    return (
+        <>
+            <Tooltip id="kpi-task-edit" place="bottom" content="Edit" />
+            <div className="actions">
+                <span
+                    data-tooltip-id="kpi-task-edit"
+                    type="button"
+                    onClick={(e) => {
+                        e.stopPropagation();
+                        onEditClick?.(row);
+                    }}
+                    className="edit"
+                >
+                    <img src={edit} alt="edit" />
+                </span>
+            </div>
+        </>
+    );
 };
-
