@@ -179,7 +179,7 @@
 /* General tab (CardFormTabs/General.jsx): balanced columns, compact upload, taller Quill */
 .cf-section.general-info-section .general-tab-form-layout {
   grid-template-columns: 1fr 1fr;
-  gap: 20px;
+  gap: 86px;
 }
 
 @media (max-width: 900px) {
