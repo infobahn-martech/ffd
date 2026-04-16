@@ -6,9 +6,9 @@ import useSyncKanbanSidebarWorkflows from "../../../hooks/useSyncKanbanSidebarWo
 import useKanbanAddCardFromSidebar from "../../../hooks/useKanbanAddCardFromSidebar";
 import { getAddModeCardFormWorkflow } from "../../../helpers/kanbanSidebarWorkflow";
 import KanbanBoardContent from "../components/board/KanbanBoardContent";
-import CardFormDrawer from "../components/cards/CardFormDrawer";
-import ColumnContextMenu from "../components/menus/ColumnContextMenu";
-import WorkflowAccordionMenu from "../components/menus/WorkflowAccordionMenu";
+import CardForm from "../components/cards/CardForm";
+import ContextMenu from "../components/menus/ContextMenu";
+import AccordionMenu from "../components/menus/AccordionMenu";
 import useKanbanBoardState from "../hooks/useKanbanBoardState";
 import useWorkflowExpansion from "../hooks/useWorkflowExpansion";
 import useWorkflowPinning from "../hooks/useWorkflowPinning";
@@ -213,7 +213,7 @@ export default function KanbanBoardPage() {
       />
 
       {selectedCard && columnsForCardForm && (
-        <CardFormDrawer
+        <CardForm
           show={true}
           close={handleCloseCard}
           card={selectedCard}
@@ -226,13 +226,13 @@ export default function KanbanBoardPage() {
         />
       )}
 
-      <ColumnContextMenu
+      <ContextMenu
         position={contextMenu}
         onClose={handleCloseContextMenu}
         onCreateCard={handleCreateCard}
       />
 
-      <WorkflowAccordionMenu
+      <AccordionMenu
         position={accordionMenu}
         onClose={handleCloseAccordionMenu}
         onExpand={handleAccordionExpand}

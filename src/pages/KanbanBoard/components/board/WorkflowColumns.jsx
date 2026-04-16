@@ -1,5 +1,5 @@
 import { DragDropContext } from "@hello-pangea/dnd";
-import Column from "../../Column";
+import Column from "./Column";
 import { getColumnCards } from "../../utils/columnHelpers";
 
 export default function WorkflowColumns({
