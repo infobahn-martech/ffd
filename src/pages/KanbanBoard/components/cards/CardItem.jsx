@@ -212,6 +212,15 @@ function CardItem({
         })()
       : null;
 
+  /** Matches icon blocks below — hide separator + row when nothing would render after KPI/footer. */
+  const hasExtraDetailsIcons =
+    (card.transport != null && card.transport !== "") ||
+    card.extraDetailsShowIcons?.includes("hotel") ||
+    (!card.extraDetailsShowIcons || card.extraDetailsShowIcons.includes("medical")) ||
+    (!card.extraDetailsShowIcons || card.extraDetailsShowIcons.includes("material")) ||
+    (!card.extraDetailsShowIcons || card.extraDetailsShowIcons.includes("waste")) ||
+    (!card.extraDetailsShowIcons || card.extraDetailsShowIcons.includes("launch"));
+
   return (
     <Draggable draggableId={card.id} index={index}>
       {(provided, snapshot) => (
@@ -454,11 +463,13 @@ function CardItem({
                 )}
               </div>
 
-              {/* Separator between ETA/footer area and card-footer footer-1 (icons row) */}
-              {!hideExtraDetails && !isModernLayout && <div className="card-eta-footer-separator" aria-hidden="true" />}
+              {/* Separator only when extra-details row has content (avoids orphan line + empty padding). */}
+              {!hideExtraDetails && !isModernLayout && hasExtraDetailsIcons && (
+                <div className="card-eta-footer-separator" aria-hidden="true" />
+              )}
 
-              {/* Extra Details Section - Icons with status colors; at least one icon (Transport) always shown */}
-              {!hideExtraDetails && !isModernLayout && (
+              {/* Extra Details Section — same visibility as separator */}
+              {!hideExtraDetails && !isModernLayout && hasExtraDetailsIcons && (
                 <div className="card-extra-details" style={{ display: "flex", gap: "12px", alignItems: "center", justifyContent: "flex-start", padding: "8px 0" }}>
                   {/* Render transport only when BE/card payload provides it; otherwise hide */}
                   {card.transport != null && card.transport !== "" && (
