@@ -55,9 +55,8 @@ export default function WorkflowColumns({
 
   return (
     <div
-      className={`kanban-container kanban-container--board-hscroll ${isClassicLayout ? "kanban-classic-layout" : ""} ${
-        isModernLayout ? "kanban-modern-layout" : ""
-      } ${layoutView === "normal" ? "kanban-normal-layout" : ""}`}
+      className={`kanban-container kanban-container--board-hscroll ${isClassicLayout ? "kanban-classic-layout" : ""} ${isModernLayout ? "kanban-modern-layout" : ""
+        } ${layoutView === "normal" ? "kanban-normal-layout" : ""}`}
       key={layoutView}
     >
       <DragDropContext onDragEnd={onDragEnd}>
@@ -75,9 +74,8 @@ export default function WorkflowColumns({
               return (
                 <div
                   key={column.id}
-                  className={`kanban-board__header-slot ${isExpanded ? "kanban-board__header-slot--expanded" : ""} ${
-                    isShrunk ? "kanban-board__header-slot--shrunk" : ""
-                  }`}
+                  className={`kanban-board__header-slot ${isExpanded ? "kanban-board__header-slot--expanded" : ""} ${isShrunk ? "kanban-board__header-slot--shrunk" : ""
+                    }`}
                 >
                   <ColumnHeader
                     column={column}

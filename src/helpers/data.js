@@ -33,6 +33,7 @@ const workflowsConfig = [
   {
     id: "workflow-2",
     title: "Cards workflow 2",
+    onlyDefaultSwimlane: true, // single swimlane; omit flag elsewhere for Default + New
     columns: [
       { key: "col-1", title: "Appointment Received", color: "#2666be", wipLimit: 20 },
       { key: "col-2", title: "Enroute", color: "#2666be", wipLimit: 20 },
@@ -236,7 +237,8 @@ export function normalizeWorkflowFromApi(payload) {
 }
 
 const createWorkflow = (workflowConfig) => {
-  const { id, title, columns: columnDefs, cardCounts } = workflowConfig;
+  const { id, title, columns: columnDefs, cardCounts, onlyDefaultSwimlane = false } =
+    workflowConfig;
 
   const columnOrder = columnDefs.map((c) => c.key);
   const columns = {};
@@ -252,18 +254,27 @@ const createWorkflow = (workflowConfig) => {
     };
   }
 
-  const swimlaneOrder = [DEFAULT_SWIMLANE_ID, EXTRA_SWIMLANE_ID];
+  const emptyCardMap = () => Object.fromEntries(columnOrder.map((k) => [k, []]));
+
+  const swimlaneOrder = onlyDefaultSwimlane
+    ? [DEFAULT_SWIMLANE_ID]
+    : [DEFAULT_SWIMLANE_ID, EXTRA_SWIMLANE_ID];
+
   const swimlanes = {
     [DEFAULT_SWIMLANE_ID]: {
       id: DEFAULT_SWIMLANE_ID,
       title: "Default Swimlane",
-      cardMap: Object.fromEntries(columnOrder.map((k) => [k, []])),
+      cardMap: emptyCardMap(),
     },
-    [EXTRA_SWIMLANE_ID]: {
-      id: EXTRA_SWIMLANE_ID,
-      title: "New Swimlane",
-      cardMap: Object.fromEntries(columnOrder.map((k) => [k, []])),
-    },
+    ...(onlyDefaultSwimlane
+      ? {}
+      : {
+          [EXTRA_SWIMLANE_ID]: {
+            id: EXTRA_SWIMLANE_ID,
+            title: "New Swimlane",
+            cardMap: emptyCardMap(),
+          },
+        }),
   };
 
   const cards = {};
