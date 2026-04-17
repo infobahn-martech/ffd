@@ -1944,7 +1944,6 @@ $send-report-optional: #80868b;
 .transport-form {
   .general-info-two-column {
     align-items: stretch;
-    grid-template-columns: 1fr 1fr;
   }
 
   .react-quill-wrapper {
@@ -1968,7 +1967,6 @@ $send-report-optional: #80868b;
 .cgpass-form {
   .general-info-two-column {
     align-items: stretch;
-    grid-template-columns: 1fr 1fr;
   }
 
   .react-quill-wrapper {
@@ -1992,7 +1990,6 @@ $send-report-optional: #80868b;
 .zawilpass-form {
   .general-info-two-column {
     align-items: stretch;
-    grid-template-columns: 1fr 1fr;
   }
 
   .react-quill-wrapper {
@@ -2016,7 +2013,6 @@ $send-report-optional: #80868b;
 .hotel-form {
   .general-info-two-column {
     align-items: stretch;
-    grid-template-columns: 1fr 1fr;
   }
 
   .react-quill-wrapper {
@@ -2040,7 +2036,6 @@ $send-report-optional: #80868b;
 .medicalservice-form {
   .general-info-two-column {
     align-items: stretch;
-    grid-template-columns: 1fr 1fr;
   }
 
   .react-quill-wrapper {
@@ -2080,6 +2075,26 @@ $send-report-optional: #80868b;
       height: 100% !important;
       overflow-y: auto;
     }
+  }
+}
+
+.transport-form .operation-section-form-layout,
+.cgpass-form .operation-section-form-layout,
+.zawilpass-form .operation-section-form-layout,
+.hotel-form .operation-section-form-layout,
+.medicalservice-form .operation-section-form-layout,
+.launchhire-form .operation-section-form-layout {
+  grid-template-columns: minmax(0, 45fr) minmax(0, 55fr);
+}
+
+@media (max-width: 900px) {
+  .transport-form .operation-section-form-layout,
+  .cgpass-form .operation-section-form-layout,
+  .zawilpass-form .operation-section-form-layout,
+  .hotel-form .operation-section-form-layout,
+  .medicalservice-form .operation-section-form-layout,
+  .launchhire-form .operation-section-form-layout {
+    grid-template-columns: 1fr;
   }
 }
 
@@ -2284,7 +2299,11 @@ $send-report-optional: #80868b;
 /* Enhanced Multi-Select Styles */
 .crew-multi-select {
   min-height: 42px;
-  padding: 6px 10px !important;
+  padding: 6px 8px !important;
+  display: flex;
+  align-items: stretch;
+  min-width: 0;
+  overflow: hidden;
 }
 
 .crew-multi-select .react-select__control {
@@ -2293,6 +2312,9 @@ $send-report-optional: #80868b;
   min-height: 38px;
   background: transparent;
   font-family: "Open Sans", sans-serif !important;
+  width: 100% !important;
+  min-width: 0 !important;
+  overflow: hidden !important;
 }
 
 .crew-multi-select .react-select__control--is-focused {
@@ -2312,6 +2334,10 @@ $send-report-optional: #80868b;
 
 .crew-multi-select .react-select__value-container {
   padding: 0 !important;
+  min-width: 0 !important;
+  overflow: hidden !important;
+  flex-wrap: wrap !important;
+  align-content: center;
 }
 
 .crew-multi-select .react-select__multi-value {
@@ -2319,6 +2345,7 @@ $send-report-optional: #80868b;
   background-color: #3e5cb6 !important;
   border-radius: 6px !important;
   box-shadow: 0 1px 3px rgba(0, 0, 0, 0.12) !important;
+  max-width: 100% !important;
 }
 
 .crew-multi-select .react-select__multi-value__label {
@@ -2327,6 +2354,10 @@ $send-report-optional: #80868b;
   font-weight: 500 !important;
   padding: 4px 6px !important;
   font-family: "Open Sans", sans-serif !important;
+  min-width: 0 !important;
+  overflow: hidden !important;
+  text-overflow: ellipsis !important;
+  white-space: nowrap !important;
 }
 
 .crew-multi-select .react-select__multi-value__remove {
@@ -2361,6 +2392,11 @@ $send-report-optional: #80868b;
 .crew-multi-select .react-select__indicator {
   padding: 4px !important;
   color: #666 !important;
+}
+
+.crew-multi-select .react-select__indicators {
+  flex-shrink: 0 !important;
+  align-self: stretch !important;
 }
 
 .crew-multi-select .react-select__indicator:hover {

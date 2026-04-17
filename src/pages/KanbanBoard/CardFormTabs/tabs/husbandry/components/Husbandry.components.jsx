@@ -329,6 +329,150 @@ FormTextarea.propTypes = {
   rows: PropTypes.number,
 };
 
+export const getCrewMultiSelectStyles = (cardColor = "#00368c") => ({
+  control: (base) => ({
+    ...base,
+    minHeight: "42px",
+    border: "none",
+    boxShadow: "none",
+    backgroundColor: "transparent",
+    borderRadius: "8px",
+    padding: "0",
+    width: "100%",
+    overflow: "hidden",
+  }),
+  valueContainer: (base) => ({
+    ...base,
+    minHeight: "34px",
+    padding: "0",
+    display: "flex",
+    flexWrap: "wrap",
+    gap: "6px",
+    minWidth: 0,
+    overflow: "hidden",
+    flex: 1,
+    alignContent: "center",
+  }),
+  multiValue: (base) => ({
+    ...base,
+    backgroundColor: cardColor,
+    borderRadius: "6px",
+    margin: "0",
+    minHeight: "26px",
+    maxWidth: "100%",
+  }),
+  multiValueLabel: (base) => ({
+    ...base,
+    color: "#ffffff",
+    fontSize: "12px",
+    fontWeight: "500",
+    padding: "4px 6px",
+    paddingRight: "4px",
+    minWidth: 0,
+    overflow: "hidden",
+    textOverflow: "ellipsis",
+    whiteSpace: "nowrap",
+  }),
+  multiValueRemove: (base) => ({
+    ...base,
+    color: "#ffffff",
+    borderRadius: "4px",
+    padding: "2px 4px",
+    "&:hover": {
+      backgroundColor: "rgba(255, 255, 255, 0.2)",
+      color: "#ffffff",
+    },
+  }),
+  placeholder: (base) => ({
+    ...base,
+    color: "#999",
+    fontSize: "13px",
+    marginLeft: 0,
+  }),
+  input: (base) => ({
+    ...base,
+    color: "#1a1a1a",
+    fontSize: "13px",
+    margin: 0,
+    padding: 0,
+    minWidth: "60px",
+  }),
+  indicatorsContainer: (base) => ({
+    ...base,
+    paddingRight: "4px",
+    flexShrink: 0,
+    alignSelf: "stretch",
+  }),
+  indicatorSeparator: () => ({
+    display: "none",
+  }),
+  dropdownIndicator: (base) => ({
+    ...base,
+    color: "#666",
+    padding: "4px",
+    "&:hover": {
+      color: cardColor,
+    },
+  }),
+  clearIndicator: (base) => ({
+    ...base,
+    color: "#999",
+    padding: "4px",
+    "&:hover": {
+      color: "#ff0000",
+    },
+  }),
+  menu: (base) => ({
+    ...base,
+    borderRadius: "8px",
+    boxShadow: "0 4px 12px rgba(0, 0, 0, 0.15)",
+    border: "1px solid #e2e2ea",
+    marginTop: "4px",
+    zIndex: 9999,
+  }),
+  menuList: (base) => ({
+    ...base,
+    padding: "4px",
+    maxHeight: "200px",
+  }),
+  option: (base, state) => ({
+    ...base,
+    backgroundColor: state.isSelected
+      ? cardColor
+      : state.isFocused
+        ? "rgba(0, 54, 140, 0.1)"
+        : "#ffffff",
+    color: state.isSelected ? "#ffffff" : "#1a1a1a",
+    fontSize: "13px",
+    padding: "10px 12px",
+    borderRadius: "6px",
+    margin: "2px 0",
+    cursor: "pointer",
+    "&:active": {
+      backgroundColor: cardColor,
+      color: "#ffffff",
+    },
+  }),
+});
+
+export const truncateCrewLabel = (text = "") => {
+  if (typeof text !== "string") return "";
+  return text.length > 9 ? `${text.slice(0, 9)}...` : text;
+};
+
+export const formatCrewOptionLabel = (option, { context }) => {
+  const fullLabel = option?.label || "";
+  if (context !== "value") {
+    return fullLabel;
+  }
+
+  return (
+    <span title={fullLabel}>
+      {truncateCrewLabel(fullLabel)}
+    </span>
+  );
+};
+
 // Yes/No Icon Components
 export const YesIcon = () => (
   <svg width="20" height="20" viewBox="0 0 20 20" fill="none" xmlns="http://www.w3.org/2000/svg">
