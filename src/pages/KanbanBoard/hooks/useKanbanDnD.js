@@ -1,8 +1,22 @@
 import { useCallback } from "react";
 import {
   findColumnByCardId,
-  findColumnLocationById,
+  findLaneColumnLocationForCard,
 } from "../utils/columnHelpers";
+import { findWorkflowByCardId } from "../utils/boardHelpers";
+
+/** Matches WorkflowColumns / SwimlaneColumnCell droppable ids: `${laneId}::${columnStableId}` */
+export const parseSwimlaneDroppableId = (droppableId) => {
+  const sep = "::";
+  const i = droppableId.indexOf(sep);
+  if (i === -1) return null;
+  return {
+    laneId: droppableId.slice(0, i),
+    columnStableId: droppableId.slice(i + sep.length),
+  };
+};
+
+export const buildSwimlaneDroppableId = (laneId, columnStableId) => `${laneId}::${columnStableId}`;
 
 export default function useKanbanDnD(workflows, setWorkflows) {
   const findCardColumn = useCallback(
@@ -12,59 +26,59 @@ export default function useKanbanDnD(workflows, setWorkflows) {
 
   const moveCardToColumn = useCallback(
     (cardId, targetColumnId) => {
-      const sourceColumn = findCardColumn(cardId);
-      if (!sourceColumn) return;
+      const workflow = findWorkflowByCardId(workflows, cardId);
+      if (!workflow) return;
 
-      const sourceLocation = findColumnLocationById(workflows, sourceColumn.id);
-      const targetLocation = findColumnLocationById(workflows, targetColumnId);
+      const laneCol = findLaneColumnLocationForCard(workflow, cardId);
+      const targetColKey = Object.keys(workflow.columns).find(
+        (k) => workflow.columns[k].id === targetColumnId
+      );
 
-      if (!sourceLocation || !targetLocation) return;
-      if (sourceColumn.id === targetColumnId) return;
+      if (!laneCol || !targetColKey) return;
+      if (laneCol.columnKey === targetColKey) return;
 
-      const startCardIds = Array.from(sourceColumn.cardIds);
-      const cardIndex = startCardIds.indexOf(cardId);
-      if (cardIndex === -1) return;
+      const { laneId, columnKey: sourceKey } = laneCol;
 
-      startCardIds.splice(cardIndex, 1);
-      const newStart = { ...sourceColumn, cardIds: startCardIds };
+      setWorkflows((prev) =>
+        prev.map((w) => {
+          if (w.id !== workflow.id) return w;
 
-      const finishCardIds = Array.from(targetLocation.column.cardIds);
-      finishCardIds.unshift(cardId);
-      const newFinish = { ...targetLocation.column, cardIds: finishCardIds };
+          const lane = w.swimlanes[laneId];
+          if (!lane?.cardMap) return w;
 
-      setWorkflows((prevWorkflows) => {
-        const updated = [...prevWorkflows];
+          const sourceIds = [...(lane.cardMap[sourceKey] || [])];
+          const idx = sourceIds.indexOf(cardId);
+          if (idx === -1) return w;
+          sourceIds.splice(idx, 1);
 
-        if (sourceLocation.workflowIndex === targetLocation.workflowIndex) {
-          updated[sourceLocation.workflowIndex] = {
-            ...updated[sourceLocation.workflowIndex],
-            columns: {
-              ...updated[sourceLocation.workflowIndex].columns,
-              [sourceLocation.columnKey]: newStart,
-              [targetLocation.columnKey]: newFinish,
+          const targetIds = [...(lane.cardMap[targetColKey] || [])];
+          targetIds.unshift(cardId);
+
+          const card = w.cards[cardId];
+          if (!card) return w;
+
+          return {
+            ...w,
+            swimlanes: {
+              ...w.swimlanes,
+              [laneId]: {
+                ...lane,
+                cardMap: {
+                  ...lane.cardMap,
+                  [sourceKey]: sourceIds,
+                  [targetColKey]: targetIds,
+                },
+              },
+            },
+            cards: {
+              ...w.cards,
+              [cardId]: { ...card, columnId: targetColKey },
             },
           };
-        } else {
-          updated[sourceLocation.workflowIndex] = {
-            ...updated[sourceLocation.workflowIndex],
-            columns: {
-              ...updated[sourceLocation.workflowIndex].columns,
-              [sourceLocation.columnKey]: newStart,
-            },
-          };
-          updated[targetLocation.workflowIndex] = {
-            ...updated[targetLocation.workflowIndex],
-            columns: {
-              ...updated[targetLocation.workflowIndex].columns,
-              [targetLocation.columnKey]: newFinish,
-            },
-          };
-        }
-
-        return updated;
-      });
+        })
+      );
     },
-    [findCardColumn, workflows, setWorkflows]
+    [workflows, setWorkflows]
   );
 
   const createDragEndHandler = useCallback(
@@ -82,62 +96,115 @@ export default function useKanbanDnD(workflows, setWorkflows) {
       const workflow = workflows.find((item) => item.id === workflowId);
       if (!workflow) return;
 
-      const start = Object.values(workflow.columns).find(
-        (col) => col.id === source.droppableId
+      const src = parseSwimlaneDroppableId(source.droppableId);
+      const dest = parseSwimlaneDroppableId(destination.droppableId);
+      if (!src || !dest) return;
+
+      const startColumnKey = Object.keys(workflow.columns).find(
+        (k) => workflow.columns[k].id === src.columnStableId
       );
-      const finish = Object.values(workflow.columns).find(
-        (col) => col.id === destination.droppableId
+      const finishColumnKey = Object.keys(workflow.columns).find(
+        (k) => workflow.columns[k].id === dest.columnStableId
       );
-      if (!start || !finish) return;
+      if (!startColumnKey || !finishColumnKey) return;
 
-      if (start === finish) {
-        const newCardIds = Array.from(start.cardIds);
-        newCardIds.splice(source.index, 1);
-        newCardIds.splice(destination.index, 0, draggableId);
+      const startLane = workflow.swimlanes[src.laneId];
+      const finishLane = workflow.swimlanes[dest.laneId];
+      if (!startLane?.cardMap || !finishLane?.cardMap) return;
 
-        const newColumn = { ...start, cardIds: newCardIds };
-        const columnKey = Object.keys(workflow.columns).find(
-          (key) => workflow.columns[key].id === newColumn.id
-        );
+      const sameLane = src.laneId === dest.laneId;
+      const sameColumn = startColumnKey === finishColumnKey;
 
-        setWorkflows((prevWorkflows) =>
-          prevWorkflows.map((item) =>
-            item.id === workflowId
-              ? { ...item, columns: { ...item.columns, [columnKey]: newColumn } }
-              : item
-          )
+      if (sameLane && sameColumn) {
+        const list = Array.from(startLane.cardMap[startColumnKey] || []);
+        list.splice(source.index, 1);
+        list.splice(destination.index, 0, draggableId);
+
+        setWorkflows((prev) =>
+          prev.map((item) => {
+            if (item.id !== workflowId) return item;
+            const lane = item.swimlanes[src.laneId];
+            return {
+              ...item,
+              swimlanes: {
+                ...item.swimlanes,
+                [src.laneId]: {
+                  ...lane,
+                  cardMap: {
+                    ...lane.cardMap,
+                    [startColumnKey]: list,
+                  },
+                },
+              },
+            };
+          })
         );
         return;
       }
 
-      const startCardIds = Array.from(start.cardIds);
-      startCardIds.splice(source.index, 1);
-      const newStart = { ...start, cardIds: startCardIds };
+      const startList = Array.from(startLane.cardMap[startColumnKey] || []);
+      startList.splice(source.index, 1);
 
-      const finishCardIds = Array.from(finish.cardIds);
-      finishCardIds.splice(destination.index, 0, draggableId);
-      const newFinish = { ...finish, cardIds: finishCardIds };
-
-      const startColumnKey = Object.keys(workflow.columns).find(
-        (key) => workflow.columns[key].id === newStart.id
+      const finishList = Array.from(
+        sameLane ? startLane.cardMap[finishColumnKey] || [] : finishLane.cardMap[finishColumnKey] || []
       );
-      const finishColumnKey = Object.keys(workflow.columns).find(
-        (key) => workflow.columns[key].id === newFinish.id
-      );
+      finishList.splice(destination.index, 0, draggableId);
 
-      setWorkflows((prevWorkflows) =>
-        prevWorkflows.map((item) =>
-          item.id === workflowId
-            ? {
-                ...item,
-                columns: {
-                  ...item.columns,
-                  [startColumnKey]: newStart,
-                  [finishColumnKey]: newFinish,
+      const card = workflow.cards[draggableId];
+      let nextCard = card;
+      if (card) {
+        if (finishColumnKey !== card.columnId || dest.laneId !== card.laneId) {
+          nextCard = { ...card, columnId: finishColumnKey, laneId: dest.laneId };
+        }
+      }
+
+      setWorkflows((prev) =>
+        prev.map((item) => {
+          if (item.id !== workflowId) return item;
+
+          if (sameLane) {
+            const lane = item.swimlanes[src.laneId];
+            return {
+              ...item,
+              swimlanes: {
+                ...item.swimlanes,
+                [src.laneId]: {
+                  ...lane,
+                  cardMap: {
+                    ...lane.cardMap,
+                    [startColumnKey]: startList,
+                    [finishColumnKey]: finishList,
+                  },
                 },
-              }
-            : item
-        )
+              },
+              cards: nextCard ? { ...item.cards, [draggableId]: nextCard } : item.cards,
+            };
+          }
+
+          const sLane = item.swimlanes[src.laneId];
+          const fLane = item.swimlanes[dest.laneId];
+          return {
+            ...item,
+            swimlanes: {
+              ...item.swimlanes,
+              [src.laneId]: {
+                ...sLane,
+                cardMap: {
+                  ...sLane.cardMap,
+                  [startColumnKey]: startList,
+                },
+              },
+              [dest.laneId]: {
+                ...fLane,
+                cardMap: {
+                  ...fLane.cardMap,
+                  [finishColumnKey]: finishList,
+                },
+              },
+            },
+            cards: nextCard ? { ...item.cards, [draggableId]: nextCard } : item.cards,
+          };
+        })
       );
     },
     [workflows, setWorkflows]

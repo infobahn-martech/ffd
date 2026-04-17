@@ -1,6 +1,10 @@
 import { useCallback, useEffect, useState } from "react";
 import { createWorkflowBooleanState } from "../utils/workflowHelpers";
 
+/**
+ * Tracks per-column heights (max of swimlane cell heights) and exposes the workflow-wide
+ * max so every column can share the same min-height (legacy Kanban behavior).
+ */
 export default function useColumnHeights(workflows) {
   const [columnHeights, setColumnHeights] = useState(() => {
     const state = {};
@@ -39,30 +43,36 @@ export default function useColumnHeights(workflows) {
     });
   }, [workflows]);
 
-  const handleColumnHeightChange = useCallback((workflows, columnId, height) => {
-    const workflow = workflows.find((item) =>
-      Object.values(item.columns).some((col) => col.id === columnId)
+  const handleColumnHeightChange = useCallback((workflowsArg, columnId, height, laneId) => {
+    const workflow = workflowsArg.find((item) =>
+      Object.values(item.columns || {}).some((col) => col.id === columnId)
     );
 
     if (!workflow) return;
 
     setColumnHeights((prev) => {
-      const previousHeight = prev?.[workflow.id]?.[columnId];
-      if (previousHeight === height) {
+      const prevWorkflow = prev[workflow.id] || {};
+      const prevColumn = prevWorkflow[columnId] || {};
+      const laneKey = laneId ?? "_";
+
+      if (prevColumn[laneKey] === height) {
         return prev;
       }
 
-      const workflowHeights = {
-        ...(prev[workflow.id] || {}),
-        [columnId]: height,
-      };
-      const newHeights = {
-        ...prev,
-        [workflow.id]: workflowHeights,
+      const nextColumnHeights = {
+        ...prevWorkflow,
+        [columnId]: {
+          ...prevColumn,
+          [laneKey]: height,
+        },
       };
 
-      const heights = Object.values(workflowHeights);
-      const maxHeight = heights.length > 0 ? Math.max(...heights) : 0;
+      const columnMaxes = Object.values(nextColumnHeights).map((laneMap) => {
+        const vals = Object.values(laneMap || {});
+        if (vals.length === 0) return 0;
+        return Math.max(0, ...vals);
+      });
+      const maxHeight = columnMaxes.length > 0 ? Math.max(0, ...columnMaxes) : 0;
 
       setMaxColumnHeights((prevMax) => {
         if (prevMax[workflow.id] === maxHeight) {
@@ -74,7 +84,10 @@ export default function useColumnHeights(workflows) {
         };
       });
 
-      return newHeights;
+      return {
+        ...prev,
+        [workflow.id]: nextColumnHeights,
+      };
     });
   }, []);
 

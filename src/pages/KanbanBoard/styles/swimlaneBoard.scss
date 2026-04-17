@@ -1,0 +1,102 @@
+// Swimlane board layout: shared header row + per-lane rows (see WorkflowColumns.jsx)
+
+.kanban-board--swimlanes {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  width: 100%;
+  flex-wrap: nowrap;
+  align-items: stretch;
+}
+
+/* Column headers — single row at the top */
+.kanban-board__header-row {
+  display: flex;
+  flex-wrap: nowrap;
+  gap: 6px;
+  align-items: stretch;
+  width: 100%;
+}
+
+.kanban-board__header-slot {
+  width: 270px;
+  flex: 0 0 270px;
+  flex-shrink: 0;
+  transition: width 0.3s ease, flex-basis 0.3s ease;
+}
+
+.kanban-board__header-slot--expanded {
+  width: 1100px;
+  flex: 0 0 1100px;
+  flex-grow: 1;
+}
+
+.kanban-board__header-slot--shrunk {
+  width: 100px;
+  flex: 0 0 100px;
+  flex-shrink: 1;
+}
+
+/* Swimlane rows — label + flex row of column cells */
+.kanban-swimlane {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.kanban-swimlane__title {
+  font-size: 13px;
+  font-weight: 600;
+  font-family: "Open Sans", sans-serif;
+  color: #5a5a5a;
+  text-align: center;
+  padding: 4px 0;
+}
+
+.kanban-swimlane__columns {
+  display: flex;
+  flex-wrap: nowrap;
+  gap: 6px;
+  align-items: flex-start;
+  width: 100%;
+}
+
+/* Keep column cells aligned with the header row above */
+.kanban-swimlane__columns .column--swimlane-cell {
+  flex: 0 0 270px;
+  width: 270px;
+  padding-bottom: 10px;
+}
+
+.kanban-swimlane__columns .column--swimlane-cell.column-expanded {
+  flex: 0 0 1100px;
+  flex-grow: 1;
+}
+
+.kanban-swimlane__columns .column--swimlane-cell.column-shrunk {
+  flex: 0 0 100px;
+  flex-shrink: 1;
+}
+
+/* Cards per row grid — inline gridTemplateColumns set from column.cardsPerRow */
+.card-list--swimlane-grid {
+  display: grid;
+  gap: 10px;
+  padding: 10px;
+  background: #f3f4f8;
+  border-radius: 8px;
+  min-height: 120px;
+  align-items: start;
+  align-content: start;
+  grid-auto-rows: min-content;
+}
+
+.kanban-classic-layout .card-list--swimlane-grid {
+  background: #eef0f5;
+  padding: 8px;
+}
+
+.column-shrunk .card-list--swimlane-grid {
+  gap: 8px;
+  padding: 8px;
+}

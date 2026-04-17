@@ -127,8 +127,8 @@ export default function KanbanBoardPage() {
   }, [contextMenuColumn, setSelectedCard, setIsAddMode, setAddTargetWorkflowId]);
 
   const handleWorkflowColumnHeightChange = useCallback(
-    (columnId, height) => {
-      handleColumnHeightChange(workflows, columnId, height);
+    (columnId, height, laneId) => {
+      handleColumnHeightChange(workflows, columnId, height, laneId);
     },
     [handleColumnHeightChange, workflows]
   );

@@ -1,83 +1,53 @@
 // ============================================
-// WORKFLOW CONFIGURATION
+// WORKFLOW CONFIGURATION (authoring shape)
 // ============================================
-// Add or modify workflows here - each workflow will appear as a separate accordion
+// Each workflow entry describes columns and how many mock cards to place per column.
+// At runtime this is compiled into the normalized workflow shape used by the board
+// (and expected from a future API after mapping).
+
+const DEFAULT_CARDS_PER_ROW = 2;
 
 const workflowsConfig = [
   {
     id: "workflow-1",
-    title: "Cards workflow",
-    columnColors: {
-      "col-1": "#2666be",
-      "col-2": "#2666be",
-      "col-3": "#f38a30",
-      "col-4": "#f38a30",
-      "col-5": "#f38a30",
-      "col-6": "#f38a30",
-      "col-7": "#42af49",
-    },
-    columnTitles: [
-      "Appointment Received",
-      "Enroute",
-      "Vessel Arrived",
-      "Vessel Cleared",
-      "Vessel on Standby",
-      "Vessel Sailed",
-      "Ready to Fianalize",
+    title: "TEST",
+    columns: [
+      { key: "col-1", title: "Appointment Received", color: "#2666be", wipLimit: 25, cardsPerRow: 2 },
+      { key: "col-2", title: "Enroute", color: "#2666be", wipLimit: 25 },
+      { key: "col-3", title: "Vessel Arrived", color: "#f38a30", wipLimit: 25 },
+      { key: "col-4", title: "Vessel Cleared", color: "#f38a30", wipLimit: 25 },
+      { key: "col-5", title: "Vessel on Standby", color: "#f38a30", wipLimit: 25 },
+      { key: "col-6", title: "Vessel Sailed", color: "#f38a30", wipLimit: 25 },
+      { key: "col-7", title: "Ready to Fianalize", color: "#42af49", wipLimit: 25 },
     ],
     cardCounts: {
-      "col-1": 1, // Appointment Received
-      "col-2": 0,  // Enroute
-      "col-3": 1,  // Vessel Arrived
-      "col-4": 0, // Vessel Cleared
-      "col-5": 0, // Vessel on Standby
-      "col-6": 0, // Vessel Sailed
-      "col-7": 0, // Ready to Fianalize
-    },
-    wipLimits: {
-      "col-1": 25,
-      "col-2": 25,
-      "col-3": 25,
-      "col-4": 25,
-      "col-5": 25,
-      "col-6": 25,
-      "col-7": 25,
+      "col-1": 1,
+      "col-2": 0,
+      "col-3": 0,
+      "col-4": 0,
+      "col-5": 0,
+      "col-6": 0,
+      "col-7": 0,
     },
   },
   {
     id: "workflow-2",
     title: "Cards workflow 2",
-    columnColors: {
-      "col-1": "#2666be",
-      "col-2": "#2666be",
-      "col-3": "#f38a30",
-      "col-4": "#f38a30",
-      "col-5": "#f38a30",
-      "col-6": "#42af49",
-    },
-    columnTitles: [
-      "Appointment Received",
-      "Enroute",
-      "Vessel Arrived",
-      "Vessel Cleared",
-      "Vessel Sailed",
-      "Ready to Fianalize",
+    columns: [
+      { key: "col-1", title: "Appointment Received", color: "#2666be", wipLimit: 20 },
+      { key: "col-2", title: "Enroute", color: "#2666be", wipLimit: 20 },
+      { key: "col-3", title: "Vessel Arrived", color: "#f38a30", wipLimit: 20 },
+      { key: "col-4", title: "Vessel Cleared", color: "#f38a30", wipLimit: 20 },
+      { key: "col-5", title: "Vessel Sailed", color: "#f38a30", wipLimit: 20 },
+      { key: "col-6", title: "Ready to Fianalize", color: "#42af49", wipLimit: 20 },
     ],
     cardCounts: {
-      "col-1": 1, // Appointment Received
-      "col-2": 0,  // Enroute
-      "col-3": 1,  // Vessel Arrived
-      "col-4": 0, // Vessel Cleared
-      "col-5": 0, // Vessel Sailed
-      "col-6": 0, // Ready to Fianalize
-    },
-    wipLimits: {
-      "col-1": 20,
-      "col-2": 20,
-      "col-3": 20,
-      "col-4": 20,
-      "col-5": 20,
-      "col-6": 20,
+      "col-1": 1,
+      "col-2": 0,
+      "col-3": 1,
+      "col-4": 0,
+      "col-5": 0,
+      "col-6": 0,
     },
   },
 ];
@@ -88,13 +58,9 @@ const workflowsConfig = [
 
 let globalCardId = 1;
 
-// Icon pool
 const iconTypes = ["inprogress", "download", "document"];
 
-// Helper function to generate a single card
-const generateCard = (workflowId, colId, cardId) => {
-  const workflow = workflowsConfig.find(w => w.id === workflowId);
-
+const generateCard = (workflowId, columnKey, laneId, cardId) => {
   const colorOptions = [
     "#34a97b",
     "#7333bd",
@@ -102,14 +68,11 @@ const generateCard = (workflowId, colId, cardId) => {
     "#f37325",
     "#af0020",
     "#607d8b",
-    "#336633",]
+    "#336633",
+  ];
 
-  // Random color
   const randomColor = colorOptions[Math.floor(Math.random() * colorOptions.length)];
-
-  // ⭐ Random icon assigned permanently
   const randomIconType = iconTypes[Math.floor(Math.random() * iconTypes.length)];
-
   const id = `${workflowId}-card-${cardId}`;
 
   const customerNames = [
@@ -117,7 +80,7 @@ const generateCard = (workflowId, colId, cardId) => {
     "Saudi Marcap",
     "Snamprogetti",
     "Saipem",
-    "Lamprell"
+    "Lamprell",
   ];
   const ports = ["DAM", "JED", "RUH", "JUB", "RAS", "YAN"];
   const vesselNames = [
@@ -135,7 +98,7 @@ const generateCard = (workflowId, colId, cardId) => {
     "Southern Cross",
     "Eastern Dawn",
     "Western Tide",
-    "Central Bay"
+    "Central Bay",
   ];
   const drivers = [
     "John Smith",
@@ -152,24 +115,24 @@ const generateCard = (workflowId, colId, cardId) => {
     "Matthew Jackson",
     "Anthony White",
     "Mark Harris",
-    "Donald Clark"
+    "Donald Clark",
   ];
 
-  // Footer status icons: random subset per card (1–5 icons, including link)
   const footerIconKeys = ["priority", "subtasks", "deadline", "watchers", "link"];
-  const footerIconCount = Math.floor(Math.random() * 5) + 1; // 1, 2, 3, 4, or 5
+  const footerIconCount = Math.floor(Math.random() * 5) + 1;
   const shuffledKeys = [...footerIconKeys].sort(() => Math.random() - 0.5);
   const footerShowIcons = shuffledKeys.slice(0, footerIconCount);
 
-  // Extra-details icons: random subset per card (1–6 icons)
   const extraDetailsKeys = ["transport", "hotel", "medical", "material", "waste", "launch"];
-  const extraDetailsCount = Math.floor(Math.random() * 6) + 1; // 1, 2, 3, 4, 5, or 6
+  const extraDetailsCount = Math.floor(Math.random() * 6) + 1;
   const shuffledExtra = [...extraDetailsKeys].sort(() => Math.random() - 0.5);
   const extraDetailsShowIcons = shuffledExtra.slice(0, extraDetailsCount);
 
   const customerName = customerNames[Math.floor(Math.random() * customerNames.length)];
   const cardData = {
     id,
+    laneId,
+    columnId: columnKey,
     title: `CARD – ${["JAN", "FEB", "MAR", "APR", "MAY", "JUN", "JUL", "AUG"][
       Math.floor(Math.random() * 8)
     ]} ${2025 + Math.floor(Math.random() * 2)}`,
@@ -180,80 +143,158 @@ const generateCard = (workflowId, colId, cardId) => {
     )}m`,
     progress: Math.floor(Math.random() * 100),
     color: randomColor,
-    iconType: randomIconType,   // ⭐ Added here
-    priority: cardId === 1, // Only first item has priority true
+    iconType: randomIconType,
+    priority: cardId === 1,
     vesselName: vesselNames[Math.floor(Math.random() * vesselNames.length)],
     port: ports[Math.floor(Math.random() * ports.length)],
     priorityLevel: ["H", "M", "L"][Math.floor(Math.random() * 3)],
     transport: ["done", "rejected", "inProgress"][Math.floor(Math.random() * 3)],
-    transportCount: Math.floor(Math.random() * 5) + 1, // Random count between 1-5
+    transportCount: Math.floor(Math.random() * 5) + 1,
     hotel: ["done", "rejected", "inProgress"][Math.floor(Math.random() * 3)],
-    hotelCount: Math.floor(Math.random() * 5) + 1, // Random count between 1-5
+    hotelCount: Math.floor(Math.random() * 5) + 1,
     medicalService: ["done", "rejected", "inProgress"][Math.floor(Math.random() * 3)],
-    medicalServiceCount: Math.floor(Math.random() * 5) + 1, // Random count between 1-5
+    medicalServiceCount: Math.floor(Math.random() * 5) + 1,
     materialManagement: ["done", "rejected", "inProgress"][Math.floor(Math.random() * 3)],
     wasteDisposal: ["done", "rejected", "inProgress"][Math.floor(Math.random() * 3)],
     launchHire: ["done", "rejected", "inProgress"][Math.floor(Math.random() * 3)],
-    // Footer-1 status icons (priority, subtasks, deadline, watchers, link) – random subset per card
     footerShowIcons,
-    // Extra-details icons (transport, hotel, medical, material, waste, launch) – random subset per card
     extraDetailsShowIcons,
     footerSubtasks: Math.floor(Math.random() * 5) + 1,
     footerDeadline: `${Math.floor(Math.random() * 30) + 1}d`,
     footerWatchers: Math.floor(Math.random() * 5) + 1,
-    footerLinkCount: Math.floor(Math.random() * 5), // linked cards count (0–4)
+    footerLinkCount: Math.floor(Math.random() * 5),
   };
 
   return { id, cardData };
 };
 
-// Helper function to create a workflow
-const createWorkflow = (workflowConfig) => {
-  const { id, columnColors, columnTitles, cardCounts, wipLimits = {} } = workflowConfig;
-  const columns = {};
-  const cards = {};
-  let cardId = 1;
+const DEFAULT_SWIMLANE_ID = "lane-default";
+const EXTRA_SWIMLANE_ID = "lane-new";
 
-  // Initialize all columns first
-  for (let i = 0; i < columnTitles.length; i++) {
-    const colId = `col-${i + 1}`;
-    columns[colId] = {
-      id: `${id}-${colId}`,
-      title: columnTitles[i],
-      cardIds: [],
-      color: columnColors[colId],
-      wipLimit: wipLimits[colId] ?? null,
+/**
+ * Maps an API / persisted workflow payload into the normalized frontend shape.
+ * Call this at the API boundary so the rest of the app always sees one structure.
+ *
+ * Expected normalized shape:
+ * workflow: { id, title, columnOrder, columns, swimlaneOrder, swimlanes, cards }
+ * columns[key]: { id, title, color, wipLimit, cardsPerRow }
+ * swimlanes[id]: { id, title, cardMap: { [columnKey]: cardId[] } }
+ * cards[id]: { ..., laneId, columnId (column key) }
+ */
+export function normalizeWorkflowFromApi(payload) {
+  if (!payload || typeof payload !== "object") return null;
+
+  const columnOrder = Array.isArray(payload.columnOrder)
+    ? payload.columnOrder
+    : Object.keys(payload.columns || {});
+
+  const columns = {};
+  for (const key of columnOrder) {
+    const c = payload.columns?.[key];
+    if (!c) continue;
+    columns[key] = {
+      ...c,
+      id: c.id ?? `${payload.id}-${key}`,
+      title: c.title ?? key,
+      color: c.color,
+      wipLimit: c.wipLimit ?? null,
+      cardsPerRow: c.cardsPerRow ?? DEFAULT_CARDS_PER_ROW,
     };
   }
 
-  // Create cards for each column based on cardCounts
-  for (let colIndex = 0; colIndex < columnTitles.length; colIndex++) {
-    const colId = `col-${colIndex + 1}`;
-    const count = cardCounts[colId];
+  const swimlaneOrder = Array.isArray(payload.swimlaneOrder)
+    ? payload.swimlaneOrder
+    : Object.keys(payload.swimlanes || {});
 
-    for (let i = 0; i < count; i++) {
-      const { id: generatedCardId, cardData } = generateCard(id, colId, cardId);
+  const swimlanes = {};
+  for (const laneId of swimlaneOrder) {
+    const lane = payload.swimlanes?.[laneId];
+    if (!lane) continue;
+    const cardMap = { ...lane.cardMap };
+    for (const colKey of columnOrder) {
+      if (!Array.isArray(cardMap[colKey])) {
+        cardMap[colKey] = [];
+      }
+    }
+    swimlanes[laneId] = {
+      ...lane,
+      id: lane.id ?? laneId,
+      title: lane.title ?? laneId,
+      cardMap,
+    };
+  }
+
+  const cards = { ...payload.cards };
+  return {
+    ...payload,
+    columnOrder,
+    columns,
+    swimlaneOrder,
+    swimlanes,
+    cards,
+  };
+}
+
+const createWorkflow = (workflowConfig) => {
+  const { id, title, columns: columnDefs, cardCounts } = workflowConfig;
+
+  const columnOrder = columnDefs.map((c) => c.key);
+  const columns = {};
+
+  for (const def of columnDefs) {
+    const colKey = def.key;
+    columns[colKey] = {
+      id: `${id}-${colKey}`,
+      title: def.title,
+      color: def.color,
+      wipLimit: def.wipLimit ?? null,
+      cardsPerRow: def.cardsPerRow ?? DEFAULT_CARDS_PER_ROW,
+    };
+  }
+
+  const swimlaneOrder = [DEFAULT_SWIMLANE_ID, EXTRA_SWIMLANE_ID];
+  const swimlanes = {
+    [DEFAULT_SWIMLANE_ID]: {
+      id: DEFAULT_SWIMLANE_ID,
+      title: "Default Swimlane",
+      cardMap: Object.fromEntries(columnOrder.map((k) => [k, []])),
+    },
+    [EXTRA_SWIMLANE_ID]: {
+      id: EXTRA_SWIMLANE_ID,
+      title: "New Swimlane",
+      cardMap: Object.fromEntries(columnOrder.map((k) => [k, []])),
+    },
+  };
+
+  const cards = {};
+  let cardSeq = 1;
+
+  for (let colIndex = 0; colIndex < columnOrder.length; colIndex += 1) {
+    const colKey = columnOrder[colIndex];
+    const count = cardCounts[colKey] ?? 0;
+
+    for (let i = 0; i < count; i += 1) {
+      const { id: generatedCardId, cardData } = generateCard(id, colKey, DEFAULT_SWIMLANE_ID, cardSeq);
       cards[generatedCardId] = cardData;
-      columns[colId].cardIds.push(generatedCardId);
-      cardId++;
-      globalCardId++;
+      swimlanes[DEFAULT_SWIMLANE_ID].cardMap[colKey].push(generatedCardId);
+      cardSeq += 1;
+      globalCardId += 1;
     }
   }
 
-  return {
+  return normalizeWorkflowFromApi({
     id,
-    title: workflowConfig.title,
+    title,
+    columnOrder,
     columns,
-    columnOrder: Object.keys(columns),
+    swimlaneOrder,
+    swimlanes,
     cards,
-  };
+  });
 };
 
-// Generate all workflows
 const workflows = workflowsConfig.map(createWorkflow);
 
-// Export initial data as an array of workflows
 export const initialData = workflows;
 
-// Export workflows config for easy modification
 export { workflowsConfig };
