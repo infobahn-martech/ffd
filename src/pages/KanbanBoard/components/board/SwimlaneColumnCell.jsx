@@ -23,6 +23,7 @@ export default function SwimlaneColumnCell({
   isModernLayout = false,
   isDarkMode = false,
 }) {
+  const EMPTY_DROP_ZONE_MIN_HEIGHT = 220;
   const cellRef = useRef(null);
   const lastReportedHeightRef = useRef(null);
   const droppableId = buildSwimlaneDroppableId(laneId, column.id);
@@ -97,7 +98,7 @@ export default function SwimlaneColumnCell({
           <div
             className={`card-list card-list--swimlane-grid ${
               snapshot.isDraggingOver ? "drag-over" : ""
-            }`}
+            } ${cards.length === 0 ? "card-list--empty" : ""}`}
             ref={provided.innerRef}
             {...provided.droppableProps}
             style={{
@@ -111,6 +112,7 @@ export default function SwimlaneColumnCell({
               justifyItems: "start",
               alignItems: "start",
               alignContent: "start",
+              minHeight: cards.length === 0 ? `${EMPTY_DROP_ZONE_MIN_HEIGHT}px` : undefined,
             }}
           >
             {cards.map((card, index) => (

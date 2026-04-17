@@ -1,8 +1,12 @@
 import { useCallback, useEffect, useState } from "react";
 import { initialData } from "../../../helpers/data";
+import { mapFullBoardApiResponse } from "../../../helpers/kanbanBoardApiMapper";
+import kanbanBoardService from "../../../services/kanbanBoardService";
 
 export default function useKanbanBoardState(selectedBoardId) {
   const [workflows, setWorkflows] = useState(initialData);
+  const [boardLoading, setBoardLoading] = useState(false);
+  const [boardLoadError, setBoardLoadError] = useState(null);
   const [selectedCard, setSelectedCard] = useState(null);
   const [isAddMode, setIsAddMode] = useState(false);
   const [showWorkspaces, setShowWorkspaces] = useState(false);
@@ -12,6 +16,49 @@ export default function useKanbanBoardState(selectedBoardId) {
     setSelectedCard(null);
     setIsAddMode(false);
     setAddTargetWorkflowId(null);
+  }, [selectedBoardId]);
+
+  useEffect(() => {
+    if (!selectedBoardId) {
+      setWorkflows(initialData);
+      setBoardLoadError(null);
+      setBoardLoading(false);
+      return undefined;
+    }
+
+    let cancelled = false;
+    setBoardLoading(true);
+    setBoardLoadError(null);
+
+    (async () => {
+      try {
+        const res = await kanbanBoardService.getFullBoard(selectedBoardId);
+        const payload = res?.data;
+        const mapped = mapFullBoardApiResponse(payload);
+        if (cancelled) return;
+        if (!mapped.length) {
+          setWorkflows(initialData);
+        } else {
+          setWorkflows(mapped);
+        }
+        setBoardLoadError(null);
+      } catch (e) {
+        if (!cancelled) {
+          const msg = e?.message ?? String(e);
+          if (typeof console !== "undefined" && console.error) {
+            console.error("[KanbanBoard] getFullBoard failed:", msg);
+          }
+          setWorkflows(initialData);
+          setBoardLoadError("Could not load board data. Showing sample data.");
+        }
+      } finally {
+        if (!cancelled) setBoardLoading(false);
+      }
+    })();
+
+    return () => {
+      cancelled = true;
+    };
   }, [selectedBoardId]);
 
   useEffect(() => {
@@ -47,6 +94,8 @@ export default function useKanbanBoardState(selectedBoardId) {
   return {
     workflows,
     setWorkflows,
+    boardLoading,
+    boardLoadError,
     selectedCard,
     setSelectedCard,
     isAddMode,

@@ -45,12 +45,17 @@
 }
 
 .kanban-swimlane__title {
+  display: block;
   font-size: 13px;
   font-weight: 600;
   font-family: "Open Sans", sans-serif;
   color: #5a5a5a;
   text-align: center;
   padding: 4px 0;
+  background: transparent;
+  border: 0;
+  border-radius: 0;
+  box-shadow: none;
 }
 
 .kanban-swimlane__columns {
@@ -66,7 +71,11 @@
   max-width: 100%;
   min-width: 0;
   flex: none !important;
-  padding-bottom: 10px;
+  padding: 0;
+  background: #f3f4f8;
+  border: 1px solid #dfe3ea;
+  border-radius: 8px;
+  overflow: hidden;
 }
 
 .kanban-board--swimlanes .column--swimlane-cell.column-expanded,
@@ -83,8 +92,14 @@
   background: #f3f4f8;
   border-radius: 8px;
   min-height: 0;
+  height: 100%;
+  flex: 1;
   align-items: start;
   align-content: start;
+}
+
+.card-list--swimlane-grid.card-list--empty {
+  min-height: 220px;
 }
 
 .kanban-classic-layout .card-list--swimlane-grid {

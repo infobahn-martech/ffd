@@ -29,6 +29,8 @@ export default function KanbanBoardPage() {
   const {
     workflows,
     setWorkflows,
+    boardLoading,
+    boardLoadError,
     selectedCard,
     setSelectedCard,
     isAddMode,
@@ -194,23 +196,60 @@ export default function KanbanBoardPage() {
         isDarkMode ? "kanban-board-wrapper kanban-board-wrapper-dark" : "kanban-board-wrapper"
       }
     >
-      <KanbanBoardContent
-        workflows={workflows}
-        expandedWorkflows={expandedWorkflows}
-        expandedColumns={expandedColumns}
-        maxColumnHeights={maxColumnHeights}
-        createDragEndHandler={createDragEndHandler}
-        onSelectCard={handleSelectCard}
-        onColumnHeaderClick={handleColumnHeaderClick}
-        onContextMenu={handleColumnContextMenu}
-        onHeightChange={handleWorkflowColumnHeightChange}
-        onToggleWorkflow={toggleWorkflow}
-        onAccordionMenuClick={handleAccordionMenuClick}
-        isClassicLayout={isClassicLayout}
-        isModernLayout={isModernLayout}
-        isDarkMode={isDarkMode}
-        layoutView={layoutView}
-      />
+      {boardLoadError && (
+        <div
+          className="kanban-board-load-banner"
+          role="status"
+          style={{
+            padding: "8px 16px",
+            fontSize: 13,
+            color: isDarkMode ? "#e0e0e0" : "#5c5c5c",
+            background: isDarkMode ? "#2a2a2a" : "#fff3cd",
+            borderBottom: `1px solid ${isDarkMode ? "#444" : "#ffc107"}`,
+          }}
+        >
+          {boardLoadError}
+        </div>
+      )}
+      <div style={{ position: "relative" }}>
+        {boardLoading && (
+          <div
+            aria-busy="true"
+            aria-live="polite"
+            style={{
+              position: "absolute",
+              inset: 0,
+              zIndex: 2,
+              display: "flex",
+              alignItems: "center",
+              justifyContent: "center",
+              background: isDarkMode ? "rgba(0,0,0,0.35)" : "rgba(255,255,255,0.6)",
+              pointerEvents: "none",
+            }}
+          >
+            <span style={{ fontSize: 14, color: isDarkMode ? "#e0e0e0" : "#333" }}>
+              Loading board…
+            </span>
+          </div>
+        )}
+        <KanbanBoardContent
+          workflows={workflows}
+          expandedWorkflows={expandedWorkflows}
+          expandedColumns={expandedColumns}
+          maxColumnHeights={maxColumnHeights}
+          createDragEndHandler={createDragEndHandler}
+          onSelectCard={handleSelectCard}
+          onColumnHeaderClick={handleColumnHeaderClick}
+          onContextMenu={handleColumnContextMenu}
+          onHeightChange={handleWorkflowColumnHeightChange}
+          onToggleWorkflow={toggleWorkflow}
+          onAccordionMenuClick={handleAccordionMenuClick}
+          isClassicLayout={isClassicLayout}
+          isModernLayout={isModernLayout}
+          isDarkMode={isDarkMode}
+          layoutView={layoutView}
+        />
+      </div>
 
       {selectedCard && columnsForCardForm && (
         <CardForm
