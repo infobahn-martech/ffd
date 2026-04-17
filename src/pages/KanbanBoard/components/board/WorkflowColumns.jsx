@@ -38,9 +38,10 @@ export default function WorkflowColumns({
       getBoardGridTemplateColumns(
         workflow.columns,
         workflow.columnOrder,
-        expandedColumnId
+        expandedColumnId,
+        layoutView
       ),
-    [workflow.columns, workflow.columnOrder, expandedColumnId]
+    [workflow.columns, workflow.columnOrder, expandedColumnId, layoutView]
   );
 
   const boardRowGridStyle = useMemo(
@@ -132,6 +133,7 @@ export default function WorkflowColumns({
                         isClassicLayout={isClassicLayout}
                         isModernLayout={isModernLayout}
                         isDarkMode={isDarkMode}
+                        layoutView={layoutView}
                       />
                     );
                   })}

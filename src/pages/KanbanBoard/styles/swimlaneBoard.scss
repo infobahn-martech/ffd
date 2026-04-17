@@ -106,10 +106,35 @@
   background: #eef0f5;
 }
 
-/* Swimlane board: fixed width (180px), height from content */
+/* Swimlane board: fixed width (layout-dependent), height from content */
 .kanban-card--fixed-board {
   flex-shrink: 0;
   height: auto;
   min-height: 0;
   max-height: none;
+}
+
+/* -------------------------------
+   Dark mode refinements (swimlane board)
+-------------------------------- */
+.kanban-dark-mode .kanban-board--swimlanes {
+  gap: 10px;
+}
+
+.kanban-dark-mode .kanban-swimlane__title {
+  color: #8f97a3;
+  background: transparent;
+}
+
+.kanban-dark-mode .kanban-board--swimlanes .column--swimlane-cell {
+  background: #111722;
+  border: 1px solid rgba(255, 255, 255, 0.09);
+}
+
+.kanban-dark-mode .card-list--swimlane-grid {
+  background: #111722;
+}
+
+.kanban-dark-mode .card-list--swimlane-grid.card-list--empty {
+  background: #111722;
 }

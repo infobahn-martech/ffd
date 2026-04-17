@@ -3,7 +3,7 @@ import { Droppable } from "@hello-pangea/dnd";
 import PropTypes from "prop-types";
 import CardItem from "../cards/CardItem";
 import { buildSwimlaneDroppableId } from "../../hooks/useKanbanDnD";
-import { CARD_GAP, CARD_WIDTH, CELL_PADDING_X, getCardsPerRow } from "../../utils/boardGridHelpers";
+import { CARD_GAP, CELL_PADDING_X, getCardsPerRow, getCardWidth } from "../../utils/boardGridHelpers";
 import "../../styles/column.scss";
 
 /**
@@ -22,6 +22,7 @@ export default function SwimlaneColumnCell({
   isClassicLayout = false,
   isModernLayout = false,
   isDarkMode = false,
+  layoutView = null,
 }) {
   const EMPTY_DROP_ZONE_MIN_HEIGHT = 220;
   const cellRef = useRef(null);
@@ -29,6 +30,7 @@ export default function SwimlaneColumnCell({
   const droppableId = buildSwimlaneDroppableId(laneId, column.id);
   /* Inner card grid: repeat(cardsPerRow, …) — layout inside the cell; board row width uses the same ratio via boardGridHelpers */
   const perRow = getCardsPerRow(column);
+  const cardWidth = getCardWidth(layoutView);
 
   const handleContextMenu = (e) => {
     e.preventDefault();
@@ -105,8 +107,8 @@ export default function SwimlaneColumnCell({
               /* Inner card grid: fixed column widths; row height = tallest card in that row (implicit auto rows) */
               display: "grid",
               gridTemplateColumns: isShrunk
-                ? `${CARD_WIDTH}px`
-                : `repeat(${perRow}, ${CARD_WIDTH}px)`,
+                ? `${cardWidth}px`
+                : `repeat(${perRow}, ${cardWidth}px)`,
               gap: `${CARD_GAP}px`,
               padding: `${CELL_PADDING_X}px`,
               justifyItems: "start",
@@ -125,7 +127,7 @@ export default function SwimlaneColumnCell({
                 isClassicLayout={isClassicLayout}
                 isModernLayout={isModernLayout}
                 columnTitle={column.title}
-                fixedDimensions={{ width: CARD_WIDTH }}
+                fixedDimensions={{ width: cardWidth }}
               />
             ))}
             {provided.placeholder}
@@ -155,4 +157,5 @@ SwimlaneColumnCell.propTypes = {
   isClassicLayout: PropTypes.bool,
   isModernLayout: PropTypes.bool,
   isDarkMode: PropTypes.bool,
+  layoutView: PropTypes.string,
 };

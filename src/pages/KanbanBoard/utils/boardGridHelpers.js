@@ -6,6 +6,7 @@
 const DEFAULT_CARDS_PER_ROW = 2;
 
 export const CARD_WIDTH = 180;
+export const MODERN_CARD_WIDTH = 210;
 export const CARD_GAP = 12;
 
 /** One side of horizontal padding inside the card-list cell (L+R total = 2× this). */
@@ -34,16 +35,28 @@ export function getCardsPerRow(column) {
 }
 
 /**
- * columnWidth = cardsPerRow * CARD_WIDTH + (cardsPerRow - 1) * CARD_GAP + horizontal padding
+ * Returns fixed card width for the active layout mode.
+ *
+ * @param {string | null | undefined} viewMode
+ * @returns {number}
+ */
+export function getCardWidth(viewMode) {
+  return viewMode === "modern" ? MODERN_CARD_WIDTH : CARD_WIDTH;
+}
+
+/**
+ * columnWidth = cardsPerRow * cardWidth + (cardsPerRow - 1) * CARD_GAP + horizontal padding
  *
  * @param {object} column
  * @param {string | null} [expandedColumnId] - column.id when expand/shrink mode is active
+ * @param {string | null | undefined} [viewMode]
  * @returns {number} Rounded pixel width for one board column track
  */
-export function getColumnWidth(column, expandedColumnId = null) {
+export function getColumnWidth(column, expandedColumnId = null, viewMode = null) {
   const n = getCardsPerRow(column);
+  const cardWidth = getCardWidth(viewMode);
   let base =
-    n * CARD_WIDTH +
+    n * cardWidth +
     Math.max(0, n - 1) * CARD_GAP +
     CELL_HORIZONTAL_PADDING_TOTAL;
 
@@ -52,7 +65,7 @@ export function getColumnWidth(column, expandedColumnId = null) {
       base *= EXPANDED_TRACK_MULTIPLIER;
     } else {
       base = Math.max(
-        CARD_WIDTH + CELL_HORIZONTAL_PADDING_TOTAL,
+        cardWidth + CELL_HORIZONTAL_PADDING_TOTAL,
         base * SHRUNK_TRACK_MULTIPLIER
       );
     }
@@ -67,12 +80,18 @@ export function getColumnWidth(column, expandedColumnId = null) {
  * @param {Record<string, object>} columns
  * @param {string[]} columnOrder
  * @param {string | null} expandedColumnId
+ * @param {string | null | undefined} viewMode
  * @returns {string} e.g. "392px 204px 204px"
  */
-export function getBoardGridTemplateColumns(columns, columnOrder, expandedColumnId = null) {
+export function getBoardGridTemplateColumns(
+  columns,
+  columnOrder,
+  expandedColumnId = null,
+  viewMode = null
+) {
   const parts = columnOrder.map((colKey) => {
     const column = columns[colKey];
-    const w = getColumnWidth(column, expandedColumnId);
+    const w = getColumnWidth(column, expandedColumnId, viewMode);
     return `${w}px`;
   });
   return parts.join(" ");
