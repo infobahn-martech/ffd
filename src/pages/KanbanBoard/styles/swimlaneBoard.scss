@@ -1,4 +1,4 @@
-// Swimlane board: outer grid = fixed px tracks from getColumnWidth; inner grid = fixed card cells.
+// Swimlane board: outer grid = fixed px tracks from getColumnWidth; inner grid = fixed card width, auto row height.
 
 .kanban-container--board-hscroll {
   overflow-x: auto;
@@ -66,8 +66,8 @@
 }
 
 /*
- * Inner droppable: fixed card grid — detailed layout is inline in SwimlaneColumnCell
- * (repeat(cardsPerRow, CARD_WIDTH px), gridAutoRows CARD_HEIGHT, CARD_GAP).
+ * Inner droppable: CSS grid — repeat(cardsPerRow, CARD_WIDTH), gap CARD_GAP;
+ * implicit row height from tallest card per row; align-items/align-content start.
  */
 .card-list--swimlane-grid {
   box-sizing: border-box;
@@ -82,7 +82,10 @@
   background: #eef0f5;
 }
 
-/* Fixed-size board cards: clip overflowing content inside 180×180 */
+/* Swimlane board: fixed width (180px), height from content */
 .kanban-card--fixed-board {
   flex-shrink: 0;
+  height: auto;
+  min-height: 0;
+  max-height: none;
 }

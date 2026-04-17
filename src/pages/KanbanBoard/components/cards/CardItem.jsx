@@ -187,16 +187,25 @@ function CardItem({
 
   const fixedBoardSizeStyle =
     fixedDimensions != null
-      ? {
-          width: fixedDimensions.width,
-          height: fixedDimensions.height,
-          minWidth: fixedDimensions.width,
-          maxWidth: fixedDimensions.width,
-          minHeight: fixedDimensions.height,
-          maxHeight: fixedDimensions.height,
-          boxSizing: "border-box",
-          overflow: "hidden",
-        }
+      ? (() => {
+          const w = fixedDimensions.width;
+          const base = {
+            width: w,
+            minWidth: w,
+            maxWidth: w,
+            boxSizing: "border-box",
+          };
+          if (fixedDimensions.height != null) {
+            return {
+              ...base,
+              height: fixedDimensions.height,
+              minHeight: fixedDimensions.height,
+              maxHeight: fixedDimensions.height,
+              overflow: "hidden",
+            };
+          }
+          return base;
+        })()
       : null;
 
   return (
@@ -625,7 +634,7 @@ CardItem.propTypes = {
   columnTitle: PropTypes.string,
   fixedDimensions: PropTypes.shape({
     width: PropTypes.number.isRequired,
-    height: PropTypes.number.isRequired,
+    height: PropTypes.number,
   }),
 };
 

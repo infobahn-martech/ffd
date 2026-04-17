@@ -6,7 +6,6 @@
 const DEFAULT_CARDS_PER_ROW = 2;
 
 export const CARD_WIDTH = 180;
-export const CARD_HEIGHT = 180;
 export const CARD_GAP = 12;
 
 /** One side of horizontal padding inside the card-list cell (L+R total = 2× this). */
