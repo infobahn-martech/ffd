@@ -67,7 +67,7 @@ function ContextMenu({ position, onClose, onCreateCard }) {
                 onClick={onClose}
                 onContextMenu={(e) => e.preventDefault()}
             />
-            <div
+            {/* <div
                 className="context-menu"
                 style={{
                     left: `${menuPosition.x}px`,
@@ -80,7 +80,7 @@ function ContextMenu({ position, onClose, onCreateCard }) {
                     <span className="context-menu-icon">+</span>
                     <span className="context-menu-text">Create new card</span>
                 </div>
-            </div>
+            </div> */}
         </>
     );
 }

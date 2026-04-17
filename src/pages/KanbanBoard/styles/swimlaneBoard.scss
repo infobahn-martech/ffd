@@ -17,6 +17,15 @@
   align-items: stretch;
 }
 
+/* No swimlane label row — tighten space between column headers and card grid */
+.kanban-board--swimlanes.kanban-board--single-swimlane {
+  gap: 6px;
+}
+
+.kanban-swimlane--single {
+  gap: 0;
+}
+
 /* Outer row: gridTemplateColumns from getBoardGridTemplateColumns (px tracks + BOARD_COLUMN_GAP_PX) */
 .kanban-board__header-row {
   width: max-content;

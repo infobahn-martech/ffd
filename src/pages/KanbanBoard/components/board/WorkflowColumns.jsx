@@ -30,6 +30,8 @@ export default function WorkflowColumns({
     ? workflow.swimlaneOrder
     : ["lane-default"];
 
+  const shouldShowSwimlaneTitle = swimlaneOrder.length > 1;
+
   /* Outer board grid: one fixed-px track per column (see getColumnWidth / getBoardGridTemplateColumns) */
   const boardGridTemplateColumns = useMemo(
     () =>
@@ -60,7 +62,9 @@ export default function WorkflowColumns({
       key={layoutView}
     >
       <DragDropContext onDragEnd={onDragEnd}>
-        <div className="kanban-board kanban-board--swimlanes">
+        <div
+          className={`kanban-board kanban-board--swimlanes ${!shouldShowSwimlaneTitle ? "kanban-board--single-swimlane" : ""}`}
+        >
           {/* --- Column headers (workflow stages): same grid tracks as swimlane rows below --- */}
           <div className="kanban-board__header-row" style={boardRowGridStyle}>
             {workflow.columnOrder.map((colKey) => {
@@ -97,8 +101,14 @@ export default function WorkflowColumns({
             if (!lane) return null;
 
             return (
-              <section className="kanban-swimlane" key={laneId} aria-label={lane.title}>
-                <div className="kanban-swimlane__title">{lane.title}</div>
+              <section
+                className={`kanban-swimlane ${!shouldShowSwimlaneTitle ? "kanban-swimlane--single" : ""}`}
+                key={laneId}
+                aria-label={lane.title}
+              >
+                {shouldShowSwimlaneTitle && (
+                  <div className="kanban-swimlane__title">{lane.title}</div>
+                )}
                 {/* Same gridTemplateColumns as header row — keeps headers and cells aligned */}
                 <div className="kanban-swimlane__columns" style={boardRowGridStyle}>
                   {workflow.columnOrder.map((colKey) => {
