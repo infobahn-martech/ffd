@@ -43,7 +43,7 @@ const SideNav = ({ activeMenu, setActiveMenu, onProfileClick, onSignOutClick, is
     } else if (menuId === 'Master Module') {
       navigate('/dashboard');
     } else if (menuId === 'Back to Board') {
-      navigate('/kanban-board');
+      navigate('/kanban-board/operator');
     }
 
     // Close mobile menu after navigation
