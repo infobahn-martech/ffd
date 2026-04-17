@@ -6,3 +6,5 @@ export { default as SalesOrder } from "./tabs/salesOrder/SalesOrder";
 export { default as Reports } from "./tabs/reports/Reports";
 export { default as KPI } from "./tabs/kpi/KPI";
 export { default as Invoice } from "./tabs/invoice/Invoice";
+export { default as Comments } from "./tabs/comments/Comments";
+export { default as SubTasks } from "./tabs/subTasks/SubTasks";

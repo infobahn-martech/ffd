@@ -11,7 +11,7 @@ import PriorityIcon from "../../../../assets/images/Priority.png";
 import { getItem } from "../../../../helpers/localStorage";
 
 // Import Tab Components
-import { General, Operation, Husbandry, Attachments, Invoice, SalesOrder, Reports, KPI } from "../../CardFormTabs";
+import { General, Operation, Husbandry, Attachments, Invoice, SalesOrder, Reports, KPI, Comments, SubTasks } from "../../CardFormTabs";
 import NavTabButton from "../../../../components/NavTabButton";
 
 // Constants - All tabs
@@ -25,7 +25,7 @@ const ALL_TOP_TABS = [
   "Attachments",
 ];
 
-const ALL_ENABLED_TABS = ["Appointment Details", "Operation", "Husbandry", "Sales Order", "Reports", "KPI", "Attachments"];
+const ALL_ENABLED_TABS = ["Appointment Details", "Operation", "Husbandry", "Sales Order", "Reports", "KPI", "Attachments", "Comments", "SubTasks"];
 
 // Constants - Simplified tabs for kanban-board/{id} routes
 const SIMPLIFIED_TOP_TABS = [
