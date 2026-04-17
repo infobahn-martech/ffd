@@ -1,7 +1,7 @@
 import PropTypes from "prop-types";
 import "../../../../../design/scss/invoice.scss";
 
-function SubTasks({ card }) {
+function Subtasks({ card }) {
     return (
         <div className="cardform-body">
             <div className="sub-tasks-content-wrapper">
@@ -28,8 +28,8 @@ function SubTasks({ card }) {
     );
 }
 
-SubTasks.propTypes = {
+Subtasks.propTypes = {
     card: PropTypes.object,
 };
 
-export default SubTasks;
+export default Subtasks;

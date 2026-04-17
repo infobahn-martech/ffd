@@ -7,4 +7,4 @@ export { default as Reports } from "./tabs/reports/Reports";
 export { default as KPI } from "./tabs/kpi/KPI";
 export { default as Invoice } from "./tabs/invoice/Invoice";
 export { default as Comments } from "./tabs/comments/Comments";
-export { default as SubTasks } from "./tabs/subTasks/SubTasks";
+export { default as Subtasks } from "./tabs/subtasks/Subtasks";

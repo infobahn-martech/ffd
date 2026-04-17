@@ -11,7 +11,7 @@ import PriorityIcon from "../../../../assets/images/Priority.png";
 import { getItem } from "../../../../helpers/localStorage";
 
 // Import Tab Components
-import { General, Operation, Husbandry, Attachments, Invoice, SalesOrder, Reports, KPI, Comments, SubTasks } from "../../CardFormTabs";
+import { General, Operation, Husbandry, Attachments, Invoice, SalesOrder, Reports, KPI, Comments, Subtasks } from "../../CardFormTabs";
 import NavTabButton from "../../../../components/NavTabButton";
 
 // Constants - All tabs
@@ -23,9 +23,11 @@ const ALL_TOP_TABS = [
   "Reports",
   "KPI",
   "Attachments",
+  "Comments",
+  "Subtasks",
 ];
 
-const ALL_ENABLED_TABS = ["Appointment Details", "Operation", "Husbandry", "Sales Order", "Reports", "KPI", "Attachments", "Comments", "SubTasks"];
+const ALL_ENABLED_TABS = ["Appointment Details", "Operation", "Husbandry", "Sales Order", "Reports", "KPI", "Attachments", "Comments", "Subtasks"];
 
 // Constants - Simplified tabs for kanban-board/{id} routes
 const SIMPLIFIED_TOP_TABS = [
@@ -45,9 +47,11 @@ const DA_TOP_TABS = [
   "Reports",
   "KPI",
   "Invoice",
+  "Comments",
+  "Subtasks",
 ];
 
-const DA_ENABLED_TABS = ["General", "Operation", "Husbandry", "Sales Order", "Reports", "KPI", "Invoice"];
+const DA_ENABLED_TABS = ["General", "Operation", "Husbandry", "Sales Order", "Reports", "KPI", "Invoice", "Comments", "Subtasks"];
 
 const DEFAULT_ACCENT_COLOR = "#2A00FF";
 const TOTAL_STEPS = 6;
@@ -1059,6 +1063,10 @@ const renderTabContent = (
         return <Reports {...commonProps} />;
       case "KPI":
         return <KPI {...commonProps} />;
+      case "Comments":
+        return <Comments {...commonProps} />;
+      case "Subtasks":
+        return <Subtasks {...commonProps} />;
       default:
         return <General {...commonProps} />;
     }
@@ -1071,6 +1079,10 @@ const renderTabContent = (
         return <Invoice {...commonProps} />;
       case "Sales Order":
         return <SalesOrder {...commonProps} />;
+      case "Comments":
+        return <Comments {...commonProps} />;
+      case "Subtasks":
+        return <Subtasks {...commonProps} />;
       default:
         return <General {...commonProps} />;
     }
@@ -1091,6 +1103,10 @@ const renderTabContent = (
         return <Reports {...commonProps} />;
       case "KPI":
         return <KPI {...commonProps} />;
+      case "Comments":
+        return <Comments {...commonProps} />;
+      case "Subtasks":
+        return <Subtasks {...commonProps} />;
       default:
         return <General {...commonProps} />;
     }
