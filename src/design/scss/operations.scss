@@ -1780,7 +1780,7 @@ $send-report-optional: #80868b;
 .pre-arrival-form .operation-section-form-layout,
 .arrival-form .operation-section-form-layout,
 .departure-form .operation-section-form-layout {
-  grid-template-columns: 1fr 1fr;
+  grid-template-columns: 35% 65%;
   column-gap: 82px;
   row-gap: 20px;
   align-items: stretch;
