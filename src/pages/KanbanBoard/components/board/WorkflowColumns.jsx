@@ -6,7 +6,7 @@ import {
   countCardsInColumn,
   getSwimlaneColumnCards,
 } from "../../utils/columnHelpers";
-import { getBoardGridTemplateColumns } from "../../utils/boardGridHelpers";
+import { BOARD_COLUMN_GAP_PX, getBoardGridTemplateColumns } from "../../utils/boardGridHelpers";
 import "../../styles/swimlaneBoard.scss";
 
 export default function WorkflowColumns({
@@ -30,7 +30,7 @@ export default function WorkflowColumns({
     ? workflow.swimlaneOrder
     : ["lane-default"];
 
-  /* Outer board grid: one track per column; fr weights follow cardsPerRow (see boardGridHelpers.js) */
+  /* Outer board grid: one fixed-px track per column (see getColumnWidth / getBoardGridTemplateColumns) */
   const boardGridTemplateColumns = useMemo(
     () =>
       getBoardGridTemplateColumns(
@@ -45,8 +45,9 @@ export default function WorkflowColumns({
     () => ({
       display: "grid",
       gridTemplateColumns: boardGridTemplateColumns,
-      gap: "6px",
-      width: "100%",
+      gap: `${BOARD_COLUMN_GAP_PX}px`,
+      width: "max-content",
+      minWidth: "100%",
       alignItems: "stretch",
     }),
     [boardGridTemplateColumns]
@@ -54,7 +55,7 @@ export default function WorkflowColumns({
 
   return (
     <div
-      className={`kanban-container ${isClassicLayout ? "kanban-classic-layout" : ""} ${
+      className={`kanban-container kanban-container--board-hscroll ${isClassicLayout ? "kanban-classic-layout" : ""} ${
         isModernLayout ? "kanban-modern-layout" : ""
       } ${layoutView === "normal" ? "kanban-normal-layout" : ""}`}
       key={layoutView}

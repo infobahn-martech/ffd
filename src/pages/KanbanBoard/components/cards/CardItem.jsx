@@ -159,7 +159,18 @@ const StatusIcon = ({ status = "pending", IconComponent, size = 20 }) => {
   return <IconComponent size={size} color={color} />;
 };
 
-function CardItem({ card, index, setSelectedCard, isShrunk = false, hideExtraDetails = false, isClassicLayout = false, isModernLayout = false, isDarkMode = false, columnTitle = "" }) {
+function CardItem({
+  card,
+  index,
+  setSelectedCard,
+  isShrunk = false,
+  hideExtraDetails = false,
+  isClassicLayout = false,
+  isModernLayout = false,
+  isDarkMode = false,
+  columnTitle = "",
+  fixedDimensions = null,
+}) {
   const cardColor = card.color || "#2A00FF";
   const invoiceAmount = card.invoiceAmount != null ? Number(card.invoiceAmount) : null;
   const highlightInvoice = !!card.highlightInvoice; // 1st card (DA board): show invoice trend icon, no border pulse
@@ -174,18 +185,32 @@ function CardItem({ card, index, setSelectedCard, isShrunk = false, hideExtraDet
     return <span>{displayText}</span>;
   };
 
+  const fixedBoardSizeStyle =
+    fixedDimensions != null
+      ? {
+          width: fixedDimensions.width,
+          height: fixedDimensions.height,
+          minWidth: fixedDimensions.width,
+          maxWidth: fixedDimensions.width,
+          minHeight: fixedDimensions.height,
+          maxHeight: fixedDimensions.height,
+          boxSizing: "border-box",
+          overflow: "hidden",
+        }
+      : null;
+
   return (
     <Draggable draggableId={card.id} index={index}>
       {(provided, snapshot) => (
         <div
-          className={`kanban-card ${snapshot.isDragging ? "dragging" : ""} ${card.priority ? "priority-blink" : ""} ${isShrunk ? "card-shrunk" : ""} ${isClassicLayout ? "kanban-card-classic" : ""} ${isModernLayout ? "kanban-card-modern" : ""} ${isDarkMode ? "kanban-card-dark" : ""}`}
+          className={`kanban-card ${snapshot.isDragging ? "dragging" : ""} ${card.priority ? "priority-blink" : ""} ${isShrunk ? "card-shrunk" : ""} ${isClassicLayout ? "kanban-card-classic" : ""} ${isModernLayout ? "kanban-card-modern" : ""} ${isDarkMode ? "kanban-card-dark" : ""} ${fixedBoardSizeStyle ? "kanban-card--fixed-board" : ""}`}
           ref={provided.innerRef}
           {...provided.draggableProps}
           {...provided.dragHandleProps}
           style={{
+            ...fixedBoardSizeStyle,
             ...provided.draggableProps.style,
             "--card-color": cardColor,
-            // backgroundColor: "#eef1ff", // Fixed: proper CSS property naming and added missing "f"
           }}
         >
           {isShrunk ? (
@@ -598,6 +623,10 @@ CardItem.propTypes = {
   isModernLayout: PropTypes.bool,
   isDarkMode: PropTypes.bool,
   columnTitle: PropTypes.string,
+  fixedDimensions: PropTypes.shape({
+    width: PropTypes.number.isRequired,
+    height: PropTypes.number.isRequired,
+  }),
 };
 
 export default CardItem;

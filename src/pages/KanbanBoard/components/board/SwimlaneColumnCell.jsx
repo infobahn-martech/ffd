@@ -3,7 +3,13 @@ import { Droppable } from "@hello-pangea/dnd";
 import PropTypes from "prop-types";
 import CardItem from "../cards/CardItem";
 import { buildSwimlaneDroppableId } from "../../hooks/useKanbanDnD";
-import { getCardsPerRow } from "../../utils/boardGridHelpers";
+import {
+  CARD_GAP,
+  CARD_HEIGHT,
+  CARD_WIDTH,
+  CELL_PADDING_X,
+  getCardsPerRow,
+} from "../../utils/boardGridHelpers";
 import "../../styles/column.scss";
 
 /**
@@ -101,10 +107,16 @@ export default function SwimlaneColumnCell({
             ref={provided.innerRef}
             {...provided.droppableProps}
             style={{
-              /* Inner layout: how many cards sit on one row inside this column cell */
+              /* Inner card grid: fixed px columns + fixed row height; cards align left (justify-items: start) */
+              display: "grid",
               gridTemplateColumns: isShrunk
-                ? "1fr"
-                : `repeat(${perRow}, minmax(0, 1fr))`,
+                ? `${CARD_WIDTH}px`
+                : `repeat(${perRow}, ${CARD_WIDTH}px)`,
+              gridAutoRows: `${CARD_HEIGHT}px`,
+              gap: `${CARD_GAP}px`,
+              padding: `${CELL_PADDING_X}px`,
+              justifyItems: "start",
+              alignContent: "start",
             }}
           >
             {cards.map((card, index) => (
@@ -117,6 +129,7 @@ export default function SwimlaneColumnCell({
                 isClassicLayout={isClassicLayout}
                 isModernLayout={isModernLayout}
                 columnTitle={column.title}
+                fixedDimensions={{ width: CARD_WIDTH, height: CARD_HEIGHT }}
               />
             ))}
             {provided.placeholder}

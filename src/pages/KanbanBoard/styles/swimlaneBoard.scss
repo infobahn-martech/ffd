@@ -1,23 +1,32 @@
-// Swimlane board: outer grid row (gridTemplateColumns from boardGridHelpers) + inner card grids per cell
+// Swimlane board: outer grid = fixed px tracks from getColumnWidth; inner grid = fixed card cells.
+
+.kanban-container--board-hscroll {
+  overflow-x: auto;
+  width: 100%;
+  max-width: 100%;
+  -webkit-overflow-scrolling: touch;
+}
 
 .kanban-board--swimlanes {
   display: flex;
   flex-direction: column;
   gap: 8px;
-  width: 100%;
+  width: max-content;
+  min-width: 100%;
   flex-wrap: nowrap;
   align-items: stretch;
 }
 
-/* Header + swimlane rows share one grid definition (inline style from WorkflowColumns.jsx) */
+/* Outer row: gridTemplateColumns from getBoardGridTemplateColumns (px tracks + BOARD_COLUMN_GAP_PX) */
 .kanban-board__header-row {
-  width: 100%;
-  /* gridTemplateColumns: proportional fr tracks from column.cardsPerRow */
+  width: max-content;
+  min-width: 100%;
 }
 
 .kanban-board__header-slot {
   min-width: 0;
   width: 100%;
+  max-width: 100%;
 }
 
 .kanban-swimlane {
@@ -36,13 +45,12 @@
 }
 
 .kanban-swimlane__columns {
-  width: 100%;
-  /* gridTemplateColumns: same string as .kanban-board__header-row */
+  width: max-content;
+  min-width: 100%;
 }
 
 /*
- * Grid children must not use legacy .column fixed widths (Column.css / common.scss),
- * or they override proportional tracks.
+ * Grid children: fill their px track; legacy .column widths from Column.css are neutralized
  */
 .kanban-board--swimlanes .column--swimlane-cell {
   width: 100% !important;
@@ -57,25 +65,24 @@
   width: 100% !important;
 }
 
-/* Inner droppable: card grid (gridTemplateColumns from getCardsPerRow in SwimlaneColumnCell) */
+/*
+ * Inner droppable: fixed card grid — detailed layout is inline in SwimlaneColumnCell
+ * (repeat(cardsPerRow, CARD_WIDTH px), gridAutoRows CARD_HEIGHT, CARD_GAP).
+ */
 .card-list--swimlane-grid {
-  display: grid;
-  gap: 10px;
-  padding: 10px;
+  box-sizing: border-box;
   background: #f3f4f8;
   border-radius: 8px;
-  min-height: 120px;
+  min-height: 0;
   align-items: start;
   align-content: start;
-  grid-auto-rows: min-content;
 }
 
 .kanban-classic-layout .card-list--swimlane-grid {
   background: #eef0f5;
-  padding: 8px;
 }
 
-.column-shrunk .card-list--swimlane-grid {
-  gap: 8px;
-  padding: 8px;
+/* Fixed-size board cards: clip overflowing content inside 180×180 */
+.kanban-card--fixed-board {
+  flex-shrink: 0;
 }
