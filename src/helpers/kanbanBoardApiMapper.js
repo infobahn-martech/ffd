@@ -49,31 +49,43 @@ function buildColumnKey(workflowId, columnId) {
  * Optional mock-only fields are omitted; Card UI tolerates missing values.
  */
 function mapCardFields(beCard, feCardId, laneKey, columnKey, workflowId, boardId) {
-  const cid = beCard?.card_id ?? beCard?.id;
+  const kpi = Number(beCard?.kpi_percentage);
+  const safeKpi = Number.isFinite(kpi) ? kpi : 0;
+  const cardName = beCard?.card_name ?? beCard?.title ?? '';
+  const vesselName = beCard?.vessel_name ?? '';
+  const timeline = beCard?.timeline ?? '';
   return {
     id: feCardId,
+    backendCardId: beCard?.card_id ?? beCard?.id,
     laneId: laneKey,
     columnId: columnKey,
     boardId: boardId ?? undefined,
     workflowId,
-    title: beCard?.title ?? '',
-    name: beCard?.name ?? beCard?.billing_entity ?? '',
-    user: beCard?.assigned_to ?? '',
-    vesselName: beCard?.vessel_name ?? '',
+    title: cardName,
+    cardName,
+    callId: beCard?.call_id,
+    vesselId: beCard?.vessel_id,
+    vesselName,
+    portId: beCard?.port_id,
+    billingEntity: beCard?.billing_entity ?? '',
+    entityLogo: beCard?.entity_logo ?? '',
+    user: beCard?.username ?? '',
+    userId: beCard?.user_id ?? '',
+    createdDate: beCard?.created_date ?? '',
+    progress: safeKpi,
+    kpiPercentage: safeKpi,
+    timeLeft: timeline,
+    timeline,
+    /** Compatibility aliases used by current card UI components. */
+    name: vesselName || cardName || '',
     port:
       beCard?.port != null
         ? String(beCard.port)
         : beCard?.port_id != null
           ? String(beCard.port_id)
           : '',
-    callId: beCard?.call_id,
-    vesselId: beCard?.vessel_id,
-    billingEntity: beCard?.billing_entity,
-    entityLogo: beCard?.entity_logo,
-    createdDate: beCard?.created_date,
     color: '#607d8b',
     iconType: 'document',
-    progress: 0,
     priority: false,
     footerShowIcons: [],
     extraDetailsShowIcons: [],
@@ -101,9 +113,18 @@ export function mapFullBoardApiToWorkflow(beWorkflow) {
   /** @type {Record<string, object>} */
   const columns = {};
 
-  /** Discover swimlane metadata (title, order) from every column before placing cards. */
+  /** Discover swimlane metadata (title, order) from workflow + columns before placing cards. */
   /** @type {Map<string|number, { title: string, order: number }>} */
   const laneMeta = new Map();
+  for (const sl of safeArray(beWorkflow?.swimlanes)) {
+    const sid = sl?.swimlane_id ?? sl?.id;
+    if (sid == null) continue;
+    const ordRaw = Number(sl?.swimlane_order ?? sl?.order);
+    laneMeta.set(sid, {
+      title: sl?.swimlane_name ?? sl?.name ?? `Swimlane ${sid}`,
+      order: Number.isFinite(ordRaw) ? ordRaw : Number.MAX_SAFE_INTEGER,
+    });
+  }
 
   for (const stage of stages) {
     const stageColor = stage?.color_code ?? '#cccccc';
@@ -117,13 +138,18 @@ export function mapFullBoardApiToWorkflow(beWorkflow) {
         const cpr =
           col?.cards_per_row ?? col?.cardsPerRow;
         const wip = col?.wip_limit ?? col?.wipLimit;
+        const cprNum = Number(cpr);
         columns[colKey] = {
-          id: colKey,
+          id: String(colId),
           title: col?.column_name ?? 'Column',
           color: stageColor,
           wipLimit: wip != null ? wip : null,
+          /**
+           * cards_per_row comes as string/number from BE. Keep FE layout stable:
+           * parse safely, fallback to 2 when missing/invalid/<=0.
+           */
           cardsPerRow:
-            typeof cpr === 'number' && cpr > 0 ? cpr : DEFAULT_CARDS_PER_ROW,
+            Number.isFinite(cprNum) && cprNum > 0 ? cprNum : DEFAULT_CARDS_PER_ROW,
         };
       }
 
@@ -177,13 +203,45 @@ export function mapFullBoardApiToWorkflow(beWorkflow) {
 
   /** @type {Record<string, object>} */
   const cards = {};
+  const seenCardIds = new Set();
 
   for (const stage of stages) {
+    const stageColor = stage?.color_code ?? '#cccccc';
     for (const col of safeArray(stage?.columns)) {
       const colId = col?.column_id;
       if (colId == null) continue;
       const colKey = buildColumnKey(wfIdStr, colId);
       if (!columns[colKey]) continue;
+
+      /**
+       * New BE shape may provide cards at column level. We normalize into lane cardMap
+       * using card.swimlane_id when present, otherwise first lane/default.
+       */
+      for (const beCard of safeArray(col?.cards)) {
+        const rawCardId = beCard?.card_id ?? beCard?.id;
+        if (rawCardId == null) continue;
+        const cardSwimlaneId = beCard?.swimlane_id;
+        const laneKey = cardSwimlaneId != null
+          ? buildLaneKey(wfIdStr, cardSwimlaneId)
+          : swimlaneOrder[0] ?? buildLaneKey(wfIdStr, 'default');
+        if (!swimlanes[laneKey]) continue;
+        const feCardId = getSafeCardKey(
+          wfIdStr,
+          colId,
+          cardSwimlaneId ?? 'default',
+          rawCardId
+        );
+        if (seenCardIds.has(feCardId)) continue;
+        seenCardIds.add(feCardId);
+        if (!swimlanes[laneKey].cardMap[colKey]) {
+          swimlanes[laneKey].cardMap[colKey] = [];
+        }
+        swimlanes[laneKey].cardMap[colKey].push(feCardId);
+        cards[feCardId] = {
+          ...mapCardFields(beCard, feCardId, laneKey, colKey, wfIdStr, boardId),
+          color: stageColor,
+        };
+      }
 
       for (const sl of safeArray(col?.swimlanes)) {
         const sid = sl?.swimlane_id;
@@ -200,19 +258,25 @@ export function mapFullBoardApiToWorkflow(beWorkflow) {
           if (rawCardId == null) continue;
 
           const feCardId = getSafeCardKey(wfIdStr, colId, sid ?? 'default', rawCardId);
+          if (seenCardIds.has(feCardId)) continue;
+          seenCardIds.add(feCardId);
           if (!swimlanes[laneKey].cardMap[colKey]) {
             swimlanes[laneKey].cardMap[colKey] = [];
           }
           swimlanes[laneKey].cardMap[colKey].push(feCardId);
 
-          cards[feCardId] = mapCardFields(
-            beCard,
-            feCardId,
-            laneKey,
-            colKey,
-            wfIdStr,
-            boardId
-          );
+          cards[feCardId] = {
+            ...mapCardFields(
+              beCard,
+              feCardId,
+              laneKey,
+              colKey,
+              wfIdStr,
+              boardId
+            ),
+            /** Keep card color synced with parent stage for current FE card rendering. */
+            color: stageColor,
+          };
         }
       }
     }

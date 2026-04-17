@@ -139,7 +139,11 @@ const getRandomEta = (cardId) => {
 };
 
 // Function to get company icon based on card name
-const getCompanyIcon = (cardId, cardName) => {
+const getCompanyIcon = (cardId, cardName, entityLogo) => {
+  if (entityLogo) {
+    return { type: "image", src: entityLogo };
+  }
+
   // Match by company name
   if (cardName) {
     const normalizedName = cardName.toLowerCase().trim();
@@ -249,7 +253,7 @@ function CardItem({
                   className="card-title-compact"
                   onClick={() => setSelectedCard(card)}
                 >
-                  {(card.vesselName || card.title) && ((card.vesselName || card.title).length > 12 ? (card.vesselName || card.title).substring(0, 12) + "..." : (card.vesselName || card.title))}
+                  {(card.vesselName || card.cardName || card.title) && ((card.vesselName || card.cardName || card.title).length > 12 ? (card.vesselName || card.cardName || card.title).substring(0, 12) + "..." : (card.vesselName || card.cardName || card.title))}
                 </div>
               </div>
             </>
@@ -270,7 +274,7 @@ function CardItem({
                 )}
                 {!isModernLayout && card.name && (() => {
                   const tooltipId = `card-name-${card.id}`;
-                  const companyIcon = getCompanyIcon(card.id, card.name);
+                  const companyIcon = getCompanyIcon(card.id, card.name, card.entityLogo);
 
                   if (!companyIcon) return null;
 
@@ -324,7 +328,7 @@ function CardItem({
                     style={{ cursor: "pointer" }}
                     onClick={() => setSelectedCard(card)}
                   >
-                    {card.vesselName || card.title}
+                    {card.vesselName || card.cardName || card.title}
                   </h3>
                   {isClassicLayout && (
                     <div className="card-mini-tags">
@@ -594,8 +598,10 @@ CardItem.propTypes = {
   card: PropTypes.shape({
     id: PropTypes.string.isRequired,
     title: PropTypes.string.isRequired,
+    cardName: PropTypes.string,
     name: PropTypes.string,
     user: PropTypes.string,
+    entityLogo: PropTypes.string,
     color: PropTypes.string,
     iconType: PropTypes.string,
     timeLeft: PropTypes.string,
