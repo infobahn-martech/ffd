@@ -590,7 +590,7 @@
     border-top: none;
     min-height: 0;
     height: 100%;
-    transition: all 0.2s ease;
+    transition: none;
   }
 
   .ql-toolbar {
@@ -599,29 +599,24 @@
     border-bottom: none;
     background: #ffffff;
     padding: 8px 10px;
-    transition: all 0.2s ease;
+    transition: none;
   }
 
-  // Hover effect on the wrapper
-  &:hover {
-
+  // Keep border visuals stable on mount/focus to avoid flash.
+  &:hover,
+  &:focus,
+  &:focus-within,
+  &:focus-visible,
+  &:active {
     .ql-container,
     .ql-toolbar {
-      border-color: #c5c5d1;
-    }
-  }
-
-  // Focus effect
-  &:focus-within {
-
-    .ql-container,
-    .ql-toolbar {
-      border-color: #3e5cb6;
-      box-shadow: 0 0 0 3px rgba(62, 94, 189, 0.1);
+      border-color: #e2e2ea;
+      box-shadow: none;
+      outline: none;
     }
 
     .ql-container {
-      background: #fafaff;
+      background: #ffffff;
     }
   }
 
@@ -656,6 +651,31 @@
     border: 1px solid #e2e2ea;
     border-radius: 6px;
     box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+  }
+}
+
+/* Stable ReactQuill appearance for remarks-like form sections */
+.card-description-wrapper .react-quill-wrapper,
+.card-description-wrapper .react-quill-wrapper:focus,
+.card-description-wrapper .react-quill-wrapper:focus-within,
+.card-description-wrapper .react-quill-wrapper:focus-visible,
+.card-description-wrapper .react-quill-wrapper:active {
+  outline: none !important;
+  box-shadow: none !important;
+  transition: none !important;
+
+  .quill,
+  .ql-toolbar,
+  .ql-container,
+  .ql-editor {
+    box-shadow: none !important;
+    outline: none !important;
+    transition: none !important;
+  }
+
+  .ql-toolbar,
+  .ql-container {
+    border-color: #e2e2ea !important;
   }
 }
 
