@@ -1,3 +1,4 @@
+import { useMemo } from "react";
 import { DragDropContext } from "@hello-pangea/dnd";
 import ColumnHeader from "./ColumnHeader";
 import SwimlaneColumnCell from "./SwimlaneColumnCell";
@@ -5,6 +6,7 @@ import {
   countCardsInColumn,
   getSwimlaneColumnCards,
 } from "../../utils/columnHelpers";
+import { getBoardGridTemplateColumns } from "../../utils/boardGridHelpers";
 import "../../styles/swimlaneBoard.scss";
 
 export default function WorkflowColumns({
@@ -28,6 +30,28 @@ export default function WorkflowColumns({
     ? workflow.swimlaneOrder
     : ["lane-default"];
 
+  /* Outer board grid: one track per column; fr weights follow cardsPerRow (see boardGridHelpers.js) */
+  const boardGridTemplateColumns = useMemo(
+    () =>
+      getBoardGridTemplateColumns(
+        workflow.columns,
+        workflow.columnOrder,
+        expandedColumnId
+      ),
+    [workflow.columns, workflow.columnOrder, expandedColumnId]
+  );
+
+  const boardRowGridStyle = useMemo(
+    () => ({
+      display: "grid",
+      gridTemplateColumns: boardGridTemplateColumns,
+      gap: "6px",
+      width: "100%",
+      alignItems: "stretch",
+    }),
+    [boardGridTemplateColumns]
+  );
+
   return (
     <div
       className={`kanban-container ${isClassicLayout ? "kanban-classic-layout" : ""} ${
@@ -37,8 +61,8 @@ export default function WorkflowColumns({
     >
       <DragDropContext onDragEnd={onDragEnd}>
         <div className="kanban-board kanban-board--swimlanes">
-          {/* --- Column headers (workflow stages): one header per column, single top row --- */}
-          <div className="kanban-board__header-row">
+          {/* --- Column headers (workflow stages): same grid tracks as swimlane rows below --- */}
+          <div className="kanban-board__header-row" style={boardRowGridStyle}>
             {workflow.columnOrder.map((colKey) => {
               const column = workflow.columns[colKey];
               const isExpanded = expandedColumnId === column.id;
@@ -76,7 +100,8 @@ export default function WorkflowColumns({
             return (
               <section className="kanban-swimlane" key={laneId} aria-label={lane.title}>
                 <div className="kanban-swimlane__title">{lane.title}</div>
-                <div className="kanban-swimlane__columns">
+                {/* Same gridTemplateColumns as header row — keeps headers and cells aligned */}
+                <div className="kanban-swimlane__columns" style={boardRowGridStyle}>
                   {workflow.columnOrder.map((colKey) => {
                     const column = workflow.columns[colKey];
                     const cards = getSwimlaneColumnCards(workflow, laneId, colKey);
@@ -89,7 +114,6 @@ export default function WorkflowColumns({
                         laneId={laneId}
                         column={column}
                         cards={cards}
-                        cardsPerRow={column.cardsPerRow}
                         setSelectedCard={onSelectCard}
                         isExpanded={isExpanded}
                         isShrunk={isShrunk}

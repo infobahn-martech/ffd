@@ -12,7 +12,7 @@ const workflowsConfig = [
     id: "workflow-1",
     title: "TEST",
     columns: [
-      { key: "col-1", title: "Appointment Received", color: "#2666be", wipLimit: 25, cardsPerRow: 2 },
+      { key: "col-1", title: "Appointment Received", color: "#2666be", wipLimit: 25, cardsPerRow: 4 },
       { key: "col-2", title: "Enroute", color: "#2666be", wipLimit: 25 },
       { key: "col-3", title: "Vessel Arrived", color: "#f38a30", wipLimit: 25 },
       { key: "col-4", title: "Vessel Cleared", color: "#f38a30", wipLimit: 25 },
@@ -21,8 +21,8 @@ const workflowsConfig = [
       { key: "col-7", title: "Ready to Fianalize", color: "#42af49", wipLimit: 25 },
     ],
     cardCounts: {
-      "col-1": 1,
-      "col-2": 0,
+      "col-1": 6,
+      "col-2": 4,
       "col-3": 0,
       "col-4": 0,
       "col-5": 0,

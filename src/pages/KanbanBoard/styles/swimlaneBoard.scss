@@ -1,4 +1,4 @@
-// Swimlane board layout: shared header row + per-lane rows (see WorkflowColumns.jsx)
+// Swimlane board: outer grid row (gridTemplateColumns from boardGridHelpers) + inner card grids per cell
 
 .kanban-board--swimlanes {
   display: flex;
@@ -9,35 +9,17 @@
   align-items: stretch;
 }
 
-/* Column headers — single row at the top */
+/* Header + swimlane rows share one grid definition (inline style from WorkflowColumns.jsx) */
 .kanban-board__header-row {
-  display: flex;
-  flex-wrap: nowrap;
-  gap: 6px;
-  align-items: stretch;
   width: 100%;
+  /* gridTemplateColumns: proportional fr tracks from column.cardsPerRow */
 }
 
 .kanban-board__header-slot {
-  width: 270px;
-  flex: 0 0 270px;
-  flex-shrink: 0;
-  transition: width 0.3s ease, flex-basis 0.3s ease;
+  min-width: 0;
+  width: 100%;
 }
 
-.kanban-board__header-slot--expanded {
-  width: 1100px;
-  flex: 0 0 1100px;
-  flex-grow: 1;
-}
-
-.kanban-board__header-slot--shrunk {
-  width: 100px;
-  flex: 0 0 100px;
-  flex-shrink: 1;
-}
-
-/* Swimlane rows — label + flex row of column cells */
 .kanban-swimlane {
   display: flex;
   flex-direction: column;
@@ -54,31 +36,28 @@
 }
 
 .kanban-swimlane__columns {
-  display: flex;
-  flex-wrap: nowrap;
-  gap: 6px;
-  align-items: flex-start;
   width: 100%;
+  /* gridTemplateColumns: same string as .kanban-board__header-row */
 }
 
-/* Keep column cells aligned with the header row above */
-.kanban-swimlane__columns .column--swimlane-cell {
-  flex: 0 0 270px;
-  width: 270px;
+/*
+ * Grid children must not use legacy .column fixed widths (Column.css / common.scss),
+ * or they override proportional tracks.
+ */
+.kanban-board--swimlanes .column--swimlane-cell {
+  width: 100% !important;
+  max-width: 100%;
+  min-width: 0;
+  flex: none !important;
   padding-bottom: 10px;
 }
 
-.kanban-swimlane__columns .column--swimlane-cell.column-expanded {
-  flex: 0 0 1100px;
-  flex-grow: 1;
+.kanban-board--swimlanes .column--swimlane-cell.column-expanded,
+.kanban-board--swimlanes .column--swimlane-cell.column-shrunk {
+  width: 100% !important;
 }
 
-.kanban-swimlane__columns .column--swimlane-cell.column-shrunk {
-  flex: 0 0 100px;
-  flex-shrink: 1;
-}
-
-/* Cards per row grid — inline gridTemplateColumns set from column.cardsPerRow */
+/* Inner droppable: card grid (gridTemplateColumns from getCardsPerRow in SwimlaneColumnCell) */
 .card-list--swimlane-grid {
   display: grid;
   gap: 10px;

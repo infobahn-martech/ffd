@@ -3,9 +3,8 @@ import { Droppable } from "@hello-pangea/dnd";
 import PropTypes from "prop-types";
 import CardItem from "../cards/CardItem";
 import { buildSwimlaneDroppableId } from "../../hooks/useKanbanDnD";
+import { getCardsPerRow } from "../../utils/boardGridHelpers";
 import "../../styles/column.scss";
-
-const DEFAULT_CARDS_PER_ROW = 2;
 
 /**
  * One column cell inside a swimlane row: droppable area + CSS grid for cards (cardsPerRow).
@@ -14,7 +13,6 @@ export default function SwimlaneColumnCell({
   laneId,
   column,
   cards,
-  cardsPerRow,
   setSelectedCard,
   isExpanded = false,
   isShrunk = false,
@@ -28,7 +26,8 @@ export default function SwimlaneColumnCell({
   const cellRef = useRef(null);
   const lastReportedHeightRef = useRef(null);
   const droppableId = buildSwimlaneDroppableId(laneId, column.id);
-  const perRow = cardsPerRow ?? DEFAULT_CARDS_PER_ROW;
+  /* Inner card grid: repeat(cardsPerRow, …) — layout inside the cell; board row width uses the same ratio via boardGridHelpers */
+  const perRow = getCardsPerRow(column);
 
   const handleContextMenu = (e) => {
     e.preventDefault();
@@ -95,7 +94,6 @@ export default function SwimlaneColumnCell({
     >
       <Droppable droppableId={droppableId}>
         {(provided, snapshot) => (
-          /* Cards-per-row grid: column.cardsPerRow (fallback 2) → CSS grid columns */
           <div
             className={`card-list card-list--swimlane-grid ${
               snapshot.isDraggingOver ? "drag-over" : ""
@@ -103,6 +101,7 @@ export default function SwimlaneColumnCell({
             ref={provided.innerRef}
             {...provided.droppableProps}
             style={{
+              /* Inner layout: how many cards sit on one row inside this column cell */
               gridTemplateColumns: isShrunk
                 ? "1fr"
                 : `repeat(${perRow}, minmax(0, 1fr))`,
@@ -135,9 +134,9 @@ SwimlaneColumnCell.propTypes = {
     title: PropTypes.string.isRequired,
     color: PropTypes.string,
     wipLimit: PropTypes.number,
+    cardsPerRow: PropTypes.number,
   }).isRequired,
   cards: PropTypes.arrayOf(PropTypes.object).isRequired,
-  cardsPerRow: PropTypes.number,
   setSelectedCard: PropTypes.func.isRequired,
   isExpanded: PropTypes.bool,
   isShrunk: PropTypes.bool,
