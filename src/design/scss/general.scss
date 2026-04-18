@@ -284,51 +284,48 @@
   }
 }
 
-/* Daily Task/Todo Styles - compact, sticky, premium */
+/* Daily Task/Todo — card layout: header + input + scrollable list + pinned summary */
 .daily-task-todo-wrapper {
   width: 100%;
   max-width: 100%;
   min-width: 0;
   box-sizing: border-box;
   overflow-x: hidden;
-  background: linear-gradient(165deg, #ffffff 0%, #f8faff 50%, #f0f4ff 100%);
-  border-radius: 14px;
-  padding: 14px 16px;
+  overflow-y: visible;
+  background: linear-gradient(180deg, #ffffff 0%, #f8fafc 100%);
+  border-radius: 12px;
+  padding: 14px 14px 12px;
   box-shadow:
-    0 4px 6px -1px rgba(0, 0, 0, 0.06),
-    0 2px 4px -2px rgba(0, 0, 0, 0.04),
-    0 0 0 1px rgba(46, 125, 50, 0.06),
-    inset 0 1px 0 rgba(255, 255, 255, 0.8);
-  border: 1px solid rgba(226, 232, 240, 0.9);
+    0 1px 2px rgba(15, 23, 42, 0.04),
+    0 4px 12px rgba(15, 23, 42, 0.06);
+  border: 1px solid #e2e8f0;
   display: flex;
   flex-direction: column;
-  max-height: 420px;
   position: relative;
-  backdrop-filter: blur(8px);
-  transition: box-shadow 0.2s ease, transform 0.2s ease;
 
   &:hover {
     box-shadow:
-      0 8px 16px -4px rgba(0, 0, 0, 0.08),
-      0 4px 8px -4px rgba(0, 0, 0, 0.04),
-      0 0 0 1px rgba(46, 125, 50, 0.1),
-      inset 0 1px 0 rgba(255, 255, 255, 0.9);
+      0 1px 2px rgba(15, 23, 42, 0.05),
+      0 6px 16px rgba(15, 23, 42, 0.08);
+    border-color: #cbd5e1;
   }
 
   > .cf-field {
     margin-bottom: 0;
     min-width: 0;
     width: 100%;
+    flex: 1 1 auto;
+    min-height: 0;
     display: flex;
     flex-direction: column;
-    gap: 10px;
+    gap: 8px;
 
     label {
-      font-size: 12px;
+      font-size: 11px;
       font-weight: 700;
-      color: #1e293b;
+      color: #334155;
       margin-bottom: 0;
-      letter-spacing: 0.02em;
+      letter-spacing: 0.06em;
       text-transform: uppercase;
     }
   }
@@ -337,8 +334,8 @@
 .daily-task-container {
   display: flex;
   flex-direction: column;
-  gap: 10px;
-  flex: 1;
+  gap: 8px;
+  flex: 1 1 auto;
   min-height: 0;
   min-width: 0;
   width: 100%;
@@ -348,8 +345,9 @@
 .daily-task-input-row {
   display: flex;
   flex-direction: row;
-  gap: 8px;
+  gap: 6px;
   align-items: center;
+  flex-shrink: 0;
   min-width: 0;
   width: 100%;
   box-sizing: border-box;
@@ -360,21 +358,23 @@
     box-sizing: border-box;
 
     input {
-      border: 1.5px solid #e2e8f0;
-      border-radius: 10px;
-      padding: 8px 12px;
+      border: 1px solid #e2e8f0;
+      border-radius: 8px;
+      padding: 6px 10px;
       font-size: 12px;
+      line-height: 1.4;
       font-family: "Open Sans", sans-serif;
-      transition: border-color 0.2s ease, box-shadow 0.2s ease;
+      transition: border-color 0.15s ease, box-shadow 0.15s ease;
       width: 100%;
       max-width: 100%;
       min-width: 0;
       box-sizing: border-box;
+      background: #fff;
 
       &:focus {
         outline: none;
         border-color: #2e7d32;
-        box-shadow: 0 0 0 3px rgba(46, 125, 50, 0.12);
+        box-shadow: 0 0 0 2px rgba(46, 125, 50, 0.12);
       }
 
       &::placeholder {
@@ -388,94 +388,103 @@
   background: linear-gradient(135deg, #2e7d32 0%, #1b5e20 100%);
   border: none;
   color: #ffffff;
-  width: 34px;
-  min-width: 34px;
-  height: 34px;
-  border-radius: 10px;
-  font-size: 18px;
+  width: 32px;
+  min-width: 32px;
+  height: 32px;
+  border-radius: 8px;
+  font-size: 17px;
   font-weight: 600;
+  line-height: 1;
   cursor: pointer;
   display: flex;
   align-items: center;
   justify-content: center;
-  transition: all 0.2s ease;
-  flex: 0 0 34px;
-  box-shadow: 0 2px 4px rgba(46, 125, 50, 0.25);
+  transition: background 0.15s ease, box-shadow 0.15s ease;
+  flex: 0 0 32px;
+  box-shadow: 0 1px 2px rgba(27, 94, 32, 0.35);
   box-sizing: border-box;
 
   &:hover:not(:disabled) {
     background: linear-gradient(135deg, #388e3c 0%, #2e7d32 100%);
-    transform: translateY(-1px);
-    box-shadow: 0 4px 12px rgba(46, 125, 50, 0.35);
+    box-shadow: 0 2px 6px rgba(46, 125, 50, 0.35);
   }
 
   &:active:not(:disabled) {
-    transform: translateY(0);
-    box-shadow: 0 1px 3px rgba(46, 125, 50, 0.2);
+    box-shadow: 0 1px 2px rgba(46, 125, 50, 0.25);
   }
 
   &:disabled {
-    opacity: 0.5;
+    opacity: 0.45;
     cursor: not-allowed;
   }
 }
 
-.daily-task-list {
-  flex: 1;
-  overflow-y: auto;
-  overflow-x: hidden;
-  display: flex;
-  flex-direction: column;
-  gap: 8px;
-  min-height: 0;
+/* Only this region scrolls; summary stays outside below */
+.daily-task-list-scroll {
+  flex: 1 1 auto;
+  min-height: 48px;
+  max-height: min(320px, 42vh);
   min-width: 0;
   width: 100%;
-  max-height: 280px;
-  padding-right: 4px;
+  overflow-y: auto;
+  overflow-x: hidden;
   box-sizing: border-box;
+  -webkit-overflow-scrolling: touch;
+  border-radius: 8px;
+  border: 1px solid #eef2f7;
+  background: rgba(248, 250, 252, 0.65);
+  padding: 6px;
 
   &::-webkit-scrollbar {
-    width: 6px;
+    width: 5px;
   }
 
   &::-webkit-scrollbar-track {
-    background: #f5f5f5;
+    background: transparent;
     border-radius: 3px;
   }
 
   &::-webkit-scrollbar-thumb {
-    background: #ddd;
+    background: #cbd5e1;
     border-radius: 3px;
 
     &:hover {
-      background: #bbb;
+      background: #94a3b8;
     }
   }
+}
+
+.daily-task-list {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  min-width: 0;
+  width: 100%;
+  box-sizing: border-box;
 }
 
 .daily-task-item {
   display: flex;
   align-items: flex-start;
-  gap: 10px;
-  padding: 10px 12px;
-  background: rgba(255, 255, 255, 0.9);
-  border: 1px solid #e2e8f0;
-  border-radius: 10px;
-  transition: all 0.2s ease;
+  gap: 8px;
+  padding: 7px 8px 7px 10px;
+  background: #ffffff;
+  border: 1px solid #e8edf3;
+  border-radius: 8px;
+  transition: border-color 0.15s ease, box-shadow 0.15s ease;
   position: relative;
-  backdrop-filter: blur(4px);
   min-width: 0;
   width: 100%;
   box-sizing: border-box;
 
   &:hover {
-    border-color: rgba(46, 125, 50, 0.25);
-    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04);
-    transform: translateY(-0.5px);
+    border-color: #cbd5e1;
+    box-shadow: 0 1px 3px rgba(15, 23, 42, 0.05);
   }
 
   &.completed {
-    background: rgba(248, 250, 252, 0.95);
+    background: #f8fafc;
+    border-color: #e2e8f0;
 
     .daily-task-text {
       text-decoration: line-through;
@@ -493,7 +502,7 @@
   display: flex;
   align-items: center;
   flex-shrink: 0;
-  margin-top: 2px;
+  margin-top: 1px;
   cursor: pointer;
   position: relative;
 
@@ -520,15 +529,15 @@
 }
 
 .daily-task-checkbox-icon {
-  width: 18px;
-  height: 18px;
+  width: 17px;
+  height: 17px;
   border: 2px solid #cbd5e1;
-  border-radius: 6px;
+  border-radius: 5px;
   background: #ffffff;
   display: flex;
   align-items: center;
   justify-content: center;
-  transition: all 0.2s ease;
+  transition: border-color 0.15s ease, background 0.15s ease;
   flex-shrink: 0;
 
   &.checked {
@@ -554,25 +563,25 @@
   font-family: "Open Sans", sans-serif;
   overflow-wrap: anywhere;
   word-break: break-word;
-  line-height: 1.5;
+  line-height: 1.45;
   font-weight: 500;
-  padding-top: 1px;
+  padding-top: 0.5px;
 }
 
 .daily-task-remove-btn {
   background: transparent;
   border: none;
   color: #94a3b8;
-  font-size: 18px;
-  font-weight: 300;
+  font-size: 17px;
+  font-weight: 400;
   cursor: pointer;
-  padding: 2px 6px;
-  line-height: 1;
-  transition: all 0.2s ease;
+  padding: 0 4px;
+  line-height: 1.2;
+  transition: color 0.15s ease, background 0.15s ease, opacity 0.15s ease;
   flex: 0 0 auto;
-  border-radius: 6px;
+  border-radius: 4px;
   opacity: 0;
-  margin-top: 1px;
+  margin-top: 0;
   align-self: flex-start;
 
   .daily-task-item:hover & {
@@ -580,12 +589,12 @@
   }
 
   &:hover {
-    color: #ff4444;
-    background: rgba(255, 68, 68, 0.1);
+    color: #dc2626;
+    background: rgba(220, 38, 38, 0.08);
   }
 
   &:active {
-    transform: scale(0.95);
+    transform: scale(0.96);
   }
 }
 
@@ -593,39 +602,41 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  padding: 24px 16px;
+  padding: 18px 12px;
   text-align: center;
   color: #64748b;
   font-size: 12px;
   font-family: "Open Sans", sans-serif;
+  line-height: 1.45;
 }
 
 .daily-task-summary {
-  padding-top: 12px;
-  border-top: 1px solid #e2e8f0;
+  flex-shrink: 0;
+  padding-top: 8px;
+  margin-top: 2px;
+  border-top: 1px solid #e8edf3;
   display: flex;
   flex-direction: column;
   gap: 6px;
   min-width: 0;
   width: 100%;
   box-sizing: border-box;
-  flex-shrink: 0;
 }
 
 .daily-task-summary-text {
   font-size: 11px;
-  color: #64748b;
+  color: #475569;
   font-family: "Open Sans", sans-serif;
   font-weight: 600;
-  letter-spacing: 0.01em;
+  letter-spacing: 0.02em;
 }
 
 .daily-task-progress-bar {
   width: 100%;
   max-width: 100%;
-  height: 6px;
+  height: 5px;
   background: #e2e8f0;
-  border-radius: 6px;
+  border-radius: 999px;
   overflow: hidden;
   position: relative;
   box-sizing: border-box;
@@ -633,9 +644,19 @@
 
 .daily-task-progress-fill {
   height: 100%;
-  border-radius: 6px;
+  border-radius: 999px;
   transition: width 0.3s ease;
   background: linear-gradient(90deg, #2e7d32 0%, #43a047 100%);
+}
+
+@media (max-width: 767px) {
+  .daily-task-list-scroll {
+    max-height: min(280px, 48vh);
+  }
+
+  .daily-task-todo-wrapper {
+    padding: 12px 12px 10px;
+  }
 }
 
 .react-quill-wrapper {

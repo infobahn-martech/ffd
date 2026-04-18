@@ -848,57 +848,60 @@ const DailyTaskTodo = ({ tasks = [], onChange, accentColor }) => {
               className="daily-task-add-btn"
               onClick={handleAddTask}
               disabled={!newTask.trim()}
+              aria-label="Add task"
             >
               +
             </button>
           </div>
 
-          <div className="daily-task-list">
-            {localTasks.length === 0 ? (
-              <div className="daily-task-empty">
-                <p>No tasks yet. Add a task to get started!</p>
-              </div>
-            ) : (
-              localTasks.map((task) => (
-                <div
-                  key={task.id}
-                  className={`daily-task-item ${task.completed ? "completed" : ""}`}
-                >
-                  <label className="daily-task-checkbox-display">
-                    <input
-                      type="checkbox"
-                      checked={task.completed || false}
-                      onChange={() => handleToggleTask(task.id)}
-                      className="daily-task-checkbox-input"
-                    />
-                    <div
-                      className={`daily-task-checkbox-icon ${task.completed ? "checked" : ""}`}
-                    >
-                      {task.completed && (
-                        <svg width="10" height="10" viewBox="0 0 12 12" fill="none" xmlns="http://www.w3.org/2000/svg">
-                          <path
-                            d="M10 3L4.5 8.5L2 6"
-                            stroke="white"
-                            strokeWidth="2"
-                            strokeLinecap="round"
-                            strokeLinejoin="round"
-                          />
-                        </svg>
-                      )}
-                    </div>
-                  </label>
-                  <span className="daily-task-text">{task.text}</span>
-                  <button
-                    type="button"
-                    className="daily-task-remove-btn"
-                    onClick={() => handleRemoveTask(task.id)}
-                    title="Remove task"
-                  >
-                    ×
-                  </button>
+          <div className="daily-task-list-scroll" aria-label="Task list">
+            <div className="daily-task-list">
+              {localTasks.length === 0 ? (
+                <div className="daily-task-empty">
+                  <p>No tasks yet. Add a task to get started!</p>
                 </div>
-              ))
-            )}
+              ) : (
+                localTasks.map((task) => (
+                  <div
+                    key={task.id}
+                    className={`daily-task-item ${task.completed ? "completed" : ""}`}
+                  >
+                    <label className="daily-task-checkbox-display">
+                      <input
+                        type="checkbox"
+                        checked={task.completed || false}
+                        onChange={() => handleToggleTask(task.id)}
+                        className="daily-task-checkbox-input"
+                      />
+                      <div
+                        className={`daily-task-checkbox-icon ${task.completed ? "checked" : ""}`}
+                      >
+                        {task.completed && (
+                          <svg width="10" height="10" viewBox="0 0 12 12" fill="none" xmlns="http://www.w3.org/2000/svg">
+                            <path
+                              d="M10 3L4.5 8.5L2 6"
+                              stroke="white"
+                              strokeWidth="2"
+                              strokeLinecap="round"
+                              strokeLinejoin="round"
+                            />
+                          </svg>
+                        )}
+                      </div>
+                    </label>
+                    <span className="daily-task-text">{task.text}</span>
+                    <button
+                      type="button"
+                      className="daily-task-remove-btn"
+                      onClick={() => handleRemoveTask(task.id)}
+                      title="Remove task"
+                    >
+                      ×
+                    </button>
+                  </div>
+                ))
+              )}
+            </div>
           </div>
 
           {localTasks.length > 0 && (
