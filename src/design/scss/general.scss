@@ -36,7 +36,7 @@
 /* General Information Two Column Layout */
 .general-info-two-column {
   display: grid;
-  grid-template-columns: minmax(0, 35fr) minmax(0, 65fr);
+  grid-template-columns: minmax(0, 40fr) minmax(0, 60fr);
   gap: 20px;
   align-items: start;
   min-height: 0;
@@ -124,7 +124,6 @@
       height: 100%;
       gap: 10px;
       margin-bottom: 0;
-      margin-right: 250px;
 
       label {
         font-size: 13px;
@@ -159,7 +158,7 @@
     overflow: hidden;
     align-items: stretch;
     display: grid;
-    grid-template-columns: minmax(0, 35fr) minmax(0, 65fr);
+    grid-template-columns: minmax(0, 40fr) minmax(0, 60fr);
     gap: 20px;
   }
 
@@ -177,9 +176,9 @@
   }
 }
 
-/* General tab (CardFormTabs/General.jsx): 35–65 columns, compact upload, taller Quill */
+/* General tab (CardFormTabs/General.jsx): 40–60 columns, compact upload, taller Quill */
 .cf-section.general-info-section .general-tab-form-layout {
-  grid-template-columns: minmax(0, 35fr) minmax(0, 65fr);
+  grid-template-columns: minmax(0, 40fr) minmax(0, 60fr);
   gap: 86px;
 }
 
@@ -260,20 +259,41 @@
 /* Daily Task/Todo Box Wrapper - fixed in right column, never scrolls */
 .daily-task-box-wrapper {
   width: 100%;
+  max-width: 100%;
+  min-width: 0;
   display: flex;
   align-items: flex-start;
   justify-content: flex-start;
   padding-top: 0;
   flex-shrink: 0;
+  box-sizing: border-box;
+}
+
+/* General tab: keep Daily Tasks card compact; column already 40/60 */
+.cf-section.general-info-section .daily-task-box-wrapper {
+  justify-content: flex-start;
+}
+
+.cf-section.general-info-section .daily-task-todo-wrapper {
+  max-width: min(100%, 480px);
+}
+
+@media (max-width: 767px) {
+  .cf-section.general-info-section .daily-task-todo-wrapper {
+    max-width: 100%;
+  }
 }
 
 /* Daily Task/Todo Styles - compact, sticky, premium */
 .daily-task-todo-wrapper {
   width: 100%;
   max-width: 100%;
+  min-width: 0;
+  box-sizing: border-box;
+  overflow-x: hidden;
   background: linear-gradient(165deg, #ffffff 0%, #f8faff 50%, #f0f4ff 100%);
   border-radius: 14px;
-  padding: 16px;
+  padding: 14px 16px;
   box-shadow:
     0 4px 6px -1px rgba(0, 0, 0, 0.06),
     0 2px 4px -2px rgba(0, 0, 0, 0.04),
@@ -295,14 +315,19 @@
       inset 0 1px 0 rgba(255, 255, 255, 0.9);
   }
 
-  .cf-field {
-    margin-bottom: 12px;
+  > .cf-field {
+    margin-bottom: 0;
+    min-width: 0;
+    width: 100%;
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
 
     label {
       font-size: 12px;
       font-weight: 700;
       color: #1e293b;
-      margin-bottom: 10px;
+      margin-bottom: 0;
       letter-spacing: 0.02em;
       text-transform: uppercase;
     }
@@ -312,17 +337,28 @@
 .daily-task-container {
   display: flex;
   flex-direction: column;
-  gap: 12px;
+  gap: 10px;
   flex: 1;
   min-height: 0;
+  min-width: 0;
+  width: 100%;
+  box-sizing: border-box;
 }
 
 .daily-task-input-row {
   display: flex;
+  flex-direction: row;
   gap: 8px;
   align-items: center;
+  min-width: 0;
+  width: 100%;
+  box-sizing: border-box;
 
   .cf-input {
+    flex: 1 1 0;
+    min-width: 0;
+    box-sizing: border-box;
+
     input {
       border: 1.5px solid #e2e8f0;
       border-radius: 10px;
@@ -331,6 +367,9 @@
       font-family: "Open Sans", sans-serif;
       transition: border-color 0.2s ease, box-shadow 0.2s ease;
       width: 100%;
+      max-width: 100%;
+      min-width: 0;
+      box-sizing: border-box;
 
       &:focus {
         outline: none;
@@ -350,6 +389,7 @@
   border: none;
   color: #ffffff;
   width: 34px;
+  min-width: 34px;
   height: 34px;
   border-radius: 10px;
   font-size: 18px;
@@ -359,8 +399,9 @@
   align-items: center;
   justify-content: center;
   transition: all 0.2s ease;
-  flex-shrink: 0;
+  flex: 0 0 34px;
   box-shadow: 0 2px 4px rgba(46, 125, 50, 0.25);
+  box-sizing: border-box;
 
   &:hover:not(:disabled) {
     background: linear-gradient(135deg, #388e3c 0%, #2e7d32 100%);
@@ -382,12 +423,16 @@
 .daily-task-list {
   flex: 1;
   overflow-y: auto;
+  overflow-x: hidden;
   display: flex;
   flex-direction: column;
   gap: 8px;
   min-height: 0;
+  min-width: 0;
+  width: 100%;
   max-height: 280px;
   padding-right: 4px;
+  box-sizing: border-box;
 
   &::-webkit-scrollbar {
     width: 6px;
@@ -419,6 +464,9 @@
   transition: all 0.2s ease;
   position: relative;
   backdrop-filter: blur(4px);
+  min-width: 0;
+  width: 100%;
+  box-sizing: border-box;
 
   &:hover {
     border-color: rgba(46, 125, 50, 0.25);
@@ -499,10 +547,12 @@
 }
 
 .daily-task-text {
-  flex: 1;
+  flex: 1 1 0;
+  min-width: 0;
   font-size: 12px;
   color: #1e293b;
   font-family: "Open Sans", sans-serif;
+  overflow-wrap: anywhere;
   word-break: break-word;
   line-height: 1.5;
   font-weight: 500;
@@ -519,10 +569,11 @@
   padding: 2px 6px;
   line-height: 1;
   transition: all 0.2s ease;
-  flex-shrink: 0;
+  flex: 0 0 auto;
   border-radius: 6px;
   opacity: 0;
   margin-top: 1px;
+  align-self: flex-start;
 
   .daily-task-item:hover & {
     opacity: 1;
@@ -555,6 +606,10 @@
   display: flex;
   flex-direction: column;
   gap: 6px;
+  min-width: 0;
+  width: 100%;
+  box-sizing: border-box;
+  flex-shrink: 0;
 }
 
 .daily-task-summary-text {
@@ -567,11 +622,13 @@
 
 .daily-task-progress-bar {
   width: 100%;
+  max-width: 100%;
   height: 6px;
   background: #e2e8f0;
   border-radius: 6px;
   overflow: hidden;
   position: relative;
+  box-sizing: border-box;
 }
 
 .daily-task-progress-fill {
@@ -725,7 +782,7 @@
   }
 }
 
-// Adjust two-column layout — 35–65 split (inherits grid columns from base)
+// Adjust two-column layout — 40–60 split (inherits grid columns from base)
 .general-info-two-column {
   gap: 28px;
   align-items: start;

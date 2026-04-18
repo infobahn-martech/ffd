@@ -834,7 +834,7 @@ const DailyTaskTodo = ({ tasks = [], onChange, accentColor }) => {
       <FormField label="Daily Tasks / Todo">
         <div className="daily-task-container">
           <div className="daily-task-input-row">
-            <div className="cf-input" style={{ flex: 1 }}>
+            <div className="cf-input">
               <input
                 type="text"
                 placeholder="Add a new task..."
