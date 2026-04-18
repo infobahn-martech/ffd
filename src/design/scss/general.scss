@@ -124,6 +124,7 @@
       height: 100%;
       gap: 10px;
       margin-bottom: 0;
+      margin-right: 250px;
 
       label {
         font-size: 13px;
@@ -183,6 +184,7 @@
 }
 
 @media (max-width: 767px) {
+
   .cf-section.general-info-section .general-info-two-column,
   .cf-section.general-info-section .general-tab-form-layout {
     grid-template-columns: 1fr;
@@ -247,7 +249,7 @@
 
 .cf-section.general-info-section .general-tab-form-layout .general-info-right .react-quill-wrapper {
   .ql-container {
-    min-height: 280px;
+    min-height: 480px;
   }
 
   .ql-editor {
@@ -613,6 +615,7 @@
   &:focus-within,
   &:focus-visible,
   &:active {
+
     .ql-container,
     .ql-toolbar {
       border-color: #e2e2ea;
