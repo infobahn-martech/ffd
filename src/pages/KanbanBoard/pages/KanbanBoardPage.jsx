@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useMemo, useState } from "react";
-import { useParams } from "react-router-dom";
+import { useLocation, useParams } from "react-router-dom";
 import { useLayoutView } from "../../../context/LayoutViewContext";
 import Workspaces from "../../Workspaces";
 import useSyncKanbanSidebarWorkflows from "../../../hooks/useSyncKanbanSidebarWorkflows";
@@ -19,8 +19,15 @@ import { createNewCardDraft } from "../utils/cardHelpers";
 import { findWorkflowByCardId, resolveCardFormBoardId } from "../utils/boardHelpers";
 
 export default function KanbanBoardPage() {
-  const { boardId } = useParams();
-  const selectedBoardId = boardId ?? null;
+  const { boardId: boardIdParam } = useParams();
+  const location = useLocation();
+  const selectedBoardId = useMemo(() => {
+    if (boardIdParam != null && boardIdParam !== "") return boardIdParam;
+    const segments = location.pathname.split("/").filter(Boolean);
+    return segments[segments.length - 1] === "operator" ? "operator" : null;
+  }, [boardIdParam, location.pathname]);
+
+  const isOperatorBoard = String(selectedBoardId ?? "").toLowerCase() === "operator";
   const { layoutView } = useLayoutView();
   const isClassicLayout = layoutView === "classic";
   const isModernLayout = layoutView === "modern";
@@ -197,7 +204,7 @@ export default function KanbanBoardPage() {
         isDarkMode ? "kanban-board-wrapper kanban-board-wrapper-dark" : "kanban-board-wrapper"
       }
     >
-      {boardLoadError && (
+      {boardLoadError && !isOperatorBoard && (
         <div
           className="kanban-board-load-banner"
           role="status"
@@ -213,7 +220,7 @@ export default function KanbanBoardPage() {
         </div>
       )}
       <div style={{ position: "relative" }}>
-        {boardLoading && (
+        {boardLoading && !isOperatorBoard && (
           <div
             aria-busy="true"
             aria-live="polite"
@@ -236,6 +243,7 @@ export default function KanbanBoardPage() {
         <KanbanBoardContent
           workflows={workflows}
           boardLoading={boardLoading}
+          suppressEmptyMessage={isOperatorBoard}
           expandedWorkflows={expandedWorkflows}
           expandedColumns={expandedColumns}
           maxColumnHeights={maxColumnHeights}
@@ -264,7 +272,7 @@ export default function KanbanBoardPage() {
           currentColumn={isAddMode ? null : findCardColumn(selectedCard.id)}
           isAddMode={isAddMode}
           boardId={resolveCardFormBoardId(addModeCardWorkflow)}
-          onBoardRefresh={refetchBoard}
+          onBoardRefresh={isOperatorBoard ? undefined : refetchBoard}
         />
       )}
 

@@ -1,13 +1,18 @@
 import { useCallback, useEffect, useState } from "react";
 import { initialData } from "../../../helpers/data";
+import { operatorKanbanStaticWorkflows } from "../../../helpers/kanbanOperatorStaticData";
 import { mapFullBoardApiResponse } from "../../../helpers/kanbanBoardApiMapper";
 import kanbanBoardService from "../../../services/kanbanBoardService";
 
 const isDev =
   typeof import.meta !== "undefined" && import.meta.env && import.meta.env.DEV;
 
+const isOperatorBoardId = (id) => String(id ?? "").toLowerCase() === "operator";
+
 export default function useKanbanBoardState(selectedBoardId) {
-  const [workflows, setWorkflows] = useState(initialData);
+  const [workflows, setWorkflows] = useState(() =>
+    isOperatorBoardId(selectedBoardId) ? operatorKanbanStaticWorkflows : initialData
+  );
   const [boardLoading, setBoardLoading] = useState(false);
   const [boardLoadError, setBoardLoadError] = useState(null);
   const [selectedCard, setSelectedCard] = useState(null);
@@ -22,7 +27,7 @@ export default function useKanbanBoardState(selectedBoardId) {
   }, [selectedBoardId]);
 
   const refetchBoard = useCallback(async () => {
-    if (!selectedBoardId) return;
+    if (!selectedBoardId || isOperatorBoardId(selectedBoardId)) return;
     setBoardLoading(true);
     setBoardLoadError(null);
     try {
@@ -52,6 +57,13 @@ export default function useKanbanBoardState(selectedBoardId) {
   useEffect(() => {
     if (!selectedBoardId) {
       setWorkflows(initialData);
+      setBoardLoadError(null);
+      setBoardLoading(false);
+      return undefined;
+    }
+
+    if (isOperatorBoardId(selectedBoardId)) {
+      setWorkflows(operatorKanbanStaticWorkflows);
       setBoardLoadError(null);
       setBoardLoading(false);
       return undefined;

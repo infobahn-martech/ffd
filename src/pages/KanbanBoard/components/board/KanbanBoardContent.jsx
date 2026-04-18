@@ -4,6 +4,7 @@ import WorkflowColumns from "./WorkflowColumns";
 export default function KanbanBoardContent({
   workflows,
   boardLoading = false,
+  suppressEmptyMessage = false,
   expandedWorkflows,
   expandedColumns,
   maxColumnHeights,
@@ -19,7 +20,7 @@ export default function KanbanBoardContent({
   isDarkMode,
   layoutView,
 }) {
-  if (!boardLoading && workflows.length === 0) {
+  if (!boardLoading && workflows.length === 0 && !suppressEmptyMessage) {
     return (
       <div
         style={{
