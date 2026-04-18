@@ -124,6 +124,7 @@
       height: 100%;
       gap: 10px;
       margin-bottom: 0;
+      margin-right: 250px;
 
       label {
         font-size: 13px;
@@ -310,7 +311,7 @@
     border-color: #cbd5e1;
   }
 
-  > .cf-field {
+  >.cf-field {
     margin-bottom: 0;
     min-width: 0;
     width: 100%;
