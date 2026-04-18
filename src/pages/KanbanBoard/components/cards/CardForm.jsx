@@ -1125,6 +1125,7 @@ function CardForm({
   isAddMode = false,
   variant = "default",
   boardId: boardIdProp,
+  onBoardRefresh,
 }) {
   const location = useLocation();
   const isDriverVariant = variant === "driver";
@@ -1282,6 +1283,7 @@ function CardForm({
         });
         await callFileService.createCallFile(formData);
         notify("Call file created successfully.", "success");
+        await onBoardRefresh?.();
         close();
       } catch (error) {
         const msg =
@@ -1294,7 +1296,7 @@ function CardForm({
         setIsSavingGeneral(false);
       }
     },
-    [boardIdProp, card?.board_id, close]
+    [boardIdProp, card?.board_id, close, onBoardRefresh]
   );
 
   const handleUpdate = useCallback(() => {

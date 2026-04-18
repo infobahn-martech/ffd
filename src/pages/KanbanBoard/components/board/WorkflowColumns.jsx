@@ -106,6 +106,11 @@ export default function WorkflowColumns({
                 className={`kanban-swimlane ${!shouldShowSwimlaneTitle ? "kanban-swimlane--single" : ""}`}
                 key={laneId}
                 aria-label={lane.title}
+                style={
+                  lane.color
+                    ? { borderLeft: `3px solid ${lane.color}` }
+                    : undefined
+                }
               >
                 {shouldShowSwimlaneTitle && (
                   <div className="kanban-swimlane__title">{lane.title}</div>

@@ -29,6 +29,7 @@ export default function KanbanBoardPage() {
   const {
     workflows,
     setWorkflows,
+    refetchBoard,
     boardLoading,
     boardLoadError,
     selectedCard,
@@ -234,6 +235,7 @@ export default function KanbanBoardPage() {
         )}
         <KanbanBoardContent
           workflows={workflows}
+          boardLoading={boardLoading}
           expandedWorkflows={expandedWorkflows}
           expandedColumns={expandedColumns}
           maxColumnHeights={maxColumnHeights}
@@ -262,6 +264,7 @@ export default function KanbanBoardPage() {
           currentColumn={isAddMode ? null : findCardColumn(selectedCard.id)}
           isAddMode={isAddMode}
           boardId={resolveCardFormBoardId(addModeCardWorkflow)}
+          onBoardRefresh={refetchBoard}
         />
       )}
 

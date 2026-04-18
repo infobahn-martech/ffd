@@ -3,6 +3,9 @@ import { initialData } from "../../../helpers/data";
 import { mapFullBoardApiResponse } from "../../../helpers/kanbanBoardApiMapper";
 import kanbanBoardService from "../../../services/kanbanBoardService";
 
+const isDev =
+  typeof import.meta !== "undefined" && import.meta.env && import.meta.env.DEV;
+
 export default function useKanbanBoardState(selectedBoardId) {
   const [workflows, setWorkflows] = useState(initialData);
   const [boardLoading, setBoardLoading] = useState(false);
@@ -16,6 +19,34 @@ export default function useKanbanBoardState(selectedBoardId) {
     setSelectedCard(null);
     setIsAddMode(false);
     setAddTargetWorkflowId(null);
+  }, [selectedBoardId]);
+
+  const refetchBoard = useCallback(async () => {
+    if (!selectedBoardId) return;
+    setBoardLoading(true);
+    setBoardLoadError(null);
+    try {
+      const res = await kanbanBoardService.getFullBoard(selectedBoardId);
+      const payload = res?.data;
+      if (isDev) {
+        console.log("raw board response", payload?.data ?? payload);
+      }
+      const mapped = mapFullBoardApiResponse(payload);
+      if (isDev) {
+        console.log("normalized workflows", mapped);
+      }
+      setWorkflows(mapped.length ? mapped : []);
+      setBoardLoadError(null);
+    } catch (e) {
+      const msg = e?.message ?? String(e);
+      if (typeof console !== "undefined" && console.error) {
+        console.error("[KanbanBoard] getFullBoard failed:", msg);
+      }
+      setWorkflows([]);
+      setBoardLoadError("Could not load board data.");
+    } finally {
+      setBoardLoading(false);
+    }
   }, [selectedBoardId]);
 
   useEffect(() => {
@@ -34,13 +65,15 @@ export default function useKanbanBoardState(selectedBoardId) {
       try {
         const res = await kanbanBoardService.getFullBoard(selectedBoardId);
         const payload = res?.data;
-        const mapped = mapFullBoardApiResponse(payload);
-        if (cancelled) return;
-        if (!mapped.length) {
-          setWorkflows(initialData);
-        } else {
-          setWorkflows(mapped);
+        if (isDev) {
+          console.log("raw board response", payload?.data ?? payload);
         }
+        const mapped = mapFullBoardApiResponse(payload);
+        if (isDev) {
+          console.log("normalized workflows", mapped);
+        }
+        if (cancelled) return;
+        setWorkflows(mapped.length ? mapped : []);
         setBoardLoadError(null);
       } catch (e) {
         if (!cancelled) {
@@ -48,8 +81,8 @@ export default function useKanbanBoardState(selectedBoardId) {
           if (typeof console !== "undefined" && console.error) {
             console.error("[KanbanBoard] getFullBoard failed:", msg);
           }
-          setWorkflows(initialData);
-          setBoardLoadError("Could not load board data. Showing sample data.");
+          setWorkflows([]);
+          setBoardLoadError("Could not load board data.");
         }
       } finally {
         if (!cancelled) setBoardLoading(false);
@@ -94,6 +127,7 @@ export default function useKanbanBoardState(selectedBoardId) {
   return {
     workflows,
     setWorkflows,
+    refetchBoard,
     boardLoading,
     boardLoadError,
     selectedCard,

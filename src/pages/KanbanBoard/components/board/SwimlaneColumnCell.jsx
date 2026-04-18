@@ -93,7 +93,10 @@ export default function SwimlaneColumnCell({
         isDarkMode ? "column-dark" : ""
       }`}
       onContextMenu={handleContextMenu}
-      style={columnHeight ? { minHeight: `${columnHeight}px` } : {}}
+      style={{
+        ...(columnHeight ? { minHeight: `${columnHeight}px` } : {}),
+        ...(column.backgroundColor ? { backgroundColor: column.backgroundColor } : {}),
+      }}
     >
       <Droppable droppableId={droppableId}>
         {(provided, snapshot) => (

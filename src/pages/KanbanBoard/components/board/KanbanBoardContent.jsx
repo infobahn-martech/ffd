@@ -3,6 +3,7 @@ import WorkflowColumns from "./WorkflowColumns";
 
 export default function KanbanBoardContent({
   workflows,
+  boardLoading = false,
   expandedWorkflows,
   expandedColumns,
   maxColumnHeights,
@@ -18,6 +19,21 @@ export default function KanbanBoardContent({
   isDarkMode,
   layoutView,
 }) {
+  if (!boardLoading && workflows.length === 0) {
+    return (
+      <div
+        style={{
+          padding: 32,
+          textAlign: "center",
+          fontSize: 14,
+          color: isDarkMode ? "#bdbdbd" : "#616161",
+        }}
+      >
+        No workflows to display for this board.
+      </div>
+    );
+  }
+
   return workflows.map((workflow) => (
     <WorkflowAccordion
       key={workflow.id}
