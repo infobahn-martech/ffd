@@ -36,7 +36,7 @@
 /* General Information Two Column Layout */
 .general-info-two-column {
   display: grid;
-  grid-template-columns: 3fr 2fr;
+  grid-template-columns: minmax(0, 35fr) minmax(0, 65fr);
   gap: 20px;
   align-items: start;
   min-height: 0;
@@ -158,7 +158,7 @@
     overflow: hidden;
     align-items: stretch;
     display: grid;
-    grid-template-columns: 3fr 2fr;
+    grid-template-columns: minmax(0, 35fr) minmax(0, 65fr);
     gap: 20px;
   }
 
@@ -176,14 +176,19 @@
   }
 }
 
-/* General tab (CardFormTabs/General.jsx): balanced columns, compact upload, taller Quill */
+/* General tab (CardFormTabs/General.jsx): 35–65 columns, compact upload, taller Quill */
 .cf-section.general-info-section .general-tab-form-layout {
-  grid-template-columns: 1fr 1fr;
+  grid-template-columns: minmax(0, 35fr) minmax(0, 65fr);
   gap: 86px;
 }
 
-@media (max-width: 900px) {
+@media (max-width: 767px) {
+  .cf-section.general-info-section .general-info-two-column,
   .cf-section.general-info-section .general-tab-form-layout {
+    grid-template-columns: 1fr;
+  }
+
+  .general-info-two-column {
     grid-template-columns: 1fr;
   }
 }
@@ -717,9 +722,8 @@
   }
 }
 
-// Adjust two-column layout - 50-50 split
+// Adjust two-column layout — 35–65 split (inherits grid columns from base)
 .general-info-two-column {
-  // grid-template-columns: 1fr 1fr;
   gap: 28px;
   align-items: start;
 
