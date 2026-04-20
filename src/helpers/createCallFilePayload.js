@@ -56,6 +56,7 @@ export function buildCreateCallFileFormData(formPayload, options = {}) {
   appendScalar("owner_id", str(fv.owner));
   appendScalar("port_id", str(fv.port));
   appendScalar("call_type", str(fv.typeOfCall));
+  appendScalar("swimlane_id", str(fv.swimlane_id ?? fv.swimlaneId ?? ""));
 
   if (boardId !== undefined && boardId !== null && String(boardId).trim() !== "") {
     fd.append("board_id", String(boardId).trim());

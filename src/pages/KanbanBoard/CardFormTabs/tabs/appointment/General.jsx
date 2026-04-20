@@ -23,6 +23,8 @@ import {
   mapBargeTypesToOptions,
   mergeOptionIfMissing,
 } from "../../../../../helpers/callFileFormOptions";
+import { buildCreateCallFileFormData } from "../../../../../helpers/createCallFilePayload";
+import { notify } from "../../../../../components/Toaster";
 
 // Form Components
 const FormField = ({ label, children, className = "", hasError = false }) => {
@@ -1071,6 +1073,10 @@ function General({
   isAddMode = false,
   isSimplifiedMode = false,
   isSavingGeneral = false,
+  hasSubmitted = false,
+  setHasSubmitted = () => {},
+  boardId,
+  setIsSavingGeneral = () => {},
 }) {
   const accentColor = useMemo(() => card?.color || "#2A00FF", [card?.color]);
   const [vesselNameOptions, setVesselNameOptions] = useState([
@@ -1121,7 +1127,6 @@ function General({
   const [entityFieldValues, setEntityFieldValues] = useState({});
   const [entityFieldErrors, setEntityFieldErrors] = useState({});
   const [fieldErrors, setFieldErrors] = useState({});
-  const [hasSubmitted, setHasSubmitted] = useState(false);
   const [entityFieldsLoading, setEntityFieldsLoading] = useState(false);
   const [entityFieldsError, setEntityFieldsError] = useState("");
 
@@ -1281,13 +1286,59 @@ function General({
   const validateGeneralFields = (snapshot = formValues) => {
     const errors = {};
     const v = (name) => getValueForGeneralValidation(name, snapshot);
-    if (isEmptyValue(v("cardTitle"))) errors.cardTitle = "Card title is required.";
     if (isEmptyValue(v("owner"))) errors.owner = "Owner is required.";
     if (isEmptyValue(v("appointmentReceivedDate"))) errors.appointmentReceivedDate = "Appointment received is required.";
     if (isEmptyValue(v("port"))) errors.port = "Port is required.";
     if (isEmptyValue(v("typeOfCall"))) errors.typeOfCall = "Type of call / service is required.";
     if (isEmptyValue(v("mainBillingEntity"))) errors.mainBillingEntity = "Main billing entity is required.";
     return errors;
+  };
+
+  const handleSubmit = async () => {
+    setHasSubmitted(true);
+
+    const errors = validateGeneralFields();
+    const cardTitleEmpty = isEmptyValue(getTrimmedValue(formValues?.cardTitle));
+    if (Object.keys(errors).length > 0 || cardTitleEmpty) {
+      setFieldErrors(errors);
+      return;
+    }
+
+    const requiredErrors = validateRequiredEntityFields(entityFields, entityFieldValues);
+    if (Object.keys(requiredErrors).length > 0) {
+      setEntityFieldErrors(requiredErrors);
+      return;
+    }
+
+    setFieldErrors({});
+    setEntityFieldErrors({});
+
+    const entityFieldsPayload = buildEntityFieldsPayload(entityFields, entityFieldValues);
+    const formPayload = {
+      ...formValues,
+      swimlane_id: card?.swimlane_id ?? formValues?.swimlane_id,
+      entity_fields: entityFieldsPayload,
+    };
+
+    setIsSavingGeneral(true);
+    try {
+      const formData = buildCreateCallFileFormData(formPayload, {
+        appointmentFiles: appointmentDocuments,
+        boardId: boardId ?? card?.board_id,
+      });
+      const response = await callFileService.createCallFile(formData);
+      if (onSave) onSave(response);
+    } catch (error) {
+      console.error("Create failed:", error);
+      const msg =
+        error?.response?.data?.message ||
+        error?.response?.data?.error ||
+        error?.message ||
+        "Could not create call file.";
+      notify(typeof msg === "string" ? msg : "Could not create call file.", "error");
+    } finally {
+      setIsSavingGeneral(false);
+    }
   };
 
   const handleValidatedChange = (fieldName) => (event) => {
@@ -1718,18 +1769,6 @@ function General({
       return { ...prev, mainBillingEntity: errs.mainBillingEntity };
     });
   };
-
-  useEffect(() => {
-    if (!isAddMode || !hasSubmitted || !fieldErrors.cardTitle) return;
-    if (!isEmptyValue(getTrimmedValue(formValues?.cardTitle))) {
-      setFieldErrors((prev) => {
-        if (!prev.cardTitle) return prev;
-        const next = { ...prev };
-        delete next.cardTitle;
-        return next;
-      });
-    }
-  }, [isAddMode, hasSubmitted, formValues?.cardTitle, fieldErrors.cardTitle]);
 
   useEffect(() => {
     const selectedEntityId = getFieldValue("mainBillingEntity");
@@ -2235,11 +2274,6 @@ function General({
                     </>
                   ) : (
                     <>
-                      {isAddMode && fieldErrors.cardTitle && (
-                        <div className="cf-field-error cf-field-error--card-title" role="alert">
-                          {fieldErrors.cardTitle}
-                        </div>
-                      )}
                       <OwnerField
                         value={getFieldValue("owner")}
                         onChange={isAddMode ? handleValidatedChange("owner") : handleChange("owner")}
@@ -2543,26 +2577,7 @@ function General({
                             <button
                               type="button"
                               className="form-save-button"
-                              onClick={() => {
-                                if (!onSave) return;
-                                setHasSubmitted(true);
-                                const generalErrors = validateGeneralFields();
-                                const requiredErrors = validateRequiredEntityFields(entityFields, entityFieldValues);
-                                if (Object.keys(generalErrors).length > 0 || Object.keys(requiredErrors).length > 0) {
-                                  setFieldErrors(generalErrors);
-                                  setEntityFieldErrors(requiredErrors);
-                                  return;
-                                }
-                                setFieldErrors({});
-                                setEntityFieldErrors({});
-                                const entityFieldsPayload = buildEntityFieldsPayload(entityFields, entityFieldValues);
-                                onSave({
-                                  ...formValues,
-                                  board_id: formValues?.board_id ?? formValues?.boardId ?? card?.board_id ?? card?.boardId,
-                                  entity_fields: entityFieldsPayload,
-                                  appointment_email_files: appointmentDocuments,
-                                });
-                              }}
+                              onClick={handleSubmit}
                               disabled={isSavingGeneral}
                             >
                               {isSavingGeneral ? "Saving…" : "Save"}
@@ -3104,6 +3119,10 @@ General.propTypes = {
   isAddMode: PropTypes.bool,
   isSimplifiedMode: PropTypes.bool,
   isSavingGeneral: PropTypes.bool,
+  hasSubmitted: PropTypes.bool,
+  setHasSubmitted: PropTypes.func,
+  boardId: PropTypes.oneOfType([PropTypes.string, PropTypes.number]),
+  setIsSavingGeneral: PropTypes.func,
 };
 
 export default General;

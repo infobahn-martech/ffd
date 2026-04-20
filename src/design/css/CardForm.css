@@ -106,6 +106,10 @@
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
 }
 
+.cardform-title-input.is-invalid {
+  box-shadow: 0 0 0 2px #dc3545;
+}
+
 /* Topbar right icons container */
 .cardform-topbar-right {
   display: flex;

@@ -1,8 +1,6 @@
 import { useState, useMemo, useCallback, useEffect, useRef } from "react";
 import { useLocation } from "react-router-dom";
 import PropTypes from "prop-types";
-import callFileService from "../../../../services/callFileService";
-import { buildCreateCallFileFormData } from "../../../../helpers/createCallFilePayload";
 import { notify } from "../../../../components/Toaster";
 import "../../styles/cardForm.scss";
 import "../../../../design/scss/general.scss";
@@ -266,7 +264,7 @@ ColorPickerDropdown.propTypes = {
 };
 
 // Sub-components
-const TopBar = ({ card, topbarColor, onClose, isAddMode = false, onColorChange, formValues, handleChange }) => {
+const TopBar = ({ card, topbarColor, onClose, isAddMode = false, onColorChange, formValues, handleChange, cardTitleHasError = false }) => {
   const [isColorPickerOpen, setIsColorPickerOpen] = useState(false);
   const cardId = card?.code || card?.id || '';
   const cardTitle = card?.title || '';
@@ -297,11 +295,12 @@ const TopBar = ({ card, topbarColor, onClose, isAddMode = false, onColorChange, 
         {isAddMode ? (
           <input
             type="text"
-            className="cardform-title-input"
+            className={`cardform-title-input${cardTitleHasError ? " is-invalid" : ""}`}
             placeholder="Enter card title"
             value={formValues?.cardTitle || ""}
             onChange={handleTitleChange}
             autoFocus
+            aria-invalid={cardTitleHasError}
           />
         ) : (
           <span className="cardform-title">{cardTitle}</span>
@@ -341,6 +340,7 @@ TopBar.propTypes = {
   onColorChange: PropTypes.func,
   formValues: PropTypes.object,
   handleChange: PropTypes.func,
+  cardTitleHasError: PropTypes.bool,
 };
 
 const TopTabs = ({ tabs, activeTab, onTabChange, enabledTabs }) => {
@@ -1044,6 +1044,10 @@ const renderTabContent = (
     isDAModule,
     onSave: addModeSave.onSave,
     isSavingGeneral: addModeSave.isSavingGeneral,
+    hasSubmitted: addModeSave.hasSubmitted,
+    setHasSubmitted: addModeSave.setHasSubmitted,
+    boardId: addModeSave.boardId,
+    setIsSavingGeneral: addModeSave.setIsSavingGeneral,
   };
 
   if (isDAModule) {
@@ -1270,33 +1274,19 @@ function CardForm({
   );
 
   const [isSavingGeneral, setIsSavingGeneral] = useState(false);
+  const [hasSubmitted, setHasSubmitted] = useState(false);
 
-  const handleCreateCallFile = useCallback(
-    async (payload) => {
-      const files = payload?.appointment_email_files;
-      const { appointment_email_files: _a, ...rest } = payload || {};
-      setIsSavingGeneral(true);
-      try {
-        const formData = buildCreateCallFileFormData(rest, {
-          appointmentFiles: Array.isArray(files) ? files : [],
-          boardId: boardIdProp ?? card?.board_id,
-        });
-        await callFileService.createCallFile(formData);
-        notify("Call file created successfully.", "success");
-        await onBoardRefresh?.();
-        close();
-      } catch (error) {
-        const msg =
-          error?.response?.data?.message ||
-          error?.response?.data?.error ||
-          error?.message ||
-          "Could not create call file.";
-        notify(typeof msg === "string" ? msg : "Could not create call file.", "error");
-      } finally {
-        setIsSavingGeneral(false);
-      }
+  useEffect(() => {
+    if (show && isAddMode) setHasSubmitted(false);
+  }, [show, isAddMode]);
+
+  const handleCallFileCreatedSuccess = useCallback(
+    async () => {
+      notify("Call file created successfully.", "success");
+      await onBoardRefresh?.();
+      close();
     },
-    [boardIdProp, card?.board_id, close, onBoardRefresh]
+    [close, onBoardRefresh]
   );
 
   const handleUpdate = useCallback(() => {
@@ -1309,9 +1299,23 @@ function CardForm({
   const addModeSaveProps = useMemo(
     () =>
       isAddMode
-        ? { onSave: handleCreateCallFile, isSavingGeneral }
-        : { onSave: undefined, isSavingGeneral: false },
-    [isAddMode, handleCreateCallFile, isSavingGeneral]
+        ? {
+            onSave: handleCallFileCreatedSuccess,
+            isSavingGeneral,
+            hasSubmitted,
+            setHasSubmitted,
+            boardId: boardIdProp ?? card?.board_id,
+            setIsSavingGeneral,
+          }
+        : {
+            onSave: undefined,
+            isSavingGeneral: false,
+            hasSubmitted: false,
+            setHasSubmitted: () => {},
+            boardId: undefined,
+            setIsSavingGeneral: () => {},
+          },
+    [isAddMode, handleCallFileCreatedSuccess, isSavingGeneral, hasSubmitted, boardIdProp, card?.board_id]
   );
 
   const handleTopTabChange = useCallback((tab) => {
@@ -1366,6 +1370,11 @@ function CardForm({
 
   if (!show) return null;
 
+  const cardTitleHasError =
+    isAddMode &&
+    hasSubmitted &&
+    (!formValues?.cardTitle || String(formValues.cardTitle).trim() === "");
+
   return (
     <div className="cardform-overlay">
       <div className={`cardform-panel ${isAddMode ? 'add-mode' : ''}`}>
@@ -1377,6 +1386,7 @@ function CardForm({
           onColorChange={handleTopbarColorChange}
           formValues={formValues}
           handleChange={handleChange}
+          cardTitleHasError={cardTitleHasError}
         />
         {isDriverStyleView ? (
           <DriverCardView card={card} variant={variant} />
