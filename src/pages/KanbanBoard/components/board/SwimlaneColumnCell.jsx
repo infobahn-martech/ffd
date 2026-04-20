@@ -34,7 +34,7 @@ export default function SwimlaneColumnCell({
 
   const handleContextMenu = (e) => {
     e.preventDefault();
-    onContextMenu?.(e, column);
+    onContextMenu?.(e, column, laneId);
   };
 
   useLayoutEffect(() => {

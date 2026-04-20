@@ -10,7 +10,9 @@ export default function useKanbanAddCardFromSidebar({ setSelectedCard, setIsAddM
         id: `new-${Date.now()}`,
         title: '',
         color: '#2A00FF',
-        ...(laneId != null && laneId !== '' ? { laneId, laneName } : {}),
+        ...(laneId != null && laneId !== ''
+          ? { laneId, laneName, swimlane_id: laneId }
+          : {}),
       };
       setSelectedCard(newCard);
       setIsAddMode(true);

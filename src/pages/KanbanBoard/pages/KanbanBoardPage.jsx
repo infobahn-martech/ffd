@@ -16,7 +16,7 @@ import useColumnHeights from "../hooks/useColumnHeights";
 import useKanbanDnD from "../hooks/useKanbanDnD";
 import useKanbanRoleAccess from "../hooks/useKanbanRoleAccess";
 import { createNewCardDraft } from "../utils/cardHelpers";
-import { findWorkflowByCardId, resolveCardFormBoardId } from "../utils/boardHelpers";
+import { findWorkflowByCardId } from "../utils/boardHelpers";
 
 export default function KanbanBoardPage() {
   const { boardId: boardIdParam } = useParams();
@@ -73,6 +73,7 @@ export default function KanbanBoardPage() {
 
   const [contextMenu, setContextMenu] = useState(null);
   const [contextMenuColumn, setContextMenuColumn] = useState(null);
+  const [contextMenuLaneId, setContextMenuLaneId] = useState(null);
   const [accordionMenu, setAccordionMenu] = useState(null);
   const [accordionMenuWorkflowId, setAccordionMenuWorkflowId] = useState(null);
 
@@ -115,26 +116,28 @@ export default function KanbanBoardPage() {
     handleCloseAccordionMenu();
   }, [accordionMenuWorkflowId, toggleWorkflowPin, handleCloseAccordionMenu]);
 
-  const handleColumnContextMenu = useCallback((event, column) => {
+  const handleColumnContextMenu = useCallback((event, column, laneId) => {
     event.preventDefault();
     setContextMenu({
       x: event.clientX,
       y: event.clientY,
     });
     setContextMenuColumn(column);
+    setContextMenuLaneId(laneId !== undefined && laneId !== null ? String(laneId) : null);
   }, []);
 
   const handleCloseContextMenu = useCallback(() => {
     setContextMenu(null);
     setContextMenuColumn(null);
+    setContextMenuLaneId(null);
   }, []);
 
   const handleCreateCard = useCallback(() => {
-    const newCard = createNewCardDraft(contextMenuColumn?.color);
+    const newCard = createNewCardDraft(contextMenuColumn?.color, contextMenuLaneId);
     setSelectedCard(newCard);
     setIsAddMode(true);
     setAddTargetWorkflowId(null);
-  }, [contextMenuColumn, setSelectedCard, setIsAddMode, setAddTargetWorkflowId]);
+  }, [contextMenuColumn, contextMenuLaneId, setSelectedCard, setIsAddMode, setAddTargetWorkflowId]);
 
   const handleWorkflowColumnHeightChange = useCallback(
     (columnId, height, laneId) => {
@@ -271,7 +274,6 @@ export default function KanbanBoardPage() {
           columnOrder={columnOrderForCardForm}
           currentColumn={isAddMode ? null : findCardColumn(selectedCard.id)}
           isAddMode={isAddMode}
-          boardId={resolveCardFormBoardId(addModeCardWorkflow)}
           onBoardRefresh={isOperatorBoard ? undefined : refetchBoard}
         />
       )}

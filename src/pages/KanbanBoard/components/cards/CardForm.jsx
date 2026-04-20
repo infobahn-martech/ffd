@@ -1046,7 +1046,6 @@ const renderTabContent = (
     isSavingGeneral: addModeSave.isSavingGeneral,
     hasSubmitted: addModeSave.hasSubmitted,
     setHasSubmitted: addModeSave.setHasSubmitted,
-    boardId: addModeSave.boardId,
     setIsSavingGeneral: addModeSave.setIsSavingGeneral,
   };
 
@@ -1128,7 +1127,6 @@ function CardForm({
   currentColumn,
   isAddMode = false,
   variant = "default",
-  boardId: boardIdProp,
   onBoardRefresh,
 }) {
   const location = useLocation();
@@ -1304,7 +1302,6 @@ function CardForm({
             isSavingGeneral,
             hasSubmitted,
             setHasSubmitted,
-            boardId: boardIdProp ?? card?.board_id,
             setIsSavingGeneral,
           }
         : {
@@ -1312,10 +1309,9 @@ function CardForm({
             isSavingGeneral: false,
             hasSubmitted: false,
             setHasSubmitted: () => {},
-            boardId: undefined,
             setIsSavingGeneral: () => {},
           },
-    [isAddMode, handleCallFileCreatedSuccess, isSavingGeneral, hasSubmitted, boardIdProp, card?.board_id]
+    [isAddMode, handleCallFileCreatedSuccess, isSavingGeneral, hasSubmitted]
   );
 
   const handleTopTabChange = useCallback((tab) => {
@@ -1470,7 +1466,6 @@ CardForm.propTypes = {
   }),
   isAddMode: PropTypes.bool,
   variant: PropTypes.oneOf(["default", "driver", "hotel", "mwp", "gro"]),
-  boardId: PropTypes.oneOfType([PropTypes.string, PropTypes.number]),
 };
 
 export default CardForm;

@@ -550,6 +550,12 @@ const MultiSelectEmail = ({ value = [], onChange, options = [], placeholder, onA
   const [showAddInput, setShowAddInput] = useState(false);
   const dropdownRef = useRef(null);
 
+  const valuesEqual = (a, b) => String(a) === String(b);
+  const valueToLabel = (val) => {
+    const opt = options.find((o) => valuesEqual(o.value, val));
+    return opt?.label ?? String(val);
+  };
+
   // Close dropdown when clicking outside
   useEffect(() => {
     const handleClickOutside = (event) => {
@@ -564,10 +570,10 @@ const MultiSelectEmail = ({ value = [], onChange, options = [], placeholder, onA
 
   const selectedValues = Array.isArray(value) ? value : (value ? [value] : []);
 
-  const handleToggle = (email) => {
-    const newValue = selectedValues.includes(email)
-      ? selectedValues.filter(e => e !== email)
-      : [...selectedValues, email];
+  const handleToggle = (optionValue) => {
+    const newValue = selectedValues.some((v) => valuesEqual(v, optionValue))
+      ? selectedValues.filter((e) => !valuesEqual(e, optionValue))
+      : [...selectedValues, optionValue];
 
     const syntheticEvent = {
       target: { value: newValue, name: "dailyReportEmail" }
@@ -575,23 +581,26 @@ const MultiSelectEmail = ({ value = [], onChange, options = [], placeholder, onA
     onChange(syntheticEvent);
   };
 
-  const handleAddNewEmail = () => {
+  const handleAddNewEmail = async () => {
     if (newEmail.trim() && /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(newEmail.trim())) {
       const email = newEmail.trim();
-      if (!selectedValues.includes(email) && !options.some(opt => opt.value === email)) {
-        if (onAddNew) {
-          onAddNew(email);
-        }
+      if (
+        !selectedValues.some((v) => valuesEqual(v, email)) &&
+        !options.some((opt) => valuesEqual(opt.value, email))
+      ) {
         handleToggle(email);
+        if (onAddNew) {
+          await Promise.resolve(onAddNew(email));
+        }
       }
       setNewEmail("");
       setShowAddInput(false);
     }
   };
 
-  const handleRemoveEmail = (email, e) => {
+  const handleRemoveEmail = (rawVal, e) => {
     e.stopPropagation();
-    const newValue = selectedValues.filter(e => e !== email);
+    const newValue = selectedValues.filter((entry) => !valuesEqual(entry, rawVal));
     const syntheticEvent = {
       target: { value: newValue, name: "dailyReportEmail" }
     };
@@ -617,14 +626,14 @@ const MultiSelectEmail = ({ value = [], onChange, options = [], placeholder, onA
       >
         <div className="cf-multi-select-email-tags">
           {selectedValues.length > 0 ? (
-            selectedValues.map((email) => (
-              <span key={email} className="cf-email-tag">
-                {email}
+            selectedValues.map((entryVal) => (
+              <span key={String(entryVal)} className="cf-email-tag">
+                {valueToLabel(entryVal)}
                 {!disabled && (
                   <button
                     type="button"
                     className="cf-email-tag-remove"
-                    onClick={(e) => handleRemoveEmail(email, e)}
+                    onClick={(e) => handleRemoveEmail(entryVal, e)}
                   >
                     ×
                   </button>
@@ -640,10 +649,10 @@ const MultiSelectEmail = ({ value = [], onChange, options = [], placeholder, onA
       {isOpen && (
         <div className="cf-multi-select-dropdown">
           {options.map((option) => {
-            const isSelected = selectedValues.includes(option.value);
+            const isSelected = selectedValues.some((v) => valuesEqual(v, option.value));
             return (
               <div
-                key={option.value}
+                key={String(option.value)}
                 className={`cf-multi-select-option ${isSelected ? "selected" : ""}`}
                 onClick={() => handleToggle(option.value)}
               >
@@ -706,7 +715,7 @@ MultiSelectEmail.propTypes = {
   onChange: PropTypes.func.isRequired,
   options: PropTypes.arrayOf(
     PropTypes.shape({
-      value: PropTypes.string.isRequired,
+      value: PropTypes.oneOfType([PropTypes.string, PropTypes.number]).isRequired,
       label: PropTypes.string.isRequired,
     })
   ),
@@ -1075,7 +1084,6 @@ function General({
   isSavingGeneral = false,
   hasSubmitted = false,
   setHasSubmitted = () => {},
-  boardId,
   setIsSavingGeneral = () => {},
 }) {
   const accentColor = useMemo(() => card?.color || "#2A00FF", [card?.color]);
@@ -1231,6 +1239,7 @@ function General({
     otherBillingEntity: "Other Entity",
     assignedOperator: "Operator Name",
     serviceRequestorName: "Requestor Name",
+    serviceRequestorEmail: "requestor@example.com",
     dailyReportEmail: ["admin@example.com", "reports@example.com"],
     billingInstructions: "Standard billing instructions apply",
     // CREW CHANGE specific fields
@@ -1291,6 +1300,12 @@ function General({
     if (isEmptyValue(v("port"))) errors.port = "Port is required.";
     if (isEmptyValue(v("typeOfCall"))) errors.typeOfCall = "Type of call / service is required.";
     if (isEmptyValue(v("mainBillingEntity"))) errors.mainBillingEntity = "Main billing entity is required.";
+    const serviceEmailRaw = v("serviceRequestorEmail");
+    const serviceEmailStr =
+      serviceEmailRaw === undefined || serviceEmailRaw === null ? "" : String(serviceEmailRaw).trim();
+    if (!isEmptyValue(serviceEmailStr) && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(serviceEmailStr)) {
+      errors.serviceRequestorEmail = "Invalid email format.";
+    }
     return errors;
   };
 
@@ -1314,9 +1329,14 @@ function General({
     setEntityFieldErrors({});
 
     const entityFieldsPayload = buildEntityFieldsPayload(entityFields, entityFieldValues);
+    const swimlaneId =
+      formValues?.swimlane_id ??
+      formValues?.swimlaneId ??
+      card?.swimlane_id ??
+      card?.laneId;
     const formPayload = {
       ...formValues,
-      swimlane_id: card?.swimlane_id ?? formValues?.swimlane_id,
+      swimlane_id: swimlaneId,
       entity_fields: entityFieldsPayload,
     };
 
@@ -1324,8 +1344,12 @@ function General({
     try {
       const formData = buildCreateCallFileFormData(formPayload, {
         appointmentFiles: appointmentDocuments,
-        boardId: boardId ?? card?.board_id,
+        dailyReportEmailOptions,
+        billingInstructionEmailOptions,
       });
+      for (const pair of formData.entries()) {
+        console.log(pair[0], pair[1]);
+      }
       const response = await callFileService.createCallFile(formData);
       if (onSave) onSave(response);
     } catch (error) {
@@ -1372,8 +1396,13 @@ function General({
     const rows = Array.isArray(root?.emails) ? root.emails : [];
     return rows
       .map((row) => {
-        const value = row?.email ? String(row.email).trim() : "";
-        return value ? { value, label: value } : null;
+        const email = row?.email ? String(row.email).trim() : "";
+        if (!email) return null;
+        const refRaw = row?.reference ?? row?.email_id ?? row?.id;
+        if (refRaw === undefined || refRaw === null || String(refRaw).trim() === "") {
+          return { value: email, label: email };
+        }
+        return { value: String(refRaw).trim(), label: email };
       })
       .filter(Boolean);
   }, []);
@@ -1383,16 +1412,19 @@ function General({
       const normalizedEntityId = entityId === undefined || entityId === null ? "" : String(entityId).trim();
       if (!normalizedEntityId) {
         setDailyReportEmailOptions([]);
-        return;
+        return [];
       }
 
       setDailyReportEmailLoading(true);
       try {
         const { data } = await billingEntityService.getAllEmailByEntity(normalizedEntityId);
-        setDailyReportEmailOptions(normalizeEntityEmailOptions(data));
+        const opts = normalizeEntityEmailOptions(data);
+        setDailyReportEmailOptions(opts);
+        return opts;
       } catch (error) {
         console.error("[General] billing entity emails fetch failed", error);
         setDailyReportEmailOptions([]);
+        return [];
       } finally {
         setDailyReportEmailLoading(false);
       }
@@ -1407,9 +1439,18 @@ function General({
     const description = data?.description ? String(data.description) : "";
     const emails = Array.isArray(data?.emails) ? data.emails : [];
     const emailOptions = emails
-      .map((email) => {
-        const normalizedEmail = email ? String(email).trim() : "";
-        return normalizedEmail ? { value: normalizedEmail, label: normalizedEmail } : null;
+      .map((row) => {
+        if (typeof row === "string") {
+          const normalizedEmail = row.trim();
+          return normalizedEmail ? { value: normalizedEmail, label: normalizedEmail } : null;
+        }
+        const email = row?.email ? String(row.email).trim() : "";
+        if (!email) return null;
+        const refRaw = row?.reference ?? row?.email_id ?? row?.id;
+        if (refRaw === undefined || refRaw === null || String(refRaw).trim() === "") {
+          return { value: email, label: email };
+        }
+        return { value: String(refRaw).trim(), label: email };
       })
       .filter(Boolean);
 
@@ -1537,16 +1578,22 @@ function General({
           entity_id: normalizedEntityId,
           email: normalizedEmail,
         });
+        const opts = await fetchBillingEntityEmails(normalizedEntityId);
+        const match = opts.find((o) => String(o.label).toLowerCase() === normalizedEmail.toLowerCase());
+        if (!match) return;
+        const current = getFieldValue("dailyReportEmail");
+        const arr = Array.isArray(current) ? [...current] : [];
+        const idx = arr.findIndex((v) => String(v).toLowerCase() === normalizedEmail.toLowerCase());
+        if (idx >= 0) {
+          const next = [...arr];
+          next[idx] = match.value;
+          handleChange("dailyReportEmail")({ target: { value: next, name: "dailyReportEmail" } });
+        }
       } catch (error) {
         console.error("[General] add billing entity email failed", error);
       }
-
-      setDailyReportEmailOptions((prev) => {
-        if (prev.some((opt) => opt.value === normalizedEmail)) return prev;
-        return [...prev, { value: normalizedEmail, label: normalizedEmail }];
-      });
     },
-    [getFieldValue]
+    [getFieldValue, fetchBillingEntityEmails, handleChange]
   );
 
   const handleAddBillingInstructionEmail = useCallback(
@@ -1561,16 +1608,34 @@ function General({
           entity_id: normalizedEntityId,
           email: normalizedEmail,
         });
+        const { data } = await billingInstructionService.fetchInstructionByEntity(normalizedEntityId);
+        const { instructionType, description, emailOptions } = normalizeBillingInstruction(data);
+        setBillingInstructionType(instructionType);
+        setBillingInstructionEmailOptions(emailOptions);
+
+        const current = getFieldValue("billingInstructionEmails");
+        const arr = Array.isArray(current) ? [...current] : [];
+        const next = arr.map((v) => {
+          const s = v === undefined || v === null ? "" : String(v).trim();
+          if (s === "") return v;
+          const byRef = emailOptions.find((o) => String(o.value) === s);
+          if (byRef) return byRef.value;
+          const byLabel = emailOptions.find((o) => String(o.label).toLowerCase() === s.toLowerCase());
+          return byLabel ? byLabel.value : v;
+        });
+        handleChange("billingInstructionEmails")({
+          target: { value: next, name: "billingInstructionEmails" },
+        });
+
+        const isEmailInstruction = instructionType.toLowerCase() === "email";
+        handleChange("billingInstructions")({
+          target: { value: isEmailInstruction ? "" : description, name: "billingInstructions" },
+        });
       } catch (error) {
         console.error("[General] add billing instruction email failed", error);
       }
-
-      setBillingInstructionEmailOptions((prev) => {
-        if (prev.some((opt) => opt.value === normalizedEmail)) return prev;
-        return [...prev, { value: normalizedEmail, label: normalizedEmail }];
-      });
     },
-    [getFieldValue]
+    [getFieldValue, handleChange, normalizeBillingInstruction]
   );
 
   // Handle vessel save - add new vessel to options and update form value
@@ -2528,7 +2593,24 @@ function General({
                           />
                         </FormField>
 
-                        <FormField label="Daily Report Email Id">
+                        <FormField
+                          label="Service Requestor Email"
+                          hasError={isAddMode && Boolean(fieldErrors.serviceRequestorEmail)}
+                        >
+                          <FormInput
+                            type="email"
+                            placeholder="Enter service requestor email..."
+                            value={getFieldValue("serviceRequestorEmail")}
+                            onChange={isAddMode ? handleValidatedChange("serviceRequestorEmail") : handleChange("serviceRequestorEmail")}
+                            disabled={isDisabled}
+                            hasError={isAddMode && Boolean(fieldErrors.serviceRequestorEmail)}
+                          />
+                          {isAddMode && fieldErrors.serviceRequestorEmail && (
+                            <div className="cf-field-error">{fieldErrors.serviceRequestorEmail}</div>
+                          )}
+                        </FormField>
+
+                        <FormField label="Daily Report Emails">
                           <MultiSelectEmail
                             value={
                               formValues?.dailyReportEmail !== undefined && formValues.dailyReportEmail !== null && formValues.dailyReportEmail.length > 0
@@ -3121,7 +3203,6 @@ General.propTypes = {
   isSavingGeneral: PropTypes.bool,
   hasSubmitted: PropTypes.bool,
   setHasSubmitted: PropTypes.func,
-  boardId: PropTypes.oneOfType([PropTypes.string, PropTypes.number]),
   setIsSavingGeneral: PropTypes.func,
 };
 
