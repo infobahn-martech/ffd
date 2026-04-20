@@ -1416,6 +1416,21 @@ function General({
     if (!isEmptyValue(serviceEmailStr) && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(serviceEmailStr)) {
       errors.serviceRequestorEmail = "Invalid email format.";
     }
+
+    const normalizedEntityId =
+      selectedEntityId === undefined || selectedEntityId === null ? "" : String(selectedEntityId).trim();
+    const shouldRequireFallbackEntityFields =
+      normalizedEntityId !== "" &&
+      !entityFieldsLoading &&
+      !entityFieldsError &&
+      Array.isArray(entityFields) &&
+      entityFields.length === 0;
+
+    if (shouldRequireFallbackEntityFields) {
+      if (isEmptyValue(v("poNumber"))) errors.poNumber = "PO No is required.";
+      if (isEmptyValue(v("project"))) errors.project = "Project is required.";
+    }
+
     return errors;
   };
 
@@ -2658,35 +2673,38 @@ function General({
                           </FormField>
                         )}
 
-                        {/* <FormField label="PO number">
-                          <FormInput
-                            type="text"
-                            placeholder="Enter PO number..."
-                            value={getFieldValue("poNumber")}
-                            onChange={handleChange("poNumber")}
-                            disabled={isDisabled}
-                          />
-                        </FormField> */}
+                        {!entityFieldsLoading &&
+                          !entityFieldsError &&
+                          selectedEntityId &&
+                          entityFields.length === 0 && (
+                            <>
+                              <FormField label="PO No *" hasError={isAddMode && Boolean(fieldErrors.poNumber)}>
+                                <FormInput
+                                  type="text"
+                                  placeholder="Enter PO No..."
+                                  value={getFieldValue("poNumber")}
+                                  onChange={isAddMode ? handleValidatedChange("poNumber") : handleChange("poNumber")}
+                                  disabled={isDisabled}
+                                />
+                                {isAddMode && fieldErrors.poNumber && (
+                                  <div className="cf-field-error">{fieldErrors.poNumber}</div>
+                                )}
+                              </FormField>
 
-                        {/* <FormField label="SRT number">
-                          <FormInput
-                            type="text"
-                            placeholder="Enter SRT number..."
-                            value={getFieldValue("shipper")}
-                            onChange={handleChange("shipper")}
-                            disabled={isDisabled}
-                          />
-                        </FormField> */}
-
-                        {/* <FormField label="Project">
-                          <FormInput
-                            type="text"
-                            placeholder="Enter project..."
-                            value={getFieldValue("project")}
-                            onChange={handleChange("project")}
-                            disabled={isDisabled}
-                          />
-                        </FormField> */}
+                              <FormField label="Project *" hasError={isAddMode && Boolean(fieldErrors.project)}>
+                                <FormInput
+                                  type="text"
+                                  placeholder="Enter project..."
+                                  value={getFieldValue("project")}
+                                  onChange={isAddMode ? handleValidatedChange("project") : handleChange("project")}
+                                  disabled={isDisabled}
+                                />
+                                {isAddMode && fieldErrors.project && (
+                                  <div className="cf-field-error">{fieldErrors.project}</div>
+                                )}
+                              </FormField>
+                            </>
+                          )}
                       </div>
 
                       <div className="form-group">
