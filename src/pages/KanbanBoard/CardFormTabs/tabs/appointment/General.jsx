@@ -1128,8 +1128,8 @@ function General({
   isSimplifiedMode = false,
   isSavingGeneral = false,
   hasSubmitted = false,
-  setHasSubmitted = () => {},
-  setIsSavingGeneral = () => {},
+  setHasSubmitted = () => { },
+  setIsSavingGeneral = () => { },
 }) {
   const accentColor = useMemo(() => card?.color || "#2A00FF", [card?.color]);
   const [vesselNameOptions, setVesselNameOptions] = useState([

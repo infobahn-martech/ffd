@@ -145,7 +145,11 @@ export function buildCreateCallFileFormData(formPayload, options = {}) {
   appendIfValid("vessel_manager", str(fv.vesselManager));
   appendIfValid("service_requestor_name", str(fv.serviceRequestorName));
   appendIfValid("service_requestor_email", str(fv.serviceRequestorEmail));
-  appendIfValid("description", str(fv.cardDescription));
+  appendIfValid("card_description", str(fv.cardDescription ?? fv.card_description));
+  appendIfValid("po_number", str(fv.poNumber ?? fv.po_number));
+  appendIfValid("srf_number", str(fv.srfNumber ?? fv.srf_number ?? fv.shipper));
+  appendIfValid("project_name", str(fv.projectName ?? fv.project_name ?? fv.project));
+  appendIfValid("project_code", str(fv.projectCode ?? fv.project_code));
 
   const daily = resolveSelectionsToNumericReferenceIds(fv.dailyReportEmail, dailyReportEmailOptions);
   appendIfValid("daily_report_emails", daily);
