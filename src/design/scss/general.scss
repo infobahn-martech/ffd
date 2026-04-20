@@ -43,6 +43,16 @@
   height: 100%;
 }
 
+.general-info-three-column {
+  display: grid;
+  grid-template-columns: minmax(0, 1.2fr) minmax(0, 1fr) minmax(0, 0.85fr);
+  gap: 24px;
+  align-items: start;
+  width: 100%;
+  min-height: 0;
+  height: 100%;
+}
+
 .general-info-left {
   width: 100%;
   min-width: 0;
@@ -93,6 +103,39 @@
       }
     }
   }
+}
+
+.general-info-middle {
+  min-width: 0;
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  min-height: 0;
+}
+
+.general-info-three-column .general-info-left,
+.general-info-three-column .general-info-middle,
+.general-info-three-column .general-info-right {
+  min-width: 0;
+  width: 100%;
+}
+
+.general-info-three-column .general-info-middle .react-quill-wrapper {
+  width: 100%;
+}
+
+.general-info-three-column .general-info-middle .ql-container {
+  min-height: 420px;
+}
+
+.general-info-three-column .general-info-middle .ql-editor {
+  min-height: 380px;
+}
+
+.general-info-three-column .general-info-right .daily-task-todo-wrapper,
+.general-info-three-column .general-info-right .daily-task-container {
+  width: 100%;
+  min-width: 0;
 }
 
 .card-description-wrapper {
@@ -183,6 +226,11 @@
   gap: 86px;
 }
 
+.cf-section.general-info-section .general-info-three-column.general-tab-form-layout {
+  grid-template-columns: minmax(0, 1.2fr) minmax(0, 1fr) minmax(0, 0.85fr);
+  gap: 24px;
+}
+
 @media (max-width: 767px) {
 
   .cf-section.general-info-section .general-info-two-column,
@@ -192,6 +240,16 @@
 
   .general-info-two-column {
     grid-template-columns: 1fr;
+  }
+}
+
+@media (max-width: 1600px) {
+  .general-info-three-column {
+    grid-template-columns: 1fr 1fr;
+  }
+
+  .general-info-three-column .general-info-right {
+    grid-column: 1 / -1;
   }
 }
 
