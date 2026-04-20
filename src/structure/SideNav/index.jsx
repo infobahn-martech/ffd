@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useRef, useState } from 'react';
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
 
 import DefaultMenu from './components/DefaultMenu';
@@ -34,6 +34,11 @@ import usersIcon from '../../assets/images/icon-users.svg';
 import configIcon from '../../assets/images/icon-config.svg';
 
 import useWindowSize from '../../hooks/useWindowSize';
+import {
+  buildKanbanAddCardEventDetail,
+  getSwimlaneOptionsFromWorkflow,
+  resolveSidebarAddCardAction,
+} from '../../helpers/kanbanAddWorkflowSelection';
 
 // 🆕 Kanban sidebar icons + tooltip
 import { Tooltip } from 'react-tooltip';
@@ -112,53 +117,110 @@ function SideNav({ isMobileMenuOpen, onCloseMobileMenu, isVendorPortal = false }
   const [showAddDashboardModal, setShowAddDashboardModal] = useState(false);
   const [showMyAccountsModal, setShowMyAccountsModal] = useState(false);
   const [showSelectWorkflowModal, setShowSelectWorkflowModal] = useState(false);
+  const [addModalStep, setAddModalStep] = useState('workflow');
   const [selectedWorkflowId, setSelectedWorkflowId] = useState(null);
+  const [selectedSwimlaneId, setSelectedSwimlaneId] = useState(null);
+  const [addModalWorkflows, setAddModalWorkflows] = useState([]);
+  const [swimlanePhaseWorkflow, setSwimlanePhaseWorkflow] = useState(null);
 
   const availableWorkflows = useKanbanSidebarBridge((s) => s.boardWorkflows);
   const pendingAddCardFromWorkflowRef = useRef(null);
 
+  const swimlaneOptionsForModal = useMemo(
+    () => getSwimlaneOptionsFromWorkflow(swimlanePhaseWorkflow),
+    [swimlanePhaseWorkflow]
+  );
+
+  const swimlaneContextDisplayName =
+    swimlanePhaseWorkflow?.name ?? swimlanePhaseWorkflow?.title ?? '';
+
+  const resetAddModalState = useCallback(() => {
+    setAddModalStep('workflow');
+    setAddModalWorkflows([]);
+    setSwimlanePhaseWorkflow(null);
+    setSelectedWorkflowId(null);
+    setSelectedSwimlaneId(null);
+  }, []);
+
   const closeSelectWorkflowModal = useCallback(() => {
     pendingAddCardFromWorkflowRef.current = null;
     setShowSelectWorkflowModal(false);
-    setSelectedWorkflowId(null);
-  }, []);
+    resetAddModalState();
+  }, [resetAddModalState]);
 
   const beginSidebarAddCard = useCallback(() => {
-    const list = availableWorkflows;
-    if (list.length === 0) {
-      setSelectedWorkflowId(null);
-      setShowSelectWorkflowModal(true);
+    const resolved = resolveSidebarAddCardAction(availableWorkflows);
+    if (resolved.kind === 'dispatch') {
+      window.dispatchEvent(new CustomEvent('kanban:add-card', { detail: resolved.detail }));
       return;
     }
-    if (list.length === 1) {
-      const w = list[0];
-      window.dispatchEvent(
-        new CustomEvent('kanban:add-card', { detail: { workflowId: w.id, workflowName: w.name } })
-      );
-      return;
+    setAddModalWorkflows(resolved.workflowsForWorkflowStep ?? []);
+    if (resolved.initialStep === 'swimlane') {
+      setAddModalStep('swimlane');
+      setSwimlanePhaseWorkflow(resolved.swimlaneContextWorkflow);
+    } else {
+      setAddModalStep('workflow');
+      setSwimlanePhaseWorkflow(null);
     }
     setSelectedWorkflowId(null);
+    setSelectedSwimlaneId(null);
     setShowSelectWorkflowModal(true);
   }, [availableWorkflows]);
 
-  const handleSelectWorkflowContinue = useCallback(() => {
-    const w = availableWorkflows.find(
-      (x) => x.id === selectedWorkflowId || String(x.id) === String(selectedWorkflowId)
-    );
-    if (!w) return;
-    pendingAddCardFromWorkflowRef.current = { workflowId: w.id, workflowName: w.name };
-    setShowSelectWorkflowModal(false);
-    setSelectedWorkflowId(null);
-  }, [availableWorkflows, selectedWorkflowId]);
+  const handleAddModalContinue = useCallback(() => {
+    if (addModalStep === 'workflow') {
+      const w = addModalWorkflows.find(
+        (x) => x.id === selectedWorkflowId || String(x.id) === String(selectedWorkflowId)
+      );
+      if (!w) return;
+      const lanes = getSwimlaneOptionsFromWorkflow(w);
+      if (lanes.length > 1) {
+        setSwimlanePhaseWorkflow(w);
+        setAddModalStep('swimlane');
+        setSelectedSwimlaneId(null);
+        return;
+      }
+      if (lanes.length === 1) {
+        pendingAddCardFromWorkflowRef.current = buildKanbanAddCardEventDetail(w, lanes[0]);
+      } else {
+        pendingAddCardFromWorkflowRef.current = buildKanbanAddCardEventDetail(w, null);
+      }
+      setShowSelectWorkflowModal(false);
+      setSelectedWorkflowId(null);
+      return;
+    }
+    if (addModalStep === 'swimlane') {
+      const wf = swimlanePhaseWorkflow;
+      if (!wf) return;
+      const lanes = getSwimlaneOptionsFromWorkflow(wf);
+      const lane = lanes.find(
+        (l) => l.id === selectedSwimlaneId || String(l.id) === String(selectedSwimlaneId)
+      );
+      if (!lane) return;
+      pendingAddCardFromWorkflowRef.current = buildKanbanAddCardEventDetail(wf, lane);
+      setShowSelectWorkflowModal(false);
+      setSelectedSwimlaneId(null);
+    }
+  }, [
+    addModalStep,
+    addModalWorkflows,
+    selectedWorkflowId,
+    swimlanePhaseWorkflow,
+    selectedSwimlaneId,
+  ]);
 
   const handleSelectWorkflowModalExited = useCallback(() => {
     const d = pendingAddCardFromWorkflowRef.current;
-    if (!d) return;
+    if (!d) {
+      resetAddModalState();
+      return;
+    }
     pendingAddCardFromWorkflowRef.current = null;
     requestAnimationFrame(() => {
       window.dispatchEvent(new CustomEvent('kanban:add-card', { detail: d }));
     });
-  }, []);
+    resetAddModalState();
+  }, [resetAddModalState]);
 
   const [expand, setExpand] = useState(false);
 
@@ -765,11 +827,16 @@ function SideNav({ isMobileMenuOpen, onCloseMobileMenu, isVendorPortal = false }
         />
         <SelectWorkflowModal
           show={showSelectWorkflowModal}
-          workflows={availableWorkflows}
-          selectedWorkflowId={selectedWorkflowId}
+          selectionMode={addModalStep === 'swimlane' ? 'swimlane' : 'workflow'}
+          workflows={addModalStep === 'workflow' ? addModalWorkflows : []}
+          swimlanes={addModalStep === 'swimlane' ? swimlaneOptionsForModal : []}
+          workflowContextName={addModalStep === 'swimlane' ? swimlaneContextDisplayName : undefined}
+          selectedWorkflowId={addModalStep === 'workflow' ? selectedWorkflowId : null}
+          selectedSwimlaneId={addModalStep === 'swimlane' ? selectedSwimlaneId : null}
           onSelectWorkflowId={setSelectedWorkflowId}
+          onSelectSwimlaneId={setSelectedSwimlaneId}
           onClose={closeSelectWorkflowModal}
-          onContinue={handleSelectWorkflowContinue}
+          onContinue={handleAddModalContinue}
           onExited={handleSelectWorkflowModalExited}
         />
       </>

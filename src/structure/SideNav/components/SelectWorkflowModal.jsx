@@ -3,32 +3,35 @@ import { Modal } from 'react-bootstrap';
 import PropTypes from 'prop-types';
 import './SelectWorkflowModal.scss';
 
-function WorkflowCardIllustrationKanban() {
+function WorkflowCardIllustrationKanban({ uid = 'k' }) {
+  const a = `swm-k1-${uid}`;
+  const b = `swm-k2-${uid}`;
+  const c = `swm-k3-${uid}`;
   return (
     <svg className="select-workflow-card-illustration" viewBox="0 0 160 120" aria-hidden>
       <defs>
-        <linearGradient id="swm-k1" x1="0%" y1="0%" x2="0%" y2="100%">
+        <linearGradient id={a} x1="0%" y1="0%" x2="0%" y2="100%">
           <stop offset="0%" stopColor="#3b82f6" />
           <stop offset="100%" stopColor="#2563eb" />
         </linearGradient>
-        <linearGradient id="swm-k2" x1="0%" y1="0%" x2="0%" y2="100%">
+        <linearGradient id={b} x1="0%" y1="0%" x2="0%" y2="100%">
           <stop offset="0%" stopColor="#fb923c" />
           <stop offset="100%" stopColor="#ea580c" />
         </linearGradient>
-        <linearGradient id="swm-k3" x1="0%" y1="0%" x2="0%" y2="100%">
+        <linearGradient id={c} x1="0%" y1="0%" x2="0%" y2="100%">
           <stop offset="0%" stopColor="#22c55e" />
           <stop offset="100%" stopColor="#16a34a" />
         </linearGradient>
       </defs>
       <rect x="8" y="12" width="44" height="96" rx="8" fill="#fff" stroke="#e5e7eb" strokeWidth="1.5" />
-      <rect x="12" y="16" width="36" height="10" rx="3" fill="url(#swm-k1)" />
+      <rect x="12" y="16" width="36" height="10" rx="3" fill={`url(#${a})`} />
       <rect x="14" y="32" width="32" height="8" rx="2" fill="#dbeafe" />
       <rect x="14" y="44" width="32" height="8" rx="2" fill="#eff6ff" />
       <rect x="58" y="12" width="44" height="96" rx="8" fill="#fff" stroke="#e5e7eb" strokeWidth="1.5" />
-      <rect x="62" y="16" width="36" height="10" rx="3" fill="url(#swm-k2)" />
+      <rect x="62" y="16" width="36" height="10" rx="3" fill={`url(#${b})`} />
       <rect x="64" y="32" width="32" height="8" rx="2" fill="#ffedd5" />
       <rect x="108" y="12" width="44" height="96" rx="8" fill="#fff" stroke="#e5e7eb" strokeWidth="1.5" />
-      <rect x="112" y="16" width="36" height="10" rx="3" fill="url(#swm-k3)" />
+      <rect x="112" y="16" width="36" height="10" rx="3" fill={`url(#${c})`} />
       <rect x="114" y="32" width="32" height="8" rx="2" fill="#dcfce7" />
       <circle cx="24" cy="104" r="3" fill="#94a3b8" opacity="0.5" />
       <path d="M24 104 Q 50 80 90 95 T 140 88" fill="none" stroke="#cbd5e1" strokeWidth="1.2" strokeDasharray="3 4" />
@@ -36,7 +39,7 @@ function WorkflowCardIllustrationKanban() {
   );
 }
 
-function WorkflowCardIllustrationFlow() {
+function WorkflowCardIllustrationFlow({ uid = 'f' }) {
   return (
     <svg className="select-workflow-card-illustration" viewBox="0 0 160 120" aria-hidden>
       <rect x="18" y="22" width="124" height="76" rx="12" fill="#f8fafc" stroke="#e2e8f0" strokeWidth="1.5" />
@@ -53,14 +56,27 @@ function WorkflowCardIllustrationFlow() {
   );
 }
 
-const DEFAULT_DESCRIPTION =
+const DEFAULT_WORKFLOW_DESCRIPTION =
   "New cards open in this workflow's columns so you can track work in the right swimlanes.";
 
+const DEFAULT_SWIMLANE_HELPER =
+  'New cards in this workflow can be created in the selected swimlane.';
+
+/**
+ * Kanban Add (+) selection: workflow list and/or swimlane list (same chrome & card styling).
+ * @param {'workflow' | 'swimlane'} props.selectionMode
+ */
 function SelectWorkflowModal({
   show,
+  selectionMode,
   workflows,
+  swimlanes,
+  workflowContextName,
+  swimlaneHelperText,
   selectedWorkflowId,
+  selectedSwimlaneId,
   onSelectWorkflowId,
+  onSelectSwimlaneId,
   onClose,
   onContinue,
   onExited,
@@ -69,15 +85,29 @@ function SelectWorkflowModal({
     onClose();
   };
 
+  const isWorkflowMode = selectionMode === 'workflow';
+  const list = isWorkflowMode ? workflows || [] : swimlanes || [];
+  const empty = !list || list.length === 0;
+
+  const isSelectedWorkflow = (id) =>
+    selectedWorkflowId != null && (selectedWorkflowId === id || String(selectedWorkflowId) === String(id));
+
+  const isSelectedSwimlane = (id) =>
+    selectedSwimlaneId != null && (selectedSwimlaneId === id || String(selectedSwimlaneId) === String(id));
+
   const handleContinue = () => {
-    if (!workflows || workflows.length === 0 || selectedWorkflowId == null) return;
+    if (empty) return;
+    if (isWorkflowMode) {
+      if (selectedWorkflowId == null) return;
+    } else if (selectedSwimlaneId == null) {
+      return;
+    }
     onContinue();
   };
 
-  const empty = !workflows || workflows.length === 0;
-
-  const isSelected = (id) =>
-    selectedWorkflowId != null && (selectedWorkflowId === id || String(selectedWorkflowId) === String(id));
+  const modalTitle = isWorkflowMode ? 'Select Workflow' : 'Select Swimlane';
+  const titleId = 'select-workflow-modal-title';
+  const helperText = !isWorkflowMode ? swimlaneHelperText ?? DEFAULT_SWIMLANE_HELPER : null;
 
   return (
     <Modal
@@ -93,9 +123,16 @@ function SelectWorkflowModal({
     >
       <div className="select-workflow-modal-inner">
         <div className="select-workflow-modal-header">
-          <h2 className="select-workflow-modal-title" id="select-workflow-modal-title">
-            Select Workflow
-          </h2>
+          <div className="select-workflow-modal-header-text">
+            <h2 className="select-workflow-modal-title" id={titleId}>
+              {modalTitle}
+            </h2>
+            {!isWorkflowMode && workflowContextName ? (
+              <p className="select-workflow-modal-context" id="select-workflow-modal-context">
+                {workflowContextName}
+              </p>
+            ) : null}
+          </div>
           <button type="button" className="select-workflow-modal-close" onClick={handleClose} aria-label="Close">
             <FiX size={22} strokeWidth={2} />
           </button>
@@ -104,34 +141,76 @@ function SelectWorkflowModal({
         <div className="select-workflow-modal-body">
           {empty ? (
             <div className="select-workflow-modal-empty" role="status">
-              No workflows are available on this board yet. Add or configure workflows before creating a card.
+              {isWorkflowMode
+                ? 'No workflows are available on this board yet. Add or configure workflows before creating a card.'
+                : 'No swimlanes are available for this workflow.'}
             </div>
           ) : (
-            <ul
-              className="select-workflow-modal-cards"
-              role="radiogroup"
-              aria-labelledby="select-workflow-modal-title"
-            >
-              {workflows.map((w, index) => (
-                <li key={String(w.id)}>
-                  <button
-                    type="button"
-                    role="radio"
-                    aria-checked={isSelected(w.id)}
-                    className={`select-workflow-card ${isSelected(w.id) ? 'is-selected' : ''}`}
-                    onClick={() => onSelectWorkflowId(w.id)}
-                  >
-                    <div className="select-workflow-card-copy">
-                      <h3 className="select-workflow-card-title">{w.name}</h3>
-                      <p className="select-workflow-card-desc">{w.description ?? DEFAULT_DESCRIPTION}</p>
-                    </div>
-                    <div className="select-workflow-card-art" aria-hidden>
-                      {index % 2 === 0 ? <WorkflowCardIllustrationKanban /> : <WorkflowCardIllustrationFlow />}
-                    </div>
-                  </button>
-                </li>
-              ))}
-            </ul>
+            <>
+              {helperText ? (
+                <p className="select-workflow-modal-helper" id="select-workflow-modal-helper">
+                  {helperText}
+                </p>
+              ) : null}
+              <ul
+                className="select-workflow-modal-cards"
+                role="radiogroup"
+                aria-labelledby={titleId}
+                aria-describedby={
+                  !isWorkflowMode && workflowContextName ? 'select-workflow-modal-context' : undefined
+                }
+              >
+                {isWorkflowMode
+                  ? list.map((w, index) => (
+                      <li key={String(w.id)}>
+                        <button
+                          type="button"
+                          role="radio"
+                          aria-checked={isSelectedWorkflow(w.id)}
+                          className={`select-workflow-card ${isSelectedWorkflow(w.id) ? 'is-selected' : ''}`}
+                          onClick={() => onSelectWorkflowId(w.id)}
+                        >
+                          <div className="select-workflow-card-copy">
+                            <h3 className="select-workflow-card-title">{w.name}</h3>
+                            <p className="select-workflow-card-desc">{w.description ?? DEFAULT_WORKFLOW_DESCRIPTION}</p>
+                          </div>
+                          <div className="select-workflow-card-art" aria-hidden>
+                            {index % 2 === 0 ? (
+                              <WorkflowCardIllustrationKanban uid={`w-${String(w.id)}`} />
+                            ) : (
+                              <WorkflowCardIllustrationFlow uid={`w-${String(w.id)}`} />
+                            )}
+                          </div>
+                        </button>
+                      </li>
+                    ))
+                  : list.map((sl, index) => (
+                      <li key={String(sl.id)}>
+                        <button
+                          type="button"
+                          role="radio"
+                          aria-checked={isSelectedSwimlane(sl.id)}
+                          className={`select-workflow-card ${isSelectedSwimlane(sl.id) ? 'is-selected' : ''}`}
+                          onClick={() => onSelectSwimlaneId(sl.id)}
+                        >
+                          <div className="select-workflow-card-copy">
+                            <h3 className="select-workflow-card-title">{sl.name}</h3>
+                            <p className="select-workflow-card-desc select-workflow-card-desc--muted">
+                              Swimlane
+                            </p>
+                          </div>
+                          <div className="select-workflow-card-art" aria-hidden>
+                            {index % 2 === 0 ? (
+                              <WorkflowCardIllustrationKanban uid={`s-${String(sl.id)}`} />
+                            ) : (
+                              <WorkflowCardIllustrationFlow uid={`s-${String(sl.id)}`} />
+                            )}
+                          </div>
+                        </button>
+                      </li>
+                    ))}
+              </ul>
+            </>
           )}
         </div>
 
@@ -143,7 +222,9 @@ function SelectWorkflowModal({
             type="button"
             onClick={handleContinue}
             className="select-workflow-btn select-workflow-btn--primary"
-            disabled={empty || selectedWorkflowId == null}
+            disabled={
+              empty || (isWorkflowMode ? selectedWorkflowId == null : selectedSwimlaneId == null)
+            }
           >
             Continue
           </button>
@@ -155,6 +236,7 @@ function SelectWorkflowModal({
 
 SelectWorkflowModal.propTypes = {
   show: PropTypes.bool.isRequired,
+  selectionMode: PropTypes.oneOf(['workflow', 'swimlane']).isRequired,
   workflows: PropTypes.arrayOf(
     PropTypes.shape({
       id: PropTypes.oneOfType([PropTypes.string, PropTypes.number]).isRequired,
@@ -162,8 +244,18 @@ SelectWorkflowModal.propTypes = {
       description: PropTypes.string,
     })
   ),
+  swimlanes: PropTypes.arrayOf(
+    PropTypes.shape({
+      id: PropTypes.oneOfType([PropTypes.string, PropTypes.number]).isRequired,
+      name: PropTypes.string.isRequired,
+    })
+  ),
+  workflowContextName: PropTypes.string,
+  swimlaneHelperText: PropTypes.string,
   selectedWorkflowId: PropTypes.oneOfType([PropTypes.string, PropTypes.number]),
+  selectedSwimlaneId: PropTypes.oneOfType([PropTypes.string, PropTypes.number]),
   onSelectWorkflowId: PropTypes.func.isRequired,
+  onSelectSwimlaneId: PropTypes.func.isRequired,
   onClose: PropTypes.func.isRequired,
   onContinue: PropTypes.func.isRequired,
   onExited: PropTypes.func,
@@ -171,7 +263,11 @@ SelectWorkflowModal.propTypes = {
 
 SelectWorkflowModal.defaultProps = {
   workflows: [],
+  swimlanes: [],
+  workflowContextName: undefined,
+  swimlaneHelperText: undefined,
   selectedWorkflowId: null,
+  selectedSwimlaneId: null,
   onExited: undefined,
 };
 

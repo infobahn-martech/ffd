@@ -48,6 +48,11 @@
   margin-bottom: 24px;
 }
 
+.select-workflow-modal-header-text {
+  flex: 1;
+  min-width: 0;
+}
+
 .select-workflow-modal-title {
   margin: 0;
   padding-right: 8px;
@@ -61,6 +66,31 @@
   @media (max-width: 575px) {
     font-size: 1.25rem;
   }
+}
+
+.select-workflow-modal-context {
+  margin: 8px 0 0;
+  padding-right: 8px;
+  font-family: $font-primary;
+  font-size: 1.0625rem;
+  font-weight: 600;
+  line-height: 1.35;
+  color: #00368c;
+}
+
+.select-workflow-modal-helper {
+  margin: 0 0 16px;
+  font-size: 0.9375rem;
+  line-height: 1.5;
+  color: #64748b;
+}
+
+.select-workflow-card-desc--muted {
+  font-size: 0.8125rem;
+  color: #94a3b8;
+  font-weight: 500;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
 }
 
 .select-workflow-modal-close {

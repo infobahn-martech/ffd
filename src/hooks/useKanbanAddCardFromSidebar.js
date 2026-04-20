@@ -4,10 +4,13 @@ export default function useKanbanAddCardFromSidebar({ setSelectedCard, setIsAddM
   useEffect(() => {
     const handleAddCard = (e) => {
       const d = e?.detail || {};
+      const laneId = d.swimlaneId ?? d.swimlane_id ?? d.laneId ?? null;
+      const laneName = d.swimlaneName ?? d.swimlane_name ?? null;
       const newCard = {
         id: `new-${Date.now()}`,
         title: '',
         color: '#2A00FF',
+        ...(laneId != null && laneId !== '' ? { laneId, laneName } : {}),
       };
       setSelectedCard(newCard);
       setIsAddMode(true);
