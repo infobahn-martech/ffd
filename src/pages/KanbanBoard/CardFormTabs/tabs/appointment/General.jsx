@@ -25,9 +25,9 @@ import {
 } from "../../../../../helpers/callFileFormOptions";
 
 // Form Components
-const FormField = ({ label, children, className = "" }) => {
+const FormField = ({ label, children, className = "", hasError = false }) => {
   return (
-    <div className={`cf-field ${className}`}>
+    <div className={`cf-field ${hasError ? "has-error" : ""} ${className}`}>
       {label && <label>{label}</label>}
       {children}
     </div>
@@ -38,11 +38,12 @@ FormField.propTypes = {
   label: PropTypes.string,
   children: PropTypes.node.isRequired,
   className: PropTypes.string,
+  hasError: PropTypes.bool,
 };
 
-const FormInput = ({ type = "text", value, onChange, placeholder, className = "", readOnly = false, disabled = false }) => {
+const FormInput = ({ type = "text", value, onChange, placeholder, className = "", readOnly = false, disabled = false, hasError = false }) => {
   return (
-    <div className={`cf-input ${className}`}>
+    <div className={`cf-input ${hasError ? "is-invalid" : ""} ${className}`}>
       <input
         type={type}
         value={value || ""}
@@ -63,10 +64,11 @@ FormInput.propTypes = {
   className: PropTypes.string,
   readOnly: PropTypes.bool,
   disabled: PropTypes.bool,
+  hasError: PropTypes.bool,
 };
 
 // Custom Select Component (similar to MultiSelectEmail UI)
-const CustomSelect = ({ value, onChange, options = [], placeholder, className = "", disabled = false }) => {
+const CustomSelect = ({ value, onChange, options = [], placeholder, className = "", disabled = false, hasError = false }) => {
   const [isOpen, setIsOpen] = useState(false);
   const dropdownRef = useRef(null);
 
@@ -93,7 +95,7 @@ const CustomSelect = ({ value, onChange, options = [], placeholder, className = 
   };
 
   return (
-    <div className={`cf-multi-select-email ${disabled ? "disabled" : ""} ${className}`} ref={dropdownRef}>
+    <div className={`cf-multi-select-email ${disabled ? "disabled" : ""} ${hasError ? "is-invalid" : ""} ${className}`} ref={dropdownRef}>
       <div
         className={`cf-multi-select-email-input ${disabled ? "disabled" : ""}`}
         onClick={disabled ? undefined : () => setIsOpen(!isOpen)}
@@ -140,9 +142,10 @@ CustomSelect.propTypes = {
   placeholder: PropTypes.string,
   className: PropTypes.string,
   disabled: PropTypes.bool,
+  hasError: PropTypes.bool,
 };
 
-const FormSelect = ({ value, onChange, options = [], placeholder, className = "", disabled = false }) => {
+const FormSelect = ({ value, onChange, options = [], placeholder, className = "", disabled = false, hasError = false }) => {
   const normalizedValue = value === undefined || value === null ? "" : String(value);
   return (
     <CustomSelect
@@ -152,6 +155,7 @@ const FormSelect = ({ value, onChange, options = [], placeholder, className = ""
       placeholder={placeholder}
       className={className}
       disabled={disabled}
+      hasError={hasError}
     />
   );
 };
@@ -168,14 +172,16 @@ FormSelect.propTypes = {
   placeholder: PropTypes.string,
   className: PropTypes.string,
   disabled: PropTypes.bool,
+  hasError: PropTypes.bool,
 };
 
-const OwnerField = ({ value, onChange, options = [], placeholder = "Select owner", disabled = false }) => {
+const OwnerField = ({ value, onChange, options = [], placeholder = "Select owner", disabled = false, error, hasError = false }) => {
   const selected = options.find((opt) => String(opt.value) === String(value ?? ""));
   const avatarLetter = selected?.label?.trim()?.charAt(0)?.toUpperCase() || "U";
+  const showErr = hasError || Boolean(error);
   return (
-    <FormField label="Owner">
-      <div className="cf-owner-row">
+    <FormField label="Owner" hasError={showErr}>
+      <div className={`cf-owner-row ${showErr ? "is-invalid" : ""}`}>
         <div className="cf-owner-avatar">{avatarLetter}</div>
         <select
           value={value === undefined || value === null ? "" : String(value)}
@@ -191,6 +197,7 @@ const OwnerField = ({ value, onChange, options = [], placeholder = "Select owner
           ))}
         </select>
       </div>
+      {error ? <div className="cf-field-error">{error}</div> : null}
     </FormField>
   );
 };
@@ -310,6 +317,8 @@ OwnerField.propTypes = {
   ),
   placeholder: PropTypes.string,
   disabled: PropTypes.bool,
+  error: PropTypes.string,
+  hasError: PropTypes.bool,
 };
 
 // Document Upload Component
@@ -1111,6 +1120,8 @@ function General({
   const [entityFields, setEntityFields] = useState([]);
   const [entityFieldValues, setEntityFieldValues] = useState({});
   const [entityFieldErrors, setEntityFieldErrors] = useState({});
+  const [fieldErrors, setFieldErrors] = useState({});
+  const [hasSubmitted, setHasSubmitted] = useState(false);
   const [entityFieldsLoading, setEntityFieldsLoading] = useState(false);
   const [entityFieldsError, setEntityFieldsError] = useState("");
 
@@ -1246,6 +1257,54 @@ function General({
       return dummyValues[fieldName];
     }
     return "";
+  };
+
+  const getTrimmedValue = (value) => {
+    if (value === undefined || value === null) return "";
+    return String(value).trim();
+  };
+
+  const isEmptyValue = (value) => {
+    if (value === undefined || value === null) return true;
+    return String(value).trim() === "";
+  };
+
+  const getValueForGeneralValidation = (fieldName, snapshot = formValues) => {
+    const base = snapshot && typeof snapshot === "object" ? snapshot : formValues;
+    if (base && Object.prototype.hasOwnProperty.call(base, fieldName)) {
+      const v = base[fieldName];
+      return v === undefined || v === null ? "" : v;
+    }
+    return getFieldValue(fieldName);
+  };
+
+  const validateGeneralFields = (snapshot = formValues) => {
+    const errors = {};
+    const v = (name) => getValueForGeneralValidation(name, snapshot);
+    if (isEmptyValue(v("cardTitle"))) errors.cardTitle = "Card title is required.";
+    if (isEmptyValue(v("owner"))) errors.owner = "Owner is required.";
+    if (isEmptyValue(v("appointmentReceivedDate"))) errors.appointmentReceivedDate = "Appointment received is required.";
+    if (isEmptyValue(v("port"))) errors.port = "Port is required.";
+    if (isEmptyValue(v("typeOfCall"))) errors.typeOfCall = "Type of call / service is required.";
+    if (isEmptyValue(v("mainBillingEntity"))) errors.mainBillingEntity = "Main billing entity is required.";
+    return errors;
+  };
+
+  const handleValidatedChange = (fieldName) => (event) => {
+    const nextVal = event?.target?.value;
+    handleChange(fieldName)(event);
+    if (!hasSubmitted) return;
+    setFieldErrors((prev) => {
+      if (!prev[fieldName]) return prev;
+      const merged = { ...formValues, [fieldName]: nextVal };
+      const errs = validateGeneralFields(merged);
+      if (!errs[fieldName]) {
+        const next = { ...prev };
+        delete next[fieldName];
+        return next;
+      }
+      return { ...prev, [fieldName]: errs[fieldName] };
+    });
   };
 
   // Handle document upload
@@ -1642,6 +1701,35 @@ function General({
     },
     [fetchBillingEntityEmails, fetchBillingInstructionByEntity, fetchEntityFields, fetchVesselsByEntity, handleChange]
   );
+
+  const handleValidatedMainBillingEntityChange = (event) => {
+    const nextVal = event?.target?.value ?? "";
+    handleMainBillingEntityChange(event);
+    if (!hasSubmitted) return;
+    setFieldErrors((prev) => {
+      if (!prev.mainBillingEntity) return prev;
+      const merged = { ...formValues, mainBillingEntity: nextVal };
+      const errs = validateGeneralFields(merged);
+      if (!errs.mainBillingEntity) {
+        const next = { ...prev };
+        delete next.mainBillingEntity;
+        return next;
+      }
+      return { ...prev, mainBillingEntity: errs.mainBillingEntity };
+    });
+  };
+
+  useEffect(() => {
+    if (!isAddMode || !hasSubmitted || !fieldErrors.cardTitle) return;
+    if (!isEmptyValue(getTrimmedValue(formValues?.cardTitle))) {
+      setFieldErrors((prev) => {
+        if (!prev.cardTitle) return prev;
+        const next = { ...prev };
+        delete next.cardTitle;
+        return next;
+      });
+    }
+  }, [isAddMode, hasSubmitted, formValues?.cardTitle, fieldErrors.cardTitle]);
 
   useEffect(() => {
     const selectedEntityId = getFieldValue("mainBillingEntity");
@@ -2147,12 +2235,19 @@ function General({
                     </>
                   ) : (
                     <>
+                      {isAddMode && fieldErrors.cardTitle && (
+                        <div className="cf-field-error cf-field-error--card-title" role="alert">
+                          {fieldErrors.cardTitle}
+                        </div>
+                      )}
                       <OwnerField
                         value={getFieldValue("owner")}
-                        onChange={handleChange("owner")}
+                        onChange={isAddMode ? handleValidatedChange("owner") : handleChange("owner")}
                         options={mergeOptionIfMissing(operatorOptions, getFieldValue("owner"))}
                         placeholder="Select owner"
                         disabled={masterInputsDisabled}
+                        error={isAddMode ? fieldErrors.owner : undefined}
+                        hasError={isAddMode && Boolean(fieldErrors.owner)}
                       />
 
                       {!isSimplifiedMode && (
@@ -2167,12 +2262,17 @@ function General({
                               disabled={isDisabled}
                             />
                           </FormField>
-                          <FormField label="Appointment Received">
-                            <div className="cf-input date-time-row">
+                          <FormField
+                            label="Appointment Received"
+                            hasError={isAddMode && Boolean(fieldErrors.appointmentReceivedDate)}
+                          >
+                            <div
+                              className={`cf-input date-time-row ${isAddMode && fieldErrors.appointmentReceivedDate ? "is-invalid" : ""}`}
+                            >
                               <input
                                 type="date"
                                 value={getFieldValue("appointmentReceivedDate")}
-                                onChange={handleChange("appointmentReceivedDate")}
+                                onChange={isAddMode ? handleValidatedChange("appointmentReceivedDate") : handleChange("appointmentReceivedDate")}
                                 placeholder="Select date"
                                 disabled={isDisabled}
                               />
@@ -2185,39 +2285,54 @@ function General({
                                 disabled={isDisabled}
                               />
                             </div>
+                            {isAddMode && fieldErrors.appointmentReceivedDate && (
+                              <div className="cf-field-error">{fieldErrors.appointmentReceivedDate}</div>
+                            )}
                           </FormField>
                         </div>
                       )}
 
                       <div className="form-group">
                         <h3 className="form-group-title">Service Information</h3>
-                        <FormField label="Port">
+                        <FormField label="Port" hasError={isAddMode && Boolean(fieldErrors.port)}>
                           <FormSelect
                             value={getFieldValue("port")}
-                            onChange={handleChange("port")}
+                            onChange={isAddMode ? handleValidatedChange("port") : handleChange("port")}
                             options={mergeOptionIfMissing(portSelectOptions, getFieldValue("port"))}
                             placeholder="Select port"
                             disabled={masterInputsDisabled}
+                            hasError={isAddMode && Boolean(fieldErrors.port)}
                           />
+                          {isAddMode && fieldErrors.port && (
+                            <div className="cf-field-error">{fieldErrors.port}</div>
+                          )}
                         </FormField>
-                        <FormField label="Type of call / Service">
+                        <FormField label="Type of call / Service" hasError={isAddMode && Boolean(fieldErrors.typeOfCall)}>
                           <FormSelect
                             value={getFieldValue("typeOfCall")}
-                            onChange={handleChange("typeOfCall")}
+                            onChange={isAddMode ? handleValidatedChange("typeOfCall") : handleChange("typeOfCall")}
                             options={mergeOptionIfMissing(callTypeOptions, getFieldValue("typeOfCall"))}
                             placeholder="Select type of call"
                             disabled={masterInputsDisabled}
+                            hasError={isAddMode && Boolean(fieldErrors.typeOfCall)}
                           />
+                          {isAddMode && fieldErrors.typeOfCall && (
+                            <div className="cf-field-error">{fieldErrors.typeOfCall}</div>
+                          )}
                         </FormField>
 
-                        <FormField label="Main Billing entity">
+                        <FormField label="Main Billing entity" hasError={isAddMode && Boolean(fieldErrors.mainBillingEntity)}>
                           <FormSelect
                             value={getFieldValue("mainBillingEntity")}
-                            onChange={handleMainBillingEntityChange}
+                            onChange={isAddMode ? handleValidatedMainBillingEntityChange : handleMainBillingEntityChange}
                             options={mergeOptionIfMissing(billingEntitySelectOptions, getFieldValue("mainBillingEntity"))}
                             placeholder="Select billing entity"
                             disabled={masterInputsDisabled}
+                            hasError={isAddMode && Boolean(fieldErrors.mainBillingEntity)}
                           />
+                          {isAddMode && fieldErrors.mainBillingEntity && (
+                            <div className="cf-field-error">{fieldErrors.mainBillingEntity}</div>
+                          )}
                         </FormField>
 
                         {entityFieldsLoading && (
@@ -2430,11 +2545,15 @@ function General({
                               className="form-save-button"
                               onClick={() => {
                                 if (!onSave) return;
+                                setHasSubmitted(true);
+                                const generalErrors = validateGeneralFields();
                                 const requiredErrors = validateRequiredEntityFields(entityFields, entityFieldValues);
-                                if (Object.keys(requiredErrors).length > 0) {
+                                if (Object.keys(generalErrors).length > 0 || Object.keys(requiredErrors).length > 0) {
+                                  setFieldErrors(generalErrors);
                                   setEntityFieldErrors(requiredErrors);
                                   return;
                                 }
+                                setFieldErrors({});
                                 setEntityFieldErrors({});
                                 const entityFieldsPayload = buildEntityFieldsPayload(entityFields, entityFieldValues);
                                 onSave({
