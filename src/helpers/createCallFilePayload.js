@@ -145,6 +145,7 @@ export function buildCreateCallFileFormData(formPayload, options = {}) {
   appendIfValid("vessel_manager", str(fv.vesselManager));
   appendIfValid("service_requestor_name", str(fv.serviceRequestorName));
   appendIfValid("service_requestor_email", str(fv.serviceRequestorEmail));
+  appendIfValid("description", str(fv.cardDescription));
 
   const daily = resolveSelectionsToNumericReferenceIds(fv.dailyReportEmail, dailyReportEmailOptions);
   appendIfValid("daily_report_emails", daily);
