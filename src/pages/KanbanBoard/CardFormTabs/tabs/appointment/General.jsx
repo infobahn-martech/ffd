@@ -13,6 +13,7 @@ import billingInstructionService from "../../../../../services/billingInstructio
 import vesselTypeService from "../../../../../services/vesselTypeService";
 import bargeTypeService from "../../../../../services/bargeTypeService";
 import vesselService from "../../../../../services/vesselService";
+import kpiTasksService from "../../../../../services/kpiTasksService";
 import {
   unwrapListResponse,
   mapOperatorsToOptions,
@@ -830,151 +831,77 @@ ReactQuillEditor.propTypes = {
 };
 
 // Daily Task/Todo Component
-const DailyTaskTodo = ({ tasks = [], onChange, accentColor }) => {
-  const [newTask, setNewTask] = useState("");
-  const [localTasks, setLocalTasks] = useState(() => {
-    // Initialize with dummy tasks if no tasks provided
-    if (tasks && tasks.length > 0) {
-      return tasks;
-    }
-    return [
-      { id: 1, text: "Review vessel arrival documents", completed: true },
-      { id: 2, text: "Coordinate with port authorities", completed: true },
-      { id: 3, text: "Prepare crew change schedule", completed: false },
-    ];
-  });
+const DailyTaskTodo = ({ tasks = [], accentColor, isLoading = false, error = "" }) => {
+  const normalizedTasks = Array.isArray(tasks) ? tasks : [];
+  const completedCount = normalizedTasks.filter((t) => String(t?.status || "").toUpperCase() === "COMPLETED").length;
+  const totalCount = normalizedTasks.length;
 
-  // Sync local tasks with prop changes
-  useEffect(() => {
-    if (tasks && tasks.length > 0) {
-      setLocalTasks(tasks);
-    }
-  }, [tasks]);
-
-  const handleAddTask = () => {
-    if (newTask.trim()) {
-      const task = {
-        id: Date.now(),
-        text: newTask.trim(),
-        completed: false,
-        createdAt: new Date().toISOString(),
-      };
-      const updatedTasks = [...localTasks, task];
-      setLocalTasks(updatedTasks);
-      if (onChange) {
-        const syntheticEvent = { target: { value: updatedTasks } };
-        onChange(syntheticEvent);
-      }
-      setNewTask("");
-    }
+  const formatTaskDateTime = (value) => {
+    if (!value) return "";
+    const normalized = String(value).trim().replace(" ", "T");
+    const d = new Date(normalized);
+    if (Number.isNaN(d.getTime())) return String(value);
+    return d.toLocaleString("en-US", {
+      year: "numeric",
+      month: "short",
+      day: "numeric",
+      hour: "2-digit",
+      minute: "2-digit",
+      hour12: false,
+    });
   };
-
-  const handleToggleTask = (taskId) => {
-    const updatedTasks = localTasks.map((task) =>
-      task.id === taskId ? { ...task, completed: !task.completed } : task
-    );
-    setLocalTasks(updatedTasks);
-    if (onChange) {
-      const syntheticEvent = { target: { value: updatedTasks } };
-      onChange(syntheticEvent);
-    }
-  };
-
-  const handleRemoveTask = (taskId) => {
-    const updatedTasks = localTasks.filter((task) => task.id !== taskId);
-    setLocalTasks(updatedTasks);
-    if (onChange) {
-      const syntheticEvent = { target: { value: updatedTasks } };
-      onChange(syntheticEvent);
-    }
-  };
-
-  const handleKeyPress = (e) => {
-    if (e.key === "Enter") {
-      e.preventDefault();
-      handleAddTask();
-    }
-  };
-
-  const completedCount = localTasks.filter((t) => t.completed).length;
-  const totalCount = localTasks.length;
 
   return (
     <div className="daily-task-todo-wrapper">
       <FormField label="Daily Tasks / Todo">
         <div className="daily-task-container">
-          <div className="daily-task-input-row">
-            <div className="cf-input">
-              <input
-                type="text"
-                placeholder="Add a new task..."
-                value={newTask}
-                onChange={(e) => setNewTask(e.target.value)}
-                onKeyDown={handleKeyPress}
-              />
-            </div>
-            <button
-              type="button"
-              className="daily-task-add-btn"
-              onClick={handleAddTask}
-              disabled={!newTask.trim()}
-              aria-label="Add task"
-            >
-              +
-            </button>
-          </div>
-
           <div className="daily-task-list-scroll" aria-label="Task list">
             <div className="daily-task-list">
-              {localTasks.length === 0 ? (
+              {isLoading ? (
                 <div className="daily-task-empty">
-                  <p>No tasks yet. Add a task to get started!</p>
+                  <p>Loading tasks...</p>
+                </div>
+              ) : error ? (
+                <div className="daily-task-empty">
+                  <p>{error}</p>
+                </div>
+              ) : normalizedTasks.length === 0 ? (
+                <div className="daily-task-empty">
+                  <p>No KPI tasks available.</p>
                 </div>
               ) : (
-                localTasks.map((task) => (
+                normalizedTasks.map((task) => (
                   <div
                     key={task.id}
-                    className={`daily-task-item ${task.completed ? "completed" : ""}`}
+                    className="daily-task-item"
                   >
-                    <label className="daily-task-checkbox-display">
-                      <input
-                        type="checkbox"
-                        checked={task.completed || false}
-                        onChange={() => handleToggleTask(task.id)}
-                        className="daily-task-checkbox-input"
-                      />
+                    <div className="daily-task-checkbox-display">
                       <div
-                        className={`daily-task-checkbox-icon ${task.completed ? "checked" : ""}`}
+                        className="daily-task-checkbox-icon checked"
+                        style={{ backgroundColor: task.statusColor || accentColor || "#1f7aec" }}
                       >
-                        {task.completed && (
-                          <svg width="10" height="10" viewBox="0 0 12 12" fill="none" xmlns="http://www.w3.org/2000/svg">
-                            <path
-                              d="M10 3L4.5 8.5L2 6"
-                              stroke="white"
-                              strokeWidth="2"
-                              strokeLinecap="round"
-                              strokeLinejoin="round"
-                            />
-                          </svg>
-                        )}
+                        <span style={{ color: "#fff", fontSize: "10px", lineHeight: 1 }}>•</span>
                       </div>
-                    </label>
-                    <span className="daily-task-text">{task.text}</span>
-                    <button
-                      type="button"
-                      className="daily-task-remove-btn"
-                      onClick={() => handleRemoveTask(task.id)}
-                      title="Remove task"
-                    >
-                      ×
-                    </button>
+                    </div>
+                    <div style={{ display: "flex", flexDirection: "column", gap: "4px", width: "100%" }}>
+                      <span className="daily-task-text">{task.text}</span>
+                      <div style={{ fontSize: "11px", color: "#666" }}>
+                        {task.startTime && <span>Start: {formatTaskDateTime(task.startTime)}</span>}
+                        {task.dueTime && <span> | Due: {formatTaskDateTime(task.dueTime)}</span>}
+                        {task.completedTime && <span> | Completed: {formatTaskDateTime(task.completedTime)}</span>}
+                      </div>
+                      <div style={{ fontSize: "11px", fontWeight: 600, color: task.statusColor || "#666" }}>
+                        {task.status || "PENDING"}
+                        {task.delayText ? ` - ${task.delayText}` : ""}
+                      </div>
+                    </div>
                   </div>
                 ))
               )}
             </div>
           </div>
 
-          {localTasks.length > 0 && (
+          {normalizedTasks.length > 0 && (
             <div className="daily-task-summary">
               <span className="daily-task-summary-text">
                 {completedCount} of {totalCount} completed
@@ -983,7 +910,7 @@ const DailyTaskTodo = ({ tasks = [], onChange, accentColor }) => {
                 <div
                   className="daily-task-progress-fill"
                   style={{
-                    width: `${(completedCount / totalCount) * 100}%`,
+                    width: `${totalCount > 0 ? (completedCount / totalCount) * 100 : 0}%`,
                   }}
                 />
               </div>
@@ -1000,12 +927,17 @@ DailyTaskTodo.propTypes = {
     PropTypes.shape({
       id: PropTypes.oneOfType([PropTypes.string, PropTypes.number]).isRequired,
       text: PropTypes.string.isRequired,
-      completed: PropTypes.bool,
-      createdAt: PropTypes.string,
+      status: PropTypes.string,
+      statusColor: PropTypes.string,
+      startTime: PropTypes.string,
+      dueTime: PropTypes.string,
+      completedTime: PropTypes.string,
+      delayText: PropTypes.string,
     })
   ),
-  onChange: PropTypes.func,
   accentColor: PropTypes.string,
+  isLoading: PropTypes.bool,
+  error: PropTypes.string,
 };
 
 
@@ -1189,6 +1121,9 @@ function General({
   const [entityFieldsError, setEntityFieldsError] = useState("");
   const [callDetailLoading, setCallDetailLoading] = useState(false);
   const [callDetailData, setCallDetailData] = useState(null);
+  const [operatorKpiTasks, setOperatorKpiTasks] = useState([]);
+  const [operatorKpiLoading, setOperatorKpiLoading] = useState(false);
+  const [operatorKpiError, setOperatorKpiError] = useState("");
 
   const currentCallId = useMemo(
     () => card?.call_id ?? formValues?.call_id ?? card?.callId ?? "",
@@ -1231,6 +1166,69 @@ function General({
     if (!callDetailData) return {};
     return mapCallDetailToFormFields(callDetailData);
   }, [callDetailData]);
+
+  const mappedOperatorKpiTasks = useMemo(() => {
+    const rows = Array.isArray(operatorKpiTasks) ? operatorKpiTasks : [];
+    return rows.map((row) => ({
+      id: String(row?.operator_kpi_id ?? row?.id ?? `${row?.task_name ?? "task"}-${row?.due_time ?? ""}`),
+      text: row?.task_name ? String(row.task_name) : "Untitled task",
+      startTime: row?.start_time ? String(row.start_time) : "",
+      dueTime: row?.due_time ? String(row.due_time) : "",
+      completedTime: row?.completed_time ? String(row.completed_time) : "",
+      status: row?.status ? String(row.status) : "",
+      statusColor: row?.status_color ? String(row.status_color) : "",
+      delayText: row?.delay_text ? String(row.delay_text) : "",
+    }));
+  }, [operatorKpiTasks]);
+
+  useEffect(() => {
+    if (isAddMode) {
+      setOperatorKpiTasks([]);
+      setOperatorKpiError("");
+      setOperatorKpiLoading(false);
+      return;
+    }
+
+    const operatorIdRaw = callDetailData?.assigned_operator_id ?? mappedCallDetail?.assignedOperator;
+    const callIdRaw = callDetailData?.call_id ?? mappedCallDetail?.callId;
+    const operatorId = operatorIdRaw === undefined || operatorIdRaw === null ? "" : String(operatorIdRaw).trim();
+    const callId = callIdRaw === undefined || callIdRaw === null ? "" : String(callIdRaw).trim();
+
+    if (!operatorId || !callId) {
+      setOperatorKpiTasks([]);
+      setOperatorKpiError("");
+      setOperatorKpiLoading(false);
+      return;
+    }
+
+    let cancelled = false;
+    const loadOperatorKpi = async () => {
+      setOperatorKpiLoading(true);
+      setOperatorKpiError("");
+      try {
+        const { data } = await kpiTasksService.getOperatorKpi(operatorId, callId);
+        const rows = Array.isArray(data?.data) ? data.data : [];
+        if (!cancelled) {
+          setOperatorKpiTasks(rows);
+        }
+      } catch (error) {
+        console.error("[General] operator KPI fetch failed", error);
+        if (!cancelled) {
+          setOperatorKpiTasks([]);
+          setOperatorKpiError("Unable to load KPI tasks.");
+        }
+      } finally {
+        if (!cancelled) {
+          setOperatorKpiLoading(false);
+        }
+      }
+    };
+
+    void loadOperatorKpi();
+    return () => {
+      cancelled = true;
+    };
+  }, [isAddMode, callDetailData, mappedCallDetail]);
 
   // Keep existing non-add-mode preview only when API file name is unavailable.
   useEffect(() => {
@@ -2927,9 +2925,10 @@ function General({
                   <div className="general-info-right">
                     <div className="daily-task-box-wrapper">
                       <DailyTaskTodo
-                        tasks={formValues?.dailyTasks || card?.dailyTasks}
-                        onChange={handleChange("dailyTasks")}
+                        tasks={mappedOperatorKpiTasks}
                         accentColor={accentColor}
+                        isLoading={operatorKpiLoading}
+                        error={operatorKpiError}
                       />
                     </div>
                   </div>
