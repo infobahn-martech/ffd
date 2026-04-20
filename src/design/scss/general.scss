@@ -45,7 +45,7 @@
 
 .general-info-three-column {
   display: grid;
-  grid-template-columns: minmax(0, 1.2fr) minmax(0, 1fr) minmax(0, 0.85fr);
+  grid-template-columns: minmax(0, 0.95fr) minmax(0, 1.35fr) minmax(0, 0.8fr);
   gap: 24px;
   align-items: start;
   width: 100%;
@@ -118,6 +118,10 @@
 .general-info-three-column .general-info-right {
   min-width: 0;
   width: 100%;
+}
+
+.general-info-three-column .general-info-left {
+  padding-right: 8px;
 }
 
 .general-info-three-column .general-info-middle .react-quill-wrapper {
@@ -228,7 +232,7 @@
 }
 
 .cf-section.general-info-section .general-info-three-column.general-tab-form-layout {
-  grid-template-columns: minmax(0, 1.2fr) minmax(0, 1fr) minmax(0, 0.85fr);
+  grid-template-columns: minmax(0, 0.95fr) minmax(0, 1.35fr) minmax(0, 0.8fr);
   gap: 24px;
 }
 
