@@ -1,6 +1,8 @@
 // ============================================
 // Kanban board normalization (API → FE workflow shape)
 // ============================================
+import defaultEntityLogo from "../assets/images/CreatedLogo.svg";
+
 // Normalized workflow:
 // { id, title, columnOrder, columns, swimlaneOrder, swimlanes, cards, boardId? }
 // columns[colKey]: { id, title, color, wipLimit, cardsPerRow, stageId, stageTitle, backgroundColor }
@@ -181,7 +183,10 @@ export function mapBoardWorkflowFromApi(workflow) {
             callId: String(card.call_id || ""),
             vesselId: String(card.vessel_id || ""),
             userId: String(card.user_id || ""),
-            entityLogo: card.entity_logo && String(card.entity_logo).trim() ? String(card.entity_logo).trim() : "",
+            entityLogo:
+              card.entity_logo && String(card.entity_logo).trim()
+                ? String(card.entity_logo).trim()
+                : defaultEntityLogo,
             createdDate: card.created_date && String(card.created_date).trim() ? String(card.created_date).trim() : "",
             progress,
             timeLeft,
