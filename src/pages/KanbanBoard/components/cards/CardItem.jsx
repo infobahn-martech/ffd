@@ -9,6 +9,38 @@ import saipemLogo from "../../../../assets/images/saipem.png";
 import lamprellLogo from "../../../../assets/images/lamprell.png";
 import gulfmarineLogo from "../../../../assets/images/gulfmarine.png";
 import { FiFileText, FiDownload, FiLoader, FiMoreHorizontal, FiTrendingUp } from "react-icons/fi";
+import {
+  hasText,
+  isValidProgress,
+  isValidImage,
+  getApiCardDisplayTitle,
+  getUsernameInitial,
+} from "../../utils/cardDisplayHelpers";
+
+/** Circular KPI used in API card summary row (classic + compact). */
+function ApiCardCircularKpi({ progress }) {
+  const pct = Math.min(100, Math.max(0, Number(progress)));
+  return (
+    <div className="card-api-kpi">
+      <div className="circular-progress">
+        <svg className="progress-svg" viewBox="0 0 26 26" aria-hidden>
+          <circle className="bg" cx="13" cy="13" r="11.5" />
+          <circle
+            className="progress"
+            cx="13"
+            cy="13"
+            r="11.5"
+            style={{
+              stroke: "#0d9488",
+              strokeDashoffset: `calc(72 - (72 * ${pct}) / 100)`,
+            }}
+          />
+        </svg>
+        <div className="progress-text">{Math.round(pct)}%</div>
+      </div>
+    </div>
+  );
+}
 
 // Status colors
 const STATUS_COLORS = {
@@ -163,6 +195,153 @@ const StatusIcon = ({ status = "pending", IconComponent, size = 20 }) => {
   return <IconComponent size={size} color={color} />;
 };
 
+/** API-driven board cards: only fields from backend, no mock footer / extra icon rows. */
+function ApiKanbanCardShrunk({ card, setSelectedCard }) {
+  const displayTitle = getApiCardDisplayTitle(card);
+  const usernameInitial = getUsernameInitial(card.user);
+  const hasTimeline = hasText(card.timeLeft);
+  const hasProgress = isValidProgress(card.progress);
+  const showSummaryRow = hasTimeline || hasProgress;
+
+  return (
+    <div className="card-content-compact card-content-compact--api">
+      <div className="card-api-title-row card-api-title-row--compact">
+        <div
+          className="card-title-compact card-title-compact--api card-api-title-text"
+          onClick={() => setSelectedCard(card)}
+          title={displayTitle || undefined}
+        >
+          {displayTitle}
+        </div>
+        {usernameInitial ? (
+          <span className="card-api-user-avatar" title={hasText(card.user) ? String(card.user).trim() : undefined} aria-hidden>
+            {usernameInitial}
+          </span>
+        ) : null}
+      </div>
+      {showSummaryRow ? (
+        <div className="card-api-summary-row card-api-summary-row--compact">
+          <div className="card-api-summary-left">
+            {hasTimeline ? <span className="card-api-timeline">{card.timeLeft}</span> : null}
+          </div>
+          <div className="card-api-summary-right">
+            {hasProgress ? <ApiCardCircularKpi progress={card.progress} /> : null}
+          </div>
+        </div>
+      ) : null}
+    </div>
+  );
+}
+
+function ApiKanbanCardFull({
+  card,
+  setSelectedCard,
+  isModernLayout,
+  isClassicLayout,
+}) {
+  const displayTitle = getApiCardDisplayTitle(card);
+  const secondary = hasText(card.billingEntity)
+    ? card.billingEntity
+    : hasText(card.name)
+      ? card.name
+      : "";
+  const showLogo = isValidImage(card.entityLogo);
+  const usernameInitial = getUsernameInitial(card.user);
+  const hasTimeline = hasText(card.timeLeft);
+  const hasProgress = isValidProgress(card.progress);
+  const showSummaryRow = hasTimeline || hasProgress;
+
+  const showHeaderRow = isModernLayout || showLogo;
+
+  return (
+    <>
+      {showHeaderRow && (
+        <div
+          className={`card-api-header ${isModernLayout ? "card-api-header--modern" : ""}`}
+        >
+          {isModernLayout ? (
+            <>
+              {showLogo && (
+                <img
+                  src={card.entityLogo}
+                  alt=""
+                  className="card-api-logo"
+                  loading="lazy"
+                />
+              )}
+              <button
+                type="button"
+                className="card-action-menu-btn"
+                onClick={(e) => {
+                  e.stopPropagation();
+                  setSelectedCard(card);
+                }}
+                aria-label="Actions"
+              >
+                <FiMoreHorizontal size={18} />
+              </button>
+            </>
+          ) : (
+            showLogo && (
+              <img
+                src={card.entityLogo}
+                alt=""
+                className="card-api-logo"
+                loading="lazy"
+              />
+            )
+          )}
+        </div>
+      )}
+
+      <div className="card-title-row card-title-row--api">
+        <div className="card-api-title-row">
+          <h3
+            className={`card-title card-title--api card-api-title-text ${isModernLayout ? "card-title-modern" : ""}`}
+            onClick={() => setSelectedCard(card)}
+            title={displayTitle || undefined}
+          >
+            {displayTitle}
+          </h3>
+          {usernameInitial ? (
+            <span
+              className="card-api-user-avatar"
+              title={hasText(card.user) ? String(card.user).trim() : undefined}
+              aria-hidden
+            >
+              {usernameInitial}
+            </span>
+          ) : null}
+        </div>
+        {hasText(secondary) ? (
+          <p className="card-api-secondary" title={secondary}>
+            {secondary}
+          </p>
+        ) : null}
+      </div>
+
+      {showSummaryRow ? (
+        <div className="card-api-summary-row">
+          <div className="card-api-summary-left">
+            {hasTimeline ? <span className="card-api-timeline">{card.timeLeft}</span> : null}
+          </div>
+          <div className="card-api-summary-right">
+            {hasProgress ? <ApiCardCircularKpi progress={card.progress} /> : null}
+          </div>
+        </div>
+      ) : null}
+
+      {isClassicLayout && hasText(card.port) && (
+        <div className="card-mini-tags card-mini-tags--api">
+          <span className="card-mini-tag card-mini-tag-port" title="Port">
+            {card.port}
+          </span>
+        </div>
+      )}
+    </>
+  );
+}
+
 function CardItem({
   card,
   index,
@@ -175,6 +354,7 @@ function CardItem({
   columnTitle = "",
   fixedDimensions = null,
 }) {
+  const isApiCard = card.cardSource === "api";
   const cardColor = card.color || "#2A00FF";
   const invoiceAmount = card.invoiceAmount != null ? Number(card.invoiceAmount) : null;
   const highlightInvoice = !!card.highlightInvoice; // 1st card (DA board): show invoice trend icon, no border pulse
@@ -192,40 +372,41 @@ function CardItem({
   const fixedBoardSizeStyle =
     fixedDimensions != null
       ? (() => {
-          const w = fixedDimensions.width;
-          const base = {
-            width: w,
-            minWidth: w,
-            maxWidth: w,
-            boxSizing: "border-box",
+        const w = fixedDimensions.width;
+        const base = {
+          width: w,
+          minWidth: w,
+          maxWidth: w,
+          boxSizing: "border-box",
+        };
+        if (fixedDimensions.height != null) {
+          return {
+            ...base,
+            height: fixedDimensions.height,
+            minHeight: fixedDimensions.height,
+            maxHeight: fixedDimensions.height,
+            overflow: "hidden",
           };
-          if (fixedDimensions.height != null) {
-            return {
-              ...base,
-              height: fixedDimensions.height,
-              minHeight: fixedDimensions.height,
-              maxHeight: fixedDimensions.height,
-              overflow: "hidden",
-            };
-          }
-          return base;
-        })()
+        }
+        return base;
+      })()
       : null;
 
   /** Matches icon blocks below — hide separator + row when nothing would render after KPI/footer. */
+  const ed = card.extraDetailsShowIcons;
   const hasExtraDetailsIcons =
     (card.transport != null && card.transport !== "") ||
-    card.extraDetailsShowIcons?.includes("hotel") ||
-    (!card.extraDetailsShowIcons || card.extraDetailsShowIcons.includes("medical")) ||
-    (!card.extraDetailsShowIcons || card.extraDetailsShowIcons.includes("material")) ||
-    (!card.extraDetailsShowIcons || card.extraDetailsShowIcons.includes("waste")) ||
-    (!card.extraDetailsShowIcons || card.extraDetailsShowIcons.includes("launch"));
+    (Array.isArray(ed) && ed.includes("hotel")) ||
+    (Array.isArray(ed) && ed.includes("medical")) ||
+    (Array.isArray(ed) && ed.includes("material")) ||
+    (Array.isArray(ed) && ed.includes("waste")) ||
+    (Array.isArray(ed) && ed.includes("launch"));
 
   return (
     <Draggable draggableId={card.id} index={index}>
       {(provided, snapshot) => (
         <div
-          className={`kanban-card ${snapshot.isDragging ? "dragging" : ""} ${card.priority ? "priority-blink" : ""} ${isShrunk ? "card-shrunk" : ""} ${isClassicLayout ? "kanban-card-classic" : ""} ${isModernLayout ? "kanban-card-modern" : ""} ${isDarkMode ? "kanban-card-dark" : ""} ${fixedBoardSizeStyle ? "kanban-card--fixed-board" : ""}`}
+          className={`kanban-card ${isApiCard ? "kanban-card--api" : ""} ${snapshot.isDragging ? "dragging" : ""} ${card.priority ? "priority-blink" : ""} ${isShrunk ? "card-shrunk" : ""} ${isClassicLayout ? "kanban-card-classic" : ""} ${isModernLayout ? "kanban-card-modern" : ""} ${isDarkMode ? "kanban-card-dark" : ""} ${fixedBoardSizeStyle ? "kanban-card--fixed-board" : ""}`}
           ref={provided.innerRef}
           {...provided.draggableProps}
           {...provided.dragHandleProps}
@@ -235,7 +416,18 @@ function CardItem({
             "--card-color": cardColor,
           }}
         >
-          {isShrunk ? (
+          {isApiCard ? (
+            isShrunk ? (
+              <ApiKanbanCardShrunk card={card} setSelectedCard={setSelectedCard} />
+            ) : (
+              <ApiKanbanCardFull
+                card={card}
+                setSelectedCard={setSelectedCard}
+                isModernLayout={isModernLayout}
+                isClassicLayout={isClassicLayout}
+              />
+            )
+          ) : isShrunk ? (
             // Compact view for shrunk columns - Enhanced UI
             <>
               {/* Compact Content Container */}
@@ -267,7 +459,7 @@ function CardItem({
               </div>
             </>
           ) : (
-            // Full view for normal/expanded columns
+            // Full view for normal/expanded columns (legacy / static mock cards)
             <>
               {/* Header */}
               <div className="card-header" style={{ display: "flex", alignItems: "center", justifyContent: "space-between", width: "100%" }}>
@@ -375,6 +567,7 @@ function CardItem({
                 const hasLink = card.footerShowIcons?.includes("link");
                 const isEnroute = (columnTitle || "").toLowerCase() === "enroute";
                 const hasAny = hasDeadline || hasLink || isEnroute;
+                if (!hasAny) return null;
                 return (
                   <div className="card-footer footer-1" style={{ display: "flex", gap: "10px", alignItems: "center", justifyContent: "flex-start", flexWrap: "wrap" }}>
                     {hasDeadline && (
@@ -393,12 +586,6 @@ function CardItem({
                       <span className="footer-1-item" title="ETA" style={{ display: "flex", alignItems: "center", gap: "4px" }}>
                         <EtaIcon size={16} color="#666" />
                         <span>{card.footerEta ?? getRandomEta(card.id)}</span>
-                      </span>
-                    )}
-                    {!hasAny && (
-                      <span className="footer-1-item" title="Schedule" style={{ display: "flex", alignItems: "center", gap: "4px" }}>
-                        <ClockIcon size={16} color="#666" />
-                        <span>—</span>
                       </span>
                     )}
                   </div>
@@ -514,7 +701,7 @@ function CardItem({
                     </>
                   )}
 
-                  {(!card.extraDetailsShowIcons || card.extraDetailsShowIcons.includes("medical")) && (
+                  {Array.isArray(card.extraDetailsShowIcons) && card.extraDetailsShowIcons.includes("medical") && (
                     <>
                       <div
                         data-tooltip-id={`medical-${card.id}`}
@@ -535,7 +722,7 @@ function CardItem({
                     </>
                   )}
 
-                  {(!card.extraDetailsShowIcons || card.extraDetailsShowIcons.includes("material")) && (
+                  {Array.isArray(card.extraDetailsShowIcons) && card.extraDetailsShowIcons.includes("material") && (
                     <>
                       <div
                         data-tooltip-id={`material-${card.id}`}
@@ -556,7 +743,7 @@ function CardItem({
                     </>
                   )}
 
-                  {(!card.extraDetailsShowIcons || card.extraDetailsShowIcons.includes("waste")) && (
+                  {Array.isArray(card.extraDetailsShowIcons) && card.extraDetailsShowIcons.includes("waste") && (
                     <>
                       <div
                         data-tooltip-id={`waste-${card.id}`}
@@ -577,7 +764,7 @@ function CardItem({
                     </>
                   )}
 
-                  {(!card.extraDetailsShowIcons || card.extraDetailsShowIcons.includes("launch")) && (
+                  {Array.isArray(card.extraDetailsShowIcons) && card.extraDetailsShowIcons.includes("launch") && (
                     <>
                       <div
                         data-tooltip-id={`launch-${card.id}`}
@@ -610,7 +797,8 @@ function CardItem({
 CardItem.propTypes = {
   card: PropTypes.shape({
     id: PropTypes.string.isRequired,
-    title: PropTypes.string.isRequired,
+    cardSource: PropTypes.oneOf(["api", "static"]),
+    title: PropTypes.string,
     cardName: PropTypes.string,
     name: PropTypes.string,
     user: PropTypes.string,

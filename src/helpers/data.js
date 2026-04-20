@@ -156,6 +156,19 @@ export function mapBoardWorkflowFromApi(workflow) {
             continue;
           }
 
+          const kpiRaw = card.kpi_percentage;
+          let progress = null;
+          if (kpiRaw != null && String(kpiRaw).trim() !== "") {
+            const n = Number(kpiRaw);
+            if (Number.isFinite(n) && n >= 0) progress = n;
+          }
+          const timelineRaw = card.timeline;
+          const timeLeft =
+            timelineRaw != null && String(timelineRaw).trim() !== ""
+              ? String(timelineRaw).trim()
+              : null;
+
+          // FE display: vesselName / cardName / title, user (avatar), timeLeft, progress — see CardItem ApiKanbanCardFull.
           cards[cardId] = {
             id: cardId,
             laneId: laneKey,
@@ -164,18 +177,19 @@ export function mapBoardWorkflowFromApi(workflow) {
             name: card.billing_entity || "",
             user: card.username || "",
             vesselName: card.vessel_name || "",
-            port: String(card.port_id || ""),
+            port: card.port_id != null && String(card.port_id).trim() !== "" ? String(card.port_id) : "",
             callId: String(card.call_id || ""),
             vesselId: String(card.vessel_id || ""),
             userId: String(card.user_id || ""),
-            entityLogo: card.entity_logo || "",
-            createdDate: card.created_date || "",
-            progress: Number(card.kpi_percentage) || 0,
-            timeLeft: card.timeline || "",
+            entityLogo: card.entity_logo && String(card.entity_logo).trim() ? String(card.entity_logo).trim() : "",
+            createdDate: card.created_date && String(card.created_date).trim() ? String(card.created_date).trim() : "",
+            progress,
+            timeLeft,
             color: stageColor,
             cardName: card.card_name || "",
             billingEntity: card.billing_entity || "",
             raw: card,
+            cardSource: "api",
           };
 
           if (swimlanes[laneKey]?.cardMap?.[colKey]) {
