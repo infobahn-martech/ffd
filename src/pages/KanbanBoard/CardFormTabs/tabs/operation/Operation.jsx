@@ -11,6 +11,7 @@ import { SendReportFullWidthView, SendReportButton } from "../../services/sendRe
 import {
   buildPreArrivalReportBody,
   buildArrivalReportBody,
+  buildArrivalDailyReportBody,
   buildDepartureReportBody,
 } from "../../services/sendReportBodyBuilder";
 import AttachmentsList from "../appointment/AttachmentsList";
@@ -1059,18 +1060,33 @@ const ArrivalContent = ({ formValues, handleChange, cardColor, onAddLink, onRemo
       <div className="operation-content-header">
         <h3 className="operation-content-title">Arrival Information</h3>
         {onOpenReportPreview && !isViewOnly && (
-          <SendReportButton
-            onClick={() =>
-              onOpenReportPreview({
-                tabName: "Arrival",
-                formSectionLabel: "Arrival Information",
-                getBody: () => buildArrivalReportBody(formValues),
-                getAttachments: () => formValues.arrivalDocumentsAttachments || [],
-              })
-            }
-            cardColor={cardColor}
-            tabName="Arrival"
-          />
+          <div style={{ display: "flex", gap: "8px" }}>
+            <SendReportButton
+              onClick={() =>
+                onOpenReportPreview({
+                  tabName: "Arrival",
+                  formSectionLabel: "Arrival Information",
+                  getBody: () => buildArrivalReportBody(formValues),
+                  getAttachments: () => formValues.arrivalDocumentsAttachments || [],
+                })
+              }
+              cardColor={cardColor}
+              tabName="Arrival"
+            />
+            <SendReportButton
+              onClick={() =>
+                onOpenReportPreview({
+                  tabName: "Daily Report",
+                  formSectionLabel: "Daily Report — Arrival",
+                  getBody: () => buildArrivalDailyReportBody(formValues),
+                  getAttachments: () => formValues.arrivalDocumentsAttachments || [],
+                })
+              }
+              cardColor={cardColor}
+              tabName="Daily Report"
+              label="Daily Report"
+            />
+          </div>
         )}
       </div>
       <FormSection icon={GroupSettingsIcon} title="">

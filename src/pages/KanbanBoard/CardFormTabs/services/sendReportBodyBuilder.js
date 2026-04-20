@@ -73,6 +73,28 @@ export function buildArrivalReportBody(v) {
   return lines.join("\n");
 }
 
+export function buildArrivalDailyReportBody(v) {
+  const lines = [
+    "Daily report - Arrival",
+    "",
+    `Actual time of arrival: ${formatDateTimePair(v.actualArrivalDate, v.actualArrivalTime)}`,
+    `Custom inspection commenced: ${formatDateTimePair(v.customInspectionCommencedDate, v.customInspectionCommencedTime)}`,
+    `Custom inspection completed: ${formatDateTimePair(v.customInspectionCompletedDate, v.customInspectionCompletedTime)}`,
+    `Custom inspection status: ${v.customInspectionStatus || "—"}`,
+    `Crew immigration commenced: ${formatDateTimePair(v.crewImmigrationCommencedDate, v.crewImmigrationCommencedTime)}`,
+    `Crew immigration status: ${v.crewImmigrationStatus || "—"}`,
+    `Crew immigration completed: ${formatDateTimePair(v.crewImmigrationCompletedDate, v.crewImmigrationCompletedTime)}`,
+    `Vessel inward formalities completed: ${formatDateTimePair(v.vesselInwardFormalitiesCompletedDate, v.vesselInwardFormalitiesCompletedTime)}`,
+    `Marine work permit applied: ${formatDateTimePair(v.marineWorkPermitAppliedDate, v.marineWorkPermitAppliedTime)}`,
+    `Marine work permit issued: ${formatDateTimePair(v.marineWorkPermitIssuedDate, v.marineWorkPermitIssuedTime)}`,
+    `Marine work permit expires: ${formatDateTimePair(v.marineWorkPermitExpiresDate, v.marineWorkPermitExpiresTime)}`,
+    "",
+    "Remarks:",
+    stripHtml(v.arrivalDescription) || "—",
+  ];
+  return lines.join("\n");
+}
+
 export function buildDepartureReportBody(v) {
   const lines = [
     "Departure report",
