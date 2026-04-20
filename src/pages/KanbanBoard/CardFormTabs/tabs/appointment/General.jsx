@@ -473,11 +473,11 @@ const DocumentUpload = ({ attachments = [], onAdd, onRemove, cardColor, disabled
               </div>
               <div className="document-file-info">
                 <span className="document-file-name">{file.name || file}</span>
-                {file.size && (
+                {/* {file.size && (
                   <span className="document-file-size">
                     {(file.size / 1024).toFixed(1)} KB
                   </span>
-                )}
+                )} */}
               </div>
             </div>
           ))}
