@@ -255,110 +255,6 @@ const OwnerField = ({ value, onChange, options = [], placeholder = "Select owner
   );
 };
 
-const VesselNameField = ({ value, onChange, options = [], placeholder, onSave, disabled = false }) => {
-  const [showAddInput, setShowAddInput] = useState(false);
-  const [newVesselName, setNewVesselName] = useState("");
-
-  const handleAddClick = () => {
-    setShowAddInput(true);
-    setNewVesselName("");
-  };
-
-  const handleSave = () => {
-    if (newVesselName.trim()) {
-      onSave(newVesselName.trim());
-      setNewVesselName("");
-      setShowAddInput(false);
-    }
-  };
-
-  const handleCancel = () => {
-    setNewVesselName("");
-    setShowAddInput(false);
-  };
-
-  const handleKeyPress = (e) => {
-    if (e.key === "Enter") {
-      handleSave();
-    } else if (e.key === "Escape") {
-      handleCancel();
-    }
-  };
-
-  return (
-    <div className="cf-field">
-      <label>Vessel Name</label>
-      <div className="cf-vessel-name-row">
-        <div className="cf-select" style={{ flex: 1 }}>
-          <select value={value || ""} onChange={onChange} disabled={disabled}>
-            {placeholder && <option value="">{placeholder}</option>}
-            {options.map((option) => (
-              <option key={option.value} value={option.value}>
-                {option.label}
-              </option>
-            ))}
-          </select>
-        </div>
-        {/* {!showAddInput && !disabled && (
-          <button
-            type="button"
-            className="cf-add-vessel-btn"
-            onClick={handleAddClick}
-            aria-label="Add Vessel"
-          >
-            +
-          </button>
-        )} */}
-      </div>
-      {showAddInput && (
-        <div className="cf-add-vessel-input-row">
-          <div className="cf-input" style={{ flex: 1 }}>
-            <input
-              type="text"
-              placeholder="Enter vessel name..."
-              value={newVesselName}
-              onChange={(e) => setNewVesselName(e.target.value)}
-              onKeyDown={handleKeyPress}
-              autoFocus
-            />
-          </div>
-          <button
-            type="button"
-            className="cf-save-vessel-btn"
-            onClick={handleSave}
-            aria-label="Save Vessel"
-            disabled={!newVesselName.trim()}
-          >
-            ✓
-          </button>
-          <button
-            type="button"
-            className="cf-cancel-vessel-btn"
-            onClick={handleCancel}
-            aria-label="Cancel"
-          >
-            ✕
-          </button>
-        </div>
-      )}
-    </div>
-  );
-};
-
-VesselNameField.propTypes = {
-  value: PropTypes.string,
-  onChange: PropTypes.func.isRequired,
-  options: PropTypes.arrayOf(
-    PropTypes.shape({
-      value: PropTypes.string.isRequired,
-      label: PropTypes.string.isRequired,
-    })
-  ),
-  placeholder: PropTypes.string,
-  onSave: PropTypes.func.isRequired,
-  disabled: PropTypes.bool,
-};
-
 OwnerField.propTypes = {
   value: PropTypes.oneOfType([PropTypes.string, PropTypes.number]),
   onChange: PropTypes.func.isRequired,
@@ -1776,25 +1672,6 @@ function General({
     [getFieldValue, handleChange, normalizeBillingInstruction]
   );
 
-  // Handle vessel save - add new vessel to options and update form value
-  const handleVesselSave = (vesselName) => {
-    const newVesselOption = {
-      value: vesselName,
-      label: vesselName,
-    };
-
-    // Add to options if not already exists
-    if (!vesselNameOptions.some(opt => opt.value === newVesselOption.value)) {
-      setVesselNameOptions([...vesselNameOptions, newVesselOption]);
-    }
-
-    // Update form value to the newly added vessel
-    const syntheticEvent = {
-      target: { value: vesselName, name: "vesselName" }
-    };
-    handleChange("vesselName")(syntheticEvent);
-  };
-
   // Determine if fields should be disabled
   // In simplified mode: always enabled
   // In full mode: disabled when not in add mode (same as before)
@@ -2698,14 +2575,15 @@ function General({
                         )}
 
                         {shouldShowApiField("vessel_id") && (
-                          <VesselNameField
-                            value={getFieldValue("vesselName")}
-                            onChange={handleVesselSelectionChange}
-                            options={vesselNameOptions}
-                            placeholder="Select vessel name..."
-                            onSave={handleVesselSave}
-                            disabled={isDisabled || vesselOptionsLoading}
-                          />
+                          <FormField label="Vessel Name">
+                            <FormSelect
+                              value={getFieldValue("vesselName")}
+                              onChange={handleVesselSelectionChange}
+                              options={mergeOptionIfMissing(vesselNameOptions, getFieldValue("vesselName"))}
+                              placeholder="Select vessel name"
+                              disabled={isDisabled || vesselOptionsLoading}
+                            />
+                          </FormField>
                         )}
 
                         {shouldShowApiField("vessel_owner") && (
