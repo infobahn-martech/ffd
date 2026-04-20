@@ -26,6 +26,51 @@ import {
 import { buildCreateCallFileFormData } from "../../../../../helpers/createCallFilePayload";
 import { notify } from "../../../../../components/Toaster";
 
+const splitDateTime = (value) => {
+  if (!value) return { date: "", time: "" };
+  const normalized = String(value).trim().replace(" ", "T");
+  const d = new Date(normalized);
+  if (Number.isNaN(d.getTime())) return { date: "", time: "" };
+  return {
+    date: d.toISOString().slice(0, 10),
+    time: d.toTimeString().slice(0, 5),
+  };
+};
+
+const mapCallDetailToFormFields = (detail) => {
+  const appointmentParts = splitDateTime(detail?.appointment_received_date);
+  const dailyReportEmail = Array.isArray(detail?.daily_report_emails)
+    ? detail.daily_report_emails.map((item) => String(item?.id ?? "")).filter(Boolean)
+    : [];
+  const billingInstructionEmails = Array.isArray(detail?.billing_instruction_emails)
+    ? detail.billing_instruction_emails.map((item) => String(item?.id ?? "")).filter(Boolean)
+    : [];
+
+  return {
+    callId: detail?.call_id ? String(detail.call_id) : "",
+    call_id: detail?.call_id ? String(detail.call_id) : "",
+    owner: detail?.owner_id ? String(detail.owner_id) : "",
+    assignedOperator: detail?.assigned_operator_id ? String(detail.assigned_operator_id) : "",
+    appointmentReceivedDate: appointmentParts.date,
+    appointmentReceivedTime: appointmentParts.time,
+    port: detail?.port_id ? String(detail.port_id) : "",
+    typeOfCall: detail?.call_type ? String(detail.call_type) : "",
+    mainBillingEntity: detail?.main_billing_entity_id ? String(detail.main_billing_entity_id) : "",
+    otherBillingEntity: detail?.other_billing_entity_id ? String(detail.other_billing_entity_id) : "",
+    vesselType: detail?.vessel_type_id ? String(detail.vessel_type_id) : "",
+    bargeType: detail?.barge_type_id ? String(detail.barge_type_id) : "",
+    vesselName: detail?.vessel_id ? String(detail.vessel_id) : "",
+    vesselOwner: detail?.vessel_owner ? String(detail.vessel_owner) : "",
+    vesselPrincipal: detail?.vessel_principal ? String(detail.vessel_principal) : "",
+    vesselManager: detail?.vessel_manager ? String(detail.vessel_manager) : "",
+    serviceRequestorName: detail?.service_requestor_name ? String(detail.service_requestor_name) : "",
+    serviceRequestorEmail: detail?.service_requestor_email ? String(detail.service_requestor_email) : "",
+    dailyReportEmail,
+    billingInstructionEmails,
+    billingInstructions: detail?.billing_instruction ? String(detail.billing_instruction) : "",
+  };
+};
+
 // Form Components
 const FormField = ({ label, children, className = "", hasError = false }) => {
   return (
@@ -1137,8 +1182,52 @@ function General({
   const [fieldErrors, setFieldErrors] = useState({});
   const [entityFieldsLoading, setEntityFieldsLoading] = useState(false);
   const [entityFieldsError, setEntityFieldsError] = useState("");
+  const [callDetailLoading, setCallDetailLoading] = useState(false);
+  const [callDetailData, setCallDetailData] = useState(null);
 
-  // Initialize dummy document when not in add mode
+  const currentCallId = useMemo(
+    () => card?.call_id ?? formValues?.call_id ?? card?.callId ?? "",
+    [card?.call_id, card?.callId, formValues?.call_id]
+  );
+
+  useEffect(() => {
+    if (isAddMode || !currentCallId) {
+      setCallDetailData(null);
+      setCallDetailLoading(false);
+      return;
+    }
+
+    let cancelled = false;
+
+    const loadCallDetail = async () => {
+      setCallDetailLoading(true);
+      try {
+        const { data } = await callFileService.getCallDetail(currentCallId);
+        const detail = data?.data ?? null;
+        if (!cancelled) {
+          setCallDetailData(detail);
+        }
+      } catch (error) {
+        console.error("[General] call detail fetch failed", error);
+      } finally {
+        if (!cancelled) {
+          setCallDetailLoading(false);
+        }
+      }
+    };
+
+    loadCallDetail();
+    return () => {
+      cancelled = true;
+    };
+  }, [isAddMode, currentCallId]);
+
+  const mappedCallDetail = useMemo(() => {
+    if (!callDetailData) return {};
+    return mapCallDetailToFormFields(callDetailData);
+  }, [callDetailData]);
+
+  // Keep existing non-add-mode preview only when API file name is unavailable.
   useEffect(() => {
     if (!isAddMode && appointmentDocuments.length === 0) {
       const dummyDocument = {
@@ -1149,7 +1238,7 @@ function General({
       setAppointmentDocuments([dummyDocument]);
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [isAddMode]);
+  }, [isAddMode, appointmentDocuments.length]);
 
   useEffect(() => {
     let cancelled = false;
@@ -1258,20 +1347,41 @@ function General({
   };
 
 
-  // Helper function to get field value - prioritize formValues, then card, then dummy value if not in add mode
+  // Helper function to get field value - prioritize formValues, then fetched call detail, then card.
   const getFieldValue = (fieldName) => {
     if (formValues?.[fieldName] !== undefined && formValues[fieldName] !== null && formValues[fieldName] !== "") {
       return formValues[fieldName];
     }
+    if (
+      !isAddMode &&
+      mappedCallDetail?.[fieldName] !== undefined &&
+      mappedCallDetail[fieldName] !== null &&
+      mappedCallDetail[fieldName] !== ""
+    ) {
+      return mappedCallDetail[fieldName];
+    }
     if (!isAddMode && card?.[fieldName] !== undefined && card[fieldName] !== null && card[fieldName] !== "") {
       return card[fieldName];
     }
-    // Return dummy value when not in add mode
+    // Last fallback only when no API/card/form value exists.
     if (!isAddMode && dummyValues[fieldName] !== undefined) {
       return dummyValues[fieldName];
     }
     return "";
   };
+
+  const shouldShowApiField = useCallback(
+    (apiKey) => {
+      if (isAddMode) return true;
+      if (!callDetailData) return true;
+      const raw = callDetailData?.[apiKey];
+      if (Array.isArray(raw)) return raw.length > 0;
+      if (raw === undefined || raw === null) return false;
+      if (typeof raw === "string") return raw.trim() !== "";
+      return true;
+    },
+    [isAddMode, callDetailData]
+  );
 
   const getTrimmedValue = (value) => {
     if (value === undefined || value === null) return "";
@@ -1493,6 +1603,56 @@ function General({
     },
     [handleChange, normalizeBillingInstruction]
   );
+
+  useEffect(() => {
+    if (isAddMode) return;
+    const fileName = callDetailData?.appointment_email ? String(callDetailData.appointment_email).trim() : "";
+    if (!fileName) return;
+    setAppointmentDocuments([
+      {
+        name: fileName,
+        size: 0,
+        type: "application/pdf",
+      },
+    ]);
+  }, [isAddMode, callDetailData?.appointment_email]);
+
+  useEffect(() => {
+    if (isAddMode) return;
+    const rows = Array.isArray(callDetailData?.daily_report_emails) ? callDetailData.daily_report_emails : [];
+    if (!rows.length) return;
+    setDailyReportEmailOptions((prev) => {
+      const next = Array.isArray(prev) ? [...prev] : [];
+      rows.forEach((item) => {
+        const id = item?.id === undefined || item?.id === null ? "" : String(item.id).trim();
+        const email = item?.email ? String(item.email).trim() : "";
+        if (!id || !email) return;
+        if (!next.some((opt) => String(opt.value) === id)) {
+          next.push({ value: id, label: email });
+        }
+      });
+      return next;
+    });
+  }, [isAddMode, callDetailData?.daily_report_emails]);
+
+  useEffect(() => {
+    if (isAddMode) return;
+    const rows = Array.isArray(callDetailData?.billing_instruction_emails) ? callDetailData.billing_instruction_emails : [];
+    if (!rows.length) return;
+    setBillingInstructionEmailOptions((prev) => {
+      const next = Array.isArray(prev) ? [...prev] : [];
+      rows.forEach((item) => {
+        const id = item?.id === undefined || item?.id === null ? "" : String(item.id).trim();
+        const email = item?.email ? String(item.email).trim() : "";
+        if (!id || !email) return;
+        if (!next.some((opt) => String(opt.value) === id)) {
+          next.push({ value: id, label: email });
+        }
+      });
+      return next;
+    });
+    setBillingInstructionType("email");
+  }, [isAddMode, callDetailData?.billing_instruction_emails]);
 
   const normalizeVesselOptions = useCallback((payload) => {
     const rows = unwrapListResponse(payload);
@@ -1835,16 +1995,28 @@ function General({
     });
   };
 
-  useEffect(() => {
-    const selectedEntityId = getFieldValue("mainBillingEntity");
-    if (!selectedEntityId) return;
-    void fetchEntityFields(selectedEntityId, entityFieldValues);
-    void fetchBillingEntityEmails(selectedEntityId);
-    void fetchBillingInstructionByEntity(selectedEntityId);
-    void fetchVesselsByEntity(selectedEntityId);
-    // Intentionally only bootstraps once for initial selected entity.
+  const selectedEntityId = useMemo(
+    () => getFieldValue("mainBillingEntity"),
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
+    [isAddMode, formValues?.mainBillingEntity, card?.mainBillingEntity, card?.main_billing_entity_id, mappedCallDetail?.mainBillingEntity]
+  );
+
+  useEffect(() => {
+    if (!selectedEntityId) return;
+    void fetchEntityFields(selectedEntityId);
+    void fetchBillingEntityEmails(selectedEntityId);
+    if (isAddMode) {
+      void fetchBillingInstructionByEntity(selectedEntityId);
+    }
+    void fetchVesselsByEntity(selectedEntityId);
+  }, [
+    selectedEntityId,
+    isAddMode,
+    fetchEntityFields,
+    fetchBillingEntityEmails,
+    fetchBillingInstructionByEntity,
+    fetchVesselsByEntity,
+  ]);
 
 
 
@@ -1872,6 +2044,11 @@ function General({
             </div>
           )}
           <div className="cf-section-body">
+            {!isAddMode && callDetailLoading && (
+              <div className="cf-input" style={{ marginBottom: "12px" }}>
+                <input type="text" value="Loading call details..." readOnly />
+              </div>
+            )}
             <div className={`${!isAddMode ? "general-info-three-column" : "general-info-two-column"} general-tab-form-layout`}>
               <div className="general-info-left">
                 <div className="pre-arrival-form">
@@ -2339,100 +2516,111 @@ function General({
                     </>
                   ) : (
                     <>
-                      <OwnerField
-                        value={getFieldValue("owner")}
-                        onChange={isAddMode ? handleValidatedChange("owner") : handleChange("owner")}
-                        options={mergeOptionIfMissing(operatorOptions, getFieldValue("owner"))}
-                        placeholder="Select owner"
-                        disabled={masterInputsDisabled}
-                        error={isAddMode ? fieldErrors.owner : undefined}
-                        hasError={isAddMode && Boolean(fieldErrors.owner)}
-                      />
+                      {shouldShowApiField("owner_id") && (
+                        <OwnerField
+                          value={getFieldValue("owner")}
+                          onChange={isAddMode ? handleValidatedChange("owner") : handleChange("owner")}
+                          options={mergeOptionIfMissing(operatorOptions, getFieldValue("owner"))}
+                          placeholder="Select owner"
+                          disabled={masterInputsDisabled}
+                          error={isAddMode ? fieldErrors.owner : undefined}
+                          hasError={isAddMode && Boolean(fieldErrors.owner)}
+                        />
+                      )}
 
                       {!isSimplifiedMode && (
                         <div className="form-group">
                           <h3 className="form-group-title">Appointment Details</h3>
-                          <FormField label="Appointment Email">
-                            <DocumentUpload
-                              attachments={appointmentDocuments}
-                              onAdd={handleDocumentAdd}
-                              onRemove={handleDocumentRemove}
-                              cardColor={accentColor}
-                              disabled={isDisabled}
-                            />
-                          </FormField>
-                          <FormField
-                            label="Appointment Received"
-                            hasError={isAddMode && Boolean(fieldErrors.appointmentReceivedDate)}
-                          >
-                            <div
-                              className={`cf-input date-time-row ${isAddMode && fieldErrors.appointmentReceivedDate ? "is-invalid" : ""}`}
+                          {shouldShowApiField("appointment_email") && (
+                            <FormField label="Appointment Email">
+                              <DocumentUpload
+                                attachments={appointmentDocuments}
+                                onAdd={handleDocumentAdd}
+                                onRemove={handleDocumentRemove}
+                                cardColor={accentColor}
+                                disabled={isDisabled}
+                              />
+                            </FormField>
+                          )}
+                          {shouldShowApiField("appointment_received_date") && (
+                            <FormField
+                              label="Appointment Received"
+                              hasError={isAddMode && Boolean(fieldErrors.appointmentReceivedDate)}
                             >
-                              <input
-                                type="date"
-                                value={getFieldValue("appointmentReceivedDate")}
-                                onChange={isAddMode ? handleValidatedChange("appointmentReceivedDate") : handleChange("appointmentReceivedDate")}
-                                placeholder="Select date"
-                                disabled={isDisabled}
-                              />
+                              <div
+                                className={`cf-input date-time-row ${isAddMode && fieldErrors.appointmentReceivedDate ? "is-invalid" : ""}`}
+                              >
+                                <input
+                                  type="date"
+                                  value={getFieldValue("appointmentReceivedDate")}
+                                  onChange={isAddMode ? handleValidatedChange("appointmentReceivedDate") : handleChange("appointmentReceivedDate")}
+                                  placeholder="Select date"
+                                  disabled={isDisabled}
+                                />
 
-                              <input
-                                type="time"
-                                value={getFieldValue("appointmentReceivedTime")}
-                                onChange={handleChange("appointmentReceivedTime")}
-                                placeholder="Select time"
-                                disabled={isDisabled}
-                              />
-                            </div>
-                            {isAddMode && fieldErrors.appointmentReceivedDate && (
-                              <div className="cf-field-error">{fieldErrors.appointmentReceivedDate}</div>
-                            )}
-                          </FormField>
+                                <input
+                                  type="time"
+                                  value={getFieldValue("appointmentReceivedTime")}
+                                  onChange={handleChange("appointmentReceivedTime")}
+                                  placeholder="Select time"
+                                  disabled={isDisabled}
+                                />
+                              </div>
+                              {isAddMode && fieldErrors.appointmentReceivedDate && (
+                                <div className="cf-field-error">{fieldErrors.appointmentReceivedDate}</div>
+                              )}
+                            </FormField>
+                          )}
                         </div>
                       )}
 
                       <div className="form-group">
                         <h3 className="form-group-title">Service Information</h3>
-                        <FormField label="Port" hasError={isAddMode && Boolean(fieldErrors.port)}>
-                          <FormSelect
-                            value={getFieldValue("port")}
-                            onChange={isAddMode ? handleValidatedChange("port") : handleChange("port")}
-                            options={mergeOptionIfMissing(portSelectOptions, getFieldValue("port"))}
-                            placeholder="Select port"
-                            disabled={masterInputsDisabled}
-                            hasError={isAddMode && Boolean(fieldErrors.port)}
-                          />
-                          {isAddMode && fieldErrors.port && (
-                            <div className="cf-field-error">{fieldErrors.port}</div>
-                          )}
-                        </FormField>
-                        <FormField label="Type of call / Service" hasError={isAddMode && Boolean(fieldErrors.typeOfCall)}>
-                          <FormSelect
-                            value={getFieldValue("typeOfCall")}
-                            onChange={isAddMode ? handleValidatedChange("typeOfCall") : handleChange("typeOfCall")}
-                            options={mergeOptionIfMissing(callTypeOptions, getFieldValue("typeOfCall"))}
-                            placeholder="Select type of call"
-                            disabled={masterInputsDisabled}
-                            hasError={isAddMode && Boolean(fieldErrors.typeOfCall)}
-                          />
-                          {isAddMode && fieldErrors.typeOfCall && (
-                            <div className="cf-field-error">{fieldErrors.typeOfCall}</div>
-                          )}
-                        </FormField>
-
-                        <FormField label="Main Billing entity" hasError={isAddMode && Boolean(fieldErrors.mainBillingEntity)}>
-                          <FormSelect
-                            value={getFieldValue("mainBillingEntity")}
-                            onChange={isAddMode ? handleValidatedMainBillingEntityChange : handleMainBillingEntityChange}
-                            options={mergeOptionIfMissing(billingEntitySelectOptions, getFieldValue("mainBillingEntity"))}
-                            placeholder="Select billing entity"
-                            disabled={masterInputsDisabled}
-                            hasError={isAddMode && Boolean(fieldErrors.mainBillingEntity)}
-                          />
-                          {isAddMode && fieldErrors.mainBillingEntity && (
-                            <div className="cf-field-error">{fieldErrors.mainBillingEntity}</div>
-                          )}
-                        </FormField>
+                        {shouldShowApiField("port_id") && (
+                          <FormField label="Port" hasError={isAddMode && Boolean(fieldErrors.port)}>
+                            <FormSelect
+                              value={getFieldValue("port")}
+                              onChange={isAddMode ? handleValidatedChange("port") : handleChange("port")}
+                              options={mergeOptionIfMissing(portSelectOptions, getFieldValue("port"))}
+                              placeholder="Select port"
+                              disabled={masterInputsDisabled}
+                              hasError={isAddMode && Boolean(fieldErrors.port)}
+                            />
+                            {isAddMode && fieldErrors.port && (
+                              <div className="cf-field-error">{fieldErrors.port}</div>
+                            )}
+                          </FormField>
+                        )}
+                        {shouldShowApiField("call_type") && (
+                          <FormField label="Type of call / Service" hasError={isAddMode && Boolean(fieldErrors.typeOfCall)}>
+                            <FormSelect
+                              value={getFieldValue("typeOfCall")}
+                              onChange={isAddMode ? handleValidatedChange("typeOfCall") : handleChange("typeOfCall")}
+                              options={mergeOptionIfMissing(callTypeOptions, getFieldValue("typeOfCall"))}
+                              placeholder="Select type of call"
+                              disabled={masterInputsDisabled}
+                              hasError={isAddMode && Boolean(fieldErrors.typeOfCall)}
+                            />
+                            {isAddMode && fieldErrors.typeOfCall && (
+                              <div className="cf-field-error">{fieldErrors.typeOfCall}</div>
+                            )}
+                          </FormField>
+                        )}
+                        {shouldShowApiField("main_billing_entity_id") && (
+                          <FormField label="Main Billing entity" hasError={isAddMode && Boolean(fieldErrors.mainBillingEntity)}>
+                            <FormSelect
+                              value={getFieldValue("mainBillingEntity")}
+                              onChange={isAddMode ? handleValidatedMainBillingEntityChange : handleMainBillingEntityChange}
+                              options={mergeOptionIfMissing(billingEntitySelectOptions, getFieldValue("mainBillingEntity"))}
+                              placeholder="Select billing entity"
+                              disabled={masterInputsDisabled}
+                              hasError={isAddMode && Boolean(fieldErrors.mainBillingEntity)}
+                            />
+                            {isAddMode && fieldErrors.mainBillingEntity && (
+                              <div className="cf-field-error">{fieldErrors.mainBillingEntity}</div>
+                            )}
+                          </FormField>
+                        )}
 
                         {entityFieldsLoading && (
                           <FormField label="">
@@ -2504,155 +2692,167 @@ function General({
                       <div className="form-group">
                         <h3 className="form-group-title">Vessel Information</h3>
 
-                        <FormField label="Vessel type">
-                          <FormSelect
-                            value={getFieldValue("vesselType")}
-                            onChange={handleChange("vesselType")}
-                            options={mergeOptionIfMissing(vesselTypeSelectOptions, getFieldValue("vesselType"))}
-                            placeholder="Select vessel type"
-                            disabled={masterInputsDisabled}
-                          />
-                        </FormField>
-
-                        <FormField label="Barge type">
-                          <FormSelect
-                            value={getFieldValue("bargeType")}
-                            onChange={handleChange("bargeType")}
-                            options={mergeOptionIfMissing(bargeTypeSelectOptions, getFieldValue("bargeType"))}
-                            placeholder="Select barge type"
-                            disabled={masterInputsDisabled}
-                          />
-                        </FormField>
-
-                        <VesselNameField
-                          value={getFieldValue("vesselName")}
-                          onChange={handleVesselSelectionChange}
-                          options={vesselNameOptions}
-                          placeholder="Select vessel name..."
-                          onSave={handleVesselSave}
-                          disabled={isDisabled || vesselOptionsLoading}
-                        />
-
-                        <FormField label="Vessel Owner">
-                          <FormInput
-                            type="text"
-                            placeholder="Enter vessel owner..."
-                            value={getFieldValue("vesselOwner")}
-                            onChange={handleChange("vesselOwner")}
-                            disabled={isDisabled}
-                          />
-                        </FormField>
-
-                        <FormField label="Vessel Principal">
-                          <FormInput
-                            type="text"
-                            placeholder="Enter vessel principal..."
-                            value={getFieldValue("vesselPrincipal")}
-                            onChange={handleChange("vesselPrincipal")}
-                            disabled={isDisabled}
-                          />
-                        </FormField>
-
-                        <FormField label="Vessel Manager">
-                          <FormInput
-                            type="text"
-                            placeholder="Enter vessel manager..."
-                            value={getFieldValue("vesselManager")}
-                            onChange={handleChange("vesselManager")}
-                            disabled={isDisabled}
-                          />
-                        </FormField>
-
-                        <FormField label="Other billing entity">
-                          <FormSelect
-                            value={getFieldValue("otherBillingEntity")}
-                            onChange={handleChange("otherBillingEntity")}
-                            options={mergeOptionIfMissing(billingEntitySelectOptions, getFieldValue("otherBillingEntity"))}
-                            placeholder="Select billing entity"
-                            disabled={masterInputsDisabled}
-                          />
-                        </FormField>
-
-                        <FormField label="Assigned Operator">
-                          <FormSelect
-                            value={getFieldValue("assignedOperator")}
-                            onChange={handleChange("assignedOperator")}
-                            options={mergeOptionIfMissing(operatorOptions, getFieldValue("assignedOperator"))}
-                            placeholder="Select operator"
-                            disabled={masterInputsDisabled}
-                          />
-                        </FormField>
-
-                        <FormField label="Service Requestor Name">
-                          <FormInput
-                            type="text"
-                            placeholder="Enter service requestor name..."
-                            value={getFieldValue("serviceRequestorName")}
-                            onChange={handleChange("serviceRequestorName")}
-                            disabled={isDisabled}
-                          />
-                        </FormField>
-
-                        <FormField
-                          label="Service Requestor Email"
-                          hasError={isAddMode && Boolean(fieldErrors.serviceRequestorEmail)}
-                        >
-                          <FormInput
-                            type="email"
-                            placeholder="Enter service requestor email..."
-                            value={getFieldValue("serviceRequestorEmail")}
-                            onChange={isAddMode ? handleValidatedChange("serviceRequestorEmail") : handleChange("serviceRequestorEmail")}
-                            disabled={isDisabled}
-                            hasError={isAddMode && Boolean(fieldErrors.serviceRequestorEmail)}
-                          />
-                          {isAddMode && fieldErrors.serviceRequestorEmail && (
-                            <div className="cf-field-error">{fieldErrors.serviceRequestorEmail}</div>
-                          )}
-                        </FormField>
-
-                        <FormField label="Daily Report Emails">
-                          <MultiSelectEmail
-                            value={
-                              formValues?.dailyReportEmail !== undefined && formValues.dailyReportEmail !== null && formValues.dailyReportEmail.length > 0
-                                ? formValues.dailyReportEmail
-                                : !isAddMode && card?.dailyReportEmail && card.dailyReportEmail.length > 0
-                                  ? card.dailyReportEmail
-                                  : !isAddMode
-                                    ? dummyValues.dailyReportEmail
-                                    : []
-                            }
-                            onChange={handleChange("dailyReportEmail")}
-                            options={dailyReportEmailOptions}
-                            placeholder="Select email addresses..."
-                            onAddNew={handleAddNewEmail}
-                            disabled={isDisabled || dailyReportEmailLoading}
-                          />
-                        </FormField>
-
-                        <FormField label="Billing instructions">
-                          {billingInstructionType.toLowerCase() === "email" ? (
-                            <MultiSelectEmail
-                              value={
-                                Array.isArray(formValues?.billingInstructionEmails)
-                                  ? formValues.billingInstructionEmails
-                                  : []
-                              }
-                              onChange={handleChange("billingInstructionEmails")}
-                              options={billingInstructionEmailOptions}
-                              placeholder="Select billing instruction emails..."
-                              onAddNew={handleAddBillingInstructionEmail}
-                              disabled={isDisabled || billingInstructionLoading}
+                        {shouldShowApiField("vessel_type_id") && (
+                          <FormField label="Vessel type">
+                            <FormSelect
+                              value={getFieldValue("vesselType")}
+                              onChange={handleChange("vesselType")}
+                              options={mergeOptionIfMissing(vesselTypeSelectOptions, getFieldValue("vesselType"))}
+                              placeholder="Select vessel type"
+                              disabled={masterInputsDisabled}
                             />
-                          ) : (
+                          </FormField>
+                        )}
+
+                        {shouldShowApiField("barge_type_id") && (
+                          <FormField label="Barge type">
+                            <FormSelect
+                              value={getFieldValue("bargeType")}
+                              onChange={handleChange("bargeType")}
+                              options={mergeOptionIfMissing(bargeTypeSelectOptions, getFieldValue("bargeType"))}
+                              placeholder="Select barge type"
+                              disabled={masterInputsDisabled}
+                            />
+                          </FormField>
+                        )}
+
+                        {shouldShowApiField("vessel_id") && (
+                          <VesselNameField
+                            value={getFieldValue("vesselName")}
+                            onChange={handleVesselSelectionChange}
+                            options={vesselNameOptions}
+                            placeholder="Select vessel name..."
+                            onSave={handleVesselSave}
+                            disabled={isDisabled || vesselOptionsLoading}
+                          />
+                        )}
+
+                        {shouldShowApiField("vessel_owner") && (
+                          <FormField label="Vessel Owner">
                             <FormInput
                               type="text"
-                              placeholder="Enter billing instructions..."
-                              value={getFieldValue("billingInstructions")}
-                              onChange={handleChange("billingInstructions")}
-                              disabled={isDisabled || billingInstructionLoading}
+                              placeholder="Enter vessel owner..."
+                              value={getFieldValue("vesselOwner")}
+                              onChange={handleChange("vesselOwner")}
+                              disabled={isDisabled}
                             />
-                          )}
-                        </FormField>
+                          </FormField>
+                        )}
+
+                        {shouldShowApiField("vessel_principal") && (
+                          <FormField label="Vessel Principal">
+                            <FormInput
+                              type="text"
+                              placeholder="Enter vessel principal..."
+                              value={getFieldValue("vesselPrincipal")}
+                              onChange={handleChange("vesselPrincipal")}
+                              disabled={isDisabled}
+                            />
+                          </FormField>
+                        )}
+
+                        {shouldShowApiField("vessel_manager") && (
+                          <FormField label="Vessel Manager">
+                            <FormInput
+                              type="text"
+                              placeholder="Enter vessel manager..."
+                              value={getFieldValue("vesselManager")}
+                              onChange={handleChange("vesselManager")}
+                              disabled={isDisabled}
+                            />
+                          </FormField>
+                        )}
+
+                        {shouldShowApiField("other_billing_entity_id") && (
+                          <FormField label="Other billing entity">
+                            <FormSelect
+                              value={getFieldValue("otherBillingEntity")}
+                              onChange={handleChange("otherBillingEntity")}
+                              options={mergeOptionIfMissing(billingEntitySelectOptions, getFieldValue("otherBillingEntity"))}
+                              placeholder="Select billing entity"
+                              disabled={masterInputsDisabled}
+                            />
+                          </FormField>
+                        )}
+
+                        {shouldShowApiField("assigned_operator_id") && (
+                          <FormField label="Assigned Operator">
+                            <FormSelect
+                              value={getFieldValue("assignedOperator")}
+                              onChange={handleChange("assignedOperator")}
+                              options={mergeOptionIfMissing(operatorOptions, getFieldValue("assignedOperator"))}
+                              placeholder="Select operator"
+                              disabled={masterInputsDisabled}
+                            />
+                          </FormField>
+                        )}
+
+                        {shouldShowApiField("service_requestor_name") && (
+                          <FormField label="Service Requestor Name">
+                            <FormInput
+                              type="text"
+                              placeholder="Enter service requestor name..."
+                              value={getFieldValue("serviceRequestorName")}
+                              onChange={handleChange("serviceRequestorName")}
+                              disabled={isDisabled}
+                            />
+                          </FormField>
+                        )}
+
+                        {shouldShowApiField("service_requestor_email") && (
+                          <FormField
+                            label="Service Requestor Email"
+                            hasError={isAddMode && Boolean(fieldErrors.serviceRequestorEmail)}
+                          >
+                            <FormInput
+                              type="email"
+                              placeholder="Enter service requestor email..."
+                              value={getFieldValue("serviceRequestorEmail")}
+                              onChange={isAddMode ? handleValidatedChange("serviceRequestorEmail") : handleChange("serviceRequestorEmail")}
+                              disabled={isDisabled}
+                              hasError={isAddMode && Boolean(fieldErrors.serviceRequestorEmail)}
+                            />
+                            {isAddMode && fieldErrors.serviceRequestorEmail && (
+                              <div className="cf-field-error">{fieldErrors.serviceRequestorEmail}</div>
+                            )}
+                          </FormField>
+                        )}
+
+                        {shouldShowApiField("daily_report_emails") && (
+                          <FormField label="Daily Report Emails">
+                            <MultiSelectEmail
+                              value={Array.isArray(getFieldValue("dailyReportEmail")) ? getFieldValue("dailyReportEmail") : []}
+                              onChange={handleChange("dailyReportEmail")}
+                              options={dailyReportEmailOptions}
+                              placeholder="Select email addresses..."
+                              onAddNew={handleAddNewEmail}
+                              disabled={isDisabled || dailyReportEmailLoading}
+                            />
+                          </FormField>
+                        )}
+
+                        {(shouldShowApiField("billing_instruction") || shouldShowApiField("billing_instruction_emails")) && (
+                          <FormField label="Billing instructions">
+                            {billingInstructionType.toLowerCase() === "email" ? (
+                              <MultiSelectEmail
+                                value={Array.isArray(getFieldValue("billingInstructionEmails")) ? getFieldValue("billingInstructionEmails") : []}
+                                onChange={handleChange("billingInstructionEmails")}
+                                options={billingInstructionEmailOptions}
+                                placeholder="Select billing instruction emails..."
+                                onAddNew={handleAddBillingInstructionEmail}
+                                disabled={isDisabled || billingInstructionLoading}
+                              />
+                            ) : (
+                              <FormInput
+                                type="text"
+                                placeholder="Enter billing instructions..."
+                                value={getFieldValue("billingInstructions")}
+                                onChange={handleChange("billingInstructions")}
+                                disabled={isDisabled || billingInstructionLoading}
+                              />
+                            )}
+                          </FormField>
+                        )}
 
                         {isAddMode && (
                           <div className="form-save-button-wrapper">
