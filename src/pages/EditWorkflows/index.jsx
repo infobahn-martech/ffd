@@ -1,5 +1,5 @@
 import { useState, useEffect, useCallback, useRef } from 'react';
-import { useSearchParams } from 'react-router-dom';
+import { useSearchParams, useNavigate } from 'react-router-dom';
 import { Tooltip } from 'react-tooltip';
 import '../../design/scss/EditWorkflows.scss';
 import CreateWorkflowModal from './CreateWorkflowModal';
@@ -49,6 +49,7 @@ const DEFAULT_WORKFLOWS = [
 
 function EditWorkflows() {
   const [searchParams] = useSearchParams();
+  const navigate = useNavigate();
   const {
     getWorkflowByBoard,
     renameWorkflow,
@@ -655,15 +656,24 @@ function EditWorkflows() {
               </div>
             </div>
           </div> */}
-          {!showNoWorkflowEmptyState ? (
+          {boardId ? (
             <div className="workflows-toolbar-actions">
               <button
                 type="button"
-                className="workflows-btn workflows-btn-create workflows-btn-create--toolbar"
-                onClick={() => setShowCreateWorkflowModal(true)}
+                className="workflows-btn workflows-btn-discard workflows-btn-back--toolbar"
+                onClick={() => navigate(`/kanban-board/${boardId}`)}
               >
-                Create new workflow
+                Back To Board
               </button>
+              {!showNoWorkflowEmptyState ? (
+                <button
+                  type="button"
+                  className="workflows-btn workflows-btn-create workflows-btn-create--toolbar"
+                  onClick={() => setShowCreateWorkflowModal(true)}
+                >
+                  Create new workflow
+                </button>
+              ) : null}
             </div>
           ) : null}
         </div>
