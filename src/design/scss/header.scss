@@ -275,6 +275,45 @@
     }
   }
 
+  .header-edit-workflow-btn {
+    border: 1px solid rgba(255, 255, 255, 0.28);
+    background: rgba(255, 255, 255, 0.12);
+    color: #ffffff;
+    border-radius: 999px;
+    padding: 7px 12px;
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    font-family: "Open Sans", sans-serif;
+    font-size: 12px;
+    font-weight: 600;
+    line-height: 1;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    white-space: nowrap;
+
+    &:hover {
+      background: rgba(255, 255, 255, 0.2);
+      border-color: rgba(255, 255, 255, 0.42);
+      transform: translateY(-1px);
+    }
+
+    &:active {
+      transform: translateY(0);
+    }
+
+    svg {
+      width: 14px;
+      height: 14px;
+      stroke-width: 2.25;
+      flex-shrink: 0;
+    }
+
+    @media (max-width: 767px) {
+      display: none;
+    }
+  }
+
   .user-circle-wrapper {
     position: relative;
   }

@@ -1,5 +1,6 @@
 import { useState, useEffect, useCallback, useRef } from 'react';
 import { useSearchParams, useNavigate } from 'react-router-dom';
+import { FiArrowLeft } from 'react-icons/fi';
 import { Tooltip } from 'react-tooltip';
 import '../../design/scss/EditWorkflows.scss';
 import CreateWorkflowModal from './CreateWorkflowModal';
@@ -663,6 +664,7 @@ function EditWorkflows() {
                 className="workflows-btn workflows-btn-discard workflows-btn-back--toolbar"
                 onClick={() => navigate(`/kanban-board/${boardId}`)}
               >
+                <FiArrowLeft aria-hidden="true" />
                 Back To Board
               </button>
               {!showNoWorkflowEmptyState ? (

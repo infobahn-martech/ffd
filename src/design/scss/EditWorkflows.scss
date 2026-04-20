@@ -100,6 +100,9 @@
   margin: 0;
   align-self: flex-start;
   white-space: nowrap;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
 }
 
 .workflows-page-toolbar {

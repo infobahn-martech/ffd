@@ -22,8 +22,12 @@ export default function WorkflowAccordion({
         </div>
         <div className="kanban-accordion-actions">
           <button
+            type="button"
             className="accordion-menu-button"
-            onClick={onMenuClick}
+            onClick={(event) => {
+              event.stopPropagation();
+              onMenuClick(event);
+            }}
             aria-label="Menu"
           >
             <svg

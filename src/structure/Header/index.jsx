@@ -14,7 +14,8 @@ import {
   FiMoon,
   FiBarChart2,
   FiMapPin,
-  FiShoppingBag
+  FiShoppingBag,
+  FiArrowLeft,
 } from 'react-icons/fi';
 import { Tooltip } from 'react-tooltip';
 import 'react-tooltip/dist/react-tooltip.css';
@@ -94,6 +95,10 @@ function Header({ onMenuToggle, mobileMenuOpen: externalMobileMenuOpen, isVendor
   const mobileMenuOpen = externalMobileMenuOpen !== undefined
     ? externalMobileMenuOpen
     : internalMobileMenuOpen;
+  const boardRouteMatch = pathname.match(/^\/kanban-board\/([^/]+)$/);
+  const kanbanBoardId = boardRouteMatch?.[1] ?? null;
+  const showEditWorkflowNavButton =
+    Boolean(kanbanBoardId) && String(kanbanBoardId).toLowerCase() !== 'operator';
 
   const handleMenuToggle = () => {
     const newState = !mobileMenuOpen;
@@ -399,6 +404,16 @@ function Header({ onMenuToggle, mobileMenuOpen: externalMobileMenuOpen, isVendor
 
       {/* RIGHT — User + Icons */}
       <div className="right-section">
+        {showEditWorkflowNavButton ? (
+          <button
+            type="button"
+            className="header-edit-workflow-btn icon-btn-hide-mobile"
+            onClick={() => navigate(`/edit-workflow?boardId=${kanbanBoardId}`)}
+          >
+            <FiArrowLeft aria-hidden />
+            <span>Edit Workflow</span>
+          </button>
+        ) : null}
         <Tooltip id="user-profile" place="bottom" content="User Profile" />
         <div className="user-circle-wrapper" ref={dropdownRef}>
           <div
