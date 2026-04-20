@@ -1312,44 +1312,6 @@ function General({
     // { value: "ON STATION", label: "ON STATION" },
   ];
 
-  // Dummy values for all fields when isAddMode is false
-  const dummyValues = {
-    owner: "John Doe",
-    appointmentReceivedDate: "2024-01-15",
-    appointmentReceivedTime: "10:30",
-    typeOfCall: "Import",
-    mainBillingEntity: "SS7",
-    poNumber: "PO-12345",
-    shipper: "SRT-67890",
-    project: "Project Alpha",
-    vesselType: "Foreign Flag",
-    bargeType: "Barge Import",
-    vesselName: "MV Ocean Star",
-    vesselOwner: "Ocean Shipping Co.",
-    vesselPrincipal: "Principal Marine Ltd.",
-    vesselManager: "Marine Management Inc.",
-    otherBillingEntity: "Other Entity",
-    assignedOperator: "Operator Name",
-    serviceRequestorName: "Requestor Name",
-    serviceRequestorEmail: "requestor@example.com",
-    dailyReportEmail: ["admin@example.com", "reports@example.com"],
-    billingInstructions: "Standard billing instructions apply",
-    // CREW CHANGE specific fields
-    lastMovedDate: "2024-01-20",
-    lastMovedTime: "14:30",
-    taxInvoice: "TI-98765",
-    srtPoWbs: "SRT-123|PO-456|WBS-789",
-    totalOnsigners: "5",
-    totalOffsigners: "3",
-    thirdPartyItems: "Various items",
-    billingEntity: "SS7",
-    operationsCompletionDate: "2024-01-25",
-    operationsCompletionTime: "16:00",
-    invoiceAmount: "50000.00",
-    sapSalesOrderNo: "SO-12345",
-  };
-
-
   // Helper function to get field value - prioritize formValues, then fetched call detail, then card.
   const getFieldValue = (fieldName) => {
     if (formValues?.[fieldName] !== undefined && formValues[fieldName] !== null && formValues[fieldName] !== "") {
@@ -1365,10 +1327,6 @@ function General({
     }
     if (!isAddMode && card?.[fieldName] !== undefined && card[fieldName] !== null && card[fieldName] !== "") {
       return card[fieldName];
-    }
-    // Last fallback only when no fetched call detail exists.
-    if (!isAddMode && !callDetailData && dummyValues[fieldName] !== undefined) {
-      return dummyValues[fieldName];
     }
     return "";
   };
