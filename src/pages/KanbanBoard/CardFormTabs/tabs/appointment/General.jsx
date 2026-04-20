@@ -40,10 +40,14 @@ const splitDateTime = (value) => {
 const mapCallDetailToFormFields = (detail) => {
   const appointmentParts = splitDateTime(detail?.appointment_received_date);
   const dailyReportEmail = Array.isArray(detail?.daily_report_emails)
-    ? detail.daily_report_emails.map((item) => String(item?.id ?? "")).filter(Boolean)
+    ? detail.daily_report_emails
+      .map((item) => String(item?.id ?? item?.email_id ?? item?.reference ?? "").trim())
+      .filter(Boolean)
     : [];
   const billingInstructionEmails = Array.isArray(detail?.billing_instruction_emails)
-    ? detail.billing_instruction_emails.map((item) => String(item?.id ?? "")).filter(Boolean)
+    ? detail.billing_instruction_emails
+      .map((item) => String(item?.id ?? item?.email_id ?? item?.reference ?? "").trim())
+      .filter(Boolean)
     : [];
 
   return {
@@ -68,6 +72,7 @@ const mapCallDetailToFormFields = (detail) => {
     dailyReportEmail,
     billingInstructionEmails,
     billingInstructions: detail?.billing_instruction ? String(detail.billing_instruction) : "",
+    cardDescription: detail?.card_description ? String(detail.card_description) : "",
   };
 };
 
@@ -1363,8 +1368,8 @@ function General({
     if (!isAddMode && card?.[fieldName] !== undefined && card[fieldName] !== null && card[fieldName] !== "") {
       return card[fieldName];
     }
-    // Last fallback only when no API/card/form value exists.
-    if (!isAddMode && dummyValues[fieldName] !== undefined) {
+    // Last fallback only when no fetched call detail exists.
+    if (!isAddMode && !callDetailData && dummyValues[fieldName] !== undefined) {
       return dummyValues[fieldName];
     }
     return "";
@@ -1639,7 +1644,8 @@ function General({
     setDailyReportEmailOptions((prev) => {
       const next = Array.isArray(prev) ? [...prev] : [];
       rows.forEach((item) => {
-        const id = item?.id === undefined || item?.id === null ? "" : String(item.id).trim();
+        const idRaw = item?.id ?? item?.email_id ?? item?.reference;
+        const id = idRaw === undefined || idRaw === null ? "" : String(idRaw).trim();
         const email = item?.email ? String(item.email).trim() : "";
         if (!id || !email) return;
         if (!next.some((opt) => String(opt.value) === id)) {
@@ -1657,7 +1663,8 @@ function General({
     setBillingInstructionEmailOptions((prev) => {
       const next = Array.isArray(prev) ? [...prev] : [];
       rows.forEach((item) => {
-        const id = item?.id === undefined || item?.id === null ? "" : String(item.id).trim();
+        const idRaw = item?.id ?? item?.email_id ?? item?.reference;
+        const id = idRaw === undefined || idRaw === null ? "" : String(idRaw).trim();
         const email = item?.email ? String(item.email).trim() : "";
         if (!id || !email) return;
         if (!next.some((opt) => String(opt.value) === id)) {
@@ -2904,17 +2911,19 @@ function General({
                 </div>
               ) : (
                 <>
-                  <div className="general-info-middle">
-                    <div className="card-description-wrapper">
-                      <FormField label="Card Description">
-                        <ReactQuillEditor
-                          value={formValues?.cardDescription || card?.cardDescription || ""}
-                          onChange={handleChange("cardDescription")}
-                          placeholder="Enter card description..."
-                        />
-                      </FormField>
+                  {shouldShowApiField("card_description") && (
+                    <div className="general-info-middle">
+                      <div className="card-description-wrapper">
+                        <FormField label="Card Description">
+                          <ReactQuillEditor
+                            value={getFieldValue("cardDescription")}
+                            onChange={handleChange("cardDescription")}
+                            placeholder="Enter card description..."
+                          />
+                        </FormField>
+                      </div>
                     </div>
-                  </div>
+                  )}
                   <div className="general-info-right">
                     <div className="daily-task-box-wrapper">
                       <DailyTaskTodo
