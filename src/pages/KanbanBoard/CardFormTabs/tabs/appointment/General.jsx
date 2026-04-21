@@ -2117,6 +2117,7 @@ function General({
                 <input type="text" value="Loading call details..." readOnly />
               </div>
             )}
+            <div className={isAddMode ? "general-add-mode-wrapper" : ""}>
             <div className={`${!isAddMode ? "general-info-three-column" : "general-info-two-column general-add-3col-layout"} general-tab-form-layout`}>
               <div className={`general-info-left ${isAddMode ? "general-add-form-panel" : ""}`}>
                 <div className={isAddMode ? "general-add-form-scroll" : ""}>
@@ -2934,18 +2935,6 @@ function General({
                   )}
                 </div>
                 </div>
-                {isAddMode && (
-                  <div className="general-add-form-footer">
-                    <button
-                      type="button"
-                      className="general-add-footer-btn primary-btn"
-                      onClick={handleSubmit}
-                      disabled={isSavingGeneral}
-                    >
-                      {isSavingGeneral ? "Saving..." : "Add Card"}
-                    </button>
-                  </div>
-                )}
               </div>
 
               {isAddMode ? (
@@ -3004,6 +2993,19 @@ function General({
                   </div>
                 </>
               )}
+            </div>
+            {isAddMode && (
+              <div className="general-add-page-actions">
+                <button
+                  type="button"
+                  className="general-primary-save-btn"
+                  onClick={handleSubmit}
+                  disabled={isSavingGeneral}
+                >
+                  {isSavingGeneral ? "Saving..." : "Add Card"}
+                </button>
+              </div>
+            )}
             </div>
           </div>
         </div>
