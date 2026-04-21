@@ -18,6 +18,7 @@ const AppointmentAcceptance = () => {
     isLoading,
     deleteAppointmentAcceptance,
     isBeingUpdated,
+    totalCount,
   } = useAppointmentAcceptanceReducer((state) => state);
 
   const { getCallTypes, callTypes } = useCommonReducer((state) => state);
@@ -49,11 +50,13 @@ const AppointmentAcceptance = () => {
 
   useEffect(() => {
     getAppointmentAcceptanceData?.({
-      search: params.searchTerm || "",
-      page: params.page,
-      limit: params.limit,
-      sortBy: params.sortBy,
-      sortOrder: params.sortOrder,
+      params: {
+        search: params.searchTerm || "",
+        page: params.page,
+        limit: params.limit,
+        sortBy: params.sortBy,
+        sortOrder: params.sortOrder,
+      },
     });
   }, [
     params.page,
@@ -75,8 +78,6 @@ const AppointmentAcceptance = () => {
   useEffect(() => {
     return () => debouncedSearch.cancel();
   }, [debouncedSearch]);
-
-  const totalCount = appointmentAcceptanceData?.total ?? 0;
 
   const cols = [
     {
@@ -161,11 +162,13 @@ const AppointmentAcceptance = () => {
 
   const refreshList = () => {
     getAppointmentAcceptanceData?.({
-      search: params.searchTerm || "",
-      page: params.page,
-      limit: params.limit,
-      sortBy: params.sortBy,
-      sortOrder: params.sortOrder,
+      params: {
+        search: params.searchTerm || "",
+        page: params.page,
+        limit: params.limit,
+        sortBy: params.sortBy,
+        sortOrder: params.sortOrder,
+      },
     });
   };
 
