@@ -960,20 +960,12 @@ const getPreviewSubject = ({ cardTitle = "", typeOfCall = "", vesselName = "", p
   return "Appointment Update";
 };
 
-const normalizePreviewHtml = (html = "") =>
+const htmlToPlainText = (html = "") =>
   String(html || "")
-    .replace(/<p><br><\/p>/gi, "")
-    .replace(/<script[\s\S]*?>[\s\S]*?<\/script>/gi, "")
-    .replace(/\son\w+="[^"]*"/gi, "")
-    .replace(/\son\w+='[^']*'/gi, "")
-    .replace(/javascript:/gi, "")
+    .replace(/<[^>]+>/g, " ")
+    .replace(/&nbsp;/gi, " ")
+    .replace(/\s+/g, " ")
     .trim();
-
-const hasMeaningfulHtml = (html = "") => {
-  const normalized = normalizePreviewHtml(html);
-  const textOnly = normalized.replace(/<[^>]+>/g, "").replace(/&nbsp;/g, " ").trim();
-  return Boolean(textOnly);
-};
 
 const formatPreviewDate = (date = new Date()) =>
   new Intl.DateTimeFormat("en-US", {
@@ -987,13 +979,14 @@ const formatPreviewDate = (date = new Date()) =>
 const EmailPreviewPanel = ({
   ownerOptions,
   formValues,
-  appointmentDocuments,
   dailyReportEmailOptions,
   billingInstructionEmailOptions,
   callTypeOptions,
   vesselNameOptions,
   portSelectOptions,
   getFieldValue,
+  messageValue,
+  onMessageChange,
 }) => {
   const ownerLabel = getOptionLabel(ownerOptions, getFieldValue("owner"));
   const fromValue = ownerLabel ? `${ownerLabel} <noreply@sedres.com>` : "operations@shipping.com";
@@ -1010,13 +1003,6 @@ const EmailPreviewPanel = ({
     vesselName: getOptionLabel(vesselNameOptions, getFieldValue("vesselName")) || getFieldValue("vesselName"),
     port: getOptionLabel(portSelectOptions, getFieldValue("port")) || getFieldValue("port"),
   });
-  const attachmentNames = (Array.isArray(appointmentDocuments) ? appointmentDocuments : [])
-    .map((item) => normalizePreviewValue(item?.name || item))
-    .filter(Boolean);
-  const visibleAttachments = attachmentNames.slice(0, 2);
-  const remainingAttachments = Math.max(attachmentNames.length - visibleAttachments.length, 0);
-  const bodyHtml = normalizePreviewHtml(formValues?.cardDescription || "");
-  const hasBody = hasMeaningfulHtml(bodyHtml);
 
   return (
     <div className="general-add-preview-panel">
@@ -1031,6 +1017,7 @@ const EmailPreviewPanel = ({
         </div>
       </div>
       <div className="email-preview-card">
+        <div className="email-preview-content">
         <div className="email-preview-meta">
           <div className="email-preview-row">
             <div className="email-preview-row-label">From</div>
@@ -1052,41 +1039,15 @@ const EmailPreviewPanel = ({
             <div className="email-preview-row-value">{subjectValue}</div>
           </div>
         </div>
-        <div className="email-preview-attachments">
-          <div className="email-preview-row-label">Attachments</div>
-          <div className="email-preview-row-value">
-            <div className="email-preview-attachment-meta">{attachmentNames.length} {attachmentNames.length === 1 ? "file" : "files"}</div>
-            {attachmentNames.length ? (
-              <div className="email-preview-attachment-chips">
-                {visibleAttachments.map((fileName, index) => (
-                  <span className="email-preview-attachment-chip" key={`${fileName}-${index}`}>
-                    {fileName}
-                  </span>
-                ))}
-                {remainingAttachments > 0 ? (
-                  <span className="email-preview-attachment-chip">+{remainingAttachments} more</span>
-                ) : null}
-              </div>
-            ) : (
-              <div className="email-preview-attachment-empty">No attachments</div>
-            )}
-          </div>
-        </div>
         <div className="email-preview-message-section">
           <div className="email-preview-message-title">Message</div>
-          <div className="email-preview-message-body">
-            {hasBody ? (
-              <div className="email-preview-message-content" dangerouslySetInnerHTML={{ __html: bodyHtml }} />
-            ) : (
-              <div className="email-preview-empty-state">
-                <div className="email-preview-empty-state-icon">✉</div>
-                <div className="email-preview-empty-state-title">Email content preview will appear here</div>
-                <div className="email-preview-empty-state-subtitle">
-                  Fill in the details and add a card description to see the preview.
-                </div>
-              </div>
-            )}
-          </div>
+          <textarea
+            className="email-preview-message-input"
+            value={messageValue}
+            onChange={onMessageChange}
+            placeholder="Type email content here..."
+          />
+        </div>
         </div>
       </div>
     </div>
@@ -1101,7 +1062,6 @@ EmailPreviewPanel.propTypes = {
     })
   ),
   formValues: PropTypes.object,
-  appointmentDocuments: PropTypes.array,
   dailyReportEmailOptions: PropTypes.arrayOf(
     PropTypes.shape({
       value: PropTypes.oneOfType([PropTypes.string, PropTypes.number]),
@@ -1133,6 +1093,8 @@ EmailPreviewPanel.propTypes = {
     })
   ),
   getFieldValue: PropTypes.func.isRequired,
+  messageValue: PropTypes.string,
+  onMessageChange: PropTypes.func.isRequired,
 };
 
 function General({
@@ -1153,6 +1115,7 @@ function General({
   ]);
   const [vesselOptionsLoading, setVesselOptionsLoading] = useState(false);
   const [appointmentDocuments, setAppointmentDocuments] = useState([]);
+  const [previewMessageText, setPreviewMessageText] = useState("");
   // MWP RENEWAL document states
   const [appointmentEmailDocuments, setAppointmentEmailDocuments] = useState([]);
   const [mwpCopyDocuments, setMwpCopyDocuments] = useState([]);
@@ -1452,6 +1415,12 @@ function General({
     },
     [isAddMode, callDetailData]
   );
+
+  useEffect(() => {
+    if (!isAddMode) return;
+    const initialFromDescription = htmlToPlainText(formValues?.cardDescription || "");
+    setPreviewMessageText((prev) => (prev.trim() ? prev : initialFromDescription));
+  }, [isAddMode, formValues?.cardDescription]);
 
   const getTrimmedValue = (value) => {
     if (value === undefined || value === null) return "";
@@ -2956,13 +2925,14 @@ function General({
                   <EmailPreviewPanel
                     ownerOptions={operatorOptions}
                     formValues={formValues}
-                    appointmentDocuments={appointmentDocuments}
                     dailyReportEmailOptions={dailyReportEmailOptions}
                     billingInstructionEmailOptions={billingInstructionEmailOptions}
                     callTypeOptions={callTypeOptions}
                     vesselNameOptions={vesselNameOptions}
                     portSelectOptions={portSelectOptions}
                     getFieldValue={getFieldValue}
+                    messageValue={previewMessageText}
+                    onMessageChange={(event) => setPreviewMessageText(event?.target?.value ?? "")}
                   />
                 </div>
                 </>
@@ -2998,7 +2968,7 @@ function General({
               <div className="general-add-page-actions">
                 <button
                   type="button"
-                  className="general-primary-save-btn"
+                  className="form-save-button"
                   onClick={handleSubmit}
                   disabled={isSavingGeneral}
                 >
