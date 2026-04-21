@@ -426,7 +426,7 @@ DocumentUpload.propTypes = {
 };
 
 // Multi-Select Email Component
-const MultiSelectEmail = ({ value = [], onChange, options = [], placeholder, onAddNew, disabled = false }) => {
+const MultiSelectEmail = ({ value = [], onChange, options = [], placeholder, onAddNew, disabled = false, name = "dailyReportEmail" }) => {
   const [isOpen, setIsOpen] = useState(false);
   const [newEmail, setNewEmail] = useState("");
   const [showAddInput, setShowAddInput] = useState(false);
@@ -472,7 +472,7 @@ const MultiSelectEmail = ({ value = [], onChange, options = [], placeholder, onA
       : [...selectedValues, optionValue];
 
     const syntheticEvent = {
-      target: { value: newValue, name: "dailyReportEmail" }
+      target: { value: newValue, name }
     };
     onChange(syntheticEvent);
   };
@@ -498,7 +498,7 @@ const MultiSelectEmail = ({ value = [], onChange, options = [], placeholder, onA
     e.stopPropagation();
     const newValue = selectedValues.filter((entry) => !valuesEqual(entry, rawVal));
     const syntheticEvent = {
-      target: { value: newValue, name: "dailyReportEmail" }
+      target: { value: newValue, name }
     };
     onChange(syntheticEvent);
   };
@@ -638,6 +638,7 @@ MultiSelectEmail.propTypes = {
   placeholder: PropTypes.string,
   onAddNew: PropTypes.func,
   disabled: PropTypes.bool,
+  name: PropTypes.string,
 };
 
 // React Quill Editor Component
@@ -1177,6 +1178,13 @@ function General({
     // { value: "ON STATION", label: "ON STATION" },
   ];
 
+  const hasMeaningfulValue = (value) => {
+    if (value === undefined || value === null) return false;
+    if (Array.isArray(value)) return value.length > 0;
+    if (typeof value === "string") return value.trim() !== "";
+    return true;
+  };
+
   // Helper function to get field value - prioritize formValues, then fetched call detail, then card.
   const getFieldValue = (fieldName) => {
     const apiAliasByField = {
@@ -1188,18 +1196,13 @@ function General({
       vesselName: "vessel_id",
     };
 
-    if (formValues?.[fieldName] !== undefined && formValues[fieldName] !== null && formValues[fieldName] !== "") {
+    if (hasMeaningfulValue(formValues?.[fieldName])) {
       return formValues[fieldName];
     }
-    if (
-      !isAddMode &&
-      mappedCallDetail?.[fieldName] !== undefined &&
-      mappedCallDetail[fieldName] !== null &&
-      mappedCallDetail[fieldName] !== ""
-    ) {
+    if (!isAddMode && hasMeaningfulValue(mappedCallDetail?.[fieldName])) {
       return mappedCallDetail[fieldName];
     }
-    if (!isAddMode && card?.[fieldName] !== undefined && card[fieldName] !== null && card[fieldName] !== "") {
+    if (!isAddMode && hasMeaningfulValue(card?.[fieldName])) {
       return card[fieldName];
     }
     const apiAlias = apiAliasByField[fieldName];
@@ -2677,6 +2680,7 @@ function General({
                         {shouldShowApiField("daily_report_emails") && (
                           <FormField label="Daily Report Emails">
                             <MultiSelectEmail
+                              name="dailyReportEmail"
                               value={Array.isArray(getFieldValue("dailyReportEmail")) ? getFieldValue("dailyReportEmail") : []}
                               onChange={handleChange("dailyReportEmail")}
                               options={dailyReportEmailOptions}
@@ -2691,6 +2695,7 @@ function General({
                           <FormField label="Billing instructions">
                             {billingInstructionType.toLowerCase() === "email" ? (
                               <MultiSelectEmail
+                                name="billingInstructionEmails"
                                 value={Array.isArray(getFieldValue("billingInstructionEmails")) ? getFieldValue("billingInstructionEmails") : []}
                                 onChange={handleChange("billingInstructionEmails")}
                                 options={billingInstructionEmailOptions}
