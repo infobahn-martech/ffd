@@ -994,6 +994,27 @@
   outline: none;
 }
 
+.email-preview-message-rendered {
+  flex: 1;
+  min-height: 240px;
+  max-height: 420px;
+  border: 1px solid #dbe2ea;
+  border-radius: 12px;
+  background: #fff;
+  overflow: auto;
+}
+
+.email-preview-message-html {
+  min-height: 100%;
+  padding: 16px;
+  color: #1f2937;
+  line-height: 1.6;
+}
+
+.email-preview-message-html.ql-editor {
+  white-space: normal;
+}
+
 @media (max-width: 1200px) {
   .general-add-3col-layout {
     grid-template-columns: 1fr !important;
@@ -1015,6 +1036,10 @@
   .email-preview-message-input {
     min-height: 220px;
     height: 220px;
+  }
+
+  .email-preview-message-rendered {
+    min-height: 220px;
   }
 }
 

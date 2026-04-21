@@ -1006,6 +1006,7 @@ const resolveEmailPreviewPayload = (payload) => {
     to: normalizeEmailFieldValue(source.to ?? source.to_email ?? source.service_requestor_email),
     cc: normalizeEmailFieldValue(source.cc ?? source.cc_email ?? source.cc_emails),
     subject: htmlToPlainText(firstNonEmptyString(source.subject, source.email_subject)),
+    messageHtml: firstNonEmptyString(source.message, source.body, source.email_body, source.email_content),
     message: htmlToPlainText(firstNonEmptyString(source.message, source.body, source.email_body, source.email_content)),
   };
 };
@@ -1052,6 +1053,7 @@ const EmailPreviewPanel = ({
   });
   const ccValue = firstNonEmptyString(previewFromApi.cc, fallbackCcValue) || "—";
   const subjectValue = firstNonEmptyString(previewFromApi.subject, subjectFallback) || "Appointment Update";
+  const renderedMessageHtml = firstNonEmptyString(previewFromApi.messageHtml);
 
   return (
     <div className="general-add-preview-panel">
@@ -1090,12 +1092,21 @@ const EmailPreviewPanel = ({
         </div>
         <div className="email-preview-message-section">
           <div className="email-preview-message-title">Message</div>
-          <textarea
-            className="email-preview-message-input"
-            value={messageValue}
-            onChange={onMessageChange}
-            placeholder="Type email content here..."
-          />
+          {renderedMessageHtml ? (
+            <div className="email-preview-message-rendered">
+              <div
+                className="email-preview-message-html ql-editor"
+                dangerouslySetInnerHTML={{ __html: renderedMessageHtml }}
+              />
+            </div>
+          ) : (
+            <textarea
+              className="email-preview-message-input"
+              value={messageValue}
+              onChange={onMessageChange}
+              placeholder="Type email content here..."
+            />
+          )}
         </div>
         </div>
       </div>
@@ -1147,6 +1158,7 @@ EmailPreviewPanel.propTypes = {
     to: PropTypes.string,
     cc: PropTypes.string,
     subject: PropTypes.string,
+    messageHtml: PropTypes.string,
     message: PropTypes.string,
   }),
   messageValue: PropTypes.string,
