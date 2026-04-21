@@ -7,6 +7,7 @@ import { useState, useEffect } from "react";
 import useCheckListReducer from "../../../store/CheckListReducer";
 import useVesselTypeReducer from "../../../store/VesselTypeReducer";
 import useBargeTypeReducer from "../../../store/BargeTypeReducer";
+import usePortReducer from "../../../store/PortReducer";
 
 /** Map form item to API item (no file in payload) */
 function mapItemToApi(item) {
@@ -140,6 +141,7 @@ const EMPTY_DEFAULTS = {
   callType: "",
   vesselType: "",
   bargeType: "",
+  port: "",
   checklistName: "",
   sections: []
 };
@@ -185,6 +187,7 @@ function mapApiToForm(data) {
     callType: String(data.call_type_id || ""),
     vesselType,
     bargeType,
+    port: String(data.port_id || ""),
     checklistName: data.checklist_name || "",
     sections: (data.sections || []).map((section) => ({
       title: section.title || "",
@@ -208,11 +211,13 @@ export function CheckListModal({ showModal, closeModal, callTypesOptions, onSucc
   const addEditLoader = useCheckListReducer((s) => s.addEditLoader);
   const { vesselTypes, getVesselTypes, isLoading: isLoadingVesselTypes } = useVesselTypeReducer((s) => s);
   const { bargeTypes, getBargeTypes, isLoading: isLoadingBargeTypes } = useBargeTypeReducer((s) => s);
+  const { ports, getPorts, isLoading: isLoadingPorts } = usePortReducer((s) => s);
 
   useEffect(() => {
     if (showModal) {
       getVesselTypes({ params: { limit: 1000 } });
       getBargeTypes({ params: { limit: 1000 } });
+      getPorts({ params: { limit: 1000 } });
     }
   }, [showModal]);
 
@@ -269,6 +274,7 @@ export function CheckListModal({ showModal, closeModal, callTypesOptions, onSucc
     const sectionsApi = (data.sections ?? []).map(mapSectionToApi);
     const num = (v) => (v !== "" && v != null && !isNaN(Number(v)) ? Number(v) : null);
     const callTypeId = num(data.callType);
+    const port_id = num(data.port);
 
     let vessel_type_id = null;
     let barge_type_id = null;
@@ -289,6 +295,7 @@ export function CheckListModal({ showModal, closeModal, callTypesOptions, onSucc
       checklist_name: data.checklistName ?? "",
       vessel_type_id,
       barge_type_id,
+      port_id,
       sections: sectionsApi
     };
 
@@ -1194,6 +1201,32 @@ export function CheckListModal({ showModal, closeModal, callTypesOptions, onSucc
                   </label>
                   {vesselBargeFieldError && (
                     <span className="error text-danger">{vesselBargeFieldError.message}</span>
+                  )}
+                </div>
+              </div>
+
+              {/* Port */}
+              <div className="col-12 col-md-6">
+                <div className="form-floating desig-inp">
+                  <select
+                    className={`form-select ${errors.port ? "is-invalid" : ""}`}
+                    {...register("port")}
+                    disabled={isLoadingPorts}
+                  >
+                    <option value="">Select Port</option>
+                    {(ports ?? []).map((portOption) => {
+                      const value = portOption.port_id ?? portOption._id ?? portOption.id ?? portOption.port;
+                      const label = portOption.port ?? portOption.name ?? value;
+                      return (
+                        <option key={String(value)} value={String(value)}>
+                          {label}
+                        </option>
+                      );
+                    })}
+                  </select>
+                  <label>Port</label>
+                  {errors.port && (
+                    <span className="error text-danger">{errors.port.message}</span>
                   )}
                 </div>
               </div>
