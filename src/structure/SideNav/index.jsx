@@ -47,6 +47,7 @@ import { FiPlus, FiInbox, FiFilter, FiPlusCircle, FiActivity } from 'react-icons
 import { useLayoutView } from '../../context/LayoutViewContext';
 import useWorkSpaceReducer from '../../store/WorkSpaceReducer';
 import { useKanbanSidebarBridge } from '../../store/kanbanSidebarBridge';
+import { ROUTE_PATHS } from '../../router/paths';
 
 function SideNav({ isMobileMenuOpen, onCloseMobileMenu, isVendorPortal = false }) {
   const { pathname } = useLocation();
@@ -229,7 +230,7 @@ function SideNav({ isMobileMenuOpen, onCloseMobileMenu, isVendorPortal = false }
     {
       menu: 'Dashboard',
       isDefaultMenu: true,
-      to: '/dashboard',
+      to: ROUTE_PATHS.DASHBOARD,
       icon: dashboardIcon, // 2x2 grid icon
       hasPermission: true,
     },
@@ -264,7 +265,7 @@ function SideNav({ isMobileMenuOpen, onCloseMobileMenu, isVendorPortal = false }
     {
       menu: 'MWP History',
       isDefaultMenu: true,
-      to: '/mwp-history',
+      to: ROUTE_PATHS.MWP_HISTORY,
       icon: crewIcon, // Crew-specific icon
       hasPermission: true,
     },
@@ -281,7 +282,7 @@ function SideNav({ isMobileMenuOpen, onCloseMobileMenu, isVendorPortal = false }
       hasPermission: true,
       isOpen: false,
       subMenus: [
-        { menu: 'Operators', to: '/operators', hasPermission: true },
+        { menu: 'Operators', to: ROUTE_PATHS.OPERATORS, hasPermission: true },
         { menu: 'Fleet', to: '/fleet', hasPermission: true },
         { menu: 'Captains', to: '/captains', hasPermission: true },
         { menu: 'Services', to: '/lh-services', hasPermission: true },

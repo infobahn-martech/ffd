@@ -80,6 +80,7 @@ import HospitalServices from "../pages/HospitalServices";
 import MWPHistory from "../pages/MWPHistory";
 import KPITasks from "../pages/KPITasks";
 import KPIUsers from "../pages/KPIUsers";
+import { ROUTE_PATHS } from "./paths";
 // 🔥 Set true to bypass auth temporarily
 const TEST_MODE = false;
 
@@ -105,7 +106,7 @@ const router = createHashRouter([
           {
             element: <Layout />,
             children: [
-              { path: "/dashboard", element: <Dashboard /> },
+              { path: ROUTE_PATHS.DASHBOARD, element: <Dashboard /> },
               { path: "/roles", element: <Role /> },
               { path: "/permissions", element: <Permission /> },
               { path: "/users", element: <User /> },
@@ -144,7 +145,7 @@ const router = createHashRouter([
               { path: "/group-email", element: <GroupEmailBE /> },
               { path: "/billing-instruction", element: <BillingInstruction /> },
               { path: "/captains", element: <Captains /> },
-              { path: "/operators", element: <Operators /> },
+              { path: ROUTE_PATHS.OPERATORS, element: <Operators /> },
               { path: "/location", element: <Location /> },
               { path: "/service-providers", element: <ServiceProviders /> },
               { path: "/transport-parties", element: <TransportParties /> },
@@ -178,7 +179,7 @@ const router = createHashRouter([
                 element: <Layout />,
                 children: [
                   // Dashboard - All roles
-                  { path: "/dashboard", element: <RouteGuard><Dashboard /></RouteGuard> },
+                  { path: ROUTE_PATHS.DASHBOARD, element: <RouteGuard><Dashboard /></RouteGuard> },
                   // Kanban Board - with dynamic ID support
                   { path: "/kanban-board/centralized-da-desk", element: <RouteGuard><DADeskBoard /></RouteGuard> },
                   { path: "/kanban-board/jubail-operations", element: <RouteGuard><JubailOperations /></RouteGuard> },
@@ -278,7 +279,7 @@ const router = createHashRouter([
                   // LH Services
                   { path: "/lh-services", element: <RouteGuard><LHServices /></RouteGuard> },
                   // Operators
-                  { path: "/operators", element: <RouteGuard><Operators /></RouteGuard> },
+                  { path: ROUTE_PATHS.OPERATORS, element: <RouteGuard><Operators /></RouteGuard> },
                   // Location
                   { path: "/location", element: <RouteGuard><Location /></RouteGuard> },
                   // Service Providers
@@ -300,7 +301,7 @@ const router = createHashRouter([
                   { path: "/third-party-service", element: <RouteGuard><ThirdPartyService /></RouteGuard> },
                   { path: "/transport-company", element: <RouteGuard><TransportCompany /></RouteGuard> },
                   { path: "/hospital-services", element: <RouteGuard><HospitalServices /></RouteGuard> },
-                  { path: "/mwp-history", element: <RouteGuard><MWPHistory /></RouteGuard> },
+                  { path: ROUTE_PATHS.MWP_HISTORY, element: <RouteGuard><MWPHistory /></RouteGuard> },
                   { path: "/kpi-tasks", element: <RouteGuard><KPITasks /></RouteGuard> },
                   { path: "/kpi-users", element: <RouteGuard><KPIUsers /></RouteGuard> },
                 ],

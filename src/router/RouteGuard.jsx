@@ -1,6 +1,7 @@
 import { Navigate, useLocation } from 'react-router-dom';
 import useAuthReducer from '../store/AuthReducer';
 import { hasRouteAccess } from './rolePermissions';
+import { ROUTE_PATHS } from './paths';
 
 function RouteGuard({ children }) {
   const location = useLocation();
@@ -30,7 +31,7 @@ function RouteGuard({ children }) {
   // Check if user has access to this route
   if (!hasRouteAccess(userRoleId, currentPath)) {
     // User doesn't have permission, redirect to dashboard
-    return <Navigate to="/dashboard" replace />;
+    return <Navigate to={ROUTE_PATHS.DASHBOARD} replace />;
   }
   
   // User has access, render the route
