@@ -2107,6 +2107,51 @@
   width: 100%;
 }
 
+.cf-multi-select-dropdown--filterable {
+  z-index: 10000;
+  max-height: 320px;
+  display: flex;
+  flex-direction: column;
+  padding: 0;
+  overflow: hidden;
+}
+
+.cf-multi-select-filter {
+  flex-shrink: 0;
+  padding: 8px 10px;
+  border-bottom: 1px solid #eee;
+  background: #fff;
+}
+
+.cf-multi-select-filter-input {
+  width: 100%;
+  box-sizing: border-box;
+  padding: 8px 10px;
+  border: 1px solid #ddd;
+  border-radius: 6px;
+  font-size: 14px;
+  font-family: "Open Sans", sans-serif;
+
+  &:focus {
+    outline: none;
+    border-color: #3e5cb6;
+  }
+}
+
+.cf-multi-select-options-scroll {
+  overflow-y: auto;
+  flex: 1;
+  min-height: 0;
+  max-height: 260px;
+}
+
+.cf-multi-select-no-results {
+  padding: 12px;
+  font-size: 14px;
+  color: #666;
+  text-align: center;
+}
+
 .cf-multi-select-option {
   padding: 10px 12px;
   cursor: pointer;
@@ -2796,7 +2841,8 @@
 }
 
 .cf-select.is-invalid select,
-.cf-owner-row.is-invalid select {
+.cf-owner-row.is-invalid select,
+.cf-owner-row.is-invalid .cf-multi-select-email-input {
   border-color: #c62828;
 }
 

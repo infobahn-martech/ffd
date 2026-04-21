@@ -1,0 +1,42 @@
+.cf-searchable-select .cf-multi-select-dropdown {
+  z-index: var(--cf-searchable-menu-z, 10000);
+}
+
+.cf-searchable-select-input {
+  border: none;
+  outline: none;
+  flex: 1;
+  min-width: 0;
+  width: 100%;
+  font-size: 14px;
+  background: transparent;
+  font-family: inherit;
+  color: #1a1a1a;
+
+  &::placeholder {
+    color: #999;
+  }
+}
+
+.cf-multi-select-option.is-highlighted {
+  background: #e8eef9;
+}
+
+.cf-owner-searchable-select {
+  flex: 1;
+  min-width: 0;
+
+  .cf-multi-select-email-input {
+    border-radius: 8px;
+    border: 1.5px solid #e2e2ea;
+    padding: 10px 14px;
+    font-size: 13px;
+    min-height: auto;
+  }
+
+  .cf-multi-select-placeholder,
+  .cf-multi-select-selected-value,
+  .cf-searchable-select-input {
+    font-size: 13px;
+  }
+}
