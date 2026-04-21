@@ -967,6 +967,49 @@ const htmlToPlainText = (html = "") =>
     .replace(/\s+/g, " ")
     .trim();
 
+const firstNonEmptyString = (...values) => {
+  for (const value of values) {
+    if (value === undefined || value === null) continue;
+    const normalized = String(value).trim();
+    if (normalized) return normalized;
+  }
+  return "";
+};
+
+const normalizeEmailFieldValue = (value) => {
+  if (Array.isArray(value)) {
+    return value
+      .map((item) => {
+        if (typeof item === "string") return item.trim();
+        if (item && typeof item === "object") {
+          return firstNonEmptyString(item.email, item.value, item.label);
+        }
+        return "";
+      })
+      .filter(Boolean)
+      .join(", ");
+  }
+  return firstNonEmptyString(value);
+};
+
+const resolveEmailPreviewPayload = (payload) => {
+  const root = payload?.data?.data ?? payload?.data ?? payload ?? {};
+  const data = Array.isArray(root) ? (root[0] ?? {}) : root;
+  if (!data || typeof data !== "object") return null;
+  const appointmentAcceptance =
+    (data?.appointment_acceptance && typeof data.appointment_acceptance === "object")
+      ? data.appointment_acceptance
+      : null;
+  const source = appointmentAcceptance ?? data;
+  return {
+    from: firstNonEmptyString(source.from, source.from_email, source.sender_email, source.sender),
+    to: normalizeEmailFieldValue(source.to ?? source.to_email ?? source.service_requestor_email),
+    cc: normalizeEmailFieldValue(source.cc ?? source.cc_email ?? source.cc_emails),
+    subject: htmlToPlainText(firstNonEmptyString(source.subject, source.email_subject)),
+    message: htmlToPlainText(firstNonEmptyString(source.message, source.body, source.email_body, source.email_content)),
+  };
+};
+
 const formatPreviewDate = (date = new Date()) =>
   new Intl.DateTimeFormat("en-US", {
     month: "short",
@@ -985,24 +1028,30 @@ const EmailPreviewPanel = ({
   vesselNameOptions,
   portSelectOptions,
   getFieldValue,
+  previewData,
   messageValue,
   onMessageChange,
 }) => {
+  const previewFromApi = previewData && typeof previewData === "object" ? previewData : {};
   const ownerLabel = getOptionLabel(ownerOptions, getFieldValue("owner"));
-  const fromValue = ownerLabel ? `${ownerLabel} <noreply@sedres.com>` : "operations@shipping.com";
-  const toValue = normalizePreviewValue(getFieldValue("serviceRequestorEmail")) || "—";
-  const ccValue = getPreviewRecipients({
+  const fallbackFromValue = ownerLabel ? `${ownerLabel} <noreply@sedres.com>` : "operations@shipping.com";
+  const fromValue = firstNonEmptyString(previewFromApi.from, fallbackFromValue) || "operations@shipping.com";
+  const fallbackToValue = normalizePreviewValue(getFieldValue("serviceRequestorEmail")) || "—";
+  const toValue = firstNonEmptyString(previewFromApi.to, fallbackToValue) || "—";
+  const fallbackCcValue = getPreviewRecipients({
     dailyReportEmailOptions,
     billingInstructionEmailOptions,
     dailyValues: getFieldValue("dailyReportEmail"),
     billingValues: getFieldValue("billingInstructionEmails"),
   });
-  const subjectValue = getPreviewSubject({
+  const subjectFallback = getPreviewSubject({
     cardTitle: formValues?.cardTitle || "",
     typeOfCall: getOptionLabel(callTypeOptions, getFieldValue("typeOfCall")) || getFieldValue("typeOfCall"),
     vesselName: getOptionLabel(vesselNameOptions, getFieldValue("vesselName")) || getFieldValue("vesselName"),
     port: getOptionLabel(portSelectOptions, getFieldValue("port")) || getFieldValue("port"),
   });
+  const ccValue = firstNonEmptyString(previewFromApi.cc, fallbackCcValue) || "—";
+  const subjectValue = firstNonEmptyString(previewFromApi.subject, subjectFallback) || "Appointment Update";
 
   return (
     <div className="general-add-preview-panel">
@@ -1093,6 +1142,13 @@ EmailPreviewPanel.propTypes = {
     })
   ),
   getFieldValue: PropTypes.func.isRequired,
+  previewData: PropTypes.shape({
+    from: PropTypes.string,
+    to: PropTypes.string,
+    cc: PropTypes.string,
+    subject: PropTypes.string,
+    message: PropTypes.string,
+  }),
   messageValue: PropTypes.string,
   onMessageChange: PropTypes.func.isRequired,
 };
@@ -1116,6 +1172,8 @@ function General({
   const [vesselOptionsLoading, setVesselOptionsLoading] = useState(false);
   const [appointmentDocuments, setAppointmentDocuments] = useState([]);
   const [previewMessageText, setPreviewMessageText] = useState("");
+  const [emailPreviewData, setEmailPreviewData] = useState(null);
+  const [isPreviewMessageDirty, setIsPreviewMessageDirty] = useState(false);
   // MWP RENEWAL document states
   const [appointmentEmailDocuments, setAppointmentEmailDocuments] = useState([]);
   const [mwpCopyDocuments, setMwpCopyDocuments] = useState([]);
@@ -1421,6 +1479,12 @@ function General({
     const initialFromDescription = htmlToPlainText(formValues?.cardDescription || "");
     setPreviewMessageText((prev) => (prev.trim() ? prev : initialFromDescription));
   }, [isAddMode, formValues?.cardDescription]);
+
+  useEffect(() => {
+    if (isAddMode) return;
+    setEmailPreviewData(null);
+    setIsPreviewMessageDirty(false);
+  }, [isAddMode]);
 
   const getTrimmedValue = (value) => {
     if (value === undefined || value === null) return "";
@@ -1853,6 +1917,62 @@ function General({
     },
     [getFieldValue, handleChange, normalizeBillingInstruction]
   );
+
+  const previewVesselId = firstNonEmptyString(getFieldValue("vesselName"));
+  const previewPortId = firstNonEmptyString(getFieldValue("port"));
+  const previewCallType = firstNonEmptyString(getFieldValue("typeOfCall"));
+  const previewServiceRequestorEmail = firstNonEmptyString(getFieldValue("serviceRequestorEmail"));
+
+  useEffect(() => {
+    if (!isAddMode) return;
+    const hasAllRequiredPreviewFields =
+      Boolean(previewVesselId) &&
+      Boolean(previewPortId) &&
+      Boolean(previewCallType) &&
+      Boolean(previewServiceRequestorEmail);
+
+    if (!hasAllRequiredPreviewFields) {
+      setEmailPreviewData(null);
+      return;
+    }
+
+    let cancelled = false;
+    const fetchEmailPreview = async () => {
+      try {
+        const { data } = await callFileService.getAllDetailByVesselId({
+          vessel_id: previewVesselId,
+          port_id: previewPortId,
+          call_type: previewCallType,
+          service_requestor_email: previewServiceRequestorEmail,
+        });
+        if (cancelled) return;
+        const resolved = resolveEmailPreviewPayload(data);
+        setEmailPreviewData(resolved);
+        if (!isPreviewMessageDirty) {
+          const apiMessage = firstNonEmptyString(resolved?.message);
+          if (apiMessage) {
+            setPreviewMessageText(apiMessage);
+          }
+        }
+      } catch (error) {
+        console.error("[General] email preview fetch failed", error);
+        if (!cancelled) {
+          setEmailPreviewData(null);
+        }
+      }
+    };
+    void fetchEmailPreview();
+    return () => {
+      cancelled = true;
+    };
+  }, [
+    isAddMode,
+    previewVesselId,
+    previewPortId,
+    previewCallType,
+    previewServiceRequestorEmail,
+    isPreviewMessageDirty,
+  ]);
 
   // Determine if fields should be disabled
   // In simplified mode: always enabled
@@ -2931,8 +3051,12 @@ function General({
                     vesselNameOptions={vesselNameOptions}
                     portSelectOptions={portSelectOptions}
                     getFieldValue={getFieldValue}
+                    previewData={emailPreviewData}
                     messageValue={previewMessageText}
-                    onMessageChange={(event) => setPreviewMessageText(event?.target?.value ?? "")}
+                    onMessageChange={(event) => {
+                      setIsPreviewMessageDirty(true);
+                      setPreviewMessageText(event?.target?.value ?? "");
+                    }}
                   />
                 </div>
                 </>
