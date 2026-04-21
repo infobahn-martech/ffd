@@ -1106,7 +1106,6 @@ const EmailPreviewPanel = ({
                   onChange={onEditableFieldChange("cc_emails")}
                   placeholder="—"
                 />
-              // <button type="button" className="email-preview-bcc-link">Add Bcc</button>
               </div>
             </div>
             <div className="email-preview-row">
