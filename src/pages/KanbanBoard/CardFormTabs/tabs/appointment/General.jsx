@@ -430,6 +430,7 @@ const MultiSelectEmail = ({ value = [], onChange, options = [], placeholder, onA
   const [isOpen, setIsOpen] = useState(false);
   const [newEmail, setNewEmail] = useState("");
   const [showAddInput, setShowAddInput] = useState(false);
+  const [isAddingNewEmail, setIsAddingNewEmail] = useState(false);
   const [filterQuery, setFilterQuery] = useState("");
   const dropdownRef = useRef(null);
 
@@ -442,6 +443,7 @@ const MultiSelectEmail = ({ value = [], onChange, options = [], placeholder, onA
   // Close dropdown when clicking outside
   useEffect(() => {
     const handleClickOutside = (event) => {
+      if (isAddingNewEmail) return;
       if (dropdownRef.current && !dropdownRef.current.contains(event.target)) {
         setIsOpen(false);
         setShowAddInput(false);
@@ -450,7 +452,7 @@ const MultiSelectEmail = ({ value = [], onChange, options = [], placeholder, onA
     };
     document.addEventListener("mousedown", handleClickOutside);
     return () => document.removeEventListener("mousedown", handleClickOutside);
-  }, []);
+  }, [isAddingNewEmail]);
 
   useEffect(() => {
     if (!isOpen) setFilterQuery("");
@@ -466,6 +468,14 @@ const MultiSelectEmail = ({ value = [], onChange, options = [], placeholder, onA
 
   const selectedValues = Array.isArray(value) ? value : (value ? [value] : []);
 
+  const pushSelectedValue = (optionValue) => {
+    if (selectedValues.some((v) => valuesEqual(v, optionValue))) return;
+    const syntheticEvent = {
+      target: { value: [...selectedValues, optionValue], name }
+    };
+    onChange(syntheticEvent);
+  };
+
   const handleToggle = (optionValue) => {
     const newValue = selectedValues.some((v) => valuesEqual(v, optionValue))
       ? selectedValues.filter((e) => !valuesEqual(e, optionValue))
@@ -478,19 +488,41 @@ const MultiSelectEmail = ({ value = [], onChange, options = [], placeholder, onA
   };
 
   const handleAddNewEmail = async () => {
-    if (newEmail.trim() && /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(newEmail.trim())) {
-      const email = newEmail.trim();
-      if (
-        !selectedValues.some((v) => valuesEqual(v, email)) &&
-        !options.some((opt) => valuesEqual(opt.value, email))
-      ) {
-        handleToggle(email);
-        if (onAddNew) {
-          await Promise.resolve(onAddNew(email));
-        }
+    const email = newEmail.trim();
+    const isValid = /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
+    if (!email || !isValid || isAddingNewEmail) return;
+
+    const selectedAlready = selectedValues.some((entry) => String(entry).trim().toLowerCase() === email.toLowerCase());
+    if (selectedAlready) {
+      setNewEmail("");
+      setShowAddInput(false);
+      return;
+    }
+
+    const existingOption = options.find((opt) => {
+      const label = String(opt?.label ?? "").trim().toLowerCase();
+      const rawValue = String(opt?.value ?? "").trim().toLowerCase();
+      return label === email.toLowerCase() || rawValue === email.toLowerCase();
+    });
+
+    if (existingOption) {
+      pushSelectedValue(existingOption.value);
+      setNewEmail("");
+      setShowAddInput(false);
+      return;
+    }
+
+    try {
+      setIsAddingNewEmail(true);
+      pushSelectedValue(email);
+      if (onAddNew) {
+        await Promise.resolve(onAddNew(email));
       }
       setNewEmail("");
       setShowAddInput(false);
+      setIsOpen(true);
+    } finally {
+      setIsAddingNewEmail(false);
     }
   };
 
@@ -589,7 +621,7 @@ const MultiSelectEmail = ({ value = [], onChange, options = [], placeholder, onA
                 <span>+ Add New Email</span>
               </div>
             ) : (
-              <div className="cf-multi-select-add-input">
+              <div className="cf-multi-select-add-input" onMouseDown={(e) => e.stopPropagation()}>
                 <input
                   type="email"
                   placeholder="Enter email address..."
@@ -603,13 +635,14 @@ const MultiSelectEmail = ({ value = [], onChange, options = [], placeholder, onA
                   type="button"
                   className="cf-add-email-btn"
                   onClick={handleAddNewEmail}
-                  disabled={!newEmail.trim() || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(newEmail.trim())}
+                  disabled={isAddingNewEmail || !newEmail.trim() || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(newEmail.trim())}
                 >
-                  ✓
+                  {isAddingNewEmail ? "..." : "✓"}
                 </button>
                 <button
                   type="button"
                   className="cf-cancel-email-btn"
+                  disabled={isAddingNewEmail}
                   onClick={() => {
                     setNewEmail("");
                     setShowAddInput(false);
@@ -967,6 +1000,20 @@ const htmlToPlainText = (html = "") =>
     .replace(/\s+/g, " ")
     .trim();
 
+const htmlToEditableText = (html = "") =>
+  String(html || "")
+    .replace(/<\s*br\s*\/?>/gi, "\n")
+    .replace(/<\/(p|div|li|h[1-6])>/gi, "\n")
+    .replace(/<li>/gi, "- ")
+    .replace(/<[^>]+>/g, "")
+    .replace(/&nbsp;/gi, " ")
+    .replace(/&amp;/gi, "&")
+    .replace(/&lt;/gi, "<")
+    .replace(/&gt;/gi, ">")
+    .replace(/\r\n/g, "\n")
+    .replace(/\n{3,}/g, "\n\n")
+    .trim();
+
 const firstNonEmptyString = (...values) => {
   for (const value of values) {
     if (value === undefined || value === null) continue;
@@ -1055,8 +1102,6 @@ const EmailPreviewPanel = ({
   });
   const ccValue = firstNonEmptyString(editableFields?.cc_emails, previewFromApi.cc, fallbackCcValue) || "";
   const subjectValue = firstNonEmptyString(editableFields?.subject, previewFromApi.subject, subjectFallback) || "Appointment Update";
-  const renderedMessageHtml = firstNonEmptyString(previewFromApi.messageHtml);
-
   return (
     <div className="general-add-preview-panel">
       <div className="email-preview-topbar">
@@ -1123,21 +1168,12 @@ const EmailPreviewPanel = ({
           </div>
           <div className="email-preview-message-section">
             <div className="email-preview-message-title">Message</div>
-            {renderedMessageHtml ? (
-              <div className="email-preview-message-rendered">
-                <div
-                  className="email-preview-message-html ql-editor"
-                  dangerouslySetInnerHTML={{ __html: renderedMessageHtml }}
-                />
-              </div>
-            ) : (
-              <textarea
-                className="email-preview-message-input"
-                value={messageValue}
-                onChange={onMessageChange}
-                placeholder="Type email content here..."
-              />
-            )}
+            <textarea
+              className="email-preview-message-input"
+              value={messageValue}
+              onChange={onMessageChange}
+              placeholder="Type email content here..."
+            />
           </div>
         </div>
       </div>
@@ -2034,7 +2070,10 @@ function General({
         setEmailPreviewData(resolved);
         populateEditablePreviewFields(resolved);
         if (!isPreviewMessageDirty) {
-          const apiMessage = firstNonEmptyString(resolved?.message);
+          const apiMessage = firstNonEmptyString(
+            htmlToEditableText(resolved?.messageHtml),
+            resolved?.message
+          );
           if (apiMessage) {
             setPreviewMessageText(apiMessage);
           }
@@ -2249,6 +2288,12 @@ function General({
     // eslint-disable-next-line react-hooks/exhaustive-deps
     [isAddMode, formValues?.mainBillingEntity, card?.mainBillingEntity, card?.main_billing_entity_id, mappedCallDetail?.mainBillingEntity]
   );
+
+  const optionalOtherBillingEntityOptions = useMemo(() => {
+    const current = getFieldValue("otherBillingEntity");
+    const base = mergeOptionIfMissing(billingEntitySelectOptions, current);
+    return [{ value: "", label: "No Other Billing Entity" }, ...base];
+  }, [billingEntitySelectOptions, getFieldValue]);
 
   useEffect(() => {
     if (!selectedEntityId) return;
@@ -3019,11 +3064,20 @@ function General({
                             )}
 
                             {shouldShowApiField("other_billing_entity_id") && (
-                              <FormField label="Other billing entity">
+                              <FormField label="Other billing entity" className="cf-other-billing-field">
                                 <FormSelect
                                   value={getFieldValue("otherBillingEntity")}
-                                  onChange={handleChange("otherBillingEntity")}
-                                  options={mergeOptionIfMissing(billingEntitySelectOptions, getFieldValue("otherBillingEntity"))}
+                                  onChange={(event) => {
+                                    const raw = event?.target?.value;
+                                    const next = raw === undefined || raw === null ? "" : String(raw).trim();
+                                    handleChange("otherBillingEntity")({
+                                      target: {
+                                        value: next,
+                                        name: "otherBillingEntity",
+                                      },
+                                    });
+                                  }}
+                                  options={optionalOtherBillingEntityOptions}
                                   placeholder="Select billing entity"
                                   disabled={masterInputsDisabled}
                                 />
@@ -3074,7 +3128,7 @@ function General({
                             )}
 
                             {shouldShowApiField("daily_report_emails") && (
-                              <FormField label="Daily Report Emails">
+                              <FormField label="Daily Report Emails" className="cf-daily-report-emails-field">
                                 <MultiSelectEmail
                                   name="dailyReportEmail"
                                   value={Array.isArray(getFieldValue("dailyReportEmail")) ? getFieldValue("dailyReportEmail") : []}
@@ -3088,7 +3142,7 @@ function General({
                             )}
 
                             {(shouldShowApiField("billing_instruction") || shouldShowApiField("billing_instruction_emails")) && (
-                              <FormField label="Billing instructions">
+                              <FormField label="Billing instructions" className="cf-billing-instruction-field">
                                 {billingInstructionType.toLowerCase() === "email" ? (
                                   <MultiSelectEmail
                                     name="billingInstructionEmails"
