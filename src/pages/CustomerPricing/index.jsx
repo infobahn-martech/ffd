@@ -66,15 +66,6 @@ const CustomerPricing = () => {
             width: "200",
         },
         {
-            name: "Service Name",
-            selector: "service_name",
-            tableClasses: "table-striped",
-            contentClass: "table-content",
-            sort: true,
-            thclass: "tb-head",
-            width: "200",
-        },
-        {
             name: "Price",
             selector: "price",
             tableClasses: "table-striped",
@@ -83,21 +74,21 @@ const CustomerPricing = () => {
             thclass: "tb-head",
             width: "150",
         },
-        {
-            name: "Actions",
-            selector: "linksInfo",
-            tableClasses: "table-striped",
-            contentClass: "table-content",
-            thclass: "tb-head",
-            onEditClick: (row) => {
-                setShowCustomerPricingModal(row);
-            },
-            onDeleteClick: () => {
-                setShowDeleteModal(true);
-            },
-            cell: RenderAction,
-            width: "200",
-        },
+        // {
+        //     name: "Actions",
+        //     selector: "linksInfo",
+        //     tableClasses: "table-striped",
+        //     contentClass: "table-content",
+        //     thclass: "tb-head",
+        //     onEditClick: (row) => {
+        //         setShowCustomerPricingModal(row);
+        //     },
+        //     onDeleteClick: () => {
+        //         setShowDeleteModal(true);
+        //     },
+        //     cell: RenderAction,
+        //     width: "200",
+        // },
     ];
 
     return (
