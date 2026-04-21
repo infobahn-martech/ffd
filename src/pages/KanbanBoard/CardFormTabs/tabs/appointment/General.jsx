@@ -922,6 +922,219 @@ HorizontalProgressBar.propTypes = {
   formValues: PropTypes.object,
 };
 
+const normalizePreviewValue = (value) => {
+  if (value === undefined || value === null) return "";
+  return String(value).trim();
+};
+
+const getOptionLabel = (options = [], value = "") => {
+  const normalizedValue = normalizePreviewValue(value);
+  if (!normalizedValue || !Array.isArray(options)) return "";
+  const match = options.find((item) => normalizePreviewValue(item?.value) === normalizedValue);
+  return match?.label ? String(match.label).trim() : "";
+};
+
+const mapMultiValuesToLabels = (options = [], values = []) => {
+  if (!Array.isArray(values)) return [];
+  return values
+    .map((value) => {
+      const normalized = normalizePreviewValue(value);
+      if (!normalized) return "";
+      return getOptionLabel(options, normalized) || normalized;
+    })
+    .filter(Boolean);
+};
+
+const getPreviewRecipients = ({ dailyReportEmailOptions = [], billingInstructionEmailOptions = [], dailyValues = [], billingValues = [] }) => {
+  const daily = mapMultiValuesToLabels(dailyReportEmailOptions, dailyValues);
+  const billing = mapMultiValuesToLabels(billingInstructionEmailOptions, billingValues);
+  const merged = [...daily, ...billing];
+  return merged.length ? merged.join(", ") : "—";
+};
+
+const getPreviewSubject = ({ cardTitle = "", typeOfCall = "", vesselName = "", port = "" }) => {
+  const normalizedTitle = normalizePreviewValue(cardTitle);
+  if (normalizedTitle) return normalizedTitle;
+  const parts = [typeOfCall, vesselName, port].map((item) => normalizePreviewValue(item)).filter(Boolean);
+  if (parts.length) return parts.join(" - ");
+  return "Appointment Update";
+};
+
+const normalizePreviewHtml = (html = "") =>
+  String(html || "")
+    .replace(/<p><br><\/p>/gi, "")
+    .replace(/<script[\s\S]*?>[\s\S]*?<\/script>/gi, "")
+    .replace(/\son\w+="[^"]*"/gi, "")
+    .replace(/\son\w+='[^']*'/gi, "")
+    .replace(/javascript:/gi, "")
+    .trim();
+
+const hasMeaningfulHtml = (html = "") => {
+  const normalized = normalizePreviewHtml(html);
+  const textOnly = normalized.replace(/<[^>]+>/g, "").replace(/&nbsp;/g, " ").trim();
+  return Boolean(textOnly);
+};
+
+const formatPreviewDate = (date = new Date()) =>
+  new Intl.DateTimeFormat("en-US", {
+    month: "short",
+    day: "2-digit",
+    year: "numeric",
+    hour: "numeric",
+    minute: "2-digit",
+  }).format(date);
+
+const EmailPreviewPanel = ({
+  ownerOptions,
+  formValues,
+  appointmentDocuments,
+  dailyReportEmailOptions,
+  billingInstructionEmailOptions,
+  callTypeOptions,
+  vesselNameOptions,
+  portSelectOptions,
+  getFieldValue,
+}) => {
+  const ownerLabel = getOptionLabel(ownerOptions, getFieldValue("owner"));
+  const fromValue = ownerLabel ? `${ownerLabel} <noreply@sedres.com>` : "operations@shipping.com";
+  const toValue = normalizePreviewValue(getFieldValue("serviceRequestorEmail")) || "—";
+  const ccValue = getPreviewRecipients({
+    dailyReportEmailOptions,
+    billingInstructionEmailOptions,
+    dailyValues: getFieldValue("dailyReportEmail"),
+    billingValues: getFieldValue("billingInstructionEmails"),
+  });
+  const subjectValue = getPreviewSubject({
+    cardTitle: formValues?.cardTitle || "",
+    typeOfCall: getOptionLabel(callTypeOptions, getFieldValue("typeOfCall")) || getFieldValue("typeOfCall"),
+    vesselName: getOptionLabel(vesselNameOptions, getFieldValue("vesselName")) || getFieldValue("vesselName"),
+    port: getOptionLabel(portSelectOptions, getFieldValue("port")) || getFieldValue("port"),
+  });
+  const attachmentNames = (Array.isArray(appointmentDocuments) ? appointmentDocuments : [])
+    .map((item) => normalizePreviewValue(item?.name || item))
+    .filter(Boolean);
+  const visibleAttachments = attachmentNames.slice(0, 2);
+  const remainingAttachments = Math.max(attachmentNames.length - visibleAttachments.length, 0);
+  const bodyHtml = normalizePreviewHtml(formValues?.cardDescription || "");
+  const hasBody = hasMeaningfulHtml(bodyHtml);
+
+  return (
+    <div className="general-add-preview-panel">
+      <div className="email-preview-topbar">
+        <div className="email-preview-topbar-title">Email Preview</div>
+        <div className="email-preview-topbar-status">
+          <span className="email-preview-status-dot" />
+          <span>Preview generated</span>
+          <span>{formatPreviewDate()}</span>
+          <button type="button" className="email-preview-topbar-action" aria-label="Copy preview">⧉</button>
+          <button type="button" className="email-preview-topbar-action" aria-label="Expand preview">⛶</button>
+        </div>
+      </div>
+      <div className="email-preview-card">
+        <div className="email-preview-meta">
+          <div className="email-preview-row">
+            <div className="email-preview-row-label">From</div>
+            <div className="email-preview-row-value">{fromValue}</div>
+          </div>
+          <div className="email-preview-row">
+            <div className="email-preview-row-label">To</div>
+            <div className="email-preview-row-value">{toValue}</div>
+          </div>
+          <div className="email-preview-row">
+            <div className="email-preview-row-label">Cc</div>
+            <div className="email-preview-row-value">
+              {ccValue}
+              <button type="button" className="email-preview-bcc-link">Add Bcc</button>
+            </div>
+          </div>
+          <div className="email-preview-row">
+            <div className="email-preview-row-label">Subject</div>
+            <div className="email-preview-row-value">{subjectValue}</div>
+          </div>
+        </div>
+        <div className="email-preview-attachments">
+          <div className="email-preview-row-label">Attachments</div>
+          <div className="email-preview-row-value">
+            <div className="email-preview-attachment-meta">{attachmentNames.length} {attachmentNames.length === 1 ? "file" : "files"}</div>
+            {attachmentNames.length ? (
+              <div className="email-preview-attachment-chips">
+                {visibleAttachments.map((fileName, index) => (
+                  <span className="email-preview-attachment-chip" key={`${fileName}-${index}`}>
+                    {fileName}
+                  </span>
+                ))}
+                {remainingAttachments > 0 ? (
+                  <span className="email-preview-attachment-chip">+{remainingAttachments} more</span>
+                ) : null}
+              </div>
+            ) : (
+              <div className="email-preview-attachment-empty">No attachments</div>
+            )}
+          </div>
+        </div>
+        <div className="email-preview-message-section">
+          <div className="email-preview-message-title">Message</div>
+          <div className="email-preview-message-body">
+            {hasBody ? (
+              <div className="email-preview-message-content" dangerouslySetInnerHTML={{ __html: bodyHtml }} />
+            ) : (
+              <div className="email-preview-empty-state">
+                <div className="email-preview-empty-state-icon">✉</div>
+                <div className="email-preview-empty-state-title">Email content preview will appear here</div>
+                <div className="email-preview-empty-state-subtitle">
+                  Fill in the details and add a card description to see the preview.
+                </div>
+              </div>
+            )}
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+};
+
+EmailPreviewPanel.propTypes = {
+  ownerOptions: PropTypes.arrayOf(
+    PropTypes.shape({
+      value: PropTypes.oneOfType([PropTypes.string, PropTypes.number]),
+      label: PropTypes.string,
+    })
+  ),
+  formValues: PropTypes.object,
+  appointmentDocuments: PropTypes.array,
+  dailyReportEmailOptions: PropTypes.arrayOf(
+    PropTypes.shape({
+      value: PropTypes.oneOfType([PropTypes.string, PropTypes.number]),
+      label: PropTypes.string,
+    })
+  ),
+  billingInstructionEmailOptions: PropTypes.arrayOf(
+    PropTypes.shape({
+      value: PropTypes.oneOfType([PropTypes.string, PropTypes.number]),
+      label: PropTypes.string,
+    })
+  ),
+  callTypeOptions: PropTypes.arrayOf(
+    PropTypes.shape({
+      value: PropTypes.oneOfType([PropTypes.string, PropTypes.number]),
+      label: PropTypes.string,
+    })
+  ),
+  vesselNameOptions: PropTypes.arrayOf(
+    PropTypes.shape({
+      value: PropTypes.oneOfType([PropTypes.string, PropTypes.number]),
+      label: PropTypes.string,
+    })
+  ),
+  portSelectOptions: PropTypes.arrayOf(
+    PropTypes.shape({
+      value: PropTypes.oneOfType([PropTypes.string, PropTypes.number]),
+      label: PropTypes.string,
+    })
+  ),
+  getFieldValue: PropTypes.func.isRequired,
+};
+
 function General({
   card,
   formValues,
@@ -1904,8 +2117,9 @@ function General({
                 <input type="text" value="Loading call details..." readOnly />
               </div>
             )}
-            <div className={`${!isAddMode ? "general-info-three-column" : "general-info-two-column"} general-tab-form-layout`}>
-              <div className="general-info-left">
+            <div className={`${!isAddMode ? "general-info-three-column" : "general-info-two-column general-add-3col-layout"} general-tab-form-layout`}>
+              <div className={`general-info-left ${isAddMode ? "general-add-form-panel" : ""}`}>
+                <div className={isAddMode ? "general-add-form-scroll" : ""}>
                 <div className="pre-arrival-form">
                   {isFleet ? (
                     <>
@@ -2715,36 +2929,54 @@ function General({
                           </FormField>
                         )}
 
-                        {isAddMode && (
-                          <div className="form-save-button-wrapper">
-                            <button
-                              type="button"
-                              className="form-save-button"
-                              onClick={handleSubmit}
-                              disabled={isSavingGeneral}
-                            >
-                              {isSavingGeneral ? "Saving…" : "Save"}
-                            </button>
-                          </div>
-                        )}
                       </div>
                     </>
                   )}
                 </div>
+                </div>
+                {isAddMode && (
+                  <div className="general-add-form-footer">
+                    <button
+                      type="button"
+                      className="general-add-footer-btn primary-btn"
+                      onClick={handleSubmit}
+                      disabled={isSavingGeneral}
+                    >
+                      {isSavingGeneral ? "Saving..." : "Add Card"}
+                    </button>
+                  </div>
+                )}
               </div>
 
               {isAddMode ? (
-                <div className="general-info-right">
-                  <div className="card-description-wrapper">
+                <>
+                <div className="general-add-description-panel">
+                  <div className="general-add-description-content">
                     <FormField label="Card Description">
-                      <ReactQuillEditor
-                        value={formValues?.cardDescription || ""}
-                        onChange={handleChange("cardDescription")}
-                        placeholder="Enter card description..."
-                      />
+                      <div className="general-card-description-editor">
+                        <ReactQuillEditor
+                          value={formValues?.cardDescription || ""}
+                          onChange={handleChange("cardDescription")}
+                          placeholder="Enter card description..."
+                        />
+                      </div>
                     </FormField>
                   </div>
                 </div>
+                <div className="general-info-right">
+                  <EmailPreviewPanel
+                    ownerOptions={operatorOptions}
+                    formValues={formValues}
+                    appointmentDocuments={appointmentDocuments}
+                    dailyReportEmailOptions={dailyReportEmailOptions}
+                    billingInstructionEmailOptions={billingInstructionEmailOptions}
+                    callTypeOptions={callTypeOptions}
+                    vesselNameOptions={vesselNameOptions}
+                    portSelectOptions={portSelectOptions}
+                    getFieldValue={getFieldValue}
+                  />
+                </div>
+                </>
               ) : (
                 <>
                   {shouldShowApiField("card_description") && (
