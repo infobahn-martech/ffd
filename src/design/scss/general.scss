@@ -2100,11 +2100,12 @@
   border-radius: 6px;
   box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
   z-index: 1000;
-  max-height: 300px;
-  overflow-y: auto;
+  max-height: 320px;
+  overflow: hidden;
   margin-top: 4px;
   min-width: 100%;
   width: 100%;
+  box-sizing: border-box;
 }
 
 .cf-multi-select-dropdown--filterable {
@@ -2121,6 +2122,13 @@
   padding: 8px 10px;
   border-bottom: 1px solid #eee;
   background: #fff;
+}
+
+.cf-multi-select-results {
+  display: flex;
+  flex: 1 1 auto;
+  min-height: 0;
+  max-height: 210px;
 }
 
 .cf-multi-select-filter-input {
@@ -2140,13 +2148,14 @@
 
 .cf-multi-select-options-scroll {
   overflow-y: auto;
-  flex: 1;
+  flex: 1 1 auto;
   min-height: 0;
-  max-height: 260px;
+  max-height: 210px;
+  padding: 2px 0;
 }
 
 .cf-multi-select-no-results {
-  padding: 12px;
+  padding: 20px 12px;
   font-size: 14px;
   color: #666;
   text-align: center;
@@ -2173,8 +2182,9 @@
   &.add-new {
     color: #3e5cb6;
     font-weight: 500;
-    border-top: 1px solid #eee;
-    margin-top: 4px;
+    border-top: none;
+    margin-top: 0;
+    border-radius: 0 0 6px 6px;
   }
 }
 
@@ -2199,11 +2209,12 @@
 }
 
 .cf-multi-select-add-input {
-  padding: 8px;
+  padding: 8px 10px;
   display: flex;
   gap: 6px;
   align-items: center;
   border-top: 1px solid #eee;
+  background: #fff;
 
   input {
     flex: 1;
@@ -2255,6 +2266,16 @@
       background: #e0e0e0;
     }
   }
+}
+
+.cf-multi-select-footer {
+  flex-shrink: 0;
+  border-top: 1px solid #eee;
+  background: #fff;
+}
+
+.cf-multi-select-footer .cf-multi-select-option.add-new {
+  padding: 10px 12px;
 }
 
 /* Document Upload Wrapper */

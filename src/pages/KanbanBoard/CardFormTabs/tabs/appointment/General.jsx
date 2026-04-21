@@ -586,29 +586,33 @@ const MultiSelectEmail = ({ value = [], onChange, options = [], placeholder, onA
               autoComplete="off"
             />
           </div>
-          <div className="cf-multi-select-options-scroll">
-            {filteredOptions.length === 0 ? (
-              <div className="cf-multi-select-no-results">No results found</div>
-            ) : (
-              filteredOptions.map((option) => {
-                const isSelected = selectedValues.some((v) => valuesEqual(v, option.value));
-                return (
-                  <div
-                    key={String(option.value)}
-                    className={`cf-multi-select-option ${isSelected ? "selected" : ""}`}
-                    onMouseDown={(e) => {
-                      e.preventDefault();
-                      handleToggle(option.value);
-                    }}
-                  >
-                    <span className="cf-multi-select-checkbox">
-                      {isSelected && "✓"}
-                    </span>
-                    <span>{option.label}</span>
-                  </div>
-                );
-              })
-            )}
+          <div className="cf-multi-select-results">
+            <div className="cf-multi-select-options-scroll">
+              {filteredOptions.length === 0 ? (
+                <div className="cf-multi-select-no-results">No results found</div>
+              ) : (
+                filteredOptions.map((option) => {
+                  const isSelected = selectedValues.some((v) => valuesEqual(v, option.value));
+                  return (
+                    <div
+                      key={String(option.value)}
+                      className={`cf-multi-select-option ${isSelected ? "selected" : ""}`}
+                      onMouseDown={(e) => {
+                        e.preventDefault();
+                        handleToggle(option.value);
+                      }}
+                    >
+                      <span className="cf-multi-select-checkbox">
+                        {isSelected && "✓"}
+                      </span>
+                      <span>{option.label}</span>
+                    </div>
+                  );
+                })
+              )}
+            </div>
+          </div>
+          <div className="cf-multi-select-footer" onMouseDown={(e) => e.stopPropagation()}>
             {!showAddInput ? (
               <div
                 className="cf-multi-select-option add-new"
