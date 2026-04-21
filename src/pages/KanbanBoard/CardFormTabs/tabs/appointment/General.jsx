@@ -1030,15 +1030,17 @@ const EmailPreviewPanel = ({
   portSelectOptions,
   getFieldValue,
   previewData,
+  editableFields,
+  onEditableFieldChange,
   messageValue,
   onMessageChange,
 }) => {
   const previewFromApi = previewData && typeof previewData === "object" ? previewData : {};
   const ownerLabel = getOptionLabel(ownerOptions, getFieldValue("owner"));
   const fallbackFromValue = ownerLabel ? `${ownerLabel} <noreply@sedres.com>` : "operations@shipping.com";
-  const fromValue = firstNonEmptyString(previewFromApi.from, fallbackFromValue) || "operations@shipping.com";
+  const fromValue = firstNonEmptyString(editableFields?.from_email, previewFromApi.from, fallbackFromValue) || "operations@shipping.com";
   const fallbackToValue = normalizePreviewValue(getFieldValue("serviceRequestorEmail")) || "—";
-  const toValue = firstNonEmptyString(previewFromApi.to, fallbackToValue) || "—";
+  const toValue = firstNonEmptyString(editableFields?.to_email, previewFromApi.to, fallbackToValue) || "";
   const fallbackCcValue = getPreviewRecipients({
     dailyReportEmailOptions,
     billingInstructionEmailOptions,
@@ -1051,8 +1053,8 @@ const EmailPreviewPanel = ({
     vesselName: getOptionLabel(vesselNameOptions, getFieldValue("vesselName")) || getFieldValue("vesselName"),
     port: getOptionLabel(portSelectOptions, getFieldValue("port")) || getFieldValue("port"),
   });
-  const ccValue = firstNonEmptyString(previewFromApi.cc, fallbackCcValue) || "—";
-  const subjectValue = firstNonEmptyString(previewFromApi.subject, subjectFallback) || "Appointment Update";
+  const ccValue = firstNonEmptyString(editableFields?.cc_emails, previewFromApi.cc, fallbackCcValue) || "";
+  const subjectValue = firstNonEmptyString(editableFields?.subject, previewFromApi.subject, subjectFallback) || "Appointment Update";
   const renderedMessageHtml = firstNonEmptyString(previewFromApi.messageHtml);
 
   return (
@@ -1069,45 +1071,75 @@ const EmailPreviewPanel = ({
       </div>
       <div className="email-preview-card">
         <div className="email-preview-content">
-        <div className="email-preview-meta">
-          <div className="email-preview-row">
-            <div className="email-preview-row-label">From</div>
-            <div className="email-preview-row-value">{fromValue}</div>
-          </div>
-          <div className="email-preview-row">
-            <div className="email-preview-row-label">To</div>
-            <div className="email-preview-row-value">{toValue}</div>
-          </div>
-          <div className="email-preview-row">
-            <div className="email-preview-row-label">Cc</div>
-            <div className="email-preview-row-value">
-              {ccValue}
-              <button type="button" className="email-preview-bcc-link">Add Bcc</button>
+          <div className="email-preview-meta">
+            <div className="email-preview-row">
+              <div className="email-preview-row-label">From</div>
+              <div className="email-preview-row-value">
+                <input
+                  type="text"
+                  className="email-preview-inline-input"
+                  value={fromValue}
+                  onChange={onEditableFieldChange("from_email")}
+                  placeholder="From email"
+                />
+              </div>
+            </div>
+            <div className="email-preview-row">
+              <div className="email-preview-row-label">To</div>
+              <div className="email-preview-row-value">
+                <input
+                  type="text"
+                  className="email-preview-inline-input"
+                  value={toValue}
+                  onChange={onEditableFieldChange("to_email")}
+                  placeholder="—"
+                />
+              </div>
+            </div>
+            <div className="email-preview-row">
+              <div className="email-preview-row-label">Cc</div>
+              <div className="email-preview-row-value">
+                <input
+                  type="text"
+                  className="email-preview-inline-input"
+                  value={ccValue}
+                  onChange={onEditableFieldChange("cc_emails")}
+                  placeholder="—"
+                />
+              // <button type="button" className="email-preview-bcc-link">Add Bcc</button>
+              </div>
+            </div>
+            <div className="email-preview-row">
+              <div className="email-preview-row-label">Subject</div>
+              <div className="email-preview-row-value">
+                <input
+                  type="text"
+                  className="email-preview-inline-input"
+                  value={subjectValue}
+                  onChange={onEditableFieldChange("subject")}
+                  placeholder="Email subject"
+                />
+              </div>
             </div>
           </div>
-          <div className="email-preview-row">
-            <div className="email-preview-row-label">Subject</div>
-            <div className="email-preview-row-value">{subjectValue}</div>
-          </div>
-        </div>
-        <div className="email-preview-message-section">
-          <div className="email-preview-message-title">Message</div>
-          {renderedMessageHtml ? (
-            <div className="email-preview-message-rendered">
-              <div
-                className="email-preview-message-html ql-editor"
-                dangerouslySetInnerHTML={{ __html: renderedMessageHtml }}
+          <div className="email-preview-message-section">
+            <div className="email-preview-message-title">Message</div>
+            {renderedMessageHtml ? (
+              <div className="email-preview-message-rendered">
+                <div
+                  className="email-preview-message-html ql-editor"
+                  dangerouslySetInnerHTML={{ __html: renderedMessageHtml }}
+                />
+              </div>
+            ) : (
+              <textarea
+                className="email-preview-message-input"
+                value={messageValue}
+                onChange={onMessageChange}
+                placeholder="Type email content here..."
               />
-            </div>
-          ) : (
-            <textarea
-              className="email-preview-message-input"
-              value={messageValue}
-              onChange={onMessageChange}
-              placeholder="Type email content here..."
-            />
-          )}
-        </div>
+            )}
+          </div>
         </div>
       </div>
     </div>
@@ -1161,6 +1193,13 @@ EmailPreviewPanel.propTypes = {
     messageHtml: PropTypes.string,
     message: PropTypes.string,
   }),
+  editableFields: PropTypes.shape({
+    from_email: PropTypes.string,
+    to_email: PropTypes.string,
+    cc_emails: PropTypes.string,
+    subject: PropTypes.string,
+  }),
+  onEditableFieldChange: PropTypes.func.isRequired,
   messageValue: PropTypes.string,
   onMessageChange: PropTypes.func.isRequired,
 };
@@ -1186,6 +1225,12 @@ function General({
   const [previewMessageText, setPreviewMessageText] = useState("");
   const [emailPreviewData, setEmailPreviewData] = useState(null);
   const [isPreviewMessageDirty, setIsPreviewMessageDirty] = useState(false);
+  const [editablePreviewFields, setEditablePreviewFields] = useState({
+    from_email: "",
+    to_email: "",
+    cc_emails: "",
+    subject: "",
+  });
   // MWP RENEWAL document states
   const [appointmentEmailDocuments, setAppointmentEmailDocuments] = useState([]);
   const [mwpCopyDocuments, setMwpCopyDocuments] = useState([]);
@@ -1496,7 +1541,22 @@ function General({
     if (isAddMode) return;
     setEmailPreviewData(null);
     setIsPreviewMessageDirty(false);
+    setEditablePreviewFields({
+      from_email: "",
+      to_email: "",
+      cc_emails: "",
+      subject: "",
+    });
   }, [isAddMode]);
+
+  const populateEditablePreviewFields = useCallback((resolvedPreview) => {
+    setEditablePreviewFields({
+      from_email: firstNonEmptyString(resolvedPreview?.from),
+      to_email: firstNonEmptyString(resolvedPreview?.to),
+      cc_emails: firstNonEmptyString(resolvedPreview?.cc),
+      subject: firstNonEmptyString(resolvedPreview?.subject),
+    });
+  }, []);
 
   const getTrimmedValue = (value) => {
     if (value === undefined || value === null) return "";
@@ -1578,6 +1638,13 @@ function General({
       ...formValues,
       swimlane_id: swimlaneId,
       entity_fields: entityFieldsPayload,
+      appointment_acceptance: {
+        body: firstNonEmptyString(previewMessageText),
+        cc_emails: firstNonEmptyString(editablePreviewFields.cc_emails),
+        from_email: firstNonEmptyString(editablePreviewFields.from_email),
+        subject: firstNonEmptyString(editablePreviewFields.subject),
+        to_email: firstNonEmptyString(editablePreviewFields.to_email),
+      },
     };
 
     setIsSavingGeneral(true);
@@ -1945,6 +2012,12 @@ function General({
 
     if (!hasAllRequiredPreviewFields) {
       setEmailPreviewData(null);
+      setEditablePreviewFields({
+        from_email: "",
+        to_email: "",
+        cc_emails: "",
+        subject: "",
+      });
       return;
     }
 
@@ -1960,6 +2033,7 @@ function General({
         if (cancelled) return;
         const resolved = resolveEmailPreviewPayload(data);
         setEmailPreviewData(resolved);
+        populateEditablePreviewFields(resolved);
         if (!isPreviewMessageDirty) {
           const apiMessage = firstNonEmptyString(resolved?.message);
           if (apiMessage) {
@@ -1970,6 +2044,12 @@ function General({
         console.error("[General] email preview fetch failed", error);
         if (!cancelled) {
           setEmailPreviewData(null);
+          setEditablePreviewFields({
+            from_email: "",
+            to_email: "",
+            cc_emails: "",
+            subject: "",
+          });
         }
       }
     };
@@ -1984,6 +2064,7 @@ function General({
     previewCallType,
     previewServiceRequestorEmail,
     isPreviewMessageDirty,
+    populateEditablePreviewFields,
   ]);
 
   // Determine if fields should be disabled
@@ -2219,899 +2300,907 @@ function General({
               </div>
             )}
             <div className={isAddMode ? "general-add-mode-wrapper" : ""}>
-            <div className={`${!isAddMode ? "general-info-three-column" : "general-info-two-column general-add-3col-layout"} general-tab-form-layout`}>
-              <div className={`general-info-left ${isAddMode ? "general-add-form-panel" : ""}`}>
-                <div className={isAddMode ? "general-add-form-scroll" : ""}>
-                <div className="pre-arrival-form">
-                  {isFleet ? (
-                    <>
-                      <OwnerField
-                        value={getFieldValue("owner")}
-                        onChange={handleChange("owner")}
-                        options={mergeOptionIfMissing(operatorOptions, getFieldValue("owner"))}
-                        placeholder="Select owner"
-                        disabled={masterInputsDisabled}
-                      />
-
-                      <FormField label="Billing Entity">
-                        <FormSelect
-                          value={getFieldValue("billingEntity") || "SS7"}
-                          onChange={handleChange("billingEntity")}
-                          options={[{ value: "SS7", label: "SS7" }]}
-                          placeholder="Select billing entity..."
-                          disabled={true}
-                        />
-                      </FormField>
-
-                      <FormField label="VESSEL NAME">
-                        <FormSelect
-                          value={getFieldValue("vesselName") || "MV Ocean Star"}
-                          onChange={handleChange("vesselName")}
-                          options={[{ value: getFieldValue("vesselName") || "MV Ocean Star", label: getFieldValue("vesselName") || "MV Ocean Star" }]}
-                          placeholder="Select vessel name..."
-                          disabled={true}
-                        />
-                      </FormField>
-
-                      <FormField label="Last moved">
-                        <div className="cf-input date-time-row">
-                          <input
-                            type="date"
-                            value={getFieldValue("lastMovedDate")}
-                            onChange={handleChange("lastMovedDate")}
-                            placeholder="Select date"
-                            disabled={isDisabled}
+              <div className={`${!isAddMode ? "general-info-three-column" : "general-info-two-column general-add-3col-layout"} general-tab-form-layout`}>
+                <div className={`general-info-left ${isAddMode ? "general-add-form-panel" : ""}`}>
+                  <div className={isAddMode ? "general-add-form-scroll" : ""}>
+                    <div className="pre-arrival-form">
+                      {isFleet ? (
+                        <>
+                          <OwnerField
+                            value={getFieldValue("owner")}
+                            onChange={handleChange("owner")}
+                            options={mergeOptionIfMissing(operatorOptions, getFieldValue("owner"))}
+                            placeholder="Select owner"
+                            disabled={masterInputsDisabled}
                           />
-                          <input
-                            type="time"
-                            value={getFieldValue("lastMovedTime")}
-                            onChange={handleChange("lastMovedTime")}
-                            placeholder="Select time"
-                            disabled={isDisabled}
-                          />
-                        </div>
-                      </FormField>
-                    </>
-                  ) : (isCrewChange || isMaterialDelivery) ? (
-                    <>
-                      <OwnerField
-                        value={getFieldValue("owner")}
-                        onChange={handleChange("owner")}
-                        options={mergeOptionIfMissing(operatorOptions, getFieldValue("owner"))}
-                        placeholder="Select owner"
-                        disabled={masterInputsDisabled}
-                      />
 
-                      <FormField label="Billing Entity">
-                        <FormSelect
-                          value={getFieldValue("billingEntity") || "SS7"}
-                          onChange={handleChange("billingEntity")}
-                          options={[{ value: "SS7", label: "SS7" }]}
-                          placeholder="Select billing entity..."
-                          disabled={true}
-                        />
-                      </FormField>
+                          <FormField label="Billing Entity">
+                            <FormSelect
+                              value={getFieldValue("billingEntity") || "SS7"}
+                              onChange={handleChange("billingEntity")}
+                              options={[{ value: "SS7", label: "SS7" }]}
+                              placeholder="Select billing entity..."
+                              disabled={true}
+                            />
+                          </FormField>
 
-                      <FormField label="SRT|PO|WBS">
-                        <FormInput
-                          type="text"
-                          placeholder="Enter SRT|PO|WBS..."
-                          value={getFieldValue("srtPoWbs")}
-                          onChange={handleChange("srtPoWbs")}
-                          disabled={isDisabled}
-                        />
-                      </FormField>
+                          <FormField label="VESSEL NAME">
+                            <FormSelect
+                              value={getFieldValue("vesselName") || "MV Ocean Star"}
+                              onChange={handleChange("vesselName")}
+                              options={[{ value: getFieldValue("vesselName") || "MV Ocean Star", label: getFieldValue("vesselName") || "MV Ocean Star" }]}
+                              placeholder="Select vessel name..."
+                              disabled={true}
+                            />
+                          </FormField>
 
-                      <FormField label="VESSEL NAME">
-                        <FormSelect
-                          value={getFieldValue("vesselName") || "MV Ocean Star"}
-                          onChange={handleChange("vesselName")}
-                          options={[{ value: getFieldValue("vesselName") || "MV Ocean Star", label: getFieldValue("vesselName") || "MV Ocean Star" }]}
-                          placeholder="Select vessel name..."
-                          disabled={true}
-                        />
-                      </FormField>
-
-                      <FormField label="Last moved">
-                        <div className="cf-input date-time-row">
-                          <input
-                            type="date"
-                            value={getFieldValue("lastMovedDate")}
-                            onChange={handleChange("lastMovedDate")}
-                            placeholder="Select date"
-                            disabled={isDisabled}
-                          />
-                          <input
-                            type="time"
-                            value={getFieldValue("lastMovedTime")}
-                            onChange={handleChange("lastMovedTime")}
-                            placeholder="Select time"
-                            disabled={isDisabled}
-                          />
-                        </div>
-                      </FormField>
-
-                      <FormField label="Inward Clearance Date">
-                        <div className="cf-input date-time-row">
-                          <input
-                            type="date"
-                            value={getFieldValue("inwardClearanceDate")}
-                            onChange={handleChange("inwardClearanceDate")}
-                            placeholder="Select date"
-                            disabled={isDisabled}
-                          />
-                          <input
-                            type="time"
-                            value={getFieldValue("inwardClearanceTime")}
-                            onChange={handleChange("inwardClearanceTime")}
-                            placeholder="Select time"
-                            disabled={isDisabled}
-                          />
-                        </div>
-                      </FormField>
-
-                      <FormField label="Outward Clearance Date">
-                        <div className="cf-input date-time-row">
-                          <input
-                            type="date"
-                            value={getFieldValue("outwardClearanceDate")}
-                            onChange={handleChange("outwardClearanceDate")}
-                            placeholder="Select date"
-                            disabled={isDisabled}
-                          />
-                          <input
-                            type="time"
-                            value={getFieldValue("outwardClearanceTime")}
-                            onChange={handleChange("outwardClearanceTime")}
-                            placeholder="Select time"
-                            disabled={isDisabled}
-                          />
-                        </div>
-                      </FormField>
-
-                      <FormField label="Operations completion date">
-                        <div className="cf-input date-time-row">
-                          <input
-                            type="date"
-                            value={getFieldValue("operationsCompletionDate")}
-                            onChange={handleChange("operationsCompletionDate")}
-                            placeholder="Select date"
-                            disabled={isDisabled}
-                          />
-                          <input
-                            type="time"
-                            value={getFieldValue("operationsCompletionTime")}
-                            onChange={handleChange("operationsCompletionTime")}
-                            placeholder="Select time"
-                            disabled={isDisabled}
-                          />
-                        </div>
-                      </FormField>
-
-                      <FormField label="Total Onsigners">
-                        <FormInput
-                          type="number"
-                          placeholder="Enter total onsigners..."
-                          value={getFieldValue("totalOnsigners")}
-                          onChange={handleChange("totalOnsigners")}
-                          disabled={true}
-                        />
-                      </FormField>
-
-                      <FormField label="Total Offsigners">
-                        <FormInput
-                          type="number"
-                          placeholder="Enter total offsigners..."
-                          value={getFieldValue("totalOffsigners")}
-                          onChange={handleChange("totalOffsigners")}
-                          disabled={true}
-                        />
-                      </FormField>
-
-                      <FormField label="3rd Party Items">
-                        <FormInput
-                          type="text"
-                          placeholder="Enter 3rd party items..."
-                          value={getFieldValue("thirdPartyItems")}
-                          onChange={handleChange("thirdPartyItems")}
-                          disabled={isDisabled}
-                        />
-                      </FormField>
-
-                      <FormField label="Tax Invoice">
-                        <FormInput
-                          type="text"
-                          placeholder="Enter tax invoice..."
-                          value={getFieldValue("taxInvoice")}
-                          onChange={handleChange("taxInvoice")}
-                          disabled={isDisabled}
-                        />
-                      </FormField>
-
-                      <FormField label="Invoice amount (Including VAT)">
-                        <FormInput
-                          type="text"
-                          placeholder="Enter invoice amount..."
-                          value={getFieldValue("invoiceAmount")}
-                          onChange={handleChange("invoiceAmount")}
-                          disabled={isDisabled}
-                        />
-                      </FormField>
-
-                      <FormField label="SAP Sales Order No">
-                        <FormSelect
-                          value={getFieldValue("sapSalesOrderNo") || "SO-12345"}
-                          onChange={handleChange("sapSalesOrderNo")}
-                          options={[{ value: getFieldValue("sapSalesOrderNo") || "SO-12345", label: getFieldValue("sapSalesOrderNo") || "SO-12345" }]}
-                          placeholder="Select SAP Sales Order No..."
-                          disabled={true}
-                        />
-                      </FormField>
-
-                      <FormField label="Service requester">
-                        <FormSelect
-                          value={getFieldValue("serviceRequestorName") || "Service Requester Name"}
-                          onChange={handleChange("serviceRequestorName")}
-                          options={[{ value: getFieldValue("serviceRequestorName") || "Service Requester Name", label: getFieldValue("serviceRequestorName") || "Service Requester Name" }]}
-                          placeholder="Select service requester..."
-                          disabled={true}
-                        />
-                      </FormField>
-                    </>
-                  ) : isOnStation ? (
-                    <>
-                      <OwnerField
-                        value={getFieldValue("owner")}
-                        onChange={handleChange("owner")}
-                        options={mergeOptionIfMissing(operatorOptions, getFieldValue("owner"))}
-                        placeholder="Select owner"
-                        disabled={masterInputsDisabled}
-                      />
-
-                      <FormField label="Billing Entity">
-                        <FormSelect
-                          value={getFieldValue("billingEntity") || "SS7"}
-                          onChange={handleChange("billingEntity")}
-                          options={[{ value: "SS7", label: "SS7" }]}
-                          placeholder="Select billing entity..."
-                          disabled={true}
-                        />
-                      </FormField>
-
-                      <FormField label="SRT|PO|WBS">
-                        <FormInput
-                          type="text"
-                          placeholder="Enter SRT|PO|WBS..."
-                          value={getFieldValue("srtPoWbs")}
-                          onChange={handleChange("srtPoWbs")}
-                          disabled={isDisabled}
-                        />
-                      </FormField>
-
-                      <FormField label="Operations completion Date">
-                        <div className="cf-input date-time-row">
-                          <input
-                            type="date"
-                            value={getFieldValue("operationsCompletionDate")}
-                            onChange={handleChange("operationsCompletionDate")}
-                            placeholder="Select date"
-                            disabled={isDisabled}
-                          />
-                          <input
-                            type="time"
-                            value={getFieldValue("operationsCompletionTime")}
-                            onChange={handleChange("operationsCompletionTime")}
-                            placeholder="Select time"
-                            disabled={isDisabled}
-                          />
-                        </div>
-                      </FormField>
-
-                      <FormField label="VESSEL NAME">
-                        <FormSelect
-                          value={getFieldValue("vesselName") || "MV Ocean Star"}
-                          onChange={handleChange("vesselName")}
-                          options={[{ value: getFieldValue("vesselName") || "MV Ocean Star", label: getFieldValue("vesselName") || "MV Ocean Star" }]}
-                          placeholder="Select vessel name..."
-                          disabled={true}
-                        />
-                      </FormField>
-
-                      <FormField label="Last moved">
-                        <div className="cf-input date-time-row">
-                          <input
-                            type="date"
-                            value={getFieldValue("lastMovedDate")}
-                            onChange={handleChange("lastMovedDate")}
-                            placeholder="Select date"
-                            disabled={isDisabled}
-                          />
-                          <input
-                            type="time"
-                            value={getFieldValue("lastMovedTime")}
-                            onChange={handleChange("lastMovedTime")}
-                            placeholder="Select time"
-                            disabled={isDisabled}
-                          />
-                        </div>
-                      </FormField>
-
-                      <FormField label="Tax Invoice">
-                        <FormInput
-                          type="text"
-                          placeholder="Enter tax invoice..."
-                          value={getFieldValue("taxInvoice")}
-                          onChange={handleChange("taxInvoice")}
-                          disabled={isDisabled}
-                        />
-                      </FormField>
-
-                      <FormField label="Invoice amount (Including VAT)">
-                        <FormInput
-                          type="text"
-                          placeholder="Enter invoice amount..."
-                          value={getFieldValue("invoiceAmount")}
-                          onChange={handleChange("invoiceAmount")}
-                          disabled={isDisabled}
-                        />
-                      </FormField>
-
-                      <FormField label="SAP Sales Order No">
-                        <FormSelect
-                          value={getFieldValue("sapSalesOrderNo") || "SO-12345"}
-                          onChange={handleChange("sapSalesOrderNo")}
-                          options={[{ value: getFieldValue("sapSalesOrderNo") || "SO-12345", label: getFieldValue("sapSalesOrderNo") || "SO-12345" }]}
-                          placeholder="Select SAP Sales Order No..."
-                          disabled={true}
-                        />
-                      </FormField>
-
-                      <FormField label="Service requester">
-                        <FormSelect
-                          value={getFieldValue("serviceRequestorName") || "Service Requester Name"}
-                          onChange={handleChange("serviceRequestorName")}
-                          options={[{ value: getFieldValue("serviceRequestorName") || "Service Requester Name", label: getFieldValue("serviceRequestorName") || "Service Requester Name" }]}
-                          placeholder="Select service requester..."
-                          disabled={true}
-                        />
-                      </FormField>
-                    </>
-                  ) : isMwPRenewal ? (
-                    <>
-                      <OwnerField
-                        value={getFieldValue("owner")}
-                        onChange={handleChange("owner")}
-                        options={mergeOptionIfMissing(operatorOptions, getFieldValue("owner"))}
-                        placeholder="Select owner"
-                        disabled={masterInputsDisabled}
-                      />
-
-                      <FormField label="VESSEL NAME">
-                        <FormSelect
-                          value="MV Ocean Star"
-                          onChange={handleChange("vesselName")}
-                          options={[{ value: "MV Ocean Star", label: "MV Ocean Star" }]}
-                          placeholder="Select vessel name..."
-                          disabled={true}
-                        />
-                      </FormField>
-
-                      <FormField label="Last moved">
-                        <div className="cf-input date-time-row">
-                          <input
-                            type="date"
-                            value={getFieldValue("lastMovedDate")}
-                            onChange={handleChange("lastMovedDate")}
-                            placeholder="Select date"
-                            disabled={isDisabled}
-                          />
-                          <input
-                            type="time"
-                            value={getFieldValue("lastMovedTime")}
-                            onChange={handleChange("lastMovedTime")}
-                            placeholder="Select time"
-                            disabled={isDisabled}
-                          />
-                        </div>
-                      </FormField>
-
-                      <FormField label="Tax Invoice">
-                        <FormInput
-                          type="text"
-                          placeholder="Enter tax invoice..."
-                          value={getFieldValue("taxInvoice")}
-                          onChange={handleChange("taxInvoice")}
-                          disabled={isDisabled}
-                        />
-                      </FormField>
-
-                      <FormField label="Invoice amount (Including VAT)">
-                        <FormInput
-                          type="text"
-                          placeholder="Enter invoice amount..."
-                          value={getFieldValue("invoiceAmount")}
-                          onChange={handleChange("invoiceAmount")}
-                          disabled={isDisabled}
-                        />
-                      </FormField>
-
-                      <FormField label="SAP Sales Order No">
-                        <FormInput
-                          type="number"
-                          placeholder="Enter SAP Sales Order No..."
-                          value={getFieldValue("sapSalesOrderNo")}
-                          onChange={handleChange("sapSalesOrderNo")}
-                          disabled={isDisabled}
-                        />
-                      </FormField>
-
-                      <FormField label="Service requester">
-                        <FormInput
-                          type="text"
-                          placeholder="Enter service requester..."
-                          value={getFieldValue("serviceRequestorName")}
-                          onChange={handleChange("serviceRequestorName")}
-                          disabled={isDisabled}
-                        />
-                      </FormField>
-
-                      <FormField label="PO Number">
-                        <FormInput
-                          type="text"
-                          placeholder="Enter PO number..."
-                          value={getFieldValue("poNumber")}
-                          onChange={handleChange("poNumber")}
-                          disabled={isDisabled}
-                        />
-                      </FormField>
-
-                      <FormField label="Issue Date">
-                        <FormInput
-                          type="date"
-                          value={getFieldValue("issueDate")}
-                          onChange={handleChange("issueDate")}
-                          placeholder="Select issue date"
-                          disabled={isDisabled}
-                        />
-                      </FormField>
-
-                      <FormField label="Expiry Date">
-                        <FormInput
-                          type="date"
-                          value={getFieldValue("expiryDate")}
-                          onChange={handleChange("expiryDate")}
-                          placeholder="Select expiry date"
-                          disabled={isDisabled}
-                        />
-                      </FormField>
-                    </>
-                  ) : (
-                    <>
-                      {shouldShowApiField("owner_id") && (
-                        <OwnerField
-                          value={getFieldValue("owner")}
-                          onChange={isAddMode ? handleValidatedChange("owner") : handleChange("owner")}
-                          options={mergeOptionIfMissing(operatorOptions, getFieldValue("owner"))}
-                          placeholder="Select owner"
-                          disabled={masterInputsDisabled}
-                          error={isAddMode ? fieldErrors.owner : undefined}
-                          hasError={isAddMode && Boolean(fieldErrors.owner)}
-                        />
-                      )}
-
-                      {!isSimplifiedMode && (
-                        <div className="form-group">
-                          <h3 className="form-group-title">Appointment Details</h3>
-                          {shouldShowApiField("appointment_email") && (
-                            <FormField label="Appointment Email">
-                              <DocumentUpload
-                                attachments={appointmentDocuments}
-                                onAdd={handleDocumentAdd}
-                                onRemove={handleDocumentRemove}
-                                cardColor={accentColor}
+                          <FormField label="Last moved">
+                            <div className="cf-input date-time-row">
+                              <input
+                                type="date"
+                                value={getFieldValue("lastMovedDate")}
+                                onChange={handleChange("lastMovedDate")}
+                                placeholder="Select date"
                                 disabled={isDisabled}
                               />
-                            </FormField>
-                          )}
-                          {shouldShowApiField("appointment_received_date") && (
-                            <FormField
-                              label="Appointment Received"
-                              hasError={isAddMode && Boolean(fieldErrors.appointmentReceivedDate)}
-                            >
-                              <div
-                                className={`cf-input date-time-row ${isAddMode && fieldErrors.appointmentReceivedDate ? "is-invalid" : ""}`}
-                              >
-                                <input
-                                  type="date"
-                                  value={getFieldValue("appointmentReceivedDate")}
-                                  onChange={isAddMode ? handleValidatedChange("appointmentReceivedDate") : handleChange("appointmentReceivedDate")}
-                                  placeholder="Select date"
-                                  disabled={isDisabled}
-                                />
-
-                                <input
-                                  type="time"
-                                  value={getFieldValue("appointmentReceivedTime")}
-                                  onChange={handleChange("appointmentReceivedTime")}
-                                  placeholder="Select time"
-                                  disabled={isDisabled}
-                                />
-                              </div>
-                              {isAddMode && fieldErrors.appointmentReceivedDate && (
-                                <div className="cf-field-error">{fieldErrors.appointmentReceivedDate}</div>
-                              )}
-                            </FormField>
-                          )}
-                        </div>
-                      )}
-
-                      <div className="form-group">
-                        <h3 className="form-group-title">Service Information</h3>
-                        {shouldShowApiField("port_id") && (
-                          <FormField label="Port" hasError={isAddMode && Boolean(fieldErrors.port)}>
-                            <FormSelect
-                              value={getFieldValue("port")}
-                              onChange={isAddMode ? handleValidatedChange("port") : handleChange("port")}
-                              options={mergeOptionIfMissing(portSelectOptions, getFieldValue("port"))}
-                              placeholder="Select port"
-                              disabled={masterInputsDisabled}
-                              hasError={isAddMode && Boolean(fieldErrors.port)}
-                            />
-                            {isAddMode && fieldErrors.port && (
-                              <div className="cf-field-error">{fieldErrors.port}</div>
-                            )}
-                          </FormField>
-                        )}
-                        {shouldShowApiField("call_type") && (
-                          <FormField label="Type of call / Service" hasError={isAddMode && Boolean(fieldErrors.typeOfCall)}>
-                            <FormSelect
-                              value={getFieldValue("typeOfCall")}
-                              onChange={isAddMode ? handleValidatedChange("typeOfCall") : handleChange("typeOfCall")}
-                              options={mergeOptionIfMissing(callTypeOptions, getFieldValue("typeOfCall"))}
-                              placeholder="Select type of call"
-                              disabled={masterInputsDisabled}
-                              hasError={isAddMode && Boolean(fieldErrors.typeOfCall)}
-                            />
-                            {isAddMode && fieldErrors.typeOfCall && (
-                              <div className="cf-field-error">{fieldErrors.typeOfCall}</div>
-                            )}
-                          </FormField>
-                        )}
-                        {shouldShowApiField("main_billing_entity_id") && (
-                          <FormField label="Main Billing entity" hasError={isAddMode && Boolean(fieldErrors.mainBillingEntity)}>
-                            <FormSelect
-                              value={getFieldValue("mainBillingEntity")}
-                              onChange={isAddMode ? handleValidatedMainBillingEntityChange : handleMainBillingEntityChange}
-                              options={mergeOptionIfMissing(billingEntitySelectOptions, getFieldValue("mainBillingEntity"))}
-                              placeholder="Select billing entity"
-                              disabled={masterInputsDisabled}
-                              hasError={isAddMode && Boolean(fieldErrors.mainBillingEntity)}
-                            />
-                            {isAddMode && fieldErrors.mainBillingEntity && (
-                              <div className="cf-field-error">{fieldErrors.mainBillingEntity}</div>
-                            )}
-                          </FormField>
-                        )}
-
-                        {entityFieldsLoading && (
-                          <FormField label="">
-                            <div className="cf-input">
-                              <input type="text" value="Loading fields..." readOnly />
+                              <input
+                                type="time"
+                                value={getFieldValue("lastMovedTime")}
+                                onChange={handleChange("lastMovedTime")}
+                                placeholder="Select time"
+                                disabled={isDisabled}
+                              />
                             </div>
                           </FormField>
-                        )}
+                        </>
+                      ) : (isCrewChange || isMaterialDelivery) ? (
+                        <>
+                          <OwnerField
+                            value={getFieldValue("owner")}
+                            onChange={handleChange("owner")}
+                            options={mergeOptionIfMissing(operatorOptions, getFieldValue("owner"))}
+                            placeholder="Select owner"
+                            disabled={masterInputsDisabled}
+                          />
 
-                        {!entityFieldsLoading && entityFields.map((field) => (
-                          <FormField
-                            key={field.field_id}
-                            label={field.is_required === 1 ? `${field.field_name} *` : field.field_name}
-                          >
+                          <FormField label="Billing Entity">
+                            <FormSelect
+                              value={getFieldValue("billingEntity") || "SS7"}
+                              onChange={handleChange("billingEntity")}
+                              options={[{ value: "SS7", label: "SS7" }]}
+                              placeholder="Select billing entity..."
+                              disabled={true}
+                            />
+                          </FormField>
+
+                          <FormField label="SRT|PO|WBS">
                             <FormInput
                               type="text"
-                              placeholder={`Enter ${field.field_name}...`}
-                              value={entityFieldValues[field.field_id] || ""}
-                              onChange={handleEntityFieldValueChange(field.field_id)}
+                              placeholder="Enter SRT|PO|WBS..."
+                              value={getFieldValue("srtPoWbs")}
+                              onChange={handleChange("srtPoWbs")}
                               disabled={isDisabled}
                             />
-                            {entityFieldErrors[field.field_id] && (
-                              <span className="error-txt" style={{ display: "block", marginTop: "4px" }}>
-                                {entityFieldErrors[field.field_id]}
-                              </span>
-                            )}
                           </FormField>
-                        ))}
 
-                        {!entityFieldsLoading && entityFieldsError && (
-                          <FormField label="">
-                            <div className="cf-input">
-                              <input type="text" value={entityFieldsError} readOnly />
+                          <FormField label="VESSEL NAME">
+                            <FormSelect
+                              value={getFieldValue("vesselName") || "MV Ocean Star"}
+                              onChange={handleChange("vesselName")}
+                              options={[{ value: getFieldValue("vesselName") || "MV Ocean Star", label: getFieldValue("vesselName") || "MV Ocean Star" }]}
+                              placeholder="Select vessel name..."
+                              disabled={true}
+                            />
+                          </FormField>
+
+                          <FormField label="Last moved">
+                            <div className="cf-input date-time-row">
+                              <input
+                                type="date"
+                                value={getFieldValue("lastMovedDate")}
+                                onChange={handleChange("lastMovedDate")}
+                                placeholder="Select date"
+                                disabled={isDisabled}
+                              />
+                              <input
+                                type="time"
+                                value={getFieldValue("lastMovedTime")}
+                                onChange={handleChange("lastMovedTime")}
+                                placeholder="Select time"
+                                disabled={isDisabled}
+                              />
                             </div>
                           </FormField>
-                        )}
 
-                        {!entityFieldsLoading &&
-                          !entityFieldsError &&
-                          selectedEntityId &&
-                          entityFields.length === 0 && (
-                            <>
-                              <FormField label="PO No *" hasError={isAddMode && Boolean(fieldErrors.poNumber)}>
-                                <FormInput
-                                  type="text"
-                                  placeholder="Enter PO No..."
-                                  value={getFieldValue("poNumber")}
-                                  onChange={isAddMode ? handleValidatedChange("poNumber") : handleChange("poNumber")}
-                                  disabled={isDisabled}
-                                />
-                                {isAddMode && fieldErrors.poNumber && (
-                                  <div className="cf-field-error">{fieldErrors.poNumber}</div>
-                                )}
-                              </FormField>
+                          <FormField label="Inward Clearance Date">
+                            <div className="cf-input date-time-row">
+                              <input
+                                type="date"
+                                value={getFieldValue("inwardClearanceDate")}
+                                onChange={handleChange("inwardClearanceDate")}
+                                placeholder="Select date"
+                                disabled={isDisabled}
+                              />
+                              <input
+                                type="time"
+                                value={getFieldValue("inwardClearanceTime")}
+                                onChange={handleChange("inwardClearanceTime")}
+                                placeholder="Select time"
+                                disabled={isDisabled}
+                              />
+                            </div>
+                          </FormField>
 
-                              <FormField label="Project *" hasError={isAddMode && Boolean(fieldErrors.project)}>
-                                <FormInput
-                                  type="text"
-                                  placeholder="Enter project..."
-                                  value={getFieldValue("project")}
-                                  onChange={isAddMode ? handleValidatedChange("project") : handleChange("project")}
-                                  disabled={isDisabled}
-                                />
-                                {isAddMode && fieldErrors.project && (
-                                  <div className="cf-field-error">{fieldErrors.project}</div>
-                                )}
-                              </FormField>
-                            </>
-                          )}
-                      </div>
+                          <FormField label="Outward Clearance Date">
+                            <div className="cf-input date-time-row">
+                              <input
+                                type="date"
+                                value={getFieldValue("outwardClearanceDate")}
+                                onChange={handleChange("outwardClearanceDate")}
+                                placeholder="Select date"
+                                disabled={isDisabled}
+                              />
+                              <input
+                                type="time"
+                                value={getFieldValue("outwardClearanceTime")}
+                                onChange={handleChange("outwardClearanceTime")}
+                                placeholder="Select time"
+                                disabled={isDisabled}
+                              />
+                            </div>
+                          </FormField>
 
-                      <div className="form-group">
-                        <h3 className="form-group-title">Vessel Information</h3>
+                          <FormField label="Operations completion date">
+                            <div className="cf-input date-time-row">
+                              <input
+                                type="date"
+                                value={getFieldValue("operationsCompletionDate")}
+                                onChange={handleChange("operationsCompletionDate")}
+                                placeholder="Select date"
+                                disabled={isDisabled}
+                              />
+                              <input
+                                type="time"
+                                value={getFieldValue("operationsCompletionTime")}
+                                onChange={handleChange("operationsCompletionTime")}
+                                placeholder="Select time"
+                                disabled={isDisabled}
+                              />
+                            </div>
+                          </FormField>
 
-                        {shouldShowApiField("vessel_type_id") && (
-                          <FormField label="Vessel type">
-                            <FormSelect
-                              value={getFieldValue("vesselType")}
-                              onChange={handleChange("vesselType")}
-                              options={mergeOptionIfMissing(vesselTypeSelectOptions, getFieldValue("vesselType"))}
-                              placeholder="Select vessel type"
-                              disabled={masterInputsDisabled}
+                          <FormField label="Total Onsigners">
+                            <FormInput
+                              type="number"
+                              placeholder="Enter total onsigners..."
+                              value={getFieldValue("totalOnsigners")}
+                              onChange={handleChange("totalOnsigners")}
+                              disabled={true}
                             />
                           </FormField>
-                        )}
 
-                        {shouldShowApiField("barge_type_id") && (
-                          <FormField label="Barge type">
-                            <FormSelect
-                              value={getFieldValue("bargeType")}
-                              onChange={handleChange("bargeType")}
-                              options={mergeOptionIfMissing(bargeTypeSelectOptions, getFieldValue("bargeType"))}
-                              placeholder="Select barge type"
-                              disabled={masterInputsDisabled}
+                          <FormField label="Total Offsigners">
+                            <FormInput
+                              type="number"
+                              placeholder="Enter total offsigners..."
+                              value={getFieldValue("totalOffsigners")}
+                              onChange={handleChange("totalOffsigners")}
+                              disabled={true}
                             />
                           </FormField>
-                        )}
 
-                        {shouldShowApiField("vessel_id") && (
-                          <FormField label="Vessel Name">
-                            <FormSelect
-                              value={getFieldValue("vesselName")}
-                              onChange={handleVesselSelectionChange}
-                              options={mergeOptionIfMissing(vesselNameOptions, getFieldValue("vesselName"))}
-                              placeholder="Select vessel name"
-                              disabled={isDisabled || vesselOptionsLoading}
-                            />
-                          </FormField>
-                        )}
-
-                        {shouldShowApiField("vessel_owner") && (
-                          <FormField label="Vessel Owner">
+                          <FormField label="3rd Party Items">
                             <FormInput
                               type="text"
-                              placeholder="Enter vessel owner..."
-                              value={getFieldValue("vesselOwner")}
-                              onChange={handleChange("vesselOwner")}
+                              placeholder="Enter 3rd party items..."
+                              value={getFieldValue("thirdPartyItems")}
+                              onChange={handleChange("thirdPartyItems")}
                               disabled={isDisabled}
                             />
                           </FormField>
-                        )}
 
-                        {shouldShowApiField("vessel_principal") && (
-                          <FormField label="Vessel Principal">
+                          <FormField label="Tax Invoice">
                             <FormInput
                               type="text"
-                              placeholder="Enter vessel principal..."
-                              value={getFieldValue("vesselPrincipal")}
-                              onChange={handleChange("vesselPrincipal")}
+                              placeholder="Enter tax invoice..."
+                              value={getFieldValue("taxInvoice")}
+                              onChange={handleChange("taxInvoice")}
                               disabled={isDisabled}
                             />
                           </FormField>
-                        )}
 
-                        {shouldShowApiField("vessel_manager") && (
-                          <FormField label="Vessel Manager">
+                          <FormField label="Invoice amount (Including VAT)">
                             <FormInput
                               type="text"
-                              placeholder="Enter vessel manager..."
-                              value={getFieldValue("vesselManager")}
-                              onChange={handleChange("vesselManager")}
+                              placeholder="Enter invoice amount..."
+                              value={getFieldValue("invoiceAmount")}
+                              onChange={handleChange("invoiceAmount")}
                               disabled={isDisabled}
                             />
                           </FormField>
-                        )}
 
-                        {shouldShowApiField("other_billing_entity_id") && (
-                          <FormField label="Other billing entity">
+                          <FormField label="SAP Sales Order No">
                             <FormSelect
-                              value={getFieldValue("otherBillingEntity")}
-                              onChange={handleChange("otherBillingEntity")}
-                              options={mergeOptionIfMissing(billingEntitySelectOptions, getFieldValue("otherBillingEntity"))}
-                              placeholder="Select billing entity"
-                              disabled={masterInputsDisabled}
+                              value={getFieldValue("sapSalesOrderNo") || "SO-12345"}
+                              onChange={handleChange("sapSalesOrderNo")}
+                              options={[{ value: getFieldValue("sapSalesOrderNo") || "SO-12345", label: getFieldValue("sapSalesOrderNo") || "SO-12345" }]}
+                              placeholder="Select SAP Sales Order No..."
+                              disabled={true}
                             />
                           </FormField>
-                        )}
 
-                        {shouldShowApiField("assigned_operator_id") && (
-                          <FormField label="Assigned Operator">
+                          <FormField label="Service requester">
                             <FormSelect
-                              value={getFieldValue("assignedOperator")}
-                              onChange={handleChange("assignedOperator")}
-                              options={mergeOptionIfMissing(operatorOptions, getFieldValue("assignedOperator"))}
-                              placeholder="Select operator"
-                              disabled={masterInputsDisabled}
+                              value={getFieldValue("serviceRequestorName") || "Service Requester Name"}
+                              onChange={handleChange("serviceRequestorName")}
+                              options={[{ value: getFieldValue("serviceRequestorName") || "Service Requester Name", label: getFieldValue("serviceRequestorName") || "Service Requester Name" }]}
+                              placeholder="Select service requester..."
+                              disabled={true}
                             />
                           </FormField>
-                        )}
+                        </>
+                      ) : isOnStation ? (
+                        <>
+                          <OwnerField
+                            value={getFieldValue("owner")}
+                            onChange={handleChange("owner")}
+                            options={mergeOptionIfMissing(operatorOptions, getFieldValue("owner"))}
+                            placeholder="Select owner"
+                            disabled={masterInputsDisabled}
+                          />
 
-                        {shouldShowApiField("service_requestor_name") && (
-                          <FormField label="Service Requestor Name">
+                          <FormField label="Billing Entity">
+                            <FormSelect
+                              value={getFieldValue("billingEntity") || "SS7"}
+                              onChange={handleChange("billingEntity")}
+                              options={[{ value: "SS7", label: "SS7" }]}
+                              placeholder="Select billing entity..."
+                              disabled={true}
+                            />
+                          </FormField>
+
+                          <FormField label="SRT|PO|WBS">
                             <FormInput
                               type="text"
-                              placeholder="Enter service requestor name..."
+                              placeholder="Enter SRT|PO|WBS..."
+                              value={getFieldValue("srtPoWbs")}
+                              onChange={handleChange("srtPoWbs")}
+                              disabled={isDisabled}
+                            />
+                          </FormField>
+
+                          <FormField label="Operations completion Date">
+                            <div className="cf-input date-time-row">
+                              <input
+                                type="date"
+                                value={getFieldValue("operationsCompletionDate")}
+                                onChange={handleChange("operationsCompletionDate")}
+                                placeholder="Select date"
+                                disabled={isDisabled}
+                              />
+                              <input
+                                type="time"
+                                value={getFieldValue("operationsCompletionTime")}
+                                onChange={handleChange("operationsCompletionTime")}
+                                placeholder="Select time"
+                                disabled={isDisabled}
+                              />
+                            </div>
+                          </FormField>
+
+                          <FormField label="VESSEL NAME">
+                            <FormSelect
+                              value={getFieldValue("vesselName") || "MV Ocean Star"}
+                              onChange={handleChange("vesselName")}
+                              options={[{ value: getFieldValue("vesselName") || "MV Ocean Star", label: getFieldValue("vesselName") || "MV Ocean Star" }]}
+                              placeholder="Select vessel name..."
+                              disabled={true}
+                            />
+                          </FormField>
+
+                          <FormField label="Last moved">
+                            <div className="cf-input date-time-row">
+                              <input
+                                type="date"
+                                value={getFieldValue("lastMovedDate")}
+                                onChange={handleChange("lastMovedDate")}
+                                placeholder="Select date"
+                                disabled={isDisabled}
+                              />
+                              <input
+                                type="time"
+                                value={getFieldValue("lastMovedTime")}
+                                onChange={handleChange("lastMovedTime")}
+                                placeholder="Select time"
+                                disabled={isDisabled}
+                              />
+                            </div>
+                          </FormField>
+
+                          <FormField label="Tax Invoice">
+                            <FormInput
+                              type="text"
+                              placeholder="Enter tax invoice..."
+                              value={getFieldValue("taxInvoice")}
+                              onChange={handleChange("taxInvoice")}
+                              disabled={isDisabled}
+                            />
+                          </FormField>
+
+                          <FormField label="Invoice amount (Including VAT)">
+                            <FormInput
+                              type="text"
+                              placeholder="Enter invoice amount..."
+                              value={getFieldValue("invoiceAmount")}
+                              onChange={handleChange("invoiceAmount")}
+                              disabled={isDisabled}
+                            />
+                          </FormField>
+
+                          <FormField label="SAP Sales Order No">
+                            <FormSelect
+                              value={getFieldValue("sapSalesOrderNo") || "SO-12345"}
+                              onChange={handleChange("sapSalesOrderNo")}
+                              options={[{ value: getFieldValue("sapSalesOrderNo") || "SO-12345", label: getFieldValue("sapSalesOrderNo") || "SO-12345" }]}
+                              placeholder="Select SAP Sales Order No..."
+                              disabled={true}
+                            />
+                          </FormField>
+
+                          <FormField label="Service requester">
+                            <FormSelect
+                              value={getFieldValue("serviceRequestorName") || "Service Requester Name"}
+                              onChange={handleChange("serviceRequestorName")}
+                              options={[{ value: getFieldValue("serviceRequestorName") || "Service Requester Name", label: getFieldValue("serviceRequestorName") || "Service Requester Name" }]}
+                              placeholder="Select service requester..."
+                              disabled={true}
+                            />
+                          </FormField>
+                        </>
+                      ) : isMwPRenewal ? (
+                        <>
+                          <OwnerField
+                            value={getFieldValue("owner")}
+                            onChange={handleChange("owner")}
+                            options={mergeOptionIfMissing(operatorOptions, getFieldValue("owner"))}
+                            placeholder="Select owner"
+                            disabled={masterInputsDisabled}
+                          />
+
+                          <FormField label="VESSEL NAME">
+                            <FormSelect
+                              value="MV Ocean Star"
+                              onChange={handleChange("vesselName")}
+                              options={[{ value: "MV Ocean Star", label: "MV Ocean Star" }]}
+                              placeholder="Select vessel name..."
+                              disabled={true}
+                            />
+                          </FormField>
+
+                          <FormField label="Last moved">
+                            <div className="cf-input date-time-row">
+                              <input
+                                type="date"
+                                value={getFieldValue("lastMovedDate")}
+                                onChange={handleChange("lastMovedDate")}
+                                placeholder="Select date"
+                                disabled={isDisabled}
+                              />
+                              <input
+                                type="time"
+                                value={getFieldValue("lastMovedTime")}
+                                onChange={handleChange("lastMovedTime")}
+                                placeholder="Select time"
+                                disabled={isDisabled}
+                              />
+                            </div>
+                          </FormField>
+
+                          <FormField label="Tax Invoice">
+                            <FormInput
+                              type="text"
+                              placeholder="Enter tax invoice..."
+                              value={getFieldValue("taxInvoice")}
+                              onChange={handleChange("taxInvoice")}
+                              disabled={isDisabled}
+                            />
+                          </FormField>
+
+                          <FormField label="Invoice amount (Including VAT)">
+                            <FormInput
+                              type="text"
+                              placeholder="Enter invoice amount..."
+                              value={getFieldValue("invoiceAmount")}
+                              onChange={handleChange("invoiceAmount")}
+                              disabled={isDisabled}
+                            />
+                          </FormField>
+
+                          <FormField label="SAP Sales Order No">
+                            <FormInput
+                              type="number"
+                              placeholder="Enter SAP Sales Order No..."
+                              value={getFieldValue("sapSalesOrderNo")}
+                              onChange={handleChange("sapSalesOrderNo")}
+                              disabled={isDisabled}
+                            />
+                          </FormField>
+
+                          <FormField label="Service requester">
+                            <FormInput
+                              type="text"
+                              placeholder="Enter service requester..."
                               value={getFieldValue("serviceRequestorName")}
                               onChange={handleChange("serviceRequestorName")}
                               disabled={isDisabled}
                             />
                           </FormField>
-                        )}
 
-                        {shouldShowApiField("service_requestor_email") && (
-                          <FormField
-                            label="Service Requestor Email"
-                            hasError={isAddMode && Boolean(fieldErrors.serviceRequestorEmail)}
-                          >
+                          <FormField label="PO Number">
                             <FormInput
-                              type="email"
-                              placeholder="Enter service requestor email..."
-                              value={getFieldValue("serviceRequestorEmail")}
-                              onChange={isAddMode ? handleValidatedChange("serviceRequestorEmail") : handleChange("serviceRequestorEmail")}
+                              type="text"
+                              placeholder="Enter PO number..."
+                              value={getFieldValue("poNumber")}
+                              onChange={handleChange("poNumber")}
                               disabled={isDisabled}
-                              hasError={isAddMode && Boolean(fieldErrors.serviceRequestorEmail)}
-                            />
-                            {isAddMode && fieldErrors.serviceRequestorEmail && (
-                              <div className="cf-field-error">{fieldErrors.serviceRequestorEmail}</div>
-                            )}
-                          </FormField>
-                        )}
-
-                        {shouldShowApiField("daily_report_emails") && (
-                          <FormField label="Daily Report Emails">
-                            <MultiSelectEmail
-                              name="dailyReportEmail"
-                              value={Array.isArray(getFieldValue("dailyReportEmail")) ? getFieldValue("dailyReportEmail") : []}
-                              onChange={handleChange("dailyReportEmail")}
-                              options={dailyReportEmailOptions}
-                              placeholder="Select email addresses..."
-                              onAddNew={handleAddNewEmail}
-                              disabled={isDisabled || dailyReportEmailLoading}
                             />
                           </FormField>
-                        )}
 
-                        {(shouldShowApiField("billing_instruction") || shouldShowApiField("billing_instruction_emails")) && (
-                          <FormField label="Billing instructions">
-                            {billingInstructionType.toLowerCase() === "email" ? (
-                              <MultiSelectEmail
-                                name="billingInstructionEmails"
-                                value={Array.isArray(getFieldValue("billingInstructionEmails")) ? getFieldValue("billingInstructionEmails") : []}
-                                onChange={handleChange("billingInstructionEmails")}
-                                options={billingInstructionEmailOptions}
-                                placeholder="Select billing instruction emails..."
-                                onAddNew={handleAddBillingInstructionEmail}
-                                disabled={isDisabled || billingInstructionLoading}
-                              />
-                            ) : (
-                              <FormInput
-                                type="text"
-                                placeholder="Enter billing instructions..."
-                                value={getFieldValue("billingInstructions")}
-                                onChange={handleChange("billingInstructions")}
-                                disabled={isDisabled || billingInstructionLoading}
-                              />
-                            )}
+                          <FormField label="Issue Date">
+                            <FormInput
+                              type="date"
+                              value={getFieldValue("issueDate")}
+                              onChange={handleChange("issueDate")}
+                              placeholder="Select issue date"
+                              disabled={isDisabled}
+                            />
                           </FormField>
-                        )}
 
-                      </div>
-                    </>
-                  )}
-                </div>
-                </div>
-              </div>
+                          <FormField label="Expiry Date">
+                            <FormInput
+                              type="date"
+                              value={getFieldValue("expiryDate")}
+                              onChange={handleChange("expiryDate")}
+                              placeholder="Select expiry date"
+                              disabled={isDisabled}
+                            />
+                          </FormField>
+                        </>
+                      ) : (
+                        <>
+                          {shouldShowApiField("owner_id") && (
+                            <OwnerField
+                              value={getFieldValue("owner")}
+                              onChange={isAddMode ? handleValidatedChange("owner") : handleChange("owner")}
+                              options={mergeOptionIfMissing(operatorOptions, getFieldValue("owner"))}
+                              placeholder="Select owner"
+                              disabled={masterInputsDisabled}
+                              error={isAddMode ? fieldErrors.owner : undefined}
+                              hasError={isAddMode && Boolean(fieldErrors.owner)}
+                            />
+                          )}
 
-              {isAddMode ? (
-                <>
-                <div className="general-add-description-panel">
-                  <div className="general-add-description-content">
-                    <FormField label="Card Description">
-                      <div className="general-card-description-editor">
-                        <ReactQuillEditor
-                          value={formValues?.cardDescription || ""}
-                          onChange={handleChange("cardDescription")}
-                          placeholder="Enter card description..."
-                        />
-                      </div>
-                    </FormField>
+                          {!isSimplifiedMode && (
+                            <div className="form-group">
+                              <h3 className="form-group-title">Appointment Details</h3>
+                              {shouldShowApiField("appointment_email") && (
+                                <FormField label="Appointment Email">
+                                  <DocumentUpload
+                                    attachments={appointmentDocuments}
+                                    onAdd={handleDocumentAdd}
+                                    onRemove={handleDocumentRemove}
+                                    cardColor={accentColor}
+                                    disabled={isDisabled}
+                                  />
+                                </FormField>
+                              )}
+                              {shouldShowApiField("appointment_received_date") && (
+                                <FormField
+                                  label="Appointment Received"
+                                  hasError={isAddMode && Boolean(fieldErrors.appointmentReceivedDate)}
+                                >
+                                  <div
+                                    className={`cf-input date-time-row ${isAddMode && fieldErrors.appointmentReceivedDate ? "is-invalid" : ""}`}
+                                  >
+                                    <input
+                                      type="date"
+                                      value={getFieldValue("appointmentReceivedDate")}
+                                      onChange={isAddMode ? handleValidatedChange("appointmentReceivedDate") : handleChange("appointmentReceivedDate")}
+                                      placeholder="Select date"
+                                      disabled={isDisabled}
+                                    />
+
+                                    <input
+                                      type="time"
+                                      value={getFieldValue("appointmentReceivedTime")}
+                                      onChange={handleChange("appointmentReceivedTime")}
+                                      placeholder="Select time"
+                                      disabled={isDisabled}
+                                    />
+                                  </div>
+                                  {isAddMode && fieldErrors.appointmentReceivedDate && (
+                                    <div className="cf-field-error">{fieldErrors.appointmentReceivedDate}</div>
+                                  )}
+                                </FormField>
+                              )}
+                            </div>
+                          )}
+
+                          <div className="form-group">
+                            <h3 className="form-group-title">Service Information</h3>
+                            {shouldShowApiField("port_id") && (
+                              <FormField label="Port" hasError={isAddMode && Boolean(fieldErrors.port)}>
+                                <FormSelect
+                                  value={getFieldValue("port")}
+                                  onChange={isAddMode ? handleValidatedChange("port") : handleChange("port")}
+                                  options={mergeOptionIfMissing(portSelectOptions, getFieldValue("port"))}
+                                  placeholder="Select port"
+                                  disabled={masterInputsDisabled}
+                                  hasError={isAddMode && Boolean(fieldErrors.port)}
+                                />
+                                {isAddMode && fieldErrors.port && (
+                                  <div className="cf-field-error">{fieldErrors.port}</div>
+                                )}
+                              </FormField>
+                            )}
+                            {shouldShowApiField("call_type") && (
+                              <FormField label="Type of call / Service" hasError={isAddMode && Boolean(fieldErrors.typeOfCall)}>
+                                <FormSelect
+                                  value={getFieldValue("typeOfCall")}
+                                  onChange={isAddMode ? handleValidatedChange("typeOfCall") : handleChange("typeOfCall")}
+                                  options={mergeOptionIfMissing(callTypeOptions, getFieldValue("typeOfCall"))}
+                                  placeholder="Select type of call"
+                                  disabled={masterInputsDisabled}
+                                  hasError={isAddMode && Boolean(fieldErrors.typeOfCall)}
+                                />
+                                {isAddMode && fieldErrors.typeOfCall && (
+                                  <div className="cf-field-error">{fieldErrors.typeOfCall}</div>
+                                )}
+                              </FormField>
+                            )}
+                            {shouldShowApiField("main_billing_entity_id") && (
+                              <FormField label="Main Billing entity" hasError={isAddMode && Boolean(fieldErrors.mainBillingEntity)}>
+                                <FormSelect
+                                  value={getFieldValue("mainBillingEntity")}
+                                  onChange={isAddMode ? handleValidatedMainBillingEntityChange : handleMainBillingEntityChange}
+                                  options={mergeOptionIfMissing(billingEntitySelectOptions, getFieldValue("mainBillingEntity"))}
+                                  placeholder="Select billing entity"
+                                  disabled={masterInputsDisabled}
+                                  hasError={isAddMode && Boolean(fieldErrors.mainBillingEntity)}
+                                />
+                                {isAddMode && fieldErrors.mainBillingEntity && (
+                                  <div className="cf-field-error">{fieldErrors.mainBillingEntity}</div>
+                                )}
+                              </FormField>
+                            )}
+
+                            {entityFieldsLoading && (
+                              <FormField label="">
+                                <div className="cf-input">
+                                  <input type="text" value="Loading fields..." readOnly />
+                                </div>
+                              </FormField>
+                            )}
+
+                            {!entityFieldsLoading && entityFields.map((field) => (
+                              <FormField
+                                key={field.field_id}
+                                label={field.is_required === 1 ? `${field.field_name} *` : field.field_name}
+                              >
+                                <FormInput
+                                  type="text"
+                                  placeholder={`Enter ${field.field_name}...`}
+                                  value={entityFieldValues[field.field_id] || ""}
+                                  onChange={handleEntityFieldValueChange(field.field_id)}
+                                  disabled={isDisabled}
+                                />
+                                {entityFieldErrors[field.field_id] && (
+                                  <span className="error-txt" style={{ display: "block", marginTop: "4px" }}>
+                                    {entityFieldErrors[field.field_id]}
+                                  </span>
+                                )}
+                              </FormField>
+                            ))}
+
+                            {!entityFieldsLoading && entityFieldsError && (
+                              <FormField label="">
+                                <div className="cf-input">
+                                  <input type="text" value={entityFieldsError} readOnly />
+                                </div>
+                              </FormField>
+                            )}
+
+                            {!entityFieldsLoading &&
+                              !entityFieldsError &&
+                              selectedEntityId &&
+                              entityFields.length === 0 && (
+                                <>
+                                  <FormField label="PO No *" hasError={isAddMode && Boolean(fieldErrors.poNumber)}>
+                                    <FormInput
+                                      type="text"
+                                      placeholder="Enter PO No..."
+                                      value={getFieldValue("poNumber")}
+                                      onChange={isAddMode ? handleValidatedChange("poNumber") : handleChange("poNumber")}
+                                      disabled={isDisabled}
+                                    />
+                                    {isAddMode && fieldErrors.poNumber && (
+                                      <div className="cf-field-error">{fieldErrors.poNumber}</div>
+                                    )}
+                                  </FormField>
+
+                                  <FormField label="Project *" hasError={isAddMode && Boolean(fieldErrors.project)}>
+                                    <FormInput
+                                      type="text"
+                                      placeholder="Enter project..."
+                                      value={getFieldValue("project")}
+                                      onChange={isAddMode ? handleValidatedChange("project") : handleChange("project")}
+                                      disabled={isDisabled}
+                                    />
+                                    {isAddMode && fieldErrors.project && (
+                                      <div className="cf-field-error">{fieldErrors.project}</div>
+                                    )}
+                                  </FormField>
+                                </>
+                              )}
+                          </div>
+
+                          <div className="form-group">
+                            <h3 className="form-group-title">Vessel Information</h3>
+
+                            {shouldShowApiField("vessel_type_id") && (
+                              <FormField label="Vessel type">
+                                <FormSelect
+                                  value={getFieldValue("vesselType")}
+                                  onChange={handleChange("vesselType")}
+                                  options={mergeOptionIfMissing(vesselTypeSelectOptions, getFieldValue("vesselType"))}
+                                  placeholder="Select vessel type"
+                                  disabled={masterInputsDisabled}
+                                />
+                              </FormField>
+                            )}
+
+                            {shouldShowApiField("barge_type_id") && (
+                              <FormField label="Barge type">
+                                <FormSelect
+                                  value={getFieldValue("bargeType")}
+                                  onChange={handleChange("bargeType")}
+                                  options={mergeOptionIfMissing(bargeTypeSelectOptions, getFieldValue("bargeType"))}
+                                  placeholder="Select barge type"
+                                  disabled={masterInputsDisabled}
+                                />
+                              </FormField>
+                            )}
+
+                            {shouldShowApiField("vessel_id") && (
+                              <FormField label="Vessel Name">
+                                <FormSelect
+                                  value={getFieldValue("vesselName")}
+                                  onChange={handleVesselSelectionChange}
+                                  options={mergeOptionIfMissing(vesselNameOptions, getFieldValue("vesselName"))}
+                                  placeholder="Select vessel name"
+                                  disabled={isDisabled || vesselOptionsLoading}
+                                />
+                              </FormField>
+                            )}
+
+                            {shouldShowApiField("vessel_owner") && (
+                              <FormField label="Vessel Owner">
+                                <FormInput
+                                  type="text"
+                                  placeholder="Enter vessel owner..."
+                                  value={getFieldValue("vesselOwner")}
+                                  onChange={handleChange("vesselOwner")}
+                                  disabled={isDisabled}
+                                />
+                              </FormField>
+                            )}
+
+                            {shouldShowApiField("vessel_principal") && (
+                              <FormField label="Vessel Principal">
+                                <FormInput
+                                  type="text"
+                                  placeholder="Enter vessel principal..."
+                                  value={getFieldValue("vesselPrincipal")}
+                                  onChange={handleChange("vesselPrincipal")}
+                                  disabled={isDisabled}
+                                />
+                              </FormField>
+                            )}
+
+                            {shouldShowApiField("vessel_manager") && (
+                              <FormField label="Vessel Manager">
+                                <FormInput
+                                  type="text"
+                                  placeholder="Enter vessel manager..."
+                                  value={getFieldValue("vesselManager")}
+                                  onChange={handleChange("vesselManager")}
+                                  disabled={isDisabled}
+                                />
+                              </FormField>
+                            )}
+
+                            {shouldShowApiField("other_billing_entity_id") && (
+                              <FormField label="Other billing entity">
+                                <FormSelect
+                                  value={getFieldValue("otherBillingEntity")}
+                                  onChange={handleChange("otherBillingEntity")}
+                                  options={mergeOptionIfMissing(billingEntitySelectOptions, getFieldValue("otherBillingEntity"))}
+                                  placeholder="Select billing entity"
+                                  disabled={masterInputsDisabled}
+                                />
+                              </FormField>
+                            )}
+
+                            {shouldShowApiField("assigned_operator_id") && (
+                              <FormField label="Assigned Operator">
+                                <FormSelect
+                                  value={getFieldValue("assignedOperator")}
+                                  onChange={handleChange("assignedOperator")}
+                                  options={mergeOptionIfMissing(operatorOptions, getFieldValue("assignedOperator"))}
+                                  placeholder="Select operator"
+                                  disabled={masterInputsDisabled}
+                                />
+                              </FormField>
+                            )}
+
+                            {shouldShowApiField("service_requestor_name") && (
+                              <FormField label="Service Requestor Name">
+                                <FormInput
+                                  type="text"
+                                  placeholder="Enter service requestor name..."
+                                  value={getFieldValue("serviceRequestorName")}
+                                  onChange={handleChange("serviceRequestorName")}
+                                  disabled={isDisabled}
+                                />
+                              </FormField>
+                            )}
+
+                            {shouldShowApiField("service_requestor_email") && (
+                              <FormField
+                                label="Service Requestor Email"
+                                hasError={isAddMode && Boolean(fieldErrors.serviceRequestorEmail)}
+                              >
+                                <FormInput
+                                  type="email"
+                                  placeholder="Enter service requestor email..."
+                                  value={getFieldValue("serviceRequestorEmail")}
+                                  onChange={isAddMode ? handleValidatedChange("serviceRequestorEmail") : handleChange("serviceRequestorEmail")}
+                                  disabled={isDisabled}
+                                  hasError={isAddMode && Boolean(fieldErrors.serviceRequestorEmail)}
+                                />
+                                {isAddMode && fieldErrors.serviceRequestorEmail && (
+                                  <div className="cf-field-error">{fieldErrors.serviceRequestorEmail}</div>
+                                )}
+                              </FormField>
+                            )}
+
+                            {shouldShowApiField("daily_report_emails") && (
+                              <FormField label="Daily Report Emails">
+                                <MultiSelectEmail
+                                  name="dailyReportEmail"
+                                  value={Array.isArray(getFieldValue("dailyReportEmail")) ? getFieldValue("dailyReportEmail") : []}
+                                  onChange={handleChange("dailyReportEmail")}
+                                  options={dailyReportEmailOptions}
+                                  placeholder="Select email addresses..."
+                                  onAddNew={handleAddNewEmail}
+                                  disabled={isDisabled || dailyReportEmailLoading}
+                                />
+                              </FormField>
+                            )}
+
+                            {(shouldShowApiField("billing_instruction") || shouldShowApiField("billing_instruction_emails")) && (
+                              <FormField label="Billing instructions">
+                                {billingInstructionType.toLowerCase() === "email" ? (
+                                  <MultiSelectEmail
+                                    name="billingInstructionEmails"
+                                    value={Array.isArray(getFieldValue("billingInstructionEmails")) ? getFieldValue("billingInstructionEmails") : []}
+                                    onChange={handleChange("billingInstructionEmails")}
+                                    options={billingInstructionEmailOptions}
+                                    placeholder="Select billing instruction emails..."
+                                    onAddNew={handleAddBillingInstructionEmail}
+                                    disabled={isDisabled || billingInstructionLoading}
+                                  />
+                                ) : (
+                                  <FormInput
+                                    type="text"
+                                    placeholder="Enter billing instructions..."
+                                    value={getFieldValue("billingInstructions")}
+                                    onChange={handleChange("billingInstructions")}
+                                    disabled={isDisabled || billingInstructionLoading}
+                                  />
+                                )}
+                              </FormField>
+                            )}
+
+                          </div>
+                        </>
+                      )}
+                    </div>
                   </div>
                 </div>
-                <div className="general-info-right">
-                  <EmailPreviewPanel
-                    ownerOptions={operatorOptions}
-                    formValues={formValues}
-                    dailyReportEmailOptions={dailyReportEmailOptions}
-                    billingInstructionEmailOptions={billingInstructionEmailOptions}
-                    callTypeOptions={callTypeOptions}
-                    vesselNameOptions={vesselNameOptions}
-                    portSelectOptions={portSelectOptions}
-                    getFieldValue={getFieldValue}
-                    previewData={emailPreviewData}
-                    messageValue={previewMessageText}
-                    onMessageChange={(event) => {
-                      setIsPreviewMessageDirty(true);
-                      setPreviewMessageText(event?.target?.value ?? "");
-                    }}
-                  />
-                </div>
-                </>
-              ) : (
-                <>
-                  {shouldShowApiField("card_description") && (
-                    <div className="general-info-middle">
-                      <div className="card-description-wrapper">
+
+                {isAddMode ? (
+                  <>
+                    <div className="general-add-description-panel">
+                      <div className="general-add-description-content">
                         <FormField label="Card Description">
-                          <ReactQuillEditor
-                            value={getFieldValue("cardDescription")}
-                            onChange={handleChange("cardDescription")}
-                            placeholder="Enter card description..."
-                          />
+                          <div className="general-card-description-editor">
+                            <ReactQuillEditor
+                              value={formValues?.cardDescription || ""}
+                              onChange={handleChange("cardDescription")}
+                              placeholder="Enter card description..."
+                            />
+                          </div>
                         </FormField>
                       </div>
                     </div>
-                  )}
-                  <div className="general-info-right">
-                    <div className="daily-task-box-wrapper">
-                      <DailyTaskTodo
-                        tasks={mappedOperatorKpiTasks}
-                        accentColor={accentColor}
-                        isLoading={operatorKpiLoading}
-                        error={operatorKpiError}
+                    <div className="general-info-right">
+                      <EmailPreviewPanel
+                        ownerOptions={operatorOptions}
+                        formValues={formValues}
+                        dailyReportEmailOptions={dailyReportEmailOptions}
+                        billingInstructionEmailOptions={billingInstructionEmailOptions}
+                        callTypeOptions={callTypeOptions}
+                        vesselNameOptions={vesselNameOptions}
+                        portSelectOptions={portSelectOptions}
+                        getFieldValue={getFieldValue}
+                        previewData={emailPreviewData}
+                        editableFields={editablePreviewFields}
+                        onEditableFieldChange={(fieldName) => (event) => {
+                          const nextVal = event?.target?.value ?? "";
+                          setEditablePreviewFields((prev) => ({
+                            ...prev,
+                            [fieldName]: nextVal,
+                          }));
+                        }}
+                        messageValue={previewMessageText}
+                        onMessageChange={(event) => {
+                          setIsPreviewMessageDirty(true);
+                          setPreviewMessageText(event?.target?.value ?? "");
+                        }}
                       />
                     </div>
-                  </div>
-                </>
-              )}
-            </div>
-            {isAddMode && (
-              <div className="general-add-page-actions">
-                <button
-                  type="button"
-                  className="form-save-button"
-                  onClick={handleSubmit}
-                  disabled={isSavingGeneral}
-                >
-                  {isSavingGeneral ? "Saving..." : "Add Card"}
-                </button>
+                  </>
+                ) : (
+                  <>
+                    {shouldShowApiField("card_description") && (
+                      <div className="general-info-middle">
+                        <div className="card-description-wrapper">
+                          <FormField label="Card Description">
+                            <ReactQuillEditor
+                              value={getFieldValue("cardDescription")}
+                              onChange={handleChange("cardDescription")}
+                              placeholder="Enter card description..."
+                            />
+                          </FormField>
+                        </div>
+                      </div>
+                    )}
+                    <div className="general-info-right">
+                      <div className="daily-task-box-wrapper">
+                        <DailyTaskTodo
+                          tasks={mappedOperatorKpiTasks}
+                          accentColor={accentColor}
+                          isLoading={operatorKpiLoading}
+                          error={operatorKpiError}
+                        />
+                      </div>
+                    </div>
+                  </>
+                )}
               </div>
-            )}
+              {isAddMode && (
+                <div className="general-add-page-actions">
+                  <button
+                    type="button"
+                    className="form-save-button"
+                    onClick={handleSubmit}
+                    disabled={isSavingGeneral}
+                  >
+                    {isSavingGeneral ? "Saving..." : "Add Card"}
+                  </button>
+                </div>
+              )}
             </div>
           </div>
         </div>

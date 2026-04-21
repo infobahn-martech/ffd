@@ -164,5 +164,18 @@ export function buildCreateCallFileFormData(formPayload, options = {}) {
   const entityFields = Array.isArray(fv.entity_fields) ? fv.entity_fields : [];
   appendIfValid("entity_fields", entityFields);
 
+  const appointmentAcceptanceRaw =
+    fv.appointment_acceptance && typeof fv.appointment_acceptance === "object"
+      ? fv.appointment_acceptance
+      : {};
+  const appointmentAcceptance = {
+    body: str(appointmentAcceptanceRaw.body),
+    cc_emails: str(appointmentAcceptanceRaw.cc_emails),
+    from_email: str(appointmentAcceptanceRaw.from_email),
+    subject: str(appointmentAcceptanceRaw.subject),
+    to_email: str(appointmentAcceptanceRaw.to_email),
+  };
+  fd.append("appointment_acceptance", JSON.stringify(appointmentAcceptance));
+
   return fd;
 }

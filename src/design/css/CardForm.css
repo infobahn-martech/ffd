@@ -955,6 +955,33 @@
   word-break: break-word;
 }
 
+.email-preview-inline-input {
+  width: 100%;
+  min-width: 0;
+  border: 1px solid transparent;
+  border-radius: 6px;
+  background: transparent;
+  color: #111827;
+  font: inherit;
+  font-size: 13px;
+  line-height: 1.35;
+  padding: 2px 4px;
+  outline: none;
+}
+
+.email-preview-inline-input::placeholder {
+  color: #9ca3af;
+}
+
+.email-preview-inline-input:hover {
+  background: #f8fafc;
+}
+
+.email-preview-inline-input:focus {
+  border-color: #cfd8e3;
+  background: #fff;
+}
+
 .email-preview-bcc-link {
   border: none;
   background: transparent;
