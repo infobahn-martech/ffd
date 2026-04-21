@@ -30,9 +30,13 @@ export function mapSalesOrderResponse(apiData) {
     };
   }
 
+  /** Returns yyyy-mm-dd or "" for <input type="date" />; treats 0000-00-00 as empty. */
   const normalizeDate = (d) => {
-    if (d == null || d === "" || String(d).trim() === "0000-00-00") return "";
-    return String(d).trim();
+    if (d == null || d === "") return "";
+    const s = String(d).trim();
+    const head = s.length >= 10 ? s.slice(0, 10) : s;
+    if (head === "0000-00-00") return "";
+    return /^\d{4}-\d{2}-\d{2}$/.test(head) ? head : "";
   };
 
   const items = Array.isArray(apiData.items) ? apiData.items : [];
@@ -58,13 +62,26 @@ export function mapSalesOrderResponse(apiData) {
 
   const lineItemTotal = salesOrderList.reduce((sum, row) => sum + (Number(row.totalAmount) || 0), 0);
 
-  const soCustomerName = apiData.billing_entity != null ? String(apiData.billing_entity) : "";
+  const str = (v) => (v != null && String(v).trim() !== "" ? String(v).trim() : "");
+
+  const soCustomerName =
+    str(apiData.customer_name) ||
+    (apiData.billing_entity != null ? String(apiData.billing_entity).trim() : "");
+  const soContactPerson =
+    str(apiData.contact_person) ||
+    (apiData.service_requestor_name != null ? String(apiData.service_requestor_name).trim() : "");
+  const email =
+    str(apiData.contact_email) ||
+    (apiData.service_requestor_email != null ? String(apiData.service_requestor_email).trim() : "");
+  const soShipName =
+    str(apiData.ship_name) ||
+    (apiData.vessel_name != null ? String(apiData.vessel_name).trim() : "");
 
   return {
     soCustomerCode: apiData.customer_code != null ? String(apiData.customer_code) : "",
     soCustomerName,
-    soContactPerson: apiData.service_requestor_name != null ? String(apiData.service_requestor_name) : "",
-    email: apiData.service_requestor_email != null ? String(apiData.service_requestor_email) : "",
+    soContactPerson,
+    email,
     soBpCurrency: apiData.currency != null ? String(apiData.currency) : "",
     soEuroRate: apiData.conversion_rate != null && String(apiData.conversion_rate).trim() !== "" ? String(apiData.conversion_rate) : "",
     soPort: apiData.port != null ? String(apiData.port) : "",
@@ -73,7 +90,7 @@ export function mapSalesOrderResponse(apiData) {
     soPostingDate: normalizeDate(apiData.sales_order_date),
     soDeliveryDate: normalizeDate(apiData.delivery_date),
     soDocumentDate: normalizeDate(apiData.document_date),
-    soShipName: apiData.vessel_name != null ? String(apiData.vessel_name) : "",
+    soShipName,
     soProjectName: apiData.project_name != null ? String(apiData.project_name) : "",
     soStatus: apiData.so_status != null ? String(apiData.so_status).trim() : "",
     soPoNo: apiData.po_number != null ? String(apiData.po_number) : "",
