@@ -70,6 +70,10 @@ const mapCallDetailToFormFields = (detail) => {
     vesselManager: detail?.vessel_manager ? String(detail.vessel_manager) : "",
     serviceRequestorName: detail?.service_requestor_name ? String(detail.service_requestor_name) : "",
     serviceRequestorEmail: detail?.service_requestor_email ? String(detail.service_requestor_email) : "",
+    poNumber: detail?.po_number ? String(detail.po_number) : "",
+    srtNo: detail?.srt_number ? String(detail.srt_number) : "",
+    srtPoWbs: detail?.srt_number ? String(detail.srt_number) : "",
+    project: detail?.project_name ? String(detail.project_name) : "",
     dailyReportEmail,
     billingInstructionEmails,
     billingInstructions: detail?.billing_instruction ? String(detail.billing_instruction) : "",
@@ -1210,6 +1214,15 @@ function General({
 
   // Helper function to get field value - prioritize formValues, then fetched call detail, then card.
   const getFieldValue = (fieldName) => {
+    const apiAliasByField = {
+      poNumber: "po_number",
+      srtNo: "srt_number",
+      srtPoWbs: "srt_number",
+      project: "project_name",
+      mainBillingEntity: "main_billing_entity_id",
+      vesselName: "vessel_id",
+    };
+
     if (formValues?.[fieldName] !== undefined && formValues[fieldName] !== null && formValues[fieldName] !== "") {
       return formValues[fieldName];
     }
@@ -1223,6 +1236,25 @@ function General({
     }
     if (!isAddMode && card?.[fieldName] !== undefined && card[fieldName] !== null && card[fieldName] !== "") {
       return card[fieldName];
+    }
+    const apiAlias = apiAliasByField[fieldName];
+    if (
+      !isAddMode &&
+      apiAlias &&
+      callDetailData?.[apiAlias] !== undefined &&
+      callDetailData[apiAlias] !== null &&
+      String(callDetailData[apiAlias]).trim() !== ""
+    ) {
+      return String(callDetailData[apiAlias]);
+    }
+    if (
+      !isAddMode &&
+      apiAlias &&
+      card?.[apiAlias] !== undefined &&
+      card[apiAlias] !== null &&
+      String(card[apiAlias]).trim() !== ""
+    ) {
+      return String(card[apiAlias]);
     }
     return "";
   };
