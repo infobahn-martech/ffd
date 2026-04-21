@@ -1,4 +1,4 @@
-import React, { useEffect, useState, useRef } from "react";
+import React, { useEffect, useState, useRef, useMemo } from "react";
 import PropTypes from "prop-types";
 import { FiFilePlus, FiFileText } from "react-icons/fi";
 import { FaWhatsapp, FaEnvelope } from "react-icons/fa";
@@ -700,46 +700,6 @@ const DUMMY_VENDORS = [
   { code: "VEND-008", name: "Saudi Freight Solutions" },
 ];
 
-// Generate dummy sales order data
-const generateDummySalesOrders = () => {
-  const itemDescriptions = ["Container Handling Service", "Shipping Documentation", "Cargo Handling", "Storage Service", "Customs Clearance", "Freight Forwarding", "Warehouse Service", "Distribution Service"];
-  const itemNos = ["ITEM-001", "ITEM-002", "ITEM-003", "ITEM-004", "ITEM-005", "ITEM-006", "ITEM-007", "ITEM-008"];
-  const callFiles = ["CALL-001", "CALL-002", "CALL-003", "CALL-004", null];
-  const poStatuses = ["Draft", "Issued", "Completed"];
-
-  const dummyOrders = [];
-  for (let i = 1; i <= 20; i++) {
-    const itemIndex = Math.floor(Math.random() * itemDescriptions.length);
-    const taxCode = TAX_CODE_OPTIONS[Math.floor(Math.random() * TAX_CODE_OPTIONS.length)];
-    const taxRate = parseFloat(taxCode) / 100;
-    const qty = Math.floor(Math.random() * 100) + 1;
-    const unitPrice = Math.round((Math.random() * 5000 + 100) * 100) / 100;
-    const discount = Math.round(Math.random() * 20 * 100) / 100;
-    const discountedPrice = unitPrice * (1 - discount / 100);
-    const totalBeforeTax = qty * discountedPrice;
-    const totalAmount = totalBeforeTax + totalBeforeTax * taxRate;
-    const callFile = callFiles[Math.floor(Math.random() * callFiles.length)];
-    const vendor = DUMMY_VENDORS[Math.floor(Math.random() * DUMMY_VENDORS.length)];
-
-    dummyOrders.push({
-      id: i,
-      callFile,
-      itemNo: itemNos[itemIndex],
-      itemDescription: itemDescriptions[itemIndex],
-      qty,
-      unitPrice,
-      discount,
-      taxCode,
-      totalAmount,
-      poStatus: poStatuses[Math.floor(Math.random() * poStatuses.length)],
-      typeOfPo: TYPE_OF_PO_OPTIONS[Math.floor(Math.random() * TYPE_OF_PO_OPTIONS.length)],
-      supplierCode: vendor.code,
-      supplierName: vendor.name,
-    });
-  }
-  return dummyOrders;
-};
-
 // Vendor List Modal
 const VendorListModal = ({ show, onClose, onSelect }) => {
   const [search, setSearch] = useState("");
@@ -800,31 +760,55 @@ VendorListModal.propTypes = {
   onSelect: PropTypes.func.isRequired,
 };
 
-const SalesOrderList = ({ formValues, handleChange, cardColor, readOnly = false, showPOStatus = false, isDAModule = false }) => {
+const SalesOrderList = ({
+  formValues,
+  handleChange,
+  cardColor,
+  readOnly = false,
+  showPOStatus = false,
+  isDAModule = false,
+  isLoadingSalesOrder = false,
+  salesOrderError = null,
+}) => {
   const salesOrderList = formValues.salesOrderList || [];
-  const billingEntity = formValues.billingEntity || "ABC Shipping Co.";
-  const email = formValues.email || "billing@abccompany.com";
+  const billingEntity = formValues.billingEntity || "";
+  const email = formValues.email || "";
   const lineItemTotal = formValues.lineItemTotal || 0;
 
-  // SO Header fields
-  const soCustomerCode = formValues.soCustomerCode || "CUST-00124";
+  // SO Header fields (no mock defaults — values come from API via mapSalesOrderResponse or user edits)
+  const soCustomerCode = formValues.soCustomerCode || "";
   const soCustomerName = formValues.soCustomerName || "";
   const soContactPerson = formValues.soContactPerson || "";
-  const soBpCurrency = formValues.soBpCurrency || "SAR";
+  const soBpCurrency = formValues.soBpCurrency || "";
   const soEuroRate = formValues.soEuroRate || "";
   const soPoNo = formValues.soPoNo || "";
   const soPort = formValues.soPort || "";
-  const soSoNo = formValues.soSoNo || "SO-AUTO-" + (formValues.id || "001");
-  const soPostingDate = formValues.soPostingDate || new Date().toISOString().slice(0, 10);
+  const soSoNo = formValues.soSoNo || "";
+  const soPostingDate = formValues.soPostingDate || "";
   const soDeliveryDate = formValues.soDeliveryDate || "";
   const soDocumentDate = formValues.soDocumentDate || "";
   const soShipName = formValues.soShipName || "";
   const soProjectName = formValues.soProjectName || "";
+  const branch = formValues.branch || "";
 
-  // Derive SO Status: OPEN if delivery date is in the future or empty; CLOSED otherwise
-  const soStatus = (() => {
+  const portOptions = useMemo(() => {
+    if (!soPort || PORT_OPTIONS.includes(soPort)) return PORT_OPTIONS;
+    return [soPort, ...PORT_OPTIONS];
+  }, [soPort]);
+
+  // Status: use backend so_status when present; otherwise derive OPEN/CLOSED from delivery date
+  const soStatusDisplay = (() => {
+    const fromApi = (formValues.soStatus ?? "").trim();
+    if (fromApi) return fromApi;
     if (!soDeliveryDate) return "OPEN";
     return new Date(soDeliveryDate) >= new Date(new Date().toDateString()) ? "OPEN" : "CLOSED";
+  })();
+
+  const soStatusBadgeClass = (() => {
+    const s = soStatusDisplay.toLowerCase();
+    if (s.includes("close")) return "closed";
+    if (s.includes("open")) return "open";
+    return "open";
   })();
 
   // State for accordion and form
@@ -858,17 +842,7 @@ const SalesOrderList = ({ formValues, handleChange, cardColor, readOnly = false,
   // State for vendor modal (row-level supplier picker)
   const [vendorModalTarget, setVendorModalTarget] = useState(null); // orderId or "new"
 
-  // Initialize with dummy data on mount if empty
-  useEffect(() => {
-    if (!formValues.salesOrderList || formValues.salesOrderList.length === 0) {
-      const dummyData = generateDummySalesOrders();
-      const syntheticEvent = { target: { value: dummyData } };
-      handleChange("salesOrderList")(syntheticEvent);
-    }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []); // Only run once on mount
-
-  const displayOrderList = salesOrderList.length > 0 ? salesOrderList : generateDummySalesOrders();
+  const displayOrderList = Array.isArray(salesOrderList) ? salesOrderList : [];
 
   // Group items by callFile
   const groupByCallFile = (orders) => {
@@ -1026,7 +1000,7 @@ const SalesOrderList = ({ formValues, handleChange, cardColor, readOnly = false,
       return;
     }
 
-    const currentList = salesOrderList.length > 0 ? salesOrderList : []; image.png
+    const currentList = salesOrderList.length > 0 ? salesOrderList : [];
     const maxId = currentList.length > 0 ? Math.max(...currentList.map((item) => item.id || 0)) : 0;
 
     const newItem = {
@@ -1363,6 +1337,23 @@ const SalesOrderList = ({ formValues, handleChange, cardColor, readOnly = false,
         )}
       </div>
 
+      {salesOrderError && (
+        <div
+          role="alert"
+          style={{
+            margin: "0 16px 12px",
+            padding: "12px 14px",
+            borderRadius: "8px",
+            background: "#fef2f2",
+            border: "1px solid #fecaca",
+            color: "#991b1b",
+            fontSize: "14px",
+          }}
+        >
+          {salesOrderError}
+        </div>
+      )}
+
       {/* SO Header Fields Panel */}
       <div className="so-header-panel">
         {/* Row 1: Customer Code | Customer Name | Contact Person | BP Currency */}
@@ -1402,6 +1393,7 @@ const SalesOrderList = ({ formValues, handleChange, cardColor, readOnly = false,
               onChange={handleChange("soBpCurrency")}
               disabled={readOnly}
             >
+              <option value="">—</option>
               {BP_CURRENCY_OPTIONS.map((c) => (
                 <option key={c} value={c}>{c === "EURO" ? "EURO (€)" : c}</option>
               ))}
@@ -1432,7 +1424,7 @@ const SalesOrderList = ({ formValues, handleChange, cardColor, readOnly = false,
               disabled={readOnly}
             >
               <option value="">Select Port...</option>
-              {PORT_OPTIONS.map((p) => (
+              {portOptions.map((p) => (
                 <option key={p} value={p}>{p}</option>
               ))}
             </select>
@@ -1442,7 +1434,7 @@ const SalesOrderList = ({ formValues, handleChange, cardColor, readOnly = false,
             <input
               type="text"
               className="so-header-input so-header-input-readonly"
-              value="Marine Offshore"
+              value={branch}
               readOnly
             />
           </div>
@@ -1518,8 +1510,8 @@ const SalesOrderList = ({ formValues, handleChange, cardColor, readOnly = false,
           </div>
           <div className="so-header-field so-header-field-status">
             <label className="so-header-label">Status</label>
-            <span className={"so-status-badge so-status-" + soStatus.toLowerCase()}>
-              {soStatus}
+            <span className={"so-status-badge so-status-" + soStatusBadgeClass}>
+              {soStatusDisplay}
             </span>
           </div>
           {soBpCurrency === "USD" && (
@@ -1819,6 +1811,36 @@ const SalesOrderList = ({ formValues, handleChange, cardColor, readOnly = false,
       )}
 
       <div className="table-wrapper table-responsive sales-order-table-container" style={{ position: "relative" }}>
+        {isLoadingSalesOrder && (
+          <div
+            style={{
+              position: "absolute",
+              inset: 0,
+              zIndex: 5,
+              backgroundColor: "rgba(255, 255, 255, 0.75)",
+              display: "flex",
+              alignItems: "center",
+              justifyContent: "center",
+              flexDirection: "column",
+              gap: "12px",
+            }}
+            aria-busy="true"
+            aria-live="polite"
+          >
+            <div
+              style={{
+                width: "40px",
+                height: "40px",
+                border: "3px solid #e2e8f0",
+                borderTopColor: cardColor || "#2A00FF",
+                borderRadius: "50%",
+                animation: "salesOrderSpin 0.8s linear infinite",
+              }}
+            />
+            <style>{`@keyframes salesOrderSpin { to { transform: rotate(360deg); } }`}</style>
+            <span style={{ fontSize: "14px", fontWeight: "600", color: "#334155" }}>Loading sales order…</span>
+          </div>
+        )}
         {/* Tooltips for table headers (DAModule only, labels > 10 chars) */}
         {isDAModule && (
           <>
@@ -1842,6 +1864,16 @@ const SalesOrderList = ({ formValues, handleChange, cardColor, readOnly = false,
             </tr>
           </thead>
           <tbody>
+            {displayOrderList.length === 0 && !isLoadingSalesOrder && (
+              <tr>
+                <td
+                  colSpan={isDAModule ? 9 : 10}
+                  style={{ padding: "28px 16px", textAlign: "center", color: "#64748b", fontSize: "14px" }}
+                >
+                  No sales order line items for this call.
+                </td>
+              </tr>
+            )}
             {/* Render grouped items with accordion (2+ items per callFile) */}
             {Object.entries(grouped).map(([callFile, orders]) => {
               if (orders.length < 2) {
@@ -2120,6 +2152,8 @@ SalesOrderList.propTypes = {
   readOnly: PropTypes.bool,
   showPOStatus: PropTypes.bool,
   isDAModule: PropTypes.bool,
+  isLoadingSalesOrder: PropTypes.bool,
+  salesOrderError: PropTypes.oneOfType([PropTypes.string, PropTypes.oneOf([null])]),
 };
 
 export default SalesOrderList;

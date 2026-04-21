@@ -1,7 +1,15 @@
 import PropTypes from "prop-types";
 import SalesOrderList from "./SalesOrderList";
 
-function SalesOrder({ card, formValues, handleChange, isSimplifiedMode = false, isDAModule = false }) {
+function SalesOrder({
+  card,
+  formValues,
+  handleChange,
+  isSimplifiedMode = false,
+  isDAModule = false,
+  salesOrderApiLoading = false,
+  salesOrderApiError = null,
+}) {
   const cardColor = "#e2e6ff";
 
   return (
@@ -15,6 +23,8 @@ function SalesOrder({ card, formValues, handleChange, isSimplifiedMode = false, 
             readOnly={isSimplifiedMode}
             showPOStatus={isDAModule}
             isDAModule={isDAModule}
+            isLoadingSalesOrder={salesOrderApiLoading}
+            salesOrderError={salesOrderApiError}
           />
         </div>
       </div>
@@ -28,6 +38,8 @@ SalesOrder.propTypes = {
   handleChange: PropTypes.func,
   isSimplifiedMode: PropTypes.bool,
   isDAModule: PropTypes.bool,
+  salesOrderApiLoading: PropTypes.bool,
+  salesOrderApiError: PropTypes.oneOfType([PropTypes.string, PropTypes.oneOf([null])]),
 };
 
 export default SalesOrder;

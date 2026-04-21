@@ -1,4 +1,6 @@
 import { useState, useMemo, useCallback, useEffect, useRef } from "react";
+import salesOrderService from "../../../../services/salesOrderService";
+import { mapSalesOrderResponse } from "../../../../helpers/mapSalesOrderResponse";
 import { useLocation } from "react-router-dom";
 import PropTypes from "prop-types";
 import { notify } from "../../../../components/Toaster";
@@ -1033,7 +1035,9 @@ const renderTabContent = (
   isAddMode = false,
   isSimplifiedMode = false,
   isDAModule = false,
-  addModeSave = {}
+  addModeSave = {},
+  salesOrderApiLoading = false,
+  salesOrderApiError = null
 ) => {
   const commonProps = {
     card,
@@ -1047,6 +1051,8 @@ const renderTabContent = (
     hasSubmitted: addModeSave.hasSubmitted,
     setHasSubmitted: addModeSave.setHasSubmitted,
     setIsSavingGeneral: addModeSave.setIsSavingGeneral,
+    salesOrderApiLoading,
+    salesOrderApiError,
   };
 
   if (isDAModule) {
@@ -1237,16 +1243,25 @@ function CardForm({
       supportingDocuments: card?.supportingDocuments || [],
       fdaDispatchProofDocuments: card?.fdaDispatchProofDocuments || [],
       copyOfSalesOrderDocuments: card?.copyOfSalesOrderDocuments || [],
-      // Sales Order header fields
-      soCustomerCode: card?.soCustomerCode || "CUST-00124",
+      // Sales Order (API: sales_order/get_so_items_by_call/{call_id})
+      call_id: String(card?.call_id ?? card?.callId ?? ""),
+      salesOrderList: Array.isArray(card?.salesOrderList) ? card.salesOrderList : [],
+      billingEntity: card?.billingEntity || "",
+      email: card?.email || "",
+      branch: card?.branch || "",
+      srtNumber: card?.srtNumber || "",
+      lineItemTotal: card?.lineItemTotal ?? 0,
+      soStatus: card?.soStatus || "",
+      salesOrderId: card?.salesOrderId || "",
+      soCustomerCode: card?.soCustomerCode || "",
       soCustomerName: card?.soCustomerName || card?.name || "",
       soContactPerson: card?.soContactPerson || card?.user || "",
-      soBpCurrency: card?.soBpCurrency || "SAR",
+      soBpCurrency: card?.soBpCurrency || "",
       soEuroRate: card?.soEuroRate || "",
       soPoNo: card?.soPoNo || "",
       soPort: card?.soPort || card?.port || "",
       soSoNo: card?.soSoNo || "",
-      soPostingDate: card?.soPostingDate || new Date().toISOString().slice(0, 10),
+      soPostingDate: card?.soPostingDate || "",
       soDeliveryDate: card?.soDeliveryDate || "",
       soDocumentDate: card?.soDocumentDate || "",
       soShipName: card?.soShipName || card?.vesselName || "",
@@ -1270,6 +1285,75 @@ function CardForm({
     },
     []
   );
+
+  const [salesOrderApiLoading, setSalesOrderApiLoading] = useState(false);
+  const [salesOrderApiError, setSalesOrderApiError] = useState(null);
+  const lastSalesOrderFetchKeyRef = useRef(null);
+
+  useEffect(() => {
+    if (!show) {
+      lastSalesOrderFetchKeyRef.current = null;
+      return;
+    }
+    if (activeTopTab !== "Sales Order") return;
+
+    const callIdRaw = card?.call_id ?? card?.callId;
+    const callId = callIdRaw === undefined || callIdRaw === null ? "" : String(callIdRaw).trim();
+    if (!callId) {
+      setSalesOrderApiError("No call identifier available for this card.");
+      setSalesOrderApiLoading(false);
+      return;
+    }
+
+    const key = `${card?.id ?? ""}:${callId}`;
+    if (lastSalesOrderFetchKeyRef.current === key) return;
+
+    let cancelled = false;
+    setSalesOrderApiLoading(true);
+    setSalesOrderApiError(null);
+
+    salesOrderService
+      .getSoItemsByCall(callId)
+      .then((response) => {
+        if (cancelled) return;
+        const body = response?.data;
+        if (body?.status !== "success" || !body?.data) {
+          setSalesOrderApiError(
+            typeof body?.message === "string" && body.message.trim()
+              ? body.message
+              : "Unable to load sales order data."
+          );
+          setFormValues((prev) => ({
+            ...prev,
+            salesOrderList: [],
+          }));
+          return;
+        }
+        lastSalesOrderFetchKeyRef.current = key;
+        const mapped = mapSalesOrderResponse(body.data);
+        setFormValues((prev) => ({ ...prev, ...mapped }));
+      })
+      .catch((err) => {
+        if (cancelled) return;
+        const msg =
+          err?.response?.data?.message ||
+          err?.response?.data?.error ||
+          err?.message ||
+          "Failed to load sales order.";
+        setSalesOrderApiError(typeof msg === "string" ? msg : "Failed to load sales order.");
+        setFormValues((prev) => ({
+          ...prev,
+          salesOrderList: [],
+        }));
+      })
+      .finally(() => {
+        if (!cancelled) setSalesOrderApiLoading(false);
+      });
+
+    return () => {
+      cancelled = true;
+    };
+  }, [show, activeTopTab, card?.call_id, card?.callId, card?.id]);
 
   const [isSavingGeneral, setIsSavingGeneral] = useState(false);
   const [hasSubmitted, setHasSubmitted] = useState(false);
@@ -1411,7 +1495,9 @@ function CardForm({
                 isAddMode,
                 isSimplifiedMode,
                 isDAModule,
-                addModeSaveProps
+                addModeSaveProps,
+                salesOrderApiLoading,
+                salesOrderApiError
               )}
           </>
         )}
