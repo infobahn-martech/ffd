@@ -760,10 +760,22 @@
 
 .general-add-form-scroll {
   flex: 1;
+  min-height: 0;
+  max-height: min(100%, calc(90vh - 260px));
   overflow-y: auto;
+  overflow-x: hidden;
   padding: 18px 8px 28px 18px;
   scrollbar-width: thin;
   scrollbar-color: #cbd5e1 #f8fafc;
+}
+
+.general-view-form-scroll {
+  flex: 1;
+  min-height: 0;
+  max-height: min(100%, calc(90vh - 260px));
+  overflow-y: auto;
+  overflow-x: hidden;
+  padding: 0 8px 18px 0;
 }
 
 .general-add-form-scroll::-webkit-scrollbar {
@@ -843,7 +855,7 @@
   flex: 1;
   display: flex;
   flex-direction: column;
-  padding: 18px;
+  padding: 18px 18px 22px;
 }
 
 .general-card-description-editor .react-quill-wrapper .ql-toolbar {
@@ -862,6 +874,7 @@
 .general-card-description-editor {
   display: flex;
   flex-direction: column;
+  padding-bottom: 8px;
 }
 
 .general-card-description-editor .react-quill-wrapper .ql-editor {
@@ -885,6 +898,10 @@
   color: #94a3b8;
 }
 
+.general-add-description-panel .general-card-description-editor .react-quill-wrapper .ql-container {
+  border-bottom: 1px solid #e5e7eb !important;
+}
+
 .general-add-preview-panel {
   min-height: 0;
   height: 100%;
@@ -893,7 +910,7 @@
   border: 1px solid #e5e7eb;
   border-radius: 18px;
   box-shadow: 0 8px 24px rgba(15, 23, 42, 0.05);
-  padding: 18px;
+  padding: 18px 18px 22px;
   display: flex;
   flex-direction: column;
   gap: 14px;
@@ -1018,7 +1035,7 @@
 .email-preview-message-section {
   flex: 1;
   min-height: 0;
-  padding: 14px;
+  padding: 14px 14px 18px;
   display: flex;
   flex-direction: column;
   gap: 10px;
@@ -1375,6 +1392,36 @@
 
 .cardform-panel *::-webkit-scrollbar-thumb:hover {
   background: transparent;
+}
+
+/* Keep left form scrollbars visible/usable in appointment General add/edit */
+.general-add-form-scroll,
+.general-view-form-scroll {
+  scrollbar-width: thin;
+  scrollbar-color: #cbd5e1 #f8fafc !important;
+}
+
+.general-add-form-scroll::-webkit-scrollbar,
+.general-view-form-scroll::-webkit-scrollbar {
+  width: 10px;
+}
+
+.general-add-form-scroll::-webkit-scrollbar-track,
+.general-view-form-scroll::-webkit-scrollbar-track {
+  background: #f8fafc;
+  border-radius: 999px;
+}
+
+.general-add-form-scroll::-webkit-scrollbar-thumb,
+.general-view-form-scroll::-webkit-scrollbar-thumb {
+  background: #cbd5e1 !important;
+  border-radius: 999px;
+  border: 2px solid #f8fafc;
+}
+
+.general-add-form-scroll::-webkit-scrollbar-thumb:hover,
+.general-view-form-scroll::-webkit-scrollbar-thumb:hover {
+  background: #94a3b8 !important;
 }
 
 /* =======================================
