@@ -47,7 +47,7 @@ const transformWorkspaces = (data) => {
         id: b.board_id,
         name: b.board_name,
         status: b.board_status,
-        count: b.count ?? 0,
+        count: b.total_cards ?? 0,
       }))
       : [],
   }));
