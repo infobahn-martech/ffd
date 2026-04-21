@@ -772,7 +772,6 @@ const SalesOrderList = ({
 }) => {
   const salesOrderList = formValues.salesOrderList || [];
   const billingEntity = formValues.billingEntity || "";
-  const email = formValues.email || "";
   const lineItemTotal = formValues.lineItemTotal || 0;
 
   // SO Header fields (no mock defaults — values come from API via mapSalesOrderResponse or user edits)
@@ -790,6 +789,8 @@ const SalesOrderList = ({
   const soShipName = formValues.soShipName || "";
   const soProjectName = formValues.soProjectName || "";
   const branch = formValues.branch || "";
+  const soContactEmail = formValues.email || "";
+  const srtNumber = formValues.srtNumber || "";
 
   const portOptions = useMemo(() => {
     if (!soPort || PORT_OPTIONS.includes(soPort)) return PORT_OPTIONS;
@@ -1356,7 +1357,7 @@ const SalesOrderList = ({
 
       {/* SO Header Fields Panel */}
       <div className="so-header-panel">
-        {/* Row 1: Customer Code | Customer Name | Contact Person | BP Currency */}
+        {/* Row 1: Customer Code | Customer Name | Contact Person | Contact Email */}
         <div className="so-header-row">
           <div className="so-header-field">
             <label className="so-header-label">Customer Code</label>
@@ -1386,22 +1387,17 @@ const SalesOrderList = ({
             />
           </div>
           <div className="so-header-field">
-            <label className="so-header-label">BP Currency</label>
-            <select
-              className="so-header-select"
-              value={soBpCurrency}
-              onChange={handleChange("soBpCurrency")}
-              disabled={readOnly}
-            >
-              <option value="">—</option>
-              {BP_CURRENCY_OPTIONS.map((c) => (
-                <option key={c} value={c}>{c === "EURO" ? "EURO (€)" : c}</option>
-              ))}
-            </select>
+            <label className="so-header-label">Contact Email</label>
+            <input
+              type="text"
+              className="so-header-input so-header-input-readonly"
+              value={soContactEmail}
+              readOnly
+            />
           </div>
         </div>
 
-        {/* Row 2: PO No | Port | Branch | SO No */}
+        {/* Row 2: PO No | SRT Number | Project Name | Port */}
         <div className="so-header-row">
           <div className="so-header-field">
             <label className="so-header-label">PO No <span className="so-required">*</span></label>
@@ -1411,6 +1407,27 @@ const SalesOrderList = ({
               placeholder="Enter PO No..."
               value={soPoNo}
               onChange={handleChange("soPoNo")}
+              readOnly={readOnly}
+              required
+            />
+          </div>
+          <div className="so-header-field">
+            <label className="so-header-label">SRT Number</label>
+            <input
+              type="text"
+              className="so-header-input so-header-input-readonly"
+              value={srtNumber}
+              readOnly
+            />
+          </div>
+          <div className="so-header-field">
+            <label className="so-header-label">Project Name <span className="so-required">*</span></label>
+            <input
+              type="text"
+              className={"so-header-input" + (!soProjectName && !readOnly ? " so-input-required" : "")}
+              placeholder="Enter project name..."
+              value={soProjectName}
+              onChange={handleChange("soProjectName")}
               readOnly={readOnly}
               required
             />
@@ -1429,6 +1446,10 @@ const SalesOrderList = ({
               ))}
             </select>
           </div>
+        </div>
+
+        {/* Row 3: Branch | SO No | Posting Date | Delivery Date */}
+        <div className="so-header-row">
           <div className="so-header-field">
             <label className="so-header-label">Branch</label>
             <input
@@ -1447,11 +1468,6 @@ const SalesOrderList = ({
               readOnly
             />
           </div>
-        </div>
-
-        {/* Row 3: Status | Posting Date | Delivery Date | Document Date */}
-        <div className="so-header-row">
-
           <div className="so-header-field">
             <label className="so-header-label">Posting Date</label>
             <input
@@ -1471,6 +1487,10 @@ const SalesOrderList = ({
               readOnly={readOnly}
             />
           </div>
+        </div>
+
+        {/* Row 4: Document Date | Ship Name | BP Currency | Status | Conversion rate (USD/EURO/SAR placeholder) */}
+        <div className="so-header-row" style={{ gridTemplateColumns: "repeat(5, 1fr)" }}>
           <div className="so-header-field">
             <label className="so-header-label">Document Date</label>
             <input
@@ -1492,21 +1512,58 @@ const SalesOrderList = ({
               readOnly={readOnly}
             />
           </div>
-        </div>
-
-        {/* Row 4: Ship Name | Project Name (span 2) | Conversion Rate (conditional) */}
-        <div className="so-header-row">
           <div className="so-header-field">
-            <label className="so-header-label">Project Name <span className="so-required">*</span></label>
-            <input
-              type="text"
-              className={"so-header-input" + (!soProjectName && !readOnly ? " so-input-required" : "")}
-              placeholder="Enter project name..."
-              value={soProjectName}
-              onChange={handleChange("soProjectName")}
-              readOnly={readOnly}
-              required
-            />
+            <label className="so-header-label">BP Currency</label>
+            <select
+              className="so-header-select"
+              value={soBpCurrency}
+              onChange={handleChange("soBpCurrency")}
+              disabled={readOnly}
+            >
+              <option value="">—</option>
+              {BP_CURRENCY_OPTIONS.map((c) => (
+                <option key={c} value={c}>{c === "EURO" ? "EURO (€)" : c}</option>
+              ))}
+            </select>
+          </div>
+          <div className="so-header-field">
+            {soBpCurrency === "USD" && (
+              <>
+                <label className="so-header-label">USD → SAR Rate</label>
+                <span className="so-currency-rate so-currency-rate-block">
+                  1 USD = {USD_TO_SAR_RATE} SAR
+                </span>
+              </>
+            )}
+            {soBpCurrency === "EURO" && (
+              <>
+                <label className="so-header-label">Conversion Rate (€ → SAR) <span className="so-required">*</span></label>
+                <input
+                  type="number"
+                  min="0"
+                  step="0.01"
+                  className={"so-header-input" + (!soEuroRate && !readOnly ? " so-input-required" : "")}
+                  placeholder="Enter EUR → SAR rate..."
+                  value={soEuroRate}
+                  onChange={handleChange("soEuroRate")}
+                  readOnly={readOnly}
+                  required
+                />
+              </>
+            )}
+            {soBpCurrency !== "USD" && soBpCurrency !== "EURO" && (
+              <>
+                <label className="so-header-label">&nbsp;</label>
+                <input
+                  type="text"
+                  className="so-header-input so-header-input-readonly"
+                  value=""
+                  readOnly
+                  tabIndex={-1}
+                  aria-hidden="true"
+                />
+              </>
+            )}
           </div>
           <div className="so-header-field so-header-field-status">
             <label className="so-header-label">Status</label>
@@ -1514,30 +1571,6 @@ const SalesOrderList = ({
               {soStatusDisplay}
             </span>
           </div>
-          {soBpCurrency === "USD" && (
-            <div className="so-header-field">
-              <label className="so-header-label">USD → SAR Rate</label>
-              <span className="so-currency-rate so-currency-rate-block">
-                1 USD = {USD_TO_SAR_RATE} SAR
-              </span>
-            </div>
-          )}
-          {soBpCurrency === "EURO" && (
-            <div className="so-header-field">
-              <label className="so-header-label">Conversion Rate (€ → SAR) <span className="so-required">*</span></label>
-              <input
-                type="number"
-                min="0"
-                step="0.01"
-                className={"so-header-input" + (!soEuroRate && !readOnly ? " so-input-required" : "")}
-                placeholder="Enter EUR → SAR rate..."
-                value={soEuroRate}
-                onChange={handleChange("soEuroRate")}
-                readOnly={readOnly}
-                required
-              />
-            </div>
-          )}
         </div>
       </div>
 
@@ -1550,7 +1583,7 @@ const SalesOrderList = ({
           </div>
           <div className="sales-order-summary-item">
             <label className="sales-order-summary-label">Email</label>
-            <div className="sales-order-summary-value">{email}</div>
+            <div className="sales-order-summary-value">{soContactEmail}</div>
           </div>
           <div className="sales-order-summary-item sales-order-summary-item-highlight">
             <label className="sales-order-summary-label">Line Item Total</label>
