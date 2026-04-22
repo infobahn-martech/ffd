@@ -1266,6 +1266,13 @@ function CardForm({
       soDocumentDate: card?.soDocumentDate || "",
       soShipName: card?.soShipName || card?.vesselName || "",
       soProjectName: card?.soProjectName || "",
+      soOwner: card?.soOwner || "",
+      soSubtotal: card?.soSubtotal ?? "",
+      soTotalDiscount: card?.soTotalDiscount ?? "",
+      soDiscountPercentage: card?.soDiscountPercentage ?? "",
+      soTotalTax: card?.soTotalTax ?? "",
+      soGrandTotal: card?.soGrandTotal ?? "",
+      soRemarks: card?.soRemarks || "",
     }),
     [card, isAddMode]
   );

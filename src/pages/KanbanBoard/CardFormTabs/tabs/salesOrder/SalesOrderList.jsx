@@ -885,7 +885,7 @@ const SalesOrderList = ({
     const unitPrice = parseFloat(overrides.unitPrice ?? order.unitPrice) || 0;
     const discount = parseFloat(overrides.discount ?? order.discount) || 0;
     const taxCode = overrides.taxCode ?? order.taxCode ?? "15%";
-    const taxRate = parseFloat(taxCode) / 100;
+    const taxRate = (parseFloat(String(taxCode).replace(/%/g, "")) || 0) / 100;
     const discountedPrice = unitPrice * (1 - discount / 100);
     const totalBeforeTax = qty * discountedPrice;
     return Math.round((totalBeforeTax + totalBeforeTax * taxRate) * 100) / 100;
@@ -1988,26 +1988,37 @@ const SalesOrderList = ({
 
       {/* Accounting Summary Panel */}
       {(() => {
-        const subtotal = displayOrderList.reduce((sum, item) => {
+        const amountFromForm = (v) => {
+          if (v == null || v === "") return null;
+          const n = parseFloat(String(v).replace(/,/g, ""));
+          return Number.isFinite(n) ? n : null;
+        };
+
+        const subtotalCalc = displayOrderList.reduce((sum, item) => {
           const qty = parseFloat(item.qty) || 0;
           const unitPrice = parseFloat(item.unitPrice) || 0;
           return sum + qty * unitPrice;
         }, 0);
-        const totalDiscount = displayOrderList.reduce((sum, item) => {
+        const totalDiscountCalc = displayOrderList.reduce((sum, item) => {
           const qty = parseFloat(item.qty) || 0;
           const unitPrice = parseFloat(item.unitPrice) || 0;
           const discount = parseFloat(item.discount) || 0;
           return sum + qty * unitPrice * (discount / 100);
         }, 0);
-        const totalTax = displayOrderList.reduce((sum, item) => {
+        const totalTaxCalc = displayOrderList.reduce((sum, item) => {
           const qty = parseFloat(item.qty) || 0;
           const unitPrice = parseFloat(item.unitPrice) || 0;
           const discount = parseFloat(item.discount) || 0;
-          const taxRate = parseFloat(item.taxCode) / 100 || 0;
+          const taxRate = (parseFloat(String(item.taxCode || "").replace(/%/g, "")) || 0) / 100;
           const discountedTotal = qty * unitPrice * (1 - discount / 100);
           return sum + discountedTotal * taxRate;
         }, 0);
-        const grandTotal = subtotal - totalDiscount + totalTax;
+        const grandTotalCalc = subtotalCalc - totalDiscountCalc + totalTaxCalc;
+
+        const subtotal = amountFromForm(formValues.soSubtotal) ?? subtotalCalc;
+        const totalDiscount = amountFromForm(formValues.soTotalDiscount) ?? totalDiscountCalc;
+        const totalTax = amountFromForm(formValues.soTotalTax) ?? totalTaxCalc;
+        const grandTotal = amountFromForm(formValues.soGrandTotal) ?? grandTotalCalc;
         const currencyLabel = soBpCurrency === "EURO" ? "EURO (€)" : soBpCurrency;
 
         return (
@@ -2024,7 +2035,7 @@ const SalesOrderList = ({
                   <input
                     type="text"
                     className="so-accounting-info-value"
-                    value={formValues.owner || ""}
+                    value={formValues.soOwner || ""}
                     readOnly
                   />
                 </div>
@@ -2062,6 +2073,14 @@ const SalesOrderList = ({
                     <span className="so-accounting-label">Subtotal</span>
                     <span className="so-accounting-value">{formatCurrencySAR(subtotal)}</span>
                   </div>
+                  {formValues.soDiscountPercentage != null && String(formValues.soDiscountPercentage).trim() !== "" && (
+                    <div className="so-accounting-row">
+                      <span className="so-accounting-label">Discount %</span>
+                      <span className="so-accounting-value">
+                        {String(formValues.soDiscountPercentage).replace(/%$/, "")}%
+                      </span>
+                    </div>
+                  )}
                   <div className="so-accounting-row">
                     <span className="so-accounting-label">Total Discount</span>
                     <span className="so-accounting-value so-accounting-discount">− {formatCurrencySAR(totalDiscount)}</span>

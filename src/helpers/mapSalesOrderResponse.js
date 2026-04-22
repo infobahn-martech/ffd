@@ -26,6 +26,12 @@ export function mapSalesOrderResponse(apiData) {
       srtNumber: "",
       billingEntity: "",
       lineItemTotal: 0,
+      soOwner: "",
+      soSubtotal: "",
+      soTotalDiscount: "",
+      soDiscountPercentage: "",
+      soTotalTax: "",
+      soGrandTotal: "",
       salesOrderList: [],
     };
   }
@@ -40,6 +46,14 @@ export function mapSalesOrderResponse(apiData) {
   };
 
   const items = Array.isArray(apiData.items) ? apiData.items : [];
+
+  const taxCodeFromApi = (item) => {
+    const t = item.tax_percentage;
+    if (t == null || String(t).trim() === "") return "15%";
+    const s = String(t).trim().replace(/%$/, "");
+    return /^\d+(\.\d+)?$/.test(s) ? `${s}%` : "15%";
+  };
+
   const salesOrderList = items.map((item, idx) => {
     const rawId = Number(item.so_item_id);
     const id = Number.isFinite(rawId) && rawId > 0 ? rawId : idx + 1;
@@ -51,7 +65,7 @@ export function mapSalesOrderResponse(apiData) {
     unitPrice: Number(item.unit_price) || 0,
     totalAmount: Number(item.total_price) || 0,
     discount: 0,
-    taxCode: "15%",
+    taxCode: taxCodeFromApi(item),
     typeOfPo: "",
     supplierCode: "",
     supplierName: "",
@@ -77,6 +91,9 @@ export function mapSalesOrderResponse(apiData) {
     str(apiData.ship_name) ||
     (apiData.vessel_name != null ? String(apiData.vessel_name).trim() : "");
 
+  const asNumString = (v) =>
+    v != null && String(v).trim() !== "" && !Number.isNaN(Number(String(v).trim())) ? String(Number(String(v).trim())) : "";
+
   return {
     soCustomerCode: apiData.customer_code != null ? String(apiData.customer_code) : "",
     soCustomerName,
@@ -98,6 +115,13 @@ export function mapSalesOrderResponse(apiData) {
     srtNumber: apiData.srt_number != null ? String(apiData.srt_number) : "",
     billingEntity: soCustomerName,
     lineItemTotal,
+    // SO owner & totals (do not use `owner` — that key is the card owner user id in CardForm)
+    soOwner: apiData.owner != null ? String(apiData.owner).trim() : "",
+    soSubtotal: asNumString(apiData.subtotal),
+    soTotalDiscount: asNumString(apiData.total_discount),
+    soDiscountPercentage: apiData.discount_percentage != null ? String(apiData.discount_percentage).trim() : "",
+    soTotalTax: asNumString(apiData.total_tax),
+    soGrandTotal: asNumString(apiData.grand_total),
     salesOrderList,
   };
 }
