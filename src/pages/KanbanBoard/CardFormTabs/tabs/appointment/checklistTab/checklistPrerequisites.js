@@ -60,6 +60,6 @@ export const getChecklistInfoHelper = (ps) => {
   if (ps.key === "port") return "Select Port first";
   if (ps.key === "vesselBarge") return "Select Vessel Type or Barge Type first";
   if (ps.key === "callDetailLoading") return "Loading call data…";
-  if (ps.key === "ready") return "Select one or more checklist types";
-  return "Select one or more checklist types";
+  if (ps.key === "ready") return;
+  return;
 };
