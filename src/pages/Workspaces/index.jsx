@@ -795,7 +795,7 @@ function Workspaces() {
                       <Tooltip id={`board-name-${board.id}`} place="top" />
 
                       <div className="board-counts-row">
-                        <div
+                        {/* <div
                           className="board-count"
                           data-tooltip-id={`board-count-${board.id}`}
                           data-tooltip-content={`Card Count: ${board.count.toLocaleString()} cards`}
@@ -803,7 +803,7 @@ function Workspaces() {
                           <img src={ClockIcon} alt="Clock" className="board-clock-icon" />
                           <span className="board-count-number">{(board.count ?? 0).toLocaleString()}</span>
                         </div>
-                        <Tooltip id={`board-count-${board.id}`} place="top" />
+                        <Tooltip id={`board-count-${board.id}`} place="top" /> */}
 
                         <div
                           className="board-id-count"
