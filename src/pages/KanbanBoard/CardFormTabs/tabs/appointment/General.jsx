@@ -60,6 +60,7 @@ const mapCallDetailToFormFields = (detail) => {
     appointmentReceivedDate: appointmentParts.date,
     appointmentReceivedTime: appointmentParts.time,
     port: detail?.port_id ? String(detail.port_id) : "",
+    call_type_id: detail?.call_type_id != null ? String(detail.call_type_id) : "",
     typeOfCall: detail?.call_type ? String(detail.call_type) : "",
     mainBillingEntity: detail?.main_billing_entity_id ? String(detail.main_billing_entity_id) : "",
     otherBillingEntity: detail?.other_billing_entity_id ? String(detail.other_billing_entity_id) : "",

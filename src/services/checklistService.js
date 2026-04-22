@@ -3,14 +3,15 @@ import Gateway from '../gateway/gateway';
 const getChecklist = (params) => Gateway.get('/checklist', { params });
 const getChecklistByType = (params) =>
   Gateway.get('checklist/get_checklist_by_type', { params });
+/** GET checklist/get_checklist_by_id/{checklist_type_id} */
 const getChecklistById = (checklist_type_id) =>
-  Gateway.post(`checklist/get_checklist_by_id/${checklist_type_id}`, { checklist_type_id });
+  Gateway.get(`checklist/get_checklist_by_id/${encodeURIComponent(String(checklist_type_id))}`);
 
-/** POST checklist/checklist_by_vesseltype — body: { vessel_type_id, calltype } */
+/** POST checklist/checklist_by_vesseltype — body: { vessel_type_id, calltype, port_id } */
 const getChecklistsByVesselType = (payload) =>
   Gateway.post('checklist/checklist_by_vesseltype', payload);
 
-/** POST checklist/checklist_by_bargetype — body: { barge_type_id, calltype } */
+/** POST checklist/checklist_by_bargetype — body: { barge_type_id, calltype, port_id } */
 const getChecklistsByBargeType = (payload) =>
   Gateway.post('checklist/checklist_by_bargetype', payload);
 

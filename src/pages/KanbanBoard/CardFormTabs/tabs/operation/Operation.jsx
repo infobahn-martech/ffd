@@ -1,4 +1,4 @@
-import { useState, useCallback, useRef, useEffect } from "react";
+import { useState, useCallback, useRef, useEffect, useMemo } from "react";
 import PropTypes from "prop-types";
 import Select from "react-select";
 import ReactQuill from "react-quill";
@@ -7,6 +7,7 @@ import GroupSettingsIcon from "../../../../../assets/images/cv.png";
 import CircleTickIcon from "../../../../../assets/images/CircleTick.svg";
 import Checklist from "../appointment/Checklist";
 import { notify } from "../../../../../components/Toaster";
+import callFileService from "../../../../../services/callFileService";
 import { SendReportFullWidthView, SendReportButton } from "../../services/sendReportFullWidthView";
 import {
   buildPreArrivalReportBody,
@@ -1887,7 +1888,17 @@ DepartureContent.propTypes = {
   isViewOnly: PropTypes.bool,
 };
 
-const CheckListContent = ({ card, formValues, handleChange, onOpenReportPreview, cardColor, isViewOnly = false, isDAModule = false }) => {
+const CheckListContent = ({
+  card,
+  formValues,
+  handleChange,
+  onOpenReportPreview,
+  cardColor,
+  isViewOnly = false,
+  isDAModule = false,
+  cardDetail,
+  callDetailLoading = false,
+}) => {
   return (
     <Checklist
       card={card}
@@ -1897,6 +1908,8 @@ const CheckListContent = ({ card, formValues, handleChange, onOpenReportPreview,
       cardColor={cardColor}
       isViewOnly={isViewOnly}
       isDAModule={isDAModule}
+      cardDetail={cardDetail}
+      callDetailLoading={callDetailLoading}
     />
   );
 };
@@ -1909,6 +1922,8 @@ CheckListContent.propTypes = {
   cardColor: PropTypes.string,
   isViewOnly: PropTypes.bool,
   isDAModule: PropTypes.bool,
+  cardDetail: PropTypes.object,
+  callDetailLoading: PropTypes.bool,
 };
 
 // Dummy values for view-only mode
@@ -1982,11 +1997,47 @@ async function sendOperationReportRequest(payload) {
   await new Promise((r) => setTimeout(r, 600));
 }
 
-function Operation({ card, formValues, handleChange, ownerInitial, isDAModule = false }) {
+function Operation({ card, formValues, handleChange, ownerInitial, isDAModule = false, isAddMode = false }) {
   const [activeOperationTab, setActiveOperationTab] = useState(OPERATION_TABS.PRE_ARRIVAL);
   const [viewMode, setViewMode] = useState("form");
   const [reportPreviewConfig, setReportPreviewConfig] = useState(null);
+  const [callDetailData, setCallDetailData] = useState(null);
+  const [callDetailLoading, setCallDetailLoading] = useState(false);
   const cardColor = card?.color || "#2A00FF";
+
+  const currentCallId = useMemo(
+    () => card?.call_id ?? formValues?.call_id ?? card?.callId ?? "",
+    [card?.call_id, card?.callId, formValues?.call_id]
+  );
+
+  useEffect(() => {
+    if (isAddMode || !currentCallId) {
+      setCallDetailData(null);
+      setCallDetailLoading(false);
+      return;
+    }
+    let cancelled = false;
+    const load = async () => {
+      setCallDetailLoading(true);
+      try {
+        const { data } = await callFileService.getCallDetail(currentCallId);
+        const detail = data?.data ?? data ?? null;
+        if (!cancelled) {
+          setCallDetailData(detail);
+        }
+      } catch (e) {
+        // eslint-disable-next-line no-console
+        console.error("[Operation] get_call_detail failed", e);
+        if (!cancelled) setCallDetailData(null);
+      } finally {
+        if (!cancelled) setCallDetailLoading(false);
+      }
+    };
+    load();
+    return () => {
+      cancelled = true;
+    };
+  }, [isAddMode, currentCallId]);
 
   // Merge dummy values with formValues for view-only mode (only for DA routes)
   // Dummy values take precedence to ensure all fields are populated
@@ -2067,6 +2118,8 @@ function Operation({ card, formValues, handleChange, ownerInitial, isDAModule = 
                 cardColor={cardColor}
                 isViewOnly={isViewOnly}
                 isDAModule={isDAModule}
+                cardDetail={callDetailData}
+                callDetailLoading={callDetailLoading}
               />
             )}
             {activeOperationTab === OPERATION_TABS.ARRIVAL && (
@@ -2116,6 +2169,7 @@ Operation.propTypes = {
   handleChange: PropTypes.func.isRequired,
   ownerInitial: PropTypes.string.isRequired,
   isDAModule: PropTypes.bool,
+  isAddMode: PropTypes.bool,
 };
 
 export default Operation;
