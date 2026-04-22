@@ -2042,11 +2042,11 @@
 }
 
 .cl-items-table col.cl-col-item {
-  width: 42%;
+  width: 38%;
 }
 
 .cl-items-table col.cl-col-upload {
-  width: 30%;
+  width: 34%;
 }
 
 .cl-items-table col.cl-col-remarks {
@@ -2060,6 +2060,10 @@
 
 .cl-item-cell {
   min-width: 0;
+}
+
+.checklist-table-label.cl-col-item {
+  padding-right: 8px !important;
 }
 
 .cl-item-inline {
@@ -2344,6 +2348,7 @@
 }
 
 .checklist-table-upload.cl-col-upload {
+  padding-left: 8px !important;
   padding-top: 10px !important;
   padding-bottom: 10px !important;
 }
