@@ -13,6 +13,7 @@ import {
   mapApiSectionsToTree,
   flattenTreeItems,
   collectTreeSectionIds,
+  collectItemIdsUnderSectionInBlocks,
   buildChecklistReportLines,
 } from "./checklistTab/checklistMappers";
 import { parseChecklistTypeListResponse } from "./checklistTab/checklistApi";
@@ -389,7 +390,21 @@ function Checklist({
     setOpenSections((p) => ({ ...p, [sectionId]: !p[sectionId] }));
   };
 
-  const handleSelectAll = () => { };
+  const handleSelectAll = useCallback(
+    (sectionId, select) => {
+      const ids = collectItemIdsUnderSectionInBlocks(selectedBlocks, sectionId);
+      if (!ids.length) return;
+      setItemsData((prev) => {
+        const next = { ...prev };
+        ids.forEach((itemId) => {
+          const cur = next[itemId] || {};
+          next[itemId] = { ...cur, checked: select };
+        });
+        return next;
+      });
+    },
+    [selectedBlocks]
+  );
 
   const checklistTypeLabelList = useMemo(() => {
     const map = new Map(checklistTypeOptions.map((o) => [o.value, o.label]));

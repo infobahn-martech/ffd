@@ -130,6 +130,13 @@ const mapItemToRow = (it, i, sectionId) => {
   const itemId = `${sectionId}_item_${iid}`;
   const fullLabel = buildLabelFromApiItem(it);
   const { primary: title, badge: parsedBadge } = parseChecklistLabel(fullLabel);
+  const dd = it?.document_details ?? {};
+  const rawCopyOnly = dd.require_copy_only;
+  const requireCopyOnlyFromApi =
+    rawCopyOnly === true
+    || rawCopyOnly === 1
+    || String(rawCopyOnly) === "1"
+    || String(rawCopyOnly).toLowerCase() === "true";
   const req = mapDocumentDetailsToRequirement(it);
   let requirement =
     req.variant !== "none" && req.label
@@ -141,11 +148,11 @@ const mapItemToRow = (it, i, sectionId) => {
   const itemDesc =
     (it.item_description != null && String(it.item_description).trim()) ||
     (it.description != null && String(it.description).trim()) ||
-    (it.document_details?.notes != null && String(it.document_details.notes).trim()) ||
+    (dd.notes != null && String(dd.notes).trim()) ||
     "";
 
   const uploadedFromApi = [];
-  const rawFiles = it.document_details?.uploaded_files ?? it.uploaded_files;
+  const rawFiles = dd.uploaded_files ?? it.uploaded_files;
   if (Array.isArray(rawFiles)) {
     rawFiles.forEach((f, fi) => {
       uploadedFromApi.push({
@@ -166,6 +173,7 @@ const mapItemToRow = (it, i, sectionId) => {
     description: itemDesc,
     fullLabel: fullLabel || title,
     requirement,
+    requireCopyOnlyFromApi,
     expiryDateRequired: String(it.expiry_date_reqd) === "1" || it.expiry_date_reqd === 1,
     uploadedFromApi,
   };
@@ -272,9 +280,7 @@ export const flattenApiSectionsToUi = (sections, checklistTypeIdStr, checklistNa
 
 const itemIsDone = (itemId, itemsData) => {
   const d = itemsData[itemId] || {};
-  if (d.uploadedFile != null) return true;
-  const apis = d.apiUploadedFiles;
-  return Array.isArray(apis) && apis.length > 0;
+  return d.checked === true;
 };
 
 export const countTreeItems = (nodes) => {
@@ -350,6 +356,33 @@ export const collectTreeSectionIds = (nodes) => {
   return ids;
 };
 
+/** All checklist item ids under a section node (items on this node + descendant sections). */
+export const collectNodeItemIds = (node) => {
+  if (!node) return [];
+  const out = [];
+  (node.items || []).forEach((it) => out.push(it.id));
+  (node.subSections || []).forEach((s) => out.push(...collectNodeItemIds(s)));
+  return out;
+};
+
+/** Find a section by id in one or more trees and return all item ids under it. */
+export const collectItemIdsUnderSectionInBlocks = (blocks, sectionId) => {
+  const walk = (nodes) => {
+    if (!Array.isArray(nodes)) return undefined;
+    for (const n of nodes) {
+      if (n.id === sectionId) return collectNodeItemIds(n);
+      const inner = walk(n.subSections);
+      if (inner !== undefined) return inner;
+    }
+    return undefined;
+  };
+  for (const b of blocks || []) {
+    const found = walk(b.tree);
+    if (found !== undefined) return found;
+  }
+  return [];
+};
+
 export const buildChecklistReportLines = (blocks, itemsData) => {
   const lines = [];
   const fileLabel = (d) => d.uploadedFile?.name || d.uploadedFile?.fileName;
@@ -357,8 +390,11 @@ export const buildChecklistReportLines = (blocks, itemsData) => {
     const d = itemsData[item.id] || {};
     const fn = fileLabel(d);
     const hasApi = Array.isArray(d.apiUploadedFiles) && d.apiUploadedFiles.length > 0;
+    const markedDone = d.checked === true;
     lines.push(`  • ${item.fullLabel || item.title}`);
-    lines.push(`    Status: ${fn || hasApi ? "Complete" : "Pending"} | File: ${fn || (hasApi ? "— (on file)" : "No file uploaded")}`);
+    lines.push(
+      `    Done (manual): ${markedDone ? "Yes" : "No"} | New upload: ${fn || "—"} | Existing on file: ${hasApi ? "Yes" : "No"}`
+    );
     if (d.expiryDate) lines.push(`    Expiry: ${d.expiryDate}`);
     if (d.remarks) lines.push(`    Remarks: ${d.remarks}`);
   };

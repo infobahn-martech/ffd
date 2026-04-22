@@ -5,22 +5,18 @@ import { countNodeItems, countNodeCompleted } from "./checklistMappers";
 
 const ChecklistItemsTable = ({ items, itemsData, onItemChange, cardColor, isViewOnly, isDAModule }) => (
   <div className="checklist-items-table-wrapper checklist-table-card cl-items-table-wrap">
-    <table className="checklist-items-table cl-items-table">
+    <table className="checklist-items-table cl-items-table cl-items-table--4col">
       <colgroup>
-        <col className="checklist-col-check" />
+        <col className="checklist-col-check cl-col-check" />
         <col className="cl-col-item" />
-        <col className="cl-col-req" />
-        <col className="cl-col-expiry" />
-        <col className="cl-col-files" />
+        <col className="cl-col-upload" />
         <col className="cl-col-remarks" />
       </colgroup>
       <thead>
         <tr>
           <th className="checklist-table-checkbox-header">Done</th>
           <th className="checklist-table-label-header">Item</th>
-          <th className="checklist-table-requirement-header">Requirement</th>
-          <th className="cl-th-expiry">Expiry</th>
-          <th className="checklist-table-upload-header">Files</th>
+          <th className="checklist-table-upload-header">Document upload</th>
           <th className="checklist-table-remarks-header">Remarks</th>
         </tr>
       </thead>
@@ -165,7 +161,7 @@ const ChecklistSectionNode = ({
 function nodeItemsEveryUploaded(node, itemsData) {
   const ok = (id) => {
     const d = itemsData[id] || {};
-    return d.uploadedFile != null || (Array.isArray(d.apiUploadedFiles) && d.apiUploadedFiles.length > 0);
+    return d.checked === true;
   };
   const walk = (n) => {
     for (const it of n.items || []) {
@@ -183,7 +179,7 @@ function nodeItemsEveryUploaded(node, itemsData) {
 function nodeItemsSomeUploaded(node, itemsData) {
   const any = (id) => {
     const d = itemsData[id] || {};
-    return d.uploadedFile != null || (Array.isArray(d.apiUploadedFiles) && d.apiUploadedFiles.length > 0);
+    return d.checked === true;
   };
   const walk = (n) => {
     for (const it of n.items || []) {
