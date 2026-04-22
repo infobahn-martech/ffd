@@ -1,60 +1,43 @@
 import PropTypes from "prop-types";
 import { useState, useEffect, useRef } from "react";
 import { FormTextarea } from "./checklistFormPrimitives";
-import ChecklistFilePreviewCompact from "./ChecklistFilePreviewCompact";
-import { formatFileSizeBytes } from "./checklistFormat";
 
-const ApiFilePreviewChip = ({ file }) => {
-  const displayName = file?.file_name ?? file?.fileName ?? file?.name ?? "File";
-  const href = file?.url || file?.link;
-  const getFileType = (fileName) => {
-    if (!fileName) return "";
-    return fileName.split(".").pop()?.toLowerCase() || "";
-  };
-  const ext = getFileType(displayName);
-  const isPDF = ext === "pdf";
-  const isWord = ["doc", "docx"].includes(ext);
+const RequirementIndicator = ({ requirement }) => {
+  if (!requirement?.label) return null;
+  const label = String(requirement.label);
+  const isOriginal = /original/i.test(label);
+  const isFormat = /format/i.test(label) || /attached/i.test(label);
+  const toneClass = isOriginal ? "cl-req-icon--original" : isFormat ? "cl-req-icon--format" : "cl-req-icon--copy";
+  const icon = isOriginal ? "✓" : isFormat ? "📎" : "⧉";
 
-  const inner = (
-    <>
-      <div className="cl-api-file-chip__ico" aria-hidden>
-        {isPDF ? (
-          <div className="cl-file-ico cl-file-ico--pdf" title="PDF">
-            <span>PDF</span>
-          </div>
-        ) : isWord ? (
-          <div className="cl-file-ico cl-file-ico--word">W</div>
-        ) : (
-          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden>
-            <path
-              d="M14 2H6C5.46957 2 4.96086 2.21071 4.58579 2.58579C4.21071 2.96086 4 3.46957 4 4V20C4 20.5304 4.21071 21.0391 4.58579 21.4142C4.96086 21.7893 5.46957 22 6 22H18C18.5304 22 19.0391 21.7893 19.4142 21.4142C19.7893 21.0391 20 20.5304 20 20V8L14 2Z"
-              stroke="currentColor"
-              strokeWidth="1.5"
-              strokeLinecap="round"
-              strokeLinejoin="round"
-            />
-            <path d="M14 2V8H20" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
-          </svg>
-        )}
-      </div>
-      <span className="cl-api-file-chip__name" title={displayName}>
-        {displayName}
-      </span>
-    </>
+  return (
+    <span className={`cl-req-icon ${toneClass}`} title={label} aria-label={label}>
+      {icon}
+    </span>
   );
-
-  if (href) {
-    return (
-      <a className="cl-api-file-chip cl-api-file-chip--link" href={href} target="_blank" rel="noreferrer">
-        {inner}
-      </a>
-    );
-  }
-  return <div className="cl-api-file-chip">{inner}</div>;
 };
 
-ApiFilePreviewChip.propTypes = {
+RequirementIndicator.propTypes = {
+  requirement: PropTypes.shape({
+    label: PropTypes.string,
+  }),
+};
+
+const FileActionIcon = ({ file, onClick }) => {
+  const name = file?.file_name ?? file?.fileName ?? file?.name ?? "File";
+  return (
+    <button type="button" className="cl-file-icon-btn cl-file-icon-btn--existing" onClick={onClick} title={name} aria-label={name}>
+      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden>
+        <path d="M14 2H6C4.9 2 4 2.9 4 4V20C4 21.1 4.9 22 6 22H18C19.1 22 20 21.1 20 20V8L14 2Z" stroke="currentColor" strokeWidth="1.6" />
+        <path d="M14 2V8H20" stroke="currentColor" strokeWidth="1.6" />
+      </svg>
+    </button>
+  );
+};
+
+FileActionIcon.propTypes = {
   file: PropTypes.object,
+  onClick: PropTypes.func.isRequired,
 };
 
 const ChecklistItemRow = ({
@@ -63,9 +46,8 @@ const ChecklistItemRow = ({
   onChange,
   cardColor = "#2A00FF",
   isViewOnly = false,
-  isDAModule = false,
 }) => {
-  const { id, title, description, expiryDateRequired, uploadedFromApi = [], requireCopyOnlyFromApi } = item;
+  const { id, title, expiryDateRequired, uploadedFromApi = [], requirement, requireCopyOnlyFromApi } = item;
 
   const [remarks, setRemarks] = useState(itemData?.remarks || "");
   const [uploadedFile, setUploadedFile] = useState(itemData?.uploadedFile || null);
@@ -141,6 +123,12 @@ const ChecklistItemRow = ({
     pushChange({ expiryDate: e.target.value });
   };
 
+  const handleApiFileClick = (file) => {
+    const href = file?.url || file?.link;
+    if (!href) return;
+    window.open(href, "_blank", "noopener,noreferrer");
+  };
+
   return (
     <tr className={`checklist-table-row cl-item-row ${checked ? "checked" : ""}`} style={{ "--card-color": cardColor }}>
       <td className="checklist-table-checkbox">
@@ -159,15 +147,13 @@ const ChecklistItemRow = ({
         </label>
       </td>
       <td className="checklist-table-label cl-col-item cl-item-cell">
-        <div className="cl-item-stack">
-          <div className="cl-item-title cl-item-title--primary">{title}</div>
-          {requireCopyOnlyFromApi ? (
-            <div className="cl-item-badge-row">
-              <span className="cl-req-badge cl-req-badge--amber">Require Copy Only</span>
-            </div>
+        <div className="cl-item-inline">
+          <div className="cl-item-title cl-item-title--primary" title={title}>{title}</div>
+          {(requireCopyOnlyFromApi || requirement?.label) ? (
+            <RequirementIndicator requirement={requirement || { label: "Require Copy Only" }} />
           ) : null}
           {expiryDateRequired ? (
-            <div className="cl-item-expiry">
+            <div className="cl-item-expiry cl-item-expiry--inline">
               <span className="cl-item-expiry-label">Expiry date</span>
               <input
                 type="date"
@@ -178,90 +164,57 @@ const ChecklistItemRow = ({
               />
             </div>
           ) : null}
-          {description ? (
-            <div className="cl-item-desc cl-item-desc--stacked">{description}</div>
-          ) : null}
         </div>
       </td>
       <td className="checklist-table-upload cl-col-upload">
         <div className="cl-upload-col">
-          {hasApiFiles ? (
-            <div className="cl-upload-section cl-upload-section--existing">
-              <div className="cl-upload-section__label">Existing files</div>
-              <div className="cl-api-preview-list">
-                {apiFiles.map((f) => (
-                  <ApiFilePreviewChip key={f.id || f.file_id || f.name} file={f} />
-                ))}
-              </div>
-            </div>
-          ) : null}
-          {isViewOnly && !hasApiFiles && uploadedFile ? (
-            <div className="checklist-table-view-file-chip">
-              <div className="checklist-table-view-file-chip-icon" aria-hidden>
-                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-                  <path
-                    d="M14 2H6C5.46957 2 4.96086 2.21071 4.58579 2.58579C4.21071 2.96086 4 3.46957 4 4V20C4 20.5304 4.21071 21.0391 4.58579 21.4142C4.96086 21.7893 5.46957 22 6 22H18C18.5304 22 19.0391 21.7893 19.4142 21.4142C19.7893 21.0391 20 20.5304 20 20V8L14 2Z"
-                    stroke="currentColor"
-                    strokeWidth="2"
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    fill="none"
-                  />
-                  <path d="M14 2V8H20" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" fill="none" />
-                </svg>
-              </div>
-              <div className="checklist-table-view-file-chip-body">
-                <span className="checklist-table-view-file-chip-name">
-                  {uploadedFile?.name || uploadedFile?.fileName || "Document.pdf"}
-                </span>
-                {formatFileSizeBytes(uploadedFile?.size) ? (
-                  <span className="checklist-table-view-file-chip-size">{formatFileSizeBytes(uploadedFile?.size)}</span>
-                ) : null}
-              </div>
-            </div>
-          ) : null}
-          {!isViewOnly && (
-            <div className="cl-upload-section cl-upload-section--new">
-              {hasApiFiles ? <div className="cl-upload-section__label">New upload</div> : null}
-              <div
-                className={`checklist-table-upload-zone cl-upload-zone ${isDragging ? "dragging" : ""} ${uploadedFile ? "has-file" : ""}`}
-                onDragOver={handleDragOver}
-                onDragLeave={handleDragLeave}
-                onDrop={handleDrop}
-                onClick={!uploadedFile ? handleBrowseClick : undefined}
-              >
-                <input
-                  ref={fileInputRef}
-                  type="file"
-                  id={`file-upload-${id}`}
-                  onChange={handleFileChange}
-                  className="checklist-file-input"
-                  accept=".pdf,.doc,.docx,.jpg,.jpeg,.png"
+          <div className="cl-upload-inline">
+            {hasApiFiles
+              ? apiFiles.map((f) => (
+                <FileActionIcon
+                  key={f.id || f.file_id || f.name}
+                  file={f}
+                  onClick={() => handleApiFileClick(f)}
                 />
-                {uploadedFile ? (
-                  <div className="checklist-table-file-preview">
-                    <ChecklistFilePreviewCompact file={uploadedFile} onRemove={handleRemoveFile} isDAModule={isDAModule} />
-                  </div>
-                ) : (
-                  <div className="checklist-table-upload-placeholder">
-                    <svg
-                      className="checklist-table-upload-icon"
-                      width="18"
-                      height="18"
-                      viewBox="0 0 24 24"
-                      fill="none"
-                      xmlns="http://www.w3.org/2000/svg"
-                      aria-hidden
-                    >
-                      <path d="M12 5V19M12 5L7 10M12 5L17 10" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
-                      <path d="M3 15V19C3 20.1046 3.89543 21 5 21H19C20.1046 21 21 20.1046 21 19V15" stroke="currentColor" strokeWidth="2" strokeLinecap="round" />
-                    </svg>
-                    <span className="checklist-table-upload-placeholder-text">Drop or browse</span>
-                  </div>
-                )}
-              </div>
-            </div>
-          )}
+              ))
+              : null}
+            {uploadedFile ? (
+              <button
+                type="button"
+                className="cl-file-icon-btn cl-file-icon-btn--local"
+                onClick={handleRemoveFile}
+                title={uploadedFile?.name || uploadedFile?.fileName || "Remove file"}
+                aria-label="Remove uploaded file"
+              >
+                ×
+              </button>
+            ) : null}
+          </div>
+          {!isViewOnly ? (
+            <button
+              type="button"
+              className={`cl-upload-dropzone ${isDragging ? "dragging" : ""}`}
+              onClick={handleBrowseClick}
+              onDragOver={handleDragOver}
+              onDragLeave={handleDragLeave}
+              onDrop={handleDrop}
+              title={uploadedFile ? "Replace uploaded file" : "Upload file"}
+              aria-label={uploadedFile ? "Replace uploaded file" : "Upload file"}
+            >
+              <span className="cl-upload-dropzone__text">
+                Drag and drop your files here, or <span className="cl-upload-dropzone__link">click to browse</span>
+              </span>
+              <span className="cl-upload-dropzone__hint">Supports all file formats</span>
+            </button>
+          ) : null}
+          <input
+            ref={fileInputRef}
+            type="file"
+            id={`file-upload-${id}`}
+            onChange={handleFileChange}
+            className="checklist-file-input"
+            accept=".pdf,.doc,.docx,.jpg,.jpeg,.png"
+          />
         </div>
       </td>
       <td className="checklist-table-remarks cl-col-remarks">
@@ -269,7 +222,7 @@ const ChecklistItemRow = ({
           value={remarks}
           onChange={handleRemarksChange}
           placeholder="Add remarks…"
-          rows={2}
+          rows={1}
           className="checklist-table-textarea cl-remarks-ta"
           disabled={isViewOnly}
         />
@@ -284,7 +237,6 @@ ChecklistItemRow.propTypes = {
   onChange: PropTypes.func.isRequired,
   cardColor: PropTypes.string,
   isViewOnly: PropTypes.bool,
-  isDAModule: PropTypes.bool,
 };
 
 export default ChecklistItemRow;
