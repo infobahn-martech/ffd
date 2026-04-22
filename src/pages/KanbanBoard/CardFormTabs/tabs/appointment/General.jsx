@@ -1317,6 +1317,7 @@ function General({
   const [entityFieldsError, setEntityFieldsError] = useState("");
   const [callDetailLoading, setCallDetailLoading] = useState(false);
   const [callDetailData, setCallDetailData] = useState(null);
+  const lastHydratedEntityFieldCallIdRef = useRef(null);
   const [operatorKpiTasks, setOperatorKpiTasks] = useState([]);
   const [operatorKpiLoading, setOperatorKpiLoading] = useState(false);
   const [operatorKpiError, setOperatorKpiError] = useState("");
@@ -1362,6 +1363,55 @@ function General({
     if (!callDetailData) return {};
     return mapCallDetailToFormFields(callDetailData);
   }, [callDetailData]);
+
+  useEffect(() => {
+    if (isAddMode) {
+      lastHydratedEntityFieldCallIdRef.current = null;
+      return;
+    }
+    if (!callDetailData) return;
+    const detailCallIdRaw = callDetailData?.call_id ?? currentCallId;
+    if (detailCallIdRaw === undefined || detailCallIdRaw === null || String(detailCallIdRaw).trim() === "") {
+      return;
+    }
+    const detailCallId = String(detailCallIdRaw);
+    if (!Array.isArray(entityFields) || entityFields.length === 0) return;
+
+    const fallbackMap = {
+      po_number: callDetailData?.po_number ?? mappedCallDetail?.poNumber ?? "",
+      project_name: callDetailData?.project_name ?? mappedCallDetail?.project ?? "",
+      project_code: callDetailData?.project_code ?? "",
+    };
+
+    setEntityFieldValues((prev) => {
+      const hasExistingUserInput = Object.values(prev || {}).some(
+        (value) => value !== undefined && value !== null && String(value).trim() !== ""
+      );
+      const sameCallAsLastHydration = lastHydratedEntityFieldCallIdRef.current === detailCallId;
+      if (hasExistingUserInput && sameCallAsLastHydration) return prev;
+
+      const nextValues = {};
+      entityFields.forEach((field) => {
+        const fieldId = field?.field_id;
+        if (!fieldId) return;
+        const key = field?.field_key ? String(field.field_key).trim() : "";
+        if (!key) {
+          nextValues[fieldId] = "";
+          return;
+        }
+        const direct = callDetailData?.[key];
+        const resolved = direct !== undefined && direct !== null && String(direct).trim() !== ""
+          ? String(direct)
+          : fallbackMap[key] !== undefined && fallbackMap[key] !== null
+            ? String(fallbackMap[key])
+            : "";
+        nextValues[fieldId] = resolved;
+      });
+
+      lastHydratedEntityFieldCallIdRef.current = detailCallId;
+      return nextValues;
+    });
+  }, [isAddMode, callDetailData, entityFields, mappedCallDetail, currentCallId]);
 
   const mappedOperatorKpiTasks = useMemo(() => {
     const rows = Array.isArray(operatorKpiTasks) ? operatorKpiTasks : [];
@@ -2148,7 +2198,9 @@ function General({
           const n = Number.parseInt(String(seqRaw), 10);
           sequence_order = Number.isNaN(n) ? 0 : n;
         }
-        return { field_id, field_name, field_type, is_required, sequence_order };
+        const field_key =
+          row?.field_key === undefined || row?.field_key === null ? "" : String(row.field_key).trim();
+        return { field_id, field_name, field_type, is_required, sequence_order, field_key };
       })
       .filter((row) => row.field_id && row.field_name);
     return parsed.sort((a, b) => a.sequence_order - b.sequence_order);
