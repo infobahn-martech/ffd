@@ -65,7 +65,7 @@ const ChecklistItemRow = ({
   isViewOnly = false,
   isDAModule = false,
 }) => {
-  const { id, title, description, expiryDateRequired, fullLabel = "", uploadedFromApi = [], requireCopyOnlyFromApi } = item;
+  const { id, title, description, expiryDateRequired, uploadedFromApi = [], requireCopyOnlyFromApi } = item;
 
   const [remarks, setRemarks] = useState(itemData?.remarks || "");
   const [uploadedFile, setUploadedFile] = useState(itemData?.uploadedFile || null);
@@ -181,7 +181,6 @@ const ChecklistItemRow = ({
           {description ? (
             <div className="cl-item-desc cl-item-desc--stacked">{description}</div>
           ) : null}
-          {fullLabel ? <span className="cl-item-fulllabel sr-only">{fullLabel}</span> : null}
         </div>
       </td>
       <td className="checklist-table-upload cl-col-upload">

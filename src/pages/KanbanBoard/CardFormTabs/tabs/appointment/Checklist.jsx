@@ -434,19 +434,6 @@ function Checklist({
                         cardColor={cardColor}
                         isViewOnly={isViewOnly}
                         isDAModule={isDAModule}
-                        context={{
-                          callType: dataContext.displayCallType,
-                          port: dataContext.displayPort,
-                          vesselType: dataContext.displayVessel,
-                          bargeType: dataContext.displayBarge,
-                        }}
-                        meta={{
-                          checklistName: block.typeName,
-                          callType: dataContext.displayCallType,
-                          port: dataContext.displayPort,
-                          vesselType: dataContext.displayVessel,
-                          bargeType: dataContext.displayBarge,
-                        }}
                       />
                     ) : null}
                   </div>

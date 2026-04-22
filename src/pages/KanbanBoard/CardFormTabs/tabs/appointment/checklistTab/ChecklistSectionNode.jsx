@@ -103,7 +103,6 @@ const ChecklistSectionNode = ({
               </div>
             </div>
           </div>
-          <span className="checklist-accordion-icon">{isOpen ? "▼" : "▶"}</span>
         </button>
         <div className="cl-sec-head__actions">
           <button
@@ -121,6 +120,15 @@ const ChecklistSectionNode = ({
               className="checklist-select-all-checkbox"
             />
             <span className="checklist-select-all-label">{allSelected ? "Deselect all" : "Select all"}</span>
+          </button>
+          <button
+            type="button"
+            className="cl-sec-toggle"
+            onClick={() => onSectionToggle(node.id)}
+            aria-label={isOpen ? "Collapse section" : "Expand section"}
+            aria-expanded={isOpen}
+          >
+            <span className="checklist-accordion-icon">{isOpen ? "▼" : "▶"}</span>
           </button>
         </div>
       </div>
