@@ -8,6 +8,7 @@ import CircleTickIcon from "../../../../../assets/images/CircleTick.svg";
 import Checklist from "../appointment/Checklist";
 import { notify } from "../../../../../components/Toaster";
 import callFileService from "../../../../../services/callFileService";
+import eventTypeService from "../../../../../services/eventTypeService";
 import { SendReportFullWidthView, SendReportButton } from "../../services/sendReportFullWidthView";
 import {
   buildPreArrivalReportBody,
@@ -26,6 +27,80 @@ const OPERATION_TABS = {
   ARRIVAL: "arrival",
   DEPARTURE: "departure",
 };
+
+const EVENT_NAME_FIELD_KEY_MAP = {
+  "expected time of arrival": "expectedArrival",
+  "expected commencement of custom inspection": "customsInspection",
+  "expected commencement of immigration clearance for crew": "immigrationClearance",
+  "expected completion of inward clearance": "inwardClearance",
+  "actual time of arrival": "actualArrival",
+  "custom inspection commenced": "customInspectionCommenced",
+  "custom inspection completed": "customInspectionCompleted",
+  "crew immigration commenced": "crewImmigrationCommenced",
+  "crew immigration completed": "crewImmigrationCompleted",
+  "vessel inward formalities completed": "vesselInwardFormalitiesCompleted",
+  "marine work permit applied": "marineWorkPermitApplied",
+  "marine work permit issued": "marineWorkPermitIssued",
+  "marine work permit expires": "marineWorkPermitExpires",
+  "request for outward clearance received": "outwardClearanceRequestReceived",
+  "outward clearance issued": "outwardClearanceIssued",
+  "outward clearance delivered": "outwardClearanceDelivered",
+  "vessel sailed": "vesselSailed",
+};
+
+const toPascalCase = (text = "") =>
+  String(text)
+    .replace(/[^a-zA-Z0-9]+/g, " ")
+    .trim()
+    .split(/\s+/)
+    .filter(Boolean)
+    .map((part) => part.charAt(0).toUpperCase() + part.slice(1).toLowerCase())
+    .join("");
+
+const getEventFieldKeyPrefix = (eventName = "") => {
+  const normalized = String(eventName).trim().toLowerCase();
+  if (EVENT_NAME_FIELD_KEY_MAP[normalized]) {
+    return EVENT_NAME_FIELD_KEY_MAP[normalized];
+  }
+  const pascal = toPascalCase(eventName);
+  return pascal ? `operation${pascal}` : "operationEvent";
+};
+
+const mapEventFields = (responseData) =>
+  (responseData?.fields || [])
+    .filter((field) => field?.event_type === "datetime" && field?.event_name)
+    .map((field, index) => ({
+      ...field,
+      keyPrefix: getEventFieldKeyPrefix(field.event_name),
+      sort_order: Number(field?.sort_order ?? index + 1),
+    }))
+    .sort((a, b) => a.sort_order - b.sort_order);
+
+const FALLBACK_PRE_ARRIVAL_FIELDS = [
+  { event_name: "Expected time of arrival", keyPrefix: "expectedArrival", sort_order: 1 },
+  { event_name: "Expected commencement of custom inspection", keyPrefix: "customsInspection", sort_order: 2 },
+  { event_name: "Expected commencement of Immigration clearance for crew", keyPrefix: "immigrationClearance", sort_order: 3 },
+  { event_name: "Expected completion of inward clearance", keyPrefix: "inwardClearance", sort_order: 4 },
+];
+
+const FALLBACK_ARRIVAL_FIELDS = [
+  { event_name: "Actual time of arrival", keyPrefix: "actualArrival", stage_id: 2, sort_order: 1 },
+  { event_name: "Custom Inspection commenced", keyPrefix: "customInspectionCommenced", stage_id: 2, sort_order: 2 },
+  { event_name: "Custom Inspection completed", keyPrefix: "customInspectionCompleted", stage_id: 2, sort_order: 3 },
+  { event_name: "Crew immigration commenced", keyPrefix: "crewImmigrationCommenced", stage_id: 2, sort_order: 4 },
+  { event_name: "Crew immigration completed", keyPrefix: "crewImmigrationCompleted", stage_id: 2, sort_order: 5 },
+  { event_name: "Vessel Inward formalities completed", keyPrefix: "vesselInwardFormalitiesCompleted", stage_id: 3, sort_order: 1 },
+  { event_name: "Marine work permit applied", keyPrefix: "marineWorkPermitApplied", stage_id: 3, sort_order: 2 },
+  { event_name: "Marine work permit issued", keyPrefix: "marineWorkPermitIssued", stage_id: 3, sort_order: 3 },
+  { event_name: "Marine work permit expires", keyPrefix: "marineWorkPermitExpires", stage_id: 3, sort_order: 4 },
+];
+
+const FALLBACK_DEPARTURE_FIELDS = [
+  { event_name: "Request for outward clearance received", keyPrefix: "outwardClearanceRequestReceived", sort_order: 1 },
+  { event_name: "Outward clearance issued", keyPrefix: "outwardClearanceIssued", sort_order: 2 },
+  { event_name: "Outward clearance delivered", keyPrefix: "outwardClearanceDelivered", sort_order: 3 },
+  { event_name: "Vessel Sailed", keyPrefix: "vesselSailed", sort_order: 4 },
+];
 
 // Sub-components
 const OperationTabs = ({ activeTab, onTabChange }) => {
@@ -92,6 +167,52 @@ FormField.propTypes = {
   label: PropTypes.string,
   children: PropTypes.node.isRequired,
   className: PropTypes.string,
+};
+
+const DynamicDateTimeFields = ({ eventFields = [], formValues, handleChange, isViewOnly = false }) => {
+  if (!eventFields.length) return null;
+
+  return eventFields.map((field) => {
+    const keyPrefix = field.keyPrefix;
+    const dateKey = `${keyPrefix}Date`;
+    const timeKey = `${keyPrefix}Time`;
+    const label = field.is_required ? `${field.event_name} *` : field.event_name;
+
+    return (
+      <FormField key={`${field.stage_id || "stage"}-${field.event_name}-${keyPrefix}`} label={label}>
+        <div className="cf-input date-time-row">
+          <input
+            type="date"
+            value={formValues[dateKey] || ""}
+            onChange={handleChange(dateKey)}
+            placeholder="Select date"
+            disabled={isViewOnly}
+          />
+          <input
+            type="time"
+            value={formValues[timeKey] || ""}
+            onChange={handleChange(timeKey)}
+            placeholder="Select time"
+            disabled={isViewOnly}
+          />
+        </div>
+      </FormField>
+    );
+  });
+};
+
+DynamicDateTimeFields.propTypes = {
+  eventFields: PropTypes.arrayOf(
+    PropTypes.shape({
+      stage_id: PropTypes.number,
+      event_name: PropTypes.string,
+      is_required: PropTypes.oneOfType([PropTypes.number, PropTypes.bool]),
+      keyPrefix: PropTypes.string,
+    })
+  ),
+  formValues: PropTypes.object.isRequired,
+  handleChange: PropTypes.func.isRequired,
+  isViewOnly: PropTypes.bool,
 };
 
 const FormInput = ({ type = "text", value, onChange, placeholder, className = "", disabled = false }) => {
@@ -593,7 +714,7 @@ LinksList.propTypes = {
   onRemove: PropTypes.func,
 };
 
-const PreArrivalContent = ({ formValues, handleChange, ownerInitial, cardUser, cardColor, onAddLink, onRemoveLink, onOpenReportPreview, isViewOnly = false }) => {
+const PreArrivalContent = ({ formValues, handleChange, ownerInitial, cardUser, cardColor, onAddLink, onRemoveLink, onOpenReportPreview, isViewOnly = false, eventFields = [] }) => {
   const [isDraggingSaberUtDocuments, setIsDraggingSaberUtDocuments] = useState(false);
   const saberUtFileInputRef = useRef(null);
 
@@ -696,81 +817,12 @@ const PreArrivalContent = ({ formValues, handleChange, ownerInitial, cardUser, c
         <div className="pre-arrival-form">
           <div className="general-info-two-column operation-section-form-layout">
             <div className="general-info-left">
-              <FormField label="Expected time of arrival">
-                <div className="cf-input date-time-row">
-                  <input
-                    type="date"
-                    value={formValues.expectedArrivalDate || ""}
-                    onChange={handleChange("expectedArrivalDate")}
-                    placeholder="Select date"
-                    disabled={isViewOnly}
-                  />
-                  <input
-                    type="time"
-                    value={formValues.expectedArrivalTime || ""}
-                    onChange={handleChange("expectedArrivalTime")}
-                    placeholder="Select time"
-                    disabled={isViewOnly}
-                  />
-                </div>
-              </FormField>
-
-              <FormField label="Expected commencement of custom inspection">
-                <div className="cf-input date-time-row">
-                  <input
-                    type="date"
-                    value={formValues.customsInspectionDate || ""}
-                    onChange={handleChange("customsInspectionDate")}
-                    placeholder="Select date"
-                    disabled={isViewOnly}
-                  />
-                  <input
-                    type="time"
-                    value={formValues.customsInspectionTime || ""}
-                    onChange={handleChange("customsInspectionTime")}
-                    placeholder="Select time"
-                    disabled={isViewOnly}
-                  />
-                </div>
-              </FormField>
-
-              <FormField label="Expected commencement of Immigration clearance for crew">
-                <div className="cf-input date-time-row">
-                  <input
-                    type="date"
-                    value={formValues.immigrationClearanceDate || ""}
-                    onChange={handleChange("immigrationClearanceDate")}
-                    placeholder="Select date"
-                    disabled={isViewOnly}
-                  />
-                  <input
-                    type="time"
-                    value={formValues.immigrationClearanceTime || ""}
-                    onChange={handleChange("immigrationClearanceTime")}
-                    placeholder="Select time"
-                    disabled={isViewOnly}
-                  />
-                </div>
-              </FormField>
-
-              <FormField label="Expected completion of inward clearance">
-                <div className="cf-input date-time-row">
-                  <input
-                    type="date"
-                    value={formValues.inwardClearanceDate || ""}
-                    onChange={handleChange("inwardClearanceDate")}
-                    placeholder="Select date"
-                    disabled={isViewOnly}
-                  />
-                  <input
-                    type="time"
-                    value={formValues.inwardClearanceTime || ""}
-                    onChange={handleChange("inwardClearanceTime")}
-                    placeholder="Select time"
-                    disabled={isViewOnly}
-                  />
-                </div>
-              </FormField>
+              <DynamicDateTimeFields
+                eventFields={eventFields}
+                formValues={formValues}
+                handleChange={handleChange}
+                isViewOnly={isViewOnly}
+              />
 
               <FormField label="SABER Status">
                 <FormInput
@@ -965,9 +1017,10 @@ PreArrivalContent.propTypes = {
   onRemoveLink: PropTypes.func,
   onOpenReportPreview: PropTypes.func,
   isViewOnly: PropTypes.bool,
+  eventFields: PropTypes.array,
 };
 
-const ArrivalContent = ({ formValues, handleChange, cardColor, onAddLink, onRemoveLink, onOpenReportPreview, isViewOnly = false }) => {
+const ArrivalContent = ({ formValues, handleChange, cardColor, onAddLink, onRemoveLink, onOpenReportPreview, isViewOnly = false, eventFields = [] }) => {
   const [isDraggingDocuments, setIsDraggingDocuments] = useState(false);
   const documentsFileInputRef = useRef(null);
 
@@ -1094,62 +1147,12 @@ const ArrivalContent = ({ formValues, handleChange, cardColor, onAddLink, onRemo
         <div className="arrival-form">
           <div className="general-info-two-column operation-section-form-layout">
             <div className="general-info-left">
-              <FormField label="Actual time of arrival">
-                <div className="cf-input date-time-row">
-                  <input
-                    type="date"
-                    value={formValues.actualArrivalDate || ""}
-                    onChange={handleChange("actualArrivalDate")}
-                    placeholder="Select date"
-                    disabled={isViewOnly}
-                  />
-                  <input
-                    type="time"
-                    value={formValues.actualArrivalTime || ""}
-                    onChange={handleChange("actualArrivalTime")}
-                    placeholder="Select time"
-                    disabled={isViewOnly}
-                  />
-                </div>
-              </FormField>
-
-              <FormField label="Custom Inspection commenced">
-                <div className="cf-input date-time-row">
-                  <input
-                    type="date"
-                    value={formValues.customInspectionCommencedDate || ""}
-                    onChange={handleChange("customInspectionCommencedDate")}
-                    placeholder="Select date"
-                    disabled={isViewOnly}
-                  />
-                  <input
-                    type="time"
-                    value={formValues.customInspectionCommencedTime || ""}
-                    onChange={handleChange("customInspectionCommencedTime")}
-                    placeholder="Select time"
-                    disabled={isViewOnly}
-                  />
-                </div>
-              </FormField>
-
-              <FormField label="Custom Inspection completed">
-                <div className="cf-input date-time-row">
-                  <input
-                    type="date"
-                    value={formValues.customInspectionCompletedDate || ""}
-                    onChange={handleChange("customInspectionCompletedDate")}
-                    placeholder="Select date"
-                    disabled={isViewOnly}
-                  />
-                  <input
-                    type="time"
-                    value={formValues.customInspectionCompletedTime || ""}
-                    onChange={handleChange("customInspectionCompletedTime")}
-                    placeholder="Select time"
-                    disabled={isViewOnly}
-                  />
-                </div>
-              </FormField>
+              <DynamicDateTimeFields
+                eventFields={eventFields}
+                formValues={formValues}
+                handleChange={handleChange}
+                isViewOnly={isViewOnly}
+              />
 
               <FormField label="Custom Inspection Status">
                 <FormInput
@@ -1173,25 +1176,6 @@ const ArrivalContent = ({ formValues, handleChange, cardColor, onAddLink, onRemo
                 </FormField>
               )}
 
-              <FormField label="Crew immigration commenced">
-                <div className="cf-input date-time-row">
-                  <input
-                    type="date"
-                    value={formValues.crewImmigrationCommencedDate || ""}
-                    onChange={handleChange("crewImmigrationCommencedDate")}
-                    placeholder="Select date"
-                    disabled={isViewOnly}
-                  />
-                  <input
-                    type="time"
-                    value={formValues.crewImmigrationCommencedTime || ""}
-                    onChange={handleChange("crewImmigrationCommencedTime")}
-                    placeholder="Select time"
-                    disabled={isViewOnly}
-                  />
-                </div>
-              </FormField>
-
               <FormField label="Crew immigration completed / on hold">
                 <FormSelect
                   value={formValues.crewImmigrationStatus || ""}
@@ -1201,27 +1185,6 @@ const ArrivalContent = ({ formValues, handleChange, cardColor, onAddLink, onRemo
                   disabled={isViewOnly}
                 />
               </FormField>
-
-              {formValues.crewImmigrationStatus === "Completed" && (
-                <FormField label="Crew immigration completed">
-                  <div className="cf-input date-time-row">
-                    <input
-                      type="date"
-                      value={formValues.crewImmigrationCompletedDate || ""}
-                      onChange={handleChange("crewImmigrationCompletedDate")}
-                      placeholder="Select date"
-                      disabled={isViewOnly}
-                    />
-                    <input
-                      type="time"
-                      value={formValues.crewImmigrationCompletedTime || ""}
-                      onChange={handleChange("crewImmigrationCompletedTime")}
-                      placeholder="Select time"
-                      disabled={isViewOnly}
-                    />
-                  </div>
-                </FormField>
-              )}
 
               {formValues.crewImmigrationStatus === "On Hold" && (
                 <FormField label="Reason for hold (Remarks)" className="cf-field-full">
@@ -1235,80 +1198,6 @@ const ArrivalContent = ({ formValues, handleChange, cardColor, onAddLink, onRemo
                 </FormField>
               )}
 
-              <FormField label="Vessel Inward formalities completed">
-                <div className="cf-input date-time-row">
-                  <input
-                    type="date"
-                    value={formValues.vesselInwardFormalitiesCompletedDate || ""}
-                    onChange={handleChange("vesselInwardFormalitiesCompletedDate")}
-                    placeholder="Select date"
-                    disabled={isViewOnly}
-                  />
-                  <input
-                    type="time"
-                    value={formValues.vesselInwardFormalitiesCompletedTime || ""}
-                    onChange={handleChange("vesselInwardFormalitiesCompletedTime")}
-                    placeholder="Select time"
-                    disabled={isViewOnly}
-                  />
-                </div>
-              </FormField>
-
-              <FormField label="Marine work permit applied">
-                <div className="cf-input date-time-row">
-                  <input
-                    type="date"
-                    value={formValues.marineWorkPermitAppliedDate || ""}
-                    onChange={handleChange("marineWorkPermitAppliedDate")}
-                    placeholder="Select date"
-                    disabled={isViewOnly}
-                  />
-                  <input
-                    type="time"
-                    value={formValues.marineWorkPermitAppliedTime || ""}
-                    onChange={handleChange("marineWorkPermitAppliedTime")}
-                    placeholder="Select time"
-                    disabled={isViewOnly}
-                  />
-                </div>
-              </FormField>
-
-              <FormField label="Marine work permit issued">
-                <div className="cf-input date-time-row">
-                  <input
-                    type="date"
-                    value={formValues.marineWorkPermitIssuedDate || ""}
-                    onChange={handleChange("marineWorkPermitIssuedDate")}
-                    placeholder="Select date"
-                    disabled={isViewOnly}
-                  />
-                  <input
-                    type="time"
-                    value={formValues.marineWorkPermitIssuedTime || ""}
-                    onChange={handleChange("marineWorkPermitIssuedTime")}
-                    placeholder="Select time"
-                    disabled={isViewOnly}
-                  />
-                </div>
-              </FormField>
-              <FormField label="Marine work permit expires">
-                <div className="cf-input date-time-row">
-                  <input
-                    type="date"
-                    value={formValues.marineWorkPermitExpiresDate || ""}
-                    onChange={handleChange("marineWorkPermitExpiresDate")}
-                    placeholder="Select date"
-                    disabled={isViewOnly}
-                  />
-                  <input
-                    type="time"
-                    value={formValues.marineWorkPermitExpiresTime || ""}
-                    onChange={handleChange("marineWorkPermitExpiresTime")}
-                    placeholder="Select time"
-                    disabled={isViewOnly}
-                  />
-                </div>
-              </FormField>
 
               <FormField label="Attach Vessel Inward and Marine Work Permit Copies">
                 <div style={{ marginTop: "8px" }}>
@@ -1539,9 +1428,10 @@ ArrivalContent.propTypes = {
   onRemoveLink: PropTypes.func,
   onOpenReportPreview: PropTypes.func,
   isViewOnly: PropTypes.bool,
+  eventFields: PropTypes.array,
 };
 
-const DepartureContent = ({ formValues, handleChange, cardColor, onAddLink, onRemoveLink, onOpenReportPreview, isViewOnly = false }) => {
+const DepartureContent = ({ formValues, handleChange, cardColor, onAddLink, onRemoveLink, onOpenReportPreview, isViewOnly = false, eventFields = [] }) => {
   const [isDraggingDepartureDocuments, setIsDraggingDepartureDocuments] = useState(false);
   const departureFileInputRef = useRef(null);
 
@@ -1742,81 +1632,12 @@ const DepartureContent = ({ formValues, handleChange, cardColor, onAddLink, onRe
                 </div>
               </FormField>
 
-              <FormField label="Request for outward clearance received">
-                <div className="cf-input date-time-row">
-                  <input
-                    type="date"
-                    value={formValues.outwardClearanceRequestReceivedDate || ""}
-                    onChange={handleChange("outwardClearanceRequestReceivedDate")}
-                    placeholder="Select date"
-                    disabled
-                  />
-                  <input
-                    type="time"
-                    value={formValues.outwardClearanceRequestReceivedTime || ""}
-                    onChange={handleChange("outwardClearanceRequestReceivedTime")}
-                    placeholder="Select time"
-                    disabled={isViewOnly}
-                  />
-                </div>
-              </FormField>
-
-              <FormField label="Outward clearance issued">
-                <div className="cf-input date-time-row">
-                  <input
-                    type="date"
-                    value={formValues.outwardClearanceIssuedDate || ""}
-                    onChange={handleChange("outwardClearanceIssuedDate")}
-                    placeholder="Select date"
-                    disabled={isViewOnly}
-                  />
-                  <input
-                    type="time"
-                    value={formValues.outwardClearanceIssuedTime || ""}
-                    onChange={handleChange("outwardClearanceIssuedTime")}
-                    placeholder="Select time"
-                    disabled={isViewOnly}
-                  />
-                </div>
-              </FormField>
-
-              <FormField label="Outward clearance delivered">
-                <div className="cf-input date-time-row">
-                  <input
-                    type="date"
-                    value={formValues.outwardClearanceDeliveredDate || ""}
-                    onChange={handleChange("outwardClearanceDeliveredDate")}
-                    placeholder="Select date"
-                    disabled={isViewOnly}
-                  />
-                  <input
-                    type="time"
-                    value={formValues.outwardClearanceDeliveredTime || ""}
-                    onChange={handleChange("outwardClearanceDeliveredTime")}
-                    placeholder="Select time"
-                    disabled={isViewOnly}
-                  />
-                </div>
-              </FormField>
-
-              <FormField label="Vessel Sailed">
-                <div className="cf-input date-time-row">
-                  <input
-                    type="date"
-                    value={formValues.vesselSailedDate || ""}
-                    onChange={handleChange("vesselSailedDate")}
-                    placeholder="Select date"
-                    disabled={isViewOnly}
-                  />
-                  <input
-                    type="time"
-                    value={formValues.vesselSailedTime || ""}
-                    onChange={handleChange("vesselSailedTime")}
-                    placeholder="Select time"
-                    disabled={isViewOnly}
-                  />
-                </div>
-              </FormField>
+              <DynamicDateTimeFields
+                eventFields={eventFields}
+                formValues={formValues}
+                handleChange={handleChange}
+                isViewOnly={isViewOnly}
+              />
 
 
 
@@ -1886,6 +1707,7 @@ DepartureContent.propTypes = {
   onRemoveLink: PropTypes.func,
   onOpenReportPreview: PropTypes.func,
   isViewOnly: PropTypes.bool,
+  eventFields: PropTypes.array,
 };
 
 const CheckListContent = ({
@@ -2003,6 +1825,12 @@ function Operation({ card, formValues, handleChange, ownerInitial, isDAModule = 
   const [reportPreviewConfig, setReportPreviewConfig] = useState(null);
   const [callDetailData, setCallDetailData] = useState(null);
   const [callDetailLoading, setCallDetailLoading] = useState(false);
+  const [eventTypeFieldsByStage, setEventTypeFieldsByStage] = useState({
+    1: [],
+    2: [],
+    3: [],
+    4: [],
+  });
   const cardColor = card?.color || "#2A00FF";
 
   const currentCallId = useMemo(
@@ -2038,6 +1866,62 @@ function Operation({ card, formValues, handleChange, ownerInitial, isDAModule = 
       cancelled = true;
     };
   }, [isAddMode, currentCallId]);
+
+  useEffect(() => {
+    let cancelled = false;
+
+    const loadEventTypeFields = async () => {
+      try {
+        const [stage1, stage2, stage3, stage4] = await Promise.all([
+          eventTypeService.getEventTypesByStage(1),
+          eventTypeService.getEventTypesByStage(2),
+          eventTypeService.getEventTypesByStage(3),
+          eventTypeService.getEventTypesByStage(4),
+        ]);
+
+        if (cancelled) return;
+
+        setEventTypeFieldsByStage({
+          1: mapEventFields(stage1?.data),
+          2: mapEventFields(stage2?.data),
+          3: mapEventFields(stage3?.data),
+          4: mapEventFields(stage4?.data),
+        });
+      } catch (error) {
+        if (!cancelled) {
+          setEventTypeFieldsByStage({ 1: [], 2: [], 3: [], 4: [] });
+        }
+        // eslint-disable-next-line no-console
+        console.error("[Operation] eventtypes fetch failed", error);
+      }
+    };
+
+    loadEventTypeFields();
+
+    return () => {
+      cancelled = true;
+    };
+  }, []);
+
+  const preArrivalEventFields = (eventTypeFieldsByStage[1] || []).length
+    ? eventTypeFieldsByStage[1]
+    : FALLBACK_PRE_ARRIVAL_FIELDS;
+  const arrivalEventFields = useMemo(
+    () => {
+      const dynamicArrivalFields = [...(eventTypeFieldsByStage[2] || []), ...(eventTypeFieldsByStage[3] || [])];
+      if (!dynamicArrivalFields.length) {
+        return FALLBACK_ARRIVAL_FIELDS;
+      }
+      return dynamicArrivalFields.sort((a, b) => {
+        if ((a.stage_id || 0) !== (b.stage_id || 0)) return (a.stage_id || 0) - (b.stage_id || 0);
+        return (a.sort_order || 0) - (b.sort_order || 0);
+      });
+    },
+    [eventTypeFieldsByStage]
+  );
+  const departureEventFields = (eventTypeFieldsByStage[4] || []).length
+    ? eventTypeFieldsByStage[4]
+    : FALLBACK_DEPARTURE_FIELDS;
 
   // Merge dummy values with formValues for view-only mode (only for DA routes)
   // Dummy values take precedence to ensure all fields are populated
@@ -2107,6 +1991,7 @@ function Operation({ card, formValues, handleChange, ownerInitial, isDAModule = 
                 onRemoveLink={handleRemoveLink}
                 onOpenReportPreview={handleOpenReportPreview}
                 isViewOnly={isViewOnly}
+                eventFields={preArrivalEventFields}
               />
             )}
             {activeOperationTab === OPERATION_TABS.CHECK_LIST && (
@@ -2131,6 +2016,7 @@ function Operation({ card, formValues, handleChange, ownerInitial, isDAModule = 
                 onRemoveLink={handleRemoveLink}
                 onOpenReportPreview={handleOpenReportPreview}
                 isViewOnly={isViewOnly}
+                eventFields={arrivalEventFields}
               />
             )}
             {activeOperationTab === OPERATION_TABS.DEPARTURE && (
@@ -2142,6 +2028,7 @@ function Operation({ card, formValues, handleChange, ownerInitial, isDAModule = 
                 onRemoveLink={handleRemoveLink}
                 onOpenReportPreview={handleOpenReportPreview}
                 isViewOnly={isViewOnly}
+                eventFields={departureEventFields}
               />
             )}
           </div>
