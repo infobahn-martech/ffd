@@ -10,6 +10,7 @@ import userIcon from "../../../assets/images/DummyProPic.avif";
 import edit from "../../../assets/images/edit.svg";
 import useUserReducer from "../../../store/UserReducer";
 import useRoleReducer from "../../../store/RoleReducer";
+import usePortReducer from "../../../store/PortReducer";
 
 export function UserModal({ showModal, closeModal, onSuccess }) {
   const [profileImage, setProfileImage] = useState(null);
@@ -32,6 +33,7 @@ export function UserModal({ showModal, closeModal, onSuccess }) {
       name: "",
       email: "",
       roleid: "",
+      port_id: "",
       address: "",
     },
   });
@@ -40,6 +42,9 @@ export function UserModal({ showModal, closeModal, onSuccess }) {
     (state) => state
   );
   const { fetchRoles, roles, isLoading: isLoadingRoles } = useRoleReducer(
+    (state) => state
+  );
+  const { getPorts, ports, isLoading: isLoadingPorts } = usePortReducer(
     (state) => state
   );
 
@@ -52,10 +57,23 @@ export function UserModal({ showModal, closeModal, onSuccess }) {
   }, [roles]);
 
   const isRolesReady = !isLoadingRoles && roleOptions.length > 0;
+  const portOptions = useMemo(() => {
+    return (ports || []).map((port) => {
+      const id = port?.port_id ?? port?._id ?? port?.id;
+      const name = port?.port ?? port?.name ?? port?.port_name ?? "";
+      return {
+        id: String(id ?? ""),
+        name,
+      };
+    });
+  }, [ports]);
+
+  const isPortsReady = !isLoadingPorts && portOptions.length > 0;
 
   // Fetch roles when modal opens
   useEffect(() => {
     fetchRoles({ params: { page: 1, limit: 100 } });
+    getPorts({ params: { page: 1, limit: 1000 } });
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
@@ -68,6 +86,7 @@ export function UserModal({ showModal, closeModal, onSuccess }) {
         phone: showModal?.phone || "",
         address: showModal?.address || "",
         roleid: "", // ✅ keep empty first, set after roles loaded
+        port_id: "",
       });
 
       setProfileImagePreview(showModal?.avatar_path || userIcon);
@@ -78,6 +97,7 @@ export function UserModal({ showModal, closeModal, onSuccess }) {
         name: "",
         email: "",
         roleid: "",
+        port_id: "",
         address: "",
       });
 
@@ -104,6 +124,22 @@ export function UserModal({ showModal, closeModal, onSuccess }) {
     }
   }, [showModal?.user_id, showModal?.role_id, isRolesReady, roleOptions, setValue, getValues]);
 
+  useEffect(() => {
+    if (!showModal?.user_id) return;
+    if (!isPortsReady) return;
+
+    const incomingPortId = String(showModal?.port_id || "");
+    if (!incomingPortId) return;
+
+    const exists = portOptions.some((p) => p.id === incomingPortId);
+    if (!exists) return;
+
+    const current = String(getValues("port_id") || "");
+    if (current !== incomingPortId) {
+      setValue("port_id", incomingPortId, { shouldValidate: true });
+    }
+  }, [showModal?.user_id, showModal?.port_id, isPortsReady, portOptions, setValue, getValues]);
+
   const handleImageChange = (e) => {
     const file = e.target.files?.[0];
     if (file) {
@@ -123,6 +159,7 @@ export function UserModal({ showModal, closeModal, onSuccess }) {
       formData.append("phone", data.phone);
       formData.append("address", data.address || "");
       formData.append("roleid", data.roleid);
+      formData.append("port_id", data.port_id);
 
       if (profileImage) {
         formData.append("profileimg", profileImage);
@@ -333,6 +370,40 @@ export function UserModal({ showModal, closeModal, onSuccess }) {
                   {errors.phone && (
                     <span className="error text-danger">
                       {errors.phone.message}
+                    </span>
+                  )}
+                </div>
+              </div>
+            </div>
+          </div>
+
+          {/* ===== Port ===== */}
+          <div className="mb-lg-3 mb-sm-0">
+            <div className="permInputs row">
+              <div className="col-lg-6 col-sm-12">
+                <div className="form-floating desig-inp">
+                  <select
+                    className={`form-control form-select ${errors.port_id ? "is-invalid" : ""}`}
+                    {...register("port_id", {
+                      required: "Port is required",
+                    })}
+                    disabled={!isPortsReady}
+                  >
+                    <option value="">
+                      {isLoadingPorts ? "Loading ports..." : "Select Port"}
+                    </option>
+                    {portOptions.map((port) => (
+                      <option key={port.id} value={port.id}>
+                        {port.name}
+                      </option>
+                    ))}
+                  </select>
+                  <label>
+                    Port <span className="text-danger">*</span>
+                  </label>
+                  {errors.port_id && (
+                    <span className="error text-danger">
+                      {errors.port_id.message}
                     </span>
                   )}
                 </div>

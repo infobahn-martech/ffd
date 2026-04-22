@@ -69,6 +69,14 @@ const User = () => {
       sort: true,
     },
     {
+      name: "Port",
+      selector: "port",
+      width: "200",
+      thclass: "tb-head",
+      contentClass: "table-content",
+      sort: true,
+    },
+    {
       name: "Phone",
       selector: "phone",
       width: "200",
