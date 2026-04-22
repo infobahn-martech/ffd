@@ -18,7 +18,6 @@ import {
 import { parseChecklistTypeListResponse } from "./checklistTab/checklistApi";
 import { buildChecklistDataContext } from "./checklistTab/checklistContext";
 import { getPrerequisiteStateFromContext, getChecklistInfoHelper } from "./checklistTab/checklistPrerequisites";
-import ChecklistContextBar from "./checklistTab/ChecklistContextBar";
 import ChecklistTypeSelector from "./checklistTab/ChecklistTypeSelector";
 import ChecklistTypeBlock from "./checklistTab/ChecklistTypeBlock";
 import ChecklistFooterActions from "./checklistTab/ChecklistFooterActions";
@@ -390,7 +389,7 @@ function Checklist({
     setOpenSections((p) => ({ ...p, [sectionId]: !p[sectionId] }));
   };
 
-  const handleSelectAll = () => {};
+  const handleSelectAll = () => { };
 
   const checklistTypeLabelList = useMemo(() => {
     const map = new Map(checklistTypeOptions.map((o) => [o.value, o.label]));
@@ -439,13 +438,6 @@ function Checklist({
 
         <div className="cl-checklist-v2__panel-wrap">
           <div className="cl-panel">
-            <ChecklistContextBar
-              callType={callTypeLabel}
-              port={portLabel}
-              vesselType={vesselTypeLabel}
-              bargeType={bargeTypeLabel}
-            />
-
             <ChecklistTypeSelector
               value={checklistType}
               onChange={handleChecklistTypeChange}

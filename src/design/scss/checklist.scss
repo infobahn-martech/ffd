@@ -2065,13 +2065,6 @@
   margin-top: 10px;
 }
 
-/* Context bar */
-.cl-context-bar {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 8px;
-  margin-bottom: 20px;
-}
 
 .cl-context-pill {
   display: inline-flex;
@@ -2218,6 +2211,7 @@
   0% {
     background-position: 0% 0;
   }
+
   100% {
     background-position: 200% 0;
   }
@@ -2604,6 +2598,7 @@
   .cl-item-row td {
     vertical-align: top;
   }
+
   .cl-col-item,
   .cl-col-req,
   .cl-col-expiry,
@@ -2611,9 +2606,11 @@
   .cl-col-remarks {
     width: auto;
   }
+
   .cl-items-table-wrap {
     overflow-x: auto;
   }
+
   .cl-items-table {
     min-width: 800px;
   }
