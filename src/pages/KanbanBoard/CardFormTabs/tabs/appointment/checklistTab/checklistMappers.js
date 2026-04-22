@@ -42,11 +42,25 @@ export const mapGetChecklistByIdResponse = (apiData) => {
   return { checklistDetails, sections };
 };
 
-/** Normalize various API list shapes to an array of checklist type rows. */
+/**
+ * Normalize various API list shapes to an array of checklist type rows.
+ * Supports: { data: [...] }, { data: {...} }, [...], { checklist_type_id, ... }.
+ */
 export const extractChecklistTypeRows = (payload) => {
-  if (!payload) return [];
+  if (payload == null) return [];
   if (Array.isArray(payload)) return payload;
+  if (typeof payload !== "object") return [];
+
   if (Array.isArray(payload.data)) return payload.data;
+  if (payload.data != null && typeof payload.data === "object" && !Array.isArray(payload.data)) {
+    return [payload.data];
+  }
+
+  const hasChecklistTypeId = payload?.checklist_type_id != null && String(payload.checklist_type_id).trim() !== "";
+  if (hasChecklistTypeId) {
+    return [payload];
+  }
+
   if (Array.isArray(payload.checklists)) return payload.checklists;
   if (Array.isArray(payload.rows)) return payload.rows;
   return [];
