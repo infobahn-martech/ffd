@@ -82,6 +82,36 @@ const mapCallDetailToFormFields = (detail) => {
   };
 };
 
+const hasMeaningfulDynamicValue = (value) => {
+  if (value === undefined || value === null) return false;
+  if (typeof value === "string") return value.trim() !== "";
+  if (Array.isArray(value)) return value.length > 0;
+  return true;
+};
+
+const getDynamicFieldFallbackMap = (callDetailData, mappedCallDetail) => ({
+  po_number: callDetailData?.po_number ?? mappedCallDetail?.poNumber,
+  project_name: callDetailData?.project_name ?? mappedCallDetail?.project,
+  project_code: callDetailData?.project_code,
+  srt_number: callDetailData?.srt_number ?? mappedCallDetail?.srtNo ?? mappedCallDetail?.srtPoWbs,
+});
+
+const hasRenderableEntityFieldValue = (field, callDetailData, entityFieldValues, mappedCallDetail) => {
+  const fieldId = field?.field_id;
+  const fieldKey = field?.field_key ? String(field.field_key).trim() : "";
+
+  if (hasMeaningfulDynamicValue(entityFieldValues?.[fieldId])) return true;
+
+  if (!fieldKey) return false;
+
+  if (hasMeaningfulDynamicValue(callDetailData?.[fieldKey])) return true;
+
+  const fallbackMap = getDynamicFieldFallbackMap(callDetailData, mappedCallDetail);
+  if (hasMeaningfulDynamicValue(fallbackMap[fieldKey])) return true;
+
+  return false;
+};
+
 // Form Components
 const FormField = ({ label, children, className = "", hasError = false }) => {
   return (
@@ -1413,6 +1443,13 @@ function General({
     });
   }, [isAddMode, callDetailData, entityFields, mappedCallDetail, currentCallId]);
 
+  const visibleDynamicEntityFields = useMemo(() => {
+    if (isAddMode) return entityFields;
+    return entityFields.filter((field) =>
+      hasRenderableEntityFieldValue(field, callDetailData, entityFieldValues, mappedCallDetail)
+    );
+  }, [isAddMode, entityFields, callDetailData, entityFieldValues, mappedCallDetail]);
+
   const mappedOperatorKpiTasks = useMemo(() => {
     const rows = Array.isArray(operatorKpiTasks) ? operatorKpiTasks : [];
     return rows.map((row) => ({
@@ -1708,7 +1745,7 @@ function General({
       return;
     }
 
-    const requiredErrors = validateRequiredEntityFields(entityFields, entityFieldValues);
+    const requiredErrors = validateRequiredEntityFields(visibleDynamicEntityFields, entityFieldValues);
     if (Object.keys(requiredErrors).length > 0) {
       setEntityFieldErrors(requiredErrors);
       return;
@@ -2982,25 +3019,26 @@ function General({
                               </FormField>
                             )}
 
-                            {!entityFieldsLoading && entityFields.map((field) => (
-                              <FormField
-                                key={field.field_id}
-                                label={field.is_required === 1 ? `${field.field_name} *` : field.field_name}
-                              >
-                                <FormInput
-                                  type="text"
-                                  placeholder={`Enter ${field.field_name}...`}
-                                  value={entityFieldValues[field.field_id] || ""}
-                                  onChange={handleEntityFieldValueChange(field.field_id)}
-                                  disabled={isDisabled}
-                                />
-                                {entityFieldErrors[field.field_id] && (
-                                  <span className="error-txt" style={{ display: "block", marginTop: "4px" }}>
-                                    {entityFieldErrors[field.field_id]}
-                                  </span>
-                                )}
-                              </FormField>
-                            ))}
+                            {!entityFieldsLoading &&
+                              visibleDynamicEntityFields.map((field) => (
+                                <FormField
+                                  key={field.field_id}
+                                  label={field.is_required === 1 ? `${field.field_name} *` : field.field_name}
+                                >
+                                  <FormInput
+                                    type="text"
+                                    placeholder={`Enter ${field.field_name}...`}
+                                    value={entityFieldValues[field.field_id] || ""}
+                                    onChange={handleEntityFieldValueChange(field.field_id)}
+                                    disabled={isDisabled}
+                                  />
+                                  {entityFieldErrors[field.field_id] && (
+                                    <span className="error-txt" style={{ display: "block", marginTop: "4px" }}>
+                                      {entityFieldErrors[field.field_id]}
+                                    </span>
+                                  )}
+                                </FormField>
+                              ))}
 
                             {!entityFieldsLoading && entityFieldsError && (
                               <FormField label="">
