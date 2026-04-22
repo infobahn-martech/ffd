@@ -168,44 +168,48 @@ const ChecklistItemRow = ({
       </td>
       <td className="checklist-table-upload cl-col-upload">
         <div className="cl-upload-col">
-          <div className="cl-upload-inline">
-            {hasApiFiles
-              ? apiFiles.map((f) => (
-                <FileActionIcon
-                  key={f.id || f.file_id || f.name}
-                  file={f}
-                  onClick={() => handleApiFileClick(f)}
-                />
-              ))
-              : null}
-            {uploadedFile ? (
-              <button
-                type="button"
-                className="cl-file-icon-btn cl-file-icon-btn--local"
-                onClick={handleRemoveFile}
-                title={uploadedFile?.name || uploadedFile?.fileName || "Remove file"}
-                aria-label="Remove uploaded file"
-              >
-                ×
-              </button>
-            ) : null}
-          </div>
-          {!isViewOnly ? (
-            <button
-              type="button"
-              className={`cl-upload-dropzone ${isDragging ? "dragging" : ""}`}
-              onClick={handleBrowseClick}
-              onDragOver={handleDragOver}
-              onDragLeave={handleDragLeave}
-              onDrop={handleDrop}
-              title={uploadedFile ? "Replace uploaded file" : "Upload file"}
-              aria-label={uploadedFile ? "Replace uploaded file" : "Upload file"}
-            >
-              <span className="cl-upload-dropzone__text">
-                Drag and drop your files here, or <span className="cl-upload-dropzone__link">click to browse</span>
-              </span>
-              <span className="cl-upload-dropzone__hint">Supports all file formats</span>
-            </button>
+          {hasApiFiles || uploadedFile || !isViewOnly ? (
+            <div className="cl-upload-row">
+              <div className="cl-upload-inline">
+                {hasApiFiles
+                  ? apiFiles.map((f) => (
+                    <FileActionIcon
+                      key={f.id || f.file_id || f.name}
+                      file={f}
+                      onClick={() => handleApiFileClick(f)}
+                    />
+                  ))
+                  : null}
+                {uploadedFile ? (
+                  <button
+                    type="button"
+                    className="cl-file-icon-btn cl-file-icon-btn--local"
+                    onClick={handleRemoveFile}
+                    title={uploadedFile?.name || uploadedFile?.fileName || "Remove file"}
+                    aria-label="Remove uploaded file"
+                  >
+                    ×
+                  </button>
+                ) : null}
+              </div>
+              {!isViewOnly ? (
+                <button
+                  type="button"
+                  className={`cl-upload-dropzone ${isDragging ? "dragging" : ""}`}
+                  onClick={handleBrowseClick}
+                  onDragOver={handleDragOver}
+                  onDragLeave={handleDragLeave}
+                  onDrop={handleDrop}
+                  title={uploadedFile ? "Replace uploaded file" : "Upload file"}
+                  aria-label={uploadedFile ? "Replace uploaded file" : "Upload file"}
+                >
+                  <span className="cl-upload-dropzone__text">
+                    Drag and drop your files here, or <span className="cl-upload-dropzone__link">click to browse</span>
+                  </span>
+                  <span className="cl-upload-dropzone__hint">Supports all file formats</span>
+                </button>
+              ) : null}
+            </div>
           ) : null}
           <input
             ref={fileInputRef}
