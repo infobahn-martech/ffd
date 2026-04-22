@@ -73,16 +73,6 @@ const CheckList = () => {
   };
 
   useEffect(() => {
-    const apiParams = {
-      page: params.page,
-      limit: params.limit,
-      ...(params.search && { search: params.search }),
-      ...(params.sortBy && { sortBy: params.sortBy }),
-    };
-    getChecklists({ params: apiParams });
-  }, [params]);
-
-  useEffect(() => {
     getCallTypes();
     getVesselTypes({ params: { limit: 1000 } });
     getBargeTypes({ params: { limit: 1000 } });

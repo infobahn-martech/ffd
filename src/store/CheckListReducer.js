@@ -42,10 +42,12 @@ const useCheckListReducer = create((set) => ({
                 params?.barge_type_id != null;
             const service = hasTypeFilter ? CheckListService.getChecklistByType : CheckListService.getChecklist;
             const { data } = await service(params);
+            const total =
+                data?.pagination?.total ?? data?.totalCount ?? 0;
             set({
                 CheckLists: data?.data ?? [],
                 isLoading: false,
-                checklistCount: data?.totalCount ?? 0,
+                checklistCount: total,
             });
         } catch (error) {
             set({ errorMessage: error.message, isLoading: false });
