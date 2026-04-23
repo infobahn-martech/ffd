@@ -348,7 +348,7 @@ function Checklist({
         ) : null}
       </div>
 
-      <div className="cf-section-body">
+      <div className="cf-section-body checklist-tab-layout">
         <div className="checklist-form">
           <div className="form-group">
             <div className="cf-grid two">
@@ -442,15 +442,17 @@ function Checklist({
           </div>
 
           {!isViewOnly ? (
-            <ChecklistFooterActions
-              cardColor={cardColor}
-              disabled={isLoading || selectedChecklistTypeIds.length === 0}
-              onSaveConfirm={() => {
-                // Save API can be attached here when backend endpoint is finalized.
-                // eslint-disable-next-line no-console
-                console.log("Checklist save payload:", savePayload);
-              }}
-            />
+            <div className="checklist-actions">
+              <ChecklistFooterActions
+                cardColor={cardColor}
+                disabled={isLoading || selectedChecklistTypeIds.length === 0}
+                onSaveConfirm={() => {
+                  // Save API can be attached here when backend endpoint is finalized.
+                  // eslint-disable-next-line no-console
+                  console.log("Checklist save payload:", savePayload);
+                }}
+              />
+            </div>
           ) : null}
         </div>
       </div>
