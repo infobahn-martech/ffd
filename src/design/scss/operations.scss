@@ -2942,6 +2942,91 @@ $send-report-optional: #80868b;
   font-family: "Open Sans", sans-serif;
 }
 
+/* View-mode readability tuning for Appointment > General tab */
+.general-tab-body--view-mode {
+  .cf-input:has(input:disabled),
+  .cf-input:has(input[disabled]),
+  .cf-input.disabled,
+  .cf-field.disabled .cf-input,
+  .cf-select:has(select:disabled),
+  .cf-select:has(select[disabled]) {
+    background: #f8f9fc;
+    border-color: #d7dce8;
+    opacity: 1;
+  }
+
+  .cf-input input:disabled,
+  .cf-input input[disabled],
+  .cf-select select:disabled,
+  .cf-select select[disabled] {
+    color: #4b5563 !important;
+    -webkit-text-fill-color: #4b5563;
+    opacity: 1;
+  }
+
+  .cf-input:has(input:disabled)::before,
+  .cf-input:has(input[disabled])::before {
+    background: transparent;
+  }
+
+  .cf-select select {
+    background-image: none;
+    padding-right: 0;
+  }
+
+  .cf-multi-select-email-input.disabled .cf-multi-select-arrow,
+  .cf-searchable-select.disabled .cf-multi-select-arrow {
+    display: none;
+  }
+
+  .cf-date-input input[type="date"]::-webkit-calendar-picker-indicator,
+  .cf-input input[type="date"]::-webkit-calendar-picker-indicator,
+  .cf-input input[type="time"]::-webkit-calendar-picker-indicator {
+    display: none;
+    opacity: 0;
+    pointer-events: none;
+  }
+}
+
+.appointment-view-loading {
+  border: 1px solid #e5e7ef;
+  border-radius: 10px;
+  background: #f9fafe;
+  padding: 12px;
+  margin-bottom: 12px;
+}
+
+.appointment-view-loading__line {
+  height: 10px;
+  width: 100%;
+  border-radius: 999px;
+  background: linear-gradient(90deg, #eef1f7 20%, #f8f9fc 45%, #eef1f7 70%);
+  background-size: 200% 100%;
+  animation: appointmentViewLoadingShimmer 1.25s linear infinite;
+}
+
+.appointment-view-loading__line + .appointment-view-loading__line {
+  margin-top: 8px;
+}
+
+.appointment-view-loading__line--title {
+  width: 48%;
+}
+
+.appointment-view-loading__line--short {
+  width: 72%;
+}
+
+@keyframes appointmentViewLoadingShimmer {
+  0% {
+    background-position: 200% 0;
+  }
+
+  100% {
+    background-position: -200% 0;
+  }
+}
+
 .cf-textarea {
   background: #ffffff;
   border-radius: 8px;

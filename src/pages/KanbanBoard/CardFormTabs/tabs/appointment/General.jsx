@@ -2202,6 +2202,7 @@ function General({
   // In simplified mode: always enabled
   // In full mode: disabled when not in add mode (same as before)
   const isDisabled = isSimplifiedMode ? false : !isAddMode;
+  const isViewMode = !isAddMode;
   const masterInputsDisabled = isDisabled || masterDataLoading;
 
   // Check if MWP RENEWAL type is selected in simplified mode
@@ -2411,7 +2412,7 @@ function General({
 
 
   return (
-    <div className="cardform-body general-tab-body">
+    <div className={`cardform-body general-tab-body ${isViewMode ? "general-tab-body--view-mode" : ""}`}>
       <div className="general-sections-wrapper">
         <div className={`cf-section general-info-section ${isAddMode ? "general-info-section--add-mode" : ""}`}>
           {!isAddMode && (
@@ -2434,8 +2435,10 @@ function General({
           )}
           <div className="cf-section-body">
             {!isAddMode && callDetailLoading && (
-              <div className="cf-input" style={{ marginBottom: "12px" }}>
-                <input type="text" value="Loading call details..." readOnly />
+              <div className="appointment-view-loading" aria-live="polite">
+                <div className="appointment-view-loading__line appointment-view-loading__line--title" />
+                <div className="appointment-view-loading__line" />
+                <div className="appointment-view-loading__line appointment-view-loading__line--short" />
               </div>
             )}
             <div className={isAddMode ? "general-add-mode-wrapper" : ""}>
