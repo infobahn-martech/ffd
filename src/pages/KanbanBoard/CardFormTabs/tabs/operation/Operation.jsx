@@ -824,6 +824,117 @@ CompactFileUploadRow.propTypes = {
   isViewOnly: PropTypes.bool,
 };
 
+const SaberUploadBox = ({ files = [], onAddFiles, isViewOnly = false }) => {
+  const [isDragging, setIsDragging] = useState(false);
+  const inputRef = useRef(null);
+
+  const appendFromFileList = (fileList) => {
+    const selectedFiles = Array.from(fileList || []);
+    if (!selectedFiles.length) return;
+    const mapped = selectedFiles.map((file) => ({
+      name: file.name,
+      file,
+      size: file.size,
+      type: file.type,
+    }));
+    onAddFiles(mapped);
+  };
+
+  const handleDragEnter = (e) => {
+    if (isViewOnly) return;
+    e.preventDefault();
+    e.stopPropagation();
+    setIsDragging(true);
+  };
+
+  const handleDragLeave = (e) => {
+    if (isViewOnly) return;
+    e.preventDefault();
+    e.stopPropagation();
+    setIsDragging(false);
+  };
+
+  const handleDragOver = (e) => {
+    if (isViewOnly) return;
+    e.preventDefault();
+    e.stopPropagation();
+  };
+
+  const handleDrop = (e) => {
+    if (isViewOnly) return;
+    e.preventDefault();
+    e.stopPropagation();
+    setIsDragging(false);
+    appendFromFileList(e.dataTransfer?.files);
+  };
+
+  const handleInputChange = (e) => {
+    appendFromFileList(e.target.files);
+    e.target.value = "";
+  };
+
+  return (
+    <div>
+      <div
+        className={`saber-upload-dropzone${isDragging ? " saber-upload-dropzone--active" : ""}${isViewOnly ? " saber-upload-dropzone--disabled" : ""}`}
+        onDragEnter={handleDragEnter}
+        onDragLeave={handleDragLeave}
+        onDragOver={handleDragOver}
+        onDrop={handleDrop}
+        role="button"
+        tabIndex={isViewOnly ? -1 : 0}
+        onClick={() => !isViewOnly && inputRef.current?.click()}
+        onKeyDown={(e) => {
+          if (isViewOnly) return;
+          if (e.key === "Enter" || e.key === " ") {
+            e.preventDefault();
+            inputRef.current?.click();
+          }
+        }}
+        aria-label="Upload SABER certificate files"
+      >
+        <div className="saber-upload-content">
+          <p className="saber-upload-primary-text">
+            Drag and drop your files here, or{" "}
+            <span
+              className="saber-upload-browse-link"
+              onClick={(e) => {
+                e.stopPropagation();
+                if (!isViewOnly) inputRef.current?.click();
+              }}
+            >
+              click to browse
+            </span>
+          </p>
+          <p className="saber-upload-helper-text">Supports all file formats</p>
+        </div>
+        <input
+          ref={inputRef}
+          type="file"
+          className="document-row-file-input"
+          multiple
+          onChange={handleInputChange}
+          aria-hidden
+          tabIndex={-1}
+        />
+      </div>
+      <div className="saber-upload-file-summary" title={(files || []).map((doc) => doc.name).join("\n")}>
+        {(files || []).length === 0
+          ? "No files selected"
+          : files.length === 1
+            ? "1 file selected"
+            : `${files.length} files selected`}
+      </div>
+    </div>
+  );
+};
+
+SaberUploadBox.propTypes = {
+  files: PropTypes.array,
+  onAddFiles: PropTypes.func.isRequired,
+  isViewOnly: PropTypes.bool,
+};
+
 function DocumentGroupCard({ title, children }) {
   return (
     <div className="document-group-card">
@@ -933,13 +1044,6 @@ const PreArrivalContent = ({ formValues, handleChange, ownerInitial, cardUser, c
     handleChange("saberUtDocumentsAttachments")({ target: { value: [...currentAttachments, ...files] } });
   };
 
-  const handleSaberUtRemoveAt = (index) => {
-    const currentAttachments = formValues.saberUtDocumentsAttachments || [];
-    handleChange("saberUtDocumentsAttachments")({
-      target: { value: currentAttachments.filter((_, i) => i !== index) },
-    });
-  };
-
   const handleSave = () => {
     console.log("Saving Pre Arrival data:", formValues);
   };
@@ -989,12 +1093,10 @@ const PreArrivalContent = ({ formValues, handleChange, ownerInitial, cardUser, c
                 />
               </FormField>
 
-              <FormField label="SABER certificate upload">
-                <CompactFileUploadRow
-                  label="SABER certificate(s)"
+              <FormField label="SABER Certificate Upload">
+                <SaberUploadBox
                   files={formValues.saberUtDocumentsAttachments || []}
                   onAddFiles={handleSaberUtAddFiles}
-                  onRemoveAt={handleSaberUtRemoveAt}
                   isViewOnly={isViewOnly}
                 />
               </FormField>

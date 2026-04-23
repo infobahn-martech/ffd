@@ -1906,6 +1906,65 @@ $send-report-optional: #80868b;
     gap: 4px;
   }
 
+  .saber-upload-dropzone {
+    width: 100%;
+    border: 1.5px dashed #d5dbea;
+    border-radius: 10px;
+    background: #fbfcff;
+    padding: 14px 16px;
+    cursor: pointer;
+    transition: border-color 0.15s ease, background-color 0.15s ease;
+  }
+
+  .saber-upload-dropzone:hover {
+    border-color: #c0cae5;
+    background: #f8faff;
+  }
+
+  .saber-upload-dropzone--active {
+    border-color: #3e5cb6;
+    background: #eef3ff;
+  }
+
+  .saber-upload-dropzone--disabled {
+    cursor: default;
+    opacity: 0.85;
+  }
+
+  .saber-upload-content {
+    text-align: center;
+  }
+
+  .saber-upload-primary-text {
+    margin: 0;
+    font-size: 13px;
+    color: #1f2937;
+    line-height: 1.45;
+    font-weight: 500;
+  }
+
+  .saber-upload-browse-link {
+    color: #1f4fbf;
+    text-decoration: underline;
+    text-underline-offset: 2px;
+  }
+
+  .saber-upload-helper-text {
+    margin: 2px 0 0;
+    font-size: 12px;
+    color: #8b93a5;
+    line-height: 1.4;
+  }
+
+  .saber-upload-file-summary {
+    margin-top: 8px;
+    font-size: 12px;
+    color: #5f6368;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+
   .document-row-file--chips {
     flex: 2 1 280px;
     align-items: flex-start;
