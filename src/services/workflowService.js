@@ -15,6 +15,9 @@ const disableWorkflow = (workflowId) =>
 const createWorkflow = (data) =>
     Gateway.post('/kanban_workflow/create_workflow', data);
 
+const getUserRoles = () =>
+    Gateway.get('/kanban_workflow/user_role');
+
 const createSwimlane = (data) =>
     Gateway.post('/kanban_workflow/create_swimlane', data);
 
@@ -48,6 +51,7 @@ export default {
     deleteWorkflow,
     disableWorkflow,
     createWorkflow,
+    getUserRoles,
     createSwimlane,
     getSwimlaneByWorkflow,
     renameSwimlane,

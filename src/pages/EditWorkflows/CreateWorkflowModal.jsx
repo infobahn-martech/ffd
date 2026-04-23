@@ -2,20 +2,63 @@ import { useState, useEffect } from 'react';
 import { FiX } from 'react-icons/fi';
 import { Modal } from 'react-bootstrap';
 import '../../structure/SideNav/components/AddDashboardModal.scss';
+import workflowService from '../../services/workflowService';
+
+const DEFAULT_ROLE_OPTION = '__select_role__';
 
 const CreateWorkflowModal = ({ show, onClose, onSave, isSaving = false }) => {
   const [workflowName, setWorkflowName] = useState('');
+  const [roleId, setRoleId] = useState(DEFAULT_ROLE_OPTION);
+  const [roles, setRoles] = useState([]);
+  const [isRolesLoading, setIsRolesLoading] = useState(false);
 
   useEffect(() => {
-    if (!show) setWorkflowName('');
+    if (!show) {
+      setWorkflowName('');
+      setRoleId(DEFAULT_ROLE_OPTION);
+    }
+  }, [show]);
+
+  useEffect(() => {
+    if (!show) return;
+
+    let isMounted = true;
+    setIsRolesLoading(true);
+
+    workflowService
+      .getUserRoles()
+      .then((res) => {
+        if (!isMounted) return;
+        const responseData = Array.isArray(res?.data?.data)
+          ? res.data.data
+          : Array.isArray(res?.data)
+            ? res.data
+            : [];
+        const normalizedRoles = responseData.map((item) => ({
+          role_id: item?.role_id ?? '',
+          role: item?.role ?? 'N/A',
+        }));
+        setRoles(normalizedRoles);
+      })
+      .catch(() => {
+        if (isMounted) setRoles([]);
+      })
+      .finally(() => {
+        if (isMounted) setIsRolesLoading(false);
+      });
+
+    return () => {
+      isMounted = false;
+    };
   }, [show]);
 
   const handleSubmit = (e) => {
     e.preventDefault();
-    if (!workflowName.trim() || isSaving) return;
+    if (!workflowName.trim() || roleId === DEFAULT_ROLE_OPTION || isSaving || isRolesLoading) return;
     if (onSave) {
       onSave({
         workflow_name: workflowName.trim(),
+        role_id: roleId,
       });
     }
   };
@@ -23,6 +66,7 @@ const CreateWorkflowModal = ({ show, onClose, onSave, isSaving = false }) => {
   const handleClose = () => {
     if (isSaving) return;
     setWorkflowName('');
+    setRoleId(DEFAULT_ROLE_OPTION);
     onClose();
   };
 
@@ -54,19 +98,46 @@ const CreateWorkflowModal = ({ show, onClose, onSave, isSaving = false }) => {
         </div>
 
         <div className="add-dashboard-modal-body">
-          <label htmlFor="workflowName" className="add-dashboard-label">
-            Name
-          </label>
-          <input
-            type="text"
-            id="workflowName"
-            className="add-dashboard-input"
-            placeholder=""
-            value={workflowName}
-            onChange={(e) => setWorkflowName(e.target.value)}
-            disabled={isSaving}
-            autoFocus
-          />
+          <div className="add-dashboard-field">
+            <label htmlFor="workflowName" className="add-dashboard-label">
+              Name
+            </label>
+            <input
+              type="text"
+              id="workflowName"
+              className="add-dashboard-input"
+              placeholder="Enter workflow name"
+              value={workflowName}
+              onChange={(e) => setWorkflowName(e.target.value)}
+              disabled={isSaving}
+              autoFocus
+            />
+          </div>
+
+          <div className="add-dashboard-field">
+            <label htmlFor="workflowRole" className="add-dashboard-label">
+              Role
+            </label>
+            <select
+              id="workflowRole"
+              className="add-dashboard-input add-dashboard-select"
+              value={roleId}
+              onChange={(e) => setRoleId(e.target.value)}
+              disabled={isSaving || isRolesLoading}
+            >
+              <option value={DEFAULT_ROLE_OPTION} disabled>
+                {isRolesLoading ? 'Loading roles...' : 'Select role'}
+              </option>
+              {roles.map((roleOption, index) => (
+                <option key={`${roleOption.role_id || 'empty'}-${index}`} value={roleOption.role_id}>
+                  {roleOption.role}
+                </option>
+              ))}
+            </select>
+            {!isRolesLoading && roles.length === 0 ? (
+              <div className="add-dashboard-field-hint">No roles found.</div>
+            ) : null}
+          </div>
         </div>
 
         <div className="add-dashboard-modal-footer">
@@ -81,7 +152,7 @@ const CreateWorkflowModal = ({ show, onClose, onSave, isSaving = false }) => {
           <button
             type="submit"
             className="add-dashboard-btn add-dashboard-btn--text"
-            disabled={!workflowName.trim() || isSaving}
+            disabled={!workflowName.trim() || roleId === DEFAULT_ROLE_OPTION || isSaving || isRolesLoading}
           >
             Save
           </button>

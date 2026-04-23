@@ -96,6 +96,14 @@
   margin-bottom: 32px;
 }
 
+.add-dashboard-field {
+  margin-bottom: 16px;
+
+  &:last-child {
+    margin-bottom: 0;
+  }
+}
+
 .add-dashboard-label {
   display: block;
   margin-bottom: 8px;
@@ -131,6 +139,17 @@
     border-color: rgba(0, 54, 140, 0.35);
     box-shadow: 0 0 0 3px rgba(0, 54, 140, 0.08);
   }
+}
+
+.add-dashboard-select {
+  appearance: auto;
+  cursor: pointer;
+}
+
+.add-dashboard-field-hint {
+  margin-top: 6px;
+  font-size: 0.75rem;
+  color: #94a3b8;
 }
 
 .add-dashboard-modal-footer {
