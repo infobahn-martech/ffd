@@ -929,6 +929,10 @@ DocumentGroupCard.propTypes = {
 
 function PreArrivalDocumentHandlingSection({ formValues, handleChange, isViewOnly }) {
   const dh = formValues.preArrivalDocumentHandling || DEFAULT_PRE_ARRIVAL_DOCUMENT_HANDLING;
+  const [selectedGroOption, setSelectedGroOption] = useState(isViewOnly ? "gro-option-1" : "");
+  const [selectedCustomClearanceOption, setSelectedCustomClearanceOption] = useState(
+    isViewOnly ? "clearance-option-1" : ""
+  );
 
   const setDh = (next) => {
     handleChange("preArrivalDocumentHandling")({ target: { value: next } });
@@ -948,62 +952,106 @@ function PreArrivalDocumentHandlingSection({ formValues, handleChange, isViewOnl
   };
 
   const { gro: groOn, customClearance: ccOn } = dh.selectedProcesses || {};
+  const showDocumentHandlingContent = Boolean(selectedGroOption && selectedCustomClearanceOption);
+
+  const groDummyOptions = [
+    { value: "gro-option-1", label: "GRO Option 1" },
+    { value: "gro-option-2", label: "GRO Option 2" },
+    { value: "gro-option-3", label: "GRO Option 3" },
+  ];
+
+  const customClearanceDummyOptions = [
+    { value: "clearance-option-1", label: "Clearance Option 1" },
+    { value: "clearance-option-2", label: "Clearance Option 2" },
+    { value: "clearance-option-3", label: "Clearance Option 3" },
+  ];
 
   return (
     <div className="document-handling-section">
-      <div className="document-handling-section__divider" />
-      <h3 className="document-handling-section__heading">Document handling</h3>
-      <p className="document-handling-section__hint">Select the processes that apply. Uploads are tracked separately for each group.</p>
-
-      <div className="process-selector-row" role="group" aria-label="Document process selection">
-        <button
-          type="button"
-          className={`process-selector-option${groOn ? " process-selector-option--active" : ""}`}
-          onClick={() => toggleProcess("gro")}
-          disabled={isViewOnly}
-        >
-          GRO
-        </button>
-        <button
-          type="button"
-          className={`process-selector-option${ccOn ? " process-selector-option--active" : ""}`}
-          onClick={() => toggleProcess("customClearance")}
-          disabled={isViewOnly}
-        >
-          Custom clearance
-        </button>
+      <div className="document-handling-preselect">
+        <FormField label="Select GRO">
+          <FormSelect
+            value={selectedGroOption}
+            onChange={(e) => setSelectedGroOption(e.target.value)}
+            options={groDummyOptions}
+            placeholder="Select GRO"
+            disabled={isViewOnly}
+          />
+        </FormField>
+        <FormField label="Select Custom clearance">
+          <FormSelect
+            value={selectedCustomClearanceOption}
+            onChange={(e) => setSelectedCustomClearanceOption(e.target.value)}
+            options={customClearanceDummyOptions}
+            placeholder="Select Custom clearance"
+            disabled={isViewOnly}
+          />
+        </FormField>
       </div>
 
-      {groOn && (
-        <DocumentGroupCard title="GRO documents">
-          {(dh.documents.gro || []).map((doc) => (
-            <CompactFileUploadRow
-              key={doc.id}
-              label={doc.name}
-              files={doc.files || []}
-              isRequired={Boolean(doc.is_required)}
-              isViewOnly={isViewOnly}
-              onAddFiles={(newFiles) => patchRowFiles("gro", doc.id, [...(doc.files || []), ...newFiles])}
-              onRemoveAt={(idx) => patchRowFiles("gro", doc.id, (doc.files || []).filter((_, i) => i !== idx))}
-            />
-          ))}
-        </DocumentGroupCard>
-      )}
+      {showDocumentHandlingContent && (
+        <>
+          <div className="document-handling-section__divider" />
+          <h3 className="document-handling-section__heading">Document handling</h3>
+          <p className="document-handling-section__hint">Select the processes that apply. Uploads are tracked separately for each group.</p>
 
-      {ccOn && (
-        <DocumentGroupCard title="Custom clearance documents">
-          {(dh.documents.customClearance || []).map((doc) => (
-            <CompactFileUploadRow
-              key={doc.id}
-              label={doc.name}
-              files={doc.files || []}
-              isRequired={Boolean(doc.is_required)}
-              isViewOnly={isViewOnly}
-              onAddFiles={(newFiles) => patchRowFiles("customClearance", doc.id, [...(doc.files || []), ...newFiles])}
-              onRemoveAt={(idx) => patchRowFiles("customClearance", doc.id, (doc.files || []).filter((_, i) => i !== idx))}
-            />
-          ))}
-        </DocumentGroupCard>
+          <div className="process-selector-row" role="group" aria-label="Document process selection">
+            <div className="process-selector-block">
+              <span className="process-selector-row__label">Select GRO</span>
+              <button
+                type="button"
+                className={`process-selector-option${groOn ? " process-selector-option--active" : ""}`}
+                onClick={() => toggleProcess("gro")}
+                disabled={isViewOnly}
+              >
+                GRO
+              </button>
+            </div>
+            <div className="process-selector-block">
+              <span className="process-selector-row__label">Select Custom clearance</span>
+              <button
+                type="button"
+                className={`process-selector-option${ccOn ? " process-selector-option--active" : ""}`}
+                onClick={() => toggleProcess("customClearance")}
+                disabled={isViewOnly}
+              >
+                Custom clearance
+              </button>
+            </div>
+        </div>
+
+          {groOn && (
+            <DocumentGroupCard title="GRO documents">
+              {(dh.documents.gro || []).map((doc) => (
+                <CompactFileUploadRow
+                  key={doc.id}
+                  label={doc.name}
+                  files={doc.files || []}
+                  isRequired={Boolean(doc.is_required)}
+                  isViewOnly={isViewOnly}
+                  onAddFiles={(newFiles) => patchRowFiles("gro", doc.id, [...(doc.files || []), ...newFiles])}
+                  onRemoveAt={(idx) => patchRowFiles("gro", doc.id, (doc.files || []).filter((_, i) => i !== idx))}
+                />
+              ))}
+            </DocumentGroupCard>
+          )}
+
+          {ccOn && (
+            <DocumentGroupCard title="Custom clearance documents">
+              {(dh.documents.customClearance || []).map((doc) => (
+                <CompactFileUploadRow
+                  key={doc.id}
+                  label={doc.name}
+                  files={doc.files || []}
+                  isRequired={Boolean(doc.is_required)}
+                  isViewOnly={isViewOnly}
+                  onAddFiles={(newFiles) => patchRowFiles("customClearance", doc.id, [...(doc.files || []), ...newFiles])}
+                  onRemoveAt={(idx) => patchRowFiles("customClearance", doc.id, (doc.files || []).filter((_, i) => i !== idx))}
+                />
+              ))}
+            </DocumentGroupCard>
+          )}
+        </>
       )}
     </div>
   );
@@ -1077,11 +1125,31 @@ const PreArrivalContent = ({ formValues, handleChange, ownerInitial, cardUser, c
                   isViewOnly={isViewOnly}
                 />
               </FormField>
+
+              <FormField label="Weather Forecast">
+                <FormInput
+                  type="text"
+                  value={formValues?.weatherForecast || ""}
+                  onChange={handleChange("weatherForecast")}
+                  placeholder="Enter weather forecast..."
+                  disabled={isViewOnly}
+                />
+              </FormField>
+
+              <FormField label="Coordinates">
+                <FormInput
+                  type="text"
+                  value={formValues?.coordinates || ""}
+                  onChange={handleChange("coordinates")}
+                  placeholder="Enter coordinates..."
+                  disabled={isViewOnly}
+                />
+              </FormField>
             </div>
 
             <div className="pre-arrival-middle general-info-right prearrival-right-column">
               <div
-                className="card-description-wrapper"
+                className="card-description-wrapper card-description-wrapper--remarks"
                 style={{
                   minHeight: isViewOnly ? "300px" : "auto",
                   maxHeight: isViewOnly ? "400px" : "none",
@@ -1108,31 +1176,10 @@ const PreArrivalContent = ({ formValues, handleChange, ownerInitial, cardUser, c
                       onChange={handleChange("preArrivalDescription")}
                       placeholder="Enter pre-arrival remarks..."
                       name="preArrivalDescription"
+                      className="prearrival-quill-editor"
                       readOnly={isViewOnly}
                     />
                   </div>
-                </FormField>
-              </div>
-              <div className="card-description-wrapper">
-                <FormField label="Weather Forecast">
-                  <FormInput
-                    type="text"
-                    value={formValues?.weatherForecast || ""}
-                    onChange={handleChange("weatherForecast")}
-                    placeholder="Enter weather forecast..."
-                    disabled={isViewOnly}
-                  />
-                </FormField>
-              </div>
-              <div className="card-description-wrapper">
-                <FormField label="Coordinates">
-                  <FormInput
-                    type="text"
-                    value={formValues?.coordinates || ""}
-                    onChange={handleChange("coordinates")}
-                    placeholder="Enter coordinates..."
-                    disabled={isViewOnly}
-                  />
                 </FormField>
               </div>
             </div>
