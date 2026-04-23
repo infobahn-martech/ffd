@@ -1222,14 +1222,22 @@ function CardForm({
         const base = JSON.parse(JSON.stringify(DEFAULT_PRE_ARRIVAL_DOCUMENT_HANDLING));
         const c = card?.preArrivalDocumentHandling;
         if (!c || typeof c !== "object") return base;
+        const normalizeRows = (rows, fallbackRows) =>
+          Array.isArray(rows) && rows.length
+            ? rows.map((row) => ({
+              ...row,
+              files: Array.isArray(row?.files)
+                ? row.files
+                : row?.file
+                  ? [row.file]
+                  : [],
+            }))
+            : fallbackRows;
         return {
           selectedProcesses: { ...base.selectedProcesses, ...c.selectedProcesses },
           documents: {
-            gro: Array.isArray(c.documents?.gro) && c.documents.gro.length ? c.documents.gro : base.documents.gro,
-            customClearance:
-              Array.isArray(c.documents?.customClearance) && c.documents.customClearance.length
-                ? c.documents.customClearance
-                : base.documents.customClearance,
+            gro: normalizeRows(c.documents?.gro, base.documents.gro),
+            customClearance: normalizeRows(c.documents?.customClearance, base.documents.customClearance),
           },
         };
       })(),

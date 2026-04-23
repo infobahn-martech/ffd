@@ -1,6 +1,6 @@
 /**
  * Pre-Arrival "Document Handling" state (GRO / Custom Clearance).
- * Rows are API-friendly: { id, name, is_required, file } where file matches attachment shape or null.
+ * Rows are API-friendly: { id, name, is_required, files } where files is an attachment array.
  */
 
 export const DEFAULT_PRE_ARRIVAL_DOCUMENT_HANDLING = {
@@ -10,13 +10,13 @@ export const DEFAULT_PRE_ARRIVAL_DOCUMENT_HANDLING = {
   },
   documents: {
     gro: [
-      { id: "pre-gro-1", name: "GRO appointment confirmation", is_required: true, file: null },
-      { id: "pre-gro-2", name: "Berthing allocation (GRO)", is_required: false, file: null },
+      { id: "pre-gro-1", name: "GRO appointment confirmation", is_required: true, files: [] },
+      { id: "pre-gro-2", name: "Berthing allocation (GRO)", is_required: false, files: [] },
     ],
     customClearance: [
-      { id: "pre-cc-1", name: "Customs import declaration", is_required: true, file: null },
-      { id: "pre-cc-2", name: "Bill of lading / cargo manifest", is_required: true, file: null },
-      { id: "pre-cc-3", name: "Delivery order", is_required: false, file: null },
+      { id: "pre-cc-1", name: "Customs import declaration", is_required: true, files: [] },
+      { id: "pre-cc-2", name: "Bill of lading / cargo manifest", is_required: true, files: [] },
+      { id: "pre-cc-3", name: "Delivery order", is_required: false, files: [] },
     ],
   },
 };
@@ -37,7 +37,11 @@ export function mapPreArrivalDocumentsFromApi(apiPayload) {
       id: row.id != null ? String(row.id) : `api-row-${i}`,
       name: row.name || row.document_name || row.label || "Document",
       is_required: Boolean(row.is_required ?? row.required),
-      file: row.file ?? null,
+      files: Array.isArray(row.files)
+        ? row.files
+        : row.file
+          ? [row.file]
+          : [],
     }));
 
   return {
@@ -46,10 +50,10 @@ export function mapPreArrivalDocumentsFromApi(apiPayload) {
       customClearance: Boolean(apiPayload.selectedProcesses?.customClearance ?? apiPayload.custom_clearance_enabled),
     },
     documents: {
-      gro: mapRows(groRaw).length ? mapRows(groRaw) : DEFAULT_PRE_ARRIVAL_DOCUMENT_HANDLING.documents.gro.map((d) => ({ ...d, file: null })),
+      gro: mapRows(groRaw).length ? mapRows(groRaw) : DEFAULT_PRE_ARRIVAL_DOCUMENT_HANDLING.documents.gro.map((d) => ({ ...d, files: [] })),
       customClearance: mapRows(ccRaw).length
         ? mapRows(ccRaw)
-        : DEFAULT_PRE_ARRIVAL_DOCUMENT_HANDLING.documents.customClearance.map((d) => ({ ...d, file: null })),
+        : DEFAULT_PRE_ARRIVAL_DOCUMENT_HANDLING.documents.customClearance.map((d) => ({ ...d, files: [] })),
     },
   };
 }
@@ -59,7 +63,9 @@ export function collectPreArrivalProcessAttachments(documentHandling) {
   const out = [];
   ["gro", "customClearance"].forEach((key) => {
     (documentHandling.documents[key] || []).forEach((row) => {
-      if (row?.file) out.push(row.file);
+      (row?.files || []).forEach((file) => {
+        if (file) out.push(file);
+      });
     });
   });
   return out;

@@ -1882,6 +1882,30 @@ $send-report-optional: #80868b;
     align-items: center;
   }
 
+  .compact-file-upload-row {
+    align-items: center;
+  }
+
+  .compact-file-upload-label {
+    flex: 1 1 200px;
+  }
+
+  .compact-file-upload-files {
+    flex: 1 1 180px;
+  }
+
+  .compact-file-upload-summary {
+    font-size: 12px;
+    color: #3c4043;
+    line-height: 1.4;
+  }
+
+  .compact-file-upload-actions {
+    display: flex;
+    align-items: center;
+    gap: 4px;
+  }
+
   .document-row-file--chips {
     flex: 2 1 280px;
     align-items: flex-start;
@@ -2000,6 +2024,17 @@ $send-report-optional: #80868b;
     height: 0;
     opacity: 0;
     pointer-events: none;
+  }
+
+  .prearrival-actions {
+    margin-top: 22px;
+    display: flex;
+    justify-content: flex-end;
+    width: 100%;
+  }
+
+  .prearrival-save-button {
+    min-width: 104px;
   }
 }
 

@@ -758,52 +758,53 @@ function openAttachmentPreview(attachment) {
   console.log("Preview document:", attachment?.name);
 }
 
-const DocumentRow = ({ doc, onChooseFile, onRemoveFile, isViewOnly }) => {
+const CompactFileUploadRow = ({ label, files = [], isRequired = false, onAddFiles, onRemoveAt, isViewOnly = false }) => {
   const inputRef = useRef(null);
-  const hasFile = Boolean(doc?.file?.name || doc?.file);
+  const hasFiles = (files || []).length > 0;
 
   const handleInput = (e) => {
-    const file = e.target.files?.[0];
-    if (file) {
-      onChooseFile({
+    const selectedFiles = Array.from(e.target.files || []);
+    if (selectedFiles.length) {
+      const mapped = selectedFiles.map((file) => ({
         name: file.name,
         file,
         size: file.size,
         type: file.type,
-      });
+      }));
+      onAddFiles(mapped);
     }
     e.target.value = "";
   };
 
   return (
-    <div className="document-row">
-      <div className="document-row-name">
-        <span title={doc.name}>{doc.name}</span>
+    <div className="document-row compact-file-upload-row">
+      <div className="document-row-name compact-file-upload-label">
+        <span title={label}>{label}</span>
       </div>
-      <div className="document-row-status">{doc.is_required ? <IconAsteriskRequired /> : <span className="document-row-optional" />}</div>
-      <div className="document-row-file">
-        {hasFile ? (
-          <span className="document-row-filename" title={doc.file.name}>
-            {doc.file.name}
-          </span>
+      <div className="document-row-status">{isRequired ? <IconAsteriskRequired /> : <span className="document-row-optional" />}</div>
+      <div className="document-row-file compact-file-upload-files">
+        {hasFiles ? (
+          <div className="compact-file-upload-summary" title={files.map((doc) => doc.name).join("\n")}>
+            {files.length === 1 ? "1 file selected" : `${files.length} files selected`}
+          </div>
         ) : (
-          <span className="document-row-filename document-row-filename--empty">No file</span>
+          <span className="document-row-filename document-row-filename--empty">No files</span>
         )}
       </div>
-      <div className="document-row-actions">
-        {hasFile && (
-          <button type="button" className="document-row-icon-btn" onClick={() => openAttachmentPreview(doc.file)} title="Preview">
+      <div className="document-row-actions compact-file-upload-actions">
+        {hasFiles && (
+          <button type="button" className="document-row-icon-btn" onClick={() => openAttachmentPreview(files[0])} title="Preview">
             <IconEye />
           </button>
         )}
         {!isViewOnly && (
           <>
-            <button type="button" className="document-row-icon-btn" onClick={() => inputRef.current?.click()} title={hasFile ? "Replace" : "Upload"}>
+            <button type="button" className="document-row-icon-btn" onClick={() => inputRef.current?.click()} title={hasFiles ? "Add more files" : "Upload files"}>
               <IconUpload />
             </button>
-            <input ref={inputRef} type="file" className="document-row-file-input" onChange={handleInput} aria-label={`Upload ${doc.name}`} />
-            {hasFile && (
-              <button type="button" className="document-row-icon-btn document-row-icon-btn--danger" onClick={() => onRemoveFile()} title="Remove">
+            <input ref={inputRef} type="file" className="document-row-file-input" onChange={handleInput} aria-label={`Upload ${label}`} multiple />
+            {hasFiles && (
+              <button type="button" className="document-row-icon-btn document-row-icon-btn--danger" onClick={() => onRemoveAt(files.length - 1)} title="Remove latest file">
                 <IconTrash />
               </button>
             )}
@@ -814,15 +815,12 @@ const DocumentRow = ({ doc, onChooseFile, onRemoveFile, isViewOnly }) => {
   );
 };
 
-DocumentRow.propTypes = {
-  doc: PropTypes.shape({
-    id: PropTypes.string.isRequired,
-    name: PropTypes.string.isRequired,
-    is_required: PropTypes.bool,
-    file: PropTypes.object,
-  }).isRequired,
-  onChooseFile: PropTypes.func.isRequired,
-  onRemoveFile: PropTypes.func.isRequired,
+CompactFileUploadRow.propTypes = {
+  label: PropTypes.string.isRequired,
+  files: PropTypes.array,
+  isRequired: PropTypes.bool,
+  onAddFiles: PropTypes.func.isRequired,
+  onRemoveAt: PropTypes.func.isRequired,
   isViewOnly: PropTypes.bool,
 };
 
@@ -840,64 +838,6 @@ DocumentGroupCard.propTypes = {
   children: PropTypes.node.isRequired,
 };
 
-function PreArrivalSaberCompactRow({ attachments, onAddFiles, onRemoveAt, isViewOnly, fileInputRef }) {
-  const handleChange = (e) => {
-    const files = Array.from(e.target.files || []);
-    if (files.length) onAddFiles(files);
-    e.target.value = "";
-  };
-
-  return (
-    <div className="document-row document-row--saber-multi">
-      <div className="document-row-name">
-        <span>SABER certificate(s)</span>
-      </div>
-      <div className="document-row-status" />
-      <div className="document-row-file document-row-file--chips">
-        {(attachments || []).length === 0 ? (
-          <span className="document-row-filename document-row-filename--empty">No files</span>
-        ) : (
-          <ul className="document-row-chip-list">
-            {(attachments || []).map((doc, index) => (
-              <li key={`${doc.name}-${index}`} className="document-row-chip">
-                <span className="document-row-chip-name" title={doc.name}>
-                  {doc.name}
-                </span>
-                {!isViewOnly && (
-                  <button type="button" className="document-row-chip-remove" onClick={() => onRemoveAt(index)} aria-label={`Remove ${doc.name}`}>
-                    ×
-                  </button>
-                )}
-                <button type="button" className="document-row-chip-preview" onClick={() => openAttachmentPreview(doc)} title="Preview">
-                  <IconEye />
-                </button>
-              </li>
-            ))}
-          </ul>
-        )}
-      </div>
-      <div className="document-row-actions">
-        {!isViewOnly && (
-          <>
-            <button type="button" className="document-row-icon-btn" onClick={() => fileInputRef.current?.click()} title="Add files">
-              <IconUpload />
-            </button>
-            <input ref={fileInputRef} type="file" className="document-row-file-input" multiple onChange={handleChange} aria-label="Upload SABER certificates" />
-          </>
-        )}
-      </div>
-    </div>
-  );
-}
-
-PreArrivalSaberCompactRow.propTypes = {
-  attachments: PropTypes.array,
-  onAddFiles: PropTypes.func.isRequired,
-  onRemoveAt: PropTypes.func.isRequired,
-  isViewOnly: PropTypes.bool,
-  fileInputRef: PropTypes.object.isRequired,
-};
-
 function PreArrivalDocumentHandlingSection({ formValues, handleChange, isViewOnly }) {
   const dh = formValues.preArrivalDocumentHandling || DEFAULT_PRE_ARRIVAL_DOCUMENT_HANDLING;
 
@@ -913,8 +853,8 @@ function PreArrivalDocumentHandlingSection({ formValues, handleChange, isViewOnl
     });
   };
 
-  const patchRowFile = (processKey, rowId, filePayload) => {
-    const rows = (dh.documents[processKey] || []).map((r) => (r.id === rowId ? { ...r, file: filePayload } : r));
+  const patchRowFiles = (processKey, rowId, nextFiles) => {
+    const rows = (dh.documents[processKey] || []).map((r) => (r.id === rowId ? { ...r, files: nextFiles } : r));
     setDh({ ...dh, documents: { ...dh.documents, [processKey]: rows } });
   };
 
@@ -949,12 +889,14 @@ function PreArrivalDocumentHandlingSection({ formValues, handleChange, isViewOnl
       {groOn && (
         <DocumentGroupCard title="GRO documents">
           {(dh.documents.gro || []).map((doc) => (
-            <DocumentRow
+            <CompactFileUploadRow
               key={doc.id}
-              doc={doc}
+              label={doc.name}
+              files={doc.files || []}
+              isRequired={Boolean(doc.is_required)}
               isViewOnly={isViewOnly}
-              onChooseFile={(file) => patchRowFile("gro", doc.id, file)}
-              onRemoveFile={() => patchRowFile("gro", doc.id, null)}
+              onAddFiles={(newFiles) => patchRowFiles("gro", doc.id, [...(doc.files || []), ...newFiles])}
+              onRemoveAt={(idx) => patchRowFiles("gro", doc.id, (doc.files || []).filter((_, i) => i !== idx))}
             />
           ))}
         </DocumentGroupCard>
@@ -963,12 +905,14 @@ function PreArrivalDocumentHandlingSection({ formValues, handleChange, isViewOnl
       {ccOn && (
         <DocumentGroupCard title="Custom clearance documents">
           {(dh.documents.customClearance || []).map((doc) => (
-            <DocumentRow
+            <CompactFileUploadRow
               key={doc.id}
-              doc={doc}
+              label={doc.name}
+              files={doc.files || []}
+              isRequired={Boolean(doc.is_required)}
               isViewOnly={isViewOnly}
-              onChooseFile={(file) => patchRowFile("customClearance", doc.id, file)}
-              onRemoveFile={() => patchRowFile("customClearance", doc.id, null)}
+              onAddFiles={(newFiles) => patchRowFiles("customClearance", doc.id, [...(doc.files || []), ...newFiles])}
+              onRemoveAt={(idx) => patchRowFiles("customClearance", doc.id, (doc.files || []).filter((_, i) => i !== idx))}
             />
           ))}
         </DocumentGroupCard>
@@ -984,17 +928,9 @@ PreArrivalDocumentHandlingSection.propTypes = {
 };
 
 const PreArrivalContent = ({ formValues, handleChange, ownerInitial, cardUser, cardColor, onAddLink, onRemoveLink, onOpenReportPreview, isViewOnly = false, eventFields = [] }) => {
-  const saberUtFileInputRef = useRef(null);
-
   const handleSaberUtAddFiles = (files) => {
     const currentAttachments = formValues.saberUtDocumentsAttachments || [];
-    const newAttachments = files.map((file) => ({
-      name: file.name,
-      file: file,
-      size: file.size,
-      type: file.type,
-    }));
-    handleChange("saberUtDocumentsAttachments")({ target: { value: [...currentAttachments, ...newAttachments] } });
+    handleChange("saberUtDocumentsAttachments")({ target: { value: [...currentAttachments, ...files] } });
   };
 
   const handleSaberUtRemoveAt = (index) => {
@@ -1054,22 +990,14 @@ const PreArrivalContent = ({ formValues, handleChange, ownerInitial, cardUser, c
               </FormField>
 
               <FormField label="SABER certificate upload">
-                <PreArrivalSaberCompactRow
-                  attachments={formValues.saberUtDocumentsAttachments || []}
+                <CompactFileUploadRow
+                  label="SABER certificate(s)"
+                  files={formValues.saberUtDocumentsAttachments || []}
                   onAddFiles={handleSaberUtAddFiles}
                   onRemoveAt={handleSaberUtRemoveAt}
                   isViewOnly={isViewOnly}
-                  fileInputRef={saberUtFileInputRef}
                 />
               </FormField>
-
-              {!isViewOnly && (
-                <div className="form-save-button-wrapper">
-                  <button type="button" className="form-save-button" onClick={handleSave}>
-                    Save
-                  </button>
-                </div>
-              )}
             </div>
 
             <div className="general-info-right prearrival-right-column">
@@ -1132,6 +1060,14 @@ const PreArrivalContent = ({ formValues, handleChange, ownerInitial, cardUser, c
           </div>
 
           <PreArrivalDocumentHandlingSection formValues={formValues} handleChange={handleChange} isViewOnly={isViewOnly} />
+
+          {!isViewOnly && (
+            <div className="prearrival-actions">
+              <button type="button" className="form-save-button prearrival-save-button" onClick={handleSave}>
+                Save
+              </button>
+            </div>
+          )}
         </div>
       </FormSection>
     </div>
@@ -1920,24 +1856,24 @@ const getDummyValues = () => ({
           id: "pre-gro-1",
           name: "GRO appointment confirmation",
           is_required: true,
-          file: { name: "GRO_Appointment.pdf", size: 120400, type: "application/pdf" },
+          files: [{ name: "GRO_Appointment.pdf", size: 120400, type: "application/pdf" }],
         },
-        { id: "pre-gro-2", name: "Berthing allocation (GRO)", is_required: false, file: null },
+        { id: "pre-gro-2", name: "Berthing allocation (GRO)", is_required: false, files: [] },
       ],
       customClearance: [
         {
           id: "pre-cc-1",
           name: "Customs import declaration",
           is_required: true,
-          file: { name: "Customs_Declaration.pdf", size: 98000, type: "application/pdf" },
+          files: [{ name: "Customs_Declaration.pdf", size: 98000, type: "application/pdf" }],
         },
         {
           id: "pre-cc-2",
           name: "Bill of lading / cargo manifest",
           is_required: true,
-          file: { name: "BOL_Manifest.pdf", size: 210000, type: "application/pdf" },
+          files: [{ name: "BOL_Manifest.pdf", size: 210000, type: "application/pdf" }],
         },
-        { id: "pre-cc-3", name: "Delivery order", is_required: false, file: null },
+        { id: "pre-cc-3", name: "Delivery order", is_required: false, files: [] },
       ],
     },
   },
