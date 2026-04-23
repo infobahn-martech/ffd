@@ -2135,6 +2135,7 @@ function Operation({ card, formValues, handleChange, ownerInitial, isDAModule = 
     4: [],
   });
   const preArrivalDocumentHandlingRef = useRef(formValues?.preArrivalDocumentHandling);
+  const lastEtaDependentRequestRef = useRef("");
   const cardColor = card?.color || "#2A00FF";
 
   const currentCallId = useMemo(
@@ -2240,6 +2241,11 @@ function Operation({ card, formValues, handleChange, ownerInitial, isDAModule = 
   const preArrivalEventFields = (eventTypeFieldsByStage[1] || []).length
     ? eventTypeFieldsByStage[1]
     : FALLBACK_PRE_ARRIVAL_FIELDS;
+  const firstPreArrivalField = preArrivalEventFields[0];
+  const etaDateKey = firstPreArrivalField ? `${firstPreArrivalField.keyPrefix}Date` : "";
+  const etaTimeKey = firstPreArrivalField ? `${firstPreArrivalField.keyPrefix}Time` : "";
+  const etaDateValue = etaDateKey ? formValues?.[etaDateKey] || "" : "";
+  const etaTimeValue = etaTimeKey ? formValues?.[etaTimeKey] || "" : "";
   const { arrivalStageFields, postArrivalStageFields } = useMemo(() => {
     const arrivalStageFields = (eventTypeFieldsByStage[2] || []).length
       ? [...eventTypeFieldsByStage[2]].sort((a, b) => (a.sort_order || 0) - (b.sort_order || 0))
@@ -2271,6 +2277,59 @@ function Operation({ card, formValues, handleChange, ownerInitial, isDAModule = 
   // Dummy values take precedence to ensure all fields are populated
   const viewOnlyFormValues = isDAModule ? { ...formValues, ...getDummyValues() } : formValues;
   const isViewOnly = isDAModule;
+
+  useEffect(() => {
+    if (isViewOnly || !etaDateValue || !etaTimeValue) return;
+
+    const eta_date_time = `${etaDateValue} ${etaTimeValue}`;
+    if (lastEtaDependentRequestRef.current === eta_date_time) return;
+    lastEtaDependentRequestRef.current = eta_date_time;
+
+    let cancelled = false;
+    const loadEtaDependentTimes = async () => {
+      try {
+        const response = await preArrivalInfoService.getEtaDependentTimes({ eta_date_time });
+        if (cancelled) return;
+
+        const dependentEvents = response?.data?.data || [];
+        dependentEvents.forEach((eventItem) => {
+          const rawDateTime = String(eventItem?.event_datetime || "").trim();
+          if (!rawDateTime) return;
+
+          // API shape: "YYYY-MM-DD HH:mm:ss" (or ISO-compatible variants)
+          const [datePart = "", timePart = ""] = rawDateTime.split(" ");
+          const normalizedTime = timePart.slice(0, 5);
+          if (!datePart || !normalizedTime) return;
+
+          const matchedField = preArrivalEventFields.find((field) => {
+            if (eventItem?.event_type_id != null && field?.event_type_id != null) {
+              return Number(field.event_type_id) === Number(eventItem.event_type_id);
+            }
+            return (
+              String(field?.event_name || "").trim().toLowerCase() ===
+              String(eventItem?.event_name || "").trim().toLowerCase()
+            );
+          });
+
+          const keyPrefix = matchedField?.keyPrefix || getEventFieldKeyPrefix(eventItem?.event_name || "");
+          if (!keyPrefix) return;
+
+          handleChange(`${keyPrefix}Date`)({ target: { value: datePart } });
+          handleChange(`${keyPrefix}Time`)({ target: { value: normalizedTime } });
+        });
+      } catch (error) {
+        if (cancelled) return;
+        // eslint-disable-next-line no-console
+        console.error("[Operation] pre_arrival/get_eta_dependent_times failed", error);
+      }
+    };
+
+    loadEtaDependentTimes();
+
+    return () => {
+      cancelled = true;
+    };
+  }, [isViewOnly, etaDateValue, etaTimeValue, preArrivalEventFields, handleChange]);
 
   const handleTabChange = useCallback((tab) => {
     setActiveOperationTab(tab);

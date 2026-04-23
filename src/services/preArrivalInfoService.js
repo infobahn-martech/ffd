@@ -15,10 +15,14 @@ const updateTemplate = (templateId, data) =>
 const getDocuments = () =>
   Gateway.get('pre_arrival/get_documents');
 
+const getEtaDependentTimes = (payload) =>
+  Gateway.post('pre_arrival/get_eta_dependent_times', payload);
+
 export default {
   getAllTemplates,
   getTemplateUserTypes,
   addTemplate,
   updateTemplate,
   getDocuments,
+  getEtaDependentTimes,
 };
