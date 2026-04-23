@@ -2864,39 +2864,52 @@
 .cf-datetime-picker {
   position: relative;
   min-height: 0;
-  padding: 10px 14px;
+}
+
+.cf-input.date-time-row.cf-datetime-picker {
+  border: 0 !important;
+  background: transparent !important;
+  box-shadow: none !important;
+  padding: 0 !important;
+  gap: 0;
+  min-height: 0;
+  display: block;
 }
 
 .cf-datetime-picker .cf-datetime-input-field {
   width: 100%;
   margin: 0;
 
-  .MuiFormControl-root {
+  .MuiFormControl-root,
+  .MuiPickersTextField-root {
     width: 100%;
+    margin: 0;
   }
 
+  .MuiPickersInputBase-root,
+  .MuiOutlinedInput-root,
   .MuiInputBase-root {
-    min-height: 0;
-    border-radius: 0;
-    background: transparent;
+    min-height: 40px;
+    border-radius: 8px;
+    border: 1.5px solid #e2e2ea;
+    background: #fff;
     font-family: "Open Sans", sans-serif;
     font-size: 14px;
     color: #111827;
     font-weight: 400;
-    padding-right: 0;
+    padding: 10px 12px;
     align-items: center;
-    border: 0;
+    box-sizing: border-box;
     box-shadow: none;
   }
 
-  .MuiOutlinedInput-root {
-    padding: 0;
+  .MuiPickersInputBase-root:hover,
+  .MuiOutlinedInput-root:hover,
+  .MuiInputBase-root:hover {
+    border-color: #c5c5d1;
   }
 
-  .MuiOutlinedInput-notchedOutline,
-  .MuiOutlinedInput-root:hover .MuiOutlinedInput-notchedOutline,
-  .MuiOutlinedInput-root.Mui-focused .MuiOutlinedInput-notchedOutline,
-  .MuiOutlinedInput-root.Mui-error .MuiOutlinedInput-notchedOutline {
+  .MuiOutlinedInput-notchedOutline {
     border: 0 !important;
   }
 
@@ -2919,9 +2932,8 @@
   }
 
   .MuiPickersInputBase-sectionsContainer {
-    padding-top: 4px;
-    padding-bottom: 4px;
-
+    padding-top: 0;
+    padding-bottom: 0;
   }
 
   .MuiInputAdornment-root {
@@ -2949,8 +2961,10 @@
   }
 }
 
-.cf-datetime-picker.is-invalid .cf-datetime-input-field .MuiOutlinedInput-notchedOutline {
-  border: 0;
+.cf-datetime-picker.is-invalid .cf-datetime-input-field .MuiPickersInputBase-root,
+.cf-datetime-picker.is-invalid .cf-datetime-input-field .MuiOutlinedInput-root,
+.cf-datetime-picker.is-invalid .cf-datetime-input-field .MuiInputBase-root {
+  border-color: #c62828;
 }
 
 .cf-datetime-popper {
