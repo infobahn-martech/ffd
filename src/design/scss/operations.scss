@@ -2988,15 +2988,24 @@ $send-report-optional: #80868b;
   }
 }
 
-.appointment-view-loading {
-  border: 1px solid #e5e7ef;
-  border-radius: 10px;
-  background: #f9fafe;
-  padding: 12px;
-  margin-bottom: 12px;
+.general-view-section-shimmer {
+  min-height: 520px;
+  gap: 16px;
 }
 
-.appointment-view-loading__line {
+.general-shimmer-section,
+.general-shimmer-panel {
+  border: 1px solid #e5e7ef;
+  border-radius: 12px;
+  background: #f9fafe;
+  padding: 14px;
+}
+
+.general-shimmer-section + .general-shimmer-section {
+  margin-top: 12px;
+}
+
+.general-shimmer-line {
   height: 10px;
   width: 100%;
   border-radius: 999px;
@@ -3005,16 +3014,37 @@ $send-report-optional: #80868b;
   animation: appointmentViewLoadingShimmer 1.25s linear infinite;
 }
 
-.appointment-view-loading__line + .appointment-view-loading__line {
-  margin-top: 8px;
+.general-shimmer-line + .general-shimmer-line {
+  margin-top: 10px;
 }
 
-.appointment-view-loading__line--title {
-  width: 48%;
+.general-shimmer-line--heading {
+  width: 42%;
+  height: 11px;
+  margin-bottom: 8px;
 }
 
-.appointment-view-loading__line--short {
-  width: 72%;
+.general-shimmer-line--label {
+  width: 34%;
+  height: 8px;
+}
+
+.general-shimmer-line--input {
+  width: 100%;
+  height: 38px;
+  border-radius: 8px;
+}
+
+.general-shimmer-line--editor {
+  width: 100%;
+  height: 250px;
+  border-radius: 10px;
+}
+
+.general-shimmer-line--card {
+  width: 100%;
+  height: 120px;
+  border-radius: 10px;
 }
 
 @keyframes appointmentViewLoadingShimmer {

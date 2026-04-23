@@ -875,6 +875,45 @@ DailyTaskTodo.propTypes = {
   error: PropTypes.string,
 };
 
+const GeneralViewSectionShimmer = () => (
+  <div className="general-info-three-column general-tab-form-layout general-view-section-shimmer" aria-live="polite">
+    <div className="general-info-left">
+      <div className="general-view-form-scroll">
+        <div className="general-shimmer-section">
+          <div className="general-shimmer-line general-shimmer-line--heading" />
+          <div className="general-shimmer-line general-shimmer-line--input" />
+          <div className="general-shimmer-line general-shimmer-line--label" />
+          <div className="general-shimmer-line general-shimmer-line--input" />
+          <div className="general-shimmer-line general-shimmer-line--label" />
+          <div className="general-shimmer-line general-shimmer-line--input" />
+        </div>
+        <div className="general-shimmer-section">
+          <div className="general-shimmer-line general-shimmer-line--heading" />
+          <div className="general-shimmer-line general-shimmer-line--label" />
+          <div className="general-shimmer-line general-shimmer-line--input" />
+          <div className="general-shimmer-line general-shimmer-line--label" />
+          <div className="general-shimmer-line general-shimmer-line--input" />
+          <div className="general-shimmer-line general-shimmer-line--label" />
+          <div className="general-shimmer-line general-shimmer-line--input" />
+        </div>
+      </div>
+    </div>
+    <div className="general-info-middle">
+      <div className="general-shimmer-panel">
+        <div className="general-shimmer-line general-shimmer-line--heading" />
+        <div className="general-shimmer-line general-shimmer-line--editor" />
+      </div>
+    </div>
+    <div className="general-info-right">
+      <div className="general-shimmer-panel">
+        <div className="general-shimmer-line general-shimmer-line--heading" />
+        <div className="general-shimmer-line general-shimmer-line--card" />
+        <div className="general-shimmer-line general-shimmer-line--card" />
+      </div>
+    </div>
+  </div>
+);
+
 
 // Helper function to format date and time
 const formatDateTime = (date, time) => {
@@ -2434,14 +2473,10 @@ function General({
             </div>
           )}
           <div className="cf-section-body">
-            {!isAddMode && callDetailLoading && (
-              <div className="appointment-view-loading" aria-live="polite">
-                <div className="appointment-view-loading__line appointment-view-loading__line--title" />
-                <div className="appointment-view-loading__line" />
-                <div className="appointment-view-loading__line appointment-view-loading__line--short" />
-              </div>
-            )}
-            <div className={isAddMode ? "general-add-mode-wrapper" : ""}>
+            {!isAddMode && callDetailLoading ? (
+              <GeneralViewSectionShimmer />
+            ) : (
+              <div className={isAddMode ? "general-add-mode-wrapper" : ""}>
               <div className={`${!isAddMode ? "general-info-three-column" : "general-info-two-column general-add-3col-layout"} general-tab-form-layout`}>
                 <div className={`general-info-left ${isAddMode ? "general-add-form-panel" : ""}`}>
                   <div className={isAddMode ? "general-add-form-scroll" : "general-view-form-scroll"}>
@@ -3297,7 +3332,8 @@ function General({
                   </button>
                 </div>
               )}
-            </div>
+              </div>
+            )}
           </div>
         </div>
       </div>
