@@ -1020,7 +1020,17 @@ PreArrivalContent.propTypes = {
   eventFields: PropTypes.array,
 };
 
-const ArrivalContent = ({ formValues, handleChange, cardColor, onAddLink, onRemoveLink, onOpenReportPreview, isViewOnly = false, eventFields = [] }) => {
+const ArrivalContent = ({
+  formValues,
+  handleChange,
+  cardColor,
+  onAddLink,
+  onRemoveLink,
+  onOpenReportPreview,
+  isViewOnly = false,
+  arrivalStageFields = [],
+  postArrivalStageFields = [],
+}) => {
   const [isDraggingDocuments, setIsDraggingDocuments] = useState(false);
   const documentsFileInputRef = useRef(null);
 
@@ -1148,7 +1158,7 @@ const ArrivalContent = ({ formValues, handleChange, cardColor, onAddLink, onRemo
           <div className="general-info-two-column operation-section-form-layout">
             <div className="general-info-left">
               <DynamicDateTimeFields
-                eventFields={eventFields}
+                eventFields={arrivalStageFields}
                 formValues={formValues}
                 handleChange={handleChange}
                 isViewOnly={isViewOnly}
@@ -1198,6 +1208,12 @@ const ArrivalContent = ({ formValues, handleChange, cardColor, onAddLink, onRemo
                 </FormField>
               )}
 
+              <DynamicDateTimeFields
+                eventFields={postArrivalStageFields}
+                formValues={formValues}
+                handleChange={handleChange}
+                isViewOnly={isViewOnly}
+              />
 
               <FormField label="Attach Vessel Inward and Marine Work Permit Copies">
                 <div style={{ marginTop: "8px" }}>
@@ -1428,7 +1444,8 @@ ArrivalContent.propTypes = {
   onRemoveLink: PropTypes.func,
   onOpenReportPreview: PropTypes.func,
   isViewOnly: PropTypes.bool,
-  eventFields: PropTypes.array,
+  arrivalStageFields: PropTypes.array,
+  postArrivalStageFields: PropTypes.array,
 };
 
 const DepartureContent = ({ formValues, handleChange, cardColor, onAddLink, onRemoveLink, onOpenReportPreview, isViewOnly = false, eventFields = [] }) => {
@@ -1906,19 +1923,17 @@ function Operation({ card, formValues, handleChange, ownerInitial, isDAModule = 
   const preArrivalEventFields = (eventTypeFieldsByStage[1] || []).length
     ? eventTypeFieldsByStage[1]
     : FALLBACK_PRE_ARRIVAL_FIELDS;
-  const arrivalEventFields = useMemo(
-    () => {
-      const dynamicArrivalFields = [...(eventTypeFieldsByStage[2] || []), ...(eventTypeFieldsByStage[3] || [])];
-      if (!dynamicArrivalFields.length) {
-        return FALLBACK_ARRIVAL_FIELDS;
-      }
-      return dynamicArrivalFields.sort((a, b) => {
-        if ((a.stage_id || 0) !== (b.stage_id || 0)) return (a.stage_id || 0) - (b.stage_id || 0);
-        return (a.sort_order || 0) - (b.sort_order || 0);
-      });
-    },
-    [eventTypeFieldsByStage]
-  );
+  const { arrivalStageFields, postArrivalStageFields } = useMemo(() => {
+    const arrivalStageFields = (eventTypeFieldsByStage[2] || []).length
+      ? [...eventTypeFieldsByStage[2]].sort((a, b) => (a.sort_order || 0) - (b.sort_order || 0))
+      : FALLBACK_ARRIVAL_FIELDS.filter((field) => field.stage_id === 2);
+
+    const postArrivalStageFields = (eventTypeFieldsByStage[3] || []).length
+      ? [...eventTypeFieldsByStage[3]].sort((a, b) => (a.sort_order || 0) - (b.sort_order || 0))
+      : FALLBACK_ARRIVAL_FIELDS.filter((field) => field.stage_id === 3);
+
+    return { arrivalStageFields, postArrivalStageFields };
+  }, [eventTypeFieldsByStage]);
   const departureEventFields = (eventTypeFieldsByStage[4] || []).length
     ? eventTypeFieldsByStage[4]
     : FALLBACK_DEPARTURE_FIELDS;
@@ -2016,7 +2031,8 @@ function Operation({ card, formValues, handleChange, ownerInitial, isDAModule = 
                 onRemoveLink={handleRemoveLink}
                 onOpenReportPreview={handleOpenReportPreview}
                 isViewOnly={isViewOnly}
-                eventFields={arrivalEventFields}
+                arrivalStageFields={arrivalStageFields}
+                postArrivalStageFields={postArrivalStageFields}
               />
             )}
             {activeOperationTab === OPERATION_TABS.DEPARTURE && (
