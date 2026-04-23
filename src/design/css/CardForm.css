@@ -858,13 +858,23 @@
   display: flex;
   flex-direction: column;
   padding: 16px;
-  overflow-y: auto;
+  overflow: hidden;
 }
 
 .general-add-description-content .cf-field,
 .general-add-description-content .general-card-description-editor {
   flex: 1;
   min-height: 0;
+}
+
+.general-add-description-content .cf-field {
+  display: flex;
+  flex-direction: column;
+  margin-bottom: 0;
+}
+
+.general-add-description-content .cf-field>label {
+  flex-shrink: 0;
 }
 
 .general-card-description-editor .react-quill-wrapper .ql-toolbar {
@@ -883,7 +893,7 @@
 .general-card-description-editor {
   display: flex;
   flex-direction: column;
-  padding-bottom: 8px;
+  padding-bottom: 0;
 }
 
 .general-card-description-editor .react-quill-wrapper .ql-editor {
@@ -909,6 +919,32 @@
 
 .general-add-description-panel .general-card-description-editor .react-quill-wrapper .ql-container {
   border-bottom: 1px solid #e5e7eb !important;
+}
+
+.general-add-description-panel .general-card-description-editor,
+.general-add-description-panel .general-card-description-editor .react-quill-wrapper,
+.general-add-description-panel .general-card-description-editor .react-quill-wrapper .quill {
+  display: flex;
+  flex-direction: column;
+  flex: 1;
+  min-height: 0;
+  height: 100%;
+}
+
+.general-add-description-panel .general-card-description-editor .react-quill-wrapper .ql-toolbar {
+  flex-shrink: 0;
+}
+
+.general-add-description-panel .general-card-description-editor .react-quill-wrapper .ql-container {
+  flex: 1;
+  min-height: 0;
+  height: auto;
+}
+
+.general-add-description-panel .general-card-description-editor .react-quill-wrapper .ql-editor {
+  height: 100%;
+  min-height: 0;
+  overflow-y: auto;
 }
 
 .general-add-preview-panel {
