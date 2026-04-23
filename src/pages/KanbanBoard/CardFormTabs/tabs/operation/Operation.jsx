@@ -22,6 +22,7 @@ import {
   DEFAULT_PRE_ARRIVAL_DOCUMENT_HANDLING,
   collectPreArrivalProcessAttachments,
 } from "./preArrivalDocumentHandling";
+import DateTimePickerField from "../../components/DateTimePickerField";
 import "../../../../../design/scss/operations.scss";
 
 // Constants
@@ -184,22 +185,15 @@ const DynamicDateTimeFields = ({ eventFields = [], formValues, handleChange, isV
 
     return (
       <FormField key={`${field.stage_id || "stage"}-${field.event_name}-${keyPrefix}`} label={label}>
-        <div className="cf-input date-time-row">
-          <input
-            type="date"
-            value={formValues[dateKey] || ""}
-            onChange={handleChange(dateKey)}
-            placeholder="Select date"
-            disabled={isViewOnly}
-          />
-          <input
-            type="time"
-            value={formValues[timeKey] || ""}
-            onChange={handleChange(timeKey)}
-            placeholder="Select time"
-            disabled={isViewOnly}
-          />
-        </div>
+        <DateTimePickerField
+          dateValue={formValues[dateKey] || ""}
+          timeValue={formValues[timeKey] || ""}
+          onDateChange={handleChange(dateKey)}
+          onTimeChange={handleChange(timeKey)}
+          dateFieldName={dateKey}
+          timeFieldName={timeKey}
+          disabled={isViewOnly}
+        />
       </FormField>
     );
   });
