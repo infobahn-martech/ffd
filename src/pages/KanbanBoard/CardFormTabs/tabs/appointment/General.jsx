@@ -2,8 +2,10 @@ import PropTypes from "prop-types";
 import { useMemo, useRef, useState, useEffect, useCallback } from "react";
 import ReactQuill from "react-quill";
 import "react-quill/dist/quill.snow.css";
-import DatePicker from "react-datepicker";
-import "react-datepicker/dist/react-datepicker.css";
+import dayjs from "dayjs";
+import { LocalizationProvider } from "@mui/x-date-pickers/LocalizationProvider";
+import { AdapterDayjs } from "@mui/x-date-pickers/AdapterDayjs";
+import { DateTimePicker } from "@mui/x-date-pickers/DateTimePicker";
 import "../../../../../design/scss/general.scss";
 import "../../../../../design/css/CardForm.css";
 import AttachmentIcon from "../../../../../assets/images/Attachment.svg";
@@ -215,10 +217,15 @@ const DateTimePickerField = ({
   minDate,
   maxDate,
 }) => {
-  const selectedValue = useMemo(() => combineDateTime(dateValue, timeValue), [dateValue, timeValue]);
+  const selectedValue = useMemo(() => {
+    const combinedDate = combineDateTime(dateValue, timeValue);
+    return combinedDate ? dayjs(combinedDate) : null;
+  }, [dateValue, timeValue]);
+  const minDateValue = useMemo(() => (minDate ? dayjs(minDate) : undefined), [minDate]);
+  const maxDateValue = useMemo(() => (maxDate ? dayjs(maxDate) : undefined), [maxDate]);
   const handlePickerChange = useCallback(
     (newValue) => {
-      const nextValues = splitDateTimeValue(newValue);
+      const nextValues = splitDateTimeValue(newValue ? newValue.toDate() : null);
       const dateEvent = { target: { name: dateFieldName || "", value: nextValues.date } };
       const timeEvent = { target: { name: timeFieldName || "", value: nextValues.time } };
 
@@ -234,23 +241,28 @@ const DateTimePickerField = ({
       className={`cf-input date-time-row cf-datetime-picker ${hasError ? "is-invalid" : ""}`}
       title={formatDisplayDateTime(dateValue, timeValue)}
     >
-      <DatePicker
-        selected={selectedValue}
-        onChange={handlePickerChange}
-        disabled={disabled}
-        minDate={minDate ? new Date(minDate) : undefined}
-        maxDate={maxDate ? new Date(maxDate) : undefined}
-        showTimeSelect
-        timeIntervals={5}
-        dateFormat="yyyy-MM-dd HH:mm"
-        timeFormat="HH:mm"
-        shouldCloseOnSelect={false}
-        isClearable
-        placeholderText={placeholder}
-        className="cf-datetime-input"
-        popperPlacement="bottom-start"
-        popperClassName="cf-datetime-popper"
-      />
+      <LocalizationProvider dateAdapter={AdapterDayjs}>
+        <DateTimePicker
+          value={selectedValue}
+          onChange={handlePickerChange}
+          disabled={disabled}
+          minDate={minDateValue}
+          maxDate={maxDateValue}
+          minutesStep={5}
+          format="YYYY-MM-DD HH:mm"
+          slotProps={{
+            textField: {
+              placeholder,
+              fullWidth: true,
+              error: hasError,
+              className: "cf-datetime-input-field",
+            },
+            popper: {
+              className: "cf-datetime-popper",
+            },
+          }}
+        />
+      </LocalizationProvider>
     </div>
   );
 };
