@@ -901,13 +901,6 @@ const SaberUploadBox = ({ files = [], onAddFiles, isViewOnly = false }) => {
           tabIndex={-1}
         />
       </div>
-      <div className="saber-upload-file-summary" title={(files || []).map((doc) => doc.name).join("\n")}>
-        {(files || []).length === 0
-          ? "No files selected"
-          : files.length === 1
-            ? "1 file selected"
-            : `${files.length} files selected`}
-      </div>
     </div>
   );
 };
