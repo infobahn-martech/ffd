@@ -2473,6 +2473,7 @@ $send-report-optional: #80868b;
 }
 
 @media (max-width: 900px) {
+
   .transport-form .operation-section-form-layout,
   .cgpass-form .operation-section-form-layout,
   .zawilpass-form .operation-section-form-layout,
@@ -2932,7 +2933,7 @@ $send-report-optional: #80868b;
   display: flex;
   gap: 10px;
   align-items: center;
-  padding: 10px 14px;
+  padding: 2px 14px;
 }
 
 /* Location Autocomplete Styles */
