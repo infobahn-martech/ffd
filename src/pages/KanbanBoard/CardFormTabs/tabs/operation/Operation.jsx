@@ -1068,8 +1068,8 @@ const PreArrivalContent = ({ formValues, handleChange, ownerInitial, cardUser, c
       </div>
       <FormSection icon={GroupSettingsIcon} title="">
         <div className="pre-arrival-form">
-          <div className="general-info-two-column operation-section-form-layout prearrival-top-grid">
-            <div className="general-info-left prearrival-left-column">
+          <div className="pre-arrival-3col-layout">
+            <div className="pre-arrival-left general-info-left prearrival-left-column">
               <DynamicDateTimeFields
                 eventFields={eventFields}
                 formValues={formValues}
@@ -1096,7 +1096,7 @@ const PreArrivalContent = ({ formValues, handleChange, ownerInitial, cardUser, c
               </FormField>
             </div>
 
-            <div className="general-info-right prearrival-right-column">
+            <div className="pre-arrival-middle general-info-right prearrival-right-column">
               <div
                 className="card-description-wrapper"
                 style={{
@@ -1153,9 +1153,11 @@ const PreArrivalContent = ({ formValues, handleChange, ownerInitial, cardUser, c
                 </FormField>
               </div>
             </div>
-          </div>
 
-          <PreArrivalDocumentHandlingSection formValues={formValues} handleChange={handleChange} isViewOnly={isViewOnly} />
+            <div className="pre-arrival-right">
+              <PreArrivalDocumentHandlingSection formValues={formValues} handleChange={handleChange} isViewOnly={isViewOnly} />
+            </div>
+          </div>
 
           {!isViewOnly && (
             <div className="prearrival-actions">

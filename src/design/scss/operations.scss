@@ -1729,13 +1729,70 @@ $send-report-optional: #80868b;
     }
   }
 
-  /* ----- Pre-Arrival: top grid + document handling (enterprise) ----- */
-  .prearrival-top-grid {
+  /* ----- Pre-Arrival: 3-column layout (form / remarks / documents) ----- */
+  .pre-arrival-3col-layout {
+    display: grid;
+    grid-template-columns: minmax(0, 20fr) minmax(0, 30fr) minmax(0, 50fr);
+    gap: 16px;
+    align-items: start;
     width: 100%;
   }
 
+  .pre-arrival-left,
+  .pre-arrival-middle,
+  .pre-arrival-right {
+    min-width: 0;
+    box-sizing: border-box;
+  }
+
+  .pre-arrival-middle {
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+    min-width: 0;
+  }
+
+  .pre-arrival-middle .card-description-wrapper {
+    width: 100%;
+    min-width: 0;
+    min-height: 0;
+    margin: 0;
+    display: block;
+    flex: 0 0 auto;
+  }
+
+  .pre-arrival-middle .cf-field,
+  .pre-arrival-middle .react-quill-wrapper,
+  .pre-arrival-middle .cf-input,
+  .pre-arrival-middle .cf-textarea {
+    width: 100%;
+    min-width: 0;
+    max-width: 100%;
+    box-sizing: border-box;
+  }
+
+  .pre-arrival-middle .cf-field {
+    margin-right: 0;
+    height: auto;
+    gap: 8px;
+  }
+
+  .pre-arrival-middle .react-quill-wrapper {
+    flex: 0 0 auto;
+  }
+
+  .pre-arrival-middle .react-quill-wrapper .ql-container {
+    min-height: 220px;
+    height: auto;
+  }
+
+  .pre-arrival-middle .react-quill-wrapper .ql-editor {
+    min-height: 180px;
+    height: auto !important;
+  }
+
   .document-handling-section {
-    margin-top: 28px;
+    margin-top: 0;
     width: 100%;
     max-width: 100%;
     box-sizing: border-box;
@@ -2190,6 +2247,10 @@ $send-report-optional: #80868b;
 }
 
 @media (max-width: 900px) {
+
+  .pre-arrival-form .pre-arrival-3col-layout {
+    grid-template-columns: 1fr;
+  }
 
   .pre-arrival-form .operation-section-form-layout,
   .arrival-form .operation-section-form-layout,
