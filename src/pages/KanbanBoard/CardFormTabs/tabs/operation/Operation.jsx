@@ -26,6 +26,7 @@ import {
 import DateTimePickerField from "../../components/DateTimePickerField";
 import "../../../../../design/scss/operations.scss";
 import preArrivalInfoService from "../../../../../services/preArrivalInfoService";
+import userService from "../../../../../services/userService";
 
 // Constants
 const OPERATION_TABS = {
@@ -927,12 +928,12 @@ DocumentGroupCard.propTypes = {
   children: PropTypes.node.isRequired,
 };
 
-function PreArrivalDocumentHandlingSection({ formValues, handleChange, isViewOnly }) {
+function PreArrivalDocumentHandlingSection({ formValues, handleChange, isViewOnly, portId }) {
   const dh = formValues.preArrivalDocumentHandling || DEFAULT_PRE_ARRIVAL_DOCUMENT_HANDLING;
-  const [selectedGroOption, setSelectedGroOption] = useState(isViewOnly ? "gro-option-1" : "");
-  const [selectedCustomClearanceOption, setSelectedCustomClearanceOption] = useState(
-    isViewOnly ? "clearance-option-1" : ""
-  );
+  const [selectedGroOption, setSelectedGroOption] = useState("");
+  const [selectedCustomClearanceOption, setSelectedCustomClearanceOption] = useState("");
+  const [groOptions, setGroOptions] = useState([]);
+  const [customClearanceOptions, setCustomClearanceOptions] = useState([]);
 
   const setDh = (next) => {
     handleChange("preArrivalDocumentHandling")({ target: { value: next } });
@@ -954,17 +955,61 @@ function PreArrivalDocumentHandlingSection({ formValues, handleChange, isViewOnl
   const { gro: groOn, customClearance: ccOn } = dh.selectedProcesses || {};
   const showDocumentHandlingContent = Boolean(selectedGroOption && selectedCustomClearanceOption);
 
-  const groDummyOptions = [
-    { value: "gro-option-1", label: "GRO Option 1" },
-    { value: "gro-option-2", label: "GRO Option 2" },
-    { value: "gro-option-3", label: "GRO Option 3" },
-  ];
+  useEffect(() => {
+    let cancelled = false;
 
-  const customClearanceDummyOptions = [
-    { value: "clearance-option-1", label: "Clearance Option 1" },
-    { value: "clearance-option-2", label: "Clearance Option 2" },
-    { value: "clearance-option-3", label: "Clearance Option 3" },
-  ];
+    const mapUserOptions = (response) =>
+      (response?.data?.data || response?.data || [])
+        .filter((user) => user?.user_id != null)
+        .map((user) => ({
+          value: String(user.user_id),
+          label: user.name || `User ${user.user_id}`,
+        }));
+
+    const loadUserOptions = async () => {
+      if (!portId) {
+        setGroOptions([]);
+        setCustomClearanceOptions([]);
+        setSelectedGroOption("");
+        setSelectedCustomClearanceOption("");
+        return;
+      }
+
+      try {
+        const [groRes, clearanceRes] = await Promise.all([
+          userService.getUsersByRole({ role_id: 4, port_id: portId }),
+          userService.getUsersByRole({ role_id: 5, port_id: portId }),
+        ]);
+        if (cancelled) return;
+
+        const nextGroOptions = mapUserOptions(groRes);
+        const nextCustomClearanceOptions = mapUserOptions(clearanceRes);
+        setGroOptions(nextGroOptions);
+        setCustomClearanceOptions(nextCustomClearanceOptions);
+
+        setSelectedGroOption((prev) =>
+          prev && nextGroOptions.some((option) => option.value === prev) ? prev : ""
+        );
+        setSelectedCustomClearanceOption((prev) =>
+          prev && nextCustomClearanceOptions.some((option) => option.value === prev) ? prev : ""
+        );
+      } catch (error) {
+        if (cancelled) return;
+        setGroOptions([]);
+        setCustomClearanceOptions([]);
+        setSelectedGroOption("");
+        setSelectedCustomClearanceOption("");
+        // eslint-disable-next-line no-console
+        console.error("[Operation] users/get_users_by_role failed", error);
+      }
+    };
+
+    loadUserOptions();
+
+    return () => {
+      cancelled = true;
+    };
+  }, [portId]);
 
   return (
     <div className="document-handling-section">
@@ -973,18 +1018,18 @@ function PreArrivalDocumentHandlingSection({ formValues, handleChange, isViewOnl
           <FormSelect
             value={selectedGroOption}
             onChange={(e) => setSelectedGroOption(e.target.value)}
-            options={groDummyOptions}
+            options={groOptions}
             placeholder="Select GRO"
-            disabled={isViewOnly}
+            disabled={isViewOnly || !portId}
           />
         </FormField>
         <FormField label="Select Custom clearance">
           <FormSelect
             value={selectedCustomClearanceOption}
             onChange={(e) => setSelectedCustomClearanceOption(e.target.value)}
-            options={customClearanceDummyOptions}
+            options={customClearanceOptions}
             placeholder="Select Custom clearance"
-            disabled={isViewOnly}
+            disabled={isViewOnly || !portId}
           />
         </FormField>
       </div>
@@ -993,11 +1038,10 @@ function PreArrivalDocumentHandlingSection({ formValues, handleChange, isViewOnl
         <>
           <div className="document-handling-section__divider" />
           <h3 className="document-handling-section__heading">Document handling</h3>
-          <p className="document-handling-section__hint">Select the processes that apply. Uploads are tracked separately for each group.</p>
+          {/* <p className="document-handling-section__hint">Select the processes that apply. Uploads are tracked separately for each group.</p> */}
 
           <div className="process-selector-row" role="group" aria-label="Document process selection">
             <div className="process-selector-block">
-              <span className="process-selector-row__label">Select GRO</span>
               <button
                 type="button"
                 className={`process-selector-option${groOn ? " process-selector-option--active" : ""}`}
@@ -1008,7 +1052,6 @@ function PreArrivalDocumentHandlingSection({ formValues, handleChange, isViewOnl
               </button>
             </div>
             <div className="process-selector-block">
-              <span className="process-selector-row__label">Select Custom clearance</span>
               <button
                 type="button"
                 className={`process-selector-option${ccOn ? " process-selector-option--active" : ""}`}
@@ -1018,7 +1061,7 @@ function PreArrivalDocumentHandlingSection({ formValues, handleChange, isViewOnl
                 Custom clearance
               </button>
             </div>
-        </div>
+          </div>
 
           {groOn && (
             <DocumentGroupCard title="GRO documents">
@@ -1061,9 +1104,22 @@ PreArrivalDocumentHandlingSection.propTypes = {
   formValues: PropTypes.object.isRequired,
   handleChange: PropTypes.func.isRequired,
   isViewOnly: PropTypes.bool,
+  portId: PropTypes.oneOfType([PropTypes.string, PropTypes.number]),
 };
 
-const PreArrivalContent = ({ formValues, handleChange, ownerInitial, cardUser, cardColor, onAddLink, onRemoveLink, onOpenReportPreview, isViewOnly = false, eventFields = [] }) => {
+const PreArrivalContent = ({
+  formValues,
+  handleChange,
+  ownerInitial,
+  cardUser,
+  cardColor,
+  onAddLink,
+  onRemoveLink,
+  onOpenReportPreview,
+  isViewOnly = false,
+  eventFields = [],
+  portId,
+}) => {
   const handleSaberUtAddFiles = (files) => {
     const currentAttachments = formValues.saberUtDocumentsAttachments || [];
     handleChange("saberUtDocumentsAttachments")({ target: { value: [...currentAttachments, ...files] } });
@@ -1185,7 +1241,12 @@ const PreArrivalContent = ({ formValues, handleChange, ownerInitial, cardUser, c
             </div>
 
             <div className="pre-arrival-right">
-              <PreArrivalDocumentHandlingSection formValues={formValues} handleChange={handleChange} isViewOnly={isViewOnly} />
+              <PreArrivalDocumentHandlingSection
+                formValues={formValues}
+                handleChange={handleChange}
+                isViewOnly={isViewOnly}
+                portId={portId}
+              />
             </div>
           </div>
 
@@ -1213,6 +1274,7 @@ PreArrivalContent.propTypes = {
   onOpenReportPreview: PropTypes.func,
   isViewOnly: PropTypes.bool,
   eventFields: PropTypes.array,
+  portId: PropTypes.oneOfType([PropTypes.string, PropTypes.number]),
 };
 
 const ArrivalContent = ({
@@ -2192,6 +2254,18 @@ function Operation({ card, formValues, handleChange, ownerInitial, isDAModule = 
   const departureEventFields = (eventTypeFieldsByStage[4] || []).length
     ? eventTypeFieldsByStage[4]
     : FALLBACK_DEPARTURE_FIELDS;
+  const preArrivalPortId = useMemo(
+    () =>
+      callDetailData?.port_id ??
+      callDetailData?.portId ??
+      callDetailData?.port?.port_id ??
+      formValues?.port_id ??
+      formValues?.portId ??
+      card?.port_id ??
+      card?.portId ??
+      "",
+    [callDetailData, formValues?.port_id, formValues?.portId, card?.port_id, card?.portId]
+  );
 
   // Merge dummy values with formValues for view-only mode (only for DA routes)
   // Dummy values take precedence to ensure all fields are populated
@@ -2262,6 +2336,7 @@ function Operation({ card, formValues, handleChange, ownerInitial, isDAModule = 
                 onOpenReportPreview={handleOpenReportPreview}
                 isViewOnly={isViewOnly}
                 eventFields={preArrivalEventFields}
+                portId={preArrivalPortId}
               />
             )}
             {activeOperationTab === OPERATION_TABS.CHECK_LIST && (
