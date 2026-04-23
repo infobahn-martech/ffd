@@ -18,6 +18,10 @@ import {
 } from "../../services/sendReportBodyBuilder";
 import AttachmentsList from "../appointment/AttachmentsList";
 import NavTabButton from "../../../../../components/NavTabButton";
+import {
+  DEFAULT_PRE_ARRIVAL_DOCUMENT_HANDLING,
+  collectPreArrivalProcessAttachments,
+} from "./preArrivalDocumentHandling";
 import "../../../../../design/scss/operations.scss";
 
 // Constants
@@ -714,85 +718,300 @@ LinksList.propTypes = {
   onRemove: PropTypes.func,
 };
 
+const IconAsteriskRequired = () => (
+  <span className="document-row-required" title="Required">
+    *
+  </span>
+);
+
+const IconUpload = () => (
+  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" aria-hidden>
+    <path d="M21 15V19C21 19.5304 20.7893 20.0391 20.4142 20.4142C20.0391 20.7893 19.5304 21 19 21H5C4.46957 21 3.96086 20.7893 3.58579 20.4142C3.21071 20.0391 3 19.5304 3 19V15" stroke="currentColor" strokeWidth="2" strokeLinecap="round" />
+    <path d="M17 8L12 3L7 8" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+    <path d="M12 3V15" stroke="currentColor" strokeWidth="2" strokeLinecap="round" />
+  </svg>
+);
+
+const IconEye = () => (
+  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" aria-hidden>
+    <path d="M1 12C1 12 5 4 12 4C19 4 23 12 23 12C23 12 19 20 12 20C5 20 1 12 1 12Z" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+    <circle cx="12" cy="12" r="3" stroke="currentColor" strokeWidth="2" />
+  </svg>
+);
+
+const IconTrash = () => (
+  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" aria-hidden>
+    <path d="M3 6H5H21" stroke="currentColor" strokeWidth="2" strokeLinecap="round" />
+    <path d="M8 6V4C8 3.46957 8.21071 2.96086 8.58579 2.58579C8.96086 2.21071 9.46957 2 10 2H14C14.5304 2 15.0391 2.21071 15.4142 2.58579C15.7893 2.96086 16 3.46957 16 4V6M19 6V20C19 20.5304 18.7893 21.0391 18.4142 21.4142C18.0391 21.7893 17.5304 22 17 22H7C6.46957 22 5.96086 21.7893 5.58579 21.4142C5.21071 21.0391 5 20.5304 5 20V6H19Z" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+  </svg>
+);
+
+function openAttachmentPreview(attachment) {
+  const raw = attachment?.file;
+  if (raw instanceof Blob) {
+    const url = URL.createObjectURL(raw);
+    window.open(url, "_blank", "noopener,noreferrer");
+    window.setTimeout(() => URL.revokeObjectURL(url), 60_000);
+    return;
+  }
+  // eslint-disable-next-line no-console
+  console.log("Preview document:", attachment?.name);
+}
+
+const DocumentRow = ({ doc, onChooseFile, onRemoveFile, isViewOnly }) => {
+  const inputRef = useRef(null);
+  const hasFile = Boolean(doc?.file?.name || doc?.file);
+
+  const handleInput = (e) => {
+    const file = e.target.files?.[0];
+    if (file) {
+      onChooseFile({
+        name: file.name,
+        file,
+        size: file.size,
+        type: file.type,
+      });
+    }
+    e.target.value = "";
+  };
+
+  return (
+    <div className="document-row">
+      <div className="document-row-name">
+        <span title={doc.name}>{doc.name}</span>
+      </div>
+      <div className="document-row-status">{doc.is_required ? <IconAsteriskRequired /> : <span className="document-row-optional" />}</div>
+      <div className="document-row-file">
+        {hasFile ? (
+          <span className="document-row-filename" title={doc.file.name}>
+            {doc.file.name}
+          </span>
+        ) : (
+          <span className="document-row-filename document-row-filename--empty">No file</span>
+        )}
+      </div>
+      <div className="document-row-actions">
+        {hasFile && (
+          <button type="button" className="document-row-icon-btn" onClick={() => openAttachmentPreview(doc.file)} title="Preview">
+            <IconEye />
+          </button>
+        )}
+        {!isViewOnly && (
+          <>
+            <button type="button" className="document-row-icon-btn" onClick={() => inputRef.current?.click()} title={hasFile ? "Replace" : "Upload"}>
+              <IconUpload />
+            </button>
+            <input ref={inputRef} type="file" className="document-row-file-input" onChange={handleInput} aria-label={`Upload ${doc.name}`} />
+            {hasFile && (
+              <button type="button" className="document-row-icon-btn document-row-icon-btn--danger" onClick={() => onRemoveFile()} title="Remove">
+                <IconTrash />
+              </button>
+            )}
+          </>
+        )}
+      </div>
+    </div>
+  );
+};
+
+DocumentRow.propTypes = {
+  doc: PropTypes.shape({
+    id: PropTypes.string.isRequired,
+    name: PropTypes.string.isRequired,
+    is_required: PropTypes.bool,
+    file: PropTypes.object,
+  }).isRequired,
+  onChooseFile: PropTypes.func.isRequired,
+  onRemoveFile: PropTypes.func.isRequired,
+  isViewOnly: PropTypes.bool,
+};
+
+function DocumentGroupCard({ title, children }) {
+  return (
+    <div className="document-group-card">
+      <h4 className="document-group-card__title">{title}</h4>
+      <div className="document-group-card__body">{children}</div>
+    </div>
+  );
+}
+
+DocumentGroupCard.propTypes = {
+  title: PropTypes.string.isRequired,
+  children: PropTypes.node.isRequired,
+};
+
+function PreArrivalSaberCompactRow({ attachments, onAddFiles, onRemoveAt, isViewOnly, fileInputRef }) {
+  const handleChange = (e) => {
+    const files = Array.from(e.target.files || []);
+    if (files.length) onAddFiles(files);
+    e.target.value = "";
+  };
+
+  return (
+    <div className="document-row document-row--saber-multi">
+      <div className="document-row-name">
+        <span>SABER certificate(s)</span>
+      </div>
+      <div className="document-row-status" />
+      <div className="document-row-file document-row-file--chips">
+        {(attachments || []).length === 0 ? (
+          <span className="document-row-filename document-row-filename--empty">No files</span>
+        ) : (
+          <ul className="document-row-chip-list">
+            {(attachments || []).map((doc, index) => (
+              <li key={`${doc.name}-${index}`} className="document-row-chip">
+                <span className="document-row-chip-name" title={doc.name}>
+                  {doc.name}
+                </span>
+                {!isViewOnly && (
+                  <button type="button" className="document-row-chip-remove" onClick={() => onRemoveAt(index)} aria-label={`Remove ${doc.name}`}>
+                    ×
+                  </button>
+                )}
+                <button type="button" className="document-row-chip-preview" onClick={() => openAttachmentPreview(doc)} title="Preview">
+                  <IconEye />
+                </button>
+              </li>
+            ))}
+          </ul>
+        )}
+      </div>
+      <div className="document-row-actions">
+        {!isViewOnly && (
+          <>
+            <button type="button" className="document-row-icon-btn" onClick={() => fileInputRef.current?.click()} title="Add files">
+              <IconUpload />
+            </button>
+            <input ref={fileInputRef} type="file" className="document-row-file-input" multiple onChange={handleChange} aria-label="Upload SABER certificates" />
+          </>
+        )}
+      </div>
+    </div>
+  );
+}
+
+PreArrivalSaberCompactRow.propTypes = {
+  attachments: PropTypes.array,
+  onAddFiles: PropTypes.func.isRequired,
+  onRemoveAt: PropTypes.func.isRequired,
+  isViewOnly: PropTypes.bool,
+  fileInputRef: PropTypes.object.isRequired,
+};
+
+function PreArrivalDocumentHandlingSection({ formValues, handleChange, isViewOnly }) {
+  const dh = formValues.preArrivalDocumentHandling || DEFAULT_PRE_ARRIVAL_DOCUMENT_HANDLING;
+
+  const setDh = (next) => {
+    handleChange("preArrivalDocumentHandling")({ target: { value: next } });
+  };
+
+  const toggleProcess = (key) => {
+    if (isViewOnly) return;
+    setDh({
+      ...dh,
+      selectedProcesses: { ...dh.selectedProcesses, [key]: !dh.selectedProcesses[key] },
+    });
+  };
+
+  const patchRowFile = (processKey, rowId, filePayload) => {
+    const rows = (dh.documents[processKey] || []).map((r) => (r.id === rowId ? { ...r, file: filePayload } : r));
+    setDh({ ...dh, documents: { ...dh.documents, [processKey]: rows } });
+  };
+
+  const { gro: groOn, customClearance: ccOn } = dh.selectedProcesses || {};
+
+  return (
+    <div className="document-handling-section">
+      <div className="document-handling-section__divider" />
+      <h3 className="document-handling-section__heading">Document handling</h3>
+      <p className="document-handling-section__hint">Select the processes that apply. Uploads are tracked separately for each group.</p>
+
+      <div className="process-selector-row" role="group" aria-label="Document process selection">
+        <span className="process-selector-row__label">Include</span>
+        <button
+          type="button"
+          className={`process-selector-option${groOn ? " process-selector-option--active" : ""}`}
+          onClick={() => toggleProcess("gro")}
+          disabled={isViewOnly}
+        >
+          GRO
+        </button>
+        <button
+          type="button"
+          className={`process-selector-option${ccOn ? " process-selector-option--active" : ""}`}
+          onClick={() => toggleProcess("customClearance")}
+          disabled={isViewOnly}
+        >
+          Custom clearance
+        </button>
+      </div>
+
+      {groOn && (
+        <DocumentGroupCard title="GRO documents">
+          {(dh.documents.gro || []).map((doc) => (
+            <DocumentRow
+              key={doc.id}
+              doc={doc}
+              isViewOnly={isViewOnly}
+              onChooseFile={(file) => patchRowFile("gro", doc.id, file)}
+              onRemoveFile={() => patchRowFile("gro", doc.id, null)}
+            />
+          ))}
+        </DocumentGroupCard>
+      )}
+
+      {ccOn && (
+        <DocumentGroupCard title="Custom clearance documents">
+          {(dh.documents.customClearance || []).map((doc) => (
+            <DocumentRow
+              key={doc.id}
+              doc={doc}
+              isViewOnly={isViewOnly}
+              onChooseFile={(file) => patchRowFile("customClearance", doc.id, file)}
+              onRemoveFile={() => patchRowFile("customClearance", doc.id, null)}
+            />
+          ))}
+        </DocumentGroupCard>
+      )}
+    </div>
+  );
+}
+
+PreArrivalDocumentHandlingSection.propTypes = {
+  formValues: PropTypes.object.isRequired,
+  handleChange: PropTypes.func.isRequired,
+  isViewOnly: PropTypes.bool,
+};
+
 const PreArrivalContent = ({ formValues, handleChange, ownerInitial, cardUser, cardColor, onAddLink, onRemoveLink, onOpenReportPreview, isViewOnly = false, eventFields = [] }) => {
-  const [isDraggingSaberUtDocuments, setIsDraggingSaberUtDocuments] = useState(false);
   const saberUtFileInputRef = useRef(null);
 
-  const typeOfCallOptions = [
-    { value: "Import", label: "Import" },
-    { value: "Export", label: "Export" },
-    { value: "Domestic", label: "Domestic" },
-  ];
-
-  // Handle SABER UT documents file upload
-  const handleSaberUtDragEnter = (e) => {
-    e.preventDefault();
-    e.stopPropagation();
-    setIsDraggingSaberUtDocuments(true);
-  };
-
-  const handleSaberUtDragLeave = (e) => {
-    e.preventDefault();
-    e.stopPropagation();
-    setIsDraggingSaberUtDocuments(false);
-  };
-
-  const handleSaberUtDragOver = (e) => {
-    e.preventDefault();
-    e.stopPropagation();
-  };
-
-  const handleSaberUtDrop = (e) => {
-    e.preventDefault();
-    e.stopPropagation();
-    setIsDraggingSaberUtDocuments(false);
-
-    const files = Array.from(e.dataTransfer.files || []);
-    if (files.length > 0) {
-      const currentAttachments = formValues.saberUtDocumentsAttachments || [];
-      const newAttachments = files.map((file) => ({
-        name: file.name,
-        file: file,
-        size: file.size,
-        type: file.type,
-      }));
-      const updatedAttachments = [...currentAttachments, ...newAttachments];
-      const syntheticEvent = { target: { value: updatedAttachments } };
-      handleChange("saberUtDocumentsAttachments")(syntheticEvent);
-    }
-  };
-
-  const handleSaberUtFileInputChange = (e) => {
-    const files = Array.from(e.target.files || []);
-    if (files.length > 0) {
-      const currentAttachments = formValues.saberUtDocumentsAttachments || [];
-      const newAttachments = files.map((file) => ({
-        name: file.name,
-        file: file,
-        size: file.size,
-        type: file.type,
-      }));
-      const updatedAttachments = [...currentAttachments, ...newAttachments];
-      const syntheticEvent = { target: { value: updatedAttachments } };
-      handleChange("saberUtDocumentsAttachments")(syntheticEvent);
-    }
-    if (saberUtFileInputRef.current) {
-      saberUtFileInputRef.current.value = "";
-    }
-  };
-
-  const handleSaberUtRemoveAttachment = (index) => {
+  const handleSaberUtAddFiles = (files) => {
     const currentAttachments = formValues.saberUtDocumentsAttachments || [];
-    const updatedAttachments = currentAttachments.filter((_, i) => i !== index);
-    const syntheticEvent = { target: { value: updatedAttachments } };
-    handleChange("saberUtDocumentsAttachments")(syntheticEvent);
+    const newAttachments = files.map((file) => ({
+      name: file.name,
+      file: file,
+      size: file.size,
+      type: file.type,
+    }));
+    handleChange("saberUtDocumentsAttachments")({ target: { value: [...currentAttachments, ...newAttachments] } });
   };
 
-  // Handle save
+  const handleSaberUtRemoveAt = (index) => {
+    const currentAttachments = formValues.saberUtDocumentsAttachments || [];
+    handleChange("saberUtDocumentsAttachments")({
+      target: { value: currentAttachments.filter((_, i) => i !== index) },
+    });
+  };
+
   const handleSave = () => {
     console.log("Saving Pre Arrival data:", formValues);
-    // Add your save logic here
   };
+
+  const preArrivalReportAttachments = () => [
+    ...(formValues.saberUtDocumentsAttachments || []),
+    ...collectPreArrivalProcessAttachments(formValues.preArrivalDocumentHandling),
+  ];
 
   return (
     <div className="cardform-left-full" style={{ "--card-color": cardColor }}>
@@ -805,7 +1024,7 @@ const PreArrivalContent = ({ formValues, handleChange, ownerInitial, cardUser, c
                 tabName: "Pre Arrival",
                 formSectionLabel: "Pre-Arrival Information",
                 getBody: () => buildPreArrivalReportBody(formValues),
-                getAttachments: () => formValues.saberUtDocumentsAttachments || [],
+                getAttachments: preArrivalReportAttachments,
               })
             }
             cardColor={cardColor}
@@ -815,8 +1034,8 @@ const PreArrivalContent = ({ formValues, handleChange, ownerInitial, cardUser, c
       </div>
       <FormSection icon={GroupSettingsIcon} title="">
         <div className="pre-arrival-form">
-          <div className="general-info-two-column operation-section-form-layout">
-            <div className="general-info-left">
+          <div className="general-info-two-column operation-section-form-layout prearrival-top-grid">
+            <div className="general-info-left prearrival-left-column">
               <DynamicDateTimeFields
                 eventFields={eventFields}
                 formValues={formValues}
@@ -834,139 +1053,49 @@ const PreArrivalContent = ({ formValues, handleChange, ownerInitial, cardUser, c
                 />
               </FormField>
 
-              <FormField label="SABER Certificate Upload">
-                <div style={{ marginTop: "8px" }}>
-                  {isViewOnly ? (
-                    // View-only mode: Show dummy documents list
-                    <div className="attachment-list-wrapper">
-                      <div style={{
-                        padding: "16px",
-                        border: "1px solid #e2e2ea",
-                        borderRadius: "8px",
-                        backgroundColor: "#f8f9fa"
-                      }}>
-                        {(formValues.saberUtDocumentsAttachments || []).map((doc, index) => (
-                          <div
-                            key={index}
-                            style={{
-                              display: "flex",
-                              alignItems: "center",
-                              padding: "12px",
-                              marginBottom: index < (formValues.saberUtDocumentsAttachments || []).length - 1 ? "8px" : "0",
-                              backgroundColor: "#ffffff",
-                              borderRadius: "6px",
-                              border: "1px solid #e2e2ea"
-                            }}
-                          >
-                            <div style={{ marginRight: "12px", color: "#666" }}>
-                              <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-                                <path d="M14 2H6C5.46957 2 4.96086 2.21071 4.58579 2.58579C4.21071 2.96086 4 3.46957 4 4V20C4 20.5304 4.21071 21.0391 4.58579 21.4142C4.96086 21.7893 5.46957 22 6 22H18C18.5304 22 19.0391 21.7893 19.4142 21.4142C19.7893 21.0391 20 20.5304 20 20V8L14 2Z" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" fill="none" />
-                                <path d="M14 2V8H20" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" fill="none" />
-                                <path d="M16 13H8" stroke="currentColor" strokeWidth="2" strokeLinecap="round" fill="none" />
-                                <path d="M16 17H8" stroke="currentColor" strokeWidth="2" strokeLinecap="round" fill="none" />
-                                <path d="M10 9H9H8" stroke="currentColor" strokeWidth="2" strokeLinecap="round" fill="none" />
-                              </svg>
-                            </div>
-                            <div style={{ flex: 1 }}>
-                              <div style={{
-                                fontSize: "14px",
-                                fontWeight: "500",
-                                color: "#1a1a1a",
-                                marginBottom: "4px"
-                              }}>
-                                {doc.name}
-                              </div>
-                              {doc.size && (
-                                <div style={{
-                                  fontSize: "12px",
-                                  color: "#666"
-                                }}>
-                                  {(doc.size / 1024).toFixed(2)} KB
-                                </div>
-                              )}
-                            </div>
-                            <button
-                              type="button"
-                              onClick={() => {
-                                // Handle view action
-                                console.log("View document:", doc.name);
-                              }}
-                              style={{
-                                marginLeft: "12px",
-                                padding: "8px",
-                                border: "none",
-                                backgroundColor: "transparent",
-                                cursor: "pointer",
-                                display: "flex",
-                                alignItems: "center",
-                                justifyContent: "center",
-                                color: "#3e5cb6",
-                                borderRadius: "4px",
-                                transition: "background-color 0.2s"
-                              }}
-                              onMouseEnter={(e) => {
-                                e.currentTarget.style.backgroundColor = "#f0f0f0";
-                              }}
-                              onMouseLeave={(e) => {
-                                e.currentTarget.style.backgroundColor = "transparent";
-                              }}
-                              title="View document"
-                            >
-                              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-                                <path d="M1 12C1 12 5 4 12 4C19 4 23 12 23 12C23 12 19 20 12 20C5 20 1 12 1 12Z" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" fill="none" />
-                                <circle cx="12" cy="12" r="3" stroke="currentColor" strokeWidth="2" fill="none" />
-                              </svg>
-                            </button>
-                          </div>
-                        ))}
-                      </div>
-                    </div>
-                  ) : (
-                    <AttachmentsList
-                      attachments={formValues.saberUtDocumentsAttachments || []}
-                      onAdd={() => { }}
-                      onRemove={handleSaberUtRemoveAttachment}
-                      cardColor={cardColor}
-                      isDragging={isDraggingSaberUtDocuments}
-                      onDragEnter={handleSaberUtDragEnter}
-                      onDragLeave={handleSaberUtDragLeave}
-                      onDragOver={handleSaberUtDragOver}
-                      onDrop={handleSaberUtDrop}
-                      fileInputRef={saberUtFileInputRef}
-                      onFileInputChange={handleSaberUtFileInputChange}
-                    />
-                  )}
-                </div>
+              <FormField label="SABER certificate upload">
+                <PreArrivalSaberCompactRow
+                  attachments={formValues.saberUtDocumentsAttachments || []}
+                  onAddFiles={handleSaberUtAddFiles}
+                  onRemoveAt={handleSaberUtRemoveAt}
+                  isViewOnly={isViewOnly}
+                  fileInputRef={saberUtFileInputRef}
+                />
               </FormField>
 
               {!isViewOnly && (
                 <div className="form-save-button-wrapper">
-                  <button
-                    type="button"
-                    className="form-save-button"
-                    onClick={handleSave}
-                  >
+                  <button type="button" className="form-save-button" onClick={handleSave}>
                     Save
                   </button>
                 </div>
               )}
             </div>
 
-            <div className="general-info-right">
-              <div className="card-description-wrapper" style={{
-                minHeight: isViewOnly ? "300px" : "auto",
-                maxHeight: isViewOnly ? "400px" : "none",
-                overflowY: isViewOnly ? "auto" : "visible"
-              }}>
+            <div className="general-info-right prearrival-right-column">
+              <div
+                className="card-description-wrapper"
+                style={{
+                  minHeight: isViewOnly ? "300px" : "auto",
+                  maxHeight: isViewOnly ? "400px" : "none",
+                  overflowY: isViewOnly ? "auto" : "visible",
+                }}
+              >
                 <FormField label="Remarks">
-                  <div style={isViewOnly ? {
-                    maxHeight: "350px",
-                    overflowY: "auto",
-                    padding: "8px",
-                    border: "1px solid #e2e2ea",
-                    borderRadius: "4px",
-                    backgroundColor: "#ffffff"
-                  } : {}}>
+                  <div
+                    style={
+                      isViewOnly
+                        ? {
+                            maxHeight: "350px",
+                            overflowY: "auto",
+                            padding: "8px",
+                            border: "1px solid #e2e2ea",
+                            borderRadius: "4px",
+                            backgroundColor: "#ffffff",
+                          }
+                        : {}
+                    }
+                  >
                     <ReactQuillEditor
                       value={formValues?.preArrivalDescription || ""}
                       onChange={handleChange("preArrivalDescription")}
@@ -1001,6 +1130,8 @@ const PreArrivalContent = ({ formValues, handleChange, ownerInitial, cardUser, c
               </div>
             </div>
           </div>
+
+          <PreArrivalDocumentHandlingSection formValues={formValues} handleChange={handleChange} isViewOnly={isViewOnly} />
         </div>
       </FormSection>
     </div>
@@ -1781,6 +1912,35 @@ const getDummyValues = () => ({
     { name: "SABER_UT_Document_002.pdf", size: 189234, type: "application/pdf" },
     { name: "Pre_Arrival_Documentation.pdf", size: 312456, type: "application/pdf" },
   ],
+  preArrivalDocumentHandling: {
+    selectedProcesses: { gro: true, customClearance: true },
+    documents: {
+      gro: [
+        {
+          id: "pre-gro-1",
+          name: "GRO appointment confirmation",
+          is_required: true,
+          file: { name: "GRO_Appointment.pdf", size: 120400, type: "application/pdf" },
+        },
+        { id: "pre-gro-2", name: "Berthing allocation (GRO)", is_required: false, file: null },
+      ],
+      customClearance: [
+        {
+          id: "pre-cc-1",
+          name: "Customs import declaration",
+          is_required: true,
+          file: { name: "Customs_Declaration.pdf", size: 98000, type: "application/pdf" },
+        },
+        {
+          id: "pre-cc-2",
+          name: "Bill of lading / cargo manifest",
+          is_required: true,
+          file: { name: "BOL_Manifest.pdf", size: 210000, type: "application/pdf" },
+        },
+        { id: "pre-cc-3", name: "Delivery order", is_required: false, file: null },
+      ],
+    },
+  },
   preArrivalDescription: "<p><strong>Pre-Arrival Summary:</strong></p><p>Vessel is expected to arrive on schedule. All pre-arrival documentation has been submitted and verified. The vessel SS Central Bay is proceeding according to the planned timeline.</p><p><strong>Documentation Status:</strong></p><ul><li>SABER certificate has been approved and uploaded</li><li>Customs inspection documents are ready</li><li>Immigration clearance paperwork is complete</li><li>All required permits have been obtained</li></ul><p><strong>Additional Notes:</strong></p><p>The vessel is currently en route and maintaining good communication. Weather conditions are favorable for arrival. All port services have been notified and are on standby. The crew is prepared for the arrival procedures.</p>",
   weatherForecast: "Clear skies, 25°C, light winds",
   coordinates: "24.7136° N, 46.6753° E",

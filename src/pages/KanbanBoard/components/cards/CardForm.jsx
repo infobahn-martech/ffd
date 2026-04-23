@@ -12,6 +12,7 @@ import { getItem } from "../../../../helpers/localStorage";
 
 // Import Tab Components
 import { General, Operation, Husbandry, Attachments, Invoice, SalesOrder, Reports, KPI, Comments, Subtasks } from "../../CardFormTabs";
+import { DEFAULT_PRE_ARRIVAL_DOCUMENT_HANDLING } from "../../CardFormTabs/tabs/operation/preArrivalDocumentHandling";
 import NavTabButton from "../../../../components/NavTabButton";
 
 // Constants - All tabs
@@ -1217,6 +1218,21 @@ function CardForm({
       immigrationClearanceTime: card?.immigrationClearanceTime || "",
       inwardClearanceDate: card?.inwardClearanceDate || "",
       inwardClearanceTime: card?.inwardClearanceTime || "",
+      preArrivalDocumentHandling: (() => {
+        const base = JSON.parse(JSON.stringify(DEFAULT_PRE_ARRIVAL_DOCUMENT_HANDLING));
+        const c = card?.preArrivalDocumentHandling;
+        if (!c || typeof c !== "object") return base;
+        return {
+          selectedProcesses: { ...base.selectedProcesses, ...c.selectedProcesses },
+          documents: {
+            gro: Array.isArray(c.documents?.gro) && c.documents.gro.length ? c.documents.gro : base.documents.gro,
+            customClearance:
+              Array.isArray(c.documents?.customClearance) && c.documents.customClearance.length
+                ? c.documents.customClearance
+                : base.documents.customClearance,
+          },
+        };
+      })(),
       // Legacy fields (keeping for backward compatibility)
       lastPort: card?.lastPort || "",
       etaDate: card?.etaDate || "",
