@@ -58,6 +58,61 @@ export function mapPreArrivalDocumentsFromApi(apiPayload) {
   };
 }
 
+function cloneDefaultDocumentHandling() {
+  return {
+    selectedProcesses: { ...DEFAULT_PRE_ARRIVAL_DOCUMENT_HANDLING.selectedProcesses },
+    documents: {
+      gro: DEFAULT_PRE_ARRIVAL_DOCUMENT_HANDLING.documents.gro.map((row) => ({ ...row, files: [...(row.files || [])] })),
+      customClearance: DEFAULT_PRE_ARRIVAL_DOCUMENT_HANDLING.documents.customClearance.map((row) => ({ ...row, files: [...(row.files || [])] })),
+    },
+  };
+}
+
+export function mergePreArrivalDocumentHandling(currentHandling, apiPayload) {
+  const baseCurrent = currentHandling && typeof currentHandling === "object" ? currentHandling : cloneDefaultDocumentHandling();
+  const mappedFromApi = mapPreArrivalDocumentsFromApi(apiPayload);
+
+  const mergeRows = (apiRows = [], currentRows = []) =>
+    (apiRows || []).map((apiRow, index) => {
+      const byId = (currentRows || []).find((row) => String(row?.id) === String(apiRow?.id));
+      const byName = (currentRows || []).find(
+        (row) => String(row?.name || "").trim().toLowerCase() === String(apiRow?.name || "").trim().toLowerCase()
+      );
+      const matched = byId || byName;
+
+      return {
+        ...apiRow,
+        id: apiRow?.id != null ? String(apiRow.id) : `api-row-${index}`,
+        files: Array.isArray(matched?.files) ? matched.files : Array.isArray(apiRow?.files) ? apiRow.files : [],
+      };
+    });
+
+  const nextGroRows = mergeRows(mappedFromApi?.documents?.gro || [], baseCurrent?.documents?.gro || []);
+  const nextCustomClearanceRows = mergeRows(
+    mappedFromApi?.documents?.customClearance || [],
+    baseCurrent?.documents?.customClearance || []
+  );
+
+  return {
+    selectedProcesses: {
+      gro:
+        typeof baseCurrent?.selectedProcesses?.gro === "boolean"
+          ? baseCurrent.selectedProcesses.gro
+          : Boolean(mappedFromApi?.selectedProcesses?.gro),
+      customClearance:
+        typeof baseCurrent?.selectedProcesses?.customClearance === "boolean"
+          ? baseCurrent.selectedProcesses.customClearance
+          : Boolean(mappedFromApi?.selectedProcesses?.customClearance),
+    },
+    documents: {
+      gro: nextGroRows.length ? nextGroRows : cloneDefaultDocumentHandling().documents.gro,
+      customClearance: nextCustomClearanceRows.length
+        ? nextCustomClearanceRows
+        : cloneDefaultDocumentHandling().documents.customClearance,
+    },
+  };
+}
+
 export function collectPreArrivalProcessAttachments(documentHandling) {
   if (!documentHandling?.documents) return [];
   const out = [];

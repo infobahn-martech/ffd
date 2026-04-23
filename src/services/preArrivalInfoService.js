@@ -12,9 +12,13 @@ const addTemplate = (data) =>
 const updateTemplate = (templateId, data) =>
   Gateway.post(`pre_arrival_info_template/update_template/${templateId}`, data);
 
+const getDocuments = () =>
+  Gateway.get('pre_arrival/get_documents');
+
 export default {
   getAllTemplates,
   getTemplateUserTypes,
   addTemplate,
   updateTemplate,
+  getDocuments,
 };

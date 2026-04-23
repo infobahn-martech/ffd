@@ -21,9 +21,11 @@ import NavTabButton from "../../../../../components/NavTabButton";
 import {
   DEFAULT_PRE_ARRIVAL_DOCUMENT_HANDLING,
   collectPreArrivalProcessAttachments,
+  mergePreArrivalDocumentHandling,
 } from "./preArrivalDocumentHandling";
 import DateTimePickerField from "../../components/DateTimePickerField";
 import "../../../../../design/scss/operations.scss";
+import preArrivalInfoService from "../../../../../services/preArrivalInfoService";
 
 // Constants
 const OPERATION_TABS = {
@@ -2023,12 +2025,17 @@ function Operation({ card, formValues, handleChange, ownerInitial, isDAModule = 
     3: [],
     4: [],
   });
+  const preArrivalDocumentHandlingRef = useRef(formValues?.preArrivalDocumentHandling);
   const cardColor = card?.color || "#2A00FF";
 
   const currentCallId = useMemo(
     () => card?.call_id ?? formValues?.call_id ?? card?.callId ?? "",
     [card?.call_id, card?.callId, formValues?.call_id]
   );
+
+  useEffect(() => {
+    preArrivalDocumentHandlingRef.current = formValues?.preArrivalDocumentHandling;
+  }, [formValues?.preArrivalDocumentHandling]);
 
   useEffect(() => {
     if (isAddMode || !currentCallId) {
@@ -2094,6 +2101,32 @@ function Operation({ card, formValues, handleChange, ownerInitial, isDAModule = 
       cancelled = true;
     };
   }, []);
+
+  useEffect(() => {
+    let cancelled = false;
+
+    const loadPreArrivalDocuments = async () => {
+      try {
+        const { data } = await preArrivalInfoService.getDocuments();
+        if (cancelled) return;
+
+        const nextDocumentHandling = mergePreArrivalDocumentHandling(
+          preArrivalDocumentHandlingRef.current,
+          data?.data
+        );
+        handleChange("preArrivalDocumentHandling")({ target: { value: nextDocumentHandling } });
+      } catch (error) {
+        // eslint-disable-next-line no-console
+        console.error("[Operation] pre_arrival/get_documents failed", error);
+      }
+    };
+
+    loadPreArrivalDocuments();
+
+    return () => {
+      cancelled = true;
+    };
+  }, [handleChange]);
 
   const preArrivalEventFields = (eventTypeFieldsByStage[1] || []).length
     ? eventTypeFieldsByStage[1]
