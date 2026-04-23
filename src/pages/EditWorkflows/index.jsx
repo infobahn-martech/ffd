@@ -493,12 +493,12 @@ function EditWorkflows() {
   };
 
   const handleCreateWorkflow = ({ workflow_name, role_id }) => {
-    if (!boardId || !workflow_name?.trim() || !role_id) return;
+    if (!boardId || !workflow_name?.trim()) return;
     setCreateWorkflowSaving(true);
     createWorkflow({
       board_id: boardId,
       workflow_name: workflow_name.trim(),
-      role_id,
+      role_id: role_id ?? '',
       cb: () => {
         getWorkflowByBoard({ boardId, silent: true });
         setShowCreateWorkflowModal(false);
