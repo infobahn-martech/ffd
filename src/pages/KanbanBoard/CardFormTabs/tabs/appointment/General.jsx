@@ -2,6 +2,8 @@ import PropTypes from "prop-types";
 import { useMemo, useRef, useState, useEffect, useCallback } from "react";
 import ReactQuill from "react-quill";
 import "react-quill/dist/quill.snow.css";
+import DatePicker from "react-datepicker";
+import "react-datepicker/dist/react-datepicker.css";
 import "../../../../../design/scss/general.scss";
 import "../../../../../design/css/CardForm.css";
 import AttachmentIcon from "../../../../../assets/images/Attachment.svg";
@@ -113,6 +115,49 @@ const hasRenderableEntityFieldValue = (field, callDetailData, entityFieldValues,
   return false;
 };
 
+const padDateTimePart = (value) => String(value).padStart(2, "0");
+
+const combineDateTime = (dateValue, timeValue) => {
+  if (!dateValue) return null;
+  const [year, month, day] = String(dateValue)
+    .split("-")
+    .map((part) => Number(part));
+
+  if (!year || !month || !day) return null;
+
+  const [hours = 0, minutes = 0] = String(timeValue || "00:00")
+    .split(":")
+    .map((part) => Number(part));
+
+  const localDate = new Date(year, month - 1, day, hours || 0, minutes || 0, 0, 0);
+  return Number.isNaN(localDate.getTime()) ? null : localDate;
+};
+
+const splitDateTimeValue = (dateTimeValue) => {
+  if (!dateTimeValue) return { date: "", time: "" };
+
+  const parsedValue = dateTimeValue instanceof Date ? dateTimeValue : new Date(dateTimeValue);
+  if (Number.isNaN(parsedValue.getTime())) return { date: "", time: "" };
+
+  return {
+    date: `${parsedValue.getFullYear()}-${padDateTimePart(parsedValue.getMonth() + 1)}-${padDateTimePart(parsedValue.getDate())}`,
+    time: `${padDateTimePart(parsedValue.getHours())}:${padDateTimePart(parsedValue.getMinutes())}`,
+  };
+};
+
+const formatDisplayDateTime = (dateValue, timeValue) => {
+  const combinedDate = combineDateTime(dateValue, timeValue);
+  if (!combinedDate) return "";
+  return combinedDate.toLocaleString("en-GB", {
+    year: "numeric",
+    month: "short",
+    day: "2-digit",
+    hour: "2-digit",
+    minute: "2-digit",
+    hour12: false,
+  });
+};
+
 // Form Components
 const FormField = ({ label, children, className = "", hasError = false }) => {
   return (
@@ -154,6 +199,75 @@ FormInput.propTypes = {
   readOnly: PropTypes.bool,
   disabled: PropTypes.bool,
   hasError: PropTypes.bool,
+};
+
+const DateTimePickerField = ({
+  dateValue = "",
+  timeValue = "",
+  onDateChange,
+  onTimeChange,
+  onDateTimeChange,
+  dateFieldName,
+  timeFieldName,
+  disabled = false,
+  hasError = false,
+  placeholder = "Select date and time",
+  minDate,
+  maxDate,
+}) => {
+  const selectedValue = useMemo(() => combineDateTime(dateValue, timeValue), [dateValue, timeValue]);
+  const handlePickerChange = useCallback(
+    (newValue) => {
+      const nextValues = splitDateTimeValue(newValue);
+      const dateEvent = { target: { name: dateFieldName || "", value: nextValues.date } };
+      const timeEvent = { target: { name: timeFieldName || "", value: nextValues.time } };
+
+      if (onDateChange) onDateChange(dateEvent);
+      if (onTimeChange) onTimeChange(timeEvent);
+      if (onDateTimeChange) onDateTimeChange(nextValues);
+    },
+    [dateFieldName, onDateChange, onDateTimeChange, onTimeChange, timeFieldName]
+  );
+
+  return (
+    <div
+      className={`cf-input date-time-row cf-datetime-picker ${hasError ? "is-invalid" : ""}`}
+      title={formatDisplayDateTime(dateValue, timeValue)}
+    >
+      <DatePicker
+        selected={selectedValue}
+        onChange={handlePickerChange}
+        disabled={disabled}
+        minDate={minDate ? new Date(minDate) : undefined}
+        maxDate={maxDate ? new Date(maxDate) : undefined}
+        showTimeSelect
+        timeIntervals={5}
+        dateFormat="yyyy-MM-dd HH:mm"
+        timeFormat="HH:mm"
+        shouldCloseOnSelect={false}
+        isClearable
+        placeholderText={placeholder}
+        className="cf-datetime-input"
+        popperPlacement="bottom-start"
+        popperClassName="cf-datetime-popper"
+      />
+    </div>
+  );
+};
+
+DateTimePickerField.propTypes = {
+  dateValue: PropTypes.string,
+  timeValue: PropTypes.string,
+  onDateChange: PropTypes.func,
+  onTimeChange: PropTypes.func,
+  onDateTimeChange: PropTypes.func,
+  dateFieldName: PropTypes.string,
+  timeFieldName: PropTypes.string,
+  disabled: PropTypes.bool,
+  hasError: PropTypes.bool,
+  placeholder: PropTypes.string,
+  minDate: PropTypes.oneOfType([PropTypes.instanceOf(Date), PropTypes.string]),
+  maxDate: PropTypes.oneOfType([PropTypes.instanceOf(Date), PropTypes.string]),
 };
 
 const FormSelect = ({
@@ -2412,7 +2526,7 @@ function General({
   return (
     <div className="cardform-body general-tab-body">
       <div className="general-sections-wrapper">
-        <div className="cf-section general-info-section">
+        <div className={`cf-section general-info-section ${isAddMode ? "general-info-section--add-mode" : ""}`}>
           {!isAddMode && (
             <div className="cf-section-header" style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
               <div className="cf-section-title">General Information</div>
@@ -2473,22 +2587,16 @@ function General({
                           </FormField>
 
                           <FormField label="Last moved">
-                            <div className="cf-input date-time-row">
-                              <input
-                                type="date"
-                                value={getFieldValue("lastMovedDate")}
-                                onChange={handleChange("lastMovedDate")}
-                                placeholder="Select date"
-                                disabled={isDisabled}
-                              />
-                              <input
-                                type="time"
-                                value={getFieldValue("lastMovedTime")}
-                                onChange={handleChange("lastMovedTime")}
-                                placeholder="Select time"
-                                disabled={isDisabled}
-                              />
-                            </div>
+                            <DateTimePickerField
+                              dateValue={getFieldValue("lastMovedDate")}
+                              timeValue={getFieldValue("lastMovedTime")}
+                              onDateChange={handleChange("lastMovedDate")}
+                              onTimeChange={handleChange("lastMovedTime")}
+                              dateFieldName="lastMovedDate"
+                              timeFieldName="lastMovedTime"
+                              disabled={isDisabled}
+                              placeholder="Select date and time"
+                            />
                           </FormField>
                         </>
                       ) : (isCrewChange || isMaterialDelivery) ? (
@@ -2532,79 +2640,55 @@ function General({
                           </FormField>
 
                           <FormField label="Last moved">
-                            <div className="cf-input date-time-row">
-                              <input
-                                type="date"
-                                value={getFieldValue("lastMovedDate")}
-                                onChange={handleChange("lastMovedDate")}
-                                placeholder="Select date"
-                                disabled={isDisabled}
-                              />
-                              <input
-                                type="time"
-                                value={getFieldValue("lastMovedTime")}
-                                onChange={handleChange("lastMovedTime")}
-                                placeholder="Select time"
-                                disabled={isDisabled}
-                              />
-                            </div>
+                            <DateTimePickerField
+                              dateValue={getFieldValue("lastMovedDate")}
+                              timeValue={getFieldValue("lastMovedTime")}
+                              onDateChange={handleChange("lastMovedDate")}
+                              onTimeChange={handleChange("lastMovedTime")}
+                              dateFieldName="lastMovedDate"
+                              timeFieldName="lastMovedTime"
+                              disabled={isDisabled}
+                              placeholder="Select date and time"
+                            />
                           </FormField>
 
                           <FormField label="Inward Clearance Date">
-                            <div className="cf-input date-time-row">
-                              <input
-                                type="date"
-                                value={getFieldValue("inwardClearanceDate")}
-                                onChange={handleChange("inwardClearanceDate")}
-                                placeholder="Select date"
-                                disabled={isDisabled}
-                              />
-                              <input
-                                type="time"
-                                value={getFieldValue("inwardClearanceTime")}
-                                onChange={handleChange("inwardClearanceTime")}
-                                placeholder="Select time"
-                                disabled={isDisabled}
-                              />
-                            </div>
+                            <DateTimePickerField
+                              dateValue={getFieldValue("inwardClearanceDate")}
+                              timeValue={getFieldValue("inwardClearanceTime")}
+                              onDateChange={handleChange("inwardClearanceDate")}
+                              onTimeChange={handleChange("inwardClearanceTime")}
+                              dateFieldName="inwardClearanceDate"
+                              timeFieldName="inwardClearanceTime"
+                              disabled={isDisabled}
+                              placeholder="Select date and time"
+                            />
                           </FormField>
 
                           <FormField label="Outward Clearance Date">
-                            <div className="cf-input date-time-row">
-                              <input
-                                type="date"
-                                value={getFieldValue("outwardClearanceDate")}
-                                onChange={handleChange("outwardClearanceDate")}
-                                placeholder="Select date"
-                                disabled={isDisabled}
-                              />
-                              <input
-                                type="time"
-                                value={getFieldValue("outwardClearanceTime")}
-                                onChange={handleChange("outwardClearanceTime")}
-                                placeholder="Select time"
-                                disabled={isDisabled}
-                              />
-                            </div>
+                            <DateTimePickerField
+                              dateValue={getFieldValue("outwardClearanceDate")}
+                              timeValue={getFieldValue("outwardClearanceTime")}
+                              onDateChange={handleChange("outwardClearanceDate")}
+                              onTimeChange={handleChange("outwardClearanceTime")}
+                              dateFieldName="outwardClearanceDate"
+                              timeFieldName="outwardClearanceTime"
+                              disabled={isDisabled}
+                              placeholder="Select date and time"
+                            />
                           </FormField>
 
                           <FormField label="Operations completion date">
-                            <div className="cf-input date-time-row">
-                              <input
-                                type="date"
-                                value={getFieldValue("operationsCompletionDate")}
-                                onChange={handleChange("operationsCompletionDate")}
-                                placeholder="Select date"
-                                disabled={isDisabled}
-                              />
-                              <input
-                                type="time"
-                                value={getFieldValue("operationsCompletionTime")}
-                                onChange={handleChange("operationsCompletionTime")}
-                                placeholder="Select time"
-                                disabled={isDisabled}
-                              />
-                            </div>
+                            <DateTimePickerField
+                              dateValue={getFieldValue("operationsCompletionDate")}
+                              timeValue={getFieldValue("operationsCompletionTime")}
+                              onDateChange={handleChange("operationsCompletionDate")}
+                              onTimeChange={handleChange("operationsCompletionTime")}
+                              dateFieldName="operationsCompletionDate"
+                              timeFieldName="operationsCompletionTime"
+                              disabled={isDisabled}
+                              placeholder="Select date and time"
+                            />
                           </FormField>
 
                           <FormField label="Total Onsigners">
@@ -2708,22 +2792,16 @@ function General({
                           </FormField>
 
                           <FormField label="Operations completion Date">
-                            <div className="cf-input date-time-row">
-                              <input
-                                type="date"
-                                value={getFieldValue("operationsCompletionDate")}
-                                onChange={handleChange("operationsCompletionDate")}
-                                placeholder="Select date"
-                                disabled={isDisabled}
-                              />
-                              <input
-                                type="time"
-                                value={getFieldValue("operationsCompletionTime")}
-                                onChange={handleChange("operationsCompletionTime")}
-                                placeholder="Select time"
-                                disabled={isDisabled}
-                              />
-                            </div>
+                            <DateTimePickerField
+                              dateValue={getFieldValue("operationsCompletionDate")}
+                              timeValue={getFieldValue("operationsCompletionTime")}
+                              onDateChange={handleChange("operationsCompletionDate")}
+                              onTimeChange={handleChange("operationsCompletionTime")}
+                              dateFieldName="operationsCompletionDate"
+                              timeFieldName="operationsCompletionTime"
+                              disabled={isDisabled}
+                              placeholder="Select date and time"
+                            />
                           </FormField>
 
                           <FormField label="VESSEL NAME">
@@ -2737,22 +2815,16 @@ function General({
                           </FormField>
 
                           <FormField label="Last moved">
-                            <div className="cf-input date-time-row">
-                              <input
-                                type="date"
-                                value={getFieldValue("lastMovedDate")}
-                                onChange={handleChange("lastMovedDate")}
-                                placeholder="Select date"
-                                disabled={isDisabled}
-                              />
-                              <input
-                                type="time"
-                                value={getFieldValue("lastMovedTime")}
-                                onChange={handleChange("lastMovedTime")}
-                                placeholder="Select time"
-                                disabled={isDisabled}
-                              />
-                            </div>
+                            <DateTimePickerField
+                              dateValue={getFieldValue("lastMovedDate")}
+                              timeValue={getFieldValue("lastMovedTime")}
+                              onDateChange={handleChange("lastMovedDate")}
+                              onTimeChange={handleChange("lastMovedTime")}
+                              dateFieldName="lastMovedDate"
+                              timeFieldName="lastMovedTime"
+                              disabled={isDisabled}
+                              placeholder="Select date and time"
+                            />
                           </FormField>
 
                           <FormField label="Tax Invoice">
@@ -2816,22 +2888,16 @@ function General({
                           </FormField>
 
                           <FormField label="Last moved">
-                            <div className="cf-input date-time-row">
-                              <input
-                                type="date"
-                                value={getFieldValue("lastMovedDate")}
-                                onChange={handleChange("lastMovedDate")}
-                                placeholder="Select date"
-                                disabled={isDisabled}
-                              />
-                              <input
-                                type="time"
-                                value={getFieldValue("lastMovedTime")}
-                                onChange={handleChange("lastMovedTime")}
-                                placeholder="Select time"
-                                disabled={isDisabled}
-                              />
-                            </div>
+                            <DateTimePickerField
+                              dateValue={getFieldValue("lastMovedDate")}
+                              timeValue={getFieldValue("lastMovedTime")}
+                              onDateChange={handleChange("lastMovedDate")}
+                              onTimeChange={handleChange("lastMovedTime")}
+                              dateFieldName="lastMovedDate"
+                              timeFieldName="lastMovedTime"
+                              disabled={isDisabled}
+                              placeholder="Select date and time"
+                            />
                           </FormField>
 
                           <FormField label="Tax Invoice">
@@ -2937,25 +3003,17 @@ function General({
                                   label="Appointment Received"
                                   hasError={isAddMode && Boolean(fieldErrors.appointmentReceivedDate)}
                                 >
-                                  <div
-                                    className={`cf-input date-time-row ${isAddMode && fieldErrors.appointmentReceivedDate ? "is-invalid" : ""}`}
-                                  >
-                                    <input
-                                      type="date"
-                                      value={getFieldValue("appointmentReceivedDate")}
-                                      onChange={isAddMode ? handleValidatedChange("appointmentReceivedDate") : handleChange("appointmentReceivedDate")}
-                                      placeholder="Select date"
-                                      disabled={isDisabled}
-                                    />
-
-                                    <input
-                                      type="time"
-                                      value={getFieldValue("appointmentReceivedTime")}
-                                      onChange={handleChange("appointmentReceivedTime")}
-                                      placeholder="Select time"
-                                      disabled={isDisabled}
-                                    />
-                                  </div>
+                                  <DateTimePickerField
+                                    dateValue={getFieldValue("appointmentReceivedDate")}
+                                    timeValue={getFieldValue("appointmentReceivedTime")}
+                                    onDateChange={isAddMode ? handleValidatedChange("appointmentReceivedDate") : handleChange("appointmentReceivedDate")}
+                                    onTimeChange={handleChange("appointmentReceivedTime")}
+                                    dateFieldName="appointmentReceivedDate"
+                                    timeFieldName="appointmentReceivedTime"
+                                    disabled={isDisabled}
+                                    hasError={isAddMode && Boolean(fieldErrors.appointmentReceivedDate)}
+                                    placeholder="Select date and time"
+                                  />
                                   {isAddMode && fieldErrors.appointmentReceivedDate && (
                                     <div className="cf-field-error">{fieldErrors.appointmentReceivedDate}</div>
                                   )}

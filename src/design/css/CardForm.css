@@ -12,7 +12,7 @@
 
 /* Panel */
 .cardform-panel {
-  width: 100%;
+  width: 98%;
   height: 95%;
   /* max-width: 1800px; */
   /* height: 85vh;
@@ -727,7 +727,7 @@
 }
 
 .cf-section.general-info-section .general-add-3col-layout {
-  overflow: visible;
+  overflow: hidden;
   align-items: stretch;
   width: 100%;
 }
@@ -760,12 +760,11 @@
 }
 
 .general-add-form-scroll {
-  flex: 1;
+  flex: 1 1 auto;
   min-height: 0;
-  max-height: min(100%, calc(90vh - 260px));
   overflow-y: auto;
   overflow-x: hidden;
-  padding: 18px 8px 28px 18px;
+  padding: 16px 8px 16px 16px;
   scrollbar-width: thin;
   scrollbar-color: #cbd5e1 #f8fafc;
 }
@@ -802,6 +801,7 @@
   width: 100%;
   display: flex;
   flex-direction: column;
+  flex: 1;
   min-height: 0;
   height: 100%;
 }
@@ -809,9 +809,10 @@
 .general-add-page-actions {
   display: flex;
   justify-content: flex-end;
-  margin-top: 20px;
-  padding-top: 8px;
+  margin-top: 12px;
+  padding-top: 0;
   padding-right: 2px;
+  flex-shrink: 0;
 }
 
 .cf-daily-report-emails-field {
@@ -853,10 +854,17 @@
 
 .general-add-description-content {
   min-height: 0;
-  flex: 1;
+  flex: 1 1 auto;
   display: flex;
   flex-direction: column;
-  padding: 18px 18px 22px;
+  padding: 16px;
+  overflow-y: auto;
+}
+
+.general-add-description-content .cf-field,
+.general-add-description-content .general-card-description-editor {
+  flex: 1;
+  min-height: 0;
 }
 
 .general-card-description-editor .react-quill-wrapper .ql-toolbar {
@@ -884,13 +892,13 @@
 
 .general-card-description-editor .react-quill-wrapper,
 .general-card-description-editor .react-quill-wrapper .ql-container {
-  height: 450px;
-  min-height: 450px;
+  height: 280px;
+  min-height: 280px;
 }
 
 .general-card-description-editor .react-quill-wrapper .ql-editor {
   height: 100%;
-  min-height: 360px;
+  min-height: 220px;
   line-height: 1.6;
 }
 
@@ -911,11 +919,63 @@
   border: 1px solid #e5e7eb;
   border-radius: 18px;
   box-shadow: 0 8px 24px rgba(15, 23, 42, 0.05);
-  padding: 18px 18px 22px;
+  padding: 16px;
   display: flex;
   flex-direction: column;
-  gap: 14px;
+  gap: 10px;
   min-width: 0;
+}
+
+/* Add mode: prevent inherited full-height stretch behavior from general.scss */
+.cf-section.general-info-section.general-info-section--add-mode {
+  flex: 1;
+  min-height: 0;
+  overflow: hidden;
+}
+
+.cf-section.general-info-section.general-info-section--add-mode .cf-section-body {
+  flex: 1;
+  min-height: 0;
+  overflow: hidden;
+}
+
+.cf-section.general-info-section.general-info-section--add-mode .general-tab-form-layout,
+.cf-section.general-info-section.general-info-section--add-mode .general-add-3col-layout {
+  flex: 1;
+  min-height: 0;
+  height: 100%;
+  overflow: hidden;
+  align-items: stretch;
+}
+
+.cf-section.general-info-section.general-info-section--add-mode .general-info-left,
+.cf-section.general-info-section.general-info-section--add-mode .general-info-right,
+.cf-section.general-info-section.general-info-section--add-mode .general-add-form-panel,
+.cf-section.general-info-section.general-info-section--add-mode .general-add-description-panel,
+.cf-section.general-info-section.general-info-section--add-mode .general-add-preview-panel {
+  height: 100%;
+  min-height: 0;
+  align-self: stretch;
+}
+
+.cf-section.general-info-section.general-info-section--add-mode .general-info-right {
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  margin-top: 0;
+}
+
+.cf-section.general-info-section.general-info-section--add-mode .general-add-form-scroll {
+  max-height: none;
+}
+
+.cf-section.general-info-section.general-info-section--add-mode .general-add-description-content {
+  flex: 1;
+}
+
+.cf-section.general-info-section.general-info-section--add-mode .email-preview-card {
+  min-height: 0;
+  flex: 1;
 }
 
 .email-preview-topbar {
@@ -957,8 +1017,8 @@
 }
 
 .email-preview-card {
-  flex: 1;
-  min-height: 0;
+  flex: 0 1 auto;
+  min-height: 300px;
   width: 100%;
   border: 1px solid #e5e7eb;
   border-radius: 14px;
@@ -1050,8 +1110,8 @@
 
 .email-preview-message-input {
   flex: 1;
-  min-height: 240px;
-  height: 240px;
+  min-height: 160px;
+  height: 160px;
   resize: vertical;
   border: 1px solid #dbe2ea;
   border-radius: 12px;
@@ -1065,7 +1125,7 @@
 
 .email-preview-message-rendered {
   flex: 1;
-  min-height: 240px;
+  min-height: 160px;
   max-height: 420px;
   border: 1px solid #dbe2ea;
   border-radius: 12px;
@@ -1087,6 +1147,22 @@
 @media (max-width: 1200px) {
   .general-add-3col-layout {
     grid-template-columns: 1fr !important;
+  }
+
+  .cf-section.general-info-section.general-info-section--add-mode,
+  .cf-section.general-info-section.general-info-section--add-mode .cf-section-body,
+  .cf-section.general-info-section.general-info-section--add-mode .general-add-mode-wrapper,
+  .cf-section.general-info-section.general-info-section--add-mode .general-add-3col-layout {
+    height: auto;
+    overflow: visible;
+  }
+
+  .cf-section.general-info-section.general-info-section--add-mode .general-info-left,
+  .cf-section.general-info-section.general-info-section--add-mode .general-info-right,
+  .cf-section.general-info-section.general-info-section--add-mode .general-add-form-panel,
+  .cf-section.general-info-section.general-info-section--add-mode .general-add-description-panel,
+  .cf-section.general-info-section.general-info-section--add-mode .general-add-preview-panel {
+    height: auto;
   }
 }
 
