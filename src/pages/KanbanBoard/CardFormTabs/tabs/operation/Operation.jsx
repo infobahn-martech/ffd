@@ -775,16 +775,6 @@ const CompactFileUploadRow = ({ label, files = [], isRequired = false, onAddFile
       <div className="document-row-name compact-file-upload-label">
         <span title={label}>{label}</span>
       </div>
-      <div className="document-row-status">{isRequired ? <IconAsteriskRequired /> : <span className="document-row-optional" />}</div>
-      <div className="document-row-file compact-file-upload-files">
-        {hasFiles ? (
-          <div className="compact-file-upload-summary" title={files.map((doc) => doc.name).join("\n")}>
-            {files.length === 1 ? "1 file selected" : `${files.length} files selected`}
-          </div>
-        ) : (
-          <span className="document-row-filename document-row-filename--empty">No files</span>
-        )}
-      </div>
       <div className="document-row-actions compact-file-upload-actions">
         {hasFiles && (
           <button type="button" className="document-row-icon-btn" onClick={() => openAttachmentPreview(files[0])} title="Preview">
@@ -900,7 +890,6 @@ const SaberUploadBox = ({ files = [], onAddFiles, isViewOnly = false }) => {
               click to browse
             </span>
           </p>
-          <p className="saber-upload-helper-text">Supports all file formats</p>
         </div>
         <input
           ref={inputRef}
@@ -972,7 +961,6 @@ function PreArrivalDocumentHandlingSection({ formValues, handleChange, isViewOnl
       <p className="document-handling-section__hint">Select the processes that apply. Uploads are tracked separately for each group.</p>
 
       <div className="process-selector-row" role="group" aria-label="Document process selection">
-        <span className="process-selector-row__label">Include</span>
         <button
           type="button"
           className={`process-selector-option${groOn ? " process-selector-option--active" : ""}`}
@@ -1110,13 +1098,13 @@ const PreArrivalContent = ({ formValues, handleChange, ownerInitial, cardUser, c
                     style={
                       isViewOnly
                         ? {
-                            maxHeight: "350px",
-                            overflowY: "auto",
-                            padding: "8px",
-                            border: "1px solid #e2e2ea",
-                            borderRadius: "4px",
-                            backgroundColor: "#ffffff",
-                          }
+                          maxHeight: "350px",
+                          overflowY: "auto",
+                          padding: "8px",
+                          border: "1px solid #e2e2ea",
+                          borderRadius: "4px",
+                          backgroundColor: "#ffffff",
+                        }
                         : {}
                     }
                   >

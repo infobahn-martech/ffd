@@ -1732,7 +1732,7 @@ $send-report-optional: #80868b;
   /* ----- Pre-Arrival: 3-column layout (form / remarks / documents) ----- */
   .pre-arrival-3col-layout {
     display: grid;
-    grid-template-columns: minmax(0, 20fr) minmax(0, 30fr) minmax(0, 50fr);
+    grid-template-columns: minmax(0, 30fr) minmax(0, 45fr) minmax(0, 25fr);
     gap: 16px;
     align-items: start;
     width: 100%;
