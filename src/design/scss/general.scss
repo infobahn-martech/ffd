@@ -2410,35 +2410,81 @@
 }
 
 /* General tab only: keep disabled text dark and readable */
-.card-form-panel .MuiInputBase-root.Mui-disabled {
-  color: rgb(26, 26, 26) !important;
-  opacity: 1 !important;
-}
+.cardform-body.card-form-panel.general-tab-body {
+  /* Core fix for MUI input text */
+  .MuiInputBase-input.Mui-disabled {
+    color: rgb(26, 26, 26) !important;
+    -webkit-text-fill-color: rgb(26, 26, 26) !important;
+    opacity: 1 !important;
+  }
 
-.card-form-panel .MuiInputBase-root.Mui-disabled input {
-  -webkit-text-fill-color: rgb(26, 26, 26) !important;
-  color: rgb(26, 26, 26) !important;
-  opacity: 1 !important;
-}
+  /* For outlined input wrapper */
+  .MuiOutlinedInput-root.Mui-disabled .MuiInputBase-input {
+    color: rgb(26, 26, 26) !important;
+    -webkit-text-fill-color: rgb(26, 26, 26) !important;
+    opacity: 1 !important;
+  }
 
-.card-form-panel .MuiInputBase-root.Mui-disabled textarea {
-  -webkit-text-fill-color: rgb(26, 26, 26) !important;
-  color: rgb(26, 26, 26) !important;
-  opacity: 1 !important;
-}
+  /* DateTimePicker specific fix */
+  .MuiPickersInputBase-root.Mui-disabled .MuiPickersInputBase-input {
+    color: rgb(26, 26, 26) !important;
+    -webkit-text-fill-color: rgb(26, 26, 26) !important;
+    opacity: 1 !important;
+  }
 
-.card-form-panel .MuiInputBase-root.Mui-disabled select {
-  -webkit-text-fill-color: rgb(26, 26, 26) !important;
-  color: rgb(26, 26, 26) !important;
-  opacity: 1 !important;
-}
+  /* Section-based picker text (VERY IMPORTANT) */
+  .MuiPickersSectionList-root,
+  .MuiPickersSectionList-root * {
+    color: rgb(26, 26, 26) !important;
+    -webkit-text-fill-color: rgb(26, 26, 26) !important;
+  }
 
-.card-form-panel input:disabled,
-.card-form-panel textarea:disabled,
-.card-form-panel select:disabled {
-  color: rgb(26, 26, 26) !important;
-  -webkit-text-fill-color: rgb(26, 26, 26) !important;
-  opacity: 1 !important;
+  /* Native fallback */
+  input:disabled,
+  textarea:disabled,
+  select:disabled {
+    color: rgb(26, 26, 26) !important;
+    -webkit-text-fill-color: rgb(26, 26, 26) !important;
+    opacity: 1 !important;
+  }
+
+  .searchable-select.disabled,
+  .searchable-select.disabled *,
+  .cf-searchable-select.disabled,
+  .cf-searchable-select.disabled *,
+  .cf-owner-searchable-select.disabled,
+  .cf-owner-searchable-select.disabled *,
+  .searchable-select__control--is-disabled,
+  .searchable-select__control--is-disabled *,
+  .select-disabled,
+  .select-disabled *,
+  .disabled,
+  .disabled * {
+    color: rgb(26, 26, 26) !important;
+    -webkit-text-fill-color: rgb(26, 26, 26) !important;
+    opacity: 1 !important;
+  }
+
+  .cf-select-value,
+  .cf-select-placeholder,
+  .searchable-select-value,
+  .searchable-select-placeholder,
+  .selected-value,
+  .selected-label {
+    color: rgb(26, 26, 26) !important;
+    -webkit-text-fill-color: rgb(26, 26, 26) !important;
+    opacity: 1 !important;
+  }
+
+  .cf-multi-select-email.disabled,
+  .cf-multi-select-email.disabled *,
+  .cf-multi-select-email-input.disabled,
+  .cf-multi-select-email-input.disabled *,
+  .cf-email-tag {
+    color: rgb(26, 26, 26) !important;
+    -webkit-text-fill-color: rgb(26, 26, 26) !important;
+    opacity: 1 !important;
+  }
 }
 
 /* ==========================================================

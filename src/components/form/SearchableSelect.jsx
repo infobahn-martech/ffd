@@ -157,7 +157,7 @@ const SearchableSelect = ({
       <div
         className={`cf-multi-select-email-input ${disabled ? "disabled" : ""}`}
         onClick={handleTriggerAreaClick}
-        style={{ pointerEvents: disabled ? "none" : "auto", opacity: disabled ? 0.6 : 1 }}
+        style={{ pointerEvents: disabled ? "none" : "auto" }}
       >
         <div className="cf-multi-select-email-tags">
           {isOpen ? (

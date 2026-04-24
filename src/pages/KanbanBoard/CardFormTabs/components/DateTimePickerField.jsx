@@ -100,6 +100,13 @@ const DateTimePickerField = ({
               fullWidth: true,
               error: hasError,
               className: "cf-datetime-input-field",
+              sx: {
+                "& .MuiInputBase-input.Mui-disabled": {
+                  WebkitTextFillColor: "rgb(26, 26, 26)",
+                  color: "rgb(26, 26, 26)",
+                  opacity: 1,
+                },
+              },
             },
             popper: {
               className: "cf-datetime-popper",

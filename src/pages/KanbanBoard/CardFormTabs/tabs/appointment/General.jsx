@@ -582,7 +582,7 @@ const MultiSelectEmail = ({ value = [], onChange, options = [], placeholder, onA
       <div
         className={`cf-multi-select-email-input ${disabled ? "disabled" : ""}`}
         onClick={disabled ? undefined : () => setIsOpen(!isOpen)}
-        style={{ pointerEvents: disabled ? "none" : "auto", opacity: disabled ? 0.6 : 1 }}
+        style={{ pointerEvents: disabled ? "none" : "auto" }}
       >
         <div className="cf-multi-select-email-tags">
           {selectedValues.length > 0 ? (
