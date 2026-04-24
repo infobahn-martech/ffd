@@ -2451,7 +2451,7 @@ function General({
 
 
   return (
-    <div className={`cardform-body general-tab-body ${isViewMode ? "general-tab-body--view-mode" : ""}`}>
+    <div className={`cardform-body card-form-panel general-tab-body ${isViewMode ? "general-tab-body--view-mode" : ""}`}>
       <div className="general-sections-wrapper">
         <div className={`cf-section general-info-section ${isAddMode ? "general-info-section--add-mode" : ""}`}>
           {!isAddMode && (
@@ -3095,13 +3095,19 @@ function General({
 
                               {shouldShowApiField("vessel_id") && (
                                 <FormField label="Vessel Name">
+                                  {(() => {
+                                    const vesselNameValue = getFieldValue("vesselName");
+                                    const vesselNameLabel = getOptionLabel(vesselNameOptions, vesselNameValue) || vesselNameValue;
+                                    return (
                                   <FormSelect
-                                    value={getFieldValue("vesselName")}
+                                    value={vesselNameValue}
                                     onChange={handleVesselSelectionChange}
-                                    options={mergeOptionIfMissing(vesselNameOptions, getFieldValue("vesselName"))}
+                                    options={mergeOptionIfMissing(vesselNameOptions, vesselNameValue, vesselNameLabel)}
                                     placeholder="Select vessel name"
                                     disabled={isDisabled || vesselOptionsLoading}
                                   />
+                                    );
+                                  })()}
                                 </FormField>
                               )}
 

@@ -2409,6 +2409,38 @@
   color: #000000 !important;
 }
 
+/* General tab only: keep disabled text dark and readable */
+.card-form-panel .MuiInputBase-root.Mui-disabled {
+  color: rgb(26, 26, 26) !important;
+  opacity: 1 !important;
+}
+
+.card-form-panel .MuiInputBase-root.Mui-disabled input {
+  -webkit-text-fill-color: rgb(26, 26, 26) !important;
+  color: rgb(26, 26, 26) !important;
+  opacity: 1 !important;
+}
+
+.card-form-panel .MuiInputBase-root.Mui-disabled textarea {
+  -webkit-text-fill-color: rgb(26, 26, 26) !important;
+  color: rgb(26, 26, 26) !important;
+  opacity: 1 !important;
+}
+
+.card-form-panel .MuiInputBase-root.Mui-disabled select {
+  -webkit-text-fill-color: rgb(26, 26, 26) !important;
+  color: rgb(26, 26, 26) !important;
+  opacity: 1 !important;
+}
+
+.card-form-panel input:disabled,
+.card-form-panel textarea:disabled,
+.card-form-panel select:disabled {
+  color: rgb(26, 26, 26) !important;
+  -webkit-text-fill-color: rgb(26, 26, 26) !important;
+  opacity: 1 !important;
+}
+
 /* ==========================================================
    APPOINTMENT DETAILS LIST (Simplified Mode)
    ========================================================== */
