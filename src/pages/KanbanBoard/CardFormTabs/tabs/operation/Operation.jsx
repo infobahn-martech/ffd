@@ -86,10 +86,10 @@ const mapEventFields = (responseData) =>
     .sort((a, b) => a.sort_order - b.sort_order);
 
 const FALLBACK_PRE_ARRIVAL_FIELDS = [
-  { event_name: "Expected time of arrival", keyPrefix: "expectedArrival", sort_order: 1 },
-  { event_name: "Expected commencement of custom inspection", keyPrefix: "customsInspection", sort_order: 2 },
-  { event_name: "Expected commencement of Immigration clearance for crew", keyPrefix: "immigrationClearance", sort_order: 3 },
-  { event_name: "Expected completion of inward clearance", keyPrefix: "inwardClearance", sort_order: 4 },
+  { event_name: "Expected time of arrival", keyPrefix: "expectedArrival", event_type_id: 1, sort_order: 1 },
+  { event_name: "Expected commencement of custom inspection", keyPrefix: "customsInspection", event_type_id: 2, sort_order: 2 },
+  { event_name: "Expected commencement of Immigration clearance for crew", keyPrefix: "immigrationClearance", event_type_id: 3, sort_order: 3 },
+  { event_name: "Expected completion of inward clearance", keyPrefix: "inwardClearance", event_type_id: 4, sort_order: 4 },
 ];
 
 const FALLBACK_ARRIVAL_FIELDS = [
@@ -1161,7 +1161,7 @@ const PreArrivalContent = ({
     }
 
     const events = (eventFields || [])
-      .map((field) => {
+      .map((field, index) => {
         const dateKey = `${field.keyPrefix}Date`;
         const timeKey = `${field.keyPrefix}Time`;
 
@@ -1169,9 +1169,20 @@ const PreArrivalContent = ({
         const time = formValues[timeKey];
 
         if (!date || !time) return null;
+        const eventTypeId =
+          field.event_type_id ??
+          field.eventTypeId ??
+          field.event_typeid ??
+          field.id ??
+          null;
+        if (eventTypeId == null) {
+          // eslint-disable-next-line no-console
+          console.warn("[Operation] Missing event_type_id for event field", field, index);
+          return null;
+        }
 
         return {
-          event_type_id: field.event_type_id || field.id,
+          event_type_id: Number(eventTypeId),
           event_datetime: `${date} ${time}:00`,
         };
       })
