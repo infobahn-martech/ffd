@@ -13,6 +13,7 @@ const useUserReducer = create((set) => ({
   userPermissions: null,
   isLoadingPermissions: false,
   isUpdatingUserPermission: false,
+  isArchiving: false,
   createUser: async ({ formData, cb }) => {
     try {
       set({ addEditLoader: true });
@@ -106,9 +107,9 @@ const useUserReducer = create((set) => ({
   },
   archiveUser: async ({ user_id, cb }) => {
     try {
-      set({ isLoading: true });
+      set({ isArchiving: true });
       const { data } = await userService.archiveUser(user_id);
-      set({ successMessage: data.message, isLoading: false });
+      set({ successMessage: data.message, isArchiving: false });
       const { success } = useAlertReducer.getState();
       success(data && data.message);
       cb && cb();
@@ -116,7 +117,7 @@ const useUserReducer = create((set) => ({
       const { error } = useAlertReducer.getState();
       set({
         errorMessage: 'Something went wrong archiving user',
-        isLoading: false,
+        isArchiving: false,
       });
       error(err?.response?.data?.message ?? err.message);
     }

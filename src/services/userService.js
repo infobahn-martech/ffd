@@ -34,7 +34,8 @@ const getUsersByRole = (payload) => Gateway.post('/users/get_users_by_role', pay
 
 const activateUser = (user_id) => Gateway.post(`/ users / togglestatus / ${user_id}`);
 
-const archiveUser = (user_id) => Gateway.post(`/ users / archive / ${user_id}`);
+const archiveUser = (user_id) =>
+  Gateway.post(`/users/archive/${user_id}`, { user_id });
 
 export default {
   getUsers,

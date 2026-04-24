@@ -78,10 +78,15 @@ const User = () => {
     },
     {
       name: "Phone",
-      selector: "phone",
+      // selector: "phone",
       width: "200",
       thclass: "tb-head",
       contentClass: "table-content",
+      cell: ({ row }) => (
+        <span>
+          {`+${row.phone}`}
+        </span>
+      ),
       sort: true,
     },
     {
