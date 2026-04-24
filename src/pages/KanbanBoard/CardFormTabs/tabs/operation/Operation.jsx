@@ -941,9 +941,14 @@ function PreArrivalDocumentHandlingSection({ formValues, handleChange, isViewOnl
 
   const toggleProcess = (key) => {
     if (isViewOnly) return;
+    const isCurrentlySelected = Boolean(dh.selectedProcesses?.[key]);
     setDh({
       ...dh,
-      selectedProcesses: { ...dh.selectedProcesses, [key]: !dh.selectedProcesses[key] },
+      selectedProcesses: {
+        gro: false,
+        customClearance: false,
+        [key]: !isCurrentlySelected,
+      },
     });
   };
 
