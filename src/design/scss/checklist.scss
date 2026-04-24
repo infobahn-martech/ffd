@@ -2059,24 +2059,44 @@
 }
 
 .cl-items-table col.cl-col-check {
-  width: 8%;
+  width: 10%;
 }
 
 .cl-items-table col.cl-col-item {
-  width: 38%;
+  width: 20%;
 }
 
 .cl-items-table col.cl-col-upload {
-  width: 34%;
+  width: 35%;
 }
 
 .cl-items-table col.cl-col-remarks {
+  width: 35%;
+}
+
+.cl-items-table--4col .checklist-table-checkbox-header,
+.cl-items-table--4col .checklist-table-checkbox {
+  width: 10%;
+}
+
+.cl-items-table--4col .checklist-table-label-header,
+.cl-items-table--4col .checklist-table-label.cl-col-item {
   width: 20%;
+}
+
+.cl-items-table--4col .checklist-table-upload-header,
+.cl-items-table--4col .checklist-table-upload.cl-col-upload {
+  width: 35%;
+}
+
+.cl-items-table--4col .checklist-table-remarks-header,
+.cl-items-table--4col .checklist-table-remarks.cl-col-remarks {
+  width: 35%;
 }
 
 .cl-items-table tbody .checklist-table-row td {
   vertical-align: middle;
-  padding: 12px 14px;
+  padding: 10px 12px;
 }
 
 .cl-item-cell {
@@ -2084,15 +2104,23 @@
 }
 
 .checklist-table-label.cl-col-item {
-  padding-right: 8px !important;
+  padding-right: 6px !important;
 }
 
-.cl-item-inline {
+.cl-item-content {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 6px;
+  min-width: 0;
+}
+
+.cl-item-title-row {
   display: flex;
   align-items: center;
-  gap: 10px;
+  gap: 6px;
   min-width: 0;
-  flex-wrap: wrap;
+  width: 100%;
 }
 
 .cl-item-title {
@@ -2100,10 +2128,12 @@
   font-weight: 600;
   line-height: 1.35;
   color: #0f172a;
-  max-width: 260px;
+  max-width: 100%;
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
+  min-width: 0;
+  flex: 1 1 auto;
 }
 
 .cl-req-icon {
@@ -2137,20 +2167,15 @@
   border-color: #bfdbfe;
 }
 
-.cl-item-expiry--inline {
+.cl-item-expiry {
   display: inline-flex;
-  margin-left: 6px;
+  align-items: center;
+  gap: 6px;
+  max-width: 100%;
   padding: 2px 8px;
   border: 1px solid #e5e7eb;
   border-radius: 999px;
   background: #f8fafc;
-}
-
-.cl-item-expiry {
-  display: flex;
-  align-items: center;
-  gap: 6px;
-  flex-wrap: nowrap;
 }
 
 .cl-item-expiry-label {
@@ -2187,7 +2212,7 @@
 .cl-upload-row {
   display: flex;
   align-items: center;
-  gap: 12px;
+  gap: 8px;
   width: 100%;
   min-width: 0;
 }
@@ -2369,7 +2394,7 @@
 }
 
 .checklist-table-upload.cl-col-upload {
-  padding-left: 8px !important;
+  padding-left: 6px !important;
   padding-top: 10px !important;
   padding-bottom: 10px !important;
 }
@@ -2465,9 +2490,14 @@
     margin-left: 8px;
   }
 
+  .cl-items-table col.cl-col-check,
   .cl-items-table col.cl-col-item,
   .cl-items-table col.cl-col-upload,
   .cl-items-table col.cl-col-remarks {
     width: auto;
+  }
+
+  .cl-item-title-row {
+    flex-wrap: wrap;
   }
 }

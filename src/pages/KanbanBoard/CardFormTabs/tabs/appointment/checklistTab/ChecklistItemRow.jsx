@@ -147,13 +147,15 @@ const ChecklistItemRow = ({
         </label>
       </td>
       <td className="checklist-table-label cl-col-item cl-item-cell">
-        <div className="cl-item-inline">
-          <div className="cl-item-title cl-item-title--primary" title={title}>{title}</div>
-          {(requireCopyOnlyFromApi || requirement?.label) ? (
-            <RequirementIndicator requirement={requirement || { label: "Require Copy Only" }} />
-          ) : null}
+        <div className="cl-item-content">
+          <div className="cl-item-title-row">
+            <div className="cl-item-title cl-item-title--primary" title={title}>{title}</div>
+            {(requireCopyOnlyFromApi || requirement?.label) ? (
+              <RequirementIndicator requirement={requirement || { label: "Require Copy Only" }} />
+            ) : null}
+          </div>
           {expiryDateRequired ? (
-            <div className="cl-item-expiry cl-item-expiry--inline">
+            <div className="cl-item-expiry">
               <span className="cl-item-expiry-label">Expiry date</span>
               <input
                 type="date"
