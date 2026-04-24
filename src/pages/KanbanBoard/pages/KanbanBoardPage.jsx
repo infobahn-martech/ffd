@@ -227,20 +227,16 @@ export default function KanbanBoardPage() {
           <div
             aria-busy="true"
             aria-live="polite"
-            style={{
-              position: "absolute",
-              inset: 0,
-              zIndex: 2,
-              display: "flex",
-              alignItems: "center",
-              justifyContent: "center",
-              background: isDarkMode ? "rgba(0,0,0,0.35)" : "rgba(255,255,255,0.6)",
-              pointerEvents: "none",
-            }}
+            className={
+              isDarkMode
+                ? "kanban-board-loader-overlay kanban-board-loader-overlay-dark"
+                : "kanban-board-loader-overlay"
+            }
           >
-            <span style={{ fontSize: 14, color: isDarkMode ? "#e0e0e0" : "#333" }}>
-              Loading board…
-            </span>
+            <div className="kanban-board-loader">
+              <div className="kanban-board-spinner" />
+              <div className="kanban-board-loader-text">Loading board...</div>
+            </div>
           </div>
         )}
         <KanbanBoardContent
