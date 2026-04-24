@@ -27,6 +27,7 @@ import DateTimePickerField from "../../components/DateTimePickerField";
 import "../../../../../design/scss/operations.scss";
 import preArrivalInfoService from "../../../../../services/preArrivalInfoService";
 import userService from "../../../../../services/userService";
+import preArrivalService from "../../../../../services/preArrivalService";
 
 // Constants
 const OPERATION_TABS = {
@@ -930,8 +931,8 @@ DocumentGroupCard.propTypes = {
 
 function PreArrivalDocumentHandlingSection({ formValues, handleChange, isViewOnly, portId }) {
   const dh = formValues.preArrivalDocumentHandling || DEFAULT_PRE_ARRIVAL_DOCUMENT_HANDLING;
-  const [selectedGroOption, setSelectedGroOption] = useState("");
-  const [selectedCustomClearanceOption, setSelectedCustomClearanceOption] = useState("");
+  const selectedGroOption = formValues.assignedGro || "";
+  const selectedCustomClearanceOption = formValues.assignedCustom || "";
   const [groOptions, setGroOptions] = useState([]);
   const [customClearanceOptions, setCustomClearanceOptions] = useState([]);
 
@@ -975,8 +976,8 @@ function PreArrivalDocumentHandlingSection({ formValues, handleChange, isViewOnl
       if (!portId) {
         setGroOptions([]);
         setCustomClearanceOptions([]);
-        setSelectedGroOption("");
-        setSelectedCustomClearanceOption("");
+        handleChange("assignedGro")({ target: { value: "" } });
+        handleChange("assignedCustom")({ target: { value: "" } });
         return;
       }
 
@@ -992,18 +993,21 @@ function PreArrivalDocumentHandlingSection({ formValues, handleChange, isViewOnl
         setGroOptions(nextGroOptions);
         setCustomClearanceOptions(nextCustomClearanceOptions);
 
-        setSelectedGroOption((prev) =>
-          prev && nextGroOptions.some((option) => option.value === prev) ? prev : ""
-        );
-        setSelectedCustomClearanceOption((prev) =>
-          prev && nextCustomClearanceOptions.some((option) => option.value === prev) ? prev : ""
-        );
+        if (selectedGroOption && !nextGroOptions.some((option) => option.value === selectedGroOption)) {
+          handleChange("assignedGro")({ target: { value: "" } });
+        }
+        if (
+          selectedCustomClearanceOption &&
+          !nextCustomClearanceOptions.some((option) => option.value === selectedCustomClearanceOption)
+        ) {
+          handleChange("assignedCustom")({ target: { value: "" } });
+        }
       } catch (error) {
         if (cancelled) return;
         setGroOptions([]);
         setCustomClearanceOptions([]);
-        setSelectedGroOption("");
-        setSelectedCustomClearanceOption("");
+        handleChange("assignedGro")({ target: { value: "" } });
+        handleChange("assignedCustom")({ target: { value: "" } });
         // eslint-disable-next-line no-console
         console.error("[Operation] users/get_users_by_role failed", error);
       }
@@ -1014,15 +1018,15 @@ function PreArrivalDocumentHandlingSection({ formValues, handleChange, isViewOnl
     return () => {
       cancelled = true;
     };
-  }, [portId]);
+  }, [portId, selectedGroOption, selectedCustomClearanceOption, handleChange]);
 
   return (
     <div className="document-handling-section">
       <div className="document-handling-preselect">
         <FormField label="Select GRO">
           <FormSelect
-            value={selectedGroOption}
-            onChange={(e) => setSelectedGroOption(e.target.value)}
+            value={formValues.assignedGro || ""}
+            onChange={handleChange("assignedGro")}
             options={groOptions}
             placeholder="Select GRO"
             disabled={isViewOnly || !portId}
@@ -1030,8 +1034,8 @@ function PreArrivalDocumentHandlingSection({ formValues, handleChange, isViewOnl
         </FormField>
         <FormField label="Select Custom clearance">
           <FormSelect
-            value={selectedCustomClearanceOption}
-            onChange={(e) => setSelectedCustomClearanceOption(e.target.value)}
+            value={formValues.assignedCustom || ""}
+            onChange={handleChange("assignedCustom")}
             options={customClearanceOptions}
             placeholder="Select Custom clearance"
             disabled={isViewOnly || !portId}
@@ -1113,6 +1117,7 @@ PreArrivalDocumentHandlingSection.propTypes = {
 };
 
 const PreArrivalContent = ({
+  card,
   formValues,
   handleChange,
   ownerInitial,
@@ -1125,13 +1130,92 @@ const PreArrivalContent = ({
   eventFields = [],
   portId,
 }) => {
+  const [isSavingPreArrival, setIsSavingPreArrival] = useState(false);
+
   const handleSaberUtAddFiles = (files) => {
     const currentAttachments = formValues.saberUtDocumentsAttachments || [];
     handleChange("saberUtDocumentsAttachments")({ target: { value: [...currentAttachments, ...files] } });
   };
 
-  const handleSave = () => {
-    console.log("Saving Pre Arrival data:", formValues);
+  const handleSave = async () => {
+    const callId = card?.call_id || formValues?.call_id || "";
+    const cardId = card?.id || card?.card_id || formValues?.card_id || "";
+    const assignedGro = formValues.assignedGro || "";
+    const assignedCustom = formValues.assignedCustom || "";
+
+    if (!callId) {
+      notify("Call ID is required.", "error");
+      return;
+    }
+    if (!cardId) {
+      notify("Card ID is required.", "error");
+      return;
+    }
+    if (!assignedGro) {
+      notify("Assigned GRO is required.", "error");
+      return;
+    }
+    if (!assignedCustom) {
+      notify("Assigned Custom clearance is required.", "error");
+      return;
+    }
+
+    const events = (eventFields || [])
+      .map((field) => {
+        const dateKey = `${field.keyPrefix}Date`;
+        const timeKey = `${field.keyPrefix}Time`;
+
+        const date = formValues[dateKey];
+        const time = formValues[timeKey];
+
+        if (!date || !time) return null;
+
+        return {
+          event_type_id: field.event_type_id || field.id,
+          event_datetime: `${date} ${time}:00`,
+        };
+      })
+      .filter(Boolean);
+
+    const fd = new FormData();
+    fd.append("call_id", callId);
+    fd.append("card_id", cardId);
+    fd.append("events", JSON.stringify(events));
+    fd.append("saber_status", formValues.saberUtStatus || "");
+    fd.append("weather_forecast", formValues.weatherForecast || "");
+    fd.append("coordinates", formValues.coordinates || "");
+    fd.append("remarks", formValues.preArrivalDescription || "");
+    fd.append("assigned_gro", assignedGro);
+    fd.append("assigned_custom", assignedCustom);
+
+    (formValues.saberUtDocumentsAttachments || []).forEach((item) => {
+      if (item?.file instanceof File) {
+        fd.append("saber_attachments[]", item.file);
+      }
+    });
+
+    const dh = formValues.preArrivalDocumentHandling;
+    (dh?.documents?.gro || []).forEach((doc) => {
+      if ((doc.files || []).length > 0) {
+        fd.append("gro_docs[document_id]", doc.id);
+      }
+    });
+
+    (dh?.documents?.customClearance || []).forEach((doc) => {
+      if ((doc.files || []).length > 0) {
+        fd.append("custom_docs[document_id]", doc.id);
+      }
+    });
+
+    try {
+      setIsSavingPreArrival(true);
+      await preArrivalService.savePreArrival(fd);
+      notify("Pre Arrival saved successfully.", "success");
+    } catch (error) {
+      notify(error?.response?.data?.message || "Failed to save Pre Arrival.", "error");
+    } finally {
+      setIsSavingPreArrival(false);
+    }
   };
 
   const preArrivalReportAttachments = () => [
@@ -1257,8 +1341,13 @@ const PreArrivalContent = ({
 
           {!isViewOnly && (
             <div className="prearrival-actions">
-              <button type="button" className="form-save-button prearrival-save-button" onClick={handleSave}>
-                Save
+              <button
+                type="button"
+                className="form-save-button prearrival-save-button"
+                onClick={handleSave}
+                disabled={isSavingPreArrival}
+              >
+                {isSavingPreArrival ? "Saving..." : "Save"}
               </button>
             </div>
           )}
@@ -1269,6 +1358,7 @@ const PreArrivalContent = ({
 };
 
 PreArrivalContent.propTypes = {
+  card: PropTypes.object,
   formValues: PropTypes.object.isRequired,
   handleChange: PropTypes.func.isRequired,
   ownerInitial: PropTypes.string.isRequired,
@@ -2390,6 +2480,7 @@ function Operation({ card, formValues, handleChange, ownerInitial, isDAModule = 
           >
             {activeOperationTab === OPERATION_TABS.PRE_ARRIVAL && (
               <PreArrivalContent
+                card={card}
                 formValues={viewOnlyFormValues}
                 handleChange={handleChange}
                 ownerInitial={ownerInitial}
