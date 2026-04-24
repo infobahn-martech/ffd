@@ -17,6 +17,7 @@ import useKanbanDnD from "../hooks/useKanbanDnD";
 import useKanbanRoleAccess from "../hooks/useKanbanRoleAccess";
 import { createNewCardDraft } from "../utils/cardHelpers";
 import { findWorkflowByCardId } from "../utils/boardHelpers";
+import useAuthReducer from "../../../store/AuthReducer";
 
 export default function KanbanBoardPage() {
   const { boardId: boardIdParam } = useParams();
@@ -28,6 +29,9 @@ export default function KanbanBoardPage() {
   }, [boardIdParam, location.pathname]);
 
   const isOperatorBoard = String(selectedBoardId ?? "").toLowerCase() === "operator";
+  const userProfile = useAuthReducer((state) => state.userProfile);
+  const roleId = Number(userProfile?.role?.role_id);
+  const cardFormVariant = roleId === 4 ? "gro" : roleId === 5 ? "empty" : "default";
   const { layoutView } = useLayoutView();
   const isClassicLayout = layoutView === "classic";
   const isModernLayout = layoutView === "modern";
@@ -270,6 +274,7 @@ export default function KanbanBoardPage() {
           columnOrder={columnOrderForCardForm}
           currentColumn={isAddMode ? null : findCardColumn(selectedCard.id)}
           isAddMode={isAddMode}
+          variant={cardFormVariant}
           onBoardRefresh={isOperatorBoard ? undefined : refetchBoard}
         />
       )}

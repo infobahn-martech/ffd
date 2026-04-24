@@ -1141,6 +1141,7 @@ function CardForm({
   const isHotelVariant = variant === "hotel";
   const isMWPVariant = variant === "mwp";
   const isGROVariant = variant === "gro";
+  const isEmptyVariant = variant === "empty";
   const isDriverStyleView = isDriverVariant || isHotelVariant;
 
   // Step labels from columns + columnOrder (e.g. DAdata columnTitles); fallback to STEP_LABELS
@@ -1505,7 +1506,7 @@ function CardForm({
           <MWPCardView card={card} />
         ) : isGROVariant ? (
           <GROCardView card={card} />
-        ) : (
+        ) : isEmptyVariant ? null : (
           <>
             {!isAddMode && !isMWPVariant && !isGROVariant && (
               <TopTabs
@@ -1517,6 +1518,7 @@ function CardForm({
             )}
             {!isMWPVariant &&
               !isGROVariant &&
+              !isEmptyVariant &&
               renderTabContent(
                 activeTopTab,
                 card,
@@ -1532,7 +1534,7 @@ function CardForm({
               )}
           </>
         )}
-        {!isAddMode && !isMWPVariant && (
+        {!isAddMode && !isMWPVariant && !isEmptyVariant && (
           <CardFormFooter
             accentColor={accentColor}
             onUpdate={handleUpdate}
@@ -1582,7 +1584,7 @@ CardForm.propTypes = {
     cardIds: PropTypes.array,
   }),
   isAddMode: PropTypes.bool,
-  variant: PropTypes.oneOf(["default", "driver", "hotel", "mwp", "gro"]),
+  variant: PropTypes.oneOf(["default", "driver", "hotel", "mwp", "gro", "empty"]),
 };
 
 export default CardForm;
