@@ -54,16 +54,54 @@ const fetchCallDetail = async (callId) => {
 };
 
 const fetchChecklistTypes = async ({ vessel_type_id, barge_type_id, calltype, port_id }) => {
+  const isNoChecklistError = (error) => {
+    const status = error?.response?.status;
+    const message = String(
+      error?.response?.data?.message
+        ?? error?.response?.data?.error
+        ?? error?.message
+        ?? ""
+    ).toLowerCase();
+    return status === 404 || message.includes("no checklist found");
+  };
+
+  const parseSourceResult = (result) => {
+    if (result.status === "fulfilled") {
+      return {
+        rows: parseChecklistTypeListResponse(result.value),
+        failed: false,
+        errorMessage: "",
+      };
+    }
+    if (isNoChecklistError(result.reason)) {
+      return { rows: [], failed: false, errorMessage: "" };
+    }
+    return {
+      rows: [],
+      failed: true,
+      errorMessage: result.reason?.message || "Failed to load checklist types.",
+    };
+  };
+
   const vesselCall = vessel_type_id
     ? checklistService.getChecklistsByVesselType({ vessel_type_id, calltype, port_id })
     : Promise.resolve(null);
   const bargeCall = barge_type_id
     ? checklistService.getChecklistsByBargeType({ barge_type_id, calltype, port_id })
     : Promise.resolve(null);
-  const [vesselRes, bargeRes] = await Promise.all([vesselCall, bargeCall]);
+
+  const [vesselRes, bargeRes] = await Promise.allSettled([vesselCall, bargeCall]);
+  const vesselParsed = parseSourceResult(vesselRes);
+  const bargeParsed = parseSourceResult(bargeRes);
+  const hasUsableData = vesselParsed.rows.length > 0 || bargeParsed.rows.length > 0;
+  const hasFailures = vesselParsed.failed || bargeParsed.failed;
+
   return {
-    vesselRows: vesselRes ? parseChecklistTypeListResponse(vesselRes) : [],
-    bargeRows: bargeRes ? parseChecklistTypeListResponse(bargeRes) : [],
+    vesselRows: vesselParsed.rows,
+    bargeRows: bargeParsed.rows,
+    hasUsableData,
+    hasFailures,
+    errorMessage: [vesselParsed.errorMessage, bargeParsed.errorMessage].filter(Boolean).join(" | "),
   };
 };
 
@@ -190,6 +228,13 @@ function Checklist({
           if (userChangedSelectionRef.current && retained.length > 0) return retained;
           return options.map((o) => o.value);
         });
+        if (!cancelled) {
+          if (!rowsBySource.hasUsableData && rowsBySource.hasFailures) {
+            setChecklistError(rowsBySource.errorMessage || "Failed to load checklist types.");
+          } else {
+            setChecklistError("");
+          }
+        }
       } catch (error) {
         if (!cancelled) {
           setChecklistTypeOptions([]);
