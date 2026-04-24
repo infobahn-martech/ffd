@@ -1185,8 +1185,8 @@ const EmailPreviewPanel = ({
           <span className="email-preview-status-dot" />
           <span>Preview generated</span>
           <span>{formatPreviewDate()}</span>
-          <button type="button" className="email-preview-topbar-action" aria-label="Copy preview">⧉</button>
-          <button type="button" className="email-preview-topbar-action" aria-label="Expand preview">⛶</button>
+          {/* <button type="button" className="email-preview-topbar-action" aria-label="Copy preview">⧉</button>
+          <button type="button" className="email-preview-topbar-action" aria-label="Expand preview">⛶</button> */}
         </div>
       </div>
       <div className="email-preview-card">
