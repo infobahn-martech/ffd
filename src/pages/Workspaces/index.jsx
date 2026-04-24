@@ -17,6 +17,8 @@ import ArchivedWorkspacesModal from './ArchivedWorkspacesModal';
 import RenameBoardModal from './RenameBoardModal';
 import RenameWorkspaceModal from './RenameWorkspaceModal';
 import { getDashboardCanvasStyle } from '../../utils/dashboardBackground';
+import useAuthReducer from '../../store/AuthReducer';
+import { isRestrictedBoardUser, RESTRICTED_BOARD_HOME_PATH } from '../../helpers/restrictedBoardUser';
 
 // Workspace Icon Component - Bar Chart Icon (like in first image)
 const WorkspaceBarChartIcon = ({ className }) => (
@@ -78,6 +80,9 @@ function Workspaces() {
     addEditLoader,
     updateBoardName,
   } = useWorkSpaceReducer();
+
+  const userProfile = useAuthReducer((state) => state.userProfile);
+  const restrictedUser = isRestrictedBoardUser(userProfile);
 
   const currentDashboard = useMemo(() => {
     if (!isDashboardView || !Array.isArray(apiDashboards)) return null;
@@ -378,7 +383,7 @@ function Workspaces() {
     [currentDashboard]
   );
 
-  const headerActions = (
+  const headerActions = !restrictedUser ? (
     <div className="workspaces-header-actions">
       <button
         type="button"
@@ -409,7 +414,7 @@ function Workspaces() {
         </svg>
       </button>
     </div>
-  );
+  ) : null;
 
   const workspacesListSection = (
     <div
@@ -440,7 +445,7 @@ function Workspaces() {
                 ? 'No workspaces have been added to this dashboard yet.'
                 : 'Get started by creating your first workspace.'}
           </p>
-          {!filterValue && (
+          {!filterValue && !restrictedUser && (
             <button type="button" className="workspaces-empty-btn" onClick={handleAddWorkspace}>
               Create Workspace
             </button>
@@ -466,7 +471,7 @@ function Workspaces() {
                   </span>
                 )}
               </div>
-              {workspace.boards?.length > 0 && (
+              {workspace.boards?.length > 0 && !restrictedUser && (
                 <div className="workspace-card-actions">
                   <button
                     type="button"
@@ -675,115 +680,117 @@ function Workspaces() {
                 {workspace.boards.map((board) => (
                   <div
                     key={board.id}
-                    className={`board-card ${openMenuId === board.id ? 'menu-open' : ''}`}
+                    className={`board-card ${!restrictedUser && openMenuId === board.id ? 'menu-open' : ''}`}
                     onClick={() => {
                       setIsNavigating(true);
-                      navigate(`/kanban-board/${board.id}`);
+                      navigate(restrictedUser ? RESTRICTED_BOARD_HOME_PATH : `/kanban-board/${board.id}`);
                     }}
                     style={{ cursor: 'pointer' }}
                   >
-                    <div className="board-card-header">
-                      <div className="board-menu-wrapper" ref={openMenuId === board.id ? menuRef : null}>
-                        <button
-                          type="button"
-                          className="board-menu-btn"
-                          onClick={(e) => {
-                            e.stopPropagation();
-                            handleBoardMenu(board.id, e);
-                          }}
-                          aria-label="Board options"
-                          title="Board options"
-                        >
-                          <svg width="16" height="16" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
-                            <circle cx="8" cy="4" r="1.5" fill="currentColor" />
-                            <circle cx="8" cy="8" r="1.5" fill="currentColor" />
-                            <circle cx="8" cy="12" r="1.5" fill="currentColor" />
-                          </svg>
-                        </button>
-                        {openMenuId === board.id && (
-                          <div className="board-context-menu">
-                            <button
-                              type="button"
-                              className="board-context-menu-item"
-                              onClick={(e) => {
-                                e.stopPropagation();
-                                handleRenameBoard(board.id);
-                              }}
-                            >
-                              <svg width="16" height="16" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
-                                <path
-                                  d="M11.3333 2.00001C11.5084 1.82497 11.7163 1.68606 11.9455 1.59127C12.1748 1.49648 12.4209 1.44775 12.6667 1.44775C12.9124 1.44775 13.1585 1.49648 13.3878 1.59127C13.617 1.68606 13.8249 1.82497 14 2.00001C14.175 2.17505 14.3139 2.38297 14.4087 2.61224C14.5035 2.8415 14.5522 3.08755 14.5522 3.33334C14.5522 3.57913 14.5035 3.82518 14.4087 4.05445C14.3139 4.28371 14.175 4.49164 14 4.66667L5.00001 13.6667L1.33334 14.6667L2.33334 11L11.3333 2.00001Z"
-                                  stroke="currentColor"
-                                  strokeWidth="1.5"
-                                  strokeLinecap="round"
-                                  strokeLinejoin="round"
-                                />
-                              </svg>
-                              <span>Rename</span>
-                            </button>
-                            <button
-                              type="button"
-                              className="board-context-menu-item"
-                              onClick={(e) => {
-                                e.stopPropagation();
-                                handleEditWorkflows(board.id);
-                              }}
-                            >
-                              <svg width="16" height="16" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
-                                <path
-                                  d="M2 2H6V6H2V2Z"
-                                  stroke="currentColor"
-                                  strokeWidth="1.5"
-                                  strokeLinecap="round"
-                                  strokeLinejoin="round"
-                                />
-                                <path
-                                  d="M10 2H14V6H10V2Z"
-                                  stroke="currentColor"
-                                  strokeWidth="1.5"
-                                  strokeLinecap="round"
-                                  strokeLinejoin="round"
-                                />
-                                <path
-                                  d="M2 10H6V14H2V10Z"
-                                  stroke="currentColor"
-                                  strokeWidth="1.5"
-                                  strokeLinecap="round"
-                                  strokeLinejoin="round"
-                                />
-                                <path
-                                  d="M10 10H14V14H10V10Z"
-                                  stroke="currentColor"
-                                  strokeWidth="1.5"
-                                  strokeLinecap="round"
-                                  strokeLinejoin="round"
-                                />
-                              </svg>
-                              <span>Edit Workflows</span>
-                            </button>
-                            <button
-                              type="button"
-                              className="board-context-menu-item"
-                              onClick={(e) => {
-                                e.stopPropagation();
-                                handleArchiveBoard(board.id);
-                              }}
-                            >
-                              <svg width="16" height="16" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
-                                <path
-                                  d="M2.66667 4H13.3333M6.66667 7.33334V11.3333M9.33333 7.33334V11.3333M3.33334 4L4 13.3333C4 13.687 4.14048 14.0261 4.39052 14.2762C4.64057 14.5262 4.97971 14.6667 5.33334 14.6667H10.6667C11.0203 14.6667 11.3594 14.5262 11.6095 14.2762C11.8595 14.0261 12 13.687 12 13.3333L12.6667 4M6.66667 4V2.66667C6.66667 2.48986 6.73691 2.32029 6.86193 2.19526C6.98696 2.07024 7.15653 2 7.33334 2H8.66667C8.84348 2 9.01305 2.07024 9.13807 2.19526C9.2631 2.32029 9.33334 2.48986 9.33334 2.66667V4"
-                                  stroke="currentColor"
-                                  strokeWidth="1.5"
-                                  strokeLinecap="round"
-                                  strokeLinejoin="round"
-                                />
-                              </svg>
-                              <span>Archive</span>
-                            </button>
-                          </div>
-                        )}
+                    {!restrictedUser ? (
+                      <div className="board-card-header">
+                        <div className="board-menu-wrapper" ref={openMenuId === board.id ? menuRef : null}>
+                          <button
+                            type="button"
+                            className="board-menu-btn"
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              handleBoardMenu(board.id, e);
+                            }}
+                            aria-label="Board options"
+                            title="Board options"
+                          >
+                            <svg width="16" height="16" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
+                              <circle cx="8" cy="4" r="1.5" fill="currentColor" />
+                              <circle cx="8" cy="8" r="1.5" fill="currentColor" />
+                              <circle cx="8" cy="12" r="1.5" fill="currentColor" />
+                            </svg>
+                          </button>
+                          {openMenuId === board.id && (
+                            <div className="board-context-menu">
+                              <button
+                                type="button"
+                                className="board-context-menu-item"
+                                onClick={(e) => {
+                                  e.stopPropagation();
+                                  handleRenameBoard(board.id);
+                                }}
+                              >
+                                <svg width="16" height="16" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
+                                  <path
+                                    d="M11.3333 2.00001C11.5084 1.82497 11.7163 1.68606 11.9455 1.59127C12.1748 1.49648 12.4209 1.44775 12.6667 1.44775C12.9124 1.44775 13.1585 1.49648 13.3878 1.59127C13.617 1.68606 13.8249 1.82497 14 2.00001C14.175 2.17505 14.3139 2.38297 14.4087 2.61224C14.5035 2.8415 14.5522 3.08755 14.5522 3.33334C14.5522 3.57913 14.5035 3.82518 14.4087 4.05445C14.3139 4.28371 14.175 4.49164 14 4.66667L5.00001 13.6667L1.33334 14.6667L2.33334 11L11.3333 2.00001Z"
+                                    stroke="currentColor"
+                                    strokeWidth="1.5"
+                                    strokeLinecap="round"
+                                    strokeLinejoin="round"
+                                  />
+                                </svg>
+                                <span>Rename</span>
+                              </button>
+                              <button
+                                type="button"
+                                className="board-context-menu-item"
+                                onClick={(e) => {
+                                  e.stopPropagation();
+                                  handleEditWorkflows(board.id);
+                                }}
+                              >
+                                <svg width="16" height="16" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
+                                  <path
+                                    d="M2 2H6V6H2V2Z"
+                                    stroke="currentColor"
+                                    strokeWidth="1.5"
+                                    strokeLinecap="round"
+                                    strokeLinejoin="round"
+                                  />
+                                  <path
+                                    d="M10 2H14V6H10V2Z"
+                                    stroke="currentColor"
+                                    strokeWidth="1.5"
+                                    strokeLinecap="round"
+                                    strokeLinejoin="round"
+                                  />
+                                  <path
+                                    d="M2 10H6V14H2V10Z"
+                                    stroke="currentColor"
+                                    strokeWidth="1.5"
+                                    strokeLinecap="round"
+                                    strokeLinejoin="round"
+                                  />
+                                  <path
+                                    d="M10 10H14V14H10V10Z"
+                                    stroke="currentColor"
+                                    strokeWidth="1.5"
+                                    strokeLinecap="round"
+                                    strokeLinejoin="round"
+                                  />
+                                </svg>
+                                <span>Edit Workflows</span>
+                              </button>
+                              <button
+                                type="button"
+                                className="board-context-menu-item"
+                                onClick={(e) => {
+                                  e.stopPropagation();
+                                  handleArchiveBoard(board.id);
+                                }}
+                              >
+                                <svg width="16" height="16" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
+                                  <path
+                                    d="M2.66667 4H13.3333M6.66667 7.33334V11.3333M9.33333 7.33334V11.3333M3.33334 4L4 13.3333C4 13.687 4.14048 14.0261 4.39052 14.2762C4.64057 14.5262 4.97971 14.6667 5.33334 14.6667H10.6667C11.0203 14.6667 11.3594 14.5262 11.6095 14.2762C11.8595 14.0261 12 13.687 12 13.3333L12.6667 4M6.66667 4V2.66667C6.66667 2.48986 6.73691 2.32029 6.86193 2.19526C6.98696 2.07024 7.15653 2 7.33334 2H8.66667C8.84348 2 9.01305 2.07024 9.13807 2.19526C9.2631 2.32029 9.33334 2.48986 9.33334 2.66667V4"
+                                    stroke="currentColor"
+                                    strokeWidth="1.5"
+                                    strokeLinecap="round"
+                                    strokeLinejoin="round"
+                                  />
+                                </svg>
+                                <span>Archive</span>
+                              </button>
+                            </div>
+                          )}
+                        </div>
                       </div>
-                    </div>
+                    ) : null}
                     <div className="board-card-content">
                       <h3
                         className="board-name"
@@ -893,9 +900,11 @@ function Workspaces() {
       ) : (
         <>
           <div className="workspaces-dashboard-toolbar">
-            <button type="button" className="workspaces-dashboard-toolbar-link" onClick={openDashboardWorkspaceModal}>
-              Add Workspace
-            </button>
+            {!restrictedUser ? (
+              <button type="button" className="workspaces-dashboard-toolbar-link" onClick={openDashboardWorkspaceModal}>
+                Add Workspace
+              </button>
+            ) : null}
             {/* <span className="workspaces-dashboard-toolbar-sep">/</span>
             <button type="button" className="workspaces-dashboard-toolbar-link" onClick={openDashboardWidgetModal}>
               Add Widget
