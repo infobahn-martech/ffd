@@ -6,6 +6,7 @@ import {
   FiEdit2,
   FiHome,
   FiImage,
+  FiLayout,
   FiMoreVertical,
   FiPlus,
   FiSearch,
@@ -17,11 +18,12 @@ import { Tooltip } from 'react-tooltip';
 import useWorkSpaceReducer from '../../../store/WorkSpaceReducer';
 import SedresColorPicker from '../../../components/SedresColorPicker/SedresColorPicker';
 import { DEFAULT_PICKER_COLOR, normalizeHexColor } from '../../../components/SedresColorPicker/sedresColorPickerConstants';
+import { RESTRICTED_BOARD_HOME_PATH } from '../../../helpers/restrictedBoardUser';
 import './AddDashboardModal.scss';
 
 const DASHBOARD_MENU_WIDTH = 200;
 
-function WorkspacesSideNavPanel({ isDarkMode, onNewDashboard }) {
+function WorkspacesSideNavPanel({ isDarkMode, onNewDashboard, restrictedBoardUser = false }) {
   const navigate = useNavigate();
   const { pathname } = useLocation();
   const {
@@ -130,6 +132,10 @@ function WorkspacesSideNavPanel({ isDarkMode, onNewDashboard }) {
 
   const goAllWorkspaces = () => {
     navigate('/workspaces');
+  };
+
+  const goRestrictedKanbanBoard = () => {
+    navigate(RESTRICTED_BOARD_HOME_PATH);
   };
 
   const openDashboard = (dashboardId) => {
@@ -259,22 +265,39 @@ function WorkspacesSideNavPanel({ isDarkMode, onNewDashboard }) {
               <FiHome size={18} aria-hidden />
               <span>All workspaces</span>
             </button>
+            {restrictedBoardUser ? (
+              <button
+                type="button"
+                className={`kanban-sidebar-workspaces-nav-item ${
+                  pathname === RESTRICTED_BOARD_HOME_PATH ||
+                  pathname.startsWith(`${RESTRICTED_BOARD_HOME_PATH}/`)
+                    ? 'kanban-sidebar-workspaces-nav-item--active'
+                    : ''
+                }`}
+                onClick={goRestrictedKanbanBoard}
+              >
+                <FiLayout size={18} aria-hidden />
+                <span>Kanban Board</span>
+              </button>
+            ) : null}
           </nav>
 
-          <div className="kanban-sidebar-workspaces-filter">
-            <FiSearch className="kanban-sidebar-workspaces-filter-icon" aria-hidden />
-            <input
-              type="search"
-              className="kanban-sidebar-workspaces-filter-input"
-              placeholder="Filter"
-              value={filterText}
-              onChange={(e) => pushFilter(e.target.value)}
-              aria-label="Filter dashboards"
-              autoComplete="off"
-            />
-          </div>
+          {!restrictedBoardUser ? (
+            <div className="kanban-sidebar-workspaces-filter">
+              <FiSearch className="kanban-sidebar-workspaces-filter-icon" aria-hidden />
+              <input
+                type="search"
+                className="kanban-sidebar-workspaces-filter-input"
+                placeholder="Filter"
+                value={filterText}
+                onChange={(e) => pushFilter(e.target.value)}
+                aria-label="Filter dashboards"
+                autoComplete="off"
+              />
+            </div>
+          ) : null}
 
-          <hr className="kanban-sidebar-workspaces-divider" aria-hidden />
+          {!restrictedBoardUser ? <hr className="kanban-sidebar-workspaces-divider" aria-hidden /> : null}
 
           <ul className="kanban-sidebar-workspaces-list">
             {dashboardsLoading ? (
@@ -296,18 +319,20 @@ function WorkspacesSideNavPanel({ isDarkMode, onNewDashboard }) {
                       <span className="kanban-sidebar-workspaces-dot" aria-hidden />
                       <span className="kanban-sidebar-workspaces-name">{d.name}</span>
                     </button>
-                    <div className="kanban-sidebar-workspaces-row-actions">
-                      <button
-                        ref={menuOpen ? menuBtnRef : undefined}
-                        type="button"
-                        className="kanban-sidebar-workspaces-row-menu"
-                        aria-label={`Actions for ${d.name}`}
-                        aria-expanded={menuOpen}
-                        onClick={(e) => toggleActionsMenu(e, d.id)}
-                      >
-                        <FiMoreVertical size={16} />
-                      </button>
-                    </div>
+                    {!restrictedBoardUser ? (
+                      <div className="kanban-sidebar-workspaces-row-actions">
+                        <button
+                          ref={menuOpen ? menuBtnRef : undefined}
+                          type="button"
+                          className="kanban-sidebar-workspaces-row-menu"
+                          aria-label={`Actions for ${d.name}`}
+                          aria-expanded={menuOpen}
+                          onClick={(e) => toggleActionsMenu(e, d.id)}
+                        >
+                          <FiMoreVertical size={16} />
+                        </button>
+                      </div>
+                    ) : null}
                   </li>
                 );
               })
@@ -324,7 +349,7 @@ function WorkspacesSideNavPanel({ isDarkMode, onNewDashboard }) {
             onChange={handleWallpaperFile}
           />
 
-          {openActionsId != null &&
+          {!restrictedBoardUser && openActionsId != null &&
             menuTargetDashboard &&
             createPortal(
               <div
@@ -457,9 +482,11 @@ function WorkspacesSideNavPanel({ isDarkMode, onNewDashboard }) {
               document.body
             )}
 
-          <button type="button" className="kanban-sidebar-workspaces-new-db" onClick={onNewDashboard}>
-            <span>+ New dashboard</span>
-          </button>
+          {!restrictedBoardUser ? (
+            <button type="button" className="kanban-sidebar-workspaces-new-db" onClick={onNewDashboard}>
+              <span>+ New dashboard</span>
+            </button>
+          ) : null}
         </div>
       ) : (
         <div className="kanban-sidebar-workspaces-collapsed-stack">
@@ -474,16 +501,34 @@ function WorkspacesSideNavPanel({ isDarkMode, onNewDashboard }) {
           >
             <FiHome size={22} />
           </button>
-          <button
-            type="button"
-            className="kanban-sidebar-icon kanban-sidebar-icon--collapsed"
-            data-tooltip-id="ws-sidebar-tt"
-            data-tooltip-content="New dashboard"
-            aria-label="New dashboard"
-            onClick={onNewDashboard}
-          >
-            <FiPlus size={22} />
-          </button>
+          {restrictedBoardUser ? (
+            <button
+              type="button"
+              className={`kanban-sidebar-icon kanban-sidebar-icon--collapsed ${
+                pathname === RESTRICTED_BOARD_HOME_PATH ||
+                pathname.startsWith(`${RESTRICTED_BOARD_HOME_PATH}/`)
+                  ? 'active'
+                  : ''
+              }`}
+              data-tooltip-id="ws-sidebar-tt"
+              data-tooltip-content="Kanban Board"
+              aria-label="Kanban Board"
+              onClick={goRestrictedKanbanBoard}
+            >
+              <FiLayout size={22} />
+            </button>
+          ) : (
+            <button
+              type="button"
+              className="kanban-sidebar-icon kanban-sidebar-icon--collapsed"
+              data-tooltip-id="ws-sidebar-tt"
+              data-tooltip-content="New dashboard"
+              aria-label="New dashboard"
+              onClick={onNewDashboard}
+            >
+              <FiPlus size={22} />
+            </button>
+          )}
           <Tooltip
             id="ws-sidebar-tt"
             place="right"

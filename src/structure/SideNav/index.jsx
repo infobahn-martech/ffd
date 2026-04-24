@@ -43,11 +43,16 @@ import {
 // 🆕 Kanban sidebar icons + tooltip
 import { Tooltip } from 'react-tooltip';
 import 'react-tooltip/dist/react-tooltip.css';
-import { FiPlus, FiInbox, FiFilter, FiPlusCircle, FiActivity } from 'react-icons/fi';
+import { FiPlus, FiInbox, FiFilter, FiPlusCircle, FiActivity, FiLayout } from 'react-icons/fi';
 import { useLayoutView } from '../../context/LayoutViewContext';
 import useWorkSpaceReducer from '../../store/WorkSpaceReducer';
+import useAuthReducer from '../../store/AuthReducer';
 import { useKanbanSidebarBridge } from '../../store/kanbanSidebarBridge';
 import { ROUTE_PATHS } from '../../router/paths';
+import {
+  isRestrictedBoardUser,
+  RESTRICTED_BOARD_HOME_PATH,
+} from '../../helpers/restrictedBoardUser';
 
 function SideNav({ isMobileMenuOpen, onCloseMobileMenu, isVendorPortal = false }) {
   const { pathname } = useLocation();
@@ -73,6 +78,16 @@ function SideNav({ isMobileMenuOpen, onCloseMobileMenu, isVendorPortal = false }
   const isMobile = width <= 991;
   const { layoutView } = useLayoutView();
   const isDarkMode = layoutView === 'dark';
+  const userProfile = useAuthReducer((state) => state.userProfile);
+  const restrictedNav = isRestrictedBoardUser(userProfile);
+
+  const restrictedKanbanStripIcons = useMemo(
+    () => [
+      { id: 4, icon: FiInbox, label: 'Workspaces' },
+      { id: 6, icon: FiLayout, label: 'Kanban Board' },
+    ],
+    []
+  );
 
   // 🆕 Kanban icon config - different icons for /kanban-board/operator vs /workspaces
   const kanbanBoardIcons = [
@@ -100,8 +115,12 @@ function SideNav({ isMobileMenuOpen, onCloseMobileMenu, isVendorPortal = false }
     { label: 'Types', modal: 'types' },
   ];
 
-  // Select icons based on route
-  const kanbanIcons = pathname === '/kanban-board/operator' || pathname.startsWith('/kanban-board/') || pathname === '/compact' ? kanbanBoardIcons : workspacesIcons;
+  // Select icons based on route (restricted roles: only Workspaces + fixed board)
+  const kanbanIcons = restrictedNav
+    ? restrictedKanbanStripIcons
+    : pathname === '/kanban-board/operator' || pathname.startsWith('/kanban-board/') || pathname === '/compact'
+      ? kanbanBoardIcons
+      : workspacesIcons;
 
   // 🆕 Active state only for Kanban sidebar
   const [activeKanbanIcon, setActiveKanbanIcon] = useState(2);
@@ -431,7 +450,28 @@ function SideNav({ isMobileMenuOpen, onCloseMobileMenu, isVendorPortal = false }
     },
   ];
 
+  const restrictedSidebarMenus = useMemo(
+    () => [
+      {
+        menu: 'Workspaces',
+        isDefaultMenu: true,
+        to: '/workspaces',
+        icon: dashboardIcon,
+        hasPermission: true,
+      },
+      {
+        menu: 'Kanban Board',
+        isDefaultMenu: true,
+        to: RESTRICTED_BOARD_HOME_PATH,
+        icon: materialIcon,
+        hasPermission: true,
+      },
+    ],
+    []
+  );
+
   const [menuState, setMenuState] = useState(menus);
+  const effectiveMenuState = restrictedNav ? restrictedSidebarMenus : menuState;
 
   // Sync with Header's mobile menu state
   useEffect(() => {
@@ -467,7 +507,7 @@ function SideNav({ isMobileMenuOpen, onCloseMobileMenu, isVendorPortal = false }
 
   useEffect(() => {
     // 🔒 Don’t touch normal menu behaviour when on Kanban sidebar
-    if (isKanbanBoard || isVendorPortal) return;
+    if (isKanbanBoard || isVendorPortal || restrictedNav) return;
 
     if (width > 991)
       setMenuState((prev) =>
@@ -481,7 +521,7 @@ function SideNav({ isMobileMenuOpen, onCloseMobileMenu, isVendorPortal = false }
       setMenuState((prev) => prev.map((e) => ({ ...e, isOpen: false })));
       setExpand(false);
     }
-  }, [pathname, width, isKanbanBoard, isVendorPortal]);
+  }, [pathname, width, isKanbanBoard, isVendorPortal, restrictedNav]);
 
   const toggleCollapse = (menu) => {
     setMenuState((prev) => {
@@ -528,16 +568,30 @@ function SideNav({ isMobileMenuOpen, onCloseMobileMenu, isVendorPortal = false }
 
   // Set active icon based on current route
   useEffect(() => {
-    if (isKanbanBoard) {
-      if (pathname === '/workspaces') {
+    if (!isKanbanBoard) return;
+    if (restrictedNav) {
+      if (pathname === '/workspaces' || pathname.startsWith('/workspaces/')) {
         setActiveKanbanIcon(4);
-      } else if (pathname.includes('/analytics')) {
-        setActiveKanbanIcon(3);
-      } else if (pathname === '/kanban-board/operator' || pathname.startsWith('/kanban-board/') || pathname === '/compact') {
-        setActiveKanbanIcon(1);
+      } else if (
+        pathname === RESTRICTED_BOARD_HOME_PATH ||
+        pathname.startsWith(`${RESTRICTED_BOARD_HOME_PATH}/`)
+      ) {
+        setActiveKanbanIcon(6);
       }
+      return;
     }
-  }, [pathname, isKanbanBoard]);
+    if (pathname === '/workspaces') {
+      setActiveKanbanIcon(4);
+    } else if (pathname.includes('/analytics')) {
+      setActiveKanbanIcon(3);
+    } else if (
+      pathname === '/kanban-board/operator' ||
+      pathname.startsWith('/kanban-board/') ||
+      pathname === '/compact'
+    ) {
+      setActiveKanbanIcon(1);
+    }
+  }, [pathname, isKanbanBoard, restrictedNav]);
 
   // Add/remove class to body when submenu is open
   useEffect(() => {
@@ -585,7 +639,11 @@ function SideNav({ isMobileMenuOpen, onCloseMobileMenu, isVendorPortal = false }
   if (isKanbanBoard && !isVendorPortal && isWorkspacesShell) {
     return (
       <>
-        <WorkspacesSideNavPanel isDarkMode={isDarkMode} onNewDashboard={() => setShowAddDashboardModal(true)} />
+        <WorkspacesSideNavPanel
+          isDarkMode={isDarkMode}
+          onNewDashboard={() => setShowAddDashboardModal(true)}
+          restrictedBoardUser={restrictedNav}
+        />
         <BoardFilterPanel show={showFilterPanel} onClose={() => setShowFilterPanel(false)} />
         <ManagersModal show={showManagersModal} onClose={() => setShowManagersModal(false)} />
         <DashboardsModal show={showDashboardsModal} onClose={() => setShowDashboardsModal(false)} />
@@ -613,6 +671,19 @@ function SideNav({ isMobileMenuOpen, onCloseMobileMenu, isVendorPortal = false }
 
   if (isKanbanBoard && !isVendorPortal) {
     const handleIconClick = (item) => {
+      if (restrictedNav) {
+        if (item.label === 'Workspaces') {
+          navigate('/workspaces');
+          setActiveKanbanIcon(item.id);
+          return;
+        }
+        if (item.label === 'Kanban Board') {
+          navigate(RESTRICTED_BOARD_HOME_PATH);
+          setActiveKanbanIcon(item.id);
+          return;
+        }
+      }
+
       if (item.label === 'Filter') {
         const newShowState = !showFilterPanel;
         closeSelectWorkflowModal();
@@ -741,6 +812,10 @@ function SideNav({ isMobileMenuOpen, onCloseMobileMenu, isVendorPortal = false }
             const Icon = item.icon;
             const isActive =
               activeKanbanIcon === item.id ||
+              (restrictedNav &&
+                item.label === 'Kanban Board' &&
+                (pathname === RESTRICTED_BOARD_HOME_PATH ||
+                  pathname.startsWith(`${RESTRICTED_BOARD_HOME_PATH}/`))) ||
               (item.label === 'Filter' && showFilterPanel) ||
               (item.label === 'Analytics' && pathname.includes('/analytics')) ||
               (item.label === 'Board teams' && showBoardTeamsSubmenu) ||
@@ -874,7 +949,7 @@ function SideNav({ isMobileMenuOpen, onCloseMobileMenu, isVendorPortal = false }
 
         <div className="menuWrp">
           <ul className="menu">
-            {(isVendorPortal ? vendorMenus : menuState)
+            {(isVendorPortal ? vendorMenus : effectiveMenuState)
               .filter((e) => e.hasPermission === true)
               .map(({ menu, subMenus, to, isDefaultMenu, icon, isOpen }) => {
                 if (!isDefaultMenu) return null;

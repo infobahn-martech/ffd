@@ -38,6 +38,7 @@ import TagsModal from '../SideNav/components/TagsModal';
 import TypesModal from '../SideNav/components/TypesModal';
 import { useLayoutView } from '../../context/LayoutViewContext';
 import NavTabButton from '../../components/NavTabButton';
+import { isRestrictedBoardUser } from '../../helpers/restrictedBoardUser';
 
 function Header({ onMenuToggle, mobileMenuOpen: externalMobileMenuOpen, isVendorPortal = false }) {
   const { pathname } = useLocation();
@@ -71,6 +72,8 @@ function Header({ onMenuToggle, mobileMenuOpen: externalMobileMenuOpen, isVendor
   const doLogout = useAuthReducer((state) => state.doLogout);
   const profileData = useAuthReducer((state) => state.profileData);
   const authData = useAuthReducer((state) => state.authData);
+  const userProfile = useAuthReducer((state) => state.userProfile);
+  const restrictedBoardUser = isRestrictedBoardUser(userProfile);
 
   // Dummy data for demonstration
   const DUMMY_USER = {
@@ -320,7 +323,7 @@ function Header({ onMenuToggle, mobileMenuOpen: externalMobileMenuOpen, isVendor
       {/* LEFT — LOGO + NAV LINKS */}
       <div className="left-section">
         {/* Mobile Menu Toggle Button */}
-        {isMobile && (
+        {isMobile && !restrictedBoardUser && (
           <>
             <Tooltip id="mobile-menu-toggle" place="bottom" content="Toggle menu" />
             <button
@@ -344,7 +347,7 @@ function Header({ onMenuToggle, mobileMenuOpen: externalMobileMenuOpen, isVendor
           style={{ cursor: 'pointer' }}
         />
 
-        {(pathname === '/kanban-board/operator' || pathname === '/compact') && (
+        {!restrictedBoardUser && (pathname === '/kanban-board/operator' || pathname === '/compact') && (
           <div className="top-links">
             <div className="layout-view-toggle">
               {/* <span className="layout-view-label">Layout View:</span> */}
@@ -404,7 +407,7 @@ function Header({ onMenuToggle, mobileMenuOpen: externalMobileMenuOpen, isVendor
 
       {/* RIGHT — User + Icons */}
       <div className="right-section">
-        {showEditWorkflowNavButton ? (
+        {showEditWorkflowNavButton && !restrictedBoardUser ? (
           <button
             type="button"
             className="header-edit-workflow-btn icon-btn-hide-mobile"
@@ -461,148 +464,136 @@ function Header({ onMenuToggle, mobileMenuOpen: externalMobileMenuOpen, isVendor
             </div>
           )}
         </div>
-        <Tooltip id="master-module" place="bottom" content="Master Module" />
-        <NavTabButton
-          className="icon-btn icon-btn-hide-mobile"
-          active={!isVendorPortal}
-          locked={pathname === '/dashboard'}
-          aria-label="Master Module"
-          onClick={() => navigate('/dashboard')}
-          data-tooltip-id="master-module"
-        >
-          <FiLayout />
-        </NavTabButton>
-        <Tooltip id="vendor-portal" place="bottom" content="Vendor Portal" />
-        <NavTabButton
-          className="icon-btn icon-btn-hide-mobile"
-          active={isVendorPortal}
-          locked={pathname === '/vendor-portal/dashboard'}
-          aria-label="Vendor Portal"
-          onClick={() => navigate('/vendor-portal/dashboard')}
-          data-tooltip-id="vendor-portal"
-        >
-          <FiShoppingBag />
-        </NavTabButton>
-        <Tooltip id="on-station" place="bottom" content="On Station" />
-        <button
-          className={`icon-btn icon-btn-hide-mobile ${showOnStationModal ? 'active' : ''}`}
-          aria-label="On Station"
-          onClick={() => setShowOnStationModal(true)}
-          data-tooltip-id="on-station"
-        >
-          <FiMapPin />
-        </button>
-        <Tooltip id="board" place="bottom" content="Board" />
-        <NavTabButton
-          className="icon-btn icon-btn-hide-mobile"
-          active={pathname === '/kanban-board/operator'}
-          aria-label="Board"
-          onClick={handleKanbanBoardClick}
-          disabled={kanbanBoardLoading}
-          data-tooltip-id="board"
-        >
-          <FiGrid />
-        </NavTabButton>
-        <Tooltip id="kpi-dashboard" place="bottom" content="KPI Dashboard" />
-        <NavTabButton
-          className="icon-btn icon-btn-hide-mobile"
-          active={pathname === '/kpi-dashboard'}
-          aria-label="KPI Dashboard"
-          onClick={() => navigate('/kpi-dashboard')}
-          data-tooltip-id="kpi-dashboard"
-        >
-          <FiBarChart2 />
-        </NavTabButton>
-        <Tooltip id="documents" place="bottom" content="Documents" />
-        <button
-          className={`icon-btn icon-btn-hide-mobile ${showDocumentsModal ? 'active' : ''}`}
-          aria-label="Documents"
-          onClick={() => setShowDocumentsModal(true)}
-          data-tooltip-id="documents"
-        >
-          <FiFolder />
-        </button>
-        <Tooltip id="help" place="bottom" content="Help" />
-        <button
-          className="icon-btn icon-btn-hide-mobile"
-          aria-label="Help"
-          onClick={handleHelpClick}
-          data-tooltip-id="help"
-        >
-          <FiHelpCircle />
-        </button>
+        {!restrictedBoardUser && (
+          <>
+            <Tooltip id="master-module" place="bottom" content="Master Module" />
+            <NavTabButton
+              className="icon-btn icon-btn-hide-mobile"
+              active={!isVendorPortal}
+              locked={pathname === '/dashboard'}
+              aria-label="Master Module"
+              onClick={() => navigate('/dashboard')}
+              data-tooltip-id="master-module"
+            >
+              <FiLayout />
+            </NavTabButton>
+            <Tooltip id="vendor-portal" place="bottom" content="Vendor Portal" />
+            <NavTabButton
+              className="icon-btn icon-btn-hide-mobile"
+              active={isVendorPortal}
+              locked={pathname === '/vendor-portal/dashboard'}
+              aria-label="Vendor Portal"
+              onClick={() => navigate('/vendor-portal/dashboard')}
+              data-tooltip-id="vendor-portal"
+            >
+              <FiShoppingBag />
+            </NavTabButton>
+            <Tooltip id="on-station" place="bottom" content="On Station" />
+            <button
+              className={`icon-btn icon-btn-hide-mobile ${showOnStationModal ? 'active' : ''}`}
+              aria-label="On Station"
+              onClick={() => setShowOnStationModal(true)}
+              data-tooltip-id="on-station"
+            >
+              <FiMapPin />
+            </button>
+            <Tooltip id="board" place="bottom" content="Board" />
+            <NavTabButton
+              className="icon-btn icon-btn-hide-mobile"
+              active={pathname === '/kanban-board/operator'}
+              aria-label="Board"
+              onClick={handleKanbanBoardClick}
+              disabled={kanbanBoardLoading}
+              data-tooltip-id="board"
+            >
+              <FiGrid />
+            </NavTabButton>
+            <Tooltip id="kpi-dashboard" place="bottom" content="KPI Dashboard" />
+            <NavTabButton
+              className="icon-btn icon-btn-hide-mobile"
+              active={pathname === '/kpi-dashboard'}
+              aria-label="KPI Dashboard"
+              onClick={() => navigate('/kpi-dashboard')}
+              data-tooltip-id="kpi-dashboard"
+            >
+              <FiBarChart2 />
+            </NavTabButton>
+            <Tooltip id="documents" place="bottom" content="Documents" />
+            <button
+              className={`icon-btn icon-btn-hide-mobile ${showDocumentsModal ? 'active' : ''}`}
+              aria-label="Documents"
+              onClick={() => setShowDocumentsModal(true)}
+              data-tooltip-id="documents"
+            >
+              <FiFolder />
+            </button>
+            <Tooltip id="help" place="bottom" content="Help" />
+            <button
+              className="icon-btn icon-btn-hide-mobile"
+              aria-label="Help"
+              onClick={handleHelpClick}
+              data-tooltip-id="help"
+            >
+              <FiHelpCircle />
+            </button>
 
-        <div className="settings-btn-wrapper" ref={settingsDropdownRef}>
-          <Tooltip id="settings" place="bottom" content="Settings" />
-          <button
-            className={`icon-btn icon-btn-hide-mobile ${showSettingsDropdown ? 'active' : ''}`}
-            aria-label="Settings"
-            onClick={handleSettingsClick}
-            data-tooltip-id="settings"
-          >
-            <FiSettings />
-          </button>
-          {showSettingsDropdown && (
-            <div className="settings-dropdown">
-              {/* <div
-                className={`settings-dropdown-item settings-dropdown-item-with-submenu ${showBoardTeamsSubmenu ? 'submenu-open' : ''}`}
-                onClick={handleBoardTeamsClick}
+            <div className="settings-btn-wrapper" ref={settingsDropdownRef}>
+              <Tooltip id="settings" place="bottom" content="Settings" />
+              <button
+                className={`icon-btn icon-btn-hide-mobile ${showSettingsDropdown ? 'active' : ''}`}
+                aria-label="Settings"
+                onClick={handleSettingsClick}
+                data-tooltip-id="settings"
               >
-                Board teams
-              </div>
-              {showBoardTeamsSubmenu && (
-                <div className="settings-submenu">
-                  <div className="settings-submenu-item" onClick={handleManagersClick}>
-                    Managers
+                <FiSettings />
+              </button>
+              {showSettingsDropdown && (
+                <div className="settings-dropdown">
+                  <div className="settings-dropdown-item" onClick={handleBusinessRulesClick}>
+                    Business rules
                   </div>
-                  <div className="settings-submenu-item" onClick={handleDashboardsClick}>
-                    Dashboards
+                  <div
+                    className={`settings-dropdown-item settings-dropdown-item-with-submenu ${showCardManagementSubmenu ? 'submenu-open' : ''}`}
+                    onClick={handleCardManagementClick}
+                  >
+                    Card management
                   </div>
-                </div>
-              )} */}
-              <div className="settings-dropdown-item" onClick={handleBusinessRulesClick}>
-                Business rules
-              </div>
-              <div
-                className={`settings-dropdown-item settings-dropdown-item-with-submenu ${showCardManagementSubmenu ? 'submenu-open' : ''}`}
-                onClick={handleCardManagementClick}
-              >
-                Card management
-              </div>
-              {showCardManagementSubmenu && (
-                <div className="settings-submenu">
-                  <div className="settings-submenu-item" onClick={handleBlockersClick}>
-                    Blockers
-                  </div>
-                  <div className="settings-submenu-item" onClick={handleStickersClick}>
-                    Stickers
-                  </div>
-                  <div className="settings-submenu-item" onClick={handleTagsClick}>
-                    Tags
-                  </div>
-                  <div className="settings-submenu-item" onClick={handleTypesClick}>
-                    Types
-                  </div>
+                  {showCardManagementSubmenu && (
+                    <div className="settings-submenu">
+                      <div className="settings-submenu-item" onClick={handleBlockersClick}>
+                        Blockers
+                      </div>
+                      <div className="settings-submenu-item" onClick={handleStickersClick}>
+                        Stickers
+                      </div>
+                      <div className="settings-submenu-item" onClick={handleTagsClick}>
+                        Tags
+                      </div>
+                      <div className="settings-submenu-item" onClick={handleTypesClick}>
+                        Types
+                      </div>
+                    </div>
+                  )}
                 </div>
               )}
             </div>
-          )}
-        </div>
 
-        <div className="notification-btn-wrapper">
-          <Tooltip id="notifications" place="bottom" content="Notifications" />
-          <button
-            className={`icon-btn ${showNotificationsModal ? 'active' : ''}`}
-            aria-label="Notifications"
-            onClick={() => setShowNotificationsModal(true)}
-            data-tooltip-id="notifications"
-          >
-            <FiBell />
-          </button>
-          {notificationCount > 0 && (
-            <span className="notification-badge">{notificationCount > 99 ? '99+' : notificationCount}</span>
-          )}
-        </div>
+            <div className="notification-btn-wrapper">
+              <Tooltip id="notifications" place="bottom" content="Notifications" />
+              <button
+                className={`icon-btn ${showNotificationsModal ? 'active' : ''}`}
+                aria-label="Notifications"
+                onClick={() => setShowNotificationsModal(true)}
+                data-tooltip-id="notifications"
+              >
+                <FiBell />
+              </button>
+              {notificationCount > 0 && (
+                <span className="notification-badge">{notificationCount > 99 ? '99+' : notificationCount}</span>
+              )}
+            </div>
+          </>
+        )}
       </div>
 
       {/* My Accounts Modal */}

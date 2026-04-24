@@ -126,6 +126,7 @@ const useAuthReducer = create((set) => ({
     removeItem('userProfile');
     removeItem('userName');
     removeItem('userEmail');
+    removeItem('role_id');
   },
   getUserProfile: async (userId = null, skipApiCall = false) => {
     try {
@@ -202,6 +203,9 @@ const useAuthReducer = create((set) => ({
       // Save to localStorage for future refresh scenarios
       if (profileData) {
         setItem('userProfile', JSON.stringify(profileData));
+        if (profileData.role?.role_id != null && profileData.role?.role_id !== '') {
+          setItem('role_id', String(profileData.role.role_id));
+        }
       }
 
       set({

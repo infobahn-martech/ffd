@@ -13,17 +13,12 @@ function PrivateRoutes() {
   const authData = useAuthReducer((state) => state.authData);
 
   useEffect(() => {
-    if (getItem('accessToken')) {
-      // Only fetch if profile doesn't exist or doesn't have role
-      if (!userProfile || !userProfile.role) {
-        // Get userId from authData state or localStorage (for refresh scenario)
-        const userId = authData?.userid || getItem('userid');
-        // On refresh, skip API call and use cached/localStorage data
-        // This prevents the API call from being triggered on page refresh
-        getUserProfile(userId, true); // true = skipApiCall flag
-      }
-    }
-  }, []);
+    if (!getItem('accessToken')) return;
+    const userId = authData?.userid || getItem('userid');
+    if (!userId) return;
+    // Always refresh profile from getuserdetail on app load so role_id stays authoritative
+    getUserProfile(userId, false);
+  }, [authData?.userid, getUserProfile]);
 
   if (isProfileFetchLoading)
     return (
