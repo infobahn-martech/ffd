@@ -2800,6 +2800,29 @@
   max-width: 100%;
 }
 
+.checklist-modal-xl-wide .section-header-row {
+  display: grid;
+  grid-template-columns: 140px 1fr 140px 90px;
+  gap: 12px;
+  align-items: center;
+}
+
+.checklist-modal-xl-wide .section-header-floating {
+  margin: 0;
+}
+
+.checklist-modal-xl-wide .section-header-input {
+  height: 40px;
+  min-height: 40px;
+}
+
+.checklist-modal-xl-wide .sub-section-header-row {
+  display: grid;
+  grid-template-columns: 170px 1fr 140px 90px;
+  gap: 12px;
+  align-items: center;
+}
+
 .cl-footer {
   position: sticky;
   bottom: 0;

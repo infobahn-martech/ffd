@@ -687,14 +687,14 @@ export function CheckListModal({ showModal, closeModal, callTypesOptions, onSucc
             boxShadow: "0 1px 4px rgba(0, 0, 0, 0.04)",
             overflow: "hidden"
           }}>
-            <div style={{
-              display: "flex",
-              justifyContent: "space-between",
-              alignItems: "center",
-              padding: "14px 18px",
-              backgroundColor: "#fafbfc",
-              borderBottom: expandedSubSections[`${sectionIndex}-${subSectionIndex}`] ? "1px solid #e2e6ff" : "none"
-            }}>
+            <div
+              className="sub-section-header-row"
+              style={{
+                padding: "14px 18px",
+                backgroundColor: "#fafbfc",
+                borderBottom: expandedSubSections[`${sectionIndex}-${subSectionIndex}`] ? "1px solid #e2e6ff" : "none"
+              }}
+            >
               <button
                 type="button"
                 onClick={() => toggleSubSection(sectionIndex, subSectionIndex)}
@@ -705,7 +705,6 @@ export function CheckListModal({ showModal, closeModal, callTypesOptions, onSucc
                   fontSize: "14px",
                   color: "#1a1a1a",
                   cursor: "pointer",
-                  flex: 1,
                   textAlign: "left",
                   display: "flex",
                   alignItems: "center",
@@ -724,6 +723,30 @@ export function CheckListModal({ showModal, closeModal, callTypesOptions, onSucc
                 </span>
                 <span>Sub Section {subSectionIndex + 1}</span>
               </button>
+              <div className="form-floating section-header-floating">
+                <input
+                  className="form-control section-header-input"
+                  placeholder="Sub Section Title"
+                  style={{ borderColor: "#e2e6ff", fontSize: "14px" }}
+                  {...register(`sections.${sectionIndex}.sub_sections.${subSectionIndex}.title`, {
+                    required: "Sub section title is required"
+                  })}
+                />
+                <label style={{ fontSize: "13px", color: "#666" }}>Sub Section Title <span className="text-danger">*</span></label>
+              </div>
+              <div className="form-floating section-header-floating">
+                <input
+                  type="number"
+                  className="form-control section-header-input"
+                  placeholder="Sort Order"
+                  style={{ borderColor: "#e2e6ff", fontSize: "14px" }}
+                  {...register(`sections.${sectionIndex}.sub_sections.${subSectionIndex}.sort_order`, {
+                    required: "Sort order is required",
+                    valueAsNumber: true
+                  })}
+                />
+                <label style={{ fontSize: "13px", color: "#666" }}>Sort Order <span className="text-danger">*</span></label>
+              </div>
               <button
                 type="button"
                 onClick={() => remove(subSectionIndex)}
@@ -753,42 +776,6 @@ export function CheckListModal({ showModal, closeModal, callTypesOptions, onSucc
 
             {expandedSubSections[`${sectionIndex}-${subSectionIndex}`] && (
               <div style={{ padding: "18px" }}>
-                <div style={{
-                  display: "grid",
-                  gridTemplateColumns: "1fr 150px",
-                  gap: "15px",
-                  marginBottom: "20px"
-                }}>
-                  <div>
-                    <div className="form-floating">
-                      <input
-                        className="form-control"
-                        placeholder="Sub Section Title"
-                        style={{ borderColor: "#e2e6ff", fontSize: "14px" }}
-                        {...register(`sections.${sectionIndex}.sub_sections.${subSectionIndex}.title`, {
-                          required: "Sub section title is required"
-                        })}
-                      />
-                      <label style={{ fontSize: "13px", color: "#666" }}>Sub Section Title <span className="text-danger">*</span></label>
-                    </div>
-                  </div>
-                  <div>
-                    <div className="form-floating">
-                      <input
-                        type="number"
-                        className="form-control"
-                        placeholder="Sort Order"
-                        style={{ borderColor: "#e2e6ff", fontSize: "14px" }}
-                        {...register(`sections.${sectionIndex}.sub_sections.${subSectionIndex}.sort_order`, {
-                          required: "Sort order is required",
-                          valueAsNumber: true
-                        })}
-                      />
-                      <label style={{ fontSize: "13px", color: "#666" }}>Sort Order <span className="text-danger">*</span></label>
-                    </div>
-                  </div>
-                </div>
-
                 <SubSectionItems
                   sectionIndex={sectionIndex}
                   subSectionIndex={subSectionIndex}
@@ -1030,14 +1017,14 @@ export function CheckListModal({ showModal, closeModal, callTypesOptions, onSucc
                   overflow: "hidden"
                 }}>
                   {/* Section Header */}
-                  <div style={{
-                    display: "flex",
-                    justifyContent: "space-between",
-                    alignItems: "center",
-                    padding: "16px 20px",
-                    backgroundColor: "#f8f9ff",
-                    borderBottom: expandedSections[sectionIndex] ? "1px solid #e2e6ff" : "none"
-                  }}>
+                  <div
+                    className="section-header-row"
+                    style={{
+                      padding: "16px 20px",
+                      backgroundColor: "#f8f9ff",
+                      borderBottom: expandedSections[sectionIndex] ? "1px solid #e2e6ff" : "none"
+                    }}
+                  >
                     <button
                       type="button"
                       onClick={() => toggleSection(sectionIndex)}
@@ -1048,7 +1035,6 @@ export function CheckListModal({ showModal, closeModal, callTypesOptions, onSucc
                         fontSize: "15px",
                         color: "#1a1a1a",
                         cursor: "pointer",
-                        flex: 1,
                         textAlign: "left",
                         display: "flex",
                         alignItems: "center",
@@ -1067,6 +1053,30 @@ export function CheckListModal({ showModal, closeModal, callTypesOptions, onSucc
                       </span>
                       <span>Section {sectionIndex + 1}</span>
                     </button>
+                    <div className="form-floating section-header-floating">
+                      <input
+                        className="form-control section-header-input"
+                        placeholder="Section Title"
+                        style={{ borderColor: "#e2e6ff" }}
+                        {...register(`sections.${sectionIndex}.title`, {
+                          required: "Section title is required"
+                        })}
+                      />
+                      <label style={{ color: "#666" }}>Section Title <span className="text-danger">*</span></label>
+                    </div>
+                    <div className="form-floating section-header-floating">
+                      <input
+                        type="number"
+                        className="form-control section-header-input"
+                        placeholder="Sort Order"
+                        style={{ borderColor: "#e2e6ff" }}
+                        {...register(`sections.${sectionIndex}.sort_order`, {
+                          required: "Sort order is required",
+                          valueAsNumber: true
+                        })}
+                      />
+                      <label style={{ color: "#666" }}>Sort Order <span className="text-danger">*</span></label>
+                    </div>
                     <button
                       type="button"
                       onClick={() => removeSection(sectionIndex)}
@@ -1096,51 +1106,11 @@ export function CheckListModal({ showModal, closeModal, callTypesOptions, onSucc
 
                   {expandedSections[sectionIndex] && (
                     <div style={{ padding: "20px" }}>
-                      {/* Section Title and Sort Order in Grid */}
-                      <div style={{
-                        display: "grid",
-                        gridTemplateColumns: "1fr 150px",
-                        gap: "15px",
-                        marginBottom: "20px"
-                      }}>
-                        {/* Section Title */}
-                        <div>
-                          <div className="form-floating">
-                            <input
-                              className="form-control"
-                              placeholder="Section Title"
-                              style={{ borderColor: "#e2e6ff" }}
-                              {...register(`sections.${sectionIndex}.title`, {
-                                required: "Section title is required"
-                              })}
-                            />
-                            <label style={{ color: "#666" }}>Section Title <span className="text-danger">*</span></label>
-                          </div>
-                        </div>
-
-                        {/* Section Sort Order */}
-                        <div>
-                          <div className="form-floating">
-                            <input
-                              type="number"
-                              className="form-control"
-                              placeholder="Sort Order"
-                              style={{ borderColor: "#e2e6ff" }}
-                              {...register(`sections.${sectionIndex}.sort_order`, {
-                                required: "Sort order is required",
-                                valueAsNumber: true
-                              })}
-                            />
-                            <label style={{ color: "#666" }}>Sort Order <span className="text-danger">*</span></label>
-                          </div>
-                        </div>
-                      </div>
-
                       {/* Divider */}
                       <div style={{
                         height: "1px",
                         backgroundColor: "#e2e6ff",
-                        margin: "20px 0",
+                        margin: "4px 0 20px",
                         width: "100%"
                       }}></div>
 
