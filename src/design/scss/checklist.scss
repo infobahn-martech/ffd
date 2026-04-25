@@ -252,8 +252,8 @@
 }
 
 .checklist-items-table th {
-  height: 50px;
-  padding: 0 18px;
+  height: 48px;
+  padding: 0 14px;
   text-align: left;
   font-size: 12px;
   font-weight: 700;
@@ -2090,44 +2090,45 @@
 }
 
 .cl-items-table col.cl-col-check {
-  width: 10%;
+  width: 8%;
 }
 
 .cl-items-table col.cl-col-item {
-  width: 20%;
+  width: 28%;
 }
 
 .cl-items-table col.cl-col-upload {
-  width: 35%;
+  width: 25%;
 }
 
 .cl-items-table col.cl-col-remarks {
-  width: 35%;
+  width: 39%;
 }
 
 .cl-items-table--4col .checklist-table-checkbox-header,
 .cl-items-table--4col .checklist-table-checkbox {
-  width: 10%;
+  width: 8%;
 }
 
 .cl-items-table--4col .checklist-table-label-header,
 .cl-items-table--4col .checklist-table-label.cl-col-item {
-  width: 20%;
+  width: 28%;
 }
 
 .cl-items-table--4col .checklist-table-upload-header,
 .cl-items-table--4col .checklist-table-upload.cl-col-upload {
-  width: 35%;
+  width: 25%;
 }
 
 .cl-items-table--4col .checklist-table-remarks-header,
 .cl-items-table--4col .checklist-table-remarks.cl-col-remarks {
-  width: 35%;
+  width: 39%;
 }
 
 .cl-items-table tbody .checklist-table-row td {
   vertical-align: middle;
-  padding: 10px 12px;
+  padding: 8px 12px;
+  height: 72px;
 }
 
 .cl-item-cell {
@@ -2135,14 +2136,16 @@
 }
 
 .checklist-table-label.cl-col-item {
-  padding-right: 6px !important;
+  padding-right: 8px !important;
+  padding-left: 10px !important;
 }
 
 .cl-item-content {
   display: flex;
   flex-direction: column;
   align-items: flex-start;
-  gap: 6px;
+  justify-content: center;
+  gap: 3px;
   min-width: 0;
 }
 
@@ -2167,65 +2170,76 @@
   flex: 1 1 auto;
 }
 
-.cl-req-icon {
+.cl-item-meta-row {
+  display: inline-flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 6px;
+  min-height: 18px;
+  color: #6b7280;
+  font-size: 11px;
+  line-height: 1.2;
+}
+
+.cl-item-meta-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  min-width: 0;
+  color: #6b7280;
+}
+
+.cl-item-meta-icon {
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  width: 18px;
-  height: 18px;
-  border-radius: 6px;
-  border: 1px solid #e2e8f0;
-  font-size: 11px;
-  line-height: 1;
-  cursor: help;
+  color: #9ca3af;
+  flex-shrink: 0;
 }
 
-.cl-req-icon--copy {
-  color: #92400e;
-  background: #fffbeb;
-  border-color: #fde68a;
-}
-
-.cl-req-icon--original {
-  color: #166534;
-  background: #f0fdf4;
-  border-color: #86efac;
-}
-
-.cl-req-icon--format {
-  color: #1d4ed8;
-  background: #eff6ff;
-  border-color: #bfdbfe;
-}
-
-.cl-item-expiry {
-  display: inline-flex;
-  align-items: center;
-  gap: 6px;
-  max-width: 100%;
-  padding: 2px 8px;
-  border: 1px solid #e5e7eb;
-  border-radius: 999px;
-  background: #f8fafc;
-}
-
-.cl-item-expiry-label {
-  font-size: 10px;
-  font-weight: 600;
-  color: #64748b;
+.cl-item-meta-label {
+  color: #6b7280;
   white-space: nowrap;
+  font-size: 11px;
+  font-weight: 500;
+}
+
+.cl-item-meta-sep {
+  color: #9ca3af;
+  font-size: 10px;
+  line-height: 1;
+}
+
+.cl-item-meta-chip--expiry {
+  position: relative;
 }
 
 .cl-item-expiry-input {
-  width: 126px;
-  max-width: 100%;
-  height: 24px;
-  padding: 2px 6px;
-  border-radius: 8px;
-  border: 1px solid #d1d5db;
+  width: 84px;
+  max-width: 84px;
+  height: 16px;
+  padding: 0;
+  border: none;
+  border-radius: 0;
+  background: transparent;
   font-size: 11px;
+  line-height: 1.2;
+  color: transparent;
+  caret-color: #6b7280;
+  text-shadow: none;
+  cursor: pointer;
+  opacity: 0;
+  position: absolute;
+  left: 0;
+  top: 0;
 }
 
+.cl-item-expiry-display {
+  color: #6b7280;
+  white-space: nowrap;
+  font-size: 11px;
+  font-weight: 500;
+}
 .cl-upload-inline {
   display: flex;
   align-items: center;
@@ -2238,6 +2252,9 @@
   display: flex;
   flex-direction: column;
   gap: 0;
+  align-items: flex-start;
+  justify-content: center;
+  min-height: 32px;
 }
 
 .cl-upload-row {
@@ -2246,6 +2263,130 @@
   gap: 8px;
   width: 100%;
   min-width: 0;
+}
+
+.cl-upload-row--actions {
+  gap: 8px;
+  flex-wrap: nowrap;
+  align-items: center;
+}
+
+.cl-upload-btn {
+  height: 32px;
+  min-height: 32px;
+  padding: 0 12px;
+  border-radius: 8px;
+  border: 1px solid #c7c4f8;
+  background: #ffffff;
+  color: #5b57c7;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  font-size: 13px;
+  font-weight: 600;
+  line-height: 1;
+  cursor: pointer;
+  transition: background-color 0.16s ease, border-color 0.16s ease, box-shadow 0.16s ease;
+}
+
+.cl-upload-btn:hover {
+  background: #f7f6ff;
+  border-color: #b7b2f2;
+}
+
+.cl-upload-view-btn {
+  width: 32px;
+  min-width: 32px;
+  height: 32px;
+  min-height: 32px;
+  border-radius: 8px;
+  border: 1px solid #e5e7eb;
+  background: #ffffff;
+  color: #6b7280;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: background-color 0.16s ease, border-color 0.16s ease;
+}
+
+.cl-upload-view-btn:hover:not(:disabled) {
+  background: #f9fafb;
+  border-color: #d1d5db;
+}
+
+.cl-upload-view-btn:disabled {
+  color: #cbd5e1;
+  border-color: #e5e7eb;
+  background: #f8fafc;
+  cursor: not-allowed;
+}
+
+.cl-upload-remove-btn {
+  width: 24px;
+  min-width: 24px;
+  height: 24px;
+  border-radius: 6px;
+  border: 1px solid #e5e7eb;
+  background: #ffffff;
+  color: #9ca3af;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 14px;
+  line-height: 1;
+  cursor: pointer;
+}
+
+.cl-items-table .checklist-table-checkbox {
+  padding-left: 8px !important;
+  padding-right: 8px !important;
+}
+
+.cl-items-table .checklist-table-checkbox .checklist-checkbox-wrapper--table {
+  width: 100%;
+  height: 100%;
+  min-height: 32px;
+  align-items: center;
+  justify-content: center;
+}
+
+.cl-items-table .checklist-table-upload.cl-col-upload,
+.cl-items-table .checklist-table-remarks.cl-col-remarks {
+  padding-top: 8px !important;
+  padding-bottom: 8px !important;
+}
+
+.cl-items-table .checklist-table-upload.cl-col-upload {
+  padding-left: 10px !important;
+  padding-right: 10px !important;
+}
+
+.cl-items-table .checklist-table-remarks.cl-col-remarks {
+  padding-left: 8px !important;
+  padding-right: 10px !important;
+}
+
+.cl-items-table .checklist-table-remarks .checklist-table-textarea.cf-textarea {
+  height: 32px;
+  min-height: 32px;
+  max-height: 32px;
+  display: flex;
+  align-items: center;
+}
+
+.cl-items-table .checklist-table-remarks .cf-textarea.checklist-table-textarea textarea {
+  height: 32px;
+  min-height: 32px;
+  max-height: 32px;
+  padding: 6px 10px;
+}
+
+.cl-upload-remove-btn:hover {
+  color: #ef4444;
+  border-color: #fecaca;
+  background: #fff1f2;
 }
 
 .cl-file-icon-btn {

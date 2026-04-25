@@ -2,42 +2,22 @@ import PropTypes from "prop-types";
 import { useState, useEffect, useRef } from "react";
 import { FormTextarea } from "./checklistFormPrimitives";
 
-const RequirementIndicator = ({ requirement }) => {
-  if (!requirement?.label) return null;
-  const label = String(requirement.label);
-  const isOriginal = /original/i.test(label);
-  const isFormat = /format/i.test(label) || /attached/i.test(label);
-  const toneClass = isOriginal ? "cl-req-icon--original" : isFormat ? "cl-req-icon--format" : "cl-req-icon--copy";
-  const icon = isOriginal ? "✓" : isFormat ? "📎" : "⧉";
-
-  return (
-    <span className={`cl-req-icon ${toneClass}`} title={label} aria-label={label}>
-      {icon}
-    </span>
-  );
+const formatExpiryDisplay = (value) => {
+  if (!value) return "--/--/----";
+  const [year, month, day] = String(value).split("-");
+  if (!year || !month || !day) return value;
+  return `${day}/${month}/${year}`;
 };
 
-RequirementIndicator.propTypes = {
-  requirement: PropTypes.shape({
-    label: PropTypes.string,
-  }),
-};
+const getRequirementMetaLabel = ({ requireCopyOnlyFromApi, requirement }) => {
+  if (requireCopyOnlyFromApi) return "Req Copy";
+  if (!requirement?.label) return "";
 
-const FileActionIcon = ({ file, onClick }) => {
-  const name = file?.file_name ?? file?.fileName ?? file?.name ?? "File";
-  return (
-    <button type="button" className="cl-file-icon-btn cl-file-icon-btn--existing" onClick={onClick} title={name} aria-label={name}>
-      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden>
-        <path d="M14 2H6C4.9 2 4 2.9 4 4V20C4 21.1 4.9 22 6 22H18C19.1 22 20 21.1 20 20V8L14 2Z" stroke="currentColor" strokeWidth="1.6" />
-        <path d="M14 2V8H20" stroke="currentColor" strokeWidth="1.6" />
-      </svg>
-    </button>
-  );
-};
-
-FileActionIcon.propTypes = {
-  file: PropTypes.object,
-  onClick: PropTypes.func.isRequired,
+  const label = String(requirement.label).trim();
+  if (!label) return "";
+  if (/copy/i.test(label)) return "Req Copy";
+  if (/original/i.test(label)) return "Req Original";
+  return label;
 };
 
 const ChecklistItemRow = ({
@@ -51,12 +31,14 @@ const ChecklistItemRow = ({
 
   const [remarks, setRemarks] = useState(itemData?.remarks || "");
   const [uploadedFile, setUploadedFile] = useState(itemData?.uploadedFile || null);
-  const [isDragging, setIsDragging] = useState(false);
   const fileInputRef = useRef(null);
 
   const checked = itemData?.checked === true;
   const apiFiles = itemData?.apiUploadedFiles ?? uploadedFromApi ?? [];
   const hasApiFiles = Array.isArray(apiFiles) && apiFiles.length > 0;
+  const canViewFile = Boolean(uploadedFile || hasApiFiles);
+  const requirementMetaLabel = getRequirementMetaLabel({ requireCopyOnlyFromApi, requirement });
+  const showMetaRow = Boolean(expiryDateRequired || requirementMetaLabel);
 
   useEffect(() => {
     setRemarks(itemData?.remarks || "");
@@ -91,26 +73,6 @@ const ChecklistItemRow = ({
     pushChange({ uploadedFile: null });
   };
 
-  const handleDragOver = (e) => {
-    e.preventDefault();
-    e.stopPropagation();
-    setIsDragging(true);
-  };
-  const handleDragLeave = (e) => {
-    e.preventDefault();
-    e.stopPropagation();
-    setIsDragging(false);
-  };
-  const handleDrop = (e) => {
-    e.preventDefault();
-    e.stopPropagation();
-    setIsDragging(false);
-    const files = Array.from(e.dataTransfer.files || []);
-    if (files.length > 0) {
-      setUploadedFile(files[0]);
-      pushChange({ uploadedFile: files[0] });
-    }
-  };
   const handleBrowseClick = () => fileInputRef.current?.click();
 
   const handleRemarksChange = (e) => {
@@ -127,6 +89,18 @@ const ChecklistItemRow = ({
     const href = file?.url || file?.link;
     if (!href) return;
     window.open(href, "_blank", "noopener,noreferrer");
+  };
+
+  const handleViewClick = () => {
+    if (uploadedFile) {
+      const objectUrl = URL.createObjectURL(uploadedFile);
+      window.open(objectUrl, "_blank", "noopener,noreferrer");
+      setTimeout(() => URL.revokeObjectURL(objectUrl), 60000);
+      return;
+    }
+    if (hasApiFiles) {
+      handleApiFileClick(apiFiles[0]);
+    }
   };
 
   return (
@@ -150,69 +124,92 @@ const ChecklistItemRow = ({
         <div className="cl-item-content">
           <div className="cl-item-title-row">
             <div className="cl-item-title cl-item-title--primary" title={title}>{title}</div>
-            {(requireCopyOnlyFromApi || requirement?.label) ? (
-              <RequirementIndicator requirement={requirement || { label: "Require Copy Only" }} />
-            ) : null}
           </div>
-          {expiryDateRequired ? (
-            <div className="cl-item-expiry">
-              <span className="cl-item-expiry-label">Expiry date</span>
-              <input
-                type="date"
-                className="checklist-expiry-input cl-item-expiry-input"
-                value={itemData?.expiryDate || ""}
-                onChange={handleExpiryChange}
-                disabled={isViewOnly}
-              />
+          {showMetaRow ? (
+            <div className="cl-item-meta-row">
+              {expiryDateRequired ? (
+                <span className="cl-item-meta-chip cl-item-meta-chip--expiry">
+                  <span className="cl-item-meta-icon" aria-hidden>
+                    <svg width="12" height="12" viewBox="0 0 24 24" fill="none">
+                      <rect x="3" y="5" width="18" height="16" rx="2" stroke="currentColor" strokeWidth="1.8" />
+                      <path d="M8 3V7M16 3V7M3 10H21" stroke="currentColor" strokeWidth="1.8" />
+                    </svg>
+                  </span>
+                  <span className="cl-item-meta-label">Exp:</span>
+                  <input
+                    type="date"
+                    className="checklist-expiry-input cl-item-expiry-input"
+                    value={itemData?.expiryDate || ""}
+                    onChange={handleExpiryChange}
+                    disabled={isViewOnly}
+                    aria-label="Expiry date"
+                  />
+                  <span className="cl-item-expiry-display" aria-hidden>
+                    {formatExpiryDisplay(itemData?.expiryDate || "")}
+                  </span>
+                </span>
+              ) : null}
+              {expiryDateRequired && requirementMetaLabel ? <span className="cl-item-meta-sep" aria-hidden>|</span> : null}
+              {requirementMetaLabel ? (
+                <span className="cl-item-meta-chip" title={requirementMetaLabel}>
+                  <span className="cl-item-meta-icon" aria-hidden>
+                    <svg width="12" height="12" viewBox="0 0 24 24" fill="none">
+                      <path d="M14 3H7C5.9 3 5 3.9 5 5V19C5 20.1 5.9 21 7 21H17C18.1 21 19 20.1 19 19V8L14 3Z" stroke="currentColor" strokeWidth="1.8" />
+                      <path d="M14 3V8H19" stroke="currentColor" strokeWidth="1.8" />
+                      <path d="M9 12H15M9 16H15" stroke="currentColor" strokeWidth="1.8" />
+                    </svg>
+                  </span>
+                  <span className="cl-item-meta-label">{requirementMetaLabel}</span>
+                </span>
+              ) : null}
             </div>
           ) : null}
         </div>
       </td>
       <td className="checklist-table-upload cl-col-upload">
         <div className="cl-upload-col">
-          {hasApiFiles || uploadedFile || !isViewOnly ? (
-            <div className="cl-upload-row">
-              <div className="cl-upload-inline">
-                {hasApiFiles
-                  ? apiFiles.map((f) => (
-                    <FileActionIcon
-                      key={f.id || f.file_id || f.name}
-                      file={f}
-                      onClick={() => handleApiFileClick(f)}
-                    />
-                  ))
-                  : null}
-                {uploadedFile ? (
-                  <button
-                    type="button"
-                    className="cl-file-icon-btn cl-file-icon-btn--local"
-                    onClick={handleRemoveFile}
-                    title={uploadedFile?.name || uploadedFile?.fileName || "Remove file"}
-                    aria-label="Remove uploaded file"
-                  >
-                    ×
-                  </button>
-                ) : null}
-              </div>
-              {!isViewOnly ? (
-                <button
-                  type="button"
-                  className={`cl-upload-dropzone ${isDragging ? "dragging" : ""}`}
-                  onClick={handleBrowseClick}
-                  onDragOver={handleDragOver}
-                  onDragLeave={handleDragLeave}
-                  onDrop={handleDrop}
-                  title={uploadedFile ? "Replace uploaded file" : "Upload file"}
-                  aria-label={uploadedFile ? "Replace uploaded file" : "Upload file"}
-                >
-                  <span className="cl-upload-dropzone__text">
-                    Drag and drop your files here, or <span className="cl-upload-dropzone__link">click to browse</span>
-                  </span>
-                  <span className="cl-upload-dropzone__hint">Supports all file formats</span>
-                </button>
-              ) : null}
-            </div>
-          ) : null}
+          <div className="cl-upload-row cl-upload-row--actions">
+            {!isViewOnly ? (
+              <button
+                type="button"
+                className="cl-upload-btn"
+                onClick={handleBrowseClick}
+                title={uploadedFile ? "Replace uploaded file" : "Upload file"}
+                aria-label={uploadedFile ? "Replace uploaded file" : "Upload file"}
+              >
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" aria-hidden>
+                  <path d="M12 16V4" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" />
+                  <path d="M8 8L12 4L16 8" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" />
+                  <path d="M5 19H19" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" />
+                </svg>
+                <span>Upload</span>
+              </button>
+            ) : null}
+            <button
+              type="button"
+              className="cl-upload-view-btn"
+              onClick={handleViewClick}
+              disabled={!canViewFile}
+              title={canViewFile ? "View uploaded file" : "No file available"}
+              aria-label={canViewFile ? "View uploaded file" : "No file available"}
+            >
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" aria-hidden>
+                <path d="M2 12C3.8 8.5 7.3 6 12 6C16.7 6 20.2 8.5 22 12C20.2 15.5 16.7 18 12 18C7.3 18 3.8 15.5 2 12Z" stroke="currentColor" strokeWidth="1.8" />
+                <circle cx="12" cy="12" r="3" stroke="currentColor" strokeWidth="1.8" />
+              </svg>
+            </button>
+            {!isViewOnly && uploadedFile ? (
+              <button
+                type="button"
+                className="cl-upload-remove-btn"
+                onClick={handleRemoveFile}
+                title={uploadedFile?.name || uploadedFile?.fileName || "Remove file"}
+                aria-label="Remove uploaded file"
+              >
+                ×
+              </button>
+            ) : null}
+          </div>
           <input
             ref={fileInputRef}
             type="file"
