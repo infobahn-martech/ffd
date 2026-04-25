@@ -395,7 +395,6 @@ const DocumentUpload = ({ attachments = [], onAdd, onRemove, cardColor, disabled
           ref={fileInputRef}
           type="file"
           className="file-input-hidden"
-          accept="*/*"
           multiple
           onChange={handleFileInputChange}
           disabled={disabled}
@@ -3258,19 +3257,6 @@ function General({
 
                   {isAddMode ? (
                     <>
-                      <div className="general-add-description-panel">
-                        <div className="general-add-description-content">
-                          <FormField label="Card Description">
-                            <div className="general-card-description-editor">
-                              <ReactQuillEditor
-                                value={formValues?.cardDescription || ""}
-                                onChange={handleChange("cardDescription")}
-                                placeholder="Enter card description..."
-                              />
-                            </div>
-                          </FormField>
-                        </div>
-                      </div>
                       <div className="general-info-right">
                         <EmailPreviewPanel
                           ownerOptions={operatorOptions}

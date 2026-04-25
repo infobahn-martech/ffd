@@ -717,7 +717,7 @@
 /* General Add Mode shell */
 .general-add-3col-layout {
   display: grid;
-  grid-template-columns: minmax(420px, 480px) minmax(420px, 520px) minmax(0, 1fr) !important;
+  grid-template-columns: minmax(420px, 30%) minmax(0, 1fr) !important;
   gap: 20px !important;
   min-height: 0;
   width: 100%;
@@ -732,8 +732,7 @@
 }
 
 .cf-section.general-info-section .general-add-3col-layout .general-info-left.general-add-form-panel,
-.cf-section.general-info-section .general-add-3col-layout .general-info-right,
-.cf-section.general-info-section .general-add-3col-layout .general-add-description-panel {
+.cf-section.general-info-section .general-add-3col-layout .general-info-right {
   margin-top: 0;
   overflow: hidden;
   min-height: 0;
