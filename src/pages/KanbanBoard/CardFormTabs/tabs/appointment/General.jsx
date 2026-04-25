@@ -2317,6 +2317,13 @@ function General({
   const validateRequiredEntityFields = useCallback((fields, values) => {
     const nextErrors = {};
     fields.forEach((field) => {
+      const fieldName = String(field?.field_name ?? "").trim().toLowerCase();
+      const fieldKey = String(field?.field_key ?? field?.key ?? field?.api_key ?? "").trim().toLowerCase();
+      const isAppointmentEmailField =
+        fieldName === "appointment email" ||
+        fieldKey === "appointment_email" ||
+        fieldKey === "appointment email";
+      if (isAppointmentEmailField) return;
       if (field.is_required !== 1) return;
       const raw = values?.[field.field_id];
       const trimmed = raw === undefined || raw === null ? "" : String(raw).trim();
