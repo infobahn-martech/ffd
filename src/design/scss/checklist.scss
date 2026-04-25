@@ -2004,6 +2004,16 @@
   line-height: 1.3;
   text-transform: none;
   letter-spacing: 0;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  max-width: 100%;
+  display: block;
+}
+
+.cl-sec-node--sub .cl-sec-title {
+  flex: 1;
+  min-width: 0;
 }
 
 .cl-sec-progress {

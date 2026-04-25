@@ -93,7 +93,9 @@ const ChecklistSectionNode = ({
           aria-expanded={isOpen}
         >
           <div className="cl-sec-head__text">
-            <h3 className="cl-sec-title">{node.title || "Section"}</h3>
+            <h3 className="cl-sec-title" title={node.title || "Section"}>
+              {node.title || "Section"}
+            </h3>
             <div className="cl-sec-progress">
               <span className="cl-sec-count">
                 {done} / {total}
