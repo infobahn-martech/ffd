@@ -93,7 +93,7 @@ function normalizeUploadedFilesForForm(uploaded) {
     .filter(Boolean);
 }
 
-function ItemFilePreview({ control, basePath }) {
+function ItemFilePreviewButton({ control, basePath, inputId }) {
   const requiredCopyOnly = useWatch({
     control,
     name: `${basePath}.document_details.required_copy_only`
@@ -117,24 +117,45 @@ function ItemFilePreview({ control, basePath }) {
       : [];
   const existingLabel = existingNames.join(", ");
 
-  if (selectedName) {
-    return (
-      <div style={{ fontSize: "12px", color: "#444", marginTop: "8px", fontWeight: "500" }}>
-        Selected file:{" "}
-        <span style={{ color: "#1a1a1a", fontWeight: "600" }}>{selectedName}</span>
-      </div>
-    );
-  }
-  if (existingLabel) {
-    const prefix = existingNames.length > 1 ? "Existing files" : "Existing file";
-    return (
-      <div style={{ fontSize: "12px", color: "#444", marginTop: "8px", fontWeight: "500" }}>
-        {prefix}:{" "}
-        <span style={{ color: "#1a1a1a", fontWeight: "600" }}>{existingLabel}</span>
-      </div>
-    );
-  }
-  return null;
+  const hasAnyFile = !!selectedName || !!existingLabel;
+
+  const openSelectedFile = () => {
+    if (requiredCopyOnly instanceof FileList && requiredCopyOnly.length > 0) {
+      const url = URL.createObjectURL(requiredCopyOnly[0]);
+      window.open(url, "_blank", "noopener,noreferrer");
+      setTimeout(() => URL.revokeObjectURL(url), 1000);
+      return;
+    }
+    if (requiredCopyOnly instanceof File) {
+      const url = URL.createObjectURL(requiredCopyOnly);
+      window.open(url, "_blank", "noopener,noreferrer");
+      setTimeout(() => URL.revokeObjectURL(url), 1000);
+    }
+  };
+
+  const titleText = selectedName
+    ? `Selected file: ${selectedName}`
+    : existingLabel
+      ? `Existing file: ${existingLabel}`
+      : "No file selected";
+
+  return (
+    <>
+      <label htmlFor={inputId} className="checklist-upload-btn">
+        <span aria-hidden="true">⤴</span>
+        <span>Upload</span>
+      </label>
+      <button
+        type="button"
+        className="checklist-view-btn"
+        title={titleText}
+        onClick={openSelectedFile}
+        disabled={!hasAnyFile || !selectedName}
+      >
+        <span aria-hidden="true">👁</span>
+      </button>
+    </>
+  );
 }
 
 const EMPTY_DEFAULTS = {
@@ -341,33 +362,9 @@ export function CheckListModal({ showModal, closeModal, callTypesOptions, onSucc
     });
 
     return (
-      <div style={{ marginTop: "20px" }}>
-        <div style={{
-          display: "flex",
-          justifyContent: "space-between",
-          alignItems: "center",
-          marginBottom: "16px",
-          paddingBottom: "12px",
-          borderBottom: "2px solid #e2e6ff"
-        }}>
-          <h6 style={{
-            margin: 0,
-            fontWeight: "700",
-            fontSize: "14px",
-            color: "#1a1a1a",
-            display: "flex",
-            alignItems: "center",
-            gap: "8px"
-          }}>
-            <span style={{
-              width: "4px",
-              height: "18px",
-              backgroundColor: "#00368c",
-              borderRadius: "2px",
-              display: "inline-block"
-            }}></span>
-            Items
-          </h6>
+      <div className="checklist-items-builder">
+        <div className="checklist-items-builder-header">
+          <h6>Items</h6>
           <button
             type="button"
             onClick={() => append({
@@ -383,227 +380,101 @@ export function CheckListModal({ showModal, closeModal, callTypesOptions, onSucc
               }
             })}
             className="btn btn-sm"
-            style={{
-              fontSize: "12px",
-              padding: "6px 14px",
-              backgroundColor: "#00368c",
-              color: "#fff",
-              border: "none",
-              borderRadius: "6px",
-              fontWeight: "600",
-              transition: "all 0.2s ease"
-            }}
-            onMouseEnter={(e) => {
-              e.currentTarget.style.backgroundColor = "#002d6f";
-              e.currentTarget.style.transform = "translateY(-1px)";
-            }}
-            onMouseLeave={(e) => {
-              e.currentTarget.style.backgroundColor = "#00368c";
-              e.currentTarget.style.transform = "translateY(0)";
-            }}
           >
             + Add Item
           </button>
         </div>
+        <div className="checklist-items-table">
+          <div className="checklist-items-head">
+            <span>#</span>
+            <span></span>
+            <span>Item Name</span>
+            <span>Order</span>
+            <span>Description</span>
+            <span>Expiry Req.</span>
+            <span>Copy Req.</span>
+            <span>Upload</span>
+            <span></span>
+            <span>Doc Description</span>
+            <span>Actions</span>
+          </div>
 
-        {fields.map((item, itemIndex) => (
-          <div key={item.id} style={{
-            border: "1px solid #e2e6ff",
-            borderRadius: "10px",
-            padding: "18px",
-            marginBottom: "15px",
-            backgroundColor: "#fafbfc",
-            boxShadow: "0 1px 4px rgba(0, 0, 0, 0.04)",
-            transition: "all 0.2s ease"
-          }}
-            onMouseEnter={(e) => {
-              e.currentTarget.style.boxShadow = "0 2px 8px rgba(0, 0, 0, 0.08)";
-              e.currentTarget.style.borderColor = "#00368c";
-            }}
-            onMouseLeave={(e) => {
-              e.currentTarget.style.boxShadow = "0 1px 4px rgba(0, 0, 0, 0.04)";
-              e.currentTarget.style.borderColor = "#e2e6ff";
-            }}
-          >
-            <div style={{
-              display: "flex",
-              justifyContent: "space-between",
-              alignItems: "center",
-              marginBottom: "15px",
-              paddingBottom: "12px",
-              borderBottom: "1px solid #e2e6ff"
-            }}>
-              <div style={{ display: "flex", alignItems: "center", gap: "10px" }}>
-                <div style={{
-                  width: "28px",
-                  height: "28px",
-                  borderRadius: "50%",
-                  backgroundColor: "#00368c",
-                  color: "#fff",
-                  display: "flex",
-                  alignItems: "center",
-                  justifyContent: "center",
-                  fontSize: "12px",
-                  fontWeight: "700"
-                }}>
-                  {itemIndex + 1}
+          {fields.map((item, itemIndex) => {
+            const uploadInputId = `section_item_upload_${sectionIndex}_${itemIndex}`;
+            return (
+              <div key={item.id} className="checklist-item-row">
+                <div className="checklist-icon-cell" title="Item drag">
+                  <span aria-hidden="true">⋮⋮</span>
                 </div>
-                <strong style={{ fontSize: "14px", color: "#1a1a1a" }}>Item {itemIndex + 1}</strong>
-              </div>
-              <button
-                type="button"
-                onClick={() => remove(itemIndex)}
-                className="btn btn-sm"
-                style={{
-                  fontSize: "11px",
-                  padding: "5px 12px",
-                  backgroundColor: "#fff",
-                  border: "1px solid #dc3545",
-                  color: "#dc3545",
-                  borderRadius: "6px",
-                  fontWeight: "600",
-                  transition: "all 0.2s ease"
-                }}
-                onMouseEnter={(e) => {
-                  e.currentTarget.style.backgroundColor = "#dc3545";
-                  e.currentTarget.style.color = "#fff";
-                }}
-                onMouseLeave={(e) => {
-                  e.currentTarget.style.backgroundColor = "#fff";
-                  e.currentTarget.style.color = "#dc3545";
-                }}
-              >
-                Remove
-              </button>
-            </div>
-
-            <div style={{ display: "grid", gridTemplateColumns: "1fr 120px", gap: "12px", marginBottom: "12px" }}>
-              <div>
-                <div className="form-floating">
-                  <input
-                    className="form-control"
-                    placeholder="Item Name"
-                    style={{ borderColor: "#e2e6ff", fontSize: "14px" }}
-                    {...register(`sections.${sectionIndex}.items.${itemIndex}.item_name`, {
-                      required: "Item name is required"
-                    })}
-                  />
-                  <label style={{ fontSize: "13px", color: "#666" }}>Item Name <span className="text-danger">*</span></label>
-                </div>
-              </div>
-              <div>
-                <div className="form-floating">
-                  <input
-                    type="number"
-                    className="form-control"
-                    placeholder="Item Order"
-                    style={{ borderColor: "#e2e6ff", fontSize: "14px" }}
-                    {...register(`sections.${sectionIndex}.items.${itemIndex}.item_order`, {
-                      valueAsNumber: true
-                    })}
-                  />
-                  <label style={{ fontSize: "13px", color: "#666" }}>Item Order</label>
-                </div>
-              </div>
-            </div>
-
-            <div className="mb-3">
-              <div className="form-floating">
-                <textarea
-                  className="form-control"
+                <div className="checklist-item-index">{itemIndex + 1}</div>
+                <input
+                  className="form-control checklist-compact-input"
+                  placeholder="Item name"
+                  {...register(`sections.${sectionIndex}.items.${itemIndex}.item_name`, {
+                    required: "Item name is required"
+                  })}
+                />
+                <input
+                  type="number"
+                  className="form-control checklist-compact-input"
+                  placeholder="Order"
+                  {...register(`sections.${sectionIndex}.items.${itemIndex}.item_order`, {
+                    valueAsNumber: true
+                  })}
+                />
+                <input
+                  type="text"
+                  className="form-control checklist-compact-input"
                   placeholder="Description"
-                  style={{ height: "90px", borderColor: "#e2e6ff", fontSize: "14px" }}
                   {...register(`sections.${sectionIndex}.items.${itemIndex}.description`)}
                 />
-                <label style={{ fontSize: "13px", color: "#666" }}>Description</label>
-              </div>
-            </div>
-
-            <div className="form-check mb-3" style={{ display: "flex", alignItems: "center", gap: "10px" }}>
-              <input
-                className="form-check-input"
-                type="checkbox"
-                id={`expiry_date_reqd_${sectionIndex}_${itemIndex}`}
-                {...register(`sections.${sectionIndex}.items.${itemIndex}.expiry_date_reqd`)}
-              />
-              <label
-                className="form-check-label"
-                htmlFor={`expiry_date_reqd_${sectionIndex}_${itemIndex}`}
-                style={{ fontSize: "13px", color: "#666", fontWeight: "600" }}
-              >
-                Expiry Date Required
-              </label>
-            </div>
-
-            {/* Document Details */}
-            <div style={{
-              marginTop: "15px",
-              padding: "16px",
-              backgroundColor: "#f8f9ff",
-              borderRadius: "8px",
-              border: "1px solid #e2e6ff"
-            }}>
-              <div style={{
-                display: "flex",
-                alignItems: "center",
-                gap: "8px",
-                marginBottom: "12px",
-                paddingBottom: "10px",
-                borderBottom: "1px solid #e2e6ff"
-              }}>
-                <div style={{
-                  width: "3px",
-                  height: "16px",
-                  backgroundColor: "#00368c",
-                  borderRadius: "2px"
-                }}></div>
-                <strong style={{ fontSize: "13px", color: "#1a1a1a" }}>Document Details</strong>
-              </div>
-              <div style={{ display: "flex", gap: "24px", flexWrap: "wrap", marginBottom: "12px" }}>
-                <div className="form-check" style={{ display: "flex", alignItems: "center", gap: "10px" }}>
+                <label className="checklist-checkbox-pill" htmlFor={`expiry_date_reqd_${sectionIndex}_${itemIndex}`}>
+                  <span aria-hidden="true">📅</span>
+                  <input
+                    className="form-check-input"
+                    type="checkbox"
+                    id={`expiry_date_reqd_${sectionIndex}_${itemIndex}`}
+                    {...register(`sections.${sectionIndex}.items.${itemIndex}.expiry_date_reqd`)}
+                  />
+                </label>
+                <label className="checklist-checkbox-pill" htmlFor={`copy_required_${sectionIndex}_${itemIndex}`}>
+                  <span aria-hidden="true">📄</span>
                   <input
                     className="form-check-input"
                     type="checkbox"
                     id={`copy_required_${sectionIndex}_${itemIndex}`}
                     {...register(`sections.${sectionIndex}.items.${itemIndex}.document_details.is_copy_required`)}
                   />
-                  <label
-                    className="form-check-label"
-                    htmlFor={`copy_required_${sectionIndex}_${itemIndex}`}
-                    style={{ fontSize: "13px", color: "#666", fontWeight: "600" }}
-                  >
-                    Is Copy Required
-                  </label>
-                </div>
-              </div>
-
-              <div className="mb-3">
-                <label className="form-label" style={{ fontSize: "13px", color: "#666", fontWeight: "500", marginBottom: "6px" }}>Required Copy Only</label>
+                </label>
                 <input
                   type="file"
-                  className="form-control"
-                  style={{ borderColor: "#e2e6ff", fontSize: "14px", padding: "10px" }}
+                  id={uploadInputId}
+                  className="d-none"
                   {...register(`sections.${sectionIndex}.items.${itemIndex}.document_details.required_copy_only`)}
                 />
-                <ItemFilePreview
+                <ItemFilePreviewButton
                   control={control}
                   basePath={`sections.${sectionIndex}.items.${itemIndex}`}
+                  inputId={uploadInputId}
                 />
+                <input
+                  type="text"
+                  className="form-control checklist-compact-input"
+                  placeholder="Doc description"
+                  {...register(`sections.${sectionIndex}.items.${itemIndex}.document_details.description`)}
+                />
+                <button
+                  type="button"
+                  onClick={() => remove(itemIndex)}
+                  className="checklist-delete-btn"
+                  title="Remove item"
+                >
+                  <span aria-hidden="true">🗑</span>
+                </button>
               </div>
-              <div className="mb-0">
-                <div className="form-floating">
-                  <textarea
-                    className="form-control"
-                    placeholder="Description"
-                    style={{ height: "70px", borderColor: "#e2e6ff", fontSize: "14px" }}
-                    {...register(`sections.${sectionIndex}.items.${itemIndex}.document_details.description`)}
-                  />
-                  <label style={{ fontSize: "13px", color: "#666" }}>Description</label>
-                </div>
-              </div>
-            </div>
-          </div>
-        ))}
+            );
+          })}
+        </div>
       </div>
     );
   };
@@ -616,32 +487,9 @@ export function CheckListModal({ showModal, closeModal, callTypesOptions, onSucc
     });
 
     return (
-      <div style={{ marginTop: "20px" }}>
-        <div style={{
-          display: "flex",
-          justifyContent: "space-between",
-          alignItems: "center",
-          marginBottom: "16px",
-          paddingBottom: "12px",
-          borderBottom: "2px solid #e2e6ff"
-        }}>
-          <strong style={{
-            fontSize: "13px",
-            fontWeight: "700",
-            color: "#1a1a1a",
-            display: "flex",
-            alignItems: "center",
-            gap: "8px"
-          }}>
-            <span style={{
-              width: "3px",
-              height: "16px",
-              backgroundColor: "#00368c",
-              borderRadius: "2px",
-              display: "inline-block"
-            }}></span>
-            Items
-          </strong>
+      <div className="checklist-items-builder">
+        <div className="checklist-items-builder-header">
+          <h6>Items</h6>
           <button
             type="button"
             onClick={() => append({
@@ -657,227 +505,108 @@ export function CheckListModal({ showModal, closeModal, callTypesOptions, onSucc
               }
             })}
             className="btn btn-sm"
-            style={{
-              fontSize: "12px",
-              padding: "6px 14px",
-              backgroundColor: "#00368c",
-              color: "#fff",
-              border: "none",
-              borderRadius: "6px",
-              fontWeight: "600",
-              transition: "all 0.2s ease"
-            }}
-            onMouseEnter={(e) => {
-              e.currentTarget.style.backgroundColor = "#002d6f";
-              e.currentTarget.style.transform = "translateY(-1px)";
-            }}
-            onMouseLeave={(e) => {
-              e.currentTarget.style.backgroundColor = "#00368c";
-              e.currentTarget.style.transform = "translateY(0)";
-            }}
           >
             + Add Item
           </button>
         </div>
 
-        {fields.map((item, itemIndex) => (
-          <div key={item.id} style={{
-            border: "1px solid #e2e6ff",
-            borderRadius: "10px",
-            padding: "18px",
-            marginBottom: "15px",
-            backgroundColor: "#fafbfc",
-            boxShadow: "0 1px 4px rgba(0, 0, 0, 0.04)",
-            transition: "all 0.2s ease"
-          }}
-            onMouseEnter={(e) => {
-              e.currentTarget.style.boxShadow = "0 2px 8px rgba(0, 0, 0, 0.08)";
-              e.currentTarget.style.borderColor = "#00368c";
-            }}
-            onMouseLeave={(e) => {
-              e.currentTarget.style.boxShadow = "0 1px 4px rgba(0, 0, 0, 0.04)";
-              e.currentTarget.style.borderColor = "#e2e6ff";
-            }}
-          >
-            <div style={{
-              display: "flex",
-              justifyContent: "space-between",
-              alignItems: "center",
-              marginBottom: "15px",
-              paddingBottom: "12px",
-              borderBottom: "1px solid #e2e6ff"
-            }}>
-              <div style={{ display: "flex", alignItems: "center", gap: "10px" }}>
-                <div style={{
-                  width: "26px",
-                  height: "26px",
-                  borderRadius: "50%",
-                  backgroundColor: "#00368c",
-                  color: "#fff",
-                  display: "flex",
-                  alignItems: "center",
-                  justifyContent: "center",
-                  fontSize: "11px",
-                  fontWeight: "700"
-                }}>
-                  {itemIndex + 1}
-                </div>
-                <strong style={{ fontSize: "13px", color: "#1a1a1a" }}>Item {itemIndex + 1}</strong>
-              </div>
-              <button
-                type="button"
-                onClick={() => remove(itemIndex)}
-                className="btn btn-sm"
-                style={{
-                  fontSize: "11px",
-                  padding: "5px 12px",
-                  backgroundColor: "#fff",
-                  border: "1px solid #dc3545",
-                  color: "#dc3545",
-                  borderRadius: "6px",
-                  fontWeight: "600",
-                  transition: "all 0.2s ease"
-                }}
-                onMouseEnter={(e) => {
-                  e.currentTarget.style.backgroundColor = "#dc3545";
-                  e.currentTarget.style.color = "#fff";
-                }}
-                onMouseLeave={(e) => {
-                  e.currentTarget.style.backgroundColor = "#fff";
-                  e.currentTarget.style.color = "#dc3545";
-                }}
-              >
-                Remove
-              </button>
-            </div>
+        <div className="checklist-items-table">
+          <div className="checklist-items-head">
+            <span>#</span>
+            <span></span>
+            <span>Item Name</span>
+            <span>Order</span>
+            <span>Description</span>
+            <span>Expiry Req.</span>
+            <span>Copy Req.</span>
+            <span>Upload</span>
+            <span></span>
+            <span>Doc Description</span>
+            <span>Actions</span>
+          </div>
 
-            <div style={{ display: "grid", gridTemplateColumns: "1fr 120px", gap: "12px", marginBottom: "12px" }}>
-              <div>
-                <div className="form-floating">
-                  <input
-                    className="form-control"
-                    placeholder="Item Name"
-                    style={{ borderColor: "#e2e6ff", fontSize: "14px" }}
-                    {...register(`sections.${sectionIndex}.sub_sections.${subSectionIndex}.items.${itemIndex}.item_name`, {
-                      required: "Item name is required"
-                    })}
-                  />
-                  <label style={{ fontSize: "13px", color: "#666" }}>Item Name <span className="text-danger">*</span></label>
+          {fields.map((item, itemIndex) => {
+            const uploadInputId = `sub_section_item_upload_${sectionIndex}_${subSectionIndex}_${itemIndex}`;
+            return (
+              <div key={item.id} className="checklist-item-row">
+                <div className="checklist-icon-cell" title="Item drag">
+                  <span aria-hidden="true">⋮⋮</span>
                 </div>
-              </div>
-              <div>
-                <div className="form-floating">
-                  <input
-                    type="number"
-                    className="form-control"
-                    placeholder="Item Order"
-                    style={{ borderColor: "#e2e6ff", fontSize: "14px" }}
-                    {...register(`sections.${sectionIndex}.sub_sections.${subSectionIndex}.items.${itemIndex}.item_order`, {
-                      valueAsNumber: true
-                    })}
-                  />
-                  <label style={{ fontSize: "13px", color: "#666" }}>Item Order</label>
-                </div>
-              </div>
-            </div>
-
-            <div className="mb-3">
-              <div className="form-floating">
-                <textarea
-                  className="form-control"
+                <div className="checklist-item-index">{itemIndex + 1}</div>
+                <input
+                  className="form-control checklist-compact-input"
+                  placeholder="Item name"
+                  {...register(`sections.${sectionIndex}.sub_sections.${subSectionIndex}.items.${itemIndex}.item_name`, {
+                    required: "Item name is required"
+                  })}
+                />
+                <input
+                  type="number"
+                  className="form-control checklist-compact-input"
+                  placeholder="Order"
+                  {...register(`sections.${sectionIndex}.sub_sections.${subSectionIndex}.items.${itemIndex}.item_order`, {
+                    valueAsNumber: true
+                  })}
+                />
+                <input
+                  type="text"
+                  className="form-control checklist-compact-input"
                   placeholder="Description"
-                  style={{ height: "80px", borderColor: "#e2e6ff", fontSize: "14px" }}
                   {...register(`sections.${sectionIndex}.sub_sections.${subSectionIndex}.items.${itemIndex}.description`)}
                 />
-                <label style={{ fontSize: "13px", color: "#666" }}>Description</label>
-              </div>
-            </div>
-
-            <div className="form-check mb-3" style={{ display: "flex", alignItems: "center", gap: "10px" }}>
-              <input
-                className="form-check-input"
-                type="checkbox"
-                id={`expiry_date_reqd_${sectionIndex}_${subSectionIndex}_${itemIndex}`}
-                {...register(`sections.${sectionIndex}.sub_sections.${subSectionIndex}.items.${itemIndex}.expiry_date_reqd`)}
-              />
-              <label
-                className="form-check-label"
-                htmlFor={`expiry_date_reqd_${sectionIndex}_${subSectionIndex}_${itemIndex}`}
-                style={{ fontSize: "13px", color: "#666", fontWeight: "600" }}
-              >
-                Expiry Date Required
-              </label>
-            </div>
-
-            {/* Document Details */}
-            <div style={{
-              marginTop: "15px",
-              padding: "16px",
-              backgroundColor: "#f8f9ff",
-              borderRadius: "8px",
-              border: "1px solid #e2e6ff"
-            }}>
-              <div style={{
-                display: "flex",
-                alignItems: "center",
-                gap: "8px",
-                marginBottom: "12px",
-                paddingBottom: "10px",
-                borderBottom: "1px solid #e2e6ff"
-              }}>
-                <div style={{
-                  width: "3px",
-                  height: "16px",
-                  backgroundColor: "#00368c",
-                  borderRadius: "2px"
-                }}></div>
-                <strong style={{ fontSize: "13px", color: "#1a1a1a" }}>Document Details</strong>
-              </div>
-              <div style={{ display: "flex", gap: "24px", flexWrap: "wrap", marginBottom: "12px" }}>
-                <div className="form-check" style={{ display: "flex", alignItems: "center", gap: "10px" }}>
+                <label
+                  className="checklist-checkbox-pill"
+                  htmlFor={`expiry_date_reqd_${sectionIndex}_${subSectionIndex}_${itemIndex}`}
+                >
+                  <span aria-hidden="true">📅</span>
+                  <input
+                    className="form-check-input"
+                    type="checkbox"
+                    id={`expiry_date_reqd_${sectionIndex}_${subSectionIndex}_${itemIndex}`}
+                    {...register(`sections.${sectionIndex}.sub_sections.${subSectionIndex}.items.${itemIndex}.expiry_date_reqd`)}
+                  />
+                </label>
+                <label
+                  className="checklist-checkbox-pill"
+                  htmlFor={`copy_required_${sectionIndex}_${subSectionIndex}_${itemIndex}`}
+                >
+                  <span aria-hidden="true">📄</span>
                   <input
                     className="form-check-input"
                     type="checkbox"
                     id={`copy_required_${sectionIndex}_${subSectionIndex}_${itemIndex}`}
                     {...register(`sections.${sectionIndex}.sub_sections.${subSectionIndex}.items.${itemIndex}.document_details.is_copy_required`)}
                   />
-                  <label
-                    className="form-check-label"
-                    htmlFor={`copy_required_${sectionIndex}_${subSectionIndex}_${itemIndex}`}
-                    style={{ fontSize: "13px", color: "#666", fontWeight: "600" }}
-                  >
-                    Is Copy Required
-                  </label>
-                </div>
-              </div>
-
-              <div className="mb-3">
-                <label className="form-label" style={{ fontSize: "13px", color: "#666", fontWeight: "500", marginBottom: "6px" }}>Required Copy Only</label>
+                </label>
                 <input
                   type="file"
-                  className="form-control"
-                  style={{ borderColor: "#e2e6ff", fontSize: "14px", padding: "10px" }}
+                  id={uploadInputId}
+                  className="d-none"
                   {...register(`sections.${sectionIndex}.sub_sections.${subSectionIndex}.items.${itemIndex}.document_details.required_copy_only`)}
                 />
-                <ItemFilePreview
+                <ItemFilePreviewButton
                   control={control}
                   basePath={`sections.${sectionIndex}.sub_sections.${subSectionIndex}.items.${itemIndex}`}
+                  inputId={uploadInputId}
                 />
+                <input
+                  type="text"
+                  className="form-control checklist-compact-input"
+                  placeholder="Doc description"
+                  {...register(`sections.${sectionIndex}.sub_sections.${subSectionIndex}.items.${itemIndex}.document_details.description`)}
+                />
+                <button
+                  type="button"
+                  onClick={() => remove(itemIndex)}
+                  className="checklist-delete-btn"
+                  title="Remove item"
+                >
+                  <span aria-hidden="true">🗑</span>
+                </button>
               </div>
-              <div className="mb-0">
-                <div className="form-floating">
-                  <textarea
-                    className="form-control"
-                    placeholder="Description"
-                    style={{ height: "70px", borderColor: "#e2e6ff", fontSize: "14px" }}
-                    {...register(`sections.${sectionIndex}.sub_sections.${subSectionIndex}.items.${itemIndex}.document_details.description`)}
-                  />
-                  <label style={{ fontSize: "13px", color: "#666" }}>Description</label>
-                </div>
-              </div>
-            </div>
-          </div>
-        ))}
+            );
+          })}
+        </div>
       </div>
     );
   };
@@ -1083,7 +812,7 @@ export function CheckListModal({ showModal, closeModal, callTypesOptions, onSucc
     const vesselBargeFieldError = errors.vesselType || errors.bargeType;
 
     return (
-      <div className="modal-body" style={{ maxHeight: "70vh", overflowY: "auto" }}>
+      <div className="modal-body">
         <div className="lead-form">
           <form id="checklistForm" onSubmit={handleSubmit(onSubmit)}>
 
@@ -1234,7 +963,7 @@ export function CheckListModal({ showModal, closeModal, callTypesOptions, onSucc
 
 
             {/* Sections */}
-            <div className="mb-lg-3 mb-sm-0">
+            <div className="mb-lg-3 mb-sm-0 sections-wrapper">
               <div style={{
                 display: "flex",
                 justifyContent: "space-between",
@@ -1442,8 +1171,8 @@ export function CheckListModal({ showModal, closeModal, callTypesOptions, onSucc
 
   return (
     <CustomModal
-      className="checklist-modal-lg"
-      dialgName="modal-dialog modal-dialog-centered modal-xl"
+      className="checklist-modal-xl-wide"
+      dialgName="modal-dialog modal-dialog-centered"
       show={!!showModal}
       closeModal={() => closeModal(null)}
       body={renderBody()}
