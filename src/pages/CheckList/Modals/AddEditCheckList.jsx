@@ -429,7 +429,6 @@ export function CheckListModal({ showModal, closeModal, callTypesOptions, onSucc
                   {...register(`sections.${sectionIndex}.items.${itemIndex}.description`)}
                 />
                 <label className="checklist-checkbox-pill" htmlFor={`expiry_date_reqd_${sectionIndex}_${itemIndex}`}>
-                  <span aria-hidden="true">📅</span>
                   <input
                     className="form-check-input"
                     type="checkbox"
@@ -438,7 +437,6 @@ export function CheckListModal({ showModal, closeModal, callTypesOptions, onSucc
                   />
                 </label>
                 <label className="checklist-checkbox-pill" htmlFor={`copy_required_${sectionIndex}_${itemIndex}`}>
-                  <span aria-hidden="true">📄</span>
                   <input
                     className="form-check-input"
                     type="checkbox"
@@ -469,7 +467,6 @@ export function CheckListModal({ showModal, closeModal, callTypesOptions, onSucc
                   className="checklist-delete-btn"
                   title="Remove item"
                 >
-                  <span aria-hidden="true">🗑</span>
                 </button>
               </div>
             );
@@ -558,7 +555,6 @@ export function CheckListModal({ showModal, closeModal, callTypesOptions, onSucc
                   className="checklist-checkbox-pill"
                   htmlFor={`expiry_date_reqd_${sectionIndex}_${subSectionIndex}_${itemIndex}`}
                 >
-                  <span aria-hidden="true">📅</span>
                   <input
                     className="form-check-input"
                     type="checkbox"
@@ -570,7 +566,6 @@ export function CheckListModal({ showModal, closeModal, callTypesOptions, onSucc
                   className="checklist-checkbox-pill"
                   htmlFor={`copy_required_${sectionIndex}_${subSectionIndex}_${itemIndex}`}
                 >
-                  <span aria-hidden="true">📄</span>
                   <input
                     className="form-check-input"
                     type="checkbox"
@@ -601,7 +596,6 @@ export function CheckListModal({ showModal, closeModal, callTypesOptions, onSucc
                   className="checklist-delete-btn"
                   title="Remove item"
                 >
-                  <span aria-hidden="true">🗑</span>
                 </button>
               </div>
             );
