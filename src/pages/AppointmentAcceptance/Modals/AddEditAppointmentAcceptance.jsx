@@ -257,7 +257,10 @@ export function ReportTemplatesModal({
                 )}
               />
               {errors.subject && (
-                <span className="error text-danger" style={{ display: "block", marginTop: "5px" }}>
+                <span
+                  className="error text-danger d-block"
+                  style={{ marginTop: "6px", position: "static", fontSize: "12px", lineHeight: "1.2" }}
+                >
                   {errors.subject.message}
                 </span>
               )}
@@ -291,7 +294,10 @@ export function ReportTemplatesModal({
                 )}
               />
               {errors.body && (
-                <span className="error text-danger" style={{ display: "block", marginTop: "5px" }}>
+                <span
+                  className="error text-danger d-block"
+                  style={{ marginTop: "6px", position: "static", fontSize: "12px", lineHeight: "1.2" }}
+                >
                   {errors.body.message}
                 </span>
               )}
