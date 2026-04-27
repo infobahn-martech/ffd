@@ -1,24 +1,28 @@
 import Gateway from '../gateway/gateway';
 
+const getReportTemplates = ({ params }) =>
+  Gateway.get('/report_template/template', { params });
+
+const getReportTypes = () =>
+  Gateway.get('/report_template/all_report_types');
+
 const getTemplateByTemplateId = (template_id) =>
-  Gateway.get(`/appointment/template_by_templateid/${template_id}`);
+  Gateway.get(`/report_template/template_by_templateid/${template_id}`);
 
-const addAppointmentAcceptance = (data) =>
-  Gateway.post('/appointment/createtemplate', data);
+const createReportTemplate = (data) =>
+  Gateway.post('/report_template/createtemplate', data);
 
-const getAppointmentAcceptanceData = ({ params }) =>
-  Gateway.get('/appointment/template', { params });
+const updateReportTemplate = (payload) =>
+  Gateway.post('/report_template/updatetemplate', payload);
 
-const updateAppointmentAcceptance = (payload) =>
-  Gateway.post(`/appointment/edittemplate`, payload);
-
-const deleteAppointmentAcceptance = (template_id) =>
-  Gateway.delete(`/appointment/template/${template_id}`);
+const deleteReportTemplate = (template_id) =>
+  Gateway.delete(`/report_template/template/${template_id}`);
 
 export default {
+  getReportTemplates,
+  getReportTypes,
   getTemplateByTemplateId,
-  addAppointmentAcceptance,
-  getAppointmentAcceptanceData,
-  updateAppointmentAcceptance,
-  deleteAppointmentAcceptance,
+  createReportTemplate,
+  updateReportTemplate,
+  deleteReportTemplate,
 };

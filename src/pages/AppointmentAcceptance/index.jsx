@@ -3,7 +3,7 @@ import { debounce } from "lodash";
 
 import CommonHeader from "../../components/CommonHeader";
 import CustomTable from "../../components/customTable";
-import { AppointmentAcceptanceModal } from "./Modals/AddEditAppointmentAcceptance";
+import { ReportTemplatesModal } from "./Modals/AddEditAppointmentAcceptance";
 import { RenderAction } from "./RenderCells";
 import DeleteConfirmationModal from "../../components/DeleteConfirmationModal";
 
@@ -11,12 +11,14 @@ import useAppointmentAcceptanceReducer from "../../store/AppointmentAcceptanceRe
 import useCommonReducer from "../../store/CommonReducer";
 import usePortReducer from "../../store/PortReducer";
 
-const AppointmentAcceptance = () => {
+const ReportTemplates = () => {
   const {
-    getAppointmentAcceptanceData,
-    appointmentAcceptanceData,
+    getReportTemplates,
+    reportTemplates,
+    getReportTypes,
+    reportTypes,
     isLoading,
-    deleteAppointmentAcceptance,
+    deleteReportTemplate,
     isBeingUpdated,
     totalCount,
   } = useAppointmentAcceptanceReducer((state) => state);
@@ -46,10 +48,11 @@ const AppointmentAcceptance = () => {
   useEffect(() => {
     getCallTypes?.();
     getPorts?.({ params: {} });
-  }, [getCallTypes, getPorts]);
+    getReportTypes?.();
+  }, [getCallTypes, getPorts, getReportTypes]);
 
   useEffect(() => {
-    getAppointmentAcceptanceData?.({
+    getReportTemplates?.({
       params: {
         search: params.searchTerm || "",
         page: params.page,
@@ -64,7 +67,7 @@ const AppointmentAcceptance = () => {
     params.searchTerm,
     params.sortBy,
     params.sortOrder,
-    getAppointmentAcceptanceData,
+    getReportTemplates,
   ]);
 
   const debouncedSearch = useMemo(
@@ -80,6 +83,14 @@ const AppointmentAcceptance = () => {
   }, [debouncedSearch]);
 
   const cols = [
+    {
+      name: "Report Type",
+      selector: "report_type",
+      sort: true,
+      width: "220",
+      thclass: "tb-head",
+      contentClass: "table-content",
+    },
     {
       name: "Port",
       selector: "port",
@@ -118,25 +129,13 @@ const AppointmentAcceptance = () => {
       ),
     },
     {
-      name: "Body",
-      selector: "body",
+      name: "Version No",
+      selector: "version_no",
       sort: true,
-      width: "400",
+      width: "140",
       thclass: "tb-head",
       contentClass: "table-content",
-      cell: ({ row }) => (
-        <div
-          style={{
-            maxWidth: "400px",
-            overflow: "hidden",
-            textOverflow: "ellipsis",
-            whiteSpace: "nowrap",
-          }}
-          title={stripHtml(row?.body)}
-        >
-          {stripHtml(row?.body) || "-"}
-        </div>
-      ),
+      cell: ({ row }) => row?.version_no ?? "-",
     },
     {
       name: "Actions",
@@ -161,7 +160,7 @@ const AppointmentAcceptance = () => {
   ];
 
   const refreshList = () => {
-    getAppointmentAcceptanceData?.({
+    getReportTemplates?.({
       params: {
         search: params.searchTerm || "",
         page: params.page,
@@ -178,7 +177,7 @@ const AppointmentAcceptance = () => {
 
     const payload = { template_id: templateId };
 
-    await deleteAppointmentAcceptance?.(payload);
+    await deleteReportTemplate?.(payload);
 
     setShowDeleteModal(false);
     setSelectedRow(null);
@@ -190,9 +189,9 @@ const AppointmentAcceptance = () => {
       <div className="prospect employee">
         <div className="container-fluid">
           <CommonHeader
-            tableTitle="Appointment Acceptance"
+            tableTitle="Report Templates"
             isAddEnabled
-            addModalLabel="Add Appointment Acceptance"
+            addModalLabel="Add Report Template"
             setSearch={(value) => debouncedSearch(value)}
             onAddModalClick={() => {
               setSelectedRow(null);
@@ -210,7 +209,7 @@ const AppointmentAcceptance = () => {
           tableClasses="px-start"
           count={totalCount}
           columns={cols}
-          data={appointmentAcceptanceData ?? []}
+          data={reportTemplates ?? []}
           onPageChange={(currentPage) =>
             setParams((prev) => ({ ...prev, page: currentPage }))
           }
@@ -228,7 +227,7 @@ const AppointmentAcceptance = () => {
         />
 
         {!!showModal && (
-          <AppointmentAcceptanceModal
+          <ReportTemplatesModal
             showModal={showModal}
             closeModal={() => {
               setShowModal(false);
@@ -241,6 +240,7 @@ const AppointmentAcceptance = () => {
             }}
             callTypesOptions={callTypes ?? []}
             portOptions={ports ?? []}
+            reportTypesOptions={reportTypes ?? []}
           />
         )}
 
@@ -253,7 +253,7 @@ const AppointmentAcceptance = () => {
             }}
             onConfirm={handleDelete}
             isLoading={isBeingUpdated}
-            deleteText="Are you sure you want to delete this appointment acceptance?"
+            deleteText="Are you sure you want to delete this report template?"
           />
         )}
       </div>
@@ -261,4 +261,4 @@ const AppointmentAcceptance = () => {
   );
 };
 
-export default AppointmentAcceptance;
+export default ReportTemplates;

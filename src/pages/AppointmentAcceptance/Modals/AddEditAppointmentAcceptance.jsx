@@ -8,20 +8,21 @@ import "../../../design/scss/form-designs.scss";
 import ReactQuill from "react-quill";
 import "react-quill/dist/quill.snow.css";
 
-export function AppointmentAcceptanceModal({
+export function ReportTemplatesModal({
   showModal,
   closeModal,
   onSuccess,
   callTypesOptions = [],
   portOptions = [],
+  reportTypesOptions = [],
 }) {
   const templateId = showModal?.template_id
   const isEdit = !!templateId;
 
   const {
     getTemplateByTemplateId,
-    addAppointmentAcceptance,
-    updateAppointmentAcceptance,
+    createReportTemplate,
+    updateReportTemplate,
     isBeingUpdated,
     templateById,
   } = useAppointmentAcceptanceReducer((state) => state);
@@ -33,12 +34,14 @@ export function AppointmentAcceptanceModal({
     () =>
       isEdit && template
         ? {
+          report_type_id: String(template?.report_type_id ?? ""),
           port_id: String(template?.port_id ?? ""),
           call_type_id: String(template?.call_type_id ?? ""),
           subject: template?.subject ?? "",
           body: template?.body ?? "",
         }
         : {
+          report_type_id: "",
           port_id: "",
           call_type_id: "",
           subject: "",
@@ -64,6 +67,7 @@ export function AppointmentAcceptanceModal({
   useEffect(() => {
     if (isEdit && template) {
       reset({
+        report_type_id: String(template?.report_type_id ?? ""),
         port_id: String(template?.port_id ?? ""),
         call_type_id: String(template?.call_type_id ?? ""),
         subject: template?.subject ?? "",
@@ -74,10 +78,12 @@ export function AppointmentAcceptanceModal({
 
   const onSubmit = (data) => {
     const num = (v) => (v !== "" && v != null && !isNaN(Number(v)) ? Number(v) : null);
+    const report_type_id = num(data.report_type_id);
     const port_id = num(data.port_id);
     const call_type_id = num(data.call_type_id);
 
     const payload = {
+      report_type_id,
       port_id,
       call_type_id,
       subject: data.subject ?? "",
@@ -91,10 +97,16 @@ export function AppointmentAcceptanceModal({
 
     if (isEdit) {
       payload.template_id = Number(template?.template_id ?? templateId ?? "");
-      updateAppointmentAcceptance({ formData: payload, cb });
+      updateReportTemplate({ formData: payload, cb });
     } else {
-      addAppointmentAcceptance({ formData: payload, cb });
+      createReportTemplate({ formData: payload, cb });
     }
+  };
+
+  const isHtmlEmpty = (value) => {
+    if (!value) return true;
+    const stripped = value.replace(/<(.|\n)*?>/g, "").replace(/&nbsp;/g, " ").trim();
+    return stripped.length === 0;
   };
 
   const quillModules = {
@@ -125,7 +137,7 @@ export function AppointmentAcceptanceModal({
   const renderHeader = () => (
     <>
       <h1 className="modal-title">
-        {isEdit ? "Edit Appointment Acceptance" : "Add Appointment Acceptance"}
+        {isEdit ? "Edit Report Template" : "Add Report Template"}
       </h1>
     </>
   );
@@ -133,11 +145,34 @@ export function AppointmentAcceptanceModal({
   const renderBody = () => (
     <div className="modal-body">
       <div className="lead-form">
-        <form id="appointmentAcceptanceForm" onSubmit={handleSubmit(onSubmit)}>
+        <form id="reportTemplatesForm" onSubmit={handleSubmit(onSubmit)}>
 
-          {/* ROW 1 — Port + Call Type */}
+          {/* ROW 1 — Report Type + Port */}
           <div className="mb-lg-3 mb-sm-0">
             <div className="permInputs row">
+              {/* REPORT TYPE */}
+              <div className="col-lg-6 col-sm-12">
+                <div className="form-floating desig-inp">
+                  <select
+                    className={`form-control ${errors.report_type_id ? "is-invalid" : ""}`}
+                    {...register("report_type_id", { required: "Report Type is required" })}
+                  >
+                    <option value="">Select Report Type</option>
+                    {(reportTypesOptions ?? []).map((rt) => (
+                      <option key={rt?.report_type_id} value={String(rt?.report_type_id)}>
+                        {rt?.report_type ?? ""}
+                      </option>
+                    ))}
+                  </select>
+                  <label>
+                    Report Type <span className="text-danger">*</span>
+                  </label>
+                  {errors.report_type_id && (
+                    <span className="error text-danger">{errors.report_type_id.message}</span>
+                  )}
+                </div>
+              </div>
+
               {/* PORT */}
               <div className="col-lg-6 col-sm-12">
                 <div className="form-floating desig-inp">
@@ -165,8 +200,13 @@ export function AppointmentAcceptanceModal({
                 </div>
               </div>
 
-              {/* CALL TYPE */}
-              <div className="col-lg-6 col-sm-12">
+            </div>
+          </div>
+
+          {/* ROW 2 — Call Type */}
+          <div className="mb-lg-3 mb-sm-0">
+            <div className="permInputs row">
+              <div className="col-lg-12 col-sm-12">
                 <div className="form-floating desig-inp">
                   <select
                     className={`form-control ${errors.call_type_id ? "is-invalid" : ""}`}
@@ -190,7 +230,7 @@ export function AppointmentAcceptanceModal({
             </div>
           </div>
 
-          {/* ROW 2 — Subject (ReactQuill) */}
+          {/* ROW 3 — Subject (ReactQuill) */}
           <div className="mb-lg-3 mb-sm-0">
             <div className="desig-inp">
               <label style={{ marginBottom: "8px", display: "block" }}>
@@ -199,6 +239,10 @@ export function AppointmentAcceptanceModal({
               <Controller
                 name="subject"
                 control={control}
+                rules={{
+                  required: "Subject is required",
+                  validate: (value) => !isHtmlEmpty(value) || "Subject is required",
+                }}
                 render={({ field }) => (
                   <div className="react-quill-wrapper">
                     <ReactQuill
@@ -220,7 +264,7 @@ export function AppointmentAcceptanceModal({
             </div>
           </div>
 
-          {/* ROW 3 — Body (ReactQuill) */}
+          {/* ROW 4 — Body (ReactQuill) */}
           <div className="mb-lg-3 mb-sm-0">
             <div className="desig-inp">
               <label style={{ marginBottom: "8px", display: "block" }}>
@@ -229,6 +273,10 @@ export function AppointmentAcceptanceModal({
               <Controller
                 name="body"
                 control={control}
+                rules={{
+                  required: "Body is required",
+                  validate: (value) => !isHtmlEmpty(value) || "Body is required",
+                }}
                 render={({ field }) => (
                   <div className="react-quill-wrapper">
                     <ReactQuill
@@ -262,7 +310,7 @@ export function AppointmentAcceptanceModal({
       </button>
       <button
         type="submit"
-        form="appointmentAcceptanceForm"
+        form="reportTemplatesForm"
         className="btn btn-primary"
         disabled={isBeingUpdated}
       >

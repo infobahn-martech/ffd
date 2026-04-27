@@ -6,10 +6,21 @@ const useAppointmentAcceptanceReducer = create((set) => ({
   isLoading: false,
   errorMessage: '',
   successMessage: '',
-  appointmentAcceptanceData: [],
+  reportTemplates: [],
+  reportTypes: [],
   isBeingUpdated: false,
   totalCount: 0,
   templateById: null,
+  getReportTypes: async () => {
+    try {
+      const { data } = await appointmentAcceptanceService.getReportTypes();
+      set({ reportTypes: data?.data ?? data ?? [] });
+    } catch (err) {
+      set({ reportTypes: [] });
+      const { error } = useAlertReducer.getState();
+      error(err?.response?.data?.message ?? err.message);
+    }
+  },
   getTemplateByTemplateId: async ({ template_id }) => {
     try {
       set({ isLoading: true });
@@ -23,10 +34,10 @@ const useAppointmentAcceptanceReducer = create((set) => ({
       return null;
     }
   },
-  addAppointmentAcceptance: async ({ formData, cb }) => {
+  createReportTemplate: async ({ formData, cb }) => {
     try {
       set({ isBeingUpdated: true });
-      const { data } = await appointmentAcceptanceService.addAppointmentAcceptance(formData);
+      const { data } = await appointmentAcceptanceService.createReportTemplate(formData);
       set({ successMessage: data.message, isBeingUpdated: false });
       const { success } = useAlertReducer.getState();
       success(data && data.message);
@@ -34,36 +45,37 @@ const useAppointmentAcceptanceReducer = create((set) => ({
     } catch (err) {
       const { error } = useAlertReducer.getState();
       set({
-        errorMessage: 'Something went wrong with adding a appointment acceptance',
+        errorMessage: 'Something went wrong while creating the report template',
         isBeingUpdated: false,
       });
       error(err?.response?.data?.message ?? err.message);
     }
   },
-  getAppointmentAcceptanceData: async ({ params }) => {
+  getReportTemplates: async ({ params }) => {
     try {
       set({ isLoading: true });
-      const { data } = await appointmentAcceptanceService.getAppointmentAcceptanceData({ params });
+      const { data } = await appointmentAcceptanceService.getReportTemplates({ params });
       set({
-        appointmentAcceptanceData: data?.data ?? [],
+        reportTemplates: data?.data ?? [],
         totalCount: data?.pagination?.total ?? 0,
         isLoading: false,
       });
     } catch (error) {
-      set({ errorMessage: error.message, isLoading: false, appointmentAcceptanceData: [], totalCount: 0 });
+      set({ errorMessage: error.message, isLoading: false, reportTemplates: [], totalCount: 0 });
     }
   },
-  updateAppointmentAcceptance: async ({ formData, cb }) => {
+  updateReportTemplate: async ({ formData, cb }) => {
     try {
       set({ isBeingUpdated: true });
       const payload = {
         template_id: formData.template_id,
+        report_type_id: formData.report_type_id,
         port_id: formData.port_id,
         call_type_id: formData.call_type_id,
         subject: formData.subject,
         body: formData.body,
       };
-      const { data: res } = await appointmentAcceptanceService.updateAppointmentAcceptance(payload);
+      const { data: res } = await appointmentAcceptanceService.updateReportTemplate(payload);
       set({ successMessage: res?.message, isBeingUpdated: false });
       const { success } = useAlertReducer.getState();
       success(res?.message ?? 'Template updated successfully');
@@ -71,26 +83,26 @@ const useAppointmentAcceptanceReducer = create((set) => ({
     } catch (err) {
       const { error } = useAlertReducer.getState();
       set({
-        errorMessage: 'Something went wrong updating the appointment acceptance',
+        errorMessage: 'Something went wrong while updating the report template',
         isBeingUpdated: false,
       });
       error(err?.response?.data?.message ?? err.message);
     }
   },
-  deleteAppointmentAcceptance: async (payload) => {
+  deleteReportTemplate: async (payload) => {
     const template_id = payload?.template_id ?? payload?.appointment_acceptance_id ?? payload;
     const cb = payload?.cb;
     try {
       set({ isBeingUpdated: true });
-      const { data } = await appointmentAcceptanceService.deleteAppointmentAcceptance(template_id);
+      const { data } = await appointmentAcceptanceService.deleteReportTemplate(template_id);
       set({ successMessage: data?.message, isBeingUpdated: false });
       const { success } = useAlertReducer.getState();
-      success(data?.message ?? 'Appointment acceptance deleted successfully');
+      success(data?.message ?? 'Report template deleted successfully');
       cb?.();
     } catch (err) {
       const { error } = useAlertReducer.getState();
       set({
-        errorMessage: 'Something went wrong deleting the appointment acceptance',
+        errorMessage: 'Something went wrong while deleting the report template',
         isBeingUpdated: false,
       });
       error(err?.response?.data?.message ?? err.message);

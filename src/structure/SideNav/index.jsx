@@ -403,7 +403,7 @@ function SideNav({ isMobileMenuOpen, onCloseMobileMenu, isVendorPortal = false }
       hasPermission: true,
       isOpen: false,
       subMenus: [
-        { menu: 'Appointment Acceptance', to: '/appointment-acceptance', hasPermission: true },
+        { menu: 'Report Templates', to: '/appointment-acceptance', hasPermission: true },
         { menu: 'Pre-Arrival Information', to: '/pre-arrival-information', hasPermission: true },
         { menu: 'Crew Template', to: '/crew-template', hasPermission: true },
         { menu: 'Coordinates', to: '/coordinates', hasPermission: true },
