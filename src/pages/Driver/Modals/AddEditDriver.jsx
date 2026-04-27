@@ -8,6 +8,7 @@ import "../../../design/scss/modal-designs.scss";
 import "../../../design/scss/form-designs.scss";
 import { PORT_OPTIONS } from "../../../constants/ports";
 import useDriverReducer from "../../../store/DriverReducer";
+import PremiumDateField from "../../../components/PremiumDateField";
 
 /** API may return driver_for as 1/2, "1"/"2", or "Transport" / "Material". */
 function normalizeDriverFor(value) {
@@ -186,25 +187,14 @@ export function DriverModal({ showModal, closeModal, onSuccess }) {
                         <div className="permInputs row">
                             {/* JOINING DATE */}
                             <div className="col-lg-6 col-sm-12">
-                                <div className="form-floating desig-inp">
-                                    <input
-                                        type="date"
-                                        className={`form-control ${errors.joining_date ? "is-invalid" : ""
-                                            }`}
-                                        placeholder="Joining Date"
-                                        {...register("joining_date", {
-                                            required: "Joining date is required",
-                                        })}
-                                    />
-                                    <label>
-                                        Joining Date <span className="text-danger">*</span>
-                                    </label>
-                                    {errors.joining_date && (
-                                        <span className="error text-danger">
-                                            {errors.joining_date.message}
-                                        </span>
-                                    )}
-                                </div>
+                                <PremiumDateField
+                                    control={control}
+                                    name="joining_date"
+                                    label="Joining Date"
+                                    required
+                                    rules={{ required: "Joining date is required" }}
+                                    error={errors.joining_date}
+                                />
                             </div>
 
                             {/* LOCATION */}

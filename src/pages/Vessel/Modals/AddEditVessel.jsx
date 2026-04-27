@@ -1,6 +1,7 @@
 import { useForm } from "react-hook-form";
 import { useEffect, useLayoutEffect, useState } from "react";
 import CustomModal from "../../../components/CustomModal";
+import PremiumDateField from "../../../components/PremiumDateField";
 import useVesselReducer from "../../../store/VesselReducer";
 import useBillingEntityReducer from "../../../store/BillingEntityReducer";
 import vesselService from "../../../services/vesselService";
@@ -123,6 +124,7 @@ export function VesselModal({ showModal, closeModal, callBack }) {
   const {
     register,
     handleSubmit,
+    control,
     reset,
     formState: { errors },
   } = useForm();
@@ -580,14 +582,11 @@ export function VesselModal({ showModal, closeModal, callBack }) {
                 </div>
               </div>
               <div className="col-lg-6 col-sm-12 mb-3">
-                <div className="form-floating desig-inp">
-                  <input
-                    type="date"
-                    className="form-control"
-                    {...register("mwpExpiryDate")}
-                  />
-                  <label>MWP expiry date</label>
-                </div>
+                <PremiumDateField
+                  control={control}
+                  name="mwpExpiryDate"
+                  label="MWP expiry date"
+                />
               </div>
 
             </div>

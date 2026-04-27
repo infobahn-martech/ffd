@@ -3,6 +3,7 @@ import { useForm, Controller } from "react-hook-form";
 import PhoneInput from "react-phone-input-2";
 import "react-phone-input-2/lib/bootstrap.css";
 import CustomModal from "../../../components/CustomModal";
+import PremiumDateField from "../../../components/PremiumDateField";
 import useCaptainReducer from "../../../store/CaptainReducer";
 import fleetService from "../../../services/fleetService";
 import "../../../design/scss/prospect-modal.scss";
@@ -241,15 +242,11 @@ export function CaptainModal({ showModal, closeModal, onSuccess }) {
                                 </div>
                             </div>
                             <div className="col-lg-6 col-sm-12">
-                                <div className="form-floating desig-inp">
-                                    <input
-                                        type="date"
-                                        className="form-control"
-                                        placeholder="License Expiry"
-                                        {...register("license_expiry")}
-                                    />
-                                    <label>License Expiry</label>
-                                </div>
+                                <PremiumDateField
+                                    control={control}
+                                    name="license_expiry"
+                                    label="License Expiry"
+                                />
                             </div>
                         </div>
                     </div>

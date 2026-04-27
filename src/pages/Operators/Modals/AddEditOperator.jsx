@@ -2,6 +2,8 @@ import { useEffect } from "react";
 import { useForm, Controller } from "react-hook-form";
 import PhoneInput from "react-phone-input-2";
 import "react-phone-input-2/lib/bootstrap.css";
+import DatePicker from "react-datepicker";
+import "react-datepicker/dist/react-datepicker.css";
 import CustomModal from "../../../components/CustomModal";
 import useOperatorReducer from "../../../store/OperatorReducer";
 import "../../../design/scss/prospect-modal.scss";
@@ -10,6 +12,29 @@ import "../../../design/scss/form-designs.scss";
 import { PORT_OPTIONS_WITH_ID } from "../../../constants/ports";
 
 const DEFAULT_PORT_ID = 3;
+const PREMIUM_DATEPICKER_PROPS = {
+    dateFormat: "dd/MM/yyyy",
+    placeholderText: "dd/mm/yyyy",
+    className: "form-control premium-date-input",
+    popperClassName: "premium-datepicker-popper",
+    calendarClassName: "premium-datepicker-calendar",
+    showPopperArrow: false,
+};
+
+const parseISODate = (value) => {
+    if (!value) return null;
+    const [year, month, day] = value.split("-").map(Number);
+    if (!year || !month || !day) return null;
+    return new Date(year, month - 1, day);
+};
+
+const toISODate = (date) => {
+    if (!date) return "";
+    const year = date.getFullYear();
+    const month = String(date.getMonth() + 1).padStart(2, "0");
+    const day = String(date.getDate()).padStart(2, "0");
+    return `${year}-${month}-${day}`;
+};
 
 export function OperatorModal({ showModal, closeModal, onSuccess }) {
     const {
@@ -266,15 +291,22 @@ export function OperatorModal({ showModal, closeModal, onSuccess }) {
                     <div className="mb-lg-3 mb-sm-0">
                         <div className="permInputs row">
                             <div className="col-lg-6 col-sm-12">
-                                <div className="form-floating desig-inp">
-                                    <input
-                                        type="date"
-                                        className="form-control"
-                                        placeholder="License Expiry"
-                                        {...register("license_expiry")}
-                                    />
-                                    <label>License Expiry</label>
-                                </div>
+                                <Controller
+                                    name="license_expiry"
+                                    control={control}
+                                    render={({ field }) => (
+                                        <div
+                                            className={`form-floating desig-inp premium-date-field ${field.value ? "has-value" : ""}`}
+                                        >
+                                            <DatePicker
+                                                {...PREMIUM_DATEPICKER_PROPS}
+                                                selected={parseISODate(field.value)}
+                                                onChange={(date) => field.onChange(toISODate(date))}
+                                            />
+                                            <label>License Expiry</label>
+                                        </div>
+                                    )}
+                                />
                             </div>
                             {isEdit && (
                                 <div className="col-lg-6 col-sm-12">
@@ -295,26 +327,40 @@ export function OperatorModal({ showModal, closeModal, onSuccess }) {
                     <div className="mb-lg-3 mb-sm-0">
                         <div className="permInputs row">
                             <div className="col-lg-6 col-sm-12">
-                                <div className="form-floating desig-inp">
-                                    <input
-                                        type="date"
-                                        className="form-control"
-                                        placeholder="Contract Start"
-                                        {...register("contract_start_date")}
-                                    />
-                                    <label>Contract Start Date</label>
-                                </div>
+                                <Controller
+                                    name="contract_start_date"
+                                    control={control}
+                                    render={({ field }) => (
+                                        <div
+                                            className={`form-floating desig-inp premium-date-field ${field.value ? "has-value" : ""}`}
+                                        >
+                                            <DatePicker
+                                                {...PREMIUM_DATEPICKER_PROPS}
+                                                selected={parseISODate(field.value)}
+                                                onChange={(date) => field.onChange(toISODate(date))}
+                                            />
+                                            <label>Contract Start Date</label>
+                                        </div>
+                                    )}
+                                />
                             </div>
                             <div className="col-lg-6 col-sm-12">
-                                <div className="form-floating desig-inp">
-                                    <input
-                                        type="date"
-                                        className="form-control"
-                                        placeholder="Contract Expiry"
-                                        {...register("contract_expiry_date")}
-                                    />
-                                    <label>Contract Expiry Date</label>
-                                </div>
+                                <Controller
+                                    name="contract_expiry_date"
+                                    control={control}
+                                    render={({ field }) => (
+                                        <div
+                                            className={`form-floating desig-inp premium-date-field ${field.value ? "has-value" : ""}`}
+                                        >
+                                            <DatePicker
+                                                {...PREMIUM_DATEPICKER_PROPS}
+                                                selected={parseISODate(field.value)}
+                                                onChange={(date) => field.onChange(toISODate(date))}
+                                            />
+                                            <label>Contract Expiry Date</label>
+                                        </div>
+                                    )}
+                                />
                             </div>
                         </div>
                     </div>

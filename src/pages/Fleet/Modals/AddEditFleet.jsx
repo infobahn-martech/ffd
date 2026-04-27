@@ -1,6 +1,7 @@
 import React, { useEffect } from "react";
 import { useForm } from "react-hook-form";
 import CustomModal from "../../../components/CustomModal";
+import PremiumDateField from "../../../components/PremiumDateField";
 import useFleetReducer from "../../../store/FleetReducer";
 import operatorService from "../../../services/operatorService";
 import "../../../design/scss/prospect-modal.scss";
@@ -25,6 +26,7 @@ export function FleetModal({ showModal, closeModal, onSuccess }) {
         register,
         handleSubmit,
         formState: { errors },
+        control,
         reset,
     } = useForm({
         defaultValues: {
@@ -202,15 +204,11 @@ export function FleetModal({ showModal, closeModal, onSuccess }) {
                                 </div>
                             </div>
                             <div className="col-lg-6 col-sm-12">
-                                <div className="form-floating desig-inp">
-                                    <input
-                                        type="date"
-                                        className="form-control"
-                                        placeholder="Insurance Expiry"
-                                        {...register("insurance_expiry")}
-                                    />
-                                    <label>Insurance Expiry</label>
-                                </div>
+                                <PremiumDateField
+                                    control={control}
+                                    name="insurance_expiry"
+                                    label="Insurance Expiry"
+                                />
                             </div>
                         </div>
                     </div>
@@ -219,15 +217,11 @@ export function FleetModal({ showModal, closeModal, onSuccess }) {
                     <div className="mb-lg-3 mb-sm-0">
                         <div className="permInputs row">
                             <div className="col-lg-6 col-sm-12">
-                                <div className="form-floating desig-inp">
-                                    <input
-                                        type="date"
-                                        className="form-control"
-                                        placeholder="Certificate Expiry"
-                                        {...register("certificate_expiry")}
-                                    />
-                                    <label>Certificate Expiry</label>
-                                </div>
+                                <PremiumDateField
+                                    control={control}
+                                    name="certificate_expiry"
+                                    label="Certificate Expiry"
+                                />
                             </div>
                         </div>
                     </div>
