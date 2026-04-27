@@ -3,7 +3,7 @@ import { debounce } from "lodash";
 
 import CommonHeader from "../../components/CommonHeader";
 import CustomTable from "../../components/customTable";
-import { CoordinatesModal } from "./Modals/AddEditCoordinates";
+import { CoordinatesModal } from "./Modals/AddCoordinates";
 import { RenderAction } from "./RenderCells";
 import DeleteConfirmationModal from "../../components/DeleteConfirmationModal";
 
@@ -27,7 +27,7 @@ const Coordinates = () => {
         page: 1,
         searchTerm: "",
         limit: 10,
-        sortBy: "coordinates_type",
+        sortBy: "coordinates",
         sortOrder: 1, // 1 = ASC, -1 = DESC (keep as your backend expects)
     });
 
@@ -40,11 +40,13 @@ const Coordinates = () => {
     useEffect(() => {
         // adjust payload keys if your backend expects different names
         getCoordinates?.({
-            search: params.searchTerm || "",
-            page: params.page,
-            limit: params.limit,
-            sortBy: params.sortBy,
-            sortOrder: params.sortOrder,
+            params: {
+                search: params.searchTerm || "",
+                page: params.page,
+                limit: params.limit,
+                sortBy: params.sortBy,
+                sortOrder: params.sortOrder,
+            },
         });
     }, [params.page, params.limit, params.searchTerm, params.sortBy, params.sortOrder, getCoordinates]);
 
@@ -68,24 +70,16 @@ const Coordinates = () => {
 
     const cols = [
         {
-            name: "Coordinates Type",
-            selector: "coordinates_type",
+            name: "Coordinate Type",
+            selector: "coordinate_type",
             width: "220",
             thclass: "tb-head",
             contentClass: "table-content",
             sort: true,
         },
         {
-            name: "Coordinates Purpose",
-            selector: "vehicle_purpose",
-            width: "220",
-            thclass: "tb-head",
-            contentClass: "table-content",
-            sort: true,
-        },
-        {
-            name: "Seater",
-            selector: "seater",
+            name: "Coordinates",
+            selector: "coordinates",
             width: "220",
             thclass: "tb-head",
             contentClass: "table-content",
@@ -121,7 +115,7 @@ const Coordinates = () => {
             cell: (props) =>
                 RenderAction({
                     ...props,
-                    onEditClick: (row) => setShowVehicleModal(row),
+                    onEditClick: (row) => setShowCoordinatesModal(row),
                     onDeleteClick: (row) => {
                         setSelectedRow(row);
                         setShowDeleteModal(true);
@@ -132,19 +126,21 @@ const Coordinates = () => {
 
     const handleRefresh = () => {
         getCoordinates?.({
-            search: params.searchTerm || "",
-            page: params.page,
-            limit: params.limit,
-            sortBy: params.sortBy,
-            sortOrder: params.sortOrder,
+            params: {
+                search: params.searchTerm || "",
+                page: params.page,
+                limit: params.limit,
+                sortBy: params.sortBy,
+                sortOrder: params.sortOrder,
+            },
         });
     };
 
     const handleDelete = async () => {
-        if (!selectedRow?._id) return;
+        if (!selectedRow?.coordinates_id) return;
 
         // ✅ adjust key if your backend expects something else
-        const payload = { coordinates_id: selectedRow._id };
+        const payload = { coordinates_id: selectedRow.coordinates_id };
 
         // If your deleteData expects just id, use: await deleteData(selectedRow._id);
         await deleteCoordinates?.(payload);
@@ -195,9 +191,9 @@ const Coordinates = () => {
                     }
                 />
 
-                {!!showVehicleModal && (
+                {!!showCoordinatesModal && (
                     <CoordinatesModal
-                        showModal={showCoordinatesModal} // boolean OR row object (edit)
+                        showModal={showCoordinatesModal}
                         closeModal={() => setShowCoordinatesModal(false)}
                         onSuccess={() => {
                             setShowCoordinatesModal(false);

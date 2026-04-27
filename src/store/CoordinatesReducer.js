@@ -7,6 +7,7 @@ const useCoordinatesReducer = create((set) => ({
     errorMessage: '',
     successMessage: '',
     coordinates: [],
+    coordinateTypes: [],
     isBeingUpdated: false,
     totalCount: 0,
     addCoordinates: async ({ formData, cb }) => {
@@ -37,6 +38,16 @@ const useCoordinatesReducer = create((set) => ({
             });
         } catch (error) {
             set({ errorMessage: error.message, isLoading: false, coordinates: [], totalCount: 0 });
+        }
+    },
+    getCoordinateTypes: async () => {
+        try {
+            const { data } = await coordinatesService.getAllCoordinateTypes();
+            set({
+                coordinateTypes: data?.data ?? data ?? [],
+            });
+        } catch (error) {
+            set({ errorMessage: error.message, coordinateTypes: [] });
         }
     },
     updateCoordinates: async ({ formData, cb }) => {
