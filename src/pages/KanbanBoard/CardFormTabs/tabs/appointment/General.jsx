@@ -1182,7 +1182,7 @@ const EmailPreviewPanel = ({
         <div className="email-preview-topbar-title">Email Preview</div>
         <div className="email-preview-topbar-status">
           <span className="email-preview-status-dot" />
-          <span>Preview generated</span>
+          <span>@</span>
           <span>{formatPreviewDate()}</span>
           {/* <button type="button" className="email-preview-topbar-action" aria-label="Copy preview">⧉</button>
           <button type="button" className="email-preview-topbar-action" aria-label="Expand preview">⛶</button> */}
@@ -3105,13 +3105,13 @@ function General({
                                     const vesselNameValue = getFieldValue("vesselName");
                                     const vesselNameLabel = getOptionLabel(vesselNameOptions, vesselNameValue) || vesselNameValue;
                                     return (
-                                  <FormSelect
-                                    value={vesselNameValue}
-                                    onChange={handleVesselSelectionChange}
-                                    options={mergeOptionIfMissing(vesselNameOptions, vesselNameValue, vesselNameLabel)}
-                                    placeholder="Select vessel name"
-                                    disabled={isDisabled || vesselOptionsLoading}
-                                  />
+                                      <FormSelect
+                                        value={vesselNameValue}
+                                        onChange={handleVesselSelectionChange}
+                                        options={mergeOptionIfMissing(vesselNameOptions, vesselNameValue, vesselNameLabel)}
+                                        placeholder="Select vessel name"
+                                        disabled={isDisabled || vesselOptionsLoading}
+                                      />
                                     );
                                   })()}
                                 </FormField>

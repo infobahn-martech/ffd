@@ -46,6 +46,8 @@ export const notify = (message, type, toastPosition, clear) => {
     return positionMap[upperPos] || 'top-right';
   };
 
+  toast.dismiss();
+
   return toast(message, {
     icon: () => <img src={icons[type]} alt="img" />,
     position: getPosition(toastPosition),
@@ -55,10 +57,12 @@ export const notify = (message, type, toastPosition, clear) => {
     closeOnClick: true,
     pauseOnHover: true,
     draggable: false,
-    toastId: type,
+    toastId: `${type}-${Date.now()}-${Math.random()}`,
     className: type,
     progressStyle: { backgroundColor: colors[type] },
-    onClose: () => clear(),
+    onClose: () => {
+      if (typeof clear === 'function') clear();
+    },
   });
 };
 
@@ -70,7 +74,7 @@ const Toaster = () => {
     if (value?.message) {
       notify(value?.message, value.type, 'top-center', clear);
     }
-  }, [value]);
+  }, [value, clear]);
 
   return null;
 };
