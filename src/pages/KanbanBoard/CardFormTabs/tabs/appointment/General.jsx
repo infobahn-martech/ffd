@@ -3141,39 +3141,6 @@ function General({
                                 </FormField>
                               )}
 
-                              {shouldShowApiField("vessel_manager") && (
-                                <FormField label="Vessel Manager">
-                                  <FormInput
-                                    type="text"
-                                    placeholder="Enter vessel manager..."
-                                    value={getFieldValue("vesselManager")}
-                                    onChange={handleChange("vesselManager")}
-                                    disabled={isDisabled}
-                                  />
-                                </FormField>
-                              )}
-
-                              {shouldShowApiField("other_billing_entity_id") && (
-                                <FormField label="Other billing entity" className="cf-other-billing-field">
-                                  <FormSelect
-                                    value={getFieldValue("otherBillingEntity")}
-                                    onChange={(event) => {
-                                      const raw = event?.target?.value;
-                                      const next = raw === undefined || raw === null ? "" : String(raw).trim();
-                                      handleChange("otherBillingEntity")({
-                                        target: {
-                                          value: next,
-                                          name: "otherBillingEntity",
-                                        },
-                                      });
-                                    }}
-                                    options={optionalOtherBillingEntityOptions}
-                                    placeholder="Select billing entity"
-                                    disabled={masterInputsDisabled}
-                                  />
-                                </FormField>
-                              )}
-
                               {shouldShowApiField("assigned_operator_id") && (
                                 <FormField label="Assigned Operator">
                                   <FormSelect
