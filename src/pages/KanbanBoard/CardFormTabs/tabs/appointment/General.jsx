@@ -3293,7 +3293,7 @@ function General({
                     </>
                   ) : (
                     <>
-                      {shouldShowApiField("card_description") && (
+                      {/* {shouldShowApiField("card_description") && (
                         <div className="general-info-middle">
                           <div className="card-description-wrapper">
                             <FormField label="Card Description">
@@ -3305,7 +3305,7 @@ function General({
                             </FormField>
                           </div>
                         </div>
-                      )}
+                      )} */}
                       <div className="general-info-right">
                         <div className="daily-task-box-wrapper">
                           <DailyTaskTodo
