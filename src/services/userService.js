@@ -32,7 +32,7 @@ const getUserPermissions = (userId) => Gateway.post(`/permissions/get_permission
 const updateUserPermission = (payload) => Gateway.post('/permissions/update_user_permission', payload);
 const getUsersByRole = (payload) => Gateway.post('/users/get_users_by_role', payload);
 
-const activateUser = (user_id) => Gateway.post(`/ users / togglestatus / ${user_id}`);
+const activateUser = (user_id) => Gateway.post(`/users/togglestatus/${user_id}`);
 
 const archiveUser = (user_id) =>
   Gateway.post(`/users/archive/${user_id}`, { user_id });
