@@ -1,6 +1,7 @@
 import { useForm, Controller } from "react-hook-form";
 import { useState, useEffect, useMemo } from "react";
 import PhoneInput from "react-phone-input-2";
+import Select from "react-select";
 import "react-phone-input-2/lib/bootstrap.css";
 import CustomModal from "../../../components/CustomModal";
 import "../../../design/scss/prospect-modal.scss";
@@ -57,6 +58,11 @@ export function UserModal({ showModal, closeModal, onSuccess }) {
   }, [roles]);
 
   const isRolesReady = !isLoadingRoles && roleOptions.length > 0;
+  const roleSelectOptions = useMemo(
+    () => roleOptions.map((role) => ({ value: role.id, label: role.name })),
+    [roleOptions]
+  );
+
   const portOptions = useMemo(() => {
     return (ports || []).map((port) => {
       const id = port?.port_id ?? port?._id ?? port?.id;
@@ -69,6 +75,10 @@ export function UserModal({ showModal, closeModal, onSuccess }) {
   }, [ports]);
 
   const isPortsReady = !isLoadingPorts && portOptions.length > 0;
+  const portSelectOptions = useMemo(
+    () => portOptions.map((port) => ({ value: port.id, label: port.name })),
+    [portOptions]
+  );
 
   // Fetch roles when modal opens
   useEffect(() => {
@@ -309,24 +319,38 @@ export function UserModal({ showModal, closeModal, onSuccess }) {
             <div className="row g-3">
               {/* ROLE */}
               <div className="col-lg-6 col-sm-12">
-                <div className="form-floating desig-inp">
-                  <select
-                    className={`form-control form-select ${errors.roleid ? "is-invalid" : ""}`}
-                    {...register("roleid", {
-                      required: "User role is required",
-                    })}
-                    disabled={!isRolesReady}
-                  >
-                    <option value="">
-                      {isLoadingRoles ? "Loading roles..." : "Select User Role"}
-                    </option>
-                    {roleOptions.map((role) => (
-                      <option key={role.id} value={role.id}>
-                        {role.name}
-                      </option>
-                    ))}
-                  </select>
-                  <label>
+                <div
+                  className={`form-control form-select react-select-container ${
+                    errors.roleid ? "is-invalid" : ""
+                  }`}
+                >
+                  <Controller
+                    name="roleid"
+                    control={control}
+                    rules={{ required: "User role is required" }}
+                    render={({ field }) => (
+                      <Select
+                        classNamePrefix="react-select"
+                        options={roleSelectOptions}
+                        value={
+                          roleSelectOptions.find(
+                            (option) => option.value === String(field.value || "")
+                          ) || null
+                        }
+                        onChange={(selected) => field.onChange(selected?.value || "")}
+                        placeholder={
+                          isLoadingRoles ? "Loading roles..." : "Select User Role"
+                        }
+                        isDisabled={!isRolesReady}
+                        isClearable
+                        menuPortalTarget={document.body}
+                        styles={{
+                          menuPortal: (base) => ({ ...base, zIndex: 9999 }),
+                        }}
+                      />
+                    )}
+                  />
+                  <label className="select-label">
                     User Role <span className="text-danger">*</span>
                   </label>
                   {errors.roleid && (
@@ -379,24 +403,38 @@ export function UserModal({ showModal, closeModal, onSuccess }) {
           <div className="mb-lg-3 mb-sm-0">
             <div className="row g-3">
               <div className="col-lg-6 col-sm-12">
-                <div className="form-floating desig-inp">
-                  <select
-                    className={`form-control form-select ${errors.port_id ? "is-invalid" : ""}`}
-                    {...register("port_id", {
-                      required: "Port is required",
-                    })}
-                    disabled={!isPortsReady}
-                  >
-                    <option value="">
-                      {isLoadingPorts ? "Loading ports..." : "Select Port"}
-                    </option>
-                    {portOptions.map((port) => (
-                      <option key={port.id} value={port.id}>
-                        {port.name}
-                      </option>
-                    ))}
-                  </select>
-                  <label>
+                <div
+                  className={`form-control form-select react-select-container ${
+                    errors.port_id ? "is-invalid" : ""
+                  }`}
+                >
+                  <Controller
+                    name="port_id"
+                    control={control}
+                    rules={{ required: "Port is required" }}
+                    render={({ field }) => (
+                      <Select
+                        classNamePrefix="react-select"
+                        options={portSelectOptions}
+                        value={
+                          portSelectOptions.find(
+                            (option) => option.value === String(field.value || "")
+                          ) || null
+                        }
+                        onChange={(selected) => field.onChange(selected?.value || "")}
+                        placeholder={
+                          isLoadingPorts ? "Loading ports..." : "Select Port"
+                        }
+                        isDisabled={!isPortsReady}
+                        isClearable
+                        menuPortalTarget={document.body}
+                        styles={{
+                          menuPortal: (base) => ({ ...base, zIndex: 9999 }),
+                        }}
+                      />
+                    )}
+                  />
+                  <label className="select-label">
                     Port <span className="text-danger">*</span>
                   </label>
                   {errors.port_id && (
