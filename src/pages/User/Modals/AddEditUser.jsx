@@ -255,7 +255,7 @@ export function UserModal({ showModal, closeModal, onSuccess }) {
 
           {/* ===== Name + Email ===== */}
           <div className="mb-lg-3 mb-sm-0">
-            <div className="permInputs row">
+            <div className="row g-3">
               {/* NAME */}
               <div className="col-lg-6 col-sm-12">
                 <div className="form-floating desig-inp">
@@ -306,7 +306,7 @@ export function UserModal({ showModal, closeModal, onSuccess }) {
 
           {/* ===== Role + Phone ===== */}
           <div className="mb-lg-3 mb-sm-0">
-            <div className="permInputs row">
+            <div className="row g-3">
               {/* ROLE */}
               <div className="col-lg-6 col-sm-12">
                 <div className="form-floating desig-inp">
@@ -315,19 +315,17 @@ export function UserModal({ showModal, closeModal, onSuccess }) {
                     {...register("roleid", {
                       required: "User role is required",
                     })}
-                    disabled={!isRolesReady} // ✅ prevent user selecting before roles loaded
+                    disabled={!isRolesReady}
                   >
                     <option value="">
                       {isLoadingRoles ? "Loading roles..." : "Select User Role"}
                     </option>
-
                     {roleOptions.map((role) => (
                       <option key={role.id} value={role.id}>
                         {role.name}
                       </option>
                     ))}
                   </select>
-
                   <label>
                     User Role <span className="text-danger">*</span>
                   </label>
@@ -379,7 +377,7 @@ export function UserModal({ showModal, closeModal, onSuccess }) {
 
           {/* ===== Port ===== */}
           <div className="mb-lg-3 mb-sm-0">
-            <div className="permInputs row">
+            <div className="row g-3">
               <div className="col-lg-6 col-sm-12">
                 <div className="form-floating desig-inp">
                   <select
@@ -408,12 +406,6 @@ export function UserModal({ showModal, closeModal, onSuccess }) {
                   )}
                 </div>
               </div>
-            </div>
-          </div>
-
-          {/* ===== Address ===== */}
-          <div className="mb-lg-3 mb-sm-0">
-            <div className="permInputs row">
               <div className="col-lg-6 col-sm-12">
                 <div className="form-floating desig-inp">
                   <textarea

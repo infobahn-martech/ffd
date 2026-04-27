@@ -328,10 +328,10 @@ input[type=number] {
 
 .phone-label {
     position: absolute;
-    top: -10px;
+    top: -9px;
     left: 14px;
-    font-size: 11px;
-    color: #226166;
+    font-size: 13px;
+    color: #35475e;
     background: #fff;
     padding: 0 6px;
     z-index: 10;
@@ -344,9 +344,9 @@ input[type=number] {
     min-height: 50px !important;
     padding-left: 62px !important;
     /* ensure space for flag */
-    border: 1px solid #d3e3f8 !important;
-    border-radius: 8px !important;
-    font-size: 14px !important;
+    border: 1px solid #bcdee2 !important;
+    border-radius: 12px !important;
+    font-size: 13px !important;
     line-height: 50px !important;
     /* ensures perfect vertical alignment */
     display: flex !important;
