@@ -80,6 +80,7 @@ import HospitalServices from "../pages/HospitalServices";
 import MWPHistory from "../pages/MWPHistory";
 import KPITasks from "../pages/KPITasks";
 import KPIUsers from "../pages/KPIUsers";
+import Coordinates from "../pages/Coordinates";
 import { ROUTE_PATHS } from "./paths";
 // 🔥 Set true to bypass auth temporarily
 const TEST_MODE = false;
@@ -304,6 +305,7 @@ const router = createHashRouter([
                   { path: ROUTE_PATHS.MWP_HISTORY, element: <RouteGuard><MWPHistory /></RouteGuard> },
                   { path: "/kpi-tasks", element: <RouteGuard><KPITasks /></RouteGuard> },
                   { path: "/kpi-users", element: <RouteGuard><KPIUsers /></RouteGuard> },
+                  { path: "/coordinates", element: <RouteGuard><Coordinates /></RouteGuard> },
                 ],
               },
             ],

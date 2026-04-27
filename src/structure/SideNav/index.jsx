@@ -406,6 +406,7 @@ function SideNav({ isMobileMenuOpen, onCloseMobileMenu, isVendorPortal = false }
         { menu: 'Appointment Acceptance', to: '/appointment-acceptance', hasPermission: true },
         { menu: 'Pre-Arrival Information', to: '/pre-arrival-information', hasPermission: true },
         { menu: 'Crew Template', to: '/crew-template', hasPermission: true },
+        { menu: 'Coordinates', to: '/coordinates', hasPermission: true },
         // { menu: 'Custom Fields', to: '/custom-fields', hasPermission: true },
       ],
       icon: configIcon, // Configuration-specific icon
