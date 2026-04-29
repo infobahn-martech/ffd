@@ -1425,9 +1425,9 @@ $send-report-optional: #80868b;
   background: #f0f1f6;
   border-right: 1px solid #e0e0e0;
   flex-shrink: 0;
-  min-width: 200px;
-  max-width: 200px;
-  width: 200px;
+  min-width: 178px;
+  max-width: 178px;
+  width: 178px;
 }
 
 .op-tab-group {
@@ -1554,7 +1554,7 @@ $send-report-optional: #80868b;
   margin-bottom: 0;
   position: relative;
   z-index: 5;
-  min-height: 60px;
+  min-height: 58px;
   gap: 20px;
 }
 
@@ -1818,7 +1818,7 @@ $send-report-optional: #80868b;
   border: 1px solid #e8ecf5;
 }
 
-.operation-email-attachment-item + .operation-email-attachment-item {
+.operation-email-attachment-item+.operation-email-attachment-item {
   margin-top: 8px;
 }
 
@@ -3163,6 +3163,7 @@ $send-report-optional: #80868b;
 
 /* View-mode readability tuning for Appointment > General tab */
 .general-tab-body--view-mode {
+
   .cf-input:has(input:disabled),
   .cf-input:has(input[disabled]),
   .cf-input.disabled,
@@ -3220,7 +3221,7 @@ $send-report-optional: #80868b;
   padding: 14px;
 }
 
-.general-shimmer-section + .general-shimmer-section {
+.general-shimmer-section+.general-shimmer-section {
   margin-top: 12px;
 }
 
@@ -3233,7 +3234,7 @@ $send-report-optional: #80868b;
   animation: appointmentViewLoadingShimmer 1.25s linear infinite;
 }
 
-.general-shimmer-line + .general-shimmer-line {
+.general-shimmer-line+.general-shimmer-line {
   margin-top: 10px;
 }
 
