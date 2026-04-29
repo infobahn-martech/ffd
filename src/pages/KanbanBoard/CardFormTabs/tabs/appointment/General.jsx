@@ -15,6 +15,7 @@ import bargeTypeService from "../../../../../services/bargeTypeService";
 import vesselService from "../../../../../services/vesselService";
 import kpiTasksService from "../../../../../services/kpiTasksService";
 import stageTimeMappingService from "../../../../../services/stageTimeMappingService";
+import preArrivalInfoService from "../../../../../services/preArrivalInfoService";
 import {
   unwrapListResponse,
   mapOperatorsToOptions,
@@ -39,6 +40,18 @@ const splitDateTime = (value) => {
     date: d.toISOString().slice(0, 10),
     time: d.toTimeString().slice(0, 5),
   };
+};
+
+const splitApiDateTimeValue = (value) => {
+  if (!value) return { date: "", time: "" };
+  const normalized = String(value).trim();
+  if (!normalized) return { date: "", time: "" };
+  const [datePart, timePartRaw = ""] = normalized.replace("T", " ").split(" ");
+  const timePart = String(timePartRaw).slice(0, 5);
+  if (!/^\d{4}-\d{2}-\d{2}$/.test(datePart) || !/^\d{2}:\d{2}$/.test(timePart)) {
+    return { date: "", time: "" };
+  }
+  return { date: datePart, time: timePart };
 };
 
 const mapCallDetailToFormFields = (detail) => {
@@ -1391,6 +1404,9 @@ function General({
   const [stageTimeObjects, setStageTimeObjects] = useState([]);
   const [stageTimeObjectValues, setStageTimeObjectValues] = useState({});
   const [stageTimeObjectsLoading, setStageTimeObjectsLoading] = useState(false);
+  const [isEtaDependentTimesLoading, setIsEtaDependentTimesLoading] = useState(false);
+  const etaDependentRequestIdRef = useRef(0);
+  const etaDependentLastRequestKeyRef = useRef("");
   const lastHydratedEntityFieldCallIdRef = useRef(null);
   const [operatorKpiTasks, setOperatorKpiTasks] = useState([]);
   const [operatorKpiLoading, setOperatorKpiLoading] = useState(false);
@@ -2199,17 +2215,30 @@ function General({
   const previewPortId = firstNonEmptyString(getFieldValue("port"));
   const previewCallType = firstNonEmptyString(getFieldValue("typeOfCall"));
   const previewServiceRequestorEmail = firstNonEmptyString(getFieldValue("serviceRequestorEmail"));
+  const etaTimeObjectId = useMemo(() => {
+    const rows = Array.isArray(stageTimeObjects) ? stageTimeObjects : [];
+    const etaField = rows.find(
+      (item) => String(item?.time_object ?? "").trim().toLowerCase() === "expected time of arrival"
+    );
+    return firstNonEmptyString(etaField?.time_object_id);
+  }, [stageTimeObjects]);
 
   useEffect(() => {
     if (!isAddMode) {
+      etaDependentRequestIdRef.current += 1;
+      etaDependentLastRequestKeyRef.current = "";
       setStageTimeObjects([]);
       setStageTimeObjectValues({});
       setStageTimeObjectsLoading(false);
+      setIsEtaDependentTimesLoading(false);
       return;
     }
 
+    etaDependentRequestIdRef.current += 1;
+    etaDependentLastRequestKeyRef.current = "";
     setStageTimeObjects([]);
     setStageTimeObjectValues({});
+    setIsEtaDependentTimesLoading(false);
 
     if (!previewPortId || !previewCallType) {
       setStageTimeObjectsLoading(false);
@@ -2254,7 +2283,7 @@ function General({
   }, [isAddMode, previewPortId, previewCallType]);
 
   const handleStageTimeObjectChange = useCallback(
-    (timeObjectId) => (nextValues) => {
+    (timeObjectId) => async (nextValues) => {
       const normalizedId = firstNonEmptyString(timeObjectId);
       if (!normalizedId) return;
       const nextDate = firstNonEmptyString(nextValues?.date);
@@ -2272,8 +2301,54 @@ function General({
         delete next[errorKey];
         return next;
       });
+
+      const isEtaField = normalizedId === etaTimeObjectId;
+      if (!isEtaField) return;
+      if (!isAddMode) return;
+      if (!nextDate || !nextTime) return;
+      if (!previewPortId || !previewCallType) return;
+
+      const etaDateTime = `${nextDate} ${nextTime}:00`;
+      const requestKey = `${etaDateTime}|1|${previewPortId}|${previewCallType}`;
+      if (isEtaDependentTimesLoading && etaDependentLastRequestKeyRef.current === requestKey) {
+        return;
+      }
+
+      etaDependentLastRequestKeyRef.current = requestKey;
+      const requestId = etaDependentRequestIdRef.current + 1;
+      etaDependentRequestIdRef.current = requestId;
+      setIsEtaDependentTimesLoading(true);
+      try {
+        const { data } = await preArrivalInfoService.getEtaDependentTimes({
+          eta_date_time: etaDateTime,
+          stage_id: 1,
+          port_id: previewPortId,
+          call_type_id: previewCallType,
+        });
+        if (etaDependentRequestIdRef.current !== requestId) return;
+        const rows = Array.isArray(data?.data) ? data.data : Array.isArray(data) ? data : [];
+        if (!rows.length) return;
+        setStageTimeObjectValues((prev) => {
+          const merged = { ...prev };
+          rows.forEach((item) => {
+            const id = firstNonEmptyString(item?.time_object_id);
+            const value = firstNonEmptyString(item?.value);
+            if (!id || !value) return;
+            const parsed = splitApiDateTimeValue(value);
+            if (!parsed.date || !parsed.time) return;
+            merged[id] = parsed;
+          });
+          return merged;
+        });
+      } catch (error) {
+        console.error("[General] pre_arrival/get_eta_dependent_times failed", error);
+      } finally {
+        if (etaDependentRequestIdRef.current === requestId) {
+          setIsEtaDependentTimesLoading(false);
+        }
+      }
     },
-    [hasSubmitted]
+    [hasSubmitted, etaTimeObjectId, isAddMode, previewPortId, previewCallType, isEtaDependentTimesLoading]
   );
 
   useEffect(() => {
