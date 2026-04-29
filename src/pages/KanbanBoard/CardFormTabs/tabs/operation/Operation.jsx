@@ -13,7 +13,6 @@ import {
   buildArrivalDailyReportBody,
   buildDepartureReportBody,
 } from "../../services/sendReportBodyBuilder";
-import AttachmentsList from "../appointment/AttachmentsList";
 import NavTabButton from "../../../../../components/NavTabButton";
 import {
   DEFAULT_PRE_ARRIVAL_DOCUMENT_HANDLING,
@@ -838,11 +837,10 @@ CompactFileUploadRow.propTypes = {
 };
 
 const SaberUploadBox = ({ files = [], onAddFiles, isViewOnly = false }) => {
-  const [isDragging, setIsDragging] = useState(false);
   const inputRef = useRef(null);
 
-  const appendFromFileList = (fileList) => {
-    const selectedFiles = Array.from(fileList || []);
+  const handleInputChange = (e) => {
+    const selectedFiles = Array.from(e.target.files || []);
     if (!selectedFiles.length) return;
     const mapped = selectedFiles.map((file) => ({
       name: file.name,
@@ -851,84 +849,28 @@ const SaberUploadBox = ({ files = [], onAddFiles, isViewOnly = false }) => {
       type: file.type,
     }));
     onAddFiles(mapped);
-  };
-
-  const handleDragEnter = (e) => {
-    if (isViewOnly) return;
-    e.preventDefault();
-    e.stopPropagation();
-    setIsDragging(true);
-  };
-
-  const handleDragLeave = (e) => {
-    if (isViewOnly) return;
-    e.preventDefault();
-    e.stopPropagation();
-    setIsDragging(false);
-  };
-
-  const handleDragOver = (e) => {
-    if (isViewOnly) return;
-    e.preventDefault();
-    e.stopPropagation();
-  };
-
-  const handleDrop = (e) => {
-    if (isViewOnly) return;
-    e.preventDefault();
-    e.stopPropagation();
-    setIsDragging(false);
-    appendFromFileList(e.dataTransfer?.files);
-  };
-
-  const handleInputChange = (e) => {
-    appendFromFileList(e.target.files);
     e.target.value = "";
   };
 
   return (
-    <div>
-      <div
-        className={`saber-upload-dropzone${isDragging ? " saber-upload-dropzone--active" : ""}${isViewOnly ? " saber-upload-dropzone--disabled" : ""}`}
-        onDragEnter={handleDragEnter}
-        onDragLeave={handleDragLeave}
-        onDragOver={handleDragOver}
-        onDrop={handleDrop}
-        role="button"
-        tabIndex={isViewOnly ? -1 : 0}
-        onClick={() => !isViewOnly && inputRef.current?.click()}
-        onKeyDown={(e) => {
-          if (isViewOnly) return;
-          if (e.key === "Enter" || e.key === " ") {
-            e.preventDefault();
-            inputRef.current?.click();
-          }
-        }}
-        aria-label="Upload SABER certificate files"
-      >
-        <div className="saber-upload-content">
-          <p className="saber-upload-primary-text">
-            Drag and drop your files here, or{" "}
-            <span
-              className="saber-upload-browse-link"
-              onClick={(e) => {
-                e.stopPropagation();
-                if (!isViewOnly) inputRef.current?.click();
-              }}
-            >
-              click to browse
-            </span>
-          </p>
-        </div>
-        <input
-          ref={inputRef}
-          type="file"
-          className="document-row-file-input"
-          multiple
-          onChange={handleInputChange}
-          aria-hidden
-          tabIndex={-1}
-        />
+    <div className="document-row compact-file-upload-row">
+      <div className="document-row-name compact-file-upload-label">
+        <span title="SABER Certificate">SABER Certificate</span>
+      </div>
+      <div className="document-row-actions compact-file-upload-actions">
+        {(files || []).length > 0 && (
+          <button type="button" className="document-row-icon-btn" onClick={() => openAttachmentPreview(files[0])} title="Preview">
+            <IconEye />
+          </button>
+        )}
+        {!isViewOnly && (
+          <>
+            <button type="button" className="document-row-icon-btn" onClick={() => inputRef.current?.click()} title="Upload files">
+              <IconUpload />
+            </button>
+            <input ref={inputRef} type="file" className="document-row-file-input" onChange={handleInputChange} aria-label="Upload SABER certificate files" multiple />
+          </>
+        )}
       </div>
     </div>
   );
@@ -1306,65 +1248,73 @@ const PreArrivalContent = ({
       </div>
       <FormSection icon={GroupSettingsIcon} title="">
         <div className="pre-arrival-form">
-          <div className="operation-premium-layout">
-            <div className="operation-premium-left">
-              <div className="pre-arrival-3col-layout">
-                <div className="pre-arrival-left general-info-left prearrival-left-column">
-                  <DynamicDateTimeFields
-                    eventFields={eventFields}
-                    formValues={formValues}
-                    handleChange={handleChange}
-                    isViewOnly={isViewOnly}
-                  />
+          <div className="operation-prearrival-grid">
+            <div className="operation-form-column">
+              <DynamicDateTimeFields
+                eventFields={eventFields}
+                formValues={formValues}
+                handleChange={handleChange}
+                isViewOnly={isViewOnly}
+              />
 
-                  <FormField label="SABER Status">
-                    <FormInput
-                      type="text"
-                      value={formValues.saberUtStatus || ""}
-                      onChange={handleChange("saberUtStatus")}
-                      placeholder="Enter SABER Status..."
-                      disabled={isViewOnly}
-                    />
-                  </FormField>
+              <FormField label="SABER Status">
+                <FormInput
+                  type="text"
+                  value={formValues.saberUtStatus || ""}
+                  onChange={handleChange("saberUtStatus")}
+                  placeholder="Enter SABER Status..."
+                  disabled={isViewOnly}
+                />
+              </FormField>
 
-                  <FormField label="SABER Certificate Upload">
-                    <SaberUploadBox
-                      files={formValues.saberUtDocumentsAttachments || []}
-                      onAddFiles={handleSaberUtAddFiles}
-                      isViewOnly={isViewOnly}
-                    />
-                  </FormField>
+              <FormField label="SABER Certificate Upload">
+                <SaberUploadBox
+                  files={formValues.saberUtDocumentsAttachments || []}
+                  onAddFiles={handleSaberUtAddFiles}
+                  isViewOnly={isViewOnly}
+                />
+              </FormField>
 
-                  <FormField label="Weather Forecast">
-                    <FormInput
-                      type="text"
-                      value={formValues?.weatherForecast || ""}
-                      onChange={handleChange("weatherForecast")}
-                      placeholder="Enter weather forecast..."
-                      disabled={isViewOnly}
-                    />
-                  </FormField>
+              <FormField label="Weather Forecast">
+                <FormInput
+                  type="text"
+                  value={formValues?.weatherForecast || ""}
+                  onChange={handleChange("weatherForecast")}
+                  placeholder="Enter weather forecast..."
+                  disabled={isViewOnly}
+                />
+              </FormField>
 
-                  <FormField label="Coordinates">
-                    <FormInput
-                      type="text"
-                      value={formValues?.coordinates || ""}
-                      onChange={handleChange("coordinates")}
-                      placeholder="Enter coordinates..."
-                      disabled={isViewOnly}
-                    />
-                  </FormField>
-                </div>
-
-                <div className="pre-arrival-right">
-                  <PreArrivalDocumentHandlingSection
-                    formValues={formValues}
-                    handleChange={handleChange}
-                    isViewOnly={isViewOnly}
-                    portId={portId}
-                  />
-                </div>
-              </div>
+              <FormField label="Coordinates">
+                <FormInput
+                  type="text"
+                  value={formValues?.coordinates || ""}
+                  onChange={handleChange("coordinates")}
+                  placeholder="Enter coordinates..."
+                  disabled={isViewOnly}
+                />
+              </FormField>
+            </div>
+            <div className="operation-document-column">
+              <PreArrivalDocumentHandlingSection
+                formValues={formValues}
+                handleChange={handleChange}
+                isViewOnly={isViewOnly}
+                portId={portId}
+              />
+            </div>
+            <div className="operation-email-column">
+              <OperationEmailPreviewPanel
+                from={reportDraft.from}
+                to={reportDraft.to}
+                cc={reportDraft.cc}
+                subject={reportDraft.subject}
+                message={reportDraft.message}
+                attachments={preArrivalReportAttachments}
+                onChange={handleReportDraftChange}
+              />
+            </div>
+          </div>
               {!isViewOnly && (
                 <div className="prearrival-actions">
                   <button
@@ -1377,19 +1327,6 @@ const PreArrivalContent = ({
                   </button>
                 </div>
               )}
-            </div>
-            <div className="operation-premium-right">
-              <OperationEmailPreviewPanel
-                from={reportDraft.from}
-                to={reportDraft.to}
-                cc={reportDraft.cc}
-                subject={reportDraft.subject}
-                message={reportDraft.message}
-                attachments={preArrivalReportAttachments}
-                onChange={handleReportDraftChange}
-              />
-            </div>
-          </div>
         </div>
       </FormSection>
     </div>
@@ -1422,8 +1359,6 @@ const ArrivalContent = ({
   arrivalStageFields = [],
   postArrivalStageFields = [],
 }) => {
-  const [isDraggingDocuments, setIsDraggingDocuments] = useState(false);
-  const documentsFileInputRef = useRef(null);
   const [reportDraft, setReportDraft] = useState({
     reportType: "arrival",
     from: "operations@shipping.com",
@@ -1438,60 +1373,12 @@ const ArrivalContent = ({
     { value: "On Hold", label: "On Hold" },
   ];
 
-  // Handle documents file upload (single upload below Marine work permit expires)
-  const handleDocumentsDragEnter = (e) => {
-    e.preventDefault();
-    e.stopPropagation();
-    setIsDraggingDocuments(true);
-  };
-
-  const handleDocumentsDragLeave = (e) => {
-    e.preventDefault();
-    e.stopPropagation();
-    setIsDraggingDocuments(false);
-  };
-
-  const handleDocumentsDragOver = (e) => {
-    e.preventDefault();
-    e.stopPropagation();
-  };
-
-  const handleDocumentsDrop = (e) => {
-    e.preventDefault();
-    e.stopPropagation();
-    setIsDraggingDocuments(false);
-
-    const files = Array.from(e.dataTransfer.files || []);
+  const handleArrivalDocumentsAdd = (files) => {
     if (files.length > 0) {
       const currentAttachments = formValues.arrivalDocumentsAttachments || [];
-      const newAttachments = files.map((file) => ({
-        name: file.name,
-        file: file,
-        size: file.size,
-        type: file.type,
-      }));
-      const updatedAttachments = [...currentAttachments, ...newAttachments];
+      const updatedAttachments = [...currentAttachments, ...files];
       const syntheticEvent = { target: { value: updatedAttachments } };
       handleChange("arrivalDocumentsAttachments")(syntheticEvent);
-    }
-  };
-
-  const handleDocumentsFileInputChange = (e) => {
-    const files = Array.from(e.target.files || []);
-    if (files.length > 0) {
-      const currentAttachments = formValues.arrivalDocumentsAttachments || [];
-      const newAttachments = files.map((file) => ({
-        name: file.name,
-        file: file,
-        size: file.size,
-        type: file.type,
-      }));
-      const updatedAttachments = [...currentAttachments, ...newAttachments];
-      const syntheticEvent = { target: { value: updatedAttachments } };
-      handleChange("arrivalDocumentsAttachments")(syntheticEvent);
-    }
-    if (documentsFileInputRef.current) {
-      documentsFileInputRef.current.value = "";
     }
   };
 
@@ -1554,8 +1441,8 @@ const ArrivalContent = ({
       </div>
       <FormSection icon={GroupSettingsIcon} title="">
         <div className="arrival-form">
-          <div className="operation-premium-layout">
-            <div className="operation-premium-left">
+          <div className="operation-two-column-grid">
+            <div className="operation-form-column">
               <DynamicDateTimeFields
                 eventFields={arrivalStageFields}
                 formValues={formValues}
@@ -1615,18 +1502,12 @@ const ArrivalContent = ({
               />
 
               <FormField label="Attach Vessel Inward and Marine Work Permit Copies">
-                <AttachmentsList
-                  attachments={formValues.arrivalDocumentsAttachments || []}
-                  onAdd={() => {}}
-                  onRemove={handleDocumentsRemoveAttachment}
-                  cardColor={cardColor}
-                  isDragging={isDraggingDocuments}
-                  onDragEnter={handleDocumentsDragEnter}
-                  onDragLeave={handleDocumentsDragLeave}
-                  onDragOver={handleDocumentsDragOver}
-                  onDrop={handleDocumentsDrop}
-                  fileInputRef={documentsFileInputRef}
-                  onFileInputChange={handleDocumentsFileInputChange}
+                <CompactFileUploadRow
+                  label="Arrival documents"
+                  files={formValues.arrivalDocumentsAttachments || []}
+                  onAddFiles={handleArrivalDocumentsAdd}
+                  onRemoveAt={handleDocumentsRemoveAttachment}
+                  isViewOnly={isViewOnly}
                 />
               </FormField>
 
@@ -1642,7 +1523,7 @@ const ArrivalContent = ({
                 </div>
               )}
             </div>
-            <div className="operation-premium-right">
+            <div className="operation-email-column">
               <OperationEmailPreviewPanel
                 reportType={reportDraft.reportType}
                 reportTypeOptions={[
@@ -1679,8 +1560,6 @@ ArrivalContent.propTypes = {
 };
 
 const DepartureContent = ({ formValues, handleChange, cardColor, onAddLink, onRemoveLink, onSendReport, isViewOnly = false, eventFields = [] }) => {
-  const [isDraggingDepartureDocuments, setIsDraggingDepartureDocuments] = useState(false);
-  const departureFileInputRef = useRef(null);
   const [reportDraft, setReportDraft] = useState({
     from: "operations@shipping.com",
     to: "",
@@ -1689,59 +1568,12 @@ const DepartureContent = ({ formValues, handleChange, cardColor, onAddLink, onRe
     message: "",
   });
 
-  const handleDepartureDragEnter = (e) => {
-    e.preventDefault();
-    e.stopPropagation();
-    setIsDraggingDepartureDocuments(true);
-  };
-
-  const handleDepartureDragLeave = (e) => {
-    e.preventDefault();
-    e.stopPropagation();
-    setIsDraggingDepartureDocuments(false);
-  };
-
-  const handleDepartureDragOver = (e) => {
-    e.preventDefault();
-    e.stopPropagation();
-  };
-
-  const handleDepartureDrop = (e) => {
-    e.preventDefault();
-    e.stopPropagation();
-    setIsDraggingDepartureDocuments(false);
-
-    const files = Array.from(e.dataTransfer.files || []);
+  const handleDepartureDocumentsAdd = (files) => {
     if (files.length > 0) {
       const currentAttachments = formValues.departureAttachments || [];
-      const newAttachments = files.map((file) => ({
-        name: file.name,
-        file: file,
-        size: file.size,
-        type: file.type,
-      }));
-      const updatedAttachments = [...currentAttachments, ...newAttachments];
+      const updatedAttachments = [...currentAttachments, ...files];
       const syntheticEvent = { target: { value: updatedAttachments } };
       handleChange("departureAttachments")(syntheticEvent);
-    }
-  };
-
-  const handleDepartureFileInputChange = (e) => {
-    const files = Array.from(e.target.files || []);
-    if (files.length > 0) {
-      const currentAttachments = formValues.departureAttachments || [];
-      const newAttachments = files.map((file) => ({
-        name: file.name,
-        file: file,
-        size: file.size,
-        type: file.type,
-      }));
-      const updatedAttachments = [...currentAttachments, ...newAttachments];
-      const syntheticEvent = { target: { value: updatedAttachments } };
-      handleChange("departureAttachments")(syntheticEvent);
-    }
-    if (departureFileInputRef.current) {
-      departureFileInputRef.current.value = "";
     }
   };
 
@@ -1792,21 +1624,15 @@ const DepartureContent = ({ formValues, handleChange, cardColor, onAddLink, onRe
       </div>
       <FormSection icon={GroupSettingsIcon} title="">
         <div className="departure-form">
-          <div className="operation-premium-layout">
-            <div className="operation-premium-left">
+          <div className="operation-two-column-grid">
+            <div className="operation-form-column">
               <FormField label="Email Requested Accept">
-                <AttachmentsList
-                  attachments={formValues.departureAttachments || []}
-                  onAdd={() => {}}
-                  onRemove={handleDepartureRemoveAttachment}
-                  cardColor={cardColor}
-                  isDragging={isDraggingDepartureDocuments}
-                  onDragEnter={handleDepartureDragEnter}
-                  onDragLeave={handleDepartureDragLeave}
-                  onDragOver={handleDepartureDragOver}
-                  onDrop={handleDepartureDrop}
-                  fileInputRef={departureFileInputRef}
-                  onFileInputChange={handleDepartureFileInputChange}
+                <CompactFileUploadRow
+                  label="Email requested accept"
+                  files={formValues.departureAttachments || []}
+                  onAddFiles={handleDepartureDocumentsAdd}
+                  onRemoveAt={handleDepartureRemoveAttachment}
+                  isViewOnly={isViewOnly}
                 />
               </FormField>
 
@@ -1842,7 +1668,7 @@ const DepartureContent = ({ formValues, handleChange, cardColor, onAddLink, onRe
                 </div>
               )}
             </div>
-            <div className="operation-premium-right">
+            <div className="operation-email-column">
               <OperationEmailPreviewPanel
                 from={reportDraft.from}
                 to={reportDraft.to}
