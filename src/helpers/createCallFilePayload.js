@@ -164,6 +164,9 @@ export function buildCreateCallFileFormData(formPayload, options = {}) {
   const entityFields = Array.isArray(fv.entity_fields) ? fv.entity_fields : [];
   appendIfValid("entity_fields", entityFields);
 
+  const timeObjects = Array.isArray(fv.time_objects) ? fv.time_objects : [];
+  appendIfValid("time_objects", timeObjects);
+
   const appointmentAcceptanceRaw =
     fv.appointment_acceptance && typeof fv.appointment_acceptance === "object"
       ? fv.appointment_acceptance

@@ -14,6 +14,7 @@ import vesselTypeService from "../../../../../services/vesselTypeService";
 import bargeTypeService from "../../../../../services/bargeTypeService";
 import vesselService from "../../../../../services/vesselService";
 import kpiTasksService from "../../../../../services/kpiTasksService";
+import stageTimeMappingService from "../../../../../services/stageTimeMappingService";
 import {
   unwrapListResponse,
   mapOperatorsToOptions,
@@ -1387,6 +1388,9 @@ function General({
   const [entityFieldsError, setEntityFieldsError] = useState("");
   const [callDetailLoading, setCallDetailLoading] = useState(false);
   const [callDetailData, setCallDetailData] = useState(null);
+  const [stageTimeObjects, setStageTimeObjects] = useState([]);
+  const [stageTimeObjectValues, setStageTimeObjectValues] = useState({});
+  const [stageTimeObjectsLoading, setStageTimeObjectsLoading] = useState(false);
   const lastHydratedEntityFieldCallIdRef = useRef(null);
   const [operatorKpiTasks, setOperatorKpiTasks] = useState([]);
   const [operatorKpiLoading, setOperatorKpiLoading] = useState(false);
@@ -1772,6 +1776,20 @@ function General({
       if (isEmptyValue(v("project"))) errors.project = "Project is required.";
     }
 
+    if (isAddMode) {
+      (Array.isArray(stageTimeObjects) ? stageTimeObjects : []).forEach((item) => {
+        if (String(item?.is_required ?? "0") !== "1") return;
+        const id = firstNonEmptyString(item?.time_object_id);
+        if (!id) return;
+        const selected = stageTimeObjectValues?.[id];
+        const hasDate = firstNonEmptyString(selected?.date);
+        const hasTime = firstNonEmptyString(selected?.time);
+        if (!hasDate || !hasTime) {
+          errors[`timeObject_${id}`] = `${firstNonEmptyString(item?.time_object) || "Time object"} is required.`;
+        }
+      });
+    }
+
     return errors;
   };
 
@@ -1804,6 +1822,20 @@ function General({
       ...formValues,
       swimlane_id: swimlaneId,
       entity_fields: entityFieldsPayload,
+      time_objects: (Array.isArray(stageTimeObjects) ? stageTimeObjects : [])
+        .map((item) => {
+          const id = firstNonEmptyString(item?.time_object_id);
+          if (!id) return null;
+          const selected = stageTimeObjectValues?.[id];
+          const selectedDate = firstNonEmptyString(selected?.date);
+          const selectedTime = firstNonEmptyString(selected?.time);
+          if (!selectedDate || !selectedTime) return null;
+          return {
+            time_object_id: id,
+            time_object_value: `${selectedDate} ${selectedTime}:00`,
+          };
+        })
+        .filter(Boolean),
       appointment_acceptance: {
         body: firstNonEmptyString(previewMessageText),
         cc_emails: firstNonEmptyString(editablePreviewFields.cc_emails),
@@ -2167,6 +2199,82 @@ function General({
   const previewPortId = firstNonEmptyString(getFieldValue("port"));
   const previewCallType = firstNonEmptyString(getFieldValue("typeOfCall"));
   const previewServiceRequestorEmail = firstNonEmptyString(getFieldValue("serviceRequestorEmail"));
+
+  useEffect(() => {
+    if (!isAddMode) {
+      setStageTimeObjects([]);
+      setStageTimeObjectValues({});
+      setStageTimeObjectsLoading(false);
+      return;
+    }
+
+    setStageTimeObjects([]);
+    setStageTimeObjectValues({});
+
+    if (!previewPortId || !previewCallType) {
+      setStageTimeObjectsLoading(false);
+      return;
+    }
+
+    let cancelled = false;
+    const fetchStageTimeObjects = async () => {
+      setStageTimeObjectsLoading(true);
+      try {
+        const { data } = await stageTimeMappingService.getStageTimeObjects({
+          stage_id: 1,
+          port_id: previewPortId,
+          call_type_id: previewCallType,
+        });
+        if (cancelled) return;
+        const rows = Array.isArray(data?.data)
+          ? data.data
+          : Array.isArray(data?.time_objects)
+            ? data.time_objects
+            : Array.isArray(data)
+              ? data
+              : [];
+        const sortedRows = [...rows].sort((a, b) => Number(a?.sort_order ?? 0) - Number(b?.sort_order ?? 0));
+        setStageTimeObjects(sortedRows);
+      } catch (error) {
+        console.error("[General] stage time objects fetch failed", error);
+        if (!cancelled) {
+          setStageTimeObjects([]);
+        }
+      } finally {
+        if (!cancelled) {
+          setStageTimeObjectsLoading(false);
+        }
+      }
+    };
+    void fetchStageTimeObjects();
+
+    return () => {
+      cancelled = true;
+    };
+  }, [isAddMode, previewPortId, previewCallType]);
+
+  const handleStageTimeObjectChange = useCallback(
+    (timeObjectId) => (nextValues) => {
+      const normalizedId = firstNonEmptyString(timeObjectId);
+      if (!normalizedId) return;
+      const nextDate = firstNonEmptyString(nextValues?.date);
+      const nextTime = firstNonEmptyString(nextValues?.time);
+      setStageTimeObjectValues((prev) => ({
+        ...prev,
+        [normalizedId]: { date: nextDate, time: nextTime },
+      }));
+      if (!hasSubmitted) return;
+      setFieldErrors((prev) => {
+        const errorKey = `timeObject_${normalizedId}`;
+        if (!prev?.[errorKey]) return prev;
+        if (!nextDate || !nextTime) return prev;
+        const next = { ...prev };
+        delete next[errorKey];
+        return next;
+      });
+    },
+    [hasSubmitted]
+  );
 
   useEffect(() => {
     if (!isAddMode) return;
@@ -2985,6 +3093,35 @@ function General({
                                   )}
                                 </FormField>
                               )}
+                              {isAddMode &&
+                                !stageTimeObjectsLoading &&
+                                stageTimeObjects.map((item) => {
+                                  const timeObjectId = firstNonEmptyString(item?.time_object_id);
+                                  if (!timeObjectId) return null;
+                                  const label = firstNonEmptyString(item?.time_object);
+                                  const fieldKey = `timeObject_${timeObjectId}`;
+                                  const isRequired = String(item?.is_required ?? "0") === "1";
+                                  const value = stageTimeObjectValues?.[timeObjectId] || { date: "", time: "" };
+                                  return (
+                                    <FormField
+                                      key={timeObjectId}
+                                      label={isRequired ? `${label || "Time object"} *` : label || "Time object"}
+                                      hasError={Boolean(fieldErrors[fieldKey])}
+                                    >
+                                      <DateTimePickerField
+                                        dateValue={value.date}
+                                        timeValue={value.time}
+                                        onDateTimeChange={handleStageTimeObjectChange(timeObjectId)}
+                                        disabled={masterInputsDisabled}
+                                        hasError={Boolean(fieldErrors[fieldKey])}
+                                        placeholder="Select date and time"
+                                      />
+                                      {fieldErrors[fieldKey] && (
+                                        <div className="cf-field-error">{fieldErrors[fieldKey]}</div>
+                                      )}
+                                    </FormField>
+                                  );
+                                })}
                               {shouldShowApiField("main_billing_entity_id") && (
                                 <FormField label="Main Billing entity" hasError={isAddMode && Boolean(fieldErrors.mainBillingEntity)}>
                                   <FormSelect
