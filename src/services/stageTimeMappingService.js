@@ -1,17 +1,18 @@
 import Gateway from "../gateway/gateway";
 
-const addWasteType = (payload) => Gateway.post("/material/add_wastetype", payload);
+/** GET — { stage_id, stage_name }[] */
+const getCallStages = () => Gateway.get("/time_object/get_call_stages");
 
-const updateWasteType = (payload) => Gateway.post("/material/update_wastetype", payload);
+/** GET — query: search, sort_by, page, limit */
+const getTimeObjectsWithStage = ({ params }) =>
+  Gateway.get("/time_object/get_time_objects_with_stage", { params });
 
-const getWasteTypes = ({ params }) => {
-  const apiParams = {};
-  if (params?.searchTerm) apiParams.search = params.searchTerm;
-  if (params?.sortBy) apiParams.sort_by = params.sortBy;
-  if (params?.page) apiParams.page = params.page;
-  if (params?.limit) apiParams.limit = params.limit;
-  return Gateway.get("/material/get_all_waste_type", { params: apiParams });
+/** POST — create / update / clear mappings for a stage+port+call_type */
+const mapTimeObjectsToStage = (payload) =>
+  Gateway.post("/time_object/map_time_objects_to_stage", payload);
+
+export default {
+  getCallStages,
+  getTimeObjectsWithStage,
+  mapTimeObjectsToStage,
 };
-
-export default { addWasteType, updateWasteType, getWasteTypes };
-

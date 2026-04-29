@@ -50,3 +50,24 @@ export const DateFormat = ({ row, selector }) => {
     if (!m.isValid()) return "—";
     return m.format("DD MMMM YYYY hh:mm a");
 };
+
+export const TimeObjectsSummary = ({ row }) => {
+    const items = row?.time_objects;
+    if (!Array.isArray(items) || !items.length) return "—";
+    const text = items
+        .slice()
+        .sort((a, b) => Number(a.sort_order) - Number(b.sort_order))
+        .map((t) => {
+            const name = t?.time_object ?? "";
+            const req = String(t?.is_required) === "1" ? " *" : "";
+            return `${name}${req}`;
+        })
+        .join(", ");
+    const maxLen = 120;
+    const truncated = text.length > maxLen ? `${text.slice(0, maxLen)}…` : text;
+    return (
+        <span className="table-content text-wrap" title={text}>
+            {truncated}
+        </span>
+    );
+};

@@ -5,80 +5,61 @@ import stageTimeMappingService from "../services/stageTimeMappingService";
 const useStageTimeMappingReducer = create((set) => ({
   isLoadingGet: false,
   isBeingUpdated: false,
-  errorMessage: "",
-  successMessage: "",
-  wasteTypes: [],
+  stageTimeMappings: [],
   totalCount: 0,
 
-  addWasteType: async ({ formData, cb }) => {
+  mapTimeObjectsToStage: async ({ payload, cb }) => {
     try {
       set({ isBeingUpdated: true });
-      const { data } = await stageTimeMappingService.addStageTimeMapping(formData);
-      set({ successMessage: data?.message, isBeingUpdated: false });
+      const { data } = await stageTimeMappingService.mapTimeObjectsToStage(payload);
+      set({ isBeingUpdated: false });
       const { success } = useAlertReducer.getState();
-      success(data && data.message);
-      cb && cb();
+      success(data?.message ?? "Saved successfully");
+      cb?.();
     } catch (err) {
       const { error } = useAlertReducer.getState();
-      set({
-        errorMessage: "Something went wrong with adding a waste type",
-        isBeingUpdated: false,
-      });
+      set({ isBeingUpdated: false });
       error(err?.response?.data?.message ?? err.message);
     }
   },
 
-  updateWasteType: async ({ formData, cb }) => {
-    try {
-      set({ isBeingUpdated: true });
-      const { data } = await wasteTypeService.updateWasteType(formData);
-      set({ successMessage: data?.message, isBeingUpdated: false });
-      const { success } = useAlertReducer.getState();
-      success(data && data.message);
-      cb && cb();
-    } catch (err) {
-      const { error } = useAlertReducer.getState();
-      set({
-        errorMessage: "Something went wrong updating the waste type",
-        isBeingUpdated: false,
-      });
-      error(err?.response?.data?.message ?? err.message);
-    }
-  },
-
-  getWasteTypes: async (params) => {
+  getStageTimeMappings: async (params) => {
     try {
       set({ isLoadingGet: true });
-      const { data } = await wasteTypeService.getWasteTypes({ params });
+      const apiParams = {};
+      if (params?.searchTerm !== undefined && params?.searchTerm !== "") apiParams.search = params.searchTerm;
+      if (params?.sortBy) apiParams.sort_by = params.sortBy;
+      if (params?.page) apiParams.page = params.page;
+      if (params?.limit) apiParams.limit = params.limit;
+      const { data } = await stageTimeMappingService.getTimeObjectsWithStage({ params: apiParams });
 
-      const rawList = data?.data ?? data?.waste_types ?? data?.waste_type ?? [];
+      const rawList = data?.data ?? [];
       const list = Array.isArray(rawList)
         ? rawList.map((row) => ({
-          ...row,
-          _id: row.waste_type_id ?? row._id,
-          waste_type_id: row.waste_type_id ?? row._id,
-          waste_type: row.waste_type ?? row.name ?? "",
-          name: row.waste_type ?? row.name ?? "",
-          createdAt: row.createdAt ?? row.created_at ?? row.created_on ?? row.createdOn ?? null,
-        }))
+            ...row,
+            time_objects: Array.isArray(row.time_objects) ? row.time_objects : [],
+          }))
         : [];
 
       set({
-        wasteTypes: list,
+        stageTimeMappings: list,
         totalCount:
-          data?.pagination?.total ?? data?.total ?? data?.meta?.total ?? data?.count ?? 0,
+          data?.pagination?.total ??
+          data?.total ??
+          data?.meta?.total ??
+          data?.count ??
+          0,
         isLoadingGet: false,
       });
     } catch (err) {
       set({
-        errorMessage: err?.message ?? "Failed to fetch waste types",
+        errorMessage: err?.message ?? "Failed to fetch stage time mappings",
         isLoadingGet: false,
-        wasteTypes: [],
+        stageTimeMappings: [],
         totalCount: 0,
       });
     }
   },
 }));
 
-export default useWasteTypeReducer;
-
+export default useStageTimeMappingReducer;

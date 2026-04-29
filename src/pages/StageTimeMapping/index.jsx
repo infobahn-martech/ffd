@@ -1,7 +1,7 @@
 import { useEffect, useMemo, useState } from "react";
 import CommonHeader from "../../components/CommonHeader";
-import { RenderAction, DateFormat } from "./RenderCells";
-import { StageTimeMappingModal } from "./Modals/AddEditStageTimeMapping";
+import { RenderAction, TimeObjectsSummary } from "./RenderCells";
+import { StageTimeMappingModal } from "./Modals/AddStageTimeMapping";
 import DeleteConfirmationModal from "../../components/DeleteConfirmationModal";
 import CustomTable from "../../components/customTable";
 import useStageTimeMappingReducer from "../../store/StageTimeMappingReducer";
@@ -11,16 +11,22 @@ const StageTimeMappings = () => {
         page: 1,
         searchTerm: "",
         limit: 10,
-        sortBy: "waste_type",
+        sortBy: "stage_name",
         sortOrder: 1,
     });
 
-    const { getStageTimeMappings, stageTimeMappings, isLoadingGet, totalCount } = useStageTimeMappingReducer(
-        (state) => state
-    );
+    const {
+        getStageTimeMappings,
+        mapTimeObjectsToStage,
+        stageTimeMappings,
+        isLoadingGet,
+        totalCount,
+        isBeingUpdated,
+    } = useStageTimeMappingReducer((state) => state);
 
     const [showStageTimeMappingModal, setShowStageTimeMappingModal] = useState(false);
     const [showDeleteModal, setShowDeleteModal] = useState(false);
+    const [deleteRow, setDeleteRow] = useState(null);
 
     const apiParams = useMemo(
         () => ({
@@ -34,36 +40,57 @@ const StageTimeMappings = () => {
 
     useEffect(() => {
         getStageTimeMappings?.(apiParams);
-    }, [getWasteTypes, apiParams]);
+    }, [getStageTimeMappings, apiParams]);
 
     const cols = [
         {
-            name: "Waste Type",
-            selector: "waste_type",
+            name: "Call stage",
+            selector: "stage_name",
             sort: true,
-            width: "400",
+            width: "220",
             thclass: "tb-head",
             contentClass: "table-content",
         },
         {
-            name: "Created At",
-            selector: "createdAt",
+            name: "Port",
+            selector: "port_id",
             sort: true,
-            width: "400",
+            width: "120",
             thclass: "tb-head",
             contentClass: "table-content",
-            cell: DateFormat,
         },
         {
-            name: 'Actions',
-            selector: 'linksInfo',
-            tableClasses: 'table-striped',
-            contentClass: 'table-content',
-            thclass: 'tb-head',
-            onEditClick: (row) => { setShowStageTimeMappingModal(row) },
-            onDeleteClick: () => { setShowDeleteModal(true) },
+            name: "Call type",
+            selector: "call_type",
+            sort: true,
+            width: "160",
+            thclass: "tb-head",
+            contentClass: "table-content",
+        },
+        {
+            name: "Time objects",
+            selector: "time_objects",
+            sort: false,
+            width: "360",
+            thclass: "tb-head",
+            contentClass: "table-content",
+            cell: TimeObjectsSummary,
+        },
+        {
+            name: "Actions",
+            selector: "linksInfo",
+            tableClasses: "table-striped",
+            contentClass: "table-content",
+            thclass: "tb-head",
+            onEditClick: (row) => {
+                setShowStageTimeMappingModal(row);
+            },
+            onDeleteClick: (row) => {
+                setDeleteRow(row);
+                setShowDeleteModal(true);
+            },
             cell: RenderAction,
-            width: '200',
+            width: "200",
         },
     ];
 
@@ -119,10 +146,31 @@ const StageTimeMappings = () => {
                     {!!showDeleteModal && (
                         <DeleteConfirmationModal
                             show={showDeleteModal}
-                            onCancel={() => setShowDeleteModal(false)}
-                            onConfirm={() => setShowDeleteModal(false)}
-                            deleteText="Are you sure you want to delete this stage time mapping?"
-                        // isLoading={isBeingUpdated}
+                            onCancel={() => {
+                                setShowDeleteModal(false);
+                                setDeleteRow(null);
+                            }}
+                            onConfirm={() => {
+                                if (!deleteRow) {
+                                    setShowDeleteModal(false);
+                                    return;
+                                }
+                                mapTimeObjectsToStage({
+                                    payload: {
+                                        stage_id: Number(deleteRow.stage_id),
+                                        port_id: Number(deleteRow.port_id),
+                                        call_type_id: Number(deleteRow.call_type_id),
+                                        time_objects: [],
+                                    },
+                                    cb: () => {
+                                        setShowDeleteModal(false);
+                                        setDeleteRow(null);
+                                        getStageTimeMappings?.(apiParams);
+                                    },
+                                });
+                            }}
+                            deleteText="Remove all time objects for this stage, port, and call type?"
+                            isLoading={isBeingUpdated}
                         />
                     )}
                 </div>
