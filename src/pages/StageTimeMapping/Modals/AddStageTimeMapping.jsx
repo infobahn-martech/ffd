@@ -181,7 +181,7 @@ export function StageTimeMappingModal({ showModal, closeModal, onSuccess }) {
             <div className="lead-form">
                 <form id="stageTimeMappingForm" onSubmit={handleSubmit(onSubmit)}>
                     <div className="permInputs row mb-lg-3">
-                        <div className="col-12 mb-3">
+                        <div className="col-12 col-lg-4 mb-3">
                             <div className="form-floating desig-inp">
                                 <select
                                     className={`form-control form-select ${errors.stage_id ? "is-invalid" : ""}`}
@@ -205,7 +205,7 @@ export function StageTimeMappingModal({ showModal, closeModal, onSuccess }) {
                                 )}
                             </div>
                         </div>
-                        <div className="col-12 mb-3">
+                        <div className="col-12 col-lg-4 mb-3">
                             <div className="form-floating desig-inp">
                                 <select
                                     className={`form-control form-select ${errors.port_id ? "is-invalid" : ""}`}
@@ -230,7 +230,7 @@ export function StageTimeMappingModal({ showModal, closeModal, onSuccess }) {
                                 )}
                             </div>
                         </div>
-                        <div className="col-12 mb-3">
+                        <div className="col-12 col-lg-4 mb-3">
                             <div className="form-floating desig-inp">
                                 <select
                                     className={`form-control form-select ${errors.call_type_id ? "is-invalid" : ""}`}
@@ -259,8 +259,8 @@ export function StageTimeMappingModal({ showModal, closeModal, onSuccess }) {
                                 none cleared removes all mappings for this stage, port, and call type.
                             </p>
                             <div
-                                className="border rounded p-2"
-                                style={{ maxHeight: 280, overflowY: "auto" }}
+                                className="border rounded p-3 bg-light bg-opacity-50"
+                                style={{ maxHeight: 360, overflowY: "auto" }}
                             >
                                 {!timeObjectMaster.length ? (
                                     <span className="text-muted small">No time objects loaded.</span>
@@ -351,8 +351,8 @@ export function StageTimeMappingModal({ showModal, closeModal, onSuccess }) {
 
     return (
         <CustomModal
-            className="role-modal-sm"
-            dialgName="modal-dialog modal-dialog-centered modal-lg"
+            className="stage-time-mapping-modal"
+            dialgName="modal-dialog modal-dialog-centered modal-xl"
             show={!!showModal}
             closeModal={() => closeModal()}
             body={renderBody()}
