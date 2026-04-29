@@ -1,8 +1,6 @@
 import { useState, useCallback, useRef, useEffect, useMemo } from "react";
 import PropTypes from "prop-types";
 import Select from "react-select";
-import ReactQuill from "react-quill";
-import "react-quill/dist/quill.snow.css";
 import GroupSettingsIcon from "../../../../../assets/images/cv.png";
 import CircleTickIcon from "../../../../../assets/images/CircleTick.svg";
 import Checklist from "../appointment/Checklist";
@@ -374,85 +372,6 @@ FormTextarea.propTypes = {
   className: PropTypes.string,
   rows: PropTypes.number,
   disabled: PropTypes.bool,
-};
-
-// React Quill Editor Component
-const ReactQuillEditor = ({ value, onChange, placeholder, name = "preArrivalDescription", className = "", readOnly = false }) => {
-  const quillRef = useRef(null);
-
-  const modules = {
-    toolbar: readOnly ? false : [
-      [{ header: [1, 2, 3, false] }],
-      ["bold", "italic", "underline", "strike"],
-      [{ list: "ordered" }, { list: "bullet" }],
-      [{ color: [] }, { background: [] }],
-      ["link", "image"],
-      ["clean"],
-    ],
-  };
-
-  const formats = [
-    "header",
-    "bold",
-    "italic",
-    "underline",
-    "strike",
-    "list",
-    "bullet",
-    "color",
-    "background",
-    "link",
-    "image",
-  ];
-
-  const handleChange = (content) => {
-    const syntheticEvent = { target: { value: content, name: name } };
-    onChange(syntheticEvent);
-  };
-
-  return (
-    <div className={`react-quill-wrapper ${className}`} style={readOnly ? {
-      maxHeight: "350px",
-      overflowY: "auto"
-    } : {}}>
-      <ReactQuill
-        ref={quillRef}
-        theme="snow"
-        value={value || ""}
-        onChange={handleChange}
-        modules={modules}
-        formats={formats}
-        placeholder={placeholder || "Enter pre-arrival description..."}
-        readOnly={readOnly}
-        style={readOnly ? {
-          height: "auto",
-          minHeight: "200px"
-        } : {}}
-      />
-      {readOnly && (
-        <style>{`
-          .react-quill-wrapper .ql-editor {
-            max-height: 320px;
-            overflow-y: auto;
-            padding: 12px;
-          }
-          .react-quill-wrapper .ql-container {
-            height: auto;
-            min-height: 200px;
-          }
-        `}</style>
-      )}
-    </div>
-  );
-};
-
-ReactQuillEditor.propTypes = {
-  value: PropTypes.string,
-  onChange: PropTypes.func.isRequired,
-  placeholder: PropTypes.string,
-  name: PropTypes.string,
-  className: PropTypes.string,
-  readOnly: PropTypes.bool,
 };
 
 const FormMultiSelect = ({ value = [], onChange, options = [], placeholder, className = "" }) => {
@@ -1312,43 +1231,6 @@ const PreArrivalContent = ({
               </FormField>
             </div>
 
-            <div className="pre-arrival-middle general-info-right prearrival-right-column">
-              <div
-                className="card-description-wrapper card-description-wrapper--remarks"
-                style={{
-                  minHeight: isViewOnly ? "300px" : "auto",
-                  maxHeight: isViewOnly ? "400px" : "none",
-                  overflowY: isViewOnly ? "auto" : "visible",
-                }}
-              >
-                <FormField label="Remarks">
-                  <div
-                    style={
-                      isViewOnly
-                        ? {
-                          maxHeight: "350px",
-                          overflowY: "auto",
-                          padding: "8px",
-                          border: "1px solid #e2e2ea",
-                          borderRadius: "4px",
-                          backgroundColor: "#ffffff",
-                        }
-                        : {}
-                    }
-                  >
-                    <ReactQuillEditor
-                      value={formValues?.preArrivalDescription || ""}
-                      onChange={handleChange("preArrivalDescription")}
-                      placeholder="Enter pre-arrival remarks..."
-                      name="preArrivalDescription"
-                      className="prearrival-quill-editor"
-                      readOnly={isViewOnly}
-                    />
-                  </div>
-                </FormField>
-              </div>
-            </div>
-
             <div className="pre-arrival-right">
               <PreArrivalDocumentHandlingSection
                 formValues={formValues}
@@ -1774,33 +1656,6 @@ const ArrivalContent = ({
               )}
             </div>
 
-            <div className="general-info-right">
-              <div className="card-description-wrapper" style={{
-                minHeight: isViewOnly ? "300px" : "auto",
-                maxHeight: isViewOnly ? "400px" : "none",
-                overflowY: isViewOnly ? "auto" : "visible"
-              }}>
-                <FormField label="Remarks">
-                  <div style={isViewOnly ? {
-                    maxHeight: "350px",
-                    overflowY: "auto",
-                    padding: "8px",
-                    border: "1px solid #e2e2ea",
-                    borderRadius: "4px",
-                    backgroundColor: "#ffffff"
-                  } : {}}>
-                    <ReactQuillEditor
-                      value={formValues?.arrivalDescription || ""}
-                      onChange={handleChange("arrivalDescription")}
-                      placeholder="Enter arrival remarks..."
-                      name="arrivalDescription"
-                      className="arrival-quill-editor"
-                      readOnly={isViewOnly}
-                    />
-                  </div>
-                </FormField>
-              </div>
-            </div>
           </div>
         </div>
       </FormSection>
@@ -2054,33 +1909,6 @@ const DepartureContent = ({ formValues, handleChange, cardColor, onAddLink, onRe
               )}
             </div>
 
-            <div className="general-info-right">
-              <div className="card-description-wrapper" style={{
-                minHeight: isViewOnly ? "300px" : "auto",
-                maxHeight: isViewOnly ? "400px" : "none",
-                overflowY: isViewOnly ? "auto" : "visible"
-              }}>
-                <FormField label="Remarks">
-                  <div style={isViewOnly ? {
-                    maxHeight: "350px",
-                    overflowY: "auto",
-                    padding: "8px",
-                    border: "1px solid #e2e2ea",
-                    borderRadius: "4px",
-                    backgroundColor: "#ffffff"
-                  } : {}}>
-                    <ReactQuillEditor
-                      value={formValues?.departureDescription || ""}
-                      onChange={handleChange("departureDescription")}
-                      placeholder="Enter departure remarks..."
-                      name="departureDescription"
-                      className="departure-quill-editor"
-                      readOnly={isViewOnly}
-                    />
-                  </div>
-                </FormField>
-              </div>
-            </div>
           </div>
         </div>
       </FormSection>
