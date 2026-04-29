@@ -8,7 +8,7 @@ import CircleTickIcon from "../../../../../assets/images/CircleTick.svg";
 import Checklist from "../appointment/Checklist";
 import { notify } from "../../../../../components/Toaster";
 import callFileService from "../../../../../services/callFileService";
-import eventTypeService from "../../../../../services/eventTypeService";
+import stageTimeMappingService from "../../../../../services/stageTimeMappingService";
 import { SendReportFullWidthView, SendReportButton } from "../../services/sendReportFullWidthView";
 import {
   buildPreArrivalReportBody,
@@ -75,15 +75,24 @@ const getEventFieldKeyPrefix = (eventName = "") => {
   return pascal ? `operation${pascal}` : "operationEvent";
 };
 
-const mapEventFields = (responseData) =>
-  (responseData?.fields || [])
-    .filter((field) => field?.event_type === "datetime" && field?.event_name)
+const mapEventFields = (responseData) => {
+  const rows = responseData?.fields || responseData?.data || responseData?.time_objects || [];
+  return rows
+    .filter((field) => {
+      const eventName = field?.event_name ?? field?.time_object;
+      const eventType = String(field?.event_type || "").toLowerCase();
+      const inputType = String(field?.input_type || "").toLowerCase();
+      return Boolean(eventName) && (eventType === "datetime" || inputType === "datetime" || !field?.event_type);
+    })
     .map((field, index) => ({
       ...field,
-      keyPrefix: getEventFieldKeyPrefix(field.event_name),
+      event_name: field?.event_name ?? field?.time_object ?? "",
+      event_type_id: field?.event_type_id ?? field?.time_object_id,
+      keyPrefix: getEventFieldKeyPrefix(field?.event_name ?? field?.time_object ?? ""),
       sort_order: Number(field?.sort_order ?? index + 1),
     }))
     .sort((a, b) => a.sort_order - b.sort_order);
+};
 
 const FALLBACK_PRE_ARRIVAL_FIELDS = [
   { event_name: "Expected time of arrival", keyPrefix: "expectedArrival", event_type_id: 1, sort_order: 1 },
@@ -2235,10 +2244,10 @@ function Operation({ card, formValues, handleChange, ownerInitial, isDAModule = 
   const [callDetailData, setCallDetailData] = useState(null);
   const [callDetailLoading, setCallDetailLoading] = useState(false);
   const [eventTypeFieldsByStage, setEventTypeFieldsByStage] = useState({
-    1: [],
     2: [],
     3: [],
     4: [],
+    5: [],
   });
   const preArrivalDocumentHandlingRef = useRef(formValues?.preArrivalDocumentHandling);
   const lastEtaDependentRequestRef = useRef("");
@@ -2247,6 +2256,36 @@ function Operation({ card, formValues, handleChange, ownerInitial, isDAModule = 
   const currentCallId = useMemo(
     () => card?.call_id ?? formValues?.call_id ?? card?.callId ?? "",
     [card?.call_id, card?.callId, formValues?.call_id]
+  );
+  const preArrivalPortId = useMemo(
+    () =>
+      callDetailData?.port_id ??
+      callDetailData?.portId ??
+      callDetailData?.port?.port_id ??
+      formValues?.port_id ??
+      formValues?.portId ??
+      card?.port_id ??
+      card?.portId ??
+      "",
+    [callDetailData, formValues?.port_id, formValues?.portId, card?.port_id, card?.portId]
+  );
+  const preArrivalCallTypeId = useMemo(
+    () =>
+      callDetailData?.call_type_id ??
+      callDetailData?.callTypeId ??
+      callDetailData?.call_type?.call_type_id ??
+      formValues?.call_type_id ??
+      formValues?.typeOfCall ??
+      card?.call_type_id ??
+      card?.typeOfCall ??
+      "",
+    [
+      callDetailData,
+      formValues?.call_type_id,
+      formValues?.typeOfCall,
+      card?.call_type_id,
+      card?.typeOfCall,
+    ]
   );
 
   useEffect(() => {
@@ -2285,29 +2324,52 @@ function Operation({ card, formValues, handleChange, ownerInitial, isDAModule = 
   useEffect(() => {
     let cancelled = false;
 
+    if (!preArrivalPortId || !preArrivalCallTypeId) {
+      setEventTypeFieldsByStage({ 2: [], 3: [], 4: [], 5: [] });
+      return () => {
+        cancelled = true;
+      };
+    }
+
     const loadEventTypeFields = async () => {
       try {
-        const [stage1, stage2, stage3, stage4] = await Promise.all([
-          eventTypeService.getEventTypesByStage(1),
-          eventTypeService.getEventTypesByStage(2),
-          eventTypeService.getEventTypesByStage(3),
-          eventTypeService.getEventTypesByStage(4),
+        const [stage2, stage3, stage4, stage5] = await Promise.all([
+          stageTimeMappingService.getStageTimeObjects({
+            stage_id: 2,
+            port_id: preArrivalPortId,
+            call_type_id: preArrivalCallTypeId,
+          }),
+          stageTimeMappingService.getStageTimeObjects({
+            stage_id: 3,
+            port_id: preArrivalPortId,
+            call_type_id: preArrivalCallTypeId,
+          }),
+          stageTimeMappingService.getStageTimeObjects({
+            stage_id: 4,
+            port_id: preArrivalPortId,
+            call_type_id: preArrivalCallTypeId,
+          }),
+          stageTimeMappingService.getStageTimeObjects({
+            stage_id: 5,
+            port_id: preArrivalPortId,
+            call_type_id: preArrivalCallTypeId,
+          }),
         ]);
 
         if (cancelled) return;
 
         setEventTypeFieldsByStage({
-          1: mapEventFields(stage1?.data),
           2: mapEventFields(stage2?.data),
           3: mapEventFields(stage3?.data),
           4: mapEventFields(stage4?.data),
+          5: mapEventFields(stage5?.data),
         });
       } catch (error) {
         if (!cancelled) {
-          setEventTypeFieldsByStage({ 1: [], 2: [], 3: [], 4: [] });
+          setEventTypeFieldsByStage({ 2: [], 3: [], 4: [], 5: [] });
         }
         // eslint-disable-next-line no-console
-        console.error("[Operation] eventtypes fetch failed", error);
+        console.error("[Operation] stage time objects fetch failed", error);
       }
     };
 
@@ -2316,7 +2378,7 @@ function Operation({ card, formValues, handleChange, ownerInitial, isDAModule = 
     return () => {
       cancelled = true;
     };
-  }, []);
+  }, [preArrivalPortId, preArrivalCallTypeId]);
 
   useEffect(() => {
     let cancelled = false;
@@ -2344,8 +2406,8 @@ function Operation({ card, formValues, handleChange, ownerInitial, isDAModule = 
     };
   }, [handleChange]);
 
-  const preArrivalEventFields = (eventTypeFieldsByStage[1] || []).length
-    ? eventTypeFieldsByStage[1]
+  const preArrivalEventFields = (eventTypeFieldsByStage[2] || []).length
+    ? eventTypeFieldsByStage[2]
     : FALLBACK_PRE_ARRIVAL_FIELDS;
   const firstPreArrivalField = preArrivalEventFields[0];
   const etaDateKey = firstPreArrivalField ? `${firstPreArrivalField.keyPrefix}Date` : "";
@@ -2353,50 +2415,19 @@ function Operation({ card, formValues, handleChange, ownerInitial, isDAModule = 
   const etaDateValue = etaDateKey ? formValues?.[etaDateKey] || "" : "";
   const etaTimeValue = etaTimeKey ? formValues?.[etaTimeKey] || "" : "";
   const { arrivalStageFields, postArrivalStageFields } = useMemo(() => {
-    const arrivalStageFields = (eventTypeFieldsByStage[2] || []).length
-      ? [...eventTypeFieldsByStage[2]].sort((a, b) => (a.sort_order || 0) - (b.sort_order || 0))
+    const arrivalStageFields = (eventTypeFieldsByStage[3] || []).length
+      ? [...eventTypeFieldsByStage[3]].sort((a, b) => (a.sort_order || 0) - (b.sort_order || 0))
       : FALLBACK_ARRIVAL_FIELDS.filter((field) => field.stage_id === 2);
 
-    const postArrivalStageFields = (eventTypeFieldsByStage[3] || []).length
-      ? [...eventTypeFieldsByStage[3]].sort((a, b) => (a.sort_order || 0) - (b.sort_order || 0))
+    const postArrivalStageFields = (eventTypeFieldsByStage[4] || []).length
+      ? [...eventTypeFieldsByStage[4]].sort((a, b) => (a.sort_order || 0) - (b.sort_order || 0))
       : FALLBACK_ARRIVAL_FIELDS.filter((field) => field.stage_id === 3);
 
     return { arrivalStageFields, postArrivalStageFields };
   }, [eventTypeFieldsByStage]);
-  const departureEventFields = (eventTypeFieldsByStage[4] || []).length
-    ? eventTypeFieldsByStage[4]
+  const departureEventFields = (eventTypeFieldsByStage[5] || []).length
+    ? eventTypeFieldsByStage[5]
     : FALLBACK_DEPARTURE_FIELDS;
-  const preArrivalPortId = useMemo(
-    () =>
-      callDetailData?.port_id ??
-      callDetailData?.portId ??
-      callDetailData?.port?.port_id ??
-      formValues?.port_id ??
-      formValues?.portId ??
-      card?.port_id ??
-      card?.portId ??
-      "",
-    [callDetailData, formValues?.port_id, formValues?.portId, card?.port_id, card?.portId]
-  );
-  const preArrivalCallTypeId = useMemo(
-    () =>
-      callDetailData?.call_type_id ??
-      callDetailData?.callTypeId ??
-      callDetailData?.call_type?.call_type_id ??
-      formValues?.call_type_id ??
-      formValues?.typeOfCall ??
-      card?.call_type_id ??
-      card?.typeOfCall ??
-      "",
-    [
-      callDetailData,
-      formValues?.call_type_id,
-      formValues?.typeOfCall,
-      card?.call_type_id,
-      card?.typeOfCall,
-    ]
-  );
-
   // Merge dummy values with formValues for view-only mode (only for DA routes)
   // Dummy values take precedence to ensure all fields are populated
   const viewOnlyFormValues = isDAModule ? { ...formValues, ...getDummyValues() } : formValues;
