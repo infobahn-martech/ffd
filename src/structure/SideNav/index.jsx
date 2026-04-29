@@ -392,6 +392,16 @@ function SideNav({ isMobileMenuOpen, onCloseMobileMenu, isVendorPortal = false }
         { menu: 'Stage Time Mappings', to: '/stage-time-mappings', hasPermission: true },
       ],
     },
+    {
+      menu: 'Document Management',
+      isDefaultMenu: true,
+      icon: materialIcon, // Material-specific icon
+      hasPermission: true,
+      isOpen: false,
+      subMenus: [
+        { menu: 'Document Management', to: '/document-management', hasPermission: true },
+      ],
+    },
     // ✅ Finance
     {
       menu: 'Entity Management',

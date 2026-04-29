@@ -84,6 +84,7 @@ import Coordinates from "../pages/Coordinates";
 import { ROUTE_PATHS } from "./paths";
 import TimeObjects from "../pages/TimeObject";
 import StageTimeMappings from "../pages/StageTimeMapping";
+import DocumentManagement from "../pages/DocumentManagement";
 // 🔥 Set true to bypass auth temporarily
 const TEST_MODE = false;
 
@@ -310,6 +311,7 @@ const router = createHashRouter([
                   { path: "/coordinates", element: <RouteGuard><Coordinates /></RouteGuard> },
                   { path: "/time-objects", element: <RouteGuard><TimeObjects /></RouteGuard> },
                   { path: "/stage-time-mappings", element: <RouteGuard><StageTimeMappings /></RouteGuard> },
+                  { path: "/document-management", element: <RouteGuard><DocumentManagement /></RouteGuard> },
                 ],
               },
             ],
