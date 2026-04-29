@@ -37,6 +37,7 @@ export function StageTimeMappingModal({ showModal, closeModal, onSuccess }) {
         handleSubmit,
         formState: { errors },
         reset,
+        setValue,
     } = useForm({
         defaultValues: {
             stage_id: "",
@@ -102,6 +103,14 @@ export function StageTimeMappingModal({ showModal, closeModal, onSuccess }) {
             setTimeSelections({});
         }
     }, [showModal, isEditMode, reset]);
+
+    useEffect(() => {
+        if (!showModal || !isEditMode) return;
+
+        setValue("stage_id", String(showModal.stage_id ?? ""));
+        setValue("port_id", String(showModal.port_id ?? ""));
+        setValue("call_type_id", String(showModal.call_type_id ?? ""));
+    }, [showModal, isEditMode, callStages, ports, callTypes, setValue]);
 
     const toggleTimeObject = (timeObjectId) => {
         const key = String(timeObjectId);
