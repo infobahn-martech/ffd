@@ -1764,7 +1764,7 @@ $send-report-optional: #80868b;
 
 .operation-compact-upload-zone {
   width: 100%;
-  border: 2px dashed #3e66d6;
+  border: 2px dashed #d5dbea;
   border-radius: 10px;
   background: #ffffff;
   min-height: 52px;
@@ -1774,6 +1774,10 @@ $send-report-optional: #80868b;
   justify-content: center;
   align-items: center;
   cursor: pointer;
+}
+
+.operation-compact-upload-zone:hover:not(.operation-compact-upload-zone--disabled) {
+  border-color: #3e66d6;
 }
 
 .operation-compact-upload-zone--disabled {
@@ -2211,7 +2215,7 @@ $send-report-optional: #80868b;
 
   .operation-compact-upload-zone {
     width: 100%;
-    border: 2px dashed #3e66d6;
+    border: 2px dashed #d5dbea;
     border-radius: 10px;
     background: #ffffff;
     min-height: 52px;
@@ -2221,6 +2225,10 @@ $send-report-optional: #80868b;
     justify-content: center;
     align-items: center;
     cursor: pointer;
+  }
+
+  .operation-compact-upload-zone:hover:not(.operation-compact-upload-zone--disabled) {
+    border-color: #3e66d6;
   }
 
   .operation-compact-upload-zone--disabled {

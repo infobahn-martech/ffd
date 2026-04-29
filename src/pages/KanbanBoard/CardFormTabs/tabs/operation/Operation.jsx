@@ -1306,71 +1306,71 @@ const PreArrivalContent = ({
         <div className="operation-tab-layout">
           <div className="pre-arrival-form operation-tab-scroll">
             <div className="operation-prearrival-grid">
-            <OperationFormCard className="operation-form-column">
-              <DynamicDateTimeFields
-                eventFields={eventFields}
-                formValues={formValues}
-                handleChange={handleChange}
-                isViewOnly={isViewOnly}
-              />
-
-              <FormField label="SABER Status">
-                <FormInput
-                  type="text"
-                  value={formValues.saberUtStatus || ""}
-                  onChange={handleChange("saberUtStatus")}
-                  placeholder="Enter SABER Status..."
-                  disabled={isViewOnly}
-                />
-              </FormField>
-
-              <FormField label="SABER Certificate Upload">
-                <SaberUploadBox
-                  files={formValues.saberUtDocumentsAttachments || []}
-                  onAddFiles={handleSaberUtAddFiles}
+              <OperationFormCard className="operation-form-column">
+                <DynamicDateTimeFields
+                  eventFields={eventFields}
+                  formValues={formValues}
+                  handleChange={handleChange}
                   isViewOnly={isViewOnly}
                 />
-              </FormField>
 
-              <FormField label="Weather Forecast">
-                <FormInput
-                  type="text"
-                  value={formValues?.weatherForecast || ""}
-                  onChange={handleChange("weatherForecast")}
-                  placeholder="Enter weather forecast..."
-                  disabled={isViewOnly}
-                />
-              </FormField>
+                <FormField label="SABER Status">
+                  <FormInput
+                    type="text"
+                    value={formValues.saberUtStatus || ""}
+                    onChange={handleChange("saberUtStatus")}
+                    placeholder="Enter SABER Status..."
+                    disabled={isViewOnly}
+                  />
+                </FormField>
 
-              <FormField label="Coordinates">
-                <FormInput
-                  type="text"
-                  value={formValues?.coordinates || ""}
-                  onChange={handleChange("coordinates")}
-                  placeholder="Enter coordinates..."
-                  disabled={isViewOnly}
+                <FormField label="SABER Certificate Upload">
+                  <SaberUploadBox
+                    files={formValues.saberUtDocumentsAttachments || []}
+                    onAddFiles={handleSaberUtAddFiles}
+                    isViewOnly={isViewOnly}
+                  />
+                </FormField>
+
+                <FormField label="Weather Forecast">
+                  <FormInput
+                    type="text"
+                    value={formValues?.weatherForecast || ""}
+                    onChange={handleChange("weatherForecast")}
+                    placeholder="Enter weather forecast..."
+                    disabled={isViewOnly}
+                  />
+                </FormField>
+
+                <FormField label="Coordinates">
+                  <FormInput
+                    type="text"
+                    value={formValues?.coordinates || ""}
+                    onChange={handleChange("coordinates")}
+                    placeholder="Enter coordinates..."
+                    disabled={isViewOnly}
+                  />
+                </FormField>
+              </OperationFormCard>
+              <OperationFormCard className="operation-document-column">
+                <PreArrivalDocumentHandlingSection
+                  formValues={formValues}
+                  handleChange={handleChange}
+                  isViewOnly={isViewOnly}
+                  portId={portId}
                 />
-              </FormField>
-            </OperationFormCard>
-            <OperationFormCard className="operation-document-column">
-              <PreArrivalDocumentHandlingSection
-                formValues={formValues}
-                handleChange={handleChange}
-                isViewOnly={isViewOnly}
-                portId={portId}
-              />
-            </OperationFormCard>
-            <OperationFormCard className="operation-email-column">
-              <OperationEmailPreviewPanel
-                from={reportDraft.from}
-                to={reportDraft.to}
-                cc={reportDraft.cc}
-                subject={reportDraft.subject}
-                message={reportDraft.message}
-                attachments={preArrivalReportAttachments}
-                onChange={handleReportDraftChange}
-              />
-            </OperationFormCard>
+              </OperationFormCard>
+              <OperationFormCard className="operation-email-column">
+                <OperationEmailPreviewPanel
+                  from={reportDraft.from}
+                  to={reportDraft.to}
+                  cc={reportDraft.cc}
+                  subject={reportDraft.subject}
+                  message={reportDraft.message}
+                  attachments={preArrivalReportAttachments}
+                  onChange={handleReportDraftChange}
+                />
+              </OperationFormCard>
             </div>
           </div>
           <OperationSaveSection isViewOnly={isViewOnly} onSave={handleSaveAndSendReport} isSaving={isSavingPreArrival} />
@@ -1483,92 +1483,92 @@ const ArrivalContent = ({
         <div className="operation-tab-layout">
           <div className="arrival-form operation-tab-scroll">
             <div className="operation-two-column-grid">
-            <OperationFormCard className="operation-form-column">
-              <OperationFormCard className="operation-datetime-card">
-                <DynamicDateTimeFields
-                  eventFields={arrivalStageFields}
-                  formValues={formValues}
-                  handleChange={handleChange}
-                  isViewOnly={isViewOnly}
-                />
-                <DynamicDateTimeFields
-                  eventFields={postArrivalStageFields}
-                  formValues={formValues}
-                  handleChange={handleChange}
-                  isViewOnly={isViewOnly}
+              <OperationFormCard className="operation-form-column">
+                <OperationFormCard className="operation-datetime-card">
+                  <DynamicDateTimeFields
+                    eventFields={arrivalStageFields}
+                    formValues={formValues}
+                    handleChange={handleChange}
+                    isViewOnly={isViewOnly}
+                  />
+                  <DynamicDateTimeFields
+                    eventFields={postArrivalStageFields}
+                    formValues={formValues}
+                    handleChange={handleChange}
+                    isViewOnly={isViewOnly}
+                  />
+                </OperationFormCard>
+
+                <FormField label="Custom Inspection Status">
+                  <FormInput
+                    type="text"
+                    value={formValues.customInspectionStatus || "Passed"}
+                    onChange={handleChange("customInspectionStatus")}
+                    placeholder=""
+                    disabled={isViewOnly}
+                  />
+                </FormField>
+
+                {formValues.customInspectionStatus === "Failed" && (
+                  <FormField label="Reason for fail" className="cf-field-full">
+                    <FormTextarea
+                      value={formValues.customInspectionFailReason || ""}
+                      onChange={handleChange("customInspectionFailReason")}
+                      placeholder="Specify reason for fail..."
+                      rows={3}
+                      disabled={isViewOnly}
+                    />
+                  </FormField>
+                )}
+
+                <FormField label="Crew immigration completed / on hold">
+                  <FormSelect
+                    value={formValues.crewImmigrationStatus || ""}
+                    onChange={handleChange("crewImmigrationStatus")}
+                    options={crewImmigrationStatusOptions}
+                    placeholder="Select status..."
+                    disabled={isViewOnly}
+                  />
+                </FormField>
+
+                {formValues.crewImmigrationStatus === "On Hold" && (
+                  <FormField label="Reason for hold (Remarks)" className="cf-field-full">
+                    <FormTextarea
+                      value={formValues.crewImmigrationHoldRemarks || ""}
+                      onChange={handleChange("crewImmigrationHoldRemarks")}
+                      placeholder="Specify reason for hold..."
+                      rows={3}
+                      disabled={isViewOnly}
+                    />
+                  </FormField>
+                )}
+
+                <FormField label="Attach Vessel Inward and Marine Work Permit Copies">
+                  <OperationFileUpload
+                    files={formValues.arrivalDocumentsAttachments || []}
+                    onAddFiles={handleArrivalDocumentsAdd}
+                    isViewOnly={isViewOnly}
+                    ariaLabel="Upload arrival documents"
+                  />
+                </FormField>
+              </OperationFormCard>
+              <OperationFormCard className="operation-email-column">
+                <OperationEmailPreviewPanel
+                  reportType={reportDraft.reportType}
+                  reportTypeOptions={[
+                    { value: "arrival", label: "Arrival Report" },
+                    { value: "daily", label: "Daily Report" },
+                  ]}
+                  from={reportDraft.from}
+                  to={reportDraft.to}
+                  cc={reportDraft.cc}
+                  subject={reportDraft.subject}
+                  message={reportDraft.message}
+                  attachments={formValues.arrivalDocumentsAttachments || []}
+                  onChange={handleReportDraftChange}
+                  onReportTypeChange={handleReportTypeChange}
                 />
               </OperationFormCard>
-
-              <FormField label="Custom Inspection Status">
-                <FormInput
-                  type="text"
-                  value={formValues.customInspectionStatus || "Passed"}
-                  onChange={handleChange("customInspectionStatus")}
-                  placeholder=""
-                  disabled={isViewOnly}
-                />
-              </FormField>
-
-              {formValues.customInspectionStatus === "Failed" && (
-                <FormField label="Reason for fail" className="cf-field-full">
-                  <FormTextarea
-                    value={formValues.customInspectionFailReason || ""}
-                    onChange={handleChange("customInspectionFailReason")}
-                    placeholder="Specify reason for fail..."
-                    rows={3}
-                    disabled={isViewOnly}
-                  />
-                </FormField>
-              )}
-
-              <FormField label="Crew immigration completed / on hold">
-                <FormSelect
-                  value={formValues.crewImmigrationStatus || ""}
-                  onChange={handleChange("crewImmigrationStatus")}
-                  options={crewImmigrationStatusOptions}
-                  placeholder="Select status..."
-                  disabled={isViewOnly}
-                />
-              </FormField>
-
-              {formValues.crewImmigrationStatus === "On Hold" && (
-                <FormField label="Reason for hold (Remarks)" className="cf-field-full">
-                  <FormTextarea
-                    value={formValues.crewImmigrationHoldRemarks || ""}
-                    onChange={handleChange("crewImmigrationHoldRemarks")}
-                    placeholder="Specify reason for hold..."
-                    rows={3}
-                    disabled={isViewOnly}
-                  />
-                </FormField>
-              )}
-
-              <FormField label="Attach Vessel Inward and Marine Work Permit Copies">
-                <OperationFileUpload
-                  files={formValues.arrivalDocumentsAttachments || []}
-                  onAddFiles={handleArrivalDocumentsAdd}
-                  isViewOnly={isViewOnly}
-                  ariaLabel="Upload arrival documents"
-                />
-              </FormField>
-            </OperationFormCard>
-            <OperationFormCard className="operation-email-column">
-              <OperationEmailPreviewPanel
-                reportType={reportDraft.reportType}
-                reportTypeOptions={[
-                  { value: "arrival", label: "Arrival Report" },
-                  { value: "daily", label: "Daily Report" },
-                ]}
-                from={reportDraft.from}
-                to={reportDraft.to}
-                cc={reportDraft.cc}
-                subject={reportDraft.subject}
-                message={reportDraft.message}
-                attachments={formValues.arrivalDocumentsAttachments || []}
-                onChange={handleReportDraftChange}
-                onReportTypeChange={handleReportTypeChange}
-              />
-            </OperationFormCard>
             </div>
           </div>
           <OperationSaveSection isViewOnly={isViewOnly} onSave={handleSaveAndSendReport} />
@@ -1650,43 +1650,43 @@ const DepartureContent = ({ formValues, handleChange, cardColor, onAddLink, onRe
         <div className="operation-tab-layout">
           <div className="departure-form operation-tab-scroll">
             <div className="operation-two-column-grid">
-            <OperationFormCard className="operation-form-column">
-              <FormField label="Email Requested Accept">
-                <OperationFileUpload
-                  files={formValues.departureAttachments || []}
-                  onAddFiles={handleDepartureDocumentsAdd}
-                  isViewOnly={isViewOnly}
-                  ariaLabel="Upload departure documents"
-                />
-              </FormField>
+              <OperationFormCard className="operation-form-column">
+                <FormField label="Email Requested Accept">
+                  <OperationFileUpload
+                    files={formValues.departureAttachments || []}
+                    onAddFiles={handleDepartureDocumentsAdd}
+                    isViewOnly={isViewOnly}
+                    ariaLabel="Upload departure documents"
+                  />
+                </FormField>
 
-              <DynamicDateTimeFields
-                eventFields={eventFields}
-                formValues={formValues}
-                handleChange={handleChange}
-                isViewOnly={isViewOnly}
-              />
-              <FormField label="Next port">
-                <FormInput
-                  type="text"
-                  value={formValues.nextPort || ""}
-                  onChange={handleChange("nextPort")}
-                  placeholder="Enter next port..."
-                  disabled={isViewOnly}
+                <DynamicDateTimeFields
+                  eventFields={eventFields}
+                  formValues={formValues}
+                  handleChange={handleChange}
+                  isViewOnly={isViewOnly}
                 />
-              </FormField>
-            </OperationFormCard>
-            <OperationFormCard className="operation-email-column">
-              <OperationEmailPreviewPanel
-                from={reportDraft.from}
-                to={reportDraft.to}
-                cc={reportDraft.cc}
-                subject={reportDraft.subject}
-                message={reportDraft.message}
-                attachments={formValues.departureAttachments || []}
-                onChange={handleReportDraftChange}
-              />
-            </OperationFormCard>
+                <FormField label="Next port">
+                  <FormInput
+                    type="text"
+                    value={formValues.nextPort || ""}
+                    onChange={handleChange("nextPort")}
+                    placeholder="Enter next port..."
+                    disabled={isViewOnly}
+                  />
+                </FormField>
+              </OperationFormCard>
+              <OperationFormCard className="operation-email-column">
+                <OperationEmailPreviewPanel
+                  from={reportDraft.from}
+                  to={reportDraft.to}
+                  cc={reportDraft.cc}
+                  subject={reportDraft.subject}
+                  message={reportDraft.message}
+                  attachments={formValues.departureAttachments || []}
+                  onChange={handleReportDraftChange}
+                />
+              </OperationFormCard>
             </div>
           </div>
           <OperationSaveSection isViewOnly={isViewOnly} onSave={handleSaveAndSendReport} />
