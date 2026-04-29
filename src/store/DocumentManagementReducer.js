@@ -9,14 +9,22 @@ const useDocumentManagementReducer = create((set) => ({
   totalCount: 0,
   errorMessage: "",
 
-  getDocumentManagement: async () => {
+  getDocumentManagement: async (params) => {
     try {
       set({ isLoadingGet: true });
-      const { data } = await documentManagementService.getAllDocuments();
-      const list = Array.isArray(data?.data) ? data.data : [];
+      const { data } = await documentManagementService.getAllDocuments({ params });
+      const list = Array.isArray(data?.data)
+        ? data.data
+        : Array.isArray(data?.documents)
+          ? data.documents
+          : [];
       set({
         documentManagement: list,
-        totalCount: list.length,
+        totalCount:
+          data?.total ??
+          data?.pagination?.total ??
+          data?.meta?.total ??
+          list.length,
         isLoadingGet: false,
       });
     } catch (err) {

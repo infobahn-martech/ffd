@@ -22,39 +22,20 @@ const DocumentManagement = () => {
     const [showDocumentManagementModal, setShowDocumentManagementModal] = useState(false);
     const [showDeleteModal, setShowDeleteModal] = useState(false);
 
+    const apiParams = useMemo(
+        () => ({
+            searchTerm: params.searchTerm || "",
+            page: params.page,
+            limit: params.limit,
+            sortBy: params.sortBy,
+            sortOrder: params.sortOrder,
+        }),
+        [params.searchTerm, params.page, params.limit, params.sortBy, params.sortOrder]
+    );
+
     useEffect(() => {
-        getDocumentManagement?.();
-    }, [getDocumentManagement]);
-
-    const filteredData = useMemo(() => {
-        const allDocs = Array.isArray(documentManagement) ? documentManagement : [];
-        const search = params.searchTerm?.trim()?.toLowerCase() ?? "";
-        if (!search) return allDocs;
-        return allDocs.filter((doc) =>
-            (doc?.document_name ?? "").toLowerCase().includes(search)
-        );
-    }, [documentManagement, params.searchTerm]);
-
-    const sortedData = useMemo(() => {
-        const list = [...filteredData];
-        const direction = params.sortOrder === 1 ? 1 : -1;
-        if (!params.sortBy) return list;
-
-        return list.sort((a, b) => {
-            const aVal = a?.[params.sortBy];
-            const bVal = b?.[params.sortBy];
-            const aNorm = (aVal ?? "").toString().toLowerCase();
-            const bNorm = (bVal ?? "").toString().toLowerCase();
-            if (aNorm < bNorm) return -1 * direction;
-            if (aNorm > bNorm) return 1 * direction;
-            return 0;
-        });
-    }, [filteredData, params.sortBy, params.sortOrder]);
-
-    const paginatedData = useMemo(() => {
-        const start = (params.page - 1) * params.limit;
-        return sortedData.slice(start, start + params.limit);
-    }, [sortedData, params.page, params.limit]);
+        getDocumentManagement?.(apiParams);
+    }, [getDocumentManagement, apiParams]);
 
     const cols = [
         {
@@ -64,15 +45,6 @@ const DocumentManagement = () => {
             width: "400",
             thclass: "tb-head",
             contentClass: "table-content",
-        },
-        {
-            name: "Created At",
-            selector: "createdAt",
-            sort: true,
-            width: "400",
-            thclass: "tb-head",
-            contentClass: "table-content",
-            cell: DateFormat,
         },
         {
             name: 'Actions',
@@ -109,9 +81,9 @@ const DocumentManagement = () => {
                         isLoading={isLoadingGet}
                         pagination={{ currentPage: params.page, limit: params.limit }}
                         tableClasses="px-start"
-                        count={filteredData.length ?? totalCount ?? 0}
+                        count={totalCount ?? 0}
                         columns={cols}
-                        data={paginatedData}
+                        data={Array.isArray(documentManagement) ? documentManagement : []}
                         Sl={true}
                         onPageChange={(currentPage) =>
                             setParams({ ...params, page: currentPage })
@@ -133,7 +105,7 @@ const DocumentManagement = () => {
                         <DocumentManagementModal
                             showModal={showDocumentManagementModal}
                             closeModal={() => setShowDocumentManagementModal(false)}
-                            onSuccess={() => getDocumentManagement?.()}
+                            onSuccess={() => getDocumentManagement?.(apiParams)}
                         />
                     )}
                     {!!showDeleteModal && (
