@@ -2378,6 +2378,24 @@ function Operation({ card, formValues, handleChange, ownerInitial, isDAModule = 
       "",
     [callDetailData, formValues?.port_id, formValues?.portId, card?.port_id, card?.portId]
   );
+  const preArrivalCallTypeId = useMemo(
+    () =>
+      callDetailData?.call_type_id ??
+      callDetailData?.callTypeId ??
+      callDetailData?.call_type?.call_type_id ??
+      formValues?.call_type_id ??
+      formValues?.typeOfCall ??
+      card?.call_type_id ??
+      card?.typeOfCall ??
+      "",
+    [
+      callDetailData,
+      formValues?.call_type_id,
+      formValues?.typeOfCall,
+      card?.call_type_id,
+      card?.typeOfCall,
+    ]
+  );
 
   // Merge dummy values with formValues for view-only mode (only for DA routes)
   // Dummy values take precedence to ensure all fields are populated
@@ -2387,14 +2405,22 @@ function Operation({ card, formValues, handleChange, ownerInitial, isDAModule = 
   useEffect(() => {
     if (isViewOnly || !etaDateValue || !etaTimeValue) return;
 
-    const eta_date_time = `${etaDateValue} ${etaTimeValue}`;
-    if (lastEtaDependentRequestRef.current === eta_date_time) return;
-    lastEtaDependentRequestRef.current = eta_date_time;
+    if (!preArrivalPortId || !preArrivalCallTypeId) return;
+
+    const eta_date_time = `${etaDateValue} ${etaTimeValue}:00`;
+    const requestKey = `${eta_date_time}|2|${preArrivalPortId}|${preArrivalCallTypeId}`;
+    if (lastEtaDependentRequestRef.current === requestKey) return;
+    lastEtaDependentRequestRef.current = requestKey;
 
     let cancelled = false;
     const loadEtaDependentTimes = async () => {
       try {
-        const response = await preArrivalInfoService.getEtaDependentTimes({ eta_date_time });
+        const response = await preArrivalInfoService.getEtaDependentTimes({
+          eta_date_time,
+          stage_id: 2,
+          port_id: preArrivalPortId,
+          call_type_id: preArrivalCallTypeId,
+        });
         if (cancelled) return;
 
         const dependentEvents = response?.data?.data || [];
@@ -2435,7 +2461,15 @@ function Operation({ card, formValues, handleChange, ownerInitial, isDAModule = 
     return () => {
       cancelled = true;
     };
-  }, [isViewOnly, etaDateValue, etaTimeValue, preArrivalEventFields, handleChange]);
+  }, [
+    isViewOnly,
+    etaDateValue,
+    etaTimeValue,
+    preArrivalEventFields,
+    preArrivalPortId,
+    preArrivalCallTypeId,
+    handleChange,
+  ]);
 
   const handleTabChange = useCallback((tab) => {
     setActiveOperationTab(tab);
