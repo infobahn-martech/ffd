@@ -11,7 +11,7 @@ const DocumentManagement = () => {
         page: 1,
         searchTerm: "",
         limit: 10,
-        sortBy: "document_management",
+        sortBy: "document_name",
         sortOrder: 1,
     });
 
@@ -22,24 +22,44 @@ const DocumentManagement = () => {
     const [showDocumentManagementModal, setShowDocumentManagementModal] = useState(false);
     const [showDeleteModal, setShowDeleteModal] = useState(false);
 
-    const apiParams = useMemo(
-        () => ({
-            searchTerm: params.searchTerm || "",
-            page: params.page,
-            limit: params.limit,
-            sortBy: params.sortBy,
-        }),
-        [params.page, params.limit, params.searchTerm, params.sortBy]
-    );
-
     useEffect(() => {
-        getDocumentManagement?.(apiParams);
-    }, [getDocumentManagement, apiParams]);
+        getDocumentManagement?.();
+    }, [getDocumentManagement]);
+
+    const filteredData = useMemo(() => {
+        const allDocs = Array.isArray(documentManagement) ? documentManagement : [];
+        const search = params.searchTerm?.trim()?.toLowerCase() ?? "";
+        if (!search) return allDocs;
+        return allDocs.filter((doc) =>
+            (doc?.document_name ?? "").toLowerCase().includes(search)
+        );
+    }, [documentManagement, params.searchTerm]);
+
+    const sortedData = useMemo(() => {
+        const list = [...filteredData];
+        const direction = params.sortOrder === 1 ? 1 : -1;
+        if (!params.sortBy) return list;
+
+        return list.sort((a, b) => {
+            const aVal = a?.[params.sortBy];
+            const bVal = b?.[params.sortBy];
+            const aNorm = (aVal ?? "").toString().toLowerCase();
+            const bNorm = (bVal ?? "").toString().toLowerCase();
+            if (aNorm < bNorm) return -1 * direction;
+            if (aNorm > bNorm) return 1 * direction;
+            return 0;
+        });
+    }, [filteredData, params.sortBy, params.sortOrder]);
+
+    const paginatedData = useMemo(() => {
+        const start = (params.page - 1) * params.limit;
+        return sortedData.slice(start, start + params.limit);
+    }, [sortedData, params.page, params.limit]);
 
     const cols = [
         {
-            name: "Waste Type",
-            selector: "waste_type",
+            name: "Document Name",
+            selector: "document_name",
             sort: true,
             width: "400",
             thclass: "tb-head",
@@ -60,7 +80,7 @@ const DocumentManagement = () => {
             tableClasses: 'table-striped',
             contentClass: 'table-content',
             thclass: 'tb-head',
-            onEditClick: (row) => { setShowWasteTypeModal(row) },
+            onEditClick: (row) => { setShowDocumentManagementModal(row) },
             onDeleteClick: () => { setShowDeleteModal(true) },
             cell: RenderAction,
             width: '200',
@@ -73,13 +93,13 @@ const DocumentManagement = () => {
                 <div className="prospect employee">
                     <div className="container-fluid">
                         <CommonHeader
-                            tableTitle="Waste Types"
+                            tableTitle="Document Management"
                             isAddEnabled
-                            addModalLabel="Add Waste Type"
+                            addModalLabel="Add Document"
                             setSearch={(e) =>
                                 setParams({ ...params, searchTerm: e, page: 1 })
                             }
-                            onAddModalClick={() => setShowWasteTypeModal(true)}
+                            onAddModalClick={() => setShowDocumentManagementModal(true)}
                             exportTitle="Export"
                             exportLoader={false}
                         />
@@ -89,9 +109,9 @@ const DocumentManagement = () => {
                         isLoading={isLoadingGet}
                         pagination={{ currentPage: params.page, limit: params.limit }}
                         tableClasses="px-start"
-                        count={totalCount ?? 0}
+                        count={filteredData.length ?? totalCount ?? 0}
                         columns={cols}
-                        data={Array.isArray(wasteTypes) ? wasteTypes : []}
+                        data={paginatedData}
                         Sl={true}
                         onPageChange={(currentPage) =>
                             setParams({ ...params, page: currentPage })
@@ -109,11 +129,11 @@ const DocumentManagement = () => {
                         }
                     />
 
-                    {showWasteTypeModal && (
-                        <WasteTypeModal
-                            showModal={showWasteTypeModal}
-                            closeModal={() => setShowWasteTypeModal(false)}
-                            onSuccess={() => getWasteTypes?.(apiParams)}
+                    {showDocumentManagementModal && (
+                        <DocumentManagementModal
+                            showModal={showDocumentManagementModal}
+                            closeModal={() => setShowDocumentManagementModal(false)}
+                            onSuccess={() => getDocumentManagement?.()}
                         />
                     )}
                     {!!showDeleteModal && (
@@ -121,7 +141,7 @@ const DocumentManagement = () => {
                             show={showDeleteModal}
                             onCancel={() => setShowDeleteModal(false)}
                             onConfirm={() => setShowDeleteModal(false)}
-                            deleteText="Are you sure you want to delete this waste type?"
+                            deleteText="Delete API is not integrated for documents yet."
                         // isLoading={isBeingUpdated}
                         />
                     )}

@@ -9,8 +9,8 @@ import "../../../design/scss/form-designs.scss";
 export function DocumentManagementModal({ showModal, closeModal, onSuccess }) {
     const { addDocumentManagement, updateDocumentManagement, isBeingUpdated } = useDocumentManagementReducer((state) => state);
 
-    const isEdit = showModal && typeof showModal === "object" && !!(showModal?.document_management_id ?? showModal?._id);
-    const documentManagementId = isEdit ? showModal?.document_management_id ?? showModal?._id : null;
+    const isEdit = showModal && typeof showModal === "object" && !!(showModal?.document_id ?? showModal?._id);
+    const documentManagementId = isEdit ? showModal?.document_id ?? showModal?._id : null;
 
     const {
         register,
@@ -24,7 +24,7 @@ export function DocumentManagementModal({ showModal, closeModal, onSuccess }) {
     useEffect(() => {
         if (!showModal) return;
         if (isEdit) {
-            reset({ name: showModal?.document_management ?? showModal?.name ?? "" });
+            reset({ name: showModal?.document_name ?? showModal?.name ?? "" });
         } else {
             reset({ name: "" });
         }
@@ -41,12 +41,12 @@ export function DocumentManagementModal({ showModal, closeModal, onSuccess }) {
 
         if (isEdit) {
             await updateDocumentManagement({
-                formData: { document_management_id: documentManagementId, document_management: trimmed },
+                formData: { document_id: documentManagementId, document_name: trimmed },
                 cb,
             });
         } else {
             await addDocumentManagement({
-                formData: { document_management: trimmed },
+                formData: { document_name: trimmed },
                 cb,
             });
         }

@@ -1,81 +1,63 @@
-import { create } from 'zustand';
-import useAlertReducer from './AlertReducer';
-import WorkerTypeservice from '../services/workerTypeService';
+import { create } from "zustand";
+import useAlertReducer from "./AlertReducer";
+import documentManagementService from "../services/documentManagementService";
 
-const useWorkerTypeReducer = create((set) => ({
-  isLoading: false,
-  errorMessage: '',
-  successMessage: '',
-  WorkerTypes: null,
-  workerTypeCount: null,
-  addEditLoader: false,
-  createWorkerType: async ({ formData, cb }) => {
+const useDocumentManagementReducer = create((set) => ({
+  isLoadingGet: false,
+  isBeingUpdated: false,
+  documentManagement: [],
+  totalCount: 0,
+  errorMessage: "",
+
+  getDocumentManagement: async () => {
     try {
-      set({ addEditLoader: true });
-      const { data } = await WorkerTypeservice.postWorkerType(formData);
+      set({ isLoadingGet: true });
+      const { data } = await documentManagementService.getAllDocuments();
+      const list = Array.isArray(data?.data) ? data.data : [];
       set({
-        successMessage: data.message,
-        addEditLoader: false,
+        documentManagement: list,
+        totalCount: list.length,
+        isLoadingGet: false,
       });
+    } catch (err) {
+      set({
+        isLoadingGet: false,
+        errorMessage: err?.message ?? "Failed to fetch documents",
+        documentManagement: [],
+        totalCount: 0,
+      });
+    }
+  },
+
+  addDocumentManagement: async ({ formData, cb }) => {
+    try {
+      set({ isBeingUpdated: true });
+      const { data } = await documentManagementService.saveDocument(formData);
+      set({ isBeingUpdated: false });
       const { success } = useAlertReducer.getState();
-      success(data && data.message);
-      cb && cb();
+      success(data?.message ?? "Document saved successfully");
+      cb?.();
     } catch (err) {
       const { error } = useAlertReducer.getState();
-      set({
-        errorMessage: 'Something went wrong fetching user',
-        addEditLoader: false,
-      });
+      set({ isBeingUpdated: false });
       error(err?.response?.data?.message ?? err.message);
     }
   },
-  getWorkerType: async ({ params }) => {
+
+  updateDocumentManagement: async ({ formData, cb }) => {
     try {
-      set({ isLoading: true });
-      const { data } = await WorkerTypeservice.getWorkerType(params);
-      set({
-        WorkerTypes: data.data,
-        isLoading: false,
-        workerTypeCount: data.totalCount,
-      });
-    } catch (error) {
-      set({ errorMessage: error.message, isLoading: false });
-    }
-  },
-  editWorkerType: async ({ id, formData, cb }) => {
-    try {
-      set({ addEditLoader: true });
-      const { data } = await WorkerTypeservice.editWorkerType(id, formData);
-      set({ successMessage: data.message, addEditLoader: false });
+      set({ isBeingUpdated: true });
+      const { data } = await documentManagementService.updateDocument(formData);
+      set({ isBeingUpdated: false });
       const { success } = useAlertReducer.getState();
-      success(data && data.message);
-      cb && cb();
+      success(data?.message ?? "Document updated successfully");
+      cb?.();
     } catch (err) {
       const { error } = useAlertReducer.getState();
-      set({
-        errorMessage: 'Something went wrong editing the WorkerType',
-        addEditLoader: false,
-      });
-      error(err?.response?.data?.message ?? err.message);
-    }
-  },
-  deleteWorkerType: async ({ id, cb }) => {
-    try {
-      set({ addEditLoader: true });
-      const { data } = await WorkerTypeservice.deleteWorkerType(id);
-      set({ successMessage: data.message, addEditLoader: false });
-      const { success } = useAlertReducer.getState();
-      success(data && data.message);
-      cb && cb();
-    } catch (err) {
-      const { error } = useAlertReducer.getState();
-      set({
-        errorMessage: 'Something went wrong deleting the WorkerType',
-        addEditLoader: false,
-      });
+      set({ isBeingUpdated: false });
       error(err?.response?.data?.message ?? err.message);
     }
   },
 }));
 
-export default useWorkerTypeReducer;
+export default useDocumentManagementReducer;
