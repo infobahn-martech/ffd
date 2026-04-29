@@ -207,6 +207,10 @@ export function mapBoardWorkflowFromApi(workflow) {
 
   const raw = {
     id: wfId,
+    workflow_id: wfId,
+    workflow_name: title,
+    role_id: workflow.role_id ?? null,
+    description: workflow.description,
     boardId,
     title,
     columnOrder,

@@ -143,13 +143,22 @@ function SideNav({ isMobileMenuOpen, onCloseMobileMenu, isVendorPortal = false }
   const [addModalWorkflows, setAddModalWorkflows] = useState([]);
   const [swimlanePhaseWorkflow, setSwimlanePhaseWorkflow] = useState(null);
 
-  const availableWorkflows = useKanbanSidebarBridge((s) => s.boardWorkflows);
+  const sidebarWorkflows = useKanbanSidebarBridge((s) => s.boardWorkflows);
   const pendingAddCardFromWorkflowRef = useRef(null);
 
   const swimlaneOptionsForModal = useMemo(
     () => getSwimlaneOptionsFromWorkflow(swimlanePhaseWorkflow),
     [swimlanePhaseWorkflow]
   );
+  const workflowOptionsForModal = useMemo(() => {
+    return (sidebarWorkflows || [])
+      .filter((workflow) => workflow?.role_id === null)
+      .map((workflow) => ({
+        id: workflow?.workflow_id ?? workflow?.id,
+        name: workflow?.workflow_name ?? workflow?.name ?? workflow?.title ?? 'Workflow',
+        description: workflow?.description,
+      }));
+  }, [sidebarWorkflows]);
 
   const swimlaneContextDisplayName =
     swimlanePhaseWorkflow?.name ?? swimlanePhaseWorkflow?.title ?? '';
@@ -169,7 +178,7 @@ function SideNav({ isMobileMenuOpen, onCloseMobileMenu, isVendorPortal = false }
   }, [resetAddModalState]);
 
   const beginSidebarAddCard = useCallback(() => {
-    const resolved = resolveSidebarAddCardAction(availableWorkflows);
+    const resolved = resolveSidebarAddCardAction(sidebarWorkflows);
     if (resolved.kind === 'dispatch') {
       window.dispatchEvent(new CustomEvent('kanban:add-card', { detail: resolved.detail }));
       return;
@@ -185,7 +194,7 @@ function SideNav({ isMobileMenuOpen, onCloseMobileMenu, isVendorPortal = false }
     setSelectedWorkflowId(null);
     setSelectedSwimlaneId(null);
     setShowSelectWorkflowModal(true);
-  }, [availableWorkflows]);
+  }, [sidebarWorkflows]);
 
   const handleAddModalContinue = useCallback(() => {
     if (addModalStep === 'workflow') {
@@ -693,6 +702,9 @@ function SideNav({ isMobileMenuOpen, onCloseMobileMenu, isVendorPortal = false }
   }
 
   if (isKanbanBoard && !isVendorPortal) {
+    console.log('raw workflows:', sidebarWorkflows);
+    console.log('modal workflows:', workflowOptionsForModal);
+
     const handleIconClick = (item) => {
       if (restrictedNav) {
         if (item.label === 'Workspaces') {
@@ -927,7 +939,7 @@ function SideNav({ isMobileMenuOpen, onCloseMobileMenu, isVendorPortal = false }
         <SelectWorkflowModal
           show={showSelectWorkflowModal}
           selectionMode={addModalStep === 'swimlane' ? 'swimlane' : 'workflow'}
-          workflows={addModalStep === 'workflow' ? addModalWorkflows : []}
+          workflows={workflowOptionsForModal}
           swimlanes={addModalStep === 'swimlane' ? swimlaneOptionsForModal : []}
           workflowContextName={addModalStep === 'swimlane' ? swimlaneContextDisplayName : undefined}
           selectedWorkflowId={addModalStep === 'workflow' ? selectedWorkflowId : null}

@@ -6,15 +6,18 @@ export default function useSyncKanbanSidebarWorkflows(workflows) {
   const setBoardWorkflows = useKanbanSidebarBridge((s) => s.setBoardWorkflows);
 
   useEffect(() => {
-    const list = (workflows || []).map((w) => ({
-      id: w.id,
-      name: w.title ?? w.name ?? 'Workflow',
-      title: w.title ?? w.name ?? 'Workflow',
-      description: w.description,
-      swimlaneOrder: w.swimlaneOrder,
-      swimlanes: w.swimlanes,
-      columnOrder: w.columnOrder,
-      columns: w.columns,
+    const list = (workflows || []).map((workflow) => ({
+      id: workflow?.id,
+      workflow_id: workflow?.workflow_id ?? workflow?.id,
+      name: workflow?.title ?? workflow?.name ?? 'Workflow',
+      workflow_name: workflow?.workflow_name ?? workflow?.title ?? workflow?.name ?? 'Workflow',
+      title: workflow?.title ?? workflow?.name ?? 'Workflow',
+      description: workflow?.description,
+      role_id: workflow?.role_id ?? null,
+      swimlaneOrder: workflow?.swimlaneOrder,
+      swimlanes: workflow?.swimlanes,
+      columnOrder: workflow?.columnOrder,
+      columns: workflow?.columns,
     }));
     setBoardWorkflows(list);
     return () => setBoardWorkflows([]);
