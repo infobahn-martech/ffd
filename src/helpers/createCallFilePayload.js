@@ -135,21 +135,14 @@ export function buildCreateCallFileFormData(formPayload, options = {}) {
 
   appendIfValid("assigned_operator_id", str(fv.assignedOperator));
   appendIfValid("billing_entity_id", str(fv.mainBillingEntity));
-  appendIfValid("other_billing_entity_id", str(fv.otherBillingEntity));
   appendIfValid("vessel_type_id", str(fv.vesselType));
   appendIfValid("barge_type_id", str(fv.bargeType));
   appendIfValid("vessel_id", str(fv.vesselName));
 
   appendIfValid("vessel_owner", str(fv.vesselOwner));
   appendIfValid("vessel_principal", str(fv.vesselPrincipal));
-  appendIfValid("vessel_manager", str(fv.vesselManager));
   appendIfValid("service_requestor_name", str(fv.serviceRequestorName));
   appendIfValid("service_requestor_email", str(fv.serviceRequestorEmail));
-  appendIfValid("card_description", str(fv.cardDescription ?? fv.card_description));
-  appendIfValid("po_number", str(fv.poNumber ?? fv.po_number));
-  appendIfValid("srf_number", str(fv.srfNumber ?? fv.srf_number ?? fv.shipper));
-  appendIfValid("project_name", str(fv.projectName ?? fv.project_name ?? fv.project));
-  appendIfValid("project_code", str(fv.projectCode ?? fv.project_code));
 
   const daily = resolveSelectionsToNumericReferenceIds(fv.dailyReportEmail, dailyReportEmailOptions);
   appendIfValid("daily_report_emails", daily);
@@ -161,10 +154,17 @@ export function buildCreateCallFileFormData(formPayload, options = {}) {
   );
   appendIfValid("billing_instruction_emails", billingInst);
 
-  const entityFields = Array.isArray(fv.entity_fields) ? fv.entity_fields : [];
-  appendIfValid("entity_fields", entityFields);
-
-  const timeObjects = Array.isArray(fv.time_objects) ? fv.time_objects : [];
+  const timeObjects = (Array.isArray(fv.time_objects) ? fv.time_objects : [])
+    .map((item) => {
+      const stageId = str(item?.time_object_stage_id ?? item?.time_object_id);
+      const value = str(item?.time_object_value);
+      if (!stageId || !value) return null;
+      return {
+        time_object_stage_id: stageId,
+        time_object_value: value,
+      };
+    })
+    .filter(Boolean);
   appendIfValid("time_objects", timeObjects);
 
   const appointmentAcceptanceRaw =

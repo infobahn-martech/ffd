@@ -1840,14 +1840,15 @@ function General({
       entity_fields: entityFieldsPayload,
       time_objects: (Array.isArray(stageTimeObjects) ? stageTimeObjects : [])
         .map((item) => {
-          const id = firstNonEmptyString(item?.time_object_id);
-          if (!id) return null;
-          const selected = stageTimeObjectValues?.[id];
+          const valueLookupId = firstNonEmptyString(item?.time_object_id);
+          const timeObjectStageId = firstNonEmptyString(item?.time_object_stage_id, item?.time_object_id);
+          if (!valueLookupId || !timeObjectStageId) return null;
+          const selected = stageTimeObjectValues?.[valueLookupId];
           const selectedDate = firstNonEmptyString(selected?.date);
           const selectedTime = firstNonEmptyString(selected?.time);
           if (!selectedDate || !selectedTime) return null;
           return {
-            time_object_id: id,
+            time_object_stage_id: timeObjectStageId,
             time_object_value: `${selectedDate} ${selectedTime}:00`,
           };
         })
