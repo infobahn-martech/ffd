@@ -381,6 +381,18 @@ function SideNav({ isMobileMenuOpen, onCloseMobileMenu, isVendorPortal = false }
         { menu: 'Logistics Warehouses', to: '/logistics-warehouse', hasPermission: true },
       ],
     },
+    {
+      menu: 'Time Object Management',
+      isDefaultMenu: true,
+      icon: materialIcon, // Material-specific icon
+      hasPermission: true,
+      isOpen: false,
+      subMenus: [
+        { menu: 'Time Objects', to: '/time-objects', hasPermission: true },
+        { menu: 'Packing Types', to: '/packing-type', hasPermission: true },
+        { menu: 'Logistics Warehouses', to: '/logistics-warehouse', hasPermission: true },
+      ],
+    },
     // ✅ Finance
     {
       menu: 'Entity Management',
