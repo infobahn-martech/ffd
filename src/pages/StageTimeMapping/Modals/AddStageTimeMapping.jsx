@@ -228,6 +228,21 @@ export function StageTimeMappingModal({ showModal, closeModal, onSuccess }) {
                                     {...register("port_id", { required: "Port is required" })}
                                 >
                                     <option value="">Select port</option>
+                                    {isEditMode &&
+                                        showModal?.port_id !== undefined &&
+                                        showModal?.port_id !== null &&
+                                        String(showModal.port_id) !== "" &&
+                                        !(ports ?? []).some(
+                                            (p) =>
+                                                String(p?.port_id ?? p?._id ?? p?.id ?? "") ===
+                                                String(showModal.port_id)
+                                        ) && (
+                                            <option value={String(showModal.port_id)}>
+                                                {showModal.port ??
+                                                    showModal.port_name ??
+                                                    `Port ${showModal.port_id}`}
+                                            </option>
+                                        )}
                                     {(ports ?? []).map((p) => {
                                         const id = p?.port_id ?? p?._id ?? p?.id;
                                         const label = p?.port ?? p?.name ?? p?.port_name ?? String(id);
@@ -253,6 +268,20 @@ export function StageTimeMappingModal({ showModal, closeModal, onSuccess }) {
                                     {...register("call_type_id", { required: "Call type is required" })}
                                 >
                                     <option value="">Select call type</option>
+                                    {isEditMode &&
+                                        showModal?.call_type_id !== undefined &&
+                                        showModal?.call_type_id !== null &&
+                                        String(showModal.call_type_id) !== "" &&
+                                        !(callTypes ?? []).some(
+                                            (ct) =>
+                                                String(ct?.call_type_id ?? "") === String(showModal.call_type_id)
+                                        ) && (
+                                            <option value={String(showModal.call_type_id)}>
+                                                {showModal.call_type ??
+                                                    showModal.callType ??
+                                                    `Call Type ${showModal.call_type_id}`}
+                                            </option>
+                                        )}
                                     {(callTypes ?? []).map((ct) => (
                                         <option key={ct?.call_type_id} value={String(ct?.call_type_id)}>
                                             {ct?.call_type ?? ct?.callType ?? ""}
@@ -284,7 +313,13 @@ export function StageTimeMappingModal({ showModal, closeModal, onSuccess }) {
                                     timeObjectMaster.map((row) => {
                                         const id = row?.time_object_id ?? row?._id ?? row?.id;
                                         const key = String(id);
-                                        const label = row?.time_object ?? row?.name ?? key;
+                                        const rawName = row?.time_object ?? row?.name;
+                                        const label =
+                                            rawName != null && String(rawName).trim() !== ""
+                                                ? String(rawName)
+                                                : id != null && id !== ""
+                                                  ? `Time Object ${id}`
+                                                  : "";
                                         const sel = timeSelections[key];
                                         const checked = !!sel?.checked;
                                         return (
