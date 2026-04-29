@@ -86,7 +86,7 @@ const KPITasks = () => {
             width: "160",
         },
         {
-            name: "Time",
+            name: "Time Duration",
             // selector: "time_duration",
             tableClasses: "table-striped",
             contentClass: "table-content",
@@ -96,6 +96,15 @@ const KPITasks = () => {
             cell: ({ row }) => {
                 return <span>{`${row.time_duration || 0} minutes`}</span>;
             },
+        },
+        {
+            name: "Time Constraint",
+            selector: "time_constraint",
+            tableClasses: "table-striped",
+            contentClass: "table-content",
+            sort: true,
+            thclass: "tb-head",
+            width: "120",
         },
         {
             name: "Point",
