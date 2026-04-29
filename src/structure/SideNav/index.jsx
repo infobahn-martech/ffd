@@ -400,6 +400,7 @@ function SideNav({ isMobileMenuOpen, onCloseMobileMenu, isVendorPortal = false }
       isOpen: false,
       subMenus: [
         { menu: 'Document Management', to: '/document-management', hasPermission: true },
+        { menu: 'Document Checklist', to: '/document-checklist', hasPermission: true },
       ],
     },
     // ✅ Finance

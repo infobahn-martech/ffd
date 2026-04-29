@@ -85,6 +85,7 @@ import { ROUTE_PATHS } from "./paths";
 import TimeObjects from "../pages/TimeObject";
 import StageTimeMappings from "../pages/StageTimeMapping";
 import DocumentManagement from "../pages/DocumentManagement";
+import DocumentChecklist from "../pages/DocumentChecklist";
 // 🔥 Set true to bypass auth temporarily
 const TEST_MODE = false;
 
@@ -143,6 +144,7 @@ const router = createHashRouter([
               { path: "/material-type", element: <MaterialType /> },
               { path: "/packing-type", element: <PackingType /> },
               { path: "/logistics-warehouse", element: <LogisticsWarehouse /> },
+              { path: "/document-checklist", element: <DocumentChecklist /> },
               { path: "/status-management", element: <StatusManagement /> },
               { path: "/custom-fields", element: <CustomFields /> },
               { path: "/job-status", element: <JobStatusBE /> },
@@ -264,6 +266,8 @@ const router = createHashRouter([
                   { path: "/packing-type", element: <RouteGuard><PackingType /></RouteGuard> },
                   // Logistics Warehouse
                   { path: "/logistics-warehouse", element: <RouteGuard><LogisticsWarehouse /></RouteGuard> },
+                  // Document Checklist
+                  { path: "/document-checklist", element: <RouteGuard><DocumentChecklist /></RouteGuard> },
                   // Status Management
                   { path: "/status-management", element: <RouteGuard><StatusManagement /></RouteGuard> },
                   // Custom Fields
@@ -312,6 +316,7 @@ const router = createHashRouter([
                   { path: "/time-objects", element: <RouteGuard><TimeObjects /></RouteGuard> },
                   { path: "/stage-time-mappings", element: <RouteGuard><StageTimeMappings /></RouteGuard> },
                   { path: "/document-management", element: <RouteGuard><DocumentManagement /></RouteGuard> },
+                  { path: "/document-checklist", element: <RouteGuard><DocumentChecklist /></RouteGuard> },
                 ],
               },
             ],
