@@ -1675,6 +1675,107 @@ $send-report-optional: #80868b;
   position: relative;
 }
 
+.operation-premium-layout {
+  display: grid;
+  grid-template-columns: minmax(0, 40fr) minmax(0, 60fr);
+  gap: 20px;
+  background: #ffffff;
+  border: 1px solid #e8ebf3;
+  border-radius: 14px;
+  box-shadow: 0 8px 24px rgba(15, 34, 72, 0.06);
+  padding: 18px;
+  min-height: 0;
+}
+
+.operation-premium-left,
+.operation-premium-right {
+  min-width: 0;
+  min-height: 0;
+}
+
+.operation-premium-right {
+  max-height: calc(100vh - 270px);
+  overflow-y: auto;
+  padding-right: 4px;
+}
+
+.operation-email-preview-panel {
+  background: #ffffff;
+  border: 1px solid #e6e9f2;
+  border-radius: 12px;
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.7);
+  padding: 16px;
+}
+
+.operation-email-preview-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  margin-bottom: 10px;
+
+  h4 {
+    margin: 0;
+    font-size: 16px;
+    color: #202938;
+    font-weight: 700;
+  }
+}
+
+.operation-email-report-type {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+
+  label {
+    margin: 0;
+    font-size: 12px;
+    color: #5d6780;
+    font-weight: 600;
+  }
+
+  select {
+    border: 1px solid #d8dfec;
+    border-radius: 8px;
+    min-height: 34px;
+    padding: 0 10px;
+    font-size: 13px;
+    color: #273043;
+    background: #fff;
+  }
+}
+
+.operation-email-preview-body .cf-field {
+  margin-bottom: 12px;
+}
+
+.operation-email-attachments {
+  border: 1px solid #e2e7f1;
+  border-radius: 10px;
+  background: #f9fbff;
+  padding: 10px;
+  max-height: 150px;
+  overflow-y: auto;
+}
+
+.operation-email-attachment-item {
+  font-size: 13px;
+  color: #2b354c;
+  padding: 6px 8px;
+  border-radius: 7px;
+  background: #ffffff;
+  border: 1px solid #e8ecf5;
+}
+
+.operation-email-attachment-item + .operation-email-attachment-item {
+  margin-top: 8px;
+}
+
+.operation-email-attachment-empty {
+  font-size: 13px;
+  color: #7d869d;
+}
+
 /* Add padding to Checklist and other content components */
 .operation-right>.cf-section:first-of-type {
   position: relative;
@@ -2262,6 +2363,14 @@ $send-report-optional: #80868b;
   .arrival-form .operation-section-form-layout,
   .departure-form .operation-section-form-layout {
     grid-template-columns: 1fr;
+  }
+
+  .operation-premium-layout {
+    grid-template-columns: 1fr;
+  }
+
+  .operation-premium-right {
+    max-height: unset;
   }
 }
 

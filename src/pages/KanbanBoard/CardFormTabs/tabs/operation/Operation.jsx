@@ -7,7 +7,6 @@ import Checklist from "../appointment/Checklist";
 import { notify } from "../../../../../components/Toaster";
 import callFileService from "../../../../../services/callFileService";
 import stageTimeMappingService from "../../../../../services/stageTimeMappingService";
-import { SendReportFullWidthView, SendReportButton } from "../../services/sendReportFullWidthView";
 import {
   buildPreArrivalReportBody,
   buildArrivalReportBody,
@@ -222,6 +221,104 @@ DynamicDateTimeFields.propTypes = {
   formValues: PropTypes.object.isRequired,
   handleChange: PropTypes.func.isRequired,
   isViewOnly: PropTypes.bool,
+};
+
+const formatAttachmentLabel = (attachment) => {
+  if (!attachment) return "Attachment";
+  if (typeof attachment === "string") return attachment;
+  return attachment.name || attachment.file_name || attachment.filename || "Attachment";
+};
+
+const OperationEmailPreviewPanel = ({
+  reportType,
+  reportTypeOptions,
+  from,
+  to,
+  cc,
+  subject,
+  message,
+  attachments = [],
+  onChange,
+  onReportTypeChange,
+}) => {
+  return (
+    <div className="operation-email-preview-panel">
+      <div className="operation-email-preview-header">
+        <h4>Email Preview</h4>
+        {reportTypeOptions?.length > 0 && (
+          <div className="operation-email-report-type">
+            <label htmlFor="operation-report-type">Report Type</label>
+            <select
+              id="operation-report-type"
+              value={reportType || reportTypeOptions[0]?.value}
+              onChange={(e) => onReportTypeChange?.(e.target.value)}
+            >
+              {reportTypeOptions.map((option) => (
+                <option key={option.value} value={option.value}>
+                  {option.label}
+                </option>
+              ))}
+            </select>
+          </div>
+        )}
+      </div>
+
+      <div className="operation-email-preview-body">
+        <FormField label="From">
+          <FormInput type="text" value={from || ""} onChange={(e) => onChange?.("from", e.target.value)} placeholder="Sender email" />
+        </FormField>
+        <FormField label="To">
+          <FormInput type="text" value={to || ""} onChange={(e) => onChange?.("to", e.target.value)} placeholder="Recipient emails" />
+        </FormField>
+        <FormField label="Cc">
+          <FormInput type="text" value={cc || ""} onChange={(e) => onChange?.("cc", e.target.value)} placeholder="CC emails" />
+        </FormField>
+        <FormField label="Subject">
+          <FormInput type="text" value={subject || ""} onChange={(e) => onChange?.("subject", e.target.value)} placeholder="Email subject" />
+        </FormField>
+        <FormField label="Message">
+          <FormTextarea
+            value={message || ""}
+            onChange={(e) => onChange?.("message", e.target.value)}
+            placeholder="Type email content here..."
+            rows={11}
+          />
+        </FormField>
+
+        <FormField label="Attachments">
+          <div className="operation-email-attachments">
+            {attachments.length ? (
+              attachments.map((item, index) => (
+                <div className="operation-email-attachment-item" key={`${formatAttachmentLabel(item)}-${index}`}>
+                  {formatAttachmentLabel(item)}
+                </div>
+              ))
+            ) : (
+              <span className="operation-email-attachment-empty">No attachments</span>
+            )}
+          </div>
+        </FormField>
+      </div>
+    </div>
+  );
+};
+
+OperationEmailPreviewPanel.propTypes = {
+  reportType: PropTypes.string,
+  reportTypeOptions: PropTypes.arrayOf(
+    PropTypes.shape({
+      value: PropTypes.string,
+      label: PropTypes.string,
+    })
+  ),
+  from: PropTypes.string,
+  to: PropTypes.string,
+  cc: PropTypes.string,
+  subject: PropTypes.string,
+  message: PropTypes.string,
+  attachments: PropTypes.array,
+  onChange: PropTypes.func,
+  onReportTypeChange: PropTypes.func,
 };
 
 const FormInput = ({ type = "text", value, onChange, placeholder, className = "", disabled = false }) => {
@@ -1053,19 +1150,26 @@ const PreArrivalContent = ({
   cardColor,
   onAddLink,
   onRemoveLink,
-  onOpenReportPreview,
+  onSendReport,
   isViewOnly = false,
   eventFields = [],
   portId,
 }) => {
   const [isSavingPreArrival, setIsSavingPreArrival] = useState(false);
+  const [reportDraft, setReportDraft] = useState({
+    from: "operations@shipping.com",
+    to: "",
+    cc: "",
+    subject: "Report - Pre Arrival",
+    message: "",
+  });
 
   const handleSaberUtAddFiles = (files) => {
     const currentAttachments = formValues.saberUtDocumentsAttachments || [];
     handleChange("saberUtDocumentsAttachments")({ target: { value: [...currentAttachments, ...files] } });
   };
 
-  const handleSave = async () => {
+  const savePreArrivalData = async () => {
     const callId = card?.call_id || formValues?.call_id || "";
     const cardId = card?.id || card?.card_id || formValues?.card_id || "";
     const assignedGro = formValues.assignedGro || "";
@@ -1073,19 +1177,19 @@ const PreArrivalContent = ({
 
     if (!callId) {
       notify("Call ID is required.", "error");
-      return;
+      return false;
     }
     if (!cardId) {
       notify("Card ID is required.", "error");
-      return;
+      return false;
     }
     if (!assignedGro) {
       notify("Assigned GRO is required.", "error");
-      return;
+      return false;
     }
     if (!assignedCustom) {
       notify("Assigned Custom clearance is required.", "error");
-      return;
+      return false;
     }
 
     const events = (eventFields || [])
@@ -1150,109 +1254,142 @@ const PreArrivalContent = ({
       setIsSavingPreArrival(true);
       await preArrivalService.savePreArrival(fd);
       notify("Pre Arrival saved successfully.", "success");
+      return true;
     } catch (error) {
       notify(error?.response?.data?.message || "Failed to save Pre Arrival.", "error");
+      return false;
     } finally {
       setIsSavingPreArrival(false);
     }
   };
 
-  const preArrivalReportAttachments = () => [
+  const preArrivalReportAttachments = [
     ...(formValues.saberUtDocumentsAttachments || []),
     ...collectPreArrivalProcessAttachments(formValues.preArrivalDocumentHandling),
   ];
+
+  useEffect(() => {
+    setReportDraft((prev) => ({
+      ...prev,
+      message: buildPreArrivalReportBody(formValues),
+    }));
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
+  const handleReportDraftChange = (field, value) => {
+    setReportDraft((prev) => ({ ...prev, [field]: value }));
+  };
+
+  const handleSaveAndSendReport = async () => {
+    const saveResult = await savePreArrivalData();
+    if (!saveResult) return;
+
+    try {
+      await onSendReport?.({
+        tabName: "Pre Arrival",
+        from: reportDraft.from,
+        to: reportDraft.to,
+        cc: reportDraft.cc,
+        subject: reportDraft.subject,
+        body: reportDraft.message || buildPreArrivalReportBody(formValues),
+        attachments: preArrivalReportAttachments,
+      });
+    } catch (error) {
+      notify(error?.message || "Report send is not available yet.", "warning");
+    }
+  };
 
   return (
     <div className="cardform-left-full" style={{ "--card-color": cardColor }}>
       <div className="operation-content-header">
         <h3 className="operation-content-title">Pre-Arrival Information</h3>
-        {onOpenReportPreview && !isViewOnly && (
-          <SendReportButton
-            onClick={() =>
-              onOpenReportPreview({
-                tabName: "Pre Arrival",
-                formSectionLabel: "Pre-Arrival Information",
-                getBody: () => buildPreArrivalReportBody(formValues),
-                getAttachments: preArrivalReportAttachments,
-              })
-            }
-            cardColor={cardColor}
-            tabName="Pre Arrival"
-          />
-        )}
       </div>
       <FormSection icon={GroupSettingsIcon} title="">
         <div className="pre-arrival-form">
-          <div className="pre-arrival-3col-layout">
-            <div className="pre-arrival-left general-info-left prearrival-left-column">
-              <DynamicDateTimeFields
-                eventFields={eventFields}
-                formValues={formValues}
-                handleChange={handleChange}
-                isViewOnly={isViewOnly}
-              />
+          <div className="operation-premium-layout">
+            <div className="operation-premium-left">
+              <div className="pre-arrival-3col-layout">
+                <div className="pre-arrival-left general-info-left prearrival-left-column">
+                  <DynamicDateTimeFields
+                    eventFields={eventFields}
+                    formValues={formValues}
+                    handleChange={handleChange}
+                    isViewOnly={isViewOnly}
+                  />
 
-              <FormField label="SABER Status">
-                <FormInput
-                  type="text"
-                  value={formValues.saberUtStatus || ""}
-                  onChange={handleChange("saberUtStatus")}
-                  placeholder="Enter SABER Status..."
-                  disabled={isViewOnly}
-                />
-              </FormField>
+                  <FormField label="SABER Status">
+                    <FormInput
+                      type="text"
+                      value={formValues.saberUtStatus || ""}
+                      onChange={handleChange("saberUtStatus")}
+                      placeholder="Enter SABER Status..."
+                      disabled={isViewOnly}
+                    />
+                  </FormField>
 
-              <FormField label="SABER Certificate Upload">
-                <SaberUploadBox
-                  files={formValues.saberUtDocumentsAttachments || []}
-                  onAddFiles={handleSaberUtAddFiles}
-                  isViewOnly={isViewOnly}
-                />
-              </FormField>
+                  <FormField label="SABER Certificate Upload">
+                    <SaberUploadBox
+                      files={formValues.saberUtDocumentsAttachments || []}
+                      onAddFiles={handleSaberUtAddFiles}
+                      isViewOnly={isViewOnly}
+                    />
+                  </FormField>
 
-              <FormField label="Weather Forecast">
-                <FormInput
-                  type="text"
-                  value={formValues?.weatherForecast || ""}
-                  onChange={handleChange("weatherForecast")}
-                  placeholder="Enter weather forecast..."
-                  disabled={isViewOnly}
-                />
-              </FormField>
+                  <FormField label="Weather Forecast">
+                    <FormInput
+                      type="text"
+                      value={formValues?.weatherForecast || ""}
+                      onChange={handleChange("weatherForecast")}
+                      placeholder="Enter weather forecast..."
+                      disabled={isViewOnly}
+                    />
+                  </FormField>
 
-              <FormField label="Coordinates">
-                <FormInput
-                  type="text"
-                  value={formValues?.coordinates || ""}
-                  onChange={handleChange("coordinates")}
-                  placeholder="Enter coordinates..."
-                  disabled={isViewOnly}
-                />
-              </FormField>
+                  <FormField label="Coordinates">
+                    <FormInput
+                      type="text"
+                      value={formValues?.coordinates || ""}
+                      onChange={handleChange("coordinates")}
+                      placeholder="Enter coordinates..."
+                      disabled={isViewOnly}
+                    />
+                  </FormField>
+                </div>
+
+                <div className="pre-arrival-right">
+                  <PreArrivalDocumentHandlingSection
+                    formValues={formValues}
+                    handleChange={handleChange}
+                    isViewOnly={isViewOnly}
+                    portId={portId}
+                  />
+                </div>
+              </div>
+              {!isViewOnly && (
+                <div className="prearrival-actions">
+                  <button
+                    type="button"
+                    className="form-save-button prearrival-save-button"
+                    onClick={handleSaveAndSendReport}
+                    disabled={isSavingPreArrival}
+                  >
+                    {isSavingPreArrival ? "Saving..." : "Save & Send Report"}
+                  </button>
+                </div>
+              )}
             </div>
-
-            <div className="pre-arrival-right">
-              <PreArrivalDocumentHandlingSection
-                formValues={formValues}
-                handleChange={handleChange}
-                isViewOnly={isViewOnly}
-                portId={portId}
+            <div className="operation-premium-right">
+              <OperationEmailPreviewPanel
+                from={reportDraft.from}
+                to={reportDraft.to}
+                cc={reportDraft.cc}
+                subject={reportDraft.subject}
+                message={reportDraft.message}
+                attachments={preArrivalReportAttachments}
+                onChange={handleReportDraftChange}
               />
             </div>
           </div>
-
-          {!isViewOnly && (
-            <div className="prearrival-actions">
-              <button
-                type="button"
-                className="form-save-button prearrival-save-button"
-                onClick={handleSave}
-                disabled={isSavingPreArrival}
-              >
-                {isSavingPreArrival ? "Saving..." : "Save"}
-              </button>
-            </div>
-          )}
         </div>
       </FormSection>
     </div>
@@ -1268,7 +1405,7 @@ PreArrivalContent.propTypes = {
   cardColor: PropTypes.string,
   onAddLink: PropTypes.func,
   onRemoveLink: PropTypes.func,
-  onOpenReportPreview: PropTypes.func,
+  onSendReport: PropTypes.func,
   isViewOnly: PropTypes.bool,
   eventFields: PropTypes.array,
   portId: PropTypes.oneOfType([PropTypes.string, PropTypes.number]),
@@ -1280,18 +1417,21 @@ const ArrivalContent = ({
   cardColor,
   onAddLink,
   onRemoveLink,
-  onOpenReportPreview,
+  onSendReport,
   isViewOnly = false,
   arrivalStageFields = [],
   postArrivalStageFields = [],
 }) => {
   const [isDraggingDocuments, setIsDraggingDocuments] = useState(false);
   const documentsFileInputRef = useRef(null);
-
-  const customInspectionStatusOptions = [
-    { value: "Passed", label: "Passed" },
-    { value: "Failed", label: "Failed" },
-  ];
+  const [reportDraft, setReportDraft] = useState({
+    reportType: "arrival",
+    from: "operations@shipping.com",
+    to: "",
+    cc: "",
+    subject: "Report - Arrival",
+    message: "",
+  });
 
   const crewImmigrationStatusOptions = [
     { value: "Completed", label: "Completed" },
@@ -1362,55 +1502,60 @@ const ArrivalContent = ({
     handleChange("arrivalDocumentsAttachments")(syntheticEvent);
   };
 
-  const handleSendDocuments = () => {
-    console.log("Sending documents:", formValues.arrivalDocumentsAttachments);
-    // TODO: Implement send documents logic
+  const handleReportDraftChange = (field, value) => {
+    setReportDraft((prev) => ({ ...prev, [field]: value }));
   };
 
-  // Handle save
-  const handleSave = () => {
+  const getArrivalMessage = (reportType) =>
+    reportType === "daily" ? buildArrivalDailyReportBody(formValues) : buildArrivalReportBody(formValues);
+
+  useEffect(() => {
+    setReportDraft((prev) => ({
+      ...prev,
+      message: getArrivalMessage(prev.reportType),
+    }));
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
+  const handleReportTypeChange = (nextType) => {
+    setReportDraft((prev) => ({
+      ...prev,
+      reportType: nextType,
+      subject: nextType === "daily" ? "Report - Daily Arrival" : "Report - Arrival",
+      message: getArrivalMessage(nextType),
+    }));
+  };
+
+  const saveArrivalData = async () => {
     console.log("Saving Arrival data:", formValues);
-    // Add your save logic here
+    // TODO: replace with Arrival save API call
+    return true;
+  };
+
+  const handleSaveAndSendReport = async () => {
+    const saveResult = await saveArrivalData();
+    if (!saveResult) return;
+
+    await onSendReport?.({
+      tabName: reportDraft.reportType === "daily" ? "Daily Report" : "Arrival",
+      from: reportDraft.from,
+      to: reportDraft.to,
+      cc: reportDraft.cc,
+      subject: reportDraft.subject,
+      body: reportDraft.message || getArrivalMessage(reportDraft.reportType),
+      attachments: formValues.arrivalDocumentsAttachments || [],
+    });
   };
 
   return (
     <div className="cardform-left-full" style={{ "--card-color": cardColor }}>
       <div className="operation-content-header">
         <h3 className="operation-content-title">Arrival Information</h3>
-        {onOpenReportPreview && !isViewOnly && (
-          <div style={{ display: "flex", gap: "8px" }}>
-            <SendReportButton
-              onClick={() =>
-                onOpenReportPreview({
-                  tabName: "Arrival",
-                  formSectionLabel: "Arrival Information",
-                  getBody: () => buildArrivalReportBody(formValues),
-                  getAttachments: () => formValues.arrivalDocumentsAttachments || [],
-                })
-              }
-              cardColor={cardColor}
-              tabName="Arrival"
-            />
-            <SendReportButton
-              onClick={() =>
-                onOpenReportPreview({
-                  tabName: "Daily Report",
-                  formSectionLabel: "Daily Report — Arrival",
-                  getBody: () => buildArrivalDailyReportBody(formValues),
-                  getAttachments: () => formValues.arrivalDocumentsAttachments || [],
-                })
-              }
-              cardColor={cardColor}
-              tabName="Daily Report"
-              label="Daily Report"
-            />
-          </div>
-        )}
       </div>
       <FormSection icon={GroupSettingsIcon} title="">
         <div className="arrival-form">
-          <div className="general-info-two-column operation-section-form-layout">
-            <div className="general-info-left">
+          <div className="operation-premium-layout">
+            <div className="operation-premium-left">
               <DynamicDateTimeFields
                 eventFields={arrivalStageFields}
                 formValues={formValues}
@@ -1422,7 +1567,7 @@ const ArrivalContent = ({
                 <FormInput
                   type="text"
                   value={formValues.customInspectionStatus || "Passed"}
-                  onChange={() => { }}
+                  onChange={handleChange("customInspectionStatus")}
                   placeholder=""
                   disabled={isViewOnly}
                 />
@@ -1470,177 +1615,19 @@ const ArrivalContent = ({
               />
 
               <FormField label="Attach Vessel Inward and Marine Work Permit Copies">
-                <div style={{ marginTop: "8px" }}>
-                  {isViewOnly ? (
-                    // View-only mode: Show dummy documents list
-                    <div className="attachment-list-wrapper">
-                      <div style={{
-                        padding: "16px",
-                        border: "1px solid #e2e2ea",
-                        borderRadius: "8px",
-                        backgroundColor: "#f8f9fa"
-                      }}>
-                        {(formValues.arrivalDocumentsAttachments || []).map((doc, index) => (
-                          <div
-                            key={index}
-                            style={{
-                              display: "flex",
-                              alignItems: "center",
-                              padding: "12px",
-                              marginBottom: index < (formValues.arrivalDocumentsAttachments || []).length - 1 ? "8px" : "0",
-                              backgroundColor: "#ffffff",
-                              borderRadius: "6px",
-                              border: "1px solid #e2e2ea"
-                            }}
-                          >
-                            <div style={{ marginRight: "12px", color: "#666" }}>
-                              <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-                                <path d="M14 2H6C5.46957 2 4.96086 2.21071 4.58579 2.58579C4.21071 2.96086 4 3.46957 4 4V20C4 20.5304 4.21071 21.0391 4.58579 21.4142C4.96086 21.7893 5.46957 22 6 22H18C18.5304 22 19.0391 21.7893 19.4142 21.4142C19.7893 21.0391 20 20.5304 20 20V8L14 2Z" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" fill="none" />
-                                <path d="M14 2V8H20" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" fill="none" />
-                                <path d="M16 13H8" stroke="currentColor" strokeWidth="2" strokeLinecap="round" fill="none" />
-                                <path d="M16 17H8" stroke="currentColor" strokeWidth="2" strokeLinecap="round" fill="none" />
-                                <path d="M10 9H9H8" stroke="currentColor" strokeWidth="2" strokeLinecap="round" fill="none" />
-                              </svg>
-                            </div>
-                            <div style={{ flex: 1 }}>
-                              <div style={{
-                                fontSize: "14px",
-                                fontWeight: "500",
-                                color: "#1a1a1a",
-                                marginBottom: "4px"
-                              }}>
-                                {doc.name}
-                              </div>
-                              {doc.size && (
-                                <div style={{
-                                  fontSize: "12px",
-                                  color: "#666"
-                                }}>
-                                  {(doc.size / 1024).toFixed(2)} KB
-                                </div>
-                              )}
-                            </div>
-                            <button
-                              type="button"
-                              onClick={() => {
-                                // Handle view action
-                                console.log("View document:", doc.name);
-                              }}
-                              style={{
-                                marginLeft: "12px",
-                                padding: "8px",
-                                border: "none",
-                                backgroundColor: "transparent",
-                                cursor: "pointer",
-                                display: "flex",
-                                alignItems: "center",
-                                justifyContent: "center",
-                                color: "#3e5cb6",
-                                borderRadius: "4px",
-                                transition: "background-color 0.2s"
-                              }}
-                              onMouseEnter={(e) => {
-                                e.currentTarget.style.backgroundColor = "#f0f0f0";
-                              }}
-                              onMouseLeave={(e) => {
-                                e.currentTarget.style.backgroundColor = "transparent";
-                              }}
-                              title="View document"
-                            >
-                              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-                                <path d="M1 12C1 12 5 4 12 4C19 4 23 12 23 12C23 12 19 20 12 20C5 20 1 12 1 12Z" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" fill="none" />
-                                <circle cx="12" cy="12" r="3" stroke="currentColor" strokeWidth="2" fill="none" />
-                              </svg>
-                            </button>
-                          </div>
-                        ))}
-                      </div>
-                    </div>
-                  ) : (
-                    <div style={{ position: "relative" }}>
-                      <AttachmentsList
-                        attachments={formValues.arrivalDocumentsAttachments || []}
-                        onAdd={() => { }}
-                        onRemove={handleDocumentsRemoveAttachment}
-                        cardColor={cardColor}
-                        isDragging={isDraggingDocuments}
-                        onDragEnter={handleDocumentsDragEnter}
-                        onDragLeave={handleDocumentsDragLeave}
-                        onDragOver={handleDocumentsDragOver}
-                        onDrop={handleDocumentsDrop}
-                        fileInputRef={documentsFileInputRef}
-                        onFileInputChange={handleDocumentsFileInputChange}
-                      />
-                      <button
-                        type="button"
-                        onClick={handleSendDocuments}
-                        className="document-send-btn"
-                        title="Send documents"
-                        disabled={(formValues.arrivalDocumentsAttachments || []).length === 0}
-                        style={{
-                          position: "absolute",
-                          top: "12px",
-                          right: "12px",
-                          background: (formValues.arrivalDocumentsAttachments || []).length > 0 ? "#3e5cb6" : "#c5c5d1",
-                          border: "none",
-                          borderRadius: "6px",
-                          width: "36px",
-                          height: "36px",
-                          display: "flex",
-                          alignItems: "center",
-                          justifyContent: "center",
-                          cursor: (formValues.arrivalDocumentsAttachments || []).length > 0 ? "pointer" : "not-allowed",
-                          color: "#ffffff",
-                          transition: "all 0.2s ease",
-                          zIndex: 10,
-                          boxShadow: (formValues.arrivalDocumentsAttachments || []).length > 0 ? "0 2px 6px rgba(62, 94, 189, 0.3)" : "none",
-                          opacity: (formValues.arrivalDocumentsAttachments || []).length > 0 ? 1 : 0.6,
-                        }}
-                        onMouseEnter={(e) => {
-                          if ((formValues.arrivalDocumentsAttachments || []).length > 0) {
-                            e.currentTarget.style.background = "#2e4a8f";
-                            e.currentTarget.style.transform = "scale(1.1)";
-                            e.currentTarget.style.boxShadow = "0 4px 8px rgba(62, 94, 189, 0.4)";
-                          }
-                        }}
-                        onMouseLeave={(e) => {
-                          if ((formValues.arrivalDocumentsAttachments || []).length > 0) {
-                            e.currentTarget.style.background = "#3e5cb6";
-                            e.currentTarget.style.transform = "scale(1)";
-                            e.currentTarget.style.boxShadow = "0 2px 6px rgba(62, 94, 189, 0.3)";
-                          } else {
-                            e.currentTarget.style.background = "#c5c5d1";
-                            e.currentTarget.style.transform = "scale(1)";
-                            e.currentTarget.style.boxShadow = "none";
-                          }
-                        }}
-                      >
-                        <svg
-                          width="18"
-                          height="18"
-                          viewBox="0 0 24 24"
-                          fill="none"
-                          xmlns="http://www.w3.org/2000/svg"
-                        >
-                          <path
-                            d="M22 2L11 13"
-                            stroke="currentColor"
-                            strokeWidth="2"
-                            strokeLinecap="round"
-                            strokeLinejoin="round"
-                          />
-                          <path
-                            d="M22 2L15 22L11 13L2 9L22 2Z"
-                            stroke="currentColor"
-                            strokeWidth="2"
-                            strokeLinecap="round"
-                            strokeLinejoin="round"
-                          />
-                        </svg>
-                      </button>
-                    </div>
-                  )}
-                </div>
+                <AttachmentsList
+                  attachments={formValues.arrivalDocumentsAttachments || []}
+                  onAdd={() => {}}
+                  onRemove={handleDocumentsRemoveAttachment}
+                  cardColor={cardColor}
+                  isDragging={isDraggingDocuments}
+                  onDragEnter={handleDocumentsDragEnter}
+                  onDragLeave={handleDocumentsDragLeave}
+                  onDragOver={handleDocumentsDragOver}
+                  onDrop={handleDocumentsDrop}
+                  fileInputRef={documentsFileInputRef}
+                  onFileInputChange={handleDocumentsFileInputChange}
+                />
               </FormField>
 
               {!isViewOnly && (
@@ -1648,14 +1635,30 @@ const ArrivalContent = ({
                   <button
                     type="button"
                     className="form-save-button"
-                    onClick={handleSave}
+                    onClick={handleSaveAndSendReport}
                   >
-                    Save
+                    Save & Send Report
                   </button>
                 </div>
               )}
             </div>
-
+            <div className="operation-premium-right">
+              <OperationEmailPreviewPanel
+                reportType={reportDraft.reportType}
+                reportTypeOptions={[
+                  { value: "arrival", label: "Arrival Report" },
+                  { value: "daily", label: "Daily Report" },
+                ]}
+                from={reportDraft.from}
+                to={reportDraft.to}
+                cc={reportDraft.cc}
+                subject={reportDraft.subject}
+                message={reportDraft.message}
+                attachments={formValues.arrivalDocumentsAttachments || []}
+                onChange={handleReportDraftChange}
+                onReportTypeChange={handleReportTypeChange}
+              />
+            </div>
           </div>
         </div>
       </FormSection>
@@ -1669,15 +1672,22 @@ ArrivalContent.propTypes = {
   cardColor: PropTypes.string,
   onAddLink: PropTypes.func,
   onRemoveLink: PropTypes.func,
-  onOpenReportPreview: PropTypes.func,
+  onSendReport: PropTypes.func,
   isViewOnly: PropTypes.bool,
   arrivalStageFields: PropTypes.array,
   postArrivalStageFields: PropTypes.array,
 };
 
-const DepartureContent = ({ formValues, handleChange, cardColor, onAddLink, onRemoveLink, onOpenReportPreview, isViewOnly = false, eventFields = [] }) => {
+const DepartureContent = ({ formValues, handleChange, cardColor, onAddLink, onRemoveLink, onSendReport, isViewOnly = false, eventFields = [] }) => {
   const [isDraggingDepartureDocuments, setIsDraggingDepartureDocuments] = useState(false);
   const departureFileInputRef = useRef(null);
+  const [reportDraft, setReportDraft] = useState({
+    from: "operations@shipping.com",
+    to: "",
+    cc: "",
+    subject: "Report - Departure",
+    message: "",
+  });
 
   const handleDepartureDragEnter = (e) => {
     e.preventDefault();
@@ -1742,138 +1752,62 @@ const DepartureContent = ({ formValues, handleChange, cardColor, onAddLink, onRe
     handleChange("departureAttachments")(syntheticEvent);
   };
 
-  // Handle save
-  const handleSave = () => {
+  useEffect(() => {
+    setReportDraft((prev) => ({
+      ...prev,
+      message: buildDepartureReportBody(formValues),
+    }));
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
+  const handleReportDraftChange = (field, value) => {
+    setReportDraft((prev) => ({ ...prev, [field]: value }));
+  };
+
+  const saveDepartureData = async () => {
     console.log("Saving Departure data:", formValues);
-    // Add your save logic here
+    // TODO: replace with Departure save API call
+    return true;
+  };
+
+  const handleSaveAndSendReport = async () => {
+    const saveResult = await saveDepartureData();
+    if (!saveResult) return;
+
+    await onSendReport?.({
+      tabName: "Departure",
+      from: reportDraft.from,
+      to: reportDraft.to,
+      cc: reportDraft.cc,
+      subject: reportDraft.subject,
+      body: reportDraft.message || buildDepartureReportBody(formValues),
+      attachments: formValues.departureAttachments || [],
+    });
   };
 
   return (
     <div className="cardform-left-full" style={{ "--card-color": cardColor }}>
       <div className="operation-content-header">
         <h3 className="operation-content-title">Departure Information</h3>
-        {onOpenReportPreview && !isViewOnly && (
-          <SendReportButton
-            onClick={() =>
-              onOpenReportPreview({
-                tabName: "Departure",
-                formSectionLabel: "Departure Information",
-                getBody: () => buildDepartureReportBody(formValues),
-                getAttachments: () => formValues.departureAttachments || [],
-              })
-            }
-            cardColor={cardColor}
-            tabName="Departure"
-          />
-        )}
       </div>
       <FormSection icon={GroupSettingsIcon} title="">
         <div className="departure-form">
-          <div className="general-info-two-column operation-section-form-layout">
-            <div className="general-info-left">
+          <div className="operation-premium-layout">
+            <div className="operation-premium-left">
               <FormField label="Email Requested Accept">
-                <div style={{ marginTop: "8px" }}>
-                  {isViewOnly ? (
-                    // View-only mode: Show dummy documents list
-                    <div className="attachment-list-wrapper">
-                      <div style={{
-                        padding: "16px",
-                        border: "1px solid #e2e2ea",
-                        borderRadius: "8px",
-                        backgroundColor: "#f8f9fa"
-                      }}>
-                        {(formValues.departureAttachments || []).map((doc, index) => (
-                          <div
-                            key={index}
-                            style={{
-                              display: "flex",
-                              alignItems: "center",
-                              padding: "12px",
-                              marginBottom: index < (formValues.departureAttachments || []).length - 1 ? "8px" : "0",
-                              backgroundColor: "#ffffff",
-                              borderRadius: "6px",
-                              border: "1px solid #e2e2ea"
-                            }}
-                          >
-                            <div style={{ marginRight: "12px", color: "#666" }}>
-                              <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-                                <path d="M14 2H6C5.46957 2 4.96086 2.21071 4.58579 2.58579C4.21071 2.96086 4 3.46957 4 4V20C4 20.5304 4.21071 21.0391 4.58579 21.4142C4.96086 21.7893 5.46957 22 6 22H18C18.5304 22 19.0391 21.7893 19.4142 21.4142C19.7893 21.0391 20 20.5304 20 20V8L14 2Z" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" fill="none" />
-                                <path d="M14 2V8H20" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" fill="none" />
-                                <path d="M16 13H8" stroke="currentColor" strokeWidth="2" strokeLinecap="round" fill="none" />
-                                <path d="M16 17H8" stroke="currentColor" strokeWidth="2" strokeLinecap="round" fill="none" />
-                                <path d="M10 9H9H8" stroke="currentColor" strokeWidth="2" strokeLinecap="round" fill="none" />
-                              </svg>
-                            </div>
-                            <div style={{ flex: 1 }}>
-                              <div style={{
-                                fontSize: "14px",
-                                fontWeight: "500",
-                                color: "#1a1a1a",
-                                marginBottom: "4px"
-                              }}>
-                                {doc.name}
-                              </div>
-                              {doc.size && (
-                                <div style={{
-                                  fontSize: "12px",
-                                  color: "#666"
-                                }}>
-                                  {(doc.size / 1024).toFixed(2)} KB
-                                </div>
-                              )}
-                            </div>
-                            <button
-                              type="button"
-                              onClick={() => {
-                                // Handle view action
-                                console.log("View document:", doc.name);
-                              }}
-                              style={{
-                                marginLeft: "12px",
-                                padding: "8px",
-                                border: "none",
-                                backgroundColor: "transparent",
-                                cursor: "pointer",
-                                display: "flex",
-                                alignItems: "center",
-                                justifyContent: "center",
-                                color: "#3e5cb6",
-                                borderRadius: "4px",
-                                transition: "background-color 0.2s"
-                              }}
-                              onMouseEnter={(e) => {
-                                e.currentTarget.style.backgroundColor = "#f0f0f0";
-                              }}
-                              onMouseLeave={(e) => {
-                                e.currentTarget.style.backgroundColor = "transparent";
-                              }}
-                              title="View document"
-                            >
-                              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-                                <path d="M1 12C1 12 5 4 12 4C19 4 23 12 23 12C23 12 19 20 12 20C5 20 1 12 1 12Z" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" fill="none" />
-                                <circle cx="12" cy="12" r="3" stroke="currentColor" strokeWidth="2" fill="none" />
-                              </svg>
-                            </button>
-                          </div>
-                        ))}
-                      </div>
-                    </div>
-                  ) : (
-                    <AttachmentsList
-                      attachments={formValues.departureAttachments || []}
-                      onAdd={() => { }}
-                      onRemove={handleDepartureRemoveAttachment}
-                      cardColor={cardColor}
-                      isDragging={isDraggingDepartureDocuments}
-                      onDragEnter={handleDepartureDragEnter}
-                      onDragLeave={handleDepartureDragLeave}
-                      onDragOver={handleDepartureDragOver}
-                      onDrop={handleDepartureDrop}
-                      fileInputRef={departureFileInputRef}
-                      onFileInputChange={handleDepartureFileInputChange}
-                    />
-                  )}
-                </div>
+                <AttachmentsList
+                  attachments={formValues.departureAttachments || []}
+                  onAdd={() => {}}
+                  onRemove={handleDepartureRemoveAttachment}
+                  cardColor={cardColor}
+                  isDragging={isDraggingDepartureDocuments}
+                  onDragEnter={handleDepartureDragEnter}
+                  onDragLeave={handleDepartureDragLeave}
+                  onDragOver={handleDepartureDragOver}
+                  onDrop={handleDepartureDrop}
+                  fileInputRef={departureFileInputRef}
+                  onFileInputChange={handleDepartureFileInputChange}
+                />
               </FormField>
 
               <DynamicDateTimeFields
@@ -1901,14 +1835,24 @@ const DepartureContent = ({ formValues, handleChange, cardColor, onAddLink, onRe
                   <button
                     type="button"
                     className="form-save-button"
-                    onClick={handleSave}
+                    onClick={handleSaveAndSendReport}
                   >
-                    Save
+                    Save & Send Report
                   </button>
                 </div>
               )}
             </div>
-
+            <div className="operation-premium-right">
+              <OperationEmailPreviewPanel
+                from={reportDraft.from}
+                to={reportDraft.to}
+                cc={reportDraft.cc}
+                subject={reportDraft.subject}
+                message={reportDraft.message}
+                attachments={formValues.departureAttachments || []}
+                onChange={handleReportDraftChange}
+              />
+            </div>
           </div>
         </div>
       </FormSection>
@@ -1922,7 +1866,7 @@ DepartureContent.propTypes = {
   cardColor: PropTypes.string,
   onAddLink: PropTypes.func,
   onRemoveLink: PropTypes.func,
-  onOpenReportPreview: PropTypes.func,
+  onSendReport: PropTypes.func,
   isViewOnly: PropTypes.bool,
   eventFields: PropTypes.array,
 };
@@ -2067,8 +2011,6 @@ async function sendOperationReportRequest(payload) {
 
 function Operation({ card, formValues, handleChange, ownerInitial, isDAModule = false, isAddMode = false }) {
   const [activeOperationTab, setActiveOperationTab] = useState(OPERATION_TABS.PRE_ARRIVAL);
-  const [viewMode, setViewMode] = useState("form");
-  const [reportPreviewConfig, setReportPreviewConfig] = useState(null);
   const [callDetailData, setCallDetailData] = useState(null);
   const [callDetailLoading, setCallDetailLoading] = useState(false);
   const [eventTypeFieldsByStage, setEventTypeFieldsByStage] = useState({
@@ -2332,23 +2274,12 @@ function Operation({ card, formValues, handleChange, ownerInitial, isDAModule = 
 
   const handleTabChange = useCallback((tab) => {
     setActiveOperationTab(tab);
-    setViewMode("form");
-  }, []);
-
-  const handleOpenReportPreview = useCallback((config) => {
-    setReportPreviewConfig(config);
-    setViewMode("reportPreview");
-  }, []);
-
-  const handleBackToForm = useCallback(() => {
-    setViewMode("form");
   }, []);
 
   const handleSendReportRequest = useCallback(async (payload) => {
     try {
       await sendOperationReportRequest(payload);
       notify("Report sent successfully.", "success");
-      setViewMode("form");
     } catch (err) {
       notify(err?.message || "Failed to send report.", "error");
     }
@@ -2364,8 +2295,6 @@ function Operation({ card, formValues, handleChange, ownerInitial, isDAModule = 
     console.log("Remove link", index);
   }, []);
 
-  const showSendReportView = viewMode === "reportPreview" && reportPreviewConfig;
-
   return (
     <div className="operation-wrapper" style={{ "--card-color": cardColor }}>
       <div className="operation-content-container">
@@ -2373,15 +2302,7 @@ function Operation({ card, formValues, handleChange, ownerInitial, isDAModule = 
           activeTab={activeOperationTab}
           onTabChange={handleTabChange}
         />
-        <div
-          className={`operation-right${showSendReportView ? " operation-right--send-report" : ""}`}
-        >
-          {/* Keep form mounted but hidden in report mode so local component state (e.g. Checklist) is preserved */}
-          <div
-            className="operation-form-pane"
-            style={{ display: showSendReportView ? "none" : "block" }}
-            aria-hidden={showSendReportView}
-          >
+        <div className="operation-right">
             {activeOperationTab === OPERATION_TABS.PRE_ARRIVAL && (
               <PreArrivalContent
                 card={card}
@@ -2392,7 +2313,7 @@ function Operation({ card, formValues, handleChange, ownerInitial, isDAModule = 
                 cardColor={cardColor}
                 onAddLink={handleAddLink}
                 onRemoveLink={handleRemoveLink}
-                onOpenReportPreview={handleOpenReportPreview}
+                onSendReport={handleSendReportRequest}
                 isViewOnly={isViewOnly}
                 eventFields={preArrivalEventFields}
                 portId={preArrivalPortId}
@@ -2403,7 +2324,6 @@ function Operation({ card, formValues, handleChange, ownerInitial, isDAModule = 
                 card={card}
                 formValues={viewOnlyFormValues}
                 handleChange={handleChange}
-                onOpenReportPreview={handleOpenReportPreview}
                 cardColor={cardColor}
                 isViewOnly={isViewOnly}
                 isDAModule={isDAModule}
@@ -2418,7 +2338,7 @@ function Operation({ card, formValues, handleChange, ownerInitial, isDAModule = 
                 cardColor={cardColor}
                 onAddLink={handleAddLink}
                 onRemoveLink={handleRemoveLink}
-                onOpenReportPreview={handleOpenReportPreview}
+                onSendReport={handleSendReportRequest}
                 isViewOnly={isViewOnly}
                 arrivalStageFields={arrivalStageFields}
                 postArrivalStageFields={postArrivalStageFields}
@@ -2431,24 +2351,11 @@ function Operation({ card, formValues, handleChange, ownerInitial, isDAModule = 
                 cardColor={cardColor}
                 onAddLink={handleAddLink}
                 onRemoveLink={handleRemoveLink}
-                onOpenReportPreview={handleOpenReportPreview}
+                onSendReport={handleSendReportRequest}
                 isViewOnly={isViewOnly}
                 eventFields={departureEventFields}
               />
             )}
-          </div>
-          {showSendReportView && (
-            <div className="operation-report-pane">
-              <SendReportFullWidthView
-                tabName={reportPreviewConfig.tabName}
-                formSectionLabel={reportPreviewConfig.formSectionLabel}
-                getBody={reportPreviewConfig.getBody}
-                getAttachments={reportPreviewConfig.getAttachments}
-                onBack={handleBackToForm}
-                onSend={handleSendReportRequest}
-              />
-            </div>
-          )}
         </div>
       </div>
     </div>
