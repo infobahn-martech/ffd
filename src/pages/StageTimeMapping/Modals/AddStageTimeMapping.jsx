@@ -11,6 +11,11 @@ import "../../../design/scss/modal-designs.scss";
 import "../../../design/scss/form-designs.scss";
 
 const TIMEOBJECT_MASTER_LIMIT = 500;
+const normalizeStageOption = (row) => {
+    const stage_id = row?.stage_id ?? row?.call_stage_id ?? row?.id ?? row?._id ?? "";
+    const stage_name = row?.stage_name ?? row?.call_stage ?? row?.name ?? "";
+    return { ...row, stage_id: String(stage_id), stage_name };
+};
 
 export function StageTimeMappingModal({ showModal, closeModal, onSuccess }) {
     const { mapTimeObjectsToStage, isBeingUpdated } = useStageTimeMappingReducer((state) => state);
@@ -48,7 +53,7 @@ export function StageTimeMappingModal({ showModal, closeModal, onSuccess }) {
             try {
                 const { data } = await stageTimeMappingService.getCallStages();
                 const rows = data?.data ?? data;
-                setCallStages(Array.isArray(rows) ? rows : []);
+                setCallStages(Array.isArray(rows) ? rows.map(normalizeStageOption) : []);
             } catch {
                 setCallStages([]);
             }
@@ -188,11 +193,22 @@ export function StageTimeMappingModal({ showModal, closeModal, onSuccess }) {
                                     {...register("stage_id", { required: "Call stage is required" })}
                                 >
                                     <option value="">Select call stage</option>
+                                    {isEditMode &&
+                                        showModal?.stage_id &&
+                                        !(callStages ?? []).some(
+                                            (s) =>
+                                                String(s?.stage_id ?? s?.call_stage_id ?? s?._id ?? s?.id ?? "") ===
+                                                String(showModal?.stage_id)
+                                        ) && (
+                                            <option value={String(showModal?.stage_id)}>
+                                                {showModal?.stage_name ?? `Stage ${showModal?.stage_id}`}
+                                            </option>
+                                        )}
                                     {(callStages ?? []).map((s) => {
-                                        const id = s?.stage_id ?? s?._id ?? s?.id;
+                                        const id = String(s?.stage_id ?? s?.call_stage_id ?? s?._id ?? s?.id ?? "");
                                         return (
                                             <option key={id} value={String(id)}>
-                                                {s?.stage_name ?? s?.name ?? String(id)}
+                                                {s?.stage_name ?? s?.call_stage ?? s?.name ?? String(id)}
                                             </option>
                                         );
                                     })}
