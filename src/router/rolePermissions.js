@@ -1,5 +1,6 @@
 // Role-based route permissions configuration
-// Roles: 1-Super Admin, 2-Admin, 3-Port Admin, 4-Port Operator, 5-Port Manager, 6-Vendor, 7-Finance
+// Roles: 1-Super Admin (legacy/mock), 2-Admin, 3-Port Admin, 4-Port Operator,
+// 5-Port Manager, 6-Vendor, 7-Finance in lists below — API may assign Super Admin as role_id "7"
 import { ROUTE_PATHS } from "./paths";
 
 export const ROLE_IDS = {
@@ -11,6 +12,14 @@ export const ROLE_IDS = {
   VENDOR: "6",
   FINANCE: "7",
 };
+
+/** Super Admin from API (role_name "Super Admin"); bypasses routePermissions like SUPER_ADMIN "1" */
+export const SUPER_ADMIN_API_ROLE_ID = "7";
+
+const hasUnrestrictedRouteAccess = (userRoleId) =>
+  userRoleId === ROLE_IDS.SUPER_ADMIN ||
+  userRoleId === SUPER_ADMIN_API_ROLE_ID ||
+  userRoleId === ROLE_IDS.VENDOR;
 
 // Define all routes with their allowed roles
 export const routePermissions = {
@@ -76,8 +85,7 @@ export const routePermissions = {
 
 // Helper function to check if a role has access to a route
 export const hasRouteAccess = (userRoleId, routePath) => {
-  // Super Admin and Vendor have access to all routes
-  if (userRoleId === ROLE_IDS.SUPER_ADMIN || userRoleId === ROLE_IDS.VENDOR) {
+  if (hasUnrestrictedRouteAccess(userRoleId)) {
     return true;
   }
 
@@ -108,7 +116,7 @@ export const hasRouteAccess = (userRoleId, routePath) => {
 
 // Get all allowed routes for a role
 export const getAllowedRoutesForRole = (userRoleId) => {
-  if (userRoleId === ROLE_IDS.SUPER_ADMIN || userRoleId === ROLE_IDS.VENDOR) {
+  if (hasUnrestrictedRouteAccess(userRoleId)) {
     return Object.keys(routePermissions); // All routes
   }
 
