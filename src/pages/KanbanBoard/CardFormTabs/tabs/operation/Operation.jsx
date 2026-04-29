@@ -1055,7 +1055,7 @@ function PreArrivalDocumentHandlingSection({ formValues, handleChange, isViewOnl
               onClick={() => toggleProcess("customClearance")}
               disabled={isViewOnly}
             >
-              Custom clearance
+              Custom
             </button>
           </div>
 
@@ -1335,18 +1335,18 @@ const PreArrivalContent = ({
               />
             </div>
           </div>
-              {!isViewOnly && (
-                <div className="operation-sticky-actions">
-                  <button
-                    type="button"
-                    className="form-save-button prearrival-save-button"
-                    onClick={handleSaveAndSendReport}
-                    disabled={isSavingPreArrival}
-                  >
-                    {isSavingPreArrival ? "Saving..." : "Save"}
-                  </button>
-                </div>
-              )}
+          {!isViewOnly && (
+            <div className="operation-sticky-actions">
+              <button
+                type="button"
+                className="form-save-button prearrival-save-button"
+                onClick={handleSaveAndSendReport}
+                disabled={isSavingPreArrival}
+              >
+                {isSavingPreArrival ? "Saving..." : "Save"}
+              </button>
+            </div>
+          )}
         </div>
       </FormSection>
     </div>
@@ -2133,59 +2133,59 @@ function Operation({ card, formValues, handleChange, ownerInitial, isDAModule = 
           onTabChange={handleTabChange}
         />
         <div className="operation-right">
-            {activeOperationTab === OPERATION_TABS.PRE_ARRIVAL && (
-              <PreArrivalContent
-                card={card}
-                formValues={viewOnlyFormValues}
-                handleChange={handleChange}
-                ownerInitial={ownerInitial}
-                cardUser={card?.user}
-                cardColor={cardColor}
-                onAddLink={handleAddLink}
-                onRemoveLink={handleRemoveLink}
-                onSendReport={handleSendReportRequest}
-                isViewOnly={isViewOnly}
-                eventFields={preArrivalEventFields}
-                portId={preArrivalPortId}
-              />
-            )}
-            {activeOperationTab === OPERATION_TABS.CHECK_LIST && (
-              <CheckListContent
-                card={card}
-                formValues={viewOnlyFormValues}
-                handleChange={handleChange}
-                cardColor={cardColor}
-                isViewOnly={isViewOnly}
-                isDAModule={isDAModule}
-                cardDetail={callDetailData}
-                callDetailLoading={callDetailLoading}
-              />
-            )}
-            {activeOperationTab === OPERATION_TABS.ARRIVAL && (
-              <ArrivalContent
-                formValues={viewOnlyFormValues}
-                handleChange={handleChange}
-                cardColor={cardColor}
-                onAddLink={handleAddLink}
-                onRemoveLink={handleRemoveLink}
-                onSendReport={handleSendReportRequest}
-                isViewOnly={isViewOnly}
-                arrivalStageFields={arrivalStageFields}
-                postArrivalStageFields={postArrivalStageFields}
-              />
-            )}
-            {activeOperationTab === OPERATION_TABS.DEPARTURE && (
-              <DepartureContent
-                formValues={viewOnlyFormValues}
-                handleChange={handleChange}
-                cardColor={cardColor}
-                onAddLink={handleAddLink}
-                onRemoveLink={handleRemoveLink}
-                onSendReport={handleSendReportRequest}
-                isViewOnly={isViewOnly}
-                eventFields={departureEventFields}
-              />
-            )}
+          {activeOperationTab === OPERATION_TABS.PRE_ARRIVAL && (
+            <PreArrivalContent
+              card={card}
+              formValues={viewOnlyFormValues}
+              handleChange={handleChange}
+              ownerInitial={ownerInitial}
+              cardUser={card?.user}
+              cardColor={cardColor}
+              onAddLink={handleAddLink}
+              onRemoveLink={handleRemoveLink}
+              onSendReport={handleSendReportRequest}
+              isViewOnly={isViewOnly}
+              eventFields={preArrivalEventFields}
+              portId={preArrivalPortId}
+            />
+          )}
+          {activeOperationTab === OPERATION_TABS.CHECK_LIST && (
+            <CheckListContent
+              card={card}
+              formValues={viewOnlyFormValues}
+              handleChange={handleChange}
+              cardColor={cardColor}
+              isViewOnly={isViewOnly}
+              isDAModule={isDAModule}
+              cardDetail={callDetailData}
+              callDetailLoading={callDetailLoading}
+            />
+          )}
+          {activeOperationTab === OPERATION_TABS.ARRIVAL && (
+            <ArrivalContent
+              formValues={viewOnlyFormValues}
+              handleChange={handleChange}
+              cardColor={cardColor}
+              onAddLink={handleAddLink}
+              onRemoveLink={handleRemoveLink}
+              onSendReport={handleSendReportRequest}
+              isViewOnly={isViewOnly}
+              arrivalStageFields={arrivalStageFields}
+              postArrivalStageFields={postArrivalStageFields}
+            />
+          )}
+          {activeOperationTab === OPERATION_TABS.DEPARTURE && (
+            <DepartureContent
+              formValues={viewOnlyFormValues}
+              handleChange={handleChange}
+              cardColor={cardColor}
+              onAddLink={handleAddLink}
+              onRemoveLink={handleRemoveLink}
+              onSendReport={handleSendReportRequest}
+              isViewOnly={isViewOnly}
+              eventFields={departureEventFields}
+            />
+          )}
         </div>
       </div>
     </div>
