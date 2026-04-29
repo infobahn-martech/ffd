@@ -389,8 +389,7 @@ function SideNav({ isMobileMenuOpen, onCloseMobileMenu, isVendorPortal = false }
       isOpen: false,
       subMenus: [
         { menu: 'Time Objects', to: '/time-objects', hasPermission: true },
-        { menu: 'Packing Types', to: '/packing-type', hasPermission: true },
-        { menu: 'Logistics Warehouses', to: '/logistics-warehouse', hasPermission: true },
+        { menu: 'Stage Time Mappings', to: '/stage-time-mappings', hasPermission: true },
       ],
     },
     // ✅ Finance
