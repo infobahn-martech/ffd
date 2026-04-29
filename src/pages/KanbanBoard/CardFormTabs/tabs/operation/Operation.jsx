@@ -836,7 +836,7 @@ CompactFileUploadRow.propTypes = {
   isViewOnly: PropTypes.bool,
 };
 
-const SaberUploadBox = ({ files = [], onAddFiles, isViewOnly = false }) => {
+const CompactUploadDropzone = ({ files = [], onAddFiles, isViewOnly = false, ariaLabel = "Upload files" }) => {
   const inputRef = useRef(null);
 
   const handleInputChange = (e) => {
@@ -853,26 +853,52 @@ const SaberUploadBox = ({ files = [], onAddFiles, isViewOnly = false }) => {
   };
 
   return (
-    <div className="document-row compact-file-upload-row">
-      <div className="document-row-name compact-file-upload-label">
-        <span title="SABER Certificate">SABER Certificate</span>
-      </div>
-      <div className="document-row-actions compact-file-upload-actions">
-        {(files || []).length > 0 && (
-          <button type="button" className="document-row-icon-btn" onClick={() => openAttachmentPreview(files[0])} title="Preview">
-            <IconEye />
-          </button>
-        )}
-        {!isViewOnly && (
-          <>
-            <button type="button" className="document-row-icon-btn" onClick={() => inputRef.current?.click()} title="Upload files">
-              <IconUpload />
-            </button>
-            <input ref={inputRef} type="file" className="document-row-file-input" onChange={handleInputChange} aria-label="Upload SABER certificate files" multiple />
-          </>
-        )}
-      </div>
+    <div
+      className={`operation-compact-upload-zone${isViewOnly ? " operation-compact-upload-zone--disabled" : ""}`}
+      role="button"
+      tabIndex={isViewOnly ? -1 : 0}
+      onClick={() => !isViewOnly && inputRef.current?.click()}
+      onKeyDown={(e) => {
+        if (isViewOnly) return;
+        if (e.key === "Enter" || e.key === " ") {
+          e.preventDefault();
+          inputRef.current?.click();
+        }
+      }}
+      aria-label={ariaLabel}
+    >
+      <p className="operation-compact-upload-text">
+        Drag and drop your files here, or <span>click to browse</span>
+      </p>
+      {(files || []).length > 0 && <p className="operation-compact-upload-file">{files[0]?.name || `${files.length} file(s) selected`}</p>}
+      <input
+        ref={inputRef}
+        type="file"
+        className="operation-compact-upload-input"
+        multiple
+        onChange={handleInputChange}
+        aria-hidden
+        tabIndex={-1}
+      />
     </div>
+  );
+};
+
+CompactUploadDropzone.propTypes = {
+  files: PropTypes.array,
+  onAddFiles: PropTypes.func.isRequired,
+  isViewOnly: PropTypes.bool,
+  ariaLabel: PropTypes.string,
+};
+
+const SaberUploadBox = ({ files = [], onAddFiles, isViewOnly = false }) => {
+  return (
+    <CompactUploadDropzone
+      files={files}
+      onAddFiles={onAddFiles}
+      isViewOnly={isViewOnly}
+      ariaLabel="Upload SABER certificate files"
+    />
   );
 };
 
@@ -1013,30 +1039,24 @@ function PreArrivalDocumentHandlingSection({ formValues, handleChange, isViewOnl
       {showDocumentHandlingContent && (
         <>
           <div className="document-handling-section__divider" />
-          <h3 className="document-handling-section__heading">Document handling</h3>
-          {/* <p className="document-handling-section__hint">Select the processes that apply. Uploads are tracked separately for each group.</p> */}
-
-          <div className="process-selector-row" role="group" aria-label="Document process selection">
-            <div className="process-selector-block">
-              <button
-                type="button"
-                className={`process-selector-option${groOn ? " process-selector-option--active" : ""}`}
-                onClick={() => toggleProcess("gro")}
-                disabled={isViewOnly}
-              >
-                GRO
-              </button>
-            </div>
-            <div className="process-selector-block">
-              <button
-                type="button"
-                className={`process-selector-option${ccOn ? " process-selector-option--active" : ""}`}
-                onClick={() => toggleProcess("customClearance")}
-                disabled={isViewOnly}
-              >
-                Custom clearance
-              </button>
-            </div>
+          <div className="document-handling-header-row" role="group" aria-label="Document process selection">
+            <h3 className="document-handling-section__heading">Document handling</h3>
+            <button
+              type="button"
+              className={`process-selector-option${groOn ? " process-selector-option--active" : ""}`}
+              onClick={() => toggleProcess("gro")}
+              disabled={isViewOnly}
+            >
+              GRO
+            </button>
+            <button
+              type="button"
+              className={`process-selector-option${ccOn ? " process-selector-option--active" : ""}`}
+              onClick={() => toggleProcess("customClearance")}
+              disabled={isViewOnly}
+            >
+              Custom clearance
+            </button>
           </div>
 
           {groOn && (
@@ -1316,14 +1336,14 @@ const PreArrivalContent = ({
             </div>
           </div>
               {!isViewOnly && (
-                <div className="prearrival-actions">
+                <div className="operation-sticky-actions">
                   <button
                     type="button"
                     className="form-save-button prearrival-save-button"
                     onClick={handleSaveAndSendReport}
                     disabled={isSavingPreArrival}
                   >
-                    {isSavingPreArrival ? "Saving..." : "Save & Send Report"}
+                    {isSavingPreArrival ? "Saving..." : "Save"}
                   </button>
                 </div>
               )}
@@ -1380,13 +1400,6 @@ const ArrivalContent = ({
       const syntheticEvent = { target: { value: updatedAttachments } };
       handleChange("arrivalDocumentsAttachments")(syntheticEvent);
     }
-  };
-
-  const handleDocumentsRemoveAttachment = (index) => {
-    const currentAttachments = formValues.arrivalDocumentsAttachments || [];
-    const updatedAttachments = currentAttachments.filter((_, i) => i !== index);
-    const syntheticEvent = { target: { value: updatedAttachments } };
-    handleChange("arrivalDocumentsAttachments")(syntheticEvent);
   };
 
   const handleReportDraftChange = (field, value) => {
@@ -1502,23 +1515,22 @@ const ArrivalContent = ({
               />
 
               <FormField label="Attach Vessel Inward and Marine Work Permit Copies">
-                <CompactFileUploadRow
-                  label="Arrival documents"
+                <CompactUploadDropzone
                   files={formValues.arrivalDocumentsAttachments || []}
                   onAddFiles={handleArrivalDocumentsAdd}
-                  onRemoveAt={handleDocumentsRemoveAttachment}
                   isViewOnly={isViewOnly}
+                  ariaLabel="Upload arrival documents"
                 />
               </FormField>
 
               {!isViewOnly && (
-                <div className="form-save-button-wrapper">
+                <div className="operation-sticky-actions">
                   <button
                     type="button"
                     className="form-save-button"
                     onClick={handleSaveAndSendReport}
                   >
-                    Save & Send Report
+                    Save
                   </button>
                 </div>
               )}
@@ -1577,13 +1589,6 @@ const DepartureContent = ({ formValues, handleChange, cardColor, onAddLink, onRe
     }
   };
 
-  const handleDepartureRemoveAttachment = (index) => {
-    const currentAttachments = formValues.departureAttachments || [];
-    const updatedAttachments = currentAttachments.filter((_, i) => i !== index);
-    const syntheticEvent = { target: { value: updatedAttachments } };
-    handleChange("departureAttachments")(syntheticEvent);
-  };
-
   useEffect(() => {
     setReportDraft((prev) => ({
       ...prev,
@@ -1627,12 +1632,11 @@ const DepartureContent = ({ formValues, handleChange, cardColor, onAddLink, onRe
           <div className="operation-two-column-grid">
             <div className="operation-form-column">
               <FormField label="Email Requested Accept">
-                <CompactFileUploadRow
-                  label="Email requested accept"
+                <CompactUploadDropzone
                   files={formValues.departureAttachments || []}
                   onAddFiles={handleDepartureDocumentsAdd}
-                  onRemoveAt={handleDepartureRemoveAttachment}
                   isViewOnly={isViewOnly}
+                  ariaLabel="Upload departure documents"
                 />
               </FormField>
 
@@ -1657,13 +1661,13 @@ const DepartureContent = ({ formValues, handleChange, cardColor, onAddLink, onRe
 
 
               {!isViewOnly && (
-                <div className="form-save-button-wrapper">
+                <div className="operation-sticky-actions">
                   <button
                     type="button"
                     className="form-save-button"
                     onClick={handleSaveAndSendReport}
                   >
-                    Save & Send Report
+                    Save
                   </button>
                 </div>
               )}

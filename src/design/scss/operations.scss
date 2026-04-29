@@ -1505,8 +1505,10 @@ $send-report-optional: #80868b;
 
 .operation-right {
   flex: 1;
-  overflow-y: auto;
-  overflow-x: visible;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  overflow-x: hidden;
   min-height: 0;
   background: #ffffff;
   padding: 0;
@@ -1673,24 +1675,46 @@ $send-report-optional: #80868b;
 
 .operation-right .cardform-left-full {
   position: relative;
+  display: flex;
+  flex-direction: column;
+  min-height: 0;
+  flex: 1;
+}
+
+.operation-right .cf-section {
+  display: flex;
+  flex-direction: column;
+  min-height: 0;
+  flex: 1;
+}
+
+.operation-right .cf-section-body {
+  display: flex;
+  flex-direction: column;
+  min-height: 0;
+  flex: 1;
 }
 
 .operation-prearrival-grid {
   display: grid;
   grid-template-columns: 30% 20% 50%;
   gap: 14px;
-  min-height: calc(100vh - 300px);
-  max-height: calc(100vh - 300px);
-  overflow: hidden;
+  flex: 1;
+  min-height: 0;
+  overflow-y: auto;
+  overflow-x: hidden;
+  padding: 0 4px 0 0;
 }
 
 .operation-two-column-grid {
   display: grid;
   grid-template-columns: 30% 70%;
   gap: 14px;
-  min-height: calc(100vh - 300px);
-  max-height: calc(100vh - 300px);
-  overflow: hidden;
+  flex: 1;
+  min-height: 0;
+  overflow-y: auto;
+  overflow-x: hidden;
+  padding: 0 4px 0 0;
 }
 
 .operation-form-column,
@@ -1701,6 +1725,7 @@ $send-report-optional: #80868b;
   border: 1px solid #e5e7eb;
   border-radius: 12px;
   padding: 14px;
+  min-height: 0;
   overflow-y: auto;
   overflow-x: hidden;
 }
@@ -1811,7 +1836,10 @@ $send-report-optional: #80868b;
 .arrival-form,
 .departure-form {
   padding-top: 4px;
-  overflow: hidden;
+  flex: 1;
+  min-height: 0;
+  overflow-y: auto;
+  overflow-x: hidden;
 }
 
 /* Override ReactQuill min-height for Pre-Arrival tab to match right section */
@@ -1945,32 +1973,23 @@ $send-report-optional: #80868b;
     line-height: 1.45;
   }
 
-  .process-selector-row {
+  .document-handling-header-row {
     display: flex;
-    flex-wrap: wrap;
-    align-items: flex-start;
-    gap: 14px;
-    margin-bottom: 18px;
-  }
+    align-items: center;
+    gap: 8px;
+    margin-bottom: 14px;
+    flex-wrap: nowrap;
 
-  .process-selector-block {
-    display: flex;
-    flex-direction: column;
-    gap: 6px;
-    min-width: 140px;
-  }
-
-  .process-selector-row__label {
-    font-size: 13px;
-    font-weight: 500;
-    color: #5f6368;
-    margin-right: 0;
-    line-height: 1.2;
+    .document-handling-section__heading {
+      margin: 0;
+      white-space: nowrap;
+      flex-shrink: 0;
+    }
   }
 
   .process-selector-option {
-    padding: 8px 16px;
-    font-size: 13px;
+    padding: 6px 10px;
+    font-size: 12px;
     font-weight: 500;
     color: #3c4043;
     background: #fff;
@@ -2095,6 +2114,53 @@ $send-report-optional: #80868b;
     display: flex;
     align-items: center;
     gap: 4px;
+  }
+
+  .operation-compact-upload-zone {
+    width: 100%;
+    border: 2px dashed #3e66d6;
+    border-radius: 10px;
+    background: #ffffff;
+    min-height: 52px;
+    padding: 10px 12px;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    cursor: pointer;
+  }
+
+  .operation-compact-upload-zone--disabled {
+    opacity: 0.7;
+    cursor: default;
+  }
+
+  .operation-compact-upload-text {
+    margin: 0;
+    font-size: 13px;
+    line-height: 1.3;
+    color: #1f2937;
+    text-align: center;
+
+    span {
+      color: #2f5fcc;
+      text-decoration: underline;
+      text-underline-offset: 2px;
+    }
+  }
+
+  .operation-compact-upload-file {
+    margin: 6px 0 0;
+    font-size: 11px;
+    color: #6b7280;
+    max-width: 100%;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+
+  .operation-compact-upload-input {
+    display: none;
   }
 
   .saber-upload-dropzone {
@@ -2285,6 +2351,18 @@ $send-report-optional: #80868b;
 
   .prearrival-save-button {
     min-width: 104px;
+  }
+
+  .operation-sticky-actions {
+    position: sticky;
+    bottom: 0;
+    display: flex;
+    justify-content: flex-end;
+    padding: 12px 16px;
+    background: linear-gradient(to top, #fff 75%, rgba(255, 255, 255, 0));
+    border-top: 1px solid #eef0f4;
+    z-index: 20;
+    margin-top: 12px;
   }
 }
 
