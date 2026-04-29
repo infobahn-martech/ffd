@@ -1,69 +1,71 @@
-import { useForm } from "react-hook-form";
+import { useEffect } from "react";
+import { Controller, useForm } from "react-hook-form";
 import CustomModal from "../../../components/CustomModal";
-import useLogisticsWarehouseReducer from "../../../store/LogisticsWarehouseReducer";
+import CommonSelect from "../../../components/CommonSelect";
+import useDocumentChecklistReducer from "../../../store/DocumentChecklistReducer";
 import "../../../design/scss/prospect-modal.scss";
 import "../../../design/scss/modal-designs.scss";
 import "../../../design/scss/form-designs.scss";
 
-const LOCATION_TYPE_OPTIONS = [
-    { value: "material_transport", label: "Material Transport" },
-    { value: "warehouse", label: "Warehouse" },
-];
+export function DocumentChecklistModal({ showModal, closeModal, onSuccess }) {
+    const {
+        getChecklistOptions,
+        roleOptions,
+        documentOptions,
+        saveDocumentChecklist,
+        isBeingUpdated,
+    } = useDocumentChecklistReducer((s) => s);
 
-export function LogisticsWarehouseModal({ showModal, closeModal, onSuccess }) {
-    const addLogisticsWarehouse = useLogisticsWarehouseReducer((s) => s.addLogisticsWarehouse);
-    const updateLogisticsWarehouse = useLogisticsWarehouseReducer((s) => s.updateLogisticsWarehouse);
-    const isBeingUpdated = useLogisticsWarehouseReducer((s) => s.isBeingUpdated);
-
-    const isEdit = !!showModal?.location_id;
+    const isEdit = showModal && typeof showModal === "object" && !!showModal?.role_id;
 
     const {
         register,
+        control,
         handleSubmit,
-        formState: { errors }
+        formState: { errors },
+        reset,
     } = useForm({
-        defaultValues: isEdit
-            ? {
-                location: showModal?.location || "",
-                location_type: showModal?.location_type || "",
-            }
-            : {
-                location: "",
-                location_type: "",
-            }
+        defaultValues: {
+            role_id: "",
+            document_ids: [],
+        },
     });
 
-    const onSubmit = async (data) => {
+    useEffect(() => {
+        getChecklistOptions();
+    }, [getChecklistOptions]);
+
+    useEffect(() => {
+        if (!showModal) return;
         if (isEdit) {
-            await updateLogisticsWarehouse({
-                formData: {
-                    location_id: showModal.location_id,
-                    location: data.location,
-                    location_type: data.location_type,
-                },
-                cb: () => {
-                    closeModal();
-                    onSuccess?.();
-                },
+            reset({
+                role_id: String(showModal?.role_id ?? ""),
+                document_ids: (showModal?.documents || []).map((doc) =>
+                    String(doc?.document_id),
+                ),
             });
-        } else {
-            await addLogisticsWarehouse({
-                formData: {
-                    location: data.location,
-                    location_type: data.location_type,
-                },
-                cb: () => {
-                    closeModal();
-                    onSuccess?.();
-                },
-            });
+            return;
         }
+        reset({ role_id: "", document_ids: [] });
+    }, [showModal, isEdit, reset]);
+
+    const onSubmit = async (data) => {
+        await saveDocumentChecklist({
+            formData: {
+                role_id: Number(data?.role_id),
+                document_ids: (data?.document_ids || []).map((id) => Number(id)),
+            },
+            cb: () => {
+                closeModal();
+                onSuccess?.();
+            },
+        });
     };
 
     const renderHeader = () => (
         <>
             <h1 className="modal-title">
-                {isEdit ? "Edit Logistics Warehouse" : "Add Logistics Warehouse"}
+                {isEdit ? "Edit Document Checklist" : "Add Document Checklist"}
             </h1>
         </>
     );
@@ -71,53 +73,69 @@ export function LogisticsWarehouseModal({ showModal, closeModal, onSuccess }) {
     const renderBody = () => (
         <div className="modal-body">
             <div className="lead-form">
-                <form id="logisticsWarehouseForm" onSubmit={handleSubmit(onSubmit)}>
-                    {/* LOCATION */}
-                    <div className="mb-lg-3 mb-sm-0">
-                        <div className="form-floating desig-inp">
-                            <input
-                                type="text"
-                                className={`form-control ${errors.location ? "is-invalid" : ""
-                                    }`}
-                                placeholder="Location"
-                                {...register("location", {
-                                    required: "Location is required"
-                                })}
-                            />
-                            <label>
-                                Location <span className="text-danger">*</span>
-                            </label>
-                            {errors.location && (
-                                <span className="error text-danger">
-                                    {errors.location.message}
-                                </span>
-                            )}
-                        </div>
-                    </div>
-
-                    {/* LOCATION TYPE */}
+                <form id="documentChecklistForm" onSubmit={handleSubmit(onSubmit)}>
                     <div className="mb-lg-3 mb-sm-0">
                         <div className="form-floating desig-inp">
                             <select
-                                className={`form-select ${errors.location_type ? "is-invalid" : ""
-                                    }`}
-                                {...register("location_type", {
-                                    required: "Location type is required"
+                                className={`form-select ${errors.role_id ? "is-invalid" : ""}`}
+                                {...register("role_id", {
+                                    required: "Role is required",
                                 })}
+                                disabled={isBeingUpdated}
                             >
-                                <option value="">Select Location Type</option>
-                                {LOCATION_TYPE_OPTIONS.map((option) => (
+                                <option value="">Select Role</option>
+                                {roleOptions.map((option) => (
                                     <option key={option.value} value={option.value}>
                                         {option.label}
                                     </option>
                                 ))}
                             </select>
                             <label>
-                                Location Type <span className="text-danger">*</span>
+                                Select Role <span className="text-danger">*</span>
                             </label>
-                            {errors.location_type && (
+                            {errors.role_id && (
                                 <span className="error text-danger">
-                                    {errors.location_type.message}
+                                    {errors.role_id.message}
+                                </span>
+                            )}
+                        </div>
+                    </div>
+
+                    <div className="mb-lg-3 mb-sm-0">
+                        <div className="desig-inp">
+                            <label className="mb-2 d-block">
+                                Select Document <span className="text-danger">*</span>
+                            </label>
+                            <Controller
+                                name="document_ids"
+                                control={control}
+                                rules={{
+                                    validate: (value) =>
+                                        (Array.isArray(value) && value.length > 0) ||
+                                        "At least one document is required",
+                                }}
+                                render={({ field }) => (
+                                    <CommonSelect
+                                        isMulti
+                                        options={documentOptions}
+                                        value={field.value}
+                                        onChange={(selected) => {
+                                            const values = Array.isArray(selected)
+                                                ? selected.map((item) => String(item?.value))
+                                                : [];
+                                            field.onChange(values);
+                                        }}
+                                        placeholder="Select Document(s)"
+                                        className={errors.document_ids ? "is-invalid" : ""}
+                                        isDisabled={isBeingUpdated}
+                                        position="top"
+                                        maxheight={220}
+                                    />
+                                )}
+                            />
+                            {errors.document_ids && (
+                                <span className="error text-danger">
+                                    {errors.document_ids.message}
                                 </span>
                             )}
                         </div>
@@ -134,7 +152,7 @@ export function LogisticsWarehouseModal({ showModal, closeModal, onSuccess }) {
             </button>
             <button
                 type="submit"
-                form="logisticsWarehouseForm"
+                form="documentChecklistForm"
                 className="btn btn-primary"
                 disabled={isBeingUpdated}
             >

@@ -95,6 +95,7 @@ function CustomSelect({
     <Select
       menuPortalTarget={document.body}
       menuPosition="fixed"
+      menuPlacement={position}
       maxMenuHeight={maxheight}
       isLoading={isLoading}
       classNamePrefix={classNamePrefix}
@@ -108,6 +109,10 @@ function CustomSelect({
       hideSelectedOptions={false}
       styles={{
         menu: (base) => ({
+          ...base,
+          zIndex: 9999,
+        }),
+        menuPortal: (base) => ({
           ...base,
           zIndex: 9999,
         }),

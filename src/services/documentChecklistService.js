@@ -1,11 +1,18 @@
-import Gateway from '../gateway/gateway';
+import Gateway from "../gateway/gateway";
 
-const addLocation = (data) => Gateway.post('/material/add_location', data);
-const getLocations = (params) => Gateway.get('/material/get_all_location', { params });
-const updateLocation = (data) => Gateway.post('/material/update_location', data);
-// Add delete endpoint when API is available: material/delete_location
-const deleteLocation = (id) => Gateway.delete(`/material/delete_location/${id}`);
+const getCustomRoles = () => Gateway.get("/documents/get_custom_roles");
 
-const getWarehouseLocations = () => Gateway.get('/material/get_warehouse_locations');
+const getAllDocuments = () => Gateway.get("/documents/all_documents");
 
-export default { addLocation, getLocations, updateLocation, deleteLocation, getWarehouseLocations };
+const getMappedDocuments = (params) =>
+  Gateway.get("/documents/get_mapped_documents", { params });
+
+const saveDocumentChecklist = (payload) =>
+  Gateway.post("/documents/save_document_checklist", payload);
+
+export default {
+  getCustomRoles,
+  getAllDocuments,
+  getMappedDocuments,
+  saveDocumentChecklist,
+};

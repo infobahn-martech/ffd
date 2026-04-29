@@ -7,7 +7,7 @@ export const RenderAction = ({ onEditClick, row, onDeleteClick }) => {
     return (
         <>
             <Tooltip id="edit" place="bottom" content="Edit" />
-            <Tooltip id="delete" place="bottom" content="Delete" />
+            {!!onDeleteClick && <Tooltip id="delete" place="bottom" content="Delete" />}
             <div className="actions">
                 <span
                     data-tooltip-id="edit"
@@ -17,14 +17,16 @@ export const RenderAction = ({ onEditClick, row, onDeleteClick }) => {
                 >
                     <img src={edit} alt="edit" />
                 </span>
-                <span
-                    data-tooltip-id="delete"
-                    type="button"
-                    className="delete"
-                    onClick={() => onDeleteClick(row)}
-                >
-                    <img src={trash} alt="delete" />
-                </span>
+                {!!onDeleteClick && (
+                    <span
+                        data-tooltip-id="delete"
+                        type="button"
+                        className="delete"
+                        onClick={() => onDeleteClick(row)}
+                    >
+                        <img src={trash} alt="delete" />
+                    </span>
+                )}
             </div>
         </>
     );

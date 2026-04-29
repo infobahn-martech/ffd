@@ -1,11 +1,8 @@
 import { useEffect, useMemo, useState } from "react";
 import CommonHeader from "../../components/CommonHeader";
 import CustomTable from "../../components/customTable";
-import { LogisticsWarehouseModal } from "./Modals/AddEditDocumentChecklist";
+import { DocumentChecklistModal } from "./Modals/AddEditDocumentChecklist";
 import { RenderAction } from "./RenderCells";
-import DeleteConfirmationModal from "../../components/DeleteConfirmationModal";
-
-// ✅ change this import based on your actual store file
 import useDocumentChecklistReducer from "../../store/DocumentChecklistReducer";
 
 const DocumentChecklist = () => {
@@ -14,32 +11,21 @@ const DocumentChecklist = () => {
         documentChecklists,
         totalCount,
         isLoadingGet,
-        isLoadingDelete,
     } = useDocumentChecklistReducer((state) => state);
 
     const [params, setParams] = useState({
         page: 1,
         searchTerm: "",
         limit: 10,
-        sortBy: "name",
+        sortBy: "role",
         sortOrder: 1,
     });
 
-    const [showLogisticsWarehouseModal, setShowLogisticsWarehouseModal] =
+    const [showDocumentChecklistModal, setShowDocumentChecklistModal] =
         useState(false);
-    const [showDeleteModal, setShowDeleteModal] = useState(false);
-    const [selectedRow, setSelectedRow] = useState(null);
 
-    // ✅ Helper function to format location type
-    const formatLocationType = (type) => {
-        if (type === "material_transport") return "Material Transport";
-        if (type === "warehouse") return "Warehouse";
-        return type || "-";
-    };
-
-    // ✅ Fetch when params change
     useEffect(() => {
-        getLogisticsWarehouses({
+        getDocumentChecklists({
             page: params.page,
             limit: params.limit,
             search: params.searchTerm,
@@ -52,31 +38,33 @@ const DocumentChecklist = () => {
         params.searchTerm,
         params.sortBy,
         params.sortOrder,
+        getDocumentChecklists,
     ]);
 
-    // ✅ Normalize API response shape (location_id, location_type, location)
     const tableData = useMemo(() => {
-        const rows = Array.isArray(logisticsWarehouses) ? logisticsWarehouses : [];
+        const rows = Array.isArray(documentChecklists) ? documentChecklists : [];
         return { rows, total: totalCount || rows.length };
-    }, [logisticsWarehouses, totalCount]);
+    }, [documentChecklists, totalCount]);
 
     const cols = [
         {
-            name: "Location",
-            selector: "location",
+            name: "Role",
+            selector: "role",
             sort: true,
-            width: "200",
+            width: "250",
             thclass: "tb-head",
             contentClass: "table-content",
         },
         {
-            name: "Location Type",
-            selector: "location_type",
-            sort: true,
-            width: "200",
+            name: "Documents",
+            selector: "documents",
+            width: "400",
             thclass: "tb-head",
             contentClass: "table-content",
-            cell: ({ row }) => formatLocationType(row?.location_type),
+            cell: ({ row }) =>
+                Array.isArray(row?.documents) && row.documents.length
+                    ? row.documents.map((doc) => doc?.document_name).join(", ")
+                    : "-",
         },
         {
             name: "Actions",
@@ -85,19 +73,13 @@ const DocumentChecklist = () => {
             contentClass: "table-content",
             thclass: "tb-head",
             width: "100",
-            onEditClick: (row) => {
-                setShowLogisticsWarehouseModal(row); // edit mode
-            },
-            onDeleteClick: (row) => {
-                setSelectedRow(row);
-                setShowDeleteModal(true);
-            },
+            onEditClick: (row) => setShowDocumentChecklistModal(row),
             cell: RenderAction,
         },
     ];
 
     const refreshList = () => {
-        getLogisticsWarehouses({
+        getDocumentChecklists({
             page: params.page,
             limit: params.limit,
             search: params.searchTerm,
@@ -106,28 +88,17 @@ const DocumentChecklist = () => {
         });
     };
 
-    const handleDelete = async () => {
-        if (!selectedRow?.location_id) return;
-
-        await deleteData(selectedRow.location_id);
-
-        setShowDeleteModal(false);
-        setSelectedRow(null);
-
-        refreshList();
-    };
-
     return (
         <>
             <div className="page-body">
                 <div className="prospect employee">
                     <div className="container-fluid">
                         <CommonHeader
-                            tableTitle="Logistics Warehouses"
+                            tableTitle="Document Checklist"
                             isAddEnabled
-                            addModalLabel="Add Logistics Warehouse"
+                            addModalLabel="Add Document Checklist"
                             setSearch={(e) => setParams({ ...params, searchTerm: e, page: 1 })}
-                            onAddModalClick={() => setShowLogisticsWarehouseModal(true)}
+                            onAddModalClick={() => setShowDocumentChecklistModal(true)}
                             exportTitle="Export"
                             exportLoader={false}
                         />
@@ -157,27 +128,14 @@ const DocumentChecklist = () => {
                         }
                     />
 
-                    {!!showLogisticsWarehouseModal && (
-                        <LogisticsWarehouseModal
-                            showModal={showLogisticsWarehouseModal}
-                            closeModal={() => setShowLogisticsWarehouseModal(false)}
+                    {!!showDocumentChecklistModal && (
+                        <DocumentChecklistModal
+                            showModal={showDocumentChecklistModal}
+                            closeModal={() => setShowDocumentChecklistModal(false)}
                             onSuccess={() => {
-                                setShowLogisticsWarehouseModal(false);
+                                setShowDocumentChecklistModal(false);
                                 refreshList();
                             }}
-                        />
-                    )}
-
-                    {!!showDeleteModal && (
-                        <DeleteConfirmationModal
-                            show={showDeleteModal}
-                            onCancel={() => {
-                                setShowDeleteModal(false);
-                                setSelectedRow(null);
-                            }}
-                            onConfirm={handleDelete}
-                            isLoading={isLoadingDelete}
-                            deleteText="Are you sure you want to delete this logistics warehouse?"
                         />
                     )}
                 </div>
