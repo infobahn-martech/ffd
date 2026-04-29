@@ -183,6 +183,15 @@ FormField.propTypes = {
   className: PropTypes.string,
 };
 
+const OperationFormCard = ({ className = "", children }) => {
+  return <div className={`operation-form-card ${className}`.trim()}>{children}</div>;
+};
+
+OperationFormCard.propTypes = {
+  className: PropTypes.string,
+  children: PropTypes.node.isRequired,
+};
+
 const DynamicDateTimeFields = ({ eventFields = [], formValues, handleChange, isViewOnly = false }) => {
   if (!eventFields.length) return null;
 
@@ -836,7 +845,13 @@ CompactFileUploadRow.propTypes = {
   isViewOnly: PropTypes.bool,
 };
 
-const CompactUploadDropzone = ({ files = [], onAddFiles, isViewOnly = false, ariaLabel = "Upload files" }) => {
+const OperationFileUpload = ({
+  files = [],
+  onAddFiles,
+  isViewOnly = false,
+  ariaLabel = "Upload files",
+  accept,
+}) => {
   const inputRef = useRef(null);
 
   const handleInputChange = (e) => {
@@ -875,6 +890,7 @@ const CompactUploadDropzone = ({ files = [], onAddFiles, isViewOnly = false, ari
         ref={inputRef}
         type="file"
         className="operation-compact-upload-input"
+        accept={accept}
         multiple
         onChange={handleInputChange}
         aria-hidden
@@ -884,16 +900,17 @@ const CompactUploadDropzone = ({ files = [], onAddFiles, isViewOnly = false, ari
   );
 };
 
-CompactUploadDropzone.propTypes = {
+OperationFileUpload.propTypes = {
   files: PropTypes.array,
   onAddFiles: PropTypes.func.isRequired,
   isViewOnly: PropTypes.bool,
   ariaLabel: PropTypes.string,
+  accept: PropTypes.string,
 };
 
 const SaberUploadBox = ({ files = [], onAddFiles, isViewOnly = false }) => {
   return (
-    <CompactUploadDropzone
+    <OperationFileUpload
       files={files}
       onAddFiles={onAddFiles}
       isViewOnly={isViewOnly}
@@ -906,6 +923,25 @@ SaberUploadBox.propTypes = {
   files: PropTypes.array,
   onAddFiles: PropTypes.func.isRequired,
   isViewOnly: PropTypes.bool,
+};
+
+const OperationSaveSection = ({ isViewOnly = false, onSave, isSaving = false, className = "" }) => {
+  if (isViewOnly) return null;
+
+  return (
+    <div className={`operation-sticky-actions ${className}`.trim()}>
+      <button type="button" className="form-save-button operation-save-button" onClick={onSave} disabled={isSaving}>
+        {isSaving ? "Saving..." : "Save"}
+      </button>
+    </div>
+  );
+};
+
+OperationSaveSection.propTypes = {
+  isViewOnly: PropTypes.bool,
+  onSave: PropTypes.func.isRequired,
+  isSaving: PropTypes.bool,
+  className: PropTypes.string,
 };
 
 function DocumentGroupCard({ title, children }) {
@@ -1267,9 +1303,10 @@ const PreArrivalContent = ({
         <h3 className="operation-content-title">Pre-Arrival Information</h3>
       </div>
       <FormSection icon={GroupSettingsIcon} title="">
-        <div className="pre-arrival-form">
-          <div className="operation-prearrival-grid">
-            <div className="operation-form-column">
+        <div className="operation-tab-layout">
+          <div className="pre-arrival-form operation-tab-scroll">
+            <div className="operation-prearrival-grid">
+            <OperationFormCard className="operation-form-column">
               <DynamicDateTimeFields
                 eventFields={eventFields}
                 formValues={formValues}
@@ -1314,16 +1351,16 @@ const PreArrivalContent = ({
                   disabled={isViewOnly}
                 />
               </FormField>
-            </div>
-            <div className="operation-document-column">
+            </OperationFormCard>
+            <OperationFormCard className="operation-document-column">
               <PreArrivalDocumentHandlingSection
                 formValues={formValues}
                 handleChange={handleChange}
                 isViewOnly={isViewOnly}
                 portId={portId}
               />
-            </div>
-            <div className="operation-email-column">
+            </OperationFormCard>
+            <OperationFormCard className="operation-email-column">
               <OperationEmailPreviewPanel
                 from={reportDraft.from}
                 to={reportDraft.to}
@@ -1333,20 +1370,10 @@ const PreArrivalContent = ({
                 attachments={preArrivalReportAttachments}
                 onChange={handleReportDraftChange}
               />
+            </OperationFormCard>
             </div>
           </div>
-          {!isViewOnly && (
-            <div className="operation-sticky-actions">
-              <button
-                type="button"
-                className="form-save-button prearrival-save-button"
-                onClick={handleSaveAndSendReport}
-                disabled={isSavingPreArrival}
-              >
-                {isSavingPreArrival ? "Saving..." : "Save"}
-              </button>
-            </div>
-          )}
+          <OperationSaveSection isViewOnly={isViewOnly} onSave={handleSaveAndSendReport} isSaving={isSavingPreArrival} />
         </div>
       </FormSection>
     </div>
@@ -1453,15 +1480,24 @@ const ArrivalContent = ({
         <h3 className="operation-content-title">Arrival Information</h3>
       </div>
       <FormSection icon={GroupSettingsIcon} title="">
-        <div className="arrival-form">
-          <div className="operation-two-column-grid">
-            <div className="operation-form-column">
-              <DynamicDateTimeFields
-                eventFields={arrivalStageFields}
-                formValues={formValues}
-                handleChange={handleChange}
-                isViewOnly={isViewOnly}
-              />
+        <div className="operation-tab-layout">
+          <div className="arrival-form operation-tab-scroll">
+            <div className="operation-two-column-grid">
+            <OperationFormCard className="operation-form-column">
+              <OperationFormCard className="operation-datetime-card">
+                <DynamicDateTimeFields
+                  eventFields={arrivalStageFields}
+                  formValues={formValues}
+                  handleChange={handleChange}
+                  isViewOnly={isViewOnly}
+                />
+                <DynamicDateTimeFields
+                  eventFields={postArrivalStageFields}
+                  formValues={formValues}
+                  handleChange={handleChange}
+                  isViewOnly={isViewOnly}
+                />
+              </OperationFormCard>
 
               <FormField label="Custom Inspection Status">
                 <FormInput
@@ -1507,35 +1543,16 @@ const ArrivalContent = ({
                 </FormField>
               )}
 
-              <DynamicDateTimeFields
-                eventFields={postArrivalStageFields}
-                formValues={formValues}
-                handleChange={handleChange}
-                isViewOnly={isViewOnly}
-              />
-
               <FormField label="Attach Vessel Inward and Marine Work Permit Copies">
-                <CompactUploadDropzone
+                <OperationFileUpload
                   files={formValues.arrivalDocumentsAttachments || []}
                   onAddFiles={handleArrivalDocumentsAdd}
                   isViewOnly={isViewOnly}
                   ariaLabel="Upload arrival documents"
                 />
               </FormField>
-
-              {!isViewOnly && (
-                <div className="operation-sticky-actions">
-                  <button
-                    type="button"
-                    className="form-save-button"
-                    onClick={handleSaveAndSendReport}
-                  >
-                    Save
-                  </button>
-                </div>
-              )}
-            </div>
-            <div className="operation-email-column">
+            </OperationFormCard>
+            <OperationFormCard className="operation-email-column">
               <OperationEmailPreviewPanel
                 reportType={reportDraft.reportType}
                 reportTypeOptions={[
@@ -1551,8 +1568,10 @@ const ArrivalContent = ({
                 onChange={handleReportDraftChange}
                 onReportTypeChange={handleReportTypeChange}
               />
+            </OperationFormCard>
             </div>
           </div>
+          <OperationSaveSection isViewOnly={isViewOnly} onSave={handleSaveAndSendReport} />
         </div>
       </FormSection>
     </div>
@@ -1628,11 +1647,12 @@ const DepartureContent = ({ formValues, handleChange, cardColor, onAddLink, onRe
         <h3 className="operation-content-title">Departure Information</h3>
       </div>
       <FormSection icon={GroupSettingsIcon} title="">
-        <div className="departure-form">
-          <div className="operation-two-column-grid">
-            <div className="operation-form-column">
+        <div className="operation-tab-layout">
+          <div className="departure-form operation-tab-scroll">
+            <div className="operation-two-column-grid">
+            <OperationFormCard className="operation-form-column">
               <FormField label="Email Requested Accept">
-                <CompactUploadDropzone
+                <OperationFileUpload
                   files={formValues.departureAttachments || []}
                   onAddFiles={handleDepartureDocumentsAdd}
                   isViewOnly={isViewOnly}
@@ -1646,9 +1666,6 @@ const DepartureContent = ({ formValues, handleChange, cardColor, onAddLink, onRe
                 handleChange={handleChange}
                 isViewOnly={isViewOnly}
               />
-
-
-
               <FormField label="Next port">
                 <FormInput
                   type="text"
@@ -1658,21 +1675,8 @@ const DepartureContent = ({ formValues, handleChange, cardColor, onAddLink, onRe
                   disabled={isViewOnly}
                 />
               </FormField>
-
-
-              {!isViewOnly && (
-                <div className="operation-sticky-actions">
-                  <button
-                    type="button"
-                    className="form-save-button"
-                    onClick={handleSaveAndSendReport}
-                  >
-                    Save
-                  </button>
-                </div>
-              )}
-            </div>
-            <div className="operation-email-column">
+            </OperationFormCard>
+            <OperationFormCard className="operation-email-column">
               <OperationEmailPreviewPanel
                 from={reportDraft.from}
                 to={reportDraft.to}
@@ -1682,8 +1686,10 @@ const DepartureContent = ({ formValues, handleChange, cardColor, onAddLink, onRe
                 attachments={formValues.departureAttachments || []}
                 onChange={handleReportDraftChange}
               />
+            </OperationFormCard>
             </div>
           </div>
+          <OperationSaveSection isViewOnly={isViewOnly} onSave={handleSaveAndSendReport} />
         </div>
       </FormSection>
     </div>
