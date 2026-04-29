@@ -35,7 +35,7 @@ function CustomSelect({
     // If clear button clicked, selectedOption is null
     if (!selectedOption) {
       setSelectedValue(isMulti ? [] : null);
-      onChange({ value: null }); // Notify parent of cleared selection
+      onChange(isMulti ? [] : { value: null }); // Notify parent of cleared selection
     } else {
       // Update selected value and notify parent
       setSelectedValue(selectedOption);
@@ -45,7 +45,14 @@ function CustomSelect({
 
   const fetchValue = () => {
     if (isMulti) {
-      return options.filter((option) => selectedValue?.includes(option.value));
+      if (!Array.isArray(selectedValue)) return [];
+      if (selectedValue.length === 0) return [];
+
+      // Support both [{ value, label }] and ["1", "2"] style values.
+      if (typeof selectedValue[0] === 'object') return selectedValue;
+      return options.filter((option) =>
+        selectedValue.map(String).includes(String(option.value))
+      );
     }
     return (
       options.find((option) => option.value === selectedValue?.value) || null

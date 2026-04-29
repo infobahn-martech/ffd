@@ -1,0 +1,87 @@
+body .document-checklist-modal .modal-dialog {
+  max-width: 680px !important;
+}
+
+.document-checklist-modal .modal-content {
+  border-radius: 18px;
+  padding: 24px 24px 18px;
+  box-shadow: 0 24px 56px rgba(15, 23, 42, 0.16);
+}
+
+.document-checklist-modal .modal-body {
+  padding-bottom: 8px;
+}
+
+.document-checklist-modal .lead-form form {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+
+.document-checklist-modal .document-checklist-select-wrap {
+  padding: 12px;
+  border: 1px solid #e2e8f0;
+  border-radius: 12px;
+  background: #f8fafc;
+  box-shadow: 0 8px 18px rgba(15, 23, 42, 0.05);
+}
+
+.document-checklist-modal .document-checklist-select-wrap .react-select-container {
+  border-radius: 10px;
+  background: #fff;
+}
+
+.document-checklist-modal .document-checklist-select-wrap .react-select__control {
+  border-color: #d4dce7;
+  min-height: 48px;
+  box-shadow: none;
+}
+
+.document-checklist-modal .document-checklist-select-wrap .react-select__control:hover {
+  border-color: #b9c5d6;
+}
+
+.document-checklist-modal .document-checklist-select-wrap .react-select__value-container {
+  gap: 6px;
+  padding-top: 6px;
+  padding-bottom: 6px;
+}
+
+.document-checklist-modal .document-checklist-select-wrap .react-select__multi-value {
+  border-radius: 16px;
+  background: #e8f0ff;
+}
+
+.document-checklist-modal .document-checklist-select-wrap .react-select__multi-value__label {
+  color: #0f3f87;
+  font-weight: 500;
+}
+
+.document-checklist-modal .document-checklist-select-wrap .react-select__multi-value__remove:hover {
+  background: #cddfff;
+  color: #0a2f69;
+}
+
+.document-checklist-modal .document-checklist-select-wrap .react-select__menu {
+  border-radius: 10px;
+  overflow: hidden;
+}
+
+.document-checklist-modal .modal-footer {
+  padding-top: 12px;
+  border-top: 1px solid #eef2f7;
+  justify-content: flex-end;
+  gap: 10px;
+}
+
+.document-checklist-modal .modal-footer .btn {
+  min-width: 96px;
+  border-radius: 10px;
+  font-weight: 600;
+}
+
+.document-checklist-modal .modal-footer .btn-outline {
+  border: 1px solid #d1d9e6;
+  color: #334155;
+  background: #fff;
+}

@@ -6,6 +6,7 @@ import useDocumentChecklistReducer from "../../../store/DocumentChecklistReducer
 import "../../../design/scss/prospect-modal.scss";
 import "../../../design/scss/modal-designs.scss";
 import "../../../design/scss/form-designs.scss";
+import "../../../design/scss/document-checklist-modal.scss";
 
 export function DocumentChecklistModal({ showModal, closeModal, onSuccess }) {
     const {
@@ -102,7 +103,7 @@ export function DocumentChecklistModal({ showModal, closeModal, onSuccess }) {
                     </div>
 
                     <div className="mb-lg-3 mb-sm-0">
-                        <div className="desig-inp">
+                        <div className="desig-inp document-checklist-select-wrap">
                             <label className="mb-2 d-block">
                                 Select Document <span className="text-danger">*</span>
                             </label>
@@ -114,24 +115,31 @@ export function DocumentChecklistModal({ showModal, closeModal, onSuccess }) {
                                         (Array.isArray(value) && value.length > 0) ||
                                         "At least one document is required",
                                 }}
-                                render={({ field }) => (
-                                    <CommonSelect
-                                        isMulti
-                                        options={documentOptions}
-                                        value={field.value}
-                                        onChange={(selected) => {
-                                            const values = Array.isArray(selected)
-                                                ? selected.map((item) => String(item?.value))
-                                                : [];
-                                            field.onChange(values);
-                                        }}
-                                        placeholder="Select Document(s)"
-                                        className={errors.document_ids ? "is-invalid" : ""}
-                                        isDisabled={isBeingUpdated}
-                                        position="top"
-                                        maxheight={220}
-                                    />
-                                )}
+                                render={({ field }) => {
+                                    const selectedDocumentOptions = documentOptions.filter((option) =>
+                                        (field.value || []).map(String).includes(String(option.value)),
+                                    );
+
+                                    return (
+                                        <CommonSelect
+                                            isMulti
+                                            options={documentOptions}
+                                            value={selectedDocumentOptions}
+                                            onChange={(selected) => {
+                                                const values = Array.isArray(selected)
+                                                    ? selected.map((item) => String(item.value))
+                                                    : [];
+                                                field.onChange(values);
+                                            }}
+                                            placeholder="Select Document(s)"
+                                            className={`document-checklist-select ${errors.document_ids ? "is-invalid" : ""}`}
+                                            classNamePrefix="react-select"
+                                            isDisabled={isBeingUpdated}
+                                            menuPosition="fixed"
+                                            maxheight={220}
+                                        />
+                                    );
+                                }}
                             />
                             {errors.document_ids && (
                                 <span className="error text-danger">
@@ -163,7 +171,7 @@ export function DocumentChecklistModal({ showModal, closeModal, onSuccess }) {
 
     return (
         <CustomModal
-            className="role-modal-sm"
+            className="role-modal-sm document-checklist-modal"
             dialgName="modal-dialog modal-dialog-centered"
             show={!!showModal}
             closeModal={() => closeModal(null)}
