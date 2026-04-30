@@ -23,6 +23,7 @@ import "../../../../../design/scss/operations.scss";
 import preArrivalInfoService from "../../../../../services/preArrivalInfoService";
 import userService from "../../../../../services/userService";
 import preArrivalService from "../../../../../services/preArrivalService";
+import appointmentAcceptanceService from "../../../../../services/appointmentAcceptanceService";
 
 // Constants
 const OPERATION_TABS = {
@@ -234,6 +235,58 @@ const formatAttachmentLabel = (attachment) => {
   if (!attachment) return "Attachment";
   if (typeof attachment === "string") return attachment;
   return attachment.name || attachment.file_name || attachment.filename || "Attachment";
+};
+
+const htmlToReadableText = (value) => {
+  const input = String(value || "").trim();
+  if (!input) return "";
+  if (!/[<>]|&nbsp;|&#\d+;|&[a-z]+;/i.test(input)) return input;
+
+  if (typeof window !== "undefined" && window.document) {
+    const root = window.document.createElement("div");
+    root.innerHTML = input;
+    const blockSelectors = "p,div,br,li,h1,h2,h3,h4,h5,h6,tr";
+    root.querySelectorAll(blockSelectors).forEach((el) => {
+      if (el.tagName === "BR") {
+        el.replaceWith("\n");
+      } else if (el.tagName === "LI") {
+        el.insertAdjacentText("afterbegin", "- ");
+        el.insertAdjacentText("beforeend", "\n");
+      } else {
+        el.insertAdjacentText("beforeend", "\n");
+      }
+    });
+    return (root.textContent || "")
+      .replace(/\u00A0/g, " ")
+      .replace(/\r/g, "")
+      .replace(/\n{3,}/g, "\n\n")
+      .trim();
+  }
+
+  return input
+    .replace(/<br\s*\/?>/gi, "\n")
+    .replace(/<\/(p|div|li|h1|h2|h3|h4|h5|h6|tr)>/gi, "\n")
+    .replace(/<[^>]*>/g, "")
+    .replace(/&nbsp;/gi, " ")
+    .replace(/&amp;/gi, "&")
+    .replace(/&lt;/gi, "<")
+    .replace(/&gt;/gi, ">")
+    .replace(/&#39;/gi, "'")
+    .replace(/&quot;/gi, '"')
+    .replace(/\r/g, "")
+    .replace(/\n{3,}/g, "\n\n")
+    .trim();
+};
+
+const extractReportTemplateFields = (templatePayload) => {
+  const rawData = templatePayload?.data?.data ?? templatePayload?.data ?? templatePayload ?? {};
+  const row = Array.isArray(rawData) ? rawData[0] || {} : rawData;
+  const rawBody = row?.body || row?.message || row?.email_body || row?.template || "";
+  return {
+    from: row?.from_email || row?.from || row?.sender_email || "",
+    subject: row?.subject || row?.email_subject || "",
+    message: htmlToReadableText(rawBody),
+  };
 };
 
 const OperationEmailPreviewPanel = ({
@@ -1234,6 +1287,7 @@ const PreArrivalContent = ({
   isViewOnly = false,
   eventFields = [],
   portId,
+  callTypeId,
 }) => {
   const [isSavingPreArrival, setIsSavingPreArrival] = useState(false);
   const [reportDraft, setReportDraft] = useState({
@@ -1356,6 +1410,41 @@ const PreArrivalContent = ({
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
+  useEffect(() => {
+    let cancelled = false;
+
+    const loadReportTemplate = async () => {
+      if (!portId || !callTypeId) return;
+
+      try {
+        const response = await appointmentAcceptanceService.getTemplateByPortCallType({
+          port_id: portId,
+          call_type_id: callTypeId,
+          report_type_id: 1,
+        });
+        if (cancelled) return;
+
+        const template = extractReportTemplateFields(response);
+        setReportDraft((prev) => ({
+          ...prev,
+          from: template.from || prev.from,
+          subject: template.subject || prev.subject,
+          message: template.message || prev.message,
+        }));
+      } catch (error) {
+        if (cancelled) return;
+        // eslint-disable-next-line no-console
+        console.error("[Operation] report_template/get_template_by_port_calltype failed", error);
+      }
+    };
+
+    loadReportTemplate();
+
+    return () => {
+      cancelled = true;
+    };
+  }, [portId, callTypeId]);
+
   const handleReportDraftChange = (field, value) => {
     setReportDraft((prev) => ({ ...prev, [field]: value }));
   };
@@ -1475,6 +1564,7 @@ PreArrivalContent.propTypes = {
   isViewOnly: PropTypes.bool,
   eventFields: PropTypes.array,
   portId: PropTypes.oneOfType([PropTypes.string, PropTypes.number]),
+  callTypeId: PropTypes.oneOfType([PropTypes.string, PropTypes.number]),
 };
 
 const ArrivalContent = ({
@@ -2210,6 +2300,7 @@ function Operation({ card, formValues, handleChange, ownerInitial, isDAModule = 
               isViewOnly={isViewOnly}
               eventFields={preArrivalEventFields}
               portId={preArrivalPortId}
+              callTypeId={preArrivalCallTypeId}
             />
           )}
           {activeOperationTab === OPERATION_TABS.CHECK_LIST && (
