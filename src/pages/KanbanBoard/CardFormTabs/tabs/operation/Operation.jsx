@@ -1628,8 +1628,8 @@ const ArrivalContent = ({
       </div>
       <FormSection icon={GroupSettingsIcon} title="">
         <div className="operation-tab-layout">
-          <div className="arrival-form operation-tab-scroll">
-            <div className="operation-two-column-grid">
+          <div className="arrival-form">
+            <div className="operation-two-column-grid operation-two-column-grid--split-scroll">
               <OperationFormCard className="operation-form-column">
                 <OperationFormCard >
                   <DynamicDateTimeFields
@@ -1795,8 +1795,8 @@ const DepartureContent = ({ formValues, handleChange, cardColor, onAddLink, onRe
       </div>
       <FormSection icon={GroupSettingsIcon} title="">
         <div className="operation-tab-layout">
-          <div className="departure-form operation-tab-scroll">
-            <div className="operation-two-column-grid">
+          <div className="departure-form">
+            <div className="operation-two-column-grid operation-two-column-grid--split-scroll">
               <OperationFormCard className="operation-form-column">
                 <FormField label="Email Requested Accept">
                   <OperationFileUpload

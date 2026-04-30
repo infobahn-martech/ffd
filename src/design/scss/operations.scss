@@ -1717,6 +1717,19 @@ $send-report-optional: #80868b;
   padding: 0 4px 0 0;
 }
 
+.operation-two-column-grid--split-scroll {
+  height: 100%;
+  overflow: hidden;
+  padding-right: 0;
+}
+
+.operation-two-column-grid--split-scroll .operation-form-column,
+.operation-two-column-grid--split-scroll .operation-email-column {
+  height: 100%;
+  overflow-y: auto;
+  overflow-x: hidden;
+}
+
 .operation-form-column,
 .operation-document-column,
 .operation-email-column {
@@ -1937,6 +1950,11 @@ $send-report-optional: #80868b;
   min-height: 0;
   overflow-y: auto;
   overflow-x: hidden;
+}
+
+.arrival-form,
+.departure-form {
+  overflow: hidden;
 }
 
 /* Override ReactQuill min-height for Pre-Arrival tab to match right section */
