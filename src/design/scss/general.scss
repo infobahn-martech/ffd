@@ -2920,9 +2920,9 @@
 
 /* Add-mode static field validation (General tab) */
 .cf-field-error {
-  font-size: 12px;
-  color: #c62828;
   margin-top: 4px;
+  font-size: 12px;
+  color: #dc2626;
   line-height: 1.35;
 }
 
@@ -2936,7 +2936,19 @@
 
 .cf-input.is-invalid input,
 .cf-input.date-time-row.is-invalid input {
-  border-color: #c62828;
+  border-color: #dc2626;
+}
+
+.cf-field.has-error input,
+.cf-field.has-error .cf-input,
+.cf-field.has-error .searchable-select,
+.cf-field.has-error .cf-multi-select-email-input,
+.cf-field.has-error .document-upload-zone,
+.document-upload-zone.has-error,
+.cf-multi-select-email-input.has-error,
+.email-preview-inline-input.is-invalid,
+.email-preview-message-input.is-invalid {
+  border-color: #dc2626 !important;
 }
 
 .cf-datetime-picker {
