@@ -10,6 +10,7 @@ export function mapOperatorsToOptions(rows) {
   return (rows || []).map((r) => ({
     value: String(r.user_id),
     label: r.user_name ?? '',
+    avatar: r.avatar ?? null,
   }));
 }
 

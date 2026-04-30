@@ -212,14 +212,50 @@ FormSelect.propTypes = {
   hasError: PropTypes.bool,
 };
 
-const OwnerField = ({ value, onChange, options = [], placeholder = "Select owner", disabled = false, error, hasError = false }) => {
+const UserOptionAvatar = ({ avatarUrl, label, className = "" }) => {
+  const letterSource = label != null ? String(label).trim() : "";
+  const displayLetter = letterSource ? letterSource.charAt(0).toUpperCase() : "U";
+  const src = avatarUrl != null && String(avatarUrl).trim();
+  const [imgFailed, setImgFailed] = useState(false);
+
+  if (src && !imgFailed) {
+    return (
+      <div className={`cf-owner-avatar cf-owner-avatar--img ${className}`.trim()}>
+        <img src={src} alt="" onError={() => setImgFailed(true)} />
+      </div>
+    );
+  }
+  return <div className={`cf-owner-avatar ${className}`.trim()}>{displayLetter}</div>;
+};
+
+UserOptionAvatar.propTypes = {
+  avatarUrl: PropTypes.string,
+  label: PropTypes.string,
+  className: PropTypes.string,
+};
+
+const OwnerField = ({
+  label = "Owner",
+  value,
+  onChange,
+  options = [],
+  placeholder = "Select owner",
+  disabled = false,
+  error,
+  hasError = false,
+}) => {
   const selected = options.find((opt) => String(opt.value) === String(value ?? ""));
-  const avatarLetter = selected?.label?.trim()?.charAt(0)?.toUpperCase() || "U";
   const showErr = hasError || Boolean(error);
+  const renderOption = (option) => (
+    <div className="cf-searchable-option-with-avatar">
+      <UserOptionAvatar avatarUrl={option.avatar} label={option.label} className="cf-owner-avatar--sm" />
+      <span>{option.label}</span>
+    </div>
+  );
   return (
-    <FormField label="Owner" hasError={showErr}>
+    <FormField label={label} hasError={showErr}>
       <div className={`cf-owner-row ${showErr ? "is-invalid" : ""}`}>
-        <div className="cf-owner-avatar">{avatarLetter}</div>
+        <UserOptionAvatar avatarUrl={selected?.avatar} label={selected?.label} />
         <SearchableSelect
           value={value === undefined || value === null ? "" : String(value)}
           onChange={onChange}
@@ -229,6 +265,7 @@ const OwnerField = ({ value, onChange, options = [], placeholder = "Select owner
           disabled={disabled}
           hasError={showErr}
           className="cf-owner-searchable-select"
+          renderOption={renderOption}
         />
       </div>
       {error ? <div className="cf-field-error">{error}</div> : null}
@@ -237,12 +274,14 @@ const OwnerField = ({ value, onChange, options = [], placeholder = "Select owner
 };
 
 OwnerField.propTypes = {
+  label: PropTypes.string,
   value: PropTypes.oneOfType([PropTypes.string, PropTypes.number]),
   onChange: PropTypes.func.isRequired,
   options: PropTypes.arrayOf(
     PropTypes.shape({
       value: PropTypes.string.isRequired,
       label: PropTypes.string.isRequired,
+      avatar: PropTypes.string,
     })
   ),
   placeholder: PropTypes.string,
@@ -3355,15 +3394,14 @@ function General({
                               )}
 
                               {shouldShowApiField("assigned_operator_id") && (
-                                <FormField label="Assigned Operator">
-                                  <FormSelect
-                                    value={getFieldValue("assignedOperator")}
-                                    onChange={handleChange("assignedOperator")}
-                                    options={mergeOptionIfMissing(operatorOptions, getFieldValue("assignedOperator"))}
-                                    placeholder="Select operator"
-                                    disabled={masterInputsDisabled}
-                                  />
-                                </FormField>
+                                <OwnerField
+                                  label="Assigned Operator"
+                                  value={getFieldValue("assignedOperator")}
+                                  onChange={handleChange("assignedOperator")}
+                                  options={mergeOptionIfMissing(operatorOptions, getFieldValue("assignedOperator"))}
+                                  placeholder="Select operator"
+                                  disabled={masterInputsDisabled}
+                                />
                               )}
 
                               {shouldShowApiField("service_requestor_name") && (

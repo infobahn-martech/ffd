@@ -25,6 +25,7 @@ const SearchableSelect = ({
   hasError = false,
   getOptionLabel = defaultGetOptionLabel,
   getOptionValue = defaultGetOptionValue,
+  renderOption,
   menuZIndex = 10000,
   noResultsText = "No results found",
 }) => {
@@ -209,7 +210,11 @@ const SearchableSelect = ({
                   }}
                   onMouseEnter={() => setActiveIndex(index)}
                 >
-                  <span>{getOptionLabel(option)}</span>
+                  {typeof renderOption === "function" ? (
+                    renderOption(option, { getOptionLabel, getOptionValue })
+                  ) : (
+                    <span>{getOptionLabel(option)}</span>
+                  )}
                 </div>
               );
             })
@@ -231,6 +236,7 @@ SearchableSelect.propTypes = {
   hasError: PropTypes.bool,
   getOptionLabel: PropTypes.func,
   getOptionValue: PropTypes.func,
+  renderOption: PropTypes.func,
   menuZIndex: PropTypes.number,
   noResultsText: PropTypes.string,
 };

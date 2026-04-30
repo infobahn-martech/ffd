@@ -576,6 +576,36 @@
   box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
 }
 
+.cf-owner-avatar--img {
+  padding: 0;
+  overflow: hidden;
+}
+
+.cf-owner-avatar--img img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.cf-owner-avatar--sm {
+  width: 28px;
+  height: 28px;
+  font-size: 12px;
+}
+
+.cf-searchable-option-with-avatar {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  min-width: 0;
+}
+
+.cf-searchable-option-with-avatar > span {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
 .cf-owner-select {
   flex: 1;
   border-radius: 8px;
