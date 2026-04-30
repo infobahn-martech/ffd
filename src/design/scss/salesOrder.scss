@@ -94,7 +94,7 @@
   border: 1px solid #e7eaf2;
   border-radius: 12px;
   padding: 16px 20px;
-  margin: 0 22px 14px;
+  margin: 14px;
   display: flex;
   flex-direction: column;
   gap: 14px;
@@ -736,6 +736,7 @@
 }
 
 @media (max-width: 900px) {
+
   .so-header-panel,
   .sales-order-add-accordion,
   .sales-order-table-container,
