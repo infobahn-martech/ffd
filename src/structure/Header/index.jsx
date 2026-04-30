@@ -75,24 +75,61 @@ function Header({ onMenuToggle, mobileMenuOpen: externalMobileMenuOpen, isVendor
   const userProfile = useAuthReducer((state) => state.userProfile);
   const restrictedBoardUser = isRestrictedBoardUser(userProfile);
 
-  // Dummy data for demonstration
-  const DUMMY_USER = {
-    name: 'John Smith',
-    avatar: 'https://ui-avatars.com/api/?name=John+Smith&background=00368c&color=fff&size=128',
+  const getLoggedInUser = () => {
+    let parsedLocalProfile = {};
+
+    try {
+      const rawProfile = localStorage.getItem('userProfile');
+      parsedLocalProfile = rawProfile ? JSON.parse(rawProfile) : {};
+    } catch (error) {
+      parsedLocalProfile = {};
+    }
+
+    const localStorageFallback = {
+      name: localStorage.getItem('userName') || '',
+      email: localStorage.getItem('userEmail') || '',
+      userid: localStorage.getItem('userid') || '',
+    };
+
+    return {
+      ...localStorageFallback,
+      ...(parsedLocalProfile || {}),
+      ...(authData || {}),
+      ...(profileData || {}),
+      ...(userProfile || {}),
+    };
   };
 
-  // Get user initial from profile or auth data, fallback to dummy
+  const resolvedUser = getLoggedInUser();
+  const resolvedUserName = resolvedUser?.name || resolvedUser?.firstName || '';
+
   const getUserInitial = () => {
-    const name = profileData?.name || profileData?.firstName ||
-      authData?.name || authData?.firstName ||
-      DUMMY_USER.name;
-    return name.charAt(0).toUpperCase();
+    const name = resolvedUser?.name || resolvedUser?.firstName || '';
+
+    if (name) {
+      return name.charAt(0).toUpperCase();
+    }
+
+    const email = resolvedUser?.email || '';
+    if (email) {
+      return email.charAt(0).toUpperCase();
+    }
+
+    return 'U';
   };
 
-  // Get user avatar, fallback to dummy
   const getUserAvatar = () => {
-    return profileData?.avatar || authData?.avatar || DUMMY_USER.avatar;
+    return (
+      resolvedUser?.image ||
+      resolvedUser?.avatar ||
+      resolvedUser?.profile_image ||
+      resolvedUser?.profilePhoto ||
+      resolvedUser?.photo_url ||
+      ''
+    );
   };
+  const resolvedAvatar = getUserAvatar();
+  const resolvedInitial = getUserInitial();
 
   // Use external state if provided, otherwise use internal state
   const mobileMenuOpen = externalMobileMenuOpen !== undefined
@@ -317,6 +354,10 @@ function Header({ onMenuToggle, mobileMenuOpen: externalMobileMenuOpen, isVendor
     return () => document.body.classList.remove('app-dark-mode');
   }, [layoutView]);
 
+  useEffect(() => {
+    setImageError(false);
+  }, [resolvedAvatar]);
+
   return (
     <div className={`sedres-header ${layoutView === 'dark' ? 'sedres-header-dark' : ''}`}>
 
@@ -424,10 +465,10 @@ function Header({ onMenuToggle, mobileMenuOpen: externalMobileMenuOpen, isVendor
             onClick={handleUserCircleClick}
             data-tooltip-id="user-profile"
           >
-            {!imageError ? (
+            {resolvedAvatar && !imageError ? (
               <img
-                src={getUserAvatar()}
-                alt="User"
+                src={resolvedAvatar}
+                alt={resolvedUserName || 'User'}
                 style={{
                   width: '100%',
                   height: '100%',
@@ -437,7 +478,7 @@ function Header({ onMenuToggle, mobileMenuOpen: externalMobileMenuOpen, isVendor
                 onError={() => setImageError(true)}
               />
             ) : (
-              <span className="user-letter">{getUserInitial()}</span>
+              <span className="user-letter">{resolvedInitial}</span>
             )}
           </div>
 
