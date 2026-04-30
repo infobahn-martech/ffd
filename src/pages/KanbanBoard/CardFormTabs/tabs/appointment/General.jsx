@@ -2332,15 +2332,16 @@ function General({
         ...prev,
         [normalizedId]: { date: nextDate, time: nextTime },
       }));
-      if (!hasSubmitted) return;
-      setFieldErrors((prev) => {
-        const errorKey = `timeObject_${normalizedId}`;
-        if (!prev?.[errorKey]) return prev;
-        if (!nextDate || !nextTime) return prev;
-        const next = { ...prev };
-        delete next[errorKey];
-        return next;
-      });
+      if (hasSubmitted) {
+        setFieldErrors((prev) => {
+          const errorKey = `timeObject_${normalizedId}`;
+          if (!prev?.[errorKey]) return prev;
+          if (!nextDate || !nextTime) return prev;
+          const next = { ...prev };
+          delete next[errorKey];
+          return next;
+        });
+      }
 
       const isEtaField = normalizedId === etaTimeObjectId;
       if (!isEtaField) return;
@@ -2367,19 +2368,24 @@ function General({
         });
         if (etaDependentRequestIdRef.current !== requestId) return;
         const rows = Array.isArray(data?.data) ? data.data : Array.isArray(data) ? data : [];
-        if (!rows.length) return;
-        setStageTimeObjectValues((prev) => {
-          const merged = { ...prev };
-          rows.forEach((item) => {
-            const id = firstNonEmptyString(item?.time_object_id);
-            const value = firstNonEmptyString(item?.value);
-            if (!id || !value) return;
-            const parsed = splitApiDateTimeValue(value);
-            if (!parsed.date || !parsed.time) return;
-            merged[id] = parsed;
-          });
-          return merged;
+        const mergedPatch = {};
+        rows.forEach((item) => {
+          const id = firstNonEmptyString(item?.time_object_id);
+          const value = firstNonEmptyString(item?.value, item?.time_object_value, item?.event_datetime);
+          if (!id || !value) return;
+          const parsed = splitApiDateTimeValue(value);
+          if (!parsed.date || !parsed.time) return;
+          mergedPatch[id] = parsed;
         });
+        if (!Object.keys(mergedPatch).length) return;
+        setStageTimeObjectValues((prev) => ({ ...prev, ...mergedPatch }));
+        if (hasSubmitted) {
+          setFieldErrors((prev) => {
+            const next = { ...prev };
+            Object.keys(mergedPatch).forEach((tid) => delete next[`timeObject_${tid}`]);
+            return next;
+          });
+        }
       } catch (error) {
         console.error("[General] pre_arrival/get_eta_dependent_times failed", error);
       } finally {

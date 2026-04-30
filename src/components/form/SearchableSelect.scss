@@ -1,19 +1,24 @@
+/* Stacking for all searchable selects */
 .cf-searchable-select .cf-multi-select-dropdown {
   z-index: var(--cf-searchable-menu-z, 10000);
+}
+
+/* Scroll + compact rows: Owner & Assigned Operator only (cf-owner-searchable-select) */
+.cf-owner-searchable-select .cf-multi-select-dropdown {
   max-height: min(320px, 45vh);
   overflow-x: hidden;
   overflow-y: auto;
   -webkit-overflow-scrolling: touch;
 }
 
-.cf-searchable-select .cf-multi-select-option {
+.cf-owner-searchable-select .cf-multi-select-option {
   padding: 5px 10px;
   font-size: 12px;
   gap: 8px;
   line-height: 1.2;
 }
 
-.cf-searchable-select .cf-multi-select-no-results {
+.cf-owner-searchable-select .cf-multi-select-no-results {
   padding: 12px 10px;
   font-size: 13px;
 }
