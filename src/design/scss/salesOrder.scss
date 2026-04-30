@@ -363,8 +363,8 @@
 
 /* Table */
 .sales-order-table-container {
-  overflow-x: auto;
-  overflow-y: auto;
+  overflow-y: scroll !important;
+  overflow-x: auto !important;
   width: auto;
   margin: 0 14px;
   padding: 0;
@@ -373,32 +373,35 @@
   -webkit-overflow-scrolling: touch;
   border: 1px solid #e4e9f2;
   border-radius: 12px;
-  height: 320px;
-  min-height: 320px;
-  max-height: 320px;
+  height: 230px;
+  min-height: 230px;
+  max-height: 230px;
   position: relative;
   z-index: 2;
   box-shadow: 0 2px 8px rgba(15, 23, 42, 0.05);
   overscroll-behavior: contain;
+  scrollbar-gutter: stable;
+  scrollbar-width: thin;
+  scrollbar-color: #9ca8c3 #eef1f7;
 }
 
 .cardform-panel .sales-order-table-container::-webkit-scrollbar,
 .sales-order-table-container::-webkit-scrollbar {
-  width: 12px;
-  height: 12px !important;
+  width: 10px;
+  height: 10px;
 }
 
 .cardform-panel .sales-order-table-container::-webkit-scrollbar-track,
 .sales-order-table-container::-webkit-scrollbar-track {
-  background: #e8edf7 !important;
-  border-radius: 10px;
+  background: #eef1f7 !important;
+  border-radius: 8px;
 }
 
 .cardform-panel .sales-order-table-container::-webkit-scrollbar-thumb,
 .sales-order-table-container::-webkit-scrollbar-thumb {
-  background: #b3bfd6 !important;
-  border: 2px solid #e8edf7;
-  border-radius: 10px;
+  background: #9ca8c3 !important;
+  border: 2px solid #eef1f7;
+  border-radius: 8px;
 }
 
 .cardform-panel .sales-order-table-container::-webkit-scrollbar-thumb:hover,
@@ -408,8 +411,8 @@
 
 .cardform-panel .sales-order-table-container,
 .sales-order-table-container {
-  scrollbar-width: auto;
-  scrollbar-color: #b3bfd6 #e8edf7;
+  scrollbar-width: thin;
+  scrollbar-color: #9ca8c3 #eef1f7;
 }
 
 .sales-order-table-container .sales-order-list-table {
@@ -424,7 +427,7 @@
 .sales-order-table-container .table.sales-order-table thead th {
   position: sticky;
   top: 0;
-  z-index: 3;
+  z-index: 5;
   background: #e8edff !important;
   color: #31406f;
   font-weight: 700;
@@ -830,9 +833,11 @@
 
   .sales-order-table-container {
     width: auto;
-    height: 320px;
-    min-height: 320px;
-    max-height: 320px;
+    height: 230px;
+    min-height: 230px;
+    max-height: 230px;
+    overflow-y: scroll !important;
+    overflow-x: auto !important;
   }
 
   .so-header-row {
@@ -863,8 +868,10 @@
   }
 
   .sales-order-table-container {
-    height: 320px;
-    min-height: 320px;
-    max-height: 320px;
+    height: 230px;
+    min-height: 230px;
+    max-height: 230px;
+    overflow-y: scroll !important;
+    overflow-x: auto !important;
   }
 }
