@@ -2062,15 +2062,21 @@ function Operation({ card, formValues, handleChange, ownerInitial, isDAModule = 
 
         const dependentEvents = response?.data?.data || [];
         dependentEvents.forEach((eventItem) => {
-          const rawDateTime = String(eventItem?.event_datetime || "").trim();
+          const rawDateTime = String(
+            eventItem?.value || eventItem?.event_datetime || eventItem?.event_date_time || ""
+          ).trim();
           if (!rawDateTime) return;
 
           // API shape: "YYYY-MM-DD HH:mm:ss" (or ISO-compatible variants)
-          const [datePart = "", timePart = ""] = rawDateTime.split(" ");
+          const normalizedDateTime = rawDateTime.replace("T", " ");
+          const [datePart = "", timePart = ""] = normalizedDateTime.split(" ");
           const normalizedTime = timePart.slice(0, 5);
           if (!datePart || !normalizedTime) return;
 
           const matchedField = preArrivalEventFields.find((field) => {
+            if (eventItem?.time_object_id != null && field?.event_type_id != null) {
+              return Number(field.event_type_id) === Number(eventItem.time_object_id);
+            }
             if (eventItem?.event_type_id != null && field?.event_type_id != null) {
               return Number(field.event_type_id) === Number(eventItem.event_type_id);
             }

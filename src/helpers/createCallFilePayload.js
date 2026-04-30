@@ -156,11 +156,11 @@ export function buildCreateCallFileFormData(formPayload, options = {}) {
 
   const timeObjects = (Array.isArray(fv.time_objects) ? fv.time_objects : [])
     .map((item) => {
-      const stageId = str(item?.time_object_stage_id ?? item?.time_object_id);
+      const timeObjectId = str(item?.time_object_id ?? item?.time_object_stage_id);
       const value = str(item?.time_object_value);
-      if (!stageId || !value) return null;
+      if (!timeObjectId || !value) return null;
       return {
-        time_object_stage_id: stageId,
+        time_object_id: timeObjectId,
         time_object_value: value,
       };
     })

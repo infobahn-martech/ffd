@@ -1880,14 +1880,14 @@ function General({
       time_objects: (Array.isArray(stageTimeObjects) ? stageTimeObjects : [])
         .map((item) => {
           const valueLookupId = firstNonEmptyString(item?.time_object_id);
-          const timeObjectStageId = firstNonEmptyString(item?.time_object_stage_id, item?.time_object_id);
-          if (!valueLookupId || !timeObjectStageId) return null;
+          const timeObjectId = firstNonEmptyString(item?.time_object_id, item?.time_object_stage_id);
+          if (!valueLookupId || !timeObjectId) return null;
           const selected = stageTimeObjectValues?.[valueLookupId];
           const selectedDate = firstNonEmptyString(selected?.date);
           const selectedTime = firstNonEmptyString(selected?.time);
           if (!selectedDate || !selectedTime) return null;
           return {
-            time_object_stage_id: timeObjectStageId,
+            time_object_id: timeObjectId,
             time_object_value: `${selectedDate} ${selectedTime}:00`,
           };
         })
