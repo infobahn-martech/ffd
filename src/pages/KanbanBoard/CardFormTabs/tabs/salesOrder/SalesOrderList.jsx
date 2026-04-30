@@ -4,7 +4,7 @@ import { FiFilePlus, FiFileText } from "react-icons/fi";
 import { FaWhatsapp, FaEnvelope } from "react-icons/fa";
 import { Tooltip } from "react-tooltip";
 import "react-tooltip/dist/react-tooltip.css";
-import "../../../../../design/scss/operations.scss";
+import "../../../../../design/scss/salesOrder.scss";
 import { PORT_OPTIONS } from "../../../../../constants/ports";
 
 const BP_CURRENCY_OPTIONS = ["SAR", "USD", "EURO"];
@@ -1843,7 +1843,7 @@ const SalesOrderList = ({
         </div>
       )}
 
-      <div className="table-wrapper table-responsive sales-order-table-container" style={{ position: "relative" }}>
+      <div className="table-wrapper sales-order-table-container" style={{ position: "relative" }}>
         {isLoadingSalesOrder && (
           <div
             style={{
