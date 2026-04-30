@@ -17,7 +17,6 @@ import NavTabButton from "../../../../../components/NavTabButton";
 import {
   DEFAULT_PRE_ARRIVAL_DOCUMENT_HANDLING,
   collectPreArrivalProcessAttachments,
-  mergePreArrivalDocumentHandling,
 } from "./preArrivalDocumentHandling";
 import DateTimePickerField from "../../components/DateTimePickerField";
 import "../../../../../design/scss/operations.scss";
@@ -960,10 +959,15 @@ DocumentGroupCard.propTypes = {
 
 function PreArrivalDocumentHandlingSection({ formValues, handleChange, isViewOnly, portId }) {
   const dh = formValues.preArrivalDocumentHandling || DEFAULT_PRE_ARRIVAL_DOCUMENT_HANDLING;
+  const dhRef = useRef(dh);
   const selectedGroOption = formValues.assignedGro || "";
   const selectedCustomClearanceOption = formValues.assignedCustom || "";
   const [groOptions, setGroOptions] = useState([]);
   const [customClearanceOptions, setCustomClearanceOptions] = useState([]);
+
+  useEffect(() => {
+    dhRef.current = dh;
+  }, [dh]);
 
   const setDh = (next) => {
     handleChange("preArrivalDocumentHandling")({ target: { value: next } });
@@ -987,6 +991,23 @@ function PreArrivalDocumentHandlingSection({ formValues, handleChange, isViewOnl
     setDh({ ...dh, documents: { ...dh.documents, [processKey]: rows } });
   };
 
+  const mergeRoleDocuments = useCallback((existingRows = [], incomingRows = []) => {
+    const normalizedIncoming = (Array.isArray(incomingRows) ? incomingRows : []).map((row, index) => ({
+      id: row?.document_id != null ? String(row.document_id) : `role-doc-${index}`,
+      name: row?.document_name || row?.name || `Document ${index + 1}`,
+      is_required: Boolean(row?.is_required ?? row?.required),
+      files: [],
+    }));
+
+    return normalizedIncoming.map((incomingRow) => {
+      const matched = (existingRows || []).find((row) => String(row?.id) === String(incomingRow.id));
+      return {
+        ...incomingRow,
+        files: Array.isArray(matched?.files) ? matched.files : [],
+      };
+    });
+  }, []);
+
   const { gro: groOn, customClearance: ccOn } = dh.selectedProcesses || {};
   const showDocumentHandlingContent = Boolean(selectedGroOption && selectedCustomClearanceOption);
 
@@ -999,6 +1020,7 @@ function PreArrivalDocumentHandlingSection({ formValues, handleChange, isViewOnl
         .map((user) => ({
           value: String(user.user_id),
           label: user.name || `User ${user.user_id}`,
+          roleId: user.role_id ?? user.roleId ?? user?.role?.role_id ?? user?.role?.id ?? null,
         }));
 
     const loadUserOptions = async () => {
@@ -1048,6 +1070,66 @@ function PreArrivalDocumentHandlingSection({ formValues, handleChange, isViewOnl
       cancelled = true;
     };
   }, [portId, selectedGroOption, selectedCustomClearanceOption, handleChange]);
+
+  useEffect(() => {
+    let cancelled = false;
+
+    const selectedGroRoleId = groOptions.find((option) => option.value === selectedGroOption)?.roleId;
+    const selectedCustomRoleId = customClearanceOptions.find(
+      (option) => option.value === selectedCustomClearanceOption
+    )?.roleId;
+
+    const loadRoleBasedDocuments = async () => {
+      const tasks = [];
+      if (selectedGroRoleId) {
+        tasks.push(preArrivalInfoService.getDocumentsByRole(selectedGroRoleId));
+      } else {
+        tasks.push(Promise.resolve(null));
+      }
+      if (selectedCustomRoleId) {
+        tasks.push(preArrivalInfoService.getDocumentsByRole(selectedCustomRoleId));
+      } else {
+        tasks.push(Promise.resolve(null));
+      }
+
+      try {
+        const [groResponse, customResponse] = await Promise.all(tasks);
+        if (cancelled) return;
+
+        const currentDh = dhRef.current || DEFAULT_PRE_ARRIVAL_DOCUMENT_HANDLING;
+        const groRows = mergeRoleDocuments(currentDh?.documents?.gro || [], groResponse?.data?.data || []);
+        const customRows = mergeRoleDocuments(
+          currentDh?.documents?.customClearance || [],
+          customResponse?.data?.data || []
+        );
+
+        setDh({
+          ...currentDh,
+          documents: {
+            ...currentDh.documents,
+            gro: selectedGroRoleId ? groRows : [],
+            customClearance: selectedCustomRoleId ? customRows : [],
+          },
+        });
+      } catch (error) {
+        if (cancelled) return;
+        // eslint-disable-next-line no-console
+        console.error("[Operation] pre_arrival/get_documents_by_role failed", error);
+      }
+    };
+
+    loadRoleBasedDocuments();
+
+    return () => {
+      cancelled = true;
+    };
+  }, [
+    selectedGroOption,
+    selectedCustomClearanceOption,
+    groOptions,
+    customClearanceOptions,
+    mergeRoleDocuments,
+  ]);
 
   return (
     <div className="document-handling-section">
@@ -1855,7 +1937,6 @@ function Operation({ card, formValues, handleChange, ownerInitial, isDAModule = 
     4: [],
     5: [],
   });
-  const preArrivalDocumentHandlingRef = useRef(formValues?.preArrivalDocumentHandling);
   const lastEtaDependentRequestRef = useRef("");
   const cardColor = card?.color || "#2A00FF";
 
@@ -1893,10 +1974,6 @@ function Operation({ card, formValues, handleChange, ownerInitial, isDAModule = 
       card?.typeOfCall,
     ]
   );
-
-  useEffect(() => {
-    preArrivalDocumentHandlingRef.current = formValues?.preArrivalDocumentHandling;
-  }, [formValues?.preArrivalDocumentHandling]);
 
   useEffect(() => {
     if (isAddMode || !currentCallId) {
@@ -1985,32 +2062,6 @@ function Operation({ card, formValues, handleChange, ownerInitial, isDAModule = 
       cancelled = true;
     };
   }, [preArrivalPortId, preArrivalCallTypeId]);
-
-  useEffect(() => {
-    let cancelled = false;
-
-    const loadPreArrivalDocuments = async () => {
-      try {
-        const { data } = await preArrivalInfoService.getDocuments();
-        if (cancelled) return;
-
-        const nextDocumentHandling = mergePreArrivalDocumentHandling(
-          preArrivalDocumentHandlingRef.current,
-          data?.data
-        );
-        handleChange("preArrivalDocumentHandling")({ target: { value: nextDocumentHandling } });
-      } catch (error) {
-        // eslint-disable-next-line no-console
-        console.error("[Operation] pre_arrival/get_documents failed", error);
-      }
-    };
-
-    loadPreArrivalDocuments();
-
-    return () => {
-      cancelled = true;
-    };
-  }, [handleChange]);
 
   const preArrivalEventFields = (eventTypeFieldsByStage[2] || []).length
     ? eventTypeFieldsByStage[2]
