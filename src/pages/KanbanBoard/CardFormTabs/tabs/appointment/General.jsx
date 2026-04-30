@@ -3348,14 +3348,24 @@ function General({
                               )}
                               {!isAddMode && (
                                 <FormField label="Call">
-                                  <FormInput
-                                    type="text"
-                                    value={firstNonEmptyString(callDetailData?.call_id, getFieldValue("callId"), getFieldValue("call_id"))}
-                                    onChange={() => {}}
-                                    placeholder="Not set"
-                                    readOnly
-                                    disabled
-                                  />
+                                  {(() => {
+                                    const callTypeValue = firstNonEmptyString(
+                                      callDetailData?.call_type_id,
+                                      getFieldValue("call_type_id"),
+                                      getFieldValue("typeOfCall")
+                                    );
+                                    const callTypeLabel = getOptionLabel(callTypeOptions, callTypeValue) || callTypeValue;
+                                    return (
+                                      <FormInput
+                                        type="text"
+                                        value={callTypeLabel}
+                                        onChange={() => {}}
+                                        placeholder="Not set"
+                                        readOnly
+                                        disabled
+                                      />
+                                    );
+                                  })()}
                                 </FormField>
                               )}
                               {!isAddMode &&
