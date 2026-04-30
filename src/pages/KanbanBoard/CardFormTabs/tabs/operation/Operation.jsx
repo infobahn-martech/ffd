@@ -333,20 +333,6 @@ const OperationEmailPreviewPanel = ({
             rows={11}
           />
         </FormField>
-
-        <FormField label="Attachments">
-          <div className="operation-email-attachments">
-            {attachments.length ? (
-              attachments.map((item, index) => (
-                <div className="operation-email-attachment-item" key={`${formatAttachmentLabel(item)}-${index}`}>
-                  {formatAttachmentLabel(item)}
-                </div>
-              ))
-            ) : (
-              <span className="operation-email-attachment-empty">No attachments</span>
-            )}
-          </div>
-        </FormField>
       </div>
     </div>
   );
