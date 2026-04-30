@@ -4,11 +4,39 @@ import moment from 'moment';
 import edit from '../../assets/images/edit.svg';
 import trash from '../../assets/images/delete.svg';
 import permissionIcon from '../../assets/images/icon-lock.svg';
+import unarchiveIcon from '../../assets/images/CircleTick.svg';
 import { getInitials } from '../../utils/utils';
 
-export const RenderAction = ({ onEditClick, row, onDeleteClick, onToggleClick, onPermissionClick }) => {
+export const RenderAction = ({
+  onEditClick,
+  row,
+  onDeleteClick,
+  onToggleClick,
+  onPermissionClick,
+  onUnarchiveClick,
+}) => {
   const isActive = row?.user_status === "Active";
+  const isArchived = row?.user_status === "Archive";
 
+  if (isArchived) {
+    const unarchiveTipId = `unarchive-user-${row?.user_id ?? 'row'}`;
+    return (
+      <>
+        <Tooltip id={unarchiveTipId} place="bottom" content="Unarchive" />
+        <div className="actions">
+          <span
+            data-tooltip-id={unarchiveTipId}
+            type="button"
+            className="edit"
+            onClick={() => onUnarchiveClick(row)}
+            style={{ cursor: 'pointer' }}
+          >
+            <img src={unarchiveIcon} alt="unarchive" />
+          </span>
+        </div>
+      </>
+    );
+  }
 
   return (
     <>

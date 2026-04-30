@@ -18,6 +18,7 @@ const User = () => {
 
   const [showUserModal, setShowUserModal] = useState(false);
   const [showDeleteModal, setShowDeleteModal] = useState(false);
+  const [showUnarchiveModal, setShowUnarchiveModal] = useState(false);
   const [showPermissionModal, setShowPermissionModal] = useState(false);
   const [selectedUser, setSelectedUser] = useState(null);
 
@@ -33,7 +34,9 @@ const User = () => {
     isUpdatingUserPermission,
     activateUser,
     archiveUser,
+    unarchiveUser,
     isArchiving,
+    isUnarchiving,
   } = useUserReducer((state) => state);
 
   useEffect(() => {
@@ -130,10 +133,12 @@ const User = () => {
         setSelectedUser(row);
         setShowDeleteModal(true);
       },
+      onUnarchiveClick: (row) => {
+        setSelectedUser(row);
+        setShowUnarchiveModal(true);
+      },
     },
   ];
-
-  console.log("users", users);
   return (
     <>
       <div className="page-body">
@@ -216,6 +221,22 @@ const User = () => {
               }}
               deleteText={`Are you sure you want to archive this user ${selectedUser?.firstName ?? selectedUser?.name ?? ""}?`}
               isLoading={isArchiving}
+            />
+          )}
+          {!!showUnarchiveModal && (
+            <DeleteConfirmationModal
+              show={showUnarchiveModal}
+              onCancel={() => {
+                setShowUnarchiveModal(false);
+                setSelectedUser(null);
+              }}
+              onConfirm={() => {
+                unarchiveUser({ user_id: selectedUser?.user_id, cb: () => getUsers({ params }) });
+                setShowUnarchiveModal(false);
+                setSelectedUser(null);
+              }}
+              deleteText={`Are you sure you want to unarchive this user ${selectedUser?.firstName ?? selectedUser?.name ?? ""}?`}
+              isLoading={isUnarchiving}
             />
           )}
 

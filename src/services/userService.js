@@ -37,6 +37,9 @@ const activateUser = (user_id) => Gateway.post(`/users/togglestatus/${user_id}`)
 const archiveUser = (user_id) =>
   Gateway.post(`/users/archive/${user_id}`, { user_id });
 
+const unarchiveUser = (user_id) =>
+  Gateway.post(`/users/unarchive_user/${user_id}`, { user_id });
+
 export default {
   getUsers,
   createUser,
@@ -46,4 +49,5 @@ export default {
   getUsersByRole,
   activateUser,
   archiveUser,
+  unarchiveUser,
 };
