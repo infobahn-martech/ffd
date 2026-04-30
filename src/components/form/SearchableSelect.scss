@@ -1,5 +1,9 @@
 .cf-searchable-select .cf-multi-select-dropdown {
   z-index: var(--cf-searchable-menu-z, 10000);
+  max-height: min(320px, 45vh);
+  overflow-x: hidden;
+  overflow-y: auto;
+  -webkit-overflow-scrolling: touch;
 }
 
 .cf-searchable-select-input {
