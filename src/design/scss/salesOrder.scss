@@ -373,9 +373,9 @@
   -webkit-overflow-scrolling: touch;
   border: 1px solid #e4e9f2;
   border-radius: 12px;
-  height: 300px;
-  min-height: 300px;
-  max-height: 300px;
+  height: 320px;
+  min-height: 320px;
+  max-height: 320px;
   position: relative;
   z-index: 2;
   box-shadow: 0 2px 8px rgba(15, 23, 42, 0.05);
@@ -384,30 +384,32 @@
 
 .cardform-panel .sales-order-table-container::-webkit-scrollbar,
 .sales-order-table-container::-webkit-scrollbar {
-  width: 8px;
-  height: 8px !important;
+  width: 12px;
+  height: 12px !important;
 }
 
 .cardform-panel .sales-order-table-container::-webkit-scrollbar-track,
 .sales-order-table-container::-webkit-scrollbar-track {
-  background: #eef1f7 !important;
+  background: #e8edf7 !important;
+  border-radius: 10px;
 }
 
 .cardform-panel .sales-order-table-container::-webkit-scrollbar-thumb,
 .sales-order-table-container::-webkit-scrollbar-thumb {
-  background: #c0c8d9 !important;
-  border-radius: 6px;
+  background: #b3bfd6 !important;
+  border: 2px solid #e8edf7;
+  border-radius: 10px;
 }
 
 .cardform-panel .sales-order-table-container::-webkit-scrollbar-thumb:hover,
 .sales-order-table-container::-webkit-scrollbar-thumb:hover {
-  background: #9ea8be !important;
+  background: #8b98b3 !important;
 }
 
 .cardform-panel .sales-order-table-container,
 .sales-order-table-container {
-  scrollbar-width: thin;
-  scrollbar-color: #c0c8d9 #eef1f7;
+  scrollbar-width: auto;
+  scrollbar-color: #b3bfd6 #e8edf7;
 }
 
 .sales-order-table-container .sales-order-list-table {
@@ -462,6 +464,63 @@
 .sales-order-table-container .sales-order-table input,
 .sales-order-table-container .sales-order-table select {
   min-height: 30px;
+}
+
+.sales-order-table-container .sales-order-table .sales-order-type-po-select {
+  width: 100%;
+  height: 32px;
+  min-height: 32px;
+  padding: 0 10px;
+  border: 1px solid #d7ddea;
+  border-radius: 7px;
+  background: #ffffff;
+  color: #1f2937;
+  font-size: 12px;
+  font-family: "Open Sans", sans-serif;
+  cursor: pointer;
+  box-sizing: border-box;
+  transition: border-color 0.2s ease, box-shadow 0.2s ease;
+}
+
+.sales-order-table-container .sales-order-table .sales-order-type-po-select:focus {
+  outline: none;
+  border-color: #9da8ff;
+  box-shadow: 0 0 0 3px rgba(157, 168, 255, 0.22);
+}
+
+.sales-order-supplier-cell {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  min-width: 0;
+}
+
+.sales-order-supplier-code-text {
+  flex: 1;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  font-size: 13px;
+  color: #1a1a2e;
+}
+
+.sales-order-supplier-code-text.is-empty {
+  color: #a7afc2;
+}
+
+.sales-order-supplier-select-btn {
+  flex-shrink: 0;
+  padding: 4px 18px;
+  font-size: 12px;
+  line-height: 1.2;
+  border: 1px solid #b3baff;
+  border-radius: 5px;
+  background: #f0f2ff;
+  color: #2A00FF;
+  cursor: pointer;
+  font-family: "Open Sans", sans-serif;
+  white-space: nowrap;
 }
 
 .sales-order-table td:nth-child(3) .sales-order-table-cell,
@@ -526,18 +585,18 @@
   }
 
   .col-total {
-    width: 13%;
-    min-width: 150px;
+    width: 8%;
+    min-width: 105px;
   }
 
   .col-type-po {
-    width: 10%;
-    min-width: 112px;
+    width: 14%;
+    min-width: 180px;
   }
 
   .col-supplier {
-    width: 10%;
-    min-width: 170px;
+    width: 14%;
+    min-width: 210px;
   }
 
   &:has(thead th.col-checkbox) tbody tr:not(.sales-order-accordion-header-row) td:nth-child(3) .sales-order-table-cell {
@@ -771,9 +830,9 @@
 
   .sales-order-table-container {
     width: auto;
-    height: 300px;
-    min-height: 300px;
-    max-height: 300px;
+    height: 320px;
+    min-height: 320px;
+    max-height: 320px;
   }
 
   .so-header-row {
@@ -804,8 +863,8 @@
   }
 
   .sales-order-table-container {
-    height: 300px;
-    min-height: 300px;
-    max-height: 300px;
+    height: 320px;
+    min-height: 320px;
+    max-height: 320px;
   }
 }

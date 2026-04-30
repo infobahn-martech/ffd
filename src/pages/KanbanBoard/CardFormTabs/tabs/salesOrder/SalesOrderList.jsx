@@ -1281,7 +1281,7 @@ const SalesOrderList = ({
             <select
               value={order.typeOfPo || ""}
               onChange={(e) => handleFieldChange(order.id, "typeOfPo", e.target.value)}
-              style={{ ...cellStyle, cursor: "pointer" }}
+              className="sales-order-type-po-select"
             >
               <option value="">— Select —</option>
               {TYPE_OF_PO_OPTIONS.map((t) => (
@@ -1294,14 +1294,14 @@ const SalesOrderList = ({
 
       {/* Supplier Code */}
       <td>
-        <div className="sales-order-table-cell" style={{ display: "flex", alignItems: "center", gap: "6px", minWidth: "140px" }}>
+        <div className="sales-order-table-cell sales-order-supplier-cell">
           {readOnly ? (
             <span title={order.supplierName || ""}>{order.supplierCode || "—"}</span>
           ) : (
             <>
               <span
                 title={order.supplierName || ""}
-                style={{ fontSize: "13px", color: order.supplierCode ? "#1a1a2e" : "#aaa", flex: 1, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}
+                className={`sales-order-supplier-code-text${order.supplierCode ? "" : " is-empty"}`}
               >
                 {order.supplierCode ? `${order.supplierCode}` : "—"}
               </span>
@@ -1309,7 +1309,7 @@ const SalesOrderList = ({
                 type="button"
                 onClick={() => setVendorModalTarget(order.id)}
                 title={order.supplierName || "Select Vendor"}
-                style={{ flexShrink: 0, padding: "3px 8px", fontSize: "12px", border: "1px solid #b3baff", borderRadius: "5px", background: "#f0f2ff", color: "#2A00FF", cursor: "pointer", fontFamily: "inherit", whiteSpace: "nowrap" }}
+                className="sales-order-supplier-select-btn"
               >
                 {order.supplierCode ? "Change" : "Select"}
               </button>
