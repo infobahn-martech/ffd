@@ -7,6 +7,11 @@ function str(v) {
   return String(v).trim();
 }
 
+function toJsonArrayString(value) {
+  if (!Array.isArray(value)) return "[]";
+  return JSON.stringify(value);
+}
+
 /**
  * Maps selected values (numeric ids, id strings, or email labels matching options) to numbers [1, 2, …].
  * Pass multiple option lists (e.g. field-specific + daily-report options): they are merged; when several
@@ -85,28 +90,8 @@ export function buildCreateCallFileFormData(formPayload, options = {}) {
   } = options;
   const fd = new FormData();
 
-  const shouldAppend = (value) => {
-    if (value === undefined || value === null) return false;
-    if (typeof value === "string" && value.trim() === "") return false;
-    if (Array.isArray(value) && value.length === 0) return false;
-    return true;
-  };
-
-  const appendIfValid = (key, value) => {
-    if (!shouldAppend(value)) return;
-    if (Array.isArray(value)) {
-      fd.append(key, JSON.stringify(value));
-      return;
-    }
-    if (typeof value === "number") {
-      fd.append(key, String(value));
-      return;
-    }
-    if (typeof value === "string") {
-      fd.append(key, value.trim());
-      return;
-    }
-    fd.append(key, value);
+  const appendStringField = (key, value) => {
+    fd.append(key, str(value));
   };
 
   if (Array.isArray(appointmentFiles) && appointmentFiles.length > 0) {
@@ -125,34 +110,34 @@ export function buildCreateCallFileFormData(formPayload, options = {}) {
   } else if (datePart) {
     appointmentReceived = datePart;
   }
-  appendIfValid("appointment_received_date", appointmentReceived);
+  appendStringField("appointment_received_date", appointmentReceived);
 
-  appendIfValid("card_title", str(fv.cardTitle));
-  appendIfValid("owner_id", str(fv.owner));
-  appendIfValid("port_id", str(fv.port));
-  appendIfValid("call_type", str(fv.typeOfCall));
-  appendIfValid("swimlane_id", str(fv.swimlane_id ?? fv.swimlaneId ?? ""));
+  appendStringField("card_title", fv.cardTitle);
+  appendStringField("owner_id", fv.owner);
+  appendStringField("port_id", fv.port);
+  appendStringField("call_type", fv.typeOfCall);
+  appendStringField("swimlane_id", fv.swimlane_id ?? fv.swimlaneId ?? "");
 
-  appendIfValid("assigned_operator_id", str(fv.assignedOperator));
-  appendIfValid("billing_entity_id", str(fv.mainBillingEntity));
-  appendIfValid("vessel_type_id", str(fv.vesselType));
-  appendIfValid("barge_type_id", str(fv.bargeType));
-  appendIfValid("vessel_id", str(fv.vesselName));
+  appendStringField("assigned_operator_id", fv.assignedOperator);
+  appendStringField("billing_entity_id", fv.mainBillingEntity);
+  appendStringField("vessel_type_id", fv.vesselType);
+  appendStringField("barge_type_id", fv.bargeType);
+  appendStringField("vessel_id", fv.vesselName);
 
-  appendIfValid("vessel_owner", str(fv.vesselOwner));
-  appendIfValid("vessel_principal", str(fv.vesselPrincipal));
-  appendIfValid("service_requestor_name", str(fv.serviceRequestorName));
-  appendIfValid("service_requestor_email", str(fv.serviceRequestorEmail));
+  appendStringField("vessel_owner", fv.vesselOwner);
+  appendStringField("vessel_principal", fv.vesselPrincipal);
+  appendStringField("service_requestor_name", fv.serviceRequestorName);
+  appendStringField("service_requestor_email", fv.serviceRequestorEmail);
 
   const daily = resolveSelectionsToNumericReferenceIds(fv.dailyReportEmail, dailyReportEmailOptions);
-  appendIfValid("daily_report_emails", daily);
+  fd.append("daily_report_emails", toJsonArrayString(daily));
 
   const billingInst = resolveSelectionsToNumericReferenceIds(
     fv.billingInstructionEmails,
     billingInstructionEmailOptions,
     dailyReportEmailOptions
   );
-  appendIfValid("billing_instruction_emails", billingInst);
+  fd.append("billing_instruction_emails", toJsonArrayString(billingInst));
 
   const timeObjects = (Array.isArray(fv.time_objects) ? fv.time_objects : [])
     .map((item) => {
@@ -165,7 +150,7 @@ export function buildCreateCallFileFormData(formPayload, options = {}) {
       };
     })
     .filter(Boolean);
-  appendIfValid("time_objects", timeObjects);
+  fd.append("time_objects", JSON.stringify(timeObjects));
 
   const appointmentAcceptanceRaw =
     fv.appointment_acceptance && typeof fv.appointment_acceptance === "object"
