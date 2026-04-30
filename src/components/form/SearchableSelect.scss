@@ -6,6 +6,18 @@
   -webkit-overflow-scrolling: touch;
 }
 
+.cf-searchable-select .cf-multi-select-option {
+  padding: 5px 10px;
+  font-size: 12px;
+  gap: 8px;
+  line-height: 1.2;
+}
+
+.cf-searchable-select .cf-multi-select-no-results {
+  padding: 12px 10px;
+  font-size: 13px;
+}
+
 .cf-searchable-select-input {
   border: none;
   outline: none;
