@@ -17,6 +17,10 @@
 
 .checklist-tab-layout {
   position: relative;
+  flex: 1;
+  min-height: 0;
+  overflow-y: auto;
+  overflow-x: hidden;
 }
 
 .checklist-actions {
