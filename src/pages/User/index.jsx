@@ -90,14 +90,6 @@ const User = () => {
       sort: true,
     },
     {
-      name: "Address",
-      selector: "address",
-      width: "200",
-      thclass: "tb-head",
-      contentClass: "table-content",
-      sort: true,
-    },
-    {
       name: "Status",
       selector: "user_status",
       width: "150",
