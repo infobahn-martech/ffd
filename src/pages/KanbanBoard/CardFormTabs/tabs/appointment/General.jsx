@@ -1496,6 +1496,32 @@ function General({
     return mapCallDetailToFormFields(callDetailData);
   }, [callDetailData]);
 
+  const viewModeTimeObjects = useMemo(() => {
+    if (isAddMode) return [];
+    const source = callDetailData?.time_objects;
+    if (!Array.isArray(source)) return [];
+
+    const flattened = source.flatMap((item) => (Array.isArray(item) ? item : [item]));
+    const seen = new Set();
+
+    return flattened
+      .map((item) => {
+        if (!item || typeof item !== "object") return null;
+        const label = firstNonEmptyString(item?.time_object);
+        const rawValue = firstNonEmptyString(item?.value, item?.time_object_value, item?.event_datetime);
+        if (!label || !rawValue) return null;
+        const dedupeKey = `${firstNonEmptyString(item?.time_object_id)}|${label}|${rawValue}`;
+        if (seen.has(dedupeKey)) return null;
+        seen.add(dedupeKey);
+        return {
+          key: dedupeKey,
+          label,
+          value: rawValue,
+        };
+      })
+      .filter(Boolean);
+  }, [callDetailData, isAddMode]);
+
   useEffect(() => {
     if (isAddMode) {
       lastHydratedEntityFieldCallIdRef.current = null;
@@ -3320,6 +3346,35 @@ function General({
                                   )}
                                 </FormField>
                               )}
+                              {!isAddMode && (
+                                <FormField label="Call">
+                                  <FormInput
+                                    type="text"
+                                    value={firstNonEmptyString(callDetailData?.call_id, getFieldValue("callId"), getFieldValue("call_id"))}
+                                    onChange={() => {}}
+                                    placeholder="Not set"
+                                    readOnly
+                                    disabled
+                                  />
+                                </FormField>
+                              )}
+                              {!isAddMode &&
+                                viewModeTimeObjects.map((item) => {
+                                  const parsed = splitApiDateTimeValue(item.value);
+                                  const formatted = formatDateTime(parsed.date, parsed.time);
+                                  return (
+                                    <FormField key={item.key} label={item.label}>
+                                      <FormInput
+                                        type="text"
+                                        value={formatted}
+                                        onChange={() => {}}
+                                        placeholder="Not set"
+                                        readOnly
+                                        disabled
+                                      />
+                                    </FormField>
+                                  );
+                                })}
                               {shouldShowApiField("call_type") && (
                                 <FormField label="Type of call / Service *" hasError={isAddMode && Boolean(fieldErrors.typeOfCall)}>
                                   <FormSelect
