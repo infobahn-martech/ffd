@@ -237,55 +237,44 @@ const formatAttachmentLabel = (attachment) => {
   return attachment.name || attachment.file_name || attachment.filename || "Attachment";
 };
 
-const htmlToReadableText = (value) => {
-  const input = String(value || "").trim();
-  if (!input) return "";
-  if (!/[<>]|&nbsp;|&#\d+;|&[a-z]+;/i.test(input)) return input;
-
-  if (typeof window !== "undefined" && window.document) {
-    const root = window.document.createElement("div");
-    root.innerHTML = input;
-    const blockSelectors = "p,div,br,li,h1,h2,h3,h4,h5,h6,tr";
-    root.querySelectorAll(blockSelectors).forEach((el) => {
-      if (el.tagName === "BR") {
-        el.replaceWith("\n");
-      } else if (el.tagName === "LI") {
-        el.insertAdjacentText("afterbegin", "- ");
-        el.insertAdjacentText("beforeend", "\n");
-      } else {
-        el.insertAdjacentText("beforeend", "\n");
-      }
-    });
-    return (root.textContent || "")
-      .replace(/\u00A0/g, " ")
-      .replace(/\r/g, "")
-      .replace(/\n{3,}/g, "\n\n")
-      .trim();
+const firstNonEmptyString = (...values) => {
+  for (const value of values) {
+    if (value === undefined || value === null) continue;
+    const normalized = String(value).trim();
+    if (normalized) return normalized;
   }
+  return "";
+};
 
-  return input
-    .replace(/<br\s*\/?>/gi, "\n")
-    .replace(/<\/(p|div|li|h1|h2|h3|h4|h5|h6|tr)>/gi, "\n")
-    .replace(/<[^>]*>/g, "")
+const htmlToPlainText = (html = "") =>
+  String(html || "")
+    .replace(/<[^>]+>/g, " ")
+    .replace(/&nbsp;/gi, " ")
+    .replace(/\s+/g, " ")
+    .trim();
+
+const htmlToEditableText = (html = "") =>
+  String(html || "")
+    .replace(/<\s*br\s*\/?>/gi, "\n")
+    .replace(/<\/(p|div|li|h[1-6])>/gi, "\n")
+    .replace(/<li>/gi, "- ")
+    .replace(/<[^>]+>/g, "")
     .replace(/&nbsp;/gi, " ")
     .replace(/&amp;/gi, "&")
     .replace(/&lt;/gi, "<")
     .replace(/&gt;/gi, ">")
-    .replace(/&#39;/gi, "'")
-    .replace(/&quot;/gi, '"')
-    .replace(/\r/g, "")
+    .replace(/\r\n/g, "\n")
     .replace(/\n{3,}/g, "\n\n")
     .trim();
-};
 
 const extractReportTemplateFields = (templatePayload) => {
   const rawData = templatePayload?.data?.data ?? templatePayload?.data ?? templatePayload ?? {};
   const row = Array.isArray(rawData) ? rawData[0] || {} : rawData;
-  const rawBody = row?.body || row?.message || row?.email_body || row?.template || "";
+  const rawBody = firstNonEmptyString(row?.message, row?.body, row?.email_body, row?.template);
   return {
-    from: row?.from_email || row?.from || row?.sender_email || "",
-    subject: row?.subject || row?.email_subject || "",
-    message: htmlToReadableText(rawBody),
+    from: firstNonEmptyString(row?.from, row?.from_email, row?.sender_email, row?.sender),
+    subject: htmlToPlainText(firstNonEmptyString(row?.subject, row?.email_subject)),
+    message: firstNonEmptyString(htmlToEditableText(rawBody), htmlToPlainText(rawBody)),
   };
 };
 
