@@ -43,7 +43,7 @@ import {
 // 🆕 Kanban sidebar icons + tooltip
 import { Tooltip } from 'react-tooltip';
 import 'react-tooltip/dist/react-tooltip.css';
-import { FiPlus, FiInbox, FiFilter, FiPlusCircle, FiActivity, FiLayout } from 'react-icons/fi';
+import { FiPlus, FiInbox, FiFilter, FiPlusCircle, FiActivity, FiLayout, FiMail } from 'react-icons/fi';
 import { useLayoutView } from '../../context/LayoutViewContext';
 import useWorkSpaceReducer from '../../store/WorkSpaceReducer';
 import useAuthReducer from '../../store/AuthReducer';
@@ -92,6 +92,7 @@ function SideNav({ isMobileMenuOpen, onCloseMobileMenu, isVendorPortal = false }
   // 🆕 Kanban icon config - different icons for /kanban-board/operator vs /workspaces
   const kanbanBoardIcons = [
     { id: 1, icon: FiPlus, label: 'Add' },
+    { id: 7, icon: FiMail, label: 'Outlook' },
     // { id: 2, icon: FiFilter, label: 'Filter' },
     // { id: 3, icon: FiActivity, label: 'Analytics' },
   ];
@@ -775,6 +776,11 @@ function SideNav({ isMobileMenuOpen, onCloseMobileMenu, isVendorPortal = false }
         setShowTagsModal(false);
         setShowTypesModal(false);
         if (newShowState) setActiveKanbanIcon(item.id);
+        return;
+      }
+
+      if (item.label === 'Outlook') {
+        window.open('https://outlook.office.com/mail/', '_blank', 'noopener,noreferrer');
         return;
       }
 
