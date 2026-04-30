@@ -1484,7 +1484,7 @@ const ArrivalContent = ({
           <div className="arrival-form operation-tab-scroll">
             <div className="operation-two-column-grid">
               <OperationFormCard className="operation-form-column">
-                <OperationFormCard className="operation-datetime-card">
+                <OperationFormCard >
                   <DynamicDateTimeFields
                     eventFields={arrivalStageFields}
                     formValues={formValues}
