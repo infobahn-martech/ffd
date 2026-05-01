@@ -1395,7 +1395,7 @@ const PreArrivalContent = ({
         const response = await appointmentAcceptanceService.getTemplateByPortCallType({
           port_id: portId,
           call_type_id: callTypeId,
-          report_type_id: 1,
+          report_type_id: 2,
         });
         if (cancelled) return;
 
