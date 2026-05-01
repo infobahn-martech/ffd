@@ -155,13 +155,15 @@ const mapItemToRow = (it, i, sectionId) => {
   const rawFiles = dd.uploaded_files ?? it.uploaded_files;
   if (Array.isArray(rawFiles)) {
     rawFiles.forEach((f, fi) => {
+      const fileName = f.file_name ?? f.name ?? f.filename ?? "File";
+      const fileUrl = f.file_url ?? f.url ?? f.link ?? null;
       uploadedFromApi.push({
         id: f.id ?? f.file_id ?? `api_${itemId}_${fi}`,
-        name: f.name ?? f.file_name ?? f.filename ?? "File",
-        fileName: f.file_name ?? f.name,
+        name: fileName,
+        fileName,
         size: f.size,
-        url: f.url ?? f.link,
-        link: f.link,
+        url: fileUrl,
+        link: fileUrl,
         fromApi: true,
       });
     });

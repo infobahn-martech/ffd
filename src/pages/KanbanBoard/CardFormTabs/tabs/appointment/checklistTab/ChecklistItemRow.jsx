@@ -9,6 +9,10 @@ const formatExpiryDisplay = (value) => {
   return `${day}/${month}/${year}`;
 };
 
+/** Preview/open URL from API checklist upload — prefer file_url over legacy url/link. */
+const getApiUploadedPreviewUrl = (file) =>
+  file?.file_url ?? file?.url ?? file?.link ?? null;
+
 const getRequirementMetaLabel = ({ requireCopyOnlyFromApi, requirement }) => {
   if (requireCopyOnlyFromApi) return "Req Copy";
   if (!requirement?.label) return "";
@@ -35,8 +39,16 @@ const ChecklistItemRow = ({
 
   const checked = itemData?.checked === true;
   const apiFiles = itemData?.apiUploadedFiles ?? uploadedFromApi ?? [];
-  const hasApiFiles = Array.isArray(apiFiles) && apiFiles.length > 0;
-  const canViewFile = Boolean(uploadedFile || hasApiFiles);
+  const firstApiFileWithUrl =
+    Array.isArray(apiFiles) ? apiFiles.find((f) => Boolean(getApiUploadedPreviewUrl(f))) : null;
+  const firstApiPreviewUrl = firstApiFileWithUrl ? getApiUploadedPreviewUrl(firstApiFileWithUrl) : null;
+  const hasPreviewableApiFile = Boolean(firstApiPreviewUrl);
+  const canViewFile = Boolean(uploadedFile) || hasPreviewableApiFile;
+  const viewButtonTitle = uploadedFile
+    ? uploadedFile.name || "View uploaded file"
+    : firstApiFileWithUrl
+      ? String(firstApiFileWithUrl.fileName ?? firstApiFileWithUrl.name ?? "View uploaded file")
+      : "No file available";
   const requirementMetaLabel = getRequirementMetaLabel({ requireCopyOnlyFromApi, requirement });
   const showMetaRow = Boolean(expiryDateRequired || requirementMetaLabel);
 
@@ -85,12 +97,6 @@ const ChecklistItemRow = ({
     pushChange({ expiryDate: e.target.value });
   };
 
-  const handleApiFileClick = (file) => {
-    const href = file?.url || file?.link;
-    if (!href) return;
-    window.open(href, "_blank", "noopener,noreferrer");
-  };
-
   const handleViewClick = () => {
     if (uploadedFile) {
       const objectUrl = URL.createObjectURL(uploadedFile);
@@ -98,8 +104,8 @@ const ChecklistItemRow = ({
       setTimeout(() => URL.revokeObjectURL(objectUrl), 60000);
       return;
     }
-    if (hasApiFiles) {
-      handleApiFileClick(apiFiles[0]);
+    if (firstApiPreviewUrl) {
+      window.open(firstApiPreviewUrl, "_blank", "noopener,noreferrer");
     }
   };
 
@@ -190,8 +196,8 @@ const ChecklistItemRow = ({
               className="cl-upload-view-btn"
               onClick={handleViewClick}
               disabled={!canViewFile}
-              title={canViewFile ? "View uploaded file" : "No file available"}
-              aria-label={canViewFile ? "View uploaded file" : "No file available"}
+              title={canViewFile ? viewButtonTitle : "No file available"}
+              aria-label={canViewFile ? viewButtonTitle : "No file available"}
             >
               <svg width="14" height="14" viewBox="0 0 24 24" fill="none" aria-hidden>
                 <path d="M2 12C3.8 8.5 7.3 6 12 6C16.7 6 20.2 8.5 22 12C20.2 15.5 16.7 18 12 18C7.3 18 3.8 15.5 2 12Z" stroke="currentColor" strokeWidth="1.8" />

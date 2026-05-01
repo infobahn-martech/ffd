@@ -37,15 +37,20 @@ FormField.propTypes = {
 
 const toIdString = (v) => (v == null || String(v).trim() === "" ? null : String(v).trim());
 
-const normalizeBackendFile = (file, fallbackKey) => ({
-  id: file?.id ?? file?.file_id ?? `api_${fallbackKey}`,
-  name: file?.name ?? file?.file_name ?? file?.filename ?? "File",
-  fileName: file?.file_name ?? file?.name ?? file?.filename ?? "File",
-  size: file?.size ?? null,
-  url: file?.url ?? file?.link ?? null,
-  link: file?.link ?? file?.url ?? null,
-  fromApi: true,
-});
+const normalizeBackendFile = (file, fallbackKey) => {
+  const fileName = file?.file_name ?? file?.name ?? file?.filename ?? "File";
+  const fileUrl = file?.file_url ?? file?.url ?? file?.link ?? null;
+
+  return {
+    id: file?.id ?? file?.file_id ?? `api_${fallbackKey}`,
+    name: fileName,
+    fileName,
+    size: file?.size ?? null,
+    url: fileUrl,
+    link: fileUrl,
+    fromApi: true,
+  };
+};
 
 const fetchCallDetail = async (callId) => {
   if (!callId) return null;
@@ -58,9 +63,9 @@ const fetchChecklistTypes = async ({ vessel_type_id, barge_type_id, calltype, po
     const status = error?.response?.status;
     const message = String(
       error?.response?.data?.message
-        ?? error?.response?.data?.error
-        ?? error?.message
-        ?? ""
+      ?? error?.response?.data?.error
+      ?? error?.message
+      ?? ""
     ).toLowerCase();
     return status === 404 || message.includes("no checklist found");
   };
@@ -430,9 +435,9 @@ function Checklist({
                 <ChecklistEmptyState title="Checklist loading failed" message={checklistError} variant="error" />
               ) : null}
               {!isLoading &&
-              prerequisiteState.canLoadChecklists &&
-              !checklistError &&
-              selectedChecklistTypeIds.length === 0 ? (
+                prerequisiteState.canLoadChecklists &&
+                !checklistError &&
+                selectedChecklistTypeIds.length === 0 ? (
                 <ChecklistEmptyState
                   title="No checklist selected"
                   message="Select checklist type(s) to render checklist items."
@@ -440,10 +445,10 @@ function Checklist({
                 />
               ) : null}
               {!isLoading &&
-              prerequisiteState.canLoadChecklists &&
-              !checklistError &&
-              selectedChecklistTypeIds.length > 0 &&
-              !hasChecklistData ? (
+                prerequisiteState.canLoadChecklists &&
+                !checklistError &&
+                selectedChecklistTypeIds.length > 0 &&
+                !hasChecklistData ? (
                 <ChecklistEmptyState
                   title="No checklist details returned"
                   message="Selected checklist type(s) returned empty detail."
