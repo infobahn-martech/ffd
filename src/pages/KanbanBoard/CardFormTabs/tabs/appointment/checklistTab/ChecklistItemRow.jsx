@@ -1,5 +1,8 @@
 import PropTypes from "prop-types";
-import { useState, useEffect, useRef } from "react";
+import { useState, useEffect, useRef, forwardRef } from "react";
+import DatePicker from "react-datepicker";
+import { format, parse, isValid } from "date-fns";
+import "react-datepicker/dist/react-datepicker.css";
 import { FormTextarea } from "./checklistFormPrimitives";
 
 const formatDisplayDate = (value) => {
@@ -37,6 +40,45 @@ const CalendarMetaIcon = () => (
   </svg>
 );
 
+/** Stored / payload format: YYYY-MM-DD */
+const parseExpiryYmdToDate = (ymd) => {
+  if (!ymd || String(ymd).trim() === "") return null;
+  const parsed = parse(String(ymd).trim().slice(0, 10), "yyyy-MM-dd", new Date());
+  return isValid(parsed) ? parsed : null;
+};
+
+const ExpiryChipCustomInput = forwardRef(({ value, onClick, disabled }, ref) => {
+  const inner = value && String(value).trim() !== "" ? String(value) : "--/--/----";
+  const ariaLabel = inner === "--/--/----" ? "Expiry date, not set" : `Expiry date, ${inner}`;
+  return (
+    <div
+      ref={ref}
+      className="cl-item-meta-chip cl-item-meta-chip--expiry cl-item-meta-chip--clickable"
+      onClick={onClick}
+      onKeyDown={(e) => {
+        if (disabled) return;
+        if (e.key === "Enter" || e.key === " ") {
+          e.preventDefault();
+          onClick?.(e);
+        }
+      }}
+      role="button"
+      tabIndex={disabled ? -1 : 0}
+      aria-haspopup="dialog"
+      aria-label={ariaLabel}
+      aria-disabled={disabled ? true : undefined}
+    >
+      <span className="cl-expiry-chip-visible">
+        <span className="cl-meta-icon cl-meta-icon--svg" aria-hidden>
+          <CalendarMetaIcon />
+        </span>
+        <span className="cl-expiry-chip-label">Exp: {inner}</span>
+      </span>
+    </div>
+  );
+});
+ExpiryChipCustomInput.displayName = "ExpiryChipCustomInput";
+
 const getRequirementMetaLabel = ({ requireCopyOnlyFromApi, requirement }) => {
   if (requireCopyOnlyFromApi) return "Req Copy";
   if (!requirement?.label) return "";
@@ -60,7 +102,6 @@ const ChecklistItemRow = ({
   const [remarks, setRemarks] = useState(itemData?.remarks || "");
   const [uploadedFile, setUploadedFile] = useState(itemData?.uploadedFile || null);
   const fileInputRef = useRef(null);
-  const expiryInputRef = useRef(null);
 
   const checked = itemData?.checked === true;
   const apiFiles = itemData?.apiUploadedFiles ?? uploadedFromApi ?? [];
@@ -83,35 +124,6 @@ const ChecklistItemRow = ({
     e.stopPropagation();
     if (!backendPreviewUrl) return;
     window.open(backendPreviewUrl, "_blank", "noopener,noreferrer");
-  };
-
-  /** Native date inputs only expose the picker on a small internal hit-target; open programmatically from the full chip. */
-  const openExpiryPicker = (e) => {
-    if (e?.stopPropagation) e.stopPropagation();
-    const input = expiryInputRef.current;
-    if (!input || input.disabled) return;
-    try {
-      if (typeof input.showPicker === "function") {
-        input.showPicker();
-        return;
-      }
-    } catch {
-      /* Some browsers require a user gesture or disallow showPicker — fall back */
-    }
-    input.focus();
-    if (typeof input.click === "function") input.click();
-  };
-
-  const handleExpiryChipClick = (e) => {
-    e.preventDefault();
-    openExpiryPicker(e);
-  };
-
-  const handleExpiryChipKeyDown = (e) => {
-    if (e.key === "Enter" || e.key === " ") {
-      e.preventDefault();
-      openExpiryPicker(e);
-    }
   };
 
   useEffect(() => {
@@ -197,34 +209,22 @@ const ChecklistItemRow = ({
                     <span>Exp: {formatDisplayDate(itemData?.expiryDate || "")}</span>
                   </span>
                 ) : (
-                  <div
-                    role="button"
-                    tabIndex={0}
-                    className="cl-item-meta-chip cl-item-meta-chip--expiry cl-item-meta-chip--clickable"
-                    onClick={handleExpiryChipClick}
-                    onKeyDown={handleExpiryChipKeyDown}
-                    aria-label={`Expiry date, ${formatDisplayDate(itemData?.expiryDate || "")}`}
-                    aria-haspopup="dialog"
-                  >
-                    <span className="cl-expiry-chip-visible">
-                      <span className="cl-meta-icon cl-meta-icon--svg" aria-hidden>
-                        <CalendarMetaIcon />
-                      </span>
-                      <span className="cl-expiry-chip-label">Exp: {formatDisplayDate(itemData?.expiryDate || "")}</span>
-                    </span>
-                    <input
-                      ref={expiryInputRef}
-                      type="date"
-                      value={itemData?.expiryDate || ""}
-                      onChange={(ev) => {
-                        ev.stopPropagation();
-                        pushChange({ expiryDate: ev.target.value });
-                      }}
-                      className="cl-expiry-hidden-date"
-                      disabled={isViewOnly}
-                      tabIndex={-1}
-                    />
-                  </div>
+                  <DatePicker
+                    wrapperClassName="cl-datepicker-wrapper"
+                    selected={parseExpiryYmdToDate(itemData?.expiryDate)}
+                    onChange={(date) => {
+                      pushChange({ expiryDate: date ? format(date, "yyyy-MM-dd") : "" });
+                    }}
+                    dateFormat="dd/MM/yyyy"
+                    customInput={<ExpiryChipCustomInput />}
+                    disabled={isViewOnly}
+                    popperClassName="cl-datepicker-popper"
+                    calendarClassName="cl-datepicker-calendar"
+                    showPopperArrow={false}
+                    shouldCloseOnSelect
+                    strictParsing
+                    withPortal
+                  />
                 )
               ) : null}
               {expiryDateRequired && requirementMetaLabel ? <span className="cl-item-meta-sep" aria-hidden>|</span> : null}
