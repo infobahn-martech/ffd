@@ -8,3 +8,4 @@ export { default as KPI } from "./tabs/kpi/KPI";
 export { default as Invoice } from "./tabs/invoice/Invoice";
 export { default as Comments } from "./tabs/comments/Comments";
 export { default as Subtasks } from "./tabs/subtasks/Subtasks";
+export { default as Notes } from "./tabs/notes/Notes";

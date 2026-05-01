@@ -11,7 +11,7 @@ import PriorityIcon from "../../../../assets/images/Priority.png";
 import { getItem } from "../../../../helpers/localStorage";
 
 // Import Tab Components
-import { General, Operation, Husbandry, Attachments, Invoice, SalesOrder, Reports, KPI, Comments, Subtasks } from "../../CardFormTabs";
+import { General, Operation, Husbandry, Attachments, Invoice, SalesOrder, Reports, KPI, Comments, Subtasks, Notes } from "../../CardFormTabs";
 import { DEFAULT_PRE_ARRIVAL_DOCUMENT_HANDLING } from "../../CardFormTabs/tabs/operation/preArrivalDocumentHandling";
 import NavTabButton from "../../../../components/NavTabButton";
 
@@ -26,9 +26,10 @@ const ALL_TOP_TABS = [
   "Attachments",
   "Comments",
   "Subtasks",
+  "Notes",
 ];
 
-const ALL_ENABLED_TABS = ["Appointment Details", "Operation", "Husbandry", "Sales Order", "Reports", "KPI", "Attachments", "Comments", "Subtasks"];
+const ALL_ENABLED_TABS = ["Appointment Details", "Operation", "Husbandry", "Sales Order", "Reports", "KPI", "Attachments", "Comments", "Subtasks", "Notes"];
 
 // Constants - Simplified tabs for kanban-board/{id} routes
 const SIMPLIFIED_TOP_TABS = [
@@ -50,9 +51,10 @@ const DA_TOP_TABS = [
   "Invoice",
   "Comments",
   "Subtasks",
+  "Notes",
 ];
 
-const DA_ENABLED_TABS = ["General", "Operation", "Husbandry", "Sales Order", "Reports", "KPI", "Invoice", "Comments", "Subtasks"];
+const DA_ENABLED_TABS = ["General", "Operation", "Husbandry", "Sales Order", "Reports", "KPI", "Invoice", "Comments", "Subtasks", "Notes"];
 
 const DEFAULT_ACCENT_COLOR = "#2A00FF";
 const TOTAL_STEPS = 6;
@@ -1077,6 +1079,8 @@ const renderTabContent = (
         return <Comments {...commonProps} />;
       case "Subtasks":
         return <Subtasks {...commonProps} />;
+      case "Notes":
+        return <Notes {...commonProps} />;
       default:
         return <General {...commonProps} />;
     }
@@ -1093,6 +1097,8 @@ const renderTabContent = (
         return <Comments {...commonProps} />;
       case "Subtasks":
         return <Subtasks {...commonProps} />;
+      case "Notes":
+        return <Notes {...commonProps} />;
       default:
         return <General {...commonProps} />;
     }
@@ -1117,6 +1123,8 @@ const renderTabContent = (
         return <Comments {...commonProps} />;
       case "Subtasks":
         return <Subtasks {...commonProps} />;
+      case "Notes":
+        return <Notes {...commonProps} />;
       default:
         return <General {...commonProps} />;
     }
@@ -1414,19 +1422,19 @@ function CardForm({
     () =>
       isAddMode
         ? {
-            onSave: handleCallFileCreatedSuccess,
-            isSavingGeneral,
-            hasSubmitted,
-            setHasSubmitted,
-            setIsSavingGeneral,
-          }
+          onSave: handleCallFileCreatedSuccess,
+          isSavingGeneral,
+          hasSubmitted,
+          setHasSubmitted,
+          setIsSavingGeneral,
+        }
         : {
-            onSave: undefined,
-            isSavingGeneral: false,
-            hasSubmitted: false,
-            setHasSubmitted: () => {},
-            setIsSavingGeneral: () => {},
-          },
+          onSave: undefined,
+          isSavingGeneral: false,
+          hasSubmitted: false,
+          setHasSubmitted: () => { },
+          setIsSavingGeneral: () => { },
+        },
     [isAddMode, handleCallFileCreatedSuccess, isSavingGeneral, hasSubmitted]
   );
 
