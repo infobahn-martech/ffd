@@ -538,7 +538,7 @@ function Header({ onMenuToggle, mobileMenuOpen: externalMobileMenuOpen, isVendor
             >
               <FiMapPin />
             </button>
-            <Tooltip id="board" place="bottom" content="Board" />
+            {/* <Tooltip id="board" place="bottom" content="Board" />
             <NavTabButton
               className="icon-btn icon-btn-hide-mobile"
               active={pathname === '/kanban-board/operator'}
@@ -548,7 +548,7 @@ function Header({ onMenuToggle, mobileMenuOpen: externalMobileMenuOpen, isVendor
               data-tooltip-id="board"
             >
               <FiGrid />
-            </NavTabButton>
+            </NavTabButton> */}
             <Tooltip id="kpi-dashboard" place="bottom" content="KPI Dashboard" />
             <NavTabButton
               className="icon-btn icon-btn-hide-mobile"

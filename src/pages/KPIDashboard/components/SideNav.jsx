@@ -42,8 +42,8 @@ const SideNav = ({ activeMenu, setActiveMenu, onProfileClick, onSignOutClick, is
       navigate('/kpi-dashboard');
     } else if (menuId === 'Master Module') {
       navigate('/dashboard');
-    } else if (menuId === 'Back to Board') {
-      navigate('/kanban-board/operator');
+    } else if (menuId === 'Back to Workspace') {
+      navigate(`/workspaces`);
     }
 
     // Close mobile menu after navigation
@@ -132,7 +132,7 @@ const SideNav = ({ activeMenu, setActiveMenu, onProfileClick, onSignOutClick, is
   const accountItems = [
     { id: 'Profile', label: 'Profile', icon: ProfileIcon },
     { id: 'Master Module', label: 'Master Module', icon: MasterModuleIcon },
-    { id: 'Back to Board', label: 'Back to Board', icon: BackToBoardIcon },
+    { id: 'Back to Workspace', label: 'Back to Workspace', icon: BackToBoardIcon },
     { id: 'Sign Out', label: 'Sign Out', icon: SignOutIcon },
   ];
 
