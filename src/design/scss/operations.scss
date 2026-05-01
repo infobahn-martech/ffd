@@ -1706,6 +1706,41 @@ $send-report-optional: #80868b;
   padding: 0 4px 0 0;
 }
 
+.prearrival-timeobject-highlight.is-warning {
+  border: 1px solid #f59e0b;
+  background: #fff7ed;
+  box-shadow: 0 0 0 3px rgba(245, 158, 11, 0.12);
+  border-radius: 12px;
+  padding: 12px;
+  animation: prearrival-warning-pulse 1.5s ease-in-out 2;
+}
+
+@keyframes prearrival-warning-pulse {
+  0% {
+    box-shadow: 0 0 0 0 rgba(245, 158, 11, 0.35);
+  }
+
+  100% {
+    box-shadow: 0 0 0 8px rgba(245, 158, 11, 0);
+  }
+}
+
+.prearrival-windy-map {
+  margin-top: 12px;
+  border: 1px solid #dbe3f0;
+  border-radius: 12px;
+  overflow: hidden;
+  background: #fff;
+}
+
+.prearrival-windy-map iframe {
+  width: 100%;
+  max-width: 650px;
+  height: 450px;
+  display: block;
+  border: 0;
+}
+
 .operation-two-column-grid {
   display: grid;
   grid-template-columns: 30% 70%;

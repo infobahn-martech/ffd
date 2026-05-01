@@ -205,7 +205,7 @@ OperationFormCard.propTypes = {
   children: PropTypes.node.isRequired,
 };
 
-const DynamicDateTimeFields = ({ eventFields = [], formValues, handleChange, isViewOnly = false, onDateTimeChange }) => {
+const DynamicDateTimeFields = ({ eventFields = [], formValues, handleChange, isViewOnly = false }) => {
   if (!eventFields.length) return null;
 
   return eventFields.map((field) => {
@@ -213,22 +213,14 @@ const DynamicDateTimeFields = ({ eventFields = [], formValues, handleChange, isV
     const dateKey = `${keyPrefix}Date`;
     const timeKey = `${keyPrefix}Time`;
     const label = field.is_required ? `${field.event_name} *` : field.event_name;
-    const onDateChange = handleChange(dateKey);
-    const onTimeChange = handleChange(timeKey);
 
     return (
       <FormField key={`${field.stage_id || "stage"}-${field.event_name}-${keyPrefix}`} label={label}>
         <DateTimePickerField
           dateValue={formValues[dateKey] || ""}
           timeValue={formValues[timeKey] || ""}
-          onDateChange={(e) => {
-            onDateChange(e);
-            onDateTimeChange?.();
-          }}
-          onTimeChange={(e) => {
-            onTimeChange(e);
-            onDateTimeChange?.();
-          }}
+          onDateChange={handleChange(dateKey)}
+          onTimeChange={handleChange(timeKey)}
           dateFieldName={dateKey}
           timeFieldName={timeKey}
           disabled={isViewOnly}
@@ -250,7 +242,6 @@ DynamicDateTimeFields.propTypes = {
   formValues: PropTypes.object.isRequired,
   handleChange: PropTypes.func.isRequired,
   isViewOnly: PropTypes.bool,
-  onDateTimeChange: PropTypes.func,
 };
 
 const formatAttachmentLabel = (attachment) => {
@@ -1314,7 +1305,7 @@ const PreArrivalContent = ({
 
     if (value === BAD_WEATHER) {
       notify(
-        "Bad weather selected. Please re-check all Pre Arrival time objects before saving.",
+        "Bad weather selected. Please re-check ETA and clearance time objects.",
         "warning"
       );
       handleChange("preArrivalTimeObjectsNeedRecheck")({
@@ -1327,11 +1318,15 @@ const PreArrivalContent = ({
     }
   };
 
-  const clearPreArrivalTimeRecheckFlag = () => {
-    handleChange("preArrivalTimeObjectsNeedRecheck")({
-      target: { value: false },
-    });
-  };
+  const handlePreArrivalTimeObjectChange = useCallback(
+    (fieldName) => (event) => {
+      handleChange(fieldName)(event);
+      if (formValues.preArrivalTimeObjectsNeedRecheck) {
+        handleChange("preArrivalTimeObjectsNeedRecheck")({ target: { value: false } });
+      }
+    },
+    [handleChange, formValues.preArrivalTimeObjectsNeedRecheck]
+  );
 
   const savePreArrivalData = async () => {
     const callId = card?.call_id || formValues?.call_id || "";
@@ -1361,7 +1356,7 @@ const PreArrivalContent = ({
       formValues.preArrivalTimeObjectsNeedRecheck === true
     ) {
       notify(
-        "Please re-check Pre Arrival time objects because Bad weather is selected.",
+        "Please re-check ETA and clearance time objects before saving.",
         "warning"
       );
       return false;
@@ -1521,13 +1516,20 @@ const PreArrivalContent = ({
           <div className="pre-arrival-form operation-tab-scroll">
             <div className="operation-prearrival-grid">
               <OperationFormCard className="operation-form-column">
-                <DynamicDateTimeFields
-                  eventFields={eventFields}
-                  formValues={formValues}
-                  handleChange={handleChange}
-                  isViewOnly={isViewOnly}
-                  onDateTimeChange={clearPreArrivalTimeRecheckFlag}
-                />
+                <div
+                  className={`prearrival-timeobject-highlight ${
+                    formValues.weatherForecast === BAD_WEATHER && formValues.preArrivalTimeObjectsNeedRecheck
+                      ? "is-warning"
+                      : ""
+                  }`.trim()}
+                >
+                  <DynamicDateTimeFields
+                    eventFields={eventFields}
+                    formValues={formValues}
+                    handleChange={handlePreArrivalTimeObjectChange}
+                    isViewOnly={isViewOnly}
+                  />
+                </div>
 
                 <FormField label="SABER Status">
                   <FormSelect
@@ -1557,14 +1559,15 @@ const PreArrivalContent = ({
                     placeholder="Select weather forecast..."
                     disabled={isViewOnly}
                   />
-                  {formValues.weatherForecast === BAD_WEATHER && !isViewOnly && (
-                    <div style={{ marginTop: 8 }}>
-                      <p style={{ margin: "0 0 8px", fontSize: 13, color: "#b45309" }}>
-                        Bad weather selected. Re-check ETA and clearance time objects.
-                      </p>
-                      <button type="button" className="cf-add-btn" style={{ marginBottom: 0 }} onClick={clearPreArrivalTimeRecheckFlag}>
-                        Mark re-check completed
-                      </button>
+                  {formValues.weatherForecast === BAD_WEATHER && (
+                    <div className="prearrival-windy-map">
+                      <iframe
+                        title="Windy Weather Map"
+                        width="650"
+                        height="450"
+                        src="https://embed.windy.com/embed.html?type=map&location=coordinates&metricRain=default&metricTemp=default&metricWind=default&zoom=8&overlay=wind&product=ecmwf&level=surface&lat=27.284&lon=49.109&detailLat=29.0525682775337&detailLon=48.087158203125&marker=true"
+                        frameBorder="0"
+                      />
                     </div>
                   )}
                 </FormField>
