@@ -1601,8 +1601,8 @@ const PreArrivalContent = ({
               <OperationFormCard className="operation-form-column">
                 <div
                   className={`prearrival-timeobject-highlight ${formValues.weatherForecast === BAD_WEATHER && formValues.preArrivalTimeObjectsNeedRecheck
-                      ? "is-warning"
-                      : ""
+                    ? "is-warning"
+                    : ""
                     }`.trim()}
                 >
                   <DynamicDateTimeFields
@@ -1654,7 +1654,7 @@ const PreArrivalContent = ({
                   )}
                 </FormField>
 
-                <FormField label="Coordinates">
+                <FormField label="Coordinates Type">
                   <FormSelect
                     value={formValues?.coordinateTypeId || ""}
                     onChange={handleCoordinateTypeChange}
@@ -1664,15 +1664,17 @@ const PreArrivalContent = ({
                   />
                 </FormField>
 
-                <FormField label="Selected Coordinates">
-                  <FormInput
-                    type="text"
-                    value={formValues?.coordinates || ""}
-                    onChange={() => { }}
-                    placeholder="Coordinates will appear here..."
-                    disabled
-                  />
-                </FormField>
+                {!!formValues?.coordinates && (
+                  <FormField label="Selected Coordinates">
+                    <FormInput
+                      type="text"
+                      value={formValues?.coordinates || ""}
+                      onChange={() => {}}
+                      placeholder="Coordinates will appear here..."
+                      disabled
+                    />
+                  </FormField>
+                )}
               </OperationFormCard>
               <OperationFormCard className="operation-document-column">
                 <PreArrivalDocumentHandlingSection
