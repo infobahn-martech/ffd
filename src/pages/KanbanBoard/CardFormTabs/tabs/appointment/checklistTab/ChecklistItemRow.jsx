@@ -9,9 +9,33 @@ const formatDisplayDate = (value) => {
   return `${day}/${month}/${year}`;
 };
 
-/** Preview/open URL from API checklist upload — prefer file_url over legacy url/link. */
-const getApiUploadedPreviewUrl = (file) =>
-  file?.file_url ?? file?.url ?? file?.link ?? null;
+/** Backend-only preview URL (never local upload). */
+const getBackendFilePreviewUrl = (file) => {
+  if (!file || typeof file !== "object") return null;
+  return (
+    file.file_url ??
+    file.sample_file_url ??
+    file.requirement_file_url ??
+    file.url ??
+    file.link ??
+    null
+  );
+};
+
+const getItemRootBackendPreviewUrl = (rowItem) =>
+  rowItem?.file_url ??
+  rowItem?.sample_file_url ??
+  rowItem?.requirement_file_url ??
+  null;
+
+const CalendarMetaIcon = () => (
+  <svg width="12" height="12" viewBox="0 0 24 24" fill="none" aria-hidden>
+    <rect x="4" y="5" width="16" height="15" rx="2" stroke="currentColor" strokeWidth="1.8" />
+    <path d="M4 10H20" stroke="currentColor" strokeWidth="1.8" />
+    <path d="M8 3V7M16 3V7" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" />
+    <path d="M9 14H15M9 17H13" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" />
+  </svg>
+);
 
 const getRequirementMetaLabel = ({ requireCopyOnlyFromApi, requirement }) => {
   if (requireCopyOnlyFromApi) return "Req Copy";
@@ -40,61 +64,25 @@ const ChecklistItemRow = ({
 
   const checked = itemData?.checked === true;
   const apiFiles = itemData?.apiUploadedFiles ?? uploadedFromApi ?? [];
-  const firstApiFileWithUrl =
-    Array.isArray(apiFiles) ? apiFiles.find((f) => Boolean(getApiUploadedPreviewUrl(f))) : null;
-  const firstApiPreviewUrl = firstApiFileWithUrl ? getApiUploadedPreviewUrl(firstApiFileWithUrl) : null;
-  const hasPreviewableApiFile = Boolean(firstApiPreviewUrl);
-  const canViewFile = Boolean(uploadedFile) || hasPreviewableApiFile;
-  const viewButtonTitle = uploadedFile
-    ? uploadedFile.name || "View uploaded file"
-    : firstApiFileWithUrl
-      ? String(firstApiFileWithUrl.fileName ?? firstApiFileWithUrl.name ?? "View uploaded file")
-      : "No file available";
+  const apiFilesList = Array.isArray(apiFiles) ? apiFiles : [];
+  const itemRootBackendUrl = getItemRootBackendPreviewUrl(item);
+  const firstBackendApiFile = apiFilesList.find((f) => Boolean(getBackendFilePreviewUrl(f)));
+  const backendPreviewUrl =
+    itemRootBackendUrl ||
+    (firstBackendApiFile ? getBackendFilePreviewUrl(firstBackendApiFile) : null);
+  const hasBackendPreviewFile = Boolean(backendPreviewUrl);
+  const canViewLocalUpload = Boolean(uploadedFile);
+  const viewLocalTitle = uploadedFile
+    ? uploadedFile.name || uploadedFile.fileName || "View uploaded file"
+    : "No file uploaded";
   const requirementMetaLabel = getRequirementMetaLabel({ requireCopyOnlyFromApi, requirement });
   const showMetaRow = Boolean(expiryDateRequired || requirementMetaLabel);
 
-  const uploadedFilesList = Array.isArray(itemData?.uploadedFiles) ? itemData.uploadedFiles : [];
-  const apiFilesList = Array.isArray(apiFiles) ? apiFiles : [];
-  const metaPreviewCandidates = [
-    ...(uploadedFile ? [{ file: uploadedFile }] : []),
-    ...uploadedFilesList,
-    ...apiFilesList,
-  ];
-  const hasMetaPreviewFile = metaPreviewCandidates.some(
-    (f) => f?.file || f?.url || f?.link || f?.file_url
-  );
-
-  const openExpiryPicker = (e) => {
+  const handlePreviewBackendFile = (e) => {
     e.preventDefault();
     e.stopPropagation();
-
-    const input = expiryInputRef.current;
-    if (!input) return;
-
-    if (typeof input.showPicker === "function") {
-      input.showPicker();
-    } else {
-      input.focus();
-      input.click();
-    }
-  };
-
-  const handlePreviewMetaFile = (e) => {
-    e.preventDefault();
-    e.stopPropagation();
-
-    const file = metaPreviewCandidates.find((f) => f?.file || f?.url || f?.link || f?.file_url);
-    if (!file) return;
-
-    if (file.file instanceof Blob) {
-      const url = URL.createObjectURL(file.file);
-      window.open(url, "_blank", "noopener,noreferrer");
-      setTimeout(() => URL.revokeObjectURL(url), 60000);
-      return;
-    }
-
-    const url = file.url || file.link || file.file_url;
-    if (url) window.open(url, "_blank", "noopener,noreferrer");
+    if (!backendPreviewUrl) return;
+    window.open(backendPreviewUrl, "_blank", "noopener,noreferrer");
   };
 
   useEffect(() => {
@@ -138,16 +126,13 @@ const ChecklistItemRow = ({
     pushChange({ remarks: newRemarks });
   };
 
-  const handleViewClick = () => {
-    if (uploadedFile) {
-      const objectUrl = URL.createObjectURL(uploadedFile);
-      window.open(objectUrl, "_blank", "noopener,noreferrer");
-      setTimeout(() => URL.revokeObjectURL(objectUrl), 60000);
-      return;
-    }
-    if (firstApiPreviewUrl) {
-      window.open(firstApiPreviewUrl, "_blank", "noopener,noreferrer");
-    }
+  const handleViewLocalUpload = (e) => {
+    e.preventDefault();
+    e.stopPropagation();
+    if (!uploadedFile) return;
+    const objectUrl = URL.createObjectURL(uploadedFile);
+    window.open(objectUrl, "_blank", "noopener,noreferrer");
+    setTimeout(() => URL.revokeObjectURL(objectUrl), 60000);
   };
 
   return (
@@ -177,20 +162,18 @@ const ChecklistItemRow = ({
               {expiryDateRequired ? (
                 isViewOnly ? (
                   <span className="cl-item-meta-chip cl-item-meta-chip--expiry">
-                    <span className="cl-meta-icon" aria-hidden>
-                      📅
+                    <span className="cl-meta-icon cl-meta-icon--svg" aria-hidden>
+                      <CalendarMetaIcon />
                     </span>
                     <span>Exp: {formatDisplayDate(itemData?.expiryDate || "")}</span>
                   </span>
                 ) : (
-                  <button
-                    type="button"
+                  <label
                     className="cl-item-meta-chip cl-item-meta-chip--expiry cl-item-meta-chip--clickable"
-                    onClick={openExpiryPicker}
                     aria-label={`Expiry date, ${formatDisplayDate(itemData?.expiryDate || "")}`}
                   >
-                    <span className="cl-meta-icon" aria-hidden>
-                      📅
+                    <span className="cl-meta-icon cl-meta-icon--svg" aria-hidden>
+                      <CalendarMetaIcon />
                     </span>
                     <span>Exp: {formatDisplayDate(itemData?.expiryDate || "")}</span>
                     <input
@@ -204,9 +187,8 @@ const ChecklistItemRow = ({
                       }}
                       className="cl-expiry-hidden-date"
                       disabled={isViewOnly}
-                      tabIndex={-1}
                     />
-                  </button>
+                  </label>
                 )
               ) : null}
               {expiryDateRequired && requirementMetaLabel ? <span className="cl-item-meta-sep" aria-hidden>|</span> : null}
@@ -222,13 +204,13 @@ const ChecklistItemRow = ({
                     </span>
                     <span className="cl-item-meta-label">{requirementMetaLabel}</span>
                   </span>
-                  {hasMetaPreviewFile ? (
+                  {hasBackendPreviewFile ? (
                     <button
                       type="button"
                       className="cl-item-meta-preview-btn"
-                      onClick={handlePreviewMetaFile}
-                      title="Preview uploaded file"
-                      aria-label="Preview uploaded file"
+                      onClick={handlePreviewBackendFile}
+                      title="Preview document from server"
+                      aria-label="Preview document from server"
                     >
                       👁
                     </button>
@@ -261,10 +243,10 @@ const ChecklistItemRow = ({
             <button
               type="button"
               className="cl-upload-view-btn"
-              onClick={handleViewClick}
-              disabled={!canViewFile}
-              title={canViewFile ? viewButtonTitle : "No file available"}
-              aria-label={canViewFile ? viewButtonTitle : "No file available"}
+              onClick={handleViewLocalUpload}
+              disabled={!canViewLocalUpload}
+              title={canViewLocalUpload ? viewLocalTitle : "No local file to preview"}
+              aria-label={canViewLocalUpload ? viewLocalTitle : "No local file to preview"}
             >
               <svg width="14" height="14" viewBox="0 0 24 24" fill="none" aria-hidden>
                 <path d="M2 12C3.8 8.5 7.3 6 12 6C16.7 6 20.2 8.5 22 12C20.2 15.5 16.7 18 12 18C7.3 18 3.8 15.5 2 12Z" stroke="currentColor" strokeWidth="1.8" />

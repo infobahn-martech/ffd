@@ -39,7 +39,13 @@ const toIdString = (v) => (v == null || String(v).trim() === "" ? null : String(
 
 const normalizeBackendFile = (file, fallbackKey) => {
   const fileName = file?.file_name ?? file?.name ?? file?.filename ?? "File";
-  const fileUrl = file?.file_url ?? file?.url ?? file?.link ?? null;
+  const fileUrl =
+    file?.file_url ??
+    file?.sample_file_url ??
+    file?.requirement_file_url ??
+    file?.url ??
+    file?.link ??
+    null;
 
   return {
     id: file?.id ?? file?.file_id ?? `api_${fallbackKey}`,
@@ -48,6 +54,9 @@ const normalizeBackendFile = (file, fallbackKey) => {
     size: file?.size ?? null,
     url: fileUrl,
     link: fileUrl,
+    file_url: file?.file_url ?? fileUrl,
+    sample_file_url: file?.sample_file_url ?? null,
+    requirement_file_url: file?.requirement_file_url ?? null,
     fromApi: true,
   };
 };

@@ -156,7 +156,8 @@ const mapItemToRow = (it, i, sectionId) => {
   if (Array.isArray(rawFiles)) {
     rawFiles.forEach((f, fi) => {
       const fileName = f.file_name ?? f.name ?? f.filename ?? "File";
-      const fileUrl = f.file_url ?? f.url ?? f.link ?? null;
+      const fileUrl =
+        f.file_url ?? f.sample_file_url ?? f.requirement_file_url ?? f.url ?? f.link ?? null;
       uploadedFromApi.push({
         id: f.id ?? f.file_id ?? `api_${itemId}_${fi}`,
         name: fileName,
@@ -164,6 +165,9 @@ const mapItemToRow = (it, i, sectionId) => {
         size: f.size,
         url: fileUrl,
         link: fileUrl,
+        file_url: f.file_url ?? fileUrl,
+        sample_file_url: f.sample_file_url ?? null,
+        requirement_file_url: f.requirement_file_url ?? null,
         fromApi: true,
       });
     });
@@ -178,6 +182,9 @@ const mapItemToRow = (it, i, sectionId) => {
     requireCopyOnlyFromApi,
     expiryDateRequired: String(it.expiry_date_reqd) === "1" || it.expiry_date_reqd === 1,
     uploadedFromApi,
+    file_url: it.file_url ?? dd.file_url ?? null,
+    sample_file_url: it.sample_file_url ?? dd.sample_file_url ?? null,
+    requirement_file_url: it.requirement_file_url ?? dd.requirement_file_url ?? null,
   };
 };
 
