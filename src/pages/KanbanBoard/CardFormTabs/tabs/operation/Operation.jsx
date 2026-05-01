@@ -24,6 +24,7 @@ import preArrivalInfoService from "../../../../../services/preArrivalInfoService
 import userService from "../../../../../services/userService";
 import preArrivalService from "../../../../../services/preArrivalService";
 import appointmentAcceptanceService from "../../../../../services/appointmentAcceptanceService";
+import coordinatesService from "../../../../../services/coordinatesService";
 
 // Constants
 const OPERATION_TABS = {
@@ -1278,6 +1279,10 @@ const PreArrivalContent = ({
   callTypeId,
 }) => {
   const [isSavingPreArrival, setIsSavingPreArrival] = useState(false);
+  const [isLoadingCoordinateTypes, setIsLoadingCoordinateTypes] = useState(false);
+  const [isLoadingCoordinates, setIsLoadingCoordinates] = useState(false);
+  const [coordinateTypeOptions, setCoordinateTypeOptions] = useState([]);
+  const [coordinatesOptions, setCoordinatesOptions] = useState([]);
   const [reportDraft, setReportDraft] = useState({
     from: "operations@shipping.com",
     to: "",
@@ -1327,6 +1332,110 @@ const PreArrivalContent = ({
     },
     [handleChange, formValues.preArrivalTimeObjectsNeedRecheck]
   );
+
+  const fetchCoordinatesByType = useCallback(
+    async (coordinateTypeId, currentCoordinates = "") => {
+      if (!coordinateTypeId) {
+        setCoordinatesOptions([]);
+        handleChange("coordinates")({ target: { value: "" } });
+        return;
+      }
+
+      setIsLoadingCoordinates(true);
+      try {
+        const response = await coordinatesService.getCoordinatesByType({
+          coordinate_type_id: coordinateTypeId,
+        });
+        const rawData = response?.data?.data ?? response?.data ?? [];
+        const coordinatesList = Array.isArray(rawData) ? rawData : rawData ? [rawData] : [];
+        const mappedOptions = coordinatesList
+          .filter((item) => item?.coordinates != null)
+          .map((item, index) => ({
+            value: String(item?.coordinates_id ?? `${coordinateTypeId}-${index}`),
+            label: String(item?.coordinates || ""),
+          }))
+          .filter((option) => option.label.trim().length > 0);
+
+        setCoordinatesOptions(mappedOptions);
+        if (mappedOptions.length === 1) {
+          handleChange("coordinates")({ target: { value: mappedOptions[0].label } });
+        } else {
+          const matchedCoordinate = mappedOptions.find(
+            (option) => option.label === String(currentCoordinates || "")
+          );
+          handleChange("coordinates")({
+            target: { value: matchedCoordinate?.label || "" },
+          });
+        }
+      } catch (error) {
+        setCoordinatesOptions([]);
+        handleChange("coordinates")({ target: { value: "" } });
+        notify(error?.response?.data?.message || "Failed to fetch coordinates.", "error");
+      } finally {
+        setIsLoadingCoordinates(false);
+      }
+    },
+    [handleChange]
+  );
+
+  useEffect(() => {
+    let cancelled = false;
+
+    const loadCoordinateTypes = async () => {
+      setIsLoadingCoordinateTypes(true);
+      try {
+        const response = await coordinatesService.getAllCoordinateTypes();
+        if (cancelled) return;
+        const rawData = response?.data?.data ?? response?.data ?? [];
+        const typeList = Array.isArray(rawData) ? rawData : rawData ? [rawData] : [];
+        const mappedOptions = typeList
+          .filter((item) => item?.coordinate_type_id != null)
+          .map((item) => ({
+            value: String(item.coordinate_type_id),
+            label: String(item.coordinate_type || ""),
+          }))
+          .filter((option) => option.label.trim().length > 0);
+        setCoordinateTypeOptions(mappedOptions);
+      } catch (error) {
+        if (cancelled) return;
+        setCoordinateTypeOptions([]);
+        notify(error?.response?.data?.message || "Failed to fetch coordinate types.", "error");
+      } finally {
+        if (!cancelled) {
+          setIsLoadingCoordinateTypes(false);
+        }
+      }
+    };
+
+    loadCoordinateTypes();
+
+    return () => {
+      cancelled = true;
+    };
+  }, []);
+
+  useEffect(() => {
+    if (!formValues.coordinateTypeId) {
+      setCoordinatesOptions([]);
+      return;
+    }
+    fetchCoordinatesByType(formValues.coordinateTypeId, formValues.coordinates);
+  }, [formValues.coordinateTypeId, fetchCoordinatesByType]);
+
+  const handleCoordinateTypeChange = (e) => {
+    const selectedTypeId = e.target.value;
+    handleChange("coordinateTypeId")({ target: { value: selectedTypeId } });
+    if (!selectedTypeId) {
+      setCoordinatesOptions([]);
+      handleChange("coordinates")({ target: { value: "" } });
+    }
+  };
+
+  const handleCoordinatesSelectionChange = (e) => {
+    const selectedId = e.target.value;
+    const selected = coordinatesOptions.find((option) => option.value === selectedId);
+    handleChange("coordinates")({ target: { value: selected?.label || "" } });
+  };
 
   const savePreArrivalData = async () => {
     const callId = card?.call_id || formValues?.call_id || "";
@@ -1382,7 +1491,6 @@ const PreArrivalContent = ({
           console.warn("[Operation] Missing event_type_id for event field", field, index);
           return null;
         }
-
         return {
           event_type_id: Number(eventTypeId),
           event_datetime: `${date} ${time}:00`,
@@ -1517,11 +1625,10 @@ const PreArrivalContent = ({
             <div className="operation-prearrival-grid">
               <OperationFormCard className="operation-form-column">
                 <div
-                  className={`prearrival-timeobject-highlight ${
-                    formValues.weatherForecast === BAD_WEATHER && formValues.preArrivalTimeObjectsNeedRecheck
+                  className={`prearrival-timeobject-highlight ${formValues.weatherForecast === BAD_WEATHER && formValues.preArrivalTimeObjectsNeedRecheck
                       ? "is-warning"
                       : ""
-                  }`.trim()}
+                    }`.trim()}
                 >
                   <DynamicDateTimeFields
                     eventFields={eventFields}
@@ -1573,14 +1680,26 @@ const PreArrivalContent = ({
                 </FormField>
 
                 <FormField label="Coordinates">
-                  <FormInput
-                    type="text"
-                    value={formValues?.coordinates || ""}
-                    onChange={handleChange("coordinates")}
-                    placeholder="Enter coordinates..."
-                    disabled={isViewOnly}
+                  <FormSelect
+                    value={formValues?.coordinateTypeId || ""}
+                    onChange={handleCoordinateTypeChange}
+                    options={coordinateTypeOptions}
+                    placeholder="Select coordinate type..."
+                    disabled={isViewOnly || isLoadingCoordinateTypes || isLoadingCoordinates}
                   />
                 </FormField>
+
+                {coordinatesOptions.length > 1 && (
+                  <FormField label="Coordinate Value">
+                    <FormSelect
+                      value={coordinatesOptions.find((option) => option.label === (formValues?.coordinates || ""))?.value || ""}
+                      onChange={handleCoordinatesSelectionChange}
+                      options={coordinatesOptions}
+                      placeholder={isLoadingCoordinates ? "Loading coordinates..." : "Select coordinates..."}
+                      disabled={isViewOnly || isLoadingCoordinates}
+                    />
+                  </FormField>
+                )}
               </OperationFormCard>
               <OperationFormCard className="operation-document-column">
                 <PreArrivalDocumentHandlingSection
