@@ -1261,7 +1261,6 @@ const EmailPreviewPanel = ({
         <div className="email-preview-topbar-title">Email Preview</div>
         <div className="email-preview-topbar-status">
           <span className="email-preview-status-dot" />
-          <span>@</span>
           <span>{formatPreviewDate()}</span>
           {/* <button type="button" className="email-preview-topbar-action" aria-label="Copy preview">⧉</button>
           <button type="button" className="email-preview-topbar-action" aria-label="Expand preview">⛶</button> */}
@@ -3318,18 +3317,18 @@ function General({
                               <div className="form-group">
                                 <h3 className="form-group-title">Appointment Details</h3>
                                 {shouldShowApiField("appointment_email") && (
-                                <FormField label="Appointment Email *" hasError={isAddMode && Boolean(fieldErrors.appointmentEmailDocuments)}>
+                                  <FormField label="Appointment Email *" hasError={isAddMode && Boolean(fieldErrors.appointmentEmailDocuments)}>
                                     <DocumentUpload
                                       attachments={appointmentDocuments}
                                       onAdd={handleDocumentAdd}
                                       onRemove={handleDocumentRemove}
                                       cardColor={accentColor}
                                       disabled={isDisabled}
-                                    hasError={isAddMode && Boolean(fieldErrors.appointmentEmailDocuments)}
+                                      hasError={isAddMode && Boolean(fieldErrors.appointmentEmailDocuments)}
                                     />
-                                  {isAddMode && fieldErrors.appointmentEmailDocuments && (
-                                    <div className="cf-field-error">{fieldErrors.appointmentEmailDocuments}</div>
-                                  )}
+                                    {isAddMode && fieldErrors.appointmentEmailDocuments && (
+                                      <div className="cf-field-error">{fieldErrors.appointmentEmailDocuments}</div>
+                                    )}
                                   </FormField>
                                 )}
                                 {shouldShowApiField("appointment_received_date") && (
@@ -3386,7 +3385,7 @@ function General({
                                       <FormInput
                                         type="text"
                                         value={callTypeLabel}
-                                        onChange={() => {}}
+                                        onChange={() => { }}
                                         placeholder="Not set"
                                         readOnly
                                         disabled
@@ -3404,7 +3403,7 @@ function General({
                                       <FormInput
                                         type="text"
                                         value={formatted}
-                                        onChange={() => {}}
+                                        onChange={() => { }}
                                         placeholder="Not set"
                                         readOnly
                                         disabled
