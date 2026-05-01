@@ -2224,35 +2224,114 @@
   line-height: 1;
 }
 
+/* Expiry chip only — do not broaden to other checklist buttons/inputs */
+button.cl-item-meta-chip.cl-item-meta-chip--expiry {
+  appearance: none;
+  -webkit-appearance: none;
+  border: 1px solid #d8e2f3;
+  background: #f8fbff;
+  color: #42526e;
+  border-radius: 999px;
+  padding: 4px 9px;
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  min-height: 24px;
+  font: inherit;
+  line-height: 1;
+  margin: 0;
+  text-align: left;
+  overflow: visible;
+}
+
+span.cl-item-meta-chip.cl-item-meta-chip--expiry {
+  border: 1px solid #d8e2f3;
+  background: #f8fbff;
+  color: #42526e;
+  border-radius: 999px;
+  padding: 4px 9px;
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  min-height: 24px;
+  font-size: 11px;
+  font-weight: 500;
+  line-height: 1;
+  white-space: nowrap;
+}
+
 .cl-item-meta-chip--expiry {
   position: relative;
 }
 
-.cl-item-expiry-input {
-  width: 84px;
-  max-width: 84px;
-  height: 16px;
-  padding: 0;
-  border: none;
-  border-radius: 0;
-  background: transparent;
-  font-size: 11px;
-  line-height: 1.2;
-  color: transparent;
-  caret-color: #6b7280;
-  text-shadow: none;
+.cl-item-meta-chip--expiry.cl-item-meta-chip--clickable {
   cursor: pointer;
-  opacity: 0;
-  position: absolute;
-  left: 0;
-  top: 0;
+  user-select: none;
 }
 
-.cl-item-expiry-display {
-  color: #6b7280;
-  white-space: nowrap;
-  font-size: 11px;
-  font-weight: 500;
+.cl-item-meta-chip--expiry.cl-item-meta-chip--clickable:hover {
+  border-color: #7c9cff;
+  background: #eef4ff;
+  color: #00368c;
+  box-shadow: 0 2px 8px rgba(0, 54, 140, 0.12);
+}
+
+.cl-item-meta-chip--expiry.cl-item-meta-chip--clickable:focus-visible {
+  outline: 3px solid rgba(0, 91, 255, 0.18);
+  outline-offset: 2px;
+}
+
+.cl-expiry-hidden-date {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  opacity: 0;
+  cursor: pointer;
+  border: 0;
+  padding: 0;
+  margin: 0;
+  z-index: 1;
+  box-sizing: border-box;
+}
+
+.cl-meta-icon {
+  font-size: 12px;
+  line-height: 1;
+  position: relative;
+  z-index: 0;
+}
+
+.cl-item-meta-preview-btn {
+  appearance: none;
+  -webkit-appearance: none;
+  border: 1px solid #d8e2f3;
+  background: #f8fbff;
+  color: #64748b;
+  border-radius: 999px;
+  min-width: 24px;
+  height: 24px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 12px;
+  line-height: 1;
+  cursor: pointer;
+  transition: all 0.18s ease;
+  margin: 0;
+  padding: 0;
+}
+
+.cl-item-meta-preview-btn:hover {
+  border-color: #7c9cff;
+  background: #eef4ff;
+  color: #00368c;
+  box-shadow: 0 2px 8px rgba(0, 54, 140, 0.12);
+}
+
+.cl-item-meta-preview-btn:focus-visible {
+  outline: 3px solid rgba(0, 91, 255, 0.18);
+  outline-offset: 2px;
 }
 .cl-upload-inline {
   display: flex;

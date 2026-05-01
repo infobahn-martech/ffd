@@ -2,7 +2,7 @@ import PropTypes from "prop-types";
 import { useState, useEffect, useRef } from "react";
 import { FormTextarea } from "./checklistFormPrimitives";
 
-const formatExpiryDisplay = (value) => {
+const formatDisplayDate = (value) => {
   if (!value) return "--/--/----";
   const [year, month, day] = String(value).split("-");
   if (!year || !month || !day) return value;
@@ -36,6 +36,7 @@ const ChecklistItemRow = ({
   const [remarks, setRemarks] = useState(itemData?.remarks || "");
   const [uploadedFile, setUploadedFile] = useState(itemData?.uploadedFile || null);
   const fileInputRef = useRef(null);
+  const expiryInputRef = useRef(null);
 
   const checked = itemData?.checked === true;
   const apiFiles = itemData?.apiUploadedFiles ?? uploadedFromApi ?? [];
@@ -51,6 +52,50 @@ const ChecklistItemRow = ({
       : "No file available";
   const requirementMetaLabel = getRequirementMetaLabel({ requireCopyOnlyFromApi, requirement });
   const showMetaRow = Boolean(expiryDateRequired || requirementMetaLabel);
+
+  const uploadedFilesList = Array.isArray(itemData?.uploadedFiles) ? itemData.uploadedFiles : [];
+  const apiFilesList = Array.isArray(apiFiles) ? apiFiles : [];
+  const metaPreviewCandidates = [
+    ...(uploadedFile ? [{ file: uploadedFile }] : []),
+    ...uploadedFilesList,
+    ...apiFilesList,
+  ];
+  const hasMetaPreviewFile = metaPreviewCandidates.some(
+    (f) => f?.file || f?.url || f?.link || f?.file_url
+  );
+
+  const openExpiryPicker = (e) => {
+    e.preventDefault();
+    e.stopPropagation();
+
+    const input = expiryInputRef.current;
+    if (!input) return;
+
+    if (typeof input.showPicker === "function") {
+      input.showPicker();
+    } else {
+      input.focus();
+      input.click();
+    }
+  };
+
+  const handlePreviewMetaFile = (e) => {
+    e.preventDefault();
+    e.stopPropagation();
+
+    const file = metaPreviewCandidates.find((f) => f?.file || f?.url || f?.link || f?.file_url);
+    if (!file) return;
+
+    if (file.file instanceof Blob) {
+      const url = URL.createObjectURL(file.file);
+      window.open(url, "_blank", "noopener,noreferrer");
+      setTimeout(() => URL.revokeObjectURL(url), 60000);
+      return;
+    }
+
+    const url = file.url || file.link || file.file_url;
+    if (url) window.open(url, "_blank", "noopener,noreferrer");
+  };
 
   useEffect(() => {
     setRemarks(itemData?.remarks || "");
@@ -93,10 +138,6 @@ const ChecklistItemRow = ({
     pushChange({ remarks: newRemarks });
   };
 
-  const handleExpiryChange = (e) => {
-    pushChange({ expiryDate: e.target.value });
-  };
-
   const handleViewClick = () => {
     if (uploadedFile) {
       const objectUrl = URL.createObjectURL(uploadedFile);
@@ -134,39 +175,65 @@ const ChecklistItemRow = ({
           {showMetaRow ? (
             <div className="cl-item-meta-row">
               {expiryDateRequired ? (
-                <span className="cl-item-meta-chip cl-item-meta-chip--expiry">
-                  <span className="cl-item-meta-icon" aria-hidden>
-                    <svg width="12" height="12" viewBox="0 0 24 24" fill="none">
-                      <rect x="3" y="5" width="18" height="16" rx="2" stroke="currentColor" strokeWidth="1.8" />
-                      <path d="M8 3V7M16 3V7M3 10H21" stroke="currentColor" strokeWidth="1.8" />
-                    </svg>
+                isViewOnly ? (
+                  <span className="cl-item-meta-chip cl-item-meta-chip--expiry">
+                    <span className="cl-meta-icon" aria-hidden>
+                      📅
+                    </span>
+                    <span>Exp: {formatDisplayDate(itemData?.expiryDate || "")}</span>
                   </span>
-                  <span className="cl-item-meta-label">Exp:</span>
-                  <input
-                    type="date"
-                    className="checklist-expiry-input cl-item-expiry-input"
-                    value={itemData?.expiryDate || ""}
-                    onChange={handleExpiryChange}
-                    disabled={isViewOnly}
-                    aria-label="Expiry date"
-                  />
-                  <span className="cl-item-expiry-display" aria-hidden>
-                    {formatExpiryDisplay(itemData?.expiryDate || "")}
-                  </span>
-                </span>
+                ) : (
+                  <button
+                    type="button"
+                    className="cl-item-meta-chip cl-item-meta-chip--expiry cl-item-meta-chip--clickable"
+                    onClick={openExpiryPicker}
+                    aria-label={`Expiry date, ${formatDisplayDate(itemData?.expiryDate || "")}`}
+                  >
+                    <span className="cl-meta-icon" aria-hidden>
+                      📅
+                    </span>
+                    <span>Exp: {formatDisplayDate(itemData?.expiryDate || "")}</span>
+                    <input
+                      ref={expiryInputRef}
+                      type="date"
+                      value={itemData?.expiryDate || ""}
+                      onClick={(ev) => ev.stopPropagation()}
+                      onChange={(ev) => {
+                        ev.stopPropagation();
+                        pushChange({ expiryDate: ev.target.value });
+                      }}
+                      className="cl-expiry-hidden-date"
+                      disabled={isViewOnly}
+                      tabIndex={-1}
+                    />
+                  </button>
+                )
               ) : null}
               {expiryDateRequired && requirementMetaLabel ? <span className="cl-item-meta-sep" aria-hidden>|</span> : null}
               {requirementMetaLabel ? (
-                <span className="cl-item-meta-chip" title={requirementMetaLabel}>
-                  <span className="cl-item-meta-icon" aria-hidden>
-                    <svg width="12" height="12" viewBox="0 0 24 24" fill="none">
-                      <path d="M14 3H7C5.9 3 5 3.9 5 5V19C5 20.1 5.9 21 7 21H17C18.1 21 19 20.1 19 19V8L14 3Z" stroke="currentColor" strokeWidth="1.8" />
-                      <path d="M14 3V8H19" stroke="currentColor" strokeWidth="1.8" />
-                      <path d="M9 12H15M9 16H15" stroke="currentColor" strokeWidth="1.8" />
-                    </svg>
+                <>
+                  <span className="cl-item-meta-chip" title={requirementMetaLabel}>
+                    <span className="cl-item-meta-icon" aria-hidden>
+                      <svg width="12" height="12" viewBox="0 0 24 24" fill="none">
+                        <path d="M14 3H7C5.9 3 5 3.9 5 5V19C5 20.1 5.9 21 7 21H17C18.1 21 19 20.1 19 19V8L14 3Z" stroke="currentColor" strokeWidth="1.8" />
+                        <path d="M14 3V8H19" stroke="currentColor" strokeWidth="1.8" />
+                        <path d="M9 12H15M9 16H15" stroke="currentColor" strokeWidth="1.8" />
+                      </svg>
+                    </span>
+                    <span className="cl-item-meta-label">{requirementMetaLabel}</span>
                   </span>
-                  <span className="cl-item-meta-label">{requirementMetaLabel}</span>
-                </span>
+                  {hasMetaPreviewFile ? (
+                    <button
+                      type="button"
+                      className="cl-item-meta-preview-btn"
+                      onClick={handlePreviewMetaFile}
+                      title="Preview uploaded file"
+                      aria-label="Preview uploaded file"
+                    >
+                      👁
+                    </button>
+                  ) : null}
+                </>
               ) : null}
             </div>
           ) : null}
