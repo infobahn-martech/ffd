@@ -1178,14 +1178,38 @@ const resolveEmailPreviewPayload = (payload) => {
       : null;
   const source = appointmentAcceptance ?? data;
   return {
-    from: firstNonEmptyString(source.from, source.from_email, source.sender_email, source.sender),
-    to: normalizeEmailFieldValue(source.to ?? source.to_email ?? source.service_requestor_email),
+    from: firstNonEmptyString(
+      source.from,
+      source.from_email,
+      data.from_email,
+      source.sender_email,
+      source.sender
+    ),
+    to: normalizeEmailFieldValue(source.to ?? source.to_email ?? data.to_email ?? source.service_requestor_email),
     cc: normalizeEmailFieldValue(source.cc ?? source.cc_email ?? source.cc_emails),
     subject: htmlToPlainText(firstNonEmptyString(source.subject, source.email_subject)),
     messageHtml: firstNonEmptyString(source.message, source.body, source.email_body, source.email_content),
     message: htmlToPlainText(firstNonEmptyString(source.message, source.body, source.email_body, source.email_content)),
   };
 };
+
+const buildPreviewTimeObjectsPayload = (timeObjects, timeObjectValues) =>
+  (Array.isArray(timeObjects) ? timeObjects : [])
+    .map((item) => {
+      const timeObjectId = firstNonEmptyString(item?.time_object_id, item?.time_object_stage_id);
+      if (!timeObjectId) return null;
+      const valueLookupId = firstNonEmptyString(item?.time_object_id);
+      const selected = valueLookupId ? timeObjectValues?.[valueLookupId] : null;
+      const selectedDate = firstNonEmptyString(selected?.date);
+      const selectedTime = firstNonEmptyString(selected?.time);
+      if (!selectedDate || !selectedTime) return null;
+      return {
+        time_object_id: timeObjectId,
+        field_key: firstNonEmptyString(item?.field_key, item?.time_object),
+        time_object_value: `${selectedDate} ${selectedTime}:00`,
+      };
+    })
+    .filter(Boolean);
 
 const formatPreviewDate = (date = new Date()) =>
   new Intl.DateTimeFormat("en-US", {
@@ -2588,6 +2612,7 @@ function General({
           port_id: previewPortId,
           call_type: previewCallType,
           service_requestor_email: previewServiceRequestorEmail,
+          time_objects: buildPreviewTimeObjectsPayload(stageTimeObjects, stageTimeObjectValues),
         });
         if (cancelled) return;
         const resolved = resolveEmailPreviewPayload(data);
@@ -2625,6 +2650,8 @@ function General({
     previewPortId,
     previewCallType,
     previewServiceRequestorEmail,
+    stageTimeObjectValues,
+    stageTimeObjects,
     isPreviewMessageDirty,
     populateEditablePreviewFields,
   ]);
