@@ -220,10 +220,10 @@ const ChecklistItemRow = ({
                     disabled={isViewOnly}
                     popperClassName="cl-datepicker-popper"
                     calendarClassName="cl-datepicker-calendar"
+                    popperPlacement="bottom-start"
                     showPopperArrow={false}
-                    shouldCloseOnSelect
+                    shouldCloseOnSelect={true}
                     strictParsing
-                    withPortal
                   />
                 )
               ) : null}
