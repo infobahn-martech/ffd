@@ -33,6 +33,19 @@ const OPERATION_TABS = {
   DEPARTURE: "departure",
 };
 
+const PRE_ARRIVAL_SABER_STATUS_OPTIONS = [
+  { value: "Applied by Client", label: "Applied by Client" },
+  { value: "Applied by Sedres", label: "Applied by Sedres" },
+];
+
+const PRE_ARRIVAL_WEATHER_FORECAST_OPTIONS = [
+  { value: "Normal weather", label: "Normal weather" },
+  { value: "Bad weather", label: "Bad weather" },
+];
+
+const SABER_APPLIED_BY_SEDRES = "Applied by Sedres";
+const BAD_WEATHER = "Bad weather";
+
 const EVENT_NAME_FIELD_KEY_MAP = {
   "expected time of arrival": "expectedArrival",
   "expected commencement of custom inspection": "customsInspection",
@@ -192,7 +205,7 @@ OperationFormCard.propTypes = {
   children: PropTypes.node.isRequired,
 };
 
-const DynamicDateTimeFields = ({ eventFields = [], formValues, handleChange, isViewOnly = false }) => {
+const DynamicDateTimeFields = ({ eventFields = [], formValues, handleChange, isViewOnly = false, onDateTimeChange }) => {
   if (!eventFields.length) return null;
 
   return eventFields.map((field) => {
@@ -200,14 +213,22 @@ const DynamicDateTimeFields = ({ eventFields = [], formValues, handleChange, isV
     const dateKey = `${keyPrefix}Date`;
     const timeKey = `${keyPrefix}Time`;
     const label = field.is_required ? `${field.event_name} *` : field.event_name;
+    const onDateChange = handleChange(dateKey);
+    const onTimeChange = handleChange(timeKey);
 
     return (
       <FormField key={`${field.stage_id || "stage"}-${field.event_name}-${keyPrefix}`} label={label}>
         <DateTimePickerField
           dateValue={formValues[dateKey] || ""}
           timeValue={formValues[timeKey] || ""}
-          onDateChange={handleChange(dateKey)}
-          onTimeChange={handleChange(timeKey)}
+          onDateChange={(e) => {
+            onDateChange(e);
+            onDateTimeChange?.();
+          }}
+          onTimeChange={(e) => {
+            onTimeChange(e);
+            onDateTimeChange?.();
+          }}
           dateFieldName={dateKey}
           timeFieldName={timeKey}
           disabled={isViewOnly}
@@ -229,6 +250,7 @@ DynamicDateTimeFields.propTypes = {
   formValues: PropTypes.object.isRequired,
   handleChange: PropTypes.func.isRequired,
   isViewOnly: PropTypes.bool,
+  onDateTimeChange: PropTypes.func,
 };
 
 const formatAttachmentLabel = (attachment) => {
@@ -1278,6 +1300,39 @@ const PreArrivalContent = ({
     handleChange("saberUtDocumentsAttachments")({ target: { value: [...currentAttachments, ...files] } });
   };
 
+  const handleSaberUtStatusChange = (e) => {
+    const value = e.target.value;
+    handleChange("saberUtStatus")(e);
+    if (value !== SABER_APPLIED_BY_SEDRES) {
+      handleChange("saberUtDocumentsAttachments")({ target: { value: [] } });
+    }
+  };
+
+  const handleWeatherForecastChange = (e) => {
+    const value = e.target.value;
+    handleChange("weatherForecast")(e);
+
+    if (value === BAD_WEATHER) {
+      notify(
+        "Bad weather selected. Please re-check all Pre Arrival time objects before saving.",
+        "warning"
+      );
+      handleChange("preArrivalTimeObjectsNeedRecheck")({
+        target: { value: true },
+      });
+    } else {
+      handleChange("preArrivalTimeObjectsNeedRecheck")({
+        target: { value: false },
+      });
+    }
+  };
+
+  const clearPreArrivalTimeRecheckFlag = () => {
+    handleChange("preArrivalTimeObjectsNeedRecheck")({
+      target: { value: false },
+    });
+  };
+
   const savePreArrivalData = async () => {
     const callId = card?.call_id || formValues?.call_id || "";
     const cardId = card?.id || card?.card_id || formValues?.card_id || "";
@@ -1298,6 +1353,17 @@ const PreArrivalContent = ({
     }
     if (!assignedCustom) {
       notify("Assigned Custom clearance is required.", "error");
+      return false;
+    }
+
+    if (
+      formValues.weatherForecast === BAD_WEATHER &&
+      formValues.preArrivalTimeObjectsNeedRecheck === true
+    ) {
+      notify(
+        "Please re-check Pre Arrival time objects because Bad weather is selected.",
+        "warning"
+      );
       return false;
     }
 
@@ -1340,11 +1406,13 @@ const PreArrivalContent = ({
     fd.append("assigned_gro", assignedGro);
     fd.append("assigned_custom", assignedCustom);
 
-    (formValues.saberUtDocumentsAttachments || []).forEach((item) => {
-      if (item?.file instanceof File) {
-        fd.append("saber_attachments[]", item.file);
-      }
-    });
+    if (formValues.saberUtStatus === SABER_APPLIED_BY_SEDRES) {
+      (formValues.saberUtDocumentsAttachments || []).forEach((item) => {
+        if (item?.file instanceof File) {
+          fd.append("saber_attachments[]", item.file);
+        }
+      });
+    }
 
     const dh = formValues.preArrivalDocumentHandling;
     (dh?.documents?.gro || []).forEach((doc) => {
@@ -1458,34 +1526,47 @@ const PreArrivalContent = ({
                   formValues={formValues}
                   handleChange={handleChange}
                   isViewOnly={isViewOnly}
+                  onDateTimeChange={clearPreArrivalTimeRecheckFlag}
                 />
 
                 <FormField label="SABER Status">
-                  <FormInput
-                    type="text"
+                  <FormSelect
                     value={formValues.saberUtStatus || ""}
-                    onChange={handleChange("saberUtStatus")}
-                    placeholder="Enter SABER Status..."
+                    onChange={handleSaberUtStatusChange}
+                    options={PRE_ARRIVAL_SABER_STATUS_OPTIONS}
+                    placeholder="Select SABER status..."
                     disabled={isViewOnly}
                   />
                 </FormField>
 
-                <FormField label="SABER Certificate Upload">
-                  <SaberUploadBox
-                    files={formValues.saberUtDocumentsAttachments || []}
-                    onAddFiles={handleSaberUtAddFiles}
-                    isViewOnly={isViewOnly}
-                  />
-                </FormField>
+                {formValues.saberUtStatus === SABER_APPLIED_BY_SEDRES && (
+                  <FormField label="SABER Certificate Upload">
+                    <SaberUploadBox
+                      files={formValues.saberUtDocumentsAttachments || []}
+                      onAddFiles={handleSaberUtAddFiles}
+                      isViewOnly={isViewOnly}
+                    />
+                  </FormField>
+                )}
 
                 <FormField label="Weather Forecast">
-                  <FormInput
-                    type="text"
+                  <FormSelect
                     value={formValues?.weatherForecast || ""}
-                    onChange={handleChange("weatherForecast")}
-                    placeholder="Enter weather forecast..."
+                    onChange={handleWeatherForecastChange}
+                    options={PRE_ARRIVAL_WEATHER_FORECAST_OPTIONS}
+                    placeholder="Select weather forecast..."
                     disabled={isViewOnly}
                   />
+                  {formValues.weatherForecast === BAD_WEATHER && !isViewOnly && (
+                    <div style={{ marginTop: 8 }}>
+                      <p style={{ margin: "0 0 8px", fontSize: 13, color: "#b45309" }}>
+                        Bad weather selected. Re-check ETA and clearance time objects.
+                      </p>
+                      <button type="button" className="cf-add-btn" style={{ marginBottom: 0 }} onClick={clearPreArrivalTimeRecheckFlag}>
+                        Mark re-check completed
+                      </button>
+                    </div>
+                  )}
                 </FormField>
 
                 <FormField label="Coordinates">
@@ -1902,7 +1983,7 @@ const getDummyValues = () => ({
   immigrationClearanceTime: "12:00",
   inwardClearanceDate: "2024-01-15",
   inwardClearanceTime: "14:00",
-  saberUtStatus: "Approved",
+  saberUtStatus: SABER_APPLIED_BY_SEDRES,
   saberUtDocumentsAttachments: [
     { name: "SABER_Certificate_001.pdf", size: 245678, type: "application/pdf" },
     { name: "SABER_UT_Document_002.pdf", size: 189234, type: "application/pdf" },
@@ -1938,7 +2019,7 @@ const getDummyValues = () => ({
     },
   },
   preArrivalDescription: "<p><strong>Pre-Arrival Summary:</strong></p><p>Vessel is expected to arrive on schedule. All pre-arrival documentation has been submitted and verified. The vessel SS Central Bay is proceeding according to the planned timeline.</p><p><strong>Documentation Status:</strong></p><ul><li>SABER certificate has been approved and uploaded</li><li>Customs inspection documents are ready</li><li>Immigration clearance paperwork is complete</li><li>All required permits have been obtained</li></ul><p><strong>Additional Notes:</strong></p><p>The vessel is currently en route and maintaining good communication. Weather conditions are favorable for arrival. All port services have been notified and are on standby. The crew is prepared for the arrival procedures.</p>",
-  weatherForecast: "Clear skies, 25°C, light winds",
+  weatherForecast: "Normal weather",
   coordinates: "24.7136° N, 46.6753° E",
   actualArrivalDate: "2024-01-15",
   actualArrivalTime: "10:35",
