@@ -1,8 +1,10 @@
 import { useForm, useFieldArray, useWatch } from "react-hook-form";
+import { FiTrash2 } from "react-icons/fi";
 import CustomModal from "../../../components/CustomModal";
 import "../../../design/scss/prospect-modal.scss";
 import "../../../design/scss/modal-designs.scss";
 import "../../../design/scss/form-designs.scss";
+import "../../../design/scss/checklist.scss";
 import { useState, useEffect } from "react";
 import useCheckListReducer from "../../../store/CheckListReducer";
 import useVesselTypeReducer from "../../../store/VesselTypeReducer";
@@ -77,7 +79,7 @@ function logFormDataEntries(formData) {
   }
 }
 
-/** API may return strings or objects; normalize to display names for the form only */
+/** API may return strings or objects; keep full URLs from file_name for preview (not sent in FormData). */
 function normalizeUploadedFilesForForm(uploaded) {
   if (uploaded == null) return [];
   const list = Array.isArray(uploaded) ? uploaded : [uploaded];
@@ -93,6 +95,36 @@ function normalizeUploadedFilesForForm(uploaded) {
     .filter(Boolean);
 }
 
+function getSelectedFile(requiredCopyOnly) {
+  if (requiredCopyOnly instanceof FileList && requiredCopyOnly.length > 0) {
+    return requiredCopyOnly[0];
+  }
+  if (requiredCopyOnly instanceof File) {
+    return requiredCopyOnly;
+  }
+  return null;
+}
+
+function displayNameFromFileRef(ref) {
+  const s = String(ref ?? "").trim();
+  if (!s) return "";
+  try {
+    if (/^https?:\/\//i.test(s) || s.startsWith("//")) {
+      const urlStr = s.startsWith("//") ? `https:${s}` : s;
+      const u = new URL(urlStr);
+      const last = u.pathname.split("/").filter(Boolean).pop();
+      return last ? decodeURIComponent(last.replace(/\+/g, " ")) : s;
+    }
+  } catch {
+    /* ignore */
+  }
+  if (s.includes("/")) {
+    const last = s.split("/").filter(Boolean).pop();
+    return last ? decodeURIComponent(last.replace(/\+/g, " ")) : s;
+  }
+  return s;
+}
+
 function ItemFilePreviewButton({ control, basePath, inputId }) {
   const requiredCopyOnly = useWatch({
     control,
@@ -103,40 +135,39 @@ function ItemFilePreviewButton({ control, basePath, inputId }) {
     name: `${basePath}.document_details.existing_files`
   });
 
-  let selectedName = null;
-  if (requiredCopyOnly instanceof FileList && requiredCopyOnly.length > 0) {
-    selectedName = requiredCopyOnly[0]?.name ?? null;
-  } else if (requiredCopyOnly instanceof File) {
-    selectedName = requiredCopyOnly.name;
-  }
+  const selectedFile = getSelectedFile(requiredCopyOnly);
+  const selectedName = selectedFile?.name ?? null;
 
-  const existingNames = Array.isArray(existingFiles)
+  const existingList = Array.isArray(existingFiles)
     ? existingFiles.filter((x) => x != null && String(x).trim() !== "")
     : existingFiles != null && String(existingFiles).trim() !== ""
       ? [String(existingFiles).trim()]
       : [];
-  const existingLabel = existingNames.join(", ");
 
-  const hasAnyFile = !!selectedName || !!existingLabel;
+  const existingDisplayNames = existingList.map(displayNameFromFileRef).filter(Boolean);
+  const existingTooltip = existingDisplayNames.join(", ");
 
-  const openSelectedFile = () => {
-    if (requiredCopyOnly instanceof FileList && requiredCopyOnly.length > 0) {
-      const url = URL.createObjectURL(requiredCopyOnly[0]);
+  const hasNewFile = selectedFile != null;
+  const hasExisting = existingList.length > 0;
+  const canPreview = hasNewFile || hasExisting;
+
+  const openPreview = () => {
+    if (hasNewFile) {
+      const url = URL.createObjectURL(selectedFile);
       window.open(url, "_blank", "noopener,noreferrer");
       setTimeout(() => URL.revokeObjectURL(url), 1000);
       return;
     }
-    if (requiredCopyOnly instanceof File) {
-      const url = URL.createObjectURL(requiredCopyOnly);
-      window.open(url, "_blank", "noopener,noreferrer");
-      setTimeout(() => URL.revokeObjectURL(url), 1000);
+    const target = existingList[0];
+    if (target) {
+      window.open(target, "_blank", "noopener,noreferrer");
     }
   };
 
   const titleText = selectedName
     ? `Selected file: ${selectedName}`
-    : existingLabel
-      ? `Existing file: ${existingLabel}`
+    : existingTooltip
+      ? `Existing file: ${existingTooltip}`
       : "No file selected";
 
   return (
@@ -149,8 +180,9 @@ function ItemFilePreviewButton({ control, basePath, inputId }) {
         type="button"
         className="checklist-view-btn"
         title={titleText}
-        onClick={openSelectedFile}
-        disabled={!hasAnyFile || !selectedName}
+        aria-label={canPreview ? "Preview file" : titleText}
+        onClick={openPreview}
+        disabled={!canPreview}
       >
         <span aria-hidden="true">👁</span>
       </button>
@@ -208,7 +240,7 @@ function mapApiToForm(data) {
     callType: String(data.call_type_id || ""),
     vesselType,
     bargeType,
-    port: String(data.port_id || ""),
+    port: data.port_id != null ? String(data.port_id) : "",
     checklistName: data.checklist_name || "",
     sections: (data.sections || []).map((section) => ({
       title: section.title || "",
@@ -464,9 +496,11 @@ export function CheckListModal({ showModal, closeModal, callTypesOptions, onSucc
                 <button
                   type="button"
                   onClick={() => remove(itemIndex)}
-                  className="checklist-delete-btn"
+                  className="checklist-remove-icon-btn"
                   title="Remove item"
+                  aria-label="Remove item"
                 >
+                  <FiTrash2 aria-hidden size={18} />
                 </button>
               </div>
             );
@@ -593,9 +627,11 @@ export function CheckListModal({ showModal, closeModal, callTypesOptions, onSucc
                 <button
                   type="button"
                   onClick={() => remove(itemIndex)}
-                  className="checklist-delete-btn"
+                  className="checklist-remove-icon-btn"
                   title="Remove item"
+                  aria-label="Remove item"
                 >
+                  <FiTrash2 aria-hidden size={18} />
                 </button>
               </div>
             );
@@ -744,27 +780,11 @@ export function CheckListModal({ showModal, closeModal, callTypesOptions, onSucc
               <button
                 type="button"
                 onClick={() => remove(subSectionIndex)}
-                className="btn btn-sm"
-                style={{
-                  fontSize: "11px",
-                  padding: "5px 12px",
-                  backgroundColor: "#fff",
-                  border: "1px solid #dc3545",
-                  color: "#dc3545",
-                  borderRadius: "6px",
-                  fontWeight: "600",
-                  transition: "all 0.2s ease"
-                }}
-                onMouseEnter={(e) => {
-                  e.currentTarget.style.backgroundColor = "#dc3545";
-                  e.currentTarget.style.color = "#fff";
-                }}
-                onMouseLeave={(e) => {
-                  e.currentTarget.style.backgroundColor = "#fff";
-                  e.currentTarget.style.color = "#dc3545";
-                }}
+                className="checklist-remove-icon-btn"
+                title="Remove sub section"
+                aria-label="Remove sub section"
               >
-                Remove
+                <FiTrash2 aria-hidden size={18} />
               </button>
             </div>
 
@@ -925,10 +945,13 @@ export function CheckListModal({ showModal, closeModal, callTypesOptions, onSucc
                   >
                     <option value="">Select Port</option>
                     {(ports ?? []).map((portOption) => {
-                      const value = portOption.port_id ?? portOption._id ?? portOption.id ?? portOption.port;
+                      const value =
+                        portOption.port_id != null && portOption.port_id !== ""
+                          ? String(portOption.port_id)
+                          : String(portOption._id ?? portOption.id ?? "");
                       const label = portOption.port ?? portOption.name ?? value;
                       return (
-                        <option key={String(value)} value={String(value)}>
+                        <option key={value || label} value={value}>
                           {label}
                         </option>
                       );
@@ -1074,27 +1097,11 @@ export function CheckListModal({ showModal, closeModal, callTypesOptions, onSucc
                     <button
                       type="button"
                       onClick={() => removeSection(sectionIndex)}
-                      className="btn btn-sm"
-                      style={{
-                        fontSize: "12px",
-                        padding: "6px 14px",
-                        backgroundColor: "#fff",
-                        border: "1px solid #dc3545",
-                        color: "#dc3545",
-                        borderRadius: "6px",
-                        fontWeight: "600",
-                        transition: "all 0.2s ease"
-                      }}
-                      onMouseEnter={(e) => {
-                        e.currentTarget.style.backgroundColor = "#dc3545";
-                        e.currentTarget.style.color = "#fff";
-                      }}
-                      onMouseLeave={(e) => {
-                        e.currentTarget.style.backgroundColor = "#fff";
-                        e.currentTarget.style.color = "#dc3545";
-                      }}
+                      className="checklist-remove-icon-btn"
+                      title="Remove section"
+                      aria-label="Remove section"
                     >
-                      Remove
+                      <FiTrash2 aria-hidden size={18} />
                     </button>
                   </div>
 
