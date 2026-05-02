@@ -1623,12 +1623,10 @@ function General({
       return;
     }
 
-    const operatorIdRaw = callDetailData?.assigned_operator_id ?? mappedCallDetail?.assignedOperator;
-    const callIdRaw = callDetailData?.call_id ?? mappedCallDetail?.callId;
-    const operatorId = operatorIdRaw === undefined || operatorIdRaw === null ? "" : String(operatorIdRaw).trim();
-    const callId = callIdRaw === undefined || callIdRaw === null ? "" : String(callIdRaw).trim();
+    const cardIdRaw = card?.id ?? card?.card_id ?? formValues?.card_id;
+    const cardId = cardIdRaw === undefined || cardIdRaw === null ? "" : String(cardIdRaw).trim();
 
-    if (!operatorId || !callId) {
+    if (!cardId) {
       setOperatorKpiTasks([]);
       setOperatorKpiError("");
       setOperatorKpiLoading(false);
@@ -1640,7 +1638,7 @@ function General({
       setOperatorKpiLoading(true);
       setOperatorKpiError("");
       try {
-        const { data } = await kpiTasksService.getOperatorKpi(operatorId, callId);
+        const { data } = await kpiTasksService.getOperatorKpi(cardId);
         const rows = Array.isArray(data?.data) ? data.data : [];
         if (!cancelled) {
           setOperatorKpiTasks(rows);
@@ -1662,7 +1660,7 @@ function General({
     return () => {
       cancelled = true;
     };
-  }, [isAddMode, callDetailData, mappedCallDetail]);
+  }, [isAddMode, card?.id, card?.card_id, formValues?.card_id]);
 
   // Keep existing non-add-mode preview only when API file name is unavailable.
   useEffect(() => {
