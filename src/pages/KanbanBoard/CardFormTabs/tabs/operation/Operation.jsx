@@ -1496,7 +1496,7 @@ const PreArrivalContent = ({
       return false;
     }
 
-    const events = (eventFields || [])
+    const timeObjects = (eventFields || [])
       .map((field, index) => {
         const dateKey = `${field.keyPrefix}Date`;
         const timeKey = `${field.keyPrefix}Time`;
@@ -1505,20 +1505,21 @@ const PreArrivalContent = ({
         const time = formValues[timeKey];
 
         if (!date || !time) return null;
-        const eventTypeId =
+        const timeObjectId =
+          field.time_object_id ??
           field.event_type_id ??
           field.eventTypeId ??
           field.event_typeid ??
           field.id ??
           null;
-        if (eventTypeId == null) {
+        if (timeObjectId == null) {
           // eslint-disable-next-line no-console
-          console.warn("[Operation] Missing event_type_id for event field", field, index);
+          console.warn("[Operation] Missing time_object_id for event field", field, index);
           return null;
         }
         return {
-          event_type_id: Number(eventTypeId),
-          event_datetime: `${date} ${time}:00`,
+          time_object_id: Number(timeObjectId),
+          time_object_value: `${date} ${time}:00`,
         };
       })
       .filter(Boolean);
@@ -1526,11 +1527,16 @@ const PreArrivalContent = ({
     const fd = new FormData();
     fd.append("call_id", callId);
     fd.append("card_id", cardId);
-    fd.append("events", JSON.stringify(events));
+    timeObjects.forEach((row, index) => {
+      fd.append(`time_objects[${index}][time_object_id]`, String(row.time_object_id));
+      fd.append(`time_objects[${index}][time_object_value]`, row.time_object_value);
+    });
     fd.append("saber_status", formValues.saberUtStatus || "");
     fd.append("weather_forecast", formValues.weatherForecast || "");
-    fd.append("coordinates", formValues.coordinates || "");
-    fd.append("remarks", formValues.preArrivalDescription || "");
+    const coordinatesId = String(formValues.preArrivalCoordinatesId || "").trim();
+    if (coordinatesId) {
+      fd.append("coordinates_id", coordinatesId);
+    }
     fd.append("assigned_gro", assignedGro);
     fd.append("assigned_custom", assignedCustom);
 
