@@ -2609,7 +2609,7 @@ function General({
         const { data } = await callFileService.getAllDetailByVesselId({
           vessel_id: previewVesselId,
           port_id: previewPortId,
-          call_type: previewCallType,
+          call_type_id: previewCallType,
           service_requestor_email: previewServiceRequestorEmail,
           time_objects: buildPreviewTimeObjectsPayload(stageTimeObjects, stageTimeObjectValues),
         });
