@@ -1,7 +1,7 @@
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useState, useRef } from "react";
 import { useForm, Controller, useFieldArray } from "react-hook-form";
-import CreatableSelect from "react-select/creatable";
-import { FiPlus, FiX } from "react-icons/fi";
+import Select, { components as SelectComponents } from "react-select";
+import { FiPlus, FiX, FiCheck } from "react-icons/fi";
 import CustomModal from "../../../components/CustomModal";
 import useCoordinatesReducer from "../../../store/CoordinatesReducer";
 import "../../../design/scss/prospect-modal.scss";
@@ -9,6 +9,9 @@ import "../../../design/scss/modal-designs.scss";
 import "../../../design/scss/form-designs.scss";
 
 const emptyCoordinateRow = () => ({ value: "" });
+
+/** Form value for types created via “+ Add new” inline UI (not from API list). */
+const NEW_COORDINATE_TYPE_VALUE = "__NEW_COORDINATE_TYPE__";
 
 const selectStyles = {
     control: (base) => ({
@@ -61,6 +64,10 @@ export function CoordinatesModal({ showModal, closeModal, onSuccess }) {
     } = useCoordinatesReducer((state) => state);
 
     const [coordinatesListError, setCoordinatesListError] = useState("");
+    const [newTypeInlineOpen, setNewTypeInlineOpen] = useState(false);
+    const [newTypeDraft, setNewTypeDraft] = useState("");
+    const [typeMenuIsOpen, setTypeMenuIsOpen] = useState(false);
+    const newTypeInputRef = useRef(null);
 
     const isEdit =
         showModal &&
@@ -81,11 +88,11 @@ export function CoordinatesModal({ showModal, closeModal, onSuccess }) {
 
     const rowTypeKey = isEdit
         ? String(
-              showModal?.coordinate_type_id ??
-                  showModal?.coordinates_id ??
-                  showModal?._id ??
-                  "",
-          )
+            showModal?.coordinate_type_id ??
+            showModal?.coordinates_id ??
+            showModal?._id ??
+            "",
+        )
         : "";
 
     useEffect(() => {
@@ -93,15 +100,26 @@ export function CoordinatesModal({ showModal, closeModal, onSuccess }) {
     }, [getCoordinateTypes]);
 
     useEffect(() => {
+        if (!newTypeInlineOpen) return;
+        const id = requestAnimationFrame(() => {
+            newTypeInputRef.current?.focus();
+        });
+        return () => cancelAnimationFrame(id);
+    }, [newTypeInlineOpen]);
+
+    useEffect(() => {
         if (!showModal) return;
         setCoordinatesListError("");
+        setNewTypeInlineOpen(false);
+        setNewTypeDraft("");
+        setTypeMenuIsOpen(false);
         if (isEdit) {
             const coords = showModal?.coordinates;
             const list = Array.isArray(coords)
                 ? coords
                 : coords
-                  ? [String(coords)]
-                  : [];
+                    ? [String(coords)]
+                    : [];
             reset({
                 coordinateType: {
                     value: String(showModal?.coordinate_type_id ?? ""),
@@ -122,6 +140,14 @@ export function CoordinatesModal({ showModal, closeModal, onSuccess }) {
 
     const buildSavePayload = (coordinateType, coordStrings) => {
         if (!coordinateType?.value && !coordinateType?.label) return null;
+        if (String(coordinateType.value) === NEW_COORDINATE_TYPE_VALUE) {
+            const name = (coordinateType.label ?? "").trim();
+            if (!name) return null;
+            return {
+                new_coordinate_type: name,
+                coordinates: coordStrings,
+            };
+        }
         const byId = (coordinateTypes ?? []).find(
             (t) => String(t.coordinate_type_id ?? t.id) === String(coordinateType.value),
         );
@@ -157,8 +183,8 @@ export function CoordinatesModal({ showModal, closeModal, onSuccess }) {
         if (isEdit) {
             const typeId = Number(
                 showModal?.coordinate_type_id ??
-                    showModal?.coordinates_id ??
-                    showModal?._id,
+                showModal?.coordinates_id ??
+                showModal?._id,
             );
             await updateCoordinates({
                 formData: {
@@ -208,30 +234,158 @@ export function CoordinatesModal({ showModal, closeModal, onSuccess }) {
                                     (v && (v.value != null || v.label)) ||
                                     "Coordinate type is required",
                             }}
-                            render={({ field }) => (
-                                <CreatableSelect
-                                    inputId="coordinates-type-select"
-                                    classNamePrefix="react-select"
-                                    className={`form-control form-select react-select-container ${
-                                        errors.coordinateType ? "is-invalid" : ""
-                                    }`}
-                                    placeholder="Select a type or type a new name…"
-                                    isClearable
-                                    options={typeOptions}
-                                    value={field.value}
-                                    onChange={field.onChange}
-                                    onBlur={field.onBlur}
-                                    isDisabled={isBeingUpdated || isEdit}
-                                    isValidNewOption={() => !isEdit}
-                                    formatCreateLabel={(input) => `Add new type: "${input}"`}
-                                    styles={selectStyles}
-                                    menuPortalTarget={
-                                        typeof document !== "undefined" ? document.body : null
-                                    }
-                                    menuPosition="fixed"
-                                    aria-label="Coordinate type"
-                                />
-                            )}
+                            render={({ field }) => {
+                                const applyNewTypeFromDraft = () => {
+                                    const name = newTypeDraft.trim();
+                                    if (!name) return;
+                                    field.onChange({
+                                        value: NEW_COORDINATE_TYPE_VALUE,
+                                        label: name,
+                                    });
+                                    setNewTypeInlineOpen(false);
+                                    setNewTypeDraft("");
+                                    setTypeMenuIsOpen(false);
+                                };
+
+                                const MenuListWithFooter = (menuProps) => (
+                                    <SelectComponents.MenuList {...menuProps}>
+                                        {menuProps.children}
+                                        {!isEdit && (
+                                            <div
+                                                className="coordinates-type-select-footer border-top"
+                                                style={{
+                                                    marginTop: 2,
+                                                    padding: "0 2px 4px",
+                                                    background: "#fff",
+                                                }}
+                                                onMouseDown={(e) => e.preventDefault()}
+                                            >
+                                                <button
+                                                    type="button"
+                                                    className="btn btn-link btn-sm text-start w-100 py-2 rounded-0 text-decoration-none coordinates-type-select-footer__add"
+                                                    style={{ color: "#0d6efd", fontWeight: 500 }}
+                                                    onMouseDown={(e) => e.preventDefault()}
+                                                    onClick={() => {
+                                                        setNewTypeDraft("");
+                                                        setNewTypeInlineOpen(true);
+                                                        setTypeMenuIsOpen(false);
+                                                    }}
+                                                >
+                                                    + Add new coordinate type
+                                                </button>
+                                            </div>
+                                        )}
+                                    </SelectComponents.MenuList>
+                                );
+
+                                return (
+                                    <>
+                                        <Select
+                                            inputId="coordinates-type-select"
+                                            classNamePrefix="react-select"
+                                            className={`form-control form-select react-select-container ${errors.coordinateType ? "is-invalid" : ""
+                                                }`}
+                                            placeholder="Select coordinate type…"
+                                            isClearable
+                                            isSearchable
+                                            options={typeOptions}
+                                            value={field.value}
+                                            onChange={(opt) => {
+                                                field.onChange(opt);
+                                                setNewTypeInlineOpen(false);
+                                                setNewTypeDraft("");
+                                                setTypeMenuIsOpen(false);
+                                            }}
+                                            onBlur={field.onBlur}
+                                            isDisabled={isBeingUpdated || isEdit}
+                                            styles={selectStyles}
+                                            components={{ MenuList: MenuListWithFooter }}
+                                            menuPortalTarget={
+                                                typeof document !== "undefined"
+                                                    ? document.body
+                                                    : null
+                                            }
+                                            menuPosition="fixed"
+                                            closeMenuOnSelect
+                                            menuIsOpen={typeMenuIsOpen}
+                                            onMenuOpen={() => setTypeMenuIsOpen(true)}
+                                            onMenuClose={() => {
+                                                setTypeMenuIsOpen(false);
+                                            }}
+                                            aria-label="Coordinate type"
+                                        />
+                                        {newTypeInlineOpen && !isEdit && (
+                                            <div
+                                                className="coordinates-new-type-inline mt-2 p-2 rounded-2 bg-white"
+                                                style={{
+                                                    border: "1px solid #0d2772",
+                                                    boxShadow: "0 1px 4px rgba(13, 39, 114, 0.12)",
+                                                }}
+                                            >
+                                                <div className="d-flex align-items-stretch gap-2">
+                                                    <input
+                                                        ref={newTypeInputRef}
+                                                        type="text"
+                                                        className="form-control form-control-sm flex-grow-1"
+                                                        placeholder="Enter new coordinate type…"
+                                                        value={newTypeDraft}
+                                                        onChange={(e) =>
+                                                            setNewTypeDraft(e.target.value)
+                                                        }
+                                                        onKeyDown={(e) => {
+                                                            if (e.key === "Enter") {
+                                                                e.preventDefault();
+                                                                applyNewTypeFromDraft();
+                                                            }
+                                                            if (e.key === "Escape") {
+                                                                e.preventDefault();
+                                                                setNewTypeInlineOpen(false);
+                                                                setNewTypeDraft("");
+                                                            }
+                                                        }}
+                                                        aria-label="New coordinate type name"
+                                                    />
+                                                    <button
+                                                        type="button"
+                                                        className="btn btn-sm btn-primary d-flex align-items-center justify-content-center px-2 flex-shrink-0 rounded-2"
+                                                        style={{
+                                                            minWidth: 40,
+                                                            minHeight: 38,
+                                                            backgroundColor: "#7c9eff",
+                                                            border: "none",
+                                                        }}
+                                                        title="Save"
+                                                        onClick={applyNewTypeFromDraft}
+                                                    >
+                                                        <FiCheck
+                                                            size={18}
+                                                            color="#fff"
+                                                            aria-hidden
+                                                        />
+                                                    </button>
+                                                    <button
+                                                        type="button"
+                                                        className="btn btn-sm d-flex align-items-center justify-content-center px-2 flex-shrink-0 rounded-2 border-0"
+                                                        style={{
+                                                            minWidth: 40,
+                                                            minHeight: 38,
+                                                            backgroundColor: "#e9ecef",
+                                                            color: "#495057",
+                                                        }}
+                                                        title="Cancel"
+                                                        onClick={() => {
+                                                            setNewTypeInlineOpen(false);
+                                                            setNewTypeDraft("");
+                                                        }}
+                                                    >
+                                                        <FiX size={18} aria-hidden />
+                                                    </button>
+                                                </div>
+                                            </div>
+                                        )}
+                                    </>
+                                );
+                            }}
                         />
                         {errors.coordinateType && (
                             <span className="error text-danger d-block mt-1 small">
@@ -245,9 +399,9 @@ export function CoordinatesModal({ showModal, closeModal, onSuccess }) {
                             <span className="form-label mb-0">
                                 Coordinates <span className="text-danger">*</span>
                             </span>
-                            <span className="text-muted small">
+                            {/* <span className="text-muted small">
                                 One pair per row (lat,lon). Use + to add more.
-                            </span>
+                            </span> */}
                         </div>
                         <div className="d-flex flex-column gap-2">
                             {fields.map((field, index) => (
@@ -255,11 +409,10 @@ export function CoordinatesModal({ showModal, closeModal, onSuccess }) {
                                     <div className="form-floating desig-inp flex-grow-1">
                                         <input
                                             type="text"
-                                            className={`form-control ${
-                                                errors.coordinateRows?.[index]?.value || coordinatesListError
-                                                    ? "is-invalid"
-                                                    : ""
-                                            }`}
+                                            className={`form-control ${errors.coordinateRows?.[index]?.value || coordinatesListError
+                                                ? "is-invalid"
+                                                : ""
+                                                }`}
                                             placeholder="e.g. 25.5222,52.7677"
                                             disabled={isBeingUpdated}
                                             {...register(`coordinateRows.${index}.value`, {
