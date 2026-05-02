@@ -318,7 +318,7 @@ export function CoordinatesModal({ showModal, closeModal, onSuccess }) {
                                             <div
                                                 className="coordinates-new-type-inline mt-2 p-2 rounded-2 bg-white"
                                                 style={{
-                                                    border: "1px solid #0d2772",
+                                                    // border: "1px solid #0d2772",
                                                     boxShadow: "0 1px 4px rgba(13, 39, 114, 0.12)",
                                                 }}
                                             >
