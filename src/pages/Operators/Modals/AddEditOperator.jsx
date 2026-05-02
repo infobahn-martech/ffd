@@ -10,6 +10,12 @@ import "../../../design/scss/prospect-modal.scss";
 import "../../../design/scss/modal-designs.scss";
 import "../../../design/scss/form-designs.scss";
 import { PORT_OPTIONS_WITH_ID } from "../../../constants/ports";
+import SearchableSelect from "../../../components/form/SearchableSelect";
+
+const OPERATOR_PORT_OPTIONS = PORT_OPTIONS_WITH_ID.map((p) => ({
+    value: String(p.id),
+    label: p.name,
+}));
 
 const DEFAULT_PORT_ID = 3;
 const PREMIUM_DATEPICKER_PROPS = {
@@ -256,18 +262,26 @@ export function OperatorModal({ showModal, closeModal, onSuccess }) {
                     <div className="mb-lg-3 mb-sm-0">
                         <div className="permInputs row">
                             <div className="col-lg-6 col-sm-12">
-                                <div className="form-floating desig-inp">
-                                    <select
-                                        className={`form-control ${errors.port_id ? "is-invalid" : ""}`}
-                                        {...register("port_id", { required: "Port is required" })}
-                                    >
-                                        {PORT_OPTIONS_WITH_ID.map((p) => (
-                                            <option key={p.id} value={p.id}>
-                                                {p.name}
-                                            </option>
-                                        ))}
-                                    </select>
-                                    <label>Port <span className="text-danger">*</span></label>
+                                <div className="phone-wrapper">
+                                    <label className="phone-label">Port <span className="text-danger">*</span></label>
+                                    <Controller
+                                        name="port_id"
+                                        control={control}
+                                        rules={{ required: "Port is required" }}
+                                        render={({ field }) => (
+                                            <SearchableSelect
+                                                value={field.value != null ? String(field.value) : ""}
+                                                onChange={(e) => {
+                                                    const raw = e.target.value;
+                                                    field.onChange(raw === "" ? "" : Number(raw));
+                                                }}
+                                                options={OPERATOR_PORT_OPTIONS}
+                                                placeholder="Search port..."
+                                                searchPlaceholder="Search port..."
+                                                hasError={Boolean(errors.port_id)}
+                                            />
+                                        )}
+                                    />
                                     {errors.port_id && (
                                         <span className="error text-danger">{errors.port_id.message}</span>
                                     )}

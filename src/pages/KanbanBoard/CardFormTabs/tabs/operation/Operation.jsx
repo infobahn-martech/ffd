@@ -25,6 +25,7 @@ import userService from "../../../../../services/userService";
 import preArrivalService from "../../../../../services/preArrivalService";
 import appointmentAcceptanceService from "../../../../../services/appointmentAcceptanceService";
 import coordinatesService from "../../../../../services/coordinatesService";
+import SearchableSelect, { deriveSearchPlaceholder } from "../../../../../components/form/SearchableSelect";
 
 // Constants
 const OPERATION_TABS = {
@@ -384,108 +385,45 @@ const FormInput = ({ type = "text", value, onChange, placeholder, className = ""
   );
 };
 
-// Custom Select Component (similar to MultiSelectEmail UI)
-const CustomSelect = ({ value, onChange, options = [], placeholder, className = "", disabled = false }) => {
-  const [isOpen, setIsOpen] = useState(false);
-  const dropdownRef = useRef(null);
-
-  // Close dropdown when clicking outside
-  useEffect(() => {
-    const handleClickOutside = (event) => {
-      if (dropdownRef.current && !dropdownRef.current.contains(event.target)) {
-        setIsOpen(false);
-      }
-    };
-    document.addEventListener("mousedown", handleClickOutside);
-    return () => document.removeEventListener("mousedown", handleClickOutside);
-  }, []);
-
-  const selectedOption = options.find(opt => opt.value === value);
-  const displayValue = selectedOption ? selectedOption.label : "";
-
-  const handleSelect = (optionValue) => {
-    const syntheticEvent = {
-      target: { value: optionValue }
-    };
-    onChange(syntheticEvent);
-    setIsOpen(false);
-  };
-
+const FormSelect = ({
+  value,
+  onChange,
+  options = [],
+  placeholder,
+  searchPlaceholder,
+  className = "",
+  disabled = false,
+  hasError = false,
+}) => {
+  const normalizedValue = value === undefined || value === null ? "" : String(value);
   return (
-    <div className={`cf-multi-select-email ${disabled ? "disabled" : ""} ${className}`} ref={dropdownRef}>
-      <div
-        className={`cf-multi-select-email-input ${disabled ? "disabled" : ""}`}
-        onClick={disabled ? undefined : () => setIsOpen(!isOpen)}
-        style={{ pointerEvents: disabled ? "none" : "auto", opacity: disabled ? 0.6 : 1 }}
-      >
-        <div className="cf-multi-select-email-tags">
-          {displayValue ? (
-            <span className="cf-multi-select-selected-value">{displayValue}</span>
-          ) : (
-            <span className="cf-multi-select-placeholder">{placeholder || "Select..."}</span>
-          )}
-        </div>
-        <span className="cf-multi-select-arrow">▼</span>
-      </div>
-      {isOpen && (
-        <div className="cf-multi-select-dropdown">
-          {options.map((option) => {
-            const isSelected = value === option.value;
-            return (
-              <div
-                key={option.value}
-                className={`cf-multi-select-option ${isSelected ? "selected" : ""}`}
-                onClick={() => handleSelect(option.value)}
-              >
-                <span>{option.label}</span>
-              </div>
-            );
-          })}
-        </div>
-      )}
-    </div>
-  );
-};
-
-CustomSelect.propTypes = {
-  value: PropTypes.string,
-  onChange: PropTypes.func.isRequired,
-  options: PropTypes.arrayOf(
-    PropTypes.shape({
-      value: PropTypes.string.isRequired,
-      label: PropTypes.string.isRequired,
-    })
-  ),
-  placeholder: PropTypes.string,
-  className: PropTypes.string,
-  disabled: PropTypes.bool,
-};
-
-const FormSelect = ({ value, onChange, options = [], placeholder, className = "", disabled = false }) => {
-  return (
-    <CustomSelect
-      value={value}
+    <SearchableSelect
+      value={normalizedValue}
       onChange={onChange}
       options={options}
       placeholder={placeholder}
+      searchPlaceholder={searchPlaceholder ?? deriveSearchPlaceholder(placeholder)}
       className={className}
       disabled={disabled}
+      hasError={hasError}
     />
   );
 };
 
 FormSelect.propTypes = {
-  value: PropTypes.string,
+  value: PropTypes.oneOfType([PropTypes.string, PropTypes.number]),
   onChange: PropTypes.func.isRequired,
   options: PropTypes.arrayOf(
     PropTypes.shape({
-      value: PropTypes.string.isRequired,
+      value: PropTypes.oneOfType([PropTypes.string, PropTypes.number]).isRequired,
       label: PropTypes.string.isRequired,
     })
   ),
   placeholder: PropTypes.string,
+  searchPlaceholder: PropTypes.string,
   className: PropTypes.string,
   disabled: PropTypes.bool,
+  hasError: PropTypes.bool,
 };
 
 FormInput.propTypes = {

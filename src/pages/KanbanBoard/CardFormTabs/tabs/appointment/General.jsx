@@ -3357,11 +3357,12 @@ function General({
                               <h3 className="form-group-title">Service Information</h3>
                               {shouldShowApiField("port_id") && (
                                 <FormField label="Port *" hasError={isAddMode && Boolean(fieldErrors.port)}>
-                                  <FormSelect
-                                    value={getFieldValue("port")}
+                                  <SearchableSelect
+                                    value={getFieldValue("port") ?? ""}
                                     onChange={isAddMode ? handleValidatedChange("port") : handleChange("port")}
                                     options={mergeOptionIfMissing(portSelectOptions, getFieldValue("port"))}
-                                    placeholder="Select port"
+                                    placeholder="Search port..."
+                                    searchPlaceholder="Search port..."
                                     disabled={masterInputsDisabled}
                                     hasError={isAddMode && Boolean(fieldErrors.port)}
                                   />
