@@ -68,10 +68,11 @@ const useCoordinatesReducer = create((set) => ({
         }
     },
     deleteCoordinates: async (payload) => {
-        const { coordinates_id, cb } = payload || {};
+        const { coordinates_id, coordinate_type_id, cb } = payload || {};
+        const id = coordinates_id ?? coordinate_type_id;
         try {
             set({ isBeingUpdated: true });
-            const { data } = await coordinatesService.deleteCoordinates(coordinates_id);
+            const { data } = await coordinatesService.deleteCoordinates(id);
             set({ successMessage: data?.message, isBeingUpdated: false });
             const { success } = useAlertReducer.getState();
             success(data?.message ?? 'Coordinates deleted successfully');

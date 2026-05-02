@@ -559,7 +559,7 @@ function Header({ onMenuToggle, mobileMenuOpen: externalMobileMenuOpen, isVendor
             >
               <FiBarChart2 />
             </NavTabButton>
-            <Tooltip id="documents" place="bottom" content="Documents" />
+            {/* <Tooltip id="documents" place="bottom" content="Documents" />
             <button
               className={`icon-btn icon-btn-hide-mobile ${showDocumentsModal ? 'active' : ''}`}
               aria-label="Documents"
@@ -567,7 +567,7 @@ function Header({ onMenuToggle, mobileMenuOpen: externalMobileMenuOpen, isVendor
               data-tooltip-id="documents"
             >
               <FiFolder />
-            </button>
+            </button> */}
             <Tooltip id="help" place="bottom" content="Help" />
             <button
               className="icon-btn icon-btn-hide-mobile"

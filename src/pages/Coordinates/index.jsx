@@ -7,38 +7,31 @@ import { CoordinatesModal } from "./Modals/AddCoordinates";
 import { RenderAction } from "./RenderCells";
 import DeleteConfirmationModal from "../../components/DeleteConfirmationModal";
 
-// ✅ CHANGE THIS IMPORT PATH based on your project structure
 import useCoordinatesReducer from "../../store/CoordinatesReducer";
-// If your store path is different, update it like your other modules:
-// import useVehicleReducer from "../../stores/VehicleReducer";
 
 const Coordinates = () => {
-    // ✅ Store / API
     const {
         coordinates,
         getCoordinates,
+        getCoordinateTypes,
         isLoading,
         totalCount,
         deleteCoordinates,
     } = useCoordinatesReducer((state) => state);
 
-    // ✅ Table params (API params)
     const [params, setParams] = useState({
         page: 1,
         searchTerm: "",
         limit: 10,
-        sortBy: "coordinates",
-        sortOrder: 1, // 1 = ASC, -1 = DESC (keep as your backend expects)
+        sortBy: "coordinate_type",
+        sortOrder: 1,
     });
 
-    // ✅ Modals
-    const [showCoordinatesModal, setShowCoordinatesModal] = useState(false); // boolean OR row object
+    const [showCoordinatesModal, setShowCoordinatesModal] = useState(false);
     const [showDeleteModal, setShowDeleteModal] = useState(false);
     const [selectedRow, setSelectedRow] = useState(null);
 
-    // ✅ Fetch list (whenever params change)
     useEffect(() => {
-        // adjust payload keys if your backend expects different names
         getCoordinates?.({
             params: {
                 search: params.searchTerm || "",
@@ -63,11 +56,6 @@ const Coordinates = () => {
         return () => debouncedSearch.cancel();
     }, [debouncedSearch]);
 
-    // ✅ Data mapping (depends on your API response)
-    // Supports both:
-    // 1) { data: [...], total: 100 }
-    // 2) { data: { data: [...], total: 100 } }
-
     const cols = [
         {
             name: "Coordinate Type",
@@ -80,10 +68,23 @@ const Coordinates = () => {
         {
             name: "Coordinates",
             selector: "coordinates",
-            width: "220",
+            width: "360",
             thclass: "tb-head",
             contentClass: "table-content",
             sort: true,
+            cell: ({ row }) => {
+                const list = row?.coordinates;
+                const text = Array.isArray(list)
+                    ? list.join("; ")
+                    : list != null && list !== ""
+                      ? String(list)
+                      : "—";
+                return (
+                    <span className="text-break" title={Array.isArray(list) ? list.join("\n") : text}>
+                        {text}
+                    </span>
+                );
+            },
         },
         // {
         //     name: "Status",
@@ -137,18 +138,17 @@ const Coordinates = () => {
     };
 
     const handleDelete = async () => {
-        if (!selectedRow?.coordinates_id) return;
+        const id = selectedRow?.coordinates_id ?? selectedRow?.coordinate_type_id;
+        if (id == null || id === "") return;
 
-        // ✅ adjust key if your backend expects something else
-        const payload = { coordinates_id: selectedRow.coordinates_id };
-
-        // If your deleteData expects just id, use: await deleteData(selectedRow._id);
-        await deleteCoordinates?.(payload);
+        await deleteCoordinates?.({
+            coordinates_id: selectedRow.coordinates_id,
+            coordinate_type_id: selectedRow.coordinate_type_id,
+        });
 
         setShowDeleteModal(false);
         setSelectedRow(null);
 
-        // ✅ optional refresh
         handleRefresh();
     };
 
@@ -197,6 +197,7 @@ const Coordinates = () => {
                         closeModal={() => setShowCoordinatesModal(false)}
                         onSuccess={() => {
                             setShowCoordinatesModal(false);
+                            getCoordinateTypes?.();
                             handleRefresh();
                         }}
                     />
