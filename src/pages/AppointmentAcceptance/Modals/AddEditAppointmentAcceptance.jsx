@@ -7,6 +7,7 @@ import "../../../design/scss/modal-designs.scss";
 import "../../../design/scss/form-designs.scss";
 import ReactQuill from "react-quill";
 import "react-quill/dist/quill.snow.css";
+import PremiumSelect from "../../../components/form/PremiumSelect";
 
 export function ReportTemplatesModal({
   showModal,
@@ -51,7 +52,6 @@ export function ReportTemplatesModal({
   );
 
   const {
-    register,
     handleSubmit,
     control,
     reset,
@@ -152,21 +152,28 @@ export function ReportTemplatesModal({
             <div className="permInputs row">
               {/* REPORT TYPE */}
               <div className="col-lg-6 col-sm-12">
-                <div className="form-floating desig-inp">
-                  <select
-                    className={`form-control ${errors.report_type_id ? "is-invalid" : ""}`}
-                    {...register("report_type_id", { required: "Report Type is required" })}
-                  >
-                    <option value="">Select Report Type</option>
-                    {(reportTypesOptions ?? []).map((rt) => (
-                      <option key={rt?.report_type_id} value={String(rt?.report_type_id)}>
-                        {rt?.report_type ?? ""}
-                      </option>
-                    ))}
-                  </select>
-                  <label>
+                <div className="phone-wrapper">
+                  <label className="phone-label">
                     Report Type <span className="text-danger">*</span>
                   </label>
+                  <Controller
+                    name="report_type_id"
+                    control={control}
+                    rules={{ required: "Report Type is required" }}
+                    render={({ field }) => (
+                      <PremiumSelect
+                        value={field.value != null ? String(field.value) : ""}
+                        onChange={(e) => field.onChange(e.target.value)}
+                        options={(reportTypesOptions ?? []).map((rt) => ({
+                          value: String(rt?.report_type_id ?? ""),
+                          label: String(rt?.report_type ?? ""),
+                        }))}
+                        placeholder="Select Report Type"
+                        searchPlaceholder="Search report type..."
+                        hasError={Boolean(errors.report_type_id)}
+                      />
+                    )}
+                  />
                   {errors.report_type_id && (
                     <span className="error text-danger">{errors.report_type_id.message}</span>
                   )}
@@ -175,25 +182,31 @@ export function ReportTemplatesModal({
 
               {/* PORT */}
               <div className="col-lg-6 col-sm-12">
-                <div className="form-floating desig-inp">
-                  <select
-                    className={`form-control ${errors.port_id ? "is-invalid" : ""}`}
-                    {...register("port_id", { required: "Port is required" })}
-                  >
-                    <option value="">Select Port</option>
-                    {(portOptions ?? []).map((p) => {
-                      const id = p?.port_id ?? p?._id ?? p?.id;
-                      const label = p?.port ?? p?.name ?? p?.port_name ?? String(id);
-                      return (
-                        <option key={id} value={id}>
-                          {label}
-                        </option>
-                      );
-                    })}
-                  </select>
-                  <label>
+                <div className="phone-wrapper">
+                  <label className="phone-label">
                     Port <span className="text-danger">*</span>
                   </label>
+                  <Controller
+                    name="port_id"
+                    control={control}
+                    rules={{ required: "Port is required" }}
+                    render={({ field }) => (
+                      <PremiumSelect
+                        value={field.value != null ? String(field.value) : ""}
+                        onChange={(e) => field.onChange(e.target.value)}
+                        options={(portOptions ?? []).map((p) => {
+                          const id = p?.port_id ?? p?._id ?? p?.id;
+                          return {
+                            value: String(id ?? ""),
+                            label: String(p?.port ?? p?.name ?? p?.port_name ?? id ?? ""),
+                          };
+                        })}
+                        placeholder="Select Port"
+                        searchPlaceholder="Search port..."
+                        hasError={Boolean(errors.port_id)}
+                      />
+                    )}
+                  />
                   {errors.port_id && (
                     <span className="error text-danger">{errors.port_id.message}</span>
                   )}
@@ -207,21 +220,28 @@ export function ReportTemplatesModal({
           <div className="mb-lg-3 mb-sm-0">
             <div className="permInputs row">
               <div className="col-lg-12 col-sm-12">
-                <div className="form-floating desig-inp">
-                  <select
-                    className={`form-control ${errors.call_type_id ? "is-invalid" : ""}`}
-                    {...register("call_type_id", { required: "Call Type is required" })}
-                  >
-                    <option value="">Select Call Type</option>
-                    {(callTypesOptions ?? []).map((ct) => (
-                      <option key={ct?.call_type_id} value={String(ct?.call_type_id)}>
-                        {ct?.call_type ?? ct?.callType ?? ""}
-                      </option>
-                    ))}
-                  </select>
-                  <label>
+                <div className="phone-wrapper">
+                  <label className="phone-label">
                     Call Type <span className="text-danger">*</span>
                   </label>
+                  <Controller
+                    name="call_type_id"
+                    control={control}
+                    rules={{ required: "Call Type is required" }}
+                    render={({ field }) => (
+                      <PremiumSelect
+                        value={field.value != null ? String(field.value) : ""}
+                        onChange={(e) => field.onChange(e.target.value)}
+                        options={(callTypesOptions ?? []).map((ct) => ({
+                          value: String(ct?.call_type_id ?? ""),
+                          label: String(ct?.call_type ?? ct?.callType ?? ""),
+                        }))}
+                        placeholder="Select Call Type"
+                        searchPlaceholder="Search call type..."
+                        hasError={Boolean(errors.call_type_id)}
+                      />
+                    )}
+                  />
                   {errors.call_type_id && (
                     <span className="error text-danger">{errors.call_type_id.message}</span>
                   )}

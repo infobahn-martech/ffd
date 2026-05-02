@@ -6,6 +6,7 @@ import VoilentColorIcon from '../../../assets/images/VoilentColorIcon.png';
 import GreenColorIcon from '../../../assets/images/GreenColorIcon.png';
 import PurpleColorIcon from '../../../assets/images/PurpleColorIcon.png';
 import './TeamLeaderboard.scss';
+import PremiumSelect from '../../../components/form/PremiumSelect';
 
 const TeamLeaderboard = () => {
   // Sample data - replace with API data
@@ -177,17 +178,17 @@ const TeamLeaderboard = () => {
             <div className="team-leaderboard__filter-dropdown">
               <div className="team-leaderboard__filter-group">
                 <label className="team-leaderboard__filter-label">Level</label>
-                <select
+                <PremiumSelect
                   value={levelFilter}
                   onChange={(e) => setLevelFilter(e.target.value)}
-                  className="team-leaderboard__filter-select"
-                >
-                  {levelOptions.map((option) => (
-                    <option key={option} value={option}>
-                      {option === 'All' ? 'All Levels' : `Level ${option}`}
-                    </option>
-                  ))}
-                </select>
+                  options={levelOptions.map((option) => ({
+                    value: option,
+                    label: option === 'All' ? 'All Levels' : `Level ${option}`,
+                  }))}
+                  placeholder="Filter by level"
+                  searchPlaceholder="Search level..."
+                  className="team-leaderboard__filter-premium-select"
+                />
               </div>
             </div>
           )}

@@ -1,4 +1,5 @@
-import { useForm } from "react-hook-form";
+import { useForm, Controller } from "react-hook-form";
+import PremiumSelect from "../../../components/form/PremiumSelect";
 import CustomModal from "../../../components/CustomModal";
 import "../../../design/scss/prospect-modal.scss";
 import "../../../design/scss/modal-designs.scss";
@@ -19,10 +20,14 @@ const BILLING_ENTITY_OPTIONS = [
 
 // Common currency options
 const CURRENCY_OPTIONS = ["USD", "SAR", "AED", "EUR", "GBP", "INR"];
+const CUSTOMER_PRICING_PORT_OPTIONS = PORT_OPTIONS.map((p) => ({ value: p, label: p }));
+const BILLING_ENTITY_SELECT_OPTIONS = BILLING_ENTITY_OPTIONS.map((e) => ({ value: e, label: e }));
+const CURRENCY_SELECT_OPTIONS = CURRENCY_OPTIONS.map((c) => ({ value: c, label: c }));
 
 export function AddEditCustomerPricing({ showModal, closeModal, onSuccess }) {
     const {
         register,
+        control,
         handleSubmit,
         formState: { errors },
     } = useForm({
@@ -77,19 +82,23 @@ export function AddEditCustomerPricing({ showModal, closeModal, onSuccess }) {
 
                         {/* Port */}
                         <div className="col-lg-6 col-sm-12 mb-3">
-                            <div className="form-floating desig-inp">
-                                <select
-                                    className={`form-control ${errors.port ? "is-invalid" : ""}`}
-                                    {...register("port", { required: "Port is required" })}
-                                >
-                                    <option value="">Select Port</option>
-                                    {PORT_OPTIONS.map((port) => (
-                                        <option key={port} value={port}>
-                                            {port}
-                                        </option>
-                                    ))}
-                                </select>
-                                <label>Port <span className="text-danger">*</span></label>
+                            <div className="phone-wrapper">
+                                <label className="phone-label">Port <span className="text-danger">*</span></label>
+                                <Controller
+                                    name="port"
+                                    control={control}
+                                    rules={{ required: "Port is required" }}
+                                    render={({ field }) => (
+                                        <PremiumSelect
+                                            value={field.value != null ? String(field.value) : ""}
+                                            onChange={(e) => field.onChange(e.target.value)}
+                                            options={CUSTOMER_PRICING_PORT_OPTIONS}
+                                            placeholder="Select Port"
+                                            searchPlaceholder="Search port..."
+                                            hasError={Boolean(errors.port)}
+                                        />
+                                    )}
+                                />
                                 {errors.port && (
                                     <span className="error text-danger">{errors.port.message}</span>
                                 )}
@@ -103,19 +112,23 @@ export function AddEditCustomerPricing({ showModal, closeModal, onSuccess }) {
 
                         {/* Billing Entity */}
                         <div className="col-lg-6 col-sm-12 mb-3">
-                            <div className="form-floating desig-inp">
-                                <select
-                                    className={`form-control ${errors.billingEntity ? "is-invalid" : ""}`}
-                                    {...register("billingEntity", { required: "Billing Entity is required" })}
-                                >
-                                    <option value="">Select Billing Entity</option>
-                                    {BILLING_ENTITY_OPTIONS.map((entity) => (
-                                        <option key={entity} value={entity}>
-                                            {entity}
-                                        </option>
-                                    ))}
-                                </select>
-                                <label>Billing Entity <span className="text-danger">*</span></label>
+                            <div className="phone-wrapper">
+                                <label className="phone-label">Billing Entity <span className="text-danger">*</span></label>
+                                <Controller
+                                    name="billingEntity"
+                                    control={control}
+                                    rules={{ required: "Billing Entity is required" }}
+                                    render={({ field }) => (
+                                        <PremiumSelect
+                                            value={field.value != null ? String(field.value) : ""}
+                                            onChange={(e) => field.onChange(e.target.value)}
+                                            options={BILLING_ENTITY_SELECT_OPTIONS}
+                                            placeholder="Select Billing Entity"
+                                            searchPlaceholder="Search billing entity..."
+                                            hasError={Boolean(errors.billingEntity)}
+                                        />
+                                    )}
+                                />
                                 {errors.billingEntity && (
                                     <span className="error text-danger">{errors.billingEntity.message}</span>
                                 )}
@@ -124,19 +137,23 @@ export function AddEditCustomerPricing({ showModal, closeModal, onSuccess }) {
 
                         {/* Currency */}
                         <div className="col-lg-6 col-sm-12 mb-3">
-                            <div className="form-floating desig-inp">
-                                <select
-                                    className={`form-control ${errors.currency ? "is-invalid" : ""}`}
-                                    {...register("currency", { required: "Currency is required" })}
-                                >
-                                    <option value="">Select Currency</option>
-                                    {CURRENCY_OPTIONS.map((currency) => (
-                                        <option key={currency} value={currency}>
-                                            {currency}
-                                        </option>
-                                    ))}
-                                </select>
-                                <label>Currency <span className="text-danger">*</span></label>
+                            <div className="phone-wrapper">
+                                <label className="phone-label">Currency <span className="text-danger">*</span></label>
+                                <Controller
+                                    name="currency"
+                                    control={control}
+                                    rules={{ required: "Currency is required" }}
+                                    render={({ field }) => (
+                                        <PremiumSelect
+                                            value={field.value != null ? String(field.value) : ""}
+                                            onChange={(e) => field.onChange(e.target.value)}
+                                            options={CURRENCY_SELECT_OPTIONS}
+                                            placeholder="Select Currency"
+                                            searchPlaceholder="Search currency..."
+                                            hasError={Boolean(errors.currency)}
+                                        />
+                                    )}
+                                />
                                 {errors.currency && (
                                     <span className="error text-danger">{errors.currency.message}</span>
                                 )}

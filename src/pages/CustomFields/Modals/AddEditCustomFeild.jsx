@@ -1,5 +1,6 @@
 import { useEffect } from "react";
-import { useForm } from "react-hook-form";
+import { useForm, Controller, useWatch } from "react-hook-form";
+import PremiumSelect from "../../../components/form/PremiumSelect";
 import CustomModal from "../../../components/CustomModal";
 import "../../../design/scss/prospect-modal.scss";
 import "../../../design/scss/modal-designs.scss";
@@ -13,6 +14,11 @@ const MODULE_OPTIONS = [
     { label: "Warehouse", value: "warehouse" },
     { label: "Hotel", value: "hotel" },
     { label: "Billing", value: "billing" },
+];
+
+const CUSTOM_FIELD_STATUS_OPTIONS = [
+    { value: "true", label: "Active" },
+    { value: "false", label: "Inactive" },
 ];
 
 const FIELD_TYPE_OPTIONS = [
@@ -36,9 +42,9 @@ const FIELD_TYPE_OPTIONS = [
 export function CustomFieldModal({ showModal, closeModal }) {
     const {
         register,
+        control,
         handleSubmit,
         formState: { errors },
-        watch,
         setValue,
     } = useForm({
         defaultValues: showModal?._id
@@ -64,8 +70,8 @@ export function CustomFieldModal({ showModal, closeModal }) {
             },
     });
 
-    const customFieldName = watch("customFieldName");
-    const fieldKey = watch("fieldKey");
+    const customFieldName = useWatch({ control, name: "customFieldName" });
+    const fieldKey = useWatch({ control, name: "fieldKey" });
 
     // Auto-generate fieldKey from label for ADD mode only (and when fieldKey is empty)
     useEffect(() => {
@@ -101,24 +107,28 @@ export function CustomFieldModal({ showModal, closeModal }) {
                     <div className="row">
                         {/* MODULE */}
                         <div className="col-lg-6 mb-lg-3 mb-sm-0">
-                            <div className="form-floating desig-inp">
-                                <select
-                                    className={`form-select ${errors.module ? "is-invalid" : ""
-                                        }`}
-                                    {...register("module", {
-                                        required: "Module is required",
-                                    })}
-                                >
-                                    <option value="">Select Module</option>
-                                    {MODULE_OPTIONS.map((mod) => (
-                                        <option key={mod.value} value={mod.value}>
-                                            {mod.label}
-                                        </option>
-                                    ))}
-                                </select>
-                                <label>
+                            <div className="phone-wrapper">
+                                <label className="phone-label">
                                     Module <span className="text-danger">*</span>
                                 </label>
+                                <Controller
+                                    name="module"
+                                    control={control}
+                                    rules={{ required: "Module is required" }}
+                                    render={({ field }) => (
+                                        <PremiumSelect
+                                            value={field.value != null ? String(field.value) : ""}
+                                            onChange={(e) => field.onChange(e.target.value)}
+                                            options={MODULE_OPTIONS.map((m) => ({
+                                                value: String(m.value),
+                                                label: String(m.label),
+                                            }))}
+                                            placeholder="Select Module"
+                                            searchPlaceholder="Search module..."
+                                            hasError={Boolean(errors.module)}
+                                        />
+                                    )}
+                                />
                                 {errors.module && (
                                     <span className="error text-danger">
                                         {errors.module.message}
@@ -177,24 +187,28 @@ export function CustomFieldModal({ showModal, closeModal }) {
 
                         {/* FIELD TYPE */}
                         <div className="col-lg-6 mb-lg-3 mb-sm-0">
-                            <div className="form-floating desig-inp">
-                                <select
-                                    className={`form-select ${errors.type ? "is-invalid" : ""
-                                        }`}
-                                    {...register("type", {
-                                        required: "Field type is required",
-                                    })}
-                                >
-                                    <option value="">Select Type</option>
-                                    {FIELD_TYPE_OPTIONS.map((ft) => (
-                                        <option key={ft.value} value={ft.value}>
-                                            {ft.label}
-                                        </option>
-                                    ))}
-                                </select>
-                                <label>
+                            <div className="phone-wrapper">
+                                <label className="phone-label">
                                     Field Type <span className="text-danger">*</span>
                                 </label>
+                                <Controller
+                                    name="type"
+                                    control={control}
+                                    rules={{ required: "Field type is required" }}
+                                    render={({ field }) => (
+                                        <PremiumSelect
+                                            value={field.value != null ? String(field.value) : ""}
+                                            onChange={(e) => field.onChange(e.target.value)}
+                                            options={FIELD_TYPE_OPTIONS.map((ft) => ({
+                                                value: String(ft.value),
+                                                label: String(ft.label),
+                                            }))}
+                                            placeholder="Select Type"
+                                            searchPlaceholder="Search field type..."
+                                            hasError={Boolean(errors.type)}
+                                        />
+                                    )}
+                                />
                                 {errors.type && (
                                     <span className="error text-danger">
                                         {errors.type.message}
@@ -239,20 +253,31 @@ export function CustomFieldModal({ showModal, closeModal }) {
 
                         {/* STATUS */}
                         <div className="col-lg-4 mb-lg-3 mb-sm-0">
-                            <div className="form-floating desig-inp">
-                                <select
-                                    className={`form-select ${errors.isActive ? "is-invalid" : ""
-                                        }`}
-                                    {...register("isActive", {
-                                        required: "Status is required",
-                                    })}
-                                >
-                                    <option value={true}>Active</option>
-                                    <option value={false}>Inactive</option>
-                                </select>
-                                <label>
+                            <div className="phone-wrapper">
+                                <label className="phone-label">
                                     Status <span className="text-danger">*</span>
                                 </label>
+                                <Controller
+                                    name="isActive"
+                                    control={control}
+                                    rules={{ required: "Status is required" }}
+                                    render={({ field }) => (
+                                        <PremiumSelect
+                                            value={
+                                                field.value === undefined || field.value === null
+                                                    ? ""
+                                                    : String(Boolean(field.value))
+                                            }
+                                            onChange={(e) =>
+                                                field.onChange(e.target.value === "true")
+                                            }
+                                            options={CUSTOM_FIELD_STATUS_OPTIONS}
+                                            placeholder="Select status"
+                                            searchPlaceholder="Search status..."
+                                            hasError={Boolean(errors.isActive)}
+                                        />
+                                    )}
+                                />
                                 {errors.isActive && (
                                     <span className="error text-danger">
                                         {errors.isActive.message}

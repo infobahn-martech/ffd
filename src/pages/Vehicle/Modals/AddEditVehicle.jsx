@@ -1,4 +1,5 @@
-import { useForm } from "react-hook-form";
+import { useForm, Controller, useWatch } from "react-hook-form";
+import PremiumSelect from "../../../components/form/PremiumSelect";
 import { useEffect } from "react";
 import CustomModal from "../../../components/CustomModal";
 import useVehicleReducer from "../../../store/VehicleReducer";
@@ -14,9 +15,9 @@ const VEHICLE_PURPOSE_OPTIONS = [
 export function VehicleModal({ showModal, closeModal, onSuccess }) {
     const {
         register,
+        control,
         handleSubmit,
         formState: { errors },
-        watch,
         reset,
     } = useForm({
         defaultValues: {
@@ -27,7 +28,7 @@ export function VehicleModal({ showModal, closeModal, onSuccess }) {
     });
 
     const { addVehicle, updateVehicle, isBeingUpdated } = useVehicleReducer((state) => state);
-    const vehiclePurpose = watch("vehicle_purpose");
+    const vehiclePurpose = useWatch({ control, name: "vehicle_purpose" });
     const showSeater = vehiclePurpose === "crew_transport";
 
     const isEdit = showModal && typeof showModal === "object" && (showModal.vehicle_type_id ?? showModal._id);
@@ -108,24 +109,25 @@ export function VehicleModal({ showModal, closeModal, onSuccess }) {
 
                     {/* VEHICLE PURPOSE */}
                     <div className="mb-lg-3 mb-sm-0">
-                        <div className="form-floating desig-inp">
-                            <select
-                                className={`form-select ${errors.vehicle_purpose ? "is-invalid" : ""
-                                    }`}
-                                {...register("vehicle_purpose", {
-                                    required: "Vehicle purpose is required",
-                                })}
-                            >
-                                <option value="">Select Vehicle Purpose</option>
-                                {VEHICLE_PURPOSE_OPTIONS.map((option) => (
-                                    <option key={option.value} value={option.value}>
-                                        {option.label}
-                                    </option>
-                                ))}
-                            </select>
-                            <label>
+                        <div className="phone-wrapper">
+                            <label className="phone-label">
                                 Vehicle Purpose <span className="text-danger">*</span>
                             </label>
+                            <Controller
+                                name="vehicle_purpose"
+                                control={control}
+                                rules={{ required: "Vehicle purpose is required" }}
+                                render={({ field }) => (
+                                    <PremiumSelect
+                                        value={field.value != null ? String(field.value) : ""}
+                                        onChange={(e) => field.onChange(e.target.value)}
+                                        options={VEHICLE_PURPOSE_OPTIONS}
+                                        placeholder="Select Vehicle Purpose"
+                                        searchPlaceholder="Search vehicle purpose..."
+                                        hasError={Boolean(errors.vehicle_purpose)}
+                                    />
+                                )}
+                            />
                             {errors.vehicle_purpose && (
                                 <span className="error text-danger">
                                     {errors.vehicle_purpose.message}

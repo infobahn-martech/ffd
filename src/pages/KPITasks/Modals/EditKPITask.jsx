@@ -1,5 +1,6 @@
 import { useEffect } from "react";
-import { useForm } from "react-hook-form";
+import { useForm, Controller } from "react-hook-form";
+import PremiumSelect from "../../../components/form/PremiumSelect";
 import CustomModal from "../../../components/CustomModal";
 import useKPITasksReducer from "../../../store/KPITasksReducer";
 import "../../../design/scss/prospect-modal.scss";
@@ -17,11 +18,18 @@ const normalizeTimeType = (v) => {
     return String(v).toUpperCase();
 };
 
+const KPI_TIME_TYPE_OPTIONS = [
+    { value: TIME_TYPES.DURATION, label: "Duration" },
+    { value: TIME_TYPES.FIXED_TIME, label: "Fixed time" },
+    { value: TIME_TYPES.BEFORE_EVENT, label: "Before event" },
+];
+
 export function EditKPITaskModal({ showModal, closeModal, onSuccess }) {
     const { updateKpiPointTime, isBeingUpdated } = useKPITasksReducer((state) => state);
 
     const {
         register,
+        control,
         handleSubmit,
         watch,
         reset,
@@ -100,18 +108,25 @@ export function EditKPITaskModal({ showModal, closeModal, onSuccess }) {
                     </div>
 
                     <div className="mb-lg-3 mb-sm-0">
-                        <div className="form-floating desig-inp">
-                            <select
-                                className={`form-select ${errors.time_type ? "is-invalid" : ""}`}
-                                {...register("time_type", { required: true })}
-                            >
-                                <option value={TIME_TYPES.DURATION}>Duration</option>
-                                <option value={TIME_TYPES.FIXED_TIME}>Fixed time</option>
-                                <option value={TIME_TYPES.BEFORE_EVENT}>Before event</option>
-                            </select>
-                            <label>
+                        <div className="phone-wrapper">
+                            <label className="phone-label">
                                 Time type <span className="text-danger">*</span>
                             </label>
+                            <Controller
+                                name="time_type"
+                                control={control}
+                                rules={{ required: true }}
+                                render={({ field }) => (
+                                    <PremiumSelect
+                                        value={field.value != null ? String(field.value) : ""}
+                                        onChange={(e) => field.onChange(e.target.value)}
+                                        options={KPI_TIME_TYPE_OPTIONS}
+                                        placeholder="Select time type"
+                                        searchPlaceholder="Search time type..."
+                                        hasError={Boolean(errors.time_type)}
+                                    />
+                                )}
+                            />
                         </div>
                     </div>
 

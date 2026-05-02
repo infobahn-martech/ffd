@@ -1,4 +1,5 @@
-import { useForm } from "react-hook-form";
+import { useForm, Controller } from "react-hook-form";
+import PremiumSelect from "../../../components/form/PremiumSelect";
 import { useEffect } from "react";
 import CustomModal from "../../../components/CustomModal";
 import useDriverVehicleMappingReducer from "../../../store/DriverVehicleReducer";
@@ -16,7 +17,7 @@ export function DriverVehicleMappingModal({ showModal, closeModal, onSuccess }) 
     const { drivers = [], fetchAllDrivers } = useDriverReducer((state) => state);
     const { vehicles = [], getVehicles } = useVehicleReducer((state) => state);
 
-    const { register, handleSubmit, formState: { errors }, reset } = useForm({
+    const { register, control, handleSubmit, formState: { errors }, reset } = useForm({
         defaultValues: {
             transport_driver_id: "",
             vehicle_type_id: "",
@@ -79,21 +80,35 @@ export function DriverVehicleMappingModal({ showModal, closeModal, onSuccess }) 
 
                     {/* DRIVER SELECT */}
                     <div className="mb-lg-3 mb-sm-0">
-                        <div className="form-floating desig-inp">
-                            <select
-                                className={`form-control ${errors.transport_driver_id ? "is-invalid" : ""}`}
-                                {...register("transport_driver_id", { required: "Driver is required" })}
-                            >
-                                <option value="">Select Driver</option>
-                                {(drivers || []).map((d) => (
-                                    <option key={d.driver_id ?? d.transport_driver_id ?? d._id} value={d.driver_id ?? d.transport_driver_id ?? d._id}>
-                                        {d.driver_name ?? d.name ?? `Driver ${d.driver_id ?? d._id}`}
-                                    </option>
-                                ))}
-                            </select>
-                            <label>
+                        <div className="phone-wrapper">
+                            <label className="phone-label">
                                 Driver <span className="text-danger">*</span>
                             </label>
+                            <Controller
+                                name="transport_driver_id"
+                                control={control}
+                                rules={{ required: "Driver is required" }}
+                                render={({ field }) => (
+                                    <PremiumSelect
+                                        value={field.value != null ? String(field.value) : ""}
+                                        onChange={(e) => field.onChange(e.target.value)}
+                                        options={(drivers || []).map((d) => {
+                                            const id = d.driver_id ?? d.transport_driver_id ?? d._id;
+                                            return {
+                                                value: String(id ?? ""),
+                                                label: String(
+                                                    d.driver_name ??
+                                                        d.name ??
+                                                        `Driver ${d.driver_id ?? d._id ?? ""}`,
+                                                ),
+                                            };
+                                        })}
+                                        placeholder="Select Driver"
+                                        searchPlaceholder="Search driver..."
+                                        hasError={Boolean(errors.transport_driver_id)}
+                                    />
+                                )}
+                            />
                             {errors.transport_driver_id && (
                                 <span className="error text-danger">{errors.transport_driver_id.message}</span>
                             )}
@@ -102,21 +117,35 @@ export function DriverVehicleMappingModal({ showModal, closeModal, onSuccess }) 
 
                     {/* VEHICLE SELECT */}
                     <div className="mb-lg-3 mb-sm-0">
-                        <div className="form-floating desig-inp">
-                            <select
-                                className={`form-control ${errors.vehicle_type_id ? "is-invalid" : ""}`}
-                                {...register("vehicle_type_id", { required: "Vehicle is required" })}
-                            >
-                                <option value="">Select Vehicle</option>
-                                {(vehicles || []).map((v) => (
-                                    <option key={v.vehicle_type_id ?? v._id} value={v.vehicle_type_id ?? v._id}>
-                                        {v.vehicle_type ?? v.name ?? `Vehicle ${v.vehicle_type_id ?? v._id}`}
-                                    </option>
-                                ))}
-                            </select>
-                            <label>
+                        <div className="phone-wrapper">
+                            <label className="phone-label">
                                 Vehicle <span className="text-danger">*</span>
                             </label>
+                            <Controller
+                                name="vehicle_type_id"
+                                control={control}
+                                rules={{ required: "Vehicle is required" }}
+                                render={({ field }) => (
+                                    <PremiumSelect
+                                        value={field.value != null ? String(field.value) : ""}
+                                        onChange={(e) => field.onChange(e.target.value)}
+                                        options={(vehicles || []).map((v) => {
+                                            const id = v.vehicle_type_id ?? v._id;
+                                            return {
+                                                value: String(id ?? ""),
+                                                label: String(
+                                                    v.vehicle_type ??
+                                                        v.name ??
+                                                        `Vehicle ${v.vehicle_type_id ?? v._id ?? ""}`,
+                                                ),
+                                            };
+                                        })}
+                                        placeholder="Select Vehicle"
+                                        searchPlaceholder="Search vehicle..."
+                                        hasError={Boolean(errors.vehicle_type_id)}
+                                    />
+                                )}
+                            />
                             {errors.vehicle_type_id && (
                                 <span className="error text-danger">{errors.vehicle_type_id.message}</span>
                             )}

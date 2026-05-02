@@ -1,4 +1,5 @@
-import { useForm } from "react-hook-form";
+import { useForm, Controller } from "react-hook-form";
+import PremiumSelect from "../../../components/form/PremiumSelect";
 import { useEffect, useLayoutEffect, useState } from "react";
 import CustomModal from "../../../components/CustomModal";
 import PremiumDateField from "../../../components/PremiumDateField";
@@ -286,24 +287,29 @@ export function VesselModal({ showModal, closeModal, callBack }) {
             {/* entity_id → year_built: mandatory */}
             <div className="permInputs row mb-lg-3">
               <div className="col-lg-6 col-sm-12 mb-3">
-                <div className="form-floating desig-inp">
-                  <select
-                    className={`form-control ${errors.billingEntity ? "is-invalid" : ""}`}
-                    {...register("billingEntity", {
-                      required: "Billing entity is required",
-                    })}
-                    disabled={isLoadingBillingEntities}
-                  >
-                    <option value="">Select Billing Entity</option>
-                    {billingEntitiesData?.map((entity) => (
-                      <option key={entity.entity_id} value={entity.entity_id}>
-                        {entity.billing_entity}
-                      </option>
-                    ))}
-                  </select>
-                  <label>
+                <div className="phone-wrapper">
+                  <label className="phone-label">
                     Billing Entity <span className="text-danger">*</span>
                   </label>
+                  <Controller
+                    name="billingEntity"
+                    control={control}
+                    rules={{ required: "Billing entity is required" }}
+                    render={({ field }) => (
+                      <PremiumSelect
+                        value={field.value != null ? String(field.value) : ""}
+                        onChange={(e) => field.onChange(e.target.value)}
+                        options={(billingEntitiesData ?? []).map((entity) => ({
+                          value: String(entity.entity_id ?? ""),
+                          label: String(entity.billing_entity ?? ""),
+                        }))}
+                        placeholder="Select Billing Entity"
+                        searchPlaceholder="Search billing entity..."
+                        disabled={isLoadingBillingEntities}
+                        hasError={Boolean(errors.billingEntity)}
+                      />
+                    )}
+                  />
                   {errors.billingEntity && (
                     <span className="error text-danger">
                       {errors.billingEntity.message}
@@ -396,23 +402,25 @@ export function VesselModal({ showModal, closeModal, callBack }) {
                 </div>
               </div>
               <div className="col-lg-6 col-sm-12 mb-3">
-                <div className="form-floating desig-inp">
-                  <select
-                    className={`form-control ${errors.vesselType ? "is-invalid" : ""}`}
-                    {...register("vesselType", {
-                      required: "Vessel type is required",
-                    })}
-                  >
-                    <option value="">Select Vessel Type</option>
-                    {VESSEL_TYPES.map((type) => (
-                      <option key={type} value={type}>
-                        {type}
-                      </option>
-                    ))}
-                  </select>
-                  <label>
+                <div className="phone-wrapper">
+                  <label className="phone-label">
                     Vessel Type <span className="text-danger">*</span>
                   </label>
+                  <Controller
+                    name="vesselType"
+                    control={control}
+                    rules={{ required: "Vessel type is required" }}
+                    render={({ field }) => (
+                      <PremiumSelect
+                        value={field.value != null ? String(field.value) : ""}
+                        onChange={(e) => field.onChange(e.target.value)}
+                        options={VESSEL_TYPE_OPTIONS}
+                        placeholder="Select Vessel Type"
+                        searchPlaceholder="Search vessel type..."
+                        hasError={Boolean(errors.vesselType)}
+                      />
+                    )}
+                  />
                   {errors.vesselType && (
                     <span className="error text-danger">
                       {errors.vesselType.message}

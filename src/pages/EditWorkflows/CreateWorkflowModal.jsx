@@ -3,6 +3,7 @@ import { FiX } from 'react-icons/fi';
 import { Modal } from 'react-bootstrap';
 import '../../structure/SideNav/components/AddDashboardModal.scss';
 import workflowService from '../../services/workflowService';
+import PremiumSelect from '../../components/form/PremiumSelect';
 
 const DEFAULT_ROLE_OPTION = '__select_role__';
 
@@ -118,22 +119,21 @@ const CreateWorkflowModal = ({ show, onClose, onSave, isSaving = false }) => {
             <label htmlFor="workflowRole" className="add-dashboard-label">
               Role
             </label>
-            <select
-              id="workflowRole"
-              className="add-dashboard-input add-dashboard-select"
-              value={roleId}
-              onChange={(e) => setRoleId(e.target.value)}
+            <PremiumSelect
+              value={roleId === DEFAULT_ROLE_OPTION ? '' : String(roleId)}
+              onChange={(e) => {
+                const v = e.target.value;
+                setRoleId(v === '' ? DEFAULT_ROLE_OPTION : v);
+              }}
+              options={roles.map((roleOption) => ({
+                value: String(roleOption.role_id ?? ''),
+                label: String(roleOption.role ?? ''),
+              }))}
+              placeholder={isRolesLoading ? 'Loading roles...' : 'Select role'}
+              searchPlaceholder="Search role..."
               disabled={isSaving || isRolesLoading}
-            >
-              <option value={DEFAULT_ROLE_OPTION} disabled>
-                {isRolesLoading ? 'Loading roles...' : 'Select role'}
-              </option>
-              {roles.map((roleOption, index) => (
-                <option key={`${roleOption.role_id || 'empty'}-${index}`} value={roleOption.role_id}>
-                  {roleOption.role}
-                </option>
-              ))}
-            </select>
+              className="add-dashboard-premium-select"
+            />
             {!isRolesLoading && roles.length === 0 ? (
               <div className="add-dashboard-field-hint">No roles found.</div>
             ) : null}

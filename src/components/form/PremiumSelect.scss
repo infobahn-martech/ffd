@@ -1,0 +1,40 @@
+/* PremiumSelect: scrollable menu + neutral grey hover/selection (no browser blue).
+   Base .cf-multi-select-* styles come from global general.scss. */
+.premium-select.cf-searchable-select .cf-multi-select-dropdown {
+  max-height: min(320px, 45vh);
+  overflow-x: hidden;
+  overflow-y: auto;
+  -webkit-overflow-scrolling: touch;
+}
+
+.premium-select.cf-searchable-select .cf-multi-select-option.is-highlighted {
+  background: #eceef2;
+}
+
+.premium-select.cf-searchable-select .cf-multi-select-option.selected {
+  background: #dde1e8;
+  color: #1a1a1a;
+  font-weight: 500;
+}
+
+.premium-select.cf-searchable-select .cf-multi-select-email-input {
+  border-radius: 8px;
+  border: 1px solid #e2e2ea;
+  background: #fff;
+  box-shadow: none;
+}
+
+.premium-select.cf-searchable-select .cf-multi-select-email-input:hover {
+  border-color: #cfd4dc;
+}
+
+.premium-select.cf-searchable-select .cf-multi-select-email-input:focus-within {
+  border-color: #b8c0cc;
+  outline: none;
+}
+
+.premium-select.cf-searchable-select.disabled .cf-multi-select-email-input,
+.premium-select.cf-searchable-select .cf-multi-select-email-input.disabled {
+  background: #f5f6f8;
+  opacity: 0.85;
+}

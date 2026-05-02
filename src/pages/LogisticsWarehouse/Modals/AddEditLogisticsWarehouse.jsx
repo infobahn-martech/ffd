@@ -1,4 +1,5 @@
-import { useForm } from "react-hook-form";
+import { useForm, Controller } from "react-hook-form";
+import PremiumSelect from "../../../components/form/PremiumSelect";
 import CustomModal from "../../../components/CustomModal";
 import useLogisticsWarehouseReducer from "../../../store/LogisticsWarehouseReducer";
 import "../../../design/scss/prospect-modal.scss";
@@ -19,6 +20,7 @@ export function LogisticsWarehouseModal({ showModal, closeModal, onSuccess }) {
 
     const {
         register,
+        control,
         handleSubmit,
         formState: { errors }
     } = useForm({
@@ -97,24 +99,25 @@ export function LogisticsWarehouseModal({ showModal, closeModal, onSuccess }) {
 
                     {/* LOCATION TYPE */}
                     <div className="mb-lg-3 mb-sm-0">
-                        <div className="form-floating desig-inp">
-                            <select
-                                className={`form-select ${errors.location_type ? "is-invalid" : ""
-                                    }`}
-                                {...register("location_type", {
-                                    required: "Location type is required"
-                                })}
-                            >
-                                <option value="">Select Location Type</option>
-                                {LOCATION_TYPE_OPTIONS.map((option) => (
-                                    <option key={option.value} value={option.value}>
-                                        {option.label}
-                                    </option>
-                                ))}
-                            </select>
-                            <label>
+                        <div className="phone-wrapper">
+                            <label className="phone-label">
                                 Location Type <span className="text-danger">*</span>
                             </label>
+                            <Controller
+                                name="location_type"
+                                control={control}
+                                rules={{ required: "Location type is required" }}
+                                render={({ field }) => (
+                                    <PremiumSelect
+                                        value={field.value != null ? String(field.value) : ""}
+                                        onChange={(e) => field.onChange(e.target.value)}
+                                        options={LOCATION_TYPE_OPTIONS}
+                                        placeholder="Select Location Type"
+                                        searchPlaceholder="Search location type..."
+                                        hasError={Boolean(errors.location_type)}
+                                    />
+                                )}
+                            />
                             {errors.location_type && (
                                 <span className="error text-danger">
                                     {errors.location_type.message}

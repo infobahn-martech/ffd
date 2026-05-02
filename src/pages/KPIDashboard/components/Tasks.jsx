@@ -1,6 +1,7 @@
 import React, { useState, useMemo } from 'react';
 import { FiSearch, FiFilter, FiChevronDown, FiChevronUp } from 'react-icons/fi';
 import './Tasks.scss';
+import PremiumSelect from '../../../components/form/PremiumSelect';
 
 const Tasks = () => {
   // Sample data - replace with API data
@@ -247,17 +248,14 @@ const Tasks = () => {
             <div className="tasks__filter-dropdown">
               <div className="tasks__filter-group">
                 <label className="tasks__filter-label">Status</label>
-                <select
+                <PremiumSelect
                   value={statusFilter}
                   onChange={(e) => setStatusFilter(e.target.value)}
-                  className="tasks__filter-select"
-                >
-                  {statusOptions.map((option) => (
-                    <option key={option} value={option}>
-                      {option}
-                    </option>
-                  ))}
-                </select>
+                  options={statusOptions.map((option) => ({ value: option, label: option }))}
+                  placeholder="Filter by status"
+                  searchPlaceholder="Search status..."
+                  className="tasks__filter-premium-select"
+                />
               </div>
             </div>
           )}

@@ -1,5 +1,6 @@
 import { useEffect, useState, useRef } from "react";
-import { useForm } from "react-hook-form";
+import { useForm, Controller } from "react-hook-form";
+import PremiumSelect from "../../../components/form/PremiumSelect";
 import CustomModal from "../../../components/CustomModal";
 import "../../../design/scss/prospect-modal.scss";
 import "../../../design/scss/modal-designs.scss";
@@ -23,6 +24,7 @@ export function AddEditCrewTemplateModal({ showModal, closeModal, onSuccess }) {
 
   const {
     register,
+    control,
     handleSubmit,
     formState: { errors },
     reset,
@@ -137,38 +139,51 @@ export function AddEditCrewTemplateModal({ showModal, closeModal, onSuccess }) {
           <div className="form-field form-row-2">
             <div>
               <label className="form-field-label">Port <span className="text-danger">*</span></label>
-              <select
-                className={`form-control form-select ${errors.port_id ? "is-invalid" : ""}`}
-                {...register("port_id", { required: "Port is required" })}
-              >
-                <option value="">Select Port</option>
-                {(ports ?? []).map((p) => {
-                  const id = p?.port_id ?? p?._id ?? p?.id;
-                  const label = p?.port ?? p?.name ?? p?.port_name ?? String(id);
-                  return (
-                    <option key={id} value={String(id)}>
-                      {label}
-                    </option>
-                  );
-                })}
-              </select>
+              <Controller
+                name="port_id"
+                control={control}
+                rules={{ required: "Port is required" }}
+                render={({ field }) => (
+                  <PremiumSelect
+                    value={field.value != null ? String(field.value) : ""}
+                    onChange={(e) => field.onChange(e.target.value)}
+                    options={(ports ?? []).map((p) => {
+                      const id = p?.port_id ?? p?._id ?? p?.id;
+                      return {
+                        value: String(id ?? ""),
+                        label: String(p?.port ?? p?.name ?? p?.port_name ?? id ?? ""),
+                      };
+                    })}
+                    placeholder="Select Port"
+                    searchPlaceholder="Search port..."
+                    hasError={Boolean(errors.port_id)}
+                  />
+                )}
+              />
               {errors.port_id && (
                 <span className="field-error">{errors.port_id.message}</span>
               )}
             </div>
             <div>
               <label className="form-field-label">Call Type <span className="text-danger">*</span></label>
-              <select
-                className={`form-control form-select ${errors.call_type_id ? "is-invalid" : ""}`}
-                {...register("call_type_id", { required: "Call Type is required" })}
-              >
-                <option value="">Select Call Type</option>
-                {(callTypes ?? []).map((ct) => (
-                  <option key={ct?.call_type_id} value={String(ct?.call_type_id)}>
-                    {ct?.call_type ?? ct?.callType ?? ""}
-                  </option>
-                ))}
-              </select>
+              <Controller
+                name="call_type_id"
+                control={control}
+                rules={{ required: "Call Type is required" }}
+                render={({ field }) => (
+                  <PremiumSelect
+                    value={field.value != null ? String(field.value) : ""}
+                    onChange={(e) => field.onChange(e.target.value)}
+                    options={(callTypes ?? []).map((ct) => ({
+                      value: String(ct?.call_type_id ?? ""),
+                      label: String(ct?.call_type ?? ct?.callType ?? ""),
+                    }))}
+                    placeholder="Select Call Type"
+                    searchPlaceholder="Search call type..."
+                    hasError={Boolean(errors.call_type_id)}
+                  />
+                )}
+              />
               {errors.call_type_id && (
                 <span className="field-error">{errors.call_type_id.message}</span>
               )}

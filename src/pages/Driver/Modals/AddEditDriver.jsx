@@ -9,6 +9,9 @@ import "../../../design/scss/form-designs.scss";
 import { PORT_OPTIONS } from "../../../constants/ports";
 import useDriverReducer from "../../../store/DriverReducer";
 import PremiumDateField from "../../../components/PremiumDateField";
+import PremiumSelect from "../../../components/form/PremiumSelect";
+
+const DRIVER_LOCATION_OPTIONS = PORT_OPTIONS.map((port) => ({ value: port, label: port }));
 
 /** API may return driver_for as 1/2, "1"/"2", or "Transport" / "Material". */
 function normalizeDriverFor(value) {
@@ -199,24 +202,25 @@ export function DriverModal({ showModal, closeModal, onSuccess }) {
 
                             {/* LOCATION */}
                             <div className="col-lg-6 col-sm-12">
-                                <div className="form-floating desig-inp">
-                                    <select
-                                        className={`form-control ${errors.location ? "is-invalid" : ""
-                                            }`}
-                                        {...register("location", {
-                                            required: "Location is required",
-                                        })}
-                                    >
-                                        <option value="">Select Location</option>
-                                        {PORT_OPTIONS.map((port) => (
-                                            <option key={port} value={port}>
-                                                {port}
-                                            </option>
-                                        ))}
-                                    </select>
-                                    <label>
+                                <div className="phone-wrapper">
+                                    <label className="phone-label">
                                         Location <span className="text-danger">*</span>
                                     </label>
+                                    <Controller
+                                        name="location"
+                                        control={control}
+                                        rules={{ required: "Location is required" }}
+                                        render={({ field }) => (
+                                            <PremiumSelect
+                                                value={field.value != null ? String(field.value) : ""}
+                                                onChange={(e) => field.onChange(e.target.value)}
+                                                options={DRIVER_LOCATION_OPTIONS}
+                                                placeholder="Select Location"
+                                                searchPlaceholder="Search location..."
+                                                hasError={Boolean(errors.location)}
+                                            />
+                                        )}
+                                    />
                                     {errors.location && (
                                         <span className="error text-danger">
                                             {errors.location.message}
@@ -298,31 +302,35 @@ export function DriverModal({ showModal, closeModal, onSuccess }) {
                     <div className="mb-lg-3 mb-sm-0">
                         <div className="permInputs row">
                             <div className="col-lg-6 col-sm-12">
-                                <div className="form-floating desig-inp">
-                                    <select
-                                        className={`form-control ${errors.nationality ? "is-invalid" : ""
-                                            }`}
-                                        disabled={isLoadingCountries || countries === null}
-                                        {...register("nationality", {
-                                            required: "Nationality is required",
-                                        })}
-                                    >
-                                        {(isLoadingCountries || countries === null) ? (
-                                            <option value="">Loading...</option>
-                                        ) : (
-                                            <>
-                                                <option value="">Select Nationality</option>
-                                                {(countries || []).map((c) => (
-                                                    <option key={c.country_id} value={c.country_id}>
-                                                        {c.country || c.country_code || c.country_id}
-                                                    </option>
-                                                ))}
-                                            </>
-                                        )}
-                                    </select>
-                                    <label>
+                                <div className="phone-wrapper">
+                                    <label className="phone-label">
                                         Nationality <span className="text-danger">*</span>
                                     </label>
+                                    <Controller
+                                        name="nationality"
+                                        control={control}
+                                        rules={{ required: "Nationality is required" }}
+                                        render={({ field }) => (
+                                            <PremiumSelect
+                                                value={field.value != null ? String(field.value) : ""}
+                                                onChange={(e) => field.onChange(e.target.value)}
+                                                options={(countries || []).map((c) => ({
+                                                    value: String(c.country_id ?? ""),
+                                                    label: String(
+                                                        c.country || c.country_code || c.country_id || "",
+                                                    ),
+                                                }))}
+                                                placeholder={
+                                                    isLoadingCountries || countries === null
+                                                        ? "Loading..."
+                                                        : "Select Nationality"
+                                                }
+                                                searchPlaceholder="Search nationality..."
+                                                disabled={isLoadingCountries || countries === null}
+                                                hasError={Boolean(errors.nationality)}
+                                            />
+                                        )}
+                                    />
                                     {errors.nationality && (
                                         <span className="error text-danger">
                                             {errors.nationality.message}

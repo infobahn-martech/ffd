@@ -1,12 +1,21 @@
-import { useForm } from "react-hook-form";
+import { useForm, Controller } from "react-hook-form";
+import PremiumSelect from "../../../components/form/PremiumSelect";
 import CustomModal from "../../../components/CustomModal";
 import "../../../design/scss/prospect-modal.scss";
 import "../../../design/scss/modal-designs.scss";
 import "../../../design/scss/form-designs.scss";
 
+const STATUS_MODULE_OPTIONS = [
+    { value: "husbandry", label: "Husbandry" },
+    { value: "transport", label: "Transport" },
+    { value: "crew", label: "Crew" },
+    { value: "warehouse", label: "Warehouse" },
+];
+
 export function StatusModal({ showModal, closeModal }) {
     const {
         register,
+        control,
         handleSubmit,
         formState: { errors },
     } = useForm({
@@ -88,18 +97,21 @@ export function StatusModal({ showModal, closeModal }) {
 
                     {/* TYPE / MODULE */}
                     <div className="mb-lg-3 mb-sm-0">
-                        <div className="form-floating desig-inp">
-                            <select
-                                className="form-select"
-                                {...register("module")}
-                            >
-                                <option value="">Select</option>
-                                <option value="husbandry">Husbandry</option>
-                                <option value="transport">Transport</option>
-                                <option value="crew">Crew</option>
-                                <option value="warehouse">Warehouse</option>
-                            </select>
-                            <label>Type / Module</label>
+                        <div className="phone-wrapper">
+                            <label className="phone-label">Type / Module</label>
+                            <Controller
+                                name="module"
+                                control={control}
+                                render={({ field }) => (
+                                    <PremiumSelect
+                                        value={field.value != null ? String(field.value) : ""}
+                                        onChange={(e) => field.onChange(e.target.value)}
+                                        options={STATUS_MODULE_OPTIONS}
+                                        placeholder="Select"
+                                        searchPlaceholder="Search module..."
+                                    />
+                                )}
+                            />
                         </div>
                     </div>
 

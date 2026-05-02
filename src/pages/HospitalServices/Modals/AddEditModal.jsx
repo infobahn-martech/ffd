@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useState } from "react";
 import { useForm, Controller, useWatch } from "react-hook-form";
 import Select from "react-select";
+import PremiumSelect from "../../../components/form/PremiumSelect";
 import CustomModal from "../../../components/CustomModal";
 import useHospitalReducer from "../../../store/HospitalReducer";
 import hospitalService from "../../../services/hospitalService";
@@ -207,27 +208,20 @@ export function HospitalServiceModal({ showModal, closeModal, onSuccess }) {
                             control={control}
                             rules={{ required: "Hospital is required" }}
                             render={({ field }) => (
-                                <Select
-                                    inputId="hospital-service-hospital"
-                                    classNamePrefix="react-select"
-                                    className={`react-select-container ${errors.hospital_id ? "is-invalid" : ""
-                                        }`}
-                                    placeholder={loadingOptions ? "Loading…" : "Select a hospital"}
-                                    isDisabled={loadingOptions || isBeingUpdated}
-                                    isClearable
-                                    options={hospitalOptions}
-                                    value={
-                                        hospitalOptions.find((o) => o.value === field.value) ?? null
-                                    }
-                                    onChange={(opt) => {
-                                        field.onChange(opt?.value ?? null);
+                                <PremiumSelect
+                                    value={field.value != null ? String(field.value) : ""}
+                                    onChange={(e) => {
+                                        const raw = e.target.value;
+                                        field.onChange(raw === "" ? null : Number(raw));
                                     }}
-                                    styles={selectStyles}
-                                    menuPortalTarget={
-                                        typeof document !== "undefined" ? document.body : null
-                                    }
-                                    menuPosition="fixed"
-                                    aria-label="Hospital"
+                                    options={hospitalOptions.map((o) => ({
+                                        value: String(o.value),
+                                        label: o.label,
+                                    }))}
+                                    placeholder={loadingOptions ? "Loading…" : "Select a hospital"}
+                                    searchPlaceholder="Search hospital..."
+                                    disabled={loadingOptions || isBeingUpdated}
+                                    hasError={Boolean(errors.hospital_id)}
                                 />
                             )}
                         />

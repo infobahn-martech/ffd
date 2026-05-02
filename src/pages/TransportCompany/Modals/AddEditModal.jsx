@@ -1,4 +1,5 @@
-import { useForm, useFieldArray } from 'react-hook-form';
+import { useForm, useFieldArray, Controller } from 'react-hook-form';
+import PremiumSelect from '../../../components/form/PremiumSelect';
 import { useEffect, useState } from 'react';
 import { FiPlus, FiX } from 'react-icons/fi';
 import CustomModal from '../../../components/CustomModal';
@@ -225,21 +226,33 @@ export function TransportCompanyModal({ showModal, closeModal, onSuccess }) {
                       </div>
                     </div>
                     <div className="transport-company-driver-field transport-company-driver-field--vehicle">
-                      <div className="form-floating desig-inp transport-company-driver-field--select">
-                        <select
-                          className={`form-select ${errors.drivers?.[index]?.vehicle_type_id ? 'is-invalid' : ''}`}
-                          disabled={isEdit && isLoadingDetail}
-                          {...register(`drivers.${index}.vehicle_type_id`, {
-                            required: 'Vehicle type is required',
-                          })}
-                        >
-                          <option value="">Select vehicle type</option>
-                          {(vehicles || []).map((v) => (
-                            <option key={v.vehicle_type_id ?? v._id} value={v.vehicle_type_id ?? v._id}>
-                              {v.vehicle_type ?? v.name ?? `Vehicle ${v.vehicle_type_id ?? v._id}`}
-                            </option>
-                          ))}
-                        </select>
+                      <div className="transport-company-driver-field--select">
+                        <Controller
+                          name={`drivers.${index}.vehicle_type_id`}
+                          control={control}
+                          rules={{ required: 'Vehicle type is required' }}
+                          render={({ field }) => (
+                            <PremiumSelect
+                              value={field.value != null ? String(field.value) : ''}
+                              onChange={(e) => field.onChange(e.target.value)}
+                              options={(vehicles || []).map((v) => {
+                                const id = v.vehicle_type_id ?? v._id;
+                                return {
+                                  value: String(id ?? ''),
+                                  label: String(
+                                    v.vehicle_type ??
+                                      v.name ??
+                                      `Vehicle ${v.vehicle_type_id ?? v._id ?? ''}`,
+                                  ),
+                                };
+                              })}
+                              placeholder="Select vehicle type"
+                              searchPlaceholder="Search vehicle type..."
+                              disabled={isEdit && isLoadingDetail}
+                              hasError={Boolean(errors.drivers?.[index]?.vehicle_type_id)}
+                            />
+                          )}
+                        />
                       </div>
                     </div>
                     <div className="transport-company-driver-row__actions">

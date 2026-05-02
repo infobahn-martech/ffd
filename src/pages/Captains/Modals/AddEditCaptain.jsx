@@ -10,6 +10,7 @@ import "../../../design/scss/prospect-modal.scss";
 import "../../../design/scss/modal-designs.scss";
 import "../../../design/scss/form-designs.scss";
 import userIcon from "../../../assets/images/user.png";
+import PremiumSelect from "../../../components/form/PremiumSelect";
 
 export function CaptainModal({ showModal, closeModal, onSuccess }) {
     const {
@@ -170,23 +171,28 @@ export function CaptainModal({ showModal, closeModal, onSuccess }) {
                     <div className="mb-lg-3 mb-sm-0">
                         <div className="permInputs row">
                             <div className="col-lg-6 col-sm-12">
-                                <div className="form-floating desig-inp">
-                                    <select
-                                        className={`form-control ${errors.taxi_boat_id ? "is-invalid" : ""}`}
-                                        {...register("taxi_boat_id", {
-                                            required: "Taxi boat is required",
-                                        })}
-                                    >
-                                        <option value="">Select Taxi Boat</option>
-                                        {taxiBoatList.map((boat) => (
-                                            <option key={boat.taxi_boat_id} value={boat.taxi_boat_id}>
-                                                {boat.taxi_boat_name}
-                                            </option>
-                                        ))}
-                                    </select>
-                                    <label>
+                                <div className="phone-wrapper">
+                                    <label className="phone-label">
                                         Taxi Boat <span className="text-danger">*</span>
                                     </label>
+                                    <Controller
+                                        name="taxi_boat_id"
+                                        control={control}
+                                        rules={{ required: "Taxi boat is required" }}
+                                        render={({ field }) => (
+                                            <PremiumSelect
+                                                value={field.value != null ? String(field.value) : ""}
+                                                onChange={(e) => field.onChange(e.target.value)}
+                                                options={taxiBoatList.map((boat) => ({
+                                                    value: String(boat.taxi_boat_id ?? ""),
+                                                    label: String(boat.taxi_boat_name ?? ""),
+                                                }))}
+                                                placeholder="Select Taxi Boat"
+                                                searchPlaceholder="Search taxi boat..."
+                                                hasError={Boolean(errors.taxi_boat_id)}
+                                            />
+                                        )}
+                                    />
                                     {errors.taxi_boat_id && (
                                         <span className="error text-danger">{errors.taxi_boat_id.message}</span>
                                     )}

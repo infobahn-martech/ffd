@@ -1,5 +1,6 @@
 import { useEffect } from "react";
-import { useForm, useFieldArray, useWatch } from "react-hook-form";
+import { useForm, useFieldArray, useWatch, Controller } from "react-hook-form";
+import PremiumSelect from "../../../components/form/PremiumSelect";
 import { FiPlus, FiX } from "react-icons/fi";
 import CustomModal from "../../../components/CustomModal";
 import useBillingInstructionReducer from "../../../store/BillingInstructionReducer";
@@ -197,26 +198,31 @@ export function BillingInstructionModal({ showModal, closeModal, onSuccess }) {
                     }}
                 >
                     <div className="mb-lg-3 mb-sm-0 mt-2">
-                        <div className="form-floating desig-inp">
-                            <select
-                                className={`form-control form-select ${errors.entity_id ? "is-invalid" : ""}`}
-                                disabled={isEdit || billingLoading}
-                                {...register("entity_id", {
-                                    required: "Billing entity is required",
-                                })}
-                            >
-                                <option value="">
-                                    {billingLoading ? "Loading..." : "Select Billing Entity"}
-                                </option>
-                                {(billingEntities ?? []).map((be) => (
-                                    <option key={be.entity_id} value={be.entity_id}>
-                                        {be.billing_entity}
-                                    </option>
-                                ))}
-                            </select>
-                            <label>
+                        <div className="phone-wrapper">
+                            <label className="phone-label">
                                 Billing Entity <span className="text-danger">*</span>
                             </label>
+                            <Controller
+                                name="entity_id"
+                                control={control}
+                                rules={{ required: "Billing entity is required" }}
+                                render={({ field }) => (
+                                    <PremiumSelect
+                                        value={field.value != null ? String(field.value) : ""}
+                                        onChange={(e) => field.onChange(e.target.value)}
+                                        options={(billingEntities ?? []).map((be) => ({
+                                            value: String(be.entity_id ?? ""),
+                                            label: String(be.billing_entity ?? ""),
+                                        }))}
+                                        placeholder={
+                                            billingLoading ? "Loading..." : "Select Billing Entity"
+                                        }
+                                        searchPlaceholder="Search billing entity..."
+                                        disabled={isEdit || billingLoading}
+                                        hasError={Boolean(errors.entity_id)}
+                                    />
+                                )}
+                            />
                             {errors.entity_id && (
                                 <span className="error text-danger">{errors.entity_id.message}</span>
                             )}
@@ -224,22 +230,25 @@ export function BillingInstructionModal({ showModal, closeModal, onSuccess }) {
                     </div>
 
                     <div className="mb-lg-3 mb-sm-0">
-                        <div className="form-floating desig-inp">
-                            <select
-                                className={`form-select ${errors.instruction_type ? "is-invalid" : ""}`}
-                                {...register("instruction_type", {
-                                    required: "Instruction type is required",
-                                })}
-                            >
-                                {INSTRUCTION_TYPES.map((opt) => (
-                                    <option key={opt.value} value={opt.value}>
-                                        {opt.label}
-                                    </option>
-                                ))}
-                            </select>
-                            <label>
+                        <div className="phone-wrapper">
+                            <label className="phone-label">
                                 Instruction Type <span className="text-danger">*</span>
                             </label>
+                            <Controller
+                                name="instruction_type"
+                                control={control}
+                                rules={{ required: "Instruction type is required" }}
+                                render={({ field }) => (
+                                    <PremiumSelect
+                                        value={field.value != null ? String(field.value) : ""}
+                                        onChange={(e) => field.onChange(e.target.value)}
+                                        options={INSTRUCTION_TYPES}
+                                        placeholder="Select instruction type"
+                                        searchPlaceholder="Search instruction type..."
+                                        hasError={Boolean(errors.instruction_type)}
+                                    />
+                                )}
+                            />
                             {errors.instruction_type && (
                                 <span className="error text-danger">
                                     {errors.instruction_type.message}

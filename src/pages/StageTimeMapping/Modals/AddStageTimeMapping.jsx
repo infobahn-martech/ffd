@@ -1,5 +1,6 @@
-import { useEffect, useState } from "react";
-import { useForm } from "react-hook-form";
+import { useEffect, useMemo, useState } from "react";
+import { useForm, Controller } from "react-hook-form";
+import PremiumSelect from "../../../components/form/PremiumSelect";
 import CustomModal from "../../../components/CustomModal";
 import useStageTimeMappingReducer from "../../../store/StageTimeMappingReducer";
 import usePortReducer from "../../../store/PortReducer";
@@ -33,7 +34,7 @@ export function StageTimeMappingModal({ showModal, closeModal, onSuccess }) {
         (showModal.stage_id !== undefined && showModal.stage_id !== null && showModal.stage_id !== "");
 
     const {
-        register,
+        control,
         handleSubmit,
         formState: { errors },
         reset,
@@ -111,6 +112,71 @@ export function StageTimeMappingModal({ showModal, closeModal, onSuccess }) {
         setValue("port_id", String(showModal.port_id ?? ""));
         setValue("call_type_id", String(showModal.call_type_id ?? ""));
     }, [showModal, isEditMode, callStages, ports, callTypes, setValue]);
+
+    const stageSelectOptions = useMemo(() => {
+        const rows = (callStages ?? []).map((s) => {
+            const id = String(s?.stage_id ?? s?.call_stage_id ?? s?._id ?? s?.id ?? "");
+            return {
+                value: id,
+                label: String(s?.stage_name ?? s?.call_stage ?? s?.name ?? id),
+            };
+        });
+        if (
+            isEditMode &&
+            showModal?.stage_id != null &&
+            String(showModal.stage_id) !== "" &&
+            !rows.some((r) => r.value === String(showModal.stage_id))
+        ) {
+            rows.unshift({
+                value: String(showModal.stage_id),
+                label: String(showModal?.stage_name ?? `Stage ${showModal.stage_id}`),
+            });
+        }
+        return rows;
+    }, [callStages, isEditMode, showModal]);
+
+    const portSelectOptions = useMemo(() => {
+        const rows = (ports ?? []).map((p) => {
+            const id = String(p?.port_id ?? p?._id ?? p?.id ?? "");
+            return {
+                value: id,
+                label: String(p?.port ?? p?.name ?? p?.port_name ?? id),
+            };
+        });
+        if (
+            isEditMode &&
+            showModal?.port_id !== undefined &&
+            showModal?.port_id !== null &&
+            String(showModal.port_id) !== "" &&
+            !rows.some((r) => r.value === String(showModal.port_id))
+        ) {
+            rows.unshift({
+                value: String(showModal.port_id),
+                label: String(showModal.port ?? showModal.port_name ?? `Port ${showModal.port_id}`),
+            });
+        }
+        return rows;
+    }, [ports, isEditMode, showModal]);
+
+    const callTypeSelectOptions = useMemo(() => {
+        const rows = (callTypes ?? []).map((ct) => ({
+            value: String(ct?.call_type_id ?? ""),
+            label: String(ct?.call_type ?? ct?.callType ?? ""),
+        }));
+        if (
+            isEditMode &&
+            showModal?.call_type_id !== undefined &&
+            showModal?.call_type_id !== null &&
+            String(showModal.call_type_id) !== "" &&
+            !rows.some((r) => r.value === String(showModal.call_type_id))
+        ) {
+            rows.unshift({
+                value: String(showModal.call_type_id),
+                label: String(showModal.call_type ?? showModal.callType ?? `Call Type ${showModal.call_type_id}`),
+            });
+        }
+        return rows;
+    }, [callTypes, isEditMode, showModal]);
 
     const toggleTimeObject = (timeObjectId) => {
         const key = String(timeObjectId);
@@ -196,110 +262,75 @@ export function StageTimeMappingModal({ showModal, closeModal, onSuccess }) {
                 <form id="stageTimeMappingForm" onSubmit={handleSubmit(onSubmit)}>
                     <div className="permInputs row mb-lg-3">
                         <div className="col-12 col-lg-4 mb-3">
-                            <div className="form-floating desig-inp">
-                                <select
-                                    className={`form-control form-select ${errors.stage_id ? "is-invalid" : ""}`}
-                                    {...register("stage_id", { required: "Call stage is required" })}
-                                >
-                                    <option value="">Select call stage</option>
-                                    {isEditMode &&
-                                        showModal?.stage_id &&
-                                        !(callStages ?? []).some(
-                                            (s) =>
-                                                String(s?.stage_id ?? s?.call_stage_id ?? s?._id ?? s?.id ?? "") ===
-                                                String(showModal?.stage_id)
-                                        ) && (
-                                            <option value={String(showModal?.stage_id)}>
-                                                {showModal?.stage_name ?? `Stage ${showModal?.stage_id}`}
-                                            </option>
-                                        )}
-                                    {(callStages ?? []).map((s) => {
-                                        const id = String(s?.stage_id ?? s?.call_stage_id ?? s?._id ?? s?.id ?? "");
-                                        return (
-                                            <option key={id} value={String(id)}>
-                                                {s?.stage_name ?? s?.call_stage ?? s?.name ?? String(id)}
-                                            </option>
-                                        );
-                                    })}
-                                </select>
-                                <label>
+                            <div className="phone-wrapper">
+                                <label className="phone-label">
                                     Call stage <span className="text-danger">*</span>
                                 </label>
+                                <Controller
+                                    name="stage_id"
+                                    control={control}
+                                    rules={{ required: "Call stage is required" }}
+                                    render={({ field }) => (
+                                        <PremiumSelect
+                                            value={field.value != null ? String(field.value) : ""}
+                                            onChange={(e) => field.onChange(e.target.value)}
+                                            options={stageSelectOptions}
+                                            placeholder="Select call stage"
+                                            searchPlaceholder="Search call stage..."
+                                            hasError={Boolean(errors.stage_id)}
+                                        />
+                                    )}
+                                />
                                 {errors.stage_id && (
                                     <span className="error text-danger">{errors.stage_id.message}</span>
                                 )}
                             </div>
                         </div>
                         <div className="col-12 col-lg-4 mb-3">
-                            <div className="form-floating desig-inp">
-                                <select
-                                    className={`form-control form-select ${errors.port_id ? "is-invalid" : ""}`}
-                                    {...register("port_id", { required: "Port is required" })}
-                                >
-                                    <option value="">Select port</option>
-                                    {isEditMode &&
-                                        showModal?.port_id !== undefined &&
-                                        showModal?.port_id !== null &&
-                                        String(showModal.port_id) !== "" &&
-                                        !(ports ?? []).some(
-                                            (p) =>
-                                                String(p?.port_id ?? p?._id ?? p?.id ?? "") ===
-                                                String(showModal.port_id)
-                                        ) && (
-                                            <option value={String(showModal.port_id)}>
-                                                {showModal.port ??
-                                                    showModal.port_name ??
-                                                    `Port ${showModal.port_id}`}
-                                            </option>
-                                        )}
-                                    {(ports ?? []).map((p) => {
-                                        const id = p?.port_id ?? p?._id ?? p?.id;
-                                        const label = p?.port ?? p?.name ?? p?.port_name ?? String(id);
-                                        return (
-                                            <option key={id} value={String(id)}>
-                                                {label}
-                                            </option>
-                                        );
-                                    })}
-                                </select>
-                                <label>
+                            <div className="phone-wrapper">
+                                <label className="phone-label">
                                     Port <span className="text-danger">*</span>
                                 </label>
+                                <Controller
+                                    name="port_id"
+                                    control={control}
+                                    rules={{ required: "Port is required" }}
+                                    render={({ field }) => (
+                                        <PremiumSelect
+                                            value={field.value != null ? String(field.value) : ""}
+                                            onChange={(e) => field.onChange(e.target.value)}
+                                            options={portSelectOptions}
+                                            placeholder="Select port"
+                                            searchPlaceholder="Search port..."
+                                            hasError={Boolean(errors.port_id)}
+                                        />
+                                    )}
+                                />
                                 {errors.port_id && (
                                     <span className="error text-danger">{errors.port_id.message}</span>
                                 )}
                             </div>
                         </div>
                         <div className="col-12 col-lg-4 mb-3">
-                            <div className="form-floating desig-inp">
-                                <select
-                                    className={`form-control form-select ${errors.call_type_id ? "is-invalid" : ""}`}
-                                    {...register("call_type_id", { required: "Call type is required" })}
-                                >
-                                    <option value="">Select call type</option>
-                                    {isEditMode &&
-                                        showModal?.call_type_id !== undefined &&
-                                        showModal?.call_type_id !== null &&
-                                        String(showModal.call_type_id) !== "" &&
-                                        !(callTypes ?? []).some(
-                                            (ct) =>
-                                                String(ct?.call_type_id ?? "") === String(showModal.call_type_id)
-                                        ) && (
-                                            <option value={String(showModal.call_type_id)}>
-                                                {showModal.call_type ??
-                                                    showModal.callType ??
-                                                    `Call Type ${showModal.call_type_id}`}
-                                            </option>
-                                        )}
-                                    {(callTypes ?? []).map((ct) => (
-                                        <option key={ct?.call_type_id} value={String(ct?.call_type_id)}>
-                                            {ct?.call_type ?? ct?.callType ?? ""}
-                                        </option>
-                                    ))}
-                                </select>
-                                <label>
+                            <div className="phone-wrapper">
+                                <label className="phone-label">
                                     Call type <span className="text-danger">*</span>
                                 </label>
+                                <Controller
+                                    name="call_type_id"
+                                    control={control}
+                                    rules={{ required: "Call type is required" }}
+                                    render={({ field }) => (
+                                        <PremiumSelect
+                                            value={field.value != null ? String(field.value) : ""}
+                                            onChange={(e) => field.onChange(e.target.value)}
+                                            options={callTypeSelectOptions}
+                                            placeholder="Select call type"
+                                            searchPlaceholder="Search call type..."
+                                            hasError={Boolean(errors.call_type_id)}
+                                        />
+                                    )}
+                                />
                                 {errors.call_type_id && (
                                     <span className="error text-danger">{errors.call_type_id.message}</span>
                                 )}

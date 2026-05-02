@@ -1,4 +1,5 @@
-import { useForm, useFieldArray, useWatch } from "react-hook-form";
+import { useForm, useFieldArray, useWatch, Controller } from "react-hook-form";
+import PremiumSelect from "../../../components/form/PremiumSelect";
 import { FiTrash2 } from "react-icons/fi";
 import CustomModal from "../../../components/CustomModal";
 import "../../../design/scss/prospect-modal.scss";
@@ -804,12 +805,6 @@ export function CheckListModal({ showModal, closeModal, callTypesOptions, onSucc
   };
 
   const renderBody = () => {
-    const { onChange: onVesselTypeChange, ...vesselTypeSelectRest } = register("vesselType", {
-      validate: validateVesselOrBargeExclusive
-    });
-    const { onChange: onBargeTypeChange, ...bargeTypeSelectRest } = register("bargeType", {
-      validate: validateVesselOrBargeExclusive
-    });
     const vesselBargeFieldError = errors.vesselType || errors.bargeType;
 
     return (
@@ -838,27 +833,28 @@ export function CheckListModal({ showModal, closeModal, callTypesOptions, onSucc
               </div>
               {/* Call Type */}
               <div className="col-12 col-md-6">
-                <div className="form-floating desig-inp">
-                  <select
-                    className={`form-select ${errors.callType ? "is-invalid" : ""}`}
-                    {...register("callType", { required: "Call Type is required" })}
-                    defaultValue=""
-                  >
-                    <option value="">Select Call Type</option>
-
-                    {(callTypesOptions ?? []).map((callType) => (
-                      <option
-                        key={callType?.call_type_id}
-                        value={String(callType?.call_type_id)}
-                      >
-                        {callType?.call_type}
-                      </option>
-                    ))}
-                  </select>
-
-                  <label>
+                <div className="phone-wrapper">
+                  <label className="phone-label">
                     Call Type <span className="text-danger">*</span>
                   </label>
+                  <Controller
+                    name="callType"
+                    control={control}
+                    rules={{ required: "Call Type is required" }}
+                    render={({ field }) => (
+                      <PremiumSelect
+                        value={field.value != null ? String(field.value) : ""}
+                        onChange={(e) => field.onChange(e.target.value)}
+                        options={(callTypesOptions ?? []).map((callType) => ({
+                          value: String(callType?.call_type_id ?? ""),
+                          label: String(callType?.call_type ?? ""),
+                        }))}
+                        placeholder="Select Call Type"
+                        searchPlaceholder="Search call type..."
+                        hasError={Boolean(errors.callType)}
+                      />
+                    )}
+                  />
                   {errors.callType && (
                     <span className="error text-danger">{errors.callType.message}</span>
                   )}
@@ -867,33 +863,35 @@ export function CheckListModal({ showModal, closeModal, callTypesOptions, onSucc
 
               {/* Vessel Type */}
               <div className="col-12 col-md-6">
-                <div className="form-floating desig-inp">
-                  <select
-                    className={`form-select ${vesselBargeFieldError ? "is-invalid" : ""}`}
-                    {...vesselTypeSelectRest}
-                    onChange={(e) => {
-                      onVesselTypeChange(e);
-                      if (e.target.value !== "") {
-                        setValue("bargeType", "", { shouldValidate: true });
-                      }
-                      trigger(["vesselType", "bargeType"]);
-                    }}
-                    disabled={isLoadingVesselTypes}
-                  >
-                    <option value="">Select Vessel Type</option>
-                    {(vesselTypes ?? []).map((type) => {
-                      const value = type.vessel_type_id ?? type._id ?? type.vessel_type ?? type.name;
-                      const label = type.vessel_type ?? type.name ?? value;
-                      return (
-                        <option key={value} value={String(value)}>
-                          {label}
-                        </option>
-                      );
-                    })}
-                  </select>
-                  <label>
-                    Vessel Type
-                  </label>
+                <div className="phone-wrapper">
+                  <label className="phone-label">Vessel Type</label>
+                  <Controller
+                    name="vesselType"
+                    control={control}
+                    rules={{ validate: validateVesselOrBargeExclusive }}
+                    render={({ field }) => (
+                      <PremiumSelect
+                        value={field.value != null ? String(field.value) : ""}
+                        onChange={(e) => {
+                          const v = e.target.value;
+                          field.onChange(v);
+                          if (v !== "") {
+                            setValue("bargeType", "", { shouldValidate: true });
+                          }
+                          trigger(["vesselType", "bargeType"]);
+                        }}
+                        options={(vesselTypes ?? []).map((type) => {
+                          const value = type.vessel_type_id ?? type._id ?? type.vessel_type ?? type.name;
+                          const label = type.vessel_type ?? type.name ?? value;
+                          return { value: String(value ?? ""), label: String(label ?? "") };
+                        })}
+                        placeholder="Select Vessel Type"
+                        searchPlaceholder="Search vessel type..."
+                        disabled={isLoadingVesselTypes}
+                        hasError={Boolean(vesselBargeFieldError)}
+                      />
+                    )}
+                  />
                   {vesselBargeFieldError && (
                     <span className="error text-danger">{vesselBargeFieldError.message}</span>
                   )}
@@ -902,33 +900,35 @@ export function CheckListModal({ showModal, closeModal, callTypesOptions, onSucc
 
               {/* Barge Type */}
               <div className="col-12 col-md-6">
-                <div className="form-floating desig-inp">
-                  <select
-                    className={`form-select ${vesselBargeFieldError ? "is-invalid" : ""}`}
-                    {...bargeTypeSelectRest}
-                    onChange={(e) => {
-                      onBargeTypeChange(e);
-                      if (e.target.value !== "") {
-                        setValue("vesselType", "", { shouldValidate: true });
-                      }
-                      trigger(["vesselType", "bargeType"]);
-                    }}
-                    disabled={isLoadingBargeTypes}
-                  >
-                    <option value="">Select Barge Type</option>
-                    {(bargeTypes ?? []).map((type) => {
-                      const value = type.barge_type_id ?? type._id ?? type.barge_type ?? type.name;
-                      const label = type.barge_type ?? type.name ?? value;
-                      return (
-                        <option key={value} value={String(value)}>
-                          {label}
-                        </option>
-                      );
-                    })}
-                  </select>
-                  <label>
-                    Barge Type
-                  </label>
+                <div className="phone-wrapper">
+                  <label className="phone-label">Barge Type</label>
+                  <Controller
+                    name="bargeType"
+                    control={control}
+                    rules={{ validate: validateVesselOrBargeExclusive }}
+                    render={({ field }) => (
+                      <PremiumSelect
+                        value={field.value != null ? String(field.value) : ""}
+                        onChange={(e) => {
+                          const v = e.target.value;
+                          field.onChange(v);
+                          if (v !== "") {
+                            setValue("vesselType", "", { shouldValidate: true });
+                          }
+                          trigger(["vesselType", "bargeType"]);
+                        }}
+                        options={(bargeTypes ?? []).map((type) => {
+                          const value = type.barge_type_id ?? type._id ?? type.barge_type ?? type.name;
+                          const label = type.barge_type ?? type.name ?? value;
+                          return { value: String(value ?? ""), label: String(label ?? "") };
+                        })}
+                        placeholder="Select Barge Type"
+                        searchPlaceholder="Search barge type..."
+                        disabled={isLoadingBargeTypes}
+                        hasError={Boolean(vesselBargeFieldError)}
+                      />
+                    )}
+                  />
                   {vesselBargeFieldError && (
                     <span className="error text-danger">{vesselBargeFieldError.message}</span>
                   )}
@@ -937,27 +937,30 @@ export function CheckListModal({ showModal, closeModal, callTypesOptions, onSucc
 
               {/* Port */}
               <div className="col-12 col-md-6">
-                <div className="form-floating desig-inp">
-                  <select
-                    className={`form-select ${errors.port ? "is-invalid" : ""}`}
-                    {...register("port")}
-                    disabled={isLoadingPorts}
-                  >
-                    <option value="">Select Port</option>
-                    {(ports ?? []).map((portOption) => {
-                      const value =
-                        portOption.port_id != null && portOption.port_id !== ""
-                          ? String(portOption.port_id)
-                          : String(portOption._id ?? portOption.id ?? "");
-                      const label = portOption.port ?? portOption.name ?? value;
-                      return (
-                        <option key={value || label} value={value}>
-                          {label}
-                        </option>
-                      );
-                    })}
-                  </select>
-                  <label>Port</label>
+                <div className="phone-wrapper">
+                  <label className="phone-label">Port</label>
+                  <Controller
+                    name="port"
+                    control={control}
+                    render={({ field }) => (
+                      <PremiumSelect
+                        value={field.value != null ? String(field.value) : ""}
+                        onChange={(e) => field.onChange(e.target.value)}
+                        options={(ports ?? []).map((portOption) => {
+                          const value =
+                            portOption.port_id != null && portOption.port_id !== ""
+                              ? String(portOption.port_id)
+                              : String(portOption._id ?? portOption.id ?? "");
+                          const label = portOption.port ?? portOption.name ?? value;
+                          return { value, label: String(label ?? "") };
+                        })}
+                        placeholder="Select Port"
+                        searchPlaceholder="Search port..."
+                        disabled={isLoadingPorts}
+                        hasError={Boolean(errors.port)}
+                      />
+                    )}
+                  />
                   {errors.port && (
                     <span className="error text-danger">{errors.port.message}</span>
                   )}

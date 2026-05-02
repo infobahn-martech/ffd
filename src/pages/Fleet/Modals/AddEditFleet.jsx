@@ -1,5 +1,6 @@
 import React, { useEffect } from "react";
-import { useForm } from "react-hook-form";
+import { useForm, Controller } from "react-hook-form";
+import PremiumSelect from "../../../components/form/PremiumSelect";
 import CustomModal from "../../../components/CustomModal";
 import PremiumDateField from "../../../components/PremiumDateField";
 import useFleetReducer from "../../../store/FleetReducer";
@@ -165,21 +166,26 @@ export function FleetModal({ showModal, closeModal, onSuccess }) {
                                 </div>
                             </div>
                             <div className="col-lg-6 col-sm-12">
-                                <div className="form-floating desig-inp">
-                                    <select
-                                        className={`form-control ${errors.operator_id ? "is-invalid" : ""}`}
-                                        {...register("operator_id", {
-                                            required: "Operator is required",
-                                        })}
-                                    >
-                                        <option value="">Select Operator</option>
-                                        {operatorList.map((op) => (
-                                            <option key={op.operator_id} value={op.operator_id}>
-                                                {op.operator_name}
-                                            </option>
-                                        ))}
-                                    </select>
-                                    <label>Operator <span className="text-danger">*</span></label>
+                                <div className="phone-wrapper">
+                                    <label className="phone-label">Operator <span className="text-danger">*</span></label>
+                                    <Controller
+                                        name="operator_id"
+                                        control={control}
+                                        rules={{ required: "Operator is required" }}
+                                        render={({ field }) => (
+                                            <PremiumSelect
+                                                value={field.value != null ? String(field.value) : ""}
+                                                onChange={(e) => field.onChange(e.target.value)}
+                                                options={operatorList.map((op) => ({
+                                                    value: String(op.operator_id ?? ""),
+                                                    label: String(op.operator_name ?? ""),
+                                                }))}
+                                                placeholder="Select Operator"
+                                                searchPlaceholder="Search operator..."
+                                                hasError={Boolean(errors.operator_id)}
+                                            />
+                                        )}
+                                    />
                                     {errors.operator_id && (
                                         <span className="error text-danger">{errors.operator_id.message}</span>
                                     )}

@@ -2,6 +2,7 @@ import { useEffect } from "react";
 import { Controller, useForm } from "react-hook-form";
 import CustomModal from "../../../components/CustomModal";
 import CommonSelect from "../../../components/CommonSelect";
+import PremiumSelect from "../../../components/form/PremiumSelect";
 import useDocumentChecklistReducer from "../../../store/DocumentChecklistReducer";
 import "../../../design/scss/prospect-modal.scss";
 import "../../../design/scss/modal-designs.scss";
@@ -20,7 +21,6 @@ export function DocumentChecklistModal({ showModal, closeModal, onSuccess }) {
     const isEdit = showModal && typeof showModal === "object" && !!showModal?.role_id;
 
     const {
-        register,
         control,
         handleSubmit,
         formState: { errors },
@@ -76,24 +76,29 @@ export function DocumentChecklistModal({ showModal, closeModal, onSuccess }) {
             <div className="lead-form">
                 <form id="documentChecklistForm" onSubmit={handleSubmit(onSubmit)}>
                     <div className="mb-lg-3 mb-sm-0">
-                        <div className="form-floating desig-inp">
-                            <select
-                                className={`form-select ${errors.role_id ? "is-invalid" : ""}`}
-                                {...register("role_id", {
-                                    required: "Role is required",
-                                })}
-                                disabled={isBeingUpdated}
-                            >
-                                <option value="">Select Role</option>
-                                {roleOptions.map((option) => (
-                                    <option key={option.value} value={option.value}>
-                                        {option.label}
-                                    </option>
-                                ))}
-                            </select>
-                            <label>
+                        <div className="phone-wrapper">
+                            <label className="phone-label">
                                 Select Role <span className="text-danger">*</span>
                             </label>
+                            <Controller
+                                name="role_id"
+                                control={control}
+                                rules={{ required: "Role is required" }}
+                                render={({ field }) => (
+                                    <PremiumSelect
+                                        value={field.value != null ? String(field.value) : ""}
+                                        onChange={(e) => field.onChange(e.target.value)}
+                                        options={roleOptions.map((option) => ({
+                                            value: String(option.value),
+                                            label: String(option.label ?? ""),
+                                        }))}
+                                        placeholder="Select Role"
+                                        searchPlaceholder="Search role..."
+                                        disabled={isBeingUpdated}
+                                        hasError={Boolean(errors.role_id)}
+                                    />
+                                )}
+                            />
                             {errors.role_id && (
                                 <span className="error text-danger">
                                     {errors.role_id.message}
