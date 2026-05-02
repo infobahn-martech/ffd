@@ -8,6 +8,7 @@ import { RenderAction } from "./RenderCells";
 import DeleteConfirmationModal from "../../components/DeleteConfirmationModal";
 
 import useCoordinatesReducer from "../../store/CoordinatesReducer";
+import { formatCoordinatesList, coordinatePairDisplay } from "./coordinateUtils";
 
 const Coordinates = () => {
     const {
@@ -74,13 +75,13 @@ const Coordinates = () => {
             sort: true,
             cell: ({ row }) => {
                 const list = row?.coordinates;
-                const text = Array.isArray(list)
-                    ? list.join("; ")
-                    : list != null && list !== ""
-                      ? String(list)
-                      : "—";
+                const text = formatCoordinatesList(list);
+                const title =
+                    Array.isArray(list) && list.length > 0
+                        ? list.map(coordinatePairDisplay).filter(Boolean).join("\n")
+                        : text;
                 return (
-                    <span className="text-break" title={Array.isArray(list) ? list.join("\n") : text}>
+                    <span className="text-break" title={title}>
                         {text}
                     </span>
                 );

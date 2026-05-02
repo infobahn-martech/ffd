@@ -4,11 +4,12 @@ import Select, { components as SelectComponents } from "react-select";
 import { FiPlus, FiX, FiCheck } from "react-icons/fi";
 import CustomModal from "../../../components/CustomModal";
 import useCoordinatesReducer from "../../../store/CoordinatesReducer";
+import { mapApiCoordinatesToFormRows } from "../coordinateUtils";
 import "../../../design/scss/prospect-modal.scss";
 import "../../../design/scss/modal-designs.scss";
 import "../../../design/scss/form-designs.scss";
 
-const emptyCoordinateRow = () => ({ value: "" });
+const emptyCoordinateRow = () => ({ value: "", coordinates_id: "" });
 
 /** Form value for types created via “+ Add new” inline UI (not from API list). */
 const NEW_COORDINATE_TYPE_VALUE = "__NEW_COORDINATE_TYPE__";
@@ -115,11 +116,6 @@ export function CoordinatesModal({ showModal, closeModal, onSuccess }) {
         setTypeMenuIsOpen(false);
         if (isEdit) {
             const coords = showModal?.coordinates;
-            const list = Array.isArray(coords)
-                ? coords
-                : coords
-                    ? [String(coords)]
-                    : [];
             reset({
                 coordinateType: {
                     value: String(showModal?.coordinate_type_id ?? ""),
@@ -127,8 +123,7 @@ export function CoordinatesModal({ showModal, closeModal, onSuccess }) {
                         showModal?.coordinate_type ??
                         `Type ${showModal?.coordinate_type_id ?? ""}`,
                 },
-                coordinateRows:
-                    list.length > 0 ? list.map((c) => ({ value: String(c) })) : [emptyCoordinateRow()],
+                coordinateRows: mapApiCoordinatesToFormRows(coords),
             });
         } else {
             reset({
@@ -167,9 +162,8 @@ export function CoordinatesModal({ showModal, closeModal, onSuccess }) {
 
     const onSubmit = async (data) => {
         setCoordinatesListError("");
-        const coordStrings = (data.coordinateRows ?? [])
-            .map((r) => r.value?.trim())
-            .filter(Boolean);
+        const rows = data.coordinateRows ?? [];
+        const coordStrings = rows.map((r) => r.value?.trim()).filter(Boolean);
         if (coordStrings.length === 0) {
             setCoordinatesListError("Add at least one coordinate (e.g. 25.5222,52.7677)");
             return;
@@ -183,16 +177,23 @@ export function CoordinatesModal({ showModal, closeModal, onSuccess }) {
         if (isEdit) {
             const typeId = Number(
                 showModal?.coordinate_type_id ??
-                showModal?.coordinates_id ??
-                showModal?._id,
+                    showModal?.coordinates_id ??
+                    showModal?._id,
             );
+            const coordinatesPayload = rows
+                .map((r) => {
+                    const value = (r.value ?? "").trim();
+                    if (!value) return null;
+                    const id = (r.coordinates_id ?? "").toString().trim();
+                    return id
+                        ? { coordinates_id: Number(id), value }
+                        : { value };
+                })
+                .filter(Boolean);
             await updateCoordinates({
                 formData: {
                     coordinate_type_id: typeId,
-                    coordinates: coordStrings,
-                    ...(showModal?.coordinates_id != null
-                        ? { coordinates_id: showModal.coordinates_id }
-                        : {}),
+                    coordinates: coordinatesPayload,
                 },
                 cb,
             });
@@ -406,6 +407,10 @@ export function CoordinatesModal({ showModal, closeModal, onSuccess }) {
                         <div className="d-flex flex-column gap-2">
                             {fields.map((field, index) => (
                                 <div className="d-flex align-items-start gap-2" key={field.id}>
+                                    <input
+                                        type="hidden"
+                                        {...register(`coordinateRows.${index}.coordinates_id`)}
+                                    />
                                     <div className="form-floating desig-inp flex-grow-1">
                                         <input
                                             type="text"
