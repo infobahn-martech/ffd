@@ -1282,6 +1282,13 @@ const PreArrivalContent = ({
   const [isLoadingCoordinateTypes, setIsLoadingCoordinateTypes] = useState(false);
   const [isLoadingCoordinates, setIsLoadingCoordinates] = useState(false);
   const [coordinateTypeOptions, setCoordinateTypeOptions] = useState([]);
+  const [coordinateOptions, setCoordinateOptions] = useState([]);
+  const formValuesRef = useRef(formValues);
+  const coordinatesFetchGenRef = useRef(0);
+
+  useEffect(() => {
+    formValuesRef.current = formValues;
+  }, [formValues]);
   const [reportDraft, setReportDraft] = useState({
     from: "operations@shipping.com",
     to: "",
@@ -1335,27 +1342,58 @@ const PreArrivalContent = ({
   const fetchCoordinatesByType = useCallback(
     async (coordinateTypeId) => {
       if (!coordinateTypeId) {
+        setCoordinateOptions([]);
         handleChange("coordinates")({ target: { value: "" } });
+        handleChange("preArrivalCoordinatesId")({ target: { value: "" } });
         return;
       }
 
+      const fetchId = ++coordinatesFetchGenRef.current;
       setIsLoadingCoordinates(true);
       try {
         const response = await coordinatesService.getCoordinatesByType({
           coordinate_type_id: coordinateTypeId,
         });
-        const selectedCoordinates = response?.data?.data?.[0]?.coordinates || "";
-        if (!selectedCoordinates) {
+        if (fetchId !== coordinatesFetchGenRef.current) return;
+
+        const raw = response?.data?.data ?? response?.data ?? [];
+        const list = Array.isArray(raw) ? raw : raw ? [raw] : [];
+        const mapped = list
+          .filter((item) => item?.coordinates_id != null && String(item.coordinates || "").trim())
+          .map((item) => ({
+            value: String(item.coordinates_id),
+            label: String(item.coordinates).trim(),
+          }));
+
+        setCoordinateOptions(mapped);
+
+        if (mapped.length === 0) {
+          handleChange("preArrivalCoordinatesId")({ target: { value: "" } });
           handleChange("coordinates")({ target: { value: "" } });
           notify("No coordinates found for selected type.", "warning");
           return;
         }
-        handleChange("coordinates")({ target: { value: selectedCoordinates } });
+
+        const latest = formValuesRef.current || {};
+        const byId = mapped.find((o) => o.value === String(latest.preArrivalCoordinatesId || ""));
+        const byCoords = mapped.find(
+          (o) => o.label === String(latest.coordinates || "").trim()
+        );
+        const pick = byId || byCoords;
+        if (pick) {
+          handleChange("preArrivalCoordinatesId")({ target: { value: pick.value } });
+          handleChange("coordinates")({ target: { value: pick.label } });
+        }
       } catch (error) {
+        if (fetchId !== coordinatesFetchGenRef.current) return;
+        setCoordinateOptions([]);
         handleChange("coordinates")({ target: { value: "" } });
+        handleChange("preArrivalCoordinatesId")({ target: { value: "" } });
         notify(error?.response?.data?.message || "Failed to fetch coordinates.", "error");
       } finally {
-        setIsLoadingCoordinates(false);
+        if (fetchId === coordinatesFetchGenRef.current) {
+          setIsLoadingCoordinates(false);
+        }
       }
     },
     [handleChange]
@@ -1399,6 +1437,8 @@ const PreArrivalContent = ({
 
   useEffect(() => {
     if (!formValues.coordinateTypeId) {
+      coordinatesFetchGenRef.current += 1;
+      setCoordinateOptions([]);
       return;
     }
     fetchCoordinatesByType(formValues.coordinateTypeId);
@@ -1407,9 +1447,19 @@ const PreArrivalContent = ({
   const handleCoordinateTypeChange = (e) => {
     const selectedTypeId = e.target.value;
     handleChange("coordinateTypeId")({ target: { value: selectedTypeId } });
+    handleChange("preArrivalCoordinatesId")({ target: { value: "" } });
+    handleChange("coordinates")({ target: { value: "" } });
     if (!selectedTypeId) {
-      handleChange("coordinates")({ target: { value: "" } });
+      coordinatesFetchGenRef.current += 1;
+      setCoordinateOptions([]);
     }
+  };
+
+  const handleCoordinatesSelectChange = (e) => {
+    const selectedId = e.target.value;
+    handleChange("preArrivalCoordinatesId")({ target: { value: selectedId } });
+    const opt = coordinateOptions.find((o) => o.value === selectedId);
+    handleChange("coordinates")({ target: { value: opt?.label || "" } });
   };
 
   const savePreArrivalData = async () => {
@@ -1664,16 +1714,38 @@ const PreArrivalContent = ({
                   />
                 </FormField>
 
-                {!!formValues?.coordinates && (
-                  <FormField label="Selected Coordinates">
-                    <FormInput
-                      type="text"
-                      value={formValues?.coordinates || ""}
-                      onChange={() => {}}
-                      placeholder="Coordinates will appear here..."
-                      disabled
+                {formValues?.coordinateTypeId ? (
+                  <FormField label="Select Coordinates">
+                    <FormSelect
+                      value={formValues?.preArrivalCoordinatesId || ""}
+                      onChange={handleCoordinatesSelectChange}
+                      options={coordinateOptions}
+                      placeholder={
+                        isLoadingCoordinates
+                          ? "Loading coordinates..."
+                          : coordinateOptions.length
+                            ? "Select coordinates..."
+                            : "No coordinates for this type"
+                      }
+                      disabled={
+                        isViewOnly ||
+                        isLoadingCoordinates ||
+                        coordinateOptions.length === 0
+                      }
                     />
                   </FormField>
+                ) : (
+                  !!formValues?.coordinates && (
+                    <FormField label="Coordinates">
+                      <FormInput
+                        type="text"
+                        value={formValues?.coordinates || ""}
+                        onChange={() => {}}
+                        placeholder="Coordinates will appear here..."
+                        disabled
+                      />
+                    </FormField>
+                  )
                 )}
               </OperationFormCard>
               <OperationFormCard className="operation-document-column">
