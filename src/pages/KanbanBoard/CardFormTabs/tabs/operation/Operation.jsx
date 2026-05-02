@@ -1524,13 +1524,16 @@ const PreArrivalContent = ({
       })
       .filter(Boolean);
 
+    const attachmentFile = (item) => {
+      if (item?.file instanceof File) return item.file;
+      if (item instanceof File) return item;
+      return null;
+    };
+
     const fd = new FormData();
     fd.append("call_id", callId);
     fd.append("card_id", cardId);
-    timeObjects.forEach((row, index) => {
-      fd.append(`time_objects[${index}][time_object_id]`, String(row.time_object_id));
-      fd.append(`time_objects[${index}][time_object_value]`, row.time_object_value);
-    });
+    fd.append("time_objects", JSON.stringify(timeObjects));
     fd.append("saber_status", formValues.saberUtStatus || "");
     fd.append("weather_forecast", formValues.weatherForecast || "");
     const coordinatesId = String(formValues.preArrivalCoordinatesId || "").trim();
@@ -1542,24 +1545,34 @@ const PreArrivalContent = ({
 
     if (formValues.saberUtStatus === SABER_APPLIED_BY_SEDRES) {
       (formValues.saberUtDocumentsAttachments || []).forEach((item) => {
-        if (item?.file instanceof File) {
-          fd.append("saber_attachments[]", item.file);
+        const f = attachmentFile(item);
+        if (f) {
+          fd.append("saber_attachments[]", f);
         }
       });
     }
 
     const dh = formValues.preArrivalDocumentHandling;
     (dh?.documents?.gro || []).forEach((doc) => {
-      if ((doc.files || []).length > 0) {
-        fd.append("gro_docs[document_id]", doc.id);
-      }
+      (doc.files || []).forEach((item) => {
+        const f = attachmentFile(item);
+        if (!f) return;
+        fd.append(`gro_docs[${doc.id}]`, f);
+      });
     });
 
     (dh?.documents?.customClearance || []).forEach((doc) => {
-      if ((doc.files || []).length > 0) {
-        fd.append("custom_docs[document_id]", doc.id);
-      }
+      (doc.files || []).forEach((item) => {
+        const f = attachmentFile(item);
+        if (!f) return;
+        fd.append(`custom_docs[${doc.id}]`, f);
+      });
     });
+
+    // eslint-disable-next-line no-console
+    for (let pair of fd.entries()) {
+      console.log(pair[0], pair[1]);
+    }
 
     try {
       setIsSavingPreArrival(true);
