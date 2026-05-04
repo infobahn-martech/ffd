@@ -23,6 +23,53 @@ function roleIdToPreArrivalProcessKey(roleId) {
   return null;
 }
 
+/** Nested `task_documents` groups (role + documents[]) or legacy flat rows. */
+export function normalizeTaskDocumentFlatItems(taskDocuments) {
+  const list = Array.isArray(taskDocuments) ? taskDocuments : [];
+  const out = [];
+  for (const entry of list) {
+    if (Array.isArray(entry?.documents) && entry.documents.length) {
+      for (const d of entry.documents) {
+        if (d?.document_id == null) continue;
+        out.push({
+          role_id: entry.role_id,
+          document_id: d.document_id,
+          file_name: d.file_name || d.fileName || "Document",
+          file_url: d.file_url || d.fileUrl || d.url || "",
+        });
+      }
+      continue;
+    }
+    if (entry?.document_id == null) continue;
+    out.push({
+      role_id: entry.role_id,
+      document_id: entry.document_id ?? entry.documentId,
+      file_name: entry.file_name || entry.fileName || "Document",
+      file_url: entry.file_url || entry.fileUrl || entry.url || "",
+    });
+  }
+  return out;
+}
+
+export function findTaskDocumentGroupByRole(taskDocuments, roleId) {
+  const arr = Array.isArray(taskDocuments) ? taskDocuments : [];
+  if (roleId === PRE_ARRIVAL_GRO_ROLE_ID) {
+    return arr.find(
+      (e) =>
+        Number(e?.role_id) === PRE_ARRIVAL_GRO_ROLE_ID ||
+        /^gro$/i.test(String(e?.role || "").trim())
+    );
+  }
+  if (roleId === PRE_ARRIVAL_CUSTOM_CLEARANCE_ROLE_ID) {
+    return arr.find(
+      (e) =>
+        Number(e?.role_id) === PRE_ARRIVAL_CUSTOM_CLEARANCE_ROLE_ID ||
+        /custom\s*clearance/i.test(String(e?.role || "").trim())
+    );
+  }
+  return arr.find((e) => Number(e?.role_id) === roleId);
+}
+
 const stageFileKey = (f) => `${f?.stage_document_id ?? ""}:${f?.name ?? ""}:${f?.url ?? ""}`;
 
 /**
@@ -86,15 +133,50 @@ export function mergePreArrivalDetailDocuments(currentHandling, taskDocuments = 
     if (!dup) row.files = [...files, entry];
   };
 
-  for (const td of taskDocuments || []) {
-    const docId = td?.document_id ?? td?.documentId;
-    const fileName = td?.file_name || td?.fileName || "Document";
-    if (docId == null) continue;
-    const idStr = String(docId);
-    const processKey = roleIdToPreArrivalProcessKey(td?.role_id);
-    if (!processKey) continue;
-    const row = (dh.documents[processKey] || []).find((r) => String(r.id) === idStr);
-    if (row) pushFile(row, { name: fileName });
+  const flatItems = normalizeTaskDocumentFlatItems(taskDocuments);
+  const buildRowsForProcess = (processKey) => {
+    const items = flatItems.filter((t) => roleIdToPreArrivalProcessKey(t?.role_id) === processKey);
+    if (!items.length) return null;
+    const idOrder = [];
+    const seen = new Set();
+    for (const t of items) {
+      const idStr = String(t.document_id);
+      if (!seen.has(idStr)) {
+        seen.add(idStr);
+        idOrder.push(idStr);
+      }
+    }
+    const existing = dh.documents[processKey] || [];
+    return idOrder.map((idStr) => {
+      const first = items.find((x) => String(x.document_id) === idStr);
+      const name = String(first?.file_name || "Document");
+      const prev = existing.find((r) => String(r.id) === idStr);
+      const row = {
+        id: idStr,
+        name,
+        is_required: Boolean(prev?.is_required),
+        files: Array.isArray(prev?.files) ? [...prev.files] : [],
+      };
+      for (const t of items) {
+        if (String(t.document_id) !== idStr) continue;
+        const fn = t.file_name || name;
+        const u = String(t.file_url || "").trim();
+        if (u) pushFile(row, { name: fn, url: u });
+      }
+      return row;
+    });
+  };
+
+  const groBuilt = buildRowsForProcess("gro");
+  if (groBuilt?.length) {
+    dh.documents.gro = groBuilt;
+    dh.selectedProcesses.gro = true;
+  }
+
+  const ccBuilt = buildRowsForProcess("customClearance");
+  if (ccBuilt?.length) {
+    dh.documents.customClearance = ccBuilt;
+    dh.selectedProcesses.customClearance = true;
   }
 
   return dh;
@@ -114,6 +196,16 @@ export function applyPreArrivalGetDetailToForm({
   const root = responseBody?.data ?? responseBody ?? {};
   const pre = root.prearrival ?? root.preArrival;
   const timeObjects = root.time_objects ?? root.timeObjects ?? [];
+  const taskDocuments = root.task_documents ?? root.taskDocuments ?? [];
+
+  const groAssign = findTaskDocumentGroupByRole(taskDocuments, PRE_ARRIVAL_GRO_ROLE_ID);
+  const ccAssign = findTaskDocumentGroupByRole(taskDocuments, PRE_ARRIVAL_CUSTOM_CLEARANCE_ROLE_ID);
+  if (groAssign?.user_id != null) {
+    handleChange("assignedGro")({ target: { value: String(groAssign.user_id) } });
+  }
+  if (ccAssign?.user_id != null) {
+    handleChange("assignedCustom")({ target: { value: String(ccAssign.user_id) } });
+  }
 
   let appliedAnyTime = false;
   let coordinatesId = null;

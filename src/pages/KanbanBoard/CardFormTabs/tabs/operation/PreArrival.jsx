@@ -14,6 +14,8 @@ import appointmentAcceptanceService from "../../../../../services/appointmentAcc
 import coordinatesService from "../../../../../services/coordinatesService";
 import {
   BAD_WEATHER,
+  PRE_ARRIVAL_CUSTOM_CLEARANCE_ROLE_ID,
+  PRE_ARRIVAL_GRO_ROLE_ID,
   PRE_ARRIVAL_SABER_STATUS_OPTIONS,
   PRE_ARRIVAL_SABER_STATUS_SAVE_VALUE,
   PRE_ARRIVAL_WEATHER_FORECAST_OPTIONS,
@@ -32,7 +34,11 @@ import {
   OperationSaveSection,
 } from "./components/OperationCommon";
 import { extractReportTemplateFields } from "./operationReportTemplate";
-import { applyPreArrivalGetDetailToForm, mergePreArrivalDetailDocuments } from "./preArrivalDetailApply";
+import {
+  applyPreArrivalGetDetailToForm,
+  findTaskDocumentGroupByRole,
+  mergePreArrivalDetailDocuments,
+} from "./preArrivalDetailApply";
 
 const IconUpload = () => (
   <svg width="18" height="18" viewBox="0 0 24 24" fill="none" aria-hidden>
@@ -159,7 +165,14 @@ DocumentGroupCard.propTypes = {
   children: PropTypes.node.isRequired,
 };
 
-function PreArrivalDocumentHandlingSection({ formValues, handleChange, isViewOnly, portId }) {
+function PreArrivalDocumentHandlingSection({
+  formValues,
+  handleChange,
+  isViewOnly,
+  portId,
+  assigneeHints = null,
+  detailDocSkip = null,
+}) {
   const dh = formValues.preArrivalDocumentHandling || DEFAULT_PRE_ARRIVAL_DOCUMENT_HANDLING;
   const stageFiles = Array.isArray(dh.stageFiles) ? dh.stageFiles : [];
   const dhRef = useRef(dh);
@@ -168,25 +181,44 @@ function PreArrivalDocumentHandlingSection({ formValues, handleChange, isViewOnl
   const [groOptions, setGroOptions] = useState([]);
   const [customClearanceOptions, setCustomClearanceOptions] = useState([]);
 
+  const groOptionsForSelect = useMemo(() => {
+    const h = assigneeHints?.gro;
+    const base = groOptions;
+    if (!h?.value) return base;
+    const v = String(h.value);
+    if (base.some((o) => o.value === v)) return base;
+    return [
+      {
+        value: v,
+        label: h.label || `User ${v}`,
+        roleId: h.roleId != null ? Number(h.roleId) : PRE_ARRIVAL_GRO_ROLE_ID,
+      },
+      ...base,
+    ];
+  }, [groOptions, assigneeHints?.gro]);
+
+  const customOptionsForSelect = useMemo(() => {
+    const h = assigneeHints?.customClearance;
+    const base = customClearanceOptions;
+    if (!h?.value) return base;
+    const v = String(h.value);
+    if (base.some((o) => o.value === v)) return base;
+    return [
+      {
+        value: v,
+        label: h.label || `User ${v}`,
+        roleId: h.roleId != null ? Number(h.roleId) : PRE_ARRIVAL_CUSTOM_CLEARANCE_ROLE_ID,
+      },
+      ...base,
+    ];
+  }, [customClearanceOptions, assigneeHints?.customClearance]);
+
   useEffect(() => {
     dhRef.current = dh;
   }, [dh]);
 
   const setDh = (next) => {
     handleChange("preArrivalDocumentHandling")({ target: { value: next } });
-  };
-
-  const toggleProcess = (key) => {
-    if (isViewOnly) return;
-    const isCurrentlySelected = Boolean(dh.selectedProcesses?.[key]);
-    setDh({
-      ...dh,
-      selectedProcesses: {
-        gro: false,
-        customClearance: false,
-        [key]: !isCurrentlySelected,
-      },
-    });
   };
 
   const patchRowFiles = (processKey, rowId, nextFiles) => {
@@ -211,7 +243,6 @@ function PreArrivalDocumentHandlingSection({ formValues, handleChange, isViewOnl
     });
   }, []);
 
-  const { gro: groOn, customClearance: ccOn } = dh.selectedProcesses || {};
   const showDocumentHandlingContent = Boolean(selectedGroOption && selectedCustomClearanceOption);
 
   useEffect(() => {
@@ -276,19 +307,28 @@ function PreArrivalDocumentHandlingSection({ formValues, handleChange, isViewOnl
   useEffect(() => {
     let cancelled = false;
 
-    const selectedGroRoleId = groOptions.find((option) => option.value === selectedGroOption)?.roleId;
-    const selectedCustomRoleId = customClearanceOptions.find(
+    const selectedGroRoleId = groOptionsForSelect.find((option) => option.value === selectedGroOption)?.roleId;
+    const selectedCustomRoleId = customOptionsForSelect.find(
       (option) => option.value === selectedCustomClearanceOption
     )?.roleId;
 
+    const skipGro =
+      Boolean(detailDocSkip?.groHasDocs) &&
+      detailDocSkip?.groUserId != null &&
+      String(detailDocSkip.groUserId) === String(selectedGroOption || "");
+    const skipCustom =
+      Boolean(detailDocSkip?.customHasDocs) &&
+      detailDocSkip?.customUserId != null &&
+      String(detailDocSkip.customUserId) === String(selectedCustomClearanceOption || "");
+
     const loadRoleBasedDocuments = async () => {
       const tasks = [];
-      if (selectedGroRoleId) {
+      if (!skipGro && selectedGroRoleId) {
         tasks.push(preArrivalInfoService.getDocumentsByRole(selectedGroRoleId));
       } else {
         tasks.push(Promise.resolve(null));
       }
-      if (selectedCustomRoleId) {
+      if (!skipCustom && selectedCustomRoleId) {
         tasks.push(preArrivalInfoService.getDocumentsByRole(selectedCustomRoleId));
       } else {
         tasks.push(Promise.resolve(null));
@@ -299,18 +339,22 @@ function PreArrivalDocumentHandlingSection({ formValues, handleChange, isViewOnl
         if (cancelled) return;
 
         const currentDh = dhRef.current || DEFAULT_PRE_ARRIVAL_DOCUMENT_HANDLING;
-        const groRows = mergeRoleDocuments(currentDh?.documents?.gro || [], groResponse?.data?.data || []);
-        const customRows = mergeRoleDocuments(
-          currentDh?.documents?.customClearance || [],
-          customResponse?.data?.data || []
-        );
+        const groRows = skipGro
+          ? currentDh?.documents?.gro || []
+          : mergeRoleDocuments(currentDh?.documents?.gro || [], groResponse?.data?.data || []);
+        const customRows = skipCustom
+          ? currentDh?.documents?.customClearance || []
+          : mergeRoleDocuments(
+              currentDh?.documents?.customClearance || [],
+              customResponse?.data?.data || []
+            );
 
         setDh({
           ...currentDh,
           documents: {
             ...currentDh.documents,
-            gro: selectedGroRoleId ? groRows : [],
-            customClearance: selectedCustomRoleId ? customRows : [],
+            gro: selectedGroOption ? groRows : [],
+            customClearance: selectedCustomClearanceOption ? customRows : [],
           },
         });
       } catch (error) {
@@ -328,9 +372,13 @@ function PreArrivalDocumentHandlingSection({ formValues, handleChange, isViewOnl
   }, [
     selectedGroOption,
     selectedCustomClearanceOption,
-    groOptions,
-    customClearanceOptions,
+    groOptionsForSelect,
+    customOptionsForSelect,
     mergeRoleDocuments,
+    detailDocSkip?.groUserId,
+    detailDocSkip?.customUserId,
+    detailDocSkip?.groHasDocs,
+    detailDocSkip?.customHasDocs,
   ]);
 
   return (
@@ -340,7 +388,7 @@ function PreArrivalDocumentHandlingSection({ formValues, handleChange, isViewOnl
           <FormSelect
             value={formValues.assignedGro || ""}
             onChange={handleChange("assignedGro")}
-            options={groOptions}
+            options={groOptionsForSelect}
             placeholder="Select GRO"
             disabled={isViewOnly || !portId}
           />
@@ -349,7 +397,7 @@ function PreArrivalDocumentHandlingSection({ formValues, handleChange, isViewOnl
           <FormSelect
             value={formValues.assignedCustom || ""}
             onChange={handleChange("assignedCustom")}
-            options={customClearanceOptions}
+            options={customOptionsForSelect}
             placeholder="Select Custom clearance"
             disabled={isViewOnly || !portId}
           />
@@ -378,57 +426,41 @@ function PreArrivalDocumentHandlingSection({ formValues, handleChange, isViewOnl
       {showDocumentHandlingContent && (
         <>
           <div className="document-handling-section__divider" />
-          <div className="document-handling-header-row" role="group" aria-label="Document process selection">
+          <div className="document-handling-header-row" role="group" aria-label="Document handling">
             <h3 className="document-handling-section__heading">Document handling</h3>
-            <button
-              type="button"
-              className={`process-selector-option${groOn ? " process-selector-option--active" : ""}`}
-              onClick={() => toggleProcess("gro")}
-              disabled={isViewOnly}
-            >
-              GRO
-            </button>
-            <button
-              type="button"
-              className={`process-selector-option${ccOn ? " process-selector-option--active" : ""}`}
-              onClick={() => toggleProcess("customClearance")}
-              disabled={isViewOnly}
-            >
-              Custom
-            </button>
           </div>
 
-          {groOn && (
-            <DocumentGroupCard title="GRO documents">
-              {(dh.documents.gro || []).map((doc) => (
-                <CompactFileUploadRow
-                  key={doc.id}
-                  label={doc.name}
-                  files={doc.files || []}
-                  isRequired={Boolean(doc.is_required)}
-                  isViewOnly={isViewOnly}
-                  onAddFiles={(newFiles) => patchRowFiles("gro", doc.id, [...(doc.files || []), ...newFiles])}
-                  onRemoveAt={(idx) => patchRowFiles("gro", doc.id, (doc.files || []).filter((_, i) => i !== idx))}
-                />
-              ))}
-            </DocumentGroupCard>
-          )}
+          <DocumentGroupCard title="GRO documents">
+            {(dh.documents.gro || []).map((doc) => (
+              <CompactFileUploadRow
+                key={doc.id}
+                label={doc.name}
+                files={doc.files || []}
+                isRequired={Boolean(doc.is_required)}
+                isViewOnly={isViewOnly}
+                onAddFiles={(newFiles) => patchRowFiles("gro", doc.id, [...(doc.files || []), ...newFiles])}
+                onRemoveAt={(idx) => patchRowFiles("gro", doc.id, (doc.files || []).filter((_, i) => i !== idx))}
+              />
+            ))}
+          </DocumentGroupCard>
 
-          {ccOn && (
-            <DocumentGroupCard title="Custom clearance documents">
-              {(dh.documents.customClearance || []).map((doc) => (
-                <CompactFileUploadRow
-                  key={doc.id}
-                  label={doc.name}
-                  files={doc.files || []}
-                  isRequired={Boolean(doc.is_required)}
-                  isViewOnly={isViewOnly}
-                  onAddFiles={(newFiles) => patchRowFiles("customClearance", doc.id, [...(doc.files || []), ...newFiles])}
-                  onRemoveAt={(idx) => patchRowFiles("customClearance", doc.id, (doc.files || []).filter((_, i) => i !== idx))}
-                />
-              ))}
-            </DocumentGroupCard>
-          )}
+          <DocumentGroupCard title="Custom clearance documents">
+            {(dh.documents.customClearance || []).map((doc) => (
+              <CompactFileUploadRow
+                key={doc.id}
+                label={doc.name}
+                files={doc.files || []}
+                isRequired={Boolean(doc.is_required)}
+                isViewOnly={isViewOnly}
+                onAddFiles={(newFiles) =>
+                  patchRowFiles("customClearance", doc.id, [...(doc.files || []), ...newFiles])
+                }
+                onRemoveAt={(idx) =>
+                  patchRowFiles("customClearance", doc.id, (doc.files || []).filter((_, i) => i !== idx))
+                }
+              />
+            ))}
+          </DocumentGroupCard>
         </>
       )}
     </div>
@@ -440,6 +472,24 @@ PreArrivalDocumentHandlingSection.propTypes = {
   handleChange: PropTypes.func.isRequired,
   isViewOnly: PropTypes.bool,
   portId: PropTypes.oneOfType([PropTypes.string, PropTypes.number]),
+  assigneeHints: PropTypes.shape({
+    gro: PropTypes.shape({
+      value: PropTypes.string,
+      label: PropTypes.string,
+      roleId: PropTypes.oneOfType([PropTypes.string, PropTypes.number]),
+    }),
+    customClearance: PropTypes.shape({
+      value: PropTypes.string,
+      label: PropTypes.string,
+      roleId: PropTypes.oneOfType([PropTypes.string, PropTypes.number]),
+    }),
+  }),
+  detailDocSkip: PropTypes.shape({
+    groUserId: PropTypes.string,
+    customUserId: PropTypes.string,
+    groHasDocs: PropTypes.bool,
+    customHasDocs: PropTypes.bool,
+  }),
 };
 
 function PreArrival({
@@ -464,6 +514,17 @@ function PreArrival({
     cc: "",
     subject: "Report - Pre Arrival",
     message: "",
+  });
+  const emailPreviewFromDetailRef = useRef(false);
+  const [preArrivalDetailAssigneeHints, setPreArrivalDetailAssigneeHints] = useState({
+    gro: null,
+    customClearance: null,
+  });
+  const [preArrivalDetailDocSkip, setPreArrivalDetailDocSkip] = useState({
+    groUserId: null,
+    customUserId: null,
+    groHasDocs: false,
+    customHasDocs: false,
   });
   const formValuesRef = useRef(formValues);
   const coordinatesFetchGenRef = useRef(0);
@@ -492,6 +553,14 @@ function PreArrival({
   useEffect(() => {
     pendingCoordinateIdRef.current = null;
     preArrivalDocumentsDetailRef.current = { taskDocuments: [], stageDocuments: [] };
+    emailPreviewFromDetailRef.current = false;
+    setPreArrivalDetailAssigneeHints({ gro: null, customClearance: null });
+    setPreArrivalDetailDocSkip({
+      groUserId: null,
+      customUserId: null,
+      groHasDocs: false,
+      customHasDocs: false,
+    });
   }, [callId]);
 
   const documentHandlingRowsKey = useMemo(() => {
@@ -548,6 +617,55 @@ function PreArrival({
         });
         if (coordinatesId && !String(snapshot.coordinateTypeId || "").trim()) {
           pendingCoordinateIdRef.current = coordinatesId;
+        }
+
+        const taskDocs = root.task_documents ?? root.taskDocuments ?? [];
+        const groG = findTaskDocumentGroupByRole(taskDocs, PRE_ARRIVAL_GRO_ROLE_ID);
+        const ccG = findTaskDocumentGroupByRole(taskDocs, PRE_ARRIVAL_CUSTOM_CLEARANCE_ROLE_ID);
+
+        setPreArrivalDetailAssigneeHints({
+          gro:
+            groG?.user_id != null
+              ? {
+                  value: String(groG.user_id),
+                  label: groG.name || `User ${groG.user_id}`,
+                  roleId: groG.role_id ?? PRE_ARRIVAL_GRO_ROLE_ID,
+                }
+              : null,
+          customClearance:
+            ccG?.user_id != null
+              ? {
+                  value: String(ccG.user_id),
+                  label: ccG.name || `User ${ccG.user_id}`,
+                  roleId: ccG.role_id ?? PRE_ARRIVAL_CUSTOM_CLEARANCE_ROLE_ID,
+                }
+              : null,
+        });
+
+        setPreArrivalDetailDocSkip({
+          groUserId: groG?.user_id != null ? String(groG.user_id) : null,
+          customUserId: ccG?.user_id != null ? String(ccG.user_id) : null,
+          groHasDocs: Boolean(groG?.documents?.length),
+          customHasDocs: Boolean(ccG?.documents?.length),
+        });
+
+        const sent = root.sent_report ?? root.sentReport;
+        if (sent != null && typeof sent === "object") {
+          emailPreviewFromDetailRef.current = true;
+          setReportDraft({
+            from: sent.from_email != null ? String(sent.from_email) : "operations@shipping.com",
+            to: sent.to_email != null ? String(sent.to_email) : "",
+            cc:
+              sent.cc_emails != null
+                ? String(sent.cc_emails)
+                : sent.cc_email != null
+                  ? String(sent.cc_email)
+                  : "",
+            subject: sent.subject != null ? String(sent.subject) : "Report - Pre Arrival",
+            message: sent.body != null ? String(sent.body) : "",
+          });
+        } else {
+          emailPreviewFromDetailRef.current = false;
         }
 
         applyDetailDocuments();
@@ -895,6 +1013,7 @@ function PreArrival({
         body: reportBody ?? "",
         to_email: reportDraft.to ?? "",
         from_email: reportDraft.from ?? "",
+        cc_emails: reportDraft.cc ?? "",
       })
     );
 
@@ -941,6 +1060,7 @@ function PreArrival({
           report_type_id: 2,
         });
         if (cancelled) return;
+        if (emailPreviewFromDetailRef.current) return;
 
         const template = extractReportTemplateFields(response);
         setReportDraft((prev) => ({
@@ -1100,6 +1220,8 @@ function PreArrival({
                   handleChange={handleChange}
                   isViewOnly={isViewOnly}
                   portId={portId}
+                  assigneeHints={preArrivalDetailAssigneeHints}
+                  detailDocSkip={preArrivalDetailDocSkip}
                 />
               </OperationFormCard>
               <OperationFormCard className="operation-email-column">
