@@ -48,6 +48,17 @@ const PRE_ARRIVAL_WEATHER_FORECAST_OPTIONS = [
 const SABER_APPLIED_BY_SEDRES = "Applied by Sedres";
 const BAD_WEATHER = "Bad weather";
 
+/** API expects integers on save; UI keeps human-readable option values. */
+const PRE_ARRIVAL_SABER_STATUS_SAVE_VALUE = {
+  "Applied by Client": 1,
+  "Applied by Sedres": 2,
+};
+
+const PRE_ARRIVAL_WEATHER_FORECAST_SAVE_VALUE = {
+  "Normal weather": 1,
+  "Bad weather": 2,
+};
+
 const EVENT_NAME_FIELD_KEY_MAP = {
   "expected time of arrival": "expectedArrival",
   "expected commencement of custom inspection": "customsInspection",
@@ -1472,8 +1483,16 @@ const PreArrivalContent = ({
     fd.append("call_id", callId);
     fd.append("card_id", cardId);
     fd.append("time_objects", JSON.stringify(timeObjects));
-    fd.append("saber_status", formValues.saberUtStatus || "");
-    fd.append("weather_forecast", formValues.weatherForecast || "");
+    const saberStatusNum = PRE_ARRIVAL_SABER_STATUS_SAVE_VALUE[formValues.saberUtStatus];
+    fd.append(
+      "saber_status",
+      saberStatusNum != null ? String(saberStatusNum) : ""
+    );
+    const weatherForecastNum = PRE_ARRIVAL_WEATHER_FORECAST_SAVE_VALUE[formValues.weatherForecast];
+    fd.append(
+      "weather_forecast",
+      weatherForecastNum != null ? String(weatherForecastNum) : ""
+    );
     const coordinatesId = String(formValues.preArrivalCoordinatesId || "").trim();
     if (coordinatesId) {
       fd.append("coordinates_id", coordinatesId);
