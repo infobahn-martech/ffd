@@ -1,0 +1,968 @@
+import { useState, useCallback, useRef, useEffect } from "react";
+import PropTypes from "prop-types";
+import GroupSettingsIcon from "../../../../../assets/images/cv.png";
+import { notify } from "../../../../../components/Toaster";
+import { buildPreArrivalReportBody } from "../../services/sendReportBodyBuilder";
+import {
+  DEFAULT_PRE_ARRIVAL_DOCUMENT_HANDLING,
+  collectPreArrivalProcessAttachments,
+} from "./preArrivalDocumentHandling";
+import preArrivalInfoService from "../../../../../services/preArrivalInfoService";
+import userService from "../../../../../services/userService";
+import preArrivalService from "../../../../../services/preArrivalService";
+import appointmentAcceptanceService from "../../../../../services/appointmentAcceptanceService";
+import coordinatesService from "../../../../../services/coordinatesService";
+import {
+  BAD_WEATHER,
+  PRE_ARRIVAL_SABER_STATUS_OPTIONS,
+  PRE_ARRIVAL_SABER_STATUS_SAVE_VALUE,
+  PRE_ARRIVAL_WEATHER_FORECAST_OPTIONS,
+  PRE_ARRIVAL_WEATHER_FORECAST_SAVE_VALUE,
+  SABER_APPLIED_BY_SEDRES,
+} from "./operationConstants";
+import {
+  DynamicDateTimeFields,
+  FormField,
+  FormInput,
+  FormSection,
+  FormSelect,
+  OperationEmailPreviewPanel,
+  OperationFileUpload,
+  OperationFormCard,
+  OperationSaveSection,
+} from "./components/OperationCommon";
+import { extractReportTemplateFields } from "./operationReportTemplate";
+
+const IconUpload = () => (
+  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" aria-hidden>
+    <path d="M21 15V19C21 19.5304 20.7893 20.0391 20.4142 20.4142C20.0391 20.7893 19.5304 21 19 21H5C4.46957 21 3.96086 20.7893 3.58579 20.4142C3.21071 20.0391 3 19.5304 3 19V15" stroke="currentColor" strokeWidth="2" strokeLinecap="round" />
+    <path d="M17 8L12 3L7 8" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+    <path d="M12 3V15" stroke="currentColor" strokeWidth="2" strokeLinecap="round" />
+  </svg>
+);
+
+const IconEye = () => (
+  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" aria-hidden>
+    <path d="M1 12C1 12 5 4 12 4C19 4 23 12 23 12C23 12 19 20 12 20C5 20 1 12 1 12Z" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+    <circle cx="12" cy="12" r="3" stroke="currentColor" strokeWidth="2" />
+  </svg>
+);
+
+const IconTrash = () => (
+  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" aria-hidden>
+    <path d="M3 6H5H21" stroke="currentColor" strokeWidth="2" strokeLinecap="round" />
+    <path d="M8 6V4C8 3.46957 8.21071 2.96086 8.58579 2.58579C8.96086 2.21071 9.46957 2 10 2H14C14.5304 2 15.0391 2.21071 15.4142 2.58579C15.7893 2.96086 16 3.46957 16 4V6M19 6V20C19 20.5304 18.7893 21.0391 18.4142 21.4142C18.0391 21.7893 17.5304 22 17 22H7C6.46957 22 5.96086 21.7893 5.58579 21.4142C5.21071 21.0391 5 20.5304 5 20V6H19Z" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+  </svg>
+);
+
+function openAttachmentPreview(attachment) {
+  const raw = attachment?.file;
+  if (raw instanceof Blob) {
+    const url = URL.createObjectURL(raw);
+    window.open(url, "_blank", "noopener,noreferrer");
+    window.setTimeout(() => URL.revokeObjectURL(url), 60_000);
+    return;
+  }
+  console.log("Preview document:", attachment?.name);
+}
+
+const CompactFileUploadRow = ({ label, files = [], onAddFiles, onRemoveAt, isViewOnly = false }) => {
+  const inputRef = useRef(null);
+  const hasFiles = (files || []).length > 0;
+
+  const handleInput = (e) => {
+    const selectedFiles = Array.from(e.target.files || []);
+    if (selectedFiles.length) {
+      const mapped = selectedFiles.map((file) => ({
+        name: file.name,
+        file,
+        size: file.size,
+        type: file.type,
+      }));
+      onAddFiles(mapped);
+    }
+    e.target.value = "";
+  };
+
+  return (
+    <div className="document-row compact-file-upload-row">
+      <div className="document-row-name compact-file-upload-label">
+        <span title={label}>{label}</span>
+      </div>
+      <div className="document-row-actions compact-file-upload-actions">
+        {hasFiles && (
+          <button type="button" className="document-row-icon-btn" onClick={() => openAttachmentPreview(files[0])} title="Preview">
+            <IconEye />
+          </button>
+        )}
+        {!isViewOnly && (
+          <>
+            <button type="button" className="document-row-icon-btn" onClick={() => inputRef.current?.click()} title={hasFiles ? "Add more files" : "Upload files"}>
+              <IconUpload />
+            </button>
+            <input ref={inputRef} type="file" className="document-row-file-input" onChange={handleInput} aria-label={`Upload ${label}`} multiple />
+            {hasFiles && (
+              <button type="button" className="document-row-icon-btn document-row-icon-btn--danger" onClick={() => onRemoveAt(files.length - 1)} title="Remove latest file">
+                <IconTrash />
+              </button>
+            )}
+          </>
+        )}
+      </div>
+    </div>
+  );
+};
+
+CompactFileUploadRow.propTypes = {
+  label: PropTypes.string.isRequired,
+  files: PropTypes.array,
+  isRequired: PropTypes.bool,
+  onAddFiles: PropTypes.func.isRequired,
+  onRemoveAt: PropTypes.func.isRequired,
+  isViewOnly: PropTypes.bool,
+};
+
+const SaberUploadBox = ({ files = [], onAddFiles, isViewOnly = false }) => {
+  return (
+    <OperationFileUpload
+      files={files}
+      onAddFiles={onAddFiles}
+      isViewOnly={isViewOnly}
+      ariaLabel="Upload SABER certificate files"
+    />
+  );
+};
+
+SaberUploadBox.propTypes = {
+  files: PropTypes.array,
+  onAddFiles: PropTypes.func.isRequired,
+  isViewOnly: PropTypes.bool,
+};
+
+function DocumentGroupCard({ title, children }) {
+  return (
+    <div className="document-group-card">
+      <h4 className="document-group-card__title">{title}</h4>
+      <div className="document-group-card__body">{children}</div>
+    </div>
+  );
+}
+
+DocumentGroupCard.propTypes = {
+  title: PropTypes.string.isRequired,
+  children: PropTypes.node.isRequired,
+};
+
+function PreArrivalDocumentHandlingSection({ formValues, handleChange, isViewOnly, portId }) {
+  const dh = formValues.preArrivalDocumentHandling || DEFAULT_PRE_ARRIVAL_DOCUMENT_HANDLING;
+  const dhRef = useRef(dh);
+  const selectedGroOption = formValues.assignedGro || "";
+  const selectedCustomClearanceOption = formValues.assignedCustom || "";
+  const [groOptions, setGroOptions] = useState([]);
+  const [customClearanceOptions, setCustomClearanceOptions] = useState([]);
+
+  useEffect(() => {
+    dhRef.current = dh;
+  }, [dh]);
+
+  const setDh = (next) => {
+    handleChange("preArrivalDocumentHandling")({ target: { value: next } });
+  };
+
+  const toggleProcess = (key) => {
+    if (isViewOnly) return;
+    const isCurrentlySelected = Boolean(dh.selectedProcesses?.[key]);
+    setDh({
+      ...dh,
+      selectedProcesses: {
+        gro: false,
+        customClearance: false,
+        [key]: !isCurrentlySelected,
+      },
+    });
+  };
+
+  const patchRowFiles = (processKey, rowId, nextFiles) => {
+    const rows = (dh.documents[processKey] || []).map((r) => (r.id === rowId ? { ...r, files: nextFiles } : r));
+    setDh({ ...dh, documents: { ...dh.documents, [processKey]: rows } });
+  };
+
+  const mergeRoleDocuments = useCallback((existingRows = [], incomingRows = []) => {
+    const normalizedIncoming = (Array.isArray(incomingRows) ? incomingRows : []).map((row, index) => ({
+      id: row?.document_id != null ? String(row.document_id) : `role-doc-${index}`,
+      name: row?.document_name || row?.name || `Document ${index + 1}`,
+      is_required: Boolean(row?.is_required ?? row?.required),
+      files: [],
+    }));
+
+    return normalizedIncoming.map((incomingRow) => {
+      const matched = (existingRows || []).find((row) => String(row?.id) === String(incomingRow.id));
+      return {
+        ...incomingRow,
+        files: Array.isArray(matched?.files) ? matched.files : [],
+      };
+    });
+  }, []);
+
+  const { gro: groOn, customClearance: ccOn } = dh.selectedProcesses || {};
+  const showDocumentHandlingContent = Boolean(selectedGroOption && selectedCustomClearanceOption);
+
+  useEffect(() => {
+    let cancelled = false;
+
+    const mapUserOptions = (response) =>
+      (response?.data?.data || response?.data || [])
+        .filter((user) => user?.user_id != null)
+        .map((user) => ({
+          value: String(user.user_id),
+          label: user.name || `User ${user.user_id}`,
+          roleId: user.role_id ?? user.roleId ?? user?.role?.role_id ?? user?.role?.id ?? null,
+        }));
+
+    const loadUserOptions = async () => {
+      if (!portId) {
+        setGroOptions([]);
+        setCustomClearanceOptions([]);
+        handleChange("assignedGro")({ target: { value: "" } });
+        handleChange("assignedCustom")({ target: { value: "" } });
+        return;
+      }
+
+      try {
+        const [groRes, clearanceRes] = await Promise.all([
+          userService.getUsersByRole({ role_id: 4, port_id: portId }),
+          userService.getUsersByRole({ role_id: 5, port_id: portId }),
+        ]);
+        if (cancelled) return;
+
+        const nextGroOptions = mapUserOptions(groRes);
+        const nextCustomClearanceOptions = mapUserOptions(clearanceRes);
+        setGroOptions(nextGroOptions);
+        setCustomClearanceOptions(nextCustomClearanceOptions);
+
+        if (selectedGroOption && !nextGroOptions.some((option) => option.value === selectedGroOption)) {
+          handleChange("assignedGro")({ target: { value: "" } });
+        }
+        if (
+          selectedCustomClearanceOption &&
+          !nextCustomClearanceOptions.some((option) => option.value === selectedCustomClearanceOption)
+        ) {
+          handleChange("assignedCustom")({ target: { value: "" } });
+        }
+      } catch (error) {
+        if (cancelled) return;
+        setGroOptions([]);
+        setCustomClearanceOptions([]);
+        handleChange("assignedGro")({ target: { value: "" } });
+        handleChange("assignedCustom")({ target: { value: "" } });
+        console.error("[Operation] users/get_users_by_role failed", error);
+      }
+    };
+
+    loadUserOptions();
+
+    return () => {
+      cancelled = true;
+    };
+  }, [portId, selectedGroOption, selectedCustomClearanceOption, handleChange]);
+
+  useEffect(() => {
+    let cancelled = false;
+
+    const selectedGroRoleId = groOptions.find((option) => option.value === selectedGroOption)?.roleId;
+    const selectedCustomRoleId = customClearanceOptions.find(
+      (option) => option.value === selectedCustomClearanceOption
+    )?.roleId;
+
+    const loadRoleBasedDocuments = async () => {
+      const tasks = [];
+      if (selectedGroRoleId) {
+        tasks.push(preArrivalInfoService.getDocumentsByRole(selectedGroRoleId));
+      } else {
+        tasks.push(Promise.resolve(null));
+      }
+      if (selectedCustomRoleId) {
+        tasks.push(preArrivalInfoService.getDocumentsByRole(selectedCustomRoleId));
+      } else {
+        tasks.push(Promise.resolve(null));
+      }
+
+      try {
+        const [groResponse, customResponse] = await Promise.all(tasks);
+        if (cancelled) return;
+
+        const currentDh = dhRef.current || DEFAULT_PRE_ARRIVAL_DOCUMENT_HANDLING;
+        const groRows = mergeRoleDocuments(currentDh?.documents?.gro || [], groResponse?.data?.data || []);
+        const customRows = mergeRoleDocuments(
+          currentDh?.documents?.customClearance || [],
+          customResponse?.data?.data || []
+        );
+
+        setDh({
+          ...currentDh,
+          documents: {
+            ...currentDh.documents,
+            gro: selectedGroRoleId ? groRows : [],
+            customClearance: selectedCustomRoleId ? customRows : [],
+          },
+        });
+      } catch (error) {
+        if (cancelled) return;
+        console.error("[Operation] pre_arrival/get_documents_by_role failed", error);
+      }
+    };
+
+    loadRoleBasedDocuments();
+
+    return () => {
+      cancelled = true;
+    };
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- setDh is stable via handleChange + dhRef; omitting avoids refetch loops
+  }, [
+    selectedGroOption,
+    selectedCustomClearanceOption,
+    groOptions,
+    customClearanceOptions,
+    mergeRoleDocuments,
+  ]);
+
+  return (
+    <div className="document-handling-section">
+      <div className="document-handling-preselect">
+        <FormField label="Select GRO">
+          <FormSelect
+            value={formValues.assignedGro || ""}
+            onChange={handleChange("assignedGro")}
+            options={groOptions}
+            placeholder="Select GRO"
+            disabled={isViewOnly || !portId}
+          />
+        </FormField>
+        <FormField label="Select Custom clearance">
+          <FormSelect
+            value={formValues.assignedCustom || ""}
+            onChange={handleChange("assignedCustom")}
+            options={customClearanceOptions}
+            placeholder="Select Custom clearance"
+            disabled={isViewOnly || !portId}
+          />
+        </FormField>
+      </div>
+
+      {showDocumentHandlingContent && (
+        <>
+          <div className="document-handling-section__divider" />
+          <div className="document-handling-header-row" role="group" aria-label="Document process selection">
+            <h3 className="document-handling-section__heading">Document handling</h3>
+            <button
+              type="button"
+              className={`process-selector-option${groOn ? " process-selector-option--active" : ""}`}
+              onClick={() => toggleProcess("gro")}
+              disabled={isViewOnly}
+            >
+              GRO
+            </button>
+            <button
+              type="button"
+              className={`process-selector-option${ccOn ? " process-selector-option--active" : ""}`}
+              onClick={() => toggleProcess("customClearance")}
+              disabled={isViewOnly}
+            >
+              Custom
+            </button>
+          </div>
+
+          {groOn && (
+            <DocumentGroupCard title="GRO documents">
+              {(dh.documents.gro || []).map((doc) => (
+                <CompactFileUploadRow
+                  key={doc.id}
+                  label={doc.name}
+                  files={doc.files || []}
+                  isRequired={Boolean(doc.is_required)}
+                  isViewOnly={isViewOnly}
+                  onAddFiles={(newFiles) => patchRowFiles("gro", doc.id, [...(doc.files || []), ...newFiles])}
+                  onRemoveAt={(idx) => patchRowFiles("gro", doc.id, (doc.files || []).filter((_, i) => i !== idx))}
+                />
+              ))}
+            </DocumentGroupCard>
+          )}
+
+          {ccOn && (
+            <DocumentGroupCard title="Custom clearance documents">
+              {(dh.documents.customClearance || []).map((doc) => (
+                <CompactFileUploadRow
+                  key={doc.id}
+                  label={doc.name}
+                  files={doc.files || []}
+                  isRequired={Boolean(doc.is_required)}
+                  isViewOnly={isViewOnly}
+                  onAddFiles={(newFiles) => patchRowFiles("customClearance", doc.id, [...(doc.files || []), ...newFiles])}
+                  onRemoveAt={(idx) => patchRowFiles("customClearance", doc.id, (doc.files || []).filter((_, i) => i !== idx))}
+                />
+              ))}
+            </DocumentGroupCard>
+          )}
+        </>
+      )}
+    </div>
+  );
+}
+
+PreArrivalDocumentHandlingSection.propTypes = {
+  formValues: PropTypes.object.isRequired,
+  handleChange: PropTypes.func.isRequired,
+  isViewOnly: PropTypes.bool,
+  portId: PropTypes.oneOfType([PropTypes.string, PropTypes.number]),
+};
+
+function PreArrival({
+  card,
+  formValues,
+  handleChange,
+  cardColor,
+  onSendReport,
+  isViewOnly = false,
+  eventFields = [],
+  portId,
+  callTypeId,
+}) {
+  const [isSavingPreArrival, setIsSavingPreArrival] = useState(false);
+  const [isLoadingCoordinateTypes, setIsLoadingCoordinateTypes] = useState(false);
+  const [isLoadingCoordinates, setIsLoadingCoordinates] = useState(false);
+  const [coordinateTypeOptions, setCoordinateTypeOptions] = useState([]);
+  const [coordinateOptions, setCoordinateOptions] = useState([]);
+  const formValuesRef = useRef(formValues);
+  const coordinatesFetchGenRef = useRef(0);
+
+  useEffect(() => {
+    formValuesRef.current = formValues;
+  }, [formValues]);
+  const [reportDraft, setReportDraft] = useState({
+    from: "operations@shipping.com",
+    to: "",
+    cc: "",
+    subject: "Report - Pre Arrival",
+    message: "",
+  });
+
+  const handleSaberUtAddFiles = (files) => {
+    const currentAttachments = formValues.saberUtDocumentsAttachments || [];
+    handleChange("saberUtDocumentsAttachments")({ target: { value: [...currentAttachments, ...files] } });
+  };
+
+  const handleSaberUtStatusChange = (e) => {
+    const value = e.target.value;
+    handleChange("saberUtStatus")(e);
+    if (value !== SABER_APPLIED_BY_SEDRES) {
+      handleChange("saberUtDocumentsAttachments")({ target: { value: [] } });
+    }
+  };
+
+  const handleWeatherForecastChange = (e) => {
+    const value = e.target.value;
+    handleChange("weatherForecast")(e);
+
+    if (value === BAD_WEATHER) {
+      notify(
+        "Bad weather selected. Please re-check ETA and clearance time objects.",
+        "warning"
+      );
+      handleChange("preArrivalTimeObjectsNeedRecheck")({
+        target: { value: true },
+      });
+    } else {
+      handleChange("preArrivalTimeObjectsNeedRecheck")({
+        target: { value: false },
+      });
+    }
+  };
+
+  const handlePreArrivalTimeObjectChange = useCallback(
+    (fieldName) => (event) => {
+      handleChange(fieldName)(event);
+      if (formValues.preArrivalTimeObjectsNeedRecheck) {
+        handleChange("preArrivalTimeObjectsNeedRecheck")({ target: { value: false } });
+      }
+    },
+    [handleChange, formValues.preArrivalTimeObjectsNeedRecheck]
+  );
+
+  const fetchCoordinatesByType = useCallback(
+    async (coordinateTypeId) => {
+      if (!coordinateTypeId) {
+        setCoordinateOptions([]);
+        handleChange("coordinates")({ target: { value: "" } });
+        handleChange("preArrivalCoordinatesId")({ target: { value: "" } });
+        return;
+      }
+
+      const fetchId = ++coordinatesFetchGenRef.current;
+      setIsLoadingCoordinates(true);
+      try {
+        const response = await coordinatesService.getCoordinatesByType({
+          coordinate_type_id: coordinateTypeId,
+        });
+        if (fetchId !== coordinatesFetchGenRef.current) return;
+
+        const raw = response?.data?.data ?? response?.data ?? [];
+        const list = Array.isArray(raw) ? raw : raw ? [raw] : [];
+        const mapped = list
+          .filter((item) => item?.coordinates_id != null && String(item.coordinates || "").trim())
+          .map((item) => ({
+            value: String(item.coordinates_id),
+            label: String(item.coordinates).trim(),
+          }));
+
+        setCoordinateOptions(mapped);
+
+        if (mapped.length === 0) {
+          handleChange("preArrivalCoordinatesId")({ target: { value: "" } });
+          handleChange("coordinates")({ target: { value: "" } });
+          notify("No coordinates found for selected type.", "warning");
+          return;
+        }
+
+        const latest = formValuesRef.current || {};
+        const byId = mapped.find((o) => o.value === String(latest.preArrivalCoordinatesId || ""));
+        const byCoords = mapped.find(
+          (o) => o.label === String(latest.coordinates || "").trim()
+        );
+        const pick = byId || byCoords;
+        if (pick) {
+          handleChange("preArrivalCoordinatesId")({ target: { value: pick.value } });
+          handleChange("coordinates")({ target: { value: pick.label } });
+        }
+      } catch (error) {
+        if (fetchId !== coordinatesFetchGenRef.current) return;
+        setCoordinateOptions([]);
+        handleChange("coordinates")({ target: { value: "" } });
+        handleChange("preArrivalCoordinatesId")({ target: { value: "" } });
+        notify(error?.response?.data?.message || "Failed to fetch coordinates.", "error");
+      } finally {
+        if (fetchId === coordinatesFetchGenRef.current) {
+          setIsLoadingCoordinates(false);
+        }
+      }
+    },
+    [handleChange]
+  );
+
+  useEffect(() => {
+    let cancelled = false;
+
+    const loadCoordinateTypes = async () => {
+      setIsLoadingCoordinateTypes(true);
+      try {
+        const response = await coordinatesService.getAllCoordinateTypes();
+        if (cancelled) return;
+        const rawData = response?.data?.data ?? response?.data ?? [];
+        const typeList = Array.isArray(rawData) ? rawData : rawData ? [rawData] : [];
+        const mappedOptions = typeList
+          .filter((item) => item?.coordinate_type_id != null)
+          .map((item) => ({
+            value: String(item.coordinate_type_id),
+            label: String(item.coordinate_type || ""),
+          }))
+          .filter((option) => option.label.trim().length > 0);
+        setCoordinateTypeOptions(mappedOptions);
+      } catch (error) {
+        if (cancelled) return;
+        setCoordinateTypeOptions([]);
+        notify(error?.response?.data?.message || "Failed to fetch coordinate types.", "error");
+      } finally {
+        if (!cancelled) {
+          setIsLoadingCoordinateTypes(false);
+        }
+      }
+    };
+
+    loadCoordinateTypes();
+
+    return () => {
+      cancelled = true;
+    };
+  }, []);
+
+  useEffect(() => {
+    if (!formValues.coordinateTypeId) {
+      coordinatesFetchGenRef.current += 1;
+      setCoordinateOptions([]);
+      return;
+    }
+    fetchCoordinatesByType(formValues.coordinateTypeId);
+  }, [formValues.coordinateTypeId, fetchCoordinatesByType]);
+
+  const handleCoordinateTypeChange = (e) => {
+    const selectedTypeId = e.target.value;
+    handleChange("coordinateTypeId")({ target: { value: selectedTypeId } });
+    handleChange("preArrivalCoordinatesId")({ target: { value: "" } });
+    handleChange("coordinates")({ target: { value: "" } });
+    if (!selectedTypeId) {
+      coordinatesFetchGenRef.current += 1;
+      setCoordinateOptions([]);
+    }
+  };
+
+  const handleCoordinatesSelectChange = (e) => {
+    const selectedId = e.target.value;
+    handleChange("preArrivalCoordinatesId")({ target: { value: selectedId } });
+    const opt = coordinateOptions.find((o) => o.value === selectedId);
+    handleChange("coordinates")({ target: { value: opt?.label || "" } });
+  };
+
+  const savePreArrivalData = async () => {
+    const callId = card?.call_id || formValues?.call_id || "";
+    const cardId = card?.id || card?.card_id || formValues?.card_id || "";
+    const assignedGro = formValues.assignedGro || "";
+    const assignedCustom = formValues.assignedCustom || "";
+
+    if (!callId) {
+      notify("Call ID is required.", "error");
+      return false;
+    }
+    if (!cardId) {
+      notify("Card ID is required.", "error");
+      return false;
+    }
+    if (!assignedGro) {
+      notify("Assigned GRO is required.", "error");
+      return false;
+    }
+    if (!assignedCustom) {
+      notify("Assigned Custom clearance is required.", "error");
+      return false;
+    }
+
+    if (
+      formValues.weatherForecast === BAD_WEATHER &&
+      formValues.preArrivalTimeObjectsNeedRecheck === true
+    ) {
+      notify(
+        "Please re-check ETA and clearance time objects before saving.",
+        "warning"
+      );
+      return false;
+    }
+
+    const timeObjects = (eventFields || [])
+      .map((field, index) => {
+        const dateKey = `${field.keyPrefix}Date`;
+        const timeKey = `${field.keyPrefix}Time`;
+
+        const date = formValues[dateKey];
+        const time = formValues[timeKey];
+
+        if (!date || !time) return null;
+        const timeObjectId =
+          field.time_object_id ??
+          field.event_type_id ??
+          field.eventTypeId ??
+          field.event_typeid ??
+          field.id ??
+          null;
+        if (timeObjectId == null) {
+          console.warn("[Operation] Missing time_object_id for event field", field, index);
+          return null;
+        }
+        return {
+          time_object_id: Number(timeObjectId),
+          time_object_value: `${date} ${time}:00`,
+        };
+      })
+      .filter(Boolean);
+
+    const attachmentFile = (item) => {
+      if (item?.file instanceof File) return item.file;
+      if (item instanceof File) return item;
+      return null;
+    };
+
+    const fd = new FormData();
+    fd.append("call_id", callId);
+    fd.append("card_id", cardId);
+    fd.append("time_objects", JSON.stringify(timeObjects));
+    const saberStatusNum = PRE_ARRIVAL_SABER_STATUS_SAVE_VALUE[formValues.saberUtStatus];
+    fd.append(
+      "saber_status",
+      saberStatusNum != null ? String(saberStatusNum) : ""
+    );
+    const weatherForecastNum = PRE_ARRIVAL_WEATHER_FORECAST_SAVE_VALUE[formValues.weatherForecast];
+    fd.append(
+      "weather_forecast",
+      weatherForecastNum != null ? String(weatherForecastNum) : ""
+    );
+    const coordinatesId = String(formValues.preArrivalCoordinatesId || "").trim();
+    if (coordinatesId) {
+      fd.append("coordinates_id", coordinatesId);
+    }
+    fd.append("assigned_gro", assignedGro);
+    fd.append("assigned_custom", assignedCustom);
+
+    if (formValues.saberUtStatus === SABER_APPLIED_BY_SEDRES) {
+      (formValues.saberUtDocumentsAttachments || []).forEach((item) => {
+        const f = attachmentFile(item);
+        if (f) {
+          fd.append("saber_attachments[]", f);
+        }
+      });
+    }
+
+    const dh = formValues.preArrivalDocumentHandling;
+    (dh?.documents?.gro || []).forEach((doc) => {
+      (doc.files || []).forEach((item) => {
+        const f = attachmentFile(item);
+        if (!f) return;
+        fd.append(`gro_docs[${doc.id}]`, f);
+      });
+    });
+
+    (dh?.documents?.customClearance || []).forEach((doc) => {
+      (doc.files || []).forEach((item) => {
+        const f = attachmentFile(item);
+        if (!f) return;
+        fd.append(`custom_docs[${doc.id}]`, f);
+      });
+    });
+
+    for (let pair of fd.entries()) {
+      console.log(pair[0], pair[1]);
+    }
+
+    try {
+      setIsSavingPreArrival(true);
+      await preArrivalService.savePreArrival(fd);
+      notify("Pre Arrival saved successfully.", "success");
+      return true;
+    } catch (error) {
+      notify(error?.response?.data?.message || "Failed to save Pre Arrival.", "error");
+      return false;
+    } finally {
+      setIsSavingPreArrival(false);
+    }
+  };
+
+  const preArrivalReportAttachments = [
+    ...(formValues.saberUtDocumentsAttachments || []),
+    ...collectPreArrivalProcessAttachments(formValues.preArrivalDocumentHandling),
+  ];
+
+  useEffect(() => {
+    setReportDraft((prev) => ({
+      ...prev,
+      message: buildPreArrivalReportBody(formValues),
+    }));
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
+  useEffect(() => {
+    let cancelled = false;
+
+    const loadReportTemplate = async () => {
+      if (!portId || !callTypeId) return;
+
+      try {
+        const response = await appointmentAcceptanceService.getTemplateByPortCallType({
+          port_id: portId,
+          call_type_id: callTypeId,
+          report_type_id: 2,
+        });
+        if (cancelled) return;
+
+        const template = extractReportTemplateFields(response);
+        setReportDraft((prev) => ({
+          ...prev,
+          from: template.from || prev.from,
+          subject: template.subject || prev.subject,
+          message: template.message || prev.message,
+        }));
+      } catch (error) {
+        if (cancelled) return;
+        console.error("[Operation] report_template/get_template_by_port_calltype failed", error);
+      }
+    };
+
+    loadReportTemplate();
+
+    return () => {
+      cancelled = true;
+    };
+  }, [portId, callTypeId]);
+
+  const handleReportDraftChange = (field, value) => {
+    setReportDraft((prev) => ({ ...prev, [field]: value }));
+  };
+
+  const handleSaveAndSendReport = async () => {
+    const saveResult = await savePreArrivalData();
+    if (!saveResult) return;
+
+    try {
+      await onSendReport?.({
+        tabName: "Pre Arrival",
+        from: reportDraft.from,
+        to: reportDraft.to,
+        cc: reportDraft.cc,
+        subject: reportDraft.subject,
+        body: reportDraft.message || buildPreArrivalReportBody(formValues),
+        attachments: preArrivalReportAttachments,
+      });
+    } catch (error) {
+      notify(error?.message || "Report send is not available yet.", "warning");
+    }
+  };
+
+  return (
+    <div className="cardform-left-full" style={{ "--card-color": cardColor }}>
+      <div className="operation-content-header">
+        <h3 className="operation-content-title">Pre-Arrival Information</h3>
+      </div>
+      <FormSection icon={GroupSettingsIcon} title="">
+        <div className="operation-tab-layout">
+          <div className="pre-arrival-form operation-tab-scroll">
+            <div className="operation-prearrival-grid">
+              <OperationFormCard className="operation-form-column">
+                <div
+                  className={`prearrival-timeobject-highlight ${formValues.weatherForecast === BAD_WEATHER && formValues.preArrivalTimeObjectsNeedRecheck
+                    ? "is-warning"
+                    : ""
+                    }`.trim()}
+                >
+                  <DynamicDateTimeFields
+                    eventFields={eventFields}
+                    formValues={formValues}
+                    handleChange={handlePreArrivalTimeObjectChange}
+                    isViewOnly={isViewOnly}
+                  />
+                </div>
+
+                <FormField label="SABER Status">
+                  <FormSelect
+                    value={formValues.saberUtStatus || ""}
+                    onChange={handleSaberUtStatusChange}
+                    options={PRE_ARRIVAL_SABER_STATUS_OPTIONS}
+                    placeholder="Select SABER status..."
+                    disabled={isViewOnly}
+                  />
+                </FormField>
+
+                {formValues.saberUtStatus === SABER_APPLIED_BY_SEDRES && (
+                  <FormField label="SABER Certificate Upload">
+                    <SaberUploadBox
+                      files={formValues.saberUtDocumentsAttachments || []}
+                      onAddFiles={handleSaberUtAddFiles}
+                      isViewOnly={isViewOnly}
+                    />
+                  </FormField>
+                )}
+
+                <FormField label="Weather Forecast">
+                  <FormSelect
+                    value={formValues?.weatherForecast || ""}
+                    onChange={handleWeatherForecastChange}
+                    options={PRE_ARRIVAL_WEATHER_FORECAST_OPTIONS}
+                    placeholder="Select weather forecast..."
+                    disabled={isViewOnly}
+                  />
+                  {formValues.weatherForecast === BAD_WEATHER && (
+                    <div className="prearrival-windy-map">
+                      <iframe
+                        title="Windy Weather Map"
+                        width="650"
+                        height="450"
+                        src="https://embed.windy.com/embed.html?type=map&location=coordinates&metricRain=default&metricTemp=default&metricWind=default&zoom=8&overlay=wind&product=ecmwf&level=surface&lat=27.284&lon=49.109&detailLat=29.0525682775337&detailLon=48.087158203125&marker=true"
+                        frameBorder="0"
+                      />
+                    </div>
+                  )}
+                </FormField>
+
+                <FormField label="Coordinates Type">
+                  <FormSelect
+                    value={formValues?.coordinateTypeId || ""}
+                    onChange={handleCoordinateTypeChange}
+                    options={coordinateTypeOptions}
+                    placeholder="Select coordinate type..."
+                    disabled={isViewOnly || isLoadingCoordinateTypes || isLoadingCoordinates}
+                  />
+                </FormField>
+
+                {formValues?.coordinateTypeId ? (
+                  <FormField label="Select Coordinates">
+                    <FormSelect
+                      value={formValues?.preArrivalCoordinatesId || ""}
+                      onChange={handleCoordinatesSelectChange}
+                      options={coordinateOptions}
+                      placeholder={
+                        isLoadingCoordinates
+                          ? "Loading coordinates..."
+                          : coordinateOptions.length
+                            ? "Select coordinates..."
+                            : "No coordinates for this type"
+                      }
+                      disabled={
+                        isViewOnly ||
+                        isLoadingCoordinates ||
+                        coordinateOptions.length === 0
+                      }
+                    />
+                  </FormField>
+                ) : (
+                  !!formValues?.coordinates && (
+                    <FormField label="Coordinates">
+                      <FormInput
+                        type="text"
+                        value={formValues?.coordinates || ""}
+                        onChange={() => {}}
+                        placeholder="Coordinates will appear here..."
+                        disabled
+                      />
+                    </FormField>
+                  )
+                )}
+              </OperationFormCard>
+              <OperationFormCard className="operation-document-column">
+                <PreArrivalDocumentHandlingSection
+                  formValues={formValues}
+                  handleChange={handleChange}
+                  isViewOnly={isViewOnly}
+                  portId={portId}
+                />
+              </OperationFormCard>
+              <OperationFormCard className="operation-email-column">
+                <OperationEmailPreviewPanel
+                  from={reportDraft.from}
+                  to={reportDraft.to}
+                  cc={reportDraft.cc}
+                  subject={reportDraft.subject}
+                  message={reportDraft.message}
+                  attachments={preArrivalReportAttachments}
+                  onChange={handleReportDraftChange}
+                />
+              </OperationFormCard>
+            </div>
+          </div>
+          <OperationSaveSection isViewOnly={isViewOnly} onSave={handleSaveAndSendReport} isSaving={isSavingPreArrival} />
+        </div>
+      </FormSection>
+    </div>
+  );
+}
+
+PreArrival.propTypes = {
+  card: PropTypes.object,
+  formValues: PropTypes.object.isRequired,
+  handleChange: PropTypes.func.isRequired,
+  ownerInitial: PropTypes.string.isRequired,
+  cardUser: PropTypes.string,
+  cardColor: PropTypes.string,
+  onAddLink: PropTypes.func,
+  onRemoveLink: PropTypes.func,
+  onSendReport: PropTypes.func,
+  isViewOnly: PropTypes.bool,
+  eventFields: PropTypes.array,
+  portId: PropTypes.oneOfType([PropTypes.string, PropTypes.number]),
+  callTypeId: PropTypes.oneOfType([PropTypes.string, PropTypes.number]),
+};
+
+export default PreArrival;
