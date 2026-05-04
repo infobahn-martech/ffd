@@ -1,5 +1,6 @@
 import PropTypes from "prop-types";
-import { useMemo } from "react";
+import { useEffect, useMemo, useState } from "react";
+import attachmentsService from "../../../../../services/attachmentsService";
 import "../../../../../design/scss/attachments.scss";
 import CircleTickIcon from "../../../../../assets/images/CircleTick.svg";
 import AttachmentIcon from "../../../../../assets/images/Attachment.svg";
@@ -120,7 +121,12 @@ const AttachmentItem = ({ attachment, onDownload, onDelete, cardColor }) => {
 
   const formatDate = (dateString) => {
     if (!dateString) return 'N/A';
-    const date = new Date(dateString);
+    const normalized =
+      typeof dateString === "string" && /^\d{4}-\d{2}-\d{2} \d{2}:\d{2}/.test(dateString)
+        ? dateString.replace(" ", "T")
+        : dateString;
+    const date = new Date(normalized);
+    if (Number.isNaN(date.getTime())) return "N/A";
     const month = date.toLocaleDateString('en-US', { month: 'short' });
     const day = date.getDate();
     const year = date.getFullYear();
@@ -140,8 +146,12 @@ const AttachmentItem = ({ attachment, onDownload, onDelete, cardColor }) => {
       <div className="attachment-details">
         <div className="attachment-name">{attachment.fileName || 'Untitled'}</div>
         <div className="attachment-meta">
-          <span className="attachment-size">{formatFileSize(attachment.fileSize)}</span>
-          <span className="attachment-separator">•</span>
+          {attachment.fileSize != null && attachment.fileSize > 0 && (
+            <>
+              <span className="attachment-size">{formatFileSize(attachment.fileSize)}</span>
+              <span className="attachment-separator">•</span>
+            </>
+          )}
           <span className="attachment-date">{formatDate(attachment.uploadedAt)}</span>
           {attachment.uploadedBy && (
             <>
@@ -317,99 +327,84 @@ AttachmentList.propTypes = {
   cardColor: PropTypes.string,
 };
 
+/** @param {Record<string, unknown>} data */
+const mapGroupedAttachmentsResponse = (data) => {
+  if (!data || typeof data !== "object") return [];
+
+  const flat = [];
+  Object.entries(data).forEach(([category, items]) => {
+    if (!Array.isArray(items)) return;
+    items.forEach((item, index) => {
+      const fileName = item?.file_name ?? "Untitled";
+      flat.push({
+        id: `${category}::${index}::${fileName}`,
+        fileName,
+        uploadedBy: item?.uploaded_by ?? "",
+        uploadedAt: item?.date ?? "",
+        fileUrl: item?.file_url ?? item?.url ?? null,
+        category,
+      });
+    });
+  });
+  return flat;
+};
+
 function Attachments({ card, formValues, handleChange }) {
   const cardColor = card?.color || "#2A00FF";
 
-  // Get attachments from card data or use dummy data for demo
-  const attachments = useMemo(() => {
-    if (card?.attachments && card.attachments.length > 0) {
-      return card.attachments;
+  const callId = useMemo(() => {
+    const raw = card?.call_id ?? formValues?.call_id ?? card?.callId;
+    if (raw === undefined || raw === null) return "";
+    const s = String(raw).trim();
+    return s;
+  }, [card?.call_id, card?.callId, formValues?.call_id]);
+
+  const [attachments, setAttachments] = useState([]);
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState(null);
+
+  useEffect(() => {
+    if (!callId) {
+      setAttachments([]);
+      setError(null);
+      setLoading(false);
+      return;
     }
-    // Dummy data for demonstration with categories
-    return [
-      {
-        id: 1,
-        fileName: 'Arrival_Notice.pdf',
-        fileSize: 2456789,
-        uploadedAt: '2024-01-15T14:30:00Z',
-        uploadedBy: 'John Doe',
-        fileUrl: '#',
-        category: 'Pre Arrival',
-      },
-      {
-        id: 2,
-        fileName: 'Crew_Declaration.pdf',
-        fileSize: 1234567,
-        uploadedAt: '2024-01-15T10:20:00Z',
-        uploadedBy: 'John Doe',
-        fileUrl: '#',
-        category: 'Pre Arrival',
-      },
-      {
-        id: 3,
-        fileName: 'Cargo_Declaration.pdf',
-        fileSize: 1876543,
-        uploadedAt: '2024-01-15T09:15:00Z',
-        uploadedBy: 'John Doe',
-        fileUrl: '#',
-        category: 'Pre Arrival',
-      },
-      {
-        id: 4,
-        fileName: 'Customs_Clearance_Form.docx',
-        fileSize: 123456,
-        uploadedAt: '2024-01-14T18:20:00Z',
-        uploadedBy: 'Jane Smith',
-        fileUrl: '#',
-        category: 'Clearance Documents',
-      },
-      {
-        id: 5,
-        fileName: 'Port_Entry_Permit.pdf',
-        fileSize: 987654,
-        uploadedAt: '2024-01-14T16:30:00Z',
-        uploadedBy: 'Jane Smith',
-        fileUrl: '#',
-        category: 'Clearance Documents',
-      },
-      {
-        id: 6,
-        fileName: 'Health_Certificate.pdf',
-        fileSize: 543210,
-        uploadedAt: '2024-01-14T15:00:00Z',
-        uploadedBy: 'Jane Smith',
-        fileUrl: '#',
-        category: 'Clearance Documents',
-      },
-      {
-        id: 7,
-        fileName: 'Safety_Equipment_List.pdf',
-        fileSize: 345678,
-        uploadedAt: '2024-01-13T13:15:00Z',
-        uploadedBy: 'Mike Johnson',
-        fileUrl: '#',
-        category: 'Safety Documents',
-      },
-      {
-        id: 8,
-        fileName: 'Emergency_Contact_List.pdf',
-        fileSize: 234567,
-        uploadedAt: '2024-01-13T12:00:00Z',
-        uploadedBy: 'Mike Johnson',
-        fileUrl: '#',
-        category: 'Safety Documents',
-      },
-      {
-        id: 9,
-        fileName: 'Port_Arrival_Photo.jpg',
-        fileSize: 3456789,
-        uploadedAt: '2024-01-13T13:15:00Z',
-        uploadedBy: 'Mike Johnson',
-        fileUrl: '#',
-        category: 'Other Documents',
-      },
-    ];
-  }, [card?.attachments]);
+
+    let cancelled = false;
+    setLoading(true);
+    setError(null);
+
+    attachmentsService
+      .getAllAttachments(callId)
+      .then((res) => {
+        if (cancelled) return;
+        const body = res?.data;
+        if (body?.status !== true) {
+          setAttachments([]);
+          setError(body?.message || "Failed to load attachments.");
+          return;
+        }
+        setAttachments(mapGroupedAttachmentsResponse(body.data));
+      })
+      .catch((err) => {
+        if (cancelled) return;
+        setAttachments([]);
+        setError(
+          err?.response?.data?.message ||
+            err?.response?.data?.error ||
+            err?.message ||
+            "Failed to load attachments."
+        );
+      })
+      .finally(() => {
+        if (!cancelled) setLoading(false);
+      });
+
+    return () => {
+      cancelled = true;
+    };
+  }, [callId]);
 
   const handleDownload = (attachment) => {
     console.log('Download attachment:', attachment);
@@ -436,12 +431,26 @@ function Attachments({ card, formValues, handleChange }) {
             ATTACHMENT LIST
           </h3>
         </div>
-        <AttachmentList
-          attachments={attachments}
-          onDownload={handleDownload}
-          onDelete={handleDelete}
-          cardColor={cardColor}
-        />
+        {!callId ? (
+          <div className="cf-empty-row">
+            <p>No call identifier available for attachments.</p>
+          </div>
+        ) : loading ? (
+          <div className="cf-empty-row">
+            <p>Loading attachments…</p>
+          </div>
+        ) : error ? (
+          <div className="cf-empty-row">
+            <p>{error}</p>
+          </div>
+        ) : (
+          <AttachmentList
+            attachments={attachments}
+            onDownload={handleDownload}
+            onDelete={handleDelete}
+            cardColor={cardColor}
+          />
+        )}
       </div>
     </div>
   );
