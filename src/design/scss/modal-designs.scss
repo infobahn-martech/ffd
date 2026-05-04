@@ -269,6 +269,12 @@ body .role-modal-sm .modal-dialog {
   position: relative;
 }
 
+/* Transport Company: driver grid needs a wide dialog (role-modal-sm caps at 600px above) */
+body .role-modal-sm.transport-company-modal .modal-dialog.transport-company-modal-dialog {
+  max-width: min(750px, calc(100vw - 2rem)) !important;
+  width: 100%;
+}
+
 .role-modal-sm .modal-content {
   border-radius: 16px;
   padding: 20px;
