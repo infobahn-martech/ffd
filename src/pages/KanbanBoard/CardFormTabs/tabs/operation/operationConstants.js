@@ -29,6 +29,26 @@ export const PRE_ARRIVAL_WEATHER_FORECAST_SAVE_VALUE = {
   "Bad weather": 2,
 };
 
+/** Map numeric / string values from get_prearrival_detail to form select values. */
+export const mapApiSaberStatusToFormValue = (raw) => {
+  if (raw === null || raw === undefined || raw === "") return "";
+  const n = Number(raw);
+  if (Number.isNaN(n)) return "";
+  return (
+    Object.entries(PRE_ARRIVAL_SABER_STATUS_SAVE_VALUE).find(([, v]) => Number(v) === n)?.[0] || ""
+  );
+};
+
+export const mapApiWeatherForecastToFormValue = (raw) => {
+  if (raw === null || raw === undefined || raw === "") return "";
+  const n = Number(raw);
+  if (Number.isNaN(n)) return "";
+  return (
+    Object.entries(PRE_ARRIVAL_WEATHER_FORECAST_SAVE_VALUE).find(([, v]) => Number(v) === n)?.[0] ||
+    ""
+  );
+};
+
 export const EVENT_NAME_FIELD_KEY_MAP = {
   "expected time of arrival": "expectedArrival",
   "expected commencement of custom inspection": "customsInspection",

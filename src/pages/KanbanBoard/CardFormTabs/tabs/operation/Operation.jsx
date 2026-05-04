@@ -281,6 +281,8 @@ function Operation({ card, formValues, handleChange, ownerInitial, isDAModule = 
   useEffect(() => {
     if (isViewOnly || !etaDateValue || !etaTimeValue) return;
 
+    if (formValues.preArrivalEtaAutofillDisabled) return;
+
     if (!preArrivalPortId || !preArrivalCallTypeId) return;
 
     const eta_date_time = `${etaDateValue} ${etaTimeValue}:00`;
@@ -345,6 +347,7 @@ function Operation({ card, formValues, handleChange, ownerInitial, isDAModule = 
     isViewOnly,
     etaDateValue,
     etaTimeValue,
+    formValues.preArrivalEtaAutofillDisabled,
     preArrivalEventFields,
     preArrivalPortId,
     preArrivalCallTypeId,

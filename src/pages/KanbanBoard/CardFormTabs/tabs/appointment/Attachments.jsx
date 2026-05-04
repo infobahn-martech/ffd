@@ -122,7 +122,7 @@ const AttachmentItem = ({ attachment, onDownload, cardColor }) => {
           )}
         </div>
       </div>
-      <div className="attachment-actions">
+      {/* <div className="attachment-actions">
         {onDownload && (
           <button
             className="attachment-action-btn download"
@@ -143,7 +143,7 @@ const AttachmentItem = ({ attachment, onDownload, cardColor }) => {
             </svg>
           </button>
         )}
-      </div>
+      </div> */}
     </div>
   );
 };
@@ -362,9 +362,9 @@ function Attachments({ card, formValues, handleChange }) {
         setAttachments([]);
         setError(
           err?.response?.data?.message ||
-            err?.response?.data?.error ||
-            err?.message ||
-            "Failed to load attachments."
+          err?.response?.data?.error ||
+          err?.message ||
+          "Failed to load attachments."
         );
       })
       .finally(() => {

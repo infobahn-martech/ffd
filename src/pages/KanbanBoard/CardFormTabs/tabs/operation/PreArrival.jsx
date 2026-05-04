@@ -1,4 +1,4 @@
-import { useState, useCallback, useRef, useEffect } from "react";
+import { useState, useCallback, useRef, useEffect, useMemo } from "react";
 import PropTypes from "prop-types";
 import GroupSettingsIcon from "../../../../../assets/images/cv.png";
 import { notify } from "../../../../../components/Toaster";
@@ -32,6 +32,7 @@ import {
   OperationSaveSection,
 } from "./components/OperationCommon";
 import { extractReportTemplateFields } from "./operationReportTemplate";
+import { applyPreArrivalGetDetailToForm } from "./preArrivalDetailApply";
 
 const IconUpload = () => (
   <svg width="18" height="18" viewBox="0 0 24 24" fill="none" aria-hidden>
@@ -61,6 +62,11 @@ function openAttachmentPreview(attachment) {
     const url = URL.createObjectURL(raw);
     window.open(url, "_blank", "noopener,noreferrer");
     window.setTimeout(() => URL.revokeObjectURL(url), 60_000);
+    return;
+  }
+  const link = attachment?.url || attachment?.attachment;
+  if (typeof link === "string" && /^https?:\/\//i.test(link)) {
+    window.open(link, "_blank", "noopener,noreferrer");
     return;
   }
   console.log("Preview document:", attachment?.name);
@@ -434,10 +440,105 @@ function PreArrival({
   const [coordinateOptions, setCoordinateOptions] = useState([]);
   const formValuesRef = useRef(formValues);
   const coordinatesFetchGenRef = useRef(0);
+  const pendingCoordinateIdRef = useRef(null);
+
+  const callId = useMemo(
+    () => String(card?.call_id ?? card?.callId ?? formValues?.call_id ?? "").trim(),
+    [card?.call_id, card?.callId, formValues?.call_id]
+  );
+
+  const eventFieldsApplyKey = useMemo(
+    () =>
+      (eventFields || [])
+        .map((f) =>
+          [f.keyPrefix, f.event_type_id ?? f.time_object_id ?? "", f.event_name ?? ""].join(":")
+        )
+        .join("|"),
+    [eventFields]
+  );
 
   useEffect(() => {
     formValuesRef.current = formValues;
   }, [formValues]);
+
+  useEffect(() => {
+    pendingCoordinateIdRef.current = null;
+  }, [callId]);
+
+  useEffect(() => {
+    if (isViewOnly || !callId) return;
+
+    let cancelled = false;
+
+    const run = async () => {
+      try {
+        const res = await preArrivalService.getPreArrivalDetail(callId);
+        if (cancelled) return;
+        const body = res?.data ?? res;
+        const status = body?.status;
+        if (typeof status === "string" && status.toLowerCase() === "error") return;
+
+        const snapshot = formValuesRef.current;
+        const { coordinatesId } = applyPreArrivalGetDetailToForm({
+          responseBody: body,
+          eventFields,
+          handleChange,
+          currentForm: snapshot,
+        });
+        if (coordinatesId && !String(snapshot.coordinateTypeId || "").trim()) {
+          pendingCoordinateIdRef.current = coordinatesId;
+        }
+      } catch (error) {
+        if (!cancelled) {
+          console.error("[Operation] pre_arrival/get_prearrival_detail failed", error);
+        }
+      }
+    };
+
+    run();
+
+    return () => {
+      cancelled = true;
+    };
+  }, [callId, isViewOnly, eventFieldsApplyKey, handleChange]);
+
+  useEffect(() => {
+    const needId = pendingCoordinateIdRef.current;
+    if (!needId || String(formValues.coordinateTypeId || "").trim() || !coordinateTypeOptions.length) {
+      return;
+    }
+
+    let cancelled = false;
+
+    const resolve = async () => {
+      for (const opt of coordinateTypeOptions) {
+        if (cancelled) return;
+        try {
+          const response = await coordinatesService.getCoordinatesByType({
+            coordinate_type_id: opt.value,
+          });
+          const raw = response?.data?.data ?? response?.data ?? [];
+          const list = Array.isArray(raw) ? raw : raw ? [raw] : [];
+          const found = list.some((item) => String(item.coordinates_id) === String(needId));
+          if (found) {
+            if (!cancelled) {
+              handleChange("coordinateTypeId")({ target: { value: opt.value } });
+              pendingCoordinateIdRef.current = null;
+            }
+            return;
+          }
+        } catch {
+          /* try next coordinate type */
+        }
+      }
+    };
+
+    resolve();
+
+    return () => {
+      cancelled = true;
+    };
+  }, [coordinateTypeOptions, formValues.coordinateTypeId, handleChange]);
   const [reportDraft, setReportDraft] = useState({
     from: "operations@shipping.com",
     to: "",
