@@ -2,47 +2,7 @@ import PropTypes from "prop-types";
 import { useEffect, useMemo, useState } from "react";
 import attachmentsService from "../../../../../services/attachmentsService";
 import "../../../../../design/scss/attachments.scss";
-import CircleTickIcon from "../../../../../assets/images/CircleTick.svg";
-import AttachmentIcon from "../../../../../assets/images/Attachment.svg";
-
-const FormSection = ({ icon, title, children }) => {
-  return (
-    <div className="cf-section">
-      <div className="cf-section-header">
-        <span className="cf-section-icon">
-          <img src={icon} alt={title} />
-        </span>
-        <span className="cf-section-title">{title}</span>
-      </div>
-      <div className="cf-section-body">{children}</div>
-    </div>
-  );
-};
-
-FormSection.propTypes = {
-  icon: PropTypes.string.isRequired,
-  title: PropTypes.string.isRequired,
-  children: PropTypes.node.isRequired,
-};
-
-const EmptySection = ({ message, buttonText, onButtonClick }) => {
-  return (
-    <div className="cf-empty-row">
-      <p>{message}</p>
-      <button className="cf-link-btn" onClick={onButtonClick} type="button">
-        {buttonText}
-      </button>
-    </div>
-  );
-};
-
-EmptySection.propTypes = {
-  message: PropTypes.string.isRequired,
-  buttonText: PropTypes.string.isRequired,
-  onButtonClick: PropTypes.func,
-};
-
-const AttachmentItem = ({ attachment, onDownload, onDelete, cardColor }) => {
+const AttachmentItem = ({ attachment, onDownload, cardColor }) => {
   const getFileIcon = (fileName) => {
     const extension = fileName?.split('.').pop()?.toLowerCase() || '';
 
@@ -167,30 +127,13 @@ const AttachmentItem = ({ attachment, onDownload, onDelete, cardColor }) => {
             className="attachment-action-btn download"
             onClick={() => onDownload(attachment)}
             type="button"
-            title="Download"
+            title={attachment.fileUrl ? "Download" : "No download link"}
+            disabled={!attachment.fileUrl}
             style={{ "--card-color": cardColor }}
           >
             <svg width="18" height="18" viewBox="0 0 18 18" fill="none" xmlns="http://www.w3.org/2000/svg">
               <path
                 d="M9 12V3M9 12L6 9M9 12L12 9M3 15H15"
-                stroke="currentColor"
-                strokeWidth="1.5"
-                strokeLinecap="round"
-                strokeLinejoin="round"
-              />
-            </svg>
-          </button>
-        )}
-        {onDelete && (
-          <button
-            className="attachment-action-btn delete"
-            onClick={() => onDelete(attachment)}
-            type="button"
-            title="Delete"
-          >
-            <svg width="18" height="18" viewBox="0 0 18 18" fill="none" xmlns="http://www.w3.org/2000/svg">
-              <path
-                d="M4.5 4.5L13.5 13.5M13.5 4.5L4.5 13.5"
                 stroke="currentColor"
                 strokeWidth="1.5"
                 strokeLinecap="round"
@@ -215,11 +158,10 @@ AttachmentItem.propTypes = {
     category: PropTypes.string,
   }).isRequired,
   onDownload: PropTypes.func,
-  onDelete: PropTypes.func,
   cardColor: PropTypes.string,
 };
 
-const AttachmentCategory = ({ label, attachments, onDownload, onDelete, cardColor }) => {
+const AttachmentCategory = ({ label, attachments, onDownload, cardColor }) => {
   if (!attachments || attachments.length === 0) {
     return null;
   }
@@ -236,7 +178,6 @@ const AttachmentCategory = ({ label, attachments, onDownload, onDelete, cardColo
             key={attachment.id}
             attachment={attachment}
             onDownload={onDownload}
-            onDelete={onDelete}
             cardColor={cardColor}
           />
         ))}
@@ -259,11 +200,10 @@ AttachmentCategory.propTypes = {
     })
   ),
   onDownload: PropTypes.func,
-  onDelete: PropTypes.func,
   cardColor: PropTypes.string,
 };
 
-const AttachmentList = ({ attachments, onDownload, onDelete, cardColor }) => {
+const AttachmentList = ({ attachments, onDownload, cardColor }) => {
   // Group attachments by category/label
   const groupedAttachments = useMemo(() => {
     if (!attachments || attachments.length === 0) {
@@ -301,7 +241,6 @@ const AttachmentList = ({ attachments, onDownload, onDelete, cardColor }) => {
             label={category}
             attachments={groupedAttachments[category]}
             onDownload={onDownload}
-            onDelete={onDelete}
             cardColor={cardColor}
           />
         ))}
@@ -323,8 +262,38 @@ AttachmentList.propTypes = {
     })
   ),
   onDownload: PropTypes.func,
-  onDelete: PropTypes.func,
   cardColor: PropTypes.string,
+};
+
+const sanitizeDownloadFilename = (name) => {
+  const base = String(name || "download")
+    .replace(/[<>:"/\\|?*\u0000-\u001F]/g, "_")
+    .trim();
+  return (base || "download").slice(0, 200);
+};
+
+const resolveAttachmentFileUrl = (fileUrl) => {
+  const s = String(fileUrl || "").trim();
+  if (!s) return "";
+  if (/^https?:\/\//i.test(s) || s.startsWith("blob:")) return s;
+  const base = String(import.meta.env.VITE_API_ENDPOINT || "").replace(/\/+$/, "");
+  if (!base) return s.startsWith("/") ? s : `/${s}`;
+  return s.startsWith("/") ? `${base}${s}` : `${base}/${s}`;
+};
+
+const triggerBlobDownload = (blob, filename) => {
+  const objectUrl = URL.createObjectURL(blob);
+  try {
+    const a = document.createElement("a");
+    a.href = objectUrl;
+    a.download = sanitizeDownloadFilename(filename);
+    a.rel = "noopener";
+    document.body.appendChild(a);
+    a.click();
+    a.remove();
+  } finally {
+    URL.revokeObjectURL(objectUrl);
+  }
 };
 
 /** @param {Record<string, unknown>} data */
@@ -406,19 +375,34 @@ function Attachments({ card, formValues, handleChange }) {
     };
   }, [callId]);
 
-  const handleDownload = (attachment) => {
-    console.log('Download attachment:', attachment);
-    // TODO: Implement download functionality
-    if (attachment.fileUrl) {
-      window.open(attachment.fileUrl, '_blank');
+  const handleDownload = async (attachment) => {
+    const rawUrl = attachment?.fileUrl;
+    if (!rawUrl) {
+      window.alert("No download link is available for this attachment.");
+      return;
     }
-  };
 
-  const handleDelete = (attachment) => {
-    console.log('Delete attachment:', attachment);
-    // TODO: Implement delete functionality
-    if (window.confirm(`Are you sure you want to delete "${attachment.fileName}"?`)) {
-      // Delete logic here
+    const absUrl = resolveAttachmentFileUrl(rawUrl);
+    const token = localStorage.getItem("accessToken");
+    const suggestedName = attachment.fileName || "download";
+
+    try {
+      const res = await fetch(absUrl, {
+        method: "GET",
+        headers: token ? { Authorization: `Bearer ${token}` } : {},
+        mode: "cors",
+      });
+      if (!res.ok) {
+        throw new Error(`Download failed (${res.status})`);
+      }
+      const blob = await res.blob();
+      triggerBlobDownload(blob, suggestedName);
+    } catch {
+      try {
+        window.open(absUrl, "_blank", "noopener,noreferrer");
+      } catch {
+        window.alert("Unable to download this file.");
+      }
     }
   };
 
@@ -447,7 +431,6 @@ function Attachments({ card, formValues, handleChange }) {
           <AttachmentList
             attachments={attachments}
             onDownload={handleDownload}
-            onDelete={handleDelete}
             cardColor={cardColor}
           />
         )}
