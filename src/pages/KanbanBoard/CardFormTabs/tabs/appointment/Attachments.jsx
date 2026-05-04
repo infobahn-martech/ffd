@@ -3,7 +3,7 @@ import { useEffect, useMemo, useState } from "react";
 import attachmentsService from "../../../../../services/attachmentsService";
 import CardTabListLoading from "../../../../../components/CardTabListLoading";
 import "../../../../../design/scss/attachments.scss";
-const AttachmentItem = ({ attachment, onDownload, cardColor }) => {
+const AttachmentItem = ({ attachment, onView, cardColor }) => {
   const getFileIcon = (fileName) => {
     const extension = fileName?.split('.').pop()?.toLowerCase() || '';
 
@@ -122,28 +122,29 @@ const AttachmentItem = ({ attachment, onDownload, cardColor }) => {
           )}
         </div>
       </div>
-      {/* <div className="attachment-actions">
-        {onDownload && (
+      <div className="attachment-actions">
+        {onView && (
           <button
-            className="attachment-action-btn download"
-            onClick={() => onDownload(attachment)}
+            className="attachment-action-btn view"
+            onClick={() => onView(attachment)}
             type="button"
-            title={attachment.fileUrl ? "Download" : "No download link"}
+            title={attachment.fileUrl ? "View in new tab" : "No file link"}
             disabled={!attachment.fileUrl}
             style={{ "--card-color": cardColor }}
           >
-            <svg width="18" height="18" viewBox="0 0 18 18" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <svg width="18" height="18" viewBox="0 0 18 18" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden>
               <path
-                d="M9 12V3M9 12L6 9M9 12L12 9M3 15H15"
+                d="M1.5 9s3-5.25 7.5-5.25S16.5 9 16.5 9s-3 5.25-7.5 5.25S1.5 9 1.5 9Z"
                 stroke="currentColor"
                 strokeWidth="1.5"
                 strokeLinecap="round"
                 strokeLinejoin="round"
               />
+              <circle cx="9" cy="9" r="2.25" stroke="currentColor" strokeWidth="1.5" />
             </svg>
           </button>
         )}
-      </div> */}
+      </div>
     </div>
   );
 };
@@ -158,11 +159,11 @@ AttachmentItem.propTypes = {
     fileUrl: PropTypes.string,
     category: PropTypes.string,
   }).isRequired,
-  onDownload: PropTypes.func,
+  onView: PropTypes.func,
   cardColor: PropTypes.string,
 };
 
-const AttachmentCategory = ({ label, attachments, onDownload, cardColor }) => {
+const AttachmentCategory = ({ label, attachments, onView, cardColor }) => {
   if (!attachments || attachments.length === 0) {
     return null;
   }
@@ -178,7 +179,7 @@ const AttachmentCategory = ({ label, attachments, onDownload, cardColor }) => {
           <AttachmentItem
             key={attachment.id}
             attachment={attachment}
-            onDownload={onDownload}
+            onView={onView}
             cardColor={cardColor}
           />
         ))}
@@ -200,11 +201,11 @@ AttachmentCategory.propTypes = {
       category: PropTypes.string,
     })
   ),
-  onDownload: PropTypes.func,
+  onView: PropTypes.func,
   cardColor: PropTypes.string,
 };
 
-const AttachmentList = ({ attachments, onDownload, cardColor }) => {
+const AttachmentList = ({ attachments, onView, cardColor }) => {
   // Group attachments by category/label
   const groupedAttachments = useMemo(() => {
     if (!attachments || attachments.length === 0) {
@@ -241,7 +242,7 @@ const AttachmentList = ({ attachments, onDownload, cardColor }) => {
             key={category}
             label={category}
             attachments={groupedAttachments[category]}
-            onDownload={onDownload}
+            onView={onView}
             cardColor={cardColor}
           />
         ))}
@@ -262,15 +263,8 @@ AttachmentList.propTypes = {
       category: PropTypes.string,
     })
   ),
-  onDownload: PropTypes.func,
+  onView: PropTypes.func,
   cardColor: PropTypes.string,
-};
-
-const sanitizeDownloadFilename = (name) => {
-  const base = String(name || "download")
-    .replace(/[<>:"/\\|?*\u0000-\u001F]/g, "_")
-    .trim();
-  return (base || "download").slice(0, 200);
 };
 
 const resolveAttachmentFileUrl = (fileUrl) => {
@@ -280,21 +274,6 @@ const resolveAttachmentFileUrl = (fileUrl) => {
   const base = String(import.meta.env.VITE_API_ENDPOINT || "").replace(/\/+$/, "");
   if (!base) return s.startsWith("/") ? s : `/${s}`;
   return s.startsWith("/") ? `${base}${s}` : `${base}/${s}`;
-};
-
-const triggerBlobDownload = (blob, filename) => {
-  const objectUrl = URL.createObjectURL(blob);
-  try {
-    const a = document.createElement("a");
-    a.href = objectUrl;
-    a.download = sanitizeDownloadFilename(filename);
-    a.rel = "noopener";
-    document.body.appendChild(a);
-    a.click();
-    a.remove();
-  } finally {
-    URL.revokeObjectURL(objectUrl);
-  }
 };
 
 /** @param {Record<string, unknown>} data */
@@ -319,7 +298,7 @@ const mapGroupedAttachmentsResponse = (data) => {
   return flat;
 };
 
-function Attachments({ card, formValues, handleChange }) {
+function Attachments({ card, formValues }) {
   const cardColor = card?.color || "#2A00FF";
 
   const callId = useMemo(() => {
@@ -376,35 +355,14 @@ function Attachments({ card, formValues, handleChange }) {
     };
   }, [callId]);
 
-  const handleDownload = async (attachment) => {
+  const handleView = (attachment) => {
     const rawUrl = attachment?.fileUrl;
     if (!rawUrl) {
-      window.alert("No download link is available for this attachment.");
+      window.alert("No link is available for this attachment.");
       return;
     }
-
     const absUrl = resolveAttachmentFileUrl(rawUrl);
-    const token = localStorage.getItem("accessToken");
-    const suggestedName = attachment.fileName || "download";
-
-    try {
-      const res = await fetch(absUrl, {
-        method: "GET",
-        headers: token ? { Authorization: `Bearer ${token}` } : {},
-        mode: "cors",
-      });
-      if (!res.ok) {
-        throw new Error(`Download failed (${res.status})`);
-      }
-      const blob = await res.blob();
-      triggerBlobDownload(blob, suggestedName);
-    } catch {
-      try {
-        window.open(absUrl, "_blank", "noopener,noreferrer");
-      } catch {
-        window.alert("Unable to download this file.");
-      }
-    }
+    window.open(absUrl, "_blank", "noopener,noreferrer");
   };
 
   return (
@@ -429,7 +387,7 @@ function Attachments({ card, formValues, handleChange }) {
         ) : (
           <AttachmentList
             attachments={attachments}
-            onDownload={handleDownload}
+            onView={handleView}
             cardColor={cardColor}
           />
         )}
