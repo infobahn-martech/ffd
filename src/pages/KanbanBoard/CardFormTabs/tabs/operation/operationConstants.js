@@ -18,6 +18,10 @@ export const PRE_ARRIVAL_WEATHER_FORECAST_OPTIONS = [
 export const SABER_APPLIED_BY_SEDRES = "Applied by Sedres";
 export const BAD_WEATHER = "Bad weather";
 
+/** Role IDs from `users/get_users_by_role` / `task_documents.role_id` (document handling). */
+export const PRE_ARRIVAL_GRO_ROLE_ID = 4;
+export const PRE_ARRIVAL_CUSTOM_CLEARANCE_ROLE_ID = 5;
+
 /** API expects integers on save; UI keeps human-readable option values. */
 export const PRE_ARRIVAL_SABER_STATUS_SAVE_VALUE = {
   "Applied by Client": 1,

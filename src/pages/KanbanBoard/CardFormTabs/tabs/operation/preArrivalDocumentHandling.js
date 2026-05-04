@@ -123,5 +123,8 @@ export function collectPreArrivalProcessAttachments(documentHandling) {
       });
     });
   });
+  (documentHandling.stageFiles || []).forEach((file) => {
+    if (file) out.push(file);
+  });
   return out;
 }

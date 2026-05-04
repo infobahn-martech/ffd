@@ -32,7 +32,7 @@ import {
   OperationSaveSection,
 } from "./components/OperationCommon";
 import { extractReportTemplateFields } from "./operationReportTemplate";
-import { applyPreArrivalGetDetailToForm } from "./preArrivalDetailApply";
+import { applyPreArrivalGetDetailToForm, mergePreArrivalDetailDocuments } from "./preArrivalDetailApply";
 
 const IconUpload = () => (
   <svg width="18" height="18" viewBox="0 0 24 24" fill="none" aria-hidden>
@@ -161,6 +161,7 @@ DocumentGroupCard.propTypes = {
 
 function PreArrivalDocumentHandlingSection({ formValues, handleChange, isViewOnly, portId }) {
   const dh = formValues.preArrivalDocumentHandling || DEFAULT_PRE_ARRIVAL_DOCUMENT_HANDLING;
+  const stageFiles = Array.isArray(dh.stageFiles) ? dh.stageFiles : [];
   const dhRef = useRef(dh);
   const selectedGroOption = formValues.assignedGro || "";
   const selectedCustomClearanceOption = formValues.assignedCustom || "";
@@ -355,6 +356,25 @@ function PreArrivalDocumentHandlingSection({ formValues, handleChange, isViewOnl
         </FormField>
       </div>
 
+      {stageFiles.length > 0 && (
+        <div className="document-handling-stage-docs" role="region" aria-label="Stage documents">
+          <h4 className="document-group-card__title">Stage documents</h4>
+          <ul className="document-stage-file-list">
+            {stageFiles.map((f, idx) => (
+              <li key={`${f.stage_document_id ?? idx}-${f.name}`}>
+                {f.url ? (
+                  <a href={f.url} target="_blank" rel="noopener noreferrer">
+                    {f.name}
+                  </a>
+                ) : (
+                  <span>{f.name}</span>
+                )}
+              </li>
+            ))}
+          </ul>
+        </div>
+      )}
+
       {showDocumentHandlingContent && (
         <>
           <div className="document-handling-section__divider" />
@@ -438,9 +458,17 @@ function PreArrival({
   const [isLoadingCoordinates, setIsLoadingCoordinates] = useState(false);
   const [coordinateTypeOptions, setCoordinateTypeOptions] = useState([]);
   const [coordinateOptions, setCoordinateOptions] = useState([]);
+  const [reportDraft, setReportDraft] = useState({
+    from: "operations@shipping.com",
+    to: "",
+    cc: "",
+    subject: "Report - Pre Arrival",
+    message: "",
+  });
   const formValuesRef = useRef(formValues);
   const coordinatesFetchGenRef = useRef(0);
   const pendingCoordinateIdRef = useRef(null);
+  const preArrivalDocumentsDetailRef = useRef({ taskDocuments: [], stageDocuments: [] });
 
   const callId = useMemo(
     () => String(card?.call_id ?? card?.callId ?? formValues?.call_id ?? "").trim(),
@@ -463,7 +491,34 @@ function PreArrival({
 
   useEffect(() => {
     pendingCoordinateIdRef.current = null;
+    preArrivalDocumentsDetailRef.current = { taskDocuments: [], stageDocuments: [] };
   }, [callId]);
+
+  const documentHandlingRowsKey = useMemo(() => {
+    const dh = formValues.preArrivalDocumentHandling;
+    const groIds = (dh?.documents?.gro || []).map((r) => r.id).join(",");
+    const ccIds = (dh?.documents?.customClearance || []).map((r) => r.id).join(",");
+    return `${formValues.assignedGro || ""}|${formValues.assignedCustom || ""}|${groIds}|${ccIds}`;
+  }, [
+    formValues.preArrivalDocumentHandling,
+    formValues.assignedGro,
+    formValues.assignedCustom,
+  ]);
+
+  const applyDetailDocuments = useCallback(() => {
+    const { taskDocuments, stageDocuments } = preArrivalDocumentsDetailRef.current;
+    if (!taskDocuments?.length && !stageDocuments?.length) return;
+    const dhCurrent = formValuesRef.current?.preArrivalDocumentHandling;
+    const nextDh = mergePreArrivalDetailDocuments(
+      dhCurrent,
+      taskDocuments || [],
+      stageDocuments || []
+    );
+    if (!nextDh) return;
+    if (JSON.stringify(nextDh) !== JSON.stringify(dhCurrent)) {
+      handleChange("preArrivalDocumentHandling")({ target: { value: nextDh } });
+    }
+  }, [handleChange]);
 
   useEffect(() => {
     if (isViewOnly || !callId) return;
@@ -478,6 +533,12 @@ function PreArrival({
         const status = body?.status;
         if (typeof status === "string" && status.toLowerCase() === "error") return;
 
+        const root = body?.data ?? body ?? {};
+        preArrivalDocumentsDetailRef.current = {
+          taskDocuments: root.task_documents ?? root.taskDocuments ?? [],
+          stageDocuments: root.stage_documents ?? root.stageDocuments ?? [],
+        };
+
         const snapshot = formValuesRef.current;
         const { coordinatesId } = applyPreArrivalGetDetailToForm({
           responseBody: body,
@@ -488,6 +549,8 @@ function PreArrival({
         if (coordinatesId && !String(snapshot.coordinateTypeId || "").trim()) {
           pendingCoordinateIdRef.current = coordinatesId;
         }
+
+        applyDetailDocuments();
       } catch (error) {
         if (!cancelled) {
           console.error("[Operation] pre_arrival/get_prearrival_detail failed", error);
@@ -500,7 +563,12 @@ function PreArrival({
     return () => {
       cancelled = true;
     };
-  }, [callId, isViewOnly, eventFieldsApplyKey, handleChange]);
+  }, [callId, isViewOnly, eventFieldsApplyKey, handleChange, applyDetailDocuments, eventFields]);
+
+  useEffect(() => {
+    if (isViewOnly) return;
+    applyDetailDocuments();
+  }, [documentHandlingRowsKey, isViewOnly, applyDetailDocuments]);
 
   useEffect(() => {
     const needId = pendingCoordinateIdRef.current;
@@ -539,13 +607,6 @@ function PreArrival({
       cancelled = true;
     };
   }, [coordinateTypeOptions, formValues.coordinateTypeId, handleChange]);
-  const [reportDraft, setReportDraft] = useState({
-    from: "operations@shipping.com",
-    to: "",
-    cc: "",
-    subject: "Report - Pre Arrival",
-    message: "",
-  });
 
   const handleSaberUtAddFiles = (files) => {
     const currentAttachments = formValues.saberUtDocumentsAttachments || [];

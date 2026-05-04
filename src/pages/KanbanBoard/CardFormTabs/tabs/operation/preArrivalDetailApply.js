@@ -2,6 +2,8 @@ import {
   getEventFieldKeyPrefix,
   mapApiSaberStatusToFormValue,
   mapApiWeatherForecastToFormValue,
+  PRE_ARRIVAL_CUSTOM_CLEARANCE_ROLE_ID,
+  PRE_ARRIVAL_GRO_ROLE_ID,
   SABER_APPLIED_BY_SEDRES,
 } from "./operationConstants";
 
@@ -14,11 +16,64 @@ export function parseApiDateTimeParts(raw) {
   return { date, time };
 }
 
-export function mergePreArrivalTaskDocuments(currentHandling, taskDocuments = []) {
+function roleIdToPreArrivalProcessKey(roleId) {
+  const n = Number(roleId);
+  if (n === PRE_ARRIVAL_GRO_ROLE_ID) return "gro";
+  if (n === PRE_ARRIVAL_CUSTOM_CLEARANCE_ROLE_ID) return "customClearance";
+  return null;
+}
+
+const stageFileKey = (f) => `${f?.stage_document_id ?? ""}:${f?.name ?? ""}:${f?.url ?? ""}`;
+
+/**
+ * Merges `task_documents` (by `role_id` → GRO vs Custom) and `stage_documents` into document handling.
+ * GRO = role_id 4, Custom clearance = role_id 5 (same as user pickers in Pre Arrival).
+ */
+export function mergePreArrivalDetailDocuments(currentHandling, taskDocuments = [], stageDocuments = []) {
   if (!currentHandling || typeof currentHandling !== "object" || !currentHandling.documents) {
     return currentHandling;
   }
   const dh = JSON.parse(JSON.stringify(currentHandling));
+  if (!Array.isArray(dh.stageFiles)) dh.stageFiles = [];
+
+  const stageFromApi = (stageDocuments || [])
+    .map((sd) => {
+      const raw = sd?.attachment ?? sd?.url ?? sd?.file_url;
+      if (raw == null || String(raw).trim() === "") return null;
+      if (typeof raw !== "string") return null;
+      const trimmed = raw.trim();
+      let name = trimmed;
+      if (/^https?:\/\//i.test(trimmed)) {
+        try {
+          const seg = trimmed.split("/").pop() || trimmed;
+          name = seg.includes("?") ? seg.split("?")[0] : seg;
+        } catch {
+          name = trimmed;
+        }
+      }
+      return {
+        name,
+        url: /^https?:\/\//i.test(trimmed) ? trimmed : undefined,
+        stage_document_id: sd?.stage_document_id ?? sd?.stageDocumentId,
+      };
+    })
+    .filter(Boolean);
+
+  const existingStageKeys = new Set((dh.stageFiles || []).map(stageFileKey));
+  for (const f of stageFromApi) {
+    const k = stageFileKey(f);
+    if (!existingStageKeys.has(k)) {
+      dh.stageFiles.push(f);
+      existingStageKeys.add(k);
+    }
+  }
+
+  const taskRoles = new Set(
+    (taskDocuments || []).map((t) => Number(t?.role_id)).filter((n) => !Number.isNaN(n))
+  );
+  if (!dh.selectedProcesses) dh.selectedProcesses = { gro: false, customClearance: false };
+  if (taskRoles.has(PRE_ARRIVAL_GRO_ROLE_ID)) dh.selectedProcesses.gro = true;
+  if (taskRoles.has(PRE_ARRIVAL_CUSTOM_CLEARANCE_ROLE_ID)) dh.selectedProcesses.customClearance = true;
 
   const pushFile = (row, entry) => {
     if (!row || !entry?.name) return;
@@ -31,42 +86,23 @@ export function mergePreArrivalTaskDocuments(currentHandling, taskDocuments = []
     if (!dup) row.files = [...files, entry];
   };
 
-  for (const td of taskDocuments) {
+  for (const td of taskDocuments || []) {
     const docId = td?.document_id ?? td?.documentId;
     const fileName = td?.file_name || td?.fileName || "Document";
     if (docId == null) continue;
     const idStr = String(docId);
-    for (const processKey of ["gro", "customClearance"]) {
-      const row = (dh.documents[processKey] || []).find((r) => String(r.id) === idStr);
-      if (row) {
-        pushFile(row, { name: fileName });
-        break;
-      }
-    }
+    const processKey = roleIdToPreArrivalProcessKey(td?.role_id);
+    if (!processKey) continue;
+    const row = (dh.documents[processKey] || []).find((r) => String(r.id) === idStr);
+    if (row) pushFile(row, { name: fileName });
   }
 
   return dh;
 }
 
-function stageDocumentUrlEntries(stageDocuments = []) {
-  const out = [];
-  for (const sd of stageDocuments) {
-    const url = sd?.attachment ?? sd?.url ?? sd?.file_url;
-    if (!url || typeof url !== "string") continue;
-    let name = `Stage document ${sd?.stage_document_id ?? ""}`.trim();
-    try {
-      const seg = url.split("/").pop() || name;
-      name = seg.includes("?") ? seg.split("?")[0] : seg;
-    } catch {
-      /* keep default name */
-    }
-    out.push({ name, url: String(url) });
-  }
-  return out;
-}
-
 /**
  * Applies `pre_arrival/get_prearrival_detail` payload into Operation / CardForm fields.
+ * Document handling rows are merged separately via `mergePreArrivalDetailDocuments` when rows are ready.
  * @returns {{ appliedAnyTime: boolean, coordinatesId: string|null }}
  */
 export function applyPreArrivalGetDetailToForm({
@@ -78,9 +114,6 @@ export function applyPreArrivalGetDetailToForm({
   const root = responseBody?.data ?? responseBody ?? {};
   const pre = root.prearrival ?? root.preArrival;
   const timeObjects = root.time_objects ?? root.timeObjects ?? [];
-  const taskDocuments = root.task_documents ?? root.taskDocuments ?? [];
-  const stageDocuments = root.stage_documents ?? root.stageDocuments ?? [];
-  const stageUrlAttachments = stageDocumentUrlEntries(stageDocuments);
 
   let appliedAnyTime = false;
   let coordinatesId = null;
@@ -134,11 +167,10 @@ export function applyPreArrivalGetDetailToForm({
     }
   }
 
-  const urlAttachmentsToAdd = [...saberDocAttachments, ...stageUrlAttachments];
-  if (urlAttachmentsToAdd.length) {
+  if (saberDocAttachments.length) {
     const existing = currentForm?.saberUtDocumentsAttachments || [];
     const merged = [...existing];
-    for (const a of urlAttachmentsToAdd) {
+    for (const a of saberDocAttachments) {
       if (!merged.some((m) => m.name === a.name && m.url === a.url)) merged.push(a);
     }
     handleChange("saberUtDocumentsAttachments")({ target: { value: merged } });
@@ -174,11 +206,6 @@ export function applyPreArrivalGetDetailToForm({
 
   if (appliedAnyTime) {
     handleChange("preArrivalEtaAutofillDisabled")({ target: { value: true } });
-  }
-
-  const nextDh = mergePreArrivalTaskDocuments(currentForm?.preArrivalDocumentHandling, taskDocuments);
-  if (nextDh && JSON.stringify(nextDh) !== JSON.stringify(currentForm?.preArrivalDocumentHandling)) {
-    handleChange("preArrivalDocumentHandling")({ target: { value: nextDh } });
   }
 
   return { appliedAnyTime, coordinatesId };
