@@ -725,6 +725,17 @@ function PreArrival({
       });
     });
 
+    const reportBody = reportDraft.message || buildPreArrivalReportBody(formValues);
+    fd.append(
+      "pre_arrival_report",
+      JSON.stringify({
+        subject: reportDraft.subject ?? "",
+        body: reportBody ?? "",
+        to_email: reportDraft.to ?? "",
+        from_email: reportDraft.from ?? "",
+      })
+    );
+
     for (let pair of fd.entries()) {
       console.log(pair[0], pair[1]);
     }
