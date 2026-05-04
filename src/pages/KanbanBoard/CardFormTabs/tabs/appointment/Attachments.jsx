@@ -1,6 +1,7 @@
 import PropTypes from "prop-types";
 import { useEffect, useMemo, useState } from "react";
 import attachmentsService from "../../../../../services/attachmentsService";
+import CardTabListLoading from "../../../../../components/CardTabListLoading";
 import "../../../../../design/scss/attachments.scss";
 const AttachmentItem = ({ attachment, onDownload, cardColor }) => {
   const getFileIcon = (fileName) => {
@@ -420,9 +421,7 @@ function Attachments({ card, formValues, handleChange }) {
             <p>No call identifier available for attachments.</p>
           </div>
         ) : loading ? (
-          <div className="cf-empty-row">
-            <p>Loading attachments…</p>
-          </div>
+          <CardTabListLoading message="Loading attachments…" cardColor={cardColor} />
         ) : error ? (
           <div className="cf-empty-row">
             <p>{error}</p>

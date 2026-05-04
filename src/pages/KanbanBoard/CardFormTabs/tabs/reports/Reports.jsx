@@ -2,6 +2,7 @@ import PropTypes from "prop-types";
 import { useEffect, useMemo, useState } from "react";
 import { Modal } from "react-bootstrap";
 import CustomModal from "../../../../../components/CustomModal";
+import CardTabListLoading from "../../../../../components/CardTabListLoading";
 import reportsService from "../../../../../services/reportsService";
 import "../../../../../design/scss/attachments.scss";
 import "../../../../../design/scss/operations.scss";
@@ -267,9 +268,7 @@ function Reports({ card, formValues }) {
             <p>No call identifier available for reports.</p>
           </div>
         ) : loading ? (
-          <div className="cf-empty-row">
-            <p>Loading reports…</p>
-          </div>
+          <CardTabListLoading message="Loading reports…" cardColor={cardColor} />
         ) : error ? (
           <div className="cf-empty-row">
             <p>{error}</p>
