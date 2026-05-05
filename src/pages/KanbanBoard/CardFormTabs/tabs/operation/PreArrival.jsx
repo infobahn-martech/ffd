@@ -113,11 +113,11 @@ const CompactFileUploadRow = ({ label, files = [], onAddFiles, onRemoveAt, isVie
               <IconUpload />
             </button>
             <input ref={inputRef} type="file" className="document-row-file-input" onChange={handleInput} aria-label={`Upload ${label}`} multiple />
-            {hasFiles && (
+            {/* {hasFiles && (
               <button type="button" className="document-row-icon-btn document-row-icon-btn--danger" onClick={() => onRemoveAt(files.length - 1)} title="Remove latest file">
                 <IconTrash />
               </button>
-            )}
+            )} */}
           </>
         )}
       </div>
@@ -345,9 +345,9 @@ function PreArrivalDocumentHandlingSection({
         const customRows = skipCustom
           ? currentDh?.documents?.customClearance || []
           : mergeRoleDocuments(
-              currentDh?.documents?.customClearance || [],
-              customResponse?.data?.data || []
-            );
+            currentDh?.documents?.customClearance || [],
+            customResponse?.data?.data || []
+          );
 
         setDh({
           ...currentDh,
@@ -627,18 +627,18 @@ function PreArrival({
           gro:
             groG?.user_id != null
               ? {
-                  value: String(groG.user_id),
-                  label: groG.name || `User ${groG.user_id}`,
-                  roleId: groG.role_id ?? PRE_ARRIVAL_GRO_ROLE_ID,
-                }
+                value: String(groG.user_id),
+                label: groG.name || `User ${groG.user_id}`,
+                roleId: groG.role_id ?? PRE_ARRIVAL_GRO_ROLE_ID,
+              }
               : null,
           customClearance:
             ccG?.user_id != null
               ? {
-                  value: String(ccG.user_id),
-                  label: ccG.name || `User ${ccG.user_id}`,
-                  roleId: ccG.role_id ?? PRE_ARRIVAL_CUSTOM_CLEARANCE_ROLE_ID,
-                }
+                value: String(ccG.user_id),
+                label: ccG.name || `User ${ccG.user_id}`,
+                roleId: ccG.role_id ?? PRE_ARRIVAL_CUSTOM_CLEARANCE_ROLE_ID,
+              }
               : null,
         });
 
@@ -1206,7 +1206,7 @@ function PreArrival({
                       <FormInput
                         type="text"
                         value={formValues?.coordinates || ""}
-                        onChange={() => {}}
+                        onChange={() => { }}
                         placeholder="Coordinates will appear here..."
                         disabled
                       />
