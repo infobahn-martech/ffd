@@ -6,6 +6,7 @@ import { rgbToHex, hexToRgb, workflowStageHasChildColumns, DEFAULT_STAGE_SWATCH_
 
 const STAGE_COLOR_PICKER_WIDTH = 308;
 const STAGE_COLOR_PICKER_Z = 10050;
+const COLOR_PICKER_VIEWPORT_MARGIN = 8;
 
 /**
  * Single stage card with insertion rails, title editing, and minimal color action.
@@ -95,13 +96,25 @@ function WorkflowStageCard({
     const el = stageColorTriggerRef.current;
     if (!el) return;
     const r = el.getBoundingClientRect();
-    const margin = 8;
+    const margin = COLOR_PICKER_VIEWPORT_MARGIN;
+    const gap = 8;
+    const pickerHeight = stageColorPickerPopoverRef.current?.offsetHeight ?? 320;
     let left = r.left;
     if (left + STAGE_COLOR_PICKER_WIDTH > window.innerWidth - margin) {
       left = window.innerWidth - STAGE_COLOR_PICKER_WIDTH - margin;
     }
     left = Math.max(margin, left);
-    setStageColorPickerPlacement({ top: r.bottom + margin, left });
+    const belowTop = r.bottom + gap;
+    const aboveTop = r.top - pickerHeight - gap;
+    const canPlaceBelow = belowTop + pickerHeight <= window.innerHeight - margin;
+    const canPlaceAbove = aboveTop >= margin;
+    let top = belowTop;
+    if (!canPlaceBelow && canPlaceAbove) {
+      top = aboveTop;
+    } else if (!canPlaceBelow) {
+      top = Math.max(margin, window.innerHeight - pickerHeight - margin);
+    }
+    setStageColorPickerPlacement({ top, left });
   }, []);
 
   useLayoutEffect(() => {
@@ -118,6 +131,15 @@ function WorkflowStageCard({
       window.removeEventListener('scroll', updateStageColorPickerPlacement, true);
       window.removeEventListener('resize', updateStageColorPickerPlacement);
     };
+  }, [isStageColorPickerOpen, updateStageColorPickerPlacement]);
+
+  useEffect(() => {
+    if (!isStageColorPickerOpen) return undefined;
+    const popover = stageColorPickerPopoverRef.current;
+    if (!popover || typeof ResizeObserver === 'undefined') return undefined;
+    const observer = new ResizeObserver(() => updateStageColorPickerPlacement());
+    observer.observe(popover);
+    return () => observer.disconnect();
   }, [isStageColorPickerOpen, updateStageColorPickerPlacement]);
 
   useEffect(() => {

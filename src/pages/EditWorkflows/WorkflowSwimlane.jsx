@@ -15,6 +15,7 @@ import WorkflowAreaGrid, { STAGE_CELL_WIDTH, STAGE_GAP } from './WorkflowAreaGri
 
 const SWIMLANE_COLOR_PICKER_WIDTH = 308;
 const SWIMLANE_COLOR_PICKER_Z = 10050;
+const COLOR_PICKER_VIEWPORT_MARGIN = 8;
 
 /**
  * Single swimlane: optionally stage row + swimlane content row (label + cells).
@@ -100,13 +101,25 @@ function WorkflowSwimlane({
     const el = swimlaneColorTriggerRef.current;
     if (!el) return;
     const r = el.getBoundingClientRect();
-    const margin = 8;
+    const margin = COLOR_PICKER_VIEWPORT_MARGIN;
+    const gap = 8;
+    const pickerHeight = swimlaneColorPickerPopoverRef.current?.offsetHeight ?? 320;
     let left = r.left;
     if (left + SWIMLANE_COLOR_PICKER_WIDTH > window.innerWidth - margin) {
       left = window.innerWidth - SWIMLANE_COLOR_PICKER_WIDTH - margin;
     }
     left = Math.max(margin, left);
-    setSwimlaneColorPickerPlacement({ top: r.bottom + margin, left });
+    const belowTop = r.bottom + gap;
+    const aboveTop = r.top - pickerHeight - gap;
+    const canPlaceBelow = belowTop + pickerHeight <= window.innerHeight - margin;
+    const canPlaceAbove = aboveTop >= margin;
+    let top = belowTop;
+    if (!canPlaceBelow && canPlaceAbove) {
+      top = aboveTop;
+    } else if (!canPlaceBelow) {
+      top = Math.max(margin, window.innerHeight - pickerHeight - margin);
+    }
+    setSwimlaneColorPickerPlacement({ top, left });
   }, []);
 
   useLayoutEffect(() => {
@@ -123,6 +136,15 @@ function WorkflowSwimlane({
       window.removeEventListener('scroll', updateSwimlaneColorPickerPlacement, true);
       window.removeEventListener('resize', updateSwimlaneColorPickerPlacement);
     };
+  }, [isSwimlaneColorPickerOpen, updateSwimlaneColorPickerPlacement]);
+
+  useEffect(() => {
+    if (!isSwimlaneColorPickerOpen) return undefined;
+    const popover = swimlaneColorPickerPopoverRef.current;
+    if (!popover || typeof ResizeObserver === 'undefined') return undefined;
+    const observer = new ResizeObserver(() => updateSwimlaneColorPickerPlacement());
+    observer.observe(popover);
+    return () => observer.disconnect();
   }, [isSwimlaneColorPickerOpen, updateSwimlaneColorPickerPlacement]);
 
   useEffect(() => {
