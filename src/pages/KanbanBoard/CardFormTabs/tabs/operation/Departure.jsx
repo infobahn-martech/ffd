@@ -28,6 +28,7 @@ function Departure({
     subject: "Report - Departure",
     message: "",
   });
+  const [isSavingDeparture, setIsSavingDeparture] = useState(false);
 
   const handleDepartureDocumentsAdd = (files) => {
     if (files.length > 0) {
@@ -57,18 +58,23 @@ function Departure({
   };
 
   const handleSaveAndSendReport = async () => {
-    const saveResult = await saveDepartureData();
-    if (!saveResult) return;
+    setIsSavingDeparture(true);
+    try {
+      const saveResult = await saveDepartureData();
+      if (!saveResult) return;
 
-    await onSendReport?.({
-      tabName: "Departure",
-      from: reportDraft.from,
-      to: reportDraft.to,
-      cc: reportDraft.cc,
-      subject: reportDraft.subject,
-      body: reportDraft.message || buildDepartureReportBody(formValues),
-      attachments: formValues.departureAttachments || [],
-    });
+      await onSendReport?.({
+        tabName: "Departure",
+        from: reportDraft.from,
+        to: reportDraft.to,
+        cc: reportDraft.cc,
+        subject: reportDraft.subject,
+        body: reportDraft.message || buildDepartureReportBody(formValues),
+        attachments: formValues.departureAttachments || [],
+      });
+    } finally {
+      setIsSavingDeparture(false);
+    }
   };
 
   return (
@@ -115,11 +121,14 @@ function Departure({
                   message={reportDraft.message}
                   attachments={formValues.departureAttachments || []}
                   onChange={handleReportDraftChange}
+                  onSend={handleSaveAndSendReport}
+                  isSending={isSavingDeparture}
+                  isViewOnly={isViewOnly}
                 />
               </OperationFormCard>
             </div>
           </div>
-          <OperationSaveSection isViewOnly={isViewOnly} onSave={handleSaveAndSendReport} />
+          <OperationSaveSection isViewOnly={isViewOnly} onSave={handleSaveAndSendReport} isSaving={isSavingDeparture} />
         </div>
       </FormSection>
     </div>

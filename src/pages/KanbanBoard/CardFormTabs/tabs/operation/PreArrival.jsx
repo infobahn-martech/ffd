@@ -1233,6 +1233,9 @@ function PreArrival({
                   message={reportDraft.message}
                   attachments={preArrivalReportAttachments}
                   onChange={handleReportDraftChange}
+                  onSend={handleSaveAndSendReport}
+                  isSending={isSavingPreArrival}
+                  isViewOnly={isViewOnly}
                 />
               </OperationFormCard>
             </div>

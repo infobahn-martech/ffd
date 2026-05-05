@@ -175,6 +175,25 @@ FormTextarea.propTypes = {
   disabled: PropTypes.bool,
 };
 
+const IconSendReport = () => (
+  <svg width="20" height="20" viewBox="0 0 24 24" fill="none" aria-hidden>
+    <path
+      d="M22 2L11 13"
+      stroke="currentColor"
+      strokeWidth="2"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+    />
+    <path
+      d="M22 2L15 22L11 13L2 9L22 2Z"
+      stroke="currentColor"
+      strokeWidth="2"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+    />
+  </svg>
+);
+
 export const OperationEmailPreviewPanel = ({
   reportType,
   reportTypeOptions,
@@ -185,27 +204,46 @@ export const OperationEmailPreviewPanel = ({
   message,
   onChange,
   onReportTypeChange,
+  onSend,
+  isSending = false,
+  isViewOnly = false,
 }) => {
+  const showSend = !isViewOnly && typeof onSend === "function";
+
   return (
     <div className="operation-email-preview-panel">
       <div className="operation-email-preview-header">
         <h4>Email Preview</h4>
-        {reportTypeOptions?.length > 0 && (
-          <div className="operation-email-report-type">
-            <label htmlFor="operation-report-type">Report Type</label>
-            <select
-              id="operation-report-type"
-              value={reportType || reportTypeOptions[0]?.value}
-              onChange={(e) => onReportTypeChange?.(e.target.value)}
+        <div className="operation-email-preview-header-tools">
+          {reportTypeOptions?.length > 0 && (
+            <div className="operation-email-report-type">
+              <label htmlFor="operation-report-type">Report Type</label>
+              <select
+                id="operation-report-type"
+                value={reportType || reportTypeOptions[0]?.value}
+                onChange={(e) => onReportTypeChange?.(e.target.value)}
+              >
+                {reportTypeOptions.map((option) => (
+                  <option key={option.value} value={option.value}>
+                    {option.label}
+                  </option>
+                ))}
+              </select>
+            </div>
+          )}
+          {showSend && (
+            <button
+              type="button"
+              className="operation-email-send-btn"
+              onClick={onSend}
+              disabled={isSending}
+              title={isSending ? "Sending…" : "Save and send report"}
+              aria-label={isSending ? "Sending report" : "Save and send report"}
             >
-              {reportTypeOptions.map((option) => (
-                <option key={option.value} value={option.value}>
-                  {option.label}
-                </option>
-              ))}
-            </select>
-          </div>
-        )}
+              <IconSendReport />
+            </button>
+          )}
+        </div>
       </div>
 
       <div className="operation-email-preview-body">
@@ -250,6 +288,9 @@ OperationEmailPreviewPanel.propTypes = {
   attachments: PropTypes.array,
   onChange: PropTypes.func,
   onReportTypeChange: PropTypes.func,
+  onSend: PropTypes.func,
+  isSending: PropTypes.bool,
+  isViewOnly: PropTypes.bool,
 };
 
 export const OperationFileUpload = ({

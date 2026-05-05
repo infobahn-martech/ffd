@@ -1888,7 +1888,7 @@ $send-report-optional: #80868b;
 
 .operation-email-preview-header {
   display: flex;
-  align-items: center;
+  align-items: flex-start;
   justify-content: space-between;
   gap: 10px;
   margin-bottom: 10px;
@@ -1898,6 +1898,47 @@ $send-report-optional: #80868b;
     font-size: 16px;
     color: #202938;
     font-weight: 700;
+    flex: 1;
+    min-width: 0;
+    line-height: 1.3;
+    padding-top: 2px;
+  }
+}
+
+.operation-email-preview-header-tools {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  flex-wrap: wrap;
+  gap: 10px;
+  flex-shrink: 0;
+}
+
+.operation-email-send-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 40px;
+  height: 36px;
+  padding: 0;
+  margin: 0;
+  border: 1px solid #d8dfec;
+  border-radius: 8px;
+  background: #fff;
+  color: #2f5fcc;
+  cursor: pointer;
+  flex-shrink: 0;
+  transition: background 0.15s ease, border-color 0.15s ease, color 0.15s ease;
+
+  &:hover:not(:disabled) {
+    background: #f0f5ff;
+    border-color: #2f5fcc;
+    color: #1d4ed8;
+  }
+
+  &:disabled {
+    opacity: 0.55;
+    cursor: not-allowed;
   }
 }
 

@@ -32,6 +32,7 @@ function Arrival({
     subject: "Report - Arrival",
     message: "",
   });
+  const [isSavingArrival, setIsSavingArrival] = useState(false);
 
   const crewImmigrationStatusOptions = [
     { value: "Completed", label: "Completed" },
@@ -78,18 +79,23 @@ function Arrival({
   };
 
   const handleSaveAndSendReport = async () => {
-    const saveResult = await saveArrivalData();
-    if (!saveResult) return;
+    setIsSavingArrival(true);
+    try {
+      const saveResult = await saveArrivalData();
+      if (!saveResult) return;
 
-    await onSendReport?.({
-      tabName: reportDraft.reportType === "daily" ? "Daily Report" : "Arrival",
-      from: reportDraft.from,
-      to: reportDraft.to,
-      cc: reportDraft.cc,
-      subject: reportDraft.subject,
-      body: reportDraft.message || getArrivalMessage(reportDraft.reportType),
-      attachments: formValues.arrivalDocumentsAttachments || [],
-    });
+      await onSendReport?.({
+        tabName: reportDraft.reportType === "daily" ? "Daily Report" : "Arrival",
+        from: reportDraft.from,
+        to: reportDraft.to,
+        cc: reportDraft.cc,
+        subject: reportDraft.subject,
+        body: reportDraft.message || getArrivalMessage(reportDraft.reportType),
+        attachments: formValues.arrivalDocumentsAttachments || [],
+      });
+    } finally {
+      setIsSavingArrival(false);
+    }
   };
 
   return (
@@ -185,11 +191,14 @@ function Arrival({
                   attachments={formValues.arrivalDocumentsAttachments || []}
                   onChange={handleReportDraftChange}
                   onReportTypeChange={handleReportTypeChange}
+                  onSend={handleSaveAndSendReport}
+                  isSending={isSavingArrival}
+                  isViewOnly={isViewOnly}
                 />
               </OperationFormCard>
             </div>
           </div>
-          <OperationSaveSection isViewOnly={isViewOnly} onSave={handleSaveAndSendReport} />
+          <OperationSaveSection isViewOnly={isViewOnly} onSave={handleSaveAndSendReport} isSaving={isSavingArrival} />
         </div>
       </FormSection>
     </div>
