@@ -1,13 +1,23 @@
+import { useEffect, useState } from "react";
 import { useForm } from "react-hook-form";
+import { FiEye, FiEyeOff } from "react-icons/fi";
 import CustomModal from "../../components/CustomModal";
+import { notify } from "../../components/Toaster";
+import authService from "../../services/authService";
 import "../../design/scss/prospect-modal.scss";
 import "../../design/scss/modal-designs.scss";
 import "../../design/scss/form-designs.scss";
 
 export default function ChangePasswordModal({ show, onClose }) {
+    const [isSubmitting, setIsSubmitting] = useState(false);
+    const [showCurrentPassword, setShowCurrentPassword] = useState(false);
+    const [showConfirmPassword, setShowConfirmPassword] = useState(false);
+    const [showReConfirmPassword, setShowReConfirmPassword] = useState(false);
+
     const {
         register,
         handleSubmit,
+        reset,
         formState: { errors },
         watch
     } = useForm({
@@ -20,10 +30,40 @@ export default function ChangePasswordModal({ show, onClose }) {
 
     const confirmPassword = watch("confirmPassword");
 
-    const onSubmit = (data) => {
-        console.log("CHANGE PASSWORD FORM SUBMITTED:", data);
-        // Add your password change logic here
-        onClose();
+    useEffect(() => {
+        if (show) {
+            reset({
+                currentPassword: "",
+                confirmPassword: "",
+                reConfirmPassword: ""
+            });
+            setShowCurrentPassword(false);
+            setShowConfirmPassword(false);
+            setShowReConfirmPassword(false);
+        }
+    }, [show, reset]);
+
+    const onSubmit = async (data) => {
+        setIsSubmitting(true);
+        try {
+            await authService.changePassword({
+                current_password: data.currentPassword,
+                new_password: data.confirmPassword,
+                confirm_password: data.reConfirmPassword
+            });
+            notify("Password changed successfully.", "success");
+            reset();
+            onClose();
+        } catch (err) {
+            const msg =
+                err?.response?.data?.message ||
+                err?.response?.data?.error ||
+                err?.message ||
+                "Failed to change password.";
+            notify(typeof msg === "string" ? msg : "Failed to change password.", "error");
+        } finally {
+            setIsSubmitting(false);
+        }
     };
 
     const renderHeader = () => (
@@ -39,11 +79,12 @@ export default function ChangePasswordModal({ show, onClose }) {
 
                     {/* CURRENT PASSWORD — FULL ROW */}
                     <div className="mb-lg-3 mb-sm-0">
-                        <div className="form-floating desig-inp">
+                        <div className="form-floating desig-inp desig-inp--password">
                             <input
-                                type="password"
+                                type={showCurrentPassword ? "text" : "password"}
                                 className={`form-control ${errors.currentPassword ? "is-invalid" : ""}`}
                                 placeholder="Current Password"
+                                autoComplete="current-password"
                                 {...register("currentPassword", {
                                     required: "Current password is required"
                                 })}
@@ -51,6 +92,14 @@ export default function ChangePasswordModal({ show, onClose }) {
                             <label>
                                 Current Password <span className="text-danger">*</span>
                             </label>
+                            <button
+                                type="button"
+                                className="password-toggle"
+                                onClick={() => setShowCurrentPassword((v) => !v)}
+                                aria-label={showCurrentPassword ? "Hide password" : "Show password"}
+                            >
+                                {showCurrentPassword ? <FiEyeOff /> : <FiEye />}
+                            </button>
                             {errors.currentPassword && (
                                 <span className="error text-danger">
                                     {errors.currentPassword.message}
@@ -61,11 +110,12 @@ export default function ChangePasswordModal({ show, onClose }) {
 
                     {/* CONFIRM PASSWORD — FULL ROW */}
                     <div className="mb-lg-3 mb-sm-0">
-                        <div className="form-floating desig-inp">
+                        <div className="form-floating desig-inp desig-inp--password">
                             <input
-                                type="password"
+                                type={showConfirmPassword ? "text" : "password"}
                                 className={`form-control ${errors.confirmPassword ? "is-invalid" : ""}`}
                                 placeholder="Confirm Password"
+                                autoComplete="new-password"
                                 {...register("confirmPassword", {
                                     required: "Confirm password is required",
                                     minLength: {
@@ -77,6 +127,14 @@ export default function ChangePasswordModal({ show, onClose }) {
                             <label>
                                 Confirm Password <span className="text-danger">*</span>
                             </label>
+                            <button
+                                type="button"
+                                className="password-toggle"
+                                onClick={() => setShowConfirmPassword((v) => !v)}
+                                aria-label={showConfirmPassword ? "Hide password" : "Show password"}
+                            >
+                                {showConfirmPassword ? <FiEyeOff /> : <FiEye />}
+                            </button>
                             {errors.confirmPassword && (
                                 <span className="error text-danger">
                                     {errors.confirmPassword.message}
@@ -87,11 +145,12 @@ export default function ChangePasswordModal({ show, onClose }) {
 
                     {/* RE-CONFIRM PASSWORD — FULL ROW */}
                     <div className="mb-lg-3 mb-sm-0">
-                        <div className="form-floating desig-inp">
+                        <div className="form-floating desig-inp desig-inp--password">
                             <input
-                                type="password"
+                                type={showReConfirmPassword ? "text" : "password"}
                                 className={`form-control ${errors.reConfirmPassword ? "is-invalid" : ""}`}
                                 placeholder="Re-Confirm Password"
+                                autoComplete="new-password"
                                 {...register("reConfirmPassword", {
                                     required: "Re-confirm password is required",
                                     validate: (value) =>
@@ -101,6 +160,14 @@ export default function ChangePasswordModal({ show, onClose }) {
                             <label>
                                 Re-Confirm Password <span className="text-danger">*</span>
                             </label>
+                            <button
+                                type="button"
+                                className="password-toggle"
+                                onClick={() => setShowReConfirmPassword((v) => !v)}
+                                aria-label={showReConfirmPassword ? "Hide password" : "Show password"}
+                            >
+                                {showReConfirmPassword ? <FiEyeOff /> : <FiEye />}
+                            </button>
                             {errors.reConfirmPassword && (
                                 <span className="error text-danger">
                                     {errors.reConfirmPassword.message}
@@ -119,8 +186,8 @@ export default function ChangePasswordModal({ show, onClose }) {
             <button type="button" className="btn btn-outline" onClick={onClose}>
                 Close
             </button>
-            <button type="submit" form="changePasswordForm" className="btn btn-primary">
-                Save
+            <button type="submit" form="changePasswordForm" className="btn btn-primary" disabled={isSubmitting}>
+                {isSubmitting ? "Saving..." : "Save"}
             </button>
         </div>
     );

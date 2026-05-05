@@ -90,6 +90,47 @@
         font-weight: 400;
         line-height: 1.25;
     }
+
+    /* Password visibility toggle inside modal floating inputs */
+    .form-floating.desig-inp.desig-inp--password {
+        position: relative;
+
+        >.form-control {
+            padding-right: 2.75rem !important;
+        }
+
+        >.form-control.is-invalid {
+            padding-right: 4.25rem !important;
+        }
+
+        .password-toggle {
+            position: absolute;
+            right: 22px;
+            top: 50%;
+            transform: translateY(-50%);
+            z-index: 5;
+            background: none;
+            border: none;
+            cursor: pointer;
+            color: #a8b8d4;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 4px;
+            font-size: 18px;
+            line-height: 1;
+            transition: color 0.2s ease;
+        }
+
+        .password-toggle:hover {
+            color: #0c234c;
+        }
+
+        .password-toggle:focus-visible {
+            outline: 2px solid rgba(0, 54, 140, 0.35);
+            outline-offset: 2px;
+        }
+    }
 }
 
 /* File drop zone (drag & drop upload) */

@@ -17,6 +17,9 @@ const forgotPassword = (email) => Gateway.post("users/forgotpassword", { email }
 
 const resetPassword = (token, userId, password, confirmPassword) => Gateway.post("users/resetpassword", { token, userId, password, confirmPassword });
 
+const changePassword = ({ current_password, new_password, confirm_password }) =>
+  Gateway.post("users/change_password", { current_password, new_password, confirm_password });
+
 export default {
   doLoginValidate,
   googleLoginValidate,
@@ -25,4 +28,5 @@ export default {
   editUserProfile,
   forgotPassword,
   resetPassword,
+  changePassword,
 };
