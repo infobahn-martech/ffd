@@ -1697,7 +1697,7 @@ $send-report-optional: #80868b;
 
 .operation-prearrival-grid {
   display: grid;
-  grid-template-columns: 25% 25% 50%;
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1fr) minmax(0, 2fr);
   gap: 14px;
   flex: 1;
   min-height: 0;
