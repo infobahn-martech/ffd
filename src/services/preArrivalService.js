@@ -8,6 +8,9 @@ const preArrivalService = {
     Gateway.post("pre_arrival/save_prearrival", formData, {
       headers: { "Content-Type": "multipart/form-data" },
     }),
+
+  sendPreArrivalReport: (payload) =>
+    Gateway.post("pre_arrival/send_prearrival_report", payload),
 };
 
 export default preArrivalService;

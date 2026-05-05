@@ -395,7 +395,6 @@ function Operation({ card, formValues, handleChange, ownerInitial, isDAModule = 
               cardColor={cardColor}
               onAddLink={handleAddLink}
               onRemoveLink={handleRemoveLink}
-              onSendReport={handleSendReportRequest}
               isViewOnly={isViewOnly}
               eventFields={preArrivalEventFields}
               portId={preArrivalPortId}

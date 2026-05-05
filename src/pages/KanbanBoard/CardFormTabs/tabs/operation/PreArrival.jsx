@@ -497,13 +497,13 @@ function PreArrival({
   formValues,
   handleChange,
   cardColor,
-  onSendReport,
   isViewOnly = false,
   eventFields = [],
   portId,
   callTypeId,
 }) {
   const [isSavingPreArrival, setIsSavingPreArrival] = useState(false);
+  const [isSendingReport, setIsSendingReport] = useState(false);
   const [isLoadingCoordinateTypes, setIsLoadingCoordinateTypes] = useState(false);
   const [isLoadingCoordinates, setIsLoadingCoordinates] = useState(false);
   const [coordinateTypeOptions, setCoordinateTypeOptions] = useState([]);
@@ -1086,22 +1086,34 @@ function PreArrival({
     setReportDraft((prev) => ({ ...prev, [field]: value }));
   };
 
-  const handleSaveAndSendReport = async () => {
-    const saveResult = await savePreArrivalData();
-    if (!saveResult) return;
+  const handleSendPreArrivalReport = async () => {
+    if (!callId) {
+      notify("Call ID is required to send the report.", "error");
+      return;
+    }
 
+    const body = reportDraft.message || buildPreArrivalReportBody(formValues) || "";
+
+    setIsSendingReport(true);
     try {
-      await onSendReport?.({
-        tabName: "Pre Arrival",
-        from: reportDraft.from,
-        to: reportDraft.to,
-        cc: reportDraft.cc,
-        subject: reportDraft.subject,
-        body: reportDraft.message || buildPreArrivalReportBody(formValues),
-        attachments: preArrivalReportAttachments,
+      await preArrivalService.sendPreArrivalReport({
+        call_id: callId,
+        from_email: String(reportDraft.from ?? "").trim(),
+        to_email: String(reportDraft.to ?? "").trim(),
+        cc_emails: String(reportDraft.cc ?? "").trim(),
+        subject: String(reportDraft.subject ?? "").trim(),
+        body,
       });
+      notify("Pre Arrival report sent successfully.", "success");
     } catch (error) {
-      notify(error?.message || "Report send is not available yet.", "warning");
+      const msg =
+        error?.response?.data?.message ||
+        error?.response?.data?.error ||
+        error?.message ||
+        "Failed to send Pre Arrival report.";
+      notify(msg, "error");
+    } finally {
+      setIsSendingReport(false);
     }
   };
 
@@ -1233,14 +1245,14 @@ function PreArrival({
                   message={reportDraft.message}
                   attachments={preArrivalReportAttachments}
                   onChange={handleReportDraftChange}
-                  onSend={handleSaveAndSendReport}
-                  isSending={isSavingPreArrival}
+                  onSend={handleSendPreArrivalReport}
+                  isSending={isSendingReport || isSavingPreArrival}
                   isViewOnly={isViewOnly}
                 />
               </OperationFormCard>
             </div>
           </div>
-          <OperationSaveSection isViewOnly={isViewOnly} onSave={handleSaveAndSendReport} isSaving={isSavingPreArrival} />
+          <OperationSaveSection isViewOnly={isViewOnly} onSave={savePreArrivalData} isSaving={isSavingPreArrival} />
         </div>
       </FormSection>
     </div>
@@ -1256,7 +1268,6 @@ PreArrival.propTypes = {
   cardColor: PropTypes.string,
   onAddLink: PropTypes.func,
   onRemoveLink: PropTypes.func,
-  onSendReport: PropTypes.func,
   isViewOnly: PropTypes.bool,
   eventFields: PropTypes.array,
   portId: PropTypes.oneOfType([PropTypes.string, PropTypes.number]),
