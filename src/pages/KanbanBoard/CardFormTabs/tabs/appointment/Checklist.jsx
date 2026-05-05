@@ -125,6 +125,15 @@ const fetchChecklistById = async (checklistTypeId) => {
   return data;
 };
 
+const fetchSavedCallChecklist = async (callId) => {
+  if (!callId) return [];
+  const { data } = await checklistService.getCallChecklist(callId);
+  const payload = data?.data ?? data ?? null;
+  if (Array.isArray(payload)) return payload;
+  if (payload && typeof payload === "object") return [payload];
+  return [];
+};
+
 const normalizeChecklistTypeOptions = (rowsBySource) =>
   mergeChecklistTypeOptions([rowsBySource.vesselRows, rowsBySource.bargeRows]);
 
@@ -134,6 +143,51 @@ const normalizeChecklistDetailResponse = (checklistTypeId, payload) => {
   const typeName = checklistDetails?.checklist_name || `Checklist ${typeId}`;
   const tree = mapApiSectionsToTree(sections, typeId, typeName);
   return { typeId, typeName, tree, checklistDetails };
+};
+
+const normalizeSavedChecklistLookup = (rows) => {
+  const lookup = {};
+  const typeIds = [];
+
+  (rows || []).forEach((typeRow) => {
+    const typeId = toIdString(typeRow?.checklist_type_id);
+    if (!typeId) return;
+    if (!lookup[typeId]) {
+      lookup[typeId] = {};
+      typeIds.push(typeId);
+    }
+
+    (typeRow?.sections || []).forEach((section, sectionIndex) => {
+      (section?.items || []).forEach((item, itemIndex) => {
+        const itemId = toIdString(item?.checklist_item_id);
+        if (!itemId) return;
+        const files = (item?.files || []).map((f, fileIndex) =>
+          normalizeBackendFile(
+            f,
+            `${typeId}_${section?.checklist_section_id ?? sectionIndex}_${itemId}_${itemIndex}_${fileIndex}`
+          )
+        );
+        lookup[typeId][itemId] = {
+          checked: item?.is_checked === 1 || item?.is_checked === true || String(item?.is_checked) === "1",
+          remarks: item?.remarks ?? "",
+          expiryDate: item?.expiry_date ?? "",
+          apiUploadedFiles: files,
+          uploadedFiles: files,
+        };
+      });
+    });
+  });
+
+  return { lookup, typeIds };
+};
+
+const getChecklistItemIdFromUiItem = (item) => {
+  const raw = String(item?.id ?? "");
+  const marker = "_item_";
+  const idx = raw.lastIndexOf(marker);
+  if (idx < 0) return null;
+  const extracted = raw.slice(idx + marker.length).trim();
+  return extracted || null;
 };
 
 function Checklist({
@@ -159,11 +213,14 @@ function Checklist({
   const [checklistTypeOptions, setChecklistTypeOptions] = useState([]);
   const [selectedChecklistTypeIds, setSelectedChecklistTypeIds] = useState([]);
   const [checklistBlocks, setChecklistBlocks] = useState([]);
+  const [savedChecklistLookup, setSavedChecklistLookup] = useState({});
+  const [savedChecklistTypeIds, setSavedChecklistTypeIds] = useState([]);
   const [itemsData, setItemsData] = useState({});
   const [openSections, setOpenSections] = useState({});
   const [openTypeGroups, setOpenTypeGroups] = useState({});
   const [typeLoading, setTypeLoading] = useState(false);
   const [detailLoading, setDetailLoading] = useState(false);
+  const [savedLoading, setSavedLoading] = useState(false);
   const [saveLoading, setSaveLoading] = useState(false);
   const [checklistError, setChecklistError] = useState("");
   const userChangedSelectionRef = useRef(false);
@@ -216,6 +273,36 @@ function Checklist({
 
   useEffect(() => {
     let cancelled = false;
+    const loadSavedChecklist = async () => {
+      if (!currentCallId) {
+        setSavedChecklistLookup({});
+        setSavedChecklistTypeIds([]);
+        return;
+      }
+      setSavedLoading(true);
+      try {
+        const rows = await fetchSavedCallChecklist(currentCallId);
+        if (cancelled) return;
+        const normalized = normalizeSavedChecklistLookup(rows);
+        setSavedChecklistLookup(normalized.lookup);
+        setSavedChecklistTypeIds(normalized.typeIds);
+      } catch {
+        if (!cancelled) {
+          setSavedChecklistLookup({});
+          setSavedChecklistTypeIds([]);
+        }
+      } finally {
+        if (!cancelled) setSavedLoading(false);
+      }
+    };
+    loadSavedChecklist();
+    return () => {
+      cancelled = true;
+    };
+  }, [currentCallId]);
+
+  useEffect(() => {
+    let cancelled = false;
     const loadChecklistTypes = async () => {
       if (!prerequisiteState.canLoadChecklists) {
         setChecklistTypeOptions([]);
@@ -240,8 +327,10 @@ function Checklist({
         setChecklistTypeOptions(options);
         setSelectedChecklistTypeIds((prev) => {
           const optionIds = new Set(options.map((o) => o.value));
+          const savedPreferred = savedChecklistTypeIds.filter((id) => optionIds.has(id));
           const retained = prev.filter((id) => optionIds.has(id));
           if (userChangedSelectionRef.current && retained.length > 0) return retained;
+          if (savedPreferred.length > 0) return savedPreferred;
           return options.map((o) => o.value);
         });
         if (!cancelled) {
@@ -265,7 +354,7 @@ function Checklist({
     return () => {
       cancelled = true;
     };
-  }, [dataContext, prerequisiteState.canLoadChecklists]);
+  }, [dataContext, prerequisiteState.canLoadChecklists, savedChecklistTypeIds]);
 
   useEffect(() => {
     let cancelled = false;
@@ -286,7 +375,6 @@ function Checklist({
           normalizeChecklistDetailResponse(selectedChecklistTypeIds[index], payload)
         );
         const allSectionIds = blocks.flatMap((b) => collectTreeSectionIds(b.tree));
-        const allItems = blocks.flatMap((b) => flattenTreeItems(b.tree));
 
         setChecklistBlocks(blocks);
         setOpenSections((prev) =>
@@ -295,23 +383,33 @@ function Checklist({
         setOpenTypeGroups((prev) =>
           blocks.reduce((acc, b) => ({ ...acc, [b.typeId]: prev[b.typeId] ?? true }), {})
         );
-        setItemsData((prev) =>
-          allItems.reduce((acc, item) => {
-            const existing = prev[item.id] || {};
-            const apiFiles = (item.uploadedFromApi || []).map((f, idx) => normalizeBackendFile(f, `${item.id}_${idx}`));
-            acc[item.id] = {
-              checked: existing.checked === true,
-              remarks: existing.remarks ?? "",
-              expiryDate: existing.expiryDate ?? "",
-              uploadedFile: existing.uploadedFile ?? null,
-              apiUploadedFiles: existing.apiUploadedFiles ?? apiFiles,
-              uploadedFiles: existing.uploadedFiles ?? apiFiles,
-              requirement: item.requirement ?? null,
-              description: item.description ?? "",
-            };
-            return acc;
-          }, {})
-        );
+        setItemsData((prev) => {
+          const next = {};
+          blocks.forEach((block) => {
+            const blockTypeId = String(block.typeId);
+            const blockItems = flattenTreeItems(block.tree);
+            blockItems.forEach((item) => {
+              const existing = prev[item.id] || {};
+              const checklistItemId = getChecklistItemIdFromUiItem(item);
+              const savedItem = checklistItemId ? savedChecklistLookup?.[blockTypeId]?.[checklistItemId] : null;
+              const apiFiles = (item.uploadedFromApi || []).map((f, idx) =>
+                normalizeBackendFile(f, `${item.id}_${idx}`)
+              );
+              const savedFiles = savedItem?.apiUploadedFiles ?? [];
+              next[item.id] = {
+                checked: savedItem ? savedItem.checked === true : existing.checked === true,
+                remarks: savedItem ? savedItem.remarks ?? "" : existing.remarks ?? "",
+                expiryDate: savedItem ? savedItem.expiryDate ?? "" : existing.expiryDate ?? "",
+                uploadedFile: existing.uploadedFile ?? null,
+                apiUploadedFiles: existing.apiUploadedFiles ?? (savedFiles.length ? savedFiles : apiFiles),
+                uploadedFiles: existing.uploadedFiles ?? (savedFiles.length ? savedFiles : apiFiles),
+                requirement: item.requirement ?? null,
+                description: item.description ?? "",
+              };
+            });
+          });
+          return next;
+        });
       } catch (error) {
         if (!cancelled) {
           setChecklistBlocks([]);
@@ -326,7 +424,7 @@ function Checklist({
     return () => {
       cancelled = true;
     };
-  }, [selectedChecklistTypeIds]);
+  }, [savedChecklistLookup, selectedChecklistTypeIds]);
 
   const handleChecklistTypeChange = (event) => {
     const next = Array.isArray(event?.target?.value) ? event.target.value.map(String) : [];
@@ -432,7 +530,7 @@ function Checklist({
     });
   }, [onOpenReportPreview, checklistBlocks, itemsData]);
 
-  const isLoading = effectiveCallDetailLoading || typeLoading || detailLoading;
+  const isLoading = effectiveCallDetailLoading || typeLoading || detailLoading || savedLoading;
   const hasChecklistData = checklistBlocks.some((b) => (b.tree || []).length > 0);
 
   return (
