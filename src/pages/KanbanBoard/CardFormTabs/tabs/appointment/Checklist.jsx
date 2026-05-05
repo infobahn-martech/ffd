@@ -3,6 +3,7 @@ import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { SendReportButton } from "../../services/sendReportFullWidthView";
 import callFileService from "../../../../../services/callFileService";
 import checklistService from "../../../../../services/checklistService";
+import { notify } from "../../../../../components/Toaster";
 import "../../../../../design/scss/checklist.scss";
 import ChecklistMultiSelect from "./checklistTab/ChecklistMultiSelect";
 import ChecklistTypeBlock from "./checklistTab/ChecklistTypeBlock";
@@ -163,6 +164,7 @@ function Checklist({
   const [openTypeGroups, setOpenTypeGroups] = useState({});
   const [typeLoading, setTypeLoading] = useState(false);
   const [detailLoading, setDetailLoading] = useState(false);
+  const [saveLoading, setSaveLoading] = useState(false);
   const [checklistError, setChecklistError] = useState("");
   const userChangedSelectionRef = useRef(false);
 
@@ -360,28 +362,63 @@ function Checklist({
     setOpenTypeGroups((prev) => ({ ...prev, [typeId]: !prev[typeId] }));
   };
 
-  const savePayload = useMemo(
-    () => ({
-      selected_checklist_type_ids: selectedChecklistTypeIds,
-      checklist_data: checklistBlocks.map((block) => ({
-        checklist_type_id: block.typeId,
-        sections: block.tree.map((section) => ({
-          checklist_section_id: section.id,
-          items: flattenTreeItems([section]).map((item) => {
-            const d = itemsData[item.id] || {};
-            return {
-              checklist_item_id: item.id,
-              checked: d.checked === true,
-              remarks: d.remarks || "",
-              expiry_date: d.expiryDate || null,
-              uploaded_file: d.uploadedFile || null,
-            };
-          }),
-        })),
-      })),
-    }),
-    [selectedChecklistTypeIds, checklistBlocks, itemsData]
+  const buildChecklistSaveFormData = useCallback(
+    (block) => {
+      const formData = new FormData();
+      formData.append("call_id", String(currentCallId));
+      formData.append("checklist_type_id", String(block.typeId));
+
+      const items = [];
+      block.tree.forEach((section, sectionIndex) => {
+        const fileFieldName = `files_${sectionIndex + 1}[]`;
+        const sectionItems = flattenTreeItems([section]);
+        sectionItems.forEach((item) => {
+          const d = itemsData[item.id] || {};
+          items.push({
+            checklist_item_id: item.id,
+            is_checked: d.checked === true ? 1 : 0,
+            remarks: d.remarks || "",
+            expiry_date: d.expiryDate || "",
+          });
+          if (d.uploadedFile instanceof File) {
+            formData.append(fileFieldName, d.uploadedFile);
+          }
+        });
+      });
+
+      formData.append("items", JSON.stringify(items));
+      return formData;
+    },
+    [currentCallId, itemsData]
   );
+
+  const handleSaveConfirm = useCallback(async () => {
+    if (!currentCallId) {
+      notify("Call ID is missing. Please save general details first.", "error");
+      return;
+    }
+    if (!checklistBlocks.length) {
+      notify("No checklist data available to save.", "error");
+      return;
+    }
+
+    setSaveLoading(true);
+    try {
+      await Promise.all(
+        checklistBlocks.map((block) => checklistService.saveCallChecklist(buildChecklistSaveFormData(block)))
+      );
+      notify("Checklist saved successfully.", "success");
+    } catch (error) {
+      const msg =
+        error?.response?.data?.message ||
+        error?.response?.data?.error ||
+        error?.message ||
+        "Failed to save checklist.";
+      notify(typeof msg === "string" ? msg : "Failed to save checklist.", "error");
+    } finally {
+      setSaveLoading(false);
+    }
+  }, [buildChecklistSaveFormData, checklistBlocks, currentCallId]);
 
   const handleOpenChecklistReport = useCallback(() => {
     if (!onOpenReportPreview) return;
@@ -504,12 +541,8 @@ function Checklist({
             <div className="checklist-actions">
               <ChecklistFooterActions
                 cardColor={cardColor}
-                disabled={isLoading || selectedChecklistTypeIds.length === 0}
-                onSaveConfirm={() => {
-                  // Save API can be attached here when backend endpoint is finalized.
-                  // eslint-disable-next-line no-console
-                  console.log("Checklist save payload:", savePayload);
-                }}
+                disabled={isLoading || saveLoading || selectedChecklistTypeIds.length === 0}
+                onSaveConfirm={handleSaveConfirm}
               />
             </div>
           ) : null}

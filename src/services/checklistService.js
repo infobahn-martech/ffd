@@ -22,6 +22,8 @@ const createChecklist = (data) => Gateway.post('checklist/createchecklist', data
 
 /** POST checklist/updatechecklist - data can be FormData (with files) or JSON; must include _id/checklist_id */
 const updateChecklist = (data) => Gateway.post('checklist/updatechecklist', data);
+/** POST call_checklist/save_call_checklist - data should be FormData */
+const saveCallChecklist = (data) => Gateway.post('call_checklist/save_call_checklist', data);
 
 export default {
     createChecklist,
@@ -32,4 +34,5 @@ export default {
     getChecklistsByVesselType,
     getChecklistsByBargeType,
     deleteChecklist,
+    saveCallChecklist,
 };
