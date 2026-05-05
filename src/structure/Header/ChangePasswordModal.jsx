@@ -1,14 +1,18 @@
 import { useEffect, useState } from "react";
 import { useForm } from "react-hook-form";
 import { FiEye, FiEyeOff } from "react-icons/fi";
+import { useNavigate } from "react-router-dom";
 import CustomModal from "../../components/CustomModal";
 import { notify } from "../../components/Toaster";
 import authService from "../../services/authService";
+import useAuthReducer from "../../store/AuthReducer";
 import "../../design/scss/prospect-modal.scss";
 import "../../design/scss/modal-designs.scss";
 import "../../design/scss/form-designs.scss";
 
 export default function ChangePasswordModal({ show, onClose }) {
+    const navigate = useNavigate();
+    const doLogout = useAuthReducer((state) => state.doLogout);
     const [isSubmitting, setIsSubmitting] = useState(false);
     const [showCurrentPassword, setShowCurrentPassword] = useState(false);
     const [showConfirmPassword, setShowConfirmPassword] = useState(false);
@@ -54,6 +58,8 @@ export default function ChangePasswordModal({ show, onClose }) {
             notify("Password changed successfully.", "success");
             reset();
             onClose();
+            doLogout();
+            navigate("/");
         } catch (err) {
             const msg =
                 err?.response?.data?.message ||
