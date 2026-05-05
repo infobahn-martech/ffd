@@ -1743,7 +1743,7 @@ $send-report-optional: #80868b;
 
 .operation-two-column-grid {
   display: grid;
-  grid-template-columns: 30% 70%;
+  grid-template-columns: minmax(0, 3fr) minmax(0, 7fr);
   gap: 14px;
   flex: 1;
   min-height: 0;
