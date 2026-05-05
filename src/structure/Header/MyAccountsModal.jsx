@@ -8,6 +8,7 @@ import { getItem } from '../../helpers/localStorage';
 import '../../design/scss/profile.scss';
 import '../../design/scss/prospect-modal.scss';
 import '../../design/scss/form-designs.scss';
+import './MyAccountsModal.scss';
 
 function resolveUserImageUrl(image) {
   if (!image || typeof image !== 'string') return null;
@@ -19,15 +20,11 @@ function resolveUserImageUrl(image) {
 }
 
 function mapApiUserToForm(data) {
-  const full = data?.name?.trim() || '';
-  const parts = full.split(/\s+/).filter(Boolean);
-  const firstName = parts[0] || '';
-  const lastName = parts.slice(1).join(' ') || '';
+  const fullName = data?.name?.trim() || '';
   const resolvedImage = resolveUserImageUrl(data?.image);
 
   return {
-    firstName,
-    lastName,
+    firstName: fullName,
     phone: (data?.phone && String(data.phone).replace(/\D/g, '')) || '',
     email: data?.email || '',
     image: resolvedImage,
@@ -44,7 +41,6 @@ function MyAccountsModal({ show, onClose }) {
   const [errors, setErrors] = useState({});
   const [formData, setFormData] = useState({
     firstName: '',
-    lastName: '',
     phone: '',
     email: '',
     image: null,
@@ -179,7 +175,7 @@ function MyAccountsModal({ show, onClose }) {
 
   const renderBody = () => (
     <div className="modal-body">
-      <div className="profile-sec">
+      <div className="profile-sec my-accounts-premium">
         {fetchLoading && (
           <div className="d-flex justify-content-center py-5">
             <div className="spinner-border text-primary" role="status">
@@ -196,104 +192,83 @@ function MyAccountsModal({ show, onClose }) {
 
         {!fetchLoading && !fetchError && (
           <>
-            <div className="profile-inner">
-              <div
-                style={{
-                  flexShrink: 0,
-                  display: 'flex',
-                  flexDirection: 'column',
-                  alignItems: 'center',
-                }}
-              >
-                <div className="profile-img" style={{ position: 'relative' }}>
-                  {formData.image ? (
-                    <img src={formData.image} alt="User" />
-                  ) : (
-                    <div
-                      style={{
-                        width: '100%',
-                        height: '100%',
-                        display: 'flex',
-                        alignItems: 'center',
-                        justifyContent: 'center',
-                        backgroundColor: '#00368c',
-                        color: '#fff',
-                        fontSize: '64px',
-                        fontWeight: 'bold',
-                        borderRadius: '100px',
-                      }}
-                    >
-                      {getUserInitial()}
-                    </div>
-                  )}
-                  {isEditing && (
-                    <label
-                      htmlFor="image-upload"
-                      className="camera-upload-btn"
-                      style={{
-                        position: 'absolute',
-                        bottom: '8px',
-                        right: '8px',
-                        backgroundColor: '#00368c',
-                        color: '#fff',
-                        borderRadius: '50%',
-                        width: '40px',
-                        height: '40px',
-                        display: 'flex',
-                        alignItems: 'center',
-                        justifyContent: 'center',
-                        cursor: 'pointer',
-                        border: '3px solid #fff',
-                        boxShadow: '0 2px 8px rgba(0, 0, 0, 0.2)',
-                        transition: 'all 0.2s ease',
-                      }}
-                      onMouseEnter={(e) => {
-                        e.currentTarget.style.backgroundColor = '#002a6b';
-                        e.currentTarget.style.transform = 'scale(1.1)';
-                      }}
-                      onMouseLeave={(e) => {
-                        e.currentTarget.style.backgroundColor = '#00368c';
-                        e.currentTarget.style.transform = 'scale(1)';
-                      }}
-                    >
-                      <FiCamera size={18} />
-                      <input
-                        id="image-upload"
-                        type="file"
-                        accept="image/*"
-                        onChange={handleImageChange}
-                        style={{ display: 'none' }}
-                      />
-                    </label>
-                  )}
+            <div className="my-accounts-premium-inner">
+              <div className="my-accounts-avatar-col">
+                <div className="my-accounts-avatar">
+                  <div className="profile-img" style={{ position: 'relative' }}>
+                    {formData.image ? (
+                      <img src={formData.image} alt="" />
+                    ) : (
+                      <div className="my-accounts-initial">{getUserInitial()}</div>
+                    )}
+                    {isEditing && (
+                      <label
+                        htmlFor="image-upload"
+                        className="camera-upload-btn"
+                        style={{
+                          position: 'absolute',
+                          bottom: '6px',
+                          right: '6px',
+                          backgroundColor: '#00368c',
+                          color: '#fff',
+                          borderRadius: '50%',
+                          width: '42px',
+                          height: '42px',
+                          display: 'flex',
+                          alignItems: 'center',
+                          justifyContent: 'center',
+                          cursor: 'pointer',
+                          transition: 'transform 0.2s ease, background-color 0.2s ease',
+                        }}
+                        onMouseEnter={(e) => {
+                          e.currentTarget.style.backgroundColor = '#002a6b';
+                          e.currentTarget.style.transform = 'scale(1.06)';
+                        }}
+                        onMouseLeave={(e) => {
+                          e.currentTarget.style.backgroundColor = '#00368c';
+                          e.currentTarget.style.transform = 'scale(1)';
+                        }}
+                      >
+                        <FiCamera size={18} />
+                        <input
+                          id="image-upload"
+                          type="file"
+                          accept="image/*"
+                          onChange={handleImageChange}
+                          style={{ display: 'none' }}
+                        />
+                      </label>
+                    )}
+                  </div>
                 </div>
                 {errors.avatar && (
-                  <div className="text-danger small mt-2 text-center px-1" style={{ maxWidth: '220px' }}>
+                  <div className="text-danger small mt-3 text-center px-1" style={{ maxWidth: '240px' }}>
                     {errors.avatar}
                   </div>
                 )}
               </div>
 
-              <div className="profile-details">
-                <div className="row permInputs">
-                  <div className="col-md-6 mb-4">
+              <div className="profile-details my-accounts-fields">
+                <div className="row permInputs g-4">
+                  <div className="col-12">
                     <div className="form-floating">
                       <input
                         type="text"
                         className={`form-control ${errors.firstName ? 'is-invalid' : ''}`}
-                        id="firstName"
+                        id="accountFullName"
                         name="firstName"
                         value={formData.firstName}
                         onChange={handleInputChange}
                         disabled={!isEditing}
-                        placeholder="First Name"
+                        placeholder="First name"
+                        autoComplete="name"
                         style={{
                           backgroundColor: !isEditing ? '#f8f9fc' : '#fff',
                           cursor: !isEditing ? 'not-allowed' : 'text',
                         }}
                       />
-                      <label htmlFor="firstName">
-                        First Name <span className="text-danger">*</span>
+                      <label htmlFor="accountFullName">
+                        First name <span className="text-danger">*</span>
                       </label>
                       {errors.firstName && (
                         <span className="error text-danger small d-block mt-1">{errors.firstName}</span>
@@ -301,27 +276,7 @@ function MyAccountsModal({ show, onClose }) {
                     </div>
                   </div>
 
-                  <div className="col-md-6 mb-4">
-                    <div className="form-floating">
-                      <input
-                        type="text"
-                        className="form-control"
-                        id="lastName"
-                        name="lastName"
-                        value={formData.lastName}
-                        onChange={handleInputChange}
-                        disabled={!isEditing}
-                        placeholder="Last Name"
-                        style={{
-                          backgroundColor: !isEditing ? '#f8f9fc' : '#fff',
-                          cursor: !isEditing ? 'not-allowed' : 'text',
-                        }}
-                      />
-                      <label htmlFor="lastName">Last Name</label>
-                    </div>
-                  </div>
-
-                  <div className="col-md-6 mb-4">
+                  <div className="col-md-6">
                     <div className="phone-wrapper">
                       <label className="phone-label">
                         Phone <span className="text-danger">*</span>
@@ -341,7 +296,7 @@ function MyAccountsModal({ show, onClose }) {
                     </div>
                   </div>
 
-                  <div className="col-md-6 mb-4">
+                  <div className="col-md-6">
                     <div className="form-floating">
                       <input
                         type="email"
@@ -352,6 +307,7 @@ function MyAccountsModal({ show, onClose }) {
                         onChange={handleInputChange}
                         disabled={!isEditing}
                         placeholder="Email"
+                        autoComplete="email"
                         style={{
                           backgroundColor: !isEditing ? '#f8f9fc' : '#fff',
                           cursor: !isEditing ? 'not-allowed' : 'text',
@@ -370,7 +326,7 @@ function MyAccountsModal({ show, onClose }) {
               </div>
             </div>
 
-            <div className="profile-btn two-btn" style={{ marginTop: '40px' }}>
+            <div className="my-accounts-actions profile-btn two-btn">
               {!isEditing ? (
                 <>
                   <button
@@ -503,18 +459,8 @@ function MyAccountsModal({ show, onClose }) {
         onClose();
       }}
       header={
-        <div className="modal-header">
-          <h5
-            className="modal-title"
-            style={{
-              color: '#00368c',
-              fontSize: '24px',
-              fontWeight: '600',
-              fontFamily: '"Open Sans", sans-serif',
-            }}
-          >
-            My Accounts
-          </h5>
+        <div className="modal-header my-accounts-premium-header border-0 pb-0">
+          <h5 className="modal-title my-accounts-premium-title">My Accounts</h5>
         </div>
       }
       body={renderBody()}
