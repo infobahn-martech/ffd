@@ -1452,6 +1452,7 @@ function General({
 
   const [masterDataLoading, setMasterDataLoading] = useState(false);
   const [operatorOptions, setOperatorOptions] = useState([]);
+  const [ownerOptions, setOwnerOptions] = useState([]);
   const [portSelectOptions, setPortSelectOptions] = useState([]);
   const [callTypeOptions, setCallTypeOptions] = useState([]);
   const [billingEntitySelectOptions, setBillingEntitySelectOptions] = useState([]);
@@ -1693,6 +1694,7 @@ function General({
       setMasterDataLoading(true);
       const results = await Promise.all([
         fetchRow("operators", callFileService.getAllOperators(), mapOperatorsToOptions),
+        fetchRow("managers", callFileService.getAllManagers(), mapOperatorsToOptions),
         fetchRow("ports", portService.getPorts({ params: { limit: 1000 } }), mapPortsToOptions),
         fetchRow("callTypes", CommonService.getCallTypes(), mapCallTypesToOptions),
         fetchRow(
@@ -1708,6 +1710,7 @@ function General({
 
       for (const { label, options } of results) {
         if (label === "operators") setOperatorOptions(options);
+        if (label === "managers") setOwnerOptions(options);
         if (label === "ports") setPortSelectOptions(options);
         if (label === "callTypes") setCallTypeOptions(options);
         if (label === "billingEntities") setBillingEntitySelectOptions(options);
@@ -2888,7 +2891,7 @@ function General({
                             <OwnerField
                               value={getFieldValue("owner")}
                               onChange={handleChange("owner")}
-                              options={mergeOptionIfMissing(operatorOptions, getFieldValue("owner"))}
+                              options={mergeOptionIfMissing(ownerOptions, getFieldValue("owner"))}
                               placeholder="Select owner"
                               disabled={masterInputsDisabled}
                             />
@@ -2931,7 +2934,7 @@ function General({
                             <OwnerField
                               value={getFieldValue("owner")}
                               onChange={handleChange("owner")}
-                              options={mergeOptionIfMissing(operatorOptions, getFieldValue("owner"))}
+                              options={mergeOptionIfMissing(ownerOptions, getFieldValue("owner"))}
                               placeholder="Select owner"
                               disabled={masterInputsDisabled}
                             />
@@ -3093,7 +3096,7 @@ function General({
                             <OwnerField
                               value={getFieldValue("owner")}
                               onChange={handleChange("owner")}
-                              options={mergeOptionIfMissing(operatorOptions, getFieldValue("owner"))}
+                              options={mergeOptionIfMissing(ownerOptions, getFieldValue("owner"))}
                               placeholder="Select owner"
                               disabled={masterInputsDisabled}
                             />
@@ -3199,7 +3202,7 @@ function General({
                             <OwnerField
                               value={getFieldValue("owner")}
                               onChange={handleChange("owner")}
-                              options={mergeOptionIfMissing(operatorOptions, getFieldValue("owner"))}
+                              options={mergeOptionIfMissing(ownerOptions, getFieldValue("owner"))}
                               placeholder="Select owner"
                               disabled={masterInputsDisabled}
                             />
@@ -3303,7 +3306,7 @@ function General({
                               <OwnerField
                                 value={getFieldValue("owner")}
                                 onChange={isAddMode ? handleValidatedChange("owner") : handleChange("owner")}
-                                options={mergeOptionIfMissing(operatorOptions, getFieldValue("owner"))}
+                                options={mergeOptionIfMissing(ownerOptions, getFieldValue("owner"))}
                                 placeholder="Select owner"
                                 disabled={masterInputsDisabled}
                                 error={isAddMode ? fieldErrors.owner : undefined}
@@ -3732,7 +3735,7 @@ function General({
                     <>
                       <div className="general-info-right">
                         <EmailPreviewPanel
-                          ownerOptions={operatorOptions}
+                          ownerOptions={ownerOptions}
                           formValues={formValues}
                           dailyReportEmailOptions={dailyReportEmailOptions}
                           billingInstructionEmailOptions={billingInstructionEmailOptions}
