@@ -10,8 +10,7 @@ const ProfileModal = ({ show, onClose }) => {
   const [isEditing, setIsEditing] = useState(false);
   const [avatarFile, setAvatarFile] = useState(null);
   const [formData, setFormData] = useState({
-    firstName: '',
-    lastName: '',
+    name: '',
     phone: '',
     email: '',
     avatar: null,
@@ -19,12 +18,12 @@ const ProfileModal = ({ show, onClose }) => {
 
   useEffect(() => {
     if (show && profileData) {
+      const userDetails = profileData?.data || profileData;
       setFormData({
-        firstName: profileData.firstName || '',
-        lastName: profileData.lastName || '',
-        phone: profileData.phone || '',
-        email: profileData.email || '',
-        avatar: profileData.avatar || null,
+        name: userDetails.name || profileData.firstName || '',
+        phone: userDetails.phone || '',
+        email: userDetails.email || '',
+        avatar: userDetails.image || profileData.avatar || null,
       });
       setIsEditing(false);
     }
@@ -64,12 +63,12 @@ const ProfileModal = ({ show, onClose }) => {
 
   const handleCancel = () => {
     if (profileData) {
+      const userDetails = profileData?.data || profileData;
       setFormData({
-        firstName: profileData.firstName || '',
-        lastName: profileData.lastName || '',
-        phone: profileData.phone || '',
-        email: profileData.email || '',
-        avatar: profileData.avatar || null,
+        name: userDetails.name || profileData.firstName || '',
+        phone: userDetails.phone || '',
+        email: userDetails.email || '',
+        avatar: userDetails.image || profileData.avatar || null,
       });
     }
     setAvatarFile(null);
@@ -77,16 +76,15 @@ const ProfileModal = ({ show, onClose }) => {
   };
 
   const getUserInitial = () => {
-    const firstName = formData.firstName || '';
-    const lastName = formData.lastName || '';
-    if (firstName || lastName) {
-      return (firstName.charAt(0) + lastName.charAt(0)).toUpperCase() || 'U';
+    const name = formData.name || '';
+    if (name) {
+      return name.charAt(0).toUpperCase() || 'U';
     }
     return 'U';
   };
 
   const getUserFullName = () => {
-    return `${formData.firstName || ''} ${formData.lastName || ''}`.trim() || 'User';
+    return formData.name || 'User';
   };
 
   const renderHeader = () => (
@@ -150,33 +148,17 @@ const ProfileModal = ({ show, onClose }) => {
           <div className="profile-modal__form-row">
             <div className="profile-modal__form-group">
               <label className="profile-modal__label">
-                First Name
+                Name
                 {isEditing && <span className="profile-modal__required">*</span>}
               </label>
               <input
                 type="text"
                 className="profile-modal__input"
-                name="firstName"
-                value={formData.firstName}
+                name="name"
+                value={formData.name}
                 onChange={handleInputChange}
                 disabled={!isEditing}
-                placeholder="Enter first name"
-              />
-            </div>
-
-            <div className="profile-modal__form-group">
-              <label className="profile-modal__label">
-                Last Name
-                {isEditing && <span className="profile-modal__required">*</span>}
-              </label>
-              <input
-                type="text"
-                className="profile-modal__input"
-                name="lastName"
-                value={formData.lastName}
-                onChange={handleInputChange}
-                disabled={!isEditing}
-                placeholder="Enter last name"
+                placeholder="Enter name"
               />
             </div>
           </div>
@@ -186,13 +168,13 @@ const ProfileModal = ({ show, onClose }) => {
               <label className="profile-modal__label">Email</label>
               <input
                 type="email"
-                className="profile-modal__input profile-modal__input--disabled"
+                className="profile-modal__input"
                 name="email"
                 value={formData.email}
-                disabled
+                onChange={handleInputChange}
+                disabled={!isEditing}
                 placeholder="Email address"
               />
-              <span className="profile-modal__hint">Email cannot be changed</span>
             </div>
 
             <div className="profile-modal__form-group">
