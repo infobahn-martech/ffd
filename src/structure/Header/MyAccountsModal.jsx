@@ -32,7 +32,7 @@ function mapApiUserToForm(data) {
 }
 
 function MyAccountsModal({ show, onClose }) {
-  const profileEditLoader = false;
+  const [profileEditLoader, setProfileEditLoader] = useState(false);
 
   const baselineRef = useRef(null);
   const [fetchLoading, setFetchLoading] = useState(false);
@@ -134,20 +134,12 @@ function MyAccountsModal({ show, onClose }) {
 
   const validate = () => {
     const next = {};
-    if (!formData.firstName?.trim()) {
-      next.firstName = 'First name is required';
-    }
     const phoneDigits = (formData.phone || '').replace(/\D/g, '');
-    if (phoneDigits.length < 7) {
-      next.phone = 'Phone is required';
+    if (phoneDigits && phoneDigits.length < 7) {
+      next.phone = 'Enter a valid phone number';
     }
-    if (!formData.email?.trim()) {
-      next.email = 'Email is required';
-    } else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(formData.email.trim())) {
+    if (formData.email?.trim() && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(formData.email.trim())) {
       next.email = 'Enter a valid email';
-    }
-    if (!formData.image) {
-      next.avatar = 'Avatar is required — please upload a profile photo';
     }
     setErrors(next);
     return Object.keys(next).length === 0;
@@ -163,7 +155,41 @@ function MyAccountsModal({ show, onClose }) {
       setFormData({ ...baselineRef.current });
     }
     setErrors({});
+    setFetchError('');
     setIsEditing(false);
+  };
+
+  const handleSave = async () => {
+    if (!validate()) return;
+
+    const payload = {
+      name: formData.firstName.trim(),
+      email: formData.email.trim(),
+      phone: (formData.phone || '').replace(/\D/g, ''),
+      avatar: formData.image,
+    };
+
+    try {
+      setProfileEditLoader(true);
+      setFetchError('');
+      const res = await authService.updateUserDetails(payload);
+      const updatedUser = res?.data?.data ?? res?.data;
+      if (updatedUser && typeof updatedUser === 'object') {
+        applyFormFromUser(updatedUser);
+      } else {
+        baselineRef.current = { ...formData };
+      }
+      setIsEditing(false);
+    } catch (err) {
+      setFetchError(
+        err?.response?.data?.message ||
+          err?.response?.data?.error ||
+          err?.message ||
+          'Failed to update account details.',
+      );
+    } finally {
+      setProfileEditLoader(false);
+    }
   };
 
   const getUserInitial = () => {
@@ -268,7 +294,7 @@ function MyAccountsModal({ show, onClose }) {
                         }}
                       />
                       <label htmlFor="accountFullName">
-                        First name <span className="text-danger">*</span>
+                        First name
                       </label>
                       {errors.firstName && (
                         <span className="error text-danger small d-block mt-1">{errors.firstName}</span>
@@ -279,7 +305,7 @@ function MyAccountsModal({ show, onClose }) {
                   <div className="col-md-6">
                     <div className="phone-wrapper">
                       <label className="phone-label">
-                        Phone <span className="text-danger">*</span>
+                        Phone
                       </label>
                       <PhoneInput
                         country="sa"
@@ -315,7 +341,7 @@ function MyAccountsModal({ show, onClose }) {
                         }}
                       />
                       <label htmlFor="email">
-                        Email <span className="text-danger">*</span>
+                        Email
                       </label>
                       {errors.email && (
                         <span className="error text-danger small d-block mt-1">{errors.email}</span>
@@ -407,11 +433,7 @@ function MyAccountsModal({ show, onClose }) {
                   <button
                     type="button"
                     className="btn-common green-btn"
-                    onClick={() => {
-                      if (!validate()) return;
-                      baselineRef.current = { ...formData };
-                      setIsEditing(false);
-                    }}
+                    onClick={handleSave}
                     disabled={profileEditLoader}
                     style={{
                       padding: '12px 48px',
