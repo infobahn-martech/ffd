@@ -265,6 +265,15 @@ function Arrival({
     }
   };
 
+  const handleSaveOnly = async () => {
+    setIsSavingArrival(true);
+    try {
+      await saveArrivalData();
+    } finally {
+      setIsSavingArrival(false);
+    }
+  };
+
   return (
     <div className="cardform-left-full" style={{ "--card-color": cardColor }}>
       <div className="operation-content-header">
@@ -366,7 +375,7 @@ function Arrival({
               </OperationFormCard>
             </div>
           </div>
-          <OperationSaveSection isViewOnly={isViewOnly} onSave={handleSaveAndSendReport} isSaving={isSavingArrival} />
+          <OperationSaveSection isViewOnly={isViewOnly} onSave={handleSaveOnly} isSaving={isSavingArrival} />
         </div>
       </FormSection>
     </div>
