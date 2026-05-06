@@ -152,7 +152,7 @@ const mapItemToRow = (it, i, sectionId) => {
     "";
 
   const uploadedFromApi = [];
-  const rawFiles = dd.uploaded_files ?? it.uploaded_files;
+  const rawFiles = dd.uploaded_files ?? it.uploaded_files ?? it.files;
   if (Array.isArray(rawFiles)) {
     rawFiles.forEach((f, fi) => {
       const fileName = f.file_name ?? f.name ?? f.filename ?? "File";
@@ -169,6 +169,8 @@ const mapItemToRow = (it, i, sectionId) => {
         sample_file_url: f.sample_file_url ?? null,
         requirement_file_url: f.requirement_file_url ?? null,
         fromApi: true,
+        isNew: false,
+        file: undefined,
       });
     });
   }
@@ -394,11 +396,25 @@ export const collectItemIdsUnderSectionInBlocks = (blocks, sectionId) => {
 
 export const buildChecklistReportLines = (blocks, itemsData) => {
   const lines = [];
-  const fileLabel = (d) => d.uploadedFile?.name || d.uploadedFile?.fileName;
+  const list = (d) => (Array.isArray(d.uploadedFiles) ? d.uploadedFiles : []);
+  const newUploadLabels = (d) =>
+    list(d)
+      .filter((e) => {
+        const f = e instanceof File ? e : e?.file;
+        return f instanceof File;
+      })
+      .map((e) => (e instanceof File ? e.name : e.file?.name))
+      .filter(Boolean);
   const itemLine = (item) => {
     const d = itemsData[item.id] || {};
-    const fn = fileLabel(d);
-    const hasApi = Array.isArray(d.apiUploadedFiles) && d.apiUploadedFiles.length > 0;
+    const newLabels = newUploadLabels(d);
+    const fn = newLabels.length ? newLabels.join(", ") : "";
+    const hasApi = list(d).some((e) => {
+      if (e instanceof File) return false;
+      const f = e?.file;
+      if (f instanceof File) return false;
+      return Boolean(e?.fromApi === true || e?.url || e?.file_url || e?.link);
+    });
     const markedDone = d.checked === true;
     lines.push(`  • ${item.fullLabel || item.title}`);
     lines.push(

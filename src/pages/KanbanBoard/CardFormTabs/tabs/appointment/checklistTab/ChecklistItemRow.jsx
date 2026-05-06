@@ -90,6 +90,25 @@ const getRequirementMetaLabel = ({ requireCopyOnlyFromApi, requirement }) => {
   return label;
 };
 
+const createLocalChecklistFileEntry = (file, uniqueKey) => ({
+  id: `local_${uniqueKey}_${file.name}`,
+  name: file.name,
+  fileName: file.name,
+  url: null,
+  link: null,
+  file_url: null,
+  file,
+  fromApi: false,
+  isNew: true,
+});
+
+const truncateMiddle = (text, maxLen = 22) => {
+  const s = String(text || "");
+  if (s.length <= maxLen) return s;
+  const half = Math.floor((maxLen - 2) / 2);
+  return `${s.slice(0, half)}…${s.slice(-half)}`;
+};
+
 const ChecklistItemRow = ({
   item,
   itemData,
@@ -100,22 +119,26 @@ const ChecklistItemRow = ({
   const { id, title, expiryDateRequired, uploadedFromApi = [], requirement, requireCopyOnlyFromApi } = item;
 
   const [remarks, setRemarks] = useState(itemData?.remarks || "");
-  const [uploadedFile, setUploadedFile] = useState(itemData?.uploadedFile || null);
+  const [uploadedFiles, setUploadedFiles] = useState(() =>
+    Array.isArray(itemData?.uploadedFiles) ? itemData.uploadedFiles : []
+  );
   const fileInputRef = useRef(null);
 
   const checked = itemData?.checked === true;
-  const apiFiles = itemData?.apiUploadedFiles ?? uploadedFromApi ?? [];
-  const apiFilesList = Array.isArray(apiFiles) ? apiFiles : [];
+  const rowFiles = Array.isArray(uploadedFiles) ? uploadedFiles : [];
+  const templateFallback = Array.isArray(uploadedFromApi) ? uploadedFromApi : [];
   const itemRootBackendUrl = getItemRootBackendPreviewUrl(item);
-  const firstBackendApiFile = apiFilesList.find((f) => Boolean(getBackendFilePreviewUrl(f)));
+  const urlFromList = (list) => {
+    const arr = Array.isArray(list) ? list : [];
+    for (const entry of arr) {
+      const u = getBackendFilePreviewUrl(entry);
+      if (u) return u;
+    }
+    return null;
+  };
   const backendPreviewUrl =
-    itemRootBackendUrl ||
-    (firstBackendApiFile ? getBackendFilePreviewUrl(firstBackendApiFile) : null);
+    itemRootBackendUrl || urlFromList(rowFiles) || urlFromList(templateFallback);
   const hasBackendPreviewFile = Boolean(backendPreviewUrl);
-  const canViewLocalUpload = Boolean(uploadedFile);
-  const viewLocalTitle = uploadedFile
-    ? uploadedFile.name || uploadedFile.fileName || "View uploaded file"
-    : "No file uploaded";
   const requirementMetaLabel = getRequirementMetaLabel({ requireCopyOnlyFromApi, requirement });
   const showMetaRow = Boolean(expiryDateRequired || requirementMetaLabel);
 
@@ -126,18 +149,23 @@ const ChecklistItemRow = ({
     window.open(backendPreviewUrl, "_blank", "noopener,noreferrer");
   };
 
+  const uploadedFilesSyncKey = Array.isArray(itemData?.uploadedFiles)
+    ? itemData.uploadedFiles.map((f) => `${f?.id ?? ""}:${f?.name ?? f?.fileName ?? ""}:${f?.file instanceof File ? "blob" : ""}`).join("|")
+    : "";
+
   useEffect(() => {
     setRemarks(itemData?.remarks || "");
-    setUploadedFile(itemData?.uploadedFile ?? null);
-  }, [itemData]);
+    setUploadedFiles(Array.isArray(itemData?.uploadedFiles) ? itemData.uploadedFiles : []);
+  }, [itemData?.remarks, uploadedFilesSyncKey]);
 
   const pushChange = (patch) => {
+    const filesNext = patch.uploadedFiles !== undefined ? patch.uploadedFiles : uploadedFiles;
     onChange(id, {
       ...itemData,
-      remarks,
-      uploadedFile,
-      apiUploadedFiles: apiFiles,
       ...patch,
+      remarks: patch.remarks !== undefined ? patch.remarks : remarks,
+      uploadedFiles: filesNext,
+      apiUploadedFiles: filesNext,
     });
   };
 
@@ -147,16 +175,22 @@ const ChecklistItemRow = ({
   };
 
   const handleFileChange = (e) => {
-    const file = e.target.files[0];
-    if (file) {
-      setUploadedFile(file);
-      pushChange({ uploadedFile: file });
-    }
+    const picked = Array.from(e.target.files || []);
+    e.target.value = "";
+    if (!picked.length) return;
+    const batchKey = `${Date.now()}_${Math.random().toString(36).slice(2, 9)}`;
+    const additions = picked.map((file, i) => createLocalChecklistFileEntry(file, `${batchKey}_${i}`));
+    const next = [...uploadedFiles, ...additions];
+    setUploadedFiles(next);
+    pushChange({ uploadedFiles: next });
   };
 
-  const handleRemoveFile = () => {
-    setUploadedFile(null);
-    pushChange({ uploadedFile: null });
+  const handleRemoveFileEntry = (entry) => {
+    // TODO: Wire backend delete API when available; until then removing saved files is UI-only.
+    const entryId = entry?.id;
+    const next = rowFiles.filter((f) => (f?.id ?? f) !== entryId);
+    setUploadedFiles(next);
+    pushChange({ uploadedFiles: next });
   };
 
   const handleBrowseClick = () => fileInputRef.current?.click();
@@ -167,14 +201,30 @@ const ChecklistItemRow = ({
     pushChange({ remarks: newRemarks });
   };
 
-  const handleViewLocalUpload = (e) => {
+  const handlePreviewOneFile = (e, entry) => {
     e.preventDefault();
     e.stopPropagation();
-    if (!uploadedFile) return;
-    const objectUrl = URL.createObjectURL(uploadedFile);
-    window.open(objectUrl, "_blank", "noopener,noreferrer");
-    setTimeout(() => URL.revokeObjectURL(objectUrl), 60000);
+    const rawFile = entry instanceof File ? entry : entry?.file;
+    if (rawFile instanceof File) {
+      const objectUrl = URL.createObjectURL(rawFile);
+      window.open(objectUrl, "_blank", "noopener,noreferrer");
+      setTimeout(() => URL.revokeObjectURL(objectUrl), 60000);
+      return;
+    }
+    const url = getBackendFilePreviewUrl(entry);
+    if (url) window.open(url, "_blank", "noopener,noreferrer");
   };
+
+  const canPreviewEntry = (entry) => {
+    const rawFile = entry instanceof File ? entry : entry?.file;
+    if (rawFile instanceof File) return true;
+    return Boolean(getBackendFilePreviewUrl(entry));
+  };
+
+  const displayNameForEntry = (entry) =>
+    entry instanceof File
+      ? entry.name
+      : entry?.name || entry?.fileName || entry?.file?.name || "File";
 
   return (
     <tr className={`checklist-table-row cl-item-row ${checked ? "checked" : ""}`} style={{ "--card-color": cardColor }}>
@@ -257,58 +307,77 @@ const ChecklistItemRow = ({
           ) : null}
         </div>
       </td>
-      <td className="checklist-table-upload cl-col-upload">
-        <div className="cl-upload-col">
-          <div className="cl-upload-row cl-upload-row--actions">
-            {!isViewOnly ? (
-              <button
-                type="button"
-                className="cl-upload-btn"
-                onClick={handleBrowseClick}
-                title={uploadedFile ? "Replace uploaded file" : "Upload file"}
-                aria-label={uploadedFile ? "Replace uploaded file" : "Upload file"}
-              >
-                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" aria-hidden>
-                  <path d="M12 16V4" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" />
-                  <path d="M8 8L12 4L16 8" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" />
-                  <path d="M5 19H19" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" />
-                </svg>
-                <span>Upload</span>
-              </button>
-            ) : null}
+      <td className="checklist-table-upload cl-col-upload cl-col-upload--multi">
+        <div className="cl-upload-col cl-upload-col--multi">
+          {!isViewOnly ? (
             <button
               type="button"
-              className="cl-upload-view-btn"
-              onClick={handleViewLocalUpload}
-              disabled={!canViewLocalUpload}
-              title={canViewLocalUpload ? viewLocalTitle : "No local file to preview"}
-              aria-label={canViewLocalUpload ? viewLocalTitle : "No local file to preview"}
+              className="cl-upload-btn cl-upload-btn--premium"
+              onClick={handleBrowseClick}
+              title="Upload documents"
+              aria-label="Upload documents"
             >
               <svg width="14" height="14" viewBox="0 0 24 24" fill="none" aria-hidden>
-                <path d="M2 12C3.8 8.5 7.3 6 12 6C16.7 6 20.2 8.5 22 12C20.2 15.5 16.7 18 12 18C7.3 18 3.8 15.5 2 12Z" stroke="currentColor" strokeWidth="1.8" />
-                <circle cx="12" cy="12" r="3" stroke="currentColor" strokeWidth="1.8" />
+                <path d="M12 16V4" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" />
+                <path d="M8 8L12 4L16 8" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" />
+                <path d="M5 19H19" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" />
               </svg>
+              <span>Upload</span>
             </button>
-            {!isViewOnly && uploadedFile ? (
-              <button
-                type="button"
-                className="cl-upload-remove-btn"
-                onClick={handleRemoveFile}
-                title={uploadedFile?.name || uploadedFile?.fileName || "Remove file"}
-                aria-label="Remove uploaded file"
-              >
-                ×
-              </button>
-            ) : null}
-          </div>
+          ) : null}
           <input
             ref={fileInputRef}
             type="file"
+            multiple
             id={`file-upload-${id}`}
             onChange={handleFileChange}
             className="checklist-file-input"
             accept=".pdf,.doc,.docx,.jpg,.jpeg,.png"
           />
+          <div className="cl-upload-file-chips" aria-live="polite">
+            {rowFiles.map((entry) => {
+              const entryKey = entry?.id ?? `${displayNameForEntry(entry)}_${entry?.fromApi ? "api" : "loc"}`;
+              const label = displayNameForEntry(entry);
+              const previewOk = canPreviewEntry(entry);
+              return (
+                <div key={entryKey} className="cl-upload-file-chip">
+                  <span className="cl-upload-file-chip__doc" aria-hidden>
+                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none">
+                      <path d="M14 3H7C5.9 3 5 3.9 5 5V19C5 20.1 5.9 21 7 21H17C18.1 21 19 20.1 19 19V8L14 3Z" stroke="currentColor" strokeWidth="1.6" />
+                      <path d="M14 3V8H19" stroke="currentColor" strokeWidth="1.6" />
+                    </svg>
+                  </span>
+                  <span className="cl-upload-file-chip__name" title={label}>
+                    {truncateMiddle(label, 24)}
+                  </span>
+                  <button
+                    type="button"
+                    className="cl-upload-file-chip__action cl-upload-file-chip__action--view"
+                    disabled={!previewOk}
+                    onClick={(e) => handlePreviewOneFile(e, entry)}
+                    title={previewOk ? "Preview" : "No preview available"}
+                    aria-label={`Preview ${label}`}
+                  >
+                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" aria-hidden>
+                      <path d="M2 12C3.8 8.5 7.3 6 12 6C16.7 6 20.2 8.5 22 12C20.2 15.5 16.7 18 12 18C7.3 18 3.8 15.5 2 12Z" stroke="currentColor" strokeWidth="1.6" />
+                      <circle cx="12" cy="12" r="3" stroke="currentColor" strokeWidth="1.6" />
+                    </svg>
+                  </button>
+                  {!isViewOnly ? (
+                    <button
+                      type="button"
+                      className="cl-upload-file-chip__action cl-upload-file-chip__action--remove"
+                      onClick={() => handleRemoveFileEntry(entry)}
+                      title="Remove from list"
+                      aria-label={`Remove ${label}`}
+                    >
+                      ×
+                    </button>
+                  ) : null}
+                </div>
+              );
+            })}
+          </div>
         </div>
       </td>
       <td className="checklist-table-remarks cl-col-remarks">

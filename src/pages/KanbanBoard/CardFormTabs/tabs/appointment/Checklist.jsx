@@ -65,7 +65,84 @@ const normalizeBackendFile = (file, fallbackKey) => {
     sample_file_url: file?.sample_file_url ?? null,
     requirement_file_url: file?.requirement_file_url ?? null,
     fromApi: true,
+    isNew: false,
+    file: undefined,
   };
+};
+
+const createLocalChecklistFileEntry = (file, uniqueKey) => ({
+  id: `local_${uniqueKey}_${file.name}`,
+  name: file.name,
+  fileName: file.name,
+  url: null,
+  link: null,
+  file_url: null,
+  file,
+  fromApi: false,
+  isNew: true,
+});
+
+/** Normalize mixed legacy rows (File instances or partial objects) into unified file entries. */
+const normalizeUploadedFilesStateEntries = (entries, itemKeyPrefix) => {
+  if (!Array.isArray(entries)) return [];
+  return entries
+    .map((entry, idx) => {
+      if (entry instanceof File) return createLocalChecklistFileEntry(entry, `${itemKeyPrefix}_${idx}`);
+      if (!entry || typeof entry !== "object") return null;
+      const file = entry.file instanceof File ? entry.file : null;
+      const fromApi = entry.fromApi === true && !file;
+      const name = entry.name || entry.fileName || file?.name || "File";
+      return {
+        ...entry,
+        id: entry.id ?? `file_${itemKeyPrefix}_${idx}`,
+        name,
+        fileName: entry.fileName || name,
+        url: entry.url ?? entry.link ?? entry.file_url ?? null,
+        file: file || undefined,
+        fromApi: file ? false : fromApi,
+        isNew: Boolean(file),
+      };
+    })
+    .filter(Boolean);
+};
+
+const collectLocalFilesForSavePayload = (uploadedFilesList) => {
+  const list = Array.isArray(uploadedFilesList) ? uploadedFilesList : [];
+  return list
+    .map((entry) => {
+      if (entry instanceof File) return entry;
+      return entry?.file instanceof File ? entry.file : null;
+    })
+    .filter((f) => f instanceof File);
+};
+
+/** Drop local File rows that already appear on the server list (e.g. after save + refetch). */
+const filterLocalsNotReflectedOnBackend = (localEntries, backendEntries) => {
+  const backends = Array.isArray(backendEntries) ? backendEntries : [];
+  return (Array.isArray(localEntries) ? localEntries : []).filter((entry) => {
+    const pf = entry?.file instanceof File ? entry.file : null;
+    if (!pf) return false;
+    const nameMatch = (b) => {
+      const bn = String(b?.name ?? b?.fileName ?? "").trim();
+      return bn && bn === String(pf.name || "").trim();
+    };
+    const duplicate = backends.some((b) => {
+      if (b?.file instanceof File) return false;
+      if (!nameMatch(b)) return false;
+      const bs = b?.size != null ? Number(b.size) : null;
+      const ps = pf.size != null ? Number(pf.size) : null;
+      if (
+        bs != null &&
+        ps != null &&
+        !Number.isNaN(bs) &&
+        !Number.isNaN(ps)
+      ) {
+        return bs === ps;
+      }
+      return true;
+    });
+    return !duplicate;
+  });
 };
 
 const fetchCallDetail = async (callId) => {
@@ -402,16 +479,29 @@ function Checklist({
                 normalizeBackendFile(f, `${item.id}_${idx}`)
               );
               const savedFiles = Array.isArray(savedItem?.apiUploadedFiles) ? savedItem.apiUploadedFiles : [];
-              const finalFiles = savedFiles.length ? savedFiles : apiFiles;
+              const baseBackendFiles = savedFiles.length ? savedFiles : apiFiles;
+              const normalizedLegacy = normalizeUploadedFilesStateEntries(existing.uploadedFiles, item.id);
+              const legacySingle =
+                existing.uploadedFile instanceof File
+                  ? [createLocalChecklistFileEntry(existing.uploadedFile, `${item.id}_legacy`)]
+                  : [];
+              const pendingLocals = [...legacySingle, ...normalizedLegacy].filter(
+                (e) => e?.file instanceof File && e.fromApi !== true
+              );
+              const localsStillPending = filterLocalsNotReflectedOnBackend(
+                pendingLocals,
+                baseBackendFiles
+              );
+              const mergedFiles = [...baseBackendFiles, ...localsStillPending];
+
               next[item.id] = {
                 checked: savedItem ? savedItem.checked === true : existing.checked === true,
                 remarks: savedItem ? savedItem.remarks ?? "" : existing.remarks ?? "",
                 expiryDate: savedItem
                   ? normalizeExpiryDateForUi(savedItem.expiryDate ?? "")
                   : normalizeExpiryDateForUi(existing.expiryDate ?? ""),
-                uploadedFile: existing.uploadedFile instanceof File ? existing.uploadedFile : null,
-                apiUploadedFiles: finalFiles,
-                uploadedFiles: finalFiles,
+                apiUploadedFiles: mergedFiles,
+                uploadedFiles: mergedFiles,
                 requirement: item.requirement ?? null,
                 description: item.description ?? "",
               };
@@ -488,9 +578,9 @@ function Checklist({
             remarks: d.remarks || "",
             expiry_date: d.expiryDate || "",
           });
-          if (d.uploadedFile instanceof File) {
-            formData.append(fileFieldName, d.uploadedFile);
-          }
+          collectLocalFilesForSavePayload(d.uploadedFiles).forEach((file) => {
+            formData.append(fileFieldName, file);
+          });
         });
       });
 
