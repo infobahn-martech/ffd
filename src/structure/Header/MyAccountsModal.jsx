@@ -176,13 +176,23 @@ function MyAccountsModal({ show, onClose }) {
     try {
       setProfileEditLoader(true);
       setFetchError('');
-      const res = await authService.updateUserDetails(formDataToSend);
-      const updatedUser = res?.data?.data ?? res?.data;
-      if (updatedUser && typeof updatedUser === 'object') {
-        applyFormFromUser(updatedUser);
-      } else {
+      await authService.updateUserDetails(formDataToSend);
+
+      // Re-fetch latest user details to bind fresh values
+      try {
+        const userId = getItem('userid') || '1';
+        const refetchRes = await authService.getUserDetail(userId);
+        const refetchPayload = refetchRes?.data?.data ?? refetchRes?.data;
+        if (refetchPayload && typeof refetchPayload === 'object') {
+          applyFormFromUser(refetchPayload);
+        } else {
+          baselineRef.current = { ...formData };
+        }
+      } catch {
+        // If refetch fails, keep local baseline so UI remains consistent
         baselineRef.current = { ...formData };
       }
+
       setIsEditing(false);
     } catch (err) {
       setFetchError(
