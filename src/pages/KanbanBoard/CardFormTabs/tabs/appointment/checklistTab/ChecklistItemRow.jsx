@@ -109,6 +109,30 @@ const truncateMiddle = (text, maxLen = 22) => {
   return `${s.slice(0, half)}…${s.slice(-half)}`;
 };
 
+const MAX_INLINE_FILE_CHIPS = 2;
+
+function displayNameForEntry(entry) {
+  return entry instanceof File
+    ? entry.name
+    : entry?.name || entry?.fileName || entry?.file?.name || "File";
+}
+
+const fileEntryKey = (entry, idx) =>
+  entry?.id != null ? String(entry.id) : `idx_${idx}_${displayNameForEntry(entry)}`;
+
+const DocIcon = ({ size = 12 }) => (
+  <span className="checklist-file-chip__ico" aria-hidden>
+    <svg width={size} height={size} viewBox="0 0 24 24" fill="none">
+      <path d="M14 3H7C5.9 3 5 3.9 5 5V19C5 20.1 5.9 21 7 21H17C18.1 21 19 20.1 19 19V8L14 3Z" stroke="currentColor" strokeWidth="1.5" />
+      <path d="M14 3V8H19" stroke="currentColor" strokeWidth="1.5" />
+    </svg>
+  </span>
+);
+
+DocIcon.propTypes = {
+  size: PropTypes.number,
+};
+
 const ChecklistItemRow = ({
   item,
   itemData,
@@ -123,6 +147,8 @@ const ChecklistItemRow = ({
     Array.isArray(itemData?.uploadedFiles) ? itemData.uploadedFiles : []
   );
   const fileInputRef = useRef(null);
+  const uploadCompactRef = useRef(null);
+  const [moreFilesOpen, setMoreFilesOpen] = useState(false);
 
   const checked = itemData?.checked === true;
   const rowFiles = Array.isArray(uploadedFiles) ? uploadedFiles : [];
@@ -157,6 +183,28 @@ const ChecklistItemRow = ({
     setRemarks(itemData?.remarks || "");
     setUploadedFiles(Array.isArray(itemData?.uploadedFiles) ? itemData.uploadedFiles : []);
   }, [itemData?.remarks, uploadedFilesSyncKey]);
+
+  useEffect(() => {
+    if (!moreFilesOpen) return;
+    const onDocMouseDown = (e) => {
+      if (uploadCompactRef.current && !uploadCompactRef.current.contains(e.target)) {
+        setMoreFilesOpen(false);
+      }
+    };
+    const onKeyDown = (e) => {
+      if (e.key === "Escape") setMoreFilesOpen(false);
+    };
+    document.addEventListener("mousedown", onDocMouseDown);
+    document.addEventListener("keydown", onKeyDown);
+    return () => {
+      document.removeEventListener("mousedown", onDocMouseDown);
+      document.removeEventListener("keydown", onKeyDown);
+    };
+  }, [moreFilesOpen]);
+
+  useEffect(() => {
+    setMoreFilesOpen(false);
+  }, [uploadedFilesSyncKey]);
 
   const pushChange = (patch) => {
     const filesNext = patch.uploadedFiles !== undefined ? patch.uploadedFiles : uploadedFiles;
@@ -221,10 +269,9 @@ const ChecklistItemRow = ({
     return Boolean(getBackendFilePreviewUrl(entry));
   };
 
-  const displayNameForEntry = (entry) =>
-    entry instanceof File
-      ? entry.name
-      : entry?.name || entry?.fileName || entry?.file?.name || "File";
+  const inlineFiles = rowFiles.slice(0, MAX_INLINE_FILE_CHIPS);
+  const overflowCount = Math.max(0, rowFiles.length - MAX_INLINE_FILE_CHIPS);
+  const popoverId = `checklist-files-popover-${id}`;
 
   return (
     <tr className={`checklist-table-row cl-item-row ${checked ? "checked" : ""}`} style={{ "--card-color": cardColor }}>
@@ -307,20 +354,20 @@ const ChecklistItemRow = ({
           ) : null}
         </div>
       </td>
-      <td className="checklist-table-upload cl-col-upload cl-col-upload--multi">
-        <div className="cl-upload-col cl-upload-col--multi">
+      <td className="checklist-table-upload cl-col-upload cl-col-upload--multi checklist-upload-compact-wrap">
+        <div ref={uploadCompactRef} className="checklist-upload-compact">
           {!isViewOnly ? (
             <button
               type="button"
-              className="cl-upload-btn cl-upload-btn--premium"
+              className="checklist-upload-btn"
               onClick={handleBrowseClick}
               title="Upload documents"
               aria-label="Upload documents"
             >
-              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" aria-hidden>
-                <path d="M12 16V4" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" />
-                <path d="M8 8L12 4L16 8" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" />
-                <path d="M5 19H19" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" />
+              <svg width="12" height="12" viewBox="0 0 24 24" fill="none" aria-hidden>
+                <path d="M12 16V4" stroke="currentColor" strokeWidth="1.7" strokeLinecap="round" />
+                <path d="M8 8L12 4L16 8" stroke="currentColor" strokeWidth="1.7" strokeLinecap="round" strokeLinejoin="round" />
+                <path d="M5 19H19" stroke="currentColor" strokeWidth="1.7" strokeLinecap="round" />
               </svg>
               <span>Upload</span>
             </button>
@@ -334,50 +381,99 @@ const ChecklistItemRow = ({
             className="checklist-file-input"
             accept=".pdf,.doc,.docx,.jpg,.jpeg,.png"
           />
-          <div className="cl-upload-file-chips" aria-live="polite">
-            {rowFiles.map((entry) => {
-              const entryKey = entry?.id ?? `${displayNameForEntry(entry)}_${entry?.fromApi ? "api" : "loc"}`;
-              const label = displayNameForEntry(entry);
-              const previewOk = canPreviewEntry(entry);
-              return (
-                <div key={entryKey} className="cl-upload-file-chip">
-                  <span className="cl-upload-file-chip__doc" aria-hidden>
-                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none">
-                      <path d="M14 3H7C5.9 3 5 3.9 5 5V19C5 20.1 5.9 21 7 21H17C18.1 21 19 20.1 19 19V8L14 3Z" stroke="currentColor" strokeWidth="1.6" />
-                      <path d="M14 3V8H19" stroke="currentColor" strokeWidth="1.6" />
-                    </svg>
-                  </span>
-                  <span className="cl-upload-file-chip__name" title={label}>
-                    {truncateMiddle(label, 24)}
-                  </span>
-                  <button
-                    type="button"
-                    className="cl-upload-file-chip__action cl-upload-file-chip__action--view"
-                    disabled={!previewOk}
-                    onClick={(e) => handlePreviewOneFile(e, entry)}
-                    title={previewOk ? "Preview" : "No preview available"}
-                    aria-label={`Preview ${label}`}
-                  >
-                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" aria-hidden>
-                      <path d="M2 12C3.8 8.5 7.3 6 12 6C16.7 6 20.2 8.5 22 12C20.2 15.5 16.7 18 12 18C7.3 18 3.8 15.5 2 12Z" stroke="currentColor" strokeWidth="1.6" />
-                      <circle cx="12" cy="12" r="3" stroke="currentColor" strokeWidth="1.6" />
-                    </svg>
-                  </button>
-                  {!isViewOnly ? (
+          {rowFiles.length > 0 ? (
+            <div className="checklist-file-chip-row" aria-live="polite">
+              {inlineFiles.map((entry, idx) => {
+                const label = displayNameForEntry(entry);
+                const previewOk = canPreviewEntry(entry);
+                return (
+                  <div key={fileEntryKey(entry, idx)} className="checklist-file-chip checklist-file-chip--inline" title={label}>
+                    <DocIcon size={11} />
+                    <span className="checklist-file-chip__name">{label}</span>
                     <button
                       type="button"
-                      className="cl-upload-file-chip__action cl-upload-file-chip__action--remove"
-                      onClick={() => handleRemoveFileEntry(entry)}
-                      title="Remove from list"
-                      aria-label={`Remove ${label}`}
+                      className="checklist-file-chip__btn checklist-file-chip__btn--view"
+                      disabled={!previewOk}
+                      onClick={(e) => handlePreviewOneFile(e, entry)}
+                      title={previewOk ? "Preview" : "No preview available"}
+                      aria-label={`Preview ${label}`}
                     >
-                      ×
+                      <svg width="12" height="12" viewBox="0 0 24 24" fill="none" aria-hidden>
+                        <path d="M2 12C3.8 8.5 7.3 6 12 6C16.7 6 20.2 8.5 22 12C20.2 15.5 16.7 18 12 18C7.3 18 3.8 15.5 2 12Z" stroke="currentColor" strokeWidth="1.6" />
+                        <circle cx="12" cy="12" r="3" stroke="currentColor" strokeWidth="1.6" />
+                      </svg>
                     </button>
-                  ) : null}
-                </div>
-              );
-            })}
-          </div>
+                    {!isViewOnly ? (
+                      <button
+                        type="button"
+                        className="checklist-file-chip__btn checklist-file-chip__btn--remove"
+                        onClick={() => handleRemoveFileEntry(entry)}
+                        title="Remove from list"
+                        aria-label={`Remove ${label}`}
+                      >
+                        ×
+                      </button>
+                    ) : null}
+                  </div>
+                );
+              })}
+              {overflowCount > 0 ? (
+                <button
+                  type="button"
+                  className="checklist-more-files-chip"
+                  aria-expanded={moreFilesOpen}
+                  aria-controls={popoverId}
+                  onClick={() => setMoreFilesOpen((o) => !o)}
+                >
+                  +{overflowCount} more
+                </button>
+              ) : null}
+            </div>
+          ) : null}
+          {moreFilesOpen && rowFiles.length > MAX_INLINE_FILE_CHIPS ? (
+            <div id={popoverId} className="checklist-files-popover" role="dialog" aria-label="All uploaded files">
+              <ul className="checklist-files-popover__list">
+                {rowFiles.map((entry, idx) => {
+                  const label = displayNameForEntry(entry);
+                  const previewOk = canPreviewEntry(entry);
+                  return (
+                    <li key={fileEntryKey(entry, idx)} className="checklist-files-popover__item">
+                      <div className="checklist-file-chip checklist-file-chip--popover">
+                        <DocIcon size={12} />
+                        <span className="checklist-file-chip__name checklist-file-chip__name--popover" title={label}>
+                          {truncateMiddle(label, 36)}
+                        </span>
+                        <button
+                          type="button"
+                          className="checklist-file-chip__btn checklist-file-chip__btn--view"
+                          disabled={!previewOk}
+                          onClick={(e) => handlePreviewOneFile(e, entry)}
+                          title={previewOk ? "Preview" : "No preview available"}
+                          aria-label={`Preview ${label}`}
+                        >
+                          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" aria-hidden>
+                            <path d="M2 12C3.8 8.5 7.3 6 12 6C16.7 6 20.2 8.5 22 12C20.2 15.5 16.7 18 12 18C7.3 18 3.8 15.5 2 12Z" stroke="currentColor" strokeWidth="1.6" />
+                            <circle cx="12" cy="12" r="3" stroke="currentColor" strokeWidth="1.6" />
+                          </svg>
+                        </button>
+                        {!isViewOnly ? (
+                          <button
+                            type="button"
+                            className="checklist-file-chip__btn checklist-file-chip__btn--remove"
+                            onClick={() => handleRemoveFileEntry(entry)}
+                            title="Remove from list"
+                            aria-label={`Remove ${label}`}
+                          >
+                            ×
+                          </button>
+                        ) : null}
+                      </div>
+                    </li>
+                  );
+                })}
+              </ul>
+            </div>
+          ) : null}
         </div>
       </td>
       <td className="checklist-table-remarks cl-col-remarks">
