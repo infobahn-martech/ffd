@@ -38,6 +38,12 @@ FormField.propTypes = {
 
 const toIdString = (v) => (v == null || String(v).trim() === "" ? null : String(v).trim());
 
+const normalizeExpiryDateForUi = (value) => {
+  const s = String(value ?? "").trim();
+  if (!s || s === "0000-00-00" || s.startsWith("0000-00-00")) return "";
+  return s;
+};
+
 const normalizeBackendFile = (file, fallbackKey) => {
   const fileName = file?.file_name ?? file?.name ?? file?.filename ?? "File";
   const fileUrl =
@@ -170,7 +176,7 @@ const normalizeSavedChecklistLookup = (rows) => {
         lookup[typeId][itemId] = {
           checked: item?.is_checked === 1 || item?.is_checked === true || String(item?.is_checked) === "1",
           remarks: item?.remarks ?? "",
-          expiryDate: item?.expiry_date ?? "",
+          expiryDate: normalizeExpiryDateForUi(item?.expiry_date ?? ""),
           apiUploadedFiles: files,
           uploadedFiles: files,
         };
@@ -395,14 +401,17 @@ function Checklist({
               const apiFiles = (item.uploadedFromApi || []).map((f, idx) =>
                 normalizeBackendFile(f, `${item.id}_${idx}`)
               );
-              const savedFiles = savedItem?.apiUploadedFiles ?? [];
+              const savedFiles = Array.isArray(savedItem?.apiUploadedFiles) ? savedItem.apiUploadedFiles : [];
+              const finalFiles = savedFiles.length ? savedFiles : apiFiles;
               next[item.id] = {
                 checked: savedItem ? savedItem.checked === true : existing.checked === true,
                 remarks: savedItem ? savedItem.remarks ?? "" : existing.remarks ?? "",
-                expiryDate: savedItem ? savedItem.expiryDate ?? "" : existing.expiryDate ?? "",
-                uploadedFile: existing.uploadedFile ?? null,
-                apiUploadedFiles: existing.apiUploadedFiles ?? (savedFiles.length ? savedFiles : apiFiles),
-                uploadedFiles: existing.uploadedFiles ?? (savedFiles.length ? savedFiles : apiFiles),
+                expiryDate: savedItem
+                  ? normalizeExpiryDateForUi(savedItem.expiryDate ?? "")
+                  : normalizeExpiryDateForUi(existing.expiryDate ?? ""),
+                uploadedFile: existing.uploadedFile instanceof File ? existing.uploadedFile : null,
+                apiUploadedFiles: finalFiles,
+                uploadedFiles: finalFiles,
                 requirement: item.requirement ?? null,
                 description: item.description ?? "",
               };
@@ -507,6 +516,14 @@ function Checklist({
         checklistBlocks.map((block) => checklistService.saveCallChecklist(buildChecklistSaveFormData(block)))
       );
       notify("Checklist saved successfully.", "success");
+      try {
+        const rows = await fetchSavedCallChecklist(currentCallId);
+        const normalized = normalizeSavedChecklistLookup(rows);
+        setSavedChecklistLookup(normalized.lookup);
+        setSavedChecklistTypeIds(normalized.typeIds);
+      } catch {
+        /* save succeeded; refresh is best-effort */
+      }
     } catch (error) {
       const msg =
         error?.response?.data?.message ||
