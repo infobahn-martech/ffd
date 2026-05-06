@@ -472,8 +472,9 @@ function Checklist({
         const sectionItems = flattenTreeItems([section]);
         sectionItems.forEach((item) => {
           const d = itemsData[item.id] || {};
+          const checklistItemId = getChecklistItemIdFromUiItem(item);
           items.push({
-            checklist_item_id: item.id,
+            checklist_item_id: checklistItemId || item.checklist_item_id || item.id,
             is_checked: d.checked === true ? 1 : 0,
             remarks: d.remarks || "",
             expiry_date: d.expiryDate || "",
