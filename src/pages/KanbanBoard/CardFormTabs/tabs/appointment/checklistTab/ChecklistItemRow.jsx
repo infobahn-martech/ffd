@@ -4,6 +4,7 @@ import DatePicker from "react-datepicker";
 import { format, parse, isValid } from "date-fns";
 import "react-datepicker/dist/react-datepicker.css";
 import { FormTextarea } from "./checklistFormPrimitives";
+import { getBackendFileSessionRemovalKey } from "./checklistMappers";
 
 const formatDisplayDate = (value) => {
   if (!value) return "--/--/----";
@@ -208,12 +209,15 @@ const ChecklistItemRow = ({
 
   const pushChange = (patch) => {
     const filesNext = patch.uploadedFiles !== undefined ? patch.uploadedFiles : uploadedFiles;
+    const removedNext =
+      patch.removedFiles !== undefined ? patch.removedFiles : itemData.removedFiles ?? [];
     onChange(id, {
       ...itemData,
       ...patch,
       remarks: patch.remarks !== undefined ? patch.remarks : remarks,
       uploadedFiles: filesNext,
       apiUploadedFiles: filesNext,
+      removedFiles: removedNext,
     });
   };
 
@@ -234,11 +238,18 @@ const ChecklistItemRow = ({
   };
 
   const handleRemoveFileEntry = (entry) => {
-    // TODO: Wire backend delete API when available; until then removing saved files is UI-only.
+    const isBackendRow =
+      entry?.fromApi === true && !(entry instanceof File) && !(entry?.file instanceof File);
     const entryId = entry?.id;
     const next = rowFiles.filter((f) => (f?.id ?? f) !== entryId);
+    let removedNext = Array.isArray(itemData?.removedFiles) ? [...itemData.removedFiles] : [];
+    if (isBackendRow) {
+      // TODO: Backend delete API required for permanent deletion; GET still returns these files until then (session hide only).
+      const key = getBackendFileSessionRemovalKey(entry);
+      if (key && !removedNext.includes(key)) removedNext.push(key);
+    }
     setUploadedFiles(next);
-    pushChange({ uploadedFiles: next });
+    pushChange({ uploadedFiles: next, removedFiles: removedNext });
   };
 
   const handleBrowseClick = () => fileInputRef.current?.click();

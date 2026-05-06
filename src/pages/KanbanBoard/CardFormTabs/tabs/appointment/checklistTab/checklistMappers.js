@@ -394,6 +394,32 @@ export const collectItemIdsUnderSectionInBlocks = (blocks, sectionId) => {
   return [];
 };
 
+/** Stable session key for a backend file row (for removedFiles tracking until delete API exists). */
+export const getBackendFileSessionRemovalKey = (entry) => {
+  if (!entry || entry instanceof File) return "";
+  if (entry.file instanceof File) return "";
+  const rawId = entry.id ?? entry.file_id;
+  if (rawId != null && String(rawId).trim() !== "") {
+    return `id:${String(rawId).trim()}`;
+  }
+  const url = String(entry.url ?? entry.file_url ?? entry.link ?? "").trim();
+  const name = String(entry.name ?? entry.fileName ?? "").trim();
+  return `url:${url}|n:${name}`;
+};
+
+/** Drop backend files the user removed in this session (GET may still return them). Local File rows are kept. */
+export const filterFilesExcludingRemovedBackend = (files, removedKeys) => {
+  if (!Array.isArray(files)) return [];
+  if (!Array.isArray(removedKeys) || removedKeys.length === 0) return files;
+  const removed = new Set(removedKeys.filter(Boolean));
+  return files.filter((f) => {
+    if (f instanceof File) return true;
+    if (f?.file instanceof File) return true;
+    const k = getBackendFileSessionRemovalKey(f);
+    return !k || !removed.has(k);
+  });
+};
+
 export const buildChecklistReportLines = (blocks, itemsData) => {
   const lines = [];
   const list = (d) => (Array.isArray(d.uploadedFiles) ? d.uploadedFiles : []);

@@ -17,6 +17,7 @@ import {
   buildChecklistReportLines,
   collectItemIdsUnderSectionInBlocks,
   collectTreeSectionIds,
+  filterFilesExcludingRemovedBackend,
   flattenTreeItems,
   mapApiSectionsToTree,
   mapGetChecklistByIdResponse,
@@ -479,7 +480,11 @@ function Checklist({
                 normalizeBackendFile(f, `${item.id}_${idx}`)
               );
               const savedFiles = Array.isArray(savedItem?.apiUploadedFiles) ? savedItem.apiUploadedFiles : [];
-              const baseBackendFiles = savedFiles.length ? savedFiles : apiFiles;
+              const removedKeys = Array.isArray(existing.removedFiles)
+                ? [...new Set(existing.removedFiles.filter(Boolean))]
+                : [];
+              const baseBackendRaw = savedFiles.length ? savedFiles : apiFiles;
+              const baseBackendFiles = filterFilesExcludingRemovedBackend(baseBackendRaw, removedKeys);
               const normalizedLegacy = normalizeUploadedFilesStateEntries(existing.uploadedFiles, item.id);
               const legacySingle =
                 existing.uploadedFile instanceof File
@@ -502,6 +507,8 @@ function Checklist({
                   : normalizeExpiryDateForUi(existing.expiryDate ?? ""),
                 apiUploadedFiles: mergedFiles,
                 uploadedFiles: mergedFiles,
+                // Session-only: hides backend files user removed; clearing requires backend delete API + refetch.
+                removedFiles: removedKeys,
                 requirement: item.requirement ?? null,
                 description: item.description ?? "",
               };
@@ -578,6 +585,8 @@ function Checklist({
             remarks: d.remarks || "",
             expiry_date: d.expiryDate || "",
           });
+          // Only new local File blobs — never re-post backend file metadata.
+          // TODO: Backend delete API needed to persist removals from `removedFiles`; session hide does not change GET.
           collectLocalFilesForSavePayload(d.uploadedFiles).forEach((file) => {
             formData.append(fileFieldName, file);
           });
