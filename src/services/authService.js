@@ -20,8 +20,8 @@ const resetPassword = (token, userId, password, confirmPassword) => Gateway.post
 const changePassword = ({ current_password, new_password, confirm_password }) =>
   Gateway.post("users/change_password", { current_password, new_password, confirm_password });
 
-const updateUserDetails = ({ name, email, phone, avatar }) =>
-  Gateway.post("users/update_user_details", { name, email, phone, avatar });
+const updateUserDetails = (formData) =>
+  Gateway.post("users/update_user_details", formData);
 
 export default {
   doLoginValidate,
