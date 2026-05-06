@@ -1,8 +1,10 @@
 import { useState, useEffect } from "react";
 import PropTypes from "prop-types";
 import GroupSettingsIcon from "../../../../../assets/images/cv.png";
+import { notify } from "../../../../../components/Toaster";
 import { buildArrivalReportBody, buildArrivalDailyReportBody } from "../../services/sendReportBodyBuilder";
 import appointmentAcceptanceService from "../../../../../services/appointmentAcceptanceService";
+import arrivalService from "../../../../../services/arrivalService";
 import {
   DynamicDateTimeFields,
   FormField,
@@ -58,6 +60,42 @@ function Arrival({
         };
       })
       .filter(Boolean);
+
+  const buildSaveTimeObjectsPayload = (eventFields, values) =>
+    (Array.isArray(eventFields) ? eventFields : [])
+      .map((field) => {
+        const keyPrefix = field?.keyPrefix;
+        if (!keyPrefix) return null;
+        const timeObjectValue = toDateTimeValue(values?.[`${keyPrefix}Date`], values?.[`${keyPrefix}Time`]);
+        if (!timeObjectValue) return null;
+        const timeObjectId = field?.time_object_id ?? field?.event_type_id;
+        if (timeObjectId == null || timeObjectId === "") return null;
+        return {
+          time_object_id: timeObjectId,
+          time_object_value: timeObjectValue,
+        };
+      })
+      .filter(Boolean);
+
+  const normalizeAttachmentFile = (fileLike) => {
+    if (!fileLike) return null;
+    if (fileLike instanceof File || fileLike instanceof Blob) return fileLike;
+    if (fileLike?.file instanceof File || fileLike?.file instanceof Blob) return fileLike.file;
+    return null;
+  };
+
+  const pickAttachmentByName = (files, patterns) =>
+    files.find((file) => patterns.some((pattern) => pattern.test(String(file?.name || ""))));
+
+  const resolveCreatedBy = () => {
+    if (typeof window === "undefined") return "";
+    return String(
+      localStorage.getItem("userid") ||
+      localStorage.getItem("user_id") ||
+      localStorage.getItem("userId") ||
+      ""
+    ).trim();
+  };
 
   const [reportDraft, setReportDraft] = useState({
     reportType: "arrival",
@@ -156,9 +194,55 @@ function Arrival({
   };
 
   const saveArrivalData = async () => {
-    console.log("Saving Arrival data:", formValues);
-    // TODO: replace with Arrival save API call
-    return true;
+    const resolvedCallId = resolveFormId(callId, formValues?.call_id, formValues?.callId);
+    if (!resolvedCallId) {
+      notify("Call ID is required to save Arrival.", "error");
+      return false;
+    }
+
+    const allFields = [...arrivalStageFields, ...postArrivalStageFields];
+    const saveTimeObjects = buildSaveTimeObjectsPayload(allFields, formValues);
+    const mwpExpiry = toDateTimeValue(formValues?.marineWorkPermitExpiresDate, formValues?.marineWorkPermitExpiresTime);
+
+    const allFiles = (Array.isArray(formValues?.arrivalDocumentsAttachments) ? formValues.arrivalDocumentsAttachments : [])
+      .map(normalizeAttachmentFile)
+      .filter(Boolean);
+
+    const inwardDoc =
+      pickAttachmentByName(allFiles, [/inward/i, /clearance/i]) ||
+      allFiles[0] ||
+      null;
+    const mwpDoc =
+      pickAttachmentByName(allFiles, [/mwp/i, /marine/i, /permit/i]) ||
+      allFiles[1] ||
+      null;
+
+    const fd = new FormData();
+    fd.append("call_id", String(resolvedCallId));
+    fd.append("time_objects", JSON.stringify(saveTimeObjects));
+    fd.append("customs_status", String(formValues?.customInspectionStatus || ""));
+    fd.append("immigration_status", String(formValues?.crewImmigrationStatus || ""));
+    fd.append("immigration_remarks", String(formValues?.crewImmigrationHoldRemarks || ""));
+    fd.append("mwp_expiry", mwpExpiry);
+    if (inwardDoc) fd.append("inward_clearance_doc", inwardDoc);
+    if (mwpDoc) fd.append("mwp_doc", mwpDoc);
+
+    const createdBy = resolveCreatedBy();
+    if (createdBy) {
+      fd.append("created_by", createdBy);
+    }
+
+    const arrivalReport = String(reportDraft.message || getArrivalMessage(reportDraft.reportType) || "").trim();
+    fd.append("arrival_report", arrivalReport);
+
+    try {
+      await arrivalService.saveArrivalDetail(fd);
+      notify("Arrival saved successfully.", "success");
+      return true;
+    } catch (error) {
+      notify(error?.response?.data?.message || "Failed to save Arrival.", "error");
+      return false;
+    }
   };
 
   const handleSaveAndSendReport = async () => {
