@@ -30,6 +30,7 @@ import { buildCreateCallFileFormData } from "../../../../../helpers/createCallFi
 import { notify } from "../../../../../components/Toaster";
 import SearchableSelect, { deriveSearchPlaceholder } from "../../../../../components/form/SearchableSelect";
 import DateTimePickerField from "../../components/DateTimePickerField";
+import { extractTextFromFile, extractAppointmentDetailsWithGemini } from "../../../../../helpers/appointmentAiExtractor";
 
 const splitDateTime = (value) => {
   if (!value) return { date: "", time: "" };
@@ -1409,6 +1410,8 @@ function General({
   ]);
   const [vesselOptionsLoading, setVesselOptionsLoading] = useState(false);
   const [appointmentDocuments, setAppointmentDocuments] = useState([]);
+  const [isAiExtractingAppointment, setIsAiExtractingAppointment] = useState(false);
+  const [aiExtractionError, setAiExtractionError] = useState("");
   const [previewMessageText, setPreviewMessageText] = useState("");
   const [emailPreviewData, setEmailPreviewData] = useState(null);
   const [isPreviewMessageDirty, setIsPreviewMessageDirty] = useState(false);
@@ -2117,8 +2120,133 @@ function General({
     });
   };
 
+  const normalizeText = useCallback((value) => String(value ?? "").trim().toLowerCase().replace(/\s+/g, " "), []);
+
+  const getCurrentFieldValue = useCallback(
+    (fieldName) => {
+      const raw = getFieldValue(fieldName);
+      if (raw === undefined || raw === null) return "";
+      return Array.isArray(raw) ? raw : String(raw).trim();
+    },
+    [getFieldValue]
+  );
+
+  const setFieldValue = useCallback(
+    (fieldName, value) => {
+      handleChange(fieldName)({
+        target: {
+          name: fieldName,
+          value,
+        },
+      });
+    },
+    [handleChange]
+  );
+
+  const fillIfEmpty = useCallback(
+    (fieldName, value) => {
+      const normalizedIncoming = firstNonEmptyString(value);
+      if (!normalizedIncoming) return;
+      const currentValue = getCurrentFieldValue(fieldName);
+      if (hasMeaningfulValue(currentValue)) return;
+      setFieldValue(fieldName, normalizedIncoming);
+    },
+    [getCurrentFieldValue, setFieldValue]
+  );
+
+  const findMatchingOption = useCallback(
+    (options = [], extractedText = "") => {
+      const normalizedExtractedText = normalizeText(extractedText);
+      if (!normalizedExtractedText) return null;
+      const normalizedExtractedCompact = normalizedExtractedText.replace(/[^a-z0-9]/g, "");
+
+      const exactMatch = options.find((option) => normalizeText(option?.label) === normalizedExtractedText);
+      if (exactMatch) return exactMatch;
+
+      const includeMatch = options.find((option) => {
+        const normalizedLabel = normalizeText(option?.label);
+        return normalizedLabel.includes(normalizedExtractedText) || normalizedExtractedText.includes(normalizedLabel);
+      });
+      if (includeMatch) return includeMatch;
+
+      return (
+        options.find((option) => {
+          const normalizedLabelCompact = normalizeText(option?.label).replace(/[^a-z0-9]/g, "");
+          return (
+            normalizedLabelCompact.includes(normalizedExtractedCompact) ||
+            normalizedExtractedCompact.includes(normalizedLabelCompact)
+          );
+        }) || null
+      );
+    },
+    [normalizeText]
+  );
+
+  const applyAppointmentExtraction = useCallback(
+    async (file) => {
+      setIsAiExtractingAppointment(true);
+      setAiExtractionError("");
+      try {
+        const text = await extractTextFromFile(file);
+        if (!firstNonEmptyString(text)) {
+          notify("No readable text found for AI extraction.", "warning");
+          return;
+        }
+
+        const extracted = await extractAppointmentDetailsWithGemini(text);
+        const extractedDateTime = firstNonEmptyString(extracted?.appointment_received_date);
+        if (extractedDateTime) {
+          const [datePartRaw = "", timePartRaw = ""] = extractedDateTime.replace("T", " ").split(" ");
+          const datePart = /^\d{4}-\d{2}-\d{2}$/.test(datePartRaw) ? datePartRaw : "";
+          const timePartMatch = String(timePartRaw).match(/^(\d{2}:\d{2})/);
+          const timePart = timePartMatch?.[1] || "";
+          fillIfEmpty("appointmentReceivedDate", datePart);
+          fillIfEmpty("appointmentReceivedTime", timePart);
+        }
+
+        const matchedPort = findMatchingOption(portSelectOptions, extracted?.port);
+        if (matchedPort) {
+          fillIfEmpty("port", String(matchedPort.value ?? ""));
+        }
+
+        const matchedCallType = findMatchingOption(callTypeOptions, extracted?.type_of_call);
+        if (matchedCallType) {
+          const callTypeValue = String(matchedCallType.value ?? "");
+          fillIfEmpty("typeOfCall", callTypeValue);
+          fillIfEmpty("call_type_id", callTypeValue);
+        }
+
+        const matchedVessel = findMatchingOption(vesselNameOptions, extracted?.vessel_name);
+        if (matchedVessel) {
+          fillIfEmpty("vesselName", String(matchedVessel.value ?? ""));
+        }
+
+        fillIfEmpty("serviceRequestorName", extracted?.service_requestor_name);
+        fillIfEmpty("serviceRequestorEmail", extracted?.service_requestor_email);
+        notify("Appointment details extracted successfully.", "success");
+      } catch (error) {
+        const isUnsupportedFormat = error?.message === "UNSUPPORTED_FILE_FORMAT";
+        const quotaErrorText = firstNonEmptyString(error?.message);
+        const isQuotaExceeded = quotaErrorText.toLowerCase().includes("gemini quota exceeded");
+        const retrySecondsMatch = quotaErrorText.match(/retry after (\d+) seconds/i);
+        const retrySeconds = retrySecondsMatch?.[1] || "20";
+        if (isUnsupportedFormat) {
+          notify("Unsupported file format for AI extraction.", "warning");
+        } else if (isQuotaExceeded) {
+          notify(`Gemini quota exceeded. Please try again after ${retrySeconds} seconds or check API quota.`, "error");
+        } else {
+          notify("AI extraction failed. Please fill details manually.", "error");
+        }
+        setAiExtractionError(firstNonEmptyString(error?.message) || "AI extraction failed");
+      } finally {
+        setIsAiExtractingAppointment(false);
+      }
+    },
+    [callTypeOptions, fillIfEmpty, findMatchingOption, portSelectOptions, vesselNameOptions]
+  );
+
   // Handle document upload
-  const handleDocumentAdd = (file) => {
+  const handleDocumentAdd = async (file) => {
     setAppointmentDocuments([...appointmentDocuments, file]);
     setFieldErrors((prev) => {
       if (!prev.appointmentEmailDocuments) return prev;
@@ -2126,6 +2254,7 @@ function General({
       delete next.appointmentEmailDocuments;
       return next;
     });
+    await applyAppointmentExtraction(file);
   };
 
   const handleDocumentRemove = (index) => {
@@ -3327,6 +3456,12 @@ function General({
                                       disabled={isDisabled}
                                       hasError={isAddMode && Boolean(fieldErrors.appointmentEmailDocuments)}
                                     />
+                                    {/* {isAiExtractingAppointment && (
+                                      <div className="cf-field-hint">Extracting appointment details...</div>
+                                    )}
+                                    {!isAiExtractingAppointment && aiExtractionError && (
+                                      <div className="cf-field-hint">{aiExtractionError}</div>
+                                    )} */}
                                     {isAddMode && fieldErrors.appointmentEmailDocuments && (
                                       <div className="cf-field-error">{fieldErrors.appointmentEmailDocuments}</div>
                                     )}
