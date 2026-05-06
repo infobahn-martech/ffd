@@ -1,4 +1,5 @@
 import { useState, useEffect, useRef, useCallback } from 'react';
+import axios from 'axios';
 import PhoneInput from 'react-phone-input-2';
 import 'react-phone-input-2/lib/bootstrap.css';
 import { FiCamera } from 'react-icons/fi';
@@ -169,10 +170,25 @@ function MyAccountsModal({ show, onClose }) {
       avatar: formData.image,
     };
 
+    const formDataToSend = new FormData();
+    Object.entries(payload).forEach(([key, value]) => {
+      if (value !== undefined && value !== null) {
+        formDataToSend.append(key, value);
+      }
+    });
+
     try {
       setProfileEditLoader(true);
       setFetchError('');
-      const res = await authService.updateUserDetails(payload);
+      const res = await axios.post(
+        'https://webhonour.com/sedres/api/users/update_user_details',
+        formDataToSend,
+        {
+          headers: {
+            'Content-Type': 'multipart/form-data',
+          },
+        },
+      );
       const updatedUser = res?.data?.data ?? res?.data;
       if (updatedUser && typeof updatedUser === 'object') {
         applyFormFromUser(updatedUser);
