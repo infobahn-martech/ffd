@@ -74,6 +74,7 @@ function Arrival({
     { value: "On Hold", label: "On Hold" },
   ];
   const customInspectionStatusOptions = [
+    { value: "Pending", label: "Pending" },
     { value: "Passed", label: "Passed" },
     { value: "Failed", label: "Failed" },
   ];
