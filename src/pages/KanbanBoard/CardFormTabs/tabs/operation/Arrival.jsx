@@ -5,7 +5,6 @@ import { buildArrivalReportBody, buildArrivalDailyReportBody } from "../../servi
 import {
   DynamicDateTimeFields,
   FormField,
-  FormInput,
   FormSection,
   FormSelect,
   FormTextarea,
@@ -37,6 +36,10 @@ function Arrival({
   const crewImmigrationStatusOptions = [
     { value: "Completed", label: "Completed" },
     { value: "On Hold", label: "On Hold" },
+  ];
+  const customInspectionStatusOptions = [
+    { value: "Passed", label: "Passed" },
+    { value: "Failed", label: "Failed" },
   ];
 
   const handleArrivalDocumentsAdd = (files) => {
@@ -108,13 +111,58 @@ function Arrival({
           <div className="arrival-form">
             <div className="operation-two-column-grid operation-two-column-grid--split-scroll">
               <OperationFormCard className="operation-form-column">
-                <OperationFormCard >
+                <OperationFormCard>
                   <DynamicDateTimeFields
                     eventFields={arrivalStageFields}
                     formValues={formValues}
                     handleChange={handleChange}
                     isViewOnly={isViewOnly}
                   />
+
+                  <FormField label="Custom Inspection Status">
+                    <FormSelect
+                      value={formValues.customInspectionStatus || "Passed"}
+                      onChange={handleChange("customInspectionStatus")}
+                      options={customInspectionStatusOptions}
+                      placeholder="Select status..."
+                      disabled={isViewOnly}
+                    />
+                  </FormField>
+
+                  {formValues.customInspectionStatus === "Failed" && (
+                    <FormField label="Custom Inspection Remark" className="cf-field-full">
+                      <FormTextarea
+                        value={formValues.customInspectionFailReason || ""}
+                        onChange={handleChange("customInspectionFailReason")}
+                        placeholder="Specify remark..."
+                        rows={3}
+                        disabled={isViewOnly}
+                      />
+                    </FormField>
+                  )}
+
+                  <FormField label="Crew immigration completed / on hold">
+                    <FormSelect
+                      value={formValues.crewImmigrationStatus || ""}
+                      onChange={handleChange("crewImmigrationStatus")}
+                      options={crewImmigrationStatusOptions}
+                      placeholder="Select status..."
+                      disabled={isViewOnly}
+                    />
+                  </FormField>
+
+                  {formValues.crewImmigrationStatus === "On Hold" && (
+                    <FormField label="Crew Immigration Remark" className="cf-field-full">
+                      <FormTextarea
+                        value={formValues.crewImmigrationHoldRemarks || ""}
+                        onChange={handleChange("crewImmigrationHoldRemarks")}
+                        placeholder="Specify remark..."
+                        rows={3}
+                        disabled={isViewOnly}
+                      />
+                    </FormField>
+                  )}
+
                   <DynamicDateTimeFields
                     eventFields={postArrivalStageFields}
                     formValues={formValues}
@@ -122,50 +170,6 @@ function Arrival({
                     isViewOnly={isViewOnly}
                   />
                 </OperationFormCard>
-
-                <FormField label="Custom Inspection Status">
-                  <FormInput
-                    type="text"
-                    value={formValues.customInspectionStatus || "Passed"}
-                    onChange={handleChange("customInspectionStatus")}
-                    placeholder=""
-                    disabled={isViewOnly}
-                  />
-                </FormField>
-
-                {formValues.customInspectionStatus === "Failed" && (
-                  <FormField label="Reason for fail" className="cf-field-full">
-                    <FormTextarea
-                      value={formValues.customInspectionFailReason || ""}
-                      onChange={handleChange("customInspectionFailReason")}
-                      placeholder="Specify reason for fail..."
-                      rows={3}
-                      disabled={isViewOnly}
-                    />
-                  </FormField>
-                )}
-
-                <FormField label="Crew immigration completed / on hold">
-                  <FormSelect
-                    value={formValues.crewImmigrationStatus || ""}
-                    onChange={handleChange("crewImmigrationStatus")}
-                    options={crewImmigrationStatusOptions}
-                    placeholder="Select status..."
-                    disabled={isViewOnly}
-                  />
-                </FormField>
-
-                {formValues.crewImmigrationStatus === "On Hold" && (
-                  <FormField label="Reason for hold (Remarks)" className="cf-field-full">
-                    <FormTextarea
-                      value={formValues.crewImmigrationHoldRemarks || ""}
-                      onChange={handleChange("crewImmigrationHoldRemarks")}
-                      placeholder="Specify reason for hold..."
-                      rows={3}
-                      disabled={isViewOnly}
-                    />
-                  </FormField>
-                )}
 
                 <FormField label="Attach Vessel Inward and Marine Work Permit Copies">
                   <OperationFileUpload
