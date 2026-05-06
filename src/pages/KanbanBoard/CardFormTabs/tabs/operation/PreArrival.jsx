@@ -1098,6 +1098,7 @@ function PreArrival({
     try {
       await preArrivalService.sendPreArrivalReport({
         call_id: callId,
+        report_type_id: 2,
         from_email: String(reportDraft.from ?? "").trim(),
         to_email: String(reportDraft.to ?? "").trim(),
         cc_emails: String(reportDraft.cc ?? "").trim(),

@@ -252,6 +252,8 @@ function Arrival({
       if (!saveResult) return;
 
       await onSendReport?.({
+        call_id: resolveFormId(callId, formValues?.call_id, formValues?.callId),
+        report_type_id: 4,
         tabName: reportDraft.reportType === "daily" ? "Daily Report" : "Arrival",
         from: reportDraft.from,
         to: reportDraft.to,

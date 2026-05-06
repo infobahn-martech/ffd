@@ -10,7 +10,7 @@ const preArrivalService = {
     }),
 
   sendPreArrivalReport: (payload) =>
-    Gateway.post("pre_arrival/send_prearrival_report", payload),
+    Gateway.post("arrival/send_report", payload),
 };
 
 export default preArrivalService;

@@ -1,6 +1,7 @@
 import { useState, useCallback, useRef, useEffect, useMemo } from "react";
 import PropTypes from "prop-types";
 import { notify } from "../../../../../components/Toaster";
+import Gateway from "../../../../../gateway/gateway";
 import callFileService from "../../../../../services/callFileService";
 import stageTimeMappingService from "../../../../../services/stageTimeMappingService";
 import preArrivalInfoService from "../../../../../services/preArrivalInfoService";
@@ -114,9 +115,21 @@ const getDummyValues = () => ({
 });
 
 async function sendOperationReportRequest(payload) {
-  // Replace with a real API call (e.g. POST report email) when the backend is available.
-  void payload;
-  await new Promise((r) => setTimeout(r, 600));
+  const reportTypeMap = {
+    "Pre Arrival": 2,
+    Arrival: 4,
+    "Daily Report": 4,
+  };
+  const reportTypeId = payload?.report_type_id ?? reportTypeMap[payload?.tabName];
+  return Gateway.post("arrival/send_report", {
+    call_id: payload?.call_id,
+    report_type_id: reportTypeId,
+    from_email: payload?.from ?? "",
+    to_email: payload?.to ?? "",
+    cc_emails: payload?.cc ?? "",
+    subject: payload?.subject ?? "",
+    body: payload?.body ?? "",
+  });
 }
 
 function Operation({ card, formValues, handleChange, ownerInitial, isDAModule = false, isAddMode = false }) {
