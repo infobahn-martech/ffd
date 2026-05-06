@@ -412,6 +412,9 @@ function Operation({ card, formValues, handleChange, ownerInitial, isDAModule = 
               isViewOnly={isViewOnly}
               arrivalStageFields={arrivalStageFields}
               postArrivalStageFields={postArrivalStageFields}
+              callId={currentCallId}
+              portId={preArrivalPortId}
+              callTypeId={preArrivalCallTypeId}
             />
           )}
           {activeOperationTab === OPERATION_TABS.DEPARTURE && (

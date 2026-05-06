@@ -21,6 +21,9 @@ const deleteReportTemplate = (template_id) =>
 const getTemplateByPortCallType = (payload) =>
   Gateway.post('/report_template/get_template_by_port_calltype', payload);
 
+const getArrivalTemplateByPortCallType = (payload) =>
+  Gateway.post('/arrival/get_template_by_port_calltype', payload);
+
 export default {
   getReportTemplates,
   getReportTypes,
@@ -29,4 +32,5 @@ export default {
   updateReportTemplate,
   deleteReportTemplate,
   getTemplateByPortCallType,
+  getArrivalTemplateByPortCallType,
 };
