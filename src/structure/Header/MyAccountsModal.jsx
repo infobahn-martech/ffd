@@ -29,6 +29,7 @@ function mapApiUserToForm(data) {
     phone: (data?.phone && String(data.phone).replace(/\D/g, '')) || '',
     email: data?.email || '',
     image: resolvedImage,
+    avatarFile: null,
   };
 }
 
@@ -45,6 +46,7 @@ function MyAccountsModal({ show, onClose }) {
     phone: '',
     email: '',
     image: null,
+    avatarFile: null,
   });
 
   const applyFormFromUser = useCallback((userPayload) => {
@@ -120,7 +122,8 @@ function MyAccountsModal({ show, onClose }) {
       reader.onloadend = () => {
         setFormData((prev) => ({
           ...prev,
-          image: reader.result,
+          image: reader.result, // preview
+          avatarFile: file, // binary file to send
         }));
         setErrors((prev) => {
           if (!prev.avatar) return prev;
@@ -163,19 +166,13 @@ function MyAccountsModal({ show, onClose }) {
   const handleSave = async () => {
     if (!validate()) return;
 
-    const payload = {
-      name: formData.firstName.trim(),
-      email: formData.email.trim(),
-      phone: (formData.phone || '').replace(/\D/g, ''),
-      avatar: formData.image,
-    };
-
     const formDataToSend = new FormData();
-    Object.entries(payload).forEach(([key, value]) => {
-      if (value !== undefined && value !== null) {
-        formDataToSend.append(key, value);
-      }
-    });
+    formDataToSend.append('name', formData.firstName.trim());
+    formDataToSend.append('email', formData.email.trim());
+    formDataToSend.append('phone', (formData.phone || '').replace(/\D/g, ''));
+    if (formData.avatarFile) {
+      formDataToSend.append('avatar', formData.avatarFile);
+    }
 
     try {
       setProfileEditLoader(true);
