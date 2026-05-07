@@ -12,6 +12,7 @@ const INVOICE_TYPES = [
   "Agency Fees",
 ];
 
+
 const InvoiceItem = ({ label, document, onDownload, onDelete, cardColor }) => {
   const hasDocument = document && (document.fileName || document.fileUrl);
 

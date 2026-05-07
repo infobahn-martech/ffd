@@ -31,6 +31,7 @@ import { notify } from "../../../../../components/Toaster";
 import SearchableSelect, { deriveSearchPlaceholder } from "../../../../../components/form/SearchableSelect";
 import DateTimePickerField from "../../components/DateTimePickerField";
 import { extractTextFromFile, extractAppointmentDetailsWithGemini } from "../../../../../helpers/appointmentAiExtractor";
+import * as MsgReaderModule from "msgreader";
 
 const splitDateTime = (value) => {
   if (!value) return { date: "", time: "" };
@@ -2313,6 +2314,38 @@ function General({
     [callTypeOptions, fillIfEmpty, findMatchingOption, portSelectOptions, vesselNameOptions]
   );
 
+  const isMsgFile = (file) => file?.name?.toLowerCase()?.endsWith(".msg");
+
+  const extractMsgAppointmentText = async (file) => {
+    const arrayBuffer = await file.arrayBuffer();
+    const MsgReaderConstructor =
+      MsgReaderModule.default ||
+      MsgReaderModule.MsgReader ||
+      MsgReaderModule;
+
+    if (typeof MsgReaderConstructor !== "function") {
+      console.error("[MSG Reader Module]", MsgReaderModule);
+      throw new Error("MSG reader constructor not found");
+    }
+
+    const msgReader = new MsgReaderConstructor(arrayBuffer);
+    const msgInfo = msgReader.getFileData();
+
+    const fromName = msgInfo.senderName || "";
+    const fromEmail = msgInfo.senderEmail || "";
+    const sentDateTime = msgInfo.messageDeliveryTime || msgInfo.clientSubmitTime || "";
+    const subject = msgInfo.subject || "";
+    const body = msgInfo.body || msgInfo.bodyHTML || "";
+
+    return `
+From: ${fromName} <${fromEmail}>
+Sent: ${sentDateTime}
+Subject: ${subject}
+
+${body}
+`;
+  };
+
   // Handle document upload
   const handleAppointmentDocumentAdd = async (file) => {
     setAppointmentDocuments((prev) => [...prev, file]);
@@ -2326,7 +2359,10 @@ function General({
     try {
       setIsAiExtractingAppointment(true);
       setAiExtractionError("");
-      const extractedText = await extractTextFromFile(file);
+      const extractedText = isMsgFile(file)
+        ? await extractMsgAppointmentText(file)
+        : await extractTextFromFile(file);
+      console.log("[Appointment Upload Text]", extractedText);
       if (!firstNonEmptyString(extractedText)) {
         notify("File uploaded, but no matching appointment details found.", "warning");
         return;
