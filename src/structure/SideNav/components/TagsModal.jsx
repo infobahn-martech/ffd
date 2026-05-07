@@ -10,7 +10,7 @@ const tagsData = [
     id: 1,
     label: 'HAHA',
     icon: { color: '#FCD34D', symbol: 'usb' }, // Yellow
-    availabilityLevel: 'On-demand',
+    availabilityLevel: 'On Demand',
     boards: ['Team B', 'Team A', 'Strategic Objectives'],
   },
   {
@@ -24,7 +24,7 @@ const tagsData = [
     id: 3,
     label: 'Waiting on us',
     icon: { color: '#EF4444', symbol: 'hourglass' }, // Red
-    availabilityLevel: 'Auto',
+    availabilityLevel: 'Global',
     boards: ['Team B', 'Team A', 'Strategic Objectives'],
   },
 ];

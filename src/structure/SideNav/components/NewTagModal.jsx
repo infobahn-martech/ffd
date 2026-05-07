@@ -26,6 +26,9 @@ export const WORKSPACE_BOARD_OPTIONS = [
 
 const COLOR_PICKER_PORTAL_Z = 10800;
 
+/** Tag availability values — keep in sync with TagsModal / API */
+export const TAG_AVAILABILITY_OPTIONS = ['On Demand', 'Auto', 'Global'];
+
 function sortSelectedBoards(selected, sourceWorkspaces) {
   const order = new Map();
   let i = 0;
@@ -40,6 +43,7 @@ function sortSelectedBoards(selected, sourceWorkspaces) {
 const NewTagModal = ({ show, onClose, onSave, workspaceBoardOptions = WORKSPACE_BOARD_OPTIONS }) => {
   const [selectedColor, setSelectedColor] = useState('#ffffff');
   const [label, setLabel] = useState('');
+  const [availability, setAvailability] = useState('On Demand');
   const [selectedBoards, setSelectedBoards] = useState([]);
   const [isColorPickerOpen, setIsColorPickerOpen] = useState(false);
   const [colorPickerPlacement, setColorPickerPlacement] = useState({ top: 0, left: 0 });
@@ -100,6 +104,7 @@ const NewTagModal = ({ show, onClose, onSave, workspaceBoardOptions = WORKSPACE_
   const resetForm = useCallback(() => {
     setSelectedColor('#ffffff');
     setLabel('');
+    setAvailability('On Demand');
     setSelectedBoards([]);
     setIsColorPickerOpen(false);
     setIsBoardSelectorOpen(false);
@@ -109,11 +114,13 @@ const NewTagModal = ({ show, onClose, onSave, workspaceBoardOptions = WORKSPACE_
   const handleSave = () => {
     const trimmed = label.trim();
     if (!trimmed) return;
+    if (!TAG_AVAILABILITY_OPTIONS.includes(availability)) return;
     const boardsPayload = selectedBoards.map((b) => ({ board_id: b.board_id, board_name: b.board_name }));
     if (onSave) {
       onSave({
         color: normalizeHexColor(selectedColor),
         label: trimmed,
+        availability,
         boards: boardsPayload,
       });
     }
@@ -170,6 +177,8 @@ const NewTagModal = ({ show, onClose, onSave, workspaceBoardOptions = WORKSPACE_
 
   const previewHex = normalizeHexColor(selectedColor);
 
+  const canSave = Boolean(label.trim()) && TAG_AVAILABILITY_OPTIONS.includes(availability);
+
   return (
     <Modal
       show={show}
@@ -204,18 +213,40 @@ const NewTagModal = ({ show, onClose, onSave, workspaceBoardOptions = WORKSPACE_
               </div>
             </div>
 
-            <div className="new-blocker-field new-blocker-field-full">
-              <label className="new-blocker-label" htmlFor="new-tag-label-input">
-                Label
-              </label>
-              <input
-                id="new-tag-label-input"
-                type="text"
-                className="new-blocker-input"
-                placeholder="Enter tag label"
-                value={label}
-                onChange={(e) => setLabel(e.target.value)}
-              />
+            <div className="new-blocker-field-cluster">
+              <div className="new-blocker-tag-fields-inline">
+                <div className="new-blocker-field new-blocker-field-label-with-availability">
+                  <label className="new-blocker-label" htmlFor="new-tag-label-input">
+                    Label
+                  </label>
+                  <input
+                    id="new-tag-label-input"
+                    type="text"
+                    className="new-blocker-input"
+                    placeholder="Enter tag label"
+                    value={label}
+                    onChange={(e) => setLabel(e.target.value)}
+                  />
+                </div>
+                <div className="new-blocker-field new-blocker-field-availability">
+                  <label className="new-blocker-label" htmlFor="new-tag-availability-select">
+                    Availability
+                  </label>
+                  <select
+                    id="new-tag-availability-select"
+                    className="new-blocker-select"
+                    value={availability}
+                    onChange={(e) => setAvailability(e.target.value)}
+                    aria-required
+                  >
+                    {TAG_AVAILABILITY_OPTIONS.map((opt) => (
+                      <option key={opt} value={opt}>
+                        {opt}
+                      </option>
+                    ))}
+                  </select>
+                </div>
+              </div>
             </div>
           </div>
 
@@ -306,7 +337,7 @@ const NewTagModal = ({ show, onClose, onSave, workspaceBoardOptions = WORKSPACE_
           type="button"
           className="new-blocker-save-btn"
           onClick={handleSave}
-          disabled={!label.trim()}
+          disabled={!canSave}
         >
           Save
         </button>
