@@ -1410,6 +1410,7 @@ function General({
   ]);
   const [vesselOptionsLoading, setVesselOptionsLoading] = useState(false);
   const [appointmentDocuments, setAppointmentDocuments] = useState([]);
+  const [isAppointmentAiEnabled, setIsAppointmentAiEnabled] = useState(false);
   const [isAiExtractingAppointment, setIsAiExtractingAppointment] = useState(false);
   const [aiExtractionError, setAiExtractionError] = useState("");
   const [previewMessageText, setPreviewMessageText] = useState("");
@@ -2247,13 +2248,14 @@ function General({
 
   // Handle document upload
   const handleDocumentAdd = async (file) => {
-    setAppointmentDocuments([...appointmentDocuments, file]);
+    setAppointmentDocuments((prev) => [...prev, file]);
     setFieldErrors((prev) => {
       if (!prev.appointmentEmailDocuments) return prev;
       const next = { ...prev };
       delete next.appointmentEmailDocuments;
       return next;
     });
+    if (!isAppointmentAiEnabled) return;
     await applyAppointmentExtraction(file);
   };
 
@@ -3447,7 +3449,23 @@ function General({
                               <div className="form-group">
                                 <h3 className="form-group-title">Appointment Details</h3>
                                 {shouldShowApiField("appointment_email") && (
-                                  <FormField label="Appointment Email *" hasError={isAddMode && Boolean(fieldErrors.appointmentEmailDocuments)}>
+                                  <FormField
+                                    label={(
+                                      <div className="appointment-email-label-row">
+                                        <span>Appointment Email *</span>
+                                        <button
+                                          type="button"
+                                          className={`appointment-ai-toggle ${isAppointmentAiEnabled ? "active" : ""}`}
+                                          onClick={() => setIsAppointmentAiEnabled((prev) => !prev)}
+                                          disabled={isDisabled}
+                                        >
+                                          <span className="appointment-ai-toggle-dot" />
+                                          AI
+                                        </button>
+                                      </div>
+                                    )}
+                                    hasError={isAddMode && Boolean(fieldErrors.appointmentEmailDocuments)}
+                                  >
                                     <DocumentUpload
                                       attachments={appointmentDocuments}
                                       onAdd={handleDocumentAdd}

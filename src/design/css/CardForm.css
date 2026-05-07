@@ -461,6 +461,61 @@
   margin-bottom: 8px;
 }
 
+.appointment-email-label-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  width: 100%;
+}
+
+.appointment-ai-toggle {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  border: 1px solid #d1d5db;
+  background: #f3f4f6;
+  color: #4b5563;
+  border-radius: 999px;
+  padding: 3px 10px;
+  height: 26px;
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.03em;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.appointment-ai-toggle:hover:not(:disabled) {
+  border-color: #b9bfca;
+  background: #ebeef3;
+}
+
+.appointment-ai-toggle:disabled {
+  opacity: 0.65;
+  cursor: not-allowed;
+}
+
+.appointment-ai-toggle.active {
+  border-color: #4f46e5;
+  background: linear-gradient(135deg, #4f46e5 0%, #7c3aed 100%);
+  color: #ffffff;
+  box-shadow: 0 4px 12px rgba(79, 70, 229, 0.25);
+}
+
+.appointment-ai-toggle-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: #9ca3af;
+  transition: background 0.2s ease, box-shadow 0.2s ease;
+}
+
+.appointment-ai-toggle.active .appointment-ai-toggle-dot {
+  background: #ffffff;
+  box-shadow: 0 0 0 3px rgba(255, 255, 255, 0.24);
+}
+
 .cf-input {
   background: #ffffff;
   border-radius: 8px;
