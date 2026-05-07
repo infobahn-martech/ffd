@@ -248,8 +248,30 @@ function Arrival({
   const handleSaveAndSendReport = async () => {
     setIsSavingArrival(true);
     try {
+      const resolvedCallId = resolveFormId(callId, formValues?.call_id, formValues?.callId);
+      const resolvedPortId = resolveFormId(portId, formValues?.port_id, formValues?.portId);
+      const resolvedCallTypeId = resolveFormId(callTypeId, formValues?.call_type_id, formValues?.typeOfCall, formValues?.callTypeId);
+
+      if (reportDraft.reportType === "daily") {
+        if (!resolvedCallId || !resolvedPortId || !resolvedCallTypeId) {
+          notify("Call ID, Port ID and Call Type ID are required to send Daily report.", "error");
+          return;
+        }
+
+        const timeObjects = buildTimeObjectsPayload([...arrivalStageFields, ...postArrivalStageFields], formValues);
+        await arrivalService.getDailyReport({
+          call_id: resolvedCallId,
+          port_id: resolvedPortId,
+          call_type_id: resolvedCallTypeId,
+          report_type_id: 3,
+          time_objects: timeObjects,
+        });
+        notify("Daily report sent successfully.", "success");
+        return;
+      }
+
       await onSendReport?.({
-        call_id: resolveFormId(callId, formValues?.call_id, formValues?.callId),
+        call_id: resolvedCallId,
         report_type_id: 4,
         tabName: reportDraft.reportType === "daily" ? "Daily Report" : "Arrival",
         from: reportDraft.from,
