@@ -6,6 +6,7 @@ import "react-tooltip/dist/react-tooltip.css";
 import { FiDownload } from "react-icons/fi";
 import { YesIcon, NoIcon } from "./Husbandry.components";
 import CustomModal from "../../../../../../components/CustomModal";
+import useCrewReducer from "../../../../../../store/CrewReducer";
 import "../../../../../../design/scss/operations.scss";
 
 // Status colors
@@ -280,6 +281,7 @@ const generateCrewFromExcel = (excelData) => {
 
 const CrewContent = ({ formValues, handleChange, cardColor, onNavigateToTab, launchHireOnly = false }) => {
   const crewList = formValues.crewList || [];
+  const saveCrewData = useCrewReducer((state) => state.saveCrewData);
   const [selectedCrewIds, setSelectedCrewIds] = useState([]);
   const [showActionDropdown, setShowActionDropdown] = useState(false);
 
@@ -601,7 +603,7 @@ const CrewContent = ({ formValues, handleChange, cardColor, onNavigateToTab, lau
   };
 
   // Handle use preview data - generates crew data from the editable table
-  const handleUsePreviewData = () => {
+  const handleUsePreviewData = async () => {
     // Filter out empty rows (rows where name is empty)
     const filledRows = previewTableData.filter(row => row.name && row.name.trim() !== "");
 
@@ -653,6 +655,46 @@ const CrewContent = ({ formValues, handleChange, cardColor, onNavigateToTab, lau
       passport: ["done", "inProgress", "rejected"][Math.floor(Math.random() * 3)],
       iqama: ["done", "inProgress", "rejected"][Math.floor(Math.random() * 3)],
     }));
+
+    const callIdRaw = formValues?.call_id ?? formValues?.callId;
+    const vesselIdRaw = formValues?.vessel_id ?? formValues?.vesselId ?? formValues?.vesselName;
+    const callId = Number(callIdRaw);
+    const vesselId = Number(vesselIdRaw);
+
+    if (!callId || !vesselId) {
+      alert("Unable to save crew: missing call_id or vessel_id.");
+      return;
+    }
+
+    const saveCrewPayload = {
+      call_id: callId,
+      vessel_id: vesselId,
+      crew: crewData.map((item) => ({
+        crew_name: item.crew_name,
+        date_of_birth: item.date_of_birth,
+        rank: item.rank,
+        nationality: /^\d+$/.test(String(item.nationality).trim())
+          ? Number(String(item.nationality).trim())
+          : item.nationality,
+        passport_no: item.passport_no,
+        passport_expiry: item.passport_expiry,
+        visa_no: item.visa_no,
+        visa_expiry: item.visa_expiry,
+        iqama_no: item.iqama_no,
+        iqama_expiry: item.iqama_expiry,
+        movement_type: item.movement_type,
+        sb_no: item.sb_no,
+        border_no: item.border_no,
+      })),
+    };
+
+    try {
+      await saveCrewData({ payload: saveCrewPayload });
+    } catch (error) {
+      console.error("Failed to save crew:", error);
+      alert("Failed to save crew data. Please try again.");
+      return;
+    }
 
     // Set the crew list
     const syntheticEvent = { target: { value: crewData } };

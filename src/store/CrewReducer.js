@@ -28,6 +28,25 @@ const useCrewReducer = create((set) => ({
             error(err?.response?.data?.message ?? err.message);
         }
     },
+
+    saveCrewData: async ({ payload, cb } = {}) => {
+        try {
+            set({ isBeingUpdated: true, errorMessage: '' });
+            const { data } = await crewService.saveCrew(payload || {});
+            set({ isBeingUpdated: false });
+            cb && cb(data);
+            return data;
+        } catch (err) {
+            const { error } = useAlertReducer.getState();
+            const message = err?.response?.data?.message ?? err.message;
+            set({
+                errorMessage: message,
+                isBeingUpdated: false,
+            });
+            error(message);
+            throw err;
+        }
+    },
 }));
 
 export default useCrewReducer;
