@@ -780,7 +780,20 @@ function SideNav({ isMobileMenuOpen, onCloseMobileMenu, isVendorPortal = false }
       }
 
       if (item.label === 'Outlook') {
-        window.open('https://outlook.office.com/mail/', '_blank', 'noopener,noreferrer');
+        // Open Outlook Classic desktop app (Windows protocol)
+        const fallbackToOutlookWeb = setTimeout(() => {
+          // Fallback to Outlook Web if desktop protocol is unavailable
+          window.open('https://outlook.office.com/mail/', '_blank', 'noopener,noreferrer');
+        }, 1200);
+
+        window.location.href = 'ms-outlook://';
+
+        // If protocol launch succeeds, page visibility usually changes; cancel web fallback
+        setTimeout(() => {
+          if (document.visibilityState === 'hidden') {
+            clearTimeout(fallbackToOutlookWeb);
+          }
+        }, 300);
         return;
       }
 
