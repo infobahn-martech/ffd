@@ -2133,22 +2133,110 @@ function General({
     const clean = String(value).replace(/\s+/g, " ").trim();
     const d = new Date(clean);
     if (Number.isNaN(d.getTime())) return { date: "", time: "" };
+    const hasExplicitTime = /\b\d{1,2}:\d{2}(?::\d{2})?\s*(?:AM|PM)?\b/i.test(clean);
 
     const yyyy = d.getFullYear();
     const mm = String(d.getMonth() + 1).padStart(2, "0");
     const dd = String(d.getDate()).padStart(2, "0");
-    const hh = String(d.getHours()).padStart(2, "0");
-    const min = String(d.getMinutes()).padStart(2, "0");
+    const hh = hasExplicitTime ? String(d.getHours()).padStart(2, "0") : "";
+    const min = hasExplicitTime ? String(d.getMinutes()).padStart(2, "0") : "";
 
     return {
       date: `${yyyy}-${mm}-${dd}`,
-      time: `${hh}:${min}`,
+      time: hh && min ? `${hh}:${min}` : "",
     };
   };
 
   const extractFirstEmail = (value = "") => {
-    const match = String(value).match(/[A-Z0-9._%+-]+@[A-Z0-9.-]+\.[A-Z]{2,}/i);
-    return match ? match[0].trim() : "";
+    const source = String(value || "");
+    const normalized = source.replace(/mailto:/gi, " ");
+    const match = normalized.match(/[A-Z0-9._%+-]+@[A-Z0-9.-]+\.[A-Z]{2,}/i);
+    return match ? String(match[0] || "").replace(/[>),;:\s]+$/g, "").trim() : "";
+  };
+
+  const normalizeParsedDateToInputDate = (dateText = "") => {
+    const source = String(dateText || "").trim();
+    if (!source) return "";
+
+    const monthMap = {
+      jan: "01",
+      january: "01",
+      feb: "02",
+      february: "02",
+      mar: "03",
+      march: "03",
+      apr: "04",
+      april: "04",
+      may: "05",
+      jun: "06",
+      june: "06",
+      jul: "07",
+      july: "07",
+      aug: "08",
+      august: "08",
+      sep: "09",
+      sept: "09",
+      september: "09",
+      oct: "10",
+      october: "10",
+      nov: "11",
+      november: "11",
+      dec: "12",
+      december: "12",
+    };
+
+    const isoMatch = source.match(/\b(\d{4})-(\d{2})-(\d{2})\b/);
+    if (isoMatch) return `${isoMatch[1]}-${isoMatch[2]}-${isoMatch[3]}`;
+
+    const slashMatch = source.match(/\b(\d{1,2})\/(\d{1,2})\/(\d{4})\b/);
+    if (slashMatch) {
+      const dd = String(slashMatch[1]).padStart(2, "0");
+      const mm = String(slashMatch[2]).padStart(2, "0");
+      const yyyy = String(slashMatch[3]);
+      return `${yyyy}-${mm}-${dd}`;
+    }
+
+    const namedMonthMatch = source.match(
+      /\b(\d{1,2})(?:st|nd|rd|th)?\s+([A-Za-z]{3,9})\s+(\d{4})\b/i
+    );
+    if (namedMonthMatch) {
+      const dd = String(namedMonthMatch[1]).padStart(2, "0");
+      const monthKey = String(namedMonthMatch[2] || "").toLowerCase();
+      const mm = monthMap[monthKey];
+      const yyyy = String(namedMonthMatch[3]);
+      if (mm) return `${yyyy}-${mm}-${dd}`;
+    }
+
+    const fallback = new Date(source);
+    if (!Number.isNaN(fallback.getTime())) {
+      const yyyy = fallback.getFullYear();
+      const mm = String(fallback.getMonth() + 1).padStart(2, "0");
+      const dd = String(fallback.getDate()).padStart(2, "0");
+      return `${yyyy}-${mm}-${dd}`;
+    }
+
+    return "";
+  };
+
+  const extractBodyDate = (text = "") => {
+    const source = String(text || "");
+    if (!source) return "";
+
+    const patterns = [
+      /\beffective\s+from\s+(\d{1,2}(?:st|nd|rd|th)?\s+[A-Za-z]{3,9}\s+\d{4})\b/i,
+      /\beffective\s+from\s+(\d{1,2}\/\d{1,2}\/\d{4})\b/i,
+      /\beffective\s+from\s+(\d{4}-\d{2}-\d{2})\b/i,
+      /\b(\d{1,2}(?:st|nd|rd|th)?\s+[A-Za-z]{3,9}\s+\d{4})\b/i,
+      /\b(\d{1,2}\/\d{1,2}\/\d{4})\b/i,
+      /\b(\d{4}-\d{2}-\d{2})\b/i,
+    ];
+
+    for (const pattern of patterns) {
+      const match = source.match(pattern);
+      if (match?.[1]) return String(match[1]).trim();
+    }
+
+    return "";
   };
 
   const extractEmailHeaderDetails = (text = "") => {
@@ -2159,6 +2247,7 @@ function General({
       sentDateTime: "",
       portText: "",
       serviceText: "",
+      fullText: source,
     };
 
     const fromMatch = source.match(/From:\s*([^\n<]+?)\s*<([^>]+)>/i);
@@ -2277,11 +2366,30 @@ function General({
   const applyNonAiAppointmentFields = (extracted) => {
     let filledCount = 0;
 
-    const { date, time } = parseEmailDateToParts(extracted?.sentDateTime);
+    let { date, time } = parseEmailDateToParts(extracted?.sentDateTime);
+    if (!date) {
+      const bodyDateText = extractBodyDate(extracted?.fullText);
+      const normalizedBodyDate = normalizeParsedDateToInputDate(bodyDateText);
+      if (normalizedBodyDate) {
+        date = normalizedBodyDate;
+        time = "";
+      }
+      console.log("[Appointment Non-AI Parse] body date", {
+        bodyDateText,
+        normalizedBodyDate,
+      });
+    }
+    const fallbackEmail = extractFirstEmail(extracted?.fullText);
+    const resolvedRequestorEmail = firstNonEmptyString(extracted?.fromEmail) || fallbackEmail;
+    console.log("[Appointment Non-AI Parse] resolved sender", {
+      fromEmail: extracted?.fromEmail,
+      fallbackEmail,
+      resolvedRequestorEmail,
+    });
     if (setFieldIfEmpty("appointmentReceivedDate", date)) filledCount += 1;
     if (setFieldIfEmpty("appointmentReceivedTime", time)) filledCount += 1;
     if (setFieldIfEmpty("serviceRequestorName", extracted?.fromName)) filledCount += 1;
-    if (setFieldIfEmpty("serviceRequestorEmail", extracted?.fromEmail)) filledCount += 1;
+    if (setFieldIfEmpty("serviceRequestorEmail", resolvedRequestorEmail)) filledCount += 1;
 
     const matchedPort = findMatchingOption(portSelectOptions, extracted?.portText);
     if (matchedPort && setFieldIfEmpty("port", String(matchedPort.value ?? ""))) {
@@ -2350,7 +2458,7 @@ function General({
 
     const msgReader = new MsgReaderConstructor(arrayBuffer);
     const msgInfo = msgReader.getFileData();
-    console.log("[MSG raw data]", msgInfo);
+    console.log("[Appointment Non-AI Parse] MSG raw data", msgInfo);
 
     const body = msgInfo.body || msgInfo.bodyHTML || "";
     const subject = msgInfo.subject || "";
@@ -2363,6 +2471,7 @@ function General({
       msgInfo.fromEmail,
       msgInfo.displayTo,
       body,
+      JSON.stringify(msgInfo || {}),
     ]
       .filter(Boolean)
       .join(" ");
@@ -2400,7 +2509,7 @@ ${body}
       const extractedText = isMsgFile(file)
         ? await extractMsgAppointmentText(file)
         : await extractTextFromFile(file);
-      console.log("[Appointment Upload Text]", extractedText);
+      console.log("[Appointment Non-AI Parse] upload text", extractedText);
       if (!firstNonEmptyString(extractedText)) {
         notify("File uploaded, but no matching appointment details found.", "warning");
         return;
@@ -2412,7 +2521,7 @@ ${body}
       }
 
       const extracted = extractEmailHeaderDetails(extractedText);
-      console.log("[Appointment Non-AI extracted]", extracted);
+      console.log("[Appointment Non-AI Parse] extracted", extracted);
       const filledCount = applyNonAiAppointmentFields(extracted);
       if (filledCount > 0) {
         notify("Appointment details auto-filled from uploaded email.", "success");
