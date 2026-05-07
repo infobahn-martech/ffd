@@ -36,6 +36,7 @@ function MyAccountsModal({ show, onClose }) {
   const [profileEditLoader, setProfileEditLoader] = useState(false);
 
   const baselineRef = useRef(null);
+  const [isImageBroken, setIsImageBroken] = useState(false);
   const [fetchLoading, setFetchLoading] = useState(false);
   const [fetchError, setFetchError] = useState('');
   const [isEditing, setIsEditing] = useState(false);
@@ -51,6 +52,7 @@ function MyAccountsModal({ show, onClose }) {
   const applyFormFromUser = useCallback((userPayload) => {
     const next = mapApiUserToForm(userPayload);
     setFormData(next);
+    setIsImageBroken(false);
     baselineRef.current = next;
   }, []);
 
@@ -124,6 +126,7 @@ function MyAccountsModal({ show, onClose }) {
           image: reader.result, // preview
           avatarFile: file, // binary file to send
         }));
+        setIsImageBroken(false);
         setErrors((prev) => {
           if (!prev.avatar) return prev;
           const next = { ...prev };
@@ -236,8 +239,12 @@ function MyAccountsModal({ show, onClose }) {
               <div className="my-accounts-avatar-col">
                 <div className="my-accounts-avatar">
                   <div className="profile-img" style={{ position: 'relative' }}>
-                    {formData.image ? (
-                      <img src={formData.image} alt="" />
+                    {formData.image && !isImageBroken ? (
+                      <img
+                        src={formData.image}
+                        alt="Profile"
+                        onError={() => setIsImageBroken(true)}
+                      />
                     ) : (
                       <div className="my-accounts-initial">{getUserInitial()}</div>
                     )}
