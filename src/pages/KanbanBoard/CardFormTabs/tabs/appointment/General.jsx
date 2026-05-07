@@ -2146,6 +2146,11 @@ function General({
     };
   };
 
+  const extractFirstEmail = (value = "") => {
+    const match = String(value).match(/[A-Z0-9._%+-]+@[A-Z0-9.-]+\.[A-Z]{2,}/i);
+    return match ? match[0].trim() : "";
+  };
+
   const extractEmailHeaderDetails = (text = "") => {
     const source = String(text || "");
     const extracted = {
@@ -2162,7 +2167,7 @@ function General({
       extracted.fromEmail = fromMatch[2].trim();
     } else {
       const fromLineMatch = source.match(/From:\s*([^\n]+)/i);
-      if (fromLineMatch) extracted.fromName = fromLineMatch[1].trim();
+      if (fromLineMatch) extracted.fromName = fromLineMatch[1].replace(/\s*<\s*>$/, "").trim();
     }
 
     if (!extracted.fromName || !extracted.fromEmail) {
@@ -2173,7 +2178,22 @@ function General({
       }
     }
 
-    const sentMatch = source.match(/Sent:\s*([^\n]+)/i);
+    if (!extracted.fromEmail) {
+      const email = extractFirstEmail(source);
+      if (email) extracted.fromEmail = email;
+    }
+
+    if (!extracted.fromName) {
+      const nameEmailMatch = source.match(/([^\n<>]+?)\s*<\s*([A-Z0-9._%+-]+@[A-Z0-9.-]+\.[A-Z]{2,})\s*>/i);
+      if (nameEmailMatch) {
+        extracted.fromName = nameEmailMatch[1].replace(/^From:\s*/i, "").trim();
+        extracted.fromEmail = nameEmailMatch[2].trim();
+      }
+    }
+
+    const sentMatch = source.match(
+      /Sent:\s*((?:Monday|Tuesday|Wednesday|Thursday|Friday|Saturday|Sunday),?\s+[A-Za-z]+\s+\d{1,2},\s+\d{4}\s+\d{1,2}:\d{2}\s*(?:AM|PM)?)/i
+    );
     if (sentMatch) {
       extracted.sentDateTime = sentMatch[1].trim();
     } else {
@@ -2330,12 +2350,30 @@ function General({
 
     const msgReader = new MsgReaderConstructor(arrayBuffer);
     const msgInfo = msgReader.getFileData();
+    console.log("[MSG raw data]", msgInfo);
 
-    const fromName = msgInfo.senderName || "";
-    const fromEmail = msgInfo.senderEmail || "";
-    const sentDateTime = msgInfo.messageDeliveryTime || msgInfo.clientSubmitTime || "";
-    const subject = msgInfo.subject || "";
     const body = msgInfo.body || msgInfo.bodyHTML || "";
+    const subject = msgInfo.subject || "";
+    const rawSenderFields = [
+      msgInfo.senderEmail,
+      msgInfo.senderEmailAddress,
+      msgInfo.senderSmtpAddress,
+      msgInfo.senderName,
+      msgInfo.from,
+      msgInfo.fromEmail,
+      msgInfo.displayTo,
+      body,
+    ]
+      .filter(Boolean)
+      .join(" ");
+    const fromEmail = extractFirstEmail(rawSenderFields);
+    const fromName = msgInfo.senderName || msgInfo.from || "";
+    const sentDateTime =
+      msgInfo.messageDeliveryTime ||
+      msgInfo.clientSubmitTime ||
+      msgInfo.creationTime ||
+      msgInfo.lastModificationTime ||
+      "";
 
     return `
 From: ${fromName} <${fromEmail}>
