@@ -7,6 +7,7 @@ import { FiDownload } from "react-icons/fi";
 import { YesIcon, NoIcon } from "./Husbandry.components";
 import CustomModal from "../../../../../../components/CustomModal";
 import useCrewReducer from "../../../../../../store/CrewReducer";
+import callFileService from "../../../../../../services/callFileService";
 import "../../../../../../design/scss/operations.scss";
 
 // Status colors
@@ -656,37 +657,53 @@ const CrewContent = ({ formValues, handleChange, cardColor, onNavigateToTab, lau
       iqama: ["done", "inProgress", "rejected"][Math.floor(Math.random() * 3)],
     }));
 
-    const callIdRaw = formValues?.call_id ?? formValues?.callId;
-    const vesselIdRaw = formValues?.vessel_id ?? formValues?.vesselId ?? formValues?.vesselName;
-    const callId = Number(callIdRaw);
-    const vesselId = Number(vesselIdRaw);
+    let resolvedCallId = Number(formValues?.call_id ?? formValues?.callId);
+    let resolvedVesselId = Number(formValues?.vessel_id ?? formValues?.vesselId);
 
-    if (!callId || !vesselId) {
+    if (!resolvedVesselId) {
+      try {
+        const lookupCallId = resolvedCallId || 1;
+        const { data: callDetailResponse } = await callFileService.getCallDetail(lookupCallId);
+        const callDetailData =
+          callDetailResponse?.data?.[0] ||
+          callDetailResponse?.data ||
+          callDetailResponse?.detail ||
+          callDetailResponse;
+
+        if (!resolvedCallId) {
+          resolvedCallId = Number(callDetailData?.call_id ?? callDetailData?.id);
+        }
+        resolvedVesselId = Number(callDetailData?.vessel_id);
+      } catch (error) {
+        console.error("Failed to resolve call detail for crew save:", error);
+      }
+    }
+
+    if (!resolvedCallId || !resolvedVesselId) {
       alert("Unable to save crew: missing call_id or vessel_id.");
       return;
     }
 
     const saveCrewPayload = {
-      call_id: callId,
-      vessel_id: vesselId,
-      crew: crewData.map((item) => ({
-        crew_name: item.crew_name,
-        date_of_birth: item.date_of_birth,
-        rank: item.rank,
-        nationality: /^\d+$/.test(String(item.nationality).trim())
-          ? Number(String(item.nationality).trim())
-          : item.nationality,
-        passport_no: item.passport_no,
-        passport_expiry: item.passport_expiry,
-        visa_no: item.visa_no,
-        visa_expiry: item.visa_expiry,
-        iqama_no: item.iqama_no,
-        iqama_expiry: item.iqama_expiry,
-        movement_type: item.movement_type,
-        sb_no: item.sb_no,
-        border_no: item.border_no,
+      call_id: Number(resolvedCallId),
+      vessel_id: Number(resolvedVesselId),
+      crew: filledRows.map((row) => ({
+        crew_name: row.name || "",
+        date_of_birth: row.dateOfBirth || "",
+        rank: row.rank || "",
+        nationality: row.nationality || "",
+        passport_no: row.passportNumber || "",
+        passport_expiry: row.passportExpiry || "",
+        visa_no: row.visaNumber || row.ksaVisaNumber || "",
+        visa_expiry: row.visaExpiry || "",
+        iqama_no: row.iqama || "",
+        iqama_expiry: row.iqamaExpiry || "",
+        movement_type: row.movementType || row.signOnOff || "",
+        sb_no: row.sbNo || "",
+        border_no: row.borderNo || ""
       })),
     };
+    console.log("Saving crew payload:", saveCrewPayload);
 
     try {
       await saveCrewData({ payload: saveCrewPayload });
