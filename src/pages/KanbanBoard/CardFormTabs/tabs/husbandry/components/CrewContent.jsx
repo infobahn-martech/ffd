@@ -284,6 +284,7 @@ const CrewContent = ({ formValues, handleChange, cardColor, onNavigateToTab, lau
   const crewList = formValues.crewList || [];
   const saveCrewData = useCrewReducer((state) => state.saveCrewData);
   const getCrewTemplate = useCrewReducer((state) => state.getCrewTemplate);
+  const importCrewFile = useCrewReducer((state) => state.importCrewFile);
   const [selectedCrewIds, setSelectedCrewIds] = useState([]);
   const [showActionDropdown, setShowActionDropdown] = useState(false);
   const [isDownloadingTemplate, setIsDownloadingTemplate] = useState(false);
@@ -387,8 +388,38 @@ const CrewContent = ({ formValues, handleChange, cardColor, onNavigateToTab, lau
   }, [selectedCrewIds]);
 
   // Handle Excel file upload
-  const handleFileUpload = (file) => {
+  const handleFileUpload = async (file) => {
     if (!file) return;
+
+    try {
+      let resolvedCallId = Number(formValues?.call_id ?? formValues?.callId);
+      let resolvedVesselId = Number(formValues?.vessel_id ?? formValues?.vesselId);
+
+      if ((!resolvedCallId || !resolvedVesselId) && resolvedCallId) {
+        const { data: callDetailResponse } = await callFileService.getCallDetail(resolvedCallId);
+        const callDetailData =
+          callDetailResponse?.data?.[0] ||
+          callDetailResponse?.data ||
+          callDetailResponse?.detail ||
+          callDetailResponse;
+        if (!resolvedCallId) {
+          resolvedCallId = Number(callDetailData?.call_id ?? callDetailData?.id);
+        }
+        if (!resolvedVesselId) {
+          resolvedVesselId = Number(callDetailData?.vessel_id);
+        }
+      }
+
+      if (resolvedCallId && resolvedVesselId) {
+        const formData = new FormData();
+        formData.append("call_id", String(resolvedCallId));
+        formData.append("vessel_id", String(resolvedVesselId));
+        formData.append("file", file);
+        await importCrewFile({ formData });
+      }
+    } catch (error) {
+      console.error("Error importing crew file:", error);
+    }
 
     const reader = new FileReader();
     reader.onload = (e) => {
