@@ -69,6 +69,20 @@ const useCrewReducer = create((set) => ({
             throw err;
         }
     },
+
+    getCrewTemplate: async ({ payload, cb } = {}) => {
+        try {
+            const response = await crewService.getCrewTemplate(payload || {});
+            cb && cb(response?.data);
+            return response?.data;
+        } catch (err) {
+            const { error } = useAlertReducer.getState();
+            const message = err?.response?.data?.message ?? err.message;
+            set({ errorMessage: message });
+            error(message);
+            throw err;
+        }
+    },
 }));
 
 export default useCrewReducer;

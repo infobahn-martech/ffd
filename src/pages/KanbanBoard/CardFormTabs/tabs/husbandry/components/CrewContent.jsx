@@ -283,8 +283,10 @@ const generateCrewFromExcel = (excelData) => {
 const CrewContent = ({ formValues, handleChange, cardColor, onNavigateToTab, launchHireOnly = false }) => {
   const crewList = formValues.crewList || [];
   const saveCrewData = useCrewReducer((state) => state.saveCrewData);
+  const getCrewTemplate = useCrewReducer((state) => state.getCrewTemplate);
   const [selectedCrewIds, setSelectedCrewIds] = useState([]);
   const [showActionDropdown, setShowActionDropdown] = useState(false);
+  const [isDownloadingTemplate, setIsDownloadingTemplate] = useState(false);
 
   // Check if documents are already uploaded from formValues
   const hasCrewList = formValues.crewList && formValues.crewList.length > 0;
@@ -487,71 +489,69 @@ const CrewContent = ({ formValues, handleChange, cardColor, onNavigateToTab, lau
     return `rgba(${r}, ${g}, ${b}, ${alpha})`;
   };
 
-  // Handle download preview Excel
-  const handleDownloadPreview = () => {
-    // Create worksheet data with headers
-    const headers = ["Name", "Movement Type", "Rank", "Nationality", "Passport No", "Passport Expiry", "Visa No", "IQAMA No", "Sb No", "Border No"];
+  // Handle download preview template from backend
+  const handleDownloadPreview = async () => {
+    if (isDownloadingTemplate) return;
+    setIsDownloadingTemplate(true);
+    try {
+      let resolvedPortId = Number(formValues?.port_id ?? formValues?.portId);
+      let resolvedCallTypeId = Number(formValues?.call_type_id ?? formValues?.callTypeId);
+      const resolvedCallId = Number(formValues?.call_id ?? formValues?.callId);
 
-    // Create data rows from crew list or dummy data template
-    let dataRows = [];
+      if (!resolvedPortId || !resolvedCallTypeId) {
+        if (resolvedCallId) {
+          const { data: callDetailResponse } = await callFileService.getCallDetail(resolvedCallId);
+          const callDetailData =
+            callDetailResponse?.data?.[0] ||
+            callDetailResponse?.data ||
+            callDetailResponse?.detail ||
+            callDetailResponse;
 
-    if (displayCrewList.length > 0) {
-      // Use actual crew data
-      dataRows = displayCrewList.map((crew) => [
-        crew.crewName || crew.crew_name || "", // Name
-        crew.movementType || crew.movement_type || crew.signOnOff || "", // Movement Type
-        crew.rank || "", // Rank
-        crew.nationality || "", // Nationality
-        crew.passportNo || crew.passport_no || "", // Passport Number
-        crew.passportExpiry || crew.passport_expiry || "", // Passport Expiry
-        crew.visaNumber || crew.visa_no || crew.ksaVisaNumber || "", // Visa Number
-        crew.iqamaNumber || crew.iqama_no || "", // IQAMA
-        crew.sbNo || "", // Sb No
-        crew.borderNo || "", // Border No
-      ]);
-    } else {
-      // Add dummy data for preview
-      const dummyData = [
-        ["John Smith", "Sign On", "Captain", "British", "P1234567", "2025-12-31", "V123456789", "IQ123456", "SB1001", "BD1001"],
-        ["Ahmed Al-Mansouri", "Sign Off", "Chief Engineer", "Saudi", "P2345678", "2026-06-30", "V234567890", "IQ234567", "SB1002", "BD1002"],
-        ["Maria Garcia", "Sign On", "First Officer", "Spanish", "P3456789", "2025-09-15", "V345678901", "IQ345678", "SB1003", "BD1003"],
-        ["David Chen", "Sign Off", "Second Engineer", "Chinese", "P4567890", "2026-03-20", "V456789012", "IQ456789", "SB1004", "BD1004"],
-        ["Fatima Hassan", "Sign On", "Deck Officer", "Egyptian", "P5678901", "2025-11-10", "V567890123", "IQ567890", "SB1005", "BD1005"],
-      ];
-      dataRows = dummyData;
+          if (!resolvedPortId) {
+            resolvedPortId = Number(callDetailData?.port_id);
+          }
+          if (!resolvedCallTypeId) {
+            resolvedCallTypeId = Number(callDetailData?.call_type_id);
+          }
+        }
+      }
+
+      if (!resolvedPortId || !resolvedCallTypeId) {
+        alert("Unable to download template: missing port or call type.");
+        return;
+      }
+
+      const payload = {
+        port_id: resolvedPortId,
+        call_type_id: resolvedCallTypeId,
+      };
+      console.log("Crew template payload:", payload);
+
+      const response = await getCrewTemplate({ payload });
+      console.log("Crew template response:", response);
+
+      const responseData = response?.data || response;
+      const fileUrl = responseData?.file_url;
+      const fileName = responseData?.file_name;
+
+      if (!fileUrl) {
+        alert("Crew template file not available.");
+        return;
+      }
+
+      const link = document.createElement("a");
+      link.href = fileUrl;
+      link.download = fileName || "crew_template.xlsx";
+      link.target = "_blank";
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+    } catch (error) {
+      console.error("Failed to download crew template:", error);
+      alert("Crew template file not available.");
+    } finally {
+      setIsDownloadingTemplate(false);
     }
-
-    // Combine headers and data
-    const worksheetData = [headers, ...dataRows];
-
-    // Create workbook and worksheet
-    const ws = XLSX.utils.aoa_to_sheet(worksheetData);
-
-    // Set column widths
-    const colWidths = [
-      { wch: 20 }, // Name
-      { wch: 18 }, // Movement Type
-      { wch: 15 }, // Rank
-      { wch: 15 }, // Nationality
-      { wch: 16 }, // Passport Number
-      { wch: 18 }, // Passport Expiry
-      { wch: 16 }, // Visa Number
-      { wch: 15 }, // IQAMA
-      { wch: 12 }, // Sb No
-      { wch: 12 }, // Border No
-    ];
-    ws['!cols'] = colWidths;
-
-    // Create workbook
-    const wb = XLSX.utils.book_new();
-    XLSX.utils.book_append_sheet(wb, ws, "Crew Preview");
-
-    // Generate filename with timestamp
-    const timestamp = new Date().toISOString().split('T')[0].replace(/-/g, '');
-    const filename = `Crew_Preview_${timestamp}.xlsx`;
-
-    // Download the file
-    XLSX.writeFile(wb, filename);
   };
 
   const handleViewCrew = (id) => {
@@ -1184,9 +1184,10 @@ const CrewContent = ({ formValues, handleChange, cardColor, onNavigateToTab, lau
                   type="button"
                   onClick={handleDownloadPreview}
                   className="crew-upload-actions__download-btn"
+                  disabled={isDownloadingTemplate}
                 >
                   <FiDownload className="crew-upload-actions__download-btn-icon" size={18} strokeWidth={2.25} aria-hidden />
-                  <span>Download Preview</span>
+                  <span>{isDownloadingTemplate ? "Downloading..." : "Download Preview"}</span>
                 </button>
               </div>
             </div>
