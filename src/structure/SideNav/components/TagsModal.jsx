@@ -29,50 +29,14 @@ const tagsData = [
   },
 ];
 
-// Icon component for tags
-const TagIcon = ({ icon }) => {
-  const { color, symbol } = icon;
-
-  const renderSymbol = () => {
-    switch (symbol) {
-      case 'usb':
-        return (
-          <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
-            <rect x="4" y="2" width="8" height="12" rx="1" fill="currentColor" />
-            <rect x="6" y="4" width="4" height="2" fill="white" />
-            <rect x="6" y="10" width="4" height="2" fill="white" />
-          </svg>
-        );
-      case 'hourglass':
-        return (
-          <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
-            <path d="M4 2h8M4 14h8M4 2l2 4 2-4M4 14l2-4 2 4" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" />
-            <line x1="8" y1="6" x2="8" y2="10" stroke="currentColor" strokeWidth="1.5" />
-          </svg>
-        );
-      default:
-        return null;
-    }
-  };
-
-  return (
-    <div
-      style={{
-        width: '32px',
-        height: '32px',
-        borderRadius: '50%',
-        backgroundColor: color,
-        display: 'flex',
-        alignItems: 'center',
-        justifyContent: 'center',
-        color: '#000',
-        flexShrink: 0,
-      }}
-    >
-      {renderSymbol()}
-    </div>
-  );
-};
+/** Color swatch for tag row (no icon — matches new tag creation UX) */
+const TagColorSwatch = ({ color }) => (
+  <div
+    className="tags-modal-tag-color-swatch"
+    style={{ backgroundColor: color }}
+    aria-hidden
+  />
+);
 
 const TagsModal = ({ show, onClose }) => {
   const [filterValue, setFilterValue] = useState('');
@@ -214,7 +178,7 @@ const TagsModal = ({ show, onClose }) => {
         </div>
 
         {/* Table */}
-        <div className="blockers-table-wrapper">
+        <div className="blockers-table-wrapper blockers-table-wrapper--tags-min-body">
           <table className="blockers-table">
             <thead>
               <tr>
@@ -310,7 +274,7 @@ const TagsModal = ({ show, onClose }) => {
                       />
                     </td>
                     <td>
-                      <TagIcon icon={tag.icon} />
+                      <TagColorSwatch color={tag.icon.color} />
                     </td>
                     <td>
                       <span className="blockers-label-text">{tag.label}</span>

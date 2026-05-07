@@ -248,9 +248,6 @@ function Arrival({
   const handleSaveAndSendReport = async () => {
     setIsSavingArrival(true);
     try {
-      const saveResult = await saveArrivalData();
-      if (!saveResult) return;
-
       await onSendReport?.({
         call_id: resolveFormId(callId, formValues?.call_id, formValues?.callId),
         report_type_id: 4,
