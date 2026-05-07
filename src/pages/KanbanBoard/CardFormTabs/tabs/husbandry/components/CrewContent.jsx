@@ -406,8 +406,8 @@ const CrewContent = ({ formValues, handleChange, cardColor, onNavigateToTab, lau
         handleChange("crewUploadedFileName")(fileNameEvent);
         if (crewData.length > 0) {
           setIsFileUploaded(true);
-          setIsCrewListVisible(false);
-          handleOpenWizardFromCrewUpload(file.name);
+          setIsCrewListVisible(true);
+          setIsWizardOpen(false);
         } else {
           setIsFileUploaded(true);
           setIsCrewListVisible(true);
@@ -423,7 +423,8 @@ const CrewContent = ({ formValues, handleChange, cardColor, onNavigateToTab, lau
         // Save uploaded file name to formValues
         const fileNameEvent = { target: { value: file.name } };
         handleChange("crewUploadedFileName")(fileNameEvent);
-        handleOpenWizardFromCrewUpload(file.name);
+        setIsWizardOpen(false);
+        setIsCrewListVisible(true);
       }
     };
     reader.readAsArrayBuffer(file);
@@ -661,7 +662,8 @@ const CrewContent = ({ formValues, handleChange, cardColor, onNavigateToTab, lau
     const fileNameEvent = { target: { value: `Preview Data (${filledRows.length} crew member${filledRows.length > 1 ? 's' : ''})` } };
     handleChange("crewUploadedFileName")(fileNameEvent);
     setIsFileUploaded(true);
-    setIsCrewListVisible(false);
+    setIsCrewListVisible(true);
+    setIsWizardOpen(false);
     const stepsAfterCrewUpload = buildWizardSteps({
       includeIqama: includeIqamaInBulkFlow,
       uploadedFileName: `Preview Data (${filledRows.length} crew member${filledRows.length > 1 ? "s" : ""})`,
@@ -677,7 +679,6 @@ const CrewContent = ({ formValues, handleChange, cardColor, onNavigateToTab, lau
     });
     setSteps(stepsAfterCrewUpload);
     setActiveStepIndex(1);
-    setIsWizardOpen(true);
   };
 
   // Determine what to show based on upload progress
@@ -887,20 +888,10 @@ const CrewContent = ({ formValues, handleChange, cardColor, onNavigateToTab, lau
     }
   };
 
-  const handleOpenWizardFromCrewUpload = (fileName = uploadedFileName) => {
-    const initialSteps = buildWizardSteps({
-      includeIqama: includeIqamaInBulkFlow,
-      uploadedFileName: fileName,
-      formValues
-    }).map((step, index) => {
-      if (step.key === "crewList") return { ...step, status: WIZARD_STEP_STATUS.COMPLETED };
-      if (index === 1) return { ...step, status: WIZARD_STEP_STATUS.ACTIVE };
-      return { ...step, status: WIZARD_STEP_STATUS.LOCKED };
-    });
-    setSteps(initialSteps);
-    setActiveStepIndex(1);
-    setWizardWarning("");
-    setIsWizardOpen(true);
+  const handleOpenWizardFromCrewUpload = () => {
+    // Crew Bulk Upload is temporarily hidden; keep direct flow to crew list.
+    setIsWizardOpen(false);
+    setIsCrewListVisible(true);
   };
 
   const handleWizardClose = () => {
