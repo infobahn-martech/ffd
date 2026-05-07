@@ -190,11 +190,11 @@ const buildWizardSteps = ({ includeIqama, uploadedFileName, formValues }) => {
 };
 
 const createEmptyPreviewRows = () => ([
-  { no: "1", name: "", signOnOff: "", rank: "", nationality: "", passportNumber: "", passportExpiry: "", ksaVisaNumber: "", iqama: "", sbNo: "", borderNo: "" },
-  { no: "2", name: "", signOnOff: "", rank: "", nationality: "", passportNumber: "", passportExpiry: "", ksaVisaNumber: "", iqama: "", sbNo: "", borderNo: "" },
-  { no: "3", name: "", signOnOff: "", rank: "", nationality: "", passportNumber: "", passportExpiry: "", ksaVisaNumber: "", iqama: "", sbNo: "", borderNo: "" },
-  { no: "4", name: "", signOnOff: "", rank: "", nationality: "", passportNumber: "", passportExpiry: "", ksaVisaNumber: "", iqama: "", sbNo: "", borderNo: "" },
-  { no: "5", name: "", signOnOff: "", rank: "", nationality: "", passportNumber: "", passportExpiry: "", ksaVisaNumber: "", iqama: "", sbNo: "", borderNo: "" },
+  { name: "", movementType: "", rank: "", nationality: "", passportNumber: "", passportExpiry: "", visaNumber: "", visaExpiry: "", iqama: "", iqamaExpiry: "", sbNo: "", borderNo: "", dateOfBirth: "" },
+  { name: "", movementType: "", rank: "", nationality: "", passportNumber: "", passportExpiry: "", visaNumber: "", visaExpiry: "", iqama: "", iqamaExpiry: "", sbNo: "", borderNo: "", dateOfBirth: "" },
+  { name: "", movementType: "", rank: "", nationality: "", passportNumber: "", passportExpiry: "", visaNumber: "", visaExpiry: "", iqama: "", iqamaExpiry: "", sbNo: "", borderNo: "", dateOfBirth: "" },
+  { name: "", movementType: "", rank: "", nationality: "", passportNumber: "", passportExpiry: "", visaNumber: "", visaExpiry: "", iqama: "", iqamaExpiry: "", sbNo: "", borderNo: "", dateOfBirth: "" },
+  { name: "", movementType: "", rank: "", nationality: "", passportNumber: "", passportExpiry: "", visaNumber: "", visaExpiry: "", iqama: "", iqamaExpiry: "", sbNo: "", borderNo: "", dateOfBirth: "" },
 ]);
 
 // Generate crew data from Excel file
@@ -218,28 +218,48 @@ const generateCrewFromExcel = (excelData) => {
     .filter((row) => row && row.some((cell) => cell !== null && cell !== undefined && cell !== ""))
     .map((row, index) => {
       const crewNameIndex = getColumnIndex(["name", "crew name", "crewname", "full name"]);
-      const signOnOffIndex = getColumnIndex(["sign on / sign off", "sign on", "sign off", "sign on off", "signonoff"]);
+      const movementTypeIndex = getColumnIndex(["movement type", "sign on / sign off", "sign on", "sign off", "sign on off", "signonoff"]);
       const nationalityIndex = getColumnIndex(["nationality", "country", "nation"]);
       const rankIndex = getColumnIndex(["rank", "position", "designation", "job"]);
       const passportIndex = getColumnIndex(["passport", "passport no", "passport number", "passportno"]);
       const passportExpiryIndex = getColumnIndex(["passport expiry", "passport exp", "passport expiration"]);
-      const ksaVisaNumberIndex = getColumnIndex(["ksa visa number", "ksa visa", "visa number"]);
-      const iqamaIndex = getColumnIndex(["iqama", "iqama number"]);
+      const visaNumberIndex = getColumnIndex(["visa no", "visa number", "ksa visa number", "ksa visa"]);
+      const visaExpiryIndex = getColumnIndex(["visa expiry", "visa exp", "visa expiration"]);
+      const iqamaIndex = getColumnIndex(["iqama", "iqama no", "iqama number"]);
+      const iqamaExpiryIndex = getColumnIndex(["iqama expiry", "iqama exp", "iqama expiration"]);
       const sbNoIndex = getColumnIndex(["sb no", "sb number", "s/b no"]);
       const borderNoIndex = getColumnIndex(["border no", "border number"]);
+      const dobIndex = getColumnIndex(["date of birth", "dob", "birth date"]);
 
       return {
         id: index + 1,
         crewName: crewNameIndex !== -1 ? (row[crewNameIndex] || `Crew Member ${index + 1}`) : `Crew Member ${index + 1}`,
-        signOnOff: signOnOffIndex !== -1 ? (row[signOnOffIndex] || "") : "",
+        movementType: movementTypeIndex !== -1 ? (row[movementTypeIndex] || "") : "",
+        signOnOff: movementTypeIndex !== -1 ? (row[movementTypeIndex] || "") : "",
+        dateOfBirth: dobIndex !== -1 ? row[dobIndex] || "" : "",
         nationality: nationalityIndex !== -1 ? row[nationalityIndex] || "N/A" : "N/A",
         rank: rankIndex !== -1 ? row[rankIndex] || "N/A" : "N/A",
         passportNo: passportIndex !== -1 ? row[passportIndex] || `P${String(1000000 + index).padStart(7, '0')}` : `P${String(1000000 + index).padStart(7, '0')}`,
         passportExpiry: passportExpiryIndex !== -1 ? row[passportExpiryIndex] || "" : "",
-        ksaVisaNumber: ksaVisaNumberIndex !== -1 ? row[ksaVisaNumberIndex] || "" : "",
+        visaNumber: visaNumberIndex !== -1 ? row[visaNumberIndex] || "" : "",
+        ksaVisaNumber: visaNumberIndex !== -1 ? row[visaNumberIndex] || "" : "",
+        visaExpiry: visaExpiryIndex !== -1 ? row[visaExpiryIndex] || "" : "",
         iqamaNumber: iqamaIndex !== -1 ? row[iqamaIndex] || "" : "",
+        iqamaExpiry: iqamaExpiryIndex !== -1 ? row[iqamaExpiryIndex] || "" : "",
         sbNo: sbNoIndex !== -1 ? row[sbNoIndex] || "" : "",
         borderNo: borderNoIndex !== -1 ? row[borderNoIndex] || "" : "",
+        // Payload-ready keys for crew/save_crew API compatibility
+        crew_name: crewNameIndex !== -1 ? (row[crewNameIndex] || `Crew Member ${index + 1}`) : `Crew Member ${index + 1}`,
+        date_of_birth: dobIndex !== -1 ? row[dobIndex] || "" : "",
+        passport_no: passportIndex !== -1 ? row[passportIndex] || `P${String(1000000 + index).padStart(7, "0")}` : `P${String(1000000 + index).padStart(7, "0")}`,
+        passport_expiry: passportExpiryIndex !== -1 ? row[passportExpiryIndex] || "" : "",
+        visa_no: visaNumberIndex !== -1 ? row[visaNumberIndex] || "" : "",
+        visa_expiry: visaExpiryIndex !== -1 ? row[visaExpiryIndex] || "" : "",
+        iqama_no: iqamaIndex !== -1 ? row[iqamaIndex] || "" : "",
+        iqama_expiry: iqamaExpiryIndex !== -1 ? row[iqamaExpiryIndex] || "" : "",
+        movement_type: movementTypeIndex !== -1 ? (row[movementTypeIndex] || "") : "",
+        sb_no: sbNoIndex !== -1 ? row[sbNoIndex] || "" : "",
+        border_no: borderNoIndex !== -1 ? row[borderNoIndex] || "" : "",
         transport: ["done", "inProgress", "rejected"][Math.floor(Math.random() * 3)],
         transportCount: Math.floor(Math.random() * 5) + 1, // Random count between 1-5
         cgPass: ["done", "inProgress", "rejected"][Math.floor(Math.random() * 3)],
@@ -466,34 +486,33 @@ const CrewContent = ({ formValues, handleChange, cardColor, onNavigateToTab, lau
   // Handle download preview Excel
   const handleDownloadPreview = () => {
     // Create worksheet data with headers
-    const headers = ["No", "Name", "Sign On / Sign Off", "Rank", "Nationality", "Passport Number", "Passport Expiry", "KSA Visa Number", "IQAMA", "Sb No", "Border No"];
+    const headers = ["Name", "Movement Type", "Rank", "Nationality", "Passport No", "Passport Expiry", "Visa No", "IQAMA No", "Sb No", "Border No"];
 
     // Create data rows from crew list or dummy data template
     let dataRows = [];
 
     if (displayCrewList.length > 0) {
       // Use actual crew data
-      dataRows = displayCrewList.map((crew, index) => [
-        index + 1, // No
-        crew.crewName || "", // Name
-        crew.signOnOff || "", // Sign On / Sign Off
+      dataRows = displayCrewList.map((crew) => [
+        crew.crewName || crew.crew_name || "", // Name
+        crew.movementType || crew.movement_type || crew.signOnOff || "", // Movement Type
         crew.rank || "", // Rank
         crew.nationality || "", // Nationality
-        crew.passportNo || "", // Passport Number
-        crew.passportExpiry || "", // Passport Expiry (if exists in data)
-        crew.ksaVisaNumber || "", // KSA Visa Number (if exists in data)
-        crew.iqamaNumber || "", // IQAMA (if exists in data)
+        crew.passportNo || crew.passport_no || "", // Passport Number
+        crew.passportExpiry || crew.passport_expiry || "", // Passport Expiry
+        crew.visaNumber || crew.visa_no || crew.ksaVisaNumber || "", // Visa Number
+        crew.iqamaNumber || crew.iqama_no || "", // IQAMA
         crew.sbNo || "", // Sb No
         crew.borderNo || "", // Border No
       ]);
     } else {
       // Add dummy data for preview
       const dummyData = [
-        [1, "John Smith", "Sign On", "Captain", "British", "P1234567", "2025-12-31", "V123456789", "IQ123456", "SB1001", "BD1001"],
-        [2, "Ahmed Al-Mansouri", "Sign Off", "Chief Engineer", "Saudi", "P2345678", "2026-06-30", "V234567890", "IQ234567", "SB1002", "BD1002"],
-        [3, "Maria Garcia", "Sign On", "First Officer", "Spanish", "P3456789", "2025-09-15", "V345678901", "IQ345678", "SB1003", "BD1003"],
-        [4, "David Chen", "Sign Off", "Second Engineer", "Chinese", "P4567890", "2026-03-20", "V456789012", "IQ456789", "SB1004", "BD1004"],
-        [5, "Fatima Hassan", "Sign On", "Deck Officer", "Egyptian", "P5678901", "2025-11-10", "V567890123", "IQ567890", "SB1005", "BD1005"],
+        ["John Smith", "Sign On", "Captain", "British", "P1234567", "2025-12-31", "V123456789", "IQ123456", "SB1001", "BD1001"],
+        ["Ahmed Al-Mansouri", "Sign Off", "Chief Engineer", "Saudi", "P2345678", "2026-06-30", "V234567890", "IQ234567", "SB1002", "BD1002"],
+        ["Maria Garcia", "Sign On", "First Officer", "Spanish", "P3456789", "2025-09-15", "V345678901", "IQ345678", "SB1003", "BD1003"],
+        ["David Chen", "Sign Off", "Second Engineer", "Chinese", "P4567890", "2026-03-20", "V456789012", "IQ456789", "SB1004", "BD1004"],
+        ["Fatima Hassan", "Sign On", "Deck Officer", "Egyptian", "P5678901", "2025-11-10", "V567890123", "IQ567890", "SB1005", "BD1005"],
       ];
       dataRows = dummyData;
     }
@@ -506,14 +525,13 @@ const CrewContent = ({ formValues, handleChange, cardColor, onNavigateToTab, lau
 
     // Set column widths
     const colWidths = [
-      { wch: 5 },  // No
       { wch: 20 }, // Name
-      { wch: 18 }, // Sign On / Sign Off
+      { wch: 18 }, // Movement Type
       { wch: 15 }, // Rank
       { wch: 15 }, // Nationality
-      { wch: 18 }, // Passport Number
+      { wch: 16 }, // Passport Number
       { wch: 18 }, // Passport Expiry
-      { wch: 18 }, // KSA Visa Number
+      { wch: 16 }, // Visa Number
       { wch: 15 }, // IQAMA
       { wch: 12 }, // Sb No
       { wch: 12 }, // Border No
@@ -555,7 +573,7 @@ const CrewContent = ({ formValues, handleChange, cardColor, onNavigateToTab, lau
 
     // Limit to 5 rows total
     const maxRows = Math.min(rows.length, 5 - startRowIndex);
-    const fieldMap = ["no", "name", "signOnOff", "rank", "nationality", "passportNumber", "passportExpiry", "ksaVisaNumber", "iqama", "sbNo", "borderNo"];
+    const fieldMap = ["name", "movementType", "rank", "nationality", "passportNumber", "passportExpiry", "visaNumber", "iqama", "sbNo", "borderNo"];
 
     setPreviewTableData((prev) => {
       const newData = [...prev];
@@ -592,17 +610,35 @@ const CrewContent = ({ formValues, handleChange, cardColor, onNavigateToTab, lau
     }
 
     const crewData = filledRows.map((row, index) => ({
+      // Existing UI compatibility keys
       id: index + 1,
       crewName: row.name.trim() || `Crew Member ${index + 1}`,
-      signOnOff: row.signOnOff.trim() || "",
+      movementType: row.movementType.trim() || "",
+      signOnOff: row.movementType.trim() || "",
       rank: row.rank.trim() || "",
       nationality: row.nationality.trim() || "",
-      passportNo: row.passportNumber.trim() || `P${String(1000000 + index).padStart(7, '0')}`,
+      passportNo: row.passportNumber.trim() || `P${String(1000000 + index).padStart(7, "0")}`,
       passportExpiry: row.passportExpiry.trim() || "",
-      ksaVisaNumber: row.ksaVisaNumber.trim() || "",
+      visaNumber: row.visaNumber.trim() || "",
+      ksaVisaNumber: row.visaNumber.trim() || "",
       iqamaNumber: row.iqama.trim() || "",
+      dateOfBirth: row.dateOfBirth.trim() || "",
+      visaExpiry: row.visaExpiry.trim() || "",
+      iqamaExpiry: row.iqamaExpiry.trim() || "",
       sbNo: row.sbNo.trim() || "",
       borderNo: row.borderNo.trim() || "",
+      // Payload-ready keys
+      crew_name: row.name.trim() || `Crew Member ${index + 1}`,
+      date_of_birth: row.dateOfBirth.trim() || "",
+      passport_no: row.passportNumber.trim() || `P${String(1000000 + index).padStart(7, "0")}`,
+      passport_expiry: row.passportExpiry.trim() || "",
+      visa_no: row.visaNumber.trim() || "",
+      visa_expiry: row.visaExpiry.trim() || "",
+      iqama_no: row.iqama.trim() || "",
+      iqama_expiry: row.iqamaExpiry.trim() || "",
+      movement_type: row.movementType.trim() || "",
+      sb_no: row.sbNo.trim() || "",
+      border_no: row.borderNo.trim() || "",
       transport: ["done", "inProgress", "rejected"][Math.floor(Math.random() * 3)],
       transportCount: Math.floor(Math.random() * 5) + 1, // Random count between 1-5
       cgPass: ["done", "inProgress", "rejected"][Math.floor(Math.random() * 3)],
@@ -1127,7 +1163,7 @@ const CrewContent = ({ formValues, handleChange, cardColor, onNavigateToTab, lau
               <div style={{ width: "100%", overflowX: "auto" }}>
               <table style={{
                 width: "100%",
-                minWidth: "1520px",
+                minWidth: "1360px",
                 borderCollapse: "collapse",
                 fontFamily: "\"Open Sans\", sans-serif",
                 fontSize: "13px",
@@ -1139,17 +1175,7 @@ const CrewContent = ({ formValues, handleChange, cardColor, onNavigateToTab, lau
                     color: "rgb(26 26 26)"
                   }}>
                     <th style={{
-                      width: "4%",
-                      padding: "14px 16px",
-                      textAlign: "left",
-                      fontWeight: "600",
-                      color: "rgb(26 26 26)",
-                      borderRight: "1px solid rgba(255, 255, 255, 0.2)",
-                      fontSize: "13px",
-                      letterSpacing: "0.3px"
-                    }}>No</th>
-                    <th style={{
-                      width: "14%",
+                      width: "15%",
                       padding: "14px 16px",
                       textAlign: "left",
                       fontWeight: "600",
@@ -1159,7 +1185,7 @@ const CrewContent = ({ formValues, handleChange, cardColor, onNavigateToTab, lau
                       letterSpacing: "0.3px"
                     }}>Name</th>
                     <th style={{
-                      width: "12%",
+                      width: "14%",
                       padding: "14px 16px",
                       textAlign: "left",
                       fontWeight: "600",
@@ -1189,7 +1215,7 @@ const CrewContent = ({ formValues, handleChange, cardColor, onNavigateToTab, lau
                       letterSpacing: "0.3px"
                     }}>Nationality</th>
                     <th style={{
-                      width: "13%",
+                      width: "12%",
                       padding: "14px 16px",
                       textAlign: "left",
                       fontWeight: "600",
@@ -1266,19 +1292,18 @@ const CrewContent = ({ formValues, handleChange, cardColor, onNavigateToTab, lau
                       }}
                     >
                       {[
-                        { field: "no", placeholder: "", readOnly: true },
                         { field: "name", placeholder: "Enter name" },
-                        { field: "signOnOff", placeholder: "", type: "select" },
+                        { field: "movementType", placeholder: "", type: "select" },
                         { field: "rank", placeholder: "Enter rank" },
                         { field: "nationality", placeholder: "Enter nationality" },
                         { field: "passportNumber", placeholder: "Enter passport number" },
                         { field: "passportExpiry", placeholder: "YYYY-MM-DD" },
-                        { field: "ksaVisaNumber", placeholder: "Enter KSA visa number" },
+                        { field: "visaNumber", placeholder: "Enter KSA visa number" },
                         { field: "iqama", placeholder: "Enter IQAMA" },
                         { field: "sbNo", placeholder: "Enter Sb No" },
                         { field: "borderNo", placeholder: "Enter Border No" }
                       ].map((col, colIndex) => {
-                        const isLast = colIndex === 10;
+                        const isLast = colIndex === 9;
                         const hasValue = row[col.field] && row[col.field].trim() !== "";
                         return (
                           <td
