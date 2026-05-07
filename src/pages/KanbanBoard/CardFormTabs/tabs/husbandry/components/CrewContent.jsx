@@ -189,6 +189,14 @@ const buildWizardSteps = ({ includeIqama, uploadedFileName, formValues }) => {
   });
 };
 
+const createEmptyPreviewRows = () => ([
+  { no: "1", name: "", signOnOff: "", rank: "", nationality: "", passportNumber: "", passportExpiry: "", ksaVisaNumber: "", iqama: "", sbNo: "", borderNo: "" },
+  { no: "2", name: "", signOnOff: "", rank: "", nationality: "", passportNumber: "", passportExpiry: "", ksaVisaNumber: "", iqama: "", sbNo: "", borderNo: "" },
+  { no: "3", name: "", signOnOff: "", rank: "", nationality: "", passportNumber: "", passportExpiry: "", ksaVisaNumber: "", iqama: "", sbNo: "", borderNo: "" },
+  { no: "4", name: "", signOnOff: "", rank: "", nationality: "", passportNumber: "", passportExpiry: "", ksaVisaNumber: "", iqama: "", sbNo: "", borderNo: "" },
+  { no: "5", name: "", signOnOff: "", rank: "", nationality: "", passportNumber: "", passportExpiry: "", ksaVisaNumber: "", iqama: "", sbNo: "", borderNo: "" },
+]);
+
 // Generate crew data from Excel file
 const generateCrewFromExcel = (excelData) => {
   if (!excelData || excelData.length === 0) return [];
@@ -210,16 +218,28 @@ const generateCrewFromExcel = (excelData) => {
     .filter((row) => row && row.some((cell) => cell !== null && cell !== undefined && cell !== ""))
     .map((row, index) => {
       const crewNameIndex = getColumnIndex(["name", "crew name", "crewname", "full name"]);
+      const signOnOffIndex = getColumnIndex(["sign on / sign off", "sign on", "sign off", "sign on off", "signonoff"]);
       const nationalityIndex = getColumnIndex(["nationality", "country", "nation"]);
       const rankIndex = getColumnIndex(["rank", "position", "designation", "job"]);
       const passportIndex = getColumnIndex(["passport", "passport no", "passport number", "passportno"]);
+      const passportExpiryIndex = getColumnIndex(["passport expiry", "passport exp", "passport expiration"]);
+      const ksaVisaNumberIndex = getColumnIndex(["ksa visa number", "ksa visa", "visa number"]);
+      const iqamaIndex = getColumnIndex(["iqama", "iqama number"]);
+      const sbNoIndex = getColumnIndex(["sb no", "sb number", "s/b no"]);
+      const borderNoIndex = getColumnIndex(["border no", "border number"]);
 
       return {
         id: index + 1,
         crewName: crewNameIndex !== -1 ? (row[crewNameIndex] || `Crew Member ${index + 1}`) : `Crew Member ${index + 1}`,
+        signOnOff: signOnOffIndex !== -1 ? (row[signOnOffIndex] || "") : "",
         nationality: nationalityIndex !== -1 ? row[nationalityIndex] || "N/A" : "N/A",
         rank: rankIndex !== -1 ? row[rankIndex] || "N/A" : "N/A",
         passportNo: passportIndex !== -1 ? row[passportIndex] || `P${String(1000000 + index).padStart(7, '0')}` : `P${String(1000000 + index).padStart(7, '0')}`,
+        passportExpiry: passportExpiryIndex !== -1 ? row[passportExpiryIndex] || "" : "",
+        ksaVisaNumber: ksaVisaNumberIndex !== -1 ? row[ksaVisaNumberIndex] || "" : "",
+        iqamaNumber: iqamaIndex !== -1 ? row[iqamaIndex] || "" : "",
+        sbNo: sbNoIndex !== -1 ? row[sbNoIndex] || "" : "",
+        borderNo: borderNoIndex !== -1 ? row[borderNoIndex] || "" : "",
         transport: ["done", "inProgress", "rejected"][Math.floor(Math.random() * 3)],
         transportCount: Math.floor(Math.random() * 5) + 1, // Random count between 1-5
         cgPass: ["done", "inProgress", "rejected"][Math.floor(Math.random() * 3)],
@@ -282,13 +302,7 @@ const CrewContent = ({ formValues, handleChange, cardColor, onNavigateToTab, lau
   const displayCrewList = crewList.length > 0 ? crewList : [];
 
   // Editable preview table data (max 5 rows)
-  const [previewTableData, setPreviewTableData] = useState([
-    { no: "1", name: "", company: "", rank: "", nationality: "", passportNumber: "", passportExpiry: "", ksaVisaNumber: "", iqama: "" },
-    { no: "2", name: "", company: "", rank: "", nationality: "", passportNumber: "", passportExpiry: "", ksaVisaNumber: "", iqama: "" },
-    { no: "3", name: "", company: "", rank: "", nationality: "", passportNumber: "", passportExpiry: "", ksaVisaNumber: "", iqama: "" },
-    { no: "4", name: "", company: "", rank: "", nationality: "", passportNumber: "", passportExpiry: "", ksaVisaNumber: "", iqama: "" },
-    { no: "5", name: "", company: "", rank: "", nationality: "", passportNumber: "", passportExpiry: "", ksaVisaNumber: "", iqama: "" },
-  ]);
+  const [previewTableData, setPreviewTableData] = useState(createEmptyPreviewRows);
 
   // Handle individual crew selection
   const handleCrewToggle = (crewId) => {
@@ -452,7 +466,7 @@ const CrewContent = ({ formValues, handleChange, cardColor, onNavigateToTab, lau
   // Handle download preview Excel
   const handleDownloadPreview = () => {
     // Create worksheet data with headers
-    const headers = ["No", "Name", "Company", "Rank", "Nationality", "Passport Number", "Passport Expiry", "KSA Visa Number", "IQAMA"];
+    const headers = ["No", "Name", "Sign On / Sign Off", "Rank", "Nationality", "Passport Number", "Passport Expiry", "KSA Visa Number", "IQAMA", "Sb No", "Border No"];
 
     // Create data rows from crew list or dummy data template
     let dataRows = [];
@@ -462,22 +476,24 @@ const CrewContent = ({ formValues, handleChange, cardColor, onNavigateToTab, lau
       dataRows = displayCrewList.map((crew, index) => [
         index + 1, // No
         crew.crewName || "", // Name
-        crew.company || "", // Company (if exists in data)
+        crew.signOnOff || "", // Sign On / Sign Off
         crew.rank || "", // Rank
         crew.nationality || "", // Nationality
         crew.passportNo || "", // Passport Number
         crew.passportExpiry || "", // Passport Expiry (if exists in data)
         crew.ksaVisaNumber || "", // KSA Visa Number (if exists in data)
         crew.iqamaNumber || "", // IQAMA (if exists in data)
+        crew.sbNo || "", // Sb No
+        crew.borderNo || "", // Border No
       ]);
     } else {
       // Add dummy data for preview
       const dummyData = [
-        [1, "John Smith", "ABC Shipping Co.", "Captain", "British", "P1234567", "2025-12-31", "V123456789", "IQ123456"],
-        [2, "Ahmed Al-Mansouri", "XYZ Maritime", "Chief Engineer", "Saudi", "P2345678", "2026-06-30", "V234567890", "IQ234567"],
-        [3, "Maria Garcia", "Global Vessels Ltd", "First Officer", "Spanish", "P3456789", "2025-09-15", "V345678901", "IQ345678"],
-        [4, "David Chen", "Pacific Shipping", "Second Engineer", "Chinese", "P4567890", "2026-03-20", "V456789012", "IQ456789"],
-        [5, "Fatima Hassan", "Middle East Marine", "Deck Officer", "Egyptian", "P5678901", "2025-11-10", "V567890123", "IQ567890"],
+        [1, "John Smith", "Sign On", "Captain", "British", "P1234567", "2025-12-31", "V123456789", "IQ123456", "SB1001", "BD1001"],
+        [2, "Ahmed Al-Mansouri", "Sign Off", "Chief Engineer", "Saudi", "P2345678", "2026-06-30", "V234567890", "IQ234567", "SB1002", "BD1002"],
+        [3, "Maria Garcia", "Sign On", "First Officer", "Spanish", "P3456789", "2025-09-15", "V345678901", "IQ345678", "SB1003", "BD1003"],
+        [4, "David Chen", "Sign Off", "Second Engineer", "Chinese", "P4567890", "2026-03-20", "V456789012", "IQ456789", "SB1004", "BD1004"],
+        [5, "Fatima Hassan", "Sign On", "Deck Officer", "Egyptian", "P5678901", "2025-11-10", "V567890123", "IQ567890", "SB1005", "BD1005"],
       ];
       dataRows = dummyData;
     }
@@ -492,13 +508,15 @@ const CrewContent = ({ formValues, handleChange, cardColor, onNavigateToTab, lau
     const colWidths = [
       { wch: 5 },  // No
       { wch: 20 }, // Name
-      { wch: 20 }, // Company
+      { wch: 18 }, // Sign On / Sign Off
       { wch: 15 }, // Rank
       { wch: 15 }, // Nationality
       { wch: 18 }, // Passport Number
       { wch: 18 }, // Passport Expiry
       { wch: 18 }, // KSA Visa Number
       { wch: 15 }, // IQAMA
+      { wch: 12 }, // Sb No
+      { wch: 12 }, // Border No
     ];
     ws['!cols'] = colWidths;
 
@@ -537,7 +555,7 @@ const CrewContent = ({ formValues, handleChange, cardColor, onNavigateToTab, lau
 
     // Limit to 5 rows total
     const maxRows = Math.min(rows.length, 5 - startRowIndex);
-    const fieldMap = ["no", "name", "company", "rank", "nationality", "passportNumber", "passportExpiry", "ksaVisaNumber", "iqama"];
+    const fieldMap = ["no", "name", "signOnOff", "rank", "nationality", "passportNumber", "passportExpiry", "ksaVisaNumber", "iqama", "sbNo", "borderNo"];
 
     setPreviewTableData((prev) => {
       const newData = [...prev];
@@ -576,13 +594,15 @@ const CrewContent = ({ formValues, handleChange, cardColor, onNavigateToTab, lau
     const crewData = filledRows.map((row, index) => ({
       id: index + 1,
       crewName: row.name.trim() || `Crew Member ${index + 1}`,
-      company: row.company.trim() || "",
+      signOnOff: row.signOnOff.trim() || "",
       rank: row.rank.trim() || "",
       nationality: row.nationality.trim() || "",
       passportNo: row.passportNumber.trim() || `P${String(1000000 + index).padStart(7, '0')}`,
       passportExpiry: row.passportExpiry.trim() || "",
       ksaVisaNumber: row.ksaVisaNumber.trim() || "",
       iqamaNumber: row.iqama.trim() || "",
+      sbNo: row.sbNo.trim() || "",
+      borderNo: row.borderNo.trim() || "",
       transport: ["done", "inProgress", "rejected"][Math.floor(Math.random() * 3)],
       transportCount: Math.floor(Math.random() * 5) + 1, // Random count between 1-5
       cgPass: ["done", "inProgress", "rejected"][Math.floor(Math.random() * 3)],
@@ -1013,6 +1033,8 @@ const CrewContent = ({ formValues, handleChange, cardColor, onNavigateToTab, lau
             margin: "0 auto",
             width: "100%",
             flexWrap: "wrap",
+            maxHeight: "calc(100vh - 190px)",
+            overflowY: "auto",
             "--card-color": cardColor,
           }}
         >
@@ -1102,8 +1124,10 @@ const CrewContent = ({ formValues, handleChange, cardColor, onNavigateToTab, lau
               boxShadow: "0 2px 8px rgba(0, 0, 0, 0.04)",
               overflow: "hidden"
             }}>
+              <div style={{ width: "100%", overflowX: "auto" }}>
               <table style={{
                 width: "100%",
+                minWidth: "1520px",
                 borderCollapse: "collapse",
                 fontFamily: "\"Open Sans\", sans-serif",
                 fontSize: "13px",
@@ -1135,7 +1159,7 @@ const CrewContent = ({ formValues, handleChange, cardColor, onNavigateToTab, lau
                       letterSpacing: "0.3px"
                     }}>Name</th>
                     <th style={{
-                      width: "14%",
+                      width: "12%",
                       padding: "14px 16px",
                       textAlign: "left",
                       fontWeight: "600",
@@ -1143,7 +1167,7 @@ const CrewContent = ({ formValues, handleChange, cardColor, onNavigateToTab, lau
                       borderRight: "1px solid rgba(255, 255, 255, 0.2)",
                       fontSize: "13px",
                       letterSpacing: "0.3px"
-                    }}>Company</th>
+                    }}>Sign On / Sign Off</th>
                     <th style={{
                       width: "12%",
                       padding: "14px 16px",
@@ -1200,9 +1224,29 @@ const CrewContent = ({ formValues, handleChange, cardColor, onNavigateToTab, lau
                       textAlign: "left",
                       fontWeight: "600",
                       color: "rgb(26 26 26)",
+                      borderRight: "1px solid rgba(255, 255, 255, 0.2)",
                       fontSize: "13px",
                       letterSpacing: "0.3px"
                     }}>IQAMA</th>
+                    <th style={{
+                      width: "8.5%",
+                      padding: "14px 16px",
+                      textAlign: "left",
+                      fontWeight: "600",
+                      color: "rgb(26 26 26)",
+                      borderRight: "1px solid rgba(255, 255, 255, 0.2)",
+                      fontSize: "13px",
+                      letterSpacing: "0.3px"
+                    }}>Sb No</th>
+                    <th style={{
+                      width: "8.5%",
+                      padding: "14px 16px",
+                      textAlign: "left",
+                      fontWeight: "600",
+                      color: "rgb(26 26 26)",
+                      fontSize: "13px",
+                      letterSpacing: "0.3px"
+                    }}>Border No</th>
                   </tr>
                 </thead>
                 <tbody>
@@ -1224,15 +1268,17 @@ const CrewContent = ({ formValues, handleChange, cardColor, onNavigateToTab, lau
                       {[
                         { field: "no", placeholder: "", readOnly: true },
                         { field: "name", placeholder: "Enter name" },
-                        { field: "company", placeholder: "Enter company" },
+                        { field: "signOnOff", placeholder: "", type: "select" },
                         { field: "rank", placeholder: "Enter rank" },
                         { field: "nationality", placeholder: "Enter nationality" },
                         { field: "passportNumber", placeholder: "Enter passport number" },
                         { field: "passportExpiry", placeholder: "YYYY-MM-DD" },
                         { field: "ksaVisaNumber", placeholder: "Enter KSA visa number" },
-                        { field: "iqama", placeholder: "Enter IQAMA" }
+                        { field: "iqama", placeholder: "Enter IQAMA" },
+                        { field: "sbNo", placeholder: "Enter Sb No" },
+                        { field: "borderNo", placeholder: "Enter Border No" }
                       ].map((col, colIndex) => {
-                        const isLast = colIndex === 8;
+                        const isLast = colIndex === 10;
                         const hasValue = row[col.field] && row[col.field].trim() !== "";
                         return (
                           <td
@@ -1243,37 +1289,64 @@ const CrewContent = ({ formValues, handleChange, cardColor, onNavigateToTab, lau
                               position: "relative"
                             }}
                           >
-                            <input
-                              type="text"
-                              value={row[col.field]}
-                              onChange={(e) => handlePreviewTableCellChange(rowIndex, col.field, e.target.value)}
-                              onPaste={(e) => handlePreviewTablePaste(e, rowIndex, colIndex)}
-                              onFocus={(e) => {
-                                e.target.style.backgroundColor = "#ffffff";
-                                e.target.style.boxShadow = "0 0 0 2px rgba(42, 0, 255, 0.1)";
-                                e.target.style.borderRadius = "4px";
-                              }}
-                              onBlur={(e) => {
-                                e.target.style.backgroundColor = hasValue ? "#f0f7ff" : "transparent";
-                                e.target.style.boxShadow = "none";
-                              }}
-                              placeholder={col.placeholder}
-                              readOnly={col.readOnly}
-                              style={{
-                                width: "100%",
-                                border: "none",
-                                outline: "none",
-                                backgroundColor: hasValue ? "#f0f7ff" : "transparent",
-                                color: hasValue ? "#1a1a1a" : "#999",
-                                fontSize: "13px",
-                                fontFamily: "\"Open Sans\", sans-serif",
-                                padding: "8px 10px",
-                                borderRadius: "4px",
-                                transition: "all 0.2s ease",
-                                fontWeight: hasValue ? "500" : "400",
-                                boxSizing: "border-box"
-                              }}
-                            />
+                            {col.type === "select" ? (
+                              <select
+                                value={row[col.field]}
+                                onChange={(e) => handlePreviewTableCellChange(rowIndex, col.field, e.target.value)}
+                                onPaste={(e) => handlePreviewTablePaste(e, rowIndex, colIndex)}
+                                style={{
+                                  width: "100%",
+                                  border: "none",
+                                  outline: "none",
+                                  backgroundColor: hasValue ? "#f0f7ff" : "transparent",
+                                  color: hasValue ? "#1a1a1a" : "#999",
+                                  fontSize: "13px",
+                                  fontFamily: "\"Open Sans\", sans-serif",
+                                  padding: "8px 10px",
+                                  borderRadius: "4px",
+                                  transition: "all 0.2s ease",
+                                  fontWeight: hasValue ? "500" : "400",
+                                  boxSizing: "border-box",
+                                  cursor: "pointer"
+                                }}
+                              >
+                                <option value="">Select</option>
+                                <option value="Sign On">Sign On</option>
+                                <option value="Sign Off">Sign Off</option>
+                              </select>
+                            ) : (
+                              <input
+                                type="text"
+                                value={row[col.field]}
+                                onChange={(e) => handlePreviewTableCellChange(rowIndex, col.field, e.target.value)}
+                                onPaste={(e) => handlePreviewTablePaste(e, rowIndex, colIndex)}
+                                onFocus={(e) => {
+                                  e.target.style.backgroundColor = "#ffffff";
+                                  e.target.style.boxShadow = "0 0 0 2px rgba(42, 0, 255, 0.1)";
+                                  e.target.style.borderRadius = "4px";
+                                }}
+                                onBlur={(e) => {
+                                  e.target.style.backgroundColor = hasValue ? "#f0f7ff" : "transparent";
+                                  e.target.style.boxShadow = "none";
+                                }}
+                                placeholder={col.placeholder}
+                                readOnly={col.readOnly}
+                                style={{
+                                  width: "100%",
+                                  border: "none",
+                                  outline: "none",
+                                  backgroundColor: hasValue ? "#f0f7ff" : "transparent",
+                                  color: hasValue ? "#1a1a1a" : "#999",
+                                  fontSize: "13px",
+                                  fontFamily: "\"Open Sans\", sans-serif",
+                                  padding: "8px 10px",
+                                  borderRadius: "4px",
+                                  transition: "all 0.2s ease",
+                                  fontWeight: hasValue ? "500" : "400",
+                                  boxSizing: "border-box"
+                                }}
+                              />
+                            )}
                           </td>
                         );
                       })}
@@ -1281,6 +1354,7 @@ const CrewContent = ({ formValues, handleChange, cardColor, onNavigateToTab, lau
                   ))}
                 </tbody>
               </table>
+              </div>
             </div>
             <div style={{
               marginTop: "24px",
@@ -1326,13 +1400,7 @@ const CrewContent = ({ formValues, handleChange, cardColor, onNavigateToTab, lau
               <button
                 type="button"
                 onClick={() => {
-                  setPreviewTableData([
-                    { no: "1", name: "", company: "", rank: "", nationality: "", passportNumber: "", passportExpiry: "", ksaVisaNumber: "", iqama: "" },
-                    { no: "2", name: "", company: "", rank: "", nationality: "", passportNumber: "", passportExpiry: "", ksaVisaNumber: "", iqama: "" },
-                    { no: "3", name: "", company: "", rank: "", nationality: "", passportNumber: "", passportExpiry: "", ksaVisaNumber: "", iqama: "" },
-                    { no: "4", name: "", company: "", rank: "", nationality: "", passportNumber: "", passportExpiry: "", ksaVisaNumber: "", iqama: "" },
-                    { no: "5", name: "", company: "", rank: "", nationality: "", passportNumber: "", passportExpiry: "", ksaVisaNumber: "", iqama: "" },
-                  ]);
+                  setPreviewTableData(createEmptyPreviewRows());
                 }}
                 style={{
                   padding: "10px 20px",
