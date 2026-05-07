@@ -1243,224 +1243,224 @@ const CrewContent = ({ formValues, handleChange, cardColor, onNavigateToTab, lau
               overflow: "hidden"
             }}>
               <div style={{ width: "100%", overflowX: "auto" }}>
-              <table style={{
-                width: "100%",
-                minWidth: "1360px",
-                borderCollapse: "collapse",
-                fontFamily: "\"Open Sans\", sans-serif",
-                fontSize: "13px",
-                tableLayout: "fixed"
-              }}>
-                <thead>
-                  <tr style={{
-                    background: '#e0e7ff',
-                    color: "rgb(26 26 26)"
-                  }}>
-                    <th style={{
-                      width: "15%",
-                      padding: "14px 16px",
-                      textAlign: "left",
-                      fontWeight: "600",
-                      color: "rgb(26 26 26)",
-                      borderRight: "1px solid rgba(255, 255, 255, 0.2)",
-                      fontSize: "13px",
-                      letterSpacing: "0.3px"
-                    }}>Name</th>
-                    <th style={{
-                      width: "14%",
-                      padding: "14px 16px",
-                      textAlign: "left",
-                      fontWeight: "600",
-                      color: "rgb(26 26 26)",
-                      borderRight: "1px solid rgba(255, 255, 255, 0.2)",
-                      fontSize: "13px",
-                      letterSpacing: "0.3px"
-                    }}>Sign On / Sign Off</th>
-                    <th style={{
-                      width: "12%",
-                      padding: "14px 16px",
-                      textAlign: "left",
-                      fontWeight: "600",
-                      color: "rgb(26 26 26)",
-                      borderRight: "1px solid rgba(255, 255, 255, 0.2)",
-                      fontSize: "13px",
-                      letterSpacing: "0.3px"
-                    }}>Rank</th>
-                    <th style={{
-                      width: "11%",
-                      padding: "14px 16px",
-                      textAlign: "left",
-                      fontWeight: "600",
-                      color: "rgb(26 26 26)",
-                      borderRight: "1px solid rgba(255, 255, 255, 0.2)",
-                      fontSize: "13px",
-                      letterSpacing: "0.3px"
-                    }}>Nationality</th>
-                    <th style={{
-                      width: "12%",
-                      padding: "14px 16px",
-                      textAlign: "left",
-                      fontWeight: "600",
-                      color: "rgb(26 26 26)",
-                      borderRight: "1px solid rgba(255, 255, 255, 0.2)",
-                      fontSize: "13px",
-                      letterSpacing: "0.3px"
-                    }}>Passport Number</th>
-                    <th style={{
-                      width: "12%",
-                      padding: "14px 16px",
-                      textAlign: "left",
-                      fontWeight: "600",
-                      color: "rgb(26 26 26)",
-                      borderRight: "1px solid rgba(255, 255, 255, 0.2)",
-                      fontSize: "13px",
-                      letterSpacing: "0.3px"
-                    }}>Passport Expiry</th>
-                    <th style={{
-                      width: "13%",
-                      padding: "14px 16px",
-                      textAlign: "left",
-                      fontWeight: "600",
-                      color: "rgb(26 26 26)",
-                      borderRight: "1px solid rgba(255, 255, 255, 0.2)",
-                      fontSize: "13px",
-                      letterSpacing: "0.3px"
-                    }}>KSA Visa Number</th>
-                    <th style={{
-                      width: "11%",
-                      padding: "14px 16px",
-                      textAlign: "left",
-                      fontWeight: "600",
-                      color: "rgb(26 26 26)",
-                      borderRight: "1px solid rgba(255, 255, 255, 0.2)",
-                      fontSize: "13px",
-                      letterSpacing: "0.3px"
-                    }}>IQAMA</th>
-                    <th style={{
-                      width: "8.5%",
-                      padding: "14px 16px",
-                      textAlign: "left",
-                      fontWeight: "600",
-                      color: "rgb(26 26 26)",
-                      borderRight: "1px solid rgba(255, 255, 255, 0.2)",
-                      fontSize: "13px",
-                      letterSpacing: "0.3px"
-                    }}>Sb No</th>
-                    <th style={{
-                      width: "8.5%",
-                      padding: "14px 16px",
-                      textAlign: "left",
-                      fontWeight: "600",
-                      color: "rgb(26 26 26)",
-                      fontSize: "13px",
-                      letterSpacing: "0.3px"
-                    }}>Border No</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {previewTableData.map((row, rowIndex) => (
-                    <tr
-                      key={rowIndex}
-                      style={{
-                        borderBottom: rowIndex < 4 ? "1px solid #f0f0f0" : "none",
-                        backgroundColor: rowIndex % 2 === 1 ? "#fafbfc" : "#ffffff",
-                        transition: "background-color 0.2s ease"
-                      }}
-                      onMouseEnter={(e) => {
-                        e.currentTarget.style.backgroundColor = "#f8f9ff";
-                      }}
-                      onMouseLeave={(e) => {
-                        e.currentTarget.style.backgroundColor = rowIndex % 2 === 1 ? "#fafbfc" : "#ffffff";
-                      }}
-                    >
-                      {[
-                        { field: "name", placeholder: "Enter name" },
-                        { field: "movementType", placeholder: "", type: "select" },
-                        { field: "rank", placeholder: "Enter rank" },
-                        { field: "nationality", placeholder: "Enter nationality" },
-                        { field: "passportNumber", placeholder: "Enter passport number" },
-                        { field: "passportExpiry", placeholder: "YYYY-MM-DD" },
-                        { field: "visaNumber", placeholder: "Enter KSA visa number" },
-                        { field: "iqama", placeholder: "Enter IQAMA" },
-                        { field: "sbNo", placeholder: "Enter Sb No" },
-                        { field: "borderNo", placeholder: "Enter Border No" }
-                      ].map((col, colIndex) => {
-                        const isLast = colIndex === 9;
-                        const hasValue = row[col.field] && row[col.field].trim() !== "";
-                        return (
-                          <td
-                            key={col.field}
-                            style={{
-                              padding: "10px 16px",
-                              borderRight: !isLast ? "1px solid #f0f0f0" : "none",
-                              position: "relative"
-                            }}
-                          >
-                            {col.type === "select" ? (
-                              <select
-                                value={row[col.field]}
-                                onChange={(e) => handlePreviewTableCellChange(rowIndex, col.field, e.target.value)}
-                                onPaste={(e) => handlePreviewTablePaste(e, rowIndex, colIndex)}
-                                style={{
-                                  width: "100%",
-                                  border: "none",
-                                  outline: "none",
-                                  backgroundColor: hasValue ? "#f0f7ff" : "transparent",
-                                  color: hasValue ? "#1a1a1a" : "#999",
-                                  fontSize: "13px",
-                                  fontFamily: "\"Open Sans\", sans-serif",
-                                  padding: "8px 10px",
-                                  borderRadius: "4px",
-                                  transition: "all 0.2s ease",
-                                  fontWeight: hasValue ? "500" : "400",
-                                  boxSizing: "border-box",
-                                  cursor: "pointer"
-                                }}
-                              >
-                                <option value="">Select</option>
-                                <option value="Sign On">Sign On</option>
-                                <option value="Sign Off">Sign Off</option>
-                              </select>
-                            ) : (
-                              <input
-                                type="text"
-                                value={row[col.field]}
-                                onChange={(e) => handlePreviewTableCellChange(rowIndex, col.field, e.target.value)}
-                                onPaste={(e) => handlePreviewTablePaste(e, rowIndex, colIndex)}
-                                onFocus={(e) => {
-                                  e.target.style.backgroundColor = "#ffffff";
-                                  e.target.style.boxShadow = "0 0 0 2px rgba(42, 0, 255, 0.1)";
-                                  e.target.style.borderRadius = "4px";
-                                }}
-                                onBlur={(e) => {
-                                  e.target.style.backgroundColor = hasValue ? "#f0f7ff" : "transparent";
-                                  e.target.style.boxShadow = "none";
-                                }}
-                                placeholder={col.placeholder}
-                                readOnly={col.readOnly}
-                                style={{
-                                  width: "100%",
-                                  border: "none",
-                                  outline: "none",
-                                  backgroundColor: hasValue ? "#f0f7ff" : "transparent",
-                                  color: hasValue ? "#1a1a1a" : "#999",
-                                  fontSize: "13px",
-                                  fontFamily: "\"Open Sans\", sans-serif",
-                                  padding: "8px 10px",
-                                  borderRadius: "4px",
-                                  transition: "all 0.2s ease",
-                                  fontWeight: hasValue ? "500" : "400",
-                                  boxSizing: "border-box"
-                                }}
-                              />
-                            )}
-                          </td>
-                        );
-                      })}
+                <table style={{
+                  width: "100%",
+                  minWidth: "1360px",
+                  borderCollapse: "collapse",
+                  fontFamily: "\"Open Sans\", sans-serif",
+                  fontSize: "13px",
+                  tableLayout: "fixed"
+                }}>
+                  <thead>
+                    <tr style={{
+                      background: '#e0e7ff',
+                      color: "rgb(26 26 26)"
+                    }}>
+                      <th style={{
+                        width: "15%",
+                        padding: "14px 16px",
+                        textAlign: "left",
+                        fontWeight: "600",
+                        color: "rgb(26 26 26)",
+                        borderRight: "1px solid rgba(255, 255, 255, 0.2)",
+                        fontSize: "13px",
+                        letterSpacing: "0.3px"
+                      }}>Name</th>
+                      <th style={{
+                        width: "14%",
+                        padding: "14px 16px",
+                        textAlign: "left",
+                        fontWeight: "600",
+                        color: "rgb(26 26 26)",
+                        borderRight: "1px solid rgba(255, 255, 255, 0.2)",
+                        fontSize: "13px",
+                        letterSpacing: "0.3px"
+                      }}>Sign On / Sign Off</th>
+                      <th style={{
+                        width: "12%",
+                        padding: "14px 16px",
+                        textAlign: "left",
+                        fontWeight: "600",
+                        color: "rgb(26 26 26)",
+                        borderRight: "1px solid rgba(255, 255, 255, 0.2)",
+                        fontSize: "13px",
+                        letterSpacing: "0.3px"
+                      }}>Rank</th>
+                      <th style={{
+                        width: "11%",
+                        padding: "14px 16px",
+                        textAlign: "left",
+                        fontWeight: "600",
+                        color: "rgb(26 26 26)",
+                        borderRight: "1px solid rgba(255, 255, 255, 0.2)",
+                        fontSize: "13px",
+                        letterSpacing: "0.3px"
+                      }}>Nationality</th>
+                      <th style={{
+                        width: "12%",
+                        padding: "14px 16px",
+                        textAlign: "left",
+                        fontWeight: "600",
+                        color: "rgb(26 26 26)",
+                        borderRight: "1px solid rgba(255, 255, 255, 0.2)",
+                        fontSize: "13px",
+                        letterSpacing: "0.3px"
+                      }}>Passport Number</th>
+                      <th style={{
+                        width: "12%",
+                        padding: "14px 16px",
+                        textAlign: "left",
+                        fontWeight: "600",
+                        color: "rgb(26 26 26)",
+                        borderRight: "1px solid rgba(255, 255, 255, 0.2)",
+                        fontSize: "13px",
+                        letterSpacing: "0.3px"
+                      }}>Passport Expiry</th>
+                      <th style={{
+                        width: "13%",
+                        padding: "14px 16px",
+                        textAlign: "left",
+                        fontWeight: "600",
+                        color: "rgb(26 26 26)",
+                        borderRight: "1px solid rgba(255, 255, 255, 0.2)",
+                        fontSize: "13px",
+                        letterSpacing: "0.3px"
+                      }}>KSA Visa Number</th>
+                      <th style={{
+                        width: "11%",
+                        padding: "14px 16px",
+                        textAlign: "left",
+                        fontWeight: "600",
+                        color: "rgb(26 26 26)",
+                        borderRight: "1px solid rgba(255, 255, 255, 0.2)",
+                        fontSize: "13px",
+                        letterSpacing: "0.3px"
+                      }}>IQAMA</th>
+                      <th style={{
+                        width: "8.5%",
+                        padding: "14px 16px",
+                        textAlign: "left",
+                        fontWeight: "600",
+                        color: "rgb(26 26 26)",
+                        borderRight: "1px solid rgba(255, 255, 255, 0.2)",
+                        fontSize: "13px",
+                        letterSpacing: "0.3px"
+                      }}>Sb No</th>
+                      <th style={{
+                        width: "8.5%",
+                        padding: "14px 16px",
+                        textAlign: "left",
+                        fontWeight: "600",
+                        color: "rgb(26 26 26)",
+                        fontSize: "13px",
+                        letterSpacing: "0.3px"
+                      }}>Border No</th>
                     </tr>
-                  ))}
-                </tbody>
-              </table>
+                  </thead>
+                  <tbody>
+                    {previewTableData.map((row, rowIndex) => (
+                      <tr
+                        key={rowIndex}
+                        style={{
+                          borderBottom: rowIndex < 4 ? "1px solid #f0f0f0" : "none",
+                          backgroundColor: rowIndex % 2 === 1 ? "#fafbfc" : "#ffffff",
+                          transition: "background-color 0.2s ease"
+                        }}
+                        onMouseEnter={(e) => {
+                          e.currentTarget.style.backgroundColor = "#f8f9ff";
+                        }}
+                        onMouseLeave={(e) => {
+                          e.currentTarget.style.backgroundColor = rowIndex % 2 === 1 ? "#fafbfc" : "#ffffff";
+                        }}
+                      >
+                        {[
+                          { field: "name", placeholder: "Enter name" },
+                          { field: "movementType", placeholder: "", type: "select" },
+                          { field: "rank", placeholder: "Enter rank" },
+                          { field: "nationality", placeholder: "Enter nationality" },
+                          { field: "passportNumber", placeholder: "Enter passport number" },
+                          { field: "passportExpiry", placeholder: "YYYY-MM-DD" },
+                          { field: "visaNumber", placeholder: "Enter KSA visa number" },
+                          { field: "iqama", placeholder: "Enter IQAMA" },
+                          { field: "sbNo", placeholder: "Enter Sb No" },
+                          { field: "borderNo", placeholder: "Enter Border No" }
+                        ].map((col, colIndex) => {
+                          const isLast = colIndex === 9;
+                          const hasValue = row[col.field] && row[col.field].trim() !== "";
+                          return (
+                            <td
+                              key={col.field}
+                              style={{
+                                padding: "10px 16px",
+                                borderRight: !isLast ? "1px solid #f0f0f0" : "none",
+                                position: "relative"
+                              }}
+                            >
+                              {col.type === "select" ? (
+                                <select
+                                  value={row[col.field]}
+                                  onChange={(e) => handlePreviewTableCellChange(rowIndex, col.field, e.target.value)}
+                                  onPaste={(e) => handlePreviewTablePaste(e, rowIndex, colIndex)}
+                                  style={{
+                                    width: "100%",
+                                    border: "none",
+                                    outline: "none",
+                                    backgroundColor: hasValue ? "#f0f7ff" : "transparent",
+                                    color: hasValue ? "#1a1a1a" : "#999",
+                                    fontSize: "13px",
+                                    fontFamily: "\"Open Sans\", sans-serif",
+                                    padding: "8px 10px",
+                                    borderRadius: "4px",
+                                    transition: "all 0.2s ease",
+                                    fontWeight: hasValue ? "500" : "400",
+                                    boxSizing: "border-box",
+                                    cursor: "pointer"
+                                  }}
+                                >
+                                  <option value="">Select</option>
+                                  <option value="Sign On">Sign On</option>
+                                  <option value="Sign Off">Sign Off</option>
+                                </select>
+                              ) : (
+                                <input
+                                  type="text"
+                                  value={row[col.field]}
+                                  onChange={(e) => handlePreviewTableCellChange(rowIndex, col.field, e.target.value)}
+                                  onPaste={(e) => handlePreviewTablePaste(e, rowIndex, colIndex)}
+                                  onFocus={(e) => {
+                                    e.target.style.backgroundColor = "#ffffff";
+                                    e.target.style.boxShadow = "0 0 0 2px rgba(42, 0, 255, 0.1)";
+                                    e.target.style.borderRadius = "4px";
+                                  }}
+                                  onBlur={(e) => {
+                                    e.target.style.backgroundColor = hasValue ? "#f0f7ff" : "transparent";
+                                    e.target.style.boxShadow = "none";
+                                  }}
+                                  placeholder={col.placeholder}
+                                  readOnly={col.readOnly}
+                                  style={{
+                                    width: "100%",
+                                    border: "none",
+                                    outline: "none",
+                                    backgroundColor: hasValue ? "#f0f7ff" : "transparent",
+                                    color: hasValue ? "#1a1a1a" : "#999",
+                                    fontSize: "13px",
+                                    fontFamily: "\"Open Sans\", sans-serif",
+                                    padding: "8px 10px",
+                                    borderRadius: "4px",
+                                    transition: "all 0.2s ease",
+                                    fontWeight: hasValue ? "500" : "400",
+                                    boxSizing: "border-box"
+                                  }}
+                                />
+                              )}
+                            </td>
+                          );
+                        })}
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
               </div>
             </div>
             <div style={{
