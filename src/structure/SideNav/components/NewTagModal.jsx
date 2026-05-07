@@ -7,53 +7,75 @@ import SedresColorPicker from '../../../components/SedresColorPicker/SedresColor
 import { normalizeHexColor } from '../../../components/SedresColorPicker/sedresColorPickerConstants';
 import '../../../design/scss/new-blocker-modal.scss';
 
-/** Sample data — replace with API-driven list when available */
-export const WORKSPACE_BOARD_OPTIONS = [
-  {
-    workspace_id: 1,
-    workspace_name: 'Team A',
-    boards: [
-      { board_id: 1, board_name: 'Strategic Objectives' },
-      { board_id: 2, board_name: 'Operations' },
-    ],
-  },
-  {
-    workspace_id: 2,
-    workspace_name: 'Team B',
-    boards: [{ board_id: 3, board_name: 'Team B Board' }],
-  },
-];
+/** Values sent to kanban_management APIs */
+export const TAG_AVAILABILITY_OPTIONS = ['On-demand', 'Auto', 'Global'];
+
+export function normalizeTagAvailabilityLevel(value) {
+  const raw = String(value ?? '').trim();
+  if (TAG_AVAILABILITY_OPTIONS.includes(raw)) return raw;
+  const compact = raw.replace(/\s+/g, '').toLowerCase();
+  if (compact === 'ondemand' || compact === 'on-demand') return 'On-demand';
+  if (compact === 'auto') return 'Auto';
+  if (compact === 'global') return 'Global';
+  return TAG_AVAILABILITY_OPTIONS[0];
+}
 
 const COLOR_PICKER_PORTAL_Z = 10800;
 
-/** Tag availability values — keep in sync with TagsModal / API */
-export const TAG_AVAILABILITY_OPTIONS = ['On Demand', 'Auto', 'Global'];
+function boardKey(id) {
+  return String(id ?? '');
+}
 
 function sortSelectedBoards(selected, sourceWorkspaces) {
   const order = new Map();
   let i = 0;
   sourceWorkspaces.forEach((ws) => {
     ws.boards.forEach((b) => {
-      order.set(b.board_id, i++);
+      order.set(boardKey(b.board_id), i++);
     });
   });
-  return [...selected].sort((a, b) => (order.get(a.board_id) ?? 999) - (order.get(b.board_id) ?? 999));
+  return [...selected].sort(
+    (a, b) =>
+      (order.get(boardKey(a.board_id)) ?? 999) -
+      (order.get(boardKey(b.board_id)) ?? 999)
+  );
 }
 
-const NewTagModal = ({ show, onClose, onSave, workspaceBoardOptions = WORKSPACE_BOARD_OPTIONS }) => {
+const NewTagModal = ({
+  show,
+  onClose,
+  onSave,
+  editingTag,
+  workspaceBoardOptions,
+  workspaceBoardsLoading,
+}) => {
   const [selectedColor, setSelectedColor] = useState('#ffffff');
   const [label, setLabel] = useState('');
-  const [availability, setAvailability] = useState('On Demand');
+  const [availability, setAvailability] = useState(TAG_AVAILABILITY_OPTIONS[0]);
   const [selectedBoards, setSelectedBoards] = useState([]);
   const [isColorPickerOpen, setIsColorPickerOpen] = useState(false);
   const [colorPickerPlacement, setColorPickerPlacement] = useState({ top: 0, left: 0 });
   const [isBoardSelectorOpen, setIsBoardSelectorOpen] = useState(false);
   const [boardSearch, setBoardSearch] = useState('');
+  const [saveSubmitting, setSaveSubmitting] = useState(false);
 
   const colorTriggerRef = useRef(null);
   const colorPickerPopoverRef = useRef(null);
   const boardSelectorRef = useRef(null);
   const addBoardBtnRef = useRef(null);
+
+  const isEditMode = Boolean(editingTag?.tag_id != null && String(editingTag.tag_id) !== '');
+
+  const resetCreateDefaults = useCallback(() => {
+    setSelectedColor('#ffffff');
+    setLabel('');
+    setAvailability(TAG_AVAILABILITY_OPTIONS[0]);
+    setSelectedBoards([]);
+    setIsColorPickerOpen(false);
+    setIsBoardSelectorOpen(false);
+    setBoardSearch('');
+    setSaveSubmitting(false);
+  }, []);
 
   const filteredWorkspaceOptions = useMemo(() => {
     const q = boardSearch.trim().toLowerCase();
@@ -61,25 +83,39 @@ const NewTagModal = ({ show, onClose, onSave, workspaceBoardOptions = WORKSPACE_
     return workspaceBoardOptions
       .map((ws) => {
         const wsMatch = ws.workspace_name.toLowerCase().includes(q);
-        const boards = wsMatch ? ws.boards : ws.boards.filter((b) => b.board_name.toLowerCase().includes(q));
+        const boards = wsMatch
+          ? ws.boards
+          : ws.boards.filter((b) => b.board_name.toLowerCase().includes(q));
         if (boards.length === 0) return null;
         return { ...ws, boards };
       })
       .filter(Boolean);
   }, [boardSearch, workspaceBoardOptions]);
 
-  const selectedIds = useMemo(() => new Set(selectedBoards.map((b) => b.board_id)), [selectedBoards]);
+  const selectedIds = useMemo(
+    () => new Set(selectedBoards.map((b) => boardKey(b.board_id))),
+    [selectedBoards]
+  );
 
   const isWorkspaceFullySelected = useCallback(
-    (ws) => ws.boards.length > 0 && ws.boards.every((b) => selectedIds.has(b.board_id)),
+    (ws) =>
+      ws.boards.length > 0 &&
+      ws.boards.every((b) => selectedIds.has(boardKey(b.board_id))),
     [selectedIds]
   );
 
   const toggleBoard = useCallback((board) => {
+    const key = boardKey(board.board_id);
     setSelectedBoards((prev) => {
-      const exists = prev.some((b) => b.board_id === board.board_id);
-      if (exists) return prev.filter((b) => b.board_id !== board.board_id);
-      return [...prev, { board_id: board.board_id, board_name: board.board_name }];
+      const exists = prev.some((b) => boardKey(b.board_id) === key);
+      if (exists) return prev.filter((b) => boardKey(b.board_id) !== key);
+      return [
+        ...prev,
+        {
+          board_id: board.board_id,
+          board_name: board.board_name,
+        },
+      ];
     });
   }, []);
 
@@ -87,10 +123,15 @@ const NewTagModal = ({ show, onClose, onSave, workspaceBoardOptions = WORKSPACE_
     (ws) => {
       const allOn = isWorkspaceFullySelected(ws);
       setSelectedBoards((prev) => {
-        const ids = new Set(ws.boards.map((b) => b.board_id));
-        if (allOn) return prev.filter((b) => !ids.has(b.board_id));
-        const map = new Map(prev.map((b) => [b.board_id, b]));
-        ws.boards.forEach((b) => map.set(b.board_id, { board_id: b.board_id, board_name: b.board_name }));
+        const ids = new Set(ws.boards.map((b) => boardKey(b.board_id)));
+        if (allOn) return prev.filter((b) => !ids.has(boardKey(b.board_id)));
+        const map = new Map(prev.map((b) => [boardKey(b.board_id), b]));
+        ws.boards.forEach((b) =>
+          map.set(boardKey(b.board_id), {
+            board_id: b.board_id,
+            board_name: b.board_name,
+          })
+        );
         return sortSelectedBoards(Array.from(map.values()), workspaceBoardOptions);
       });
     },
@@ -98,34 +139,76 @@ const NewTagModal = ({ show, onClose, onSave, workspaceBoardOptions = WORKSPACE_
   );
 
   const removeBoardChip = useCallback((boardId) => {
-    setSelectedBoards((prev) => prev.filter((b) => b.board_id !== boardId));
+    const key = boardKey(boardId);
+    setSelectedBoards((prev) =>
+      prev.filter((b) => boardKey(b.board_id) !== key)
+    );
   }, []);
 
-  const resetForm = useCallback(() => {
-    setSelectedColor('#ffffff');
-    setLabel('');
-    setAvailability('On Demand');
-    setSelectedBoards([]);
-    setIsColorPickerOpen(false);
-    setIsBoardSelectorOpen(false);
-    setBoardSearch('');
-  }, []);
-
-  const handleSave = () => {
-    const trimmed = label.trim();
-    if (!trimmed) return;
-    if (!TAG_AVAILABILITY_OPTIONS.includes(availability)) return;
-    const boardsPayload = selectedBoards.map((b) => ({ board_id: b.board_id, board_name: b.board_name }));
-    if (onSave) {
-      onSave({
-        color: normalizeHexColor(selectedColor),
-        label: trimmed,
-        availability,
-        boards: boardsPayload,
-      });
+  useEffect(() => {
+    if (!show) {
+      resetCreateDefaults();
+      return;
     }
-    resetForm();
-    onClose();
+    if (isEditMode) {
+      setSelectedColor(
+        normalizeHexColor(editingTag.color_code ?? '#ffffff')
+      );
+      setLabel(editingTag.label ?? '');
+      setAvailability(
+        normalizeTagAvailabilityLevel(editingTag.availability_level)
+      );
+      const boards = Array.isArray(editingTag.boards)
+        ? editingTag.boards.map((b) => ({
+            board_id: b.board_id,
+            board_name: String(b.board_name ?? ''),
+          }))
+        : [];
+      setSelectedBoards(boards);
+      setIsColorPickerOpen(false);
+      setIsBoardSelectorOpen(false);
+      setBoardSearch('');
+      setSaveSubmitting(false);
+    } else {
+      resetCreateDefaults();
+    }
+  }, [show, isEditMode, editingTag, resetCreateDefaults]);
+
+  const handleSave = async () => {
+    const trimmed = label.trim();
+    if (!trimmed || !TAG_AVAILABILITY_OPTIONS.includes(availability)) return;
+    const board_ids = selectedBoards.map((b) => b.board_id);
+    const color_code = normalizeHexColor(selectedColor);
+
+    setSaveSubmitting(true);
+    try {
+      if (onSave) {
+        await onSave(
+          isEditMode
+            ? {
+                mode: 'edit',
+                tag_id: String(editingTag.tag_id),
+                label: trimmed,
+                availability_level: availability,
+                color_code,
+                board_ids,
+              }
+            : {
+                mode: 'create',
+                label: trimmed,
+                availability_level: availability,
+                color_code,
+                board_ids,
+              }
+        );
+      }
+      resetCreateDefaults();
+      onClose();
+    } catch {
+      /* Parent showed toast; keep form open */
+    } finally {
+      setSaveSubmitting(false);
+    }
   };
 
   const openColorPicker = () => {
@@ -164,12 +247,6 @@ const NewTagModal = ({ show, onClose, onSave, workspaceBoardOptions = WORKSPACE_
     return () => document.removeEventListener('mousedown', onDocMouseDown);
   }, [isBoardSelectorOpen]);
 
-  useEffect(() => {
-    if (!show) {
-      resetForm();
-    }
-  }, [show, resetForm]);
-
   const sortedChips = useMemo(
     () => sortSelectedBoards(selectedBoards, workspaceBoardOptions),
     [selectedBoards, workspaceBoardOptions]
@@ -177,7 +254,60 @@ const NewTagModal = ({ show, onClose, onSave, workspaceBoardOptions = WORKSPACE_
 
   const previewHex = normalizeHexColor(selectedColor);
 
-  const canSave = Boolean(label.trim()) && TAG_AVAILABILITY_OPTIONS.includes(availability);
+  const canSave =
+    Boolean(label.trim()) &&
+    TAG_AVAILABILITY_OPTIONS.includes(availability) &&
+    !saveSubmitting;
+
+  const modalTitle = isEditMode ? 'Edit Card Tag' : 'New Card Tag';
+
+  const boardSelectorBody = () => {
+    if (workspaceBoardsLoading) {
+      return (
+        <div className="new-blocker-board-selector-empty new-blocker-board-selector-loading">
+          Loading boards…
+        </div>
+      );
+    }
+    if (!workspaceBoardOptions.length) {
+      return (
+        <div className="new-blocker-board-selector-empty">
+          No boards available
+        </div>
+      );
+    }
+    if (filteredWorkspaceOptions.length === 0) {
+      return <div className="new-blocker-board-selector-empty">No matches</div>;
+    }
+    return filteredWorkspaceOptions.map((ws) => (
+      <div key={boardKey(ws.workspace_id)} className="new-blocker-workspace-group">
+        <div className="new-blocker-workspace-head">
+          <span className="new-blocker-workspace-title">{ws.workspace_name}</span>
+          <button
+            type="button"
+            className="new-blocker-workspace-select-all"
+            onClick={() => toggleWorkspaceAll(ws)}
+          >
+            {isWorkspaceFullySelected(ws) ? 'Deselect all' : 'Select all'}
+          </button>
+        </div>
+        {ws.boards.map((board) => (
+          <label
+            key={boardKey(board.board_id)}
+            className="new-blocker-board-option"
+          >
+            <input
+              type="checkbox"
+              className="new-blocker-board-checkbox"
+              checked={selectedIds.has(boardKey(board.board_id))}
+              onChange={() => toggleBoard(board)}
+            />
+            <span className="new-blocker-board-option-label">{board.board_name}</span>
+          </label>
+        ))}
+      </div>
+    ));
+  };
 
   return (
     <Modal
@@ -189,7 +319,7 @@ const NewTagModal = ({ show, onClose, onSave, workspaceBoardOptions = WORKSPACE_
       dialogClassName="new-blocker-modal-dialog"
     >
       <Modal.Header className="new-blocker-modal-header">
-        <Modal.Title className="new-blocker-modal-title">New Card Tag</Modal.Title>
+        <Modal.Title className="new-blocker-modal-title">{modalTitle}</Modal.Title>
         <button type="button" className="new-blocker-modal-close" onClick={onClose} aria-label="Close">
           <FiX size={20} />
         </button>
@@ -277,37 +407,7 @@ const NewTagModal = ({ show, onClose, onSave, workspaceBoardOptions = WORKSPACE_
                       aria-label="Filter workspaces and boards"
                     />
                   </div>
-                  <div className="new-blocker-board-selector-scroll">
-                    {filteredWorkspaceOptions.length === 0 ? (
-                      <div className="new-blocker-board-selector-empty">No matches</div>
-                    ) : (
-                      filteredWorkspaceOptions.map((ws) => (
-                        <div key={ws.workspace_id} className="new-blocker-workspace-group">
-                          <div className="new-blocker-workspace-head">
-                            <span className="new-blocker-workspace-title">{ws.workspace_name}</span>
-                            <button
-                              type="button"
-                              className="new-blocker-workspace-select-all"
-                              onClick={() => toggleWorkspaceAll(ws)}
-                            >
-                              {isWorkspaceFullySelected(ws) ? 'Deselect all' : 'Select all'}
-                            </button>
-                          </div>
-                          {ws.boards.map((board) => (
-                            <label key={board.board_id} className="new-blocker-board-option">
-                              <input
-                                type="checkbox"
-                                className="new-blocker-board-checkbox"
-                                checked={selectedIds.has(board.board_id)}
-                                onChange={() => toggleBoard(board)}
-                              />
-                              <span className="new-blocker-board-option-label">{board.board_name}</span>
-                            </label>
-                          ))}
-                        </div>
-                      ))
-                    )}
-                  </div>
+                  <div className="new-blocker-board-selector-scroll">{boardSelectorBody()}</div>
                 </div>
               )}
             </div>
@@ -315,7 +415,10 @@ const NewTagModal = ({ show, onClose, onSave, workspaceBoardOptions = WORKSPACE_
             {sortedChips.length > 0 && (
               <div className="new-blocker-boards-list">
                 {sortedChips.map((b) => (
-                  <span key={b.board_id} className="new-blocker-selected-board-chip">
+                  <span
+                    key={boardKey(b.board_id)}
+                    className="new-blocker-selected-board-chip"
+                  >
                     <span className="new-blocker-selected-board-chip-text">{b.board_name}</span>
                     <button
                       type="button"
@@ -336,7 +439,7 @@ const NewTagModal = ({ show, onClose, onSave, workspaceBoardOptions = WORKSPACE_
         <button
           type="button"
           className="new-blocker-save-btn"
-          onClick={handleSave}
+          onClick={() => handleSave()}
           disabled={!canSave}
         >
           Save
@@ -356,7 +459,7 @@ const NewTagModal = ({ show, onClose, onSave, workspaceBoardOptions = WORKSPACE_
           >
             <SedresColorPicker
               popoverRef={colorPickerPopoverRef}
-              popoverId="new-tag-color-picker"
+              popoverId={isEditMode ? 'edit-tag-color-picker' : 'new-tag-color-picker'}
               initialHex={previewHex}
               onApply={(hex) => {
                 setSelectedColor(normalizeHexColor(hex));
@@ -364,7 +467,7 @@ const NewTagModal = ({ show, onClose, onSave, workspaceBoardOptions = WORKSPACE_
               }}
               onCancel={closeColorPicker}
               ariaLabel="Pick tag color"
-              hexInputId="newTagColorHex"
+              hexInputId={isEditMode ? 'editTagColorHex' : 'newTagColorHex'}
             />
           </div>,
           document.body
@@ -377,18 +480,38 @@ NewTagModal.propTypes = {
   show: PropTypes.bool.isRequired,
   onClose: PropTypes.func.isRequired,
   onSave: PropTypes.func,
+  editingTag: PropTypes.shape({
+    tag_id: PropTypes.oneOfType([PropTypes.string, PropTypes.number]).isRequired,
+    label: PropTypes.string,
+    availability_level: PropTypes.string,
+    color_code: PropTypes.string,
+    boards: PropTypes.arrayOf(
+      PropTypes.shape({
+        board_id: PropTypes.oneOfType([PropTypes.string, PropTypes.number]),
+        board_name: PropTypes.string,
+      })
+    ),
+  }),
   workspaceBoardOptions: PropTypes.arrayOf(
     PropTypes.shape({
-      workspace_id: PropTypes.number.isRequired,
+      workspace_id: PropTypes.oneOfType([PropTypes.string, PropTypes.number]).isRequired,
       workspace_name: PropTypes.string.isRequired,
       boards: PropTypes.arrayOf(
         PropTypes.shape({
-          board_id: PropTypes.number.isRequired,
+          board_id: PropTypes.oneOfType([PropTypes.string, PropTypes.number]).isRequired,
           board_name: PropTypes.string.isRequired,
         })
       ).isRequired,
     })
   ),
+  workspaceBoardsLoading: PropTypes.bool,
+};
+
+NewTagModal.defaultProps = {
+  onSave: undefined,
+  editingTag: null,
+  workspaceBoardOptions: [],
+  workspaceBoardsLoading: false,
 };
 
 export default NewTagModal;

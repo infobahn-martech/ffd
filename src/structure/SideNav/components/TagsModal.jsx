@@ -1,35 +1,11 @@
 import { useState, useRef, useEffect } from 'react';
-import { FiX, FiFilter, FiPlus, FiMoreVertical, FiInfo } from 'react-icons/fi';
+import { FiX, FiFilter, FiPlus, FiMoreVertical, FiInfo, FiAlertCircle } from 'react-icons/fi';
 import { Modal } from 'react-bootstrap';
-import NewTagModal from './NewTagModal';
+import NewTagModal, { normalizeTagAvailabilityLevel } from './NewTagModal';
+import useKanbanManagementReducer from '../../../store/KanbanManagementReducer';
 import '../../../design/scss/blockers-modal.scss';
 
-// Tags data
-const tagsData = [
-  {
-    id: 1,
-    label: 'HAHA',
-    icon: { color: '#FCD34D', symbol: 'usb' }, // Yellow
-    availabilityLevel: 'On Demand',
-    boards: ['Team B', 'Team A', 'Strategic Objectives'],
-  },
-  {
-    id: 2,
-    label: 'Waiting on others',
-    icon: { color: '#A78BFA', symbol: 'hourglass' }, // Purple
-    availabilityLevel: 'Auto',
-    boards: ['Team B', 'Team A', 'Strategic Objectives'],
-  },
-  {
-    id: 3,
-    label: 'Waiting on us',
-    icon: { color: '#EF4444', symbol: 'hourglass' }, // Red
-    availabilityLevel: 'Global',
-    boards: ['Team B', 'Team A', 'Strategic Objectives'],
-  },
-];
-
-/** Color swatch for tag row (no icon — matches new tag creation UX) */
+/** Color swatch for tag row */
 const TagColorSwatch = ({ color }) => (
   <div
     className="tags-modal-tag-color-swatch"
@@ -39,25 +15,47 @@ const TagColorSwatch = ({ color }) => (
 );
 
 const TagsModal = ({ show, onClose }) => {
+  const tags = useKanbanManagementReducer((s) => s.tags);
+  const tagsLoading = useKanbanManagementReducer((s) => s.tagsLoading);
+  const tagsError = useKanbanManagementReducer((s) => s.tagsError);
+  const workspaceBoardOptions = useKanbanManagementReducer((s) => s.workspaceBoardOptions);
+  const workspaceBoardsLoading = useKanbanManagementReducer((s) => s.workspaceBoardsLoading);
+
+  const fetchKanbanTags = useKanbanManagementReducer((s) => s.fetchKanbanTags);
+  const fetchWorkspaceBoardPickerOptions = useKanbanManagementReducer(
+    (s) => s.fetchWorkspaceBoardPickerOptions
+  );
+  const createKanbanTag = useKanbanManagementReducer((s) => s.createKanbanTag);
+  const updateKanbanTagRecord = useKanbanManagementReducer((s) => s.updateKanbanTagRecord);
+  const disableKanbanTagRecord = useKanbanManagementReducer((s) => s.disableKanbanTagRecord);
+  const deleteKanbanTagRecord = useKanbanManagementReducer((s) => s.deleteKanbanTagRecord);
+
   const [filterValue, setFilterValue] = useState('');
   const [selectedItems, setSelectedItems] = useState([]);
   const [showLabelFilter, setShowLabelFilter] = useState(false);
   const [showAvailabilityFilter, setShowAvailabilityFilter] = useState(false);
   const [showBoardsFilter, setShowBoardsFilter] = useState(false);
   const [showNewTagModal, setShowNewTagModal] = useState(false);
+  const [editingTag, setEditingTag] = useState(null);
+
   const [openActionMenuId, setOpenActionMenuId] = useState(null);
   const selectAllCheckboxRef = useRef(null);
   const actionMenuRefs = useRef({});
 
-  const filteredTags = tagsData.filter(tag =>
+  useEffect(() => {
+    if (!show) return;
+    fetchKanbanTags();
+    fetchWorkspaceBoardPickerOptions();
+  }, [show, fetchKanbanTags, fetchWorkspaceBoardPickerOptions]);
+
+  const filteredTags = tags.filter((tag) =>
     tag.label.toLowerCase().includes(filterValue.toLowerCase())
   );
 
   const handleCheckboxChange = (tagId) => {
-    setSelectedItems(prev =>
-      prev.includes(tagId)
-        ? prev.filter(id => id !== tagId)
-        : [...prev, tagId]
+    const id = String(tagId);
+    setSelectedItems((prev) =>
+      prev.includes(id) ? prev.filter((x) => x !== id) : [...prev, id]
     );
   };
 
@@ -65,21 +63,21 @@ const TagsModal = ({ show, onClose }) => {
     if (selectedItems.length === filteredTags.length) {
       setSelectedItems([]);
     } else {
-      setSelectedItems(filteredTags.map(b => b.id));
+      setSelectedItems(filteredTags.map((b) => String(b.id)));
     }
   };
 
-  const isAllSelected = selectedItems.length === filteredTags.length && filteredTags.length > 0;
-  const isIndeterminate = selectedItems.length > 0 && selectedItems.length < filteredTags.length;
+  const isAllSelected =
+    selectedItems.length === filteredTags.length && filteredTags.length > 0;
+  const isIndeterminate =
+    selectedItems.length > 0 && selectedItems.length < filteredTags.length;
 
-  // Set indeterminate state for select all checkbox
   useEffect(() => {
     if (selectAllCheckboxRef.current) {
       selectAllCheckboxRef.current.indeterminate = isIndeterminate;
     }
   }, [isIndeterminate]);
 
-  // Close action menu when clicking outside
   useEffect(() => {
     const handleClickOutside = (event) => {
       if (openActionMenuId !== null) {
@@ -100,21 +98,77 @@ const TagsModal = ({ show, onClose }) => {
 
   const handleActionMenuToggle = (tagId, event) => {
     event.stopPropagation();
-    setOpenActionMenuId(openActionMenuId === tagId ? null : tagId);
+    const id = String(tagId);
+    setOpenActionMenuId(openActionMenuId === id ? null : id);
   };
 
-  const handleEdit = (tagId) => {
-    console.log('Edit tag:', tagId);
+  const handleEdit = (tag) => {
+    setEditingTag({
+      tag_id: tag.id,
+      label: tag.label,
+      availability_level: normalizeTagAvailabilityLevel(tag.availabilityLevel),
+      color_code: tag.color_code,
+      boards: tag.boardsRaw,
+    });
+    setShowNewTagModal(true);
     setOpenActionMenuId(null);
+  };
+
+  const handleDisable = async (tagId) => {
+    const id = String(tagId);
+    setOpenActionMenuId(null);
+    try {
+      await disableKanbanTagRecord(id);
+    } catch {
+      /* AlertReducer in store */
+    }
   };
 
   const handleDelete = (tagId) => {
-    console.log('Delete tag:', tagId);
+    const id = String(tagId);
     setOpenActionMenuId(null);
+    if (
+      !window.confirm(
+        'Delete this tag? This cannot be undone.'
+      )
+    ) {
+      return;
+    }
+    (async () => {
+      try {
+        await deleteKanbanTagRecord(id);
+      } catch {
+        /* AlertReducer in store */
+      }
+    })();
   };
 
   const handleAddTag = () => {
+    setEditingTag(null);
     setShowNewTagModal(true);
+  };
+
+  const closeTagFormModal = () => {
+    setShowNewTagModal(false);
+    setEditingTag(null);
+  };
+
+  const handleTagFormSave = async (payload) => {
+    if (payload.mode === 'create') {
+      await createKanbanTag({
+        color_code: payload.color_code,
+        label: payload.label,
+        availability_level: payload.availability_level,
+        board_ids: payload.board_ids,
+      });
+    } else {
+      await updateKanbanTagRecord(payload.tag_id, {
+        label: payload.label,
+        availability_level: payload.availability_level,
+        color_code: payload.color_code,
+        board_ids: payload.board_ids,
+      });
+    }
   };
 
   return (
@@ -137,7 +191,6 @@ const TagsModal = ({ show, onClose }) => {
         </button>
       </Modal.Header>
       <Modal.Body className="blockers-modal-body">
-        {/* Filter Bar */}
         <div className="blockers-filter-bar">
           <div className="blockers-filter-left">
             <button
@@ -156,16 +209,6 @@ const TagsModal = ({ show, onClose }) => {
             />
           </div>
           <div className="blockers-filter-right">
-            {/* <div className="blockers-selected-dropdown">
-              <span className="blockers-selected-text">
-                {selectedItems.length === 0
-                  ? 'No items selected'
-                  : `${selectedItems.length} item${selectedItems.length > 1 ? 's' : ''} selected`}
-              </span>
-              <svg width="12" height="12" viewBox="0 0 12 12" fill="none">
-                <path d="M3 4.5L6 7.5L9 4.5" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
-              </svg>
-            </div> */}
             <button
               type="button"
               className="blockers-add-btn"
@@ -177,7 +220,20 @@ const TagsModal = ({ show, onClose }) => {
           </div>
         </div>
 
-        {/* Table */}
+        {tagsError && (
+          <div className="tags-modal-error-banner" role="alert">
+            <FiAlertCircle size={18} aria-hidden />
+            <span className="tags-modal-error-text">{tagsError}</span>
+            <button
+              type="button"
+              className="tags-modal-error-retry"
+              onClick={() => fetchKanbanTags()}
+            >
+              Retry
+            </button>
+          </div>
+        )}
+
         <div className="blockers-table-wrapper blockers-table-wrapper--tags-min-body">
           <table className="blockers-table">
             <thead>
@@ -252,19 +308,25 @@ const TagsModal = ({ show, onClose }) => {
               </tr>
             </thead>
             <tbody>
-              {filteredTags.length === 0 ? (
+              {tagsLoading && filteredTags.length === 0 ? (
+                <tr>
+                  <td colSpan="6" className="tags-modal-loading-cell">
+                    Loading tags…
+                  </td>
+                </tr>
+              ) : filteredTags.length === 0 ? (
                 <tr>
                   <td colSpan="6" style={{ textAlign: 'center', padding: '40px', color: '#999' }}>
                     No tags found
                   </td>
                 </tr>
               ) : (
-                filteredTags.map(tag => (
+                filteredTags.map((tag) => (
                   <tr key={tag.id}>
                     <td>
                       <input
                         type="checkbox"
-                        checked={selectedItems.includes(tag.id)}
+                        checked={selectedItems.includes(String(tag.id))}
                         onChange={() => handleCheckboxChange(tag.id)}
                         style={{
                           width: '18px',
@@ -274,7 +336,7 @@ const TagsModal = ({ show, onClose }) => {
                       />
                     </td>
                     <td>
-                      <TagColorSwatch color={tag.icon.color} />
+                      <TagColorSwatch color={tag.color_code} />
                     </td>
                     <td>
                       <span className="blockers-label-text">{tag.label}</span>
@@ -283,13 +345,13 @@ const TagsModal = ({ show, onClose }) => {
                       <span className="blockers-availability-text">{tag.availabilityLevel}</span>
                     </td>
                     <td>
-                      <span className="blockers-boards-text">
-                        {tag.boards.join(', ')}
-                      </span>
+                      <span className="blockers-boards-text">{tag.boardsJoined}</span>
                     </td>
                     <td>
                       <div
-                        ref={(el) => (actionMenuRefs.current[tag.id] = el)}
+                        ref={(el) => {
+                          actionMenuRefs.current[String(tag.id)] = el;
+                        }}
                         style={{ position: 'relative' }}
                       >
                         <button
@@ -300,14 +362,21 @@ const TagsModal = ({ show, onClose }) => {
                         >
                           <FiMoreVertical size={18} />
                         </button>
-                        {openActionMenuId === tag.id && (
+                        {openActionMenuId === String(tag.id) && (
                           <div className="blockers-action-menu">
                             <button
                               type="button"
                               className="blockers-action-menu-item"
-                              onClick={() => handleEdit(tag.id)}
+                              onClick={() => handleEdit(tag)}
                             >
                               Edit
+                            </button>
+                            <button
+                              type="button"
+                              className="blockers-action-menu-item"
+                              onClick={() => handleDisable(tag.id)}
+                            >
+                              Disable
                             </button>
                             <button
                               type="button"
@@ -329,17 +398,14 @@ const TagsModal = ({ show, onClose }) => {
       </Modal.Body>
       <NewTagModal
         show={showNewTagModal}
-        onClose={() => setShowNewTagModal(false)}
-        onSave={(tagData) => {
-          // Handle saving the new tag
-          console.log('New tag data:', tagData);
-          // You can add logic here to update the tags list
-          setShowNewTagModal(false);
-        }}
+        onClose={closeTagFormModal}
+        editingTag={editingTag}
+        workspaceBoardOptions={workspaceBoardOptions}
+        workspaceBoardsLoading={workspaceBoardsLoading}
+        onSave={handleTagFormSave}
       />
     </Modal>
   );
 };
 
 export default TagsModal;
-
