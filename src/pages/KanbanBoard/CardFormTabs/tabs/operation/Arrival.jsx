@@ -1,10 +1,10 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useMemo, useRef } from "react";
 import PropTypes from "prop-types";
 import GroupSettingsIcon from "../../../../../assets/images/cv.png";
 import { notify } from "../../../../../components/Toaster";
 import { buildArrivalReportBody, buildArrivalDailyReportBody } from "../../services/sendReportBodyBuilder";
 import appointmentAcceptanceService from "../../../../../services/appointmentAcceptanceService";
-import arrivalService from "../../../../../services/arrivalService";
+import useArrivalReducer from "../../../../../store/ArrivalReducer";
 import {
   DynamicDateTimeFields,
   FormField,
@@ -17,6 +17,10 @@ import {
   OperationSaveSection,
 } from "./components/OperationCommon";
 import { extractReportTemplateFields } from "./operationReportTemplate";
+import {
+  applyArrivalGetDetailToForm,
+  extractArrivalReportDraftFromDetail,
+} from "./arrivalDetailApply";
 
 function Arrival({
   formValues,
@@ -112,7 +116,12 @@ function Arrival({
     subject: "Report - Arrival",
     message: "",
   });
-  const [isSavingArrival, setIsSavingArrival] = useState(false);
+  const fetchArrivalDetail = useArrivalReducer((s) => s.fetchArrivalDetail);
+  const saveArrivalDetailAction = useArrivalReducer((s) => s.saveArrivalDetail);
+  const sendArrivalReportAction = useArrivalReducer((s) => s.sendArrivalReport);
+  const isSavingArrival = useArrivalReducer((s) => s.isSavingArrival);
+  const isSendingArrivalReport = useArrivalReducer((s) => s.isSendingArrivalReport);
+  const emailPreviewFromDetailRef = useRef(false);
 
   const crewImmigrationStatusOptions = [
     { value: "Completed", label: "Completed" },
@@ -144,11 +153,70 @@ function Arrival({
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
+  const arrivalEventFieldsApplyKey = useMemo(
+    () =>
+      [
+        ...(Array.isArray(arrivalStageFields) ? arrivalStageFields : []),
+        ...(Array.isArray(postArrivalStageFields) ? postArrivalStageFields : []),
+      ]
+        .map((f) =>
+          [f?.keyPrefix, f?.event_type_id ?? f?.time_object_id ?? "", f?.event_name ?? ""].join(":")
+        )
+        .join("|"),
+    [arrivalStageFields, postArrivalStageFields]
+  );
+
+  useEffect(() => {
+    emailPreviewFromDetailRef.current = false;
+  }, [callId]);
+
+  useEffect(() => {
+    if (isViewOnly) return undefined;
+    const resolvedCallId = resolveFormId(callId, formValues?.call_id, formValues?.callId);
+    if (!resolvedCallId) return undefined;
+
+    let cancelled = false;
+
+    const run = async () => {
+      const detail = await fetchArrivalDetail({ callId: resolvedCallId });
+      if (cancelled || !detail) return;
+
+      applyArrivalGetDetailToForm({
+        responseBody: detail,
+        arrivalEventFields: arrivalStageFields,
+        postArrivalEventFields: postArrivalStageFields,
+        handleChange,
+      });
+
+      const savedDraft = extractArrivalReportDraftFromDetail(detail);
+      if (savedDraft) {
+        emailPreviewFromDetailRef.current = true;
+        setReportDraft((prev) => ({
+          ...prev,
+          reportType: savedDraft.reportType || prev.reportType,
+          from: savedDraft.from || prev.from,
+          to: savedDraft.to,
+          cc: savedDraft.cc,
+          subject: savedDraft.subject || prev.subject,
+          message: savedDraft.message || prev.message,
+        }));
+      }
+    };
+
+    run();
+
+    return () => {
+      cancelled = true;
+    };
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- formValues / handleChange omitted to avoid refetch loops
+  }, [callId, isViewOnly, arrivalEventFieldsApplyKey, fetchArrivalDetail]);
+
   useEffect(() => {
     let cancelled = false;
 
     const loadArrivalTemplate = async () => {
       if (reportDraft.reportType !== "arrival") return;
+      if (emailPreviewFromDetailRef.current) return;
 
       const resolvedCallId = resolveFormId(callId, formValues?.call_id, formValues?.callId);
       const resolvedPortId = resolveFormId(portId, formValues?.port_id, formValues?.portId);
@@ -188,6 +256,7 @@ function Arrival({
   }, [callId, portId, callTypeId, formValues, arrivalStageFields, postArrivalStageFields, reportDraft.reportType]);
 
   const handleReportTypeChange = (nextType) => {
+    emailPreviewFromDetailRef.current = false;
     setReportDraft((prev) => ({
       ...prev,
       reportType: nextType,
@@ -231,7 +300,7 @@ function Arrival({
     fd.append("arrival_report", arrivalReport);
 
     try {
-      await arrivalService.saveArrivalDetail(fd);
+      await saveArrivalDetailAction({ formData: fd });
       notify("Arrival saved successfully.", "success");
       return true;
     } catch (error) {
@@ -241,47 +310,51 @@ function Arrival({
   };
 
   const handleSaveAndSendReport = async () => {
-    setIsSavingArrival(true);
+    const resolvedCallId = resolveFormId(callId, formValues?.call_id, formValues?.callId);
+    if (!resolvedCallId) {
+      notify("Call ID is required to send report.", "error");
+      return;
+    }
+
+    if (!String(reportDraft.to || "").trim()) {
+      notify("Recipient email is required.", "error");
+      return;
+    }
+
+    if (!isValidEmailList(reportDraft.to)) {
+      notify("Please enter valid recipient email(s).", "error");
+      return;
+    }
+
+    const reportTypeId = reportDraft.reportType === "daily" ? 3 : 4;
+    const createdBy = resolveCreatedBy();
+    const body = reportDraft.message || getArrivalMessage(reportDraft.reportType) || "";
+    const from = String(reportDraft.from ?? "").trim();
+    const to = String(reportDraft.to ?? "").trim();
+    const cc = String(reportDraft.cc ?? "").trim();
+    const subject = String(reportDraft.subject ?? "").trim();
+
     try {
-      const resolvedCallId = resolveFormId(callId, formValues?.call_id, formValues?.callId);
-      if (!resolvedCallId) {
-        notify("Call ID is required to send report.", "error");
-        return;
-      }
-
-      if (!String(reportDraft.to || "").trim()) {
-        notify("Recipient email is required.", "error");
-        return;
-      }
-
-      if (!isValidEmailList(reportDraft.to)) {
-        notify("Please enter valid recipient email(s).", "error");
-        return;
-      }
-
-      const reportTypeId = reportDraft.reportType === "daily" ? 3 : 4;
-      const createdBy = resolveCreatedBy();
-      const body = reportDraft.message || getArrivalMessage(reportDraft.reportType) || "";
-      const from = String(reportDraft.from ?? "").trim();
-      const to = String(reportDraft.to ?? "").trim();
-      const cc = String(reportDraft.cc ?? "").trim();
-      const subject = String(reportDraft.subject ?? "").trim();
-
-      await arrivalService.sendReport({
-        call_id: resolvedCallId,
-        report_type_id: reportTypeId,
-        from,
-        to,
-        cc,
-        from_email: from,
-        to_email: to,
-        cc_emails: cc,
-        subject,
-        message: body,
-        body,
-        ...(createdBy ? { created_by: createdBy } : {}),
+      await sendArrivalReportAction({
+        payload: {
+          call_id: resolvedCallId,
+          report_type_id: reportTypeId,
+          from,
+          to,
+          cc,
+          from_email: from,
+          to_email: to,
+          cc_emails: cc,
+          subject,
+          message: body,
+          body,
+          ...(createdBy ? { created_by: createdBy } : {}),
+        },
       });
-      notify(`${reportDraft.reportType === "daily" ? "Daily" : "Arrival"} report sent successfully.`, "success");
+      notify(
+        `${reportDraft.reportType === "daily" ? "Daily" : "Arrival"} report sent successfully.`,
+        "success"
+      );
     } catch (error) {
       const msg =
         error?.response?.data?.message ||
@@ -289,18 +362,11 @@ function Arrival({
         error?.message ||
         "Failed to send report.";
       notify(msg, "error");
-    } finally {
-      setIsSavingArrival(false);
     }
   };
 
   const handleSaveOnly = async () => {
-    setIsSavingArrival(true);
-    try {
-      await saveArrivalData();
-    } finally {
-      setIsSavingArrival(false);
-    }
+    await saveArrivalData();
   };
 
   const arrivalPreviewAttachments = [
@@ -420,7 +486,7 @@ function Arrival({
                   onChange={handleReportDraftChange}
                   onReportTypeChange={handleReportTypeChange}
                   onSend={handleSaveAndSendReport}
-                  isSending={isSavingArrival}
+                  isSending={isSendingArrivalReport || isSavingArrival}
                   isViewOnly={isViewOnly}
                 />
               </OperationFormCard>
