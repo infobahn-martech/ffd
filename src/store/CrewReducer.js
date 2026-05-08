@@ -5,10 +5,36 @@ import callFileService from '../services/callFileService';
 
 const useCrewReducer = create((set) => ({
     crews: null,
+    /** Crew rows from POST crew/get_crew_list; null = not loaded yet */
+    callCrewList: null,
+    isCallCrewListLoading: false,
     isLoading: false,
     isBeingUpdated: false,
     errorMessage: '',
     totalCrewCount: null,
+
+    fetchCallCrewList: async ({ payload, cb } = {}) => {
+        try {
+            set({ isCallCrewListLoading: true });
+            const { data } = await crewService.getCrewList(payload || {});
+            const root = data?.data ?? data;
+            const crew = root?.crew ?? (Array.isArray(root) ? root : []);
+            const list = Array.isArray(crew) ? crew : [];
+            set({
+                callCrewList: list,
+                isCallCrewListLoading: false,
+            });
+            cb && cb(list);
+            return list;
+        } catch (err) {
+            const { error } = useAlertReducer.getState();
+            set({
+                errorMessage: err?.response?.data?.message ?? err.message,
+                isCallCrewListLoading: false,
+            });
+            error(err?.response?.data?.message ?? err.message);
+        }
+    },
 
     fetchAllCrews: async ({ params, cb } = {}) => {
         try {

@@ -280,11 +280,71 @@ const generateCrewFromExcel = (excelData) => {
   return crewData;
 };
 
+const hasDocCopy = (value) => {
+  if (value == null) return false;
+  if (typeof value === "boolean") return value;
+  const s = String(value).trim();
+  if (!s || s.toLowerCase() === "null") return false;
+  return true;
+};
+
+const mapWorkflowStatus = (value, fallback = "pending") => {
+  if (value == null || value === "") return fallback;
+  const v = String(value).toLowerCase().replace(/[\s_-]+/g, "");
+  if (v === "done" || v === "completed" || v === "complete") return "done";
+  if (v === "inprogress" || v === "processing" || v === "active") return "inProgress";
+  if (v === "rejected" || v === "failed") return "rejected";
+  if (v === "pending") return "rejected";
+  return fallback;
+};
+
+/** Maps crew/get_crew_list row + API extras into table row shape */
+const normalizeCrewListItem = (apiRow, index) => {
+  const crewIdRaw = apiRow.crew_id ?? apiRow.id;
+  const id = crewIdRaw != null && String(crewIdRaw).trim() !== ""
+    ? (Number.isNaN(Number(crewIdRaw)) ? crewIdRaw : Number(crewIdRaw))
+    : index + 1;
+
+  return {
+    ...apiRow,
+    id,
+    crew_id: apiRow.crew_id,
+    crewName: apiRow.crew_name ?? apiRow.crewName ?? "",
+    nationality: apiRow.nationality ?? "",
+    rank: apiRow.rank ?? "",
+    passportNo: apiRow.passport_no ?? apiRow.passportNo ?? "",
+    passportExpiry: apiRow.passport_expiry ?? "",
+    visaNumber: apiRow.visa_no ?? "",
+    visaExpiry: apiRow.visa_expiry ?? "",
+    iqamaNumber: apiRow.iqama_no ?? "",
+    iqamaExpiry: apiRow.iqama_expiry ?? "",
+    movementType: apiRow.movement_type ?? "",
+    dateOfBirth: apiRow.date_of_birth ?? "",
+    sbNo: apiRow.sb_no ?? "",
+    borderNo: apiRow.border_no ?? "",
+    passport: hasDocCopy(apiRow.passport_copy) ? "done" : "rejected",
+    iqama: hasDocCopy(apiRow.iqama_copy) ? "done" : "rejected",
+    visa: hasDocCopy(apiRow.visa_copy) ? "done" : "rejected",
+    cgPass: hasDocCopy(apiRow.cg_pass_copy ?? apiRow.cg_pass) ? "done" : "rejected",
+    zawilPass: hasDocCopy(apiRow.zawil_pass_copy ?? apiRow.zawil_pass) ? "done" : "rejected",
+    transport: mapWorkflowStatus(apiRow.transport_status ?? apiRow.transport),
+    transportCount: Number(apiRow.transport_count ?? apiRow.transportCount ?? 0) || 0,
+    hotel: mapWorkflowStatus(apiRow.hotel_status ?? apiRow.hotel),
+    hotelCount: Number(apiRow.hotel_count ?? apiRow.hotelCount ?? 0) || 0,
+    launchHire: mapWorkflowStatus(apiRow.launch_hire_status ?? apiRow.launchHire),
+    medicalService: mapWorkflowStatus(apiRow.medical_status ?? apiRow.medical_service_status ?? apiRow.medicalService),
+    medicalServiceCount: Number(apiRow.medical_count ?? apiRow.medical_service_count ?? apiRow.medicalServiceCount ?? 0) || 0,
+  };
+};
+
 const CrewContent = ({ formValues, handleChange, cardColor, onNavigateToTab, launchHireOnly = false }) => {
   const crewList = formValues.crewList || [];
   const saveCrewData = useCrewReducer((state) => state.saveCrewData);
   const getCrewTemplate = useCrewReducer((state) => state.getCrewTemplate);
   const importCrewFile = useCrewReducer((state) => state.importCrewFile);
+  const callCrewList = useCrewReducer((state) => state.callCrewList);
+  const isCallCrewListLoading = useCrewReducer((state) => state.isCallCrewListLoading);
+  const fetchCallCrewList = useCrewReducer((state) => state.fetchCallCrewList);
   const [selectedCrewIds, setSelectedCrewIds] = useState([]);
   const [showActionDropdown, setShowActionDropdown] = useState(false);
   const [isDownloadingTemplate, setIsDownloadingTemplate] = useState(false);
@@ -325,7 +385,64 @@ const CrewContent = ({ formValues, handleChange, cardColor, onNavigateToTab, lau
   const cgPassFileInputRefs = useRef({});
   const zawilPassFileInputRefs = useRef({});
 
-  const displayCrewList = crewList.length > 0 ? crewList : [];
+  const normalizedApiCrewList = useMemo(() => {
+    if (callCrewList === null) return null;
+    return callCrewList.map(normalizeCrewListItem);
+  }, [callCrewList]);
+
+  const displayCrewList = useMemo(() => {
+    if (crewList.length > 0) return crewList;
+    if (normalizedApiCrewList !== null) return normalizedApiCrewList;
+    return [];
+  }, [crewList, normalizedApiCrewList]);
+
+  useEffect(() => {
+    let cancelled = false;
+    (async () => {
+      let resolvedCallId = Number(formValues?.call_id ?? formValues?.callId);
+      let resolvedVesselId = Number(formValues?.vessel_id ?? formValues?.vesselId);
+
+      if ((!resolvedCallId || !resolvedVesselId) && resolvedCallId) {
+        try {
+          const { data: callDetailResponse } = await callFileService.getCallDetail(resolvedCallId);
+          const callDetailData =
+            callDetailResponse?.data?.[0] ||
+            callDetailResponse?.data ||
+            callDetailResponse?.detail ||
+            callDetailResponse;
+          if (!resolvedCallId) {
+            resolvedCallId = Number(callDetailData?.call_id ?? callDetailData?.id);
+          }
+          if (!resolvedVesselId) {
+            resolvedVesselId = Number(callDetailData?.vessel_id);
+          }
+        } catch (e) {
+          console.error("Crew list: failed to resolve call detail:", e);
+        }
+      }
+
+      if (!resolvedCallId || !resolvedVesselId || cancelled) return;
+
+      await fetchCallCrewList({
+        payload: { call_id: resolvedCallId, vessel_id: resolvedVesselId },
+        cb: () => {
+          if (!cancelled) {
+            setIsFileUploaded(true);
+            setIsCrewListVisible(true);
+          }
+        },
+      });
+    })();
+    return () => {
+      cancelled = true;
+    };
+  }, [
+    formValues?.call_id,
+    formValues?.callId,
+    formValues?.vessel_id,
+    formValues?.vesselId,
+    fetchCallCrewList,
+  ]);
 
   // Editable preview table data (max 5 rows)
   const [previewTableData, setPreviewTableData] = useState(createEmptyPreviewRows);
@@ -2021,10 +2138,16 @@ const CrewContent = ({ formValues, handleChange, cardColor, onNavigateToTab, lau
                 </tr>
               </thead>
               <tbody>
-                {displayCrewList.length === 0 ? (
+                {isCallCrewListLoading && crewList.length === 0 && callCrewList === null ? (
+                  <tr>
+                    <td colSpan="12" style={{ textAlign: "center", padding: "40px", color: "#666" }}>
+                      Loading crew list…
+                    </td>
+                  </tr>
+                ) : displayCrewList.length === 0 ? (
                   <tr>
                     <td colSpan="12" style={{ textAlign: "center", padding: "40px", color: "#999" }}>
-                      No crew data found. Please upload a valid Excel file.
+                      No crew data found. Upload a crew list file or add crew from preview.
                     </td>
                   </tr>
                 ) : (
@@ -2076,7 +2199,7 @@ const CrewContent = ({ formValues, handleChange, cardColor, onNavigateToTab, lau
                             }}
                           />
                           <div style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: "4px" }}>
-                            <Tooltip id={`passport-upload-${crew.id}`} place="right" positionStrategy="fixed" content={passportDocuments[crew.id] ? "Uploaded" : "Upload"} />
+                            <Tooltip id={`passport-upload-${crew.id}`} place="right" positionStrategy="fixed" content={(passportDocuments[crew.id] || hasDocCopy(crew.passport_copy)) ? "Uploaded" : "Upload"} />
                             <button
                               type="button"
                               onClick={() => passportFileInputRefs.current[crew.id]?.click()}
@@ -2088,7 +2211,7 @@ const CrewContent = ({ formValues, handleChange, cardColor, onNavigateToTab, lau
                                 padding: "4px",
                                 display: "flex",
                                 alignItems: "center",
-                                color: passportDocuments[crew.id] ? STATUS_COLORS.done : STATUS_COLORS.rejected,
+                                color: (passportDocuments[crew.id] || hasDocCopy(crew.passport_copy)) ? STATUS_COLORS.done : STATUS_COLORS.rejected,
                                 transition: "all 0.2s ease"
                               }}
                               onMouseEnter={(e) => {
@@ -2123,7 +2246,7 @@ const CrewContent = ({ formValues, handleChange, cardColor, onNavigateToTab, lau
                             }}
                           />
                           <div style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: "4px" }}>
-                            <Tooltip id={`iqama-upload-${crew.id}`} place="right" positionStrategy="fixed" content={iqamaDocuments[crew.id] ? "Uploaded" : "Upload"} />
+                            <Tooltip id={`iqama-upload-${crew.id}`} place="right" positionStrategy="fixed" content={(iqamaDocuments[crew.id] || hasDocCopy(crew.iqama_copy)) ? "Uploaded" : "Upload"} />
                             <button
                               type="button"
                               onClick={() => iqamaFileInputRefs.current[crew.id]?.click()}
@@ -2135,7 +2258,7 @@ const CrewContent = ({ formValues, handleChange, cardColor, onNavigateToTab, lau
                                 padding: "4px",
                                 display: "flex",
                                 alignItems: "center",
-                                color: iqamaDocuments[crew.id] ? STATUS_COLORS.done : STATUS_COLORS.rejected,
+                                color: (iqamaDocuments[crew.id] || hasDocCopy(crew.iqama_copy)) ? STATUS_COLORS.done : STATUS_COLORS.rejected,
                                 transition: "all 0.2s ease"
                               }}
                               onMouseEnter={(e) => {
@@ -2170,7 +2293,7 @@ const CrewContent = ({ formValues, handleChange, cardColor, onNavigateToTab, lau
                             }}
                           />
                           <div style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: "4px" }}>
-                            <Tooltip id={`visa-upload-${crew.id}`} place="right" positionStrategy="fixed" content={visaDocuments[crew.id] ? "Uploaded" : "Upload"} />
+                            <Tooltip id={`visa-upload-${crew.id}`} place="right" positionStrategy="fixed" content={(visaDocuments[crew.id] || hasDocCopy(crew.visa_copy)) ? "Uploaded" : "Upload"} />
                             <button
                               type="button"
                               onClick={() => visaFileInputRefs.current[crew.id]?.click()}
@@ -2182,7 +2305,7 @@ const CrewContent = ({ formValues, handleChange, cardColor, onNavigateToTab, lau
                                 padding: "4px",
                                 display: "flex",
                                 alignItems: "center",
-                                color: visaDocuments[crew.id] ? STATUS_COLORS.done : STATUS_COLORS.rejected,
+                                color: (visaDocuments[crew.id] || hasDocCopy(crew.visa_copy)) ? STATUS_COLORS.done : STATUS_COLORS.rejected,
                                 transition: "all 0.2s ease"
                               }}
                               onMouseEnter={(e) => {
@@ -2217,7 +2340,7 @@ const CrewContent = ({ formValues, handleChange, cardColor, onNavigateToTab, lau
                             }}
                           />
                           <div style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: "4px" }}>
-                            <Tooltip id={`cg-pass-upload-${crew.id}`} place="right" positionStrategy="fixed" content={cgPassDocuments[crew.id] ? "Uploaded" : "Upload"} />
+                            <Tooltip id={`cg-pass-upload-${crew.id}`} place="right" positionStrategy="fixed" content={(cgPassDocuments[crew.id] || hasDocCopy(crew.cg_pass_copy ?? crew.cg_pass)) ? "Uploaded" : "Upload"} />
                             <button
                               type="button"
                               onClick={() => cgPassFileInputRefs.current[crew.id]?.click()}
@@ -2229,7 +2352,7 @@ const CrewContent = ({ formValues, handleChange, cardColor, onNavigateToTab, lau
                                 padding: "4px",
                                 display: "flex",
                                 alignItems: "center",
-                                color: cgPassDocuments[crew.id] ? STATUS_COLORS.done : STATUS_COLORS.rejected,
+                                color: (cgPassDocuments[crew.id] || hasDocCopy(crew.cg_pass_copy ?? crew.cg_pass)) ? STATUS_COLORS.done : STATUS_COLORS.rejected,
                                 transition: "all 0.2s ease"
                               }}
                               onMouseEnter={(e) => {
@@ -2264,7 +2387,7 @@ const CrewContent = ({ formValues, handleChange, cardColor, onNavigateToTab, lau
                             }}
                           />
                           <div style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: "4px" }}>
-                            <Tooltip id={`zawil-pass-upload-${crew.id}`} place="left" positionStrategy="fixed" content={zawilPassDocuments[crew.id] ? "Uploaded" : "Upload"} />
+                            <Tooltip id={`zawil-pass-upload-${crew.id}`} place="left" positionStrategy="fixed" content={(zawilPassDocuments[crew.id] || hasDocCopy(crew.zawil_pass_copy ?? crew.zawil_pass)) ? "Uploaded" : "Upload"} />
                             <button
                               type="button"
                               onClick={() => zawilPassFileInputRefs.current[crew.id]?.click()}
@@ -2276,7 +2399,7 @@ const CrewContent = ({ formValues, handleChange, cardColor, onNavigateToTab, lau
                                 padding: "4px",
                                 display: "flex",
                                 alignItems: "center",
-                                color: zawilPassDocuments[crew.id] ? STATUS_COLORS.done : STATUS_COLORS.rejected,
+                                color: (zawilPassDocuments[crew.id] || hasDocCopy(crew.zawil_pass_copy ?? crew.zawil_pass)) ? STATUS_COLORS.done : STATUS_COLORS.rejected,
                                 transition: "all 0.2s ease"
                               }}
                               onMouseEnter={(e) => {
