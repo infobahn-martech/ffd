@@ -1,4 +1,4 @@
-import { useEffect, useState, useRef, useMemo } from "react";
+import { useEffect, useState, useRef, useMemo, useCallback } from "react";
 import PropTypes from "prop-types";
 import * as XLSX from "xlsx";
 import { Tooltip } from "react-tooltip";
@@ -354,7 +354,10 @@ const CrewContent = ({ formValues, handleChange, cardColor, onNavigateToTab, lau
   const includeIqamaInBulkFlow = Boolean(formValues?.includeIqamaInBulkFlow);
 
   const [isFileUploaded, setIsFileUploaded] = useState(hasCrewList);
-  const [isCrewListVisible, setIsCrewListVisible] = useState(hasCrewList);
+  /** Until false, show centered loader while resolving crew from API for this call/vessel */
+  const [crewAvailabilityChecked, setCrewAvailabilityChecked] = useState(false);
+  /** User chose "Upload New File" — show upload UI even if API still has crew */
+  const [preferLocalUploadView, setPreferLocalUploadView] = useState(false);
   const [isWizardOpen, setIsWizardOpen] = useState(false);
   const [wizardSlideDirection, setWizardSlideDirection] = useState("forward");
   const [wizardWarning, setWizardWarning] = useState("");
@@ -396,53 +399,68 @@ const CrewContent = ({ formValues, handleChange, cardColor, onNavigateToTab, lau
     return [];
   }, [crewList, normalizedApiCrewList]);
 
+  const resolveCallAndVesselIds = useCallback(async () => {
+    let resolvedCallId = Number(formValues?.call_id ?? formValues?.callId);
+    let resolvedVesselId = Number(formValues?.vessel_id ?? formValues?.vesselId);
+
+    if ((!resolvedCallId || !resolvedVesselId) && resolvedCallId) {
+      try {
+        const { data: callDetailResponse } = await callFileService.getCallDetail(resolvedCallId);
+        const callDetailData =
+          callDetailResponse?.data?.[0] ||
+          callDetailResponse?.data ||
+          callDetailResponse?.detail ||
+          callDetailResponse;
+        if (!resolvedCallId) {
+          resolvedCallId = Number(callDetailData?.call_id ?? callDetailData?.id);
+        }
+        if (!resolvedVesselId) {
+          resolvedVesselId = Number(callDetailData?.vessel_id);
+        }
+      } catch (e) {
+        console.error("Crew list: failed to resolve call detail:", e);
+      }
+    }
+
+    return { resolvedCallId, resolvedVesselId };
+  }, [formValues?.call_id, formValues?.callId, formValues?.vessel_id, formValues?.vesselId]);
+
+  const refreshCallCrewListFromApi = useCallback(async () => {
+    const { resolvedCallId, resolvedVesselId } = await resolveCallAndVesselIds();
+    if (!resolvedCallId || !resolvedVesselId) return;
+    await fetchCallCrewList({
+      payload: { call_id: resolvedCallId, vessel_id: resolvedVesselId },
+    });
+  }, [resolveCallAndVesselIds, fetchCallCrewList]);
+
   useEffect(() => {
     let cancelled = false;
+    setPreferLocalUploadView(false);
+    setCrewAvailabilityChecked(false);
+
     (async () => {
-      let resolvedCallId = Number(formValues?.call_id ?? formValues?.callId);
-      let resolvedVesselId = Number(formValues?.vessel_id ?? formValues?.vesselId);
+      try {
+        const { resolvedCallId, resolvedVesselId } = await resolveCallAndVesselIds();
+        if (cancelled) return;
 
-      if ((!resolvedCallId || !resolvedVesselId) && resolvedCallId) {
-        try {
-          const { data: callDetailResponse } = await callFileService.getCallDetail(resolvedCallId);
-          const callDetailData =
-            callDetailResponse?.data?.[0] ||
-            callDetailResponse?.data ||
-            callDetailResponse?.detail ||
-            callDetailResponse;
-          if (!resolvedCallId) {
-            resolvedCallId = Number(callDetailData?.call_id ?? callDetailData?.id);
-          }
-          if (!resolvedVesselId) {
-            resolvedVesselId = Number(callDetailData?.vessel_id);
-          }
-        } catch (e) {
-          console.error("Crew list: failed to resolve call detail:", e);
+        if (!resolvedCallId || !resolvedVesselId) {
+          useCrewReducer.setState({ callCrewList: [] });
+          return;
         }
+
+        useCrewReducer.setState({ callCrewList: null });
+        await fetchCallCrewList({
+          payload: { call_id: resolvedCallId, vessel_id: resolvedVesselId },
+        });
+      } finally {
+        if (!cancelled) setCrewAvailabilityChecked(true);
       }
-
-      if (!resolvedCallId || !resolvedVesselId || cancelled) return;
-
-      await fetchCallCrewList({
-        payload: { call_id: resolvedCallId, vessel_id: resolvedVesselId },
-        cb: () => {
-          if (!cancelled) {
-            setIsFileUploaded(true);
-            setIsCrewListVisible(true);
-          }
-        },
-      });
     })();
+
     return () => {
       cancelled = true;
     };
-  }, [
-    formValues?.call_id,
-    formValues?.callId,
-    formValues?.vessel_id,
-    formValues?.vesselId,
-    fetchCallCrewList,
-  ]);
+  }, [resolveCallAndVesselIds, fetchCallCrewList]);
 
   // Editable preview table data (max 5 rows)
   const [previewTableData, setPreviewTableData] = useState(createEmptyPreviewRows);
@@ -532,7 +550,13 @@ const CrewContent = ({ formValues, handleChange, cardColor, onNavigateToTab, lau
         formData.append("call_id", String(resolvedCallId));
         formData.append("vessel_id", String(resolvedVesselId));
         formData.append("file", file);
-        await importCrewFile({ formData });
+        try {
+          await importCrewFile({ formData });
+          await refreshCallCrewListFromApi();
+          setPreferLocalUploadView(false);
+        } catch (importErr) {
+          console.error("Error importing crew file:", importErr);
+        }
       }
     } catch (error) {
       console.error("Error importing crew file:", error);
@@ -559,11 +583,9 @@ const CrewContent = ({ formValues, handleChange, cardColor, onNavigateToTab, lau
         handleChange("crewUploadedFileName")(fileNameEvent);
         if (crewData.length > 0) {
           setIsFileUploaded(true);
-          setIsCrewListVisible(true);
           setIsWizardOpen(false);
         } else {
           setIsFileUploaded(true);
-          setIsCrewListVisible(true);
         }
       } catch (error) {
         console.error("Error parsing file:", error);
@@ -571,13 +593,11 @@ const CrewContent = ({ formValues, handleChange, cardColor, onNavigateToTab, lau
         const syntheticEvent = { target: { value: [] } };
         handleChange("crewList")(syntheticEvent);
         setIsFileUploaded(true);
-        setIsCrewListVisible(false);
         setUploadedFileName(file.name);
         // Save uploaded file name to formValues
         const fileNameEvent = { target: { value: file.name } };
         handleChange("crewUploadedFileName")(fileNameEvent);
         setIsWizardOpen(false);
-        setIsCrewListVisible(true);
       }
     };
     reader.readAsArrayBuffer(file);
@@ -808,10 +828,9 @@ const CrewContent = ({ formValues, handleChange, cardColor, onNavigateToTab, lau
     let resolvedCallId = Number(formValues?.call_id ?? formValues?.callId);
     let resolvedVesselId = Number(formValues?.vessel_id ?? formValues?.vesselId);
 
-    if (!resolvedVesselId) {
+    if (!resolvedVesselId && resolvedCallId) {
       try {
-        const lookupCallId = resolvedCallId || 1;
-        const { data: callDetailResponse } = await callFileService.getCallDetail(lookupCallId);
+        const { data: callDetailResponse } = await callFileService.getCallDetail(resolvedCallId);
         const callDetailData =
           callDetailResponse?.data?.[0] ||
           callDetailResponse?.data ||
@@ -855,6 +874,8 @@ const CrewContent = ({ formValues, handleChange, cardColor, onNavigateToTab, lau
 
     try {
       await saveCrewData({ payload: saveCrewPayload });
+      await refreshCallCrewListFromApi();
+      setPreferLocalUploadView(false);
     } catch (error) {
       console.error("Failed to save crew:", error);
       alert("Failed to save crew data. Please try again.");
@@ -869,7 +890,6 @@ const CrewContent = ({ formValues, handleChange, cardColor, onNavigateToTab, lau
     const fileNameEvent = { target: { value: `Preview Data (${filledRows.length} crew member${filledRows.length > 1 ? 's' : ''})` } };
     handleChange("crewUploadedFileName")(fileNameEvent);
     setIsFileUploaded(true);
-    setIsCrewListVisible(true);
     setIsWizardOpen(false);
     const stepsAfterCrewUpload = buildWizardSteps({
       includeIqama: includeIqamaInBulkFlow,
@@ -888,8 +908,12 @@ const CrewContent = ({ formValues, handleChange, cardColor, onNavigateToTab, lau
     setActiveStepIndex(1);
   };
 
-  // Determine what to show based on upload progress
-  const showCrewList = isFileUploaded && isCrewListVisible;
+  const apiHasCrew = Array.isArray(callCrewList) && callCrewList.length > 0;
+  const formHasCrew = crewList.length > 0;
+  const showCrewListTable =
+    crewAvailabilityChecked &&
+    !preferLocalUploadView &&
+    (apiHasCrew || formHasCrew);
   const activeStep = useMemo(() => steps[activeStepIndex] || null, [steps, activeStepIndex]);
   const isWizardCompleted = useMemo(() => steps.length > 0 && steps.every((step) => step.status === WIZARD_STEP_STATUS.COMPLETED), [steps]);
 
@@ -1098,7 +1122,6 @@ const CrewContent = ({ formValues, handleChange, cardColor, onNavigateToTab, lau
   const handleOpenWizardFromCrewUpload = () => {
     // Crew Bulk Upload is temporarily hidden; keep direct flow to crew list.
     setIsWizardOpen(false);
-    setIsCrewListVisible(true);
   };
 
   const handleWizardClose = () => {
@@ -1114,7 +1137,6 @@ const CrewContent = ({ formValues, handleChange, cardColor, onNavigateToTab, lau
 
   const handleOpenCrewList = () => {
     setIsWizardOpen(false);
-    setIsCrewListVisible(true);
   };
 
   // Handle individual passport document upload
@@ -1249,9 +1271,28 @@ const CrewContent = ({ formValues, handleChange, cardColor, onNavigateToTab, lau
   };
   const activeStepFileNames = activeStep?.uploadedFile?.map((item) => item.name).filter(Boolean) || [];
 
+  if (!crewAvailabilityChecked) {
+    return (
+      <div
+        style={{
+          display: "flex",
+          justifyContent: "center",
+          alignItems: "center",
+          minHeight: "360px",
+          width: "100%",
+          padding: "48px 24px",
+        }}
+      >
+        <div className="spinner-border text-primary" role="status" style={{ width: "3rem", height: "3rem" }}>
+          <span className="visually-hidden">Loading crew list...</span>
+        </div>
+      </div>
+    );
+  }
+
   return (
     <>
-      {!showCrewList ? (
+      {!showCrewListTable ? (
         // Crew Excel Upload Section
         <div
           className="crew-upload-sections-container"
@@ -1838,8 +1879,8 @@ const CrewContent = ({ formValues, handleChange, cardColor, onNavigateToTab, lau
               <button
                 type="button"
                 onClick={() => {
+                  setPreferLocalUploadView(true);
                   setIsFileUploaded(false);
-                  setIsCrewListVisible(false);
                   setIsWizardOpen(false);
                   setUploadedFileName("");
                   const syntheticEvent = { target: { value: [] } };
