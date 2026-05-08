@@ -117,15 +117,57 @@ const collectLocalFilesForSavePayload = (uploadedFilesList) => {
     .filter((f) => f instanceof File);
 };
 
+const normalizeChecklistFilename = (value) =>
+  String(value ?? "")
+    .toLowerCase()
+    .normalize("NFKD")
+    .replace(/[\u0300-\u036f]/g, "")
+    .replace(/[^a-z0-9]+/g, "_")
+    .replace(/_+/g, "_")
+    .replace(/^_+|_+$/g, "");
+
+const getNormalizedChecklistFileName = (entry) => {
+  if (!entry) return "";
+  const rawName =
+    entry instanceof File
+      ? entry.name
+      : entry?.name ?? entry?.fileName ?? entry?.file?.name ?? "";
+  return normalizeChecklistFilename(rawName);
+};
+
+const dedupeChecklistFilesByNormalizedName = (entries) => {
+  const list = Array.isArray(entries) ? entries : [];
+  const seen = new Set();
+  const out = [];
+
+  list.forEach((entry) => {
+    const normalizedName = getNormalizedChecklistFileName(entry);
+    const dedupeKey =
+      normalizedName ||
+      String(
+        entry?.id ??
+          (entry?.file instanceof File
+            ? `${entry.file.name}_${entry.file.size ?? ""}_${entry.file.lastModified ?? ""}`
+            : "")
+      );
+    if (!dedupeKey || seen.has(dedupeKey)) return;
+    seen.add(dedupeKey);
+    out.push(entry);
+  });
+
+  return out;
+};
+
 /** Drop local File rows that already appear on the server list (e.g. after save + refetch). */
 const filterLocalsNotReflectedOnBackend = (localEntries, backendEntries) => {
   const backends = Array.isArray(backendEntries) ? backendEntries : [];
   return (Array.isArray(localEntries) ? localEntries : []).filter((entry) => {
     const pf = entry?.file instanceof File ? entry.file : null;
     if (!pf) return false;
+    const normalizedPendingName = normalizeChecklistFilename(pf.name);
     const nameMatch = (b) => {
-      const bn = String(b?.name ?? b?.fileName ?? "").trim();
-      return bn && bn === String(pf.name || "").trim();
+      const normalizedBackendName = getNormalizedChecklistFileName(b);
+      return normalizedBackendName && normalizedBackendName === normalizedPendingName;
     };
     const duplicate = backends.some((b) => {
       if (b?.file instanceof File) return false;
@@ -493,11 +535,15 @@ function Checklist({
               const pendingLocals = [...legacySingle, ...normalizedLegacy].filter(
                 (e) => e?.file instanceof File && e.fromApi !== true
               );
-              const localsStillPending = filterLocalsNotReflectedOnBackend(
-                pendingLocals,
-                baseBackendFiles
-              );
-              const mergedFiles = [...baseBackendFiles, ...localsStillPending];
+              const hasSavedItemBackendState = Array.isArray(savedItem?.apiUploadedFiles);
+              const localsStillPending = hasSavedItemBackendState
+                ? []
+                : filterLocalsNotReflectedOnBackend(pendingLocals, baseBackendFiles);
+              // Keep backend files first so they remain source-of-truth on duplicate names.
+              const mergedFiles = dedupeChecklistFilesByNormalizedName([
+                ...baseBackendFiles,
+                ...localsStillPending,
+              ]);
 
               next[item.id] = {
                 checked: savedItem ? savedItem.checked === true : existing.checked === true,
@@ -573,20 +619,21 @@ function Checklist({
       formData.append("checklist_type_id", String(block.typeId));
 
       const items = [];
-      block.tree.forEach((section, sectionIndex) => {
-        const fileFieldName = `files_${sectionIndex + 1}[]`;
+      block.tree.forEach((section) => {
         const sectionItems = flattenTreeItems([section]);
         sectionItems.forEach((item) => {
           const d = itemsData[item.id] || {};
           const checklistItemId = getChecklistItemIdFromUiItem(item);
+          const resolvedChecklistItemId = checklistItemId || item.checklist_item_id || item.id;
           items.push({
-            checklist_item_id: checklistItemId || item.checklist_item_id || item.id,
+            checklist_item_id: resolvedChecklistItemId,
             is_checked: d.checked === true ? 1 : 0,
             remarks: d.remarks || "",
             expiry_date: d.expiryDate || "",
           });
           // Only new local File blobs — never re-post backend file metadata.
           // TODO: Backend delete API needed to persist removals from `removedFiles`; session hide does not change GET.
+          const fileFieldName = `files_${resolvedChecklistItemId}[]`;
           collectLocalFilesForSavePayload(d.uploadedFiles).forEach((file) => {
             formData.append(fileFieldName, file);
           });
