@@ -2212,8 +2212,9 @@ const CrewContent = ({ formValues, handleChange, cardColor, onNavigateToTab, lau
               </button>
             </div>
           </div>
-          <div className="table-wrapper table-responsive crew-table-container">
-            <table className="table table-striped crew-table" style={{ "--card-color": "#e2e6ff", tableLayout: "fixed", width: "100%" }}>
+          <div className="crew-table-wrapper">
+            <div className="table-wrapper table-responsive crew-table-container crew-table-scroll">
+              <table className="table table-striped crew-table crew-list-table" style={{ "--card-color": "#e2e6ff", tableLayout: "fixed", width: "100%" }}>
               <thead>
                 <tr>
                   <th style={{ width: "40px" }}>
@@ -2652,39 +2653,40 @@ const CrewContent = ({ formValues, handleChange, cardColor, onNavigateToTab, lau
                   ))
                 )}
               </tbody>
-            </table>
-          </div>
-          <div className="crew-pagination">
-            <div className="crew-pagination-info">
-              Showing {startCrewItem}-{endCrewItem} of {totalCrewItems}
+              </table>
             </div>
-            <div className="crew-pagination-actions">
-              <button
-                type="button"
-                className="crew-pagination-btn"
-                disabled={effectiveCrewPage <= 1}
-                onClick={() => setCrewPage((prev) => Math.max(1, prev - 1))}
-              >
-                Previous
-              </button>
-              {paginationPages.map((pageNum) => (
+            <div className="crew-pagination">
+              <div className="crew-pagination-info">
+                Showing {startCrewItem}-{endCrewItem} of {totalCrewItems}
+              </div>
+              <div className="crew-pagination-actions">
                 <button
-                  key={pageNum}
                   type="button"
-                  className={`crew-pagination-btn${pageNum === effectiveCrewPage ? " active" : ""}`}
-                  onClick={() => setCrewPage(pageNum)}
+                  className="crew-pagination-btn"
+                  disabled={effectiveCrewPage <= 1}
+                  onClick={() => setCrewPage((prev) => Math.max(1, prev - 1))}
                 >
-                  {pageNum}
+                  Previous
                 </button>
-              ))}
-              <button
-                type="button"
-                className="crew-pagination-btn"
-                disabled={effectiveCrewPage >= totalCrewPages}
-                onClick={() => setCrewPage((prev) => Math.min(totalCrewPages, prev + 1))}
-              >
-                Next
-              </button>
+                {paginationPages.map((pageNum) => (
+                  <button
+                    key={pageNum}
+                    type="button"
+                    className={`crew-pagination-btn${pageNum === effectiveCrewPage ? " active" : ""}`}
+                    onClick={() => setCrewPage(pageNum)}
+                  >
+                    {pageNum}
+                  </button>
+                ))}
+                <button
+                  type="button"
+                  className="crew-pagination-btn"
+                  disabled={effectiveCrewPage >= totalCrewPages}
+                  onClick={() => setCrewPage((prev) => Math.min(totalCrewPages, prev + 1))}
+                >
+                  Next
+                </button>
+              </div>
             </div>
           </div>
         </>
