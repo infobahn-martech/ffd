@@ -1,8 +1,10 @@
-import { useEffect, useState, useRef, useMemo, useCallback } from "react";
+import { useEffect, useState, useRef, useMemo, useCallback, forwardRef } from "react";
 import PropTypes from "prop-types";
 import * as XLSX from "xlsx";
 import { Tooltip } from "react-tooltip";
 import "react-tooltip/dist/react-tooltip.css";
+import DatePicker from "react-datepicker";
+import "react-datepicker/dist/react-datepicker.css";
 import { FiDownload } from "react-icons/fi";
 import { YesIcon, NoIcon } from "./Husbandry.components";
 import CustomModal from "../../../../../../components/CustomModal";
@@ -123,6 +125,64 @@ const WIZARD_STEP_STATUS = {
   ACTIVE: "active",
   LOCKED: "locked",
   ERROR: "error"
+};
+
+const PREMIUM_DATEPICKER_PROPS = {
+  dateFormat: "dd/MM/yyyy",
+  placeholderText: "",
+  className: "form-control premium-date-input",
+  popperClassName: "premium-datepicker-popper",
+  calendarClassName: "premium-datepicker-calendar",
+  showPopperArrow: false,
+};
+
+const PREVIEW_TABLE_INPUT_STYLE = {
+  width: "100%",
+  border: "none",
+  outline: "none",
+  fontSize: "13px",
+  fontFamily: "\"Open Sans\", sans-serif",
+  padding: "6px 10px",
+  borderRadius: "4px",
+  transition: "all 0.2s ease",
+  boxSizing: "border-box",
+  height: "32px",
+};
+
+const PreviewDateInput = forwardRef(({ value, onClick, hasValue, onFocus, onBlur }, ref) => (
+  <input
+    ref={ref}
+    type="text"
+    value={value || ""}
+    onClick={onClick}
+    readOnly
+    onFocus={onFocus}
+    onBlur={onBlur}
+    style={{
+      ...PREVIEW_TABLE_INPUT_STYLE,
+      backgroundColor: hasValue ? "#f0f7ff" : "transparent",
+      color: hasValue ? "#1a1a1a" : "#999",
+      fontWeight: hasValue ? "500" : "400",
+      cursor: "pointer",
+    }}
+  />
+));
+
+const parseISODate = (value) => {
+  if (!value) return null;
+  const raw = String(value);
+  const normalized = /^\d{4}-\d{2}-\d{2}/.test(raw) ? raw.slice(0, 10) : raw;
+  const [year, month, day] = normalized.split("-").map(Number);
+  if (!year || !month || !day) return null;
+  return new Date(year, month - 1, day);
+};
+
+const toISODate = (date) => {
+  if (!date) return "";
+  const year = date.getFullYear();
+  const month = String(date.getMonth() + 1).padStart(2, "0");
+  const day = String(date.getDate()).padStart(2, "0");
+  return `${year}-${month}-${day}`;
 };
 
 const getDefaultBulkStepConfig = (includeIqama = false) => {
@@ -340,6 +400,7 @@ const normalizeCrewListItem = (apiRow, index) => {
 const CrewContent = ({ formValues, handleChange, cardColor, onNavigateToTab, launchHireOnly = false }) => {
   const crewList = formValues.crewList || [];
   const saveCrewData = useCrewReducer((state) => state.saveCrewData);
+  const isBeingUpdated = useCrewReducer((state) => state.isBeingUpdated);
   const getCrewTemplate = useCrewReducer((state) => state.getCrewTemplate);
   const importCrewFile = useCrewReducer((state) => state.importCrewFile);
   const callCrewList = useCrewReducer((state) => state.callCrewList);
@@ -775,6 +836,7 @@ const CrewContent = ({ formValues, handleChange, cardColor, onNavigateToTab, lau
 
   // Handle use preview data - generates crew data from the editable table
   const handleUsePreviewData = async () => {
+    if (isBeingUpdated) return;
     // Filter out empty rows (rows where name is empty)
     const filledRows = previewTableData.filter(row => row.name && row.name.trim() !== "");
 
@@ -782,50 +844,6 @@ const CrewContent = ({ formValues, handleChange, cardColor, onNavigateToTab, lau
       alert("Please enter at least one crew member's name in the table.");
       return;
     }
-
-    const crewData = filledRows.map((row, index) => ({
-      // Existing UI compatibility keys
-      id: index + 1,
-      crewName: row.name.trim() || `Crew Member ${index + 1}`,
-      movementType: row.movementType.trim() || "",
-      signOnOff: row.movementType.trim() || "",
-      rank: row.rank.trim() || "",
-      nationality: row.nationality.trim() || "",
-      passportNo: row.passportNumber.trim() || `P${String(1000000 + index).padStart(7, "0")}`,
-      passportExpiry: row.passportExpiry.trim() || "",
-      visaNumber: row.visaNumber.trim() || "",
-      ksaVisaNumber: row.visaNumber.trim() || "",
-      iqamaNumber: row.iqama.trim() || "",
-      dateOfBirth: row.dateOfBirth.trim() || "",
-      visaExpiry: row.visaExpiry.trim() || "",
-      iqamaExpiry: row.iqamaExpiry.trim() || "",
-      sbNo: row.sbNo.trim() || "",
-      borderNo: row.borderNo.trim() || "",
-      // Payload-ready keys
-      crew_name: row.name.trim() || `Crew Member ${index + 1}`,
-      date_of_birth: row.dateOfBirth.trim() || "",
-      passport_no: row.passportNumber.trim() || `P${String(1000000 + index).padStart(7, "0")}`,
-      passport_expiry: row.passportExpiry.trim() || "",
-      visa_no: row.visaNumber.trim() || "",
-      visa_expiry: row.visaExpiry.trim() || "",
-      iqama_no: row.iqama.trim() || "",
-      iqama_expiry: row.iqamaExpiry.trim() || "",
-      movement_type: row.movementType.trim() || "",
-      sb_no: row.sbNo.trim() || "",
-      border_no: row.borderNo.trim() || "",
-      transport: ["done", "inProgress", "rejected"][Math.floor(Math.random() * 3)],
-      transportCount: Math.floor(Math.random() * 5) + 1, // Random count between 1-5
-      cgPass: ["done", "inProgress", "rejected"][Math.floor(Math.random() * 3)],
-      zawilPass: ["done", "inProgress", "rejected"][Math.floor(Math.random() * 3)],
-      hotel: ["done", "inProgress", "rejected"][Math.floor(Math.random() * 3)],
-      hotelCount: Math.floor(Math.random() * 5) + 1, // Random count between 1-5
-      launchHire: ["done", "inProgress", "rejected"][Math.floor(Math.random() * 3)],
-      medicalService: ["done", "inProgress", "rejected"][Math.floor(Math.random() * 3)],
-      medicalServiceCount: Math.floor(Math.random() * 5) + 1, // Random count between 1-5
-      visa: ["done", "inProgress", "rejected"][Math.floor(Math.random() * 3)],
-      passport: ["done", "inProgress", "rejected"][Math.floor(Math.random() * 3)],
-      iqama: ["done", "inProgress", "rejected"][Math.floor(Math.random() * 3)],
-    }));
 
     let resolvedCallId = Number(formValues?.call_id ?? formValues?.callId);
     let resolvedVesselId = Number(formValues?.vessel_id ?? formValues?.vesselId);
@@ -1530,16 +1548,16 @@ const CrewContent = ({ formValues, handleChange, cardColor, onNavigateToTab, lau
                         }}
                       >
                         {[
-                          { field: "name", placeholder: "Enter name" },
-                          { field: "movementType", placeholder: "", type: "select" },
-                          { field: "rank", placeholder: "Enter rank" },
-                          { field: "nationality", placeholder: "Enter nationality" },
-                          { field: "passportNumber", placeholder: "Enter passport number" },
-                          { field: "passportExpiry", placeholder: "YYYY-MM-DD" },
-                          { field: "visaNumber", placeholder: "Enter KSA visa number" },
-                          { field: "iqama", placeholder: "Enter IQAMA" },
-                          { field: "sbNo", placeholder: "Enter Sb No" },
-                          { field: "borderNo", placeholder: "Enter Border No" }
+                          { field: "name" },
+                          { field: "movementType", type: "select" },
+                          { field: "rank" },
+                          { field: "nationality" },
+                          { field: "passportNumber" },
+                          { field: "passportExpiry", type: "datepicker" },
+                          { field: "visaNumber" },
+                          { field: "iqama" },
+                          { field: "sbNo" },
+                          { field: "borderNo" }
                         ].map((col, colIndex) => {
                           const isLast = colIndex === 9;
                           const hasValue = row[col.field] && row[col.field].trim() !== "";
@@ -1558,25 +1576,46 @@ const CrewContent = ({ formValues, handleChange, cardColor, onNavigateToTab, lau
                                   onChange={(e) => handlePreviewTableCellChange(rowIndex, col.field, e.target.value)}
                                   onPaste={(e) => handlePreviewTablePaste(e, rowIndex, colIndex)}
                                   style={{
-                                    width: "100%",
-                                    border: "none",
-                                    outline: "none",
                                     backgroundColor: hasValue ? "#f0f7ff" : "transparent",
                                     color: hasValue ? "#1a1a1a" : "#999",
-                                    fontSize: "13px",
-                                    fontFamily: "\"Open Sans\", sans-serif",
-                                    padding: "8px 10px",
-                                    borderRadius: "4px",
-                                    transition: "all 0.2s ease",
+                                    ...PREVIEW_TABLE_INPUT_STYLE,
                                     fontWeight: hasValue ? "500" : "400",
-                                    boxSizing: "border-box",
                                     cursor: "pointer"
                                   }}
                                 >
-                                  <option value="">Select</option>
+                                  <option value=""></option>
                                   <option value="Sign On">Sign On</option>
                                   <option value="Sign Off">Sign Off</option>
                                 </select>
+                              ) : col.type === "datepicker" ? (
+                                <div
+                                  style={{
+                                    width: "100%",
+                                    backgroundColor: hasValue ? "#f0f7ff" : "transparent",
+                                    borderRadius: "4px",
+                                    padding: "0",
+                                  }}
+                                >
+                                  <DatePicker
+                                    {...PREMIUM_DATEPICKER_PROPS}
+                                    wrapperClassName="crew-preview-datepicker-wrapper"
+                                    selected={parseISODate(row.passportExpiry)}
+                                    onChange={(date) => handlePreviewTableCellChange(rowIndex, "passportExpiry", toISODate(date))}
+                                    customInput={
+                                      <PreviewDateInput
+                                        hasValue={hasValue}
+                                        onFocus={(e) => {
+                                          e.target.style.backgroundColor = "#ffffff";
+                                          e.target.style.boxShadow = "0 0 0 2px rgba(42, 0, 255, 0.1)";
+                                        }}
+                                        onBlur={(e) => {
+                                          e.target.style.backgroundColor = hasValue ? "#f0f7ff" : "transparent";
+                                          e.target.style.boxShadow = "none";
+                                        }}
+                                      />
+                                    }
+                                  />
+                                </div>
                               ) : (
                                 <input
                                   type="text"
@@ -1592,21 +1631,12 @@ const CrewContent = ({ formValues, handleChange, cardColor, onNavigateToTab, lau
                                     e.target.style.backgroundColor = hasValue ? "#f0f7ff" : "transparent";
                                     e.target.style.boxShadow = "none";
                                   }}
-                                  placeholder={col.placeholder}
                                   readOnly={col.readOnly}
                                   style={{
-                                    width: "100%",
-                                    border: "none",
-                                    outline: "none",
                                     backgroundColor: hasValue ? "#f0f7ff" : "transparent",
                                     color: hasValue ? "#1a1a1a" : "#999",
-                                    fontSize: "13px",
-                                    fontFamily: "\"Open Sans\", sans-serif",
-                                    padding: "8px 10px",
-                                    borderRadius: "4px",
-                                    transition: "all 0.2s ease",
+                                    ...PREVIEW_TABLE_INPUT_STYLE,
                                     fontWeight: hasValue ? "500" : "400",
-                                    boxSizing: "border-box"
                                   }}
                                 />
                               )}
@@ -1665,15 +1695,16 @@ const CrewContent = ({ formValues, handleChange, cardColor, onNavigateToTab, lau
                 onClick={() => {
                   setPreviewTableData(createEmptyPreviewRows());
                 }}
+                disabled={isBeingUpdated}
                 style={{
                   padding: "10px 20px",
                   borderRadius: "8px",
                   border: "1px solid #e2e6ff",
-                  backgroundColor: "#ffffff",
-                  color: "#666",
+                  backgroundColor: isBeingUpdated ? "#f5f5f5" : "#ffffff",
+                  color: isBeingUpdated ? "#b0b0b0" : "#666",
                   fontSize: "13px",
                   fontWeight: "600",
-                  cursor: "pointer",
+                  cursor: isBeingUpdated ? "not-allowed" : "pointer",
                   transition: "all 0.2s ease",
                   fontFamily: "\"Open Sans\", sans-serif",
                   display: "flex",
@@ -1681,11 +1712,13 @@ const CrewContent = ({ formValues, handleChange, cardColor, onNavigateToTab, lau
                   gap: "6px"
                 }}
                 onMouseEnter={(e) => {
+                  if (isBeingUpdated) return;
                   e.currentTarget.style.backgroundColor = "#f8f9ff";
                   e.currentTarget.style.borderColor = "var(--card-color, #2A00FF)";
                   e.currentTarget.style.color = "var(--card-color, #2A00FF)";
                 }}
                 onMouseLeave={(e) => {
+                  if (isBeingUpdated) return;
                   e.currentTarget.style.backgroundColor = "#ffffff";
                   e.currentTarget.style.borderColor = "#e2e6ff";
                   e.currentTarget.style.color = "#666";
@@ -1700,6 +1733,7 @@ const CrewContent = ({ formValues, handleChange, cardColor, onNavigateToTab, lau
               <button
                 type="button"
                 onClick={handleUsePreviewData}
+                disabled={isBeingUpdated}
                 style={{
                   padding: "12px 32px",
                   borderRadius: "10px",
@@ -1708,7 +1742,8 @@ const CrewContent = ({ formValues, handleChange, cardColor, onNavigateToTab, lau
                   color: "#rgb(26, 26, 26)",
                   fontSize: "14px",
                   fontWeight: "700",
-                  cursor: "pointer",
+                  cursor: isBeingUpdated ? "not-allowed" : "pointer",
+                  opacity: isBeingUpdated ? 0.8 : 1,
                   transition: "all 0.3s ease",
                   fontFamily: "\"Open Sans\", sans-serif",
                   display: "flex",
@@ -1717,17 +1752,23 @@ const CrewContent = ({ formValues, handleChange, cardColor, onNavigateToTab, lau
                   letterSpacing: "0.3px"
                 }}
                 onMouseEnter={(e) => {
+                  if (isBeingUpdated) return;
                   e.currentTarget.style.transform = "translateY(-2px)";
                 }}
                 onMouseLeave={(e) => {
+                  if (isBeingUpdated) return;
                   e.currentTarget.style.transform = "translateY(0)";
                 }}
               >
-                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" style={{ flexShrink: 0 }}>
-                  <path d="M9 11L12 14L22 4" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" />
-                  <path d="M21 12V19C21 19.5304 20.7893 20.0391 20.4142 20.4142C20.0391 20.7893 19.5304 21 19 21H5C4.46957 21 3.96086 20.7893 3.58579 20.4142C3.21071 20.0391 3 19.5304 3 19V5C3 4.46957 3.21071 3.96086 3.58579 3.58579C3.96086 3.21071 4.46957 3 5 3H16" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" />
-                </svg>
-                <span>Use Preview Data</span>
+                {isBeingUpdated ? (
+                  <span className="spinner-border spinner-border-sm" role="status" aria-hidden="true" />
+                ) : (
+                  <svg width="20" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" style={{ flexShrink: 0 }}>
+                    <path d="M9 11L12 14L22 4" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" />
+                    <path d="M21 12V19C21 19.5304 20.7893 20.0391 20.4142 20.4142C20.0391 20.7893 19.5304 21 19 21H5C4.46957 21 3.96086 20.7893 3.58579 20.4142C3.21071 20.0391 3 19.5304 3 19V5C3 4.46957 3.21071 3.96086 3.58579 3.58579C3.96086 3.21071 4.46957 3 5 3H16" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" />
+                  </svg>
+                )}
+                <span>{isBeingUpdated ? "Saving..." : "Use Preview Data"}</span>
               </button>
             </div>
           </div>
