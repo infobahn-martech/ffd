@@ -44,24 +44,56 @@ const useKanbanManagementReducer = create((set, get) => ({
   tags: [],
   tagsLoading: false,
   tagsError: '',
+  tagsPagination: {
+    current_page: 1,
+    last_page: 1,
+    total: 0,
+    per_page: 10,
+  },
   workspaceBoardOptions: [],
   workspaceBoardsLoading: false,
 
   /**
    * Load tags for Tags modal.
-   * @param {{ silentToastOnError?: boolean }} opts - Set true when chaining after another toast
+   * @param {{ search?: string, page?: number, per_page?: number, silentToastOnError?: boolean }} opts
    */
   fetchKanbanTags: async (opts = {}) => {
-    const { silentToastOnError = false } = opts;
+    const {
+      search = '',
+      page = 1,
+      per_page = 10,
+      silentToastOnError = false,
+    } = opts;
     try {
       set({ tagsLoading: true, tagsError: '' });
-      const { data } = await kanbanManagementService.getAllKanbanTags();
+      const { data } = await kanbanManagementService.getAllKanbanTags({
+        search,
+        page,
+        per_page,
+      });
       const raw =
         data?.status === 'success' && Array.isArray(data.tags) ? data.tags : [];
+      const responseMeta = data?.meta ?? data?.pagination ?? {};
+      const resolvedPerPage = Number(responseMeta?.per_page) || Number(per_page) || 10;
+      const resolvedCurrentPage = Number(responseMeta?.current_page) || Number(page) || 1;
+      const resolvedTotal =
+        Number(responseMeta?.total) ||
+        (raw.length < resolvedPerPage
+          ? ((Math.max(resolvedCurrentPage, 1) - 1) * resolvedPerPage) + raw.length
+          : (Math.max(resolvedCurrentPage, 1) * resolvedPerPage) + 1);
+      const resolvedLastPage =
+        Number(responseMeta?.last_page) ||
+        (raw.length < resolvedPerPage ? resolvedCurrentPage : resolvedCurrentPage + 1);
       set({
         tags: raw.map(normalizeKanbanTagRowFromApi),
         tagsLoading: false,
         tagsError: '',
+        tagsPagination: {
+          current_page: resolvedCurrentPage,
+          last_page: Math.max(resolvedLastPage, resolvedCurrentPage),
+          total: resolvedTotal,
+          per_page: resolvedPerPage,
+        },
       });
     } catch (err) {
       const msg =
@@ -90,11 +122,11 @@ const useKanbanManagementReducer = create((set, get) => ({
     }
   },
 
-  createKanbanTag: async (payload) => {
+  createKanbanTag: async (payload, fetchOpts = {}) => {
     try {
       const { data } = await kanbanManagementService.saveKanbanTag(payload);
       useAlertReducer.getState().success(data?.message ?? 'Tag saved');
-      await get().fetchKanbanTags({ silentToastOnError: true });
+      await get().fetchKanbanTags({ ...fetchOpts, silentToastOnError: true });
       return data;
     } catch (err) {
       const msg =
@@ -106,11 +138,11 @@ const useKanbanManagementReducer = create((set, get) => ({
     }
   },
 
-  updateKanbanTagRecord: async (tagId, payload) => {
+  updateKanbanTagRecord: async (tagId, payload, fetchOpts = {}) => {
     try {
       const { data } = await kanbanManagementService.updateKanbanTag(tagId, payload);
       useAlertReducer.getState().success(data?.message ?? 'Tag updated');
-      await get().fetchKanbanTags({ silentToastOnError: true });
+      await get().fetchKanbanTags({ ...fetchOpts, silentToastOnError: true });
       return data;
     } catch (err) {
       const msg =
@@ -122,11 +154,11 @@ const useKanbanManagementReducer = create((set, get) => ({
     }
   },
 
-  disableKanbanTagRecord: async (tagId) => {
+  disableKanbanTagRecord: async (tagId, fetchOpts = {}) => {
     try {
       const { data } = await kanbanManagementService.disableKanbanTag(tagId);
       useAlertReducer.getState().success(data?.message ?? 'Tag disabled');
-      await get().fetchKanbanTags({ silentToastOnError: true });
+      await get().fetchKanbanTags({ ...fetchOpts, silentToastOnError: true });
       return data;
     } catch (err) {
       const msg =
@@ -138,11 +170,11 @@ const useKanbanManagementReducer = create((set, get) => ({
     }
   },
 
-  deleteKanbanTagRecord: async (tagId) => {
+  deleteKanbanTagRecord: async (tagId, fetchOpts = {}) => {
     try {
       const { data } = await kanbanManagementService.deleteKanbanTag(tagId);
       useAlertReducer.getState().success(data?.message ?? 'Tag deleted');
-      await get().fetchKanbanTags({ silentToastOnError: true });
+      await get().fetchKanbanTags({ ...fetchOpts, silentToastOnError: true });
       return data;
     } catch (err) {
       const msg =

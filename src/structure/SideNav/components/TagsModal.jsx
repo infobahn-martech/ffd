@@ -1,5 +1,5 @@
 import { useState, useRef, useEffect } from 'react';
-import { FiX, FiFilter, FiPlus, FiMoreVertical, FiInfo, FiAlertCircle } from 'react-icons/fi';
+import { FiX, FiPlus, FiMoreVertical, FiInfo, FiAlertCircle } from 'react-icons/fi';
 import { Modal } from 'react-bootstrap';
 import NewTagModal, { normalizeTagAvailabilityLevel } from './NewTagModal';
 import useKanbanManagementReducer from '../../../store/KanbanManagementReducer';
@@ -18,6 +18,7 @@ const TagsModal = ({ show, onClose }) => {
   const tags = useKanbanManagementReducer((s) => s.tags);
   const tagsLoading = useKanbanManagementReducer((s) => s.tagsLoading);
   const tagsError = useKanbanManagementReducer((s) => s.tagsError);
+  const tagsPagination = useKanbanManagementReducer((s) => s.tagsPagination);
   const workspaceBoardOptions = useKanbanManagementReducer((s) => s.workspaceBoardOptions);
   const workspaceBoardsLoading = useKanbanManagementReducer((s) => s.workspaceBoardsLoading);
 
@@ -30,11 +31,11 @@ const TagsModal = ({ show, onClose }) => {
   const disableKanbanTagRecord = useKanbanManagementReducer((s) => s.disableKanbanTagRecord);
   const deleteKanbanTagRecord = useKanbanManagementReducer((s) => s.deleteKanbanTagRecord);
 
-  const [filterValue, setFilterValue] = useState('');
+  const [searchValue, setSearchValue] = useState('');
+  const [debouncedSearch, setDebouncedSearch] = useState('');
+  const [currentPage, setCurrentPage] = useState(1);
+  const perPage = 10;
   const [selectedItems, setSelectedItems] = useState([]);
-  const [showLabelFilter, setShowLabelFilter] = useState(false);
-  const [showAvailabilityFilter, setShowAvailabilityFilter] = useState(false);
-  const [showBoardsFilter, setShowBoardsFilter] = useState(false);
   const [showNewTagModal, setShowNewTagModal] = useState(false);
   const [editingTag, setEditingTag] = useState(null);
 
@@ -43,14 +44,38 @@ const TagsModal = ({ show, onClose }) => {
   const actionMenuRefs = useRef({});
 
   useEffect(() => {
-    if (!show) return;
-    fetchKanbanTags();
+    if (!show) {
+      setSearchValue('');
+      setDebouncedSearch('');
+      setCurrentPage(1);
+      setSelectedItems([]);
+      return;
+    }
     fetchWorkspaceBoardPickerOptions();
-  }, [show, fetchKanbanTags, fetchWorkspaceBoardPickerOptions]);
+  }, [show, fetchWorkspaceBoardPickerOptions]);
 
-  const filteredTags = tags.filter((tag) =>
-    tag.label.toLowerCase().includes(filterValue.toLowerCase())
-  );
+  useEffect(() => {
+    const timeoutId = setTimeout(() => {
+      setDebouncedSearch(searchValue.trim());
+    }, 400);
+    return () => clearTimeout(timeoutId);
+  }, [searchValue]);
+
+  useEffect(() => {
+    if (!show) return;
+    fetchKanbanTags({ search: debouncedSearch, page: currentPage, per_page: perPage });
+  }, [show, debouncedSearch, currentPage, perPage, fetchKanbanTags]);
+
+  useEffect(() => {
+    setSelectedItems((prev) => prev.filter((id) => tags.some((tag) => String(tag.id) === id)));
+  }, [tags]);
+
+  useEffect(() => {
+    const serverPage = Number(tagsPagination?.current_page || 1);
+    if (serverPage !== currentPage) {
+      setCurrentPage(serverPage);
+    }
+  }, [tagsPagination?.current_page, currentPage]);
 
   const handleCheckboxChange = (tagId) => {
     const id = String(tagId);
@@ -60,17 +85,17 @@ const TagsModal = ({ show, onClose }) => {
   };
 
   const handleSelectAll = () => {
-    if (selectedItems.length === filteredTags.length) {
+    if (selectedItems.length === tags.length) {
       setSelectedItems([]);
     } else {
-      setSelectedItems(filteredTags.map((b) => String(b.id)));
+      setSelectedItems(tags.map((b) => String(b.id)));
     }
   };
 
   const isAllSelected =
-    selectedItems.length === filteredTags.length && filteredTags.length > 0;
+    selectedItems.length === tags.length && tags.length > 0;
   const isIndeterminate =
-    selectedItems.length > 0 && selectedItems.length < filteredTags.length;
+    selectedItems.length > 0 && selectedItems.length < tags.length;
 
   useEffect(() => {
     if (selectAllCheckboxRef.current) {
@@ -118,7 +143,11 @@ const TagsModal = ({ show, onClose }) => {
     const id = String(tagId);
     setOpenActionMenuId(null);
     try {
-      await disableKanbanTagRecord(id);
+      await disableKanbanTagRecord(id, {
+        search: debouncedSearch,
+        page: currentPage,
+        per_page: perPage,
+      });
     } catch {
       /* AlertReducer in store */
     }
@@ -136,7 +165,11 @@ const TagsModal = ({ show, onClose }) => {
     }
     (async () => {
       try {
-        await deleteKanbanTagRecord(id);
+        await deleteKanbanTagRecord(id, {
+          search: debouncedSearch,
+          page: currentPage,
+          per_page: perPage,
+        });
       } catch {
         /* AlertReducer in store */
       }
@@ -160,6 +193,10 @@ const TagsModal = ({ show, onClose }) => {
         label: payload.label,
         availability_level: payload.availability_level,
         board_ids: payload.board_ids,
+      }, {
+        search: debouncedSearch,
+        page: currentPage,
+        per_page: perPage,
       });
     } else {
       await updateKanbanTagRecord(payload.tag_id, {
@@ -167,8 +204,21 @@ const TagsModal = ({ show, onClose }) => {
         availability_level: payload.availability_level,
         color_code: payload.color_code,
         board_ids: payload.board_ids,
+      }, {
+        search: debouncedSearch,
+        page: currentPage,
+        per_page: perPage,
       });
     }
+  };
+
+  const hasMetaLastPage = Number(tagsPagination?.last_page || 0) > 0;
+  const hasNextByMeta = hasMetaLastPage ? currentPage < Number(tagsPagination.last_page) : true;
+  const hasNextPage = hasNextByMeta && tags.length === perPage;
+
+  const handleSearchChange = (value) => {
+    setSearchValue(value);
+    setCurrentPage(1);
   };
 
   return (
@@ -190,22 +240,15 @@ const TagsModal = ({ show, onClose }) => {
           <FiX size={20} />
         </button>
       </Modal.Header>
-      <Modal.Body className="blockers-modal-body">
+      <Modal.Body className="blockers-modal-body tags-modal-body">
         <div className="blockers-filter-bar">
           <div className="blockers-filter-left">
-            <button
-              type="button"
-              className="blockers-filter-icon-btn"
-              onClick={() => setShowLabelFilter(!showLabelFilter)}
-            >
-              <FiFilter size={18} />
-            </button>
             <input
               type="text"
               className="blockers-filter-input"
               placeholder="Filter"
-              value={filterValue}
-              onChange={(e) => setFilterValue(e.target.value)}
+              value={searchValue}
+              onChange={(e) => handleSearchChange(e.target.value)}
             />
           </div>
           <div className="blockers-filter-right">
@@ -227,7 +270,13 @@ const TagsModal = ({ show, onClose }) => {
             <button
               type="button"
               className="tags-modal-error-retry"
-              onClick={() => fetchKanbanTags()}
+              onClick={() =>
+                fetchKanbanTags({
+                  search: debouncedSearch,
+                  page: currentPage,
+                  per_page: perPage,
+                })
+              }
             >
               Retry
             </button>
@@ -262,13 +311,6 @@ const TagsModal = ({ show, onClose }) => {
                 <th>
                   <div className="blockers-th-content">
                     <span>Label</span>
-                    <button
-                      type="button"
-                      className="blockers-th-filter-btn"
-                      onClick={() => setShowLabelFilter(!showLabelFilter)}
-                    >
-                      <FiFilter size={14} />
-                    </button>
                   </div>
                 </th>
                 <th>
@@ -277,29 +319,14 @@ const TagsModal = ({ show, onClose }) => {
                     <button
                       type="button"
                       className="blockers-th-info-btn"
-                      onClick={() => setShowAvailabilityFilter(!showAvailabilityFilter)}
                     >
                       <FiInfo size={14} />
-                    </button>
-                    <button
-                      type="button"
-                      className="blockers-th-filter-btn"
-                      onClick={() => setShowAvailabilityFilter(!showAvailabilityFilter)}
-                    >
-                      <FiFilter size={14} />
                     </button>
                   </div>
                 </th>
                 <th>
                   <div className="blockers-th-content">
                     <span>Boards</span>
-                    <button
-                      type="button"
-                      className="blockers-th-filter-btn"
-                      onClick={() => setShowBoardsFilter(!showBoardsFilter)}
-                    >
-                      <FiFilter size={14} />
-                    </button>
                   </div>
                 </th>
                 <th style={{ width: '40px' }}>
@@ -308,20 +335,20 @@ const TagsModal = ({ show, onClose }) => {
               </tr>
             </thead>
             <tbody>
-              {tagsLoading && filteredTags.length === 0 ? (
+              {tagsLoading ? (
                 <tr>
                   <td colSpan="6" className="tags-modal-loading-cell">
                     Loading tags…
                   </td>
                 </tr>
-              ) : filteredTags.length === 0 ? (
+              ) : tags.length === 0 ? (
                 <tr>
                   <td colSpan="6" style={{ textAlign: 'center', padding: '40px', color: '#999' }}>
                     No tags found
                   </td>
                 </tr>
               ) : (
-                filteredTags.map((tag) => (
+                tags.map((tag) => (
                   <tr key={tag.id}>
                     <td>
                       <input
@@ -394,6 +421,25 @@ const TagsModal = ({ show, onClose }) => {
               )}
             </tbody>
           </table>
+        </div>
+        <div className="tags-modal-pagination">
+          <button
+            type="button"
+            className="tags-modal-pagination-btn"
+            onClick={() => setCurrentPage((prev) => Math.max(prev - 1, 1))}
+            disabled={currentPage <= 1 || tagsLoading}
+          >
+            Previous
+          </button>
+          <span className="tags-modal-pagination-page">Page {currentPage}</span>
+          <button
+            type="button"
+            className="tags-modal-pagination-btn"
+            onClick={() => setCurrentPage((prev) => prev + 1)}
+            disabled={!hasNextPage || tagsLoading}
+          >
+            Next
+          </button>
         </div>
       </Modal.Body>
       <NewTagModal
