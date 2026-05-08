@@ -3870,30 +3870,25 @@ ${body}
                                 <h3 className="form-group-title">Appointment Details</h3>
                                 {shouldShowApiField("appointment_email") && (
                                   <FormField
-                                    label={(
-                                      <div className="appointment-email-label-row">
-                                        <span>Appointment Email *</span>
-                                        <button
-                                          type="button"
-                                          className={`appointment-ai-toggle ${isAppointmentAiEnabled ? "active" : ""}`}
-                                          onClick={(e) => {
-                                            e.preventDefault();
-                                            e.stopPropagation();
-                                            setIsAppointmentAiEnabled((prev) => !prev);
-                                          }}
-                                          onMouseDown={(e) => {
-                                            e.preventDefault();
-                                            e.stopPropagation();
-                                          }}
-                                          disabled={isDisabled}
-                                        >
-                                          <span className="appointment-ai-toggle-dot" />
-                                          AI
-                                        </button>
-                                      </div>
-                                    )}
+                                    label=""
                                     hasError={isAddMode && Boolean(fieldErrors.appointmentEmailDocuments)}
                                   >
+                                    <div className="appointment-email-label-row">
+                                      <label className="appointment-email-label">Appointment Email *</label>
+                                      <button
+                                        type="button"
+                                        className={`appointment-ai-toggle ${isAppointmentAiEnabled ? "active" : ""}`}
+                                        onClick={(e) => {
+                                          e.preventDefault();
+                                          e.stopPropagation();
+                                          setIsAppointmentAiEnabled((prev) => !prev);
+                                        }}
+                                        disabled={isDisabled}
+                                      >
+                                        <span className="appointment-ai-toggle-dot" />
+                                        AI
+                                      </button>
+                                    </div>
                                     <DocumentUpload
                                       attachments={appointmentDocuments}
                                       onAdd={handleAppointmentDocumentAdd}

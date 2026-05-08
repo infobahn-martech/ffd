@@ -467,12 +467,24 @@
   justify-content: space-between;
   gap: 10px;
   width: 100%;
+  margin-bottom: 8px;
   cursor: default;
-  pointer-events: none;
+  outline: none;
+  box-shadow: none;
+  background: transparent;
 }
 
-.appointment-email-label-row span {
+.appointment-email-label {
+  margin: 0;
   cursor: default;
+}
+
+.appointment-email-label-row:focus,
+.appointment-email-label-row:active,
+.appointment-email-label-row:focus-visible {
+  outline: none;
+  box-shadow: none;
+  background: transparent;
 }
 
 .appointment-ai-toggle {
@@ -491,6 +503,16 @@
   cursor: pointer;
   transition: all 0.2s ease;
   pointer-events: auto;
+}
+
+.appointment-ai-toggle:focus,
+.appointment-ai-toggle:active,
+.appointment-ai-toggle:focus-visible,
+.ai-toggle:focus,
+.ai-toggle:active,
+.ai-toggle:focus-visible {
+  outline: none;
+  box-shadow: none;
 }
 
 .appointment-ai-toggle:hover:not(:disabled) {
