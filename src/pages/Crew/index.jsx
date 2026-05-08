@@ -15,28 +15,37 @@ const Crew = () => {
     const [params, setParams] = useState({
         page: 1,
         limit: 10,
-        searchTerm: "",
-        sortOrder: -1,
-        sortBy: "createdAt",
+        search: "",
+        // sortOrder: -1,
+        // sortBy: "createdAt",
     });
 
     // ✅ fetch crew list (dynamic)
     useEffect(() => {
         fetchAllCrews({
-            page: params.page,
-            limit: params.limit,
-            search: params.searchTerm,
-            sortBy: params.sortBy,
-            sortOrder: params.sortOrder,
+            params: {
+                page: params.page,
+                limit: params.limit,
+                search: params.search,
+                sort_by: params.sortBy,
+                sort_order: params.sortOrder,
+            },
         });
-    }, [params.page, params.limit, params.searchTerm, params.sortBy, params.sortOrder]);
+    }, [params.page, params.limit, params.search, params.sortBy, params.sortOrder]);
 
     // ✅ normalize API response safely
     const tableData = useMemo(() => {
         if (!crews) return { rows: [], total: 0 };
 
-        const rows = crews?.data || crews?.docs || crews?.results || [];
-        const total = crews?.total || crews?.count || crews?.totalDocs || rows.length;
+        const rows = Array.isArray(crews)
+            ? crews
+            : crews?.data || crews?.docs || crews?.results || [];
+        const total =
+            crews?.pagination?.total ||
+            crews?.total ||
+            crews?.count ||
+            crews?.totalDocs ||
+            rows.length;
 
         return { rows, total };
     }, [crews]);
@@ -96,15 +105,15 @@ const Crew = () => {
             width: "120",
         },
 
-        {
-            name: "Passport Expiry",
-            selector: "passport_expiry",
-            tableClasses: "table-striped",
-            sort: true,
-            contentClass: "table-content",
-            thclass: "tb-head",
-            width: "120",
-        },
+        // {
+        //     name: "Passport Expiry",
+        //     selector: "passport_expiry",
+        //     tableClasses: "table-striped",
+        //     sort: true,
+        //     contentClass: "table-content",
+        //     thclass: "tb-head",
+        //     width: "120",
+        // },
         {
             name: "Visa",
             selector: "visa_no",
@@ -114,15 +123,15 @@ const Crew = () => {
             thclass: "tb-head",
             width: "120",
         },
-        {
-            name: "Visa Expiry",
-            selector: "visa_expiry",
-            tableClasses: "table-striped",
-            sort: true,
-            contentClass: "table-content",
-            thclass: "tb-head",
-            width: "120",
-        },
+        // {
+        //     name: "Visa Expiry",
+        //     selector: "visa_expiry",
+        //     tableClasses: "table-striped",
+        //     sort: true,
+        //     contentClass: "table-content",
+        //     thclass: "tb-head",
+        //     width: "120",
+        // },
         {
             name: "IQAMA",
             selector: "iqama_no",
@@ -132,15 +141,15 @@ const Crew = () => {
             thclass: "tb-head",
             width: "120",
         },
-        {
-            name: "IQAMA Expiry",
-            selector: "iqama_expiry",
-            tableClasses: "table-striped",
-            sort: true,
-            contentClass: "table-content",
-            thclass: "tb-head",
-            width: "120",
-        },
+        // {
+        //     name: "IQAMA Expiry",
+        //     selector: "iqama_expiry",
+        //     tableClasses: "table-striped",
+        //     sort: true,
+        //     contentClass: "table-content",
+        //     thclass: "tb-head",
+        //     width: "120",
+        // },
     ];
 
     const handleViewClick = (row) => {
@@ -157,7 +166,7 @@ const Crew = () => {
                             isAddEnabled={false}
                             addModalLabel="Add Crew"
                             setSearch={(e) =>
-                                setParams({ ...params, searchTerm: e, page: 1, limit: 10 })
+                                setParams({ ...params, search: e, page: 1, limit: 10 })
                             }
                             exportTitle="Export"
                             exportLoader={false}

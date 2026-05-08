@@ -49,7 +49,7 @@ const useCrewReducer = create((set) => ({
             set({ isLoading: true });
             const { data } = await crewService.getAllCrews(params || {});
             set({
-                crews: data?.data ?? [],
+                crews: data ?? null,
                 totalCrewCount: data?.pagination?.total ?? (Array.isArray(data?.data) ? data.data.length : (Array.isArray(data?.crews) ? data.crews.length : 0)),
                 isLoading: false,
             });
