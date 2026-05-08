@@ -45,6 +45,17 @@ function Arrival({
     return `${dateValue} ${timeValue}`;
   };
 
+  const isValidEmailList = (value = "") => {
+    const emails = String(value)
+      .split(",")
+      .map((email) => email.trim())
+      .filter(Boolean);
+
+    if (!emails.length) return false;
+
+    return emails.every((email) => /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email));
+  };
+
   const buildTimeObjectsPayload = (eventFields, values) =>
     (Array.isArray(eventFields) ? eventFields : [])
       .map((field) => {
@@ -235,6 +246,16 @@ function Arrival({
       const resolvedCallId = resolveFormId(callId, formValues?.call_id, formValues?.callId);
       if (!resolvedCallId) {
         notify("Call ID is required to send report.", "error");
+        return;
+      }
+
+      if (!String(reportDraft.to || "").trim()) {
+        notify("Recipient email is required.", "error");
+        return;
+      }
+
+      if (!isValidEmailList(reportDraft.to)) {
+        notify("Please enter valid recipient email(s).", "error");
         return;
       }
 
