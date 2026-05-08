@@ -22,10 +22,10 @@ const STATUS_COLORS = {
 
 // Status labels
 const STATUS_LABELS = {
-  done: "DONE",
-  inProgress: "IN PROGRESS",
-  rejected: "PENDING",
-  pending: "PENDING"
+  done: "Done",
+  inProgress: "In Progress",
+  rejected: "Pending",
+  pending: "Pending"
 };
 
 // Icon components for column headers
@@ -414,8 +414,11 @@ const CrewContent = ({ formValues, handleChange, cardColor, onNavigateToTab, lau
   const getCrewTemplate = useCrewReducer((state) => state.getCrewTemplate);
   const importCrewFile = useCrewReducer((state) => state.importCrewFile);
   const callCrewList = useCrewReducer((state) => state.callCrewList);
+  const callCrewListPagination = useCrewReducer((state) => state.callCrewListPagination);
   const isCallCrewListLoading = useCrewReducer((state) => state.isCallCrewListLoading);
   const fetchCallCrewList = useCrewReducer((state) => state.fetchCallCrewList);
+  const [crewPage, setCrewPage] = useState(1);
+  const [crewLimit] = useState(10);
   const [selectedCrewIds, setSelectedCrewIds] = useState([]);
   const [showActionDropdown, setShowActionDropdown] = useState(false);
   const [isDownloadingTemplate, setIsDownloadingTemplate] = useState(false);
@@ -472,6 +475,21 @@ const CrewContent = ({ formValues, handleChange, cardColor, onNavigateToTab, lau
     return [];
   }, [crewList, normalizedApiCrewList]);
 
+  const totalCrewItems = Number(callCrewListPagination?.total ?? displayCrewList.length ?? 0) || 0;
+  const totalCrewPages = Math.max(1, Number(callCrewListPagination?.total_pages ?? 1) || 1);
+  const effectiveCrewPage = Math.min(Math.max(crewPage, 1), totalCrewPages);
+  const startCrewItem = totalCrewItems === 0 ? 0 : ((effectiveCrewPage - 1) * crewLimit) + 1;
+  const endCrewItem = totalCrewItems === 0 ? 0 : Math.min(effectiveCrewPage * crewLimit, totalCrewItems);
+  const paginationPages = useMemo(() => {
+    const pages = [];
+    const windowSize = 5;
+    const start = Math.max(1, effectiveCrewPage - 2);
+    const end = Math.min(totalCrewPages, start + windowSize - 1);
+    const adjustedStart = Math.max(1, end - windowSize + 1);
+    for (let i = adjustedStart; i <= end; i += 1) pages.push(i);
+    return pages;
+  }, [effectiveCrewPage, totalCrewPages]);
+
   const resolveCallAndVesselIds = useCallback(async () => {
     let resolvedCallId = Number(formValues?.call_id ?? formValues?.callId);
     let resolvedVesselId = Number(formValues?.vessel_id ?? formValues?.vesselId);
@@ -502,9 +520,9 @@ const CrewContent = ({ formValues, handleChange, cardColor, onNavigateToTab, lau
     const { resolvedCallId, resolvedVesselId } = await resolveCallAndVesselIds();
     if (!resolvedCallId || !resolvedVesselId) return;
     await fetchCallCrewList({
-      payload: { call_id: resolvedCallId, vessel_id: resolvedVesselId },
+      payload: { call_id: resolvedCallId, vessel_id: resolvedVesselId, page: crewPage, limit: crewLimit },
     });
-  }, [resolveCallAndVesselIds, fetchCallCrewList]);
+  }, [resolveCallAndVesselIds, fetchCallCrewList, crewPage, crewLimit]);
 
   useEffect(() => {
     let cancelled = false;
@@ -517,13 +535,13 @@ const CrewContent = ({ formValues, handleChange, cardColor, onNavigateToTab, lau
         if (cancelled) return;
 
         if (!resolvedCallId || !resolvedVesselId) {
-          useCrewReducer.setState({ callCrewList: [] });
+          useCrewReducer.setState({ callCrewList: [], callCrewListPagination: null });
           return;
         }
 
-        useCrewReducer.setState({ callCrewList: null });
+        useCrewReducer.setState({ callCrewList: null, callCrewListPagination: null });
         await fetchCallCrewList({
-          payload: { call_id: resolvedCallId, vessel_id: resolvedVesselId },
+          payload: { call_id: resolvedCallId, vessel_id: resolvedVesselId, page: crewPage, limit: crewLimit },
         });
       } finally {
         if (!cancelled) setCrewAvailabilityChecked(true);
@@ -533,7 +551,17 @@ const CrewContent = ({ formValues, handleChange, cardColor, onNavigateToTab, lau
     return () => {
       cancelled = true;
     };
-  }, [resolveCallAndVesselIds, fetchCallCrewList]);
+  }, [resolveCallAndVesselIds, fetchCallCrewList, crewPage, crewLimit]);
+
+  useEffect(() => {
+    setSelectedCrewIds([]);
+  }, [crewPage, displayCrewList.length]);
+
+  useEffect(() => {
+    if (crewPage > totalCrewPages) {
+      setCrewPage(totalCrewPages);
+    }
+  }, [crewPage, totalCrewPages]);
 
   // Editable preview table data (max 5 rows)
   const [previewTableData, setPreviewTableData] = useState(createEmptyPreviewRows);
@@ -1814,8 +1842,10 @@ const CrewContent = ({ formValues, handleChange, cardColor, onNavigateToTab, lau
                 gap: "12px",
                 whiteSpace: "nowrap",
                 overflow: "hidden",
-                textOverflow: "ellipsis"
-              }} title="CREW LIST">
+                textOverflow: "ellipsis",
+                textTransform: "none",
+                letterSpacing: "normal",
+              }} title="Crew List">
                 <span className="crew-list-title-bar" style={{
                   width: "4px",
                   height: "24px",
@@ -1824,7 +1854,7 @@ const CrewContent = ({ formValues, handleChange, cardColor, onNavigateToTab, lau
                   display: "inline-block",
                   flexShrink: 0
                 }}></span>
-                CREW LIST
+                Crew List
               </h3>
               {/* Status Legend */}
               <div style={{
@@ -2623,6 +2653,39 @@ const CrewContent = ({ formValues, handleChange, cardColor, onNavigateToTab, lau
                 )}
               </tbody>
             </table>
+          </div>
+          <div className="crew-pagination">
+            <div className="crew-pagination-info">
+              Showing {startCrewItem}-{endCrewItem} of {totalCrewItems}
+            </div>
+            <div className="crew-pagination-actions">
+              <button
+                type="button"
+                className="crew-pagination-btn"
+                disabled={effectiveCrewPage <= 1}
+                onClick={() => setCrewPage((prev) => Math.max(1, prev - 1))}
+              >
+                Previous
+              </button>
+              {paginationPages.map((pageNum) => (
+                <button
+                  key={pageNum}
+                  type="button"
+                  className={`crew-pagination-btn${pageNum === effectiveCrewPage ? " active" : ""}`}
+                  onClick={() => setCrewPage(pageNum)}
+                >
+                  {pageNum}
+                </button>
+              ))}
+              <button
+                type="button"
+                className="crew-pagination-btn"
+                disabled={effectiveCrewPage >= totalCrewPages}
+                onClick={() => setCrewPage((prev) => Math.min(totalCrewPages, prev + 1))}
+              >
+                Next
+              </button>
+            </div>
           </div>
         </>
       )}

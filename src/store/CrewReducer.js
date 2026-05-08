@@ -7,6 +7,7 @@ const useCrewReducer = create((set) => ({
     crews: null,
     /** Crew rows from POST crew/get_crew_list; null = not loaded yet */
     callCrewList: null,
+    callCrewListPagination: null,
     isCallCrewListLoading: false,
     isLoading: false,
     isBeingUpdated: false,
@@ -20,8 +21,15 @@ const useCrewReducer = create((set) => ({
             const root = data?.data ?? data;
             const crew = root?.crew ?? (Array.isArray(root) ? root : []);
             const list = Array.isArray(crew) ? crew : [];
+            const pagination = {
+                total: Number(root?.total ?? list.length ?? 0) || 0,
+                page: Number(root?.page ?? payload?.page ?? 1) || 1,
+                limit: Number(root?.limit ?? payload?.limit ?? 10) || 10,
+                total_pages: Number(root?.total_pages ?? 1) || 1,
+            };
             set({
                 callCrewList: list,
+                callCrewListPagination: pagination,
                 isCallCrewListLoading: false,
             });
             cb && cb(list);
