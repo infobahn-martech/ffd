@@ -467,6 +467,12 @@
   justify-content: space-between;
   gap: 10px;
   width: 100%;
+  cursor: default;
+  pointer-events: none;
+}
+
+.appointment-email-label-row span {
+  cursor: default;
 }
 
 .appointment-ai-toggle {
@@ -484,6 +490,7 @@
   letter-spacing: 0.03em;
   cursor: pointer;
   transition: all 0.2s ease;
+  pointer-events: auto;
 }
 
 .appointment-ai-toggle:hover:not(:disabled) {

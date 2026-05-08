@@ -3876,7 +3876,15 @@ ${body}
                                         <button
                                           type="button"
                                           className={`appointment-ai-toggle ${isAppointmentAiEnabled ? "active" : ""}`}
-                                          onClick={() => setIsAppointmentAiEnabled((prev) => !prev)}
+                                          onClick={(e) => {
+                                            e.preventDefault();
+                                            e.stopPropagation();
+                                            setIsAppointmentAiEnabled((prev) => !prev);
+                                          }}
+                                          onMouseDown={(e) => {
+                                            e.preventDefault();
+                                            e.stopPropagation();
+                                          }}
                                           disabled={isDisabled}
                                         >
                                           <span className="appointment-ai-toggle-dot" />
