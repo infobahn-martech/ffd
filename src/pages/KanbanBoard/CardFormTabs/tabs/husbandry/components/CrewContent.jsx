@@ -154,7 +154,7 @@ const PREVIEW_TABLE_INPUT_STYLE = {
   height: "32px",
 };
 
-const PreviewDateInput = forwardRef(({ value, onClick, hasValue, onFocus, onBlur }, ref) => (
+const PreviewDateInput = forwardRef(({ value, onClick, hasValue, onFocus, onBlur, placeholder }, ref) => (
   <button
     ref={ref}
     type="button"
@@ -174,7 +174,7 @@ const PreviewDateInput = forwardRef(({ value, onClick, hasValue, onFocus, onBlur
       textAlign: "left",
     }}
   >
-    {value || ""}
+    {value || placeholder || ""}
   </button>
 ));
 
@@ -268,6 +268,19 @@ const createEmptyPreviewRows = () => ([
   { name: "", movementType: "", rank: "", nationality: "", passportNumber: "", passportExpiry: "", visaNumber: "", visaExpiry: "", iqama: "", iqamaExpiry: "", sbNo: "", borderNo: "", dateOfBirth: "" },
   { name: "", movementType: "", rank: "", nationality: "", passportNumber: "", passportExpiry: "", visaNumber: "", visaExpiry: "", iqama: "", iqamaExpiry: "", sbNo: "", borderNo: "", dateOfBirth: "" },
 ]);
+
+const PREVIEW_FIELD_PLACEHOLDERS = {
+  name: "Name",
+  movementType: "Sign On / Sign Off",
+  rank: "Rank",
+  nationality: "Nationality",
+  passportNumber: "Passport Number",
+  passportExpiry: "Passport Expiry",
+  visaNumber: "KSA Visa Number",
+  iqama: "IQAMA",
+  sbNo: "Sb No",
+  borderNo: "Border No",
+};
 
 // Generate crew data from Excel file
 const generateCrewFromExcel = (excelData) => {
@@ -1620,6 +1633,7 @@ const CrewContent = ({ formValues, handleChange, cardColor, onNavigateToTab, lau
                                   value={row[col.field]}
                                   onChange={(e) => handlePreviewTableCellChange(rowIndex, col.field, e.target.value)}
                                   onPaste={(e) => handlePreviewTablePaste(e, rowIndex, colIndex)}
+                                  title={PREVIEW_FIELD_PLACEHOLDERS[col.field] || ""}
                                   style={{
                                     backgroundColor: hasValue ? "#f0f7ff" : "transparent",
                                     color: hasValue ? "#1a1a1a" : "#999",
@@ -1628,7 +1642,9 @@ const CrewContent = ({ formValues, handleChange, cardColor, onNavigateToTab, lau
                                     cursor: "pointer"
                                   }}
                                 >
-                                  <option value=""></option>
+                                  <option value="" disabled>
+                                    {PREVIEW_FIELD_PLACEHOLDERS[col.field] || ""}
+                                  </option>
                                   <option value="Sign On">Sign On</option>
                                   <option value="Sign Off">Sign Off</option>
                                 </select>
@@ -1650,6 +1666,7 @@ const CrewContent = ({ formValues, handleChange, cardColor, onNavigateToTab, lau
                                     customInput={
                                       <PreviewDateInput
                                         hasValue={hasValue}
+                                        placeholder={PREVIEW_FIELD_PLACEHOLDERS[col.field] || ""}
                                         onFocus={(e) => {
                                           e.target.style.backgroundColor = "#ffffff";
                                           e.target.style.boxShadow = "0 0 0 2px rgba(42, 0, 255, 0.1)";
@@ -1668,6 +1685,7 @@ const CrewContent = ({ formValues, handleChange, cardColor, onNavigateToTab, lau
                                   value={row[col.field]}
                                   onChange={(e) => handlePreviewTableCellChange(rowIndex, col.field, e.target.value)}
                                   onPaste={(e) => handlePreviewTablePaste(e, rowIndex, colIndex)}
+                                  placeholder={PREVIEW_FIELD_PLACEHOLDERS[col.field] || ""}
                                   onFocus={(e) => {
                                     e.target.style.backgroundColor = "#ffffff";
                                     e.target.style.boxShadow = "0 0 0 2px rgba(42, 0, 255, 0.1)";
