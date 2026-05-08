@@ -133,7 +133,12 @@ const PREMIUM_DATEPICKER_PROPS = {
   className: "form-control premium-date-input",
   popperClassName: "premium-datepicker-popper",
   calendarClassName: "premium-datepicker-calendar",
+  portalId: "datepicker-portal",
   showPopperArrow: false,
+  popperPlacement: "bottom-start",
+  popperProps: {
+    strategy: "fixed",
+  },
 };
 
 const PREVIEW_TABLE_INPUT_STYLE = {
@@ -150,12 +155,13 @@ const PREVIEW_TABLE_INPUT_STYLE = {
 };
 
 const PreviewDateInput = forwardRef(({ value, onClick, hasValue, onFocus, onBlur }, ref) => (
-  <input
+  <button
     ref={ref}
-    type="text"
-    value={value || ""}
-    onClick={onClick}
-    readOnly
+    type="button"
+    className="premium-date-trigger"
+    onClick={(e) => {
+      onClick?.(e);
+    }}
     onFocus={onFocus}
     onBlur={onBlur}
     style={{
@@ -164,8 +170,12 @@ const PreviewDateInput = forwardRef(({ value, onClick, hasValue, onFocus, onBlur
       color: hasValue ? "#1a1a1a" : "#999",
       fontWeight: hasValue ? "500" : "400",
       cursor: "pointer",
+      pointerEvents: "auto",
+      textAlign: "left",
     }}
-  />
+  >
+    {value || ""}
+  </button>
 ));
 
 const parseISODate = (value) => {
@@ -1308,6 +1318,7 @@ const CrewContent = ({ formValues, handleChange, cardColor, onNavigateToTab, lau
 
   return (
     <>
+      <div id="datepicker-portal" />
       {!showCrewListTable ? (
         // Crew Excel Upload Section
         <div
@@ -1414,7 +1425,7 @@ const CrewContent = ({ formValues, handleChange, cardColor, onNavigateToTab, lau
               borderRadius: "12px",
               backgroundColor: "#ffffff",
               boxShadow: "0 2px 8px rgba(0, 0, 0, 0.04)",
-              overflow: "hidden"
+              overflow: "visible"
             }}>
               <div style={{ width: "100%", overflowX: "auto" }}>
                 <table style={{
@@ -1567,7 +1578,13 @@ const CrewContent = ({ formValues, handleChange, cardColor, onNavigateToTab, lau
                               style={{
                                 padding: "10px 16px",
                                 borderRight: !isLast ? "1px solid #f0f0f0" : "none",
-                                position: "relative"
+                                position: "relative",
+                                overflow: "visible",
+                              }}
+                              onClick={(e) => {
+                                if (col.type !== "datepicker") return;
+                                if (e.target.closest(".react-datepicker")) return;
+                                e.currentTarget.querySelector(".premium-date-trigger")?.click();
                               }}
                             >
                               {col.type === "select" ? (
@@ -1589,6 +1606,7 @@ const CrewContent = ({ formValues, handleChange, cardColor, onNavigateToTab, lau
                                 </select>
                               ) : col.type === "datepicker" ? (
                                 <div
+                                  className="preview-date-cell"
                                   style={{
                                     width: "100%",
                                     backgroundColor: hasValue ? "#f0f7ff" : "transparent",

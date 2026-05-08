@@ -478,8 +478,26 @@ input[type=number] {
     height: unset !important;
 }
 
+#datepicker-portal {
+    position: relative;
+    z-index: 999999;
+}
+
 .premium-datepicker-popper {
-    z-index: 1080;
+    z-index: 999999 !important;
+}
+
+.react-datepicker-popper {
+    z-index: 999999 !important;
+}
+
+.react-datepicker {
+    z-index: 999999 !important;
+}
+
+.preview-date-cell {
+    position: relative;
+    overflow: visible;
 }
 
 .premium-datepicker-calendar.react-datepicker {
