@@ -394,8 +394,10 @@ const CrewContent = ({ formValues, handleChange, cardColor, onNavigateToTab, lau
   }, [callCrewList]);
 
   const displayCrewList = useMemo(() => {
+    if (normalizedApiCrewList && normalizedApiCrewList.length > 0) {
+      return normalizedApiCrewList;
+    }
     if (crewList.length > 0) return crewList;
-    if (normalizedApiCrewList !== null) return normalizedApiCrewList;
     return [];
   }, [crewList, normalizedApiCrewList]);
 
@@ -881,10 +883,6 @@ const CrewContent = ({ formValues, handleChange, cardColor, onNavigateToTab, lau
       alert("Failed to save crew data. Please try again.");
       return;
     }
-
-    // Set the crew list
-    const syntheticEvent = { target: { value: crewData } };
-    handleChange("crewList")(syntheticEvent);
 
     setUploadedFileName(`Preview Data (${filledRows.length} crew member${filledRows.length > 1 ? 's' : ''})`);
     const fileNameEvent = { target: { value: `Preview Data (${filledRows.length} crew member${filledRows.length > 1 ? 's' : ''})` } };
