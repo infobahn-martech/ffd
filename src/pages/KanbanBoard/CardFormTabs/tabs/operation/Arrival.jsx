@@ -22,7 +22,6 @@ function Arrival({
   formValues,
   handleChange,
   cardColor,
-  onSendReport,
   isViewOnly = false,
   arrivalStageFields = [],
   postArrivalStageFields = [],
@@ -84,9 +83,6 @@ function Arrival({
     return null;
   };
 
-  const pickAttachmentByName = (files, patterns) =>
-    files.find((file) => patterns.some((pattern) => pattern.test(String(file?.name || ""))));
-
   const resolveCreatedBy = () => {
     if (typeof window === "undefined") return "";
     return String(
@@ -117,13 +113,9 @@ function Arrival({
     { value: "Failed", label: "Failed" },
   ];
 
-  const handleArrivalDocumentsAdd = (files) => {
-    if (files.length > 0) {
-      const currentAttachments = formValues.arrivalDocumentsAttachments || [];
-      const updatedAttachments = [...currentAttachments, ...files];
-      const syntheticEvent = { target: { value: updatedAttachments } };
-      handleChange("arrivalDocumentsAttachments")(syntheticEvent);
-    }
+  const handleSingleArrivalFileAdd = (fieldKey) => (files) => {
+    const nextFile = files?.[0] || null;
+    handleChange(fieldKey)({ target: { value: nextFile ? [nextFile] : [] } });
   };
 
   const handleReportDraftChange = (field, value) => {
@@ -204,18 +196,9 @@ function Arrival({
     const saveTimeObjects = buildSaveTimeObjectsPayload(allFields, formValues);
     const mwpExpiry = toDateTimeValue(formValues?.marineWorkPermitExpiresDate, formValues?.marineWorkPermitExpiresTime);
 
-    const allFiles = (Array.isArray(formValues?.arrivalDocumentsAttachments) ? formValues.arrivalDocumentsAttachments : [])
-      .map(normalizeAttachmentFile)
-      .filter(Boolean);
-
-    const inwardDoc =
-      pickAttachmentByName(allFiles, [/inward/i, /clearance/i]) ||
-      allFiles[0] ||
-      null;
-    const mwpDoc =
-      pickAttachmentByName(allFiles, [/mwp/i, /marine/i, /permit/i]) ||
-      allFiles[1] ||
-      null;
+    const inwardDoc = normalizeAttachmentFile(formValues?.arrivalInwardClearanceDoc?.[0]);
+    const mwpDoc = normalizeAttachmentFile(formValues?.arrivalMwpDoc?.[0]);
+    const bayanDoc = normalizeAttachmentFile(formValues?.arrivalBayanDoc?.[0]);
 
     const fd = new FormData();
     fd.append("call_id", String(resolvedCallId));
@@ -226,6 +209,7 @@ function Arrival({
     fd.append("mwp_expiry", mwpExpiry);
     if (inwardDoc) fd.append("inward_clearance_doc", inwardDoc);
     if (mwpDoc) fd.append("mwp_doc", mwpDoc);
+    if (bayanDoc) fd.append("bayan_doc", bayanDoc);
 
     const createdBy = resolveCreatedBy();
     if (createdBy) {
@@ -249,38 +233,41 @@ function Arrival({
     setIsSavingArrival(true);
     try {
       const resolvedCallId = resolveFormId(callId, formValues?.call_id, formValues?.callId);
-      const resolvedPortId = resolveFormId(portId, formValues?.port_id, formValues?.portId);
-      const resolvedCallTypeId = resolveFormId(callTypeId, formValues?.call_type_id, formValues?.typeOfCall, formValues?.callTypeId);
-
-      if (reportDraft.reportType === "daily") {
-        if (!resolvedCallId || !resolvedPortId || !resolvedCallTypeId) {
-          notify("Call ID, Port ID and Call Type ID are required to send Daily report.", "error");
-          return;
-        }
-
-        const timeObjects = buildTimeObjectsPayload([...arrivalStageFields, ...postArrivalStageFields], formValues);
-        await arrivalService.getDailyReport({
-          call_id: resolvedCallId,
-          port_id: resolvedPortId,
-          call_type_id: resolvedCallTypeId,
-          report_type_id: 3,
-          time_objects: timeObjects,
-        });
-        notify("Daily report sent successfully.", "success");
+      if (!resolvedCallId) {
+        notify("Call ID is required to send report.", "error");
         return;
       }
 
-      await onSendReport?.({
+      const reportTypeId = reportDraft.reportType === "daily" ? 3 : 4;
+      const createdBy = resolveCreatedBy();
+      const body = reportDraft.message || getArrivalMessage(reportDraft.reportType) || "";
+      const from = String(reportDraft.from ?? "").trim();
+      const to = String(reportDraft.to ?? "").trim();
+      const cc = String(reportDraft.cc ?? "").trim();
+      const subject = String(reportDraft.subject ?? "").trim();
+
+      await arrivalService.sendReport({
         call_id: resolvedCallId,
-        report_type_id: 4,
-        tabName: reportDraft.reportType === "daily" ? "Daily Report" : "Arrival",
-        from: reportDraft.from,
-        to: reportDraft.to,
-        cc: reportDraft.cc,
-        subject: reportDraft.subject,
-        body: reportDraft.message || getArrivalMessage(reportDraft.reportType),
-        attachments: formValues.arrivalDocumentsAttachments || [],
+        report_type_id: reportTypeId,
+        from,
+        to,
+        cc,
+        from_email: from,
+        to_email: to,
+        cc_emails: cc,
+        subject,
+        message: body,
+        body,
+        ...(createdBy ? { created_by: createdBy } : {}),
       });
+      notify(`${reportDraft.reportType === "daily" ? "Daily" : "Arrival"} report sent successfully.`, "success");
+    } catch (error) {
+      const msg =
+        error?.response?.data?.message ||
+        error?.response?.data?.error ||
+        error?.message ||
+        "Failed to send report.";
+      notify(msg, "error");
     } finally {
       setIsSavingArrival(false);
     }
@@ -294,6 +281,12 @@ function Arrival({
       setIsSavingArrival(false);
     }
   };
+
+  const arrivalPreviewAttachments = [
+    ...(formValues.arrivalInwardClearanceDoc || []),
+    ...(formValues.arrivalMwpDoc || []),
+    ...(formValues.arrivalBayanDoc || []),
+  ];
 
   return (
     <div className="cardform-left-full" style={{ "--card-color": cardColor }}>
@@ -365,12 +358,28 @@ function Arrival({
                   />
                 </OperationFormCard>
 
-                <FormField label="Attach Vessel Inward and Marine Work Permit Copies">
+                <FormField label="Inward Clearance Document">
                   <OperationFileUpload
-                    files={formValues.arrivalDocumentsAttachments || []}
-                    onAddFiles={handleArrivalDocumentsAdd}
+                    files={formValues.arrivalInwardClearanceDoc || []}
+                    onAddFiles={handleSingleArrivalFileAdd("arrivalInwardClearanceDoc")}
                     isViewOnly={isViewOnly}
-                    ariaLabel="Upload arrival documents"
+                    ariaLabel="Upload inward clearance document"
+                  />
+                </FormField>
+                <FormField label="MWP Document">
+                  <OperationFileUpload
+                    files={formValues.arrivalMwpDoc || []}
+                    onAddFiles={handleSingleArrivalFileAdd("arrivalMwpDoc")}
+                    isViewOnly={isViewOnly}
+                    ariaLabel="Upload MWP document"
+                  />
+                </FormField>
+                <FormField label="Bayan Upload">
+                  <OperationFileUpload
+                    files={formValues.arrivalBayanDoc || []}
+                    onAddFiles={handleSingleArrivalFileAdd("arrivalBayanDoc")}
+                    isViewOnly={isViewOnly}
+                    ariaLabel="Upload bayan document"
                   />
                 </FormField>
               </OperationFormCard>
@@ -386,7 +395,7 @@ function Arrival({
                   cc={reportDraft.cc}
                   subject={reportDraft.subject}
                   message={reportDraft.message}
-                  attachments={formValues.arrivalDocumentsAttachments || []}
+                  attachments={arrivalPreviewAttachments}
                   onChange={handleReportDraftChange}
                   onReportTypeChange={handleReportTypeChange}
                   onSend={handleSaveAndSendReport}
@@ -409,7 +418,6 @@ Arrival.propTypes = {
   cardColor: PropTypes.string,
   onAddLink: PropTypes.func,
   onRemoveLink: PropTypes.func,
-  onSendReport: PropTypes.func,
   isViewOnly: PropTypes.bool,
   arrivalStageFields: PropTypes.array,
   postArrivalStageFields: PropTypes.array,
