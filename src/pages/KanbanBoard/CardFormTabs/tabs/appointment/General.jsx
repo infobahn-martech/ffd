@@ -2147,6 +2147,45 @@ function General({
     };
   };
 
+  const parseOutlookHeaderDateTime = (value = "") => {
+    const source = String(value || "").replace(/\s+/g, " ").trim();
+    if (!source) return { date: "", time: "" };
+
+    const normalized = source
+      .replace(/^(?:Sent|Date)\s*:\s*/i, "")
+      .replace(/^\s*(?:Mon|Tue|Wed|Thu|Fri|Sat|Sun)(?:day)?[\s,]+/i, "")
+      .replace(/^at\s+/i, "")
+      .trim();
+
+    const slash12hMatch = normalized.match(
+      /^(\d{1,2})\/(\d{1,2})\/(\d{4})(?:\s+|,\s*)(\d{1,2}):(\d{2})\s*(AM|PM)$/i
+    );
+    if (slash12hMatch) {
+      const dd = Number(slash12hMatch[1]);
+      const mm = Number(slash12hMatch[2]);
+      const yyyy = Number(slash12hMatch[3]);
+      const hour12 = Number(slash12hMatch[4]);
+      const minute = Number(slash12hMatch[5]);
+      const meridiem = String(slash12hMatch[6] || "").toUpperCase();
+
+      if (!dd || !mm || !yyyy || !hour12 || minute > 59 || !["AM", "PM"].includes(meridiem)) {
+        return { date: "", time: "" };
+      }
+
+      let hour24 = hour12 % 12;
+      if (meridiem === "PM") hour24 += 12;
+
+      return {
+        date: `${String(yyyy).padStart(4, "0")}-${String(mm).padStart(2, "0")}-${String(dd).padStart(2, "0")}`,
+        time: `${String(hour24).padStart(2, "0")}:${String(minute).padStart(2, "0")}`,
+      };
+    }
+
+    const parsed = parseEmailDateToParts(normalized);
+    if (parsed?.date) return parsed;
+    return { date: "", time: "" };
+  };
+
   const extractFirstEmail = (value = "") => {
     const source = String(value || "");
     const normalized = source.replace(/mailto:/gi, " ");
@@ -2154,89 +2193,88 @@ function General({
     return match ? String(match[0] || "").replace(/[>),;:\s]+$/g, "").trim() : "";
   };
 
-  const normalizeParsedDateToInputDate = (dateText = "") => {
-    const source = String(dateText || "").trim();
-    if (!source) return "";
-
-    const monthMap = {
-      jan: "01",
-      january: "01",
-      feb: "02",
-      february: "02",
-      mar: "03",
-      march: "03",
-      apr: "04",
-      april: "04",
-      may: "05",
-      jun: "06",
-      june: "06",
-      jul: "07",
-      july: "07",
-      aug: "08",
-      august: "08",
-      sep: "09",
-      sept: "09",
-      september: "09",
-      oct: "10",
-      october: "10",
-      nov: "11",
-      november: "11",
-      dec: "12",
-      december: "12",
+  const resolveMsgReceivedDateTime = (msgData = {}, extractedText = "") => {
+    const tryParseDateTime = (value) => {
+      const source = String(value || "").trim();
+      if (!source) return { date: "", time: "" };
+      const parsedHeader = parseOutlookHeaderDateTime(source);
+      if (parsedHeader?.date && parsedHeader?.time) return parsedHeader;
+      const parsedGeneric = parseEmailDateToParts(source);
+      if (parsedGeneric?.date && parsedGeneric?.time) return parsedGeneric;
+      return { date: "", time: "" };
     };
 
-    const isoMatch = source.match(/\b(\d{4})-(\d{2})-(\d{2})\b/);
-    if (isoMatch) return `${isoMatch[1]}-${isoMatch[2]}-${isoMatch[3]}`;
-
-    const slashMatch = source.match(/\b(\d{1,2})\/(\d{1,2})\/(\d{4})\b/);
-    if (slashMatch) {
-      const dd = String(slashMatch[1]).padStart(2, "0");
-      const mm = String(slashMatch[2]).padStart(2, "0");
-      const yyyy = String(slashMatch[3]);
-      return `${yyyy}-${mm}-${dd}`;
-    }
-
-    const namedMonthMatch = source.match(
-      /\b(\d{1,2})(?:st|nd|rd|th)?\s+([A-Za-z]{3,9})\s+(\d{4})\b/i
-    );
-    if (namedMonthMatch) {
-      const dd = String(namedMonthMatch[1]).padStart(2, "0");
-      const monthKey = String(namedMonthMatch[2] || "").toLowerCase();
-      const mm = monthMap[monthKey];
-      const yyyy = String(namedMonthMatch[3]);
-      if (mm) return `${yyyy}-${mm}-${dd}`;
-    }
-
-    const fallback = new Date(source);
-    if (!Number.isNaN(fallback.getTime())) {
-      const yyyy = fallback.getFullYear();
-      const mm = String(fallback.getMonth() + 1).padStart(2, "0");
-      const dd = String(fallback.getDate()).padStart(2, "0");
-      return `${yyyy}-${mm}-${dd}`;
-    }
-
-    return "";
-  };
-
-  const extractBodyDate = (text = "") => {
-    const source = String(text || "");
-    if (!source) return "";
-
-    const patterns = [
-      /\beffective\s+from\s+(\d{1,2}(?:st|nd|rd|th)?\s+[A-Za-z]{3,9}\s+\d{4})\b/i,
-      /\beffective\s+from\s+(\d{1,2}\/\d{1,2}\/\d{4})\b/i,
-      /\beffective\s+from\s+(\d{4}-\d{2}-\d{2})\b/i,
-      /\b(\d{1,2}(?:st|nd|rd|th)?\s+[A-Za-z]{3,9}\s+\d{4})\b/i,
-      /\b(\d{1,2}\/\d{1,2}\/\d{4})\b/i,
-      /\b(\d{4}-\d{2}-\d{2})\b/i,
+    const metadataCandidates = [
+      msgData?.sentDate,
+      msgData?.messageDeliveryTime,
+      msgData?.clientSubmitTime,
+      msgData?.deliveryTime,
+      msgData?.date,
+      msgData?.creationTime,
+      msgData?.lastModificationTime,
+      msgData?.messageDate,
+      msgData?.messageDateTime,
     ];
 
-    for (const pattern of patterns) {
-      const match = source.match(pattern);
-      if (match?.[1]) return String(match[1]).trim();
+    for (const candidate of metadataCandidates) {
+      const parsed = tryParseDateTime(candidate);
+      if (parsed?.date) return parsed;
     }
 
-    return "";
+    const rawHeaderSources = [
+      msgData?.headers,
+      msgData?.transportMessageHeaders,
+      msgData?.messageHeaders,
+    ]
+      .filter((item) => item !== undefined && item !== null)
+      .map((item) => {
+        if (typeof item === "string") return item;
+        if (Array.isArray(item)) return item.map((part) => String(part || "")).join("\n");
+        if (typeof item === "object") {
+          const keyValueText = Object.entries(item)
+            .map(([key, val]) => `${key}: ${String(val ?? "")}`)
+            .join("\n");
+          return `${keyValueText}\n${JSON.stringify(item)}`;
+        }
+        return String(item);
+      });
+
+    const rawHeaderText = rawHeaderSources.join("\n");
+    if (rawHeaderText) {
+      const lineMatches = [...rawHeaderText.matchAll(/(?:^|\n)\s*(Date|Sent)\s*:\s*([^\n]+)/gi)];
+      for (const match of lineMatches) {
+        const parsed = tryParseDateTime(match?.[2] || "");
+        if (parsed?.date) return parsed;
+      }
+
+      const inlinePatterns = [
+        /\b(\d{1,2}\/\d{1,2}\/\d{4}\s+\d{1,2}:\d{2}\s*(?:AM|PM))\b/i,
+        /\b(\d{1,2}\s+[A-Za-z]{3,9}\s+\d{4}\s+\d{1,2}:\d{2}(?::\d{2})?(?:\s*[+-]\d{4})?)\b/i,
+      ];
+      for (const pattern of inlinePatterns) {
+        const match = rawHeaderText.match(pattern);
+        const parsed = tryParseDateTime(match?.[1] || "");
+        if (parsed?.date) return parsed;
+      }
+    }
+
+    const source = String(extractedText || "");
+    const headerPatterns = [
+      /(?:^|\n)\s*Sent:\s*([^\n]+)/i,
+      /(?:^|\n)\s*Date:\s*([^\n]+)/i,
+      /(?:^|\n)\s*(?:From|To|Cc):[^\n]*\b(\d{1,2}\/\d{1,2}\/\d{4}\s+\d{1,2}:\d{2}\s*(?:AM|PM))\b/i,
+      /\b(\d{1,2}\s+[A-Za-z]{3,9}\s+\d{4}\s+\d{1,2}:\d{2}(?::\d{2})?(?:\s*[+-]\d{4})?)\b/i,
+    ];
+
+    for (const pattern of headerPatterns) {
+      const match = source.match(pattern);
+      const headerValue = String(match?.[1] || "").trim();
+      if (!headerValue) continue;
+      const parsed = tryParseDateTime(headerValue);
+      if (parsed?.date) return parsed;
+    }
+
+    return { date: "", time: "" };
   };
 
   const extractEmailHeaderDetails = (text = "") => {
@@ -2363,22 +2401,36 @@ function General({
     setFieldIfEmpty(fieldName, value);
   };
 
-  const applyNonAiAppointmentFields = (extracted) => {
-    let filledCount = 0;
+  const updateFormValue = (fieldName, value) => {
+    handleChange(fieldName)({
+      target: {
+        name: fieldName,
+        value,
+      },
+    });
+  };
 
-    let { date, time } = parseEmailDateToParts(extracted?.sentDateTime);
-    if (!date) {
-      const bodyDateText = extractBodyDate(extracted?.fullText);
-      const normalizedBodyDate = normalizeParsedDateToInputDate(bodyDateText);
-      if (normalizedBodyDate) {
-        date = normalizedBodyDate;
-        time = "";
-      }
-      console.log("[Appointment Non-AI Parse] body date", {
-        bodyDateText,
-        normalizedBodyDate,
-      });
-    }
+  const applyAppointmentReceivedDateTime = (receivedParts) => {
+    if (!receivedParts?.date || !receivedParts?.time) return false;
+
+    const combinedMinute = `${receivedParts.date} ${receivedParts.time}`;
+    const combinedSecond = `${combinedMinute}:00`;
+
+    updateFormValue("appointmentReceivedDate", receivedParts.date);
+    updateFormValue("appointmentReceivedTime", receivedParts.time);
+    updateFormValue("appointmentReceived", combinedMinute);
+    updateFormValue("appointmentReceivedDateTime", combinedMinute);
+    updateFormValue("appointment_received_date", combinedSecond);
+    console.log("[Appointment Received Applied]", {
+      date: receivedParts.date,
+      time: receivedParts.time,
+      combined: combinedMinute,
+    });
+    return true;
+  };
+
+  const applyNonAiAppointmentFields = (extracted, receivedParts) => {
+    let filledCount = 0;
     const fallbackEmail = extractFirstEmail(extracted?.fullText);
     const resolvedRequestorEmail = firstNonEmptyString(extracted?.fromEmail) || fallbackEmail;
     console.log("[Appointment Non-AI Parse] resolved sender", {
@@ -2386,8 +2438,7 @@ function General({
       fallbackEmail,
       resolvedRequestorEmail,
     });
-    if (setFieldIfEmpty("appointmentReceivedDate", date)) filledCount += 1;
-    if (setFieldIfEmpty("appointmentReceivedTime", time)) filledCount += 1;
+    if (applyAppointmentReceivedDateTime(receivedParts)) filledCount += 1;
     if (setFieldIfEmpty("serviceRequestorName", extracted?.fromName)) filledCount += 1;
     if (setFieldIfEmpty("serviceRequestorEmail", resolvedRequestorEmail)) filledCount += 1;
 
@@ -2458,6 +2509,8 @@ function General({
 
     const msgReader = new MsgReaderConstructor(arrayBuffer);
     const msgInfo = msgReader.getFileData();
+    console.log("[MSG FULL DATA]", msgInfo);
+    console.log("[MSG HEADER RAW]", msgInfo?.headers || msgInfo?.transportMessageHeaders || msgInfo?.messageHeaders);
     console.log("[Appointment Non-AI Parse] MSG raw data", msgInfo);
 
     const body = msgInfo.body || msgInfo.bodyHTML || "";
@@ -2484,13 +2537,14 @@ function General({
       msgInfo.lastModificationTime ||
       "";
 
-    return `
+    const extractedText = `
 From: ${fromName} <${fromEmail}>
 Sent: ${sentDateTime}
 Subject: ${subject}
 
 ${body}
 `;
+    return { extractedText, msgData: msgInfo };
   };
 
   // Handle document upload
@@ -2506,9 +2560,18 @@ ${body}
     try {
       setIsAiExtractingAppointment(true);
       setAiExtractionError("");
-      const extractedText = isMsgFile(file)
-        ? await extractMsgAppointmentText(file)
-        : await extractTextFromFile(file);
+      let extractedText = "";
+      let msgData = null;
+      if (isMsgFile(file)) {
+        const parsedMsg = await extractMsgAppointmentText(file);
+        extractedText = firstNonEmptyString(parsedMsg?.extractedText);
+        msgData = parsedMsg?.msgData || null;
+      } else {
+        extractedText = await extractTextFromFile(file);
+      }
+      console.log("[Appointment Non-AI] msgData keys", Object.keys(msgData || {}));
+      console.log("[Appointment Non-AI] msgData raw", msgData);
+      console.log("[Appointment Non-AI] extractedText first 500", extractedText?.slice(0, 500));
       console.log("[Appointment Non-AI Parse] upload text", extractedText);
       if (!firstNonEmptyString(extractedText)) {
         notify("File uploaded, but no matching appointment details found.", "warning");
@@ -2521,8 +2584,22 @@ ${body}
       }
 
       const extracted = extractEmailHeaderDetails(extractedText);
+      const receivedParts = resolveMsgReceivedDateTime(msgData, extractedText);
+      console.log("[Appointment Non-AI] resolved received date", receivedParts);
       console.log("[Appointment Non-AI Parse] extracted", extracted);
-      const filledCount = applyNonAiAppointmentFields(extracted);
+      const filledCount = applyNonAiAppointmentFields(extracted, receivedParts);
+      const appointmentReceivedDate = getFieldValue("appointmentReceivedDate");
+      const appointmentReceivedTime = getFieldValue("appointmentReceivedTime");
+      const appointmentReceived = getFieldValue("appointmentReceived");
+      const appointmentReceivedDateTime = getFieldValue("appointmentReceivedDateTime");
+      const appointment_received_date = getFieldValue("appointment_received_date");
+      console.log("[Appointment Non-AI] current appointment fields after bind", {
+        appointmentReceivedDate,
+        appointmentReceivedTime,
+        appointmentReceived,
+        appointmentReceivedDateTime,
+        appointment_received_date,
+      });
       if (filledCount > 0) {
         notify("Appointment details auto-filled from uploaded email.", "success");
       } else {
