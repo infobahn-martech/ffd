@@ -293,7 +293,17 @@ OwnerField.propTypes = {
 };
 
 // Document Upload Component
-const DocumentUpload = ({ attachments = [], onAdd, onRemove, cardColor, disabled = false, type = "", hasError = false }) => {
+const DocumentUpload = ({
+  attachments = [],
+  onAdd,
+  onRemove,
+  cardColor,
+  disabled = false,
+  type = "",
+  hasError = false,
+  allowMultiple = true,
+  onMultipleFiles,
+}) => {
   const fileInputRef = useRef(null);
   const [isDragging, setIsDragging] = useState(false);
 
@@ -322,6 +332,11 @@ const DocumentUpload = ({ attachments = [], onAdd, onRemove, cardColor, disabled
     if (disabled) return;
     const files = Array.from(e.dataTransfer.files);
     if (files.length > 0 && onAdd) {
+      if (!allowMultiple) {
+        if (files.length > 1 && onMultipleFiles) onMultipleFiles(files);
+        onAdd(files[0]);
+        return;
+      }
       files.forEach(file => onAdd(file));
     }
   };
@@ -329,7 +344,12 @@ const DocumentUpload = ({ attachments = [], onAdd, onRemove, cardColor, disabled
   const handleFileInputChange = (e) => {
     const files = Array.from(e.target.files);
     if (files.length > 0 && onAdd) {
-      files.forEach(file => onAdd(file));
+      if (!allowMultiple) {
+        if (files.length > 1 && onMultipleFiles) onMultipleFiles(files);
+        onAdd(files[0]);
+      } else {
+        files.forEach(file => onAdd(file));
+      }
     }
     // Reset input so same file can be selected again
     if (fileInputRef.current) {
@@ -450,7 +470,7 @@ const DocumentUpload = ({ attachments = [], onAdd, onRemove, cardColor, disabled
           ref={fileInputRef}
           type="file"
           className="file-input-hidden"
-          multiple
+          multiple={allowMultiple}
           onChange={handleFileInputChange}
           disabled={disabled}
         />
@@ -510,6 +530,8 @@ DocumentUpload.propTypes = {
   disabled: PropTypes.bool,
   type: PropTypes.string,
   hasError: PropTypes.bool,
+  allowMultiple: PropTypes.bool,
+  onMultipleFiles: PropTypes.func,
 };
 
 // Multi-Select Email Component
@@ -2429,6 +2451,31 @@ function General({
     return true;
   };
 
+  const resetAppointmentEmailExtractedValues = () => {
+    updateFormValue("appointmentReceivedDate", "");
+    updateFormValue("appointmentReceivedTime", "");
+    updateFormValue("appointmentReceived", "");
+    updateFormValue("appointmentReceivedDateTime", "");
+    updateFormValue("appointment_received_date", "");
+    updateFormValue("port", "");
+    updateFormValue("typeOfCall", "");
+    updateFormValue("call_type_id", "");
+    updateFormValue("vesselName", "");
+    updateFormValue("serviceRequestorName", "");
+    updateFormValue("serviceRequestorEmail", "");
+
+    setPreviewMessageText("");
+    setEmailPreviewData(null);
+    setIsPreviewMessageDirty(false);
+    setEditablePreviewFields({
+      from_email: "",
+      to_email: "",
+      cc_emails: "",
+      subject: "",
+    });
+    setAiExtractionError("");
+  };
+
   const applyNonAiAppointmentFields = (extracted, receivedParts) => {
     let filledCount = 0;
     const fallbackEmail = extractFirstEmail(extracted?.fullText);
@@ -2549,7 +2596,12 @@ ${body}
 
   // Handle document upload
   const handleAppointmentDocumentAdd = async (file) => {
-    setAppointmentDocuments((prev) => [...prev, file]);
+    if (!file) return;
+    const hasExistingAppointmentFile = Array.isArray(appointmentDocuments) && appointmentDocuments.length > 0;
+    if (hasExistingAppointmentFile) {
+      resetAppointmentEmailExtractedValues();
+    }
+    setAppointmentDocuments([file]);
     setFieldErrors((prev) => {
       if (!prev.appointmentEmailDocuments) return prev;
       const next = { ...prev };
@@ -2626,7 +2678,9 @@ ${body}
   };
 
   const handleDocumentRemove = (index) => {
-    setAppointmentDocuments(appointmentDocuments.filter((_, i) => i !== index));
+    setAppointmentDocuments((prev) => prev.filter((_, i) => i !== index));
+    resetAppointmentEmailExtractedValues();
+    console.log("[Appointment Email] removed, extracted values reset");
   };
 
   const normalizeEntityEmailOptions = useCallback((payload) => {
@@ -3836,6 +3890,8 @@ ${body}
                                       attachments={appointmentDocuments}
                                       onAdd={handleAppointmentDocumentAdd}
                                       onRemove={handleDocumentRemove}
+                                      allowMultiple={false}
+                                      onMultipleFiles={() => notify("Only one appointment email can be uploaded.", "warning")}
                                       cardColor={accentColor}
                                       disabled={isDisabled}
                                       hasError={isAddMode && Boolean(fieldErrors.appointmentEmailDocuments)}
