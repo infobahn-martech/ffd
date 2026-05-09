@@ -31,7 +31,7 @@ export default function KanbanBoardPage() {
   const isOperatorBoard = String(selectedBoardId ?? "").toLowerCase() === "operator";
   const userProfile = useAuthReducer((state) => state.userProfile);
   const roleId = Number(userProfile?.role?.role_id);
-  const cardFormVariant = roleId === 4 ? "gro" : roleId === 5 ? "empty" : "default";
+  const cardFormVariant = roleId === 4 || roleId === 5 ? "gro" : "default";
   const { layoutView } = useLayoutView();
   const isClassicLayout = layoutView === "classic";
   const isModernLayout = layoutView === "modern";
