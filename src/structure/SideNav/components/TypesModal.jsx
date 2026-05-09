@@ -2,58 +2,61 @@ import { useState, useRef, useEffect } from 'react';
 import { FiX, FiFilter, FiPlus, FiMoreVertical, FiInfo } from 'react-icons/fi';
 import { Modal } from 'react-bootstrap';
 import NewTypeModal from './NewTypeModal';
+import DynamicIcon from './DynamicIcon';
 import '../../../design/scss/blockers-modal.scss';
 
-// Types data
+const contrastIconFg = (bg) => {
+  if (!bg || typeof bg !== 'string') return '#1a1a1a';
+  let r;
+  let g;
+  let b;
+  const trimmed = bg.trim();
+  if (trimmed.startsWith('#')) {
+    const h = trimmed.slice(1);
+    const full = h.length === 3 ? h.split('').map((c) => c + c).join('') : h;
+    if (full.length < 6) return '#1a1a1a';
+    r = parseInt(full.slice(0, 2), 16);
+    g = parseInt(full.slice(2, 4), 16);
+    b = parseInt(full.slice(4, 6), 16);
+  } else {
+    const m = trimmed.match(/\d+/g);
+    if (!m || m.length < 3) return '#1a1a1a';
+    r = Number(m[0]);
+    g = Number(m[1]);
+    b = Number(m[2]);
+  }
+  const luminance = (0.299 * r + 0.587 * g + 0.114 * b) / 255;
+  return luminance > 0.62 ? '#1a1a1a' : '#ffffff';
+};
+
+// Types data (icon.iconKey = react-icons export name, e.g. LuUsb, FiCalendar)
 const typesData = [
   {
     id: 1,
     label: 'HAHA',
-    icon: { color: '#FCD34D', symbol: 'usb' }, // Yellow
+    icon: { color: '#FCD34D', iconKey: 'LuUsb' },
     availabilityLevel: 'On-demand',
     boards: ['Team B', 'Team A', 'Strategic Objectives'],
   },
   {
     id: 2,
     label: 'Waiting on others',
-    icon: { color: '#A78BFA', symbol: 'hourglass' }, // Purple
+    icon: { color: '#A78BFA', iconKey: 'LuHourglass' },
     availabilityLevel: 'Auto',
     boards: ['Team B', 'Team A', 'Strategic Objectives'],
   },
   {
     id: 3,
     label: 'Waiting on us',
-    icon: { color: '#EF4444', symbol: 'hourglass' }, // Red
+    icon: { color: '#EF4444', iconKey: 'LuHourglass' },
     availabilityLevel: 'Auto',
     boards: ['Team B', 'Team A', 'Strategic Objectives'],
   },
 ];
 
-// Icon component for types
 const TypeIcon = ({ icon }) => {
-  const { color, symbol } = icon;
-
-  const renderSymbol = () => {
-    switch (symbol) {
-      case 'usb':
-        return (
-          <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
-            <rect x="4" y="2" width="8" height="12" rx="1" fill="currentColor" />
-            <rect x="6" y="4" width="4" height="2" fill="white" />
-            <rect x="6" y="10" width="4" height="2" fill="white" />
-          </svg>
-        );
-      case 'hourglass':
-        return (
-          <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
-            <path d="M4 2h8M4 14h8M4 2l2 4 2-4M4 14l2-4 2 4" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" />
-            <line x1="8" y1="6" x2="8" y2="10" stroke="currentColor" strokeWidth="1.5" />
-          </svg>
-        );
-      default:
-        return null;
-    }
-  };
+  const { color, iconKey } = icon;
+  const fg = contrastIconFg(color);
 
   return (
     <div
@@ -65,11 +68,11 @@ const TypeIcon = ({ icon }) => {
         display: 'flex',
         alignItems: 'center',
         justifyContent: 'center',
-        color: '#000',
+        color: fg,
         flexShrink: 0,
       }}
     >
-      {renderSymbol()}
+      <DynamicIcon iconKey={iconKey} size={16} color={fg} />
     </div>
   );
 };
