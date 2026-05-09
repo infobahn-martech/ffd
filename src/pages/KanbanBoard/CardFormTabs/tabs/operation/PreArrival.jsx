@@ -941,24 +941,14 @@ function PreArrival({
       notify("Card ID is required.", "error");
       return false;
     }
-    if (!assignedGro) {
-      notify("Assigned GRO is required.", "error");
-      return false;
-    }
-    if (!assignedCustom) {
-      notify("Assigned Custom clearance is required.", "error");
-      return false;
-    }
-
     if (
       formValues.weatherForecast === BAD_WEATHER &&
       formValues.preArrivalTimeObjectsNeedRecheck === true
     ) {
       notify(
-        "Please re-check ETA and clearance time objects before saving.",
+        "Bad weather is selected. Saving without re-checking ETA and clearance time objects.",
         "warning"
       );
-      return false;
     }
 
     const timeObjects = (eventFields || [])
