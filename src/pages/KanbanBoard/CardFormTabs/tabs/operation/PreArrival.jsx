@@ -259,7 +259,9 @@ function PreArrivalDocumentHandlingSection({
     });
   }, []);
 
-  const showDocumentHandlingContent = Boolean(selectedGroOption && selectedCustomClearanceOption);
+  const showGroDocuments = Boolean(selectedGroOption);
+  const showCustomDocuments = Boolean(selectedCustomClearanceOption);
+  const showDocumentHandlingContent = showGroDocuments || showCustomDocuments;
 
   useEffect(() => {
     let cancelled = false;
@@ -459,37 +461,41 @@ function PreArrivalDocumentHandlingSection({
             <h3 className="document-handling-section__heading">Document handling</h3>
           </div>
 
-          <DocumentGroupCard title="GRO documents">
-            {(dh.documents.gro || []).map((doc) => (
-              <CompactFileUploadRow
-                key={doc.id}
-                label={doc.name}
-                files={doc.files || []}
-                isRequired={Boolean(doc.is_required)}
-                isViewOnly={isViewOnly}
-                onAddFiles={(newFiles) => patchRowFiles("gro", doc.id, [...(doc.files || []), ...newFiles])}
-                onRemoveAt={(idx) => patchRowFiles("gro", doc.id, (doc.files || []).filter((_, i) => i !== idx))}
-              />
-            ))}
-          </DocumentGroupCard>
+          {showGroDocuments && (
+            <DocumentGroupCard title="GRO documents">
+              {(dh.documents.gro || []).map((doc) => (
+                <CompactFileUploadRow
+                  key={doc.id}
+                  label={doc.name}
+                  files={doc.files || []}
+                  isRequired={Boolean(doc.is_required)}
+                  isViewOnly={isViewOnly}
+                  onAddFiles={(newFiles) => patchRowFiles("gro", doc.id, [...(doc.files || []), ...newFiles])}
+                  onRemoveAt={(idx) => patchRowFiles("gro", doc.id, (doc.files || []).filter((_, i) => i !== idx))}
+                />
+              ))}
+            </DocumentGroupCard>
+          )}
 
-          <DocumentGroupCard title="Custom clearance documents">
-            {(dh.documents.customClearance || []).map((doc) => (
-              <CompactFileUploadRow
-                key={doc.id}
-                label={doc.name}
-                files={doc.files || []}
-                isRequired={Boolean(doc.is_required)}
-                isViewOnly={isViewOnly}
-                onAddFiles={(newFiles) =>
-                  patchRowFiles("customClearance", doc.id, [...(doc.files || []), ...newFiles])
-                }
-                onRemoveAt={(idx) =>
-                  patchRowFiles("customClearance", doc.id, (doc.files || []).filter((_, i) => i !== idx))
-                }
-              />
-            ))}
-          </DocumentGroupCard>
+          {showCustomDocuments && (
+            <DocumentGroupCard title="Custom clearance documents">
+              {(dh.documents.customClearance || []).map((doc) => (
+                <CompactFileUploadRow
+                  key={doc.id}
+                  label={doc.name}
+                  files={doc.files || []}
+                  isRequired={Boolean(doc.is_required)}
+                  isViewOnly={isViewOnly}
+                  onAddFiles={(newFiles) =>
+                    patchRowFiles("customClearance", doc.id, [...(doc.files || []), ...newFiles])
+                  }
+                  onRemoveAt={(idx) =>
+                    patchRowFiles("customClearance", doc.id, (doc.files || []).filter((_, i) => i !== idx))
+                  }
+                />
+              ))}
+            </DocumentGroupCard>
+          )}
         </>
       )}
     </div>
@@ -562,8 +568,8 @@ function PreArrival({
   const preArrivalDocumentsDetailRef = useRef({ taskDocuments: [], stageDocuments: [] });
 
   const callId = useMemo(
-    () => String(card?.call_id ?? card?.callId ?? formValues?.call_id ?? "").trim(),
-    [card?.call_id, card?.callId, formValues?.call_id]
+    () => String(card?.call_id ?? card?.callId ?? formValues?.call_id ?? formValues?.callId ?? card?.id ?? "").trim(),
+    [card?.call_id, card?.callId, card?.id, formValues?.call_id, formValues?.callId]
   );
 
   const eventFieldsApplyKey = useMemo(
@@ -922,7 +928,7 @@ function PreArrival({
   };
 
   const savePreArrivalData = async () => {
-    const callId = card?.call_id || formValues?.call_id || "";
+    const callId = card?.call_id || card?.callId || formValues?.call_id || formValues?.callId || card?.id || "";
     const cardId = card?.id || card?.card_id || formValues?.card_id || "";
     const assignedGro = formValues.assignedGro || "";
     const assignedCustom = formValues.assignedCustom || "";
