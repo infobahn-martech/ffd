@@ -4567,12 +4567,18 @@ body .material-management-modal .files-list::-webkit-scrollbar-thumb:hover {
 }
 
 .crew-list-header-action-slot {
-  width: 180px;
-  min-width: 180px;
+  width: 0;
+  min-width: 0;
   min-height: 36px;
   display: flex;
   align-items: center;
   justify-content: flex-end;
+  overflow: hidden;
+}
+
+.crew-list-header-actions.has-selection .crew-list-header-action-slot {
+  width: 180px;
+  min-width: 180px;
 }
 
 .crew-list-header-action-placeholder {
