@@ -1,5 +1,6 @@
 import { useState, useCallback } from "react";
 import { DragDropContext, Droppable, Draggable } from "@hello-pangea/dnd";
+import { KANBAN_DND_DISABLED } from "../../modules/kanban/constants/kanbanConfig";
 import "./DAModule.scss";
 
 // Dummy content templates
@@ -200,7 +201,7 @@ export default function DAModule() {
 
       {/* Main Content Area */}
       <div className="da-module-content">
-        <DragDropContext onDragEnd={handleDragEnd}>
+        <DragDropContext onDragEnd={KANBAN_DND_DISABLED ? () => {} : handleDragEnd}>
           <div className="da-module-columns-container">
             {columns.map((column) => (
               <div key={column.id} className="da-module-column">
@@ -238,14 +239,15 @@ export default function DAModule() {
                               key={item.id}
                               draggableId={item.id}
                               index={index}
+                              isDragDisabled={KANBAN_DND_DISABLED}
                             >
                               {(provided, snapshot) => (
                                 <div
                                   ref={provided.innerRef}
-                                  {...provided.draggableProps}
-                                  {...provided.dragHandleProps}
+                                  {...(KANBAN_DND_DISABLED ? {} : provided.draggableProps)}
+                                  {...(KANBAN_DND_DISABLED ? {} : provided.dragHandleProps)}
                                   className={`da-module-item ${snapshot.isDragging ? 'dragging' : ''}`}
-                                  style={provided.draggableProps.style}
+                                  style={KANBAN_DND_DISABLED ? undefined : provided.draggableProps.style}
                                 >
                                   <div className="da-module-item-content">
                                     <h3 className="da-module-item-title">{item.title}</h3>

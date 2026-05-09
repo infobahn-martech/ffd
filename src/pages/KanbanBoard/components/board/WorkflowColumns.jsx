@@ -1,5 +1,6 @@
 import { useMemo } from "react";
 import { DragDropContext } from "@hello-pangea/dnd";
+import { KANBAN_DND_DISABLED } from "../../../../modules/kanban/constants/kanbanConfig";
 import ColumnHeader from "./ColumnHeader";
 import SwimlaneColumnCell from "./SwimlaneColumnCell";
 import {
@@ -62,7 +63,7 @@ export default function WorkflowColumns({
         } ${layoutView === "normal" ? "kanban-normal-layout" : ""}`}
       key={layoutView}
     >
-      <DragDropContext onDragEnd={onDragEnd}>
+      <DragDropContext onDragEnd={KANBAN_DND_DISABLED ? () => {} : onDragEnd}>
         <div
           className={`kanban-board kanban-board--swimlanes ${!shouldShowSwimlaneTitle ? "kanban-board--single-swimlane" : ""}`}
         >

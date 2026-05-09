@@ -1,5 +1,6 @@
 import { useState, useCallback, useMemo, useEffect } from "react";
 import { DragDropContext } from "@hello-pangea/dnd";
+import { KANBAN_DND_DISABLED } from "../../modules/kanban/constants/kanbanConfig";
 import { FiLayers } from "react-icons/fi";
 import { initialData } from "../../helpers/Admindata";
 import Column from "./Column";
@@ -638,7 +639,7 @@ export default function AdminBoard() {
 
           {expandedWorkflows[workflow.id] && (
             <div className="kanban-container">
-              <DragDropContext onDragEnd={createDragEndHandler(workflow.id)}>
+              <DragDropContext onDragEnd={KANBAN_DND_DISABLED ? () => {} : createDragEndHandler(workflow.id)}>
                 <div className="kanban-board">
                   {renderWorkflowColumns(workflow)}
                 </div>

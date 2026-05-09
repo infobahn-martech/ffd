@@ -1,4 +1,5 @@
 import { Draggable } from "@hello-pangea/dnd";
+import { KANBAN_DND_DISABLED } from "../../../../modules/kanban/constants/kanbanConfig";
 import PropTypes from "prop-types";
 import { Tooltip } from "react-tooltip";
 import "../../../../design/css/CardItem.css";
@@ -403,16 +404,16 @@ function CardItem({
     (Array.isArray(ed) && ed.includes("launch"));
 
   return (
-    <Draggable draggableId={card.id} index={index}>
+    <Draggable draggableId={card.id} index={index} isDragDisabled={KANBAN_DND_DISABLED}>
       {(provided, snapshot) => (
         <div
           className={`kanban-card ${isApiCard ? "kanban-card--api" : ""} ${snapshot.isDragging ? "dragging" : ""} ${card.priority ? "priority-blink" : ""} ${isShrunk ? "card-shrunk" : ""} ${isClassicLayout ? "kanban-card-classic" : ""} ${isModernLayout ? "kanban-card-modern" : ""} ${isDarkMode ? "kanban-card-dark" : ""} ${fixedBoardSizeStyle ? "kanban-card--fixed-board" : ""}`}
           ref={provided.innerRef}
-          {...provided.draggableProps}
-          {...provided.dragHandleProps}
+          {...(KANBAN_DND_DISABLED ? {} : provided.draggableProps)}
+          {...(KANBAN_DND_DISABLED ? {} : provided.dragHandleProps)}
           style={{
             ...fixedBoardSizeStyle,
-            ...provided.draggableProps.style,
+            ...(KANBAN_DND_DISABLED ? {} : provided.draggableProps.style),
             "--card-color": cardColor,
           }}
         >
