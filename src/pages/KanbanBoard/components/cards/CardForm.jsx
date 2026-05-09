@@ -866,6 +866,7 @@ const GRO_DOCUMENT_TYPES = [
 ];
 
 const GROCardView = ({ card }) => {
+  const inwardAnchorRef = useRef(null);
   const inwardFileInputRef = useRef(null);
   const [showInwardClearance, setShowInwardClearance] = useState(false);
   const [inwardFile, setInwardFile] = useState(null);
@@ -907,6 +908,21 @@ const GROCardView = ({ card }) => {
     setShowInwardClearance(false);
     resetInwardClearanceFields();
   };
+
+  useEffect(() => {
+    if (!showInwardClearance) return undefined;
+    const onPointerDown = (e) => {
+      if (inwardAnchorRef.current && !inwardAnchorRef.current.contains(e.target)) {
+        setShowInwardClearance(false);
+      }
+    };
+    document.addEventListener("mousedown", onPointerDown);
+    document.addEventListener("touchstart", onPointerDown, { passive: true });
+    return () => {
+      document.removeEventListener("mousedown", onPointerDown);
+      document.removeEventListener("touchstart", onPointerDown);
+    };
+  }, [showInwardClearance]);
 
   const handleCrossClick = (docName) => {
     if (activeRemarkDoc === docName) {
@@ -987,119 +1003,137 @@ const GROCardView = ({ card }) => {
         <div className="gro-document-header">
           <h3 className="gro-section-title">Documents</h3>
           <div className="gro-document-header-actions">
-            <button
-              type="button"
-              className="gro-inward-clearance-btn"
-              onClick={() => setShowInwardClearance(!showInwardClearance)}
-            >
-              Inward clearance
-            </button>
+            <div className="gro-inward-anchor" ref={inwardAnchorRef}>
+              <button
+                type="button"
+                className="gro-inward-clearance-btn"
+                aria-expanded={showInwardClearance}
+                onClick={() => setShowInwardClearance(!showInwardClearance)}
+              >
+                Inward clearance
+              </button>
+              {showInwardClearance ? (
+                <div className="gro-inward-popover" role="dialog" aria-label="Inward clearance">
+                  <div className="gro-inward-popover-header">Inward Clearance</div>
+                  <div className="gro-inward-popover-body">
+                    <div className="gro-inward-popover-field">
+                      <span className="gro-inward-popover-label">File upload</span>
+                      <div className="gro-premium-upload">
+                        <input
+                          ref={inwardFileInputRef}
+                          id="gro-inward-file-input"
+                          type="file"
+                          className="gro-premium-upload-input-hidden"
+                          accept=".pdf,.doc,.docx,.jpg,.jpeg,.png"
+                          onChange={(e) => setInwardFile(e.target.files?.[0] ?? null)}
+                        />
+                        <button
+                          type="button"
+                          className="gro-premium-upload-btn"
+                          onClick={() => inwardFileInputRef.current?.click()}
+                        >
+                          Choose file
+                        </button>
+                        <span className="gro-premium-upload-filename" title={inwardFile?.name || ""}>
+                          {inwardFile?.name || "No file chosen"}
+                        </span>
+                      </div>
+                    </div>
+                    <div className="gro-inward-popover-datetime-row">
+                      <div className="gro-inward-popover-field gro-inward-popover-field-half">
+                        <span className="gro-inward-popover-label">Date</span>
+                        <div className="cf-input gro-inward-premium-input">
+                          <input id="gro-inward-date" type="date" value={inwardDate} onChange={(e) => setInwardDate(e.target.value)} />
+                        </div>
+                      </div>
+                      <div className="gro-inward-popover-field gro-inward-popover-field-half">
+                        <span className="gro-inward-popover-label">Time</span>
+                        <div className="cf-input gro-inward-premium-input">
+                          <input id="gro-inward-time" type="time" value={inwardTime} onChange={(e) => setInwardTime(e.target.value)} />
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                  <div className="gro-inward-popover-footer">
+                    <button type="button" className="gro-inward-popover-btn-cancel" onClick={handleInwardCancel}>
+                      Cancel
+                    </button>
+                    <button type="button" className="gro-inward-popover-btn-submit" onClick={handleInwardSubmit}>
+                      Submit
+                    </button>
+                  </div>
+                </div>
+              ) : null}
+            </div>
           </div>
         </div>
-
-        {showInwardClearance && (
-          <div className="gro-inward-compact-form">
-            <div className="cf-field gro-inward-compact-field">
-              <label htmlFor="gro-inward-file-input">File upload</label>
-              <div className="cf-input gro-inward-compact-file-input">
-                <input
-                  ref={inwardFileInputRef}
-                  id="gro-inward-file-input"
-                  type="file"
-                  accept=".pdf,.doc,.docx,.jpg,.jpeg,.png"
-                  onChange={(e) => setInwardFile(e.target.files?.[0] ?? null)}
-                />
-              </div>
-              {inwardFile ? <span className="gro-inward-file-name">{inwardFile.name}</span> : null}
-            </div>
-            <div className="cf-grid two gro-inward-compact-datetime-grid">
-              <div className="cf-field gro-inward-compact-field">
-                <label htmlFor="gro-inward-date">Date</label>
-                <div className="cf-input">
-                  <input id="gro-inward-date" type="date" value={inwardDate} onChange={(e) => setInwardDate(e.target.value)} />
-                </div>
-              </div>
-              <div className="cf-field gro-inward-compact-field">
-                <label htmlFor="gro-inward-time">Time</label>
-                <div className="cf-input">
-                  <input id="gro-inward-time" type="time" value={inwardTime} onChange={(e) => setInwardTime(e.target.value)} />
-                </div>
-              </div>
-            </div>
-            <div className="gro-require-actions gro-inward-compact-actions">
-              <button type="button" className="gro-require-cancel" onClick={handleInwardCancel}>
-                Cancel
-              </button>
-              <button type="button" className="gro-require-submit" onClick={handleInwardSubmit}>
-                Submit
-              </button>
-            </div>
-          </div>
-        )}
 
         <div className="gro-document-list">
           {GRO_DOCUMENT_TYPES.map((docName) => {
             const isApproved = Boolean(documentApproved[docName]);
+            const remarkOpen = activeRemarkDoc === docName;
             return (
-              <div key={docName} className="gro-document-row-block">
-                <div className={`gro-document-row${isApproved ? " gro-document-row-approved" : ""}`}>
-                  <div className="gro-document-preview">
-                    <div className="gro-document-preview-icon">
-                      <DocIcon />
-                    </div>
-                    <span className="gro-document-preview-label">{docName}</span>
+              <div
+                key={docName}
+                className={`gro-document-row${isApproved ? " gro-document-row-approved" : ""}${remarkOpen ? " gro-document-row-remark-open" : ""}`}
+              >
+                <div className="gro-document-preview">
+                  <div className="gro-document-preview-icon">
+                    <DocIcon />
                   </div>
-                  <div className="gro-document-actions">
-                    <button
-                      type="button"
-                      className={`gro-icon-btn cross${activeRemarkDoc === docName ? " active" : ""}`}
-                      title="Remarks"
-                      aria-label="Document remarks"
-                      aria-pressed={activeRemarkDoc === docName}
-                      onClick={() => handleCrossClick(docName)}
-                    >
-                      <IconCross />
-                    </button>
-                    <button
-                      type="button"
-                      className={`gro-icon-btn tick${isApproved ? " selected" : ""}`}
-                      title={isApproved ? "Unmark approved" : "Mark approved"}
-                      aria-label={isApproved ? "Unmark approved" : "Mark approved"}
-                      aria-pressed={isApproved}
-                      onClick={() => handleTickClick(docName)}
-                    >
-                      <IconTick />
-                    </button>
-                    <button
-                      type="button"
-                      className="gro-icon-btn download"
-                      title="Download"
-                      aria-label="Download document"
-                      onClick={() => handleDocumentDownload(docName)}
-                    >
-                      <IconDownload />
-                    </button>
-                  </div>
+                  <span className="gro-document-preview-label">{docName}</span>
                 </div>
-                {activeRemarkDoc === docName ? (
-                  <div className="gro-document-remark-box">
-                    <textarea
-                      className="gro-require-remark gro-document-remark-textarea"
+                {remarkOpen ? (
+                  <div className="gro-inline-remark">
+                    <input
+                      type="text"
+                      className="gro-inline-remark-input"
                       placeholder="Enter remarks..."
                       value={remarkDraft}
                       onChange={(e) => setRemarkDraft(e.target.value)}
-                      rows={3}
+                      aria-label="Document remarks"
                     />
-                    <div className="gro-require-actions gro-document-remark-actions">
-                      <button type="button" className="gro-require-cancel" onClick={handleRemarkCancel}>
+                    <div className="gro-inline-remark-actions">
+                      <button type="button" className="gro-inline-remark-btn gro-inline-remark-btn-cancel" onClick={handleRemarkCancel}>
                         Cancel
                       </button>
-                      <button type="button" className="gro-require-submit" onClick={handleRemarkSubmit}>
+                      <button type="button" className="gro-inline-remark-btn gro-inline-remark-btn-submit" onClick={handleRemarkSubmit}>
                         Submit
                       </button>
                     </div>
                   </div>
                 ) : null}
+                <div className="gro-document-actions">
+                  <button
+                    type="button"
+                    className={`gro-icon-btn cross${remarkOpen ? " active" : ""}`}
+                    title="Remarks"
+                    aria-label="Toggle remarks"
+                    aria-pressed={remarkOpen}
+                    onClick={() => handleCrossClick(docName)}
+                  >
+                    <IconCross />
+                  </button>
+                  <button
+                    type="button"
+                    className={`gro-icon-btn tick${isApproved ? " selected" : ""}`}
+                    title={isApproved ? "Unmark approved" : "Mark approved"}
+                    aria-label={isApproved ? "Unmark approved" : "Mark approved"}
+                    aria-pressed={isApproved}
+                    onClick={() => handleTickClick(docName)}
+                  >
+                    <IconTick />
+                  </button>
+                  <button
+                    type="button"
+                    className="gro-icon-btn download"
+                    title="Download"
+                    aria-label="Download document"
+                    onClick={() => handleDocumentDownload(docName)}
+                  >
+                    <IconDownload />
+                  </button>
+                </div>
               </div>
             );
           })}
