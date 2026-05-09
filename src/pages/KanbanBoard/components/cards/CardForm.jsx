@@ -964,12 +964,19 @@ const GROCardView = ({ card }) => {
     if (!activeRemarkDoc) return;
     // TODO: API — persist document remark for activeRemarkDoc with remarkDraft
     setDocumentRemarks((prev) => ({ ...prev, [activeRemarkDoc]: remarkDraft }));
+    setDocumentRejected((prev) => ({ ...prev, [activeRemarkDoc]: true }));
+    setDocumentApproved((prev) => ({ ...prev, [activeRemarkDoc]: false }));
     setActiveRemarkDoc(null);
     setRemarkDraft("");
   };
 
   const handleTickClick = (docName) => {
-    setDocumentApproved((prev) => ({ ...prev, [docName]: !prev[docName] }));
+    setDocumentApproved((prev) => ({ ...prev, [docName]: true }));
+    setDocumentRejected((prev) => ({ ...prev, [docName]: false }));
+    if (activeRemarkDoc === docName) {
+      setActiveRemarkDoc(null);
+      setRemarkDraft("");
+    }
   };
 
   const handleDocumentDownload = (_docName) => {
@@ -1015,9 +1022,9 @@ const GROCardView = ({ card }) => {
     <div className="gro-card-view">
       <div className="driver-card-counters">
         <CounterCard label="Billing Entity" value={owner} />
-        <CounterCard label="CALL TYPE" value={callType} />
-        <CounterCard label="VESSEL NAME" value={vesselName} />
-        <CounterCard label="VESSEL TYPE" value={vesselType} />
+        <CounterCard label="Call Type" value={callType} />
+        <CounterCard label="Vessel Name" value={vesselName} />
+        <CounterCard label="Vessel Type" value={vesselType} />
       </div>
 
       <div className="gro-document-section">
@@ -1092,14 +1099,7 @@ const GROCardView = ({ card }) => {
             return (
               <div
                 key={docName}
-                className={[
-                  "gro-document-row",
-                  isApproved ? "gro-document-row-approved" : "",
-                  isRejected ? "gro-document-row-rejected" : "",
-                  remarkOpen ? "gro-document-row-remark-open" : "",
-                ]
-                  .filter(Boolean)
-                  .join(" ")}
+                className={`gro-document-row ${isApproved ? "gro-document-row-approved" : ""} ${isRejected ? "gro-document-row-rejected" : ""} ${remarkOpen ? "gro-document-row-editing" : ""}`}
               >
                 <div className="gro-document-preview">
                   <div className="gro-document-preview-icon">
