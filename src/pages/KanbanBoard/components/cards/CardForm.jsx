@@ -853,7 +853,7 @@ DriverCardView.propTypes = {
   variant: PropTypes.oneOf(["driver", "hotel"]),
 };
 
-// GRO Board card view: 4 info sections + document list + require document
+// GRO Board card view: 4 info sections + document list + inward clearance
 const GRO_DOCUMENT_TYPES = [
   "Registry",
   "Tonnage",
@@ -866,11 +866,15 @@ const GRO_DOCUMENT_TYPES = [
 ];
 
 const GROCardView = ({ card }) => {
-  const [showRequireDocument, setShowRequireDocument] = useState(false);
-  const [requireRemark, setRequireRemark] = useState("");
+  const inwardFileInputRef = useRef(null);
   const [showInwardClearance, setShowInwardClearance] = useState(false);
-  const [inwardDate, setInwardDate] = useState("2024-01-15");
-  const [inwardTime, setInwardTime] = useState("10:30");
+  const [inwardFile, setInwardFile] = useState(null);
+  const [inwardDate, setInwardDate] = useState("");
+  const [inwardTime, setInwardTime] = useState("");
+  const [documentRemarks, setDocumentRemarks] = useState({});
+  const [activeRemarkDoc, setActiveRemarkDoc] = useState(null);
+  const [remarkDraft, setRemarkDraft] = useState("");
+  const [documentApproved, setDocumentApproved] = useState({});
 
   const owner = card?.user ?? "Richard Wilson";
   const callType = card?.typeOfCall ?? "Domestic";
@@ -884,15 +888,55 @@ const GROCardView = ({ card }) => {
     </div>
   );
 
-  const handleRequireSubmit = () => {
-    // TODO: API call to submit require document request with requireRemark
-    setRequireRemark("");
-    setShowRequireDocument(false);
+  const resetInwardClearanceFields = () => {
+    setInwardFile(null);
+    setInwardDate("");
+    setInwardTime("");
+    if (inwardFileInputRef.current) {
+      inwardFileInputRef.current.value = "";
+    }
+  };
+
+  const handleInwardCancel = () => {
+    setShowInwardClearance(false);
+    resetInwardClearanceFields();
   };
 
   const handleInwardSubmit = () => {
-    // TODO: API call to submit inward clearance with file, inwardDate, inwardTime
+    // TODO: API — submit inward clearance with inwardFile, inwardDate, inwardTime (FormData or multipart as required)
     setShowInwardClearance(false);
+    resetInwardClearanceFields();
+  };
+
+  const handleCrossClick = (docName) => {
+    if (activeRemarkDoc === docName) {
+      setActiveRemarkDoc(null);
+      setRemarkDraft("");
+      return;
+    }
+    setActiveRemarkDoc(docName);
+    setRemarkDraft(documentRemarks[docName] ?? "");
+  };
+
+  const handleRemarkCancel = () => {
+    setActiveRemarkDoc(null);
+    setRemarkDraft("");
+  };
+
+  const handleRemarkSubmit = () => {
+    if (!activeRemarkDoc) return;
+    // TODO: API — persist document remark for activeRemarkDoc with remarkDraft
+    setDocumentRemarks((prev) => ({ ...prev, [activeRemarkDoc]: remarkDraft }));
+    setActiveRemarkDoc(null);
+    setRemarkDraft("");
+  };
+
+  const handleTickClick = (docName) => {
+    setDocumentApproved((prev) => ({ ...prev, [docName]: !prev[docName] }));
+  };
+
+  const handleDocumentDownload = (_docName) => {
+    // TODO: API — download document for _docName / card id
   };
 
   const DocIcon = () => (
@@ -907,6 +951,26 @@ const GROCardView = ({ card }) => {
       />
       <path d="M14 2V8H20" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
       <path d="M16 13H8M16 17H8" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+    </svg>
+  );
+
+  const IconCross = () => (
+    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round" aria-hidden>
+      <path d="M18 6L6 18M6 6l12 12" />
+    </svg>
+  );
+
+  const IconTick = () => (
+    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round" aria-hidden>
+      <path d="M20 6L9 17l-5-5" />
+    </svg>
+  );
+
+  const IconDownload = () => (
+    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden>
+      <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" />
+      <polyline points="7 10 12 15 17 10" />
+      <line x1="12" y1="15" x2="12" y2="3" />
     </svg>
   );
 
@@ -930,87 +994,40 @@ const GROCardView = ({ card }) => {
             >
               Inward clearance
             </button>
-            <button
-              type="button"
-              className="gro-require-doc-btn"
-              onClick={() => setShowRequireDocument(!showRequireDocument)}
-            >
-              Require Document
-            </button>
           </div>
         </div>
-        <div className="gro-document-list">
-          {GRO_DOCUMENT_TYPES.map((docName) => (
-            <div key={docName} className="gro-document-row">
-              <div className="gro-document-preview">
-                <div className="gro-document-preview-icon">
-                  <DocIcon />
-                </div>
-                <span className="gro-document-preview-label">{docName}</span>
-              </div>
-              <button type="button" className="gro-document-download-btn" title="Download">
-                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                  <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" />
-                  <polyline points="7 10 12 15 17 10" />
-                  <line x1="12" y1="15" x2="12" y2="3" />
-                </svg>
-                Download
-              </button>
-            </div>
-          ))}
-        </div>
-
-        {showRequireDocument && (
-          <div className="gro-require-form">
-            <label className="gro-require-label">Remarks</label>
-            <textarea
-              className="gro-require-remark"
-              placeholder="Enter remarks for document request..."
-              value={requireRemark}
-              onChange={(e) => setRequireRemark(e.target.value)}
-              rows={3}
-            />
-            <div className="gro-require-actions">
-              <button type="button" className="gro-require-cancel" onClick={() => { setShowRequireDocument(false); setRequireRemark(""); }}>
-                Cancel
-              </button>
-              <button type="button" className="gro-require-submit" onClick={handleRequireSubmit}>
-                Submit
-              </button>
-            </div>
-          </div>
-        )}
 
         {showInwardClearance && (
-          <div className="gro-inward-form">
-            <label className="gro-require-label">File upload</label>
-            <input
-              type="file"
-              className="gro-inward-file"
-              accept=".pdf,.doc,.docx,.jpg,.jpeg,.png"
-            />
-            <div className="gro-inward-datetime">
-              <div className="gro-inward-field">
-                <label className="gro-require-label">Date</label>
+          <div className="gro-inward-compact-form">
+            <div className="cf-field gro-inward-compact-field">
+              <label htmlFor="gro-inward-file-input">File upload</label>
+              <div className="cf-input gro-inward-compact-file-input">
                 <input
-                  type="date"
-                  className="gro-inward-input"
-                  value={inwardDate}
-                  onChange={(e) => setInwardDate(e.target.value)}
+                  ref={inwardFileInputRef}
+                  id="gro-inward-file-input"
+                  type="file"
+                  accept=".pdf,.doc,.docx,.jpg,.jpeg,.png"
+                  onChange={(e) => setInwardFile(e.target.files?.[0] ?? null)}
                 />
               </div>
-              <div className="gro-inward-field">
-                <label className="gro-require-label">Time</label>
-                <input
-                  type="time"
-                  className="gro-inward-input"
-                  value={inwardTime}
-                  onChange={(e) => setInwardTime(e.target.value)}
-                />
+              {inwardFile ? <span className="gro-inward-file-name">{inwardFile.name}</span> : null}
+            </div>
+            <div className="cf-grid two gro-inward-compact-datetime-grid">
+              <div className="cf-field gro-inward-compact-field">
+                <label htmlFor="gro-inward-date">Date</label>
+                <div className="cf-input">
+                  <input id="gro-inward-date" type="date" value={inwardDate} onChange={(e) => setInwardDate(e.target.value)} />
+                </div>
+              </div>
+              <div className="cf-field gro-inward-compact-field">
+                <label htmlFor="gro-inward-time">Time</label>
+                <div className="cf-input">
+                  <input id="gro-inward-time" type="time" value={inwardTime} onChange={(e) => setInwardTime(e.target.value)} />
+                </div>
               </div>
             </div>
-            <div className="gro-require-actions">
-              <button type="button" className="gro-require-cancel" onClick={() => setShowInwardClearance(false)}>
+            <div className="gro-require-actions gro-inward-compact-actions">
+              <button type="button" className="gro-require-cancel" onClick={handleInwardCancel}>
                 Cancel
               </button>
               <button type="button" className="gro-require-submit" onClick={handleInwardSubmit}>
@@ -1019,6 +1036,74 @@ const GROCardView = ({ card }) => {
             </div>
           </div>
         )}
+
+        <div className="gro-document-list">
+          {GRO_DOCUMENT_TYPES.map((docName) => {
+            const isApproved = Boolean(documentApproved[docName]);
+            return (
+              <div key={docName} className="gro-document-row-block">
+                <div className={`gro-document-row${isApproved ? " gro-document-row-approved" : ""}`}>
+                  <div className="gro-document-preview">
+                    <div className="gro-document-preview-icon">
+                      <DocIcon />
+                    </div>
+                    <span className="gro-document-preview-label">{docName}</span>
+                  </div>
+                  <div className="gro-document-actions">
+                    <button
+                      type="button"
+                      className={`gro-icon-btn cross${activeRemarkDoc === docName ? " active" : ""}`}
+                      title="Remarks"
+                      aria-label="Document remarks"
+                      aria-pressed={activeRemarkDoc === docName}
+                      onClick={() => handleCrossClick(docName)}
+                    >
+                      <IconCross />
+                    </button>
+                    <button
+                      type="button"
+                      className={`gro-icon-btn tick${isApproved ? " selected" : ""}`}
+                      title={isApproved ? "Unmark approved" : "Mark approved"}
+                      aria-label={isApproved ? "Unmark approved" : "Mark approved"}
+                      aria-pressed={isApproved}
+                      onClick={() => handleTickClick(docName)}
+                    >
+                      <IconTick />
+                    </button>
+                    <button
+                      type="button"
+                      className="gro-icon-btn download"
+                      title="Download"
+                      aria-label="Download document"
+                      onClick={() => handleDocumentDownload(docName)}
+                    >
+                      <IconDownload />
+                    </button>
+                  </div>
+                </div>
+                {activeRemarkDoc === docName ? (
+                  <div className="gro-document-remark-box">
+                    <textarea
+                      className="gro-require-remark gro-document-remark-textarea"
+                      placeholder="Enter remarks..."
+                      value={remarkDraft}
+                      onChange={(e) => setRemarkDraft(e.target.value)}
+                      rows={3}
+                    />
+                    <div className="gro-require-actions gro-document-remark-actions">
+                      <button type="button" className="gro-require-cancel" onClick={handleRemarkCancel}>
+                        Cancel
+                      </button>
+                      <button type="button" className="gro-require-submit" onClick={handleRemarkSubmit}>
+                        Submit
+                      </button>
+                    </div>
+                  </div>
+                ) : null}
+              </div>
+            );
+          })}
+        </div>
       </div>
     </div>
   );
