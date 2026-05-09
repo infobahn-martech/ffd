@@ -142,11 +142,11 @@ const CompactFileUploadRow = ({
           </span>
           {statusLabel && <span className={`document-row-status-chip ${statusClass}`}>{statusLabel}</span>}
         </div>
-        {primaryFile?.name && (
+        {/* {primaryFile?.name && (
           <div className="compact-file-upload-filename" title={primaryFile.name}>
             {primaryFile.name}
           </div>
-        )}
+        )} */}
         {remarks && String(remarks).trim() ? (
           <div className="compact-file-upload-remarks" title={String(remarks)}>
             {String(remarks)}
