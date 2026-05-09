@@ -156,9 +156,9 @@ const dedupeChecklistFilesByNormalizedName = (entries) => {
       normalizedName ||
       String(
         entry?.id ??
-          (entry?.file instanceof File
-            ? `${entry.file.name}_${entry.file.size ?? ""}_${entry.file.lastModified ?? ""}`
-            : "")
+        (entry?.file instanceof File
+          ? `${entry.file.name}_${entry.file.size ?? ""}_${entry.file.lastModified ?? ""}`
+          : "")
       );
     if (!dedupeKey || seen.has(dedupeKey)) return;
     seen.add(dedupeKey);
@@ -818,6 +818,7 @@ function Checklist({
               <ChecklistFooterActions
                 cardColor={cardColor}
                 disabled={isLoading || saveLoading || selectedChecklistTypeIds.length === 0}
+                loading={saveLoading}
                 onSaveConfirm={handleSaveConfirm}
               />
             </div>

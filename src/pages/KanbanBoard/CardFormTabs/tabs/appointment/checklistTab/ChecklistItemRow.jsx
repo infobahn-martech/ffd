@@ -360,7 +360,7 @@ const ChecklistItemRow = ({
                     </span>
                     <span className="cl-item-meta-label">{requirementMetaLabel}</span>
                   </span>
-                  {hasBackendPreviewFile ? (
+                  {/* {hasBackendPreviewFile ? (
                     <button
                       type="button"
                       className="cl-item-meta-preview-btn"
@@ -370,7 +370,7 @@ const ChecklistItemRow = ({
                     >
                       👁
                     </button>
-                  ) : null}
+                  ) : null} */}
                 </>
               ) : null}
             </div>
