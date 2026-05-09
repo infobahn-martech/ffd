@@ -85,10 +85,10 @@
   border-radius: 12px;
   font-weight: 600;
   font-size: 12px;
-  background: linear-gradient(135deg, #4f46e5, #3b82f6);
+  background: rgb(25, 118, 210) !important;
   color: #ffffff;
   border: none;
-  box-shadow: 0 6px 16px rgba(59, 130, 246, 0.25);
+  box-shadow: 0 6px 16px rgba(25, 118, 210, 0.25);
   transition: transform 0.2s ease, box-shadow 0.2s ease, filter 0.2s ease;
   cursor: pointer;
 }
@@ -96,7 +96,7 @@
 .gro-card-view .gro-inward-clearance-btn:not(:disabled):hover {
   transform: translateY(-1px);
   filter: brightness(1.05);
-  box-shadow: 0 8px 20px rgba(59, 130, 246, 0.32);
+  box-shadow: 0 8px 20px rgba(25, 118, 210, 0.32);
 }
 
 .gro-card-view .gro-document-list {
