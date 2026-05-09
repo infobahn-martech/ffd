@@ -14,6 +14,7 @@ import { getItem } from "../../../../helpers/localStorage";
 import { General, Operation, Husbandry, Attachments, Invoice, SalesOrder, Reports, KPI, Comments, Subtasks, Notes } from "../../CardFormTabs";
 import { DEFAULT_PRE_ARRIVAL_DOCUMENT_HANDLING } from "../../CardFormTabs/tabs/operation/preArrivalDocumentHandling";
 import NavTabButton from "../../../../components/NavTabButton";
+import DateTimePickerField from "../../CardFormTabs/components/DateTimePickerField";
 
 // Constants - All tabs
 const ALL_TOP_TABS = [
@@ -853,6 +854,16 @@ DriverCardView.propTypes = {
   variant: PropTypes.oneOf(["driver", "hotel"]),
 };
 
+const splitInwardDateTimeString = (value) => {
+  if (value == null || String(value).trim() === "") return { date: "", time: "" };
+  const normalized = String(value).trim().includes("T") ? String(value).trim().replace("T", " ") : String(value).trim();
+  const [datePart = "", timeRaw = ""] = normalized.split(/\s+/);
+  if (!/^\d{4}-\d{2}-\d{2}$/.test(datePart)) return { date: "", time: "" };
+  const timeMatch = String(timeRaw).match(/^(\d{1,2}):(\d{2})/);
+  const timePart = timeMatch ? `${String(timeMatch[1]).padStart(2, "0")}:${timeMatch[2]}` : "00:00";
+  return { date: datePart, time: timePart };
+};
+
 // GRO Board card view: 4 info sections + document list + inward clearance
 const GRO_DOCUMENT_TYPES = [
   "Registry",
@@ -870,12 +881,12 @@ const GROCardView = ({ card }) => {
   const inwardFileInputRef = useRef(null);
   const [showInwardClearance, setShowInwardClearance] = useState(false);
   const [inwardFile, setInwardFile] = useState(null);
-  const [inwardDate, setInwardDate] = useState("");
-  const [inwardTime, setInwardTime] = useState("");
+  const [inwardDateTime, setInwardDateTime] = useState("");
   const [documentRemarks, setDocumentRemarks] = useState({});
   const [activeRemarkDoc, setActiveRemarkDoc] = useState(null);
   const [remarkDraft, setRemarkDraft] = useState("");
   const [documentApproved, setDocumentApproved] = useState({});
+  const [documentRejected, setDocumentRejected] = useState({});
 
   const owner = card?.user ?? "Richard Wilson";
   const callType = card?.typeOfCall ?? "Domestic";
@@ -891,12 +902,22 @@ const GROCardView = ({ card }) => {
 
   const resetInwardClearanceFields = () => {
     setInwardFile(null);
-    setInwardDate("");
-    setInwardTime("");
+    setInwardDateTime("");
     if (inwardFileInputRef.current) {
       inwardFileInputRef.current.value = "";
     }
   };
+
+  const inwardPickerParts = splitInwardDateTimeString(inwardDateTime);
+
+  const handleInwardDateTimePickerChange = useCallback(({ date, time }) => {
+    if (!date) {
+      setInwardDateTime("");
+      return;
+    }
+    const t = time && String(time).length >= 4 ? String(time).slice(0, 5) : "00:00";
+    setInwardDateTime(`${date} ${t}`);
+  }, []);
 
   const handleInwardCancel = () => {
     setShowInwardClearance(false);
@@ -904,7 +925,7 @@ const GROCardView = ({ card }) => {
   };
 
   const handleInwardSubmit = () => {
-    // TODO: API — submit inward clearance with inwardFile, inwardDate, inwardTime (FormData or multipart as required)
+    // TODO: API — submit inward clearance with inwardFile, inwardDateTime (FormData or multipart as required)
     setShowInwardClearance(false);
     resetInwardClearanceFields();
   };
@@ -1039,19 +1060,14 @@ const GROCardView = ({ card }) => {
                         </span>
                       </div>
                     </div>
-                    <div className="gro-inward-popover-datetime-row">
-                      <div className="gro-inward-popover-field gro-inward-popover-field-half">
-                        <span className="gro-inward-popover-label">Date</span>
-                        <div className="cf-input gro-inward-premium-input">
-                          <input id="gro-inward-date" type="date" value={inwardDate} onChange={(e) => setInwardDate(e.target.value)} />
-                        </div>
-                      </div>
-                      <div className="gro-inward-popover-field gro-inward-popover-field-half">
-                        <span className="gro-inward-popover-label">Time</span>
-                        <div className="cf-input gro-inward-premium-input">
-                          <input id="gro-inward-time" type="time" value={inwardTime} onChange={(e) => setInwardTime(e.target.value)} />
-                        </div>
-                      </div>
+                    <div className="gro-inward-popover-field gro-inward-popover-datetime-full">
+                      <span className="gro-inward-popover-label">Date & Time</span>
+                      <DateTimePickerField
+                        dateValue={inwardPickerParts.date}
+                        timeValue={inwardPickerParts.time}
+                        onDateTimeChange={handleInwardDateTimePickerChange}
+                        placeholder="YYYY-MM-DD hh:mm"
+                      />
                     </div>
                   </div>
                   <div className="gro-inward-popover-footer">
@@ -1071,11 +1087,19 @@ const GROCardView = ({ card }) => {
         <div className="gro-document-list">
           {GRO_DOCUMENT_TYPES.map((docName) => {
             const isApproved = Boolean(documentApproved[docName]);
+            const isRejected = Boolean(documentRejected[docName]);
             const remarkOpen = activeRemarkDoc === docName;
             return (
               <div
                 key={docName}
-                className={`gro-document-row${isApproved ? " gro-document-row-approved" : ""}${remarkOpen ? " gro-document-row-remark-open" : ""}`}
+                className={[
+                  "gro-document-row",
+                  isApproved ? "gro-document-row-approved" : "",
+                  isRejected ? "gro-document-row-rejected" : "",
+                  remarkOpen ? "gro-document-row-remark-open" : "",
+                ]
+                  .filter(Boolean)
+                  .join(" ")}
               >
                 <div className="gro-document-preview">
                   <div className="gro-document-preview-icon">
@@ -1117,8 +1141,8 @@ const GROCardView = ({ card }) => {
                   <button
                     type="button"
                     className={`gro-icon-btn tick${isApproved ? " selected" : ""}`}
-                    title={isApproved ? "Unmark approved" : "Mark approved"}
-                    aria-label={isApproved ? "Unmark approved" : "Mark approved"}
+                    title={isApproved ? "Approved" : "Mark approved"}
+                    aria-label={isApproved ? "Approved" : "Mark approved"}
                     aria-pressed={isApproved}
                     onClick={() => handleTickClick(docName)}
                   >

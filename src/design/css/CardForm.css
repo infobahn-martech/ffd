@@ -2025,10 +2025,18 @@
   gap: 16px;
 }
 
-.gro-inward-popover-datetime-row {
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 14px;
+.gro-inward-popover-datetime-full {
+  width: 100%;
+  min-width: 0;
+}
+
+.gro-inward-popover .cf-datetime-picker .cf-datetime-input-field .MuiPickersInputBase-root,
+.gro-inward-popover .cf-datetime-picker .cf-datetime-input-field .MuiOutlinedInput-root,
+.gro-inward-popover .cf-datetime-picker .cf-datetime-input-field .MuiInputBase-root {
+  background: #f9fafb !important;
+  border: 1px solid #e5e7eb !important;
+  border-radius: 10px !important;
+  min-height: 42px !important;
 }
 
 .gro-inward-popover-field {
@@ -2347,6 +2355,12 @@
   background: #f1faf3 !important;
   border-color: #b7dfbf !important;
   box-shadow: inset 3px 0 0 0 #43a047;
+}
+
+.gro-document-row-rejected {
+  background: #fff5f5 !important;
+  border-color: #f5c6cb !important;
+  box-shadow: inset 3px 0 0 0 #c62828;
 }
 
 .gro-document-actions {
