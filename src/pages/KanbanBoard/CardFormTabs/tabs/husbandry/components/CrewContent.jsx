@@ -2248,37 +2248,40 @@ const CrewContent = ({ formValues, handleChange, cardColor, onNavigateToTab, lau
                       }}
                     />
                   </th>
-                  <th style={{ width: "calc((100% - 40px) / 11)", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap", textAlign: "center" }}>
+                  <th style={{ width: "calc((100% - 40px) / 12)", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap", textAlign: "center" }}>
                     Crew Name
                   </th>
-                  <th style={{ width: "calc((100% - 40px) / 11)", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap", textAlign: "center" }}>
+                  <th style={{ width: "calc((100% - 40px) / 12)", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap", textAlign: "center" }}>
                     Nationality
                   </th>
-                  <th style={{ width: "calc((100% - 40px) / 11)", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap", textAlign: "center" }}>
+                  <th style={{ width: "calc((100% - 40px) / 12)", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap", textAlign: "center" }}>
                     Rank
                   </th>
-                  <th style={{ width: "calc((100% - 40px) / 11)", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap", textAlign: "center" }}>
+                  <th style={{ width: "calc((100% - 40px) / 12)", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap", textAlign: "center" }}>
+                    Movement Type
+                  </th>
+                  <th style={{ width: "calc((100% - 40px) / 12)", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap", textAlign: "center" }}>
                     Passport
                   </th>
-                  <th style={{ width: "calc((100% - 40px) / 11)", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap", textAlign: "center" }}>
+                  <th style={{ width: "calc((100% - 40px) / 12)", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap", textAlign: "center" }}>
                     Iqama
                   </th>
-                  <th style={{ width: "calc((100% - 40px) / 11)", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap", textAlign: "center" }}>
+                  <th style={{ width: "calc((100% - 40px) / 12)", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap", textAlign: "center" }}>
                     Visa
                   </th>
-                  <th style={{ width: "calc((100% - 40px) / 11)", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap", textAlign: "center" }}>
+                  <th style={{ width: "calc((100% - 40px) / 12)", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap", textAlign: "center" }}>
                     CG Pass
                   </th>
-                  <th style={{ width: "calc((100% - 40px) / 11)", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap", textAlign: "center" }}>
+                  <th style={{ width: "calc((100% - 40px) / 12)", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap", textAlign: "center" }}>
                     Zawil Pass
                   </th>
-                  <th style={{ width: "calc((100% - 40px) / 11)", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap", textAlign: "center" }}>
+                  <th style={{ width: "calc((100% - 40px) / 12)", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap", textAlign: "center" }}>
                     Transport
                   </th>
-                  <th style={{ width: "calc((100% - 40px) / 11)", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap", textAlign: "center" }}>
+                  <th style={{ width: "calc((100% - 40px) / 12)", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap", textAlign: "center" }}>
                     Hotel
                   </th>
-                  <th style={{ width: "calc((100% - 40px) / 11)", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap", textAlign: "center" }}>
+                  <th style={{ width: "calc((100% - 40px) / 12)", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap", textAlign: "center" }}>
                     Medical
                   </th>
                   {/* <th>Actions</th> */}
@@ -2287,13 +2290,13 @@ const CrewContent = ({ formValues, handleChange, cardColor, onNavigateToTab, lau
               <tbody>
                 {isCallCrewListLoading && crewList.length === 0 && callCrewList === null ? (
                   <tr>
-                    <td colSpan="12" style={{ textAlign: "center", padding: "40px", color: "#666" }}>
+                    <td colSpan="13" style={{ textAlign: "center", padding: "40px", color: "#666" }}>
                       Loading crew list…
                     </td>
                   </tr>
                 ) : displayCrewList.length === 0 ? (
                   <tr>
-                    <td colSpan="12" style={{ textAlign: "center", padding: "40px", color: "#999" }}>
+                    <td colSpan="13" style={{ textAlign: "center", padding: "40px", color: "#999" }}>
                       No crew data found. Upload a crew list file or add crew from preview.
                     </td>
                   </tr>
@@ -2328,6 +2331,11 @@ const CrewContent = ({ formValues, handleChange, cardColor, onNavigateToTab, lau
                       </td>
                       <td style={{ overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
                         <div className="crew-table-cell" title={crew.rank || ""}>{crew.rank || ""}</div>
+                      </td>
+                      <td style={{ overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
+                        <div className="crew-table-cell" title={crew.movementType || crew.movement_type || ""}>
+                          {crew.movementType || crew.movement_type || ""}
+                        </div>
                       </td>
                       <td>
                         <div className="crew-table-cell" style={{ display: "flex", alignItems: "center", gap: "8px", justifyContent: "center" }}>
