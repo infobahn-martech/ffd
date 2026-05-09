@@ -918,6 +918,95 @@ const parseGroDocumentsResponse = (res) => {
 const groApiErrorMessage = (err, fallback) =>
   err?.response?.data?.message ?? err?.response?.data?.error ?? err?.message ?? fallback;
 
+/** @returns {"pdf"|"excel"|"word"|"image"|"default"} */
+const getGroFileType = (fileNameOrUrl) => {
+  if (fileNameOrUrl == null || typeof fileNameOrUrl !== "string") return "default";
+  const trimmed = fileNameOrUrl.trim();
+  if (!trimmed) return "default";
+  const noQuery = trimmed.split("?")[0].split("#")[0];
+  const segment = noQuery.includes("/") ? noQuery.slice(noQuery.lastIndexOf("/") + 1) : noQuery;
+  const dot = segment.lastIndexOf(".");
+  const ext = dot >= 0 ? segment.slice(dot + 1).toLowerCase() : "";
+  if (ext === "pdf") return "pdf";
+  if (ext === "xls" || ext === "xlsx" || ext === "csv") return "excel";
+  if (ext === "doc" || ext === "docx") return "word";
+  if (ext === "jpg" || ext === "jpeg" || ext === "png" || ext === "webp") return "image";
+  return "default";
+};
+
+const GRO_FILE_BADGE = { pdf: "PDF", excel: "XLS", word: "DOC", image: "IMG", default: "" };
+
+const GroDocumentFilePreview = ({ fileName, fileUrl }) => {
+  const kind = getGroFileType(fileName || fileUrl || "");
+  const badge = GRO_FILE_BADGE[kind] || "";
+
+  const SheetBase = ({ children }) => (
+    <svg width="22" height="22" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden>
+      <path
+        d="M14 2H6C5.46957 2 4.96086 2.21071 4.58579 2.58579C4.21071 2.96086 4 3.46957 4 4V20C4 20.5304 4.21071 21.0391 4.58579 21.4142C4.96086 21.7893 5.46957 22 6 22H18C18.5304 22 19.0391 21.7893 19.4142 21.4142C19.7893 21.0391 20 20.5304 20 20V8L14 2Z"
+        stroke="currentColor"
+        strokeWidth="1.35"
+        strokeLinecap="round"
+        strokeLinejoin="round"
+        fill="none"
+      />
+      <path d="M14 2V8H20" stroke="currentColor" strokeWidth="1.35" strokeLinecap="round" strokeLinejoin="round" />
+      {children}
+    </svg>
+  );
+
+  let inner = (
+    <SheetBase>
+      <path d="M16 13H8M16 17H8" stroke="currentColor" strokeWidth="1.35" strokeLinecap="round" strokeLinejoin="round" />
+    </SheetBase>
+  );
+
+  if (kind === "pdf") {
+    inner = (
+      <SheetBase>
+        <path d="M9 12h6M9 15h4" stroke="currentColor" strokeWidth="1.35" strokeLinecap="round" />
+      </SheetBase>
+    );
+  } else if (kind === "excel") {
+    inner = (
+      <svg width="22" height="22" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden>
+        <rect x="4" y="4" width="16" height="16" rx="2" stroke="currentColor" strokeWidth="1.35" />
+        <path d="M4 9h16M4 14h16M10 4v16M15 4v16" stroke="currentColor" strokeWidth="1" />
+      </svg>
+    );
+  } else if (kind === "word") {
+    inner = (
+      <SheetBase>
+        <path d="M10 11l2 6 2-6 2 6 2-6" stroke="currentColor" strokeWidth="1.2" strokeLinecap="round" strokeLinejoin="round" fill="none" />
+      </SheetBase>
+    );
+  } else if (kind === "image") {
+    inner = (
+      <svg width="22" height="22" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden>
+        <rect x="3.5" y="5" width="17" height="14" rx="2" stroke="currentColor" strokeWidth="1.35" />
+        <circle cx="8.5" cy="10" r="1.6" fill="currentColor" />
+        <path d="M21 17l-5-5-4 4-2.5-2.5L4 17" stroke="currentColor" strokeWidth="1.25" strokeLinecap="round" strokeLinejoin="round" />
+      </svg>
+    );
+  }
+
+  return (
+    <div className={`gro-document-preview-icon gro-document-preview-icon--${kind}`} title={fileName || fileUrl || ""}>
+      <span className="gro-document-preview-icon-graphic">{inner}</span>
+      {badge ? (
+        <span className="gro-document-preview-icon-badge" aria-hidden>
+          {badge}
+        </span>
+      ) : null}
+    </div>
+  );
+};
+
+GroDocumentFilePreview.propTypes = {
+  fileName: PropTypes.string,
+  fileUrl: PropTypes.string,
+};
+
 const GROCardView = ({ card }) => {
   const inwardAnchorRef = useRef(null);
   const inwardFileInputRef = useRef(null);
@@ -1105,7 +1194,7 @@ const GROCardView = ({ card }) => {
     callId != null &&
     callId !== "";
 
-  const handleCrossClick = (rowKey) => {
+  const handleCrossClick = (rowKey, doc) => {
     if (verifyingDocId) return;
     if (activeRemarkDoc === rowKey) {
       setActiveRemarkDoc(null);
@@ -1113,7 +1202,7 @@ const GROCardView = ({ card }) => {
       return;
     }
     setActiveRemarkDoc(rowKey);
-    setRemarkDraft(documentRemarks[rowKey] ?? "");
+    setRemarkDraft(documentRemarks[rowKey] ?? doc?.remarks ?? "");
   };
 
   const handleRemarkCancel = () => {
@@ -1139,7 +1228,9 @@ const GROCardView = ({ card }) => {
       });
       setDocumentRemarks((prev) => ({ ...prev, [activeRemarkDoc]: remarkDraft }));
       setDocuments((prev) =>
-        prev.map((d) => (d.__rowKey === activeRemarkDoc ? { ...d, status: 2 } : d))
+        prev.map((d) =>
+          d.__rowKey === activeRemarkDoc ? { ...d, status: 2, remarks: remarkDraft } : d
+        )
       );
       notify("Document marked for reupload.", "success");
       setActiveRemarkDoc(null);
@@ -1186,21 +1277,6 @@ const GROCardView = ({ card }) => {
     }
     window.open(url, "_blank", "noopener,noreferrer");
   };
-
-  const DocIcon = () => (
-    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-      <path
-        d="M14 2H6C5.46957 2 4.96086 2.21071 4.58579 2.58579C4.21071 2.96086 4 3.46957 4 4V20C4 20.5304 4.21071 21.0391 4.58579 21.4142C4.96086 21.7893 5.46957 22 6 22H18C18.5304 22 19.0391 21.7893 19.4142 21.4142C19.7893 21.0391 20 20.5304 20 20V8L14 2Z"
-        stroke="currentColor"
-        strokeWidth="2"
-        strokeLinecap="round"
-        strokeLinejoin="round"
-        fill="none"
-      />
-      <path d="M14 2V8H20" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
-      <path d="M16 13H8M16 17H8" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
-    </svg>
-  );
 
   const IconCross = () => (
     <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round" aria-hidden>
@@ -1311,17 +1387,26 @@ const GROCardView = ({ card }) => {
               const remarkOpen = activeRemarkDoc === rowKey;
               const rowBusy = verifyingDocId === rowKey;
               const verifyDisabled = isGroLoading || rowBusy || !canVerifyDocument(doc);
+              const showCross = !isRejected;
+              const showTick = !isApproved;
+              const remarksTextRaw = doc?.remarks != null && String(doc.remarks).trim() !== "" ? String(doc.remarks).trim() : "";
+              const remarksForPill = remarksTextRaw;
 
               return (
                 <div
                   key={rowKey}
                   className={`gro-document-row ${isApproved ? "gro-document-row-approved" : ""} ${isRejected ? "gro-document-row-rejected" : ""} ${remarkOpen ? "gro-document-row-editing" : ""}`}
                 >
-                  <div className="gro-document-preview">
-                    <div className="gro-document-preview-icon">
-                      <DocIcon />
+                  <GroDocumentFilePreview fileName={doc.file_name} fileUrl={doc.file_url} />
+                  <div className="gro-document-main">
+                    <div className="gro-document-main-top">
+                      <span className="gro-document-title">{label}</span>
+                      {remarksForPill ? (
+                        <span className="gro-document-remarks-pill" title={`Remarks: ${remarksForPill}`}>
+                          Remarks: {remarksForPill}
+                        </span>
+                      ) : null}
                     </div>
-                    <span className="gro-document-preview-label">{label}</span>
                   </div>
                   {remarkOpen ? (
                     <div className="gro-inline-remark">
@@ -1339,34 +1424,38 @@ const GROCardView = ({ card }) => {
                           Cancel
                         </button>
                         <button type="button" className="gro-inline-remark-btn gro-inline-remark-btn-submit" disabled={Boolean(verifyingDocId)} onClick={handleRemarkSubmit}>
-                          {rowBusy ? "Saving…" : "Submit"}
+                          {rowBusy ? "Saving..." : "Submit"}
                         </button>
                       </div>
                     </div>
                   ) : null}
                   <div className="gro-document-actions">
-                    <button
-                      type="button"
-                      className={`gro-icon-btn cross${remarkOpen ? " active" : ""}`}
-                      title="Remarks"
-                      aria-label="Toggle remarks"
-                      aria-pressed={remarkOpen}
-                      disabled={isGroLoading || Boolean(verifyingDocId)}
-                      onClick={() => handleCrossClick(rowKey)}
-                    >
-                      <IconCross />
-                    </button>
-                    <button
-                      type="button"
-                      className={`gro-icon-btn tick${isApproved ? " selected" : ""}`}
-                      title={isApproved ? "Approved" : "Mark approved"}
-                      aria-label={isApproved ? "Approved" : "Mark approved"}
-                      aria-pressed={isApproved}
-                      disabled={verifyDisabled}
-                      onClick={() => handleTickClick(doc, rowKey)}
-                    >
-                      <IconTick />
-                    </button>
+                    {showCross ? (
+                      <button
+                        type="button"
+                        className={`gro-icon-btn cross${remarkOpen ? " active" : ""}`}
+                        title="Remarks"
+                        aria-label="Toggle remarks"
+                        aria-pressed={remarkOpen}
+                        disabled={isGroLoading || Boolean(verifyingDocId)}
+                        onClick={() => handleCrossClick(rowKey, doc)}
+                      >
+                        <IconCross />
+                      </button>
+                    ) : null}
+                    {showTick ? (
+                      <button
+                        type="button"
+                        className={`gro-icon-btn tick${isApproved ? " selected" : ""}`}
+                        title={isApproved ? "Approved" : "Mark approved"}
+                        aria-label={isApproved ? "Approved" : "Mark approved"}
+                        aria-pressed={isApproved}
+                        disabled={verifyDisabled}
+                        onClick={() => handleTickClick(doc, rowKey)}
+                      >
+                        <IconTick />
+                      </button>
+                    ) : null}
                     <button
                       type="button"
                       className="gro-icon-btn download"
