@@ -170,6 +170,7 @@ function PreArrivalDocumentHandlingSection({
   handleChange,
   isViewOnly,
   portId,
+  callId,
   assigneeHints = null,
   detailDocSkip = null,
 }) {
@@ -228,17 +229,32 @@ function PreArrivalDocumentHandlingSection({
 
   const mergeRoleDocuments = useCallback((existingRows = [], incomingRows = []) => {
     const normalizedIncoming = (Array.isArray(incomingRows) ? incomingRows : []).map((row, index) => ({
-      id: row?.document_id != null ? String(row.document_id) : `role-doc-${index}`,
+      id: row?.document_id != null ? String(row.document_id) : row?.call_task_document_id != null ? String(row.call_task_document_id) : `role-doc-${index}`,
       name: row?.document_name || row?.name || `Document ${index + 1}`,
       is_required: Boolean(row?.is_required ?? row?.required),
-      files: [],
+      files:
+        row?.is_uploaded && row?.file_url
+          ? [
+            {
+              name: row?.file_name || row?.document_name || `Document ${index + 1}`,
+              url: row.file_url,
+              uploadedBy: row?.uploaded_by_user || null,
+              uploadedAt: row?.uploaded_at || null,
+              remarks: row?.remarks || null,
+              status: row?.status ?? null,
+            },
+          ]
+          : [],
     }));
 
     return normalizedIncoming.map((incomingRow) => {
       const matched = (existingRows || []).find((row) => String(row?.id) === String(incomingRow.id));
       return {
         ...incomingRow,
-        files: Array.isArray(matched?.files) ? matched.files : [],
+        files:
+          Array.isArray(matched?.files) && matched.files.length > 0
+            ? matched.files
+            : incomingRow.files,
       };
     });
   }, []);
@@ -323,13 +339,25 @@ function PreArrivalDocumentHandlingSection({
 
     const loadRoleBasedDocuments = async () => {
       const tasks = [];
-      if (!skipGro && selectedGroRoleId) {
-        tasks.push(preArrivalInfoService.getDocumentsByRole(selectedGroRoleId));
+      if (!skipGro && selectedGroRoleId && selectedGroOption && callId) {
+        tasks.push(
+          preArrivalInfoService.getDocumentsByRole({
+            role_id: selectedGroRoleId,
+            user_id: selectedGroOption,
+            call_id: callId,
+          })
+        );
       } else {
         tasks.push(Promise.resolve(null));
       }
-      if (!skipCustom && selectedCustomRoleId) {
-        tasks.push(preArrivalInfoService.getDocumentsByRole(selectedCustomRoleId));
+      if (!skipCustom && selectedCustomRoleId && selectedCustomClearanceOption && callId) {
+        tasks.push(
+          preArrivalInfoService.getDocumentsByRole({
+            role_id: selectedCustomRoleId,
+            user_id: selectedCustomClearanceOption,
+            call_id: callId,
+          })
+        );
       } else {
         tasks.push(Promise.resolve(null));
       }
@@ -372,6 +400,7 @@ function PreArrivalDocumentHandlingSection({
   }, [
     selectedGroOption,
     selectedCustomClearanceOption,
+    callId,
     groOptionsForSelect,
     customOptionsForSelect,
     mergeRoleDocuments,
@@ -472,6 +501,7 @@ PreArrivalDocumentHandlingSection.propTypes = {
   handleChange: PropTypes.func.isRequired,
   isViewOnly: PropTypes.bool,
   portId: PropTypes.oneOfType([PropTypes.string, PropTypes.number]),
+  callId: PropTypes.string,
   assigneeHints: PropTypes.shape({
     gro: PropTypes.shape({
       value: PropTypes.string,
@@ -1233,6 +1263,7 @@ function PreArrival({
                   handleChange={handleChange}
                   isViewOnly={isViewOnly}
                   portId={portId}
+                  callId={callId}
                   assigneeHints={preArrivalDetailAssigneeHints}
                   detailDocSkip={preArrivalDetailDocSkip}
                 />

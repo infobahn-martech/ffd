@@ -15,8 +15,8 @@ const updateTemplate = (templateId, data) =>
 const getDocuments = () =>
   Gateway.get('pre_arrival/get_documents');
 
-const getDocumentsByRole = (role_id) =>
-  Gateway.post('pre_arrival/get_documents_by_role', { role_id });
+const getDocumentsByRole = (payload) =>
+  Gateway.post('pre_arrival/get_documents_by_role', payload);
 
 const getEtaDependentTimes = (payload) =>
   Gateway.post('pre_arrival/get_eta_dependent_times', payload);
