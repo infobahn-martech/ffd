@@ -209,6 +209,7 @@ const ChecklistItemRow = ({
 
   const pushChange = (patch) => {
     const filesNext = patch.uploadedFiles !== undefined ? patch.uploadedFiles : uploadedFiles;
+    const apiFilesNext = patch.apiUploadedFiles !== undefined ? patch.apiUploadedFiles : filesNext;
     const removedNext =
       patch.removedFiles !== undefined ? patch.removedFiles : itemData.removedFiles ?? [];
     onChange(id, {
@@ -216,7 +217,7 @@ const ChecklistItemRow = ({
       ...patch,
       remarks: patch.remarks !== undefined ? patch.remarks : remarks,
       uploadedFiles: filesNext,
-      apiUploadedFiles: filesNext,
+      apiUploadedFiles: apiFilesNext,
       removedFiles: removedNext,
     });
   };
@@ -241,7 +242,18 @@ const ChecklistItemRow = ({
     const isBackendRow =
       entry?.fromApi === true && !(entry instanceof File) && !(entry?.file instanceof File);
     const entryId = entry?.id;
-    const next = rowFiles.filter((f) => (f?.id ?? f) !== entryId);
+    const entryFileId = entry?.file_id;
+    const next = rowFiles.filter((f) => {
+      const sameId = entryId != null && (f?.id ?? null) === entryId;
+      const sameFileId = entryFileId != null && (f?.file_id ?? null) === entryFileId;
+      return !(sameId || sameFileId);
+    });
+    const currentApiFiles = Array.isArray(itemData?.apiUploadedFiles) ? itemData.apiUploadedFiles : [];
+    const nextApiFiles = currentApiFiles.filter((f) => {
+      const sameId = entryId != null && (f?.id ?? null) === entryId;
+      const sameFileId = entryFileId != null && (f?.file_id ?? null) === entryFileId;
+      return !(sameId || sameFileId);
+    });
     let removedNext = Array.isArray(itemData?.removedFiles) ? [...itemData.removedFiles] : [];
     if (isBackendRow) {
       // TODO: Backend delete API required for permanent deletion; GET still returns these files until then (session hide only).
@@ -249,7 +261,7 @@ const ChecklistItemRow = ({
       if (key && !removedNext.includes(key)) removedNext.push(key);
     }
     setUploadedFiles(next);
-    pushChange({ uploadedFiles: next, removedFiles: removedNext });
+    pushChange({ uploadedFiles: next, apiUploadedFiles: nextApiFiles, removedFiles: removedNext });
   };
 
   const handleBrowseClick = () => fileInputRef.current?.click();

@@ -56,7 +56,8 @@ const normalizeBackendFile = (file, fallbackKey) => {
     null;
 
   return {
-    id: file?.id ?? file?.file_id ?? `api_${fallbackKey}`,
+    id: file?.file_id ?? file?.id ?? `api_${fallbackKey}`,
+    file_id: file?.file_id ?? file?.id ?? null,
     name: fileName,
     fileName,
     size: file?.size ?? null,
@@ -115,6 +116,15 @@ const collectLocalFilesForSavePayload = (uploadedFilesList) => {
       return entry?.file instanceof File ? entry.file : null;
     })
     .filter((f) => f instanceof File);
+};
+
+const collectExistingFileIdsForSavePayload = (uploadedFilesList) => {
+  const list = Array.isArray(uploadedFilesList) ? uploadedFilesList : [];
+  return list
+    .filter((entry) => entry?.fromApi === true && !(entry?.file instanceof File))
+    .map((entry) => entry?.file_id ?? entry?.id)
+    .filter((id) => id != null && String(id).trim() !== "" && !String(id).startsWith("api_"))
+    .map(String);
 };
 
 const normalizeChecklistFilename = (value) =>
@@ -636,6 +646,10 @@ function Checklist({
           const fileFieldName = `files_${resolvedChecklistItemId}[]`;
           collectLocalFilesForSavePayload(d.uploadedFiles).forEach((file) => {
             formData.append(fileFieldName, file);
+          });
+          const existingFileFieldName = `existing_file_ids_${resolvedChecklistItemId}[]`;
+          collectExistingFileIdsForSavePayload(d.uploadedFiles).forEach((fileId) => {
+            formData.append(existingFileFieldName, fileId);
           });
         });
       });
