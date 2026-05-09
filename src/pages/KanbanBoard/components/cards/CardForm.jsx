@@ -941,7 +941,7 @@ const GroDocumentFilePreview = ({ fileName, fileUrl }) => {
   const badge = GRO_FILE_BADGE[kind] || "";
 
   const SheetBase = ({ children }) => (
-    <svg width="22" height="22" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden>
+    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden>
       <path
         d="M14 2H6C5.46957 2 4.96086 2.21071 4.58579 2.58579C4.21071 2.96086 4 3.46957 4 4V20C4 20.5304 4.21071 21.0391 4.58579 21.4142C4.96086 21.7893 5.46957 22 6 22H18C18.5304 22 19.0391 21.7893 19.4142 21.4142C19.7893 21.0391 20 20.5304 20 20V8L14 2Z"
         stroke="currentColor"
@@ -969,7 +969,7 @@ const GroDocumentFilePreview = ({ fileName, fileUrl }) => {
     );
   } else if (kind === "excel") {
     inner = (
-      <svg width="22" height="22" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden>
+      <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden>
         <rect x="4" y="4" width="16" height="16" rx="2" stroke="currentColor" strokeWidth="1.35" />
         <path d="M4 9h16M4 14h16M10 4v16M15 4v16" stroke="currentColor" strokeWidth="1" />
       </svg>
@@ -982,7 +982,7 @@ const GroDocumentFilePreview = ({ fileName, fileUrl }) => {
     );
   } else if (kind === "image") {
     inner = (
-      <svg width="22" height="22" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden>
+      <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden>
         <rect x="3.5" y="5" width="17" height="14" rx="2" stroke="currentColor" strokeWidth="1.35" />
         <circle cx="8.5" cy="10" r="1.6" fill="currentColor" />
         <path d="M21 17l-5-5-4 4-2.5-2.5L4 17" stroke="currentColor" strokeWidth="1.25" strokeLinecap="round" strokeLinejoin="round" />
@@ -1007,6 +1007,27 @@ GroDocumentFilePreview.propTypes = {
   fileUrl: PropTypes.string,
 };
 
+const firstNonEmptyGroDisplay = (...candidates) => {
+  for (const c of candidates) {
+    if (c === null || c === undefined) continue;
+    const s = String(c).trim();
+    if (s !== "") return s;
+  }
+  return "-";
+};
+
+const GroSummaryCard = ({ label, value }) => (
+  <div className="gro-summary-card">
+    <div className="gro-summary-label">{label}</div>
+    <div className="gro-summary-value">{value}</div>
+  </div>
+);
+
+GroSummaryCard.propTypes = {
+  label: PropTypes.string.isRequired,
+  value: PropTypes.string.isRequired,
+};
+
 const GROCardView = ({ card }) => {
   const inwardAnchorRef = useRef(null);
   const inwardFileInputRef = useRef(null);
@@ -1026,20 +1047,37 @@ const GROCardView = ({ card }) => {
 
   const callId = resolveGroCallId(card);
 
-  const billingEntity = callDetail?.billing_entity ?? card?.user ?? "—";
-  const callTypeDisplay =
-    callDetail?.call_type ??
-    callDetail?.call_type_name ??
-    card?.typeOfCall ??
-    (callDetail?.call_type_id != null ? String(callDetail.call_type_id) : "—");
-  const vesselNameDisplay = callDetail?.vessel_name ?? card?.vesselName ?? "—";
-  const vesselTypeDisplay = callDetail?.vessel_type ?? card?.vesselType ?? "—";
-
-  const CounterCard = ({ label, value }) => (
-    <div className="driver-card-counter">
-      <div className="driver-card-counter-label">{label}</div>
-      <div className="driver-card-counter-value">{value}</div>
-    </div>
+  const callTypeSummary = firstNonEmptyGroDisplay(
+    callDetail?.call_type,
+    callDetail?.call_type_name,
+    card?.typeOfCall,
+    callDetail?.call_type_id != null && callDetail.call_type_id !== "" ? String(callDetail.call_type_id) : ""
+  );
+  const billingEntitySummary = firstNonEmptyGroDisplay(callDetail?.billing_entity);
+  let portFromDetail = "";
+  if (typeof callDetail?.port === "string") {
+    portFromDetail = callDetail.port;
+  } else if (callDetail?.port && typeof callDetail.port === "object") {
+    portFromDetail =
+      [callDetail.port.label, callDetail.port.name]
+        .map((x) => (x != null ? String(x).trim() : ""))
+        .find(Boolean) || "";
+  }
+  const portSummary = firstNonEmptyGroDisplay(
+    callDetail?.port_name,
+    portFromDetail,
+    callDetail?.port_id != null && callDetail.port_id !== "" ? String(callDetail.port_id) : ""
+  );
+  const vesselNameSummary = firstNonEmptyGroDisplay(callDetail?.vessel_name, card?.vesselName);
+  const assignedOperatorFromDetail =
+    typeof callDetail?.assigned_operator === "string" ? callDetail.assigned_operator : "";
+  const assignedOperatorSummary = firstNonEmptyGroDisplay(
+    callDetail?.requested_operator,
+    callDetail?.assigned_operator_name,
+    assignedOperatorFromDetail,
+    callDetail?.assigned_operator_id != null && callDetail.assigned_operator_id !== ""
+      ? String(callDetail.assigned_operator_id)
+      : ""
   );
 
   const resetInwardClearanceFields = () => {
@@ -1166,6 +1204,7 @@ const GROCardView = ({ card }) => {
       ".MuiPopover-root",
       ".MuiPickersPopper-root",
       ".MuiDialog-root",
+      ".MuiModal-root",
       ".MuiDateCalendar-root",
     ];
     const onPointerDown = (e) => {
@@ -1300,16 +1339,17 @@ const GROCardView = ({ card }) => {
 
   return (
     <div className="gro-card-view">
-      <div className="driver-card-counters">
-        <CounterCard label="Billing Entity" value={billingEntity} />
-        <CounterCard label="Call Type" value={callTypeDisplay} />
-        <CounterCard label="Vessel Name" value={vesselNameDisplay} />
-        <CounterCard label="Vessel Type" value={vesselTypeDisplay} />
+      <div className="gro-summary-grid">
+        <GroSummaryCard label="Call Type" value={callTypeSummary} />
+        <GroSummaryCard label="Billing Entity" value={billingEntitySummary} />
+        <GroSummaryCard label="Port" value={portSummary} />
+        <GroSummaryCard label="Vessel Name" value={vesselNameSummary} />
+        <GroSummaryCard label="Assigned Operator" value={assignedOperatorSummary} />
       </div>
 
       <div className="gro-document-section">
         <div className="gro-document-header">
-          <h3 className="gro-section-title">Documents</h3>
+          <h3 className="gro-documents-heading">Documents</h3>
           <div className="gro-document-header-actions">
             <div className="gro-inward-anchor" ref={inwardAnchorRef}>
               <button
@@ -1402,7 +1442,7 @@ const GROCardView = ({ card }) => {
                     <div className="gro-document-main-top">
                       <span className="gro-document-title">{label}</span>
                       {remarksForPill ? (
-                        <span className="gro-document-remarks-pill" title={`Remarks: ${remarksForPill}`}>
+                        <span className="gro-document-remarks-pill" title={remarksForPill}>
                           Remarks: {remarksForPill}
                         </span>
                       ) : null}
