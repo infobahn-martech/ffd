@@ -4547,9 +4547,49 @@ body .material-management-modal .files-list::-webkit-scrollbar-thumb:hover {
   display: flex;
   justify-content: space-between;
   align-items: center;
+  min-height: 72px;
   padding: 18px 22px;
   background: #ffffff;
   border-bottom: 1px solid #f0f0f0;
+  transition: none !important;
+  animation: none !important;
+  transform: none !important;
+}
+
+.crew-list-header-actions {
+  min-height: 40px;
+  min-width: 460px;
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 10px;
+  flex-shrink: 0;
+}
+
+.crew-list-header-action-slot {
+  width: 180px;
+  min-width: 180px;
+  min-height: 36px;
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+}
+
+.crew-list-header-action-placeholder {
+  width: 100%;
+  height: 36px;
+}
+
+.crew-list-header .crew-header-btn,
+.crew-list-header .crew-header-select,
+.crew-list-header .crew-header-btn:hover,
+.crew-list-header .crew-header-btn:active,
+.crew-list-header .crew-header-btn:focus,
+.crew-list-header .crew-header-select:hover,
+.crew-list-header .crew-header-select:focus {
+  transition: none !important;
+  animation: none !important;
+  transform: none !important;
 }
 
 .crew-list-title {
@@ -4640,40 +4680,56 @@ body .material-management-modal .files-list::-webkit-scrollbar-thumb:hover {
 }
 
 .crew-pagination-btn {
-  min-width: 42px;
-  height: 38px;
-  padding: 0 14px;
-  border-radius: 14px;
+  min-width: 32px;
+  height: 32px;
+  padding: 0 12px;
+  border-radius: 8px;
   border: 1px solid #e2e8f0;
   background: #ffffff;
   color: #64748b;
-  font-size: 14px;
-  font-weight: 700;
-  box-shadow: 0 4px 12px rgba(15, 23, 42, 0.06);
-  transition: all 0.2s ease;
+  font-size: 13px;
+  font-weight: 600;
+  box-shadow: none;
+  transition: background-color 0.2s ease, border-color 0.2s ease, color 0.2s ease;
   cursor: pointer;
+}
+
+.crew-pagination-btn--icon {
+  width: 34px;
+  min-width: 34px;
+  height: 34px;
+  padding: 0;
+  border-radius: 10px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
 }
 
 .crew-pagination-btn:hover:not(:disabled) {
   color: #1d4ed8;
   border-color: #bfdbfe;
   background: #eff6ff;
-  transform: translateY(-1px);
 }
 
 .crew-pagination-btn.active {
-  background: linear-gradient(135deg, #2563eb, #1d4ed8);
+  min-width: 32px;
+  width: 32px;
+  padding: 0;
+  border-radius: 999px;
+  background: #2563eb;
   color: #ffffff;
   border-color: #2563eb;
-  box-shadow: 0 6px 14px rgba(37, 99, 235, 0.25);
+  box-shadow: none;
 }
 
 .crew-pagination-btn:disabled {
   background: #f1f5f9;
-  color: #94a3b8;
+  color: #a8b3c2;
+  border-color: #e5eaf1;
   box-shadow: none;
   cursor: not-allowed;
-  opacity: 1;
+  pointer-events: none;
+  opacity: 0.8;
 }
 
 /* Hide scrollbar but keep functionality */
@@ -5370,6 +5426,81 @@ body .material-management-modal .files-list::-webkit-scrollbar-thumb:hover {
 
 .crew-table tbody tr:hover td {
   background: rgba(226, 230, 255, 0.5);
+}
+
+.crew-list-table tbody tr,
+.crew-list-table tbody td,
+.crew-list-table .crew-table-cell {
+  animation: none !important;
+  transform: none !important;
+  transition: none !important;
+}
+
+.crew-list-table tbody tr.crew-row-selected td {
+  background: rgba(226, 230, 255, 0.3) !important;
+}
+
+.crew-list-table tbody tr.crew-row-selected:hover td {
+  background: rgba(226, 230, 255, 0.3) !important;
+}
+
+.crew-list-table td:first-child,
+.crew-list-table th:first-child {
+  text-align: center;
+}
+
+.crew-list-table th.crew-checkbox-cell-header,
+.crew-list-table td.crew-checkbox-cell {
+  width: 64px !important;
+  min-width: 64px !important;
+  max-width: 64px !important;
+  padding-left: 22px !important;
+  padding-right: 10px !important;
+  overflow: hidden;
+  text-overflow: clip;
+  white-space: nowrap;
+  vertical-align: middle;
+  text-align: left !important;
+}
+
+.crew-list-table th.crew-checkbox-cell-header {
+  font-size: 0;
+  line-height: 0;
+}
+
+.crew-list-table th.crew-checkbox-cell-header::before,
+.crew-list-table th.crew-checkbox-cell-header::after,
+.crew-list-table td.crew-checkbox-cell::before,
+.crew-list-table td.crew-checkbox-cell::after {
+  content: none !important;
+}
+
+.crew-list-checkbox {
+  width: 16px;
+  min-width: 16px;
+  max-width: 16px;
+  height: 16px;
+  min-height: 16px;
+  max-height: 16px;
+  margin: 0;
+  display: inline-block;
+  vertical-align: middle;
+  cursor: pointer;
+  accent-color: #00368c;
+  transition: none !important;
+  transform: none !important;
+  animation: none !important;
+}
+
+.crew-list-checkbox--header {
+  accent-color: #00368c;
+}
+
+.crew-list-checkbox:focus,
+.crew-list-checkbox:focus-visible {
+  outline: none;
+  box-shadow: none;
+  transform: none !important;
 }
 
 .crew-table tbody tr:last-child td {

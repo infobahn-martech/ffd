@@ -5,7 +5,7 @@ import { Tooltip } from "react-tooltip";
 import "react-tooltip/dist/react-tooltip.css";
 import DatePicker from "react-datepicker";
 import "react-datepicker/dist/react-datepicker.css";
-import { FiDownload } from "react-icons/fi";
+import { FiDownload, FiChevronLeft, FiChevronRight } from "react-icons/fi";
 import { YesIcon, NoIcon } from "./Husbandry.components";
 import CustomModal from "../../../../../../components/CustomModal";
 import useCrewReducer from "../../../../../../store/CrewReducer";
@@ -762,14 +762,6 @@ const CrewContent = ({ formValues, handleChange, cardColor, onNavigateToTab, lau
     fileInputRef.current?.click();
   };
 
-
-  // Helper function to convert hex to rgba
-  const hexToRgba = (hex, alpha = 0.1) => {
-    const r = parseInt(hex.slice(1, 3), 16);
-    const g = parseInt(hex.slice(3, 5), 16);
-    const b = parseInt(hex.slice(5, 7), 16);
-    return `rgba(${r}, ${g}, ${b}, ${alpha})`;
-  };
 
   // Handle download preview template from backend
   const handleDownloadPreview = async () => {
@@ -1982,6 +1974,7 @@ const CrewContent = ({ formValues, handleChange, cardColor, onNavigateToTab, lau
               )} */}
               <Tooltip id="upload-new-file-btn" place="top" positionStrategy="fixed" content="Upload New File" />
               <button
+                className="crew-header-btn crew-header-btn--upload"
                 type="button"
                 onClick={() => {
                   setPreferLocalUploadView(true);
@@ -2041,9 +2034,10 @@ const CrewContent = ({ formValues, handleChange, cardColor, onNavigateToTab, lau
                 </span>
               </button>
             </div>
-            <div style={{ display: "flex", gap: "10px", alignItems: "center" }}>
+            <div className="crew-list-header-actions" style={{ display: "flex", gap: "10px", alignItems: "center" }}>
               <div style={{ position: "relative" }}>
                 <select
+                  className="crew-header-select crew-header-select--bulk"
                   onChange={(e) => {
                     const selectedKey = e.target.value;
                     if (!selectedKey) return;
@@ -2095,61 +2089,63 @@ const CrewContent = ({ formValues, handleChange, cardColor, onNavigateToTab, lau
                   <option value="zawilPass">Zawil Pass</option>
                 </select>
               </div>
-              {showActionDropdown && launchHireOnly && (
-                <>
-                  <Tooltip id="launch-hire-btn" place="top" positionStrategy="fixed" content="Launch Hire" />
-                  <button
-                    type="button"
-                    onClick={() => {
-                      const launchHireOption = allActionOptions.find((opt) => opt.value === "launchHire");
-                      if (launchHireOption) {
-                        handleActionSelect(launchHireOption);
-                      }
-                    }}
-                    data-tooltip-id="launch-hire-btn"
-                    style={{
-                      padding: "8px 16px",
-                      borderRadius: "8px",
-                      border: "1px solid var(--card-color, #2A00FF)",
-                      backgroundColor: "var(--card-color, #2A00FF)",
-                      color: "#ffffff",
-                      fontSize: "13px",
-                      fontWeight: "600",
-                      cursor: "pointer",
-                      transition: "all 0.2s ease",
-                      fontFamily: "\"Open Sans\", sans-serif",
-                      display: "flex",
-                      alignItems: "center",
-                      gap: "8px",
-                      minWidth: 0,
-                      marginRight: "10px"
-                    }}
-                    onMouseEnter={(e) => {
-                      e.currentTarget.style.opacity = "0.9";
-                      e.currentTarget.style.transform = "translateY(-1px)";
-                      e.currentTarget.style.boxShadow = "0 2px 8px rgba(0, 0, 0, 0.15)";
-                    }}
-                    onMouseLeave={(e) => {
-                      e.currentTarget.style.opacity = "1";
-                      e.currentTarget.style.transform = "translateY(0)";
-                      e.currentTarget.style.boxShadow = "none";
-                    }}
-                  >
-                    <span
+              <div className="crew-list-header-action-slot">
+                {showActionDropdown && launchHireOnly ? (
+                  <>
+                    <Tooltip id="launch-hire-btn" place="top" positionStrategy="fixed" content="Launch Hire" />
+                    <button
+                      className="crew-header-btn crew-header-btn--launch-hire"
+                      type="button"
+                      onClick={() => {
+                        const launchHireOption = allActionOptions.find((opt) => opt.value === "launchHire");
+                        if (launchHireOption) {
+                          handleActionSelect(launchHireOption);
+                        }
+                      }}
+                      data-tooltip-id="launch-hire-btn"
                       style={{
-                        whiteSpace: "nowrap",
-                        overflow: "hidden",
-                        textOverflow: "ellipsis"
+                        padding: "8px 16px",
+                        borderRadius: "8px",
+                        border: "1px solid var(--card-color, #2A00FF)",
+                        backgroundColor: "var(--card-color, #2A00FF)",
+                        color: "#ffffff",
+                        fontSize: "13px",
+                        fontWeight: "600",
+                        cursor: "pointer",
+                        transition: "all 0.2s ease",
+                        fontFamily: "\"Open Sans\", sans-serif",
+                        display: "flex",
+                        alignItems: "center",
+                        gap: "8px",
+                        minWidth: 0,
+                        marginRight: "10px"
+                      }}
+                      onMouseEnter={(e) => {
+                        e.currentTarget.style.opacity = "0.9";
+                        e.currentTarget.style.transform = "translateY(-1px)";
+                        e.currentTarget.style.boxShadow = "0 2px 8px rgba(0, 0, 0, 0.15)";
+                      }}
+                      onMouseLeave={(e) => {
+                        e.currentTarget.style.opacity = "1";
+                        e.currentTarget.style.transform = "translateY(0)";
+                        e.currentTarget.style.boxShadow = "none";
                       }}
                     >
-                      Launch Hire
-                    </span>
-                  </button>
-                </>
-              )}
-              {showActionDropdown && !launchHireOnly && (
+                      <span
+                        style={{
+                          whiteSpace: "nowrap",
+                          overflow: "hidden",
+                          textOverflow: "ellipsis"
+                        }}
+                      >
+                        Launch Hire
+                      </span>
+                    </button>
+                  </>
+                ) : showActionDropdown && !launchHireOnly ? (
                 <div style={{ position: "relative", marginRight: "10px" }}>
                   <select
+                    className="crew-header-select crew-header-select--action"
                     onChange={(e) => {
                       const selectedOption = actionOptions.find((opt) => opt.value === e.target.value);
                       if (selectedOption) {
@@ -2180,9 +2176,13 @@ const CrewContent = ({ formValues, handleChange, cardColor, onNavigateToTab, lau
                     ))}
                   </select>
                 </div>
-              )}
+                ) : (
+                  <div className="crew-list-header-action-placeholder" aria-hidden="true" />
+                )}
+              </div>
               <Tooltip id="select-all-btn" place="top" positionStrategy="fixed" content={selectedCrewIds.length === displayCrewList.length ? "Deselect All" : "Select All"} />
               <button
+                className="crew-header-btn crew-header-btn--select-all"
                 type="button"
                 onClick={handleSelectAll}
                 data-tooltip-id="select-all-btn"
@@ -2235,53 +2235,48 @@ const CrewContent = ({ formValues, handleChange, cardColor, onNavigateToTab, lau
               <table className="table table-striped crew-table crew-list-table" style={{ "--card-color": "#e2e6ff", tableLayout: "fixed", width: "100%" }}>
               <thead>
                 <tr>
-                  <th style={{ width: "40px" }}>
+                  <th className="crew-checkbox-cell-header" style={{ width: "64px", minWidth: "64px", maxWidth: "64px" }}>
                     <input
+                      className="crew-list-checkbox crew-list-checkbox--header"
                       type="checkbox"
                       checked={selectedCrewIds.length === displayCrewList.length && displayCrewList.length > 0}
                       onChange={handleSelectAll}
-                      style={{
-                        width: "18px",
-                        height: "18px",
-                        cursor: "pointer",
-                        accentColor: "#e2e6ff",
-                      }}
                     />
                   </th>
-                  <th style={{ width: "calc((100% - 40px) / 12)", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap", textAlign: "center" }}>
+                  <th style={{ width: "calc((100% - 64px) / 12)", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap", textAlign: "center" }}>
                     Crew Name
                   </th>
-                  <th style={{ width: "calc((100% - 40px) / 12)", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap", textAlign: "center" }}>
+                  <th style={{ width: "calc((100% - 64px) / 12)", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap", textAlign: "center" }}>
                     Nationality
                   </th>
-                  <th style={{ width: "calc((100% - 40px) / 12)", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap", textAlign: "center" }}>
+                  <th style={{ width: "calc((100% - 64px) / 12)", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap", textAlign: "center" }}>
                     Rank
                   </th>
-                  <th style={{ width: "calc((100% - 40px) / 12)", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap", textAlign: "center" }}>
+                  <th style={{ width: "calc((100% - 64px) / 12)", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap", textAlign: "center" }}>
                     Movement Type
                   </th>
-                  <th style={{ width: "calc((100% - 40px) / 12)", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap", textAlign: "center" }}>
+                  <th style={{ width: "calc((100% - 64px) / 12)", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap", textAlign: "center" }}>
                     Passport
                   </th>
-                  <th style={{ width: "calc((100% - 40px) / 12)", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap", textAlign: "center" }}>
+                  <th style={{ width: "calc((100% - 64px) / 12)", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap", textAlign: "center" }}>
                     Iqama
                   </th>
-                  <th style={{ width: "calc((100% - 40px) / 12)", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap", textAlign: "center" }}>
+                  <th style={{ width: "calc((100% - 64px) / 12)", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap", textAlign: "center" }}>
                     Visa
                   </th>
-                  <th style={{ width: "calc((100% - 40px) / 12)", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap", textAlign: "center" }}>
+                  <th style={{ width: "calc((100% - 64px) / 12)", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap", textAlign: "center" }}>
                     CG Pass
                   </th>
-                  <th style={{ width: "calc((100% - 40px) / 12)", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap", textAlign: "center" }}>
+                  <th style={{ width: "calc((100% - 64px) / 12)", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap", textAlign: "center" }}>
                     Zawil Pass
                   </th>
-                  <th style={{ width: "calc((100% - 40px) / 12)", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap", textAlign: "center" }}>
+                  <th style={{ width: "calc((100% - 64px) / 12)", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap", textAlign: "center" }}>
                     Transport
                   </th>
-                  <th style={{ width: "calc((100% - 40px) / 12)", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap", textAlign: "center" }}>
+                  <th style={{ width: "calc((100% - 64px) / 12)", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap", textAlign: "center" }}>
                     Hotel
                   </th>
-                  <th style={{ width: "calc((100% - 40px) / 12)", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap", textAlign: "center" }}>
+                  <th style={{ width: "calc((100% - 64px) / 12)", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap", textAlign: "center" }}>
                     Medical
                   </th>
                   {/* <th>Actions</th> */}
@@ -2304,23 +2299,14 @@ const CrewContent = ({ formValues, handleChange, cardColor, onNavigateToTab, lau
                   displayCrewList.map((crew) => (
                     <tr
                       key={crew.id}
-                      style={{
-                        backgroundColor: selectedCrewIds.includes(crew.id)
-                          ? hexToRgba('#e2e6ff', 0.3)
-                          : "transparent",
-                      }}
+                      className={selectedCrewIds.includes(crew.id) ? "crew-row-selected" : ""}
                     >
-                      <td>
+                      <td className="crew-checkbox-cell">
                         <input
+                          className="crew-list-checkbox"
                           type="checkbox"
                           checked={selectedCrewIds.includes(crew.id)}
                           onChange={() => handleCrewToggle(crew.id)}
-                          style={{
-                            width: "18px",
-                            height: "18px",
-                            cursor: "pointer",
-                            accentColor: "#00368c",
-                          }}
                         />
                       </td>
                       <td style={{ overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
@@ -2688,11 +2674,12 @@ const CrewContent = ({ formValues, handleChange, cardColor, onNavigateToTab, lau
               <div className="crew-pagination-actions">
                 <button
                   type="button"
-                  className="crew-pagination-btn"
+                  className="crew-pagination-btn crew-pagination-btn--icon"
+                  aria-label="Previous page"
                   disabled={effectiveCrewPage <= 1}
                   onClick={() => setCrewPage((prev) => Math.max(1, prev - 1))}
                 >
-                  Previous
+                  <FiChevronLeft size={16} />
                 </button>
                 {paginationPages.map((pageNum) => (
                   <button
@@ -2706,11 +2693,12 @@ const CrewContent = ({ formValues, handleChange, cardColor, onNavigateToTab, lau
                 ))}
                 <button
                   type="button"
-                  className="crew-pagination-btn"
+                  className="crew-pagination-btn crew-pagination-btn--icon"
+                  aria-label="Next page"
                   disabled={effectiveCrewPage >= totalCrewPages}
                   onClick={() => setCrewPage((prev) => Math.min(totalCrewPages, prev + 1))}
                 >
-                  Next
+                  <FiChevronRight size={16} />
                 </button>
               </div>
             </div>
