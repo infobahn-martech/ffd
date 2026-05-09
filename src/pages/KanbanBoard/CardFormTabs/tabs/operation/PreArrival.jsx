@@ -78,9 +78,42 @@ function openAttachmentPreview(attachment) {
   console.log("Preview document:", attachment?.name);
 }
 
-const CompactFileUploadRow = ({ label, files = [], onAddFiles, onRemoveAt, isViewOnly = false }) => {
+const DOC_STATUS_UPLOADED = 0;
+const DOC_STATUS_VERIFIED = 1;
+const DOC_STATUS_REUPLOAD = 2;
+
+const CompactFileUploadRow = ({
+  label,
+  files = [],
+  status = null,
+  remarks = null,
+  onAddFiles,
+  onReplaceFile,
+  isViewOnly = false,
+}) => {
   const inputRef = useRef(null);
   const hasFiles = (files || []).length > 0;
+  const primaryFile = hasFiles ? files[0] : null;
+  const rowStatus = Number.isFinite(Number(status)) ? Number(status) : null;
+  const isVerified = rowStatus === DOC_STATUS_VERIFIED;
+  const isReuploadRequired = rowStatus === DOC_STATUS_REUPLOAD;
+  const isUploaded = rowStatus === DOC_STATUS_UPLOADED;
+  const shouldShowUpload = !isViewOnly && !isVerified;
+  const uploadTitle = isReuploadRequired ? "Reupload file" : hasFiles ? "Upload more files" : "Upload file";
+  const statusLabel = isVerified
+    ? "Verified"
+    : isReuploadRequired
+      ? "Re-upload required"
+      : isUploaded
+        ? "Uploaded"
+        : "";
+  const statusClass = isVerified
+    ? "document-row-status-chip--verified"
+    : isReuploadRequired
+      ? "document-row-status-chip--reupload"
+      : isUploaded
+        ? "document-row-status-chip--uploaded"
+        : "";
 
   const handleInput = (e) => {
     const selectedFiles = Array.from(e.target.files || []);
@@ -91,7 +124,11 @@ const CompactFileUploadRow = ({ label, files = [], onAddFiles, onRemoveAt, isVie
         size: file.size,
         type: file.type,
       }));
-      onAddFiles(mapped);
+      if (isReuploadRequired && typeof onReplaceFile === "function") {
+        onReplaceFile(mapped[0]);
+      } else {
+        onAddFiles(mapped);
+      }
     }
     e.target.value = "";
   };
@@ -99,7 +136,22 @@ const CompactFileUploadRow = ({ label, files = [], onAddFiles, onRemoveAt, isVie
   return (
     <div className="document-row compact-file-upload-row">
       <div className="document-row-name compact-file-upload-label">
-        <span title={label}>{label}</span>
+        <div className="compact-file-upload-label-top">
+          <span className="compact-file-upload-title" title={label}>
+            {label}
+          </span>
+          {statusLabel && <span className={`document-row-status-chip ${statusClass}`}>{statusLabel}</span>}
+        </div>
+        {primaryFile?.name && (
+          <div className="compact-file-upload-filename" title={primaryFile.name}>
+            {primaryFile.name}
+          </div>
+        )}
+        {remarks && String(remarks).trim() ? (
+          <div className="compact-file-upload-remarks" title={String(remarks)}>
+            {String(remarks)}
+          </div>
+        ) : null}
       </div>
       <div className="document-row-actions compact-file-upload-actions">
         {hasFiles && (
@@ -107,12 +159,19 @@ const CompactFileUploadRow = ({ label, files = [], onAddFiles, onRemoveAt, isVie
             <IconEye />
           </button>
         )}
-        {!isViewOnly && (
+        {shouldShowUpload && (
           <>
-            <button type="button" className="document-row-icon-btn" onClick={() => inputRef.current?.click()} title={hasFiles ? "Add more files" : "Upload files"}>
+            <button type="button" className="document-row-icon-btn" onClick={() => inputRef.current?.click()} title={uploadTitle}>
               <IconUpload />
             </button>
-            <input ref={inputRef} type="file" className="document-row-file-input" onChange={handleInput} aria-label={`Upload ${label}`} multiple />
+            <input
+              ref={inputRef}
+              type="file"
+              className="document-row-file-input"
+              onChange={handleInput}
+              aria-label={`Upload ${label}`}
+              multiple={!isReuploadRequired}
+            />
             {/* {hasFiles && (
               <button type="button" className="document-row-icon-btn document-row-icon-btn--danger" onClick={() => onRemoveAt(files.length - 1)} title="Remove latest file">
                 <IconTrash />
@@ -128,9 +187,12 @@ const CompactFileUploadRow = ({ label, files = [], onAddFiles, onRemoveAt, isVie
 CompactFileUploadRow.propTypes = {
   label: PropTypes.string.isRequired,
   files: PropTypes.array,
+  status: PropTypes.oneOfType([PropTypes.number, PropTypes.string]),
+  remarks: PropTypes.string,
   isRequired: PropTypes.bool,
   onAddFiles: PropTypes.func.isRequired,
-  onRemoveAt: PropTypes.func.isRequired,
+  onReplaceFile: PropTypes.func,
+  onRemoveAt: PropTypes.func,
   isViewOnly: PropTypes.bool,
 };
 
@@ -232,6 +294,12 @@ function PreArrivalDocumentHandlingSection({
       id: row?.document_id != null ? String(row.document_id) : row?.call_task_document_id != null ? String(row.call_task_document_id) : `role-doc-${index}`,
       name: row?.document_name || row?.name || `Document ${index + 1}`,
       is_required: Boolean(row?.is_required ?? row?.required),
+      status: row?.status ?? null,
+      remarks: row?.remarks ?? null,
+      call_task_document_id: row?.call_task_document_id ?? null,
+      document_id: row?.document_id ?? null,
+      file_url: row?.file_url ?? null,
+      file_name: row?.file_name || null,
       files:
         row?.is_uploaded && row?.file_url
           ? [
@@ -251,6 +319,12 @@ function PreArrivalDocumentHandlingSection({
       const matched = (existingRows || []).find((row) => String(row?.id) === String(incomingRow.id));
       return {
         ...incomingRow,
+        status: incomingRow.status ?? matched?.status ?? null,
+        remarks: incomingRow.remarks ?? matched?.remarks ?? null,
+        call_task_document_id: incomingRow.call_task_document_id ?? matched?.call_task_document_id ?? null,
+        document_id: incomingRow.document_id ?? matched?.document_id ?? null,
+        file_url: incomingRow.file_url ?? matched?.file_url ?? null,
+        file_name: incomingRow.file_name ?? matched?.file_name ?? null,
         files:
           Array.isArray(matched?.files) && matched.files.length > 0
             ? matched.files
@@ -468,9 +542,12 @@ function PreArrivalDocumentHandlingSection({
                   key={doc.id}
                   label={doc.name}
                   files={doc.files || []}
+                  status={doc.status}
+                  remarks={doc.remarks}
                   isRequired={Boolean(doc.is_required)}
                   isViewOnly={isViewOnly}
                   onAddFiles={(newFiles) => patchRowFiles("gro", doc.id, [...(doc.files || []), ...newFiles])}
+                  onReplaceFile={(newFile) => patchRowFiles("gro", doc.id, [newFile])}
                   onRemoveAt={(idx) => patchRowFiles("gro", doc.id, (doc.files || []).filter((_, i) => i !== idx))}
                 />
               ))}
@@ -484,11 +561,14 @@ function PreArrivalDocumentHandlingSection({
                   key={doc.id}
                   label={doc.name}
                   files={doc.files || []}
+                  status={doc.status}
+                  remarks={doc.remarks}
                   isRequired={Boolean(doc.is_required)}
                   isViewOnly={isViewOnly}
                   onAddFiles={(newFiles) =>
                     patchRowFiles("customClearance", doc.id, [...(doc.files || []), ...newFiles])
                   }
+                  onReplaceFile={(newFile) => patchRowFiles("customClearance", doc.id, [newFile])}
                   onRemoveAt={(idx) =>
                     patchRowFiles("customClearance", doc.id, (doc.files || []).filter((_, i) => i !== idx))
                   }

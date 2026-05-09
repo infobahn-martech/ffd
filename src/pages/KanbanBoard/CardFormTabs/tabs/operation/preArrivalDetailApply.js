@@ -34,8 +34,11 @@ export function normalizeTaskDocumentFlatItems(taskDocuments) {
         out.push({
           role_id: entry.role_id,
           document_id: d.document_id,
+          call_task_document_id: d.call_task_document_id ?? d.callTaskDocumentId ?? null,
           file_name: d.file_name || d.fileName || "Document",
           file_url: d.file_url || d.fileUrl || d.url || "",
+          status: d.status ?? null,
+          remarks: d.remarks ?? null,
         });
       }
       continue;
@@ -44,8 +47,11 @@ export function normalizeTaskDocumentFlatItems(taskDocuments) {
     out.push({
       role_id: entry.role_id,
       document_id: entry.document_id ?? entry.documentId,
+      call_task_document_id: entry.call_task_document_id ?? entry.callTaskDocumentId ?? null,
       file_name: entry.file_name || entry.fileName || "Document",
       file_url: entry.file_url || entry.fileUrl || entry.url || "",
+      status: entry.status ?? null,
+      remarks: entry.remarks ?? null,
     });
   }
   return out;
@@ -155,6 +161,12 @@ export function mergePreArrivalDetailDocuments(currentHandling, taskDocuments = 
         id: idStr,
         name,
         is_required: Boolean(prev?.is_required),
+        status: first?.status ?? prev?.status ?? null,
+        remarks: first?.remarks ?? prev?.remarks ?? null,
+        call_task_document_id: first?.call_task_document_id ?? prev?.call_task_document_id ?? null,
+        document_id: first?.document_id ?? prev?.document_id ?? null,
+        file_url: first?.file_url ?? prev?.file_url ?? null,
+        file_name: first?.file_name ?? prev?.file_name ?? null,
         files: Array.isArray(prev?.files) ? [...prev.files] : [],
       };
       for (const t of items) {

@@ -2297,10 +2297,80 @@ $send-report-optional: #80868b;
 
   .compact-file-upload-row {
     align-items: center;
+    min-height: 62px;
   }
 
   .compact-file-upload-label {
     flex: 1 1 200px;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    gap: 3px;
+    min-width: 0;
+  }
+
+  .compact-file-upload-label-top {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    min-width: 0;
+  }
+
+  .compact-file-upload-title {
+    font-size: 13px;
+    font-weight: 600;
+    color: #1f2937;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+
+  .compact-file-upload-filename {
+    font-size: 11px;
+    color: #6b7280;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+
+  .compact-file-upload-remarks {
+    font-size: 11px;
+    color: #7a8089;
+    line-height: 1.2;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+
+  .document-row-status-chip {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+    padding: 2px 8px;
+    border-radius: 999px;
+    font-size: 10px;
+    font-weight: 600;
+    line-height: 1.2;
+    border: 1px solid transparent;
+  }
+
+  .document-row-status-chip--uploaded {
+    background: #eff6ff;
+    border-color: #bfdbfe;
+    color: #1d4ed8;
+  }
+
+  .document-row-status-chip--verified {
+    background: #ecfdf3;
+    border-color: #86efac;
+    color: #166534;
+  }
+
+  .document-row-status-chip--reupload {
+    background: #fff7ed;
+    border-color: #fdba74;
+    color: #9a3412;
   }
 
   .compact-file-upload-files {
@@ -2317,6 +2387,9 @@ $send-report-optional: #80868b;
     display: flex;
     align-items: center;
     gap: 4px;
+    justify-content: flex-end;
+    width: 78px;
+    flex: 0 0 78px;
   }
 
   .operation-compact-upload-zone {
