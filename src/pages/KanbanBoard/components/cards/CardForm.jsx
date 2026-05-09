@@ -5,7 +5,6 @@ import { useLocation } from "react-router-dom";
 import PropTypes from "prop-types";
 import { notify } from "../../../../components/Toaster";
 import groService from "../../../../services/groService";
-import { isGroDocumentApproved, isGroDocumentRejected } from "../../../../store/GROReducer";
 import "../../styles/cardForm.scss";
 import "../../../../design/scss/general.scss";
 import ColorPickerIcon from "../../../../assets/images/ColorPicker.png";
@@ -908,12 +907,12 @@ const enrichGroDocWithRowKey = (doc, index) => ({
         : `fb-${index}`,
 });
 
+/** GET task_card/get_gro_custom_docs — documents live on first group: response.data.data[0].documents */
 const parseGroDocumentsResponse = (res) => {
-  const payload = res?.data?.data ?? res?.data ?? {};
-  if (Array.isArray(payload.documents)) return payload.documents;
-  if (Array.isArray(payload?.data?.documents)) return payload.data.documents;
-  if (Array.isArray(payload)) return payload;
-  return [];
+  const body = res?.data;
+  const group = Array.isArray(body?.data) ? body.data[0] : body?.data;
+  const docs = Array.isArray(group?.documents) ? group.documents : [];
+  return docs;
 };
 
 const groApiErrorMessage = (err, fallback) =>
@@ -1285,9 +1284,9 @@ const GROCardView = ({ card }) => {
           ) : (
             documents.map((doc) => {
               const rowKey = doc.__rowKey;
-              const label = doc.document_name ?? doc.file_name ?? "Document";
-              const isApproved = isGroDocumentApproved(doc);
-              const isRejected = isGroDocumentRejected(doc);
+              const label = doc.document_name ?? "";
+              const isApproved = Number(doc.status) === 1;
+              const isRejected = Number(doc.status) === 2;
               const remarkOpen = activeRemarkDoc === rowKey;
               const rowBusy = verifyingDocId === rowKey;
               const verifyDisabled = isGroLoading || rowBusy || !canVerifyDocument(doc);
