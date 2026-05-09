@@ -62,6 +62,7 @@ const DateTimePickerField = ({
   placeholder = "Select date and time",
   minDate,
   maxDate,
+  popperClassName = "",
 }) => {
   const selectedValue = useMemo(() => {
     const combinedDate = combineDateTime(dateValue, timeValue);
@@ -109,7 +110,7 @@ const DateTimePickerField = ({
               },
             },
             popper: {
-              className: "cf-datetime-popper",
+              className: ["cf-datetime-popper", popperClassName].filter(Boolean).join(" "),
             },
           }}
         />
@@ -131,6 +132,7 @@ DateTimePickerField.propTypes = {
   placeholder: PropTypes.string,
   minDate: PropTypes.oneOfType([PropTypes.instanceOf(Date), PropTypes.string]),
   maxDate: PropTypes.oneOfType([PropTypes.instanceOf(Date), PropTypes.string]),
+  popperClassName: PropTypes.string,
 };
 
 export default DateTimePickerField;

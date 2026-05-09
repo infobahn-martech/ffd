@@ -1024,8 +1024,8 @@ const GROCardView = ({ card }) => {
       setInwardDateTime("");
       return;
     }
-    const t = time && String(time).length >= 4 ? String(time).slice(0, 5) : "00:00";
-    setInwardDateTime(`${date} ${t}`);
+    const formattedTime = time ? String(time).slice(0, 5) : "00:00";
+    setInwardDateTime(`${date} ${formattedTime}:00`);
   }, []);
 
   const handleInwardCancel = () => {
@@ -1035,21 +1035,21 @@ const GROCardView = ({ card }) => {
 
   const handleInwardSubmit = async () => {
     if (callId == null || callId === "") {
-      notify("Unable to save: missing call id.", "error");
+      notify("Call id is missing.", "error");
       return;
     }
     if (!inwardFile) {
-      notify("Please choose a file.", "warn");
+      notify("Please select a document.", "warn");
       return;
     }
     if (!String(inwardDateTime ?? "").trim()) {
-      notify("Please select date and time.", "warn");
+      notify("Please select document date and time.", "warn");
       return;
     }
     const formData = new FormData();
     formData.append("call_id", callId);
     formData.append("document", inwardFile);
-    formData.append("dateTime", inwardDateTime);
+    formData.append("document_date", inwardDateTime);
     setIsSavingInward(true);
     try {
       await groService.saveArrivalDocument(formData);
@@ -1057,6 +1057,12 @@ const GROCardView = ({ card }) => {
       setShowInwardClearance(false);
       resetInwardClearanceFields();
       await refreshGroDocuments(callId);
+      try {
+        const detailRes = await groService.getCallDetailById(callId);
+        setCallDetail(detailRes?.data?.data ?? detailRes?.data ?? {});
+      } catch {
+        /* optional refresh */
+      }
     } catch (err) {
       notify(groApiErrorMessage(err, "Failed to save inward clearance."), "error");
     } finally {
@@ -1066,7 +1072,21 @@ const GROCardView = ({ card }) => {
 
   useEffect(() => {
     if (!showInwardClearance) return undefined;
+    const inwardClickIgnoresOutsideClose = [
+      ".gro-inward-popover",
+      ".MuiPopover-root",
+      ".MuiPickersPopper-root",
+      ".MuiDialog-root",
+      ".MuiDateCalendar-root",
+    ];
     const onPointerDown = (e) => {
+      const path = typeof e.composedPath === "function" ? e.composedPath() : [e.target];
+      for (const node of path) {
+        if (!(node instanceof Element)) continue;
+        if (inwardClickIgnoresOutsideClose.some((sel) => node.closest(sel))) {
+          return;
+        }
+      }
       if (inwardAnchorRef.current && !inwardAnchorRef.current.contains(e.target)) {
         setShowInwardClearance(false);
       }
@@ -1261,6 +1281,7 @@ const GROCardView = ({ card }) => {
                         timeValue={inwardPickerParts.time}
                         onDateTimeChange={handleInwardDateTimePickerChange}
                         placeholder="YYYY-MM-DD hh:mm"
+                        popperClassName="gro-inward-datetime-popper"
                       />
                     </div>
                   </div>
@@ -1269,7 +1290,7 @@ const GROCardView = ({ card }) => {
                       Cancel
                     </button>
                     <button type="button" className="gro-inward-popover-btn-submit" disabled={isSavingInward} onClick={handleInwardSubmit}>
-                      {isSavingInward ? "Saving…" : "Submit"}
+                      {isSavingInward ? "Saving..." : "Submit"}
                     </button>
                   </div>
                 </div>

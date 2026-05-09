@@ -17,3 +17,28 @@
   cursor: not-allowed;
   pointer-events: none;
 }
+
+/* GRO inward clearance: picker popup + popover stacking (portal-safe popper class from DateTimePickerField) */
+.gro-card-view .gro-document-section,
+.gro-card-view .gro-document-header,
+.gro-card-view .gro-document-header-actions {
+  overflow: visible;
+}
+
+.gro-inward-popover {
+  overflow: visible;
+  z-index: 1400;
+}
+
+.gro-inward-popover-body,
+.gro-inward-popover-datetime-full {
+  overflow: visible;
+}
+
+.gro-inward-anchor {
+  z-index: 1;
+}
+
+.gro-inward-datetime-popper {
+  z-index: 16000 !important;
+}
