@@ -4,6 +4,8 @@ import { mapSalesOrderResponse } from "../../../../helpers/mapSalesOrderResponse
 import { useLocation } from "react-router-dom";
 import PropTypes from "prop-types";
 import { notify } from "../../../../components/Toaster";
+import groService from "../../../../services/groService";
+import { isGroDocumentApproved, isGroDocumentRejected } from "../../../../store/GROReducer";
 import "../../styles/cardForm.scss";
 import "../../../../design/scss/general.scss";
 import ColorPickerIcon from "../../../../assets/images/ColorPicker.png";
@@ -876,6 +878,47 @@ const GRO_DOCUMENT_TYPES = [
   "Immigration Batches",
 ];
 
+const resolveGroCallId = (card) => {
+  const raw = card?.call_id ?? card?.callId ?? card?.id;
+  if (raw == null || raw === "") return null;
+  return raw;
+};
+
+const buildGroFallbackDocuments = () =>
+  GRO_DOCUMENT_TYPES.map((document_name) => ({
+    document_name,
+    document_id: null,
+    call_task_document_id: null,
+    is_uploaded: false,
+    status: 0,
+    file_name: null,
+    file_url: null,
+    uploaded_by: null,
+    uploaded_by_name: null,
+    uploaded_at: null,
+  }));
+
+const enrichGroDocWithRowKey = (doc, index) => ({
+  ...doc,
+  __rowKey:
+    doc.call_task_document_id != null
+      ? `ctd-${doc.call_task_document_id}`
+      : doc.document_id != null
+        ? `did-${doc.document_id}-${index}`
+        : `fb-${index}`,
+});
+
+const parseGroDocumentsResponse = (res) => {
+  const payload = res?.data?.data ?? res?.data ?? {};
+  if (Array.isArray(payload.documents)) return payload.documents;
+  if (Array.isArray(payload?.data?.documents)) return payload.data.documents;
+  if (Array.isArray(payload)) return payload;
+  return [];
+};
+
+const groApiErrorMessage = (err, fallback) =>
+  err?.response?.data?.message ?? err?.response?.data?.error ?? err?.message ?? fallback;
+
 const GROCardView = ({ card }) => {
   const inwardAnchorRef = useRef(null);
   const inwardFileInputRef = useRef(null);
@@ -885,13 +928,24 @@ const GROCardView = ({ card }) => {
   const [documentRemarks, setDocumentRemarks] = useState({});
   const [activeRemarkDoc, setActiveRemarkDoc] = useState(null);
   const [remarkDraft, setRemarkDraft] = useState("");
-  const [documentApproved, setDocumentApproved] = useState({});
-  const [documentRejected, setDocumentRejected] = useState({});
+  const [callDetail, setCallDetail] = useState(null);
+  const [documents, setDocuments] = useState(() =>
+    buildGroFallbackDocuments().map((d, i) => enrichGroDocWithRowKey(d, i))
+  );
+  const [isGroLoading, setIsGroLoading] = useState(false);
+  const [verifyingDocId, setVerifyingDocId] = useState(null);
+  const [isSavingInward, setIsSavingInward] = useState(false);
 
-  const owner = card?.user ?? "Richard Wilson";
-  const callType = card?.typeOfCall ?? "Domestic";
-  const vesselName = card?.vesselName ?? "MV Atlantic Star";
-  const vesselType = card?.vesselType ?? "Container";
+  const callId = resolveGroCallId(card);
+
+  const billingEntity = callDetail?.billing_entity ?? card?.user ?? "—";
+  const callTypeDisplay =
+    callDetail?.call_type ??
+    callDetail?.call_type_name ??
+    card?.typeOfCall ??
+    (callDetail?.call_type_id != null ? String(callDetail.call_type_id) : "—");
+  const vesselNameDisplay = callDetail?.vessel_name ?? card?.vesselName ?? "—";
+  const vesselTypeDisplay = callDetail?.vessel_type ?? card?.vesselType ?? "—";
 
   const CounterCard = ({ label, value }) => (
     <div className="driver-card-counter">
@@ -910,6 +964,62 @@ const GROCardView = ({ card }) => {
 
   const inwardPickerParts = splitInwardDateTimeString(inwardDateTime);
 
+  const refreshGroDocuments = useCallback(async (cid) => {
+    if (cid == null || cid === "") return;
+    try {
+      const docsRes = await groService.getGroCustomDocs(cid);
+      const rawList = parseGroDocumentsResponse(docsRes);
+      if (rawList.length > 0) {
+        setDocuments(rawList.map((d, i) => enrichGroDocWithRowKey(d, i)));
+      } else {
+        setDocuments(buildGroFallbackDocuments().map((d, i) => enrichGroDocWithRowKey(d, i)));
+      }
+    } catch {
+      setDocuments(buildGroFallbackDocuments().map((d, i) => enrichGroDocWithRowKey(d, i)));
+    }
+  }, []);
+
+  useEffect(() => {
+    if (callId == null || callId === "") {
+      notify("Unable to load GRO data: missing call id.", "error");
+      setCallDetail(null);
+      setDocuments(buildGroFallbackDocuments().map((d, i) => enrichGroDocWithRowKey(d, i)));
+      return undefined;
+    }
+
+    let cancelled = false;
+    const load = async () => {
+      setIsGroLoading(true);
+      try {
+        const [detailRes, docsRes] = await Promise.all([
+          groService.getCallDetailById(callId),
+          groService.getGroCustomDocs(callId),
+        ]);
+        if (cancelled) return;
+        const detail = detailRes?.data?.data ?? detailRes?.data ?? {};
+        setCallDetail(detail);
+        const rawList = parseGroDocumentsResponse(docsRes);
+        if (rawList.length > 0) {
+          setDocuments(rawList.map((d, i) => enrichGroDocWithRowKey(d, i)));
+        } else {
+          setDocuments(buildGroFallbackDocuments().map((d, i) => enrichGroDocWithRowKey(d, i)));
+        }
+      } catch (err) {
+        if (cancelled) return;
+        notify(groApiErrorMessage(err, "Failed to load GRO card data."), "error");
+        setCallDetail(null);
+        setDocuments(buildGroFallbackDocuments().map((d, i) => enrichGroDocWithRowKey(d, i)));
+      } finally {
+        if (!cancelled) setIsGroLoading(false);
+      }
+    };
+
+    load();
+    return () => {
+      cancelled = true;
+    };
+  }, [callId]);
+
   const handleInwardDateTimePickerChange = useCallback(({ date, time }) => {
     if (!date) {
       setInwardDateTime("");
@@ -924,10 +1034,35 @@ const GROCardView = ({ card }) => {
     resetInwardClearanceFields();
   };
 
-  const handleInwardSubmit = () => {
-    // TODO: API — submit inward clearance with inwardFile, inwardDateTime (FormData or multipart as required)
-    setShowInwardClearance(false);
-    resetInwardClearanceFields();
+  const handleInwardSubmit = async () => {
+    if (callId == null || callId === "") {
+      notify("Unable to save: missing call id.", "error");
+      return;
+    }
+    if (!inwardFile) {
+      notify("Please choose a file.", "warn");
+      return;
+    }
+    if (!String(inwardDateTime ?? "").trim()) {
+      notify("Please select date and time.", "warn");
+      return;
+    }
+    const formData = new FormData();
+    formData.append("call_id", callId);
+    formData.append("document", inwardFile);
+    formData.append("dateTime", inwardDateTime);
+    setIsSavingInward(true);
+    try {
+      await groService.saveArrivalDocument(formData);
+      notify("Inward clearance saved successfully.", "success");
+      setShowInwardClearance(false);
+      resetInwardClearanceFields();
+      await refreshGroDocuments(callId);
+    } catch (err) {
+      notify(groApiErrorMessage(err, "Failed to save inward clearance."), "error");
+    } finally {
+      setIsSavingInward(false);
+    }
   };
 
   useEffect(() => {
@@ -945,14 +1080,21 @@ const GROCardView = ({ card }) => {
     };
   }, [showInwardClearance]);
 
-  const handleCrossClick = (docName) => {
-    if (activeRemarkDoc === docName) {
+  const canVerifyDocument = (doc) =>
+    doc.document_id != null &&
+    doc.call_task_document_id != null &&
+    callId != null &&
+    callId !== "";
+
+  const handleCrossClick = (rowKey) => {
+    if (verifyingDocId) return;
+    if (activeRemarkDoc === rowKey) {
       setActiveRemarkDoc(null);
       setRemarkDraft("");
       return;
     }
-    setActiveRemarkDoc(docName);
-    setRemarkDraft(documentRemarks[docName] ?? "");
+    setActiveRemarkDoc(rowKey);
+    setRemarkDraft(documentRemarks[rowKey] ?? "");
   };
 
   const handleRemarkCancel = () => {
@@ -960,27 +1102,70 @@ const GROCardView = ({ card }) => {
     setRemarkDraft("");
   };
 
-  const handleRemarkSubmit = () => {
+  const handleRemarkSubmit = async () => {
     if (!activeRemarkDoc) return;
-    // TODO: API — persist document remark for activeRemarkDoc with remarkDraft
-    setDocumentRemarks((prev) => ({ ...prev, [activeRemarkDoc]: remarkDraft }));
-    setDocumentRejected((prev) => ({ ...prev, [activeRemarkDoc]: true }));
-    setDocumentApproved((prev) => ({ ...prev, [activeRemarkDoc]: false }));
-    setActiveRemarkDoc(null);
-    setRemarkDraft("");
-  };
-
-  const handleTickClick = (docName) => {
-    setDocumentApproved((prev) => ({ ...prev, [docName]: true }));
-    setDocumentRejected((prev) => ({ ...prev, [docName]: false }));
-    if (activeRemarkDoc === docName) {
+    const doc = documents.find((d) => d.__rowKey === activeRemarkDoc);
+    if (!doc || !canVerifyDocument(doc)) {
+      notify("This document cannot be rejected (missing reference).", "error");
+      return;
+    }
+    setVerifyingDocId(activeRemarkDoc);
+    try {
+      await groService.verifyGroDocs({
+        call_id: Number(callId),
+        document_id: Number(doc.document_id),
+        call_task_document_id: Number(doc.call_task_document_id),
+        status: 2,
+        remarks: remarkDraft,
+      });
+      setDocumentRemarks((prev) => ({ ...prev, [activeRemarkDoc]: remarkDraft }));
+      setDocuments((prev) =>
+        prev.map((d) => (d.__rowKey === activeRemarkDoc ? { ...d, status: 2 } : d))
+      );
+      notify("Document marked for reupload.", "success");
       setActiveRemarkDoc(null);
       setRemarkDraft("");
+    } catch (err) {
+      notify(groApiErrorMessage(err, "Failed to update document."), "error");
+    } finally {
+      setVerifyingDocId(null);
     }
   };
 
-  const handleDocumentDownload = (_docName) => {
-    // TODO: API — download document for _docName / card id
+  const handleTickClick = async (doc, rowKey) => {
+    if (!canVerifyDocument(doc)) {
+      notify("This document cannot be verified (missing reference).", "error");
+      return;
+    }
+    setVerifyingDocId(rowKey);
+    try {
+      await groService.verifyGroDocs({
+        call_id: Number(callId),
+        document_id: Number(doc.document_id),
+        call_task_document_id: Number(doc.call_task_document_id),
+        status: 1,
+        remarks: "",
+      });
+      setDocuments((prev) => prev.map((d) => (d.__rowKey === rowKey ? { ...d, status: 1 } : d)));
+      notify("Document verified.", "success");
+      if (activeRemarkDoc === rowKey) {
+        setActiveRemarkDoc(null);
+        setRemarkDraft("");
+      }
+    } catch (err) {
+      notify(groApiErrorMessage(err, "Failed to verify document."), "error");
+    } finally {
+      setVerifyingDocId(null);
+    }
+  };
+
+  const handleDocumentDownload = (doc) => {
+    const url = doc?.file_url;
+    if (!url || String(url).trim() === "") {
+      notify("File not available.", "error");
+      return;
+    }
+    window.open(url, "_blank", "noopener,noreferrer");
   };
 
   const DocIcon = () => (
@@ -1021,10 +1206,10 @@ const GROCardView = ({ card }) => {
   return (
     <div className="gro-card-view">
       <div className="driver-card-counters">
-        <CounterCard label="Billing Entity" value={owner} />
-        <CounterCard label="Call Type" value={callType} />
-        <CounterCard label="Vessel Name" value={vesselName} />
-        <CounterCard label="Vessel Type" value={vesselType} />
+        <CounterCard label="Billing Entity" value={billingEntity} />
+        <CounterCard label="Call Type" value={callTypeDisplay} />
+        <CounterCard label="Vessel Name" value={vesselNameDisplay} />
+        <CounterCard label="Vessel Type" value={vesselTypeDisplay} />
       </div>
 
       <div className="gro-document-section">
@@ -1036,6 +1221,7 @@ const GROCardView = ({ card }) => {
                 type="button"
                 className="gro-inward-clearance-btn"
                 aria-expanded={showInwardClearance}
+                disabled={isGroLoading || isSavingInward || callId == null || callId === ""}
                 onClick={() => setShowInwardClearance(!showInwardClearance)}
               >
                 Inward clearance
@@ -1053,11 +1239,13 @@ const GROCardView = ({ card }) => {
                           type="file"
                           className="gro-premium-upload-input-hidden"
                           accept=".pdf,.doc,.docx,.jpg,.jpeg,.png"
+                          disabled={isSavingInward}
                           onChange={(e) => setInwardFile(e.target.files?.[0] ?? null)}
                         />
                         <button
                           type="button"
                           className="gro-premium-upload-btn"
+                          disabled={isSavingInward}
                           onClick={() => inwardFileInputRef.current?.click()}
                         >
                           Choose file
@@ -1078,11 +1266,11 @@ const GROCardView = ({ card }) => {
                     </div>
                   </div>
                   <div className="gro-inward-popover-footer">
-                    <button type="button" className="gro-inward-popover-btn-cancel" onClick={handleInwardCancel}>
+                    <button type="button" className="gro-inward-popover-btn-cancel" disabled={isSavingInward} onClick={handleInwardCancel}>
                       Cancel
                     </button>
-                    <button type="button" className="gro-inward-popover-btn-submit" onClick={handleInwardSubmit}>
-                      Submit
+                    <button type="button" className="gro-inward-popover-btn-submit" disabled={isSavingInward} onClick={handleInwardSubmit}>
+                      {isSavingInward ? "Saving…" : "Submit"}
                     </button>
                   </div>
                 </div>
@@ -1092,75 +1280,88 @@ const GROCardView = ({ card }) => {
         </div>
 
         <div className="gro-document-list">
-          {GRO_DOCUMENT_TYPES.map((docName) => {
-            const isApproved = Boolean(documentApproved[docName]);
-            const isRejected = Boolean(documentRejected[docName]);
-            const remarkOpen = activeRemarkDoc === docName;
-            return (
-              <div
-                key={docName}
-                className={`gro-document-row ${isApproved ? "gro-document-row-approved" : ""} ${isRejected ? "gro-document-row-rejected" : ""} ${remarkOpen ? "gro-document-row-editing" : ""}`}
-              >
-                <div className="gro-document-preview">
-                  <div className="gro-document-preview-icon">
-                    <DocIcon />
-                  </div>
-                  <span className="gro-document-preview-label">{docName}</span>
-                </div>
-                {remarkOpen ? (
-                  <div className="gro-inline-remark">
-                    <input
-                      type="text"
-                      className="gro-inline-remark-input"
-                      placeholder="Enter remarks..."
-                      value={remarkDraft}
-                      onChange={(e) => setRemarkDraft(e.target.value)}
-                      aria-label="Document remarks"
-                    />
-                    <div className="gro-inline-remark-actions">
-                      <button type="button" className="gro-inline-remark-btn gro-inline-remark-btn-cancel" onClick={handleRemarkCancel}>
-                        Cancel
-                      </button>
-                      <button type="button" className="gro-inline-remark-btn gro-inline-remark-btn-submit" onClick={handleRemarkSubmit}>
-                        Submit
-                      </button>
+          {isGroLoading ? (
+            <div className="gro-document-loading">Loading documents…</div>
+          ) : (
+            documents.map((doc) => {
+              const rowKey = doc.__rowKey;
+              const label = doc.document_name ?? doc.file_name ?? "Document";
+              const isApproved = isGroDocumentApproved(doc);
+              const isRejected = isGroDocumentRejected(doc);
+              const remarkOpen = activeRemarkDoc === rowKey;
+              const rowBusy = verifyingDocId === rowKey;
+              const verifyDisabled = isGroLoading || rowBusy || !canVerifyDocument(doc);
+
+              return (
+                <div
+                  key={rowKey}
+                  className={`gro-document-row ${isApproved ? "gro-document-row-approved" : ""} ${isRejected ? "gro-document-row-rejected" : ""} ${remarkOpen ? "gro-document-row-editing" : ""}`}
+                >
+                  <div className="gro-document-preview">
+                    <div className="gro-document-preview-icon">
+                      <DocIcon />
                     </div>
+                    <span className="gro-document-preview-label">{label}</span>
                   </div>
-                ) : null}
-                <div className="gro-document-actions">
-                  <button
-                    type="button"
-                    className={`gro-icon-btn cross${remarkOpen ? " active" : ""}`}
-                    title="Remarks"
-                    aria-label="Toggle remarks"
-                    aria-pressed={remarkOpen}
-                    onClick={() => handleCrossClick(docName)}
-                  >
-                    <IconCross />
-                  </button>
-                  <button
-                    type="button"
-                    className={`gro-icon-btn tick${isApproved ? " selected" : ""}`}
-                    title={isApproved ? "Approved" : "Mark approved"}
-                    aria-label={isApproved ? "Approved" : "Mark approved"}
-                    aria-pressed={isApproved}
-                    onClick={() => handleTickClick(docName)}
-                  >
-                    <IconTick />
-                  </button>
-                  <button
-                    type="button"
-                    className="gro-icon-btn download"
-                    title="Download"
-                    aria-label="Download document"
-                    onClick={() => handleDocumentDownload(docName)}
-                  >
-                    <IconDownload />
-                  </button>
+                  {remarkOpen ? (
+                    <div className="gro-inline-remark">
+                      <input
+                        type="text"
+                        className="gro-inline-remark-input"
+                        placeholder="Enter remarks..."
+                        value={remarkDraft}
+                        disabled={Boolean(verifyingDocId)}
+                        onChange={(e) => setRemarkDraft(e.target.value)}
+                        aria-label="Document remarks"
+                      />
+                      <div className="gro-inline-remark-actions">
+                        <button type="button" className="gro-inline-remark-btn gro-inline-remark-btn-cancel" disabled={Boolean(verifyingDocId)} onClick={handleRemarkCancel}>
+                          Cancel
+                        </button>
+                        <button type="button" className="gro-inline-remark-btn gro-inline-remark-btn-submit" disabled={Boolean(verifyingDocId)} onClick={handleRemarkSubmit}>
+                          {rowBusy ? "Saving…" : "Submit"}
+                        </button>
+                      </div>
+                    </div>
+                  ) : null}
+                  <div className="gro-document-actions">
+                    <button
+                      type="button"
+                      className={`gro-icon-btn cross${remarkOpen ? " active" : ""}`}
+                      title="Remarks"
+                      aria-label="Toggle remarks"
+                      aria-pressed={remarkOpen}
+                      disabled={isGroLoading || Boolean(verifyingDocId)}
+                      onClick={() => handleCrossClick(rowKey)}
+                    >
+                      <IconCross />
+                    </button>
+                    <button
+                      type="button"
+                      className={`gro-icon-btn tick${isApproved ? " selected" : ""}`}
+                      title={isApproved ? "Approved" : "Mark approved"}
+                      aria-label={isApproved ? "Approved" : "Mark approved"}
+                      aria-pressed={isApproved}
+                      disabled={verifyDisabled}
+                      onClick={() => handleTickClick(doc, rowKey)}
+                    >
+                      <IconTick />
+                    </button>
+                    <button
+                      type="button"
+                      className="gro-icon-btn download"
+                      title="Download"
+                      aria-label="Download document"
+                      disabled={isGroLoading}
+                      onClick={() => handleDocumentDownload(doc)}
+                    >
+                      <IconDownload />
+                    </button>
+                  </div>
                 </div>
-              </div>
-            );
-          })}
+              );
+            })
+          )}
         </div>
       </div>
     </div>
