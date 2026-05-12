@@ -458,53 +458,6 @@ function Header({ onMenuToggle, mobileMenuOpen: externalMobileMenuOpen, isVendor
             <span>Edit Workflow</span>
           </button>
         ) : null}
-        <Tooltip id="user-profile" place="bottom" content="User Profile" />
-        <div className="user-circle-wrapper" ref={dropdownRef}>
-          <div
-            className={`user-circle ${showUserDropdown ? 'active' : ''}`}
-            onClick={handleUserCircleClick}
-            data-tooltip-id="user-profile"
-          >
-            {resolvedAvatar && !imageError ? (
-              <img
-                src={resolvedAvatar}
-                alt={resolvedUserName || 'User'}
-                style={{
-                  width: '100%',
-                  height: '100%',
-                  borderRadius: '50%',
-                  objectFit: 'cover'
-                }}
-                onError={() => setImageError(true)}
-              />
-            ) : (
-              <span className="user-letter">{resolvedInitial}</span>
-            )}
-          </div>
-
-          {showUserDropdown && (
-            <div className="user-dropdown">
-              <button
-                className="dropdown-item"
-                onClick={handleMyAccountsClick}
-              >
-                My Accounts
-              </button>
-              <button
-                className="dropdown-item"
-                onClick={handleChangePasswordClick}
-              >
-                Change Password
-              </button>
-              <button
-                className="dropdown-item"
-                onClick={handleLogoutClick}
-              >
-                Logout
-              </button>
-            </div>
-          )}
-        </div>
         {!restrictedBoardUser && (
           <>
             <Tooltip id="master-module" place="bottom" content="Master Module" />
@@ -631,6 +584,53 @@ function Header({ onMenuToggle, mobileMenuOpen: externalMobileMenuOpen, isVendor
               </button>
               {notificationCount > 0 && (
                 <span className="notification-badge">{notificationCount > 99 ? '99+' : notificationCount}</span>
+              )}
+            </div>
+            <Tooltip id="user-profile" place="bottom" content="User Profile" />
+            <div className="user-circle-wrapper" ref={dropdownRef}>
+              <div
+                className={`user-circle ${showUserDropdown ? 'active' : ''}`}
+                onClick={handleUserCircleClick}
+                data-tooltip-id="user-profile"
+              >
+                {resolvedAvatar && !imageError ? (
+                  <img
+                    src={resolvedAvatar}
+                    alt={resolvedUserName || 'User'}
+                    style={{
+                      width: '100%',
+                      height: '100%',
+                      borderRadius: '50%',
+                      objectFit: 'cover'
+                    }}
+                    onError={() => setImageError(true)}
+                  />
+                ) : (
+                  <span className="user-letter">{resolvedInitial}</span>
+                )}
+              </div>
+
+              {showUserDropdown && (
+                <div className="user-dropdown">
+                  <button
+                    className="dropdown-item"
+                    onClick={handleMyAccountsClick}
+                  >
+                    My Account
+                  </button>
+                  <button
+                    className="dropdown-item"
+                    onClick={handleChangePasswordClick}
+                  >
+                    Change Password
+                  </button>
+                  <button
+                    className="dropdown-item"
+                    onClick={handleLogoutClick}
+                  >
+                    Logout
+                  </button>
+                </div>
               )}
             </div>
           </>

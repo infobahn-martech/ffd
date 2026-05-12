@@ -76,9 +76,9 @@ function MyAccountsModal({ show, onClose }) {
         if (!cancelled) {
           setFetchError(
             err?.response?.data?.message ||
-              err?.response?.data?.error ||
-              err?.message ||
-              'Failed to load account details.',
+            err?.response?.data?.error ||
+            err?.message ||
+            'Failed to load account details.',
           );
         }
       } finally {
@@ -200,9 +200,9 @@ function MyAccountsModal({ show, onClose }) {
     } catch (err) {
       setFetchError(
         err?.response?.data?.message ||
-          err?.response?.data?.error ||
-          err?.message ||
-          'Failed to update account details.',
+        err?.response?.data?.error ||
+        err?.message ||
+        'Failed to update account details.',
       );
     } finally {
       setProfileEditLoader(false);
@@ -503,7 +503,7 @@ function MyAccountsModal({ show, onClose }) {
       }}
       header={
         <div className="modal-header my-accounts-premium-header border-0 pb-0">
-          <h5 className="modal-title my-accounts-premium-title">My Accounts</h5>
+          <h5 className="modal-title my-accounts-premium-title">My Account</h5>
         </div>
       }
       body={renderBody()}
