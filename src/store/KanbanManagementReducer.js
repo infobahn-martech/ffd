@@ -94,6 +94,33 @@ export function normalizeKanbanCardStickerRowFromApi(t) {
   };
 }
 
+export function normalizeKanbanCardBlockerRowFromApi(t) {
+  const boards = Array.isArray(t?.boards) ? t.boards : [];
+  const rawIcon = t?.icon_name != null ? String(t.icon_name).trim() : '';
+  const availability =
+    t?.availability_level != null && t.availability_level !== ''
+      ? String(t.availability_level)
+      : '';
+  const blockerId = t?.blocker_id ?? t?.id;
+  return {
+    id: String(blockerId ?? ''),
+    blocker_id: blockerId,
+    label: String(t?.blocker_name ?? ''),
+    color_code: normalizeHexColor(t?.color_code || '#ffffff'),
+    icon: mapBackendIconNameToIconKey(rawIcon),
+    availabilityLevel: availability || 'Auto',
+    boardsJoined: boards
+      .map((b) => String(b?.board_name ?? '').trim())
+      .filter(Boolean)
+      .join(', '),
+    boardsRaw: boards.map((b) => ({
+      board_id: b?.board_id,
+      board_name: String(b?.board_name ?? ''),
+    })),
+    status: t?.status,
+  };
+}
+
 export function normalizeKanbanTagRowFromApi(t) {
   const boards = Array.isArray(t?.boards) ? t.boards : [];
   return {
@@ -143,6 +170,16 @@ const useKanbanManagementReducer = create((set, get) => ({
   cardStickersLoading: false,
   cardStickersError: '',
   cardStickersPagination: {
+    current_page: 1,
+    last_page: 1,
+    total: 0,
+    limit: 10,
+  },
+
+  cardBlockers: [],
+  cardBlockersLoading: false,
+  cardBlockersError: '',
+  cardBlockersPagination: {
     current_page: 1,
     last_page: 1,
     total: 0,
@@ -317,6 +354,72 @@ const useKanbanManagementReducer = create((set, get) => ({
         err?.message ??
         'Unable to load stickers. Please try again.';
       set({ cardStickers: [], cardStickersLoading: false, cardStickersError: msg });
+      if (!silentToastOnError) {
+        useAlertReducer.getState().error(msg);
+      }
+    }
+  },
+
+  /**
+   * Load card blockers for Blockers modal.
+   * @param {{ search?: string, page?: number, limit?: number, silentToastOnError?: boolean }} opts
+   */
+  fetchKanbanCardBlockers: async (opts = {}) => {
+    const {
+      search = '',
+      page = 1,
+      limit = 10,
+      silentToastOnError = false,
+    } = opts;
+    try {
+      set({ cardBlockersLoading: true, cardBlockersError: '' });
+      const { data } = await cardMangementService.getAllKanbanCardBlockers({
+        search,
+        page,
+        limit,
+      });
+      const raw =
+        data?.status === 'success' && Array.isArray(data.card_blockers)
+          ? data.card_blockers
+          : data?.status === 'success' && Array.isArray(data.blockers)
+            ? data.blockers
+            : data?.status === 'success' && Array.isArray(data.kanban_card_blockers)
+              ? data.kanban_card_blockers
+              : data?.status === 'success' && Array.isArray(data.data)
+                ? data.data
+                : [];
+      const responseMeta = data?.meta ?? data?.pagination ?? {};
+      const resolvedLimit =
+        Number(responseMeta?.limit) ||
+        Number(responseMeta?.per_page) ||
+        Number(limit) ||
+        10;
+      const resolvedCurrentPage = Number(responseMeta?.current_page) || Number(page) || 1;
+      const resolvedTotal =
+        Number(responseMeta?.total) ||
+        (raw.length < resolvedLimit
+          ? ((Math.max(resolvedCurrentPage, 1) - 1) * resolvedLimit) + raw.length
+          : Math.max(resolvedCurrentPage, 1) * resolvedLimit + 1);
+      const resolvedLastPage =
+        Number(responseMeta?.last_page) ||
+        (raw.length < resolvedLimit ? resolvedCurrentPage : resolvedCurrentPage + 1);
+      set({
+        cardBlockers: raw.map(normalizeKanbanCardBlockerRowFromApi),
+        cardBlockersLoading: false,
+        cardBlockersError: '',
+        cardBlockersPagination: {
+          current_page: resolvedCurrentPage,
+          last_page: Math.max(resolvedLastPage, resolvedCurrentPage),
+          total: resolvedTotal,
+          limit: resolvedLimit,
+        },
+      });
+    } catch (err) {
+      const msg =
+        err?.response?.data?.message ??
+        err?.message ??
+        'Unable to load blockers. Please try again.';
+      set({ cardBlockers: [], cardBlockersLoading: false, cardBlockersError: msg });
       if (!silentToastOnError) {
         useAlertReducer.getState().error(msg);
       }
@@ -530,12 +633,77 @@ const useKanbanManagementReducer = create((set, get) => ({
     }
   },
 
+  createKanbanCardBlocker: async (payload, fetchOpts = {}) => {
+    try {
+      const { data } = await cardMangementService.saveKanbanCardBlocker(payload);
+      useAlertReducer.getState().success(data?.message ?? 'Card blocker saved');
+      await get().fetchKanbanCardBlockers({ ...fetchOpts, silentToastOnError: true });
+      return data;
+    } catch (err) {
+      const msg =
+        err?.response?.data?.message ??
+        err?.message ??
+        'Failed to save card blocker';
+      useAlertReducer.getState().error(msg);
+      throw err;
+    }
+  },
+
+  updateKanbanCardBlockerRecord: async (blockerId, payload, fetchOpts = {}) => {
+    try {
+      const { data } = await cardMangementService.updateKanbanCardBlocker(blockerId, payload);
+      useAlertReducer.getState().success(data?.message ?? 'Card blocker updated');
+      await get().fetchKanbanCardBlockers({ ...fetchOpts, silentToastOnError: true });
+      return data;
+    } catch (err) {
+      const msg =
+        err?.response?.data?.message ??
+        err?.message ??
+        'Failed to update card blocker';
+      useAlertReducer.getState().error(msg);
+      throw err;
+    }
+  },
+
+  disableKanbanCardBlockerRecord: async (blockerId, fetchOpts = {}) => {
+    try {
+      const { data } = await cardMangementService.disableKanbanCardBlocker(blockerId);
+      useAlertReducer.getState().success(data?.message ?? 'Card blocker disabled');
+      await get().fetchKanbanCardBlockers({ ...fetchOpts, silentToastOnError: true });
+      return data;
+    } catch (err) {
+      const msg =
+        err?.response?.data?.message ??
+        err?.message ??
+        'Failed to disable card blocker';
+      useAlertReducer.getState().error(msg);
+      throw err;
+    }
+  },
+
+  deleteKanbanCardBlockerRecord: async (blockerId, fetchOpts = {}) => {
+    try {
+      const { data } = await cardMangementService.deleteKanbanCardBlocker(blockerId);
+      useAlertReducer.getState().success(data?.message ?? 'Card blocker deleted');
+      await get().fetchKanbanCardBlockers({ ...fetchOpts, silentToastOnError: true });
+      return data;
+    } catch (err) {
+      const msg =
+        err?.response?.data?.message ??
+        err?.message ??
+        'Failed to delete card blocker';
+      useAlertReducer.getState().error(msg);
+      throw err;
+    }
+  },
+
   /** Reset tag picker workspace cache when leaving modal (optional UX cleanup) */
   clearKanbanManagementUiSlice: () =>
     set({
       tagsError: '',
       cardTypesError: '',
       cardStickersError: '',
+      cardBlockersError: '',
       workspaceBoardOptions: [],
       workspaceBoardsLoading: false,
     }),
