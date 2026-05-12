@@ -1,8 +1,7 @@
-import { useState, useRef, useEffect, useCallback } from 'react';
+import { useState, useRef, useEffect } from 'react';
 import { FiX, FiPlus, FiMoreVertical, FiInfo, FiAlertCircle } from 'react-icons/fi';
 import { Modal } from 'react-bootstrap';
 import NewTypeModal from './NewTypeModal';
-import { normalizeTagAvailabilityLevel } from './NewTagModal';
 import DynamicIcon from './DynamicIcon';
 import useKanbanManagementReducer from '../../../store/KanbanManagementReducer';
 import { normalizeHexColor } from '../../../components/SedresColorPicker/sedresColorPickerConstants';
@@ -32,32 +31,6 @@ const contrastIconFg = (bg) => {
   return luminance > 0.62 ? '#1a1a1a' : '#ffffff';
 };
 
-/** Map persisted row → table row (swap for API mapper when backend exists). */
-function normalizeKanbanTypeRowFromApi(t) {
-  const boards = Array.isArray(t?.boards) ? t.boards : [];
-  const availability =
-    t?.availability_level != null && t.availability_level !== ''
-      ? String(t.availability_level)
-      : '';
-  return {
-    id: String(t?.type_id ?? ''),
-    type_id: t?.type_id,
-    label: String(t?.label ?? ''),
-    color_code: normalizeHexColor(t?.color_code || '#ffffff'),
-    icon: String(t?.icon ?? '').trim() || 'FiLayers',
-    availabilityLevel: availability,
-    boardsJoined: boards
-      .map((b) => String(b?.board_name ?? '').trim())
-      .filter(Boolean)
-      .join(', '),
-    boardsRaw: boards.map((b) => ({
-      board_id: b?.board_id,
-      board_name: String(b?.board_name ?? ''),
-    })),
-    status: t?.status ?? 'active',
-  };
-}
-
 const TypeIconSwatch = ({ color_code, iconKey }) => {
   const hex = normalizeHexColor(color_code);
   const fg = contrastIconFg(hex);
@@ -77,65 +50,22 @@ const TypeIconSwatch = ({ color_code, iconKey }) => {
   );
 };
 
-const getInitialTypeCatalog = () => [
-  {
-    type_id: '1',
-    label: 'HAHA',
-    color_code: '#FCD34D',
-    icon: 'LuUsb',
-    availability_level: 'On-demand',
-    status: 'active',
-    boards: [
-      { board_id: 'b1', board_name: 'Team B' },
-      { board_id: 'b2', board_name: 'Team A' },
-      { board_id: 'b3', board_name: 'Strategic Objectives' },
-    ],
-  },
-  {
-    type_id: '2',
-    label: 'Waiting on others',
-    color_code: '#A78BFA',
-    icon: 'LuHourglass',
-    availability_level: 'Auto',
-    status: 'active',
-    boards: [
-      { board_id: 'b1', board_name: 'Team B' },
-      { board_id: 'b2', board_name: 'Team A' },
-      { board_id: 'b3', board_name: 'Strategic Objectives' },
-    ],
-  },
-  {
-    type_id: '3',
-    label: 'Waiting on us',
-    color_code: '#EF4444',
-    icon: 'LuHourglass',
-    availability_level: 'Auto',
-    status: 'active',
-    boards: [
-      { board_id: 'b1', board_name: 'Team B' },
-      { board_id: 'b2', board_name: 'Team A' },
-      { board_id: 'b3', board_name: 'Strategic Objectives' },
-    ],
-  },
-];
-
 const TypesModal = ({ show, onClose }) => {
+  const cardTypes = useKanbanManagementReducer((s) => s.cardTypes);
+  const cardTypesLoading = useKanbanManagementReducer((s) => s.cardTypesLoading);
+  const cardTypesError = useKanbanManagementReducer((s) => s.cardTypesError);
+  const cardTypesPagination = useKanbanManagementReducer((s) => s.cardTypesPagination);
   const workspaceBoardOptions = useKanbanManagementReducer((s) => s.workspaceBoardOptions);
   const workspaceBoardsLoading = useKanbanManagementReducer((s) => s.workspaceBoardsLoading);
+
+  const fetchKanbanCardTypes = useKanbanManagementReducer((s) => s.fetchKanbanCardTypes);
   const fetchWorkspaceBoardPickerOptions = useKanbanManagementReducer(
     (s) => s.fetchWorkspaceBoardPickerOptions
   );
-
-  const [typeCatalog, setTypeCatalog] = useState(() => getInitialTypeCatalog());
-  const [types, setTypes] = useState([]);
-  const [typesLoading, setTypesLoading] = useState(false);
-  const [typesError, setTypesError] = useState('');
-  const [typesPagination, setTypesPagination] = useState({
-    current_page: 1,
-    last_page: 1,
-    total: 0,
-    per_page: 10,
-  });
+  const createKanbanCardType = useKanbanManagementReducer((s) => s.createKanbanCardType);
+  const updateKanbanCardTypeRecord = useKanbanManagementReducer((s) => s.updateKanbanCardTypeRecord);
+  const disableKanbanCardTypeRecord = useKanbanManagementReducer((s) => s.disableKanbanCardTypeRecord);
+  const deleteKanbanCardTypeRecord = useKanbanManagementReducer((s) => s.deleteKanbanCardTypeRecord);
 
   const [searchValue, setSearchValue] = useState('');
   const [debouncedSearch, setDebouncedSearch] = useState('');
@@ -148,43 +78,6 @@ const TypesModal = ({ show, onClose }) => {
   const [openActionMenuId, setOpenActionMenuId] = useState(null);
   const selectAllCheckboxRef = useRef(null);
   const actionMenuRefs = useRef({});
-
-  const loadTypes = useCallback(() => {
-    if (!show) {
-      setTypesLoading(false);
-      return;
-    }
-    setTypesLoading(true);
-    setTypesError('');
-    window.setTimeout(() => {
-      try {
-        const active = typeCatalog.filter((t) => (t.status ?? 'active') !== 'disabled');
-        const q = debouncedSearch.trim().toLowerCase();
-        const filtered = !q
-          ? active
-          : active.filter((t) => String(t.label ?? '').toLowerCase().includes(q));
-        const lastPage = Math.max(1, Math.ceil(filtered.length / perPage) || 1);
-        let page = Math.min(Math.max(1, currentPage), lastPage);
-        const start = (page - 1) * perPage;
-        const slice = filtered.slice(start, start + perPage);
-        setTypes(slice.map(normalizeKanbanTypeRowFromApi));
-        setTypesPagination({
-          current_page: page,
-          last_page: lastPage,
-          total: filtered.length,
-          per_page: perPage,
-        });
-        if (page !== currentPage) {
-          setCurrentPage(page);
-        }
-      } catch {
-        setTypesError('Unable to load types. Please try again.');
-        setTypes([]);
-      } finally {
-        setTypesLoading(false);
-      }
-    }, 0);
-  }, [show, typeCatalog, debouncedSearch, currentPage, perPage]);
 
   useEffect(() => {
     if (!show) {
@@ -205,12 +98,22 @@ const TypesModal = ({ show, onClose }) => {
   }, [searchValue]);
 
   useEffect(() => {
-    loadTypes();
-  }, [loadTypes]);
+    if (!show) return;
+    fetchKanbanCardTypes({ search: debouncedSearch, page: currentPage, per_page: perPage });
+  }, [show, debouncedSearch, currentPage, perPage, fetchKanbanCardTypes]);
 
   useEffect(() => {
-    setSelectedItems((prev) => prev.filter((id) => types.some((row) => String(row.id) === id)));
-  }, [types]);
+    setSelectedItems((prev) =>
+      prev.filter((id) => cardTypes.some((row) => String(row.id) === id))
+    );
+  }, [cardTypes]);
+
+  useEffect(() => {
+    const serverPage = Number(cardTypesPagination?.current_page || 1);
+    if (serverPage !== currentPage) {
+      setCurrentPage(serverPage);
+    }
+  }, [cardTypesPagination?.current_page, currentPage]);
 
   const handleCheckboxChange = (typeId) => {
     const id = String(typeId);
@@ -220,17 +123,17 @@ const TypesModal = ({ show, onClose }) => {
   };
 
   const handleSelectAll = () => {
-    if (selectedItems.length === types.length) {
+    if (selectedItems.length === cardTypes.length) {
       setSelectedItems([]);
     } else {
-      setSelectedItems(types.map((b) => String(b.id)));
+      setSelectedItems(cardTypes.map((b) => String(b.id)));
     }
   };
 
   const isAllSelected =
-    selectedItems.length === types.length && types.length > 0;
+    selectedItems.length === cardTypes.length && cardTypes.length > 0;
   const isIndeterminate =
-    selectedItems.length > 0 && selectedItems.length < types.length;
+    selectedItems.length > 0 && selectedItems.length < cardTypes.length;
 
   useEffect(() => {
     if (selectAllCheckboxRef.current) {
@@ -262,11 +165,16 @@ const TypesModal = ({ show, onClose }) => {
     setOpenActionMenuId(openActionMenuId === id ? null : id);
   };
 
+  const refreshParams = () => ({
+    search: debouncedSearch,
+    page: currentPage,
+    per_page: perPage,
+  });
+
   const handleEdit = (row) => {
     setEditingType({
-      type_id: row.type_id,
+      card_type_id: row.card_type_id,
       label: row.label,
-      availability_level: normalizeTagAvailabilityLevel(row.availabilityLevel),
       color_code: row.color_code,
       icon: row.icon,
       boards: row.boardsRaw,
@@ -275,23 +183,29 @@ const TypesModal = ({ show, onClose }) => {
     setOpenActionMenuId(null);
   };
 
-  const handleDisable = (typeId) => {
-    const id = String(typeId);
+  const handleDisable = async (cardTypeId) => {
+    const id = String(cardTypeId);
     setOpenActionMenuId(null);
-    setTypeCatalog((prev) =>
-      prev.map((t) =>
-        String(t.type_id) === id ? { ...t, status: 'disabled' } : t
-      )
-    );
+    try {
+      await disableKanbanCardTypeRecord(id, refreshParams());
+    } catch {
+      /* AlertReducer in store */
+    }
   };
 
-  const handleDelete = (typeId) => {
-    const id = String(typeId);
+  const handleDelete = (cardTypeId) => {
+    const id = String(cardTypeId);
     setOpenActionMenuId(null);
     if (!window.confirm('Delete this type? This cannot be undone.')) {
       return;
     }
-    setTypeCatalog((prev) => prev.filter((t) => String(t.type_id) !== id));
+    (async () => {
+      try {
+        await deleteKanbanCardTypeRecord(id, refreshParams());
+      } catch {
+        /* AlertReducer in store */
+      }
+    })();
   };
 
   const handleAddType = () => {
@@ -305,53 +219,22 @@ const TypesModal = ({ show, onClose }) => {
   };
 
   const handleTypeFormSave = async (payload) => {
-    const board_ids = payload.board_ids;
-    const boardsFromIds = () => {
-      const flat = workspaceBoardOptions.flatMap((ws) => ws.boards);
-      return board_ids.map((bid) => {
-        const found = flat.find((b) => String(b.board_id) === String(bid));
-        return {
-          board_id: bid,
-          board_name: found ? String(found.board_name ?? '') : String(bid),
-        };
-      });
+    const apiBody = {
+      type_name: payload.label,
+      color_code: payload.color_code,
+      icon_name: payload.icon,
+      board_ids: payload.board_ids,
     };
-
     if (payload.mode === 'create') {
-      const newId = globalThis.crypto?.randomUUID?.() ?? `t-${Date.now()}`;
-      setTypeCatalog((prev) => [
-        ...prev,
-        {
-          type_id: newId,
-          label: payload.label,
-          color_code: payload.color_code,
-          icon: payload.icon,
-          availability_level: payload.availability_level,
-          status: 'active',
-          boards: boardsFromIds(),
-        },
-      ]);
+      await createKanbanCardType(apiBody, refreshParams());
     } else {
-      setTypeCatalog((prev) =>
-        prev.map((t) =>
-          String(t.type_id) === String(payload.type_id)
-            ? {
-                ...t,
-                label: payload.label,
-                color_code: payload.color_code,
-                icon: payload.icon,
-                availability_level: payload.availability_level,
-                boards: boardsFromIds(),
-              }
-            : t
-        )
-      );
+      await updateKanbanCardTypeRecord(payload.card_type_id, apiBody, refreshParams());
     }
   };
 
-  const hasMetaLastPage = Number(typesPagination?.last_page || 0) > 0;
-  const hasNextByMeta = hasMetaLastPage ? currentPage < Number(typesPagination.last_page) : true;
-  const hasNextPage = hasNextByMeta && types.length === perPage;
+  const hasMetaLastPage = Number(cardTypesPagination?.last_page || 0) > 0;
+  const hasNextByMeta = hasMetaLastPage ? currentPage < Number(cardTypesPagination.last_page) : true;
+  const hasNextPage = hasNextByMeta && cardTypes.length === perPage;
 
   const handleSearchChange = (value) => {
     setSearchValue(value);
@@ -400,11 +283,21 @@ const TypesModal = ({ show, onClose }) => {
           </div>
         </div>
 
-        {typesError && (
+        {cardTypesError && (
           <div className="tags-modal-error-banner" role="alert">
             <FiAlertCircle size={18} aria-hidden />
-            <span className="tags-modal-error-text">{typesError}</span>
-            <button type="button" className="tags-modal-error-retry" onClick={() => loadTypes()}>
+            <span className="tags-modal-error-text">{cardTypesError}</span>
+            <button
+              type="button"
+              className="tags-modal-error-retry"
+              onClick={() =>
+                fetchKanbanCardTypes({
+                  search: debouncedSearch,
+                  page: currentPage,
+                  per_page: perPage,
+                })
+              }
+            >
               Retry
             </button>
           </div>
@@ -464,13 +357,13 @@ const TypesModal = ({ show, onClose }) => {
               </tr>
             </thead>
             <tbody>
-              {typesLoading ? (
+              {cardTypesLoading ? (
                 <tr>
                   <td colSpan="6" className="tags-modal-loading-cell">
                     Loading types…
                   </td>
                 </tr>
-              ) : types.length === 0 ? (
+              ) : cardTypes.length === 0 ? (
                 <tr>
                   <td
                     colSpan="6"
@@ -480,7 +373,7 @@ const TypesModal = ({ show, onClose }) => {
                   </td>
                 </tr>
               ) : (
-                types.map((row) => (
+                cardTypes.map((row) => (
                   <tr key={row.id}>
                     <td>
                       <input
@@ -533,14 +426,14 @@ const TypesModal = ({ show, onClose }) => {
                             <button
                               type="button"
                               className="blockers-action-menu-item"
-                              onClick={() => handleDisable(row.id)}
+                              onClick={() => handleDisable(row.card_type_id ?? row.id)}
                             >
                               Disable
                             </button>
                             <button
                               type="button"
                               className="blockers-action-menu-item blockers-action-menu-item-danger"
-                              onClick={() => handleDelete(row.id)}
+                              onClick={() => handleDelete(row.card_type_id ?? row.id)}
                             >
                               Delete
                             </button>
@@ -559,7 +452,7 @@ const TypesModal = ({ show, onClose }) => {
             type="button"
             className="tags-modal-pagination-btn"
             onClick={() => setCurrentPage((prev) => Math.max(prev - 1, 1))}
-            disabled={currentPage <= 1 || typesLoading}
+            disabled={currentPage <= 1 || cardTypesLoading}
           >
             Previous
           </button>
@@ -568,7 +461,7 @@ const TypesModal = ({ show, onClose }) => {
             type="button"
             className="tags-modal-pagination-btn"
             onClick={() => setCurrentPage((prev) => prev + 1)}
-            disabled={!hasNextPage || typesLoading}
+            disabled={!hasNextPage || cardTypesLoading}
           >
             Next
           </button>

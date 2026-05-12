@@ -7,10 +7,6 @@ import SedresColorPicker from '../../../components/SedresColorPicker/SedresColor
 import { normalizeHexColor } from '../../../components/SedresColorPicker/sedresColorPickerConstants';
 import DynamicIcon from './DynamicIcon';
 import IconPicker from './IconPicker';
-import {
-  TAG_AVAILABILITY_OPTIONS,
-  normalizeTagAvailabilityLevel,
-} from './NewTagModal';
 import '../../../design/scss/new-blocker-modal.scss';
 
 const COLOR_PICKER_PORTAL_Z = 10800;
@@ -69,7 +65,6 @@ const NewTypeModal = ({
   const [selectedColor, setSelectedColor] = useState('#ffffff');
   const [selectedIconKey, setSelectedIconKey] = useState('');
   const [label, setLabel] = useState('');
-  const [availability, setAvailability] = useState(TAG_AVAILABILITY_OPTIONS[0]);
   const [selectedBoards, setSelectedBoards] = useState([]);
   const [isColorPickerOpen, setIsColorPickerOpen] = useState(false);
   const [colorPickerPlacement, setColorPickerPlacement] = useState({ top: 0, left: 0 });
@@ -85,14 +80,13 @@ const NewTypeModal = ({
   const iconPickerRef = useRef(null);
 
   const isEditMode = Boolean(
-    editingType?.type_id != null && String(editingType.type_id) !== ''
+    editingType?.card_type_id != null && String(editingType.card_type_id) !== ''
   );
 
   const resetCreateDefaults = useCallback(() => {
     setSelectedColor('#ffffff');
     setSelectedIconKey('');
     setLabel('');
-    setAvailability(TAG_AVAILABILITY_OPTIONS[0]);
     setSelectedBoards([]);
     setIsColorPickerOpen(false);
     setIsBoardSelectorOpen(false);
@@ -179,7 +173,6 @@ const NewTypeModal = ({
       const rawIcon = editingType.icon != null ? String(editingType.icon).trim() : '';
       setSelectedIconKey(rawIcon);
       setLabel(editingType.label ?? '');
-      setAvailability(normalizeTagAvailabilityLevel(editingType.availability_level));
       const boards = Array.isArray(editingType.boards)
         ? editingType.boards.map((b) => ({
             board_id: b.board_id,
@@ -199,7 +192,7 @@ const NewTypeModal = ({
 
   const handleSave = async () => {
     const trimmed = label.trim();
-    if (!trimmed || !TAG_AVAILABILITY_OPTIONS.includes(availability)) return;
+    if (!trimmed) return;
     const board_ids = selectedBoards.map((b) => b.board_id);
     const color_code = normalizeHexColor(selectedColor);
     const icon = (selectedIconKey || '').trim() || 'FiLayers';
@@ -211,9 +204,8 @@ const NewTypeModal = ({
           isEditMode
             ? {
                 mode: 'edit',
-                type_id: String(editingType.type_id),
+                card_type_id: String(editingType.card_type_id),
                 label: trimmed,
-                availability_level: availability,
                 color_code,
                 icon,
                 board_ids,
@@ -221,7 +213,6 @@ const NewTypeModal = ({
             : {
                 mode: 'create',
                 label: trimmed,
-                availability_level: availability,
                 color_code,
                 icon,
                 board_ids,
@@ -292,10 +283,7 @@ const NewTypeModal = ({
   const previewHex = normalizeHexColor(selectedColor);
   const swatchIconFg = contrastIconFg(previewHex);
 
-  const canSave =
-    Boolean(label.trim()) &&
-    TAG_AVAILABILITY_OPTIONS.includes(availability) &&
-    !saveSubmitting;
+  const canSave = Boolean(label.trim()) && !saveSubmitting;
 
   const modalTitle = isEditMode ? 'Edit Card Type' : 'New Card Type';
 
@@ -436,40 +424,18 @@ const NewTypeModal = ({
             </div>
           </div>
 
-          <div className="new-blocker-field-cluster">
-            <div className="new-blocker-tag-fields-inline">
-              <div className="new-blocker-field new-blocker-field-label-with-availability">
-                <label className="new-blocker-label" htmlFor="new-type-label-input">
-                  Label
-                </label>
-                <input
-                  id="new-type-label-input"
-                  type="text"
-                  className="new-blocker-input"
-                  placeholder="Enter type label"
-                  value={label}
-                  onChange={(e) => setLabel(e.target.value)}
-                />
-              </div>
-              <div className="new-blocker-field new-blocker-field-availability">
-                <label className="new-blocker-label" htmlFor="new-type-availability-select">
-                  Availability
-                </label>
-                <select
-                  id="new-type-availability-select"
-                  className="new-blocker-select"
-                  value={availability}
-                  onChange={(e) => setAvailability(e.target.value)}
-                  aria-required
-                >
-                  {TAG_AVAILABILITY_OPTIONS.map((opt) => (
-                    <option key={opt} value={opt}>
-                      {opt}
-                    </option>
-                  ))}
-                </select>
-              </div>
-            </div>
+          <div className="new-blocker-field new-blocker-field-full">
+            <label className="new-blocker-label" htmlFor="new-type-label-input">
+              Label
+            </label>
+            <input
+              id="new-type-label-input"
+              type="text"
+              className="new-blocker-input"
+              placeholder="Enter type label"
+              value={label}
+              onChange={(e) => setLabel(e.target.value)}
+            />
           </div>
 
           <div className="new-blocker-field new-blocker-boards-field">
@@ -572,7 +538,7 @@ NewTypeModal.propTypes = {
   show: PropTypes.bool.isRequired,
   onClose: PropTypes.func.isRequired,
   onSave: PropTypes.func,
-  /** Create mode: null. Edit mode: { type_id, label, … } */
+  /** Create mode: null. Edit mode: { card_type_id, label, color_code, icon, boards } */
   editingType: PropTypes.object,
   workspaceBoardOptions: PropTypes.arrayOf(
     PropTypes.shape({

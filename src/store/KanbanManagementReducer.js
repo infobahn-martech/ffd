@@ -1,7 +1,11 @@
 import { create } from 'zustand';
+import * as FiIcons from 'react-icons/fi';
+import * as LuIcons from 'react-icons/lu';
 import useAlertReducer from './AlertReducer';
 import workSpaceService from '../services/workSpaceService';
 import kanbanManagementService from '../services/kanbanManagementService';
+import cardMangementService from '../services/cardMangementService';
+import { normalizeHexColor } from '../components/SedresColorPicker/sedresColorPickerConstants';
 
 /** Map `/kanban_workspace/list_all_workspace` rows → NewTagModal `workspaceBoardOptions` */
 export function transformWorkspacesForTagBoardPicker(apiWorkspaces) {
@@ -16,6 +20,52 @@ export function transformWorkspacesForTagBoardPicker(apiWorkspaces) {
         }))
       : [],
   }));
+}
+
+/**
+ * Map backend `icon_name` (e.g. "bug", "FiGrid") to a react-icons export name for DynamicIcon.
+ */
+export function mapBackendIconNameToIconKey(iconName) {
+  const s = String(iconName ?? '').trim();
+  if (!s) return 'FiLayers';
+  if (FiIcons[s]) return s;
+  if (LuIcons[s]) return s;
+  const parts = s.split(/[-_\s]+/).filter(Boolean);
+  if (parts.length === 0) return 'FiLayers';
+  const pascal = parts
+    .map((p) => p.charAt(0).toUpperCase() + p.slice(1).toLowerCase())
+    .join('');
+  const fi = `Fi${pascal}`;
+  const lu = `Lu${pascal}`;
+  if (FiIcons[fi]) return fi;
+  if (LuIcons[lu]) return lu;
+  return 'FiLayers';
+}
+
+export function normalizeKanbanCardTypeRowFromApi(t) {
+  const boards = Array.isArray(t?.boards) ? t.boards : [];
+  const rawIcon = t?.icon_name != null ? String(t.icon_name).trim() : '';
+  const availability =
+    t?.availability_level != null && t.availability_level !== ''
+      ? String(t.availability_level)
+      : '';
+  return {
+    id: String(t?.card_type_id ?? ''),
+    card_type_id: t?.card_type_id,
+    label: String(t?.type_name ?? ''),
+    color_code: normalizeHexColor(t?.color_code || '#ffffff'),
+    icon: mapBackendIconNameToIconKey(rawIcon),
+    availabilityLevel: availability || 'Auto',
+    boardsJoined: boards
+      .map((b) => String(b?.board_name ?? '').trim())
+      .filter(Boolean)
+      .join(', '),
+    boardsRaw: boards.map((b) => ({
+      board_id: b?.board_id,
+      board_name: String(b?.board_name ?? ''),
+    })),
+    status: t?.status,
+  };
 }
 
 export function normalizeKanbanTagRowFromApi(t) {
@@ -52,6 +102,16 @@ const useKanbanManagementReducer = create((set, get) => ({
   },
   workspaceBoardOptions: [],
   workspaceBoardsLoading: false,
+
+  cardTypes: [],
+  cardTypesLoading: false,
+  cardTypesError: '',
+  cardTypesPagination: {
+    current_page: 1,
+    last_page: 1,
+    total: 0,
+    per_page: 10,
+  },
 
   /**
    * Load tags for Tags modal.
@@ -101,6 +161,62 @@ const useKanbanManagementReducer = create((set, get) => ({
         err?.message ??
         'Unable to load tags. Please try again.';
       set({ tags: [], tagsLoading: false, tagsError: msg });
+      if (!silentToastOnError) {
+        useAlertReducer.getState().error(msg);
+      }
+    }
+  },
+
+  /**
+   * Load card types for Types modal.
+   * @param {{ search?: string, page?: number, per_page?: number, silentToastOnError?: boolean }} opts
+   */
+  fetchKanbanCardTypes: async (opts = {}) => {
+    const {
+      search = '',
+      page = 1,
+      per_page = 10,
+      silentToastOnError = false,
+    } = opts;
+    try {
+      set({ cardTypesLoading: true, cardTypesError: '' });
+      const { data } = await cardMangementService.getAllKanbanCardTypes({
+        search,
+        page,
+        per_page,
+      });
+      const raw =
+        data?.status === 'success' && Array.isArray(data.card_types)
+          ? data.card_types
+          : [];
+      const responseMeta = data?.meta ?? data?.pagination ?? {};
+      const resolvedPerPage = Number(responseMeta?.per_page) || Number(per_page) || 10;
+      const resolvedCurrentPage = Number(responseMeta?.current_page) || Number(page) || 1;
+      const resolvedTotal =
+        Number(responseMeta?.total) ||
+        (raw.length < resolvedPerPage
+          ? ((Math.max(resolvedCurrentPage, 1) - 1) * resolvedPerPage) + raw.length
+          : (Math.max(resolvedCurrentPage, 1) * resolvedPerPage) + 1);
+      const resolvedLastPage =
+        Number(responseMeta?.last_page) ||
+        (raw.length < resolvedPerPage ? resolvedCurrentPage : resolvedCurrentPage + 1);
+      set({
+        cardTypes: raw.map(normalizeKanbanCardTypeRowFromApi),
+        cardTypesLoading: false,
+        cardTypesError: '',
+        cardTypesPagination: {
+          current_page: resolvedCurrentPage,
+          last_page: Math.max(resolvedLastPage, resolvedCurrentPage),
+          total: resolvedTotal,
+          per_page: resolvedPerPage,
+        },
+      });
+    } catch (err) {
+      const msg =
+        err?.response?.data?.message ??
+        err?.message ??
+        'Unable to load types. Please try again.';
+      set({ cardTypes: [], cardTypesLoading: false, cardTypesError: msg });
       if (!silentToastOnError) {
         useAlertReducer.getState().error(msg);
       }
@@ -186,10 +302,75 @@ const useKanbanManagementReducer = create((set, get) => ({
     }
   },
 
+  createKanbanCardType: async (payload, fetchOpts = {}) => {
+    try {
+      const { data } = await cardMangementService.saveKanbanCardType(payload);
+      useAlertReducer.getState().success(data?.message ?? 'Card type saved');
+      await get().fetchKanbanCardTypes({ ...fetchOpts, silentToastOnError: true });
+      return data;
+    } catch (err) {
+      const msg =
+        err?.response?.data?.message ??
+        err?.message ??
+        'Failed to save card type';
+      useAlertReducer.getState().error(msg);
+      throw err;
+    }
+  },
+
+  updateKanbanCardTypeRecord: async (cardTypeId, payload, fetchOpts = {}) => {
+    try {
+      const { data } = await cardMangementService.updateKanbanCardType(cardTypeId, payload);
+      useAlertReducer.getState().success(data?.message ?? 'Card type updated');
+      await get().fetchKanbanCardTypes({ ...fetchOpts, silentToastOnError: true });
+      return data;
+    } catch (err) {
+      const msg =
+        err?.response?.data?.message ??
+        err?.message ??
+        'Failed to update card type';
+      useAlertReducer.getState().error(msg);
+      throw err;
+    }
+  },
+
+  disableKanbanCardTypeRecord: async (cardTypeId, fetchOpts = {}) => {
+    try {
+      const { data } = await cardMangementService.disableKanbanCardType(cardTypeId);
+      useAlertReducer.getState().success(data?.message ?? 'Card type disabled');
+      await get().fetchKanbanCardTypes({ ...fetchOpts, silentToastOnError: true });
+      return data;
+    } catch (err) {
+      const msg =
+        err?.response?.data?.message ??
+        err?.message ??
+        'Failed to disable card type';
+      useAlertReducer.getState().error(msg);
+      throw err;
+    }
+  },
+
+  deleteKanbanCardTypeRecord: async (cardTypeId, fetchOpts = {}) => {
+    try {
+      const { data } = await cardMangementService.deleteKanbanCardType(cardTypeId);
+      useAlertReducer.getState().success(data?.message ?? 'Card type deleted');
+      await get().fetchKanbanCardTypes({ ...fetchOpts, silentToastOnError: true });
+      return data;
+    } catch (err) {
+      const msg =
+        err?.response?.data?.message ??
+        err?.message ??
+        'Failed to delete card type';
+      useAlertReducer.getState().error(msg);
+      throw err;
+    }
+  },
+
   /** Reset tag picker workspace cache when leaving modal (optional UX cleanup) */
   clearKanbanManagementUiSlice: () =>
     set({
       tagsError: '',
+      cardTypesError: '',
       workspaceBoardOptions: [],
       workspaceBoardsLoading: false,
     }),
