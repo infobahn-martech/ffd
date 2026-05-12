@@ -1,4 +1,4 @@
-import { useState, useRef, useEffect, useMemo, useCallback } from 'react';
+import { useState, useRef, useEffect } from 'react';
 import { FiX, FiPlus, FiMoreVertical, FiInfo, FiAlertCircle } from 'react-icons/fi';
 import { Modal } from 'react-bootstrap';
 import NewStickerModal from './NewStickerModal';
@@ -31,7 +31,6 @@ const contrastIconFg = (bg) => {
   return luminance > 0.62 ? '#1a1a1a' : '#ffffff';
 };
 
-/** Same circular icon preview pattern as TypesModal `TypeIconSwatch` */
 const StickerIconSwatch = ({ color_code, iconKey }) => {
   const hex = normalizeHexColor(color_code);
   const fg = contrastIconFg(hex);
@@ -51,60 +50,33 @@ const StickerIconSwatch = ({ color_code, iconKey }) => {
   );
 };
 
-function boardsRawFromIds(board_ids, workspaceBoardOptions) {
-  const nameById = new Map();
-  (workspaceBoardOptions || []).forEach((ws) => {
-    (ws.boards || []).forEach((b) => {
-      nameById.set(String(b.board_id), String(b.board_name ?? ''));
-    });
-  });
-  return (board_ids || []).map((id) => ({
-    board_id: id,
-    board_name: nameById.get(String(id)) ?? '',
-  }));
-}
-
-function normalizeStickerTableRow({
-  sticker_id,
-  label,
-  color_code,
-  icon,
-  availability_level,
-  boardsRaw,
-}) {
-  const boardsJoined = (boardsRaw || [])
-    .map((b) => String(b?.board_name ?? '').trim())
-    .filter(Boolean)
-    .join(', ');
-  return {
-    id: String(sticker_id),
-    sticker_id,
-    label: String(label ?? ''),
-    color_code: normalizeHexColor(color_code || '#ffffff'),
-    icon: String(icon ?? '').trim() || 'FiLayers',
-    availabilityLevel: String(availability_level ?? '').trim() || 'Auto',
-    boardsJoined,
-    boardsRaw: (boardsRaw || []).map((b) => ({
-      board_id: b?.board_id,
-      board_name: String(b?.board_name ?? ''),
-    })),
-  };
-}
-
 const StickersModal = ({ show, onClose }) => {
+  const cardStickers = useKanbanManagementReducer((s) => s.cardStickers);
+  const cardStickersLoading = useKanbanManagementReducer((s) => s.cardStickersLoading);
+  const cardStickersError = useKanbanManagementReducer((s) => s.cardStickersError);
+  const cardStickersPagination = useKanbanManagementReducer((s) => s.cardStickersPagination);
   const workspaceBoardOptions = useKanbanManagementReducer((s) => s.workspaceBoardOptions);
   const workspaceBoardsLoading = useKanbanManagementReducer((s) => s.workspaceBoardsLoading);
+
+  const fetchKanbanCardStickers = useKanbanManagementReducer((s) => s.fetchKanbanCardStickers);
   const fetchWorkspaceBoardPickerOptions = useKanbanManagementReducer(
     (s) => s.fetchWorkspaceBoardPickerOptions
   );
+  const createKanbanCardSticker = useKanbanManagementReducer((s) => s.createKanbanCardSticker);
+  const updateKanbanCardStickerRecord = useKanbanManagementReducer(
+    (s) => s.updateKanbanCardStickerRecord
+  );
+  const disableKanbanCardStickerRecord = useKanbanManagementReducer(
+    (s) => s.disableKanbanCardStickerRecord
+  );
+  const deleteKanbanCardStickerRecord = useKanbanManagementReducer(
+    (s) => s.deleteKanbanCardStickerRecord
+  );
 
-  const [allStickers, setAllStickers] = useState([]);
-  const [stickersLoading, setStickersLoading] = useState(false);
-  const [stickersError, setStickersError] = useState('');
   const [searchValue, setSearchValue] = useState('');
   const [debouncedSearch, setDebouncedSearch] = useState('');
   const [currentPage, setCurrentPage] = useState(1);
-  const perPage = 10;
+  const limit = 10;
   const [selectedItems, setSelectedItems] = useState([]);
   const [showNewStickerModal, setShowNewStickerModal] = useState(false);
   const [editingSticker, setEditingSticker] = useState(null);
@@ -112,24 +84,6 @@ const StickersModal = ({ show, onClose }) => {
   const [openActionMenuId, setOpenActionMenuId] = useState(null);
   const selectAllCheckboxRef = useRef(null);
   const actionMenuRefs = useRef({});
-  const nextStickerIdRef = useRef(1);
-
-  const filteredStickers = useMemo(() => {
-    const q = debouncedSearch.toLowerCase();
-    if (!q) return allStickers;
-    return allStickers.filter((row) => row.label.toLowerCase().includes(q));
-  }, [allStickers, debouncedSearch]);
-
-  const lastPage = Math.max(1, Math.ceil(filteredStickers.length / perPage) || 1);
-
-  const pageStickers = useMemo(
-    () =>
-      filteredStickers.slice(
-        (Math.min(currentPage, lastPage) - 1) * perPage,
-        Math.min(currentPage, lastPage) * perPage
-      ),
-    [filteredStickers, currentPage, lastPage, perPage]
-  );
 
   useEffect(() => {
     if (!show) {
@@ -151,43 +105,21 @@ const StickersModal = ({ show, onClose }) => {
 
   useEffect(() => {
     if (!show) return;
-    let cancelled = false;
-    (async () => {
-      setStickersLoading(true);
-      setStickersError('');
-      try {
-        /* Replace with API fetch when backend exists; list is client-held until then */
-        await Promise.resolve();
-        if (!cancelled) {
-          setStickersLoading(false);
-        }
-      } catch (err) {
-        const msg =
-          err?.response?.data?.message ??
-          err?.message ??
-          'Unable to load stickers. Please try again.';
-        if (!cancelled) {
-          setStickersError(msg);
-          setStickersLoading(false);
-        }
-      }
-    })();
-    return () => {
-      cancelled = true;
-    };
-  }, [show]);
+    fetchKanbanCardStickers({ search: debouncedSearch, page: currentPage, limit });
+  }, [show, debouncedSearch, currentPage, limit, fetchKanbanCardStickers]);
 
   useEffect(() => {
     setSelectedItems((prev) =>
-      prev.filter((id) => pageStickers.some((row) => String(row.id) === id))
+      prev.filter((id) => cardStickers.some((row) => String(row.id) === id))
     );
-  }, [pageStickers]);
+  }, [cardStickers]);
 
   useEffect(() => {
-    if (currentPage > lastPage) {
-      setCurrentPage(lastPage);
+    const serverPage = Number(cardStickersPagination?.current_page || 1);
+    if (serverPage !== currentPage) {
+      setCurrentPage(serverPage);
     }
-  }, [lastPage, currentPage]);
+  }, [cardStickersPagination?.current_page, currentPage]);
 
   const handleCheckboxChange = (stickerId) => {
     const id = String(stickerId);
@@ -197,17 +129,17 @@ const StickersModal = ({ show, onClose }) => {
   };
 
   const handleSelectAll = () => {
-    if (selectedItems.length === pageStickers.length) {
+    if (selectedItems.length === cardStickers.length) {
       setSelectedItems([]);
     } else {
-      setSelectedItems(pageStickers.map((b) => String(b.id)));
+      setSelectedItems(cardStickers.map((b) => String(b.id)));
     }
   };
 
   const isAllSelected =
-    selectedItems.length === pageStickers.length && pageStickers.length > 0;
+    selectedItems.length === cardStickers.length && cardStickers.length > 0;
   const isIndeterminate =
-    selectedItems.length > 0 && selectedItems.length < pageStickers.length;
+    selectedItems.length > 0 && selectedItems.length < cardStickers.length;
 
   useEffect(() => {
     if (selectAllCheckboxRef.current) {
@@ -239,6 +171,12 @@ const StickersModal = ({ show, onClose }) => {
     setOpenActionMenuId(openActionMenuId === id ? null : id);
   };
 
+  const refreshParams = () => ({
+    search: debouncedSearch,
+    page: currentPage,
+    limit,
+  });
+
   const handleEdit = (row) => {
     setEditingSticker({
       sticker_id: row.sticker_id,
@@ -256,9 +194,7 @@ const StickersModal = ({ show, onClose }) => {
     const id = String(stickerId);
     setOpenActionMenuId(null);
     try {
-      /* await disableKanbanStickerRecord(id, { search: debouncedSearch, page: currentPage, per_page: perPage }); */
-      await Promise.resolve();
-      setAllStickers((prev) => prev.filter((r) => String(r.sticker_id) !== id));
+      await disableKanbanCardStickerRecord(id, refreshParams());
     } catch {
       /* AlertReducer in store */
     }
@@ -272,9 +208,7 @@ const StickersModal = ({ show, onClose }) => {
     }
     (async () => {
       try {
-        /* await deleteKanbanStickerRecord(id, { search: debouncedSearch, page: currentPage, per_page: perPage }); */
-        await Promise.resolve();
-        setAllStickers((prev) => prev.filter((r) => String(r.sticker_id) !== id));
+        await deleteKanbanCardStickerRecord(id, refreshParams());
       } catch {
         /* AlertReducer in store */
       }
@@ -291,49 +225,30 @@ const StickersModal = ({ show, onClose }) => {
     setEditingSticker(null);
   };
 
-  const handleStickerFormSave = useCallback(
-    async (payload) => {
-      const boardsRaw = boardsRawFromIds(payload.board_ids, workspaceBoardOptions);
-      const row = normalizeStickerTableRow({
-        sticker_id:
-          payload.mode === 'edit'
-            ? payload.sticker_id
-            : `local-${nextStickerIdRef.current++}`,
-        label: payload.label,
-        color_code: payload.color_code,
-        icon: payload.icon,
-        availability_level: payload.availability_level,
-        boardsRaw,
-      });
-      if (payload.mode === 'create') {
-        setAllStickers((prev) => [...prev, row]);
-      } else {
-        setAllStickers((prev) =>
-          prev.map((r) =>
-            String(r.sticker_id) === String(payload.sticker_id) ? row : r
-          )
-        );
-      }
-    },
-    [workspaceBoardOptions]
-  );
+  const handleStickerFormSave = async (payload) => {
+    const apiBody = {
+      sticker_name: payload.label,
+      color_code: payload.color_code,
+      icon_name: payload.icon,
+      board_ids: payload.board_ids,
+    };
+    if (payload.mode === 'create') {
+      await createKanbanCardSticker(apiBody, refreshParams());
+    } else {
+      await updateKanbanCardStickerRecord(payload.sticker_id, apiBody, refreshParams());
+    }
+  };
 
-  const hasNextPage = currentPage < lastPage;
+  const stickerLimit = Number(cardStickersPagination?.limit) || limit;
+  const hasMetaLastPage = Number(cardStickersPagination?.last_page || 0) > 0;
+  const hasNextByMeta = hasMetaLastPage
+    ? currentPage < Number(cardStickersPagination.last_page)
+    : true;
+  const hasNextPage = hasNextByMeta && cardStickers.length === stickerLimit;
 
   const handleSearchChange = (value) => {
     setSearchValue(value);
     setCurrentPage(1);
-  };
-
-  const retryFetch = () => {
-    setStickersError('');
-    setStickersLoading(true);
-    Promise.resolve()
-      .then(() => setStickersLoading(false))
-      .catch(() => {
-        setStickersError('Unable to load stickers. Please try again.');
-        setStickersLoading(false);
-      });
   };
 
   return (
@@ -378,11 +293,21 @@ const StickersModal = ({ show, onClose }) => {
           </div>
         </div>
 
-        {stickersError && (
+        {cardStickersError && (
           <div className="tags-modal-error-banner" role="alert">
             <FiAlertCircle size={18} aria-hidden />
-            <span className="tags-modal-error-text">{stickersError}</span>
-            <button type="button" className="tags-modal-error-retry" onClick={retryFetch}>
+            <span className="tags-modal-error-text">{cardStickersError}</span>
+            <button
+              type="button"
+              className="tags-modal-error-retry"
+              onClick={() =>
+                fetchKanbanCardStickers({
+                  search: debouncedSearch,
+                  page: currentPage,
+                  limit,
+                })
+              }
+            >
               Retry
             </button>
           </div>
@@ -442,13 +367,13 @@ const StickersModal = ({ show, onClose }) => {
               </tr>
             </thead>
             <tbody>
-              {stickersLoading ? (
+              {cardStickersLoading ? (
                 <tr>
                   <td colSpan="6" className="tags-modal-loading-cell">
                     Loading stickers…
                   </td>
                 </tr>
-              ) : pageStickers.length === 0 ? (
+              ) : cardStickers.length === 0 ? (
                 <tr>
                   <td
                     colSpan="6"
@@ -458,7 +383,7 @@ const StickersModal = ({ show, onClose }) => {
                   </td>
                 </tr>
               ) : (
-                pageStickers.map((row) => (
+                cardStickers.map((row) => (
                   <tr key={row.id}>
                     <td>
                       <input
@@ -537,7 +462,7 @@ const StickersModal = ({ show, onClose }) => {
             type="button"
             className="tags-modal-pagination-btn"
             onClick={() => setCurrentPage((prev) => Math.max(prev - 1, 1))}
-            disabled={currentPage <= 1 || stickersLoading}
+            disabled={currentPage <= 1 || cardStickersLoading}
           >
             Previous
           </button>
@@ -546,7 +471,7 @@ const StickersModal = ({ show, onClose }) => {
             type="button"
             className="tags-modal-pagination-btn"
             onClick={() => setCurrentPage((prev) => prev + 1)}
-            disabled={!hasNextPage || stickersLoading}
+            disabled={!hasNextPage || cardStickersLoading}
           >
             Next
           </button>

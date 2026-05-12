@@ -208,7 +208,7 @@ const NewStickerModal = ({
 
   const handleSave = async () => {
     const trimmed = label.trim();
-    if (!trimmed || !STICKER_AVAILABILITY_OPTIONS.includes(availability)) return;
+    if (!trimmed) return;
     const board_ids = selectedBoards.map((b) => b.board_id);
     const color_code = normalizeHexColor(selectedColor);
     const icon = (selectedIconKey || '').trim() || 'FiLayers';
@@ -224,7 +224,6 @@ const NewStickerModal = ({
                 label: trimmed,
                 color_code,
                 icon,
-                availability_level: availability,
                 board_ids,
               }
             : {
@@ -232,7 +231,6 @@ const NewStickerModal = ({
                 label: trimmed,
                 color_code,
                 icon,
-                availability_level: availability,
                 board_ids,
               }
         );
@@ -301,10 +299,7 @@ const NewStickerModal = ({
   const previewHex = normalizeHexColor(selectedColor);
   const swatchIconFg = contrastIconFg(previewHex);
 
-  const canSave =
-    Boolean(label.trim()) &&
-    STICKER_AVAILABILITY_OPTIONS.includes(availability) &&
-    !saveSubmitting;
+  const canSave = Boolean(label.trim()) && !saveSubmitting;
 
   const modalTitle = isEditMode ? 'Edit Card Sticker' : 'New Card Sticker';
 
@@ -578,7 +573,7 @@ NewStickerModal.propTypes = {
   show: PropTypes.bool.isRequired,
   onClose: PropTypes.func.isRequired,
   onSave: PropTypes.func,
-  /** Create mode: null. Edit mode: { sticker_id, label, color_code, icon, availability_level, boards } */
+  /** Create mode: null. Edit mode: { sticker_id, label, color_code, icon, availability_level?, boards } */
   editingSticker: PropTypes.object,
   workspaceBoardOptions: PropTypes.arrayOf(
     PropTypes.shape({
