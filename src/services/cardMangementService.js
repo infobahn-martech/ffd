@@ -76,11 +76,6 @@ export const disableKanbanCardBlocker = (blockerId) =>
     `/kanban_management/disable_kanban_card_blocker/${encodeURIComponent(String(blockerId))}`
   );
 
-export const enableKanbanCardBlocker = (blockerId) =>
-  Gateway.post(
-    `/kanban_management/enable_kanban_card_blocker/${encodeURIComponent(String(blockerId))}`
-  );
-
 export const deleteKanbanCardBlocker = (blockerId) =>
   Gateway.post(
     `/kanban_management/delete_kanban_card_blocker/${encodeURIComponent(String(blockerId))}`
@@ -102,6 +97,5 @@ export default {
   saveKanbanCardBlocker,
   updateKanbanCardBlocker,
   disableKanbanCardBlocker,
-  enableKanbanCardBlocker,
   deleteKanbanCardBlocker,
 };

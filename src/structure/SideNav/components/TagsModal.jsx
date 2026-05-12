@@ -2,7 +2,9 @@ import { useState, useRef, useEffect } from 'react';
 import { FiX, FiPlus, FiMoreVertical, FiInfo, FiAlertCircle } from 'react-icons/fi';
 import { Modal } from 'react-bootstrap';
 import NewTagModal, { normalizeTagAvailabilityLevel } from './NewTagModal';
-import useKanbanManagementReducer from '../../../store/KanbanManagementReducer';
+import useKanbanManagementReducer, {
+  isKanbanManagementRowDisabled,
+} from '../../../store/KanbanManagementReducer';
 import '../../../design/scss/blockers-modal.scss';
 
 /** Color swatch for tag row */
@@ -29,6 +31,7 @@ const TagsModal = ({ show, onClose }) => {
   const createKanbanTag = useKanbanManagementReducer((s) => s.createKanbanTag);
   const updateKanbanTagRecord = useKanbanManagementReducer((s) => s.updateKanbanTagRecord);
   const disableKanbanTagRecord = useKanbanManagementReducer((s) => s.disableKanbanTagRecord);
+  const enableKanbanTagRecord = useKanbanManagementReducer((s) => s.enableKanbanTagRecord);
   const deleteKanbanTagRecord = useKanbanManagementReducer((s) => s.deleteKanbanTagRecord);
 
   const [searchValue, setSearchValue] = useState('');
@@ -127,6 +130,12 @@ const TagsModal = ({ show, onClose }) => {
     setOpenActionMenuId(openActionMenuId === id ? null : id);
   };
 
+  const refreshParams = () => ({
+    search: debouncedSearch,
+    page: currentPage,
+    per_page: perPage,
+  });
+
   const handleEdit = (tag) => {
     setEditingTag({
       tag_id: tag.id,
@@ -143,11 +152,17 @@ const TagsModal = ({ show, onClose }) => {
     const id = String(tagId);
     setOpenActionMenuId(null);
     try {
-      await disableKanbanTagRecord(id, {
-        search: debouncedSearch,
-        page: currentPage,
-        per_page: perPage,
-      });
+      await disableKanbanTagRecord(id, refreshParams());
+    } catch {
+      /* AlertReducer in store */
+    }
+  };
+
+  const handleEnable = async (tagId) => {
+    const id = String(tagId);
+    setOpenActionMenuId(null);
+    try {
+      await enableKanbanTagRecord(id, refreshParams());
     } catch {
       /* AlertReducer in store */
     }
@@ -165,11 +180,7 @@ const TagsModal = ({ show, onClose }) => {
     }
     (async () => {
       try {
-        await deleteKanbanTagRecord(id, {
-          search: debouncedSearch,
-          page: currentPage,
-          per_page: perPage,
-        });
+        await deleteKanbanTagRecord(id, refreshParams());
       } catch {
         /* AlertReducer in store */
       }
@@ -193,22 +204,14 @@ const TagsModal = ({ show, onClose }) => {
         label: payload.label,
         availability_level: payload.availability_level,
         board_ids: payload.board_ids,
-      }, {
-        search: debouncedSearch,
-        page: currentPage,
-        per_page: perPage,
-      });
+      }, refreshParams());
     } else {
       await updateKanbanTagRecord(payload.tag_id, {
         label: payload.label,
         availability_level: payload.availability_level,
         color_code: payload.color_code,
         board_ids: payload.board_ids,
-      }, {
-        search: debouncedSearch,
-        page: currentPage,
-        per_page: perPage,
-      });
+      }, refreshParams());
     }
   };
 
@@ -391,27 +394,39 @@ const TagsModal = ({ show, onClose }) => {
                         </button>
                         {openActionMenuId === String(tag.id) && (
                           <div className="blockers-action-menu">
-                            <button
-                              type="button"
-                              className="blockers-action-menu-item"
-                              onClick={() => handleEdit(tag)}
-                            >
-                              Edit
-                            </button>
-                            <button
-                              type="button"
-                              className="blockers-action-menu-item"
-                              onClick={() => handleDisable(tag.id)}
-                            >
-                              Disable
-                            </button>
-                            <button
-                              type="button"
-                              className="blockers-action-menu-item blockers-action-menu-item-danger"
-                              onClick={() => handleDelete(tag.id)}
-                            >
-                              Delete
-                            </button>
+                            {isKanbanManagementRowDisabled(tag.status) ? (
+                              <button
+                                type="button"
+                                className="blockers-action-menu-item"
+                                onClick={() => handleEnable(tag.id)}
+                              >
+                                Enable
+                              </button>
+                            ) : (
+                              <>
+                                <button
+                                  type="button"
+                                  className="blockers-action-menu-item"
+                                  onClick={() => handleEdit(tag)}
+                                >
+                                  Edit
+                                </button>
+                                <button
+                                  type="button"
+                                  className="blockers-action-menu-item"
+                                  onClick={() => handleDisable(tag.id)}
+                                >
+                                  Disable
+                                </button>
+                                <button
+                                  type="button"
+                                  className="blockers-action-menu-item blockers-action-menu-item-danger"
+                                  onClick={() => handleDelete(tag.id)}
+                                >
+                                  Delete
+                                </button>
+                              </>
+                            )}
                           </div>
                         )}
                       </div>

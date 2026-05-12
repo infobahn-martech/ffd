@@ -205,6 +205,16 @@ const StickersModal = ({ show, onClose }) => {
     }
   };
 
+  const handleEnable = async (stickerId) => {
+    const id = String(stickerId);
+    setOpenActionMenuId(null);
+    try {
+      await enableKanbanCardStickerRecord(id, refreshParams());
+    } catch {
+      /* AlertReducer in store */
+    }
+  };
+
   const handleDelete = (stickerId) => {
     const id = String(stickerId);
     setOpenActionMenuId(null);

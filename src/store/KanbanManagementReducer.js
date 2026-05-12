@@ -494,6 +494,22 @@ const useKanbanManagementReducer = create((set, get) => ({
     }
   },
 
+  enableKanbanTagRecord: async (tagId, fetchOpts = {}) => {
+    try {
+      const { data } = await kanbanManagementService.enableKanbanTag(tagId);
+      useAlertReducer.getState().success(data?.message ?? 'Tag enabled');
+      await get().fetchKanbanTags({ ...fetchOpts, silentToastOnError: true });
+      return data;
+    } catch (err) {
+      const msg =
+        err?.response?.data?.message ??
+        err?.message ??
+        'Failed to enable tag';
+      useAlertReducer.getState().error(msg);
+      throw err;
+    }
+  },
+
   deleteKanbanTagRecord: async (tagId, fetchOpts = {}) => {
     try {
       const { data } = await kanbanManagementService.deleteKanbanTag(tagId);
@@ -718,9 +734,10 @@ const useKanbanManagementReducer = create((set, get) => ({
     }
   },
 
+  /** Backend toggles enabled state via the same route as disable */
   enableKanbanCardBlockerRecord: async (blockerId, fetchOpts = {}) => {
     try {
-      const { data } = await cardMangementService.enableKanbanCardBlocker(blockerId);
+      const { data } = await cardMangementService.disableKanbanCardBlocker(blockerId);
       useAlertReducer.getState().success(data?.message ?? 'Card blocker enabled');
       await get().fetchKanbanCardBlockers({ ...fetchOpts, silentToastOnError: true });
       return data;

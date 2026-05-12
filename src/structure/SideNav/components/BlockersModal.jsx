@@ -205,6 +205,16 @@ const BlockersModal = ({ show, onClose }) => {
     }
   };
 
+  const handleEnable = async (blockerId) => {
+    const id = String(blockerId);
+    setOpenActionMenuId(null);
+    try {
+      await enableKanbanCardBlockerRecord(id, refreshParams());
+    } catch {
+      /* AlertReducer in store */
+    }
+  };
+
   const handleDelete = (blockerId) => {
     const id = String(blockerId);
     setOpenActionMenuId(null);
