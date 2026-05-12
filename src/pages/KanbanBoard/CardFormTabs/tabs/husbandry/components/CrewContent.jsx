@@ -5,7 +5,7 @@ import { Tooltip } from "react-tooltip";
 import "react-tooltip/dist/react-tooltip.css";
 import DatePicker from "react-datepicker";
 import "react-datepicker/dist/react-datepicker.css";
-import { FiDownload, FiChevronLeft, FiChevronRight } from "react-icons/fi";
+import { FiDownload, FiChevronLeft, FiChevronRight, FiEye } from "react-icons/fi";
 import { YesIcon, NoIcon } from "./Husbandry.components";
 import CustomModal from "../../../../../../components/CustomModal";
 import useCrewReducer from "../../../../../../store/CrewReducer";
@@ -371,6 +371,10 @@ const hasDocCopy = (value) => {
   return true;
 };
 
+const hasDocumentUrl = (url) => {
+  return typeof url === "string" && url.trim() !== "" && url.trim().toLowerCase() !== "null";
+};
+
 const mapWorkflowStatus = (value, fallback = "pending") => {
   if (value == null || value === "") return fallback;
   const v = String(value).toLowerCase().replace(/[\s_-]+/g, "");
@@ -408,6 +412,12 @@ const normalizeCrewListItem = (apiRow, index) => {
     passport: hasDocCopy(apiRow.passport_copy) ? "done" : "rejected",
     iqama: hasDocCopy(apiRow.iqama_copy) ? "done" : "rejected",
     visa: hasDocCopy(apiRow.visa_copy) ? "done" : "rejected",
+    passport_copy: apiRow.passport_copy ?? null,
+    visa_copy: apiRow.visa_copy ?? null,
+    iqama_copy: apiRow.iqama_copy ?? null,
+    passport_copy_url: apiRow.passport_copy_url ?? null,
+    visa_copy_url: apiRow.visa_copy_url ?? null,
+    iqama_copy_url: apiRow.iqama_copy_url ?? null,
     cgPass: hasDocCopy(apiRow.cg_pass_copy ?? apiRow.cg_pass) ? "done" : "rejected",
     zawilPass: hasDocCopy(apiRow.zawil_pass_copy ?? apiRow.zawil_pass) ? "done" : "rejected",
     transport: mapWorkflowStatus(apiRow.transport_status ?? apiRow.transport),
@@ -418,6 +428,149 @@ const normalizeCrewListItem = (apiRow, index) => {
     medicalService: mapWorkflowStatus(apiRow.medical_status ?? apiRow.medical_service_status ?? apiRow.medicalService),
     medicalServiceCount: Number(apiRow.medical_count ?? apiRow.medical_service_count ?? apiRow.medicalServiceCount ?? 0) || 0,
   };
+};
+
+/**
+ * Reusable crew document cell for the Passport / Visa / Iqama columns.
+ *
+ * Behavior:
+ *  - If `crew[urlFieldName]` is a non-empty URL → green preview (eye) icon that
+ *    opens the URL in a new tab.
+ *  - Else if the doc is otherwise marked uploaded (local upload state or a
+ *    non-empty `crew[fieldName]` filename) → green check icon (no preview).
+ *  - Else → red upload icon that triggers the hidden file input.
+ *  - While uploading → small spinner, disabled.
+ */
+const CrewDocumentCell = ({
+  crew,
+  fieldName,
+  urlFieldName,
+  label,
+  inputRef,
+  onUpload,
+  isUploading = false,
+  hasLocalDoc = false,
+  tooltipPlace = "right",
+}) => {
+  const localFileInputRef = useRef(null);
+  const setInputRef = (el) => {
+    localFileInputRef.current = el;
+    if (typeof inputRef === "function") inputRef(el);
+  };
+
+  const url = crew?.[urlFieldName];
+  const hasUrl = hasDocumentUrl(url);
+  const isUploaded = hasUrl || hasLocalDoc || hasDocCopy(crew?.[fieldName]);
+
+  const tooltipId = `${fieldName}-${crew.id}`;
+  const tooltipContent = isUploading
+    ? "Uploading..."
+    : hasUrl
+      ? `Preview ${label}`
+      : isUploaded
+        ? `${label} Uploaded`
+        : `Upload ${label}`;
+
+  const isClickable = !isUploading && (hasUrl || !isUploaded);
+
+  const handleClick = () => {
+    if (isUploading) return;
+    if (hasUrl) {
+      window.open(url, "_blank", "noopener,noreferrer");
+      return;
+    }
+    if (isUploaded) return; // Has copy filename but no URL — nothing to preview.
+    localFileInputRef.current?.click();
+  };
+
+  const iconColor = isUploaded ? STATUS_COLORS.done : STATUS_COLORS.rejected;
+
+  return (
+    <div
+      className="crew-table-cell"
+      style={{ display: "flex", alignItems: "center", gap: "8px", justifyContent: "center" }}
+    >
+      <input
+        type="file"
+        ref={setInputRef}
+        style={{ display: "none" }}
+        accept="*/*"
+        onChange={(e) => {
+          const file = e.target.files?.[0];
+          if (file) onUpload?.(file);
+          e.target.value = "";
+        }}
+      />
+      <div style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: "4px" }}>
+        <Tooltip
+          id={tooltipId}
+          place={tooltipPlace}
+          positionStrategy="fixed"
+          content={tooltipContent}
+        />
+        <button
+          type="button"
+          disabled={isUploading || (isUploaded && !hasUrl)}
+          onClick={handleClick}
+          data-tooltip-id={tooltipId}
+          aria-label={tooltipContent}
+          style={{
+            background: "transparent",
+            border: "none",
+            cursor: isUploading
+              ? "not-allowed"
+              : isClickable
+                ? "pointer"
+                : "default",
+            padding: "4px",
+            display: "flex",
+            alignItems: "center",
+            color: iconColor,
+            opacity: isUploading ? 0.6 : 1,
+            transition: "all 0.2s ease",
+          }}
+          onMouseEnter={(e) => {
+            if (isClickable) e.currentTarget.style.transform = "scale(1.1)";
+          }}
+          onMouseLeave={(e) => {
+            e.currentTarget.style.transform = "scale(1)";
+          }}
+        >
+          {isUploading ? (
+            <span
+              className="spinner-border spinner-border-sm"
+              role="status"
+              aria-hidden="true"
+              style={{ width: "16px", height: "16px", borderWidth: "2px" }}
+            />
+          ) : hasUrl ? (
+            <FiEye size={20} strokeWidth={2.2} />
+          ) : isUploaded ? (
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+              <path d="M5 13L9 17L19 7" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" />
+            </svg>
+          ) : (
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+              <path d="M12 15V3M12 3L8 7M12 3L16 7" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+              <path d="M2 17L2 18C2 19.1046 2.89543 20 4 20L20 20C21.1046 20 22 19.1046 22 18L22 17" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+            </svg>
+          )}
+        </button>
+      </div>
+    </div>
+  );
+};
+
+CrewDocumentCell.propTypes = {
+  crew: PropTypes.object.isRequired,
+  fieldName: PropTypes.string.isRequired,
+  urlFieldName: PropTypes.string.isRequired,
+  label: PropTypes.string.isRequired,
+  inputRef: PropTypes.func,
+  onUpload: PropTypes.func.isRequired,
+  isUploading: PropTypes.bool,
+  hasLocalDoc: PropTypes.bool,
+  tooltipPlace: PropTypes.string,
 };
 
 const CrewContent = ({ formValues, handleChange, cardColor, onNavigateToTab, launchHireOnly = false }) => {
@@ -2379,202 +2532,49 @@ const CrewContent = ({ formValues, handleChange, cardColor, onNavigateToTab, lau
                           </div>
                         </td>
                         <td>
-                          <div className="crew-table-cell" style={{ display: "flex", alignItems: "center", gap: "8px", justifyContent: "center" }}>
-                            <input
-                              type="file"
-                              ref={(el) => {
-                                if (el) passportFileInputRefs.current[crew.id] = el;
-                              }}
-                              style={{ display: "none" }}
-                              accept="*/*"
-                              onChange={(e) => {
-                                const file = e.target.files?.[0];
-                                if (file) {
-                                  handleCrewDocumentUpload(crew, "passport_copy", file);
-                                }
-                                e.target.value = "";
-                              }}
-                            />
-                            <div style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: "4px" }}>
-                              {(() => {
-                                const isUploading = Boolean(uploadingCrewDoc?.[crew.crew_id]?.passport_copy);
-                                const isUploaded = passportDocuments[crew.id] || hasDocCopy(crew.passport_copy);
-                                return (
-                                  <>
-                                    <Tooltip id={`passport-upload-${crew.id}`} place="right" positionStrategy="fixed" content={isUploading ? "Uploading..." : (isUploaded ? "Uploaded" : "Upload")} />
-                                    <button
-                                      type="button"
-                                      disabled={isUploading}
-                                      onClick={() => passportFileInputRefs.current[crew.id]?.click()}
-                                      data-tooltip-id={`passport-upload-${crew.id}`}
-                                      style={{
-                                        background: "transparent",
-                                        border: "none",
-                                        cursor: isUploading ? "not-allowed" : "pointer",
-                                        padding: "4px",
-                                        display: "flex",
-                                        alignItems: "center",
-                                        color: isUploaded ? STATUS_COLORS.done : STATUS_COLORS.rejected,
-                                        opacity: isUploading ? 0.6 : 1,
-                                        transition: "all 0.2s ease"
-                                      }}
-                                      onMouseEnter={(e) => {
-                                        if (!isUploading) e.currentTarget.style.transform = "scale(1.1)";
-                                      }}
-                                      onMouseLeave={(e) => {
-                                        e.currentTarget.style.transform = "scale(1)";
-                                      }}
-                                    >
-                                      {isUploading ? (
-                                        <span className="spinner-border spinner-border-sm" role="status" aria-hidden="true" style={{ width: "16px", height: "16px", borderWidth: "2px" }} />
-                                      ) : isUploaded ? (
-                                        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-                                          <path d="M5 13L9 17L19 7" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" />
-                                        </svg>
-                                      ) : (
-                                        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-                                          <path d="M12 15V3M12 3L8 7M12 3L16 7" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
-                                          <path d="M2 17L2 18C2 19.1046 2.89543 20 4 20L20 20C21.1046 20 22 19.1046 22 18L22 17" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
-                                        </svg>
-                                      )}
-                                    </button>
-                                  </>
-                                );
-                              })()}
-                            </div>
-                          </div>
+                          <CrewDocumentCell
+                            crew={crew}
+                            fieldName="passport_copy"
+                            urlFieldName="passport_copy_url"
+                            label="Passport"
+                            inputRef={(el) => {
+                              if (el) passportFileInputRefs.current[crew.id] = el;
+                            }}
+                            onUpload={(file) => handleCrewDocumentUpload(crew, "passport_copy", file)}
+                            isUploading={Boolean(uploadingCrewDoc?.[crew.crew_id]?.passport_copy)}
+                            hasLocalDoc={Boolean(passportDocuments[crew.id])}
+                            tooltipPlace="right"
+                          />
                         </td>
                         <td>
-                          <div className="crew-table-cell" style={{ display: "flex", alignItems: "center", gap: "8px", justifyContent: "center" }}>
-                            <input
-                              type="file"
-                              ref={(el) => {
-                                if (el) iqamaFileInputRefs.current[crew.id] = el;
-                              }}
-                              style={{ display: "none" }}
-                              accept="*/*"
-                              onChange={(e) => {
-                                const file = e.target.files?.[0];
-                                if (file) {
-                                  handleCrewDocumentUpload(crew, "iqama_copy", file);
-                                }
-                                e.target.value = "";
-                              }}
-                            />
-                            <div style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: "4px" }}>
-                              {(() => {
-                                const isUploading = Boolean(uploadingCrewDoc?.[crew.crew_id]?.iqama_copy);
-                                const isUploaded = iqamaDocuments[crew.id] || hasDocCopy(crew.iqama_copy);
-                                return (
-                                  <>
-                                    <Tooltip id={`iqama-upload-${crew.id}`} place="right" positionStrategy="fixed" content={isUploading ? "Uploading..." : (isUploaded ? "Uploaded" : "Upload")} />
-                                    <button
-                                      type="button"
-                                      disabled={isUploading}
-                                      onClick={() => iqamaFileInputRefs.current[crew.id]?.click()}
-                                      data-tooltip-id={`iqama-upload-${crew.id}`}
-                                      style={{
-                                        background: "transparent",
-                                        border: "none",
-                                        cursor: isUploading ? "not-allowed" : "pointer",
-                                        padding: "4px",
-                                        display: "flex",
-                                        alignItems: "center",
-                                        color: isUploaded ? STATUS_COLORS.done : STATUS_COLORS.rejected,
-                                        opacity: isUploading ? 0.6 : 1,
-                                        transition: "all 0.2s ease"
-                                      }}
-                                      onMouseEnter={(e) => {
-                                        if (!isUploading) e.currentTarget.style.transform = "scale(1.1)";
-                                      }}
-                                      onMouseLeave={(e) => {
-                                        e.currentTarget.style.transform = "scale(1)";
-                                      }}
-                                    >
-                                      {isUploading ? (
-                                        <span className="spinner-border spinner-border-sm" role="status" aria-hidden="true" style={{ width: "16px", height: "16px", borderWidth: "2px" }} />
-                                      ) : isUploaded ? (
-                                        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-                                          <path d="M5 13L9 17L19 7" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" />
-                                        </svg>
-                                      ) : (
-                                        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-                                          <path d="M12 15V3M12 3L8 7M12 3L16 7" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
-                                          <path d="M2 17L2 18C2 19.1046 2.89543 20 4 20L20 20C21.1046 20 22 19.1046 22 18L22 17" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
-                                        </svg>
-                                      )}
-                                    </button>
-                                  </>
-                                );
-                              })()}
-                            </div>
-                          </div>
+                          <CrewDocumentCell
+                            crew={crew}
+                            fieldName="iqama_copy"
+                            urlFieldName="iqama_copy_url"
+                            label="Iqama"
+                            inputRef={(el) => {
+                              if (el) iqamaFileInputRefs.current[crew.id] = el;
+                            }}
+                            onUpload={(file) => handleCrewDocumentUpload(crew, "iqama_copy", file)}
+                            isUploading={Boolean(uploadingCrewDoc?.[crew.crew_id]?.iqama_copy)}
+                            hasLocalDoc={Boolean(iqamaDocuments[crew.id])}
+                            tooltipPlace="right"
+                          />
                         </td>
                         <td>
-                          <div className="crew-table-cell" style={{ display: "flex", alignItems: "center", gap: "8px", justifyContent: "center" }}>
-                            <input
-                              type="file"
-                              ref={(el) => {
-                                if (el) visaFileInputRefs.current[crew.id] = el;
-                              }}
-                              style={{ display: "none" }}
-                              accept="*/*"
-                              onChange={(e) => {
-                                const file = e.target.files?.[0];
-                                if (file) {
-                                  handleCrewDocumentUpload(crew, "visa_copy", file);
-                                }
-                                e.target.value = "";
-                              }}
-                            />
-                            <div style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: "4px" }}>
-                              {(() => {
-                                const isUploading = Boolean(uploadingCrewDoc?.[crew.crew_id]?.visa_copy);
-                                const isUploaded = visaDocuments[crew.id] || hasDocCopy(crew.visa_copy);
-                                return (
-                                  <>
-                                    <Tooltip id={`visa-upload-${crew.id}`} place="right" positionStrategy="fixed" content={isUploading ? "Uploading..." : (isUploaded ? "Uploaded" : "Upload")} />
-                                    <button
-                                      type="button"
-                                      disabled={isUploading}
-                                      onClick={() => visaFileInputRefs.current[crew.id]?.click()}
-                                      data-tooltip-id={`visa-upload-${crew.id}`}
-                                      style={{
-                                        background: "transparent",
-                                        border: "none",
-                                        cursor: isUploading ? "not-allowed" : "pointer",
-                                        padding: "4px",
-                                        display: "flex",
-                                        alignItems: "center",
-                                        color: isUploaded ? STATUS_COLORS.done : STATUS_COLORS.rejected,
-                                        opacity: isUploading ? 0.6 : 1,
-                                        transition: "all 0.2s ease"
-                                      }}
-                                      onMouseEnter={(e) => {
-                                        if (!isUploading) e.currentTarget.style.transform = "scale(1.1)";
-                                      }}
-                                      onMouseLeave={(e) => {
-                                        e.currentTarget.style.transform = "scale(1)";
-                                      }}
-                                    >
-                                      {isUploading ? (
-                                        <span className="spinner-border spinner-border-sm" role="status" aria-hidden="true" style={{ width: "16px", height: "16px", borderWidth: "2px" }} />
-                                      ) : isUploaded ? (
-                                        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-                                          <path d="M5 13L9 17L19 7" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" />
-                                        </svg>
-                                      ) : (
-                                        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-                                          <path d="M12 15V3M12 3L8 7M12 3L16 7" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
-                                          <path d="M2 17L2 18C2 19.1046 2.89543 20 4 20L20 20C21.1046 20 22 19.1046 22 18L22 17" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
-                                        </svg>
-                                      )}
-                                    </button>
-                                  </>
-                                );
-                              })()}
-                            </div>
-                          </div>
+                          <CrewDocumentCell
+                            crew={crew}
+                            fieldName="visa_copy"
+                            urlFieldName="visa_copy_url"
+                            label="Visa"
+                            inputRef={(el) => {
+                              if (el) visaFileInputRefs.current[crew.id] = el;
+                            }}
+                            onUpload={(file) => handleCrewDocumentUpload(crew, "visa_copy", file)}
+                            isUploading={Boolean(uploadingCrewDoc?.[crew.crew_id]?.visa_copy)}
+                            hasLocalDoc={Boolean(visaDocuments[crew.id])}
+                            tooltipPlace="right"
+                          />
                         </td>
                         <td>
                           <div className="crew-table-cell" style={{ display: "flex", alignItems: "center", gap: "8px", justifyContent: "center" }}>
