@@ -1,8 +1,11 @@
-import { useState, useRef, useEffect } from 'react';
-import { FiX, FiFilter, FiPlus, FiMoreVertical, FiInfo } from 'react-icons/fi';
+import { useState, useRef, useEffect, useCallback } from 'react';
+import { FiX, FiPlus, FiMoreVertical, FiInfo, FiAlertCircle } from 'react-icons/fi';
 import { Modal } from 'react-bootstrap';
 import NewTypeModal from './NewTypeModal';
+import { normalizeTagAvailabilityLevel } from './NewTagModal';
 import DynamicIcon from './DynamicIcon';
+import useKanbanManagementReducer from '../../../store/KanbanManagementReducer';
+import { normalizeHexColor } from '../../../components/SedresColorPicker/sedresColorPickerConstants';
 import '../../../design/scss/blockers-modal.scss';
 
 const contrastIconFg = (bg) => {
@@ -29,96 +32,212 @@ const contrastIconFg = (bg) => {
   return luminance > 0.62 ? '#1a1a1a' : '#ffffff';
 };
 
-// Types data (icon.iconKey = react-icons export name, e.g. LuUsb, FiCalendar)
-const typesData = [
-  {
-    id: 1,
-    label: 'HAHA',
-    icon: { color: '#FCD34D', iconKey: 'LuUsb' },
-    availabilityLevel: 'On-demand',
-    boards: ['Team B', 'Team A', 'Strategic Objectives'],
-  },
-  {
-    id: 2,
-    label: 'Waiting on others',
-    icon: { color: '#A78BFA', iconKey: 'LuHourglass' },
-    availabilityLevel: 'Auto',
-    boards: ['Team B', 'Team A', 'Strategic Objectives'],
-  },
-  {
-    id: 3,
-    label: 'Waiting on us',
-    icon: { color: '#EF4444', iconKey: 'LuHourglass' },
-    availabilityLevel: 'Auto',
-    boards: ['Team B', 'Team A', 'Strategic Objectives'],
-  },
-];
+/** Map persisted row → table row (swap for API mapper when backend exists). */
+function normalizeKanbanTypeRowFromApi(t) {
+  const boards = Array.isArray(t?.boards) ? t.boards : [];
+  const availability =
+    t?.availability_level != null && t.availability_level !== ''
+      ? String(t.availability_level)
+      : '';
+  return {
+    id: String(t?.type_id ?? ''),
+    type_id: t?.type_id,
+    label: String(t?.label ?? ''),
+    color_code: normalizeHexColor(t?.color_code || '#ffffff'),
+    icon: String(t?.icon ?? '').trim() || 'FiLayers',
+    availabilityLevel: availability,
+    boardsJoined: boards
+      .map((b) => String(b?.board_name ?? '').trim())
+      .filter(Boolean)
+      .join(', '),
+    boardsRaw: boards.map((b) => ({
+      board_id: b?.board_id,
+      board_name: String(b?.board_name ?? ''),
+    })),
+    status: t?.status ?? 'active',
+  };
+}
 
-const TypeIcon = ({ icon }) => {
-  const { color, iconKey } = icon;
-  const fg = contrastIconFg(color);
-
+const TypeIconSwatch = ({ color_code, iconKey }) => {
+  const hex = normalizeHexColor(color_code);
+  const fg = contrastIconFg(hex);
   return (
     <div
+      className="tags-modal-tag-color-swatch"
       style={{
-        width: '32px',
-        height: '32px',
-        borderRadius: '50%',
-        backgroundColor: color,
+        backgroundColor: hex,
         display: 'flex',
         alignItems: 'center',
         justifyContent: 'center',
-        color: fg,
-        flexShrink: 0,
       }}
+      aria-hidden
     >
       <DynamicIcon iconKey={iconKey} size={16} color={fg} />
     </div>
   );
 };
 
+const getInitialTypeCatalog = () => [
+  {
+    type_id: '1',
+    label: 'HAHA',
+    color_code: '#FCD34D',
+    icon: 'LuUsb',
+    availability_level: 'On-demand',
+    status: 'active',
+    boards: [
+      { board_id: 'b1', board_name: 'Team B' },
+      { board_id: 'b2', board_name: 'Team A' },
+      { board_id: 'b3', board_name: 'Strategic Objectives' },
+    ],
+  },
+  {
+    type_id: '2',
+    label: 'Waiting on others',
+    color_code: '#A78BFA',
+    icon: 'LuHourglass',
+    availability_level: 'Auto',
+    status: 'active',
+    boards: [
+      { board_id: 'b1', board_name: 'Team B' },
+      { board_id: 'b2', board_name: 'Team A' },
+      { board_id: 'b3', board_name: 'Strategic Objectives' },
+    ],
+  },
+  {
+    type_id: '3',
+    label: 'Waiting on us',
+    color_code: '#EF4444',
+    icon: 'LuHourglass',
+    availability_level: 'Auto',
+    status: 'active',
+    boards: [
+      { board_id: 'b1', board_name: 'Team B' },
+      { board_id: 'b2', board_name: 'Team A' },
+      { board_id: 'b3', board_name: 'Strategic Objectives' },
+    ],
+  },
+];
+
 const TypesModal = ({ show, onClose }) => {
-  const [filterValue, setFilterValue] = useState('');
+  const workspaceBoardOptions = useKanbanManagementReducer((s) => s.workspaceBoardOptions);
+  const workspaceBoardsLoading = useKanbanManagementReducer((s) => s.workspaceBoardsLoading);
+  const fetchWorkspaceBoardPickerOptions = useKanbanManagementReducer(
+    (s) => s.fetchWorkspaceBoardPickerOptions
+  );
+
+  const [typeCatalog, setTypeCatalog] = useState(() => getInitialTypeCatalog());
+  const [types, setTypes] = useState([]);
+  const [typesLoading, setTypesLoading] = useState(false);
+  const [typesError, setTypesError] = useState('');
+  const [typesPagination, setTypesPagination] = useState({
+    current_page: 1,
+    last_page: 1,
+    total: 0,
+    per_page: 10,
+  });
+
+  const [searchValue, setSearchValue] = useState('');
+  const [debouncedSearch, setDebouncedSearch] = useState('');
+  const [currentPage, setCurrentPage] = useState(1);
+  const perPage = 10;
   const [selectedItems, setSelectedItems] = useState([]);
-  const [showLabelFilter, setShowLabelFilter] = useState(false);
-  const [showAvailabilityFilter, setShowAvailabilityFilter] = useState(false);
-  const [showBoardsFilter, setShowBoardsFilter] = useState(false);
   const [showNewTypeModal, setShowNewTypeModal] = useState(false);
+  const [editingType, setEditingType] = useState(null);
+
   const [openActionMenuId, setOpenActionMenuId] = useState(null);
   const selectAllCheckboxRef = useRef(null);
   const actionMenuRefs = useRef({});
 
-  const filteredTypes = typesData.filter(type =>
-    type.label.toLowerCase().includes(filterValue.toLowerCase())
-  );
+  const loadTypes = useCallback(() => {
+    if (!show) {
+      setTypesLoading(false);
+      return;
+    }
+    setTypesLoading(true);
+    setTypesError('');
+    window.setTimeout(() => {
+      try {
+        const active = typeCatalog.filter((t) => (t.status ?? 'active') !== 'disabled');
+        const q = debouncedSearch.trim().toLowerCase();
+        const filtered = !q
+          ? active
+          : active.filter((t) => String(t.label ?? '').toLowerCase().includes(q));
+        const lastPage = Math.max(1, Math.ceil(filtered.length / perPage) || 1);
+        let page = Math.min(Math.max(1, currentPage), lastPage);
+        const start = (page - 1) * perPage;
+        const slice = filtered.slice(start, start + perPage);
+        setTypes(slice.map(normalizeKanbanTypeRowFromApi));
+        setTypesPagination({
+          current_page: page,
+          last_page: lastPage,
+          total: filtered.length,
+          per_page: perPage,
+        });
+        if (page !== currentPage) {
+          setCurrentPage(page);
+        }
+      } catch {
+        setTypesError('Unable to load types. Please try again.');
+        setTypes([]);
+      } finally {
+        setTypesLoading(false);
+      }
+    }, 0);
+  }, [show, typeCatalog, debouncedSearch, currentPage, perPage]);
+
+  useEffect(() => {
+    if (!show) {
+      setSearchValue('');
+      setDebouncedSearch('');
+      setCurrentPage(1);
+      setSelectedItems([]);
+      return;
+    }
+    fetchWorkspaceBoardPickerOptions();
+  }, [show, fetchWorkspaceBoardPickerOptions]);
+
+  useEffect(() => {
+    const timeoutId = setTimeout(() => {
+      setDebouncedSearch(searchValue.trim());
+    }, 400);
+    return () => clearTimeout(timeoutId);
+  }, [searchValue]);
+
+  useEffect(() => {
+    loadTypes();
+  }, [loadTypes]);
+
+  useEffect(() => {
+    setSelectedItems((prev) => prev.filter((id) => types.some((row) => String(row.id) === id)));
+  }, [types]);
 
   const handleCheckboxChange = (typeId) => {
-    setSelectedItems(prev =>
-      prev.includes(typeId)
-        ? prev.filter(id => id !== typeId)
-        : [...prev, typeId]
+    const id = String(typeId);
+    setSelectedItems((prev) =>
+      prev.includes(id) ? prev.filter((x) => x !== id) : [...prev, id]
     );
   };
 
   const handleSelectAll = () => {
-    if (selectedItems.length === filteredTypes.length) {
+    if (selectedItems.length === types.length) {
       setSelectedItems([]);
     } else {
-      setSelectedItems(filteredTypes.map(b => b.id));
+      setSelectedItems(types.map((b) => String(b.id)));
     }
   };
 
-  const isAllSelected = selectedItems.length === filteredTypes.length && filteredTypes.length > 0;
-  const isIndeterminate = selectedItems.length > 0 && selectedItems.length < filteredTypes.length;
+  const isAllSelected =
+    selectedItems.length === types.length && types.length > 0;
+  const isIndeterminate =
+    selectedItems.length > 0 && selectedItems.length < types.length;
 
-  // Set indeterminate state for select all checkbox
   useEffect(() => {
     if (selectAllCheckboxRef.current) {
       selectAllCheckboxRef.current.indeterminate = isIndeterminate;
     }
   }, [isIndeterminate]);
 
-  // Close action menu when clicking outside
   useEffect(() => {
     const handleClickOutside = (event) => {
       if (openActionMenuId !== null) {
@@ -139,21 +258,104 @@ const TypesModal = ({ show, onClose }) => {
 
   const handleActionMenuToggle = (typeId, event) => {
     event.stopPropagation();
-    setOpenActionMenuId(openActionMenuId === typeId ? null : typeId);
+    const id = String(typeId);
+    setOpenActionMenuId(openActionMenuId === id ? null : id);
   };
 
-  const handleEdit = (typeId) => {
-    console.log('Edit type:', typeId);
+  const handleEdit = (row) => {
+    setEditingType({
+      type_id: row.type_id,
+      label: row.label,
+      availability_level: normalizeTagAvailabilityLevel(row.availabilityLevel),
+      color_code: row.color_code,
+      icon: row.icon,
+      boards: row.boardsRaw,
+    });
+    setShowNewTypeModal(true);
     setOpenActionMenuId(null);
+  };
+
+  const handleDisable = (typeId) => {
+    const id = String(typeId);
+    setOpenActionMenuId(null);
+    setTypeCatalog((prev) =>
+      prev.map((t) =>
+        String(t.type_id) === id ? { ...t, status: 'disabled' } : t
+      )
+    );
   };
 
   const handleDelete = (typeId) => {
-    console.log('Delete type:', typeId);
+    const id = String(typeId);
     setOpenActionMenuId(null);
+    if (!window.confirm('Delete this type? This cannot be undone.')) {
+      return;
+    }
+    setTypeCatalog((prev) => prev.filter((t) => String(t.type_id) !== id));
   };
 
   const handleAddType = () => {
+    setEditingType(null);
     setShowNewTypeModal(true);
+  };
+
+  const closeTypeFormModal = () => {
+    setShowNewTypeModal(false);
+    setEditingType(null);
+  };
+
+  const handleTypeFormSave = async (payload) => {
+    const board_ids = payload.board_ids;
+    const boardsFromIds = () => {
+      const flat = workspaceBoardOptions.flatMap((ws) => ws.boards);
+      return board_ids.map((bid) => {
+        const found = flat.find((b) => String(b.board_id) === String(bid));
+        return {
+          board_id: bid,
+          board_name: found ? String(found.board_name ?? '') : String(bid),
+        };
+      });
+    };
+
+    if (payload.mode === 'create') {
+      const newId = globalThis.crypto?.randomUUID?.() ?? `t-${Date.now()}`;
+      setTypeCatalog((prev) => [
+        ...prev,
+        {
+          type_id: newId,
+          label: payload.label,
+          color_code: payload.color_code,
+          icon: payload.icon,
+          availability_level: payload.availability_level,
+          status: 'active',
+          boards: boardsFromIds(),
+        },
+      ]);
+    } else {
+      setTypeCatalog((prev) =>
+        prev.map((t) =>
+          String(t.type_id) === String(payload.type_id)
+            ? {
+                ...t,
+                label: payload.label,
+                color_code: payload.color_code,
+                icon: payload.icon,
+                availability_level: payload.availability_level,
+                boards: boardsFromIds(),
+              }
+            : t
+        )
+      );
+    }
+  };
+
+  const hasMetaLastPage = Number(typesPagination?.last_page || 0) > 0;
+  const hasNextByMeta = hasMetaLastPage ? currentPage < Number(typesPagination.last_page) : true;
+  const hasNextPage = hasNextByMeta && types.length === perPage;
+
+  const handleSearchChange = (value) => {
+    setSearchValue(value);
+    setCurrentPage(1);
   };
 
   return (
@@ -175,36 +377,18 @@ const TypesModal = ({ show, onClose }) => {
           <FiX size={20} />
         </button>
       </Modal.Header>
-      <Modal.Body className="blockers-modal-body">
-        {/* Filter Bar */}
+      <Modal.Body className="blockers-modal-body tags-modal-body">
         <div className="blockers-filter-bar">
           <div className="blockers-filter-left">
-            <button
-              type="button"
-              className="blockers-filter-icon-btn"
-              onClick={() => setShowLabelFilter(!showLabelFilter)}
-            >
-              <FiFilter size={18} />
-            </button>
             <input
               type="text"
               className="blockers-filter-input"
               placeholder="Filter"
-              value={filterValue}
-              onChange={(e) => setFilterValue(e.target.value)}
+              value={searchValue}
+              onChange={(e) => handleSearchChange(e.target.value)}
             />
           </div>
           <div className="blockers-filter-right">
-            {/* <div className="blockers-selected-dropdown">
-              <span className="blockers-selected-text">
-                {selectedItems.length === 0
-                  ? 'No items selected'
-                  : `${selectedItems.length} item${selectedItems.length > 1 ? 's' : ''} selected`}
-              </span>
-              <svg width="12" height="12" viewBox="0 0 12 12" fill="none">
-                <path d="M3 4.5L6 7.5L9 4.5" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
-              </svg>
-            </div> */}
             <button
               type="button"
               className="blockers-add-btn"
@@ -216,8 +400,17 @@ const TypesModal = ({ show, onClose }) => {
           </div>
         </div>
 
-        {/* Table */}
-        <div className="blockers-table-wrapper">
+        {typesError && (
+          <div className="tags-modal-error-banner" role="alert">
+            <FiAlertCircle size={18} aria-hidden />
+            <span className="tags-modal-error-text">{typesError}</span>
+            <button type="button" className="tags-modal-error-retry" onClick={() => loadTypes()}>
+              Retry
+            </button>
+          </div>
+        )}
+
+        <div className="blockers-table-wrapper blockers-table-wrapper--tags-min-body">
           <table className="blockers-table">
             <thead>
               <tr>
@@ -236,7 +429,12 @@ const TypesModal = ({ show, onClose }) => {
                 </th>
                 <th style={{ width: '50px' }}>
                   <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
-                    <path d="M2 4h12M2 8h12M2 12h12" stroke="#666" strokeWidth="1.5" strokeLinecap="round" />
+                    <path
+                      d="M2 4h12M2 8h12M2 12h12"
+                      stroke="#666"
+                      strokeWidth="1.5"
+                      strokeLinecap="round"
+                    />
                     <circle cx="4" cy="4" r="1" fill="#666" />
                     <circle cx="4" cy="8" r="1" fill="#666" />
                     <circle cx="4" cy="12" r="1" fill="#666" />
@@ -245,44 +443,19 @@ const TypesModal = ({ show, onClose }) => {
                 <th>
                   <div className="blockers-th-content">
                     <span>Label</span>
-                    <button
-                      type="button"
-                      className="blockers-th-filter-btn"
-                      onClick={() => setShowLabelFilter(!showLabelFilter)}
-                    >
-                      <FiFilter size={14} />
-                    </button>
                   </div>
                 </th>
                 <th>
                   <div className="blockers-th-content">
                     <span>Availability level</span>
-                    <button
-                      type="button"
-                      className="blockers-th-info-btn"
-                      onClick={() => setShowAvailabilityFilter(!showAvailabilityFilter)}
-                    >
+                    <button type="button" className="blockers-th-info-btn">
                       <FiInfo size={14} />
-                    </button>
-                    <button
-                      type="button"
-                      className="blockers-th-filter-btn"
-                      onClick={() => setShowAvailabilityFilter(!showAvailabilityFilter)}
-                    >
-                      <FiFilter size={14} />
                     </button>
                   </div>
                 </th>
                 <th>
                   <div className="blockers-th-content">
                     <span>Boards</span>
-                    <button
-                      type="button"
-                      className="blockers-th-filter-btn"
-                      onClick={() => setShowBoardsFilter(!showBoardsFilter)}
-                    >
-                      <FiFilter size={14} />
-                    </button>
                   </div>
                 </th>
                 <th style={{ width: '40px' }}>
@@ -291,20 +464,29 @@ const TypesModal = ({ show, onClose }) => {
               </tr>
             </thead>
             <tbody>
-              {filteredTypes.length === 0 ? (
+              {typesLoading ? (
                 <tr>
-                  <td colSpan="6" style={{ textAlign: 'center', padding: '40px', color: '#999' }}>
+                  <td colSpan="6" className="tags-modal-loading-cell">
+                    Loading types…
+                  </td>
+                </tr>
+              ) : types.length === 0 ? (
+                <tr>
+                  <td
+                    colSpan="6"
+                    style={{ textAlign: 'center', padding: '40px', color: '#999' }}
+                  >
                     No types found
                   </td>
                 </tr>
               ) : (
-                filteredTypes.map(type => (
-                  <tr key={type.id}>
+                types.map((row) => (
+                  <tr key={row.id}>
                     <td>
                       <input
                         type="checkbox"
-                        checked={selectedItems.includes(type.id)}
-                        onChange={() => handleCheckboxChange(type.id)}
+                        checked={selectedItems.includes(String(row.id))}
+                        onChange={() => handleCheckboxChange(row.id)}
                         style={{
                           width: '18px',
                           height: '18px',
@@ -313,45 +495,52 @@ const TypesModal = ({ show, onClose }) => {
                       />
                     </td>
                     <td>
-                      <TypeIcon icon={type.icon} />
+                      <TypeIconSwatch color_code={row.color_code} iconKey={row.icon} />
                     </td>
                     <td>
-                      <span className="blockers-label-text">{type.label}</span>
+                      <span className="blockers-label-text">{row.label}</span>
                     </td>
                     <td>
-                      <span className="blockers-availability-text">{type.availabilityLevel}</span>
+                      <span className="blockers-availability-text">{row.availabilityLevel}</span>
                     </td>
                     <td>
-                      <span className="blockers-boards-text">
-                        {type.boards.join(', ')}
-                      </span>
+                      <span className="blockers-boards-text">{row.boardsJoined}</span>
                     </td>
                     <td>
                       <div
-                        ref={(el) => (actionMenuRefs.current[type.id] = el)}
+                        ref={(el) => {
+                          actionMenuRefs.current[String(row.id)] = el;
+                        }}
                         style={{ position: 'relative' }}
                       >
                         <button
                           type="button"
                           className="blockers-kebab-btn"
                           aria-label="Action"
-                          onClick={(e) => handleActionMenuToggle(type.id, e)}
+                          onClick={(e) => handleActionMenuToggle(row.id, e)}
                         >
                           <FiMoreVertical size={18} />
                         </button>
-                        {openActionMenuId === type.id && (
+                        {openActionMenuId === String(row.id) && (
                           <div className="blockers-action-menu">
                             <button
                               type="button"
                               className="blockers-action-menu-item"
-                              onClick={() => handleEdit(type.id)}
+                              onClick={() => handleEdit(row)}
                             >
                               Edit
                             </button>
                             <button
                               type="button"
+                              className="blockers-action-menu-item"
+                              onClick={() => handleDisable(row.id)}
+                            >
+                              Disable
+                            </button>
+                            <button
+                              type="button"
                               className="blockers-action-menu-item blockers-action-menu-item-danger"
-                              onClick={() => handleDelete(type.id)}
+                              onClick={() => handleDelete(row.id)}
                             >
                               Delete
                             </button>
@@ -365,20 +554,36 @@ const TypesModal = ({ show, onClose }) => {
             </tbody>
           </table>
         </div>
+        <div className="tags-modal-pagination">
+          <button
+            type="button"
+            className="tags-modal-pagination-btn"
+            onClick={() => setCurrentPage((prev) => Math.max(prev - 1, 1))}
+            disabled={currentPage <= 1 || typesLoading}
+          >
+            Previous
+          </button>
+          <span className="tags-modal-pagination-page">Page {currentPage}</span>
+          <button
+            type="button"
+            className="tags-modal-pagination-btn"
+            onClick={() => setCurrentPage((prev) => prev + 1)}
+            disabled={!hasNextPage || typesLoading}
+          >
+            Next
+          </button>
+        </div>
       </Modal.Body>
       <NewTypeModal
         show={showNewTypeModal}
-        onClose={() => setShowNewTypeModal(false)}
-        onSave={(typeData) => {
-          // Handle saving the new type
-          console.log('New type data:', typeData);
-          // You can add logic here to update the types list
-          setShowNewTypeModal(false);
-        }}
+        onClose={closeTypeFormModal}
+        editingType={editingType}
+        workspaceBoardOptions={workspaceBoardOptions}
+        workspaceBoardsLoading={workspaceBoardsLoading}
+        onSave={handleTypeFormSave}
       />
     </Modal>
   );
 };
 
 export default TypesModal;
-

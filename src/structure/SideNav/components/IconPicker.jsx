@@ -12,6 +12,7 @@ const ICON_PICKER_OPTIONS = [
     { key: 'FiTool', category: 'Settings', label: 'Tool' },
     { key: 'FiBell', category: 'Communication', label: 'Bell' },
     { key: 'FiMessageCircle', category: 'Communication', label: 'Message' },
+    { key: 'FiMessageSquare', category: 'Communication', label: 'Message square' },
     { key: 'FiMail', category: 'Communication', label: 'Mail' },
     { key: 'FiPhone', category: 'Communication', label: 'Phone' },
     { key: 'FiSend', category: 'Communication', label: 'Send' },

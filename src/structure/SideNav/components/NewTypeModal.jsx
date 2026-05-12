@@ -1,327 +1,599 @@
-import { useState, useRef, useEffect } from 'react';
-import { FiX, FiPlus, FiSlash } from 'react-icons/fi';
+import { useState, useRef, useEffect, useMemo, useCallback } from 'react';
+import { createPortal } from 'react-dom';
+import { FiX, FiPlus, FiSearch, FiSlash } from 'react-icons/fi';
 import { Modal } from 'react-bootstrap';
 import PropTypes from 'prop-types';
+import SedresColorPicker from '../../../components/SedresColorPicker/SedresColorPicker';
+import { normalizeHexColor } from '../../../components/SedresColorPicker/sedresColorPickerConstants';
 import DynamicIcon from './DynamicIcon';
 import IconPicker from './IconPicker';
+import {
+  TAG_AVAILABILITY_OPTIONS,
+  normalizeTagAvailabilityLevel,
+} from './NewTagModal';
 import '../../../design/scss/new-blocker-modal.scss';
 
-// Color palette from CardForm.jsx
-const COLOR_PALETTE = [
-    { hex: '#FF00FF', rgb: 'rgb(255, 0, 255)', name: 'Fuchsia' },
-    { hex: '#800080', rgb: 'rgb(128, 0, 128)', name: 'Purple' },
-    { hex: '#4169E1', rgb: 'rgb(65, 105, 225)', name: 'Royal Blue' },
-    { hex: '#008000', rgb: 'rgb(0, 128, 0)', name: 'Green' },
-    { hex: '#FFFF00', rgb: 'rgb(255, 255, 0)', name: 'Yellow' },
-    { hex: '#FFA500', rgb: 'rgb(255, 165, 0)', name: 'Orange' },
-    { hex: '#8B0000', rgb: 'rgb(139, 0, 0)', name: 'Dark Red' },
-    { hex: '#775649', rgb: 'rgb(119, 86, 73)', name: 'Brown' },
-    { hex: '#D3D3D3', rgb: 'rgb(211, 211, 211)', name: 'Light Gray' },
-    { hex: '#708090', rgb: 'rgb(112, 128, 144)', name: 'Slate Blue' },
-    { hex: '#000000', rgb: 'rgb(0, 0, 0)', name: 'Black' },
-    { hex: '#FFFFFF', rgb: 'rgb(255, 255, 255)', name: 'White' },
-];
+const COLOR_PICKER_PORTAL_Z = 10800;
 
-// Helper functions
-const rgbToHex = (rgb) => {
-    if (!rgb) return '#EF4444';
-    if (rgb.startsWith('#')) return rgb.toUpperCase();
-    const match = rgb.match(/\d+/g);
-    if (!match || match.length < 3) return '#EF4444';
-    return '#' + match.map(x => {
-        const hex = parseInt(x).toString(16);
-        return hex.length === 1 ? '0' + hex : hex;
-    }).join('').toUpperCase();
+function boardKey(id) {
+  return String(id ?? '');
+}
+
+function sortSelectedBoards(selected, sourceWorkspaces) {
+  const order = new Map();
+  let i = 0;
+  sourceWorkspaces.forEach((ws) => {
+    ws.boards.forEach((b) => {
+      order.set(boardKey(b.board_id), i++);
+    });
+  });
+  return [...selected].sort(
+    (a, b) =>
+      (order.get(boardKey(a.board_id)) ?? 999) -
+      (order.get(boardKey(b.board_id)) ?? 999)
+  );
+}
+
+const contrastIconFg = (bg) => {
+  if (!bg || typeof bg !== 'string') return '#1a1a1a';
+  let r;
+  let g;
+  let b;
+  const trimmed = bg.trim();
+  if (trimmed.startsWith('#')) {
+    const h = trimmed.slice(1);
+    const full = h.length === 3 ? h.split('').map((c) => c + c).join('') : h;
+    if (full.length < 6) return '#1a1a1a';
+    r = parseInt(full.slice(0, 2), 16);
+    g = parseInt(full.slice(2, 4), 16);
+    b = parseInt(full.slice(4, 6), 16);
+  } else {
+    const m = trimmed.match(/\d+/g);
+    if (!m || m.length < 3) return '#1a1a1a';
+    r = Number(m[0]);
+    g = Number(m[1]);
+    b = Number(m[2]);
+  }
+  const luminance = (0.299 * r + 0.587 * g + 0.114 * b) / 255;
+  return luminance > 0.62 ? '#1a1a1a' : '#ffffff';
 };
 
-const normalizeRgb = (rgb) => {
-    if (!rgb) return '';
-    if (rgb.startsWith('#')) return rgb;
-    const match = rgb.match(/\d+/g);
-    if (!match || match.length < 3) return '';
-    return `rgb(${match[0]}, ${match[1]}, ${match[2]})`;
-};
+const NewTypeModal = ({
+  show,
+  onClose,
+  onSave,
+  editingType,
+  workspaceBoardOptions,
+  workspaceBoardsLoading,
+}) => {
+  const [selectedColor, setSelectedColor] = useState('#ffffff');
+  const [selectedIconKey, setSelectedIconKey] = useState('');
+  const [label, setLabel] = useState('');
+  const [availability, setAvailability] = useState(TAG_AVAILABILITY_OPTIONS[0]);
+  const [selectedBoards, setSelectedBoards] = useState([]);
+  const [isColorPickerOpen, setIsColorPickerOpen] = useState(false);
+  const [colorPickerPlacement, setColorPickerPlacement] = useState({ top: 0, left: 0 });
+  const [isBoardSelectorOpen, setIsBoardSelectorOpen] = useState(false);
+  const [boardSearch, setBoardSearch] = useState('');
+  const [saveSubmitting, setSaveSubmitting] = useState(false);
+  const [isIconPickerOpen, setIsIconPickerOpen] = useState(false);
 
-// Color Picker Component (from CardForm.jsx)
-const ColorPickerDropdown = ({ isOpen, onClose, selectedColor, onColorSelect }) => {
-    const dropdownRef = useRef(null);
+  const colorTriggerRef = useRef(null);
+  const colorPickerPopoverRef = useRef(null);
+  const boardSelectorRef = useRef(null);
+  const addBoardBtnRef = useRef(null);
+  const iconPickerRef = useRef(null);
 
-    useEffect(() => {
-        const handleClickOutside = (event) => {
-            if (dropdownRef.current && !dropdownRef.current.contains(event.target)) {
-                onClose();
-            }
-        };
+  const isEditMode = Boolean(
+    editingType?.type_id != null && String(editingType.type_id) !== ''
+  );
 
-        if (isOpen) {
-            document.addEventListener('mousedown', handleClickOutside);
-            return () => {
-                document.removeEventListener('mousedown', handleClickOutside);
-            };
-        }
-    }, [isOpen, onClose]);
+  const resetCreateDefaults = useCallback(() => {
+    setSelectedColor('#ffffff');
+    setSelectedIconKey('');
+    setLabel('');
+    setAvailability(TAG_AVAILABILITY_OPTIONS[0]);
+    setSelectedBoards([]);
+    setIsColorPickerOpen(false);
+    setIsBoardSelectorOpen(false);
+    setBoardSearch('');
+    setSaveSubmitting(false);
+    setIsIconPickerOpen(false);
+  }, []);
 
-    const handleColorClick = (color) => {
-        onColorSelect(color.rgb);
-        onClose();
+  const filteredWorkspaceOptions = useMemo(() => {
+    const q = boardSearch.trim().toLowerCase();
+    if (!q) return workspaceBoardOptions;
+    return workspaceBoardOptions
+      .map((ws) => {
+        const wsMatch = ws.workspace_name.toLowerCase().includes(q);
+        const boards = wsMatch
+          ? ws.boards
+          : ws.boards.filter((b) => b.board_name.toLowerCase().includes(q));
+        if (boards.length === 0) return null;
+        return { ...ws, boards };
+      })
+      .filter(Boolean);
+  }, [boardSearch, workspaceBoardOptions]);
+
+  const selectedIds = useMemo(
+    () => new Set(selectedBoards.map((b) => boardKey(b.board_id))),
+    [selectedBoards]
+  );
+
+  const isWorkspaceFullySelected = useCallback(
+    (ws) =>
+      ws.boards.length > 0 &&
+      ws.boards.every((b) => selectedIds.has(boardKey(b.board_id))),
+    [selectedIds]
+  );
+
+  const toggleBoard = useCallback((board) => {
+    const key = boardKey(board.board_id);
+    setSelectedBoards((prev) => {
+      const exists = prev.some((b) => boardKey(b.board_id) === key);
+      if (exists) return prev.filter((b) => boardKey(b.board_id) !== key);
+      return [
+        ...prev,
+        {
+          board_id: board.board_id,
+          board_name: board.board_name,
+        },
+      ];
+    });
+  }, []);
+
+  const toggleWorkspaceAll = useCallback(
+    (ws) => {
+      const allOn = isWorkspaceFullySelected(ws);
+      setSelectedBoards((prev) => {
+        const ids = new Set(ws.boards.map((b) => boardKey(b.board_id)));
+        if (allOn) return prev.filter((b) => !ids.has(boardKey(b.board_id)));
+        const map = new Map(prev.map((b) => [boardKey(b.board_id), b]));
+        ws.boards.forEach((b) =>
+          map.set(boardKey(b.board_id), {
+            board_id: b.board_id,
+            board_name: b.board_name,
+          })
+        );
+        return sortSelectedBoards(Array.from(map.values()), workspaceBoardOptions);
+      });
+    },
+    [isWorkspaceFullySelected, workspaceBoardOptions]
+  );
+
+  const removeBoardChip = useCallback((boardId) => {
+    const key = boardKey(boardId);
+    setSelectedBoards((prev) =>
+      prev.filter((b) => boardKey(b.board_id) !== key)
+    );
+  }, []);
+
+  useEffect(() => {
+    if (!show) {
+      resetCreateDefaults();
+      return;
+    }
+    if (isEditMode) {
+      setSelectedColor(normalizeHexColor(editingType.color_code ?? '#ffffff'));
+      const rawIcon = editingType.icon != null ? String(editingType.icon).trim() : '';
+      setSelectedIconKey(rawIcon);
+      setLabel(editingType.label ?? '');
+      setAvailability(normalizeTagAvailabilityLevel(editingType.availability_level));
+      const boards = Array.isArray(editingType.boards)
+        ? editingType.boards.map((b) => ({
+            board_id: b.board_id,
+            board_name: String(b.board_name ?? ''),
+          }))
+        : [];
+      setSelectedBoards(boards);
+      setIsColorPickerOpen(false);
+      setIsBoardSelectorOpen(false);
+      setBoardSearch('');
+      setSaveSubmitting(false);
+      setIsIconPickerOpen(false);
+    } else {
+      resetCreateDefaults();
+    }
+  }, [show, isEditMode, editingType, resetCreateDefaults]);
+
+  const handleSave = async () => {
+    const trimmed = label.trim();
+    if (!trimmed || !TAG_AVAILABILITY_OPTIONS.includes(availability)) return;
+    const board_ids = selectedBoards.map((b) => b.board_id);
+    const color_code = normalizeHexColor(selectedColor);
+    const icon = (selectedIconKey || '').trim() || 'FiLayers';
+
+    setSaveSubmitting(true);
+    try {
+      if (onSave) {
+        await onSave(
+          isEditMode
+            ? {
+                mode: 'edit',
+                type_id: String(editingType.type_id),
+                label: trimmed,
+                availability_level: availability,
+                color_code,
+                icon,
+                board_ids,
+              }
+            : {
+                mode: 'create',
+                label: trimmed,
+                availability_level: availability,
+                color_code,
+                icon,
+                board_ids,
+              }
+        );
+      }
+      resetCreateDefaults();
+      onClose();
+    } catch {
+      /* Parent showed toast; keep form open */
+    } finally {
+      setSaveSubmitting(false);
+    }
+  };
+
+  const openColorPicker = () => {
+    if (colorTriggerRef.current) {
+      const r = colorTriggerRef.current.getBoundingClientRect();
+      setColorPickerPlacement({ top: r.bottom + 8, left: r.left });
+    }
+    setIsColorPickerOpen(true);
+  };
+
+  const closeColorPicker = useCallback(() => {
+    setIsColorPickerOpen(false);
+  }, []);
+
+  useEffect(() => {
+    if (!isColorPickerOpen) return undefined;
+    const onDocMouseDown = (event) => {
+      const t = event.target;
+      if (colorTriggerRef.current?.contains(t)) return;
+      if (colorPickerPopoverRef.current?.contains(t)) return;
+      closeColorPicker();
     };
+    document.addEventListener('mousedown', onDocMouseDown);
+    return () => document.removeEventListener('mousedown', onDocMouseDown);
+  }, [isColorPickerOpen, closeColorPicker]);
 
-    if (!isOpen) return null;
+  useEffect(() => {
+    if (!isBoardSelectorOpen) return undefined;
+    const onDocMouseDown = (event) => {
+      const t = event.target;
+      if (boardSelectorRef.current?.contains(t)) return;
+      if (addBoardBtnRef.current?.contains(t)) return;
+      setIsBoardSelectorOpen(false);
+    };
+    document.addEventListener('mousedown', onDocMouseDown);
+    return () => document.removeEventListener('mousedown', onDocMouseDown);
+  }, [isBoardSelectorOpen]);
 
-    return (
-        <div className="color-picker-dropdown" ref={dropdownRef}>
-            <div className="color-picker-grid">
-                {COLOR_PALETTE.map((color, index) => {
-                    const selectedHex = rgbToHex(selectedColor);
-                    const isSelected = selectedHex === color.hex || normalizeRgb(selectedColor) === normalizeRgb(color.rgb);
-                    return (
-                        <button
-                            key={index}
-                            type="button"
-                            className={`color-swatch ${isSelected ? 'selected' : ''} ${color.hex === '#FFFFFF' ? 'white-swatch' : ''}`}
-                            style={{ backgroundColor: color.hex }}
-                            onClick={() => handleColorClick(color)}
-                            title={color.name}
-                            aria-label={`Select ${color.name} color`}
-                        >
-                            {isSelected && (
-                                <svg
-                                    width="16"
-                                    height="16"
-                                    viewBox="0 0 16 16"
-                                    fill="none"
-                                    xmlns="http://www.w3.org/2000/svg"
-                                    className="color-checkmark"
-                                >
-                                    <path
-                                        d="M13.3333 4L6 11.3333L2.66667 8"
-                                        stroke={color.hex === '#000000' ? '#ffffff' : color.hex === '#FFFFFF' ? '#000000' : '#ffffff'}
-                                        strokeWidth="2"
-                                        strokeLinecap="round"
-                                        strokeLinejoin="round"
-                                    />
-                                </svg>
-                            )}
-                            {color.hex === '#FFFFFF' && !isSelected && (
-                                <div className="color-swatch-outline"></div>
-                            )}
-                        </button>
-                    );
-                })}
-            </div>
+  useEffect(() => {
+    if (!isIconPickerOpen) return undefined;
+    const onDocMouseDown = (event) => {
+      const t = event.target;
+      if (iconPickerRef.current?.contains(t)) return;
+      setIsIconPickerOpen(false);
+    };
+    document.addEventListener('mousedown', onDocMouseDown);
+    return () => document.removeEventListener('mousedown', onDocMouseDown);
+  }, [isIconPickerOpen]);
+
+  const sortedChips = useMemo(
+    () => sortSelectedBoards(selectedBoards, workspaceBoardOptions),
+    [selectedBoards, workspaceBoardOptions]
+  );
+
+  const previewHex = normalizeHexColor(selectedColor);
+  const swatchIconFg = contrastIconFg(previewHex);
+
+  const canSave =
+    Boolean(label.trim()) &&
+    TAG_AVAILABILITY_OPTIONS.includes(availability) &&
+    !saveSubmitting;
+
+  const modalTitle = isEditMode ? 'Edit Card Type' : 'New Card Type';
+
+  const handleIconSelect = (iconKey) => {
+    setSelectedIconKey(iconKey);
+    setIsIconPickerOpen(false);
+  };
+
+  const boardSelectorBody = () => {
+    if (workspaceBoardsLoading) {
+      return (
+        <div className="new-blocker-board-selector-empty new-blocker-board-selector-loading">
+          Loading boards…
         </div>
-    );
-};
+      );
+    }
+    if (!workspaceBoardOptions.length) {
+      return (
+        <div className="new-blocker-board-selector-empty">
+          No boards available
+        </div>
+      );
+    }
+    if (filteredWorkspaceOptions.length === 0) {
+      return <div className="new-blocker-board-selector-empty">No matches</div>;
+    }
+    return filteredWorkspaceOptions.map((ws) => (
+      <div key={boardKey(ws.workspace_id)} className="new-blocker-workspace-group">
+        <div className="new-blocker-workspace-head">
+          <span className="new-blocker-workspace-title">{ws.workspace_name}</span>
+          <button
+            type="button"
+            className="new-blocker-workspace-select-all"
+            onClick={() => toggleWorkspaceAll(ws)}
+          >
+            {isWorkspaceFullySelected(ws) ? 'Deselect all' : 'Select all'}
+          </button>
+        </div>
+        {ws.boards.map((board) => (
+          <label
+            key={boardKey(board.board_id)}
+            className="new-blocker-board-option"
+          >
+            <input
+              type="checkbox"
+              className="new-blocker-board-checkbox"
+              checked={selectedIds.has(boardKey(board.board_id))}
+              onChange={() => toggleBoard(board)}
+            />
+            <span className="new-blocker-board-option-label">{board.board_name}</span>
+          </label>
+        ))}
+      </div>
+    ));
+  };
 
-ColorPickerDropdown.propTypes = {
-    isOpen: PropTypes.bool.isRequired,
-    onClose: PropTypes.func.isRequired,
-    selectedColor: PropTypes.string.isRequired,
-    onColorSelect: PropTypes.func.isRequired,
-};
-
-const NewTypeModal = ({ show, onClose, onSave, initialValues }) => {
-    const [selectedColor, setSelectedColor] = useState('rgb(255, 255, 255)');
-    const [selectedIconKey, setSelectedIconKey] = useState(null);
-    const [label, setLabel] = useState('');
-    const [selectedBoards, setSelectedBoards] = useState([]);
-    const [isColorPickerOpen, setIsColorPickerOpen] = useState(false);
-    const [isIconPickerOpen, setIsIconPickerOpen] = useState(false);
-    const iconPickerRef = useRef(null);
-
-    useEffect(() => {
-        if (!show) return;
-        if (
-            initialValues != null &&
-            typeof initialValues === 'object' &&
-            Object.keys(initialValues).length > 0
-        ) {
-            setSelectedColor(initialValues.color ?? 'rgb(255, 255, 255)');
-            const raw = initialValues.icon;
-            setSelectedIconKey(typeof raw === 'string' && raw.trim() ? raw.trim() : null);
-            setLabel(initialValues.label ?? '');
-            setSelectedBoards(Array.isArray(initialValues.boards) ? initialValues.boards : []);
-        } else {
-            setSelectedColor('rgb(255, 255, 255)');
-            setSelectedIconKey(null);
-            setLabel('');
-            setSelectedBoards([]);
-        }
-    }, [show, initialValues]);
-
-    const handleSave = () => {
-        if (onSave) {
-            onSave({
-                color: selectedColor,
-                icon: selectedIconKey ?? '',
-                label,
-                boards: selectedBoards,
-            });
-        }
-        setSelectedColor('rgb(255, 255, 255)');
-        setSelectedIconKey(null);
-        setLabel('');
-        setSelectedBoards([]);
-        onClose();
-    };
-
-    const handleColorSelect = (rgbColor) => {
-        setSelectedColor(rgbColor);
-        setIsColorPickerOpen(false);
-    };
-
-    const handleIconSelect = (iconKey) => {
-        setSelectedIconKey(iconKey);
-        setIsIconPickerOpen(false);
-    };
-
-    const handleAddBoard = () => {
-        setSelectedBoards([...selectedBoards, 'New Board']);
-    };
-
-    useEffect(() => {
-        const handleClickOutside = (event) => {
-            if (iconPickerRef.current && !iconPickerRef.current.contains(event.target)) {
-                setIsIconPickerOpen(false);
-            }
-        };
-
-        if (isIconPickerOpen) {
-            document.addEventListener('mousedown', handleClickOutside);
-            return () => {
-                document.removeEventListener('mousedown', handleClickOutside);
-            };
-        }
-    }, [isIconPickerOpen]);
-
-    return (
-        <Modal
-            show={show}
-            onHide={onClose}
-            className="new-blocker-modal"
-            centered
-            size="md"
-            dialogClassName="new-blocker-modal-dialog"
-        >
-            <Modal.Header className="new-blocker-modal-header">
-                <Modal.Title className="new-blocker-modal-title">New Card Type</Modal.Title>
+  return (
+    <Modal
+      show={show}
+      onHide={onClose}
+      className="new-blocker-modal"
+      centered
+      size="md"
+      dialogClassName="new-blocker-modal-dialog"
+    >
+      <Modal.Header className="new-blocker-modal-header">
+        <Modal.Title className="new-blocker-modal-title">{modalTitle}</Modal.Title>
+        <button type="button" className="new-blocker-modal-close" onClick={onClose} aria-label="Close">
+          <FiX size={20} />
+        </button>
+      </Modal.Header>
+      <Modal.Body className="new-blocker-modal-body">
+        <div className="new-blocker-form">
+          <div className="new-blocker-row-fields">
+            <div className="new-blocker-field">
+              <label className="new-blocker-label" htmlFor="new-type-color-trigger">
+                Color
+              </label>
+              <div className="new-blocker-color-wrapper">
                 <button
-                    type="button"
-                    className="new-blocker-modal-close"
-                    onClick={onClose}
-                    aria-label="Close"
+                  id="new-type-color-trigger"
+                  ref={colorTriggerRef}
+                  type="button"
+                  className="new-blocker-color-swatch"
+                  style={{
+                    backgroundColor: previewHex,
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                  }}
+                  onClick={() => (isColorPickerOpen ? closeColorPicker() : openColorPicker())}
+                  aria-haspopup="dialog"
+                  aria-expanded={isColorPickerOpen}
+                  aria-label="Open color picker"
                 >
-                    <FiX size={20} />
+                  {(selectedIconKey || '').trim() ? (
+                    <DynamicIcon
+                      iconKey={selectedIconKey.trim()}
+                      size={22}
+                      color={swatchIconFg}
+                    />
+                  ) : (
+                    <FiSlash size={22} color="#9ca3af" aria-hidden />
+                  )}
                 </button>
-            </Modal.Header>
-            <Modal.Body className="new-blocker-modal-body">
-                <div className="new-blocker-form">
-                    <div className="new-blocker-row-fields">
-                        <div className="new-blocker-field">
-                            <label className="new-blocker-label">Color</label>
-                            <div className="new-blocker-color-wrapper">
-                                <button
-                                    type="button"
-                                    className="new-blocker-color-swatch"
-                                    style={{ backgroundColor: selectedColor }}
-                                    onClick={() => setIsColorPickerOpen(!isColorPickerOpen)}
-                                />
-                                <ColorPickerDropdown
-                                    isOpen={isColorPickerOpen}
-                                    onClose={() => setIsColorPickerOpen(false)}
-                                    selectedColor={selectedColor}
-                                    onColorSelect={handleColorSelect}
-                                />
-                            </div>
-                        </div>
+              </div>
+            </div>
 
-                        <div className="new-blocker-field">
-                            <label className="new-blocker-label">Icon</label>
-                            <div className="new-blocker-icon-wrapper">
-                                <div className="new-blocker-icon-wrapper-inner" ref={iconPickerRef}>
-                                    <button
-                                        type="button"
-                                        className="new-blocker-icon-preview"
-                                        onClick={() => setIsIconPickerOpen(!isIconPickerOpen)}
-                                        aria-expanded={isIconPickerOpen}
-                                        aria-haspopup="dialog"
-                                    >
-                                        {selectedIconKey ? (
-                                            <DynamicIcon
-                                                iconKey={selectedIconKey}
-                                                size={22}
-                                                color="#1a1a1a"
-                                            />
-                                        ) : (
-                                            <FiSlash size={22} color="#9ca3af" aria-hidden />
-                                        )}
-                                    </button>
-                                    <IconPicker
-                                        isOpen={isIconPickerOpen}
-                                        selectedIconKey={selectedIconKey}
-                                        onSelect={handleIconSelect}
-                                    />
-                                </div>
-                            </div>
-                        </div>
-
-                        <div className="new-blocker-field new-blocker-field-full">
-                            <label className="new-blocker-label">Label</label>
-                            <input
-                                type="text"
-                                className="new-blocker-input"
-                                placeholder="Enter type label"
-                                value={label}
-                                onChange={(e) => setLabel(e.target.value)}
-                            />
-                        </div>
-                    </div>
-
-                    <div className="new-blocker-field">
-                        <p className="new-blocker-boards-text">The type is applied to the following boards</p>
-                        <button
-                            type="button"
-                            className="new-blocker-add-board-btn"
-                            onClick={handleAddBoard}
-                            aria-label="Add board"
-                        >
-                            <FiPlus size={20} />
-                        </button>
-                        {selectedBoards.length > 0 && (
-                            <div className="new-blocker-boards-list">
-                                {selectedBoards.map((board, index) => (
-                                    <span key={index} className="new-blocker-board-tag">
-                                        {board}
-                                    </span>
-                                ))}
-                            </div>
-                        )}
-                    </div>
+            <div className="new-blocker-field">
+              <label className="new-blocker-label">Icon</label>
+              <div className="new-blocker-icon-wrapper">
+                <div className="new-blocker-icon-wrapper-inner" ref={iconPickerRef}>
+                  <button
+                    type="button"
+                    className="new-blocker-icon-preview"
+                    onClick={() => setIsIconPickerOpen((v) => !v)}
+                    aria-expanded={isIconPickerOpen}
+                    aria-haspopup="dialog"
+                    aria-label="Choose icon"
+                  >
+                    {(selectedIconKey || '').trim() ? (
+                      <DynamicIcon
+                        iconKey={selectedIconKey.trim()}
+                        size={22}
+                        color="#1a1a1a"
+                      />
+                    ) : (
+                      <FiSlash size={22} color="#9ca3af" aria-hidden />
+                    )}
+                  </button>
+                  <IconPicker
+                    isOpen={isIconPickerOpen}
+                    selectedIconKey={(selectedIconKey || '').trim() || null}
+                    onSelect={handleIconSelect}
+                  />
                 </div>
-            </Modal.Body>
-            <Modal.Footer className="new-blocker-modal-footer">
-                <button
-                    type="button"
-                    className="new-blocker-save-btn"
-                    onClick={handleSave}
+              </div>
+            </div>
+          </div>
+
+          <div className="new-blocker-field-cluster">
+            <div className="new-blocker-tag-fields-inline">
+              <div className="new-blocker-field new-blocker-field-label-with-availability">
+                <label className="new-blocker-label" htmlFor="new-type-label-input">
+                  Label
+                </label>
+                <input
+                  id="new-type-label-input"
+                  type="text"
+                  className="new-blocker-input"
+                  placeholder="Enter type label"
+                  value={label}
+                  onChange={(e) => setLabel(e.target.value)}
+                />
+              </div>
+              <div className="new-blocker-field new-blocker-field-availability">
+                <label className="new-blocker-label" htmlFor="new-type-availability-select">
+                  Availability
+                </label>
+                <select
+                  id="new-type-availability-select"
+                  className="new-blocker-select"
+                  value={availability}
+                  onChange={(e) => setAvailability(e.target.value)}
+                  aria-required
                 >
-                    Save
-                </button>
-            </Modal.Footer>
-        </Modal>
-    );
+                  {TAG_AVAILABILITY_OPTIONS.map((opt) => (
+                    <option key={opt} value={opt}>
+                      {opt}
+                    </option>
+                  ))}
+                </select>
+              </div>
+            </div>
+          </div>
+
+          <div className="new-blocker-field new-blocker-boards-field">
+            <p className="new-blocker-boards-text">The type is applied to the following boards</p>
+            <div className="new-blocker-boards-controls">
+              <button
+                ref={addBoardBtnRef}
+                type="button"
+                className="new-blocker-add-board-btn"
+                aria-label="Choose boards"
+                aria-expanded={isBoardSelectorOpen}
+                onClick={() => setIsBoardSelectorOpen((v) => !v)}
+              >
+                <FiPlus size={20} />
+              </button>
+
+              {isBoardSelectorOpen && (
+                <div className="new-blocker-board-selector" ref={boardSelectorRef}>
+                  <div className="new-blocker-board-selector-header">
+                    <FiSearch size={16} className="new-blocker-board-selector-search-icon" aria-hidden />
+                    <input
+                      type="search"
+                      className="new-blocker-board-selector-search"
+                      placeholder="Search workspaces or boards…"
+                      value={boardSearch}
+                      onChange={(e) => setBoardSearch(e.target.value)}
+                      aria-label="Filter workspaces and boards"
+                    />
+                  </div>
+                  <div className="new-blocker-board-selector-scroll">{boardSelectorBody()}</div>
+                </div>
+              )}
+            </div>
+
+            {sortedChips.length > 0 && (
+              <div className="new-blocker-boards-list">
+                {sortedChips.map((b) => (
+                  <span
+                    key={boardKey(b.board_id)}
+                    className="new-blocker-selected-board-chip"
+                  >
+                    <span className="new-blocker-selected-board-chip-text">{b.board_name}</span>
+                    <button
+                      type="button"
+                      className="new-blocker-selected-board-chip-remove"
+                      onClick={() => removeBoardChip(b.board_id)}
+                      aria-label={`Remove ${b.board_name}`}
+                    >
+                      <FiX size={14} />
+                    </button>
+                  </span>
+                ))}
+              </div>
+            )}
+          </div>
+        </div>
+      </Modal.Body>
+      <Modal.Footer className="new-blocker-modal-footer">
+        <button
+          type="button"
+          className="new-blocker-save-btn"
+          onClick={() => handleSave()}
+          disabled={!canSave}
+        >
+          Save
+        </button>
+      </Modal.Footer>
+
+      {isColorPickerOpen &&
+        createPortal(
+          <div
+            className="new-blocker-color-picker-portal"
+            style={{
+              position: 'fixed',
+              top: colorPickerPlacement.top,
+              left: colorPickerPlacement.left,
+              zIndex: COLOR_PICKER_PORTAL_Z,
+            }}
+          >
+            <SedresColorPicker
+              popoverRef={colorPickerPopoverRef}
+              popoverId={isEditMode ? 'edit-type-color-picker' : 'new-type-color-picker'}
+              initialHex={previewHex}
+              onApply={(hex) => {
+                setSelectedColor(normalizeHexColor(hex));
+                setIsColorPickerOpen(false);
+              }}
+              onCancel={closeColorPicker}
+              ariaLabel="Pick card type color"
+              hexInputId={isEditMode ? 'editTypeColorHex' : 'newTypeColorHex'}
+            />
+          </div>,
+          document.body
+        )}
+    </Modal>
+  );
 };
 
 NewTypeModal.propTypes = {
-    show: PropTypes.bool.isRequired,
-    onClose: PropTypes.func.isRequired,
-    onSave: PropTypes.func,
-    initialValues: PropTypes.shape({
-        color: PropTypes.string,
-        icon: PropTypes.string,
-        label: PropTypes.string,
-        boards: PropTypes.arrayOf(PropTypes.string),
-    }),
+  show: PropTypes.bool.isRequired,
+  onClose: PropTypes.func.isRequired,
+  onSave: PropTypes.func,
+  /** Create mode: null. Edit mode: { type_id, label, … } */
+  editingType: PropTypes.object,
+  workspaceBoardOptions: PropTypes.arrayOf(
+    PropTypes.shape({
+      workspace_id: PropTypes.oneOfType([PropTypes.string, PropTypes.number]).isRequired,
+      workspace_name: PropTypes.string.isRequired,
+      boards: PropTypes.arrayOf(
+        PropTypes.shape({
+          board_id: PropTypes.oneOfType([PropTypes.string, PropTypes.number]).isRequired,
+          board_name: PropTypes.string.isRequired,
+        })
+      ).isRequired,
+    })
+  ),
+  workspaceBoardsLoading: PropTypes.bool,
+};
+
+NewTypeModal.defaultProps = {
+  onSave: undefined,
+  editingType: null,
+  workspaceBoardOptions: [],
+  workspaceBoardsLoading: false,
 };
 
 export default NewTypeModal;
