@@ -40,7 +40,7 @@ const AttachmentsList = ({
                 Drag and drop your files here, or{" "}
                 <span className="upload-link">click to browse</span>
               </p>
-              <p className="upload-sub-text">Supports all file formats</p>
+              {/* <p className="upload-sub-text">Supports all file formats</p> */}
             </div>
 
             {attachments.length > 0 && (
