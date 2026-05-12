@@ -20,6 +20,10 @@ export default function PremiumSelect({
   className = "",
   menuZIndex = PREMIUM_SELECT_MODAL_Z_INDEX,
   noResultsText,
+  menuPortalTarget,
+  menuPosition = "absolute",
+  menuShouldBlockScroll = false,
+  menuClassName,
   ...rest
 }) {
   const mergedClass = ["premium-select", className].filter(Boolean).join(" ");
@@ -35,6 +39,10 @@ export default function PremiumSelect({
       className={mergedClass}
       menuZIndex={menuZIndex}
       noResultsText={noResultsText}
+      menuPortalTarget={menuPortalTarget}
+      menuPosition={menuPosition}
+      menuShouldBlockScroll={menuShouldBlockScroll}
+      menuClassName={menuClassName}
       {...rest}
     />
   );
@@ -51,4 +59,8 @@ PremiumSelect.propTypes = {
   className: PropTypes.string,
   menuZIndex: PropTypes.number,
   noResultsText: PropTypes.string,
+  menuPortalTarget: PropTypes.any,
+  menuPosition: PropTypes.oneOf(["absolute", "fixed"]),
+  menuShouldBlockScroll: PropTypes.bool,
+  menuClassName: PropTypes.string,
 };

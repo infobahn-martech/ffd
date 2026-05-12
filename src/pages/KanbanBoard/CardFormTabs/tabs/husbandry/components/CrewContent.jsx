@@ -8,6 +8,7 @@ import "react-datepicker/dist/react-datepicker.css";
 import { FiDownload, FiChevronLeft, FiChevronRight, FiEye } from "react-icons/fi";
 import { YesIcon, NoIcon } from "./Husbandry.components";
 import CustomModal from "../../../../../../components/CustomModal";
+import PremiumSelect from "../../../../../../components/form/PremiumSelect";
 import useCrewReducer from "../../../../../../store/CrewReducer";
 import useCommonReducer from "../../../../../../store/CommonReducer";
 import callFileService from "../../../../../../services/callFileService";
@@ -1717,7 +1718,7 @@ const CrewContent = ({ formValues, handleChange, cardColor, onNavigateToTab, lau
               boxShadow: "0 2px 8px rgba(0, 0, 0, 0.04)",
               overflow: "visible"
             }}>
-              <div style={{ width: "100%", overflowX: "auto" }}>
+              <div className="crew-preview-table-scroll" style={{ width: "100%", overflowX: "auto", overflowY: "visible" }}>
                 <table style={{
                   width: "100%",
                   minWidth: "1360px",
@@ -1881,33 +1882,30 @@ const CrewContent = ({ formValues, handleChange, cardColor, onNavigateToTab, lau
                               }}
                             >
                               {col.type === "nationalitySelect" ? (
-                                <select
-                                  value={row.nationality != null && row.nationality !== "" ? String(row.nationality) : ""}
-                                  onChange={(e) => {
-                                    const selectedValue = e.target.value;
-                                    const opt = nationalityOptions.find((o) => o.value === selectedValue);
-                                    handlePreviewNationalityChange(rowIndex, selectedValue, opt?.label ?? "");
-                                  }}
+                                <div
+                                  className={`crew-preview-select-cell crew-preview-nationality-select-wrap${hasValue ? " is-filled" : ""}`}
                                   onPaste={(e) => handlePreviewTablePaste(e, rowIndex, colIndex)}
-                                  disabled={nationalitiesLoading}
-                                  title="Select nationality"
-                                  style={{
-                                    backgroundColor: hasValue ? "#f0f7ff" : "transparent",
-                                    color: hasValue ? "#1a1a1a" : "#999",
-                                    ...PREVIEW_TABLE_INPUT_STYLE,
-                                    fontWeight: hasValue ? "500" : "400",
-                                    cursor: nationalitiesLoading ? "wait" : "pointer",
-                                  }}
+                                  tabIndex={0}
                                 >
-                                  <option value="" disabled>
-                                    Select nationality
-                                  </option>
-                                  {nationalityOptions.map((opt) => (
-                                    <option key={opt.value} value={opt.value}>
-                                      {opt.label}
-                                    </option>
-                                  ))}
-                                </select>
+                                  <PremiumSelect
+                                    value={row.nationality != null && row.nationality !== "" ? String(row.nationality) : ""}
+                                    onChange={(e) => {
+                                      const selectedValue = e.target.value;
+                                      const opt = nationalityOptions.find((o) => o.value === selectedValue);
+                                      handlePreviewNationalityChange(rowIndex, selectedValue, opt?.label ?? "");
+                                    }}
+                                    options={nationalityOptions}
+                                    placeholder="Select"
+                                    searchPlaceholder="Search nationality..."
+                                    disabled={nationalitiesLoading}
+                                    className="crew-preview-nationality-select"
+                                    menuZIndex={12000}
+                                    menuPortalTarget={typeof document !== "undefined" ? document.body : null}
+                                    menuPosition="fixed"
+                                    menuShouldBlockScroll={false}
+                                    menuClassName="crew-preview-nationality-select__menu"
+                                  />
+                                </div>
                               ) : col.type === "select" ? (
                                 <select
                                   value={row[col.field]}

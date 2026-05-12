@@ -8069,3 +8069,138 @@ body .modal-backdrop.show {
 .crew-status-icon span {
   pointer-events: none; // badge won't affect hover
 }
+
+/* Crew preview table — horizontal scroll without clipping portaled selects vertically */
+.crew-preview-table-scroll {
+  width: 100%;
+  overflow-x: auto;
+  overflow-y: visible;
+}
+
+/* Nationality cell: fixed row band for PremiumSelect trigger */
+.crew-preview-select-cell.crew-preview-nationality-select-wrap {
+  position: relative;
+  width: 100%;
+  height: 32px;
+  min-height: 32px;
+  max-height: 32px;
+  overflow: visible;
+}
+
+.crew-preview-nationality-select {
+  width: 100%;
+  min-width: 0;
+}
+
+/* Portaled nationality menu — compact width (260px), floating above table */
+.crew-preview-nationality-select__menu.cf-multi-select-dropdown.cf-searchable-select__menu-portal {
+  width: 260px !important;
+  min-width: 260px !important;
+  max-width: 260px !important;
+  max-height: 240px !important;
+  overflow-y: auto !important;
+  overflow-x: hidden !important;
+  z-index: 12000 !important;
+  border-radius: 10px !important;
+  border: 1px solid #dbe4ff !important;
+  background: #ffffff !important;
+  box-shadow: 0 18px 40px rgba(15, 23, 42, 0.16) !important;
+  margin-top: 0 !important;
+  box-sizing: border-box !important;
+  right: auto !important;
+
+  .cf-multi-select-no-results {
+    padding: 12px 14px;
+    font-size: 13px;
+  }
+
+  .cf-multi-select-option {
+    padding: 10px 14px;
+    font-size: 13px;
+    line-height: 18px;
+  }
+
+  .cf-multi-select-option:hover,
+  .cf-multi-select-option.is-highlighted {
+    background: #f0f7ff !important;
+  }
+}
+
+/* Crew preview table — nationality PremiumSelect: borderless cell, matches row inputs */
+.crew-preview-nationality-select-wrap {
+  width: 100%;
+  min-width: 0;
+  max-width: 100%;
+
+  &:focus-visible {
+    outline: 2px solid rgba(42, 0, 255, 0.2);
+    outline-offset: 1px;
+    border-radius: 4px;
+  }
+}
+
+.crew-preview-nationality-select.premium-select.cf-searchable-select {
+  width: 100%;
+  min-width: 0;
+
+  .cf-multi-select-email-input {
+    border: none !important;
+    background: transparent !important;
+    box-shadow: none !important;
+    min-height: 32px;
+    height: 32px;
+    max-height: 32px;
+    padding: 6px 10px;
+    font-size: 13px;
+    font-family: "Open Sans", sans-serif;
+    border-radius: 4px;
+    align-items: center;
+    gap: 6px;
+  }
+
+  .cf-multi-select-email-input:hover,
+  .cf-multi-select-email-input:focus-within {
+    background: #f0f7ff !important;
+  }
+
+  .cf-multi-select-email-tags {
+    min-width: 0;
+    flex: 1;
+    overflow: hidden;
+  }
+
+  .cf-multi-select-placeholder {
+    color: #999;
+    font-weight: 400;
+    font-size: 13px;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+
+  .cf-multi-select-selected-value {
+    color: #1a1a1a;
+    font-weight: 500;
+    font-size: 13px;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+
+  .cf-searchable-select-input {
+    font-size: 13px;
+    padding: 0;
+    min-height: 0;
+    height: auto;
+  }
+
+  .cf-multi-select-arrow {
+    color: #999;
+    font-size: 10px;
+    flex-shrink: 0;
+  }
+}
+
+.crew-preview-nationality-select-wrap.is-filled .crew-preview-nationality-select.premium-select.cf-searchable-select .cf-multi-select-email-input:not(:focus-within) {
+  background: #f0f7ff !important;
+}
