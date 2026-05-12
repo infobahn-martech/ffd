@@ -2,7 +2,7 @@ import { useState, useRef } from "react";
 import PropTypes from "prop-types";
 import Select from "react-select";
 import GroupSettingsIcon from "../../../../../../assets/images/cv.png";
-import { FormSection, FormField, ReactQuillEditor, getCrewMultiSelectStyles, formatCrewOptionLabel } from "./Husbandry.components";
+import { FormSection, FormField, FormInput, ReactQuillEditor, getCrewMultiSelectStyles, formatCrewOptionLabel } from "./Husbandry.components";
 import AttachmentsList from "../../appointment/AttachmentsList";
 import { useCrewPassTabApi } from "./useCrewPassTabApi";
 
@@ -19,12 +19,13 @@ const ZawilPassContent = ({ formValues, handleChange, cardColor, card }) => {
     saving,
     handleSave,
   } = useCrewPassTabApi({
-    passType: "ZAWIL",
+    passType: "Zawil",
     formValues,
     card,
     selectedCrewField: "zawilPassSelectedCrew",
     remarksField: "zawilPassDescription",
     documentsField: "zawilPassDocuments",
+    requestEmailField: "zawilPassRequestEmail",
   });
 
   const handleCrewChange = (selectedOptions) => {
@@ -106,6 +107,15 @@ const ZawilPassContent = ({ formValues, handleChange, cardColor, card }) => {
         <div className="pre-arrival-form zawilpass-form">
           <div className="general-info-two-column operation-section-form-layout">
             <div className="general-info-left">
+              <FormField label="Request Email">
+                <FormInput
+                  type="email"
+                  value={formValues.zawilPassRequestEmail || ""}
+                  onChange={handleChange("zawilPassRequestEmail")}
+                  placeholder="Enter request email"
+                />
+              </FormField>
+
               <FormField label="Select Crew">
                 <div className="cf-select react-select-container crew-multi-select">
                   <Select
