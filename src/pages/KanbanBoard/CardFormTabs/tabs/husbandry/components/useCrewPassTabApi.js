@@ -4,6 +4,7 @@ import { notify } from "../../../../../../components/Toaster";
 import {
   createPassRequest,
   getCrewListForPass,
+  mapAxiosResponseToCrewOptions,
 } from "../../../../../../services/cgAndZwailpassService";
 
 export const resolvePassCallId = (formValues, card, routeParams) => {
@@ -56,7 +57,6 @@ export function useCrewPassTabApi({
   const [crewLoadState, setCrewLoadState] = useState("idle");
   const [saving, setSaving] = useState(false);
   const callId = resolvePassCallId(formValues, card, routeParams);
-  const vesselId = resolvePassVesselId(formValues, card, routeParams);
 
   useEffect(() => {
     if (!callId) {
@@ -67,35 +67,14 @@ export function useCrewPassTabApi({
       return undefined;
     }
 
-    if (!vesselId) {
-      setCrewOptions([]);
-      setCrewLoadError(null);
-      setCrewLoadState("missing_vessel_id");
-      setCrewLoading(false);
-      return undefined;
-    }
-
     let cancelled = false;
     (async () => {
       setCrewLoading(true);
       setCrewLoadError(null);
       setCrewLoadState("loading");
       try {
-        const response = await getCrewListForPass({
-          call_id: callId,
-          vessel_id: vesselId,
-        });
-        const crewArray = response?.data?.data?.crew || [];
-        const mappedOptions = Array.isArray(crewArray)
-          ? crewArray.map((crew) => ({
-              value: String(crew.crew_change_id),
-              label: crew.crew_name || `Crew Member ${crew.crew_id}`,
-              crew_id: crew.crew_id,
-              crew_change_id: crew.crew_change_id,
-              crew_name: crew.crew_name,
-              raw: crew,
-            }))
-          : [];
+        const response = await getCrewListForPass(callId);
+        const mappedOptions = mapAxiosResponseToCrewOptions(response);
         if (!cancelled) {
           setCrewOptions(mappedOptions);
           setCrewLoadState(mappedOptions.length > 0 ? "success" : "empty");
@@ -114,7 +93,7 @@ export function useCrewPassTabApi({
     return () => {
       cancelled = true;
     };
-  }, [callId, vesselId]);
+  }, [callId]);
 
   const crewEmpty = !crewLoading && crewLoadState === "empty";
 
@@ -122,13 +101,11 @@ export function useCrewPassTabApi({
     ? "Loading crew..."
     : crewLoadState === "missing_call_id"
       ? "Call id is required"
-      : crewLoadState === "missing_vessel_id"
-        ? "Vessel id is required"
-        : crewLoadState === "api_error" || crewLoadError
-          ? "Unable to load crew"
-          : crewLoadState === "empty"
-            ? "No crew found"
-            : "Select crew members...";
+      : crewLoadState === "api_error" || crewLoadError
+        ? "Unable to load crew"
+        : crewLoadState === "empty"
+          ? "No crew found"
+          : "Select crew members...";
 
   const handleSave = useCallback(async () => {
     const callId = resolvePassCallId(formValues, card, routeParams);

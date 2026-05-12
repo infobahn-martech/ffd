@@ -132,19 +132,17 @@ const CGPassContent = ({ formValues, handleChange, cardColor, card }) => {
                     closeMenuOnSelect={false}
                     hideSelectedOptions={true}
                     isLoading={crewLoading}
-                    isDisabled={crewLoading || crewLoadState === "missing_call_id" || crewLoadState === "missing_vessel_id"}
+                    isDisabled={crewLoading || crewLoadState === "missing_call_id"}
                     noOptionsMessage={() =>
                       crewLoading ? "Loading..." : "No crew found"
                     }
                   />
                 </div>
-                {!crewLoading && (crewLoadState === "missing_call_id" || crewLoadState === "missing_vessel_id" || crewLoadState === "api_error") ? (
+                {!crewLoading && (crewLoadState === "missing_call_id" || crewLoadState === "api_error") ? (
                   <div className="crew-pass-select-message crew-pass-select-message--error">
                     {crewLoadState === "missing_call_id"
                       ? "Call id is required"
-                      : crewLoadState === "missing_vessel_id"
-                        ? "Vessel id is required"
-                        : "Unable to load crew"}
+                      : "Unable to load crew"}
                   </div>
                 ) : null}
                 {!crewLoading && crewEmpty ? (
