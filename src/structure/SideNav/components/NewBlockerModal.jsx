@@ -8,6 +8,7 @@ import { normalizeHexColor } from '../../../components/SedresColorPicker/sedresC
 import DynamicIcon from './DynamicIcon';
 import IconPicker from './IconPicker';
 import { mapBackendIconNameToIconKey } from '../../../store/KanbanManagementReducer';
+import { TAG_AVAILABILITY_OPTIONS, normalizeTagAvailabilityLevel } from './NewTagModal';
 import '../../../design/scss/new-blocker-modal.scss';
 
 const COLOR_PICKER_PORTAL_Z = 10800;
@@ -66,6 +67,7 @@ const NewBlockerModal = ({
   const [selectedColor, setSelectedColor] = useState('#ffffff');
   const [selectedIconKey, setSelectedIconKey] = useState('');
   const [label, setLabel] = useState('');
+  const [availability, setAvailability] = useState(TAG_AVAILABILITY_OPTIONS[0]);
   const [selectedBoards, setSelectedBoards] = useState([]);
   const [isColorPickerOpen, setIsColorPickerOpen] = useState(false);
   const [colorPickerPlacement, setColorPickerPlacement] = useState({ top: 0, left: 0 });
@@ -88,6 +90,7 @@ const NewBlockerModal = ({
     setSelectedColor('#ffffff');
     setSelectedIconKey('');
     setLabel('');
+    setAvailability(TAG_AVAILABILITY_OPTIONS[0]);
     setSelectedBoards([]);
     setIsColorPickerOpen(false);
     setIsBoardSelectorOpen(false);
@@ -174,6 +177,7 @@ const NewBlockerModal = ({
       const rawIcon = editingBlocker.icon != null ? String(editingBlocker.icon).trim() : '';
       setSelectedIconKey(mapBackendIconNameToIconKey(rawIcon));
       setLabel(editingBlocker.label ?? '');
+      setAvailability(normalizeTagAvailabilityLevel(editingBlocker.availability_level));
       const boards = Array.isArray(editingBlocker.boards)
         ? editingBlocker.boards.map((b) => ({
             board_id: b.board_id,
@@ -193,7 +197,7 @@ const NewBlockerModal = ({
 
   const handleSave = async () => {
     const trimmed = label.trim();
-    if (!trimmed) return;
+    if (!trimmed || !TAG_AVAILABILITY_OPTIONS.includes(availability)) return;
     const board_ids = selectedBoards.map((b) => b.board_id);
     const color_code = normalizeHexColor(selectedColor);
     const icon = (selectedIconKey || '').trim() || 'FiLayers';
@@ -210,6 +214,7 @@ const NewBlockerModal = ({
                 color_code,
                 icon,
                 board_ids,
+                availability_level: availability,
               }
             : {
                 mode: 'create',
@@ -217,6 +222,7 @@ const NewBlockerModal = ({
                 color_code,
                 icon,
                 board_ids,
+                availability_level: availability,
               }
         );
       }
@@ -284,7 +290,10 @@ const NewBlockerModal = ({
   const previewHex = normalizeHexColor(selectedColor);
   const swatchIconFg = contrastIconFg(previewHex);
 
-  const canSave = Boolean(label.trim()) && !saveSubmitting;
+  const canSave =
+    Boolean(label.trim()) &&
+    TAG_AVAILABILITY_OPTIONS.includes(availability) &&
+    !saveSubmitting;
 
   const modalTitle = isEditMode ? 'Edit Card Blocker' : 'New Card Blocker';
 
@@ -439,6 +448,25 @@ const NewBlockerModal = ({
             />
           </div>
 
+          <div className="new-blocker-field new-blocker-field-full">
+            <label className="new-blocker-label" htmlFor="new-blocker-availability-select">
+              Availability
+            </label>
+            <select
+              id="new-blocker-availability-select"
+              className="new-blocker-select"
+              value={availability}
+              onChange={(e) => setAvailability(e.target.value)}
+              aria-required
+            >
+              {TAG_AVAILABILITY_OPTIONS.map((opt) => (
+                <option key={opt} value={opt}>
+                  {opt}
+                </option>
+              ))}
+            </select>
+          </div>
+
           <div className="new-blocker-field new-blocker-boards-field">
             <p className="new-blocker-boards-text">The blocker is applied to the following boards</p>
             <div className="new-blocker-boards-controls">
@@ -539,7 +567,7 @@ NewBlockerModal.propTypes = {
   show: PropTypes.bool.isRequired,
   onClose: PropTypes.func.isRequired,
   onSave: PropTypes.func,
-  /** Create mode: null. Edit mode: { blocker_id, label, color_code, icon, boards } */
+  /** Create mode: null. Edit mode: { blocker_id, label, color_code, icon, availability_level?, boards } */
   editingBlocker: PropTypes.object,
   workspaceBoardOptions: PropTypes.arrayOf(
     PropTypes.shape({

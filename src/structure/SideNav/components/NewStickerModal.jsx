@@ -7,22 +7,10 @@ import SedresColorPicker from '../../../components/SedresColorPicker/SedresColor
 import { normalizeHexColor } from '../../../components/SedresColorPicker/sedresColorPickerConstants';
 import DynamicIcon from './DynamicIcon';
 import IconPicker from './IconPicker';
+import { TAG_AVAILABILITY_OPTIONS, normalizeTagAvailabilityLevel } from './NewTagModal';
 import '../../../design/scss/new-blocker-modal.scss';
 
 const COLOR_PICKER_PORTAL_Z = 10800;
-
-/** Same values as tag/type APIs (`NewTagModal` / backend) */
-const STICKER_AVAILABILITY_OPTIONS = ['On-demand', 'Auto', 'Global'];
-
-function normalizeStickerAvailabilityLevel(value) {
-  const raw = String(value ?? '').trim();
-  if (STICKER_AVAILABILITY_OPTIONS.includes(raw)) return raw;
-  const compact = raw.replace(/\s+/g, '').toLowerCase();
-  if (compact === 'ondemand' || compact === 'on-demand') return 'On-demand';
-  if (compact === 'auto') return 'Auto';
-  if (compact === 'global') return 'Global';
-  return STICKER_AVAILABILITY_OPTIONS[0];
-}
 
 function boardKey(id) {
   return String(id ?? '');
@@ -78,7 +66,7 @@ const NewStickerModal = ({
   const [selectedColor, setSelectedColor] = useState('#ffffff');
   const [selectedIconKey, setSelectedIconKey] = useState('');
   const [label, setLabel] = useState('');
-  const [availability, setAvailability] = useState(STICKER_AVAILABILITY_OPTIONS[0]);
+  const [availability, setAvailability] = useState(TAG_AVAILABILITY_OPTIONS[0]);
   const [selectedBoards, setSelectedBoards] = useState([]);
   const [isColorPickerOpen, setIsColorPickerOpen] = useState(false);
   const [colorPickerPlacement, setColorPickerPlacement] = useState({ top: 0, left: 0 });
@@ -101,7 +89,7 @@ const NewStickerModal = ({
     setSelectedColor('#ffffff');
     setSelectedIconKey('');
     setLabel('');
-    setAvailability(STICKER_AVAILABILITY_OPTIONS[0]);
+    setAvailability(TAG_AVAILABILITY_OPTIONS[0]);
     setSelectedBoards([]);
     setIsColorPickerOpen(false);
     setIsBoardSelectorOpen(false);
@@ -188,7 +176,7 @@ const NewStickerModal = ({
       const rawIcon = editingSticker.icon != null ? String(editingSticker.icon).trim() : '';
       setSelectedIconKey(rawIcon);
       setLabel(editingSticker.label ?? '');
-      setAvailability(normalizeStickerAvailabilityLevel(editingSticker.availability_level));
+      setAvailability(normalizeTagAvailabilityLevel(editingSticker.availability_level));
       const boards = Array.isArray(editingSticker.boards)
         ? editingSticker.boards.map((b) => ({
             board_id: b.board_id,
@@ -208,7 +196,7 @@ const NewStickerModal = ({
 
   const handleSave = async () => {
     const trimmed = label.trim();
-    if (!trimmed) return;
+    if (!trimmed || !TAG_AVAILABILITY_OPTIONS.includes(availability)) return;
     const board_ids = selectedBoards.map((b) => b.board_id);
     const color_code = normalizeHexColor(selectedColor);
     const icon = (selectedIconKey || '').trim() || 'FiLayers';
@@ -225,6 +213,7 @@ const NewStickerModal = ({
                 color_code,
                 icon,
                 board_ids,
+                availability_level: availability,
               }
             : {
                 mode: 'create',
@@ -232,6 +221,7 @@ const NewStickerModal = ({
                 color_code,
                 icon,
                 board_ids,
+                availability_level: availability,
               }
         );
       }
@@ -299,7 +289,10 @@ const NewStickerModal = ({
   const previewHex = normalizeHexColor(selectedColor);
   const swatchIconFg = contrastIconFg(previewHex);
 
-  const canSave = Boolean(label.trim()) && !saveSubmitting;
+  const canSave =
+    Boolean(label.trim()) &&
+    TAG_AVAILABILITY_OPTIONS.includes(availability) &&
+    !saveSubmitting;
 
   const modalTitle = isEditMode ? 'Edit Card Sticker' : 'New Card Sticker';
 
@@ -465,7 +458,7 @@ const NewStickerModal = ({
               onChange={(e) => setAvailability(e.target.value)}
               aria-required
             >
-              {STICKER_AVAILABILITY_OPTIONS.map((opt) => (
+              {TAG_AVAILABILITY_OPTIONS.map((opt) => (
                 <option key={opt} value={opt}>
                   {opt}
                 </option>

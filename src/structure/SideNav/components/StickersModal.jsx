@@ -231,6 +231,7 @@ const StickersModal = ({ show, onClose }) => {
       color_code: payload.color_code,
       icon_name: payload.icon,
       board_ids: payload.board_ids,
+      availability_level: payload.availability_level,
     };
     if (payload.mode === 'create') {
       await createKanbanCardSticker(apiBody, refreshParams());

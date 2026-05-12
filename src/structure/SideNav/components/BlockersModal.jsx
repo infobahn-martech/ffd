@@ -183,6 +183,7 @@ const BlockersModal = ({ show, onClose }) => {
       label: row.label,
       color_code: row.color_code,
       icon: row.icon,
+      availability_level: row.availabilityLevel,
       boards: row.boardsRaw,
     });
     setShowNewBlockerModal(true);
@@ -230,6 +231,7 @@ const BlockersModal = ({ show, onClose }) => {
       color_code: payload.color_code,
       icon_name: payload.icon,
       board_ids: payload.board_ids,
+      availability_level: payload.availability_level,
     };
     if (payload.mode === 'create') {
       await createKanbanCardBlocker(apiBody, refreshParams());
