@@ -120,7 +120,7 @@ const ZawilPassContent = ({ formValues, handleChange, cardColor, card }) => {
                     isClearable
                     isSearchable
                     closeMenuOnSelect={false}
-                    hideSelectedOptions={false}
+                    hideSelectedOptions={true}
                     isLoading={crewLoading}
                     isDisabled={crewLoading || crewLoadState === "missing_call_id" || crewLoadState === "missing_vessel_id"}
                     noOptionsMessage={() =>

@@ -1,10 +1,9 @@
-import { useCallback, useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import { useParams } from "react-router-dom";
 import { notify } from "../../../../../../components/Toaster";
 import {
   createPassRequest,
   getCrewListForPass,
-  mapAxiosResponseToCrewOptions,
 } from "../../../../../../services/cgAndZwailpassService";
 
 export const resolvePassCallId = (formValues, card, routeParams) => {
@@ -29,40 +28,6 @@ export const resolvePassVesselId = (formValues, card, routeParams) => {
   return String(raw).trim();
 };
 
-const mergeCrewOptions = (apiOptions, crewList) => {
-  const map = new Map();
-  apiOptions.forEach((opt) => map.set(opt.value, opt));
-  if (Array.isArray(crewList)) {
-    crewList.forEach((crew) => {
-      const id =
-        crew.crew_change_id ??
-        crew.crewChangeId ??
-        crew.crew_id ??
-        crew.id ??
-        crew.crewId;
-      if (id === undefined || id === null) return;
-      const val = String(id);
-      if (!map.has(val)) {
-        map.set(val, {
-          value: val,
-          label:
-            crew.crew_name ||
-            crew.crewName ||
-            crew.name ||
-            `Crew Member ${crew.crew_id ?? crew.id ?? ""}`,
-          crew_id: crew.crew_id ?? crew.id,
-          crew_change_id: crew.crew_change_id ?? crew.crewChangeId,
-          movement_type: crew.movement_type ?? crew.movementType,
-          nationality: crew.nationality,
-          rank: crew.rank,
-          raw: crew,
-        });
-      }
-    });
-  }
-  return [...map.values()];
-};
-
 const pickBackendErrorMessage = (error) => {
   const data = error?.response?.data;
   if (typeof data === "string" && data.trim()) return data.trim();
@@ -84,7 +49,7 @@ export function useCrewPassTabApi({
   documentsField,
 }) {
   const routeParams = useParams();
-  const [apiCrewOptions, setApiCrewOptions] = useState([]);
+  const [crewOptions, setCrewOptions] = useState([]);
   const [crewLoading, setCrewLoading] = useState(false);
   const [crewLoadError, setCrewLoadError] = useState(null);
   const [crewLoadState, setCrewLoadState] = useState("idle");
@@ -94,7 +59,7 @@ export function useCrewPassTabApi({
 
   useEffect(() => {
     if (!callId) {
-      setApiCrewOptions([]);
+      setCrewOptions([]);
       setCrewLoadError(null);
       setCrewLoadState("missing_call_id");
       setCrewLoading(false);
@@ -102,7 +67,7 @@ export function useCrewPassTabApi({
     }
 
     if (!vesselId) {
-      setApiCrewOptions([]);
+      setCrewOptions([]);
       setCrewLoadError(null);
       setCrewLoadState("missing_vessel_id");
       setCrewLoading(false);
@@ -119,15 +84,31 @@ export function useCrewPassTabApi({
           call_id: callId,
           vessel_id: vesselId,
         });
-        const opts = mapAxiosResponseToCrewOptions(response);
+        const crewArray =
+          response?.data?.data?.crew ||
+          response?.data?.crew ||
+          [];
+        const safeCrewArray = Array.isArray(crewArray) ? crewArray : [];
+        const mappedOptions = safeCrewArray.map((crew) => ({
+          value: String(crew.crew_change_id || crew.crew_id || crew.id),
+          label:
+            crew.crew_name ||
+            crew.crewName ||
+            `Crew Member ${crew.crew_id || crew.id}`,
+          crew_id: crew.crew_id,
+          crew_change_id: crew.crew_change_id,
+          raw: crew,
+        }));
+        console.log("Crew pass API crewArray:", crewArray);
+        console.log("Crew pass mappedOptions:", mappedOptions);
         if (!cancelled) {
-          setApiCrewOptions(opts);
-          setCrewLoadState(opts.length > 0 ? "success" : "empty");
+          setCrewOptions(mappedOptions);
+          setCrewLoadState(mappedOptions.length > 0 ? "success" : "empty");
         }
       } catch (err) {
         console.error("Failed to load crew list for pass tab", err);
         if (!cancelled) {
-          setApiCrewOptions([]);
+          setCrewOptions([]);
           setCrewLoadError(pickBackendErrorMessage(err));
           setCrewLoadState("api_error");
         }
@@ -139,11 +120,6 @@ export function useCrewPassTabApi({
       cancelled = true;
     };
   }, [callId, vesselId]);
-
-  const crewOptions = useMemo(
-    () => mergeCrewOptions(apiCrewOptions, formValues?.crewList),
-    [apiCrewOptions, formValues?.crewList]
-  );
 
   const crewEmpty = !crewLoading && crewLoadState === "empty";
 
