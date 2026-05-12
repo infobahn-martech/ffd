@@ -166,16 +166,24 @@ export function useCrewPassTabApi({
       ? formValues[documentsField]
       : [];
 
+    const normalizedCrewIds = selectedCrewIds
+      .map((id) => {
+        if (id === undefined || id === null) return null;
+        const trimmed = String(id).trim();
+        if (trimmed === "") return null;
+        const asNumber = Number(trimmed);
+        return Number.isFinite(asNumber) && String(asNumber) === trimmed
+          ? asNumber
+          : trimmed;
+      })
+      .filter((id) => id !== null);
+
     const formData = new FormData();
     formData.append("call_id", callId);
     if (requestEmailField) {
       formData.append("request_email", requestEmail);
     }
-    selectedCrewIds.forEach((id) => {
-      if (id !== undefined && id !== null && String(id).trim() !== "") {
-        formData.append("crew_change_ids[]", String(id).trim());
-      }
-    });
+    formData.append("crew_change_ids", JSON.stringify(normalizedCrewIds));
     formData.append("pass_type", passType);
     formData.append("remarks", remarks || "");
 
