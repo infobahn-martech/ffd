@@ -127,6 +127,9 @@ const CGPassContent = ({ formValues, handleChange, cardColor, card }) => {
                     classNamePrefix="react-select"
                     styles={customSelectStyles}
                     formatOptionLabel={formatCrewOptionLabel}
+                    menuPortalTarget={document.body}
+                    menuPosition="fixed"
+                    menuShouldBlockScroll={true}
                     isClearable
                     isSearchable
                     closeMenuOnSelect={false}

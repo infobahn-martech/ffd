@@ -430,6 +430,10 @@ export const getCrewMultiSelectStyles = (cardColor = "#00368c") => ({
     marginTop: "4px",
     zIndex: 9999,
   }),
+  menuPortal: (base) => ({
+    ...base,
+    zIndex: 12000,
+  }),
   menuList: (base) => ({
     ...base,
     padding: "4px",
