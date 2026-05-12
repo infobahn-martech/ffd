@@ -3,7 +3,9 @@ import { FiX, FiPlus, FiMoreVertical, FiInfo, FiAlertCircle } from 'react-icons/
 import { Modal } from 'react-bootstrap';
 import NewTypeModal from './NewTypeModal';
 import DynamicIcon from './DynamicIcon';
-import useKanbanManagementReducer from '../../../store/KanbanManagementReducer';
+import useKanbanManagementReducer, {
+  isKanbanManagementRowDisabled,
+} from '../../../store/KanbanManagementReducer';
 import { normalizeHexColor } from '../../../components/SedresColorPicker/sedresColorPickerConstants';
 import '../../../design/scss/blockers-modal.scss';
 
@@ -65,6 +67,7 @@ const TypesModal = ({ show, onClose }) => {
   const createKanbanCardType = useKanbanManagementReducer((s) => s.createKanbanCardType);
   const updateKanbanCardTypeRecord = useKanbanManagementReducer((s) => s.updateKanbanCardTypeRecord);
   const disableKanbanCardTypeRecord = useKanbanManagementReducer((s) => s.disableKanbanCardTypeRecord);
+  const enableKanbanCardTypeRecord = useKanbanManagementReducer((s) => s.enableKanbanCardTypeRecord);
   const deleteKanbanCardTypeRecord = useKanbanManagementReducer((s) => s.deleteKanbanCardTypeRecord);
 
   const [searchValue, setSearchValue] = useState('');
@@ -189,6 +192,16 @@ const TypesModal = ({ show, onClose }) => {
     setOpenActionMenuId(null);
     try {
       await disableKanbanCardTypeRecord(id, refreshParams());
+    } catch {
+      /* AlertReducer in store */
+    }
+  };
+
+  const handleEnable = async (cardTypeId) => {
+    const id = String(cardTypeId);
+    setOpenActionMenuId(null);
+    try {
+      await enableKanbanCardTypeRecord(id, refreshParams());
     } catch {
       /* AlertReducer in store */
     }
@@ -418,27 +431,39 @@ const TypesModal = ({ show, onClose }) => {
                         </button>
                         {openActionMenuId === String(row.id) && (
                           <div className="blockers-action-menu">
-                            <button
-                              type="button"
-                              className="blockers-action-menu-item"
-                              onClick={() => handleEdit(row)}
-                            >
-                              Edit
-                            </button>
-                            <button
-                              type="button"
-                              className="blockers-action-menu-item"
-                              onClick={() => handleDisable(row.card_type_id ?? row.id)}
-                            >
-                              Disable
-                            </button>
-                            <button
-                              type="button"
-                              className="blockers-action-menu-item blockers-action-menu-item-danger"
-                              onClick={() => handleDelete(row.card_type_id ?? row.id)}
-                            >
-                              Delete
-                            </button>
+                            {isKanbanManagementRowDisabled(row.status) ? (
+                              <button
+                                type="button"
+                                className="blockers-action-menu-item"
+                                onClick={() => handleEnable(row.card_type_id ?? row.id)}
+                              >
+                                Enable
+                              </button>
+                            ) : (
+                              <>
+                                <button
+                                  type="button"
+                                  className="blockers-action-menu-item"
+                                  onClick={() => handleEdit(row)}
+                                >
+                                  Edit
+                                </button>
+                                <button
+                                  type="button"
+                                  className="blockers-action-menu-item"
+                                  onClick={() => handleDisable(row.card_type_id ?? row.id)}
+                                >
+                                  Disable
+                                </button>
+                                <button
+                                  type="button"
+                                  className="blockers-action-menu-item blockers-action-menu-item-danger"
+                                  onClick={() => handleDelete(row.card_type_id ?? row.id)}
+                                >
+                                  Delete
+                                </button>
+                              </>
+                            )}
                           </div>
                         )}
                       </div>

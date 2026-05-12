@@ -121,6 +121,11 @@ export function normalizeKanbanCardBlockerRowFromApi(t) {
   };
 }
 
+/** Backend: `"0"` = disabled (show Enable only), `"1"` = active (full actions). */
+export function isKanbanManagementRowDisabled(status) {
+  return String(status ?? '') === '0';
+}
+
 export function normalizeKanbanTagRowFromApi(t) {
   const boards = Array.isArray(t?.boards) ? t.boards : [];
   return {
@@ -553,6 +558,22 @@ const useKanbanManagementReducer = create((set, get) => ({
     }
   },
 
+  enableKanbanCardTypeRecord: async (cardTypeId, fetchOpts = {}) => {
+    try {
+      const { data } = await cardMangementService.enableKanbanCardType(cardTypeId);
+      useAlertReducer.getState().success(data?.message ?? 'Card type enabled');
+      await get().fetchKanbanCardTypes({ ...fetchOpts, silentToastOnError: true });
+      return data;
+    } catch (err) {
+      const msg =
+        err?.response?.data?.message ??
+        err?.message ??
+        'Failed to enable card type';
+      useAlertReducer.getState().error(msg);
+      throw err;
+    }
+  },
+
   deleteKanbanCardTypeRecord: async (cardTypeId, fetchOpts = {}) => {
     try {
       const { data } = await cardMangementService.deleteKanbanCardType(cardTypeId);
@@ -617,6 +638,22 @@ const useKanbanManagementReducer = create((set, get) => ({
     }
   },
 
+  enableKanbanCardStickerRecord: async (stickerId, fetchOpts = {}) => {
+    try {
+      const { data } = await cardMangementService.enableKanbanCardSticker(stickerId);
+      useAlertReducer.getState().success(data?.message ?? 'Card sticker enabled');
+      await get().fetchKanbanCardStickers({ ...fetchOpts, silentToastOnError: true });
+      return data;
+    } catch (err) {
+      const msg =
+        err?.response?.data?.message ??
+        err?.message ??
+        'Failed to enable card sticker';
+      useAlertReducer.getState().error(msg);
+      throw err;
+    }
+  },
+
   deleteKanbanCardStickerRecord: async (stickerId, fetchOpts = {}) => {
     try {
       const { data } = await cardMangementService.deleteKanbanCardSticker(stickerId);
@@ -676,6 +713,22 @@ const useKanbanManagementReducer = create((set, get) => ({
         err?.response?.data?.message ??
         err?.message ??
         'Failed to disable card blocker';
+      useAlertReducer.getState().error(msg);
+      throw err;
+    }
+  },
+
+  enableKanbanCardBlockerRecord: async (blockerId, fetchOpts = {}) => {
+    try {
+      const { data } = await cardMangementService.enableKanbanCardBlocker(blockerId);
+      useAlertReducer.getState().success(data?.message ?? 'Card blocker enabled');
+      await get().fetchKanbanCardBlockers({ ...fetchOpts, silentToastOnError: true });
+      return data;
+    } catch (err) {
+      const msg =
+        err?.response?.data?.message ??
+        err?.message ??
+        'Failed to enable card blocker';
       useAlertReducer.getState().error(msg);
       throw err;
     }

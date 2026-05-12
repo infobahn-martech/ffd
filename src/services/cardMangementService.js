@@ -18,6 +18,11 @@ export const disableKanbanCardType = (cardTypeId) =>
     `/kanban_management/disable_kanban_card_type/${encodeURIComponent(String(cardTypeId))}`
   );
 
+export const enableKanbanCardType = (cardTypeId) =>
+  Gateway.post(
+    `/kanban_management/enable_kanban_card_type/${encodeURIComponent(String(cardTypeId))}`
+  );
+
 /** Backend uses POST for delete (same pattern as tags) */
 export const deleteKanbanCardType = (cardTypeId) =>
   Gateway.post(
@@ -40,6 +45,11 @@ export const updateKanbanCardSticker = (stickerId, payload) =>
 export const disableKanbanCardSticker = (stickerId) =>
   Gateway.post(
     `/kanban_management/disable_kanban_card_sticker/${encodeURIComponent(String(stickerId))}`
+  );
+
+export const enableKanbanCardSticker = (stickerId) =>
+  Gateway.post(
+    `/kanban_management/enable_kanban_card_sticker/${encodeURIComponent(String(stickerId))}`
   );
 
 /** Backend pattern matches tags / card types (POST delete) */
@@ -66,6 +76,11 @@ export const disableKanbanCardBlocker = (blockerId) =>
     `/kanban_management/disable_kanban_card_blocker/${encodeURIComponent(String(blockerId))}`
   );
 
+export const enableKanbanCardBlocker = (blockerId) =>
+  Gateway.post(
+    `/kanban_management/enable_kanban_card_blocker/${encodeURIComponent(String(blockerId))}`
+  );
+
 export const deleteKanbanCardBlocker = (blockerId) =>
   Gateway.post(
     `/kanban_management/delete_kanban_card_blocker/${encodeURIComponent(String(blockerId))}`
@@ -76,6 +91,7 @@ export default {
   saveKanbanCardType,
   updateKanbanCardType,
   disableKanbanCardType,
+  enableKanbanCardType,
   deleteKanbanCardType,
   getAllKanbanCardStickers,
   saveKanbanCardSticker,
@@ -86,5 +102,6 @@ export default {
   saveKanbanCardBlocker,
   updateKanbanCardBlocker,
   disableKanbanCardBlocker,
+  enableKanbanCardBlocker,
   deleteKanbanCardBlocker,
 };

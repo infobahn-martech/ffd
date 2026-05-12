@@ -3,7 +3,9 @@ import { FiX, FiPlus, FiMoreVertical, FiInfo, FiAlertCircle } from 'react-icons/
 import { Modal } from 'react-bootstrap';
 import NewStickerModal from './NewStickerModal';
 import DynamicIcon from './DynamicIcon';
-import useKanbanManagementReducer from '../../../store/KanbanManagementReducer';
+import useKanbanManagementReducer, {
+  isKanbanManagementRowDisabled,
+} from '../../../store/KanbanManagementReducer';
 import { normalizeHexColor } from '../../../components/SedresColorPicker/sedresColorPickerConstants';
 import '../../../design/scss/blockers-modal.scss';
 
@@ -68,6 +70,9 @@ const StickersModal = ({ show, onClose }) => {
   );
   const disableKanbanCardStickerRecord = useKanbanManagementReducer(
     (s) => s.disableKanbanCardStickerRecord
+  );
+  const enableKanbanCardStickerRecord = useKanbanManagementReducer(
+    (s) => s.enableKanbanCardStickerRecord
   );
   const deleteKanbanCardStickerRecord = useKanbanManagementReducer(
     (s) => s.deleteKanbanCardStickerRecord
@@ -427,27 +432,39 @@ const StickersModal = ({ show, onClose }) => {
                         </button>
                         {openActionMenuId === String(row.id) && (
                           <div className="blockers-action-menu">
-                            <button
-                              type="button"
-                              className="blockers-action-menu-item"
-                              onClick={() => handleEdit(row)}
-                            >
-                              Edit
-                            </button>
-                            <button
-                              type="button"
-                              className="blockers-action-menu-item"
-                              onClick={() => handleDisable(row.sticker_id ?? row.id)}
-                            >
-                              Disable
-                            </button>
-                            <button
-                              type="button"
-                              className="blockers-action-menu-item blockers-action-menu-item-danger"
-                              onClick={() => handleDelete(row.sticker_id ?? row.id)}
-                            >
-                              Delete
-                            </button>
+                            {isKanbanManagementRowDisabled(row.status) ? (
+                              <button
+                                type="button"
+                                className="blockers-action-menu-item"
+                                onClick={() => handleEnable(row.sticker_id ?? row.id)}
+                              >
+                                Enable
+                              </button>
+                            ) : (
+                              <>
+                                <button
+                                  type="button"
+                                  className="blockers-action-menu-item"
+                                  onClick={() => handleEdit(row)}
+                                >
+                                  Edit
+                                </button>
+                                <button
+                                  type="button"
+                                  className="blockers-action-menu-item"
+                                  onClick={() => handleDisable(row.sticker_id ?? row.id)}
+                                >
+                                  Disable
+                                </button>
+                                <button
+                                  type="button"
+                                  className="blockers-action-menu-item blockers-action-menu-item-danger"
+                                  onClick={() => handleDelete(row.sticker_id ?? row.id)}
+                                >
+                                  Delete
+                                </button>
+                              </>
+                            )}
                           </div>
                         )}
                       </div>
