@@ -13,6 +13,8 @@ const AttachmentsList = ({
   onDrop,
   fileInputRef,
   onFileInputChange,
+  accept = "*/*",
+  multiple = true,
 }) => {
   return (
     <div className="attachment-list-wrapper">
@@ -30,8 +32,8 @@ const AttachmentsList = ({
             ref={fileInputRef}
             type="file"
             className="file-input-hidden"
-            accept="*/*"
-            multiple
+            accept={accept}
+            multiple={multiple}
             onChange={onFileInputChange}
           />
           <div className="upload-zone-content">
@@ -82,6 +84,8 @@ AttachmentsList.propTypes = {
   onDrop: PropTypes.func,
   fileInputRef: PropTypes.object,
   onFileInputChange: PropTypes.func,
+  accept: PropTypes.string,
+  multiple: PropTypes.bool,
 };
 
 export default AttachmentsList;

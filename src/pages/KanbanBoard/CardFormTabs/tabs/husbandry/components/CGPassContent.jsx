@@ -2,14 +2,26 @@ import { useState, useRef } from "react";
 import PropTypes from "prop-types";
 import Select from "react-select";
 import GroupSettingsIcon from "../../../../../../assets/images/cv.png";
-import { FormSection, FormField, FormInput, ReactQuillEditor, getCrewMultiSelectStyles, formatCrewOptionLabel } from "./Husbandry.components";
+import { notify } from "../../../../../../components/Toaster";
+import {
+  FormSection,
+  FormField,
+  ReactQuillEditor,
+  getCrewMultiSelectStyles,
+  formatCrewOptionLabel,
+} from "./Husbandry.components";
 import AttachmentsList from "../../appointment/AttachmentsList";
 import CrewPassRequestsTable from "./CrewPassRequestsTable";
 import { useCrewPassTabApi } from "./useCrewPassTabApi";
 
+const REQUEST_EMAIL_ACCEPT_ATTR = ".msg,.eml,.pdf,.doc,.docx";
+const REQUEST_EMAIL_EXT_RE = /\.(msg|eml|pdf|doc|docx)$/i;
+
 const CGPassContent = ({ formValues, handleChange, cardColor, card }) => {
   const [isDragging, setIsDragging] = useState(false);
+  const [isDraggingEmail, setIsDraggingEmail] = useState(false);
   const fileInputRef = useRef(null);
+  const requestEmailInputRef = useRef(null);
 
   const {
     crewOptions,
@@ -28,7 +40,7 @@ const CGPassContent = ({ formValues, handleChange, cardColor, card }) => {
     selectedCrewField: "cgPassSelectedCrew",
     remarksField: "cgPassDescription",
     documentsField: "cgPassDocuments",
-    requestEmailField: "cgPassRequestEmail",
+    requestEmailFileField: "cgPassRequestEmailFile",
   });
 
   const handleCrewChange = (selectedOptions) => {
@@ -57,6 +69,72 @@ const CGPassContent = ({ formValues, handleChange, cardColor, card }) => {
     size: file.size,
     type: file.type,
   });
+
+  const filterRequestEmailFiles = (files) =>
+    Array.from(files || []).filter((f) => REQUEST_EMAIL_EXT_RE.test(f.name));
+
+  const handleRequestEmailDragEnter = (e) => {
+    e.preventDefault();
+    e.stopPropagation();
+    setIsDraggingEmail(true);
+  };
+
+  const handleRequestEmailDragLeave = (e) => {
+    e.preventDefault();
+    e.stopPropagation();
+    setIsDraggingEmail(false);
+  };
+
+  const handleRequestEmailDragOver = (e) => {
+    e.preventDefault();
+    e.stopPropagation();
+  };
+
+  const handleRequestEmailDrop = (e) => {
+    e.preventDefault();
+    e.stopPropagation();
+    setIsDraggingEmail(false);
+    const raw = Array.from(e.dataTransfer.files || []);
+    const allowed = filterRequestEmailFiles(raw);
+    if (allowed.length === 0) {
+      if (raw.length > 0) {
+        notify(
+          "Only .msg, .eml, .pdf, .doc, .docx files are allowed for request email.",
+          "warning",
+          "top-center"
+        );
+      }
+      return;
+    }
+    handleChange("cgPassRequestEmailFile")({
+      target: { value: [fileToAttachment(allowed[0])] },
+    });
+  };
+
+  const handleRequestEmailFileInputChange = (e) => {
+    const raw = Array.from(e.target.files || []);
+    const allowed = filterRequestEmailFiles(raw);
+    if (allowed.length === 0) {
+      if (raw.length > 0) {
+        notify(
+          "Only .msg, .eml, .pdf, .doc, .docx files are allowed for request email.",
+          "warning",
+          "top-center"
+        );
+      }
+    } else {
+      handleChange("cgPassRequestEmailFile")({
+        target: { value: [fileToAttachment(allowed[0])] },
+      });
+    }
+    if (requestEmailInputRef.current) {
+      requestEmailInputRef.current.value = "";
+    }
+  };
+
+  const handleRequestEmailRemoveAttachment = () => {
+    handleChange("cgPassRequestEmailFile")({ target: { value: [] } });
+  };
 
   const handleDocumentsDragEnter = (e) => {
     e.preventDefault();
@@ -108,96 +186,114 @@ const CGPassContent = ({ formValues, handleChange, cardColor, card }) => {
     <div className="cardform-left-full" style={{ "--card-color": cardColor }}>
       <FormSection icon={GroupSettingsIcon} title="">
         <div className="pre-arrival-form cgpass-form">
-          <div className="general-info-two-column operation-section-form-layout">
-            <div className="general-info-left">
-              <FormField label="Request Email">
-                <FormInput
-                  type="email"
-                  value={formValues.cgPassRequestEmail || ""}
-                  onChange={handleChange("cgPassRequestEmail")}
-                  placeholder="Enter request email"
-                />
-              </FormField>
-
-              <FormField label="Select Crew">
-                <div className="cf-select react-select-container crew-multi-select">
-                  <Select
-                    isMulti
-                    value={selectedCrewValues}
-                    onChange={handleCrewChange}
-                    options={crewOptions}
-                    placeholder={dynamicCrewPlaceholder}
-                    classNamePrefix="react-select"
-                    styles={customSelectStyles}
-                    formatOptionLabel={formatCrewOptionLabel}
-                    menuPortalTarget={document.body}
-                    menuPosition="fixed"
-                    menuShouldBlockScroll={true}
-                    isClearable
-                    isSearchable
-                    closeMenuOnSelect={false}
-                    hideSelectedOptions={true}
-                    isLoading={crewLoading}
-                    isDisabled={crewLoading || crewLoadState === "missing_call_id"}
-                    noOptionsMessage={() =>
-                      crewLoading ? "Loading..." : "No crew found"
-                    }
-                  />
+          <div className="general-info-two-column operation-section-form-layout crew-pass-premium-grid">
+            <div className="general-info-left crew-pass-premium-left">
+              <div className="crew-pass-request-details-card">
+                <div className="crew-pass-request-details-card__header">
+                  <h3 className="crew-pass-request-details-card__title">Request Details</h3>
                 </div>
-                {!crewLoading && (crewLoadState === "missing_call_id" || crewLoadState === "api_error") ? (
-                  <div className="crew-pass-select-message crew-pass-select-message--error">
-                    {crewLoadState === "missing_call_id"
-                      ? "Call id is required"
-                      : "Unable to load crew"}
-                  </div>
-                ) : null}
-                {!crewLoading && crewEmpty ? (
-                  <div className="crew-pass-select-message crew-pass-select-message--empty">
-                    No crew found
-                  </div>
-                ) : null}
-              </FormField>
+                <div className="crew-pass-request-details-card__body crew-pass-thin-scrollbar">
+                  <FormField label="Request Email">
+                    <div className="cgpass-request-email-inner">
+                      <AttachmentsList
+                        attachments={formValues.cgPassRequestEmailFile || []}
+                        onAdd={() => {}}
+                        onRemove={handleRequestEmailRemoveAttachment}
+                        cardColor={cardColor}
+                        isDragging={isDraggingEmail}
+                        onDragEnter={handleRequestEmailDragEnter}
+                        onDragLeave={handleRequestEmailDragLeave}
+                        onDragOver={handleRequestEmailDragOver}
+                        onDrop={handleRequestEmailDrop}
+                        fileInputRef={requestEmailInputRef}
+                        onFileInputChange={handleRequestEmailFileInputChange}
+                        accept={REQUEST_EMAIL_ACCEPT_ATTR}
+                        multiple={false}
+                      />
+                    </div>
+                  </FormField>
 
-              <FormField label="Documents" className="cf-field-full">
-                <div className="cgpass-documents-inner">
-                  <AttachmentsList
-                    attachments={formValues.cgPassDocuments || []}
-                    onAdd={() => {}}
-                    onRemove={handleDocumentsRemoveAttachment}
-                    cardColor={cardColor}
-                    isDragging={isDragging}
-                    onDragEnter={handleDocumentsDragEnter}
-                    onDragLeave={handleDocumentsDragLeave}
-                    onDragOver={handleDocumentsDragOver}
-                    onDrop={handleDocumentsDrop}
-                    fileInputRef={fileInputRef}
-                    onFileInputChange={handleDocumentsFileInputChange}
-                  />
+                  <FormField label="Select Crew">
+                    <div className="cf-select react-select-container crew-multi-select">
+                      <Select
+                        isMulti
+                        value={selectedCrewValues}
+                        onChange={handleCrewChange}
+                        options={crewOptions}
+                        placeholder={dynamicCrewPlaceholder}
+                        classNamePrefix="react-select"
+                        styles={customSelectStyles}
+                        formatOptionLabel={formatCrewOptionLabel}
+                        menuPortalTarget={document.body}
+                        menuPosition="fixed"
+                        menuShouldBlockScroll={true}
+                        isClearable
+                        isSearchable
+                        closeMenuOnSelect={false}
+                        hideSelectedOptions={true}
+                        isLoading={crewLoading}
+                        isDisabled={crewLoading || crewLoadState === "missing_call_id"}
+                        noOptionsMessage={() =>
+                          crewLoading ? "Loading..." : "No crew found"
+                        }
+                      />
+                    </div>
+                    {!crewLoading && (crewLoadState === "missing_call_id" || crewLoadState === "api_error") ? (
+                      <div className="crew-pass-select-message crew-pass-select-message--error">
+                        {crewLoadState === "missing_call_id"
+                          ? "Call id is required"
+                          : "Unable to load crew"}
+                      </div>
+                    ) : null}
+                    {!crewLoading && crewEmpty ? (
+                      <div className="crew-pass-select-message crew-pass-select-message--empty">
+                        No crew found
+                      </div>
+                    ) : null}
+                  </FormField>
+
+                  <FormField label="Documents" className="cf-field-full">
+                    <div className="cgpass-documents-inner">
+                      <AttachmentsList
+                        attachments={formValues.cgPassDocuments || []}
+                        onAdd={() => {}}
+                        onRemove={handleDocumentsRemoveAttachment}
+                        cardColor={cardColor}
+                        isDragging={isDragging}
+                        onDragEnter={handleDocumentsDragEnter}
+                        onDragLeave={handleDocumentsDragLeave}
+                        onDragOver={handleDocumentsDragOver}
+                        onDrop={handleDocumentsDrop}
+                        fileInputRef={fileInputRef}
+                        onFileInputChange={handleDocumentsFileInputChange}
+                      />
+                    </div>
+                  </FormField>
+
+                  <div className="cgpass-remarks">
+                    <FormField label="Remarks">
+                      <ReactQuillEditor
+                        value={formValues?.cgPassDescription || ""}
+                        onChange={handleChange("cgPassDescription")}
+                        placeholder="Enter remarks..."
+                        name="cgPassDescription"
+                      />
+                    </FormField>
+                  </div>
+
+                  <div className="form-save-button-wrapper cgpass-save-footer">
+                    <button
+                      type="button"
+                      className="form-save-button"
+                      onClick={() => {
+                        void handleSave();
+                      }}
+                      disabled={saving}
+                    >
+                      {saving ? "Saving..." : "Save"}
+                    </button>
+                  </div>
                 </div>
-              </FormField>
-
-              <div className="cgpass-remarks">
-                <FormField label="Remarks">
-                  <ReactQuillEditor
-                    value={formValues?.cgPassDescription || ""}
-                    onChange={handleChange("cgPassDescription")}
-                    placeholder="Enter remarks..."
-                    name="cgPassDescription"
-                  />
-                </FormField>
-              </div>
-
-              <div className="form-save-button-wrapper cgpass-save-footer">
-                <button
-                  type="button"
-                  className="form-save-button"
-                  onClick={() => {
-                    void handleSave();
-                  }}
-                  disabled={saving}
-                >
-                  {saving ? "Saving..." : "Save"}
-                </button>
               </div>
             </div>
 

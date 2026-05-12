@@ -51,7 +51,7 @@ export function useCrewPassTabApi({
   selectedCrewField,
   remarksField,
   documentsField,
-  requestEmailField,
+  requestEmailFileField,
 }) {
   const routeParams = useParams();
   const [crewOptions, setCrewOptions] = useState([]);
@@ -142,15 +142,16 @@ export function useCrewPassTabApi({
       return;
     }
 
-    let requestEmail = "";
-    if (requestEmailField) {
-      const emailRaw = formValues?.[requestEmailField];
-      requestEmail =
-        emailRaw === undefined || emailRaw === null
-          ? ""
-          : String(emailRaw).trim();
-      if (!requestEmail) {
-        notify("Request email is required.", "error", "top-center");
+    let requestEmailFile = null;
+    if (requestEmailFileField) {
+      const attachments = Array.isArray(formValues?.[requestEmailFileField])
+        ? formValues[requestEmailFileField]
+        : [];
+      requestEmailFile = attachments
+        .map((a) => a?.file ?? a)
+        .find((f) => f instanceof File);
+      if (!requestEmailFile) {
+        notify("Request email file is required.", "error", "top-center");
         return;
       }
     }
@@ -185,8 +186,8 @@ export function useCrewPassTabApi({
 
     const formData = new FormData();
     formData.append("call_id", callId);
-    if (requestEmailField) {
-      formData.append("request_email", requestEmail);
+    if (requestEmailFileField && requestEmailFile) {
+      formData.append("request_email", requestEmailFile);
     }
     formData.append("crew_change_ids", JSON.stringify(normalizedCrewIds));
     formData.append("pass_type", passType);
@@ -216,7 +217,7 @@ export function useCrewPassTabApi({
     formValues,
     passType,
     remarksField,
-    requestEmailField,
+    requestEmailFileField,
     routeParams,
     selectedCrewField,
     fetchPassRequests,
