@@ -13,6 +13,8 @@ const useCrewReducer = create((set) => ({
     isBeingUpdated: false,
     errorMessage: '',
     totalCrewCount: null,
+    /** Per-crew per-document upload spinner flags, e.g. { 12: { passport_copy: true } } */
+    uploadingCrewDoc: {},
 
     fetchCallCrewList: async ({ payload, cb } = {}) => {
         try {
@@ -132,6 +134,36 @@ const useCrewReducer = create((set) => ({
                 errorMessage: message,
                 isBeingUpdated: false,
             });
+            error(message);
+            throw err;
+        }
+    },
+
+    updateCrewDocuments: async ({ formData, crewId, fieldName, cb } = {}) => {
+        const setUploading = (flag) => {
+            if (crewId == null || !fieldName) return;
+            set((state) => ({
+                uploadingCrewDoc: {
+                    ...state.uploadingCrewDoc,
+                    [crewId]: {
+                        ...(state.uploadingCrewDoc?.[crewId] || {}),
+                        [fieldName]: flag,
+                    },
+                },
+            }));
+        };
+
+        try {
+            setUploading(true);
+            const { data } = await crewService.updateCrewDocuments(formData);
+            setUploading(false);
+            cb && cb(data);
+            return data;
+        } catch (err) {
+            setUploading(false);
+            const { error } = useAlertReducer.getState();
+            const message = err?.response?.data?.message ?? err.message;
+            set({ errorMessage: message });
             error(message);
             throw err;
         }

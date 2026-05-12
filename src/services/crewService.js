@@ -8,6 +8,8 @@ const importCrew = (formData) =>
   Gateway.post("crew/import_crew", formData, {
     headers: { "Content-Type": "multipart/form-data" },
   });
+const updateCrewDocuments = (formData) =>
+  Gateway.post("crew/update_crew_documents", formData);
 
 export default {
   saveCrew,
@@ -15,4 +17,5 @@ export default {
   getAllCrews,
   getCrewTemplate,
   importCrew,
+  updateCrewDocuments,
 };

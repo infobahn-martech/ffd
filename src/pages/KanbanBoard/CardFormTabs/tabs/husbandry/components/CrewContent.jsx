@@ -430,6 +430,8 @@ const CrewContent = ({ formValues, handleChange, cardColor, onNavigateToTab, lau
   const callCrewListPagination = useCrewReducer((state) => state.callCrewListPagination);
   const isCallCrewListLoading = useCrewReducer((state) => state.isCallCrewListLoading);
   const fetchCallCrewList = useCrewReducer((state) => state.fetchCallCrewList);
+  const updateCrewDocuments = useCrewReducer((state) => state.updateCrewDocuments);
+  const uploadingCrewDoc = useCrewReducer((state) => state.uploadingCrewDoc);
   const [crewPage, setCrewPage] = useState(1);
   const [crewLimit] = useState(10);
   const [selectedCrewIds, setSelectedCrewIds] = useState([]);
@@ -1247,6 +1249,49 @@ const CrewContent = ({ formValues, handleChange, cardColor, onNavigateToTab, lau
     // Save to formValues
     const syntheticEvent = { target: { value: updatedDocuments } };
     handleChange("crewVisaDocuments")(syntheticEvent);
+  };
+
+  /**
+   * Upload a single crew document (passport_copy / visa_copy / iqama_copy) for
+   * a specific crew row to POST crew/update_crew_documents. Sends FormData with
+   * only crew_id + the chosen field. Refreshes the crew list on success.
+   */
+  const handleCrewDocumentUpload = async (crew, fieldName, file) => {
+    if (!file) return;
+
+    const crewIdRaw = crew?.crew_id ?? crew?.crewId;
+    const crewId = crewIdRaw != null && String(crewIdRaw).trim() !== ""
+      ? (Number.isNaN(Number(crewIdRaw)) ? crewIdRaw : Number(crewIdRaw))
+      : null;
+
+    if (!crewId) {
+      console.error("handleCrewDocumentUpload: missing crew.crew_id", crew);
+      window.alert("Cannot upload document: crew_id is missing for this crew.");
+      return;
+    }
+
+    const formData = new FormData();
+    formData.append("crew_id", String(crewId));
+    formData.append(fieldName, file);
+
+    try {
+      await updateCrewDocuments({ formData, crewId, fieldName });
+
+      // Mirror the uploaded file into per-row local state so the green tick
+      // stays even if the refreshed list is briefly stale.
+      if (fieldName === "passport_copy") {
+        handlePassportUpload(crew.id, file);
+      } else if (fieldName === "iqama_copy") {
+        handleIqamaUpload(crew.id, file);
+      } else if (fieldName === "visa_copy") {
+        handleVisaUpload(crew.id, file);
+      }
+
+      await refreshCallCrewListFromApi();
+    } catch (err) {
+      console.error(`Error uploading ${fieldName} for crew ${crewId}:`, err);
+      // updateCrewDocuments already surfaces an alert via AlertReducer.
+    }
   };
 
   // Handle individual CG Pass document upload
@@ -2146,46 +2191,46 @@ const CrewContent = ({ formValues, handleChange, cardColor, onNavigateToTab, lau
                     </button>
                   </>
                 ) : showActionDropdown && !launchHireOnly ? (
-                <div style={{ position: "relative", marginRight: "10px" }}>
-                  <select
-                    className="crew-header-select crew-header-select--action"
-                    onChange={(e) => {
-                      const selectedOption = actionOptions.find((opt) => opt.value === e.target.value);
-                      if (selectedOption) {
-                        handleActionSelect(selectedOption);
-                      }
-                      e.target.value = ""; // Reset dropdown
-                    }}
-                    style={{
-                      padding: "8px 32px 8px 12px",
-                      borderRadius: "8px",
-                      border: "1px solid #e2e6ff",
-                      backgroundColor: "#ffffff",
-                      color: "#1a1a1a",
-                      fontSize: "13px",
-                      fontWeight: "600",
-                      cursor: "pointer",
-                      outline: "none",
-                      fontFamily: "\"Open Sans\", sans-serif",
-                      appearance: "none",
-                      backgroundImage: `url("data:image/svg+xml,%3Csvg width='12' height='8' viewBox='0 0 12 8' fill='none' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M1 1L6 6L11 1' stroke='%23666' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E")`,
-                      backgroundRepeat: "no-repeat",
-                      backgroundPosition: "right 12px center",
-                      paddingRight: "32px",
-                      minWidth: "140px"
-                    }}
-                    defaultValue=""
-                  >
-                    <option value="" disabled>
-                      Select Action...
-                    </option>
-                    {actionOptions.map((option) => (
-                      <option key={option.value} value={option.value}>
-                        {option.label}
+                  <div style={{ position: "relative", marginRight: "10px" }}>
+                    <select
+                      className="crew-header-select crew-header-select--action"
+                      onChange={(e) => {
+                        const selectedOption = actionOptions.find((opt) => opt.value === e.target.value);
+                        if (selectedOption) {
+                          handleActionSelect(selectedOption);
+                        }
+                        e.target.value = ""; // Reset dropdown
+                      }}
+                      style={{
+                        padding: "8px 32px 8px 12px",
+                        borderRadius: "8px",
+                        border: "1px solid #e2e6ff",
+                        backgroundColor: "#ffffff",
+                        color: "#1a1a1a",
+                        fontSize: "13px",
+                        fontWeight: "600",
+                        cursor: "pointer",
+                        outline: "none",
+                        fontFamily: "\"Open Sans\", sans-serif",
+                        appearance: "none",
+                        backgroundImage: `url("data:image/svg+xml,%3Csvg width='12' height='8' viewBox='0 0 12 8' fill='none' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M1 1L6 6L11 1' stroke='%23666' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E")`,
+                        backgroundRepeat: "no-repeat",
+                        backgroundPosition: "right 12px center",
+                        paddingRight: "32px",
+                        minWidth: "140px"
+                      }}
+                      defaultValue=""
+                    >
+                      <option value="" disabled>
+                        Select Action...
                       </option>
-                    ))}
-                  </select>
-                </div>
+                      {actionOptions.map((option) => (
+                        <option key={option.value} value={option.value}>
+                          {option.label}
+                        </option>
+                      ))}
+                    </select>
+                  </div>
                 ) : (
                   <div className="crew-list-header-action-placeholder" aria-hidden="true" />
                 )}
@@ -2243,425 +2288,482 @@ const CrewContent = ({ formValues, handleChange, cardColor, onNavigateToTab, lau
           <div className="crew-table-wrapper">
             <div className="table-wrapper table-responsive crew-table-container crew-table-scroll">
               <table className="table table-striped crew-table crew-list-table" style={{ "--card-color": "#e2e6ff", tableLayout: "fixed", width: "100%" }}>
-              <thead>
-                <tr>
-                  <th className="crew-checkbox-cell-header" style={{ width: "64px", minWidth: "64px", maxWidth: "64px" }}>
-                    <input
-                      className="crew-list-checkbox crew-list-checkbox--header"
-                      type="checkbox"
-                      checked={selectedCrewIds.length === displayCrewList.length && displayCrewList.length > 0}
-                      onChange={handleSelectAll}
-                    />
-                  </th>
-                  <th style={{ width: "calc((100% - 64px) / 12)", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap", textAlign: "center" }}>
-                    Crew Name
-                  </th>
-                  <th style={{ width: "calc((100% - 64px) / 12)", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap", textAlign: "center" }}>
-                    Nationality
-                  </th>
-                  <th style={{ width: "calc((100% - 64px) / 12)", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap", textAlign: "center" }}>
-                    Rank
-                  </th>
-                  <th style={{ width: "calc((100% - 64px) / 12)", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap", textAlign: "center" }}>
-                    Movement Type
-                  </th>
-                  <th style={{ width: "calc((100% - 64px) / 12)", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap", textAlign: "center" }}>
-                    Passport
-                  </th>
-                  <th style={{ width: "calc((100% - 64px) / 12)", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap", textAlign: "center" }}>
-                    Iqama
-                  </th>
-                  <th style={{ width: "calc((100% - 64px) / 12)", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap", textAlign: "center" }}>
-                    Visa
-                  </th>
-                  <th style={{ width: "calc((100% - 64px) / 12)", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap", textAlign: "center" }}>
-                    CG Pass
-                  </th>
-                  <th style={{ width: "calc((100% - 64px) / 12)", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap", textAlign: "center" }}>
-                    Zawil Pass
-                  </th>
-                  <th style={{ width: "calc((100% - 64px) / 12)", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap", textAlign: "center" }}>
-                    Transport
-                  </th>
-                  <th style={{ width: "calc((100% - 64px) / 12)", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap", textAlign: "center" }}>
-                    Hotel
-                  </th>
-                  <th style={{ width: "calc((100% - 64px) / 12)", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap", textAlign: "center" }}>
-                    Medical
-                  </th>
-                  {/* <th>Actions</th> */}
-                </tr>
-              </thead>
-              <tbody>
-                {isCallCrewListLoading && crewList.length === 0 && callCrewList === null ? (
+                <thead>
                   <tr>
-                    <td colSpan="13" style={{ textAlign: "center", padding: "40px", color: "#666" }}>
-                      Loading crew list…
-                    </td>
+                    <th className="crew-checkbox-cell-header" style={{ width: "64px", minWidth: "64px", maxWidth: "64px" }}>
+                      <input
+                        className="crew-list-checkbox crew-list-checkbox--header"
+                        type="checkbox"
+                        checked={selectedCrewIds.length === displayCrewList.length && displayCrewList.length > 0}
+                        onChange={handleSelectAll}
+                      />
+                    </th>
+                    <th style={{ width: "calc((100% - 64px) / 12)", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap", textAlign: "center" }}>
+                      Crew Name
+                    </th>
+                    <th style={{ width: "calc((100% - 64px) / 12)", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap", textAlign: "center" }}>
+                      Nationality
+                    </th>
+                    <th style={{ width: "calc((100% - 64px) / 12)", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap", textAlign: "center" }}>
+                      Rank
+                    </th>
+                    <th style={{ width: "calc((100% - 64px) / 12)", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap", textAlign: "center" }}>
+                      Movement Type
+                    </th>
+                    <th style={{ width: "calc((100% - 64px) / 12)", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap", textAlign: "center" }}>
+                      Passport
+                    </th>
+                    <th style={{ width: "calc((100% - 64px) / 12)", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap", textAlign: "center" }}>
+                      Iqama
+                    </th>
+                    <th style={{ width: "calc((100% - 64px) / 12)", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap", textAlign: "center" }}>
+                      Visa
+                    </th>
+                    <th style={{ width: "calc((100% - 64px) / 12)", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap", textAlign: "center" }}>
+                      CG Pass
+                    </th>
+                    <th style={{ width: "calc((100% - 64px) / 12)", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap", textAlign: "center" }}>
+                      Zawil Pass
+                    </th>
+                    <th style={{ width: "calc((100% - 64px) / 12)", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap", textAlign: "center" }}>
+                      Transport
+                    </th>
+                    <th style={{ width: "calc((100% - 64px) / 12)", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap", textAlign: "center" }}>
+                      Hotel
+                    </th>
+                    <th style={{ width: "calc((100% - 64px) / 12)", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap", textAlign: "center" }}>
+                      Medical
+                    </th>
+                    {/* <th>Actions</th> */}
                   </tr>
-                ) : displayCrewList.length === 0 ? (
-                  <tr>
-                    <td colSpan="13" style={{ textAlign: "center", padding: "40px", color: "#999" }}>
-                      No crew data found. Upload a crew list file or add crew from preview.
-                    </td>
-                  </tr>
-                ) : (
-                  displayCrewList.map((crew) => (
-                    <tr
-                      key={crew.id}
-                      className={selectedCrewIds.includes(crew.id) ? "crew-row-selected" : ""}
-                    >
-                      <td className="crew-checkbox-cell">
-                        <input
-                          className="crew-list-checkbox"
-                          type="checkbox"
-                          checked={selectedCrewIds.includes(crew.id)}
-                          onChange={() => handleCrewToggle(crew.id)}
-                        />
+                </thead>
+                <tbody>
+                  {isCallCrewListLoading && crewList.length === 0 && callCrewList === null ? (
+                    <tr>
+                      <td colSpan="13" style={{ textAlign: "center", padding: "40px", color: "#666" }}>
+                        Loading crew list…
                       </td>
-                      <td style={{ overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
-                        <div className="crew-table-cell" title={crew.crewName || ""}>{crew.crewName || ""}</div>
+                    </tr>
+                  ) : displayCrewList.length === 0 ? (
+                    <tr>
+                      <td colSpan="13" style={{ textAlign: "center", padding: "40px", color: "#999" }}>
+                        No crew data found. Upload a crew list file or add crew from preview.
                       </td>
-                      <td style={{ overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
-                        <div className="crew-table-cell" title={crew.nationality || ""}>{crew.nationality || ""}</div>
-                      </td>
-                      <td style={{ overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
-                        <div className="crew-table-cell" title={crew.rank || ""}>{crew.rank || ""}</div>
-                      </td>
-                      <td style={{ overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
-                        <div className="crew-table-cell" title={crew.movementType || crew.movement_type || ""}>
-                          {crew.movementType || crew.movement_type || ""}
-                        </div>
-                      </td>
-                      <td>
-                        <div className="crew-table-cell" style={{ display: "flex", alignItems: "center", gap: "8px", justifyContent: "center" }}>
+                    </tr>
+                  ) : (
+                    displayCrewList.map((crew) => (
+                      <tr
+                        key={crew.id}
+                        className={selectedCrewIds.includes(crew.id) ? "crew-row-selected" : ""}
+                      >
+                        <td className="crew-checkbox-cell">
                           <input
-                            type="file"
-                            ref={(el) => {
-                              if (el) passportFileInputRefs.current[crew.id] = el;
-                            }}
-                            style={{ display: "none" }}
-                            accept="*/*"
-                            onChange={(e) => {
-                              const file = e.target.files?.[0];
-                              if (file) {
-                                handlePassportUpload(crew.id, file);
-                              }
-                            }}
+                            className="crew-list-checkbox"
+                            type="checkbox"
+                            checked={selectedCrewIds.includes(crew.id)}
+                            onChange={() => handleCrewToggle(crew.id)}
                           />
-                          <div style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: "4px" }}>
-                            <Tooltip id={`passport-upload-${crew.id}`} place="right" positionStrategy="fixed" content={(passportDocuments[crew.id] || hasDocCopy(crew.passport_copy)) ? "Uploaded" : "Upload"} />
-                            <button
-                              type="button"
-                              onClick={() => passportFileInputRefs.current[crew.id]?.click()}
-                              data-tooltip-id={`passport-upload-${crew.id}`}
-                              style={{
-                                background: "transparent",
-                                border: "none",
-                                cursor: "pointer",
-                                padding: "4px",
-                                display: "flex",
-                                alignItems: "center",
-                                color: (passportDocuments[crew.id] || hasDocCopy(crew.passport_copy)) ? STATUS_COLORS.done : STATUS_COLORS.rejected,
-                                transition: "all 0.2s ease"
-                              }}
-                              onMouseEnter={(e) => {
-                                e.currentTarget.style.transform = "scale(1.1)";
-                              }}
-                              onMouseLeave={(e) => {
-                                e.currentTarget.style.transform = "scale(1)";
-                              }}
-                            >
-                              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-                                <path d="M12 15V3M12 3L8 7M12 3L16 7" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
-                                <path d="M2 17L2 18C2 19.1046 2.89543 20 4 20L20 20C21.1046 20 22 19.1046 22 18L22 17" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
-                              </svg>
-                            </button>
+                        </td>
+                        <td style={{ overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
+                          <div className="crew-table-cell" title={crew.crewName || ""}>{crew.crewName || ""}</div>
+                        </td>
+                        <td style={{ overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
+                          <div className="crew-table-cell" title={crew.nationality || ""}>{crew.nationality || ""}</div>
+                        </td>
+                        <td style={{ overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
+                          <div className="crew-table-cell" title={crew.rank || ""}>{crew.rank || ""}</div>
+                        </td>
+                        <td style={{ overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
+                          <div className="crew-table-cell" title={crew.movementType || crew.movement_type || ""}>
+                            {crew.movementType || crew.movement_type || ""}
                           </div>
-                        </div>
-                      </td>
-                      <td>
-                        <div className="crew-table-cell" style={{ display: "flex", alignItems: "center", gap: "8px", justifyContent: "center" }}>
-                          <input
-                            type="file"
-                            ref={(el) => {
-                              if (el) iqamaFileInputRefs.current[crew.id] = el;
-                            }}
-                            style={{ display: "none" }}
-                            accept="*/*"
-                            onChange={(e) => {
-                              const file = e.target.files?.[0];
-                              if (file) {
-                                handleIqamaUpload(crew.id, file);
-                              }
-                            }}
-                          />
-                          <div style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: "4px" }}>
-                            <Tooltip id={`iqama-upload-${crew.id}`} place="right" positionStrategy="fixed" content={(iqamaDocuments[crew.id] || hasDocCopy(crew.iqama_copy)) ? "Uploaded" : "Upload"} />
-                            <button
-                              type="button"
-                              onClick={() => iqamaFileInputRefs.current[crew.id]?.click()}
-                              data-tooltip-id={`iqama-upload-${crew.id}`}
-                              style={{
-                                background: "transparent",
-                                border: "none",
-                                cursor: "pointer",
-                                padding: "4px",
-                                display: "flex",
-                                alignItems: "center",
-                                color: (iqamaDocuments[crew.id] || hasDocCopy(crew.iqama_copy)) ? STATUS_COLORS.done : STATUS_COLORS.rejected,
-                                transition: "all 0.2s ease"
+                        </td>
+                        <td>
+                          <div className="crew-table-cell" style={{ display: "flex", alignItems: "center", gap: "8px", justifyContent: "center" }}>
+                            <input
+                              type="file"
+                              ref={(el) => {
+                                if (el) passportFileInputRefs.current[crew.id] = el;
                               }}
-                              onMouseEnter={(e) => {
-                                e.currentTarget.style.transform = "scale(1.1)";
+                              style={{ display: "none" }}
+                              accept="*/*"
+                              onChange={(e) => {
+                                const file = e.target.files?.[0];
+                                if (file) {
+                                  handleCrewDocumentUpload(crew, "passport_copy", file);
+                                }
+                                e.target.value = "";
                               }}
-                              onMouseLeave={(e) => {
-                                e.currentTarget.style.transform = "scale(1)";
-                              }}
-                            >
-                              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-                                <path d="M12 15V3M12 3L8 7M12 3L16 7" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
-                                <path d="M2 17L2 18C2 19.1046 2.89543 20 4 20L20 20C21.1046 20 22 19.1046 22 18L22 17" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
-                              </svg>
-                            </button>
+                            />
+                            <div style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: "4px" }}>
+                              {(() => {
+                                const isUploading = Boolean(uploadingCrewDoc?.[crew.crew_id]?.passport_copy);
+                                const isUploaded = passportDocuments[crew.id] || hasDocCopy(crew.passport_copy);
+                                return (
+                                  <>
+                                    <Tooltip id={`passport-upload-${crew.id}`} place="right" positionStrategy="fixed" content={isUploading ? "Uploading..." : (isUploaded ? "Uploaded" : "Upload")} />
+                                    <button
+                                      type="button"
+                                      disabled={isUploading}
+                                      onClick={() => passportFileInputRefs.current[crew.id]?.click()}
+                                      data-tooltip-id={`passport-upload-${crew.id}`}
+                                      style={{
+                                        background: "transparent",
+                                        border: "none",
+                                        cursor: isUploading ? "not-allowed" : "pointer",
+                                        padding: "4px",
+                                        display: "flex",
+                                        alignItems: "center",
+                                        color: isUploaded ? STATUS_COLORS.done : STATUS_COLORS.rejected,
+                                        opacity: isUploading ? 0.6 : 1,
+                                        transition: "all 0.2s ease"
+                                      }}
+                                      onMouseEnter={(e) => {
+                                        if (!isUploading) e.currentTarget.style.transform = "scale(1.1)";
+                                      }}
+                                      onMouseLeave={(e) => {
+                                        e.currentTarget.style.transform = "scale(1)";
+                                      }}
+                                    >
+                                      {isUploading ? (
+                                        <span className="spinner-border spinner-border-sm" role="status" aria-hidden="true" style={{ width: "16px", height: "16px", borderWidth: "2px" }} />
+                                      ) : isUploaded ? (
+                                        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                                          <path d="M5 13L9 17L19 7" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" />
+                                        </svg>
+                                      ) : (
+                                        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                                          <path d="M12 15V3M12 3L8 7M12 3L16 7" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+                                          <path d="M2 17L2 18C2 19.1046 2.89543 20 4 20L20 20C21.1046 20 22 19.1046 22 18L22 17" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+                                        </svg>
+                                      )}
+                                    </button>
+                                  </>
+                                );
+                              })()}
+                            </div>
                           </div>
-                        </div>
-                      </td>
-                      <td>
-                        <div className="crew-table-cell" style={{ display: "flex", alignItems: "center", gap: "8px", justifyContent: "center" }}>
-                          <input
-                            type="file"
-                            ref={(el) => {
-                              if (el) visaFileInputRefs.current[crew.id] = el;
-                            }}
-                            style={{ display: "none" }}
-                            accept="*/*"
-                            onChange={(e) => {
-                              const file = e.target.files?.[0];
-                              if (file) {
-                                handleVisaUpload(crew.id, file);
-                              }
-                            }}
-                          />
-                          <div style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: "4px" }}>
-                            <Tooltip id={`visa-upload-${crew.id}`} place="right" positionStrategy="fixed" content={(visaDocuments[crew.id] || hasDocCopy(crew.visa_copy)) ? "Uploaded" : "Upload"} />
-                            <button
-                              type="button"
-                              onClick={() => visaFileInputRefs.current[crew.id]?.click()}
-                              data-tooltip-id={`visa-upload-${crew.id}`}
-                              style={{
-                                background: "transparent",
-                                border: "none",
-                                cursor: "pointer",
-                                padding: "4px",
-                                display: "flex",
-                                alignItems: "center",
-                                color: (visaDocuments[crew.id] || hasDocCopy(crew.visa_copy)) ? STATUS_COLORS.done : STATUS_COLORS.rejected,
-                                transition: "all 0.2s ease"
+                        </td>
+                        <td>
+                          <div className="crew-table-cell" style={{ display: "flex", alignItems: "center", gap: "8px", justifyContent: "center" }}>
+                            <input
+                              type="file"
+                              ref={(el) => {
+                                if (el) iqamaFileInputRefs.current[crew.id] = el;
                               }}
-                              onMouseEnter={(e) => {
-                                e.currentTarget.style.transform = "scale(1.1)";
+                              style={{ display: "none" }}
+                              accept="*/*"
+                              onChange={(e) => {
+                                const file = e.target.files?.[0];
+                                if (file) {
+                                  handleCrewDocumentUpload(crew, "iqama_copy", file);
+                                }
+                                e.target.value = "";
                               }}
-                              onMouseLeave={(e) => {
-                                e.currentTarget.style.transform = "scale(1)";
-                              }}
-                            >
-                              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-                                <path d="M12 15V3M12 3L8 7M12 3L16 7" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
-                                <path d="M2 17L2 18C2 19.1046 2.89543 20 4 20L20 20C21.1046 20 22 19.1046 22 18L22 17" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
-                              </svg>
-                            </button>
+                            />
+                            <div style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: "4px" }}>
+                              {(() => {
+                                const isUploading = Boolean(uploadingCrewDoc?.[crew.crew_id]?.iqama_copy);
+                                const isUploaded = iqamaDocuments[crew.id] || hasDocCopy(crew.iqama_copy);
+                                return (
+                                  <>
+                                    <Tooltip id={`iqama-upload-${crew.id}`} place="right" positionStrategy="fixed" content={isUploading ? "Uploading..." : (isUploaded ? "Uploaded" : "Upload")} />
+                                    <button
+                                      type="button"
+                                      disabled={isUploading}
+                                      onClick={() => iqamaFileInputRefs.current[crew.id]?.click()}
+                                      data-tooltip-id={`iqama-upload-${crew.id}`}
+                                      style={{
+                                        background: "transparent",
+                                        border: "none",
+                                        cursor: isUploading ? "not-allowed" : "pointer",
+                                        padding: "4px",
+                                        display: "flex",
+                                        alignItems: "center",
+                                        color: isUploaded ? STATUS_COLORS.done : STATUS_COLORS.rejected,
+                                        opacity: isUploading ? 0.6 : 1,
+                                        transition: "all 0.2s ease"
+                                      }}
+                                      onMouseEnter={(e) => {
+                                        if (!isUploading) e.currentTarget.style.transform = "scale(1.1)";
+                                      }}
+                                      onMouseLeave={(e) => {
+                                        e.currentTarget.style.transform = "scale(1)";
+                                      }}
+                                    >
+                                      {isUploading ? (
+                                        <span className="spinner-border spinner-border-sm" role="status" aria-hidden="true" style={{ width: "16px", height: "16px", borderWidth: "2px" }} />
+                                      ) : isUploaded ? (
+                                        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                                          <path d="M5 13L9 17L19 7" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" />
+                                        </svg>
+                                      ) : (
+                                        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                                          <path d="M12 15V3M12 3L8 7M12 3L16 7" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+                                          <path d="M2 17L2 18C2 19.1046 2.89543 20 4 20L20 20C21.1046 20 22 19.1046 22 18L22 17" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+                                        </svg>
+                                      )}
+                                    </button>
+                                  </>
+                                );
+                              })()}
+                            </div>
                           </div>
-                        </div>
-                      </td>
-                      <td>
-                        <div className="crew-table-cell" style={{ display: "flex", alignItems: "center", gap: "8px", justifyContent: "center" }}>
-                          <input
-                            type="file"
-                            ref={(el) => {
-                              if (el) cgPassFileInputRefs.current[crew.id] = el;
-                            }}
-                            style={{ display: "none" }}
-                            accept="*/*"
-                            onChange={(e) => {
-                              const file = e.target.files?.[0];
-                              if (file) {
-                                handleCgPassUpload(crew.id, file);
-                              }
-                            }}
-                          />
-                          <div style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: "4px" }}>
-                            <Tooltip id={`cg-pass-upload-${crew.id}`} place="right" positionStrategy="fixed" content={(cgPassDocuments[crew.id] || hasDocCopy(crew.cg_pass_copy ?? crew.cg_pass)) ? "Uploaded" : "Upload"} />
-                            <button
-                              type="button"
-                              onClick={() => cgPassFileInputRefs.current[crew.id]?.click()}
-                              data-tooltip-id={`cg-pass-upload-${crew.id}`}
-                              style={{
-                                background: "transparent",
-                                border: "none",
-                                cursor: "pointer",
-                                padding: "4px",
-                                display: "flex",
-                                alignItems: "center",
-                                color: (cgPassDocuments[crew.id] || hasDocCopy(crew.cg_pass_copy ?? crew.cg_pass)) ? STATUS_COLORS.done : STATUS_COLORS.rejected,
-                                transition: "all 0.2s ease"
+                        </td>
+                        <td>
+                          <div className="crew-table-cell" style={{ display: "flex", alignItems: "center", gap: "8px", justifyContent: "center" }}>
+                            <input
+                              type="file"
+                              ref={(el) => {
+                                if (el) visaFileInputRefs.current[crew.id] = el;
                               }}
-                              onMouseEnter={(e) => {
-                                e.currentTarget.style.transform = "scale(1.1)";
+                              style={{ display: "none" }}
+                              accept="*/*"
+                              onChange={(e) => {
+                                const file = e.target.files?.[0];
+                                if (file) {
+                                  handleCrewDocumentUpload(crew, "visa_copy", file);
+                                }
+                                e.target.value = "";
                               }}
-                              onMouseLeave={(e) => {
-                                e.currentTarget.style.transform = "scale(1)";
-                              }}
-                            >
-                              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-                                <path d="M12 15V3M12 3L8 7M12 3L16 7" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
-                                <path d="M2 17L2 18C2 19.1046 2.89543 20 4 20L20 20C21.1046 20 22 19.1046 22 18L22 17" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
-                              </svg>
-                            </button>
+                            />
+                            <div style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: "4px" }}>
+                              {(() => {
+                                const isUploading = Boolean(uploadingCrewDoc?.[crew.crew_id]?.visa_copy);
+                                const isUploaded = visaDocuments[crew.id] || hasDocCopy(crew.visa_copy);
+                                return (
+                                  <>
+                                    <Tooltip id={`visa-upload-${crew.id}`} place="right" positionStrategy="fixed" content={isUploading ? "Uploading..." : (isUploaded ? "Uploaded" : "Upload")} />
+                                    <button
+                                      type="button"
+                                      disabled={isUploading}
+                                      onClick={() => visaFileInputRefs.current[crew.id]?.click()}
+                                      data-tooltip-id={`visa-upload-${crew.id}`}
+                                      style={{
+                                        background: "transparent",
+                                        border: "none",
+                                        cursor: isUploading ? "not-allowed" : "pointer",
+                                        padding: "4px",
+                                        display: "flex",
+                                        alignItems: "center",
+                                        color: isUploaded ? STATUS_COLORS.done : STATUS_COLORS.rejected,
+                                        opacity: isUploading ? 0.6 : 1,
+                                        transition: "all 0.2s ease"
+                                      }}
+                                      onMouseEnter={(e) => {
+                                        if (!isUploading) e.currentTarget.style.transform = "scale(1.1)";
+                                      }}
+                                      onMouseLeave={(e) => {
+                                        e.currentTarget.style.transform = "scale(1)";
+                                      }}
+                                    >
+                                      {isUploading ? (
+                                        <span className="spinner-border spinner-border-sm" role="status" aria-hidden="true" style={{ width: "16px", height: "16px", borderWidth: "2px" }} />
+                                      ) : isUploaded ? (
+                                        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                                          <path d="M5 13L9 17L19 7" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" />
+                                        </svg>
+                                      ) : (
+                                        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                                          <path d="M12 15V3M12 3L8 7M12 3L16 7" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+                                          <path d="M2 17L2 18C2 19.1046 2.89543 20 4 20L20 20C21.1046 20 22 19.1046 22 18L22 17" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+                                        </svg>
+                                      )}
+                                    </button>
+                                  </>
+                                );
+                              })()}
+                            </div>
                           </div>
-                        </div>
-                      </td>
-                      <td>
-                        <div className="crew-table-cell" style={{ display: "flex", alignItems: "center", gap: "8px", justifyContent: "center" }}>
-                          <input
-                            type="file"
-                            ref={(el) => {
-                              if (el) zawilPassFileInputRefs.current[crew.id] = el;
-                            }}
-                            style={{ display: "none" }}
-                            accept="*/*"
-                            onChange={(e) => {
-                              const file = e.target.files?.[0];
-                              if (file) {
-                                handleZawilPassUpload(crew.id, file);
-                              }
-                            }}
-                          />
-                          <div style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: "4px" }}>
-                            <Tooltip id={`zawil-pass-upload-${crew.id}`} place="left" positionStrategy="fixed" content={(zawilPassDocuments[crew.id] || hasDocCopy(crew.zawil_pass_copy ?? crew.zawil_pass)) ? "Uploaded" : "Upload"} />
-                            <button
-                              type="button"
-                              onClick={() => zawilPassFileInputRefs.current[crew.id]?.click()}
-                              data-tooltip-id={`zawil-pass-upload-${crew.id}`}
-                              style={{
-                                background: "transparent",
-                                border: "none",
-                                cursor: "pointer",
-                                padding: "4px",
-                                display: "flex",
-                                alignItems: "center",
-                                color: (zawilPassDocuments[crew.id] || hasDocCopy(crew.zawil_pass_copy ?? crew.zawil_pass)) ? STATUS_COLORS.done : STATUS_COLORS.rejected,
-                                transition: "all 0.2s ease"
+                        </td>
+                        <td>
+                          <div className="crew-table-cell" style={{ display: "flex", alignItems: "center", gap: "8px", justifyContent: "center" }}>
+                            <input
+                              type="file"
+                              ref={(el) => {
+                                if (el) cgPassFileInputRefs.current[crew.id] = el;
                               }}
-                              onMouseEnter={(e) => {
-                                e.currentTarget.style.transform = "scale(1.1)";
+                              style={{ display: "none" }}
+                              accept="*/*"
+                              onChange={(e) => {
+                                const file = e.target.files?.[0];
+                                if (file) {
+                                  handleCgPassUpload(crew.id, file);
+                                }
                               }}
-                              onMouseLeave={(e) => {
-                                e.currentTarget.style.transform = "scale(1)";
-                              }}
-                            >
-                              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-                                <path d="M12 15V3M12 3L8 7M12 3L16 7" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
-                                <path d="M2 17L2 18C2 19.1046 2.89543 20 4 20L20 20C21.1046 20 22 19.1046 22 18L22 17" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
-                              </svg>
-                            </button>
+                            />
+                            <div style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: "4px" }}>
+                              <Tooltip id={`cg-pass-upload-${crew.id}`} place="right" positionStrategy="fixed" content={(cgPassDocuments[crew.id] || hasDocCopy(crew.cg_pass_copy ?? crew.cg_pass)) ? "Uploaded" : "Upload"} />
+                              <button
+                                type="button"
+                                onClick={() => cgPassFileInputRefs.current[crew.id]?.click()}
+                                data-tooltip-id={`cg-pass-upload-${crew.id}`}
+                                style={{
+                                  background: "transparent",
+                                  border: "none",
+                                  cursor: "pointer",
+                                  padding: "4px",
+                                  display: "flex",
+                                  alignItems: "center",
+                                  color: (cgPassDocuments[crew.id] || hasDocCopy(crew.cg_pass_copy ?? crew.cg_pass)) ? STATUS_COLORS.done : STATUS_COLORS.rejected,
+                                  transition: "all 0.2s ease"
+                                }}
+                                onMouseEnter={(e) => {
+                                  e.currentTarget.style.transform = "scale(1.1)";
+                                }}
+                                onMouseLeave={(e) => {
+                                  e.currentTarget.style.transform = "scale(1)";
+                                }}
+                              >
+                                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                                  <path d="M12 15V3M12 3L8 7M12 3L16 7" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+                                  <path d="M2 17L2 18C2 19.1046 2.89543 20 4 20L20 20C21.1046 20 22 19.1046 22 18L22 17" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+                                </svg>
+                              </button>
+                            </div>
                           </div>
-                        </div>
-                      </td>
-                      <td style={{ overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
-                        <div
-                          className="crew-table-cell crew-status-icon"
-                          style={{ display: "flex", justifyContent: "center", alignItems: "center", position: "relative" }}
-                          data-tooltip-id={`transport-status-${crew.id}`}
-                          data-tooltip-content={STATUS_LABELS[crew.transport] || STATUS_LABELS.pending}
-                        >
-                          <StatusIcon status={crew.transport} IconComponent={CarIcon} size={20} />
-                          <span style={{
-                            position: "absolute",
-                            top: "-4px",
-                            right: "18px",
-                            backgroundColor: STATUS_COLORS.done,
-                            color: "#ffffff",
-                            borderRadius: "10px",
-                            minWidth: "18px",
-                            height: "18px",
-                            display: "flex",
-                            alignItems: "center",
-                            justifyContent: "center",
-                            fontSize: "10px",
-                            fontWeight: "700",
-                            padding: "0 5px",
-                            boxShadow: "0 2px 4px rgba(0, 0, 0, 0.2)",
-                            border: "2px solid #ffffff"
-                          }}>
-                            {crew.transportCount || 0}
-                          </span>
-                        </div>
-                        <Tooltip id={`transport-status-${crew.id}`} place="left" positionStrategy="fixed" offset={0} />
-                      </td>
-                      <td style={{ overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
-                        <div
-                          className="crew-table-cell crew-status-icon"
-                          style={{ display: "flex", justifyContent: "center", alignItems: "center", position: "relative" }}
-                          data-tooltip-id={`hotel-status-${crew.id}`}
-                          data-tooltip-content={STATUS_LABELS[crew.hotel] || STATUS_LABELS.pending}
-                        >
-                          <StatusIcon status={crew.hotel} IconComponent={HotelIcon} size={20} />
-                          <span style={{
-                            position: "absolute",
-                            top: "-4px",
-                            right: "18px",
-                            backgroundColor: STATUS_COLORS.done,
-                            color: "#ffffff",
-                            borderRadius: "10px",
-                            minWidth: "18px",
-                            height: "18px",
-                            display: "flex",
-                            alignItems: "center",
-                            justifyContent: "center",
-                            fontSize: "10px",
-                            fontWeight: "700",
-                            padding: "0 5px",
-                            boxShadow: "0 2px 4px rgba(0, 0, 0, 0.2)",
-                            border: "2px solid #ffffff"
-                          }}>
-                            {crew.hotelCount || 0}
-                          </span>
-                        </div>
-                        <Tooltip id={`hotel-status-${crew.id}`} place="left" positionStrategy="fixed" offset={0} />
-                      </td>
-                      <td style={{ overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
-                        <div
-                          className="crew-table-cell crew-status-icon"
-                          style={{ display: "flex", justifyContent: "center", alignItems: "center", position: "relative" }}
-                          data-tooltip-id={`medical-status-${crew.id}`}
-                          data-tooltip-content={STATUS_LABELS[crew.medicalService] || STATUS_LABELS.pending}
-                        >
-                          <StatusIcon status={crew.medicalService} IconComponent={MedicalIcon} size={20} />
-                          <span style={{
-                            position: "absolute",
-                            top: "-4px",
-                            right: "18px",
-                            backgroundColor: STATUS_COLORS.done,
-                            color: "#ffffff",
-                            borderRadius: "10px",
-                            minWidth: "18px",
-                            height: "18px",
-                            display: "flex",
-                            alignItems: "center",
-                            justifyContent: "center",
-                            fontSize: "10px",
-                            fontWeight: "700",
-                            padding: "0 5px",
-                            boxShadow: "0 2px 4px rgba(0, 0, 0, 0.2)",
-                            border: "2px solid #ffffff"
-                          }}>
-                            {crew.medicalServiceCount || 0}
-                          </span>
-                        </div>
-                        <Tooltip id={`medical-status-${crew.id}`} place="left" positionStrategy="fixed" offset={0} />
-                      </td>
-                      {/* <td>
+                        </td>
+                        <td>
+                          <div className="crew-table-cell" style={{ display: "flex", alignItems: "center", gap: "8px", justifyContent: "center" }}>
+                            <input
+                              type="file"
+                              ref={(el) => {
+                                if (el) zawilPassFileInputRefs.current[crew.id] = el;
+                              }}
+                              style={{ display: "none" }}
+                              accept="*/*"
+                              onChange={(e) => {
+                                const file = e.target.files?.[0];
+                                if (file) {
+                                  handleZawilPassUpload(crew.id, file);
+                                }
+                              }}
+                            />
+                            <div style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: "4px" }}>
+                              <Tooltip id={`zawil-pass-upload-${crew.id}`} place="left" positionStrategy="fixed" content={(zawilPassDocuments[crew.id] || hasDocCopy(crew.zawil_pass_copy ?? crew.zawil_pass)) ? "Uploaded" : "Upload"} />
+                              <button
+                                type="button"
+                                onClick={() => zawilPassFileInputRefs.current[crew.id]?.click()}
+                                data-tooltip-id={`zawil-pass-upload-${crew.id}`}
+                                style={{
+                                  background: "transparent",
+                                  border: "none",
+                                  cursor: "pointer",
+                                  padding: "4px",
+                                  display: "flex",
+                                  alignItems: "center",
+                                  color: (zawilPassDocuments[crew.id] || hasDocCopy(crew.zawil_pass_copy ?? crew.zawil_pass)) ? STATUS_COLORS.done : STATUS_COLORS.rejected,
+                                  transition: "all 0.2s ease"
+                                }}
+                                onMouseEnter={(e) => {
+                                  e.currentTarget.style.transform = "scale(1.1)";
+                                }}
+                                onMouseLeave={(e) => {
+                                  e.currentTarget.style.transform = "scale(1)";
+                                }}
+                              >
+                                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                                  <path d="M12 15V3M12 3L8 7M12 3L16 7" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+                                  <path d="M2 17L2 18C2 19.1046 2.89543 20 4 20L20 20C21.1046 20 22 19.1046 22 18L22 17" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+                                </svg>
+                              </button>
+                            </div>
+                          </div>
+                        </td>
+                        <td style={{ overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
+                          <div
+                            className="crew-table-cell crew-status-icon"
+                            style={{ display: "flex", justifyContent: "center", alignItems: "center", position: "relative" }}
+                            data-tooltip-id={`transport-status-${crew.id}`}
+                            data-tooltip-content={STATUS_LABELS[crew.transport] || STATUS_LABELS.pending}
+                          >
+                            <StatusIcon status={crew.transport} IconComponent={CarIcon} size={20} />
+                            <span style={{
+                              position: "absolute",
+                              top: "-4px",
+                              right: "18px",
+                              backgroundColor: STATUS_COLORS.done,
+                              color: "#ffffff",
+                              borderRadius: "10px",
+                              minWidth: "18px",
+                              height: "18px",
+                              display: "flex",
+                              alignItems: "center",
+                              justifyContent: "center",
+                              fontSize: "10px",
+                              fontWeight: "700",
+                              padding: "0 5px",
+                              boxShadow: "0 2px 4px rgba(0, 0, 0, 0.2)",
+                              border: "2px solid #ffffff"
+                            }}>
+                              {crew.transportCount || 0}
+                            </span>
+                          </div>
+                          <Tooltip id={`transport-status-${crew.id}`} place="left" positionStrategy="fixed" offset={0} />
+                        </td>
+                        <td style={{ overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
+                          <div
+                            className="crew-table-cell crew-status-icon"
+                            style={{ display: "flex", justifyContent: "center", alignItems: "center", position: "relative" }}
+                            data-tooltip-id={`hotel-status-${crew.id}`}
+                            data-tooltip-content={STATUS_LABELS[crew.hotel] || STATUS_LABELS.pending}
+                          >
+                            <StatusIcon status={crew.hotel} IconComponent={HotelIcon} size={20} />
+                            <span style={{
+                              position: "absolute",
+                              top: "-4px",
+                              right: "18px",
+                              backgroundColor: STATUS_COLORS.done,
+                              color: "#ffffff",
+                              borderRadius: "10px",
+                              minWidth: "18px",
+                              height: "18px",
+                              display: "flex",
+                              alignItems: "center",
+                              justifyContent: "center",
+                              fontSize: "10px",
+                              fontWeight: "700",
+                              padding: "0 5px",
+                              boxShadow: "0 2px 4px rgba(0, 0, 0, 0.2)",
+                              border: "2px solid #ffffff"
+                            }}>
+                              {crew.hotelCount || 0}
+                            </span>
+                          </div>
+                          <Tooltip id={`hotel-status-${crew.id}`} place="left" positionStrategy="fixed" offset={0} />
+                        </td>
+                        <td style={{ overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
+                          <div
+                            className="crew-table-cell crew-status-icon"
+                            style={{ display: "flex", justifyContent: "center", alignItems: "center", position: "relative" }}
+                            data-tooltip-id={`medical-status-${crew.id}`}
+                            data-tooltip-content={STATUS_LABELS[crew.medicalService] || STATUS_LABELS.pending}
+                          >
+                            <StatusIcon status={crew.medicalService} IconComponent={MedicalIcon} size={20} />
+                            <span style={{
+                              position: "absolute",
+                              top: "-4px",
+                              right: "18px",
+                              backgroundColor: STATUS_COLORS.done,
+                              color: "#ffffff",
+                              borderRadius: "10px",
+                              minWidth: "18px",
+                              height: "18px",
+                              display: "flex",
+                              alignItems: "center",
+                              justifyContent: "center",
+                              fontSize: "10px",
+                              fontWeight: "700",
+                              padding: "0 5px",
+                              boxShadow: "0 2px 4px rgba(0, 0, 0, 0.2)",
+                              border: "2px solid #ffffff"
+                            }}>
+                              {crew.medicalServiceCount || 0}
+                            </span>
+                          </div>
+                          <Tooltip id={`medical-status-${crew.id}`} place="left" positionStrategy="fixed" offset={0} />
+                        </td>
+                        {/* <td>
                   <button
                     type="button"
                     className="crew-view-btn"
@@ -2671,10 +2773,10 @@ const CrewContent = ({ formValues, handleChange, cardColor, onNavigateToTab, lau
                     View
                   </button>
                 </td> */}
-                    </tr>
-                  ))
-                )}
-              </tbody>
+                      </tr>
+                    ))
+                  )}
+                </tbody>
               </table>
             </div>
             <div className="crew-pagination">
