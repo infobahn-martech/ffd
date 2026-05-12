@@ -1,7 +1,8 @@
 import Gateway from "../gateway/gateway";
 
-/** GET — crew roster for pass forms */
-export const getCrewListForPass = () => Gateway.get("crew/get_crew_list");
+/** POST — crew roster for pass forms { call_id, vessel_id } */
+export const getCrewListForPass = (payload) =>
+  Gateway.post("crew/get_crew_list", payload);
 
 /** POST multipart FormData — { call_id, crew_change_ids[], pass_type, remarks, documents[] } */
 export const createPassRequest = (formData) =>
@@ -25,7 +26,7 @@ export const mapCrewRecordsToOptions = (crewArray) => {
   if (!Array.isArray(crewArray)) return [];
   return crewArray
     .map((crew) => {
-      const id = crew.crew_id ?? crew.id ?? crew.crewId;
+      const id = crew.crew_change_id ?? crew.crew_id ?? crew.id ?? crew.crewId;
       if (id === undefined || id === null) return null;
       return {
         value: String(id),

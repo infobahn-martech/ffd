@@ -13,8 +13,9 @@ const CGPassContent = ({ formValues, handleChange, cardColor, card }) => {
   const {
     crewOptions,
     crewLoading,
-    crewLoadError,
+    crewLoadState,
     crewEmpty,
+    crewPlaceholder,
     saving,
     handleSave,
   } = useCrewPassTabApi({
@@ -41,15 +42,10 @@ const CGPassContent = ({ formValues, handleChange, cardColor, card }) => {
 
   const customSelectStyles = getCrewMultiSelectStyles(cardColor);
 
-  const crewPlaceholder = crewLoading
-    ? "Loading crew..."
-    : crewLoadError
-      ? "Unable to load crew"
-      : crewEmpty
-        ? "No crew available"
-        : selectedCrewValues.length > 0
-          ? `${selectedCrewValues.length} crew selected`
-          : "Select crew members...";
+  const dynamicCrewPlaceholder =
+    selectedCrewValues.length > 0
+      ? `${selectedCrewValues.length} crew selected`
+      : crewPlaceholder;
 
   const fileToAttachment = (file) => ({
     name: file.name,
@@ -117,7 +113,7 @@ const CGPassContent = ({ formValues, handleChange, cardColor, card }) => {
                     value={selectedCrewValues}
                     onChange={handleCrewChange}
                     options={crewOptions}
-                    placeholder={crewPlaceholder}
+                    placeholder={dynamicCrewPlaceholder}
                     classNamePrefix="react-select"
                     styles={customSelectStyles}
                     formatOptionLabel={formatCrewOptionLabel}
@@ -126,20 +122,24 @@ const CGPassContent = ({ formValues, handleChange, cardColor, card }) => {
                     closeMenuOnSelect={false}
                     hideSelectedOptions={false}
                     isLoading={crewLoading}
-                    isDisabled={crewLoading}
+                    isDisabled={crewLoading || crewLoadState === "missing_call_id" || crewLoadState === "missing_vessel_id"}
                     noOptionsMessage={() =>
                       crewLoading ? "Loading..." : "No crew found"
                     }
                   />
                 </div>
-                {!crewLoading && crewLoadError ? (
+                {!crewLoading && (crewLoadState === "missing_call_id" || crewLoadState === "missing_vessel_id" || crewLoadState === "api_error") ? (
                   <div className="crew-pass-select-message crew-pass-select-message--error">
-                    {crewLoadError}
+                    {crewLoadState === "missing_call_id"
+                      ? "Call id is required"
+                      : crewLoadState === "missing_vessel_id"
+                        ? "Vessel id is required"
+                        : "Unable to load crew"}
                   </div>
                 ) : null}
-                {!crewLoading && !crewLoadError && crewEmpty ? (
+                {!crewLoading && crewEmpty ? (
                   <div className="crew-pass-select-message crew-pass-select-message--empty">
-                    No crew members found.
+                    No crew found
                   </div>
                 ) : null}
               </FormField>
