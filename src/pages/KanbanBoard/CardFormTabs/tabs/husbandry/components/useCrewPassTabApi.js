@@ -193,10 +193,12 @@ export function useCrewPassTabApi({
     formData.append("pass_type", passType);
     formData.append("remarks", remarks || "");
 
+    let docIndex = 0;
     documents.forEach((attachment) => {
       const file = attachment?.file ?? attachment;
       if (file instanceof File) {
-        formData.append("documents[]", file);
+        formData.append(`documents[${docIndex}]`, file);
+        docIndex += 1;
       }
     });
 

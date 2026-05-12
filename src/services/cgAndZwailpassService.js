@@ -4,7 +4,7 @@ import Gateway from "../gateway/gateway";
 export const getCrewListForPass = (callId) =>
   Gateway.get(`crew/get_crew_by_call/${callId}`);
 
-/** POST multipart FormData — { call_id, request_email, crew_change_ids (JSON string), pass_type, remarks, documents[] } */
+/** POST multipart FormData — { call_id, request_email, crew_change_ids (JSON string), pass_type, remarks, documents[0], documents[1], … } */
 export const createPassRequest = (formData) =>
   Gateway.post("crew_pass/create_pass_request", formData);
 
