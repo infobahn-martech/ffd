@@ -2,7 +2,7 @@ import { useState, useRef } from "react";
 import PropTypes from "prop-types";
 import Select from "react-select";
 import GroupSettingsIcon from "../../../../../../assets/images/cv.png";
-import { FormSection, FormField, FormInput, FormSelect, ReactQuillEditor, getCrewMultiSelectStyles, formatCrewOptionLabel } from "./Husbandry.components";
+import { FormSection, FormField, ReactQuillEditor, getCrewMultiSelectStyles, formatCrewOptionLabel } from "./Husbandry.components";
 import AttachmentsList from "../../appointment/AttachmentsList";
 
 const ZawilPassContent = ({ formValues, handleChange, cardColor }) => {
@@ -125,28 +125,8 @@ const ZawilPassContent = ({ formValues, handleChange, cardColor }) => {
                 </div>
               </FormField>
 
-              <FormField label="Zawil Pass Number">
-                <FormInput
-                  type="text"
-                  placeholder="Enter Zawil pass number..."
-                  value={formValues.zawilPassNumber || ""}
-                  onChange={handleChange("zawilPassNumber")}
-                />
-              </FormField>
-
-              <FormField label="Issued Date">
-                <div className="cf-input date-time-row">
-                  <input
-                    type="date"
-                    value={formValues.zawilPassIssuedDate || ""}
-                    onChange={handleChange("zawilPassIssuedDate")}
-                    placeholder="Select date"
-                  />
-                </div>
-              </FormField>
-
               <FormField label="Documents" className="cf-field-full">
-                <div style={{ marginTop: "8px" }}>
+                <div className="zawilpass-documents-inner">
                   <AttachmentsList
                     attachments={formValues.zawilPassDocuments || []}
                     onAdd={() => { }}
@@ -163,7 +143,18 @@ const ZawilPassContent = ({ formValues, handleChange, cardColor }) => {
                 </div>
               </FormField>
 
-              <div className="form-save-button-wrapper">
+              <div className="zawilpass-remarks">
+                <FormField label="Remarks">
+                  <ReactQuillEditor
+                    value={formValues?.zawilPassDescription || ""}
+                    onChange={handleChange("zawilPassDescription")}
+                    placeholder="Enter remarks..."
+                    name="zawilPassDescription"
+                  />
+                </FormField>
+              </div>
+
+              <div className="form-save-button-wrapper zawilpass-save-footer">
                 <button
                   type="button"
                   className="form-save-button"
@@ -174,18 +165,7 @@ const ZawilPassContent = ({ formValues, handleChange, cardColor }) => {
               </div>
             </div>
 
-            <div className="general-info-right">
-              <div className="card-description-wrapper">
-                <FormField label="Remarks">
-                  <ReactQuillEditor
-                    value={formValues?.zawilPassDescription || ""}
-                    onChange={handleChange("zawilPassDescription")}
-                    placeholder="Enter remarks..."
-                    name="zawilPassDescription"
-                  />
-                </FormField>
-              </div>
-            </div>
+            <div className="general-info-right zawilpass-empty-right"></div>
           </div>
         </div>
       </FormSection>

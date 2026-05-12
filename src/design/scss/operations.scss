@@ -2986,26 +2986,72 @@ $send-report-optional: #80868b;
   }
 }
 
-/* Override ReactQuill min-height for Husbandry Zawil Pass tab */
+/* Husbandry Zawil Pass: match CG Pass — 30 / 70 columns, stacked left, empty reserve right */
 .zawilpass-form {
+  .general-info-two-column.operation-section-form-layout {
+    grid-template-columns: minmax(0, 30fr) minmax(0, 70fr);
+    column-gap: 32px;
+    row-gap: 24px;
+    align-items: stretch;
+
+    > .general-info-left,
+    > .general-info-right {
+      min-width: 0;
+      box-sizing: border-box;
+    }
+  }
+
   .general-info-two-column {
     align-items: stretch;
   }
 
-  .react-quill-wrapper {
-    flex: 1;
-    min-height: 0;
+  .general-info-left {
+    gap: 24px;
+  }
 
-    .ql-container {
-      flex: 1;
-      min-height: 0;
-      height: 100%;
+  .general-info-right.zawilpass-empty-right {
+    min-height: 160px;
+    border-radius: 10px;
+    border: 1px solid rgba(0, 0, 0, 0.06);
+    background: rgba(0, 0, 0, 0.02);
+    pointer-events: none;
+  }
+
+  .zawilpass-documents-inner {
+    margin-top: 4px;
+  }
+
+  .zawilpass-remarks {
+    flex-shrink: 0;
+
+    .cf-field {
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
     }
 
-    .ql-editor {
-      height: 100% !important;
-      overflow-y: auto;
+    .react-quill-wrapper {
+      flex: none;
+      min-height: 260px;
+
+      .ql-container {
+        flex: 1;
+        min-height: 220px;
+        height: auto;
+      }
+
+      .ql-editor {
+        min-height: 200px;
+        height: auto !important;
+        overflow-y: auto;
+      }
     }
+  }
+
+  .form-save-button-wrapper.zawilpass-save-footer {
+    margin-top: auto;
+    align-self: flex-end;
+    padding-top: 12px;
   }
 }
 
@@ -3079,7 +3125,6 @@ $send-report-optional: #80868b;
 }
 
 .transport-form .operation-section-form-layout,
-.zawilpass-form .operation-section-form-layout,
 .hotel-form .operation-section-form-layout,
 .medicalservice-form .operation-section-form-layout,
 .launchhire-form .operation-section-form-layout {
@@ -3089,7 +3134,6 @@ $send-report-optional: #80868b;
 @media (max-width: 900px) {
 
   .transport-form .operation-section-form-layout,
-  .zawilpass-form .operation-section-form-layout,
   .hotel-form .operation-section-form-layout,
   .medicalservice-form .operation-section-form-layout,
   .launchhire-form .operation-section-form-layout {
@@ -3101,6 +3145,14 @@ $send-report-optional: #80868b;
   }
 
   .cgpass-form .general-info-right.cgpass-empty-right {
+    display: none;
+  }
+
+  .zawilpass-form .general-info-two-column.operation-section-form-layout {
+    grid-template-columns: 1fr;
+  }
+
+  .zawilpass-form .general-info-right.zawilpass-empty-right {
     display: none;
   }
 }
