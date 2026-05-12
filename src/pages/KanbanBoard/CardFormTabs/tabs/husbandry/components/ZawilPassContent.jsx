@@ -4,6 +4,7 @@ import Select from "react-select";
 import GroupSettingsIcon from "../../../../../../assets/images/cv.png";
 import { FormSection, FormField, FormInput, ReactQuillEditor, getCrewMultiSelectStyles, formatCrewOptionLabel } from "./Husbandry.components";
 import AttachmentsList from "../../appointment/AttachmentsList";
+import CrewPassRequestsTable from "./CrewPassRequestsTable";
 import { useCrewPassTabApi } from "./useCrewPassTabApi";
 
 const ZawilPassContent = ({ formValues, handleChange, cardColor, card }) => {
@@ -198,7 +199,14 @@ const ZawilPassContent = ({ formValues, handleChange, cardColor, card }) => {
               </div>
             </div>
 
-            <div className="general-info-right zawilpass-empty-right"></div>
+            <div className="general-info-right crew-pass-requests-sidebar">
+              <CrewPassRequestsTable
+                title="Zawil Pass Requests"
+                requests={passRequests?.zawil || []}
+                loading={passRequestsLoading}
+                passType="Zawil"
+              />
+            </div>
           </div>
         </div>
       </FormSection>

@@ -2955,12 +2955,12 @@ $send-report-optional: #80868b;
     gap: 24px;
   }
 
-  .general-info-right.cgpass-empty-right {
-    min-height: 160px;
-    border-radius: 10px;
-    border: 1px solid rgba(0, 0, 0, 0.06);
-    background: rgba(0, 0, 0, 0.02);
-    pointer-events: none;
+  .general-info-right.crew-pass-requests-sidebar {
+    min-width: 0;
+    min-height: 0;
+    display: flex;
+    flex-direction: column;
+    align-self: stretch;
   }
 
   .cgpass-documents-inner {
@@ -3024,12 +3024,12 @@ $send-report-optional: #80868b;
     gap: 24px;
   }
 
-  .general-info-right.zawilpass-empty-right {
-    min-height: 160px;
-    border-radius: 10px;
-    border: 1px solid rgba(0, 0, 0, 0.06);
-    background: rgba(0, 0, 0, 0.02);
-    pointer-events: none;
+  .general-info-right.crew-pass-requests-sidebar {
+    min-width: 0;
+    min-height: 0;
+    display: flex;
+    flex-direction: column;
+    align-self: stretch;
   }
 
   .zawilpass-documents-inner {
@@ -3068,6 +3068,180 @@ $send-report-optional: #80868b;
     align-self: flex-end;
     padding-top: 12px;
   }
+}
+
+/* Husbandry: CG / Zawil pass request history table (shared) */
+.crew-pass-requests-table-card {
+  flex: 1;
+  min-height: 0;
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  background: #fff;
+  border: 1px solid #e5e7eb;
+  border-radius: 12px;
+  overflow: hidden;
+  box-shadow: 0 1px 2px rgba(15, 23, 42, 0.04);
+}
+
+.crew-pass-requests-table-card__header {
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 14px 16px;
+  border-bottom: 1px solid #e5e7eb;
+  background: linear-gradient(180deg, #fafafa 0%, #fff 100%);
+}
+
+.crew-pass-requests-table-card__title {
+  margin: 0;
+  font-size: 15px;
+  font-weight: 600;
+  color: #111827;
+  letter-spacing: -0.01em;
+}
+
+.crew-pass-requests-table-card__count {
+  flex-shrink: 0;
+  font-size: 12px;
+  font-weight: 600;
+  color: #374151;
+  background: #f3f4f6;
+  padding: 4px 10px;
+  border-radius: 999px;
+  border: 1px solid #e5e7eb;
+  line-height: 1.2;
+}
+
+.crew-pass-requests-table-card__body {
+  flex: 1;
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
+}
+
+.crew-pass-requests-table-scroll {
+  flex: 1;
+  min-height: 0;
+  overflow: auto;
+  -webkit-overflow-scrolling: touch;
+}
+
+.crew-pass-requests-table {
+  width: 100%;
+  min-width: 720px;
+  border-collapse: collapse;
+  font-size: 12px;
+  color: #1f2937;
+
+  thead th {
+    position: sticky;
+    top: 0;
+    z-index: 1;
+    text-align: left;
+    padding: 10px 12px;
+    font-weight: 600;
+    font-size: 11px;
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+    color: #6b7280;
+    background: #f9fafb;
+    border-bottom: 1px solid #e5e7eb;
+    white-space: nowrap;
+  }
+
+  tbody td {
+    padding: 8px 12px;
+    border-bottom: 1px solid #f3f4f6;
+    vertical-align: middle;
+    line-height: 1.35;
+  }
+
+  tbody tr:last-child td {
+    border-bottom: none;
+  }
+}
+
+.crew-pass-requests-table__badge {
+  display: inline-flex;
+  align-items: center;
+  padding: 3px 8px;
+  border-radius: 6px;
+  font-size: 11px;
+  font-weight: 600;
+  white-space: nowrap;
+  max-width: 160px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.crew-pass-requests-table__badge--pending {
+  background: #fef3c7;
+  color: #b45309;
+  border: 1px solid #fcd34d;
+}
+
+.crew-pass-requests-table__badge--docs-pending {
+  background: #fee2e2;
+  color: #b91c1c;
+  border: 1px solid #fecaca;
+}
+
+.crew-pass-requests-table__badge--done {
+  background: #d1fae5;
+  color: #047857;
+  border: 1px solid #6ee7b7;
+}
+
+.crew-pass-requests-table__badge--default {
+  background: #f3f4f6;
+  color: #4b5563;
+  border: 1px solid #e5e7eb;
+}
+
+.crew-pass-requests-table__doc-cell {
+  text-align: center;
+  white-space: nowrap;
+}
+
+.crew-pass-requests-table__doc-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 6px;
+  border: none;
+  border-radius: 8px;
+  background: #f3f4f6;
+  color: #2563eb;
+  cursor: pointer;
+  transition: background 0.15s ease, color 0.15s ease;
+
+  &:hover {
+    background: #e0e7ff;
+    color: #1d4ed8;
+  }
+}
+
+.crew-pass-requests-table__dash {
+  color: #9ca3af;
+}
+
+.crew-pass-requests-table-card__empty {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 48px 20px;
+  font-size: 14px;
+  font-weight: 500;
+  color: #6b7280;
+  text-align: center;
+}
+
+.crew-pass-requests-table-card__skeleton {
+  padding: 16px;
 }
 
 /* Override ReactQuill min-height for Husbandry Hotel tab */
@@ -3159,16 +3333,16 @@ $send-report-optional: #80868b;
     grid-template-columns: 1fr;
   }
 
-  .cgpass-form .general-info-right.cgpass-empty-right {
-    display: none;
-  }
-
   .zawilpass-form .general-info-two-column.operation-section-form-layout {
     grid-template-columns: 1fr;
   }
 
-  .zawilpass-form .general-info-right.zawilpass-empty-right {
-    display: none;
+  .cgpass-form .crew-pass-requests-sidebar .crew-pass-requests-table-card {
+    max-height: min(70vh, 720px);
+  }
+
+  .zawilpass-form .crew-pass-requests-sidebar .crew-pass-requests-table-card {
+    max-height: min(70vh, 720px);
   }
 }
 

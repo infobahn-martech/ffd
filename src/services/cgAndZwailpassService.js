@@ -8,6 +8,22 @@ export const getCrewListForPass = (callId) =>
 export const createPassRequest = (formData) =>
   Gateway.post("crew_pass/create_pass_request", formData);
 
+/** GET — pass request history for a call; response body includes cg + zawil arrays */
+export const getPassRequests = (callId) =>
+  Gateway.get(`crew_pass/get_pass_requests/${callId}`);
+
+/**
+ * Normalize pass requests from axios response.
+ * Expects data.cg and data.zawil (possibly nested under response.data.data).
+ */
+export const extractPassRequestsFromEnvelope = (responseEnvelope) => {
+  const envelope =
+    responseEnvelope?.data?.data ?? responseEnvelope?.data ?? {};
+  const cg = Array.isArray(envelope.cg) ? envelope.cg : [];
+  const zawil = Array.isArray(envelope.zawil) ? envelope.zawil : [];
+  return { cg, zawil };
+};
+
 /**
  * Normalize crew array from axios response.
  * Mirrors: response.data.data.crew, response.data.crew, response.data.data, response.data

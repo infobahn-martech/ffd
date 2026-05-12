@@ -4,6 +4,7 @@ import Select from "react-select";
 import GroupSettingsIcon from "../../../../../../assets/images/cv.png";
 import { FormSection, FormField, FormInput, ReactQuillEditor, getCrewMultiSelectStyles, formatCrewOptionLabel } from "./Husbandry.components";
 import AttachmentsList from "../../appointment/AttachmentsList";
+import CrewPassRequestsTable from "./CrewPassRequestsTable";
 import { useCrewPassTabApi } from "./useCrewPassTabApi";
 
 const CGPassContent = ({ formValues, handleChange, cardColor, card }) => {
@@ -18,6 +19,8 @@ const CGPassContent = ({ formValues, handleChange, cardColor, card }) => {
     crewPlaceholder,
     saving,
     handleSave,
+    passRequests,
+    passRequestsLoading,
   } = useCrewPassTabApi({
     passType: "CG",
     formValues,
@@ -198,7 +201,14 @@ const CGPassContent = ({ formValues, handleChange, cardColor, card }) => {
               </div>
             </div>
 
-            <div className="general-info-right cgpass-empty-right"></div>
+            <div className="general-info-right crew-pass-requests-sidebar">
+              <CrewPassRequestsTable
+                title="CG Pass Requests"
+                requests={passRequests?.cg || []}
+                loading={passRequestsLoading}
+                passType="CG"
+              />
+            </div>
           </div>
         </div>
       </FormSection>

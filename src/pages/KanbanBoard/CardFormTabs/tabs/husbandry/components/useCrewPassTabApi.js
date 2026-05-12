@@ -3,7 +3,9 @@ import { useParams } from "react-router-dom";
 import { notify } from "../../../../../../components/Toaster";
 import {
   createPassRequest,
+  extractPassRequestsFromEnvelope,
   getCrewListForPass,
+  getPassRequests,
   mapAxiosResponseToCrewOptions,
 } from "../../../../../../services/cgAndZwailpassService";
 
@@ -12,6 +14,7 @@ export const resolvePassCallId = (formValues, card, routeParams) => {
     formValues?.call_id ??
     formValues?.callId ??
     card?.call_id ??
+    card?.id ??
     card?.callId ??
     routeParams?.call_id;
   if (raw === undefined || raw === null) return "";
@@ -56,7 +59,32 @@ export function useCrewPassTabApi({
   const [crewLoadError, setCrewLoadError] = useState(null);
   const [crewLoadState, setCrewLoadState] = useState("idle");
   const [saving, setSaving] = useState(false);
+  const [passRequests, setPassRequests] = useState({ cg: [], zawil: [] });
+  const [passRequestsLoading, setPassRequestsLoading] = useState(false);
   const callId = resolvePassCallId(formValues, card, routeParams);
+
+  const fetchPassRequests = useCallback(async () => {
+    if (!callId) {
+      setPassRequests({ cg: [], zawil: [] });
+      setPassRequestsLoading(false);
+      return;
+    }
+    setPassRequestsLoading(true);
+    try {
+      const response = await getPassRequests(callId);
+      const next = extractPassRequestsFromEnvelope(response);
+      setPassRequests(next);
+    } catch (err) {
+      console.error("get_pass_requests failed", err);
+      setPassRequests({ cg: [], zawil: [] });
+    } finally {
+      setPassRequestsLoading(false);
+    }
+  }, [callId]);
+
+  useEffect(() => {
+    void fetchPassRequests();
+  }, [fetchPassRequests, callId]);
 
   useEffect(() => {
     if (!callId) {
@@ -175,6 +203,7 @@ export function useCrewPassTabApi({
     try {
       await createPassRequest(formData);
       notify("Pass request saved successfully.", "success", "top-center");
+      await fetchPassRequests();
     } catch (err) {
       console.error("create_pass_request failed", err);
       notify(pickBackendErrorMessage(err), "error", "top-center");
@@ -190,6 +219,7 @@ export function useCrewPassTabApi({
     requestEmailField,
     routeParams,
     selectedCrewField,
+    fetchPassRequests,
   ]);
 
   return {
@@ -201,5 +231,8 @@ export function useCrewPassTabApi({
     crewPlaceholder,
     saving,
     handleSave,
+    passRequests,
+    passRequestsLoading,
+    refetchPassRequests: fetchPassRequests,
   };
 }
