@@ -4,31 +4,52 @@ import Select from "react-select";
 import GroupSettingsIcon from "../../../../../../assets/images/cv.png";
 import { FormSection, FormField, ReactQuillEditor, getCrewMultiSelectStyles, formatCrewOptionLabel } from "./Husbandry.components";
 import AttachmentsList from "../../appointment/AttachmentsList";
+import { useCrewPassTabApi } from "./useCrewPassTabApi";
 
-const ZawilPassContent = ({ formValues, handleChange, cardColor }) => {
+const ZawilPassContent = ({ formValues, handleChange, cardColor, card }) => {
   const [isDragging, setIsDragging] = useState(false);
   const fileInputRef = useRef(null);
 
-  // Generate crew options from crewList
-  const crewOptions = formValues.crewList?.map((crew) => ({
-    value: crew.id?.toString() || crew.crewName,
-    label: crew.crewName || `Crew Member ${crew.id}`,
-  })) || [];
+  const {
+    crewOptions,
+    crewLoading,
+    crewLoadError,
+    crewEmpty,
+    saving,
+    handleSave,
+  } = useCrewPassTabApi({
+    passType: "ZAWIL",
+    formValues,
+    card,
+    selectedCrewField: "zawilPassSelectedCrew",
+    remarksField: "zawilPassDescription",
+    documentsField: "zawilPassDocuments",
+  });
 
-  // Handle multi-select crew change
   const handleCrewChange = (selectedOptions) => {
     const values = selectedOptions?.map((option) => option.value) || [];
     const syntheticEvent = { target: { value: values } };
     handleChange("zawilPassSelectedCrew")(syntheticEvent);
   };
 
-  // Get selected crew values for react-select
-  const selectedCrewValues = formValues.zawilPassSelectedCrew?.map((crewId) =>
-    crewOptions.find((opt) => opt.value === crewId?.toString() || opt.value === crewId)
-  ).filter(Boolean) || [];
+  const selectedCrewValues =
+    formValues.zawilPassSelectedCrew
+      ?.map((crewId) =>
+        crewOptions.find((opt) => String(opt.value) === String(crewId))
+      )
+      .filter(Boolean) || [];
 
   const customSelectStyles = getCrewMultiSelectStyles(cardColor);
 
+  const crewPlaceholder = crewLoading
+    ? "Loading crew..."
+    : crewLoadError
+      ? "Unable to load crew"
+      : crewEmpty
+        ? "No crew available"
+        : selectedCrewValues.length > 0
+          ? `${selectedCrewValues.length} crew selected`
+          : "Select crew members...";
 
   const fileToAttachment = (file) => ({
     name: file.name,
@@ -83,23 +104,6 @@ const ZawilPassContent = ({ formValues, handleChange, cardColor }) => {
     handleChange("zawilPassDocuments")({ target: { value: current.filter((_, i) => i !== index) } });
   };
 
-  // Handle save
-  const handleSave = () => {
-    // You can add validation here
-    console.log("Saving Zawil Pass data:", {
-      zawilPassNumber: formValues.zawilPassNumber,
-      zawilPassIssuedDate: formValues.zawilPassIssuedDate,
-      zawilPassExpiryDate: formValues.zawilPassExpiryDate,
-      zawilPassStatus: formValues.zawilPassStatus,
-      zawilPassETA: formValues.zawilPassETA,
-      zawilPassETATime: formValues.zawilPassETATime,
-      statusSignOnOff: formValues.statusSignOnOff,
-      zawilPassSelectedCrew: formValues.zawilPassSelectedCrew,
-      zawilPassDocuments: formValues.zawilPassDocuments,
-    });
-    // Add your save logic here
-  };
-
   return (
     <div className="cardform-left-full" style={{ "--card-color": cardColor }}>
       <FormSection icon={GroupSettingsIcon} title="">
@@ -113,7 +117,7 @@ const ZawilPassContent = ({ formValues, handleChange, cardColor }) => {
                     value={selectedCrewValues}
                     onChange={handleCrewChange}
                     options={crewOptions}
-                    placeholder={selectedCrewValues.length > 0 ? `${selectedCrewValues.length} crew selected` : "Select crew members..."}
+                    placeholder={crewPlaceholder}
                     classNamePrefix="react-select"
                     styles={customSelectStyles}
                     formatOptionLabel={formatCrewOptionLabel}
@@ -121,15 +125,30 @@ const ZawilPassContent = ({ formValues, handleChange, cardColor }) => {
                     isSearchable
                     closeMenuOnSelect={false}
                     hideSelectedOptions={false}
+                    isLoading={crewLoading}
+                    isDisabled={crewLoading}
+                    noOptionsMessage={() =>
+                      crewLoading ? "Loading..." : "No crew found"
+                    }
                   />
                 </div>
+                {!crewLoading && crewLoadError ? (
+                  <div className="crew-pass-select-message crew-pass-select-message--error">
+                    {crewLoadError}
+                  </div>
+                ) : null}
+                {!crewLoading && !crewLoadError && crewEmpty ? (
+                  <div className="crew-pass-select-message crew-pass-select-message--empty">
+                    No crew members found.
+                  </div>
+                ) : null}
               </FormField>
 
               <FormField label="Documents" className="cf-field-full">
                 <div className="zawilpass-documents-inner">
                   <AttachmentsList
                     attachments={formValues.zawilPassDocuments || []}
-                    onAdd={() => { }}
+                    onAdd={() => {}}
                     onRemove={handleDocumentsRemoveAttachment}
                     cardColor={cardColor}
                     isDragging={isDragging}
@@ -158,9 +177,12 @@ const ZawilPassContent = ({ formValues, handleChange, cardColor }) => {
                 <button
                   type="button"
                   className="form-save-button"
-                  onClick={handleSave}
+                  onClick={() => {
+                    void handleSave();
+                  }}
+                  disabled={saving}
                 >
-                  Save
+                  {saving ? "Saving..." : "Save"}
                 </button>
               </div>
             </div>
@@ -177,7 +199,7 @@ ZawilPassContent.propTypes = {
   formValues: PropTypes.object.isRequired,
   handleChange: PropTypes.func.isRequired,
   cardColor: PropTypes.string,
+  card: PropTypes.object,
 };
 
 export default ZawilPassContent;
-

@@ -794,6 +794,21 @@ $send-report-optional: #80868b;
     margin-bottom: 30px;
     /* Increased spacing */
   }
+
+  /* CG / Zawil pass — crew select helper text */
+  .crew-pass-select-message {
+    margin-top: 8px;
+    font-size: 12px;
+    line-height: 1.35;
+
+    &.crew-pass-select-message--error {
+      color: #c62828;
+    }
+
+    &.crew-pass-select-message--empty {
+      color: rgba(0, 0, 0, 0.55);
+    }
+  }
 }
 
 /* Operation tab specific: Use rgb(62 94 189) for all buttons */

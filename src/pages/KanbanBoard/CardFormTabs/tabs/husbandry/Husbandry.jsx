@@ -459,6 +459,7 @@ function Husbandry({ card, formValues, handleChange, isDAModule = false }) {
             formValues={formValues}
             handleChange={handleChange}
             cardColor={cardColor}
+            card={card}
           />
         );
       case CREW_MANAGEMENT_SUBTABS.ZAWIL_PASS:
@@ -467,6 +468,7 @@ function Husbandry({ card, formValues, handleChange, isDAModule = false }) {
             formValues={formValues}
             handleChange={handleChange}
             cardColor={cardColor}
+            card={card}
           />
         );
       case CREW_MANAGEMENT_SUBTABS.LAUNCH_HIRE:
