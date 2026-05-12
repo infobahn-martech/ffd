@@ -34,7 +34,12 @@ const mergeCrewOptions = (apiOptions, crewList) => {
   apiOptions.forEach((opt) => map.set(opt.value, opt));
   if (Array.isArray(crewList)) {
     crewList.forEach((crew) => {
-      const id = crew.crew_id ?? crew.id ?? crew.crewId;
+      const id =
+        crew.crew_change_id ??
+        crew.crewChangeId ??
+        crew.crew_id ??
+        crew.id ??
+        crew.crewId;
       if (id === undefined || id === null) return;
       const val = String(id);
       if (!map.has(val)) {
@@ -43,7 +48,14 @@ const mergeCrewOptions = (apiOptions, crewList) => {
           label:
             crew.crew_name ||
             crew.crewName ||
-            `Crew Member ${crew.crew_id ?? crew.id}`,
+            crew.name ||
+            `Crew Member ${crew.crew_id ?? crew.id ?? ""}`,
+          crew_id: crew.crew_id ?? crew.id,
+          crew_change_id: crew.crew_change_id ?? crew.crewChangeId,
+          movement_type: crew.movement_type ?? crew.movementType,
+          nationality: crew.nationality,
+          rank: crew.rank,
+          raw: crew,
         });
       }
     });

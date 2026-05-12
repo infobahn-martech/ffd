@@ -9,35 +9,42 @@ export const createPassRequest = (formData) =>
   Gateway.post("crew_pass/create_pass_request", formData);
 
 /**
- * Normalize crew array from API body (axios `response.data`).
- * Mirrors common envelope shapes: data.data.crew, data.crew, data.data, data.
+ * Normalize crew array from axios response.
+ * Mirrors: response.data.data.crew, response.data.crew, response.data.data, response.data
  */
-export const extractCrewArrayFromEnvelope = (envelope) => {
+export const extractCrewArrayFromEnvelope = (responseEnvelope) => {
   const crewArray =
-    envelope?.data?.crew ??
-    envelope?.crew ??
-    envelope?.data?.data ??
-    envelope?.data ??
-    envelope;
-  return Array.isArray(crewArray) ? crewArray : [];
+    responseEnvelope?.data?.data?.crew ??
+    responseEnvelope?.data?.crew ??
+    responseEnvelope?.data?.data ??
+    responseEnvelope?.data ??
+    [];
+  const safeCrewArray = Array.isArray(crewArray) ? crewArray : [];
+  return safeCrewArray;
 };
 
 export const mapCrewRecordsToOptions = (crewArray) => {
-  if (!Array.isArray(crewArray)) return [];
-  return crewArray
+  const safeCrewArray = Array.isArray(crewArray) ? crewArray : [];
+  return safeCrewArray
     .map((crew) => {
-      const id = crew.crew_change_id ?? crew.crew_id ?? crew.id ?? crew.crewId;
+      const id = crew.crew_change_id ?? crew.crew_id ?? crew.id;
       if (id === undefined || id === null) return null;
       return {
         value: String(id),
         label:
           crew.crew_name ||
           crew.crewName ||
-          `Crew Member ${crew.crew_id ?? crew.id ?? crew.crewId ?? ""}`,
+          `Crew Member ${crew.crew_id ?? crew.id ?? ""}`,
+        crew_id: crew.crew_id,
+        crew_change_id: crew.crew_change_id,
+        movement_type: crew.movement_type,
+        nationality: crew.nationality,
+        rank: crew.rank,
+        raw: crew,
       };
     })
     .filter(Boolean);
 };
 
 export const mapAxiosResponseToCrewOptions = (response) =>
-  mapCrewRecordsToOptions(extractCrewArrayFromEnvelope(response?.data));
+  mapCrewRecordsToOptions(extractCrewArrayFromEnvelope(response));

@@ -448,6 +448,15 @@ const normalizeCrewListItem = (apiRow, index) => {
   };
 };
 
+const getCrewPassSelectionId = (crew) =>
+  String(
+    crew?.crew_change_id ??
+      crew?.crewChangeId ??
+      crew?.id ??
+      crew?.crew_id ??
+      ""
+  );
+
 /**
  * Reusable crew document cell for the Passport / Visa / Iqama columns.
  *
@@ -811,8 +820,18 @@ const CrewContent = ({ formValues, handleChange, cardColor, onNavigateToTab, lau
 
   // Handle action dropdown selection
   const handleActionSelect = (option) => {
-    // Set the selected crew in the corresponding field
-    const crewIdStrings = selectedCrewIds.map((id) => id.toString());
+    const selectedRows = displayCrewList.filter((crew) =>
+      selectedCrewIds.some((selectedId) => String(selectedId) === String(crew.id))
+    );
+
+    // CG/Zawil pass needs crew_change_id values; others keep crew row id behavior.
+    const crewIdStrings =
+      option.field === "cgPassSelectedCrew" || option.field === "zawilPassSelectedCrew"
+        ? selectedRows
+            .map((crew) => getCrewPassSelectionId(crew))
+            .filter((id) => id !== "")
+        : selectedCrewIds.map((id) => String(id));
+
     const syntheticEvent = { target: { value: crewIdStrings } };
     handleChange(option.field)(syntheticEvent);
 
