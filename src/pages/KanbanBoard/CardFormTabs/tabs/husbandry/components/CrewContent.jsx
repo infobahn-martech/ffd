@@ -9,6 +9,7 @@ import { FiDownload, FiChevronLeft, FiChevronRight, FiEye } from "react-icons/fi
 import { YesIcon, NoIcon } from "./Husbandry.components";
 import CustomModal from "../../../../../../components/CustomModal";
 import useCrewReducer from "../../../../../../store/CrewReducer";
+import useCommonReducer from "../../../../../../store/CommonReducer";
 import callFileService from "../../../../../../services/callFileService";
 import "../../../../../../design/scss/operations.scss";
 
@@ -262,12 +263,28 @@ const buildWizardSteps = ({ includeIqama, uploadedFileName, formValues }) => {
 };
 
 const createEmptyPreviewRows = () => ([
-  { name: "", movementType: "", rank: "", nationality: "", passportNumber: "", passportExpiry: "", visaNumber: "", visaExpiry: "", iqama: "", iqamaExpiry: "", sbNo: "", borderNo: "", dateOfBirth: "" },
-  { name: "", movementType: "", rank: "", nationality: "", passportNumber: "", passportExpiry: "", visaNumber: "", visaExpiry: "", iqama: "", iqamaExpiry: "", sbNo: "", borderNo: "", dateOfBirth: "" },
-  { name: "", movementType: "", rank: "", nationality: "", passportNumber: "", passportExpiry: "", visaNumber: "", visaExpiry: "", iqama: "", iqamaExpiry: "", sbNo: "", borderNo: "", dateOfBirth: "" },
-  { name: "", movementType: "", rank: "", nationality: "", passportNumber: "", passportExpiry: "", visaNumber: "", visaExpiry: "", iqama: "", iqamaExpiry: "", sbNo: "", borderNo: "", dateOfBirth: "" },
-  { name: "", movementType: "", rank: "", nationality: "", passportNumber: "", passportExpiry: "", visaNumber: "", visaExpiry: "", iqama: "", iqamaExpiry: "", sbNo: "", borderNo: "", dateOfBirth: "" },
+  { name: "", movementType: "", rank: "", nationality: "", nationalityName: "", passportNumber: "", passportExpiry: "", visaNumber: "", visaExpiry: "", iqama: "", iqamaExpiry: "", sbNo: "", borderNo: "", dateOfBirth: "" },
+  { name: "", movementType: "", rank: "", nationality: "", nationalityName: "", passportNumber: "", passportExpiry: "", visaNumber: "", visaExpiry: "", iqama: "", iqamaExpiry: "", sbNo: "", borderNo: "", dateOfBirth: "" },
+  { name: "", movementType: "", rank: "", nationality: "", nationalityName: "", passportNumber: "", passportExpiry: "", visaNumber: "", visaExpiry: "", iqama: "", iqamaExpiry: "", sbNo: "", borderNo: "", dateOfBirth: "" },
+  { name: "", movementType: "", rank: "", nationality: "", nationalityName: "", passportNumber: "", passportExpiry: "", visaNumber: "", visaExpiry: "", iqama: "", iqamaExpiry: "", sbNo: "", borderNo: "", dateOfBirth: "" },
+  { name: "", movementType: "", rank: "", nationality: "", nationalityName: "", passportNumber: "", passportExpiry: "", visaNumber: "", visaExpiry: "", iqama: "", iqamaExpiry: "", sbNo: "", borderNo: "", dateOfBirth: "" },
 ]);
+
+const resolveNationalityPaste = (nationalitiesList, pastedText) => {
+  const raw = (pastedText ?? "").toString().trim();
+  if (!raw) return { nationality: "", nationalityName: "" };
+  const items = Array.isArray(nationalitiesList) ? nationalitiesList : [];
+  const byId = items.find((item) => String(item.country_id) === raw);
+  if (byId) {
+    return { nationality: String(byId.country_id), nationalityName: byId.nationality ?? "" };
+  }
+  const lower = raw.toLowerCase();
+  const byLabel = items.find((item) => String(item.nationality ?? "").trim().toLowerCase() === lower);
+  if (byLabel) {
+    return { nationality: String(byLabel.country_id), nationalityName: byLabel.nationality ?? "" };
+  }
+  return { nationality: "", nationalityName: "" };
+};
 
 const PREVIEW_FIELD_PLACEHOLDERS = {
   name: "Name",
@@ -575,6 +592,10 @@ CrewDocumentCell.propTypes = {
 
 const CrewContent = ({ formValues, handleChange, cardColor, onNavigateToTab, launchHireOnly = false }) => {
   const crewList = formValues.crewList || [];
+  const nationalities = useCommonReducer((state) => state.nationalities);
+  const fetchAllNationalities = useCommonReducer((state) => state.fetchAllNationalities);
+  const nationalitiesLoading = useCommonReducer((state) => state.nationalitiesLoading);
+
   const saveCrewData = useCrewReducer((state) => state.saveCrewData);
   const isBeingUpdated = useCrewReducer((state) => state.isBeingUpdated);
   const getCrewTemplate = useCrewReducer((state) => state.getCrewTemplate);
@@ -609,6 +630,24 @@ const CrewContent = ({ formValues, handleChange, cardColor, onNavigateToTab, lau
   const [isDragging, setIsDragging] = useState(false);
   const [uploadedFileName, setUploadedFileName] = useState(formValues.crewUploadedFileName || "");
   const fileInputRef = useRef(null);
+  const nationalitiesRef = useRef([]);
+
+  const nationalityOptions = useMemo(
+    () =>
+      (Array.isArray(nationalities) ? nationalities : []).map((item) => ({
+        value: String(item.country_id),
+        label: item.nationality,
+      })),
+    [nationalities]
+  );
+
+  useEffect(() => {
+    nationalitiesRef.current = Array.isArray(nationalities) ? nationalities : [];
+  }, [nationalities]);
+
+  useEffect(() => {
+    fetchAllNationalities();
+  }, [fetchAllNationalities]);
 
   const [isDraggingWizardUpload, setIsDraggingWizardUpload] = useState(false);
   const [passportFiles, setPassportFiles] = useState(formValues.crewPassportFiles || []);
@@ -998,6 +1037,18 @@ const CrewContent = ({ formValues, handleChange, cardColor, onNavigateToTab, lau
     });
   };
 
+  const handlePreviewNationalityChange = useCallback((rowIndex, selectedValue, selectedLabel) => {
+    setPreviewTableData((prev) => {
+      const newData = [...prev];
+      newData[rowIndex] = {
+        ...newData[rowIndex],
+        nationality: selectedValue,
+        nationalityName: selectedLabel,
+      };
+      return newData;
+    });
+  }, []);
+
   // Handle paste event in preview table
   const handlePreviewTablePaste = (e, startRowIndex, startColIndex) => {
     e.preventDefault();
@@ -1021,7 +1072,15 @@ const CrewContent = ({ formValues, handleChange, cardColor, onNavigateToTab, lau
         for (let j = 0; j < Math.min(cells.length, fieldMap.length); j++) {
           const colIndex = startColIndex + j;
           if (colIndex < fieldMap.length) {
-            updatedRow[fieldMap[colIndex]] = cells[j].trim();
+            const field = fieldMap[colIndex];
+            const trimmed = cells[j].trim();
+            if (field === "nationality") {
+              const resolved = resolveNationalityPaste(nationalitiesRef.current, trimmed);
+              updatedRow.nationality = resolved.nationality;
+              updatedRow.nationalityName = resolved.nationalityName;
+            } else {
+              updatedRow[field] = trimmed;
+            }
           }
         }
 
@@ -1793,7 +1852,7 @@ const CrewContent = ({ formValues, handleChange, cardColor, onNavigateToTab, lau
                           { field: "name" },
                           { field: "movementType", type: "select" },
                           { field: "rank" },
-                          { field: "nationality" },
+                          { field: "nationality", type: "nationalitySelect" },
                           { field: "passportNumber" },
                           { field: "passportExpiry", type: "datepicker" },
                           { field: "visaNumber" },
@@ -1802,7 +1861,10 @@ const CrewContent = ({ formValues, handleChange, cardColor, onNavigateToTab, lau
                           { field: "borderNo" }
                         ].map((col, colIndex) => {
                           const isLast = colIndex === 9;
-                          const hasValue = row[col.field] && row[col.field].trim() !== "";
+                          const hasValue =
+                            col.type === "nationalitySelect"
+                              ? Boolean(row.nationality != null && String(row.nationality).trim() !== "")
+                              : row[col.field] && row[col.field].trim() !== "";
                           return (
                             <td
                               key={col.field}
@@ -1818,7 +1880,35 @@ const CrewContent = ({ formValues, handleChange, cardColor, onNavigateToTab, lau
                                 e.currentTarget.querySelector(".premium-date-trigger")?.click();
                               }}
                             >
-                              {col.type === "select" ? (
+                              {col.type === "nationalitySelect" ? (
+                                <select
+                                  value={row.nationality != null && row.nationality !== "" ? String(row.nationality) : ""}
+                                  onChange={(e) => {
+                                    const selectedValue = e.target.value;
+                                    const opt = nationalityOptions.find((o) => o.value === selectedValue);
+                                    handlePreviewNationalityChange(rowIndex, selectedValue, opt?.label ?? "");
+                                  }}
+                                  onPaste={(e) => handlePreviewTablePaste(e, rowIndex, colIndex)}
+                                  disabled={nationalitiesLoading}
+                                  title="Select nationality"
+                                  style={{
+                                    backgroundColor: hasValue ? "#f0f7ff" : "transparent",
+                                    color: hasValue ? "#1a1a1a" : "#999",
+                                    ...PREVIEW_TABLE_INPUT_STYLE,
+                                    fontWeight: hasValue ? "500" : "400",
+                                    cursor: nationalitiesLoading ? "wait" : "pointer",
+                                  }}
+                                >
+                                  <option value="" disabled>
+                                    Select nationality
+                                  </option>
+                                  {nationalityOptions.map((opt) => (
+                                    <option key={opt.value} value={opt.value}>
+                                      {opt.label}
+                                    </option>
+                                  ))}
+                                </select>
+                              ) : col.type === "select" ? (
                                 <select
                                   value={row[col.field]}
                                   onChange={(e) => handlePreviewTableCellChange(rowIndex, col.field, e.target.value)}

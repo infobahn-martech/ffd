@@ -5,6 +5,8 @@ const useCommonReducer = create((set) => ({
     isLoading: false,
     errorMessage: '',
     callTypes: null,
+    nationalities: [],
+    nationalitiesLoading: false,
     getCallTypes: async () => {
         try {
             set({ isLoading: true });
@@ -15,6 +17,24 @@ const useCommonReducer = create((set) => ({
             });
         } catch (error) {
             set({ errorMessage: error.message, isLoading: false });
+        }
+    },
+    fetchAllNationalities: async () => {
+        try {
+            set({ nationalitiesLoading: true });
+            const { data } = await CommonService.getAllNationality();
+            const raw = data?.data ?? data;
+            const list = Array.isArray(raw) ? raw : [];
+            set({
+                nationalities: list,
+                nationalitiesLoading: false,
+            });
+        } catch (error) {
+            set({
+                errorMessage: error.message,
+                nationalitiesLoading: false,
+                nationalities: [],
+            });
         }
     },
 }));
