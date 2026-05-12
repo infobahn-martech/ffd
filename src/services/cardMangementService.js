@@ -47,11 +47,6 @@ export const disableKanbanCardSticker = (stickerId) =>
     `/kanban_management/disable_kanban_card_sticker/${encodeURIComponent(String(stickerId))}`
   );
 
-export const enableKanbanCardSticker = (stickerId) =>
-  Gateway.post(
-    `/kanban_management/enable_kanban_card_sticker/${encodeURIComponent(String(stickerId))}`
-  );
-
 /** Backend pattern matches tags / card types (POST delete) */
 export const deleteKanbanCardSticker = (stickerId) =>
   Gateway.post(

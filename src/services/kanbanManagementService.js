@@ -14,7 +14,7 @@ export const disableKanbanTag = (tagId) =>
   Gateway.post(`/kanban_management/disable_kanban_tag/${encodeURIComponent(String(tagId))}`);
 
 export const enableKanbanTag = (tagId) =>
-  Gateway.post(`/kanban_management/enable_kanban_tag/${encodeURIComponent(String(tagId))}`);
+  Gateway.post(`/kanban_management/disable_kanban_tag/${encodeURIComponent(String(tagId))}`);
 
 /** Backend expects POST for delete */
 export const deleteKanbanTag = (tagId) =>

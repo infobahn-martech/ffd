@@ -654,9 +654,10 @@ const useKanbanManagementReducer = create((set, get) => ({
     }
   },
 
+  /** Backend toggles enabled state via the same route as disable */
   enableKanbanCardStickerRecord: async (stickerId, fetchOpts = {}) => {
     try {
-      const { data } = await cardMangementService.enableKanbanCardSticker(stickerId);
+      const { data } = await cardMangementService.disableKanbanCardSticker(stickerId);
       useAlertReducer.getState().success(data?.message ?? 'Card sticker enabled');
       await get().fetchKanbanCardStickers({ ...fetchOpts, silentToastOnError: true });
       return data;
