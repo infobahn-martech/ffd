@@ -47,6 +47,7 @@ export function useCrewPassTabApi({
   selectedCrewField,
   remarksField,
   documentsField,
+  requestEmailField,
 }) {
   const routeParams = useParams();
   const [crewOptions, setCrewOptions] = useState([]);
@@ -136,6 +137,19 @@ export function useCrewPassTabApi({
       return;
     }
 
+    let requestEmail = "";
+    if (requestEmailField) {
+      const emailRaw = formValues?.[requestEmailField];
+      requestEmail =
+        emailRaw === undefined || emailRaw === null
+          ? ""
+          : String(emailRaw).trim();
+      if (!requestEmail) {
+        notify("Request email is required.", "error", "top-center");
+        return;
+      }
+    }
+
     const selectedCrewIds = formValues?.[selectedCrewField];
     if (!Array.isArray(selectedCrewIds) || selectedCrewIds.length === 0) {
       notify("Select at least one crew member.", "error", "top-center");
@@ -154,6 +168,9 @@ export function useCrewPassTabApi({
 
     const formData = new FormData();
     formData.append("call_id", callId);
+    if (requestEmailField) {
+      formData.append("request_email", requestEmail);
+    }
     selectedCrewIds.forEach((id) => {
       if (id !== undefined && id !== null && String(id).trim() !== "") {
         formData.append("crew_change_ids[]", String(id).trim());
@@ -185,6 +202,7 @@ export function useCrewPassTabApi({
     formValues,
     passType,
     remarksField,
+    requestEmailField,
     routeParams,
     selectedCrewField,
   ]);

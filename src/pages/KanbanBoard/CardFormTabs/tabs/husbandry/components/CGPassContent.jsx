@@ -2,7 +2,7 @@ import { useState, useRef } from "react";
 import PropTypes from "prop-types";
 import Select from "react-select";
 import GroupSettingsIcon from "../../../../../../assets/images/cv.png";
-import { FormSection, FormField, ReactQuillEditor, getCrewMultiSelectStyles, formatCrewOptionLabel } from "./Husbandry.components";
+import { FormSection, FormField, FormInput, ReactQuillEditor, getCrewMultiSelectStyles, formatCrewOptionLabel } from "./Husbandry.components";
 import AttachmentsList from "../../appointment/AttachmentsList";
 import { useCrewPassTabApi } from "./useCrewPassTabApi";
 
@@ -25,6 +25,7 @@ const CGPassContent = ({ formValues, handleChange, cardColor, card }) => {
     selectedCrewField: "cgPassSelectedCrew",
     remarksField: "cgPassDescription",
     documentsField: "cgPassDocuments",
+    requestEmailField: "cgPassRequestEmail",
   });
 
   const handleCrewChange = (selectedOptions) => {
@@ -106,6 +107,15 @@ const CGPassContent = ({ formValues, handleChange, cardColor, card }) => {
         <div className="pre-arrival-form cgpass-form">
           <div className="general-info-two-column operation-section-form-layout">
             <div className="general-info-left">
+              <FormField label="Request Email">
+                <FormInput
+                  type="email"
+                  value={formValues.cgPassRequestEmail || ""}
+                  onChange={handleChange("cgPassRequestEmail")}
+                  placeholder="Enter request email"
+                />
+              </FormField>
+
               <FormField label="Select Crew">
                 <div className="cf-select react-select-container crew-multi-select">
                   <Select
