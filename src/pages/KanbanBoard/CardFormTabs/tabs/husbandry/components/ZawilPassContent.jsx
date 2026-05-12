@@ -148,7 +148,7 @@ const ZawilPassContent = ({ formValues, handleChange, cardColor, card }) => {
                 <div className="zawilpass-documents-inner">
                   <AttachmentsList
                     attachments={formValues.zawilPassDocuments || []}
-                    onAdd={() => {}}
+                    onAdd={() => { }}
                     onRemove={handleDocumentsRemoveAttachment}
                     cardColor={cardColor}
                     isDragging={isDragging}
