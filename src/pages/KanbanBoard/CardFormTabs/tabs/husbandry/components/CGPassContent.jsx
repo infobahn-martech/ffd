@@ -2,7 +2,7 @@ import { useState, useRef } from "react";
 import PropTypes from "prop-types";
 import Select from "react-select";
 import GroupSettingsIcon from "../../../../../../assets/images/cv.png";
-import { FormSection, FormField, FormInput, FormSelect, ReactQuillEditor, getCrewMultiSelectStyles, formatCrewOptionLabel } from "./Husbandry.components";
+import { FormSection, FormField, ReactQuillEditor, getCrewMultiSelectStyles, formatCrewOptionLabel } from "./Husbandry.components";
 import AttachmentsList from "../../appointment/AttachmentsList";
 
 const CGPassContent = ({ formValues, handleChange, cardColor }) => {
@@ -125,28 +125,8 @@ const CGPassContent = ({ formValues, handleChange, cardColor }) => {
                 </div>
               </FormField>
 
-              <FormField label="CG Pass Number">
-                <FormInput
-                  type="text"
-                  placeholder="Enter CG pass number..."
-                  value={formValues.cgPassNumber || ""}
-                  onChange={handleChange("cgPassNumber")}
-                />
-              </FormField>
-
-              <FormField label="Issued Date">
-                <div className="cf-input date-time-row">
-                  <input
-                    type="date"
-                    value={formValues.cgPassIssuedDate || ""}
-                    onChange={handleChange("cgPassIssuedDate")}
-                    placeholder="Select date"
-                  />
-                </div>
-              </FormField>
-
               <FormField label="Documents" className="cf-field-full">
-                <div style={{ marginTop: "8px" }}>
+                <div className="cgpass-documents-inner">
                   <AttachmentsList
                     attachments={formValues.cgPassDocuments || []}
                     onAdd={() => { }}
@@ -163,7 +143,18 @@ const CGPassContent = ({ formValues, handleChange, cardColor }) => {
                 </div>
               </FormField>
 
-              <div className="form-save-button-wrapper">
+              <div className="cgpass-remarks">
+                <FormField label="Remarks">
+                  <ReactQuillEditor
+                    value={formValues?.cgPassDescription || ""}
+                    onChange={handleChange("cgPassDescription")}
+                    placeholder="Enter remarks..."
+                    name="cgPassDescription"
+                  />
+                </FormField>
+              </div>
+
+              <div className="form-save-button-wrapper cgpass-save-footer">
                 <button
                   type="button"
                   className="form-save-button"
@@ -174,18 +165,7 @@ const CGPassContent = ({ formValues, handleChange, cardColor }) => {
               </div>
             </div>
 
-            <div className="general-info-right">
-              <div className="card-description-wrapper">
-                <FormField label="Remarks">
-                  <ReactQuillEditor
-                    value={formValues?.cgPassDescription || ""}
-                    onChange={handleChange("cgPassDescription")}
-                    placeholder="Enter remarks..."
-                    name="cgPassDescription"
-                  />
-                </FormField>
-              </div>
-            </div>
+            <div className="general-info-right cgpass-empty-right"></div>
           </div>
         </div>
       </FormSection>
