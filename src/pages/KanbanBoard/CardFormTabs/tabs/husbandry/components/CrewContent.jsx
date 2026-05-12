@@ -1670,6 +1670,17 @@ const CrewContent = ({ formValues, handleChange, cardColor, onNavigateToTab, lau
             }}
           >
             <div className="crew-upload-excel-panel" style={{ "--card-color": cardColor }}>
+              {preferLocalUploadView &&
+                (showCrewListTable || apiHasCrew || formHasCrew) && (
+                  <button
+                    type="button"
+                    className="crew-back-button"
+                    onClick={() => setPreferLocalUploadView(false)}
+                  >
+                    <FiChevronLeft size={16} aria-hidden />
+                    <span>Back to Crew List</span>
+                  </button>
+                )}
               <div className="crew-husbandry-section-heading">
                 <div className="crew-husbandry-section-heading__accent" aria-hidden="true" />
                 <h4 className="crew-husbandry-section-heading__title">Upload Crew Excel File</h4>

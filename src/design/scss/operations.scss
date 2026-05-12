@@ -4011,6 +4011,29 @@ $send-report-optional: #80868b;
   animation: fadeIn 0.3s ease-in;
 }
 
+/* Back from local upload / preview to crew table (Husbandry crew) */
+.crew-back-button {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  height: 36px;
+  padding: 0 14px;
+  margin: 0 0 12px;
+  border: 1px solid #dfe3f0;
+  border-radius: 10px;
+  background: #fff;
+  color: #1a1a1a;
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s ease;
+
+  &:hover {
+    background: #f5f7ff;
+    border-color: #c7d2fe;
+  }
+}
+
 /* Husbandry crew upload / preview section titles (matches Upload + Expected Format) */
 .crew-husbandry-section-heading {
   display: flex;
