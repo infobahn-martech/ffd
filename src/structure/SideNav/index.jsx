@@ -14,6 +14,7 @@ import AddDashboardModal from './components/AddDashboardModal';
 import SelectWorkflowModal from './components/SelectWorkflowModal';
 import WorkspacesSideNavPanel from './components/WorkspacesSideNavPanel';
 import MyAccountsModal from '../Header/MyAccountsModal';
+import OnStationModal from '../Header/OnStationModal';
 import '../../design/scss/common.scss';
 import '../../design/scss/sidebar.scss';
 
@@ -43,7 +44,7 @@ import {
 // 🆕 Kanban sidebar icons + tooltip
 import { Tooltip } from 'react-tooltip';
 import 'react-tooltip/dist/react-tooltip.css';
-import { FiPlus, FiInbox, FiFilter, FiPlusCircle, FiActivity, FiLayout, FiMail, FiSettings } from 'react-icons/fi';
+import { FiPlus, FiInbox, FiFilter, FiPlusCircle, FiActivity, FiLayout, FiMail, FiSettings, FiEdit3, FiMapPin } from 'react-icons/fi';
 import { useLayoutView } from '../../context/LayoutViewContext';
 import useWorkSpaceReducer from '../../store/WorkSpaceReducer';
 import useAuthReducer from '../../store/AuthReducer';
@@ -81,6 +82,27 @@ function SideNav({ isMobileMenuOpen, onCloseMobileMenu, isVendorPortal = false }
   const userProfile = useAuthReducer((state) => state.userProfile);
   const restrictedNav = isRestrictedBoardUser(userProfile);
 
+  const boardRouteMatchForEditWorkflow = pathname.match(/^\/kanban-board\/([^/]+)$/);
+  const kanbanBoardIdForEditWorkflow = boardRouteMatchForEditWorkflow?.[1] ?? null;
+  const showEditWorkflowSidebarIcon =
+    Boolean(kanbanBoardIdForEditWorkflow) &&
+    String(kanbanBoardIdForEditWorkflow).toLowerCase() !== 'operator';
+
+  const kanbanBoardIcons = useMemo(() => {
+    const icons = [
+      { id: 1, icon: FiPlus, label: 'Add' },
+      { id: 7, icon: FiMail, label: 'Outlook' },
+    ];
+    if (showEditWorkflowSidebarIcon) {
+      icons.push({ id: 9, icon: FiEdit3, label: 'Edit Workflow' });
+    }
+    icons.push(
+      { id: 10, icon: FiMapPin, label: 'On Station' },
+      { id: 8, icon: FiSettings, label: 'Settings' }
+    );
+    return icons;
+  }, [showEditWorkflowSidebarIcon]);
+
   const restrictedKanbanStripIcons = useMemo(
     () => [
       { id: 4, icon: FiInbox, label: 'Workspaces' },
@@ -88,15 +110,6 @@ function SideNav({ isMobileMenuOpen, onCloseMobileMenu, isVendorPortal = false }
     ],
     []
   );
-
-  // 🆕 Kanban icon config - different icons for /kanban-board/operator vs /workspaces
-  const kanbanBoardIcons = [
-    { id: 1, icon: FiPlus, label: 'Add' },
-    { id: 7, icon: FiMail, label: 'Outlook' },
-    { id: 8, icon: FiSettings, label: 'Settings' },
-    // { id: 2, icon: FiFilter, label: 'Filter' },
-    // { id: 3, icon: FiActivity, label: 'Analytics' },
-  ];
 
   const workspacesIcons = [
     { id: 4, icon: FiInbox, label: 'Workspaces' },
@@ -139,6 +152,7 @@ function SideNav({ isMobileMenuOpen, onCloseMobileMenu, isVendorPortal = false }
   const [showTypesModal, setShowTypesModal] = useState(false);
   const [showAddDashboardModal, setShowAddDashboardModal] = useState(false);
   const [showMyAccountsModal, setShowMyAccountsModal] = useState(false);
+  const [showOnStationModal, setShowOnStationModal] = useState(false);
   const [showSelectWorkflowModal, setShowSelectWorkflowModal] = useState(false);
   const [addModalStep, setAddModalStep] = useState('workflow');
   const [selectedWorkflowId, setSelectedWorkflowId] = useState(null);
@@ -729,6 +743,7 @@ function SideNav({ isMobileMenuOpen, onCloseMobileMenu, isVendorPortal = false }
         setShowBoardTeamsSubmenu(false);
         setShowSettingsSubmenu(false);
         setShowCardManagementSubmenu(false);
+        setShowOnStationModal(false);
         if (newShowState) setActiveKanbanIcon(item.id);
         return;
       }
@@ -744,6 +759,7 @@ function SideNav({ isMobileMenuOpen, onCloseMobileMenu, isVendorPortal = false }
         setShowBoardTeamsSubmenu(false);
         setShowSettingsSubmenu(false);
         setShowCardManagementSubmenu(false);
+        setShowOnStationModal(false);
         return;
       }
 
@@ -755,6 +771,7 @@ function SideNav({ isMobileMenuOpen, onCloseMobileMenu, isVendorPortal = false }
         setShowSettingsSubmenu(false);
         setShowBusinessRulesModal(false);
         setShowCardManagementSubmenu(false);
+        setShowOnStationModal(false);
         if (newShowState) setActiveKanbanIcon(item.id);
         return;
       }
@@ -767,6 +784,7 @@ function SideNav({ isMobileMenuOpen, onCloseMobileMenu, isVendorPortal = false }
         setShowSettingsSubmenu(false);
         setShowCardManagementSubmenu(false);
         setActiveKanbanIcon(item.id);
+        setShowOnStationModal(false);
         return;
       }
 
@@ -778,6 +796,7 @@ function SideNav({ isMobileMenuOpen, onCloseMobileMenu, isVendorPortal = false }
         setShowBoardTeamsSubmenu(false);
         setShowSettingsSubmenu(false);
         setShowBusinessRulesModal(false);
+        setShowOnStationModal(false);
         setShowBlockersModal(false);
         setShowStickersModal(false);
         setShowTagsModal(false);
@@ -793,6 +812,7 @@ function SideNav({ isMobileMenuOpen, onCloseMobileMenu, isVendorPortal = false }
         setShowFilterPanel(false);
         setShowBoardTeamsSubmenu(false);
         setShowBusinessRulesModal(false);
+        setShowOnStationModal(false);
         if (!newShowState) {
           setShowCardManagementSubmenu(false);
           setShowBlockersModal(false);
@@ -804,9 +824,33 @@ function SideNav({ isMobileMenuOpen, onCloseMobileMenu, isVendorPortal = false }
         return;
       }
 
+      if (item.label === 'Edit Workflow') {
+        closeSelectWorkflowModal();
+        setShowFilterPanel(false);
+        setShowBoardTeamsSubmenu(false);
+        setShowSettingsSubmenu(false);
+        setShowCardManagementSubmenu(false);
+        setShowOnStationModal(false);
+        navigate(`/edit-workflow?boardId=${kanbanBoardIdForEditWorkflow}`);
+        setActiveKanbanIcon(item.id);
+        return;
+      }
+
+      if (item.label === 'On Station') {
+        closeSelectWorkflowModal();
+        setShowFilterPanel(false);
+        setShowBoardTeamsSubmenu(false);
+        setShowSettingsSubmenu(false);
+        setShowCardManagementSubmenu(false);
+        setShowOnStationModal(true);
+        setActiveKanbanIcon(item.id);
+        return;
+      }
+
       if (item.label === 'Outlook') {
         setShowSettingsSubmenu(false);
         setShowCardManagementSubmenu(false);
+        setShowOnStationModal(false);
         // Open Outlook Classic desktop app (Windows protocol)
         const fallbackToOutlookWeb = setTimeout(() => {
           // Fallback to Outlook Web if desktop protocol is unavailable
@@ -828,6 +872,7 @@ function SideNav({ isMobileMenuOpen, onCloseMobileMenu, isVendorPortal = false }
       if (showBoardTeamsSubmenu) setShowBoardTeamsSubmenu(false);
       if (showSettingsSubmenu) setShowSettingsSubmenu(false);
       if (showCardManagementSubmenu) setShowCardManagementSubmenu(false);
+      if (showOnStationModal) setShowOnStationModal(false);
       if (showBusinessRulesModal) setShowBusinessRulesModal(false);
       if (showBlockersModal) setShowBlockersModal(false);
       if (showStickersModal) setShowStickersModal(false);
@@ -850,6 +895,7 @@ function SideNav({ isMobileMenuOpen, onCloseMobileMenu, isVendorPortal = false }
         setShowBoardTeamsSubmenu(false);
         setShowSettingsSubmenu(false);
         setShowCardManagementSubmenu(false);
+        setShowOnStationModal(false);
         setActiveKanbanIcon(item.id);
         return;
       }
@@ -875,6 +921,7 @@ function SideNav({ isMobileMenuOpen, onCloseMobileMenu, isVendorPortal = false }
       setShowStickersModal(false);
       setShowTagsModal(false);
       setShowTypesModal(false);
+      setShowOnStationModal(false);
       setShowBusinessRulesModal(true);
     };
 
@@ -893,6 +940,7 @@ function SideNav({ isMobileMenuOpen, onCloseMobileMenu, isVendorPortal = false }
     const handleSubmenuClickKanban = (item) => {
       setShowBoardTeamsSubmenu(false);
       setShowSettingsSubmenu(false);
+      setShowOnStationModal(false);
       if (item.modal === 'managers') setShowManagersModal(true);
       else if (item.modal === 'dashboards') setShowDashboardsModal(true);
     };
@@ -900,6 +948,7 @@ function SideNav({ isMobileMenuOpen, onCloseMobileMenu, isVendorPortal = false }
     const handleCardManagementSubmenuClick = (item) => {
       setShowCardManagementSubmenu(false);
       setShowSettingsSubmenu(false);
+      setShowOnStationModal(false);
 
       setShowFilterPanel(false);
       setShowBoardTeamsSubmenu(false);
@@ -932,6 +981,8 @@ function SideNav({ isMobileMenuOpen, onCloseMobileMenu, isVendorPortal = false }
               (item.label === 'Board teams' && showBoardTeamsSubmenu) ||
               (item.label === 'Business rules' && showBusinessRulesModal) ||
               (item.label === 'Card management' && showCardManagementSubmenu) ||
+              (item.label === 'Edit Workflow' && pathname.startsWith('/edit-workflow')) ||
+              (item.label === 'On Station' && showOnStationModal) ||
               (item.label === 'Settings' && (showSettingsSubmenu || showCardManagementSubmenu)) ||
               (item.label === 'Add new dashboard' && showAddDashboardModal) ||
               (item.label === 'Add' && showSelectWorkflowModal);
@@ -1023,6 +1074,7 @@ function SideNav({ isMobileMenuOpen, onCloseMobileMenu, isVendorPortal = false }
         </aside>
 
         <BoardFilterPanel show={showFilterPanel} onClose={() => setShowFilterPanel(false)} />
+        <OnStationModal show={showOnStationModal} onClose={() => setShowOnStationModal(false)} />
         <ManagersModal show={showManagersModal} onClose={() => setShowManagersModal(false)} />
         <DashboardsModal show={showDashboardsModal} onClose={() => setShowDashboardsModal(false)} />
         <BusinessRulesModal show={showBusinessRulesModal} onClose={() => setShowBusinessRulesModal(false)} />

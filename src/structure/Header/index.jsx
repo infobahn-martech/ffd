@@ -12,9 +12,7 @@ import {
   FiLayers,
   FiMoon,
   FiBarChart2,
-  FiMapPin,
   FiShoppingBag,
-  FiArrowLeft,
 } from 'react-icons/fi';
 import { Tooltip } from 'react-tooltip';
 import 'react-tooltip/dist/react-tooltip.css';
@@ -27,7 +25,6 @@ import ChangePasswordModal from './ChangePasswordModal';
 import LogoutConfirmationModal from '../../components/LogoutConfirmationModal';
 import NotificationsModal from './NotificationsModal';
 import DocumentsModal from './DocumentsModal';
-import OnStationModal from './OnStationModal';
 import { useLayoutView } from '../../context/LayoutViewContext';
 import NavTabButton from '../../components/NavTabButton';
 import { isRestrictedBoardUser } from '../../helpers/restrictedBoardUser';
@@ -43,11 +40,9 @@ function Header({ onMenuToggle, mobileMenuOpen: externalMobileMenuOpen, isVendor
   const [showLogoutModal, setShowLogoutModal] = useState(false);
   const [showNotificationsModal, setShowNotificationsModal] = useState(false);
   const [showDocumentsModal, setShowDocumentsModal] = useState(false);
-  const [showOnStationModal, setShowOnStationModal] = useState(false);
   const [imageError, setImageError] = useState(false);
   const { layoutView, setLayoutView } = useLayoutView();
   const [notificationCount, setNotificationCount] = useState(3); // Default count, can be updated with real data
-  const [kanbanBoardLoading, setKanbanBoardLoading] = useState(false);
   const dropdownRef = useRef(null);
   const isMobile = width <= 991;
   const doLogout = useAuthReducer((state) => state.doLogout);
@@ -116,11 +111,6 @@ function Header({ onMenuToggle, mobileMenuOpen: externalMobileMenuOpen, isVendor
   const mobileMenuOpen = externalMobileMenuOpen !== undefined
     ? externalMobileMenuOpen
     : internalMobileMenuOpen;
-  const boardRouteMatch = pathname.match(/^\/kanban-board\/([^/]+)$/);
-  const kanbanBoardId = boardRouteMatch?.[1] ?? null;
-  const showEditWorkflowNavButton =
-    Boolean(kanbanBoardId) && String(kanbanBoardId).toLowerCase() !== 'operator';
-
   const handleMenuToggle = () => {
     const newState = !mobileMenuOpen;
     if (externalMobileMenuOpen === undefined) {
@@ -130,13 +120,6 @@ function Header({ onMenuToggle, mobileMenuOpen: externalMobileMenuOpen, isVendor
       onMenuToggle(newState);
     }
   };
-
-  // Clear kanban board loader when route has changed to /kanban-board
-  useEffect(() => {
-    if (pathname === '/kanban-board/operator') {
-      setKanbanBoardLoading(false);
-    }
-  }, [pathname]);
 
   // Close dropdown when clicking outside
   useEffect(() => {
@@ -182,11 +165,6 @@ function Header({ onMenuToggle, mobileMenuOpen: externalMobileMenuOpen, isVendor
 
   const handleHelpClick = () => {
     window.open("https://sedres.com/contact-us", "_blank", "noopener,noreferrer");
-  };
-
-  const handleKanbanBoardClick = () => {
-    setKanbanBoardLoading(true);
-    navigate('/kanban-board/operator');
   };
 
   // Apply dark mode to body for header/sidebar/scroll styling
@@ -293,16 +271,6 @@ function Header({ onMenuToggle, mobileMenuOpen: externalMobileMenuOpen, isVendor
 
       {/* RIGHT — User + Icons */}
       <div className="right-section">
-        {showEditWorkflowNavButton && !restrictedBoardUser ? (
-          <button
-            type="button"
-            className="header-edit-workflow-btn icon-btn-hide-mobile"
-            onClick={() => navigate(`/edit-workflow?boardId=${kanbanBoardId}`)}
-          >
-            <FiArrowLeft aria-hidden />
-            <span>Edit Workflow</span>
-          </button>
-        ) : null}
         {!restrictedBoardUser && (
           <>
             <Tooltip id="master-module" place="bottom" content="Master Module" />
@@ -327,15 +295,6 @@ function Header({ onMenuToggle, mobileMenuOpen: externalMobileMenuOpen, isVendor
             >
               <FiShoppingBag />
             </NavTabButton>
-            <Tooltip id="on-station" place="bottom" content="On Station" />
-            <button
-              className={`icon-btn icon-btn-hide-mobile ${showOnStationModal ? 'active' : ''}`}
-              aria-label="On Station"
-              onClick={() => setShowOnStationModal(true)}
-              data-tooltip-id="on-station"
-            >
-              <FiMapPin />
-            </button>
             {/* <Tooltip id="board" place="bottom" content="Board" />
             <NavTabButton
               className="icon-btn icon-btn-hide-mobile"
@@ -480,24 +439,6 @@ function Header({ onMenuToggle, mobileMenuOpen: externalMobileMenuOpen, isVendor
         show={showDocumentsModal}
         onClose={() => setShowDocumentsModal(false)}
       />}
-
-      {/* On Station Modal */}
-      {!!showOnStationModal && <OnStationModal
-        show={showOnStationModal}
-        onClose={() => setShowOnStationModal(false)}
-      />}
-
-      {/* Kanban Board navigation loader */}
-      {kanbanBoardLoading && (
-        <div className="page-loader-overlay">
-          <div className="page-loader-content">
-            <div className="spinner-border text-primary" role="status" style={{ width: '3rem', height: '3rem' }}>
-              <span className="visually-hidden">Loading...</span>
-            </div>
-            <p className="mt-2">Loading board...</p>
-          </div>
-        </div>
-      )}
 
     </div>
   );
