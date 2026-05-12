@@ -43,7 +43,7 @@ import {
 // 🆕 Kanban sidebar icons + tooltip
 import { Tooltip } from 'react-tooltip';
 import 'react-tooltip/dist/react-tooltip.css';
-import { FiPlus, FiInbox, FiFilter, FiPlusCircle, FiActivity, FiLayout, FiMail } from 'react-icons/fi';
+import { FiPlus, FiInbox, FiFilter, FiPlusCircle, FiActivity, FiLayout, FiMail, FiSettings } from 'react-icons/fi';
 import { useLayoutView } from '../../context/LayoutViewContext';
 import useWorkSpaceReducer from '../../store/WorkSpaceReducer';
 import useAuthReducer from '../../store/AuthReducer';
@@ -93,6 +93,7 @@ function SideNav({ isMobileMenuOpen, onCloseMobileMenu, isVendorPortal = false }
   const kanbanBoardIcons = [
     { id: 1, icon: FiPlus, label: 'Add' },
     { id: 7, icon: FiMail, label: 'Outlook' },
+    { id: 8, icon: FiSettings, label: 'Settings' },
     // { id: 2, icon: FiFilter, label: 'Filter' },
     // { id: 3, icon: FiActivity, label: 'Analytics' },
   ];
@@ -127,6 +128,7 @@ function SideNav({ isMobileMenuOpen, onCloseMobileMenu, isVendorPortal = false }
   const [activeKanbanIcon, setActiveKanbanIcon] = useState(2);
   const [showFilterPanel, setShowFilterPanel] = useState(false);
   const [showBoardTeamsSubmenu, setShowBoardTeamsSubmenu] = useState(false);
+  const [showSettingsSubmenu, setShowSettingsSubmenu] = useState(false);
   const [showCardManagementSubmenu, setShowCardManagementSubmenu] = useState(false);
   const [showManagersModal, setShowManagersModal] = useState(false);
   const [showDashboardsModal, setShowDashboardsModal] = useState(false);
@@ -725,6 +727,7 @@ function SideNav({ isMobileMenuOpen, onCloseMobileMenu, isVendorPortal = false }
         closeSelectWorkflowModal();
         setShowFilterPanel(newShowState);
         setShowBoardTeamsSubmenu(false);
+        setShowSettingsSubmenu(false);
         setShowCardManagementSubmenu(false);
         if (newShowState) setActiveKanbanIcon(item.id);
         return;
@@ -739,6 +742,7 @@ function SideNav({ isMobileMenuOpen, onCloseMobileMenu, isVendorPortal = false }
         setActiveKanbanIcon(item.id);
         setShowFilterPanel(false);
         setShowBoardTeamsSubmenu(false);
+        setShowSettingsSubmenu(false);
         setShowCardManagementSubmenu(false);
         return;
       }
@@ -748,6 +752,7 @@ function SideNav({ isMobileMenuOpen, onCloseMobileMenu, isVendorPortal = false }
         closeSelectWorkflowModal();
         setShowBoardTeamsSubmenu(newShowState);
         setShowFilterPanel(false);
+        setShowSettingsSubmenu(false);
         setShowBusinessRulesModal(false);
         setShowCardManagementSubmenu(false);
         if (newShowState) setActiveKanbanIcon(item.id);
@@ -759,6 +764,7 @@ function SideNav({ isMobileMenuOpen, onCloseMobileMenu, isVendorPortal = false }
         setShowBusinessRulesModal(true);
         setShowFilterPanel(false);
         setShowBoardTeamsSubmenu(false);
+        setShowSettingsSubmenu(false);
         setShowCardManagementSubmenu(false);
         setActiveKanbanIcon(item.id);
         return;
@@ -770,6 +776,7 @@ function SideNav({ isMobileMenuOpen, onCloseMobileMenu, isVendorPortal = false }
         setShowCardManagementSubmenu(newShowState);
         setShowFilterPanel(false);
         setShowBoardTeamsSubmenu(false);
+        setShowSettingsSubmenu(false);
         setShowBusinessRulesModal(false);
         setShowBlockersModal(false);
         setShowStickersModal(false);
@@ -779,7 +786,27 @@ function SideNav({ isMobileMenuOpen, onCloseMobileMenu, isVendorPortal = false }
         return;
       }
 
+      if (item.label === 'Settings') {
+        const newShowState = !showSettingsSubmenu;
+        closeSelectWorkflowModal();
+        setShowSettingsSubmenu(newShowState);
+        setShowFilterPanel(false);
+        setShowBoardTeamsSubmenu(false);
+        setShowBusinessRulesModal(false);
+        if (!newShowState) {
+          setShowCardManagementSubmenu(false);
+          setShowBlockersModal(false);
+          setShowStickersModal(false);
+          setShowTagsModal(false);
+          setShowTypesModal(false);
+        }
+        if (newShowState) setActiveKanbanIcon(item.id);
+        return;
+      }
+
       if (item.label === 'Outlook') {
+        setShowSettingsSubmenu(false);
+        setShowCardManagementSubmenu(false);
         // Open Outlook Classic desktop app (Windows protocol)
         const fallbackToOutlookWeb = setTimeout(() => {
           // Fallback to Outlook Web if desktop protocol is unavailable
@@ -799,6 +826,7 @@ function SideNav({ isMobileMenuOpen, onCloseMobileMenu, isVendorPortal = false }
 
       if (showFilterPanel) setShowFilterPanel(false);
       if (showBoardTeamsSubmenu) setShowBoardTeamsSubmenu(false);
+      if (showSettingsSubmenu) setShowSettingsSubmenu(false);
       if (showCardManagementSubmenu) setShowCardManagementSubmenu(false);
       if (showBusinessRulesModal) setShowBusinessRulesModal(false);
       if (showBlockersModal) setShowBlockersModal(false);
@@ -820,6 +848,7 @@ function SideNav({ isMobileMenuOpen, onCloseMobileMenu, isVendorPortal = false }
         setShowAddDashboardModal(true);
         setShowFilterPanel(false);
         setShowBoardTeamsSubmenu(false);
+        setShowSettingsSubmenu(false);
         setShowCardManagementSubmenu(false);
         setActiveKanbanIcon(item.id);
         return;
@@ -835,14 +864,42 @@ function SideNav({ isMobileMenuOpen, onCloseMobileMenu, isVendorPortal = false }
       }
     };
 
+    const handleSettingsBusinessRulesClick = () => {
+      setShowSettingsSubmenu(false);
+      setShowCardManagementSubmenu(false);
+      setShowFilterPanel(false);
+      setShowBoardTeamsSubmenu(false);
+      setShowManagersModal(false);
+      setShowDashboardsModal(false);
+      setShowBlockersModal(false);
+      setShowStickersModal(false);
+      setShowTagsModal(false);
+      setShowTypesModal(false);
+      setShowBusinessRulesModal(true);
+    };
+
+    const handleSettingsCardManagementRowClick = (e) => {
+      e.stopPropagation();
+      const next = !showCardManagementSubmenu;
+      setShowCardManagementSubmenu(next);
+      if (!next) {
+        setShowBlockersModal(false);
+        setShowStickersModal(false);
+        setShowTagsModal(false);
+        setShowTypesModal(false);
+      }
+    };
+
     const handleSubmenuClickKanban = (item) => {
       setShowBoardTeamsSubmenu(false);
+      setShowSettingsSubmenu(false);
       if (item.modal === 'managers') setShowManagersModal(true);
       else if (item.modal === 'dashboards') setShowDashboardsModal(true);
     };
 
     const handleCardManagementSubmenuClick = (item) => {
       setShowCardManagementSubmenu(false);
+      setShowSettingsSubmenu(false);
 
       setShowFilterPanel(false);
       setShowBoardTeamsSubmenu(false);
@@ -875,6 +932,7 @@ function SideNav({ isMobileMenuOpen, onCloseMobileMenu, isVendorPortal = false }
               (item.label === 'Board teams' && showBoardTeamsSubmenu) ||
               (item.label === 'Business rules' && showBusinessRulesModal) ||
               (item.label === 'Card management' && showCardManagementSubmenu) ||
+              (item.label === 'Settings' && (showSettingsSubmenu || showCardManagementSubmenu)) ||
               (item.label === 'Add new dashboard' && showAddDashboardModal) ||
               (item.label === 'Add' && showSelectWorkflowModal);
 
@@ -914,6 +972,36 @@ function SideNav({ isMobileMenuOpen, onCloseMobileMenu, isVendorPortal = false }
                         {subItem.label}
                       </div>
                     ))}
+                  </div>
+                )}
+
+                {item.label === 'Settings' && showSettingsSubmenu && (
+                  <div className="kanban-sidebar-submenu">
+                    <div
+                      className="kanban-sidebar-submenu-item"
+                      onClick={handleSettingsBusinessRulesClick}
+                    >
+                      Business rules
+                    </div>
+                    <div
+                      className={`kanban-sidebar-submenu-item ${showCardManagementSubmenu ? 'submenu-open' : ''}`}
+                      onClick={handleSettingsCardManagementRowClick}
+                    >
+                      Card management
+                    </div>
+                    {showCardManagementSubmenu && (
+                      <div className="kanban-sidebar-submenu card-management-submenu">
+                        {cardManagementSubmenu.map((subItem, index) => (
+                          <div
+                            key={index}
+                            className="kanban-sidebar-submenu-item"
+                            onClick={() => handleCardManagementSubmenuClick(subItem)}
+                          >
+                            {subItem.label}
+                          </div>
+                        ))}
+                      </div>
+                    )}
                   </div>
                 )}
               </div>
