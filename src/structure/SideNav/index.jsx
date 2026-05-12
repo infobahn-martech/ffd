@@ -89,15 +89,13 @@ function SideNav({ isMobileMenuOpen, onCloseMobileMenu, isVendorPortal = false }
     String(kanbanBoardIdForEditWorkflow).toLowerCase() !== 'operator';
 
   const kanbanBoardIcons = useMemo(() => {
-    const icons = [
-      { id: 1, icon: FiPlus, label: 'Add' },
-      { id: 7, icon: FiMail, label: 'Outlook' },
-    ];
+    const icons = [{ id: 1, icon: FiPlus, label: 'Add' }];
     if (showEditWorkflowSidebarIcon) {
       icons.push({ id: 9, icon: FiEdit3, label: 'Edit Workflow' });
     }
     icons.push(
       { id: 10, icon: FiMapPin, label: 'On Station' },
+      { id: 7, icon: FiMail, label: 'Outlook' },
       { id: 8, icon: FiSettings, label: 'Settings' }
     );
     return icons;
