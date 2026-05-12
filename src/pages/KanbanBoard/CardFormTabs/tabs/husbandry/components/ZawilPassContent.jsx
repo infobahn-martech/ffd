@@ -34,11 +34,11 @@ const ZawilPassContent = ({ formValues, handleChange, cardColor, card }) => {
   };
 
   const selectedCrewValues =
-    formValues.zawilPassSelectedCrew
-      ?.map((crewId) =>
+    (formValues.zawilPassSelectedCrew || [])
+      .map((crewId) =>
         crewOptions.find((opt) => String(opt.value) === String(crewId))
       )
-      .filter(Boolean) || [];
+      .filter(Boolean);
 
   const customSelectStyles = getCrewMultiSelectStyles(cardColor);
 

@@ -448,12 +448,19 @@ const normalizeCrewListItem = (apiRow, index) => {
   };
 };
 
+const getCrewSelectionId = (crew) =>
+  String(
+    crew?.crew_id ??
+      crew?.id ??
+      crew?.crew_change_id ??
+      crew?.crewChangeId ??
+      ""
+  );
+
 const getCrewPassSelectionId = (crew) =>
   String(
     crew?.crew_change_id ??
       crew?.crewChangeId ??
-      crew?.id ??
-      crew?.crew_id ??
       ""
   );
 
@@ -785,11 +792,12 @@ const CrewContent = ({ formValues, handleChange, cardColor, onNavigateToTab, lau
 
   // Handle individual crew selection
   const handleCrewToggle = (crewId) => {
+    const normalizedCrewId = String(crewId);
     setSelectedCrewIds((prev) => {
-      if (prev.includes(crewId)) {
-        return prev.filter((id) => id !== crewId);
+      if (prev.some((id) => String(id) === normalizedCrewId)) {
+        return prev.filter((id) => String(id) !== normalizedCrewId);
       } else {
-        return [...prev, crewId];
+        return [...prev, normalizedCrewId];
       }
     });
   };
@@ -799,7 +807,9 @@ const CrewContent = ({ formValues, handleChange, cardColor, onNavigateToTab, lau
     if (selectedCrewIds.length === displayCrewList.length) {
       setSelectedCrewIds([]);
     } else {
-      setSelectedCrewIds(displayCrewList.map((crew) => crew.id));
+      setSelectedCrewIds(
+        displayCrewList.map((crew) => String(getCrewSelectionId(crew)))
+      );
     }
   };
 
@@ -821,10 +831,12 @@ const CrewContent = ({ formValues, handleChange, cardColor, onNavigateToTab, lau
   // Handle action dropdown selection
   const handleActionSelect = (option) => {
     const selectedRows = displayCrewList.filter((crew) =>
-      selectedCrewIds.some((selectedId) => String(selectedId) === String(crew.id))
+      selectedCrewIds.some(
+        (selectedId) => String(selectedId) === String(getCrewSelectionId(crew))
+      )
     );
 
-    // CG/Zawil pass needs crew_change_id values; others keep crew row id behavior.
+    // Pass selected crew ids using real crew_id values.
     const crewIdStrings =
       option.field === "cgPassSelectedCrew" || option.field === "zawilPassSelectedCrew"
         ? selectedRows
@@ -1013,10 +1025,7 @@ const CrewContent = ({ formValues, handleChange, cardColor, onNavigateToTab, lau
         port_id: resolvedPortId,
         call_type_id: resolvedCallTypeId,
       };
-      console.log("Crew template payload:", payload);
-
       const response = await getCrewTemplate({ payload });
-      console.log("Crew template response:", response);
 
       const responseData = response?.data || response;
       const fileUrl = responseData?.file_url;
@@ -1044,7 +1053,7 @@ const CrewContent = ({ formValues, handleChange, cardColor, onNavigateToTab, lau
 
   const handleViewCrew = (id) => {
     // Handle view action - can be implemented later
-    console.log("View crew:", id);
+    void id;
     // You can add a modal or navigation here
   };
 
@@ -1167,8 +1176,6 @@ const CrewContent = ({ formValues, handleChange, cardColor, onNavigateToTab, lau
         border_no: row.borderNo || ""
       })),
     };
-    console.log("Saving crew payload:", saveCrewPayload);
-
     try {
       await saveCrewData({ payload: saveCrewPayload });
       await refreshCallCrewListFromApi();
@@ -2614,14 +2621,24 @@ const CrewContent = ({ formValues, handleChange, cardColor, onNavigateToTab, lau
                     displayCrewList.map((crew) => (
                       <tr
                         key={crew.id}
-                        className={selectedCrewIds.includes(crew.id) ? "crew-row-selected" : ""}
+                        className={
+                          selectedCrewIds.some(
+                            (selectedId) =>
+                              String(selectedId) === String(getCrewSelectionId(crew))
+                          )
+                            ? "crew-row-selected"
+                            : ""
+                        }
                       >
                         <td className="crew-checkbox-cell">
                           <input
                             className="crew-list-checkbox"
                             type="checkbox"
-                            checked={selectedCrewIds.includes(crew.id)}
-                            onChange={() => handleCrewToggle(crew.id)}
+                            checked={selectedCrewIds.some(
+                              (selectedId) =>
+                                String(selectedId) === String(getCrewSelectionId(crew))
+                            )}
+                            onChange={() => handleCrewToggle(getCrewSelectionId(crew))}
                           />
                         </td>
                         <td style={{ overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>

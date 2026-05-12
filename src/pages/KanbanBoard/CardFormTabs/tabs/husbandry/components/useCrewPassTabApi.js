@@ -84,23 +84,17 @@ export function useCrewPassTabApi({
           call_id: callId,
           vessel_id: vesselId,
         });
-        const crewArray =
-          response?.data?.data?.crew ||
-          response?.data?.crew ||
-          [];
-        const safeCrewArray = Array.isArray(crewArray) ? crewArray : [];
-        const mappedOptions = safeCrewArray.map((crew) => ({
-          value: String(crew.crew_change_id || crew.crew_id || crew.id),
-          label:
-            crew.crew_name ||
-            crew.crewName ||
-            `Crew Member ${crew.crew_id || crew.id}`,
-          crew_id: crew.crew_id,
-          crew_change_id: crew.crew_change_id,
-          raw: crew,
-        }));
-        console.log("Crew pass API crewArray:", crewArray);
-        console.log("Crew pass mappedOptions:", mappedOptions);
+        const crewArray = response?.data?.data?.crew || [];
+        const mappedOptions = Array.isArray(crewArray)
+          ? crewArray.map((crew) => ({
+              value: String(crew.crew_change_id),
+              label: crew.crew_name || `Crew Member ${crew.crew_id}`,
+              crew_id: crew.crew_id,
+              crew_change_id: crew.crew_change_id,
+              crew_name: crew.crew_name,
+              raw: crew,
+            }))
+          : [];
         if (!cancelled) {
           setCrewOptions(mappedOptions);
           setCrewLoadState(mappedOptions.length > 0 ? "success" : "empty");
