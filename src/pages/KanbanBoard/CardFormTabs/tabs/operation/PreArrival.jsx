@@ -1016,16 +1016,11 @@ function PreArrival({
 
   const savePreArrivalData = async () => {
     const callId = card?.call_id || card?.callId || formValues?.call_id || formValues?.callId || card?.id || "";
-    const cardId = card?.id || card?.card_id || formValues?.card_id || "";
     const assignedGro = formValues.assignedGro || "";
     const assignedCustom = formValues.assignedCustom || "";
 
     if (!callId) {
       notify("Call ID is required.", "error");
-      return false;
-    }
-    if (!cardId) {
-      notify("Card ID is required.", "error");
       return false;
     }
     if (
@@ -1073,7 +1068,6 @@ function PreArrival({
 
     const fd = new FormData();
     fd.append("call_id", callId);
-    fd.append("card_id", cardId);
     fd.append("time_objects", JSON.stringify(timeObjects));
     const saberStatusNum = PRE_ARRIVAL_SABER_STATUS_SAVE_VALUE[formValues.saberUtStatus];
     fd.append(
