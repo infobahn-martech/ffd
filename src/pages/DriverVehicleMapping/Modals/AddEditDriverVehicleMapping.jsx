@@ -1,6 +1,6 @@
 import { useForm, Controller } from "react-hook-form";
 import PremiumSelect from "../../../components/form/PremiumSelect";
-import { useEffect } from "react";
+import { useEffect, useMemo } from "react";
 import CustomModal from "../../../components/CustomModal";
 import useDriverVehicleMappingReducer from "../../../store/DriverVehicleReducer";
 import useDriverReducer from "../../../store/DriverReducer";
@@ -9,13 +9,97 @@ import "../../../design/scss/prospect-modal.scss";
 import "../../../design/scss/modal-designs.scss";
 import "../../../design/scss/form-designs.scss";
 
+const EMPTY_DRIVER_LIST = [];
+
+/** IDs from GET mapping row — backends vary (`driver_id`, nested objects, etc.). */
+function pickDriverIdFromMappingRow(row) {
+    if (!row || typeof row !== "object") return "";
+    const v =
+        row.driver_id ??
+        row.transport_driver_id ??
+        row.transport_driver_Id ??
+        row.driverId ??
+        row.driver?.driver_id ??
+        row.driver?.transport_driver_id ??
+        row.driver?.id;
+    return v != null && String(v).trim() !== "" ? String(v) : "";
+}
+
+/** Match mapping row to `/transport/all_drivers` when list payload omits FK ids (employee_no / name only). */
+function resolveDriverIdFromMasterList(row, list) {
+    const direct = pickDriverIdFromMappingRow(row);
+    if (direct) return direct;
+    if (!Array.isArray(list) || list.length === 0) return "";
+
+    const rowEmployeeRaw = row?.employee_no ?? row?.driver_no;
+    const rowEmployee = rowEmployeeRaw != null ? String(rowEmployeeRaw).trim() : "";
+    const rowName =
+        row?.driver_name != null ? String(row.driver_name).trim().toLowerCase() : "";
+
+    for (const d of list) {
+        const did = String(d.driver_id ?? d.transport_driver_id ?? d._id ?? "");
+        if (!did) continue;
+
+        if (rowEmployee) {
+            const emp = d.employee_no != null ? String(d.employee_no).trim() : "";
+            const dn = d.driver_no != null ? String(d.driver_no).trim() : "";
+            if (emp && rowEmployee === emp) return did;
+            if (dn && rowEmployee === dn) return did;
+        }
+
+        if (rowName && d.driver_name != null) {
+            const n = String(d.driver_name).trim().toLowerCase();
+            if (n === rowName) return did;
+        }
+    }
+    return "";
+}
+
+function pickVehicleTypeIdFromMappingRow(row) {
+    if (!row || typeof row !== "object") return "";
+    const v =
+        row.vehicle_type_id ??
+        row.vehicle_type_Id ??
+        row.vehicleTypeId ??
+        row.vehicle_id ??
+        row.vehicle?.vehicle_type_id ??
+        row.vehicle_type?.vehicle_type_id ??
+        row.vehicle_type?._id ??
+        row.vehicle?.id;
+    return v != null && String(v).trim() !== "" ? String(v) : "";
+}
+
+/** Match display label from mapping row to `/transport/all_vehicle_types`. */
+function resolveVehicleTypeIdFromMasterList(row, list) {
+    const direct = pickVehicleTypeIdFromMappingRow(row);
+    if (direct) return direct;
+    if (!Array.isArray(list) || list.length === 0) return "";
+
+    const rowVt =
+        row?.vehicle_type != null ? String(row.vehicle_type).trim().toLowerCase() : "";
+    if (!rowVt) return "";
+
+    for (const v of list) {
+        const vid = String(v.vehicle_type_id ?? v._id ?? "");
+        if (!vid) continue;
+        const lbl = v.vehicle_type ?? v.name;
+        if (lbl != null && String(lbl).trim().toLowerCase() === rowVt) return vid;
+    }
+    return "";
+}
+
 export function DriverVehicleMappingModal({ showModal, closeModal, onSuccess }) {
     const driverVehicleId = showModal?.driver_vehicle_id ?? showModal?._id;
     const isEdit = typeof showModal === "object" && showModal !== null && !!driverVehicleId;
 
     const { addDriverVehicleMapping, updateDriverVehicleMapping, isBeingUpdated } = useDriverVehicleMappingReducer((state) => state);
-    const { drivers = [], fetchAllDrivers } = useDriverReducer((state) => state);
-    const { vehicles = [], getVehicles } = useVehicleReducer((state) => state);
+    const drivers = useDriverReducer((state) => state.drivers);
+    const fetchAllDrivers = useDriverReducer((state) => state.fetchAllDrivers);
+    const vehicles = useVehicleReducer((state) => state.vehicles);
+    const getVehicles = useVehicleReducer((state) => state.getVehicles);
+
+    const driversList = drivers != null ? drivers : EMPTY_DRIVER_LIST;
+    const vehiclesList = vehicles ?? EMPTY_DRIVER_LIST;
 
     const { register, control, handleSubmit, formState: { errors }, reset } = useForm({
         defaultValues: {
@@ -33,20 +117,68 @@ export function DriverVehicleMappingModal({ showModal, closeModal, onSuccess }) 
     }, [showModal]);
 
     useEffect(() => {
-        if (driverVehicleId && typeof showModal === "object") {
-            reset({
-                driver_id: String(showModal?.driver_id ?? showModal?.transport_driver_id ?? ""),
-                vehicle_type_id: showModal?.vehicle_type_id != null ? String(showModal.vehicle_type_id) : "",
-                plate_no: showModal?.plate_no ?? "",
-            });
-        } else if (showModal) {
-            reset({
-                driver_id: "",
-                vehicle_type_id: "",
-                plate_no: "",
-            });
+        if (!showModal) return;
+
+        const addMode = typeof showModal !== "object" || !driverVehicleId;
+        if (addMode) {
+            reset({ driver_id: "", vehicle_type_id: "", plate_no: "" });
+            return;
         }
-    }, [showModal, reset, driverVehicleId]);
+
+        const directDriver = pickDriverIdFromMappingRow(showModal);
+        if (!directDriver && drivers === null) return;
+
+        const driverVal = resolveDriverIdFromMasterList(showModal, driversList);
+        const vehicleVal = resolveVehicleTypeIdFromMasterList(showModal, vehiclesList);
+
+        reset({
+            driver_id: driverVal ? String(driverVal) : "",
+            vehicle_type_id: vehicleVal ? String(vehicleVal) : "",
+            plate_no: showModal?.plate_no ?? "",
+        });
+    }, [showModal, reset, driverVehicleId, drivers, vehicles]);
+
+    const driverSelectOptions = useMemo(() => {
+        const base = driversList.map((d) => {
+            const id = d.driver_id ?? d.transport_driver_id ?? d._id;
+            return {
+                value: String(id ?? ""),
+                label: String(
+                    d.driver_name ?? d.name ?? `Driver ${d.driver_id ?? d._id ?? ""}`,
+                ),
+            };
+        }).filter((o) => o.value !== "");
+
+        if (!isEdit || typeof showModal !== "object") return base;
+
+        const resolved = resolveDriverIdFromMasterList(showModal, driversList);
+        const label = showModal?.driver_name;
+        if (resolved && label && !base.some((o) => o.value === String(resolved))) {
+            return [{ value: String(resolved), label: String(label) }, ...base];
+        }
+        return base;
+    }, [driversList, isEdit, showModal]);
+
+    const vehicleSelectOptions = useMemo(() => {
+        const base = vehiclesList.map((v) => {
+            const id = v.vehicle_type_id ?? v._id;
+            return {
+                value: String(id ?? ""),
+                label: String(
+                    v.vehicle_type ?? v.name ?? `Vehicle ${v.vehicle_type_id ?? v._id ?? ""}`,
+                ),
+            };
+        }).filter((o) => o.value !== "");
+
+        if (!isEdit || typeof showModal !== "object") return base;
+
+        const resolved = resolveVehicleTypeIdFromMasterList(showModal, vehiclesList);
+        const label = showModal?.vehicle_type ?? showModal?.vehicle_type_name;
+        if (resolved && label && !base.some((o) => o.value === String(resolved))) {
+            return [{ value: String(resolved), label: String(label) }, ...base];
+        }
+        return base;
+    }, [vehiclesList, isEdit, showModal]);
 
     const onSubmit = async (data) => {
         const driver_id = data.driver_id;
@@ -101,17 +233,7 @@ export function DriverVehicleMappingModal({ showModal, closeModal, onSuccess }) 
                                     <PremiumSelect
                                         value={field.value != null ? String(field.value) : ""}
                                         onChange={(e) => field.onChange(e.target.value)}
-                                        options={(drivers || []).map((d) => {
-                                            const id = d.driver_id ?? d.transport_driver_id ?? d._id;
-                                            return {
-                                                value: String(id ?? ""),
-                                                label: String(
-                                                    d.driver_name ??
-                                                        d.name ??
-                                                        `Driver ${d.driver_id ?? d._id ?? ""}`,
-                                                ),
-                                            };
-                                        })}
+                                        options={driverSelectOptions}
                                         placeholder="Select Driver"
                                         searchPlaceholder="Search driver..."
                                         hasError={Boolean(errors.driver_id)}
@@ -138,17 +260,7 @@ export function DriverVehicleMappingModal({ showModal, closeModal, onSuccess }) 
                                     <PremiumSelect
                                         value={field.value != null ? String(field.value) : ""}
                                         onChange={(e) => field.onChange(e.target.value)}
-                                        options={(vehicles || []).map((v) => {
-                                            const id = v.vehicle_type_id ?? v._id;
-                                            return {
-                                                value: String(id ?? ""),
-                                                label: String(
-                                                    v.vehicle_type ??
-                                                        v.name ??
-                                                        `Vehicle ${v.vehicle_type_id ?? v._id ?? ""}`,
-                                                ),
-                                            };
-                                        })}
+                                        options={vehicleSelectOptions}
                                         placeholder="Select Vehicle"
                                         searchPlaceholder="Search vehicle..."
                                         hasError={Boolean(errors.vehicle_type_id)}
