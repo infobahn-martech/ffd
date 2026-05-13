@@ -554,7 +554,9 @@ export function PermissionModal({
                     if (roleError) setRoleError("");
                   }}
                 />
-                <label htmlFor="floatingRole">Role *</label>
+                <label htmlFor="floatingRole">Role
+                  <span className="text-danger">*</span>
+                </label>
                 {roleError && (
                   <span className="error text-danger">{roleError}</span>
                 )}
