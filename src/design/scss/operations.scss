@@ -2982,6 +2982,33 @@ $send-report-optional: #80868b;
 
   .transport-upload-box {
     margin-top: 2px;
+
+    /* Match compact CG Pass request email (Transport omits operation-section-form-layout path) */
+    .attachment-list-wrapper .document-upload-zone {
+      height: auto;
+      min-height: 64px;
+      padding: 14px 16px;
+      border-radius: 12px;
+      max-width: 100%;
+    }
+
+    .attachment-list-wrapper .document-upload-zone:hover,
+    .attachment-list-wrapper .document-upload-zone.dragging {
+      transform: none;
+    }
+
+    .attachment-list-wrapper .upload-zone-content {
+      flex-direction: column;
+      justify-content: center;
+      gap: 4px;
+      min-height: 0;
+    }
+
+    .attachment-list-wrapper .upload-main-text {
+      font-size: 13px;
+      line-height: 1.35;
+      font-weight: 600;
+    }
   }
 
   .transport-date-time-field {
@@ -3031,35 +3058,56 @@ $send-report-optional: #80868b;
     padding: 12px 18px 18px;
     display: flex;
     flex-direction: column;
-    overflow-x: hidden;
-    overflow-y: auto;
+    overflow: hidden;
   }
 
   .transport-request-right__body .react-quill-wrapper.transport-remarks-quill {
-    flex: 1;
-    min-height: 0;
+    flex: 1 1 auto;
+    min-height: min(520px, calc(100vh - 260px));
     display: flex;
     flex-direction: column;
-    border-radius: 10px;
+    border-radius: 12px;
 
     .ql-toolbar.ql-snow {
-      border-radius: 10px 10px 0 0;
+      flex-shrink: 0;
+      border-radius: 12px 12px 0 0;
       border-color: #e2e2ea;
     }
 
     .ql-container.ql-snow {
-      flex: 1;
-      min-height: 220px;
+      flex: 1 1 auto;
+      display: flex;
+      flex-direction: column;
+      min-height: min(480px, calc(100vh - 300px));
       height: auto;
-      border-radius: 0 0 10px 10px;
+      border-radius: 0 0 12px 12px;
       border-color: #e2e2ea;
     }
 
     .ql-editor {
-      flex: 1;
-      min-height: 200px;
+      flex: 1 1 auto;
+      min-height: min(460px, calc(100vh - 320px));
+      height: auto !important;
+      max-height: none;
       font-size: 14px;
       line-height: 1.5;
+      overflow-y: auto;
+      overflow-x: hidden;
+      scrollbar-width: thin;
+      scrollbar-color: #cbd5e1 transparent;
+
+      &::-webkit-scrollbar {
+        width: 6px;
+      }
+
+      &::-webkit-scrollbar-track {
+        background: transparent;
+      }
+
+      &::-webkit-scrollbar-thumb {
+        background: #cbd5e1;
+        border-radius: 999px;
+      }
     }
 
     &:focus-within {
