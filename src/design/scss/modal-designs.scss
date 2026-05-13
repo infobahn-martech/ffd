@@ -326,6 +326,52 @@ body .user-modal-sm .modal-dialog {
   padding: 25px 30px;
 }
 
+/* Consistent field heights / spacing (Operator + other small modals; User uses .add-edit-user-modal for extras) */
+.user-modal-sm {
+  .form-control,
+  .premium-select,
+  .premium-select__control,
+  .react-tel-input .form-control,
+  .premium-date-input,
+  .premium-date-field {
+    min-height: 52px;
+    height: 52px;
+  }
+
+  .phone-wrapper,
+  .desig-inp,
+  .premium-date-field {
+    min-height: 52px;
+  }
+
+  .permInputs.row {
+    row-gap: 18px;
+  }
+
+  .premium-date-field .react-datepicker-wrapper,
+  .premium-date-field .react-datepicker__input-container {
+    width: 100%;
+    height: 100%;
+  }
+
+  .premium-date-input {
+    width: 100%;
+    padding-top: 1rem;
+  }
+
+  /* Override form-designs date block (50px) so DatePickers match 52px controls */
+  .lead-form .form-floating.desig-inp.premium-date-field .form-control.premium-date-input {
+    min-height: 52px;
+    height: 52px;
+  }
+
+  .cf-multi-select-email-input {
+    min-height: 52px;
+    height: 52px;
+    box-sizing: border-box;
+  }
+}
+
 /* Keep avatar centered */
 .user-modal-sm .avatar-wrapper {
   margin-top: 10px;

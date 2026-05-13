@@ -23,7 +23,6 @@ const OPERATOR_STATUS_OPTIONS = [
     { value: "Pending", label: "Pending" },
 ];
 
-const DEFAULT_PORT_ID = 3;
 const PREMIUM_DATEPICKER_PROPS = {
     dateFormat: "dd/MM/yyyy",
     placeholderText: "dd/mm/yyyy",
@@ -71,7 +70,7 @@ export function OperatorModal({ showModal, closeModal, onSuccess }) {
     } = useForm({
         defaultValues: {
             operator_name: "",
-            port_id: DEFAULT_PORT_ID,
+            port_id: "",
             contact_person: "",
             contact_no: "",
             email: "",
@@ -90,7 +89,7 @@ export function OperatorModal({ showModal, closeModal, onSuccess }) {
             clearOperatorDetail?.();
             reset({
                 operator_name: "",
-                port_id: DEFAULT_PORT_ID,
+                port_id: "",
                 contact_person: "",
                 contact_no: "",
                 email: "",
@@ -107,7 +106,7 @@ export function OperatorModal({ showModal, closeModal, onSuccess }) {
         if (operatorDetail && isEdit) {
             reset({
                 operator_name: operatorDetail?.operator_name ?? "",
-                port_id: operatorDetail?.port_id ?? DEFAULT_PORT_ID,
+                port_id: operatorDetail?.port_id ?? "",
                 contact_person: operatorDetail?.contact_person ?? "",
                 contact_no: operatorDetail?.contact_no ?? "",
                 email: operatorDetail?.email ?? "",
@@ -129,7 +128,7 @@ export function OperatorModal({ showModal, closeModal, onSuccess }) {
     const onSubmit = (data) => {
         const basePayload = {
             operator_name: data.operator_name,
-            port_id: Number(data.port_id) || DEFAULT_PORT_ID,
+            port_id: Number(data.port_id),
             contact_person: data.contact_person,
             contact_no: data.contact_no,
             email: data.email?.trim(),
@@ -307,7 +306,7 @@ export function OperatorModal({ showModal, closeModal, onSuccess }) {
                         </div>
                     </div>
 
-                    {/* License Expiry + Status (edit only) */}
+                    {/* License Expiry + Contract Start — one row (no empty columns) */}
                     <div className="mb-lg-3 mb-sm-0">
                         <div className="permInputs row">
                             <div className="col-lg-6 col-sm-12">
@@ -324,6 +323,48 @@ export function OperatorModal({ showModal, closeModal, onSuccess }) {
                                                 onChange={(date) => field.onChange(toISODate(date))}
                                             />
                                             <label>License Expiry</label>
+                                        </div>
+                                    )}
+                                />
+                            </div>
+                            <div className="col-lg-6 col-sm-12">
+                                <Controller
+                                    name="contract_start_date"
+                                    control={control}
+                                    render={({ field }) => (
+                                        <div
+                                            className={`form-floating desig-inp premium-date-field ${field.value ? "has-value" : ""}`}
+                                        >
+                                            <DatePicker
+                                                {...PREMIUM_DATEPICKER_PROPS}
+                                                selected={parseISODate(field.value)}
+                                                onChange={(date) => field.onChange(toISODate(date))}
+                                            />
+                                            <label>Contract Start Date</label>
+                                        </div>
+                                    )}
+                                />
+                            </div>
+                        </div>
+                    </div>
+
+                    {/* Contract Expiry (+ Status when edit) */}
+                    <div className="mb-lg-3 mb-sm-0">
+                        <div className="permInputs row">
+                            <div className={isEdit ? "col-lg-6 col-sm-12" : "col-12"}>
+                                <Controller
+                                    name="contract_expiry_date"
+                                    control={control}
+                                    render={({ field }) => (
+                                        <div
+                                            className={`form-floating desig-inp premium-date-field ${field.value ? "has-value" : ""}`}
+                                        >
+                                            <DatePicker
+                                                {...PREMIUM_DATEPICKER_PROPS}
+                                                selected={parseISODate(field.value)}
+                                                onChange={(date) => field.onChange(toISODate(date))}
+                                            />
+                                            <label>Contract Expiry Date</label>
                                         </div>
                                     )}
                                 />
@@ -348,48 +389,6 @@ export function OperatorModal({ showModal, closeModal, onSuccess }) {
                                     </div>
                                 </div>
                             )}
-                        </div>
-                    </div>
-
-                    {/* Contract Start + Contract Expiry */}
-                    <div className="mb-lg-3 mb-sm-0">
-                        <div className="permInputs row">
-                            <div className="col-lg-6 col-sm-12">
-                                <Controller
-                                    name="contract_start_date"
-                                    control={control}
-                                    render={({ field }) => (
-                                        <div
-                                            className={`form-floating desig-inp premium-date-field ${field.value ? "has-value" : ""}`}
-                                        >
-                                            <DatePicker
-                                                {...PREMIUM_DATEPICKER_PROPS}
-                                                selected={parseISODate(field.value)}
-                                                onChange={(date) => field.onChange(toISODate(date))}
-                                            />
-                                            <label>Contract Start Date</label>
-                                        </div>
-                                    )}
-                                />
-                            </div>
-                            <div className="col-lg-6 col-sm-12">
-                                <Controller
-                                    name="contract_expiry_date"
-                                    control={control}
-                                    render={({ field }) => (
-                                        <div
-                                            className={`form-floating desig-inp premium-date-field ${field.value ? "has-value" : ""}`}
-                                        >
-                                            <DatePicker
-                                                {...PREMIUM_DATEPICKER_PROPS}
-                                                selected={parseISODate(field.value)}
-                                                onChange={(date) => field.onChange(toISODate(date))}
-                                            />
-                                            <label>Contract Expiry Date</label>
-                                        </div>
-                                    )}
-                                />
-                            </div>
                         </div>
                     </div>
                 </form>
