@@ -1,11 +1,17 @@
-import { useState, useEffect, useCallback } from "react";
+import { useState, useEffect, useCallback, useRef } from "react";
 import PropTypes from "prop-types";
 import Select from "react-select";
 import GroupSettingsIcon from "../../../../../../assets/images/cv.png";
+import { notify } from "../../../../../../components/Toaster";
 import { FormSection, FormField, FormSelect, FormTextarea, ReactQuillEditor, getCrewMultiSelectStyles, formatCrewOptionLabel } from "./Husbandry.components";
 import LocationAutocomplete from "./LocationAutocomplete";
+import AttachmentsList from "../../appointment/AttachmentsList";
+import DateTimePickerField from "../../../components/DateTimePickerField";
 import vehicleService from "../../../../../../services/vehicleService";
 import transportCompanyService from "../../../../../../services/transportCompanyService";
+
+const REQUEST_EMAIL_ACCEPT_ATTR = ".msg,.eml,.pdf,.doc,.docx";
+const REQUEST_EMAIL_EXT_RE = /\.(msg|eml|pdf|doc|docx)$/i;
 
 const unwrapApiList = (axiosData) => {
   const payload = axiosData?.data ?? axiosData;
@@ -15,6 +21,9 @@ const unwrapApiList = (axiosData) => {
 };
 
 const TransportContent = ({ formValues, handleChange, cardColor }) => {
+  const requestEmailInputRef = useRef(null);
+  const [isDraggingEmail, setIsDraggingEmail] = useState(false);
+
   // Radio button state - default to "inhouse" if not set
   const [transportType, setTransportType] = useState(formValues.transportType || "inhouse");
 
@@ -224,9 +233,83 @@ const TransportContent = ({ formValues, handleChange, cardColor }) => {
 
   const customSelectStyles = getCrewMultiSelectStyles(cardColor);
 
+  const fileToAttachment = (file) => ({
+    name: file.name,
+    file,
+    size: file.size,
+    type: file.type,
+  });
+
+  const filterRequestEmailFiles = (files) =>
+    Array.from(files || []).filter((f) => REQUEST_EMAIL_EXT_RE.test(f.name));
+
+  const handleRequestEmailDragEnter = (e) => {
+    e.preventDefault();
+    e.stopPropagation();
+    setIsDraggingEmail(true);
+  };
+
+  const handleRequestEmailDragLeave = (e) => {
+    e.preventDefault();
+    e.stopPropagation();
+    setIsDraggingEmail(false);
+  };
+
+  const handleRequestEmailDragOver = (e) => {
+    e.preventDefault();
+    e.stopPropagation();
+  };
+
+  const handleRequestEmailDrop = (e) => {
+    e.preventDefault();
+    e.stopPropagation();
+    setIsDraggingEmail(false);
+    const raw = Array.from(e.dataTransfer.files || []);
+    const allowed = filterRequestEmailFiles(raw);
+    if (allowed.length === 0) {
+      if (raw.length > 0) {
+        notify(
+          "Only .msg, .eml, .pdf, .doc, .docx files are allowed for request email.",
+          "warning",
+          "top-center"
+        );
+      }
+      return;
+    }
+    handleChange("transportRequestEmail")({
+      target: { value: [fileToAttachment(allowed[0])] },
+    });
+  };
+
+  const handleRequestEmailFileInputChange = (e) => {
+    const raw = Array.from(e.target.files || []);
+    const allowed = filterRequestEmailFiles(raw);
+    if (allowed.length === 0) {
+      if (raw.length > 0) {
+        notify(
+          "Only .msg, .eml, .pdf, .doc, .docx files are allowed for request email.",
+          "warning",
+          "top-center"
+        );
+      }
+    } else {
+      handleChange("transportRequestEmail")({
+        target: { value: [fileToAttachment(allowed[0])] },
+      });
+    }
+    if (requestEmailInputRef.current) {
+      requestEmailInputRef.current.value = "";
+    }
+  };
+
+  const handleRequestEmailRemoveAttachment = () => {
+    handleChange("transportRequestEmail")({ target: { value: [] } });
+  };
+
   // Handle save
   const handleSave = () => {
     console.log("Saving transport data:", {
+      transportRequestEmail: formValues.transportRequestEmail,
       transportType: formValues.transportType,
       selectedCrew: formValues.selectedCrew,
       transportVehicleTypeId: formValues.transportVehicleTypeId,
@@ -249,209 +332,195 @@ const TransportContent = ({ formValues, handleChange, cardColor }) => {
     <div className="cardform-left-full" style={{ "--card-color": cardColor }}>
       <FormSection icon={GroupSettingsIcon} title="">
         <div className="pre-arrival-form transport-form">
-          <div className="general-info-two-column operation-section-form-layout">
-            <div className="general-info-left">
-              <FormField label="Select Crew">
-                <div className="cf-select react-select-container crew-multi-select">
-                  <Select
-                    isMulti
-                    value={selectedCrewValues}
-                    onChange={handleCrewChange}
-                    options={crewOptions}
-                    placeholder={selectedCrewValues.length > 0 ? `${selectedCrewValues.length} crew selected` : "Select crew members..."}
-                    classNamePrefix="react-select"
-                    styles={customSelectStyles}
-                    formatOptionLabel={formatCrewOptionLabel}
-                    isClearable
-                    isSearchable
-                    closeMenuOnSelect={false}
-                    hideSelectedOptions={false}
+          <div className="transport-request-layout">
+            <div className="transport-request-left transport-panel-card">
+              <div className="transport-panel-header">
+                <h3 className="transport-panel-header__title">Request Details</h3>
+              </div>
+
+              <div className="transport-request-left__scroll transport-panel-scroll">
+                <FormField label="Request Email">
+                  <div className="transport-upload-box">
+                    <AttachmentsList
+                      attachments={formValues.transportRequestEmail || []}
+                      onAdd={() => {}}
+                      onRemove={handleRequestEmailRemoveAttachment}
+                      cardColor={cardColor}
+                      isDragging={isDraggingEmail}
+                      onDragEnter={handleRequestEmailDragEnter}
+                      onDragLeave={handleRequestEmailDragLeave}
+                      onDragOver={handleRequestEmailDragOver}
+                      onDrop={handleRequestEmailDrop}
+                      fileInputRef={requestEmailInputRef}
+                      onFileInputChange={handleRequestEmailFileInputChange}
+                      accept={REQUEST_EMAIL_ACCEPT_ATTR}
+                      multiple={false}
+                    />
+                  </div>
+                </FormField>
+
+                <FormField label="Select Crew">
+                  <div className="cf-select react-select-container crew-multi-select">
+                    <Select
+                      isMulti
+                      value={selectedCrewValues}
+                      onChange={handleCrewChange}
+                      options={crewOptions}
+                      placeholder={selectedCrewValues.length > 0 ? `${selectedCrewValues.length} crew selected` : "Select crew members..."}
+                      classNamePrefix="react-select"
+                      styles={customSelectStyles}
+                      formatOptionLabel={formatCrewOptionLabel}
+                      menuPortalTarget={typeof document !== "undefined" ? document.body : null}
+                      menuPosition="fixed"
+                      menuShouldBlockScroll={true}
+                      isClearable
+                      isSearchable
+                      closeMenuOnSelect={false}
+                      hideSelectedOptions={false}
+                    />
+                  </div>
+                </FormField>
+
+                <FormField label="">
+                  <div className="transport-type-radio-row">
+                    <label className="transport-type-radio">
+                      <input
+                        type="radio"
+                        name="transportType"
+                        value="inhouse"
+                        checked={transportType === "inhouse"}
+                        onChange={handleTransportTypeChange}
+                      />
+                      <span>In house</span>
+                    </label>
+                    <label className="transport-type-radio">
+                      <input
+                        type="radio"
+                        name="transportType"
+                        value="thirdparty"
+                        checked={transportType === "thirdparty"}
+                        onChange={handleTransportTypeChange}
+                      />
+                      <span>Third party</span>
+                    </label>
+                  </div>
+                </FormField>
+
+                {transportType === "inhouse" && (
+                  <>
+                    <FormField label="Vehicle">
+                      <FormSelect
+                        value={formValues.transportVehicleTypeId || ""}
+                        onChange={handleVehicleChange}
+                        options={vehicleOptions}
+                        placeholder={
+                          loadingVehicles ? "Loading vehicles..." : "Select vehicle..."
+                        }
+                        disabled={loadingVehicles}
+                      />
+                    </FormField>
+
+                    <FormField label="Driver Name">
+                      <FormSelect
+                        value={formValues.transportDriverId || ""}
+                        onChange={handleInhouseDriverChange}
+                        options={inhouseDriverOptions}
+                        placeholder={
+                          !formValues.transportVehicleTypeId
+                            ? "Select a vehicle first..."
+                            : loadingInhouseDrivers
+                              ? "Loading drivers..."
+                              : "Select driver name..."
+                        }
+                        disabled={!formValues.transportVehicleTypeId || loadingInhouseDrivers}
+                      />
+                    </FormField>
+                  </>
+                )}
+
+                {transportType === "thirdparty" && (
+                  <>
+                    <FormField label="Transport Company">
+                      <FormSelect
+                        value={formValues.transportCompanyId || ""}
+                        onChange={handleCompanyChange}
+                        options={companyOptions}
+                        placeholder={
+                          loadingCompanies ? "Loading companies..." : "Select transport company..."
+                        }
+                        disabled={loadingCompanies}
+                      />
+                    </FormField>
+
+                    <FormField label="Driver Name">
+                      <FormSelect
+                        value={formValues.transportThirdPartyDriverId || ""}
+                        onChange={handleThirdPartyDriverChange}
+                        options={thirdPartyDriverOptions}
+                        placeholder={
+                          !formValues.transportCompanyId
+                            ? "Select a company first..."
+                            : loadingThirdPartyDrivers
+                              ? "Loading drivers..."
+                              : "Select driver..."
+                        }
+                        disabled={!formValues.transportCompanyId || loadingThirdPartyDrivers}
+                      />
+                    </FormField>
+                  </>
+                )}
+
+                <FormField label="Pickup Date Time">
+                  <div className="transport-date-time-field">
+                    <DateTimePickerField
+                      dateValue={formValues.transportDateTime || ""}
+                      timeValue={formValues.transportTime || ""}
+                      onDateChange={handleChange("transportDateTime")}
+                      onTimeChange={handleChange("transportTime")}
+                      dateFieldName="transportDateTime"
+                      timeFieldName="transportTime"
+                      placeholder="Select date and time"
+                    />
+                  </div>
+                </FormField>
+
+                <FormField label="From">
+                  <LocationAutocomplete
+                    value={formValues.transportFrom || ""}
+                    onChange={handleChange("transportFrom")}
+                    placeholder="Search for a location..."
+                    onLocationSelect={(locationData) => {
+                      console.log("From location selected:", locationData);
+                    }}
                   />
-                </div>
-              </FormField>
-
-              <FormField label="">
-                <div style={{ display: "flex", gap: "20px", marginTop: "8px" }}>
-                  <label style={{ display: "flex", alignItems: "center", gap: "8px", cursor: "pointer" }}>
-                    <input
-                      type="radio"
-                      name="transportType"
-                      value="inhouse"
-                      checked={transportType === "inhouse"}
-                      onChange={handleTransportTypeChange}
-                      style={{ cursor: "pointer" }}
-                    />
-                    <span>In house</span>
-                  </label>
-                  <label style={{ display: "flex", alignItems: "center", gap: "8px", cursor: "pointer" }}>
-                    <input
-                      type="radio"
-                      name="transportType"
-                      value="thirdparty"
-                      checked={transportType === "thirdparty"}
-                      onChange={handleTransportTypeChange}
-                      style={{ cursor: "pointer" }}
-                    />
-                    <span>Third party</span>
-                  </label>
-                </div>
-              </FormField>
-
-              {transportType === "inhouse" && (
-                <>
-                  <FormField label="Vehicle">
-                    <FormSelect
-                      value={formValues.transportVehicleTypeId || ""}
-                      onChange={handleVehicleChange}
-                      options={vehicleOptions}
-                      placeholder={
-                        loadingVehicles ? "Loading vehicles..." : "Select vehicle..."
-                      }
-                      disabled={loadingVehicles}
-                    />
-                  </FormField>
-
-                  <FormField label="Driver Name">
-                    <FormSelect
-                      value={formValues.transportDriverId || ""}
-                      onChange={handleInhouseDriverChange}
-                      options={inhouseDriverOptions}
-                      placeholder={
-                        !formValues.transportVehicleTypeId
-                          ? "Select a vehicle first..."
-                          : loadingInhouseDrivers
-                            ? "Loading drivers..."
-                            : "Select driver name..."
-                      }
-                      disabled={!formValues.transportVehicleTypeId || loadingInhouseDrivers}
-                    />
-                  </FormField>
-                </>
-              )}
-
-              {transportType === "thirdparty" && (
-                <>
-                  <FormField label="Transport Company">
-                    <FormSelect
-                      value={formValues.transportCompanyId || ""}
-                      onChange={handleCompanyChange}
-                      options={companyOptions}
-                      placeholder={
-                        loadingCompanies ? "Loading companies..." : "Select transport company..."
-                      }
-                      disabled={loadingCompanies}
-                    />
-                  </FormField>
-
-                  <FormField label="Driver Name">
-                    <FormSelect
-                      value={formValues.transportThirdPartyDriverId || ""}
-                      onChange={handleThirdPartyDriverChange}
-                      options={thirdPartyDriverOptions}
-                      placeholder={
-                        !formValues.transportCompanyId
-                          ? "Select a company first..."
-                          : loadingThirdPartyDrivers
-                            ? "Loading drivers..."
-                            : "Select driver..."
-                      }
-                      disabled={!formValues.transportCompanyId || loadingThirdPartyDrivers}
-                    />
-                  </FormField>
-
-                  {/* {formValues.transportCompanyId &&
-                    !loadingThirdPartyDrivers &&
-                    thirdPartyDrivers.length > 0 && (
-                      <FormField label="">
-                        <div
-                          className="third-party-drivers-detail"
-                          style={{
-                            marginTop: "4px",
-                            padding: "12px",
-                            background: "#f7f8fb",
-                            borderRadius: "8px",
-                            border: "1px solid #e2e2ea",
-                            fontSize: "13px",
-                          }}
-                        >
-                          <div style={{ fontWeight: 600, marginBottom: "8px", color: "#1a1a1a" }}>
-                            Drivers and vehicles
-                          </div>
-                          <ul style={{ margin: 0, paddingLeft: "18px", color: "#333" }}>
-                            {thirdPartyDrivers.map((d) => (
-                              <li key={d.transport_driver_id ?? d.driver_name} style={{ marginBottom: "6px" }}>
-                                <strong>{d.driver_name || "—"}</strong>
-                                {d.contact_no ? ` · ${d.contact_no}` : ""}
-                                {d.vehicle_type || d.seater != null
-                                  ? ` · ${[d.vehicle_type, d.seater != null ? `${d.seater} seater` : null]
-                                      .filter(Boolean)
-                                      .join(" · ")}`
-                                  : ""}
-                              </li>
-                            ))}
-                          </ul>
-                        </div>
-                      </FormField>
-                    )} */}
-                </>
-              )}
-
-              <FormField label="Pickup Date Time">
-                <div className="cf-input date-time-row">
-                  <input
-                    type="date"
-                    value={formValues.transportDateTime || ""}
-                    onChange={handleChange("transportDateTime")}
-                    placeholder="Select date"
+                  <FormTextarea
+                    value={formValues.transportFromNotes || ""}
+                    onChange={handleChange("transportFromNotes")}
+                    placeholder="Additional notes (optional)..."
+                    rows={2}
+                    className="location-notes-textarea"
                   />
-                  <input
-                    type="time"
-                    value={formValues.transportTime || ""}
-                    onChange={handleChange("transportTime")}
-                    placeholder="Select time"
+                </FormField>
+
+                <FormField label="To">
+                  <LocationAutocomplete
+                    value={formValues.transportTo || ""}
+                    onChange={handleChange("transportTo")}
+                    placeholder="Search for a location..."
+                    onLocationSelect={(locationData) => {
+                      console.log("To location selected:", locationData);
+                    }}
                   />
-                </div>
-              </FormField>
-              <FormField label="From">
-                <LocationAutocomplete
-                  value={formValues.transportFrom || ""}
-                  onChange={handleChange("transportFrom")}
-                  placeholder="Search for a location..."
-                  onLocationSelect={(locationData) => {
-                    // Optional: Store additional location data if needed
-                    console.log("From location selected:", locationData);
-                  }}
-                />
-                <FormTextarea
-                  value={formValues.transportFromNotes || ""}
-                  onChange={handleChange("transportFromNotes")}
-                  placeholder="Additional notes (optional)..."
-                  rows={2}
-                  className="location-notes-textarea"
-                />
-              </FormField>
+                  <FormTextarea
+                    value={formValues.transportToNotes || ""}
+                    onChange={handleChange("transportToNotes")}
+                    placeholder="Additional notes (optional)..."
+                    rows={2}
+                    className="location-notes-textarea"
+                  />
+                </FormField>
 
-              <FormField label="To">
-                <LocationAutocomplete
-                  value={formValues.transportTo || ""}
-                  onChange={handleChange("transportTo")}
-                  placeholder="Search for a location..."
-                  onLocationSelect={(locationData) => {
-                    // Optional: Store additional location data if needed
-                    console.log("To location selected:", locationData);
-                  }}
-                />
-                <FormTextarea
-                  value={formValues.transportToNotes || ""}
-                  onChange={handleChange("transportToNotes")}
-                  placeholder="Additional notes (optional)..."
-                  rows={2}
-                  className="location-notes-textarea"
-                />
-              </FormField>
-
-              {transportType === "inhouse" && (
-                <>
+                {transportType === "inhouse" && (
                   <FormField label="Invoice Branch">
                     <FormSelect
                       value={formValues.invoiceBranch || ""}
@@ -460,30 +529,28 @@ const TransportContent = ({ formValues, handleChange, cardColor }) => {
                       placeholder="Select invoice branch..."
                     />
                   </FormField>
-                </>
-              )}
+                )}
+              </div>
 
-              <div className="form-save-button-wrapper">
-                <button
-                  type="button"
-                  className="form-save-button"
-                  onClick={handleSave}
-                >
+              <div className="transport-save-footer">
+                <button type="button" className="form-save-button" onClick={handleSave}>
                   Save
                 </button>
               </div>
             </div>
 
-            <div className="general-info-right">
-              <div className="card-description-wrapper">
-                <FormField label="Remarks">
-                  <ReactQuillEditor
-                    value={formValues?.transportDescription || ""}
-                    onChange={handleChange("transportDescription")}
-                    placeholder="Enter remarks..."
-                    name="transportDescription"
-                  />
-                </FormField>
+            <div className="transport-request-right transport-panel-card">
+              <div className="transport-panel-header">
+                <h3 className="transport-panel-header__title">Remarks</h3>
+              </div>
+              <div className="transport-request-right__body transport-panel-scroll">
+                <ReactQuillEditor
+                  value={formValues?.transportDescription || ""}
+                  onChange={handleChange("transportDescription")}
+                  placeholder="Enter remarks..."
+                  name="transportDescription"
+                  className="transport-remarks-quill"
+                />
               </div>
             </div>
           </div>
