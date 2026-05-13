@@ -1,8 +1,9 @@
-function NoTableData({ columns }) {
+function NoTableData({ columns, colSpan }) {
+  const span = colSpan ?? (columns?.length || 6);
   return (
     <tbody>
       <tr>
-        <td colSpan={columns?.length || 6}>
+        <td colSpan={span}>
           <div className="no-data">
             <div className="no-data-content">
               <div className="no-data-img">

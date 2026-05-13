@@ -1,12 +1,17 @@
 import CommonSkeleton from './CommonSkeleton';
 
-export default function CustomLoader({ columns, limit = 10, Sl = false }) {
+export default function CustomLoader({ columns, limit = 10, Sl = false, expandable = false }) {
   const SKELETON_HEIGHT = 15; // Consistent height for all skeleton rows
 
   return (
     <tbody>
       {Array.from({ length: limit }).map((index, inx) => (
         <tr key={`${index}${inx}`}>
+          {expandable && (
+            <td className="custom-table-expand-cell">
+              <CommonSkeleton height={SKELETON_HEIGHT} width={24} borderRadius={4} />
+            </td>
+          )}
           {Sl && (
             <td>
               <CommonSkeleton height={SKELETON_HEIGHT} width={40} />

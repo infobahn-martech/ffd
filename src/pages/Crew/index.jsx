@@ -1,26 +1,45 @@
-import { useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
+import moment from "moment";
 import CommonHeader from "../../components/CommonHeader";
 import CustomTable from "../../components/customTable";
 import { ViewCrewModal } from "./Modals/ViewCrew";
 import "./Crew.scss";
 
-// ✅ Change this to your actual store
 import useCrewReducer from "../../store/CrewReducer";
 
+const formatShortDate = (value) => {
+    if (value == null || value === "") return "—";
+    const m = moment(value);
+    return m.isValid() ? m.format("DD MMM YYYY") : String(value);
+};
+
+function DocLink({ href, children }) {
+    if (!href) return "—";
+    return (
+        <a
+            href={href}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="crew-doc-link"
+            onClick={(e) => e.stopPropagation()}
+        >
+            {children}
+        </a>
+    );
+}
+
 const Crew = () => {
-    const { fetchAllCrews, crews, isLoadingGet } = useCrewReducer((state) => state);
+    const { fetchAllCrews, crews, isLoading } = useCrewReducer((state) => state);
 
     const [viewModal, setViewModal] = useState(null);
+    const [expandedKeys, setExpandedKeys] = useState(() => new Set());
 
     const [params, setParams] = useState({
         page: 1,
         limit: 10,
         search: "",
-        // sortOrder: -1,
-        // sortBy: "createdAt",
     });
 
-    // ✅ fetch crew list (dynamic)
     useEffect(() => {
         fetchAllCrews({
             params: {
@@ -33,13 +52,12 @@ const Crew = () => {
         });
     }, [params.page, params.limit, params.search, params.sortBy, params.sortOrder]);
 
-    // ✅ normalize API response safely
     const tableData = useMemo(() => {
         if (!crews) return { rows: [], total: 0 };
 
         const rows = Array.isArray(crews)
             ? crews
-            : crews?.data || crews?.docs || crews?.results || [];
+            : crews?.data || crews?.crews || crews?.docs || crews?.results || [];
         const total =
             crews?.pagination?.total ||
             crews?.total ||
@@ -49,111 +67,172 @@ const Crew = () => {
 
         return { rows, total };
     }, [crews]);
-    const cols = [
-        {
-            name: "Crew Name",
-            selector: "crew_name",
-            tableClasses: "table-striped",
-            contentClass: "table-content",
-            sort: true,
-            thclass: "tb-head",
-            width: "200",
-        },
-        {
-            name: "Vessel Name",
-            selector: "vessel_name",
-            tableClasses: "table-striped",
-            contentClass: "table-content",
-            sort: true,
-            thclass: "tb-head",
-            width: "200",
-        },
-        {
-            name: "Billing Entity",
-            selector: "billing_entity",
-            tableClasses: "table-striped",
-            contentClass: "table-content",
-            sort: true,
-            thclass: "tb-head",
-            width: "200",
-        },
-        {
-            name: "Nationality",
-            selector: "country",
-            tableClasses: "table-striped",
-            sort: true,
-            contentClass: "table-content",
-            thclass: "tb-head",
-            width: "150",
-        },
-        {
-            name: "Rank",
-            selector: "rank",
-            tableClasses: "table-striped",
-            sort: true,
-            contentClass: "table-content",
-            thclass: "tb-head",
-            width: "150",
-        },
-        {
-            name: "Passport",
-            selector: "passport_no",
-            tableClasses: "table-striped",
-            sort: true,
-            contentClass: "table-content",
-            thclass: "tb-head",
-            width: "120",
-        },
 
-        // {
-        //     name: "Passport Expiry",
-        //     selector: "passport_expiry",
-        //     tableClasses: "table-striped",
-        //     sort: true,
-        //     contentClass: "table-content",
-        //     thclass: "tb-head",
-        //     width: "120",
-        // },
-        {
-            name: "Visa",
-            selector: "visa_no",
-            tableClasses: "table-striped",
-            sort: true,
-            contentClass: "table-content",
-            thclass: "tb-head",
-            width: "120",
+    const getRowKey = useCallback((row, idx) => row?.crew_id ?? row?.id ?? row?._id ?? idx, []);
+
+    const isRowExpanded = useCallback(
+        (_row, rowKey) => expandedKeys.has(rowKey),
+        [expandedKeys]
+    );
+
+    const onExpandToggle = useCallback((_row, rowKey) => {
+        setExpandedKeys((prev) => {
+            const next = new Set(prev);
+            if (next.has(rowKey)) next.delete(rowKey);
+            else next.add(rowKey);
+            return next;
+        });
+    }, []);
+
+    const cols = useMemo(
+        () => [
+            {
+                name: "Crew ID",
+                selector: "crew_id",
+                tableClasses: "table-striped",
+                contentClass: "table-content",
+                sort: true,
+                thclass: "tb-head",
+                width: "100",
+            },
+            {
+                name: "Crew Name",
+                selector: "crew_name",
+                tableClasses: "table-striped",
+                contentClass: "table-content",
+                sort: true,
+                thclass: "tb-head",
+                width: "180",
+            },
+            {
+                name: "Rank",
+                selector: "rank",
+                tableClasses: "table-striped",
+                contentClass: "table-content",
+                sort: true,
+                thclass: "tb-head",
+                width: "140",
+            },
+            {
+                name: "Date of Birth",
+                selector: "date_of_birth",
+                tableClasses: "table-striped",
+                contentClass: "table-content",
+                sort: true,
+                thclass: "tb-head",
+                width: "130",
+                cell: ({ row }) => formatShortDate(row.date_of_birth),
+            },
+            {
+                name: "Nationality",
+                selector: "nationality",
+                tableClasses: "table-striped",
+                contentClass: "table-content",
+                sort: true,
+                thclass: "tb-head",
+                width: "130",
+                cell: ({ row }) => row.nationality ?? row.country ?? "—",
+            },
+            {
+                name: "Passport No",
+                selector: "passport_no",
+                tableClasses: "table-striped",
+                contentClass: "table-content",
+                sort: true,
+                thclass: "tb-head",
+                width: "160",
+                notView: true,
+                cell: ({ row }) => (
+                    <div className="crew-cell-with-doc">
+                        <span>{row.passport_no ?? "—"}</span>
+                        {row.passport_doc_url ? (
+                            <DocLink href={row.passport_doc_url}>Doc</DocLink>
+                        ) : null}
+                    </div>
+                ),
+            },
+            {
+                name: "Visa No",
+                selector: "visa_no",
+                tableClasses: "table-striped",
+                contentClass: "table-content",
+                sort: true,
+                thclass: "tb-head",
+                width: "160",
+                notView: true,
+                cell: ({ row }) => (
+                    <div className="crew-cell-with-doc">
+                        <span>{row.visa_no ?? "—"}</span>
+                        {row.visa_doc_url ? <DocLink href={row.visa_doc_url}>Doc</DocLink> : null}
+                    </div>
+                ),
+            },
+        ],
+        []
+    );
+
+    const renderExpandedRow = useCallback(
+        (row) => {
+            const history = Array.isArray(row.history) ? row.history : [];
+            return (
+                <div className="crew-history-panel">
+                    <div className="crew-history-title">Movement history</div>
+                    <div className="table-responsive crew-history-table-wrap">
+                        <table className="table table-sm table-bordered crew-history-table mb-0">
+                            <thead>
+                                <tr>
+                                    <th>Movement type</th>
+                                    <th>Vessel name</th>
+                                    <th>Billing entity</th>
+                                    <th>CG pass no</th>
+                                    <th>Zawil pass no</th>
+                                    <th>CG pass doc</th>
+                                    <th>Zawil pass doc</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {history.length === 0 ? (
+                                    <tr>
+                                        <td colSpan={7} className="crew-history-empty">
+                                            No movement history
+                                        </td>
+                                    </tr>
+                                ) : (
+                                    history.map((h, i) => (
+                                        <tr key={h.id ?? `${row.crew_id ?? "c"}-h-${i}`}>
+                                            <td>{h.movement_type ?? "—"}</td>
+                                            <td>{h.vessel_name ?? "—"}</td>
+                                            <td>{h.billing_entity ?? "—"}</td>
+                                            <td>{h.cg_pass_no ?? "—"}</td>
+                                            <td>{h.zawil_pass_no ?? "—"}</td>
+                                            <td>
+                                                <DocLink href={h.cg_pass_doc_url}>View</DocLink>
+                                            </td>
+                                            <td>
+                                                <DocLink href={h.zawil_pass_doc_url}>View</DocLink>
+                                            </td>
+                                        </tr>
+                                    ))
+                                )}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            );
         },
-        // {
-        //     name: "Visa Expiry",
-        //     selector: "visa_expiry",
-        //     tableClasses: "table-striped",
-        //     sort: true,
-        //     contentClass: "table-content",
-        //     thclass: "tb-head",
-        //     width: "120",
-        // },
-        {
-            name: "IQAMA",
-            selector: "iqama_no",
-            tableClasses: "table-striped",
-            sort: true,
-            contentClass: "table-content",
-            thclass: "tb-head",
-            width: "120",
-        },
-        // {
-        //     name: "IQAMA Expiry",
-        //     selector: "iqama_expiry",
-        //     tableClasses: "table-striped",
-        //     sort: true,
-        //     contentClass: "table-content",
-        //     thclass: "tb-head",
-        //     width: "120",
-        // },
-    ];
+        []
+    );
 
     const handleViewClick = (row) => {
-        setViewModal(row);
+        setViewModal({
+            ...row,
+            crewName: row.crew_name ?? row.crewName,
+            nationality: row.nationality ?? row.country,
+            passport: row.passport_no ?? row.passport,
+            visa: row.visa_no ?? row.visa,
+            cgPass: row.cg_pass_no ?? row.cgPass,
+            zawilPass: row.zawil_pass_no ?? row.zawilPass,
+        });
     };
 
     return (
@@ -174,12 +253,17 @@ const Crew = () => {
                     </div>
 
                     <CustomTable
-                        isLoading={isLoadingGet}
+                        isLoading={isLoading}
                         pagination={{ currentPage: params.page, limit: params.limit }}
                         tableClasses="px-start"
                         count={tableData.total}
                         columns={cols}
                         data={tableData.rows}
+                        expandable
+                        getRowKey={getRowKey}
+                        isRowExpanded={isRowExpanded}
+                        onExpandToggle={onExpandToggle}
+                        renderExpandedRow={renderExpandedRow}
                         onPageChange={(currentPage) =>
                             setParams({ ...params, page: currentPage })
                         }

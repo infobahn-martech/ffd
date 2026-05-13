@@ -59,8 +59,17 @@ function CustomTable({
   onView,
   onSorting,
   Sl,
+  expandable,
+  getRowKey,
+  isRowExpanded,
+  onExpandToggle,
+  renderExpandedRow,
 }) {
   const { currentPage, limit } = pagination;
+
+  const resolveRowKey = (row, idx) => getRowKey(row, idx);
+  const headColSpan =
+    columns.length + (Sl ? 1 : 0) + (expandable ? 1 : 0);
 
   // Local state for temporary count and serial number base
   const [tempCount, setTempCount] = useState(count || 0);
@@ -210,6 +219,14 @@ function CustomTable({
               {(data && data.length > 0) || isLoading ? (
                 <thead>
                   <tr>
+                    {expandable && (
+                      <th
+                        width="44"
+                        className="custom-table-expand-header"
+                        scope="col"
+                        aria-label="Expand row"
+                      />
+                    )}
                     {Sl && <th width="100">Sl.No</th>}
                     {columns.map(
                       ({ thclass, sort, selector, name, thProps, width }, colIdx) => (
@@ -237,50 +254,102 @@ function CustomTable({
               ) : null}
 
               {isLoading ? (
-                <CustomLoader columns={columns} limit={limit} Sl={Sl} />
+                <CustomLoader
+                  columns={columns}
+                  limit={limit}
+                  Sl={Sl}
+                  expandable={expandable}
+                />
               ) : !data.length ? (
-                <NoTableData columns={columns} />
+                <NoTableData columns={columns} colSpan={headColSpan} />
               ) : (
                 !showLoader && (
                   <tbody>
-                    {data.map((row, idx) => (
-                      <tr key={`row${row.id ?? idx}`}>
-                        {Sl && <td>{idx + slNo}</td>}
-                        {columns.map(
-                          ({
-                            selector,
-                            cell,
-                            colClassName = '',
-                            contentClass = '',
-                            notView,
-                            ...rest
-                          }) =>
-                            cell ? (
+                    {data.map((row, idx) => {
+                      const rowKey = resolveRowKey(row, idx);
+                      const expanded =
+                        expandable &&
+                        typeof isRowExpanded === 'function' &&
+                        isRowExpanded(row, rowKey);
+                      return (
+                        <Fragment key={`row${rowKey}`}>
+                          <tr>
+                            {expandable && (
                               <td
-                                key={`cell${selector}`}
-                                onClick={() =>
-                                  handleOnCellClick(row, onView, notView)
-                                }
+                                className="custom-table-expand-cell"
+                                onClick={(e) => e.stopPropagation()}
                               >
-                                <div className={contentClass}>
-                                  {cell({ row, selector, ...rest })}
+                                <button
+                                  type="button"
+                                  className="btn btn-link btn-sm p-0 custom-table-expand-btn"
+                                  aria-expanded={expanded}
+                                  aria-label={
+                                    expanded ? 'Collapse row' : 'Expand row'
+                                  }
+                                  onClick={(e) => {
+                                    e.stopPropagation();
+                                    onExpandToggle?.(row, rowKey);
+                                  }}
+                                >
+                                  <span
+                                    className={`custom-table-expand-chevron${expanded ? ' is-open' : ''
+                                      }`}
+                                  />
+                                </button>
+                              </td>
+                            )}
+                            {Sl && <td>{idx + slNo}</td>}
+                            {columns.map(
+                              ({
+                                selector,
+                                cell,
+                                colClassName = '',
+                                contentClass = '',
+                                notView,
+                                ...rest
+                              }) =>
+                                cell ? (
+                                  <td
+                                    key={`cell${selector}`}
+                                    onClick={() =>
+                                      handleOnCellClick(row, onView, notView)
+                                    }
+                                  >
+                                    <div className={contentClass}>
+                                      {cell({ row, selector, ...rest })}
+                                    </div>
+                                  </td>
+                                ) : (
+                                  <td
+                                    className={`${colClassName}${!notView && onView ? ' cursor-pointer' : ''
+                                      }`}
+                                    key={`cell${selector}`}
+                                    onClick={() =>
+                                      handleOnCellClick(row, onView, notView)
+                                    }
+                                  >
+                                    {row[selector]}
+                                  </td>
+                                )
+                            )}
+                          </tr>
+                          {expandable && expanded && renderExpandedRow ? (
+                            <tr className="custom-table-expanded-row">
+                              <td colSpan={headColSpan} className="p-0">
+                                <div
+                                  className="custom-table-expanded-inner"
+                                  role="region"
+                                  aria-label="Row details"
+                                  onClick={(e) => e.stopPropagation()}
+                                >
+                                  {renderExpandedRow(row, rowKey)}
                                 </div>
                               </td>
-                            ) : (
-                              <td
-                                className={`${colClassName}${!notView && onView ? ' cursor-pointer' : ''
-                                  }`}
-                                key={`cell${selector}`}
-                                onClick={() =>
-                                  handleOnCellClick(row, onView, notView)
-                                }
-                              >
-                                {row[selector]}
-                              </td>
-                            )
-                        )}
-                      </tr>
-                    ))}
+                            </tr>
+                          ) : null}
+                        </Fragment>
+                      );
+                    })}
                   </tbody>
                 )
               )}
@@ -322,6 +391,11 @@ CustomTable.propTypes = {
   onView: PropTypes.func,
   onSorting: PropTypes.func,
   Sl: PropTypes.bool,
+  expandable: PropTypes.bool,
+  getRowKey: PropTypes.func,
+  isRowExpanded: PropTypes.func,
+  onExpandToggle: PropTypes.func,
+  renderExpandedRow: PropTypes.func,
 };
 
 CustomTable.defaultProps = {
@@ -335,6 +409,11 @@ CustomTable.defaultProps = {
   onView: undefined,
   onSorting: undefined,
   Sl: false,
+  expandable: false,
+  getRowKey: (row, idx) => row?.id ?? row?._id ?? row?.crew_id ?? idx,
+  isRowExpanded: () => false,
+  onExpandToggle: undefined,
+  renderExpandedRow: undefined,
 };
 
 export default CustomTable;
