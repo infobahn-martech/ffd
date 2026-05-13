@@ -1971,6 +1971,8 @@ function General({
     }
 
     if (isAddMode) {
+      requireField(shouldShowApiField("vessel_type_id"), "vesselType", "Vessel type is required.");
+      requireField(shouldShowApiField("barge_type_id"), "bargeType", "Barge type is required.");
       (Array.isArray(stageTimeObjects) ? stageTimeObjects : []).forEach((item) => {
         if (String(item?.is_required ?? "0") !== "1") return;
         const timeObjectId = firstNonEmptyString(item?.time_object_id);
@@ -4086,26 +4088,40 @@ ${body}
                               <h3 className="form-group-title">Vessel Information</h3>
 
                               {shouldShowApiField("vessel_type_id") && (
-                                <FormField label="Vessel type">
+                                <FormField
+                                  label={isAddMode ? "Vessel type *" : "Vessel type"}
+                                  hasError={isAddMode && Boolean(fieldErrors.vesselType)}
+                                >
                                   <FormSelect
                                     value={getFieldValue("vesselType")}
-                                    onChange={handleChange("vesselType")}
+                                    onChange={isAddMode ? handleValidatedChange("vesselType") : handleChange("vesselType")}
                                     options={mergeOptionIfMissing(vesselTypeSelectOptions, getFieldValue("vesselType"))}
                                     placeholder="Select vessel type"
                                     disabled={masterInputsDisabled}
+                                    hasError={isAddMode && Boolean(fieldErrors.vesselType)}
                                   />
+                                  {isAddMode && fieldErrors.vesselType && (
+                                    <div className="cf-field-error">{fieldErrors.vesselType}</div>
+                                  )}
                                 </FormField>
                               )}
 
                               {shouldShowApiField("barge_type_id") && (
-                                <FormField label="Barge type">
+                                <FormField
+                                  label={isAddMode ? "Barge type *" : "Barge type"}
+                                  hasError={isAddMode && Boolean(fieldErrors.bargeType)}
+                                >
                                   <FormSelect
                                     value={getFieldValue("bargeType")}
-                                    onChange={handleChange("bargeType")}
+                                    onChange={isAddMode ? handleValidatedChange("bargeType") : handleChange("bargeType")}
                                     options={mergeOptionIfMissing(bargeTypeSelectOptions, getFieldValue("bargeType"))}
                                     placeholder="Select barge type"
                                     disabled={masterInputsDisabled}
+                                    hasError={isAddMode && Boolean(fieldErrors.bargeType)}
                                   />
+                                  {isAddMode && fieldErrors.bargeType && (
+                                    <div className="cf-field-error">{fieldErrors.bargeType}</div>
+                                  )}
                                 </FormField>
                               )}
 
