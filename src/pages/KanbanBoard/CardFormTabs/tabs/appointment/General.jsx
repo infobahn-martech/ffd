@@ -80,6 +80,7 @@ const mapCallDetailToFormFields = (detail) => {
     call_type_id: detail?.call_type_id != null ? String(detail.call_type_id) : "",
     typeOfCall: detail?.call_type ? String(detail.call_type) : "",
     mainBillingEntity: detail?.main_billing_entity_id ? String(detail.main_billing_entity_id) : "",
+    lastPort: detail?.last_port != null ? String(detail.last_port) : "",
     otherBillingEntity: detail?.other_billing_entity_id ? String(detail.other_billing_entity_id) : "",
     vesselType: detail?.vessel_type_id ? String(detail.vessel_type_id) : "",
     bargeType: detail?.barge_type_id ? String(detail.barge_type_id) : "",
@@ -1789,6 +1790,7 @@ function General({
       srtPoWbs: "srt_number",
       project: "project_name",
       mainBillingEntity: "main_billing_entity_id",
+      lastPort: "last_port",
       vesselName: "vessel_id",
     };
 
@@ -1885,46 +1887,7 @@ function General({
   const validateGeneralFields = (snapshot = formValues) => {
     const errors = {};
     const v = (name) => getValueForGeneralValidation(name, snapshot);
-    if (isEmptyValue(v("owner"))) errors.owner = "Owner is required.";
-    if (isEmptyValue(v("appointmentReceivedDate"))) errors.appointmentReceivedDate = "Appointment received is required.";
-    if (isEmptyValue(v("port"))) errors.port = "Port is required.";
-    if (isEmptyValue(v("typeOfCall"))) errors.typeOfCall = "Type of call / service is required.";
     if (isEmptyValue(v("mainBillingEntity"))) errors.mainBillingEntity = "Main billing entity is required.";
-    const serviceEmailRaw = v("serviceRequestorEmail");
-    const serviceEmailStr =
-      serviceEmailRaw === undefined || serviceEmailRaw === null ? "" : String(serviceEmailRaw).trim();
-    if (!isEmptyValue(serviceEmailStr) && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(serviceEmailStr)) {
-      errors.serviceRequestorEmail = "Invalid email format.";
-    }
-
-    const normalizedEntityId =
-      selectedEntityId === undefined || selectedEntityId === null ? "" : String(selectedEntityId).trim();
-    const shouldRequireFallbackEntityFields =
-      normalizedEntityId !== "" &&
-      !entityFieldsLoading &&
-      !entityFieldsError &&
-      Array.isArray(entityFields) &&
-      entityFields.length === 0;
-
-    if (shouldRequireFallbackEntityFields) {
-      if (isEmptyValue(v("poNumber"))) errors.poNumber = "PO No is required.";
-      if (isEmptyValue(v("project"))) errors.project = "Project is required.";
-    }
-
-    if (isAddMode) {
-      (Array.isArray(stageTimeObjects) ? stageTimeObjects : []).forEach((item) => {
-        if (String(item?.is_required ?? "0") !== "1") return;
-        const id = firstNonEmptyString(item?.time_object_id);
-        if (!id) return;
-        const selected = stageTimeObjectValues?.[id];
-        const hasDate = firstNonEmptyString(selected?.date);
-        const hasTime = firstNonEmptyString(selected?.time);
-        if (!hasDate || !hasTime) {
-          errors[`timeObject_${id}`] = `${firstNonEmptyString(item?.time_object) || "Time object"} is required.`;
-        }
-      });
-    }
-
     return errors;
   };
 
@@ -1957,58 +1920,27 @@ function General({
     const requireField = (condition, key, message) => {
       if (condition && isEmptyValue(v(key))) errors[key] = message;
     };
-    const requireArrayField = (condition, key, message) => {
-      if (!condition) return;
-      const rawValue = v(key);
-      const values = Array.isArray(rawValue) ? rawValue : [];
-      if (values.length === 0) errors[key] = message;
-    };
-
-    requireField(true, "cardTitle", "Card title is required.");
-    requireField(shouldShowApiField("owner_id"), "owner", "Owner is required.");
     requireField(shouldShowApiField("port_id"), "port", "Port is required.");
     const callTypeValue = firstNonEmptyString(v("typeOfCall"), v("call_type_id"));
     if (shouldShowApiField("call_type") && !callTypeValue) {
       errors.typeOfCall = "Type of call / service is required.";
     }
-    const swimlaneValue = firstNonEmptyString(
-      v("swimlane_id"),
-      v("swimlaneId"),
-      card?.swimlane_id,
-      card?.laneId
-    );
-    if (!swimlaneValue) errors.swimlane_id = "Swimlane is required.";
     requireField(shouldShowApiField("assigned_operator_id"), "assignedOperator", "Assigned operator is required.");
     requireField(shouldShowApiField("main_billing_entity_id"), "mainBillingEntity", "Main billing entity is required.");
-    requireField(shouldShowApiField("vessel_type_id"), "vesselType", "Vessel type is required.");
-    requireField(shouldShowApiField("barge_type_id"), "bargeType", "Barge type is required.");
     requireField(shouldShowApiField("vessel_id"), "vesselName", "Vessel name is required.");
-    requireField(shouldShowApiField("vessel_owner"), "vesselOwner", "Vessel owner is required.");
-    requireField(shouldShowApiField("vessel_principal"), "vesselPrincipal", "Vessel principal is required.");
     requireField(shouldShowApiField("service_requestor_name"), "serviceRequestorName", "Service requestor name is required.");
     requireField(shouldShowApiField("service_requestor_email"), "serviceRequestorEmail", "Service requestor email is required.");
     requireField(shouldShowApiField("appointment_received_date"), "appointmentReceivedDate", "Appointment received date is required.");
     requireField(shouldShowApiField("appointment_received_date"), "appointmentReceivedTime", "Appointment received time is required.");
-    requireArrayField(shouldShowApiField("daily_report_emails"), "dailyReportEmail", "Daily report email is required.");
-    requireArrayField(
-      shouldShowApiField("billing_instruction_emails") || billingInstructionType.toLowerCase() === "email",
-      "billingInstructionEmails",
-      "Billing instruction email is required."
-    );
 
     const serviceEmailStr = getTrimmedValue(v("serviceRequestorEmail"));
     if (serviceEmailStr && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(serviceEmailStr)) {
       errors.serviceRequestorEmail = "Invalid email format.";
     }
 
-    if (isAddMode && shouldShowApiField("appointment_email")) {
-      if (!Array.isArray(appointmentDocuments) || appointmentDocuments.length === 0) {
-        errors.appointmentEmailDocuments = "Appointment email file is required.";
-      }
-    }
-
     if (isAddMode) {
       (Array.isArray(stageTimeObjects) ? stageTimeObjects : []).forEach((item) => {
+        if (String(item?.is_required ?? "0") !== "1") return;
         const timeObjectId = firstNonEmptyString(item?.time_object_id);
         if (!timeObjectId) return;
         const selected = stageTimeObjectValues?.[timeObjectId];
@@ -2028,10 +1960,6 @@ function General({
     setTimeObjectErrors(timeErrors);
     return Object.keys(errors).length === 0 && Object.keys(dynamicErrors).length === 0 && Object.keys(timeErrors).length === 0;
   }, [
-    appointmentDocuments,
-    billingInstructionType,
-    card?.laneId,
-    card?.swimlane_id,
     entityFieldValues,
     formValues,
     isAddMode,
@@ -3856,12 +3784,10 @@ ${body}
                             {shouldShowApiField("owner_id") && (
                               <OwnerField
                                 value={getFieldValue("owner")}
-                                onChange={isAddMode ? handleValidatedChange("owner") : handleChange("owner")}
+                                onChange={handleChange("owner")}
                                 options={mergeOptionIfMissing(ownerOptions, getFieldValue("owner"))}
                                 placeholder="Select owner"
                                 disabled={masterInputsDisabled}
-                                error={isAddMode ? fieldErrors.owner : undefined}
-                                hasError={isAddMode && Boolean(fieldErrors.owner)}
                               />
                             )}
 
@@ -3871,10 +3797,10 @@ ${body}
                                 {shouldShowApiField("appointment_email") && (
                                   <FormField
                                     label=""
-                                    hasError={isAddMode && Boolean(fieldErrors.appointmentEmailDocuments)}
+                                    hasError={false}
                                   >
                                     <div className="appointment-email-label-row">
-                                      <label className="appointment-email-label">Appointment Email *</label>
+                                      <label className="appointment-email-label">Appointment Email</label>
                                       <button
                                         type="button"
                                         className={`appointment-ai-toggle ${isAppointmentAiEnabled ? "active" : ""}`}
@@ -3897,7 +3823,7 @@ ${body}
                                       onMultipleFiles={() => notify("Only one appointment email can be uploaded.", "warning")}
                                       cardColor={accentColor}
                                       disabled={isDisabled}
-                                      hasError={isAddMode && Boolean(fieldErrors.appointmentEmailDocuments)}
+                                      hasError={false}
                                     />
                                     {/* {isAiExtractingAppointment && (
                                       <div className="cf-field-hint">Extracting appointment details...</div>
@@ -3905,9 +3831,6 @@ ${body}
                                     {!isAiExtractingAppointment && aiExtractionError && (
                                       <div className="cf-field-hint">{aiExtractionError}</div>
                                     )} */}
-                                    {isAddMode && fieldErrors.appointmentEmailDocuments && (
-                                      <div className="cf-field-error">{fieldErrors.appointmentEmailDocuments}</div>
-                                    )}
                                   </FormField>
                                 )}
                                 {shouldShowApiField("appointment_received_date") && (
@@ -4035,6 +3958,17 @@ ${body}
                                   );
                                 })}
                               {shouldShowApiField("main_billing_entity_id") && (
+                                <FormField label="Last Port">
+                                  <FormInput
+                                    type="text"
+                                    placeholder="Enter last port"
+                                    value={getFieldValue("lastPort")}
+                                    onChange={handleChange("lastPort")}
+                                    disabled={masterInputsDisabled}
+                                  />
+                                </FormField>
+                              )}
+                              {shouldShowApiField("main_billing_entity_id") && (
                                 <FormField label="Main Billing entity *" hasError={isAddMode && Boolean(fieldErrors.mainBillingEntity)}>
                                   <FormSelect
                                     value={getFieldValue("mainBillingEntity")}
@@ -4094,30 +4028,24 @@ ${body}
                                 selectedEntityId &&
                                 entityFields.length === 0 && (
                                   <>
-                                    <FormField label="PO No *" hasError={isAddMode && Boolean(fieldErrors.poNumber)}>
+                                    <FormField label="PO No">
                                       <FormInput
                                         type="text"
                                         placeholder="Enter PO No..."
                                         value={getFieldValue("poNumber")}
-                                        onChange={isAddMode ? handleValidatedChange("poNumber") : handleChange("poNumber")}
+                                        onChange={handleChange("poNumber")}
                                         disabled={isDisabled}
                                       />
-                                      {isAddMode && fieldErrors.poNumber && (
-                                        <div className="cf-field-error">{fieldErrors.poNumber}</div>
-                                      )}
                                     </FormField>
 
-                                    <FormField label="Project *" hasError={isAddMode && Boolean(fieldErrors.project)}>
+                                    <FormField label="Project">
                                       <FormInput
                                         type="text"
                                         placeholder="Enter project..."
                                         value={getFieldValue("project")}
-                                        onChange={isAddMode ? handleValidatedChange("project") : handleChange("project")}
+                                        onChange={handleChange("project")}
                                         disabled={isDisabled}
                                       />
-                                      {isAddMode && fieldErrors.project && (
-                                        <div className="cf-field-error">{fieldErrors.project}</div>
-                                      )}
                                     </FormField>
                                   </>
                                 )}
@@ -4127,30 +4055,26 @@ ${body}
                               <h3 className="form-group-title">Vessel Information</h3>
 
                               {shouldShowApiField("vessel_type_id") && (
-                                <FormField label="Vessel type *" hasError={isAddMode && Boolean(fieldErrors.vesselType)}>
+                                <FormField label="Vessel type">
                                   <FormSelect
                                     value={getFieldValue("vesselType")}
-                                    onChange={isAddMode ? handleValidatedChange("vesselType") : handleChange("vesselType")}
+                                    onChange={handleChange("vesselType")}
                                     options={mergeOptionIfMissing(vesselTypeSelectOptions, getFieldValue("vesselType"))}
                                     placeholder="Select vessel type"
                                     disabled={masterInputsDisabled}
-                                    hasError={isAddMode && Boolean(fieldErrors.vesselType)}
                                   />
-                                  {isAddMode && fieldErrors.vesselType && <div className="cf-field-error">{fieldErrors.vesselType}</div>}
                                 </FormField>
                               )}
 
                               {shouldShowApiField("barge_type_id") && (
-                                <FormField label="Barge type *" hasError={isAddMode && Boolean(fieldErrors.bargeType)}>
+                                <FormField label="Barge type">
                                   <FormSelect
                                     value={getFieldValue("bargeType")}
-                                    onChange={isAddMode ? handleValidatedChange("bargeType") : handleChange("bargeType")}
+                                    onChange={handleChange("bargeType")}
                                     options={mergeOptionIfMissing(bargeTypeSelectOptions, getFieldValue("bargeType"))}
                                     placeholder="Select barge type"
                                     disabled={masterInputsDisabled}
-                                    hasError={isAddMode && Boolean(fieldErrors.bargeType)}
                                   />
-                                  {isAddMode && fieldErrors.bargeType && <div className="cf-field-error">{fieldErrors.bargeType}</div>}
                                 </FormField>
                               )}
 
@@ -4175,30 +4099,26 @@ ${body}
                               )}
 
                               {shouldShowApiField("vessel_owner") && (
-                                <FormField label="Vessel Owner *" hasError={isAddMode && Boolean(fieldErrors.vesselOwner)}>
+                                <FormField label="Vessel Owner">
                                   <FormInput
                                     type="text"
                                     placeholder="Enter vessel owner..."
                                     value={getFieldValue("vesselOwner")}
-                                    onChange={isAddMode ? handleValidatedChange("vesselOwner") : handleChange("vesselOwner")}
+                                    onChange={handleChange("vesselOwner")}
                                     disabled={isDisabled}
-                                    hasError={isAddMode && Boolean(fieldErrors.vesselOwner)}
                                   />
-                                  {isAddMode && fieldErrors.vesselOwner && <div className="cf-field-error">{fieldErrors.vesselOwner}</div>}
                                 </FormField>
                               )}
 
                               {shouldShowApiField("vessel_principal") && (
-                                <FormField label="Vessel Principal *" hasError={isAddMode && Boolean(fieldErrors.vesselPrincipal)}>
+                                <FormField label="Vessel Principal">
                                   <FormInput
                                     type="text"
                                     placeholder="Enter vessel principal..."
                                     value={getFieldValue("vesselPrincipal")}
-                                    onChange={isAddMode ? handleValidatedChange("vesselPrincipal") : handleChange("vesselPrincipal")}
+                                    onChange={handleChange("vesselPrincipal")}
                                     disabled={isDisabled}
-                                    hasError={isAddMode && Boolean(fieldErrors.vesselPrincipal)}
                                   />
-                                  {isAddMode && fieldErrors.vesselPrincipal && <div className="cf-field-error">{fieldErrors.vesselPrincipal}</div>}
                                 </FormField>
                               )}
 
@@ -4250,42 +4170,37 @@ ${body}
 
                               {shouldShowApiField("daily_report_emails") && (
                                 <FormField
-                                  label="Daily Report Emails *"
+                                  label="Daily Report Emails"
                                   className="cf-daily-report-emails-field"
-                                  hasError={isAddMode && Boolean(fieldErrors.dailyReportEmail)}
+                                  hasError={false}
                                 >
                                   <MultiSelectEmail
                                     name="dailyReportEmail"
                                     value={Array.isArray(getFieldValue("dailyReportEmail")) ? getFieldValue("dailyReportEmail") : []}
-                                    onChange={isAddMode ? handleValidatedChange("dailyReportEmail") : handleChange("dailyReportEmail")}
+                                    onChange={handleChange("dailyReportEmail")}
                                     options={dailyReportEmailOptions}
                                     placeholder="Select email addresses..."
                                     onAddNew={handleAddNewEmail}
                                     disabled={isDisabled || dailyReportEmailLoading}
-                                    hasError={isAddMode && Boolean(fieldErrors.dailyReportEmail)}
                                   />
-                                  {isAddMode && fieldErrors.dailyReportEmail && (
-                                    <div className="cf-field-error">{fieldErrors.dailyReportEmail}</div>
-                                  )}
                                 </FormField>
                               )}
 
                               {(shouldShowApiField("billing_instruction") || shouldShowApiField("billing_instruction_emails")) && (
                                 <FormField
-                                  label={`Billing instructions${billingInstructionType.toLowerCase() === "email" ? " *" : ""}`}
+                                  label="Billing instructions"
                                   className="cf-billing-instruction-field"
-                                  hasError={isAddMode && Boolean(fieldErrors.billingInstructionEmails)}
+                                  hasError={false}
                                 >
                                   {billingInstructionType.toLowerCase() === "email" ? (
                                     <MultiSelectEmail
                                       name="billingInstructionEmails"
                                       value={Array.isArray(getFieldValue("billingInstructionEmails")) ? getFieldValue("billingInstructionEmails") : []}
-                                      onChange={isAddMode ? handleValidatedChange("billingInstructionEmails") : handleChange("billingInstructionEmails")}
+                                      onChange={handleChange("billingInstructionEmails")}
                                       options={billingInstructionEmailOptions}
                                       placeholder="Select billing instruction emails..."
                                       onAddNew={handleAddBillingInstructionEmail}
                                       disabled={isDisabled || billingInstructionLoading}
-                                      hasError={isAddMode && Boolean(fieldErrors.billingInstructionEmails)}
                                     />
                                   ) : (
                                     <FormInput
@@ -4295,9 +4210,6 @@ ${body}
                                       onChange={handleChange("billingInstructions")}
                                       disabled={isDisabled || billingInstructionLoading}
                                     />
-                                  )}
-                                  {isAddMode && fieldErrors.billingInstructionEmails && (
-                                    <div className="cf-field-error">{fieldErrors.billingInstructionEmails}</div>
                                   )}
                                 </FormField>
                               )}

@@ -1744,7 +1744,7 @@ function CardForm({
         };
       })(),
       // Legacy fields (keeping for backward compatibility)
-      lastPort: card?.lastPort || "",
+      lastPort: card?.lastPort ?? card?.last_port ?? "",
       etaDate: card?.etaDate || "",
       etaTime: card?.etaTime || "",
       customsStart: card?.customsStart || "",

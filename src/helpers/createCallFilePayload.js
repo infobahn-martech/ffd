@@ -120,6 +120,7 @@ export function buildCreateCallFileFormData(formPayload, options = {}) {
 
   appendStringField("assigned_operator_id", fv.assignedOperator);
   appendStringField("billing_entity_id", fv.mainBillingEntity);
+  appendStringField("last_port", fv.lastPort);
   appendStringField("vessel_type_id", fv.vesselType);
   appendStringField("barge_type_id", fv.bargeType);
   appendStringField("vessel_id", fv.vesselName);
