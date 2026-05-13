@@ -51,7 +51,7 @@ export const notify = (message, type, toastPosition, clear) => {
   return toast(message, {
     icon: () => <img src={icons[type]} alt="img" />,
     position: getPosition(toastPosition),
-    autoClose: 2000,
+    autoClose: 6000,
     pauseOnFocusLoss: true,
     hideProgressBar: false,
     closeOnClick: true,
