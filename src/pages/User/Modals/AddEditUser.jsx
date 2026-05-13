@@ -338,6 +338,12 @@ export function UserModal({ showModal, closeModal, onSuccess }) {
                         searchPlaceholder="Search role..."
                         disabled={!isRolesReady}
                         hasError={Boolean(errors.roleid)}
+                        menuPortalTarget={
+                          typeof document !== "undefined"
+                            ? document.body
+                            : undefined
+                        }
+                        menuClassName="user-modal-premium-select-menu"
                       />
                     )}
                   />
@@ -410,6 +416,12 @@ export function UserModal({ showModal, closeModal, onSuccess }) {
                         searchPlaceholder="Search port..."
                         disabled={!isPortsReady}
                         hasError={Boolean(errors.port_id)}
+                        menuPortalTarget={
+                          typeof document !== "undefined"
+                            ? document.body
+                            : undefined
+                        }
+                        menuClassName="user-modal-premium-select-menu"
                       />
                     )}
                   />
@@ -423,9 +435,8 @@ export function UserModal({ showModal, closeModal, onSuccess }) {
               <div className="col-lg-6 col-sm-12">
                 <div className="form-floating desig-inp">
                   <textarea
-                    className="form-control"
+                    className="form-control address-textarea"
                     placeholder="Address"
-                    style={{ height: "100px" }}
                     {...register("address")}
                   />
                   <label>Address</label>
@@ -470,7 +481,7 @@ export function UserModal({ showModal, closeModal, onSuccess }) {
 
   return (
     <CustomModal
-      className="user-modal-sm"
+      className="user-modal-sm add-edit-user-modal"
       dialgName="modal-dialog modal-dialog-centered"
       show={!!showModal}
       closeModal={() => closeModal(null)}

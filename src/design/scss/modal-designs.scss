@@ -331,6 +331,81 @@ body .user-modal-sm .modal-dialog {
   margin-top: 10px;
 }
 
+/*
+  Add/Edit User modal only (class on CustomModal). Other screens reuse .user-modal-sm without these tweaks.
+  SearchableSelect menu = .cf-multi-select-dropdown (+ .cf-searchable-select__menu-portal when portaled to body).
+*/
+.user-modal-sm.add-edit-user-modal {
+  .lead-form .row {
+    align-items: flex-start;
+  }
+
+  .phone-wrapper,
+  .form-floating.desig-inp {
+    position: relative;
+    min-height: 54px;
+  }
+
+  .lead-form .form-floating.desig-inp > .form-control:not(textarea) {
+    min-height: 52px;
+    height: 52px;
+    box-sizing: border-box;
+  }
+
+  /* PremiumSelect / SearchableSelect trigger (.cf-multi-select-email-input); not react-select __control */
+  .premium-select.cf-searchable-select .cf-multi-select-email-input {
+    min-height: 52px;
+    box-sizing: border-box;
+  }
+
+  .react-tel-input .form-control.phone-input {
+    height: 52px !important;
+    min-height: 52px !important;
+    line-height: 52px !important;
+    box-sizing: border-box !important;
+  }
+
+  textarea.form-control.address-textarea {
+    height: 52px !important;
+    min-height: 52px !important;
+    resize: none;
+    overflow: hidden;
+    box-sizing: border-box;
+    padding-top: 1rem !important;
+    padding-bottom: 10px !important;
+    line-height: 1.25;
+  }
+
+  .premium-select.cf-searchable-select {
+    position: relative;
+  }
+
+  /*
+    Inline dropdown only (inside .cf-multi-select-email). Portal target = body —
+    menus use fixed positioning from JS; see .cf-multi-select-dropdown.user-modal-premium-select-menu below.
+  */
+  .premium-select.cf-searchable-select > .cf-multi-select-dropdown:not(.cf-searchable-select__menu-portal) {
+    position: absolute !important;
+    top: calc(100% + 6px) !important;
+    left: 0 !important;
+    right: 0 !important;
+    margin-top: 0 !important;
+    z-index: 11000 !important;
+    max-height: 220px !important;
+    overflow-y: auto !important;
+    overflow-x: hidden !important;
+  }
+}
+
+/* User modal PremiumSelect — portaled under body; position/size set inline (SearchableSelect). */
+.user-modal-premium-select-menu.cf-searchable-select__menu-portal {
+  position: fixed !important;
+  z-index: 11000 !important;
+  max-height: 220px;
+  overflow-y: auto;
+  box-sizing: border-box;
+}
+
 /* Permission Modal - Higher z-index to appear above CardForm (z-index: 1200) */
 /* Bootstrap modals are rendered in a portal at body level */
 body .addPermissionMod {

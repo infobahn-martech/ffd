@@ -37,7 +37,7 @@ const SearchableSelect = ({
   const [isOpen, setIsOpen] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
   const [activeIndex, setActiveIndex] = useState(0);
-  const [portalMenuBox, setPortalMenuBox] = useState({ top: 0, left: 0, width: 0, maxHeight: 240 });
+  const [portalMenuBox, setPortalMenuBox] = useState({ top: 0, left: 0, width: 0, maxHeight: 220 });
   const rootRef = useRef(null);
   const triggerRef = useRef(null);
   const menuPortalRef = useRef(null);
@@ -88,9 +88,9 @@ const SearchableSelect = ({
     const el = triggerRef.current;
     if (!el) return;
     const r = el.getBoundingClientRect();
-    const gap = 4;
+    const gap = 6;
     const viewportPad = 8;
-    const maxMenu = 240;
+    const maxMenu = 220;
     const spaceBelow = window.innerHeight - r.bottom - gap - viewportPad;
     const maxHeight = Math.min(maxMenu, Math.max(80, spaceBelow));
     setPortalMenuBox({
@@ -104,10 +104,14 @@ const SearchableSelect = ({
   useLayoutEffect(() => {
     if (!isOpen || !useMenuPortal) return;
     updatePortalMenuPosition();
+    const rafId = requestAnimationFrame(() => {
+      updatePortalMenuPosition();
+    });
     const onScrollOrResize = () => updatePortalMenuPosition();
     window.addEventListener("resize", onScrollOrResize);
     window.addEventListener("scroll", onScrollOrResize, true);
     return () => {
+      cancelAnimationFrame(rafId);
       window.removeEventListener("resize", onScrollOrResize);
       window.removeEventListener("scroll", onScrollOrResize, true);
     };
@@ -249,6 +253,10 @@ const SearchableSelect = ({
           top: portalMenuBox.top,
           left: portalMenuBox.left,
           width: portalMenuBox.width,
+          maxWidth: portalMenuBox.width,
+          minWidth: 0,
+          right: "auto",
+          margin: 0,
           maxHeight: portalMenuBox.maxHeight,
           zIndex: menuZIndex,
           overflowY: "auto",
