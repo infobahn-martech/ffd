@@ -94,24 +94,31 @@ const CompactFileUploadRow = ({
   const inputRef = useRef(null);
   const hasFiles = (files || []).length > 0;
   const primaryFile = hasFiles ? files[0] : null;
-  const rowStatus = Number.isFinite(Number(status)) ? Number(status) : null;
+  // Null/empty status must stay unset: Number(null) === 0 would wrongly map to "Uploaded".
+  const rowStatus =
+    status === null || status === undefined || status === ""
+      ? null
+      : Number.isFinite(Number(status))
+        ? Number(status)
+        : null;
   const isVerified = rowStatus === DOC_STATUS_VERIFIED;
   const isReuploadRequired = rowStatus === DOC_STATUS_REUPLOAD;
   const isUploaded = rowStatus === DOC_STATUS_UPLOADED;
+  const showUploadedChip = isUploaded && hasFiles;
   const shouldShowUpload = !isViewOnly && !isVerified;
   const uploadTitle = isReuploadRequired ? "Reupload file" : hasFiles ? "Upload more files" : "Upload file";
   const statusLabel = isVerified
     ? "Verified"
     : isReuploadRequired
       ? "Re-upload required"
-      : isUploaded
+      : showUploadedChip
         ? "Uploaded"
         : "";
   const statusClass = isVerified
     ? "document-row-status-chip--verified"
     : isReuploadRequired
       ? "document-row-status-chip--reupload"
-      : isUploaded
+      : showUploadedChip
         ? "document-row-status-chip--uploaded"
         : "";
 
