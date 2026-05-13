@@ -2411,6 +2411,7 @@
 
 /* General tab only: keep disabled text dark and readable */
 .cardform-body.card-form-panel.general-tab-body {
+
   /* Core fix for MUI input text */
   .MuiInputBase-input.Mui-disabled {
     color: rgb(26, 26, 26) !important;
@@ -2481,8 +2482,8 @@
   .cf-multi-select-email-input.disabled,
   .cf-multi-select-email-input.disabled *,
   .cf-email-tag {
-    color: rgb(26, 26, 26) !important;
-    -webkit-text-fill-color: rgb(26, 26, 26) !important;
+    // color: rgb(26, 26, 26) !important;
+    // -webkit-text-fill-color: rgb(26, 26, 26) !important;
     opacity: 1 !important;
   }
 }

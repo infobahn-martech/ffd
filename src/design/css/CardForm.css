@@ -685,7 +685,7 @@
   min-width: 0;
 }
 
-.cf-searchable-option-with-avatar > span {
+.cf-searchable-option-with-avatar>span {
   min-width: 0;
   overflow: hidden;
   text-overflow: ellipsis;
@@ -874,8 +874,9 @@
 
 .general-add-form-scroll {
   flex: 1 1 auto;
+  height: 100%;
   min-height: 0;
-  max-height: calc(100vh - 220px);
+  max-height: calc(100vh - 230px);
   overflow-y: auto !important;
   overflow-x: hidden;
   padding: 16px 8px 16px 16px;
@@ -885,8 +886,9 @@
 
 .general-view-form-scroll {
   flex: 1;
+  height: 100%;
   min-height: 0;
-  max-height: calc(100vh - 220px);
+  max-height: calc(100vh - 230px);
   overflow-y: auto !important;
   overflow-x: hidden;
   padding: 0 8px 18px 0;
@@ -1101,10 +1103,10 @@
 .general-add-preview-scroll-inner {
   flex: 1;
   min-height: 0;
-  overflow-y: auto;
+  max-height: calc(100vh - 255px);
+  overflow-y: auto !important;
   overflow-x: hidden;
-  padding-right: 4px;
-  margin-right: -2px;
+  padding-right: 8px;
 }
 
 /* Add mode: prevent inherited full-height stretch behavior from general.scss */
@@ -1120,11 +1122,12 @@
   overflow: hidden;
 }
 
+.cf-section.general-info-section.general-info-section--add-mode .general-add-card-layout.general-tab-form-layout,
 .cf-section.general-info-section.general-info-section--add-mode .general-tab-form-layout,
 .cf-section.general-info-section.general-info-section--add-mode .general-add-3col-layout {
   flex: 1;
   min-height: 0;
-  height: 100%;
+  height: calc(100vh - 190px);
   overflow: hidden;
   align-items: stretch;
 }
@@ -1136,6 +1139,7 @@
 .cf-section.general-info-section.general-info-section--add-mode .general-add-preview-panel {
   height: 100%;
   min-height: 0;
+  overflow: hidden;
   align-self: stretch;
 }
 
@@ -1146,17 +1150,13 @@
   margin-top: 0;
 }
 
-.cf-section.general-info-section.general-info-section--add-mode .general-add-form-scroll {
-  max-height: none;
-}
-
 .cf-section.general-info-section.general-info-section--add-mode .general-add-description-content {
   flex: 1;
 }
 
-.cf-section.general-info-section.general-info-section--add-mode .email-preview-card {
-  min-height: 0;
-  flex: 1;
+.cf-section.general-info-section.general-info-section--add-mode .general-add-preview-scroll-inner .email-preview-card {
+  flex: 0 0 auto;
+  min-height: 300px;
 }
 
 .email-preview-topbar {
@@ -1306,31 +1306,35 @@
 .email-preview-message-quill-react .ql-container {
   border: 0;
   font-size: 13px;
+  height: auto !important;
   min-height: 330px;
 }
 
 .email-preview-message-quill-react .ql-editor {
   min-height: 330px;
-  max-height: 430px;
-  overflow-y: auto;
+  max-height: none !important;
+  height: auto !important;
+  overflow-y: visible !important;
   padding: 14px 16px;
   line-height: 1.55;
-  scrollbar-width: thin;
-  scrollbar-color: #aab4c3 #f1f5f9;
 }
 
 .email-preview-message-quill-react .ql-editor::-webkit-scrollbar {
-  width: 6px;
+  display: none;
 }
 
-.email-preview-message-quill-react .ql-editor::-webkit-scrollbar-track {
-  background: #f1f5f9;
-  border-radius: 999px;
+.general-add-preview-scroll-inner .email-preview-content {
+  flex: 0 0 auto;
+  min-height: auto;
 }
 
-.email-preview-message-quill-react .ql-editor::-webkit-scrollbar-thumb {
-  background: #aab4c3;
-  border-radius: 999px;
+.general-add-preview-scroll-inner .email-preview-message-section.email-preview-message-section--quill {
+  flex: 0 0 auto;
+  min-height: auto;
+}
+
+.email-preview-message-quill-react .quill {
+  height: auto !important;
 }
 
 .email-preview-message-quill-react .ql-editor.ql-blank::before {

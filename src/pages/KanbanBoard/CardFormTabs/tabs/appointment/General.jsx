@@ -3390,7 +3390,9 @@ ${body}
               <GeneralViewSectionShimmer />
             ) : (
               <div className={isAddMode ? "general-add-mode-wrapper" : ""}>
-                <div className={`${!isAddMode ? "general-info-three-column" : "general-info-two-column general-add-3col-layout"} general-tab-form-layout`}>
+                <div
+                  className={`${!isAddMode ? "general-info-three-column" : "general-info-two-column general-add-3col-layout general-add-card-layout"} general-tab-form-layout`}
+                >
                   <div className={`general-info-left ${isAddMode ? "general-add-form-panel" : ""}`}>
                     <div className={isAddMode ? "general-add-form-scroll" : "general-view-form-scroll"}>
                       <div className="pre-arrival-form">
