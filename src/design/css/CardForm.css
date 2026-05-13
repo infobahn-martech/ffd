@@ -875,44 +875,51 @@
 .general-add-form-scroll {
   flex: 1 1 auto;
   min-height: 0;
-  overflow-y: auto;
+  max-height: calc(100vh - 220px);
+  overflow-y: auto !important;
   overflow-x: hidden;
   padding: 16px 8px 16px 16px;
   scrollbar-width: thin;
-  scrollbar-color: #9ca3af #f3f4f6;
+  scrollbar-color: #aab4c3 #f1f5f9;
 }
 
 .general-view-form-scroll {
   flex: 1;
   min-height: 0;
-  max-height: min(100%, calc(90vh - 260px));
-  overflow-y: auto;
+  max-height: calc(100vh - 220px);
+  overflow-y: auto !important;
   overflow-x: hidden;
   padding: 0 8px 18px 0;
   scrollbar-width: thin;
-  scrollbar-color: #9ca3af #f3f4f6;
+  scrollbar-color: #aab4c3 #f1f5f9;
 }
 
 .general-add-form-scroll::-webkit-scrollbar,
 .general-view-form-scroll::-webkit-scrollbar {
-  width: 6px;
+  width: 6px !important;
 }
 
 .general-add-form-scroll::-webkit-scrollbar-track,
 .general-view-form-scroll::-webkit-scrollbar-track {
-  background: #f3f4f6;
+  background: #f1f5f9 !important;
   border-radius: 999px;
 }
 
 .general-add-form-scroll::-webkit-scrollbar-thumb,
 .general-view-form-scroll::-webkit-scrollbar-thumb {
-  background: #9ca3af;
+  background: #aab4c3 !important;
   border-radius: 999px;
 }
 
 .general-add-form-scroll::-webkit-scrollbar-thumb:hover,
 .general-view-form-scroll::-webkit-scrollbar-thumb:hover {
-  background: #64748b;
+  background: #8b96a8 !important;
+}
+
+/* Add Card: cap left column height so inner scroll activates */
+.cf-section.general-info-section.general-info-section--add-mode .general-add-3col-layout .general-info-left.general-add-form-panel {
+  max-height: calc(100vh - 200px);
+  overflow: hidden;
 }
 
 .general-add-mode-wrapper {
@@ -1282,36 +1289,34 @@
   color: #334155;
 }
 
-.email-preview-message-section--quill .email-preview-message-quill-react {
+.email-preview-message-quill-react {
+  border: 1px solid #dbe3ef;
   border-radius: 12px;
   overflow: hidden;
-}
-
-.email-preview-message-quill-react .ql-toolbar.ql-snow {
-  border: 1px solid #e2e8f0 !important;
-  border-bottom: none !important;
-  border-radius: 12px 12px 0 0;
-  background: #fafbfc;
-  padding: 6px 8px;
-}
-
-.email-preview-message-quill-react .ql-container.ql-snow {
-  border: 1px solid #e2e8f0 !important;
-  border-radius: 0 0 12px 12px;
-  font-family: "Open Sans", sans-serif;
-  font-size: 13px;
-  height: 200px;
   background: #fff;
 }
 
+.email-preview-message-quill-react .ql-toolbar {
+  border: 0;
+  border-bottom: 1px solid #e5eaf3;
+  background: #f8fafc;
+  padding: 8px 10px;
+}
+
+.email-preview-message-quill-react .ql-container {
+  border: 0;
+  font-size: 13px;
+  min-height: 330px;
+}
+
 .email-preview-message-quill-react .ql-editor {
-  min-height: 168px;
-  max-height: 168px;
+  min-height: 330px;
+  max-height: 430px;
   overflow-y: auto;
-  padding: 12px 14px;
+  padding: 14px 16px;
   line-height: 1.55;
   scrollbar-width: thin;
-  scrollbar-color: #9ca3af #f3f4f6;
+  scrollbar-color: #aab4c3 #f1f5f9;
 }
 
 .email-preview-message-quill-react .ql-editor::-webkit-scrollbar {
@@ -1319,12 +1324,12 @@
 }
 
 .email-preview-message-quill-react .ql-editor::-webkit-scrollbar-track {
-  background: #f3f4f6;
+  background: #f1f5f9;
   border-radius: 999px;
 }
 
 .email-preview-message-quill-react .ql-editor::-webkit-scrollbar-thumb {
-  background: #9ca3af;
+  background: #aab4c3;
   border-radius: 999px;
 }
 
@@ -1696,39 +1701,29 @@
   background: transparent;
 }
 
-/* Premium thin scrollbars: General Add left form + right preview + ql editor uses nested rules above */
-.general-add-form-scroll,
-.general-view-form-scroll,
+/* Premium thin scrollbar: right-hand email preview column */
 .general-add-preview-scroll-inner {
   scrollbar-width: thin;
-  scrollbar-color: #9ca3af #f3f4f6 !important;
+  scrollbar-color: #aab4c3 #f1f5f9 !important;
 }
 
-.general-add-form-scroll::-webkit-scrollbar,
-.general-view-form-scroll::-webkit-scrollbar,
 .general-add-preview-scroll-inner::-webkit-scrollbar {
   width: 6px !important;
 }
 
-.general-add-form-scroll::-webkit-scrollbar-track,
-.general-view-form-scroll::-webkit-scrollbar-track,
 .general-add-preview-scroll-inner::-webkit-scrollbar-track {
-  background: #f3f4f6 !important;
+  background: #f1f5f9 !important;
   border-radius: 999px;
 }
 
-.general-add-form-scroll::-webkit-scrollbar-thumb,
-.general-view-form-scroll::-webkit-scrollbar-thumb,
 .general-add-preview-scroll-inner::-webkit-scrollbar-thumb {
-  background: #9ca3af !important;
+  background: #aab4c3 !important;
   border-radius: 999px;
   border: none !important;
 }
 
-.general-add-form-scroll::-webkit-scrollbar-thumb:hover,
-.general-view-form-scroll::-webkit-scrollbar-thumb:hover,
 .general-add-preview-scroll-inner::-webkit-scrollbar-thumb:hover {
-  background: #64748b !important;
+  background: #8b96a8 !important;
 }
 
 /* =======================================

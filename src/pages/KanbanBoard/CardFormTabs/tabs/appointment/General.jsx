@@ -1154,20 +1154,6 @@ const htmlToPlainText = (html = "") =>
     .replace(/\s+/g, " ")
     .trim();
 
-const htmlToEditableText = (html = "") =>
-  String(html || "")
-    .replace(/<\s*br\s*\/?>/gi, "\n")
-    .replace(/<\/(p|div|li|h[1-6])>/gi, "\n")
-    .replace(/<li>/gi, "- ")
-    .replace(/<[^>]+>/g, "")
-    .replace(/&nbsp;/gi, " ")
-    .replace(/&amp;/gi, "&")
-    .replace(/&lt;/gi, "<")
-    .replace(/&gt;/gi, ">")
-    .replace(/\r\n/g, "\n")
-    .replace(/\n{3,}/g, "\n\n")
-    .trim();
-
 const firstNonEmptyString = (...values) => {
   for (const value of values) {
     if (value === undefined || value === null) continue;
@@ -1202,6 +1188,12 @@ const resolveEmailPreviewPayload = (payload) => {
       ? data.appointment_acceptance
       : null;
   const source = appointmentAcceptance ?? data;
+  const rawBodyHtml = firstNonEmptyString(
+    source.body,
+    source.message,
+    source.email_body,
+    source.email_content
+  );
   return {
     from: firstNonEmptyString(
       source.from,
@@ -1213,8 +1205,8 @@ const resolveEmailPreviewPayload = (payload) => {
     to: normalizeEmailFieldValue(source.to ?? source.to_email ?? data.to_email ?? source.service_requestor_email),
     cc: normalizeEmailFieldValue(source.cc ?? source.cc_email ?? source.cc_emails),
     subject: htmlToPlainText(firstNonEmptyString(source.subject, source.email_subject)),
-    messageHtml: firstNonEmptyString(source.message, source.body, source.email_body, source.email_content),
-    message: htmlToPlainText(firstNonEmptyString(source.message, source.body, source.email_body, source.email_content)),
+    messageHtml: rawBodyHtml,
+    message: htmlToPlainText(rawBodyHtml),
   };
 };
 
@@ -1247,9 +1239,32 @@ const formatPreviewDate = (date = new Date()) =>
 
 const EMAIL_PREVIEW_MESSAGE_QUILL_MODULES = {
   toolbar: [["bold", "italic", "underline"], [{ list: "ordered" }, { list: "bullet" }], ["link"], ["clean"]],
+  clipboard: {
+    matchVisual: false,
+  },
 };
 
-const EMAIL_PREVIEW_MESSAGE_QUILL_FORMATS = ["bold", "italic", "underline", "list", "bullet", "link"];
+const EMAIL_PREVIEW_MESSAGE_QUILL_FORMATS = [
+  "header",
+  "bold",
+  "italic",
+  "underline",
+  "strike",
+  "color",
+  "background",
+  "font",
+  "size",
+  "script",
+  "blockquote",
+  "code-block",
+  "indent",
+  "list",
+  "bullet",
+  "align",
+  "direction",
+  "link",
+  "image",
+];
 
 const EmailPreviewPanel = ({
   ownerOptions,
@@ -3115,12 +3130,9 @@ ${body}
         setEmailPreviewData(resolved);
         populateEditablePreviewFields(resolved);
         if (!isPreviewMessageDirty) {
-          const apiMessage = firstNonEmptyString(
-            htmlToEditableText(resolved?.messageHtml),
-            resolved?.message
-          );
-          if (apiMessage) {
-            setPreviewMessageText(apiMessage);
+          const apiHtml = firstNonEmptyString(resolved?.messageHtml);
+          if (apiHtml) {
+            setPreviewMessageText(apiHtml);
           }
         }
       } catch (error) {
