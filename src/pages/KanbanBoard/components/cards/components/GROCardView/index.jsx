@@ -432,7 +432,7 @@ function GROCardView({ card }) {
                 className={`gro-pass-segment${groMainView === GRO_MAIN_VIEWS.inward ? " gro-pass-segment--active" : ""}`}
                 onClick={() => switchGroMainView(GRO_MAIN_VIEWS.inward)}
               >
-                Inward Clearance
+                Documents
               </button>
             </div>
             {groMainView === GRO_MAIN_VIEWS.inward ? (
