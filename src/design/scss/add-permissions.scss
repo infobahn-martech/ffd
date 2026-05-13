@@ -220,20 +220,80 @@
 }
 
 .addPermissionMod {
+    .modal-dialog.custom-mod .modal-content {
+        padding: 0;
+    }
 
+    /* Same 1220px column as `.addPermissions` — header/footer align with Role row + permission cards */
     .modal-dialog.custom-mod .modal-header,
     .modal-dialog.custom-mod .modal-body,
     .modal-dialog.custom-mod .modal-footer {
-        padding-left: 60px;
-        padding-right: 60px;
+        max-width: 1220px;
+        width: 100%;
+        margin-left: auto;
+        margin-right: auto;
+        box-sizing: border-box;
+        padding-left: 0;
+        padding-right: 0;
     }
 
     .modal-dialog.custom-mod .modal-header {
-        padding-top: 40px;
+        padding: 42px 0 18px;
+        border-bottom: 0;
+    }
+
+    .modal-dialog.custom-mod .modal-title {
+        margin: 0;
+        font-size: 22px;
+        font-weight: 600;
+    }
+
+    .modal-dialog.custom-mod .modal-body {
+        padding: 18px 0 16px;
+    }
+
+    .addPermissions {
+        max-width: 1220px;
+        width: 100%;
+        margin: 0 auto;
+    }
+
+    .permInputs {
+        margin-bottom: 32px;
+    }
+
+    .permCheck-item {
+        margin-bottom: 12px;
     }
 
     .modal-dialog.custom-mod .modal-footer {
-        padding-bottom: 30px;
+        padding: 20px 0 40px;
+        border-top: 1px solid #d9e2ef;
+        display: flex;
+        justify-content: flex-end;
+        gap: 16px;
+    }
+
+    .modal-dialog.custom-mod .modal-footer .btn {
+        min-width: 112px;
+        height: 42px;
+    }
+
+    .desig-inp {
+        min-height: 54px;
+    }
+
+    .desig-inp .form-control {
+        height: 52px;
+        min-height: 52px;
+    }
+
+    .permission-description-textarea {
+        height: 52px !important;
+        min-height: 52px !important;
+        resize: none;
+        overflow: hidden;
+        padding-top: 1rem;
     }
 }
 

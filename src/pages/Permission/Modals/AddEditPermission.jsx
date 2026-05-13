@@ -562,12 +562,11 @@ export function PermissionModal({
             </div>
 
             <div className="col-md-6">
-              <div className="form-floating">
+              <div className="form-floating desig-inp">
                 <textarea
-                  className="form-control"
+                  className="form-control permission-description-textarea"
                   id="floatingDesc"
                   placeholder="Description"
-                  style={{ height: "58px", resize: "none" }}
                   value={roleDescription}
                   onChange={(e) => setRoleDescription(e.target.value)}
                   readOnly={isUserPermissionMode && selectedUser}
