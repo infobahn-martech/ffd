@@ -133,6 +133,10 @@ const CreateWorkflowModal = ({ show, onClose, onSave, isSaving = false }) => {
               searchPlaceholder="Search role..."
               disabled={isSaving || isRolesLoading}
               className="add-dashboard-premium-select"
+              menuPortalTarget={
+                typeof document !== 'undefined' ? document.body : undefined
+              }
+              menuClassName="user-modal-premium-select-menu"
             />
             {!isRolesLoading && roles.length === 0 ? (
               <div className="add-dashboard-field-hint">No roles found.</div>
