@@ -2909,9 +2909,10 @@ $send-report-optional: #80868b;
   }
 }
 
-/* Husbandry Transport & Waste Disposal: premium 30/70 layout, panel cards */
+/* Husbandry Transport, Waste Disposal & Hotel: premium 30/70 layout, panel cards */
 .transport-form,
-.waste-disposal-form {
+.waste-disposal-form,
+.hotel-form {
   .transport-request-layout {
     display: grid;
     grid-template-columns: minmax(0, 30fr) minmax(0, 70fr);
@@ -3521,27 +3522,11 @@ $send-report-optional: #80868b;
   margin-top: auto;
 }
 
-/* Override ReactQuill min-height for Husbandry Hotel tab */
-.hotel-form {
-  .general-info-two-column {
-    align-items: stretch;
-  }
-
-  .react-quill-wrapper {
-    flex: 1;
-    min-height: 0;
-
-    .ql-container {
-      flex: 1;
-      min-height: 0;
-      height: 100%;
-    }
-
-    .ql-editor {
-      height: 100% !important;
-      overflow-y: auto;
-    }
-  }
+.transport-form .operation-section-form-layout,
+.hotel-form .operation-section-form-layout,
+.medicalservice-form .operation-section-form-layout,
+.launchhire-form .operation-section-form-layout {
+  grid-template-columns: minmax(0, 45fr) minmax(0, 55fr);
 }
 
 /* Override ReactQuill min-height for Husbandry Medical Service tab */
@@ -3590,22 +3575,17 @@ $send-report-optional: #80868b;
   }
 }
 
-.transport-form .operation-section-form-layout,
-.hotel-form .operation-section-form-layout,
-.medicalservice-form .operation-section-form-layout,
-.launchhire-form .operation-section-form-layout {
-  grid-template-columns: minmax(0, 45fr) minmax(0, 55fr);
-}
-
 @media (max-width: 900px) {
 
   .transport-form .transport-request-layout,
-  .waste-disposal-form .transport-request-layout {
+  .waste-disposal-form .transport-request-layout,
+  .hotel-form .transport-request-layout {
     grid-template-columns: 1fr;
   }
 
   .transport-form .transport-panel-card,
-  .waste-disposal-form .transport-panel-card {
+  .waste-disposal-form .transport-panel-card,
+  .hotel-form .transport-panel-card {
     max-height: none;
   }
 
