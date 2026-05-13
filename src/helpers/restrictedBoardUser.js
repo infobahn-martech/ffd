@@ -3,6 +3,9 @@ import { getItem } from './localStorage';
 /** Sedres GRO (4) and Custom Clearance (5) — limited board/workspace access only */
 export const SEDRES_RESTRICTED_ROLE_IDS = new Set(['4', '5']);
 
+/** Port Operator — hide Master Module / Vendor shortcuts in header */
+export const PORT_OPERATOR_ROLE_ID = '2';
+
 export const RESTRICTED_BOARD_HOME_PATH = '/kanban-board/1';
 
 function toRoleIdString(value) {
@@ -44,6 +47,33 @@ export function isRestrictedBoardUser(user) {
 
   const storedRole = toRoleIdString(getItem('role_id'));
   if (storedRole && SEDRES_RESTRICTED_ROLE_IDS.has(storedRole)) return true;
+
+  return false;
+}
+
+/**
+ * @param {object|null|undefined} user — e.g. Redux/Zustand userProfile or merged profile
+ * @returns {boolean}
+ */
+export function isPortOperatorUser(user) {
+  for (const id of collectRoleIdCandidatesFromUser(user)) {
+    if (id === PORT_OPERATOR_ROLE_ID) return true;
+  }
+
+  try {
+    const raw = getItem('userProfile');
+    if (raw) {
+      const parsed = JSON.parse(raw);
+      for (const id of collectRoleIdCandidatesFromUser(parsed)) {
+        if (id === PORT_OPERATOR_ROLE_ID) return true;
+      }
+    }
+  } catch {
+    // ignore invalid cached profile JSON
+  }
+
+  const storedRole = toRoleIdString(getItem('role_id'));
+  if (storedRole === PORT_OPERATOR_ROLE_ID) return true;
 
   return false;
 }

@@ -27,7 +27,7 @@ import NotificationsModal from './NotificationsModal';
 import DocumentsModal from './DocumentsModal';
 import { useLayoutView } from '../../context/LayoutViewContext';
 import NavTabButton from '../../components/NavTabButton';
-import { isRestrictedBoardUser } from '../../helpers/restrictedBoardUser';
+import { isRestrictedBoardUser, isPortOperatorUser } from '../../helpers/restrictedBoardUser';
 
 function Header({ onMenuToggle, mobileMenuOpen: externalMobileMenuOpen, isVendorPortal = false }) {
   const { pathname } = useLocation();
@@ -50,6 +50,7 @@ function Header({ onMenuToggle, mobileMenuOpen: externalMobileMenuOpen, isVendor
   const authData = useAuthReducer((state) => state.authData);
   const userProfile = useAuthReducer((state) => state.userProfile);
   const restrictedBoardUser = isRestrictedBoardUser(userProfile);
+  const portOperatorUser = isPortOperatorUser(userProfile);
 
   const getLoggedInUser = () => {
     let parsedLocalProfile = {};
@@ -273,28 +274,32 @@ function Header({ onMenuToggle, mobileMenuOpen: externalMobileMenuOpen, isVendor
       <div className="right-section">
         {!restrictedBoardUser && (
           <>
-            <Tooltip id="master-module" place="bottom" content="Master Module" />
-            <NavTabButton
-              className="icon-btn icon-btn-hide-mobile"
-              active={!isVendorPortal}
-              locked={pathname === '/dashboard'}
-              aria-label="Master Module"
-              onClick={() => navigate('/dashboard')}
-              data-tooltip-id="master-module"
-            >
-              <FiLayout />
-            </NavTabButton>
-            <Tooltip id="vendor-portal" place="bottom" content="Vendor Portal" />
-            <NavTabButton
-              className="icon-btn icon-btn-hide-mobile"
-              active={isVendorPortal}
-              locked={pathname === '/vendor-portal/dashboard'}
-              aria-label="Vendor Portal"
-              onClick={() => navigate('/vendor-portal/dashboard')}
-              data-tooltip-id="vendor-portal"
-            >
-              <FiShoppingBag />
-            </NavTabButton>
+            {!portOperatorUser && (
+              <>
+                <Tooltip id="master-module" place="bottom" content="Master Module" />
+                <NavTabButton
+                  className="icon-btn icon-btn-hide-mobile"
+                  active={!isVendorPortal}
+                  locked={pathname === '/dashboard'}
+                  aria-label="Master Module"
+                  onClick={() => navigate('/dashboard')}
+                  data-tooltip-id="master-module"
+                >
+                  <FiLayout />
+                </NavTabButton>
+                <Tooltip id="vendor-portal" place="bottom" content="Vendor Portal" />
+                <NavTabButton
+                  className="icon-btn icon-btn-hide-mobile"
+                  active={isVendorPortal}
+                  locked={pathname === '/vendor-portal/dashboard'}
+                  aria-label="Vendor Portal"
+                  onClick={() => navigate('/vendor-portal/dashboard')}
+                  data-tooltip-id="vendor-portal"
+                >
+                  <FiShoppingBag />
+                </NavTabButton>
+              </>
+            )}
             {/* <Tooltip id="board" place="bottom" content="Board" />
             <NavTabButton
               className="icon-btn icon-btn-hide-mobile"
