@@ -5,18 +5,33 @@ import '../../structure/SideNav/components/AddDashboardModal.scss';
 import workflowService from '../../services/workflowService';
 import PremiumSelect from '../../components/form/PremiumSelect';
 
-const DEFAULT_ROLE_OPTION = '__select_role__';
+/** API default row: `{ role_id: "", role: "N/A" }` — valid selection, posted as empty string */
+const DEFAULT_ROLE_ID = '';
+
+const WORKFLOW_NAME_MAX_LEN = 200;
+
+/** @returns {string|null} */
+function validateWorkflowName(raw) {
+  const trimmed = (raw ?? '').trim();
+  if (!trimmed) return 'Name is required.';
+  if (trimmed.length > WORKFLOW_NAME_MAX_LEN) {
+    return `Name must be at most ${WORKFLOW_NAME_MAX_LEN} characters.`;
+  }
+  return null;
+}
 
 const CreateWorkflowModal = ({ show, onClose, onSave, isSaving = false }) => {
   const [workflowName, setWorkflowName] = useState('');
-  const [roleId, setRoleId] = useState(DEFAULT_ROLE_OPTION);
+  const [nameError, setNameError] = useState('');
+  const [roleId, setRoleId] = useState(DEFAULT_ROLE_ID);
   const [roles, setRoles] = useState([]);
   const [isRolesLoading, setIsRolesLoading] = useState(false);
 
   useEffect(() => {
     if (!show) {
       setWorkflowName('');
-      setRoleId(DEFAULT_ROLE_OPTION);
+      setNameError('');
+      setRoleId(DEFAULT_ROLE_ID);
     }
   }, [show]);
 
@@ -39,6 +54,12 @@ const CreateWorkflowModal = ({ show, onClose, onSave, isSaving = false }) => {
           role_id: item?.role_id ?? '',
           role: item?.role ?? 'N/A',
         }));
+        normalizedRoles.sort((a, b) => {
+          const aEmpty = String(a.role_id ?? '').trim() === '';
+          const bEmpty = String(b.role_id ?? '').trim() === '';
+          if (aEmpty !== bEmpty) return aEmpty ? -1 : 1;
+          return 0;
+        });
         setRoles(normalizedRoles);
       })
       .catch(() => {
@@ -55,7 +76,13 @@ const CreateWorkflowModal = ({ show, onClose, onSave, isSaving = false }) => {
 
   const handleSubmit = (e) => {
     e.preventDefault();
-    if (!workflowName.trim() || roleId === DEFAULT_ROLE_OPTION || isSaving || isRolesLoading) return;
+    const err = validateWorkflowName(workflowName);
+    if (err) {
+      setNameError(err);
+      return;
+    }
+    setNameError('');
+    if (isSaving || isRolesLoading) return;
     if (onSave) {
       onSave({
         workflow_name: workflowName.trim(),
@@ -67,7 +94,8 @@ const CreateWorkflowModal = ({ show, onClose, onSave, isSaving = false }) => {
   const handleClose = () => {
     if (isSaving) return;
     setWorkflowName('');
-    setRoleId(DEFAULT_ROLE_OPTION);
+    setNameError('');
+    setRoleId(DEFAULT_ROLE_ID);
     onClose();
   };
 
@@ -106,13 +134,24 @@ const CreateWorkflowModal = ({ show, onClose, onSave, isSaving = false }) => {
             <input
               type="text"
               id="workflowName"
-              className="add-dashboard-input"
+              className={`add-dashboard-input${nameError ? ' add-dashboard-input--invalid' : ''}`}
               placeholder="Enter workflow name"
               value={workflowName}
-              onChange={(e) => setWorkflowName(e.target.value)}
+              onChange={(e) => {
+                setWorkflowName(e.target.value);
+                if (nameError) setNameError('');
+              }}
               disabled={isSaving}
+              maxLength={WORKFLOW_NAME_MAX_LEN}
+              aria-invalid={Boolean(nameError)}
+              aria-describedby={nameError ? 'workflowName-error' : undefined}
               autoFocus
             />
+            {nameError ? (
+              <div id="workflowName-error" className="add-dashboard-field-error" role="alert">
+                {nameError}
+              </div>
+            ) : null}
           </div>
 
           <div className="add-dashboard-field">
@@ -120,14 +159,14 @@ const CreateWorkflowModal = ({ show, onClose, onSave, isSaving = false }) => {
               Role
             </label>
             <PremiumSelect
-              value={roleId === DEFAULT_ROLE_OPTION ? '' : String(roleId)}
+              value={String(roleId)}
               onChange={(e) => {
-                const v = e.target.value;
-                setRoleId(v === '' ? DEFAULT_ROLE_OPTION : v);
+                const v = e.target?.value;
+                setRoleId(v === undefined || v === null ? DEFAULT_ROLE_ID : String(v));
               }}
               options={roles.map((roleOption) => ({
                 value: String(roleOption.role_id ?? ''),
-                label: String(roleOption.role ?? ''),
+                label: String(roleOption.role ?? '') || 'N/A',
               }))}
               placeholder={isRolesLoading ? 'Loading roles...' : 'Select role'}
               searchPlaceholder="Search role..."
@@ -156,7 +195,7 @@ const CreateWorkflowModal = ({ show, onClose, onSave, isSaving = false }) => {
           <button
             type="submit"
             className="add-dashboard-btn add-dashboard-btn--text"
-            disabled={!workflowName.trim() || roleId === DEFAULT_ROLE_OPTION || isSaving || isRolesLoading}
+            disabled={isSaving || isRolesLoading}
           >
             Save
           </button>
