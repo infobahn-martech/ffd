@@ -10,8 +10,8 @@ import "../../../design/scss/modal-designs.scss";
 import "../../../design/scss/form-designs.scss";
 
 export function DriverVehicleMappingModal({ showModal, closeModal, onSuccess }) {
-    const isEdit = !!(showModal?.driver_vehicle_id || showModal?.driver_vehicle_id);
     const driverVehicleId = showModal?.driver_vehicle_id ?? showModal?._id;
+    const isEdit = typeof showModal === "object" && showModal !== null && !!driverVehicleId;
 
     const { addDriverVehicleMapping, updateDriverVehicleMapping, isBeingUpdated } = useDriverVehicleMappingReducer((state) => state);
     const { drivers = [], fetchAllDrivers } = useDriverReducer((state) => state);
@@ -19,7 +19,7 @@ export function DriverVehicleMappingModal({ showModal, closeModal, onSuccess }) 
 
     const { register, control, handleSubmit, formState: { errors }, reset } = useForm({
         defaultValues: {
-            transport_driver_id: "",
+            driver_id: "",
             vehicle_type_id: "",
             plate_no: "",
         },
@@ -33,42 +33,51 @@ export function DriverVehicleMappingModal({ showModal, closeModal, onSuccess }) 
     }, [showModal]);
 
     useEffect(() => {
-        if (showModal?.driver_vehicle_id) {
+        if (driverVehicleId && typeof showModal === "object") {
             reset({
-                transport_driver_id: showModal?.transport_driver_id ?? showModal?.driver_id ?? "",
-                vehicle_type_id: showModal?.vehicle_type_id ?? "",
+                driver_id: String(showModal?.driver_id ?? showModal?.transport_driver_id ?? ""),
+                vehicle_type_id: showModal?.vehicle_type_id != null ? String(showModal.vehicle_type_id) : "",
                 plate_no: showModal?.plate_no ?? "",
             });
         } else if (showModal) {
             reset({
-                transport_driver_id: "",
+                driver_id: "",
                 vehicle_type_id: "",
                 plate_no: "",
             });
         }
-    }, [showModal, reset]);
+    }, [showModal, reset, driverVehicleId]);
 
     const onSubmit = async (data) => {
-        const payload = {
-            transport_driver_id: data.transport_driver_id,
-            vehicle_type_id: data.vehicle_type_id,
-            plate_no: data.plate_no?.trim() ?? "",
-        };
+        const driver_id = data.driver_id;
+        const vehicle_type_id = data.vehicle_type_id;
+        const plate_no = data.plate_no?.trim() ?? "";
         const cb = () => {
             closeModal();
             onSuccess?.();
         };
         if (isEdit) {
-            await updateDriverVehicleMapping({ formData: { driver_vehicle_id: driverVehicleId, ...payload }, cb });
+            await updateDriverVehicleMapping({
+                formData: {
+                    driver_vehicle_id: driverVehicleId,
+                    driver_id,
+                    vehicle_type_id,
+                    plate_no,
+                },
+                cb,
+            });
         } else {
-            await addDriverVehicleMapping({ formData: payload, cb });
+            await addDriverVehicleMapping({
+                formData: { driver_id, vehicle_type_id, plate_no },
+                cb,
+            });
         }
     };
 
     const renderHeader = () => (
         <>
             <h1 className="modal-title">
-                {showModal?.driver_vehicle_id ? "Edit Driver Vehicle Mapping" : "Add Driver Vehicle Mapping"}
+                {isEdit ? "Edit Driver Vehicle Mapping" : "Add Driver Vehicle Mapping"}
             </h1>
         </>
     );
@@ -85,7 +94,7 @@ export function DriverVehicleMappingModal({ showModal, closeModal, onSuccess }) 
                                 Driver <span className="text-danger">*</span>
                             </label>
                             <Controller
-                                name="transport_driver_id"
+                                name="driver_id"
                                 control={control}
                                 rules={{ required: "Driver is required" }}
                                 render={({ field }) => (
@@ -105,12 +114,12 @@ export function DriverVehicleMappingModal({ showModal, closeModal, onSuccess }) 
                                         })}
                                         placeholder="Select Driver"
                                         searchPlaceholder="Search driver..."
-                                        hasError={Boolean(errors.transport_driver_id)}
+                                        hasError={Boolean(errors.driver_id)}
                                     />
                                 )}
                             />
-                            {errors.transport_driver_id && (
-                                <span className="error text-danger">{errors.transport_driver_id.message}</span>
+                            {errors.driver_id && (
+                                <span className="error text-danger">{errors.driver_id.message}</span>
                             )}
                         </div>
                     </div>
