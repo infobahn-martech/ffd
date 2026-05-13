@@ -97,7 +97,6 @@ const CustomerPricing = () => {
                 <div className="prospect employee">
                     <div className="container-fluid">
                         <CommonHeader
-                            showFilter
                             tableTitle="Customer Pricing"
                             isAddEnabled
                             addModalLabel="Add Customer Pricing"

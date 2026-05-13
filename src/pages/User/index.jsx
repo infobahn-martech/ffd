@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import CommonHeader from "../../components/CommonHeader";
-import CustomTable from "../../components/CustomTable";
+import CustomTable from "../../components/customTable";
 import { UserModal } from "./Modals/AddEditUser";
 import { PermissionModal } from "../Permission/Modals/AddEditPermission";
 import { RenderAction, RenderName } from "./RenderCells";
@@ -145,7 +145,6 @@ const User = () => {
         <div className="prospect employee">
           <div className="container-fluid">
             <CommonHeader
-              // showFilter
               tableTitle="Users"
               isAddEnabled
               addModalLabel="Add User"

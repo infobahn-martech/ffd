@@ -154,7 +154,6 @@ const DriverVehicleMapping = () => {
             <div className="prospect employee">
                 <div className="container-fluid">
                     <CommonHeader
-                        showFilter
                         tableTitle="Driver Vehicle Mapping"
                         isAddEnabled
                         addModalLabel="Add Driver Vehicle Mapping"

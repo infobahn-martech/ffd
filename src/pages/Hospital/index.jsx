@@ -138,7 +138,6 @@ const Hospital = () => {
             <div className="prospect employee">
                 <div className="container-fluid">
                     <CommonHeader
-                        showFilter
                         tableTitle="Hospital Management"
                         isAddEnabled
                         addModalLabel="Add Hospital"

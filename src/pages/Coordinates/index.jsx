@@ -158,7 +158,6 @@ const Coordinates = () => {
             <div className="prospect employee">
                 <div className="container-fluid">
                     <CommonHeader
-                        // showFilter
                         tableTitle="Coordinates Management"
                         isAddEnabled
                         addModalLabel="Add Coordinates"

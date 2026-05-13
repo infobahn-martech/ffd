@@ -175,7 +175,6 @@ const Fleet = () => {
                 <div className="prospect employee">
                     <div className="container-fluid">
                         <CommonHeader
-                            showFilter
                             tableTitle="Fleet"
                             isAddEnabled
                             addModalLabel="Add Fleet"

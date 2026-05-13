@@ -226,7 +226,6 @@ const Vessel = () => {
         <div className="prospect employee">
           <div className="container-fluid">
             <CommonHeader
-              // showFilter
               tableTitle="Vessels"
               isAddEnabled
               addModalLabel="Add Vessel"
@@ -238,7 +237,6 @@ const Vessel = () => {
               exportLoader={false}
               filterOptions={filterOptions}
               filterValue={filters}
-              // If your CommonHeader supports these props, keep them:
               setFilterValue={setFilters}
               onClearFilter={handleClearFilter}
             />

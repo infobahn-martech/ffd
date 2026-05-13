@@ -100,7 +100,6 @@ const LHServices = () => {
                 <div className="prospect employee">
                     <div className="container-fluid">
                         <CommonHeader
-                            showFilter
                             tableTitle="Launch Hire Services"
                             isAddEnabled
                             addModalLabel="Add Service"

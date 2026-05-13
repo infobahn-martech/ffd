@@ -197,7 +197,6 @@ const CheckList = () => {
               onAddModalClick={() => setShowCheckListModal(true)}
               exportTitle="Export"
               exportLoader={false}
-              showFilter={true}
               filterOptions={filterOptions}
               filterValue={filters}
               onFilterChange={handleFilterChange}

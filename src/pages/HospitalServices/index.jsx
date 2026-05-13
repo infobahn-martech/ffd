@@ -69,9 +69,9 @@ const HospitalServices = () => {
                 <span className="table-content">
                     {Array.isArray(props.row.services) && props.row.services.length
                         ? props.row.services
-                              .map((s) => s.service_name)
-                              .filter(Boolean)
-                              .join(", ")
+                            .map((s) => s.service_name)
+                            .filter(Boolean)
+                            .join(", ")
                         : "—"}
                 </span>
             ),
@@ -107,7 +107,6 @@ const HospitalServices = () => {
             <div className="prospect employee">
                 <div className="container-fluid">
                     <CommonHeader
-                        showFilter
                         tableTitle="Hospital Services"
                         isAddEnabled
                         addModalLabel="Add Hospital Services"

@@ -119,7 +119,6 @@ const MedicalServices = () => {
             <div className="prospect employee">
                 <div className="container-fluid">
                     <CommonHeader
-                        showFilter
                         tableTitle="Medical Services"
                         isAddEnabled
                         addModalLabel="Add Medical Service"

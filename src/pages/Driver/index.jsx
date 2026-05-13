@@ -142,7 +142,6 @@ const Driver = () => {
                 <div className="prospect employee">
                     <div className="container-fluid">
                         <CommonHeader
-                            // showFilter
                             tableTitle="Driver Management"
                             isAddEnabled
                             addModalLabel="Add Driver"
