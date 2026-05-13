@@ -11,11 +11,15 @@ export const verifyGroDocs = (payload) => Gateway.post("task_card/verify_docs", 
 export const saveArrivalDocument = (formData) =>
   Gateway.post("arrival/save_arrival_document", formData);
 
+export const getPassRequests = (callId) =>
+  Gateway.get(`crew_pass/get_pass_requests/${encodeURIComponent(String(callId))}`);
+
 const groService = {
   getCallDetailById,
   getGroCustomDocs,
   verifyGroDocs,
   saveArrivalDocument,
+  getPassRequests,
 };
 
 export default groService;

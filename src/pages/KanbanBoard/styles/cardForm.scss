@@ -80,6 +80,294 @@
   flex-shrink: 0;
 }
 
+.gro-card-view .gro-document-header-actions--with-segments {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  flex-wrap: wrap;
+  gap: 12px;
+}
+
+.gro-card-view .gro-pass-segments {
+  display: inline-flex;
+  align-items: stretch;
+  flex-wrap: wrap;
+  padding: 3px;
+  border-radius: 12px;
+  background: #f1f5f9;
+  border: 1px solid #e2e8f0;
+  gap: 4px;
+}
+
+.gro-card-view .gro-pass-segment {
+  min-height: 36px;
+  padding: 0 14px;
+  border-radius: 10px;
+  border: 1px solid transparent;
+  background: transparent;
+  color: #475569;
+  font-size: 12px;
+  font-weight: 600;
+  font-family: inherit;
+  cursor: pointer;
+  transition: background 0.18s ease, color 0.18s ease, border-color 0.18s ease, box-shadow 0.18s ease;
+}
+
+.gro-card-view .gro-pass-segment:hover:not(.gro-pass-segment--active) {
+  background: #ffffff;
+  border-color: #cbd5e1;
+  color: #0f172a;
+}
+
+.gro-card-view .gro-pass-segment--active {
+  background: rgb(25, 118, 210) !important;
+  border-color: rgb(21, 101, 192) !important;
+  color: #ffffff !important;
+  box-shadow: 0 4px 12px rgba(25, 118, 210, 0.22);
+}
+
+.gro-card-view .gro-pass-table-panel {
+  background: #ffffff !important;
+  border-radius: 20px;
+  border: 1px solid #e2e8f0;
+  box-shadow: 0 6px 24px rgba(15, 23, 42, 0.05);
+  overflow: hidden;
+}
+
+.gro-card-view .gro-pass-table-scroll {
+  max-height: min(520px, 55vh);
+  overflow: auto;
+  scrollbar-width: thin;
+  scrollbar-color: #cbd5e1 transparent;
+}
+
+.gro-card-view .gro-pass-table-scroll::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+
+.gro-card-view .gro-pass-table-scroll::-webkit-scrollbar-thumb {
+  background: #cbd5e1;
+  border-radius: 8px;
+}
+
+.gro-card-view .gro-pass-table-scroll::-webkit-scrollbar-track {
+  background: #f8fafc;
+}
+
+.gro-card-view .gro-pass-table {
+  width: 100%;
+  border-collapse: separate;
+  border-spacing: 0;
+  font-size: 13px;
+  color: #0f172a;
+}
+
+.gro-card-view .gro-pass-table thead th {
+  position: sticky;
+  top: 0;
+  z-index: 2;
+  text-align: left;
+  padding: 12px 14px;
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: #64748b;
+  background: linear-gradient(#f8fafc, #f1f5f9);
+  border-bottom: 1px solid #e2e8f0;
+  white-space: nowrap;
+}
+
+.gro-card-view .gro-pass-table tbody tr td {
+  padding: 11px 14px;
+  border-bottom: 1px solid #f1f5f9;
+  vertical-align: top;
+}
+
+.gro-card-view .gro-pass-table tbody tr:last-child td {
+  border-bottom: none;
+}
+
+.gro-card-view .gro-pass-table-wo-group:not(:last-child) .gro-pass-taskdocs-row td {
+  border-bottom: 1px solid #e2e8f0;
+}
+
+.gro-card-view .gro-pass-table-muted {
+  color: #94a3b8;
+  font-style: italic;
+}
+
+.gro-card-view .gro-pass-wo-cell {
+  font-weight: 600;
+  color: #334155;
+  vertical-align: top;
+}
+
+.gro-card-view .gro-pass-remarks-cell {
+  max-width: 200px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.gro-card-view .gro-pass-status-badge {
+  display: inline-flex;
+  align-items: center;
+  padding: 4px 10px;
+  border-radius: 999px;
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.02em;
+  white-space: nowrap;
+}
+
+.gro-card-view .gro-pass-status-badge--neutral {
+  background: #f1f5f9;
+  color: #475569;
+  border: 1px solid #e2e8f0;
+}
+
+.gro-card-view .gro-pass-status-badge--success {
+  background: #ecfdf5;
+  color: #047857;
+  border: 1px solid #a7f3d0;
+}
+
+.gro-card-view .gro-pass-status-badge--warning {
+  background: #fffbeb;
+  color: #b45309;
+  border: 1px solid #fde68a;
+}
+
+.gro-card-view .gro-pass-status-badge--danger {
+  background: #fef2f2;
+  color: #b91c1c;
+  border: 1px solid #fecaca;
+}
+
+.gro-card-view .gro-pass-doc-link-btn {
+  padding: 6px 12px;
+  border-radius: 10px;
+  border: 1px solid #bfdbfe;
+  background: #eff6ff;
+  color: #1d4ed8;
+  font-size: 12px;
+  font-weight: 600;
+  font-family: inherit;
+  cursor: pointer;
+  transition: background 0.15s ease, border-color 0.15s ease;
+}
+
+.gro-card-view .gro-pass-doc-link-btn:hover {
+  background: #dbeafe;
+  border-color: #93c5fd;
+}
+
+.gro-card-view .gro-pass-taskdocs-row td {
+  background: #fafbfc;
+  padding: 8px 14px 14px !important;
+}
+
+.gro-card-view .gro-pass-taskdocs-toggle {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  width: 100%;
+  padding: 8px 10px;
+  border-radius: 10px;
+  border: 1px solid #e2e8f0;
+  background: #ffffff;
+  cursor: pointer;
+  font-family: inherit;
+  font-size: 12px;
+  font-weight: 600;
+  color: #334155;
+  transition: background 0.15s ease, border-color 0.15s ease;
+}
+
+.gro-card-view .gro-pass-taskdocs-toggle:hover {
+  background: #f8fafc;
+  border-color: #cbd5e1;
+}
+
+.gro-card-view .gro-pass-taskdocs-toggle-label {
+  text-align: left;
+}
+
+.gro-card-view .gro-pass-taskdocs-chevron {
+  color: #94a3b8;
+  font-size: 10px;
+}
+
+.gro-card-view .gro-pass-taskdocs-list {
+  margin: 8px 0 0;
+  padding: 0 0 0 18px;
+  color: #334155;
+}
+
+.gro-card-view .gro-pass-taskdocs-list li {
+  margin-bottom: 4px;
+}
+
+.gro-card-view .gro-pass-taskdoc-link {
+  padding: 0;
+  border: none;
+  background: none;
+  color: #1d4ed8;
+  font-size: 12px;
+  font-weight: 600;
+  font-family: inherit;
+  cursor: pointer;
+  text-decoration: underline;
+  text-underline-offset: 2px;
+}
+
+.gro-card-view .gro-pass-taskdoc-link:hover {
+  color: #1e40af;
+}
+
+.gro-card-view .gro-pass-taskdocs-empty {
+  margin-top: 8px;
+  font-size: 12px;
+  color: #94a3b8;
+}
+
+.gro-card-view .gro-pass-table-state {
+  padding: 36px 20px;
+  text-align: center;
+  font-size: 14px;
+  color: #64748b;
+}
+
+.gro-card-view .gro-pass-table-state--empty {
+  color: #64748b;
+}
+
+.gro-card-view .gro-pass-table-state--error {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 12px;
+  color: #b91c1c;
+}
+
+.gro-card-view .gro-pass-retry-btn {
+  padding: 8px 18px;
+  border-radius: 10px;
+  border: 1px solid #e2e8f0;
+  background: #ffffff;
+  color: #0f172a;
+  font-weight: 600;
+  font-size: 12px;
+  cursor: pointer;
+  font-family: inherit;
+}
+
+.gro-card-view .gro-pass-retry-btn:hover {
+  background: #f8fafc;
+}
+
 .gro-card-view .gro-inward-clearance-btn {
   height: 42px;
   padding-inline: 18px;

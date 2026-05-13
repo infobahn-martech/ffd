@@ -966,6 +966,244 @@ GroSummaryCard.propTypes = {
   value: PropTypes.string.isRequired,
 };
 
+const GRO_MAIN_VIEWS = {
+  inward: "inward",
+  cg: "cg",
+  zawil: "zawil",
+};
+
+const parseGroPassRequestsResponse = (res) => {
+  const data = res?.data?.data ?? res?.data ?? {};
+  return {
+    cg: Array.isArray(data.cg) ? data.cg : [],
+    zawil: Array.isArray(data.zawil) ? data.zawil : [],
+  };
+};
+
+const groPassCrewRowFields = (crew) => ({
+  crewName: firstNonEmptyGroDisplay(crew.crew_name, crew.name, crew.full_name, crew.crewName),
+  passport: firstNonEmptyGroDisplay(
+    crew.passport_no,
+    crew.passport_number,
+    crew.passport,
+    crew.passportNo
+  ),
+  nationality: firstNonEmptyGroDisplay(crew.nationality, crew.nationality_name),
+  rank: firstNonEmptyGroDisplay(crew.rank, crew.rank_name, crew.crew_rank),
+  movementType: firstNonEmptyGroDisplay(crew.movement_type, crew.movement, crew.movementType),
+  status: firstNonEmptyGroDisplay(crew.status, crew.pass_status, crew.request_status, crew.state),
+  requestedDate: firstNonEmptyGroDisplay(
+    crew.requested_date,
+    crew.request_date,
+    crew.created_at,
+    crew.date_requested
+  ),
+  remarks: firstNonEmptyGroDisplay(crew.remarks, crew.remark, crew.note),
+  documentUrl:
+    crew.document_url != null && String(crew.document_url).trim() !== ""
+      ? String(crew.document_url).trim()
+      : "",
+});
+
+const groPassStatusBadgeTone = (raw) => {
+  const s = String(raw ?? "")
+    .trim()
+    .toLowerCase();
+  if (!s || s === "-") return "neutral";
+  const n = Number(s);
+  if (n === 1) return "success";
+  if (n === 2) return "danger";
+  if (/reject|denied|failed|fail|cancel/.test(s)) return "danger";
+  if (/approv|accept|verified|complete|done|clear|issued|pass/.test(s)) return "success";
+  if (/pend|wait|submitted|progress|open|draft|review/.test(s)) return "warning";
+  return "neutral";
+};
+
+const groPassTaskDocUrl = (td) =>
+  firstNonEmptyGroDisplay(td?.file_url, td?.document_url, td?.url, td?.download_url);
+
+const groPassTaskDocLabel = (td, index) =>
+  firstNonEmptyGroDisplay(td?.document_name, td?.file_name, td?.name, td?.title, `File ${index + 1}`);
+
+const GroPassRequestsTable = ({
+  workOrders,
+  loading,
+  errorMessage,
+  onRetry,
+  expandedWoIds,
+  onToggleWoExpand,
+}) => {
+  const hasWorkOrders = Array.isArray(workOrders) && workOrders.length > 0;
+  let crewRowCount = 0;
+  if (hasWorkOrders) {
+    for (const wo of workOrders) {
+      const crew = Array.isArray(wo?.crew) ? wo.crew : [];
+      crewRowCount += crew.length > 0 ? crew.length : 1;
+    }
+  }
+
+  if (loading) {
+    return (
+      <div className="gro-pass-table-panel">
+        <div className="gro-pass-table-state">Loading pass requests…</div>
+      </div>
+    );
+  }
+
+  if (errorMessage) {
+    return (
+      <div className="gro-pass-table-panel">
+        <div className="gro-pass-table-state gro-pass-table-state--error">
+          <span>{errorMessage}</span>
+          {onRetry ? (
+            <button type="button" className="gro-pass-retry-btn" onClick={onRetry}>
+              Retry
+            </button>
+          ) : null}
+        </div>
+      </div>
+    );
+  }
+
+  if (!hasWorkOrders || crewRowCount === 0) {
+    return (
+      <div className="gro-pass-table-panel">
+        <div className="gro-pass-table-state gro-pass-table-state--empty">No pass requests for this call.</div>
+      </div>
+    );
+  }
+
+  return (
+    <div className="gro-pass-table-panel">
+      <div className="gro-pass-table-scroll">
+        <table className="gro-pass-table">
+          <thead>
+            <tr>
+              <th>WO Number</th>
+              <th>Crew Name</th>
+              <th>Passport No</th>
+              <th>Nationality</th>
+              <th>Rank</th>
+              <th>Movement Type</th>
+              <th>Status</th>
+              <th>Requested Date</th>
+              <th>Remarks</th>
+              <th>Document</th>
+            </tr>
+          </thead>
+          {workOrders.map((wo, woIdx) => {
+            const woKey = String(wo?.wo_id ?? wo?.id ?? wo?.wo_number ?? `idx-${woIdx}`);
+            const woNumber = firstNonEmptyGroDisplay(wo?.wo_number, wo?.woNumber, wo?.work_order_number);
+            const crew = Array.isArray(wo?.crew) ? wo.crew : [];
+            const taskDocs = Array.isArray(wo?.task_documents) ? wo.task_documents : [];
+            const expanded = expandedWoIds.has(String(woKey));
+
+            return (
+              <tbody key={`${woKey}-${woIdx}`} className="gro-pass-table-wo-group">
+                {crew.length === 0 ? (
+                  <tr>
+                    <td>{woNumber}</td>
+                    <td colSpan={9} className="gro-pass-table-muted">
+                      No crew listed for this work order.
+                    </td>
+                  </tr>
+                ) : (
+                  crew.map((c, idx) => {
+                    const f = groPassCrewRowFields(c);
+                    const tone = groPassStatusBadgeTone(f.status);
+                    return (
+                      <tr key={`${woKey}-c-${idx}`}>
+                        {idx === 0 ? <td rowSpan={crew.length} className="gro-pass-wo-cell">{woNumber}</td> : null}
+                        <td>{f.crewName}</td>
+                        <td>{f.passport}</td>
+                        <td>{f.nationality}</td>
+                        <td>{f.rank}</td>
+                        <td>{f.movementType}</td>
+                        <td>
+                          <span className={`gro-pass-status-badge gro-pass-status-badge--${tone}`}>{f.status}</span>
+                        </td>
+                        <td>{f.requestedDate}</td>
+                        <td className="gro-pass-remarks-cell" title={f.remarks}>
+                          {f.remarks}
+                        </td>
+                        <td>
+                          {f.documentUrl ? (
+                            <button
+                              type="button"
+                              className="gro-pass-doc-link-btn"
+                              onClick={() => window.open(f.documentUrl, "_blank", "noopener,noreferrer")}
+                            >
+                              Open
+                            </button>
+                          ) : (
+                            <span className="gro-pass-table-muted">—</span>
+                          )}
+                        </td>
+                      </tr>
+                    );
+                  })
+                )}
+                <tr className="gro-pass-taskdocs-row">
+                  <td colSpan={10}>
+                    <button
+                      type="button"
+                      className="gro-pass-taskdocs-toggle"
+                      aria-expanded={expanded}
+                      onClick={() => onToggleWoExpand(String(woKey))}
+                    >
+                      <span className="gro-pass-taskdocs-toggle-label">
+                        Work order files{taskDocs.length ? ` (${taskDocs.length})` : ""}
+                      </span>
+                      <span className="gro-pass-taskdocs-chevron" aria-hidden>
+                        {expanded ? "▾" : "▸"}
+                      </span>
+                    </button>
+                    {expanded && taskDocs.length > 0 ? (
+                      <ul className="gro-pass-taskdocs-list">
+                        {taskDocs.map((td, i) => {
+                          const url = groPassTaskDocUrl(td);
+                          const label = groPassTaskDocLabel(td, i);
+                          return (
+                            <li key={`${woKey}-td-${i}`}>
+                              {url && url !== "-" ? (
+                                <button
+                                  type="button"
+                                  className="gro-pass-taskdoc-link"
+                                  onClick={() => window.open(url, "_blank", "noopener,noreferrer")}
+                                >
+                                  {label}
+                                </button>
+                              ) : (
+                                <span>{label}</span>
+                              )}
+                            </li>
+                          );
+                        })}
+                      </ul>
+                    ) : null}
+                    {expanded && taskDocs.length === 0 ? (
+                      <div className="gro-pass-taskdocs-empty">No task documents for this work order.</div>
+                    ) : null}
+                  </td>
+                </tr>
+              </tbody>
+            );
+          })}
+        </table>
+      </div>
+    </div>
+  );
+};
+
+GroPassRequestsTable.propTypes = {
+  workOrders: PropTypes.array,
+  loading: PropTypes.bool,
+  errorMessage: PropTypes.string,
+  onRetry: PropTypes.func,
+  expandedWoIds: PropTypes.instanceOf(Set).isRequired,
+  onToggleWoExpand: PropTypes.func.isRequired,
+};
+
 const GROCardView = ({ card }) => {
   const inwardAnchorRef = useRef(null);
   const inwardFileInputRef = useRef(null);
@@ -982,6 +1220,15 @@ const GROCardView = ({ card }) => {
   const [isGroLoading, setIsGroLoading] = useState(false);
   const [verifyingDocId, setVerifyingDocId] = useState(null);
   const [isSavingInward, setIsSavingInward] = useState(false);
+  const [groMainView, setGroMainView] = useState(GRO_MAIN_VIEWS.inward);
+  const [passRequestsState, setPassRequestsState] = useState({
+    callId: null,
+    cg: undefined,
+    zawil: undefined,
+  });
+  const [passRequestsLoading, setPassRequestsLoading] = useState(false);
+  const [passRequestsError, setPassRequestsError] = useState(null);
+  const [expandedPassWoIds, setExpandedPassWoIds] = useState(() => new Set());
 
   const callId = resolveGroCallId(card);
 
@@ -1027,6 +1274,76 @@ const GROCardView = ({ card }) => {
   };
 
   const inwardPickerParts = splitInwardDateTimeString(inwardDateTime);
+
+  useEffect(() => {
+    setPassRequestsState({ callId: null, cg: undefined, zawil: undefined });
+    setPassRequestsError(null);
+    setPassRequestsLoading(false);
+    setExpandedPassWoIds(new Set());
+  }, [callId]);
+
+  useEffect(() => {
+    if (groMainView === GRO_MAIN_VIEWS.inward) return;
+    if (callId == null || callId === "") {
+      setPassRequestsError("Unable to load pass requests: missing call id.");
+      return;
+    }
+    if (passRequestsState.callId === callId && passRequestsState.cg !== undefined) return;
+
+    let cancelled = false;
+    setPassRequestsLoading(true);
+    setPassRequestsError(null);
+
+    const run = async () => {
+      try {
+        const res = await groService.getPassRequests(callId);
+        if (cancelled) return;
+        const parsed = parseGroPassRequestsResponse(res);
+        setPassRequestsState({
+          callId,
+          cg: parsed.cg,
+          zawil: parsed.zawil,
+        });
+      } catch (err) {
+        if (!cancelled) {
+          setPassRequestsError(groApiErrorMessage(err, "Failed to load pass requests."));
+          setPassRequestsState({
+            callId,
+            cg: [],
+            zawil: [],
+          });
+        }
+      } finally {
+        if (!cancelled) setPassRequestsLoading(false);
+      }
+    };
+
+    run();
+    return () => {
+      cancelled = true;
+    };
+  }, [groMainView, callId, passRequestsState.callId, passRequestsState.cg]);
+
+  const switchGroMainView = useCallback((next) => {
+    setGroMainView(next);
+    if (next !== GRO_MAIN_VIEWS.inward) {
+      setShowInwardClearance(false);
+    }
+  }, []);
+
+  const retryPassRequests = useCallback(() => {
+    setPassRequestsState({ callId: null, cg: undefined, zawil: undefined });
+    setPassRequestsError(null);
+  }, []);
+
+  const togglePassWoExpand = useCallback((woKey) => {
+    setExpandedPassWoIds((prev) => {
+      const next = new Set(prev);
+      if (next.has(woKey)) next.delete(woKey);
+      else next.add(woKey);
+      return next;
+    });
+  }, []);
 
   const refreshGroDocuments = useCallback(async (cid) => {
     if (cid == null || cid === "") return;
@@ -1255,6 +1572,20 @@ const GROCardView = ({ card }) => {
     window.open(url, "_blank", "noopener,noreferrer");
   };
 
+  const passTableWorkOrders =
+    groMainView === GRO_MAIN_VIEWS.cg
+      ? passRequestsState.cg
+      : groMainView === GRO_MAIN_VIEWS.zawil
+        ? passRequestsState.zawil
+        : null;
+
+  const documentsSectionTitle =
+    groMainView === GRO_MAIN_VIEWS.cg
+      ? "CG Pass"
+      : groMainView === GRO_MAIN_VIEWS.zawil
+        ? "Zawil Pass"
+        : "Documents";
+
   const IconCross = () => (
     <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round" aria-hidden>
       <path d="M18 6L6 18M6 6l12 12" />
@@ -1287,72 +1618,104 @@ const GROCardView = ({ card }) => {
 
       <div className="gro-document-section">
         <div className="gro-document-header">
-          <h3 className="gro-documents-heading">Documents</h3>
-          <div className="gro-document-header-actions">
-            <div className="gro-inward-anchor" ref={inwardAnchorRef}>
+          <h3 className="gro-documents-heading">{documentsSectionTitle}</h3>
+          <div className="gro-document-header-actions gro-document-header-actions--with-segments">
+            <div className="gro-pass-segments" role="tablist" aria-label="Pass and clearance views">
               <button
                 type="button"
-                className="gro-inward-clearance-btn"
-                aria-expanded={showInwardClearance}
-                disabled={isGroLoading || isSavingInward || callId == null || callId === ""}
-                onClick={() => setShowInwardClearance(!showInwardClearance)}
+                role="tab"
+                aria-selected={groMainView === GRO_MAIN_VIEWS.cg}
+                className={`gro-pass-segment${groMainView === GRO_MAIN_VIEWS.cg ? " gro-pass-segment--active" : ""}`}
+                onClick={() => switchGroMainView(GRO_MAIN_VIEWS.cg)}
               >
-                Inward clearance
+                CG Pass
               </button>
-              {showInwardClearance ? (
-                <div className="gro-inward-popover" role="dialog" aria-label="Inward clearance">
-                  <div className="gro-inward-popover-header">Inward Clearance</div>
-                  <div className="gro-inward-popover-body">
-                    <div className="gro-inward-popover-field">
-                      <span className="gro-inward-popover-label">File upload</span>
-                      <div className="gro-premium-upload">
-                        <input
-                          ref={inwardFileInputRef}
-                          id="gro-inward-file-input"
-                          type="file"
-                          className="gro-premium-upload-input-hidden"
-                          accept=".pdf,.doc,.docx,.jpg,.jpeg,.png"
-                          disabled={isSavingInward}
-                          onChange={(e) => setInwardFile(e.target.files?.[0] ?? null)}
+              <button
+                type="button"
+                role="tab"
+                aria-selected={groMainView === GRO_MAIN_VIEWS.zawil}
+                className={`gro-pass-segment${groMainView === GRO_MAIN_VIEWS.zawil ? " gro-pass-segment--active" : ""}`}
+                onClick={() => switchGroMainView(GRO_MAIN_VIEWS.zawil)}
+              >
+                Zawil Pass
+              </button>
+              <button
+                type="button"
+                role="tab"
+                aria-selected={groMainView === GRO_MAIN_VIEWS.inward}
+                className={`gro-pass-segment${groMainView === GRO_MAIN_VIEWS.inward ? " gro-pass-segment--active" : ""}`}
+                onClick={() => switchGroMainView(GRO_MAIN_VIEWS.inward)}
+              >
+                Inward Clearance
+              </button>
+            </div>
+            {groMainView === GRO_MAIN_VIEWS.inward ? (
+              <div className="gro-inward-anchor" ref={inwardAnchorRef}>
+                <button
+                  type="button"
+                  className="gro-inward-clearance-btn"
+                  aria-expanded={showInwardClearance}
+                  disabled={isGroLoading || isSavingInward || callId == null || callId === ""}
+                  onClick={() => setShowInwardClearance(!showInwardClearance)}
+                >
+                  Inward clearance
+                </button>
+                {showInwardClearance ? (
+                  <div className="gro-inward-popover" role="dialog" aria-label="Inward clearance">
+                    <div className="gro-inward-popover-header">Inward Clearance</div>
+                    <div className="gro-inward-popover-body">
+                      <div className="gro-inward-popover-field">
+                        <span className="gro-inward-popover-label">File upload</span>
+                        <div className="gro-premium-upload">
+                          <input
+                            ref={inwardFileInputRef}
+                            id="gro-inward-file-input"
+                            type="file"
+                            className="gro-premium-upload-input-hidden"
+                            accept=".pdf,.doc,.docx,.jpg,.jpeg,.png"
+                            disabled={isSavingInward}
+                            onChange={(e) => setInwardFile(e.target.files?.[0] ?? null)}
+                          />
+                          <button
+                            type="button"
+                            className="gro-premium-upload-btn"
+                            disabled={isSavingInward}
+                            onClick={() => inwardFileInputRef.current?.click()}
+                          >
+                            Choose file
+                          </button>
+                          <span className="gro-premium-upload-filename" title={inwardFile?.name || ""}>
+                            {inwardFile?.name || "No file chosen"}
+                          </span>
+                        </div>
+                      </div>
+                      <div className="gro-inward-popover-field gro-inward-popover-datetime-full">
+                        <span className="gro-inward-popover-label">Date & Time</span>
+                        <DateTimePickerField
+                          dateValue={inwardPickerParts.date}
+                          timeValue={inwardPickerParts.time}
+                          onDateTimeChange={handleInwardDateTimePickerChange}
+                          placeholder="YYYY-MM-DD hh:mm"
+                          popperClassName="gro-inward-datetime-popper"
                         />
-                        <button
-                          type="button"
-                          className="gro-premium-upload-btn"
-                          disabled={isSavingInward}
-                          onClick={() => inwardFileInputRef.current?.click()}
-                        >
-                          Choose file
-                        </button>
-                        <span className="gro-premium-upload-filename" title={inwardFile?.name || ""}>
-                          {inwardFile?.name || "No file chosen"}
-                        </span>
                       </div>
                     </div>
-                    <div className="gro-inward-popover-field gro-inward-popover-datetime-full">
-                      <span className="gro-inward-popover-label">Date & Time</span>
-                      <DateTimePickerField
-                        dateValue={inwardPickerParts.date}
-                        timeValue={inwardPickerParts.time}
-                        onDateTimeChange={handleInwardDateTimePickerChange}
-                        placeholder="YYYY-MM-DD hh:mm"
-                        popperClassName="gro-inward-datetime-popper"
-                      />
+                    <div className="gro-inward-popover-footer">
+                      <button type="button" className="gro-inward-popover-btn-cancel" disabled={isSavingInward} onClick={handleInwardCancel}>
+                        Cancel
+                      </button>
+                      <button type="button" className="gro-inward-popover-btn-submit" disabled={isSavingInward} onClick={handleInwardSubmit}>
+                        {isSavingInward ? "Saving..." : "Submit"}
+                      </button>
                     </div>
                   </div>
-                  <div className="gro-inward-popover-footer">
-                    <button type="button" className="gro-inward-popover-btn-cancel" disabled={isSavingInward} onClick={handleInwardCancel}>
-                      Cancel
-                    </button>
-                    <button type="button" className="gro-inward-popover-btn-submit" disabled={isSavingInward} onClick={handleInwardSubmit}>
-                      {isSavingInward ? "Saving..." : "Submit"}
-                    </button>
-                  </div>
-                </div>
-              ) : null}
-            </div>
+                ) : null}
+              </div>
+            ) : null}
           </div>
         </div>
 
+        {groMainView === GRO_MAIN_VIEWS.inward ? (
         <div className="gro-document-list">
           {isGroLoading ? (
             <div className="gro-document-loading">Loading documents…</div>
@@ -1450,6 +1813,24 @@ const GROCardView = ({ card }) => {
             })
           )}
         </div>
+        ) : (
+          <GroPassRequestsTable
+            workOrders={Array.isArray(passTableWorkOrders) ? passTableWorkOrders : []}
+            loading={passRequestsLoading}
+            errorMessage={
+              groMainView !== GRO_MAIN_VIEWS.inward && passRequestsError
+                ? passRequestsError
+                : groMainView !== GRO_MAIN_VIEWS.inward &&
+                    (callId == null || callId === "") &&
+                    !passRequestsLoading
+                  ? "Unable to load pass requests: missing call id."
+                  : null
+            }
+            onRetry={retryPassRequests}
+            expandedWoIds={expandedPassWoIds}
+            onToggleWoExpand={(key) => togglePassWoExpand(key)}
+          />
+        )}
       </div>
     </div>
   );
