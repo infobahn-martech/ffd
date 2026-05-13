@@ -3391,7 +3391,7 @@ ${body}
             {!isAddMode && callDetailLoading ? (
               <GeneralViewSectionShimmer />
             ) : (
-              <div className={isAddMode ? "general-add-mode-wrapper" : ""}>
+              <div className={isAddMode ? "general-add-mode-wrapper" : "general-view-mode-wrapper"}>
                 <div
                   className={`${!isAddMode ? "general-info-three-column" : "general-info-two-column general-add-3col-layout general-add-card-layout"} general-tab-form-layout`}
                 >

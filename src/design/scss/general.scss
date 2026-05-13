@@ -232,8 +232,22 @@
 }
 
 .cf-section.general-info-section .general-info-three-column.general-tab-form-layout {
+  flex: 1;
+  min-height: 0;
+  overflow: hidden;
+  align-items: stretch;
   grid-template-columns: minmax(0, 0.95fr) minmax(0, 1.35fr) minmax(0, 0.8fr);
   gap: 24px;
+
+  @media (min-width: 768px) {
+    /* Cap row height to the section so the left column’s inner scroll can engage */
+    grid-template-rows: minmax(0, 1fr) auto;
+  }
+
+  .general-info-left {
+    overflow: hidden;
+    min-height: 0;
+  }
 }
 
 @media (max-width: 767px) {

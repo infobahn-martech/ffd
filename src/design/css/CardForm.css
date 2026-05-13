@@ -924,7 +924,8 @@
   overflow: hidden;
 }
 
-.general-add-mode-wrapper {
+.general-add-mode-wrapper,
+.general-view-mode-wrapper {
   width: 100%;
   display: flex;
   flex-direction: column;
