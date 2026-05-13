@@ -879,7 +879,7 @@
   overflow-x: hidden;
   padding: 16px 8px 16px 16px;
   scrollbar-width: thin;
-  scrollbar-color: #cbd5e1 #f8fafc;
+  scrollbar-color: #9ca3af #f3f4f6;
 }
 
 .general-view-form-scroll {
@@ -889,25 +889,30 @@
   overflow-y: auto;
   overflow-x: hidden;
   padding: 0 8px 18px 0;
+  scrollbar-width: thin;
+  scrollbar-color: #9ca3af #f3f4f6;
 }
 
-.general-add-form-scroll::-webkit-scrollbar {
-  width: 10px;
+.general-add-form-scroll::-webkit-scrollbar,
+.general-view-form-scroll::-webkit-scrollbar {
+  width: 6px;
 }
 
-.general-add-form-scroll::-webkit-scrollbar-track {
-  background: #f8fafc;
+.general-add-form-scroll::-webkit-scrollbar-track,
+.general-view-form-scroll::-webkit-scrollbar-track {
+  background: #f3f4f6;
   border-radius: 999px;
 }
 
-.general-add-form-scroll::-webkit-scrollbar-thumb {
-  background: #cbd5e1;
+.general-add-form-scroll::-webkit-scrollbar-thumb,
+.general-view-form-scroll::-webkit-scrollbar-thumb {
+  background: #9ca3af;
   border-radius: 999px;
-  border: 2px solid #f8fafc;
 }
 
-.general-add-form-scroll::-webkit-scrollbar-thumb:hover {
-  background: #94a3b8;
+.general-add-form-scroll::-webkit-scrollbar-thumb:hover,
+.general-view-form-scroll::-webkit-scrollbar-thumb:hover {
+  background: #64748b;
 }
 
 .general-add-mode-wrapper {
@@ -1073,6 +1078,26 @@
   flex-direction: column;
   gap: 10px;
   min-width: 0;
+}
+
+.general-add-preview-panel.general-add-preview-panel--split-scroll {
+  overflow: hidden;
+  gap: 0;
+  padding: 16px;
+}
+
+.general-add-preview-panel.general-add-preview-panel--split-scroll .email-preview-topbar {
+  flex-shrink: 0;
+  margin-bottom: 10px;
+}
+
+.general-add-preview-scroll-inner {
+  flex: 1;
+  min-height: 0;
+  overflow-y: auto;
+  overflow-x: hidden;
+  padding-right: 4px;
+  margin-right: -2px;
 }
 
 /* Add mode: prevent inherited full-height stretch behavior from general.scss */
@@ -1255,6 +1280,57 @@
   font-size: 13px;
   font-weight: 600;
   color: #334155;
+}
+
+.email-preview-message-section--quill .email-preview-message-quill-react {
+  border-radius: 12px;
+  overflow: hidden;
+}
+
+.email-preview-message-quill-react .ql-toolbar.ql-snow {
+  border: 1px solid #e2e8f0 !important;
+  border-bottom: none !important;
+  border-radius: 12px 12px 0 0;
+  background: #fafbfc;
+  padding: 6px 8px;
+}
+
+.email-preview-message-quill-react .ql-container.ql-snow {
+  border: 1px solid #e2e8f0 !important;
+  border-radius: 0 0 12px 12px;
+  font-family: "Open Sans", sans-serif;
+  font-size: 13px;
+  height: 200px;
+  background: #fff;
+}
+
+.email-preview-message-quill-react .ql-editor {
+  min-height: 168px;
+  max-height: 168px;
+  overflow-y: auto;
+  padding: 12px 14px;
+  line-height: 1.55;
+  scrollbar-width: thin;
+  scrollbar-color: #9ca3af #f3f4f6;
+}
+
+.email-preview-message-quill-react .ql-editor::-webkit-scrollbar {
+  width: 6px;
+}
+
+.email-preview-message-quill-react .ql-editor::-webkit-scrollbar-track {
+  background: #f3f4f6;
+  border-radius: 999px;
+}
+
+.email-preview-message-quill-react .ql-editor::-webkit-scrollbar-thumb {
+  background: #9ca3af;
+  border-radius: 999px;
+}
+
+.email-preview-message-quill-react .ql-editor.ql-blank::before {
+  font-style: italic;
+  color: #94a3b8;
 }
 
 .email-preview-message-input {
@@ -1620,34 +1696,39 @@
   background: transparent;
 }
 
-/* Keep left form scrollbars visible/usable in appointment General add/edit */
+/* Premium thin scrollbars: General Add left form + right preview + ql editor uses nested rules above */
 .general-add-form-scroll,
-.general-view-form-scroll {
+.general-view-form-scroll,
+.general-add-preview-scroll-inner {
   scrollbar-width: thin;
-  scrollbar-color: #cbd5e1 #f8fafc !important;
+  scrollbar-color: #9ca3af #f3f4f6 !important;
 }
 
 .general-add-form-scroll::-webkit-scrollbar,
-.general-view-form-scroll::-webkit-scrollbar {
-  width: 10px;
+.general-view-form-scroll::-webkit-scrollbar,
+.general-add-preview-scroll-inner::-webkit-scrollbar {
+  width: 6px !important;
 }
 
 .general-add-form-scroll::-webkit-scrollbar-track,
-.general-view-form-scroll::-webkit-scrollbar-track {
-  background: #f8fafc;
+.general-view-form-scroll::-webkit-scrollbar-track,
+.general-add-preview-scroll-inner::-webkit-scrollbar-track {
+  background: #f3f4f6 !important;
   border-radius: 999px;
 }
 
 .general-add-form-scroll::-webkit-scrollbar-thumb,
-.general-view-form-scroll::-webkit-scrollbar-thumb {
-  background: #cbd5e1 !important;
+.general-view-form-scroll::-webkit-scrollbar-thumb,
+.general-add-preview-scroll-inner::-webkit-scrollbar-thumb {
+  background: #9ca3af !important;
   border-radius: 999px;
-  border: 2px solid #f8fafc;
+  border: none !important;
 }
 
 .general-add-form-scroll::-webkit-scrollbar-thumb:hover,
-.general-view-form-scroll::-webkit-scrollbar-thumb:hover {
-  background: #94a3b8 !important;
+.general-view-form-scroll::-webkit-scrollbar-thumb:hover,
+.general-add-preview-scroll-inner::-webkit-scrollbar-thumb:hover {
+  background: #64748b !important;
 }
 
 /* =======================================

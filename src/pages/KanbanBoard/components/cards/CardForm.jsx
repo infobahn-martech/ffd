@@ -1,4 +1,5 @@
-import { useState, useMemo, useCallback, useEffect, useRef } from "react";
+import { useState, useMemo, useCallback, useEffect, useRef, useLayoutEffect } from "react";
+import { createPortal } from "react-dom";
 import salesOrderService from "../../../../services/salesOrderService";
 import { mapSalesOrderResponse } from "../../../../helpers/mapSalesOrderResponse";
 import { useLocation } from "react-router-dom";
@@ -8,6 +9,8 @@ import groService from "../../../../services/groService";
 import "../../styles/cardForm.scss";
 import "../../../../design/scss/general.scss";
 import ColorPickerIcon from "../../../../assets/images/ColorPicker.png";
+import SedresColorPicker from "../../../../components/SedresColorPicker/SedresColorPicker";
+import { normalizeHexColor } from "../../../../components/SedresColorPicker/sedresColorPickerConstants";
 import PriorityIcon from "../../../../assets/images/Priority.png";
 import { getItem } from "../../../../helpers/localStorage";
 
@@ -59,6 +62,23 @@ const DA_TOP_TABS = [
 const DA_ENABLED_TABS = ["General", "Operation", "Husbandry", "Sales Order", "Reports", "KPI", "Invoice", "Comments", "Subtasks", "Notes"];
 
 const DEFAULT_ACCENT_COLOR = "#2A00FF";
+const ADD_CARD_TOPBAR_DEFAULT_HEX = "#2e7d32";
+
+/** Map header CSS color (hex or rgb/rgba) to normalized hex for SedresColorPicker. */
+const appearanceColorToPickerHex = (value, fallbackHex = ADD_CARD_TOPBAR_DEFAULT_HEX) => {
+  if (value === undefined || value === null) return fallbackHex;
+  const s = String(value).trim();
+  if (!s) return fallbackHex;
+  if (s.startsWith("#")) {
+    return normalizeHexColor(s);
+  }
+  const rgbMatch = s.match(/^rgba?\(\s*(\d{1,3})\s*,\s*(\d{1,3})\s*,\s*(\d{1,3})/i);
+  if (!rgbMatch) return fallbackHex;
+  const clampByte = (n) => Math.min(255, Math.max(0, parseInt(String(n), 10) || 0));
+  const hexByte = (n) => clampByte(n).toString(16).padStart(2, "0");
+  const hex = `#${hexByte(rgbMatch[1])}${hexByte(rgbMatch[2])}${hexByte(rgbMatch[3])}`;
+  return normalizeHexColor(hex);
+};
 const TOTAL_STEPS = 6;
 
 const STEP_LABELS = [
@@ -144,155 +164,65 @@ const getStepNumberFromColumnId = (columnId, columns, columnOrder) => {
   return getStepNumberFromColumnTitle(colForTitle?.title, columns, columnOrder);
 };
 
-// Predefined color palette (matching the image: 2 rows x 6 columns)
-const COLOR_PALETTE = [
-  // Row 1
-  { hex: '#FF00FF', rgb: 'rgb(255, 0, 255)', name: 'Fuchsia' },
-  { hex: '#800080', rgb: 'rgb(128, 0, 128)', name: 'Purple' },
-  { hex: '#4169E1', rgb: 'rgb(65, 105, 225)', name: 'Royal Blue' },
-  { hex: '#008000', rgb: 'rgb(0, 128, 0)', name: 'Green' },
-  { hex: '#FFFF00', rgb: 'rgb(255, 255, 0)', name: 'Yellow' },
-  { hex: '#FFA500', rgb: 'rgb(255, 165, 0)', name: 'Orange' },
-  // Row 2
-  { hex: '#8B0000', rgb: 'rgb(139, 0, 0)', name: 'Dark Red' },
-  { hex: '#775649', rgb: 'rgb(119, 86, 73)', name: 'Brown' },
-  { hex: '#D3D3D3', rgb: 'rgb(211, 211, 211)', name: 'Light Gray' },
-  { hex: '#708090', rgb: 'rgb(112, 128, 144)', name: 'Slate Blue' },
-  { hex: '#000000', rgb: 'rgb(0, 0, 0)', name: 'Black' },
-  { hex: '#FFFFFF', rgb: 'rgb(255, 255, 255)', name: 'White' },
-];
+// Sub-components
+const TopBar = ({ card, topbarColor, onClose, isAddMode = false, onColorChange, formValues, handleChange }) => {
+  const [isColorPickerOpen, setIsColorPickerOpen] = useState(false);
+  const [pickerFloaterStyle, setPickerFloaterStyle] = useState({});
+  const colorPickerTriggerRef = useRef(null);
+  const pickerFloaterWrapRef = useRef(null);
 
-// Helper functions
-const rgbToHex = (rgb) => {
-  if (!rgb) return '#775649';
-  if (rgb.startsWith('#')) return rgb.toUpperCase();
-  // Handle both "rgb(119, 86, 73)" and "rgb(119 86 73)" formats
-  const match = rgb.match(/\d+/g);
-  if (!match || match.length < 3) return '#775649';
-  return '#' + match.map(x => {
-    const hex = parseInt(x).toString(16);
-    return hex.length === 1 ? '0' + hex : hex;
-  }).join('').toUpperCase();
-};
+  const cardId = card?.code || card?.id || "";
+  const cardTitle = card?.title || "";
 
-const normalizeRgb = (rgb) => {
-  if (!rgb) return '';
-  if (rgb.startsWith('#')) return rgb;
-  // Normalize RGB format: remove spaces, ensure consistent format
-  const match = rgb.match(/\d+/g);
-  if (!match || match.length < 3) return '';
-  return `rgb(${match[0]}, ${match[1]}, ${match[2]})`;
-};
-
-const hexToRgb = (hex) => {
-  if (!hex) return 'rgb(119, 86, 73)';
-  if (hex.startsWith('rgb')) return hex;
-  const result = /^#?([a-f\d]{2})([a-f\d]{2})([a-f\d]{2})$/i.exec(hex);
-  if (!result) return 'rgb(119, 86, 73)';
-  return `rgb(${parseInt(result[1], 16)}, ${parseInt(result[2], 16)}, ${parseInt(result[3], 16)})`;
-};
-
-// Custom Color Picker Component
-const ColorPickerDropdown = ({ isOpen, onClose, selectedColor, onColorSelect }) => {
-  const dropdownRef = useRef(null);
+  useLayoutEffect(() => {
+    if (!isColorPickerOpen) return;
+    const anchor = colorPickerTriggerRef.current;
+    if (!anchor) return;
+    const r = anchor.getBoundingClientRect();
+    const width = 308;
+    const left = Math.max(16, Math.min(r.right - width, window.innerWidth - width - 16));
+    const top = Math.min(r.bottom + 8, window.innerHeight - 16);
+    setPickerFloaterStyle({
+      position: "fixed",
+      top,
+      left,
+      zIndex: 13040,
+    });
+  }, [isColorPickerOpen]);
 
   useEffect(() => {
-    const handleClickOutside = (event) => {
-      if (dropdownRef.current && !dropdownRef.current.contains(event.target)) {
-        onClose();
-      }
+    if (!isColorPickerOpen) return;
+    const onMouseDown = (event) => {
+      if (colorPickerTriggerRef.current?.contains(event.target)) return;
+      if (pickerFloaterWrapRef.current?.contains(event.target)) return;
+      setIsColorPickerOpen(false);
     };
-
-    if (isOpen) {
-      document.addEventListener('mousedown', handleClickOutside);
-      return () => {
-        document.removeEventListener('mousedown', handleClickOutside);
-      };
-    }
-  }, [isOpen, onClose]);
-
-  const handleColorClick = (color) => {
-    onColorSelect(color.rgb);
-    onClose();
-  };
-
-  if (!isOpen) return null;
-
-  return (
-    <div className="color-picker-dropdown" ref={dropdownRef}>
-      <div className="color-picker-grid">
-        {COLOR_PALETTE.map((color, index) => {
-          const selectedHex = rgbToHex(selectedColor);
-          const isSelected = selectedHex === color.hex || normalizeRgb(selectedColor) === normalizeRgb(color.rgb);
-          return (
-            <button
-              key={index}
-              type="button"
-              className={`color-swatch ${isSelected ? 'selected' : ''} ${color.hex === '#FFFFFF' ? 'white-swatch' : ''}`}
-              style={{ backgroundColor: color.hex }}
-              onClick={() => handleColorClick(color)}
-              title={color.name}
-              aria-label={`Select ${color.name} color`}
-            >
-              {isSelected && (
-                <svg
-                  width="16"
-                  height="16"
-                  viewBox="0 0 16 16"
-                  fill="none"
-                  xmlns="http://www.w3.org/2000/svg"
-                  className="color-checkmark"
-                >
-                  <path
-                    d="M13.3333 4L6 11.3333L2.66667 8"
-                    stroke={color.hex === '#000000' ? '#ffffff' : color.hex === '#FFFFFF' ? '#000000' : '#ffffff'}
-                    strokeWidth="2"
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                  />
-                </svg>
-              )}
-              {color.hex === '#FFFFFF' && !isSelected && (
-                <div className="color-swatch-outline"></div>
-              )}
-            </button>
-          );
-        })}
-      </div>
-    </div>
-  );
-};
-
-ColorPickerDropdown.propTypes = {
-  isOpen: PropTypes.bool.isRequired,
-  onClose: PropTypes.func.isRequired,
-  selectedColor: PropTypes.string.isRequired,
-  onColorSelect: PropTypes.func.isRequired,
-};
-
-// Sub-components
-const TopBar = ({ card, topbarColor, onClose, isAddMode = false, onColorChange, formValues, handleChange, cardTitleHasError = false }) => {
-  const [isColorPickerOpen, setIsColorPickerOpen] = useState(false);
-  const cardId = card?.code || card?.id || '';
-  const cardTitle = card?.title || '';
-
-  const handleColorSelect = (rgbColor) => {
-    if (onColorChange) {
-      onColorChange(rgbColor);
-    }
-    setIsColorPickerOpen(false);
-  };
+    document.addEventListener("mousedown", onMouseDown);
+    return () => document.removeEventListener("mousedown", onMouseDown);
+  }, [isColorPickerOpen]);
 
   const handleToggleColorPicker = (e) => {
     e.preventDefault();
     e.stopPropagation();
-    setIsColorPickerOpen(!isColorPickerOpen);
+    setIsColorPickerOpen((open) => !open);
   };
 
   const handleTitleChange = (e) => {
     if (handleChange) {
       handleChange("cardTitle")(e);
     }
+  };
+
+  const handleApplySedresColor = (hex) => {
+    const next = normalizeHexColor(hex);
+    if (onColorChange) {
+      onColorChange(next);
+    }
+    setIsColorPickerOpen(false);
+  };
+
+  const handleCancelSedresColor = () => {
+    setIsColorPickerOpen(false);
   };
 
   return (
@@ -302,12 +232,11 @@ const TopBar = ({ card, topbarColor, onClose, isAddMode = false, onColorChange, 
         {isAddMode ? (
           <input
             type="text"
-            className={`cardform-title-input${cardTitleHasError ? " is-invalid" : ""}`}
+            className="cardform-title-input"
             placeholder="Enter card title"
             value={formValues?.cardTitle || ""}
             onChange={handleTitleChange}
             autoFocus
-            aria-invalid={cardTitleHasError}
           />
         ) : (
           <span className="cardform-title">{cardTitle}</span>
@@ -316,20 +245,30 @@ const TopBar = ({ card, topbarColor, onClose, isAddMode = false, onColorChange, 
       <div className="cardform-topbar-right">
         <div className="topbar-color-picker-wrapper">
           <button
+            ref={colorPickerTriggerRef}
             type="button"
             className="topbar-color-picker-label"
             onClick={handleToggleColorPicker}
             title="Change header color"
             aria-label="Color Picker"
+            aria-expanded={isColorPickerOpen}
           >
             <img src={ColorPickerIcon} alt="Color Picker" className="topbar-color-picker-icon" />
           </button>
-          <ColorPickerDropdown
-            isOpen={isColorPickerOpen}
-            onClose={() => setIsColorPickerOpen(false)}
-            selectedColor={topbarColor}
-            onColorSelect={handleColorSelect}
-          />
+          {isColorPickerOpen &&
+            typeof document !== "undefined" &&
+            createPortal(
+              <div ref={pickerFloaterWrapRef} style={pickerFloaterStyle}>
+                <SedresColorPicker
+                  ariaLabel="Pick card header color"
+                  initialHex={appearanceColorToPickerHex(topbarColor)}
+                  className="kanban-dashboard-color-picker-popover--floating"
+                  onApply={handleApplySedresColor}
+                  onCancel={handleCancelSedresColor}
+                />
+              </div>,
+              document.body
+            )}
         </div>
         <button className="cardform-close-btn" onClick={onClose} type="button" aria-label="Close">
           ✕
@@ -347,7 +286,6 @@ TopBar.propTypes = {
   onColorChange: PropTypes.func,
   formValues: PropTypes.object,
   handleChange: PropTypes.func,
-  cardTitleHasError: PropTypes.bool,
 };
 
 const TopTabs = ({ tabs, activeTab, onTabChange, enabledTabs }) => {
@@ -1675,9 +1613,8 @@ function CardForm({
   // Always initialize from card.color (the fixed card color)
   const [topbarColor, setTopbarColor] = useState(() => {
     if (isAddMode) {
-      return 'rgb(119, 86, 73)';
+      return ADD_CARD_TOPBAR_DEFAULT_HEX;
     }
-    // Always use card's fixed color, never column color
     return card?.color || DEFAULT_ACCENT_COLOR;
   });
 
@@ -1973,20 +1910,15 @@ function CardForm({
 
   // Handle topbar color change - visual only, never modifies card.color
   const handleTopbarColorChange = useCallback((newColor) => {
-    // Only update the visual topbar color, card.color remains fixed
     setTopbarColor(newColor);
   }, []);
+
   const ownerInitial = useMemo(
     () => formValues.owner?.[0]?.toUpperCase() || "N",
     [formValues.owner]
   );
 
   if (!show) return null;
-
-  const cardTitleHasError =
-    isAddMode &&
-    hasSubmitted &&
-    (!formValues?.cardTitle || String(formValues.cardTitle).trim() === "");
 
   return (
     <div className="cardform-overlay">
@@ -1999,7 +1931,6 @@ function CardForm({
           onColorChange={handleTopbarColorChange}
           formValues={formValues}
           handleChange={handleChange}
-          cardTitleHasError={cardTitleHasError}
         />
         {isDriverStyleView ? (
           <DriverCardView card={card} variant={variant} />

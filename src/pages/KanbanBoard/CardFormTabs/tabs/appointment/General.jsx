@@ -1245,6 +1245,12 @@ const formatPreviewDate = (date = new Date()) =>
     minute: "2-digit",
   }).format(date);
 
+const EMAIL_PREVIEW_MESSAGE_QUILL_MODULES = {
+  toolbar: [["bold", "italic", "underline"], [{ list: "ordered" }, { list: "bullet" }], ["link"], ["clean"]],
+};
+
+const EMAIL_PREVIEW_MESSAGE_QUILL_FORMATS = ["bold", "italic", "underline", "list", "bullet", "link"];
+
 const EmailPreviewPanel = ({
   ownerOptions,
   formValues,
@@ -1281,7 +1287,7 @@ const EmailPreviewPanel = ({
   const ccValue = firstNonEmptyString(editableFields?.cc_emails, previewFromApi.cc, fallbackCcValue) || "";
   const subjectValue = firstNonEmptyString(editableFields?.subject, previewFromApi.subject, subjectFallback) || "Appointment Update";
   return (
-    <div className="general-add-preview-panel">
+    <div className="general-add-preview-panel general-add-preview-panel--split-scroll">
       <div className="email-preview-topbar">
         <div className="email-preview-topbar-title">Email Preview</div>
         <div className="email-preview-topbar-status">
@@ -1291,8 +1297,9 @@ const EmailPreviewPanel = ({
           <button type="button" className="email-preview-topbar-action" aria-label="Expand preview">⛶</button> */}
         </div>
       </div>
-      <div className="email-preview-card">
-        <div className="email-preview-content">
+      <div className="general-add-preview-scroll-inner">
+        <div className="email-preview-card">
+          <div className="email-preview-content">
           <div className="email-preview-meta">
             <div className="email-preview-row">
               <div className="email-preview-row-label">From</div>
@@ -1343,16 +1350,25 @@ const EmailPreviewPanel = ({
               </div>
             </div>
           </div>
-          <div className="email-preview-message-section">
+          <div className="email-preview-message-section email-preview-message-section--quill">
             <div className="email-preview-message-title">Message</div>
-            <textarea
-              className="email-preview-message-input"
-              value={messageValue}
-              onChange={onMessageChange}
-              placeholder="Type email content here..."
-            />
+            <div className="react-quill-wrapper email-preview-message-quill-react">
+              <ReactQuill
+                theme="snow"
+                value={messageValue ?? ""}
+                onChange={(html) => {
+                  if (typeof onMessageChange === "function") {
+                    onMessageChange(html ?? "");
+                  }
+                }}
+                modules={EMAIL_PREVIEW_MESSAGE_QUILL_MODULES}
+                formats={EMAIL_PREVIEW_MESSAGE_QUILL_FORMATS}
+                placeholder="Type email content here..."
+              />
+            </div>
           </div>
         </div>
+      </div>
       </div>
     </div>
   );
@@ -1413,6 +1429,7 @@ EmailPreviewPanel.propTypes = {
   }),
   onEditableFieldChange: PropTypes.func.isRequired,
   messageValue: PropTypes.string,
+  /** Receives plain HTML/string from ReactQuill. */
   onMessageChange: PropTypes.func.isRequired,
 };
 
@@ -4243,9 +4260,9 @@ ${body}
                             }));
                           }}
                           messageValue={previewMessageText}
-                          onMessageChange={(event) => {
+                          onMessageChange={(next) => {
                             setIsPreviewMessageDirty(true);
-                            setPreviewMessageText(event?.target?.value ?? "");
+                            setPreviewMessageText(next ?? "");
                           }}
                         />
                       </div>
