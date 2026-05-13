@@ -269,7 +269,7 @@ function Header({ onMenuToggle, mobileMenuOpen: externalMobileMenuOpen, isVendor
 
       </div>
 
-      {/* RIGHT — User + Icons */}
+      {/* RIGHT — User + Icons (GRO / Custom Clearance skip module shortcuts; still show help, alerts, profile) */}
       <div className="right-section">
         {!restrictedBoardUser && (
           <>
@@ -325,79 +325,79 @@ function Header({ onMenuToggle, mobileMenuOpen: externalMobileMenuOpen, isVendor
             >
               <FiFolder />
             </button> */}
-            <Tooltip id="help" place="bottom" content="Help" />
-            <button
-              className="icon-btn icon-btn-hide-mobile"
-              aria-label="Help"
-              onClick={handleHelpClick}
-              data-tooltip-id="help"
-            >
-              <FiHelpCircle />
-            </button>
-
-            <div className="notification-btn-wrapper">
-              <Tooltip id="notifications" place="bottom" content="Notifications" />
-              <button
-                className={`icon-btn ${showNotificationsModal ? 'active' : ''}`}
-                aria-label="Notifications"
-                onClick={() => setShowNotificationsModal(true)}
-                data-tooltip-id="notifications"
-              >
-                <FiBell />
-              </button>
-              {notificationCount > 0 && (
-                <span className="notification-badge">{notificationCount > 99 ? '99+' : notificationCount}</span>
-              )}
-            </div>
-            <Tooltip id="user-profile" place="bottom" content="User Profile" />
-            <div className="user-circle-wrapper" ref={dropdownRef}>
-              <div
-                className={`user-circle ${showUserDropdown ? 'active' : ''}`}
-                onClick={handleUserCircleClick}
-                data-tooltip-id="user-profile"
-              >
-                {resolvedAvatar && !imageError ? (
-                  <img
-                    src={resolvedAvatar}
-                    alt={resolvedUserName || 'User'}
-                    style={{
-                      width: '100%',
-                      height: '100%',
-                      borderRadius: '50%',
-                      objectFit: 'cover'
-                    }}
-                    onError={() => setImageError(true)}
-                  />
-                ) : (
-                  <span className="user-letter">{resolvedInitial}</span>
-                )}
-              </div>
-
-              {showUserDropdown && (
-                <div className="user-dropdown">
-                  <button
-                    className="dropdown-item"
-                    onClick={handleMyAccountsClick}
-                  >
-                    My Account
-                  </button>
-                  <button
-                    className="dropdown-item"
-                    onClick={handleChangePasswordClick}
-                  >
-                    Change Password
-                  </button>
-                  <button
-                    className="dropdown-item"
-                    onClick={handleLogoutClick}
-                  >
-                    Logout
-                  </button>
-                </div>
-              )}
-            </div>
           </>
         )}
+        <Tooltip id="help" place="bottom" content="Help" />
+        <button
+          className="icon-btn icon-btn-hide-mobile"
+          aria-label="Help"
+          onClick={handleHelpClick}
+          data-tooltip-id="help"
+        >
+          <FiHelpCircle />
+        </button>
+
+        <div className="notification-btn-wrapper">
+          <Tooltip id="notifications" place="bottom" content="Notifications" />
+          <button
+            className={`icon-btn ${showNotificationsModal ? 'active' : ''}`}
+            aria-label="Notifications"
+            onClick={() => setShowNotificationsModal(true)}
+            data-tooltip-id="notifications"
+          >
+            <FiBell />
+          </button>
+          {notificationCount > 0 && (
+            <span className="notification-badge">{notificationCount > 99 ? '99+' : notificationCount}</span>
+          )}
+        </div>
+        <Tooltip id="user-profile" place="bottom" content="User Profile" />
+        <div className="user-circle-wrapper" ref={dropdownRef}>
+          <div
+            className={`user-circle ${showUserDropdown ? 'active' : ''}`}
+            onClick={handleUserCircleClick}
+            data-tooltip-id="user-profile"
+          >
+            {resolvedAvatar && !imageError ? (
+              <img
+                src={resolvedAvatar}
+                alt={resolvedUserName || 'User'}
+                style={{
+                  width: '100%',
+                  height: '100%',
+                  borderRadius: '50%',
+                  objectFit: 'cover'
+                }}
+                onError={() => setImageError(true)}
+              />
+            ) : (
+              <span className="user-letter">{resolvedInitial}</span>
+            )}
+          </div>
+
+          {showUserDropdown && (
+            <div className="user-dropdown">
+              <button
+                className="dropdown-item"
+                onClick={handleMyAccountsClick}
+              >
+                My Account
+              </button>
+              <button
+                className="dropdown-item"
+                onClick={handleChangePasswordClick}
+              >
+                Change Password
+              </button>
+              <button
+                className="dropdown-item"
+                onClick={handleLogoutClick}
+              >
+                Logout
+              </button>
+            </div>
+          )}
+        </div>
       </div>
 
       {/* My Accounts Modal */}
