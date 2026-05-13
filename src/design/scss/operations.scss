@@ -2909,8 +2909,9 @@ $send-report-optional: #80868b;
   }
 }
 
-/* Husbandry Transport: premium 30/70 layout, panel cards */
-.transport-form {
+/* Husbandry Transport & Waste Disposal: premium 30/70 layout, panel cards */
+.transport-form,
+.waste-disposal-form {
   .transport-request-layout {
     display: grid;
     grid-template-columns: minmax(0, 30fr) minmax(0, 70fr);
@@ -2983,8 +2984,9 @@ $send-report-optional: #80868b;
   .transport-upload-box {
     margin-top: 2px;
 
-    /* Match compact CG Pass request email (Transport omits operation-section-form-layout path) */
-    .attachment-list-wrapper .document-upload-zone {
+    /* Compact zone: Transport (AttachmentsList) + Waste (direct .document-upload-zone) */
+    .attachment-list-wrapper .document-upload-zone,
+    .document-upload-zone {
       height: auto;
       min-height: 64px;
       padding: 14px 16px;
@@ -2993,18 +2995,22 @@ $send-report-optional: #80868b;
     }
 
     .attachment-list-wrapper .document-upload-zone:hover,
-    .attachment-list-wrapper .document-upload-zone.dragging {
+    .attachment-list-wrapper .document-upload-zone.dragging,
+    .document-upload-zone:hover,
+    .document-upload-zone.dragging {
       transform: none;
     }
 
-    .attachment-list-wrapper .upload-zone-content {
+    .attachment-list-wrapper .upload-zone-content,
+    .upload-zone-content {
       flex-direction: column;
       justify-content: center;
       gap: 4px;
       min-height: 0;
     }
 
-    .attachment-list-wrapper .upload-main-text {
+    .attachment-list-wrapper .upload-main-text,
+    .upload-main-text {
       font-size: 13px;
       line-height: 1.35;
       font-weight: 600;
@@ -3593,11 +3599,13 @@ $send-report-optional: #80868b;
 
 @media (max-width: 900px) {
 
-  .transport-form .transport-request-layout {
+  .transport-form .transport-request-layout,
+  .waste-disposal-form .transport-request-layout {
     grid-template-columns: 1fr;
   }
 
-  .transport-form .transport-panel-card {
+  .transport-form .transport-panel-card,
+  .waste-disposal-form .transport-panel-card {
     max-height: none;
   }
 
