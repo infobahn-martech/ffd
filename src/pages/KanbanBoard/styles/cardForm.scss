@@ -134,17 +134,17 @@
 }
 
 .gro-card-view .gro-pass-segment--active {
-  background: #10b981 !important;
-  border-color: #059669 !important;
+  background: #00368c !important;
+  border-color: #00368c !important;
   color: #ffffff !important;
-  box-shadow: 0 4px 14px rgba(16, 185, 129, 0.28);
+  box-shadow: 0 4px 14px #00368c(16, 185, 129, 0.28);
 }
 
 .gro-card-view .gro-pass-segment--popover-open {
-  background: #ecfdf5 !important;
-  border-color: #6ee7b7 !important;
-  color: #047857 !important;
-  box-shadow: 0 0 0 2px rgba(16, 185, 129, 0.2);
+  // background: #00368c !important;
+  border-color: #00368c !important;
+  color: #00368c !important;
+  box-shadow: 0 0 0 2px #00368c(16, 185, 129, 0.2);
 }
 
 .gro-card-view .gro-pass-segment--popover-open:disabled {
