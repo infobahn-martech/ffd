@@ -157,16 +157,8 @@ const CheckList = () => {
       contentClass: "table-content",
     },
     {
-      name: "Vessel Type",
-      selector: "vessel_type",
-      sort: true,
-      width: "150",
-      thclass: "tb-head",
-      contentClass: "table-content",
-    },
-    {
-      name: "Barge Type",
-      selector: "barge_type",
+      name: "Port Name",
+      selector: "port_name",
       sort: true,
       width: "150",
       thclass: "tb-head",
