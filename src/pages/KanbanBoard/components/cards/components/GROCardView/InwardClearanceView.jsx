@@ -192,7 +192,7 @@ InwardClearanceToolbar.propTypes = {
   isGroLoadingDisabled: PropTypes.bool.isRequired,
 };
 
-/** Documents list — verify / reupload remarks / approve / download. */
+/** Documents list — verify / reject remarks / download. */
 function InwardClearanceView({
   documents,
   isGroLoading,
@@ -218,42 +218,37 @@ function InwardClearanceView({
           const isPending = verifyStatus === 0;
           const isVerified = verifyStatus === 1;
           const isReupload = verifyStatus === 2;
+          const isRejected = verifyStatus === 3;
           const remarkOpen = activeRemarkDoc === rowKey;
           const rowBusy = verifyingDocId === rowKey;
           const remarksTextRaw = doc?.remarks != null && String(doc.remarks).trim() !== "" ? String(doc.remarks).trim() : "";
-          const remarksForPill = remarksTextRaw;
-          const showRemarksPill = isReupload && Boolean(remarksForPill);
+          const showRemarksPill = Boolean(remarksTextRaw);
           const hasFile = groDocumentHasDownloadableUrl(doc);
 
-          const rowStatusClass = isVerified
-            ? "gro-document-row-status-verified"
-            : isReupload
-              ? "gro-document-row-status-reupload"
-              : "gro-document-row-status-pending";
+          let rowStatusClass = "gro-document-row-status-pending";
+          if (isVerified) rowStatusClass = "gro-document-row-status-verified";
+          else if (isReupload) rowStatusClass = "gro-document-row-status-reupload";
+          else if (isRejected) rowStatusClass = "gro-document-row-status-rejected";
 
           return (
-            <div
-              key={rowKey}
-              className={`gro-document-row ${rowStatusClass}${remarkOpen ? " gro-document-row-editing" : ""}`}
-            >
+            <div key={rowKey} className={`gro-document-row ${rowStatusClass}${remarkOpen ? " gro-document-row-editing" : ""}`}>
               <GroDocumentFilePreview fileName={doc.file_name} fileUrl={doc.file_url} />
               <div className="gro-document-main">
                 <div className="gro-document-main-top">
                   <span className="gro-document-title">{label}</span>
                   {showRemarksPill ? (
-                    <span className="gro-document-remarks-pill" title={remarksForPill}>
-                      <span className="gro-document-remarks-pill-label">Remarks</span>
-                      <span className="gro-document-remarks-pill-text">{remarksForPill}</span>
+                    <span className="gro-document-remarks-badge" title={remarksTextRaw}>
+                      Remarks: {remarksTextRaw}
                     </span>
                   ) : null}
                 </div>
               </div>
               {remarkOpen ? (
-                <div className="gro-inline-remark">
+                <div className="gro-inline-remark gro-inline-remark--compact">
                   <input
                     type="text"
                     className="gro-inline-remark-input"
-                    placeholder="Enter remarks..."
+                    placeholder="Enter remarks"
                     value={remarkDraft}
                     disabled={Boolean(verifyingDocId)}
                     onChange={onRemarkDraftChange}
@@ -271,11 +266,7 @@ function InwardClearanceView({
               ) : null}
               <div className="gro-document-actions">
                 {isPending ? (
-                  <button
-                    type="button"
-                    className="gro-doc-action-btn gro-doc-action-btn--approved"
-                    onClick={() => onTickClick(doc, rowKey)}
-                  >
+                  <button type="button" className="gro-doc-action-btn gro-doc-action-btn--approved" onClick={() => onTickClick(doc, rowKey)}>
                     <IconTick />
                     <span>Approved</span>
                   </button>
@@ -283,7 +274,7 @@ function InwardClearanceView({
                 {isVerified ? (
                   <button
                     type="button"
-                    className="gro-doc-action-btn gro-doc-action-btn--approved gro-doc-action-btn--state-readonly-approved"
+                    className="gro-doc-action-btn gro-doc-action-btn--approved gro-doc-action-btn--readonly"
                     tabIndex={-1}
                     aria-label="Approved"
                   >
@@ -304,14 +295,15 @@ function InwardClearanceView({
                   </button>
                 ) : null}
                 {isReupload ? (
-                  <button
-                    type="button"
-                    className="gro-doc-action-btn gro-doc-action-btn--reject gro-doc-action-btn--state-readonly-reupload"
-                    tabIndex={-1}
-                    aria-label="Reupload required"
-                  >
+                  <button type="button" className="gro-doc-action-btn gro-doc-action-btn--reupload gro-doc-action-btn--readonly" tabIndex={-1} aria-label="Reupload required">
                     <IconCross />
                     <span>Reupload</span>
+                  </button>
+                ) : null}
+                {isRejected ? (
+                  <button type="button" className="gro-doc-action-btn gro-doc-action-btn--rejected gro-doc-action-btn--readonly" tabIndex={-1} aria-label="Rejected">
+                    <IconCross />
+                    <span>Rejected</span>
                   </button>
                 ) : null}
                 {hasFile ? (

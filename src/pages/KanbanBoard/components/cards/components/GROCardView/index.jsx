@@ -15,6 +15,7 @@ import {
   splitInwardDateTimeString,
   parseGroPassRequestsResponse,
   firstNonEmptyGroDisplay,
+  getGroDocumentVerifyStatus,
 } from "./groCardUtils";
 
 function GROCardView({ card }) {
@@ -321,21 +322,25 @@ function GROCardView({ card }) {
     if (!activeRemarkDoc) return;
     const doc = documents.find((d) => d.__rowKey === activeRemarkDoc);
     if (!doc || !canVerifyDocument(doc)) {
-      notify("This document cannot be rejected (missing reference).", "error");
+      notify("This document cannot be updated (missing reference).", "error");
       return;
     }
+    const priorStatus = getGroDocumentVerifyStatus(doc);
+    const apiStatus = priorStatus === 2 ? 2 : 3;
     setVerifyingDocId(activeRemarkDoc);
     try {
       await groService.verifyGroDocs({
         call_id: Number(callId),
         document_id: Number(doc.document_id),
         call_task_document_id: Number(doc.call_task_document_id),
-        status: 2,
+        status: apiStatus,
         remarks: remarkDraft,
       });
       setDocumentRemarks((prev) => ({ ...prev, [activeRemarkDoc]: remarkDraft }));
-      setDocuments((prev) => prev.map((d) => (d.__rowKey === activeRemarkDoc ? { ...d, status: 2, remarks: remarkDraft } : d)));
-      notify("Document marked for reupload.", "success");
+      setDocuments((prev) =>
+        prev.map((d) => (d.__rowKey === activeRemarkDoc ? { ...d, status: apiStatus, remarks: remarkDraft } : d))
+      );
+      notify(apiStatus === 2 ? "Document marked for reupload." : "Document rejected.", "success");
       setActiveRemarkDoc(null);
       setRemarkDraft("");
     } catch (err) {
