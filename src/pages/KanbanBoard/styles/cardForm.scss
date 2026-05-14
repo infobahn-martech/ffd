@@ -651,8 +651,8 @@
 }
 
 .gro-card-view .gro-inline-remark-btn-submit {
-  height: 36px;
-  padding: 0 14px;
+  height: 35px;
+  padding: 0 10px;
   font-size: 13px;
   font-weight: 600;
   color: #ffffff;
@@ -660,13 +660,13 @@
   border-radius: 10px;
   cursor: pointer;
   text-transform: none;
-  background: #2563eb;
+  background: #00368c;
   box-shadow: none;
   transition: background 0.12s ease;
 }
 
 .gro-card-view .gro-inline-remark-btn-submit:hover:not(:disabled) {
-  background: #1d4ed8;
+  background: #00368c;
 }
 
 .gro-card-view .gro-document-actions {
