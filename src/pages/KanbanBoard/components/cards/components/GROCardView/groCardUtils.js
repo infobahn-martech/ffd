@@ -248,6 +248,41 @@ export const buildGroPassIssueDateString = (issuePickerParts) => {
   return `${date} ${formattedTime}:00`;
 };
 
+/** Fixed CSS for portaled pass upload popover below an anchor (getBoundingClientRect). */
+export const computeGroPassUploadPopoverPosition = (anchorRect) => {
+  const margin = 16;
+  const gap = 8;
+  const defaultWidth = 380;
+  if (anchorRect == null || typeof window === "undefined") {
+    return {
+      position: "fixed",
+      top: "24px",
+      left: "16px",
+      width: "380px",
+      maxWidth: "calc(100vw - 32px)",
+      zIndex: 9999,
+    };
+  }
+  const maxW = Math.min(defaultWidth, Math.max(280, window.innerWidth - 2 * margin));
+  let left = anchorRect.left;
+  const top = anchorRect.bottom + gap;
+  if (left + maxW > window.innerWidth - margin) {
+    left = anchorRect.right - maxW;
+  }
+  if (left < margin) left = margin;
+  if (left + maxW > window.innerWidth - margin) {
+    left = Math.max(margin, window.innerWidth - margin - maxW);
+  }
+  return {
+    position: "fixed",
+    top: `${top}px`,
+    left: `${left}px`,
+    width: `${maxW}px`,
+    maxWidth: "calc(100vw - 32px)",
+    zIndex: 9999,
+  };
+};
+
 export const groPassStatusBadgeTone = (raw) => {
   const s = String(raw ?? "")
     .trim()

@@ -157,7 +157,7 @@
   border-radius: 20px;
   border: 1px solid #e2e8f0;
   box-shadow: 0 6px 24px rgba(15, 23, 42, 0.05);
-  overflow: hidden;
+  overflow: visible;
   display: flex;
   flex-direction: column;
 }
@@ -411,6 +411,27 @@
 
 .gro-pass-upload-datetime-popper {
   z-index: 16000 !important;
+}
+
+/* Portaled CG/Zawil pass upload — floats above sticky table header / pagination */
+.gro-pass-upload-popover {
+  position: fixed;
+  z-index: 9999;
+  width: 380px;
+  max-width: calc(100vw - 32px);
+  box-sizing: border-box;
+  pointer-events: auto;
+}
+
+.gro-pass-upload-popover .gro-inward-popover {
+  position: relative;
+  top: auto;
+  right: auto;
+  left: auto;
+  width: 100%;
+  max-width: none;
+  z-index: auto;
+  overflow: visible;
 }
 
 .gro-card-view .gro-pass-upload-passno-input {

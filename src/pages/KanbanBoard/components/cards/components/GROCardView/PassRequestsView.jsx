@@ -1,9 +1,11 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { createPortal } from "react-dom";
 import PropTypes from "prop-types";
 import { FiChevronLeft, FiChevronRight, FiInbox, FiUpload } from "react-icons/fi";
 import GroPassUploadPopoverForm from "./GroPassUploadPopoverForm";
 import {
   buildGroPassIssueDateString,
+  computeGroPassUploadPopoverPosition,
   flattenGroPassRows,
   getGroCrewPassId,
   getGroWorkOrderId,
@@ -47,18 +49,22 @@ const PassRequestsView = ({
   const [page, setPage] = useState(1);
   const [uploadMode, setUploadMode] = useState(null);
   const [uploadTarget, setUploadTarget] = useState(null);
+  const [singlePopoverRect, setSinglePopoverRect] = useState(null);
   const [form, setForm] = useState(initialUploadForm);
   const [fieldErrors, setFieldErrors] = useState({});
   const [formLevelError, setFormLevelError] = useState("");
   const [submitting, setSubmitting] = useState(false);
   const fileInputRef = useRef(null);
   const headerCheckboxRef = useRef(null);
-  const singlePassAnchorRef = useRef(null);
+  const singleUploadTriggerRef = useRef(null);
+  const singlePopoverPortalRef = useRef(null);
 
   useEffect(() => {
     setPage(1);
     setUploadMode(null);
     setUploadTarget(null);
+    setSinglePopoverRect(null);
+    singleUploadTriggerRef.current = null;
     setForm(initialUploadForm());
     setFieldErrors({});
     setFormLevelError("");
@@ -92,6 +98,24 @@ const PassRequestsView = ({
     el.indeterminate = n > 0 && sel > 0 && sel < n;
   }, [selectedRowIds, visibleSelectableIds]);
 
+  const syncSinglePopoverRect = useCallback(() => {
+    if (singleUploadTriggerRef.current) {
+      setSinglePopoverRect(singleUploadTriggerRef.current.getBoundingClientRect());
+    }
+  }, []);
+
+  useEffect(() => {
+    if (uploadMode !== "single" || !uploadTarget) return undefined;
+    syncSinglePopoverRect();
+    const bump = () => syncSinglePopoverRect();
+    window.addEventListener("scroll", bump, true);
+    window.addEventListener("resize", bump);
+    return () => {
+      window.removeEventListener("scroll", bump, true);
+      window.removeEventListener("resize", bump);
+    };
+  }, [uploadMode, uploadTarget, page, syncSinglePopoverRect]);
+
   const resetUploadForm = useCallback(() => {
     setForm(initialUploadForm());
     setFieldErrors({});
@@ -102,9 +126,10 @@ const PassRequestsView = ({
   const hideSinglePassUpload = useCallback(() => {
     setUploadMode(null);
     setUploadTarget(null);
+    setSinglePopoverRect(null);
+    singleUploadTriggerRef.current = null;
     resetUploadForm();
     setSubmitting(false);
-    singlePassAnchorRef.current = null;
   }, [resetUploadForm]);
 
   const validateUploadForm = () => {
@@ -130,8 +155,13 @@ const PassRequestsView = ({
     fd.append("document_copy", form.file);
   };
 
-  const openSingleUpload = (rowPayload) => {
+  const openSingleUpload = (rowPayload, e) => {
     resetUploadForm();
+    const btn = e?.currentTarget;
+    if (btn && btn instanceof Element) {
+      singleUploadTriggerRef.current = btn;
+      setSinglePopoverRect(btn.getBoundingClientRect());
+    }
     setUploadMode("single");
     setUploadTarget(rowPayload);
   };
@@ -174,6 +204,7 @@ const PassRequestsView = ({
     if (uploadMode !== "single" || !uploadTarget) return undefined;
     const passClickIgnoresOutsideClose = [
       ".gro-inward-popover",
+      ".gro-pass-upload-popover",
       ".MuiPopover-root",
       ".MuiPickersPopper-root",
       ".MuiDialog-root",
@@ -188,7 +219,9 @@ const PassRequestsView = ({
           return;
         }
       }
-      if (singlePassAnchorRef.current && !singlePassAnchorRef.current.contains(ev.target)) {
+      const inPortal = singlePopoverPortalRef.current?.contains(ev.target);
+      const onTrigger = singleUploadTriggerRef.current?.contains(ev.target);
+      if (!inPortal && !onTrigger) {
         hideSinglePassUpload();
       }
     };
@@ -202,215 +235,242 @@ const PassRequestsView = ({
 
   const singleTitle = passVariant === "cg" ? "Upload CG Pass" : "Upload Zawil Pass";
 
+  const singlePopoverStyle =
+    uploadMode === "single" && uploadTarget && singlePopoverRect != null
+      ? computeGroPassUploadPopoverPosition(singlePopoverRect)
+      : null;
+
+  const singlePortal =
+    uploadMode === "single" &&
+    uploadTarget &&
+    singlePopoverStyle &&
+    typeof document !== "undefined" &&
+    document.body
+      ? createPortal(
+          <div
+            ref={singlePopoverPortalRef}
+            className="gro-pass-upload-popover"
+            style={singlePopoverStyle}
+            role="presentation"
+          >
+            <GroPassUploadPopoverForm
+              title={singleTitle}
+              passNo={form.passNo}
+              onPassNoChange={(e) => setForm((prev) => ({ ...prev, passNo: e.target.value }))}
+              issuePickerParts={form.issuePickerParts}
+              onIssueDateTimeChange={({ date, time }) =>
+                setForm((prev) => ({
+                  ...prev,
+                  issuePickerParts: {
+                    date: date || "",
+                    time: time != null && time !== "" ? String(time).slice(0, 5) : "",
+                  },
+                }))
+              }
+              fileInputRef={fileInputRef}
+              fileName={form.file?.name}
+              onFileInputChange={(e) => setForm((prev) => ({ ...prev, file: e.target.files?.[0] ?? null }))}
+              onCancel={handleCancelUpload}
+              onSubmit={handleSubmitUpload}
+              submitting={submitting}
+              formLevelError={formLevelError}
+              hasIssueDateError={Boolean(fieldErrors.issueDate)}
+              datetimePopperClassName="gro-pass-upload-datetime-popper"
+            />
+          </div>,
+          document.body
+        )
+      : null;
+
   if (loading) {
     return (
-      <div className="gro-pass-table-panel">
-        <div className="gro-pass-table-state gro-pass-table-state--loading">Loading pass requests…</div>
-      </div>
+      <>
+        <div className="gro-pass-table-panel">
+          <div className="gro-pass-table-state gro-pass-table-state--loading">Loading pass requests…</div>
+        </div>
+        {singlePortal}
+      </>
     );
   }
 
   if (errorMessage) {
     return (
-      <div className="gro-pass-table-panel">
-        <div className="gro-pass-table-state gro-pass-table-state--error">
-          <span>{errorMessage}</span>
-          {onRetry ? (
-            <button type="button" className="gro-pass-retry-btn" onClick={onRetry}>
-              Retry
-            </button>
-          ) : null}
+      <>
+        <div className="gro-pass-table-panel">
+          <div className="gro-pass-table-state gro-pass-table-state--error">
+            <span>{errorMessage}</span>
+            {onRetry ? (
+              <button type="button" className="gro-pass-retry-btn" onClick={onRetry}>
+                Retry
+              </button>
+            ) : null}
+          </div>
         </div>
-      </div>
+        {singlePortal}
+      </>
     );
   }
 
   if (!hasWorkOrders || crewRowCount === 0) {
     return (
-      <div className="gro-pass-table-panel">
-        <div className="gro-pass-table-state gro-pass-table-state--empty">
-          <span className="gro-pass-empty-icon" aria-hidden>
-            <FiInbox />
-          </span>
-          <p className="gro-pass-empty-title">No pass requests yet</p>
-          <p className="gro-pass-empty-subtitle">When crew pass lines are submitted for this call, they will appear here.</p>
+      <>
+        <div className="gro-pass-table-panel">
+          <div className="gro-pass-table-state gro-pass-table-state--empty">
+            <span className="gro-pass-empty-icon" aria-hidden>
+              <FiInbox />
+            </span>
+            <p className="gro-pass-empty-title">No pass requests yet</p>
+            <p className="gro-pass-empty-subtitle">When crew pass lines are submitted for this call, they will appear here.</p>
+          </div>
         </div>
-      </div>
+        {singlePortal}
+      </>
     );
   }
 
   return (
-    <div className="gro-pass-table-panel">
-      <div className="gro-pass-table-scroll">
-        <table className="gro-pass-table">
-          <thead>
-            <tr>
-              <th className="gro-pass-table-th-check">
-                <input
-                  ref={headerCheckboxRef}
-                  type="checkbox"
-                  className="gro-pass-row-check"
-                  checked={headerChecked}
-                  aria-label="Select all rows on this page"
-                  disabled={visibleSelectableIds.length === 0}
-                  onChange={onHeaderCheckboxChange}
-                />
-              </th>
-              <th>Crew name</th>
-              <th>Passport no</th>
-              <th>Nationality</th>
-              <th>Rank</th>
-              <th>SignOn/SignOff</th>
-              <th>Status</th>
-              <th>Requested date</th>
-              <th>Remarks</th>
-              <th className="gro-pass-table-th-action">Action</th>
-            </tr>
-          </thead>
-          <tbody>
-            {pagedRows.map((row) => {
-              if (row.kind === "empty-wo") {
-                return (
-                  <tr key={`${row.woKey}-empty`}>
-                    <td className="gro-pass-table-td-check gro-pass-table-td-check--empty" aria-hidden />
-                    <td colSpan={9} className="gro-pass-table-muted">
-                      No crew listed for this work order.
-                    </td>
-                  </tr>
-                );
-              }
-              const f = groPassCrewRowFields(row.crew);
-              const tone = groPassStatusBadgeTone(f.status);
-              const woId = row.woId ?? getGroWorkOrderId(row.wo);
-              const crewPassId = row.crewPassId ?? getGroCrewPassId(row.crew);
-              const rowDisabledReason =
-                passVariant === "cg"
-                  ? woId == null
-                    ? "Missing work order id."
-                    : null
-                  : crewPassId == null
-                    ? "Missing crew pass id."
-                    : null;
-              const rowPayload = {
-                workOrder: row.wo,
-                crew: row.crew,
-                crewIndex: row.crewIndex,
-                woNumber: row.woNumber,
-                woKey: row.woKey,
-                woId,
-                crewPassId,
-                fields: f,
-              };
-              const rid = groPassCrewRowId(row);
-              const checked = selectedRowIds.has(rid);
-              const singleOpen =
-                uploadMode === "single" && uploadTarget && groPassUploadTargetId(uploadTarget) === groPassUploadTargetId(rowPayload);
+    <>
+      <div className="gro-pass-table-panel">
+        <div className="gro-pass-table-scroll">
+          <table className="gro-pass-table">
+            <thead>
+              <tr>
+                <th className="gro-pass-table-th-check">
+                  <input
+                    ref={headerCheckboxRef}
+                    type="checkbox"
+                    className="gro-pass-row-check"
+                    checked={headerChecked}
+                    aria-label="Select all rows on this page"
+                    disabled={visibleSelectableIds.length === 0}
+                    onChange={onHeaderCheckboxChange}
+                  />
+                </th>
+                <th>Crew name</th>
+                <th>Passport no</th>
+                <th>Nationality</th>
+                <th>Rank</th>
+                <th>SignOn/SignOff</th>
+                <th>Status</th>
+                <th>Requested date</th>
+                <th>Remarks</th>
+                <th className="gro-pass-table-th-action">Action</th>
+              </tr>
+            </thead>
+            <tbody>
+              {pagedRows.map((row) => {
+                if (row.kind === "empty-wo") {
+                  return (
+                    <tr key={`${row.woKey}-empty`}>
+                      <td className="gro-pass-table-td-check gro-pass-table-td-check--empty" aria-hidden />
+                      <td colSpan={9} className="gro-pass-table-muted">
+                        No crew listed for this work order.
+                      </td>
+                    </tr>
+                  );
+                }
+                const f = groPassCrewRowFields(row.crew);
+                const tone = groPassStatusBadgeTone(f.status);
+                const woId = row.woId ?? getGroWorkOrderId(row.wo);
+                const crewPassId = row.crewPassId ?? getGroCrewPassId(row.crew);
+                const rowDisabledReason =
+                  passVariant === "cg"
+                    ? woId == null
+                      ? "Missing work order id."
+                      : null
+                    : crewPassId == null
+                      ? "Missing crew pass id."
+                      : null;
+                const rowPayload = {
+                  workOrder: row.wo,
+                  crew: row.crew,
+                  crewIndex: row.crewIndex,
+                  woNumber: row.woNumber,
+                  woKey: row.woKey,
+                  woId,
+                  crewPassId,
+                  fields: f,
+                };
+                const rid = groPassCrewRowId(row);
+                const checked = selectedRowIds.has(rid);
+                const isRowActive =
+                  uploadMode === "single" &&
+                  uploadTarget &&
+                  groPassUploadTargetId(uploadTarget) === groPassUploadTargetId(rowPayload);
 
-              return (
-                <tr key={rid}>
-                  <td className="gro-pass-table-td-check">
-                    <input
-                      type="checkbox"
-                      className="gro-pass-row-check"
-                      checked={checked}
-                      aria-label={`Select row ${f.crewName || rid}`}
-                      onChange={() => onRowSelectionToggle(rid)}
-                    />
-                  </td>
-                  <td>{f.crewName}</td>
-                  <td>{f.passport}</td>
-                  <td>{f.nationality}</td>
-                  <td>{f.rank}</td>
-                  <td>{f.movementType}</td>
-                  <td>
-                    <span className={`gro-pass-status-badge gro-pass-status-badge--${tone}`}>{f.status}</span>
-                  </td>
-                  <td>{f.requestedDate}</td>
-                  <td className="gro-pass-remarks-cell" title={f.remarks}>
-                    {f.remarks}
-                  </td>
-                  <td className="gro-pass-action-cell">
-                    <div
-                      className="gro-inward-anchor gro-pass-row-upload-anchor"
-                      ref={(el) => {
-                        if (singleOpen) singlePassAnchorRef.current = el;
-                        else if (singlePassAnchorRef.current === el) singlePassAnchorRef.current = null;
-                      }}
-                    >
+                return (
+                  <tr key={rid}>
+                    <td className="gro-pass-table-td-check">
+                      <input
+                        type="checkbox"
+                        className="gro-pass-row-check"
+                        checked={checked}
+                        aria-label={`Select row ${f.crewName || rid}`}
+                        onChange={() => onRowSelectionToggle(rid)}
+                      />
+                    </td>
+                    <td>{f.crewName}</td>
+                    <td>{f.passport}</td>
+                    <td>{f.nationality}</td>
+                    <td>{f.rank}</td>
+                    <td>{f.movementType}</td>
+                    <td>
+                      <span className={`gro-pass-status-badge gro-pass-status-badge--${tone}`}>{f.status}</span>
+                    </td>
+                    <td>{f.requestedDate}</td>
+                    <td className="gro-pass-remarks-cell" title={f.remarks}>
+                      {f.remarks}
+                    </td>
+                    <td className="gro-pass-action-cell">
                       <button
                         type="button"
-                        className={`gro-pass-upload-btn${singleOpen ? " gro-pass-upload-btn--popover-open" : ""}`}
+                        className={`gro-pass-upload-btn${isRowActive ? " gro-pass-upload-btn--popover-open" : ""}`}
                         disabled={Boolean(rowDisabledReason) || !onPassUploadSubmit}
                         title={rowDisabledReason ?? undefined}
-                        onClick={() => openSingleUpload(rowPayload)}
+                        onClick={(e) => openSingleUpload(rowPayload, e)}
                         aria-label={`Upload for ${f.crewName || "pass row"}`}
                       >
                         <FiUpload className="gro-pass-upload-btn-icon" aria-hidden />
                         Upload
                       </button>
-                      {singleOpen ? (
-                        <GroPassUploadPopoverForm
-                          title={singleTitle}
-                          passNo={form.passNo}
-                          onPassNoChange={(e) => setForm((prev) => ({ ...prev, passNo: e.target.value }))}
-                          issuePickerParts={form.issuePickerParts}
-                          onIssueDateTimeChange={({ date, time }) =>
-                            setForm((prev) => ({
-                              ...prev,
-                              issuePickerParts: {
-                                date: date || "",
-                                time: time != null && time !== "" ? String(time).slice(0, 5) : "",
-                              },
-                            }))
-                          }
-                          fileInputRef={fileInputRef}
-                          fileName={form.file?.name}
-                          onFileInputChange={(e) => setForm((prev) => ({ ...prev, file: e.target.files?.[0] ?? null }))}
-                          onCancel={handleCancelUpload}
-                          onSubmit={handleSubmitUpload}
-                          submitting={submitting}
-                          formLevelError={formLevelError}
-                          hasIssueDateError={Boolean(fieldErrors.issueDate)}
-                          datetimePopperClassName="gro-pass-upload-datetime-popper"
-                        />
-                      ) : null}
-                    </div>
-                  </td>
-                </tr>
-              );
-            })}
-          </tbody>
-        </table>
-      </div>
+                    </td>
+                  </tr>
+                );
+              })}
+            </tbody>
+          </table>
+        </div>
 
-      <div className="gro-pass-table-footer" aria-label="Table pagination">
-        <div className="gro-pass-pagination">
-          <span className="gro-pass-pagination__info">
-            Page {safePage} of {totalPages}
-          </span>
-          <div className="gro-pass-pagination__nav">
-            <button
-              type="button"
-              className="gro-pass-page-btn"
-              aria-label="Previous page"
-              disabled={safePage <= 1}
-              onClick={() => setPage((p) => Math.max(1, p - 1))}
-            >
-              <FiChevronLeft aria-hidden />
-            </button>
-            <button
-              type="button"
-              className="gro-pass-page-btn"
-              aria-label="Next page"
-              disabled={safePage >= totalPages}
-              onClick={() => setPage((p) => Math.min(totalPages, p + 1))}
-            >
-              <FiChevronRight aria-hidden />
-            </button>
+        <div className="gro-pass-table-footer" aria-label="Table pagination">
+          <div className="gro-pass-pagination">
+            <span className="gro-pass-pagination__info">
+              Page {safePage} of {totalPages}
+            </span>
+            <div className="gro-pass-pagination__nav">
+              <button
+                type="button"
+                className="gro-pass-page-btn"
+                aria-label="Previous page"
+                disabled={safePage <= 1}
+                onClick={() => setPage((p) => Math.max(1, p - 1))}
+              >
+                <FiChevronLeft aria-hidden />
+              </button>
+              <button
+                type="button"
+                className="gro-pass-page-btn"
+                aria-label="Next page"
+                disabled={safePage >= totalPages}
+                onClick={() => setPage((p) => Math.min(totalPages, p + 1))}
+              >
+                <FiChevronRight aria-hidden />
+              </button>
+            </div>
           </div>
         </div>
       </div>
-    </div>
+      {singlePortal}
+    </>
   );
 };
 
