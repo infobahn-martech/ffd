@@ -12,7 +12,7 @@ import transportCompanyService from "../../../../../../services/transportCompany
 import crewService from "../../../../../../services/crewService";
 import callFileService from "../../../../../../services/callFileService";
 import transportContentService from "../../../../../../services/transportContentService";
-import { buildTransportRequestFormData } from "../../../../../../store/TransportContent";
+import { buildPickupDateTime } from "../../../../../../store/TransportContent";
 
 const REQUEST_EMAIL_ACCEPT_ATTR = ".msg,.eml,.pdf,.doc,.docx";
 const REQUEST_EMAIL_EXT_RE = /\.(msg|eml|pdf|doc|docx)$/i;
@@ -382,11 +382,42 @@ const TransportContent = ({ formValues, handleChange, cardColor }) => {
       return;
     }
 
-    const formData = buildTransportRequestFormData({
-      formValues,
-      transportType,
-      callDetails,
-    });
+    const pickupDateTime = buildPickupDateTime(
+      formValues.transportDateTime,
+      formValues.transportTime
+    );
+
+    const payload = {
+      call_id: Number(callDetails?.call_id || ""),
+      vessel_id: Number(callDetails?.vessel_id || ""),
+      request_type: transportType === "thirdparty" ? "Third Party" : "Inhouse",
+      pickup_datetime: pickupDateTime,
+      from_location: formValues.transportFrom || "",
+      to_location: formValues.transportTo || "",
+      remarks: formValues.transportDescription || "",
+      crew: (formValues.selectedCrew || []).map((id) => ({
+        crew_change_id: Number(id),
+      })),
+    };
+
+    if (transportType === "inhouse") {
+      payload.vehicle_id = Number(formValues.transportVehicleTypeId || "");
+      payload.driver_id = Number(formValues.transportDriverId || "");
+      payload.invoice_branch = formValues.invoiceBranch || "";
+    }
+
+    if (transportType === "thirdparty") {
+      payload.transport_company_id = Number(formValues.transportCompanyId || "");
+      payload.transport_driver_id = Number(formValues.transportThirdPartyDriverId || "");
+    }
+
+    const formData = new FormData();
+    formData.append("data", JSON.stringify(payload));
+
+    const requestEmailFile = formValues.transportRequestEmail?.[0]?.file;
+    if (requestEmailFile) {
+      formData.append("request_email", requestEmailFile);
+    }
 
     setIsSavingTransport(true);
     try {
@@ -422,7 +453,7 @@ const TransportContent = ({ formValues, handleChange, cardColor }) => {
                   <div className="transport-upload-box">
                     <AttachmentsList
                       attachments={formValues.transportRequestEmail || []}
-                      onAdd={() => {}}
+                      onAdd={() => { }}
                       onRemove={handleRequestEmailRemoveAttachment}
                       cardColor={cardColor}
                       isDragging={isDraggingEmail}
