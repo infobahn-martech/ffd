@@ -10,6 +10,8 @@ import DateTimePickerField from "../../../components/DateTimePickerField";
 import vehicleService from "../../../../../../services/vehicleService";
 import transportCompanyService from "../../../../../../services/transportCompanyService";
 import crewService from "../../../../../../services/crewService";
+import transportContentService from "../../../../../../services/transportContentService";
+import { buildTransportRequestFormData } from "../../../../../../store/TransportContent";
 
 const REQUEST_EMAIL_ACCEPT_ATTR = ".msg,.eml,.pdf,.doc,.docx";
 const REQUEST_EMAIL_EXT_RE = /\.(msg|eml|pdf|doc|docx)$/i;
@@ -84,6 +86,7 @@ const TransportContent = ({ formValues, handleChange, cardColor }) => {
   const [loadingInhouseDrivers, setLoadingInhouseDrivers] = useState(false);
   const [loadingCompanies, setLoadingCompanies] = useState(false);
   const [loadingThirdPartyDrivers, setLoadingThirdPartyDrivers] = useState(false);
+  const [isSavingTransport, setIsSavingTransport] = useState(false);
 
   // Invoice Branch options
   const invoiceBranchOptions = [
@@ -338,27 +341,36 @@ const TransportContent = ({ formValues, handleChange, cardColor }) => {
     handleChange("transportRequestEmail")({ target: { value: [] } });
   };
 
-  // Handle save
-  const handleSave = () => {
-    console.log("Saving transport data:", {
-      transportRequestEmail: formValues.transportRequestEmail,
-      transportType: formValues.transportType,
-      selectedCrew: formValues.selectedCrew,
-      transportVehicleTypeId: formValues.transportVehicleTypeId,
-      transportDriverId: formValues.transportDriverId,
-      transportCompanyId: formValues.transportCompanyId,
-      transportThirdPartyDriverId: formValues.transportThirdPartyDriverId,
-      driverName: formValues.driverName,
-      dateTime: formValues.transportDateTime,
-      time: formValues.transportTime,
-      from: formValues.transportFrom,
-      fromNotes: formValues.transportFromNotes,
-      to: formValues.transportTo,
-      toNotes: formValues.transportToNotes,
-      invoiceBranch: formValues.invoiceBranch,
-      transportDescription: formValues.transportDescription,
+  const handleSave = useCallback(async () => {
+    if (!callId) {
+      notify("Call is required to save a transport request.", "error", "top-center");
+      return;
+    }
+
+    const formData = buildTransportRequestFormData({
+      formValues,
+      transportType,
+      callId,
     });
-  };
+
+    setIsSavingTransport(true);
+    try {
+      const response = await transportContentService.createTransportRequest(formData);
+      notify(
+        response?.data?.message || "Transport request created successfully",
+        "success",
+        "top-center"
+      );
+    } catch (error) {
+      notify(
+        error?.response?.data?.message || "Failed to create transport request",
+        "error",
+        "top-center"
+      );
+    } finally {
+      setIsSavingTransport(false);
+    }
+  }, [callId, formValues, transportType]);
 
   return (
     <div className="cardform-left-full" style={{ "--card-color": cardColor }}>
@@ -567,8 +579,13 @@ const TransportContent = ({ formValues, handleChange, cardColor }) => {
               </div>
 
               <div className="transport-save-footer">
-                <button type="button" className="form-save-button" onClick={handleSave}>
-                  Save
+                <button
+                  type="button"
+                  className="form-save-button"
+                  onClick={handleSave}
+                  disabled={isSavingTransport}
+                >
+                  {isSavingTransport ? "Saving..." : "Save"}
                 </button>
               </div>
             </div>
