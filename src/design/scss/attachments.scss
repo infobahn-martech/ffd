@@ -133,6 +133,7 @@
 .file-icon-doc,
 .file-icon-image,
 .file-icon-excel,
+.file-icon-msg,
 .file-icon-default {
   display: flex;
   align-items: center;
@@ -274,73 +275,14 @@
   box-shadow: none;
 }
 
-/* Checklist section (same tab, below attachment list) */
+/* Checklist block: same list/category layout as attachments (no extra nested card shell) */
 .checklist-section {
   border-top: 1px solid #f0f0f0;
-}
-
-.checklist-section-body {
-  display: flex;
-  flex-direction: column;
-  gap: 16px;
-  padding: 20px 22px 24px;
-}
-
-.checklist-item-card {
-  display: flex;
-  flex-direction: column;
-  gap: 12px;
-  padding: 16px 20px;
-  background: #ffffff;
-  border-radius: 12px;
-  border: 1px solid #e2e2ea;
-  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
-}
-
-.checklist-item-title {
-  font-size: 15px;
-  font-weight: 700;
-  color: #1a1a1a;
-  margin: 0;
-  line-height: 1.35;
-  word-break: break-word;
-}
-
-.checklist-item-docs {
-  display: flex;
-  flex-direction: column;
-  gap: 12px;
 }
 
 .checklist-doc-empty {
   margin: 0;
   font-size: 13px;
   color: #777;
-}
-
-.attachment-item--checklist {
-  align-items: flex-start;
-}
-
-.attachment-item--checklist .attachment-actions {
-  align-self: center;
-}
-
-.attachment-checklist-lines {
-  display: flex;
-  flex-direction: column;
-  gap: 6px;
-  font-size: 13px;
-  color: #444;
-  line-height: 1.45;
-}
-
-.attachment-checklist-line {
-  word-break: break-word;
-}
-
-.attachment-checklist-line-label {
-  font-weight: 600;
-  color: #1a1a1a;
-  margin-right: 6px;
+  padding: 2px 0 0;
 }

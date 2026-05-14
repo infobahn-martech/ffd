@@ -3,7 +3,7 @@ import { useEffect, useMemo, useState } from "react";
 import attachmentsService from "../../../../../services/attachmentsService";
 import CardTabListLoading from "../../../../../components/CardTabListLoading";
 import "../../../../../design/scss/attachments.scss";
-const AttachmentItem = ({ attachment, onView, cardColor, variant = "default" }) => {
+const AttachmentItem = ({ attachment, onView, cardColor }) => {
   const getFileIcon = (fileName) => {
     const extension = fileName?.split('.').pop()?.toLowerCase() || '';
 
@@ -59,6 +59,28 @@ const AttachmentItem = ({ attachment, onView, cardColor, variant = "default" }) 
       );
     }
 
+    // Outlook .msg
+    if (extension === "msg") {
+      return (
+        <div className="file-icon-msg">
+          <svg width="32" height="32" viewBox="0 0 32 32" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <rect width="32" height="32" rx="6" fill="#4F46E5" />
+            <path
+              d="M9 8.5h14a1 1 0 011 1v4.5H8V9.5a1 1 0 011-1z"
+              stroke="white"
+              strokeWidth="1.1"
+              fill="white"
+              fillOpacity="0.15"
+            />
+            <path d="M9 9.5l7 3 7-3" stroke="white" strokeWidth="1.1" strokeLinecap="round" strokeLinejoin="round" />
+            <text x="16" y="23.5" textAnchor="middle" fill="white" fontSize="8" fontWeight="700">
+              MSG
+            </text>
+          </svg>
+        </div>
+      );
+    }
+
     // Default Document Icon
     return (
       <div className="file-icon-default">
@@ -100,49 +122,29 @@ const AttachmentItem = ({ attachment, onView, cardColor, variant = "default" }) 
   };
 
   const displayName = attachment.fileName?.trim() || "—";
-  const isChecklist = variant === "checklist";
 
   return (
-    <div className={`attachment-item${isChecklist ? " attachment-item--checklist" : ""}`}>
+    <div className="attachment-item">
       <div className="attachment-icon-wrapper">
         {getFileIcon(attachment.fileName)}
       </div>
       <div className="attachment-details">
-        {isChecklist ? (
-          <div className="attachment-checklist-lines">
-            <div className="attachment-checklist-line">
-              <span className="attachment-checklist-line-label">Uploaded file:</span>
-              {displayName}
-            </div>
-            <div className="attachment-checklist-line">
-              <span className="attachment-checklist-line-label">Uploaded by:</span>
-              {attachment.uploadedBy?.trim() || "—"}
-            </div>
-            <div className="attachment-checklist-line">
-              <span className="attachment-checklist-line-label">Date:</span>
-              {formatDate(attachment.uploadedAt)}
-            </div>
-          </div>
-        ) : (
-          <>
-            <div className="attachment-name">{displayName}</div>
-            <div className="attachment-meta">
-              {attachment.fileSize != null && attachment.fileSize > 0 && (
-                <>
-                  <span className="attachment-size">{formatFileSize(attachment.fileSize)}</span>
-                  <span className="attachment-separator">•</span>
-                </>
-              )}
-              <span className="attachment-date">{formatDate(attachment.uploadedAt)}</span>
-              {attachment.uploadedBy && (
-                <>
-                  <span className="attachment-separator">•</span>
-                  <span className="attachment-uploader">by {attachment.uploadedBy}</span>
-                </>
-              )}
-            </div>
-          </>
-        )}
+        <div className="attachment-name">{displayName}</div>
+        <div className="attachment-meta">
+          {attachment.fileSize != null && attachment.fileSize > 0 && (
+            <>
+              <span className="attachment-size">{formatFileSize(attachment.fileSize)}</span>
+              <span className="attachment-separator">•</span>
+            </>
+          )}
+          <span className="attachment-date">{formatDate(attachment.uploadedAt)}</span>
+          {attachment.uploadedBy && (
+            <>
+              <span className="attachment-separator">•</span>
+              <span className="attachment-uploader">by {attachment.uploadedBy}</span>
+            </>
+          )}
+        </div>
       </div>
       <div className="attachment-actions">
         {onView && (
@@ -183,7 +185,6 @@ AttachmentItem.propTypes = {
   }).isRequired,
   onView: PropTypes.func,
   cardColor: PropTypes.string,
-  variant: PropTypes.oneOf(["default", "checklist"]),
 };
 
 const AttachmentCategory = ({ label, attachments, onView, cardColor }) => {
@@ -293,36 +294,47 @@ AttachmentList.propTypes = {
 const ChecklistList = ({ checklistItems, onView, cardColor }) => {
   if (!checklistItems || checklistItems.length === 0) {
     return (
-      <div className="checklist-section-body">
-        <div className="cf-empty-row">
-          <p>No checklist items or documents.</p>
+      <div className="attachments-list">
+        <div className="attachments-categories">
+          <div className="cf-empty-row">
+            <p>No checklist items or documents.</p>
+          </div>
         </div>
       </div>
     );
   }
 
   return (
-    <div className="checklist-section-body">
-      {checklistItems.map((item) => (
-        <div key={String(item.id)} className="checklist-item-card">
-          <h4 className="checklist-item-title">{item.itemName?.trim() || "—"}</h4>
-          <div className="checklist-item-docs">
-            {!item.documents || item.documents.length === 0 ? (
-              <p className="checklist-doc-empty">No documents uploaded.</p>
-            ) : (
-              item.documents.map((doc, idx) => (
-                <AttachmentItem
-                  key={doc.id != null ? String(doc.id) : `chk-doc-${String(item.id)}-${idx}`}
-                  attachment={doc}
-                  onView={onView}
-                  cardColor={cardColor}
-                  variant="checklist"
-                />
-              ))
-            )}
-          </div>
-        </div>
-      ))}
+    <div className="attachments-list">
+      <div className="attachments-categories">
+        {checklistItems.map((item) => {
+          const rawName = item.itemName?.trim() || "—";
+          const label = rawName.toUpperCase();
+          const documents = item.documents || [];
+          return (
+            <div key={String(item.id)} className="attachment-category">
+              <div className="attachment-category-header">
+                <h4 className="attachment-category-label">{label}</h4>
+                <span className="attachment-category-count">({documents.length})</span>
+              </div>
+              <div className="attachments-items">
+                {documents.length === 0 ? (
+                  <p className="checklist-doc-empty">No documents uploaded.</p>
+                ) : (
+                  documents.map((doc, idx) => (
+                    <AttachmentItem
+                      key={doc.id != null ? String(doc.id) : `chk-doc-${String(item.id)}-${idx}`}
+                      attachment={doc}
+                      onView={onView}
+                      cardColor={cardColor}
+                    />
+                  ))
+                )}
+              </div>
+            </div>
+          );
+        })}
+      </div>
     </div>
   );
 };
