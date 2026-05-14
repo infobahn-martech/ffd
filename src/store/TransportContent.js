@@ -32,14 +32,14 @@ export function buildPickupDateTime(dateStr, timeStr) {
 }
 
 /**
- * @param {{ formValues: object; transportType: string; callId: string|number }} args
+ * @param {{ formValues: object; transportType: string; callDetails: object|null }} args
  * @returns {FormData}
  */
-export function buildTransportRequestFormData({ formValues, transportType, callId }) {
+export function buildTransportRequestFormData({ formValues, transportType, callDetails }) {
   const formData = new FormData();
 
-  formData.append("call_id", callId != null ? String(callId) : "");
-  formData.append("vessel_id", formValues.vessel_id || formValues.vesselId || "");
+  formData.append("call_id", callDetails?.call_type_id != null ? String(callDetails.call_type_id) : "");
+  formData.append("vessel_id", callDetails?.vessel_id != null ? String(callDetails.vessel_id) : "");
   formData.append(
     "request_type",
     transportType === "thirdparty" ? "Third Party" : "Inhouse"

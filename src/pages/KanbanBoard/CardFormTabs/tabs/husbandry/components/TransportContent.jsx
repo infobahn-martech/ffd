@@ -3,13 +3,14 @@ import PropTypes from "prop-types";
 import Select from "react-select";
 import GroupSettingsIcon from "../../../../../../assets/images/cv.png";
 import { notify } from "../../../../../../components/Toaster";
-import { FormSection, FormField, FormSelect, FormTextarea, ReactQuillEditor, getCrewMultiSelectStyles, formatCrewOptionLabel } from "./Husbandry.components";
+import { FormSection, FormField, FormSelect, ReactQuillEditor, getCrewMultiSelectStyles, formatCrewOptionLabel } from "./Husbandry.components";
 import LocationAutocomplete from "./LocationAutocomplete";
 import AttachmentsList from "../../appointment/AttachmentsList";
 import DateTimePickerField from "../../../components/DateTimePickerField";
 import vehicleService from "../../../../../../services/vehicleService";
 import transportCompanyService from "../../../../../../services/transportCompanyService";
 import crewService from "../../../../../../services/crewService";
+import callFileService from "../../../../../../services/callFileService";
 import transportContentService from "../../../../../../services/transportContentService";
 import { buildTransportRequestFormData } from "../../../../../../store/TransportContent";
 
@@ -41,6 +42,30 @@ const TransportContent = ({ formValues, handleChange, cardColor }) => {
 
   const [crewList, setCrewList] = useState([]);
   const [loadingCrew, setLoadingCrew] = useState(false);
+  const [callDetails, setCallDetails] = useState(null);
+
+  useEffect(() => {
+    if (!callId) {
+      setCallDetails(null);
+      return;
+    }
+
+    let cancelled = false;
+
+    callFileService
+      .getCallDetail(callId)
+      .then(({ data }) => {
+        const details = data?.data || null;
+        if (!cancelled) setCallDetails(details);
+      })
+      .catch(() => {
+        if (!cancelled) setCallDetails(null);
+      });
+
+    return () => {
+      cancelled = true;
+    };
+  }, [callId]);
 
   useEffect(() => {
     if (!callId) {
@@ -347,10 +372,20 @@ const TransportContent = ({ formValues, handleChange, cardColor }) => {
       return;
     }
 
+    if (!callDetails?.call_type_id) {
+      notify("Call type id is missing. Please reload call details.", "warning", "top-center");
+      return;
+    }
+
+    if (!callDetails?.vessel_id) {
+      notify("Vessel id is missing. Please reload call details.", "warning", "top-center");
+      return;
+    }
+
     const formData = buildTransportRequestFormData({
       formValues,
       transportType,
-      callId,
+      callDetails,
     });
 
     setIsSavingTransport(true);
@@ -370,7 +405,7 @@ const TransportContent = ({ formValues, handleChange, cardColor }) => {
     } finally {
       setIsSavingTransport(false);
     }
-  }, [callId, formValues, transportType]);
+  }, [callId, callDetails, formValues, transportType]);
 
   return (
     <div className="cardform-left-full" style={{ "--card-color": cardColor }}>
@@ -539,13 +574,6 @@ const TransportContent = ({ formValues, handleChange, cardColor }) => {
                       console.log("From location selected:", locationData);
                     }}
                   />
-                  <FormTextarea
-                    value={formValues.transportFromNotes || ""}
-                    onChange={handleChange("transportFromNotes")}
-                    placeholder="Additional notes (optional)..."
-                    rows={2}
-                    className="location-notes-textarea"
-                  />
                 </FormField>
 
                 <FormField label="To">
@@ -556,13 +584,6 @@ const TransportContent = ({ formValues, handleChange, cardColor }) => {
                     onLocationSelect={(locationData) => {
                       console.log("To location selected:", locationData);
                     }}
-                  />
-                  <FormTextarea
-                    value={formValues.transportToNotes || ""}
-                    onChange={handleChange("transportToNotes")}
-                    placeholder="Additional notes (optional)..."
-                    rows={2}
-                    className="location-notes-textarea"
                   />
                 </FormField>
 
