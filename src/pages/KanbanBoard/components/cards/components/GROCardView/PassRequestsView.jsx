@@ -87,7 +87,7 @@ const PassRequestsView = ({ workOrders, loading, errorMessage, onRetry, onPassRo
               <th>Passport no</th>
               <th>Nationality</th>
               <th>Rank</th>
-              <th>Movement type</th>
+              <th>SignOn/SignOff</th>
               <th>Status</th>
               <th>Requested date</th>
               <th>Remarks</th>

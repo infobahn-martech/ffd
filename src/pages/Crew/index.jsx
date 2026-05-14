@@ -181,7 +181,7 @@ const Crew = () => {
                         <table className="table table-sm table-bordered crew-history-table mb-0">
                             <thead>
                                 <tr>
-                                    <th>Movement type</th>
+                                    <th>SignOn/SignOff</th>
                                     <th>Vessel name</th>
                                     <th>Billing entity</th>
                                     <th>CG pass no</th>
