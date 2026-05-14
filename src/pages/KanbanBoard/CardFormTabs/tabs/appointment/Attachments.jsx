@@ -3,6 +3,13 @@ import { useEffect, useMemo, useState } from "react";
 import attachmentsService from "../../../../../services/attachmentsService";
 import CardTabListLoading from "../../../../../components/CardTabListLoading";
 import "../../../../../design/scss/attachments.scss";
+
+/** Title case for display labels (category keys, checklist item names). */
+const toTitleCase = (value = "") =>
+  String(value)
+    .toLowerCase()
+    .replace(/\b\w/g, (char) => char.toUpperCase());
+
 const AttachmentItem = ({ attachment, onView, cardColor }) => {
   const getFileIcon = (fileName) => {
     const extension = fileName?.split('.').pop()?.toLowerCase() || '';
@@ -196,7 +203,9 @@ const AttachmentCategory = ({ label, attachments, onView, cardColor }) => {
     <div className="attachment-category">
       <div className="attachment-category-header">
         <h4 className="attachment-category-label">{label}</h4>
-        <span className="attachment-category-count">({attachments.length})</span>
+        <span className="attachment-category-count-badge" aria-label={`${attachments.length} file(s)`}>
+          {attachments.length}
+        </span>
       </div>
       <div className="attachments-items">
         {attachments.map((attachment, idx) => (
@@ -250,8 +259,12 @@ const AttachmentList = ({ attachments, onView, cardColor }) => {
 
   if (!attachments || attachments.length === 0) {
     return (
-      <div className="cf-empty-row">
-        <p>No attachments added.</p>
+      <div className="attachments-list">
+        <div className="attachments-categories">
+          <div className="attachments-empty-state">
+            <p>No attachments added.</p>
+          </div>
+        </div>
       </div>
     );
   }
@@ -264,7 +277,7 @@ const AttachmentList = ({ attachments, onView, cardColor }) => {
         {categories.map((category) => (
           <AttachmentCategory
             key={category}
-            label={category}
+            label={toTitleCase(category.trim())}
             attachments={groupedAttachments[category]}
             onView={onView}
             cardColor={cardColor}
@@ -296,7 +309,7 @@ const ChecklistList = ({ checklistItems, onView, cardColor }) => {
     return (
       <div className="attachments-list">
         <div className="attachments-categories">
-          <div className="cf-empty-row">
+          <div className="attachments-empty-state">
             <p>No checklist items or documents.</p>
           </div>
         </div>
@@ -309,13 +322,15 @@ const ChecklistList = ({ checklistItems, onView, cardColor }) => {
       <div className="attachments-categories">
         {checklistItems.map((item) => {
           const rawName = item.itemName?.trim() || "—";
-          const label = rawName.toUpperCase();
+          const label = toTitleCase(rawName);
           const documents = item.documents || [];
           return (
             <div key={String(item.id)} className="attachment-category">
               <div className="attachment-category-header">
                 <h4 className="attachment-category-label">{label}</h4>
-                <span className="attachment-category-count">({documents.length})</span>
+                <span className="attachment-category-count-badge" aria-label={`${documents.length} file(s)`}>
+                  {documents.length}
+                </span>
               </div>
               <div className="attachments-items">
                 {documents.length === 0 ? (
@@ -400,13 +415,13 @@ const mapChecklistResponse = (checklist) => {
     itemName: row?.item_name != null ? String(row.item_name) : "",
     documents: Array.isArray(row?.documents)
       ? row.documents.map((doc, dIdx) => ({
-          id: doc?.checklist_item_file_id ?? `${idx}-doc-${dIdx}`,
-          fileName: doc?.file_name != null ? String(doc.file_name) : "",
-          uploadedBy: doc?.uploaded_by != null ? String(doc.uploaded_by) : "",
-          uploadedAt: doc?.uploaded_at != null ? String(doc.uploaded_at) : "",
-          fileUrl: doc?.file_url ?? null,
-          category: "Checklist",
-        }))
+        id: doc?.checklist_item_file_id ?? `${idx}-doc-${dIdx}`,
+        fileName: doc?.file_name != null ? String(doc.file_name) : "",
+        uploadedBy: doc?.uploaded_by != null ? String(doc.uploaded_by) : "",
+        uploadedAt: doc?.uploaded_at != null ? String(doc.uploaded_at) : "",
+        fileUrl: doc?.file_url ?? null,
+        category: "Checklist",
+      }))
       : [],
   }));
 };
@@ -490,19 +505,27 @@ function Attachments({ card, formValues }) {
       <div className="cardform-left-full attachments-content-wrapper" style={{ "--card-color": cardColor }}>
         <div className="attachments-list-header">
           <h3 className="attachments-list-title">
-            <span className="attachments-list-title-bar"></span>
-            ATTACHMENT LIST
+            <span className="attachments-list-title-bar" aria-hidden />
+            <span className="attachments-list-title-text">Attachment List</span>
           </h3>
         </div>
         {!callId ? (
-          <div className="cf-empty-row">
-            <p>No call identifier available for attachments.</p>
+          <div className="attachments-list">
+            <div className="attachments-categories">
+              <div className="attachments-empty-state">
+                <p>No call identifier available for attachments.</p>
+              </div>
+            </div>
           </div>
         ) : loading ? (
           <CardTabListLoading message="Loading attachments…" cardColor={cardColor} />
         ) : error ? (
-          <div className="cf-empty-row">
-            <p>{error}</p>
+          <div className="attachments-list">
+            <div className="attachments-categories">
+              <div className="attachments-empty-state">
+                <p>{error}</p>
+              </div>
+            </div>
           </div>
         ) : (
           <>
@@ -511,11 +534,14 @@ function Attachments({ card, formValues }) {
               onView={handleView}
               cardColor={cardColor}
             />
-            <div className="checklist-section">
+            <div className="">
               <div className="attachments-list-header">
                 <h3 className="attachments-list-title">
-                  <span className="attachments-list-title-bar"></span>
-                  CHECKLIST ({checklistItems.length})
+                  <span className="attachments-list-title-bar" aria-hidden />
+                  <span className="attachments-list-title-text">Checklist</span>
+                  {/* <span className="attachments-section-badge" aria-label={`${checklistItems.length} checklist items`}>
+                    {checklistItems.length}
+                  </span> */}
                 </h3>
               </div>
               <ChecklistList
