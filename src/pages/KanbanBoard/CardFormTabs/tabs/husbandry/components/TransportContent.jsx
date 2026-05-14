@@ -81,11 +81,9 @@ const TransportContent = ({ formValues, handleChange, cardColor }) => {
     (async () => {
       try {
         setLoadingCompanies(true);
-        const { data } = await transportCompanyService.getTransportCompanyData({
-          params: { page: 1, limit: 500, search: "" },
-        });
-        const list = data?.data ?? [];
-        if (!cancelled) setTransportCompanies(Array.isArray(list) ? list : []);
+        const { data } = await transportCompanyService.getTransportCompanyData();
+        const list = unwrapApiList(data);
+        if (!cancelled) setTransportCompanies(list);
       } catch {
         if (!cancelled) setTransportCompanies([]);
       } finally {
@@ -149,9 +147,7 @@ const TransportContent = ({ formValues, handleChange, cardColor }) => {
 
   const vehicleOptions = transportVehicles.map((v) => ({
     value: String(v.vehicle_type_id ?? ""),
-    label: [v.vehicle_type, v.seater != null ? `${v.seater} seater` : null]
-      .filter(Boolean)
-      .join(" · ") || `Vehicle ${v.vehicle_type_id}`,
+    label: v.vehicle_name || `Vehicle ${v.vehicle_type_id}`,
   }));
 
   const inhouseDriverOptions = inhouseDrivers.map((d) => ({
@@ -160,8 +156,8 @@ const TransportContent = ({ formValues, handleChange, cardColor }) => {
   }));
 
   const companyOptions = transportCompanies.map((c) => ({
-    value: String(c.transport_company_id ?? c._id ?? ""),
-    label: c.transport_company ?? "",
+    value: String(c.transport_company_id ?? ""),
+    label: c.transport_company || `Company ${c.transport_company_id}`,
   }));
 
   const thirdPartyDriverOptions = thirdPartyDrivers.map((d) => ({
@@ -231,7 +227,7 @@ const TransportContent = ({ formValues, handleChange, cardColor }) => {
     crewOptions.find((opt) => opt.value === crewId?.toString() || opt.value === crewId)
   ).filter(Boolean) || [];
 
-  const customSelectStyles = getCrewMultiSelectStyles(cardColor);
+  const customSelectStyles = getCrewMultiSelectStyles(cardColor, { transportCompact: true });
 
   const fileToAttachment = (file) => ({
     name: file.name,

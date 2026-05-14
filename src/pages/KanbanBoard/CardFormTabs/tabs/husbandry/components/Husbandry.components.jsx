@@ -329,99 +329,7 @@ FormTextarea.propTypes = {
   rows: PropTypes.number,
 };
 
-export const getCrewMultiSelectStyles = (cardColor = "#00368c") => ({
-  control: (base) => ({
-    ...base,
-    minHeight: "42px",
-    border: "none",
-    boxShadow: "none",
-    backgroundColor: "transparent",
-    borderRadius: "8px",
-    padding: "0",
-    width: "100%",
-    overflow: "hidden",
-  }),
-  valueContainer: (base) => ({
-    ...base,
-    minHeight: "34px",
-    padding: "0",
-    display: "flex",
-    flexWrap: "wrap",
-    gap: "6px",
-    minWidth: 0,
-    overflow: "hidden",
-    flex: 1,
-    alignContent: "center",
-  }),
-  multiValue: (base) => ({
-    ...base,
-    backgroundColor: cardColor,
-    borderRadius: "6px",
-    margin: "0",
-    minHeight: "26px",
-    maxWidth: "100%",
-  }),
-  multiValueLabel: (base) => ({
-    ...base,
-    color: "#ffffff",
-    fontSize: "12px",
-    fontWeight: "500",
-    padding: "4px 6px",
-    paddingRight: "4px",
-    minWidth: 0,
-    overflow: "hidden",
-    textOverflow: "ellipsis",
-    whiteSpace: "nowrap",
-  }),
-  multiValueRemove: (base) => ({
-    ...base,
-    color: "#ffffff",
-    borderRadius: "4px",
-    padding: "2px 4px",
-    "&:hover": {
-      backgroundColor: "rgba(255, 255, 255, 0.2)",
-      color: "#ffffff",
-    },
-  }),
-  placeholder: (base) => ({
-    ...base,
-    color: "#999",
-    fontSize: "13px",
-    marginLeft: 0,
-  }),
-  input: (base) => ({
-    ...base,
-    color: "#1a1a1a",
-    fontSize: "13px",
-    margin: 0,
-    padding: 0,
-    minWidth: "60px",
-  }),
-  indicatorsContainer: (base) => ({
-    ...base,
-    paddingRight: "4px",
-    flexShrink: 0,
-    alignSelf: "stretch",
-  }),
-  indicatorSeparator: () => ({
-    display: "none",
-  }),
-  dropdownIndicator: (base) => ({
-    ...base,
-    color: "#666",
-    padding: "4px",
-    "&:hover": {
-      color: cardColor,
-    },
-  }),
-  clearIndicator: (base) => ({
-    ...base,
-    color: "#999",
-    padding: "4px",
-    "&:hover": {
-      color: "#ff0000",
-    },
-  }),
+const crewMenuStyles = (cardColor) => ({
   menu: (base) => ({
     ...base,
     borderRadius: "8px",
@@ -458,6 +366,227 @@ export const getCrewMultiSelectStyles = (cardColor = "#00368c") => ({
     },
   }),
 });
+
+/** `options.transportCompact` — used by Transport husbandry only; other screens use default styles. */
+export const getCrewMultiSelectStyles = (cardColor = "#00368c", options = {}) => {
+  if (options.transportCompact) {
+    return {
+      ...crewMenuStyles(cardColor),
+      container: (base) => ({
+        ...base,
+        width: "100%",
+      }),
+      control: (base, state) => ({
+        ...base,
+        minHeight: 40,
+        height:
+          state.hasValue && state.selectProps?.isMulti ? "auto" : 40,
+        width: "100%",
+        boxSizing: "border-box",
+        border: "1px solid #ddd",
+        borderRadius: "6px",
+        boxShadow: state.isFocused ? "0 0 0 1px #3e5cb6" : "none",
+        backgroundColor: "#ffffff",
+        padding: 0,
+        cursor: "default",
+        alignItems: "center",
+        overflow: "hidden",
+        "&:hover": {
+          borderColor: state.isFocused ? "#3e5cb6" : "#999",
+        },
+      }),
+      valueContainer: (base) => ({
+        ...base,
+        padding: "0 12px",
+        minHeight: 0,
+        display: "flex",
+        flexWrap: "wrap",
+        gap: "4px",
+        minWidth: 0,
+        flex: "1 1 auto",
+        alignItems: "center",
+        alignContent: "center",
+        overflow: "hidden",
+      }),
+      multiValue: (base) => ({
+        ...base,
+        backgroundColor: cardColor,
+        borderRadius: "4px",
+        margin: "0 4px 0 0",
+        minHeight: 22,
+        maxWidth: "100%",
+      }),
+      multiValueLabel: (base) => ({
+        ...base,
+        color: "#ffffff",
+        fontSize: "11px",
+        fontWeight: 500,
+        padding: "2px 4px 2px 6px",
+        lineHeight: 1.25,
+        minWidth: 0,
+        overflow: "hidden",
+        textOverflow: "ellipsis",
+        whiteSpace: "nowrap",
+      }),
+      multiValueRemove: (base) => ({
+        ...base,
+        color: "#ffffff",
+        borderRadius: "2px",
+        padding: "2px 4px",
+        "&:hover": {
+          backgroundColor: "rgba(255, 255, 255, 0.2)",
+          color: "#ffffff",
+        },
+      }),
+      placeholder: (base) => ({
+        ...base,
+        color: "#999",
+        fontSize: "13px",
+        margin: 0,
+        marginLeft: 0,
+      }),
+      input: (base) => ({
+        ...base,
+        color: "#1a1a1a",
+        fontSize: "13px",
+        margin: 0,
+        padding: 0,
+        minWidth: "2px",
+      }),
+      indicatorsContainer: (base) => ({
+        ...base,
+        minHeight: 40,
+        alignSelf: "stretch",
+        display: "flex",
+        alignItems: "center",
+        flexShrink: 0,
+        padding: 0,
+      }),
+      indicatorSeparator: () => ({
+        display: "none",
+      }),
+      dropdownIndicator: (base) => ({
+        ...base,
+        color: "#666",
+        padding: "0 10px",
+        height: "100%",
+        display: "flex",
+        alignItems: "center",
+        justifyContent: "center",
+        "&:hover": {
+          color: cardColor,
+        },
+      }),
+      clearIndicator: (base) => ({
+        ...base,
+        color: "#999",
+        padding: "0 6px",
+        height: "100%",
+        display: "flex",
+        alignItems: "center",
+        "&:hover": {
+          color: "#ff0000",
+        },
+      }),
+    };
+  }
+
+  return {
+    ...crewMenuStyles(cardColor),
+    control: (base) => ({
+      ...base,
+      minHeight: "42px",
+      border: "none",
+      boxShadow: "none",
+      backgroundColor: "transparent",
+      borderRadius: "8px",
+      padding: "0",
+      width: "100%",
+      overflow: "hidden",
+    }),
+    valueContainer: (base) => ({
+      ...base,
+      minHeight: "34px",
+      padding: "0",
+      display: "flex",
+      flexWrap: "wrap",
+      gap: "6px",
+      minWidth: 0,
+      overflow: "hidden",
+      flex: 1,
+      alignContent: "center",
+    }),
+    multiValue: (base) => ({
+      ...base,
+      backgroundColor: cardColor,
+      borderRadius: "6px",
+      margin: "0",
+      minHeight: "26px",
+      maxWidth: "100%",
+    }),
+    multiValueLabel: (base) => ({
+      ...base,
+      color: "#ffffff",
+      fontSize: "12px",
+      fontWeight: "500",
+      padding: "4px 6px",
+      paddingRight: "4px",
+      minWidth: 0,
+      overflow: "hidden",
+      textOverflow: "ellipsis",
+      whiteSpace: "nowrap",
+    }),
+    multiValueRemove: (base) => ({
+      ...base,
+      color: "#ffffff",
+      borderRadius: "4px",
+      padding: "2px 4px",
+      "&:hover": {
+        backgroundColor: "rgba(255, 255, 255, 0.2)",
+        color: "#ffffff",
+      },
+    }),
+    placeholder: (base) => ({
+      ...base,
+      color: "#999",
+      fontSize: "13px",
+      marginLeft: 0,
+    }),
+    input: (base) => ({
+      ...base,
+      color: "#1a1a1a",
+      fontSize: "13px",
+      margin: 0,
+      padding: 0,
+      minWidth: "60px",
+    }),
+    indicatorsContainer: (base) => ({
+      ...base,
+      paddingRight: "4px",
+      flexShrink: 0,
+      alignSelf: "stretch",
+    }),
+    indicatorSeparator: () => ({
+      display: "none",
+    }),
+    dropdownIndicator: (base) => ({
+      ...base,
+      color: "#666",
+      padding: "4px",
+      "&:hover": {
+        color: cardColor,
+      },
+    }),
+    clearIndicator: (base) => ({
+      ...base,
+      color: "#999",
+      padding: "4px",
+      "&:hover": {
+        color: "#ff0000",
+      },
+    }),
+  };
+};
 
 export const truncateCrewLabel = (text = "") => {
   if (typeof text !== "string") return "";
