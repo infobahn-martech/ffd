@@ -9,6 +9,7 @@ import AttachmentsList from "../../appointment/AttachmentsList";
 import DateTimePickerField from "../../../components/DateTimePickerField";
 import vehicleService from "../../../../../../services/vehicleService";
 import transportCompanyService from "../../../../../../services/transportCompanyService";
+import crewService from "../../../../../../services/crewService";
 
 const REQUEST_EMAIL_ACCEPT_ATTR = ".msg,.eml,.pdf,.doc,.docx";
 const REQUEST_EMAIL_EXT_RE = /\.(msg|eml|pdf|doc|docx)$/i;
@@ -33,11 +34,46 @@ const TransportContent = ({ formValues, handleChange, cardColor }) => {
       setTransportType(formValues.transportType);
     }
   }, [formValues.transportType]);
-  // Generate crew options from crewList
-  const crewOptions = formValues.crewList?.map((crew) => ({
-    value: crew.id?.toString() || crew.crewName,
-    label: crew.crewName || `Crew Member ${crew.id}`,
-  })) || [];
+
+  const callId = formValues.call_id || formValues.callId || formValues.card_call_id;
+
+  const [crewList, setCrewList] = useState([]);
+  const [loadingCrew, setLoadingCrew] = useState(false);
+
+  useEffect(() => {
+    if (!callId) {
+      setCrewList([]);
+      setLoadingCrew(false);
+      return;
+    }
+
+    let cancelled = false;
+    setLoadingCrew(true);
+
+    crewService
+      .getCrewByCall(callId)
+      .then(({ data }) => {
+        const list = Array.isArray(data?.data) ? data.data : [];
+        if (!cancelled) setCrewList(list);
+      })
+      .catch(() => {
+        if (!cancelled) setCrewList([]);
+      })
+      .finally(() => {
+        if (!cancelled) setLoadingCrew(false);
+      });
+
+    return () => {
+      cancelled = true;
+    };
+  }, [callId]);
+
+  const crewOptions = crewList.map((crew) => ({
+    value: String(crew.crew_change_id ?? ""),
+    label: crew.crew_name || `Crew ${crew.crew_id}`,
+    crewId: crew.crew_id,
+    crewChangeId: crew.crew_change_id,
+  }));
 
   const [transportVehicles, setTransportVehicles] = useState([]);
   const [inhouseDrivers, setInhouseDrivers] = useState([]);
@@ -222,10 +258,10 @@ const TransportContent = ({ formValues, handleChange, cardColor }) => {
     handleChange("selectedCrew")(syntheticEvent);
   };
 
-  // Get selected crew values for react-select
-  const selectedCrewValues = formValues.selectedCrew?.map((crewId) =>
-    crewOptions.find((opt) => opt.value === crewId?.toString() || opt.value === crewId)
-  ).filter(Boolean) || [];
+  const selectedCrewValues =
+    formValues.selectedCrew
+      ?.map((crewChangeId) => crewOptions.find((opt) => String(opt.value) === String(crewChangeId)))
+      .filter(Boolean) || [];
 
   const customSelectStyles = getCrewMultiSelectStyles(cardColor, { transportCompact: true });
 
@@ -362,7 +398,7 @@ const TransportContent = ({ formValues, handleChange, cardColor }) => {
                       value={selectedCrewValues}
                       onChange={handleCrewChange}
                       options={crewOptions}
-                      placeholder={selectedCrewValues.length > 0 ? `${selectedCrewValues.length} crew selected` : "Select crew members..."}
+                      placeholder={loadingCrew ? "Loading crew..." : "Select crew members..."}
                       classNamePrefix="react-select"
                       styles={customSelectStyles}
                       formatOptionLabel={formatCrewOptionLabel}
@@ -373,6 +409,8 @@ const TransportContent = ({ formValues, handleChange, cardColor }) => {
                       isSearchable
                       closeMenuOnSelect={false}
                       hideSelectedOptions={false}
+                      isLoading={loadingCrew}
+                      isDisabled={loadingCrew || !callId}
                     />
                   </div>
                 </FormField>
