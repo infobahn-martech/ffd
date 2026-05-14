@@ -62,6 +62,8 @@ const DA_ENABLED_TABS = ["General", "Operation", "Husbandry", "Sales Order", "Re
 
 const DEFAULT_ACCENT_COLOR = "#2A00FF";
 const ADD_CARD_TOPBAR_DEFAULT_HEX = "#2e7d32";
+/** GRO / custom pass task card modal — default header until user picks another in SedresColorPicker. */
+const GRO_TASK_HEADER_DEFAULT_HEX = "#10b981";
 
 /** Map header CSS color (hex or rgb/rgba) to normalized hex for SedresColorPicker. */
 const appearanceColorToPickerHex = (value, fallbackHex = ADD_CARD_TOPBAR_DEFAULT_HEX) => {
@@ -949,6 +951,9 @@ function CardForm({
     if (isAddMode) {
       return ADD_CARD_TOPBAR_DEFAULT_HEX;
     }
+    if (isGROVariant) {
+      return GRO_TASK_HEADER_DEFAULT_HEX;
+    }
     return card?.color || DEFAULT_ACCENT_COLOR;
   });
 
@@ -1230,14 +1235,19 @@ function CardForm({
     }
   }, [moveCardToColumn, card?.id, columns, columnOrder, currentStep]);
 
-  // Reset topbar color to card's fixed color when card changes
-  // This ensures topbar always reflects the card's actual color when form opens
+  // Non-GRO: topbar tracks card.color when it changes (visual only).
   useEffect(() => {
-    if (!isAddMode && card?.color) {
-      // Reset to card's fixed color (visual only, doesn't change card.color)
+    if (!show || isAddMode || isGROVariant) return;
+    if (card?.color) {
       setTopbarColor(card.color);
     }
-  }, [card?.id, card?.color, isAddMode]); // Use card.id to detect card changes
+  }, [show, card?.id, card?.color, isAddMode, isGROVariant]);
+
+  // GRO task card: default emerald header when opening or switching cards; SedresColorPicker can override until then.
+  useEffect(() => {
+    if (!show || isAddMode || !isGROVariant) return;
+    setTopbarColor(GRO_TASK_HEADER_DEFAULT_HEX);
+  }, [show, card?.id, isAddMode, isGROVariant]);
 
   // Everything else uses card's unique color
   const accentColor = useMemo(() => card?.color || DEFAULT_ACCENT_COLOR, [card?.color]);

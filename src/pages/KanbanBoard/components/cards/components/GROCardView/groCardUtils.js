@@ -104,30 +104,54 @@ export const parseGroPassRequestsResponse = (res) => {
   };
 };
 
-export const groPassCrewRowFields = (crew) => ({
-  crewName: firstNonEmptyGroDisplay(crew.crew_name, crew.name, crew.full_name, crew.crewName),
-  passport: firstNonEmptyGroDisplay(
-    crew.passport_no,
-    crew.passport_number,
-    crew.passport,
-    crew.passportNo
-  ),
-  nationality: firstNonEmptyGroDisplay(crew.nationality, crew.nationality_name),
-  rank: firstNonEmptyGroDisplay(crew.rank, crew.rank_name, crew.crew_rank),
-  movementType: firstNonEmptyGroDisplay(crew.movement_type, crew.movement, crew.movementType),
-  status: firstNonEmptyGroDisplay(crew.status, crew.pass_status, crew.request_status, crew.state),
-  requestedDate: firstNonEmptyGroDisplay(
-    crew.requested_date,
-    crew.request_date,
-    crew.created_at,
-    crew.date_requested
-  ),
-  remarks: firstNonEmptyGroDisplay(crew.remarks, crew.remark, crew.note),
-  documentUrl:
-    crew.document_url != null && String(crew.document_url).trim() !== ""
-      ? String(crew.document_url).trim()
-      : "",
-});
+/** Plain text for table cells; safe for strings that may contain HTML fragments. */
+export const stripGroHtmlToPlainText = (value) => {
+  if (value == null) return "";
+  const s = String(value);
+  if (s.trim() === "") return "";
+  if (typeof window !== "undefined" && typeof DOMParser !== "undefined") {
+    try {
+      const doc = new DOMParser().parseFromString(`<div>${s}</div>`, "text/html");
+      const text = doc.body.textContent ?? "";
+      return text.replace(/\s+/g, " ").trim();
+    } catch {
+      /* fall through */
+    }
+  }
+  return s.replace(/<[^>]*>/g, "").replace(/\s+/g, " ").trim();
+};
+
+export const groPassCrewRowFields = (crew) => {
+  let remarks = firstNonEmptyGroDisplay(crew.remarks, crew.remark, crew.note);
+  if (remarks !== "-") {
+    const plain = stripGroHtmlToPlainText(remarks);
+    remarks = plain !== "" ? plain : "-";
+  }
+  return {
+    crewName: firstNonEmptyGroDisplay(crew.crew_name, crew.name, crew.full_name, crew.crewName),
+    passport: firstNonEmptyGroDisplay(
+      crew.passport_no,
+      crew.passport_number,
+      crew.passport,
+      crew.passportNo
+    ),
+    nationality: firstNonEmptyGroDisplay(crew.nationality, crew.nationality_name),
+    rank: firstNonEmptyGroDisplay(crew.rank, crew.rank_name, crew.crew_rank),
+    movementType: firstNonEmptyGroDisplay(crew.movement_type, crew.movement, crew.movementType),
+    status: firstNonEmptyGroDisplay(crew.status, crew.pass_status, crew.request_status, crew.state),
+    requestedDate: firstNonEmptyGroDisplay(
+      crew.requested_date,
+      crew.request_date,
+      crew.created_at,
+      crew.date_requested
+    ),
+    remarks,
+    documentUrl:
+      crew.document_url != null && String(crew.document_url).trim() !== ""
+        ? String(crew.document_url).trim()
+        : "",
+  };
+};
 
 export const groPassStatusBadgeTone = (raw) => {
   const s = String(raw ?? "")

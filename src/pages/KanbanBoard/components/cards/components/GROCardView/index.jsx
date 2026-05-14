@@ -39,7 +39,6 @@ function GROCardView({ card }) {
   });
   const [passRequestsLoading, setPassRequestsLoading] = useState(false);
   const [passRequestsError, setPassRequestsError] = useState(null);
-  const [expandedPassWoIds, setExpandedPassWoIds] = useState(() => new Set());
 
   const callId = resolveGroCallId(card);
 
@@ -90,7 +89,6 @@ function GROCardView({ card }) {
     setPassRequestsState({ callId: null, cg: undefined, zawil: undefined });
     setPassRequestsError(null);
     setPassRequestsLoading(false);
-    setExpandedPassWoIds(new Set());
   }, [callId]);
 
   useEffect(() => {
@@ -147,13 +145,9 @@ function GROCardView({ card }) {
     setPassRequestsError(null);
   }, []);
 
-  const togglePassWoExpand = useCallback((woKey) => {
-    setExpandedPassWoIds((prev) => {
-      const next = new Set(prev);
-      if (next.has(woKey)) next.delete(woKey);
-      else next.add(woKey);
-      return next;
-    });
+  const handlePassRowUpload = useCallback((row) => {
+    void row;
+    /* Future: upload — row includes callId, workOrder, crew, crewIndex, woNumber, woKey, fields */
   }, []);
 
   const refreshGroDocuments = useCallback(async (cid) => {
@@ -481,8 +475,12 @@ function GROCardView({ card }) {
                   : null
             }
             onRetry={retryPassRequests}
-            expandedWoIds={expandedPassWoIds}
-            onToggleWoExpand={(key) => togglePassWoExpand(key)}
+            onPassRowUpload={(payload) =>
+              handlePassRowUpload({
+                callId,
+                ...payload,
+              })
+            }
           />
         )}
       </div>
