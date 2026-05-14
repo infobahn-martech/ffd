@@ -20,7 +20,7 @@ export const disableKanbanCardType = (cardTypeId) =>
 
 export const enableKanbanCardType = (cardTypeId) =>
   Gateway.post(
-    `/kanban_management/enable_kanban_card_type/${encodeURIComponent(String(cardTypeId))}`
+    `/kanban_management/disable_kanban_card_type/${encodeURIComponent(String(cardTypeId))}`
   );
 
 /** Backend uses POST for delete (same pattern as tags) */

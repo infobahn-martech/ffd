@@ -3,7 +3,7 @@ import { useEffect, useMemo, useState } from "react";
 import attachmentsService from "../../../../../services/attachmentsService";
 import CardTabListLoading from "../../../../../components/CardTabListLoading";
 import "../../../../../design/scss/attachments.scss";
-const AttachmentItem = ({ attachment, onView, cardColor }) => {
+const AttachmentItem = ({ attachment, onView, cardColor, variant = "default" }) => {
   const getFileIcon = (fileName) => {
     const extension = fileName?.split('.').pop()?.toLowerCase() || '';
 
@@ -81,13 +81,13 @@ const AttachmentItem = ({ attachment, onView, cardColor }) => {
   };
 
   const formatDate = (dateString) => {
-    if (!dateString) return 'N/A';
+    if (!dateString) return "—";
     const normalized =
       typeof dateString === "string" && /^\d{4}-\d{2}-\d{2} \d{2}:\d{2}/.test(dateString)
         ? dateString.replace(" ", "T")
         : dateString;
     const date = new Date(normalized);
-    if (Number.isNaN(date.getTime())) return "N/A";
+    if (Number.isNaN(date.getTime())) return "—";
     const month = date.toLocaleDateString('en-US', { month: 'short' });
     const day = date.getDate();
     const year = date.getFullYear();
@@ -99,28 +99,50 @@ const AttachmentItem = ({ attachment, onView, cardColor }) => {
     return `${month} ${day}, ${year}, ${time}`;
   };
 
+  const displayName = attachment.fileName?.trim() || "—";
+  const isChecklist = variant === "checklist";
+
   return (
-    <div className="attachment-item">
+    <div className={`attachment-item${isChecklist ? " attachment-item--checklist" : ""}`}>
       <div className="attachment-icon-wrapper">
         {getFileIcon(attachment.fileName)}
       </div>
       <div className="attachment-details">
-        <div className="attachment-name">{attachment.fileName || 'Untitled'}</div>
-        <div className="attachment-meta">
-          {attachment.fileSize != null && attachment.fileSize > 0 && (
-            <>
-              <span className="attachment-size">{formatFileSize(attachment.fileSize)}</span>
-              <span className="attachment-separator">•</span>
-            </>
-          )}
-          <span className="attachment-date">{formatDate(attachment.uploadedAt)}</span>
-          {attachment.uploadedBy && (
-            <>
-              <span className="attachment-separator">•</span>
-              <span className="attachment-uploader">by {attachment.uploadedBy}</span>
-            </>
-          )}
-        </div>
+        {isChecklist ? (
+          <div className="attachment-checklist-lines">
+            <div className="attachment-checklist-line">
+              <span className="attachment-checklist-line-label">Uploaded file:</span>
+              {displayName}
+            </div>
+            <div className="attachment-checklist-line">
+              <span className="attachment-checklist-line-label">Uploaded by:</span>
+              {attachment.uploadedBy?.trim() || "—"}
+            </div>
+            <div className="attachment-checklist-line">
+              <span className="attachment-checklist-line-label">Date:</span>
+              {formatDate(attachment.uploadedAt)}
+            </div>
+          </div>
+        ) : (
+          <>
+            <div className="attachment-name">{displayName}</div>
+            <div className="attachment-meta">
+              {attachment.fileSize != null && attachment.fileSize > 0 && (
+                <>
+                  <span className="attachment-size">{formatFileSize(attachment.fileSize)}</span>
+                  <span className="attachment-separator">•</span>
+                </>
+              )}
+              <span className="attachment-date">{formatDate(attachment.uploadedAt)}</span>
+              {attachment.uploadedBy && (
+                <>
+                  <span className="attachment-separator">•</span>
+                  <span className="attachment-uploader">by {attachment.uploadedBy}</span>
+                </>
+              )}
+            </div>
+          </>
+        )}
       </div>
       <div className="attachment-actions">
         {onView && (
@@ -161,6 +183,7 @@ AttachmentItem.propTypes = {
   }).isRequired,
   onView: PropTypes.func,
   cardColor: PropTypes.string,
+  variant: PropTypes.oneOf(["default", "checklist"]),
 };
 
 const AttachmentCategory = ({ label, attachments, onView, cardColor }) => {
@@ -175,9 +198,9 @@ const AttachmentCategory = ({ label, attachments, onView, cardColor }) => {
         <span className="attachment-category-count">({attachments.length})</span>
       </div>
       <div className="attachments-items">
-        {attachments.map((attachment) => (
+        {attachments.map((attachment, idx) => (
           <AttachmentItem
-            key={attachment.id}
+            key={attachment.id != null ? String(attachment.id) : `att-${idx}`}
             attachment={attachment}
             onView={onView}
             cardColor={cardColor}
@@ -267,6 +290,64 @@ AttachmentList.propTypes = {
   cardColor: PropTypes.string,
 };
 
+const ChecklistList = ({ checklistItems, onView, cardColor }) => {
+  if (!checklistItems || checklistItems.length === 0) {
+    return (
+      <div className="checklist-section-body">
+        <div className="cf-empty-row">
+          <p>No checklist items or documents.</p>
+        </div>
+      </div>
+    );
+  }
+
+  return (
+    <div className="checklist-section-body">
+      {checklistItems.map((item) => (
+        <div key={String(item.id)} className="checklist-item-card">
+          <h4 className="checklist-item-title">{item.itemName?.trim() || "—"}</h4>
+          <div className="checklist-item-docs">
+            {!item.documents || item.documents.length === 0 ? (
+              <p className="checklist-doc-empty">No documents uploaded.</p>
+            ) : (
+              item.documents.map((doc, idx) => (
+                <AttachmentItem
+                  key={doc.id != null ? String(doc.id) : `chk-doc-${String(item.id)}-${idx}`}
+                  attachment={doc}
+                  onView={onView}
+                  cardColor={cardColor}
+                  variant="checklist"
+                />
+              ))
+            )}
+          </div>
+        </div>
+      ))}
+    </div>
+  );
+};
+
+ChecklistList.propTypes = {
+  checklistItems: PropTypes.arrayOf(
+    PropTypes.shape({
+      id: PropTypes.oneOfType([PropTypes.string, PropTypes.number]),
+      itemName: PropTypes.string,
+      documents: PropTypes.arrayOf(
+        PropTypes.shape({
+          id: PropTypes.oneOfType([PropTypes.string, PropTypes.number]),
+          fileName: PropTypes.string,
+          uploadedAt: PropTypes.string,
+          uploadedBy: PropTypes.string,
+          fileUrl: PropTypes.string,
+          category: PropTypes.string,
+        })
+      ),
+    })
+  ),
+  onView: PropTypes.func,
+  cardColor: PropTypes.string,
+};
+
 const resolveAttachmentFileUrl = (fileUrl) => {
   const s = String(fileUrl || "").trim();
   if (!s) return "";
@@ -276,26 +357,46 @@ const resolveAttachmentFileUrl = (fileUrl) => {
   return s.startsWith("/") ? `${base}${s}` : `${base}/${s}`;
 };
 
-/** @param {Record<string, unknown>} data */
-const mapGroupedAttachmentsResponse = (data) => {
-  if (!data || typeof data !== "object") return [];
+/** Map `body.data.attachments` — object keyed by category (e.g. Call File Open, GRO). */
+const mapAttachmentsResponse = (attachmentsByCategory) => {
+  if (!attachmentsByCategory || typeof attachmentsByCategory !== "object") return [];
 
   const flat = [];
-  Object.entries(data).forEach(([category, items]) => {
+  Object.entries(attachmentsByCategory).forEach(([category, items]) => {
     if (!Array.isArray(items)) return;
     items.forEach((item, index) => {
-      const fileName = item?.file_name ?? "Untitled";
+      const fileName = item?.file_name != null ? String(item.file_name).trim() : "";
       flat.push({
-        id: `${category}::${index}::${fileName}`,
+        id: `${category}::${index}::${fileName || "file"}`,
         fileName,
-        uploadedBy: item?.uploaded_by ?? "",
-        uploadedAt: item?.date ?? "",
+        uploadedBy: item?.uploaded_by != null ? String(item.uploaded_by) : "",
+        uploadedAt: item?.date != null ? String(item.date) : "",
         fileUrl: item?.file_url ?? item?.url ?? null,
         category,
       });
     });
   });
   return flat;
+};
+
+/** Map `body.data.checklist` — items with nested documents. */
+const mapChecklistResponse = (checklist) => {
+  if (!Array.isArray(checklist)) return [];
+
+  return checklist.map((row, idx) => ({
+    id: row?.checklist_item_id ?? row?.call_checklist_item_id ?? `checklist-item-${idx}`,
+    itemName: row?.item_name != null ? String(row.item_name) : "",
+    documents: Array.isArray(row?.documents)
+      ? row.documents.map((doc, dIdx) => ({
+          id: doc?.checklist_item_file_id ?? `${idx}-doc-${dIdx}`,
+          fileName: doc?.file_name != null ? String(doc.file_name) : "",
+          uploadedBy: doc?.uploaded_by != null ? String(doc.uploaded_by) : "",
+          uploadedAt: doc?.uploaded_at != null ? String(doc.uploaded_at) : "",
+          fileUrl: doc?.file_url ?? null,
+          category: "Checklist",
+        }))
+      : [],
+  }));
 };
 
 function Attachments({ card, formValues }) {
@@ -309,12 +410,14 @@ function Attachments({ card, formValues }) {
   }, [card?.call_id, card?.callId, formValues?.call_id]);
 
   const [attachments, setAttachments] = useState([]);
+  const [checklistItems, setChecklistItems] = useState([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
 
   useEffect(() => {
     if (!callId) {
       setAttachments([]);
+      setChecklistItems([]);
       setError(null);
       setLoading(false);
       return;
@@ -331,14 +434,19 @@ function Attachments({ card, formValues }) {
         const body = res?.data;
         if (body?.status !== true) {
           setAttachments([]);
+          setChecklistItems([]);
           setError(body?.message || "Failed to load attachments.");
           return;
         }
-        setAttachments(mapGroupedAttachmentsResponse(body.data));
+        const payload = body?.data || {};
+        setError(null);
+        setAttachments(mapAttachmentsResponse(payload.attachments));
+        setChecklistItems(mapChecklistResponse(payload.checklist));
       })
       .catch((err) => {
         if (cancelled) return;
         setAttachments([]);
+        setChecklistItems([]);
         setError(
           err?.response?.data?.message ||
           err?.response?.data?.error ||
@@ -385,11 +493,26 @@ function Attachments({ card, formValues }) {
             <p>{error}</p>
           </div>
         ) : (
-          <AttachmentList
-            attachments={attachments}
-            onView={handleView}
-            cardColor={cardColor}
-          />
+          <>
+            <AttachmentList
+              attachments={attachments}
+              onView={handleView}
+              cardColor={cardColor}
+            />
+            <div className="checklist-section">
+              <div className="attachments-list-header">
+                <h3 className="attachments-list-title">
+                  <span className="attachments-list-title-bar"></span>
+                  CHECKLIST ({checklistItems.length})
+                </h3>
+              </div>
+              <ChecklistList
+                checklistItems={checklistItems}
+                onView={handleView}
+                cardColor={cardColor}
+              />
+            </div>
+          </>
         )}
       </div>
     </div>
