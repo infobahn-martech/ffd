@@ -18,7 +18,11 @@ const getChecklistsByVesselType = (payload) =>
 const getChecklistsByBargeType = (payload) =>
   Gateway.post('checklist/checklist_by_bargetype', payload);
 
-const deleteChecklist = (id) => Gateway.delete(`checklist/${id}`);
+/** DELETE checklist/delete/{checklist_type_id} */
+const deleteChecklist = (checklist_type_id) =>
+  Gateway.delete(
+    `checklist/delete/${encodeURIComponent(String(checklist_type_id))}`
+  );
 
 /** POST checklist/createchecklist - data can be FormData (with files) or JSON */
 const createChecklist = (data) => Gateway.post('checklist/createchecklist', data);

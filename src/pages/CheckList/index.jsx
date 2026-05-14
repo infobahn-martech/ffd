@@ -33,6 +33,7 @@ const CheckList = () => {
 
   const [showCheckListModal, setShowCheckListModal] = useState(false);
   const [showDeleteModal, setShowDeleteModal] = useState(false);
+  const [selectedRowForDelete, setSelectedRowForDelete] = useState(null);
 
   const { getCallTypes, callTypes } = useCommonReducer((state) => state);
   const { vesselTypes, getVesselTypes } = useVesselTypeReducer((state) => state);
@@ -41,8 +42,10 @@ const CheckList = () => {
   const {
     getChecklists,
     getChecklistById,
+    deleteChecklist,
     CheckLists,
-    checklistCount
+    checklistCount,
+    deleteLoader,
   } = useCheckListReducer((state) => state);
 
   const handleEditClick = (row) => {
@@ -176,7 +179,10 @@ const CheckList = () => {
       contentClass: 'table-content',
       thclass: 'tb-head',
       onEditClick: handleEditClick,
-      onDeleteClick: () => { setShowDeleteModal(true) },
+      onDeleteClick: (row) => {
+        setSelectedRowForDelete(row);
+        setShowDeleteModal(true);
+      },
       cell: RenderAction,
       width: '100',
     },
@@ -251,8 +257,34 @@ const CheckList = () => {
           {!!showDeleteModal && (
             <DeleteConfirmationModal
               show={showDeleteModal}
-              onCancel={() => setShowDeleteModal(false)}
-              onConfirm={() => { }}
+              isLoading={deleteLoader}
+              onCancel={() => {
+                setShowDeleteModal(false);
+                setSelectedRowForDelete(null);
+              }}
+              onConfirm={() => {
+                const checklist_type_id =
+                  selectedRowForDelete?.checklist_type_id ??
+                  selectedRowForDelete?._id;
+                if (!checklist_type_id) return;
+                deleteChecklist({
+                  checklist_type_id,
+                  cb: () => {
+                    setShowDeleteModal(false);
+                    setSelectedRowForDelete(null);
+                    const apiParams = {
+                      page: params.page,
+                      limit: params.limit,
+                      ...(params.search && { search: params.search }),
+                      ...(params.sortBy && { sortBy: params.sortBy }),
+                      ...(filters.call_type_id && { call_type_id: filters.call_type_id }),
+                      ...(filters.vessel_type_id && { vessel_type_id: filters.vessel_type_id }),
+                      ...(filters.barge_type_id && { barge_type_id: filters.barge_type_id }),
+                    };
+                    getChecklists({ params: apiParams });
+                  },
+                });
+              }}
               deleteText="Are you sure you want to delete this checklist?"
             />
           )}

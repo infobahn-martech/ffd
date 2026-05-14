@@ -10,6 +10,7 @@ const useCheckListReducer = create((set) => ({
     CheckLists: null,
     checklistCount: 0,
     addEditLoader: false,
+    deleteLoader: false,
     CheckListsExcelUrl: null,
     isLoadingExcel: false,
     createChecklist: async ({ formData, cb }) => {
@@ -87,11 +88,11 @@ const useCheckListReducer = create((set) => ({
             error(err?.response?.data?.message ?? err.message);
         }
     },
-    deleteChecklist: async ({ id, cb }) => {
+    deleteChecklist: async ({ checklist_type_id, cb }) => {
         try {
-            set({ addEditLoader: true });
-            const { data } = await CheckListService.deleteChecklist(id);
-            set({ successMessage: data.message, addEditLoader: false });
+            set({ deleteLoader: true });
+            const { data } = await CheckListService.deleteChecklist(checklist_type_id);
+            set({ successMessage: data.message, deleteLoader: false });
             const { success } = useAlertReducer.getState();
             success(data && data.message);
             cb && cb();
@@ -99,7 +100,7 @@ const useCheckListReducer = create((set) => ({
             const { error } = useAlertReducer.getState();
             set({
                 errorMessage: 'Something went wrong deleting the Checklist',
-                addEditLoader: false,
+                deleteLoader: false,
             });
             error(err?.response?.data?.message ?? err.message);
         }
