@@ -105,15 +105,16 @@ export const formatGroDocumentDisplayName = (raw) => {
   return t.replace(/\w\S*/g, (txt) => txt.charAt(0).toUpperCase() + txt.slice(1).toLowerCase());
 };
 
-/** GRO custom document verify flow: 0 = pending, 1 = verified, 2 = reupload, 3 = rejected. Unknown → 0. */
+/**
+ * GRO custom document status (API): 0 = not uploaded, 1 = uploaded, 2 = verified, 3 = reupload, 4 = rejected.
+ * Unknown values fall back to 0.
+ */
 export const getGroDocumentVerifyStatus = (doc) => {
   const raw = doc?.status;
   if (raw == null || raw === "") return 0;
   const n = Number(raw);
   if (Number.isNaN(n)) return 0;
-  if (n === 1) return 1;
-  if (n === 2) return 2;
-  if (n === 3) return 3;
+  if (n >= 0 && n <= 4) return n;
   return 0;
 };
 

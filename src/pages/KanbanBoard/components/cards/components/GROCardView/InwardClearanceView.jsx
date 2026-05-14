@@ -91,6 +91,14 @@ const IconTick = () => (
   </svg>
 );
 
+const IconReupload = () => (
+  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden>
+    <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" />
+    <polyline points="17 8 12 3 7 8" />
+    <line x1="12" y1="3" x2="12" y2="15" />
+  </svg>
+);
+
 const IconDownload = () => (
   <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden>
     <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" />
@@ -214,19 +222,22 @@ function InwardClearanceView({
         documents.map((doc) => {
           const rowKey = doc.__rowKey;
           const label = formatGroDocumentDisplayName(doc.document_name ?? "");
-          const verifyStatus = getGroDocumentVerifyStatus(doc);
-          const isPending = verifyStatus === 0;
-          const isVerified = verifyStatus === 1;
-          const isReupload = verifyStatus === 2;
-          const isRejected = verifyStatus === 3;
+          const status = getGroDocumentVerifyStatus(doc);
+          const isNotUploaded = status === 0;
+          const isPendingVerification = status === 1;
+          const isVerified = status === 2;
+          const isReupload = status === 3;
+          const isRejected = status === 4;
           const remarkOpen = activeRemarkDoc === rowKey;
           const rowBusy = verifyingDocId === rowKey;
           const remarksTextRaw = doc?.remarks != null && String(doc.remarks).trim() !== "" ? String(doc.remarks).trim() : "";
-          const showRemarksPill = Boolean(remarksTextRaw);
+          const showRemarksBadge = Boolean(remarksTextRaw) && !isNotUploaded;
           const hasFile = groDocumentHasDownloadableUrl(doc);
+          const showDownload = hasFile && !isNotUploaded;
 
-          let rowStatusClass = "gro-document-row-status-pending";
-          if (isVerified) rowStatusClass = "gro-document-row-status-verified";
+          let rowStatusClass = "gro-document-row-status-not-uploaded";
+          if (isPendingVerification) rowStatusClass = "gro-document-row-status-pending";
+          else if (isVerified) rowStatusClass = "gro-document-row-status-verified";
           else if (isReupload) rowStatusClass = "gro-document-row-status-reupload";
           else if (isRejected) rowStatusClass = "gro-document-row-status-rejected";
 
@@ -236,14 +247,19 @@ function InwardClearanceView({
               <div className="gro-document-main">
                 <div className="gro-document-main-top">
                   <span className="gro-document-title">{label}</span>
-                  {showRemarksPill ? (
+                  {isNotUploaded ? (
+                    <span className="gro-document-no-attachment" title="No file uploaded for this document">
+                      No attachment
+                    </span>
+                  ) : null}
+                  {showRemarksBadge ? (
                     <span className="gro-document-remarks-badge" title={remarksTextRaw}>
                       Remarks: {remarksTextRaw}
                     </span>
                   ) : null}
                 </div>
               </div>
-              {remarkOpen ? (
+              {remarkOpen && isPendingVerification ? (
                 <div className="gro-inline-remark gro-inline-remark--compact">
                   <input
                     type="text"
@@ -265,29 +281,30 @@ function InwardClearanceView({
                 </div>
               ) : null}
               <div className="gro-document-actions">
-                {isPending ? (
-                  <button type="button" className="gro-doc-action-btn gro-doc-action-btn--approved" onClick={() => onTickClick(doc, rowKey)}>
-                    <IconTick />
-                    <span>Approved</span>
-                  </button>
-                ) : null}
-                {isVerified ? (
+                {isPendingVerification ? (
                   <button
                     type="button"
-                    className="gro-doc-action-btn gro-doc-action-btn--approved gro-doc-action-btn--readonly"
-                    tabIndex={-1}
-                    aria-label="Approved"
+                    className="gro-doc-action-btn gro-doc-action-btn--approved"
+                    disabled={Boolean(verifyingDocId)}
+                    onClick={() => onTickClick(doc, rowKey)}
                   >
                     <IconTick />
                     <span>Approved</span>
                   </button>
                 ) : null}
-                {isPending ? (
+                {isVerified ? (
+                  <button type="button" className="gro-doc-action-btn gro-doc-action-btn--approved gro-doc-action-btn--readonly" tabIndex={-1} aria-label="Approved">
+                    <IconTick />
+                    <span>Approved</span>
+                  </button>
+                ) : null}
+                {isPendingVerification ? (
                   <button
                     type="button"
                     className={`gro-doc-action-btn gro-doc-action-btn--reject${remarkOpen ? " gro-doc-action-btn--active" : ""}`}
                     aria-pressed={remarkOpen}
                     aria-label="Reject — add remarks"
+                    disabled={Boolean(verifyingDocId)}
                     onClick={() => onCrossClick(rowKey, doc)}
                   >
                     <IconCross />
@@ -296,7 +313,7 @@ function InwardClearanceView({
                 ) : null}
                 {isReupload ? (
                   <button type="button" className="gro-doc-action-btn gro-doc-action-btn--reupload gro-doc-action-btn--readonly" tabIndex={-1} aria-label="Reupload required">
-                    <IconCross />
+                    <IconReupload />
                     <span>Reupload</span>
                   </button>
                 ) : null}
@@ -306,7 +323,7 @@ function InwardClearanceView({
                     <span>Rejected</span>
                   </button>
                 ) : null}
-                {hasFile ? (
+                {showDownload ? (
                   <button
                     type="button"
                     className="gro-doc-action-btn gro-doc-action-btn--download gro-doc-action-btn--icon-only"

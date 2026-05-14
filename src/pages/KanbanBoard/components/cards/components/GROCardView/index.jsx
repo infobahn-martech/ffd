@@ -304,6 +304,7 @@ function GROCardView({ card }) {
 
   const handleCrossClick = (rowKey, doc) => {
     if (verifyingDocId) return;
+    if (getGroDocumentVerifyStatus(doc) !== 1) return;
     if (activeRemarkDoc === rowKey) {
       setActiveRemarkDoc(null);
       setRemarkDraft("");
@@ -319,28 +320,30 @@ function GROCardView({ card }) {
   };
 
   const handleRemarkSubmit = async () => {
-    if (!activeRemarkDoc) return;
+    if (!activeRemarkDoc || verifyingDocId) return;
     const doc = documents.find((d) => d.__rowKey === activeRemarkDoc);
     if (!doc || !canVerifyDocument(doc)) {
       notify("This document cannot be updated (missing reference).", "error");
       return;
     }
-    const priorStatus = getGroDocumentVerifyStatus(doc);
-    const apiStatus = priorStatus === 2 ? 2 : 3;
+    if (getGroDocumentVerifyStatus(doc) !== 1) {
+      notify("Remarks can only be submitted while the document is pending verification.", "warn");
+      return;
+    }
     setVerifyingDocId(activeRemarkDoc);
     try {
       await groService.verifyGroDocs({
         call_id: Number(callId),
         document_id: Number(doc.document_id),
         call_task_document_id: Number(doc.call_task_document_id),
-        status: apiStatus,
+        status: 4,
         remarks: remarkDraft,
       });
       setDocumentRemarks((prev) => ({ ...prev, [activeRemarkDoc]: remarkDraft }));
       setDocuments((prev) =>
-        prev.map((d) => (d.__rowKey === activeRemarkDoc ? { ...d, status: apiStatus, remarks: remarkDraft } : d))
+        prev.map((d) => (d.__rowKey === activeRemarkDoc ? { ...d, status: 4, remarks: remarkDraft } : d))
       );
-      notify(apiStatus === 2 ? "Document marked for reupload." : "Document rejected.", "success");
+      notify("Document rejected.", "success");
       setActiveRemarkDoc(null);
       setRemarkDraft("");
     } catch (err) {
@@ -351,8 +354,13 @@ function GROCardView({ card }) {
   };
 
   const handleTickClick = async (doc, rowKey) => {
+    if (verifyingDocId) return;
     if (!canVerifyDocument(doc)) {
       notify("This document cannot be verified (missing reference).", "error");
+      return;
+    }
+    if (getGroDocumentVerifyStatus(doc) !== 1) {
+      notify("Only uploaded documents can be approved.", "warn");
       return;
     }
     setVerifyingDocId(rowKey);
@@ -361,10 +369,10 @@ function GROCardView({ card }) {
         call_id: Number(callId),
         document_id: Number(doc.document_id),
         call_task_document_id: Number(doc.call_task_document_id),
-        status: 1,
+        status: 2,
         remarks: "",
       });
-      setDocuments((prev) => prev.map((d) => (d.__rowKey === rowKey ? { ...d, status: 1 } : d)));
+      setDocuments((prev) => prev.map((d) => (d.__rowKey === rowKey ? { ...d, status: 2 } : d)));
       notify("Document verified.", "success");
       if (activeRemarkDoc === rowKey) {
         setActiveRemarkDoc(null);
