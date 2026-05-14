@@ -18,4 +18,7 @@ const updateVesselType = (payload) =>
     vessel_type: payload.vessel_type,
   });
 
-export default { getVesselTypes, addVesselType, updateVesselType };
+const deleteVesselType = (vessel_type_id) =>
+  Gateway.delete(`/vesseltype/delete/${vessel_type_id}`);
+
+export default { getVesselTypes, addVesselType, updateVesselType, deleteVesselType };

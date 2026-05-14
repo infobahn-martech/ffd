@@ -9,6 +9,7 @@ const useBargeTypeReducer = create((set) => ({
   bargeTypes: null,
   totalCount: null,
   addEditLoader: false,
+  deleteLoader: false,
 
   getBargeTypes: async ({ params }) => {
     try {
@@ -68,6 +69,21 @@ const useBargeTypeReducer = create((set) => ({
     } catch (err) {
       const { error } = useAlertReducer.getState();
       set({ addEditLoader: false });
+      error(err?.response?.data?.message ?? err?.message ?? 'Something went wrong');
+    }
+  },
+
+  deleteBargeType: async ({ barge_type_id, cb }) => {
+    try {
+      set({ deleteLoader: true });
+      const { data } = await bargeTypeService.deleteBargeType(barge_type_id);
+      const { success } = useAlertReducer.getState();
+      success(data?.message ?? 'Barge type deleted successfully');
+      set({ deleteLoader: false });
+      cb?.();
+    } catch (err) {
+      const { error } = useAlertReducer.getState();
+      set({ deleteLoader: false });
       error(err?.response?.data?.message ?? err?.message ?? 'Something went wrong');
     }
   },

@@ -18,4 +18,7 @@ const updateBargeType = (payload) =>
     barge_type: payload.barge_type,
   });
 
-export default { getBargeTypes, addBargeType, updateBargeType };
+const deleteBargeType = (barge_type_id) =>
+  Gateway.delete(`/bargetype/delete/${barge_type_id}`);
+
+export default { getBargeTypes, addBargeType, updateBargeType, deleteBargeType };

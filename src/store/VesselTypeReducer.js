@@ -9,6 +9,7 @@ const useVesselTypeReducer = create((set) => ({
   vesselTypes: null,
   totalCount: null,
   addEditLoader: false,
+  deleteLoader: false,
 
   getVesselTypes: async ({ params }) => {
     try {
@@ -68,6 +69,21 @@ const useVesselTypeReducer = create((set) => ({
     } catch (err) {
       const { error } = useAlertReducer.getState();
       set({ addEditLoader: false });
+      error(err?.response?.data?.message ?? err?.message ?? 'Something went wrong');
+    }
+  },
+
+  deleteVesselType: async ({ vessel_type_id, cb }) => {
+    try {
+      set({ deleteLoader: true });
+      const { data } = await vesselTypeService.deleteVesselType(vessel_type_id);
+      const { success } = useAlertReducer.getState();
+      success(data?.message ?? 'Vessel type deleted successfully');
+      set({ deleteLoader: false });
+      cb?.();
+    } catch (err) {
+      const { error } = useAlertReducer.getState();
+      set({ deleteLoader: false });
       error(err?.response?.data?.message ?? err?.message ?? 'Something went wrong');
     }
   },

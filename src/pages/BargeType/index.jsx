@@ -21,9 +21,11 @@ const BargeType = () => {
 
     const {
         getBargeTypes,
+        deleteBargeType,
         bargeTypes,
         totalCount,
         isLoading,
+        deleteLoader,
     } = useBargeTypeReducer((state) => state);
 
     useEffect(() => {
@@ -122,14 +124,24 @@ const BargeType = () => {
                     {!!showDeleteModal && (
                         <DeleteConfirmationModal
                             show={showDeleteModal}
+                            isLoading={deleteLoader}
                             onCancel={() => {
                                 setShowDeleteModal(false);
                                 setSelectedRowForDelete(null);
                             }}
                             onConfirm={() => {
-                                // TODO: Implement delete API when available
-                                setShowDeleteModal(false);
-                                setSelectedRowForDelete(null);
+                                const barge_type_id =
+                                    selectedRowForDelete?.barge_type_id ??
+                                    selectedRowForDelete?._id;
+                                if (!barge_type_id) return;
+                                deleteBargeType({
+                                    barge_type_id,
+                                    cb: () => {
+                                        setShowDeleteModal(false);
+                                        setSelectedRowForDelete(null);
+                                        getBargeTypes({ params });
+                                    },
+                                });
                             }}
                             deleteText="Are you sure you want to delete this barge type?"
                         />
