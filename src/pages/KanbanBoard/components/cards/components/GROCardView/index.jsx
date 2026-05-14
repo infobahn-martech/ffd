@@ -140,6 +140,11 @@ function GROCardView({ card }) {
     }
   }, []);
 
+  const selectDocumentsTab = useCallback(() => {
+    setGroMainView(GRO_MAIN_VIEWS.inward);
+    setShowInwardClearance(false);
+  }, []);
+
   const retryPassRequests = useCallback(() => {
     setPassRequestsState({ callId: null, cg: undefined, zawil: undefined });
     setPassRequestsError(null);
@@ -400,51 +405,53 @@ function GROCardView({ card }) {
         <div className="gro-document-header">
           <h3 className="gro-documents-heading">{documentsSectionTitle}</h3>
           <div className="gro-document-header-actions gro-document-header-actions--with-segments">
-            <div className="gro-pass-segments" role="tablist" aria-label="Pass and clearance views">
-              <button
-                type="button"
-                role="tab"
-                aria-selected={groMainView === GRO_MAIN_VIEWS.cg}
-                className={`gro-pass-segment${groMainView === GRO_MAIN_VIEWS.cg ? " gro-pass-segment--active" : ""}`}
-                onClick={() => switchGroMainView(GRO_MAIN_VIEWS.cg)}
-              >
-                CG Pass
-              </button>
-              <button
-                type="button"
-                role="tab"
-                aria-selected={groMainView === GRO_MAIN_VIEWS.zawil}
-                className={`gro-pass-segment${groMainView === GRO_MAIN_VIEWS.zawil ? " gro-pass-segment--active" : ""}`}
-                onClick={() => switchGroMainView(GRO_MAIN_VIEWS.zawil)}
-              >
-                Zawil Pass
-              </button>
-              <button
-                type="button"
-                role="tab"
-                aria-selected={groMainView === GRO_MAIN_VIEWS.inward}
-                className={`gro-pass-segment${groMainView === GRO_MAIN_VIEWS.inward ? " gro-pass-segment--active" : ""}`}
-                onClick={() => switchGroMainView(GRO_MAIN_VIEWS.inward)}
-              >
-                Documents
-              </button>
+            <div className="gro-pass-segments-row">
+              <div className="gro-pass-segments" role="tablist" aria-label="Pass and clearance views">
+                <button
+                  type="button"
+                  role="tab"
+                  aria-selected={groMainView === GRO_MAIN_VIEWS.cg}
+                  className={`gro-pass-segment${groMainView === GRO_MAIN_VIEWS.cg ? " gro-pass-segment--active" : ""}`}
+                  onClick={() => switchGroMainView(GRO_MAIN_VIEWS.cg)}
+                >
+                  CG Pass
+                </button>
+                <button
+                  type="button"
+                  role="tab"
+                  aria-selected={groMainView === GRO_MAIN_VIEWS.zawil}
+                  className={`gro-pass-segment${groMainView === GRO_MAIN_VIEWS.zawil ? " gro-pass-segment--active" : ""}`}
+                  onClick={() => switchGroMainView(GRO_MAIN_VIEWS.zawil)}
+                >
+                  Zawil Pass
+                </button>
+                <button
+                  type="button"
+                  role="tab"
+                  aria-selected={groMainView === GRO_MAIN_VIEWS.inward}
+                  className={`gro-pass-segment${groMainView === GRO_MAIN_VIEWS.inward ? " gro-pass-segment--active" : ""}`}
+                  onClick={selectDocumentsTab}
+                >
+                  Documents
+                </button>
+              </div>
+              {groMainView === GRO_MAIN_VIEWS.inward ? (
+                <InwardClearanceToolbar
+                  inwardAnchorRef={inwardAnchorRef}
+                  inwardFileInputRef={inwardFileInputRef}
+                  showInwardClearance={showInwardClearance}
+                  onToggleInwardPopover={() => setShowInwardClearance(!showInwardClearance)}
+                  inwardFile={inwardFile}
+                  onInwardFileChange={(e) => setInwardFile(e.target.files?.[0] ?? null)}
+                  inwardPickerParts={inwardPickerParts}
+                  onInwardDateTimeChange={handleInwardDateTimePickerChange}
+                  onInwardCancel={handleInwardCancel}
+                  onInwardSubmit={handleInwardSubmit}
+                  isSavingInward={isSavingInward}
+                  isGroLoadingDisabled={isGroLoading || isSavingInward || callId == null || callId === ""}
+                />
+              ) : null}
             </div>
-            {groMainView === GRO_MAIN_VIEWS.inward ? (
-              <InwardClearanceToolbar
-                inwardAnchorRef={inwardAnchorRef}
-                inwardFileInputRef={inwardFileInputRef}
-                showInwardClearance={showInwardClearance}
-                onToggleInwardPopover={() => setShowInwardClearance(!showInwardClearance)}
-                inwardFile={inwardFile}
-                onInwardFileChange={(e) => setInwardFile(e.target.files?.[0] ?? null)}
-                inwardPickerParts={inwardPickerParts}
-                onInwardDateTimeChange={handleInwardDateTimePickerChange}
-                onInwardCancel={handleInwardCancel}
-                onInwardSubmit={handleInwardSubmit}
-                isSavingInward={isSavingInward}
-                isGroLoadingDisabled={isGroLoading || isSavingInward || callId == null || callId === ""}
-              />
-            ) : null}
           </div>
         </div>
 

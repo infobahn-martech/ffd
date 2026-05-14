@@ -1,6 +1,6 @@
 import PropTypes from "prop-types";
 import DateTimePickerField from "../../../../CardFormTabs/components/DateTimePickerField";
-import { GRO_FILE_BADGE, getGroFileType } from "./groCardUtils";
+import { formatGroDocumentDisplayName, GRO_FILE_BADGE, getGroFileType } from "./groCardUtils";
 
 const GroDocumentFilePreview = ({ fileName, fileUrl }) => {
   const kind = getGroFileType(fileName || fileUrl || "");
@@ -112,7 +112,7 @@ export function InwardClearanceToolbar({
     <div className="gro-inward-anchor" ref={inwardAnchorRef}>
       <button
         type="button"
-        className="gro-inward-clearance-btn"
+        className={`gro-pass-segment${showInwardClearance ? " gro-pass-segment--popover-open" : ""}`}
         aria-expanded={showInwardClearance}
         disabled={isGroLoadingDisabled}
         onClick={onToggleInwardPopover}
@@ -208,16 +208,15 @@ function InwardClearanceView({
       ) : (
         documents.map((doc) => {
           const rowKey = doc.__rowKey;
-          const label = doc.document_name ?? "";
+          const label = formatGroDocumentDisplayName(doc.document_name ?? "");
           const isApproved = Number(doc.status) === 1;
           const isRejected = Number(doc.status) === 2;
           const remarkOpen = activeRemarkDoc === rowKey;
           const rowBusy = verifyingDocId === rowKey;
-          const verifyDisabled = isGroLoading || rowBusy || !canVerifyDocument(doc);
-          const showCross = !isRejected;
-          const showTick = !isApproved;
           const remarksTextRaw = doc?.remarks != null && String(doc.remarks).trim() !== "" ? String(doc.remarks).trim() : "";
           const remarksForPill = remarksTextRaw;
+          const approveDisabled = isGroLoading || rowBusy || isApproved || isRejected || !canVerifyDocument(doc);
+          const rejectDisabled = isGroLoading || Boolean(verifyingDocId) || isRejected;
 
           return (
             <div
@@ -230,7 +229,8 @@ function InwardClearanceView({
                   <span className="gro-document-title">{label}</span>
                   {remarksForPill ? (
                     <span className="gro-document-remarks-pill" title={remarksForPill}>
-                      Remarks: {remarksForPill}
+                      <span className="gro-document-remarks-pill-label">Remarks</span>
+                      <span className="gro-document-remarks-pill-text">{remarksForPill}</span>
                     </span>
                   ) : null}
                 </div>
@@ -257,41 +257,36 @@ function InwardClearanceView({
                 </div>
               ) : null}
               <div className="gro-document-actions">
-                {showCross ? (
-                  <button
-                    type="button"
-                    className={`gro-icon-btn cross${remarkOpen ? " active" : ""}`}
-                    title="Remarks"
-                    aria-label="Toggle remarks"
-                    aria-pressed={remarkOpen}
-                    disabled={isGroLoading || Boolean(verifyingDocId)}
-                    onClick={() => onCrossClick(rowKey, doc)}
-                  >
-                    <IconCross />
-                  </button>
-                ) : null}
-                {showTick ? (
-                  <button
-                    type="button"
-                    className={`gro-icon-btn tick${isApproved ? " selected" : ""}`}
-                    title={isApproved ? "Approved" : "Mark approved"}
-                    aria-label={isApproved ? "Approved" : "Mark approved"}
-                    aria-pressed={isApproved}
-                    disabled={verifyDisabled}
-                    onClick={() => onTickClick(doc, rowKey)}
-                  >
-                    <IconTick />
-                  </button>
-                ) : null}
                 <button
                   type="button"
-                  className="gro-icon-btn download"
-                  title="Download"
-                  aria-label="Download document"
+                  className={`gro-doc-action-btn gro-doc-action-btn--approved${isApproved ? " gro-doc-action-btn--done" : ""}`}
+                  disabled={approveDisabled}
+                  aria-pressed={isApproved}
+                  onClick={() => onTickClick(doc, rowKey)}
+                >
+                  <IconTick />
+                  <span>Approved</span>
+                </button>
+                <button
+                  type="button"
+                  className={`gro-doc-action-btn gro-doc-action-btn--reject${remarkOpen ? " gro-doc-action-btn--active" : ""}`}
+                  disabled={rejectDisabled}
+                  aria-pressed={remarkOpen}
+                  aria-label="Reject — add remarks"
+                  onClick={() => onCrossClick(rowKey, doc)}
+                >
+                  <IconCross />
+                  <span>Reject</span>
+                </button>
+                <button
+                  type="button"
+                  className="gro-doc-action-btn gro-doc-action-btn--download"
                   disabled={isGroLoading}
+                  aria-label="Download document"
                   onClick={() => onDocumentDownload(doc)}
                 >
                   <IconDownload />
+                  <span>Download</span>
                 </button>
               </div>
             </div>

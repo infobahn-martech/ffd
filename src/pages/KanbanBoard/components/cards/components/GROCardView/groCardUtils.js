@@ -96,6 +96,15 @@ export const firstNonEmptyGroDisplay = (...candidates) => {
   return "-";
 };
 
+/** Title-case all-caps API labels (e.g. "CREW LIST"); leave mixed-case strings unchanged. */
+export const formatGroDocumentDisplayName = (raw) => {
+  if (raw == null) return "";
+  const t = String(raw).trim();
+  if (!t) return "";
+  if (/[a-z]/.test(t)) return t;
+  return t.replace(/\w\S*/g, (txt) => txt.charAt(0).toUpperCase() + txt.slice(1).toLowerCase());
+};
+
 export const parseGroPassRequestsResponse = (res) => {
   const data = res?.data?.data ?? res?.data ?? {};
   return {
