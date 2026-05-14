@@ -180,6 +180,26 @@ export const groPassCrewRowFields = (crew) => {
   };
 };
 
+/** Numeric or string work order id for API payloads */
+export const getGroWorkOrderId = (wo) => {
+  if (!wo || typeof wo !== "object") return null;
+  const raw = wo.wo_id ?? wo.id ?? wo.work_order_id;
+  if (raw == null || raw === "") return null;
+  const n = Number(raw);
+  if (!Number.isNaN(n) && String(raw).trim() === String(n)) return n;
+  return raw;
+};
+
+/** Crew pass row id for Zawil single-row upload */
+export const getGroCrewPassId = (crew) => {
+  if (!crew || typeof crew !== "object") return null;
+  const raw = crew.crew_pass_id ?? crew.crewPassId ?? crew.pass_id;
+  if (raw == null || raw === "") return null;
+  const n = Number(raw);
+  if (!Number.isNaN(n) && String(raw).trim() === String(n)) return n;
+  return raw;
+};
+
 export const groPassStatusBadgeTone = (raw) => {
   const s = String(raw ?? "")
     .trim()

@@ -14,12 +14,18 @@ export const saveArrivalDocument = (formData) =>
 export const getPassRequests = (callId) =>
   Gateway.get(`crew_pass/get_pass_requests/${encodeURIComponent(String(callId))}`);
 
+export const uploadZawilPass = (formData) => Gateway.post("crew_pass/upload_zawil_pass", formData);
+
+export const uploadCgPass = (formData) => Gateway.post("crew_pass/upload_cg_pass", formData);
+
 const groService = {
   getCallDetailById,
   getGroCustomDocs,
   verifyGroDocs,
   saveArrivalDocument,
   getPassRequests,
+  uploadZawilPass,
+  uploadCgPass,
 };
 
 export default groService;

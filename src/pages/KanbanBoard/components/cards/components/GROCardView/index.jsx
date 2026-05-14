@@ -151,10 +151,42 @@ function GROCardView({ card }) {
     setPassRequestsError(null);
   }, []);
 
-  const handlePassRowUpload = useCallback((row) => {
-    void row;
-    /* Future: upload — row includes callId, workOrder, crew, crewIndex, woNumber, woKey, fields */
-  }, []);
+  const refreshPassRequests = useCallback(async () => {
+    if (callId == null || callId === "") return;
+    setPassRequestsLoading(true);
+    setPassRequestsError(null);
+    try {
+      const res = await groService.getPassRequests(callId);
+      const parsed = parseGroPassRequestsResponse(res);
+      setPassRequestsState({ callId, cg: parsed.cg, zawil: parsed.zawil });
+    } catch (err) {
+      setPassRequestsError(groApiErrorMessage(err, "Failed to load pass requests."));
+      setPassRequestsState({ callId, cg: [], zawil: [] });
+    } finally {
+      setPassRequestsLoading(false);
+    }
+  }, [callId]);
+
+  const handlePassUploadSubmit = useCallback(
+    async (formData) => {
+      try {
+        if (groMainView === GRO_MAIN_VIEWS.cg) {
+          await groService.uploadCgPass(formData);
+        } else if (groMainView === GRO_MAIN_VIEWS.zawil) {
+          await groService.uploadZawilPass(formData);
+        } else {
+          notify("Invalid pass tab.", "error");
+          throw new Error("Invalid pass tab.");
+        }
+        notify("Pass uploaded successfully.", "success");
+        await refreshPassRequests();
+      } catch (err) {
+        notify(groApiErrorMessage(err, "Upload failed."), "error");
+        throw err;
+      }
+    },
+    [groMainView, refreshPassRequests]
+  );
 
   const refreshGroDocuments = useCallback(async (cid) => {
     if (cid == null || cid === "") return;
@@ -494,12 +526,8 @@ function GROCardView({ card }) {
                   : null
             }
             onRetry={retryPassRequests}
-            onPassRowUpload={(payload) =>
-              handlePassRowUpload({
-                callId,
-                ...payload,
-              })
-            }
+            passVariant={groMainView === GRO_MAIN_VIEWS.cg ? "cg" : "zawil"}
+            onPassUploadSubmit={handlePassUploadSubmit}
           />
         )}
       </div>
