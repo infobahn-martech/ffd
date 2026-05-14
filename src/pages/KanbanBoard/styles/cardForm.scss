@@ -428,27 +428,35 @@
   transition: transform 0.2s ease, box-shadow 0.2s ease, border-color 0.2s ease, background 0.2s ease;
 }
 
-.gro-card-view .gro-document-row:not(.gro-document-row-approved):not(.gro-document-row-rejected):hover {
+.gro-card-view .gro-document-row-status-pending:hover {
   transform: translateY(-1px);
   box-shadow: 0 6px 18px rgba(15, 23, 42, 0.06);
 }
 
-.gro-card-view .gro-document-row.gro-document-row-approved:hover,
-.gro-card-view .gro-document-row.gro-document-row-rejected:hover {
+.gro-card-view .gro-document-row-status-verified:hover,
+.gro-card-view .gro-document-row-status-reupload:hover {
   transform: translateY(-1px);
+  box-shadow: 0 4px 14px rgba(15, 23, 42, 0.05);
 }
 
-.gro-card-view .gro-document-row.gro-document-row-approved {
-  background: rgba(240, 253, 244, 0.55) !important;
-  border: 1px solid #d1fae5 !important;
-  border-left: 3px solid #4ade80 !important;
+.gro-card-view .gro-document-row-status-pending {
+  background: #fffbeb !important;
+  border: 1px solid #fde68a !important;
+  border-left: 3px solid #f59e0b !important;
   box-shadow: none !important;
 }
 
-.gro-card-view .gro-document-row.gro-document-row-rejected {
-  background: rgba(254, 242, 242, 0.55) !important;
-  border: 1px solid #fecdd3 !important;
-  border-left: 3px solid #fb923c !important;
+.gro-card-view .gro-document-row-status-verified {
+  background: rgba(240, 253, 244, 0.72) !important;
+  border: 1px solid #bbf7d0 !important;
+  border-left: 3px solid #22c55e !important;
+  box-shadow: none !important;
+}
+
+.gro-card-view .gro-document-row-status-reupload {
+  background: rgba(254, 242, 242, 0.72) !important;
+  border: 1px solid #fecaca !important;
+  border-left: 3px solid #f87171 !important;
   box-shadow: none !important;
 }
 
@@ -727,20 +735,23 @@
   border-color: #6ee7b7;
 }
 
-.gro-card-view .gro-doc-action-btn--approved:not(:disabled):hover {
+.gro-card-view .gro-doc-action-btn--approved:not(.gro-doc-action-btn--state-readonly-approved):not(:disabled):hover {
   background: #d1fae5;
   border-color: #34d399;
   box-shadow: 0 4px 12px rgba(16, 185, 129, 0.18);
   transform: translateY(-1px);
 }
 
-.gro-card-view .gro-doc-action-btn--approved.gro-doc-action-btn--done:disabled {
-  opacity: 1;
+.gro-card-view .gro-doc-action-btn--state-readonly-approved,
+.gro-card-view .gro-doc-action-btn--state-readonly-approved:hover,
+.gro-card-view .gro-doc-action-btn--state-readonly-approved:focus-visible {
+  color: #ffffff !important;
+  background: #059669 !important;
+  border-color: #047857 !important;
   cursor: default;
   pointer-events: none;
-  color: #065f46;
-  background: #d1fae5;
-  border-color: #34d399;
+  box-shadow: none !important;
+  transform: none !important;
 }
 
 .gro-card-view .gro-doc-action-btn--reject {
@@ -749,17 +760,29 @@
   border-color: #fecaca;
 }
 
-.gro-card-view .gro-doc-action-btn--reject:not(:disabled):hover {
+.gro-card-view .gro-doc-action-btn--reject:not(.gro-doc-action-btn--state-readonly-reupload):not(:disabled):hover {
   background: #fee2e2;
   border-color: #f87171;
   box-shadow: 0 4px 12px rgba(239, 68, 68, 0.16);
   transform: translateY(-1px);
 }
 
-.gro-card-view .gro-doc-action-btn--reject.gro-doc-action-btn--active:not(:disabled) {
+.gro-card-view .gro-doc-action-btn--reject.gro-doc-action-btn--active:not(.gro-doc-action-btn--state-readonly-reupload) {
   background: #fee2e2;
   border-color: #ef4444;
   box-shadow: 0 0 0 2px rgba(239, 68, 68, 0.15);
+}
+
+.gro-card-view .gro-doc-action-btn--state-readonly-reupload,
+.gro-card-view .gro-doc-action-btn--state-readonly-reupload:hover,
+.gro-card-view .gro-doc-action-btn--state-readonly-reupload:focus-visible {
+  color: #ffffff !important;
+  background: #dc2626 !important;
+  border-color: #b91c1c !important;
+  cursor: default;
+  pointer-events: none;
+  box-shadow: none !important;
+  transform: none !important;
 }
 
 .gro-card-view .gro-doc-action-btn--download {
@@ -780,12 +803,6 @@
   border-color: #60a5fa;
   box-shadow: 0 4px 12px rgba(37, 99, 235, 0.18);
   transform: translateY(-1px);
-}
-
-.gro-card-view .gro-doc-action-btn:disabled:not(.gro-doc-action-btn--done) {
-  opacity: 0.5;
-  cursor: not-allowed;
-  box-shadow: none;
 }
 
 .gro-icon-btn:disabled,
@@ -865,6 +882,12 @@
   .gro-card-view .gro-doc-action-btn--reject {
     flex: 1 1 auto;
     min-width: 0;
+  }
+
+  .gro-card-view .gro-doc-action-btn--state-readonly-approved,
+  .gro-card-view .gro-doc-action-btn--state-readonly-reupload {
+    flex: 0 1 auto;
+    min-width: 112px;
   }
 
   .gro-card-view .gro-doc-action-btn--download.gro-doc-action-btn--icon-only {

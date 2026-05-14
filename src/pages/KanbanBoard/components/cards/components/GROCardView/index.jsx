@@ -468,7 +468,6 @@ function GROCardView({ card }) {
             onRemarkSubmit={handleRemarkSubmit}
             onTickClick={handleTickClick}
             onDocumentDownload={handleDocumentDownload}
-            canVerifyDocument={canVerifyDocument}
           />
         ) : (
           <PassRequestsView

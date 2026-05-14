@@ -1,6 +1,12 @@
 import PropTypes from "prop-types";
 import DateTimePickerField from "../../../../CardFormTabs/components/DateTimePickerField";
-import { formatGroDocumentDisplayName, GRO_FILE_BADGE, getGroFileType } from "./groCardUtils";
+import {
+  formatGroDocumentDisplayName,
+  getGroDocumentVerifyStatus,
+  groDocumentHasDownloadableUrl,
+  GRO_FILE_BADGE,
+  getGroFileType,
+} from "./groCardUtils";
 
 const GroDocumentFilePreview = ({ fileName, fileUrl }) => {
   const kind = getGroFileType(fileName || fileUrl || "");
@@ -199,7 +205,6 @@ function InwardClearanceView({
   onRemarkSubmit,
   onTickClick,
   onDocumentDownload,
-  canVerifyDocument,
 }) {
   return (
     <div className="gro-document-list">
@@ -209,25 +214,33 @@ function InwardClearanceView({
         documents.map((doc) => {
           const rowKey = doc.__rowKey;
           const label = formatGroDocumentDisplayName(doc.document_name ?? "");
-          const isApproved = Number(doc.status) === 1;
-          const isRejected = Number(doc.status) === 2;
+          const verifyStatus = getGroDocumentVerifyStatus(doc);
+          const isPending = verifyStatus === 0;
+          const isVerified = verifyStatus === 1;
+          const isReupload = verifyStatus === 2;
           const remarkOpen = activeRemarkDoc === rowKey;
           const rowBusy = verifyingDocId === rowKey;
           const remarksTextRaw = doc?.remarks != null && String(doc.remarks).trim() !== "" ? String(doc.remarks).trim() : "";
           const remarksForPill = remarksTextRaw;
-          const approveDisabled = isGroLoading || rowBusy || isApproved || isRejected || !canVerifyDocument(doc);
-          const rejectDisabled = isGroLoading || Boolean(verifyingDocId) || isRejected;
+          const showRemarksPill = isReupload && Boolean(remarksForPill);
+          const hasFile = groDocumentHasDownloadableUrl(doc);
+
+          const rowStatusClass = isVerified
+            ? "gro-document-row-status-verified"
+            : isReupload
+              ? "gro-document-row-status-reupload"
+              : "gro-document-row-status-pending";
 
           return (
             <div
               key={rowKey}
-              className={`gro-document-row ${isApproved ? "gro-document-row-approved" : ""} ${isRejected ? "gro-document-row-rejected" : ""} ${remarkOpen ? "gro-document-row-editing" : ""}`}
+              className={`gro-document-row ${rowStatusClass}${remarkOpen ? " gro-document-row-editing" : ""}`}
             >
               <GroDocumentFilePreview fileName={doc.file_name} fileUrl={doc.file_url} />
               <div className="gro-document-main">
                 <div className="gro-document-main-top">
                   <span className="gro-document-title">{label}</span>
-                  {remarksForPill ? (
+                  {showRemarksPill ? (
                     <span className="gro-document-remarks-pill" title={remarksForPill}>
                       <span className="gro-document-remarks-pill-label">Remarks</span>
                       <span className="gro-document-remarks-pill-text">{remarksForPill}</span>
@@ -257,37 +270,61 @@ function InwardClearanceView({
                 </div>
               ) : null}
               <div className="gro-document-actions">
-                <button
-                  type="button"
-                  className={`gro-doc-action-btn gro-doc-action-btn--approved${isApproved ? " gro-doc-action-btn--done" : ""}`}
-                  disabled={approveDisabled}
-                  aria-pressed={isApproved}
-                  onClick={() => onTickClick(doc, rowKey)}
-                >
-                  <IconTick />
-                  <span>Approved</span>
-                </button>
-                <button
-                  type="button"
-                  className={`gro-doc-action-btn gro-doc-action-btn--reject${remarkOpen ? " gro-doc-action-btn--active" : ""}`}
-                  disabled={rejectDisabled}
-                  aria-pressed={remarkOpen}
-                  aria-label="Reject — add remarks"
-                  onClick={() => onCrossClick(rowKey, doc)}
-                >
-                  <IconCross />
-                  <span>Reject</span>
-                </button>
-                <button
-                  type="button"
-                  className="gro-doc-action-btn gro-doc-action-btn--download gro-doc-action-btn--icon-only"
-                  title="Download"
-                  disabled={isGroLoading}
-                  aria-label="Download"
-                  onClick={() => onDocumentDownload(doc)}
-                >
-                  <IconDownload />
-                </button>
+                {isPending ? (
+                  <button
+                    type="button"
+                    className="gro-doc-action-btn gro-doc-action-btn--approved"
+                    onClick={() => onTickClick(doc, rowKey)}
+                  >
+                    <IconTick />
+                    <span>Approved</span>
+                  </button>
+                ) : null}
+                {isVerified ? (
+                  <button
+                    type="button"
+                    className="gro-doc-action-btn gro-doc-action-btn--approved gro-doc-action-btn--state-readonly-approved"
+                    tabIndex={-1}
+                    aria-label="Approved"
+                  >
+                    <IconTick />
+                    <span>Approved</span>
+                  </button>
+                ) : null}
+                {isPending ? (
+                  <button
+                    type="button"
+                    className={`gro-doc-action-btn gro-doc-action-btn--reject${remarkOpen ? " gro-doc-action-btn--active" : ""}`}
+                    aria-pressed={remarkOpen}
+                    aria-label="Reject — add remarks"
+                    onClick={() => onCrossClick(rowKey, doc)}
+                  >
+                    <IconCross />
+                    <span>Reject</span>
+                  </button>
+                ) : null}
+                {isReupload ? (
+                  <button
+                    type="button"
+                    className="gro-doc-action-btn gro-doc-action-btn--reject gro-doc-action-btn--state-readonly-reupload"
+                    tabIndex={-1}
+                    aria-label="Reupload required"
+                  >
+                    <IconCross />
+                    <span>Reupload</span>
+                  </button>
+                ) : null}
+                {hasFile ? (
+                  <button
+                    type="button"
+                    className="gro-doc-action-btn gro-doc-action-btn--download gro-doc-action-btn--icon-only"
+                    title="Download"
+                    aria-label="Download"
+                    onClick={() => onDocumentDownload(doc)}
+                  >
+                    <IconDownload />
+                  </button>
+                ) : null}
               </div>
             </div>
           );
@@ -309,7 +346,6 @@ InwardClearanceView.propTypes = {
   onRemarkSubmit: PropTypes.func.isRequired,
   onTickClick: PropTypes.func.isRequired,
   onDocumentDownload: PropTypes.func.isRequired,
-  canVerifyDocument: PropTypes.func.isRequired,
 };
 
 export default InwardClearanceView;

@@ -105,6 +105,22 @@ export const formatGroDocumentDisplayName = (raw) => {
   return t.replace(/\w\S*/g, (txt) => txt.charAt(0).toUpperCase() + txt.slice(1).toLowerCase());
 };
 
+/** GRO custom document verify flow: 0 = pending, 1 = verified, 2 = reupload. Unknown → 0. */
+export const getGroDocumentVerifyStatus = (doc) => {
+  const raw = doc?.status;
+  if (raw == null || raw === "") return 0;
+  const n = Number(raw);
+  if (Number.isNaN(n)) return 0;
+  if (n === 1) return 1;
+  if (n === 2) return 2;
+  return 0;
+};
+
+export const groDocumentHasDownloadableUrl = (doc) => {
+  const u = doc?.file_url;
+  return u != null && String(u).trim() !== "";
+};
+
 export const parseGroPassRequestsResponse = (res) => {
   const data = res?.data?.data ?? res?.data ?? {};
   return {
