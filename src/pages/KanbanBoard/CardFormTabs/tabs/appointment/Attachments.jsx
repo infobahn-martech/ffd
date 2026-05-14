@@ -384,6 +384,25 @@ const resolveAttachmentFileUrl = (fileUrl) => {
   return s.startsWith("/") ? `${base}${s}` : `${base}/${s}`;
 };
 
+const getViewerUrl = (url, fileName = "") => {
+  const extension = fileName.split(".").pop()?.toLowerCase();
+
+  const officeExtensions = [
+    "doc",
+    "docx",
+    "xls",
+    "xlsx",
+    "ppt",
+    "pptx",
+  ];
+
+  if (officeExtensions.includes(extension)) {
+    return `https://docs.google.com/gview?url=${encodeURIComponent(url)}&embedded=true`;
+  }
+
+  return url;
+};
+
 /** Map `body.data.attachments` — object keyed by category (e.g. Call File Open, GRO). */
 const mapAttachmentsResponse = (attachmentsByCategory) => {
   if (!attachmentsByCategory || typeof attachmentsByCategory !== "object") return [];
@@ -492,12 +511,20 @@ function Attachments({ card, formValues }) {
 
   const handleView = (attachment) => {
     const rawUrl = attachment?.fileUrl;
+
     if (!rawUrl) {
       window.alert("No link is available for this attachment.");
       return;
     }
+
     const absUrl = resolveAttachmentFileUrl(rawUrl);
-    window.open(absUrl, "_blank", "noopener,noreferrer");
+
+    const viewerUrl = getViewerUrl(
+      absUrl,
+      attachment?.fileName || ""
+    );
+
+    window.open(viewerUrl, "_blank", "noopener,noreferrer");
   };
 
   return (
