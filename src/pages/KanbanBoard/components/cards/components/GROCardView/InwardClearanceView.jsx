@@ -280,13 +280,13 @@ function InwardClearanceView({
                 </button>
                 <button
                   type="button"
-                  className="gro-doc-action-btn gro-doc-action-btn--download"
+                  className="gro-doc-action-btn gro-doc-action-btn--download gro-doc-action-btn--icon-only"
+                  title="Download"
                   disabled={isGroLoading}
-                  aria-label="Download document"
+                  aria-label="Download"
                   onClick={() => onDocumentDownload(doc)}
                 >
                   <IconDownload />
-                  <span>Download</span>
                 </button>
               </div>
             </div>
