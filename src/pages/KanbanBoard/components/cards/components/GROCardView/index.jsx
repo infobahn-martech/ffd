@@ -1,10 +1,11 @@
-import { useState, useCallback, useEffect, useRef } from "react";
+import { useState, useCallback, useEffect, useRef, useMemo } from "react";
 import PropTypes from "prop-types";
 import { notify } from "../../../../../../components/Toaster";
 import groService from "../../../../../../services/groService";
 import GroSummaryCard from "./GroSummaryCard";
 import InwardClearanceView, { InwardClearanceToolbar } from "./InwardClearanceView";
 import PassRequestsView from "./PassRequestsView";
+import GroPassUploadPopoverForm from "./GroPassUploadPopoverForm";
 import {
   GRO_MAIN_VIEWS,
   buildGroFallbackDocuments,
@@ -16,7 +17,14 @@ import {
   parseGroPassRequestsResponse,
   firstNonEmptyGroDisplay,
   getGroDocumentVerifyStatus,
+  flattenGroPassRows,
+  buildGroPassIssueDateString,
+  getGroCrewPassId,
+  getGroWorkOrderId,
+  groPassCrewRowId,
 } from "./groCardUtils";
+
+const EMPTY_WORK_ORDERS = [];
 
 function GROCardView({ card }) {
   const inwardAnchorRef = useRef(null);
@@ -40,6 +48,17 @@ function GROCardView({ card }) {
   });
   const [passRequestsLoading, setPassRequestsLoading] = useState(false);
   const [passRequestsError, setPassRequestsError] = useState(null);
+  const [passSelectedRowIds, setPassSelectedRowIds] = useState(() => new Set());
+  const [showPassBulkPopover, setShowPassBulkPopover] = useState(false);
+  const [bulkPassForm, setBulkPassForm] = useState(() => ({
+    passNo: "",
+    issuePickerParts: { date: "", time: "" },
+    file: null,
+  }));
+  const [bulkPassSubmitting, setBulkPassSubmitting] = useState(false);
+  const [bulkPassFormError, setBulkPassFormError] = useState("");
+  const bulkPassUploadAnchorRef = useRef(null);
+  const bulkPassFileInputRef = useRef(null);
 
   const callId = resolveGroCallId(card);
 
@@ -136,6 +155,7 @@ function GROCardView({ card }) {
 
   const switchGroMainView = useCallback((next) => {
     setGroMainView(next);
+    setShowPassBulkPopover(false);
     if (next !== GRO_MAIN_VIEWS.inward) {
       setShowInwardClearance(false);
     }
@@ -168,17 +188,22 @@ function GROCardView({ card }) {
   }, [callId]);
 
   const handlePassUploadSubmit = useCallback(
-    async (formData) => {
+    async (payload) => {
+      const list = Array.isArray(payload) ? payload : [payload];
+      if (list.length === 0) return;
       try {
-        if (groMainView === GRO_MAIN_VIEWS.cg) {
-          await groService.uploadCgPass(formData);
-        } else if (groMainView === GRO_MAIN_VIEWS.zawil) {
-          await groService.uploadZawilPass(formData);
-        } else {
+        const upload =
+          groMainView === GRO_MAIN_VIEWS.cg
+            ? groService.uploadCgPass
+            : groMainView === GRO_MAIN_VIEWS.zawil
+              ? groService.uploadZawilPass
+              : null;
+        if (!upload) {
           notify("Invalid pass tab.", "error");
           throw new Error("Invalid pass tab.");
         }
-        notify("Pass uploaded successfully.", "success");
+        await Promise.all(list.map((fd) => upload(fd)));
+        notify(list.length > 1 ? "Passes uploaded successfully." : "Pass uploaded successfully.", "success");
         await refreshPassRequests();
       } catch (err) {
         notify(groApiErrorMessage(err, "Upload failed."), "error");
@@ -187,6 +212,149 @@ function GROCardView({ card }) {
     },
     [groMainView, refreshPassRequests]
   );
+
+  const passTableForFlat =
+    groMainView === GRO_MAIN_VIEWS.cg
+      ? passRequestsState.cg
+      : groMainView === GRO_MAIN_VIEWS.zawil
+        ? passRequestsState.zawil
+        : EMPTY_WORK_ORDERS;
+
+  const flatPassRows = useMemo(
+    () => flattenGroPassRows(Array.isArray(passTableForFlat) ? passTableForFlat : EMPTY_WORK_ORDERS),
+    [passTableForFlat]
+  );
+
+  const passWorkOrdersForTable = Array.isArray(passTableForFlat) ? passTableForFlat : EMPTY_WORK_ORDERS;
+
+  const resetBulkPassUploadForm = useCallback(() => {
+    setBulkPassForm({ passNo: "", issuePickerParts: { date: "", time: "" }, file: null });
+    setBulkPassFormError("");
+    if (bulkPassFileInputRef.current) bulkPassFileInputRef.current.value = "";
+  }, []);
+
+  const clearPassRowSelection = useCallback(() => {
+    setPassSelectedRowIds(new Set());
+    setShowPassBulkPopover(false);
+    resetBulkPassUploadForm();
+  }, [resetBulkPassUploadForm]);
+
+  useEffect(() => {
+    clearPassRowSelection();
+  }, [groMainView, passTableForFlat, clearPassRowSelection]);
+
+  const handleBulkPassSubmit = useCallback(
+    async (e) => {
+      e.preventDefault();
+      const passNo = String(bulkPassForm.passNo ?? "").trim();
+      const issueDate = buildGroPassIssueDateString(bulkPassForm.issuePickerParts);
+      const file = bulkPassForm.file;
+      const parts = [];
+      if (!passNo) parts.push("Pass no is required.");
+      if (!issueDate) parts.push("Issue date and time is required.");
+      if (!file) parts.push("Document copy is required.");
+      if (parts.length > 0) {
+        setBulkPassFormError(parts.join(" "));
+        return;
+      }
+      setBulkPassFormError("");
+
+      const targets = Array.from(passSelectedRowIds)
+        .map((id) => flatPassRows.find((r) => r.kind === "crew" && groPassCrewRowId(r) === id))
+        .filter(Boolean);
+
+      if (targets.length === 0) {
+        setBulkPassFormError("No rows selected.");
+        return;
+      }
+
+      const passVariant = groMainView === GRO_MAIN_VIEWS.cg ? "cg" : "zawil";
+
+      for (const row of targets) {
+        if (passVariant === "cg") {
+          const woId = row.woId ?? getGroWorkOrderId(row.wo);
+          if (woId == null || woId === "") {
+            setBulkPassFormError("Some selected rows are missing a work order id.");
+            return;
+          }
+        } else {
+          const cp = row.crewPassId ?? getGroCrewPassId(row.crew);
+          const woId = row.woId ?? getGroWorkOrderId(row.wo);
+          if ((cp == null || cp === "") && (woId == null || woId === "")) {
+            setBulkPassFormError("Some selected rows are missing crew pass or work order id.");
+            return;
+          }
+        }
+      }
+
+      const forms = targets.map((row) => {
+        const fd = new FormData();
+        fd.append("pass_no", passNo);
+        fd.append("issue_date", issueDate);
+        fd.append("document_copy", file);
+        if (passVariant === "cg") {
+          const woId = row.woId ?? getGroWorkOrderId(row.wo);
+          fd.append("wo_id", String(woId));
+        } else {
+          const cp = row.crewPassId ?? getGroCrewPassId(row.crew);
+          const woId = row.woId ?? getGroWorkOrderId(row.wo);
+          if (cp != null && cp !== "") fd.append("crew_pass_id", String(cp));
+          else fd.append("wo_id", String(woId));
+        }
+        return fd;
+      });
+
+      setBulkPassSubmitting(true);
+      try {
+        await handlePassUploadSubmit(forms);
+        setShowPassBulkPopover(false);
+        resetBulkPassUploadForm();
+      } catch {
+        /* toast in handlePassUploadSubmit */
+      } finally {
+        setBulkPassSubmitting(false);
+      }
+    },
+    [
+      bulkPassForm,
+      flatPassRows,
+      groMainView,
+      handlePassUploadSubmit,
+      passSelectedRowIds,
+      resetBulkPassUploadForm,
+    ]
+  );
+
+  useEffect(() => {
+    if (!showPassBulkPopover) return undefined;
+    const bulkClickIgnores = [
+      ".gro-inward-popover",
+      ".MuiPopover-root",
+      ".MuiPickersPopper-root",
+      ".MuiDialog-root",
+      ".MuiModal-root",
+      ".MuiDateCalendar-root",
+    ];
+    const onPointerDown = (ev) => {
+      const path = typeof ev.composedPath === "function" ? ev.composedPath() : [ev.target];
+      for (const node of path) {
+        if (!(node instanceof Element)) continue;
+        if (bulkClickIgnores.some((sel) => node.closest(sel))) {
+          return;
+        }
+      }
+      if (bulkPassUploadAnchorRef.current && !bulkPassUploadAnchorRef.current.contains(ev.target)) {
+        setShowPassBulkPopover(false);
+        resetBulkPassUploadForm();
+      }
+    };
+    document.addEventListener("mousedown", onPointerDown);
+    document.addEventListener("touchstart", onPointerDown, { passive: true });
+    return () => {
+      document.removeEventListener("mousedown", onPointerDown);
+      document.removeEventListener("touchstart", onPointerDown);
+    };
+  }, [showPassBulkPopover, resetBulkPassUploadForm]);
 
   const refreshGroDocuments = useCallback(async (cid) => {
     if (cid == null || cid === "") return;
@@ -426,9 +594,6 @@ function GROCardView({ card }) {
     window.open(url, "_blank", "noopener,noreferrer");
   };
 
-  const passTableWorkOrders =
-    groMainView === GRO_MAIN_VIEWS.cg ? passRequestsState.cg : groMainView === GRO_MAIN_VIEWS.zawil ? passRequestsState.zawil : null;
-
   const documentsSectionTitle =
     groMainView === GRO_MAIN_VIEWS.cg
       ? "CG Pass"
@@ -495,6 +660,51 @@ function GROCardView({ card }) {
                   isSavingInward={isSavingInward}
                   isGroLoadingDisabled={isGroLoading || isSavingInward || callId == null || callId === ""}
                 />
+              ) : (groMainView === GRO_MAIN_VIEWS.cg || groMainView === GRO_MAIN_VIEWS.zawil) && passSelectedRowIds.size > 0 ? (
+                <div className="gro-inward-anchor gro-pass-bulk-upload-anchor" ref={bulkPassUploadAnchorRef}>
+                  <button
+                    type="button"
+                    className={`gro-pass-segment${showPassBulkPopover ? " gro-pass-segment--popover-open" : ""}`}
+                    onClick={() => {
+                      setShowPassBulkPopover((prev) => {
+                        const next = !prev;
+                        if (next) resetBulkPassUploadForm();
+                        return next;
+                      });
+                    }}
+                  >
+                    Bulk upload
+                  </button>
+                  {showPassBulkPopover ? (
+                    <GroPassUploadPopoverForm
+                      title={groMainView === GRO_MAIN_VIEWS.cg ? "Bulk Upload CG Pass" : "Bulk Upload Zawil Pass"}
+                      passNo={bulkPassForm.passNo}
+                      onPassNoChange={(e) => setBulkPassForm((prev) => ({ ...prev, passNo: e.target.value }))}
+                      issuePickerParts={bulkPassForm.issuePickerParts}
+                      onIssueDateTimeChange={({ date, time }) =>
+                        setBulkPassForm((prev) => ({
+                          ...prev,
+                          issuePickerParts: {
+                            date: date || "",
+                            time: time != null && time !== "" ? String(time).slice(0, 5) : "",
+                          },
+                        }))
+                      }
+                      fileInputRef={bulkPassFileInputRef}
+                      fileName={bulkPassForm.file?.name}
+                      onFileInputChange={(e) => setBulkPassForm((prev) => ({ ...prev, file: e.target.files?.[0] ?? null }))}
+                      onCancel={() => {
+                        setShowPassBulkPopover(false);
+                        resetBulkPassUploadForm();
+                      }}
+                      onSubmit={handleBulkPassSubmit}
+                      submitting={bulkPassSubmitting}
+                      formLevelError={bulkPassFormError}
+                      hasIssueDateError={bulkPassFormError.includes("Issue date")}
+                      datetimePopperClassName="gro-pass-upload-datetime-popper"
+                    />
+                  ) : null}
+                </div>
               ) : null}
             </div>
           </div>
@@ -516,7 +726,7 @@ function GROCardView({ card }) {
           />
         ) : (
           <PassRequestsView
-            workOrders={Array.isArray(passTableWorkOrders) ? passTableWorkOrders : []}
+            workOrders={passWorkOrdersForTable}
             loading={passRequestsLoading}
             errorMessage={
               groMainView !== GRO_MAIN_VIEWS.inward && passRequestsError
@@ -528,6 +738,23 @@ function GROCardView({ card }) {
             onRetry={retryPassRequests}
             passVariant={groMainView === GRO_MAIN_VIEWS.cg ? "cg" : "zawil"}
             onPassUploadSubmit={handlePassUploadSubmit}
+            selectedRowIds={passSelectedRowIds}
+            onRowSelectionToggle={(id) => {
+              setPassSelectedRowIds((prev) => {
+                const next = new Set(prev);
+                if (next.has(id)) next.delete(id);
+                else next.add(id);
+                return next;
+              });
+            }}
+            onVisiblePageSelectionChange={(ids, checked) => {
+              setPassSelectedRowIds((prev) => {
+                const next = new Set(prev);
+                if (checked) ids.forEach((rowId) => next.add(rowId));
+                else ids.forEach((rowId) => next.delete(rowId));
+                return next;
+              });
+            }}
           />
         )}
       </div>

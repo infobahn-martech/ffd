@@ -200,6 +200,54 @@ export const getGroCrewPassId = (crew) => {
   return raw;
 };
 
+/** Stable id for a flattened crew row (checkbox / selection). */
+export const groPassCrewRowId = (row) => {
+  if (!row || row.kind !== "crew") return "";
+  return `${row.woKey}-c-${row.crewIndex}`;
+};
+
+export const groPassUploadTargetId = (payload) => {
+  if (!payload || payload.woKey == null || payload.crewIndex == null) return "";
+  return `${payload.woKey}-c-${payload.crewIndex}`;
+};
+
+/** Flatten work orders to table rows (crew lines + empty-wo placeholders). */
+export const flattenGroPassRows = (workOrders) => {
+  const rows = [];
+  if (!Array.isArray(workOrders) || workOrders.length === 0) return rows;
+  workOrders.forEach((wo, woIdx) => {
+    const woKey = String(wo?.wo_id ?? wo?.id ?? wo?.wo_number ?? `idx-${woIdx}`);
+    const woNumber = firstNonEmptyGroDisplay(wo?.wo_number, wo?.woNumber, wo?.work_order_number);
+    const woId = getGroWorkOrderId(wo);
+    const crew = Array.isArray(wo?.crew) ? wo.crew : [];
+    if (crew.length === 0) {
+      rows.push({ kind: "empty-wo", woKey, woIdx, wo, woNumber, woId });
+      return;
+    }
+    crew.forEach((c, idx) => {
+      rows.push({
+        kind: "crew",
+        woKey,
+        woIdx,
+        wo,
+        woNumber,
+        woId,
+        crew: c,
+        crewIndex: idx,
+        crewPassId: getGroCrewPassId(c),
+      });
+    });
+  });
+  return rows;
+};
+
+export const buildGroPassIssueDateString = (issuePickerParts) => {
+  const { date, time } = issuePickerParts || {};
+  if (!date) return "";
+  const formattedTime = time ? String(time).slice(0, 5) : "00:00";
+  return `${date} ${formattedTime}:00`;
+};
+
 export const groPassStatusBadgeTone = (raw) => {
   const s = String(raw ?? "")
     .trim()
