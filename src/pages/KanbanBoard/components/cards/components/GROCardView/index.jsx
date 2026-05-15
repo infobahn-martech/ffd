@@ -287,14 +287,13 @@ function GROCardView({ card, mode = "gro" }) {
       const passVariant = groMainView === GRO_MAIN_VIEWS.cg ? "cg" : "zawil";
 
       for (const row of targets) {
+        const cp = row.crewPassId ?? getGroCrewPassId(row.crew);
         if (passVariant === "cg") {
-          const woId = row.woId ?? getGroWorkOrderId(row.wo);
-          if (woId == null || woId === "") {
-            setBulkPassFormError("Some selected rows are missing a work order id.");
+          if (cp == null || cp === "") {
+            setBulkPassFormError("Some selected rows are missing a crew pass id.");
             return;
           }
         } else {
-          const cp = row.crewPassId ?? getGroCrewPassId(row.crew);
           const woId = row.woId ?? getGroWorkOrderId(row.wo);
           if ((cp == null || cp === "") && (woId == null || woId === "")) {
             setBulkPassFormError("Some selected rows are missing crew pass or work order id.");
@@ -308,11 +307,10 @@ function GROCardView({ card, mode = "gro" }) {
         fd.append("pass_no", passNo);
         fd.append("issue_date", issueDate);
         fd.append("document_copy", file);
+        const cp = row.crewPassId ?? getGroCrewPassId(row.crew);
         if (passVariant === "cg") {
-          const woId = row.woId ?? getGroWorkOrderId(row.wo);
-          fd.append("wo_id", String(woId));
+          fd.append("crew_pass_id", String(cp));
         } else {
-          const cp = row.crewPassId ?? getGroCrewPassId(row.crew);
           const woId = row.woId ?? getGroWorkOrderId(row.wo);
           if (cp != null && cp !== "") fd.append("crew_pass_id", String(cp));
           else fd.append("wo_id", String(woId));
@@ -573,47 +571,47 @@ function GROCardView({ card, mode = "gro" }) {
 
   const bulkPassPortal =
     showPassBulkPopover &&
-    bulkPassPopoverStyle &&
-    typeof document !== "undefined" &&
-    document.body
+      bulkPassPopoverStyle &&
+      typeof document !== "undefined" &&
+      document.body
       ? createPortal(
-          <div
-            ref={bulkPassPopoverPortalRef}
-            className="gro-pass-upload-popover gro-pass-upload-popover--bulk"
-            style={bulkPassPopoverStyle}
-            role="presentation"
-          >
-            <GroPassUploadPopoverForm
-              title={groMainView === GRO_MAIN_VIEWS.cg ? "Bulk Upload CG Pass" : "Bulk Upload Zawil Pass"}
-              passNo={bulkPassForm.passNo}
-              onPassNoChange={(e) => setBulkPassForm((prev) => ({ ...prev, passNo: e.target.value }))}
-              issuePickerParts={bulkPassForm.issuePickerParts}
-              onIssueDateTimeChange={({ date, time }) =>
-                setBulkPassForm((prev) => ({
-                  ...prev,
-                  issuePickerParts: {
-                    date: date || "",
-                    time: time != null && time !== "" ? String(time).slice(0, 5) : "",
-                  },
-                }))
-              }
-              fileInputRef={bulkPassFileInputRef}
-              fileName={bulkPassForm.file?.name}
-              onFileInputChange={(e) => setBulkPassForm((prev) => ({ ...prev, file: e.target.files?.[0] ?? null }))}
-              onCancel={() => {
-                setShowPassBulkPopover(false);
-                setBulkPassPopoverRect(null);
-                resetBulkPassUploadForm();
-              }}
-              onSubmit={handleBulkPassSubmit}
-              submitting={bulkPassSubmitting}
-              formLevelError={bulkPassFormError}
-              hasIssueDateError={bulkPassFormError.includes("Issue date")}
-              datetimePopperClassName="gro-pass-upload-datetime-popper"
-            />
-          </div>,
-          document.body
-        )
+        <div
+          ref={bulkPassPopoverPortalRef}
+          className="gro-pass-upload-popover gro-pass-upload-popover--bulk"
+          style={bulkPassPopoverStyle}
+          role="presentation"
+        >
+          <GroPassUploadPopoverForm
+            title={groMainView === GRO_MAIN_VIEWS.cg ? "Bulk Upload CG Pass" : "Bulk Upload Zawil Pass"}
+            passNo={bulkPassForm.passNo}
+            onPassNoChange={(e) => setBulkPassForm((prev) => ({ ...prev, passNo: e.target.value }))}
+            issuePickerParts={bulkPassForm.issuePickerParts}
+            onIssueDateTimeChange={({ date, time }) =>
+              setBulkPassForm((prev) => ({
+                ...prev,
+                issuePickerParts: {
+                  date: date || "",
+                  time: time != null && time !== "" ? String(time).slice(0, 5) : "",
+                },
+              }))
+            }
+            fileInputRef={bulkPassFileInputRef}
+            fileName={bulkPassForm.file?.name}
+            onFileInputChange={(e) => setBulkPassForm((prev) => ({ ...prev, file: e.target.files?.[0] ?? null }))}
+            onCancel={() => {
+              setShowPassBulkPopover(false);
+              setBulkPassPopoverRect(null);
+              resetBulkPassUploadForm();
+            }}
+            onSubmit={handleBulkPassSubmit}
+            submitting={bulkPassSubmitting}
+            formLevelError={bulkPassFormError}
+            hasIssueDateError={bulkPassFormError.includes("Issue date")}
+            datetimePopperClassName="gro-pass-upload-datetime-popper"
+          />
+        </div>,
+        document.body
+      )
       : null;
 
   return (

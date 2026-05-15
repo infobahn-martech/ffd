@@ -235,13 +235,8 @@ const PassRequestsView = ({
     try {
       const fd = new FormData();
       appendCommonFields(fd);
-      if (passVariant === "cg") {
-        const woId = uploadTarget?.woId ?? getGroWorkOrderId(uploadTarget?.workOrder);
-        fd.append("wo_id", String(woId));
-      } else {
-        const cpId = uploadTarget?.crewPassId ?? getGroCrewPassId(uploadTarget?.crew);
-        fd.append("crew_pass_id", String(cpId));
-      }
+      const cpId = uploadTarget?.crewPassId ?? getGroCrewPassId(uploadTarget?.crew);
+      fd.append("crew_pass_id", String(cpId));
       await onPassUploadSubmit(fd);
       hideSinglePassUpload();
       setPage(1);
@@ -432,13 +427,7 @@ const PassRequestsView = ({
                           const woId = row.woId ?? getGroWorkOrderId(row.wo);
                           const crewPassId = row.crewPassId ?? getGroCrewPassId(row.crew);
                           const rowDisabledReason =
-                            passVariant === "cg"
-                              ? woId == null
-                                ? "Missing work order id."
-                                : null
-                              : crewPassId == null
-                                ? "Missing crew pass id."
-                                : null;
+                            crewPassId == null ? "Missing crew pass id." : null;
                           const rowPayload = {
                             workOrder: row.wo,
                             crew: row.crew,
