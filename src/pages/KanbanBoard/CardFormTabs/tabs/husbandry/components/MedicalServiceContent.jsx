@@ -15,7 +15,6 @@ const MedicalServiceContent = ({ formValues, handleChange, cardColor }) => {
   const [loadingHospitals, setLoadingHospitals] = useState(false);
   const [loadingServices, setLoadingServices] = useState(false);
 
-  // Generate crew options from crewList
   const crewOptions = formValues.crewList?.map((crew) => ({
     value: crew.id?.toString() || crew.crewName,
     label: crew.crewName || `Crew Member ${crew.id}`,
@@ -82,19 +81,20 @@ const MedicalServiceContent = ({ formValues, handleChange, cardColor }) => {
     handleChange("medicalServiceSelectedService")({ target: { value: "" } });
   };
 
-  // Handle multi-select crew change
   const handleCrewChange = (selectedOptions) => {
     const values = selectedOptions?.map((option) => option.value) || [];
     const syntheticEvent = { target: { value: values } };
     handleChange("medicalServiceSelectedCrew")(syntheticEvent);
   };
 
-  // Get selected crew values for react-select
-  const selectedCrewValues = formValues.medicalServiceSelectedCrew?.map((crewId) =>
-    crewOptions.find((opt) => opt.value === crewId?.toString() || opt.value === crewId)
-  ).filter(Boolean) || [];
+  const selectedCrewValues =
+    formValues.medicalServiceSelectedCrew
+      ?.map((crewId) =>
+        crewOptions.find((opt) => opt.value === crewId?.toString() || opt.value === crewId)
+      )
+      .filter(Boolean) || [];
 
-  const customSelectStyles = getCrewMultiSelectStyles(cardColor);
+  const customSelectStyles = getCrewMultiSelectStyles(cardColor, { transportCompact: true });
 
   const fileToAttachment = (file) => ({
     name: file.name,
@@ -149,7 +149,6 @@ const MedicalServiceContent = ({ formValues, handleChange, cardColor }) => {
     handleChange("medicalServiceDocuments")({ target: { value: current.filter((_, i) => i !== index) } });
   };
 
-  // Handle save
   const handleSave = () => {
     console.log("Saving Medical Service data:", {
       medicalServiceSelectedCrew: formValues.medicalServiceSelectedCrew,
@@ -163,92 +162,99 @@ const MedicalServiceContent = ({ formValues, handleChange, cardColor }) => {
     <div className="cardform-left-full" style={{ "--card-color": cardColor }}>
       <FormSection icon={GroupSettingsIcon} title="">
         <div className="pre-arrival-form medicalservice-form">
-          <div className="general-info-two-column operation-section-form-layout">
-            <div className="general-info-left">
-              <FormField label="Select Crew">
-                <div className="cf-select react-select-container crew-multi-select">
-                  <Select
-                    isMulti
-                    value={selectedCrewValues}
-                    onChange={handleCrewChange}
-                    options={crewOptions}
-                    placeholder={selectedCrewValues.length > 0 ? `${selectedCrewValues.length} crew selected` : "Select crew members..."}
-                    classNamePrefix="react-select"
-                    styles={customSelectStyles}
-                    formatOptionLabel={formatCrewOptionLabel}
-                    isClearable
-                    isSearchable
-                    closeMenuOnSelect={false}
-                    hideSelectedOptions={false}
+          <div className="transport-request-layout">
+            <div className="transport-request-left transport-panel-card">
+              <div className="transport-panel-header">
+                <h3 className="transport-panel-header__title">Request Details</h3>
+              </div>
+
+              <div className="transport-request-left__scroll transport-panel-scroll">
+                <FormField label="Select Crew">
+                  <div className="cf-select react-select-container crew-multi-select">
+                    <Select
+                      isMulti
+                      value={selectedCrewValues}
+                      onChange={handleCrewChange}
+                      options={crewOptions}
+                      placeholder="Select crew members..."
+                      classNamePrefix="react-select"
+                      styles={customSelectStyles}
+                      formatOptionLabel={formatCrewOptionLabel}
+                      menuPortalTarget={typeof document !== "undefined" ? document.body : null}
+                      menuPosition="fixed"
+                      menuShouldBlockScroll={true}
+                      isClearable
+                      isSearchable
+                      closeMenuOnSelect={false}
+                      hideSelectedOptions={false}
+                    />
+                  </div>
+                </FormField>
+
+                <FormField label="Hospital">
+                  <FormSelect
+                    value={formValues.medicalServiceSelectedHospital || ""}
+                    onChange={handleHospitalChange}
+                    options={hospitalOptions}
+                    placeholder={loadingHospitals ? "Loading hospitals..." : "Select hospital..."}
+                    disabled={loadingHospitals}
                   />
-                </div>
-              </FormField>
+                </FormField>
 
-              <FormField label="Hospital">
-                <FormSelect
-                  value={formValues.medicalServiceSelectedHospital || ""}
-                  onChange={handleHospitalChange}
-                  options={hospitalOptions}
-                  placeholder={loadingHospitals ? "Loading hospitals..." : "Select hospital..."}
-                  disabled={loadingHospitals}
-                />
-              </FormField>
-
-              <FormField label="Medical Service">
-                <FormSelect
-                  value={formValues.medicalServiceSelectedService || ""}
-                  onChange={handleChange("medicalServiceSelectedService")}
-                  options={medicalServiceOptions}
-                  placeholder={
-                    !formValues.medicalServiceSelectedHospital
-                      ? "Select a hospital first..."
-                      : loadingServices
-                        ? "Loading services..."
-                        : "Select medical service..."
-                  }
-                  disabled={!formValues.medicalServiceSelectedHospital || loadingServices}
-                />
-              </FormField>
-
-              <FormField label="Documents" className="cf-field-full">
-                <div style={{ marginTop: "8px" }}>
-                  <AttachmentsList
-                    attachments={formValues.medicalServiceDocuments || []}
-                    onAdd={() => { }}
-                    onRemove={handleDocumentsRemoveAttachment}
-                    cardColor={cardColor}
-                    isDragging={isDragging}
-                    onDragEnter={handleDocumentsDragEnter}
-                    onDragLeave={handleDocumentsDragLeave}
-                    onDragOver={handleDocumentsDragOver}
-                    onDrop={handleDocumentsDrop}
-                    fileInputRef={fileInputRef}
-                    onFileInputChange={handleDocumentsFileInputChange}
+                <FormField label="Medical Service">
+                  <FormSelect
+                    value={formValues.medicalServiceSelectedService || ""}
+                    onChange={handleChange("medicalServiceSelectedService")}
+                    options={medicalServiceOptions}
+                    placeholder={
+                      !formValues.medicalServiceSelectedHospital
+                        ? "Select a hospital first..."
+                        : loadingServices
+                          ? "Loading services..."
+                          : "Select medical service..."
+                    }
+                    disabled={!formValues.medicalServiceSelectedHospital || loadingServices}
                   />
-                </div>
-              </FormField>
+                </FormField>
 
-              <div className="form-save-button-wrapper">
-                <button
-                  type="button"
-                  className="form-save-button"
-                  onClick={handleSave}
-                >
+                <FormField label="Documents" className="cf-field-full">
+                  <div className="transport-upload-box">
+                    <AttachmentsList
+                      attachments={formValues.medicalServiceDocuments || []}
+                      onAdd={() => {}}
+                      onRemove={handleDocumentsRemoveAttachment}
+                      cardColor={cardColor}
+                      isDragging={isDragging}
+                      onDragEnter={handleDocumentsDragEnter}
+                      onDragLeave={handleDocumentsDragLeave}
+                      onDragOver={handleDocumentsDragOver}
+                      onDrop={handleDocumentsDrop}
+                      fileInputRef={fileInputRef}
+                      onFileInputChange={handleDocumentsFileInputChange}
+                    />
+                  </div>
+                </FormField>
+              </div>
+
+              <div className="transport-save-footer">
+                <button type="button" className="form-save-button" onClick={handleSave}>
                   Save
                 </button>
               </div>
             </div>
 
-            <div className="general-info-right">
-              <div className="card-description-wrapper">
-                <FormField label="Remarks">
-                  <ReactQuillEditor
-                    value={formValues?.medicalServiceDescription || ""}
-                    onChange={handleChange("medicalServiceDescription")}
-                    placeholder="Enter remarks..."
-                    name="medicalServiceDescription"
-                  />
-                </FormField>
+            <div className="transport-request-right transport-panel-card">
+              <div className="transport-panel-header">
+                <h3 className="transport-panel-header__title">Remarks</h3>
+              </div>
+              <div className="transport-request-right__body transport-panel-scroll">
+                <ReactQuillEditor
+                  value={formValues?.medicalServiceDescription || ""}
+                  onChange={handleChange("medicalServiceDescription")}
+                  placeholder="Enter remarks..."
+                  name="medicalServiceDescription"
+                  className="transport-remarks-quill"
+                />
               </div>
             </div>
           </div>
@@ -265,4 +271,3 @@ MedicalServiceContent.propTypes = {
 };
 
 export default MedicalServiceContent;
-
