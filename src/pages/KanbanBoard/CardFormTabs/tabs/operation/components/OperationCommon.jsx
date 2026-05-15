@@ -1,5 +1,7 @@
 import { useRef } from "react";
 import PropTypes from "prop-types";
+import ReactQuill from "react-quill";
+import "react-quill/dist/quill.snow.css";
 import DateTimePickerField from "../../../components/DateTimePickerField";
 import SearchableSelect, { deriveSearchPlaceholder } from "../../../../../../components/form/SearchableSelect";
 
@@ -175,6 +177,35 @@ FormTextarea.propTypes = {
   disabled: PropTypes.bool,
 };
 
+const OPERATION_EMAIL_MESSAGE_QUILL_MODULES = {
+  toolbar: [["bold", "italic", "underline"], [{ list: "ordered" }, { list: "bullet" }], ["link"], ["clean"]],
+  clipboard: {
+    matchVisual: false,
+  },
+};
+
+const OPERATION_EMAIL_MESSAGE_QUILL_FORMATS = [
+  "header",
+  "bold",
+  "italic",
+  "underline",
+  "strike",
+  "color",
+  "background",
+  "font",
+  "size",
+  "script",
+  "blockquote",
+  "code-block",
+  "indent",
+  "list",
+  "bullet",
+  "align",
+  "direction",
+  "link",
+  "image",
+];
+
 const IconSendReport = () => (
   <svg width="20" height="20" viewBox="0 0 24 24" fill="none" aria-hidden>
     <path
@@ -259,13 +290,18 @@ export const OperationEmailPreviewPanel = ({
         <FormField label="Subject">
           <FormInput type="text" value={subject || ""} onChange={(e) => onChange?.("subject", e.target.value)} placeholder="Email subject" />
         </FormField>
-        <FormField label="Message">
-          <FormTextarea
-            value={message || ""}
-            onChange={(e) => onChange?.("message", e.target.value)}
-            placeholder="Type email content here..."
-            rows={11}
-          />
+        <FormField label="Message" className="operation-email-preview-message-field">
+          <div className="react-quill-wrapper operation-email-preview-message-quill">
+            <ReactQuill
+              theme="snow"
+              value={message ?? ""}
+              onChange={(html) => onChange?.("message", html ?? "")}
+              modules={OPERATION_EMAIL_MESSAGE_QUILL_MODULES}
+              formats={OPERATION_EMAIL_MESSAGE_QUILL_FORMATS}
+              placeholder="Type email content here..."
+              readOnly={isViewOnly}
+            />
+          </div>
         </FormField>
       </div>
     </div>

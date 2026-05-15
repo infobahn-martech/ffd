@@ -1995,10 +1995,51 @@ $send-report-optional: #80868b;
   margin-bottom: 0;
 }
 
-.operation-email-preview-body .cf-field .cf-textarea textarea {
-  min-height: 220px;
-  max-height: 100%;
-  resize: vertical;
+.operation-email-preview-message-field {
+  flex: 0 0 auto;
+}
+
+.operation-email-preview-panel .operation-email-preview-message-quill {
+  border: 1px solid #dbe3ef;
+  border-radius: 12px;
+  overflow: hidden;
+  background: #fff;
+}
+
+.operation-email-preview-panel .operation-email-preview-message-quill .ql-toolbar {
+  border: 0;
+  border-bottom: 1px solid #e5eaf3;
+  background: #f8fafc;
+  padding: 8px 10px;
+}
+
+.operation-email-preview-panel .operation-email-preview-message-quill .ql-container {
+  border: 0;
+  font-size: 13px;
+  height: auto !important;
+  min-height: 330px;
+}
+
+.operation-email-preview-panel .operation-email-preview-message-quill .ql-editor {
+  min-height: 330px;
+  max-height: none !important;
+  height: auto !important;
+  overflow-y: visible !important;
+  padding: 14px 16px;
+  line-height: 1.55;
+}
+
+.operation-email-preview-panel .operation-email-preview-message-quill .ql-editor::-webkit-scrollbar {
+  display: none;
+}
+
+.operation-email-preview-panel .operation-email-preview-message-quill .quill {
+  height: auto !important;
+}
+
+.operation-email-preview-panel .operation-email-preview-message-quill .ql-editor.ql-blank::before {
+  font-style: italic;
+  color: #94a3b8;
 }
 
 .operation-email-attachments {
