@@ -2013,20 +2013,24 @@ $send-report-optional: #80868b;
   padding: 8px 10px;
 }
 
+.operation-email-preview-panel .operation-email-quill .ql-container,
 .operation-email-preview-panel .operation-email-preview-message-quill .ql-container {
   border: 0;
-  font-size: 13px;
+  font-size: 14px;
   height: auto !important;
-  min-height: 330px;
+  min-height: 380px;
 }
 
+.operation-email-preview-panel .operation-email-quill .ql-editor,
 .operation-email-preview-panel .operation-email-preview-message-quill .ql-editor {
-  min-height: 330px;
+  min-height: 380px;
   max-height: none !important;
   height: auto !important;
   overflow-y: visible !important;
   padding: 14px 16px;
-  line-height: 1.55;
+  font-size: 14px;
+  line-height: 1.6;
+  white-space: normal;
 }
 
 .operation-email-preview-panel .operation-email-preview-message-quill .ql-editor::-webkit-scrollbar {

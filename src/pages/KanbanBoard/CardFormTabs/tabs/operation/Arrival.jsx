@@ -17,6 +17,7 @@ import {
   OperationSaveSection,
 } from "./components/OperationCommon";
 import { extractReportTemplateFields } from "./operationReportTemplate";
+import { ensureHtmlForQuill, resolveReportBodyHtml } from "./operationReportMessageHtml";
 import {
   applyArrivalGetDetailToForm,
   extractArrivalReportDraftFromDetail,
@@ -143,7 +144,9 @@ function Arrival({
   };
 
   const getArrivalMessage = (reportType) =>
-    reportType === "daily" ? buildArrivalDailyReportBody(formValues) : buildArrivalReportBody(formValues);
+    ensureHtmlForQuill(
+      reportType === "daily" ? buildArrivalDailyReportBody(formValues) : buildArrivalReportBody(formValues)
+    );
 
   useEffect(() => {
     setReportDraft((prev) => ({
@@ -296,7 +299,10 @@ function Arrival({
       fd.append("created_by", createdBy);
     }
 
-    const arrivalReport = String(reportDraft.message || getArrivalMessage(reportDraft.reportType) || "").trim();
+    const arrivalReport = resolveReportBodyHtml(
+      reportDraft.message,
+      reportDraft.reportType === "daily" ? buildArrivalDailyReportBody(formValues) : buildArrivalReportBody(formValues)
+    );
     fd.append("arrival_report", arrivalReport);
 
     try {
@@ -328,7 +334,10 @@ function Arrival({
 
     const reportTypeId = reportDraft.reportType === "daily" ? 3 : 4;
     const createdBy = resolveCreatedBy();
-    const body = reportDraft.message || getArrivalMessage(reportDraft.reportType) || "";
+    const body = resolveReportBodyHtml(
+      reportDraft.message,
+      reportDraft.reportType === "daily" ? buildArrivalDailyReportBody(formValues) : buildArrivalReportBody(formValues)
+    );
     const from = String(reportDraft.from ?? "").trim();
     const to = String(reportDraft.to ?? "").trim();
     const cc = String(reportDraft.cc ?? "").trim();

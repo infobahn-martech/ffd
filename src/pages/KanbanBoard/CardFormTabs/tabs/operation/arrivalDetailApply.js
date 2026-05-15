@@ -1,4 +1,5 @@
 import { getEventFieldKeyPrefix } from "./operationConstants";
+import { ensureHtmlForQuill } from "./operationReportMessageHtml";
 import { parseApiDateTimeParts } from "./preArrivalDetailApply";
 
 /** Map the dropdown's stored value to the matching <FormSelect> option. */
@@ -171,6 +172,6 @@ export function extractArrivalReportDraftFromDetail(responseBody) {
     subject: String(
       report.subject ?? REPORT_DEFAULT_SUBJECT[reportType] ?? ""
     ).trim(),
-    message: report.body != null ? String(report.body) : "",
+    message: report.body != null ? ensureHtmlForQuill(String(report.body)) : "",
   };
 }

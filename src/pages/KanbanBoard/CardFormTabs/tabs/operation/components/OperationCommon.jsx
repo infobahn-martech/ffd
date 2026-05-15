@@ -2,6 +2,7 @@ import { useRef } from "react";
 import PropTypes from "prop-types";
 import ReactQuill from "react-quill";
 import "react-quill/dist/quill.snow.css";
+import { ensureHtmlForQuill } from "../operationReportMessageHtml";
 import DateTimePickerField from "../../../components/DateTimePickerField";
 import SearchableSelect, { deriveSearchPlaceholder } from "../../../../../../components/form/SearchableSelect";
 
@@ -178,7 +179,14 @@ FormTextarea.propTypes = {
 };
 
 const OPERATION_EMAIL_MESSAGE_QUILL_MODULES = {
-  toolbar: [["bold", "italic", "underline"], [{ list: "ordered" }, { list: "bullet" }], ["link"], ["clean"]],
+  toolbar: [
+    [{ header: [1, 2, 3, false] }],
+    ["bold", "italic", "underline", "strike"],
+    [{ list: "ordered" }, { list: "bullet" }],
+    [{ color: [] }, { background: [] }],
+    ["link", "image"],
+    ["clean"],
+  ],
   clipboard: {
     matchVisual: false,
   },
@@ -190,18 +198,10 @@ const OPERATION_EMAIL_MESSAGE_QUILL_FORMATS = [
   "italic",
   "underline",
   "strike",
-  "color",
-  "background",
-  "font",
-  "size",
-  "script",
-  "blockquote",
-  "code-block",
-  "indent",
   "list",
   "bullet",
-  "align",
-  "direction",
+  "color",
+  "background",
   "link",
   "image",
 ];
@@ -291,10 +291,10 @@ export const OperationEmailPreviewPanel = ({
           <FormInput type="text" value={subject || ""} onChange={(e) => onChange?.("subject", e.target.value)} placeholder="Email subject" />
         </FormField>
         <FormField label="Message" className="operation-email-preview-message-field">
-          <div className="react-quill-wrapper operation-email-preview-message-quill">
+          <div className="react-quill-wrapper operation-email-preview-message-quill operation-email-quill">
             <ReactQuill
               theme="snow"
-              value={message ?? ""}
+              value={ensureHtmlForQuill(message)}
               onChange={(html) => onChange?.("message", html ?? "")}
               modules={OPERATION_EMAIL_MESSAGE_QUILL_MODULES}
               formats={OPERATION_EMAIL_MESSAGE_QUILL_FORMATS}

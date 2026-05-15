@@ -2,6 +2,7 @@ import { useState, useEffect } from "react";
 import PropTypes from "prop-types";
 import GroupSettingsIcon from "../../../../../assets/images/cv.png";
 import { buildDepartureReportBody } from "../../services/sendReportBodyBuilder";
+import { ensureHtmlForQuill, resolveReportBodyHtml } from "./operationReportMessageHtml";
 import {
   DynamicDateTimeFields,
   FormField,
@@ -42,7 +43,7 @@ function Departure({
   useEffect(() => {
     setReportDraft((prev) => ({
       ...prev,
-      message: buildDepartureReportBody(formValues),
+      message: ensureHtmlForQuill(buildDepartureReportBody(formValues)),
     }));
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
@@ -69,7 +70,7 @@ function Departure({
         to: reportDraft.to,
         cc: reportDraft.cc,
         subject: reportDraft.subject,
-        body: reportDraft.message || buildDepartureReportBody(formValues),
+        body: resolveReportBodyHtml(reportDraft.message, buildDepartureReportBody(formValues)),
         attachments: formValues.departureAttachments || [],
       });
     } finally {

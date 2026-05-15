@@ -34,6 +34,7 @@ import {
   OperationSaveSection,
 } from "./components/OperationCommon";
 import { extractReportTemplateFields } from "./operationReportTemplate";
+import { ensureHtmlForQuill, resolveReportBodyHtml } from "./operationReportMessageHtml";
 import {
   applyPreArrivalGetDetailToForm,
   findTaskDocumentGroupByRole,
@@ -837,7 +838,7 @@ function PreArrival({
                   ? String(sent.cc_email)
                   : "",
             subject: sent.subject != null ? String(sent.subject) : "Report - Pre Arrival",
-            message: sent.body != null ? String(sent.body) : "",
+            message: sent.body != null ? ensureHtmlForQuill(String(sent.body)) : "",
           });
         } else {
           emailPreviewFromDetailRef.current = false;
@@ -1164,7 +1165,7 @@ function PreArrival({
       });
     });
 
-    const reportBody = reportDraft.message || buildPreArrivalReportBody(formValues);
+    const reportBody = resolveReportBodyHtml(reportDraft.message, buildPreArrivalReportBody(formValues));
     fd.append(
       "pre_arrival_report",
       JSON.stringify({
@@ -1201,7 +1202,7 @@ function PreArrival({
   useEffect(() => {
     setReportDraft((prev) => ({
       ...prev,
-      message: buildPreArrivalReportBody(formValues),
+      message: ensureHtmlForQuill(buildPreArrivalReportBody(formValues)),
     }));
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
@@ -1265,7 +1266,7 @@ function PreArrival({
       return;
     }
 
-    const body = reportDraft.message || buildPreArrivalReportBody(formValues) || "";
+    const body = resolveReportBodyHtml(reportDraft.message, buildPreArrivalReportBody(formValues));
 
     setIsSendingReport(true);
     try {
