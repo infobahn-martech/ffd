@@ -256,7 +256,7 @@ function InwardClearanceView({
           const remarkOpen = activeRemarkDoc === rowKey;
           const rowBusy = verifyingDocId === rowKey;
           const remarksTextRaw = doc?.remarks != null && String(doc.remarks).trim() !== "" ? String(doc.remarks).trim() : "";
-          const showRemarksBadge = Boolean(remarksTextRaw) && !isNotUploaded;
+          const showRemarksBadge = Boolean(remarksTextRaw) && !isNotUploaded && !isVerified;
           const hasFile = groDocumentHasDownloadableUrl(doc);
           const showDownload = hasFile && !isNotUploaded;
 
@@ -313,12 +313,6 @@ function InwardClearanceView({
                     disabled={Boolean(verifyingDocId)}
                     onClick={() => onTickClick(doc, rowKey)}
                   >
-                    <IconTick />
-                    <span>Approved</span>
-                  </button>
-                ) : null}
-                {isVerified ? (
-                  <button type="button" className="gro-doc-action-btn gro-doc-action-btn--approved gro-doc-action-btn--readonly" tabIndex={-1} aria-label="Approved">
                     <IconTick />
                     <span>Approved</span>
                   </button>
