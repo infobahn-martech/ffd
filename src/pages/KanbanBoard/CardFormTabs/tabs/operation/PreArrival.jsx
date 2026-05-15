@@ -78,9 +78,11 @@ function openAttachmentPreview(attachment) {
   console.log("Preview document:", attachment?.name);
 }
 
-const DOC_STATUS_UPLOADED = 0;
-const DOC_STATUS_VERIFIED = 1;
-const DOC_STATUS_REUPLOAD = 2;
+const DOC_STATUS_NOT_UPLOADED = 0;
+const DOC_STATUS_UPLOADED = 1;
+const DOC_STATUS_VERIFIED = 2;
+const DOC_STATUS_REUPLOAD = 3;
+const DOC_STATUS_REJECTED = 4;
 
 const CompactFileUploadRow = ({
   label,
@@ -93,34 +95,48 @@ const CompactFileUploadRow = ({
 }) => {
   const inputRef = useRef(null);
   const hasFiles = (files || []).length > 0;
-  const primaryFile = hasFiles ? files[0] : null;
-  // Null/empty status must stay unset: Number(null) === 0 would wrongly map to "Uploaded".
+  // Null/empty status must stay unset: Number(null) === 0 would wrongly map to "Not uploaded".
   const rowStatus =
     status === null || status === undefined || status === ""
       ? null
       : Number.isFinite(Number(status))
         ? Number(status)
         : null;
-  const isVerified = rowStatus === DOC_STATUS_VERIFIED;
-  const isReuploadRequired = rowStatus === DOC_STATUS_REUPLOAD;
+  const isNotUploaded = rowStatus === DOC_STATUS_NOT_UPLOADED;
   const isUploaded = rowStatus === DOC_STATUS_UPLOADED;
-  const showUploadedChip = isUploaded && hasFiles;
-  const shouldShowUpload = !isViewOnly && !isVerified;
-  const uploadTitle = isReuploadRequired ? "Reupload file" : hasFiles ? "Upload more files" : "Upload file";
-  const statusLabel = isVerified
-    ? "Verified"
-    : isReuploadRequired
-      ? "Re-upload required"
-      : showUploadedChip
-        ? "Uploaded"
-        : "";
-  const statusClass = isVerified
-    ? "document-row-status-chip--verified"
-    : isReuploadRequired
-      ? "document-row-status-chip--reupload"
-      : showUploadedChip
-        ? "document-row-status-chip--uploaded"
-        : "";
+  const isVerified = rowStatus === DOC_STATUS_VERIFIED;
+  const isReupload = rowStatus === DOC_STATUS_REUPLOAD;
+  const isRejected = rowStatus === DOC_STATUS_REJECTED;
+  const shouldReplaceOnUpload = isReupload || isRejected;
+  const showPreview = hasFiles && (isUploaded || isVerified || isReupload || isRejected);
+  const showUpload = !isViewOnly && (isNotUploaded || isReupload || isRejected);
+  const uploadTitle = isReupload
+    ? "Reupload file"
+    : isRejected
+      ? "Upload replacement file"
+      : "Upload file";
+  const statusLabel = isNotUploaded
+    ? "Not uploaded"
+    : isUploaded
+      ? "Uploaded"
+      : isVerified
+        ? "Verified"
+        : isReupload
+          ? "Re-upload"
+          : isRejected
+            ? "Rejected"
+            : "";
+  const statusClass = isNotUploaded
+    ? "document-row-status-chip--not-uploaded"
+    : isUploaded
+      ? "document-row-status-chip--uploaded"
+      : isVerified
+        ? "document-row-status-chip--verified"
+        : isReupload
+          ? "document-row-status-chip--reupload"
+          : isRejected
+            ? "document-row-status-chip--rejected"
+            : "";
 
   const handleInput = (e) => {
     const selectedFiles = Array.from(e.target.files || []);
@@ -131,7 +147,7 @@ const CompactFileUploadRow = ({
         size: file.size,
         type: file.type,
       }));
-      if (isReuploadRequired && typeof onReplaceFile === "function") {
+      if (shouldReplaceOnUpload && typeof onReplaceFile === "function") {
         onReplaceFile(mapped[0]);
       } else {
         onAddFiles(mapped);
@@ -161,12 +177,12 @@ const CompactFileUploadRow = ({
         ) : null}
       </div>
       <div className="document-row-actions compact-file-upload-actions">
-        {hasFiles && (
+        {showPreview && (
           <button type="button" className="document-row-icon-btn" onClick={() => openAttachmentPreview(files[0])} title="Preview">
             <IconEye />
           </button>
         )}
-        {shouldShowUpload && (
+        {showUpload && (
           <>
             <button type="button" className="document-row-icon-btn" onClick={() => inputRef.current?.click()} title={uploadTitle}>
               <IconUpload />
@@ -177,7 +193,7 @@ const CompactFileUploadRow = ({
               className="document-row-file-input"
               onChange={handleInput}
               aria-label={`Upload ${label}`}
-              multiple={!isReuploadRequired}
+              multiple={!shouldReplaceOnUpload}
             />
             {/* {hasFiles && (
               <button type="button" className="document-row-icon-btn document-row-icon-btn--danger" onClick={() => onRemoveAt(files.length - 1)} title="Remove latest file">

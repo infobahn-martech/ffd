@@ -2370,6 +2370,12 @@ $send-report-optional: #80868b;
     border: 1px solid transparent;
   }
 
+  .document-row-status-chip--not-uploaded {
+    background: #f3f4f6;
+    border-color: #d1d5db;
+    color: #4b5563;
+  }
+
   .document-row-status-chip--uploaded {
     background: #eff6ff;
     border-color: #bfdbfe;
@@ -2386,6 +2392,12 @@ $send-report-optional: #80868b;
     background: #fff7ed;
     border-color: #fdba74;
     color: #9a3412;
+  }
+
+  .document-row-status-chip--rejected {
+    background: #fef2f2;
+    border-color: #fecaca;
+    color: #b91c1c;
   }
 
   .compact-file-upload-files {
