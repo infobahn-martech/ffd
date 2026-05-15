@@ -25,6 +25,44 @@ export const extractPassRequestsFromEnvelope = (responseEnvelope) => {
 };
 
 /**
+ * Flatten work-order pass requests (each with nested `crew[]`) into table rows.
+ */
+export const flattenPassRequestRows = (workOrders) => {
+  if (!Array.isArray(workOrders) || workOrders.length === 0) return [];
+
+  const hasNestedCrew = workOrders.some((item) => Array.isArray(item?.crew));
+  if (!hasNestedCrew) return workOrders;
+
+  const rows = [];
+  workOrders.forEach((wo) => {
+    const woNumber = wo?.wo_number ?? wo?.woNumber ?? "";
+    const woId = wo?.wo_id ?? wo?.id;
+    const crewList = Array.isArray(wo?.crew) ? wo.crew : [];
+
+    if (crewList.length === 0) {
+      rows.push({
+        wo_number: woNumber,
+        wo_id: woId,
+        crew_pass_id: null,
+      });
+      return;
+    }
+
+    crewList.forEach((crew) => {
+      rows.push({
+        ...crew,
+        wo_number: woNumber || crew?.wo_number,
+        wo_id: woId ?? crew?.wo_id,
+        crew_pass_id: crew?.crew_pass_id ?? crew?.crewPassId,
+        id: crew?.crew_pass_id ?? crew?.crewPassId ?? crew?.id,
+      });
+    });
+  });
+
+  return rows;
+};
+
+/**
  * Normalize crew array from axios response.
  * Mirrors: response.data.data.crew, response.data.crew, response.data.data, response.data
  */

@@ -4,21 +4,28 @@ import { format, isValid, parseISO } from "date-fns";
 import { FiChevronLeft, FiChevronRight, FiEye } from "react-icons/fi";
 import Skeleton from "react-loading-skeleton";
 import "react-loading-skeleton/dist/skeleton.css";
+import { flattenPassRequestRows } from "../../../../../../services/cgAndZwailpassService";
 
 const DEFAULT_PAGE_SIZE = 5;
 const EMPTY_LIST = [];
 
-const formatRequestedDate = (value) => {
-  if (value === undefined || value === null || value === "") {
-    return <span className="crew-pass-requests-table__empty-cell">—</span>;
-  }
+const parseRequestedDate = (value) => {
+  if (value === undefined || value === null || value === "") return null;
   if (typeof value === "string") {
-    const parsed = parseISO(value);
-    if (isValid(parsed)) return format(parsed, "dd/MM/yyyy");
+    const normalized = value.replace(" ", "T");
+    const parsed = parseISO(normalized);
+    if (isValid(parsed)) return parsed;
   }
   const d = new Date(value);
-  if (isValid(d)) return format(d, "dd/MM/yyyy");
-  return String(value);
+  return isValid(d) ? d : null;
+};
+
+const formatRequestedDate = (value) => {
+  const parsed = parseRequestedDate(value);
+  if (!parsed) {
+    return <span className="crew-pass-requests-table__empty-cell">—</span>;
+  }
+  return format(parsed, "dd/MM/yyyy");
 };
 
 const statusToneClass = (status) => {
@@ -46,10 +53,10 @@ CellText.propTypes = {
 };
 
 const CrewPassRequestsTable = ({ title, requests, loading, passType, pageSize }) => {
-  const safeList = useMemo(
-    () => (Array.isArray(requests) ? requests : EMPTY_LIST),
-    [requests]
-  );
+  const safeList = useMemo(() => {
+    const source = Array.isArray(requests) ? requests : EMPTY_LIST;
+    return flattenPassRequestRows(source);
+  }, [requests]);
   const count = safeList.length;
 
   const [page, setPage] = useState(1);
@@ -59,7 +66,9 @@ const CrewPassRequestsTable = ({ title, requests, loading, passType, pageSize })
   const listSignature = useMemo(
     () =>
       `${count}|${safeList
-        .map((r, i) => String(r?.id ?? r?.request_id ?? r?.wo_number ?? `row-${i}`))
+        .map((r, i) =>
+          String(r?.id ?? r?.crew_pass_id ?? r?.request_id ?? r?.wo_number ?? `row-${i}`)
+        )
         .join(",")}`,
     [safeList, count]
   );
@@ -113,12 +122,12 @@ const CrewPassRequestsTable = ({ title, requests, loading, passType, pageSize })
               <table className="crew-pass-requests-table">
                 <thead>
                   <tr>
-                    <th>WO No</th>
+                    <th>Wo No</th>
                     <th>Crew Name</th>
                     <th>Passport No</th>
-                    <th>Movement</th>
+                    <th>SignOn/SignOff</th>
                     <th>Status</th>
-                    <th>GRO</th>
+                    <th>Gro</th>
                     <th>Requested Date</th>
                     <th>Document</th>
                   </tr>
@@ -127,7 +136,10 @@ const CrewPassRequestsTable = ({ title, requests, loading, passType, pageSize })
                   {pageSlice.map((row, idx) => {
                     const docUrl = pickDocumentUrl(row);
                     const rowKey =
-                      row?.id ?? row?.request_id ?? `${row?.wo_number ?? "row"}-${(page - 1) * pageSize + idx}`;
+                      row?.id ??
+                      row?.crew_pass_id ??
+                      row?.request_id ??
+                      `${row?.wo_number ?? "row"}-${(page - 1) * pageSize + idx}`;
                     const rawStatus = row?.status;
                     const statusEmpty =
                       rawStatus === undefined || rawStatus === null || String(rawStatus).trim() === "";
@@ -166,7 +178,7 @@ const CrewPassRequestsTable = ({ title, requests, loading, passType, pageSize })
                               onClick={() => openDocument(docUrl)}
                               aria-label="View document"
                             >
-                              <FiEye size={18} />
+                              <FiEye size={15} />
                             </button>
                           ) : (
                             <span className="crew-pass-requests-table__empty-cell">—</span>
@@ -179,28 +191,28 @@ const CrewPassRequestsTable = ({ title, requests, loading, passType, pageSize })
               </table>
             </div>
 
-            <div className="crew-pass-requests-table-card__pagination crew-pagination">
-              <span className="crew-pagination-info">
+            <div className="crew-pass-requests-table-card__pagination crew-pass-requests-pagination">
+              <span className="crew-pass-requests-pagination__info">
                 Showing {rangeStart}-{rangeEnd} of {count}
               </span>
-              <div className="crew-pagination-actions">
+              <div className="crew-pass-requests-pagination__actions">
                 <button
                   type="button"
-                  className="crew-pagination-btn crew-pagination-btn--icon"
+                  className="crew-pass-requests-pagination__btn"
                   disabled={page <= 1}
                   onClick={() => setPage((p) => Math.max(1, p - 1))}
                   aria-label="Previous page"
                 >
-                  <FiChevronLeft size={20} />
+                  <FiChevronLeft size={14} />
                 </button>
                 <button
                   type="button"
-                  className="crew-pagination-btn crew-pagination-btn--icon"
+                  className="crew-pass-requests-pagination__btn"
                   disabled={page >= totalPages}
                   onClick={() => setPage((p) => Math.min(totalPages, p + 1))}
                   aria-label="Next page"
                 >
-                  <FiChevronRight size={20} />
+                  <FiChevronRight size={14} />
                 </button>
               </div>
             </div>
