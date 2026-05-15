@@ -170,7 +170,9 @@ const CompactFileUploadRow = ({
           <span className="compact-file-upload-title" title={displayLabel}>
             {displayLabel}
           </span>
-          {statusLabel && <span className={`document-row-status-chip ${statusClass}`}>{statusLabel}</span>}
+          {statusLabel && !isNotUploaded && (
+            <span className={`document-row-status-chip ${statusClass}`}>{statusLabel}</span>
+          )}
         </div>
         {showUploadedFileName ? (
           <div className="compact-file-upload-filename" title={secondaryFileName}>
