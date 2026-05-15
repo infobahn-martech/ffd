@@ -685,6 +685,42 @@ function PreArrival({
     [eventFields]
   );
 
+  const resolveFormId = (...values) => {
+    for (const value of values) {
+      if (value === undefined || value === null) continue;
+      const normalized = String(value).trim();
+      if (normalized) return normalized;
+    }
+    return "";
+  };
+
+  const buildTemplateTimeObjectsPayload = (fields, values) =>
+    (Array.isArray(fields) ? fields : [])
+      .map((field) => {
+        const keyPrefix = field?.keyPrefix;
+        if (!keyPrefix) return null;
+
+        const date = String(values?.[`${keyPrefix}Date`] || "").trim();
+        const time = String(values?.[`${keyPrefix}Time`] || "").trim();
+        if (!date || !time) return null;
+
+        const timeObjectId =
+          field?.time_object_id ??
+          field?.event_type_id ??
+          field?.eventTypeId ??
+          field?.event_typeid ??
+          field?.id ??
+          null;
+        if (timeObjectId == null || timeObjectId === "") return null;
+
+        return {
+          time_object_id: Number(timeObjectId),
+          field_key: field?.field_key || field?.event_name || keyPrefix,
+          time_object_value: `${date} ${time}:00`,
+        };
+      })
+      .filter(Boolean);
+
   useEffect(() => {
     formValuesRef.current = formValues;
   }, [formValues]);
@@ -1174,13 +1210,27 @@ function PreArrival({
     let cancelled = false;
 
     const loadReportTemplate = async () => {
-      if (!portId || !callTypeId) return;
+      if (emailPreviewFromDetailRef.current) return;
+
+      const resolvedCallId = resolveFormId(callId, formValues?.call_id, formValues?.callId);
+      const resolvedPortId = resolveFormId(portId, formValues?.port_id, formValues?.portId);
+      const resolvedCallTypeId = resolveFormId(
+        callTypeId,
+        formValues?.call_type_id,
+        formValues?.typeOfCall,
+        formValues?.callTypeId
+      );
+      if (!resolvedCallId || !resolvedPortId || !resolvedCallTypeId) return;
+
+      const timeObjects = buildTemplateTimeObjectsPayload(eventFields, formValues);
 
       try {
         const response = await appointmentAcceptanceService.getTemplateByPortCallType({
-          port_id: portId,
-          call_type_id: callTypeId,
+          call_id: resolvedCallId,
+          port_id: resolvedPortId,
+          call_type_id: resolvedCallTypeId,
           report_type_id: 2,
+          time_objects: timeObjects,
         });
         if (cancelled) return;
         if (emailPreviewFromDetailRef.current) return;
@@ -1203,7 +1253,7 @@ function PreArrival({
     return () => {
       cancelled = true;
     };
-  }, [portId, callTypeId]);
+  }, [callId, portId, callTypeId, formValues, eventFieldsApplyKey]);
 
   const handleReportDraftChange = (field, value) => {
     setReportDraft((prev) => ({ ...prev, [field]: value }));
