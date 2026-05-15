@@ -82,23 +82,116 @@ export const parseGroDocumentsResponse = (res) => {
 export const groApiErrorMessage = (err, fallback) =>
   err?.response?.data?.message ?? err?.response?.data?.error ?? err?.message ?? fallback;
 
-/** @returns {"pdf"|"excel"|"word"|"image"|"default"} */
-export const getGroFileType = (fileNameOrUrl) => {
-  if (fileNameOrUrl == null || typeof fileNameOrUrl !== "string") return "default";
-  const trimmed = fileNameOrUrl.trim();
-  if (!trimmed) return "default";
-  const noQuery = trimmed.split("?")[0].split("#")[0];
-  const segment = noQuery.includes("/") ? noQuery.slice(noQuery.lastIndexOf("/") + 1) : noQuery;
-  const dot = segment.lastIndexOf(".");
-  const ext = dot >= 0 ? segment.slice(dot + 1).toLowerCase() : "";
+/** Lowercase extension without dot, or "" if none (handles URLs and optional ?filename=). */
+export const groExtractFileExtension = (hint) => {
+  if (hint == null) return "";
+  const trimmed = String(hint).trim();
+  if (!trimmed) return "";
+  const noHash = trimmed.split("#")[0];
+  const qIdx = noHash.indexOf("?");
+  const pathPart = qIdx >= 0 ? noHash.slice(0, qIdx) : noHash;
+  const queryPart = qIdx >= 0 ? noHash.slice(qIdx + 1) : "";
+
+  const segmentFromPath = (() => {
+    const p = pathPart.trim();
+    if (!p) return "";
+    return p.includes("/") ? p.slice(p.lastIndexOf("/") + 1) : p;
+  })();
+
+  let candidate = segmentFromPath;
+  if (!candidate.includes(".") && queryPart) {
+    try {
+      const params = new URLSearchParams(queryPart);
+      for (const key of ["filename", "file_name", "name", "file", "originalname"]) {
+        const v = params.get(key);
+        if (v) {
+          const decoded = decodeURIComponent(String(v).replace(/\+/g, " "));
+          if (decoded.includes(".")) {
+            candidate = decoded;
+            break;
+          }
+        }
+      }
+    } catch {
+      /* ignore malformed query */
+    }
+  }
+
+  const dot = candidate.lastIndexOf(".");
+  return dot >= 0 ? candidate.slice(dot + 1).toLowerCase() : "";
+};
+
+/** Map file extension to document list icon variant. */
+export const groExtensionToIconKind = (ext) => {
+  if (!ext) return "default";
   if (ext === "pdf") return "pdf";
+  if (ext === "msg" || ext === "eml") return "mail";
   if (ext === "xls" || ext === "xlsx" || ext === "csv") return "excel";
   if (ext === "doc" || ext === "docx") return "word";
   if (ext === "jpg" || ext === "jpeg" || ext === "png" || ext === "webp") return "image";
   return "default";
 };
 
-export const GRO_FILE_BADGE = { pdf: "PDF", excel: "XLS", word: "DOC", image: "IMG", default: "" };
+/**
+ * Resolves icon kind from multiple hints (file name, URL, document fields). First known type wins.
+ * @returns {"pdf"|"mail"|"excel"|"word"|"image"|"default"}
+ */
+export function getDocumentFileTypeIcon(...hints) {
+  for (const h of hints) {
+    if (h == null || h === "") continue;
+    if (typeof h === "object" && !Array.isArray(h)) {
+      const nested = getDocumentFileTypeIcon(
+        h.file_name,
+        h.file_url,
+        h.document_copy,
+        h.uploaded_file_name,
+        h.fileName,
+        h.filename,
+        h.document_file_name
+      );
+      if (nested !== "default") return nested;
+      continue;
+    }
+    const kind = groExtensionToIconKind(groExtractFileExtension(String(h)));
+    if (kind !== "default") return kind;
+  }
+  return "default";
+}
+
+/** First non-empty extension found across the same hints as {@link getDocumentFileTypeIcon}. */
+export function getGroDocumentResolvedExtension(...hints) {
+  for (const h of hints) {
+    if (h == null || h === "") continue;
+    if (typeof h === "object" && !Array.isArray(h)) {
+      const nested = getGroDocumentResolvedExtension(
+        h.file_name,
+        h.file_url,
+        h.document_copy,
+        h.uploaded_file_name,
+        h.fileName,
+        h.filename,
+        h.document_file_name
+      );
+      if (nested) return nested;
+      continue;
+    }
+    const ext = groExtractFileExtension(String(h));
+    if (ext) return ext;
+  }
+  return "";
+}
+
+/** @returns {"pdf"|"mail"|"excel"|"word"|"image"|"default"} */
+export const getGroFileType = (fileNameOrUrl) => groExtensionToIconKind(groExtractFileExtension(fileNameOrUrl));
+
+export const GRO_FILE_BADGE = {
+  pdf: "PDF",
+  excel: "XLS",
+  word: "DOC",
+  image: "IMG",
+  mail: "",
+  default: "",
+};
 
 export const firstNonEmptyGroDisplay = (...candidates) => {
   for (const c of candidates) {

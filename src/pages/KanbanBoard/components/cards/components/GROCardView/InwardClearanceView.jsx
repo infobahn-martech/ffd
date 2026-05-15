@@ -5,12 +5,17 @@ import {
   getGroDocumentVerifyStatus,
   groDocumentHasDownloadableUrl,
   GRO_FILE_BADGE,
-  getGroFileType,
+  getDocumentFileTypeIcon,
+  getGroDocumentResolvedExtension,
 } from "./groCardUtils";
 
-const GroDocumentFilePreview = ({ fileName, fileUrl }) => {
-  const kind = getGroFileType(fileName || fileUrl || "");
-  const badge = GRO_FILE_BADGE[kind] || "";
+const GroDocumentFilePreview = ({ fileName, fileUrl, document }) => {
+  const kind = getDocumentFileTypeIcon(fileName, fileUrl, document);
+  const resolvedExt = getGroDocumentResolvedExtension(fileName, fileUrl, document);
+  let badge = GRO_FILE_BADGE[kind] ?? "";
+  if (kind === "mail") {
+    badge = resolvedExt === "eml" ? "EML" : "MSG";
+  }
 
   const SheetBase = ({ children }) => (
     <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden>
@@ -39,6 +44,18 @@ const GroDocumentFilePreview = ({ fileName, fileUrl }) => {
         <path d="M9 12h6M9 15h4" stroke="currentColor" strokeWidth="1.35" strokeLinecap="round" />
       </SheetBase>
     );
+  } else if (kind === "mail") {
+    inner = (
+      <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden>
+        <path
+          d="M4 6.5h16v11a1.5 1.5 0 0 1-1.5 1.5h-13A1.5 1.5 0 0 1 4 17.5V6.5Z"
+          stroke="currentColor"
+          strokeWidth="1.35"
+          strokeLinejoin="round"
+        />
+        <path d="M4 7l7.2 5.4a1.7 1.7 0 0 0 1.6 0L20 7" stroke="currentColor" strokeWidth="1.35" strokeLinecap="round" strokeLinejoin="round" />
+      </svg>
+    );
   } else if (kind === "excel") {
     inner = (
       <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden>
@@ -62,8 +79,11 @@ const GroDocumentFilePreview = ({ fileName, fileUrl }) => {
     );
   }
 
+  const titleHint =
+    [fileName, document?.file_name, fileUrl, document?.file_url].find((x) => x != null && String(x).trim() !== "") ?? "";
+
   return (
-    <div className={`gro-document-preview-icon gro-document-preview-icon--${kind}`} title={fileName || fileUrl || ""}>
+    <div className={`gro-document-preview-icon gro-document-preview-icon--${kind}`} title={titleHint}>
       <span className="gro-document-preview-icon-graphic">{inner}</span>
       {badge ? (
         <span className="gro-document-preview-icon-badge" aria-hidden>
@@ -77,6 +97,7 @@ const GroDocumentFilePreview = ({ fileName, fileUrl }) => {
 GroDocumentFilePreview.propTypes = {
   fileName: PropTypes.string,
   fileUrl: PropTypes.string,
+  document: PropTypes.object,
 };
 
 const IconCross = () => (
@@ -247,7 +268,7 @@ function InwardClearanceView({
 
           return (
             <div key={rowKey} className={`gro-document-row ${rowStatusClass}${remarkOpen ? " gro-document-row-editing" : ""}`}>
-              <GroDocumentFilePreview fileName={doc.file_name} fileUrl={doc.file_url} />
+              <GroDocumentFilePreview fileName={doc.file_name} fileUrl={doc.file_url} document={doc} />
               <div className="gro-document-main">
                 <div className="gro-document-main-top">
                   <span className="gro-document-title">{label}</span>

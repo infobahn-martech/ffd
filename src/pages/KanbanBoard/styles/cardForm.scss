@@ -749,6 +749,16 @@
   background: #2563eb;
 }
 
+.gro-card-view .gro-document-preview-icon--mail {
+  background: linear-gradient(145deg, #eff6ff 0%, #dbeafe 100%);
+  border-color: #60a5fa;
+  color: #1e40af;
+}
+
+.gro-card-view .gro-document-preview-icon--mail .gro-document-preview-icon-badge {
+  background: #2563eb;
+}
+
 .gro-card-view .gro-document-preview-icon--image {
   background: linear-gradient(145deg, #faf5ff 0%, #e9d5ff 100%);
   border-color: #d8b4fe;
