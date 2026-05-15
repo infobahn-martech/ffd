@@ -350,41 +350,6 @@ function GROCardView({ card }) {
     };
   }, [showPassBulkPopover, syncBulkPassPopoverRect]);
 
-  useEffect(() => {
-    if (!showPassBulkPopover) return undefined;
-    const bulkClickIgnores = [
-      ".gro-inward-popover",
-      ".gro-pass-upload-popover",
-      ".MuiPopover-root",
-      ".MuiPickersPopper-root",
-      ".MuiDialog-root",
-      ".MuiModal-root",
-      ".MuiDateCalendar-root",
-    ];
-    const onPointerDown = (ev) => {
-      const path = typeof ev.composedPath === "function" ? ev.composedPath() : [ev.target];
-      for (const node of path) {
-        if (!(node instanceof Element)) continue;
-        if (bulkClickIgnores.some((sel) => node.closest(sel))) {
-          return;
-        }
-      }
-      const inPortal = bulkPassPopoverPortalRef.current?.contains(ev.target);
-      const onBtn = bulkPassUploadBtnRef.current?.contains(ev.target);
-      if (!inPortal && !onBtn) {
-        setShowPassBulkPopover(false);
-        setBulkPassPopoverRect(null);
-        resetBulkPassUploadForm();
-      }
-    };
-    document.addEventListener("mousedown", onPointerDown);
-    document.addEventListener("touchstart", onPointerDown, { passive: true });
-    return () => {
-      document.removeEventListener("mousedown", onPointerDown);
-      document.removeEventListener("touchstart", onPointerDown);
-    };
-  }, [showPassBulkPopover, resetBulkPassUploadForm]);
-
   const refreshGroDocuments = useCallback(async (cid) => {
     if (cid == null || cid === "") return;
     try {
@@ -491,36 +456,6 @@ function GROCardView({ card }) {
       setIsSavingInward(false);
     }
   };
-
-  useEffect(() => {
-    if (!showInwardClearance) return undefined;
-    const inwardClickIgnoresOutsideClose = [
-      ".gro-inward-popover",
-      ".MuiPopover-root",
-      ".MuiPickersPopper-root",
-      ".MuiDialog-root",
-      ".MuiModal-root",
-      ".MuiDateCalendar-root",
-    ];
-    const onPointerDown = (e) => {
-      const path = typeof e.composedPath === "function" ? e.composedPath() : [e.target];
-      for (const node of path) {
-        if (!(node instanceof Element)) continue;
-        if (inwardClickIgnoresOutsideClose.some((sel) => node.closest(sel))) {
-          return;
-        }
-      }
-      if (inwardAnchorRef.current && !inwardAnchorRef.current.contains(e.target)) {
-        setShowInwardClearance(false);
-      }
-    };
-    document.addEventListener("mousedown", onPointerDown);
-    document.addEventListener("touchstart", onPointerDown, { passive: true });
-    return () => {
-      document.removeEventListener("mousedown", onPointerDown);
-      document.removeEventListener("touchstart", onPointerDown);
-    };
-  }, [showInwardClearance]);
 
   const canVerifyDocument = useCallback(
     (doc) =>

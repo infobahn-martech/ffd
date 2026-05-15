@@ -200,39 +200,6 @@ const PassRequestsView = ({
     }
   };
 
-  useEffect(() => {
-    if (uploadMode !== "single" || !uploadTarget) return undefined;
-    const passClickIgnoresOutsideClose = [
-      ".gro-inward-popover",
-      ".gro-pass-upload-popover",
-      ".MuiPopover-root",
-      ".MuiPickersPopper-root",
-      ".MuiDialog-root",
-      ".MuiModal-root",
-      ".MuiDateCalendar-root",
-    ];
-    const onPointerDown = (ev) => {
-      const path = typeof ev.composedPath === "function" ? ev.composedPath() : [ev.target];
-      for (const node of path) {
-        if (!(node instanceof Element)) continue;
-        if (passClickIgnoresOutsideClose.some((sel) => node.closest(sel))) {
-          return;
-        }
-      }
-      const inPortal = singlePopoverPortalRef.current?.contains(ev.target);
-      const onTrigger = singleUploadTriggerRef.current?.contains(ev.target);
-      if (!inPortal && !onTrigger) {
-        hideSinglePassUpload();
-      }
-    };
-    document.addEventListener("mousedown", onPointerDown);
-    document.addEventListener("touchstart", onPointerDown, { passive: true });
-    return () => {
-      document.removeEventListener("mousedown", onPointerDown);
-      document.removeEventListener("touchstart", onPointerDown);
-    };
-  }, [uploadMode, uploadTarget, hideSinglePassUpload]);
-
   const singleTitle = passVariant === "cg" ? "Upload CG Pass" : "Upload Zawil Pass";
 
   const singlePopoverStyle =
@@ -427,7 +394,13 @@ const PassRequestsView = ({
                         className={`gro-pass-upload-btn${isRowActive ? " gro-pass-upload-btn--popover-open" : ""}`}
                         disabled={Boolean(rowDisabledReason) || !onPassUploadSubmit}
                         title={rowDisabledReason ?? undefined}
-                        onClick={(e) => openSingleUpload(rowPayload, e)}
+                        onClick={(e) => {
+                          if (isRowActive) {
+                            hideSinglePassUpload();
+                            return;
+                          }
+                          openSingleUpload(rowPayload, e);
+                        }}
                         aria-label={`Upload for ${f.crewName || "pass row"}`}
                       >
                         <FiUpload className="gro-pass-upload-btn-icon" aria-hidden />
