@@ -174,11 +174,11 @@ const CompactFileUploadRow = ({
             <span className={`document-row-status-chip ${statusClass}`}>{statusLabel}</span>
           )}
         </div>
-        {showUploadedFileName ? (
+        {/* {showUploadedFileName ? (
           <div className="compact-file-upload-filename" title={secondaryFileName}>
             {secondaryFileName}
           </div>
-        ) : null}
+        ) : null} */}
         {remarks && String(remarks).trim() ? (
           <div className="compact-file-upload-remarks" title={String(remarks)}>
             {String(remarks)}
@@ -1216,7 +1216,7 @@ function PreArrival({
       } catch (refreshError) {
         notify(
           refreshError?.response?.data?.message ||
-            "Saved, but failed to refresh Pre Arrival details.",
+          "Saved, but failed to refresh Pre Arrival details.",
           "warning"
         );
       }

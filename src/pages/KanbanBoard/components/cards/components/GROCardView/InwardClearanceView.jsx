@@ -304,10 +304,6 @@ export function DocumentActionConfirmModal({
           <div className="popup-title">Are you sure you want to reject this document?</div>
           <div className="gro-doc-action-modal__details">
             <div className="gro-doc-action-modal__detail-row">
-              <span className="gro-doc-action-modal__detail-label">Document</span>
-              <span className="gro-doc-action-modal__detail-value">{displayName}</span>
-            </div>
-            <div className="gro-doc-action-modal__detail-row">
               <label className="gro-doc-action-modal__detail-label" htmlFor="gro-doc-reject-remarks">
                 Remarks
               </label>
