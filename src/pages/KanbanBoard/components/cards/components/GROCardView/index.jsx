@@ -489,7 +489,7 @@ function GROCardView({ card, mode = "gro" }) {
     if (getGroDocumentVerifyStatus(doc) !== 1) return;
     setSelectedDocument(doc);
     setConfirmAction(action);
-    setConfirmRemarks(doc?.remarks ?? "");
+    setConfirmRemarks(action === "reject" ? (doc?.remarks ?? "") : "");
     setIsConfirmModalOpen(true);
   }, [isSubmittingAction]);
 
@@ -519,7 +519,12 @@ function GROCardView({ card, mode = "gro" }) {
       );
       return;
     }
+    if (confirmAction === "reject" && !String(confirmRemarks ?? "").trim()) {
+      notify("Remarks are required to reject a document.", "warn");
+      return;
+    }
     const status = confirmAction === "approve" ? 2 : 4;
+    const remarks = confirmAction === "approve" ? "" : String(confirmRemarks).trim();
     setIsSubmittingAction(true);
     try {
       await groService.verifyGroDocs({
@@ -527,7 +532,7 @@ function GROCardView({ card, mode = "gro" }) {
         document_id: Number(doc.document_id),
         call_task_document_id: Number(doc.call_task_document_id),
         status,
-        remarks: confirmRemarks,
+        remarks,
       });
       await refreshGroDocuments(callId);
       notify(confirmAction === "approve" ? "Document verified." : "Document rejected.", "success");

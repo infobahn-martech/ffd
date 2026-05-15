@@ -1,4 +1,8 @@
 import PropTypes from "prop-types";
+import { FiCheckCircle } from "react-icons/fi";
+import CustomModal from "../../../../../../components/CustomModal";
+import "../../../../../../design/scss/modal-designs.scss";
+import "../../../../../../design/scss/prospect-modal.scss";
 import DateTimePickerField from "../../../../CardFormTabs/components/DateTimePickerField";
 import {
   formatGroDocumentDisplayName,
@@ -225,7 +229,9 @@ InwardClearanceToolbar.propTypes = {
   isGroLoadingDisabled: PropTypes.bool.isRequired,
 };
 
-/** Approve / reject confirmation modal. */
+const GRO_DOC_MODAL_CLASS = "modal change-pass fade employee-modal logout-modal gro-doc-action-modal";
+
+/** Approve / reject confirmation modals (logout-style approve, form-style reject). */
 export function DocumentActionConfirmModal({
   isOpen,
   confirmAction,
@@ -236,45 +242,74 @@ export function DocumentActionConfirmModal({
   onCancel,
   onConfirm,
 }) {
-  if (!isOpen || !confirmAction) return null;
+  if (!confirmAction) return null;
 
   const isApprove = confirmAction === "approve";
-  const title = isApprove ? "Approve document" : "Reject document";
   const displayName = formatGroDocumentDisplayName(documentName ?? "");
+  const rejectRemarksValid = String(confirmRemarks ?? "").trim().length > 0;
 
-  const handleBackdropClick = (e) => {
-    if (e.target === e.currentTarget && !isSubmitting) onCancel();
-  };
+  const confirmSpinner = (
+    <div className="spinner-border spinner-border-sm" role="status">
+      <span className="visually-hidden">Loading...</span>
+    </div>
+  );
 
-  const handleDialogKeyDown = (e) => {
-    if (e.key === "Escape" && !isSubmitting) onCancel();
-  };
+  const footerButtons = (confirmLabel, confirmClassName, confirmDisabled = false) => (
+    <div className="two-btn logout-btn gro-doc-action-modal__footer">
+      <button type="button" className="btn-common close" disabled={isSubmitting} onClick={onCancel}>
+        Cancel
+      </button>
+      <button
+        type="button"
+        className={`save btn-common ${confirmClassName}`}
+        disabled={isSubmitting || confirmDisabled}
+        onClick={onConfirm}
+      >
+        {isSubmitting ? confirmSpinner : confirmLabel}
+      </button>
+    </div>
+  );
+
+  if (isApprove) {
+    return (
+      <CustomModal
+        createModal
+        className={GRO_DOC_MODAL_CLASS}
+        show={isOpen}
+        closeModal={onCancel}
+        body={
+          <div className="modal-body">
+            <div className="profile-img gro-doc-action-modal__icon-wrap gro-doc-action-modal__icon-wrap--approve">
+              <FiCheckCircle size={60} style={{ color: "#047857" }} aria-hidden />
+            </div>
+            <div className="popup-title">Are you sure you want to approve this document?</div>
+            {footerButtons("Approve", "gro-doc-confirm-approve-btn")}
+          </div>
+        }
+      />
+    );
+  }
 
   return (
-    <div className="gro-doc-confirm-modal-backdrop" role="presentation" onClick={handleBackdropClick}>
-      <div
-        className="gro-doc-confirm-modal"
-        role="dialog"
-        aria-modal="true"
-        aria-labelledby="gro-doc-confirm-modal-title"
-        onClick={(e) => e.stopPropagation()}
-        onKeyDown={handleDialogKeyDown}
-      >
-        <div className="gro-doc-confirm-modal-header" id="gro-doc-confirm-modal-title">
-          {title}
-        </div>
-        <div className="gro-doc-confirm-modal-body">
-          <div className="gro-doc-confirm-modal-field">
-            <span className="gro-doc-confirm-modal-label">Document</span>
-            <span className="gro-doc-confirm-modal-doc-name">{displayName}</span>
+    <CustomModal
+      createModal
+      className={`${GRO_DOC_MODAL_CLASS} gro-doc-action-modal--reject`}
+      show={isOpen}
+      closeModal={onCancel}
+      body={
+        <div className="modal-body gro-doc-reject-modal-body">
+          <div className="popup-title gro-doc-reject-modal__title">Reject document</div>
+          <div className="gro-doc-reject-modal__field">
+            <span className="gro-doc-reject-modal__label">Document</span>
+            <span className="gro-doc-reject-modal__doc-name">{displayName}</span>
           </div>
-          <div className="gro-doc-confirm-modal-field">
-            <label className="gro-doc-confirm-modal-label" htmlFor="gro-doc-confirm-remarks">
+          <div className="gro-doc-reject-modal__field">
+            <label className="gro-doc-reject-modal__label" htmlFor="gro-doc-reject-remarks">
               Remarks
             </label>
             <textarea
-              id="gro-doc-confirm-remarks"
-              className="gro-doc-confirm-modal-textarea"
+              id="gro-doc-reject-remarks"
+              className="gro-doc-reject-modal__textarea"
               placeholder="Enter remarks"
               value={confirmRemarks}
               disabled={isSubmitting}
@@ -282,22 +317,10 @@ export function DocumentActionConfirmModal({
               rows={4}
             />
           </div>
+          {footerButtons("Reject", "red-btn", !rejectRemarksValid)}
         </div>
-        <div className="gro-doc-confirm-modal-footer">
-          <button type="button" className="gro-doc-confirm-modal-btn-cancel" disabled={isSubmitting} onClick={onCancel}>
-            Cancel
-          </button>
-          <button
-            type="button"
-            className={`gro-doc-confirm-modal-btn-confirm${isApprove ? " gro-doc-confirm-modal-btn-confirm--approve" : " gro-doc-confirm-modal-btn-confirm--reject"}`}
-            disabled={isSubmitting}
-            onClick={onConfirm}
-          >
-            {isSubmitting ? "Saving..." : isApprove ? "Approve" : "Reject"}
-          </button>
-        </div>
-      </div>
-    </div>
+      }
+    />
   );
 }
 

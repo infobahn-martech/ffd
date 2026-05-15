@@ -1114,63 +1114,84 @@
   z-index: 16000 !important;
 }
 
-.gro-doc-confirm-modal-backdrop {
-  position: fixed;
-  inset: 0;
-  z-index: 20000;
+/* GRO document approve/reject — matches logout confirmation modal */
+body .gro-doc-action-modal {
+  z-index: 20000 !important;
+}
+
+body .gro-doc-action-modal.show {
+  z-index: 20000 !important;
+}
+
+body .gro-doc-action-modal .modal-dialog {
+  z-index: 20001 !important;
+}
+
+.gro-doc-action-modal__icon-wrap {
+  width: 82px;
+  height: 82px;
   display: flex;
   align-items: center;
   justify-content: center;
-  padding: 16px;
-  background: rgba(15, 23, 42, 0.45);
+  background-color: #f8f9fc;
+  border-radius: 50%;
 }
 
-.gro-doc-confirm-modal {
-  width: 100%;
-  max-width: 440px;
-  background: #fff;
-  border-radius: 12px;
-  box-shadow: 0 20px 48px rgba(15, 23, 42, 0.18);
-  overflow: hidden;
+.gro-doc-action-modal__icon-wrap--approve {
+  margin: 0 auto 20px;
 }
 
-.gro-doc-confirm-modal-header {
-  padding: 16px 20px;
-  font-size: 16px;
-  font-weight: 600;
-  color: #0f172a;
-  border-bottom: 1px solid #e2e8f0;
-}
-
-.gro-doc-confirm-modal-body {
+.gro-doc-action-modal__footer.two-btn {
   display: flex;
-  flex-direction: column;
-  gap: 14px;
-  padding: 16px 20px;
+  justify-content: center;
+  padding-left: 0;
+  padding-top: 28px;
 }
 
-.gro-doc-confirm-modal-field {
+.gro-doc-confirm-approve-btn {
+  background: #047857 !important;
+  border-color: #047857 !important;
+  color: #fff !important;
+}
+
+.gro-doc-confirm-approve-btn:hover:not(:disabled) {
+  background: #065f46 !important;
+  border-color: #065f46 !important;
+}
+
+.gro-doc-reject-modal-body {
+  text-align: left;
+}
+
+.gro-doc-reject-modal__title {
+  text-align: center;
+  margin-bottom: 20px;
+}
+
+.gro-doc-reject-modal__field {
   display: flex;
   flex-direction: column;
   gap: 6px;
+  margin-bottom: 14px;
+  text-align: left;
 }
 
-.gro-doc-confirm-modal-label {
+.gro-doc-reject-modal__label {
   font-size: 13px;
   font-weight: 600;
   color: #475569;
 }
 
-.gro-doc-confirm-modal-doc-name {
+.gro-doc-reject-modal__doc-name {
   font-size: 14px;
-  color: #0f172a;
+  color: #00368c;
 }
 
-.gro-doc-confirm-modal-textarea {
+.gro-doc-reject-modal__textarea {
   width: 100%;
   min-height: 96px;
   padding: 10px 12px;
-  border: 1px solid #cbd5e1;
+  border: 1px solid #dbe7e8;
   border-radius: 8px;
   font-size: 14px;
   font-family: inherit;
@@ -1178,67 +1199,14 @@
   box-sizing: border-box;
 }
 
-.gro-doc-confirm-modal-textarea:focus {
+.gro-doc-reject-modal__textarea:focus {
   outline: none;
   border-color: #00368c;
   box-shadow: 0 0 0 2px rgba(0, 54, 140, 0.12);
 }
 
-.gro-doc-confirm-modal-footer {
-  display: flex;
-  justify-content: flex-end;
-  gap: 10px;
-  padding: 14px 20px 18px;
-  border-top: 1px solid #e2e8f0;
-}
-
-.gro-doc-confirm-modal-btn-cancel {
-  padding: 8px 16px;
-  border: none;
-  border-radius: 8px;
-  background: transparent;
-  color: #475569;
-  font-size: 14px;
-  font-weight: 600;
-  font-family: inherit;
-  cursor: pointer;
-}
-
-.gro-doc-confirm-modal-btn-cancel:hover:not(:disabled) {
-  background: #f1f5f9;
-}
-
-.gro-doc-confirm-modal-btn-confirm {
-  padding: 8px 18px;
-  border: none;
-  border-radius: 8px;
-  font-size: 14px;
-  font-weight: 600;
-  font-family: inherit;
-  color: #fff;
-  cursor: pointer;
-}
-
-.gro-doc-confirm-modal-btn-confirm--approve {
-  background: #047857;
-}
-
-.gro-doc-confirm-modal-btn-confirm--approve:hover:not(:disabled) {
-  background: #065f46;
-}
-
-.gro-doc-confirm-modal-btn-confirm--reject {
-  background: #dc2626;
-}
-
-.gro-doc-confirm-modal-btn-confirm--reject:hover:not(:disabled) {
-  background: #b91c1c;
-}
-
-.gro-doc-confirm-modal-btn-cancel:disabled,
-.gro-doc-confirm-modal-btn-confirm:disabled {
-  opacity: 0.55;
-  cursor: not-allowed;
+.gro-doc-action-modal--reject .modal-content {
+  padding: 10px 50px 35px 50px;
 }
 
 @media (max-width: 900px) {
