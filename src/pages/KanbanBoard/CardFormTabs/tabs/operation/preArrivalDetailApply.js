@@ -35,7 +35,8 @@ export function normalizeTaskDocumentFlatItems(taskDocuments) {
           role_id: entry.role_id,
           document_id: d.document_id,
           call_task_document_id: d.call_task_document_id ?? d.callTaskDocumentId ?? null,
-          file_name: d.file_name || d.fileName || "Document",
+          document_name: d.document_name || d.documentName || null,
+          file_name: d.file_name || d.fileName || null,
           file_url: d.file_url || d.fileUrl || d.url || "",
           status: d.status ?? null,
           remarks: d.remarks ?? null,
@@ -48,7 +49,8 @@ export function normalizeTaskDocumentFlatItems(taskDocuments) {
       role_id: entry.role_id,
       document_id: entry.document_id ?? entry.documentId,
       call_task_document_id: entry.call_task_document_id ?? entry.callTaskDocumentId ?? null,
-      file_name: entry.file_name || entry.fileName || "Document",
+      document_name: entry.document_name || entry.documentName || null,
+      file_name: entry.file_name || entry.fileName || null,
       file_url: entry.file_url || entry.fileUrl || entry.url || "",
       status: entry.status ?? null,
       remarks: entry.remarks ?? null,
@@ -155,23 +157,27 @@ export function mergePreArrivalDetailDocuments(currentHandling, taskDocuments = 
     const existing = dh.documents[processKey] || [];
     return idOrder.map((idStr) => {
       const first = items.find((x) => String(x.document_id) === idStr);
-      const name = String(first?.file_name || "Document");
       const prev = existing.find((r) => String(r.id) === idStr);
+      const documentName = String(
+        first?.document_name || prev?.document_name || prev?.name || "Document"
+      );
+      const uploadedFileName = first?.file_name || prev?.file_name || null;
       const row = {
         id: idStr,
-        name,
+        document_name: documentName,
+        name: documentName,
         is_required: Boolean(prev?.is_required),
         status: first?.status ?? prev?.status ?? null,
         remarks: first?.remarks ?? prev?.remarks ?? null,
         call_task_document_id: first?.call_task_document_id ?? prev?.call_task_document_id ?? null,
         document_id: first?.document_id ?? prev?.document_id ?? null,
         file_url: first?.file_url ?? prev?.file_url ?? null,
-        file_name: first?.file_name ?? prev?.file_name ?? null,
+        file_name: uploadedFileName,
         files: Array.isArray(prev?.files) ? [...prev.files] : [],
       };
       for (const t of items) {
         if (String(t.document_id) !== idStr) continue;
-        const fn = t.file_name || name;
+        const fn = t.file_name || uploadedFileName || `uploaded-file`;
         const u = String(t.file_url || "").trim();
         if (u) pushFile(row, { name: fn, url: u });
       }

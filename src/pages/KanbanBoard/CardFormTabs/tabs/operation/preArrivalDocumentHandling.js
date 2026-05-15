@@ -35,7 +35,8 @@ export function mapPreArrivalDocumentsFromApi(apiPayload) {
   const mapRows = (rows) =>
     (Array.isArray(rows) ? rows : []).map((row, i) => ({
       id: row.id != null ? String(row.id) : `api-row-${i}`,
-      name: row.name || row.document_name || row.label || "Document",
+      name: row.document_name || row.documentName || row.label || row.name || "Document",
+      document_name: row.document_name || row.documentName || row.label || row.name || "Document",
       is_required: Boolean(row.is_required ?? row.required),
       files: Array.isArray(row.files)
         ? row.files

@@ -87,6 +87,7 @@ const DOC_STATUS_REJECTED = 4;
 
 const CompactFileUploadRow = ({
   label,
+  uploadedFileName = null,
   files = [],
   status = null,
   remarks = null,
@@ -96,6 +97,11 @@ const CompactFileUploadRow = ({
 }) => {
   const inputRef = useRef(null);
   const hasFiles = (files || []).length > 0;
+  const displayLabel = String(label || "").trim() || "Document";
+  const secondaryFileName = String(uploadedFileName || files?.[0]?.name || "").trim();
+  const showUploadedFileName =
+    Boolean(secondaryFileName) &&
+    secondaryFileName.toLowerCase() !== displayLabel.toLowerCase();
   // Null/empty status must stay unset: Number(null) === 0 would wrongly map to "Not uploaded".
   const rowStatus =
     status === null || status === undefined || status === ""
@@ -161,16 +167,16 @@ const CompactFileUploadRow = ({
     <div className="document-row compact-file-upload-row">
       <div className="document-row-name compact-file-upload-label">
         <div className="compact-file-upload-label-top">
-          <span className="compact-file-upload-title" title={label}>
-            {label}
+          <span className="compact-file-upload-title" title={displayLabel}>
+            {displayLabel}
           </span>
           {statusLabel && <span className={`document-row-status-chip ${statusClass}`}>{statusLabel}</span>}
         </div>
-        {/* {primaryFile?.name && (
-          <div className="compact-file-upload-filename" title={primaryFile.name}>
-            {primaryFile.name}
+        {showUploadedFileName ? (
+          <div className="compact-file-upload-filename" title={secondaryFileName}>
+            {secondaryFileName}
           </div>
-        )} */}
+        ) : null}
         {remarks && String(remarks).trim() ? (
           <div className="compact-file-upload-remarks" title={String(remarks)}>
             {String(remarks)}
@@ -193,7 +199,7 @@ const CompactFileUploadRow = ({
               type="file"
               className="document-row-file-input"
               onChange={handleInput}
-              aria-label={`Upload ${label}`}
+              aria-label={`Upload ${displayLabel}`}
               multiple={!shouldReplaceOnUpload}
             />
             {/* {hasFiles && (
@@ -210,6 +216,7 @@ const CompactFileUploadRow = ({
 
 CompactFileUploadRow.propTypes = {
   label: PropTypes.string.isRequired,
+  uploadedFileName: PropTypes.string,
   files: PropTypes.array,
   status: PropTypes.oneOfType([PropTypes.number, PropTypes.string]),
   remarks: PropTypes.string,
@@ -314,35 +321,51 @@ function PreArrivalDocumentHandlingSection({
   };
 
   const mergeRoleDocuments = useCallback((existingRows = [], incomingRows = []) => {
-    const normalizedIncoming = (Array.isArray(incomingRows) ? incomingRows : []).map((row, index) => ({
-      id: row?.document_id != null ? String(row.document_id) : row?.call_task_document_id != null ? String(row.call_task_document_id) : `role-doc-${index}`,
-      name: row?.document_name || row?.name || `Document ${index + 1}`,
-      is_required: Boolean(row?.is_required ?? row?.required),
-      status: row?.status ?? null,
-      remarks: row?.remarks ?? null,
-      call_task_document_id: row?.call_task_document_id ?? null,
-      document_id: row?.document_id ?? null,
-      file_url: row?.file_url ?? null,
-      file_name: row?.file_name || null,
-      files:
-        row?.is_uploaded && row?.file_url
-          ? [
-            {
-              name: row?.file_name || row?.document_name || `Document ${index + 1}`,
-              url: row.file_url,
-              uploadedBy: row?.uploaded_by_user || null,
-              uploadedAt: row?.uploaded_at || null,
-              remarks: row?.remarks || null,
-              status: row?.status ?? null,
-            },
-          ]
-          : [],
-    }));
+    const normalizedIncoming = (Array.isArray(incomingRows) ? incomingRows : []).map((row, index) => {
+      const documentName =
+        row?.document_name ||
+        row?.documentName ||
+        `Document ${index + 1}`;
+      const uploadedName = row?.file_name || row?.fileName || null;
+
+      return {
+        id: row?.document_id != null ? String(row.document_id) : row?.call_task_document_id != null ? String(row.call_task_document_id) : `role-doc-${index}`,
+        document_name: documentName,
+        name: documentName,
+        is_required: Boolean(row?.is_required ?? row?.required),
+        status: row?.status ?? null,
+        remarks: row?.remarks ?? null,
+        call_task_document_id: row?.call_task_document_id ?? null,
+        document_id: row?.document_id ?? null,
+        file_url: row?.file_url ?? null,
+        file_name: uploadedName,
+        files:
+          row?.is_uploaded && row?.file_url
+            ? [
+              {
+                name: uploadedName || `uploaded-file-${index + 1}`,
+                url: row.file_url,
+                uploadedBy: row?.uploaded_by_user || null,
+                uploadedAt: row?.uploaded_at || null,
+                remarks: row?.remarks || null,
+                status: row?.status ?? null,
+              },
+            ]
+            : [],
+      };
+    });
 
     return normalizedIncoming.map((incomingRow) => {
       const matched = (existingRows || []).find((row) => String(row?.id) === String(incomingRow.id));
+      const documentName =
+        incomingRow.document_name ||
+        matched?.document_name ||
+        matched?.name ||
+        incomingRow.name;
       return {
         ...incomingRow,
+        document_name: documentName,
+        name: documentName,
         status: incomingRow.status ?? matched?.status ?? null,
         remarks: incomingRow.remarks ?? matched?.remarks ?? null,
         call_task_document_id: incomingRow.call_task_document_id ?? matched?.call_task_document_id ?? null,
@@ -564,7 +587,8 @@ function PreArrivalDocumentHandlingSection({
               {(dh.documents.gro || []).map((doc) => (
                 <CompactFileUploadRow
                   key={doc.id}
-                  label={doc.name}
+                  label={doc.document_name || doc.name}
+                  uploadedFileName={doc.file_name || doc.files?.[0]?.name}
                   files={doc.files || []}
                   status={doc.status}
                   remarks={doc.remarks}
@@ -583,7 +607,8 @@ function PreArrivalDocumentHandlingSection({
               {(dh.documents.customClearance || []).map((doc) => (
                 <CompactFileUploadRow
                   key={doc.id}
-                  label={doc.name}
+                  label={doc.document_name || doc.name}
+                  uploadedFileName={doc.file_name || doc.files?.[0]?.name}
                   files={doc.files || []}
                   status={doc.status}
                   remarks={doc.remarks}
