@@ -18,6 +18,19 @@ export const GRO_MAIN_VIEWS = {
   zawil: "zawil",
 };
 
+/** Custom Clearance desk (e.g. role_id 5) uses Documents + Bayan only — no CG/Zawil pass tabs. */
+export const isGroCustomClearanceRole = (userProfile) => {
+  const role = userProfile?.role;
+  if (!role || typeof role !== "object") return false;
+  const rid = Number(role.role_id);
+  if (!Number.isNaN(rid) && rid === 5) return true;
+  const label = String(role.role ?? role.role_name ?? role.name ?? "")
+    .trim()
+    .toLowerCase();
+  if (!label) return false;
+  return label === "custom clearance" || label.includes("custom clearance");
+};
+
 export const splitInwardDateTimeString = (value) => {
   if (value == null || String(value).trim() === "") return { date: "", time: "" };
   const normalized = String(value).trim().includes("T") ? String(value).trim().replace("T", " ") : String(value).trim();

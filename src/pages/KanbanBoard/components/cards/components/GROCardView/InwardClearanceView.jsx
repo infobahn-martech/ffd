@@ -113,6 +113,8 @@ export function InwardClearanceToolbar({
   inwardFileInputRef,
   showInwardClearance,
   onToggleInwardPopover,
+  inwardActionLabel = "Inward clearance",
+  inwardPopoverTitle = "Inward Clearance",
   inwardFile,
   onInwardFileChange,
   inwardPickerParts,
@@ -131,11 +133,11 @@ export function InwardClearanceToolbar({
         disabled={isGroLoadingDisabled}
         onClick={onToggleInwardPopover}
       >
-        Inward clearance
+        {inwardActionLabel}
       </button>
       {showInwardClearance ? (
-        <div className="gro-inward-popover" role="dialog" aria-label="Inward clearance">
-          <div className="gro-inward-popover-header">Inward Clearance</div>
+        <div className="gro-inward-popover" role="dialog" aria-label={inwardPopoverTitle}>
+          <div className="gro-inward-popover-header">{inwardPopoverTitle}</div>
           <div className="gro-inward-popover-body">
             <div className="gro-inward-popover-field">
               <span className="gro-inward-popover-label">File upload</span>
@@ -187,6 +189,8 @@ InwardClearanceToolbar.propTypes = {
   inwardFileInputRef: PropTypes.shape({ current: PropTypes.any }).isRequired,
   showInwardClearance: PropTypes.bool.isRequired,
   onToggleInwardPopover: PropTypes.func.isRequired,
+  inwardActionLabel: PropTypes.string,
+  inwardPopoverTitle: PropTypes.string,
   inwardFile: PropTypes.any,
   onInwardFileChange: PropTypes.func.isRequired,
   inwardPickerParts: PropTypes.shape({

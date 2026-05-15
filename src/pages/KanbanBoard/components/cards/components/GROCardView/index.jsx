@@ -1,6 +1,7 @@
 import { useState, useCallback, useEffect, useRef, useMemo } from "react";
 import { createPortal } from "react-dom";
 import PropTypes from "prop-types";
+import useAuthReducer from "../../../../../../store/AuthReducer";
 import { notify } from "../../../../../../components/Toaster";
 import groService from "../../../../../../services/groService";
 import GroSummaryCard from "./GroSummaryCard";
@@ -24,11 +25,15 @@ import {
   getGroCrewPassId,
   getGroWorkOrderId,
   groPassCrewRowId,
+  isGroCustomClearanceRole,
 } from "./groCardUtils";
 
 const EMPTY_WORK_ORDERS = [];
 
 function GROCardView({ card }) {
+  const userProfile = useAuthReducer((s) => s.userProfile);
+  const isCustomClearance = useMemo(() => isGroCustomClearanceRole(userProfile), [userProfile]);
+
   const inwardAnchorRef = useRef(null);
   const inwardFileInputRef = useRef(null);
   const [showInwardClearance, setShowInwardClearance] = useState(false);
@@ -165,6 +170,13 @@ function GROCardView({ card }) {
       setShowInwardClearance(false);
     }
   }, []);
+
+  useEffect(() => {
+    if (!isCustomClearance) return;
+    if (groMainView === GRO_MAIN_VIEWS.cg || groMainView === GRO_MAIN_VIEWS.zawil) {
+      switchGroMainView(GRO_MAIN_VIEWS.inward);
+    }
+  }, [isCustomClearance, groMainView, switchGroMainView]);
 
   const selectDocumentsTab = useCallback(() => {
     setGroMainView(GRO_MAIN_VIEWS.inward);
@@ -630,25 +642,33 @@ function GROCardView({ card }) {
           <h3 className="gro-documents-heading">{documentsSectionTitle}</h3>
           <div className="gro-document-header-actions gro-document-header-actions--with-segments">
             <div className="gro-pass-segments-row">
-              <div className="gro-pass-segments" role="tablist" aria-label="Pass and clearance views">
-                <button
-                  type="button"
-                  role="tab"
-                  aria-selected={groMainView === GRO_MAIN_VIEWS.cg}
-                  className={`gro-pass-segment${groMainView === GRO_MAIN_VIEWS.cg ? " gro-pass-segment--active" : ""}`}
-                  onClick={() => switchGroMainView(GRO_MAIN_VIEWS.cg)}
-                >
-                  CG Pass
-                </button>
-                <button
-                  type="button"
-                  role="tab"
-                  aria-selected={groMainView === GRO_MAIN_VIEWS.zawil}
-                  className={`gro-pass-segment${groMainView === GRO_MAIN_VIEWS.zawil ? " gro-pass-segment--active" : ""}`}
-                  onClick={() => switchGroMainView(GRO_MAIN_VIEWS.zawil)}
-                >
-                  Zawil Pass
-                </button>
+              <div
+                className="gro-pass-segments"
+                role="tablist"
+                aria-label={isCustomClearance ? "Documents and Bayan" : "Pass and clearance views"}
+              >
+                {!isCustomClearance ? (
+                  <>
+                    <button
+                      type="button"
+                      role="tab"
+                      aria-selected={groMainView === GRO_MAIN_VIEWS.cg}
+                      className={`gro-pass-segment${groMainView === GRO_MAIN_VIEWS.cg ? " gro-pass-segment--active" : ""}`}
+                      onClick={() => switchGroMainView(GRO_MAIN_VIEWS.cg)}
+                    >
+                      CG Pass
+                    </button>
+                    <button
+                      type="button"
+                      role="tab"
+                      aria-selected={groMainView === GRO_MAIN_VIEWS.zawil}
+                      className={`gro-pass-segment${groMainView === GRO_MAIN_VIEWS.zawil ? " gro-pass-segment--active" : ""}`}
+                      onClick={() => switchGroMainView(GRO_MAIN_VIEWS.zawil)}
+                    >
+                      Zawil Pass
+                    </button>
+                  </>
+                ) : null}
                 <button
                   type="button"
                   role="tab"
@@ -665,6 +685,8 @@ function GROCardView({ card }) {
                   inwardFileInputRef={inwardFileInputRef}
                   showInwardClearance={showInwardClearance}
                   onToggleInwardPopover={() => setShowInwardClearance(!showInwardClearance)}
+                  inwardActionLabel={isCustomClearance ? "Bayan" : "Inward clearance"}
+                  inwardPopoverTitle={isCustomClearance ? "Bayan" : "Inward Clearance"}
                   inwardFile={inwardFile}
                   onInwardFileChange={(e) => setInwardFile(e.target.files?.[0] ?? null)}
                   inwardPickerParts={inwardPickerParts}
