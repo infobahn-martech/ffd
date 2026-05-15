@@ -225,18 +225,100 @@ InwardClearanceToolbar.propTypes = {
   isGroLoadingDisabled: PropTypes.bool.isRequired,
 };
 
-/** Documents list — verify / reject remarks / download. */
+/** Approve / reject confirmation modal. */
+export function DocumentActionConfirmModal({
+  isOpen,
+  confirmAction,
+  documentName,
+  confirmRemarks,
+  isSubmitting,
+  onRemarksChange,
+  onCancel,
+  onConfirm,
+}) {
+  if (!isOpen || !confirmAction) return null;
+
+  const isApprove = confirmAction === "approve";
+  const title = isApprove ? "Approve document" : "Reject document";
+  const displayName = formatGroDocumentDisplayName(documentName ?? "");
+
+  const handleBackdropClick = (e) => {
+    if (e.target === e.currentTarget && !isSubmitting) onCancel();
+  };
+
+  const handleDialogKeyDown = (e) => {
+    if (e.key === "Escape" && !isSubmitting) onCancel();
+  };
+
+  return (
+    <div className="gro-doc-confirm-modal-backdrop" role="presentation" onClick={handleBackdropClick}>
+      <div
+        className="gro-doc-confirm-modal"
+        role="dialog"
+        aria-modal="true"
+        aria-labelledby="gro-doc-confirm-modal-title"
+        onClick={(e) => e.stopPropagation()}
+        onKeyDown={handleDialogKeyDown}
+      >
+        <div className="gro-doc-confirm-modal-header" id="gro-doc-confirm-modal-title">
+          {title}
+        </div>
+        <div className="gro-doc-confirm-modal-body">
+          <div className="gro-doc-confirm-modal-field">
+            <span className="gro-doc-confirm-modal-label">Document</span>
+            <span className="gro-doc-confirm-modal-doc-name">{displayName}</span>
+          </div>
+          <div className="gro-doc-confirm-modal-field">
+            <label className="gro-doc-confirm-modal-label" htmlFor="gro-doc-confirm-remarks">
+              Remarks
+            </label>
+            <textarea
+              id="gro-doc-confirm-remarks"
+              className="gro-doc-confirm-modal-textarea"
+              placeholder="Enter remarks"
+              value={confirmRemarks}
+              disabled={isSubmitting}
+              onChange={onRemarksChange}
+              rows={4}
+            />
+          </div>
+        </div>
+        <div className="gro-doc-confirm-modal-footer">
+          <button type="button" className="gro-doc-confirm-modal-btn-cancel" disabled={isSubmitting} onClick={onCancel}>
+            Cancel
+          </button>
+          <button
+            type="button"
+            className={`gro-doc-confirm-modal-btn-confirm${isApprove ? " gro-doc-confirm-modal-btn-confirm--approve" : " gro-doc-confirm-modal-btn-confirm--reject"}`}
+            disabled={isSubmitting}
+            onClick={onConfirm}
+          >
+            {isSubmitting ? "Saving..." : isApprove ? "Approve" : "Reject"}
+          </button>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+DocumentActionConfirmModal.propTypes = {
+  isOpen: PropTypes.bool.isRequired,
+  confirmAction: PropTypes.oneOf(["approve", "reject"]),
+  documentName: PropTypes.string,
+  confirmRemarks: PropTypes.string.isRequired,
+  isSubmitting: PropTypes.bool.isRequired,
+  onRemarksChange: PropTypes.func.isRequired,
+  onCancel: PropTypes.func.isRequired,
+  onConfirm: PropTypes.func.isRequired,
+};
+
+/** Documents list — verify / reject / download. */
 function InwardClearanceView({
   documents,
   isGroLoading,
-  activeRemarkDoc,
-  remarkDraft,
-  verifyingDocId,
-  onRemarkDraftChange,
-  onCrossClick,
-  onRemarkCancel,
-  onRemarkSubmit,
-  onTickClick,
+  isSubmittingAction,
+  onApproveClick,
+  onRejectClick,
   onDocumentDownload,
 }) {
   return (
@@ -253,8 +335,6 @@ function InwardClearanceView({
           const isVerified = status === 2;
           const isReupload = status === 3;
           const isRejected = status === 4;
-          const remarkOpen = activeRemarkDoc === rowKey;
-          const rowBusy = verifyingDocId === rowKey;
           const remarksTextRaw = doc?.remarks != null && String(doc.remarks).trim() !== "" ? String(doc.remarks).trim() : "";
           const showRemarksBadge = Boolean(remarksTextRaw) && !isNotUploaded && !isVerified;
           const hasFile = groDocumentHasDownloadableUrl(doc);
@@ -267,7 +347,7 @@ function InwardClearanceView({
           else if (isRejected) rowStatusClass = "gro-document-row-status-rejected";
 
           return (
-            <div key={rowKey} className={`gro-document-row ${rowStatusClass}${remarkOpen ? " gro-document-row-editing" : ""}`}>
+            <div key={rowKey} className={`gro-document-row ${rowStatusClass}`}>
               <GroDocumentFilePreview fileName={doc.file_name} fileUrl={doc.file_url} document={doc} />
               <div className="gro-document-main">
                 <div className="gro-document-main-top">
@@ -279,47 +359,25 @@ function InwardClearanceView({
                   ) : null}
                 </div>
               </div>
-              {remarkOpen && isPendingVerification ? (
-                <div className="gro-inline-remark gro-inline-remark--compact">
-                  <input
-                    type="text"
-                    className="gro-inline-remark-input"
-                    placeholder="Enter remarks"
-                    value={remarkDraft}
-                    disabled={Boolean(verifyingDocId)}
-                    onChange={onRemarkDraftChange}
-                    aria-label="Document remarks"
-                  />
-                  <div className="gro-inline-remark-actions">
-                    <button type="button" className="gro-inline-remark-btn gro-inline-remark-btn-cancel" disabled={Boolean(verifyingDocId)} onClick={onRemarkCancel}>
-                      Cancel
-                    </button>
-                    <button type="button" className="gro-inline-remark-btn gro-inline-remark-btn-submit" disabled={Boolean(verifyingDocId)} onClick={onRemarkSubmit}>
-                      {rowBusy ? "Saving..." : "Submit"}
-                    </button>
-                  </div>
-                </div>
-              ) : null}
               <div className="gro-document-actions">
                 {isPendingVerification ? (
                   <button
                     type="button"
                     className="gro-doc-action-btn gro-doc-action-btn--approved"
-                    disabled={Boolean(verifyingDocId)}
-                    onClick={() => onTickClick(doc, rowKey)}
+                    disabled={isSubmittingAction}
+                    onClick={() => onApproveClick(doc)}
                   >
                     <IconTick />
-                    <span>Approved</span>
+                    <span>Approve</span>
                   </button>
                 ) : null}
                 {isPendingVerification ? (
                   <button
                     type="button"
-                    className={`gro-doc-action-btn gro-doc-action-btn--reject${remarkOpen ? " gro-doc-action-btn--active" : ""}`}
-                    aria-pressed={remarkOpen}
-                    aria-label="Reject — add remarks"
-                    disabled={Boolean(verifyingDocId)}
-                    onClick={() => onCrossClick(rowKey, doc)}
+                    className="gro-doc-action-btn gro-doc-action-btn--reject"
+                    aria-label="Reject document"
+                    disabled={isSubmittingAction}
+                    onClick={() => onRejectClick(doc)}
                   >
                     <IconCross />
                     <span>Reject</span>
@@ -365,14 +423,9 @@ function InwardClearanceView({
 InwardClearanceView.propTypes = {
   documents: PropTypes.array.isRequired,
   isGroLoading: PropTypes.bool.isRequired,
-  activeRemarkDoc: PropTypes.string,
-  remarkDraft: PropTypes.string.isRequired,
-  verifyingDocId: PropTypes.string,
-  onRemarkDraftChange: PropTypes.func.isRequired,
-  onCrossClick: PropTypes.func.isRequired,
-  onRemarkCancel: PropTypes.func.isRequired,
-  onRemarkSubmit: PropTypes.func.isRequired,
-  onTickClick: PropTypes.func.isRequired,
+  isSubmittingAction: PropTypes.bool,
+  onApproveClick: PropTypes.func.isRequired,
+  onRejectClick: PropTypes.func.isRequired,
   onDocumentDownload: PropTypes.func.isRequired,
 };
 

@@ -4,7 +4,7 @@ import PropTypes from "prop-types";
 import { notify } from "../../../../../../components/Toaster";
 import groService from "../../../../../../services/groService";
 import GroSummaryCard from "./GroSummaryCard";
-import InwardClearanceView, { InwardClearanceToolbar } from "./InwardClearanceView";
+import InwardClearanceView, { DocumentActionConfirmModal, InwardClearanceToolbar } from "./InwardClearanceView";
 import PassRequestsView from "./PassRequestsView";
 import GroPassUploadPopoverForm from "./GroPassUploadPopoverForm";
 import {
@@ -36,13 +36,14 @@ function GROCardView({ card, mode = "gro" }) {
   const [showInwardClearance, setShowInwardClearance] = useState(false);
   const [inwardFile, setInwardFile] = useState(null);
   const [inwardDateTime, setInwardDateTime] = useState("");
-  const [documentRemarks, setDocumentRemarks] = useState({});
-  const [activeRemarkDoc, setActiveRemarkDoc] = useState(null);
-  const [remarkDraft, setRemarkDraft] = useState("");
+  const [selectedDocument, setSelectedDocument] = useState(null);
+  const [confirmAction, setConfirmAction] = useState(null);
+  const [confirmRemarks, setConfirmRemarks] = useState("");
+  const [isConfirmModalOpen, setIsConfirmModalOpen] = useState(false);
+  const [isSubmittingAction, setIsSubmittingAction] = useState(false);
   const [callDetail, setCallDetail] = useState(null);
   const [documents, setDocuments] = useState(() => buildGroFallbackDocuments().map((d, i) => enrichGroDocWithRowKey(d, i)));
   const [isGroLoading, setIsGroLoading] = useState(false);
-  const [verifyingDocId, setVerifyingDocId] = useState(null);
   const [isSavingInward, setIsSavingInward] = useState(false);
   const [groMainView, setGroMainView] = useState(GRO_MAIN_VIEWS.inward);
   const [passRequestsState, setPassRequestsState] = useState({
@@ -475,86 +476,72 @@ function GROCardView({ card, mode = "gro" }) {
     [callId]
   );
 
-  const handleCrossClick = (rowKey, doc) => {
-    if (verifyingDocId) return;
+  const closeConfirmModal = useCallback(() => {
+    if (isSubmittingAction) return;
+    setIsConfirmModalOpen(false);
+    setSelectedDocument(null);
+    setConfirmAction(null);
+    setConfirmRemarks("");
+  }, [isSubmittingAction]);
+
+  const openConfirmModal = useCallback((doc, action) => {
+    if (isSubmittingAction) return;
     if (getGroDocumentVerifyStatus(doc) !== 1) return;
-    if (activeRemarkDoc === rowKey) {
-      setActiveRemarkDoc(null);
-      setRemarkDraft("");
-      return;
-    }
-    setActiveRemarkDoc(rowKey);
-    setRemarkDraft(documentRemarks[rowKey] ?? doc?.remarks ?? "");
-  };
+    setSelectedDocument(doc);
+    setConfirmAction(action);
+    setConfirmRemarks(doc?.remarks ?? "");
+    setIsConfirmModalOpen(true);
+  }, [isSubmittingAction]);
 
-  const handleRemarkCancel = () => {
-    setActiveRemarkDoc(null);
-    setRemarkDraft("");
-  };
+  const handleApproveClick = useCallback(
+    (doc) => openConfirmModal(doc, "approve"),
+    [openConfirmModal]
+  );
 
-  const handleRemarkSubmit = async () => {
-    if (!activeRemarkDoc || verifyingDocId) return;
-    const doc = documents.find((d) => d.__rowKey === activeRemarkDoc);
-    if (!doc || !canVerifyDocument(doc)) {
+  const handleRejectClick = useCallback(
+    (doc) => openConfirmModal(doc, "reject"),
+    [openConfirmModal]
+  );
+
+  const handleConfirmAction = async () => {
+    if (!selectedDocument || !confirmAction || isSubmittingAction) return;
+    const doc = selectedDocument;
+    if (!canVerifyDocument(doc)) {
       notify("This document cannot be updated (missing reference).", "error");
       return;
     }
     if (getGroDocumentVerifyStatus(doc) !== 1) {
-      notify("Remarks can only be submitted while the document is pending verification.", "warn");
-      return;
-    }
-    setVerifyingDocId(activeRemarkDoc);
-    try {
-      await groService.verifyGroDocs({
-        call_id: Number(callId),
-        document_id: Number(doc.document_id),
-        call_task_document_id: Number(doc.call_task_document_id),
-        status: 4,
-        remarks: remarkDraft,
-      });
-      setDocumentRemarks((prev) => ({ ...prev, [activeRemarkDoc]: remarkDraft }));
-      setDocuments((prev) =>
-        prev.map((d) => (d.__rowKey === activeRemarkDoc ? { ...d, status: 4, remarks: remarkDraft } : d))
+      notify(
+        confirmAction === "approve"
+          ? "Only uploaded documents can be approved."
+          : "Remarks can only be submitted while the document is pending verification.",
+        "warn"
       );
-      notify("Document rejected.", "success");
-      setActiveRemarkDoc(null);
-      setRemarkDraft("");
-    } catch (err) {
-      notify(groApiErrorMessage(err, "Failed to update document."), "error");
-    } finally {
-      setVerifyingDocId(null);
-    }
-  };
-
-  const handleTickClick = async (doc, rowKey) => {
-    if (verifyingDocId) return;
-    if (!canVerifyDocument(doc)) {
-      notify("This document cannot be verified (missing reference).", "error");
       return;
     }
-    if (getGroDocumentVerifyStatus(doc) !== 1) {
-      notify("Only uploaded documents can be approved.", "warn");
-      return;
-    }
-    setVerifyingDocId(rowKey);
+    const status = confirmAction === "approve" ? 2 : 4;
+    setIsSubmittingAction(true);
     try {
       await groService.verifyGroDocs({
         call_id: Number(callId),
         document_id: Number(doc.document_id),
         call_task_document_id: Number(doc.call_task_document_id),
-        status: 2,
-        remarks: "",
+        status,
+        remarks: confirmRemarks,
       });
-      setDocuments((prev) => prev.map((d) => (d.__rowKey === rowKey ? { ...d, status: 2 } : d)));
-      notify("Document verified.", "success");
-      if (activeRemarkDoc === rowKey) {
-        setActiveRemarkDoc(null);
-        setRemarkDraft("");
-      }
+      await refreshGroDocuments(callId);
+      notify(confirmAction === "approve" ? "Document verified." : "Document rejected.", "success");
+      setIsConfirmModalOpen(false);
+      setSelectedDocument(null);
+      setConfirmAction(null);
+      setConfirmRemarks("");
     } catch (err) {
-      notify(groApiErrorMessage(err, "Failed to verify document."), "error");
+      notify(
+        groApiErrorMessage(err, confirmAction === "approve" ? "Failed to verify document." : "Failed to update document."),
+        "error"
+      );
     } finally {
-      setVerifyingDocId(null);
+      setIsSubmittingAction(false);
     }
   };
 
@@ -723,14 +710,9 @@ function GROCardView({ card, mode = "gro" }) {
           <InwardClearanceView
             documents={documents}
             isGroLoading={isGroLoading}
-            activeRemarkDoc={activeRemarkDoc}
-            remarkDraft={remarkDraft}
-            verifyingDocId={verifyingDocId}
-            onRemarkDraftChange={(e) => setRemarkDraft(e.target.value)}
-            onCrossClick={handleCrossClick}
-            onRemarkCancel={handleRemarkCancel}
-            onRemarkSubmit={handleRemarkSubmit}
-            onTickClick={handleTickClick}
+            isSubmittingAction={isSubmittingAction}
+            onApproveClick={handleApproveClick}
+            onRejectClick={handleRejectClick}
             onDocumentDownload={handleDocumentDownload}
           />
         ) : (
@@ -768,6 +750,16 @@ function GROCardView({ card, mode = "gro" }) {
         )}
       </div>
       {bulkPassPortal}
+      <DocumentActionConfirmModal
+        isOpen={isConfirmModalOpen}
+        confirmAction={confirmAction}
+        documentName={selectedDocument?.document_name}
+        confirmRemarks={confirmRemarks}
+        isSubmitting={isSubmittingAction}
+        onRemarksChange={(e) => setConfirmRemarks(e.target.value)}
+        onCancel={closeConfirmModal}
+        onConfirm={handleConfirmAction}
+      />
     </div>
   );
 }
