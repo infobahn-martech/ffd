@@ -44,6 +44,7 @@ export function mapBoardWorkflowFromApi(workflow) {
   if (wfId == null) return null;
 
   const title = workflow.workflow_name || "Untitled Workflow";
+  const workflowRoleId = workflow.role_id ?? null;
   const boardId =
     workflow.board_id != null && workflow.board_id !== "" ? String(workflow.board_id) : undefined;
 
@@ -175,6 +176,9 @@ export function mapBoardWorkflowFromApi(workflow) {
             id: cardId,
             laneId: laneKey,
             columnId: colKey,
+            workflow_id: wfId,
+            workflow_role_id: workflowRoleId,
+            workflow_name: title,
             title: card.card_name || "",
             name: card.billing_entity || "",
             user: card.username || "",

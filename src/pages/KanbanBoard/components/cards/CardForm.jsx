@@ -916,6 +916,8 @@ function CardForm({
   const isHotelVariant = variant === "hotel";
   const isMWPVariant = variant === "mwp";
   const isGROVariant = variant === "gro";
+  const isCustomVariant = variant === "custom";
+  const isGROStyleView = isGROVariant || isCustomVariant;
   const isEmptyVariant = variant === "empty";
   const isDriverStyleView = isDriverVariant || isHotelVariant;
 
@@ -951,7 +953,7 @@ function CardForm({
     if (isAddMode) {
       return ADD_CARD_TOPBAR_DEFAULT_HEX;
     }
-    if (isGROVariant) {
+    if (isGROStyleView) {
       return GRO_TASK_HEADER_DEFAULT_HEX;
     }
     return card?.color || DEFAULT_ACCENT_COLOR;
@@ -1237,17 +1239,17 @@ function CardForm({
 
   // Non-GRO: topbar tracks card.color when it changes (visual only).
   useEffect(() => {
-    if (!show || isAddMode || isGROVariant) return;
+    if (!show || isAddMode || isGROStyleView) return;
     if (card?.color) {
       setTopbarColor(card.color);
     }
-  }, [show, card?.id, card?.color, isAddMode, isGROVariant]);
+  }, [show, card?.id, card?.color, isAddMode, isGROStyleView]);
 
-  // GRO task card: default emerald header when opening or switching cards; SedresColorPicker can override until then.
+  // GRO / custom clearance task card: default emerald header when opening or switching cards.
   useEffect(() => {
-    if (!show || isAddMode || !isGROVariant) return;
+    if (!show || isAddMode || !isGROStyleView) return;
     setTopbarColor(GRO_TASK_HEADER_DEFAULT_HEX);
-  }, [show, card?.id, isAddMode, isGROVariant]);
+  }, [show, card?.id, isAddMode, isGROStyleView]);
 
   // Everything else uses card's unique color
   const accentColor = useMemo(() => card?.color || DEFAULT_ACCENT_COLOR, [card?.color]);
@@ -1280,11 +1282,11 @@ function CardForm({
           <DriverCardView card={card} variant={variant} />
         ) : isMWPVariant ? (
           <MWPCardView card={card} />
-        ) : isGROVariant ? (
-          <GROCardView card={card} />
+        ) : isGROStyleView ? (
+          <GROCardView card={card} mode={isCustomVariant ? "custom" : "gro"} />
         ) : isEmptyVariant ? null : (
           <>
-            {!isAddMode && !isMWPVariant && !isGROVariant && (
+            {!isAddMode && !isMWPVariant && !isGROStyleView && (
               <TopTabs
                 tabs={TOP_TABS}
                 activeTab={activeTopTab}
@@ -1293,7 +1295,7 @@ function CardForm({
               />
             )}
             {!isMWPVariant &&
-              !isGROVariant &&
+              !isGROStyleView &&
               !isEmptyVariant &&
               renderTabContent(
                 activeTopTab,
@@ -1321,7 +1323,7 @@ function CardForm({
             currentStep={currentStep}
             isSimplifiedMode={isSimplifiedMode}
             isDriverMode={isDriverStyleView}
-            isGROMode={isGROVariant}
+            isGROMode={isGROStyleView}
             stepLabels={stepLabels}
             totalSteps={totalSteps}
           />
@@ -1360,7 +1362,7 @@ CardForm.propTypes = {
     cardIds: PropTypes.array,
   }),
   isAddMode: PropTypes.bool,
-  variant: PropTypes.oneOf(["default", "driver", "hotel", "mwp", "gro", "empty"]),
+  variant: PropTypes.oneOf(["default", "driver", "hotel", "mwp", "gro", "custom", "empty"]),
 };
 
 export default CardForm;

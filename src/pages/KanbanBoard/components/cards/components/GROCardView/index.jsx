@@ -1,7 +1,6 @@
 import { useState, useCallback, useEffect, useRef, useMemo } from "react";
 import { createPortal } from "react-dom";
 import PropTypes from "prop-types";
-import useAuthReducer from "../../../../../../store/AuthReducer";
 import { notify } from "../../../../../../components/Toaster";
 import groService from "../../../../../../services/groService";
 import GroSummaryCard from "./GroSummaryCard";
@@ -25,14 +24,12 @@ import {
   getGroCrewPassId,
   getGroWorkOrderId,
   groPassCrewRowId,
-  isGroCustomClearanceRole,
 } from "./groCardUtils";
 
 const EMPTY_WORK_ORDERS = [];
 
-function GROCardView({ card }) {
-  const userProfile = useAuthReducer((s) => s.userProfile);
-  const isCustomClearance = useMemo(() => isGroCustomClearanceRole(userProfile), [userProfile]);
+function GROCardView({ card, mode = "gro" }) {
+  const isCustomClearance = mode === "custom";
 
   const inwardAnchorRef = useRef(null);
   const inwardFileInputRef = useRef(null);
@@ -777,6 +774,7 @@ function GROCardView({ card }) {
 
 GROCardView.propTypes = {
   card: PropTypes.object,
+  mode: PropTypes.oneOf(["gro", "custom"]),
 };
 
 export default GROCardView;
