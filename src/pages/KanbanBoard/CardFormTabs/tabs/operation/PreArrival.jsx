@@ -792,15 +792,13 @@ function PreArrival({
     }
   }, [handleChange]);
 
-  useEffect(() => {
-    if (isViewOnly || !callId) return;
+  const fetchPreArrivalDetail = useCallback(
+    async (abortSignal) => {
+      if (isViewOnly || !callId) return;
 
-    let cancelled = false;
-
-    const run = async () => {
       try {
         const res = await preArrivalService.getPreArrivalDetail(callId);
-        if (cancelled) return;
+        if (abortSignal?.aborted) return;
         const body = res?.data ?? res;
         const status = body?.status;
         if (typeof status === "string" && status.toLowerCase() === "error") return;
@@ -873,18 +871,20 @@ function PreArrival({
 
         applyDetailDocuments();
       } catch (error) {
-        if (!cancelled) {
+        if (!abortSignal?.aborted) {
           console.error("[Operation] pre_arrival/get_prearrival_detail failed", error);
         }
+        throw error;
       }
-    };
+    },
+    [callId, isViewOnly, eventFields, handleChange, applyDetailDocuments]
+  );
 
-    run();
-
-    return () => {
-      cancelled = true;
-    };
-  }, [callId, isViewOnly, eventFieldsApplyKey, handleChange, applyDetailDocuments, eventFields]);
+  useEffect(() => {
+    const ac = new AbortController();
+    fetchPreArrivalDetail(ac.signal);
+    return () => ac.abort();
+  }, [callId, isViewOnly, eventFieldsApplyKey, fetchPreArrivalDetail]);
 
   useEffect(() => {
     if (isViewOnly) return;
@@ -1211,6 +1211,15 @@ function PreArrival({
     try {
       setIsSavingPreArrival(true);
       await preArrivalService.savePreArrival(fd);
+      try {
+        await fetchPreArrivalDetail();
+      } catch (refreshError) {
+        notify(
+          refreshError?.response?.data?.message ||
+            "Saved, but failed to refresh Pre Arrival details.",
+          "warning"
+        );
+      }
       notify("Pre Arrival saved successfully.", "success");
       return true;
     } catch (error) {
