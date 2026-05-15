@@ -1,5 +1,5 @@
 import PropTypes from "prop-types";
-import { FiCheckCircle } from "react-icons/fi";
+import { FiCheckCircle, FiXCircle } from "react-icons/fi";
 import CustomModal from "../../../../../../components/CustomModal";
 import "../../../../../../design/scss/modal-designs.scss";
 import "../../../../../../design/scss/prospect-modal.scss";
@@ -231,7 +231,7 @@ InwardClearanceToolbar.propTypes = {
 
 const GRO_DOC_MODAL_CLASS = "modal change-pass fade employee-modal logout-modal gro-doc-action-modal";
 
-/** Approve / reject confirmation modals (logout-style approve, form-style reject). */
+/** Approve / reject confirmation modals (logout-style layout). */
 export function DocumentActionConfirmModal({
   isOpen,
   confirmAction,
@@ -279,7 +279,7 @@ export function DocumentActionConfirmModal({
         closeModal={onCancel}
         body={
           <div className="modal-body">
-            <div className="profile-img gro-doc-action-modal__icon-wrap gro-doc-action-modal__icon-wrap--approve">
+            <div className="profile-img gro-doc-action-modal__icon-wrap">
               <FiCheckCircle size={60} style={{ color: "#047857" }} aria-hidden />
             </div>
             <div className="popup-title">Are you sure you want to approve this document?</div>
@@ -293,31 +293,36 @@ export function DocumentActionConfirmModal({
   return (
     <CustomModal
       createModal
-      className={`${GRO_DOC_MODAL_CLASS} gro-doc-action-modal--reject`}
+      className={GRO_DOC_MODAL_CLASS}
       show={isOpen}
       closeModal={onCancel}
       body={
-        <div className="modal-body gro-doc-reject-modal-body">
-          <div className="popup-title gro-doc-reject-modal__title">Reject document</div>
-          <div className="gro-doc-reject-modal__field">
-            <span className="gro-doc-reject-modal__label">Document</span>
-            <span className="gro-doc-reject-modal__doc-name">{displayName}</span>
+        <div className="modal-body">
+          <div className="profile-img gro-doc-action-modal__icon-wrap">
+            <FiXCircle size={60} style={{ color: "#dc2626" }} aria-hidden />
           </div>
-          <div className="gro-doc-reject-modal__field">
-            <label className="gro-doc-reject-modal__label" htmlFor="gro-doc-reject-remarks">
-              Remarks
-            </label>
-            <textarea
-              id="gro-doc-reject-remarks"
-              className="gro-doc-reject-modal__textarea"
-              placeholder="Enter remarks"
-              value={confirmRemarks}
-              disabled={isSubmitting}
-              onChange={onRemarksChange}
-              rows={4}
-            />
+          <div className="popup-title">Are you sure you want to reject this document?</div>
+          <div className="gro-doc-action-modal__details">
+            <div className="gro-doc-action-modal__detail-row">
+              <span className="gro-doc-action-modal__detail-label">Document</span>
+              <span className="gro-doc-action-modal__detail-value">{displayName}</span>
+            </div>
+            <div className="gro-doc-action-modal__detail-row">
+              <label className="gro-doc-action-modal__detail-label" htmlFor="gro-doc-reject-remarks">
+                Remarks
+              </label>
+              <textarea
+                id="gro-doc-reject-remarks"
+                className="gro-doc-action-modal__textarea"
+                placeholder="Enter remarks"
+                value={confirmRemarks}
+                disabled={isSubmitting}
+                onChange={onRemarksChange}
+                rows={4}
+              />
+            </div>
           </div>
-          {footerButtons("Reject", "red-btn", !rejectRemarksValid)}
+          {footerButtons("Reject", "gro-doc-confirm-reject-btn", !rejectRemarksValid)}
         </div>
       }
     />

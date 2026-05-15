@@ -1130,15 +1130,12 @@ body .gro-doc-action-modal .modal-dialog {
 .gro-doc-action-modal__icon-wrap {
   width: 82px;
   height: 82px;
+  margin: 0 auto 20px;
   display: flex;
   align-items: center;
   justify-content: center;
   background-color: #f8f9fc;
   border-radius: 50%;
-}
-
-.gro-doc-action-modal__icon-wrap--approve {
-  margin: 0 auto 20px;
 }
 
 .gro-doc-action-modal__footer.two-btn {
@@ -1159,37 +1156,39 @@ body .gro-doc-action-modal .modal-dialog {
   border-color: #065f46 !important;
 }
 
-.gro-doc-reject-modal-body {
+.gro-doc-action-modal__details {
+  width: 100%;
+  max-width: 100%;
+  margin: 16px auto 0;
   text-align: left;
 }
 
-.gro-doc-reject-modal__title {
-  text-align: center;
-  margin-bottom: 20px;
-}
-
-.gro-doc-reject-modal__field {
+.gro-doc-action-modal__detail-row {
   display: flex;
   flex-direction: column;
   gap: 6px;
   margin-bottom: 14px;
-  text-align: left;
 }
 
-.gro-doc-reject-modal__label {
+.gro-doc-action-modal__detail-row:last-child {
+  margin-bottom: 0;
+}
+
+.gro-doc-action-modal__detail-label {
   font-size: 13px;
   font-weight: 600;
   color: #475569;
 }
 
-.gro-doc-reject-modal__doc-name {
+.gro-doc-action-modal__detail-value {
   font-size: 14px;
+  font-weight: 600;
   color: #00368c;
 }
 
-.gro-doc-reject-modal__textarea {
+.gro-doc-action-modal__textarea {
   width: 100%;
-  min-height: 96px;
+  min-height: 88px;
   padding: 10px 12px;
   border: 1px solid #dbe7e8;
   border-radius: 8px;
@@ -1199,14 +1198,44 @@ body .gro-doc-action-modal .modal-dialog {
   box-sizing: border-box;
 }
 
-.gro-doc-reject-modal__textarea:focus {
+.gro-doc-action-modal__textarea:focus {
   outline: none;
   border-color: #00368c;
   box-shadow: 0 0 0 2px rgba(0, 54, 140, 0.12);
 }
 
-.gro-doc-action-modal--reject .modal-content {
-  padding: 10px 50px 35px 50px;
+.gro-doc-confirm-reject-btn {
+  background: #ff3e3e !important;
+  border-color: #ff3e3e !important;
+  color: #fff !important;
+}
+
+.gro-doc-confirm-reject-btn:hover:not(:disabled) {
+  background: #e63535 !important;
+  border-color: #e63535 !important;
+}
+
+@media (max-width: 576px) {
+  body .gro-doc-action-modal .modal-content {
+    padding: 10px 24px 28px 24px !important;
+  }
+
+  .gro-doc-action-modal__footer.two-btn {
+    flex-wrap: wrap;
+    justify-content: center;
+    gap: 10px;
+    padding-top: 20px;
+
+    button {
+      margin-right: 0;
+      padding: 11px 28px;
+    }
+  }
+
+  .gro-doc-action-modal .popup-title {
+    font-size: 17px;
+    line-height: 26px;
+  }
 }
 
 @media (max-width: 900px) {
