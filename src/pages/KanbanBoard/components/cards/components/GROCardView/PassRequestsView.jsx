@@ -1,11 +1,12 @@
-import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { Fragment, useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { createPortal } from "react-dom";
 import PropTypes from "prop-types";
-import { FiChevronLeft, FiChevronRight, FiInbox, FiUpload } from "react-icons/fi";
+import { FiChevronDown, FiChevronLeft, FiChevronRight, FiInbox, FiUpload } from "react-icons/fi";
 import GroPassUploadPopoverForm from "./GroPassUploadPopoverForm";
 import {
   buildGroPassIssueDateString,
   computeGroPassUploadPopoverPosition,
+  firstNonEmptyGroDisplay,
   flattenGroPassRows,
   getGroCrewPassId,
   getGroWorkOrderId,
@@ -17,6 +18,58 @@ import {
 
 const PAGE_SIZE = 10;
 
+/** Preserve flattenGroPassRows order; one entry per work order with crew row objects unchanged. */
+const groupGroPassFlatRowsByWorkOrder = (flatRows) => {
+  const groups = [];
+  if (!Array.isArray(flatRows)) return groups;
+  for (let i = 0; i < flatRows.length; i += 1) {
+    const r = flatRows[i];
+    if (r.kind === "empty-wo") {
+      groups.push({
+        woKey: r.woKey,
+        woIdx: r.woIdx,
+        wo: r.wo,
+        woNumber: r.woNumber,
+        woId: r.woId,
+        crewRows: [],
+      });
+      continue;
+    }
+    if (r.kind !== "crew") continue;
+    const crewRows = [];
+    const { woKey } = r;
+    let j = i;
+    while (j < flatRows.length && flatRows[j].kind === "crew" && flatRows[j].woKey === woKey) {
+      crewRows.push(flatRows[j]);
+      j += 1;
+    }
+    groups.push({
+      woKey,
+      woIdx: r.woIdx,
+      wo: r.wo,
+      woNumber: r.woNumber,
+      woId: r.woId,
+      crewRows,
+    });
+    i = j - 1;
+  }
+  return groups;
+};
+
+const resolveGroWorkOrderTaskDocCount = (wo) => {
+  if (!wo || typeof wo !== "object") return null;
+  if (Array.isArray(wo.task_documents)) return wo.task_documents.length;
+  const raw =
+    wo.task_document_count ??
+    wo.task_documents_count ??
+    wo.documents_count ??
+    wo.task_doc_count ??
+    wo.call_task_document_count;
+  if (raw == null || raw === "") return null;
+  const n = Number(raw);
+  return Number.isNaN(n) ? null : n;
+};
+
 const initialUploadForm = () => ({
   passNo: "",
   issuePickerParts: { date: "", time: "" },
@@ -24,7 +77,7 @@ const initialUploadForm = () => ({
 });
 
 /**
- * CG / Zawil pass requests table — loading / error / empty; one row per crew line item.
+ * CG / Zawil pass requests — work orders as expandable groups; crew rows unchanged for selection / upload.
  */
 const PassRequestsView = ({
   workOrders,
@@ -54,6 +107,8 @@ const PassRequestsView = ({
   const [fieldErrors, setFieldErrors] = useState({});
   const [formLevelError, setFormLevelError] = useState("");
   const [submitting, setSubmitting] = useState(false);
+  /** Work orders in this set are collapsed; omitted keys are expanded. */
+  const [collapsedWoKeys, setCollapsedWoKeys] = useState(() => new Set());
   const fileInputRef = useRef(null);
   const headerCheckboxRef = useRef(null);
   const singleUploadTriggerRef = useRef(null);
@@ -69,23 +124,34 @@ const PassRequestsView = ({
     setFieldErrors({});
     setFormLevelError("");
     if (fileInputRef.current) fileInputRef.current.value = "";
+    setCollapsedWoKeys(new Set());
   }, [passVariant]);
 
   const flatRows = useMemo(() => flattenGroPassRows(workOrders), [workOrders]);
+  const woGroups = useMemo(() => groupGroPassFlatRowsByWorkOrder(flatRows), [flatRows]);
 
-  const totalPages = Math.max(1, Math.ceil(flatRows.length / PAGE_SIZE));
+  const totalPages = Math.max(1, Math.ceil(woGroups.length / PAGE_SIZE));
   const safePage = Math.min(page, totalPages);
   const pageStart = (safePage - 1) * PAGE_SIZE;
-  const pagedRows = flatRows.slice(pageStart, pageStart + PAGE_SIZE);
+  const pageGroups = woGroups.slice(pageStart, pageStart + PAGE_SIZE);
 
   useEffect(() => {
     if (page > totalPages) setPage(totalPages);
   }, [page, totalPages]);
 
   const visibleSelectableIds = useMemo(
-    () => pagedRows.filter((r) => r.kind === "crew").map((r) => groPassCrewRowId(r)),
-    [pagedRows]
+    () => pageGroups.flatMap((g) => g.crewRows.map((r) => groPassCrewRowId(r))),
+    [pageGroups]
   );
+
+  const toggleWoKey = useCallback((woKey) => {
+    setCollapsedWoKeys((prev) => {
+      const next = new Set(prev);
+      if (next.has(woKey)) next.delete(woKey);
+      else next.add(woKey);
+      return next;
+    });
+  }, []);
 
   const headerChecked =
     visibleSelectableIds.length > 0 && visibleSelectableIds.every((id) => selectedRowIds.has(id));
@@ -325,89 +391,167 @@ const PassRequestsView = ({
               </tr>
             </thead>
             <tbody>
-              {pagedRows.map((row) => {
-                if (row.kind === "empty-wo") {
-                  return (
-                    <tr key={`${row.woKey}-empty`}>
-                      <td className="gro-pass-table-td-check gro-pass-table-td-check--empty" aria-hidden />
-                      <td colSpan={9} className="gro-pass-table-muted">
-                        No crew listed for this work order.
-                      </td>
-                    </tr>
-                  );
-                }
-                const f = groPassCrewRowFields(row.crew);
-                const tone = groPassStatusBadgeTone(f.status);
-                const woId = row.woId ?? getGroWorkOrderId(row.wo);
-                const crewPassId = row.crewPassId ?? getGroCrewPassId(row.crew);
-                const rowDisabledReason =
-                  passVariant === "cg"
-                    ? woId == null
-                      ? "Missing work order id."
-                      : null
-                    : crewPassId == null
-                      ? "Missing crew pass id."
-                      : null;
-                const rowPayload = {
-                  workOrder: row.wo,
-                  crew: row.crew,
-                  crewIndex: row.crewIndex,
-                  woNumber: row.woNumber,
-                  woKey: row.woKey,
-                  woId,
-                  crewPassId,
-                  fields: f,
+              {pageGroups.map((g) => {
+                const isWoExpanded = !collapsedWoKeys.has(g.woKey);
+                const wo = g.wo;
+                const woLabel = firstNonEmptyGroDisplay(
+                  g.woNumber,
+                  wo?.wo_number,
+                  wo?.woNumber,
+                  wo?.work_order_number,
+                  g.woKey
+                );
+                const serviceType = firstNonEmptyGroDisplay(
+                  wo?.service_type,
+                  wo?.serviceType,
+                  wo?.type,
+                  wo?.service_name
+                );
+                const woStatusLabel = firstNonEmptyGroDisplay(
+                  wo?.wo_status,
+                  wo?.status,
+                  wo?.work_order_status,
+                  wo?.woStatus
+                );
+                const woStatusTone = groPassStatusBadgeTone(woStatusLabel);
+                const taskDocCount = resolveGroWorkOrderTaskDocCount(wo);
+                const crewCount = g.crewRows.length;
+
+                const onWoKeyDown = (e) => {
+                  if (e.key === "Enter" || e.key === " ") {
+                    e.preventDefault();
+                    toggleWoKey(g.woKey);
+                  }
                 };
-                const rid = groPassCrewRowId(row);
-                const checked = selectedRowIds.has(rid);
-                const isRowActive =
-                  uploadMode === "single" &&
-                  uploadTarget &&
-                  groPassUploadTargetId(uploadTarget) === groPassUploadTargetId(rowPayload);
 
                 return (
-                  <tr key={rid}>
-                    <td className="gro-pass-table-td-check">
-                      <input
-                        type="checkbox"
-                        className="gro-pass-row-check"
-                        checked={checked}
-                        aria-label={`Select row ${f.crewName || rid}`}
-                        onChange={() => onRowSelectionToggle(rid)}
-                      />
-                    </td>
-                    <td>{f.crewName}</td>
-                    <td>{f.passport}</td>
-                    <td>{f.nationality}</td>
-                    <td>{f.rank}</td>
-                    <td>{f.movementType}</td>
-                    <td>
-                      <span className={`gro-pass-status-badge gro-pass-status-badge--${tone}`}>{f.status}</span>
-                    </td>
-                    <td>{f.requestedDate}</td>
-                    <td className="gro-pass-remarks-cell" title={f.remarks}>
-                      {f.remarks}
-                    </td>
-                    <td className="gro-pass-action-cell">
-                      <button
-                        type="button"
-                        className={`gro-pass-upload-btn${isRowActive ? " gro-pass-upload-btn--popover-open" : ""}`}
-                        disabled={Boolean(rowDisabledReason) || !onPassUploadSubmit}
-                        title={rowDisabledReason ?? undefined}
-                        onClick={(e) => {
-                          if (isRowActive) {
-                            hideSinglePassUpload();
-                            return;
-                          }
-                          openSingleUpload(rowPayload, e);
-                        }}
-                        aria-label={`Upload for ${f.crewName || "pass row"}`}
-                      >
-                        <FiUpload className="gro-pass-upload-btn-icon" aria-hidden />
-                        Upload
-                      </button>
-                    </td>
-                  </tr>
+                  <Fragment key={g.woKey}>
+                    <tr
+                      className="gro-pass-wo-header-row"
+                      tabIndex={0}
+                      role="button"
+                      aria-expanded={isWoExpanded}
+                      aria-label={`Work order ${woLabel}. ${isWoExpanded ? "Expanded" : "Collapsed"}. Press Enter or Space to toggle.`}
+                      onKeyDown={onWoKeyDown}
+                      onClick={() => toggleWoKey(g.woKey)}
+                    >
+                      <td colSpan={10} className="gro-pass-wo-header-cell">
+                        <div className="gro-pass-wo-header-inner">
+                          <FiChevronDown
+                            className={`gro-pass-wo-chevron${isWoExpanded ? " gro-pass-wo-chevron--expanded" : ""}`}
+                            aria-hidden
+                          />
+                          <span className="gro-pass-wo-number">{woLabel}</span>
+                          {serviceType !== "-" ? (
+                            <span className="gro-pass-wo-service" title={serviceType}>
+                              {serviceType}
+                            </span>
+                          ) : null}
+                          {woStatusLabel !== "-" ? (
+                            <span
+                              className={`gro-pass-status-badge gro-pass-status-badge--${woStatusTone} gro-pass-wo-status-badge`}
+                            >
+                              {woStatusLabel}
+                            </span>
+                          ) : null}
+                          <span className="gro-pass-wo-count-badge" title="Crew count">
+                            {crewCount} crew
+                          </span>
+                          {taskDocCount != null ? (
+                            <span className="gro-pass-wo-count-badge gro-pass-wo-count-badge--muted" title="Task documents">
+                              {taskDocCount} task doc{taskDocCount === 1 ? "" : "s"}
+                            </span>
+                          ) : null}
+                        </div>
+                      </td>
+                    </tr>
+                    {isWoExpanded && crewCount === 0 ? (
+                      <tr className="gro-pass-wo-empty-crew-row">
+                        <td className="gro-pass-table-td-check gro-pass-table-td-check--empty" aria-hidden />
+                        <td colSpan={9} className="gro-pass-table-muted gro-pass-crew-subindent">
+                          No crew found for this work order.
+                        </td>
+                      </tr>
+                    ) : null}
+                    {isWoExpanded
+                      ? g.crewRows.map((row) => {
+                          const f = groPassCrewRowFields(row.crew);
+                          const tone = groPassStatusBadgeTone(f.status);
+                          const woId = row.woId ?? getGroWorkOrderId(row.wo);
+                          const crewPassId = row.crewPassId ?? getGroCrewPassId(row.crew);
+                          const rowDisabledReason =
+                            passVariant === "cg"
+                              ? woId == null
+                                ? "Missing work order id."
+                                : null
+                              : crewPassId == null
+                                ? "Missing crew pass id."
+                                : null;
+                          const rowPayload = {
+                            workOrder: row.wo,
+                            crew: row.crew,
+                            crewIndex: row.crewIndex,
+                            woNumber: row.woNumber,
+                            woKey: row.woKey,
+                            woId,
+                            crewPassId,
+                            fields: f,
+                          };
+                          const rid = groPassCrewRowId(row);
+                          const checked = selectedRowIds.has(rid);
+                          const isRowActive =
+                            uploadMode === "single" &&
+                            uploadTarget &&
+                            groPassUploadTargetId(uploadTarget) === groPassUploadTargetId(rowPayload);
+
+                          return (
+                            <tr key={rid} className="gro-pass-crew-subrow">
+                              <td className="gro-pass-table-td-check">
+                                <input
+                                  type="checkbox"
+                                  className="gro-pass-row-check"
+                                  checked={checked}
+                                  aria-label={`Select row ${f.crewName || rid}`}
+                                  onChange={() => onRowSelectionToggle(rid)}
+                                />
+                              </td>
+                              <td>{f.crewName}</td>
+                              <td>{f.passport}</td>
+                              <td>{f.nationality}</td>
+                              <td>{f.rank}</td>
+                              <td>{f.movementType}</td>
+                              <td>
+                                <span className={`gro-pass-status-badge gro-pass-status-badge--${tone}`}>{f.status}</span>
+                              </td>
+                              <td>{f.requestedDate}</td>
+                              <td className="gro-pass-remarks-cell" title={f.remarks}>
+                                {f.remarks}
+                              </td>
+                              <td className="gro-pass-action-cell">
+                                <button
+                                  type="button"
+                                  className={`gro-pass-upload-btn${isRowActive ? " gro-pass-upload-btn--popover-open" : ""}`}
+                                  disabled={Boolean(rowDisabledReason) || !onPassUploadSubmit}
+                                  title={rowDisabledReason ?? undefined}
+                                  onClick={(e) => {
+                                    e.stopPropagation();
+                                    if (isRowActive) {
+                                      hideSinglePassUpload();
+                                      return;
+                                    }
+                                    openSingleUpload(rowPayload, e);
+                                  }}
+                                  aria-label={`Upload for ${f.crewName || "pass row"}`}
+                                >
+                                  <FiUpload className="gro-pass-upload-btn-icon" aria-hidden />
+                                  Upload
+                                </button>
+                              </td>
+                            </tr>
+                          );
+                        })
+                      : null}
+                  </Fragment>
                 );
               })}
             </tbody>
