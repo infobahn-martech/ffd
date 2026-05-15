@@ -2957,6 +2957,8 @@ ${body}
   const previewPortId = firstNonEmptyString(getFieldValue("port"));
   const previewCallType = firstNonEmptyString(getFieldValue("typeOfCall"));
   const previewServiceRequestorEmail = firstNonEmptyString(getFieldValue("serviceRequestorEmail"));
+  const previewOperatorId = firstNonEmptyString(getFieldValue("assignedOperator"));
+  const previewLastPort = firstNonEmptyString(getFieldValue("lastPort"));
   const etaTimeObjectId = useMemo(() => {
     const rows = Array.isArray(stageTimeObjects) ? stageTimeObjects : [];
     const etaField = rows.find(
@@ -3125,6 +3127,8 @@ ${body}
           port_id: previewPortId,
           call_type_id: previewCallType,
           service_requestor_email: previewServiceRequestorEmail,
+          operator_id: previewOperatorId,
+          last_port: previewLastPort,
           time_objects: buildPreviewTimeObjectsPayload(stageTimeObjects, stageTimeObjectValues),
         });
         if (cancelled) return;
@@ -3160,6 +3164,8 @@ ${body}
     previewPortId,
     previewCallType,
     previewServiceRequestorEmail,
+    previewOperatorId,
+    previewLastPort,
     stageTimeObjectValues,
     stageTimeObjects,
     isPreviewMessageDirty,
