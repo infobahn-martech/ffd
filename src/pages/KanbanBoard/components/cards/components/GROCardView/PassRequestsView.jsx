@@ -56,20 +56,6 @@ const groupGroPassFlatRowsByWorkOrder = (flatRows) => {
   return groups;
 };
 
-const resolveGroWorkOrderTaskDocCount = (wo) => {
-  if (!wo || typeof wo !== "object") return null;
-  if (Array.isArray(wo.task_documents)) return wo.task_documents.length;
-  const raw =
-    wo.task_document_count ??
-    wo.task_documents_count ??
-    wo.documents_count ??
-    wo.task_doc_count ??
-    wo.call_task_document_count;
-  if (raw == null || raw === "") return null;
-  const n = Number(raw);
-  return Number.isNaN(n) ? null : n;
-};
-
 const initialUploadForm = () => ({
   passNo: "",
   issuePickerParts: { date: "", time: "" },
@@ -401,20 +387,6 @@ const PassRequestsView = ({
                   wo?.work_order_number,
                   g.woKey
                 );
-                const serviceType = firstNonEmptyGroDisplay(
-                  wo?.service_type,
-                  wo?.serviceType,
-                  wo?.type,
-                  wo?.service_name
-                );
-                const woStatusLabel = firstNonEmptyGroDisplay(
-                  wo?.wo_status,
-                  wo?.status,
-                  wo?.work_order_status,
-                  wo?.woStatus
-                );
-                const woStatusTone = groPassStatusBadgeTone(woStatusLabel);
-                const taskDocCount = resolveGroWorkOrderTaskDocCount(wo);
                 const crewCount = g.crewRows.length;
 
                 const onWoKeyDown = (e) => {
@@ -442,26 +414,6 @@ const PassRequestsView = ({
                             aria-hidden
                           />
                           <span className="gro-pass-wo-number">{woLabel}</span>
-                          {serviceType !== "-" ? (
-                            <span className="gro-pass-wo-service" title={serviceType}>
-                              {serviceType}
-                            </span>
-                          ) : null}
-                          {woStatusLabel !== "-" ? (
-                            <span
-                              className={`gro-pass-status-badge gro-pass-status-badge--${woStatusTone} gro-pass-wo-status-badge`}
-                            >
-                              {woStatusLabel}
-                            </span>
-                          ) : null}
-                          <span className="gro-pass-wo-count-badge" title="Crew count">
-                            {crewCount} crew
-                          </span>
-                          {taskDocCount != null ? (
-                            <span className="gro-pass-wo-count-badge gro-pass-wo-count-badge--muted" title="Task documents">
-                              {taskDocCount} task doc{taskDocCount === 1 ? "" : "s"}
-                            </span>
-                          ) : null}
                         </div>
                       </td>
                     </tr>
