@@ -1,5 +1,5 @@
-import { useState, useMemo, useEffect } from 'react';
-import CustomModal from '../../components/CustomModal';
+import { useState, useMemo, useEffect, useCallback } from 'react';
+import { Modal } from 'react-bootstrap';
 import CustomTable from '../../components/customTable';
 import { Tooltip } from 'react-tooltip';
 import { FiX, FiChevronLeft, FiChevronRight, FiSearch, FiFileText, FiDollarSign, FiList } from 'react-icons/fi';
@@ -83,6 +83,10 @@ const initialOnStation = [
 function OnStationModal({ show, onClose }) {
     const [onStation] = useState(initialOnStation);
     const [searchQuery, setSearchQuery] = useState('');
+
+    const handleClose = useCallback(() => {
+        onClose?.();
+    }, [onClose]);
 
     const [params, setParams] = useState({
         page: 1,
@@ -337,7 +341,7 @@ function OnStationModal({ show, onClose }) {
     ];
 
     const renderBody = () => (
-        <div className="documents-modal-body">
+        <>
             {/* Search Section */}
             <div className="documents-search">
                 <div className="search-group">
@@ -412,31 +416,32 @@ function OnStationModal({ show, onClose }) {
                     </div>
                 </div>
             </div>
-        </div>
+        </>
     );
 
     return (
-        <CustomModal
-            className="modal fade show documents-modal"
-            dialgName="modal-dialog modal-dialog-centered modal-xl"
-            createModal
+        <Modal
             show={show}
-            closeModal={onClose}
-            header={
-                <div className="modal-header">
-                    <h5 className="modal-title">On Station</h5>
-                    <button
-                        type="button"
-                        className="modal-close-btn"
-                        onClick={onClose}
-                        aria-label="Close modal"
-                    >
-                        <FiX size={20} />
-                    </button>
-                </div>
-            }
-            body={renderBody()}
-        />
+            onHide={handleClose}
+            className="documents-modal"
+            dialogClassName="modal-dialog modal-dialog-centered modal-xl"
+            centered
+            backdrop="static"
+            size="xl"
+        >
+            <Modal.Header className="documents-modal-header" closeButton={false}>
+                <Modal.Title className="modal-title">On Station</Modal.Title>
+                <button
+                    type="button"
+                    className="modal-close-btn"
+                    onClick={handleClose}
+                    aria-label="Close modal"
+                >
+                    <FiX size={20} />
+                </button>
+            </Modal.Header>
+            <Modal.Body className="documents-modal-body">{renderBody()}</Modal.Body>
+        </Modal>
     );
 }
 

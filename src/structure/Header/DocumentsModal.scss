@@ -12,7 +12,8 @@
     border: none;
   }
 
-  .modal-header {
+  .modal-header,
+  .documents-modal-header {
     display: flex;
     justify-content: space-between;
     align-items: center;
@@ -20,6 +21,13 @@
     padding: 24px 30px;
     padding-bottom: 0px;
     width: 100%;
+    border-bottom: none;
+    pointer-events: auto;
+    z-index: 2;
+
+    .btn-close {
+      display: none;
+    }
 
     .modal-title {
       color: #00368c;
@@ -45,6 +53,13 @@
       height: 36px;
       margin-left: auto;
       flex-shrink: 0;
+      position: relative;
+      z-index: 10;
+      pointer-events: auto;
+
+      svg {
+        pointer-events: none;
+      }
 
       &:hover {
         background-color: #f3f4f6;

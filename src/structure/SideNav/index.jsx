@@ -840,7 +840,7 @@ function SideNav({ isMobileMenuOpen, onCloseMobileMenu, isVendorPortal = false }
         setShowBoardTeamsSubmenu(false);
         setShowSettingsSubmenu(false);
         setShowCardManagementSubmenu(false);
-        setShowOnStationModal(true);
+        setShowOnStationModal((prev) => !prev);
         setActiveKanbanIcon(item.id);
         return;
       }
@@ -1072,7 +1072,12 @@ function SideNav({ isMobileMenuOpen, onCloseMobileMenu, isVendorPortal = false }
         </aside>
 
         <BoardFilterPanel show={showFilterPanel} onClose={() => setShowFilterPanel(false)} />
-        <OnStationModal show={showOnStationModal} onClose={() => setShowOnStationModal(false)} />
+        <OnStationModal
+          show={showOnStationModal}
+          onClose={() => {
+            setShowOnStationModal(false);
+          }}
+        />
         <ManagersModal show={showManagersModal} onClose={() => setShowManagersModal(false)} />
         <DashboardsModal show={showDashboardsModal} onClose={() => setShowDashboardsModal(false)} />
         <BusinessRulesModal show={showBusinessRulesModal} onClose={() => setShowBusinessRulesModal(false)} />

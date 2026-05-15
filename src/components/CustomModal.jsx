@@ -22,7 +22,7 @@ export default function CustomModal({
       backdrop="static"
       centered={!disableCenter}
     >
-      <Modal.Header>{header || null}</Modal.Header>
+      <Modal.Header closeButton={false}>{header || null}</Modal.Header>
       {createModal ? (
         <Modal.Body className={bodyClassname || ''}>{body}</Modal.Body>
       ) : (
