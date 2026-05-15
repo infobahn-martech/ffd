@@ -272,11 +272,6 @@ function InwardClearanceView({
               <div className="gro-document-main">
                 <div className="gro-document-main-top">
                   <span className="gro-document-title">{label}</span>
-                  {isNotUploaded ? (
-                    <span className="gro-document-no-attachment" title="No file uploaded for this document">
-                      No attachment
-                    </span>
-                  ) : null}
                   {showRemarksBadge ? (
                     <span className="gro-document-remarks-badge" title={remarksTextRaw}>
                       Remarks: {remarksTextRaw}
@@ -352,6 +347,11 @@ function InwardClearanceView({
                   >
                     <IconDownload />
                   </button>
+                ) : null}
+                {isNotUploaded ? (
+                  <span className="document-empty-text" title="No file uploaded for this document">
+                    No attachment
+                  </span>
                 ) : null}
               </div>
             </div>
