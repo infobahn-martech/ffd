@@ -56,12 +56,7 @@ const CGPassContent = ({ formValues, handleChange, cardColor, card }) => {
       )
       .filter(Boolean);
 
-  const customSelectStyles = getCrewMultiSelectStyles(cardColor);
-
-  const dynamicCrewPlaceholder =
-    selectedCrewValues.length > 0
-      ? `${selectedCrewValues.length} crew selected`
-      : crewPlaceholder;
+  const customSelectStyles = getCrewMultiSelectStyles(cardColor, { transportCompact: true });
 
   const fileToAttachment = (file) => ({
     name: file.name,
@@ -192,9 +187,9 @@ const CGPassContent = ({ formValues, handleChange, cardColor, card }) => {
                 <div className="crew-pass-request-details-card__header">
                   <h3 className="crew-pass-request-details-card__title">Request Details</h3>
                 </div>
-                <div className="crew-pass-request-details-card__body crew-pass-thin-scrollbar">
+                <div className="crew-pass-request-details-card__body crew-pass-form-fields crew-pass-thin-scrollbar">
                   <FormField label="Request Email">
-                    <div className="cgpass-request-email-inner">
+                    <div className="transport-upload-box">
                       <AttachmentsList
                         attachments={formValues.cgPassRequestEmailFile || []}
                         onAdd={() => {}}
@@ -220,17 +215,17 @@ const CGPassContent = ({ formValues, handleChange, cardColor, card }) => {
                         value={selectedCrewValues}
                         onChange={handleCrewChange}
                         options={crewOptions}
-                        placeholder={dynamicCrewPlaceholder}
+                        placeholder={crewPlaceholder}
                         classNamePrefix="react-select"
                         styles={customSelectStyles}
                         formatOptionLabel={formatCrewOptionLabel}
-                        menuPortalTarget={document.body}
+                        menuPortalTarget={typeof document !== "undefined" ? document.body : null}
                         menuPosition="fixed"
                         menuShouldBlockScroll={true}
                         isClearable
                         isSearchable
                         closeMenuOnSelect={false}
-                        hideSelectedOptions={true}
+                        hideSelectedOptions={false}
                         isLoading={crewLoading}
                         isDisabled={crewLoading || crewLoadState === "missing_call_id"}
                         noOptionsMessage={() =>
@@ -253,7 +248,7 @@ const CGPassContent = ({ formValues, handleChange, cardColor, card }) => {
                   </FormField>
 
                   <FormField label="Documents" className="cf-field-full">
-                    <div className="cgpass-documents-inner">
+                    <div className="transport-upload-box">
                       <AttachmentsList
                         attachments={formValues.cgPassDocuments || []}
                         onAdd={() => {}}
