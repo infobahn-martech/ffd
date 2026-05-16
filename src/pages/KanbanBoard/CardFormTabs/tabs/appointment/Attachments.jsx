@@ -445,7 +445,7 @@ const mapChecklistResponse = (checklist) => {
   }));
 };
 
-function Attachments({ card, formValues }) {
+function DocumentLibrary({ card, formValues }) {
   const cardColor = card?.color || "#2A00FF";
 
   const callId = useMemo(() => {
@@ -584,11 +584,11 @@ function Attachments({ card, formValues }) {
   );
 }
 
-Attachments.propTypes = {
+DocumentLibrary.propTypes = {
   card: PropTypes.object,
   formValues: PropTypes.object,
   handleChange: PropTypes.func,
 };
 
-export default Attachments;
+export default DocumentLibrary;
 

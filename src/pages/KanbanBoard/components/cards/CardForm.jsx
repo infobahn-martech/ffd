@@ -15,7 +15,7 @@ import PriorityIcon from "../../../../assets/images/Priority.png";
 import { getItem } from "../../../../helpers/localStorage";
 
 // Import Tab Components
-import { General, Operation, Husbandry, Attachments, Invoice, SalesOrder, Reports, KPI, Comments, Subtasks, Notes } from "../../CardFormTabs";
+import { General, Operation, Husbandry, DocumentLibrary, Invoice, SalesOrder, Reports, KPI, Comments, Subtasks, Notes } from "../../CardFormTabs";
 import { DEFAULT_PRE_ARRIVAL_DOCUMENT_HANDLING } from "../../CardFormTabs/tabs/operation/preArrivalDocumentHandling";
 import NavTabButton from "../../../../components/NavTabButton";
 import GROCardView from "./components/GROCardView";
@@ -28,13 +28,13 @@ const ALL_TOP_TABS = [
   "Sales Order",
   "Reports",
   "KPI",
-  "Attachments",
+  "Document Library",
   "Comments",
   "Subtasks",
   "Notes",
 ];
 
-const ALL_ENABLED_TABS = ["Appointment Details", "Operation", "Husbandry", "Sales Order", "Reports", "KPI", "Attachments", "Comments", "Subtasks", "Notes"];
+const ALL_ENABLED_TABS = ["Appointment Details", "Operation", "Husbandry", "Sales Order", "Reports", "KPI", "Document Library", "Comments", "Subtasks", "Notes"];
 
 // Constants - Simplified tabs for kanban-board/{id} routes
 const SIMPLIFIED_TOP_TABS = [
@@ -879,8 +879,8 @@ const renderTabContent = (
         return <Operation {...commonProps} ownerInitial={ownerInitial} />;
       case "Husbandry":
         return <Husbandry {...commonProps} />;
-      case "Attachments":
-        return <Attachments {...commonProps} />;
+      case "Document Library":
+        return <DocumentLibrary {...commonProps} />;
       case "Sales Order":
         return <SalesOrder {...commonProps} />;
       case "Reports":
