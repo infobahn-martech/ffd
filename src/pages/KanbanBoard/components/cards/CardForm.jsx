@@ -947,8 +947,8 @@ function CardForm({
     setActiveTopTab(defaultTab);
   }, [isSimplifiedMode, defaultTab]);
 
-  // State for topbar color - visual only, never affects card.color
-  // Always initialize from card.color (the fixed card color)
+  // Header color: add mode defaults to ADD_CARD_TOPBAR_DEFAULT_HEX; else mirrors card.color (or GRO default).
+  // In add mode, the color picker also updates formValues.cardColor so create_call_file sends card_color.
   const [topbarColor, setTopbarColor] = useState(() => {
     if (isAddMode) {
       return ADD_CARD_TOPBAR_DEFAULT_HEX;
@@ -962,6 +962,9 @@ function CardForm({
   const initialFormValues = useMemo(
     () => ({
       cardTitle: card?.title || "",
+      cardColor: isAddMode
+        ? ADD_CARD_TOPBAR_DEFAULT_HEX
+        : card?.color || DEFAULT_ACCENT_COLOR,
       owner: isAddMode
         ? String(getItem("userid") ?? "")
         : String(card?.owner_user_id ?? card?.owner ?? ""),
@@ -1254,10 +1257,13 @@ function CardForm({
   // Everything else uses card's unique color
   const accentColor = useMemo(() => card?.color || DEFAULT_ACCENT_COLOR, [card?.color]);
 
-  // Handle topbar color change - visual only, never modifies card.color
+  // Topbar color is visual; in add mode it is also persisted as formValues.cardColor for create_call_file.
   const handleTopbarColorChange = useCallback((newColor) => {
     setTopbarColor(newColor);
-  }, []);
+    if (isAddMode) {
+      setFormValues((prev) => ({ ...prev, cardColor: newColor }));
+    }
+  }, [isAddMode]);
 
   const ownerInitial = useMemo(
     () => formValues.owner?.[0]?.toUpperCase() || "N",

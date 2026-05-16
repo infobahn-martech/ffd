@@ -1315,75 +1315,75 @@ const EmailPreviewPanel = ({
       <div className="general-add-preview-scroll-inner">
         <div className="email-preview-card">
           <div className="email-preview-content">
-          <div className="email-preview-meta">
-            <div className="email-preview-row">
-              <div className="email-preview-row-label">From</div>
-              <div className="email-preview-row-value">
-                <input
-                  type="text"
-                  className="email-preview-inline-input"
-                  value={fromValue}
-                  onChange={onEditableFieldChange("from_email")}
-                  placeholder="From email"
-                />
+            <div className="email-preview-meta">
+              <div className="email-preview-row">
+                <div className="email-preview-row-label">From</div>
+                <div className="email-preview-row-value">
+                  <input
+                    type="text"
+                    className="email-preview-inline-input"
+                    value={fromValue}
+                    onChange={onEditableFieldChange("from_email")}
+                    placeholder="From email"
+                  />
+                </div>
+              </div>
+              <div className="email-preview-row">
+                <div className="email-preview-row-label">To</div>
+                <div className="email-preview-row-value">
+                  <input
+                    type="text"
+                    className="email-preview-inline-input"
+                    value={toValue}
+                    onChange={onEditableFieldChange("to_email")}
+                    placeholder="—"
+                  />
+                </div>
+              </div>
+              <div className="email-preview-row">
+                <div className="email-preview-row-label">Cc</div>
+                <div className="email-preview-row-value">
+                  <input
+                    type="text"
+                    className="email-preview-inline-input"
+                    value={ccValue}
+                    onChange={onEditableFieldChange("cc_emails")}
+                    placeholder="—"
+                  />
+                </div>
+              </div>
+              <div className="email-preview-row">
+                <div className="email-preview-row-label">Subject</div>
+                <div className="email-preview-row-value">
+                  <input
+                    type="text"
+                    className="email-preview-inline-input"
+                    value={subjectValue}
+                    onChange={onEditableFieldChange("subject")}
+                    placeholder="Email subject"
+                  />
+                </div>
               </div>
             </div>
-            <div className="email-preview-row">
-              <div className="email-preview-row-label">To</div>
-              <div className="email-preview-row-value">
-                <input
-                  type="text"
-                  className="email-preview-inline-input"
-                  value={toValue}
-                  onChange={onEditableFieldChange("to_email")}
-                  placeholder="—"
+            <div className="email-preview-message-section email-preview-message-section--quill">
+              <div className="email-preview-message-title">Message</div>
+              <div className="react-quill-wrapper email-preview-message-quill-react">
+                <ReactQuill
+                  theme="snow"
+                  value={messageValue ?? ""}
+                  onChange={(html) => {
+                    if (typeof onMessageChange === "function") {
+                      onMessageChange(html ?? "");
+                    }
+                  }}
+                  modules={EMAIL_PREVIEW_MESSAGE_QUILL_MODULES}
+                  formats={EMAIL_PREVIEW_MESSAGE_QUILL_FORMATS}
+                  placeholder="Type email content here..."
                 />
               </div>
-            </div>
-            <div className="email-preview-row">
-              <div className="email-preview-row-label">Cc</div>
-              <div className="email-preview-row-value">
-                <input
-                  type="text"
-                  className="email-preview-inline-input"
-                  value={ccValue}
-                  onChange={onEditableFieldChange("cc_emails")}
-                  placeholder="—"
-                />
-              </div>
-            </div>
-            <div className="email-preview-row">
-              <div className="email-preview-row-label">Subject</div>
-              <div className="email-preview-row-value">
-                <input
-                  type="text"
-                  className="email-preview-inline-input"
-                  value={subjectValue}
-                  onChange={onEditableFieldChange("subject")}
-                  placeholder="Email subject"
-                />
-              </div>
-            </div>
-          </div>
-          <div className="email-preview-message-section email-preview-message-section--quill">
-            <div className="email-preview-message-title">Message</div>
-            <div className="react-quill-wrapper email-preview-message-quill-react">
-              <ReactQuill
-                theme="snow"
-                value={messageValue ?? ""}
-                onChange={(html) => {
-                  if (typeof onMessageChange === "function") {
-                    onMessageChange(html ?? "");
-                  }
-                }}
-                modules={EMAIL_PREVIEW_MESSAGE_QUILL_MODULES}
-                formats={EMAIL_PREVIEW_MESSAGE_QUILL_FORMATS}
-                placeholder="Type email content here..."
-              />
             </div>
           </div>
         </div>
-      </div>
       </div>
     </div>
   );
@@ -1460,7 +1460,13 @@ function General({
   setHasSubmitted = () => { },
   setIsSavingGeneral = () => { },
 }) {
-  const accentColor = useMemo(() => card?.color || "#2A00FF", [card?.color]);
+  const accentColor = useMemo(
+    () =>
+      isAddMode
+        ? formValues?.cardColor || card?.color || "#2A00FF"
+        : card?.color || "#2A00FF",
+    [isAddMode, formValues?.cardColor, card?.color]
+  );
   const [vesselNameOptions, setVesselNameOptions] = useState([
     // Add vessel names here or fetch from API
   ]);
