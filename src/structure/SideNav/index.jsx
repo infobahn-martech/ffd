@@ -81,6 +81,7 @@ function SideNav({ isMobileMenuOpen, onCloseMobileMenu, isVendorPortal = false }
   const { layoutView } = useLayoutView();
   const isDarkMode = layoutView === 'dark';
   const userProfile = useAuthReducer((state) => state.userProfile);
+  const isAdminRole = String(userProfile?.role_id) === '1';
   const restrictedNav = isRestrictedBoardUser(userProfile);
   const kanbanFullSidebar = hasKanbanFullSidebar(userProfile);
 
@@ -975,6 +976,7 @@ function SideNav({ isMobileMenuOpen, onCloseMobileMenu, isVendorPortal = false }
 
     return (
       <>
+        {isAdminRole && (
         <aside className={`kanban-sidebar ${isDarkMode ? 'kanban-sidebar-dark' : ''}`}>
           {kanbanIcons.map((item) => {
             const Icon = item.icon;
@@ -1080,6 +1082,7 @@ function SideNav({ isMobileMenuOpen, onCloseMobileMenu, isVendorPortal = false }
             }}
           />
         </aside>
+        )}
 
         <BoardFilterPanel show={showFilterPanel} onClose={() => setShowFilterPanel(false)} />
         <OnStationModal
