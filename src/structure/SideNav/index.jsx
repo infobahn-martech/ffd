@@ -107,10 +107,7 @@ function SideNav({ isMobileMenuOpen, onCloseMobileMenu, isVendorPortal = false }
     if (showEditWorkflowSidebarIcon) {
       icons.push({ id: 9, icon: FiEdit3, label: 'Edit Workflow' });
     }
-    icons.push(
-      { id: 7, icon: FiMail, label: 'Outlook' },
-      { id: 8, icon: FiSettings, label: 'Settings' }
-    );
+    icons.push({ id: 7, icon: FiMail, label: 'Outlook' });
     return icons;
   }, [showEditWorkflowSidebarIcon, kanbanFullSidebar]);
 
