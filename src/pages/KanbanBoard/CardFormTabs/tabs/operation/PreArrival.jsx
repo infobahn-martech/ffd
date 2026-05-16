@@ -102,13 +102,21 @@ const CompactFileUploadRow = ({
   const showUploadedFileName =
     Boolean(secondaryFileName) &&
     secondaryFileName.toLowerCase() !== displayLabel.toLowerCase();
-  // Null/empty status must stay unset: Number(null) === 0 would wrongly map to "Not uploaded".
+  // Missing status from get_documents_by_role: treat as Not uploaded for UI actions when no files,
+  // or as Uploaded when local/attached files exist (preview). Never use Number(null) — that is 0.
+  const statusIsEmpty =
+    status === null ||
+    status === undefined ||
+    status === "" ||
+    (typeof status === "string" && status.trim() === "");
+  const parsedStatus =
+    statusIsEmpty || !Number.isFinite(Number(status)) ? null : Number(status);
   const rowStatus =
-    status === null || status === undefined || status === ""
-      ? null
-      : Number.isFinite(Number(status))
-        ? Number(status)
-        : null;
+    parsedStatus !== null
+      ? parsedStatus
+      : hasFiles
+        ? DOC_STATUS_UPLOADED
+        : DOC_STATUS_NOT_UPLOADED;
   const isNotUploaded = rowStatus === DOC_STATUS_NOT_UPLOADED;
   const isUploaded = rowStatus === DOC_STATUS_UPLOADED;
   const isVerified = rowStatus === DOC_STATUS_VERIFIED;
