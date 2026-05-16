@@ -194,3 +194,260 @@
   width: 18px;
   height: 18px;
 }
+
+/* ==========================================================
+   COMMENTS & NOTES TABS (feed layout + React Quill)
+   ========================================================== */
+
+.cardform-body--feed-tab {
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  padding: 18px 22px;
+  flex: 1;
+  min-height: 0;
+}
+
+.comments-content-wrapper,
+.notes-content-wrapper {
+  &.card-feed-tab {
+    display: flex;
+    flex-direction: column;
+    flex: 1;
+    min-height: 0;
+    height: 100%;
+    gap: 0;
+  }
+}
+
+.card-feed-list {
+  flex: 1;
+  min-height: 0;
+  overflow-y: auto;
+  padding-right: 4px;
+  margin-bottom: 16px;
+  scrollbar-width: thin;
+  scrollbar-color: #c5cad6 transparent;
+
+  &::-webkit-scrollbar {
+    width: 6px;
+  }
+
+  &::-webkit-scrollbar-track {
+    background: transparent;
+  }
+
+  &::-webkit-scrollbar-thumb {
+    background: #c5cad6;
+    border-radius: 6px;
+  }
+
+  &::-webkit-scrollbar-thumb:hover {
+    background: #a8b0c0;
+  }
+}
+
+.card-feed-empty {
+  margin: 0;
+  padding: 24px 8px;
+  text-align: center;
+  font-size: 13px;
+  color: #8a8f9c;
+  font-style: italic;
+}
+
+.card-feed-editor {
+  flex-shrink: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  padding-top: 12px;
+  border-top: 1px solid #e8eaf0;
+  background: #ffffff;
+}
+
+.card-feed-save-row {
+  display: flex;
+  justify-content: flex-end;
+}
+
+.card-feed-save-btn {
+  background: #00368c;
+  border: none;
+  color: #ffffff;
+  border-radius: 6px;
+  height: 36px;
+  min-width: 88px;
+  padding: 0 20px;
+  font-size: 13px;
+  font-weight: 600;
+  font-family: "Open Sans", sans-serif;
+  cursor: pointer;
+  transition: background 0.2s ease, box-shadow 0.2s ease;
+
+  &:hover {
+    background: #002a6e;
+    box-shadow: 0 2px 8px rgba(0, 54, 140, 0.25);
+  }
+
+  &:active {
+    transform: translateY(1px);
+  }
+}
+
+.card-feed-quill.react-quill-wrapper {
+  flex: none;
+  height: auto;
+
+  .ql-toolbar {
+    border: 1px solid #e2e2ea;
+    border-radius: 8px 8px 0 0;
+    background: #fafbfc;
+    padding: 6px 8px;
+  }
+
+  .ql-container {
+    border: 1px solid #e2e2ea;
+    border-top: none;
+    border-radius: 0 0 8px 8px;
+    font-size: 13px;
+    height: 120px;
+    min-height: 120px;
+    max-height: 120px;
+    background: #ffffff;
+  }
+
+  .ql-editor {
+    min-height: 88px;
+    max-height: 88px;
+    height: 88px;
+    padding: 10px 12px;
+    line-height: 1.5;
+    color: #1a1a1a;
+    overflow-y: auto;
+
+    &.ql-blank::before {
+      color: #9aa0ad;
+      font-style: normal;
+      font-size: 13px;
+    }
+  }
+
+  .ql-stroke {
+    stroke: #5c6370;
+  }
+
+  .ql-fill {
+    fill: #5c6370;
+  }
+
+  .ql-picker-label {
+    color: #5c6370;
+  }
+
+  &:hover,
+  &:focus-within {
+    .ql-toolbar,
+    .ql-container {
+      border-color: #c8d4ea;
+    }
+  }
+}
+
+/* Comments list items */
+.comments-list {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.comment-item {
+  display: flex;
+  gap: 12px;
+  padding-bottom: 16px;
+  border-bottom: 1px solid #eef0f4;
+
+  &:last-child {
+    border-bottom: none;
+    padding-bottom: 0;
+  }
+}
+
+.comment-item-header-left-avatar {
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  overflow: hidden;
+  flex-shrink: 0;
+  background: #e8ecf4;
+
+  img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+  }
+}
+
+.comment-item-body-content {
+  p {
+    margin: 0;
+    font-size: 13px;
+    line-height: 1.55;
+    color: #1a1a1a;
+  }
+}
+
+/* Notes list items */
+.notes-list {
+  display: flex;
+  flex-direction: column;
+  gap: 0;
+}
+
+.notes-content-wrapper .note-item {
+  display: flex;
+  gap: 12px;
+  padding-bottom: 20px;
+  margin-bottom: 20px;
+  border-bottom: 1px solid #eef0f4;
+  max-width: none;
+
+  &:last-child {
+    border-bottom: none;
+    margin-bottom: 0;
+    padding-bottom: 0;
+  }
+
+  .note-img {
+    flex: 0 0 36px;
+    width: 36px;
+    height: 36px;
+    max-width: 36px;
+
+    img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      border-radius: 50%;
+    }
+  }
+
+  .note-cont {
+    flex: 1;
+    min-width: 0;
+    padding: 0;
+
+    .txt {
+      margin: 0 0 6px;
+      font-size: 13px;
+      line-height: 1.55;
+      color: #1a1a1a;
+    }
+
+    .updated {
+      margin: 0;
+      font-size: 11px;
+      color: #8a8f9c;
+    }
+  }
+}

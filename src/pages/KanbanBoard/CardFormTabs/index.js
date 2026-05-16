@@ -1,5 +1,6 @@
 export { default as General } from "./tabs/appointment/General";
 export { default as Attachments } from "./tabs/appointment/Attachments";
+export { default as DocumentLibrary } from "./tabs/appointment/Attachments";
 export { default as Operation } from "./tabs/operation/Operation";
 export { default as Husbandry } from "./tabs/husbandry/Husbandry";
 export { default as SalesOrder } from "./tabs/salesOrder/SalesOrder";
@@ -7,5 +8,5 @@ export { default as Reports } from "./tabs/reports/Reports";
 export { default as KPI } from "./tabs/kpi/KPI";
 export { default as Invoice } from "./tabs/invoice/Invoice";
 export { default as Comments } from "./tabs/comments/Comments";
-export { default as Subtasks } from "./tabs/subtasks/Subtasks";
+export { default as Subtasks } from "./tabs/subTasks/SubTasks";
 export { default as Notes } from "./tabs/notes/Notes";
