@@ -51,6 +51,7 @@ import useAuthReducer from '../../store/AuthReducer';
 import { useKanbanSidebarBridge } from '../../store/kanbanSidebarBridge';
 import { ROUTE_PATHS } from '../../router/paths';
 import {
+  hasKanbanFullSidebar,
   isRestrictedBoardUser,
   RESTRICTED_BOARD_HOME_PATH,
 } from '../../helpers/restrictedBoardUser';
@@ -81,6 +82,7 @@ function SideNav({ isMobileMenuOpen, onCloseMobileMenu, isVendorPortal = false }
   const isDarkMode = layoutView === 'dark';
   const userProfile = useAuthReducer((state) => state.userProfile);
   const restrictedNav = isRestrictedBoardUser(userProfile);
+  const kanbanFullSidebar = hasKanbanFullSidebar(userProfile);
 
   const boardRouteMatchForEditWorkflow = pathname.match(/^\/kanban-board\/([^/]+)$/);
   const kanbanBoardIdForEditWorkflow = boardRouteMatchForEditWorkflow?.[1] ?? null;
@@ -89,17 +91,28 @@ function SideNav({ isMobileMenuOpen, onCloseMobileMenu, isVendorPortal = false }
     String(kanbanBoardIdForEditWorkflow).toLowerCase() !== 'operator';
 
   const kanbanBoardIcons = useMemo(() => {
-    const icons = [{ id: 1, icon: FiPlus, label: 'Add' }];
+    if (kanbanFullSidebar) {
+      const icons = [{ id: 1, icon: FiPlus, label: 'Add' }];
+      if (showEditWorkflowSidebarIcon) {
+        icons.push({ id: 9, icon: FiEdit3, label: 'Edit Workflow' });
+      }
+      icons.push(
+        { id: 10, icon: FiMapPin, label: 'On Station' },
+        { id: 7, icon: FiMail, label: 'Outlook' },
+        { id: 8, icon: FiSettings, label: 'Settings' }
+      );
+      return icons;
+    }
+    const icons = [];
     if (showEditWorkflowSidebarIcon) {
       icons.push({ id: 9, icon: FiEdit3, label: 'Edit Workflow' });
     }
     icons.push(
-      { id: 10, icon: FiMapPin, label: 'On Station' },
       { id: 7, icon: FiMail, label: 'Outlook' },
       { id: 8, icon: FiSettings, label: 'Settings' }
     );
     return icons;
-  }, [showEditWorkflowSidebarIcon]);
+  }, [showEditWorkflowSidebarIcon, kanbanFullSidebar]);
 
   const restrictedKanbanStripIcons = useMemo(
     () => [
