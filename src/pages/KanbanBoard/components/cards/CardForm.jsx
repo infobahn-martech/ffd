@@ -1,6 +1,7 @@
 import { useState, useMemo, useCallback, useEffect, useRef, useLayoutEffect } from "react";
 import { createPortal } from "react-dom";
 import salesOrderService from "../../../../services/salesOrderService";
+import kanbanBoardService from "../../../../services/kanbanBoardService";
 import { mapSalesOrderResponse } from "../../../../helpers/mapSalesOrderResponse";
 import { useLocation } from "react-router-dom";
 import PropTypes from "prop-types";
@@ -910,6 +911,7 @@ function CardForm({
   isAddMode = false,
   variant = "default",
   onBoardRefresh,
+  patchCardColor,
 }) {
   const location = useLocation();
   const isDriverVariant = variant === "driver";
@@ -1084,11 +1086,18 @@ function CardForm({
     [card, isAddMode]
   );
 
+  const cardFormSyncKey = useMemo(
+    () => `${isAddMode ? "add" : "view"}:${card?.id ?? card?.card_id ?? ""}`,
+    [isAddMode, card?.id, card?.card_id]
+  );
+
   const [formValues, setFormValues] = useState(initialFormValues);
+  const initialFormValuesRef = useRef(initialFormValues);
+  initialFormValuesRef.current = initialFormValues;
 
   useEffect(() => {
-    setFormValues(initialFormValues);
-  }, [initialFormValues]);
+    setFormValues(initialFormValuesRef.current);
+  }, [cardFormSyncKey]);
 
   const handleChange = useCallback(
     (field) => (e) => {
@@ -1257,13 +1266,73 @@ function CardForm({
   // Everything else uses card's unique color
   const accentColor = useMemo(() => card?.color || DEFAULT_ACCENT_COLOR, [card?.color]);
 
-  // Topbar color is visual; in add mode it is also persisted as formValues.cardColor for create_call_file.
-  const handleTopbarColorChange = useCallback((newColor) => {
-    setTopbarColor(newColor);
-    if (isAddMode) {
-      setFormValues((prev) => ({ ...prev, cardColor: newColor }));
-    }
-  }, [isAddMode]);
+  // Topbar color: add mode → formValues.cardColor (create_call_file). View → POST kanban_card/update_card_color when onBoardRefresh is set, then patch board state (no full refetch).
+  const handleTopbarColorChange = useCallback(
+    (newColor) => {
+      const normalized = normalizeHexColor(newColor, DEFAULT_ACCENT_COLOR);
+
+      setTopbarColor(normalized);
+      if (isAddMode) {
+        setFormValues((prev) => ({ ...prev, cardColor: normalized }));
+        return;
+      }
+
+      if (isGROStyleView || isEmptyVariant) {
+        return;
+      }
+
+      const cardIdRaw = card?.id ?? card?.card_id;
+      if (cardIdRaw == null || String(cardIdRaw).trim() === "") {
+        notify("Cannot save card color: missing card id.", "error");
+        setTopbarColor(card?.color || DEFAULT_ACCENT_COLOR);
+        return;
+      }
+
+      const id = String(cardIdRaw).trim();
+      const applyLocal = () => patchCardColor?.(id, normalized);
+
+      if (!onBoardRefresh) {
+        applyLocal();
+        return;
+      }
+
+      kanbanBoardService
+        .updateCardColor({
+          card_id: id,
+          card_color: normalized,
+        })
+        .then((res) => {
+          const body = res?.data;
+          if (body && typeof body === "object" && body.status === "error") {
+            const msg =
+              typeof body.message === "string" && body.message.trim()
+                ? body.message
+                : "Could not update card color.";
+            throw new Error(msg);
+          }
+          applyLocal();
+        })
+        .catch((err) => {
+          setTopbarColor(card?.color || DEFAULT_ACCENT_COLOR);
+          const msg =
+            err?.response?.data?.message ||
+            err?.response?.data?.error ||
+            err?.message ||
+            "Could not update card color.";
+          notify(typeof msg === "string" ? msg : "Could not update card color.", "error");
+        });
+    },
+    [
+      isAddMode,
+      isGROStyleView,
+      isEmptyVariant,
+      card?.id,
+      card?.card_id,
+      card?.color,
+      onBoardRefresh,
+      patchCardColor,
+    ]
+  );
 
   const ownerInitial = useMemo(
     () => formValues.owner?.[0]?.toUpperCase() || "N",
@@ -1369,6 +1438,8 @@ CardForm.propTypes = {
   }),
   isAddMode: PropTypes.bool,
   variant: PropTypes.oneOf(["default", "driver", "hotel", "mwp", "gro", "custom", "empty"]),
+  onBoardRefresh: PropTypes.func,
+  patchCardColor: PropTypes.func,
 };
 
 export default CardForm;

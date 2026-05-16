@@ -3,6 +3,7 @@ import { initialData } from "../../../helpers/data";
 import { operatorKanbanStaticWorkflows } from "../../../helpers/kanbanOperatorStaticData";
 import { mapFullBoardApiResponse } from "../../../helpers/kanbanBoardApiMapper";
 import kanbanBoardService from "../../../services/kanbanBoardService";
+import { findWorkflowByCardId } from "../utils/boardHelpers";
 
 const isDev =
   typeof import.meta !== "undefined" && import.meta.env && import.meta.env.DEV;
@@ -41,6 +42,12 @@ export default function useKanbanBoardState(selectedBoardId) {
         console.log("normalized workflows", mapped);
       }
       setWorkflows(mapped.length ? mapped : []);
+      setSelectedCard((prev) => {
+        if (!prev?.id) return prev;
+        const wf = findWorkflowByCardId(mapped, prev.id);
+        const fresh = wf?.cards?.[prev.id];
+        return fresh ?? prev;
+      });
       setBoardLoadError(null);
     } catch (e) {
       const msg = e?.message ?? String(e);
@@ -136,10 +143,32 @@ export default function useKanbanBoardState(selectedBoardId) {
     setAddTargetWorkflowId(null);
   }, []);
 
+  /** Updates a card's accent color in workflow state (e.g. after kanban_card/update_card_color). Avoids full board refetch. */
+  const patchCardColor = useCallback((cardId, color) => {
+    if (cardId == null || String(cardId).trim() === "") return;
+    const id = String(cardId).trim();
+    const nextColor = color;
+    setWorkflows((prev) =>
+      prev.map((wf) => {
+        const c = wf.cards?.[id];
+        if (!c) return wf;
+        return {
+          ...wf,
+          cards: {
+            ...wf.cards,
+            [id]: { ...c, color: nextColor },
+          },
+        };
+      })
+    );
+    setSelectedCard((prev) => (prev?.id === id ? { ...prev, color: nextColor } : prev));
+  }, []);
+
   return {
     workflows,
     setWorkflows,
     refetchBoard,
+    patchCardColor,
     boardLoading,
     boardLoadError,
     selectedCard,

@@ -171,6 +171,11 @@ export function mapBoardWorkflowFromApi(workflow) {
               ? String(timelineRaw).trim()
               : null;
 
+          const perCardColor =
+            card?.card_color != null && String(card.card_color).trim() !== ""
+              ? normalizeHexColor(String(card.card_color).trim(), stageColor)
+              : null;
+
           // FE display: vesselName / cardName / title, user (avatar), timeLeft, progress — see CardItem ApiKanbanCardFull.
           cards[cardId] = {
             id: cardId,
@@ -194,7 +199,7 @@ export function mapBoardWorkflowFromApi(workflow) {
             createdDate: card.created_date && String(card.created_date).trim() ? String(card.created_date).trim() : "",
             progress,
             timeLeft,
-            color: stageColor,
+            color: perCardColor ?? stageColor,
             cardName: card.card_name || "",
             billingEntity: card.billing_entity || "",
             raw: card,
