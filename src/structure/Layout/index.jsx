@@ -11,7 +11,13 @@ function Layout() {
   const { pathname } = useLocation();
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const userProfile = useAuthReducer((state) => state.userProfile);
-  const isAdminRole = String(userProfile?.role_id) === '1';
+  const userRoleId =
+    userProfile?.role_id ||
+    userProfile?.roleId ||
+    userProfile?.role?.role_id ||
+    userProfile?.user?.role_id ||
+    userProfile?.data?.role_id;
+  const isPortManagerRole = String(userRoleId) === '1';
   const hideSidebar = pathname === '/edit-workflow' || pathname === '/da-module';
   const isKanbanBoard =
     pathname === '/kanban-board/operator' ||
@@ -23,7 +29,7 @@ function Layout() {
     pathname === '/kanban-board/operator' ||
     pathname.startsWith('/kanban-board/') ||
     pathname === '/compact';
-  const kanbanFullWidth = isKanbanIconSidebarRoute && !isAdminRole;
+  const kanbanFullWidth = isKanbanIconSidebarRoute && !isPortManagerRole;
   const isVendorPortal = pathname.startsWith('/vendor-portal');
 
   const handleMenuToggle = (isOpen) => {

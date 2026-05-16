@@ -81,7 +81,13 @@ function SideNav({ isMobileMenuOpen, onCloseMobileMenu, isVendorPortal = false }
   const { layoutView } = useLayoutView();
   const isDarkMode = layoutView === 'dark';
   const userProfile = useAuthReducer((state) => state.userProfile);
-  const isAdminRole = String(userProfile?.role_id) === '1';
+  const userRoleId =
+    userProfile?.role_id ||
+    userProfile?.roleId ||
+    userProfile?.role?.role_id ||
+    userProfile?.user?.role_id ||
+    userProfile?.data?.role_id;
+  const isPortManagerRole = String(userRoleId) === '1';
   const restrictedNav = isRestrictedBoardUser(userProfile);
   const kanbanFullSidebar = hasKanbanFullSidebar(userProfile);
 
@@ -976,7 +982,7 @@ function SideNav({ isMobileMenuOpen, onCloseMobileMenu, isVendorPortal = false }
 
     return (
       <>
-        {isAdminRole && (
+        {isPortManagerRole && (
         <aside className={`kanban-sidebar ${isDarkMode ? 'kanban-sidebar-dark' : ''}`}>
           {kanbanIcons.map((item) => {
             const Icon = item.icon;
