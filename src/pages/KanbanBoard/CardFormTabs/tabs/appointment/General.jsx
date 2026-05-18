@@ -108,6 +108,72 @@ const resolveMsgEmailDate = (msg = {}) => {
   return "";
 };
 
+const extractFirstEmailFromText = (value = "") => {
+  const source = String(value || "");
+  const normalized = source.replace(/mailto:/gi, " ");
+  const match = normalized.match(/[A-Z0-9._%+-]+@[A-Z0-9.-]+\.[A-Z]{2,}/i);
+  return match ? String(match[0] || "").replace(/[>),;:\s]+$/g, "").trim() : "";
+};
+
+const parseSenderFromText = (senderRaw = "") => {
+  const fromText = String(senderRaw || "").trim();
+  if (!fromText) return { extractedName: "", extractedEmail: "" };
+
+  const emailMatch = fromText.match(/<([^>]+)>/);
+  const extractedEmail = emailMatch?.[1]?.trim() || "";
+
+  const extractedName = fromText
+    .replace(/<[^>]+>/g, "")
+    .replace(/["']/g, "")
+    .trim();
+
+  return { extractedName, extractedEmail };
+};
+
+const extractFromHeaderFromMsg = (msg = {}) => {
+  const headerText = msgHeadersToText(
+    msg?.headers || msg?.transportMessageHeaders || msg?.messageHeaders || ""
+  );
+  if (!headerText) return "";
+  const fromMatch = headerText.match(/^From:\s*(.+)$/im);
+  return fromMatch?.[1]?.trim() || "";
+};
+
+const parseMsgSenderDetails = (msg = {}) => {
+  const fromHeader = extractFromHeaderFromMsg(msg);
+  const senderCandidates = [msg?.senderName, msg?.from, fromHeader].filter((item) =>
+    String(item ?? "").trim()
+  );
+
+  let extractedName = "";
+  let extractedEmail = "";
+
+  for (const candidate of senderCandidates) {
+    const parsed = parseSenderFromText(candidate);
+    if (parsed.extractedName && !extractedName) extractedName = parsed.extractedName;
+    if (parsed.extractedEmail && !extractedEmail) extractedEmail = parsed.extractedEmail;
+    if (extractedName && extractedEmail) break;
+  }
+
+  if (!extractedEmail) {
+    const emailOnlyCandidates = [
+      msg?.senderEmail,
+      msg?.senderEmailAddress,
+      msg?.senderSmtpAddress,
+      msg?.fromEmail,
+    ];
+    for (const candidate of emailOnlyCandidates) {
+      const email = extractFirstEmailFromText(candidate);
+      if (email) {
+        extractedEmail = email;
+        break;
+      }
+    }
+  }
+
+  return { extractedName, extractedEmail };
+};
+
 const mapCallDetailToFormFields = (detail) => {
   const appointmentParts = splitDateTime(detail?.appointment_received_date);
   const dailyReportEmail = Array.isArray(detail?.daily_report_emails)
@@ -2496,17 +2562,27 @@ function General({
     setAiExtractionError("");
   };
 
-  const applyNonAiAppointmentFields = (extracted, receivedParts) => {
+  const applyNonAiAppointmentFields = (extracted, receivedParts, msgSenderDetails = null) => {
     let filledCount = 0;
     const fallbackEmail = extractFirstEmail(extracted?.fullText);
-    const resolvedRequestorEmail = firstNonEmptyString(extracted?.fromEmail) || fallbackEmail;
+    const resolvedRequestorName =
+      firstNonEmptyString(msgSenderDetails?.extractedName) ||
+      firstNonEmptyString(extracted?.fromName);
+    const resolvedRequestorEmail =
+      firstNonEmptyString(msgSenderDetails?.extractedEmail) ||
+      firstNonEmptyString(extracted?.fromEmail) ||
+      fallbackEmail;
     console.log("[Appointment Non-AI Parse] resolved sender", {
+      fromName: extracted?.fromName,
+      msgSenderName: msgSenderDetails?.extractedName,
+      resolvedRequestorName,
       fromEmail: extracted?.fromEmail,
+      msgSenderEmail: msgSenderDetails?.extractedEmail,
       fallbackEmail,
       resolvedRequestorEmail,
     });
     if (applyAppointmentReceivedDateTime(receivedParts)) filledCount += 1;
-    if (setFieldIfEmpty("serviceRequestorName", extracted?.fromName)) filledCount += 1;
+    if (setFieldIfEmpty("serviceRequestorName", resolvedRequestorName)) filledCount += 1;
     if (setFieldIfEmpty("serviceRequestorEmail", resolvedRequestorEmail)) filledCount += 1;
 
     const matchedPort = findMatchingOption(portSelectOptions, extracted?.portText);
@@ -2584,22 +2660,22 @@ function General({
 
     const body = msgInfo.body || msgInfo.bodyHTML || "";
     const subject = msgInfo.subject || "";
-    const senderName = msgInfo.senderName || msgInfo.from || "";
-    const rawSenderFields = [
-      msgInfo.senderEmail,
-      msgInfo.senderEmailAddress,
-      msgInfo.senderSmtpAddress,
-      msgInfo.senderName,
-      msgInfo.from,
-      msgInfo.fromEmail,
-      msgInfo.displayTo,
-      body,
-      JSON.stringify(msgInfo || {}),
-    ]
-      .filter(Boolean)
-      .join(" ");
+    const { extractedName, extractedEmail } = parseMsgSenderDetails(msgInfo);
+    const senderName = extractedName || msgInfo.senderName || msgInfo.from || "";
     const senderEmail =
-      extractFirstEmail(rawSenderFields) ||
+      extractedEmail ||
+      extractFirstEmailFromText(
+        [
+          msgInfo.senderEmail,
+          msgInfo.senderEmailAddress,
+          msgInfo.senderSmtpAddress,
+          msgInfo.senderName,
+          msgInfo.from,
+          msgInfo.fromEmail,
+        ]
+          .filter(Boolean)
+          .join(" ")
+      ) ||
       msgInfo.senderEmail ||
       msgInfo.senderEmailAddress ||
       msgInfo.senderSmtpAddress ||
@@ -2628,6 +2704,8 @@ ${body}
         emailDate,
         senderName,
         senderEmail,
+        serviceRequestorName: extractedName,
+        serviceRequestorEmail: extractedEmail,
         subject,
       },
     };
@@ -2677,10 +2755,12 @@ ${body}
       }
 
       const extracted = extractEmailHeaderDetails(extractedText);
+      const msgSenderDetails = msgData ? parseMsgSenderDetails(msgData) : null;
       const receivedParts = resolveMsgReceivedDateTime(msgData, extractedText);
       console.log("[Appointment Non-AI] resolved received date", receivedParts);
       console.log("[Appointment Non-AI Parse] extracted", extracted);
-      const filledCount = applyNonAiAppointmentFields(extracted, receivedParts);
+      console.log("[Appointment Non-AI Parse] msg sender", msgSenderDetails);
+      const filledCount = applyNonAiAppointmentFields(extracted, receivedParts, msgSenderDetails);
       const appointmentReceivedDate = getFieldValue("appointmentReceivedDate");
       const appointmentReceivedTime = getFieldValue("appointmentReceivedTime");
       const appointmentReceived = getFieldValue("appointmentReceived");
