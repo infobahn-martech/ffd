@@ -6,6 +6,7 @@ import "../../../../../design/scss/general.scss";
 import "../../../../../design/css/CardForm.css";
 import AttachmentIcon from "../../../../../assets/images/Attachment.svg";
 import callFileService from "../../../../../services/callFileService";
+import mailService from "../../../../../services/mailService";
 import portService from "../../../../../services/portService";
 import CommonService from "../../../../../services/commonService";
 import billingEntityService from "../../../../../services/billingEntityService";
@@ -1616,7 +1617,7 @@ function General({
   ]);
   const [vesselOptionsLoading, setVesselOptionsLoading] = useState(false);
   const [appointmentDocuments, setAppointmentDocuments] = useState([]);
-  const [isAppointmentAiEnabled, setIsAppointmentAiEnabled] = useState(false);
+  const [appointmentExtractionMode, setAppointmentExtractionMode] = useState("without_ai");
   const [isAiExtractingAppointment, setIsAiExtractingAppointment] = useState(false);
   const [aiExtractionError, setAiExtractionError] = useState("");
   const [previewMessageText, setPreviewMessageText] = useState("");
@@ -2713,6 +2714,71 @@ function General({
     [callTypeOptions, fillIfEmpty, findMatchingOption, portSelectOptions, vesselNameOptions, applyAppointmentReceivedDateTime]
   );
 
+  const applyBeAppointmentExtraction = useCallback(
+    async (file) => {
+      const { data: responsePayload } = await mailService.readEmail(file);
+      const data = responsePayload?.data ?? responsePayload ?? {};
+      let filledCount = 0;
+
+      const receivedRaw = firstNonEmptyString(data.appointment_received_date);
+      if (receivedRaw) {
+        const normalized =
+          normalizeAppointmentDateTime(receivedRaw) || firstNonEmptyString(receivedRaw);
+        const receivedParts = splitApiDateTimeValue(normalized);
+        if (receivedParts.date && receivedParts.time && applyAppointmentReceivedDateTime(receivedParts)) {
+          filledCount += 1;
+        }
+      }
+
+      if (setFieldIfEmpty("serviceRequestorName", data.service_requestor_name)) filledCount += 1;
+      if (setFieldIfEmpty("serviceRequestorEmail", data.service_requestor_email)) filledCount += 1;
+
+      const portValue = firstNonEmptyString(data.port_id, data.port);
+      if (portValue) {
+        const portById = portSelectOptions.find((option) => String(option?.value ?? "") === String(portValue));
+        const matchedPort = portById || findMatchingOption(portSelectOptions, portValue);
+        if (matchedPort && setFieldIfEmpty("port", String(matchedPort.value ?? ""))) {
+          filledCount += 1;
+        }
+      }
+
+      const callTypeValue = firstNonEmptyString(data.call_type_id, data.call_type);
+      if (callTypeValue) {
+        const callTypeById = callTypeOptions.find(
+          (option) => String(option?.value ?? "") === String(callTypeValue)
+        );
+        const matchedCallType = callTypeById || findMatchingOption(callTypeOptions, callTypeValue);
+        if (matchedCallType) {
+          const callTypeId = String(matchedCallType.value ?? "");
+          if (setFieldIfEmpty("typeOfCall", callTypeId)) filledCount += 1;
+          setFieldIfEmpty("call_type_id", callTypeId);
+        }
+      }
+
+      const subject = firstNonEmptyString(data.subject);
+      const body = firstNonEmptyString(data.body, data.message, data.message_html, data.email_body);
+      if (subject) {
+        setEditablePreviewFields((prev) => ({ ...prev, subject }));
+      }
+      if (body) {
+        setPreviewMessageText(body);
+      }
+
+      if (filledCount > 0 || subject || body) {
+        notify("Appointment details extracted successfully.", "success");
+      } else {
+        notify("File uploaded, but no matching appointment details found.", "warning");
+      }
+    },
+    [
+      applyAppointmentReceivedDateTime,
+      callTypeOptions,
+      findMatchingOption,
+      portSelectOptions,
+      setFieldIfEmpty,
+    ]
+  );
+
   const isMsgFile = (file) => file?.name?.toLowerCase()?.endsWith(".msg");
 
   const extractMsgAppointmentText = async (file) => {
@@ -2805,6 +2871,12 @@ ${body}
     try {
       setIsAiExtractingAppointment(true);
       setAiExtractionError("");
+
+      if (appointmentExtractionMode === "be") {
+        await applyBeAppointmentExtraction(file);
+        return;
+      }
+
       let extractedText = "";
       let msgData = null;
       let msgMetadataEmailDate = "";
@@ -2825,7 +2897,7 @@ ${body}
         return;
       }
 
-      if (isAppointmentAiEnabled) {
+      if (appointmentExtractionMode === "ai") {
         await applyGeminiAppointmentExtraction(extractedText, msgMetadataEmailDate);
         return;
       }
@@ -2855,20 +2927,30 @@ ${body}
         notify("File uploaded, but no matching appointment details found.", "warning");
       }
     } catch (error) {
-      console.error("Appointment non-AI extraction failed", error);
-      const isUnsupportedFormat = error?.message === "UNSUPPORTED_FILE_FORMAT";
-      const quotaErrorText = firstNonEmptyString(error?.message);
-      const isQuotaExceeded = quotaErrorText.toLowerCase().includes("gemini quota exceeded");
-      const retrySecondsMatch = quotaErrorText.match(/retry after (\d+) seconds/i);
-      const retrySeconds = retrySecondsMatch?.[1] || "20";
-      if (isUnsupportedFormat) {
-        notify("Unsupported file format for AI extraction.", "warning");
-      } else if (isQuotaExceeded) {
-        notify(`Gemini quota exceeded. Please try again after ${retrySeconds} seconds or check API quota.`, "error");
+      const isBeMode = appointmentExtractionMode === "be";
+      if (isBeMode) {
+        console.error("[Appointment BE Extraction] failed", error);
+        const beMessage =
+          firstNonEmptyString(error?.response?.data?.message, error?.response?.data?.error, error?.message) ||
+          "Backend email extraction failed.";
+        notify(beMessage, "error");
+        setAiExtractionError(beMessage);
       } else {
-        notify("File uploaded, but auto-fill failed.", "warning");
+        console.error("Appointment non-AI extraction failed", error);
+        const isUnsupportedFormat = error?.message === "UNSUPPORTED_FILE_FORMAT";
+        const quotaErrorText = firstNonEmptyString(error?.message);
+        const isQuotaExceeded = quotaErrorText.toLowerCase().includes("gemini quota exceeded");
+        const retrySecondsMatch = quotaErrorText.match(/retry after (\d+) seconds/i);
+        const retrySeconds = retrySecondsMatch?.[1] || "20";
+        if (isUnsupportedFormat) {
+          notify("Unsupported file format for AI extraction.", "warning");
+        } else if (isQuotaExceeded) {
+          notify(`Gemini quota exceeded. Please try again after ${retrySeconds} seconds or check API quota.`, "error");
+        } else {
+          notify("File uploaded, but auto-fill failed.", "warning");
+        }
+        setAiExtractionError(firstNonEmptyString(error?.message) || "AI extraction failed");
       }
-      setAiExtractionError(firstNonEmptyString(error?.message) || "AI extraction failed");
     } finally {
       setIsAiExtractingAppointment(false);
     }
@@ -4142,19 +4224,32 @@ ${body}
                                   >
                                     <div className="appointment-email-label-row">
                                       <label className="appointment-email-label">Appointment Email</label>
-                                      <button
-                                        type="button"
-                                        className={`appointment-ai-toggle ${isAppointmentAiEnabled ? "active" : ""}`}
-                                        onClick={(e) => {
-                                          e.preventDefault();
-                                          e.stopPropagation();
-                                          setIsAppointmentAiEnabled((prev) => !prev);
-                                        }}
-                                        disabled={isDisabled}
+                                      <div
+                                        className="appointment-extraction-mode-group"
+                                        role="group"
+                                        aria-label="Appointment extraction mode"
                                       >
-                                        <span className="appointment-ai-toggle-dot" />
-                                        AI
-                                      </button>
+                                        {[
+                                          { id: "without_ai", label: "Without AI" },
+                                          { id: "ai", label: "With AI" },
+                                          { id: "be", label: "With BE" },
+                                        ].map((mode) => (
+                                          <button
+                                            key={mode.id}
+                                            type="button"
+                                            className={`appointment-extraction-mode-btn ${appointmentExtractionMode === mode.id ? "active" : ""
+                                              }`}
+                                            onClick={(e) => {
+                                              e.preventDefault();
+                                              e.stopPropagation();
+                                              setAppointmentExtractionMode(mode.id);
+                                            }}
+                                            disabled={isDisabled || isAiExtractingAppointment}
+                                          >
+                                            {mode.label}
+                                          </button>
+                                        ))}
+                                      </div>
                                     </div>
                                     <DocumentUpload
                                       attachments={appointmentDocuments}
