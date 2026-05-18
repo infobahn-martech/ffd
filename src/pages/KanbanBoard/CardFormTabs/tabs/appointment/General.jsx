@@ -4230,9 +4230,9 @@ ${body}
                                         aria-label="Appointment extraction mode"
                                       >
                                         {[
-                                          { id: "without_ai", label: "Without AI" },
-                                          { id: "ai", label: "With AI" },
-                                          { id: "be", label: "With BE" },
+                                          { id: "without_ai", label: "Manual" },
+                                          { id: "ai", label: "AI" },
+                                          { id: "be", label: "Server" },
                                         ].map((mode) => (
                                           <button
                                             key={mode.id}
