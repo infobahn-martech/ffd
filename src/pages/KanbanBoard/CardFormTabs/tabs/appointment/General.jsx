@@ -61,6 +61,53 @@ const splitApiDateTimeValue = (value) => {
   return { date: datePart, time: timePart };
 };
 
+const msgHeadersToText = (headers) => {
+  if (!headers) return "";
+  if (typeof headers === "string") return headers;
+  if (Array.isArray(headers)) {
+    return headers.map((part) => String(part ?? "")).join("\n");
+  }
+  if (typeof headers === "object") {
+    return Object.entries(headers)
+      .map(([key, val]) => `${key}: ${String(val ?? "")}`)
+      .join("\n");
+  }
+  return String(headers);
+};
+
+const extractEmailDateFromHeaders = (headers = "") => {
+  const headerText = msgHeadersToText(headers);
+  if (!headerText) return "";
+
+  const dateMatch = headerText.match(/^Date:\s*(.+)$/im);
+  if (dateMatch?.[1]?.trim()) return dateMatch[1].trim();
+
+  const sentMatch = headerText.match(/^Sent:\s*(.+)$/im);
+  return sentMatch?.[1]?.trim() || "";
+};
+
+const resolveMsgEmailDate = (msg = {}) => {
+  const headerDate = extractEmailDateFromHeaders(
+    msg?.headers || msg?.transportMessageHeaders || msg?.messageHeaders || ""
+  );
+
+  const candidates = [
+    msg?.messageDeliveryTime,
+    msg?.clientSubmitTime,
+    msg?.creationTime,
+    headerDate,
+  ];
+
+  for (const candidate of candidates) {
+    if (candidate instanceof Date && !Number.isNaN(candidate.getTime())) {
+      return formatToApiDateTime(candidate);
+    }
+    const asString = String(candidate ?? "").trim();
+    if (asString) return asString;
+  }
+  return "";
+};
+
 const mapCallDetailToFormFields = (detail) => {
   const appointmentParts = splitDateTime(detail?.appointment_received_date);
   const dailyReportEmail = Array.isArray(detail?.daily_report_emails)
@@ -2476,34 +2523,12 @@ function General({
     return filledCount;
   };
 
-  const getMsgMetadataDateString = (msgData = {}) => {
-    const candidates = [
-      msgData?.messageDeliveryTime,
-      msgData?.clientSubmitTime,
-      msgData?.sentDate,
-      msgData?.deliveryTime,
-      msgData?.date,
-      msgData?.creationTime,
-      msgData?.messageDate,
-      msgData?.messageDateTime,
-    ];
-
-    for (const candidate of candidates) {
-      if (candidate instanceof Date && !Number.isNaN(candidate.getTime())) {
-        return formatToApiDateTime(candidate);
-      }
-      const asString = String(candidate ?? "").trim();
-      if (asString) return asString;
-    }
-    return "";
-  };
-
   const applyGeminiAppointmentExtraction = useCallback(
     async (text, msgMetadataDate = "") => {
       const extracted = await extractAppointmentDetailsWithGemini(text);
-      const normalizedAppointmentDate = normalizeAppointmentDateTime(
-        firstNonEmptyString(extracted?.appointment_received_date) || msgMetadataDate
-      );
+      const normalizedAppointmentDate =
+        normalizeAppointmentDateTime(firstNonEmptyString(extracted?.appointment_received_date)) ||
+        normalizeAppointmentDateTime(msgMetadataDate);
 
       if (normalizedAppointmentDate) {
         const receivedParts = splitApiDateTimeValue(normalizedAppointmentDate);
@@ -2539,7 +2564,8 @@ function General({
   const isMsgFile = (file) => file?.name?.toLowerCase()?.endsWith(".msg");
 
   const extractMsgAppointmentText = async (file) => {
-    const arrayBuffer = await file.arrayBuffer();
+    const buffer = await file.arrayBuffer();
+    const uint8Array = buffer instanceof Uint8Array ? buffer : new Uint8Array(buffer);
     const MsgReaderConstructor =
       MsgReaderModule.default ||
       MsgReaderModule.MsgReader ||
@@ -2550,7 +2576,7 @@ function General({
       throw new Error("MSG reader constructor not found");
     }
 
-    const msgReader = new MsgReaderConstructor(arrayBuffer);
+    const msgReader = new MsgReaderConstructor(uint8Array);
     const msgInfo = msgReader.getFileData();
     console.log("[MSG FULL DATA]", msgInfo);
     console.log("[MSG HEADER RAW]", msgInfo?.headers || msgInfo?.transportMessageHeaders || msgInfo?.messageHeaders);
@@ -2581,19 +2607,30 @@ function General({
       "";
     const messageDeliveryTime = msgInfo.messageDeliveryTime || "";
     const clientSubmitTime = msgInfo.clientSubmitTime || "";
+    const emailDate = resolveMsgEmailDate(msgInfo);
 
     const extractedText = `
 Email Metadata:
 Sender Name: ${senderName}
 Sender Email: ${senderEmail}
 Subject: ${subject}
+Date: ${emailDate}
 Message Delivery Time: ${messageDeliveryTime}
 Client Submit Time: ${clientSubmitTime}
 
 Email Body:
 ${body}
 `.trim();
-    return { extractedText, msgData: msgInfo };
+    return {
+      extractedText,
+      msgData: msgInfo,
+      metadata: {
+        emailDate,
+        senderName,
+        senderEmail,
+        subject,
+      },
+    };
   };
 
   // Handle document upload
@@ -2616,10 +2653,12 @@ ${body}
       setAiExtractionError("");
       let extractedText = "";
       let msgData = null;
+      let msgMetadataEmailDate = "";
       if (isMsgFile(file)) {
         const parsedMsg = await extractMsgAppointmentText(file);
         extractedText = firstNonEmptyString(parsedMsg?.extractedText);
         msgData = parsedMsg?.msgData || null;
+        msgMetadataEmailDate = firstNonEmptyString(parsedMsg?.metadata?.emailDate);
       } else {
         extractedText = await extractTextFromFile(file);
       }
@@ -2633,8 +2672,7 @@ ${body}
       }
 
       if (isAppointmentAiEnabled) {
-        const msgMetadataDate = msgData ? getMsgMetadataDateString(msgData) : "";
-        await applyGeminiAppointmentExtraction(extractedText, msgMetadataDate);
+        await applyGeminiAppointmentExtraction(extractedText, msgMetadataEmailDate);
         return;
       }
 
