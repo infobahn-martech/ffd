@@ -158,7 +158,7 @@ const CheckList = () => {
     },
     {
       name: "Port Name",
-      selector: "port_name",
+      selector: "port",
       sort: true,
       width: "150",
       thclass: "tb-head",
