@@ -30,7 +30,12 @@ import { buildCreateCallFileFormData } from "../../../../../helpers/createCallFi
 import { notify } from "../../../../../components/Toaster";
 import SearchableSelect, { deriveSearchPlaceholder } from "../../../../../components/form/SearchableSelect";
 import DateTimePickerField from "../../components/DateTimePickerField";
-import { extractTextFromFile, extractAppointmentDetailsWithGemini } from "../../../../../helpers/appointmentAiExtractor";
+import {
+  extractTextFromFile,
+  extractAppointmentDetailsWithGemini,
+  formatToApiDateTime,
+  normalizeAppointmentDateTime,
+} from "../../../../../helpers/appointmentAiExtractor";
 import * as MsgReaderModule from "msgreader";
 
 const splitDateTime = (value) => {
@@ -2471,17 +2476,40 @@ function General({
     return filledCount;
   };
 
+  const getMsgMetadataDateString = (msgData = {}) => {
+    const candidates = [
+      msgData?.messageDeliveryTime,
+      msgData?.clientSubmitTime,
+      msgData?.sentDate,
+      msgData?.deliveryTime,
+      msgData?.date,
+      msgData?.creationTime,
+      msgData?.messageDate,
+      msgData?.messageDateTime,
+    ];
+
+    for (const candidate of candidates) {
+      if (candidate instanceof Date && !Number.isNaN(candidate.getTime())) {
+        return formatToApiDateTime(candidate);
+      }
+      const asString = String(candidate ?? "").trim();
+      if (asString) return asString;
+    }
+    return "";
+  };
+
   const applyGeminiAppointmentExtraction = useCallback(
-    async (text) => {
+    async (text, msgMetadataDate = "") => {
       const extracted = await extractAppointmentDetailsWithGemini(text);
-      const extractedDateTime = firstNonEmptyString(extracted?.appointment_received_date);
-      if (extractedDateTime) {
-        const [datePartRaw = "", timePartRaw = ""] = extractedDateTime.replace("T", " ").split(" ");
-        const datePart = /^\d{4}-\d{2}-\d{2}$/.test(datePartRaw) ? datePartRaw : "";
-        const timePartMatch = String(timePartRaw).match(/^(\d{2}:\d{2})/);
-        const timePart = timePartMatch?.[1] || "";
-        fillIfEmpty("appointmentReceivedDate", datePart);
-        fillIfEmpty("appointmentReceivedTime", timePart);
+      const normalizedAppointmentDate = normalizeAppointmentDateTime(
+        firstNonEmptyString(extracted?.appointment_received_date) || msgMetadataDate
+      );
+
+      if (normalizedAppointmentDate) {
+        const receivedParts = splitApiDateTimeValue(normalizedAppointmentDate);
+        if (receivedParts.date && receivedParts.time) {
+          applyAppointmentReceivedDateTime(receivedParts);
+        }
       }
 
       const matchedPort = findMatchingOption(portSelectOptions, extracted?.port);
@@ -2505,7 +2533,7 @@ function General({
       fillIfEmpty("serviceRequestorEmail", extracted?.service_requestor_email);
       notify("Appointment details extracted successfully.", "success");
     },
-    [callTypeOptions, fillIfEmpty, findMatchingOption, portSelectOptions, vesselNameOptions]
+    [callTypeOptions, fillIfEmpty, findMatchingOption, portSelectOptions, vesselNameOptions, applyAppointmentReceivedDateTime]
   );
 
   const isMsgFile = (file) => file?.name?.toLowerCase()?.endsWith(".msg");
@@ -2530,6 +2558,7 @@ function General({
 
     const body = msgInfo.body || msgInfo.bodyHTML || "";
     const subject = msgInfo.subject || "";
+    const senderName = msgInfo.senderName || msgInfo.from || "";
     const rawSenderFields = [
       msgInfo.senderEmail,
       msgInfo.senderEmailAddress,
@@ -2543,22 +2572,27 @@ function General({
     ]
       .filter(Boolean)
       .join(" ");
-    const fromEmail = extractFirstEmail(rawSenderFields);
-    const fromName = msgInfo.senderName || msgInfo.from || "";
-    const sentDateTime =
-      msgInfo.messageDeliveryTime ||
-      msgInfo.clientSubmitTime ||
-      msgInfo.creationTime ||
-      msgInfo.lastModificationTime ||
+    const senderEmail =
+      extractFirstEmail(rawSenderFields) ||
+      msgInfo.senderEmail ||
+      msgInfo.senderEmailAddress ||
+      msgInfo.senderSmtpAddress ||
+      msgInfo.fromEmail ||
       "";
+    const messageDeliveryTime = msgInfo.messageDeliveryTime || "";
+    const clientSubmitTime = msgInfo.clientSubmitTime || "";
 
     const extractedText = `
-From: ${fromName} <${fromEmail}>
-Sent: ${sentDateTime}
+Email Metadata:
+Sender Name: ${senderName}
+Sender Email: ${senderEmail}
 Subject: ${subject}
+Message Delivery Time: ${messageDeliveryTime}
+Client Submit Time: ${clientSubmitTime}
 
+Email Body:
 ${body}
-`;
+`.trim();
     return { extractedText, msgData: msgInfo };
   };
 
@@ -2599,7 +2633,8 @@ ${body}
       }
 
       if (isAppointmentAiEnabled) {
-        await applyGeminiAppointmentExtraction(extractedText);
+        const msgMetadataDate = msgData ? getMsgMetadataDateString(msgData) : "";
+        await applyGeminiAppointmentExtraction(extractedText, msgMetadataDate);
         return;
       }
 

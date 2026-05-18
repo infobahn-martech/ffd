@@ -46,6 +46,51 @@ const parseRetryDelaySeconds = (errorPayload) => {
   return null;
 };
 
+const pad2 = (n) => String(n).padStart(2, "0");
+
+export const formatToApiDateTime = (date) => {
+  if (!(date instanceof Date) || Number.isNaN(date.getTime())) return "";
+  return `${date.getFullYear()}-${pad2(date.getMonth() + 1)}-${pad2(date.getDate())} ${pad2(date.getHours())}:${pad2(date.getMinutes())}:00`;
+};
+
+export const normalizeAppointmentDateTime = (value) => {
+  if (value instanceof Date) {
+    return formatToApiDateTime(value);
+  }
+
+  const raw = String(value ?? "").trim();
+  if (!raw) return "";
+
+  const cleaned = raw
+    .replace(/^(Mon|Tue|Wed|Thu|Fri|Sat|Sun)\s+/i, "")
+    .replace(",", "")
+    .trim();
+
+  if (/^\d{4}-\d{2}-\d{2}[ T]\d{2}:\d{2}/.test(cleaned)) {
+    const d = new Date(cleaned.replace(" ", "T"));
+    return formatToApiDateTime(d);
+  }
+
+  const match = cleaned.match(/^(\d{1,2})\/(\d{1,2})\/(\d{4})\s+(\d{1,2}):(\d{2})(?::(\d{2}))?\s*(AM|PM)?$/i);
+  if (match) {
+    const [, a, b, year, hour, minute, second, meridian] = match;
+    const day = Number(a);
+    const month = Number(b);
+    let h = Number(hour);
+
+    if (meridian) {
+      const m = meridian.toUpperCase();
+      if (m === "PM" && h < 12) h += 12;
+      if (m === "AM" && h === 12) h = 0;
+    }
+
+    return `${year}-${pad2(month)}-${pad2(day)} ${pad2(h)}:${pad2(minute)}:${pad2(second || 0)}`;
+  }
+
+  const parsed = new Date(raw);
+  return Number.isNaN(parsed.getTime()) ? "" : formatToApiDateTime(parsed);
+};
+
 const getMimeType = (file) => String(file?.type ?? "").toLowerCase();
 const getFileExtension = (fileName = "") => {
   const parts = String(fileName).toLowerCase().split(".");
@@ -117,7 +162,7 @@ Expected JSON format exactly:
 }
 
 Rules:
-- appointment_received_date: format as "YYYY-MM-DD HH:mm:ss" if possible, otherwise empty string.
+- appointment_received_date: use Email Metadata Date (Message Delivery Time, Client Submit Time, or Sent date) when available. Format as "YYYY-MM-DD HH:mm:ss". Do not use dates from the email body such as effective regulation dates or document dates. If no metadata date is available, return empty string.
 - port: port/terminal/anchorage mentioned in text.
 - type_of_call: service such as Inward Clearance, Export Clearance, OH Inspection, Crew Change, etc.
 - vessel_name: exact vessel name.
