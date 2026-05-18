@@ -6,12 +6,9 @@ import CustomModal from "../../../components/CustomModal";
 import "../../../design/scss/prospect-modal.scss";
 import "../../../design/scss/modal-designs.scss";
 import "../../../design/scss/form-designs.scss";
-import { PORT_OPTIONS } from "../../../constants/ports";
 import useDriverReducer from "../../../store/DriverReducer";
 import PremiumDateField from "../../../components/PremiumDateField";
 import PremiumSelect from "../../../components/form/PremiumSelect";
-
-const DRIVER_LOCATION_OPTIONS = PORT_OPTIONS.map((port) => ({ value: port, label: port }));
 
 /** API may return driver_for as 1/2, "1"/"2", or "Transport" / "Material". */
 function normalizeDriverFor(value) {
@@ -196,27 +193,14 @@ export function DriverModal({ showModal, closeModal, onSuccess }) {
 
                             {/* LOCATION */}
                             <div className="col-lg-6 col-sm-12">
-                                <div className="phone-wrapper">
-                                    <label className="phone-label">Location</label>
-                                    <Controller
-                                        name="location"
-                                        control={control}
-                                        render={({ field }) => (
-                                            <PremiumSelect
-                                                value={field.value != null ? String(field.value) : ""}
-                                                onChange={(e) => field.onChange(e.target.value)}
-                                                options={DRIVER_LOCATION_OPTIONS}
-                                                placeholder="Select Location"
-                                                searchPlaceholder="Search location..."
-                                                hasError={Boolean(errors.location)}
-                                            />
-                                        )}
+                                <div className="form-floating desig-inp">
+                                    <input
+                                        type="text"
+                                        className={`form-control ${errors.location ? "is-invalid" : ""}`}
+                                        placeholder="Location"
+                                        {...register("location")}
                                     />
-                                    {errors.location && (
-                                        <span className="error text-danger">
-                                            {errors.location.message}
-                                        </span>
-                                    )}
+                                    <label>Location</label>
                                 </div>
                             </div>
                         </div>
