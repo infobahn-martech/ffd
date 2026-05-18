@@ -168,13 +168,9 @@ export function DriverModal({ showModal, closeModal, onSuccess }) {
                                         className={`form-control ${errors.employee_no ? "is-invalid" : ""
                                             }`}
                                         placeholder="Driver No"
-                                        {...register("employee_no", {
-                                            required: "Employee number is required",
-                                        })}
+                                        {...register("employee_no")}
                                     />
-                                    <label>
-                                        Driver No <span className="text-danger">*</span>
-                                    </label>
+                                    <label>Driver No</label>
                                     {errors.employee_no && (
                                         <span className="error text-danger">
                                             {errors.employee_no.message}
@@ -194,8 +190,6 @@ export function DriverModal({ showModal, closeModal, onSuccess }) {
                                     control={control}
                                     name="joining_date"
                                     label="Joining Date"
-                                    required
-                                    rules={{ required: "Joining date is required" }}
                                     error={errors.joining_date}
                                 />
                             </div>
@@ -203,13 +197,10 @@ export function DriverModal({ showModal, closeModal, onSuccess }) {
                             {/* LOCATION */}
                             <div className="col-lg-6 col-sm-12">
                                 <div className="phone-wrapper">
-                                    <label className="phone-label">
-                                        Location <span className="text-danger">*</span>
-                                    </label>
+                                    <label className="phone-label">Location</label>
                                     <Controller
                                         name="location"
                                         control={control}
-                                        rules={{ required: "Location is required" }}
                                         render={({ field }) => (
                                             <PremiumSelect
                                                 value={field.value != null ? String(field.value) : ""}
@@ -303,13 +294,10 @@ export function DriverModal({ showModal, closeModal, onSuccess }) {
                         <div className="permInputs row">
                             <div className="col-lg-6 col-sm-12">
                                 <div className="phone-wrapper">
-                                    <label className="phone-label">
-                                        Nationality <span className="text-danger">*</span>
-                                    </label>
+                                    <label className="phone-label">Nationality</label>
                                     <Controller
                                         name="nationality"
                                         control={control}
-                                        rules={{ required: "Nationality is required" }}
                                         render={({ field }) => (
                                             <PremiumSelect
                                                 value={field.value != null ? String(field.value) : ""}
