@@ -451,10 +451,10 @@ function SideNav({ isMobileMenuOpen, onCloseMobileMenu, isVendorPortal = false }
       hasPermission: true,
       isOpen: false,
       subMenus: [
-        { menu: 'Vessel Management', to: '/vessel-onboarding', hasPermission: true },
-        { menu: 'Group Email', to: '/group-email', hasPermission: true },
         { menu: 'Billing Entity', to: '/billing-entity', hasPermission: true },
+        { menu: 'Group Email', to: '/group-email', hasPermission: true },
         { menu: 'Billing Instruction', to: '/billing-instruction', hasPermission: true },
+        { menu: 'Vessel Management', to: '/vessel-onboarding', hasPermission: true },
         // { menu: 'Job Status', to: '/job-status', hasPermission: true },
         { menu: 'Customer Pricing', to: '/customer-pricing', hasPermission: true },
       ],
@@ -983,111 +983,111 @@ function SideNav({ isMobileMenuOpen, onCloseMobileMenu, isVendorPortal = false }
     return (
       <>
         {isPortManagerRole && (
-        <aside className={`kanban-sidebar ${isDarkMode ? 'kanban-sidebar-dark' : ''}`}>
-          {kanbanIcons.map((item) => {
-            const Icon = item.icon;
-            const isActive =
-              activeKanbanIcon === item.id ||
-              (restrictedNav &&
-                item.label === 'Kanban Board' &&
-                (pathname === RESTRICTED_BOARD_HOME_PATH ||
-                  pathname.startsWith(`${RESTRICTED_BOARD_HOME_PATH}/`))) ||
-              (item.label === 'Filter' && showFilterPanel) ||
-              (item.label === 'Analytics' && pathname.includes('/analytics')) ||
-              (item.label === 'Board teams' && showBoardTeamsSubmenu) ||
-              (item.label === 'Business rules' && showBusinessRulesModal) ||
-              (item.label === 'Card management' && showCardManagementSubmenu) ||
-              (item.label === 'Edit Workflow' && pathname.startsWith('/edit-workflow')) ||
-              (item.label === 'On Station' && showOnStationModal) ||
-              (item.label === 'Settings' && (showSettingsSubmenu || showCardManagementSubmenu)) ||
-              (item.label === 'Add new dashboard' && showAddDashboardModal) ||
-              (item.label === 'Add' && showSelectWorkflowModal);
+          <aside className={`kanban-sidebar ${isDarkMode ? 'kanban-sidebar-dark' : ''}`}>
+            {kanbanIcons.map((item) => {
+              const Icon = item.icon;
+              const isActive =
+                activeKanbanIcon === item.id ||
+                (restrictedNav &&
+                  item.label === 'Kanban Board' &&
+                  (pathname === RESTRICTED_BOARD_HOME_PATH ||
+                    pathname.startsWith(`${RESTRICTED_BOARD_HOME_PATH}/`))) ||
+                (item.label === 'Filter' && showFilterPanel) ||
+                (item.label === 'Analytics' && pathname.includes('/analytics')) ||
+                (item.label === 'Board teams' && showBoardTeamsSubmenu) ||
+                (item.label === 'Business rules' && showBusinessRulesModal) ||
+                (item.label === 'Card management' && showCardManagementSubmenu) ||
+                (item.label === 'Edit Workflow' && pathname.startsWith('/edit-workflow')) ||
+                (item.label === 'On Station' && showOnStationModal) ||
+                (item.label === 'Settings' && (showSettingsSubmenu || showCardManagementSubmenu)) ||
+                (item.label === 'Add new dashboard' && showAddDashboardModal) ||
+                (item.label === 'Add' && showSelectWorkflowModal);
 
-            return (
-              <div key={item.id} style={{ position: 'relative' }}>
-                <div
-                  className={`kanban-sidebar-icon ${isActive ? 'active' : ''}`}
-                  onClick={() => handleIconClick(item)}
-                  data-tooltip-id="sidebar-tooltip"
-                  data-tooltip-content={item.label}
-                >
-                  <Icon size={22} />
+              return (
+                <div key={item.id} style={{ position: 'relative' }}>
+                  <div
+                    className={`kanban-sidebar-icon ${isActive ? 'active' : ''}`}
+                    onClick={() => handleIconClick(item)}
+                    data-tooltip-id="sidebar-tooltip"
+                    data-tooltip-content={item.label}
+                  >
+                    <Icon size={22} />
+                  </div>
+
+                  {item.label === 'Board teams' && showBoardTeamsSubmenu && (
+                    <div className="kanban-sidebar-submenu">
+                      {boardTeamsSubmenu.map((subItem, index) => (
+                        <div
+                          key={index}
+                          className="kanban-sidebar-submenu-item"
+                          onClick={() => handleSubmenuClickKanban(subItem)}
+                        >
+                          {subItem.label}
+                        </div>
+                      ))}
+                    </div>
+                  )}
+
+                  {item.label === 'Card management' && showCardManagementSubmenu && (
+                    <div className="kanban-sidebar-submenu card-management-submenu">
+                      {cardManagementSubmenu.map((subItem, index) => (
+                        <div
+                          key={index}
+                          className="kanban-sidebar-submenu-item"
+                          onClick={() => handleCardManagementSubmenuClick(subItem)}
+                        >
+                          {subItem.label}
+                        </div>
+                      ))}
+                    </div>
+                  )}
+
+                  {item.label === 'Settings' && showSettingsSubmenu && (
+                    <div className="kanban-sidebar-submenu">
+                      <div
+                        className="kanban-sidebar-submenu-item"
+                        onClick={handleSettingsBusinessRulesClick}
+                      >
+                        Business rules
+                      </div>
+                      <div
+                        className={`kanban-sidebar-submenu-item ${showCardManagementSubmenu ? 'submenu-open' : ''}`}
+                        onClick={handleSettingsCardManagementRowClick}
+                      >
+                        Card management
+                      </div>
+                      {showCardManagementSubmenu && (
+                        <div className="kanban-sidebar-submenu card-management-submenu">
+                          {cardManagementSubmenu.map((subItem, index) => (
+                            <div
+                              key={index}
+                              className="kanban-sidebar-submenu-item"
+                              onClick={() => handleCardManagementSubmenuClick(subItem)}
+                            >
+                              {subItem.label}
+                            </div>
+                          ))}
+                        </div>
+                      )}
+                    </div>
+                  )}
                 </div>
+              );
+            })}
 
-                {item.label === 'Board teams' && showBoardTeamsSubmenu && (
-                  <div className="kanban-sidebar-submenu">
-                    {boardTeamsSubmenu.map((subItem, index) => (
-                      <div
-                        key={index}
-                        className="kanban-sidebar-submenu-item"
-                        onClick={() => handleSubmenuClickKanban(subItem)}
-                      >
-                        {subItem.label}
-                      </div>
-                    ))}
-                  </div>
-                )}
-
-                {item.label === 'Card management' && showCardManagementSubmenu && (
-                  <div className="kanban-sidebar-submenu card-management-submenu">
-                    {cardManagementSubmenu.map((subItem, index) => (
-                      <div
-                        key={index}
-                        className="kanban-sidebar-submenu-item"
-                        onClick={() => handleCardManagementSubmenuClick(subItem)}
-                      >
-                        {subItem.label}
-                      </div>
-                    ))}
-                  </div>
-                )}
-
-                {item.label === 'Settings' && showSettingsSubmenu && (
-                  <div className="kanban-sidebar-submenu">
-                    <div
-                      className="kanban-sidebar-submenu-item"
-                      onClick={handleSettingsBusinessRulesClick}
-                    >
-                      Business rules
-                    </div>
-                    <div
-                      className={`kanban-sidebar-submenu-item ${showCardManagementSubmenu ? 'submenu-open' : ''}`}
-                      onClick={handleSettingsCardManagementRowClick}
-                    >
-                      Card management
-                    </div>
-                    {showCardManagementSubmenu && (
-                      <div className="kanban-sidebar-submenu card-management-submenu">
-                        {cardManagementSubmenu.map((subItem, index) => (
-                          <div
-                            key={index}
-                            className="kanban-sidebar-submenu-item"
-                            onClick={() => handleCardManagementSubmenuClick(subItem)}
-                          >
-                            {subItem.label}
-                          </div>
-                        ))}
-                      </div>
-                    )}
-                  </div>
-                )}
-              </div>
-            );
-          })}
-
-          <Tooltip
-            id="sidebar-tooltip"
-            place="right"
-            style={{
-              backgroundColor: '#333',
-              color: '#fff',
-              fontSize: '0.85rem',
-              borderRadius: '6px',
-              padding: '6px 10px',
-              fontWeight: '500',
-            }}
-          />
-        </aside>
+            <Tooltip
+              id="sidebar-tooltip"
+              place="right"
+              style={{
+                backgroundColor: '#333',
+                color: '#fff',
+                fontSize: '0.85rem',
+                borderRadius: '6px',
+                padding: '6px 10px',
+                fontWeight: '500',
+              }}
+            />
+          </aside>
         )}
 
         <BoardFilterPanel show={showFilterPanel} onClose={() => setShowFilterPanel(false)} />
