@@ -1346,6 +1346,32 @@ const buildPreviewTimeObjectsPayload = (timeObjects, timeObjectValues) =>
     })
     .filter(Boolean);
 
+const unwrapAllDetailResponse = (payload) => {
+  const root = payload?.data?.data ?? payload?.data ?? payload ?? {};
+  const data = Array.isArray(root) ? (root[0] ?? {}) : root;
+  return data && typeof data === "object" ? data : null;
+};
+
+const ALL_DETAIL_SCALAR_FIELD_MAP = [
+  ["vessel_id", "vesselName"],
+  ["port_id", "port"],
+  ["assigned_operator_id", "assignedOperator"],
+  ["main_billing_entity_id", "mainBillingEntity"],
+  ["other_billing_entity_id", "otherBillingEntity"],
+  ["vessel_type_id", "vesselType"],
+  ["barge_type_id", "bargeType"],
+  ["last_port", "lastPort"],
+  ["vessel_owner", "vesselOwner"],
+  ["vessel_principal", "vesselPrincipal"],
+  ["vessel_manager", "vesselManager"],
+  ["service_requestor_name", "serviceRequestorName"],
+  ["service_requestor_email", "serviceRequestorEmail"],
+  ["po_number", "poNumber"],
+  ["srt_number", "srtNo"],
+  ["project_name", "project"],
+  ["billing_instruction", "billingInstructions"],
+];
+
 const formatPreviewDate = (date = new Date()) =>
   new Intl.DateTimeFormat("en-US", {
     month: "short",
@@ -1657,6 +1683,7 @@ function General({
   const [isEtaDependentTimesLoading, setIsEtaDependentTimesLoading] = useState(false);
   const etaDependentRequestIdRef = useRef(0);
   const etaDependentLastRequestKeyRef = useRef("");
+  const allDetailByVesselRequestIdRef = useRef(0);
   const lastHydratedEntityFieldCallIdRef = useRef(null);
   const [operatorKpiTasks, setOperatorKpiTasks] = useState([]);
   const [operatorKpiLoading, setOperatorKpiLoading] = useState(false);
@@ -2537,6 +2564,55 @@ function General({
     return true;
   };
 
+  const applyAllDetailByVesselResponse = (payload) => {
+    const data = unwrapAllDetailResponse(payload);
+    if (!data) return;
+
+    ALL_DETAIL_SCALAR_FIELD_MAP.forEach(([apiKey, formKey]) => {
+      setFieldIfEmpty(formKey, data[apiKey]);
+    });
+
+    const callTypeId = firstNonEmptyString(data.call_type_id, data.call_type);
+    if (callTypeId) {
+      setFieldIfEmpty("typeOfCall", callTypeId);
+      setFieldIfEmpty("call_type_id", callTypeId);
+    }
+
+    const srtNumber = firstNonEmptyString(data.srt_number);
+    if (srtNumber) {
+      setFieldIfEmpty("srtPoWbs", srtNumber);
+    }
+
+    const appointmentParts = splitApiDateTimeValue(data.appointment_received_date);
+    if (appointmentParts.date && appointmentParts.time) {
+      const currentDate = getFieldValue("appointmentReceivedDate");
+      const currentTime = getFieldValue("appointmentReceivedTime");
+      if (!firstNonEmptyString(currentDate) || !firstNonEmptyString(currentTime)) {
+        applyAppointmentReceivedDateTime(appointmentParts);
+      }
+    }
+
+    const timeRows = Array.isArray(data.time_objects) ? data.time_objects : [];
+    if (timeRows.length) {
+      setStageTimeObjectValues((prev) => {
+        let changed = false;
+        const next = { ...prev };
+        timeRows.forEach((item) => {
+          const timeObjectId = firstNonEmptyString(item?.time_object_id);
+          const rawValue = firstNonEmptyString(item?.time_object_value, item?.value, item?.event_datetime);
+          if (!timeObjectId || !rawValue) return;
+          const existing = prev?.[timeObjectId];
+          if (firstNonEmptyString(existing?.date) && firstNonEmptyString(existing?.time)) return;
+          const parsed = splitApiDateTimeValue(rawValue);
+          if (!parsed.date || !parsed.time) return;
+          next[timeObjectId] = parsed;
+          changed = true;
+        });
+        return changed ? next : prev;
+      });
+    }
+  };
+
   const resetAppointmentEmailExtractedValues = () => {
     updateFormValue("appointmentReceivedDate", "");
     updateFormValue("appointmentReceivedTime", "");
@@ -3115,9 +3191,32 @@ ${body}
   const previewVesselId = firstNonEmptyString(getFieldValue("vesselName"));
   const previewPortId = firstNonEmptyString(getFieldValue("port"));
   const previewCallType = firstNonEmptyString(getFieldValue("typeOfCall"));
+  const previewCallTypeId = firstNonEmptyString(getFieldValue("call_type_id"), getFieldValue("typeOfCall"));
   const previewServiceRequestorEmail = firstNonEmptyString(getFieldValue("serviceRequestorEmail"));
   const previewOperatorId = firstNonEmptyString(getFieldValue("assignedOperator"));
   const previewLastPort = firstNonEmptyString(getFieldValue("lastPort"));
+
+  const buildAllDetailPayload = useCallback(
+    () => ({
+      vessel_id: previewVesselId,
+      port_id: previewPortId,
+      call_type_id: previewCallTypeId,
+      service_requestor_email: previewServiceRequestorEmail,
+      operator_id: previewOperatorId,
+      last_port: previewLastPort,
+      time_objects: buildPreviewTimeObjectsPayload(stageTimeObjects, stageTimeObjectValues),
+    }),
+    [
+      previewVesselId,
+      previewPortId,
+      previewCallTypeId,
+      previewServiceRequestorEmail,
+      previewOperatorId,
+      previewLastPort,
+      stageTimeObjects,
+      stageTimeObjectValues,
+    ]
+  );
   const etaTimeObjectId = useMemo(() => {
     const rows = Array.isArray(stageTimeObjects) ? stageTimeObjects : [];
     const etaField = rows.find(
@@ -3329,6 +3428,50 @@ ${body}
     stageTimeObjects,
     isPreviewMessageDirty,
     populateEditablePreviewFields,
+  ]);
+
+  useEffect(() => {
+    if (!isAddMode) return;
+
+    const payload = buildAllDetailPayload();
+    const hasRequiredIds = Boolean(payload.port_id && payload.call_type_id);
+    if (!hasRequiredIds) return;
+
+    let cancelled = false;
+    const timer = window.setTimeout(async () => {
+      if (cancelled) return;
+      const requestPayload = buildAllDetailPayload();
+      if (!requestPayload.port_id || !requestPayload.call_type_id) return;
+
+      const requestId = allDetailByVesselRequestIdRef.current + 1;
+      allDetailByVesselRequestIdRef.current = requestId;
+
+      try {
+        console.log("[General] all_detail_by_vessel_id payload", requestPayload);
+        const response = await callFileService.allDetailByVesselId(requestPayload);
+        console.log("[General] all_detail_by_vessel_id response", response?.data);
+        if (cancelled || allDetailByVesselRequestIdRef.current !== requestId) return;
+        applyAllDetailByVesselResponse(response?.data);
+      } catch (error) {
+        console.error("[General] all_detail_by_vessel_id failed", error);
+      }
+    }, 500);
+
+    return () => {
+      cancelled = true;
+      window.clearTimeout(timer);
+    };
+  }, [
+    isAddMode,
+    buildAllDetailPayload,
+    previewVesselId,
+    previewPortId,
+    previewCallTypeId,
+    previewServiceRequestorEmail,
+    previewOperatorId,
+    previewLastPort,
+    stageTimeObjects,
+    stageTimeObjectValues,
   ]);
 
   // Determine if fields should be disabled
