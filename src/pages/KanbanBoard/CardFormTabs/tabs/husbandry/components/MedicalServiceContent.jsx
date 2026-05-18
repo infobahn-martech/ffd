@@ -5,6 +5,17 @@ import GroupSettingsIcon from "../../../../../../assets/images/cv.png";
 import { FormSection, FormField, FormSelect, ReactQuillEditor, getCrewMultiSelectStyles, formatCrewOptionLabel } from "./Husbandry.components";
 import AttachmentsList from "../../appointment/AttachmentsList";
 import hospitalService from "../../../../../../services/hospitalService";
+import HusbandryServiceRequestsTable from "./HusbandryServiceRequestsTable";
+
+const MEDICAL_REQUEST_COLUMNS = [
+  { key: "wo_number", header: "Wo No", accessor: (r) => r?.wo_number ?? r?.work_order_no },
+  { key: "crew_name", header: "Crew Name", accessor: (r) => r?.crew_name },
+  { key: "hospital_name", header: "Hospital", accessor: (r) => r?.hospital_name ?? r?.hospitalName },
+  { key: "service_name", header: "Service", accessor: (r) => r?.service_name ?? r?.medical_service_name },
+  { key: "status", header: "Status", accessor: (r) => r?.status, type: "status" },
+  { key: "requested_date", header: "Requested Date", accessor: (r) => r?.requested_date, type: "date" },
+  { key: "document", header: "Document", type: "document" },
+];
 
 const MedicalServiceContent = ({ formValues, handleChange, cardColor }) => {
   const [isDragging, setIsDragging] = useState(false);
@@ -162,13 +173,13 @@ const MedicalServiceContent = ({ formValues, handleChange, cardColor }) => {
     <div className="cardform-left-full" style={{ "--card-color": cardColor }}>
       <FormSection icon={GroupSettingsIcon} title="">
         <div className="pre-arrival-form medicalservice-form">
-          <div className="transport-request-layout">
-            <div className="transport-request-left transport-panel-card">
-              <div className="transport-panel-header">
-                <h3 className="transport-panel-header__title">Request Details</h3>
-              </div>
-
-              <div className="transport-request-left__scroll transport-panel-scroll">
+          <div className="general-info-two-column operation-section-form-layout crew-pass-premium-grid">
+            <div className="general-info-left crew-pass-premium-left">
+              <div className="crew-pass-request-details-card">
+                <div className="crew-pass-request-details-card__header">
+                  <h3 className="crew-pass-request-details-card__title">Request Details</h3>
+                </div>
+                <div className="crew-pass-request-details-card__body crew-pass-form-fields crew-pass-thin-scrollbar">
                 <FormField label="Select Crew">
                   <div className="cf-select react-select-container crew-multi-select">
                     <Select
@@ -234,28 +245,36 @@ const MedicalServiceContent = ({ formValues, handleChange, cardColor }) => {
                     />
                   </div>
                 </FormField>
-              </div>
 
-              <div className="transport-save-footer">
-                <button type="button" className="form-save-button" onClick={handleSave}>
-                  Save
-                </button>
+                  <div className="cgpass-remarks">
+                    <FormField label="Remarks">
+                      <ReactQuillEditor
+                        value={formValues?.medicalServiceDescription || ""}
+                        onChange={handleChange("medicalServiceDescription")}
+                        placeholder="Enter remarks..."
+                        name="medicalServiceDescription"
+                      />
+                    </FormField>
+                  </div>
+
+                  <div className="form-save-button-wrapper cgpass-save-footer">
+                    <button type="button" className="form-save-button" onClick={handleSave}>
+                      Save
+                    </button>
+                  </div>
+                </div>
               </div>
             </div>
 
-            <div className="transport-request-right transport-panel-card">
-              <div className="transport-panel-header">
-                <h3 className="transport-panel-header__title">Remarks</h3>
-              </div>
-              <div className="transport-request-right__body transport-panel-scroll">
-                <ReactQuillEditor
-                  value={formValues?.medicalServiceDescription || ""}
-                  onChange={handleChange("medicalServiceDescription")}
-                  placeholder="Enter remarks..."
-                  name="medicalServiceDescription"
-                  className="transport-remarks-quill"
-                />
-              </div>
+            <div className="general-info-right crew-pass-requests-sidebar">
+              <HusbandryServiceRequestsTable
+                title="Medical Requests"
+                requests={formValues.medicalServiceRequests || []}
+                loading={false}
+                columns={MEDICAL_REQUEST_COLUMNS}
+                emptyMessage="No medical requests found"
+                serviceType="medical"
+              />
             </div>
           </div>
         </div>

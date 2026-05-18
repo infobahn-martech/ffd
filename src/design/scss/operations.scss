@@ -3513,8 +3513,11 @@ $send-report-optional: #80868b;
   margin-top: 8px;
 }
 
-/* Husbandry CG Pass: ~34 / 66 columns, premium cards top-aligned */
-.cgpass-form {
+/* Husbandry CG Pass / Transport / Hotel / Medical: ~34 / 66 columns, premium cards top-aligned */
+.cgpass-form,
+.transport-form,
+.hotel-form,
+.medicalservice-form {
   .general-info-two-column.operation-section-form-layout.crew-pass-premium-grid {
     grid-template-columns: minmax(0, 34fr) minmax(0, 66fr);
     column-gap: 18px;
@@ -3890,9 +3893,6 @@ $send-report-optional: #80868b;
   }
 }
 
-.transport-form .operation-section-form-layout,
-.hotel-form .operation-section-form-layout,
-.medicalservice-form .operation-section-form-layout,
 .launchhire-form .operation-section-form-layout {
   grid-template-columns: minmax(0, 45fr) minmax(0, 55fr);
 }
@@ -3936,14 +3936,14 @@ $send-report-optional: #80868b;
     max-height: none;
   }
 
-  .transport-form .operation-section-form-layout,
-  .hotel-form .operation-section-form-layout,
-  .medicalservice-form .operation-section-form-layout,
   .launchhire-form .operation-section-form-layout {
     grid-template-columns: 1fr;
   }
 
-  .cgpass-form .general-info-two-column.operation-section-form-layout.crew-pass-premium-grid {
+  .cgpass-form .general-info-two-column.operation-section-form-layout.crew-pass-premium-grid,
+  .transport-form .general-info-two-column.operation-section-form-layout.crew-pass-premium-grid,
+  .hotel-form .general-info-two-column.operation-section-form-layout.crew-pass-premium-grid,
+  .medicalservice-form .general-info-two-column.operation-section-form-layout.crew-pass-premium-grid {
     grid-template-columns: 1fr;
   }
 
@@ -3951,7 +3951,10 @@ $send-report-optional: #80868b;
     grid-template-columns: 1fr;
   }
 
-  .cgpass-form .crew-pass-requests-sidebar .crew-pass-requests-table-card {
+  .cgpass-form .crew-pass-requests-sidebar .crew-pass-requests-table-card,
+  .transport-form .crew-pass-requests-sidebar .crew-pass-requests-table-card,
+  .hotel-form .crew-pass-requests-sidebar .crew-pass-requests-table-card,
+  .medicalservice-form .crew-pass-requests-sidebar .crew-pass-requests-table-card {
     max-height: min(70vh, 720px);
   }
 

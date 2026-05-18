@@ -6,6 +6,17 @@ import { FormSection, FormField, FormSelect, ReactQuillEditor, getCrewMultiSelec
 import AttachmentsList from "../../appointment/AttachmentsList";
 import DateTimePickerField from "../../../components/DateTimePickerField";
 import hotelService from "../../../../../../services/hotelService";
+import HusbandryServiceRequestsTable from "./HusbandryServiceRequestsTable";
+
+const HOTEL_REQUEST_COLUMNS = [
+  { key: "wo_number", header: "Wo No", accessor: (r) => r?.wo_number ?? r?.work_order_no },
+  { key: "crew_name", header: "Crew Name", accessor: (r) => r?.crew_name },
+  { key: "hotel_name", header: "Hotel", accessor: (r) => r?.hotel_name ?? r?.hotelName },
+  { key: "check_in", header: "Check-in", accessor: (r) => r?.check_in ?? r?.check_in_date, type: "date" },
+  { key: "check_out", header: "Check-out", accessor: (r) => r?.check_out ?? r?.check_out_date, type: "date" },
+  { key: "status", header: "Status", accessor: (r) => r?.status, type: "status" },
+  { key: "document", header: "Document", type: "document" },
+];
 
 const unwrapApiList = (axiosData) => {
   const payload = axiosData?.data ?? axiosData;
@@ -139,13 +150,13 @@ const HotelContent = ({ formValues, handleChange, cardColor }) => {
     <div className="cardform-left-full" style={{ "--card-color": cardColor }}>
       <FormSection icon={GroupSettingsIcon} title="">
         <div className="pre-arrival-form hotel-form">
-          <div className="transport-request-layout">
-            <div className="transport-request-left transport-panel-card">
-              <div className="transport-panel-header">
-                <h3 className="transport-panel-header__title">Request Details</h3>
-              </div>
-
-              <div className="transport-request-left__scroll transport-panel-scroll">
+          <div className="general-info-two-column operation-section-form-layout crew-pass-premium-grid">
+            <div className="general-info-left crew-pass-premium-left">
+              <div className="crew-pass-request-details-card">
+                <div className="crew-pass-request-details-card__header">
+                  <h3 className="crew-pass-request-details-card__title">Request Details</h3>
+                </div>
+                <div className="crew-pass-request-details-card__body crew-pass-form-fields crew-pass-thin-scrollbar">
                 <FormField label="Select Crew">
                   <div className="cf-select react-select-container crew-multi-select">
                     <Select
@@ -223,28 +234,36 @@ const HotelContent = ({ formValues, handleChange, cardColor }) => {
                     />
                   </div>
                 </FormField>
-              </div>
 
-              <div className="transport-save-footer">
-                <button type="button" className="form-save-button" onClick={handleSave}>
-                  Save
-                </button>
+                  <div className="cgpass-remarks">
+                    <FormField label="Remarks">
+                      <ReactQuillEditor
+                        value={formValues?.hotelDescription || ""}
+                        onChange={handleChange("hotelDescription")}
+                        placeholder="Enter remarks..."
+                        name="hotelDescription"
+                      />
+                    </FormField>
+                  </div>
+
+                  <div className="form-save-button-wrapper cgpass-save-footer">
+                    <button type="button" className="form-save-button" onClick={handleSave}>
+                      Save
+                    </button>
+                  </div>
+                </div>
               </div>
             </div>
 
-            <div className="transport-request-right transport-panel-card">
-              <div className="transport-panel-header">
-                <h3 className="transport-panel-header__title">Remarks</h3>
-              </div>
-              <div className="transport-request-right__body transport-panel-scroll">
-                <ReactQuillEditor
-                  value={formValues?.hotelDescription || ""}
-                  onChange={handleChange("hotelDescription")}
-                  placeholder="Enter remarks..."
-                  name="hotelDescription"
-                  className="transport-remarks-quill"
-                />
-              </div>
+            <div className="general-info-right crew-pass-requests-sidebar">
+              <HusbandryServiceRequestsTable
+                title="Hotel Requests"
+                requests={formValues.hotelRequests || []}
+                loading={false}
+                columns={HOTEL_REQUEST_COLUMNS}
+                emptyMessage="No hotel requests found"
+                serviceType="hotel"
+              />
             </div>
           </div>
         </div>

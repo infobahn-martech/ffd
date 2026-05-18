@@ -13,6 +13,17 @@ import crewService from "../../../../../../services/crewService";
 import callFileService from "../../../../../../services/callFileService";
 import transportContentService from "../../../../../../services/transportContentService";
 import { buildPickupDateTime } from "../../../../../../store/TransportContent";
+import HusbandryServiceRequestsTable from "./HusbandryServiceRequestsTable";
+
+const TRANSPORT_REQUEST_COLUMNS = [
+  { key: "wo_number", header: "Wo No", accessor: (r) => r?.wo_number ?? r?.work_order_no },
+  { key: "crew_name", header: "Crew Name", accessor: (r) => r?.crew_name },
+  { key: "from", header: "From", accessor: (r) => r?.from ?? r?.pickup_location },
+  { key: "to", header: "To", accessor: (r) => r?.to ?? r?.drop_location },
+  { key: "status", header: "Status", accessor: (r) => r?.status, type: "status" },
+  { key: "requested_date", header: "Requested Date", accessor: (r) => r?.requested_date, type: "date" },
+  { key: "document", header: "Document", type: "document" },
+];
 
 const REQUEST_EMAIL_ACCEPT_ATTR = ".msg,.eml,.pdf,.doc,.docx";
 const REQUEST_EMAIL_EXT_RE = /\.(msg|eml|pdf|doc|docx)$/i;
@@ -442,13 +453,13 @@ const TransportContent = ({ formValues, handleChange, cardColor }) => {
     <div className="cardform-left-full" style={{ "--card-color": cardColor }}>
       <FormSection icon={GroupSettingsIcon} title="">
         <div className="pre-arrival-form transport-form">
-          <div className="transport-request-layout">
-            <div className="transport-request-left transport-panel-card">
-              <div className="transport-panel-header">
-                <h3 className="transport-panel-header__title">Request Details</h3>
-              </div>
-
-              <div className="transport-request-left__scroll transport-panel-scroll">
+          <div className="general-info-two-column operation-section-form-layout crew-pass-premium-grid">
+            <div className="general-info-left crew-pass-premium-left">
+              <div className="crew-pass-request-details-card">
+                <div className="crew-pass-request-details-card__header">
+                  <h3 className="crew-pass-request-details-card__title">Request Details</h3>
+                </div>
+                <div className="crew-pass-request-details-card__body crew-pass-form-fields crew-pass-thin-scrollbar">
                 <FormField label="Request Email">
                   <div className="transport-upload-box">
                     <AttachmentsList
@@ -628,33 +639,41 @@ const TransportContent = ({ formValues, handleChange, cardColor }) => {
                     />
                   </FormField>
                 )}
-              </div>
 
-              <div className="transport-save-footer">
-                <button
-                  type="button"
-                  className="form-save-button"
-                  onClick={handleSave}
-                  disabled={isSavingTransport}
-                >
-                  {isSavingTransport ? "Saving..." : "Save"}
-                </button>
+                  <div className="cgpass-remarks">
+                    <FormField label="Remarks">
+                      <ReactQuillEditor
+                        value={formValues?.transportDescription || ""}
+                        onChange={handleChange("transportDescription")}
+                        placeholder="Enter remarks..."
+                        name="transportDescription"
+                      />
+                    </FormField>
+                  </div>
+
+                  <div className="form-save-button-wrapper cgpass-save-footer">
+                    <button
+                      type="button"
+                      className="form-save-button"
+                      onClick={handleSave}
+                      disabled={isSavingTransport}
+                    >
+                      {isSavingTransport ? "Saving..." : "Save"}
+                    </button>
+                  </div>
+                </div>
               </div>
             </div>
 
-            <div className="transport-request-right transport-panel-card">
-              <div className="transport-panel-header">
-                <h3 className="transport-panel-header__title">Remarks</h3>
-              </div>
-              <div className="transport-request-right__body transport-panel-scroll">
-                <ReactQuillEditor
-                  value={formValues?.transportDescription || ""}
-                  onChange={handleChange("transportDescription")}
-                  placeholder="Enter remarks..."
-                  name="transportDescription"
-                  className="transport-remarks-quill"
-                />
-              </div>
+            <div className="general-info-right crew-pass-requests-sidebar">
+              <HusbandryServiceRequestsTable
+                title="Transport Requests"
+                requests={formValues.transportRequests || []}
+                loading={false}
+                columns={TRANSPORT_REQUEST_COLUMNS}
+                emptyMessage="No transport requests found"
+                serviceType="transport"
+              />
             </div>
           </div>
         </div>
