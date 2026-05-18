@@ -2297,6 +2297,34 @@
   width: 100%;
 }
 
+.document-upload-loading-state {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  padding: 8px 0;
+}
+
+.document-upload-spinner {
+  width: 18px;
+  height: 18px;
+  border: 2px solid #d0d5dd;
+  border-top-color: #3e5cb6;
+  border-radius: 50%;
+  animation: documentUploadSpin 0.9s linear infinite;
+}
+
+.document-upload-zone.is-loading {
+  cursor: wait;
+}
+
+@keyframes documentUploadSpin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
 .file-input-hidden {
   display: none;
 }

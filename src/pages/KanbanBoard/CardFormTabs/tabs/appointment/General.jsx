@@ -423,13 +423,17 @@ const DocumentUpload = ({
   hasError = false,
   allowMultiple = true,
   onMultipleFiles,
+  isLoading = false,
+  loadingText = "Uploading...",
 }) => {
   const fileInputRef = useRef(null);
   const [isDragging, setIsDragging] = useState(false);
+  const zoneDisabled = disabled || isLoading;
 
   const handleDragEnter = (e) => {
     e.preventDefault();
     e.stopPropagation();
+    if (zoneDisabled) return;
     setIsDragging(true);
   };
 
@@ -449,7 +453,7 @@ const DocumentUpload = ({
     e.stopPropagation();
     setIsDragging(false);
 
-    if (disabled) return;
+    if (zoneDisabled) return;
     const files = Array.from(e.dataTransfer.files);
     if (files.length > 0 && onAdd) {
       if (!allowMultiple) {
@@ -578,13 +582,13 @@ const DocumentUpload = ({
   return (
     <div className="document-upload-wrapper">
       <div
-        className={`document-upload-zone ${type ? `upload-type-${type.toLowerCase().replace(/\s+/g, '-')}` : ""} ${isDragging ? "dragging" : ""} ${hasError ? "has-error" : ""}`}
-        onDragEnter={disabled ? undefined : handleDragEnter}
-        onDragOver={disabled ? undefined : handleDragOver}
-        onDragLeave={disabled ? undefined : handleDragLeave}
-        onDrop={disabled ? undefined : handleDrop}
-        onClick={disabled ? undefined : () => fileInputRef.current?.click()}
-        style={{ "--card-color": "#3e5cb6" || "#2A00FF", pointerEvents: disabled ? "none" : "auto", opacity: disabled ? 0.6 : 1 }}
+        className={`document-upload-zone ${type ? `upload-type-${type.toLowerCase().replace(/\s+/g, '-')}` : ""} ${isDragging ? "dragging" : ""} ${hasError ? "has-error" : ""} ${isLoading ? "is-loading" : ""}`}
+        onDragEnter={zoneDisabled ? undefined : handleDragEnter}
+        onDragOver={zoneDisabled ? undefined : handleDragOver}
+        onDragLeave={zoneDisabled ? undefined : handleDragLeave}
+        onDrop={zoneDisabled ? undefined : handleDrop}
+        onClick={zoneDisabled ? undefined : () => fileInputRef.current?.click()}
+        style={{ "--card-color": "#3e5cb6" || "#2A00FF", pointerEvents: zoneDisabled ? "none" : "auto", opacity: zoneDisabled ? 0.6 : 1 }}
       >
         <input
           ref={fileInputRef}
@@ -592,18 +596,27 @@ const DocumentUpload = ({
           className="file-input-hidden"
           multiple={allowMultiple}
           onChange={handleFileInputChange}
-          disabled={disabled}
+          disabled={zoneDisabled}
         />
         <div className="upload-zone-content">
-          <div className="upload-icon-wrapper">
-          </div>
-          <div className="upload-text-content">
-            <p className="upload-main-text">
-              Drag and drop your files here, or{" "}
-              <span className="upload-link">click to browse</span>
-            </p>
-            {/* <p className="upload-sub-text">Supports all file formats</p> */}
-          </div>
+          {isLoading ? (
+            <div className="document-upload-loading-state">
+              <span className="document-upload-spinner" aria-hidden="true" />
+              <p className="upload-main-text">{loadingText}</p>
+            </div>
+          ) : (
+            <>
+              <div className="upload-icon-wrapper">
+              </div>
+              <div className="upload-text-content">
+                <p className="upload-main-text">
+                  Drag and drop your files here, or{" "}
+                  <span className="upload-link">click to browse</span>
+                </p>
+                {/* <p className="upload-sub-text">Supports all file formats</p> */}
+              </div>
+            </>
+          )}
         </div>
       </div>
 
@@ -652,6 +665,8 @@ DocumentUpload.propTypes = {
   hasError: PropTypes.bool,
   allowMultiple: PropTypes.bool,
   onMultipleFiles: PropTypes.func,
+  isLoading: PropTypes.bool,
+  loadingText: PropTypes.string,
 };
 
 // Multi-Select Email Component
@@ -1622,6 +1637,7 @@ function General({
   const [appointmentDocuments, setAppointmentDocuments] = useState([]);
   const [appointmentExtractionMode, setAppointmentExtractionMode] = useState("without_ai");
   const [isAiExtractingAppointment, setIsAiExtractingAppointment] = useState(false);
+  const [isServerEmailReading, setIsServerEmailReading] = useState(false);
   const [aiExtractionError, setAiExtractionError] = useState("");
   const [previewMessageText, setPreviewMessageText] = useState("");
   const [previewMessageEditorKey, setPreviewMessageEditorKey] = useState(0);
@@ -2889,7 +2905,12 @@ ${body}
       setAiExtractionError("");
 
       if (appointmentExtractionMode === "be") {
-        await applyBeAppointmentExtraction(file);
+        setIsServerEmailReading(true);
+        try {
+          await applyBeAppointmentExtraction(file);
+        } finally {
+          setIsServerEmailReading(false);
+        }
         return;
       }
 
@@ -4276,6 +4297,8 @@ ${body}
                                       cardColor={accentColor}
                                       disabled={isDisabled}
                                       hasError={false}
+                                      isLoading={isServerEmailReading}
+                                      loadingText="Reading email from server..."
                                     />
                                     {/* {isAiExtractingAppointment && (
                                       <div className="cf-field-hint">Extracting appointment details...</div>
