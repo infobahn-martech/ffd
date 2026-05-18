@@ -1424,6 +1424,7 @@ const EmailPreviewPanel = ({
   editableFields,
   onEditableFieldChange,
   messageValue,
+  messageEditorKey,
   onMessageChange,
 }) => {
   const previewFromApi = previewData && typeof previewData === "object" ? previewData : {};
@@ -1514,6 +1515,7 @@ const EmailPreviewPanel = ({
               <div className="email-preview-message-title">Message</div>
               <div className="react-quill-wrapper email-preview-message-quill-react">
                 <ReactQuill
+                  key={messageEditorKey}
                   theme="snow"
                   value={messageValue ?? ""}
                   onChange={(html) => {
@@ -1589,6 +1591,7 @@ EmailPreviewPanel.propTypes = {
   }),
   onEditableFieldChange: PropTypes.func.isRequired,
   messageValue: PropTypes.string,
+  messageEditorKey: PropTypes.oneOfType([PropTypes.string, PropTypes.number]),
   /** Receives plain HTML/string from ReactQuill. */
   onMessageChange: PropTypes.func.isRequired,
 };
@@ -1621,6 +1624,7 @@ function General({
   const [isAiExtractingAppointment, setIsAiExtractingAppointment] = useState(false);
   const [aiExtractionError, setAiExtractionError] = useState("");
   const [previewMessageText, setPreviewMessageText] = useState("");
+  const [previewMessageEditorKey, setPreviewMessageEditorKey] = useState(0);
   const [emailPreviewData, setEmailPreviewData] = useState(null);
   const [isPreviewMessageDirty, setIsPreviewMessageDirty] = useState(false);
   const [editablePreviewFields, setEditablePreviewFields] = useState({
@@ -2612,6 +2616,17 @@ function General({
         return changed ? next : prev;
       });
     }
+
+    const resolvedPreview = resolveEmailPreviewPayload(payload);
+    if (resolvedPreview) {
+      setEmailPreviewData(resolvedPreview);
+      setPreviewMessageText(
+        resolvedPreview.messageHtml || resolvedPreview.message || ""
+      );
+      setIsPreviewMessageDirty(false);
+      setPreviewMessageEditorKey((key) => key + 1);
+      populateEditablePreviewFields(resolvedPreview);
+    }
   };
 
   const resetAppointmentEmailExtractedValues = () => {
@@ -2628,6 +2643,7 @@ function General({
     updateFormValue("serviceRequestorEmail", "");
 
     setPreviewMessageText("");
+    setPreviewMessageEditorKey(0);
     setEmailPreviewData(null);
     setIsPreviewMessageDirty(false);
     setEditablePreviewFields({
@@ -4693,6 +4709,7 @@ ${body}
                             }));
                           }}
                           messageValue={previewMessageText}
+                          messageEditorKey={previewMessageEditorKey}
                           onMessageChange={(next) => {
                             setIsPreviewMessageDirty(true);
                             setPreviewMessageText(next ?? "");
