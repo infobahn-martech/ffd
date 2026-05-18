@@ -608,6 +608,7 @@ function Husbandry({ card, formValues, handleChange, isDAModule = false }) {
           activeSubTab={activeSubTab}
           onMainTabChange={handleMainTabChange}
           onSubTabChange={handleSubTabChange}
+          onNavigateToTab={handleNavigateToTab}
           selectedActionTab={selectedActionTab}
           selectedServices={selectedServices}
           onBackToServiceSelection={handleBackToServiceSelection}

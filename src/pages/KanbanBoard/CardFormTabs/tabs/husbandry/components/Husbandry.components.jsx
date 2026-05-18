@@ -7,7 +7,15 @@ import { MAIN_TABS, CREW_MANAGEMENT_SUBTABS, MATERIAL_MANAGEMENT_SUBTABS } from 
 import NavTabButton from "../../../../../../components/NavTabButton";
 
 // Sub-components
-export const HusbandryTabs = ({ activeMainTab, activeSubTab, onMainTabChange, onSubTabChange, selectedActionTab = null, selectedServices = [], onBackToServiceSelection, cardColor = "#00368c" }) => {
+const CREW_DIRECT_NAV_SUBTABS = [
+  { id: CREW_MANAGEMENT_SUBTABS.TRANSPORT, label: "Transport" },
+  { id: CREW_MANAGEMENT_SUBTABS.CG_PASS, label: "CG Pass" },
+  { id: CREW_MANAGEMENT_SUBTABS.ZAWIL_PASS, label: "Zawil Pass" },
+  { id: CREW_MANAGEMENT_SUBTABS.HOTEL, label: "Hotel" },
+  { id: CREW_MANAGEMENT_SUBTABS.MEDICAL_SERVICE, label: "Medical" },
+];
+
+export const HusbandryTabs = ({ activeMainTab, activeSubTab, onMainTabChange, onSubTabChange, onNavigateToTab, selectedActionTab = null, selectedServices = [], onBackToServiceSelection, cardColor = "#00368c" }) => {
 
   // Filter main tabs based on selected services
   const allMainTabs = [
@@ -27,28 +35,10 @@ export const HusbandryTabs = ({ activeMainTab, activeSubTab, onMainTabChange, on
 
   let subTabs = [];
   if (activeMainTab === MAIN_TABS.CREW_MANAGEMENT) {
-    // Always show Crew
     subTabs = [
       { id: CREW_MANAGEMENT_SUBTABS.CREW, label: "Crew" },
+      ...CREW_DIRECT_NAV_SUBTABS,
     ];
-
-    // Only show the selected action tab (e.g., Transport) if one is selected
-    if (selectedActionTab) {
-      const allSubTabs = [
-        { id: CREW_MANAGEMENT_SUBTABS.TRANSPORT, label: "Transport" },
-        { id: CREW_MANAGEMENT_SUBTABS.CG_PASS, label: "CG Pass" },
-        { id: CREW_MANAGEMENT_SUBTABS.ZAWIL_PASS, label: "Zawil Pass" },
-        { id: CREW_MANAGEMENT_SUBTABS.LAUNCH_HIRE, label: "Launch Hire" },
-        { id: CREW_MANAGEMENT_SUBTABS.HOTEL, label: "Hotel" },
-        { id: CREW_MANAGEMENT_SUBTABS.MEDICAL_SERVICE, label: "Medical" }
-      ];
-
-      // Find and add only the selected action tab
-      const selectedTab = allSubTabs.find(tab => tab.id === selectedActionTab);
-      if (selectedTab) {
-        subTabs.push(selectedTab);
-      }
-    }
   } else if (activeMainTab === MAIN_TABS.MATERIAL_MANAGEMENT) {
     subTabs = [
       {
@@ -115,12 +105,21 @@ export const HusbandryTabs = ({ activeMainTab, activeSubTab, onMainTabChange, on
             {isActive && currentSubTabs.length > 0 && (
               <div className="op-submenu">
                 {currentSubTabs.map((subTab) => {
+                  const isDirectCrewNav = CREW_DIRECT_NAV_SUBTABS.some((tab) => tab.id === subTab.id);
+                  const handleSubTabClick = () => {
+                    if (isDirectCrewNav && onNavigateToTab) {
+                      onNavigateToTab(subTab.id);
+                      return;
+                    }
+                    onSubTabChange(subTab.id);
+                  };
+
                   return (
                     <NavTabButton
                       key={subTab.id}
                       className="op-tab op-tab-sub"
                       active={activeSubTab === subTab.id}
-                      onClick={() => onSubTabChange(subTab.id)}
+                      onClick={handleSubTabClick}
                     >
                       {subTab.label}
                     </NavTabButton>
@@ -140,6 +139,7 @@ HusbandryTabs.propTypes = {
   activeSubTab: PropTypes.string.isRequired,
   onMainTabChange: PropTypes.func.isRequired,
   onSubTabChange: PropTypes.func.isRequired,
+  onNavigateToTab: PropTypes.func,
   selectedActionTab: PropTypes.string,
   selectedServices: PropTypes.array,
   onBackToServiceSelection: PropTypes.func,
