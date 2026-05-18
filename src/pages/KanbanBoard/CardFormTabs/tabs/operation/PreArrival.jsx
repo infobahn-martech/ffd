@@ -41,25 +41,10 @@ import {
   mergePreArrivalDetailDocuments,
 } from "./preArrivalDetailApply";
 
-const IconUpload = () => (
-  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" aria-hidden>
-    <path d="M21 15V19C21 19.5304 20.7893 20.0391 20.4142 20.4142C20.0391 20.7893 19.5304 21 19 21H5C4.46957 21 3.96086 20.7893 3.58579 20.4142C3.21071 20.0391 3 19.5304 3 19V15" stroke="currentColor" strokeWidth="2" strokeLinecap="round" />
-    <path d="M17 8L12 3L7 8" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
-    <path d="M12 3V15" stroke="currentColor" strokeWidth="2" strokeLinecap="round" />
-  </svg>
-);
-
 const IconEye = () => (
   <svg width="18" height="18" viewBox="0 0 24 24" fill="none" aria-hidden>
     <path d="M1 12C1 12 5 4 12 4C19 4 23 12 23 12C23 12 19 20 12 20C5 20 1 12 1 12Z" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
     <circle cx="12" cy="12" r="3" stroke="currentColor" strokeWidth="2" />
-  </svg>
-);
-
-const IconTrash = () => (
-  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" aria-hidden>
-    <path d="M3 6H5H21" stroke="currentColor" strokeWidth="2" strokeLinecap="round" />
-    <path d="M8 6V4C8 3.46957 8.21071 2.96086 8.58579 2.58579C8.96086 2.21071 9.46957 2 10 2H14C14.5304 2 15.0391 2.21071 15.4142 2.58579C15.7893 2.96086 16 3.46957 16 4V6M19 6V20C19 20.5304 18.7893 21.0391 18.4142 21.4142C18.0391 21.7893 17.5304 22 17 22H7C6.46957 22 5.96086 21.7893 5.58579 21.4142C5.21071 21.0391 5 20.5304 5 20V6H19Z" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
   </svg>
 );
 
@@ -87,21 +72,12 @@ const DOC_STATUS_REJECTED = 4;
 
 const CompactFileUploadRow = ({
   label,
-  uploadedFileName = null,
   files = [],
   status = null,
   remarks = null,
-  onAddFiles,
-  onReplaceFile,
-  isViewOnly = false,
 }) => {
-  const inputRef = useRef(null);
   const hasFiles = (files || []).length > 0;
   const displayLabel = String(label || "").trim() || "Document";
-  const secondaryFileName = String(uploadedFileName || files?.[0]?.name || "").trim();
-  const showUploadedFileName =
-    Boolean(secondaryFileName) &&
-    secondaryFileName.toLowerCase() !== displayLabel.toLowerCase();
   // Missing status from get_documents_by_role: treat as Not uploaded for UI actions when no files,
   // or as Uploaded when local/attached files exist (preview). Never use Number(null) — that is 0.
   const statusIsEmpty =
@@ -122,14 +98,7 @@ const CompactFileUploadRow = ({
   const isVerified = rowStatus === DOC_STATUS_VERIFIED;
   const isReupload = rowStatus === DOC_STATUS_REUPLOAD;
   const isRejected = rowStatus === DOC_STATUS_REJECTED;
-  const shouldReplaceOnUpload = isReupload || isRejected;
-  const showPreview = hasFiles && (isUploaded || isVerified || isReupload || isRejected);
-  const showUpload = !isViewOnly && (isNotUploaded || isReupload || isRejected);
-  const uploadTitle = isReupload
-    ? "Reupload file"
-    : isRejected
-      ? "Upload replacement file"
-      : "Upload file";
+  const canPreview = hasFiles;
   const statusLabel = isNotUploaded
     ? "Not uploaded"
     : isUploaded
@@ -153,24 +122,6 @@ const CompactFileUploadRow = ({
             ? "document-row-status-chip--rejected"
             : "";
 
-  const handleInput = (e) => {
-    const selectedFiles = Array.from(e.target.files || []);
-    if (selectedFiles.length) {
-      const mapped = selectedFiles.map((file) => ({
-        name: file.name,
-        file,
-        size: file.size,
-        type: file.type,
-      }));
-      if (shouldReplaceOnUpload && typeof onReplaceFile === "function") {
-        onReplaceFile(mapped[0]);
-      } else {
-        onAddFiles(mapped);
-      }
-    }
-    e.target.value = "";
-  };
-
   return (
     <div className="document-row compact-file-upload-row">
       <div className="document-row-name compact-file-upload-label">
@@ -178,9 +129,9 @@ const CompactFileUploadRow = ({
           <span className="compact-file-upload-title" title={displayLabel}>
             {displayLabel}
           </span>
-          {statusLabel && !isNotUploaded && (
+          {statusLabel ? (
             <span className={`document-row-status-chip ${statusClass}`}>{statusLabel}</span>
-          )}
+          ) : null}
         </div>
         {/* {showUploadedFileName ? (
           <div className="compact-file-upload-filename" title={secondaryFileName}>
@@ -193,48 +144,28 @@ const CompactFileUploadRow = ({
           </div>
         ) : null}
       </div>
-      <div className="document-row-actions compact-file-upload-actions">
-        {showPreview && (
-          <button type="button" className="document-row-icon-btn" onClick={() => openAttachmentPreview(files[0])} title="Preview">
+      {!isNotUploaded && (
+        <div className="document-row-actions compact-file-upload-actions">
+          <button
+            type="button"
+            className="document-row-icon-btn"
+            onClick={() => openAttachmentPreview(files[0])}
+            title="Preview"
+            disabled={!canPreview}
+          >
             <IconEye />
           </button>
-        )}
-        {showUpload && (
-          <>
-            <button type="button" className="document-row-icon-btn" onClick={() => inputRef.current?.click()} title={uploadTitle}>
-              <IconUpload />
-            </button>
-            <input
-              ref={inputRef}
-              type="file"
-              className="document-row-file-input"
-              onChange={handleInput}
-              aria-label={`Upload ${displayLabel}`}
-              multiple={!shouldReplaceOnUpload}
-            />
-            {/* {hasFiles && (
-              <button type="button" className="document-row-icon-btn document-row-icon-btn--danger" onClick={() => onRemoveAt(files.length - 1)} title="Remove latest file">
-                <IconTrash />
-              </button>
-            )} */}
-          </>
-        )}
-      </div>
+        </div>
+      )}
     </div>
   );
 };
 
 CompactFileUploadRow.propTypes = {
   label: PropTypes.string.isRequired,
-  uploadedFileName: PropTypes.string,
   files: PropTypes.array,
   status: PropTypes.oneOfType([PropTypes.number, PropTypes.string]),
   remarks: PropTypes.string,
-  isRequired: PropTypes.bool,
-  onAddFiles: PropTypes.func.isRequired,
-  onReplaceFile: PropTypes.func,
-  onRemoveAt: PropTypes.func,
-  isViewOnly: PropTypes.bool,
 };
 
 const SaberUploadBox = ({ files = [], onAddFiles, isViewOnly = false }) => {
@@ -323,11 +254,6 @@ function PreArrivalDocumentHandlingSection({
 
   const setDh = (next) => {
     handleChange("preArrivalDocumentHandling")({ target: { value: next } });
-  };
-
-  const patchRowFiles = (processKey, rowId, nextFiles) => {
-    const rows = (dh.documents[processKey] || []).map((r) => (r.id === rowId ? { ...r, files: nextFiles } : r));
-    setDh({ ...dh, documents: { ...dh.documents, [processKey]: rows } });
   };
 
   const mergeRoleDocuments = useCallback((existingRows = [], incomingRows = []) => {
@@ -598,15 +524,9 @@ function PreArrivalDocumentHandlingSection({
                 <CompactFileUploadRow
                   key={doc.id}
                   label={doc.document_name || doc.name}
-                  uploadedFileName={doc.file_name || doc.files?.[0]?.name}
                   files={doc.files || []}
                   status={doc.status}
                   remarks={doc.remarks}
-                  isRequired={Boolean(doc.is_required)}
-                  isViewOnly={isViewOnly}
-                  onAddFiles={(newFiles) => patchRowFiles("gro", doc.id, [...(doc.files || []), ...newFiles])}
-                  onReplaceFile={(newFile) => patchRowFiles("gro", doc.id, [newFile])}
-                  onRemoveAt={(idx) => patchRowFiles("gro", doc.id, (doc.files || []).filter((_, i) => i !== idx))}
                 />
               ))}
             </DocumentGroupCard>
@@ -618,19 +538,9 @@ function PreArrivalDocumentHandlingSection({
                 <CompactFileUploadRow
                   key={doc.id}
                   label={doc.document_name || doc.name}
-                  uploadedFileName={doc.file_name || doc.files?.[0]?.name}
                   files={doc.files || []}
                   status={doc.status}
                   remarks={doc.remarks}
-                  isRequired={Boolean(doc.is_required)}
-                  isViewOnly={isViewOnly}
-                  onAddFiles={(newFiles) =>
-                    patchRowFiles("customClearance", doc.id, [...(doc.files || []), ...newFiles])
-                  }
-                  onReplaceFile={(newFile) => patchRowFiles("customClearance", doc.id, [newFile])}
-                  onRemoveAt={(idx) =>
-                    patchRowFiles("customClearance", doc.id, (doc.files || []).filter((_, i) => i !== idx))
-                  }
                 />
               ))}
             </DocumentGroupCard>
