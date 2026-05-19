@@ -243,7 +243,7 @@ const MaterialManagementContent = ({ formValues, handleChange, cardColor }) => {
         <form id="materialForm" onSubmit={handleSubmit}>
           <div className="permInputs row mb-lg-3">
             <div className="col-12 mb-3">
-              <FormField label="Material to collect or deliver">
+              <FormField label="Material to Collect or Deliver">
                 <FormSelect
                   value={formData.materialToCollectOrDeliver}
                   onChange={(e) => handleFormChange("materialToCollectOrDeliver", e.target.value)}
@@ -276,7 +276,7 @@ const MaterialManagementContent = ({ formValues, handleChange, cardColor }) => {
             </div>
 
             <div className="col-12 mb-3">
-              <FormField label="PickUp">
+              <FormField label="Pick Up">
                 <div className="cf-input date-time-row">
                   <input
                     type="date"
@@ -295,7 +295,7 @@ const MaterialManagementContent = ({ formValues, handleChange, cardColor }) => {
             </div>
 
             <div className="col-12 mb-3">
-              <FormField label="DropOff">
+              <FormField label="Drop Off">
                 <div className="cf-input date-time-row">
                   <input
                     type="date"
@@ -314,7 +314,7 @@ const MaterialManagementContent = ({ formValues, handleChange, cardColor }) => {
             </div>
 
             <div className="col-12 mb-3">
-              <FormField label="Drop off location">
+              <FormField label="Drop Off Location">
                 <LocationAutocomplete
                   value={formData.dropOffLocation || ""}
                   onChange={(e) => handleFormChange("dropOffLocation", e.target.value)}
@@ -515,8 +515,8 @@ const MaterialManagementContent = ({ formValues, handleChange, cardColor }) => {
             <tr>
               <th>Material Type</th>
               <th>Driver</th>
-              <th>PickUp</th>
-              <th>DropOff</th>
+              <th>Pick Up</th>
+              <th>Drop Off</th>
               <th>Status</th>
             </tr>
           </thead>
