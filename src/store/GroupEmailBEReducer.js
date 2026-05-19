@@ -10,6 +10,7 @@ const useGroupEmailBEReducer = create((set) => ({
     groupEmailBEDetail: null,
     isLoadingDetail: false,
     isBeingUpdated: false,
+    isDeleteLoading: false,
     totalCount: 0,
     addGroupEmailBE: async ({ formData, cb }) => {
         try {
@@ -76,9 +77,9 @@ const useGroupEmailBEReducer = create((set) => ({
     deleteGroupEmailBE: async (payload) => {
         const { groupEmailBE_id, cb } = payload || {};
         try {
-            set({ isBeingUpdated: true });
+            set({ isDeleteLoading: true });
             const { data } = await groupEmailBEService.deleteGroupEmailBE(groupEmailBE_id);
-            set({ successMessage: data?.message, isBeingUpdated: false });
+            set({ successMessage: data?.message, isDeleteLoading: false });
             const { success } = useAlertReducer.getState();
             success(data?.message ?? 'Group email BE deleted successfully');
             cb?.();
@@ -86,7 +87,7 @@ const useGroupEmailBEReducer = create((set) => ({
             const { error } = useAlertReducer.getState();
             set({
                 errorMessage: 'Something went wrong deleting the group email BE',
-                isBeingUpdated: false,
+                isDeleteLoading: false,
             });
             error(err?.response?.data?.message ?? err.message);
         }
