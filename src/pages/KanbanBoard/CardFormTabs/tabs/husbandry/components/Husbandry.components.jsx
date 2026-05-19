@@ -75,7 +75,7 @@ export const HusbandryTabs = ({ activeMainTab, activeSubTab, onMainTabChange, on
   }
 
   return (
-    <div className="operation-left">
+    <div className="operation-left" style={{ "--card-color": cardColor }}>
       {onBackToServiceSelection && (
         <button
           type="button"

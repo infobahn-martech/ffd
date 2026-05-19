@@ -1474,13 +1474,14 @@ $send-report-optional: #80868b;
 
 .op-tab:hover {
   background: #e0e7ff;
-  color: #333333;
+  color: var(--card-color, #333333);
 }
 
 .op-tab.active {
   background: #e0e7ff;
-  color: #333333;
-  font-weight: 500;
+  color: var(--card-color, #2a00ff);
+  font-weight: 600;
+  border-left: 3px solid var(--card-color, #2a00ff);
   box-shadow: none;
 }
 
@@ -1491,7 +1492,7 @@ $send-report-optional: #80868b;
   margin-top: 4px;
   margin-left: 12px;
   padding-left: 12px;
-  border-left: 2px solid rgba(42, 0, 255, 0.2);
+  border-left: 2px solid var(--card-color, rgba(42, 0, 255, 0.2));
   padding-top: 4px;
   padding-bottom: 4px;
 }
@@ -1508,13 +1509,13 @@ $send-report-optional: #80868b;
 
 .op-tab-sub:hover {
   background: #e0e7ff;
-  color: #333333;
+  color: var(--card-color, #333333);
 }
 
 .op-tab-sub.active {
   background: #e0e7ff;
-  color: #333333;
-  font-weight: 500;
+  color: var(--card-color, #2a00ff);
+  font-weight: 600;
   box-shadow: none;
 }
 
@@ -6733,6 +6734,48 @@ body .material-management-modal .files-list::-webkit-scrollbar-thumb:hover {
 
 /* Status */
 
+.material-table th:nth-child(6),
+.material-table td:nth-child(6) {
+  width: 100px;
+  min-width: 100px;
+  text-align: center;
+}
+
+.material-table-actions {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+}
+
+.material-table-action-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 28px;
+  height: 28px;
+  border: none;
+  border-radius: 6px;
+  background: transparent;
+  cursor: pointer;
+  transition: background 0.15s;
+  padding: 0;
+
+  &:hover {
+    background: #f0f0f0;
+  }
+
+  &.edit:hover {
+    background: #e0e7ff;
+    color: var(--card-color, #2a00ff);
+  }
+
+  &.delete:hover {
+    background: #fee2e2;
+    color: #dc2626;
+  }
+}
+
 .material-table-container .table.material-table {
   margin: 0;
   border-collapse: separate;
@@ -6748,13 +6791,12 @@ body .material-management-modal .files-list::-webkit-scrollbar-thumb:hover {
 
 .material-table-container .table.material-table thead th {
   background: var(--card-color, #2A00FF) !important;
-  color: #3e3633;
+  color: #ffffff;
   font-weight: 600;
   font-size: 12px;
   text-transform: none;
   letter-spacing: 0.5px;
-  padding: 16px;
-  padding-left: 20px;
+  padding: 12px 16px;
   border: none;
 }
 
@@ -6769,14 +6811,14 @@ body .material-management-modal .files-list::-webkit-scrollbar-thumb:hover {
 .material-table tbody td {
   font-size: 12px;
   color: #333;
-  padding: 14px 6px;
+  padding: 12px 16px;
+  vertical-align: middle;
 }
 
 .material-table-cell {
   color: #333;
   font-size: 12px;
   line-height: 1.5;
-  padding-left: 12px;
 }
 
 .material-table tbody tr:nth-child(even) {
