@@ -2,6 +2,8 @@
  * Builds multipart/form-data for POST /call_file/create_call_file
  */
 
+import { sanitizeAppointmentEmailBody } from "./sanitizeAppointmentEmailBody";
+
 function str(v) {
   if (v === undefined || v === null) return "";
   return String(v).trim();
@@ -158,8 +160,13 @@ export function buildCreateCallFileFormData(formPayload, options = {}) {
     fv.appointment_acceptance && typeof fv.appointment_acceptance === "object"
       ? fv.appointment_acceptance
       : {};
+  const originalBody = String(appointmentAcceptanceRaw.body ?? "");
+  const sanitizedBody = sanitizeAppointmentEmailBody(originalBody);
+  console.log("Original email body length:", originalBody.length);
+  console.log("Sanitized email body length:", sanitizedBody.length);
+  console.log("Removed base64 image:", originalBody.length !== sanitizedBody.length);
   const appointmentAcceptance = {
-    body: str(appointmentAcceptanceRaw.body),
+    body: str(sanitizedBody),
     cc_emails: str(appointmentAcceptanceRaw.cc_emails),
     from_email: str(appointmentAcceptanceRaw.from_email),
     subject: str(appointmentAcceptanceRaw.subject),

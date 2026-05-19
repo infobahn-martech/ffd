@@ -1325,8 +1325,12 @@ const resolveEmailPreviewPayload = (payload) => {
   const rawBodyHtml = firstNonEmptyString(
     source.body,
     source.message,
+    source.messageHtml,
+    source.message_html,
     source.email_body,
-    source.email_content
+    source.email_content,
+    data.messageHtml,
+    data.message_html
   );
   return {
     from: firstNonEmptyString(
@@ -1533,9 +1537,9 @@ const EmailPreviewPanel = ({
                   key={messageEditorKey}
                   theme="snow"
                   value={messageValue ?? ""}
-                  onChange={(html) => {
+                  onChange={(html, _delta, source) => {
                     if (typeof onMessageChange === "function") {
-                      onMessageChange(html ?? "");
+                      onMessageChange(html ?? "", source);
                     }
                   }}
                   modules={EMAIL_PREVIEW_MESSAGE_QUILL_MODULES}
@@ -1607,7 +1611,7 @@ EmailPreviewPanel.propTypes = {
   onEditableFieldChange: PropTypes.func.isRequired,
   messageValue: PropTypes.string,
   messageEditorKey: PropTypes.oneOfType([PropTypes.string, PropTypes.number]),
-  /** Receives plain HTML/string from ReactQuill. */
+  /** Receives HTML from ReactQuill; second arg is Quill change source (e.g. "user"). */
   onMessageChange: PropTypes.func.isRequired,
 };
 
@@ -2194,6 +2198,19 @@ function General({
       formValues?.swimlaneId ??
       card?.swimlane_id ??
       card?.laneId;
+    const emailPreviewBody =
+      firstNonEmptyString(previewMessageText) ||
+      firstNonEmptyString(emailPreviewData?.messageHtml) ||
+      "";
+    const appointmentAcceptancePayload = {
+      body: emailPreviewBody,
+      cc_emails: firstNonEmptyString(editablePreviewFields.cc_emails),
+      from_email: firstNonEmptyString(editablePreviewFields.from_email),
+      subject: firstNonEmptyString(editablePreviewFields.subject),
+      to_email: firstNonEmptyString(editablePreviewFields.to_email),
+    };
+    console.log("EMAIL PREVIEW BODY", previewMessageText);
+    console.log("APPOINTMENT ACCEPTANCE PAYLOAD", appointmentAcceptancePayload);
     const formPayload = {
       ...formValues,
       swimlane_id: swimlaneId,
@@ -2213,13 +2230,7 @@ function General({
           };
         })
         .filter(Boolean),
-      appointment_acceptance: {
-        body: firstNonEmptyString(previewMessageText),
-        cc_emails: firstNonEmptyString(editablePreviewFields.cc_emails),
-        from_email: firstNonEmptyString(editablePreviewFields.from_email),
-        subject: firstNonEmptyString(editablePreviewFields.subject),
-        to_email: firstNonEmptyString(editablePreviewFields.to_email),
-      },
+      appointment_acceptance: appointmentAcceptancePayload,
     };
 
     setIsSavingGeneral(true);
@@ -2229,8 +2240,9 @@ function General({
         dailyReportEmailOptions,
         billingInstructionEmailOptions,
       });
-      for (const [key, value] of formData.entries()) {
-        console.log(key, value);
+      console.log("FINAL FORM DATA");
+      for (const pair of formData.entries()) {
+        console.log(pair[0], pair[1]);
       }
       const response = await callFileService.createCallFile(formData);
       if (onSave) onSave(response);
@@ -2794,6 +2806,8 @@ function General({
       }
       if (body) {
         setPreviewMessageText(body);
+        setPreviewMessageEditorKey((key) => key + 1);
+        setIsPreviewMessageDirty(true);
       }
 
       if (filledCount > 0 || subject || body) {
@@ -3512,11 +3526,10 @@ ${body}
         const resolved = resolveEmailPreviewPayload(data);
         setEmailPreviewData(resolved);
         populateEditablePreviewFields(resolved);
-        if (!isPreviewMessageDirty) {
-          const apiHtml = firstNonEmptyString(resolved?.messageHtml);
-          if (apiHtml) {
-            setPreviewMessageText(apiHtml);
-          }
+        const apiHtml = firstNonEmptyString(resolved?.messageHtml);
+        if (apiHtml && !isPreviewMessageDirty) {
+          setPreviewMessageText(apiHtml);
+          setPreviewMessageEditorKey((key) => key + 1);
         }
       } catch (error) {
         console.error("[General] email preview fetch failed", error);
