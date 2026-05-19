@@ -1,22 +1,46 @@
-import { useState, useRef, useEffect } from "react";
+import { useState, useRef, useEffect, useCallback } from "react";
 import PropTypes from "prop-types";
 import Select from "react-select";
 import GroupSettingsIcon from "../../../../../../assets/images/cv.png";
+import { notify } from "../../../../../../components/Toaster";
 import { FormSection, FormField, FormSelect, ReactQuillEditor, getCrewMultiSelectStyles, formatCrewOptionLabel } from "./Husbandry.components";
 import AttachmentsList from "../../appointment/AttachmentsList";
 import DateTimePickerField from "../../../components/DateTimePickerField";
-import hotelService from "../../../../../../services/hotelService";
+import hotelService, {
+  extractHotelRequestsFromEnvelope,
+  flattenHotelRequestRows,
+} from "../../../../../../services/hotelService";
+import crewService from "../../../../../../services/crewService";
+import { buildPickupDateTime } from "../../../../../../store/TransportContent";
 import HusbandryServiceRequestsTable from "./HusbandryServiceRequestsTable";
 
 const HOTEL_REQUEST_COLUMNS = [
   { key: "wo_number", header: "Wo No", accessor: (r) => r?.wo_number ?? r?.work_order_no },
-  { key: "crew_name", header: "Crew Name", accessor: (r) => r?.crew_name },
+  { key: "crew_name", header: "Crew Name", accessor: (r) => r?.crew_name ?? r?.crewName },
   { key: "hotel_name", header: "Hotel", accessor: (r) => r?.hotel_name ?? r?.hotelName },
-  { key: "check_in", header: "Check-in", accessor: (r) => r?.check_in ?? r?.check_in_date, type: "date" },
-  { key: "check_out", header: "Check-out", accessor: (r) => r?.check_out ?? r?.check_out_date, type: "date" },
-  { key: "status", header: "Status", accessor: (r) => r?.status, type: "status" },
+  {
+    key: "check_in",
+    header: "Check-in",
+    accessor: (r) => r?.check_in ?? r?.check_in_date ?? r?.checkin_datetime,
+    type: "date",
+  },
+  {
+    key: "check_out",
+    header: "Check-out",
+    accessor: (r) => r?.check_out ?? r?.check_out_date ?? r?.checkout_datetime,
+    type: "date",
+  },
+  {
+    key: "status",
+    header: "Status",
+    accessor: (r) => r?.status ?? r?.stay_status,
+    type: "status",
+  },
   { key: "document", header: "Document", type: "document" },
 ];
+
+const REQUEST_EMAIL_ACCEPT_ATTR = ".msg,.eml,.pdf,.doc,.docx";
+const REQUEST_EMAIL_EXT_RE = /\.(msg|eml|pdf|doc|docx)$/i;
 
 const unwrapApiList = (axiosData) => {
   const payload = axiosData?.data ?? axiosData;
@@ -26,15 +50,75 @@ const unwrapApiList = (axiosData) => {
 };
 
 const HotelContent = ({ formValues, handleChange, cardColor }) => {
-  const [isDragging, setIsDragging] = useState(false);
-  const fileInputRef = useRef(null);
+  const requestEmailInputRef = useRef(null);
+  const [isDraggingEmail, setIsDraggingEmail] = useState(false);
   const [hotels, setHotels] = useState([]);
   const [loadingHotels, setLoadingHotels] = useState(false);
+  const [crewList, setCrewList] = useState([]);
+  const [loadingCrew, setLoadingCrew] = useState(false);
+  const [isSavingHotel, setIsSavingHotel] = useState(false);
+  const [hotelRequests, setHotelRequests] = useState([]);
+  const [loadingHotelRequests, setLoadingHotelRequests] = useState(false);
 
-  const crewOptions = formValues.crewList?.map((crew) => ({
-    value: crew.id?.toString() || crew.crewName,
-    label: crew.crewName || `Crew Member ${crew.id}`,
-  })) || [];
+  const callId = formValues.call_id || formValues.callId || formValues.card_call_id;
+
+  useEffect(() => {
+    if (!callId) {
+      setCrewList([]);
+      setLoadingCrew(false);
+      return;
+    }
+
+    let cancelled = false;
+    setLoadingCrew(true);
+
+    crewService
+      .getCrewByCall(callId)
+      .then(({ data }) => {
+        const list = Array.isArray(data?.data) ? data.data : [];
+        if (!cancelled) setCrewList(list);
+      })
+      .catch(() => {
+        if (!cancelled) setCrewList([]);
+      })
+      .finally(() => {
+        if (!cancelled) setLoadingCrew(false);
+      });
+
+    return () => {
+      cancelled = true;
+    };
+  }, [callId]);
+
+  const crewOptions = crewList.map((crew) => ({
+    value: String(crew.crew_change_id ?? ""),
+    label: crew.crew_name || `Crew ${crew.crew_id}`,
+    crewId: crew.crew_id,
+    crewChangeId: crew.crew_change_id,
+  }));
+
+  const fetchHotelRequests = useCallback(async () => {
+    if (!callId) {
+      setHotelRequests([]);
+      setLoadingHotelRequests(false);
+      return;
+    }
+
+    setLoadingHotelRequests(true);
+    try {
+      const response = await hotelService.getHotelRequests(callId);
+      const list = extractHotelRequestsFromEnvelope(response);
+      setHotelRequests(flattenHotelRequestRows(list));
+    } catch {
+      setHotelRequests([]);
+    } finally {
+      setLoadingHotelRequests(false);
+    }
+  }, [callId]);
+
+  useEffect(() => {
+    void fetchHotelRequests();
+  }, [fetchHotelRequests]);
 
   useEffect(() => {
     let cancelled = false;
@@ -73,9 +157,12 @@ const HotelContent = ({ formValues, handleChange, cardColor }) => {
     handleChange("hotelSelectedCrew")(syntheticEvent);
   };
 
-  const selectedCrewValues = formValues.hotelSelectedCrew?.map((crewId) =>
-    crewOptions.find((opt) => opt.value === crewId?.toString() || opt.value === crewId)
-  ).filter(Boolean) || [];
+  const selectedCrewValues =
+    formValues.hotelSelectedCrew
+      ?.map((crewChangeId) =>
+        crewOptions.find((opt) => String(opt.value) === String(crewChangeId))
+      )
+      .filter(Boolean) || [];
 
   const customSelectStyles = getCrewMultiSelectStyles(cardColor, { transportCompact: true });
 
@@ -86,65 +173,146 @@ const HotelContent = ({ formValues, handleChange, cardColor }) => {
     type: file.type,
   });
 
-  const handleDocumentsDragEnter = (e) => {
+  const filterRequestEmailFiles = (files) =>
+    Array.from(files || []).filter((f) => REQUEST_EMAIL_EXT_RE.test(f.name));
+
+  const handleRequestEmailDragEnter = (e) => {
     e.preventDefault();
     e.stopPropagation();
-    setIsDragging(true);
+    setIsDraggingEmail(true);
   };
 
-  const handleDocumentsDragLeave = (e) => {
+  const handleRequestEmailDragLeave = (e) => {
     e.preventDefault();
     e.stopPropagation();
-    setIsDragging(false);
+    setIsDraggingEmail(false);
   };
 
-  const handleDocumentsDragOver = (e) => {
+  const handleRequestEmailDragOver = (e) => {
     e.preventDefault();
     e.stopPropagation();
   };
 
-  const handleDocumentsDrop = (e) => {
+  const handleRequestEmailDrop = (e) => {
     e.preventDefault();
     e.stopPropagation();
-    setIsDragging(false);
-    const files = Array.from(e.dataTransfer.files || []);
-    if (files.length > 0) {
-      const current = formValues.hotelDocuments || [];
-      const added = files.map(fileToAttachment);
-      handleChange("hotelDocuments")({ target: { value: [...current, ...added] } });
+    setIsDraggingEmail(false);
+    const raw = Array.from(e.dataTransfer.files || []);
+    const allowed = filterRequestEmailFiles(raw);
+    if (allowed.length === 0) {
+      if (raw.length > 0) {
+        notify(
+          "Only .msg, .eml, .pdf, .doc, .docx files are allowed for request email.",
+          "warning",
+          "top-center"
+        );
+      }
+      return;
     }
-  };
-
-  const handleDocumentsFileInputChange = (e) => {
-    const files = Array.from(e.target.files || []);
-    if (files.length > 0) {
-      const current = formValues.hotelDocuments || [];
-      const added = files.map(fileToAttachment);
-      handleChange("hotelDocuments")({ target: { value: [...current, ...added] } });
-    }
-    if (fileInputRef.current) {
-      fileInputRef.current.value = "";
-    }
-  };
-
-  const handleDocumentsRemoveAttachment = (index) => {
-    const current = formValues.hotelDocuments || [];
-    handleChange("hotelDocuments")({ target: { value: current.filter((_, i) => i !== index) } });
-  };
-
-  const handleSave = () => {
-    console.log("Saving Hotel data:", {
-      hotelSelectedCrew: formValues.hotelSelectedCrew,
-      hotelId: formValues.hotelId,
-      hotelName: formValues.hotelName,
-      hotelCheckInDate: formValues.hotelCheckInDate,
-      hotelCheckInTime: formValues.hotelCheckInTime,
-      hotelCheckOutDate: formValues.hotelCheckOutDate,
-      hotelCheckOutTime: formValues.hotelCheckOutTime,
-      hotelDocuments: formValues.hotelDocuments,
-      hotelDescription: formValues.hotelDescription,
+    handleChange("hotelRequestEmail")({
+      target: { value: [fileToAttachment(allowed[0])] },
     });
   };
+
+  const handleRequestEmailFileInputChange = (e) => {
+    const raw = Array.from(e.target.files || []);
+    const allowed = filterRequestEmailFiles(raw);
+    if (allowed.length === 0) {
+      if (raw.length > 0) {
+        notify(
+          "Only .msg, .eml, .pdf, .doc, .docx files are allowed for request email.",
+          "warning",
+          "top-center"
+        );
+      }
+    } else {
+      handleChange("hotelRequestEmail")({
+        target: { value: [fileToAttachment(allowed[0])] },
+      });
+    }
+    if (requestEmailInputRef.current) {
+      requestEmailInputRef.current.value = "";
+    }
+  };
+
+  const handleRequestEmailRemoveAttachment = () => {
+    handleChange("hotelRequestEmail")({ target: { value: [] } });
+  };
+
+  const handleSave = useCallback(async () => {
+    if (!callId) {
+      notify("Call is required to save a hotel request.", "error", "top-center");
+      return;
+    }
+
+    if (!formValues.hotelId) {
+      notify("Hotel is required.", "error", "top-center");
+      return;
+    }
+
+    const selectedCrew = formValues.hotelSelectedCrew || [];
+    if (selectedCrew.length === 0) {
+      notify("Select at least one crew member.", "error", "top-center");
+      return;
+    }
+
+    const checkinDatetime = buildPickupDateTime(
+      formValues.hotelCheckInDate,
+      formValues.hotelCheckInTime
+    );
+    const checkoutDatetime = buildPickupDateTime(
+      formValues.hotelCheckOutDate,
+      formValues.hotelCheckOutTime
+    );
+
+    if (!checkinDatetime) {
+      notify("Check-in date and time are required.", "error", "top-center");
+      return;
+    }
+
+    if (!checkoutDatetime) {
+      notify("Check-out date and time are required.", "error", "top-center");
+      return;
+    }
+
+    const payload = {
+      call_id: Number(callId),
+      hotel_id: Number(formValues.hotelId),
+      checkin_datetime: checkinDatetime,
+      checkout_datetime: checkoutDatetime,
+      remarks: formValues.hotelDescription || "",
+      crew: selectedCrew.map((id) => ({
+        crew_change_id: Number(id),
+      })),
+    };
+
+    const formData = new FormData();
+    formData.append("data", JSON.stringify(payload));
+
+    const requestEmailFile = formValues.hotelRequestEmail?.[0]?.file;
+    if (requestEmailFile) {
+      formData.append("request_email", requestEmailFile);
+    }
+
+    setIsSavingHotel(true);
+    try {
+      const response = await hotelService.createHotelRequest(formData);
+      notify(
+        response?.data?.message || "Hotel request created successfully",
+        "success",
+        "top-center"
+      );
+      await fetchHotelRequests();
+    } catch (error) {
+      notify(
+        error?.response?.data?.message || "Failed to create hotel request",
+        "error",
+        "top-center"
+      );
+    } finally {
+      setIsSavingHotel(false);
+    }
+  }, [callId, formValues, fetchHotelRequests]);
 
   return (
     <div className="cardform-left-full" style={{ "--card-color": cardColor }}>
@@ -164,7 +332,7 @@ const HotelContent = ({ formValues, handleChange, cardColor }) => {
                       value={selectedCrewValues}
                       onChange={handleCrewChange}
                       options={crewOptions}
-                      placeholder="Select crew members..."
+                      placeholder={loadingCrew ? "Loading crew..." : "Select crew members..."}
                       classNamePrefix="react-select"
                       styles={customSelectStyles}
                       formatOptionLabel={formatCrewOptionLabel}
@@ -175,6 +343,8 @@ const HotelContent = ({ formValues, handleChange, cardColor }) => {
                       isSearchable
                       closeMenuOnSelect={false}
                       hideSelectedOptions={false}
+                      isLoading={loadingCrew}
+                      isDisabled={loadingCrew || !callId}
                     />
                   </div>
                 </FormField>
@@ -217,20 +387,22 @@ const HotelContent = ({ formValues, handleChange, cardColor }) => {
                   </div>
                 </FormField>
 
-                <FormField label="Documents" className="cf-field-full">
+                <FormField label="Documents">
                   <div className="transport-upload-box">
                     <AttachmentsList
-                      attachments={formValues.hotelDocuments || []}
+                      attachments={formValues.hotelRequestEmail || []}
                       onAdd={() => {}}
-                      onRemove={handleDocumentsRemoveAttachment}
+                      onRemove={handleRequestEmailRemoveAttachment}
                       cardColor={cardColor}
-                      isDragging={isDragging}
-                      onDragEnter={handleDocumentsDragEnter}
-                      onDragLeave={handleDocumentsDragLeave}
-                      onDragOver={handleDocumentsDragOver}
-                      onDrop={handleDocumentsDrop}
-                      fileInputRef={fileInputRef}
-                      onFileInputChange={handleDocumentsFileInputChange}
+                      isDragging={isDraggingEmail}
+                      onDragEnter={handleRequestEmailDragEnter}
+                      onDragLeave={handleRequestEmailDragLeave}
+                      onDragOver={handleRequestEmailDragOver}
+                      onDrop={handleRequestEmailDrop}
+                      fileInputRef={requestEmailInputRef}
+                      onFileInputChange={handleRequestEmailFileInputChange}
+                      accept={REQUEST_EMAIL_ACCEPT_ATTR}
+                      multiple={false}
                     />
                   </div>
                 </FormField>
@@ -247,8 +419,13 @@ const HotelContent = ({ formValues, handleChange, cardColor }) => {
                   </div>
 
                   <div className="form-save-button-wrapper cgpass-save-footer">
-                    <button type="button" className="form-save-button" onClick={handleSave}>
-                      Save
+                    <button
+                      type="button"
+                      className="form-save-button"
+                      onClick={handleSave}
+                      disabled={isSavingHotel}
+                    >
+                      {isSavingHotel ? "Saving..." : "Save"}
                     </button>
                   </div>
                 </div>
@@ -258,8 +435,8 @@ const HotelContent = ({ formValues, handleChange, cardColor }) => {
             <div className="general-info-right crew-pass-requests-sidebar">
               <HusbandryServiceRequestsTable
                 title="Hotel Requests"
-                requests={formValues.hotelRequests || []}
-                loading={false}
+                requests={hotelRequests}
+                loading={loadingHotelRequests}
                 columns={HOTEL_REQUEST_COLUMNS}
                 emptyMessage="No hotel requests found"
                 serviceType="hotel"
