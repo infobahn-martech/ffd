@@ -12,6 +12,7 @@ const PackingType = () => {
     const {
         getPackingTypes,
         packingTypes,
+        totalCount,
         isLoadingGet,
         deletePackingType,
         isLoadingDelete,
@@ -29,30 +30,22 @@ const PackingType = () => {
     const [showDeleteModal, setShowDeleteModal] = useState(false);
     const [selectedRow, setSelectedRow] = useState(null);
 
-    // Fetch packing types on mount
+    const apiParams = useMemo(
+        () => ({
+            search: params.searchTerm || "",
+            page: params.page,
+            limit: params.limit,
+            sortBy: params.sortBy,
+            sortOrder: params.sortOrder === 1 ? "ASC" : "DESC",
+        }),
+        [params]
+    );
+
     useEffect(() => {
-        getPackingTypes();
-    }, []);
+        getPackingTypes(apiParams);
+    }, [getPackingTypes, apiParams]);
 
-    // ✅ Safe fallback
-    const tableData = useMemo(() => {
-        // You might have: { data: [], total: 0 } OR { docs: [], totalDocs: 0 }
-        if (!packingTypes) return { rows: [], total: 0 };
-
-        const rows =
-            packingTypes?.data ||
-            packingTypes?.docs ||
-            packingTypes?.results ||
-            [];
-
-        const total =
-            packingTypes?.total ||
-            packingTypes?.count ||
-            packingTypes?.totalDocs ||
-            rows.length;
-
-        return { rows, total };
-    }, [packingTypes]);
+    const list = Array.isArray(packingTypes) ? packingTypes : [];
 
     // 👉 Columns (API: package_type_id, package_type, created_date)
     const cols = [
@@ -98,7 +91,7 @@ const PackingType = () => {
         setShowDeleteModal(false);
         setSelectedRow(null);
 
-        getPackingTypes();
+        getPackingTypes(apiParams);
     };
 
     return (
@@ -122,9 +115,9 @@ const PackingType = () => {
                         isLoading={isLoadingGet}
                         pagination={{ currentPage: params.page, limit: params.limit }}
                         tableClasses="px-start"
-                        count={tableData.total}
+                        count={totalCount}
                         columns={cols}
-                        data={tableData.rows}
+                        data={list}
                         onPageChange={(currentPage) => setParams({ ...params, page: currentPage })}
                         setLimit={(newLimit) => setParams({ ...params, limit: newLimit, page: 1 })}
                         onSorting={(sortBy) =>
@@ -143,7 +136,7 @@ const PackingType = () => {
                             closeModal={() => setShowPackingTypeModal(false)}
                             onSuccess={() => {
                                 setShowPackingTypeModal(false);
-                                getPackingTypes();
+                                getPackingTypes(apiParams);
                             }}
                         />
                     )}
