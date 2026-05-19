@@ -417,7 +417,7 @@ function SideNav({ isMobileMenuOpen, onCloseMobileMenu, isVendorPortal = false }
       hasPermission: true,
       isOpen: false,
       subMenus: [
-        { menu: 'Material Types', to: '/material-type', hasPermission: true },
+        // { menu: 'Material Types', to: '/material-type', hasPermission: true },
         { menu: 'Packing Types', to: '/packing-type', hasPermission: true },
         { menu: 'Logistics Warehouses', to: '/logistics-warehouse', hasPermission: true },
       ],
