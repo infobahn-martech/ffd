@@ -505,7 +505,7 @@ const MaterialManagementContent = ({ formValues, handleChange, cardColor }) => {
       <div className="material-list-header">
         <h3 className="material-list-title">
           <span className="material-list-title-bar"></span>
-          MATERIAL MANAGEMENT
+          Material Management
         </h3>
         <button
           type="button"

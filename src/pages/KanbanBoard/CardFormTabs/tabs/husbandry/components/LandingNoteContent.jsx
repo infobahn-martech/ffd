@@ -1703,7 +1703,7 @@ const LandingNoteContent = ({ formValues, handleChange, cardColor }) => {
       <div className="material-list-header">
         <h3 className="material-list-title">
           <span className="material-list-title-bar"></span>
-          LANDING NOTE
+          Landing Note
         </h3>
       </div>
       <div className="table-wrapper table-responsive material-table-container" style={{ overflow: "visible" }}>

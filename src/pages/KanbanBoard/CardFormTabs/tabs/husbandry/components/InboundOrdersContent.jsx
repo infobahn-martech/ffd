@@ -2113,7 +2113,7 @@ const InboundOrdersContent = ({ formValues, handleChange, cardColor }) => {
       <div className="material-list-header">
         <h3 className="material-list-title">
           <span className="material-list-title-bar"></span>
-          INBOUND ORDERS
+          Inbound Orders
         </h3>
         <button
           type="button"
