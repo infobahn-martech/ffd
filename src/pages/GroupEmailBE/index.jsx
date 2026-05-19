@@ -14,7 +14,7 @@ const GroupEmailBE = () => {
         groupEmailBEs,
         isLoading,
         deleteGroupEmailBE,
-        isLoadingDelete,
+        isBeingUpdated,
         totalCount,
     } = useGroupEmailBEReducer((state) => state);
 
@@ -182,7 +182,7 @@ const GroupEmailBE = () => {
                     {!!showDeleteModal && (
                         <DeleteConfirmationModal
                             show={showDeleteModal}
-                            loading={isLoadingDelete}
+                            loading={isBeingUpdated}
                             onCancel={() => {
                                 setShowDeleteModal(false);
                                 setSelectedRow(null);
