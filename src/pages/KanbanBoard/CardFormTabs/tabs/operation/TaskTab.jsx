@@ -14,27 +14,76 @@ const STATUS_CLASS_MAP = {
   [TASK_STATUS.REJECTED]: "operation-task-status--rejected",
 };
 
-const DEFAULT_TASKS = [
+const dummyTasks = [
   {
-    id: "gro",
-    name: "GRO",
-    status: TASK_STATUS.PENDING,
-    assignedTo: "",
-    remarks: "",
-  },
-  {
-    id: "custom-clearance",
-    name: "Custom Clearance",
+    id: 1,
+    title: "GRO",
+    assignedTo: "Port Operations Team",
     status: TASK_STATUS.IN_PROGRESS,
-    assignedTo: "Operations Team",
-    remarks: "Documentation under review",
+    remarks: "Berthing request submitted; awaiting terminal confirmation.",
   },
   {
-    id: "marine-work-permit",
-    name: "Marine Work Permit",
+    id: 2,
+    title: "Custom Clearance",
+    assignedTo: "Customs Liaison Unit",
+    status: TASK_STATUS.PENDING,
+    remarks: "Import declaration draft prepared; pending vessel ETA confirmation.",
+  },
+  {
+    id: 3,
+    title: "Marine Work Permit",
+    assignedTo: "Marine Services Desk",
     status: TASK_STATUS.COMPLETED,
-    assignedTo: "Port Agent",
-    remarks: "Permit issued and verified",
+    remarks: "Permit issued and uploaded to vessel file; valid through departure.",
+  },
+  {
+    id: 4,
+    title: "Immigration Clearance",
+    assignedTo: "Crew Affairs Team",
+    status: TASK_STATUS.IN_PROGRESS,
+    remarks: "Crew list verified; immigration appointment scheduled on arrival.",
+  },
+  {
+    id: 5,
+    title: "Port Entry Approval",
+    assignedTo: "Harbor Master Office",
+    status: TASK_STATUS.COMPLETED,
+    remarks: "Port entry approval received and shared with agent and master.",
+  },
+  {
+    id: 6,
+    title: "Berth Allocation",
+    assignedTo: "Terminal Coordination",
+    status: TASK_STATUS.PENDING,
+    remarks: "Preferred berth requested; terminal reviewing availability.",
+  },
+  {
+    id: 7,
+    title: "Cargo Documentation",
+    assignedTo: "Documentation Control",
+    status: TASK_STATUS.REJECTED,
+    remarks: "Manifest mismatch on line items 12–14; revised B/L required from shipper.",
+  },
+  {
+    id: 8,
+    title: "Crew Transport Arrangement",
+    assignedTo: "Logistics & Transport",
+    status: TASK_STATUS.IN_PROGRESS,
+    remarks: "Airport pickup and hotel transfer slots reserved for joining crew.",
+  },
+  {
+    id: 9,
+    title: "Medical Clearance",
+    assignedTo: "Health & Safety Unit",
+    status: TASK_STATUS.COMPLETED,
+    remarks: "Port health declaration accepted; no quarantine restrictions applied.",
+  },
+  {
+    id: 10,
+    title: "Security Gate Pass",
+    assignedTo: "Port Security Office",
+    status: TASK_STATUS.REJECTED,
+    remarks: "Visitor pass application declined; missing company authorization letter.",
   },
 ];
 
@@ -60,7 +109,7 @@ function TaskTab({
   isViewOnly = false,
   callId = "",
 }) {
-  const tasks = DEFAULT_TASKS;
+  const tasks = dummyTasks;
 
   return (
     <div className="cardform-left-full operation-task-tab" style={{ "--card-color": cardColor }}>
@@ -78,7 +127,7 @@ function TaskTab({
             {tasks.map((task) => (
               <li key={task.id} className="operation-task-row" role="listitem">
                 <div className="operation-task-row-main">
-                  <span className="operation-task-name">{task.name}</span>
+                  <span className="operation-task-name">{task.title}</span>
                   <TaskStatusBadge status={task.status} />
                 </div>
                 <div className="operation-task-row-meta">
