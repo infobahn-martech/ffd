@@ -3,6 +3,7 @@ export const OPERATION_TABS = {
   CHECK_LIST: "checkList",
   ARRIVAL: "arrival",
   DEPARTURE: "departure",
+  TASKS: "tasks",
 };
 
 export const PRE_ARRIVAL_SABER_STATUS_OPTIONS = [

@@ -8,6 +8,7 @@ const OperationTabs = ({ activeTab, onTabChange }) => {
     { id: OPERATION_TABS.ARRIVAL, label: "Arrival" },
     { id: OPERATION_TABS.DEPARTURE, label: "Departure" },
     { id: OPERATION_TABS.CHECK_LIST, label: "Check List" },
+    { id: OPERATION_TABS.TASKS, label: "Tasks" },
   ];
 
   return (
