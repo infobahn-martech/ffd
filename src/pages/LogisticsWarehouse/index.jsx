@@ -38,28 +38,22 @@ const LogisticsWarehouse = () => {
         return type || "-";
     };
 
-    // ✅ Fetch when params change
-    useEffect(() => {
-        getLogisticsWarehouses({
+    const apiParams = useMemo(
+        () => ({
+            search: params.searchTerm || "",
             page: params.page,
             limit: params.limit,
-            search: params.searchTerm,
             sortBy: params.sortBy,
             sortOrder: params.sortOrder,
-        });
-    }, [
-        params.page,
-        params.limit,
-        params.searchTerm,
-        params.sortBy,
-        params.sortOrder,
-    ]);
+        }),
+        [params]
+    );
 
-    // ✅ Normalize API response shape (location_id, location_type, location)
-    const tableData = useMemo(() => {
-        const rows = Array.isArray(logisticsWarehouses) ? logisticsWarehouses : [];
-        return { rows, total: totalCount || rows.length };
-    }, [logisticsWarehouses, totalCount]);
+    useEffect(() => {
+        getLogisticsWarehouses(apiParams);
+    }, [getLogisticsWarehouses, apiParams]);
+
+    const list = Array.isArray(logisticsWarehouses) ? logisticsWarehouses : [];
 
     const cols = [
         {
@@ -98,13 +92,7 @@ const LogisticsWarehouse = () => {
     ];
 
     const refreshList = () => {
-        getLogisticsWarehouses({
-            page: params.page,
-            limit: params.limit,
-            search: params.searchTerm,
-            sortBy: params.sortBy,
-            sortOrder: params.sortOrder,
-        });
+        getLogisticsWarehouses(apiParams);
     };
 
     const handleDelete = async () => {
@@ -139,9 +127,9 @@ const LogisticsWarehouse = () => {
                         isLoading={isLoadingGet}
                         pagination={{ currentPage: params.page, limit: params.limit }}
                         tableClasses="px-start"
-                        count={tableData.total}
+                        count={totalCount}
                         columns={cols}
-                        data={tableData.rows}
+                        data={list}
                         onPageChange={(currentPage) =>
                             setParams({ ...params, page: currentPage })
                         }
