@@ -11,17 +11,38 @@ import vehicleService from "../../../../../../services/vehicleService";
 import transportCompanyService from "../../../../../../services/transportCompanyService";
 import crewService from "../../../../../../services/crewService";
 import callFileService from "../../../../../../services/callFileService";
-import transportContentService from "../../../../../../services/transportContentService";
+import transportContentService, {
+  extractTransportRequestsFromEnvelope,
+  flattenTransportRequestRows,
+} from "../../../../../../services/transportContentService";
 import { buildPickupDateTime } from "../../../../../../store/TransportContent";
 import HusbandryServiceRequestsTable from "./HusbandryServiceRequestsTable";
 
 const TRANSPORT_REQUEST_COLUMNS = [
   { key: "wo_number", header: "Wo No", accessor: (r) => r?.wo_number ?? r?.work_order_no },
-  { key: "crew_name", header: "Crew Name", accessor: (r) => r?.crew_name },
-  { key: "from", header: "From", accessor: (r) => r?.from ?? r?.pickup_location },
-  { key: "to", header: "To", accessor: (r) => r?.to ?? r?.drop_location },
-  { key: "status", header: "Status", accessor: (r) => r?.status, type: "status" },
-  { key: "requested_date", header: "Requested Date", accessor: (r) => r?.requested_date, type: "date" },
+  { key: "crew_name", header: "Crew Name", accessor: (r) => r?.crew_name ?? r?.crewName },
+  {
+    key: "from",
+    header: "From",
+    accessor: (r) => r?.from ?? r?.from_location ?? r?.pickup_location,
+  },
+  {
+    key: "to",
+    header: "To",
+    accessor: (r) => r?.to ?? r?.to_location ?? r?.drop_location,
+  },
+  {
+    key: "status",
+    header: "Status",
+    accessor: (r) => r?.status ?? r?.pickup_status,
+    type: "status",
+  },
+  {
+    key: "requested_date",
+    header: "Requested Date",
+    accessor: (r) => r?.requested_date ?? r?.pickup_datetime,
+    type: "date",
+  },
   { key: "document", header: "Document", type: "document" },
 ];
 
@@ -123,6 +144,31 @@ const TransportContent = ({ formValues, handleChange, cardColor }) => {
   const [loadingCompanies, setLoadingCompanies] = useState(false);
   const [loadingThirdPartyDrivers, setLoadingThirdPartyDrivers] = useState(false);
   const [isSavingTransport, setIsSavingTransport] = useState(false);
+  const [transportRequests, setTransportRequests] = useState([]);
+  const [loadingTransportRequests, setLoadingTransportRequests] = useState(false);
+
+  const fetchTransportRequests = useCallback(async () => {
+    if (!callId) {
+      setTransportRequests([]);
+      setLoadingTransportRequests(false);
+      return;
+    }
+
+    setLoadingTransportRequests(true);
+    try {
+      const response = await transportContentService.getTransportRequest(callId);
+      const list = extractTransportRequestsFromEnvelope(response);
+      setTransportRequests(flattenTransportRequestRows(list));
+    } catch {
+      setTransportRequests([]);
+    } finally {
+      setLoadingTransportRequests(false);
+    }
+  }, [callId]);
+
+  useEffect(() => {
+    void fetchTransportRequests();
+  }, [fetchTransportRequests]);
 
   // Invoice Branch options
   const invoiceBranchOptions = [
@@ -438,6 +484,7 @@ const TransportContent = ({ formValues, handleChange, cardColor }) => {
         "success",
         "top-center"
       );
+      await fetchTransportRequests();
     } catch (error) {
       notify(
         error?.response?.data?.message || "Failed to create transport request",
@@ -447,7 +494,7 @@ const TransportContent = ({ formValues, handleChange, cardColor }) => {
     } finally {
       setIsSavingTransport(false);
     }
-  }, [callId, callDetails, formValues, transportType]);
+  }, [callId, callDetails, formValues, transportType, fetchTransportRequests]);
 
   return (
     <div className="cardform-left-full" style={{ "--card-color": cardColor }}>
@@ -668,8 +715,8 @@ const TransportContent = ({ formValues, handleChange, cardColor }) => {
             <div className="general-info-right crew-pass-requests-sidebar">
               <HusbandryServiceRequestsTable
                 title="Transport Requests"
-                requests={formValues.transportRequests || []}
-                loading={false}
+                requests={transportRequests}
+                loading={loadingTransportRequests}
                 columns={TRANSPORT_REQUEST_COLUMNS}
                 emptyMessage="No transport requests found"
                 serviceType="transport"
