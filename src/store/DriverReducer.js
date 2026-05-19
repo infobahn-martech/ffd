@@ -86,6 +86,24 @@ const useDriverReducer = create((set) => ({
             error(err?.response?.data?.message ?? err.message);
         }
     },
+
+    deleteDriver: async ({ driver_id, cb }) => {
+        try {
+            set({ isBeingUpdated: true });
+            const { data } = await driverService.deleteDriver(driver_id);
+            const { success } = useAlertReducer.getState();
+            success(data?.message ?? 'Driver deleted successfully');
+            set({ isBeingUpdated: false });
+            cb && cb();
+        } catch (err) {
+            const { error } = useAlertReducer.getState();
+            set({
+                errorMessage: err?.response?.data?.message ?? err.message,
+                isBeingUpdated: false,
+            });
+            error(err?.response?.data?.message ?? err.message);
+        }
+    },
 }));
 
 export default useDriverReducer;
