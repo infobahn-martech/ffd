@@ -8,6 +8,7 @@ const useDriverReducer = create((set) => ({
     isLoading: false,
     isLoadingCountries: false,
     isBeingUpdated: false,
+    isDeleteLoading: false,
     errorMessage: '',
     totalCount: null,
 
@@ -87,19 +88,19 @@ const useDriverReducer = create((set) => ({
         }
     },
 
-    deleteDriver: async ({ driver_id, cb }) => {
+    deleteDriver: async ({ id, cb }) => {
         try {
-            set({ isBeingUpdated: true });
-            const { data } = await driverService.deleteDriver(driver_id);
+            set({ isDeleteLoading: true });
+            const { data } = await driverService.deleteDriver(id);
             const { success } = useAlertReducer.getState();
             success(data?.message ?? 'Driver deleted successfully');
-            set({ isBeingUpdated: false });
+            set({ isDeleteLoading: false });
             cb && cb();
         } catch (err) {
             const { error } = useAlertReducer.getState();
             set({
                 errorMessage: err?.response?.data?.message ?? err.message,
-                isBeingUpdated: false,
+                isDeleteLoading: false,
             });
             error(err?.response?.data?.message ?? err.message);
         }

@@ -20,7 +20,7 @@ const Driver = () => {
 
     const [showDriverModal, setShowDriverModal] = useState(false);
     const [showDeleteModal, setShowDeleteModal] = useState(false);
-    const [selectedRow, setSelectedRow] = useState(null);
+    const [driverToDelete, setDriverToDelete] = useState(null);
 
 
     // 👉 ONLY TWO COLUMNS (Name + Description)
@@ -126,12 +126,12 @@ const Driver = () => {
             contentClass: "table-content",
             cell: RenderAction,
             onEditClick: (row) => setShowDriverModal(row),
-            onDeleteClick: (row) => { setSelectedRow(row); setShowDeleteModal(true); },
+            onDeleteClick: (row) => { setDriverToDelete(row); setShowDeleteModal(true); },
         },
     ];
 
 
-    const { drivers, totalCount, fetchAllDrivers, isLoading, deleteDriver, isBeingUpdated } = useDriverReducer();
+    const { drivers, totalCount, fetchAllDrivers, isLoading, deleteDriver, isDeleteLoading } = useDriverReducer();
 
     useEffect(() => {
         fetchAllDrivers({ params });
@@ -187,19 +187,15 @@ const Driver = () => {
                     {!!showDeleteModal && (
                         <DeleteConfirmationModal
                             show={showDeleteModal}
-                            onCancel={() => { setShowDeleteModal(false); setSelectedRow(null); }}
-                            onConfirm={() => {
+                            onCancel={() => { setShowDeleteModal(false); setDriverToDelete(null); }}
+                            onConfirm={() =>
                                 deleteDriver({
-                                    driver_id: selectedRow?.driver_id,
-                                    cb: () => {
-                                        setShowDeleteModal(false);
-                                        setSelectedRow(null);
-                                        fetchAllDrivers({ params });
-                                    },
-                                });
-                            }}
-                            deleteText={`Are you sure you want to delete this driver${selectedRow?.driver_name ? ` ${selectedRow.driver_name}` : ''}?`}
-                            isLoading={isBeingUpdated}
+                                    id: driverToDelete?.driver_id,
+                                    cb: () => { setShowDeleteModal(false); setDriverToDelete(null); },
+                                })
+                            }
+                            deleteText="Are you sure you want to delete this driver?"
+                            isLoading={isDeleteLoading}
                         />
                     )}
 
