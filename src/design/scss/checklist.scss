@@ -3222,6 +3222,35 @@ span.cl-item-meta-chip.cl-item-meta-chip--expiry {
   max-width: 100%;
 }
 
+.checklist-item-row .checklist-compact-select.react-select-container {
+  width: 100%;
+  min-width: 0;
+  max-width: 100%;
+}
+
+.checklist-item-row .checklist-compact-select .react-select__control {
+  min-height: 40px;
+  max-height: 40px;
+  border-color: #dbe3ef;
+  border-radius: 8px;
+  font-size: 12px;
+  box-shadow: none;
+}
+
+.checklist-item-row .checklist-compact-select .react-select__value-container {
+  padding: 0 8px;
+  flex-wrap: nowrap;
+  overflow: hidden;
+}
+
+.checklist-item-row .checklist-compact-select .react-select__multi-value {
+  max-width: calc(100% - 8px);
+}
+
+.checklist-item-row .checklist-compact-select .react-select__multi-value__label {
+  font-size: 11px;
+}
+
 .checklist-modal-xl-wide .checklist-compact-select.premium-select .cf-multi-select-email-input {
   height: 40px;
   min-height: 40px;
@@ -3236,14 +3265,14 @@ span.cl-item-meta-chip.cl-item-meta-chip--expiry {
     28px
     42px
     minmax(150px, 1fr)
-    90px
+    150px
     minmax(150px, 1fr)
     100px
     100px
     120px
     44px
     minmax(150px, 1fr)
-    150px
+    90px
     60px;
   column-gap: 8px;
   align-items: center;

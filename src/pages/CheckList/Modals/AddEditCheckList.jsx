@@ -1,5 +1,6 @@
 import { useForm, useFieldArray, useWatch, Controller } from "react-hook-form";
 import PremiumSelect from "../../../components/form/PremiumSelect";
+import CommonSelect from "../../../components/CommonSelect";
 import { FiTrash2, FiPlus } from "react-icons/fi";
 import CustomModal from "../../../components/CustomModal";
 import "../../../design/scss/prospect-modal.scss";
@@ -13,11 +14,32 @@ import useBargeTypeReducer from "../../../store/BargeTypeReducer";
 import usePortReducer from "../../../store/PortReducer";
 import useRoleReducer from "../../../store/RoleReducer";
 
-const CHECKLIST_ROLE_SELECT_MENU_PROPS = {
-  menuPortalTarget: typeof document !== "undefined" ? document.body : null,
-  menuPosition: "fixed",
-  menuZIndex: 9999
-};
+function normalizeRoleIdsForApi(doc) {
+  const ids = doc?.role_ids;
+  if (Array.isArray(ids)) {
+    return ids
+      .filter((id) => id !== "" && id != null)
+      .map((id) => String(id));
+  }
+  if (doc?.role_id !== "" && doc?.role_id != null) {
+    return [String(doc.role_id)];
+  }
+  return [];
+}
+
+function normalizeRoleIdsForForm(documentDetails) {
+  const fromIds = documentDetails?.role_ids;
+  if (Array.isArray(fromIds)) {
+    return fromIds
+      .filter((id) => id != null && id !== "")
+      .map((id) => String(id));
+  }
+  const legacy = documentDetails?.role_id;
+  if (legacy != null && legacy !== "") {
+    return [String(legacy)];
+  }
+  return [];
+}
 
 /** Map form item to API item (no file in payload) */
 function mapItemToApi(item) {
@@ -30,10 +52,7 @@ function mapItemToApi(item) {
     document_details: {
       require_copy_only: !!doc?.is_copy_required,
       description: doc?.description ?? "",
-      role_id:
-        doc?.role_id !== "" && doc?.role_id != null
-          ? Number(doc.role_id) || doc.role_id
-          : null
+      role_ids: normalizeRoleIdsForApi(doc)
     }
   };
 }
@@ -245,7 +264,7 @@ function createSectionItemPayload(itemOrder) {
       required_copy_only: null,
       existing_files: [],
       description: "",
-      role_id: ""
+      role_ids: []
     }
   };
 }
@@ -261,9 +280,37 @@ function createSubSectionItemPayload(itemOrder) {
       required_copy_only: null,
       existing_files: [],
       description: "",
-      role_id: ""
+      role_ids: []
     }
   };
+}
+
+function ChecklistItemRoleSelect({ control, name, roleSelectOptions, isLoadingRoles }) {
+  return (
+    <Controller
+      name={name}
+      control={control}
+      render={({ field }) => (
+        <CommonSelect
+          isMulti
+          options={roleSelectOptions}
+          value={Array.isArray(field.value) ? field.value : []}
+          onChange={(selected) => {
+            const values = Array.isArray(selected)
+              ? selected.map((item) => String(item.value))
+              : [];
+            field.onChange(values);
+          }}
+          placeholder="Select Role"
+          className="checklist-compact-select"
+          classNamePrefix="react-select"
+          isDisabled={isLoadingRoles}
+          isLoading={isLoadingRoles}
+          closeMenuOnSelect={false}
+        />
+      )}
+    />
+  );
 }
 
 function mapApiToForm(data) {
@@ -277,10 +324,7 @@ function mapApiToForm(data) {
       required_copy_only: null,
       existing_files: normalizeUploadedFilesForForm(item.document_details?.uploaded_files),
       description: item.document_details?.description || "",
-      role_id:
-        item.document_details?.role_id != null && item.document_details?.role_id !== ""
-          ? String(item.document_details.role_id)
-          : ""
+      role_ids: normalizeRoleIdsForForm(item.document_details)
     }
   });
   const { vesselType, bargeType } = normalizeVesselBargeFormFields(data);
@@ -472,14 +516,14 @@ export function CheckListModal({ showModal, closeModal, callTypesOptions, onSucc
               <span>#</span>
               <span></span>
               <span>Item Name</span>
-              <span>Order</span>
+              <span>Role</span>
               <span>Description</span>
               <span>Expiry Req.</span>
               <span>Copy Req.</span>
               <span>Upload</span>
               <span></span>
               <span>Doc Description</span>
-              <span>Role</span>
+              <span>Order</span>
               <span>Actions</span>
             </div>
 
@@ -498,13 +542,11 @@ export function CheckListModal({ showModal, closeModal, callTypesOptions, onSucc
                       required: "Item name is required"
                     })}
                   />
-                  <input
-                    type="number"
-                    className="form-control checklist-compact-input"
-                    placeholder="Order"
-                    {...register(`sections.${sectionIndex}.items.${itemIndex}.item_order`, {
-                      valueAsNumber: true
-                    })}
+                  <ChecklistItemRoleSelect
+                    control={control}
+                    name={`sections.${sectionIndex}.items.${itemIndex}.document_details.role_ids`}
+                    roleSelectOptions={roleSelectOptions}
+                    isLoadingRoles={isLoadingRoles}
                   />
                   <input
                     type="text"
@@ -545,21 +587,13 @@ export function CheckListModal({ showModal, closeModal, callTypesOptions, onSucc
                     placeholder="Doc description"
                     {...register(`sections.${sectionIndex}.items.${itemIndex}.document_details.description`)}
                   />
-                  <Controller
-                    name={`sections.${sectionIndex}.items.${itemIndex}.document_details.role_id`}
-                    control={control}
-                    render={({ field }) => (
-                      <PremiumSelect
-                        className="checklist-compact-select"
-                        value={field.value != null ? String(field.value) : ""}
-                        onChange={(e) => field.onChange(e.target.value)}
-                        options={roleSelectOptions}
-                        placeholder="Select Role"
-                        searchPlaceholder="Search role..."
-                        disabled={isLoadingRoles}
-                        {...CHECKLIST_ROLE_SELECT_MENU_PROPS}
-                      />
-                    )}
+                  <input
+                    type="number"
+                    className="form-control checklist-compact-input"
+                    placeholder="Order"
+                    {...register(`sections.${sectionIndex}.items.${itemIndex}.item_order`, {
+                      valueAsNumber: true
+                    })}
                   />
                   <button
                     type="button"
@@ -620,14 +654,14 @@ export function CheckListModal({ showModal, closeModal, callTypesOptions, onSucc
               <span>#</span>
               <span></span>
               <span>Item Name</span>
-              <span>Order</span>
+              <span>Role</span>
               <span>Description</span>
               <span>Expiry Req.</span>
               <span>Copy Req.</span>
               <span>Upload</span>
               <span></span>
               <span>Doc Description</span>
-              <span>Role</span>
+              <span>Order</span>
               <span>Actions</span>
             </div>
 
@@ -646,13 +680,11 @@ export function CheckListModal({ showModal, closeModal, callTypesOptions, onSucc
                       required: "Item name is required"
                     })}
                   />
-                  <input
-                    type="number"
-                    className="form-control checklist-compact-input"
-                    placeholder="Order"
-                    {...register(`sections.${sectionIndex}.sub_sections.${subSectionIndex}.items.${itemIndex}.item_order`, {
-                      valueAsNumber: true
-                    })}
+                  <ChecklistItemRoleSelect
+                    control={control}
+                    name={`sections.${sectionIndex}.sub_sections.${subSectionIndex}.items.${itemIndex}.document_details.role_ids`}
+                    roleSelectOptions={roleSelectOptions}
+                    isLoadingRoles={isLoadingRoles}
                   />
                   <input
                     type="text"
@@ -699,21 +731,13 @@ export function CheckListModal({ showModal, closeModal, callTypesOptions, onSucc
                     placeholder="Doc description"
                     {...register(`sections.${sectionIndex}.sub_sections.${subSectionIndex}.items.${itemIndex}.document_details.description`)}
                   />
-                  <Controller
-                    name={`sections.${sectionIndex}.sub_sections.${subSectionIndex}.items.${itemIndex}.document_details.role_id`}
-                    control={control}
-                    render={({ field }) => (
-                      <PremiumSelect
-                        className="checklist-compact-select"
-                        value={field.value != null ? String(field.value) : ""}
-                        onChange={(e) => field.onChange(e.target.value)}
-                        options={roleSelectOptions}
-                        placeholder="Select Role"
-                        searchPlaceholder="Search role..."
-                        disabled={isLoadingRoles}
-                        {...CHECKLIST_ROLE_SELECT_MENU_PROPS}
-                      />
-                    )}
+                  <input
+                    type="number"
+                    className="form-control checklist-compact-input"
+                    placeholder="Order"
+                    {...register(`sections.${sectionIndex}.sub_sections.${subSectionIndex}.items.${itemIndex}.item_order`, {
+                      valueAsNumber: true
+                    })}
                   />
                   <button
                     type="button"
