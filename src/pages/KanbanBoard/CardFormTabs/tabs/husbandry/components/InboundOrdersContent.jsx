@@ -2134,7 +2134,7 @@ const InboundOrdersContent = ({ formValues, handleChange, cardColor }) => {
               <th>Quantity</th>
               <th>Package Type</th>
               <th>Description</th>
-              <th>Actions</th>
+              <th style={{ paddingLeft: "24px" }}>Actions</th>
             </tr>
           </thead>
           <tbody>
