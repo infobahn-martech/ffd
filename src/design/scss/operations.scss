@@ -9021,10 +9021,13 @@ body .material-management-modal {
     color: #000000 !important;
   }
 
-  /* Dropdown trigger — match input field height */
+  /* Dropdown trigger — match cf-input / cf-select height */
   .cf-multi-select-email-input {
-    height: 40px;
-    min-height: 40px;
+    padding: 10px 14px;
+    border: 1.5px solid #e2e2ea;
+    border-radius: 8px;
+    height: auto;
+    min-height: unset;
     box-sizing: border-box;
   }
 
