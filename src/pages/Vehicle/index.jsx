@@ -149,7 +149,17 @@ const Vehicle = () => {
                         onConfirm={() =>
                             deleteVehicle({
                                 id: selectedVehicleRef.current?.vehicle_type_id,
-                                cb: () => { setShowDeleteModal(false); selectedVehicleRef.current = null; },
+                                cb: () => {
+                                    setShowDeleteModal(false);
+                                    selectedVehicleRef.current = null;
+                                    getVehicles?.({
+                                        search: params.searchTerm || "",
+                                        page: params.page,
+                                        limit: params.limit,
+                                        sortBy: params.sortBy,
+                                        sortOrder: params.sortOrder,
+                                    });
+                                },
                             })
                         }
                         deleteText="Are you sure you want to delete this vehicle type?"
