@@ -9022,6 +9022,7 @@ body .material-management-modal {
   }
 
   /* Force all single-line field triggers to the same height */
+  .cf-input,
   .cf-select,
   .cf-multi-select-email-input {
     height: 42px !important;
