@@ -1520,24 +1520,28 @@ $send-report-optional: #80868b;
 
 /* Husbandry/Material Management sidebar: active state reflects card color */
 .operation-wrapper.husbandry-wrapper .op-tab:hover {
-  color: var(--card-color, #333333);
+  background: #e2e6ff;
+  color: #333333;
 }
 
 .operation-wrapper.husbandry-wrapper .op-tab.active {
-  color: var(--card-color, #00368c);
+  background: #e2e6ff;
+  color: #333333;
   font-weight: 600;
 }
 
 .operation-wrapper.husbandry-wrapper .op-submenu {
-  border-left-color: var(--card-color, rgba(42, 0, 255, 0.2));
+  border-left-color: #e2e6ff;
 }
 
 .operation-wrapper.husbandry-wrapper .op-tab-sub:hover {
-  color: var(--card-color, #333333);
+  background: #e2e6ff;
+  color: #333333;
 }
 
 .operation-wrapper.husbandry-wrapper .op-tab-sub.active {
-  color: var(--card-color, #00368c);
+  background: #e2e6ff;
+  color: #333333;
   font-weight: 600;
 }
 
