@@ -1278,7 +1278,7 @@ const getPreviewSubject = ({ cardTitle = "", typeOfCall = "", vesselName = "", p
   if (normalizedTitle) return normalizedTitle;
   const parts = [typeOfCall, vesselName, port].map((item) => normalizePreviewValue(item)).filter(Boolean);
   if (parts.length) return parts.join(" - ");
-  return "Appointment Update";
+  return "Appointment Acceptance";
 };
 
 const htmlToPlainText = (html = "") =>
@@ -1295,6 +1295,12 @@ const firstNonEmptyString = (...values) => {
     if (normalized) return normalized;
   }
   return "";
+};
+
+/** When the user has edited a preview field, use their value (including ""). Otherwise fall back to API/form defaults. */
+const resolveEditablePreviewFieldValue = (isTouched, editedValue, ...fallbackValues) => {
+  if (isTouched) return editedValue ?? "";
+  return firstNonEmptyString(editedValue, ...fallbackValues);
 };
 
 const normalizeEmailFieldValue = (value) => {
@@ -1325,8 +1331,12 @@ const resolveEmailPreviewPayload = (payload) => {
   const rawBodyHtml = firstNonEmptyString(
     source.body,
     source.message,
+    source.messageHtml,
+    source.message_html,
     source.email_body,
-    source.email_content
+    source.email_content,
+    data.messageHtml,
+    data.message_html
   );
   return {
     from: firstNonEmptyString(
@@ -1437,6 +1447,7 @@ const EmailPreviewPanel = ({
   getFieldValue,
   previewData,
   editableFields,
+  touchedFields,
   onEditableFieldChange,
   messageValue,
   messageEditorKey,
@@ -1445,9 +1456,17 @@ const EmailPreviewPanel = ({
   const previewFromApi = previewData && typeof previewData === "object" ? previewData : {};
   const ownerLabel = getOptionLabel(ownerOptions, getFieldValue("owner"));
   const fallbackFromValue = ownerLabel ? `${ownerLabel} <noreply@sedres.com>` : "operations@shipping.com";
-  const fromValue = firstNonEmptyString(editableFields?.from_email, previewFromApi.from, fallbackFromValue) || "operations@shipping.com";
+  const fromValue = touchedFields?.from_email
+    ? (editableFields?.from_email ?? "")
+    : resolveEditablePreviewFieldValue(false, editableFields?.from_email, previewFromApi.from, fallbackFromValue) ||
+      "operations@shipping.com";
   const fallbackToValue = normalizePreviewValue(getFieldValue("serviceRequestorEmail")) || "—";
-  const toValue = firstNonEmptyString(editableFields?.to_email, previewFromApi.to, fallbackToValue) || "";
+  const toValue = resolveEditablePreviewFieldValue(
+    touchedFields?.to_email,
+    editableFields?.to_email,
+    previewFromApi.to,
+    fallbackToValue
+  );
   const fallbackCcValue = getPreviewRecipients({
     dailyReportEmailOptions,
     billingInstructionEmailOptions,
@@ -1460,8 +1479,16 @@ const EmailPreviewPanel = ({
     vesselName: getOptionLabel(vesselNameOptions, getFieldValue("vesselName")) || getFieldValue("vesselName"),
     port: getOptionLabel(portSelectOptions, getFieldValue("port")) || getFieldValue("port"),
   });
-  const ccValue = firstNonEmptyString(editableFields?.cc_emails, previewFromApi.cc, fallbackCcValue) || "";
-  const subjectValue = firstNonEmptyString(editableFields?.subject, previewFromApi.subject, subjectFallback) || "Appointment Update";
+  const ccValue = resolveEditablePreviewFieldValue(
+    touchedFields?.cc_emails,
+    editableFields?.cc_emails,
+    previewFromApi.cc,
+    fallbackCcValue
+  );
+  const subjectValue = touchedFields?.subject
+    ? (editableFields?.subject ?? "")
+    : resolveEditablePreviewFieldValue(false, editableFields?.subject, previewFromApi.subject, subjectFallback) ||
+      "Appointment Update";
   return (
     <div className="general-add-preview-panel general-add-preview-panel--split-scroll">
       <div className="email-preview-topbar">
@@ -1533,9 +1560,9 @@ const EmailPreviewPanel = ({
                   key={messageEditorKey}
                   theme="snow"
                   value={messageValue ?? ""}
-                  onChange={(html) => {
+                  onChange={(html, _delta, source) => {
                     if (typeof onMessageChange === "function") {
-                      onMessageChange(html ?? "");
+                      onMessageChange(html ?? "", source);
                     }
                   }}
                   modules={EMAIL_PREVIEW_MESSAGE_QUILL_MODULES}
@@ -1604,10 +1631,16 @@ EmailPreviewPanel.propTypes = {
     cc_emails: PropTypes.string,
     subject: PropTypes.string,
   }),
+  touchedFields: PropTypes.shape({
+    from_email: PropTypes.bool,
+    to_email: PropTypes.bool,
+    cc_emails: PropTypes.bool,
+    subject: PropTypes.bool,
+  }),
   onEditableFieldChange: PropTypes.func.isRequired,
   messageValue: PropTypes.string,
   messageEditorKey: PropTypes.oneOfType([PropTypes.string, PropTypes.number]),
-  /** Receives plain HTML/string from ReactQuill. */
+  /** Receives HTML from ReactQuill; second arg is Quill change source (e.g. "user"). */
   onMessageChange: PropTypes.func.isRequired,
 };
 
@@ -1649,6 +1682,20 @@ function General({
     cc_emails: "",
     subject: "",
   });
+  const [touchedPreviewFields, setTouchedPreviewFields] = useState({
+    from_email: false,
+    to_email: false,
+    cc_emails: false,
+    subject: false,
+  });
+  const resetTouchedPreviewFields = useCallback(() => {
+    setTouchedPreviewFields({
+      from_email: false,
+      to_email: false,
+      cc_emails: false,
+      subject: false,
+    });
+  }, []);
   // MWP RENEWAL document states
   const [appointmentEmailDocuments, setAppointmentEmailDocuments] = useState([]);
   const [mwpCopyDocuments, setMwpCopyDocuments] = useState([]);
@@ -2052,20 +2099,30 @@ function General({
     if (isAddMode) return;
     setEmailPreviewData(null);
     setIsPreviewMessageDirty(false);
+    resetTouchedPreviewFields();
     setEditablePreviewFields({
       from_email: "",
       to_email: "",
       cc_emails: "",
       subject: "",
     });
-  }, [isAddMode]);
+  }, [isAddMode, resetTouchedPreviewFields]);
 
   const populateEditablePreviewFields = useCallback((resolvedPreview) => {
-    setEditablePreviewFields({
-      from_email: firstNonEmptyString(resolvedPreview?.from),
-      to_email: firstNonEmptyString(resolvedPreview?.to),
-      cc_emails: firstNonEmptyString(resolvedPreview?.cc),
-      subject: firstNonEmptyString(resolvedPreview?.subject),
+    setTouchedPreviewFields((touched) => {
+      setEditablePreviewFields((prev) => ({
+        from_email: touched.from_email
+          ? prev.from_email
+          : firstNonEmptyString(resolvedPreview?.from),
+        to_email: touched.to_email ? prev.to_email : firstNonEmptyString(resolvedPreview?.to),
+        cc_emails: touched.cc_emails
+          ? prev.cc_emails
+          : firstNonEmptyString(resolvedPreview?.cc),
+        subject: touched.subject
+          ? prev.subject
+          : firstNonEmptyString(resolvedPreview?.subject),
+      }));
+      return touched;
     });
   }, []);
 
@@ -2194,6 +2251,19 @@ function General({
       formValues?.swimlaneId ??
       card?.swimlane_id ??
       card?.laneId;
+    const emailPreviewBody =
+      firstNonEmptyString(previewMessageText) ||
+      firstNonEmptyString(emailPreviewData?.messageHtml) ||
+      "";
+    const appointmentAcceptancePayload = {
+      body: emailPreviewBody,
+      cc_emails: firstNonEmptyString(editablePreviewFields.cc_emails),
+      from_email: firstNonEmptyString(editablePreviewFields.from_email),
+      subject: firstNonEmptyString(editablePreviewFields.subject),
+      to_email: firstNonEmptyString(editablePreviewFields.to_email),
+    };
+    console.log("EMAIL PREVIEW BODY", previewMessageText);
+    console.log("APPOINTMENT ACCEPTANCE PAYLOAD", appointmentAcceptancePayload);
     const formPayload = {
       ...formValues,
       swimlane_id: swimlaneId,
@@ -2213,13 +2283,7 @@ function General({
           };
         })
         .filter(Boolean),
-      appointment_acceptance: {
-        body: firstNonEmptyString(previewMessageText),
-        cc_emails: firstNonEmptyString(editablePreviewFields.cc_emails),
-        from_email: firstNonEmptyString(editablePreviewFields.from_email),
-        subject: firstNonEmptyString(editablePreviewFields.subject),
-        to_email: firstNonEmptyString(editablePreviewFields.to_email),
-      },
+      appointment_acceptance: appointmentAcceptancePayload,
     };
 
     setIsSavingGeneral(true);
@@ -2229,8 +2293,9 @@ function General({
         dailyReportEmailOptions,
         billingInstructionEmailOptions,
       });
-      for (const [key, value] of formData.entries()) {
-        console.log(key, value);
+      console.log("FINAL FORM DATA");
+      for (const pair of formData.entries()) {
+        console.log(pair[0], pair[1]);
       }
       const response = await callFileService.createCallFile(formData);
       if (onSave) onSave(response);
@@ -2641,7 +2706,18 @@ function General({
       );
       setIsPreviewMessageDirty(false);
       setPreviewMessageEditorKey((key) => key + 1);
-      populateEditablePreviewFields(resolvedPreview);
+      setTouchedPreviewFields({
+        from_email: false,
+        to_email: false,
+        cc_emails: false,
+        subject: false,
+      });
+      setEditablePreviewFields({
+        from_email: firstNonEmptyString(resolvedPreview?.from),
+        to_email: firstNonEmptyString(resolvedPreview?.to),
+        cc_emails: firstNonEmptyString(resolvedPreview?.cc),
+        subject: firstNonEmptyString(resolvedPreview?.subject),
+      });
     }
   };
 
@@ -2662,6 +2738,7 @@ function General({
     setPreviewMessageEditorKey(0);
     setEmailPreviewData(null);
     setIsPreviewMessageDirty(false);
+    resetTouchedPreviewFields();
     setEditablePreviewFields({
       from_email: "",
       to_email: "",
@@ -2790,10 +2867,17 @@ function General({
       const subject = firstNonEmptyString(data.subject);
       const body = firstNonEmptyString(data.body, data.message, data.message_html, data.email_body);
       if (subject) {
-        setEditablePreviewFields((prev) => ({ ...prev, subject }));
+        setTouchedPreviewFields((touched) => {
+          if (!touched.subject) {
+            setEditablePreviewFields((prev) => ({ ...prev, subject }));
+          }
+          return touched;
+        });
       }
       if (body) {
         setPreviewMessageText(body);
+        setPreviewMessageEditorKey((key) => key + 1);
+        setIsPreviewMessageDirty(true);
       }
 
       if (filledCount > 0 || subject || body) {
@@ -3487,6 +3571,7 @@ ${body}
 
     if (!hasAllRequiredPreviewFields) {
       setEmailPreviewData(null);
+      resetTouchedPreviewFields();
       setEditablePreviewFields({
         from_email: "",
         to_email: "",
@@ -3512,16 +3597,16 @@ ${body}
         const resolved = resolveEmailPreviewPayload(data);
         setEmailPreviewData(resolved);
         populateEditablePreviewFields(resolved);
-        if (!isPreviewMessageDirty) {
-          const apiHtml = firstNonEmptyString(resolved?.messageHtml);
-          if (apiHtml) {
-            setPreviewMessageText(apiHtml);
-          }
+        const apiHtml = firstNonEmptyString(resolved?.messageHtml);
+        if (apiHtml && !isPreviewMessageDirty) {
+          setPreviewMessageText(apiHtml);
+          setPreviewMessageEditorKey((key) => key + 1);
         }
       } catch (error) {
         console.error("[General] email preview fetch failed", error);
         if (!cancelled) {
           setEmailPreviewData(null);
+          resetTouchedPreviewFields();
           setEditablePreviewFields({
             from_email: "",
             to_email: "",
@@ -3547,6 +3632,7 @@ ${body}
     stageTimeObjects,
     isPreviewMessageDirty,
     populateEditablePreviewFields,
+    resetTouchedPreviewFields,
   ]);
 
   useEffect(() => {
@@ -4724,8 +4810,13 @@ ${body}
                           getFieldValue={getFieldValue}
                           previewData={emailPreviewData}
                           editableFields={editablePreviewFields}
+                          touchedFields={touchedPreviewFields}
                           onEditableFieldChange={(fieldName) => (event) => {
                             const nextVal = event?.target?.value ?? "";
+                            setTouchedPreviewFields((prev) => ({
+                              ...prev,
+                              [fieldName]: true,
+                            }));
                             setEditablePreviewFields((prev) => ({
                               ...prev,
                               [fieldName]: nextVal,
@@ -4733,7 +4824,8 @@ ${body}
                           }}
                           messageValue={previewMessageText}
                           messageEditorKey={previewMessageEditorKey}
-                          onMessageChange={(next) => {
+                          onMessageChange={(next, source) => {
+                            if (source !== "user") return;
                             setIsPreviewMessageDirty(true);
                             setPreviewMessageText(next ?? "");
                           }}

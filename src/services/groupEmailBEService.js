@@ -5,7 +5,7 @@ const fetchGroupEmailBEs = ({ params }) => Gateway.get('/billingentity/getallema
 const fetchGroupEmailBEByEntity = (billingentity_id) =>
     Gateway.get(`/billingentity/getallemailbyentity/${billingentity_id}`);
 const updateGroupEmailBE = (data) => Gateway.post(`/billingentity/updategroupemail`, data);
-const deleteGroupEmailBE = (id) => Gateway.delete(`/billingentity/deletegroupemail/${id}`);
+const deleteGroupEmailBE = (id) => Gateway.post(`/billingentity/deletegroupemail/${id}`);
 
 export default {
     addGroupEmailBE,

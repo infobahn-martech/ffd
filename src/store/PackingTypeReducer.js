@@ -28,15 +28,13 @@ const usePackingTypeReducer = create((set) => ({
             error(err?.response?.data?.message ?? err.message);
         }
     },
-    getPackingTypes: async () => {
+    getPackingTypes: async (params) => {
         try {
             set({ isLoadingGet: true });
-            const { data } = await packingTypeService.getPackingTypes();
-            // API returns array of { package_type_id, package_type, created_date }
-            const rows = Array.isArray(data) ? data : data?.data ?? [];
+            const { data } = await packingTypeService.getPackingTypes({ params });
             set({
-                packingTypes: { data: rows, total: rows.length },
-                totalCount: rows.length,
+                packingTypes: data?.data ?? [],
+                totalCount: data?.pagination?.total ?? 0,
                 isLoadingGet: false,
             });
         } catch (err) {

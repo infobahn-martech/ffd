@@ -20,7 +20,6 @@ const useArrivalReducer = create((set) => ({
   isSavingArrival: false,
   isSendingArrivalReport: false,
   arrivalError: '',
-
   fetchArrivalDetail: async ({ callId, cb } = {}) => {
     const trimmedCallId = String(callId ?? '').trim();
     if (!trimmedCallId) return null;

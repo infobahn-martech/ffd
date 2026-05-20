@@ -40,7 +40,7 @@ import CheckList from "../pages/CheckList";
 import DriverVehicleMapping from "../pages/DriverVehicleMapping";
 import Hotel from "../pages/Hotel";
 import StatusManagement from "../pages/StatusManagement";
-import MaterialType from "../pages/MaterialType";
+// import MaterialType from "../pages/MaterialType";
 import PackingType from "../pages/PackingType";
 import LogisticsWarehouse from "../pages/LogisticsWarehouse";
 import CustomFields from "../pages/CustomFields";
@@ -141,7 +141,7 @@ const router = createHashRouter([
               { path: "/driver-vehicle-mapping", element: <DriverVehicleMapping /> },
               { path: "/check-list", element: <CheckList /> },
               { path: "/hotel-management", element: <Hotel /> },
-              { path: "/material-type", element: <MaterialType /> },
+              // { path: "/material-type", element: <MaterialType /> },
               { path: "/packing-type", element: <PackingType /> },
               { path: "/logistics-warehouse", element: <LogisticsWarehouse /> },
               { path: "/document-checklist", element: <DocumentChecklist /> },
@@ -261,7 +261,7 @@ const router = createHashRouter([
                   // Hotel Management
                   { path: "/hotel-management", element: <RouteGuard><Hotel /></RouteGuard> },
                   // Material Type
-                  { path: "/material-type", element: <RouteGuard><MaterialType /></RouteGuard> },
+                  // { path: "/material-type", element: <RouteGuard><MaterialType /></RouteGuard> },
                   // Packing Type
                   { path: "/packing-type", element: <RouteGuard><PackingType /></RouteGuard> },
                   // Logistics Warehouse

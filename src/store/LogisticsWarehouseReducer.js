@@ -31,10 +31,9 @@ const useLogisticsWarehouseReducer = create((set) => ({
         try {
             set({ isLoadingGet: true });
             const { data } = await logisticsWarehouseService.getLocations(params);
-            const rows = Array.isArray(data) ? data : (data?.data ?? data?.locations ?? []);
             set({
-                logisticsWarehouses: rows,
-                totalCount: data?.total ?? data?.count ?? rows.length,
+                logisticsWarehouses: data?.data ?? [],
+                totalCount: data?.pagination?.total ?? 0,
                 isLoadingGet: false,
             });
         } catch (err) {
