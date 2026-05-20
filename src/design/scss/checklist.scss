@@ -3143,7 +3143,7 @@ span.cl-item-meta-chip.cl-item-meta-chip--expiry {
 .checklist-items-builder {
   margin-top: 20px;
   width: 100%;
-  overflow-x: hidden;
+  overflow: visible;
 }
 
 .checklist-items-builder-header {
@@ -3175,22 +3175,79 @@ span.cl-item-meta-chip.cl-item-meta-chip--expiry {
   background: #002d6f;
 }
 
+.checklist-items-table-scroll {
+  width: 100%;
+  overflow-x: visible;
+  overflow-y: visible;
+}
+
 .checklist-items-table {
   width: 100%;
   min-width: 0;
-  overflow-x: hidden;
-  overflow-y: visible;
+  overflow: visible;
   background: transparent;
   box-sizing: border-box;
+}
+
+.checklist-items-table-footer {
+  display: flex;
+  justify-content: flex-end;
+  margin-top: 10px;
+  padding: 0 4px 0;
+}
+
+.checklist-inline-add-btn {
+  width: 32px;
+  height: 32px;
+  min-width: 32px;
+  border-radius: 50%;
+  border: 1px solid #00368c;
+  background: #ffffff;
+  color: #00368c;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: background 0.2s ease, color 0.2s ease, border-color 0.2s ease;
+}
+
+.checklist-inline-add-btn:hover {
+  background: #00368c;
+  color: #ffffff;
+}
+
+.checklist-compact-select.premium-select {
+  width: 100%;
+  min-width: 0;
+  max-width: 100%;
+}
+
+.checklist-modal-xl-wide .checklist-compact-select.premium-select .cf-multi-select-email-input {
+  height: 40px;
+  min-height: 40px;
+  padding: 0 10px;
+  font-size: 12px;
 }
 
 .checklist-items-head,
 .checklist-item-row {
   display: grid;
-  grid-template-columns: 36px 42px minmax(150px, 1.2fr) 90px minmax(160px, 1.2fr) 105px 105px 110px 48px minmax(160px, 1.2fr) 48px;
-  column-gap: 10px;
+  grid-template-columns:
+    28px
+    42px
+    minmax(150px, 1fr)
+    90px
+    minmax(150px, 1fr)
+    100px
+    100px
+    120px
+    44px
+    minmax(150px, 1fr)
+    150px
+    60px;
+  column-gap: 8px;
   align-items: center;
-  padding: 12px 14px;
+  padding: 10px 12px;
   width: 100%;
   box-sizing: border-box;
 }
@@ -3386,19 +3443,37 @@ span.cl-item-meta-chip.cl-item-meta-chip--expiry {
 }
 
 .checklist-modal-xl-wide .modal-dialog {
-  max-width: 1400px;
-  width: 95%;
+  max-width: 1500px;
+  width: 95vw;
+  margin-left: auto;
+  margin-right: auto;
 }
 
 .checklist-modal-xl-wide .modal-content {
   border-radius: 16px;
+  overflow: visible;
 }
 
 .checklist-modal-xl-wide .modal-body {
   padding: 20px 24px;
   max-height: 75vh;
   overflow-y: auto;
-  overflow-x: hidden;
+  overflow-x: visible;
+}
+
+.checklist-modal-xl-wide .checklist-section-shell {
+  overflow: visible !important;
+}
+
+.checklist-modal-xl-wide .checklist-items-table-scroll {
+  @media (max-width: 991.98px) {
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+
+    .checklist-items-table {
+      min-width: 980px;
+    }
+  }
 }
 
 .checklist-modal-xl-wide .modal-footer {
