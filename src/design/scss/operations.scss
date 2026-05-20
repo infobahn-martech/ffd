@@ -6765,6 +6765,24 @@ body .material-management-modal .files-list::-webkit-scrollbar-thumb:hover {
   min-width: 100px;
 }
 
+/* 8-column sub-tab tables (Landing Note, Dispatch Note) */
+.sub-note-table.material-table th:nth-child(1),
+.sub-note-table.material-table td:nth-child(1) { width: 110px; min-width: 100px; }
+.sub-note-table.material-table th:nth-child(2),
+.sub-note-table.material-table td:nth-child(2) { width: 90px; min-width: 80px; }
+.sub-note-table.material-table th:nth-child(3),
+.sub-note-table.material-table td:nth-child(3) { width: 80px; min-width: 70px; }
+.sub-note-table.material-table th:nth-child(4),
+.sub-note-table.material-table td:nth-child(4) { width: 90px; min-width: 80px; }
+.sub-note-table.material-table th:nth-child(5),
+.sub-note-table.material-table td:nth-child(5) { width: 80px; min-width: 70px; }
+.sub-note-table.material-table th:nth-child(6),
+.sub-note-table.material-table td:nth-child(6) { width: 100px; min-width: 90px; }
+.sub-note-table.material-table th:nth-child(7),
+.sub-note-table.material-table td:nth-child(7) { width: auto; min-width: 100px; }
+.sub-note-table.material-table th:nth-child(8),
+.sub-note-table.material-table td:nth-child(8) { width: 160px; min-width: 150px; }
+
 .material-table-actions {
   display: flex;
   align-items: center;
