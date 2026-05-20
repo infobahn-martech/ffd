@@ -6711,12 +6711,12 @@ body .material-management-modal .files-list::-webkit-scrollbar-thumb:hover {
   table-layout: fixed;
 }
 
-.material-table th,
-.material-table td {
+.material-table-container .table.material-table th,
+.material-table-container .table.material-table td {
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
-  padding: 14px 16px;
+  padding: 12px 16px;
   text-align: left;
   vertical-align: middle;
   border-bottom: 1px solid #f0f0f0;
