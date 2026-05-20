@@ -95,15 +95,17 @@ const LogisticsWarehouse = () => {
         getLogisticsWarehouses(apiParams);
     };
 
-    const handleDelete = async () => {
+    const handleDelete = () => {
         if (!selectedRow?.location_id) return;
 
-        await deleteData(selectedRow.location_id);
-
-        setShowDeleteModal(false);
-        setSelectedRow(null);
-
-        refreshList();
+        deleteData({
+            id: selectedRow.location_id,
+            cb: () => {
+                setShowDeleteModal(false);
+                setSelectedRow(null);
+                refreshList();
+            },
+        });
     };
 
     return (

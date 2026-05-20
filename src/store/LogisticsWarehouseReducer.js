@@ -57,13 +57,14 @@ const useLogisticsWarehouseReducer = create((set) => ({
             error(err?.response?.data?.message ?? err.message);
         }
     },
-    deleteData: async (location_id) => {
+    deleteData: async ({ id, cb }) => {
         try {
             set({ isLoadingDelete: true });
-            const { data } = await logisticsWarehouseService.deleteLocation(location_id);
+            const { data } = await logisticsWarehouseService.deleteLocation(id);
             set({ successMessage: data?.message, isLoadingDelete: false });
             const { success } = useAlertReducer.getState();
             success(data?.message ?? 'Location deleted successfully');
+            cb?.();
         } catch (err) {
             const { error } = useAlertReducer.getState();
             set({
