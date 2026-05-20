@@ -9042,6 +9042,20 @@ body .material-management-modal {
     max-height: 200px;
     overflow-y: auto;
   }
+
+  /* Normalize placeholder style across all field types */
+  .cf-input input::placeholder {
+    font-size: 13px;
+    font-style: normal;
+    color: #999;
+  }
+
+  .cf-multi-select-placeholder,
+  .cf-select-placeholder {
+    font-size: 13px;
+    font-style: normal;
+    color: #999;
+  }
 }
 
 /* Ensure backdrop appears above CardForm (1200) but below modal (1300) */
