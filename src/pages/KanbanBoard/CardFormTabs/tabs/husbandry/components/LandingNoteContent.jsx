@@ -1707,7 +1707,7 @@ const LandingNoteContent = ({ formValues, handleChange, cardColor }) => {
         </h3>
       </div>
       <div className="table-wrapper table-responsive material-table-container" style={{ overflow: "visible" }}>
-        <table className="table table-striped material-table" style={{ "--card-color": "#e2e6ff", overflow: "visible" }}>
+        <table className="table table-striped material-table" style={{ overflow: "visible" }}>
           <thead>
             <tr>
               <th>Order No</th>
@@ -1717,7 +1717,7 @@ const LandingNoteContent = ({ formValues, handleChange, cardColor }) => {
               <th>Quantity</th>
               <th>Package Type</th>
               <th>Description</th>
-              <th style={{ minWidth: "180px", whiteSpace: "nowrap" }}>Actions</th>
+              <th style={{ whiteSpace: "nowrap" }}>Actions</th>
             </tr>
           </thead>
           <tbody>
@@ -1775,7 +1775,7 @@ const LandingNoteContent = ({ formValues, handleChange, cardColor }) => {
                     </div>
                   </td>
                   <td style={{ position: "relative", whiteSpace: "nowrap" }}>
-                    <div className="material-table-cell" style={{ position: "relative", overflow: "visible", display: "flex", alignItems: "center", gap: "8px", justifyContent: "flex-end", flexWrap: "nowrap" }}>
+                    <div className="material-table-cell" style={{ position: "relative", overflow: "visible", display: "flex", alignItems: "center", gap: "8px", justifyContent: "center", flexWrap: "nowrap" }}>
                       <Tooltip id={`view-note-${note.id}`} place="left" content="View" />
                       <button
                         type="button"

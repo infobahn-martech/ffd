@@ -2125,13 +2125,13 @@ const InboundOrdersContent = ({ formValues, handleChange, cardColor }) => {
         </button>
       </div>
       <div className="table-wrapper table-responsive material-table-container" style={{ overflow: "visible" }}>
-        <table className="table table-striped material-table" style={{ "--card-color": "#e2e6ff", overflow: "visible" }}>
+        <table className="table table-striped material-table" style={{ overflow: "visible" }}>
           <thead>
             <tr>
               <th>Order No</th>
               <th>Date</th>
               <th>PO/DO</th>
-              <th style={{ marginRight: "40px" }}>Quantity</th>
+              <th>Quantity</th>
               <th>Package Type</th>
               <th>Description</th>
               <th>Actions</th>
@@ -2181,7 +2181,7 @@ const InboundOrdersContent = ({ formValues, handleChange, cardColor }) => {
                     </div>
                   </td>
                   <td style={{ position: "relative" }}>
-                    <div className="material-table-cell" style={{ position: "relative", overflow: "visible", display: "flex", alignItems: "center", gap: "8px" }}>
+                    <div className="material-table-cell" style={{ position: "relative", overflow: "visible", display: "flex", alignItems: "center", gap: "8px", justifyContent: "center" }}>
                       <Tooltip id={`view-order-${order.id}`} place="left" content="View" />
                       <button
                         type="button"

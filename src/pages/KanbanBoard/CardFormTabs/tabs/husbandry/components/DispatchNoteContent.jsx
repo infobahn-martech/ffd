@@ -768,7 +768,7 @@ const DispatchNoteContent = ({ formValues, handleChange, cardColor }) => {
         </h3>
       </div>
       <div className="table-wrapper table-responsive material-table-container" style={{ overflow: "visible" }}>
-        <table className="table table-striped material-table" style={{ "--card-color": "#e2e6ff", overflow: "visible" }}>
+        <table className="table table-striped material-table" style={{ overflow: "visible" }}>
           <thead>
             <tr>
               <th>Order No</th>
@@ -836,7 +836,7 @@ const DispatchNoteContent = ({ formValues, handleChange, cardColor }) => {
                     </div>
                   </td>
                   <td style={{ position: "relative" }}>
-                    <div className="material-table-cell" style={{ position: "relative", overflow: "visible", display: "flex", alignItems: "center", gap: "4px" }}>
+                    <div className="material-table-cell" style={{ position: "relative", overflow: "visible", display: "flex", alignItems: "center", gap: "4px", justifyContent: "center" }}>
                       <Tooltip id={`view-note-${note.id}`} place="left" content="View" />
                       <button
                         type="button"
