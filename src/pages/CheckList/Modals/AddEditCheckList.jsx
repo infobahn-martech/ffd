@@ -14,29 +14,44 @@ import useBargeTypeReducer from "../../../store/BargeTypeReducer";
 import usePortReducer from "../../../store/PortReducer";
 import useRoleReducer from "../../../store/RoleReducer";
 
-function normalizeRoleIdsForApi(doc) {
-  const ids = doc?.role_ids;
-  if (Array.isArray(ids)) {
-    return ids
+function normalizeRoleIdsForApi(item) {
+  const toNumbers = (ids) =>
+    ids
       .filter((id) => id !== "" && id != null)
-      .map((id) => String(id));
+      .map((id) => Number(id))
+      .filter((n) => !Number.isNaN(n));
+
+  if (Array.isArray(item?.role_ids)) {
+    return toNumbers(item.role_ids);
+  }
+
+  const doc = item?.document_details ?? {};
+  if (Array.isArray(doc?.role_ids)) {
+    return toNumbers(doc.role_ids);
   }
   if (doc?.role_id !== "" && doc?.role_id != null) {
-    return [String(doc.role_id)];
+    const n = Number(doc.role_id);
+    return Number.isNaN(n) ? [] : [n];
   }
   return [];
 }
 
-function normalizeRoleIdsForForm(documentDetails) {
-  const fromIds = documentDetails?.role_ids;
-  if (Array.isArray(fromIds)) {
-    return fromIds
+function normalizeRoleIdsForForm(item) {
+  const toStrings = (ids) =>
+    ids
       .filter((id) => id != null && id !== "")
       .map((id) => String(id));
+
+  if (Array.isArray(item?.role_ids)) {
+    return toStrings(item.role_ids);
   }
-  const legacy = documentDetails?.role_id;
-  if (legacy != null && legacy !== "") {
-    return [String(legacy)];
+
+  const doc = item?.document_details ?? {};
+  if (Array.isArray(doc?.role_ids)) {
+    return toStrings(doc.role_ids);
+  }
+  if (doc?.role_id != null && doc?.role_id !== "") {
+    return [String(doc.role_id)];
   }
   return [];
 }
@@ -48,11 +63,11 @@ function mapItemToApi(item) {
     item_name: item?.item_name ?? "",
     description: item?.description ?? "",
     item_order: item?.item_order ?? 0,
+    role_ids: normalizeRoleIdsForApi(item),
     expiry_date_reqd: item?.expiry_date_reqd ? 1 : 0,
     document_details: {
       require_copy_only: !!doc?.is_copy_required,
-      description: doc?.description ?? "",
-      role_ids: normalizeRoleIdsForApi(doc)
+      description: doc?.description ?? ""
     }
   };
 }
@@ -258,13 +273,13 @@ function createSectionItemPayload(itemOrder) {
     item_name: "",
     description: "",
     item_order: itemOrder,
+    role_ids: [],
     document_details: {
       is_copy_required: false,
       expiry_date_reqd: false,
       required_copy_only: null,
       existing_files: [],
-      description: "",
-      role_ids: []
+      description: ""
     }
   };
 }
@@ -274,13 +289,13 @@ function createSubSectionItemPayload(itemOrder) {
     item_name: "",
     description: "",
     item_order: itemOrder,
+    role_ids: [],
     expiry_date_reqd: false,
     document_details: {
       is_copy_required: false,
       required_copy_only: null,
       existing_files: [],
-      description: "",
-      role_ids: []
+      description: ""
     }
   };
 }
@@ -319,12 +334,12 @@ function mapApiToForm(data) {
     item_order: Number(item.item_order) || 0,
     expiry_date_reqd: item.expiry_date_reqd == "1",
     description: item.description || "",
+    role_ids: normalizeRoleIdsForForm(item),
     document_details: {
       is_copy_required: item.document_details?.require_copy_only || false,
       required_copy_only: null,
       existing_files: normalizeUploadedFilesForForm(item.document_details?.uploaded_files),
-      description: item.document_details?.description || "",
-      role_ids: normalizeRoleIdsForForm(item.document_details)
+      description: item.document_details?.description || ""
     }
   });
   const { vesselType, bargeType } = normalizeVesselBargeFormFields(data);
@@ -544,7 +559,7 @@ export function CheckListModal({ showModal, closeModal, callTypesOptions, onSucc
                   />
                   <ChecklistItemRoleSelect
                     control={control}
-                    name={`sections.${sectionIndex}.items.${itemIndex}.document_details.role_ids`}
+                    name={`sections.${sectionIndex}.items.${itemIndex}.role_ids`}
                     roleSelectOptions={roleSelectOptions}
                     isLoadingRoles={isLoadingRoles}
                   />
@@ -682,7 +697,7 @@ export function CheckListModal({ showModal, closeModal, callTypesOptions, onSucc
                   />
                   <ChecklistItemRoleSelect
                     control={control}
-                    name={`sections.${sectionIndex}.sub_sections.${subSectionIndex}.items.${itemIndex}.document_details.role_ids`}
+                    name={`sections.${sectionIndex}.sub_sections.${subSectionIndex}.items.${itemIndex}.role_ids`}
                     roleSelectOptions={roleSelectOptions}
                     isLoadingRoles={isLoadingRoles}
                   />
