@@ -8,6 +8,7 @@ const useVehicleReducer = create((set) => ({
   successMessage: '',
   vehicles: [],
   isBeingUpdated: false,
+  isDeleteLoading: false,
   totalCount: 0,
   addVehicle: async ({ formData, cb }) => {
     try {
@@ -56,20 +57,19 @@ const useVehicleReducer = create((set) => ({
       error(err?.response?.data?.message ?? err.message);
     }
   },
-  deleteVehicle: async (payload) => {
-    const { vehicle_id, cb } = payload || {};
+  deleteVehicle: async ({ id, cb }) => {
     try {
-      set({ isBeingUpdated: true });
-      const { data } = await vehicleService.deleteVehicle(vehicle_id);
-      set({ successMessage: data?.message, isBeingUpdated: false });
+      set({ isDeleteLoading: true });
+      const { data } = await vehicleService.deleteVehicle(id);
       const { success } = useAlertReducer.getState();
       success(data?.message ?? 'Vehicle type deleted successfully');
-      cb?.();
+      set({ isDeleteLoading: false });
+      cb && cb();
     } catch (err) {
       const { error } = useAlertReducer.getState();
       set({
-        errorMessage: 'Something went wrong deleting the vehicle type',
-        isBeingUpdated: false,
+        errorMessage: err?.response?.data?.message ?? err.message,
+        isDeleteLoading: false,
       });
       error(err?.response?.data?.message ?? err.message);
     }
