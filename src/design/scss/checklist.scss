@@ -3231,60 +3231,100 @@ span.cl-item-meta-chip.cl-item-meta-chip--expiry {
 
 /* ----- Add/Edit item row + Role multi-select (react-select) ----- */
 
-.checklist-role-multiselect.role-multiselect.react-select-container {
+.checklist-item-row .checklist-role-multiselect.role-multiselect.react-select-container {
   width: 100%;
   min-width: 0;
   max-width: 100%;
   padding: 0 !important;
+  margin: 0;
 }
 
-.checklist-item-row .checklist-role-ms__control.react-select__control {
-  min-height: 38px;
+.checklist-item-row .role-multiselect .checklist-role-ms__control.react-select__control,
+.checklist-item-row .role-multiselect .react-select__control {
+  min-height: 38px !important;
+  height: 38px !important;
+  max-height: 38px !important;
+  padding: 0 6px !important;
   border-color: #dbe3ef;
   border-radius: 8px;
   font-size: 12px;
-  box-shadow: none;
-  align-items: center;
+  box-shadow: none !important;
+  align-items: center !important;
 
   &:hover {
     border-color: #c7d2e0;
   }
 }
 
-.checklist-item-row .checklist-role-ms__value-container.react-select__value-container {
-  padding: 2px 6px;
+.checklist-item-row .role-multiselect .checklist-role-ms__value-container.react-select__value-container,
+.checklist-item-row .role-multiselect .react-select__value-container {
+  min-height: 0 !important;
+  height: 100% !important;
+  padding: 0 4px !important;
+  margin: 0;
+  position: relative;
+  display: flex !important;
+  align-items: center !important;
+  align-content: center !important;
+  flex-wrap: nowrap !important;
+  overflow: hidden;
   gap: 4px;
-  align-items: center;
-  flex-wrap: wrap;
 
   &.react-select__value-container--is-multi {
-    row-gap: 4px;
+    padding-top: 0 !important;
+    padding-bottom: 0 !important;
   }
 }
 
-.checklist-item-row .checklist-role-ms__placeholder.react-select__placeholder {
+.checklist-item-row .role-multiselect .react-select__placeholder,
+.checklist-item-row .role-multiselect .checklist-role-ms__placeholder.react-select__placeholder {
+  position: absolute !important;
+  top: 50% !important;
+  left: 4px !important;
+  right: auto !important;
+  transform: translateY(-50%) !important;
+  margin: 0 !important;
+  padding: 0 !important;
   font-size: 12px;
   color: #64748b;
-  margin: 0;
+  line-height: 1.2;
+  max-width: calc(100% - 8px);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 
-.checklist-item-row .checklist-role-ms__multi-value.react-select__multi-value {
+.checklist-item-row .role-multiselect .react-select__control--is-focused {
+  min-height: 38px !important;
+  height: 38px !important;
+  max-height: 38px !important;
+}
+
+.checklist-item-row .role-multiselect .react-select__input-container {
+  margin: 0 !important;
+  padding: 0 !important;
+}
+
+.checklist-item-row .role-multiselect .react-select__multi-value,
+.checklist-item-row .role-multiselect .checklist-role-ms__multi-value.react-select__multi-value {
   flex-shrink: 1;
   min-width: 0;
   max-width: 100%;
-  margin: 0;
+  margin: 0 2px 0 0 !important;
+  height: 24px;
   align-items: center;
   border-radius: 6px;
   background: linear-gradient(180deg, #f8fafc 0%, #f1f5f9 100%);
   border: 1px solid #e2e8f0;
 }
 
-.checklist-item-row .checklist-role-ms__multi-value-label.react-select__multi-value__label {
+.checklist-item-row .role-multiselect .react-select__multi-value__label,
+.checklist-item-row .role-multiselect .checklist-role-ms__multi-value-label.react-select__multi-value__label {
   font-size: 12px !important;
-  line-height: 1.35;
+  line-height: 24px !important;
   font-weight: 500;
   color: #334155;
-  padding: 2px 0 2px 6px;
+  padding: 0 0 0 4px !important;
   min-width: 0;
   max-width: 120px;
   overflow: hidden;
@@ -3292,9 +3332,11 @@ span.cl-item-meta-chip.cl-item-meta-chip--expiry {
   white-space: nowrap;
 }
 
-.checklist-item-row .checklist-role-ms__multi-value-remove.react-select__multi-value__remove {
-  padding: 2px 4px;
+.checklist-item-row .role-multiselect .react-select__multi-value__remove,
+.checklist-item-row .role-multiselect .checklist-role-ms__multi-value-remove.react-select__multi-value__remove {
+  padding: 0 4px !important;
   border-radius: 0 6px 6px 0;
+  align-self: center;
 
   &:hover {
     background: rgba(241, 245, 249, 1);
@@ -3302,12 +3344,18 @@ span.cl-item-meta-chip.cl-item-meta-chip--expiry {
   }
 }
 
-.checklist-item-row .checklist-role-ms__indicators.react-select__indicators {
-  align-self: stretch;
+.checklist-item-row .role-multiselect .checklist-role-ms__indicators.react-select__indicators,
+.checklist-item-row .role-multiselect .react-select__indicators {
+  align-self: center !important;
+  height: 100%;
+  padding: 0;
 }
 
-.checklist-item-row .checklist-role-ms__indicators .react-select__indicator {
-  padding: 4px;
+.checklist-item-row .role-multiselect .react-select__indicator,
+.checklist-item-row .role-multiselect .react-select__dropdown-indicator {
+  padding: 0 2px !important;
+  align-items: center;
+  display: flex;
 }
 
 .checklist-role-ms__menu.react-select__menu {
