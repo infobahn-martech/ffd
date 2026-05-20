@@ -524,7 +524,7 @@ const MaterialManagementContent = ({ formValues, handleChange, cardColor }) => {
               <th>Pick Up</th>
               <th>Drop Off</th>
               <th>Status</th>
-              <th style={{ textAlign: "center" }}>Actions</th>
+              <th>Actions</th>
             </tr>
           </thead>
           <tbody>
