@@ -9020,6 +9020,19 @@ body .material-management-modal {
   .modal-title {
     color: #000000 !important;
   }
+
+  /* Dropdown trigger — match input field height */
+  .cf-multi-select-email-input {
+    height: 40px;
+    min-height: 40px;
+    box-sizing: border-box;
+  }
+
+  /* Dropdown options list — scrollable */
+  .cf-multi-select-dropdown {
+    max-height: 200px;
+    overflow-y: auto;
+  }
 }
 
 /* Ensure backdrop appears above CardForm (1200) but below modal (1300) */
