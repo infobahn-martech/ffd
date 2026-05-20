@@ -9021,14 +9021,19 @@ body .material-management-modal {
     color: #000000 !important;
   }
 
-  /* Dropdown trigger — match cf-input / cf-select height */
+  /* Force all single-line field triggers to the same height */
+  .cf-select,
   .cf-multi-select-email-input {
-    padding: 10px 14px;
-    border: 1.5px solid #e2e2ea;
-    border-radius: 8px;
-    height: auto;
-    min-height: unset;
-    box-sizing: border-box;
+    height: 42px !important;
+    min-height: 42px !important;
+    max-height: 42px !important;
+    box-sizing: border-box !important;
+  }
+
+  .cf-multi-select-email-input {
+    padding: 0 14px !important;
+    border: 1.5px solid #e2e2ea !important;
+    border-radius: 8px !important;
   }
 
   /* Dropdown options list — scrollable */
