@@ -1474,14 +1474,13 @@ $send-report-optional: #80868b;
 
 .op-tab:hover {
   background: #e0e7ff;
-  color: var(--card-color, #333333);
+  color: #333333;
 }
 
 .op-tab.active {
   background: #e0e7ff;
-  color: var(--card-color, #2a00ff);
-  font-weight: 600;
-  border-left: 3px solid var(--card-color, #2a00ff);
+  color: #333333;
+  font-weight: 500;
   box-shadow: none;
 }
 
@@ -1492,7 +1491,7 @@ $send-report-optional: #80868b;
   margin-top: 4px;
   margin-left: 12px;
   padding-left: 12px;
-  border-left: 2px solid var(--card-color, rgba(42, 0, 255, 0.2));
+  border-left: 2px solid rgba(42, 0, 255, 0.2);
   padding-top: 4px;
   padding-bottom: 4px;
 }
@@ -1509,14 +1508,37 @@ $send-report-optional: #80868b;
 
 .op-tab-sub:hover {
   background: #e0e7ff;
-  color: var(--card-color, #333333);
+  color: #333333;
 }
 
 .op-tab-sub.active {
   background: #e0e7ff;
-  color: var(--card-color, #2a00ff);
-  font-weight: 600;
+  color: #333333;
+  font-weight: 500;
   box-shadow: none;
+}
+
+/* Husbandry/Material Management sidebar: active state reflects card color */
+.operation-wrapper.husbandry-wrapper .op-tab:hover {
+  color: var(--card-color, #333333);
+}
+
+.operation-wrapper.husbandry-wrapper .op-tab.active {
+  color: var(--card-color, #00368c);
+  font-weight: 600;
+}
+
+.operation-wrapper.husbandry-wrapper .op-submenu {
+  border-left-color: var(--card-color, rgba(42, 0, 255, 0.2));
+}
+
+.operation-wrapper.husbandry-wrapper .op-tab-sub:hover {
+  color: var(--card-color, #333333);
+}
+
+.operation-wrapper.husbandry-wrapper .op-tab-sub.active {
+  color: var(--card-color, #00368c);
+  font-weight: 600;
 }
 
 .operation-right {
