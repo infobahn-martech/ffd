@@ -764,11 +764,11 @@ const DispatchNoteContent = ({ formValues, handleChange, cardColor }) => {
       <div className="material-list-header">
         <h3 className="material-list-title">
           <span className="material-list-title-bar"></span>
-          DISPATCH NOTE
+          Dispatch Note
         </h3>
       </div>
       <div className="table-wrapper table-responsive material-table-container" style={{ overflow: "visible" }}>
-        <table className="table table-striped material-table" style={{ "--card-color": "#e2e6ff", overflow: "visible" }}>
+        <table className="table table-striped material-table sub-note-table" style={{ "--card-color": "#e2e6ff", overflow: "visible", tableLayout: "fixed" }}>
           <thead>
             <tr>
               <th>Order No</th>
@@ -778,7 +778,7 @@ const DispatchNoteContent = ({ formValues, handleChange, cardColor }) => {
               <th>Quantity</th>
               <th>Package Type</th>
               <th>Description</th>
-              <th>Actions</th>
+              <th style={{ paddingLeft: "28px" }}>Actions</th>
             </tr>
           </thead>
           <tbody>
@@ -835,8 +835,8 @@ const DispatchNoteContent = ({ formValues, handleChange, cardColor }) => {
                       )}
                     </div>
                   </td>
-                  <td style={{ position: "relative" }}>
-                    <div className="material-table-cell" style={{ position: "relative", overflow: "visible", display: "flex", alignItems: "center", gap: "4px" }}>
+                  <td style={{ position: "relative", overflow: "visible" }}>
+                    <div className="material-table-cell" style={{ position: "relative", overflow: "visible", display: "flex", alignItems: "center", gap: "8px", justifyContent: "flex-start" }}>
                       <Tooltip id={`view-note-${note.id}`} place="left" content="View" />
                       <button
                         type="button"

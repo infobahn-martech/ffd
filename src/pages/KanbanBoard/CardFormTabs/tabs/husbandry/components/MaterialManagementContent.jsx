@@ -189,6 +189,13 @@ const MaterialManagementContent = ({ formValues, handleChange, cardColor }) => {
     setSelectedFiles((prev) => prev.filter((_, i) => i !== index));
   };
 
+  const handleDeleteMaterial = (id) => {
+    const updatedList = materialsList.filter((m) => m.id !== id);
+    setMaterialsList(updatedList);
+    const syntheticEvent = { target: { value: updatedList } };
+    handleChange("materialManagementList")(syntheticEvent);
+  };
+
   const formatDateTime = (dateTimeString) => {
     if (!dateTimeString) return "";
     const date = new Date(dateTimeString);
@@ -498,13 +505,12 @@ const MaterialManagementContent = ({ formValues, handleChange, cardColor }) => {
       <div className="material-list-header">
         <h3 className="material-list-title">
           <span className="material-list-title-bar"></span>
-          MATERIAL MANAGEMENT
+          Material Management
         </h3>
         <button
           type="button"
           className="material-add-btn"
           onClick={handleOpenModal}
-          style={{ backgroundColor: "#00368c" }}
         >
           + Add
         </button>
@@ -518,6 +524,7 @@ const MaterialManagementContent = ({ formValues, handleChange, cardColor }) => {
               <th>Pick Up</th>
               <th>Drop Off</th>
               <th>Status</th>
+              <th>Actions</th>
             </tr>
           </thead>
           <tbody>
@@ -545,12 +552,36 @@ const MaterialManagementContent = ({ formValues, handleChange, cardColor }) => {
                       {material.status || ""}
                     </div>
                   </td>
+                  <td>
+                    <div className="material-table-actions">
+                      <button
+                        type="button"
+                        className="material-table-action-btn edit"
+                        title="Edit"
+                        onClick={() => handleOpenModal()}
+                      >
+                        <svg width="14" height="14" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
+                          <path d="M11.333 2a1.886 1.886 0 0 1 2.667 2.667L4.667 14H2v-2.667L11.333 2Z" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
+                        </svg>
+                      </button>
+                      <button
+                        type="button"
+                        className="material-table-action-btn delete"
+                        title="Delete"
+                        onClick={() => handleDeleteMaterial(material.id)}
+                      >
+                        <svg width="14" height="14" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
+                          <path d="M2 4h12M5.333 4V2.667h5.334V4M6.667 7.333v4M9.333 7.333v4M3.333 4l.667 9.333h8L12.667 4" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
+                        </svg>
+                      </button>
+                    </div>
+                  </td>
                 </tr>
               ))
             ) : (
               <tr>
-                <td colSpan="5" style={{ textAlign: "center", padding: "20px" }}>
-                  No materials added yet. Click "Add" to add a new material.
+                <td colSpan="6" style={{ textAlign: "center", padding: "20px" }}>
+                  No materials added yet. Click &quot;Add&quot; to add a new material.
                 </td>
               </tr>
             )}

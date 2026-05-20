@@ -2113,7 +2113,7 @@ const InboundOrdersContent = ({ formValues, handleChange, cardColor }) => {
       <div className="material-list-header">
         <h3 className="material-list-title">
           <span className="material-list-title-bar"></span>
-          INBOUND ORDERS
+          Inbound Orders
         </h3>
         <button
           type="button"
@@ -2125,16 +2125,16 @@ const InboundOrdersContent = ({ formValues, handleChange, cardColor }) => {
         </button>
       </div>
       <div className="table-wrapper table-responsive material-table-container" style={{ overflow: "visible" }}>
-        <table className="table table-striped material-table" style={{ "--card-color": "#e2e6ff", overflow: "visible" }}>
+        <table className="table table-striped material-table inbound-table" style={{ "--card-color": "#e2e6ff", overflow: "visible", tableLayout: "fixed" }}>
           <thead>
             <tr>
               <th>Order No</th>
               <th>Date</th>
               <th>PO/DO</th>
-              <th style={{ marginRight: "40px" }}>Quantity</th>
+              <th>Quantity</th>
               <th>Package Type</th>
               <th>Description</th>
-              <th>Actions</th>
+              <th style={{ paddingLeft: "28px" }}>Actions</th>
             </tr>
           </thead>
           <tbody>
@@ -2180,8 +2180,8 @@ const InboundOrdersContent = ({ formValues, handleChange, cardColor }) => {
                       )}
                     </div>
                   </td>
-                  <td style={{ position: "relative" }}>
-                    <div className="material-table-cell" style={{ position: "relative", overflow: "visible", display: "flex", alignItems: "center", gap: "8px" }}>
+                  <td style={{ position: "relative", overflow: "visible" }}>
+                    <div className="material-table-cell" style={{ position: "relative", overflow: "visible", display: "flex", alignItems: "center", gap: "8px", justifyContent: "flex-start" }}>
                       <Tooltip id={`view-order-${order.id}`} place="left" content="View" />
                       <button
                         type="button"
