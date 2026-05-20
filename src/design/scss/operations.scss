@@ -6765,6 +6765,22 @@ body .material-management-modal .files-list::-webkit-scrollbar-thumb:hover {
   min-width: 100px;
 }
 
+/* 7-column Inbound Orders table */
+.inbound-table.material-table th:nth-child(1),
+.inbound-table.material-table td:nth-child(1) { width: 110px; min-width: 100px; }
+.inbound-table.material-table th:nth-child(2),
+.inbound-table.material-table td:nth-child(2) { width: 100px; min-width: 90px; }
+.inbound-table.material-table th:nth-child(3),
+.inbound-table.material-table td:nth-child(3) { width: 90px; min-width: 80px; }
+.inbound-table.material-table th:nth-child(4),
+.inbound-table.material-table td:nth-child(4) { width: 90px; min-width: 80px; }
+.inbound-table.material-table th:nth-child(5),
+.inbound-table.material-table td:nth-child(5) { width: 110px; min-width: 100px; }
+.inbound-table.material-table th:nth-child(6),
+.inbound-table.material-table td:nth-child(6) { width: 120px; min-width: 100px; }
+.inbound-table.material-table th:nth-child(7),
+.inbound-table.material-table td:nth-child(7) { width: 160px; min-width: 150px; }
+
 /* 8-column sub-tab tables (Landing Note, Dispatch Note) */
 .sub-note-table.material-table th:nth-child(1),
 .sub-note-table.material-table td:nth-child(1) { width: 110px; min-width: 100px; }
