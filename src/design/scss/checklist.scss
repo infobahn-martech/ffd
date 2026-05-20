@@ -3459,6 +3459,77 @@ span.cl-item-meta-chip.cl-item-meta-chip--expiry {
   max-height: 75vh;
   overflow-y: auto;
   overflow-x: visible;
+  scrollbar-width: thin;
+  scrollbar-color: #00358a #e6eef8;
+
+  &::-webkit-scrollbar {
+    width: 6px;
+    height: 6px;
+  }
+
+  &::-webkit-scrollbar-track {
+    background: #e6eef8;
+    border-radius: 10px;
+  }
+
+  &::-webkit-scrollbar-thumb {
+    background: #00358a;
+    border-radius: 10px;
+  }
+}
+
+.checklist-modal-xl-wide .checklist-top-fields-grid {
+  display: grid;
+  grid-template-columns: repeat(5, minmax(180px, 1fr));
+  gap: 16px;
+  align-items: start;
+  width: 100%;
+  margin-bottom: 20px;
+
+  @media (max-width: 1199.98px) {
+    grid-template-columns: repeat(3, 1fr);
+  }
+
+  @media (max-width: 767.98px) {
+    grid-template-columns: 1fr;
+  }
+}
+
+.checklist-modal-xl-wide .checklist-top-field-item {
+  min-width: 0;
+}
+
+.checklist-modal-xl-wide .checklist-top-field-item .phone-wrapper {
+  margin-bottom: 0;
+}
+
+.checklist-modal-xl-wide .checklist-top-field-item .phone-label {
+  margin-bottom: 6px;
+  font-size: 13px;
+  line-height: 1.2;
+}
+
+.checklist-modal-xl-wide .checklist-top-field-item .form-floating.desig-inp {
+  margin-bottom: 0;
+}
+
+.checklist-modal-xl-wide .checklist-top-field-item .form-floating .form-control {
+  height: 40px;
+  min-height: 40px;
+  padding-top: 12px;
+  padding-bottom: 8px;
+}
+
+.checklist-modal-xl-wide .checklist-top-field-item .premium-select .cf-multi-select-email-input {
+  height: 40px;
+  min-height: 40px;
+}
+
+.checklist-modal-xl-wide .checklist-top-field-item .error {
+  display: block;
+  margin-top: 4px;
+  font-size: 12px;
+  line-height: 1.3;
 }
 
 .checklist-modal-xl-wide .checklist-section-shell {
@@ -3466,6 +3537,24 @@ span.cl-item-meta-chip.cl-item-meta-chip--expiry {
 }
 
 .checklist-modal-xl-wide .checklist-items-table-scroll {
+  scrollbar-width: thin;
+  scrollbar-color: #00358a #e6eef8;
+
+  &::-webkit-scrollbar {
+    width: 6px;
+    height: 6px;
+  }
+
+  &::-webkit-scrollbar-track {
+    background: #e6eef8;
+    border-radius: 10px;
+  }
+
+  &::-webkit-scrollbar-thumb {
+    background: #00358a;
+    border-radius: 10px;
+  }
+
   @media (max-width: 991.98px) {
     overflow-x: auto;
     -webkit-overflow-scrolling: touch;

@@ -918,11 +918,8 @@ export function CheckListModal({ showModal, closeModal, callTypesOptions, onSucc
           <div className="lead-form">
             <form id="checklistForm" onSubmit={handleSubmit(onSubmit)}>
 
-              {/* Call Type - Select */}
-              {/* Top Fields in 2 columns */}
-              <div className="row g-3">
-                {/* Checklist Name */}
-                <div className="col-12 col-md-6">
+              <div className="checklist-top-fields-grid">
+                <div className="checklist-top-field-item">
                   <div className="form-floating desig-inp">
                     <input
                       className={`form-control ${errors.checklistName ? "is-invalid" : ""}`}
@@ -937,8 +934,7 @@ export function CheckListModal({ showModal, closeModal, callTypesOptions, onSucc
                     )}
                   </div>
                 </div>
-                {/* Call Type */}
-                <div className="col-12 col-md-6">
+                <div className="checklist-top-field-item">
                   <div className="phone-wrapper">
                     <label className="phone-label">
                       Call Type <span className="text-danger">*</span>
@@ -967,8 +963,7 @@ export function CheckListModal({ showModal, closeModal, callTypesOptions, onSucc
                   </div>
                 </div>
 
-                {/* Vessel Type */}
-                <div className="col-12 col-md-6">
+                <div className="checklist-top-field-item">
                   <div className="phone-wrapper">
                     <label className="phone-label">Vessel Type</label>
                     <Controller
@@ -1004,8 +999,7 @@ export function CheckListModal({ showModal, closeModal, callTypesOptions, onSucc
                   </div>
                 </div>
 
-                {/* Barge Type */}
-                <div className="col-12 col-md-6">
+                <div className="checklist-top-field-item">
                   <div className="phone-wrapper">
                     <label className="phone-label">Barge Type</label>
                     <Controller
@@ -1041,8 +1035,7 @@ export function CheckListModal({ showModal, closeModal, callTypesOptions, onSucc
                   </div>
                 </div>
 
-                {/* Port */}
-                <div className="col-12 col-md-6">
+                <div className="checklist-top-field-item">
                   <div className="phone-wrapper">
                     <label className="phone-label">
                       Port <span className="text-danger">*</span>
