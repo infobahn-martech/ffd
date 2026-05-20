@@ -9191,6 +9191,52 @@ body .modal-backdrop.show {
   padding: 0;
 }
 
+.operation-task-section {
+  border-bottom: 1px solid #eef0f4;
+
+  &:last-child {
+    border-bottom: none;
+  }
+}
+
+.operation-task-section-head {
+  padding: 18px 20px 10px;
+}
+
+.operation-task-section-title {
+  margin: 0;
+  font-size: 15px;
+  font-weight: 700;
+  color: #111827;
+  letter-spacing: 0.01em;
+  line-height: 1.35;
+}
+
+.operation-task-section-list {
+  list-style: none;
+  margin: 0 20px 16px 32px;
+  padding: 4px 0 2px 18px;
+  border-left: 3px solid #e3ebf6;
+}
+
+.operation-task-row.operation-task-row--nested {
+  padding: 14px 0 15px;
+  border-bottom: 1px solid #f0f2f6;
+
+  &:last-child {
+    border-bottom: none;
+  }
+
+  &:hover {
+    background: #fafbff;
+  }
+
+  .operation-task-name {
+    font-size: 13px;
+    font-weight: 600;
+  }
+}
+
 .operation-task-row {
   display: flex;
   flex-direction: column;
@@ -9236,18 +9282,18 @@ body .modal-backdrop.show {
 }
 
 .operation-task-status--pending {
-  background: #f3f4f6;
-  color: #4b5563;
+  background: rgba(25, 118, 210, 0.12);
+  color: rgb(25, 118, 210);
 }
 
 .operation-task-status--in-progress {
-  background: #e8f1ff;
-  color: #003693;
+  background: rgba(251, 140, 0, 0.12);
+  color: rgb(251, 140, 0);
 }
 
 .operation-task-status--completed {
-  background: #e8f7ef;
-  color: #1b7a45;
+  background: rgba(67, 160, 71, 0.12);
+  color: rgb(67, 160, 71);
 }
 
 .operation-task-status--rejected {
@@ -9296,5 +9342,11 @@ body .modal-backdrop.show {
 @media (max-width: 768px) {
   .operation-task-row-meta {
     grid-template-columns: 1fr;
+  }
+
+  .operation-task-section-list {
+    margin-left: 20px;
+    margin-right: 16px;
+    padding-left: 14px;
   }
 }
