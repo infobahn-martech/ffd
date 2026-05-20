@@ -1774,7 +1774,7 @@ const LandingNoteContent = ({ formValues, handleChange, cardColor }) => {
                       )}
                     </div>
                   </td>
-                  <td style={{ position: "relative", whiteSpace: "nowrap" }}>
+                  <td style={{ position: "relative", whiteSpace: "nowrap", overflow: "visible" }}>
                     <div className="material-table-cell" style={{ position: "relative", overflow: "visible", display: "flex", alignItems: "center", gap: "8px", justifyContent: "flex-start", flexWrap: "nowrap" }}>
                       <Tooltip id={`view-note-${note.id}`} place="left" content="View" />
                       <button
