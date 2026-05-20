@@ -27,7 +27,8 @@ const Vehicle = () => {
     });
 
     const [showVehicleModal, setShowVehicleModal] = useState(false);
-    const [vehicleToDelete, setVehicleToDelete] = useState(null);
+    const [showDeleteModal, setShowDeleteModal] = useState(false);
+    const [selectedVehicle, setSelectedVehicle] = useState(null);
 
     useEffect(() => {
         getVehicles?.({
@@ -86,7 +87,7 @@ const Vehicle = () => {
                 RenderAction({
                     ...props,
                     onEditClick: (row) => setShowVehicleModal(row),
-                    onDeleteClick: (row) => setVehicleToDelete(row),
+                    onDeleteClick: (row) => { setSelectedVehicle(row); setShowDeleteModal(true); },
                 }),
         },
     ];
@@ -140,14 +141,14 @@ const Vehicle = () => {
                     />
                 )}
 
-                {!!vehicleToDelete && (
+                {!!showDeleteModal && (
                     <DeleteConfirmationModal
-                        show={!!vehicleToDelete}
-                        onCancel={() => setVehicleToDelete(null)}
+                        show={showDeleteModal}
+                        onCancel={() => { setShowDeleteModal(false); setSelectedVehicle(null); }}
                         onConfirm={() =>
                             deleteVehicle({
-                                id: vehicleToDelete?.vehicle_type_id,
-                                cb: () => setVehicleToDelete(null),
+                                id: selectedVehicle?.vehicle_type_id,
+                                cb: () => { setShowDeleteModal(false); setSelectedVehicle(null); },
                             })
                         }
                         deleteText="Are you sure you want to delete this vehicle type?"
