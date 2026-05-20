@@ -67,12 +67,12 @@ function mapItemToApi(item, options = {}) {
   const { includeIds = false } = options;
   const doc = item?.document_details ?? {};
   let removeFiles = Array.isArray(doc.remove_files)
-    ? doc.remove_files.map((id) => Number(id)).filter((n) => !Number.isNaN(n))
+    ? doc.remove_files.filter(Boolean).map(String)
     : [];
   const selectedFile = getSelectedFile(doc?.required_copy_only);
   if (includeIds && selectedFile instanceof File) {
-    for (const n of collectExistingFileIdsFromDocDetails(doc)) {
-      if (!removeFiles.includes(n)) removeFiles.push(n);
+    for (const name of collectExistingFileNamesFromDocDetails(doc)) {
+      if (!removeFiles.includes(name)) removeFiles.push(name);
     }
   }
   const base = {
@@ -190,7 +190,7 @@ function displayNameFromFileRef(ref) {
   return s;
 }
 
-/** API may return strings or objects; preserve file_id / file_url / file_name for edit + remove_files (not sent as files in FormData). */
+/** API may return strings or objects; preserve file_name / file_url for edit + remove_files (not sent as files in FormData). */
 function mapUploadedFilesToForm(uploaded) {
   if (uploaded == null) return [];
   const list = Array.isArray(uploaded) ? uploaded : [uploaded];
@@ -199,28 +199,25 @@ function mapUploadedFilesToForm(uploaded) {
     if (typeof u === "string") {
       const s = u.trim();
       if (!s) continue;
-      out.push({ file_url: s, file_name: displayNameFromFileRef(s) });
+      const isUrl = /^https?:\/\//i.test(s) || s.startsWith("//");
+      out.push({
+        file_name: displayNameFromFileRef(s) || s,
+        file_url: isUrl ? (s.startsWith("//") ? `https:${s}` : s) : s
+      });
       continue;
     }
     if (u && typeof u === "object") {
-      const rawId = u.file_id ?? u.id;
+      const file_name = u.file_name ?? u.name ?? u.filename ?? u.original_name ?? "";
       const file_url =
-        u.file_url ?? u.sample_file_url ?? u.requirement_file_url ?? u.url ?? u.link ?? null;
-      const file_name =
-        u.file_name ?? u.name ?? u.filename ?? u.original_name ?? "";
+        u.file_url ?? u.sample_file_url ?? u.requirement_file_url ?? u.url ?? u.link ?? "";
+      const nameStr = file_name != null ? String(file_name).trim() : "";
       const urlStr = file_url != null ? String(file_url).trim() : "";
-      let file_id;
-      if (rawId != null && rawId !== "") {
-        const n = Number(rawId);
-        if (!Number.isNaN(n)) file_id = n;
-      }
-      if (!urlStr && file_id == null) continue;
-      const entry = {
-        file_name: (file_name && String(file_name).trim()) || (urlStr ? displayNameFromFileRef(urlStr) : ""),
+      const resolvedName = nameStr || (urlStr ? displayNameFromFileRef(urlStr) : "");
+      if (!resolvedName && !urlStr) continue;
+      out.push({
+        file_name: resolvedName,
         file_url: urlStr
-      };
-      if (file_id != null) entry.file_id = file_id;
-      out.push(entry);
+      });
     }
   }
   return out;
@@ -256,22 +253,39 @@ function filterExistingFilesList(existingFiles) {
   return arr.filter((x) => {
     if (x == null) return false;
     if (typeof x === "string") return String(x).trim() !== "";
-    if (typeof x === "object") return existingFileEntryToUrl(x) !== "" || (x.file_id != null && x.file_id !== "");
+    if (typeof x === "object") {
+      const hasName = x.file_name != null && String(x.file_name).trim() !== "";
+      return existingFileEntryToUrl(x) !== "" || hasName;
+    }
     return false;
   });
 }
 
-function collectExistingFileIdsFromDocDetails(doc) {
+function existingFileEntryToName(entry) {
+  if (typeof entry === "string") {
+    const s = entry.trim();
+    if (!s) return "";
+    if (/^https?:\/\//i.test(s) || s.startsWith("//")) return displayNameFromFileRef(s);
+    return s;
+  }
+  if (entry && typeof entry === "object") {
+    const n = entry.file_name ?? entry.name ?? entry.filename;
+    if (n != null && String(n).trim() !== "") return String(n).trim();
+    const url = existingFileEntryToUrl(entry);
+    if (url) return displayNameFromFileRef(url);
+  }
+  return "";
+}
+
+function collectExistingFileNamesFromDocDetails(doc) {
   const existing = doc?.existing_files ?? [];
   const arr = Array.isArray(existing) ? existing : [];
-  const ids = [];
+  const names = [];
   for (const entry of arr) {
-    if (typeof entry === "object" && entry != null && entry.file_id != null && entry.file_id !== "") {
-      const n = Number(entry.file_id);
-      if (!Number.isNaN(n) && !ids.includes(n)) ids.push(n);
-    }
+    const fileName = existingFileEntryToName(entry);
+    if (fileName && !names.includes(fileName)) names.push(fileName);
   }
-  return ids;
+  return names;
 }
 
 function ItemFilePreviewButton({ control, basePath, inputId, setValue, getValues }) {
@@ -308,14 +322,13 @@ function ItemFilePreviewButton({ control, basePath, inputId, setValue, getValues
     const existing = getValues(`${pathBase}.existing_files`) ?? [];
     const prevRemove = getValues(`${pathBase}.remove_files`) ?? [];
     const arr = Array.isArray(existing) ? existing : [];
-    const nextRemove = prevRemove
-      .map((id) => Number(id))
-      .filter((n) => !Number.isNaN(n));
+    const nextRemove = Array.isArray(prevRemove)
+      ? prevRemove.filter(Boolean).map(String)
+      : [];
     for (const entry of arr) {
-      const fid = typeof entry === "object" && entry != null ? entry.file_id : null;
-      if (fid != null && fid !== "") {
-        const n = Number(fid);
-        if (!Number.isNaN(n) && !nextRemove.includes(n)) nextRemove.push(n);
+      const fileName = existingFileEntryToName(entry);
+      if (fileName && !nextRemove.includes(fileName)) {
+        nextRemove.push(fileName);
       }
     }
     setValue(`${pathBase}.existing_files`, [], { shouldDirty: true });
