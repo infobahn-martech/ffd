@@ -2125,7 +2125,7 @@ const InboundOrdersContent = ({ formValues, handleChange, cardColor }) => {
         </button>
       </div>
       <div className="table-wrapper table-responsive material-table-container" style={{ overflow: "visible" }}>
-        <table className="table table-striped material-table" style={{ overflow: "visible" }}>
+        <table className="table table-striped material-table" style={{ "--card-color": "#e2e6ff", overflow: "visible" }}>
           <thead>
             <tr>
               <th>Order No</th>
