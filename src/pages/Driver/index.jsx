@@ -20,6 +20,7 @@ const Driver = () => {
 
     const [showDriverModal, setShowDriverModal] = useState(false);
     const [showDeleteModal, setShowDeleteModal] = useState(false);
+    const [driverToDelete, setDriverToDelete] = useState(null);
 
 
     // 👉 ONLY TWO COLUMNS (Name + Description)
@@ -125,12 +126,12 @@ const Driver = () => {
             contentClass: "table-content",
             cell: RenderAction,
             onEditClick: (row) => setShowDriverModal(row),
-            onDeleteClick: () => setShowDeleteModal(true),
+            onDeleteClick: (row) => { setDriverToDelete(row); setShowDeleteModal(true); },
         },
     ];
 
 
-    const { drivers, totalCount, fetchAllDrivers, isLoading } = useDriverReducer();
+    const { drivers, totalCount, fetchAllDrivers, isLoading, deleteDriver, isDeleteLoading } = useDriverReducer();
 
     useEffect(() => {
         fetchAllDrivers({ params });
@@ -186,10 +187,15 @@ const Driver = () => {
                     {!!showDeleteModal && (
                         <DeleteConfirmationModal
                             show={showDeleteModal}
-                            onCancel={() => setShowDeleteModal(false)}
-                            onConfirm={() => { }}
+                            onCancel={() => { setShowDeleteModal(false); setDriverToDelete(null); }}
+                            onConfirm={() =>
+                                deleteDriver({
+                                    id: driverToDelete?.driver_id,
+                                    cb: () => { setShowDeleteModal(false); setDriverToDelete(null); },
+                                })
+                            }
                             deleteText="Are you sure you want to delete this driver?"
-                        // isLoading={isBeingUpdated}
+                            isLoading={isDeleteLoading}
                         />
                     )}
 
