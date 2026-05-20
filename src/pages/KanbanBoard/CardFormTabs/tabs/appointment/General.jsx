@@ -1278,7 +1278,7 @@ const getPreviewSubject = ({ cardTitle = "", typeOfCall = "", vesselName = "", p
   if (normalizedTitle) return normalizedTitle;
   const parts = [typeOfCall, vesselName, port].map((item) => normalizePreviewValue(item)).filter(Boolean);
   if (parts.length) return parts.join(" - ");
-  return "Appointment Update";
+  return "Appointment Acceptance";
 };
 
 const htmlToPlainText = (html = "") =>
