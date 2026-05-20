@@ -1491,7 +1491,7 @@ $send-report-optional: #80868b;
   margin-top: 4px;
   margin-left: 12px;
   padding-left: 12px;
-  border-left: 2px solid rgba(42, 0, 255, 0.2);
+  border-left: 2px solid #e2e6ff;
   padding-top: 4px;
   padding-bottom: 4px;
 }
@@ -6777,7 +6777,7 @@ body .material-management-modal .files-list::-webkit-scrollbar-thumb:hover {
 .inbound-table.material-table th:nth-child(5),
 .inbound-table.material-table td:nth-child(5) { width: 110px; min-width: 100px; }
 .inbound-table.material-table th:nth-child(6),
-.inbound-table.material-table td:nth-child(6) { width: 120px; min-width: 100px; }
+.inbound-table.material-table td:nth-child(6) { width: auto; min-width: 100px; }
 .inbound-table.material-table th:nth-child(7),
 .inbound-table.material-table td:nth-child(7) { width: 160px; min-width: 150px; }
 
@@ -6795,7 +6795,7 @@ body .material-management-modal .files-list::-webkit-scrollbar-thumb:hover {
 .sub-note-table.material-table th:nth-child(6),
 .sub-note-table.material-table td:nth-child(6) { width: 110px; min-width: 100px; }
 .sub-note-table.material-table th:nth-child(7),
-.sub-note-table.material-table td:nth-child(7) { width: 120px; min-width: 100px; }
+.sub-note-table.material-table td:nth-child(7) { width: auto; min-width: 100px; }
 .sub-note-table.material-table th:nth-child(8),
 .sub-note-table.material-table td:nth-child(8) { width: 160px; min-width: 150px; }
 
