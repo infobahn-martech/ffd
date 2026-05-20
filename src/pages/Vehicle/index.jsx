@@ -6,39 +6,30 @@ import CustomTable from "../../components/customTable";
 import { VehicleModal } from "./Modals/AddEditVehicle";
 import { RenderAction } from "./RenderCells";
 import DeleteConfirmationModal from "../../components/DeleteConfirmationModal";
-
-// ✅ CHANGE THIS IMPORT PATH based on your project structure
 import useVehicleReducer from "../../store/VehicleReducer";
-// If your store path is different, update it like your other modules:
-// import useVehicleReducer from "../../stores/VehicleReducer";
 
 const Vehicle = () => {
-    // ✅ Store / API
     const {
         vehicles,
         getVehicles,
         isLoading,
         totalCount,
         deleteVehicle,
+        isDeleteLoading,
     } = useVehicleReducer((state) => state);
 
-    // ✅ Table params (API params)
     const [params, setParams] = useState({
         page: 1,
         searchTerm: "",
         limit: 10,
         sortBy: "vehicle_type",
-        sortOrder: 1, // 1 = ASC, -1 = DESC (keep as your backend expects)
+        sortOrder: 1,
     });
 
-    // ✅ Modals
-    const [showVehicleModal, setShowVehicleModal] = useState(false); // boolean OR row object
-    const [showDeleteModal, setShowDeleteModal] = useState(false);
-    const [selectedRow, setSelectedRow] = useState(null);
+    const [showVehicleModal, setShowVehicleModal] = useState(false);
+    const [vehicleToDelete, setVehicleToDelete] = useState(null);
 
-    // ✅ Fetch list (whenever params change)
     useEffect(() => {
-        // adjust payload keys if your backend expects different names
         getVehicles?.({
             search: params.searchTerm || "",
             page: params.page,
@@ -48,7 +39,6 @@ const Vehicle = () => {
         });
     }, [params.page, params.limit, params.searchTerm, params.sortBy, params.sortOrder, getVehicles]);
 
-    // ✅ Debounced search
     const debouncedSearch = useMemo(
         () =>
             debounce((value) => {
@@ -60,11 +50,6 @@ const Vehicle = () => {
     useEffect(() => {
         return () => debouncedSearch.cancel();
     }, [debouncedSearch]);
-
-    // ✅ Data mapping (depends on your API response)
-    // Supports both:
-    // 1) { data: [...], total: 100 }
-    // 2) { data: { data: [...], total: 100 } }
 
     const cols = [
         {
@@ -91,27 +76,6 @@ const Vehicle = () => {
             contentClass: "table-content",
             sort: true,
         },
-        // {
-        //     name: "Status",
-        //     selector: "status",
-        //     width: "220",
-        //     thclass: "tb-head",
-        //     contentClass: "table-content",
-        //     sort: true,
-        //     cell: ({ row }) => (
-        //         <span
-        //             className={
-        //                 row.status === "Active"
-        //                     ? "status-active"
-        //                     : row.status === "Inactive"
-        //                         ? "status-inactive"
-        //                         : "status-pending"
-        //             }
-        //         >
-        //             {row.status}
-        //         </span>
-        //     ),
-        // },
         {
             name: "Actions",
             selector: "linksInfo",
@@ -122,39 +86,10 @@ const Vehicle = () => {
                 RenderAction({
                     ...props,
                     onEditClick: (row) => setShowVehicleModal(row),
-                    onDeleteClick: (row) => {
-                        setSelectedRow(row);
-                        setShowDeleteModal(true);
-                    },
+                    onDeleteClick: (row) => setVehicleToDelete(row),
                 }),
         },
     ];
-
-    const handleRefresh = () => {
-        getVehicles?.({
-            search: params.searchTerm || "",
-            page: params.page,
-            limit: params.limit,
-            sortBy: params.sortBy,
-            sortOrder: params.sortOrder,
-        });
-    };
-
-    const handleDelete = async () => {
-        if (!selectedRow?._id) return;
-
-        // ✅ adjust key if your backend expects something else
-        const payload = { vehicle_id: selectedRow._id };
-
-        // If your deleteData expects just id, use: await deleteData(selectedRow._id);
-        await deleteVehicle?.(payload);
-
-        setShowDeleteModal(false);
-        setSelectedRow(null);
-
-        // ✅ optional refresh
-        handleRefresh();
-    };
 
     return (
         <div className="page-body">
@@ -196,25 +131,27 @@ const Vehicle = () => {
 
                 {!!showVehicleModal && (
                     <VehicleModal
-                        showModal={showVehicleModal} // boolean OR row object (edit)
+                        showModal={showVehicleModal}
                         closeModal={() => setShowVehicleModal(false)}
                         onSuccess={() => {
                             setShowVehicleModal(false);
-                            handleRefresh();
+                            getVehicles?.({ ...params, search: params.searchTerm || "" });
                         }}
                     />
                 )}
 
-                {!!showDeleteModal && (
+                {!!vehicleToDelete && (
                     <DeleteConfirmationModal
-                        show={showDeleteModal}
-                        onCancel={() => {
-                            setShowDeleteModal(false);
-                            setSelectedRow(null);
-                        }}
-                        onConfirm={handleDelete}
-                        isLoading={isLoading}
-                        deleteText="Are you sure you want to delete this vehicle?"
+                        show={!!vehicleToDelete}
+                        onCancel={() => setVehicleToDelete(null)}
+                        onConfirm={() =>
+                            deleteVehicle({
+                                id: vehicleToDelete?.vehicle_type_id,
+                                cb: () => setVehicleToDelete(null),
+                            })
+                        }
+                        deleteText="Are you sure you want to delete this vehicle type?"
+                        isLoading={isDeleteLoading}
                     />
                 )}
             </div>
