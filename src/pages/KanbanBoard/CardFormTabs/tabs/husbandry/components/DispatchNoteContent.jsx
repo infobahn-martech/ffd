@@ -778,7 +778,7 @@ const DispatchNoteContent = ({ formValues, handleChange, cardColor }) => {
               <th>Quantity</th>
               <th>Package Type</th>
               <th>Description</th>
-              <th style={{ paddingLeft: "24px" }}>Actions</th>
+              <th>Actions</th>
             </tr>
           </thead>
           <tbody>
