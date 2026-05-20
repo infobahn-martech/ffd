@@ -6767,37 +6767,37 @@ body .material-management-modal .files-list::-webkit-scrollbar-thumb:hover {
 
 /* 7-column Inbound Orders table */
 .inbound-table.material-table th:nth-child(1),
-.inbound-table.material-table td:nth-child(1) { width: 110px; min-width: 100px; }
+.inbound-table.material-table td:nth-child(1) { width: 11%; }
 .inbound-table.material-table th:nth-child(2),
-.inbound-table.material-table td:nth-child(2) { width: 100px; min-width: 90px; }
+.inbound-table.material-table td:nth-child(2) { width: 10%; }
 .inbound-table.material-table th:nth-child(3),
-.inbound-table.material-table td:nth-child(3) { width: 90px; min-width: 80px; }
+.inbound-table.material-table td:nth-child(3) { width: 9%; }
 .inbound-table.material-table th:nth-child(4),
-.inbound-table.material-table td:nth-child(4) { width: 90px; min-width: 80px; }
+.inbound-table.material-table td:nth-child(4) { width: 8%; }
 .inbound-table.material-table th:nth-child(5),
-.inbound-table.material-table td:nth-child(5) { width: 110px; min-width: 100px; }
+.inbound-table.material-table td:nth-child(5) { width: 11%; }
 .inbound-table.material-table th:nth-child(6),
-.inbound-table.material-table td:nth-child(6) { width: auto; min-width: 100px; }
+.inbound-table.material-table td:nth-child(6) { width: 36%; }
 .inbound-table.material-table th:nth-child(7),
-.inbound-table.material-table td:nth-child(7) { width: 160px; min-width: 150px; }
+.inbound-table.material-table td:nth-child(7) { width: 15%; }
 
 /* 8-column sub-tab tables (Landing Note, Dispatch Note) */
 .sub-note-table.material-table th:nth-child(1),
-.sub-note-table.material-table td:nth-child(1) { width: 110px; min-width: 100px; }
+.sub-note-table.material-table td:nth-child(1) { width: 10%; }
 .sub-note-table.material-table th:nth-child(2),
-.sub-note-table.material-table td:nth-child(2) { width: 100px; min-width: 90px; }
+.sub-note-table.material-table td:nth-child(2) { width: 9%; }
 .sub-note-table.material-table th:nth-child(3),
-.sub-note-table.material-table td:nth-child(3) { width: 90px; min-width: 80px; }
+.sub-note-table.material-table td:nth-child(3) { width: 8%; }
 .sub-note-table.material-table th:nth-child(4),
-.sub-note-table.material-table td:nth-child(4) { width: 90px; min-width: 80px; }
+.sub-note-table.material-table td:nth-child(4) { width: 9%; }
 .sub-note-table.material-table th:nth-child(5),
-.sub-note-table.material-table td:nth-child(5) { width: 90px; min-width: 80px; }
+.sub-note-table.material-table td:nth-child(5) { width: 7%; }
 .sub-note-table.material-table th:nth-child(6),
-.sub-note-table.material-table td:nth-child(6) { width: 110px; min-width: 100px; }
+.sub-note-table.material-table td:nth-child(6) { width: 10%; }
 .sub-note-table.material-table th:nth-child(7),
-.sub-note-table.material-table td:nth-child(7) { width: auto; min-width: 100px; }
+.sub-note-table.material-table td:nth-child(7) { width: 32%; }
 .sub-note-table.material-table th:nth-child(8),
-.sub-note-table.material-table td:nth-child(8) { width: 160px; min-width: 150px; }
+.sub-note-table.material-table td:nth-child(8) { width: 15%; }
 
 .material-table-actions {
   display: flex;
