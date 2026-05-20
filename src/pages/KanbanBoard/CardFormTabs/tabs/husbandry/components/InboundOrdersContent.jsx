@@ -2134,7 +2134,7 @@ const InboundOrdersContent = ({ formValues, handleChange, cardColor }) => {
               <th>Quantity</th>
               <th>Package Type</th>
               <th>Description</th>
-              <th style={{ textAlign: "center" }}>Actions</th>
+              <th>Actions</th>
             </tr>
           </thead>
           <tbody>
@@ -2180,7 +2180,7 @@ const InboundOrdersContent = ({ formValues, handleChange, cardColor }) => {
                       )}
                     </div>
                   </td>
-                  <td style={{ position: "relative", textAlign: "center" }}>
+                  <td style={{ position: "relative" }}>
                     <div className="material-table-cell" style={{ position: "relative", overflow: "visible", display: "flex", alignItems: "center", gap: "8px", justifyContent: "center" }}>
                       <Tooltip id={`view-order-${order.id}`} place="left" content="View" />
                       <button

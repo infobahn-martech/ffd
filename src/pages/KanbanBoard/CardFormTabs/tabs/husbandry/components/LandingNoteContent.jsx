@@ -1717,7 +1717,7 @@ const LandingNoteContent = ({ formValues, handleChange, cardColor }) => {
               <th>Quantity</th>
               <th>Package Type</th>
               <th>Description</th>
-              <th style={{ whiteSpace: "nowrap", textAlign: "center" }}>Actions</th>
+              <th style={{ whiteSpace: "nowrap" }}>Actions</th>
             </tr>
           </thead>
           <tbody>
@@ -1774,7 +1774,7 @@ const LandingNoteContent = ({ formValues, handleChange, cardColor }) => {
                       )}
                     </div>
                   </td>
-                  <td style={{ position: "relative", whiteSpace: "nowrap", textAlign: "center" }}>
+                  <td style={{ position: "relative", whiteSpace: "nowrap" }}>
                     <div className="material-table-cell" style={{ position: "relative", overflow: "visible", display: "flex", alignItems: "center", gap: "8px", justifyContent: "center", flexWrap: "nowrap" }}>
                       <Tooltip id={`view-note-${note.id}`} place="left" content="View" />
                       <button
