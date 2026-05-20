@@ -44,13 +44,13 @@ Gateway.interceptors.request.use(
       config.headers = config.headers || {};
       config.headers.Authorization = `Bearer ${token}`;
     }
-    
+
     // If FormData is being sent, remove Content-Type header to let axios set it automatically
     // with the proper multipart/form-data boundary
     if (config.data instanceof FormData) {
       delete config.headers['Content-Type'];
     }
-    
+
     return config;
   },
   (error) => Promise.reject(error)

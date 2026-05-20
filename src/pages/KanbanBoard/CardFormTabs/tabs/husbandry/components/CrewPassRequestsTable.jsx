@@ -52,7 +52,14 @@ CellText.propTypes = {
   value: PropTypes.oneOfType([PropTypes.string, PropTypes.number]),
 };
 
-const CrewPassRequestsTable = ({ title, requests, loading, passType, pageSize }) => {
+const CrewPassRequestsTable = ({
+  title,
+  requests,
+  loading,
+  passType,
+  pageSize,
+  emptyMessage = "No pass requests found",
+}) => {
   const safeList = useMemo(() => {
     const source = Array.isArray(requests) ? requests : EMPTY_LIST;
     return flattenPassRequestRows(source);
@@ -115,7 +122,7 @@ const CrewPassRequestsTable = ({ title, requests, loading, passType, pageSize })
             <Skeleton height={36} borderRadius={6} count={6} />
           </div>
         ) : count === 0 ? (
-          <div className="crew-pass-requests-table-card__empty">No pass requests found</div>
+          <div className="crew-pass-requests-table-card__empty">{emptyMessage}</div>
         ) : (
           <>
             <div className="crew-pass-requests-table-scroll crew-pass-thin-scrollbar">
@@ -229,6 +236,7 @@ CrewPassRequestsTable.propTypes = {
   loading: PropTypes.bool,
   passType: PropTypes.string,
   pageSize: PropTypes.number,
+  emptyMessage: PropTypes.string,
 };
 
 CrewPassRequestsTable.defaultProps = {
@@ -236,6 +244,7 @@ CrewPassRequestsTable.defaultProps = {
   loading: false,
   passType: "",
   pageSize: DEFAULT_PAGE_SIZE,
+  emptyMessage: "No pass requests found",
 };
 
 export default CrewPassRequestsTable;
