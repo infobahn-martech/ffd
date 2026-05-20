@@ -1,4 +1,4 @@
-import React, { useEffect, useMemo, useState } from "react";
+import React, { useEffect, useMemo, useRef, useState } from "react";
 import { debounce } from "lodash";
 
 import CommonHeader from "../../components/CommonHeader";
@@ -26,9 +26,10 @@ const Vehicle = () => {
         sortOrder: 1,
     });
 
+    const selectedVehicleRef = useRef(null);
+
     const [showVehicleModal, setShowVehicleModal] = useState(false);
     const [showDeleteModal, setShowDeleteModal] = useState(false);
-    const [selectedVehicle, setSelectedVehicle] = useState(null);
 
     useEffect(() => {
         getVehicles?.({
@@ -87,7 +88,7 @@ const Vehicle = () => {
                 RenderAction({
                     ...props,
                     onEditClick: (row) => setShowVehicleModal(row),
-                    onDeleteClick: (row) => { setSelectedVehicle(row); setShowDeleteModal(true); },
+                    onDeleteClick: (row) => { selectedVehicleRef.current = row; setShowDeleteModal(true); },
                 }),
         },
     ];
@@ -144,11 +145,11 @@ const Vehicle = () => {
                 {!!showDeleteModal && (
                     <DeleteConfirmationModal
                         show={showDeleteModal}
-                        onCancel={() => { setShowDeleteModal(false); setSelectedVehicle(null); }}
+                        onCancel={() => { setShowDeleteModal(false); selectedVehicleRef.current = null; }}
                         onConfirm={() =>
                             deleteVehicle({
-                                id: selectedVehicle?.vehicle_type_id,
-                                cb: () => { setShowDeleteModal(false); setSelectedVehicle(null); },
+                                id: selectedVehicleRef.current?.vehicle_type_id,
+                                cb: () => { setShowDeleteModal(false); selectedVehicleRef.current = null; },
                             })
                         }
                         deleteText="Are you sure you want to delete this vehicle type?"
