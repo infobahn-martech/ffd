@@ -1717,7 +1717,7 @@ const LandingNoteContent = ({ formValues, handleChange, cardColor }) => {
               <th>Quantity</th>
               <th>Package Type</th>
               <th>Description</th>
-              <th>Actions</th>
+              <th style={{ paddingLeft: "28px" }}>Actions</th>
             </tr>
           </thead>
           <tbody>
