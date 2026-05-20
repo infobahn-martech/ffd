@@ -3540,11 +3540,13 @@ $send-report-optional: #80868b;
   margin-top: 8px;
 }
 
-/* Husbandry CG Pass / Transport / Hotel / Medical: ~34 / 66 columns, premium cards top-aligned */
+/* Husbandry CG Pass / Transport / Hotel / Medical / Third-party / MWP: ~34 / 66 columns, premium cards top-aligned */
 .cgpass-form,
 .transport-form,
 .hotel-form,
-.medicalservice-form {
+.medicalservice-form,
+.third-party-services-form,
+.mwp-renewal-form {
   .general-info-two-column.operation-section-form-layout.crew-pass-premium-grid {
     grid-template-columns: minmax(0, 34fr) minmax(0, 66fr);
     column-gap: 18px;
@@ -3970,7 +3972,9 @@ $send-report-optional: #80868b;
   .cgpass-form .general-info-two-column.operation-section-form-layout.crew-pass-premium-grid,
   .transport-form .general-info-two-column.operation-section-form-layout.crew-pass-premium-grid,
   .hotel-form .general-info-two-column.operation-section-form-layout.crew-pass-premium-grid,
-  .medicalservice-form .general-info-two-column.operation-section-form-layout.crew-pass-premium-grid {
+  .medicalservice-form .general-info-two-column.operation-section-form-layout.crew-pass-premium-grid,
+  .third-party-services-form .general-info-two-column.operation-section-form-layout.crew-pass-premium-grid,
+  .mwp-renewal-form .general-info-two-column.operation-section-form-layout.crew-pass-premium-grid {
     grid-template-columns: 1fr;
   }
 
@@ -3981,7 +3985,9 @@ $send-report-optional: #80868b;
   .cgpass-form .crew-pass-requests-sidebar .crew-pass-requests-table-card,
   .transport-form .crew-pass-requests-sidebar .crew-pass-requests-table-card,
   .hotel-form .crew-pass-requests-sidebar .crew-pass-requests-table-card,
-  .medicalservice-form .crew-pass-requests-sidebar .crew-pass-requests-table-card {
+  .medicalservice-form .crew-pass-requests-sidebar .crew-pass-requests-table-card,
+  .third-party-services-form .crew-pass-requests-sidebar .crew-pass-requests-table-card,
+  .mwp-renewal-form .crew-pass-requests-sidebar .crew-pass-requests-table-card {
     max-height: min(70vh, 720px);
   }
 
@@ -9252,7 +9258,7 @@ body .modal-backdrop.show {
   flex: 1;
   min-height: 0;
   overflow-y: auto;
-  padding: 20px 22px 24px;
+  padding: 22px 24px 26px;
 }
 
 .operation-task-card {
@@ -9268,7 +9274,7 @@ body .modal-backdrop.show {
   align-items: center;
   justify-content: space-between;
   gap: 12px;
-  padding: 16px 20px;
+  padding: 17px 21px;
   border-bottom: 1px solid #f0f2f6;
   background: #fafbff;
 }
@@ -9286,11 +9292,52 @@ body .modal-backdrop.show {
   padding: 0;
 }
 
+.operation-task-section {
+  border-bottom: 1px solid #eef0f4;
+
+  &:last-child {
+    border-bottom: none;
+  }
+}
+
+.operation-task-section-head {
+  padding: 19px 22px 11px;
+}
+
+.operation-task-section-title {
+  margin: 0;
+  font-size: 17px;
+  font-weight: 700;
+  color: #0f172a;
+  letter-spacing: -0.008em;
+  line-height: 1.32;
+}
+
+.operation-task-section-list {
+  list-style: none;
+  margin: 0 21px 18px 34px;
+  padding: 4px 0 4px 18px;
+  border-left: 3px solid #e3ebf6;
+}
+
+.operation-task-row.operation-task-row--nested {
+  padding: 14px 0 15px;
+  border-bottom: 1px solid #f0f2f6;
+
+  &:last-child {
+    border-bottom: none;
+  }
+
+  &:hover {
+    background: #fafbff;
+  }
+}
+
 .operation-task-row {
   display: flex;
   flex-direction: column;
   gap: 10px;
-  padding: 16px 20px;
+  padding: 16px 21px;
   border-bottom: 1px solid #f0f2f6;
   transition: background-color 0.15s ease;
 
@@ -9312,7 +9359,7 @@ body .modal-backdrop.show {
 }
 
 .operation-task-name {
-  font-size: 14px;
+  font-size: 15px;
   font-weight: 600;
   color: #1a1a1a;
 }
@@ -9321,7 +9368,7 @@ body .modal-backdrop.show {
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  padding: 4px 12px;
+  padding: 4px 14px;
   border-radius: 999px;
   font-size: 12px;
   font-weight: 600;
@@ -9331,18 +9378,18 @@ body .modal-backdrop.show {
 }
 
 .operation-task-status--pending {
-  background: #f3f4f6;
-  color: #4b5563;
+  background: rgba(25, 118, 210, 0.12);
+  color: rgb(25, 118, 210);
 }
 
 .operation-task-status--in-progress {
-  background: #e8f1ff;
-  color: #003693;
+  background: rgba(251, 140, 0, 0.12);
+  color: rgb(251, 140, 0);
 }
 
 .operation-task-status--completed {
-  background: #e8f7ef;
-  color: #1b7a45;
+  background: rgba(67, 160, 71, 0.12);
+  color: rgb(67, 160, 71);
 }
 
 .operation-task-status--rejected {
@@ -9352,14 +9399,14 @@ body .modal-backdrop.show {
 
 .operation-task-row-meta {
   display: grid;
-  grid-template-columns: minmax(140px, 220px) 1fr;
-  gap: 12px 24px;
+  grid-template-columns: minmax(145px, 230px) 1fr;
+  gap: 11px 24px;
 }
 
 .operation-task-meta-item {
   display: flex;
   flex-direction: column;
-  gap: 4px;
+  gap: 5px;
   min-width: 0;
 }
 
@@ -9382,7 +9429,7 @@ body .modal-backdrop.show {
 }
 
 .operation-task-view-only-note {
-  margin: 16px 0 0;
+  margin: 18px 0 0;
   font-size: 12px;
   color: #8b93a7;
   font-style: italic;
@@ -9391,5 +9438,11 @@ body .modal-backdrop.show {
 @media (max-width: 768px) {
   .operation-task-row-meta {
     grid-template-columns: 1fr;
+  }
+
+  .operation-task-section-list {
+    margin-left: 20px;
+    margin-right: 16px;
+    padding-left: 14px;
   }
 }
