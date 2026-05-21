@@ -1,9 +1,9 @@
 import { useEffect, useMemo, useState } from "react";
 import CommonHeader from "../../components/CommonHeader";
 import CustomTable from "../../components/customTable";
-import { DocumentChecklistModal } from "./Modals/AddEditDocumentChecklist";
 import { RenderAction } from "./RenderCells";
-import useDocumentChecklistReducer from "../../store/DocumentChecklistReducer";
+import useTaskChecklistReducer from "../../store/TaskChecklistReducer";
+import { TaskChecklistModal } from "./Modals/AddEditTaskChecklist";
 
 const TaskChecklist = () => {
     const {
@@ -73,7 +73,7 @@ const TaskChecklist = () => {
             contentClass: "table-content",
             thclass: "tb-head",
             width: "100",
-            onEditClick: (row) => setShowDocumentChecklistModal(row),
+            onEditClick: (row) => setShowTaskChecklistModal(row),
             cell: RenderAction,
         },
     ];
@@ -129,7 +129,7 @@ const TaskChecklist = () => {
                     />
 
                     {!!showTaskChecklistModal && (
-                        <DocumentChecklistModal
+                        <TaskChecklistModal
                             showModal={showTaskChecklistModal}
                             closeModal={() => setShowTaskChecklistModal(false)}
                             onSuccess={() => {
