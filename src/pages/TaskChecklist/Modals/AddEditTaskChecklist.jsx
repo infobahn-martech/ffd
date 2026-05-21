@@ -3,7 +3,7 @@ import { Controller, useForm } from "react-hook-form";
 import CustomModal from "../../../components/CustomModal";
 import CommonSelect from "../../../components/CommonSelect";
 import PremiumSelect from "../../../components/form/PremiumSelect";
-import useDocumentChecklistReducer from "../../../store/DocumentChecklistReducer";
+import useTaskChecklistReducer from "../../../store/TaskChecklistReducer";
 import "../../../design/scss/prospect-modal.scss";
 import "../../../design/scss/modal-designs.scss";
 import "../../../design/scss/form-designs.scss";
@@ -28,33 +28,33 @@ export function TaskChecklistModal({ showModal, closeModal, onSuccess }) {
     } = useForm({
         defaultValues: {
             role_id: "",
-            document_ids: [],
+            task_ids: [],
         },
     });
 
     useEffect(() => {
-        getChecklistOptions();
-    }, [getChecklistOptions]);
+        getTaskChecklistOptions();
+    }, [getTaskChecklistOptions]);
 
     useEffect(() => {
         if (!showModal) return;
         if (isEdit) {
             reset({
                 role_id: String(showModal?.role_id ?? ""),
-                document_ids: (showModal?.documents || []).map((doc) =>
-                    String(doc?.document_id),
+                task_ids: (showModal?.tasks || []).map((task) =>
+                    String(task?.task_id),
                 ),
             });
             return;
         }
-        reset({ role_id: "", document_ids: [] });
+        reset({ role_id: "", task_ids: [] });
     }, [showModal, isEdit, reset]);
 
     const onSubmit = async (data) => {
-        await saveDocumentChecklist({
+        await saveTaskChecklist({
             formData: {
                 role_id: Number(data?.role_id),
-                document_ids: (data?.document_ids || []).map((id) => Number(id)),
+                task_ids: (data?.task_ids || []).map((id) => Number(id)),
             },
             cb: () => {
                 closeModal();
@@ -66,7 +66,7 @@ export function TaskChecklistModal({ showModal, closeModal, onSuccess }) {
     const renderHeader = () => (
         <>
             <h1 className="modal-title">
-                {isEdit ? "Edit Document Checklist" : "Add Document Checklist"}
+                {isEdit ? "Edit Task Checklist" : "Add Task Checklist"}
             </h1>
         </>
     );
@@ -74,7 +74,7 @@ export function TaskChecklistModal({ showModal, closeModal, onSuccess }) {
     const renderBody = () => (
         <div className="modal-body">
             <div className="lead-form">
-                <form id="documentChecklistForm" onSubmit={handleSubmit(onSubmit)}>
+                <form id="taskChecklistForm" onSubmit={handleSubmit(onSubmit)}>
                     <div className="mb-lg-3 mb-sm-0">
                         <div className="phone-wrapper">
                             <label className="phone-label">
@@ -110,34 +110,34 @@ export function TaskChecklistModal({ showModal, closeModal, onSuccess }) {
                     <div className="mb-lg-3 mb-sm-0">
                         <div className="desig-inp document-checklist-select-wrap">
                             <label className="mb-2 d-block">
-                                Select Document <span className="text-danger">*</span>
+                                Select Task <span className="text-danger">*</span>
                             </label>
                             <Controller
-                                name="document_ids"
+                                name="task_ids"
                                 control={control}
                                 rules={{
                                     validate: (value) =>
                                         (Array.isArray(value) && value.length > 0) ||
-                                        "At least one document is required",
+                                        "At least one task is required",
                                 }}
                                 render={({ field }) => {
-                                    const selectedDocumentOptions = documentOptions.filter((option) =>
+                                    const selectedTaskOptions = taskOptions.filter((option) =>
                                         (field.value || []).map(String).includes(String(option.value)),
                                     );
 
                                     return (
                                         <CommonSelect
                                             isMulti
-                                            options={documentOptions}
-                                            value={selectedDocumentOptions}
+                                            options={taskOptions}
+                                            value={selectedTaskOptions}
                                             onChange={(selected) => {
                                                 const values = Array.isArray(selected)
                                                     ? selected.map((item) => String(item.value))
                                                     : [];
                                                 field.onChange(values);
                                             }}
-                                            placeholder="Select Document(s)"
-                                            className={`document-checklist-select ${errors.document_ids ? "is-invalid" : ""}`}
+                                            placeholder="Select Task(s)"
+                                            className={`document-checklist-select ${errors.task_ids ? "is-invalid" : ""}`}
                                             classNamePrefix="react-select"
                                             isDisabled={isBeingUpdated}
                                             menuPosition="fixed"
@@ -146,9 +146,9 @@ export function TaskChecklistModal({ showModal, closeModal, onSuccess }) {
                                     );
                                 }}
                             />
-                            {errors.document_ids && (
+                            {errors.task_ids && (
                                 <span className="error text-danger">
-                                    {errors.document_ids.message}
+                                    {errors.task_ids.message}
                                 </span>
                             )}
                         </div>
@@ -165,7 +165,7 @@ export function TaskChecklistModal({ showModal, closeModal, onSuccess }) {
             </button>
             <button
                 type="submit"
-                form="documentChecklistForm"
+                form="taskChecklistForm"
                 className="btn btn-primary"
                 disabled={isBeingUpdated}
             >

@@ -48,7 +48,7 @@ const TaskChecklist = () => {
 
     const cols = [
         {
-            name: "Task",
+            name: "Role",
             selector: "role",
             sort: true,
             width: "250",
@@ -56,14 +56,14 @@ const TaskChecklist = () => {
             contentClass: "table-content",
         },
         {
-            name: "Checklist",
-            selector: "checklists",
+            name: "Tasks",
+            selector: "tasks",
             width: "400",
             thclass: "tb-head",
             contentClass: "table-content",
             cell: ({ row }) =>
-                Array.isArray(row?.checklists) && row.checklists.length
-                    ? row.checklists.map((checklist) => checklist?.checklist_name).join(", ")
+                Array.isArray(row?.tasks) && row.tasks.length
+                    ? row.tasks.map((task) => task?.task_name).join(", ")
                     : "-",
         },
         {

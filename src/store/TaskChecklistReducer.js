@@ -1,34 +1,34 @@
 import { create } from "zustand";
 import useAlertReducer from "./AlertReducer";
-import documentChecklistService from "../services/documentChecklistService";
+import taskChecklistService from "../services/taskChecklistService";
 
 const normalizeList = (data) =>
   Array.isArray(data?.data)
     ? data.data
     : Array.isArray(data)
       ? data
-      : Array.isArray(data?.documents)
-        ? data.documents
+      : Array.isArray(data?.tasks)
+        ? data.tasks
         : [];
 
-const useDocumentChecklistReducer = create((set) => ({
+const useTaskChecklistReducer = create((set) => ({
   isLoadingGet: false,
   isLoadingOptions: false,
   isBeingUpdated: false,
   errorMessage: "",
   successMessage: "",
-  documentChecklists: [],
+  taskChecklists: [],
   totalCount: 0,
   roleOptions: [],
-  documentOptions: [],
+  taskOptions: [],
 
-  getDocumentChecklists: async (params) => {
+  getTaskChecklists: async (params) => {
     try {
       set({ isLoadingGet: true });
-      const { data } = await documentChecklistService.getMappedDocuments(params);
+      const { data } = await taskChecklistService.getRolesWithTasks(params);
       const rows = normalizeList(data);
       set({
-        documentChecklists: rows,
+        taskChecklists: rows,
         totalCount:
           data?.total ??
           data?.meta?.total ??
@@ -38,51 +38,54 @@ const useDocumentChecklistReducer = create((set) => ({
       });
     } catch (err) {
       set({
-        errorMessage: err?.message ?? "Failed to fetch checklist mappings",
+        errorMessage: err?.message ?? "Failed to fetch task checklist mappings",
         isLoadingGet: false,
-        documentChecklists: [],
+        taskChecklists: [],
         totalCount: 0,
       });
     }
   },
 
-  getChecklistOptions: async () => {
+  getTaskChecklistOptions: async () => {
     try {
       set({ isLoadingOptions: true });
-      const [rolesRes, documentsRes] = await Promise.all([
-        documentChecklistService.getCustomRoles(),
-        documentChecklistService.getAllDocuments(),
+      const [rolesRes, tasksRes] = await Promise.all([
+        taskChecklistService.getCustomRoles(),
+        taskChecklistService.getAllTasks(),
       ]);
 
       const rolesRaw = normalizeList(rolesRes?.data);
-      const documentsRaw = normalizeList(documentsRes?.data);
+      const tasksRaw = normalizeList(tasksRes?.data);
 
       set({
         roleOptions: rolesRaw.map((item) => ({
           value: Number(item?.role_id),
           label: item?.role,
         })),
-        documentOptions: documentsRaw.map((item) => ({
-          value: Number(item?.document_id),
-          label: item?.document_name,
+        taskOptions: tasksRaw.map((item) => ({
+          value: Number(item?.task_id ?? item?._id),
+          label: item?.task_name ?? item?.name,
         })),
         isLoadingOptions: false,
       });
     } catch (err) {
       set({
         isLoadingOptions: false,
-        errorMessage: err?.message ?? "Failed to fetch checklist options",
+        errorMessage: err?.message ?? "Failed to fetch task checklist options",
       });
     }
   },
 
-  saveDocumentChecklist: async ({ formData, cb }) => {
+  saveTaskChecklist: async ({ formData, cb }) => {
     try {
       set({ isBeingUpdated: true });
-      const { data } = await documentChecklistService.saveDocumentChecklist(formData);
+      const { data } = await taskChecklistService.assignRole({
+        role_id: formData?.role_id,
+        task_ids: formData?.task_ids,
+      });
       set({ successMessage: data?.message, isBeingUpdated: false });
       const { success } = useAlertReducer.getState();
-      success(data?.message ?? "Checklist saved successfully");
+      success(data?.message ?? "Task checklist saved successfully");
       cb?.();
     } catch (err) {
       set({ isBeingUpdated: false });
@@ -92,4 +95,4 @@ const useDocumentChecklistReducer = create((set) => ({
   },
 }));
 
-export default useDocumentChecklistReducer;
+export default useTaskChecklistReducer;

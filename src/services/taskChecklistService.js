@@ -2,17 +2,16 @@ import Gateway from "../gateway/gateway";
 
 const getCustomRoles = () => Gateway.get("/documents/get_custom_roles");
 
-const getAllDocuments = () => Gateway.get("/documents/all_documents");
+const getAllTasks = () => Gateway.get("/task_list");
 
-const getMappedDocuments = (params) =>
-  Gateway.get("/documents/get_mapped_documents", { params });
+const getRolesWithTasks = (params) =>
+  Gateway.get("/task_list/roles_with_tasks", { params });
 
-const saveDocumentChecklist = (payload) =>
-  Gateway.post("/documents/save_document_checklist", payload);
+const assignRole = (payload) => Gateway.post("/task_list/assign_role", payload);
 
 export default {
   getCustomRoles,
-  getAllDocuments,
-  getMappedDocuments,
-  saveDocumentChecklist,
+  getAllTasks,
+  getRolesWithTasks,
+  assignRole,
 };
