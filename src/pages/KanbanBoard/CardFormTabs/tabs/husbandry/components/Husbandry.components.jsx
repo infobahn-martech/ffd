@@ -257,14 +257,18 @@ const CustomSelect = ({ value, onChange, options = [], placeholder, className = 
   };
 
   const dropdownPortal = isOpen ? createPortal(
-    <div ref={portalRef} className="cf-multi-select-dropdown cf-select-portal" style={dropdownStyle}>
+    <div
+      ref={portalRef}
+      className="cf-multi-select-dropdown cf-select-portal"
+      style={dropdownStyle}
+      onMouseDown={(e) => e.stopPropagation()}
+    >
       <div className="cf-multi-select-search">
         <input
           ref={searchInputRef}
           type="text"
           value={searchTerm}
           onChange={(e) => setSearchTerm(e.target.value)}
-          onClick={(e) => e.stopPropagation()}
           placeholder="Search..."
           className="cf-multi-select-search-input"
         />
