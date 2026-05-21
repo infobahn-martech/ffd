@@ -9097,7 +9097,8 @@ body .material-management-modal {
 
 /* Portaled dropdown — rendered on document.body to escape modal overflow clipping */
 .cf-select-portal {
-  position: fixed;
+  position: fixed !important;
+  right: auto !important;
   z-index: 99999;
   background: #fff;
   border: 1px solid #e2e2ea;
