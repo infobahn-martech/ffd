@@ -4,6 +4,7 @@ import transportCompanyService from '../services/transportCompanyService';
 
 const useTransportCompanyReducer = create((set) => ({
   isLoading: false,
+  isDeleteLoading: false,
   errorMessage: '',
   successMessage: '',
   transportCompanyData: [],
@@ -75,9 +76,9 @@ const useTransportCompanyReducer = create((set) => ({
   deleteTransportCompany: async (payload) => {
     const { transport_company_id, cb } = payload || {};
     try {
-      set({ isBeingUpdated: true });
+      set({ isDeleteLoading: true });
       const { data } = await transportCompanyService.deleteTransportCompanyData(transport_company_id);
-      set({ successMessage: data?.message, isBeingUpdated: false });
+      set({ successMessage: data?.message, isDeleteLoading: false });
       const { success } = useAlertReducer.getState();
       success(data?.message ?? 'Transport company deleted successfully');
       cb?.();
@@ -85,7 +86,7 @@ const useTransportCompanyReducer = create((set) => ({
       const { error } = useAlertReducer.getState();
       set({
         errorMessage: 'Something went wrong deleting the transport company',
-        isBeingUpdated: false,
+        isDeleteLoading: false,
       });
       error(err?.response?.data?.message ?? err.message);
     }
