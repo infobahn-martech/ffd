@@ -7,8 +7,6 @@ import {
   DEFAULT_PRE_ARRIVAL_DOCUMENT_HANDLING,
   collectPreArrivalProcessAttachments,
 } from "./preArrivalDocumentHandling";
-import preArrivalInfoService from "../../../../../services/preArrivalInfoService";
-import userService from "../../../../../services/userService";
 import preArrivalService from "../../../../../services/preArrivalService";
 import appointmentAcceptanceService from "../../../../../services/appointmentAcceptanceService";
 import coordinatesService from "../../../../../services/coordinatesService";
@@ -199,299 +197,99 @@ DocumentGroupCard.propTypes = {
   children: PropTypes.node.isRequired,
 };
 
-function PreArrivalDocumentHandlingSection({
-  formValues,
-  handleChange,
-  isViewOnly,
-  portId,
-  callId,
-  assigneeHints = null,
-  detailDocSkip = null,
-}) {
+const STATIC_PRE_ARRIVAL_DOCUMENT_ROWS = {
+  gro: [
+    { id: "static-gro-registry", name: "Registry", document_name: "Registry", is_required: false, files: [] },
+    { id: "static-gro-tonnage", name: "Tonnage", document_name: "Tonnage", is_required: false, files: [] },
+    {
+      id: "static-gro-radio",
+      name: "Ship Radio Station License",
+      document_name: "Ship Radio Station License",
+      is_required: false,
+      files: [],
+    },
+    {
+      id: "static-gro-health",
+      name: "Maritime Health Declaration",
+      document_name: "Maritime Health Declaration",
+      is_required: false,
+      files: [],
+    },
+  ],
+  customClearance: [
+    { id: "static-cc-bayan", name: "Bayan Document", document_name: "Bayan Document", is_required: false, files: [] },
+    {
+      id: "static-cc-inspection",
+      name: "Customs Inspection",
+      document_name: "Customs Inspection",
+      is_required: false,
+      files: [],
+    },
+    {
+      id: "static-cc-inward",
+      name: "Inward Clearance",
+      document_name: "Inward Clearance",
+      is_required: false,
+      files: [],
+    },
+  ],
+  mwp: [
+    {
+      id: "static-mwp-permit",
+      name: "Marine Work Permit",
+      document_name: "Marine Work Permit",
+      is_required: false,
+      files: [],
+    },
+    {
+      id: "static-mwp-safety",
+      name: "Safety Checklist",
+      document_name: "Safety Checklist",
+      is_required: false,
+      files: [],
+    },
+    {
+      id: "static-mwp-completion",
+      name: "Work Completion Document",
+      document_name: "Work Completion Document",
+      is_required: false,
+      files: [],
+    },
+  ],
+};
+
+function resolvePreArrivalDocumentRows(apiRows, staticRows) {
+  const rows = Array.isArray(apiRows) ? apiRows : [];
+  const hasApiData = rows.some(
+    (row) =>
+      row?.call_task_document_id != null ||
+      row?.document_id != null ||
+      row?.file_url ||
+      row?.status != null ||
+      (Array.isArray(row?.files) && row.files.length > 0)
+  );
+  return hasApiData ? rows : staticRows;
+}
+
+function PreArrivalDocumentHandlingSection({ formValues }) {
   const dh = formValues.preArrivalDocumentHandling || DEFAULT_PRE_ARRIVAL_DOCUMENT_HANDLING;
   const stageFiles = Array.isArray(dh.stageFiles) ? dh.stageFiles : [];
-  const dhRef = useRef(dh);
-  const selectedGroOption = formValues.assignedGro || "";
-  const selectedCustomClearanceOption = formValues.assignedCustom || "";
-  const [groOptions, setGroOptions] = useState([]);
-  const [customClearanceOptions, setCustomClearanceOptions] = useState([]);
 
-  const groOptionsForSelect = useMemo(() => {
-    const h = assigneeHints?.gro;
-    const base = groOptions;
-    if (!h?.value) return base;
-    const v = String(h.value);
-    if (base.some((o) => o.value === v)) return base;
-    return [
-      {
-        value: v,
-        label: h.label || `User ${v}`,
-        roleId: h.roleId != null ? Number(h.roleId) : PRE_ARRIVAL_GRO_ROLE_ID,
-      },
-      ...base,
-    ];
-  }, [groOptions, assigneeHints?.gro]);
-
-  const customOptionsForSelect = useMemo(() => {
-    const h = assigneeHints?.customClearance;
-    const base = customClearanceOptions;
-    if (!h?.value) return base;
-    const v = String(h.value);
-    if (base.some((o) => o.value === v)) return base;
-    return [
-      {
-        value: v,
-        label: h.label || `User ${v}`,
-        roleId: h.roleId != null ? Number(h.roleId) : PRE_ARRIVAL_CUSTOM_CLEARANCE_ROLE_ID,
-      },
-      ...base,
-    ];
-  }, [customClearanceOptions, assigneeHints?.customClearance]);
-
-  useEffect(() => {
-    dhRef.current = dh;
-  }, [dh]);
-
-  const setDh = (next) => {
-    handleChange("preArrivalDocumentHandling")({ target: { value: next } });
-  };
-
-  const mergeRoleDocuments = useCallback((existingRows = [], incomingRows = []) => {
-    const normalizedIncoming = (Array.isArray(incomingRows) ? incomingRows : []).map((row, index) => {
-      const documentName =
-        row?.document_name ||
-        row?.documentName ||
-        `Document ${index + 1}`;
-      const uploadedName = row?.file_name || row?.fileName || null;
-
-      return {
-        id: row?.document_id != null ? String(row.document_id) : row?.call_task_document_id != null ? String(row.call_task_document_id) : `role-doc-${index}`,
-        document_name: documentName,
-        name: documentName,
-        is_required: Boolean(row?.is_required ?? row?.required),
-        status: row?.status ?? null,
-        remarks: row?.remarks ?? null,
-        call_task_document_id: row?.call_task_document_id ?? null,
-        document_id: row?.document_id ?? null,
-        file_url: row?.file_url ?? null,
-        file_name: uploadedName,
-        files:
-          row?.is_uploaded && row?.file_url
-            ? [
-              {
-                name: uploadedName || `uploaded-file-${index + 1}`,
-                url: row.file_url,
-                uploadedBy: row?.uploaded_by_user || null,
-                uploadedAt: row?.uploaded_at || null,
-                remarks: row?.remarks || null,
-                status: row?.status ?? null,
-              },
-            ]
-            : [],
-      };
-    });
-
-    return normalizedIncoming.map((incomingRow) => {
-      const matched = (existingRows || []).find((row) => String(row?.id) === String(incomingRow.id));
-      const documentName =
-        incomingRow.document_name ||
-        matched?.document_name ||
-        matched?.name ||
-        incomingRow.name;
-      return {
-        ...incomingRow,
-        document_name: documentName,
-        name: documentName,
-        status: incomingRow.status ?? matched?.status ?? null,
-        remarks: incomingRow.remarks ?? matched?.remarks ?? null,
-        call_task_document_id: incomingRow.call_task_document_id ?? matched?.call_task_document_id ?? null,
-        document_id: incomingRow.document_id ?? matched?.document_id ?? null,
-        file_url: incomingRow.file_url ?? matched?.file_url ?? null,
-        file_name: incomingRow.file_name ?? matched?.file_name ?? null,
-        files:
-          Array.isArray(matched?.files) && matched.files.length > 0
-            ? matched.files
-            : incomingRow.files,
-      };
-    });
-  }, []);
-
-  const showGroDocuments = Boolean(selectedGroOption);
-  const showCustomDocuments = Boolean(selectedCustomClearanceOption);
-  const showDocumentHandlingContent = showGroDocuments || showCustomDocuments;
-
-  useEffect(() => {
-    let cancelled = false;
-
-    const mapUserOptions = (response) =>
-      (response?.data?.data || response?.data || [])
-        .filter((user) => user?.user_id != null)
-        .map((user) => ({
-          value: String(user.user_id),
-          label: user.name || `User ${user.user_id}`,
-          roleId: user.role_id ?? user.roleId ?? user?.role?.role_id ?? user?.role?.id ?? null,
-        }));
-
-    const loadUserOptions = async () => {
-      if (!portId) {
-        setGroOptions([]);
-        setCustomClearanceOptions([]);
-        handleChange("assignedGro")({ target: { value: "" } });
-        handleChange("assignedCustom")({ target: { value: "" } });
-        return;
-      }
-
-      try {
-        const [groRes, clearanceRes] = await Promise.all([
-          userService.getUsersByRole({ role_id: 4, port_id: portId }),
-          userService.getUsersByRole({ role_id: 5, port_id: portId }),
-        ]);
-        if (cancelled) return;
-
-        const nextGroOptions = mapUserOptions(groRes);
-        const nextCustomClearanceOptions = mapUserOptions(clearanceRes);
-        setGroOptions(nextGroOptions);
-        setCustomClearanceOptions(nextCustomClearanceOptions);
-
-        if (selectedGroOption && !nextGroOptions.some((option) => option.value === selectedGroOption)) {
-          handleChange("assignedGro")({ target: { value: "" } });
-        }
-        if (
-          selectedCustomClearanceOption &&
-          !nextCustomClearanceOptions.some((option) => option.value === selectedCustomClearanceOption)
-        ) {
-          handleChange("assignedCustom")({ target: { value: "" } });
-        }
-      } catch (error) {
-        if (cancelled) return;
-        setGroOptions([]);
-        setCustomClearanceOptions([]);
-        handleChange("assignedGro")({ target: { value: "" } });
-        handleChange("assignedCustom")({ target: { value: "" } });
-        console.error("[Operation] users/get_users_by_role failed", error);
-      }
-    };
-
-    loadUserOptions();
-
-    return () => {
-      cancelled = true;
-    };
-  }, [portId, selectedGroOption, selectedCustomClearanceOption, handleChange]);
-
-  useEffect(() => {
-    let cancelled = false;
-
-    const selectedGroRoleId = groOptionsForSelect.find((option) => option.value === selectedGroOption)?.roleId;
-    const selectedCustomRoleId = customOptionsForSelect.find(
-      (option) => option.value === selectedCustomClearanceOption
-    )?.roleId;
-
-    const skipGro =
-      Boolean(detailDocSkip?.groHasDocs) &&
-      detailDocSkip?.groUserId != null &&
-      String(detailDocSkip.groUserId) === String(selectedGroOption || "");
-    const skipCustom =
-      Boolean(detailDocSkip?.customHasDocs) &&
-      detailDocSkip?.customUserId != null &&
-      String(detailDocSkip.customUserId) === String(selectedCustomClearanceOption || "");
-
-    const loadRoleBasedDocuments = async () => {
-      const tasks = [];
-      if (!skipGro && selectedGroRoleId && selectedGroOption && callId) {
-        tasks.push(
-          preArrivalInfoService.getDocumentsByRole({
-            role_id: selectedGroRoleId,
-            user_id: selectedGroOption,
-            call_id: callId,
-          })
-        );
-      } else {
-        tasks.push(Promise.resolve(null));
-      }
-      if (!skipCustom && selectedCustomRoleId && selectedCustomClearanceOption && callId) {
-        tasks.push(
-          preArrivalInfoService.getDocumentsByRole({
-            role_id: selectedCustomRoleId,
-            user_id: selectedCustomClearanceOption,
-            call_id: callId,
-          })
-        );
-      } else {
-        tasks.push(Promise.resolve(null));
-      }
-
-      try {
-        const [groResponse, customResponse] = await Promise.all(tasks);
-        if (cancelled) return;
-
-        const currentDh = dhRef.current || DEFAULT_PRE_ARRIVAL_DOCUMENT_HANDLING;
-        const groRows = skipGro
-          ? currentDh?.documents?.gro || []
-          : mergeRoleDocuments(currentDh?.documents?.gro || [], groResponse?.data?.data || []);
-        const customRows = skipCustom
-          ? currentDh?.documents?.customClearance || []
-          : mergeRoleDocuments(
-            currentDh?.documents?.customClearance || [],
-            customResponse?.data?.data || []
-          );
-
-        setDh({
-          ...currentDh,
-          documents: {
-            ...currentDh.documents,
-            gro: selectedGroOption ? groRows : [],
-            customClearance: selectedCustomClearanceOption ? customRows : [],
-          },
-        });
-      } catch (error) {
-        if (cancelled) return;
-        console.error("[Operation] pre_arrival/get_documents_by_role failed", error);
-      }
-    };
-
-    loadRoleBasedDocuments();
-
-    return () => {
-      cancelled = true;
-    };
-    // eslint-disable-next-line react-hooks/exhaustive-deps -- setDh is stable via handleChange + dhRef; omitting avoids refetch loops
-  }, [
-    selectedGroOption,
-    selectedCustomClearanceOption,
-    callId,
-    groOptionsForSelect,
-    customOptionsForSelect,
-    mergeRoleDocuments,
-    detailDocSkip?.groUserId,
-    detailDocSkip?.customUserId,
-    detailDocSkip?.groHasDocs,
-    detailDocSkip?.customHasDocs,
-  ]);
+  const groDocuments = resolvePreArrivalDocumentRows(
+    dh.documents?.gro,
+    STATIC_PRE_ARRIVAL_DOCUMENT_ROWS.gro
+  );
+  const customClearanceDocuments = resolvePreArrivalDocumentRows(
+    dh.documents?.customClearance,
+    STATIC_PRE_ARRIVAL_DOCUMENT_ROWS.customClearance
+  );
+  const mwpDocuments = resolvePreArrivalDocumentRows(
+    dh.documents?.mwp,
+    STATIC_PRE_ARRIVAL_DOCUMENT_ROWS.mwp
+  );
 
   return (
     <div className="document-handling-section">
-      <div className="document-handling-preselect">
-        <FormField label="Select GRO">
-          <FormSelect
-            value={formValues.assignedGro || ""}
-            onChange={handleChange("assignedGro")}
-            options={groOptionsForSelect}
-            placeholder="Select GRO"
-            disabled={isViewOnly || !portId}
-          />
-        </FormField>
-        <FormField label="Select Custom clearance">
-          <FormSelect
-            value={formValues.assignedCustom || ""}
-            onChange={handleChange("assignedCustom")}
-            options={customOptionsForSelect}
-            placeholder="Select Custom clearance"
-            disabled={isViewOnly || !portId}
-          />
-        </FormField>
-      </div>
-
       {stageFiles.length > 0 && (
         <div className="document-handling-stage-docs" role="region" aria-label="Stage documents">
           <h4 className="document-group-card__title">Stage documents</h4>
@@ -511,42 +309,45 @@ function PreArrivalDocumentHandlingSection({
         </div>
       )}
 
-      {showDocumentHandlingContent && (
-        <>
-          <div className="document-handling-section__divider" />
-          <div className="document-handling-header-row" role="group" aria-label="Document handling">
-            <h3 className="document-handling-section__heading">Document handling</h3>
-          </div>
+      <div className="document-handling-header-row" role="group" aria-label="Document handling">
+        <h3 className="document-handling-section__heading">Document handling</h3>
+      </div>
 
-          {showGroDocuments && (
-            <DocumentGroupCard title="GRO documents">
-              {(dh.documents.gro || []).map((doc) => (
-                <CompactFileUploadRow
-                  key={doc.id}
-                  label={doc.document_name || doc.name}
-                  files={doc.files || []}
-                  status={doc.status}
-                  remarks={doc.remarks}
-                />
-              ))}
-            </DocumentGroupCard>
-          )}
+      <DocumentGroupCard title="GRO documents">
+        {groDocuments.map((doc) => (
+          <CompactFileUploadRow
+            key={doc.id}
+            label={doc.document_name || doc.name}
+            files={doc.files || []}
+            status={doc.status}
+            remarks={doc.remarks}
+          />
+        ))}
+      </DocumentGroupCard>
 
-          {showCustomDocuments && (
-            <DocumentGroupCard title="Custom clearance documents">
-              {(dh.documents.customClearance || []).map((doc) => (
-                <CompactFileUploadRow
-                  key={doc.id}
-                  label={doc.document_name || doc.name}
-                  files={doc.files || []}
-                  status={doc.status}
-                  remarks={doc.remarks}
-                />
-              ))}
-            </DocumentGroupCard>
-          )}
-        </>
-      )}
+      <DocumentGroupCard title="Custom clearance documents">
+        {customClearanceDocuments.map((doc) => (
+          <CompactFileUploadRow
+            key={doc.id}
+            label={doc.document_name || doc.name}
+            files={doc.files || []}
+            status={doc.status}
+            remarks={doc.remarks}
+          />
+        ))}
+      </DocumentGroupCard>
+
+      <DocumentGroupCard title="MWP documents">
+        {mwpDocuments.map((doc) => (
+          <CompactFileUploadRow
+            key={doc.id}
+            label={doc.document_name || doc.name}
+            files={doc.files || []}
+            status={doc.status}
+            remarks={doc.remarks}
+          />
+        ))}
+      </DocumentGroupCard>
     </div>
   );
 }
