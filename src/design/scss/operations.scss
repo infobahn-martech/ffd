@@ -9111,6 +9111,24 @@ body .material-management-modal {
   overflow-x: hidden;
   box-sizing: border-box;
 
+  &::-webkit-scrollbar {
+    width: 5px;
+  }
+
+  &::-webkit-scrollbar-track {
+    background: #f1f4ff;
+    border-radius: 4px;
+  }
+
+  &::-webkit-scrollbar-thumb {
+    background: #3e5cb6;
+    border-radius: 4px;
+  }
+
+  &::-webkit-scrollbar-thumb:hover {
+    background: #00368c;
+  }
+
   .cf-multi-select-option {
     padding: 10px 14px;
     font-size: 13px;
