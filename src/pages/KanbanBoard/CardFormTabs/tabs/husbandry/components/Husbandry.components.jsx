@@ -214,6 +214,7 @@ const CustomSelect = ({ value, onChange, options = [], placeholder, className = 
   const portalRef = useRef(null);
   const searchInputRef = useRef(null);
 
+  // Close dropdown when clicking outside both trigger and portal
   useEffect(() => {
     const handleClickOutside = (event) => {
       if (
@@ -227,6 +228,17 @@ const CustomSelect = ({ value, onChange, options = [], placeholder, className = 
     document.addEventListener("mousedown", handleClickOutside);
     return () => document.removeEventListener("mousedown", handleClickOutside);
   }, []);
+
+  // Add a NATIVE mousedown listener on the portal element so it stops propagation
+  // before the document-level handleClickOutside fires (React synthetic events fire after native document listeners)
+  useEffect(() => {
+    if (!isOpen) return;
+    const el = portalRef.current;
+    if (!el) return;
+    const stop = (e) => e.stopPropagation();
+    el.addEventListener("mousedown", stop);
+    return () => el.removeEventListener("mousedown", stop);
+  }, [isOpen]);
 
   useEffect(() => {
     if (isOpen && triggerRef.current) {
@@ -261,7 +273,6 @@ const CustomSelect = ({ value, onChange, options = [], placeholder, className = 
       ref={portalRef}
       className="cf-multi-select-dropdown cf-select-portal"
       style={dropdownStyle}
-      onMouseDown={(e) => e.stopPropagation()}
     >
       <div className="cf-multi-select-search">
         <input
