@@ -1,4 +1,5 @@
 import { useRef, useState, useEffect } from "react";
+import { createPortal } from "react-dom";
 import PropTypes from "prop-types";
 import ReactQuill from "react-quill";
 import "react-quill/dist/quill.snow.css";
@@ -207,33 +208,88 @@ FormInput.propTypes = {
 // Custom Select Component (similar to MultiSelectEmail UI)
 const CustomSelect = ({ value, onChange, options = [], placeholder, className = "", disabled = false }) => {
   const [isOpen, setIsOpen] = useState(false);
-  const dropdownRef = useRef(null);
+  const [dropdownStyle, setDropdownStyle] = useState({});
+  const [searchTerm, setSearchTerm] = useState("");
+  const triggerRef = useRef(null);
+  const portalRef = useRef(null);
+  const searchInputRef = useRef(null);
 
-  // Close dropdown when clicking outside
   useEffect(() => {
     const handleClickOutside = (event) => {
-      if (dropdownRef.current && !dropdownRef.current.contains(event.target)) {
+      if (
+        triggerRef.current && !triggerRef.current.contains(event.target) &&
+        portalRef.current && !portalRef.current.contains(event.target)
+      ) {
         setIsOpen(false);
+        setSearchTerm("");
       }
     };
     document.addEventListener("mousedown", handleClickOutside);
     return () => document.removeEventListener("mousedown", handleClickOutside);
   }, []);
 
+  useEffect(() => {
+    if (isOpen && triggerRef.current) {
+      const rect = triggerRef.current.getBoundingClientRect();
+      setDropdownStyle({
+        top: rect.bottom + 4,
+        left: rect.left,
+        width: rect.width,
+        maxWidth: rect.width,
+        minWidth: rect.width,
+      });
+      setTimeout(() => searchInputRef.current?.focus(), 0);
+    }
+    if (!isOpen) setSearchTerm("");
+  }, [isOpen]);
+
   const selectedOption = options.find(opt => opt.value === value);
   const displayValue = selectedOption ? selectedOption.label : "";
 
+  const filteredOptions = options.filter(opt =>
+    opt.label.toLowerCase().includes(searchTerm.toLowerCase())
+  );
+
   const handleSelect = (optionValue) => {
-    const syntheticEvent = {
-      target: { value: optionValue }
-    };
-    onChange(syntheticEvent);
+    onChange({ target: { value: optionValue } });
     setIsOpen(false);
+    setSearchTerm("");
   };
 
+  const dropdownPortal = isOpen ? createPortal(
+    <div ref={portalRef} className="cf-multi-select-dropdown cf-select-portal" style={dropdownStyle}>
+      <div className="cf-multi-select-search">
+        <input
+          ref={searchInputRef}
+          type="text"
+          value={searchTerm}
+          onChange={(e) => setSearchTerm(e.target.value)}
+          onClick={(e) => e.stopPropagation()}
+          placeholder="Search..."
+          className="cf-multi-select-search-input"
+        />
+      </div>
+      {filteredOptions.length > 0 ? (
+        filteredOptions.map((option) => (
+          <div
+            key={option.value}
+            className={`cf-multi-select-option ${value === option.value ? "selected" : ""}`}
+            onClick={() => handleSelect(option.value)}
+          >
+            <span>{option.label}</span>
+          </div>
+        ))
+      ) : (
+        <div className="cf-multi-select-no-results">No results found</div>
+      )}
+    </div>,
+    document.body
+  ) : null;
+
   return (
-    <div className={`cf-multi-select-email ${disabled ? "disabled" : ""} ${className}`} ref={dropdownRef}>
+    <div className={`cf-multi-select-email ${disabled ? "disabled" : ""} ${className}`}>
       <div
+        ref={triggerRef}
         className={`cf-multi-select-email-input ${disabled ? "disabled" : ""}`}
         onClick={disabled ? undefined : () => setIsOpen(!isOpen)}
         style={{ pointerEvents: disabled ? "none" : "auto", opacity: disabled ? 0.6 : 1 }}
@@ -247,22 +303,7 @@ const CustomSelect = ({ value, onChange, options = [], placeholder, className = 
         </div>
         <span className="cf-multi-select-arrow">▼</span>
       </div>
-      {isOpen && (
-        <div className="cf-multi-select-dropdown">
-          {options.map((option) => {
-            const isSelected = value === option.value;
-            return (
-              <div
-                key={option.value}
-                className={`cf-multi-select-option ${isSelected ? "selected" : ""}`}
-                onClick={() => handleSelect(option.value)}
-              >
-                <span>{option.label}</span>
-              </div>
-            );
-          })}
-        </div>
-      )}
+      {dropdownPortal}
     </div>
   );
 };

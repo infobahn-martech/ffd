@@ -1154,10 +1154,10 @@ const InboundOrdersContent = ({ formValues, handleChange, cardColor }) => {
                   marginBottom: "16px",
                   border: "1px solid #e2e2ea",
                   borderRadius: "8px",
-                  overflow: "hidden",
                   backgroundColor: "#f8f9fa",
                   boxShadow: "0 1px 3px rgba(0, 0, 0, 0.05)",
                   transition: "all 0.2s ease",
+                  position: "relative",
                 }}
                 onMouseEnter={(e) => {
                   e.currentTarget.style.borderColor = "#00368c";
@@ -1178,6 +1178,7 @@ const InboundOrdersContent = ({ formValues, handleChange, cardColor }) => {
                     justifyContent: "space-between",
                     alignItems: "center",
                     transition: "background-color 0.2s ease",
+                    borderRadius: expandedOrders[order.id] ? "8px 8px 0 0" : "8px",
                   }}
                   onMouseEnter={(e) => {
                     e.currentTarget.style.backgroundColor = "#f0f1f5";
@@ -1238,7 +1239,7 @@ const InboundOrdersContent = ({ formValues, handleChange, cardColor }) => {
                 </div>
 
                 {expandedOrders[order.id] && (
-                  <div style={{ padding: "16px", backgroundColor: "white" }}>
+                  <div style={{ padding: "16px", backgroundColor: "white", borderRadius: "0 0 8px 8px" }}>
                     <div className="row g-2 mb-1">
                       <div className="col-lg-4 col-md-6">
                         <FormField label="Order No">
@@ -1589,10 +1590,10 @@ const InboundOrdersContent = ({ formValues, handleChange, cardColor }) => {
                   marginBottom: "16px",
                   border: "1px solid #e2e2ea",
                   borderRadius: "8px",
-                  overflow: "hidden",
                   backgroundColor: "#f8f9fa",
                   boxShadow: "0 1px 3px rgba(0, 0, 0, 0.05)",
                   transition: "all 0.2s ease",
+                  position: "relative",
                 }}
                 onMouseEnter={(e) => {
                   e.currentTarget.style.borderColor = "#00368c";
@@ -1613,6 +1614,7 @@ const InboundOrdersContent = ({ formValues, handleChange, cardColor }) => {
                     justifyContent: "space-between",
                     alignItems: "center",
                     transition: "background-color 0.2s ease",
+                    borderRadius: expandedConvertOrders[order.id] ? "8px 8px 0 0" : "8px",
                   }}
                   onMouseEnter={(e) => {
                     e.currentTarget.style.backgroundColor = "#f0f1f5";
@@ -1673,7 +1675,7 @@ const InboundOrdersContent = ({ formValues, handleChange, cardColor }) => {
                 </div>
 
                 {expandedConvertOrders[order.id] && (
-                  <div style={{ padding: "16px", backgroundColor: "white" }}>
+                  <div style={{ padding: "16px", backgroundColor: "white", borderRadius: "0 0 8px 8px" }}>
                     <div className="row g-2 mb-1">
                       <div className="col-lg-4 col-md-6">
                         <FormField label="Order No">
