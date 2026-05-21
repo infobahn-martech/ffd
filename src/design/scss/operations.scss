@@ -9099,6 +9099,8 @@ body .material-management-modal {
 .cf-select-portal {
   position: fixed !important;
   right: auto !important;
+  min-width: 0 !important;
+  width: unset;
   z-index: 99999;
   background: #fff;
   border: 1px solid #e2e2ea;

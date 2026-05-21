@@ -235,6 +235,8 @@ const CustomSelect = ({ value, onChange, options = [], placeholder, className = 
         top: rect.bottom + 4,
         left: rect.left,
         width: rect.width,
+        maxWidth: rect.width,
+        minWidth: rect.width,
       });
       setTimeout(() => searchInputRef.current?.focus(), 0);
     }
