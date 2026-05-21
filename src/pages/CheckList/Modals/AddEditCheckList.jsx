@@ -56,6 +56,40 @@ function normalizeRoleIdsForForm(item) {
   return [];
 }
 
+function normalizeTaskIdsForApi(item) {
+  if (Array.isArray(item?.task_ids)) {
+    return item.task_ids.filter((id) => id != null && id !== "");
+  }
+  if (Array.isArray(item?.tasks)) {
+    return item.tasks.filter((id) => id != null && id !== "");
+  }
+  return [];
+}
+
+function normalizeTaskIdsForForm(item) {
+  const toStrings = (ids) =>
+    ids
+      .filter((id) => id != null && id !== "")
+      .map((id) => String(id));
+
+  if (Array.isArray(item?.task_ids)) {
+    return toStrings(item.task_ids);
+  }
+  if (Array.isArray(item?.tasks)) {
+    return toStrings(item.tasks);
+  }
+  return [];
+}
+
+const CHECKLIST_TASK_OPTIONS = [
+  { value: "GRO", label: "GRO" },
+  { value: "Custom Clearance", label: "Custom Clearance" },
+  { value: "Marine Work Permit", label: "Marine Work Permit" },
+  { value: "Transport", label: "Transport" },
+  { value: "Hotel", label: "Hotel" },
+  { value: "Medical", label: "Medical" }
+];
+
 function optionalChecklistId(val) {
   if (val === null || val === undefined || val === "") return null;
   const n = Number(val);
@@ -64,7 +98,7 @@ function optionalChecklistId(val) {
 
 /** Map form item to API item (no file binary in JSON; remove_files + document_details only) */
 function mapItemToApi(item, options = {}) {
-  const { includeIds = false } = options;
+  const { includeIds = false, itemOrder } = options;
   const doc = item?.document_details ?? {};
   let removeFiles = Array.isArray(doc.remove_files)
     ? doc.remove_files.filter(Boolean).map(String)
@@ -78,8 +112,9 @@ function mapItemToApi(item, options = {}) {
   const base = {
     item_name: item?.item_name ?? "",
     description: item?.description ?? "",
-    item_order: item?.item_order ?? 0,
+    item_order: itemOrder ?? item?.item_order ?? 0,
     role_ids: normalizeRoleIdsForApi(item),
+    task_ids: normalizeTaskIdsForApi(item),
     expiry_date_reqd: item?.expiry_date_reqd ? 1 : 0,
     remove_files: removeFiles,
     document_details: {
@@ -100,12 +135,16 @@ function mapSectionToApi(section, options = {}) {
   const base = {
     title: section?.title ?? "",
     sort_order: section?.sort_order ?? 0,
-    items: (section?.items ?? []).map((it) => mapItemToApi(it, options)),
+    items: (section?.items ?? []).map((it, idx) =>
+      mapItemToApi(it, { ...options, itemOrder: idx + 1 })
+    ),
     sub_sections: (section?.sub_sections ?? []).map((sub) => {
       const subBase = {
         title: sub?.title ?? "",
         sort_order: sub?.sort_order ?? 0,
-        items: (sub?.items ?? []).map((it) => mapItemToApi(it, options))
+        items: (sub?.items ?? []).map((it, idx) =>
+          mapItemToApi(it, { ...options, itemOrder: idx + 1 })
+        )
       };
       if (includeIds) {
         const sid = optionalChecklistId(sub?.checklist_section_id);
@@ -437,6 +476,7 @@ function createSectionItemPayload(itemOrder) {
     description: "",
     item_order: itemOrder,
     role_ids: [],
+    task_ids: [],
     expiry_date_reqd: false,
     document_details: {
       is_copy_required: false,
@@ -454,6 +494,7 @@ function createSubSectionItemPayload(itemOrder) {
     description: "",
     item_order: itemOrder,
     role_ids: [],
+    task_ids: [],
     expiry_date_reqd: false,
     document_details: {
       is_copy_required: false,
@@ -463,6 +504,47 @@ function createSubSectionItemPayload(itemOrder) {
       description: ""
     }
   };
+}
+
+function ChecklistItemTasksSelect({ control, name }) {
+  const taskMsClassNames = {
+    control: () => "checklist-role-ms__control",
+    valueContainer: () => "checklist-role-ms__value-container",
+    multiValue: () => "checklist-role-ms__multi-value",
+    multiValueLabel: () => "checklist-role-ms__multi-value-label",
+    multiValueRemove: () => "checklist-role-ms__multi-value-remove",
+    placeholder: () => "checklist-role-ms__placeholder",
+    indicatorsContainer: () => "checklist-role-ms__indicators",
+    menu: () => "checklist-role-ms__menu",
+    menuList: () => "checklist-role-ms__menu-list",
+    option: () => "checklist-role-ms__option"
+  };
+
+  return (
+    <Controller
+      name={name}
+      control={control}
+      render={({ field }) => (
+        <CommonSelect
+          isMulti
+          options={CHECKLIST_TASK_OPTIONS}
+          value={Array.isArray(field.value) ? field.value : []}
+          onChange={(selected) => {
+            const values = Array.isArray(selected)
+              ? selected.map((item) => String(item.value))
+              : [];
+            field.onChange(values);
+          }}
+          placeholder="Select Tasks"
+          className="checklist-compact-select tasks-multiselect checklist-tasks-multiselect"
+          classNamePrefix="react-select"
+          classNames={taskMsClassNames}
+          maxheight={200}
+          closeMenuOnSelect={false}
+        />
+      )}
+    />
+  );
 }
 
 function ChecklistItemRoleSelect({ control, name, roleSelectOptions, isLoadingRoles }) {
@@ -517,6 +599,7 @@ function mapApiToForm(data) {
       item.expiry_date_reqd == "1" || item.expiry_date_reqd === 1 || item.expiry_date_reqd === true,
     description: item.description || "",
     role_ids: normalizeRoleIdsForForm(item),
+    task_ids: normalizeTaskIdsForForm(item),
     document_details: {
       is_copy_required: item.document_details?.require_copy_only || false,
       required_copy_only: null,
@@ -719,12 +802,12 @@ export function CheckListModal({ showModal, closeModal, callTypesOptions, onSucc
               <span></span>
               <span>Item Name</span>
               <span>Role</span>
+              <span>Tasks</span>
               <span>Description</span>
               <span>Expiry Req.</span>
               <span>Copy Req.</span>
               <span>File</span>
               <span>Doc Description</span>
-              <span>Order</span>
               <span>Actions</span>
             </div>
 
@@ -748,6 +831,10 @@ export function CheckListModal({ showModal, closeModal, callTypesOptions, onSucc
                     name={`sections.${sectionIndex}.items.${itemIndex}.role_ids`}
                     roleSelectOptions={roleSelectOptions}
                     isLoadingRoles={isLoadingRoles}
+                  />
+                  <ChecklistItemTasksSelect
+                    control={control}
+                    name={`sections.${sectionIndex}.items.${itemIndex}.task_ids`}
                   />
                   <input
                     type="text"
@@ -789,14 +876,6 @@ export function CheckListModal({ showModal, closeModal, callTypesOptions, onSucc
                     className="form-control checklist-compact-input"
                     placeholder="Doc description"
                     {...register(`sections.${sectionIndex}.items.${itemIndex}.document_details.description`)}
-                  />
-                  <input
-                    type="number"
-                    className="form-control checklist-compact-input"
-                    placeholder="Order"
-                    {...register(`sections.${sectionIndex}.items.${itemIndex}.item_order`, {
-                      valueAsNumber: true
-                    })}
                   />
                   <button
                     type="button"
@@ -858,12 +937,12 @@ export function CheckListModal({ showModal, closeModal, callTypesOptions, onSucc
               <span></span>
               <span>Item Name</span>
               <span>Role</span>
+              <span>Tasks</span>
               <span>Description</span>
               <span>Expiry Req.</span>
               <span>Copy Req.</span>
               <span>File</span>
               <span>Doc Description</span>
-              <span>Order</span>
               <span>Actions</span>
             </div>
 
@@ -887,6 +966,10 @@ export function CheckListModal({ showModal, closeModal, callTypesOptions, onSucc
                     name={`sections.${sectionIndex}.sub_sections.${subSectionIndex}.items.${itemIndex}.role_ids`}
                     roleSelectOptions={roleSelectOptions}
                     isLoadingRoles={isLoadingRoles}
+                  />
+                  <ChecklistItemTasksSelect
+                    control={control}
+                    name={`sections.${sectionIndex}.sub_sections.${subSectionIndex}.items.${itemIndex}.task_ids`}
                   />
                   <input
                     type="text"
@@ -934,14 +1017,6 @@ export function CheckListModal({ showModal, closeModal, callTypesOptions, onSucc
                     className="form-control checklist-compact-input"
                     placeholder="Doc description"
                     {...register(`sections.${sectionIndex}.sub_sections.${subSectionIndex}.items.${itemIndex}.document_details.description`)}
-                  />
-                  <input
-                    type="number"
-                    className="form-control checklist-compact-input"
-                    placeholder="Order"
-                    {...register(`sections.${sectionIndex}.sub_sections.${subSectionIndex}.items.${itemIndex}.item_order`, {
-                      valueAsNumber: true
-                    })}
                   />
                   <button
                     type="button"
@@ -1456,6 +1531,20 @@ export function CheckListModal({ showModal, closeModal, callTypesOptions, onSucc
                   )}
                 </div>
               ))}
+
+              {sections.length > 0 && (
+                <div className="checklist-sections-list-footer">
+                  <button
+                    type="button"
+                    className="checklist-inline-add-btn"
+                    onClick={addSection}
+                    title="Add section"
+                    aria-label="Add section"
+                  >
+                    <FiPlus aria-hidden size={16} />
+                  </button>
+                </div>
+              )}
             </div>
 
           </form>

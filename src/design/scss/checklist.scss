@@ -3189,11 +3189,17 @@ span.cl-item-meta-chip.cl-item-meta-chip--expiry {
   box-sizing: border-box;
 }
 
-.checklist-items-table-footer {
+.checklist-items-table-footer,
+.checklist-sections-list-footer {
   display: flex;
   justify-content: flex-end;
   margin-top: 10px;
   padding: 0 4px 0;
+}
+
+.checklist-sections-list-footer {
+  margin-top: 4px;
+  margin-bottom: 8px;
 }
 
 .checklist-inline-add-btn {
@@ -3231,7 +3237,8 @@ span.cl-item-meta-chip.cl-item-meta-chip--expiry {
 
 /* ----- Add/Edit item row + Role multi-select (react-select) ----- */
 
-.checklist-item-row .checklist-role-multiselect.role-multiselect.react-select-container {
+.checklist-item-row .checklist-role-multiselect.role-multiselect.react-select-container,
+.checklist-item-row .checklist-tasks-multiselect.tasks-multiselect.react-select-container {
   width: 100%;
   min-width: 0;
   max-width: 100%;
@@ -3240,7 +3247,9 @@ span.cl-item-meta-chip.cl-item-meta-chip--expiry {
 }
 
 .checklist-item-row .role-multiselect .checklist-role-ms__control.react-select__control,
-.checklist-item-row .role-multiselect .react-select__control {
+.checklist-item-row .role-multiselect .react-select__control,
+.checklist-item-row .tasks-multiselect .checklist-role-ms__control.react-select__control,
+.checklist-item-row .tasks-multiselect .react-select__control {
   min-height: 38px !important;
   height: 38px !important;
   max-height: 38px !important;
@@ -3277,7 +3286,9 @@ span.cl-item-meta-chip.cl-item-meta-chip--expiry {
 }
 
 .checklist-item-row .role-multiselect .react-select__placeholder,
-.checklist-item-row .role-multiselect .checklist-role-ms__placeholder.react-select__placeholder {
+.checklist-item-row .role-multiselect .checklist-role-ms__placeholder.react-select__placeholder,
+.checklist-item-row .tasks-multiselect .react-select__placeholder,
+.checklist-item-row .tasks-multiselect .checklist-role-ms__placeholder.react-select__placeholder {
   position: absolute !important;
   top: 50% !important;
   left: 4px !important;
@@ -3294,19 +3305,23 @@ span.cl-item-meta-chip.cl-item-meta-chip--expiry {
   white-space: nowrap;
 }
 
-.checklist-item-row .role-multiselect .react-select__control--is-focused {
+.checklist-item-row .role-multiselect .react-select__control--is-focused,
+.checklist-item-row .tasks-multiselect .react-select__control--is-focused {
   min-height: 38px !important;
   height: 38px !important;
   max-height: 38px !important;
 }
 
-.checklist-item-row .role-multiselect .react-select__input-container {
+.checklist-item-row .role-multiselect .react-select__input-container,
+.checklist-item-row .tasks-multiselect .react-select__input-container {
   margin: 0 !important;
   padding: 0 !important;
 }
 
 .checklist-item-row .role-multiselect .react-select__multi-value,
-.checklist-item-row .role-multiselect .checklist-role-ms__multi-value.react-select__multi-value {
+.checklist-item-row .role-multiselect .checklist-role-ms__multi-value.react-select__multi-value,
+.checklist-item-row .tasks-multiselect .react-select__multi-value,
+.checklist-item-row .tasks-multiselect .checklist-role-ms__multi-value.react-select__multi-value {
   flex-shrink: 1;
   min-width: 0;
   max-width: 100%;
@@ -3319,7 +3334,9 @@ span.cl-item-meta-chip.cl-item-meta-chip--expiry {
 }
 
 .checklist-item-row .role-multiselect .react-select__multi-value__label,
-.checklist-item-row .role-multiselect .checklist-role-ms__multi-value-label.react-select__multi-value__label {
+.checklist-item-row .role-multiselect .checklist-role-ms__multi-value-label.react-select__multi-value__label,
+.checklist-item-row .tasks-multiselect .react-select__multi-value__label,
+.checklist-item-row .tasks-multiselect .checklist-role-ms__multi-value-label.react-select__multi-value__label {
   font-size: 12px !important;
   line-height: 24px !important;
   font-weight: 500;
@@ -3333,7 +3350,9 @@ span.cl-item-meta-chip.cl-item-meta-chip--expiry {
 }
 
 .checklist-item-row .role-multiselect .react-select__multi-value__remove,
-.checklist-item-row .role-multiselect .checklist-role-ms__multi-value-remove.react-select__multi-value__remove {
+.checklist-item-row .role-multiselect .checklist-role-ms__multi-value-remove.react-select__multi-value__remove,
+.checklist-item-row .tasks-multiselect .react-select__multi-value__remove,
+.checklist-item-row .tasks-multiselect .checklist-role-ms__multi-value-remove.react-select__multi-value__remove {
   padding: 0 4px !important;
   border-radius: 0 6px 6px 0;
   align-self: center;
@@ -3345,14 +3364,18 @@ span.cl-item-meta-chip.cl-item-meta-chip--expiry {
 }
 
 .checklist-item-row .role-multiselect .checklist-role-ms__indicators.react-select__indicators,
-.checklist-item-row .role-multiselect .react-select__indicators {
+.checklist-item-row .role-multiselect .react-select__indicators,
+.checklist-item-row .tasks-multiselect .checklist-role-ms__indicators.react-select__indicators,
+.checklist-item-row .tasks-multiselect .react-select__indicators {
   align-self: center !important;
   height: 100%;
   padding: 0;
 }
 
 .checklist-item-row .role-multiselect .react-select__indicator,
-.checklist-item-row .role-multiselect .react-select__dropdown-indicator {
+.checklist-item-row .role-multiselect .react-select__dropdown-indicator,
+.checklist-item-row .tasks-multiselect .react-select__indicator,
+.checklist-item-row .tasks-multiselect .react-select__dropdown-indicator {
   padding: 0 2px !important;
   align-items: center;
   display: flex;
@@ -3424,14 +3447,14 @@ span.cl-item-meta-chip.cl-item-meta-chip--expiry {
   grid-template-columns:
     28px
     42px
-    minmax(150px, 1fr)
-    150px
-    minmax(150px, 1fr)
+    minmax(140px, 1fr)
+    minmax(140px, 150px)
+    minmax(140px, 150px)
+    minmax(140px, 1fr)
     100px
     100px
     88px
-    minmax(150px, 1fr)
-    90px
+    minmax(140px, 1fr)
     60px;
   column-gap: 8px;
   align-items: center;
@@ -3832,7 +3855,7 @@ span.cl-item-meta-chip.cl-item-meta-chip--expiry {
     -webkit-overflow-scrolling: touch;
 
     .checklist-items-table {
-      min-width: 980px;
+      min-width: 1040px;
     }
   }
 }
