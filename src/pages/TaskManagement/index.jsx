@@ -1,25 +1,25 @@
 import { useEffect, useMemo, useState } from "react";
 import CommonHeader from "../../components/CommonHeader";
 import { RenderAction, DateFormat } from "./RenderCells";
-import { DocumentManagementModal } from "./Modals/AddEditDocumentManagement";
+import { TaskManagementModal } from "./Modals/AddEditTaskManagement";
 import DeleteConfirmationModal from "../../components/DeleteConfirmationModal";
 import CustomTable from "../../components/customTable";
-import useDocumentManagementReducer from "../../store/DocumentManagementReducer";
+import useTaskManagementReducer from "../../store/TaskManagementReducer";
 
-const DocumentManagement = () => {
+const TaskManagement = () => {
     const [params, setParams] = useState({
         page: 1,
         searchTerm: "",
         limit: 10,
-        sortBy: "document_name",
+        sortBy: "task_name",
         sortOrder: 1,
     });
 
-    const { getDocumentManagement, documentManagement, isLoadingGet, totalCount } = useDocumentManagementReducer(
+    const { getTaskManagement, taskManagement, isLoadingGet, totalCount } = useTaskManagementReducer(
         (state) => state
     );
 
-    const [showDocumentManagementModal, setShowDocumentManagementModal] = useState(false);
+    const [showTaskManagementModal, setShowTaskManagementModal] = useState(false);
     const [showDeleteModal, setShowDeleteModal] = useState(false);
 
     const apiParams = useMemo(
@@ -34,13 +34,13 @@ const DocumentManagement = () => {
     );
 
     useEffect(() => {
-        getDocumentManagement?.(apiParams);
-    }, [getDocumentManagement, apiParams]);
+        getTaskManagement?.(apiParams);
+    }, [getTaskManagement, apiParams]);
 
     const cols = [
         {
-            name: "Document Name",
-            selector: "document_name",
+            name: "Task Name",
+            selector: "task_name",
             sort: true,
             width: "400",
             thclass: "tb-head",
@@ -52,7 +52,7 @@ const DocumentManagement = () => {
             tableClasses: 'table-striped',
             contentClass: 'table-content',
             thclass: 'tb-head',
-            onEditClick: (row) => { setShowDocumentManagementModal(row) },
+            onEditClick: (row) => { setShowTaskManagementModal(row) },
             onDeleteClick: () => { setShowDeleteModal(true) },
             cell: RenderAction,
             width: '200',
@@ -65,13 +65,13 @@ const DocumentManagement = () => {
                 <div className="prospect employee">
                     <div className="container-fluid">
                         <CommonHeader
-                            tableTitle="Document Management"
+                            tableTitle="Task Management"
                             isAddEnabled
-                            addModalLabel="Add Document"
+                            addModalLabel="Add Task"
                             setSearch={(e) =>
                                 setParams({ ...params, searchTerm: e, page: 1 })
                             }
-                            onAddModalClick={() => setShowDocumentManagementModal(true)}
+                            onAddModalClick={() => setShowTaskManagementModal(true)}
                             exportTitle="Export"
                             exportLoader={false}
                         />
@@ -83,7 +83,7 @@ const DocumentManagement = () => {
                         tableClasses="px-start"
                         count={totalCount ?? 0}
                         columns={cols}
-                        data={Array.isArray(documentManagement) ? documentManagement : []}
+                        data={Array.isArray(taskManagement) ? taskManagement : []}
                         Sl={true}
                         onPageChange={(currentPage) =>
                             setParams({ ...params, page: currentPage })
@@ -101,11 +101,11 @@ const DocumentManagement = () => {
                         }
                     />
 
-                    {showDocumentManagementModal && (
-                        <DocumentManagementModal
-                            showModal={showDocumentManagementModal}
-                            closeModal={() => setShowDocumentManagementModal(false)}
-                            onSuccess={() => getDocumentManagement?.(apiParams)}
+                    {showTaskManagementModal && (
+                        <TaskManagementModal
+                            showModal={showTaskManagementModal}
+                            closeModal={() => setShowTaskManagementModal(false)}
+                            onSuccess={() => getTaskManagement?.(apiParams)}
                         />
                     )}
                     {!!showDeleteModal && (
@@ -113,7 +113,7 @@ const DocumentManagement = () => {
                             show={showDeleteModal}
                             onCancel={() => setShowDeleteModal(false)}
                             onConfirm={() => setShowDeleteModal(false)}
-                            deleteText="Delete API is not integrated for documents yet."
+                            deleteText="Delete API is not integrated for tasks yet."
                         // isLoading={isBeingUpdated}
                         />
                     )}
@@ -123,4 +123,4 @@ const DocumentManagement = () => {
     );
 };
 
-export default DocumentManagement;
+export default TaskManagement;

@@ -86,6 +86,7 @@ import TimeObjects from "../pages/TimeObject";
 import StageTimeMappings from "../pages/StageTimeMapping";
 import DocumentManagement from "../pages/DocumentManagement";
 import DocumentChecklist from "../pages/DocumentChecklist";
+import TaskManagement from "../pages/TaskManagement";
 // 🔥 Set true to bypass auth temporarily
 const TEST_MODE = false;
 
@@ -268,6 +269,8 @@ const router = createHashRouter([
                   { path: "/logistics-warehouse", element: <RouteGuard><LogisticsWarehouse /></RouteGuard> },
                   // Document Checklist
                   { path: "/document-checklist", element: <RouteGuard><DocumentChecklist /></RouteGuard> },
+                  // Task Management
+                  { path: "/task-management", element: <RouteGuard><TaskManagement /></RouteGuard> },
                   // Status Management
                   { path: "/status-management", element: <RouteGuard><StatusManagement /></RouteGuard> },
                   // Custom Fields
@@ -317,6 +320,7 @@ const router = createHashRouter([
                   { path: "/stage-time-mappings", element: <RouteGuard><StageTimeMappings /></RouteGuard> },
                   { path: "/document-management", element: <RouteGuard><DocumentManagement /></RouteGuard> },
                   { path: "/document-checklist", element: <RouteGuard><DocumentChecklist /></RouteGuard> },
+                  { path: "/task-management", element: <RouteGuard><TaskManagement /></RouteGuard> },
                 ],
               },
             ],

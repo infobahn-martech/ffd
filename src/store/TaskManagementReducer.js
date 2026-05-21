@@ -1,25 +1,25 @@
 import { create } from "zustand";
 import useAlertReducer from "./AlertReducer";
-import documentManagementService from "../services/documentManagementService";
+import taskManagementService from "../services/taskManagementService";
 
-const useDocumentManagementReducer = create((set) => ({
+const useTaskManagementReducer = create((set) => ({
   isLoadingGet: false,
   isBeingUpdated: false,
-  documentManagement: [],
+  taskManagement: [],
   totalCount: 0,
   errorMessage: "",
 
-  getDocumentManagement: async (params) => {
+  getTaskManagement: async (params) => {
     try {
       set({ isLoadingGet: true });
-      const { data } = await documentManagementService.getAllDocuments({ params });
+      const { data } = await taskManagementService.getAllTasks({ params });
       const list = Array.isArray(data?.data)
         ? data.data
-        : Array.isArray(data?.documents)
-          ? data.documents
+        : Array.isArray(data?.tasks)
+          ? data.tasks
           : [];
       set({
-        documentManagement: list,
+        taskManagement: list,
         totalCount:
           data?.total ??
           data?.pagination?.total ??
@@ -30,20 +30,20 @@ const useDocumentManagementReducer = create((set) => ({
     } catch (err) {
       set({
         isLoadingGet: false,
-        errorMessage: err?.message ?? "Failed to fetch documents",
-        documentManagement: [],
+        errorMessage: err?.message ?? "Failed to fetch tasks",
+        taskManagement: [],
         totalCount: 0,
       });
     }
   },
 
-  addDocumentManagement: async ({ formData, cb }) => {
+  addTaskManagement: async ({ formData, cb }) => {
     try {
       set({ isBeingUpdated: true });
-      const { data } = await documentManagementService.saveDocument(formData);
+      const { data } = await taskManagementService.saveTask(formData);
       set({ isBeingUpdated: false });
       const { success } = useAlertReducer.getState();
-      success(data?.message ?? "Document saved successfully");
+      success(data?.message ?? "Task saved successfully");
       cb?.();
     } catch (err) {
       const { error } = useAlertReducer.getState();
@@ -52,13 +52,13 @@ const useDocumentManagementReducer = create((set) => ({
     }
   },
 
-  updateDocumentManagement: async ({ formData, cb }) => {
+  updateTaskManagement: async ({ formData, cb }) => {
     try {
       set({ isBeingUpdated: true });
-      const { data } = await documentManagementService.updateDocument(formData);
+      const { data } = await taskManagementService.updateTask(formData);
       set({ isBeingUpdated: false });
       const { success } = useAlertReducer.getState();
-      success(data?.message ?? "Document updated successfully");
+      success(data?.message ?? "Task updated successfully");
       cb?.();
     } catch (err) {
       const { error } = useAlertReducer.getState();
@@ -68,4 +68,4 @@ const useDocumentManagementReducer = create((set) => ({
   },
 }));
 
-export default useDocumentManagementReducer;
+export default useTaskManagementReducer;

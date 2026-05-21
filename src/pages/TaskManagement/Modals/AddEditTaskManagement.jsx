@@ -1,16 +1,16 @@
 import { useEffect } from "react";
 import { useForm } from "react-hook-form";
 import CustomModal from "../../../components/CustomModal";
-import useDocumentManagementReducer from "../../../store/DocumentManagementReducer";
+import useTaskManagementReducer from "../../../store/TaskManagementReducer";
 import "../../../design/scss/prospect-modal.scss";
 import "../../../design/scss/modal-designs.scss";
 import "../../../design/scss/form-designs.scss";
 
-export function DocumentManagementModal({ showModal, closeModal, onSuccess }) {
-    const { addDocumentManagement, updateDocumentManagement, isBeingUpdated } = useDocumentManagementReducer((state) => state);
+export function TaskManagementModal({ showModal, closeModal, onSuccess }) {
+    const { addTaskManagement, updateTaskManagement, isBeingUpdated } = useTaskManagementReducer((state) => state);
 
-    const isEdit = showModal && typeof showModal === "object" && !!(showModal?.document_id ?? showModal?._id);
-    const documentManagementId = isEdit ? showModal?.document_id ?? showModal?._id : null;
+    const isEdit = showModal && typeof showModal === "object" && !!(showModal?.task_id ?? showModal?._id);
+    const taskManagementId = isEdit ? showModal?.task_id ?? showModal?._id : null;
 
     const {
         register,
@@ -18,20 +18,20 @@ export function DocumentManagementModal({ showModal, closeModal, onSuccess }) {
         formState: { errors },
         reset,
     } = useForm({
-        defaultValues: { name: "" },
+        defaultValues: { task_name: "" },
     });
 
     useEffect(() => {
         if (!showModal) return;
         if (isEdit) {
-            reset({ name: showModal?.document_name ?? showModal?.name ?? "" });
+            reset({ task_name: showModal?.task_name ?? showModal?.name ?? "" });
         } else {
-            reset({ name: "" });
+            reset({ task_name: "" });
         }
     }, [showModal, isEdit, reset]);
 
     const onSubmit = async (data) => {
-        const trimmed = (data?.name || "").trim();
+        const trimmed = (data?.task_name || "").trim();
         if (!trimmed) return;
 
         const cb = () => {
@@ -40,13 +40,13 @@ export function DocumentManagementModal({ showModal, closeModal, onSuccess }) {
         };
 
         if (isEdit) {
-            await updateDocumentManagement({
-                formData: { document_id: documentManagementId, document_name: trimmed },
+            await updateTaskManagement({
+                formData: { task_id: taskManagementId, task_name: trimmed },
                 cb,
             });
         } else {
-            await addDocumentManagement({
-                formData: { document_name: trimmed },
+            await addTaskManagement({
+                formData: { task_name: trimmed },
                 cb,
             });
         }
@@ -55,7 +55,7 @@ export function DocumentManagementModal({ showModal, closeModal, onSuccess }) {
     const renderHeader = () => (
         <>
             <h1 className="modal-title">
-                {isEdit ? "Edit Document Management" : "Add Document Management"}
+                {isEdit ? "Edit Task Management" : "Add Task Management"}
             </h1>
             <button
                 type="button"
@@ -70,20 +70,20 @@ export function DocumentManagementModal({ showModal, closeModal, onSuccess }) {
     const renderBody = () => (
         <div className="modal-body">
             <div className="lead-form">
-                <form id="documentManagementForm" onSubmit={handleSubmit(onSubmit)}>
+                <form id="taskManagementForm" onSubmit={handleSubmit(onSubmit)}>
                     <div className="permInputs row mb-lg-3">
                         <div className="col-12 mb-3">
                             <div className="form-floating desig-inp">
                                 <input
-                                    className={`form-control ${errors.name ? "is-invalid" : ""}`}
-                                    placeholder="Name"
-                                    {...register("name", { required: "Name is required" })}
+                                    className={`form-control ${errors.task_name ? "is-invalid" : ""}`}
+                                    placeholder="Task Name"
+                                    {...register("task_name", { required: "Task Name is required" })}
                                 />
                                 <label>
-                                    Name <span className="text-danger">*</span>
+                                    Task Name <span className="text-danger">*</span>
                                 </label>
-                                {errors.name && (
-                                    <span className="error text-danger">{errors.name.message}</span>
+                                {errors.task_name && (
+                                    <span className="error text-danger">{errors.task_name.message}</span>
                                 )}
                             </div>
                         </div>
@@ -98,7 +98,7 @@ export function DocumentManagementModal({ showModal, closeModal, onSuccess }) {
             <button type="button" className="btn btn-outline" onClick={closeModal} disabled={isBeingUpdated}>
                 Close
             </button>
-            <button type="submit" form="documentManagementForm" className="btn btn-primary" disabled={isBeingUpdated}>
+            <button type="submit" form="taskManagementForm" className="btn btn-primary" disabled={isBeingUpdated}>
                 {isBeingUpdated ? "Saving..." : "Save"}
             </button>
         </div>
