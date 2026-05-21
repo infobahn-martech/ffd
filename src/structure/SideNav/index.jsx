@@ -444,6 +444,17 @@ function SideNav({ isMobileMenuOpen, onCloseMobileMenu, isVendorPortal = false }
         { menu: 'Document Checklist', to: '/document-checklist', hasPermission: true },
       ],
     },
+    {
+      menu: 'Task Management',
+      isDefaultMenu: true,
+      icon: materialIcon, // Material-specific icon
+      hasPermission: true,
+      isOpen: false,
+      subMenus: [
+        { menu: 'Task Management', to: '/task-management', hasPermission: true },
+        { menu: 'Task Checklist', to: '/task-checklist', hasPermission: true },
+      ],
+    },
     // ✅ Finance
     {
       menu: 'Entity Management',
