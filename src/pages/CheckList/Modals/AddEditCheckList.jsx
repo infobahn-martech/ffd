@@ -506,20 +506,20 @@ function createSubSectionItemPayload(itemOrder) {
   };
 }
 
-function ChecklistItemTasksSelect({ control, name }) {
-  const taskMsClassNames = {
-    control: () => "checklist-role-ms__control",
-    valueContainer: () => "checklist-role-ms__value-container",
-    multiValue: () => "checklist-role-ms__multi-value",
-    multiValueLabel: () => "checklist-role-ms__multi-value-label",
-    multiValueRemove: () => "checklist-role-ms__multi-value-remove",
-    placeholder: () => "checklist-role-ms__placeholder",
-    indicatorsContainer: () => "checklist-role-ms__indicators",
-    menu: () => "checklist-role-ms__menu",
-    menuList: () => "checklist-role-ms__menu-list",
-    option: () => "checklist-role-ms__option"
-  };
+const CHECKLIST_ITEM_MS_CLASS_NAMES = {
+  control: () => "checklist-role-ms__control",
+  valueContainer: () => "checklist-role-ms__value-container",
+  multiValue: () => "checklist-role-ms__multi-value",
+  multiValueLabel: () => "checklist-role-ms__multi-value-label",
+  multiValueRemove: () => "checklist-role-ms__multi-value-remove",
+  placeholder: () => "checklist-role-ms__placeholder",
+  indicatorsContainer: () => "checklist-role-ms__indicators",
+  menu: () => "checklist-role-ms__menu",
+  menuList: () => "checklist-role-ms__menu-list",
+  option: () => "checklist-role-ms__option"
+};
 
+function ChecklistItemTasksSelect({ control, name }) {
   return (
     <Controller
       name={name}
@@ -536,9 +536,9 @@ function ChecklistItemTasksSelect({ control, name }) {
             field.onChange(values);
           }}
           placeholder="Select Tasks"
-          className="checklist-compact-select tasks-multiselect checklist-tasks-multiselect"
+          className="checklist-compact-select role-multiselect checklist-role-multiselect"
           classNamePrefix="react-select"
-          classNames={taskMsClassNames}
+          classNames={CHECKLIST_ITEM_MS_CLASS_NAMES}
           maxheight={200}
           closeMenuOnSelect={false}
         />
@@ -548,19 +548,6 @@ function ChecklistItemTasksSelect({ control, name }) {
 }
 
 function ChecklistItemRoleSelect({ control, name, roleSelectOptions, isLoadingRoles }) {
-  const roleMsClassNames = {
-    control: () => "checklist-role-ms__control",
-    valueContainer: () => "checklist-role-ms__value-container",
-    multiValue: () => "checklist-role-ms__multi-value",
-    multiValueLabel: () => "checklist-role-ms__multi-value-label",
-    multiValueRemove: () => "checklist-role-ms__multi-value-remove",
-    placeholder: () => "checklist-role-ms__placeholder",
-    indicatorsContainer: () => "checklist-role-ms__indicators",
-    menu: () => "checklist-role-ms__menu",
-    menuList: () => "checklist-role-ms__menu-list",
-    option: () => "checklist-role-ms__option",
-  };
-
   return (
     <Controller
       name={name}
@@ -579,7 +566,7 @@ function ChecklistItemRoleSelect({ control, name, roleSelectOptions, isLoadingRo
           placeholder="Select Role"
           className="checklist-compact-select role-multiselect checklist-role-multiselect"
           classNamePrefix="react-select"
-          classNames={roleMsClassNames}
+          classNames={CHECKLIST_ITEM_MS_CLASS_NAMES}
           maxheight={200}
           isDisabled={isLoadingRoles}
           isLoading={isLoadingRoles}
