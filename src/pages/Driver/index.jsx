@@ -194,7 +194,7 @@ const Driver = () => {
                                     cb: () => { setShowDeleteModal(false); setDriverToDelete(null); },
                                 })
                             }
-                            deleteText="Are you sure you want to delete this driver?"
+                            deleteText={`Are you sure you want to delete this driver${driverToDelete?.driver_name ? ` ${driverToDelete.driver_name}` : ""}?`}
                             isLoading={isDeleteLoading}
                         />
                     )}
