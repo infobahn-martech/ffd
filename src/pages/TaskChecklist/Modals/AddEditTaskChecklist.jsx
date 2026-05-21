@@ -1,0 +1,188 @@
+import { useEffect } from "react";
+import { Controller, useForm } from "react-hook-form";
+import CustomModal from "../../../components/CustomModal";
+import CommonSelect from "../../../components/CommonSelect";
+import PremiumSelect from "../../../components/form/PremiumSelect";
+import useDocumentChecklistReducer from "../../../store/DocumentChecklistReducer";
+import "../../../design/scss/prospect-modal.scss";
+import "../../../design/scss/modal-designs.scss";
+import "../../../design/scss/form-designs.scss";
+import "../../../design/scss/document-checklist-modal.scss";
+
+export function TaskChecklistModal({ showModal, closeModal, onSuccess }) {
+    const {
+        getTaskChecklistOptions,
+        roleOptions,
+        taskOptions,
+        saveTaskChecklist,
+        isBeingUpdated,
+    } = useTaskChecklistReducer((s) => s);
+
+    const isEdit = showModal && typeof showModal === "object" && !!showModal?.role_id;
+
+    const {
+        control,
+        handleSubmit,
+        formState: { errors },
+        reset,
+    } = useForm({
+        defaultValues: {
+            role_id: "",
+            document_ids: [],
+        },
+    });
+
+    useEffect(() => {
+        getChecklistOptions();
+    }, [getChecklistOptions]);
+
+    useEffect(() => {
+        if (!showModal) return;
+        if (isEdit) {
+            reset({
+                role_id: String(showModal?.role_id ?? ""),
+                document_ids: (showModal?.documents || []).map((doc) =>
+                    String(doc?.document_id),
+                ),
+            });
+            return;
+        }
+        reset({ role_id: "", document_ids: [] });
+    }, [showModal, isEdit, reset]);
+
+    const onSubmit = async (data) => {
+        await saveDocumentChecklist({
+            formData: {
+                role_id: Number(data?.role_id),
+                document_ids: (data?.document_ids || []).map((id) => Number(id)),
+            },
+            cb: () => {
+                closeModal();
+                onSuccess?.();
+            },
+        });
+    };
+
+    const renderHeader = () => (
+        <>
+            <h1 className="modal-title">
+                {isEdit ? "Edit Document Checklist" : "Add Document Checklist"}
+            </h1>
+        </>
+    );
+
+    const renderBody = () => (
+        <div className="modal-body">
+            <div className="lead-form">
+                <form id="documentChecklistForm" onSubmit={handleSubmit(onSubmit)}>
+                    <div className="mb-lg-3 mb-sm-0">
+                        <div className="phone-wrapper">
+                            <label className="phone-label">
+                                Select Role <span className="text-danger">*</span>
+                            </label>
+                            <Controller
+                                name="role_id"
+                                control={control}
+                                rules={{ required: "Role is required" }}
+                                render={({ field }) => (
+                                    <PremiumSelect
+                                        value={field.value != null ? String(field.value) : ""}
+                                        onChange={(e) => field.onChange(e.target.value)}
+                                        options={roleOptions.map((option) => ({
+                                            value: String(option.value),
+                                            label: String(option.label ?? ""),
+                                        }))}
+                                        placeholder="Select Role"
+                                        searchPlaceholder="Search role..."
+                                        disabled={isBeingUpdated}
+                                        hasError={Boolean(errors.role_id)}
+                                    />
+                                )}
+                            />
+                            {errors.role_id && (
+                                <span className="error text-danger">
+                                    {errors.role_id.message}
+                                </span>
+                            )}
+                        </div>
+                    </div>
+
+                    <div className="mb-lg-3 mb-sm-0">
+                        <div className="desig-inp document-checklist-select-wrap">
+                            <label className="mb-2 d-block">
+                                Select Document <span className="text-danger">*</span>
+                            </label>
+                            <Controller
+                                name="document_ids"
+                                control={control}
+                                rules={{
+                                    validate: (value) =>
+                                        (Array.isArray(value) && value.length > 0) ||
+                                        "At least one document is required",
+                                }}
+                                render={({ field }) => {
+                                    const selectedDocumentOptions = documentOptions.filter((option) =>
+                                        (field.value || []).map(String).includes(String(option.value)),
+                                    );
+
+                                    return (
+                                        <CommonSelect
+                                            isMulti
+                                            options={documentOptions}
+                                            value={selectedDocumentOptions}
+                                            onChange={(selected) => {
+                                                const values = Array.isArray(selected)
+                                                    ? selected.map((item) => String(item.value))
+                                                    : [];
+                                                field.onChange(values);
+                                            }}
+                                            placeholder="Select Document(s)"
+                                            className={`document-checklist-select ${errors.document_ids ? "is-invalid" : ""}`}
+                                            classNamePrefix="react-select"
+                                            isDisabled={isBeingUpdated}
+                                            menuPosition="fixed"
+                                            maxheight={220}
+                                        />
+                                    );
+                                }}
+                            />
+                            {errors.document_ids && (
+                                <span className="error text-danger">
+                                    {errors.document_ids.message}
+                                </span>
+                            )}
+                        </div>
+                    </div>
+                </form>
+            </div>
+        </div>
+    );
+
+    const renderFooter = () => (
+        <div className="modal-footer">
+            <button type="button" className="btn btn-outline" onClick={closeModal}>
+                Close
+            </button>
+            <button
+                type="submit"
+                form="documentChecklistForm"
+                className="btn btn-primary"
+                disabled={isBeingUpdated}
+            >
+                {isBeingUpdated ? "Saving..." : "Save"}
+            </button>
+        </div>
+    );
+
+    return (
+        <CustomModal
+            className="role-modal-sm document-checklist-modal"
+            dialgName="modal-dialog modal-dialog-centered"
+            show={!!showModal}
+            closeModal={() => closeModal(null)}
+            body={renderBody()}
+            footer={renderFooter()}
+            header={renderHeader()}
+        />
+    );
+}
