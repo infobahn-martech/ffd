@@ -192,7 +192,7 @@ const TransportCompany = () => {
                         }}
                         onConfirm={handleDelete}
                         isLoading={isBeingUpdated}
-                        deleteText={`Are you sure you want to delete this transport company${selectedRow?.transport_company ? ` ${selectedRow.transport_company}` : ""}?`}
+                        deleteText={`Are you sure you want to delete transport company ${selectedRow?.transport_company ?? ""}?`}
                     />
                 )}
             </div>
