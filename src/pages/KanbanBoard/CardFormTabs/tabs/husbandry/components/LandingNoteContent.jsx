@@ -1708,9 +1708,10 @@ const LandingNoteContent = ({ formValues, handleChange, cardColor }) => {
           Landing Note
         </h3>
       </div>
-      <div className="table-wrapper table-responsive material-table-container" style={{ overflow: "visible" }}>
-        <table className="table table-striped material-table sub-note-table" style={{ "--card-color": "#e2e6ff", overflow: "visible", tableLayout: "fixed" }}>
-          <thead>
+      <div className="table-wrapper table-responsive material-table-container" style={{ display: "flex", flexDirection: "column" }}>
+        <div style={{ overflowY: "auto", maxHeight: "480px" }}>
+        <table className="table table-striped material-table sub-note-table" style={{ "--card-color": "#e2e6ff", tableLayout: "fixed" }}>
+          <thead style={{ position: "sticky", top: 0, zIndex: 1, backgroundColor: "#fff" }}>
             <tr>
               <th>Order No</th>
               <th>Date</th>
@@ -1993,6 +1994,7 @@ const LandingNoteContent = ({ formValues, handleChange, cardColor }) => {
             )}
           </tbody>
         </table>
+        </div>
         {notesList.length > 0 && (() => {
           const totalPages = Math.ceil(notesList.length / LANDING_LIMIT);
           const start = (landingPage - 1) * LANDING_LIMIT + 1;

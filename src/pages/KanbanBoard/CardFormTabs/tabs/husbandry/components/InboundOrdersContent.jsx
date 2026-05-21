@@ -2128,9 +2128,10 @@ const InboundOrdersContent = ({ formValues, handleChange, cardColor }) => {
           + Add
         </button>
       </div>
-      <div className="table-wrapper table-responsive material-table-container" style={{ overflow: "visible" }}>
-        <table className="table table-striped material-table inbound-table" style={{ "--card-color": "#e2e6ff", overflow: "visible", tableLayout: "fixed" }}>
-          <thead>
+      <div className="table-wrapper table-responsive material-table-container" style={{ display: "flex", flexDirection: "column" }}>
+        <div style={{ overflowY: "auto", maxHeight: "480px" }}>
+        <table className="table table-striped material-table inbound-table" style={{ "--card-color": "#e2e6ff", tableLayout: "fixed" }}>
+          <thead style={{ position: "sticky", top: 0, zIndex: 1, backgroundColor: "#fff" }}>
             <tr>
               <th>Order No</th>
               <th>Date</th>
@@ -2396,6 +2397,7 @@ const InboundOrdersContent = ({ formValues, handleChange, cardColor }) => {
             )}
           </tbody>
         </table>
+        </div>
         {ordersList.length > 0 && (() => {
           const totalPages = Math.ceil(ordersList.length / INBOUND_LIMIT);
           const start = (inboundPage - 1) * INBOUND_LIMIT + 1;

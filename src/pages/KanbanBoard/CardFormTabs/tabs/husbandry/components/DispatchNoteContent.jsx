@@ -769,9 +769,10 @@ const DispatchNoteContent = ({ formValues, handleChange, cardColor }) => {
           Dispatch Note
         </h3>
       </div>
-      <div className="table-wrapper table-responsive material-table-container" style={{ overflow: "visible" }}>
-        <table className="table table-striped material-table sub-note-table" style={{ "--card-color": "#e2e6ff", overflow: "visible", tableLayout: "fixed" }}>
-          <thead>
+      <div className="table-wrapper table-responsive material-table-container" style={{ display: "flex", flexDirection: "column" }}>
+        <div style={{ overflowY: "auto", maxHeight: "480px" }}>
+        <table className="table table-striped material-table sub-note-table" style={{ "--card-color": "#e2e6ff", tableLayout: "fixed" }}>
+          <thead style={{ position: "sticky", top: 0, zIndex: 1, backgroundColor: "#fff" }}>
             <tr>
               <th>Order No</th>
               <th>Date</th>
@@ -1015,6 +1016,7 @@ const DispatchNoteContent = ({ formValues, handleChange, cardColor }) => {
             )}
           </tbody>
         </table>
+        </div>
         {notesList.length > 0 && (() => {
           const totalPages = Math.ceil(notesList.length / DISPATCH_LIMIT);
           const start = (dispatchPage - 1) * DISPATCH_LIMIT + 1;
