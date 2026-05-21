@@ -95,15 +95,17 @@ const LogisticsWarehouse = () => {
         getLogisticsWarehouses(apiParams);
     };
 
-    const handleDelete = async () => {
+    const handleDelete = () => {
         if (!selectedRow?.location_id) return;
 
-        await deleteData(selectedRow.location_id);
-
-        setShowDeleteModal(false);
-        setSelectedRow(null);
-
-        refreshList();
+        deleteData({
+            id: selectedRow.location_id,
+            cb: () => {
+                setShowDeleteModal(false);
+                setSelectedRow(null);
+                refreshList();
+            },
+        });
     };
 
     return (
@@ -166,7 +168,7 @@ const LogisticsWarehouse = () => {
                             }}
                             onConfirm={handleDelete}
                             isLoading={isLoadingDelete}
-                            deleteText="Are you sure you want to delete this logistics warehouse?"
+                            deleteText={`Are you sure you want to delete this location${selectedRow?.location ? ` ${selectedRow.location}` : ""}?`}
                         />
                     )}
                 </div>
