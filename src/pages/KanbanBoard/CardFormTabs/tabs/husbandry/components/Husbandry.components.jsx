@@ -207,28 +207,39 @@ FormInput.propTypes = {
 // Custom Select Component (similar to MultiSelectEmail UI)
 const CustomSelect = ({ value, onChange, options = [], placeholder, className = "", disabled = false }) => {
   const [isOpen, setIsOpen] = useState(false);
+  const [searchTerm, setSearchTerm] = useState("");
   const dropdownRef = useRef(null);
+  const searchInputRef = useRef(null);
 
-  // Close dropdown when clicking outside
   useEffect(() => {
     const handleClickOutside = (event) => {
       if (dropdownRef.current && !dropdownRef.current.contains(event.target)) {
         setIsOpen(false);
+        setSearchTerm("");
       }
     };
     document.addEventListener("mousedown", handleClickOutside);
     return () => document.removeEventListener("mousedown", handleClickOutside);
   }, []);
 
+  useEffect(() => {
+    if (isOpen && searchInputRef.current) {
+      searchInputRef.current.focus();
+    }
+    if (!isOpen) setSearchTerm("");
+  }, [isOpen]);
+
   const selectedOption = options.find(opt => opt.value === value);
   const displayValue = selectedOption ? selectedOption.label : "";
 
+  const filteredOptions = options.filter(opt =>
+    opt.label.toLowerCase().includes(searchTerm.toLowerCase())
+  );
+
   const handleSelect = (optionValue) => {
-    const syntheticEvent = {
-      target: { value: optionValue }
-    };
-    onChange(syntheticEvent);
+    onChange({ target: { value: optionValue } });
     setIsOpen(false);
+    setSearchTerm("");
   };
 
   return (
@@ -249,18 +260,30 @@ const CustomSelect = ({ value, onChange, options = [], placeholder, className = 
       </div>
       {isOpen && (
         <div className="cf-multi-select-dropdown">
-          {options.map((option) => {
-            const isSelected = value === option.value;
-            return (
+          <div className="cf-multi-select-search">
+            <input
+              ref={searchInputRef}
+              type="text"
+              value={searchTerm}
+              onChange={(e) => setSearchTerm(e.target.value)}
+              onClick={(e) => e.stopPropagation()}
+              placeholder="Search..."
+              className="cf-multi-select-search-input"
+            />
+          </div>
+          {filteredOptions.length > 0 ? (
+            filteredOptions.map((option) => (
               <div
                 key={option.value}
-                className={`cf-multi-select-option ${isSelected ? "selected" : ""}`}
+                className={`cf-multi-select-option ${value === option.value ? "selected" : ""}`}
                 onClick={() => handleSelect(option.value)}
               >
                 <span>{option.label}</span>
               </div>
-            );
-          })}
+            ))
+          ) : (
+            <div className="cf-multi-select-no-results">No results found</div>
+          )}
         </div>
       )}
     </div>
