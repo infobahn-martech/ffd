@@ -214,7 +214,7 @@ const InboundOrdersContent = ({ formValues, handleChange, cardColor }) => {
   const [dropdownPosition, setDropdownPosition] = useState({ top: 0, right: 0 });
   const dropdownButtonRefs = useRef({});
   const [inboundPage, setInboundPage] = useState(1);
-  const INBOUND_LIMIT = 5;
+  const INBOUND_LIMIT = 10;
 
   // Form state - Basic Details
   const [formData, setFormData] = useState({

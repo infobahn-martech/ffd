@@ -199,7 +199,7 @@ const LandingNoteContent = ({ formValues, handleChange, cardColor }) => {
   const [openDropdownId, setOpenDropdownId] = useState(null);
   const [dropdownPosition, setDropdownPosition] = useState({ top: 0, right: 0 });
   const [landingPage, setLandingPage] = useState(1);
-  const LANDING_LIMIT = 5;
+  const LANDING_LIMIT = 10;
   const dropdownButtonRefs = useRef({});
 
   // Form state

@@ -55,7 +55,7 @@ const DispatchNoteContent = ({ formValues, handleChange, cardColor }) => {
   const [dropdownPosition, setDropdownPosition] = useState({ top: 0, right: 0 });
   const dropdownButtonRefs = useRef({});
   const [dispatchPage, setDispatchPage] = useState(1);
-  const DISPATCH_LIMIT = 5;
+  const DISPATCH_LIMIT = 10;
 
   // Form state
   const [formData, setFormData] = useState({
