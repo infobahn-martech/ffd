@@ -9095,12 +9095,8 @@ body .material-management-modal {
   }
 }
 
-/* Portaled dropdown — rendered on document.body to escape modal overflow clipping */
+/* Dropdown uses position:fixed via inline style to escape modal overflow without a portal */
 .cf-select-portal {
-  position: fixed !important;
-  right: auto !important;
-  min-width: 0 !important;
-  width: unset;
   z-index: 99999;
   background: #fff;
   border: 1px solid #e2e2ea;
