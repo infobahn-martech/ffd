@@ -15,7 +15,7 @@ const TransportCompany = () => {
         getTransportCompanyData,
         transportCompanyData,
         isLoading,
-        isBeingUpdated,
+        isDeleteLoading,
         totalTransportCompanyCount,
         deleteTransportCompany,
     } = useTransportCompanyReducer((state) => state);
@@ -191,7 +191,7 @@ const TransportCompany = () => {
                             setSelectedRow(null);
                         }}
                         onConfirm={handleDelete}
-                        isLoading={isBeingUpdated}
+                        isLoading={isDeleteLoading}
                         deleteText={`Are you sure you want to delete transport company ${selectedRow?.transport_company ?? ""}?`}
                     />
                 )}
