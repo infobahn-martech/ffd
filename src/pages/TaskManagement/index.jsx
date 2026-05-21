@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useState } from "react";
 import CommonHeader from "../../components/CommonHeader";
 import { RenderAction, DateFormat } from "./RenderCells";
 import { TaskManagementModal } from "./Modals/AddEditTaskManagement";
@@ -22,20 +22,9 @@ const TaskManagement = () => {
     const [showTaskManagementModal, setShowTaskManagementModal] = useState(false);
     const [showDeleteModal, setShowDeleteModal] = useState(false);
 
-    const apiParams = useMemo(
-        () => ({
-            searchTerm: params.searchTerm || "",
-            page: params.page,
-            limit: params.limit,
-            sortBy: params.sortBy,
-            sortOrder: params.sortOrder,
-        }),
-        [params.searchTerm, params.page, params.limit, params.sortBy, params.sortOrder]
-    );
-
     useEffect(() => {
-        getTaskManagement?.(apiParams);
-    }, [getTaskManagement, apiParams]);
+        getTaskManagement?.();
+    }, [getTaskManagement]);
 
     const cols = [
         {
@@ -105,7 +94,7 @@ const TaskManagement = () => {
                         <TaskManagementModal
                             showModal={showTaskManagementModal}
                             closeModal={() => setShowTaskManagementModal(false)}
-                            onSuccess={() => getTaskManagement?.(apiParams)}
+                            onSuccess={() => getTaskManagement?.()}
                         />
                     )}
                     {!!showDeleteModal && (

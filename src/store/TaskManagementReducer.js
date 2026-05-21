@@ -2,6 +2,17 @@ import { create } from "zustand";
 import useAlertReducer from "./AlertReducer";
 import taskManagementService from "../services/taskManagementService";
 
+const normalizeTaskList = (data) =>
+  Array.isArray(data?.data)
+    ? data.data
+    : Array.isArray(data?.task_list)
+      ? data.task_list
+      : Array.isArray(data?.tasks)
+        ? data.tasks
+        : Array.isArray(data)
+          ? data
+          : [];
+
 const useTaskManagementReducer = create((set) => ({
   isLoadingGet: false,
   isBeingUpdated: false,
@@ -9,15 +20,11 @@ const useTaskManagementReducer = create((set) => ({
   totalCount: 0,
   errorMessage: "",
 
-  getTaskManagement: async (params) => {
+  getTaskManagement: async () => {
     try {
       set({ isLoadingGet: true });
-      const { data } = await taskManagementService.getAllTasks({ params });
-      const list = Array.isArray(data?.data)
-        ? data.data
-        : Array.isArray(data?.tasks)
-          ? data.tasks
-          : [];
+      const { data } = await taskManagementService.getAllTaskLists();
+      const list = normalizeTaskList(data);
       set({
         taskManagement: list,
         totalCount:
@@ -40,7 +47,9 @@ const useTaskManagementReducer = create((set) => ({
   addTaskManagement: async ({ formData, cb }) => {
     try {
       set({ isBeingUpdated: true });
-      const { data } = await taskManagementService.saveTask(formData);
+      const { data } = await taskManagementService.createTaskList({
+        task_name: formData?.task_name,
+      });
       set({ isBeingUpdated: false });
       const { success } = useAlertReducer.getState();
       success(data?.message ?? "Task saved successfully");
@@ -55,7 +64,10 @@ const useTaskManagementReducer = create((set) => ({
   updateTaskManagement: async ({ formData, cb }) => {
     try {
       set({ isBeingUpdated: true });
-      const { data } = await taskManagementService.updateTask(formData);
+      const taskId = formData?.task_id ?? formData?._id;
+      const { data } = await taskManagementService.updateTaskList(taskId, {
+        task_name: formData?.task_name,
+      });
       set({ isBeingUpdated: false });
       const { success } = useAlertReducer.getState();
       success(data?.message ?? "Task updated successfully");
