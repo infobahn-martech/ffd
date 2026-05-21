@@ -2128,7 +2128,7 @@ const InboundOrdersContent = ({ formValues, handleChange, cardColor }) => {
           + Add
         </button>
       </div>
-      <div className="table-wrapper table-responsive material-table-container" style={{ display: "flex", flexDirection: "column", maxHeight: "55vh" }}>
+      <div className="table-wrapper table-responsive material-table-container" style={{ display: "flex", flexDirection: "column", height: "calc(100vh - 280px)", minHeight: "200px" }}>
         <div style={{ overflowY: "auto", flex: 1, minHeight: 0 }}>
         <table className="table table-striped material-table inbound-table" style={{ "--card-color": "#e2e6ff", tableLayout: "fixed" }}>
           <thead style={{ position: "sticky", top: 0, zIndex: 1, backgroundColor: "#fff" }}>
