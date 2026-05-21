@@ -1,5 +1,4 @@
 import { useRef, useState, useEffect } from "react";
-import { createPortal } from "react-dom";
 import PropTypes from "prop-types";
 import ReactQuill from "react-quill";
 import "react-quill/dist/quill.snow.css";
@@ -208,19 +207,15 @@ FormInput.propTypes = {
 // Custom Select Component (similar to MultiSelectEmail UI)
 const CustomSelect = ({ value, onChange, options = [], placeholder, className = "", disabled = false }) => {
   const [isOpen, setIsOpen] = useState(false);
-  const [dropdownStyle, setDropdownStyle] = useState({});
+  const [dropdownPos, setDropdownPos] = useState({ top: 0, left: 0, width: 0 });
   const [searchTerm, setSearchTerm] = useState("");
+  const wrapperRef = useRef(null);
   const triggerRef = useRef(null);
-  const portalRef = useRef(null);
   const searchInputRef = useRef(null);
 
-  // Close dropdown when clicking outside both trigger and portal
   useEffect(() => {
     const handleClickOutside = (event) => {
-      if (
-        triggerRef.current && !triggerRef.current.contains(event.target) &&
-        portalRef.current && !portalRef.current.contains(event.target)
-      ) {
+      if (wrapperRef.current && !wrapperRef.current.contains(event.target)) {
         setIsOpen(false);
         setSearchTerm("");
       }
@@ -229,27 +224,10 @@ const CustomSelect = ({ value, onChange, options = [], placeholder, className = 
     return () => document.removeEventListener("mousedown", handleClickOutside);
   }, []);
 
-  // Add a NATIVE mousedown listener on the portal element so it stops propagation
-  // before the document-level handleClickOutside fires (React synthetic events fire after native document listeners)
-  useEffect(() => {
-    if (!isOpen) return;
-    const el = portalRef.current;
-    if (!el) return;
-    const stop = (e) => e.stopPropagation();
-    el.addEventListener("mousedown", stop);
-    return () => el.removeEventListener("mousedown", stop);
-  }, [isOpen]);
-
   useEffect(() => {
     if (isOpen && triggerRef.current) {
       const rect = triggerRef.current.getBoundingClientRect();
-      setDropdownStyle({
-        top: rect.bottom + 4,
-        left: rect.left,
-        width: rect.width,
-        maxWidth: rect.width,
-        minWidth: rect.width,
-      });
+      setDropdownPos({ top: rect.bottom + 4, left: rect.left, width: rect.width });
       setTimeout(() => searchInputRef.current?.focus(), 0);
     }
     if (!isOpen) setSearchTerm("");
@@ -268,41 +246,8 @@ const CustomSelect = ({ value, onChange, options = [], placeholder, className = 
     setSearchTerm("");
   };
 
-  const dropdownPortal = isOpen ? createPortal(
-    <div
-      ref={portalRef}
-      className="cf-multi-select-dropdown cf-select-portal"
-      style={dropdownStyle}
-    >
-      <div className="cf-multi-select-search">
-        <input
-          ref={searchInputRef}
-          type="text"
-          value={searchTerm}
-          onChange={(e) => setSearchTerm(e.target.value)}
-          placeholder="Search..."
-          className="cf-multi-select-search-input"
-        />
-      </div>
-      {filteredOptions.length > 0 ? (
-        filteredOptions.map((option) => (
-          <div
-            key={option.value}
-            className={`cf-multi-select-option ${value === option.value ? "selected" : ""}`}
-            onClick={() => handleSelect(option.value)}
-          >
-            <span>{option.label}</span>
-          </div>
-        ))
-      ) : (
-        <div className="cf-multi-select-no-results">No results found</div>
-      )}
-    </div>,
-    document.body
-  ) : null;
-
   return (
-    <div className={`cf-multi-select-email ${disabled ? "disabled" : ""} ${className}`}>
+    <div ref={wrapperRef} className={`cf-multi-select-email ${disabled ? "disabled" : ""} ${className}`}>
       <div
         ref={triggerRef}
         className={`cf-multi-select-email-input ${disabled ? "disabled" : ""}`}
@@ -318,7 +263,44 @@ const CustomSelect = ({ value, onChange, options = [], placeholder, className = 
         </div>
         <span className="cf-multi-select-arrow">▼</span>
       </div>
-      {dropdownPortal}
+
+      {isOpen && (
+        <div
+          className="cf-select-portal"
+          style={{
+            position: "fixed",
+            top: dropdownPos.top,
+            left: dropdownPos.left,
+            width: dropdownPos.width,
+            maxWidth: dropdownPos.width,
+            minWidth: dropdownPos.width,
+          }}
+        >
+          <div className="cf-multi-select-search">
+            <input
+              ref={searchInputRef}
+              type="text"
+              value={searchTerm}
+              onChange={(e) => setSearchTerm(e.target.value)}
+              placeholder="Search..."
+              className="cf-multi-select-search-input"
+            />
+          </div>
+          {filteredOptions.length > 0 ? (
+            filteredOptions.map((option) => (
+              <div
+                key={option.value}
+                className={`cf-multi-select-option ${value === option.value ? "selected" : ""}`}
+                onMouseDown={() => handleSelect(option.value)}
+              >
+                <span>{option.label}</span>
+              </div>
+            ))
+          ) : (
+            <div className="cf-multi-select-no-results">No results found</div>
+          )}
+        </div>
+      )}
     </div>
   );
 };
