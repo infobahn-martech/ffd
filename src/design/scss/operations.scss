@@ -9105,12 +9105,17 @@ body .material-management-modal {
   box-shadow: 0 4px 16px rgba(0, 0, 0, 0.12);
   max-height: 240px;
   overflow-y: auto;
+  overflow-x: hidden;
+  box-sizing: border-box;
 
   .cf-multi-select-option {
     padding: 10px 14px;
     font-size: 13px;
     color: #1a1a1a;
     cursor: pointer;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
 
     &:hover {
       background: rgba(62, 92, 182, 0.08);
