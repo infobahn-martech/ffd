@@ -168,7 +168,7 @@ const LogisticsWarehouse = () => {
                             }}
                             onConfirm={handleDelete}
                             isLoading={isLoadingDelete}
-                            deleteText="Are you sure you want to delete this logistics warehouse?"
+                            deleteText={`Are you sure you want to delete this location${selectedRow?.location ? ` "${selectedRow.location}"` : ""}?`}
                         />
                     )}
                 </div>
