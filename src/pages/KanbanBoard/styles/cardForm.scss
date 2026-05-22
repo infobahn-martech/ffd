@@ -1445,6 +1445,7 @@ body .gro-doc-action-modal .modal-dialog {
   -webkit-overflow-scrolling: touch;
   scrollbar-width: thin;
   scrollbar-color: #d0d5dd #f9fafb;
+  padding-bottom: 8px;
 }
 
 .gro-supervisor-task-table {
@@ -1806,7 +1807,8 @@ $gro-supervisor-control-border: #d0d5dd;
 
 .gro-supervisor-task-table-footer {
   flex-shrink: 0;
-  padding: 12px 16px;
+  padding: 14px 16px 16px;
+  margin-top: 2px;
   border-top: 1px solid #eaecf0;
   background: #fcfcfd;
 }

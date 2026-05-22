@@ -8,7 +8,7 @@ import {
   formatGroSupervisorTaskRemarks,
 } from "./groSupervisorStaticTasks";
 
-const PAGE_SIZE = 6;
+const PAGE_SIZE = 10;
 
 function GROSupervisorAssignTask({ tasks, assignments, onAssignmentChange, userOptions, usersLoading }) {
   const [page, setPage] = useState(1);
