@@ -222,6 +222,7 @@ const InboundOrdersContent = ({ formValues, handleChange, cardColor }) => {
   const [formData, setFormData] = useState({
     date: "",
     warehouse: "",
+    remarks: "",
     orders: [{
       id: 1,
       orderNo: "",
@@ -373,6 +374,7 @@ const InboundOrdersContent = ({ formValues, handleChange, cardColor }) => {
       setFormData({
         date: order.date || "",
         warehouse: order.warehouse || "",
+        remarks: order.remarks || "",
         orders: orderItems,
       });
       // Set expanded state for all orders
@@ -386,6 +388,7 @@ const InboundOrdersContent = ({ formValues, handleChange, cardColor }) => {
       setFormData({
         date: "",
         warehouse: "",
+        remarks: "",
         orders: [{
           id: 1,
           orderNo: "",
@@ -415,6 +418,7 @@ const InboundOrdersContent = ({ formValues, handleChange, cardColor }) => {
     setFormData({
       date: "",
       warehouse: "",
+      remarks: "",
       orders: [{
         id: 1,
         orderNo: "",
@@ -511,28 +515,35 @@ const InboundOrdersContent = ({ formValues, handleChange, cardColor }) => {
 
     setIsSubmitting(true);
     try {
-      for (const order of formData.orders) {
-        const payload = {
-          call_id: callId,
-          date: formData.date,
-          warehouse: formData.warehouse,
-          order_no: order.orderNo,
-          po_do: order.poDo,
-          quantity: order.quantity,
-          package_type: order.packageType,
-          description: order.description,
-          transportation: order.transportation || false,
-          type_of_vehicle: order.typeOfVehicle || "",
-          from_location: order.fromLocation || "",
-          pick_up_from: order.pickUpFrom || "",
-          to_location: order.toLocation || "",
-          driver_name: order.driverName || "",
-          slot_no: order.slotNo || "",
-          reason: order.reason || "",
-          dispatch_date: order.dispatchDate || "",
+      const items = formData.orders.map((order) => {
+        const item = {
+          po_no: order.poDo,
+          quantity: Number(order.quantity) || 0,
+          package_type_id: Number(order.packageType) || 0,
+          description: order.description || "",
+          transportation_required: order.transportation ? 1 : 0,
         };
-        await inboundOrderService.saveInboundOrder(payload);
-      }
+        if (order.transportation) {
+          item.transportation = {
+            vehicle_type_id: Number(order.typeOfVehicle) || 0,
+            from_location_id: Number(order.fromLocation) || 0,
+            pickup_location: order.pickUpFrom || "",
+            to_location_id: Number(order.toLocation) || 0,
+            driver_id: Number(order.driverName) || 0,
+          };
+        }
+        return item;
+      });
+
+      const payload = {
+        call_id: callId,
+        warehouse_id: Number(formData.warehouse) || 0,
+        inbound_date: formData.date,
+        remarks: formData.remarks || "",
+        items,
+      };
+
+      await inboundOrderService.saveInboundOrder(payload);
 
       // Update local list after successful API call
       const newOrders = formData.orders.map((order, index) => ({
@@ -583,6 +594,7 @@ const InboundOrdersContent = ({ formValues, handleChange, cardColor }) => {
     setFormData({
       date: "",
       warehouse: "",
+      remarks: "",
       orders: [{
         id: 1,
         orderNo: "",
@@ -1126,6 +1138,17 @@ const InboundOrdersContent = ({ formValues, handleChange, cardColor }) => {
                     onChange={(e) => handleFormChange("warehouse", e.target.value)}
                     options={mergeOptionForValue(warehouseLocationOptions, formData.warehouse)}
                     placeholder="Select warehouse"
+                  />
+                </FormField>
+              </div>
+
+              <div className="col-md-12 mb-2">
+                <FormField label="Remarks">
+                  <FormInput
+                    type="text"
+                    value={formData.remarks}
+                    onChange={(e) => handleFormChange("remarks", e.target.value)}
+                    placeholder="Enter remarks..."
                   />
                 </FormField>
               </div>
