@@ -2083,7 +2083,11 @@ const InboundOrdersContent = ({ formValues, handleChange, cardColor }) => {
                     </div>
                     <div className="view-item" style={{ flex: "1", minWidth: "160px" }}>
                       <div className="view-label" style={{ fontWeight: "600", color: "#666", marginBottom: "6px", fontSize: "13px" }}>Package Type</div>
-                      <div className="view-value" style={{ color: "#1a1a1a", fontSize: "14px" }}>{item.package_type || "-"}</div>
+                      <div className="view-value" style={{ color: "#1a1a1a", fontSize: "14px" }}>
+                        {item.package_type ||
+                          packageTypeOptions.find((o) => o.value === String(item.package_type_id))?.label ||
+                          "-"}
+                      </div>
                     </div>
                   </div>
                   {item.description && (
@@ -2208,7 +2212,11 @@ const InboundOrdersContent = ({ formValues, handleChange, cardColor }) => {
                     <div className="material-table-cell">{firstItem?.quantity ?? ""}</div>
                   </td>
                   <td>
-                    <div className="material-table-cell">{firstItem?.package_type || ""}</div>
+                    <div className="material-table-cell">
+                      {firstItem?.package_type ||
+                        packageTypeOptions.find((o) => o.value === String(firstItem?.package_type_id))?.label ||
+                        ""}
+                    </div>
                   </td>
                   <td>
                     <div className="material-table-cell">
