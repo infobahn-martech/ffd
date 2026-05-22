@@ -13,7 +13,7 @@ import {
   getGroDocumentResolvedExtension,
 } from "./groCardUtils";
 
-const GroDocumentFilePreview = ({ fileName, fileUrl, document }) => {
+export const GroDocumentFilePreview = ({ fileName, fileUrl, document }) => {
   const kind = getDocumentFileTypeIcon(fileName, fileUrl, document);
   const resolvedExt = getGroDocumentResolvedExtension(fileName, fileUrl, document);
   let badge = GRO_FILE_BADGE[kind] ?? "";

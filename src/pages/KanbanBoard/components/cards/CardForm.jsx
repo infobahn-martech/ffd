@@ -21,6 +21,7 @@ import { General, Operation, Husbandry, DocumentLibrary, Invoice, SalesOrder, Re
 import { DEFAULT_PRE_ARRIVAL_DOCUMENT_HANDLING } from "../../CardFormTabs/tabs/operation/preArrivalDocumentHandling";
 import NavTabButton from "../../../../components/NavTabButton";
 import GROCardView from "./components/GROCardView";
+import GROSupervisorCardView from "./components/GROSupervisorCardView";
 
 // Constants - All tabs
 const ALL_TOP_TABS = [
@@ -1367,7 +1368,9 @@ function CardForm({
           <MWPCardView card={card} />
         ) : isGROStyleView ? (
           <GROCardView card={card} mode={isCustomVariant ? "custom" : "gro"} />
-        ) : isEmptyVariant ? null : (
+        ) : isEmptyVariant ? (
+          <GROSupervisorCardView card={card} />
+        ) : (
           <>
             {!isAddMode && !isMWPVariant && !isGROStyleView && (
               <TopTabs
