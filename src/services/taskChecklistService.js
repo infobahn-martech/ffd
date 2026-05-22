@@ -9,9 +9,13 @@ const getRolesWithTasks = (params) =>
 
 const assignRole = (payload) => Gateway.post("/task_list/assign_role", payload);
 
+const getTasksByRole = (roleId) =>
+  Gateway.get(`/task_list/tasks_by_role/${encodeURIComponent(String(roleId))}`);
+
 export default {
   getCustomRoles,
   getAllTasks,
   getRolesWithTasks,
   assignRole,
+  getTasksByRole,
 };
