@@ -12,6 +12,7 @@ import deleteIcon from "../../../../../../assets/images/delete.svg";
 import eyeIcon from "../../../../../../assets/images/eye.svg";
 import logisticsWarehouseService from "../../../../../../services/logisticsWarehouseService";
 import packingTypeService from "../../../../../../services/packingTypeService";
+import inboundOrderService from "../../../../../../services/inboundOrderService";
 import vehicleService from "../../../../../../services/vehicleService";
 
 const extractListFromApi = (body) => {
@@ -214,6 +215,7 @@ const InboundOrdersContent = ({ formValues, handleChange, cardColor }) => {
   const [dropdownPosition, setDropdownPosition] = useState({ top: 0, right: 0 });
   const dropdownButtonRefs = useRef({});
   const [inboundPage, setInboundPage] = useState(1);
+  const [isSubmitting, setIsSubmitting] = useState(false);
   const INBOUND_LIMIT = 10;
 
   // Form state - Basic Details
@@ -503,54 +505,78 @@ const InboundOrdersContent = ({ formValues, handleChange, cardColor }) => {
     }));
   };
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
+    const callId = Number(formValues?.call_id || formValues?.callId || formValues?.card_call_id || 0);
 
-    // Create orders from formData.orders array
-    const newOrders = formData.orders.map((order, index) => ({
-      id: editingOrder
-        ? editingOrder.id + index
-        : ordersList.length > 0
-          ? Math.max(...ordersList.map((m) => m.id)) + index + 1
-          : index + 1,
-      orderNo: order.orderNo || `ORD-${String(ordersList.length + index + 1).padStart(5, "0")}`,
-      date: formData.date,
-      warehouse: formData.warehouse,
-      poDo: order.poDo,
-      quantity: order.quantity,
-      packageType: order.packageType,
-      description: order.description,
-      transportation: order.transportation || false,
-      typeOfVehicle: order.typeOfVehicle || "",
-      fromLocation: order.fromLocation || "",
-      pickUpFrom: order.pickUpFrom || "",
-      toLocation: order.toLocation || "",
-      driverName: order.driverName || "",
-      slotNo: order.slotNo || "",
-      reason: order.reason || "",
-      dispatchDate: order.dispatchDate || "",
-    }));
+    setIsSubmitting(true);
+    try {
+      for (const order of formData.orders) {
+        const payload = {
+          call_id: callId,
+          date: formData.date,
+          warehouse: formData.warehouse,
+          order_no: order.orderNo,
+          po_do: order.poDo,
+          quantity: order.quantity,
+          package_type: order.packageType,
+          description: order.description,
+          transportation: order.transportation || false,
+          type_of_vehicle: order.typeOfVehicle || "",
+          from_location: order.fromLocation || "",
+          pick_up_from: order.pickUpFrom || "",
+          to_location: order.toLocation || "",
+          driver_name: order.driverName || "",
+          slot_no: order.slotNo || "",
+          reason: order.reason || "",
+          dispatch_date: order.dispatchDate || "",
+        };
+        await inboundOrderService.saveInboundOrder(payload);
+      }
 
-    if (editingOrder) {
-      // Update existing orders - replace all orders with same basic details
-      const updatedList = ordersList.filter((order) => order.id !== editingOrder.id);
-      const finalList = [...updatedList, ...newOrders];
-      setOrdersList(finalList);
+      // Update local list after successful API call
+      const newOrders = formData.orders.map((order, index) => ({
+        id: editingOrder
+          ? editingOrder.id + index
+          : ordersList.length > 0
+            ? Math.max(...ordersList.map((m) => m.id)) + index + 1
+            : index + 1,
+        orderNo: order.orderNo || `ORD-${String(ordersList.length + index + 1).padStart(5, "0")}`,
+        date: formData.date,
+        warehouse: formData.warehouse,
+        poDo: order.poDo,
+        quantity: order.quantity,
+        packageType: order.packageType,
+        description: order.description,
+        transportation: order.transportation || false,
+        typeOfVehicle: order.typeOfVehicle || "",
+        fromLocation: order.fromLocation || "",
+        pickUpFrom: order.pickUpFrom || "",
+        toLocation: order.toLocation || "",
+        driverName: order.driverName || "",
+        slotNo: order.slotNo || "",
+        reason: order.reason || "",
+        dispatchDate: order.dispatchDate || "",
+      }));
 
-      // Update formValues
-      const syntheticEvent = { target: { value: finalList } };
-      handleChange("inboundOrdersList")(syntheticEvent);
-    } else {
-      // Create new orders
-      const updatedList = [...ordersList, ...newOrders];
-      setOrdersList(updatedList);
+      if (editingOrder) {
+        const updatedList = ordersList.filter((order) => order.id !== editingOrder.id);
+        const finalList = [...updatedList, ...newOrders];
+        setOrdersList(finalList);
+        handleChange("inboundOrdersList")({ target: { value: finalList } });
+      } else {
+        const updatedList = [...ordersList, ...newOrders];
+        setOrdersList(updatedList);
+        handleChange("inboundOrdersList")({ target: { value: updatedList } });
+      }
 
-      // Update formValues
-      const syntheticEvent = { target: { value: updatedList } };
-      handleChange("inboundOrdersList")(syntheticEvent);
+      handleCloseModal();
+    } catch (err) {
+      console.error("Failed to save inbound order", err);
+      alert("Failed to save inbound order. Please try again.");
+    } finally {
+      setIsSubmitting(false);
     }
-
-    handleCloseModal();
   };
 
   const handleReset = () => {
@@ -1420,18 +1446,20 @@ const InboundOrdersContent = ({ formValues, handleChange, cardColor }) => {
         <button
           type="submit"
           form="inboundOrderForm"
+          disabled={isSubmitting}
           style={{
             padding: "10px 20px",
             backgroundColor: "#00368c",
             color: "white",
             border: "none",
             borderRadius: "6px",
-            cursor: "pointer",
+            cursor: isSubmitting ? "not-allowed" : "pointer",
             fontSize: "14px",
             fontWeight: "500",
+            opacity: isSubmitting ? 0.7 : 1,
           }}
         >
-          Save
+          {isSubmitting ? "Saving..." : "Save"}
         </button>
       </div>
     </div>
