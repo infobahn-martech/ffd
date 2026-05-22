@@ -54,6 +54,8 @@ const DispatchNoteContent = ({ formValues, handleChange, cardColor }) => {
   const [openDropdownId, setOpenDropdownId] = useState(null);
   const [dropdownPosition, setDropdownPosition] = useState({ top: 0, right: 0 });
   const dropdownButtonRefs = useRef({});
+  const [dispatchPage, setDispatchPage] = useState(1);
+  const DISPATCH_LIMIT = 10;
 
   // Form state
   const [formData, setFormData] = useState({
@@ -767,9 +769,10 @@ const DispatchNoteContent = ({ formValues, handleChange, cardColor }) => {
           Dispatch Note
         </h3>
       </div>
-      <div className="table-wrapper table-responsive material-table-container" style={{ overflow: "visible" }}>
-        <table className="table table-striped material-table sub-note-table" style={{ "--card-color": "#e2e6ff", overflow: "visible", tableLayout: "fixed" }}>
-          <thead>
+      <div className="table-wrapper table-responsive material-table-container" style={{ display: "flex", flexDirection: "column" }}>
+        <div style={{ overflowY: "auto", maxHeight: "calc(100vh - 330px)", minHeight: 0 }}>
+        <table className="table table-striped material-table sub-note-table" style={{ "--card-color": "#e2e6ff", tableLayout: "fixed" }}>
+          <thead style={{ position: "sticky", top: 0, zIndex: 1, backgroundColor: "#fff" }}>
             <tr>
               <th>Order No</th>
               <th>Date</th>
@@ -783,7 +786,7 @@ const DispatchNoteContent = ({ formValues, handleChange, cardColor }) => {
           </thead>
           <tbody>
             {notesList.length > 0 ? (
-              notesList.map((note) => (
+              notesList.slice((dispatchPage - 1) * DISPATCH_LIMIT, dispatchPage * DISPATCH_LIMIT).map((note) => (
                 <tr key={note.id}>
                   <td>
                     <div className="material-table-cell">{note.orderNo || ""}</div>
@@ -1013,6 +1016,24 @@ const DispatchNoteContent = ({ formValues, handleChange, cardColor }) => {
             )}
           </tbody>
         </table>
+        </div>
+        {notesList.length > 0 && (() => {
+          const totalPages = Math.ceil(notesList.length / DISPATCH_LIMIT);
+          const start = (dispatchPage - 1) * DISPATCH_LIMIT + 1;
+          const end = Math.min(dispatchPage * DISPATCH_LIMIT, notesList.length);
+          return (
+            <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", padding: "10px 4px 4px", fontSize: "13px", color: "#555" }}>
+              <span>Showing {start} to {end} of {notesList.length} entries</span>
+              <div style={{ display: "flex", gap: "4px" }}>
+                <button onClick={() => setDispatchPage(p => Math.max(1, p - 1))} disabled={dispatchPage === 1} style={{ padding: "4px 10px", border: "1px solid #dee2e6", borderRadius: "4px", background: dispatchPage === 1 ? "#f8f9fa" : "#fff", color: dispatchPage === 1 ? "#aaa" : "#00368c", cursor: dispatchPage === 1 ? "default" : "pointer" }}>&lt;</button>
+                {Array.from({ length: totalPages }, (_, i) => i + 1).map(p => (
+                  <button key={p} onClick={() => setDispatchPage(p)} style={{ padding: "4px 10px", border: "1px solid #dee2e6", borderRadius: "4px", background: dispatchPage === p ? "#00368c" : "#fff", color: dispatchPage === p ? "#fff" : "#00368c", cursor: "pointer", fontWeight: dispatchPage === p ? 600 : 400 }}>{p}</button>
+                ))}
+                <button onClick={() => setDispatchPage(p => Math.min(totalPages, p + 1))} disabled={dispatchPage === totalPages} style={{ padding: "4px 10px", border: "1px solid #dee2e6", borderRadius: "4px", background: dispatchPage === totalPages ? "#f8f9fa" : "#fff", color: dispatchPage === totalPages ? "#aaa" : "#00368c", cursor: dispatchPage === totalPages ? "default" : "pointer" }}>&gt;</button>
+              </div>
+            </div>
+          );
+        })()}
       </div>
 
       <CustomModal
