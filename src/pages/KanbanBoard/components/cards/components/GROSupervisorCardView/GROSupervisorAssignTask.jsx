@@ -3,9 +3,12 @@ import PropTypes from "prop-types";
 import { FiChevronLeft, FiChevronRight } from "react-icons/fi";
 import SearchableSelect, { deriveSearchPlaceholder } from "../../../../../../components/form/SearchableSelect";
 import DateTimePickerField from "../../../../CardFormTabs/components/DateTimePickerField";
-import { resolveGroSupervisorTaskStatus } from "./groSupervisorStaticTasks";
+import {
+  resolveGroSupervisorTaskStatus,
+  formatGroSupervisorTaskRemarks,
+} from "./groSupervisorStaticTasks";
 
-const PAGE_SIZE = 5;
+const PAGE_SIZE = 6;
 
 function GROSupervisorAssignTask({ tasks, assignments, onAssignmentChange, userOptions, usersLoading }) {
   const [page, setPage] = useState(1);
@@ -35,9 +38,14 @@ function GROSupervisorAssignTask({ tasks, assignments, onAssignmentChange, userO
 
   return (
     <div className="gro-supervisor-assign-panel" role="tabpanel" aria-label="Assign Task">
-      <div className="gro-pass-table-panel gro-supervisor-task-table-panel">
-        <div className="gro-pass-table-scroll gro-supervisor-task-table-scroll">
-          <table className="gro-pass-table gro-supervisor-task-table">
+      <div className="gro-supervisor-panel-head">
+        <h3 className="gro-supervisor-panel-title">Assign Task</h3>
+        <span className="gro-supervisor-panel-meta">{tasks.length} tasks</span>
+      </div>
+
+      <div className="gro-supervisor-task-table-panel">
+        <div className="gro-supervisor-task-table-scroll">
+          <table className="gro-supervisor-task-table">
             <thead>
               <tr>
                 <th className="gro-supervisor-task-th-name">Task Name</th>
@@ -58,7 +66,7 @@ function GROSupervisorAssignTask({ tasks, assignments, onAssignmentChange, userO
                 pageTasks.map((task) => {
                   const state = assignments[task.id] ?? {};
                   const statusMeta = resolveGroSupervisorTaskStatus(task, state);
-                  const remarksId = `gro-supervisor-remarks-${task.id}`;
+                  const remarksText = formatGroSupervisorTaskRemarks(task);
 
                   return (
                     <tr key={task.id}>
@@ -68,17 +76,15 @@ function GROSupervisorAssignTask({ tasks, assignments, onAssignmentChange, userO
                         </span>
                       </td>
                       <td className="gro-supervisor-task-td-remarks">
-                        <input
-                          id={remarksId}
-                          type="text"
-                          className="gro-supervisor-task-remarks-input"
-                          placeholder="Add remarks"
-                          value={state.remarks ?? ""}
-                          onChange={(e) => updateTask(task.id, { remarks: e.target.value })}
-                        />
+                        <span
+                          className={`gro-supervisor-task-remarks-text${remarksText === "—" ? " gro-supervisor-task-remarks-text--empty" : ""}`}
+                          title={remarksText}
+                        >
+                          {remarksText}
+                        </span>
                       </td>
                       <td className="gro-supervisor-task-td-user">
-                        <div className="cf-select gro-supervisor-select-wrap gro-supervisor-select-wrap--table">
+                        <div className="gro-supervisor-table-control gro-supervisor-table-control--select">
                           <SearchableSelect
                             value={state.assignedUserId ?? ""}
                             onChange={(e) => updateTask(task.id, { assignedUserId: e?.target?.value ?? "" })}
@@ -93,18 +99,38 @@ function GROSupervisorAssignTask({ tasks, assignments, onAssignmentChange, userO
                         </div>
                       </td>
                       <td className="gro-supervisor-task-td-due">
-                        <DateTimePickerField
-                          dateValue={state.dueDate ?? ""}
-                          timeValue={state.dueTime ?? ""}
-                          onDateTimeChange={({ date, time }) =>
-                            updateTask(task.id, {
-                              dueDate: date || "",
-                              dueTime: time != null && time !== "" ? String(time).slice(0, 5) : "",
-                            })
-                          }
-                          placeholder="YYYY-MM-DD hh:mm"
-                          popperClassName="gro-supervisor-datetime-popper"
-                        />
+                        <div
+                          className="gro-supervisor-table-control gro-supervisor-table-control--datetime"
+                          onClick={(e) => {
+                            if (e.target.closest("button")) return;
+                            const openBtn = e.currentTarget.querySelector(
+                              'button[aria-label*="Choose"], button[aria-label*="Open"]'
+                            );
+                            openBtn?.click();
+                          }}
+                          onKeyDown={(e) => {
+                            if (e.key === "Enter" || e.key === " ") {
+                              e.preventDefault();
+                              e.currentTarget
+                                .querySelector('button[aria-label*="Choose"], button[aria-label*="Open"]')
+                                ?.click();
+                            }
+                          }}
+                          role="presentation"
+                        >
+                          <DateTimePickerField
+                            dateValue={state.dueDate ?? ""}
+                            timeValue={state.dueTime ?? ""}
+                            onDateTimeChange={({ date, time }) =>
+                              updateTask(task.id, {
+                                dueDate: date || "",
+                                dueTime: time != null && time !== "" ? String(time).slice(0, 5) : "",
+                              })
+                            }
+                            placeholder="YYYY-MM-DD hh:mm"
+                            popperClassName="gro-supervisor-datetime-popper"
+                          />
+                        </div>
                       </td>
                       <td className="gro-supervisor-task-td-status">
                         <span className={`gro-supervisor-task-status ${statusMeta.badgeClass}`}>
@@ -119,8 +145,8 @@ function GROSupervisorAssignTask({ tasks, assignments, onAssignmentChange, userO
           </table>
         </div>
 
-        <div className="gro-pass-table-footer gro-supervisor-task-table-footer" aria-label="Task list pagination">
-          <div className="gro-pass-pagination">
+        <div className="gro-supervisor-task-table-footer" aria-label="Task list pagination">
+          <div className="gro-pass-pagination gro-supervisor-pagination">
             <span className="gro-pass-pagination__info">
               {tasks.length > 0
                 ? `Showing ${rangeStart}–${rangeEnd} of ${tasks.length} · Page ${safePage} of ${totalPages}`
@@ -158,6 +184,7 @@ GROSupervisorAssignTask.propTypes = {
     PropTypes.shape({
       id: PropTypes.string.isRequired,
       title: PropTypes.string.isRequired,
+      remarks: PropTypes.string,
       statusKey: PropTypes.string,
     })
   ).isRequired,

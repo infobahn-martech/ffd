@@ -7,6 +7,7 @@ import {
   getGroSupervisorTasksForCard,
   createEmptyTaskAssignment,
 } from "./groSupervisorStaticTasks";
+import GROSupervisorTabs from "./GROSupervisorTabs";
 import GROSupervisorAssignTask from "./GROSupervisorAssignTask";
 import GROSupervisorDocumentLibrary from "./GROSupervisorDocumentLibrary";
 
@@ -87,41 +88,21 @@ function GROSupervisorCardView({ card }) {
 
   return (
     <div className="gro-card-view gro-supervisor-card-view">
-      <div className="gro-supervisor-tabs-bar">
-        <div className="gro-pass-segments gro-supervisor-tabs" role="tablist" aria-label="GRO Supervisor views">
-          <button
-            type="button"
-            role="tab"
-            aria-selected={activeTab === SUPERVISOR_TABS.assign}
-            className={`gro-pass-segment${activeTab === SUPERVISOR_TABS.assign ? " gro-pass-segment--active" : ""}`}
-            onClick={() => setActiveTab(SUPERVISOR_TABS.assign)}
-          >
-            Assign Task
-          </button>
-          <button
-            type="button"
-            role="tab"
-            aria-selected={activeTab === SUPERVISOR_TABS.documents}
-            className={`gro-pass-segment${activeTab === SUPERVISOR_TABS.documents ? " gro-pass-segment--active" : ""}`}
-            onClick={() => setActiveTab(SUPERVISOR_TABS.documents)}
-          >
-            Document Library
-          </button>
+      <div className="gro-supervisor-layout">
+        <GROSupervisorTabs activeTab={activeTab} onTabChange={setActiveTab} />
+        <div className="gro-supervisor-right">
+          {activeTab === SUPERVISOR_TABS.assign ? (
+            <GROSupervisorAssignTask
+              tasks={tasks}
+              assignments={assignments}
+              onAssignmentChange={handleAssignmentChange}
+              userOptions={userOptions}
+              usersLoading={usersLoading}
+            />
+          ) : (
+            <GROSupervisorDocumentLibrary documents={staticDocuments} hideHeading />
+          )}
         </div>
-      </div>
-
-      <div className="gro-supervisor-tab-panel">
-        {activeTab === SUPERVISOR_TABS.assign ? (
-          <GROSupervisorAssignTask
-            tasks={tasks}
-            assignments={assignments}
-            onAssignmentChange={handleAssignmentChange}
-            userOptions={userOptions}
-            usersLoading={usersLoading}
-          />
-        ) : (
-          <GROSupervisorDocumentLibrary documents={staticDocuments} hideHeading />
-        )}
       </div>
     </div>
   );

@@ -1311,28 +1311,68 @@ body .gro-doc-action-modal .modal-dialog {
   }
 }
 
-/* ========== GRO Supervisor card view (role_id 6 — tabs: assign task + documents) ========== */
+/* ========== GRO Supervisor card view (role_id 6 — vertical tabs + assign table + documents) ========== */
 .gro-card-view.gro-supervisor-card-view {
-  gap: 16px;
+  padding: 0;
+  gap: 0;
+  background: #f8fafc;
 }
 
-.gro-supervisor-tabs-bar {
-  flex-shrink: 0;
-  display: flex;
-  align-items: center;
-}
-
-.gro-supervisor-tabs.gro-pass-segments {
-  width: 100%;
-  max-width: 420px;
-}
-
-.gro-supervisor-tab-panel {
+.gro-supervisor-layout {
   flex: 1;
   min-height: 0;
   display: flex;
+  flex-direction: row;
+  overflow: hidden;
+}
+
+.gro-supervisor-left {
+  display: flex;
   flex-direction: column;
-  overflow: auto;
+  gap: 6px;
+  padding: 16px 14px;
+  background: #f0f1f6;
+  border-right: 1px solid #e2e8f0;
+  flex-shrink: 0;
+  width: 178px;
+  min-width: 178px;
+  max-width: 178px;
+}
+
+.gro-supervisor-tab {
+  padding: 11px 14px;
+  border: none;
+  background: #f0f0f0;
+  font-size: 13px;
+  font-weight: 500;
+  color: #333333;
+  border-radius: 20px;
+  cursor: pointer;
+  transition: background 0.15s ease, color 0.15s ease;
+  text-align: left;
+  width: 100%;
+  line-height: 1.3;
+}
+
+.gro-supervisor-tab:hover:not(:disabled) {
+  background: #e0e7ff;
+  color: #1e293b;
+}
+
+.gro-supervisor-tab.active {
+  background: #e0e7ff;
+  color: #1e293b;
+  font-weight: 600;
+}
+
+.gro-supervisor-right {
+  flex: 1;
+  min-width: 0;
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  background: #ffffff;
 }
 
 .gro-supervisor-assign-panel {
@@ -1340,39 +1380,137 @@ body .gro-doc-action-modal .modal-dialog {
   min-height: 0;
   display: flex;
   flex-direction: column;
+  padding: 14px 18px 12px;
+  overflow: hidden;
+}
+
+.gro-supervisor-panel-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  margin-bottom: 12px;
+  flex-shrink: 0;
+}
+
+.gro-supervisor-panel-title {
+  margin: 0;
+  font-size: 15px;
+  font-weight: 700;
+  color: #0f172a;
+  letter-spacing: -0.01em;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+
+  &::before {
+    content: "";
+    display: inline-block;
+    width: 3px;
+    height: 16px;
+    border-radius: 2px;
+    background: #3e5ebd;
+    flex-shrink: 0;
+  }
+}
+
+.gro-supervisor-panel-meta {
+  font-size: 12px;
+  font-weight: 500;
+  color: #64748b;
+  white-space: nowrap;
 }
 
 .gro-supervisor-task-table-panel {
   flex: 1;
   min-height: 0;
+  display: flex;
+  flex-direction: column;
+  border: 1px solid #e2e8f0;
+  border-radius: 12px;
+  overflow: hidden;
+  background: #ffffff;
+  box-shadow: 0 1px 3px rgba(15, 23, 42, 0.05);
 }
 
 .gro-supervisor-task-table-scroll {
-  max-height: min(480px, 52vh);
+  flex: 1;
+  min-height: 0;
+  overflow: auto;
+  scrollbar-width: thin;
+  scrollbar-color: #cbd5e1 #f1f5f9;
 }
 
-.gro-card-view .gro-supervisor-task-table {
-  min-width: 920px;
+.gro-supervisor-task-table {
+  width: 100%;
+  min-width: 800px;
+  border-collapse: separate;
+  border-spacing: 0;
+  font-size: 13px;
+  color: #0f172a;
 }
 
-.gro-supervisor-task-th-name {
-  min-width: 160px;
+.gro-supervisor-task-table thead th {
+  position: sticky;
+  top: 0;
+  z-index: 2;
+  padding-top: 10px;
+  padding-bottom: 10px;
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: #475569;
+  text-align: left;
+  white-space: nowrap;
+  background: linear-gradient(180deg, #f8fafc 0%, #eef2f7 100%);
+  border-bottom: 2px solid #dbe3ef;
+  box-shadow: inset 0 -1px 0 #e2e8f0;
 }
 
-.gro-supervisor-task-th-remarks {
-  min-width: 180px;
+.gro-supervisor-task-table tbody td {
+  padding: 8px 12px;
+  border-bottom: 1px solid #f1f5f9;
+  vertical-align: middle;
+  line-height: 1.35;
 }
 
-.gro-supervisor-task-th-user {
+.gro-supervisor-task-table tbody tr:hover td {
+  background: #fafbfc;
+}
+
+.gro-supervisor-task-table tbody tr:last-child td {
+  border-bottom: none;
+}
+
+.gro-supervisor-task-th-name,
+.gro-supervisor-task-td-name {
+  min-width: 132px;
+  padding-right: 8px;
+}
+
+.gro-supervisor-task-th-remarks,
+.gro-supervisor-task-td-remarks {
   min-width: 200px;
+  padding-left: 28px;
+  padding-right: 12px;
 }
 
-.gro-supervisor-task-th-due {
-  min-width: 200px;
+.gro-supervisor-task-th-user,
+.gro-supervisor-task-td-user {
+  min-width: 188px;
+  padding-left: 32px;
+  padding-right: 12px;
+}
+
+.gro-supervisor-task-th-due,
+.gro-supervisor-task-td-due {
+  min-width: 172px;
+  padding-left: 8px;
 }
 
 .gro-supervisor-task-th-status {
-  width: 120px;
+  width: 108px;
   text-align: center !important;
 }
 
@@ -1383,7 +1521,7 @@ body .gro-doc-action-modal .modal-dialog {
 
 .gro-supervisor-task-name-text {
   display: block;
-  max-width: 220px;
+  max-width: 200px;
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
@@ -1395,116 +1533,208 @@ body .gro-doc-action-modal .modal-dialog {
   min-width: 0;
 }
 
+.gro-supervisor-task-remarks-text {
+  display: block;
+  max-width: 280px;
+  font-size: 12px;
+  color: #475569;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.gro-supervisor-task-remarks-text--empty {
+  color: #94a3b8;
+}
+
 .gro-supervisor-task-td-status {
   text-align: center;
 }
 
-.gro-supervisor-task-remarks-input {
+/* Shared table control shell — single border, 36px height (GRO Supervisor only) */
+.gro-supervisor-table-control {
   width: 100%;
   min-width: 0;
-  height: 34px;
-  padding: 0 10px;
-  border-radius: 8px;
+}
+
+.gro-supervisor-table-control--select .gro-supervisor-searchable-select.cf-searchable-select,
+.gro-supervisor-table-control--select .cf-searchable-select {
+  width: 100%;
+}
+
+.gro-supervisor-table-control--select .cf-multi-select-email-input {
+  min-height: 36px;
+  height: 36px;
+  padding: 0 32px 0 12px;
   border: 1px solid #e2e8f0;
-  font-size: 13px;
-  font-family: inherit;
-  color: #0f172a;
-  box-sizing: border-box;
-  background: #ffffff;
-}
-
-.gro-supervisor-task-remarks-input:focus {
-  outline: none;
-  border-color: #94a3b8;
-  box-shadow: 0 0 0 1px rgba(148, 163, 184, 0.3);
-}
-
-.gro-supervisor-task-remarks-input::placeholder {
-  color: #94a3b8;
-}
-
-.gro-supervisor-select-wrap {
-  width: 100%;
-}
-
-.gro-supervisor-select-wrap--table {
-  min-width: 160px;
-}
-
-.gro-supervisor-searchable-select.cf-searchable-select-root {
-  width: 100%;
-}
-
-.gro-supervisor-task-td-due .cf-datetime-picker {
-  width: 100%;
-  min-width: 168px;
-}
-
-.gro-supervisor-task-td-due .cf-datetime-picker .MuiOutlinedInput-root,
-.gro-supervisor-task-td-due .cf-datetime-picker .MuiInputBase-root {
-  min-height: 34px;
   border-radius: 8px;
   background: #ffffff;
+  box-shadow: none;
+  box-sizing: border-box;
 }
 
-.gro-supervisor-task-td-due .cf-datetime-picker .MuiInputBase-input {
-  padding-top: 6px;
-  padding-bottom: 6px;
+.gro-supervisor-table-control--select .cf-multi-select-email-input:hover {
+  border-color: #cbd5e1;
+}
+
+.gro-supervisor-table-control--select .cf-multi-select-email-input:focus-within {
+  border-color: #3e5ebd;
+  box-shadow: 0 0 0 1px rgba(62, 94, 189, 0.15);
+  outline: none;
+}
+
+.gro-supervisor-table-control--select .cf-multi-select-email-tags {
+  min-height: 34px;
+  align-items: center;
+}
+
+.gro-supervisor-table-control--select .cf-multi-select-placeholder,
+.gro-supervisor-table-control--select .cf-multi-select-selected-value,
+.gro-supervisor-table-control--select .cf-searchable-select-input {
   font-size: 13px;
+  line-height: 1.3;
+}
+
+.gro-supervisor-table-control--select .cf-multi-select-arrow {
+  font-size: 10px;
+  color: #64748b;
+  right: 10px;
+}
+
+.gro-supervisor-table-control--datetime {
+  cursor: pointer;
+}
+
+.gro-supervisor-table-control--datetime .cf-datetime-picker,
+.gro-supervisor-table-control--datetime .cf-input.date-time-row.cf-datetime-picker {
+  width: 100%;
+  min-width: 0;
+  margin: 0;
+  padding: 0;
+  border: none;
+  background: transparent;
+}
+
+.gro-supervisor-table-control--datetime .cf-datetime-picker .cf-datetime-input-field {
+  width: 100%;
+  cursor: pointer;
+}
+
+.gro-supervisor-table-control--datetime .cf-datetime-picker .MuiPickersInputBase-root,
+.gro-supervisor-table-control--datetime .cf-datetime-picker .MuiOutlinedInput-root,
+.gro-supervisor-table-control--datetime .cf-datetime-picker .MuiInputBase-root {
+  min-height: 36px !important;
+  height: 36px;
+  width: 100%;
+  border: 1px solid #e2e8f0 !important;
+  border-radius: 8px !important;
+  background: #ffffff !important;
+  padding: 0 8px 0 12px !important;
+  box-sizing: border-box;
+  box-shadow: none !important;
+  cursor: pointer;
+}
+
+.gro-supervisor-table-control--datetime .cf-datetime-picker .MuiPickersInputBase-root:hover,
+.gro-supervisor-table-control--datetime .cf-datetime-picker .MuiOutlinedInput-root:hover,
+.gro-supervisor-table-control--datetime .cf-datetime-picker .MuiInputBase-root:hover {
+  border-color: #cbd5e1 !important;
+}
+
+.gro-supervisor-table-control--datetime .cf-datetime-picker .MuiPickersInputBase-root.Mui-focused,
+.gro-supervisor-table-control--datetime .cf-datetime-picker .MuiOutlinedInput-root.Mui-focused,
+.gro-supervisor-table-control--datetime .cf-datetime-picker .MuiInputBase-root.Mui-focused {
+  border-color: #3e5ebd !important;
+  box-shadow: 0 0 0 1px rgba(62, 94, 189, 0.15) !important;
+}
+
+.gro-supervisor-table-control--datetime .cf-datetime-picker .MuiOutlinedInput-notchedOutline {
+  border: none !important;
+}
+
+.gro-supervisor-table-control--datetime .cf-datetime-picker .MuiOutlinedInput-input,
+.gro-supervisor-table-control--datetime .cf-datetime-picker .MuiPickersSectionList-root {
+  padding: 0;
+  font-size: 13px;
+  cursor: pointer;
+}
+
+.gro-supervisor-table-control--datetime .cf-datetime-picker .MuiInputAdornment-root {
+  margin-left: 4px;
+}
+
+.gro-supervisor-table-control--datetime .cf-datetime-picker .MuiIconButton-root {
+  padding: 4px;
+  margin: 0;
 }
 
 .gro-supervisor-task-status {
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  padding: 4px 10px;
-  font-size: 11px;
-  font-weight: 600;
-  letter-spacing: 0.02em;
-  border-radius: 999px;
+  min-width: 72px;
+  padding: 3px 8px;
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 0.03em;
+  border-radius: 6px;
   border: 1px solid transparent;
   white-space: nowrap;
+  line-height: 1.2;
 }
 
 .gro-supervisor-task-status--neutral {
-  color: #64748b;
-  background: #f8fafc;
+  color: #475569;
+  background: #f1f5f9;
   border-color: #e2e8f0;
 }
 
 .gro-supervisor-task-status--info {
-  color: #1d4ed8;
-  background: #eff6ff;
-  border-color: #bfdbfe;
+  color: #1e40af;
+  background: #dbeafe;
+  border-color: #93c5fd;
 }
 
 .gro-supervisor-task-status--warning {
-  color: #b45309;
-  background: #fffbeb;
-  border-color: #fde68a;
+  color: #92400e;
+  background: #fef3c7;
+  border-color: #fcd34d;
 }
 
 .gro-supervisor-task-status--success {
-  color: #047857;
-  background: #ecfdf5;
-  border-color: #a7f3d0;
+  color: #065f46;
+  background: #d1fae5;
+  border-color: #6ee7b7;
 }
 
 .gro-supervisor-task-status--danger {
-  color: #b91c1c;
-  background: #fef2f2;
-  border-color: #fecaca;
+  color: #991b1b;
+  background: #fee2e2;
+  border-color: #fca5a5;
 }
 
 .gro-supervisor-task-empty {
   text-align: center;
   color: #94a3b8;
   font-style: italic;
-  padding: 28px 16px !important;
+  padding: 20px 12px !important;
 }
 
 .gro-supervisor-task-table-footer {
   flex-shrink: 0;
+  padding: 8px 12px;
+  border-top: 1px solid #eef2f7;
+  background: #fafbfc;
+}
+
+.gro-supervisor-pagination.gro-pass-pagination {
+  margin: 0;
+}
+
+.gro-supervisor-right .gro-supervisor-doc-section {
+  padding: 14px 18px 16px;
+  height: 100%;
+  overflow: auto;
 }
 
 .gro-supervisor-doc-section {
@@ -1571,8 +1801,25 @@ body .gro-doc-action-modal .modal-dialog {
 }
 
 @media (max-width: 900px) {
-  .gro-supervisor-tabs.gro-pass-segments {
-    max-width: 100%;
+  .gro-supervisor-layout {
+    flex-direction: column;
+  }
+
+  .gro-supervisor-left {
+    flex-direction: row;
+    width: 100%;
+    max-width: none;
+    min-width: 0;
+    padding: 10px 12px;
+    border-right: none;
+    border-bottom: 1px solid #e2e8f0;
+    overflow-x: auto;
+  }
+
+  .gro-supervisor-tab {
+    flex: 1;
+    min-width: 120px;
+    text-align: center;
   }
 
   .gro-pass-pagination__info {
