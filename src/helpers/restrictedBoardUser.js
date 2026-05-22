@@ -1,7 +1,19 @@
 import { getItem } from './localStorage';
+import {
+  collectUserRoleIdCandidates,
+  isGROUserRole,
+  normalizeRoleId,
+} from './groUserRoles';
 
-/** Sedres GRO (4) and Custom Clearance (5) — limited board/workspace access only */
-export const SEDRES_RESTRICTED_ROLE_IDS = new Set(['4', '5']);
+/** Sedres GRO (4), GRO Supervisor (6), and Custom Clearance (5) — limited board/workspace access */
+export const SEDRES_RESTRICTED_ROLE_IDS = new Set(['4', '5', '6']);
+
+function isSedresRestrictedBoardRoleId(roleId) {
+  const normalized = normalizeRoleId(roleId);
+  if (!normalized) return false;
+  if (isGROUserRole(normalized) || isGROUserRole(Number(normalized))) return true;
+  return SEDRES_RESTRICTED_ROLE_IDS.has(normalized);
+}
 
 /** Port Operator — hide Master Module / Vendor shortcuts in header */
 export const PORT_OPERATOR_ROLE_ID = '2';
@@ -12,19 +24,11 @@ export const KANBAN_FULL_SIDEBAR_ROLE_ID = '1';
 export const RESTRICTED_BOARD_HOME_PATH = '/kanban-board/1';
 
 function toRoleIdString(value) {
-  if (value === undefined || value === null) return null;
-  const s = String(value).trim();
-  return s === '' ? null : s;
+  return normalizeRoleId(value);
 }
 
 function collectRoleIdCandidatesFromUser(user) {
-  if (!user || typeof user !== 'object') return [];
-  const ids = [];
-  const fromNested = toRoleIdString(user.role?.role_id);
-  if (fromNested) ids.push(fromNested);
-  const flat = toRoleIdString(user.role_id);
-  if (flat) ids.push(flat);
-  return ids;
+  return collectUserRoleIdCandidates(user);
 }
 
 /**
@@ -33,7 +37,7 @@ function collectRoleIdCandidatesFromUser(user) {
  */
 export function isRestrictedBoardUser(user) {
   for (const id of collectRoleIdCandidatesFromUser(user)) {
-    if (SEDRES_RESTRICTED_ROLE_IDS.has(id)) return true;
+    if (isSedresRestrictedBoardRoleId(id)) return true;
   }
 
   try {
@@ -41,7 +45,7 @@ export function isRestrictedBoardUser(user) {
     if (raw) {
       const parsed = JSON.parse(raw);
       for (const id of collectRoleIdCandidatesFromUser(parsed)) {
-        if (SEDRES_RESTRICTED_ROLE_IDS.has(id)) return true;
+        if (isSedresRestrictedBoardRoleId(id)) return true;
       }
     }
   } catch {
@@ -49,7 +53,7 @@ export function isRestrictedBoardUser(user) {
   }
 
   const storedRole = toRoleIdString(getItem('role_id'));
-  if (storedRole && SEDRES_RESTRICTED_ROLE_IDS.has(storedRole)) return true;
+  if (storedRole && isSedresRestrictedBoardRoleId(storedRole)) return true;
 
   return false;
 }

@@ -13,6 +13,8 @@ import SedresColorPicker from "../../../../components/SedresColorPicker/SedresCo
 import { normalizeHexColor } from "../../../../components/SedresColorPicker/sedresColorPickerConstants";
 import PriorityIcon from "../../../../assets/images/Priority.png";
 import { getItem } from "../../../../helpers/localStorage";
+import { isGROSupervisorRole, getFirstUserRoleId } from "../../../../helpers/groUserRoles";
+import useAuthReducer from "../../../../store/AuthReducer";
 
 // Import Tab Components
 import { General, Operation, Husbandry, DocumentLibrary, Invoice, SalesOrder, Reports, KPI, Comments, Subtasks, Notes } from "../../CardFormTabs";
@@ -913,14 +915,20 @@ function CardForm({
   onBoardRefresh,
   patchCardColor,
 }) {
+  const userProfile = useAuthReducer((state) => state.userProfile);
+  const userRoleId = getFirstUserRoleId(userProfile);
+  const effectiveVariant = isGROSupervisorRole(userRoleId) || isGROSupervisorRole(Number(userRoleId))
+    ? "empty"
+    : variant;
+
   const location = useLocation();
-  const isDriverVariant = variant === "driver";
-  const isHotelVariant = variant === "hotel";
-  const isMWPVariant = variant === "mwp";
-  const isGROVariant = variant === "gro";
-  const isCustomVariant = variant === "custom";
+  const isDriverVariant = effectiveVariant === "driver";
+  const isHotelVariant = effectiveVariant === "hotel";
+  const isMWPVariant = effectiveVariant === "mwp";
+  const isGROVariant = effectiveVariant === "gro";
+  const isCustomVariant = effectiveVariant === "custom";
   const isGROStyleView = isGROVariant || isCustomVariant;
-  const isEmptyVariant = variant === "empty";
+  const isEmptyVariant = effectiveVariant === "empty";
   const isDriverStyleView = isDriverVariant || isHotelVariant;
 
   // Step labels from columns + columnOrder (e.g. DAdata columnTitles); fallback to STEP_LABELS
@@ -1354,7 +1362,7 @@ function CardForm({
           handleChange={handleChange}
         />
         {isDriverStyleView ? (
-          <DriverCardView card={card} variant={variant} />
+          <DriverCardView card={card} variant={effectiveVariant} />
         ) : isMWPVariant ? (
           <MWPCardView card={card} />
         ) : isGROStyleView ? (

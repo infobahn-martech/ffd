@@ -1,3 +1,5 @@
+import { isGROSupervisorRole } from "./groUserRoles";
+
 /**
  * Card modal variant from workflow `role_id` on get_full_board (per card), not logged-in user role.
  * @param {unknown} roleId - workflow.role_id from API
@@ -11,4 +13,18 @@ export function getCardVariantByWorkflowRole(roleId) {
   if (n === 5) return "custom";
   if (n === 2) return "default";
   return "default";
+}
+
+/**
+ * Resolves CardForm variant for the logged-in user and card workflow.
+ * GRO Supervisor (role_id 6) always opens a blank card shell; GRO User (4) uses workflow role.
+ * @param {unknown} workflowRoleId
+ * @param {unknown} userRoleId
+ * @returns {"gro"|"custom"|"default"|"empty"}
+ */
+export function resolveCardFormVariant(workflowRoleId, userRoleId) {
+  if (isGROSupervisorRole(userRoleId) || isGROSupervisorRole(Number(userRoleId))) {
+    return "empty";
+  }
+  return getCardVariantByWorkflowRole(workflowRoleId);
 }

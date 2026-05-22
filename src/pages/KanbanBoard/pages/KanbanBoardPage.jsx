@@ -17,7 +17,9 @@ import useKanbanDnD from "../hooks/useKanbanDnD";
 import useKanbanRoleAccess from "../hooks/useKanbanRoleAccess";
 import { createNewCardDraft } from "../utils/cardHelpers";
 import { findWorkflowByCardId } from "../utils/boardHelpers";
-import { getCardVariantByWorkflowRole } from "../../../helpers/cardFormVariant";
+import { resolveCardFormVariant } from "../../../helpers/cardFormVariant";
+import { getFirstUserRoleId } from "../../../helpers/groUserRoles";
+import useAuthReducer from "../../../store/AuthReducer";
 import { KANBAN_DND_DISABLED } from "../../../modules/kanban/constants/kanbanConfig";
 
 export default function KanbanBoardPage() {
@@ -30,6 +32,8 @@ export default function KanbanBoardPage() {
   }, [boardIdParam, location.pathname]);
 
   const isOperatorBoard = String(selectedBoardId ?? "").toLowerCase() === "operator";
+  const userProfile = useAuthReducer((state) => state.userProfile);
+  const userRoleId = getFirstUserRoleId(userProfile);
   const { layoutView } = useLayoutView();
   const isClassicLayout = layoutView === "classic";
   const isModernLayout = layoutView === "modern";
@@ -275,7 +279,7 @@ export default function KanbanBoardPage() {
           columnOrder={columnOrderForCardForm}
           currentColumn={isAddMode ? null : findCardColumn(selectedCard.id)}
           isAddMode={isAddMode}
-          variant={getCardVariantByWorkflowRole(selectedCard?.workflow_role_id)}
+          variant={resolveCardFormVariant(selectedCard?.workflow_role_id, userRoleId)}
           onBoardRefresh={isOperatorBoard ? undefined : refetchBoard}
           patchCardColor={patchCardColor}
         />
