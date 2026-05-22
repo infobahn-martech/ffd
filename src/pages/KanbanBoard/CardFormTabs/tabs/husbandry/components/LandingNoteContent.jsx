@@ -855,10 +855,10 @@ const LandingNoteContent = ({ formValues, handleChange, cardColor }) => {
   );
 
   const renderBody = () => (
-    <div className="modal-body">
+    <div className="modal-body" style={{ padding: "24px" }}>
       <div className="lead-form">
         <form id="landingNoteForm" onSubmit={handleSubmit}>
-          <div className="permInputs row mb-lg-3">
+          <div className="permInputs row">
             <div className="col-12 mb-3">
               <FormField label="Landing Note No">
                 <FormInput
@@ -870,7 +870,7 @@ const LandingNoteContent = ({ formValues, handleChange, cardColor }) => {
               </FormField>
             </div>
 
-            <div className="col-12 mb-3">
+            <div className="col-md-6 mb-3">
               <FormField label="Date">
                 <div className="cf-input">
                   <input
@@ -878,12 +878,13 @@ const LandingNoteContent = ({ formValues, handleChange, cardColor }) => {
                     value={formData.date}
                     onChange={(e) => handleFormChange("date", e.target.value)}
                     placeholder="Select date"
+                    style={{ width: "100%", border: "none", outline: "none", background: "transparent", fontSize: "14px", color: "#1a1a1a", fontFamily: "inherit", padding: 0, flex: 1 }}
                   />
                 </div>
               </FormField>
             </div>
 
-            <div className="col-12 mb-3">
+            <div className="col-md-6 mb-3">
               <FormField label="PO/DO">
                 <FormInput
                   type="text"
@@ -902,6 +903,7 @@ const LandingNoteContent = ({ formValues, handleChange, cardColor }) => {
                   onDragLeave={handleDragLeave}
                   onDrop={handleDrop}
                   onClick={handleBrowseClick}
+                  style={{ width: "100%" }}
                 >
                   <input
                     ref={fileInputRef}
@@ -1024,7 +1026,7 @@ const LandingNoteContent = ({ formValues, handleChange, cardColor }) => {
               </FormField>
             </div>
 
-            <div className="col-12 mb-3">
+            <div className="col-md-6 mb-3">
               <FormField label="Quantity">
                 <FormInput
                   type="number"
@@ -1035,7 +1037,7 @@ const LandingNoteContent = ({ formValues, handleChange, cardColor }) => {
               </FormField>
             </div>
 
-            <div className="col-12 mb-3">
+            <div className="col-md-6 mb-3">
               <FormField label="Package Type">
                 <FormSelect
                   value={formData.packageType}
@@ -1063,19 +1065,36 @@ const LandingNoteContent = ({ formValues, handleChange, cardColor }) => {
   );
 
   const renderFooter = () => (
-    <div className="modal-footer">
+    <div className="modal-footer" style={{ display: "flex", justifyContent: "flex-end", gap: "12px", padding: "16px 24px" }}>
       <button
         type="button"
-        className="btn btn-secondary"
         onClick={handleCloseModal}
+        style={{
+          padding: "10px 20px",
+          backgroundColor: "#f5f5f5",
+          color: "#333",
+          border: "1px solid #e2e2ea",
+          borderRadius: "6px",
+          cursor: "pointer",
+          fontSize: "14px",
+          fontWeight: "500",
+        }}
       >
         Cancel
       </button>
       <button
         type="submit"
         form="landingNoteForm"
-        className="btn btn-primary"
-        style={{ backgroundColor: "#00368c" }}
+        style={{
+          padding: "10px 20px",
+          backgroundColor: "#00368c",
+          color: "white",
+          border: "none",
+          borderRadius: "6px",
+          cursor: "pointer",
+          fontSize: "14px",
+          fontWeight: "500",
+        }}
       >
         {editingNote ? "Update Note" : "Add Note"}
       </button>
