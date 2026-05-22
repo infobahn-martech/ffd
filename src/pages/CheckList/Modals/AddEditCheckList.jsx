@@ -38,26 +38,15 @@ function normalizeRoleIdsForApi(item) {
 }
 
 function normalizeRoleIdsForForm(item) {
-  const toStrings = (ids) =>
-    ids
-      .filter((id) => id != null && id !== "")
-      .map((id) => String(id));
-
-  if (Array.isArray(item?.role_ids)) {
-    return toStrings(item.role_ids);
+  if (Array.isArray(item?.role_ids) && item.role_ids.length > 0) {
+    return dedupeStringIds(item.role_ids.map((id) => String(id)));
   }
   if (Array.isArray(item?.roles)) {
-    return toStrings(
-      item.roles.map((r) => (typeof r === "object" ? r?.role_id ?? r?._id : r))
+    return dedupeStringIds(
+      item.roles.map((r) =>
+        typeof r === "object" ? String(r?.role_id ?? r?._id ?? "") : String(r)
+      )
     );
-  }
-
-  const doc = item?.document_details ?? {};
-  if (Array.isArray(doc?.role_ids)) {
-    return toStrings(doc.role_ids);
-  }
-  if (doc?.role_id != null && doc?.role_id !== "") {
-    return [String(doc.role_id)];
   }
   return [];
 }
@@ -93,20 +82,6 @@ function dedupeStringIds(ids) {
 }
 
 function normalizeTaskIdsForForm(item) {
-  const toStrings = (ids) =>
-    dedupeStringIds(
-      ids.filter((id) => id != null && id !== "").map((id) => String(id))
-    );
-
-  if (Array.isArray(item?.task_ids) && item.task_ids.length > 0) {
-    return toStrings(item.task_ids);
-  }
-  if (Array.isArray(item?.tasks)) {
-    const fromTasks = toStrings(
-      item.tasks.map((t) => (typeof t === "object" ? t?.task_id ?? t?._id : t))
-    );
-    if (fromTasks.length > 0) return fromTasks;
-  }
   if (Array.isArray(item?.roles)) {
     const collected = [];
     for (const role of item.roles) {
@@ -114,7 +89,12 @@ function normalizeTaskIdsForForm(item) {
         collected.push(...role.task_ids);
       }
     }
-    if (collected.length > 0) return toStrings(collected);
+    if (collected.length > 0) {
+      return dedupeStringIds(collected.map((id) => String(id)));
+    }
+  }
+  if (Array.isArray(item?.task_ids) && item.task_ids.length > 0) {
+    return dedupeStringIds(item.task_ids.map((id) => String(id)));
   }
   return [];
 }
@@ -644,6 +624,15 @@ function ChecklistItemTasksSelect({
   );
 }
 
+function pruneTaskIdsToOptions(getValues, setValue, taskIdsName, options) {
+  const validIds = new Set(options.map((o) => o.value));
+  const currentIds = (getValues(taskIdsName) ?? []).map(String);
+  const pruned = currentIds.filter((id) => validIds.has(id));
+  if (pruned.length !== currentIds.length) {
+    setValue(taskIdsName, pruned, { shouldDirty: true });
+  }
+}
+
 function ChecklistItemRowTasksSelect({
   control,
   roleIdsName,
@@ -657,6 +646,7 @@ function ChecklistItemRowTasksSelect({
   const [taskSelectOptions, setTaskSelectOptions] = useState([]);
   const [isLoadingTasks, setIsLoadingTasks] = useState(false);
   const requestIdRef = useRef(0);
+  const prevRoleIdsKeyRef = useRef(null);
 
   const roleIdsKey = useMemo(() => {
     const ids = (Array.isArray(roleIds) ? roleIds : [])
@@ -677,18 +667,23 @@ function ChecklistItemRowTasksSelect({
   useEffect(() => {
     const seeded = Array.isArray(initialTaskOptions) ? initialTaskOptions : [];
     if (seeded.length > 0) {
-      setTaskSelectOptions((prev) => mergeTaskSelectOptions([seeded, prev]));
+      setTaskSelectOptions(seeded);
+      prevRoleIdsKeyRef.current = roleIdsKey;
     }
-  }, [initialOptionsKey]);
+  }, [initialOptionsKey, roleIdsKey]);
 
   useEffect(() => {
     const roleIdList = roleIdsKey ? roleIdsKey.split(",").filter(Boolean) : [];
     const reqId = ++requestIdRef.current;
     const seeded = Array.isArray(initialTaskOptions) ? initialTaskOptions : [];
+    const roleChanged =
+      prevRoleIdsKeyRef.current != null && prevRoleIdsKeyRef.current !== roleIdsKey;
+    const isEditOpenWithSeed = seeded.length > 0 && !roleChanged;
 
     if (roleIdList.length === 0) {
       setTaskSelectOptions([]);
       setIsLoadingTasks(false);
+      prevRoleIdsKeyRef.current = roleIdsKey;
       const current = getValues(taskIdsName);
       if (Array.isArray(current) && current.length > 0) {
         setValue(taskIdsName, [], { shouldDirty: true });
@@ -696,12 +691,15 @@ function ChecklistItemRowTasksSelect({
       return;
     }
 
+    if (isEditOpenWithSeed) {
+      prevRoleIdsKeyRef.current = roleIdsKey;
+      return;
+    }
+
     let cancelled = false;
 
     (async () => {
-      if (seeded.length === 0) {
-        setIsLoadingTasks(true);
-      }
+      setIsLoadingTasks(true);
       try {
         const responses = await Promise.all(
           roleIdList.map((roleId) => taskChecklistService.getTasksByRole(roleId))
@@ -713,22 +711,17 @@ function ChecklistItemRowTasksSelect({
             mapTaskRowsToSelectOptions(normalizeTasksByRoleResponse(res?.data))
           )
         );
-        const merged = mergeTaskSelectOptions([seeded, fetched]);
-        setTaskSelectOptions(merged);
-
-        const validIds = new Set(merged.map((o) => o.value));
-        const currentIds = (getValues(taskIdsName) ?? []).map(String);
-        const pruned = currentIds.filter((id) => validIds.has(id));
-        if (pruned.length !== currentIds.length) {
-          setValue(taskIdsName, pruned, { shouldDirty: true });
-        }
+        setTaskSelectOptions(fetched);
+        pruneTaskIdsToOptions(getValues, setValue, taskIdsName, fetched);
       } catch {
         if (!cancelled && reqId === requestIdRef.current) {
-          setTaskSelectOptions(seeded.length > 0 ? seeded : []);
+          setTaskSelectOptions([]);
+          setValue(taskIdsName, [], { shouldDirty: true });
         }
       } finally {
         if (!cancelled && reqId === requestIdRef.current) {
           setIsLoadingTasks(false);
+          prevRoleIdsKeyRef.current = roleIdsKey;
         }
       }
     })();
