@@ -208,16 +208,13 @@ const ChecklistItemRow = ({
     Array.isArray(itemData?.uploadedFiles) ? itemData.uploadedFiles : []
   );
   const fileInputRef = useRef(null);
-  const itemFilesRef = useRef(null);
   const uploadFilesRef = useRef(null);
-  const [moreRefFilesOpen, setMoreRefFilesOpen] = useState(false);
   const [moreUploadFilesOpen, setMoreUploadFilesOpen] = useState(false);
 
   const checked = itemData?.checked === true;
   const rowFiles = Array.isArray(uploadedFiles) ? uploadedFiles : [];
   const referenceFiles = Array.isArray(uploadedFromApi) ? uploadedFromApi : [];
   const uploadColumnFiles = filterUploadColumnFiles(rowFiles, referenceFiles);
-  const templateFallback = referenceFiles;
   const itemRootBackendUrl = getItemRootBackendPreviewUrl(item);
   const urlFromList = (list) => {
     const arr = Array.isArray(list) ? list : [];
@@ -227,18 +224,8 @@ const ChecklistItemRow = ({
     }
     return null;
   };
-  const backendPreviewUrl =
-    itemRootBackendUrl || urlFromList(rowFiles) || urlFromList(templateFallback);
-  const hasBackendPreviewFile = Boolean(backendPreviewUrl);
+  const referencePreviewUrl = itemRootBackendUrl || urlFromList(referenceFiles);
   const requirementMetaLabel = getRequirementMetaLabel({ requireCopyOnlyFromApi, requirement });
-  const showMetaRow = Boolean(expiryDateRequired || requirementMetaLabel);
-
-  const handlePreviewBackendFile = (e) => {
-    e.preventDefault();
-    e.stopPropagation();
-    if (!backendPreviewUrl) return;
-    window.open(backendPreviewUrl, "_blank", "noopener,noreferrer");
-  };
 
   const uploadedFilesSyncKey = Array.isArray(itemData?.uploadedFiles)
     ? itemData.uploadedFiles.map((f) => `${f?.id ?? ""}:${f?.name ?? f?.fileName ?? ""}:${f?.file instanceof File ? "blob" : ""}`).join("|")
@@ -250,18 +237,14 @@ const ChecklistItemRow = ({
   }, [itemData?.remarks, uploadedFilesSyncKey]);
 
   useEffect(() => {
-    if (!moreRefFilesOpen && !moreUploadFilesOpen) return;
+    if (!moreUploadFilesOpen) return;
     const onDocMouseDown = (e) => {
-      const inRef = itemFilesRef.current?.contains(e.target);
-      const inUpload = uploadFilesRef.current?.contains(e.target);
-      if (!inRef) setMoreRefFilesOpen(false);
-      if (!inUpload) setMoreUploadFilesOpen(false);
-    };
-    const onKeyDown = (e) => {
-      if (e.key === "Escape") {
-        setMoreRefFilesOpen(false);
+      if (uploadFilesRef.current && !uploadFilesRef.current.contains(e.target)) {
         setMoreUploadFilesOpen(false);
       }
+    };
+    const onKeyDown = (e) => {
+      if (e.key === "Escape") setMoreUploadFilesOpen(false);
     };
     document.addEventListener("mousedown", onDocMouseDown);
     document.addEventListener("keydown", onKeyDown);
@@ -269,10 +252,9 @@ const ChecklistItemRow = ({
       document.removeEventListener("mousedown", onDocMouseDown);
       document.removeEventListener("keydown", onKeyDown);
     };
-  }, [moreRefFilesOpen, moreUploadFilesOpen]);
+  }, [moreUploadFilesOpen]);
 
   useEffect(() => {
-    setMoreRefFilesOpen(false);
     setMoreUploadFilesOpen(false);
   }, [uploadedFilesSyncKey]);
 
@@ -361,11 +343,24 @@ const ChecklistItemRow = ({
     return Boolean(getBackendFilePreviewUrl(entry));
   };
 
-  const inlineRefFiles = referenceFiles.slice(0, MAX_INLINE_FILE_CHIPS);
-  const refOverflowCount = Math.max(0, referenceFiles.length - MAX_INLINE_FILE_CHIPS);
+  const firstPreviewableReference = referenceFiles.find((entry) => canPreviewEntry(entry));
+  const canOpenReferencePreview = Boolean(firstPreviewableReference || referencePreviewUrl);
+  const showMetaRow = Boolean(expiryDateRequired || requirementMetaLabel || canOpenReferencePreview);
+
+  const handlePreviewReferenceFile = (e) => {
+    e.preventDefault();
+    e.stopPropagation();
+    if (firstPreviewableReference) {
+      handlePreviewOneFile(e, firstPreviewableReference);
+      return;
+    }
+    if (referencePreviewUrl) {
+      window.open(referencePreviewUrl, "_blank", "noopener,noreferrer");
+    }
+  };
+
   const inlineUploadFiles = uploadColumnFiles.slice(0, MAX_INLINE_FILE_CHIPS);
   const uploadOverflowCount = Math.max(0, uploadColumnFiles.length - MAX_INLINE_FILE_CHIPS);
-  const refPopoverId = `checklist-ref-files-popover-${id}`;
   const uploadPopoverId = `checklist-upload-files-popover-${id}`;
 
   const renderFileChip = (entry, idx, { variant = "inline", allowRemove = true } = {}) => {
@@ -471,21 +466,6 @@ const ChecklistItemRow = ({
     );
   };
 
-  const renderReferenceFilesPreview = () =>
-    renderFileChipList({
-      files: referenceFiles,
-      inlineSlice: inlineRefFiles,
-      overflowCount: refOverflowCount,
-      popoverId: refPopoverId,
-      moreOpen: moreRefFilesOpen,
-      setMoreOpen: setMoreRefFilesOpen,
-      wrapRef: itemFilesRef,
-      wrapClassName: "cl-item-files-wrap cl-item-files-wrap--reference",
-      rowClassName: "checklist-file-chip-row checklist-file-chip-row--item checklist-file-chip-row--reference",
-      popoverLabel: "All requirement reference files",
-      allowRemove: false,
-    });
-
   const renderUploadColumnFilesPreview = () =>
     renderFileChipList({
       files: uploadColumnFiles,
@@ -524,7 +504,7 @@ const ChecklistItemRow = ({
             <div className="cl-item-title cl-item-title--primary" title={title}>{title}</div>
           </div>
           {showMetaRow ? (
-            <div className="cl-item-meta-row">
+            <div className="cl-item-meta-row cl-item-meta-row--inline">
               {expiryDateRequired ? (
                 isViewOnly ? (
                   <span className="cl-item-meta-chip cl-item-meta-chip--expiry">
@@ -554,33 +534,43 @@ const ChecklistItemRow = ({
               ) : null}
               {expiryDateRequired && requirementMetaLabel ? <span className="cl-item-meta-sep" aria-hidden>|</span> : null}
               {requirementMetaLabel ? (
-                <>
-                  <span className="cl-item-meta-chip" title={requirementMetaLabel}>
-                    <span className="cl-item-meta-icon" aria-hidden>
-                      <svg width="12" height="12" viewBox="0 0 24 24" fill="none">
-                        <path d="M14 3H7C5.9 3 5 3.9 5 5V19C5 20.1 5.9 21 7 21H17C18.1 21 19 20.1 19 19V8L14 3Z" stroke="currentColor" strokeWidth="1.8" />
-                        <path d="M14 3V8H19" stroke="currentColor" strokeWidth="1.8" />
-                        <path d="M9 12H15M9 16H15" stroke="currentColor" strokeWidth="1.8" />
-                      </svg>
-                    </span>
-                    <span className="cl-item-meta-label">{requirementMetaLabel}</span>
+                <span className="cl-item-meta-chip" title={requirementMetaLabel}>
+                  <span className="cl-item-meta-icon" aria-hidden>
+                    <svg width="12" height="12" viewBox="0 0 24 24" fill="none">
+                      <path d="M14 3H7C5.9 3 5 3.9 5 5V19C5 20.1 5.9 21 7 21H17C18.1 21 19 20.1 19 19V8L14 3Z" stroke="currentColor" strokeWidth="1.8" />
+                      <path d="M14 3V8H19" stroke="currentColor" strokeWidth="1.8" />
+                      <path d="M9 12H15M9 16H15" stroke="currentColor" strokeWidth="1.8" />
+                    </svg>
                   </span>
-                  {/* {hasBackendPreviewFile ? (
-                    <button
-                      type="button"
-                      className="cl-item-meta-preview-btn"
-                      onClick={handlePreviewBackendFile}
-                      title="Preview document from server"
-                      aria-label="Preview document from server"
-                    >
-                      👁
-                    </button>
-                  ) : null} */}
-                </>
+                  <span className="cl-item-meta-label">{requirementMetaLabel}</span>
+                </span>
+              ) : null}
+              {canOpenReferencePreview &&
+              (expiryDateRequired || requirementMetaLabel) ? (
+                <span className="cl-item-meta-sep" aria-hidden>
+                  |
+                </span>
+              ) : null}
+              {canOpenReferencePreview ? (
+                <button
+                  type="button"
+                  className="cl-item-meta-preview-btn"
+                  onClick={handlePreviewReferenceFile}
+                  title="Preview reference file"
+                  aria-label="Preview reference file"
+                >
+                  <svg width="13" height="13" viewBox="0 0 24 24" fill="none" aria-hidden>
+                    <path
+                      d="M2 12C3.8 8.5 7.3 6 12 6C16.7 6 20.2 8.5 22 12C20.2 15.5 16.7 18 12 18C7.3 18 3.8 15.5 2 12Z"
+                      stroke="currentColor"
+                      strokeWidth="1.6"
+                    />
+                    <circle cx="12" cy="12" r="3" stroke="currentColor" strokeWidth="1.6" />
+                  </svg>
+                </button>
               ) : null}
             </div>
           ) : null}
-          {renderReferenceFilesPreview()}
         </div>
       </td>
       <td className="checklist-table-role cl-col-role cl-role-cell">

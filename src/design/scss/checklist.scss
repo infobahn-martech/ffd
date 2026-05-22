@@ -2285,6 +2285,13 @@
   line-height: 1.2;
 }
 
+.cl-item-meta-row--inline {
+  flex-wrap: nowrap;
+  max-width: 100%;
+  min-width: 0;
+  white-space: nowrap;
+}
+
 .cl-item-meta-chip {
   display: inline-flex;
   align-items: center;
@@ -2557,21 +2564,26 @@ span.cl-item-meta-chip.cl-item-meta-chip--expiry {
 .cl-item-meta-preview-btn {
   appearance: none;
   -webkit-appearance: none;
+  flex: 0 0 auto;
   border: 1px solid #d8e2f3;
   background: #f8fbff;
   color: #64748b;
   border-radius: 999px;
-  min-width: 24px;
-  height: 24px;
+  width: 22px;
+  min-width: 22px;
+  height: 22px;
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  font-size: 12px;
   line-height: 1;
   cursor: pointer;
   transition: all 0.18s ease;
   margin: 0;
   padding: 0;
+}
+
+.cl-item-meta-preview-btn svg {
+  display: block;
 }
 
 .cl-item-meta-preview-btn:hover {
@@ -2707,10 +2719,6 @@ span.cl-item-meta-chip.cl-item-meta-chip--expiry {
   align-items: flex-start;
   gap: 4px;
   max-width: 100%;
-}
-
-.checklist-file-chip-row--reference .checklist-file-chip--inline {
-  max-width: min(100%, 200px);
 }
 
 .checklist-upload-btn {
