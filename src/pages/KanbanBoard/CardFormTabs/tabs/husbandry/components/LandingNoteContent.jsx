@@ -6,7 +6,8 @@ import "react-tooltip/dist/react-tooltip.css";
 import ReactQuill from "react-quill";
 import "react-quill/dist/quill.snow.css";
 import CustomModal from "../../../../../../components/CustomModal";
-import { FormField, FormInput, FormSelect } from "./Husbandry.components";
+import { FormField, FormInput, FormSelect, FormTextarea } from "./Husbandry.components";
+import DateTimePickerField from "../../../components/DateTimePickerField";
 import editIcon from "../../../../../../assets/images/edit.svg";
 import deleteIcon from "../../../../../../assets/images/delete.svg";
 import eyeIcon from "../../../../../../assets/images/eye.svg";
@@ -206,6 +207,7 @@ const LandingNoteContent = ({ formValues, handleChange, cardColor }) => {
   const [formData, setFormData] = useState({
     landingNoteNo: "",
     date: "",
+    time: "",
     poDo: "",
     landingProof: [],
     quantity: "",
@@ -239,6 +241,7 @@ const LandingNoteContent = ({ formValues, handleChange, cardColor }) => {
       setFormData({
         landingNoteNo: note.landingNoteNo || "",
         date: note.date || "",
+        time: note.time || "",
         poDo: note.poDo || "",
         landingProof: note.landingProof || [],
         quantity: note.quantity || "",
@@ -251,6 +254,7 @@ const LandingNoteContent = ({ formValues, handleChange, cardColor }) => {
       setFormData({
         landingNoteNo: "",
         date: "",
+        time: "",
         poDo: "",
         landingProof: [],
         quantity: "",
@@ -268,6 +272,7 @@ const LandingNoteContent = ({ formValues, handleChange, cardColor }) => {
     setFormData({
       landingNoteNo: "",
       date: "",
+      time: "",
       poDo: "",
       landingProof: [],
       quantity: "",
@@ -872,15 +877,12 @@ const LandingNoteContent = ({ formValues, handleChange, cardColor }) => {
 
             <div className="col-md-6 mb-3">
               <FormField label="Date">
-                <div className="cf-input">
-                  <input
-                    type="date"
-                    value={formData.date}
-                    onChange={(e) => handleFormChange("date", e.target.value)}
-                    placeholder="Select date"
-                    style={{ width: "100%", border: "none", outline: "none", background: "transparent", fontSize: "14px", color: "#1a1a1a", fontFamily: "inherit", padding: 0, flex: 1 }}
-                  />
-                </div>
+                <DateTimePickerField
+                  dateValue={formData.date}
+                  timeValue={formData.time || ""}
+                  onDateTimeChange={({ date, time }) => setFormData(prev => ({ ...prev, date, time }))}
+                  placeholder="Select date and time"
+                />
               </FormField>
             </div>
 
@@ -903,7 +905,7 @@ const LandingNoteContent = ({ formValues, handleChange, cardColor }) => {
                   onDragLeave={handleDragLeave}
                   onDrop={handleDrop}
                   onClick={handleBrowseClick}
-                  style={{ width: "100%" }}
+                  style={{ width: "100%", minHeight: "unset", cursor: "pointer" }}
                 >
                   <input
                     ref={fileInputRef}
@@ -916,42 +918,17 @@ const LandingNoteContent = ({ formValues, handleChange, cardColor }) => {
                   />
 
                   {selectedFiles.length === 0 ? (
-                    <div className="upload-zone-content">
-                      <div className="upload-icon-wrapper">
-                        <svg
-                          width="48"
-                          height="48"
-                          viewBox="0 0 48 48"
-                          fill="none"
-                          xmlns="http://www.w3.org/2000/svg"
-                        >
-                          <rect
-                            x="4"
-                            y="4"
-                            width="40"
-                            height="40"
-                            rx="8"
-                            stroke="#00368c"
-                            strokeWidth="2"
-                            strokeDasharray="4 4"
-                            fill="none"
-                          />
-                          <path
-                            d="M24 16V32M24 16L18 22M24 16L30 22M12 36H36"
-                            stroke="#00368c"
-                            strokeWidth="2"
-                            strokeLinecap="round"
-                            strokeLinejoin="round"
-                          />
+                    <div style={{ display: "flex", alignItems: "center", gap: "14px", padding: "14px 20px" }}>
+                      <div style={{ flexShrink: 0, width: "36px", height: "36px", borderRadius: "8px", background: "#eef2fb", display: "flex", alignItems: "center", justifyContent: "center" }}>
+                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                          <path d="M12 4v12M12 4L8 8M12 4l4 4M4 18h16" stroke="#00368c" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
                         </svg>
                       </div>
-                      <div className="upload-text-content">
-                        <p className="upload-main-text">
-                          Drag & drop files here, or <span className="upload-link">browse</span>
+                      <div>
+                        <p style={{ margin: 0, fontSize: "13px", fontWeight: 500, color: "#1a1a1a" }}>
+                          Drag & drop or <span style={{ color: "#00368c", textDecoration: "underline", cursor: "pointer" }}>browse</span>
                         </p>
-                        <p className="upload-sub-text">
-                          Supports: PDF, DOC, DOCX, JPG, PNG (Max 10MB per file)
-                        </p>
+                        <p style={{ margin: "2px 0 0", fontSize: "11px", color: "#888" }}>PDF, DOC, DOCX, JPG, PNG · Max 10MB</p>
                       </div>
                     </div>
                   ) : (
@@ -1050,11 +1027,11 @@ const LandingNoteContent = ({ formValues, handleChange, cardColor }) => {
 
             <div className="col-12 mb-3">
               <FormField label="Description">
-                <FormInput
-                  type="text"
+                <FormTextarea
                   value={formData.description}
                   onChange={(e) => handleFormChange("description", e.target.value)}
                   placeholder="Enter description..."
+                  rows={3}
                 />
               </FormField>
             </div>
