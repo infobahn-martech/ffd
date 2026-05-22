@@ -1682,6 +1682,8 @@ function General({
     cc_emails: "",
     subject: "",
   });
+  /** Unmodified appointment_acceptance from all_detail_by_vessel_id (preserves base64 logo in body). */
+  const [appointmentAcceptanceFromApi, setAppointmentAcceptanceFromApi] = useState(null);
   const [touchedPreviewFields, setTouchedPreviewFields] = useState({
     from_email: false,
     to_email: false,
@@ -2255,15 +2257,19 @@ function General({
       firstNonEmptyString(previewMessageText) ||
       firstNonEmptyString(emailPreviewData?.messageHtml) ||
       "";
-    const appointmentAcceptancePayload = {
+    const appointmentAcceptanceFallback = {
       body: emailPreviewBody,
       cc_emails: firstNonEmptyString(editablePreviewFields.cc_emails),
       from_email: firstNonEmptyString(editablePreviewFields.from_email),
       subject: firstNonEmptyString(editablePreviewFields.subject),
       to_email: firstNonEmptyString(editablePreviewFields.to_email),
     };
+    const appointmentAcceptanceForSubmit =
+      appointmentAcceptanceFromApi && typeof appointmentAcceptanceFromApi === "object"
+        ? appointmentAcceptanceFromApi
+        : appointmentAcceptanceFallback;
     console.log("EMAIL PREVIEW BODY", previewMessageText);
-    console.log("APPOINTMENT ACCEPTANCE PAYLOAD", appointmentAcceptancePayload);
+    console.log("APPOINTMENT ACCEPTANCE PAYLOAD", appointmentAcceptanceForSubmit);
     const formPayload = {
       ...formValues,
       swimlane_id: swimlaneId,
@@ -2283,7 +2289,7 @@ function General({
           };
         })
         .filter(Boolean),
-      appointment_acceptance: appointmentAcceptancePayload,
+      appointment_acceptance: appointmentAcceptanceForSubmit,
     };
 
     setIsSavingGeneral(true);
@@ -2292,6 +2298,10 @@ function General({
         appointmentFiles: appointmentDocuments,
         dailyReportEmailOptions,
         billingInstructionEmailOptions,
+        appointmentAcceptanceFromApi:
+          appointmentAcceptanceFromApi && typeof appointmentAcceptanceFromApi === "object"
+            ? appointmentAcceptanceFromApi
+            : undefined,
       });
       console.log("FINAL FORM DATA");
       for (const pair of formData.entries()) {
@@ -2698,6 +2708,12 @@ function General({
       });
     }
 
+    if (data.appointment_acceptance && typeof data.appointment_acceptance === "object") {
+      setAppointmentAcceptanceFromApi(data.appointment_acceptance);
+    } else {
+      setAppointmentAcceptanceFromApi(null);
+    }
+
     const resolvedPreview = resolveEmailPreviewPayload(payload);
     if (resolvedPreview) {
       setEmailPreviewData(resolvedPreview);
@@ -2737,6 +2753,7 @@ function General({
     setPreviewMessageText("");
     setPreviewMessageEditorKey(0);
     setEmailPreviewData(null);
+    setAppointmentAcceptanceFromApi(null);
     setIsPreviewMessageDirty(false);
     resetTouchedPreviewFields();
     setEditablePreviewFields({
