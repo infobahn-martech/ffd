@@ -49,6 +49,8 @@ const useTaskManagementReducer = create((set) => ({
       set({ isBeingUpdated: true });
       const { data } = await taskManagementService.createTaskList({
         task_name: formData?.task_name,
+        call_type_id: formData?.call_type_id,
+        port_id: formData?.port_id,
       });
       set({ isBeingUpdated: false });
       const { success } = useAlertReducer.getState();
@@ -67,6 +69,8 @@ const useTaskManagementReducer = create((set) => ({
       const taskId = formData?.task_id ?? formData?._id;
       const { data } = await taskManagementService.updateTaskList(taskId, {
         task_name: formData?.task_name,
+        call_type_id: formData?.call_type_id,
+        port_id: formData?.port_id,
       });
       set({ isBeingUpdated: false });
       const { success } = useAlertReducer.getState();
