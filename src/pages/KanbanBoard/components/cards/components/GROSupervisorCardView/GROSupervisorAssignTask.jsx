@@ -38,14 +38,21 @@ function GROSupervisorAssignTask({ tasks, assignments, onAssignmentChange, userO
 
   return (
     <div className="gro-supervisor-assign-panel" role="tabpanel" aria-label="Assign Task">
-      <div className="gro-supervisor-panel-head">
+      {/* <div className="gro-supervisor-panel-head">
         <h3 className="gro-supervisor-panel-title">Assign Task</h3>
         <span className="gro-supervisor-panel-meta">{tasks.length} tasks</span>
-      </div>
+      </div> */}
 
       <div className="gro-supervisor-task-table-panel">
         <div className="gro-supervisor-task-table-scroll">
           <table className="gro-supervisor-task-table">
+            <colgroup>
+              <col className="gro-supervisor-col-name" />
+              <col className="gro-supervisor-col-remarks" />
+              <col className="gro-supervisor-col-user" />
+              <col className="gro-supervisor-col-due" />
+              <col className="gro-supervisor-col-status" />
+            </colgroup>
             <thead>
               <tr>
                 <th className="gro-supervisor-task-th-name">Task Name</th>

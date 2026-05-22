@@ -1380,35 +1380,36 @@ body .gro-doc-action-modal .modal-dialog {
   min-height: 0;
   display: flex;
   flex-direction: column;
-  padding: 14px 18px 12px;
+  padding: 20px 24px 16px;
   overflow: hidden;
 }
 
 .gro-supervisor-panel-head {
   display: flex;
-  align-items: center;
+  align-items: flex-end;
   justify-content: space-between;
-  gap: 12px;
-  margin-bottom: 12px;
+  gap: 16px;
+  margin-bottom: 18px;
   flex-shrink: 0;
 }
 
 .gro-supervisor-panel-title {
   margin: 0;
-  font-size: 15px;
+  font-size: 18px;
   font-weight: 700;
-  color: #0f172a;
-  letter-spacing: -0.01em;
+  color: #101828;
+  letter-spacing: -0.02em;
+  line-height: 1.25;
   display: flex;
   align-items: center;
-  gap: 8px;
+  gap: 10px;
 
   &::before {
     content: "";
     display: inline-block;
-    width: 3px;
-    height: 16px;
-    border-radius: 2px;
+    width: 4px;
+    height: 20px;
+    border-radius: 3px;
     background: #3e5ebd;
     flex-shrink: 0;
   }
@@ -1417,8 +1418,10 @@ body .gro-doc-action-modal .modal-dialog {
 .gro-supervisor-panel-meta {
   font-size: 12px;
   font-weight: 500;
-  color: #64748b;
+  color: #98a2b3;
   white-space: nowrap;
+  line-height: 1.4;
+  padding-bottom: 2px;
 }
 
 .gro-supervisor-task-table-panel {
@@ -1426,57 +1429,86 @@ body .gro-doc-action-modal .modal-dialog {
   min-height: 0;
   display: flex;
   flex-direction: column;
-  border: 1px solid #e2e8f0;
-  border-radius: 12px;
+  border: 1px solid #eaecf0;
+  border-radius: 20px;
   overflow: hidden;
   background: #ffffff;
-  box-shadow: 0 1px 3px rgba(15, 23, 42, 0.05);
+  box-shadow:
+    0 1px 2px rgba(16, 24, 40, 0.05),
+    0 4px 16px rgba(16, 24, 40, 0.06);
 }
 
 .gro-supervisor-task-table-scroll {
   flex: 1;
   min-height: 0;
   overflow: auto;
+  -webkit-overflow-scrolling: touch;
   scrollbar-width: thin;
-  scrollbar-color: #cbd5e1 #f1f5f9;
+  scrollbar-color: #d0d5dd #f9fafb;
 }
 
 .gro-supervisor-task-table {
   width: 100%;
-  min-width: 800px;
+  min-width: 720px;
+  table-layout: fixed;
   border-collapse: separate;
   border-spacing: 0;
-  font-size: 13px;
-  color: #0f172a;
+  font-size: 14px;
+  color: #101828;
+}
+
+.gro-supervisor-col-name {
+  width: 20%;
+}
+
+.gro-supervisor-col-remarks {
+  width: 30%;
+}
+
+.gro-supervisor-col-user {
+  width: 20%;
+}
+
+.gro-supervisor-col-due {
+  width: 20%;
+}
+
+.gro-supervisor-col-status {
+  width: 10%;
 }
 
 .gro-supervisor-task-table thead th {
   position: sticky;
   top: 0;
   z-index: 2;
-  padding-top: 10px;
-  padding-bottom: 10px;
-  font-size: 11px;
-  font-weight: 700;
-  letter-spacing: 0.04em;
-  text-transform: uppercase;
-  color: #475569;
+  padding: 14px 16px;
+  font-size: 13px;
+  font-weight: 600;
+  letter-spacing: normal;
+  text-transform: none;
+  color: #475467;
   text-align: left;
+  vertical-align: middle;
   white-space: nowrap;
-  background: linear-gradient(180deg, #f8fafc 0%, #eef2f7 100%);
-  border-bottom: 2px solid #dbe3ef;
-  box-shadow: inset 0 -1px 0 #e2e8f0;
+  background: #f9fafb;
+  border-bottom: 1px solid #eaecf0;
+  box-shadow: none;
 }
 
 .gro-supervisor-task-table tbody td {
-  padding: 8px 12px;
-  border-bottom: 1px solid #f1f5f9;
+  padding: 14px 16px;
+  border-bottom: 1px solid #f2f4f7;
   vertical-align: middle;
-  line-height: 1.35;
+  line-height: 1.5;
+  overflow: hidden;
+}
+
+.gro-supervisor-task-table tbody tr {
+  transition: background-color 0.15s ease;
 }
 
 .gro-supervisor-task-table tbody tr:hover td {
-  background: #fafbfc;
+  background: #f9fafb;
 }
 
 .gro-supervisor-task-table tbody tr:last-child td {
@@ -1484,47 +1516,31 @@ body .gro-doc-action-modal .modal-dialog {
 }
 
 .gro-supervisor-task-th-name,
-.gro-supervisor-task-td-name {
-  min-width: 132px;
-  padding-right: 8px;
-}
-
+.gro-supervisor-task-td-name,
 .gro-supervisor-task-th-remarks,
-.gro-supervisor-task-td-remarks {
-  min-width: 200px;
-  padding-left: 28px;
-  padding-right: 12px;
-}
-
+.gro-supervisor-task-td-remarks,
 .gro-supervisor-task-th-user,
-.gro-supervisor-task-td-user {
-  min-width: 188px;
-  padding-left: 32px;
-  padding-right: 12px;
-}
-
+.gro-supervisor-task-td-user,
 .gro-supervisor-task-th-due,
-.gro-supervisor-task-td-due {
-  min-width: 172px;
-  padding-left: 8px;
-}
-
-.gro-supervisor-task-th-status {
-  width: 108px;
-  text-align: center !important;
-}
-
-.gro-supervisor-task-td-name {
-  font-weight: 600;
-  color: #334155;
+.gro-supervisor-task-td-due,
+.gro-supervisor-task-th-status,
+.gro-supervisor-task-td-status {
+  width: auto;
+  min-width: 0;
+  padding-left: 16px;
+  padding-right: 16px;
 }
 
 .gro-supervisor-task-name-text {
   display: block;
-  max-width: 200px;
+  max-width: 100%;
+  font-size: 15px;
+  font-weight: 600;
+  color: #101828;
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
+  line-height: 1.4;
 }
 
 .gro-supervisor-task-td-remarks,
@@ -1534,75 +1550,127 @@ body .gro-doc-action-modal .modal-dialog {
 }
 
 .gro-supervisor-task-remarks-text {
-  display: block;
-  max-width: 280px;
-  font-size: 12px;
-  color: #475569;
+  display: -webkit-box;
+  max-width: 100%;
+  font-size: 14px;
+  color: #667085;
+  line-height: 1.5;
   overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  word-break: break-word;
 }
 
 .gro-supervisor-task-remarks-text--empty {
-  color: #94a3b8;
+  color: #98a2b3;
 }
 
 .gro-supervisor-task-td-status {
   text-align: center;
 }
 
-/* Shared table control shell — single border, 36px height (GRO Supervisor only) */
+/* Shared table controls — 46px height, 12px radius, single border (GRO Supervisor only) */
+$gro-supervisor-control-height: 46px;
+$gro-supervisor-control-radius: 12px;
+$gro-supervisor-control-border: #d0d5dd;
+
 .gro-supervisor-table-control {
   width: 100%;
   min-width: 0;
 }
 
 .gro-supervisor-table-control--select .gro-supervisor-searchable-select.cf-searchable-select,
-.gro-supervisor-table-control--select .cf-searchable-select {
+.gro-supervisor-table-control--select .cf-searchable-select,
+.gro-supervisor-table-control--select .cf-multi-select-email {
   width: 100%;
+  border: none;
+  box-shadow: none;
+  outline: none;
 }
 
 .gro-supervisor-table-control--select .cf-multi-select-email-input {
-  min-height: 36px;
-  height: 36px;
-  padding: 0 32px 0 12px;
-  border: 1px solid #e2e8f0;
-  border-radius: 8px;
+  min-height: $gro-supervisor-control-height;
+  height: $gro-supervisor-control-height;
+  padding: 0 40px 0 14px;
+  border: 1px solid $gro-supervisor-control-border;
+  border-radius: $gro-supervisor-control-radius;
   background: #ffffff;
   box-shadow: none;
+  outline: none;
   box-sizing: border-box;
+  display: flex;
+  align-items: center;
 }
 
 .gro-supervisor-table-control--select .cf-multi-select-email-input:hover {
-  border-color: #cbd5e1;
+  border-color: #98a2b3;
 }
 
 .gro-supervisor-table-control--select .cf-multi-select-email-input:focus-within {
   border-color: #3e5ebd;
-  box-shadow: 0 0 0 1px rgba(62, 94, 189, 0.15);
+  box-shadow: 0 0 0 3px rgba(62, 94, 189, 0.12);
   outline: none;
 }
 
 .gro-supervisor-table-control--select .cf-multi-select-email-tags {
-  min-height: 34px;
+  min-height: 0;
+  height: 100%;
+  flex: 1;
   align-items: center;
+  overflow: hidden;
 }
 
 .gro-supervisor-table-control--select .cf-multi-select-placeholder,
 .gro-supervisor-table-control--select .cf-multi-select-selected-value,
 .gro-supervisor-table-control--select .cf-searchable-select-input {
-  font-size: 13px;
-  line-height: 1.3;
+  font-size: 14px;
+  line-height: 1.4;
+  color: #101828;
+}
+
+.gro-supervisor-table-control--select .cf-multi-select-placeholder {
+  color: #98a2b3;
+}
+
+.gro-supervisor-table-control--select .cf-multi-select-selected-value,
+.gro-supervisor-table-control--select .cf-multi-select-placeholder {
+  display: block;
+  padding: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  line-height: $gro-supervisor-control-height;
+}
+
+.gro-supervisor-table-control--select .cf-searchable-select-input {
+  height: 100%;
+  padding: 0;
+  margin: 0;
+  align-self: center;
 }
 
 .gro-supervisor-table-control--select .cf-multi-select-arrow {
-  font-size: 10px;
-  color: #64748b;
-  right: 10px;
+  position: absolute;
+  right: 14px;
+  top: 50%;
+  transform: translateY(-50%);
+  margin: 0;
+  padding: 0;
+  border: none;
+  border-left: none;
+  font-size: 11px;
+  color: #667085;
+  line-height: 1;
+  pointer-events: auto;
+}
+
+.gro-supervisor-table-control--select .cf-multi-select-email-input {
+  position: relative;
 }
 
 .gro-supervisor-table-control--datetime {
   cursor: pointer;
+  width: 100%;
 }
 
 .gro-supervisor-table-control--datetime .cf-datetime-picker,
@@ -1613,6 +1681,7 @@ body .gro-doc-action-modal .modal-dialog {
   padding: 0;
   border: none;
   background: transparent;
+  box-shadow: none;
 }
 
 .gro-supervisor-table-control--datetime .cf-datetime-picker .cf-datetime-input-field {
@@ -1623,64 +1692,78 @@ body .gro-doc-action-modal .modal-dialog {
 .gro-supervisor-table-control--datetime .cf-datetime-picker .MuiPickersInputBase-root,
 .gro-supervisor-table-control--datetime .cf-datetime-picker .MuiOutlinedInput-root,
 .gro-supervisor-table-control--datetime .cf-datetime-picker .MuiInputBase-root {
-  min-height: 36px !important;
-  height: 36px;
+  min-height: $gro-supervisor-control-height !important;
+  height: $gro-supervisor-control-height !important;
   width: 100%;
-  border: 1px solid #e2e8f0 !important;
-  border-radius: 8px !important;
+  border: 1px solid $gro-supervisor-control-border !important;
+  border-radius: $gro-supervisor-control-radius !important;
   background: #ffffff !important;
-  padding: 0 8px 0 12px !important;
+  padding: 0 12px 0 14px !important;
   box-sizing: border-box;
   box-shadow: none !important;
+  outline: none !important;
   cursor: pointer;
+  align-items: center;
 }
 
 .gro-supervisor-table-control--datetime .cf-datetime-picker .MuiPickersInputBase-root:hover,
 .gro-supervisor-table-control--datetime .cf-datetime-picker .MuiOutlinedInput-root:hover,
 .gro-supervisor-table-control--datetime .cf-datetime-picker .MuiInputBase-root:hover {
-  border-color: #cbd5e1 !important;
+  border-color: #98a2b3 !important;
 }
 
 .gro-supervisor-table-control--datetime .cf-datetime-picker .MuiPickersInputBase-root.Mui-focused,
 .gro-supervisor-table-control--datetime .cf-datetime-picker .MuiOutlinedInput-root.Mui-focused,
 .gro-supervisor-table-control--datetime .cf-datetime-picker .MuiInputBase-root.Mui-focused {
   border-color: #3e5ebd !important;
-  box-shadow: 0 0 0 1px rgba(62, 94, 189, 0.15) !important;
+  box-shadow: 0 0 0 3px rgba(62, 94, 189, 0.12) !important;
 }
 
-.gro-supervisor-table-control--datetime .cf-datetime-picker .MuiOutlinedInput-notchedOutline {
+.gro-supervisor-table-control--datetime .cf-datetime-picker .MuiOutlinedInput-notchedOutline,
+.gro-supervisor-table-control--datetime .cf-datetime-picker fieldset {
   border: none !important;
+  display: none;
 }
 
 .gro-supervisor-table-control--datetime .cf-datetime-picker .MuiOutlinedInput-input,
-.gro-supervisor-table-control--datetime .cf-datetime-picker .MuiPickersSectionList-root {
+.gro-supervisor-table-control--datetime .cf-datetime-picker .MuiPickersSectionList-root,
+.gro-supervisor-table-control--datetime .cf-datetime-picker .MuiPickersInputBase-sectionsContainer {
   padding: 0;
-  font-size: 13px;
+  margin: 0;
+  font-size: 14px;
+  line-height: 1.4;
+  color: #101828;
   cursor: pointer;
+  align-items: center;
 }
 
 .gro-supervisor-table-control--datetime .cf-datetime-picker .MuiInputAdornment-root {
-  margin-left: 4px;
+  margin-left: auto;
+  margin-right: 0;
 }
 
 .gro-supervisor-table-control--datetime .cf-datetime-picker .MuiIconButton-root {
-  padding: 4px;
+  padding: 6px;
   margin: 0;
+  color: #667085;
 }
 
 .gro-supervisor-task-status {
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  min-width: 72px;
-  padding: 3px 8px;
-  font-size: 10px;
-  font-weight: 700;
-  letter-spacing: 0.03em;
-  border-radius: 6px;
+  min-width: 92px;
+  height: 32px;
+  padding: 0 12px;
+  font-size: 12px;
+  font-weight: 600;
+  letter-spacing: normal;
+  border-radius: 999px;
   border: 1px solid transparent;
   white-space: nowrap;
-  line-height: 1.2;
+  line-height: 1;
+  text-align: center;
+  box-sizing: border-box;
 }
 
 .gro-supervisor-task-status--neutral {
@@ -1715,16 +1798,17 @@ body .gro-doc-action-modal .modal-dialog {
 
 .gro-supervisor-task-empty {
   text-align: center;
-  color: #94a3b8;
+  color: #98a2b3;
   font-style: italic;
-  padding: 20px 12px !important;
+  padding: 28px 16px !important;
+  font-size: 14px;
 }
 
 .gro-supervisor-task-table-footer {
   flex-shrink: 0;
-  padding: 8px 12px;
-  border-top: 1px solid #eef2f7;
-  background: #fafbfc;
+  padding: 12px 16px;
+  border-top: 1px solid #eaecf0;
+  background: #fcfcfd;
 }
 
 .gro-supervisor-pagination.gro-pass-pagination {
@@ -1824,5 +1908,27 @@ body .gro-doc-action-modal .modal-dialog {
 
   .gro-pass-pagination__info {
     font-size: 11px;
+  }
+
+  .gro-supervisor-assign-panel {
+    padding: 14px 16px 12px;
+  }
+
+  .gro-supervisor-panel-head {
+    margin-bottom: 14px;
+  }
+
+  .gro-supervisor-panel-title {
+    font-size: 16px;
+  }
+
+  .gro-supervisor-task-table {
+    min-width: 640px;
+  }
+
+  .gro-supervisor-task-table thead th,
+  .gro-supervisor-task-table tbody td {
+    padding-left: 12px;
+    padding-right: 12px;
   }
 }
