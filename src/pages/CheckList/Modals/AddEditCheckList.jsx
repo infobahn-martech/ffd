@@ -12,7 +12,7 @@ import useCheckListReducer from "../../../store/CheckListReducer";
 import useVesselTypeReducer from "../../../store/VesselTypeReducer";
 import useBargeTypeReducer from "../../../store/BargeTypeReducer";
 import usePortReducer from "../../../store/PortReducer";
-import useRoleReducer from "../../../store/RoleReducer";
+import documentChecklistService from "../../../services/documentChecklistService";
 import taskChecklistService from "../../../services/taskChecklistService";
 
 function normalizeRoleIdsForApi(item) {
@@ -63,11 +63,19 @@ function normalizeRoleIdsForForm(item) {
 }
 
 function normalizeTaskIdsForApi(item) {
+  const toNumbers = (ids) =>
+    ids
+      .filter((id) => id !== "" && id != null)
+      .map((id) => Number(id))
+      .filter((n) => !Number.isNaN(n));
+
   if (Array.isArray(item?.task_ids)) {
-    return item.task_ids.filter((id) => id != null && id !== "");
+    return toNumbers(item.task_ids);
   }
   if (Array.isArray(item?.tasks)) {
-    return item.tasks.filter((id) => id != null && id !== "");
+    return toNumbers(
+      item.tasks.map((t) => (typeof t === "object" ? t?.task_id ?? t?._id : t))
+    );
   }
   return [];
 }
@@ -511,6 +519,21 @@ const CHECKLIST_ITEM_MS_CLASS_NAMES = {
   option: () => "checklist-role-ms__option"
 };
 
+function normalizeCustomRolesResponse(data) {
+  if (Array.isArray(data?.data)) return data.data;
+  if (Array.isArray(data)) return data;
+  return [];
+}
+
+function mapCustomRolesToSelectOptions(rows) {
+  return (rows ?? [])
+    .map((r) => ({
+      value: String(r?.role_id ?? ""),
+      label: String(r?.role ?? "")
+    }))
+    .filter((o) => o.value !== "");
+}
+
 function normalizeTasksByRoleResponse(data) {
   if (Array.isArray(data?.data)) return data.data;
   if (Array.isArray(data?.task_list)) return data.task_list;
@@ -752,24 +775,38 @@ export function CheckListModal({ showModal, closeModal, callTypesOptions, onSucc
   const { vesselTypes, getVesselTypes, isLoading: isLoadingVesselTypes } = useVesselTypeReducer((s) => s);
   const { bargeTypes, getBargeTypes, isLoading: isLoadingBargeTypes } = useBargeTypeReducer((s) => s);
   const { ports, getPorts, isLoading: isLoadingPorts } = usePortReducer((s) => s);
-  const { fetchRoles, roles, isLoading: isLoadingRoles } = useRoleReducer((s) => s);
+  const [customRoles, setCustomRoles] = useState([]);
+  const [isLoadingRoles, setIsLoadingRoles] = useState(false);
 
   const roleSelectOptions = useMemo(
-    () =>
-      (roles ?? []).map((r) => ({
-        value: String(r?._id ?? r?.role_id ?? ""),
-        label: String(r?.name ?? r?.role ?? "")
-      })),
-    [roles]
+    () => mapCustomRolesToSelectOptions(customRoles),
+    [customRoles]
   );
 
   useEffect(() => {
-    if (showModal) {
-      getVesselTypes({ params: { limit: 1000 } });
-      getBargeTypes({ params: { limit: 1000 } });
-      getPorts({ params: { limit: 1000 } });
-      fetchRoles({ params: { page: 1, limit: 100 } });
-    }
+    if (!showModal) return;
+    getVesselTypes({ params: { limit: 1000 } });
+    getBargeTypes({ params: { limit: 1000 } });
+    getPorts({ params: { limit: 1000 } });
+
+    let cancelled = false;
+    (async () => {
+      setIsLoadingRoles(true);
+      try {
+        const { data } = await documentChecklistService.getCustomRoles();
+        if (!cancelled) {
+          setCustomRoles(normalizeCustomRolesResponse(data));
+        }
+      } catch {
+        if (!cancelled) setCustomRoles([]);
+      } finally {
+        if (!cancelled) setIsLoadingRoles(false);
+      }
+    })();
+
+    return () => {
+      cancelled = true;
+    };
   }, [showModal]);
 
   const {
