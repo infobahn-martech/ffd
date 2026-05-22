@@ -815,8 +815,6 @@ function PreArrival({
 
   const savePreArrivalData = async () => {
     const callId = card?.call_id || card?.callId || formValues?.call_id || formValues?.callId || card?.id || "";
-    const assignedGro = formValues.assignedGro || "";
-    const assignedCustom = formValues.assignedCustom || "";
 
     if (!callId) {
       notify("Call ID is required.", "error");
@@ -882,8 +880,6 @@ function PreArrival({
     if (coordinatesId) {
       fd.append("coordinates_id", coordinatesId);
     }
-    fd.append("assigned_gro", assignedGro);
-    fd.append("assigned_custom", assignedCustom);
 
     if (formValues.saberUtStatus === SABER_APPLIED_BY_SEDRES) {
       (formValues.saberUtDocumentsAttachments || []).forEach((item) => {
@@ -893,23 +889,6 @@ function PreArrival({
         }
       });
     }
-
-    const dh = formValues.preArrivalDocumentHandling;
-    (dh?.documents?.gro || []).forEach((doc) => {
-      (doc.files || []).forEach((item) => {
-        const f = attachmentFile(item);
-        if (!f) return;
-        fd.append(`gro_docs[${doc.id}]`, f);
-      });
-    });
-
-    (dh?.documents?.customClearance || []).forEach((doc) => {
-      (doc.files || []).forEach((item) => {
-        const f = attachmentFile(item);
-        if (!f) return;
-        fd.append(`custom_docs[${doc.id}]`, f);
-      });
-    });
 
     const reportBody = resolveReportBodyHtml(reportDraft.message, buildPreArrivalReportBody(formValues));
     fd.append(
