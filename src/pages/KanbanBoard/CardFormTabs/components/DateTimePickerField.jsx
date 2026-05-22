@@ -4,6 +4,7 @@ import dayjs from "dayjs";
 import { LocalizationProvider } from "@mui/x-date-pickers/LocalizationProvider";
 import { AdapterDayjs } from "@mui/x-date-pickers/AdapterDayjs";
 import { DateTimePicker } from "@mui/x-date-pickers/DateTimePicker";
+import { DatePicker } from "@mui/x-date-pickers/DatePicker";
 import "../../../../design/scss/general.scss";
 
 const padDateTimePart = (value) => String(value).padStart(2, "0");
@@ -63,6 +64,7 @@ const DateTimePickerField = ({
   minDate,
   maxDate,
   popperClassName = "",
+  dateOnly = false,
 }) => {
   const selectedValue = useMemo(() => {
     const combinedDate = combineDateTime(dateValue, timeValue);
@@ -84,36 +86,50 @@ const DateTimePickerField = ({
     [dateFieldName, onDateChange, onDateTimeChange, onTimeChange, timeFieldName]
   );
 
+  const slotProps = {
+    textField: {
+      placeholder,
+      fullWidth: true,
+      error: hasError,
+      className: "cf-datetime-input-field",
+      sx: {
+        "& .MuiInputBase-input.Mui-disabled": {
+          WebkitTextFillColor: "rgb(26, 26, 26)",
+          color: "rgb(26, 26, 26)",
+          opacity: 1,
+        },
+      },
+    },
+    popper: {
+      className: ["cf-datetime-popper", popperClassName].filter(Boolean).join(" "),
+    },
+  };
+
   return (
     <div className={`cf-input date-time-row cf-datetime-picker ${hasError ? "is-invalid" : ""}`} title={formatDisplayDateTime(dateValue, timeValue)}>
       <LocalizationProvider dateAdapter={AdapterDayjs}>
-        <DateTimePicker
-          value={selectedValue}
-          onChange={handlePickerChange}
-          disabled={disabled}
-          minDate={minDateValue}
-          maxDate={maxDateValue}
-          minutesStep={5}
-          format="YYYY-MM-DD HH:mm"
-          slotProps={{
-            textField: {
-              placeholder,
-              fullWidth: true,
-              error: hasError,
-              className: "cf-datetime-input-field",
-              sx: {
-                "& .MuiInputBase-input.Mui-disabled": {
-                  WebkitTextFillColor: "rgb(26, 26, 26)",
-                  color: "rgb(26, 26, 26)",
-                  opacity: 1,
-                },
-              },
-            },
-            popper: {
-              className: ["cf-datetime-popper", popperClassName].filter(Boolean).join(" "),
-            },
-          }}
-        />
+        {dateOnly ? (
+          <DatePicker
+            value={selectedValue}
+            onChange={handlePickerChange}
+            disabled={disabled}
+            minDate={minDateValue}
+            maxDate={maxDateValue}
+            format="YYYY-MM-DD"
+            slotProps={slotProps}
+          />
+        ) : (
+          <DateTimePicker
+            value={selectedValue}
+            onChange={handlePickerChange}
+            disabled={disabled}
+            minDate={minDateValue}
+            maxDate={maxDateValue}
+            minutesStep={5}
+            format="YYYY-MM-DD HH:mm"
+            slotProps={slotProps}
+          />
+        )}
       </LocalizationProvider>
     </div>
   );
@@ -133,6 +149,7 @@ DateTimePickerField.propTypes = {
   minDate: PropTypes.oneOfType([PropTypes.instanceOf(Date), PropTypes.string]),
   maxDate: PropTypes.oneOfType([PropTypes.instanceOf(Date), PropTypes.string]),
   popperClassName: PropTypes.string,
+  dateOnly: PropTypes.bool,
 };
 
 export default DateTimePickerField;

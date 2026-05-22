@@ -883,6 +883,7 @@ const LandingNoteContent = ({ formValues, handleChange, cardColor }) => {
                   onDateChange={(e) => handleFormChange("date", e.target.value)}
                   dateFieldName="date"
                   placeholder="Select date"
+                  dateOnly
                 />
               </FormField>
             </div>
@@ -900,129 +901,59 @@ const LandingNoteContent = ({ formValues, handleChange, cardColor }) => {
 
             <div className="col-12 mb-3">
               <FormField label="Landing Proof">
-                <div
-                  className={`document-upload-zone ${isDragging ? "dragging" : ""}`}
-                  onDragOver={handleDragOver}
-                  onDragLeave={handleDragLeave}
-                  onDrop={handleDrop}
-                  onClick={handleBrowseClick}
-                  style={{ width: "100%", maxWidth: "100%", height: "auto", minHeight: "unset", cursor: "pointer" }}
-                >
-                  <input
-                    ref={fileInputRef}
-                    type="file"
-                    id="landingProofDocuments"
-                    multiple
-                    onChange={handleFileChange}
-                    className="file-input-hidden"
-                    accept=".pdf,.doc,.docx,.jpg,.jpeg,.png"
-                  />
-
-                  {selectedFiles.length === 0 ? (
-                    <div className="upload-zone-content" style={{ flexDirection: "row", gap: "12px", padding: "14px 20px", alignItems: "center", justifyContent: "center" }}>
-                      <div className="upload-icon-wrapper" style={{ margin: 0 }}>
-                        <svg
-                          width="32"
-                          height="32"
-                          viewBox="0 0 48 48"
-                          fill="none"
-                          xmlns="http://www.w3.org/2000/svg"
-                        >
-                          <rect
-                            x="4"
-                            y="4"
-                            width="40"
-                            height="40"
-                            rx="8"
-                            stroke="#00368c"
-                            strokeWidth="2"
-                            strokeDasharray="4 4"
-                            fill="none"
-                          />
-                          <path
-                            d="M24 16V32M24 16L18 22M24 16L30 22M12 36H36"
-                            stroke="#00368c"
-                            strokeWidth="2"
-                            strokeLinecap="round"
-                            strokeLinejoin="round"
-                          />
-                        </svg>
-                      </div>
-                      <div className="upload-text-content" style={{ margin: 0, textAlign: "left" }}>
-                        <p className="upload-main-text" style={{ margin: 0, fontSize: "13px" }}>
-                          Drag & drop files here, or <span className="upload-link">browse</span>
-                        </p>
-                        <p className="upload-sub-text" style={{ margin: 0, fontSize: "11px" }}>
-                          Supports: PDF, DOC, DOCX, JPG, PNG (Max 10MB per file)
+                <div className="document-upload-wrapper">
+                  <div
+                    className={`document-upload-zone ${isDragging ? "dragging" : ""}`}
+                    onDragOver={handleDragOver}
+                    onDragLeave={handleDragLeave}
+                    onDrop={handleDrop}
+                    onClick={handleBrowseClick}
+                    style={{ "--card-color": cardColor || "#00368c", cursor: "pointer" }}
+                  >
+                    <input
+                      ref={fileInputRef}
+                      type="file"
+                      id="landingProofDocuments"
+                      multiple
+                      onChange={handleFileChange}
+                      className="file-input-hidden"
+                      accept=".pdf,.doc,.docx,.jpg,.jpeg,.png"
+                    />
+                    <div className="upload-zone-content">
+                      <div className="upload-icon-wrapper"></div>
+                      <div className="upload-text-content">
+                        <p className="upload-main-text">
+                          Drag and drop your files here, or{" "}
+                          <span className="upload-link">click to browse</span>
                         </p>
                       </div>
                     </div>
-                  ) : (
-                    <div className="uploaded-files-list">
-                      <div className="files-header">
-                        <span className="files-count">{selectedFiles.length} file(s) uploaded</span>
-                        <div className="files-header-actions">
+                  </div>
+                  {selectedFiles.length > 0 && (
+                    <div className="document-file-preview-list">
+                      {selectedFiles.map((file, index) => (
+                        <div key={index} className="document-file-preview-item">
+                          <div className="document-file-preview-info">
+                            <span className="document-file-preview-name">{file.name}</span>
+                            <span className="document-file-preview-size">
+                              {(file.size / 1024 / 1024).toFixed(2)} MB
+                            </span>
+                          </div>
                           <button
-                            type="button"
-                            className="add-more-files-btn"
+                            className="document-file-preview-remove"
                             onClick={(e) => {
                               e.stopPropagation();
-                              handleBrowseClick();
+                              handleRemoveFile(index);
                             }}
-                            style={{ "--card-color": cardColor }}
-                          >
-                            + Add More
-                          </button>
-                          <button
                             type="button"
-                            className="btn-remove-files"
-                            onClick={(e) => {
-                              e.stopPropagation();
-                              setSelectedFiles([]);
-                            }}
-                            style={{ "--card-color": cardColor }}
+                            title="Remove file"
                           >
-                            Remove All
+                            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                              <path d="M18 6L6 18M6 6L18 18" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+                            </svg>
                           </button>
                         </div>
-                      </div>
-                      <div className="files-list">
-                        {selectedFiles.map((file, index) => (
-                          <div key={index} className="file-item">
-                            <div className="file-info">
-                              <span className="file-name">{file.name}</span>
-                              <span className="file-size">
-                                {(file.size / 1024 / 1024).toFixed(2)} MB
-                              </span>
-                            </div>
-                            <button
-                              type="button"
-                              className="btn-remove-file"
-                              onClick={(e) => {
-                                e.stopPropagation();
-                                handleRemoveFile(index);
-                              }}
-                              style={{ "--card-color": cardColor }}
-                            >
-                              <svg
-                                width="16"
-                                height="16"
-                                viewBox="0 0 16 16"
-                                fill="none"
-                                xmlns="http://www.w3.org/2000/svg"
-                              >
-                                <path
-                                  d="M12 4L4 12M4 4L12 12"
-                                  stroke="#999"
-                                  strokeWidth="1.5"
-                                  strokeLinecap="round"
-                                  strokeLinejoin="round"
-                                />
-                              </svg>
-                            </button>
-                          </div>
-                        ))}
-                      </div>
+                      ))}
                     </div>
                   )}
                 </div>
