@@ -879,16 +879,10 @@ const LandingNoteContent = ({ formValues, handleChange, cardColor }) => {
               <FormField label="Date">
                 <DateTimePickerField
                   dateValue={formData.date}
-<<<<<<< Updated upstream
-                  timeValue={formData.time || ""}
-                  onDateTimeChange={({ date, time }) => setFormData(prev => ({ ...prev, date, time }))}
-                  placeholder="Select date and time"
-=======
                   timeValue=""
                   onDateChange={(e) => handleFormChange("date", e.target.value)}
                   dateFieldName="date"
                   placeholder="Select date"
->>>>>>> Stashed changes
                 />
               </FormField>
             </div>
@@ -925,17 +919,6 @@ const LandingNoteContent = ({ formValues, handleChange, cardColor }) => {
                   />
 
                   {selectedFiles.length === 0 ? (
-<<<<<<< Updated upstream
-                    <div style={{ display: "flex", alignItems: "center", gap: "14px", padding: "14px 20px" }}>
-                      <div style={{ flexShrink: 0, width: "36px", height: "36px", borderRadius: "8px", background: "#eef2fb", display: "flex", alignItems: "center", justifyContent: "center" }}>
-                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-                          <path d="M12 4v12M12 4L8 8M12 4l4 4M4 18h16" stroke="#00368c" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
-                        </svg>
-                      </div>
-                      <div>
-                        <p style={{ margin: 0, fontSize: "13px", fontWeight: 500, color: "#1a1a1a" }}>
-                          Drag & drop or <span style={{ color: "#00368c", textDecoration: "underline", cursor: "pointer" }}>browse</span>
-=======
                     <div className="upload-zone-content" style={{ flexDirection: "row", gap: "12px", padding: "14px 20px", alignItems: "center", justifyContent: "center" }}>
                       <div className="upload-icon-wrapper" style={{ margin: 0 }}>
                         <svg
@@ -971,9 +954,7 @@ const LandingNoteContent = ({ formValues, handleChange, cardColor }) => {
                         </p>
                         <p className="upload-sub-text" style={{ margin: 0, fontSize: "11px" }}>
                           Supports: PDF, DOC, DOCX, JPG, PNG (Max 10MB per file)
->>>>>>> Stashed changes
                         </p>
-                        <p style={{ margin: "2px 0 0", fontSize: "11px", color: "#888" }}>PDF, DOC, DOCX, JPG, PNG · Max 10MB</p>
                       </div>
                     </div>
                   ) : (
