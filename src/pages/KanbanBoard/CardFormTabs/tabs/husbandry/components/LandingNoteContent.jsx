@@ -906,7 +906,7 @@ const LandingNoteContent = ({ formValues, handleChange, cardColor }) => {
                   onDragLeave={handleDragLeave}
                   onDrop={handleDrop}
                   onClick={handleBrowseClick}
-                  style={{ width: "100%", minHeight: "unset", cursor: "pointer" }}
+                  style={{ width: "100%", maxWidth: "100%", height: "auto", minHeight: "unset", cursor: "pointer" }}
                 >
                   <input
                     ref={fileInputRef}
