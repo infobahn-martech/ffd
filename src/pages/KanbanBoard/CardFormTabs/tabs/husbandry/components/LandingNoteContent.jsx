@@ -7,7 +7,7 @@ import ReactQuill from "react-quill";
 import "react-quill/dist/quill.snow.css";
 import CustomModal from "../../../../../../components/CustomModal";
 import { FormField, FormInput, FormSelect, FormTextarea } from "./Husbandry.components";
-import DateTimePickerField from "../../../components/DateTimePickerField";
+import DateTimePickerField from "../../components/DateTimePickerField";
 import editIcon from "../../../../../../assets/images/edit.svg";
 import deleteIcon from "../../../../../../assets/images/delete.svg";
 import eyeIcon from "../../../../../../assets/images/eye.svg";
@@ -879,9 +879,16 @@ const LandingNoteContent = ({ formValues, handleChange, cardColor }) => {
               <FormField label="Date">
                 <DateTimePickerField
                   dateValue={formData.date}
+<<<<<<< Updated upstream
                   timeValue={formData.time || ""}
                   onDateTimeChange={({ date, time }) => setFormData(prev => ({ ...prev, date, time }))}
                   placeholder="Select date and time"
+=======
+                  timeValue=""
+                  onDateChange={(e) => handleFormChange("date", e.target.value)}
+                  dateFieldName="date"
+                  placeholder="Select date"
+>>>>>>> Stashed changes
                 />
               </FormField>
             </div>
@@ -918,6 +925,7 @@ const LandingNoteContent = ({ formValues, handleChange, cardColor }) => {
                   />
 
                   {selectedFiles.length === 0 ? (
+<<<<<<< Updated upstream
                     <div style={{ display: "flex", alignItems: "center", gap: "14px", padding: "14px 20px" }}>
                       <div style={{ flexShrink: 0, width: "36px", height: "36px", borderRadius: "8px", background: "#eef2fb", display: "flex", alignItems: "center", justifyContent: "center" }}>
                         <svg width="20" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
@@ -927,6 +935,43 @@ const LandingNoteContent = ({ formValues, handleChange, cardColor }) => {
                       <div>
                         <p style={{ margin: 0, fontSize: "13px", fontWeight: 500, color: "#1a1a1a" }}>
                           Drag & drop or <span style={{ color: "#00368c", textDecoration: "underline", cursor: "pointer" }}>browse</span>
+=======
+                    <div className="upload-zone-content" style={{ flexDirection: "row", gap: "12px", padding: "14px 20px", alignItems: "center", justifyContent: "center" }}>
+                      <div className="upload-icon-wrapper" style={{ margin: 0 }}>
+                        <svg
+                          width="32"
+                          height="32"
+                          viewBox="0 0 48 48"
+                          fill="none"
+                          xmlns="http://www.w3.org/2000/svg"
+                        >
+                          <rect
+                            x="4"
+                            y="4"
+                            width="40"
+                            height="40"
+                            rx="8"
+                            stroke="#00368c"
+                            strokeWidth="2"
+                            strokeDasharray="4 4"
+                            fill="none"
+                          />
+                          <path
+                            d="M24 16V32M24 16L18 22M24 16L30 22M12 36H36"
+                            stroke="#00368c"
+                            strokeWidth="2"
+                            strokeLinecap="round"
+                            strokeLinejoin="round"
+                          />
+                        </svg>
+                      </div>
+                      <div className="upload-text-content" style={{ margin: 0, textAlign: "left" }}>
+                        <p className="upload-main-text" style={{ margin: 0, fontSize: "13px" }}>
+                          Drag & drop files here, or <span className="upload-link">browse</span>
+                        </p>
+                        <p className="upload-sub-text" style={{ margin: 0, fontSize: "11px" }}>
+                          Supports: PDF, DOC, DOCX, JPG, PNG (Max 10MB per file)
+>>>>>>> Stashed changes
                         </p>
                         <p style={{ margin: "2px 0 0", fontSize: "11px", color: "#888" }}>PDF, DOC, DOCX, JPG, PNG · Max 10MB</p>
                       </div>
