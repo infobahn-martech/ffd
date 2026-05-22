@@ -14,7 +14,7 @@ import deleteIcon from "../../../../../../assets/images/delete.svg";
 import eyeIcon from "../../../../../../assets/images/eye.svg";
 import logisticsWarehouseService from "../../../../../../services/logisticsWarehouseService";
 import packingTypeService from "../../../../../../services/packingTypeService";
-import inboundOrderService from "../../../../../../services/inboundOrderService";
+import useInboundOrderReducer from "../../../../../../store/InboundOrderReducer";
 import vehicleService from "../../../../../../services/vehicleService";
 
 const extractListFromApi = (body) => {
@@ -218,13 +218,24 @@ const ReactQuillEditor = ({ value, onChange, placeholder, name = "remarks", clas
 };
 
 const InboundOrdersContent = ({ formValues, handleChange, cardColor }) => {
+  const {
+    saveInboundOrder,
+    getAllInbound,
+    getInboundById,
+    clearInboundDetail,
+    inboundOrders,
+    inboundTotal,
+    isLoadingList: isLoadingOrders,
+    isLoadingView,
+    isLoadingSave: isSubmitting,
+    inboundDetail: viewingOrder,
+  } = useInboundOrderReducer((state) => state);
+
   const [showModal, setShowModal] = useState(false);
   const [showConvertModal, setShowConvertModal] = useState(false);
   const [showViewModal, setShowViewModal] = useState(false);
-  const [ordersList, setOrdersList] = useState([]);
   const [editingOrder, setEditingOrder] = useState(null);
   const [convertingOrder, setConvertingOrder] = useState(null);
-  const [viewingOrder, setViewingOrder] = useState(null);
   const [expandedOrders, setExpandedOrders] = useState({ 1: true }); // First order expanded by default
   const [expandedConvertOrders, setExpandedConvertOrders] = useState({ 1: true });
   const [isDraggingDocuments, setIsDraggingDocuments] = useState(false);
@@ -233,11 +244,6 @@ const InboundOrdersContent = ({ formValues, handleChange, cardColor }) => {
   const [dropdownPosition, setDropdownPosition] = useState({ top: 0, right: 0 });
   const dropdownButtonRefs = useRef({});
   const [inboundPage, setInboundPage] = useState(1);
-  const [inboundTotal, setInboundTotal] = useState(0);
-  const [isSubmitting, setIsSubmitting] = useState(false);
-  const [isLoadingOrders, setIsLoadingOrders] = useState(false);
-  const [isLoadingView, setIsLoadingView] = useState(false);
-  const [inboundRefreshKey, setInboundRefreshKey] = useState(0);
   const [formErrors, setFormErrors] = useState({});
   const INBOUND_LIMIT = 10;
 
@@ -357,25 +363,8 @@ const InboundOrdersContent = ({ formValues, handleChange, cardColor }) => {
   useEffect(() => {
     const callId = Number(formValues?.call_id || formValues?.callId || formValues?.card_call_id || 0);
     if (!callId) return;
-    let cancelled = false;
-    const loadInboundOrders = async () => {
-      setIsLoadingOrders(true);
-      try {
-        const res = await inboundOrderService.getAllInbound({ call_id: callId, page: inboundPage, limit: INBOUND_LIMIT });
-        if (cancelled) return;
-        const data = Array.isArray(res?.data?.data) ? res.data.data : [];
-        const total = res?.data?.pagination?.total || 0;
-        setOrdersList(data);
-        setInboundTotal(total);
-      } catch (err) {
-        console.error("Failed to load inbound orders", err);
-      } finally {
-        if (!cancelled) setIsLoadingOrders(false);
-      }
-    };
-    loadInboundOrders();
-    return () => { cancelled = true; };
-  }, [formValues?.call_id, formValues?.callId, formValues?.card_call_id, inboundPage, inboundRefreshKey]);
+    getAllInbound({ call_id: callId, page: inboundPage, limit: INBOUND_LIMIT });
+  }, [formValues?.call_id, formValues?.callId, formValues?.card_call_id, inboundPage]);
 
   const handleOpenModal = (order = null) => {
     if (order) {
@@ -592,46 +581,41 @@ const InboundOrdersContent = ({ formValues, handleChange, cardColor }) => {
     if (!validateForm()) return;
     const callId = Number(formValues?.call_id || formValues?.callId || formValues?.card_call_id || 0);
 
-    setIsSubmitting(true);
-    try {
-      const items = formData.orders.map((order) => {
-        const item = {
-          po_no: order.poDo,
-          quantity: Number(order.quantity) || 0,
-          package_type_id: Number(order.packageType) || 0,
-          description: order.description || "",
-          transportation_required: order.transportation ? 1 : 0,
-        };
-        if (order.transportation) {
-          item.transportation = {
-            vehicle_type_id: Number(order.typeOfVehicle) || 0,
-            from_location_id: Number(order.fromLocation) || 0,
-            pickup_location: order.pickUpFrom || "",
-            to_location_id: Number(order.toLocation) || 0,
-            driver_id: Number(order.driverName) || 0,
-          };
-        }
-        return item;
-      });
-
-      const payload = {
-        call_id: callId,
-        warehouse_id: Number(formData.warehouse) || 0,
-        inbound_date: formData.date,
-        remarks: formData.remarks || "",
-        items,
+    const items = formData.orders.map((order) => {
+      const item = {
+        po_no: order.poDo,
+        quantity: Number(order.quantity) || 0,
+        package_type_id: Number(order.packageType) || 0,
+        description: order.description || "",
+        transportation_required: order.transportation ? 1 : 0,
       };
+      if (order.transportation) {
+        item.transportation = {
+          vehicle_type_id: Number(order.typeOfVehicle) || 0,
+          from_location_id: Number(order.fromLocation) || 0,
+          pickup_location: order.pickUpFrom || "",
+          to_location_id: Number(order.toLocation) || 0,
+          driver_id: Number(order.driverName) || 0,
+        };
+      }
+      return item;
+    });
 
-      await inboundOrderService.saveInboundOrder(payload);
+    const payload = {
+      call_id: callId,
+      warehouse_id: Number(formData.warehouse) || 0,
+      inbound_date: formData.date,
+      remarks: formData.remarks || "",
+      items,
+    };
 
-      setInboundRefreshKey((k) => k + 1);
-      handleCloseModal();
-    } catch (err) {
-      console.error("Failed to save inbound order", err);
-      alert("Failed to save inbound order. Please try again.");
-    } finally {
-      setIsSubmitting(false);
-    }
+    saveInboundOrder({
+      data: payload,
+      cb: () => {
+        handleCloseModal();
+        getAllInbound({ call_id: callId, page: inboundPage, limit: INBOUND_LIMIT });
+      },
+    });
   };
 
   const handleReset = () => {
@@ -660,35 +644,19 @@ const InboundOrdersContent = ({ formValues, handleChange, cardColor }) => {
     setExpandedOrders({ 1: true });
   };
 
-  const handleDelete = (orderId) => {
-    if (window.confirm("Are you sure you want to delete this order?")) {
-      const updatedList = ordersList.filter(order => order.id !== orderId);
-      setOrdersList(updatedList);
-
-      // Update formValues
-      const syntheticEvent = { target: { value: updatedList } };
-      handleChange("inboundOrdersList")(syntheticEvent);
-    }
+  const handleDelete = () => {
+    window.alert("Delete is not yet available for inbound orders.");
   };
 
-  const handleViewOrder = async (order) => {
+  const handleViewOrder = (order) => {
     handleCloseDropdown();
     setShowViewModal(true);
-    setIsLoadingView(true);
-    try {
-      const res = await inboundOrderService.getInboundById(order.inbound_id);
-      setViewingOrder(res?.data?.data || order);
-    } catch (err) {
-      console.error("Failed to load inbound order details", err);
-      setViewingOrder(order);
-    } finally {
-      setIsLoadingView(false);
-    }
+    getInboundById({ inboundId: order.inbound_id });
   };
 
   const handleCloseViewModal = () => {
     setShowViewModal(false);
-    setViewingOrder(null);
+    clearInboundDetail();
   };
 
   const handleToggleDropdown = (orderId, e) => {
@@ -2278,8 +2246,8 @@ const InboundOrdersContent = ({ formValues, handleChange, cardColor }) => {
               <tr>
                 <td colSpan="7" style={{ textAlign: "center", padding: "20px", color: "#666" }}>Loading...</td>
               </tr>
-            ) : ordersList.length > 0 ? (
-              ordersList.map((order) => {
+            ) : inboundOrders.length > 0 ? (
+              inboundOrders.map((order) => {
                 const firstItem = Array.isArray(order.items) ? order.items[0] : null;
                 const rowKey = order.inbound_id ?? order.id ?? Math.random();
                 const description = firstItem?.description || "";
