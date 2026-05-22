@@ -192,7 +192,16 @@ const ChecklistItemRow = ({
   cardColor = "#2A00FF",
   isViewOnly = false,
 }) => {
-  const { id, title, expiryDateRequired, uploadedFromApi = [], requirement, requireCopyOnlyFromApi } = item;
+  const {
+    id,
+    title,
+    expiryDateRequired,
+    uploadedFromApi = [],
+    requirement,
+    requireCopyOnlyFromApi,
+    roleNames = [],
+  } = item;
+  const displayRoleNames = Array.isArray(roleNames) ? roleNames.filter(Boolean) : [];
 
   const [remarks, setRemarks] = useState(itemData?.remarks || "");
   const [uploadedFiles, setUploadedFiles] = useState(() =>
@@ -573,6 +582,25 @@ const ChecklistItemRow = ({
           ) : null}
           {renderReferenceFilesPreview()}
         </div>
+      </td>
+      <td className="checklist-table-role cl-col-role cl-role-cell">
+        {displayRoleNames.length > 0 ? (
+          <div className="cl-role-badges">
+            {displayRoleNames.map((roleName, roleIdx) => (
+              <span
+                key={`${id}_role_${roleIdx}_${roleName}`}
+                className="cl-role-badge"
+                title={roleName}
+              >
+                {roleName}
+              </span>
+            ))}
+          </div>
+        ) : (
+          <span className="cl-role-empty" aria-label="No roles assigned">
+            -
+          </span>
+        )}
       </td>
       <td className="checklist-table-upload cl-col-upload cl-col-upload--multi checklist-upload-compact-wrap">
         <div className="checklist-upload-compact">

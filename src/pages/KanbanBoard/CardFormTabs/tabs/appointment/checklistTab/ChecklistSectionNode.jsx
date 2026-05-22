@@ -5,10 +5,11 @@ import { countNodeItems, countNodeCompleted } from "./checklistMappers";
 
 const ChecklistItemsTable = ({ items, itemsData, onItemChange, cardColor, isViewOnly, isDAModule }) => (
   <div className="checklist-items-table-wrapper checklist-table-card cl-items-table-wrap">
-    <table className="checklist-items-table cl-items-table cl-items-table--4col">
+    <table className="checklist-items-table cl-items-table cl-items-table--5col">
       <colgroup>
         <col className="checklist-col-check cl-col-check" />
         <col className="cl-col-item" />
+        <col className="cl-col-role" />
         <col className="cl-col-upload" />
         <col className="cl-col-remarks" />
       </colgroup>
@@ -16,6 +17,7 @@ const ChecklistItemsTable = ({ items, itemsData, onItemChange, cardColor, isView
         <tr>
           <th className="checklist-table-checkbox-header">Done</th>
           <th className="checklist-table-label-header">Item</th>
+          <th className="checklist-table-role-header">Role</th>
           <th className="checklist-table-upload-header">Document upload</th>
           <th className="checklist-table-remarks-header">Remarks</th>
         </tr>

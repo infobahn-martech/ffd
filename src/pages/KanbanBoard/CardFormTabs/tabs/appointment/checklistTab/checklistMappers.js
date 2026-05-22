@@ -125,6 +125,24 @@ export const buildLabelFromApiItem = (item) => {
   return suffix ? `${name} ${suffix}` : name;
 };
 
+/** Display-only role names from get_checklist_by_id item.roles (tasks ignored). */
+export const mapItemRoleNamesFromApi = (item) => {
+  const raw = item?.roles;
+  if (!Array.isArray(raw)) return [];
+  const seen = new Set();
+  const names = [];
+  raw.forEach((role) => {
+    const name =
+      typeof role === "string"
+        ? String(role).trim()
+        : String(role?.role_name ?? role?.name ?? role?.role ?? "").trim();
+    if (!name || seen.has(name)) return;
+    seen.add(name);
+    names.push(name);
+  });
+  return names;
+};
+
 const mapItemToRow = (it, i, sectionId) => {
   const iid = it.checklist_item_id ?? i;
   const itemId = `${sectionId}_item_${iid}`;
@@ -183,6 +201,7 @@ const mapItemToRow = (it, i, sectionId) => {
     requirement,
     requireCopyOnlyFromApi,
     expiryDateRequired: String(it.expiry_date_reqd) === "1" || it.expiry_date_reqd === 1,
+    roleNames: mapItemRoleNamesFromApi(it),
     uploadedFromApi,
     file_url: it.file_url ?? dd.file_url ?? null,
     sample_file_url: it.sample_file_url ?? dd.sample_file_url ?? null,
