@@ -80,21 +80,54 @@ function normalizeTaskIdsForApi(item) {
   return [];
 }
 
+function dedupeStringIds(ids) {
+  const seen = new Set();
+  const out = [];
+  for (const id of ids) {
+    const s = String(id);
+    if (id == null || id === "" || seen.has(s)) continue;
+    seen.add(s);
+    out.push(s);
+  }
+  return out;
+}
+
 function normalizeTaskIdsForForm(item) {
   const toStrings = (ids) =>
-    ids
-      .filter((id) => id != null && id !== "")
-      .map((id) => String(id));
+    dedupeStringIds(
+      ids.filter((id) => id != null && id !== "").map((id) => String(id))
+    );
 
-  if (Array.isArray(item?.task_ids)) {
+  if (Array.isArray(item?.task_ids) && item.task_ids.length > 0) {
     return toStrings(item.task_ids);
   }
   if (Array.isArray(item?.tasks)) {
-    return toStrings(
+    const fromTasks = toStrings(
       item.tasks.map((t) => (typeof t === "object" ? t?.task_id ?? t?._id : t))
     );
+    if (fromTasks.length > 0) return fromTasks;
+  }
+  if (Array.isArray(item?.roles)) {
+    const collected = [];
+    for (const role of item.roles) {
+      if (Array.isArray(role?.task_ids)) {
+        collected.push(...role.task_ids);
+      }
+    }
+    if (collected.length > 0) return toStrings(collected);
   }
   return [];
+}
+
+/** Edit GetById: task options from item.roles[].tasks (not item-level). */
+function buildTaskSelectOptionsFromItemRoles(item) {
+  const rows = [];
+  for (const role of item?.roles ?? []) {
+    if (Array.isArray(role?.tasks)) {
+      rows.push(...role.tasks);
+    }
+  }
+  return mapTaskRowsToSelectOptions(rows);
 }
 
 function optionalChecklistId(val) {
@@ -478,6 +511,7 @@ function createSectionItemPayload() {
     description: "",
     role_ids: [],
     task_ids: [],
+    _initialTaskOptions: [],
     expiry_date_reqd: false,
     document_details: {
       is_copy_required: false,
@@ -495,6 +529,7 @@ function createSubSectionItemPayload() {
     description: "",
     role_ids: [],
     task_ids: [],
+    _initialTaskOptions: [],
     expiry_date_reqd: false,
     document_details: {
       is_copy_required: false,
@@ -609,8 +644,16 @@ function ChecklistItemTasksSelect({
   );
 }
 
-function ChecklistItemRowTasksSelect({ control, roleIdsName, taskIdsName, setValue, getValues }) {
+function ChecklistItemRowTasksSelect({
+  control,
+  roleIdsName,
+  taskIdsName,
+  initialTaskOptionsName,
+  setValue,
+  getValues
+}) {
   const roleIds = useWatch({ control, name: roleIdsName }) ?? [];
+  const initialTaskOptions = useWatch({ control, name: initialTaskOptionsName }) ?? [];
   const [taskSelectOptions, setTaskSelectOptions] = useState([]);
   const [isLoadingTasks, setIsLoadingTasks] = useState(false);
   const requestIdRef = useRef(0);
@@ -623,9 +666,25 @@ function ChecklistItemRowTasksSelect({ control, roleIdsName, taskIdsName, setVal
     return ids.join(",");
   }, [roleIds]);
 
+  const initialOptionsKey = useMemo(
+    () =>
+      (Array.isArray(initialTaskOptions) ? initialTaskOptions : [])
+        .map((o) => `${o.value}:${o.label}`)
+        .join("|"),
+    [initialTaskOptions]
+  );
+
+  useEffect(() => {
+    const seeded = Array.isArray(initialTaskOptions) ? initialTaskOptions : [];
+    if (seeded.length > 0) {
+      setTaskSelectOptions((prev) => mergeTaskSelectOptions([seeded, prev]));
+    }
+  }, [initialOptionsKey]);
+
   useEffect(() => {
     const roleIdList = roleIdsKey ? roleIdsKey.split(",").filter(Boolean) : [];
     const reqId = ++requestIdRef.current;
+    const seeded = Array.isArray(initialTaskOptions) ? initialTaskOptions : [];
 
     if (roleIdList.length === 0) {
       setTaskSelectOptions([]);
@@ -640,18 +699,21 @@ function ChecklistItemRowTasksSelect({ control, roleIdsName, taskIdsName, setVal
     let cancelled = false;
 
     (async () => {
-      setIsLoadingTasks(true);
+      if (seeded.length === 0) {
+        setIsLoadingTasks(true);
+      }
       try {
         const responses = await Promise.all(
           roleIdList.map((roleId) => taskChecklistService.getTasksByRole(roleId))
         );
         if (cancelled || reqId !== requestIdRef.current) return;
 
-        const merged = mergeTaskSelectOptions(
+        const fetched = mergeTaskSelectOptions(
           responses.map((res) =>
             mapTaskRowsToSelectOptions(normalizeTasksByRoleResponse(res?.data))
           )
         );
+        const merged = mergeTaskSelectOptions([seeded, fetched]);
         setTaskSelectOptions(merged);
 
         const validIds = new Set(merged.map((o) => o.value));
@@ -662,7 +724,7 @@ function ChecklistItemRowTasksSelect({ control, roleIdsName, taskIdsName, setVal
         }
       } catch {
         if (!cancelled && reqId === requestIdRef.current) {
-          setTaskSelectOptions([]);
+          setTaskSelectOptions(seeded.length > 0 ? seeded : []);
         }
       } finally {
         if (!cancelled && reqId === requestIdRef.current) {
@@ -674,7 +736,7 @@ function ChecklistItemRowTasksSelect({ control, roleIdsName, taskIdsName, setVal
     return () => {
       cancelled = true;
     };
-  }, [roleIdsKey, roleIdsName, taskIdsName, setValue, getValues]);
+  }, [roleIdsKey, roleIdsName, taskIdsName, initialOptionsKey, setValue, getValues]);
 
   const hasRoles =
     Array.isArray(roleIds) && roleIds.filter((id) => id != null && id !== "").length > 0;
@@ -735,6 +797,7 @@ function mapApiToForm(data) {
     description: item.description || "",
     role_ids: normalizeRoleIdsForForm(item),
     task_ids: normalizeTaskIdsForForm(item),
+    _initialTaskOptions: buildTaskSelectOptionsFromItemRoles(item),
     document_details: {
       is_copy_required: item.document_details?.require_copy_only || false,
       required_copy_only: null,
@@ -985,6 +1048,7 @@ export function CheckListModal({ showModal, closeModal, callTypesOptions, onSucc
                     control={control}
                     roleIdsName={`sections.${sectionIndex}.items.${itemIndex}.role_ids`}
                     taskIdsName={`sections.${sectionIndex}.items.${itemIndex}.task_ids`}
+                    initialTaskOptionsName={`sections.${sectionIndex}.items.${itemIndex}._initialTaskOptions`}
                     setValue={setValue}
                     getValues={getValues}
                   />
@@ -1123,6 +1187,7 @@ export function CheckListModal({ showModal, closeModal, callTypesOptions, onSucc
                     control={control}
                     roleIdsName={`sections.${sectionIndex}.sub_sections.${subSectionIndex}.items.${itemIndex}.role_ids`}
                     taskIdsName={`sections.${sectionIndex}.sub_sections.${subSectionIndex}.items.${itemIndex}.task_ids`}
+                    initialTaskOptionsName={`sections.${sectionIndex}.sub_sections.${subSectionIndex}.items.${itemIndex}._initialTaskOptions`}
                     setValue={setValue}
                     getValues={getValues}
                   />
