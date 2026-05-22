@@ -121,6 +121,57 @@ function displayNameForEntry(entry) {
 const fileEntryKey = (entry, idx) =>
   entry?.id != null ? String(entry.id) : `idx_${idx}_${displayNameForEntry(entry)}`;
 
+const normalizeChecklistFilename = (value) =>
+  String(value ?? "")
+    .toLowerCase()
+    .normalize("NFKD")
+    .replace(/[\u0300-\u036f]/g, "")
+    .replace(/[^a-z0-9]+/g, "_")
+    .replace(/_+/g, "_")
+    .replace(/^_+|_+$/g, "");
+
+const getNormalizedChecklistFileName = (entry) => {
+  if (!entry) return "";
+  const rawName =
+    entry instanceof File
+      ? entry.name
+      : entry?.name ?? entry?.fileName ?? entry?.file?.name ?? "";
+  return normalizeChecklistFilename(rawName);
+};
+
+/** Match checklist-by-id requirement/reference files so they are not shown in upload column. */
+const buildReferenceFileLookup = (referenceFiles) => {
+  const ids = new Set();
+  const fileIds = new Set();
+  const names = new Set();
+  (Array.isArray(referenceFiles) ? referenceFiles : []).forEach((ref) => {
+    if (ref?.id != null && String(ref.id).trim() !== "") ids.add(String(ref.id));
+    if (ref?.file_id != null && String(ref.file_id).trim() !== "") fileIds.add(String(ref.file_id));
+    const normalizedName = getNormalizedChecklistFileName(ref);
+    if (normalizedName) names.add(normalizedName);
+  });
+  return { ids, fileIds, names };
+};
+
+const isReferenceFileEntry = (entry, lookup) => {
+  if (!entry || !lookup) return false;
+  if (entry?.file instanceof File || entry instanceof File) return false;
+  const entryId = entry?.id != null ? String(entry.id) : "";
+  const entryFileId = entry?.file_id != null ? String(entry.file_id) : "";
+  if (entryId && lookup.ids.has(entryId)) return true;
+  if (entryFileId && lookup.fileIds.has(entryFileId)) return true;
+  const normalizedName = getNormalizedChecklistFileName(entry);
+  if (normalizedName && lookup.names.has(normalizedName) && entry?.fromApi === true) return true;
+  return false;
+};
+
+const filterUploadColumnFiles = (uploadedFiles, referenceFiles) => {
+  const lookup = buildReferenceFileLookup(referenceFiles);
+  return (Array.isArray(uploadedFiles) ? uploadedFiles : []).filter(
+    (entry) => !isReferenceFileEntry(entry, lookup)
+  );
+};
+
 const DocIcon = ({ size = 12 }) => (
   <span className="checklist-file-chip__ico" aria-hidden>
     <svg width={size} height={size} viewBox="0 0 24 24" fill="none">
@@ -149,11 +200,15 @@ const ChecklistItemRow = ({
   );
   const fileInputRef = useRef(null);
   const itemFilesRef = useRef(null);
-  const [moreFilesOpen, setMoreFilesOpen] = useState(false);
+  const uploadFilesRef = useRef(null);
+  const [moreRefFilesOpen, setMoreRefFilesOpen] = useState(false);
+  const [moreUploadFilesOpen, setMoreUploadFilesOpen] = useState(false);
 
   const checked = itemData?.checked === true;
   const rowFiles = Array.isArray(uploadedFiles) ? uploadedFiles : [];
-  const templateFallback = Array.isArray(uploadedFromApi) ? uploadedFromApi : [];
+  const referenceFiles = Array.isArray(uploadedFromApi) ? uploadedFromApi : [];
+  const uploadColumnFiles = filterUploadColumnFiles(rowFiles, referenceFiles);
+  const templateFallback = referenceFiles;
   const itemRootBackendUrl = getItemRootBackendPreviewUrl(item);
   const urlFromList = (list) => {
     const arr = Array.isArray(list) ? list : [];
@@ -186,14 +241,18 @@ const ChecklistItemRow = ({
   }, [itemData?.remarks, uploadedFilesSyncKey]);
 
   useEffect(() => {
-    if (!moreFilesOpen) return;
+    if (!moreRefFilesOpen && !moreUploadFilesOpen) return;
     const onDocMouseDown = (e) => {
-      if (itemFilesRef.current && !itemFilesRef.current.contains(e.target)) {
-        setMoreFilesOpen(false);
-      }
+      const inRef = itemFilesRef.current?.contains(e.target);
+      const inUpload = uploadFilesRef.current?.contains(e.target);
+      if (!inRef) setMoreRefFilesOpen(false);
+      if (!inUpload) setMoreUploadFilesOpen(false);
     };
     const onKeyDown = (e) => {
-      if (e.key === "Escape") setMoreFilesOpen(false);
+      if (e.key === "Escape") {
+        setMoreRefFilesOpen(false);
+        setMoreUploadFilesOpen(false);
+      }
     };
     document.addEventListener("mousedown", onDocMouseDown);
     document.addEventListener("keydown", onKeyDown);
@@ -201,10 +260,11 @@ const ChecklistItemRow = ({
       document.removeEventListener("mousedown", onDocMouseDown);
       document.removeEventListener("keydown", onKeyDown);
     };
-  }, [moreFilesOpen]);
+  }, [moreRefFilesOpen, moreUploadFilesOpen]);
 
   useEffect(() => {
-    setMoreFilesOpen(false);
+    setMoreRefFilesOpen(false);
+    setMoreUploadFilesOpen(false);
   }, [uploadedFilesSyncKey]);
 
   const pushChange = (patch) => {
@@ -292,11 +352,14 @@ const ChecklistItemRow = ({
     return Boolean(getBackendFilePreviewUrl(entry));
   };
 
-  const inlineFiles = rowFiles.slice(0, MAX_INLINE_FILE_CHIPS);
-  const overflowCount = Math.max(0, rowFiles.length - MAX_INLINE_FILE_CHIPS);
-  const popoverId = `checklist-files-popover-${id}`;
+  const inlineRefFiles = referenceFiles.slice(0, MAX_INLINE_FILE_CHIPS);
+  const refOverflowCount = Math.max(0, referenceFiles.length - MAX_INLINE_FILE_CHIPS);
+  const inlineUploadFiles = uploadColumnFiles.slice(0, MAX_INLINE_FILE_CHIPS);
+  const uploadOverflowCount = Math.max(0, uploadColumnFiles.length - MAX_INLINE_FILE_CHIPS);
+  const refPopoverId = `checklist-ref-files-popover-${id}`;
+  const uploadPopoverId = `checklist-upload-files-popover-${id}`;
 
-  const renderFileChip = (entry, idx, { variant = "inline" } = {}) => {
+  const renderFileChip = (entry, idx, { variant = "inline", allowRemove = true } = {}) => {
     const label = displayNameForEntry(entry);
     const previewOk = canPreviewEntry(entry);
     const chipClass =
@@ -336,7 +399,7 @@ const ChecklistItemRow = ({
             <circle cx="12" cy="12" r="3" stroke="currentColor" strokeWidth="1.6" />
           </svg>
         </button>
-        {!isViewOnly ? (
+        {!isViewOnly && allowRemove ? (
           <button
             type="button"
             className="checklist-file-chip__btn checklist-file-chip__btn--remove"
@@ -351,31 +414,45 @@ const ChecklistItemRow = ({
     );
   };
 
-  const renderUploadedFilesPreview = () => {
-    if (rowFiles.length === 0) return null;
+  const renderFileChipList = ({
+    files,
+    inlineSlice,
+    overflowCount,
+    popoverId,
+    moreOpen,
+    setMoreOpen,
+    wrapRef,
+    wrapClassName,
+    rowClassName,
+    popoverLabel,
+    allowRemove,
+  }) => {
+    if (!files.length) return null;
 
     return (
-      <div ref={itemFilesRef} className="cl-item-files-wrap">
-        <div className="checklist-file-chip-row checklist-file-chip-row--item" aria-live="polite">
-          {inlineFiles.map((entry, idx) => renderFileChip(entry, idx))}
+      <div ref={wrapRef} className={wrapClassName}>
+        <div className={rowClassName} aria-live="polite">
+          {inlineSlice.map((entry, idx) =>
+            renderFileChip(entry, idx, { allowRemove })
+          )}
           {overflowCount > 0 ? (
             <button
               type="button"
               className="checklist-more-files-chip"
-              aria-expanded={moreFilesOpen}
+              aria-expanded={moreOpen}
               aria-controls={popoverId}
-              onClick={() => setMoreFilesOpen((o) => !o)}
+              onClick={() => setMoreOpen((o) => !o)}
             >
               +{overflowCount} more
             </button>
           ) : null}
         </div>
-        {moreFilesOpen && rowFiles.length > MAX_INLINE_FILE_CHIPS ? (
-          <div id={popoverId} className="checklist-files-popover" role="dialog" aria-label="All uploaded files">
+        {moreOpen && files.length > MAX_INLINE_FILE_CHIPS ? (
+          <div id={popoverId} className="checklist-files-popover" role="dialog" aria-label={popoverLabel}>
             <ul className="checklist-files-popover__list">
-              {rowFiles.map((entry, idx) => (
+              {files.map((entry, idx) => (
                 <li key={fileEntryKey(entry, idx)} className="checklist-files-popover__item">
-                  {renderFileChip(entry, idx, { variant: "popover" })}
+                  {renderFileChip(entry, idx, { variant: "popover", allowRemove })}
                 </li>
               ))}
             </ul>
@@ -384,6 +461,36 @@ const ChecklistItemRow = ({
       </div>
     );
   };
+
+  const renderReferenceFilesPreview = () =>
+    renderFileChipList({
+      files: referenceFiles,
+      inlineSlice: inlineRefFiles,
+      overflowCount: refOverflowCount,
+      popoverId: refPopoverId,
+      moreOpen: moreRefFilesOpen,
+      setMoreOpen: setMoreRefFilesOpen,
+      wrapRef: itemFilesRef,
+      wrapClassName: "cl-item-files-wrap cl-item-files-wrap--reference",
+      rowClassName: "checklist-file-chip-row checklist-file-chip-row--item checklist-file-chip-row--reference",
+      popoverLabel: "All requirement reference files",
+      allowRemove: false,
+    });
+
+  const renderUploadColumnFilesPreview = () =>
+    renderFileChipList({
+      files: uploadColumnFiles,
+      inlineSlice: inlineUploadFiles,
+      overflowCount: uploadOverflowCount,
+      popoverId: uploadPopoverId,
+      moreOpen: moreUploadFilesOpen,
+      setMoreOpen: setMoreUploadFilesOpen,
+      wrapRef: uploadFilesRef,
+      wrapClassName: "cl-upload-files-wrap",
+      rowClassName: "checklist-file-chip-row checklist-file-chip-row--upload",
+      popoverLabel: "All uploaded files",
+      allowRemove: true,
+    });
 
   return (
     <tr className={`checklist-table-row cl-item-row ${checked ? "checked" : ""}`} style={{ "--card-color": cardColor }}>
@@ -464,11 +571,11 @@ const ChecklistItemRow = ({
               ) : null}
             </div>
           ) : null}
-          {renderUploadedFilesPreview()}
+          {renderReferenceFilesPreview()}
         </div>
       </td>
       <td className="checklist-table-upload cl-col-upload cl-col-upload--multi checklist-upload-compact-wrap">
-        <div className="checklist-upload-compact checklist-upload-compact--button-only">
+        <div className="checklist-upload-compact">
           {!isViewOnly ? (
             <button
               type="button"
@@ -494,6 +601,7 @@ const ChecklistItemRow = ({
             className="checklist-file-input"
             accept=".pdf,.doc,.docx,.jpg,.jpeg,.png"
           />
+          {renderUploadColumnFilesPreview()}
         </div>
       </td>
       <td className="checklist-table-remarks cl-col-remarks">
