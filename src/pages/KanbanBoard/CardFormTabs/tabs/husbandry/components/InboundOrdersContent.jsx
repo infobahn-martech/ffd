@@ -6,7 +6,9 @@ import "react-tooltip/dist/react-tooltip.css";
 import ReactQuill from "react-quill";
 import "react-quill/dist/quill.snow.css";
 import CustomModal from "../../../../../../components/CustomModal";
-import { FormField, FormInput, FormSelect } from "./Husbandry.components";
+import { FormField, FormInput, FormSelect, FormTextarea } from "./Husbandry.components";
+import DatePicker from "react-datepicker";
+import "react-datepicker/dist/react-datepicker.css";
 import editIcon from "../../../../../../assets/images/edit.svg";
 import deleteIcon from "../../../../../../assets/images/delete.svg";
 import eyeIcon from "../../../../../../assets/images/eye.svg";
@@ -27,6 +29,22 @@ const mergeOptionForValue = (options, value) => {
   const s = String(value);
   if (options.some((o) => o.value === s)) return options;
   return [...options, { value: s, label: s }];
+};
+
+const parseISODate = (value) => {
+  if (!value) return null;
+  const normalized = String(value).slice(0, 10);
+  const [year, month, day] = normalized.split("-").map(Number);
+  if (!year || !month || !day) return null;
+  return new Date(year, month - 1, day);
+};
+
+const toISODate = (date) => {
+  if (!date) return "";
+  const y = date.getFullYear();
+  const m = String(date.getMonth() + 1).padStart(2, "0");
+  const d = String(date.getDate()).padStart(2, "0");
+  return `${y}-${m}-${d}`;
 };
 
 // Generate dummy inbound orders data
@@ -220,6 +238,7 @@ const InboundOrdersContent = ({ formValues, handleChange, cardColor }) => {
   const [isLoadingOrders, setIsLoadingOrders] = useState(false);
   const [isLoadingView, setIsLoadingView] = useState(false);
   const [inboundRefreshKey, setInboundRefreshKey] = useState(0);
+  const [formErrors, setFormErrors] = useState({});
   const INBOUND_LIMIT = 10;
 
   // Form state - Basic Details
@@ -441,6 +460,7 @@ const InboundOrdersContent = ({ formValues, handleChange, cardColor }) => {
   const handleCloseModal = () => {
     setShowModal(false);
     setEditingOrder(null);
+    setFormErrors({});
     setFormData({
       date: "",
       warehouse: "",
@@ -481,7 +501,39 @@ const InboundOrdersContent = ({ formValues, handleChange, cardColor }) => {
     }));
   };
 
+  const validateForm = () => {
+    const errors = {};
+    if (!formData.date) errors.date = "Date is required";
+    if (!formData.warehouse) errors.warehouse = "Warehouse is required";
+    formData.orders.forEach((order, idx) => {
+      if (!order.poDo) errors[`o${idx}_poDo`] = "PO/DO is required";
+      if (!order.quantity) errors[`o${idx}_quantity`] = "Quantity is required";
+      if (!order.packageType) errors[`o${idx}_packageType`] = "Package Type is required";
+      if (order.transportation) {
+        if (!order.typeOfVehicle) errors[`o${idx}_typeOfVehicle`] = "Vehicle type is required";
+        if (!order.fromLocation) errors[`o${idx}_fromLocation`] = "From location is required";
+        if (!order.toLocation) errors[`o${idx}_toLocation`] = "To location is required";
+        if (!order.driverName) errors[`o${idx}_driverName`] = "Driver is required";
+      }
+    });
+    setFormErrors(errors);
+    return Object.keys(errors).length === 0;
+  };
+
   const handleAddNewOrder = () => {
+    const lastOrder = formData.orders[formData.orders.length - 1];
+    if (lastOrder && (!lastOrder.poDo || !lastOrder.quantity || !lastOrder.packageType)) {
+      const idx = formData.orders.length - 1;
+      setFormErrors((prev) => ({
+        ...prev,
+        [`o${idx}_poDo`]: !lastOrder.poDo ? "PO/DO is required" : undefined,
+        [`o${idx}_quantity`]: !lastOrder.quantity ? "Quantity is required" : undefined,
+        [`o${idx}_packageType`]: !lastOrder.packageType ? "Package Type is required" : undefined,
+      }));
+      // Expand the last order so errors are visible
+      setExpandedOrders((prev) => ({ ...prev, [lastOrder.id]: true }));
+      return;
+    }
     const newOrderId = formData.orders.length > 0 ? Math.max(...formData.orders.map((o) => o.id)) + 1 : 1;
     setFormData((prev) => ({
       ...prev,
@@ -537,6 +589,7 @@ const InboundOrdersContent = ({ formValues, handleChange, cardColor }) => {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
+    if (!validateForm()) return;
     const callId = Number(formValues?.call_id || formValues?.callId || formValues?.card_call_id || 0);
 
     setIsSubmitting(true);
@@ -1072,7 +1125,7 @@ const InboundOrdersContent = ({ formValues, handleChange, cardColor }) => {
 
   const renderHeader = () => (
     <>
-      <h1 className="modal-title">{editingOrder ? "Edit Inbound Order" : "Create Inbound Order"}</h1>
+      <h1 className="modal-title">{editingOrder ? "Edit Inbound Order" : "Add Inbound Order"}</h1>
     </>
   );
 
@@ -1088,67 +1141,47 @@ const InboundOrdersContent = ({ formValues, handleChange, cardColor }) => {
             <div className="row g-2 mb-2">
               <div className="col-md-6 mb-2">
                 <FormField label="Date">
-                  <div className="cf-select cf-date-input">
-                    <input
-                      type="date"
-                      value={formData.date}
-                      onChange={(e) => handleFormChange("date", e.target.value)}
-                      onClick={(e) => e.stopPropagation()}
-                      style={{
-                        width: "100%",
-                        border: "none",
-                        outline: "none",
-                        background: "transparent",
-                        fontSize: "14px",
-                        color: "#1a1a1a",
-                        fontFamily: "inherit",
-                        padding: 0,
-                        flex: 1,
-                        cursor: "pointer",
+                  <div className="cf-input">
+                    <DatePicker
+                      selected={parseISODate(formData.date)}
+                      onChange={(date) => {
+                        handleFormChange("date", toISODate(date));
+                        if (formErrors.date) setFormErrors((prev) => { const e = { ...prev }; delete e.date; return e; });
                       }}
+                      dateFormat="dd/MM/yyyy"
+                      placeholderText="dd/mm/yyyy"
+                      className="premium-date-input"
+                      popperClassName="premium-datepicker-popper"
+                      calendarClassName="premium-datepicker-calendar"
+                      showPopperArrow={false}
                     />
-                    <svg
-                      width="18"
-                      height="18"
-                      viewBox="0 0 24 24"
-                      fill="none"
-                      xmlns="http://www.w3.org/2000/svg"
-                      style={{
-                        flexShrink: 0,
-                        marginLeft: "8px",
-                        color: "#666",
-                        pointerEvents: "none",
-                        position: "relative",
-                        zIndex: 1,
-                      }}
-                    >
-                      <rect x="3" y="4" width="18" height="18" rx="2" stroke="currentColor" strokeWidth="2" fill="none" />
-                      <line x1="16" y1="2" x2="16" y2="6" stroke="currentColor" strokeWidth="2" strokeLinecap="round" />
-                      <line x1="8" y1="2" x2="8" y2="6" stroke="currentColor" strokeWidth="2" strokeLinecap="round" />
-                      <line x1="3" y1="10" x2="21" y2="10" stroke="currentColor" strokeWidth="2" strokeLinecap="round" />
-                    </svg>
                   </div>
                 </FormField>
+                {formErrors.date && <span style={{ color: "#dc3545", fontSize: "12px", display: "block", marginTop: "2px" }}>{formErrors.date}</span>}
               </div>
 
               <div className="col-md-6 mb-2">
                 <FormField label="Warehouse">
                   <FormSelect
                     value={formData.warehouse}
-                    onChange={(e) => handleFormChange("warehouse", e.target.value)}
+                    onChange={(e) => {
+                      handleFormChange("warehouse", e.target.value);
+                      if (formErrors.warehouse) setFormErrors((prev) => { const e = { ...prev }; delete e.warehouse; return e; });
+                    }}
                     options={mergeOptionForValue(warehouseLocationOptions, formData.warehouse)}
                     placeholder="Select warehouse"
                   />
                 </FormField>
+                {formErrors.warehouse && <span style={{ color: "#dc3545", fontSize: "12px", display: "block", marginTop: "2px" }}>{formErrors.warehouse}</span>}
               </div>
 
               <div className="col-md-12 mb-2">
                 <FormField label="Remarks">
-                  <FormInput
-                    type="text"
+                  <FormTextarea
                     value={formData.remarks}
                     onChange={(e) => handleFormChange("remarks", e.target.value)}
                     placeholder="Enter remarks..."
+                    rows={3}
                   />
                 </FormField>
               </div>
@@ -1304,25 +1337,33 @@ const InboundOrdersContent = ({ formValues, handleChange, cardColor }) => {
                       </div>
 
                       <div className="col-lg-4 col-md-6">
-                        <FormField label="PO/DO">
+                        <FormField label="PO/DO *">
                           <FormInput
                             type="text"
                             value={order.poDo}
-                            onChange={(e) => handleOrderChange(order.id, "poDo", e.target.value)}
+                            onChange={(e) => {
+                              handleOrderChange(order.id, "poDo", e.target.value);
+                              if (formErrors[`o${index}_poDo`]) setFormErrors((prev) => { const e = { ...prev }; delete e[`o${index}_poDo`]; return e; });
+                            }}
                             placeholder="Enter PO/DO number..."
                           />
                         </FormField>
+                        {formErrors[`o${index}_poDo`] && <span style={{ color: "#dc3545", fontSize: "12px", display: "block", marginTop: "2px" }}>{formErrors[`o${index}_poDo`]}</span>}
                       </div>
 
                       <div className="col-lg-4 col-md-6">
-                        <FormField label="Quantity">
+                        <FormField label="Quantity *">
                           <FormInput
                             type="number"
                             value={order.quantity}
-                            onChange={(e) => handleOrderChange(order.id, "quantity", e.target.value)}
+                            onChange={(e) => {
+                              handleOrderChange(order.id, "quantity", e.target.value);
+                              if (formErrors[`o${index}_quantity`]) setFormErrors((prev) => { const e = { ...prev }; delete e[`o${index}_quantity`]; return e; });
+                            }}
                             placeholder="Enter quantity..."
                           />
                         </FormField>
+                        {formErrors[`o${index}_quantity`] && <span style={{ color: "#dc3545", fontSize: "12px", display: "block", marginTop: "2px" }}>{formErrors[`o${index}_quantity`]}</span>}
                       </div>
 
                       <div className="col-lg-6 col-md-12">
@@ -1337,14 +1378,18 @@ const InboundOrdersContent = ({ formValues, handleChange, cardColor }) => {
                       </div>
 
                       <div className="col-lg-6 col-md-12">
-                        <FormField label="Package Type">
+                        <FormField label="Package Type *">
                           <FormSelect
                             value={order.packageType}
-                            onChange={(e) => handleOrderChange(order.id, "packageType", e.target.value)}
+                            onChange={(e) => {
+                              handleOrderChange(order.id, "packageType", e.target.value);
+                              if (formErrors[`o${index}_packageType`]) setFormErrors((prev) => { const e = { ...prev }; delete e[`o${index}_packageType`]; return e; });
+                            }}
                             options={mergeOptionForValue(packageTypeOptions, order.packageType)}
                             placeholder="Select package type..."
                           />
                         </FormField>
+                        {formErrors[`o${index}_packageType`] && <span style={{ color: "#dc3545", fontSize: "12px", display: "block", marginTop: "2px" }}>{formErrors[`o${index}_packageType`]}</span>}
                       </div>
                     </div>
 
@@ -1365,25 +1410,33 @@ const InboundOrdersContent = ({ formValues, handleChange, cardColor }) => {
                       {order.transportation && (
                         <div className="row g-2 mb-1">
                           <div className="col-lg-4 col-md-6">
-                            <FormField label="Type of Vehicle">
+                            <FormField label="Type of Vehicle *">
                               <FormSelect
                                 value={order.typeOfVehicle}
-                                onChange={(e) => handleOrderChange(order.id, "typeOfVehicle", e.target.value)}
+                                onChange={(e) => {
+                                  handleOrderChange(order.id, "typeOfVehicle", e.target.value);
+                                  if (formErrors[`o${index}_typeOfVehicle`]) setFormErrors((prev) => { const e = { ...prev }; delete e[`o${index}_typeOfVehicle`]; return e; });
+                                }}
                                 options={mergeOptionForValue(materialVehicleOptions, order.typeOfVehicle)}
                                 placeholder="Select type of vehicle..."
                               />
                             </FormField>
+                            {formErrors[`o${index}_typeOfVehicle`] && <span style={{ color: "#dc3545", fontSize: "12px", display: "block", marginTop: "2px" }}>{formErrors[`o${index}_typeOfVehicle`]}</span>}
                           </div>
 
                           <div className="col-lg-4 col-md-6">
-                            <FormField label="From Location">
+                            <FormField label="From Location *">
                               <FormSelect
                                 value={order.fromLocation}
-                                onChange={(e) => handleOrderChange(order.id, "fromLocation", e.target.value)}
+                                onChange={(e) => {
+                                  handleOrderChange(order.id, "fromLocation", e.target.value);
+                                  if (formErrors[`o${index}_fromLocation`]) setFormErrors((prev) => { const e = { ...prev }; delete e[`o${index}_fromLocation`]; return e; });
+                                }}
                                 options={mergeOptionForValue(warehouseLocationOptions, order.fromLocation)}
                                 placeholder="Select from location..."
                               />
                             </FormField>
+                            {formErrors[`o${index}_fromLocation`] && <span style={{ color: "#dc3545", fontSize: "12px", display: "block", marginTop: "2px" }}>{formErrors[`o${index}_fromLocation`]}</span>}
                           </div>
 
                           <div className="col-lg-4 col-md-6">
@@ -1398,28 +1451,63 @@ const InboundOrdersContent = ({ formValues, handleChange, cardColor }) => {
                           </div>
 
                           <div className="col-lg-4 col-md-6">
-                            <FormField label="To Location">
+                            <FormField label="To Location *">
                               <FormSelect
                                 value={order.toLocation}
-                                onChange={(e) => handleOrderChange(order.id, "toLocation", e.target.value)}
+                                onChange={(e) => {
+                                  handleOrderChange(order.id, "toLocation", e.target.value);
+                                  if (formErrors[`o${index}_toLocation`]) setFormErrors((prev) => { const e = { ...prev }; delete e[`o${index}_toLocation`]; return e; });
+                                }}
                                 options={mergeOptionForValue(warehouseLocationOptions, order.toLocation)}
                                 placeholder="Select to location..."
                               />
                             </FormField>
+                            {formErrors[`o${index}_toLocation`] && <span style={{ color: "#dc3545", fontSize: "12px", display: "block", marginTop: "2px" }}>{formErrors[`o${index}_toLocation`]}</span>}
                           </div>
 
                           <div className="col-lg-4 col-md-6">
-                            <FormField label="Driver Name">
+                            <FormField label="Driver Name *">
                               <FormSelect
                                 value={order.driverName}
-                                onChange={(e) => handleOrderChange(order.id, "driverName", e.target.value)}
+                                onChange={(e) => {
+                                  handleOrderChange(order.id, "driverName", e.target.value);
+                                  if (formErrors[`o${index}_driverName`]) setFormErrors((prev) => { const e = { ...prev }; delete e[`o${index}_driverName`]; return e; });
+                                }}
                                 options={mergeOptionForValue(materialDriverOptions, order.driverName)}
                                 placeholder="Select driver name..."
                               />
                             </FormField>
+                            {formErrors[`o${index}_driverName`] && <span style={{ color: "#dc3545", fontSize: "12px", display: "block", marginTop: "2px" }}>{formErrors[`o${index}_driverName`]}</span>}
                           </div>
                         </div>
                       )}
+                    </div>
+
+                    {/* Plus button to add next order item without scrolling up */}
+                    <div style={{ display: "flex", justifyContent: "flex-end", marginTop: "14px", paddingTop: "12px", borderTop: "1px solid #e2e2ea" }}>
+                      <button
+                        type="button"
+                        onClick={handleAddNewOrder}
+                        style={{
+                          display: "flex",
+                          alignItems: "center",
+                          gap: "6px",
+                          padding: "6px 14px",
+                          backgroundColor: "#00368c",
+                          color: "white",
+                          border: "none",
+                          borderRadius: "6px",
+                          cursor: "pointer",
+                          fontSize: "13px",
+                          fontWeight: "500",
+                        }}
+                      >
+                        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                          <line x1="12" y1="5" x2="12" y2="19" stroke="currentColor" strokeWidth="2" strokeLinecap="round" />
+                          <line x1="5" y1="12" x2="19" y2="12" stroke="currentColor" strokeWidth="2" strokeLinecap="round" />
+                        </svg>
+                        Add Order
+                      </button>
                     </div>
                   </div>
                 )}
