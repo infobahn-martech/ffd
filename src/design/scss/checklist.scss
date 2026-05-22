@@ -2163,6 +2163,24 @@
   min-width: 0;
 }
 
+.cl-item-files-wrap {
+  position: relative;
+  width: 100%;
+  min-width: 0;
+  margin-top: 2px;
+}
+
+.checklist-file-chip-row--item {
+  flex-wrap: wrap;
+  align-items: flex-start;
+  gap: 4px;
+  max-width: 100%;
+}
+
+.checklist-file-chip-row--item .checklist-file-chip--inline {
+  max-width: min(100%, 200px);
+}
+
 .cl-item-title-row {
   display: flex;
   align-items: center;
@@ -2595,6 +2613,15 @@ span.cl-item-meta-chip.cl-item-meta-chip--expiry {
   width: 100%;
 }
 
+.checklist-upload-compact--button-only {
+  gap: 0;
+}
+
+.cl-item-files-wrap .checklist-files-popover {
+  top: calc(100% + 3px);
+  left: 0;
+}
+
 .checklist-upload-btn {
   height: 24px;
   min-height: 24px;
@@ -2791,8 +2818,12 @@ span.cl-item-meta-chip.cl-item-meta-chip--expiry {
 
 .cl-items-table tbody .checklist-table-row td.cl-col-upload--multi.checklist-upload-compact-wrap {
   height: auto;
-  min-height: 48px;
+  min-height: 36px;
   vertical-align: middle;
+}
+
+.cl-items-table tbody .checklist-table-row td.cl-col-item.cl-item-cell {
+  vertical-align: top;
 }
 
 .cl-items-table .checklist-table-upload.cl-col-upload.checklist-upload-compact-wrap {
